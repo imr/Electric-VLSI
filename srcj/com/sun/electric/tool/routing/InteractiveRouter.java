@@ -124,14 +124,15 @@ public abstract class InteractiveRouter extends Router {
     /**
      * Make a vertical route.  Will add in contacts in startPort's technology
      * to be able to connect to endPort.  The added contacts will be placed on
-     * top of startPort.  However, the final arc will route to endPort, regardless
-     * of where it is (this may result in non-orthogonal arcs at this point in time).
+     * top of startPort.  However, the final connection to endPort is **NOT**
+     * made.
      * @param startPort the start of the route
      * @param endPort the end of the route
      * @return true on success, false otherwise
      */
     public boolean makeVerticalRoute(PortInst startPort, PortInst endPort) {
-        List route = routeVerticallyToPort(startPort, endPort);
+        RouteElement startRE = RouteElement.existingPortInst(startPort);
+        List route = routeVerticallyToPort(startRE, endPort.getPortProto());
         if (route == null || route.size() == 0) return false;
         // last node is second to last in route
         RouteElement lastNode = (RouteElement)route.get(route.size()-2);
@@ -148,7 +149,8 @@ public abstract class InteractiveRouter extends Router {
      * @return true on sucess
      */
     public boolean makeVerticalRoute(PortInst startPort, ArcProto arc) {
-        List route = routeVerticallyToArc(startPort, arc);
+        RouteElement startRE = RouteElement.existingPortInst(startPort);
+        List route = routeVerticallyToArc(startRE, arc);
         if (route == null || route.size() == 0) return false;
         // last node is second to last in route
         RouteElement lastNode = (RouteElement)route.get(route.size()-2);

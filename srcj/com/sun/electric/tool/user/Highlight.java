@@ -296,8 +296,8 @@ public class Highlight
 	public ElectricObject getElectricObject() { return eobj; }
 
 	/**
-	 * Method to set the Geometric associated with this Highlight object.
-	 * @param geom the Geometric associated with this Highlight object.
+	 * Method to set the ElectricObject associated with this Highlight object.
+	 * @param eobj the ElectricObject associated with this Highlight object.
 	 */
 	private void setElectricObject(ElectricObject eobj) { this.eobj = eobj; }
 

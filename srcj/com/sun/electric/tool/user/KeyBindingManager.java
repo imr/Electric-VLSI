@@ -122,7 +122,7 @@ public class KeyBindingManager implements KeyEventPostProcessor {
      */
     public void finished() {
         allManagers.remove(this);
-        KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventPostProcessor(this);
+        //KeyboardFocusManager.getCurrentKeyboardFocusManager().removeKeyEventPostProcessor(this);
     }
 
     /**

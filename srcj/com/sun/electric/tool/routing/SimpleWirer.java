@@ -58,7 +58,6 @@ public class SimpleWirer extends InteractiveRouter {
 
     protected boolean planRoute(List route, Cell cell, RouteElement startRE, RouteElement endRE, Point2D clicked) {
 
-
         // find port protos of startRE and endRE, and find connecting arc type
         PortProto startPort = startRE.getPortProto();
         PortProto endPort = endRE.getPortProto();
@@ -69,47 +68,40 @@ public class SimpleWirer extends InteractiveRouter {
             if (User.tool.getCurrentArcProto() == Generic.tech.universal_arc)
                 useArc = Generic.tech.universal_arc;
             else {
-                // see if any ports in current technology can connect to both ports
-                ArcProto arc1, arc2;
-                Iterator it = cell.getTechnology().getPorts();
-                for (; it.hasNext(); ) {
-                    PrimitivePort pp = (PrimitivePort)it.next();
-                    arc1 = getArcToUse(startPort, pp);
-                    arc2 = getArcToUse(endPort, pp);
-                    if (arc1 != null && arc2 != null) {
-                        // make new PrimitiveNode pin at startPort, wire it
-                        double width = getArcWidthToUse(startRE.getConnectingPort(), arc1);
-                        RouteElement connectRE = RouteElement.newNode(cell, pp.getParent(), pp,
-                                startRE.getLocation(), pp.getParent().getDefWidth(), pp.getParent().getDefHeight());
-                        route.add(connectRE);
-                        // replace starting point with connectRE
-                        // if startRE is a bisectPin, replace it with connectRE
-                        if (startRE.isBisectArcPin()) {
-                            replaceRouteElementArcPin(route, startRE, connectRE);
-                            while (route.remove(startRE)) {}        // remove all startRE references
-                        } else {
-                            // otherwise connect it to connectRE
-                            RouteElement arcRE = RouteElement.newArc(cell, arc1, width, startRE, connectRE);
-                            route.add(arcRE);
-                        }
-                        startRE = connectRE;
-                        // set useArc to arc between connectRE and endRE
-                        useArc = arc2;
-                        break;
-                    }
-                }
-                if (!it.hasNext()) {
+                // add in contacts on startPort to be able to route to endPort
+                List addedRoute = routeVerticallyToPort(startRE, endPort);
+                if (addedRoute == null) {
                     System.out.println("Don't know how to connect (using Technology "+cell.getTechnology()+"):\n   "+startRE+"\n   "+endRE);
                     return false;
                 }
+                // if startRE was bisect pin, replace it with next node in list
+                if (startRE.isBisectArcPin()) {
+                    // find next newNode
+                    for (Iterator it = addedRoute.iterator(); it.hasNext(); ) {
+                        RouteElement re = (RouteElement)it.next();
+                        if (re.getAction() == RouteElement.RouteElementAction.newNode && re != startRE) {
+                            replaceRouteElementArcPin(addedRoute, startRE, re);
+                            addedRoute.remove(startRE);
+                            break;
+                        }
+                    }
+                }
+                // get new startRE to start route from (last RE in addedRoute)
+                for (Iterator it = addedRoute.iterator(); it.hasNext(); ) {
+                    RouteElement re = (RouteElement)it.next();
+                    if (re.getAction() == RouteElement.RouteElementAction.newNode ||
+                        re.getAction() == RouteElement.RouteElementAction.existingPortInst)
+                        startRE = re;
+                }
+                // add to new route
+                route.addAll(addedRoute);
+                useArc = getArcToUse(startRE.getPortProto(), endPort);
+                if (useArc == null) return false;               // this should never happen
             }
         }
 
         // find arc width to use
-        double width1 = getArcWidthToUse(startRE.getConnectingPort(), useArc);
-        double width2 = getArcWidthToUse(endRE.getConnectingPort(), useArc);
-        // use larger of the two, assign it to width1
-        if (width1 < width2) width1 = width2;
+        double width = getArcWidthToUse(startRE, useArc);
 
         // this router only draws horizontal and vertical arcs
         // if either X or Y coords are the same, create a single arc
@@ -117,7 +109,7 @@ public class SimpleWirer extends InteractiveRouter {
         Point2D endLoc = endRE.getLocation();
         if (startLoc.getX() == endLoc.getX() || startLoc.getY() == endLoc.getY()) {
             // single arc
-            RouteElement arcRE = RouteElement.newArc(cell, useArc, width1, startRE, endRE);
+            RouteElement arcRE = RouteElement.newArc(cell, useArc, width, startRE, endRE);
             route.add(arcRE);
         } else {
             // otherwise, create new pin and two arcs for corner
@@ -140,8 +132,8 @@ public class SimpleWirer extends InteractiveRouter {
             PrimitiveNode pn = ((PrimitiveArc)useArc).findPinProto();
             RouteElement pinRE = RouteElement.newNode(cell, pn, pn.getPort(0), pin1,
                     pn.getDefWidth(), pn.getDefHeight());
-            RouteElement arcRE1 = RouteElement.newArc(cell, useArc, width1, startRE, pinRE);
-            RouteElement arcRE2 = RouteElement.newArc(cell, useArc, width1, pinRE, endRE);
+            RouteElement arcRE1 = RouteElement.newArc(cell, useArc, width, startRE, pinRE);
+            RouteElement arcRE2 = RouteElement.newArc(cell, useArc, width, pinRE, endRE);
             route.add(pinRE);
             route.add(arcRE1);
             route.add(arcRE2);

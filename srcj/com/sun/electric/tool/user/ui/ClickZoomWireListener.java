@@ -45,6 +45,7 @@ import java.awt.*;
 import java.util.List;
 import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.prefs.Preferences;
 
 /**
  * Handles Selection, Zooming, and Wiring.
@@ -60,25 +61,26 @@ public class ClickZoomWireListener
     implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, 
         ActionListener
 {
-    public static ClickZoomWireListener theOne = new ClickZoomWireListener();
+    private static Preferences prefs = Preferences.userNodeForPackage(ClickZoomWireListener.class);
+    private static long cancelMoveDelayMillis; /* cancel move delay in milliseconds */
+    private static long zoomInDelayMillis; /* zoom in delay in milliseconds */
 
-    private static final boolean debug = false; /* for debugging */
-    private static final long dragDelayMillis = 200; /* drag start delay in milliseconds */
-    private static final long zoomInDelayMillis = 100; /* zoom in delay in milliseconds */
+    private static final boolean debug = true; /* for debugging */
+
+    public static ClickZoomWireListener theOne = new ClickZoomWireListener();
 
     private int clickX, clickY;                 /* last mouse pressed coords in screen space */
     private int dbMoveStartX, dbMoveStartY;     /* left mouse pressed coords for move in database space */
+    private int lastdbMouseX, lastdbMouseY;     /* last location of mouse */
     private Mode modeLeft = Mode.none;          /* left mouse button context mode */
     private Mode modeRight = Mode.none;         /* right mouse button context mode */
     private boolean specialSelect = false;      /* if hard-to-select objects are to be selected */
     private boolean invertSelection = false;    /* if invert selection */
-    private List underCursor = null;            /* objects in popupmenu */
-    private String lastPopupMenu = null;        /* last used popupmenu */
+    //private List underCursor = null;            /* objects in popupmenu */
+    //private String lastPopupMenu = null;        /* last used popupmenu */
     private long leftMousePressedTimeStamp;     /* log of last left mouse pressed time */
     private long rightMousePressedTimeStamp;    /* log of last left mouse pressed time */
-    private boolean wiringPopupCloudUp;         /* true if wiring popup cloud is displayed */
-    private List wiringPopupCloudList;           /* list of items in wiring popup cloud */
-    private Point2D wiringLastDBMouse;          /* last point mouse was at */
+    private ElectricObject wiringTarget;        /* last highlight user switched to possibly wire to */
 
     // wiring stuff
     private InteractiveRouter router;           /* router used to connect objects */
@@ -111,6 +113,7 @@ public class ClickZoomWireListener
     /** Constructor is private */
     private ClickZoomWireListener() {
         router = new SimpleWirer();
+        readPrefs();
     }
 
     /** Set ClickZoomWireListener to include hard to select objects */
@@ -183,6 +186,8 @@ public class ClickZoomWireListener
         clickX = evt.getX();
         clickY = evt.getY();
         Point2D dbClick = wnd.screenToDatabase(clickX, clickY);
+        lastdbMouseX = (int)dbClick.getX();
+        lastdbMouseY = (int)dbClick.getY();
 
         boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
         invertSelection = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0;
@@ -289,6 +294,7 @@ public class ClickZoomWireListener
                     Highlight h2 = (Highlight)hIt.next();
                     if (h1.getType() == Highlight.Type.EOBJ && h2.getType() == Highlight.Type.EOBJ) {
                         modeRight = Mode.wiringConnect;
+                        wiringTarget = null;
                         startObj = h1.getElectricObject();
                         endObj = h2.getElectricObject();
                         EditWindow.gridAlign(dbClick);
@@ -303,7 +309,9 @@ public class ClickZoomWireListener
                     Highlight h1 = (Highlight)hIt.next();
                     if (h1.getType() == Highlight.Type.EOBJ) {
                         modeRight = Mode.wiringFind;
+                        wiringTarget = null;
                         startObj = h1.getElectricObject();
+                        endObj = null;
                         EditWindow.gridAlign(dbClick);
                         router.startInteractiveRoute();
                         router.highlightRoute(wnd, h1.getElectricObject(), null, dbClick);
@@ -355,6 +363,8 @@ public class ClickZoomWireListener
         int mouseX = evt.getX();
         int mouseY = evt.getY();
         Point2D dbMouse = wnd.screenToDatabase(mouseX, mouseY);
+        lastdbMouseX = (int)dbMouse.getX();
+        lastdbMouseY = (int)dbMouse.getY();
 
         boolean another = (evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
         specialSelect = ToolBar.getSelectSpecial();
@@ -372,7 +382,7 @@ public class ClickZoomWireListener
                 // moving objects
                 // ignore moving objects drag if not after specified delay
                 // this prevents accidental movements on user clicks
-                if ((currentTime - leftMousePressedTimeStamp) < dragDelayMillis) return;
+                //if ((currentTime - leftMousePressedTimeStamp) < dragDelayMillis) return;
                 // if CTRL held, can only move orthogonally
                 if (another)
                     dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
@@ -398,7 +408,6 @@ public class ClickZoomWireListener
             if (modeRight == Mode.drawBox || modeRight == Mode.zoomBox) {
                 // draw a box
                 wnd.setEndDrag(mouseX, mouseY);
-                wnd.repaint();
             }
             if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
                 // see if anything under the pointer
@@ -406,16 +415,40 @@ public class ClickZoomWireListener
                 if (numFound == 0) {
                     // not over anything, nothing to connect to
                     EditWindow.gridAlign(dbMouse);
-                    router.highlightRoute(wnd, startObj, null, dbMouse);
+                    endObj = null;
+                    wiringTarget = null;
                 } else {
-                    Iterator hIt = Highlight.getHighlights();
-                    Highlight h2 = (Highlight)hIt.next();
+                    // The user can switch between wiring targets under the cursor using a key stroke
+                    // if wiring target non-null, and still under cursor, use that
+                    endObj = null;
+                    if (wiringTarget != null) {
+                        // check if still valid target
+                        EditWindow.gridAlign(dbMouse);
+                        List underCursor = Highlight.findAllInArea(cell, false, true, true, false, specialSelect, false,
+                            new Rectangle2D.Double(dbMouse.getX(), dbMouse.getY(), 0, 0), wnd);
+                        for (Iterator hs = underCursor.iterator(); hs.hasNext(); ) {
+                            Highlight h = (Highlight)hs.next();
+                            ElectricObject eobj = h.getElectricObject();
+                            if (eobj == wiringTarget) {
+                                endObj = wiringTarget;
+                                break;
+                            }
+                        }
+                        // wiringTarget is no longer valid, reset it
+                        if (endObj == null) wiringTarget = null;
+                    }
+                    // if target is null, find new target
+                    if (endObj == null) {
+                        Iterator hIt = Highlight.getHighlights();
+                        Highlight h2 = (Highlight)hIt.next();
+                        endObj = h2.getElectricObject();
+                    }
                     EditWindow.gridAlign(dbMouse);
-                    router.highlightRoute(wnd, startObj, h2.getElectricObject(), dbMouse);
                 }
+                router.highlightRoute(wnd, startObj, endObj, dbMouse);
                 // clear any previous popup cloud
+                /*
                 wnd.clearShowPopupCloud();
-                wiringPopupCloudUp = false;
                 // popup list of stuff under mouse to connect to if more than one
                 List underCursor = Highlight.findAllInArea(cell, false, true, true, false, specialSelect, false,
                     new Rectangle2D.Double(dbMouse.getX(), dbMouse.getY(), 0, 0), wnd);
@@ -447,7 +480,7 @@ public class ClickZoomWireListener
                         wiringPopupCloudList = portList;
                         wiringLastDBMouse = dbMouse;
                     }
-                }
+                } */
             }
             if (modeRight == Mode.wiringConnect) {
                 EditWindow.gridAlign(dbMouse);
@@ -479,12 +512,26 @@ public class ClickZoomWireListener
 
         if (evt.getButton() == MouseEvent.BUTTON1) {
 
+            // ignore move if done within cancelMoveDelayMillis
+            long curTime = System.currentTimeMillis();
+            if (debug) System.out.println("Time diff between click release is: "+(curTime - leftMousePressedTimeStamp));
+            if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
+                if ((curTime - leftMousePressedTimeStamp) < cancelMoveDelayMillis) {
+                    Highlight.setHighlightOffset(0, 0);
+                    modeLeft = Mode.none;
+                    wnd.repaint();
+                    return;
+                }
+            }
+
             // if 'stickyMove' is true and we are moving stuff, ignore mouse release
             if (getStickyMove() && (modeLeft == Mode.move)) {
-                // only do so after drag delay
+                // only do so if after cancel move delay
+                /*
                 if ((System.currentTimeMillis() - leftMousePressedTimeStamp) < dragDelayMillis)
                     modeLeft = Mode.none;       // user left mouse button single click
                 else
+                */
                     modeLeft = Mode.stickyMove; // user moving stuff in sticky mode
             } else {
 
@@ -511,6 +558,7 @@ public class ClickZoomWireListener
                 }
                 if (modeLeft == Mode.move || modeLeft == Mode.stickyMove) {
                     // moving objects
+                    System.out.println("Moving: time diff is: "+(curTime - leftMousePressedTimeStamp));
                     if (another)
                         dbMouse = convertToOrthogonal(new Point2D.Double(dbMoveStartX, dbMoveStartY), dbMouse);
                     Point2D dbDelta = new Point((int)dbMouse.getX() - dbMoveStartX, (int)dbMouse.getY() - dbMoveStartY);
@@ -579,20 +627,25 @@ public class ClickZoomWireListener
             }
             if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
                 // see if anything under the pointer
+                /*
                 int numFound = Highlight.findObject(dbMouse, wnd, false, false, false, true, false, specialSelect, true);
                 if (numFound == 0) {
                     // not over anything, nothing to connect to
                     EditWindow.gridAlign(dbMouse);
-                    router.makeRoute(wnd, startObj, null, dbMouse);
+                    endObj = null;
                 } else {
                     // connect objects
                     Iterator hIt = Highlight.getHighlights();
                     Highlight h2 = (Highlight)hIt.next();
                     EditWindow.gridAlign(dbMouse);
-                    router.makeRoute(wnd, startObj, h2.getElectricObject(), dbMouse);
-                }
+                    endObj = h2.getElectricObject();
+                }*/
+                EditWindow.gridAlign(dbMouse);
+                router.makeRoute(wnd, startObj, endObj, dbMouse);
                 // clear any popup cloud we had
-                wnd.clearShowPopupCloud();
+                //wnd.clearShowPopupCloud();
+                // clear last switched to highlight
+                wiringTarget = null;
             }
             if (modeRight == Mode.wiringConnect) {
                 EditWindow.gridAlign(dbMouse);
@@ -690,6 +743,9 @@ public class ClickZoomWireListener
      * @param evt the KeyEvent
      */
     public void keyPressed(KeyEvent evt) {
+
+        if (debug) System.out.println("  ["+modeLeft+","+modeRight+"] "+evt.paramString());
+
         int chr = evt.getKeyCode();
         EditWindow wnd = (EditWindow)evt.getSource();
         Cell cell = wnd.getCell();
@@ -720,6 +776,7 @@ public class ClickZoomWireListener
             wnd.repaint();
         }
         // wiring popup cloud selection
+        /*
         if (wiringPopupCloudUp && (modeRight == Mode.stickyWiring || modeRight == Mode.wiringFind)) {
             for (int i=0; i<wiringPopupCloudList.size(); i++) {
                 if (chr == (KeyEvent.VK_1 + i)) {
@@ -732,8 +789,10 @@ public class ClickZoomWireListener
                     return;
                 }
             }
+        } */
+        if (chr == KeyEvent.VK_SPACE) {
+            switchWiringTarget(wnd);
         }
-
     }
 
     public void keyReleased(KeyEvent evt) {
@@ -785,6 +844,43 @@ public class ClickZoomWireListener
     }
 
     // ********************************* Wiring Stuff ********************************
+
+    public void switchWiringTarget(EditWindow wnd) {
+        // this command only valid if in wiring mode
+        if (modeRight == Mode.wiringFind || modeRight == Mode.stickyWiring) {
+            // can only switch if something under the mouse to wire to
+            if (endObj != null) {
+                Point2D dbMouse = new Point2D.Double(lastdbMouseX,  lastdbMouseY);
+                Rectangle2D bounds = new Rectangle2D.Double(lastdbMouseX, lastdbMouseY, 0, 0);
+                List targets = Highlight.findAllInArea(wnd.getCell(), false, false, true, false, specialSelect, false, bounds, wnd);
+                Iterator it = targets.iterator();
+                // find wiringTarget in list, if it exists
+                boolean found = false;
+                if (wiringTarget == null) wiringTarget = endObj;
+                while (it.hasNext()) {
+                    if (((Highlight)it.next()).getElectricObject() == wiringTarget) {
+                        found = true;
+                        // get next object
+                        if (!it.hasNext())
+                            it = targets.iterator();         // last element, point to head
+                        wiringTarget = ((Highlight)it.next()).getElectricObject();
+                        break;
+                    }
+                }
+                // if not found in list, use head of list
+                if (!found) {
+                    it = targets.iterator();
+                    if (it.hasNext()) wiringTarget = ((Highlight)it.next()).getElectricObject();
+                    else wiringTarget = null;
+                }
+                // draw new route to target
+                endObj = wiringTarget;
+                System.out.println("Switching to wiring target "+wiringTarget);
+                router.highlightRoute(wnd, startObj, wiringTarget, dbMouse);
+            }
+            // nothing under mouse to route to/switch between, return
+        }
+    }
 
     /**
      * Wire to a layer.
@@ -846,7 +942,7 @@ public class ClickZoomWireListener
             Highlight obj = (Highlight)it.next();
             m = new JMenuItem(obj.toString()); m.addActionListener(this); popup.add(m);
         }
-        lastPopupMenu = "Select";
+        //lastPopupMenu = "Select";
         return popup;
     }
 
@@ -855,5 +951,30 @@ public class ClickZoomWireListener
     public void actionPerformed(ActionEvent e) {
         JMenuItem source = (JMenuItem)e.getSource();
     }
+
+    // ------------------------------------ Preferences -----------------------------------
+
+    private static final String cancelMoveDelayMillisPref = "cancelMoveDelayMillis";
+    private static final String zoomInDelayMillisPref = "zoomInDelayMillis";
+
+    private void readPrefs() {
+        cancelMoveDelayMillis = prefs.getLong(cancelMoveDelayMillisPref, 200);
+        zoomInDelayMillis = prefs.getLong(zoomInDelayMillisPref, 120);
+    }
+
+    public long getCancelMoveDelayMillis() { return cancelMoveDelayMillis; }
+
+    public void setCancelMoveDelayMillis(long delay) {
+        cancelMoveDelayMillis = delay;
+        prefs.putLong(cancelMoveDelayMillisPref, delay);
+    }
+
+    public long getZoomInDelayMillis() { return zoomInDelayMillis; }
+
+    public void setZoomInDelayMillis(long delay) {
+        zoomInDelayMillis = delay;
+        prefs.putLong(zoomInDelayMillisPref, delay);
+    }
+
 
 }

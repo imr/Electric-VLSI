@@ -39,7 +39,7 @@ public abstract class Router {
 
     /**
      * Plan a route starting from startRE, and ending at endRE.
-     * Note that this method does not add startRE and endRE to the
+     * Note that this method does add startRE and endRE to the
      * returned list of RouteElements.
      * @param route the list of RouteElements describing route to be modified
      * @param cell the cell in which to create the route
@@ -149,36 +149,34 @@ public abstract class Router {
     // ------------------------ Protected Utility Methods ---------------------
 
     /**
-     * Routes vertically from pi to layer, and sets current layer in
-     * palette to layer.  This does not route in x or y, just up or down layerwise.
-     * @param startPort the port inst to route from
-     * @param endPort the port inst to route to
+     * Routes vertically from startRE to a node that can connect to endPort.
+     * This does not route in x or y, just up or down layerwise, so all new
+     * RouteElements have the same location as startRE.
+     * @param startRE The start of the Route.  Must be of type newNode or existingPortInst.
+     * @param endPort the port to be able to connect to.
      * @return list of RouteElements that specify route, or null if no
      * valid route found.
      */
-    public List routeVerticallyToPort(PortInst startPort, PortInst endPort) {
+    public List routeVerticallyToPort(RouteElement startRE, PortProto endPort) {
+        
+        // get start port
+        PortProto startPort = startRE.getPortProto();
+        if (startPort == null) return null;
+        // get valid end arcs
+        ArcProto [] endArcs = endPort.getBasePort().getConnections();
+        if (endArcs == null) return null;
 
         // see what arcs endPort can connect to, and try to route to each
-        ArcProto [] endArcs = endPort.getPortProto().getBasePort().getConnections();
         for (int i = 0; i < endArcs.length; i++) {
             ArcProto endArc = endArcs[i];
             if (endArc == Generic.tech.universal_arc) continue;
             if (endArc == Generic.tech.invisible_arc) continue;
             if (endArc == Generic.tech.unrouted_arc) continue;
             if (endArc.isNotUsed()) continue;
-            List route = routeVerticallyToArc(startPort, endArc);
+            List route = routeVerticallyToArc(startRE, endArc);
             // continue if no valid route found
             if (route == null || route.size() == 0) continue;
-
             // else, valid route found.  Add last connection to endPort
-            Cell cell = startPort.getNodeInst().getParent();
-            double arcWidth = getArcWidthToUse(startPort, endArc);
-            // add end of route
-            RouteElement secondToLastNode = (RouteElement)route.get(route.size()-1);
-            RouteElement lastNode = RouteElement.existingPortInst(endPort);
-            route.add(lastNode);
-            RouteElement arc = RouteElement.newArc(cell, endArc, arcWidth, secondToLastNode, lastNode);
-            route.add(arc);
             return route;
         }
         return null;
@@ -187,28 +185,33 @@ public abstract class Router {
     /**
      * Create a List of RouteElements that specifies a route from startPort
      * to endArc. The final element in the route is a node that can connect
-     * to endArc.  Returns null if no valid route is found.
-     * @param startPort start of the route
+     * to endArc.  Returns null if no valid route is found.<p>
+     * Note that this method adds startRE to the returned list.
+     * @param startRE start of the route
      * @param endArc arc final element should be able to connect to
      * @return a list of RouteElements specifying a route
      */
-    public List routeVerticallyToArc(PortInst startPort, ArcProto endArc) {
+    public List routeVerticallyToArc(RouteElement startRE, ArcProto endArc) {
+
+        // get start port
+        PortProto startPort = startRE.getPortProto();
+        if (startPort == null) return null;
 
         // see what arcs endPort can connect to, and try to route to each
         List bestRoute = new ArrayList();
-        if (!findConnectingPorts(bestRoute, startPort.getPortProto(), endArc))
+        if (!findConnectingPorts(bestRoute, startPort, endArc))
             return null;
         if (bestRoute == null || bestRoute.size() == 0) return null; // no valid route found
         // create list of route elements
         List route = new ArrayList();
 
-        Point2D location = new Point2D.Double(startPort.getBounds().getCenterX(),
-                                              startPort.getBounds().getCenterY());
-        Cell cell = startPort.getNodeInst().getParent();
-        double arcWidth = 0;
+        Point2D location = startRE.getLocation();
+        if (location == null) return null;
+        Cell cell = startRE.getCell();
         // add start of route (existing port inst)
-        RouteElement lastNode = RouteElement.existingPortInst(startPort);
-        route.add(lastNode);
+        route.add(startRE);
+        RouteElement lastNode = startRE;
+        double arcWidth = -1;
         for (Iterator it = bestRoute.iterator(); it.hasNext(); ) {
             // should always be arc proto, primitive port pair
             ArcProto ap = (ArcProto)it.next();
@@ -217,7 +220,7 @@ public abstract class Router {
             RouteElement node = RouteElement.newNode(cell, pp.getParent(), pp,
                     location, pp.getParent().getDefWidth(), pp.getParent().getDefHeight());
             route.add(node);
-            if (arcWidth == 0); arcWidth = getArcWidthToUse(startPort, ap);
+            if (arcWidth == -1); arcWidth = getArcWidthToUse(startRE, ap);
             RouteElement arc = RouteElement.newArc(cell, ap, arcWidth, lastNode, node);
             route.add(arc);
             lastNode = node;
@@ -403,6 +406,19 @@ public abstract class Router {
         return width;
     }
 
+    /**
+     * Get arc width to use to connect to RouteElement re. Uses largest
+     * width of arc already connected to re.
+     * @param re the RouteElement to connect to
+     * @param ap the arc type (for default width)
+     * @return the width of the arc to use to connect
+     */
+    protected static double getArcWidthToUse(RouteElement re, ArcProto ap) {
+        double width = ap.getDefaultWidth();
+        double connectedWidth = re.getWidestConnectingArc();
+        if (width > connectedWidth) return width;
+        else return connectedWidth;
+    }
 
 
 }

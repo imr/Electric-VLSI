@@ -13,6 +13,9 @@ import com.sun.electric.tool.user.Highlight;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  * Created by IntelliJ IDEA.
@@ -63,6 +66,7 @@ public class RouteElement {
     /** size aspect */                              private double width, height;
     /** if this bisects an arc */                   private boolean isBisectArcPin;
     /** the newly created instance */               private NodeInst newNodeInst;
+    /** newArcs connecting to this */               private List newArcs;
 
     // ---- New Arc info ----
     /** Arc type to create */                       private ArcProto ap;
@@ -105,6 +109,7 @@ public class RouteElement {
         e.height = height;
         e.newNodeInst = null;
         e.isBisectArcPin = false;
+        e.newArcs = new ArrayList();
         return e;
     }
 
@@ -128,6 +133,8 @@ public class RouteElement {
         if (tailRE.getAction() != RouteElementAction.newNode &&
             tailRE.getAction() != RouteElementAction.existingPortInst)
             System.out.println("  ERROR: tailRE of newArc RouteElement must be newNode or existingPortInst");
+        headRE.addConnectingNewArc(e);
+        tailRE.addConnectingNewArc(e);
         return e;
     }
 
@@ -164,6 +171,8 @@ public class RouteElement {
         RouteElement e = new RouteElement(RouteElementAction.existingPortInst);
         e.done = true;                           // already exists, so done is true
         e.existingPortInst = existingPortInst;
+        e.newArcs = new ArrayList();
+        e.cell = existingPortInst.getNodeInst().getParent();
         return e;
     }
 
@@ -211,6 +220,19 @@ public class RouteElement {
         return null;
     }
 
+    /**
+     * Get the arc proto to be created/deleted.  RouteElement
+     * must be a newArc or deleteArc.  Otherwise, it returns null.
+     * @return the arc proto if newArc or deleteArc, otherwise null.
+     */
+    public ArcProto getArcProto() {
+        if (action == RouteElementAction.newArc)
+            return ap;
+        if (action == RouteElementAction.deleteArc)
+            return arcInstToDelete.getProto();
+        return null;
+    }
+
     /** Return the cell in which this RouteElement will do it's action */
     public Cell getCell() { return cell; }
 
@@ -224,6 +246,14 @@ public class RouteElement {
         if (action == RouteElementAction.deleteNode)
             return nodeInstToDelete.getTrueCenter();
         return null;
+    }
+
+    /**
+     * Return arc width if this is a newArc RouteElement, otherwise returns -1.
+     */
+    public double getArcWidth() {
+        if (action != RouteElementAction.newArc) return -1;
+        return arcWidth;
     }
 
     /** Return string decribing the RouteElement */
@@ -271,6 +301,35 @@ public class RouteElement {
             if (headRE == oldEnd) headRE = newEnd;
             if (tailRE == oldEnd) tailRE = newEnd;
         }
+    }
+
+    /**
+     * Book-keeping: Adds a newArc RouteElement to a list to keep
+     * track of what newArc elements use this object as an end point.
+     * This must be a RouteElement of type newNode or existingPortInst.
+     * @param re the RouteElement to add.
+     */
+    private void addConnectingNewArc(RouteElement re) {
+        if (re.getAction() != RouteElementAction.newArc) return;
+        if (action == RouteElementAction.newNode)
+            newArcs.add(re);
+        if (action == RouteElementAction.existingPortInst)
+            newArcs.add(re);
+    }
+
+    /**
+     * Get largest arc width of newArc RouteElements attached to this
+     * RouteElement.  If none present or this is not a newNode/exisingPortInst
+     * RouteElement, returns -1.
+     */
+    public double getWidestConnectingArc() {
+        if (newArcs == null) return -1;
+        double width = -1;
+        for (Iterator it = newArcs.iterator(); it.hasNext(); ) {
+            RouteElement re = (RouteElement)it.next();
+            if (re.getArcWidth() > width) width = re.getArcWidth();
+        }
+        return width;
     }
 
     // -------------------------- Action/Highlight Methods ------------------------

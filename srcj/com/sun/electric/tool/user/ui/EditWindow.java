@@ -607,6 +607,9 @@ public class EditWindow extends JPanel
 
     private void drawPopupCloud(Graphics2D g)
     {
+        // JKG NOTE: disabled for now
+        // TODO: decide whether or not this is useful
+        /*
         if (popupCloudText == null || popupCloudText.size() == 0) return;
         // draw cloud
         float yspacing = 5;
@@ -617,6 +620,7 @@ public class EditWindow extends JPanel
             g.drawGlyphVector(glyph, x, y);
             y += glyph.getVisualBounds().getHeight() + yspacing;
         }
+        */
     }
 
 	// ************************************* WINDOW ZOOM AND PAN *************************************
