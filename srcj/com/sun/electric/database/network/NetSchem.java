@@ -369,6 +369,17 @@ class NetSchem extends NetCell {
 				log.addExport(e, true, cell, null);
 			}
 		}
+		if (!cell.isMultiPartIcon() && c != null && numPorts != c.getNumPorts()) {
+			for (int i = 0; i < c.getNumPorts(); i++) {
+				Export e = (Export)c.getPort(i);
+				if (e.getEquivalentPort(cell) == null) {
+					String msg = c + ": Schematic port <"+e.getNameKey()+"> has no equivalent port in " + cell.describe();
+					System.out.println(msg);
+					ErrorLogger.ErrorLog log = Network.errorLogger.logError(msg, c, Network.errorSortPorts);
+					log.addExport(e, true, c, null);
+				}
+			}
+		}
 		return changed;
 	}
 
