@@ -64,14 +64,14 @@ public class ElectricObject
 	// ------------------------ public methods -------------------
 
 	/**
-	 * Routine to return the Variable on this ElectricObject with a given name.
+	 * Method to return the Variable on this ElectricObject with a given name.
 	 * @param name the name of the Variable.
 	 * @return the Variable with that name, or null if there is no such Variable.
 	 */
 	public Variable getVar(String name) { Variable.Key key = findKey(name); return key != null ? getVar(key) : null; }
 
 	/**
-	 * Routine to return the Variable on this ElectricObject with a given key.
+	 * Method to return the Variable on this ElectricObject with a given key.
 	 * @param key the key of the Variable.
 	 * @return the Variable with that key, or null if there is no such Variable.
 	 */
@@ -83,7 +83,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to return the Variable on this ElectricObject with a given name and type.
+	 * Method to return the Variable on this ElectricObject with a given name and type.
 	 * @param name the name of the Variable.
 	 * @param type the required type of the Variable.
 	 * @return the Variable with that name and type, or null if there is no such Variable.
@@ -91,7 +91,7 @@ public class ElectricObject
 	public Variable getVar(String name, Class type) { Variable.Key key = findKey(name); return key != null ? getVar(key, type) : null; }
 
 	/**
-	 * Routine to return the Variable on this ElectricObject with a given key and type.
+	 * Method to return the Variable on this ElectricObject with a given key and type.
 	 * @param key the key of the Variable.
 	 * @param type the required type of the Variable.
 	 * @return the Variable with that key and type, or null if there is no such Variable.
@@ -106,7 +106,7 @@ public class ElectricObject
 	}
 
 //	/**
-//	 * Routine to return an entry in an arrayed Variable on this ElectricObject.
+//	 * Method to return an entry in an arrayed Variable on this ElectricObject.
 //	 * @param name the name of the Variable.
 //	 * @param index the required entry in the Variable array.
 //	 * @return the Object in that entry of the Variable, or null if there is no such Variable.
@@ -121,7 +121,7 @@ public class ElectricObject
 //	}
 
 	/**
-	 * Routine to return the number of displayable Variables on this ElectricObject.
+	 * Method to return the number of displayable Variables on this ElectricObject.
 	 * A displayable Variable is one that will be shown with its object.
 	 * Displayable Variables can only sensibly exist on NodeInst and ArcInst objects.
 	 * @return the number of displayable Variables on this ElectricObject.
@@ -145,7 +145,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to add all displayable Variables on this Electric object to an array of Poly objects.
+	 * Method to add all displayable Variables on this Electric object to an array of Poly objects.
 	 * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
 	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
 	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
@@ -176,7 +176,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to create an array of Poly objects that describes a displayable Variables on this Electric object.
+	 * Method to create an array of Poly objects that describes a displayable Variables on this Electric object.
 	 * @param var the Variable on this ElectricObject to describe.
 	 * @param cX the center X coordinate of the ElectricObject.
 	 * @param cY the center Y coordinate of the ElectricObject.
@@ -230,7 +230,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to create a Variable on this ElectricObject with the specified values.
+	 * Method to create a Variable on this ElectricObject with the specified values.
 	 * @param name the name of the Variable.
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been created.
@@ -238,7 +238,7 @@ public class ElectricObject
 	public Variable newVar(String name, Object value) { return newVar(newKey(name), value); }
 
 	/**
-	 * Routine to create a Variable on this ElectricObject with the specified values.
+	 * Method to create a Variable on this ElectricObject with the specified values.
 	 * @param key the key of the Variable.
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been created.
@@ -265,7 +265,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to delete a Variable from this ElectricObject.
+	 * Method to delete a Variable from this ElectricObject.
 	 * @param key the key of the Variable to delete.
 	 */
 	public void delVar(Variable.Key key)
@@ -280,7 +280,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Low-level access routine to link Variabke into this ElectricObject.
+	 * Low-level access method to link Variabke into this ElectricObject.
 	 * @param var Variable to link
 	 */
 	public void lowLevelLinkVar(Variable var)
@@ -289,7 +289,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Low-level access routine to unlink Variabke from this ElectricObject.
+	 * Low-level access method to unlink Variabke from this ElectricObject.
 	 * @param var Variable to unlink.
 	 */
 	public void lowLevelUnlinkVar(Variable var)
@@ -298,7 +298,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to put an Object into an entry in an arrayed Variable on this ElectricObject.
+	 * Method to put an Object into an entry in an arrayed Variable on this ElectricObject.
 	 * @param key the key of the arrayed Variable.
 	 * @param value the object to store in an entry of the arrayed Variable.
 	 * @param index the location in the arrayed Variable to store the value.
@@ -320,7 +320,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to insert an Object into an arrayed Variable on this ElectricObject.
+	 * Method to insert an Object into an arrayed Variable on this ElectricObject.
 	 * @param key the key of the arrayed Variable.
 	 * @param index the location in the arrayed Variable to insert the value.
 	 * @param value the object to insert into the arrayed Variable.
@@ -340,7 +340,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to delete an Object from an arrayed Variable on this ElectricObject.
+	 * Method to delete an Object from an arrayed Variable on this ElectricObject.
 	 * @param key the key of the arrayed Variable.
 	 * @param index the location in the arrayed Variable to delete the value.
 	 */
@@ -360,7 +360,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to copy all variables from another ElectricObject to this ElectricObject.
+	 * Method to copy all variables from another ElectricObject to this ElectricObject.
 	 * @param other the other ElectricObject from which to copy Variables.
 	 */
 	public void copyVars(ElectricObject other)
@@ -403,7 +403,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * routine to return a unique object name in cell "cell" starting with the
+	 * Method to return a unique object name in cell "cell" starting with the
 	 * name "name".
 	 */
 	public static String uniqueObjectName(String name, Cell cell, Class cls)
@@ -544,7 +544,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to determine whether a Variable key on this object is deprecated.
+	 * Method to determine whether a Variable key on this object is deprecated.
 	 * Deprecated Variable keys are those that were used in old versions of Electric,
 	 * but are no longer valid.
 	 * @param name the key of the Variable.
@@ -556,7 +556,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to return an Iterator over all Variables on this ElectricObject.
+	 * Method to return an Iterator over all Variables on this ElectricObject.
 	 * @return an Iterator over all Variables on this ElectricObject.
 	 */
 	public Iterator getVariables()
@@ -567,7 +567,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to return the number of Variables on this ElectricObject.
+	 * Method to return the number of Variables on this ElectricObject.
 	 * @return the number of Variables on this ElectricObject.
 	 */
 	public int getNumVariables()
@@ -577,7 +577,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to return an Iterator over all Variable keys.
+	 * Method to return an Iterator over all Variable keys.
 	 * @return an Iterator over all Variable keys.
 	 */
 	public static Iterator getVariableKeys()
@@ -586,7 +586,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to return the total number of different Variable names on all ElectricObjects.
+	 * Method to return the total number of different Variable names on all ElectricObjects.
 	 * @return the total number of different Variable names on all ElectricObjects.
 	 */
 	public static int getNumVariableKeys()
@@ -601,14 +601,14 @@ public class ElectricObject
 	public void checkChanging() { Job.checkChanging(); }
 
 	/**
-	 * Routine which indicates that this object is in database.
+	 * Method which indicates that this object is in database.
 	 * Some objects are not in database, for example Geometrics in PaletteFrame.
 	 * @return true if this object is in database.
 	 */
 	protected boolean inDatabase() { return true; }
 
 	/**
-	 * Routine to return the Key object for a given Variable name.
+	 * Method to return the Key object for a given Variable name.
 	 * Variable Key objects are caches of the actual string name of the Variable.
 	 * @return the Key object for a given Variable name.
 	 */
@@ -625,7 +625,7 @@ public class ElectricObject
 	}
 
 	/**
-	 * Routine to find or create the Key object for a given Variable name.
+	 * Method to find or create the Key object for a given Variable name.
 	 * Variable Key objects are caches of the actual string name of the Variable.
 	 * @param name given Variable name.
 	 * @return the Key object for a given Variable name.
@@ -641,14 +641,14 @@ public class ElectricObject
 	}
 
 	/*
-	 * Routine to determine the appropriate Cell associated with this ElectricObject.
+	 * Method to determine the appropriate Cell associated with this ElectricObject.
 	 * @return the appropriate Cell associated with this ElectricObject.
 	 * Returns null if no Cell can be found.
 	 */
 	public Cell whichCell() { return null; }
 
 	/*
-	 * Routine to write a description of this ElectricObject (lists all Variables).
+	 * Method to write a description of this ElectricObject (lists all Variables).
 	 * Displays the description in the Messages Window.
 	 */
 	public void getInfo()

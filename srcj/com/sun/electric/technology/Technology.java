@@ -195,7 +195,7 @@ public class Technology extends ElectricObject
 		}
 
 		/**
-		 * Routine to make a 2-long TechPoint array that describes a point at the center of the node.
+		 * Method to make a 2-long TechPoint array that describes a point at the center of the node.
 		 * @return a new TechPoint array that describes a point at the center of the node.
 		 */
 		public static TechPoint [] makeCenterBox()
@@ -206,7 +206,7 @@ public class Technology extends ElectricObject
 		}
 
 		/**
-		 * Routine to make a 2-long TechPoint array that describes a box that fills the node.
+		 * Method to make a 2-long TechPoint array that describes a box that fills the node.
 		 * @return a new TechPoint array that describes a box that fills the node.
 		 */
 		public static TechPoint [] makeFullBox()
@@ -215,7 +215,7 @@ public class Technology extends ElectricObject
 		}
 
 		/**
-		 * Routine to make a 2-long TechPoint array that describes indentation by a specified amount.
+		 * Method to make a 2-long TechPoint array that describes indentation by a specified amount.
 		 * @param amount the amount to indent the box.
 		 * @return a new TechPoint array that describes this indented box.
 		 */
@@ -534,7 +534,7 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to initialize a technology.
+	 * Method to initialize a technology.
 	 * It gets overridden by individual technologies.
 	 */
 	public void init() {}
@@ -607,7 +607,7 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to return an iterator over all libraries.
+	 * Method to return an iterator over all libraries.
 	 * @return an iterator over all libraries.
 	 */
 	public static List getTechnologiesSortedByName()
@@ -640,7 +640,7 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to find a Layer with a given name.
+	 * Method to find a Layer with a given name.
 	 * @param layerName the name of the desired Layer.
 	 * @return the Layer with that name (null if none found).
 	 */
@@ -655,7 +655,7 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to add a new Layer to this Technology.
+	 * Method to add a new Layer to this Technology.
 	 * This is usually done during initialization.
 	 * @param layer the Layer to be added to this Technology.
 	 */
@@ -663,6 +663,18 @@ public class Technology extends ElectricObject
 	{
 		layer.setIndex(layerIndex++);
 		layers.add(layer);
+	}
+
+	/**
+	 * Method to tell whether two layers should be considered equivalent for the purposes of cropping.
+	 * @param layer1 the first Layer.
+	 * @param layer2 the second Layer.
+	 * @return true if the layers are equivalent.
+	 */
+	public boolean sameLayer(Layer layer1, Layer layer2)
+	{
+		// SHOULD USE EQUIVALENCE TABLES!!!!
+		return layer1 == layer2;
 	}
 
 	/****************************** ARCS ******************************/
@@ -702,7 +714,7 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to add a new PrimitiveArc to this Technology.
+	 * Method to add a new PrimitiveArc to this Technology.
 	 * This is usually done during initialization.
 	 * @param ap the PrimitiveArc to be added to this Technology.
 	 */
@@ -713,7 +725,7 @@ public class Technology extends ElectricObject
 
 	/**
 	 * Sets the technology to have no directional arcs.
-	 * Users should never call this routine.
+	 * Users should never call this method.
 	 * It is set once by the technology during initialization.
 	 * Directional arcs are those with arrows on them, indicating (only graphically) the direction of flow through the arc.
 	 * @see ArcInst#setDirectional
@@ -732,7 +744,7 @@ public class Technology extends ElectricObject
 
 	/**
 	 * Sets the technology to have no negated arcs.
-	 * Users should never call this routine.
+	 * Users should never call this method.
 	 * It is set once by the technology during initialization.
 	 * Negated arcs have bubbles on them to graphically indicated negation.
 	 * Only Schematics and related technologies allow negated arcs.
@@ -827,10 +839,10 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to convert old primitive arc names to their proper ArcProtos.
+	 * Method to convert old primitive arc names to their proper ArcProtos.
 	 * This method is overridden by those technologies that have any special arc name conversion issues.
 	 * By default, there is nothing to be done, because by the time this
-	 * routine is called, normal searches have failed.
+	 * method is called, normal searches have failed.
 	 * @param name the unknown arc name, read from an old Library.
 	 * @return the proper PrimitiveArc to use for this name.
 	 */
@@ -873,7 +885,7 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to add a new PrimitiveNode to this Technology.
+	 * Method to add a new PrimitiveNode to this Technology.
 	 * This is usually done during initialization.
 	 * @param np the PrimitiveNode to be added to this Technology.
 	 */
@@ -883,15 +895,15 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to return the pure "NodeProto Function" a primitive NodeInst in this Technology.
-	 * This routine is overridden by technologies (such as Schematics) that know the node's function.
+	 * Method to return the pure "NodeProto Function" a primitive NodeInst in this Technology.
+	 * This method is overridden by technologies (such as Schematics) that know the node's function.
 	 * @param ni the NodeInst to check.
 	 * @return the NodeProto.Function that describes the NodeInst.
 	 */
 	public NodeProto.Function getPrimitiveFunction(NodeInst ni) { return ni.getProto().getFunction(); }
 
 	/**
-	 * Routine to return the size of a transistor NodeInst in this Technology.
+	 * Method to return the size of a transistor NodeInst in this Technology.
      * You should most likely be calling NodeInst.getTransistorSize instead of this.
 	 * @param ni the NodeInst.
      * @param context the VarContext in which any vars will be evaluated,
@@ -910,7 +922,7 @@ public class Technology extends ElectricObject
 	}
 
     /**
-     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
      * types increases.  Note: You should be calling 
@@ -921,7 +933,7 @@ public class Technology extends ElectricObject
 //     public PortInst getTransistorGatePort(NodeInst ni) { return ni.findPortInst("g"); }
     
     /**
-     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
      * types increases.  Note: You should be calling 
@@ -932,7 +944,7 @@ public class Technology extends ElectricObject
 //     public PortInst getTransistorSourcePort(NodeInst ni) { return ni.findPortInst("s"); }
 
     /**
-     * Routine to return a gate PortInst for this transistor NodeInst.
+     * Method to return a gate PortInst for this transistor NodeInst.
      * Implementation Note: May want to make this a more general
      * method, getPrimitivePort(PortType), if the number of port
      * types increases.  Note: You should be calling 
@@ -943,8 +955,8 @@ public class Technology extends ElectricObject
 //     public PortInst getTransistorDrainPort(NodeInst ni) { return ni.findPortInst("d"); }
 
     /**
-	 * Routine to set the pure "NodeProto Function" for a primitive NodeInst in this Technology.
-	 * This routine is overridden by technologies (such as Schematics) that can change a node's function.
+	 * Method to set the pure "NodeProto Function" for a primitive NodeInst in this Technology.
+	 * This method is overridden by technologies (such as Schematics) that can change a node's function.
 	 * @param ni the NodeInst to check.
 	 * @param function the NodeProto.Function to set on the NodeInst.
 	 */
@@ -952,7 +964,7 @@ public class Technology extends ElectricObject
 
 	/**
 	 * Sets the technology to have no primitives.
-	 * Users should never call this routine.
+	 * Users should never call this method.
 	 * It is set once by the technology during initialization.
 	 * This indicates to the user interface that it should not switch to this technology.
 	 * The FPGA technology has this bit set because it initially contains no primitives,
@@ -970,7 +982,7 @@ public class Technology extends ElectricObject
 	public boolean isNoPrimitiveNodes() { return (userBits & NOPRIMTECHNOLOGY) != 0; }
 
     /**
-	 * Routine to set default outline information on a NodeInst.
+	 * Method to set default outline information on a NodeInst.
 	 * Very few primitives have default outline information (usually just in the Artwork Technology).
 	 * This method is overridden by the appropriate technology.
 	 * @param ni the NodeInst to load with default outline information.
@@ -1228,7 +1240,7 @@ public class Technology extends ElectricObject
 		}
 
 		/**
-		 * routine to fill in the contact cuts of a MOS contact when there are
+		 * Method to fill in the contact cuts of a MOS contact when there are
 		 * multiple cuts.  Node is in "ni" and the contact cut number (0 based) is
 		 * in "cut".
 		 */
@@ -1342,7 +1354,7 @@ public class Technology extends ElectricObject
 		private static final int RIGHTANGLE =  2700;
 
 		/**
-		 * routine to describe a box of a serpentine transistor.
+		 * Method to describe a box of a serpentine transistor.
 		 * If the variable "trace" exists on the node, get that
 		 * x/y/x/y information as the centerline of the serpentine path.  The outline is
 		 * placed in the polygon "poly".
@@ -1469,7 +1481,7 @@ public class Technology extends ElectricObject
 		}
 
 		/**
-		 * routine to describe a port in a transistor that may be part of a serpentine
+		 * Method to describe a port in a transistor that may be part of a serpentine
 		 * path.  If the variable "trace" exists on the node, get that x/y/x/y
 		 * information as the centerline of the serpentine path.  The port path
 		 * is shrunk by "diffinset" in the length and is pushed "diffextend" from the centerline.
@@ -1630,10 +1642,10 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to convert old primitive node names to their proper NodeProtos.
+	 * Method to convert old primitive node names to their proper NodeProtos.
 	 * This method is overridden by those technologies that have any special node name conversion issues.
 	 * By default, there is nothing to be done, because by the time this
-	 * routine is called, normal searches have failed.
+	 * method is called, normal searches have failed.
 	 * @param name the unknown node name, read from an old Library.
 	 * @return the proper PrimitiveNode to use for this name.
 	 */
@@ -1703,10 +1715,10 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to convert old primitive port names to their proper PortProtos.
+	 * Method to convert old primitive port names to their proper PortProtos.
 	 * This method is overridden by those technologies that have any special port name conversion issues.
 	 * By default, there is little to be done, because by the time this
-	 * routine is called, normal searches have failed.
+	 * method is called, normal searches have failed.
 	 * @param portName the unknown port name, read from an old Library.
 	 * @param np the PrimitiveNode on which this port resides.
 	 * @return the proper PrimitivePort to use for this name.
@@ -1774,7 +1786,7 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to set default parasitic values on this Technology.
+	 * Method to set default parasitic values on this Technology.
 	 * These values are not saved in the options.
 	 * @param minResistance the minimum resistance in this Technology.
 	 * @param minCapacitance the minimum capacitance in this Technology.
@@ -1786,7 +1798,7 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to examine all parasitic overrides for this Layer's Technology.
+	 * Method to examine all parasitic overrides for this Layer's Technology.
 	 * It only needs to be done once per session, before any of the parasitics
 	 * are used.
 	 */
@@ -1809,165 +1821,11 @@ public class Technology extends ElectricObject
 		}
 	}
 
-	/****************************** DESIGN RULES ******************************/
-
-	/**
-	 * Method to build a DRC.Rules object that contains all of the design rules for this Technology.
-	 * The DRC dialogs use this to hold the values while editing them.
-	 * @return a new DRC.Rules object with the design rules for this Technology.
-	 */
-	public DRC.Rules getDRCRules()
-	{
-		DRC.Rules rules = new DRC.Rules();
-		rules.techName = getTechName();
-		rules.numLayers = getNumLayers();
-		rules.uTSize = (rules.numLayers * rules.numLayers + rules.numLayers) / 2;
-		Variable var = getVar(DRC.WIDE_LIMIT, Double.class);
-		if (var == null) rules.wideLimit = new Double(10); else
-			rules.wideLimit = (Double)var.getObject();
-		rules.layerNames = new String[rules.numLayers];
-
-		int j=0;
-		for(Iterator it = getLayers(); it.hasNext(); )
-		{
-			Layer layer = (Layer)it.next();
-			rules.layerNames[j++] = layer.getName();
-		}
-
-		// minimum widths of each layer
-		Variable minWidthVar = getVar(DRC.MIN_WIDTH, Double[].class);
-		if (minWidthVar != null) rules.minWidth = (Double[])minWidthVar.getObject(); else
-		{
-			rules.minWidth = new Double[rules.numLayers];
-			for(int i=0; i<rules.numLayers; i++) rules.minWidth[i] = new Double(-1);
-		}
-		Variable minWidthRulesVar = getVar(DRC.MIN_WIDTH_RULE, String[].class);
-		if (minWidthRulesVar != null) rules.minWidthRules = (String[])minWidthRulesVar.getObject(); else
-		{
-			rules.minWidthRules = new String[rules.numLayers];
-			for(int i=0; i<rules.numLayers; i++) rules.minWidthRules[i] = "";
-		}
-
-		// for connected layers
-		Variable conListVar = getVar(DRC.MIN_CONNECTED_DISTANCES, Double[].class);
-		if (conListVar != null) rules.conList = (Double[])conListVar.getObject(); else
-		{
-			rules.conList = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.conList[i] = new Double(-1);
-		}
-		Variable conListRulesVar = getVar(DRC.MIN_CONNECTED_DISTANCES_RULE, String[].class);
-		if (conListRulesVar != null) rules.conListRules = (String[])conListRulesVar.getObject(); else
-		{
-			rules.conListRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.conListRules[i] = "";
-		}
-
-		// for unconnected layers
-		Variable unConListVar = getVar(DRC.MIN_UNCONNECTED_DISTANCES, Double[].class);
-		if (unConListVar != null) rules.unConList = (Double[])unConListVar.getObject(); else
-		{
-			rules.unConList = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.unConList[i] = new Double(-1);
-		}
-		Variable unConListRulesVar = getVar(DRC.MIN_UNCONNECTED_DISTANCES_RULE, String[].class);
-		if (unConListRulesVar != null) rules.unConListRules = (String[])unConListRulesVar.getObject(); else
-		{
-			rules.unConListRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.unConListRules[i] = "";
-		}
-
-		// for connected layers that are wide
-		Variable conListWideVar = getVar(DRC.MIN_CONNECTED_DISTANCES_WIDE, Double[].class);
-		if (conListWideVar != null) rules.conListWide = (Double[])conListWideVar.getObject(); else
-		{
-			rules.conListWide = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.conListWide[i] = new Double(-1);
-		}
-		Variable conListWideRulesVar = getVar(DRC.MIN_CONNECTED_DISTANCES_WIDE_RULE, String[].class);
-		if (conListWideRulesVar != null) rules.conListWideRules = (String[])conListWideRulesVar.getObject(); else
-		{
-			rules.conListWideRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.conListWideRules[i] = "";
-		}
-
-		// for unconnected layers that are wide
-		Variable unConListWideVar = getVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE, Double[].class);
-		if (unConListWideVar != null) rules.unConListWide = (Double[])unConListWideVar.getObject(); else
-		{
-			rules.unConListWide = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.unConListWide[i] = new Double(-1);
-		}
-		Variable unConListWideRulesVar = getVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE_RULE, String[].class);
-		if (unConListWideRulesVar != null) rules.unConListWideRules = (String[])unConListWideRulesVar.getObject(); else
-		{
-			rules.unConListWideRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.unConListWideRules[i] = "";
-		}
-
-		// for connected layers that are multicut
-		Variable conListMultiVar = getVar(DRC.MIN_CONNECTED_DISTANCES_MULTI, Double[].class);
-		if (conListMultiVar != null) rules.conListMulti = (Double[])conListMultiVar.getObject(); else
-		{
-			rules.conListMulti = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.conListMulti[i] = new Double(-1);
-		}
-		Variable conListMultiRulesVar = getVar(DRC.MIN_CONNECTED_DISTANCES_MULTI_RULE, String[].class);
-		if (conListMultiRulesVar != null) rules.conListMultiRules = (String[])conListMultiRulesVar.getObject(); else
-		{
-			rules.conListMultiRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.conListMultiRules[i] = "";
-		}
-
-		// for unconnected layers that are multicut
-		Variable unConListMultiVar = getVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI, Double[].class);
-		if (unConListMultiVar != null) rules.unConListMulti = (Double[])unConListMultiVar.getObject(); else
-		{
-			rules.unConListMulti = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.unConListMulti[i] = new Double(-1);
-		}
-		Variable unConListMultiRulesVar = getVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI_RULE, String[].class);
-		if (unConListMultiRulesVar != null) rules.unConListMultiRules = (String[])unConListMultiRulesVar.getObject(); else
-		{
-			rules.unConListMultiRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.unConListMultiRules[i] = "";
-		}
-
-		// for edge distances between layers
-		Variable edgeListVar = getVar(DRC.MIN_EDGE_DISTANCES, Double[].class);
-		if (edgeListVar != null) rules.edgeList = (Double[])edgeListVar.getObject(); else
-		{
-			rules.edgeList = new Double[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.edgeList[i] = new Double(-1);
-		}
-		Variable edgeListRulesVar = getVar(DRC.MIN_EDGE_DISTANCES_RULE, String[].class);
-		if (edgeListRulesVar != null) rules.edgeListRules = (String[])edgeListRulesVar.getObject(); else
-		{
-			rules.edgeListRules = new String[rules.uTSize];
-			for(int i=0; i<rules.uTSize; i++) rules.edgeListRules[i] = "";
-		}
-
-		rules.numNodes = getNumNodes();
-		rules.nodeNames = new String[rules.numNodes];
-		rules.minNodeSize = new Double[rules.numNodes*2];
-		rules.minNodeSizeRules = new String[rules.numNodes];
-		j = 0;
-		for(Iterator it = getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
-			rules.nodeNames[j] = np.getProtoName();
-			rules.minNodeSize[j*2] = new Double(np.getMinWidth());
-			rules.minNodeSize[j*2+1] = new Double(np.getMinHeight());
-			rules.minNodeSizeRules[j] = np.getMinSizeRule();
-			j++;
-		}
-		return rules;
-	}
-
 	/****************************** MISCELANEOUS ******************************/
 
 	/**
 	 * Sets the technology to be "non-electrical".
-	 * Users should never call this routine.
+	 * Users should never call this method.
 	 * It is set once by the technology during initialization.
 	 * Examples of non-electrical technologies are "Artwork" and "Gem".
 	 */
@@ -1982,7 +1840,7 @@ public class Technology extends ElectricObject
 
 	/**
 	 * Sets the technology to be non-standard.
-	 * Users should never call this routine.
+	 * Users should never call this method.
 	 * It is set once by the technology during initialization.
 	 * A non-standard technology cannot be edited in the technology editor.
 	 * Examples are Schematics and Artwork, which have more complex graphics.
@@ -1999,7 +1857,7 @@ public class Technology extends ElectricObject
 
 	/**
 	 * Sets the technology to be "static".
-	 * Users should never call this routine.
+	 * Users should never call this method.
 	 * It is set once by the technology during initialization.
 	 * Static technologies are the core set of technologies in Electric that are
 	 * essential, and cannot be deleted.
@@ -2074,7 +1932,7 @@ public class Technology extends ElectricObject
 	public int getIndex() { return techIndex; }
 
 	/**
-	 * Routine to determine whether a new technology with the given name would be legal.
+	 * Method to determine whether a new technology with the given name would be legal.
 	 * All technology names must be unique, so the name cannot already be in use.
 	 * @param techName the name of the new technology that will be created.
 	 * @return true if the name is valid.
@@ -2090,7 +1948,7 @@ public class Technology extends ElectricObject
 	}
 
 	/*
-	 * Routine to write a description of this Technology.
+	 * Method to write a description of this Technology.
 	 * Displays the description in the Messages Window.
 	 */
 	public void getInfo()
@@ -2111,7 +1969,7 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to determine the appropriate Technology to use for a Cell.
+	 * Method to determine the appropriate Technology to use for a Cell.
 	 * @param cell the Cell to examine.
 	 * @return the Technology for that cell.
 	 */
@@ -2121,7 +1979,7 @@ public class Technology extends ElectricObject
 	}
 
 	/**
-	 * Routine to determine the appropriate technology to use for a cell.
+	 * Method to determine the appropriate technology to use for a cell.
 	 * The contents of the cell can be defined by the lists of NodeInsts and ArcInsts, or
 	 * if they are null, then by the contents of the Cell.
 	 * @param cell the Cell to examine.

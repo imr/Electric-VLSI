@@ -203,7 +203,7 @@ class NetCell
 	}
 
 	/**
-	 * Routine to return either the network name or the bus name on this ArcInst.
+	 * Method to return either the network name or the bus name on this ArcInst.
 	 * @return the either the network name or the bus name on this ArcInst.
 	 */
 	String getNetworkName(ArcInst ai) {
@@ -214,7 +214,7 @@ class NetCell
 	}
 
 	/**
-	 * Routine to return the bus width on this ArcInst.
+	 * Method to return the bus width on this ArcInst.
 	 * @return the either the bus width on this ArcInst.
 	 */
 	public int getBusWidth(ArcInst ai)

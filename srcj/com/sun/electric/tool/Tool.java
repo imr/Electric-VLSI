@@ -103,7 +103,7 @@ public class Tool extends ElectricObject implements Change
 	}
 
 	/**
-	 * Routine to find the Tool with a specified name.
+	 * Method to find the Tool with a specified name.
 	 * @param name the name of the desired Tool.
 	 * @return the Tool with that name, or null if no tool matches.
 	 */
@@ -119,7 +119,7 @@ public class Tool extends ElectricObject implements Change
 	}
 
 	/**
-	 * Routine to return an Iterator over all of the Tools in Electric.
+	 * Method to return an Iterator over all of the Tools in Electric.
 	 * @return an Iterator over all of the Tools in Electric.
 	 */
 	public static Iterator getTools()
@@ -128,7 +128,7 @@ public class Tool extends ElectricObject implements Change
 	}
 
 	/**
-	 * Routine to return the number of Tools.
+	 * Method to return the number of Tools.
 	 * @return the number of Tools.
 	 */
 	public static int getNumTools()
@@ -137,125 +137,125 @@ public class Tool extends ElectricObject implements Change
 	}
 
 	/**
-	 * Routine to return the name of this Tool.
+	 * Method to return the name of this Tool.
 	 * @return the name of this Tool.
 	 */
 	public String getName() { return toolName; }
 
 	/**
-	 * Routine to return the index of this Tool.
+	 * Method to return the index of this Tool.
 	 * Each tool has a 0-based index that can be used to access arrays of Tools.
 	 * @return the index of this Tool.
 	 */
 	public int getIndex() { return toolIndex; }
 
     /**
-     * Routine to return Preferences object
+     * Method to return Preferences object
      * @return Preferences object
      */
     public Preferences getPrefs() { return prefs; }
     
 	/**
-	 * Routine to set this Tool to be on.
+	 * Method to set this Tool to be on.
 	 * Tools that are "on" are running incrementally, and get slices and broadcasts.
 	 */
 	public void setOn() { toolState |= TOOLON; }
 
 	/**
-	 * Routine to set this Tool to be off.
+	 * Method to set this Tool to be off.
 	 * Tools that are "on" are running incrementally, and get slices and broadcasts.
 	 */
 	public void clearOn() { toolState &= ~TOOLON; }
 
 	/**
-	 * Routine to tell whether this Tool is on.
+	 * Method to tell whether this Tool is on.
 	 * Tools that are "on" are running incrementally, and get slices and broadcasts.
 	 * @return true if this Tool is on.
 	 */
 	public boolean isOn() { return (toolState & TOOLON) != 0; }
 
 	/**
-	 * Routine to set this Tool to be in the background.
+	 * Method to set this Tool to be in the background.
 	 */
 	public void setBackground() { toolState |= TOOLBG; }
 
 	/**
-	 * Routine to set this Tool to be in the foreground.
+	 * Method to set this Tool to be in the foreground.
 	 */
 	public void clearBackground() { toolState &= ~TOOLBG; }
 
 	/**
-	 * Routine to tell whether this Tool is in the background.
+	 * Method to tell whether this Tool is in the background.
 	 * @return true if this Tool is in the background.
 	 */
 	public boolean isBackground() { return (toolState & TOOLBG) != 0; }
 
 	/**
-	 * Routine to set this Tool to fix errors.
+	 * Method to set this Tool to fix errors.
 	 */
 	public void setFixErrors() { toolState |= TOOLFIX; }
 
 	/**
-	 * Routine to set this Tool to fix errors.
+	 * Method to set this Tool to fix errors.
 	 */
 	public void clearFixErrors() { toolState &= ~TOOLFIX; }
 
 	/**
-	 * Routine to tell whether this Tool fixes errors.
+	 * Method to tell whether this Tool fixes errors.
 	 * @return true if this Tool fixes errors.
 	 */
 	public boolean isFixErrors() { return (toolState & TOOLFIX) != 0; }
 
 	/**
-	 * Routine to set this Tool to be incremental.
+	 * Method to set this Tool to be incremental.
 	 */
 	public void setIncremental() { toolState |= TOOLINCREMENTAL; }
 
 	/**
-	 * Routine to set this Tool to be incremental.
+	 * Method to set this Tool to be incremental.
 	 */
 	public void clearIncremental() { toolState &= ~TOOLINCREMENTAL; }
 
 	/**
-	 * Routine to tell whether this Tool is incremental.
+	 * Method to tell whether this Tool is incremental.
 	 * @return true if this Tool is incremental.
 	 */
 	public boolean isIncremental() { return (toolState & TOOLINCREMENTAL) != 0; }
 
 	/**
-	 * Routine to set this Tool to be analysis.
+	 * Method to set this Tool to be analysis.
 	 */
 	public void setAnalysis() { toolState |= TOOLANALYSIS; }
 
 	/**
-	 * Routine to set this Tool to be analysis.
+	 * Method to set this Tool to be analysis.
 	 */
 	public void clearAnalysis() { toolState &= ~TOOLANALYSIS; }
 
 	/**
-	 * Routine to tell whether this Tool does analysis.
+	 * Method to tell whether this Tool does analysis.
 	 * @return true if this Tool does analysis.
 	 */
 	public boolean isAnalysis() { return (toolState & TOOLANALYSIS) != 0; }
 
 	/**
-	 * Routine to set this Tool to be synthesis.
+	 * Method to set this Tool to be synthesis.
 	 */
 	public void setSynthesis() { toolState |= TOOLSYNTHESIS; }
 
 	/**
-	 * Routine to set this Tool to be synthesis.
+	 * Method to set this Tool to be synthesis.
 	 */
 	public void clearSynthesis() { toolState &= ~TOOLSYNTHESIS; }
 
 	/**
-	 * Routine to tell whether this Tool does synthesis.
+	 * Method to tell whether this Tool does synthesis.
 	 * @return true if this Tool does synthesis.
 	 */
 	public boolean isSynthesis() { return (toolState & TOOLSYNTHESIS) != 0; }
 
 	/**
-	 * Routine to determine whether a variable key on Tool is deprecated.
+	 * Method to determine whether a variable key on Tool is deprecated.
 	 * Deprecated variable keys are those that were used in old versions of Electric,
 	 * but are no longer valid.
 	 * @param key the key of the variable.

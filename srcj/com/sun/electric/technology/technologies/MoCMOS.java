@@ -3321,7 +3321,7 @@ public class MoCMOS extends Technology
 		}
 		if (!errorfound)
 		{
-			// clear the rules on the technology
+			// set the rules on the technology
 			Variable var = newVar(DRC.MIN_CONNECTED_DISTANCES, conDist);
 			if (var != null) var.setDontSave();
 			var = newVar(DRC.MIN_CONNECTED_DISTANCES_RULE, conDistRules);

@@ -61,43 +61,43 @@ public class Connection //extends ElectricObject
 	// --------------------------- public methods --------------------------
 
 	/**
-	 * Routine to return the ArcInst on this Connection.
+	 * Method to return the ArcInst on this Connection.
 	 * @return the ArcInst on this Connection.
 	 */
 	public ArcInst getArc() { return arc; }
 
 	/**
-	 * Routine to return the PortInst on this Connection.
+	 * Method to return the PortInst on this Connection.
 	 * @return the PortInst on this Connection.
 	 */
 	public PortInst getPortInst() { return portInst; }
 
 	/**
-	 * Routine to return the location on this Connection.
+	 * Method to return the location on this Connection.
 	 * @return the location on this Connection.
 	 */
 	public Point2D getLocation() { return location; }
 
 	/**
-	 * Routine to set the location on this Connection.
+	 * Method to set the location on this Connection.
 	 * @param pt the location on this Connection.
 	 */
 	public void setLocation(Point2D pt) { location.setLocation(pt.getX(), pt.getY()); }
 
 	/**
-	 * Routine to return the location on this Connection.
+	 * Method to return the location on this Connection.
 	 * @return the location on this Connection.
 	 */
 	public short getEndShrink() { return endShrink; }
 
 	/**
-	 * Routine to set the end shrinkage on this Connection.
+	 * Method to set the end shrinkage on this Connection.
 	 * @param endShrink the end shrinkage on this Connection.
 	 */
 	public void setEndShrink(short endShrink) { this.endShrink = endShrink; }
 
 	/**
-	 * Routine to determine whether this Connection is on the head end of the ArcInst.
+	 * Method to determine whether this Connection is on the head end of the ArcInst.
 	 * @return true if this Connection is on the head of the ArcInst.
 	 */
 	public boolean isHeadEnd()

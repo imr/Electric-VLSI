@@ -108,7 +108,7 @@ public class DialogOpenFile extends JFileChooser
     }
     
     /**
-     * Routine to set the default directory to browse.  The default is the
+     * Method to set the default directory to browse.  The default is the
      * System property "user.dir", which is the current working directory.
      * If that is unavailable, null is returned (which makes the JFileChooser
      * use the user's home dir (unix) or My Documents (windows).
@@ -180,7 +180,7 @@ public class DialogOpenFile extends JFileChooser
 	}
 
 	/**
-	 * Routine called when the user clicks "ok" during file choosing.
+	 * Method called when the user clicks "ok" during file choosing.
 	 * Prevents overwriting of existing files.
 	 */
 	public void approveSelection()

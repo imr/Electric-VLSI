@@ -126,7 +126,7 @@ public class Layer
 		/** Describes a control layer. */							public static final Function CONTROL    = new Function("control",    "LFCONTROL", 0);
 
 		/**
-		 * Routine to tell whether this layer function is metal.
+		 * Method to tell whether this layer function is metal.
 		 * @return true if this layer function is metal.
 		 */
 		public boolean isMetal()
@@ -139,7 +139,7 @@ public class Layer
 		}
 
 		/**
-		 * Routine to tell whether this layer function is diffusion (active).
+		 * Method to tell whether this layer function is diffusion (active).
 		 * @return true if this layer function is diffusion (active).
 		 */
 		public boolean isDiff()
@@ -149,7 +149,7 @@ public class Layer
 		}
 
 		/**
-		 * Routine to tell whether this layer function is polysilicon.
+		 * Method to tell whether this layer function is polysilicon.
 		 * @return true if this layer function is polysilicon.
 		 */
 		public boolean isPoly()
@@ -159,7 +159,7 @@ public class Layer
 		}
 
 		/**
-		 * Routine to tell whether this layer function is polysilicon in the gate of a transistor.
+		 * Method to tell whether this layer function is polysilicon in the gate of a transistor.
 		 * @return true if this layer function is the gate of a transistor.
 		 */
 		public boolean isGatePoly()
@@ -169,7 +169,7 @@ public class Layer
 		}
 
 		/**
-		 * Routine to tell whether this layer function is a contact.
+		 * Method to tell whether this layer function is a contact.
 		 * @return true if this layer function is contact.
 		 */
 		public boolean isContact()
@@ -178,6 +178,18 @@ public class Layer
 				this == CONTACT4 || this == CONTACT5 || this == CONTACT6 ||
 				this == CONTACT7 || this == CONTACT8 || this == CONTACT9 ||
 				this == CONTACT10 || this == CONTACT11 || this == CONTACT12)  return true;
+			return false;
+		}
+
+		/**
+		 * Method to tell whether this layer function is substrate.
+		 * @return true if this layer function is substrate.
+		 */
+		public boolean isSubstrate()
+		{
+			if (this == SUBSTRATE ||
+				this == WELL || this == WELLP || this == WELLN ||
+				this == IMPLANT || this == IMPLANTN || this == IMPLANTP)  return true;
 			return false;
 		}
 	}
@@ -203,7 +215,7 @@ public class Layer
 	}
 
 	/**
-	 * Routine to create a new layer with the given name and graphics.
+	 * Method to create a new layer with the given name and graphics.
 	 * @param tech the Technology that this layer belongs to.
 	 * @param name the name of the layer.
 	 * @param graphics the appearance of the layer.
@@ -217,39 +229,39 @@ public class Layer
 	}
 
 	/**
-	 * Routine to return the name of this Layer.
+	 * Method to return the name of this Layer.
 	 * @return the name of this Layer.
 	 */
 	public String getName() { return name; }
 
 	/**
-	 * Routine to return the index of this Layer.
+	 * Method to return the index of this Layer.
 	 * The index is 0-based.
 	 * @return the index of this Layer.
 	 */
 	public int getIndex() { return index; }
 
 	/**
-	 * Routine to set the index of this Layer.
+	 * Method to set the index of this Layer.
 	 * The index is 0-based.
 	 * @param index the index of this Layer.
 	 */
 	public void setIndex(int index) { this.index = index; }
 
 	/**
-	 * Routine to return the Technology of this Layer.
+	 * Method to return the Technology of this Layer.
 	 * @return the Technology of this Layer.
 	 */
 	public Technology getTechnology() { return tech; }
 
 	/**
-	 * Routine to return the graphics description of this Layer.
+	 * Method to return the graphics description of this Layer.
 	 * @return the graphics description of this Layer.
 	 */
 	public EGraphics getGraphics() { return graphics; }
 
 	/**
-	 * Routine to set the Function of this Layer.
+	 * Method to set the Function of this Layer.
 	 * @param function the Function of this Layer.
 	 */
 	public void setFunction(Function function)
@@ -259,7 +271,7 @@ public class Layer
 	}
 
 	/**
-	 * Routine to set the Function of this Layer when the function is complex.
+	 * Method to set the Function of this Layer when the function is complex.
 	 * Some layer functions have extra bits of information to describe them.
 	 * For example, P-Type Diffusion has the Function DIFF but the extra bits PTYPE.
 	 * @param function the Function of this Layer.
@@ -272,13 +284,20 @@ public class Layer
 	}
 
 	/**
-	 * Routine to return the Function of this Layer.
+	 * Method to return the Function of this Layer.
 	 * @return the Function of this Layer.
 	 */
 	public Function getFunction() { return function; }
 
 	/**
-	 * Routine to set the 3D height and thickness of this Layer.
+	 * Method to return the Function "extras" of this Layer.
+	 * The "extras" are a set of modifier bits, such as "p-type".
+	 * @return the Function extras of this Layer.
+	 */
+	public int getFunctionExtras() { return functionExtras; }
+
+	/**
+	 * Method to set the 3D height and thickness of this Layer.
 	 * @param thickness the thickness of this layer.
 	 * Most layers have a thickness of 0, but contact layers are fatter
 	 * because they bridge layers...they typically have a thickness of 1.
@@ -292,14 +311,14 @@ public class Layer
 	}
 
 	/**
-	 * Routine to return the height of this layer.
+	 * Method to return the height of this layer.
 	 * @return the height of this layer above the ground plane.
 	 * The higher the height value, the farther from the wafer.
 	 */
 	public double getHeight() { return height; }
 
 	/**
-	 * Routine to return the thickness of this layer.
+	 * Method to return the thickness of this layer.
 	 * @return the thickness of this layer.
 	 * Most layers have a thickness of 0, but contact layers are fatter
 	 * because they bridge layers...they typically have a thickness of 1.
@@ -307,55 +326,55 @@ public class Layer
 	public double getThickness() { return thickness; }
 
 	/**
-	 * Routine to set the CIF name of this Layer.
+	 * Method to set the CIF name of this Layer.
 	 * @param cifLayer the CIF name of this Layer.
 	 */
 	public void setCIFLayer(String cifLayer) { this.cifLayer = cifLayer; }
 
 	/**
-	 * Routine to return the CIF name of this layer.
+	 * Method to return the CIF name of this layer.
 	 * @return the CIF name of this layer.
 	 */
 	public String getCIFLayer() { return cifLayer; }
 
 	/**
-	 * Routine to set the DXF name of this Layer.
+	 * Method to set the DXF name of this Layer.
 	 * @param dxfLayer the DXF name of this Layer.
 	 */
 	public void setDXFLayer(String dxfLayer) { this.dxfLayer = dxfLayer; }
 
 	/**
-	 * Routine to return the DXF name of this layer.
+	 * Method to return the DXF name of this layer.
 	 * @return the DXF name of this layer.
 	 */
 	public String getDXFLayer() { return dxfLayer; }
 
 	/**
-	 * Routine to set the GDS name of this Layer.
+	 * Method to set the GDS name of this Layer.
 	 * @param gdsLayer the GDS name of this Layer.
 	 */
 	public void setGDSLayer(String gdsLayer) { this.gdsLayer = gdsLayer; }
 
 	/**
-	 * Routine to return the GDS name of this layer.
+	 * Method to return the GDS name of this layer.
 	 * @return the GDS name of this layer.
 	 */
 	public String getGDSLayer() { return gdsLayer; }
 
 	/**
-	 * Routine to set the Skill name of this Layer.
+	 * Method to set the Skill name of this Layer.
 	 * @param skillLayer the Skill name of this Layer.
 	 */
 	public void setSkillLayer(String skillLayer) { this.skillLayer = skillLayer; }
 
 	/**
-	 * Routine to return the Skill name of this layer.
+	 * Method to return the Skill name of this layer.
 	 * @return the Skill name of this layer.
 	 */
 	public String getSkillLayer() { return skillLayer; }
 
 	/**
-	 * Routine to set the Spice parasitics for this Layer.
+	 * Method to set the Spice parasitics for this Layer.
 	 * This is typically called only during initialization.
 	 * It does not set the "option" storage, as "setResistance()",
 	 * "setCapacitance()", and ""setEdgeCapacitance()" do.
@@ -371,13 +390,13 @@ public class Layer
 	}
 
 	/**
-	 * Routine to return the resistance for this layer.
+	 * Method to return the resistance for this layer.
 	 * @return the resistance for this layer.
 	 */
 	public double getResistance() { tech.gatherParasiticOverrides();   return resistance; }
 
 	/**
-	 * Routine to set the resistance for this Layer.
+	 * Method to set the resistance for this Layer.
 	 * Also saves this information in the permanent options.
 	 * @param resistance the new resistance for this Layer.
 	 */
@@ -396,13 +415,13 @@ public class Layer
 	}
 
 	/**
-	 * Routine to return the capacitance for this layer.
+	 * Method to return the capacitance for this layer.
 	 * @return the capacitance for this layer.
 	 */
 	public double getCapacitance() { tech.gatherParasiticOverrides();   return capacitance; }
 
 	/**
-	 * Routine to set the capacitance for this Layer.
+	 * Method to set the capacitance for this Layer.
 	 * Also saves this information in the permanent options.
 	 * @param capacitance the new capacitance for this Layer.
 	 */
@@ -421,13 +440,13 @@ public class Layer
 	}
 
 	/**
-	 * Routine to return the edge capacitance for this layer.
+	 * Method to return the edge capacitance for this layer.
 	 * @return the edge capacitance for this layer.
 	 */
 	public double getEdgeCapacitance() { tech.gatherParasiticOverrides();   return edgeCapacitance; }
 
 	/**
-	 * Routine to set the edge capacitance for this Layer.
+	 * Method to set the edge capacitance for this Layer.
 	 * Also saves this information in the permanent options.
 	 * @param edgeCapacitance the new edge capacitance for this Layer.
 	 */

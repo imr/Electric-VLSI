@@ -25,14 +25,17 @@ package com.sun.electric.database.geometry;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.AffineTransform;
 
 /**
  * This class is a collection of math utilities.
  */
 public class EMath
 {
+	public static final AffineTransform MATID = new AffineTransform();
+
 	/**
-	 * Routine to return the angle between two points.
+	 * Method to return the angle between two points.
 	 * @param end1 the first point.
 	 * @param end2 the second point.
 	 * @return the angle between the points (in tenth-degrees).
@@ -53,7 +56,7 @@ public class EMath
 	}
 
 	/**
-	 * Routine to return the sum of two points.
+	 * Method to return the sum of two points.
 	 * @param p the first point.
 	 * @param dx the X component of the second point
 	 * @param dy the T component of the second point
@@ -65,11 +68,11 @@ public class EMath
 	}
 
 	/**
-	 * Routine to parse the floating-point number in a string.
+	 * Method to parse the floating-point number in a string.
 	 * <P>
-	 * There is one reason to use this routine instead of Double.parseDouble...
+	 * There is one reason to use this method instead of Double.parseDouble...
 	 * <UL>
-	 * <LI>This routine does not throw an exception if the number is invalid (or blank).
+	 * <LI>This method does not throw an exception if the number is invalid (or blank).
 	 * </UL>
 	 * @param text the string with a number in it.
 	 * @return the numeric value.
@@ -114,20 +117,20 @@ public class EMath
 	}
 
 	/**
-	 * Routine to parse the number in a string.
+	 * Method to parse the number in a string.
 	 * <P>
-	 * There are many reasons to use this routine instead of Integer.parseInt...
+	 * There are many reasons to use this method instead of Integer.parseInt...
 	 * <UL>
-	 * <LI>This routine can handle any radix.
+	 * <LI>This method can handle any radix.
 	 *     If the number begins with "0", presume base 8.
 	 *     If the number begins with "0x", presume base 16.
 	 *     Otherwise presume base 10.
-	 * <LI>This routine can handle numbers that affect the sign bit.
+	 * <LI>This method can handle numbers that affect the sign bit.
 	 *     If you give 0xFFFFFFFF to Integer.parseInt, you get a numberFormat exception.
-	 *     This routine properly returns -1.
-	 * <LI>This routine does not require that the entire string be part of the number.
+	 *     This method properly returns -1.
+	 * <LI>This method does not require that the entire string be part of the number.
 	 *     If there is extra text after the end, Integer.parseInt fails (for example "123xx").
-	 * <LI>This routine does not throw an exception if the number is invalid (or blank).
+	 * <LI>This method does not throw an exception if the number is invalid (or blank).
 	 * </UL>
 	 * @param s the string with a number in it.
 	 * @return the numeric value.
@@ -138,8 +141,8 @@ public class EMath
 	}
 
 	/**
-	 * Routine to parse the number in a string.
-	 * See the comments for "atoi(String s)" for reasons why this routine exists.
+	 * Method to parse the number in a string.
+	 * See the comments for "atoi(String s)" for reasons why this method exists.
 	 * @param s the string with a number in it.
 	 * @param pos the starting position in the string to find the number.
 	 * @return the numeric value.
@@ -184,7 +187,7 @@ public class EMath
 	}
 
 	/**
-	 * Routine to convert an integer to a string that is left-padded with spaces
+	 * Method to convert an integer to a string that is left-padded with spaces
 	 * @param value the integer value.
 	 * @param width the minimum field width.
 	 * If the result is less than this, extra spaces are added to the beginning.
@@ -198,7 +201,7 @@ public class EMath
 	}
 
 	/**
-	 * Routine to convert a double to a string that is left-padded with spaces
+	 * Method to convert a double to a string that is left-padded with spaces
 	 * @param value the double value.
 	 * @param width the minimum field width.
 	 * If the result is less than this, extra spaces are added to the beginning.
@@ -212,7 +215,7 @@ public class EMath
 	}
 
 	/**
-	 * Routine to determine whether or not a string is a number.
+	 * Method to determine whether or not a string is a number.
 	 * This method allows hexadecimal numbers as well as those with exponents.
 	 * @param pp the string to test.
 	 * @return true if it is a number.
@@ -271,7 +274,7 @@ public class EMath
 	}
 
 	/**
-	 * Routine to tell whether a point is on a given line segment.
+	 * Method to tell whether a point is on a given line segment.
 	 * @param end1 the first end of the line segment.
 	 * @param end2 the second end of the line segment.
 	 * @param pt the point in question.
@@ -303,7 +306,7 @@ public class EMath
 	}
 
 	/**
-	 * Routine to find the point on a line segment that is closest to a given point.
+	 * Method to find the point on a line segment that is closest to a given point.
 	 * @param p1 one end of the line segment.
 	 * @param p2 the other end of the line segment.
 	 * @param pt the point near the line segment.
@@ -333,7 +336,7 @@ public class EMath
 	}
 
 	/**
-	 * Routine to find the point on a line that is closest to a given point.
+	 * Method to find the point on a line that is closest to a given point.
 	 * @param p1 one end of the line.
 	 * @param p2 the other end of the line.
 	 * @param pt the point near the line.
@@ -368,7 +371,7 @@ public class EMath
 	}
 
 	/**
-	 * routine to compute the distance between point (x,y) and the line that runs
+	 * Method to compute the distance between point (x,y) and the line that runs
 	 * from (x1,y1) to (x2,y2).
 	 */
 	public static double distToLine(Point2D l1, Point2D l2, Point2D pt)
@@ -404,9 +407,9 @@ public class EMath
 	}
 
 	/**
-	 * Routine to tell whether a point is inside of a bounds.
+	 * Method to tell whether a point is inside of a bounds.
 	 * The reason that this is necessary is that Rectangle2D.contains requires that
-	 * the point be INSIDE of the bounds, whereas this routine accepts a point that
+	 * the point be INSIDE of the bounds, whereas this method accepts a point that
 	 * is ON the bounds.
 	 * @param pt the point in question.
 	 * @param bounds the bounds being tested.
@@ -421,8 +424,36 @@ public class EMath
 		return true;
 	}
 
+	/**
+	 * Method to transform a Rectangle2D by a given transformation.
+	 * @param bounds the Rectangle to transform.
+	 * It is transformed "in place" (its coordinates are overwritten).
+	 * @param xform the transformation matrix.
+	 */
+	public static void transformRect(Rectangle2D bounds, AffineTransform xform)
+	{
+		Point2D [] corners = new Point2D.Double[4];
+		corners[0] = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+		corners[1] = new Point2D.Double(bounds.getMinX(), bounds.getMaxY());
+		corners[2] = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+		corners[3] = new Point2D.Double(bounds.getMaxX(), bounds.getMinY());
+		xform.transform(corners, 0, corners, 0, 4);
+		double lX = corners[0].getX();
+		double lY = corners[0].getY();
+		double hX = lX;
+		double hY = lY;
+		for(int i=1; i<4; i++)
+		{
+			if (corners[i].getX() < lX) lX = corners[i].getX();
+			if (corners[i].getX() > hX) hX = corners[i].getX();
+			if (corners[i].getY() < lY) lY = corners[i].getY();
+			if (corners[i].getY() > hY) hY = corners[i].getY();
+		}
+		bounds.setRect((lX+hX)/2, (lY+hY)/2, hX-lX, hY-lY);
+	}
+
 	/*
-	 * Routine to determine the intersection of two lines and return that point.
+	 * Method to determine the intersection of two lines and return that point.
 	 * @param p1 a point on the first line.
 	 * @param ang1 the angle of the first line (in tenth degrees).
 	 * @param p2 a point on the second line.
@@ -466,7 +497,7 @@ public class EMath
 	private static double DBL_EPSILON = 2.2204460492503131e-016; /* smallest such that 1.0+DBL_EPSILON != 1.0 */
 
 	/*
-	 * Routine to compare two double-precision numbers within an acceptable epsilon.
+	 * Method to compare two double-precision numbers within an acceptable epsilon.
 	 * @param a the first number.
 	 * @param b the second number.
 	 * @return true if the numbers are equal to 16 decimal places.
@@ -478,7 +509,7 @@ public class EMath
 	}
 	
 	/**
-	 * Routine to round floating-point values to sensible quantities.
+	 * Method to round floating-point values to sensible quantities.
 	 * Rounds these numbers to the nearest thousandth.
 	 * @param a the value to round.
 	 * @return the rounded value.
@@ -643,7 +674,7 @@ public class EMath
 		1.0};
 
 	/**
-	 * Routine to compute the sine of an integer angle (in tenth-degrees).
+	 * Method to compute the sine of an integer angle (in tenth-degrees).
 	 * @param angle the angle in tenth-degrees.
 	 * @return the sine of that angle.
 	 */
@@ -658,7 +689,7 @@ public class EMath
 	}
 
 	/**
-	 * Routine to compute the cosine of an integer angle (in tenth-degrees).
+	 * Method to compute the cosine of an integer angle (in tenth-degrees).
 	 * @param angle the angle in tenth-degrees.
 	 * @return the cosine of that angle.
 	 */
@@ -673,7 +704,7 @@ public class EMath
 	}
     
     /**
-     * Routine to return a long that represents the unsigned
+     * Method to return a long that represents the unsigned
      * value of an integer.  I.e., the passed int is a set of 
      * bits, and this method returns a number as if those bits 
      * were interpreted as an unsigned int.

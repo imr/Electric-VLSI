@@ -123,7 +123,7 @@ public class Undo
 		public Object getO2() { return o2; }
 
 		/**
-		 * Routine to broadcast a change to all tools that are on.
+		 * Method to broadcast a change to all tools that are on.
 		 * @param firstchange true if this is the first change of a batch, so that a "startbatch" change must also be broadcast.
 		 * @param undoredo true if this is an undo/redo batch.
 		 */
@@ -245,7 +245,7 @@ public class Undo
 		}
 
 		/**
-		 * Routine to undo the effects of this change.
+		 * Method to undo the effects of this change.
 		 */
 		void reverse()
 		{
@@ -462,7 +462,7 @@ public class Undo
 		}
 
 		/**
-		 * Routine to examine a change and mark the appropriate libraries and cells as "dirty".
+		 * Method to examine a change and mark the appropriate libraries and cells as "dirty".
 		 * @param change the type of change being made.
 		 * @param obj the object to which the change is applied.
 		 */
@@ -539,7 +539,7 @@ public class Undo
 		}
 
 		/**
-		 * Routine to describe this change as a string.
+		 * Method to describe this change as a string.
 		 */
 		String describe()
 		{
@@ -786,7 +786,7 @@ public class Undo
 		}
 
 		/**
-		 * Routine to return a list of cells that have changed in this batch.
+		 * Method to return a list of cells that have changed in this batch.
 		 * @return an Interator over the list of changed cells.
 		 */
 		public static Iterator getIterator()
@@ -795,7 +795,7 @@ public class Undo
 		}
 
 		/*
-		 * Routine to ensure that cell "np" is given a hierarchical analysis by the
+		 * Method to ensure that cell "np" is given a hierarchical analysis by the
 		 * constraint system.
 		 */
 		public static void forceHierarchicalAnalysis(Cell cell)
@@ -825,7 +825,7 @@ public class Undo
 	private static List undoneList = new ArrayList();
 
 	/**
-	 * Routine to start a new batch of changes.
+	 * Method to start a new batch of changes.
 	 * @param tool the tool that is producing the activity.
 	 * @param activity a String describing the activity.
 	 * @param cell root of up-tree or null for whole database lock
@@ -863,7 +863,7 @@ public class Undo
 	}
 
 	/**
-	 * Routine to terminate the current batch of changes.
+	 * Method to terminate the current batch of changes.
 	 */
 	public static void endChanges()
 	{
@@ -883,7 +883,7 @@ public class Undo
 	}
 
 	/**
-	 * Routine to record and broadcast a change.
+	 * Method to record and broadcast a change.
 	 * <P>
 	 * These types of changes exist:
 	 * <UL>
@@ -1103,33 +1103,33 @@ public class Undo
 	}
 
 	/**
-	 * Routine to return the current change batch.
+	 * Method to return the current change batch.
 	 * @return the current change batch (null if no changes are being done).
 	 */
 	public static ChangeBatch getCurrentBatch() { return currentBatch; }
 
 	/**
-	 * Routine to request that the next change be made "quietly".
+	 * Method to request that the next change be made "quietly".
 	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
 	 */
 	public static void setNextChangeQuiet() { doNextChangeQuietly = true; }
 
 	/**
-	 * Routine to request that the next change not be made "quietly".
+	 * Method to request that the next change not be made "quietly".
 	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
 	 */
 	public static void clearNextChangeQuiet() { doNextChangeQuietly = false; }
 
 	/**
-	 * Routine to set the subsequent changes to be "quiet".
+	 * Method to set the subsequent changes to be "quiet".
 	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
 	 */
 	public static void changesQuiet(boolean quiet) { doChangesQuietly = quiet; }
 
 	/**
-	 * Routine to tell whether changes are currently "quiet".
+	 * Method to tell whether changes are currently "quiet".
 	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
-	 * By calling this routine, the "next change quiet" state is reset.
+	 * By calling this method, the "next change quiet" state is reset.
 	 * @return true if changes are "quiet".
 	 */
 	public static boolean recordChange()
@@ -1140,7 +1140,7 @@ public class Undo
 	}
 
 	/**
-	 * Routine to undo the last batch of changes.
+	 * Method to undo the last batch of changes.
 	 * @return true if a batch was undone.
 	 */
 	public static boolean undoABatch()
@@ -1183,7 +1183,7 @@ public class Undo
 	}
 
 	/**
-	 * Routine to redo the last batch of changes.
+	 * Method to redo the last batch of changes.
 	 * @return true if a batch was redone.
 	 */
 	public static boolean redoABatch()
@@ -1250,7 +1250,7 @@ public class Undo
 	}
 
 	/**
-	 * Routine to prevent undo by deleting all change batches.
+	 * Method to prevent undo by deleting all change batches.
 	 */
 	public static void noUndoAllowed()
 	{
@@ -1263,7 +1263,7 @@ public class Undo
 	}
 
 	/**
-	 * Routine to prevent redo by deleting all undone change batches.
+	 * Method to prevent redo by deleting all undone change batches.
 	 */
 	public static void noRedoAllowed()
 	{
@@ -1274,7 +1274,7 @@ public class Undo
 	}
 
 	/**
-	 * Routine to set the size of the history list and return the former size.
+	 * Method to set the size of the history list and return the former size.
 	 * @param newSize the new size of the history list (number of batches of changes).
 	 * If not positive, the list size is not changed.
 	 * @return the former size of the history list.
@@ -1293,7 +1293,7 @@ public class Undo
 	}
 
 	/**
-	 * Routine to display all changes.
+	 * Method to display all changes.
 	 */
 	public static void showHistoryList()
 	{

@@ -69,7 +69,7 @@ public class GetInfoMulti extends javax.swing.JDialog
 	private int numNodes, numArcs, numExports;
 
 	/**
-	 * Routine to show the Multi-object Get-Info dialog.
+	 * Method to show the Multi-object Get-Info dialog.
 	 */
 	public static void showDialog()
 	{
@@ -82,7 +82,7 @@ public class GetInfoMulti extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine to reload the Multi-object Get-Info dialog from the current highlighting.
+	 * Method to reload the Multi-object Get-Info dialog from the current highlighting.
 	 */
 	public static void load()
 	{

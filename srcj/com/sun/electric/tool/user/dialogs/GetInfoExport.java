@@ -79,7 +79,7 @@ public class GetInfoExport extends javax.swing.JDialog
 	private int initialFont;
 
 	/**
-	 * Routine to show the Export Get-Info dialog.
+	 * Method to show the Export Get-Info dialog.
 	 */
 	public static void showDialog()
 	{
@@ -92,7 +92,7 @@ public class GetInfoExport extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine to reload the Export Get-Info dialog from the current highlighting.
+	 * Method to reload the Export Get-Info dialog from the current highlighting.
 	 */
 	public static void load()
 	{

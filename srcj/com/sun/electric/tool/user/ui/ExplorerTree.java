@@ -96,7 +96,7 @@ public class ExplorerTree extends JTree
 	private static boolean explorerChanged = true;
 
 	/**
-	 * Routine to create a new ExplorerTree.
+	 * Method to create a new ExplorerTree.
 	 * @param treeModel the tree to display.
 	 * @param wnd the window associated with this tree.
 	 * @return the newly created ExplorerTree.
@@ -139,7 +139,7 @@ public class ExplorerTree extends JTree
 	}
 
 	/**
-	 * Routine to return the tree structure that defines the current cell explorer.
+	 * Method to return the tree structure that defines the current cell explorer.
 	 * This is a tree of DefaultMutableTreeNode objects that can be used to
 	 * explore the cell hierarchy.
 	 * @return the tree structure that defines the current cell explorer.
@@ -149,7 +149,7 @@ public class ExplorerTree extends JTree
 	public static void explorerTreeChanged() { explorerChanged = true; }
 
     /**
-	 * Routine called when the explorer information changes.
+	 * Method called when the explorer information changes.
 	 * It updates the display for minor changes.  See JTree.treeDidChange().
      */
 	public static synchronized void explorerTreeMinorlyChanged()

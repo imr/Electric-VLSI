@@ -43,7 +43,7 @@ public class LibFile
 	private static final LibFile theOne = new LibFile();
 
 	/**
-	 * Routine to find a library file.
+	 * Method to find a library file.
 	 * @param fileName the name of the file in the library area.
 	 * These files are typically readable dumps of essential files used by everyone.
 	 * @return the file path.
@@ -58,7 +58,7 @@ public class LibFile
 	}
 
 	/**
-	 * Routine to find all files that are SPICE parts libraries.
+	 * Method to find all files that are SPICE parts libraries.
 	 * @return an array of strings that name the SPICE parts libraries.
 	 */
 	public static String [] getSpicePartsLibraries()

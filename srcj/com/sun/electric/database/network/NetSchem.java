@@ -99,7 +99,7 @@ class NetSchem extends NetCell {
 		}
 	
 		/**
-		 * Routine to return the prototype of this Nodable.
+		 * Method to return the prototype of this Nodable.
 		 * @return the prototype of this Nodable.
 		 */
 		public NodeProto getProto() {
@@ -111,32 +111,32 @@ class NetSchem extends NetCell {
 		}
 
 		/**
-		 * Routine to return the Cell that contains this Nodable.
+		 * Method to return the Cell that contains this Nodable.
 		 * @return the Cell that contains this Nodable.
 		 */
 		public Cell getParent() { return cell; }
 
 		/**
-		 * Routine to return the name of this Nodable.
+		 * Method to return the name of this Nodable.
 		 * @return the name of this Nodable.
 		 */
 		public String getName() { return getNameKey().toString(); }
 
 		/**
-		 * Routine to return the name key of this Nodable.
+		 * Method to return the name key of this Nodable.
 		 * @return the name key of this Nodable.
 		 */
 		public Name getNameKey() { return nodeInst.getNameKey().subname(arrayIndex); }
 
 		/**
-		 * Routine to return the Variable on this Nodable with a given name.
+		 * Method to return the Variable on this Nodable with a given name.
 		 * @param name the name of the Variable.
 		 * @return the Variable with that name, or null if there is no such Variable.
 		 */
 		public Variable getVar(String name) { return nodeInst.getVar(name); }
 
 		/**
-		 * Routine to get network by PortProto and bus index.
+		 * Method to get network by PortProto and bus index.
 		 * @param portProto PortProto in protoType.
 		 * @param busIndex index in bus.
 		 */
@@ -300,7 +300,7 @@ class NetSchem extends NetCell {
 	}
 
 	/**
-	 * Routine to return either the network name or the bus name on this ArcInst.
+	 * Method to return either the network name or the bus name on this ArcInst.
 	 * @return the either the network name or the bus n1ame on this ArcInst.
 	 */
 	String getNetworkName(ArcInst ai) {
@@ -318,7 +318,7 @@ class NetSchem extends NetCell {
 	}
 
 	/**
-	 * Routine to return the bus width on this ArcInst.
+	 * Method to return the bus width on this ArcInst.
 	 * @return the either the bus width on this ArcInst.
 	 */
 	public int getBusWidth(ArcInst ai)

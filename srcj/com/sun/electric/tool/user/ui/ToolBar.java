@@ -127,7 +127,7 @@ public class ToolBar extends JToolBar
 	private ToolBar() {}
 
 	/**
-	 * Routine to create the toolbar.
+	 * Method to create the toolbar.
 	 */
 	public static ToolBar createToolBar()
 	{
@@ -308,7 +308,7 @@ public class ToolBar extends JToolBar
 	}
 
 	/**
-	 * Routine called when the "select" button is pressed.
+	 * Method called when the "select" button is pressed.
 	 */
 	public static void selectCommand()
 	{
@@ -320,7 +320,7 @@ public class ToolBar extends JToolBar
 	}
 
 	/**
-	 * Routine called when the "wiring" button is pressed.
+	 * Method called when the "wiring" button is pressed.
 	 */
 	public static void wiringCommand()
 	{
@@ -333,7 +333,7 @@ public class ToolBar extends JToolBar
 	}
 
 	/**
-	 * Routine called when the "select special" button is pressed.
+	 * Method called when the "select special" button is pressed.
 	 */
 	public static void selectSpecialCommand()
 	{
@@ -346,7 +346,7 @@ public class ToolBar extends JToolBar
 	}
 
 	/**
-	 * Routine called when the "pan" button is pressed.
+	 * Method called when the "pan" button is pressed.
 	 */
 	public static void panCommand()
 	{
@@ -359,7 +359,7 @@ public class ToolBar extends JToolBar
 	}
 
 	/**
-	 * Routine called when the "zoom" button is pressed.
+	 * Method called when the "zoom" button is pressed.
 	 */
 	public static void zoomCommand()
 	{
@@ -372,13 +372,13 @@ public class ToolBar extends JToolBar
 	}
 
 	/**
-	 * Routine to tell which cursor mode is in effect.
+	 * Method to tell which cursor mode is in effect.
 	 * @return the current mode (select, special-select, pan, or zoom).
 	 */
 	public static CursorMode getCursorMode() { return curMode; }
 
 	/**
-	 * Routine called when the "full arrow distance" button is pressed.
+	 * Method called when the "full arrow distance" button is pressed.
 	 */
 	public static void fullArrowDistanceCommand()
 	{
@@ -388,7 +388,7 @@ public class ToolBar extends JToolBar
 	}
 
 	/**
-	 * Routine called when the "half arrow distance" button is pressed.
+	 * Method called when the "half arrow distance" button is pressed.
 	 */
 	public static void halfArrowDistanceCommand()
 	{
@@ -398,7 +398,7 @@ public class ToolBar extends JToolBar
 	}
 
 	/**
-	 * Routine called when the "quarter arrow distance" button is pressed.
+	 * Method called when the "quarter arrow distance" button is pressed.
 	 */
 	public static void quarterArrowDistanceCommand()
 	{
@@ -408,13 +408,13 @@ public class ToolBar extends JToolBar
 	}
 
 	/**
-	 * Routine to tell what arrow distance is in effect.
+	 * Method to tell what arrow distance is in effect.
 	 * @return the current arrow distance (1.0, 0.5, or 0.25).
 	 */
 	public static double getArrowDistance() { return curArrowDistance.getDistance(); }
 
 	/**
-	 * Routine called when the "select objects" button is pressed.
+	 * Method called when the "select objects" button is pressed.
 	 */
 	public static void selectObjectsCommand()
 	{
@@ -424,7 +424,7 @@ public class ToolBar extends JToolBar
 	}
 
 	/**
-	 * Routine called when the "select area" button is pressed.
+	 * Method called when the "select area" button is pressed.
 	 */
 	public static void selectAreaCommand()
 	{
@@ -434,7 +434,7 @@ public class ToolBar extends JToolBar
 	}
 
 	/**
-	 * Routine to tell what selection mode is in effect.
+	 * Method to tell what selection mode is in effect.
 	 * @return the current selection mode (objects or area).
 	 */
 	public static SelectMode getSelectMode() { return curSelectMode; }

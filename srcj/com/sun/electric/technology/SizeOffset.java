@@ -57,28 +57,28 @@ public class SizeOffset
 	}
 
 	/**
-	 * Routine to return the low-X offset of this SizeOffset.
+	 * Method to return the low-X offset of this SizeOffset.
 	 * The low-X offset is the distance from the left side to the acutal bounds.
 	 * @return the low-X offset of this SizeOffset.
 	 */
 	public double getLowXOffset() { return lx; }
 
 	/**
-	 * Routine to return the high-X offset of this SizeOffset.
+	 * Method to return the high-X offset of this SizeOffset.
 	 * The high-X offset is the distance from the right side to the acutal bounds.
 	 * @return the high-X offset of this SizeOffset.
 	 */
 	public double getHighXOffset() { return hx; }
 
 	/**
-	 * Routine to return the low-Y offset of this SizeOffset.
+	 * Method to return the low-Y offset of this SizeOffset.
 	 * The low-Y offset is the distance from the bottom side to the acutal bounds.
 	 * @return the low-Y offset of this SizeOffset.
 	 */
 	public double getLowYOffset() { return ly; }
 
 	/**
-	 * Routine to return the high-Y offset of this SizeOffset.
+	 * Method to return the high-Y offset of this SizeOffset.
 	 * The high-Y offset is the distance from the top side to the acutal bounds.
 	 * @return the high-Y offset of this SizeOffset.
 	 */

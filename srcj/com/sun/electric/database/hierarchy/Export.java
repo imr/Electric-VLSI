@@ -75,7 +75,7 @@ public class Export extends PortProto
 	/****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**
-	 * Routine to create an Export with the specified values.
+	 * Method to create an Export with the specified values.
 	 * @param parent the Cell in which this Export resides.
 	 * @param portInst the PortInst to export
 	 * @param protoName the name of this Export.
@@ -95,7 +95,7 @@ public class Export extends PortProto
 	}	
 
 	/**
-	 * Routine to unlink this Export from its Cell.
+	 * Method to unlink this Export from its Cell.
 	 */
 	public void kill()
 	{
@@ -106,8 +106,8 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * Routine to move this Export to a different PortInst in the Cell.
-	 * The routine expects both ports to be in the same place and simply shifts
+	 * Method to move this Export to a different PortInst in the Cell.
+	 * The method expects both ports to be in the same place and simply shifts
 	 * the arcs without re-constraining them.
 	 * @param newPi the new PortInst on which to base this Export.
 	 * @return true on error.
@@ -137,7 +137,7 @@ public class Export extends PortProto
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
 	/**
-	 * Low-level access routine to create an Export.
+	 * Low-level access method to create an Export.
 	 * @return a newly allocated Export.
 	 */
 	public static Export lowLevelAllocate()
@@ -147,7 +147,7 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * Low-level access routine to fill-in the Cell parent and the name of this Export.
+	 * Low-level access method to fill-in the Cell parent and the name of this Export.
 	 * @param parent the Cell in which this Export resides.
 	 * @param protoName the name of this Export.
 	 * It may not have unprintable characters, spaces, or tabs in it.
@@ -163,7 +163,7 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * Low-level access routine to fill-in the subnode and subport of this Export.
+	 * Low-level access method to fill-in the subnode and subport of this Export.
 	 * @param originalPort the PortInst that is being exported.
 	 * @return true on error.
 	 */
@@ -182,7 +182,7 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * Low-level access routine to link this Export into its cell.
+	 * Low-level access method to link this Export into its cell.
 	 * @return true on error.
 	 */
 	public boolean lowLevelLink()
@@ -194,7 +194,7 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * Low-level access routine to unlink this Export from its cell.
+	 * Low-level access method to unlink this Export from its cell.
 	 * @return true on error.
 	 */
 	public void lowLevelUnlink()
@@ -205,7 +205,7 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * Routine to change the origin of this Export to another place in the Cell.
+	 * Method to change the origin of this Export to another place in the Cell.
 	 * @param newPi the new PortInst in the cell that will hold this Export.
 	 */
 	public void lowLevelModify(PortInst newPi)
@@ -232,7 +232,7 @@ public class Export extends PortProto
 	/****************************** GRAPHICS ******************************/
 
 	/**
-	 * Routine to return a Poly that describes this Export name.
+	 * Method to return a Poly that describes this Export name.
 	 * @return a Poly that describes this Export's name.
 	 */
 	public Poly getNamePoly()
@@ -264,14 +264,14 @@ public class Export extends PortProto
 	public void checkChanging() { Cell parent = (Cell)getParent(); if (parent != null) parent.checkChanging(); }
 
 	/*
-	 * Routine to determine the appropriate Cell associated with this ElectricObject.
+	 * Method to determine the appropriate Cell associated with this ElectricObject.
 	 * @return the appropriate Cell associated with this ElectricObject.
 	 * Returns null if no Cell can be found.
 	 */
 	public Cell whichCell() { return (Cell)getParent(); };
 
 	/*
-	 * Routine to write a description of this Export.
+	 * Method to write a description of this Export.
 	 * Displays the description in the Messages Window.
 	 */
 	public void getInfo()
@@ -294,13 +294,13 @@ public class Export extends PortProto
 	/****************************** MISCELLANEOUS ******************************/
 
 	/**
-	 * Routine to return the port on the NodeInst inside of the cell that is the origin of this Export.
+	 * Method to return the port on the NodeInst inside of the cell that is the origin of this Export.
 	 * @return the port on the NodeInst inside of the cell that is the origin of this Export.
 	 */
 	public PortInst getOriginalPort() { return originalPort; }
 
 	/**
-	 * Routine to return the base-level port that this PortProto is created from.
+	 * Method to return the base-level port that this PortProto is created from.
 	 * Since this is an Export, it returns the base port of its sub-port, the port on the NodeInst
 	 * from which the Export was created.
 	 * @return the base-level port that this PortProto is created from.
@@ -312,7 +312,7 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * Routine to return the Network object associated with this Export.
+	 * Method to return the Network object associated with this Export.
 	 * @return the Network object associated with this Export.
 	 */
 	public JNetwork getNetwork()
@@ -326,21 +326,21 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * Routine to set a Change object on this Export.
+	 * Method to set a Change object on this Export.
 	 * This is used during constraint propagation to tell whether this object has already been changed and how.
 	 * @param change the Change object to be set on this Export.
 	 */
 	public void setChange(Undo.Change change) { this.change = change; }
 
 	/**
-	 * Routine to get the Change object on this Export.
+	 * Method to get the Change object on this Export.
 	 * This is used during constraint propagation to tell whether this object has already been changed and how.
 	 * @return the Change object on this Export.
 	 */
 	public Undo.Change getChange() { return change; }
 
 	/**
-	 * Routine to return the PortProto that is equivalent to this in the
+	 * Method to return the PortProto that is equivalent to this in the
 	 * corresponding schematic Cell.
 	 * It finds the PortProto with the same name on the corresponding Cell.
 	 * If there are multiple versions of the Schematic Cell return the latest.
@@ -357,7 +357,7 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * Routine to find the Export on another Cell that is equivalent to this Export.
+	 * Method to find the Export on another Cell that is equivalent to this Export.
 	 * @param otherCell the other cell to equate.
 	 * @return the Export on that other Cell which matches this Export.
 	 * Returns null if none can be found.
@@ -402,7 +402,7 @@ public class Export extends PortProto
 	}
 
 	/**
-	 * helper routine to ensure that all arcs connected to Export "pp" at
+	 * helper method to ensure that all arcs connected to Export "pp" at
 	 * instances of its Cell (or any of its export sites)
 	 * can connect to Export newPP.
 	 * @return true if the connection cannot be made.
@@ -443,7 +443,7 @@ public class Export extends PortProto
 	/****************************** SUPPORT ******************************/
 
 	/**
-	 * Routine to change all usage of this Export because it has been moved.
+	 * Method to change all usage of this Export because it has been moved.
 	 * The various state bits are changed to reflect the new Export base.
 	 */
 	private void changeallports()
@@ -483,7 +483,7 @@ public class Export extends PortProto
 	}
 
 	/*
-	 * Routine to recursively alter the state bit fields of this Export.
+	 * Method to recursively alter the state bit fields of this Export.
 	 */
 	private void recursivelyChangeAllPorts()
 	{

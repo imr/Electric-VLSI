@@ -1316,12 +1316,12 @@ public class Schematics extends Technology
 		globalNode.setFunction(NodeProto.Function.CONNECT);
 	}
 
-	//**************************************** ROUTINES ****************************************
+	//**************************************** METHODS ****************************************
 	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer [] {};
 
 	/**
-	 * Routine to return a list of Polys that describe a given NodeInst.
-	 * This routine overrides the general one in the Technology object
+	 * Method to return a list of Polys that describe a given NodeInst.
+	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in the Artwork Technology.
 	 * @param ni the NodeInst to describe.
 	 * @param wnd the window in which this node will be drawn.
@@ -1517,8 +1517,8 @@ public class Schematics extends Technology
 	}
 
 	/**
-	 * Routine to return a list of Polys that describe a given ArcInst.
-	 * This routine overrides the general one in the Technology object
+	 * Method to return a list of Polys that describe a given ArcInst.
+	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in the Artwork Technology.
 	 * @param ai the ArcInst to describe.
 	 * @param wnd the window in which this arc will be drawn.
@@ -1586,7 +1586,7 @@ public class Schematics extends Technology
 	}
 
 	/**
-	 * Routine to convert old primitive port names to their proper PortProtos.
+	 * Method to convert old primitive port names to their proper PortProtos.
 	 * This method overrides the general Technology version and attempts Schematic-specific tests first.
 	 * @param portName the unknown port name, read from an old Library.
 	 * @param np the PrimitiveNode on which this port resides.
@@ -1622,7 +1622,7 @@ public class Schematics extends Technology
 	}
 
 	/**
-	 * Routine to return the pure "NodeProto Function" a primitive NodeInst in this Technology.
+	 * Method to return the pure "NodeProto Function" a primitive NodeInst in this Technology.
 	 * The Schematics technology allows primitives to have parameterized functions.
 	 * @param ni the NodeInst to check.
 	 * @return the NodeProto.Function that describes the NodeInst.
@@ -1688,8 +1688,8 @@ public class Schematics extends Technology
 	}
 
 	/**
-	 * Routine to set the pure "NodeProto Function" for a primitive NodeInst in this Technology.
-	 * This routine is overridden by technologies (such as Schematics) that can change a node's function.
+	 * Method to set the pure "NodeProto Function" for a primitive NodeInst in this Technology.
+	 * This method is overridden by technologies (such as Schematics) that can change a node's function.
 	 * @param ni the NodeInst to check.
 	 * @param function the NodeProto.Function to set on the NodeInst.
 	 */
@@ -1741,7 +1741,7 @@ public class Schematics extends Technology
 	}
     
 	/**
-	 * Routine to return the size of a transistor NodeInst in this Technology.
+	 * Method to return the size of a transistor NodeInst in this Technology.
      * You should most likely be calling NodeInst.getTransistorSize instead of this.
 	 * @param ni the NodeInst.
      * @param context the VarContext, set to VarContext.globalContext if not needed.
@@ -1770,7 +1770,7 @@ public class Schematics extends Technology
 //	x_(""), x_(""), x_("")										/* twoport/4-port/global */
 //};
 
-/******************** ROUTINES ********************/
+/******************** METHODS ********************/
 
 //void sch_setmode(INTBIG count, CHAR *par[])
 //{

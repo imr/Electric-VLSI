@@ -92,7 +92,7 @@ public class IOOptions extends javax.swing.JDialog
 	//******************************** CIF ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the CIF tab.
 	 */
 	private void initCIF()
@@ -109,7 +109,7 @@ public class IOOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the CIF tab.
 	 */
 	private void termCIF()
@@ -119,7 +119,7 @@ public class IOOptions extends javax.swing.JDialog
 	//******************************** GDS ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the GDS tab.
 	 */
 	private void initGDS()
@@ -141,7 +141,7 @@ public class IOOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the GDS tab.
 	 */
 	private void termGDS()
@@ -151,7 +151,7 @@ public class IOOptions extends javax.swing.JDialog
 	//******************************** EDIF ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the EDIF tab.
 	 */
 	private void initEDIF()
@@ -161,7 +161,7 @@ public class IOOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the EDIF tab.
 	 */
 	private void termEDIF()
@@ -171,7 +171,7 @@ public class IOOptions extends javax.swing.JDialog
 	//******************************** DEF ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the DEF tab.
 	 */
 	private void initDEF()
@@ -181,7 +181,7 @@ public class IOOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the DEF tab.
 	 */
 	private void termDEF()
@@ -191,7 +191,7 @@ public class IOOptions extends javax.swing.JDialog
 	//******************************** CDL ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the CDL tab.
 	 */
 	private void initCDL()
@@ -202,7 +202,7 @@ public class IOOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the CDL tab.
 	 */
 	private void termCDL()
@@ -212,7 +212,7 @@ public class IOOptions extends javax.swing.JDialog
 	//******************************** DXF ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the DXF tab.
 	 */
 	private void initDXF()
@@ -225,7 +225,7 @@ public class IOOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the DXF tab.
 	 */
 	private void termDXF()
@@ -235,7 +235,7 @@ public class IOOptions extends javax.swing.JDialog
 	//******************************** SUE ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the SUE tab.
 	 */
 	private void initSUE()
@@ -244,7 +244,7 @@ public class IOOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the SUE tab.
 	 */
 	private void termSUE()
@@ -254,7 +254,7 @@ public class IOOptions extends javax.swing.JDialog
 	//******************************** COPYRIGHT ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Copyright tab.
 	 */
 	private void initCopyright()
@@ -266,7 +266,7 @@ public class IOOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Copyright tab.
 	 */
 	private void termCopyright()
@@ -276,7 +276,7 @@ public class IOOptions extends javax.swing.JDialog
 	//******************************** LIBRARY ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Library tab.
 	 */
 	private void initLibrary()
@@ -288,7 +288,7 @@ public class IOOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Library tab.
 	 */
 	private void termLibrary()
@@ -298,7 +298,7 @@ public class IOOptions extends javax.swing.JDialog
 	//******************************** PRINTING ********************************
 
 	/**
-	 * Routine called at the start of the dialog.
+	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Printing tab.
 	 */
 	private void initPrinting()
@@ -327,7 +327,7 @@ public class IOOptions extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the "OK" panel is hit.
+	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the Printing tab.
 	 */
 	private void termPrinting()

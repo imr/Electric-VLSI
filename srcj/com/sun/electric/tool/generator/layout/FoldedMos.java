@@ -136,9 +136,9 @@ public abstract class FoldedMos {
 		return Math.rint(x * 2) / 2;
 	}
 
-	// This routine is necessary to ensure that the edges of all
+	// This method is necessary to ensure that the edges of all
 	// diffusion arcs are on the .5 lambda grid to avoid CIF resolution
-	// errors. The routine assumes that diff widths are integral and
+	// errors. The method assumes that diff widths are integral and
 	// attempts to position the ArcInst endpoints on a .5 lambda grid.
 	//
 	// The centers of ports may not be on .5 lambda grid for two

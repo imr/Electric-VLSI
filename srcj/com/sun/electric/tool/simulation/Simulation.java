@@ -44,7 +44,7 @@ public class Simulation extends Tool
 	}
 
 	/**
-	 * Routine to initialize the Simulation tool.
+	 * Method to initialize the Simulation tool.
 	 */
 	public void init()
 	{

@@ -119,13 +119,13 @@ public class TextDescriptor
 		}
 
 		/**
-		 * Routine to return the integer equivalent of this Position.
+		 * Method to return the integer equivalent of this Position.
 		 * @return the integer equivalent of this Position.
 		 */
 		private int getIndex() { return index; }
 
 		/**
-		 * Routine to return the Poly.Type to use for this Position.
+		 * Method to return the Poly.Type to use for this Position.
 		 * The Poly.Type will vary through the 9 "grab point" locations:
 		 * center, left, right, up, down, up-left, up-right, down-left, down-right.
 		 * @return the Poly.Type to use for this Position.
@@ -133,13 +133,13 @@ public class TextDescriptor
 		public Poly.Type getPolyType() { return pt; }
 
 		/**
-		 * Routine to return the number Positions.
+		 * Method to return the number Positions.
 		 * @return the number of Positions.
 		 */
 		public static int getNumPositions() { return thePositions.length; }
 
 		/**
-		 * Routine to return the Position at a given index.
+		 * Method to return the Position at a given index.
 		 * @param index the Position number desired.
 		 * @return the Position at a given index.
 		 */
@@ -223,26 +223,26 @@ public class TextDescriptor
 		}
 
 		/**
-		 * Routine to return the integer equivalent of this DispPos.
+		 * Method to return the integer equivalent of this DispPos.
 		 * @return the integer equivalent of this DispPos.
 		 */
 		public int getIndex() { return index; }
 
 		/**
-		 * Routine to return the name of this DispPos.
+		 * Method to return the name of this DispPos.
 		 * It is used in popup menus.
 		 * @return the name of this DispPos.
 		 */
 		public String getName() { return name; }
 
 		/**
-		 * Routine to return the number DispPos.
+		 * Method to return the number DispPos.
 		 * @return the number DispPos.
 		 */
 		public static int getNumShowStyles() { return theDispPos.length; }
 
 		/**
-		 * Routine to return the DispPos at a given index.
+		 * Method to return the DispPos at a given index.
 		 * @param index the DispPos number desired.
 		 * @return the DispPos at a given index.
 		 */
@@ -304,13 +304,13 @@ public class TextDescriptor
 		}
 
 		/**
-		 * Routine to return bits associated with this text Size.
+		 * Method to return bits associated with this text Size.
 		 * @return bits associated with this text Size.
 		 */
 		private int getBits() { return bits; }
 
 		/**
-		 * Routine to return a Size object that describes a relative text size (in grid units).
+		 * Method to return a Size object that describes a relative text size (in grid units).
 		 * The size must be between 1 and 63 points.
 		 * @param size the size in units.
 		 * Returns null if the size is invalid.
@@ -322,7 +322,7 @@ public class TextDescriptor
 		}
 
 		/**
-		 * Routine to return a Size object that describes an absolute point text size.
+		 * Method to return a Size object that describes an absolute point text size.
 		 * The size must be between 0.25 and 127.75 grid units (in .25 increments).
 		 * @param size the size in points.
 		 * Returns null if the size is invalid.
@@ -334,19 +334,19 @@ public class TextDescriptor
 		}
 
 		/**
-		 * Routine to return text Size value (in points or units).
+		 * Method to return text Size value (in points or units).
 		 * @return the text Size value (in points or units).
 		 */
 		public double getSize() { return size; }
 
 		/**
-		 * Routine to tell whether this text Size is absolute or relative.
+		 * Method to tell whether this text Size is absolute or relative.
 		 * @return true if this text size is absolute
 		 */
 		public boolean isAbsolute() { return absolute; }
 
 		/**
-		 * Routine to tell whether this Size is the same as another.
+		 * Method to tell whether this Size is the same as another.
 		 * @return true if they are equal.
 		 */
 		public boolean equals(Size other)
@@ -382,27 +382,27 @@ public class TextDescriptor
 		}
 
 		/**
-		 * Routine to return the integer equivalent of this DispPos.
+		 * Method to return the integer equivalent of this DispPos.
 		 * This is zero-based.
 		 * @return the integer equivalent of this DispPos.
 		 */
 		public int getIndex() { return index; }
 
 		/**
-		 * Routine to return the description of this DispPos.
+		 * Method to return the description of this DispPos.
 		 * It appears in popup menus.
 		 * @return the description of this DispPos.
 		 */
 		public String getDescription() { return name; }
 
 		/**
-		 * Routine to return the number Rotations.
+		 * Method to return the number Rotations.
 		 * @return the number Rotations.
 		 */
 		public static int getNumRotations() { return theRotations.length; }
 
 		/**
-		 * Routine to return the Rotation at a given index.
+		 * Method to return the Rotation at a given index.
 		 * @param index the Rotation number desired.
 		 * @return the Rotation at a given index.
 		 */
@@ -443,27 +443,27 @@ public class TextDescriptor
 		}
 
 		/**
-		 * Routine to return the integer equivalent of this Unit.
+		 * Method to return the integer equivalent of this Unit.
 		 * This is zero-based.
 		 * @return the integer equivalent of this Unit.
 		 */
 		public int getIndex() { return index; }
 
 		/**
-		 * Routine to return the description of this Unit.
+		 * Method to return the description of this Unit.
 		 * It appears in popup menus.
 		 * @return the description of this Unit.
 		 */
 		public String getDescription() { return name; }
 
 		/**
-		 * Routine to return the number Units.
+		 * Method to return the number Units.
 		 * @return the number Units.
 		 */
 		public static int getNumUnits() { return theUnits.length; }
 
 		/**
-		 * Routine to return the Unit at a given index.
+		 * Method to return the Unit at a given index.
 		 * @param index the Unit number desired.
 		 * @return the Unit at a given index.
 		 */
@@ -508,27 +508,27 @@ public class TextDescriptor
 		}
 
 		/**
-		 * Routine to return the maximum index value for ActiveFonts.
+		 * Method to return the maximum index value for ActiveFonts.
 		 * @return the maximum index value.
 		 * ActiveFonts will have indices ranging from 1 to this value.
 		 */
 		public static int getMaxIndex() { return indexCount; }
 
 		/**
-		 * Routine to return the index for this ActiveFont.
+		 * Method to return the index for this ActiveFont.
 		 * @return the index of this ActiveFont.
 		 * The index value is 1-based, because font 0 is the "default font".
 		 */
 		public int getIndex() { return index; }
 
 		/**
-		 * Routine to return the font name associated with this ActiveFont.
+		 * Method to return the font name associated with this ActiveFont.
 		 * @return the font name associated with this ActiveFont.
 		 */
 		public String getName() { return fontName; }
 
 		/**
-		 * Routine to return the ActiveFont with a given name.
+		 * Method to return the ActiveFont with a given name.
 		 * @param fontName the name of the font.
 		 * @return an ActiveFont object.  If there is no ActiveFont
 		 * associated with this fontname, one is created.
@@ -542,7 +542,7 @@ public class TextDescriptor
 		}
 
 		/**
-		 * Routine to return the ActiveFont with a given index.
+		 * Method to return the ActiveFont with a given index.
 		 * @param index the index number (1-based) of the ActiveFont.
 		 * @return the ActiveFont with this index.  Returns null if there is none.
 		 */
@@ -600,7 +600,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return a TextDescriptor that is a default for Variables on NodeInsts.
+	 * Method to return a TextDescriptor that is a default for Variables on NodeInsts.
 	 * @param owner owner of this TextDescriptor.
 	 * @return a TextDescriptor with to be used on a Variable on a NodeInsts.
 	 */
@@ -613,7 +613,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return a TextDescriptor that is a default for Exports.
+	 * Method to return a TextDescriptor that is a default for Exports.
 	 * @param owner owner of this TextDescriptor.
 	 * @return a TextDescriptor with to be used on an Export.
 	 */
@@ -626,7 +626,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return a TextDescriptor that is a default for Nonlayout text (on invisible pins).
+	 * Method to return a TextDescriptor that is a default for Nonlayout text (on invisible pins).
 	 * @param owner owner of this TextDescriptor.
 	 * @return a TextDescriptor with to be used on Nonlayout text (on invisible pins)..
 	 */
@@ -639,7 +639,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return a TextDescriptor that is a default for Cell instance names.
+	 * Method to return a TextDescriptor that is a default for Cell instance names.
 	 * This text appears on unexpanded instances of Cells.
 	 * @param owner owner of this TextDescriptor.
 	 * @return a TextDescriptor with to be used on a Cell instance name.
@@ -653,7 +653,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return a TextDescriptor that is a default for Variables on Cells.
+	 * Method to return a TextDescriptor that is a default for Variables on Cells.
 	 * These variables are use for parameter declarations.
 	 * @param owner owner of this TextDescriptor.
 	 * @return a TextDescriptor with to be used on a Variable on a Cells.
@@ -689,7 +689,7 @@ public class TextDescriptor
     }
 
 	/**
-	 * Routine checks if text descriptor can be changed..
+	 * Method checks if text descriptor can be changed..
 	 */
 	private void checkChanging()
 	{
@@ -701,7 +701,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Low-level routine to set the bits in the TextDescriptor.
+	 * Low-level method to set the bits in the TextDescriptor.
 	 * These bits are a collection of flags that are more sensibly accessed
 	 * through special methods.
 	 * This general access to the bits is required because the binary ".elib"
@@ -717,7 +717,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to copy other TextDescriptor to this TextDescriptor.
+	 * Method to copy other TextDescriptor to this TextDescriptor.
 	 * These bits are a collection of flags that are more sensibly accessed
 	 * through special methods.
 	 * This general access to the bits is required because the binary ".elib"
@@ -734,7 +734,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Low-level routine to get the first word of the bits in the TextDescriptor.
+	 * Low-level method to get the first word of the bits in the TextDescriptor.
 	 * These bits are a collection of flags that are more sensibly accessed
 	 * through special methods.
 	 * This general access to the bits is required because the binary ".elib"
@@ -745,7 +745,7 @@ public class TextDescriptor
 	public int lowLevelGet0() { return descriptor0; }
 
 	/**
-	 * Low-level routine to get the second word of the bits in the TextDescriptor.
+	 * Low-level method to get the second word of the bits in the TextDescriptor.
 	 * These bits are a collection of flags that are more sensibly accessed
 	 * through special methods.
 	 * This general access to the bits is required because the binary ".elib"
@@ -756,7 +756,7 @@ public class TextDescriptor
 	public int lowLevelGet1() { return descriptor1; }
 
 	/**
-	 * Routine to return the text position of the TextDescriptor.
+	 * Method to return the text position of the TextDescriptor.
 	 * The text position describes the "grab point" of the text,
 	 * which is the point on the text that is attached to the object and does not move.
 	 * @return the text position of the TextDescriptor.
@@ -769,7 +769,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to set the text position of the TextDescriptor.
+	 * Method to set the text position of the TextDescriptor.
 	 * The text position describes the "grab point" of the text,
 	 * which is the point on the text that is attached to the object and does not move.
 	 * @param p the text position of the TextDescriptor.
@@ -780,7 +780,7 @@ public class TextDescriptor
 		descriptor0 = (descriptor0 & ~VTPOSITION) | p.getIndex(); }
 
 	/**
-	 * Routine to return the text size of the text in this TextDescriptor.
+	 * Method to return the text size of the text in this TextDescriptor.
 	 * This is a Size object that can describe either absolute text (in points)
 	 * or relative text (in quarter units).
 	 * @return the text size of the text in this TextDescriptor.
@@ -796,7 +796,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to find the true size in points for this TextDescriptor in a given EditWindow.
+	 * Method to find the true size in points for this TextDescriptor in a given EditWindow.
 	 * If the TextDescriptor is already Absolute (in points) nothing needs to be done.
 	 * Otherwise, the scale of the EditWindow is used to determine the acutal point size.
 	 * @param wnd the EditWindow in which drawing will occur.
@@ -818,7 +818,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to set the text size of this TextDescriptor to an absolute size (in points).
+	 * Method to set the text size of this TextDescriptor to an absolute size (in points).
 	 * The size must be between 1 and 63 points.
 	 * @param s the point size of this TextDescriptor.
 	 */
@@ -831,7 +831,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to set the text size of this TextDescriptor to a relative size (in units).
+	 * Method to set the text size of this TextDescriptor to a relative size (in units).
 	 * The size must be between 0.25 and 127.75 grid units (in .25 increments).
 	 * @param s the unit size of this TextDescriptor.
 	 */
@@ -844,13 +844,13 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return the text font of the TextDescriptor.
+	 * Method to return the text font of the TextDescriptor.
 	 * @return the text font of the TextDescriptor.
 	 */
 	public int getFace() { return (descriptor1 & VTFACE) >> VTFACESH; }
 
 	/**
-	 * Routine to set the text font of the TextDescriptor.
+	 * Method to set the text font of the TextDescriptor.
 	 * @param f the text font of the TextDescriptor.
 	 */
 	public void setFace(int f)
@@ -860,14 +860,14 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return the text rotation of the TextDescriptor.
+	 * Method to return the text rotation of the TextDescriptor.
 	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
 	 * @return the text rotation of the TextDescriptor.
 	 */
 	public Rotation getRotation() { return Rotation.getRotationAt((descriptor1 & VTROTATION) >> VTROTATIONSH); }
 
 	/**
-	 * Routine to set the text rotation of the TextDescriptor.
+	 * Method to set the text rotation of the TextDescriptor.
 	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
 	 * @param r the text rotation of the TextDescriptor.
 	 */
@@ -878,13 +878,13 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return the text display part of the TextDescriptor.
+	 * Method to return the text display part of the TextDescriptor.
 	 * @return the text display part of the TextDescriptor.
 	 */
 	public DispPos getDispPart() { return DispPos.theDispPos[(descriptor0 & VTDISPLAYPART) >> VTDISPLAYPARTSH]; }
 
 	/**
-	 * Routine to set the text display part of the TextDescriptor.
+	 * Method to set the text display part of the TextDescriptor.
 	 * @param d the text display part of the TextDescriptor.
 	 */
 	public void setDispPart(DispPos d)
@@ -894,13 +894,13 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return true if the text in the TextDescriptor is italic.
+	 * Method to return true if the text in the TextDescriptor is italic.
 	 * @return true if the text in the TextDescriptor is italic.
 	 */
 	public boolean isItalic() { return (descriptor0 & VTITALIC) != 0; }
 
 	/**
-	 * Routine to set the text in the TextDescriptor to be italic.
+	 * Method to set the text in the TextDescriptor to be italic.
 	 */
 	public void setItalic()
 	{
@@ -909,7 +909,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to set the text in the TextDescriptor to be not italic.
+	 * Method to set the text in the TextDescriptor to be not italic.
 	 */
 	public void clearItalic()
 	{
@@ -918,13 +918,13 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return true if the text in the TextDescriptor is bold.
+	 * Method to return true if the text in the TextDescriptor is bold.
 	 * @return true if the text in the TextDescriptor is bold.
 	 */
 	public boolean isBold() { return (descriptor0 & VTBOLD) != 0; }
 
 	/**
-	 * Routine to set the text in the TextDescriptor to be bold.
+	 * Method to set the text in the TextDescriptor to be bold.
 	 */
 	public void setBold()
 	{
@@ -933,7 +933,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to set the text in the TextDescriptor to be not bold.
+	 * Method to set the text in the TextDescriptor to be not bold.
 	 */
 	public void clearBold()
 	{
@@ -942,13 +942,13 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return true if the text in the TextDescriptor is underlined.
+	 * Method to return true if the text in the TextDescriptor is underlined.
 	 * @return true if the text in the TextDescriptor is underlined.
 	 */
 	public boolean isUnderline() { return (descriptor0 & VTUNDERLINE) != 0; }
 
 	/**
-	 * Routine to set the text in the TextDescriptor to be underlined.
+	 * Method to set the text in the TextDescriptor to be underlined.
 	 */
 	public void setUnderline()
 	{
@@ -957,7 +957,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to set the text in the TextDescriptor to be not underlined.
+	 * Method to set the text in the TextDescriptor to be not underlined.
 	 */
 	public void clearUnderline()
 	{
@@ -966,14 +966,14 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return true if the text in the TextDescriptor is interior.
+	 * Method to return true if the text in the TextDescriptor is interior.
 	 * Interior text is not seen at higher levels of the hierarchy.
 	 * @return true if the text in the TextDescriptor is interior.
 	 */
 	public boolean isInterior() { return (descriptor0 & VTINTERIOR) != 0; }
 
 	/**
-	 * Routine to set the text in the TextDescriptor to be interior.
+	 * Method to set the text in the TextDescriptor to be interior.
 	 * Interior text is not seen at higher levels of the hierarchy.
 	 */
 	public void setInterior()
@@ -983,7 +983,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to set the text in the TextDescriptor to be not interior.
+	 * Method to set the text in the TextDescriptor to be not interior.
 	 * Interior text is not seen at higher levels of the hierarchy.
 	 */
 	public void clearInterior()
@@ -993,7 +993,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return true if the text in the TextDescriptor is inheritable.
+	 * Method to return true if the text in the TextDescriptor is inheritable.
 	 * Inheritable variables copy their contents from prototype to instance.
 	 * Only Variables on NodeProto and PortProto objects can be inheritable.
 	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
@@ -1003,7 +1003,7 @@ public class TextDescriptor
 	public boolean isInherit() { return (descriptor0 & VTINHERIT) != 0; }
 
 	/**
-	 * Routine to set the text in the TextDescriptor to be inheritable.
+	 * Method to set the text in the TextDescriptor to be inheritable.
 	 * Inheritable variables copy their contents from prototype to instance.
 	 * Only Variables on NodeProto and PortProto objects can be inheritable.
 	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
@@ -1016,7 +1016,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to set the text in the TextDescriptor to be not inheritable.
+	 * Method to set the text in the TextDescriptor to be not inheritable.
 	 * Inheritable variables copy their contents from prototype to instance.
 	 * Only Variables on NodeProto and PortProto objects can be inheritable.
 	 * When a NodeInst is created, any inheritable Variables on its NodeProto are automatically
@@ -1029,7 +1029,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return true if the text in the TextDescriptor is a parameter.
+	 * Method to return true if the text in the TextDescriptor is a parameter.
 	 * Parameters are those Variables that have values on instances which are
 	 * passed down the hierarchy into the contents.
 	 * Parameters can only exist on NodeInst objects.
@@ -1038,7 +1038,7 @@ public class TextDescriptor
 	public boolean isParam() { return (descriptor0 & VTISPARAMETER) != 0; }
 
 	/**
-	 * Routine to set the text in the TextDescriptor to be a parameter.
+	 * Method to set the text in the TextDescriptor to be a parameter.
 	 * Parameters are those Variables that have values on instances which are
 	 * passed down the hierarchy into the contents.
 	 * Parameters can only exist on NodeInst objects.
@@ -1050,7 +1050,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to set the text in the TextDescriptor to be not a parameter.
+	 * Method to set the text in the TextDescriptor to be not a parameter.
 	 * Parameters are those Variables that have values on instances which are
 	 * passed down the hierarchy into the contents.
 	 * Parameters can only exist on NodeInst objects.
@@ -1062,7 +1062,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return the X offset of the text in the TextDescriptor.
+	 * Method to return the X offset of the text in the TextDescriptor.
 	 * @return the X offset of the text in the TextDescriptor.
 	 */
 	public double getXOff()
@@ -1074,7 +1074,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to return the Y offset of the text in the TextDescriptor.
+	 * Method to return the Y offset of the text in the TextDescriptor.
 	 * @return the Y offset of the text in the TextDescriptor.
 	 */
 	public double getYOff()
@@ -1086,7 +1086,7 @@ public class TextDescriptor
 	}
 
 	/**
-	 * Routine to set the X and Y offsets of the text in the TextDescriptor.
+	 * Method to set the X and Y offsets of the text in the TextDescriptor.
 	 * The values are scaled by 4, so a value of 3 indicates a shift of 0.75 and a value of 4 shifts by 1.
 	 * @param x the X offset of the text in the TextDescriptor.
 	 * @param y the Y offset of the text in the TextDescriptor.
@@ -1116,14 +1116,14 @@ public class TextDescriptor
 		descriptor1 = (descriptor1 & ~VTOFFSCALE) | ((scale << VTOFFSCALESH) & VTOFFSCALE);
 	}
 
-	/** routine to return the offset scale of the text in the text descriptor. */
+	/** Method to return the offset scale of the text in the text descriptor. */
 	private int getOffScale() { return (descriptor1 & VTOFFSCALE) >> VTOFFSCALE; }
 
-	/** routine to set the offset scale of the text in the text descriptor. */
+	/** Method to set the offset scale of the text in the text descriptor. */
 	//private TextDescriptor setOffScale(int v) { return descriptor1 = (descriptor1 & ~VTOFFSCALE) | (v << VTOFFSCALESH); }
 
 	/**
-	 * Routine to return the Unit of the TextDescriptor.
+	 * Method to return the Unit of the TextDescriptor.
 	 * Unit describes the type of real-world unit to apply to the value.
 	 * For example, if this value is in volts, the Unit tells whether the value
 	 * is volts, millivolts, microvolts, etc.
@@ -1132,7 +1132,7 @@ public class TextDescriptor
 	public Unit getUnit() { return Unit.theUnits[(descriptor1 & VTUNITS) >> VTUNITSSH]; }
 
 	/**
-	 * Routine to set the Unit of the TextDescriptor.
+	 * Method to set the Unit of the TextDescriptor.
 	 * Unit describe the type of real-world unit to apply to the value.
 	 * For example, if this value is in volts, the Unit tells whether the value
 	 * is volts, millivolts, microvolts, etc.

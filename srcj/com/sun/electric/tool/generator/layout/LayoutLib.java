@@ -33,7 +33,7 @@ import com.sun.electric.technology.*;
 import com.sun.electric.tool.io.*;
 
 /**
- * The LayoutLib class provides an assortment of routines that I
+ * The LayoutLib class provides an assortment of methods that I
  * found to be useful for programatic layout generation.
  */
 public class LayoutLib {
@@ -493,8 +493,8 @@ public class LayoutLib {
 		return c.getBounds();
 	}
 
-	// --------------------- Abutment routines ---------------------------------
-	// There are too many abutment routines. I need to figure out how
+	// --------------------- Abutment methods ---------------------------------
+	// There are too many abutment methods. I need to figure out how
 	// to eliminate some.
 
 	/**

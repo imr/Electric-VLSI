@@ -110,19 +110,19 @@ public abstract class PortProto extends ElectricObject
 		}
 
 		/**
-		 * Routine to return the bit value associated with this Characteristic.
+		 * Method to return the bit value associated with this Characteristic.
 		 * @return the bit value associated with this Characteristic.
 		 */
 		public int getBits() { return bits; }
 
 		/**
-		 * Routine to return the name of this Characteristic.
+		 * Method to return the name of this Characteristic.
 		 * @return the name of this Characteristic.
 		 */
 		public String getName() { return name; }
 
 		/**
-		 * Routine to tell whether this Characteristic is "reference".
+		 * Method to tell whether this Characteristic is "reference".
 		 * Reference exports have an extra name that identifies the reference export.
 		 * @return true if this Characteristic is "reference".
 		 */
@@ -133,7 +133,7 @@ public abstract class PortProto extends ElectricObject
 		}
 
 		/**
-		 * Routine to find the characteristic associated with the given bit value.
+		 * Method to find the characteristic associated with the given bit value.
 		 * @param bits the bit value associated with a Characteristic.
 		 * @return the desired Characteristic (null if not found).
 		 */
@@ -145,7 +145,7 @@ public abstract class PortProto extends ElectricObject
 		}
 
 		/**
-		 * Routine to find the characteristic associated with the given name.
+		 * Method to find the characteristic associated with the given name.
 		 * @param wantName the name of a Characteristic.
 		 * @return the desired Characteristic (null if not found).
 		 */
@@ -160,7 +160,7 @@ public abstract class PortProto extends ElectricObject
 		}
 
 		/**
-		 * Routine to return an iterator over all of the PortProto Characteristics.
+		 * Method to return an iterator over all of the PortProto Characteristics.
 		 * @return an iterator over all of the PortProto Characteristics.
 		 */
 		public static List getOrderedCharacteristics()
@@ -235,7 +235,7 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to set the parent NodeProto that this PortProto belongs to.
+	 * Method to set the parent NodeProto that this PortProto belongs to.
 	 * @param parent the parent NodeProto that this PortProto belongs to.
 	 */
 	public void setParent(NodeProto parent)
@@ -244,7 +244,7 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to set the name of this PortProto.
+	 * Method to set the name of this PortProto.
 	 * @param protoName string with new name of this PortProto.
 	 */
 	public void setProtoName(String protoName)
@@ -253,21 +253,21 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to set an index of this PortProto in NodeProto ports.
+	 * Method to set an index of this PortProto in NodeProto ports.
 	 * This is a zero-based index of ports on the NodeProto.
 	 * @param portIndex an index of this PortProto in NodeProto ports.
 	 */
 	void setPortIndex(int portIndex) { this.portIndex = portIndex; }
 
 	/**
-	 * Routine to get the index of this PortProto.
+	 * Method to get the index of this PortProto.
 	 * This is a zero-based index of ports on the NodeProto.
 	 * @return the index of this PortProto.
 	 */
 	public final int getPortIndex() { return portIndex; }
 
 	/**
-	 * Routine to remove this PortProto from its parent NodeProto.
+	 * Method to remove this PortProto from its parent NodeProto.
 	 */
 	public void kill()
 	{
@@ -275,7 +275,7 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/*
-	 * Routine to write a description of this PortProto.
+	 * Method to write a description of this PortProto.
 	 * Displays the description in the Messages Window.
 	 */
 	public void getInfo()
@@ -288,19 +288,19 @@ public abstract class PortProto extends ElectricObject
 	// ---------------------- public methods -------------------------
 
 	/**
-	 * Routine to return the name key of this PortProto.
+	 * Method to return the name key of this PortProto.
 	 * @return the Name of this PortProto.
 	 */
 	public Name getProtoNameKey() { return protoName; }
 
 	/**
-	 * Routine to return the name of this PortProto.
+	 * Method to return the name of this PortProto.
 	 * @return the name of this PortProto.
 	 */
 	public String getProtoName() { return protoName.toString(); }
 
 	/**
-	 * Routine to return the short name of this PortProto.
+	 * Method to return the short name of this PortProto.
 	 * The short name is everything up to the first nonalphabetic character.
 	 * @return the short name of this PortProto.
 	 */
@@ -318,27 +318,27 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to return the parent NodeProto of this PortProto.
+	 * Method to return the parent NodeProto of this PortProto.
 	 * @return the parent NodeProto of this PortProto.
 	 */
 	public NodeProto getParent() { return parent; }
 
 	/**
-	 * Routine to return the Text Descriptor of this PortProto.
+	 * Method to return the Text Descriptor of this PortProto.
 	 * Text Descriptors tell how to display the port name.
 	 * @return the Text Descriptor of this PortProto.
 	 */
 	public TextDescriptor getTextDescriptor() { return descriptor; }
 
 	/**
-	 * Routine to set the Text Descriptor of this PortProto.
+	 * Method to set the Text Descriptor of this PortProto.
 	 * Text Descriptors tell how to display the port name.
 	 * @param descriptor the Text Descriptor of this PortProto.
 	 */
 	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor.copy(descriptor); }
 
 	/**
-	 * Routine to return the Characteristic of this PortProto.
+	 * Method to return the Characteristic of this PortProto.
 	 * @return the Characteristic of this PortProto.
 	 */
 	public Characteristic getCharacteristic()
@@ -348,7 +348,7 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to set the Characteristic of this PortProto.
+	 * Method to set the Characteristic of this PortProto.
 	 * @param characteristic the Characteristic of this PortProto.
 	 */
 	public void setCharacteristic(Characteristic characteristic)
@@ -357,7 +357,7 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to determine whether this PortProto is of type Power.
+	 * Method to determine whether this PortProto is of type Power.
 	 * This is determined by either having the proper Characteristic, or by
 	 * having the proper name (starting with "vdd", "vcc", "pwr", or "power").
 	 * @return true if this PortProto is of type Power.
@@ -376,7 +376,7 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to determine whether this PortProto is of type Ground.
+	 * Method to determine whether this PortProto is of type Ground.
 	 * This is determined by either having the proper Characteristic, or by
 	 * having the proper name (starting with "vss", "gnd", or "ground").
 	 * @return true if this PortProto is of type Ground.
@@ -394,7 +394,7 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to return the angle of this PortProto.
+	 * Method to return the angle of this PortProto.
 	 * This is the primary angle that the PortProto faces on the NodeProto.
 	 * It is only used on PrimitivePorts, and is set during Technology creation.
 	 * @return the angle of this PortProto.
@@ -405,7 +405,7 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to set the angle of this PortProto.
+	 * Method to set the angle of this PortProto.
 	 * This is the primary angle that the PortProto faces on the NodeProto.
 	 * It is only used on PrimitivePorts, and is set during Technology creation.
 	 * @param angle the angle of this PortProto.
@@ -416,7 +416,7 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to set the angle range of this PortProto.
+	 * Method to set the angle range of this PortProto.
 	 * This is the range about the angle of allowable connections.
 	 * When this value is 180, then all angles are permissible, since arcs
 	 * can connect at up to 180 degrees in either direction from the port angle.
@@ -429,7 +429,7 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to set the topology of this PortProto.
+	 * Method to set the topology of this PortProto.
 	 * This is a small integer that is unique among PortProtos on this NodeProto.
 	 * When two PortProtos have the same topology number, it indicates that these
 	 * ports are connected.
@@ -442,7 +442,7 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to get the topology of this PortProto.
+	 * Method to get the topology of this PortProto.
 	 * This is a small integer that is unique among PortProtos on this NodeProto.
 	 * When two PortProtos have the same topology number, it indicates that these
 	 * ports are connected.
@@ -455,21 +455,21 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to set this PortProto to be isolated.
+	 * Method to set this PortProto to be isolated.
 	 * Isolated ports do not electrically connect their arcs.
 	 * This occurs in the multiple inputs to a schematic gate that all connect to the same port but do not themselves connect.
 	 */
 	public void setIsolated() { userBits |= PORTISOLATED; }
 
 	/**
-	 * Routine to set this PortProto to be not isolated.
+	 * Method to set this PortProto to be not isolated.
 	 * Isolated ports do not electrically connect their arcs.
 	 * This occurs in the multiple inputs to a schematic gate that all connect to the same port but do not themselves connect.
 	 */
 	public void clearIsolated() { userBits &= ~PORTISOLATED; }
 
 	/**
-	 * Routine to tell whether this PortProto is isolated.
+	 * Method to tell whether this PortProto is isolated.
 	 * Isolated ports do not electrically connect their arcs.
 	 * This occurs in the multiple inputs to a schematic gate that all connect to the same port but do not themselves connect.
 	 * @return true if this PortProto is isolated.
@@ -477,40 +477,40 @@ public abstract class PortProto extends ElectricObject
 	public boolean isIsolated() { return (userBits & PORTISOLATED) != 0; }
 
 	/**
-	 * Routine to set this PortProto to be always drawn.
+	 * Method to set this PortProto to be always drawn.
 	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
 	 */
 	public void setAlwaysDrawn() { userBits |= PORTDRAWN; }
 
 	/**
-	 * Routine to set this PortProto to be not always drawn.
+	 * Method to set this PortProto to be not always drawn.
 	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
 	 */
 	public void clearAlwaysDrawn() { userBits &= ~PORTDRAWN; }
 
 	/**
-	 * Routine to tell whether this PortProto is always drawn.
+	 * Method to tell whether this PortProto is always drawn.
 	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
 	 * @return true if this PortProto is always drawn.
 	 */
 	public boolean isAlwaysDrawn() { return (userBits & PORTDRAWN) != 0; }
 
 	/**
-	 * Routine to set this PortProto to exist only in the body of a cell.
+	 * Method to set this PortProto to exist only in the body of a cell.
 	 * Ports that exist only in the body do not have an equivalent in the icon.
 	 * This is used by simulators and icon generators to recognize less significant ports.
 	 */
 	public void setBodyOnly() { userBits |= BODYONLY; }
 
 	/**
-	 * Routine to set this PortProto to exist in the body and icon of a cell.
+	 * Method to set this PortProto to exist in the body and icon of a cell.
 	 * Ports that exist only in the body do not have an equivalent in the icon.
 	 * This is used by simulators and icon generators to recognize less significant ports.
 	 */
 	public void clearBodyOnly() { userBits &= ~BODYONLY; }
 
 	/**
-	 * Routine to tell whether this PortProto exists only in the body of a cell.
+	 * Method to tell whether this PortProto exists only in the body of a cell.
 	 * Ports that exist only in the body do not have an equivalent in the icon.
 	 * This is used by simulators and icon generators to recognize less significant ports.
 	 * @return true if this PortProto exists only in the body of a cell.
@@ -518,7 +518,7 @@ public abstract class PortProto extends ElectricObject
 	public boolean isBodyOnly() { return (userBits & BODYONLY) != 0; }
 
 	/**
-	 * Abstract routine to return the base-level port that this PortProto is created from.
+	 * Abstract method to return the base-level port that this PortProto is created from.
 	 * For a PrimitivePort, it simply returns itself.
 	 * For an Export, it returns the base port of its sub-port, the port on the NodeInst
 	 * from which the Export was created.
@@ -527,7 +527,7 @@ public abstract class PortProto extends ElectricObject
 	public abstract PrimitivePort getBasePort();
 
 	/**
-	 * Routine to return true if the specified ArcProto can connect to this PortProto.
+	 * Method to return true if the specified ArcProto can connect to this PortProto.
 	 * @param arc the ArcProto to test for connectivity.
 	 * @return true if this PortProto can connect to the ArcProto, false if it can't.
 	 */
@@ -537,7 +537,7 @@ public abstract class PortProto extends ElectricObject
 	}
 
 	/**
-	 * Low-level routine to get the user bits.
+	 * Low-level method to get the user bits.
 	 * The "user bits" are a collection of flags that are more sensibly accessed
 	 * through special methods.
 	 * This general access to the bits is required because the binary ".elib"
@@ -548,7 +548,7 @@ public abstract class PortProto extends ElectricObject
 	public int lowLevelGetUserbits() { return userBits; }
 
 	/**
-	 * Low-level routine to set the user bits.
+	 * Low-level method to set the user bits.
 	 * The "user bits" are a collection of flags that are more sensibly accessed
 	 * through special methods.
 	 * This general access to the bits is required because the binary ".elib"
@@ -559,31 +559,31 @@ public abstract class PortProto extends ElectricObject
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
 	/**
-	 * Routine to set an arbitrary integer in a temporary location on this PortProto.
+	 * Method to set an arbitrary integer in a temporary location on this PortProto.
 	 * @param tempInt the integer to be set on this PortProto.
 	 */
 	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
 
 	/**
-	 * Routine to get the temporary integer on this PortProto.
+	 * Method to get the temporary integer on this PortProto.
 	 * @return the temporary integer on this PortProto.
 	 */
 	public int getTempInt() { return tempInt; }
 
 	/**
-	 * Routine to set an arbitrary Object in a temporary location on this PortProto.
+	 * Method to set an arbitrary Object in a temporary location on this PortProto.
 	 * @param tempObj the Object to be set on this PortProto.
 	 */
 	public void setTempObj(Object tempObj) { this.tempObj = tempObj; }
 
 	/**
-	 * Routine to get the temporary Object on this PortProto.
+	 * Method to get the temporary Object on this PortProto.
 	 * @return the temporary Object on this PortProto.
 	 */
 	public Object getTempObj() { return tempObj; }
 
 	/**
-	 * Routine to get access to flag bits on this PortProto.
+	 * Method to get access to flag bits on this PortProto.
 	 * Flag bits allow NodeProtos to be marked and examined more conveniently.
 	 * However, multiple competing activities may want to mark the nodes at
 	 * the same time.  To solve this, each activity that wants to mark nodes
@@ -595,26 +595,26 @@ public abstract class PortProto extends ElectricObject
 	public static FlagSet getFlagSet(int numBits) { return FlagSet.getFlagSet(flagGenerator, numBits); }
 
 	/**
-	 * Routine to set the specified flag bits on this PortProto.
+	 * Method to set the specified flag bits on this PortProto.
 	 * @param set the flag bits that are to be set on this PortProto.
 	 */
 	public void setBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits | set.getMask(); }
 
 	/**
-	 * Routine to set the specified flag bits on this PortProto.
+	 * Method to set the specified flag bits on this PortProto.
 	 * @param set the flag bits that are to be cleared on this PortProto.
 	 */
 	public void clearBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits & set.getUnmask(); }
 
 	/**
-	 * Routine to test the specified flag bits on this PortProto.
+	 * Method to test the specified flag bits on this PortProto.
 	 * @param set the flag bits that are to be tested on this PortProto.
 	 * @return true if the flag bits are set.
 	 */
 	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
 
 	/**
-	 * Routine to return the PortProto that is equivalent to this in the
+	 * Method to return the PortProto that is equivalent to this in the
 	 * corresponding NodeProto. It is overrideen in Export.
 	 * @return the PortProto that is equivalent to this in the corresponding Cell.
 	 */

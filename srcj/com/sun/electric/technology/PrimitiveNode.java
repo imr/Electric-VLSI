@@ -89,7 +89,7 @@ public class PrimitiveNode extends NodeProto
 	// ------------------------- public methods -------------------------------
 
 	/**
-	 * Routine to create a new PrimitiveNode from the parameters.
+	 * Method to create a new PrimitiveNode from the parameters.
 	 * @param protoName the name of the PrimitiveNode.
 	 * Primitive names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
 	 * @param tech the Technology of the PrimitiveNode.
@@ -119,13 +119,13 @@ public class PrimitiveNode extends NodeProto
 	}
 
 	/**
-	 * Routine to return the list of Layers that comprise this PrimitiveNode.
+	 * Method to return the list of Layers that comprise this PrimitiveNode.
 	 * @return the list of Layers that comprise this PrimitiveNode.
 	 */
 	public Technology.NodeLayer [] getLayers() { return layers; }
 
 	/**
-	 * Routine to find the NodeLayer on this PrimitiveNode with a given Layer.
+	 * Method to find the NodeLayer on this PrimitiveNode with a given Layer.
 	 * If there are more than 1 with the given Layer, the first is returned.
 	 * @param layer the Layer to find.
 	 * @return the NodeLayer that has this Layer.
@@ -141,7 +141,7 @@ public class PrimitiveNode extends NodeProto
 	}
 
 	/**
-	 * Routine to set the default size of this PrimitiveNode.
+	 * Method to set the default size of this PrimitiveNode.
 	 * @param defWidth the new default width of this PrimitiveNode.
 	 * @param defHeight the new default height of this PrimitiveNode.
 	 */
@@ -152,43 +152,43 @@ public class PrimitiveNode extends NodeProto
 	}
 
 	/**
-	 * Routine to return the default width of this PrimitiveNode.
+	 * Method to return the default width of this PrimitiveNode.
 	 * @return the default width of this PrimitiveNode.
 	 */
 	public double getDefWidth() { return defWidth; }
 
 	/**
-	 * Routine to return the default height of this PrimitiveNode.
+	 * Method to return the default height of this PrimitiveNode.
 	 * @return the default height of this PrimitiveNode.
 	 */
 	public double getDefHeight() { return defHeight; }
 
 	/**
-	 * Routine to get the size offset of this PrimitiveNode.
+	 * Method to get the size offset of this PrimitiveNode.
 	 * @return the size offset of this PrimitiveNode.
 	 */
 	public SizeOffset getSizeOffset() { return offset; }
 
 	/**
-	 * Routine to return the minimum width of this PrimitiveNode.
+	 * Method to return the minimum width of this PrimitiveNode.
 	 * @return the minimum width of this PrimitiveNode.
 	 */
 	public double getMinWidth() { return minWidth; }
 
 	/**
-	 * Routine to return the minimum height of this PrimitiveNode.
+	 * Method to return the minimum height of this PrimitiveNode.
 	 * @return the minimum height of this PrimitiveNode.
 	 */
 	public double getMinHeight() { return minHeight; }
 
 	/**
-	 * Routine to return the minimum size rule for this PrimitiveNode.
+	 * Method to return the minimum size rule for this PrimitiveNode.
 	 * @return the minimum size rule for this PrimitiveNode.
 	 */
 	public String getMinSizeRule() { return minSizeRule; }
 
 	/**
-	 * Routine to set the minimum height of this PrimitiveNode.
+	 * Method to set the minimum height of this PrimitiveNode.
 	 * @param minHeight the minimum height of this PrimitiveNode.
 	 */
 	public void setMinSize(double minWidth, double minHeight, String minSizeRule)
@@ -199,13 +199,13 @@ public class PrimitiveNode extends NodeProto
 	}
 
 	/**
-	 * Routine to set the size offset of this PrimitiveNode.
+	 * Method to set the size offset of this PrimitiveNode.
 	 * @param offset the size offset of this PrimitiveNode.
 	 */
 	public void setSizeOffset(SizeOffset offset) { this.offset = offset; }
 
 	/**
-	 * Routine to return the Technology of this PrimitiveNode.
+	 * Method to return the Technology of this PrimitiveNode.
 	 * @return the Technology of this PrimitiveNode.
 	 */
 	public Technology getTechnology() { return tech; }
@@ -220,21 +220,21 @@ public class PrimitiveNode extends NodeProto
 	}
 
 	/**
-	 * Routine to return the special type of this PrimitiveNode.
+	 * Method to return the special type of this PrimitiveNode.
 	 * It can be one of NORMAL, SERPTRANS, POLYGONAL, or MULTICUT.
 	 * @return the special type of this PrimitiveNode.
 	 */
 	public int getSpecialType() { return specialType; }
 
 	/**
-	 * Routine to set the special type of this PrimitiveNode.
+	 * Method to set the special type of this PrimitiveNode.
 	 * @param specialType the newspecial type of this PrimitiveNode.
 	 * It can be NORMAL, SERPTRANS, POLYGONAL, or MULTICUT.
 	 */
 	public void setSpecialType(int specialType) { this.specialType = specialType; }
 
 	/**
-	 * Routine to return the special values stored on this PrimitiveNode.
+	 * Method to return the special values stored on this PrimitiveNode.
 	 * The special values are an array of integers that describe unusual features of the PrimitiveNode.
 	 * They are only relevant for certain specialType cases:
 	 * <UL>
@@ -258,7 +258,7 @@ public class PrimitiveNode extends NodeProto
 	public double [] getSpecialValues() { return specialValues; }
 
 	/**
-	 * Routine to set the special values stored on this PrimitiveNode.
+	 * Method to set the special values stored on this PrimitiveNode.
 	 * The special values are an array of values that describe unusual features of the PrimitiveNode.
 	 * The meaning depends on the specialType (see the documentation for "getSpecialValues").
 	 * @param specialValues the special values for this PrimitiveNode.
@@ -266,7 +266,7 @@ public class PrimitiveNode extends NodeProto
 	public void setSpecialValues(double [] specialValues) { this.specialValues = specialValues; }
 
 	/**
-	 * Routine to tell whether this PrimitiveNode is a Pin.
+	 * Method to tell whether this PrimitiveNode is a Pin.
 	 * Pin nodes have one port, no valid geometry, and are used to connect arcs.
 	 * @return true if this PrimitiveNode is a Pin.
 	 */
@@ -276,7 +276,7 @@ public class PrimitiveNode extends NodeProto
 	}
 
 	/**
-	 * Routine to describe this PrimitiveNode as a string.
+	 * Method to describe this PrimitiveNode as a string.
 	 * If the primitive is not from the current technology, prepend the technology name.
 	 * @return a description of this PrimitiveNode.
 	 */
@@ -290,7 +290,7 @@ public class PrimitiveNode extends NodeProto
 	}
 
 	/**
-	 * Routine to get the index of this PrimitiveNode.
+	 * Method to get the index of this PrimitiveNode.
 	 * @return the index of this PrimitiveNode.
 	 */
 	public final int getPrimNodeIndex() { return primNodeIndex; }

@@ -71,7 +71,7 @@ public class BinaryConstants
 	/** Defines whether the variable is interpreted code (with VCODE1). */		public static final int VCODE2 =          04000000000;
 	
 	/**
-	 * Routine to convert the C-Electric-format date to a Java Data object.
+	 * Method to convert the C-Electric-format date to a Java Data object.
 	 * @param secondsSinceEpoch the number of seconds since the epoch (Jan 1, 1970).
 	 * @return a Java Date object.
 	 */
@@ -85,7 +85,7 @@ public class BinaryConstants
 	}
 
 	/**
-	 * Routine to convert the Java Date object to a C-Electric-format date.
+	 * Method to convert the Java Date object to a C-Electric-format date.
 	 * @param date a Java Date object.
 	 * @return the number of seconds since the epoch (Jan 1, 1970);
 	 */

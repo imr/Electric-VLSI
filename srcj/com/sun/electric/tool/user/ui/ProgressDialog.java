@@ -89,7 +89,7 @@ public class ProgressDialog
 	}
 
 	/**
-	 * Routine to terminate the progress dialog.
+	 * Method to terminate the progress dialog.
 	 */
 	public void close()
 	{
@@ -103,7 +103,7 @@ public class ProgressDialog
 	}
 
 	/**
-	 * Routine to set the progress amount.
+	 * Method to set the progress amount.
 	 * @param progress the amount of progress (from 0 to 100);
 	 */
 	public void setProgress(int progress)
@@ -112,7 +112,7 @@ public class ProgressDialog
 	}
 
 	/**
-	 * Routine to return the progress amount.
+	 * Method to return the progress amount.
 	 * @return the amount of progress (from 0 to 100);
 	 */
 	public int getProgress()
@@ -121,7 +121,7 @@ public class ProgressDialog
 	}
 
 	/**
-	 * Routine to set a text message in the progress dialog.
+	 * Method to set a text message in the progress dialog.
 	 * @param note the message to display.
 	 */
 	public void setNote(String note)
@@ -130,7 +130,7 @@ public class ProgressDialog
 	}
 
 	/**
-	 * Routine to return the text message in the progress dialog.
+	 * Method to return the text message in the progress dialog.
 	 * @return the message currently being displayed.
 	 */
 	public String getNote()

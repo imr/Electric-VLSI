@@ -79,7 +79,7 @@ public class GetInfoText extends javax.swing.JDialog
 	private boolean posNotOffset;
 
 	/**
-	 * Routine to show the Text Get-Info dialog.
+	 * Method to show the Text Get-Info dialog.
 	 */
 	public static void showDialog()
 	{
@@ -92,7 +92,7 @@ public class GetInfoText extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine to reload the Text Get-Info dialog from the current highlighting.
+	 * Method to reload the Text Get-Info dialog from the current highlighting.
 	 */
 	public static void load()
 	{

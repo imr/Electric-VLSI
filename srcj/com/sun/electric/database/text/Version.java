@@ -59,25 +59,25 @@ public class Version
 	private Version() {}
 	
 	/**
-	 * Routine to return the major part of a parsed Version number.
+	 * Method to return the major part of a parsed Version number.
 	 * @return the major part of a parsed Version number.
 	 */
 	public int getMajor() { return major; }
 
 	/**
-	 * Routine to return the minor part of a parsed Version number.
+	 * Method to return the minor part of a parsed Version number.
 	 * @return the minor part of a parsed Version number.
 	 */
 	public int getMinor() { return minor; }
 
 	/**
-	 * Routine to return the details part of a parsed Version number.
+	 * Method to return the details part of a parsed Version number.
 	 * @return the details part of a parsed Version number.
 	 */
 	public int getDetail() { return details; }
 
 	/**
-	 * Routine to parse the specified Version number and return a Version object.
+	 * Method to parse the specified Version number and return a Version object.
 	 * @param version the version of Electric.
 	 * @return a Version object with the fields parsed.
 	 */

@@ -80,7 +80,7 @@ public class Layout extends Constraint
 	public static Layout getConstraint() { return layoutConstraint; }
 
 	/**
-	 * Routine to start a batch of changes.
+	 * Method to start a batch of changes.
 	 */
 	public void startBatch(Tool tool, boolean undoRedo)
 	{
@@ -97,7 +97,7 @@ public class Layout extends Constraint
 	}
 
 	/**
-	 * routine to do hierarchical update on any cells that changed
+	 * Method to do hierarchical update on any cells that changed
 	 */
 	public void endBatch()
 	{
@@ -204,7 +204,7 @@ public class Layout extends Constraint
 	}
 
 	/**
-	 * Routine to set temporary rigidity on an ArcInst.
+	 * Method to set temporary rigidity on an ArcInst.
 	 * @param ai the ArcInst to make temporarily rigid/not-rigid.
 	 * @param tempRigid true to make the ArcInst temporarily rigid;
 	 * false to make it temporarily not-rigid.
@@ -262,11 +262,11 @@ public class Layout extends Constraint
 	/******************** NODE MODIFICATION CODE *************************/
 
 	/**
-	 * routine to modify nodeinst "ni" by "deltalx" in low X, "deltaly" in low Y,
+	 * Method to modify nodeinst "ni" by "deltalx" in low X, "deltaly" in low Y,
 	 * "deltahx" in high X, "deltahy" in high Y, and "dangle" tenth-degrees.  If
 	 * "announce" is true, report "start" and "end" changes on the node.
 	 * If the nodeinst is a portproto of the current cell and has any arcs
-	 * connected to it, the routine returns nonzero to indicate that the outer
+	 * connected to it, the method returns nonzero to indicate that the outer
 	 * cell has ports that moved (the nodeinst has exports).
 	 */
 	private static boolean alterNodeInst(NodeInst ni, double deltaCX, double deltaCY, double deltaSX,
@@ -308,7 +308,7 @@ public class Layout extends Constraint
 	}
 
 	/**
-	 * Routine to modify all of the arcs connected to a NodeInst.
+	 * Method to modify all of the arcs connected to a NodeInst.
 	 * @param ni the NodeInst being examined.
 	 * @param dAngle the change in the nodes rotation (in tenth-degrees).
 	 * @param dSX the change in the node's X size (negative if mirrored).
@@ -336,7 +336,7 @@ public class Layout extends Constraint
 	}
 
 	/*
-	 * routine to modify the arcs that run within nodeinst "ni"
+	 * Method to modify the arcs that run within nodeinst "ni"
 	 */
 	private static void cla_modwithin(NodeInst ni, int dAngle, double dSX, double dSY)
 	{
@@ -389,7 +389,7 @@ public class Layout extends Constraint
 	}
 
 	/**
-	 * Routine to modify the rigid arcs connected to a NodeInst.
+	 * Method to modify the rigid arcs connected to a NodeInst.
 	 * @param ni the NodeInst being examined.
 	 * @param dAngle the change in the nodes rotation (in tenth-degrees).
 	 * @param dSX the change in the node's X size (negative if mirrored).
@@ -557,7 +557,7 @@ public class Layout extends Constraint
 	}
 
 	/**
-	 * Routine to modify the flexible arcs connected to a NodeInst.
+	 * Method to modify the flexible arcs connected to a NodeInst.
 	 * @param ni the NodeInst being examined.
 	 * @param dAngle the change in the nodes rotation (in tenth-degrees).
 	 * @param dSX the change in the node's X size (negative if mirrored).
@@ -801,8 +801,8 @@ public class Layout extends Constraint
 	}
 
 	/**
-	 * Routine to determine the motion of a nonorthogonal ArcInst given that one end has moved.
-	 * The end that is "thisEnd" has moved to (ax[thisEndIndex],ay[thisEndIndex]), so this routine
+	 * Method to determine the motion of a nonorthogonal ArcInst given that one end has moved.
+	 * The end that is "thisEnd" has moved to (ax[thisEndIndex],ay[thisEndIndex]), so this method
 	 * must determine the coordinates of the other end and set (ax[thatEndIndex],ay[thatEndIndex]).
 	 * @param ai the nonorthogonal ArcInst that is adjusting.
 	 * @param thisEnd the Connection at one end of the ArcInst.
@@ -851,7 +851,7 @@ public class Layout extends Constraint
 	}
 
 	/**
-	 * Routine to ensure that an ArcInst is still connected properly at each end.
+	 * Method to ensure that an ArcInst is still connected properly at each end.
 	 * If it is not, the ArcInst must be jogged or adjusted.
 	 * @param ai the ArcInst to check.
 	 * @param arctyp the nature of the arc: 0 for rigid, 1 for flexible.
@@ -919,7 +919,7 @@ public class Layout extends Constraint
 	}
 
 	/**
-	 * Routine to update the coordinates of the ends of an ArcInst.
+	 * Method to update the coordinates of the ends of an ArcInst.
 	 * @param ai the ArcInst to adjust
 	 * @param headPt the new coordinates of the head of the ArcInst.
 	 * @param tailPt the new coordinates of the tail of the ArcInst.
@@ -943,7 +943,7 @@ public class Layout extends Constraint
 	}
 
 	/**
-	 * Routine to move the coordinates of the ends of an ArcInst.
+	 * Method to move the coordinates of the ends of an ArcInst.
 	 * If the arc cannot be moved in this way, it will be broken up into 3 jogged arcs.
 	 * @param ai the ArcInst to adjust
 	 * @param headPt the new coordinates of the head of the ArcInst.
@@ -1057,7 +1057,7 @@ public class Layout extends Constraint
 	}
 
 	/*
-	 * routine to adjust the transformation matrix "trans" by placing translation
+	 * Method to adjust the transformation matrix "trans" by placing translation
 	 * information for nodeinst "ni", port "pp".
 	 *
 	 * there are only two types of nodeinst changes: internal and external.
@@ -1068,7 +1068,7 @@ public class Layout extends Constraint
 	 * can occur at any time and is of no importance here.  What is
 	 * important is that the transformation matrix "trans" handles
 	 * the external changes and internal changes.  External changes are already
-	 * set by the "makeangle" subroutine and internal changes are
+	 * set by the "makeangle" method and internal changes are
 	 * built into the matrix here.
 	 */
 	private static void adjustMatrix(NodeInst ni, PortProto pp, AffineTransform trans)
@@ -1095,7 +1095,7 @@ public class Layout extends Constraint
 	}
 
 	/*
-	 * routine to compute the position of portproto "pp" on nodeinst "ni" and
+	 * Method to compute the position of portproto "pp" on nodeinst "ni" and
 	 * place the center of the area in the parameters "x" and "y".  The position
 	 * is the "old" position, as determined by any changes that may have occured
 	 * to the nodeinst (and any sub-nodes).
@@ -1210,7 +1210,7 @@ public class Layout extends Constraint
 	FlagSet touchNode;
 
 	/*
-	 * routine to re-compute the bounds of the cell "cell" (because an object
+	 * Method to re-compute the bounds of the cell "cell" (because an object
 	 * has been added or removed from it) and store these bounds in the nominal
 	 * size and the size of each instantiation of the cell.  It is also necessary
 	 * to re-position each instantiation of the cell in its proper position list.

@@ -41,7 +41,7 @@ public class Prefs
 	}
 
 	/**
-	 * Routine to get an integer option value.
+	 * Method to get an integer option value.
 	 * @param optionName the name of the option.
 	 * @return the value of the option (0 if not found).
 	 */
@@ -52,7 +52,7 @@ public class Prefs
 	}
 
 	/**
-	 * Routine to get a double-precision option value.
+	 * Method to get a double-precision option value.
 	 * @param optionName the name of the option.
 	 * @return the value of the option (0 if not found).
 	 */
@@ -63,7 +63,7 @@ public class Prefs
 	}
 
 	/**
-	 * Routine to get a boolean option value.
+	 * Method to get a boolean option value.
 	 * @param optionName the name of the option.
 	 * @return the value of the option (false if not found).
 	 */
@@ -74,7 +74,7 @@ public class Prefs
 	}
 
 	/**
-	 * Routine to get a String option value.
+	 * Method to get a String option value.
 	 * @param optionName the name of the option.
 	 * @return the value of the option ("" if not found).
 	 */
@@ -85,7 +85,7 @@ public class Prefs
 	}
 
 	/**
-	 * Routine to set an integer option value.
+	 * Method to set an integer option value.
 	 * @param optionName the name of the option.
 	 * @param value the value of the option to save.
 	 */
@@ -102,7 +102,7 @@ public class Prefs
 	}
 
 	/**
-	 * Routine to set a double-precision option value.
+	 * Method to set a double-precision option value.
 	 * @param optionName the name of the option.
 	 * @param value the value of the option to save.
 	 */
@@ -119,7 +119,7 @@ public class Prefs
 	}
 
 	/**
-	 * Routine to set a boolean option value.
+	 * Method to set a boolean option value.
 	 * @param optionName the name of the option.
 	 * @param value the value of the option to save.
 	 */
@@ -136,7 +136,7 @@ public class Prefs
 	}
 
 	/**
-	 * Routine to set a String option value.
+	 * Method to set a String option value.
 	 * @param optionName the name of the option.
 	 * @param value the value of the option to save.
 	 */
@@ -153,7 +153,7 @@ public class Prefs
 	}
 
 	/**
-	 * Routine to tell whether a given option exists.
+	 * Method to tell whether a given option exists.
 	 * @param optionName the name of the option.
 	 * @return true if this option exists.
 	 */

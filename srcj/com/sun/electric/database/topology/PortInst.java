@@ -50,7 +50,7 @@ public class PortInst extends ElectricObject
 	// ------------------------ public methods -------------------------
 
 	/**
-	 * Routine to create a PortInst object.
+	 * Method to create a PortInst object.
 	 * @param portProto the PortProto on the prototype of the NodeInst.
 	 * @param nodeInst the NodeInst that owns the port.
 	 * @return the newly created PortInst.
@@ -64,25 +64,25 @@ public class PortInst extends ElectricObject
 	}
 
 	/**
-	 * Routine to return the NodeInst that this PortInst resides on.
+	 * Method to return the NodeInst that this PortInst resides on.
 	 * @return the NodeInst that this PortInst resides on.
 	 */
 	public NodeInst getNodeInst() { return nodeInst; }
 
 	/**
-	 * Routine to return the PortProto that this PortInst is an instance of.
+	 * Method to return the PortProto that this PortInst is an instance of.
 	 * @return the PortProto that this PortInst is an instance of.
 	 */
 	public PortProto getPortProto() { return portProto; }
 
 	/**
-	 * Routine to get the index of this PortInst in NodeInst ports.
+	 * Method to get the index of this PortInst in NodeInst ports.
 	 * @return index of this PortInst in NodeInst ports.
 	 */
 	public final int getPortIndex() { return portProto.getPortIndex(); }
 
 	/** 
-	 ** Routine to return the equivalent PortProto of this PortInst's PortProto.
+	 ** Method to return the equivalent PortProto of this PortInst's PortProto.
 	 * This is typically used to find the PortProto in the schematic view.
 	 * @return the equivalent PortProto of this PortInst's PortProto, or null if not found.
 	 */
@@ -92,7 +92,7 @@ public class PortInst extends ElectricObject
     }
     
 	/**
-	 * Routine to return the JNetwork connected to this PortInst.
+	 * Method to return the JNetwork connected to this PortInst.
 	 * @return the JNetwork connected to this PortInst.
 	 */
 	public JNetwork getNetwork()
@@ -106,7 +106,7 @@ public class PortInst extends ElectricObject
 	}
 
 	/**
-	 * Routine to return the bounds of this PortInst.
+	 * Method to return the bounds of this PortInst.
 	 * The bounds are determined by getting the Poly and bounding it.
 	 * @return the bounds of this PortInst.
 	 */
@@ -117,7 +117,7 @@ public class PortInst extends ElectricObject
 	}
 
 	/**
-	 * Routine to return the Poly that describes this PortInst.
+	 * Method to return the Poly that describes this PortInst.
 	 * @return the Poly that describes this PortInst.
 	 */
 	public Poly getPoly()
@@ -126,7 +126,7 @@ public class PortInst extends ElectricObject
 	}
 
 	/**
-	 * Routine to add all displayable Variables on this PortInsts to an array of Poly objects.
+	 * Method to add all displayable Variables on this PortInsts to an array of Poly objects.
 	 * @param rect a rectangle describing the bounds of the NodeInst on which the PortInsts reside.
 	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
 	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.
@@ -146,7 +146,7 @@ public class PortInst extends ElectricObject
 	}
 
 	/**
-	 * Routine to describe this NodeInst as a string.
+	 * Method to describe this NodeInst as a string.
 	 * @return a description of this NodeInst as a string.
 	 */
 	public String describe()

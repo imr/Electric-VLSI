@@ -55,14 +55,14 @@ public class Name implements Comparable
 	/** Map String -> Name */	private static Map allNames = new HashMap();
 
 	/**
-	 * Routine to return the name object for this string.
+	 * Method to return the name object for this string.
 	 * @param ns given string
 	 * @return the name object for the string.
 	 */
 	public static synchronized final Name findName(String ns) { return findTrimmedName(trim(ns)); }
 
 	/**
-	 * Routine to check whether or not string is a valid name.
+	 * Method to check whether or not string is a valid name.
 	 * @param ns given string
 	 * @return the error description or null if string is correct name.
 	 */
@@ -417,7 +417,7 @@ public class Name implements Comparable
 	}
 
 	/**
-	 * Routine to check whether or not string is a valid name.
+	 * Method to check whether or not string is a valid name.
 	 * Throws exception on invaliod string
 	 * @param ns given string
 	 * @return flags describing the string.

@@ -302,7 +302,7 @@ public class ToolOptions extends javax.swing.JDialog
 	private void initDesignRules()
 	{
 		Technology tech = Technology.getCurrent();
-		drRules = tech.getDRCRules();
+		drRules = DRC.getRules(tech);
 
 		drLayers.setSelected(true);
 
@@ -743,104 +743,7 @@ public class ToolOptions extends javax.swing.JDialog
 	 */
 	private void termDesignRules()
 	{
-		NewDRCRules job = new NewDRCRules(this);
-	}
-
-	/**
-	 * Class to update primitive node information.
-	 */
-	protected static class NewDRCRules extends Job
-	{
-		ToolOptions dialog;
-
-		protected NewDRCRules(ToolOptions dialog)
-		{
-			super("Update Design Rules", DRC.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
-			this.startJob();
-		}
-
-		public void doIt()
-		{
-			Technology tech = Technology.getCurrent();
-			DRC.Rules oldRules = tech.getDRCRules();
-
-			// update width-limit information
-			if (dialog.drRules.wideLimit != oldRules.wideLimit)
-				tech.newVar(DRC.WIDE_LIMIT, dialog.drRules.wideLimit);
-
-			// update layer-to-layer information
-			boolean conListChanged = false, conListRulesChanged = false;
-			boolean unConListChanged = false, unConListRulesChanged = false;
-			boolean conListWideChanged = false, conListWideRulesChanged = false;
-			boolean unConListWideChanged = false, unConListWideRulesChanged = false;
-			boolean conListMultiChanged = false, conListMultiRulesChanged = false;
-			boolean unConListMultiChanged = false, unConListMultiRulesChanged = false;
-			boolean edgeListChanged = false, edgeListRulesChanged = false;
-			for(int i=0; i<dialog.drRules.uTSize; i++)
-			{
-				if (!dialog.drRules.conList[i].equals(oldRules.conList[i])) conListChanged = true;
-				if (!dialog.drRules.conListRules[i].equals(oldRules.conListRules[i])) conListRulesChanged = true;
-				if (!dialog.drRules.unConList[i].equals(oldRules.unConList[i])) unConListChanged = true;
-				if (!dialog.drRules.unConListRules[i].equals(oldRules.unConListRules[i])) unConListRulesChanged = true;
-
-				if (!dialog.drRules.conListWide[i].equals(oldRules.conListWide[i])) conListWideChanged = true;
-				if (!dialog.drRules.conListWideRules[i].equals(oldRules.conListWideRules[i])) conListWideRulesChanged = true;
-				if (!dialog.drRules.unConListWide[i].equals(oldRules.unConListWide[i])) unConListWideChanged = true;
-				if (!dialog.drRules.unConListWideRules[i].equals(oldRules.unConListWideRules[i])) unConListWideRulesChanged = true;
-
-				if (!dialog.drRules.conListMulti[i].equals(oldRules.conListMulti[i])) conListMultiChanged = true;
-				if (!dialog.drRules.conListMultiRules[i].equals(oldRules.conListMultiRules[i])) conListMultiRulesChanged = true;
-				if (!dialog.drRules.unConListMulti[i].equals(oldRules.unConListMulti[i])) unConListMultiChanged = true;
-				if (!dialog.drRules.unConListMultiRules[i].equals(oldRules.unConListMultiRules[i])) unConListMultiRulesChanged = true;
-
-				if (!dialog.drRules.edgeList[i].equals(oldRules.edgeList[i])) edgeListChanged = true;
-				if (!dialog.drRules.edgeListRules[i].equals(oldRules.edgeListRules[i])) edgeListRulesChanged = true;
-			}
-			if (conListChanged) tech.newVar(DRC.MIN_CONNECTED_DISTANCES, dialog.drRules.conList);
-			if (conListRulesChanged) tech.newVar(DRC.MIN_CONNECTED_DISTANCES_RULE, dialog.drRules.conListRules);
-			if (unConListChanged) tech.newVar(DRC.MIN_UNCONNECTED_DISTANCES, dialog.drRules.unConList);
-			if (unConListRulesChanged) tech.newVar(DRC.MIN_UNCONNECTED_DISTANCES_RULE, dialog.drRules.unConListRules);
-
-			if (conListWideChanged) tech.newVar(DRC.MIN_CONNECTED_DISTANCES_WIDE, dialog.drRules.conListWide);
-			if (conListWideRulesChanged) tech.newVar(DRC.MIN_CONNECTED_DISTANCES_WIDE_RULE, dialog.drRules.conListWideRules);
-			if (unConListWideChanged) tech.newVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE, dialog.drRules.unConListWide);
-			if (unConListWideRulesChanged) tech.newVar(DRC.MIN_UNCONNECTED_DISTANCES_WIDE_RULE, dialog.drRules.unConListWideRules);
-
-			if (conListMultiChanged) tech.newVar(DRC.MIN_CONNECTED_DISTANCES_MULTI, dialog.drRules.conListMulti);
-			if (conListMultiRulesChanged) tech.newVar(DRC.MIN_CONNECTED_DISTANCES_MULTI_RULE, dialog.drRules.conListMultiRules);
-			if (unConListMultiChanged) tech.newVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI, dialog.drRules.unConListMulti);
-			if (unConListMultiRulesChanged) tech.newVar(DRC.MIN_UNCONNECTED_DISTANCES_MULTI_RULE, dialog.drRules.unConListMultiRules);
-
-			if (edgeListChanged) tech.newVar(DRC.MIN_EDGE_DISTANCES, dialog.drRules.edgeList);
-			if (edgeListRulesChanged) tech.newVar(DRC.MIN_EDGE_DISTANCES_RULE, dialog.drRules.edgeListRules);
-
-			// update per-layer information
-			boolean minWidthChanged = false, minWidthRulesChanged = false;
-			for(int i=0; i<dialog.drRules.numLayers; i++)
-			{
-				if (!dialog.drRules.minWidth[i].equals(oldRules.minWidth[i])) minWidthChanged = true;
-				if (!dialog.drRules.minWidthRules[i].equals(oldRules.minWidthRules[i])) minWidthRulesChanged = true;
-			}
-			if (minWidthChanged) tech.newVar(DRC.MIN_WIDTH, dialog.drRules.minWidth);
-			if (minWidthRulesChanged) tech.newVar(DRC.MIN_WIDTH_RULE, dialog.drRules.minWidthRules);
-
-			// update per-node information
-			int j = 0;
-			for(Iterator it = tech.getNodes(); it.hasNext(); )
-			{
-				PrimitiveNode np = (PrimitiveNode)it.next();
-				if (!dialog.drRules.minNodeSize[j*2].equals(oldRules.minNodeSize[j*2]) ||
-					!dialog.drRules.minNodeSize[j*2+1].equals(oldRules.minNodeSize[j*2+1]) ||
-					!dialog.drRules.minNodeSizeRules[j].equals(oldRules.minNodeSizeRules[j]))
-				{
-					np.setMinSize(dialog.drRules.minNodeSize[j*2].doubleValue(),
-						dialog.drRules.minNodeSize[j*2+1].doubleValue(),
-							dialog.drRules.minNodeSizeRules[j]);
-				}
-				j++;
-			}
-		}
+		DRC.modifyRules(drRules);
 	}
 
 	//******************************** SPICE ********************************

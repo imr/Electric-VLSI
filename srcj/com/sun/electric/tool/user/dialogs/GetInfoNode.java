@@ -87,7 +87,7 @@ public class GetInfoNode extends javax.swing.JDialog
 	private boolean bigger;
 
 	/**
-	 * Routine to show the Node Get-Info dialog.
+	 * Method to show the Node Get-Info dialog.
 	 */
 	public static void showDialog()
 	{
@@ -100,7 +100,7 @@ public class GetInfoNode extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine to reload the Node Get-Info dialog from the current highlighting.
+	 * Method to reload the Node Get-Info dialog from the current highlighting.
 	 */
 	public static void load()
 	{

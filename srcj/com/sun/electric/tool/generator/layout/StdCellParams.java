@@ -672,7 +672,7 @@ public class StdCellParams {
 	 * @param spaceAvailWid the height in the standard cell that is
 	 * available for the diffusion of the MOS transistor.
 	 * @param totWid the total electrical width required.
-	 * @param groupSz This routine creates fingers in multiples of
+	 * @param groupSz This method creates fingers in multiples of
 	 * groupSz. For example, if groupSz is 2, then only even numbers of
 	 * fingers are created. This is needed when one FoldedMos is
 	 * actually going to be wired up as 2 identical, independent

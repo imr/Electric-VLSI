@@ -84,7 +84,7 @@ public abstract class Geometric extends ElectricObject
 		}
 
 		/*
-		 * Routine to return the next object in the bounds of the search.
+		 * Method to return the next object in the bounds of the search.
 		 * @return the next object found.  Returns null when all objects have been reported.
 		 */
 		public Geometric nextObject()
@@ -150,35 +150,35 @@ public abstract class Geometric extends ElectricObject
 			bounds = new Rectangle2D.Double();
 		}
 
-		/** Routine to get the number of children of this RTNode. */
+		/** Method to get the number of children of this RTNode. */
 		private int getTotal() { return total; }
-		/** Routine to set the number of children of this RTNode. */
+		/** Method to set the number of children of this RTNode. */
 		private void setTotal(int total) { this.total = total; }
 
-		/** Routine to get the parent of this RTNode. */
+		/** Method to get the parent of this RTNode. */
 		private RTNode getParent() { return parent; }
-		/** Routine to set the parent of this RTNode. */
+		/** Method to set the parent of this RTNode. */
 		private void setParent(RTNode parent) { this.parent = parent; }
 
-		/** Routine to get the number of children of this RTNode. */
+		/** Method to get the number of children of this RTNode. */
 		private Object getChild(int index) { return pointers[index]; }
-		/** Routine to set the number of children of this RTNode. */
+		/** Method to set the number of children of this RTNode. */
 		private void setChild(int index, Object obj) { this.pointers[index] = obj; }
 
-		/** Routine to get the leaf/branch flag of this RTNode. */
+		/** Method to get the leaf/branch flag of this RTNode. */
 		private boolean getFlag() { return flag; }
-		/** Routine to set the leaf/branch flag of this RTNode. */
+		/** Method to set the leaf/branch flag of this RTNode. */
 		private void setFlag(boolean flag) { this.flag = flag; }
 
-		/** Routine to get the bounds of this RTNode. */
+		/** Method to get the bounds of this RTNode. */
 		private Rectangle2D getBounds() { return bounds; }
-		/** Routine to set the bounds of this RTNode. */
+		/** Method to set the bounds of this RTNode. */
 		private void setBounds(Rectangle2D bounds) { this.bounds.setRect(bounds); }
-		/** Routine to extend the bounds of this RTNode by "bounds". */
+		/** Method to extend the bounds of this RTNode by "bounds". */
 		private void unionBounds(Rectangle2D bounds) { Rectangle2D.union(this.bounds, bounds, this.bounds); }
 
 		/**
-		 * Routine to create the top-level R-Tree structure for a new Cell.
+		 * Method to create the top-level R-Tree structure for a new Cell.
 		 * @return an RTNode object that is empty.
 		 */
 		public static RTNode makeTopLevel()
@@ -262,7 +262,7 @@ public abstract class Geometric extends ElectricObject
 		}
 
 		/**
-		 * Routine to get the bounding box of child "child" of this R-tree node.
+		 * Method to get the bounding box of child "child" of this R-tree node.
 		 */
 		private Rectangle2D getBBox(int child)
 		{
@@ -279,7 +279,7 @@ public abstract class Geometric extends ElectricObject
 
 
 		/**
-		 * routine to recompute the bounds of this R-tree node.
+		 * Method to recompute the bounds of this R-tree node.
 		 */
 		private void figBounds()
 		{
@@ -294,7 +294,7 @@ public abstract class Geometric extends ElectricObject
 		}
 
 		/**
-		 * routine to add object "rtnInsert" to this R-tree node, which is in cell "cell".  Routine may have to
+		 * Method to add object "rtnInsert" to this R-tree node, which is in cell "cell".  Method may have to
 		 * split the node and recurse up the tree
 		 */
 		private void addToRTNode(Object rtnInsert, Cell cell)
@@ -526,7 +526,7 @@ public abstract class Geometric extends ElectricObject
 		}
 
 		/**
-		 * routine to remove entry "ind" from this R-tree node in cell "cell"
+		 * Method to remove entry "ind" from this R-tree node in cell "cell"
 		 */
 		void removeRTNode(int ind, Cell cell)
 		{
@@ -592,7 +592,7 @@ public abstract class Geometric extends ElectricObject
 		}
 
 		/**
-		 * routine to reinsert the tree of nodes below this RTNode into cell "cell".
+		 * Method to reinsert the tree of nodes below this RTNode into cell "cell".
 		 */
 		void reInsert(Cell cell)
 		{
@@ -607,9 +607,9 @@ public abstract class Geometric extends ElectricObject
 		}
 
 		/**
-		 * routine to find the location of geometry module "geom" in the R-tree
+		 * Method to find the location of geometry module "geom" in the R-tree
 		 * below this.  The subnode that contains this module is placed in "subrtn"
-		 * and the index in that subnode is placed in "subind".  The routine returns
+		 * and the index in that subnode is placed in "subind".  The method returns
 		 * null if it is unable to find the geometry module.
 		 */
 		Object [] findGeom(Geometric geom)
@@ -648,9 +648,9 @@ public abstract class Geometric extends ElectricObject
 		}
 
 		/*
-		 * routine to find the location of geometry module "geom" anywhere in the R-tree
+		 * Method to find the location of geometry module "geom" anywhere in the R-tree
 		 * at "rtn".  The subnode that contains this module is placed in "subrtn"
-		 * and the index in that subnode is placed in "subind".  The routine returns
+		 * and the index in that subnode is placed in "subind".  The method returns
 		 * false if it is unable to find the geometry module.
 		 */
 		Object [] findGeomAnywhere(Geometric geom)
@@ -683,7 +683,7 @@ public abstract class Geometric extends ElectricObject
 	}
 
 	/**
-	 * Routine to link this Geometric into the R-tree of its parent Cell.
+	 * Method to link this Geometric into the R-tree of its parent Cell.
 	 * @param parnt the parent Cell.
 	 */
 	protected void linkGeom(Cell parnt)
@@ -728,7 +728,7 @@ public abstract class Geometric extends ElectricObject
 	}
 
 	/**
-	 * routine to remove this geometry from the R-tree in cell "parnt"
+	 * Method to remove this geometry from the R-tree in cell "parnt"
 	 */
 	protected void unLinkGeom(Cell parnt)
 	{
@@ -784,14 +784,14 @@ public abstract class Geometric extends ElectricObject
 	}
 
 	/**
-	 * Routine to set the parent Cell of this Geometric.
+	 * Method to set the parent Cell of this Geometric.
 	 * @param parent the parent Cell of this Geometric.
 	 */
 	protected void setParent(Cell parent) { this.parent = parent; }
 
 	/**
-	 * Routine to describe this Geometric as a string.
-	 * This routine is overridden by NodeInst and ArcInst.
+	 * Method to describe this Geometric as a string.
+	 * This method is overridden by NodeInst and ArcInst.
 	 * @return a description of this Geometric as a string.
 	 */
 	public String describe() { return "?"; }
@@ -803,20 +803,20 @@ public abstract class Geometric extends ElectricObject
 	public void checkChanging() { if (parent != null) parent.checkChanging(); }
 
 	/*
-	 * Routine to determine the appropriate Cell associated with this ElectricObject.
+	 * Method to determine the appropriate Cell associated with this ElectricObject.
 	 * @return the appropriate Cell associated with this ElectricicObject.
 	 */
 	public Cell whichCell() { return parent; }
 
 	/**
-	 * Routine which indicates that this object is in database.
+	 * Method which indicates that this object is in database.
 	 * Some objects are not in database, for example Geometrics in PaletteFrame.
 	 * @return true if this object is in database.
 	 */
 	protected boolean inDatabase() { return parent != null; }
 
 	/*
-	 * Routine to write a description of this Geometric.
+	 * Method to write a description of this Geometric.
 	 * Displays the description in the Messages Window.
 	 */
 	public void getInfo()
@@ -830,13 +830,13 @@ public abstract class Geometric extends ElectricObject
 	// ------------------------ public methods -----------------------------
 
 	/**
-	 * Routine to return the Cell that contains this Geometric object.
+	 * Method to return the Cell that contains this Geometric object.
 	 * @return the Cell that contains this Geometric object.
 	 */
 	public Cell getParent() { return parent; }
 
 	/**
-	 * Routine to return the name of this Geometric.
+	 * Method to return the name of this Geometric.
 	 * @return the name of this Geometric, null if there is no name.
 	 */
 	public String getName()
@@ -845,7 +845,7 @@ public abstract class Geometric extends ElectricObject
 	}
 
 	/**
-	 * Routine to return the name key of this Geometric.
+	 * Method to return the name key of this Geometric.
 	 * @return the name key of this Geometric, null if there is no name.
 	 */
 	public Name getNameKey()
@@ -854,7 +854,7 @@ public abstract class Geometric extends ElectricObject
 	}
 
 	/**
-	 * Routine to set the name of this Geometric.
+	 * Method to set the name of this Geometric.
 	 * @param name name of this geometric.
 	 * @return true on error
 	 */
@@ -864,7 +864,7 @@ public abstract class Geometric extends ElectricObject
 	}
 
 	/**
-	 * Routine to set the name key  of this Geometric.
+	 * Method to set the name key  of this Geometric.
 	 * @param name name key of this geometric.
 	 * @return true on error.
 	 */
@@ -904,20 +904,20 @@ public abstract class Geometric extends ElectricObject
 	}
 
 	/**
-	 * Abstract routine tells if this Geometric is linked to parent Cell.
+	 * Abstract method tells if this Geometric is linked to parent Cell.
 	 * @return true if this Geometric is linked to parent Cell.
 	 */
 	public abstract boolean isLinked();
 
 	/**
-	 * Routine to return the Text Descriptor associated with name of this Geometric.
+	 * Method to return the Text Descriptor associated with name of this Geometric.
 	 * The Text Descriptor applies to the display of that name.
 	 * @return the Text Descriptor for name of this Geometric.
 	 */
 	public TextDescriptor getNameTextDescriptor() { return nameDescriptor; }
 
 	/**
-	 * Routine to set the Text Descriptor associated with name of this Geometric.
+	 * Method to set the Text Descriptor associated with name of this Geometric.
 	 * The Text Descriptor applies to the display of that name.
 	 * @param descriptor the Text Descriptor for name of this Geometric.
 	 */
@@ -930,31 +930,31 @@ public abstract class Geometric extends ElectricObject
 	public boolean isUsernamed() { return name != null && !name.isTempname(); }
 
 	/**
-	 * Routine to return the bounds of this Geometric.
+	 * Method to return the bounds of this Geometric.
 	 * @return the bounds of this Geometric.
 	 */
 	public Rectangle2D getBounds() { return visBounds; }
 
 	/**
-	 * Routine to return the center X coordinate of this Geometric.
+	 * Method to return the center X coordinate of this Geometric.
 	 * @return the center X coordinate of this Geometric.
 	 */
 	public double getTrueCenterX() { return visBounds.getCenterX(); }
 
 	/**
-	 * Routine to return the center Y coordinate of this Geometric.
+	 * Method to return the center Y coordinate of this Geometric.
 	 * @return the center Y coordinate of this Geometric.
 	 */
 	public double getTrueCenterY() { return visBounds.getCenterY(); }
 
 	/**
-	 * Routine to return the center coordinate of this Geometric.
+	 * Method to return the center coordinate of this Geometric.
 	 * @return the center coordinate of this Geometric.
 	 */
 	public Point2D getTrueCenter() { return new Point2D.Double(visBounds.getCenterX(), visBounds.getCenterY()); }
 
 	/**
-	 * Low-level routine to get the user bits.
+	 * Low-level method to get the user bits.
 	 * The "user bits" are a collection of flags that are more sensibly accessed
 	 * through special methods.
 	 * This general access to the bits is required because the binary ".elib"
@@ -965,7 +965,7 @@ public abstract class Geometric extends ElectricObject
 	public int lowLevelGetUserbits() { return userBits; }
 
 	/**
-	 * Low-level routine to set the user bits.
+	 * Low-level method to set the user bits.
 	 * The "user bits" are a collection of flags that are more sensibly accessed
 	 * through special methods.
 	 * This general access to the bits is required because the binary ".elib"
@@ -976,13 +976,13 @@ public abstract class Geometric extends ElectricObject
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
 	/**
-	 * Routine to copy the various state bits from another Geometric to this Geometric.
+	 * Method to copy the various state bits from another Geometric to this Geometric.
 	 * @param geom the other Geometric to copy.
 	 */
 	public void copyStateBits(Geometric geom) { this.userBits = geom.userBits; }
 
 	/**
-	 * Routine to get access to flag bits on this Geometric.
+	 * Method to get access to flag bits on this Geometric.
 	 * Flag bits allow Geometric to be marked and examined more conveniently.
 	 * However, multiple competing activities may want to mark the nodes at
 	 * the same time.  To solve this, each activity that wants to mark nodes
@@ -994,92 +994,92 @@ public abstract class Geometric extends ElectricObject
 	public static FlagSet getFlagSet(int numBits) { return FlagSet.getFlagSet(flagGenerator, numBits); }
 
 	/**
-	 * Routine to set the specified flag bits on this Geometric.
+	 * Method to set the specified flag bits on this Geometric.
 	 * @param set the flag bits that are to be set on this Geometric.
 	 */
 	public void setBit(FlagSet set) { flagBits = flagBits | set.getMask(); }
 
 	/**
-	 * Routine to set the specified flag bits on this Geometric.
+	 * Method to set the specified flag bits on this Geometric.
 	 * @param set the flag bits that are to be cleared on this Geometric.
 	 */
 	public void clearBit(FlagSet set) { flagBits = flagBits & set.getUnmask(); }
 
 	/**
-	 * Routine to set the specified flag bits on this Geometric.
+	 * Method to set the specified flag bits on this Geometric.
 	 * @param set the flag bits that are to be set on this Geometric.
 	 * @param value the value to be set on this Geometric.
 	 */
 	public void setFlagValue(FlagSet set, int value) { flagBits = (flagBits & set.getUnmask()) | ((value << set.getShift()) & set.getMask()); }
 
 	/**
-	 * Routine to return the specified flag bits on this Geometric.
+	 * Method to return the specified flag bits on this Geometric.
 	 * @param set the flag bits that are to be examined on this Geometric.
 	 * @return the value of the specified flag bits on this Geometric.
 	 */
 	public int getFlagValue(FlagSet set) { return (flagBits & set.getMask()) >> set.getShift(); }
 
 	/**
-	 * Routine to test the specified flag bits on this Geometric.
+	 * Method to test the specified flag bits on this Geometric.
 	 * @param set the flag bits that are to be tested on this Geometric.
 	 * @return true if the flag bits are set.
 	 */
 	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
 
 	/**
-	 * Routine to get the temporary integer on this Geometric.
+	 * Method to get the temporary integer on this Geometric.
 	 * @return the temporary integer on this Geometric.
 	 */
 	public int getTempInt() { return tempInt; }
 
 	/**
-	 * Routine to set an arbitrary integer in a temporary location on this Geometric.
+	 * Method to set an arbitrary integer in a temporary location on this Geometric.
 	 * @param tempInt the integer to be set on this Geometric.
 	 */
 	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
 
 	/**
-	 * Routine to set an arbitrary Object in a temporary location on this Geometric.
+	 * Method to set an arbitrary Object in a temporary location on this Geometric.
 	 * @param tempObj the Object to be set on this Geometric.
 	 */
 	public void setTempObj(Object tempObj) { this.tempObj = tempObj; }
 
 	/**
-	 * Routine to get the temporary Object on this Geometric.
+	 * Method to get the temporary Object on this Geometric.
 	 * @return the temporary Object on this Geometric.
 	 */
 	public Object getTempObj() { return tempObj; }
 
 	/**
-	 * Routine to set a timestamp for constraint propagation on this Geometric.
+	 * Method to set a timestamp for constraint propagation on this Geometric.
 	 * This is used by the Layout constraint system.
 	 * @param changeClock the timestamp for constraint propagation.
 	 */
 	public void setChangeClock(int changeClock) { this.changeClock = changeClock; }
 
 	/**
-	 * Routine to get the timestamp for constraint propagation on this Geometric.
+	 * Method to get the timestamp for constraint propagation on this Geometric.
 	 * This is used by the Layout constraint system.
 	 * @return the timestamp for constraint propagation on this Geometric.
 	 */
 	public int getChangeClock() { return changeClock; }
 
 	/**
-	 * Routine to set a Change object on this Geometric.
+	 * Method to set a Change object on this Geometric.
 	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
 	 * @param change the Change object to be set on this Geometric.
 	 */
 	public void setChange(Undo.Change change) { this.change = change; }
 
 	/**
-	 * Routine to get the Change object on this Geometric.
+	 * Method to get the Change object on this Geometric.
 	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
 	 * @return the Change object on this Geometric.
 	 */
 	public Undo.Change getChange() { return change; }
 
 	/**
-	 * Routine to return the number of displayable Variables on this ElectricObject.
+	 * Method to return the number of displayable Variables on this ElectricObject.
 	 * A displayable Variable is one that will be shown with its object.
 	 * Displayable Variables can only sensibly exist on NodeInst and ArcInst objects.
 	 * @return the number of displayable Variables on this ElectricObject.
@@ -1090,7 +1090,7 @@ public abstract class Geometric extends ElectricObject
 	}
 
 	/**
-	 * Routine to add all displayable Variables on this Electric object to an array of Poly objects.
+	 * Method to add all displayable Variables on this Electric object to an array of Poly objects.
 	 * @param rect a rectangle describing the bounds of the object on which the Variables will be displayed.
 	 * @param polys an array of Poly objects that will be filled with the displayable Variables.
 	 * @param start the starting index in the array of Poly objects to fill with displayable Variables.

@@ -107,7 +107,7 @@ public class OutputCIF extends OutputGeometry {
         System.out.println("MOSIS CRC: "+EMath.unsignedIntValue(crcChecksum)+" "+crcNumChars+" "+filePath);
     }    
 
-    /** Routine to write cellGeom */
+    /** Method to write cellGeom */
     protected void writeCellGeom(CellGeom cellGeom)
     {
         cellNumber++;

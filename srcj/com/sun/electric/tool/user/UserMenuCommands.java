@@ -114,7 +114,7 @@ public final class UserMenuCommands
 	private UserMenuCommands() {}
 
 	/**
-	 * Routine to create the pulldown menus.
+	 * Method to create the pulldown menus.
 	 */
 	public static JMenuBar createMenuBar()
 	{
@@ -489,7 +489,7 @@ public final class UserMenuCommands
 	// ---------------------- THE FILE MENU -----------------
 
 	/**
-	 * This routine implements the command to read a library.
+	 * This method implements the command to read a library.
      * It is interactive, and pops up a dialog box.
 	 */
 	public static void openLibraryCommand()
@@ -541,7 +541,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to import a library (Readable Dump format).
+	 * This method implements the command to import a library (Readable Dump format).
      * It is interactive, and pops up a dialog box.
 	 */
 	public static void importLibraryCommand()
@@ -592,7 +592,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to save a library.
+	 * This method implements the command to save a library.
      * It is interactive, and pops up a dialog box.
 	 */
 	public static void saveLibraryCommand()
@@ -642,7 +642,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to save a library to a different file.
+	 * This method implements the command to save a library to a different file.
      * It is interactive, and pops up a dialog box.
 	 */
 	public static void saveAsLibraryCommand()
@@ -653,7 +653,7 @@ public final class UserMenuCommands
 	}
 
     /**
-     * This routine implements the export cell command for different export types.
+     * This method implements the export cell command for different export types.
      * It is interactive, and pops up a dialog box.
      */
     public static void exportCellCommand(Output.ExportType type)
@@ -704,7 +704,7 @@ public final class UserMenuCommands
     }
         
     /**
-	 * This routine implements the command to quit Electric.
+	 * This method implements the command to quit Electric.
 	 */
 	public static void quitCommand()
 	{
@@ -750,7 +750,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to cut the highlighted circuitry or text.
+	 * This method implements the command to cut the highlighted circuitry or text.
 	 */
 	public static void cutCommand()
 	{
@@ -758,7 +758,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to copy the highlighted circuitry or text.
+	 * This method implements the command to copy the highlighted circuitry or text.
 	 */
 	public static void copyCommand()
 	{
@@ -766,7 +766,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to paste circuitry or text.
+	 * This method implements the command to paste circuitry or text.
 	 */
 	public static void pasteCommand()
 	{
@@ -774,7 +774,7 @@ public final class UserMenuCommands
 	}
 
     /**
-     * This routine sets the highlighted arcs to Rigid
+     * This method sets the highlighted arcs to Rigid
      */
 	public static void arcRigidCommand()
 	{
@@ -797,7 +797,7 @@ public final class UserMenuCommands
 	}
 
     /**
-     * This routine sets the highlighted arcs to Non-Rigid
+     * This method sets the highlighted arcs to Non-Rigid
      */
 	public static void arcNotRigidCommand()
 	{
@@ -820,7 +820,7 @@ public final class UserMenuCommands
 	}
 
     /**
-     * This routine sets the highlighted arcs to Fixed-Angle
+     * This method sets the highlighted arcs to Fixed-Angle
      */
 	public static void arcFixedAngleCommand()
 	{
@@ -843,7 +843,7 @@ public final class UserMenuCommands
 	}
 
     /**
-     * This routine sets the highlighted arcs to Not-Fixed-Angle
+     * This method sets the highlighted arcs to Not-Fixed-Angle
      */
 	public static void arcNotFixedAngleCommand()
 	{
@@ -866,7 +866,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to show the I/O Options dialog.
+	 * This method implements the command to show the I/O Options dialog.
 	 */
 	public static void ioOptionsCommand()
 	{
@@ -876,7 +876,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to show the Edit Options dialog.
+	 * This method implements the command to show the Edit Options dialog.
 	 */
 	public static void editOptionsCommand()
 	{
@@ -886,7 +886,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to show the Tool Options dialog.
+	 * This method implements the command to show the Tool Options dialog.
 	 */
 	public static void toolOptionsCommand()
 	{
@@ -896,7 +896,7 @@ public final class UserMenuCommands
 	}
     
     /** 
-     * This routine implements the command to show the Key Bindings Options dialog.
+     * This method implements the command to show the Key Bindings Options dialog.
      */
     public static void keyBindingsCommand()
     {
@@ -906,7 +906,7 @@ public final class UserMenuCommands
     }
 
     /** 
-     * This routine shows the GetInfo dialog for the highlighted nodes, arcs, and/or text.
+     * This method shows the GetInfo dialog for the highlighted nodes, arcs, and/or text.
      */
 	public static void getInfoCommand()
 	{
@@ -1012,7 +1012,7 @@ public final class UserMenuCommands
 	// ---------------------- THE CELL MENU -----------------
 
 	/**
-	 * This routine implements the command to do cell options.
+	 * This method implements the command to do cell options.
 	 */
 	public static void cellControlCommand()
 	{
@@ -1032,7 +1032,7 @@ public final class UserMenuCommands
     }
 
 	/**
-	 * This routine implements the command to delete the current Cell.
+	 * This method implements the command to delete the current Cell.
 	 */
     public static void deleteCellCommand()
 	{
@@ -1042,7 +1042,7 @@ public final class UserMenuCommands
     }
 
 	/**
-	 * This routine implements the command to do cross-library copies.
+	 * This method implements the command to do cross-library copies.
 	 */
 	public static void crossLibraryCopyCommand()
 	{
@@ -1067,7 +1067,7 @@ public final class UserMenuCommands
     }
 
 	/**
-	 * This routine implements the command to make a new version of the current Cell.
+	 * This method implements the command to make a new version of the current Cell.
 	 */
 	public static void newCellVersionCommand()
 	{
@@ -1077,7 +1077,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to make a copy of the current Cell.
+	 * This method implements the command to make a copy of the current Cell.
 	 */
 	public static void duplicateCellCommand()
 	{
@@ -1092,7 +1092,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to delete old, unused versions of cells.
+	 * This method implements the command to delete old, unused versions of cells.
 	 */
 	public static void deleteOldCellVersionsCommand()
 	{
@@ -1100,7 +1100,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to expand the selected cells by 1 level down.
+	 * This method implements the command to expand the selected cells by 1 level down.
 	 */
 	public static void expandOneLevelDownCommand()
 	{
@@ -1109,7 +1109,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to expand the selected cells all the way to the bottom of the hierarchy.
+	 * This method implements the command to expand the selected cells all the way to the bottom of the hierarchy.
 	 */
 	public static void expandFullCommand()
 	{
@@ -1118,7 +1118,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to expand the selected cells by a given number of levels from the top.
+	 * This method implements the command to expand the selected cells by a given number of levels from the top.
 	 */
 	public static void expandSpecificCommand()
 	{
@@ -1130,7 +1130,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to unexpand the selected cells by 1 level up.
+	 * This method implements the command to unexpand the selected cells by 1 level up.
 	 */
 	public static void unexpandOneLevelUpCommand()
 	{
@@ -1139,7 +1139,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to unexpand the selected cells all the way from the bottom of the hierarchy.
+	 * This method implements the command to unexpand the selected cells all the way from the bottom of the hierarchy.
 	 */
 	public static void unexpandFullCommand()
 	{
@@ -1148,7 +1148,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to unexpand the selected cells by a given number of levels from the bottom.
+	 * This method implements the command to unexpand the selected cells by a given number of levels from the bottom.
 	 */
 	public static void unexpandSpecificCommand()
 	{
@@ -1162,7 +1162,7 @@ public final class UserMenuCommands
 	// ---------------------- THE EXPORT MENU -----------------
 
     /**
-	 * This routine implements the command to create a new Export.
+	 * This method implements the command to create a new Export.
 	 */
 	public static void newExportCommand()
 	{
@@ -1174,7 +1174,7 @@ public final class UserMenuCommands
 	// ---------------------- THE VIEW MENU -----------------
 
 	/**
-	 * This routine implements the command to control Views.
+	 * This method implements the command to control Views.
 	 */
 	public static void viewControlCommand()
 	{
@@ -1307,7 +1307,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to toggle the display of the grid.
+	 * This method implements the command to toggle the display of the grid.
 	 */
 	public static void toggleGridCommand()
 	{
@@ -1432,7 +1432,7 @@ public final class UserMenuCommands
 	}
 
 	/**
-	 * This routine implements the command to show the undo history.
+	 * This method implements the command to show the undo history.
 	 */
 	public static void showUndoListCommand()
 	{

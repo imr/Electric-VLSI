@@ -1135,6 +1135,25 @@ public class NodeInst extends Geometric implements Nodable
 //	}
 
 	/**
+	 * Method to return a transformation that translates down the hierarchy.
+	 * Presuming that this NodeInst is a Cell instance, the transformation goes
+	 * from the space of this NodeInst's parent Cell to the space of the contents of the Cell.
+	 * However, it does not account for the rotation of this NodeInst...it only
+	 * translates from one space to another.
+	 * @return a transformation that translates down the hierarchy.
+	 */
+	public AffineTransform translateIn()
+	{
+		// to transform out of this node instance, translate inner coordinates to outer
+		Cell lowerCell = (Cell)protoType;
+		double dx = getGrabCenterX();
+		double dy = getGrabCenterY();
+		AffineTransform transform = new AffineTransform();
+		transform.translate(-dx, -dy);
+		return transform;
+	}
+
+	/**
 	 * Method to return a transformation that translates up the hierarchy.
 	 * Presuming that this NodeInst is a Cell instance, the transformation goes
 	 * from the space of that Cell to the space of this NodeInst's parent Cell.
@@ -1181,10 +1200,8 @@ public class NodeInst extends Geometric implements Nodable
 	 * @param angle the amount to rotate (in tenth-degrees).
 	 * @param cX the center X coordinate about which to rotate.
 	 * @param cY the center Y coordinate about which to rotate.
-	 * @param sX the scale in X (negative to flip the X coordinate, or
-	 * flip ABOUT the Y axis).
-	 * @param sY the scale in Y (negative to flip the Y coordinate, or
-	 * flip ABOUT the X axis).
+	 * @param sX the scale in X (negative to flip the X coordinate, or flip ABOUT the Y axis).
+	 * @param sY the scale in Y (negative to flip the Y coordinate, or flip ABOUT the X axis).
 	 * @return a transformation that rotates about that point.
 	 */
 	public static AffineTransform rotateAbout(int angle, double cX, double cY, double sX, double sY)
@@ -1224,6 +1241,24 @@ public class NodeInst extends Geometric implements Nodable
 		if (sX < 0) transform.preConcatenate(mirrorX);
 		if (sY < 0) transform.preConcatenate(mirrorY);
 		return transform;
+	}
+
+	/**
+	 * Method to return a transformation that unrotates this NodeInst.
+	 * It transforms points on this NodeInst that have been rotated with the node
+	 * so that they appear in the correct location on the unrotated node.
+	 * The rotation happens about the node's Grab Point (the location of the cell-center inside of cell definitions).
+	 * @return a transformation that unrotates this NodeInst.
+	 * If this NodeInst is not rotated, the returned transformation is identity.
+	 */
+	public AffineTransform rotateIn()
+	{
+		int numFlips = 0;
+		if (sX < 0) numFlips++;
+		if (sY < 0) numFlips++;
+		int rotAngle = angle;
+		if (numFlips != 1) rotAngle = -rotAngle;
+		return rotateAbout(rotAngle, getGrabCenterX(), getGrabCenterY(), sX, sY);
 	}
 
 	/**

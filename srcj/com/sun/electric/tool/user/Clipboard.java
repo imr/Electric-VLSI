@@ -91,7 +91,7 @@ public class Clipboard
 	}
 
 	/**
-	 * Routine to clear the contents of the clipboard.
+	 * Method to clear the contents of the clipboard.
 	 */
 	public static void clear()
 	{
@@ -364,7 +364,7 @@ public class Clipboard
 	}
 
 	/**
-	 * Routine to copy the list of objects in "list" (NOGEOM terminated) from "fromcell"
+	 * Method to copy the list of objects in "list" (NOGEOM terminated) from "fromcell"
 	 * to "tocell".  If "highlight" is true, highlight the objects in the new cell.
 	 * If "interactiveplace" is true, interactively select the location in the new cell.
 	 */
@@ -674,7 +674,7 @@ public class Clipboard
 	}
 
 	/**
-	 * Routine to queue the creation of an export from port "pp" of node "ni".
+	 * Method to queue the creation of an export from port "pp" of node "ni".
 	 * The port is being copied from an original port "origpp".  Returns true on error.
 	 */
 	private static void createQueuedExports(List queuedExports)
@@ -702,7 +702,7 @@ public class Clipboard
 	}
 
 	/**
-	 * Routine to "paste" node "srcnode" onto node "destnode", making them the same.
+	 * Method to "paste" node "srcnode" onto node "destnode", making them the same.
 	 * Returns the address of the destination node (NONODEINST on error).
 	 */
 	private static NodeInst pasteNodeToNode(NodeInst destNode, NodeInst srcNode)
@@ -758,7 +758,7 @@ public class Clipboard
 	}
 
 	/**
-	 * Routine to paste one arc onto another.
+	 * Method to paste one arc onto another.
 	 * @param destArc the destination arc that will be replaced.
 	 * @param srcArc the source arc that will replace it.
 	 * @return the replaced arc (null on error).

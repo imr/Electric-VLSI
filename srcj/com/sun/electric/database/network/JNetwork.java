@@ -180,7 +180,7 @@ public class JNetwork
 	}
 
 	/**
-	 * Routine to describe this JNetwork as a string.
+	 * Method to describe this JNetwork as a string.
 	 * @return a String describing this JNetwork.
 	 */
 	public String describe()

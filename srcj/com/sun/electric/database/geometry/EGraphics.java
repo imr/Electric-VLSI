@@ -73,7 +73,7 @@ public class EGraphics
 	/** Set to draw an outline around stipple pattern. */	public final static int OUTLINEPAT = 010;
 
 	/**
-	 * Routine to create a graphics object.
+	 * Method to create a graphics object.
 	 * @param displayMethod the way to show this EGraphics on a display.
 	 * @param printMethod the way to show this EGraphics on paper.
 	 * @param red the red component of this EGraphics.
@@ -101,7 +101,7 @@ public class EGraphics
 	}
 
 	/**
-	 * Routine to return the color associated with this EGraphics.
+	 * Method to return the color associated with this EGraphics.
 	 * @return the color associated with this EGraphics.
 	 */
 	public Color getColor()
@@ -112,7 +112,7 @@ public class EGraphics
 	}
 	
 	/**
-	 * Routine to set the color associated with this EGraphics.
+	 * Method to set the color associated with this EGraphics.
 	 * @param red the red color to set.
 	 * @param green the green color to set.
 	 * @param blue the blue color to set.
@@ -150,7 +150,7 @@ public class EGraphics
 	}
 
 	/**
-	 * Routine to set the color associated with this EGraphics.
+	 * Method to set the color associated with this EGraphics.
 	 * @param index the color to set.
 	 */
 	public void setColor(int index)

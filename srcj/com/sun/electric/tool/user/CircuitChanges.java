@@ -77,7 +77,7 @@ public class CircuitChanges
 	/****************************** DELETE SELECTED OBJECTS ******************************/
 
 	/**
-	 * Routine to delete all selected objects.
+	 * Method to delete all selected objects.
 	 */
 	public static void deleteSelected()
 	{
@@ -127,7 +127,7 @@ public class CircuitChanges
 	/****************************** DELETE OBJECTS IN A LIST ******************************/
 
 	/**
-	 * Routine to delete all of the Geometrics in a list.
+	 * Method to delete all of the Geometrics in a list.
 	 * @param cell the cell with the objects to be deleted.
 	 * @param list a List of Geometric objects to be deleted.
 	 */
@@ -241,7 +241,7 @@ public class CircuitChanges
 	}
 
 	/*
-	 * Routine to erase node "ni" and all associated arcs, exports, etc.
+	 * Method to erase node "ni" and all associated arcs, exports, etc.
 	 */
 	private static void eraseNodeInst(NodeInst ni)
 	{
@@ -273,7 +273,7 @@ public class CircuitChanges
 	}
 
 	/*
-	 * routine to recursively delete ports at nodeinst "ni" and all arcs connected
+	 * Method to recursively delete ports at nodeinst "ni" and all arcs connected
 	 * to them anywhere.  If "spt" is not null, delete only that portproto
 	 * on this nodeinst (and its hierarchically related ports).  Otherwise delete
 	 * all portprotos on this nodeinst.
@@ -339,7 +339,7 @@ public class CircuitChanges
 	}
 
 	/*
-	 * Routine to delete cell "cell".  Validity checks are assumed to be made (i.e. the
+	 * Method to delete cell "cell".  Validity checks are assumed to be made (i.e. the
 	 * cell is not used and is not locked).
 	 */
 	private static void doKillCell(Cell cell)
@@ -728,7 +728,7 @@ public class CircuitChanges
 	}
 
 	/*
-	 * Helper routine to create an export in icon "np".  The export is from original port "pp",
+	 * Helper method to create an export in icon "np".  The export is from original port "pp",
 	 * is on side "index" (0: left, 1: right, 2: top, 3: bottom), is at (xPos,yPos), and
 	 * connects to the central box at (xBBPos,yBBPos).  Returns TRUE if the export is created.
 	 * It uses icon style "style".
@@ -834,7 +834,7 @@ public class CircuitChanges
 	}
 
 	/*
-	 * Routine to determine the side of the icon that port "pp" belongs on.
+	 * Method to determine the side of the icon that port "pp" belongs on.
 	 */
 	private static int iconPosition(Export pp)
 	{
@@ -906,7 +906,7 @@ public class CircuitChanges
 	/****************************** MOVE SELECTED OBJECTS ******************************/
 
 	/**
-	 * routine to move the arcs in the GEOM module list "list" (terminated by
+	 * Method to move the arcs in the GEOM module list "list" (terminated by
 	 * NOGEOM) and the "total" nodes in the list "nodelist" by (dx, dy).
 	 */
 	public static void manyMove(double dx, double dy)
@@ -1265,7 +1265,7 @@ public class CircuitChanges
 //	} RECONNECT;
 //
 //	/**
-//	 * routine to kill a node between two arcs and join the arc as one.  Returns an error
+//	 * Method to kill a node between two arcs and join the arc as one.  Returns an error
 //	 * code according to its success.  If it worked, the new arc is placed in "newai".
 //	 */
 //	int erasePassThru(NodeInst ni, boolean allowdiffs, ArcInst **newai)
@@ -1406,7 +1406,7 @@ public class CircuitChanges
 	/****************************** COPY CELLS ******************************/
 
 	/**
-	 * recursive helper routine for "us_copycell" which copies cell "fromnp"
+	 * recursive helper method for "us_copycell" which copies cell "fromnp"
 	 * to a new cell called "toname" in library "tolib" with the new view type
 	 * "toview".  All needed subcells are copied (unless "nosubcells" is true).
 	 * All shared view cells referenced by variables are copied too
@@ -1640,7 +1640,7 @@ public class CircuitChanges
 	}
 
 	/*
-	 * Routine to return true if a cell like "np" exists in library "lib".
+	 * Method to return true if a cell like "np" exists in library "lib".
 	 */
 	private static boolean us_indestlib(Cell np, Library lib)
 	{
@@ -1705,7 +1705,7 @@ public class CircuitChanges
 	}
 
 	/**
-	 * routine to recursively expand the cell "ni" by "amount" levels.
+	 * Method to recursively expand the cell "ni" by "amount" levels.
 	 * "sofar" is the number of levels that this has already been expanded.
 	 */
 	private static void doExpand(NodeInst ni, int amount, int sofar)
@@ -1819,7 +1819,7 @@ public class CircuitChanges
 	}
 
 	/**
-	 * routine to replace node "oldNi" with a new one of type "newNp"
+	 * Method to replace node "oldNi" with a new one of type "newNp"
 	 * and return the new node.  Also removes any node-specific variables.
 	 */
 	public static NodeInst replaceNodeInst(NodeInst oldNi, NodeProto newNp, boolean ignorePortNames,
@@ -1881,7 +1881,7 @@ public class CircuitChanges
 	/****************************** INHERIT ATTRIBUTES ******************************/
 
 	/**
-	 * Routine to inherit all prototype attributes down to instance "ni".
+	 * Method to inherit all prototype attributes down to instance "ni".
 	 */
 	public static void inheritAttributes(NodeInst ni)
 	{
@@ -1960,7 +1960,7 @@ public class CircuitChanges
 	}
 
 	/**
-	 * Routine to add all inheritable export variables from export "pp" on cell "np"
+	 * Method to add all inheritable export variables from export "pp" on cell "np"
 	 * to instance "ni".
 	 */
 	private static void inheritExportAttributes(PortProto pp, NodeInst ni, Cell np)
@@ -2040,7 +2040,7 @@ public class CircuitChanges
 	}
 
 	/*
-	 * Routine to add inheritable variable "var" from cell "np" to instance "ni".
+	 * Method to add inheritable variable "var" from cell "np" to instance "ni".
 	 * If "icon" is not NONODEINST, use the position of the variable from it.
 	 */
 	private static void inheritCellAttribute(Variable var, NodeInst ni, Cell np, NodeInst icon)
@@ -2113,7 +2113,7 @@ public class CircuitChanges
 	}
 
 	/**
-	 * Helper routine to determine the proper value of an inherited Variable.
+	 * Helper method to determine the proper value of an inherited Variable.
 	 * Normally, it is simply "var.getObject()", but if it is a string with the "++" or "--"
 	 * sequence in it, then it indicates an auto-increments/decrements of that numeric value.
 	 * The returned object has the "++"/"--" removed, and the original variable is modified.

@@ -39,38 +39,38 @@ public interface Nodable
 	// ------------------------ public methods -------------------------------
 
 	/**
-	 * Routine to return the prototype of this Nodable.
+	 * Method to return the prototype of this Nodable.
 	 * @return the prototype of this Nodable.
 	 */
 	public NodeProto getProto();
 
 	/**
-	 * Routine to return the Cell that contains this Nodable.
+	 * Method to return the Cell that contains this Nodable.
 	 * @return the Cell that contains this Nodable.
 	 */
 	public Cell getParent();
 
 	/**
-	 * Routine to return the name of this Nodable.
+	 * Method to return the name of this Nodable.
 	 * @return the name of this Nodable.
 	 */
 	public String getName();
 
 	/**
-	 * Routine to return the name key of this Nodable.
+	 * Method to return the name key of this Nodable.
 	 * @return the name key of this Nodable.
 	 */
 	public Name getNameKey();
 
 	/**
-	 * Routine to return the Variable on this Nodable with a given name.
+	 * Method to return the Variable on this Nodable with a given name.
 	 * @param name the name of the Variable.
 	 * @return the Variable with that name, or null if there is no such Variable.
 	 */
 	public Variable getVar(String name);
 
 	/**
-	 * Routine to get network by PortProto and bus index.
+	 * Method to get network by PortProto and bus index.
 	 * @param portProto PortProto in protoType.
 	 * @param busIndex index in bus.
 	 */

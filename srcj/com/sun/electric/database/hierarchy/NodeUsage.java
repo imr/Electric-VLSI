@@ -58,7 +58,7 @@ public class NodeUsage
 	}
 
 	/**
-	 * Routine to add an NodeInst to this NodeUsage.
+	 * Method to add an NodeInst to this NodeUsage.
 	 * @param ni the NodeInsy to add.
 	 */
 	void addInst(NodeInst ni)
@@ -67,7 +67,7 @@ public class NodeUsage
 	}
 
 	/**
-	 * Routine to remove an NodeInst from this NodeUsage.
+	 * Method to remove an NodeInst from this NodeUsage.
 	 * @param ni the NodeInst to remove.
 	 */
 	void removeInst(NodeInst ni)
@@ -76,7 +76,7 @@ public class NodeUsage
 	}
 
 	/**
-	 * Routine to self-check
+	 * Method to self-check
 	 */
 	public int checkAndRepair()
 	{
@@ -96,19 +96,19 @@ public class NodeUsage
 	// ------------------------ public methods -------------------------------
 
 	/**
-	 * Routine to return the prototype of this NodeUsage.
+	 * Method to return the prototype of this NodeUsage.
 	 * @return the prototype of this NodeUsage.
 	 */
 	public NodeProto getProto() { return protoType; }
 
 	/**
-	 * Routine to return the Cell that contains this Geometric object.
+	 * Method to return the Cell that contains this Geometric object.
 	 * @return the Cell that contains this Geometric object.
 	 */
 	public Cell getParent() { return parent; }
 
 	/**
-	 * Routine to return by index a NodeInsts of this NodeIsage.
+	 * Method to return by index a NodeInsts of this NodeIsage.
 	 * @param i index
 	 * @return specified NodeInst NodeUsage.
 	 */
@@ -118,7 +118,7 @@ public class NodeUsage
 	}
 
 	/**
-	 * Routine to return an Iterator for all NodeInsts of this NodeIsage .
+	 * Method to return an Iterator for all NodeInsts of this NodeIsage .
 	 * @return an Iterator for all NodeInsts of this NodeUsage.
 	 */
 	public Iterator getInsts()
@@ -127,7 +127,7 @@ public class NodeUsage
 	}
 
 	/**
-	 * Routine to return the number of NodeInsts of this NodeUsage.
+	 * Method to return the number of NodeInsts of this NodeUsage.
 	 * @return the number of NodeInsts of this NodeUsage.
 	 */
 	public int getNumInsts()
@@ -136,7 +136,7 @@ public class NodeUsage
 	}
 
 	/**
-	 * Routine to check if NodeUsages contains NodeInst.
+	 * Method to check if NodeUsages contains NodeInst.
 	 * @param ni NodeInst to check
 	 * @return true if NodeInst is contained
 	 */
@@ -146,7 +146,7 @@ public class NodeUsage
 	}
 
 	/**
-	 * Routine to return whether this NodeUsage has instances or related icon NodeUsages.
+	 * Method to return whether this NodeUsage has instances or related icon NodeUsages.
 	 * @return true if this NodeUsage has instances or related icon NodeUsages.
 	 */
 	public boolean isEmpty()
@@ -155,16 +155,16 @@ public class NodeUsage
 	}
 
 	/**
-	 * Routine to tell whether this NodeUsage is an icon of its parent.
+	 * Method to tell whether this NodeUsage is an icon of its parent.
 	 * Electric does not allow recursive circuit hierarchies (instances of Cells inside of themselves).
 	 * However, it does allow one exception: a schematic may contain its own icon for documentation purposes.
-	 * This routine determines whether this NodeInst is such an icon.
+	 * This method determines whether this NodeInst is such an icon.
 	 * @return true if this NodeUsage is an icon of its parent.
 	 */
 	public boolean isIconOfParent() { return protoType.isIconOf(parent); };
 
 	/**
-	 * Routine to determine whether this NodeUsage is an icon Cell.
+	 * Method to determine whether this NodeUsage is an icon Cell.
 	 * @return true if this NodeUsage is an icon  Cell.
 	 */
 	public boolean isIcon() { return protoType.isIcon(); }

@@ -99,7 +99,7 @@ public class Attributes extends javax.swing.JDialog
 	private int initialFont;
 
 	/**
-	 * Routine to show the Attributes dialog.
+	 * Method to show the Attributes dialog.
 	 */
 	public static void showDialog()
 	{
@@ -112,7 +112,7 @@ public class Attributes extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine to reload the Attributes dialog from the current highlighting.
+	 * Method to reload the Attributes dialog from the current highlighting.
 	 */
 	public static void load()
 	{
@@ -212,7 +212,7 @@ public class Attributes extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the user clicks on one of the top radio buttons.
+	 * Method called when the user clicks on one of the top radio buttons.
 	 * Changes the object being examined for attributes.
 	 */
 	private void objectSelectorActionPerformed(ActionEvent evt)
@@ -227,7 +227,7 @@ public class Attributes extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when the user clicks in the list of attribute names.
+	 * Method called when the user clicks in the list of attribute names.
 	 */
 	private void listClick()
 	{
@@ -235,7 +235,7 @@ public class Attributes extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine to reload the entire dialog from the current highlighting.
+	 * Method to reload the entire dialog from the current highlighting.
 	 */
 	private void loadAttributesInfo()
 	{
@@ -429,7 +429,7 @@ public class Attributes extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine to show all attributes on the selected object in the list.
+	 * Method to show all attributes on the selected object in the list.
 	 * @param selectThis highlight this variable in the list (if not null).
 	 */
 	private void showAttributesOnSelectedObject(Variable selectThis)
@@ -480,7 +480,7 @@ public class Attributes extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine to return the Variable that is selected in the dialog.
+	 * Method to return the Variable that is selected in the dialog.
 	 * @return the Variable that is selected.  Returns null if none are.
 	 */
 	Variable getSelectedVariable()
@@ -507,7 +507,7 @@ public class Attributes extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine to convert a string to a proper Object for storage in a Variable.
+	 * Method to convert a string to a proper Object for storage in a Variable.
 	 * Currently knows only Integer, Double, and String.
 	 * @param text the text describing the Variable's value.
 	 * @return an Object that contains the value.
@@ -525,7 +525,7 @@ public class Attributes extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine to display the aspects of the currently selected Variable in the dialog.
+	 * Method to display the aspects of the currently selected Variable in the dialog.
 	 */
 	void showSelectedAttribute()
 	{
@@ -646,7 +646,7 @@ public class Attributes extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine to save settings of a Variable in the field variables "initial*".
+	 * Method to save settings of a Variable in the field variables "initial*".
 	 * @param var the Variable to save information about.
 	 */
 	private void grabAttributeInitialValues(Variable var)

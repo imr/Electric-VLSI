@@ -71,7 +71,7 @@ public class PrimitivePort extends PortProto
 	}
 
 	/**
-	 * Routine to create a new PrimitivePort from the parameters.
+	 * Method to create a new PrimitivePort from the parameters.
 	 * @param tech the Technology in which this PrimitivePort is being created.
 	 * @param parent the PrimitiveNode on which this PrimitivePort resides.
 	 * @param portArcs an array of ArcProtos which can connect to this PrimitivePort.
@@ -115,7 +115,7 @@ public class PrimitivePort extends PortProto
 	}
 
 	/*
-	 * Routine to write a description of this PrimitivePort.
+	 * Method to write a description of this PrimitivePort.
 	 * Displays the description in the Messages Window.
 	 */
 	public void getInfo()
@@ -131,50 +131,50 @@ public class PrimitivePort extends PortProto
 	// ------------------------ public methods ------------------------
 
 	/**
-	 * Routine to set the list of allowable connections on this PrimitivePort.
+	 * Method to set the list of allowable connections on this PrimitivePort.
 	 * @param portArcs an array of ArcProtos which can connect to this PrimitivePort.
 	 */
 	public void setConnections(ArcProto [] portArcs) { this.portArcs = portArcs; }
 
 	/**
-	 * Routine to return the list of allowable connections on this PrimitivePort.
+	 * Method to return the list of allowable connections on this PrimitivePort.
 	 * @return an array of ArcProtos which can connect to this PrimitivePort.
 	 */
 	public ArcProto [] getConnections() { return portArcs; }
 
 	/**
-	 * Routine to return the base-level port that this PortProto is created from.
+	 * Method to return the base-level port that this PortProto is created from.
 	 * Since it is a PrimitivePort, it simply returns itself.
 	 * @return the base-level port that this PortProto is created from (this).
 	 */
 	public PrimitivePort getBasePort() { return this; }
 
 	/**
-	 * Routine to return the left edge of the PrimitivePort as a value that scales with the actual NodeInst.
+	 * Method to return the left edge of the PrimitivePort as a value that scales with the actual NodeInst.
 	 * @return an EdgeH object that describes the left edge of the PrimitivePort.
 	 */
 	public EdgeH getLeft() { return left; }
 
 	/**
-	 * Routine to return the right edge of the PrimitivePort as a value that scales with the actual NodeInst.
+	 * Method to return the right edge of the PrimitivePort as a value that scales with the actual NodeInst.
 	 * @return an EdgeH object that describes the right edge of the PrimitivePort.
 	 */
 	public EdgeH getRight() { return right; }
 
 	/**
-	 * Routine to return the top edge of the PrimitivePort as a value that scales with the actual NodeInst.
+	 * Method to return the top edge of the PrimitivePort as a value that scales with the actual NodeInst.
 	 * @return an EdgeV object that describes the top edge of the PrimitivePort.
 	 */
 	public EdgeV getTop() { return top; }
 
 	/**
-	 * Routine to return the bottom edge of the PrimitivePort as a value that scales with the actual NodeInst.
+	 * Method to return the bottom edge of the PrimitivePort as a value that scales with the actual NodeInst.
 	 * @return an EdgeV object that describes the bottom edge of the PrimitivePort.
 	 */
 	public EdgeV getBottom() { return bottom; }
 
 	/**
-	 * Routine to return true if this PrimitivePort can connect to an arc of a given type.
+	 * Method to return true if this PrimitivePort can connect to an arc of a given type.
 	 * @param arc the ArcProto to test for connectivity.
 	 * @return true if this PrimitivePort can connect to the arc, false if it can't
 	 */

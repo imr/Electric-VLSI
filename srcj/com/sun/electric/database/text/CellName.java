@@ -49,25 +49,25 @@ public class CellName
 	private CellName() {}
 
 	/**
-	 * Routine to return the name part of a parsed Cell name.
+	 * Method to return the name part of a parsed Cell name.
 	 * @return the name part of a parsed Cell name.
 	 */
 	public String getName() { return name; }
 
 	/**
-	 * Routine to return the view part of a parsed Cell name.
+	 * Method to return the view part of a parsed Cell name.
 	 * @return the view part of a parsed Cell name.
 	 */
 	public View getView() { return view; }
 
 	/**
-	 * Routine to return the version part of a parsed Cell name.
+	 * Method to return the version part of a parsed Cell name.
 	 * @return the version part of a parsed Cell name.
 	 */
 	public int getVersion() { return version; }
 
 	/**
-	 * Routine to parse the specified Cell name and return a CellName object.
+	 * Method to parse the specified Cell name and return a CellName object.
 	 * @param name the name of the Cell.
 	 * @return a CellName object with the fields parsed.
 	 */

@@ -290,7 +290,7 @@ public class LESizer {
 	}
 
     /**
-     * Dummy routine to improve test coverage
+     * Dummy method to improve test coverage
      */
     protected void testcoverage()
 	{

@@ -108,7 +108,7 @@ public class Input
 	}
 
 	/**
-	 * Routine to read a Library.
+	 * Method to read a Library.
 	 * This method is never called.
 	 * Instead, it is always overridden by the appropriate read subclass.
 	 * @return true on error.
@@ -118,7 +118,7 @@ public class Input
 	// ----------------------- public methods -------------------------------
 
 	/**
-	 * Routine to read a Library from disk.
+	 * Method to read a Library from disk.
 	 * @param fileName the path to the disk file.
 	 * @param type the type of library file (BINARY .elib, CIF, GDS, etc.)
 	 * @return the read Library, or null if an error occurred.
@@ -142,7 +142,7 @@ public class Input
 	}
 
 	/**
-	 * Routine to read a single disk file.
+	 * Method to read a single disk file.
 	 * @param fileName the path to the disk file.
 	 * @param lib the Library to read.
 	 * If the "lib" is null, this is an entry-level library read, and one is created.
@@ -273,7 +273,7 @@ public class Input
 	}
 	
 	/**
-	 * Routine to handle conversion of nodes read from disk that have outline information.
+	 * Method to handle conversion of nodes read from disk that have outline information.
 	 * @param ni the NodeInst being converted.
 	 * @param np the prototype of the NodeInst being converted.
 	 * @param lambda the conversion factor.
@@ -305,7 +305,7 @@ public class Input
 	}
 
 	/**
-	 * Routine to set name of Geometric object.
+	 * Method to set name of Geometric object.
 	 * @param geom the Geometric object.
 	 * @param value name of object
 	 * @param td text descriptor.
@@ -336,7 +336,7 @@ public class Input
 	private static String [] fontNames = null;
 
 	/**
-	 * Routine to grab font associations that were stored on a Library.
+	 * Method to grab font associations that were stored on a Library.
 	 * The font associations are used later to convert indices to true font names and numbers.
 	 * @param lib the Library to examine.
 	 */
@@ -380,7 +380,7 @@ public class Input
 	}
 
 	/**
-	 * Routine to convert the font number in a TextDescriptor to the proper value as
+	 * Method to convert the font number in a TextDescriptor to the proper value as
 	 * cached in the Library.  The caching is examined by "getFontAssociationVariable()".
 	 * @param td the TextDescriptor to convert.
 	 */

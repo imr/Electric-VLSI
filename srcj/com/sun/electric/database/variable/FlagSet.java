@@ -68,7 +68,7 @@ public class FlagSet
 	private FlagSet() {}
 
 	/**
-	 * Routine to create a FlagSet object which can be used to mark flag bits.
+	 * Method to create a FlagSet object which can be used to mark flag bits.
 	 * @param generator the generator object for the class on which bits are desired.
 	 * @param numBits the number of bits needed for marking.
 	 * @return a FlagSet object that can be used to set bits on that object.
@@ -99,28 +99,28 @@ public class FlagSet
 	}
 
 	/**
-	 * Routine to return the mask bits for this FlagSet.
+	 * Method to return the mask bits for this FlagSet.
 	 * The mask bits show which bits in the flag word are being used.
 	 * @return the mask bits for this FlagSet.
 	 */
 	public int getMask()   { return mask; }
 
 	/**
-	 * Routine to return the unmask bits for this FlagSet.
+	 * Method to return the unmask bits for this FlagSet.
 	 * The mask bits show which bits in the flag word are not being used.
 	 * @return the unmask bits for this FlagSet.
 	 */
 	public int getUnmask() { return unmask; }
 
 	/**
-	 * Routine to return the shift amount for this FlagSet.
+	 * Method to return the shift amount for this FlagSet.
 	 * The shift amount is the amount to right-shift the mask bits to make an integer of them.
 	 * @return the shift amount for this FlagSet.
 	 */
 	public int getShift()  { return shift; }
 
 	/**
-	 * Routine to free the marking bits associated with this FlagSet object.
+	 * Method to free the marking bits associated with this FlagSet object.
 	 */
 	public void freeFlagSet()
 	{

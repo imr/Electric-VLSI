@@ -69,7 +69,7 @@ public class PrimitiveArc extends ArcProto
 	// ------------------------ public methods -------------------------------
 
 	/**
-	 * Routine to create a new PrimitiveArc from the parameters.
+	 * Method to create a new PrimitiveArc from the parameters.
 	 * @param tech the Technology in which to place this PrimitiveArc.
 	 * @param protoName the name of this PrimitiveArc.
 	 * It may not have unprintable characters, spaces, or tabs in it.
@@ -97,13 +97,13 @@ public class PrimitiveArc extends ArcProto
 	}
 
 	/**
-	 * Routine to return the array of layers that comprise this PrimitiveArc.
+	 * Method to return the array of layers that comprise this PrimitiveArc.
 	 * @return the array of layers that comprise this PrimitiveArc.
 	 */
 	public Technology.ArcLayer [] getLayers() { return layers; }
 
 	/**
-	 * Routine to find the ArcLayer on this PrimitiveArc with a given Layer.
+	 * Method to find the ArcLayer on this PrimitiveArc with a given Layer.
 	 * If there are more than 1 with the given Layer, the first is returned.
 	 * @param layer the Layer to find.
 	 * @return the ArcLayer that has this Layer.
@@ -119,7 +119,7 @@ public class PrimitiveArc extends ArcProto
 	}
 
 	/**
-	 * Routine to find the PrimitiveNode pin corresponding to this PrimitiveArc type.
+	 * Method to find the PrimitiveNode pin corresponding to this PrimitiveArc type.
 	 * For example, if this PrimitiveArc is metal-1 then return the Metal-1-pin.
 	 * @return the PrimitiveNode pin that matches, or null if there is no match.
 	 */

@@ -237,7 +237,7 @@ class WiringListener
 	public Cell getCellBeingWired() { return cellBeingWired; }
 
 	/**
-	 * Routine to load the field variables from the parameters.
+	 * Method to load the field variables from the parameters.
 	 * Loads field variables "endPoint", "endObj", "endGeom", and "endPort".
 	 */
 	private void getEndObject(int endX, int endY, EditWindow wnd)
@@ -499,7 +499,7 @@ class WiringListener
 		}
 
 		/**
-		 * Routine to create a wiring plan for one end of the wiring route.
+		 * Method to create a wiring plan for one end of the wiring route.
 		 */
 		static WiringPlan [] getClosestEnd(Geometric geom, PortProto port, Point2D point, Point2D startPoint)
 		{

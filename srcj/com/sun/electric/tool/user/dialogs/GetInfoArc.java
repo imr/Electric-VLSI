@@ -65,7 +65,7 @@ public class GetInfoArc extends javax.swing.JDialog
 	private boolean initialSkipHead, initialSkipTail, initialReverseEnds;
 
 	/**
-	 * Routine to show the Arc Get-Info dialog.
+	 * Method to show the Arc Get-Info dialog.
 	 */
 	public static void showDialog()
 	{
@@ -78,7 +78,7 @@ public class GetInfoArc extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine to reload the Arc Get-Info dialog from the current highlighting.
+	 * Method to reload the Arc Get-Info dialog from the current highlighting.
 	 */
 	public static void load()
 	{

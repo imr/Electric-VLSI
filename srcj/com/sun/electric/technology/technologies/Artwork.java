@@ -412,8 +412,8 @@ public class Artwork extends Technology
 	};
 
 	/**
-	 * Routine to return a list of Polys that describe a given NodeInst.
-	 * This routine overrides the general one in the Technology object
+	 * Method to return a list of Polys that describe a given NodeInst.
+	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in the Artwork Technology.
 	 * @param ni the NodeInst to describe.
 	 * @param wnd the window in which this node will be drawn.
@@ -501,8 +501,8 @@ public class Artwork extends Technology
 	}
 
 	/**
-	 * Routine to return a list of Polys that describe a given ArcInst.
-	 * This routine overrides the general one in the Technology object
+	 * Method to return a list of Polys that describe a given ArcInst.
+	 * This method overrides the general one in the Technology object
 	 * because of the unusual primitives in the Artwork Technology.
 	 * @param ai the ArcInst to describe.
 	 * @param wnd the window in which this arc will be drawn.
@@ -515,7 +515,7 @@ public class Artwork extends Technology
 	}
 
 	/**
-	 * Routine to return an array of Point2D that describe an ellipse.
+	 * Method to return an array of Point2D that describe an ellipse.
 	 * @param center the center coordinate of the ellipse.
 	 * @param sX the X size of the ellipse.
 	 * @param sY the Y size of the ellipse.
@@ -573,7 +573,7 @@ public class Artwork extends Technology
 	}
 
 	/**
-	 * Routine to extract an X coordinate from an array.
+	 * Method to extract an X coordinate from an array.
 	 * @param tracePoints the array of coordinate values, alternating X/Y/X/Y.
 	 * @param index the entry in the array to retrieve.
 	 * @param cX an offset value to add to the retrieved value.
@@ -586,7 +586,7 @@ public class Artwork extends Technology
 	}
 
 	/**
-	 * Routine to extract an Y coordinate from an array.
+	 * Method to extract an Y coordinate from an array.
 	 * @param tracePoints the array of coordinate values, alternating X/Y/X/Y.
 	 * @param index the entry in the array to retrieve.
 	 * @param cY an offset value to add to the retrieved value.
@@ -599,7 +599,7 @@ public class Artwork extends Technology
 	}
 
     /**
-	 * Routine to set default outline information on a NodeInst.
+	 * Method to set default outline information on a NodeInst.
 	 * Very few primitives have default outline information (usually just in the Artwork Technology).
 	 * This method overrides the one in Technology.
 	 * @param ni the NodeInst to load with default outline information.
@@ -639,7 +639,7 @@ public class Artwork extends Technology
 	}
 
 	/*
-	 * Routine to convert the given spline control points into a spline curve.
+	 * Method to convert the given spline control points into a spline curve.
 	 * @param cX the center X coordinate of the spline.
 	 * @param cY the center Y coordinate of the spline.
 	 * @param tracePoints the array of control point values, alternating X/Y/X/Y.
@@ -696,7 +696,7 @@ public class Artwork extends Technology
 	}
 
 	/**
-	 * Routine to find examine the ElectricObject and prepare for any Graphics found there.
+	 * Method to find examine the ElectricObject and prepare for any Graphics found there.
 	 * @param obj the object with graphics specifications.
 	 */
 	private void getGraphics(ElectricObject obj)
@@ -748,7 +748,7 @@ public class Artwork extends Technology
 	}
 
 	/**
-	 * Routine to convert old primitive names to their proper NodeProtos.
+	 * Method to convert old primitive names to their proper NodeProtos.
 	 * @param name the name of the old primitive.
 	 * @return the proper PrimitiveNode to use (or null if none can be determined).
 	 */
@@ -762,7 +762,7 @@ public class Artwork extends Technology
 	}
 
 	/**
-	 * Routine to convert old primitive names to their proper ArcProtos.
+	 * Method to convert old primitive names to their proper ArcProtos.
 	 * @param name the name of the old primitive.
 	 * @return the proper PrimitiveArc to use (or null if none can be determined).
 	 */

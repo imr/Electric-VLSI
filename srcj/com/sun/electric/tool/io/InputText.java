@@ -154,7 +154,7 @@ public class InputText extends Input
 	// ----------------------- public methods -------------------------------
 
 	/**
-	 * Routine to read a Library in readable-dump (.txt) format.
+	 * Method to read a Library in readable-dump (.txt) format.
 	 * @return true on error.
 	 */
 	protected boolean readLib()
@@ -170,7 +170,7 @@ public class InputText extends Input
 	}
 
 	/**
-	 * Routine to read the .elib file.
+	 * Method to read the .elib file.
 	 * Returns true on error.
 	 */
 	private boolean readTheLibrary()
@@ -381,7 +381,7 @@ public class InputText extends Input
 	}
 
 	/**
-	 * Routine to recursively create the contents of each cell in the library.
+	 * Method to recursively create the contents of each cell in the library.
 	 */
 	private void completeCellSetupRecursively(Cell cell, int cellIndex)
 	{
@@ -595,7 +595,7 @@ public class InputText extends Input
 		return false;
 	}
 
-	// --------------------------------- LIBRARY PARSING ROUTINES ---------------------------------
+	// --------------------------------- LIBRARY PARSING METHODS ---------------------------------
 
 	/**
 	 * a new library is introduced (keyword "****library")
@@ -781,7 +781,7 @@ public class InputText extends Input
 		}
 	}
 
-	// --------------------------------- CELL PARSING ROUTINES ---------------------------------
+	// --------------------------------- CELL PARSING METHODS ---------------------------------
 
 	/**
 	 * initialize for a new cell (keyword "***cell")
@@ -1115,7 +1115,7 @@ public class InputText extends Input
 		}
 	}
 
-	// --------------------------------- NODE INSTANCE PARSING ROUTINES ---------------------------------
+	// --------------------------------- NODE INSTANCE PARSING METHODS ---------------------------------
 
 	/**
 	 * initialize for a new node instance (keyword "**node")
@@ -1270,7 +1270,7 @@ public class InputText extends Input
 		textLevel = INPOR;
 	}
 
-	// --------------------------------- ARC INSTANCE PARSING ROUTINES ---------------------------------
+	// --------------------------------- ARC INSTANCE PARSING METHODS ---------------------------------
 
 	/**
 	 * initialize for a new arc instance (keyword "**arc")
@@ -1415,7 +1415,7 @@ public class InputText extends Input
 		arcInstList[curCellNumber].arcList[curArcInstIndex].lowLevelSetUserbits(EMath.atoi(keyWord));
 	}
 
-	// --------------------------------- PORT PROTOTYPE PARSING ROUTINES ---------------------------------
+	// --------------------------------- PORT PROTOTYPE PARSING METHODS ---------------------------------
 
 	/**
 	 * initialize for a new port prototype (keyword "**porttype")
@@ -1492,7 +1492,7 @@ public class InputText extends Input
 		exportList[curCellNumber].exportList[curExportIndex].lowLevelSetUserbits(EMath.atoi(keyWord));
 	}
 
-	// --------------------------------- VARIABLE PARSING ROUTINES ---------------------------------
+	// --------------------------------- VARIABLE PARSING METHODS ---------------------------------
 
 	/**
 	 * get variables on current object (keyword "variables")
@@ -1796,10 +1796,10 @@ public class InputText extends Input
 		return null;
 	}
 
-	// --------------------------------- CONVERSTION ROUTINES ---------------------------------
+	// --------------------------------- CONVERSTION METHODS ---------------------------------
 
 	/**
-	 * routine to convert the technology name in "line" to a technology.
+	 * Method to convert the technology name in "line" to a technology.
 	 * also handles conversion of the old technology name "logic"
 	 */
 	private Technology findThisTechnology(String line)
@@ -1817,8 +1817,8 @@ public class InputText extends Input
 	}
 
 	/**
-	 * helper routine to parse a port prototype name "line" that should be
-	 * in node prototype "np".  The routine returns NOPORTPROTO if it cannot
+	 * helper method to parse a port prototype name "line" that should be
+	 * in node prototype "np".  The method returns NOPORTPROTO if it cannot
 	 * figure out what port this name refers to.
 	 */
 //	private PortProto io_getport(String line, NodeProto np)

@@ -123,7 +123,7 @@ public class Cell extends NodeProto
 		}
 
 		/**
-		 * Routine to add a Cell to this CellGroup.
+		 * Method to add a Cell to this CellGroup.
 		 * @param cell the cell to add to this CellGroup.
 		 */
 		void add(Cell cell)
@@ -133,7 +133,7 @@ public class Cell extends NodeProto
 		}
 
 		/**
-		 * Routine to remove a Cell from this CellGroup.
+		 * Method to remove a Cell from this CellGroup.
 		 * @param cell the cell to remove from this CellGroup.
 		 */
 		void remove(Cell f)
@@ -142,19 +142,19 @@ public class Cell extends NodeProto
 		}
 
 		/**
-		 * Routine to return an Iterator over all the Cells that are in this CellGroup.
+		 * Method to return an Iterator over all the Cells that are in this CellGroup.
 		 * @return an Iterator over all the Cells that are in this CellGroup.
 		 */
 		public Iterator getCells() { return cells.iterator(); }
 
 		/**
-		 * Routine to return the number of Cells that are in this CellGroup.
+		 * Method to return the number of Cells that are in this CellGroup.
 		 * @return the number of Cells that are in this CellGroup.
 		 */
 		public int getNumCells() { return cells.size(); }
 
 		/**
-		 * Routine to return a List of all cells in this Group, sorted by View.
+		 * Method to return a List of all cells in this Group, sorted by View.
 		 * @return a List of all cells in this Group, sorted by View.
 		 */
 		public List getCellsSortedByView()
@@ -179,7 +179,7 @@ public class Cell extends NodeProto
 		}
 
 		/**
-		 * Routine to return main schematics Cell in ths CellGroup.
+		 * Method to return main schematics Cell in ths CellGroup.
 		 * @return main schematics Cell  in this CellGroup.
 		 */
 		public Cell getMainSchematics()
@@ -213,7 +213,7 @@ public class Cell extends NodeProto
 		}
 
 		/**
-		 * Routine to add a Cell to this VersionGroup.
+		 * Method to add a Cell to this VersionGroup.
 		 * @param cell the cell to add to this VersionGroup.
 		 * @return the cell that used to be the newest (null if adding the Cell did not displace another newer one).
 		 */
@@ -248,19 +248,19 @@ public class Cell extends NodeProto
 		}
 
 		/**
-		 * Routine to remove a Cell from this VersionGroup.
+		 * Method to remove a Cell from this VersionGroup.
 		 * @param cell the cell to remove from this VersionGroup.
 		 */
 		public void remove(Cell cell) { versions.remove(cell); }
 
 		/**
-		 * Routine to return the number of Cells in this VersionGroup.
+		 * Method to return the number of Cells in this VersionGroup.
 		 * @return the number of Cells in this VersionGroup.
 		 */
 		public int size() { return versions.size(); }
 
 		/**
-		 * Routine to return an Iterator over all the Cells that are in this VersionGroup.
+		 * Method to return an Iterator over all the Cells that are in this VersionGroup.
 		 * @return an Iterator over all the Cells that are in this VersionGroup.
 		 */
 		public Iterator iterator() { return versions.iterator(); }
@@ -384,7 +384,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to remove this node from all lists.
+	 * Method to remove this node from all lists.
 	 */
 	public void kill()
 	{
@@ -398,7 +398,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to create a new version of this Cell.
+	 * Method to create a new version of this Cell.
 	 * @return a new Cell that is a new version of this Cell.
 	 */
 	public Cell makeNewVersion()
@@ -408,7 +408,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to copy a Cell to any Library.
+	 * Method to copy a Cell to any Library.
 	 * @param fromCell the Cell to copy.
 	 * @param toLib the Library to copy it to.
 	 * If the destination library is the same as the original Cell's library, a new version is made.
@@ -618,7 +618,7 @@ public class Cell extends NodeProto
 		return newCell;
 	}
 
-	/** Create a copy of this Cell. Warning: this routine doesn't yet
+	/** Create a copy of this Cell. Warning: this method doesn't yet
 	 * properly copy all variables on all objects.
 	 * @param copyLib library into which the copy is placed. null means
 	 * place the copy into the library that contains this Cell.
@@ -638,7 +638,7 @@ public class Cell extends NodeProto
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
 	/**
-	 * Low-level access routine to create a cell in library "lib".
+	 * Low-level access method to create a cell in library "lib".
 	 * Unless you know what you are doing, do not use this method.
 	 * @param lib library in which to place this cell.
 	 * @return the newly created cell.
@@ -652,7 +652,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Low-level access routine to fill-in the cell name.
+	 * Low-level access method to fill-in the cell name.
 	 * Unless you know what you are doing, do not use this method.
 	 * @param name the name of this cell.
 	 * Cell names may not contain unprintable characters, spaces, tabs, a colon (:), semicolon (;) or curly braces ({}).
@@ -713,7 +713,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Low-level access routine to link this Cell into its library.
+	 * Low-level access method to link this Cell into its library.
 	 * @return true on error.
 	 */
 	public boolean lowLevelLink()
@@ -788,7 +788,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Low-level access routine to unlink this Cell from its library.
+	 * Low-level access method to unlink this Cell from its library.
 	 */
 	public void lowLevelUnlink()
 	{
@@ -830,25 +830,25 @@ public class Cell extends NodeProto
 	/****************************** GRAPHICS ******************************/
 
 	/**
-	 * Routine to get the width of this Cell.
+	 * Method to get the width of this Cell.
 	 * @return the width of this Cell.
 	 */
 	public double getDefWidth() { return getBounds().getWidth(); }
 
 	/**
-	 * Routine to the height of this Cell.
+	 * Method to the height of this Cell.
 	 * @return the height of this Cell.
 	 */
 	public double getDefHeight() { return getBounds().getHeight(); }
 
 	/**
-	 * Routine to size offset of this Cell.
+	 * Method to size offset of this Cell.
 	 * @return the size offset of this Cell.  It is always zero for cells.
 	 */
 	public SizeOffset getSizeOffset() { return new SizeOffset(0, 0, 0, 0); }
 
 	/**
-	 * Routine to indicate that the bounds of this Cell are incorrect because
+	 * Method to indicate that the bounds of this Cell are incorrect because
 	 * a node or arc has been created, deleted, or modified.
 	 */
 	public void setDirty()
@@ -860,7 +860,7 @@ public class Cell extends NodeProto
 	private Rectangle2D lastBounds = new Rectangle2D.Double();
 
 	/**
-	 * Routine to request that the current bounds of this Cell be remembered.
+	 * Method to request that the current bounds of this Cell be remembered.
 	 * After this, you may call "getRememberedBounds()" to retrieve these bounds.
 	 */
 	public void rememberBounds()
@@ -873,7 +873,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to get the bounds of this Cell that were saved earlier by a call to "rememberBounds()".
+	 * Method to get the bounds of this Cell that were saved earlier by a call to "rememberBounds()".
 	 * @return a Rectangle2D with the bounds at the time of the call to "rememberBounds()".
 	 */
 	public Rectangle2D getRememberedBounds()
@@ -885,7 +885,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to return the bounds of this Cell.
+	 * Method to return the bounds of this Cell.
 	 * @return a Rectangle2D with the bounds of this cell's contents
 	 */
 	public Rectangle2D getBounds()
@@ -946,20 +946,20 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to R-Tree of this Cell.
+	 * Method to R-Tree of this Cell.
 	 * The R-Tree organizes all of the Geometric objects spatially for quick search.
 	 * @return R-Tree of this Cell.
 	 */
 	public Geometric.RTNode getRTree() { return rTree; }
 
 	/**
-	 * Routine to set the R-Tree of this Cell.
+	 * Method to set the R-Tree of this Cell.
 	 * @param rTree the head of the new R-Tree for this Cell.
 	 */
 	public void setRTree(Geometric.RTNode rTree) { checkChanging(); this.rTree = rTree; }
 
 	/**
-	 * Routine to compute the "essential bounds" of this Cell.
+	 * Method to compute the "essential bounds" of this Cell.
 	 * It looks for NodeInst objects in the cell that are of the type
 	 * "generic:Essential-Bounds" and builds a rectangle from their locations.
 	 * @return the bounding area of the essential bounds.
@@ -987,7 +987,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine adjust this cell when the reference point moves.
+	 * Method adjust this cell when the reference point moves.
 	 * This requires renumbering all coordinate values in the Cell.
 	 * @param referencePointNode the Node that is the cell-center.
 	 */
@@ -1042,7 +1042,7 @@ public class Cell extends NodeProto
 	/****************************** NODES ******************************/
 
 	/**
-	 * Routine to return an Iterator over all NodeInst objects in this Cell.
+	 * Method to return an Iterator over all NodeInst objects in this Cell.
 	 * @return an Iterator over all NodeInst objects in this Cell.
 	 */
 	public Iterator getNodes()
@@ -1051,7 +1051,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to return the number of NodeInst objects in this Cell.
+	 * Method to return the number of NodeInst objects in this Cell.
 	 * @return the number of NodeInst objects in this Cell.
 	 */
 	public int getNumNodes()
@@ -1060,7 +1060,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to return the NodeInst at specified position.
+	 * Method to return the NodeInst at specified position.
 	 * @param nodeIndex specified position of NodeInst.
 	 * @return the NodeInst at specified position..
 	 */
@@ -1070,7 +1070,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to return an Iterator over all NodeUsage objects in this Cell.
+	 * Method to return an Iterator over all NodeUsage objects in this Cell.
 	 * @return an Iterator over all NodeUsage objects in this Cell.
 	 */
 	public Iterator getUsagesIn()
@@ -1079,7 +1079,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to return the number of NodeUsage objects in this Cell.
+	 * Method to return the number of NodeUsage objects in this Cell.
 	 * @return the number of NodeUsage objects in this Cell.
 	 */
 	public int getNumUsagesIn()
@@ -1088,7 +1088,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to find a named NodeInst on this Cell.
+	 * Method to find a named NodeInst on this Cell.
 	 * @param name the name of the NodeInst.
 	 * @return the NodeInst.  Returns null if none with that name are found.
 	 */
@@ -1106,7 +1106,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to add a new NodeInst to the cell.
+	 * Method to add a new NodeInst to the cell.
 	 * @param ni the NodeInst to be included in the cell.
 	 */
 	public NodeUsage addNode(NodeInst ni)
@@ -1145,7 +1145,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to remove an NodeInst from the cell.
+	 * Method to remove an NodeInst from the cell.
 	 * @param ni the NodeInst to be removed from the cell.
 	 */
 	public void removeNode(NodeInst ni)
@@ -1177,7 +1177,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to find or to to add a new NodeUsage to the cell.
+	 * Method to find or to to add a new NodeUsage to the cell.
 	 * @param protoType is a NodeProto of node usage
 	 */
 	private NodeUsage addUsage(NodeProto protoType)
@@ -1194,7 +1194,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to remove a NodeUsage of the cell.
+	 * Method to remove a NodeUsage of the cell.
 	 * @param nu is a NodeUsage to remove
 	 */
 	private void removeUsage(NodeUsage nu)
@@ -1208,7 +1208,7 @@ public class Cell extends NodeProto
 	/****************************** ARCS ******************************/
 
 	/**
-	 * Routine to return an Iterator over all ArcInst objects in this Cell.
+	 * Method to return an Iterator over all ArcInst objects in this Cell.
 	 * @return an Iterator over all ArcInst objects in this Cell.
 	 */
 	public Iterator getArcs()
@@ -1217,7 +1217,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to return the number of ArcInst objects in this Cell.
+	 * Method to return the number of ArcInst objects in this Cell.
 	 * @return the number of ArcInst objects in this Cell.
 	 */
 	public int getNumArcs()
@@ -1226,7 +1226,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to return the ArcInst at specified position.
+	 * Method to return the ArcInst at specified position.
 	 * @param arcIndex specified position of ArcInst.
 	 * @return the ArcInst at specified position..
 	 */
@@ -1236,7 +1236,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to add a new ArcInst to the cell.
+	 * Method to add a new ArcInst to the cell.
 	 * @param ai the ArcInst to be included in the cell.
 	 */
 	public void addArc(ArcInst ai)
@@ -1256,7 +1256,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to remove an ArcInst from the cell.
+	 * Method to remove an ArcInst from the cell.
 	 * @param ai the ArcInst to be removed from the cell.
 	 */
 	public void removeArc(ArcInst ai)
@@ -1284,7 +1284,7 @@ public class Cell extends NodeProto
 	/****************************** EXPORTS ******************************/
 
 	/**
-	 * Routine to find a named Export on this Cell.
+	 * Method to find a named Export on this Cell.
 	 * @param name the name of the export.
 	 * @return the export.  Returns null if that name was not found.
 	 */
@@ -1294,7 +1294,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to find a named Export on this Cell.
+	 * Method to find a named Export on this Cell.
 	 * @param name the Name of the export.
 	 * @return the export.  Returns null if that name was not found.
 	 */
@@ -1306,7 +1306,7 @@ public class Cell extends NodeProto
 	/****************************** TEXT ******************************/
 
 	/**
-	 * Routine to describe this cell.
+	 * Method to describe this cell.
 	 * The description has the form: cell;version{view}
 	 * If the cell is not from the current library, prepend the library name.
 	 * @return a String that describes this cell.
@@ -1321,9 +1321,9 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to describe this cell.
+	 * Method to describe this cell.
 	 * The description has the form: cell;version{view}
-	 * Unlike "describe()", this routine never prepends the library name.
+	 * Unlike "describe()", this method never prepends the library name.
 	 * @return a String that describes this cell.
 	 */
 	public String noLibDescribe()
@@ -1376,7 +1376,7 @@ public class Cell extends NodeProto
     }
 
 	/**
-	 * Routine to return a list of Polys that describes all text on this Cell.
+	 * Method to return a list of Polys that describes all text on this Cell.
 	 * @param hardToSelect is true if considering hard-to-select text.
 	 * @param wnd the window in which the text will be drawn.
 	 * @return an array of Polys that describes the text.
@@ -1393,13 +1393,13 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to return the basename for autonaming instances of this Cell.
+	 * Method to return the basename for autonaming instances of this Cell.
 	 * @return the basename for autonaming instances of this Cell.
 	 */
 	public Name getBasename() { return basename; }
 
 	/**
-	 * Routine to return unique autoname in this cell.
+	 * Method to return unique autoname in this cell.
 	 * @param basename base name of autoname
 	 * @return autoname
 	 */
@@ -1419,7 +1419,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to add a new temporary name of Geometric.
+	 * Method to add a new temporary name of Geometric.
 	 * @param geom the Geometric to be added to the cell.
 	 */
 	public void addTempName(Geometric geom)
@@ -1447,7 +1447,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to remove temporary name of Geometric.
+	 * Method to remove temporary name of Geometric.
 	 * @param geom the Geometric to be removed from the cell.
 	 */
 	public void removeTempName(Geometric geom)
@@ -1458,7 +1458,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine check if Geometric with specified temporary name key exists in a cell.
+	 * Method check if Geometric with specified temporary name key exists in a cell.
 	 * @param name specified temorary name key.
 	 */
 	public boolean hasTempName(Name name)
@@ -1467,7 +1467,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to determine whether a name is unique in this Cell.
+	 * Method to determine whether a name is unique in this Cell.
 	 * @param name the Name being tested to see if it is unique.
 	 * @param cls the type of object being examined.
 	 * The only classes that can be examined are PortProto, NodeInst, and ArcInst.
@@ -1480,7 +1480,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to determine whether a name is unique in this Cell.
+	 * Method to determine whether a name is unique in this Cell.
 	 * @param name the Name being tested to see if it is unique.
 	 * @param cls the type of object being examined.
 	 * The only classes that can be examined are PortProto, NodeInst, and ArcInst.
@@ -1532,7 +1532,7 @@ public class Cell extends NodeProto
 	}
 
 	/*
-	 * Routine to write a description of this Cell.
+	 * Method to write a description of this Cell.
 	 * Displays the description in the Messages Window.
 	 */
 //	public void getInfo()
@@ -1589,7 +1589,7 @@ public class Cell extends NodeProto
 	/****************************** HIERARCHY ******************************/
 
 	/**
-	 * Routine to recursively determine whether this Cell is a child of a given parent Cell.
+	 * Method to recursively determine whether this Cell is a child of a given parent Cell.
 	 * If so, the relationship would be recursive.
 	 * @param parent the parent cell being examined.
 	 * @return true if, somewhere above the hierarchy of this Cell is the parent Cell.
@@ -1657,7 +1657,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to determine whether this Cell is in use anywhere.
+	 * Method to determine whether this Cell is in use anywhere.
 	 * If it is, an error dialog is displayed.
 	 * @param action a description of the intended action (i.e. "delete").
 	 * @return true if this Cell is in use anywhere.
@@ -1685,14 +1685,14 @@ public class Cell extends NodeProto
 	/****************************** VIEWS ******************************/
 
 	/**
-	 * Routine to get this Cell's View.
+	 * Method to get this Cell's View.
 	 * Views include "layout", "schematics", "icon", "netlist", etc.
 	 * @return to get this Cell's View.
 	 */
 	public View getView() { return view; }
 
 	/**
-	 * Routine to change the view of this Cell.
+	 * Method to change the view of this Cell.
 	 * @param newView the new View.
 	 */
 	public void setView(View newView)
@@ -1722,13 +1722,13 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to determine whether this NodeProto  is an icon Cell.
+	 * Method to determine whether this NodeProto  is an icon Cell.
 	 * @return true if this NodeProto is an icon  Cell.
 	 */
 	public boolean isIcon() { return view == View.ICON; }
 
 	/**
-	 * Routine to determine whether this Cell is an icon of another Cell.
+	 * Method to determine whether this Cell is an icon of another Cell.
 	 * @param cell the other cell which this may be an icon of.
 	 * @return true if this Cell is an icon of that other Cell.
 	 */
@@ -1738,7 +1738,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to find the contents Cell associated with this Cell.
+	 * Method to find the contents Cell associated with this Cell.
 	 * This only makes sense if the current Cell is an icon or skeleton Cell.
 	 * @return the contents Cell associated with this Cell.
 	 * Returns null if no such Cell can be found.
@@ -1776,7 +1776,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to find the icon Cell associated with this Cell.
+	 * Method to find the icon Cell associated with this Cell.
 	 * @return the icon Cell associated with this Cell.
 	 * Returns null if no such Cell can be found.
 	 */
@@ -1796,7 +1796,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to find the Cell of a given View that is in the same group as this Cell.
+	 * Method to find the Cell of a given View that is in the same group as this Cell.
 	 * @param view the View of the other Cell.
 	 * @return the Cell from this group with the specified View.
 	 * Returns null if no such Cell can be found.
@@ -1814,7 +1814,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to return true if this Cell is a schematic view.
+	 * Method to return true if this Cell is a schematic view.
 	 * @return true if this Cell is a schematic view.
 	 */
 	public boolean isSchematicView()
@@ -1895,33 +1895,33 @@ public class Cell extends NodeProto
 	/****************************** DATES ******************************/
 
 	/**
-	 * Routine to get the creation date of this Cell.
+	 * Method to get the creation date of this Cell.
 	 * @return the creation date of this Cell.
 	 */
 	public Date getCreationDate() { return creationDate; }
 
 	/**
-	 * Routine to set this Cell's creation date.
-	 * This is a low-level routine and should not be called unless you know what you are doing.
+	 * Method to set this Cell's creation date.
+	 * This is a low-level method and should not be called unless you know what you are doing.
 	 * @param creationDate the date of this Cell's creation.
 	 */
 	public void lowLevelSetCreationDate(Date creationDate) { checkChanging(); this.creationDate = creationDate; }
 
 	/**
-	 * Routine to return the revision date of this Cell.
+	 * Method to return the revision date of this Cell.
 	 * @return the revision date of this Cell.
 	 */
 	public Date getRevisionDate() { return revisionDate; }
 
 	/**
-	 * Routine to set this Cell's last revision date.
-	 * This is a low-level routine and should not be called unless you know what you are doing.
+	 * Method to set this Cell's last revision date.
+	 * This is a low-level method and should not be called unless you know what you are doing.
 	 * @param revisionDate the date of this Cell's last revision.
 	 */
 	public void lowLevelSetRevisionDate(Date revisionDate) { checkChanging(); this.revisionDate = revisionDate; }
 
 	/**
-	 * Routine to set this Cell's revision date to the current time.
+	 * Method to set this Cell's revision date to the current time.
 	 */
 	public void madeRevision()
 	{
@@ -1932,7 +1932,7 @@ public class Cell extends NodeProto
 	private static FlagSet cellDateFlagSet;
 
 	/**
-	 * Routine to check the current cell to be sure that no subcells have a more recent date.
+	 * Method to check the current cell to be sure that no subcells have a more recent date.
 	 * This is invoked when the "Check cell dates" feature is enabled in the New Nodes tab of
 	 * the Edit Options dialog.
 	 */
@@ -1954,7 +1954,7 @@ public class Cell extends NodeProto
 	}
 
 	/*
-	 * Recursive routine to check sub-cell revision times.
+	 * Recursive method to check sub-cell revision times.
 	 * @param rev_time the revision date of the top-level cell.
 	 * Nothing below it can be newer.
 	 */
@@ -1996,7 +1996,7 @@ public class Cell extends NodeProto
 	/****************************** MISCELLANEOUS ******************************/
 
 	/**
-	 * Routine to check and repair data structure errors in this Cell.
+	 * Method to check and repair data structure errors in this Cell.
 	 */
 	public int checkAndRepair()
 	{
@@ -2076,7 +2076,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to set change lock of cells in up-tree of this cell.
+	 * Method to set change lock of cells in up-tree of this cell.
 	 */
 	public void setChangeLock()
 	{
@@ -2101,13 +2101,13 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to get the 0-based index of this Cell.
+	 * Method to get the 0-based index of this Cell.
 	 * @return the index of this Cell.
 	 */
 	public final int getCellIndex() { return cellIndex; }
 
 	/**
-	 * Routine to clear change lock of this cell.
+	 * Method to clear change lock of this cell.
 	 */
 	public void clearChangeLock()
 	{
@@ -2137,46 +2137,46 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to set a Change object on this Cell.
+	 * Method to set a Change object on this Cell.
 	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
 	 * @param change the Change object to be set on this Cell.
 	 */
 	public void setChange(Undo.Change change) { checkChanging(); this.change = change; }
 
 	/**
-	 * Routine to get the Change object on this Cell.
+	 * Method to get the Change object on this Cell.
 	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
 	 * @return the Change object on this Cell.
 	 */
 	public Undo.Change getChange() { return change; }
 
 	/*
-	 * Routine to determine the appropriate Cell associated with this ElectricObject.
+	 * Method to determine the appropriate Cell associated with this ElectricObject.
 	 * @return the appropriate Cell associated with this ElectricObject..
 	 * Returns null if no Cell can be found.
 	 */
 	public Cell whichCell()	{ return this; }
 
 	/**
-	 * Routine to get the CellGroup that this Cell is part of.
+	 * Method to get the CellGroup that this Cell is part of.
 	 * @return the CellGroup that this Cell is part of.
 	 */
 	public CellGroup getCellGroup() { return cellGroup; }
 
 	/**
-	 * Routine to put this Cell into the given CellGroup.
+	 * Method to put this Cell into the given CellGroup.
 	 * @param cellGroup the CellGroup that this cell belongs to.
 	 */
 	public void setCellGroup(CellGroup cellGroup) { this.cellGroup = cellGroup; }
 
 	/**
-	 * Routine to return the version number of this Cell.
+	 * Method to return the version number of this Cell.
 	 * @return the version number of this Cell.
 	 */
 	public int getVersion() { return version; }
 
 	/**
-	 * Routine to return the number of different versions of this Cell.
+	 * Method to return the number of different versions of this Cell.
 	 * @return the number of different versions of this Cell.
 	 */
 	public int getNumVersions()
@@ -2185,7 +2185,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to return an Iterator over the different versions of this Cell.
+	 * Method to return an Iterator over the different versions of this Cell.
 	 * @return an Iterator over the different versions of this Cell.
 	 */
 	public Iterator getVersions()
@@ -2194,7 +2194,7 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to return the most recent version of this Cell.
+	 * Method to return the most recent version of this Cell.
 	 * @return he most recent version of this Cell.
 	 */
 	public Cell getNewestVersion()
@@ -2203,25 +2203,25 @@ public class Cell extends NodeProto
 	}
 
 	/**
-	 * Routine to get the VersionGroup that this Cell is part of.
+	 * Method to get the VersionGroup that this Cell is part of.
 	 * @return the VersionGroup that this Cell is part of.
 	 */
 	public VersionGroup getVersionGroup() { return versionGroup; }
 
 	/**
-	 * Routine to put this Cell into the given VersionGroup.
+	 * Method to put this Cell into the given VersionGroup.
 	 * @param versionGroup the VersionGroup that this cell belongs to.
 	 */
 	public void setVersionGroup(VersionGroup versionGroup) { this.versionGroup = versionGroup; }
 
 	/**
-	 * Routine to get the library to which this Cell belongs.
+	 * Method to get the library to which this Cell belongs.
 	 * @return to get the library to which this Cell belongs.
 	 */
 	public Library getLibrary() { return lib; }
 
 	/**
-	 * Routine to return the Technology of this Cell.
+	 * Method to return the Technology of this Cell.
 	 * It can be quite complex to determine which Technology a Cell belongs to.
 	 * The system examines all of the nodes and arcs in it, and also considers
 	 * the Cell's view.

@@ -131,7 +131,7 @@ public class LayoutText extends javax.swing.JDialog
 	}
 
 	/**
-	 * Routine called when a dialog field has changed, and the message area must be redisplayed.
+	 * Method called when a dialog field has changed, and the message area must be redisplayed.
 	 */
 	private void updateMessageField()
 	{

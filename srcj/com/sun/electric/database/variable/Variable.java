@@ -53,7 +53,7 @@ public class Variable
 		private static int currentIndex = 0;
 		
 		/**
-		 * Routine to create a new Key object with the specified name.
+		 * Method to create a new Key object with the specified name.
 		 * @param name the name of the Variable.
 		 */
 		public Key(String name)
@@ -63,13 +63,13 @@ public class Variable
 		}
 
 		/**
-		 * Routine to return the index of this Key object.
+		 * Method to return the index of this Key object.
 		 * @return the index of this Key object.
 		 */
 		public int getIndex() { return index; }
 
 		/**
-		 * Routine to return the name of this Key object.
+		 * Method to return the name of this Key object.
 		 * @return the name of this Key object.
 		 */
 		public String getName() { return name; }
@@ -105,7 +105,7 @@ public class Variable
 	}
     
 	/**
-	 * Routine to check if this Variable can be changed.
+	 * Method to check if this Variable can be changed.
 	 */
 	public final void checkChanging()
 	{
@@ -159,7 +159,7 @@ public class Variable
     }
         
 	/**
-	 * Low-level routine to insert to object array.
+	 * Low-level method to insert to object array.
 	 * This should not normally be called by any other part of the system.
 	 * @param index insertion index
 	 * @param value object to insert
@@ -175,7 +175,7 @@ public class Variable
 	}
 
 	/**
-	 * Low-level routine to delete from object array.
+	 * Low-level method to delete from object array.
 	 * This should not normally be called by any other part of the system.
 	 * This should not normally be called by any other part of the system.
 	 * @param index deletion index
@@ -190,14 +190,14 @@ public class Variable
 	}
 
 	/**
-	 * Routine to return the Variable Key associated with this Variable.
+	 * Method to return the Variable Key associated with this Variable.
 	 * @return the Variable Key associated with this variable.
 	 */
 	public Key getKey() { return key; }
 
 	/**
-	 * Routine to return a more readable name for this Variable.
-	 * The routine adds "Parameter" or "Attribute" as appropriate
+	 * Method to return a more readable name for this Variable.
+	 * The method adds "Parameter" or "Attribute" as appropriate
 	 * and uses sensible names such as "Diode Size" instead of "SCHEM_diode".
 	 * @return a more readable name for this Variable.
 	 */
@@ -222,7 +222,7 @@ public class Variable
 	}
 
 	/**
-	 * Routine to return a full description of this Variable.
+	 * Method to return a full description of this Variable.
 	 * The description includes the object on which this Variable resides.
 	 * @return a full description of this Variable.
 	 */
@@ -270,7 +270,7 @@ public class Variable
 	}
 
 	/**
-	 * Routine to convert the standard Variable names to more readable strings.
+	 * Method to convert the standard Variable names to more readable strings.
 	 * @param name the actual Variable name.
 	 * @return a better name for it (returns the same name if no better one exists).
 	 */
@@ -299,8 +299,8 @@ public class Variable
 	}
 
 	/**
-	 * Routine to return the "true" name for this Variable.
-	 * The routine removes the "ATTR_" and "ATTRP_" prefixes.
+	 * Method to return the "true" name for this Variable.
+	 * The method removes the "ATTR_" and "ATTRP_" prefixes.
 	 * @return the "true" name for this Variable.
 	 */
 	public String getTrueName()
@@ -326,7 +326,7 @@ public class Variable
     }
 
 	/**
-	 * Routine to return a description of this Variable.
+	 * Method to return a description of this Variable.
 	 * @return a description of this Variable.
 	 */
 	public String describe(VarContext context, ElectricObject eobj)
@@ -344,7 +344,7 @@ public class Variable
     }
 
 	/**
-	 * routine to make a printable string from variable "val", array index
+	 * Method to make a printable string from variable "val", array index
 	 * "aindex".  If "aindex" is negative, print the entire array.  If "purpose" is
 	 * zero, the conversion is for human reading and should be easy to understand.
 	 * If "purpose" is positive, the conversion is for machine reading and should
@@ -431,8 +431,8 @@ public class Variable
 	}
 
 	/**
-	 * Routine to convert object "addr" to a string, given a purpose and a set of units.
-	 * For completion of the routine, the units should be treated as in "db_makestringvar()".
+	 * Method to convert object "addr" to a string, given a purpose and a set of units.
+	 * For completion of the method, the units should be treated as in "db_makestringvar()".
 	 */
 	private String makeStringVar(Object addr, int purpose, TextDescriptor.Unit units)
 	{
@@ -456,21 +456,21 @@ public class Variable
 	}
 
 	/**
-	 * Routine to return the TextDescriptor on this Variable.
+	 * Method to return the TextDescriptor on this Variable.
 	 * The TextDescriptor gives information for displaying the Variable.
 	 * @return the TextDescriptor on this Variable.
 	 */
 	public TextDescriptor getTextDescriptor() { return descriptor; }
 
 	/**
-	 * Routine to set the TextDescriptor on this Variable.
+	 * Method to set the TextDescriptor on this Variable.
 	 * The TextDescriptor gives information for displaying the Variable.
 	 * @param descriptor the new TextDescriptor on this Variable.
 	 */
 	public void setDescriptor(TextDescriptor descriptor) { this.descriptor.copy(descriptor); }
 
 	/**
-	 * Low-level routine to get the type bits.
+	 * Low-level method to get the type bits.
 	 * The "type bits" are a collection of flags that are more sensibly accessed
 	 * through special methods.
 	 * This general access to the bits is required because the binary ".elib"
@@ -481,7 +481,7 @@ public class Variable
 	public int lowLevelGetFlags() { return flags; }
 
 	/**
-	 * Low-level routine to set the type bits.
+	 * Low-level method to set the type bits.
 	 * The "type bits" are a collection of flags that are more sensibly accessed
 	 * through special methods.
 	 * This general access to the bits is required because the binary ".elib"
@@ -492,44 +492,44 @@ public class Variable
 	public void lowLevelSetFlags(int flags) { this.flags = flags; }
 
 	/**
-	 * Routine to copy flags from another variable.
+	 * Method to copy flags from another variable.
 	 * @param var another variable.
 	 */
 	public void copyFlags(Variable var) { checkChanging(); this.flags = var.flags; }
 
 	/**
-	 * Routine to set this Variable to be displayable.
+	 * Method to set this Variable to be displayable.
 	 * Displayable Variables are shown with the object.
 	 */
 	public void setDisplay() { checkChanging(); flags |= VDISPLAY; }
 
 	/**
-	 * Routine to set this Variable to be not displayable.
+	 * Method to set this Variable to be not displayable.
 	 * Displayable Variables are shown with the object.
 	 */
 	public void clearDisplay() { checkChanging(); flags &= ~VDISPLAY; }
 
 	/**
-	 * Routine to return true if this Variable is displayable.
+	 * Method to return true if this Variable is displayable.
 	 * @return true if this Variable is displayable.
 	 */
 	public boolean isDisplay() { return (flags & VDISPLAY) != 0; }
 
 	/**
-	 * Routine to set this Variable to be Java.
+	 * Method to set this Variable to be Java.
 	 * Java Variables contain Java code that is evaluated in order to produce a value.
 	 */
 	public void setJava() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VJAVA; }
 
 	/**
-	 * Routine to return true if this Variable is Java.
+	 * Method to return true if this Variable is Java.
 	 * Java Variables contain Java code that is evaluated in order to produce a value.
 	 * @return true if this Variable is Java.
 	 */
 	public boolean isJava() { return (flags & (VCODE1|VCODE2)) == VJAVA; }
 
 	/**
-	 * Routine to set this Variable to be Lisp.
+	 * Method to set this Variable to be Lisp.
 	 * Lisp Variables contain Lisp code that is evaluated in order to produce a value.
 	 * Although the C version of Electric had a Lisp interpreter in it, the Java version
 	 * does not, so this facility is not implemented.
@@ -537,7 +537,7 @@ public class Variable
 	public void setLisp() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VLISP; }
 
 	/**
-	 * Routine to return true if this Variable is Lisp.
+	 * Method to return true if this Variable is Lisp.
 	 * Lisp Variables contain Lisp code that is evaluated in order to produce a value.
 	 * Although the C version of Electric had a Lisp interpreter in it, the Java version
 	 * does not, so this facility is not implemented.
@@ -546,7 +546,7 @@ public class Variable
 	public boolean isLisp() { return (flags & (VCODE1|VCODE2)) == VLISP; }
 
 	/**
-	 * Routine to set this Variable to be TCL.
+	 * Method to set this Variable to be TCL.
 	 * TCL Variables contain TCL code that is evaluated in order to produce a value.
 	 * Although the C version of Electric had a TCL interpreter in it, the Java version
 	 * does not, so this facility is not implemented.
@@ -554,7 +554,7 @@ public class Variable
 	public void setTCL() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VTCL; }
 
 	/**
-	 * Routine to return true if this Variable is TCL.
+	 * Method to return true if this Variable is TCL.
 	 * TCL Variables contain TCL code that is evaluated in order to produce a value.
 	 * Although the C version of Electric had a TCL interpreter in it, the Java version
 	 * does not, so this facility is not implemented.
@@ -563,49 +563,49 @@ public class Variable
 	public boolean isTCL() { return (flags & (VCODE1|VCODE2)) == VTCL; }
 
 	/**
-	 * Routine to tell whether this Variable is any code.
+	 * Method to tell whether this Variable is any code.
 	 * @return true if this Variable is any code.
 	 */
 	public boolean isCode() { return (flags & (VCODE1|VCODE2)) != 0; }
 
 	/**
-	 * Routine to set this Variable to be not-code.
+	 * Method to set this Variable to be not-code.
 	 */
 	public void clearCode() { checkChanging(); flags &= ~(VCODE1|VCODE2); }
 
 	/**
-	 * Routine to set this Variable to be not-saved.
+	 * Method to set this Variable to be not-saved.
 	 * Variables that are saved are written to disk when libraries are saved.
 	 */
 	public void setDontSave() { checkChanging(); flags |= VDONTSAVE; }
 
 	/**
-	 * Routine to set this Variable to be saved.
+	 * Method to set this Variable to be saved.
 	 * Variables that are saved are written to disk when libraries are saved.
 	 */
 	public void clearDontSave() { checkChanging(); flags &= ~VDONTSAVE; }
 
 	/**
-	 * Routine to return true if this Variable is to be saved.
+	 * Method to return true if this Variable is to be saved.
 	 * Variables that are saved are written to disk when libraries are saved.
 	 * @return true if this Variable is to be saved.
 	 */
 	public boolean isDontSave() { return (flags & VDONTSAVE) != 0; }
 
 	/**
-	 * Routine to set this Variable to be not-settable.
+	 * Method to set this Variable to be not-settable.
 	 * Only Variables that are settable can have their value changed.
 	 */
 	public void setCantSet() { checkChanging(); flags |= VCANTSET; }
 
 	/**
-	 * Routine to set this Variable to be settable.
+	 * Method to set this Variable to be settable.
 	 * Only Variables that are settable can have their value changed.
 	 */
 	public void clearCantSet() { checkChanging(); flags &= ~VCANTSET; }
 
 	/**
-	 * Routine to return true if this Variable is settable.
+	 * Method to return true if this Variable is settable.
 	 * Only Variables that are settable can have their value changed.
 	 * @return true if this Variable is settable.
 	 */

@@ -315,7 +315,7 @@ public class Network extends Tool
 	}
 
 	/**
-	 * Routine to return either the network name or the bus name on this ArcInst.
+	 * Method to return either the network name or the bus name on this ArcInst.
 	 * @return the either the network name or the bus name on this ArcInst.
 	 */
 	public static String getNetworkName(ArcInst ai)
@@ -325,7 +325,7 @@ public class Network extends Tool
 	}
 
 	/**
-	 * Routine to return the bus width on this ArcInst.
+	 * Method to return the bus width on this ArcInst.
 	 * @return the either the bus width on this ArcInst.
 	 */
 	public static int getBusWidth(ArcInst ai)

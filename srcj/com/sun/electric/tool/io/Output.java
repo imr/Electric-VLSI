@@ -96,7 +96,7 @@ public class Output
 	// ----------------------- public methods -------------------------------
 
 	/**
-	 * Routine to write a Library.
+	 * Method to write a Library.
 	 * This method is never called.
 	 * Instead, it is always overridden by the appropriate write subclass.
 	 * @param lib the Library to be written.
@@ -105,7 +105,7 @@ public class Output
 	protected boolean writeLib(Library lib) { return true; }
 
     /**
-     * Routine to write a cell.
+     * Method to write a cell.
      * This method is never called.
      * Instead, it is always overridden by the appropriate write subclass.
      * @param cell the Cell to be written.
@@ -114,7 +114,7 @@ public class Output
     protected boolean writeCell(Cell cell) { return true; }
     
 	/**
-	 * Routine to write a Library with a particular format
+	 * Method to write a Library with a particular format
 	 * @param lib the Library to be written.
 	 * @param type the format of the output file.
      * @return true on error.
@@ -167,7 +167,7 @@ public class Output
 	}
     
     /**
-     * Routine to write a Cell to a file with a particular format.
+     * Method to write a Cell to a file with a particular format.
      * @param cell the Cell to be written
      * @param type the format of the output file
      * @return true on error.
@@ -192,9 +192,9 @@ public class Output
     }
 
 	/**
-	 * Routine to gather all font settings in a Library and attach them to the Library.
+	 * Method to gather all font settings in a Library and attach them to the Library.
 	 * @param lib the Library to examine.
-	 * The routine examines all TextDescriptors that might be saved with the Library
+	 * The method examines all TextDescriptors that might be saved with the Library
 	 * and adds a new Variable to that Library that describes the font associations.
 	 * The Variable is called "LIB_font_associations" and it is an array of Strings.
 	 * Each String is of the format NUMBER/FONTNAME where NUMBER is the font number

@@ -93,7 +93,7 @@ public class WindowFrame
 	private WindowFrame() {}
 
 	/**
-	 * Routine to create a new window on the screen that displays a Cell.
+	 * Method to create a new window on the screen that displays a Cell.
 	 * @param cell the cell to display.
 	 * @return the WindowFrame that shows the Cell.
 	 */
@@ -206,13 +206,13 @@ public class WindowFrame
 	}
 
 	/**
-	 * Routine to get the current WindowFrame.
+	 * Method to get the current WindowFrame.
 	 * @return the current WindowFrame.
 	 */
 	public static WindowFrame getCurrentWindowFrame() { return curWindowFrame; }
 
 	/**
-	 * Routine to set the current WindowFrame.
+	 * Method to set the current WindowFrame.
 	 * @param wf the WindowFrame to make current.
 	 */
 	public static void setCurrentWindowFrame(WindowFrame wf)
@@ -244,7 +244,7 @@ public class WindowFrame
 	}
 
 	/**
-	 * Routine to record that this WindowFrame has been closed.
+	 * Method to record that this WindowFrame has been closed.
 	 * This method is called from the event handlers on the windows.
 	 */
 	private void windowClosed()
@@ -254,31 +254,31 @@ public class WindowFrame
 	}
 
 	/**
-	 * Routine to return the horizontal scroll bar at the bottom of the edit window.
+	 * Method to return the horizontal scroll bar at the bottom of the edit window.
 	 * @return the horizontal scroll bar at the bottom of the edit window.
 	 */
 	public JScrollBar getBottomScrollBar() { return bottomScrollBar; }
 
 	/**
-	 * Routine to return the vertical scroll bar at the right side of the edit window.
+	 * Method to return the vertical scroll bar at the right side of the edit window.
 	 * @return the vertical scroll bar at the right side of the edit window.
 	 */
 	public JScrollBar getRightScrollBar() { return rightScrollBar; }
 
 	/**
-	 * Routine to return the EditWindow associated with this frame.
+	 * Method to return the EditWindow associated with this frame.
 	 * @return the EditWindow associated with this frame.
 	 */
 	public EditWindow getEditWindow() { return wnd; }
 
 	/**
-	 * Routine to return the text edit window associated with this frame.
+	 * Method to return the text edit window associated with this frame.
 	 * @return the text edit window associated with this frame.
 	 */
 	public JTextArea getTextEditWindow() { return textWnd; }
 
 	/**
-	 * Routine to control whether text editing or circuit editing is being shown.
+	 * Method to control whether text editing or circuit editing is being shown.
 	 * @param on true if text editing is to be shown.
 	 */
 	public void setContent(int contents)
@@ -298,33 +298,33 @@ public class WindowFrame
 	public int getContents() { return contents; }
 
 	/**
-	 * Routine to return the ExplorerTree associated with this frame.
+	 * Method to return the ExplorerTree associated with this frame.
 	 * @return the ExplorerTree associated with this frame.
 	 */
 	public ExplorerTree getExplorerTree() { return tree; }
 
 	/**
-	 * Routine to return the JInternalFrame associated with this WindowFrame.
+	 * Method to return the JInternalFrame associated with this WindowFrame.
 	 * This only makes sense in MDI mode, because in SDI mode, the WindowFrame is a JFrame.
 	 * @return the JInternalFrame associated with this WindowFrame.
 	 */
 	public JInternalFrame getInternalFrame() { return jif; }
 
 	/**
-	 * Routine to return the TopLevel associated with this WindowFrame.
+	 * Method to return the TopLevel associated with this WindowFrame.
 	 * This only makes sense in SDI mode, because in MDI mode, the WindowFrame is a JInternalFrame.
 	 * @return the TopLevel associated with this WindowFrame.
 	 */
 	public TopLevel getFrame() { return jf; }
 
 	/**
-	 * Routine to return an Iterator over all WindowFrames.
+	 * Method to return an Iterator over all WindowFrames.
 	 * @return an Iterator over all WindowFrames.
 	 */
 	public static Iterator getWindows() { return windowList.iterator(); }
     
     /**
-     * Routine to set the description on the window frame
+     * Method to set the description on the window frame
      */
     public void setTitle(String title)
     {

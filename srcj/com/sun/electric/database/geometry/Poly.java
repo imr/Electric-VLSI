@@ -269,67 +269,67 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to return the style associated with this Poly.
+	 * Method to return the style associated with this Poly.
 	 * The style controls how the points are interpreted (FILLED, CIRCLE, etc.)
 	 * @return the style associated with this Poly.
 	 */
 	public Poly.Type getStyle() { return style; }
 
 	/**
-	 * Routine to set the style associated with this Poly.
+	 * Method to set the style associated with this Poly.
 	 * The style controls how the points are interpreted (FILLED, CIRCLE, etc.)
 	 * @param style the style associated with this Poly.
 	 */
 	public void setStyle(Poly.Type style) { this.style = style; }
 
 	/**
-	 * Routine to return the points associated with this Poly.
+	 * Method to return the points associated with this Poly.
 	 * @return the points associated with this Poly.
 	 */
 	public Point2D [] getPoints() { return points; }
 
 	/**
-	 * Routine to return the layer associated with this Poly.
+	 * Method to return the layer associated with this Poly.
 	 * @return the layer associated with this Poly.
 	 */
 	public Layer getLayer() { return layer; }
 
 	/**
-	 * Routine to set the layer associated with this Poly.
+	 * Method to set the layer associated with this Poly.
 	 * @param layer the layer associated with this Poly.
 	 */
 	public void setLayer(Layer layer) { this.layer = layer; }
 
 	/**
-	 * Routine to return the String associated with this Poly.
+	 * Method to return the String associated with this Poly.
 	 * This only applies to text Polys which display a message.
 	 * @return the String associated with this Poly.
 	 */
 	public String getString() { return string; }
 
 	/**
-	 * Routine to set the String associated with this Poly.
+	 * Method to set the String associated with this Poly.
 	 * This only applies to text Polys which display a message.
 	 * @param string the String associated with this Poly.
 	 */
 	public void setString(String string) { this.string = string; }
 
 	/**
-	 * Routine to return the Name associated with this Poly.
+	 * Method to return the Name associated with this Poly.
 	 * This only applies to text Polys which come from Named objects (Node and Arc names).
 	 * @return the Name associated with this Poly.
 	 */
 	public Name getName() { return name; }
 
 	/**
-	 * Routine to set the String associated with this Poly.
+	 * Method to set the String associated with this Poly.
 	 * This only applies to text Polys which come from Named objects (Node and Arc names).
 	 * @param string the Name associated with this Poly.
 	 */
 	public void setName(Name name) { this.name = name; }
 
 	/**
-	 * Routine to return the Text Descriptor associated with this Poly.
+	 * Method to return the Text Descriptor associated with this Poly.
 	 * This only applies to text Polys which display a message.
 	 * Only the size, face, italic, bold, and underline fields are relevant.
 	 * @return the Text Descriptor associated with this Poly.
@@ -337,7 +337,7 @@ public class Poly implements Shape
 	public TextDescriptor getTextDescriptor() { return descript; }
 
 	/**
-	 * Routine to set the Text Descriptor associated with this Poly.
+	 * Method to set the Text Descriptor associated with this Poly.
 	 * This only applies to text Polys which display a message.
 	 * Only the size, face, italic, bold, and underline fields are relevant.
 	 * @param descript the Text Descriptor associated with this Poly.
@@ -345,35 +345,35 @@ public class Poly implements Shape
 	public void setTextDescriptor(TextDescriptor descript) { this.descript = descript; }
 
 	/**
-	 * Routine to return the Variable associated with this Poly.
+	 * Method to return the Variable associated with this Poly.
 	 * This only applies to text Polys which display a message.
 	 * @return the Variable associated with this Poly.
 	 */
 	public Variable getVariable() { return var; }
 
 	/**
-	 * Routine to set the Variable associated with this Poly.
+	 * Method to set the Variable associated with this Poly.
 	 * This only applies to text Polys which display a message.
 	 * @param var the Variable associated with this Poly.
 	 */
 	public void setVariable(Variable var) { this.var = var; }
 
 	/**
-	 * Routine to return the PortProto associated with this Poly.
+	 * Method to return the PortProto associated with this Poly.
 	 * This applies to ports on Nodes and Exports on Cells.
 	 * @return the PortProto associated with this Poly.
 	 */
 	public PortProto getPort() { return pp; }
 
 	/**
-	 * Routine to set the PortProto associated with this Poly.
+	 * Method to set the PortProto associated with this Poly.
 	 * This applies to ports on Nodes and Exports on Cells.
 	 * @param pp the PortProto associated with this Poly.
 	 */
 	public void setPort(PortProto pp) { this.pp = pp; }
 
 	/**
-	 * Routine to transformed the points in this Poly.
+	 * Method to transformed the points in this Poly.
 	 * @param af transformation to apply.
 	 */
 	public void transform(AffineTransform af)
@@ -400,7 +400,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to return a Rectangle that describes the orthogonal box in this Poly.
+	 * Method to return a Rectangle that describes the orthogonal box in this Poly.
 	 * @return the Rectangle that describes this Poly.
 	 * If the Poly is not an orthogonal box, returns null.
 	 */
@@ -441,7 +441,19 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to compare this Poly to another.
+	 * Method to compute the minimum size of this Polygon.
+	 * Only works with manhattan geometry.
+	 * @return the minimum dimension.
+	 */
+	public double getMinSize()
+	{
+		Rectangle2D box = getBox();
+		if (box == null) return 0;
+		return Math.min(box.getWidth(), box.getHeight());
+	}
+
+	/**
+	 * Method to compare this Poly to another.
 	 * @param polyOther the other Poly to compare.
 	 * @return true if the Polys are the same.
 	 */
@@ -469,7 +481,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to tell whether a coordinate is inside of this Poly.
+	 * Method to tell whether a coordinate is inside of this Poly.
 	 * @param pt the point in question.
 	 * @return true if the point is inside of this Poly.
 	 */
@@ -589,7 +601,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to tell whether a coordinates of this Poly are inside of a Rectangle2D.
+	 * Method to tell whether a coordinates of this Poly are inside of a Rectangle2D.
 	 * @param bounds the Rectangle2D in question.
 	 * @return true if this Poly is completely inside of the bounds.
 	 */
@@ -656,7 +668,7 @@ public class Poly implements Shape
 //	}
 
 	/**
-	 * Routine to reduce this Poly by the proper amount presuming that it describes a port connected to an arc.
+	 * Method to reduce this Poly by the proper amount presuming that it describes a port connected to an arc.
 	 * This Poly is modified in place to reduce its size.
 	 * @param pi the PortInst that describes this Poly.
 	 * @param wid the width of the arc connected to this port-poly.
@@ -765,7 +777,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to convert text Polys to their precise bounds in a given window.
+	 * Method to convert text Polys to their precise bounds in a given window.
 	 * @param wnd the window.
 	 */
 	public void setExactTextBounds(EditWindow wnd)
@@ -796,10 +808,10 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to report the distance of a rectangle or point to this Poly.
+	 * Method to report the distance of a rectangle or point to this Poly.
 	 * @param otherBounds the area to test for distance to the Poly.
 	 * @return the distance of the area to the Poly.
-	 * The routine returns a negative amount if the point/area is a direct hit on or inside
+	 * The method returns a negative amount if the point/area is a direct hit on or inside
 	 * the polygon (the more negative, the closer to the center).
 	 */
 	public double polyDistance(Rectangle2D otherBounds)
@@ -987,7 +999,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to find the point on this polygon closest to a given point.
+	 * Method to find the point on this polygon closest to a given point.
 	 * @param pt the given point
 	 * @return a point on this Poly that is closest.
 	 */
@@ -1073,7 +1085,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to tell whether a point is inside of this Poly.
+	 * Method to tell whether a point is inside of this Poly.
 	 * This method is a requirement of the Shape implementation.
 	 * @param x the X coordinate of the point.
 	 * @param y the Y coordinate of the point.
@@ -1085,7 +1097,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to tell whether a point is inside of this Poly.
+	 * Method to tell whether a point is inside of this Poly.
 	 * This method is a requirement of the Shape implementation.
 	 * @param p the point.
 	 * @return true if the point is inside the Poly.
@@ -1096,7 +1108,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to tell whether a rectangle is inside of this Poly.
+	 * Method to tell whether a rectangle is inside of this Poly.
 	 * This method is a requirement of the Shape implementation.
 	 * THIS METHOD HAS NOT BEEN WRITTEN YET!!!
 	 * @param x the X corner of the rectangle.
@@ -1111,7 +1123,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to tell whether a rectangle is inside of this Poly.
+	 * Method to tell whether a rectangle is inside of this Poly.
 	 * This method is a requirement of the Shape implementation.
 	 * THIS METHOD HAS NOT BEEN WRITTEN YET!!!
 	 * @param r the rectangle.
@@ -1123,7 +1135,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to tell whether a rectangle intersects this Poly.
+	 * Method to tell whether a rectangle intersects this Poly.
 	 * This method is a requirement of the Shape implementation.
 	 * THIS METHOD HAS NOT BEEN WRITTEN YET!!!
 	 * @param x the X corner of the rectangle.
@@ -1138,7 +1150,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to tell whether a rectangle intersects this Poly.
+	 * Method to tell whether a rectangle intersects this Poly.
 	 * This method is a requirement of the Shape implementation.
 	 * THIS METHOD HAS NOT BEEN WRITTEN YET!!!
 	 * @param r the rectangle.
@@ -1150,7 +1162,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to return the X center coordinate of this Poly.
+	 * Method to return the X center coordinate of this Poly.
 	 * @return the X center coordinate of this Poly.
 	 */
 	public double getCenterX()
@@ -1160,7 +1172,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to return the Y center coordinate of this Poly.
+	 * Method to return the Y center coordinate of this Poly.
 	 * @return the Y center coordinate of this Poly.
 	 */
 	public double getCenterY()
@@ -1170,7 +1182,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to return the bounds of this Poly.
+	 * Method to return the bounds of this Poly.
 	 * @return the bounds of this Poly.
 	 */
 	public Rectangle2D getBounds2D()
@@ -1180,7 +1192,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to return the bounds of this Poly.
+	 * Method to return the bounds of this Poly.
 	 * Nobody really uses this, but it is necessary for the implementation of Shape.
 	 * @return the bounds of this Poly.
 	 */
@@ -1263,7 +1275,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to return a PathIterator for this Poly after a transformation.
+	 * Method to return a PathIterator for this Poly after a transformation.
 	 * This method is a requirement of the Shape implementation.
 	 * @param at the transformation to apply.
 	 * @return the PathIterator.
@@ -1274,7 +1286,7 @@ public class Poly implements Shape
 	}
 
 	/**
-	 * Routine to return a PathIterator with a particular flatness for this Poly after a transformation.
+	 * Method to return a PathIterator with a particular flatness for this Poly after a transformation.
 	 * This method is a requirement of the Shape implementation.
 	 * @param at the transformation to apply.
 	 * @param flatness the required flatness.

@@ -169,7 +169,7 @@ public class View extends ElectricObject
 	/****************************** CREATE, DELETE ******************************/
 
 	/**
-	 * Routine to create a View with the given name.
+	 * Method to create a View with the given name.
 	 * @param fullName the full name of the View, for example "layout".
 	 * @param abbreviation the short name of the View, for example "lay".
 	 * The short name is used inside of braces when naming a cell (for example "gate{lay}").
@@ -188,7 +188,7 @@ public class View extends ElectricObject
 	}
 
 	/**
-	 * Routine to create a Text-only View with the given name.
+	 * Method to create a Text-only View with the given name.
 	 * Cells with text-only views have no nodes or arcs, just text.
 	 * @param fullName the full name of the View, for example "documentation".
 	 * @param abbreviation the short name of the View, for example "doc".
@@ -208,7 +208,7 @@ public class View extends ElectricObject
 	}
 
 	/**
-	 * Routine to delete this View.
+	 * Method to delete this View.
 	 */
 	public void kill()
 	{
@@ -286,7 +286,7 @@ public class View extends ElectricObject
 	/****************************** INFORMATION ******************************/
 
 	/**
-	 * Routine to return a View using its full or short name.
+	 * Method to return a View using its full or short name.
 	 * @param name the name of the View.
 	 * @return the named View, or null if no such View exists.
 	 */
@@ -296,71 +296,71 @@ public class View extends ElectricObject
 	}
 
 	/**
-	 * Routine to return the full name of this View.
+	 * Method to return the full name of this View.
 	 * @return the full name of this View.
 	 */
 	public String getFullName() { return fullName; }
 
 	/**
-	 * Routine to return the short name of this View.
+	 * Method to return the short name of this View.
 	 * The short name is used inside of braces when naming a cell (for example "gate{doc}").
 	 * @return the short name of this View.
 	 */
 	public String getAbbreviation() { return abbreviation; }
 
 	/**
-	 * Routine to get the ordering of this View for sorting.
+	 * Method to get the ordering of this View for sorting.
 	 * @return the ordering this View.
 	 */
 	public int getOrder() { return order; }
 
 	/**
-	 * Routine to set an arbitrary integer in a temporary location on this View.
+	 * Method to set an arbitrary integer in a temporary location on this View.
 	 * @param tempInt the integer to be set on this View.
 	 */
 	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
 
 	/**
-	 * Routine to get the temporary integer on this View.
+	 * Method to get the temporary integer on this View.
 	 * @return the temporary integer on this View.
 	 */
 	public int getTempInt() { return tempInt; }
 
 	/**
-	 * Routine to return true if this View is Text-only.
+	 * Method to return true if this View is Text-only.
 	 * Cells with text-only views have no nodes or arcs, just text.
 	 * @return true if this View is Text-only.
 	 */
 	public boolean isTextView() { return (type & TEXTVIEW) != 0; }
 
 	/**
-	 * Routine to return true if this View is Multipage.
+	 * Method to return true if this View is Multipage.
 	 * Multipage views are those where multiple cells are used to compose a single circuit.
 	 * @return true if this View is Text-only.
 	 */
 	public boolean isMultiPageView() { return (type & MULTIPAGEVIEW) != 0; }
 
 	/**
-	 * Routine to return true if this View is permanent.
+	 * Method to return true if this View is permanent.
 	 * Permanent views are those that are created initially, and cannot be deleted.
 	 * @return true if this View is permanent.
 	 */
 	public boolean isPermanentView() { return (type & PERMANENTVIEW) != 0; }
 
 	/**
-	 * Routine to return an iterator over the views.
+	 * Method to return an iterator over the views.
 	 * @return an iterator over the views.
 	 */
 	public static Iterator getViews() { return views.iterator(); }
 
 	/**
-	 * Routine to return the number of views.
+	 * Method to return the number of views.
 	 * @return the number of views.
 	 */
 	public static int getNumViews() { return views.size(); }
 
 	/**
-	 * Routine to return a List of all libraries, sorted by name.
+	 * Method to return a List of all libraries, sorted by name.
 	 * The list excludes hidden libraries (i.e. the clipboard).
 	 * @return a List of all libraries, sorted by name.
 	 */

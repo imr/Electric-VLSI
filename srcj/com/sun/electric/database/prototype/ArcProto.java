@@ -145,19 +145,19 @@ public abstract class ArcProto extends ElectricObject
 	// ------------------------ public methods -------------------------------
 
 	/**
-	 * Routine to return the name of this ArcProto.
+	 * Method to return the name of this ArcProto.
 	 * @return the name of this ArcProto.
 	 */
 	public String getProtoName() { return protoName; }
 
 	/**
-	 * Routine to return the Technology of this ArcProto.
+	 * Method to return the Technology of this ArcProto.
 	 * @return the Technology of this ArcProto.
 	 */
 	public Technology getTechnology() { return tech; }
 
 	/**
-	 * Routine to return the full default width of this ArcProto.
+	 * Method to return the full default width of this ArcProto.
 	 * This is the full width, including nonselectable layers such as implants.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
 	 * This call returns the width of all of these layers. 
@@ -166,7 +166,7 @@ public abstract class ArcProto extends ElectricObject
 	public double getDefaultWidth() { return defaultWidth; }
 
 	/**
-	 * Routine to set the full default width of this ArcProto.
+	 * Method to set the full default width of this ArcProto.
 	 * This is the full width, including nonselectable layers such as implants.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
 	 * @param defaultWidth the full default width of this ArcProto.
@@ -174,7 +174,7 @@ public abstract class ArcProto extends ElectricObject
 	public void setDefaultWidth(double defaultWidth) { this.defaultWidth = defaultWidth; }
 
 	/**
-	 * Routine to set the width offset of this ArcProto.
+	 * Method to set the width offset of this ArcProto.
 	 * The width offset excludes the surrounding implang material.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
 	 * The offset amount is the difference between the diffusion width and the overall width.
@@ -191,7 +191,7 @@ public abstract class ArcProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to return the width offset of this ArcProto.
+	 * Method to return the width offset of this ArcProto.
 	 * The width offset excludes the surrounding implang material.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
 	 * The offset amount is the difference between the diffusion width and the overall width.
@@ -200,7 +200,7 @@ public abstract class ArcProto extends ElectricObject
 	public double getWidthOffset() { return widthOffset; }
 
 	/**
-	 * Routine to return the default width of this ArcProto.
+	 * Method to return the default width of this ArcProto.
 	 * This is the reported/selected width, which means that it does not include the width offset.
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
 	 * This call returns only the width of the diffusion. 
@@ -212,40 +212,40 @@ public abstract class ArcProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to set this ArcProto so that instances of it are rigid.
+	 * Method to set this ArcProto so that instances of it are rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 */
 	public void setRigid() { userBits |= WANTFIX; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it are not rigid.
+	 * Method to set this ArcProto so that instances of it are not rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 */
 	public void clearRigid() { userBits &= ~WANTFIX; }
 
 	/**
-	 * Routine to tell if instances of this ArcProto are rigid.
+	 * Method to tell if instances of this ArcProto are rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 * @return true if instances of this ArcProto are rigid.
 	 */
 	public boolean isRigid() { return (userBits & WANTFIX) != 0; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it are fixed-angle.
+	 * Method to set this ArcProto so that instances of it are fixed-angle.
 	 * Fixed-angle arcs cannot change their angle, so if one end moves,
 	 * the other may also adjust to keep the arc angle constant.
 	 */
 	public void setFixedAngle() { userBits |= WANTFIXANG; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it are not fixed-angle.
+	 * Method to set this ArcProto so that instances of it are not fixed-angle.
 	 * Fixed-angle arcs cannot change their angle, so if one end moves,
 	 * the other may also adjust to keep the arc angle constant.
 	 */
 	public void clearFixedAngle() { userBits &= ~WANTFIXANG; }
 
 	/**
-	 * Routine to tell if instances of this ArcProto are fixed-angle.
+	 * Method to tell if instances of this ArcProto are fixed-angle.
 	 * Fixed-angle arcs cannot change their angle, so if one end moves,
 	 * the other may also adjust to keep the arc angle constant.
 	 * @return true if instances of this ArcProto are fixed-angle.
@@ -253,7 +253,7 @@ public abstract class ArcProto extends ElectricObject
 	public boolean isFixedAngle() { return (userBits & WANTFIXANG) != 0; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it are slidable.
+	 * Method to set this ArcProto so that instances of it are slidable.
 	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
 	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
@@ -261,7 +261,7 @@ public abstract class ArcProto extends ElectricObject
 	public void setSlidable() { userBits &= ~WANTCANTSLIDE; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it are not slidable.
+	 * Method to set this ArcProto so that instances of it are not slidable.
 	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
 	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
@@ -269,7 +269,7 @@ public abstract class ArcProto extends ElectricObject
 	public void clearSlidable() { userBits |= WANTCANTSLIDE; }
 
 	/**
-	 * Routine to tell if instances of this ArcProto are slidable.
+	 * Method to tell if instances of this ArcProto are slidable.
 	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
 	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
@@ -278,21 +278,21 @@ public abstract class ArcProto extends ElectricObject
 	public boolean isSlidable() { return (userBits & WANTCANTSLIDE) == 0; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it have their ends extended.
+	 * Method to set this ArcProto so that instances of it have their ends extended.
 	 * End-extension causes an arc to extend past its endpoint by half of its width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 */
 	public void setExtended() { userBits &= ~WANTNOEXTEND; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it do not have their ends extended.
+	 * Method to set this ArcProto so that instances of it do not have their ends extended.
 	 * End-extension causes an arc to extend past its endpoint by half of its width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 */
 	public void clearExtended() { userBits |= WANTNOEXTEND; }
 
 	/**
-	 * Routine to tell if instances of this ArcProto have their ends extended.
+	 * Method to tell if instances of this ArcProto have their ends extended.
 	 * End-extension causes an arc to extend past its endpoint by half of its width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @return true if instances of this ArcProto have their ends extended.
@@ -300,21 +300,21 @@ public abstract class ArcProto extends ElectricObject
 	public boolean isExtended() { return (userBits & WANTNOEXTEND) == 0; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it are negated.
+	 * Method to set this ArcProto so that instances of it are negated.
 	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
 	 * This is used only in Schematics technologies to place negating bubbles on any node.
 	 */
 	public void setNegated() { userBits |= WANTNEGATED; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it are not negated.
+	 * Method to set this ArcProto so that instances of it are not negated.
 	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
 	 * This is used only in Schematics technologies to place negating bubbles on any node.
 	 */
 	public void clearNegated() { userBits &= ~WANTNEGATED; }
 
 	/**
-	 * Routine to tell if instances of this ArcProto are negated.
+	 * Method to tell if instances of this ArcProto are negated.
 	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
 	 * This is used only in Schematics technologies to place negating bubbles on any node.
 	 * @return true if instances of this ArcProto are negated.
@@ -322,21 +322,21 @@ public abstract class ArcProto extends ElectricObject
 	public boolean isNegated() { return (userBits & WANTNEGATED) != 0; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it are directional.
+	 * Method to set this ArcProto so that instances of it are directional.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
 	 * It is only for documentation purposes and does not affect the circuit.
 	 */
 	public void setDirectional() { userBits |= WANTDIRECTIONAL; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it are not directional.
+	 * Method to set this ArcProto so that instances of it are not directional.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
 	 * It is only for documentation purposes and does not affect the circuit.
 	 */
 	public void clearDirectional() { userBits &= ~WANTDIRECTIONAL; }
 
 	/**
-	 * Routine to tell if instances of this ArcProto are directional.
+	 * Method to tell if instances of this ArcProto are directional.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
 	 * It is only for documentation purposes and does not affect the circuit.
 	 * @return true if instances of this ArcProto are directional.
@@ -344,21 +344,21 @@ public abstract class ArcProto extends ElectricObject
 	public boolean isDirectional() { return (userBits & WANTDIRECTIONAL) != 0; }
 
 	/**
-	 * Routine to set this ArcProto so that it is not used.
+	 * Method to set this ArcProto so that it is not used.
 	 * Unused arcs do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding arcs that the user should not use.
 	 */
 	public void setNotUsed() { checkChanging(); userBits |= ANOTUSED; }
 
 	/**
-	 * Routine to set this ArcProto so that it is used.
+	 * Method to set this ArcProto so that it is used.
 	 * Unused arcs do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding arcs that the user should not use.
 	 */
 	public void clearNotUsed() { checkChanging(); userBits &= ~ANOTUSED; }
 
 	/**
-	 * Routine to tell if this ArcProto is used.
+	 * Method to tell if this ArcProto is used.
 	 * Unused arcs do not appear in the component menus and cannot be created by the user.
 	 * The state is useful for hiding arcs that the user should not use.
 	 * @return true if this ArcProto is used.
@@ -366,7 +366,7 @@ public abstract class ArcProto extends ElectricObject
 	public boolean isNotUsed() { return (userBits & ANOTUSED) != 0; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it can wipe nodes.
+	 * Method to set this ArcProto so that instances of it can wipe nodes.
 	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
 	 * Those arc prototypes that can erase their connecting pins have this state set,
 	 * and when instances of these arcs connect to the pins, those pins stop being drawn.
@@ -378,7 +378,7 @@ public abstract class ArcProto extends ElectricObject
 	public void setWipable() { userBits |= CANWIPE; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it cannot wipe nodes.
+	 * Method to set this ArcProto so that instances of it cannot wipe nodes.
 	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
 	 * Those arc prototypes that can erase their connecting pins have this state set,
 	 * and when instances of these arcs connect to the pins, those pins stop being drawn.
@@ -390,7 +390,7 @@ public abstract class ArcProto extends ElectricObject
 	public void clearWipable() { userBits &= ~CANWIPE; }
 
 	/**
-	 * Routine to tell if instances of this ArcProto can wipe nodes.
+	 * Method to tell if instances of this ArcProto can wipe nodes.
 	 * For display efficiency reasons, pins that have arcs connected to them should not bother being drawn.
 	 * Those arc prototypes that can erase their connecting pins have this state set,
 	 * and when instances of these arcs connect to the pins, those pins stop being drawn.
@@ -403,7 +403,7 @@ public abstract class ArcProto extends ElectricObject
 	public boolean isWipable() { return (userBits & CANWIPE) != 0; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it can curve.
+	 * Method to set this ArcProto so that instances of it can curve.
 	 * Since arc curvature is complex to draw, arcs with this capability
 	 * must be marked this way.
 	 * A curved arc has the variable "arc_radius" on it with a curvature factor.
@@ -411,7 +411,7 @@ public abstract class ArcProto extends ElectricObject
 	public void setCurvable() { userBits |= CANCURVE; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it cannot curve.
+	 * Method to set this ArcProto so that instances of it cannot curve.
 	 * Since arc curvature is complex to draw, arcs with this capability
 	 * must be marked this way.
 	 * A curved arc has the variable "arc_radius" on it with a curvature factor.
@@ -419,7 +419,7 @@ public abstract class ArcProto extends ElectricObject
 	public void clearCurvable() { userBits &= ~CANCURVE; }
 
 	/**
-	 * Routine to tell if instances of this ArcProto can curve.
+	 * Method to tell if instances of this ArcProto can curve.
 	 * Since arc curvature is complex to draw, arcs with this capability
 	 * must be marked this way.
 	 * A curved arc has the variable "arc_radius" on it with a curvature factor.
@@ -428,21 +428,21 @@ public abstract class ArcProto extends ElectricObject
 	public boolean isCurvable() { return (userBits & CANCURVE) != 0; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it can be selected by their edge.
+	 * Method to set this ArcProto so that instances of it can be selected by their edge.
 	 * Artwork primitives that are not filled-in or are outlines want edge-selection, instead
 	 * of allowing a click anywhere in the bounding box to work.
 	 */
 	public void setEdgeSelect() { userBits |= AEDGESELECT; }
 
 	/**
-	 * Routine to set this ArcProto so that instances of it cannot be selected by their edge.
+	 * Method to set this ArcProto so that instances of it cannot be selected by their edge.
 	 * Artwork primitives that are not filled-in or are outlines want edge-selection, instead
 	 * of allowing a click anywhere in the bounding box to work.
 	 */
 	public void clearEdgeSelect() { userBits &= ~AEDGESELECT; }
 
 	/**
-	 * Routine to tell if instances of this ArcProto can be selected by their edge.
+	 * Method to tell if instances of this ArcProto can be selected by their edge.
 	 * Artwork primitives that are not filled-in or are outlines want edge-selection, instead
 	 * of allowing a click anywhere in the bounding box to work.
 	 * @return true if instances of this ArcProto can be selected by their edge.
@@ -450,21 +450,21 @@ public abstract class ArcProto extends ElectricObject
 	public boolean isEdgeSelect() { return (userBits & AEDGESELECT) != 0; }
 
 	/**
-	 * Routine to set the function of this ArcProto.
+	 * Method to set the function of this ArcProto.
 	 * The Function is a technology-independent description of the behavior of this ArcProto.
 	 * @param function the new function of this ArcProto.
 	 */
 	public void setFunction(ArcProto.Function function) { this.function = function; }
 
 	/**
-	 * Routine to return the function of this ArcProto.
+	 * Method to return the function of this ArcProto.
 	 * The Function is a technology-independent description of the behavior of this ArcProto.
 	 * @return function the function of this ArcProto.
 	 */
 	public ArcProto.Function getFunction() { return function; }
 
 	/**
-	 * Routine to set the angle increment on this ArcProto.
+	 * Method to set the angle increment on this ArcProto.
 	 * The angle increment is the granularity on placement angle for instances
 	 * of this ArcProto.  It is in degrees.
 	 * For example, a value of 90 requests that instances run at 0, 90, 180, or 270 degrees.
@@ -474,7 +474,7 @@ public abstract class ArcProto extends ElectricObject
 	public void setAngleIncrement(int value) { userBits = (userBits & ~AANGLEINC) | (value << AANGLEINCSH); }
 
 	/**
-	 * Routine to get the angle increment on this ArcProto.
+	 * Method to get the angle increment on this ArcProto.
 	 * The angle increment is the granularity on placement angle for instances
 	 * of this ArcProto.  It is in degrees.
 	 * For example, a value of 90 requests that instances run at 0, 90, 180, or 270 degrees.
@@ -484,19 +484,19 @@ public abstract class ArcProto extends ElectricObject
 	public int getAngleIncrement() { return (userBits & AANGLEINC) >> AANGLEINCSH; }
 
 	/**
-	 * Routine to set an arbitrary integer in a temporary location on this ArcProto.
+	 * Method to set an arbitrary integer in a temporary location on this ArcProto.
 	 * @param tempInt the integer to be set on this ArcProto.
 	 */
 	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
 
 	/**
-	 * Routine to get the temporary integer on this ArcProto.
+	 * Method to get the temporary integer on this ArcProto.
 	 * @return the temporary integer on this ArcProto.
 	 */
 	public int getTempInt() { return tempInt; }
 
 	/**
-	 * Routine to find the ArcProto with the given name.
+	 * Method to find the ArcProto with the given name.
 	 * This can be prefixed by a Technology name.
 	 * @param line the name of the ArcProto.
 	 * @return the specified ArcProto, or null if none can be found.
@@ -520,7 +520,7 @@ public abstract class ArcProto extends ElectricObject
 	}
 
 	/**
-	 * Routine to describe this ArcProto as a string.
+	 * Method to describe this ArcProto as a string.
 	 * Prepends the Technology name if it is
 	 * not from the current technology (for example, "mocmos:Polysilicon-1").
 	 * @return a String describing this ArcProto.

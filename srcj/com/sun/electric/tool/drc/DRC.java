@@ -28,7 +28,11 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRCQuick;
 
 import java.util.Iterator;
@@ -114,11 +118,23 @@ public class DRC extends Tool
 		/** names of nodes */										public String [] nodeNames;
 		/** minimim node size in the technology */					public Double [] minNodeSize;
 		/** minimim node size rules */								public String [] minNodeSizeRules;
+	}
 
-		public Rules() {}
+	public static class Rule
+	{
+		public double distance;
+		public String rule;
+
+		Rule(double distance, String rule)
+		{
+			this.distance = distance;
+			this.rule = rule;
+		}
 	}
 
 	private Preferences prefs = Preferences.userNodeForPackage(getClass());
+	/** Cached rules for a specific technology. */		private static Rules currentRules = null;
+	/** The Technology whose rules are cached. */		private static Technology currentTechnology = null;
 
 	/**
 	 * The constructor sets up the DRC tool.
@@ -163,6 +179,451 @@ public class DRC extends Tool
 			}
 		}
 	}
+
+	/****************************** DESIGN RULES ******************************/
+
+	/**
+	 * Method to build a Rules object that contains all of the design rules for a Technology.
+	 * The DRC dialogs use this to hold the values while editing them.
+	 * It also provides a cache for the design rule checker.
+	 * @param tech the Technology to examine.
+	 * @return a new Rules object with the design rules for this Technology.
+	 */
+	public static Rules getRules(Technology tech)
+	{
+		cacheDesignRules(tech);
+		return currentRules;
+	}
+
+	/**
+	 * Method to update the design rules.
+	 * @param newRules the new design rules.
+	 */
+	public static void modifyRules(Rules newRules)
+	{
+		NewDRCRules job = new NewDRCRules(newRules);
+	}
+
+	/**
+	 * Method to find the worst spacing distance in the design rules.
+	 * Finds the largest spacing rule in the Technology.
+	 * @param tech the Technology to examine.
+	 * @return the largest spacing distance in the Technology.
+	 */
+	public static double getWorstSpacingDistance(Technology tech)
+	{
+		cacheDesignRules(tech);
+		double worstInteractionDistance = 0;
+		for(int i = 0; i < currentRules.uTSize; i++)
+		{
+			double dist = currentRules.unConList[i].doubleValue();
+			if (dist > worstInteractionDistance) worstInteractionDistance = dist;
+			dist = currentRules.unConListWide[i].doubleValue();
+			if (dist > worstInteractionDistance) worstInteractionDistance = dist;
+			dist = currentRules.unConListMulti[i].doubleValue();
+			if (dist > worstInteractionDistance) worstInteractionDistance = dist;
+		}
+		return worstInteractionDistance;
+	}
+
+	/**
+	 * Method to find the maximum design-rule distance around a layer.
+	 * @param layer the Layer to examine.
+	 * @return the maximum design-rule distance around the layer.
+	 */
+	public static double maxSurround(Layer layer)
+	{
+		Technology tech = layer.getTechnology();
+		cacheDesignRules(tech);
+		double worstLayerRule = -1;
+		int layerIndex = layer.getIndex();
+		int tot = tech.getNumLayers();
+		for(int i=0; i<tot; i++)
+		{
+			int pIndex = getIndex(tech, layerIndex, i);
+			double dist = currentRules.unConList[pIndex].doubleValue();
+			if (dist > worstLayerRule) worstLayerRule = dist;
+		}
+		return worstLayerRule;
+	}
+
+	/**
+	 * Method to find the edge spacing rule between two layer.
+	 * @param layer1 the first layer.
+	 * @param layer2 the second layer.
+	 * @return the edge rule distance between the layers.
+	 * Returns null if there is no edge spacing rule.
+	 */
+	public static Rule getEdgeRule(Layer layer1, Layer layer2)
+	{
+		Technology tech = layer1.getTechnology();
+		cacheDesignRules(tech);
+		int pIndex = getIndex(tech, layer1.getIndex(), layer2.getIndex());
+		double dist = currentRules.edgeList[pIndex].doubleValue();
+		if (dist < 0) return null;
+		return new Rule(dist, currentRules.edgeListRules[pIndex]);
+	}
+
+	/**
+	 * Method to return the "wide" limit for a Technology.
+	 * There are different design rules, depending on whether the geometry is wide or not.
+	 * @param tech the Technology in question.
+	 * @return the "wide" limit.  Anything this size or larger must use "wide" design rules.
+	 */
+	public static double getWideLimit(Technology tech)
+	{
+		cacheDesignRules(tech);
+		return currentRules.wideLimit.doubleValue();
+	}
+
+	/**
+	 * Method to find the spacing rule between two layer.
+	 * @param layer1 the first layer.
+	 * @param layer2 the second layer.
+	 * @param connected true to find the distance when the layers are connected.
+	 * @param wide true to find the distance when one of the layers is "wide".
+	 * @param multiCut true to find the distance when this is part of a multicut contact.
+	 * @return the spacing rule between the layers.
+	 * Returns null if there is no spacing rule.
+	 */
+	public static Rule getSpacingRule(Layer layer1, Layer layer2, boolean connected, boolean wide, boolean multiCut)
+	{
+		Technology tech = layer1.getTechnology();
+		cacheDesignRules(tech);
+		int pIndex = getIndex(tech, layer1.getIndex(), layer2.getIndex());
+		if (wide)
+		{
+			if (connected)
+			{
+				double dist = currentRules.conListWide[pIndex].doubleValue();
+				if (dist < 0) return null;
+				return new Rule(dist, currentRules.conListWideRules[pIndex]);
+			}
+			double dist = currentRules.unConListWide[pIndex].doubleValue();
+			if (dist < 0) return null;
+			return new Rule(dist, currentRules.unConListWideRules[pIndex]);
+		}
+		if (multiCut)
+		{
+			if (connected)
+			{
+				double dist = currentRules.conListMulti[pIndex].doubleValue();
+				if (dist < 0) return null;
+				return new Rule(dist, currentRules.conListMultiRules[pIndex]);
+			}
+			double dist = currentRules.unConListMulti[pIndex].doubleValue();
+			if (dist < 0) return null;
+			return new Rule(dist, currentRules.unConListMultiRules[pIndex]);
+		}
+		if (connected)
+		{
+			double dist = currentRules.conList[pIndex].doubleValue();
+			if (dist < 0) return null;
+			return new Rule(dist, currentRules.conListRules[pIndex]);
+		}
+		double dist = currentRules.unConList[pIndex].doubleValue();
+		if (dist < 0) return null;
+		return new Rule(dist, currentRules.unConListRules[pIndex]);
+	}
+
+	/**
+	 * Method to get the minimum width rule for a Layer.
+	 * @param layer the Layer to examine.
+	 * @return the minimum width rule for the layer.
+	 * Returns null if there is no minimum width rule.
+	 */
+	public static Rule getMinWidth(Layer layer)
+	{
+		Technology tech = layer.getTechnology();
+		cacheDesignRules(tech);
+		int index = layer.getIndex();
+		double dist = currentRules.minWidth[index].doubleValue();
+		if (dist < 0) return null;
+		return new Rule(dist, currentRules.minWidthRules[index]);
+	}
+
+	/****************************** SUPPORT FOR DESIGN RULES ******************************/
+
+	/**
+	 * Method to cache the design rules for a given Technology.
+	 * @param tech the Technology to examine.
+	 */
+	private static void cacheDesignRules(Technology tech)
+	{
+		if (tech == currentTechnology) return;
+		currentTechnology = tech;
+		currentRules = buildRules(currentTechnology);
+	}
+
+	/**
+	 * Method to determine the index in the upper-left triangle array for two layers.
+	 * @param layer1 the first layer index.
+	 * @param layer2 the second layer index.
+	 * @return the index in the array that corresponds to these two layers.
+	 */
+	private static int getIndex(Technology tech, int layer1Index, int layer2Index)
+	{
+		if (layer1Index > layer2Index) { int temp = layer1Index; layer1Index = layer2Index;  layer2Index = temp; }
+		int pIndex = (layer1Index+1) * (layer1Index/2) + (layer1Index&1) * ((layer1Index+1)/2);
+		pIndex = layer2Index + tech.getNumLayers() * layer1Index - pIndex;
+		return pIndex;
+	}
+
+	/**
+	 * Method to build a Rules object that contains all of the design rules for a Technology.
+	 * The DRC dialogs use this to hold the values while editing them.
+	 * It also provides a cache for the design rule checker.
+	 * @param tech the Technology to examine.
+	 * @return a new Rules object with the design rules for this Technology.
+	 */
+	private static Rules buildRules(Technology tech)
+	{
+		Rules rules = new Rules();
+		rules.techName = tech.getTechName();
+		rules.numLayers = tech.getNumLayers();
+		rules.uTSize = (rules.numLayers * rules.numLayers + rules.numLayers) / 2;
+		Variable var = tech.getVar(WIDE_LIMIT, Double.class);
+		if (var == null) rules.wideLimit = new Double(10); else
+			rules.wideLimit = (Double)var.getObject();
+		rules.layerNames = new String[rules.numLayers];
+
+		int j=0;
+		for(Iterator it = tech.getLayers(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			rules.layerNames[j++] = layer.getName();
+		}
+
+		// minimum widths of each layer
+		Variable minWidthVar = tech.getVar(MIN_WIDTH, Double[].class);
+		if (minWidthVar != null) rules.minWidth = (Double[])minWidthVar.getObject(); else
+		{
+			rules.minWidth = new Double[rules.numLayers];
+			for(int i=0; i<rules.numLayers; i++) rules.minWidth[i] = new Double(-1);
+		}
+		Variable minWidthRulesVar = tech.getVar(MIN_WIDTH_RULE, String[].class);
+		if (minWidthRulesVar != null) rules.minWidthRules = (String[])minWidthRulesVar.getObject(); else
+		{
+			rules.minWidthRules = new String[rules.numLayers];
+			for(int i=0; i<rules.numLayers; i++) rules.minWidthRules[i] = "";
+		}
+
+		// for connected layers
+		Variable conListVar = tech.getVar(MIN_CONNECTED_DISTANCES, Double[].class);
+		if (conListVar != null) rules.conList = (Double[])conListVar.getObject(); else
+		{
+			rules.conList = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.conList[i] = new Double(-1);
+		}
+		Variable conListRulesVar = tech.getVar(MIN_CONNECTED_DISTANCES_RULE, String[].class);
+		if (conListRulesVar != null) rules.conListRules = (String[])conListRulesVar.getObject(); else
+		{
+			rules.conListRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.conListRules[i] = "";
+		}
+
+		// for unconnected layers
+		Variable unConListVar = tech.getVar(MIN_UNCONNECTED_DISTANCES, Double[].class);
+		if (unConListVar != null) rules.unConList = (Double[])unConListVar.getObject(); else
+		{
+			rules.unConList = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.unConList[i] = new Double(-1);
+		}
+		Variable unConListRulesVar = tech.getVar(MIN_UNCONNECTED_DISTANCES_RULE, String[].class);
+		if (unConListRulesVar != null) rules.unConListRules = (String[])unConListRulesVar.getObject(); else
+		{
+			rules.unConListRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.unConListRules[i] = "";
+		}
+
+		// for connected layers that are wide
+		Variable conListWideVar = tech.getVar(MIN_CONNECTED_DISTANCES_WIDE, Double[].class);
+		if (conListWideVar != null) rules.conListWide = (Double[])conListWideVar.getObject(); else
+		{
+			rules.conListWide = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.conListWide[i] = new Double(-1);
+		}
+		Variable conListWideRulesVar = tech.getVar(MIN_CONNECTED_DISTANCES_WIDE_RULE, String[].class);
+		if (conListWideRulesVar != null) rules.conListWideRules = (String[])conListWideRulesVar.getObject(); else
+		{
+			rules.conListWideRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.conListWideRules[i] = "";
+		}
+
+		// for unconnected layers that are wide
+		Variable unConListWideVar = tech.getVar(MIN_UNCONNECTED_DISTANCES_WIDE, Double[].class);
+		if (unConListWideVar != null) rules.unConListWide = (Double[])unConListWideVar.getObject(); else
+		{
+			rules.unConListWide = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.unConListWide[i] = new Double(-1);
+		}
+		Variable unConListWideRulesVar = tech.getVar(MIN_UNCONNECTED_DISTANCES_WIDE_RULE, String[].class);
+		if (unConListWideRulesVar != null) rules.unConListWideRules = (String[])unConListWideRulesVar.getObject(); else
+		{
+			rules.unConListWideRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.unConListWideRules[i] = "";
+		}
+
+		// for connected layers that are multicut
+		Variable conListMultiVar = tech.getVar(MIN_CONNECTED_DISTANCES_MULTI, Double[].class);
+		if (conListMultiVar != null) rules.conListMulti = (Double[])conListMultiVar.getObject(); else
+		{
+			rules.conListMulti = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.conListMulti[i] = new Double(-1);
+		}
+		Variable conListMultiRulesVar = tech.getVar(MIN_CONNECTED_DISTANCES_MULTI_RULE, String[].class);
+		if (conListMultiRulesVar != null) rules.conListMultiRules = (String[])conListMultiRulesVar.getObject(); else
+		{
+			rules.conListMultiRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.conListMultiRules[i] = "";
+		}
+
+		// for unconnected layers that are multicut
+		Variable unConListMultiVar = tech.getVar(MIN_UNCONNECTED_DISTANCES_MULTI, Double[].class);
+		if (unConListMultiVar != null) rules.unConListMulti = (Double[])unConListMultiVar.getObject(); else
+		{
+			rules.unConListMulti = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.unConListMulti[i] = new Double(-1);
+		}
+		Variable unConListMultiRulesVar = tech.getVar(MIN_UNCONNECTED_DISTANCES_MULTI_RULE, String[].class);
+		if (unConListMultiRulesVar != null) rules.unConListMultiRules = (String[])unConListMultiRulesVar.getObject(); else
+		{
+			rules.unConListMultiRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.unConListMultiRules[i] = "";
+		}
+
+		// for edge distances between layers
+		Variable edgeListVar = tech.getVar(MIN_EDGE_DISTANCES, Double[].class);
+		if (edgeListVar != null) rules.edgeList = (Double[])edgeListVar.getObject(); else
+		{
+			rules.edgeList = new Double[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.edgeList[i] = new Double(-1);
+		}
+		Variable edgeListRulesVar = tech.getVar(MIN_EDGE_DISTANCES_RULE, String[].class);
+		if (edgeListRulesVar != null) rules.edgeListRules = (String[])edgeListRulesVar.getObject(); else
+		{
+			rules.edgeListRules = new String[rules.uTSize];
+			for(int i=0; i<rules.uTSize; i++) rules.edgeListRules[i] = "";
+		}
+
+		rules.numNodes = tech.getNumNodes();
+		rules.nodeNames = new String[rules.numNodes];
+		rules.minNodeSize = new Double[rules.numNodes*2];
+		rules.minNodeSizeRules = new String[rules.numNodes];
+		j = 0;
+		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			rules.nodeNames[j] = np.getProtoName();
+			rules.minNodeSize[j*2] = new Double(np.getMinWidth());
+			rules.minNodeSize[j*2+1] = new Double(np.getMinHeight());
+			rules.minNodeSizeRules[j] = np.getMinSizeRule();
+			j++;
+		}
+		return rules;
+	}
+
+	/**
+	 * Class to update primitive node information.
+	 */
+	protected static class NewDRCRules extends Job
+	{
+		Rules newRules;
+
+		protected NewDRCRules(Rules newRules)
+		{
+			super("Update Design Rules", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.newRules = newRules;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			Technology tech = Technology.getCurrent();
+			Rules oldRules = buildRules(tech);
+
+			// update width-limit information
+			if (newRules.wideLimit != oldRules.wideLimit)
+				tech.newVar(WIDE_LIMIT, newRules.wideLimit);
+
+			// update layer-to-layer information
+			boolean conListChanged = false, conListRulesChanged = false;
+			boolean unConListChanged = false, unConListRulesChanged = false;
+			boolean conListWideChanged = false, conListWideRulesChanged = false;
+			boolean unConListWideChanged = false, unConListWideRulesChanged = false;
+			boolean conListMultiChanged = false, conListMultiRulesChanged = false;
+			boolean unConListMultiChanged = false, unConListMultiRulesChanged = false;
+			boolean edgeListChanged = false, edgeListRulesChanged = false;
+			for(int i=0; i<newRules.uTSize; i++)
+			{
+				if (!newRules.conList[i].equals(oldRules.conList[i])) conListChanged = true;
+				if (!newRules.conListRules[i].equals(oldRules.conListRules[i])) conListRulesChanged = true;
+				if (!newRules.unConList[i].equals(oldRules.unConList[i])) unConListChanged = true;
+				if (!newRules.unConListRules[i].equals(oldRules.unConListRules[i])) unConListRulesChanged = true;
+
+				if (!newRules.conListWide[i].equals(oldRules.conListWide[i])) conListWideChanged = true;
+				if (!newRules.conListWideRules[i].equals(oldRules.conListWideRules[i])) conListWideRulesChanged = true;
+				if (!newRules.unConListWide[i].equals(oldRules.unConListWide[i])) unConListWideChanged = true;
+				if (!newRules.unConListWideRules[i].equals(oldRules.unConListWideRules[i])) unConListWideRulesChanged = true;
+
+				if (!newRules.conListMulti[i].equals(oldRules.conListMulti[i])) conListMultiChanged = true;
+				if (!newRules.conListMultiRules[i].equals(oldRules.conListMultiRules[i])) conListMultiRulesChanged = true;
+				if (!newRules.unConListMulti[i].equals(oldRules.unConListMulti[i])) unConListMultiChanged = true;
+				if (!newRules.unConListMultiRules[i].equals(oldRules.unConListMultiRules[i])) unConListMultiRulesChanged = true;
+
+				if (!newRules.edgeList[i].equals(oldRules.edgeList[i])) edgeListChanged = true;
+				if (!newRules.edgeListRules[i].equals(oldRules.edgeListRules[i])) edgeListRulesChanged = true;
+			}
+			if (conListChanged) tech.newVar(MIN_CONNECTED_DISTANCES, newRules.conList);
+			if (conListRulesChanged) tech.newVar(MIN_CONNECTED_DISTANCES_RULE, newRules.conListRules);
+			if (unConListChanged) tech.newVar(MIN_UNCONNECTED_DISTANCES, newRules.unConList);
+			if (unConListRulesChanged) tech.newVar(MIN_UNCONNECTED_DISTANCES_RULE, newRules.unConListRules);
+
+			if (conListWideChanged) tech.newVar(MIN_CONNECTED_DISTANCES_WIDE, newRules.conListWide);
+			if (conListWideRulesChanged) tech.newVar(MIN_CONNECTED_DISTANCES_WIDE_RULE, newRules.conListWideRules);
+			if (unConListWideChanged) tech.newVar(MIN_UNCONNECTED_DISTANCES_WIDE, newRules.unConListWide);
+			if (unConListWideRulesChanged) tech.newVar(MIN_UNCONNECTED_DISTANCES_WIDE_RULE, newRules.unConListWideRules);
+
+			if (conListMultiChanged) tech.newVar(MIN_CONNECTED_DISTANCES_MULTI, newRules.conListMulti);
+			if (conListMultiRulesChanged) tech.newVar(MIN_CONNECTED_DISTANCES_MULTI_RULE, newRules.conListMultiRules);
+			if (unConListMultiChanged) tech.newVar(MIN_UNCONNECTED_DISTANCES_MULTI, newRules.unConListMulti);
+			if (unConListMultiRulesChanged) tech.newVar(MIN_UNCONNECTED_DISTANCES_MULTI_RULE, newRules.unConListMultiRules);
+
+			if (edgeListChanged) tech.newVar(MIN_EDGE_DISTANCES, newRules.edgeList);
+			if (edgeListRulesChanged) tech.newVar(MIN_EDGE_DISTANCES_RULE, newRules.edgeListRules);
+
+			// update per-layer information
+			boolean minWidthChanged = false, minWidthRulesChanged = false;
+			for(int i=0; i<newRules.numLayers; i++)
+			{
+				if (!newRules.minWidth[i].equals(oldRules.minWidth[i])) minWidthChanged = true;
+				if (!newRules.minWidthRules[i].equals(oldRules.minWidthRules[i])) minWidthRulesChanged = true;
+			}
+			if (minWidthChanged) tech.newVar(MIN_WIDTH, newRules.minWidth);
+			if (minWidthRulesChanged) tech.newVar(MIN_WIDTH_RULE, newRules.minWidthRules);
+
+			// update per-node information
+			int j = 0;
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				if (!newRules.minNodeSize[j*2].equals(oldRules.minNodeSize[j*2]) ||
+					!newRules.minNodeSize[j*2+1].equals(oldRules.minNodeSize[j*2+1]) ||
+					!newRules.minNodeSizeRules[j].equals(oldRules.minNodeSizeRules[j]))
+				{
+					np.setMinSize(newRules.minNodeSize[j*2].doubleValue(),
+						newRules.minNodeSize[j*2+1].doubleValue(),
+							newRules.minNodeSizeRules[j]);
+				}
+				j++;
+			}
+
+			// update the cache so that it points to the new set
+			currentRules = newRules;
+		}
+	}
+
+	/****************************** OPTIONS ******************************/
 
 	/**
 	 * Method to force all DRC Preferences to be saved.

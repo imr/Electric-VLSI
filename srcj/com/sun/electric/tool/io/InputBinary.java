@@ -190,7 +190,7 @@ public class InputBinary extends Input
 	// ----------------------- public methods -------------------------------
 
 	/**
-	 * Routine to read a Library in binary (.elib) format.
+	 * Method to read a Library in binary (.elib) format.
 	 * @return true on error.
 	 */
 	protected boolean readLib()
@@ -206,7 +206,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * Routine to read the .elib file.
+	 * Method to read the .elib file.
 	 * Returns true on error.
 	 */
 	private boolean readTheLibrary()
@@ -1025,7 +1025,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * Routine to recursively create the contents of each cell in the library.
+	 * Method to recursively create the contents of each cell in the library.
 	 */
 	private void completeCellSetupRecursively(Cell cell, int cellIndex)
 	{
@@ -1208,7 +1208,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * Routine to build a NodeInst.
+	 * Method to build a NodeInst.
 	 */
 	private void buildNodeInst(int i, int xoff, int yoff, double lambda, Cell cell)
 	{
@@ -1251,7 +1251,7 @@ public class InputBinary extends Input
 	// --------------------------------- HIGH-LEVEL OBJECTS ---------------------------------
 
 	/**
-	 * Routine to read the header information of an "elib" file.
+	 * Method to read the header information of an "elib" file.
 	 * The header consists of the "magic" number and the size of various pieces of data.
 	 * Returns true on error.
 	 */
@@ -1300,7 +1300,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to read a cell.  returns true upon error
+	 * Method to read a cell.  returns true upon error
 	 */
 	private boolean readNodeProto(Cell cell, int cellIndex)
 		throws IOException
@@ -1473,7 +1473,7 @@ public class InputBinary extends Input
 		return false;
 	}
 
-	/** routine to read node prototype for external references */
+	/** Method to read node prototype for external references */
 	private boolean readExternalNodeProto(Library lib, int cellIndex)
 		throws IOException
 	{
@@ -1730,7 +1730,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to read a node instance.  returns true upon error
+	 * Method to read a node instance.  returns true upon error
 	 */
 	private boolean readNodeInst(int nodeIndex, int cellIndex)
 		throws IOException
@@ -1835,7 +1835,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to read an arc instance.  returns true upon error
+	 * Method to read an arc instance.  returns true upon error
 	 */
 	private boolean readArcInst(int arcIndex)
 		throws IOException
@@ -1911,7 +1911,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to read (and mostly ignore) a geometry module
+	 * Method to read (and mostly ignore) a geometry module
 	 */
 	private void readGeom(boolean [] isNode, int [] moreup, int index)
 		throws IOException
@@ -1938,7 +1938,7 @@ public class InputBinary extends Input
 	// --------------------------------- VARIABLES ---------------------------------
 
 	/**
-	 * routine to read the global namespace.  returns true upon error
+	 * Method to read the global namespace.  returns true upon error
 	 */
 	private boolean readNameSpace()
 		throws IOException
@@ -1954,7 +1954,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * Routine to read a set of variables onto a given object.
+	 * Method to read a set of variables onto a given object.
 	 * @param obj the object onto which the variables will be stored.
 	 * @param index the index (in global arrays) of the arc or node being read (-1 if not a NodeInst or ArcInst).
 	 * These special indices must be used because node and arc names are checked for uniqueness within the
@@ -2105,7 +2105,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to ignore one set of object variables on readin
+	 * Method to ignore one set of object variables on readin
 	 */
 	private void ignoreVariables()
 		throws IOException
@@ -2115,14 +2115,14 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to fix variables that make reference to external cells.
+	 * Method to fix variables that make reference to external cells.
 	 */
 	private void fixExternalVariables(ElectricObject obj)
 	{
 	}
 
 	/**
-	 * Helper routine to read a variable at address "addr" of type "ty".
+	 * Helper method to read a variable at address "addr" of type "ty".
 	 * Returns zero if OK, negative on memory error, positive if there were
 	 * correctable problems in the read.
 	 */
@@ -2207,7 +2207,7 @@ public class InputBinary extends Input
 	// --------------------------------- OBJECT CONVERSION ---------------------------------
 
 	/**
-	 * routine to convert the nodeproto index "i" to a true nodeproto pointer.
+	 * Method to convert the nodeproto index "i" to a true nodeproto pointer.
 	 */
 	private NodeProto convertNodeProto(int i)
 	{
@@ -2235,7 +2235,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to convert the arcproto index "i" to a true arcproto pointer.
+	 * Method to convert the arcproto index "i" to a true arcproto pointer.
 	 */
 	private PrimitiveArc convertArcProto(int i)
 	{
@@ -2249,7 +2249,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to convert the PortProto index "i" to a true PortProto pointer.
+	 * Method to convert the PortProto index "i" to a true PortProto pointer.
 	 */
 	private PortProto convertPortProto(int i)
 	{
@@ -2306,7 +2306,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to return the Technology associated with index "i".
+	 * Method to return the Technology associated with index "i".
 	 */
 	private Technology getTechList(int i)
 	{
@@ -2319,7 +2319,7 @@ public class InputBinary extends Input
 	}
 	
 	/**
-	 * routine to return the View associated with index "i".
+	 * Method to return the View associated with index "i".
 	 */
 	private View getView(int i)
 	{
@@ -2335,7 +2335,7 @@ public class InputBinary extends Input
 	// --------------------------------- LOW-LEVEL INPUT ---------------------------------
 
 	/**
-	 * routine to read a single byte from the input stream and return it.
+	 * Method to read a single byte from the input stream and return it.
 	 */
 	private byte readByte()
 		throws IOException
@@ -2350,7 +2350,7 @@ public class InputBinary extends Input
 	static private byte [] rawData = new byte[8];
 
 	/**
-	 * routine to read an integer (4 bytes) from the input stream and return it.
+	 * Method to read an integer (4 bytes) from the input stream and return it.
 	 */
 	private int readBigInteger()
 		throws IOException
@@ -2381,7 +2381,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to read a float (4 bytes) from the input stream and return it.
+	 * Method to read a float (4 bytes) from the input stream and return it.
 	 */
 	private float readFloat()
 		throws IOException
@@ -2402,7 +2402,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to read a double (8 bytes) from the input stream and return it.
+	 * Method to read a double (8 bytes) from the input stream and return it.
 	 */
 	private double readDouble()
 		throws IOException
@@ -2427,7 +2427,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to read an short (2 bytes) from the input stream and return it.
+	 * Method to read an short (2 bytes) from the input stream and return it.
 	 */
 	private short readSmallInteger()
 		throws IOException
@@ -2454,7 +2454,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to read a string from the input stream and return it.
+	 * Method to read a string from the input stream and return it.
 	 */
 	private String readString()
 		throws IOException
@@ -2480,7 +2480,7 @@ public class InputBinary extends Input
 	}
 
 	/**
-	 * routine to read a number of bytes from the input stream and return it.
+	 * Method to read a number of bytes from the input stream and return it.
 	 */
 	private void readBytes(byte [] data, int diskSize, int memorySize, boolean signExtend)
 		throws IOException

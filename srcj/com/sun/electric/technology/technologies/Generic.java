@@ -254,7 +254,7 @@ public class Generic extends Technology
 	}
 
 	/**
-	 * Routine to update the connecitivity list for universal and invisible pins so that
+	 * Method to update the connecitivity list for universal and invisible pins so that
 	 * they can connect to ALL arcs.  This is called at initialization and again
 	 * whenever the number of technologies changes.
 	 */
@@ -293,7 +293,7 @@ public class Generic extends Technology
 	}
 
 	/**
-	 * Routine to convert old primitive names to their proper NodeProtos.
+	 * Method to convert old primitive names to their proper NodeProtos.
 	 * @param name the name of the old primitive.
 	 * @return the proper PrimitiveNode to use (or null if none can be determined).
 	 */

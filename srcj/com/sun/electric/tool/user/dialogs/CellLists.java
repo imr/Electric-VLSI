@@ -82,7 +82,7 @@ public class CellLists extends javax.swing.JDialog
 	private static int destinationSwitch = 0;
 
 	/**
-	 * This routine implements the command to create general Cell lists.
+	 * This method implements the command to create general Cell lists.
 	 */
 	public static void generalCellListsCommand()
 	{
@@ -237,7 +237,7 @@ public class CellLists extends javax.swing.JDialog
 	}
 
 	/*
-	 * Routine to recursively walk the hierarchy from "np", marking all cells below it.
+	 * Method to recursively walk the hierarchy from "np", marking all cells below it.
 	 */
 	private void recursiveMark(Cell cell)
 	{
@@ -349,7 +349,7 @@ public class CellLists extends javax.swing.JDialog
 	}
 
 	/**
-	 * This routine implements the command to list (recursively) the nodes in this Cell.
+	 * This method implements the command to list (recursively) the nodes in this Cell.
 	 */
 	public static void listNodesInCellCommand()
 	{
@@ -421,7 +421,7 @@ public class CellLists extends javax.swing.JDialog
 	}
 
 	/**
-	 * routine to recursively examine cell "np" and update the number of
+	 * Method to recursively examine cell "np" and update the number of
 	 * instantiated primitive nodeprotos in the "temp1" field of the nodeprotos.
 	 */
 	private static void addObjects(Cell cell, HashMap nodeCount)
@@ -445,7 +445,7 @@ public class CellLists extends javax.swing.JDialog
 	}
 
 	/**
-	 * This routine implements the command to list instances in this Cell.
+	 * This method implements the command to list instances in this Cell.
 	 */
 	public static void listCellInstancesCommand()
 	{
@@ -503,7 +503,7 @@ public class CellLists extends javax.swing.JDialog
 	}
 
 	/**
-	 * This routine implements the command to list the usage of the current Cell.
+	 * This method implements the command to list the usage of the current Cell.
 	 */
 	public static void listCellUsageCommand()
 	{
@@ -555,7 +555,7 @@ public class CellLists extends javax.swing.JDialog
 	}
 
 	/**
-	 * This routine implements the command to describe the current Cell.
+	 * This method implements the command to describe the current Cell.
 	 */
 	public static void describeThisCellCommand()
 	{

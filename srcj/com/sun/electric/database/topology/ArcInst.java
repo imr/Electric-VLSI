@@ -120,7 +120,7 @@ public class ArcInst extends Geometric
 	/****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**
-	 * Routine to create a new ArcInst with appropriate defaults, connecting two PortInsts.
+	 * Method to create a new ArcInst with appropriate defaults, connecting two PortInsts.
 	 * Since no coordinates are given, the ArcInst connects to the center of the PortInsts.
 	 * @param type the prototype of the new ArcInst.
 	 * @param width the width of the new ArcInst.  The width must be > 0.
@@ -146,7 +146,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to create a new ArcInst with appropriate defaults, connecting two PortInsts at specified locations.
+	 * Method to create a new ArcInst with appropriate defaults, connecting two PortInsts at specified locations.
 	 * This is more general than the version that does not take coordinates.
 	 * @param type the prototype of the new ArcInst.
 	 * @param width the width of the new ArcInst.  The width must be > 0.
@@ -175,7 +175,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to create a new ArcInst connecting two PortInsts.
+	 * Method to create a new ArcInst connecting two PortInsts.
 	 * Since no coordinates are given, the ArcInst connects to the center of the PortInsts.
 	 * @param type the prototype of the new ArcInst.
 	 * @param width the width of the new ArcInst.  The width must be > 0.
@@ -196,7 +196,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to create a new ArcInst connecting two PortInsts at specified locations.
+	 * Method to create a new ArcInst connecting two PortInsts at specified locations.
 	 * This is more general than the version that does not take coordinates.
 	 * @param type the prototype of the new ArcInst.
 	 * @param width the width of the new ArcInst.  The width must be > 0.
@@ -235,7 +235,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to delete this ArcInst.
+	 * Method to delete this ArcInst.
 	 */
 	public void kill()
 	{
@@ -247,7 +247,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to change the width and end locations of this ArcInst.
+	 * Method to change the width and end locations of this ArcInst.
 	 * @param dWidth the change to the ArcInst width.
 	 * @param dHeadX the change to the X coordinate of the head of this ArcInst.
 	 * @param dHeadY the change to the Y coordinate of the head of this ArcInst.
@@ -272,7 +272,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to replace this ArcInst with one of another type.
+	 * Method to replace this ArcInst with one of another type.
 	 * @param ap the new type of arc.
 	 * @return the new ArcInst (null on error).
 	 */
@@ -315,7 +315,7 @@ public class ArcInst extends Geometric
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
 	/**
-	 * Low-level access routine to create a ArcInst.
+	 * Low-level access method to create a ArcInst.
 	 * @return the newly created ArcInst.
 	 */
 	public static ArcInst lowLevelAllocate()
@@ -326,7 +326,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Low-level routine to fill-in the ArcInst information.
+	 * Low-level method to fill-in the ArcInst information.
 	 * @param protoType the ArcProto of this ArcInst.
 	 * @param width the width of this ArcInst.
 	 * @param headPort the head end PortInst.
@@ -382,7 +382,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Low-level routine to link the ArcInst into its Cell.
+	 * Low-level method to link the ArcInst into its Cell.
 	 * @return true on error.
 	 */
 	public boolean lowLevelLink()
@@ -408,7 +408,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Low-level routine to unlink the ArcInst from its Cell.
+	 * Low-level method to unlink the ArcInst from its Cell.
 	 */
 	public void lowLevelUnlink()
 	{
@@ -426,7 +426,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Low-level routine to change the width and end locations of this ArcInst.
+	 * Low-level method to change the width and end locations of this ArcInst.
 	 * @param dWidth the change to the ArcInst width.
 	 * @param dHeadX the change to the X coordinate of the head of this ArcInst.
 	 * @param dHeadY the change to the Y coordinate of the head of this ArcInst.
@@ -463,25 +463,25 @@ public class ArcInst extends Geometric
 	/****************************** GRAPHICS ******************************/
 
 	/**
-	 * Routine to return the width of this ArcInst.
+	 * Method to return the width of this ArcInst.
 	 * @return the width of this ArcInst.
 	 */
 	public double getWidth() { return width; }
 
 	/**
-	 * Routine to return the length of this ArcInst.
+	 * Method to return the length of this ArcInst.
 	 * @return the length of this ArcInst.
 	 */
 	public double getLength() { return length; }
 
 	/**
-	 * Routine to return the rotation angle of this Geometric.
+	 * Method to return the rotation angle of this Geometric.
 	 * @return the rotation angle of this Geometric (in tenth-degrees).
 	 */
 	public int getAngle() { return angle; }
 
 	/**
-	 * Routine to create a Poly object that describes an ArcInst.
+	 * Method to create a Poly object that describes an ArcInst.
 	 * The ArcInst is described by its length, width and style.
 	 * @param length the length of the ArcInst.
 	 * @param width the width of the ArcInst.
@@ -523,7 +523,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to return a list of Polys that describes all text on this ArcInst.
+	 * Method to return a list of Polys that describes all text on this ArcInst.
 	 * @param hardToSelect is true if considering hard-to-select text.
 	 * @param wnd the window in which the text will be drawn.
 	 * @return an array of Polys that describes the text.
@@ -617,7 +617,7 @@ public class ArcInst extends Geometric
 		  117,  115,  113,  111,  109,  107,  105,  104,  102,  100};
 
 	/**
-	 * Routine to return the amount that an arc end should extend, given its width and extension factor.
+	 * Method to return the amount that an arc end should extend, given its width and extension factor.
 	 * @param width the width of the arc.
 	 * @param extend the extension factor (from 0 to 90).
 	 * @return the extension (from 0 to half of the width).
@@ -635,7 +635,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to update the "end shrink" factors on all arcs on a NodeInst.
+	 * Method to update the "end shrink" factors on all arcs on a NodeInst.
 	 * @param ni the node to update.
 	 */
 	private void updateShrinkage(NodeInst ni)
@@ -654,7 +654,7 @@ public class ArcInst extends Geometric
 	private static int [] shortAngles = new int[MAXANGLES];
 
 	/**
-	 * Routine to return the shortening factor for the arc connected to a port on a node.
+	 * Method to return the shortening factor for the arc connected to a port on a node.
 	 * @param ni the node
 	 * @param pp the port.
 	 * @return the shortening factor.  This is a number from 0 to 90, where
@@ -717,7 +717,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to recompute the Geometric information on this ArcInst.
+	 * Method to recompute the Geometric information on this ArcInst.
 	 */
 	private void updateGeometric()
 	{
@@ -737,19 +737,19 @@ public class ArcInst extends Geometric
 	/****************************** CONNECTIONS ******************************/
 
 	/**
-	 * Routine to return the Connection on the head end of this ArcInst.
+	 * Method to return the Connection on the head end of this ArcInst.
 	 * @return the Connection on the head end of this ArcInst.
 	 */
 	public Connection getHead() { return ends[HEADEND]; }
 
 	/**
-	 * Routine to return the Connection on the tail end of this ArcInst.
+	 * Method to return the Connection on the tail end of this ArcInst.
 	 * @return the Connection on the tail end of this ArcInst.
 	 */
 	public Connection getTail() { return ends[TAILEND]; }
 
 	/**
-	 * Routine to return the connection at an end of this ArcInst.
+	 * Method to return the connection at an end of this ArcInst.
 	 * @param onHead true to get get the connection the head of this ArcInst.
 	 * false to get get the connection the tail of this ArcInst.
 	 */
@@ -759,7 +759,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to return the connection at an end of this ArcInst.
+	 * Method to return the connection at an end of this ArcInst.
 	 * @param index 0 for the head of this ArcInst, 1 for the tail.
 	 */
 	public Connection getConnection(int index)
@@ -768,7 +768,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to return the network of this ArcInst.
+	 * Method to return the network of this ArcInst.
 	 * @param busIndex index of subnetwork for busses.
 	 * @return the network on this ArcInst.
 	 */
@@ -778,7 +778,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to return the bus name on this ArcInst.
+	 * Method to return the bus name on this ArcInst.
 	 * @return the either the bus name on this ArcInst.
 	 */
 	public String getBusName()
@@ -787,7 +787,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to return the bus width on this ArcInst.
+	 * Method to return the bus width on this ArcInst.
 	 * @return the either the bus width on this ArcInst.
 	 */
 	public int getBusWidth()
@@ -796,7 +796,7 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to tell whether a connection on this ArcInst contains a point.
+	 * Method to tell whether a connection on this ArcInst contains a point.
 	 * @param con the connection on this ArcInst.
 	 * @param pt the point in question.
 	 * @return true if the point is inside of the port.
@@ -819,7 +819,7 @@ public class ArcInst extends Geometric
 	}
 
 //	/**
-//	 * Routine to remove the Connection from an end of this ArcInst.
+//	 * Method to remove the Connection from an end of this ArcInst.
 //	 * @param c the Connection to remove.
 //	 * @param onHead true if the Connection is on the head of this ArcInst.
 //	 */
@@ -838,7 +838,7 @@ public class ArcInst extends Geometric
 	/****************************** TEXT ******************************/
 
 	/**
-	 * Routine to determine whether a variable key on ArcInst is deprecated.
+	 * Method to determine whether a variable key on ArcInst is deprecated.
 	 * Deprecated variable keys are those that were used in old versions of Electric,
 	 * but are no longer valid.
 	 * @param key the key of the variable.
@@ -847,7 +847,7 @@ public class ArcInst extends Geometric
 	public boolean isDeprecatedVariable(Variable.Key key) { return key == ARC_NAME; }
 
 	/*
-	 * Routine to write a description of this ArcInst.
+	 * Method to write a description of this ArcInst.
 	 * Displays the description in the Messages Window.
 	 */
 //	public void getInfo()
@@ -865,7 +865,7 @@ public class ArcInst extends Geometric
 //	}
 
 	/**
-	 * Routine to describe this ArcInst as a string.
+	 * Method to describe this ArcInst as a string.
 	 * @return a description of this ArcInst.
 	 */
 	public String describe()
@@ -888,7 +888,7 @@ public class ArcInst extends Geometric
 	/****************************** MISCELLANEOUS ******************************/
 
 	/**
-	 * Routine to check and repair data structure errors in this ArcInst.
+	 * Method to check and repair data structure errors in this ArcInst.
 	 */
 	public int checkAndRepair()
 	{
@@ -925,66 +925,66 @@ public class ArcInst extends Geometric
 	}
 
 	/**
-	 * Routine to set an index of this ArcInst in Cell arcs.
+	 * Method to set an index of this ArcInst in Cell arcs.
 	 * This is a zero-based index of arcs on the Cell.
 	 * @param arcIndex an index of this ArcInst in Cell nodes.
 	 */
 	public void setArcIndex(int arcIndex) { this.arcIndex = arcIndex; }
 
 	/**
-	 * Routine to get the index of this ArcInst.
+	 * Method to get the index of this ArcInst.
 	 * This is a zero-based index of arcs on the Cell.
 	 * @return the index of this ArcInst.
 	 */
 	public final int getArcIndex() { return arcIndex; }
 
 	/**
-	 * Routine tells if this ArcInst is linked to parent Cell.
+	 * Method tells if this ArcInst is linked to parent Cell.
 	 * @return true if this ArcInst is linked to parent Cell.
 	 */
 	public boolean isLinked() { return arcIndex >= 0; }
 
 	/**
-	 * Routine to return the prototype of this ArcInst.
+	 * Method to return the prototype of this ArcInst.
 	 * @return the prototype of this ArcInst.
 	 */
 	public ArcProto getProto() { return protoType; }
 
 	/**
-	 * Routine to set this ArcInst to be rigid.
+	 * Method to set this ArcInst to be rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 */
 	public void setRigid() { userBits |= FIXED; }
 
 	/**
-	 * Routine to set this ArcInst to be not rigid.
+	 * Method to set this ArcInst to be not rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 */
 	public void clearRigid() { userBits &= ~FIXED; }
 
 	/**
-	 * Routine to tell whether this ArcInst is rigid.
+	 * Method to tell whether this ArcInst is rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 * @return true if this ArcInst is rigid.
 	 */
 	public boolean isRigid() { return (userBits & FIXED) != 0; }
 
 	/**
-	 * Routine to set this ArcInst to be fixed-angle.
+	 * Method to set this ArcInst to be fixed-angle.
 	 * Fixed-angle arcs cannot change their angle, so if one end moves,
 	 * the other may also adjust to keep the arc angle constant.
 	 */
 	public void setFixedAngle() { userBits |= FIXANG; }
 
 	/**
-	 * Routine to set this ArcInst to be not fixed-angle.
+	 * Method to set this ArcInst to be not fixed-angle.
 	 * Fixed-angle arcs cannot change their angle, so if one end moves,
 	 * the other may also adjust to keep the arc angle constant.
 	 */
 	public void clearFixedAngle() { userBits &= ~FIXANG; }
 
 	/**
-	 * Routine to tell whether this ArcInst is fixed-angle.
+	 * Method to tell whether this ArcInst is fixed-angle.
 	 * Fixed-angle arcs cannot change their angle, so if one end moves,
 	 * the other may also adjust to keep the arc angle constant.
 	 * @return true if this ArcInst is fixed-angle.
@@ -992,7 +992,7 @@ public class ArcInst extends Geometric
 	public boolean isFixedAngle() { return (userBits & FIXANG) != 0; }
 
 	/**
-	 * Routine to set this ArcInst to be slidable.
+	 * Method to set this ArcInst to be slidable.
 	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
 	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
@@ -1000,7 +1000,7 @@ public class ArcInst extends Geometric
 	public void setSlidable() { userBits &= ~CANTSLIDE; }
 
 	/**
-	 * Routine to set this ArcInst to be not slidable.
+	 * Method to set this ArcInst to be not slidable.
 	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
 	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
@@ -1008,7 +1008,7 @@ public class ArcInst extends Geometric
 	public void clearSlidable() { userBits |= CANTSLIDE; }
 
 	/**
-	 * Routine to tell whether this ArcInst is slidable.
+	 * Method to tell whether this ArcInst is slidable.
 	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
 	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
@@ -1017,26 +1017,26 @@ public class ArcInst extends Geometric
 	public boolean isSlidable() { return (userBits & CANTSLIDE) == 0; }
 
 	/**
-	 * Routine to set that this rigid ArcInst was modified.
+	 * Method to set that this rigid ArcInst was modified.
 	 * This is used during constraint processing only and should not be used elsewhere.
 	 */
 	public void setRigidModified() { userBits &= ~FIXEDMOD; }
 
 	/**
-	 * Routine to set that this rigid ArcInst was not modified.
+	 * Method to set that this rigid ArcInst was not modified.
 	 * This is used during constraint processing only and should not be used elsewhere.
 	 */
 	public void clearRigidModified() { userBits |= FIXEDMOD; }
 
 	/**
-	 * Routine to tell whether this rigid ArcInst was modified.
+	 * Method to tell whether this rigid ArcInst was modified.
 	 * This is used during constraint processing only and should not be used elsewhere.
 	 * @return true if this rigid ArcInst was modified.
 	 */
 	public boolean isRigidModified() { return (userBits & FIXEDMOD) == 0; }
 
 	/**
-	 * Low-level routine to set the ArcInst angle in the "user bits".
+	 * Low-level method to set the ArcInst angle in the "user bits".
 	 * This general access to the bits is required because the binary ".elib"
 	 * file format stores it this way.
 	 * This should not normally be called by any other part of the system.
@@ -1045,7 +1045,7 @@ public class ArcInst extends Geometric
 	public void lowLevelSetArcAngle(int angle) { userBits = (userBits & ~AANGLE) | (angle << AANGLESH); }
 
 	/**
-	 * Low-level routine to get the ArcInst angle from the "user bits".
+	 * Low-level method to get the ArcInst angle from the "user bits".
 	 * This general access to the bits is required because the binary ".elib"
 	 * file format stores it this way.
 	 * This should not normally be called by any other part of the system.
@@ -1054,21 +1054,21 @@ public class ArcInst extends Geometric
 	public int lowLevelGetArcAngle() { return (userBits & AANGLE) >> AANGLESH; }
 
 	/**
-	 * Routine to set this ArcInst to have its ends extended.
+	 * Method to set this ArcInst to have its ends extended.
 	 * End-extension causes an arc to extend past its endpoint by half of its width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 */
 	public void setExtended() { userBits &= ~NOEXTEND; }
 
 	/**
-	 * Routine to set this ArcInst to have its ends not extended.
+	 * Method to set this ArcInst to have its ends not extended.
 	 * End-extension causes an arc to extend past its endpoint by half of its width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 */
 	public void clearExtended() { userBits |= NOEXTEND; }
 
 	/**
-	 * Routine to tell whether this ArcInst has its ends extended.
+	 * Method to tell whether this ArcInst has its ends extended.
 	 * End-extension causes an arc to extend past its endpoint by half of its width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @return true if this ArcInst has its ends extended.
@@ -1076,7 +1076,7 @@ public class ArcInst extends Geometric
 	public boolean isExtended() { return (userBits & NOEXTEND) == 0; }
 
 	/**
-	 * Routine to set this ArcInst to be negated.
+	 * Method to set this ArcInst to be negated.
 	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
 	 * If the arc is reversed, then the bubble appears on the head.
 	 * This is used only in Schematics technologies to place negating bubbles on any node.
@@ -1085,7 +1085,7 @@ public class ArcInst extends Geometric
 	public void setNegated() { userBits |= ISNEGATED; }
 
 	/**
-	 * Routine to set this ArcInst to be not negated.
+	 * Method to set this ArcInst to be not negated.
 	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
 	 * If the arc is reversed, then the bubble appears on the head.
 	 * This is used only in Schematics technologies to place negating bubbles on any node.
@@ -1094,7 +1094,7 @@ public class ArcInst extends Geometric
 	public void clearNegated() { userBits &= ~ISNEGATED; }
 
 	/**
-	 * Routine to tell whether this ArcInst is negated.
+	 * Method to tell whether this ArcInst is negated.
 	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
 	 * If the arc is reversed, then the bubble appears on the head.
 	 * This is used only in Schematics technologies to place negating bubbles on any node.
@@ -1104,7 +1104,7 @@ public class ArcInst extends Geometric
 	public boolean isNegated() { return (userBits & ISNEGATED) != 0; }
 
 	/**
-	 * Routine to set this ArcInst to be directional.
+	 * Method to set this ArcInst to be directional.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
 	 * The arrow head is on the arc's head end, unless the arc is reversed.
 	 * It is only for documentation purposes and does not affect the circuit.
@@ -1113,7 +1113,7 @@ public class ArcInst extends Geometric
 	public void setDirectional() { userBits |= ISDIRECTIONAL; }
 
 	/**
-	 * Routine to set this ArcInst to be not directional.
+	 * Method to set this ArcInst to be not directional.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
 	 * The arrow head is on the arc's head end, unless the arc is reversed.
 	 * It is only for documentation purposes and does not affect the circuit.
@@ -1122,7 +1122,7 @@ public class ArcInst extends Geometric
 	public void clearDirectional() { userBits &= ~ISDIRECTIONAL; }
 
 	/**
-	 * Routine to tell whether this ArcInst is directional.
+	 * Method to tell whether this ArcInst is directional.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
 	 * The arrow head is on the arc's head end, unless the arc is reversed.
 	 * It is only for documentation purposes and does not affect the circuit.
@@ -1132,7 +1132,7 @@ public class ArcInst extends Geometric
 	public boolean isDirectional() { return (userBits & ISDIRECTIONAL) != 0; }
 
 	/**
-	 * Routine to set this ArcInst to have its head skipped.
+	 * Method to set this ArcInst to have its head skipped.
 	 * Skipping the head causes any special actions that are normally applied to the
 	 * head to be ignored.  For example, the directional arrow is on the arc head,
 	 * so skipping the head will remove the arrow-head, but not the body of the arrow.
@@ -1140,7 +1140,7 @@ public class ArcInst extends Geometric
 	public void setSkipHead() { userBits |= NOTEND0; }
 
 	/**
-	 * Routine to set this ArcInst to have its head not skipped.
+	 * Method to set this ArcInst to have its head not skipped.
 	 * Skipping the head causes any special actions that are normally applied to the
 	 * head to be ignored.  For example, the directional arrow is on the arc head,
 	 * so skipping the head will remove the arrow-head, but not the body of the arrow.
@@ -1148,7 +1148,7 @@ public class ArcInst extends Geometric
 	public void clearSkipHead() { userBits &= ~NOTEND0; }
 
 	/**
-	 * Routine to tell whether this ArcInst has its head skipped.
+	 * Method to tell whether this ArcInst has its head skipped.
 	 * Skipping the head causes any special actions that are normally applied to the
 	 * head to be ignored.  For example, the directional arrow is on the arc head,
 	 * so skipping the head will remove the arrow-head, but not the body of the arrow.
@@ -1157,7 +1157,7 @@ public class ArcInst extends Geometric
 	public boolean isSkipHead() { return (userBits & NOTEND0) != 0; }
 
 	/**
-	 * Routine to set this ArcInst to have its tail skipped.
+	 * Method to set this ArcInst to have its tail skipped.
 	 * Skipping the tail causes any special actions that are normally applied to the
 	 * tail to be ignored.  For example, the negating bubble is on the arc tail,
 	 * so skipping the tail will remove the bubble.
@@ -1165,7 +1165,7 @@ public class ArcInst extends Geometric
 	public void setSkipTail() { userBits |= NOTEND1; }
 
 	/**
-	 * Routine to set this ArcInst to have its tail not skipped.
+	 * Method to set this ArcInst to have its tail not skipped.
 	 * Skipping the tail causes any special actions that are normally applied to the
 	 * tail to be ignored.  For example, the negating bubble is on the arc tail,
 	 * so skipping the tail will remove the bubble.
@@ -1173,7 +1173,7 @@ public class ArcInst extends Geometric
 	public void clearSkipTail() { userBits &= ~NOTEND1; }
 
 	/**
-	 * Routine to tell whether this ArcInst has its tail skipped.
+	 * Method to tell whether this ArcInst has its tail skipped.
 	 * Skipping the tail causes any special actions that are normally applied to the
 	 * tail to be ignored.  For example, the negating bubble is on the arc tail,
 	 * so skipping the tail will remove the bubble.
@@ -1182,21 +1182,21 @@ public class ArcInst extends Geometric
 	public boolean isSkipTail() { return (userBits & NOTEND1) != 0; }
 
 	/**
-	 * Routine to reverse the ends of this ArcInst.
+	 * Method to reverse the ends of this ArcInst.
 	 * A reversed arc switches its head and tail.
 	 * This is useful if the negating bubble appears on the wrong end.
 	 */
 	public void setReverseEnds() { userBits |= REVERSEEND; }
 
 	/**
-	 * Routine to restore the proper ends of this ArcInst.
+	 * Method to restore the proper ends of this ArcInst.
 	 * A reversed arc switches its head and tail.
 	 * This is useful if the negating bubble appears on the wrong end.
 	 */
 	public void clearReverseEnds() { userBits &= ~REVERSEEND; }
 
 	/**
-	 * Routine to tell whether this ArcInst has been reversed.
+	 * Method to tell whether this ArcInst has been reversed.
 	 * A reversed arc switches its head and tail.
 	 * This is useful if the negating bubble appears on the wrong end.
 	 * @return true if this ArcInst has been reversed.
@@ -1204,21 +1204,21 @@ public class ArcInst extends Geometric
 	public boolean isReverseEnds() { return (userBits & REVERSEEND) != 0; }
 
 	/**
-	 * Routine to set this ArcInst to be hard-to-select.
+	 * Method to set this ArcInst to be hard-to-select.
 	 * Hard-to-select ArcInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
 	 */
 	public void setHardSelect() { userBits |= HARDSELECTA; }
 
 	/**
-	 * Routine to set this ArcInst to be easy-to-select.
+	 * Method to set this ArcInst to be easy-to-select.
 	 * Hard-to-select ArcInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
 	 */
 	public void clearHardSelect() { userBits &= ~HARDSELECTA; }
 
 	/**
-	 * Routine to tell whether this ArcInst is hard-to-select.
+	 * Method to tell whether this ArcInst is hard-to-select.
 	 * Hard-to-select ArcInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
 	 * @return true if this ArcInst is hard-to-select.

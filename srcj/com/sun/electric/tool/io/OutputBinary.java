@@ -77,7 +77,7 @@ public class OutputBinary extends Output
 	// ----------------------- public methods -------------------------------
 
 	/**
-	 * Routine to write a Library in binary (.elib) format.
+	 * Method to write a Library in binary (.elib) format.
 	 * @param lib the Library to be written.
 	 */
 	protected boolean writeLib(Library lib)
@@ -93,7 +93,7 @@ public class OutputBinary extends Output
 	}
 
 	/**
-	 * Routine to write the .elib file.
+	 * Method to write the .elib file.
 	 * Returns true on error.
 	 */
 	private boolean writeTheLibrary(Library lib)
@@ -869,7 +869,7 @@ public class OutputBinary extends Output
 	// --------------------------------- VARIABLES ---------------------------------
 
 	/**
-	 * routine to write the global namespace.  returns true upon error
+	 * Method to write the global namespace.  returns true upon error
 	 */
 	private boolean writeNameSpace()
 		throws IOException
@@ -893,7 +893,7 @@ public class OutputBinary extends Output
 	}
 
 	/**
-	 * routine to write an empty set of variables.
+	 * Method to write an empty set of variables.
 	 */
 	private void writeNoVariables()
 		throws IOException
@@ -902,7 +902,7 @@ public class OutputBinary extends Output
 	}
 
 	/**
-	 * routine to write a set of object variables.  returns negative upon error and
+	 * Method to write a set of object variables.  returns negative upon error and
 	 * otherwise returns the number of variables write
 	 */
 	private int writeVariables(ElectricObject obj, double scale)
@@ -1005,7 +1005,7 @@ public class OutputBinary extends Output
 	}
 
 	/**
-	 * Helper routine to write a variable at address "addr" of type "ty".
+	 * Helper method to write a variable at address "addr" of type "ty".
 	 * Returns zero if OK, negative on memory error, positive if there were
 	 * correctable problems in the write.
 	 */
@@ -1101,7 +1101,7 @@ public class OutputBinary extends Output
 	}
 
 	/*
-	 * Routine to scan the variables on an object (which are in "firstvar" and "numvar")
+	 * Method to scan the variables on an object (which are in "firstvar" and "numvar")
 	 * for NODEPROTO references.  Any found are marked (by setting the "externalRefFlag" bit).
 	 * This is used to gather cross-library references.
 	 */
@@ -1137,7 +1137,7 @@ public class OutputBinary extends Output
 	// --------------------------------- LOW-LEVEL OUTPUT ---------------------------------
 
 	/**
-	 * routine to write a single byte from the input stream and return it.
+	 * Method to write a single byte from the input stream and return it.
 	 */
 	private void writeByte(byte b)
 		throws IOException
@@ -1146,7 +1146,7 @@ public class OutputBinary extends Output
 	}
 
 	/**
-	 * routine to write an integer (4 bytes) from the input stream and return it.
+	 * Method to write an integer (4 bytes) from the input stream and return it.
 	 */
 	private void writeBigInteger(int i)
 		throws IOException
@@ -1155,7 +1155,7 @@ public class OutputBinary extends Output
 	}
 
 	/**
-	 * routine to write a float (4 bytes) from the input stream and return it.
+	 * Method to write a float (4 bytes) from the input stream and return it.
 	 */
 	private void writeFloat(float f)
 		throws IOException
@@ -1164,7 +1164,7 @@ public class OutputBinary extends Output
 	}
 
 	/**
-	 * routine to write a double (8 bytes) from the input stream and return it.
+	 * Method to write a double (8 bytes) from the input stream and return it.
 	 */
 	private void writeDouble(double d)
 		throws IOException
@@ -1173,7 +1173,7 @@ public class OutputBinary extends Output
 	}
 
 	/**
-	 * routine to write an short (2 bytes) from the input stream and return it.
+	 * Method to write an short (2 bytes) from the input stream and return it.
 	 */
 	private void writeSmallInteger(short s)
 		throws IOException
@@ -1182,7 +1182,7 @@ public class OutputBinary extends Output
 	}
 
 	/**
-	 * routine to write a string from the input stream and return it.
+	 * Method to write a string from the input stream and return it.
 	 */
 	private void writeString(String s)
 		throws IOException

@@ -41,7 +41,7 @@ import java.lang.Exception;
  * 
  * <p>A VarContext can also be used to recover the names of instances
  * along a hierarchical path.  LE.getdrive() is an example of a
- * routine that does this.
+ * method that does this.
  *
  * <p> The VarContext object that represents the base top level is
  * VarContext.globalContext.  You can get a new VarContext with an extra
