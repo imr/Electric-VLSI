@@ -59,17 +59,21 @@ public class TopLevel extends JFrame
 	public static void Initialize()
 	{
 		// setup specific look-and-feel
+		String defLibDir = null;
 		try{
 			String os = System.getProperty("os.name").toLowerCase();
 			if (os.startsWith("windows"))
 			{
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
+				defLibDir = "C:\\DevelE\\Electric\\lib\\";
 			} else if (os.startsWith("linux") || os.startsWith("solaris"))
 			{
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MotifLookAndFeel");
+				defLibDir = System.getProperty("ELECTRIC_LIBDIR",".");
 			} else if (os.startsWith("mac"))
 			{
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
+				defLibDir = System.getProperty("ELECTRIC_LIBDIR",".");
 			}
 		} catch(Exception e) {}
 
@@ -80,10 +84,8 @@ public class TopLevel extends JFrame
 		{
 			libdir = dir1.getCanonicalPath();
 		} catch(Exception e) { libdir = null; }
-		if (libdir == null)
-		{
-			libdir = "C:\\DevelE\\Electric\\lib\\";
-		}
+//		if (libdir == null)
+			libdir = defLibDir;
 
 		// make the top-level window
 		topLevel = new TopLevel("Electric");	
@@ -92,14 +94,14 @@ public class TopLevel extends JFrame
 		scrnSize.height -= 30;
 		topLevel.setSize(scrnSize);
 
-		// set an icon with the application
-		topLevel.setIconImage(new ImageIcon(libdir + "ElectricIcon.gif").getImage());
-
 		// make the desktop
 		desktop = new JDesktopPane();
 		topLevel.getContentPane().setLayout(new BorderLayout());
 		topLevel.getContentPane().add(desktop, BorderLayout.CENTER);
 		topLevel.setVisible(true);
+
+		// set an icon with the application
+		topLevel.setIconImage(new ImageIcon(libdir + "ElectricIcon.gif").getImage());
 
 		// create the menu bar
 		JMenuBar menuBar = UserMenuCommands.createMenuBar();
