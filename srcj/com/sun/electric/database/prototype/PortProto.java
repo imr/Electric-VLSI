@@ -136,7 +136,8 @@ public abstract class PortProto extends ElectricObject
 		public String getFullName() { return fullName; }
 
 		/**
-		 * Method to return the short name of this Characteristic (one or two characters).
+		 * Method to return the short name of this Characteristic.
+		 * The short name is one or two characters, used in JELIB files.
 		 * @return the short name of this Characteristic.
 		 */
 		public String getShortName() { return shortName; }
@@ -181,6 +182,22 @@ public abstract class PortProto extends ElectricObject
 			{
 				Characteristic ch = (Characteristic)it.next();
 				if (ch.name.equals(wantName)) return ch;
+			}
+			return null;
+		}
+
+		/**
+		 * Method to find the characteristic associated with the given short name.
+		 * The short name is one or two characters, used in JELIB files.
+		 * @param shortName the short name of a Characteristic.
+		 * @return the desired Characteristic (null if not found).
+		 */
+		public static Characteristic findCharacteristicShort(String shortName)
+		{
+			for(Iterator it = characteristicList.values().iterator(); it.hasNext(); )
+			{
+				Characteristic ch = (Characteristic)it.next();
+				if (ch.shortName.equals(shortName)) return ch;
 			}
 			return null;
 		}

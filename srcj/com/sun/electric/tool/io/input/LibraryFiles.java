@@ -181,9 +181,9 @@ public class LibraryFiles extends Input
 	 * Attempts to find the file in many different ways, including asking the user.
 	 * @param theFileName the full path to the file, as written to disk.
 	 * @return a Library that was read. If library cannot be read or found, creates
-     * a Library called DUMMYname, and returns that.
+	 * a Library called DUMMYname, and returns that.
 	 */
-	protected Library readExternalLibraryFromFilename(String theFileName)
+	protected Library readExternalLibraryFromFilename(String theFileName, OpenFile.Type defaultType)
 	{
 		// get the path to the library file
 		File libFile = new File(theFileName);
@@ -202,11 +202,15 @@ public class LibraryFiles extends Input
 			libFileName = libFileName.substring(charPos+1);
 			libFilePath = "";
 		}
-		OpenFile.Type importType = OpenFile.Type.ELIB;
+		OpenFile.Type importType = defaultType;
 		String libName = libFileName;
 		if (libName.endsWith(".elib"))
 		{
 			libName = libName.substring(0, libName.length()-5);
+		} else if (libName.endsWith(".jelib"))
+		{
+			libName = libName.substring(0, libName.length()-6);
+			importType = OpenFile.Type.JELIB;
 		} else if (libName.endsWith(".txt"))
 		{
 			libName = libName.substring(0, libName.length()-4);
@@ -214,98 +218,100 @@ public class LibraryFiles extends Input
 		} else
 		{
 			// no recognizable extension, add one to the file name
-			libFileName += ".elib";
+			libFileName += "." + defaultType.getExtensions()[0];
 		}
 
 		// first try the pure library name with no path information
 		Library elib = Library.findLibrary(libName);
-		if (elib == null)
+		if (elib != null) return elib;
+
+		// library does not exist: see if file is in the same directory as the main file
+		URL externalURL = TextUtils.makeURLToFile(mainLibDirectory + libFileName);
+		StringBuffer errmsg = new StringBuffer();
+		boolean exists = TextUtils.URLExists(externalURL, errmsg);
+		if (!exists)
 		{
-			// library does not exist: see if file is in the same directory as the main file
-			URL externalURL = TextUtils.makeURLToFile(mainLibDirectory + libFileName);
-			StringBuffer errmsg = new StringBuffer();
-			boolean exists = TextUtils.URLExists(externalURL, errmsg);
+			// try secondary library file locations
+			for (Iterator libIt = LibDirs.getLibDirs(); libIt.hasNext(); )
+			{
+				externalURL = TextUtils.makeURLToFile((String)libIt.next() + File.separator + libFileName);
+				exists = TextUtils.URLExists(externalURL, errmsg);
+				if (exists) break;
+			}
 			if (!exists)
 			{
-				// try secondary library file locations
-				for (Iterator libIt = LibDirs.getLibDirs(); libIt.hasNext(); )
-				{
-					externalURL = TextUtils.makeURLToFile((String)libIt.next() + File.separator + libFileName);
-					exists = TextUtils.URLExists(externalURL, errmsg);
-					if (exists) break;
-				}
+				// try the exact path specified in the reference
+				externalURL = TextUtils.makeURLToFile(libFile.getPath());
+				exists = TextUtils.URLExists(externalURL, errmsg);
 				if (!exists)
 				{
-					// try the exact path specified in the reference
-					externalURL = TextUtils.makeURLToFile(libFile.getPath());
+					// try the Electric library area
+					externalURL = LibFile.getLibFile(libFileName);
 					exists = TextUtils.URLExists(externalURL, errmsg);
-					if (!exists)
-					{
-						// try the Electric library area
-						externalURL = LibFile.getLibFile(libFileName);
-						exists = TextUtils.URLExists(externalURL, errmsg);
-					}
 				}
 			}
-			if (!exists)
-			{
-				System.out.println("Error: cannot find referenced library " + libFile.getPath()+":");
-				System.out.print(errmsg.toString());
-				String pt = null;
-				while (true) {
-					// continue to ask the user where the library is until they hit "cancel"
-					String description = "Reference library '" + libFileName + "'";
-					pt = OpenFile.chooseInputFile(OpenFile.Type.ELIB, description);
-					if (pt == null) {
-						// user cancelled, break
+		}
+		if (!exists)
+		{
+			System.out.println("Error: cannot find referenced library " + libFile.getPath()+":");
+			System.out.print(errmsg.toString());
+			String pt = null;
+			while (true) {
+				// continue to ask the user where the library is until they hit "cancel"
+				String description = "Reference library '" + libFileName + "'";
+				pt = OpenFile.chooseInputFile(defaultType, description);
+				if (pt == null) {
+					// user cancelled, break
+					break;
+				}
+				// see if user chose a file we can read
+				externalURL = TextUtils.makeURLToFile(pt);
+				if (externalURL != null) {
+					exists = TextUtils.URLExists(externalURL, null);
+					if (exists) {
+						// good pt, opened it, get out of here
 						break;
 					}
-					// see if user chose a file we can read
-					externalURL = TextUtils.makeURLToFile(pt);
-					if (externalURL != null) {
-						exists = TextUtils.URLExists(externalURL, null);
-						if (exists) {
-							// good pt, opened it, get out of here
-							break;
-						}
-					}
 				}
 			}
-
-            // last option: let user pick library location
-			if (exists)
-			{
-				System.out.println("Reading referenced library " + externalURL.getFile());
-				elib = Library.newInstance(libName, externalURL);
-			}
-
-            if (elib != null) {
-                // read the external library
-                String oldNote = progress.getNote();
-                if (progress != null)
-                {
-                    progress.setProgress(0);
-                    progress.setNote("Reading referenced library " + libName + "...");
-                }
-
-                elib = readALibrary(externalURL, elib, importType);
-                progress.setProgress((int)(byteCount * 100 / fileLength));
-                progress.setNote(oldNote);
-            }
-
-            if (elib == null) {
-                System.out.println("Error: cannot find referenced library " + libFile.getPath());
-                System.out.println("...Creating new "+libName+" Library instead");
-                elib = Library.newInstance(libName, null);
-                elib.setLibFile(TextUtils.makeURLToFile(theFileName));
-                elib.clearFromDisk();
-            }
-//			if (failed) elib->userbits |= UNWANTEDLIB; else
-//			{
-//				// queue this library for announcement through change control
-//				io_queuereadlibraryannouncement(elib);
-//			}
 		}
+
+        // last option: let user pick library location
+		if (exists)
+		{
+			System.out.println("Reading referenced library " + externalURL.getFile());
+			elib = Library.newInstance(libName, externalURL);
+		}
+
+        if (elib != null)
+        {
+            // read the external library
+            String oldNote = progress.getNote();
+            if (progress != null)
+            {
+                progress.setProgress(0);
+                progress.setNote("Reading referenced library " + libName + "...");
+            }
+
+            elib = readALibrary(externalURL, elib, importType);
+            progress.setProgress((int)(byteCount * 100 / fileLength));
+            progress.setNote(oldNote);
+        }
+
+        if (elib == null)
+        {
+            System.out.println("Error: cannot find referenced library " + libFile.getPath());
+            System.out.println("...Creating new "+libName+" Library instead");
+            elib = Library.newInstance(libName, null);
+            elib.setLibFile(TextUtils.makeURLToFile(theFileName));
+            elib.clearFromDisk();
+        }
+//		if (failed) elib->userbits |= UNWANTEDLIB; else
+//		{
+//			// queue this library for announcement through change control
+//			io_queuereadlibraryannouncement(elib);
+//		}
+
 		return elib;
 	}
 

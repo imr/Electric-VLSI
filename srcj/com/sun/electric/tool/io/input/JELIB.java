@@ -35,6 +35,7 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -43,6 +44,7 @@ import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
@@ -66,15 +68,6 @@ import java.util.Iterator;
 
 /**
  * This class reads files in new library file (.jelib) format.
- *
- * Things to do:
- *   Cell groups
- *   Variables
- *   Cell userbits
- *   Node userbits
- *   Arc userbits
- *   Export userbits
- *   Deprecated variables
  */
 public class JELIB extends LibraryFiles
 {
@@ -91,11 +84,27 @@ public class JELIB extends LibraryFiles
 		}
 	}
 
-	private HashMap allCells;
+	private static HashMap allCells;
+	private String version;
 	private String curLibName;
 
 	JELIB()
 	{
+	}
+
+	/**
+	 * Ugly hack.
+	 * Overrides LibraryFiles so that recursive library reads get to the proper place.
+	 */
+	public boolean readInputLibrary()
+	{
+		if (topLevelLibrary) allCells = new HashMap();
+		boolean error = readLib();
+		if (topLevelLibrary)
+		{
+			if (!error) instantiateCellContents();
+		}
+		return error;
 	}
 
 	/**
@@ -122,10 +131,10 @@ public class JELIB extends LibraryFiles
 		throws IOException
 	{
 		lib.erase();
-		allCells = new HashMap();
 		curLibName = null;
+		version = null;
 		String mainCell = "";
-
+		Technology curTech = null;
 		for(;;)
 		{
 			// get keyword from file
@@ -137,15 +146,6 @@ public class JELIB extends LibraryFiles
 			char first = line.charAt(0);
 			if (first == '#') continue;
 
-			if (first == 'H')
-			{
-				// parse header
-				List pieces = parseLine(line);
-				curLibName = (String)pieces.get(0);
-				mainCell = (String)pieces.get(2);
-				continue;
-			}
-
 			if (first == 'C')
 			{
 				// grab a cell description
@@ -154,7 +154,7 @@ public class JELIB extends LibraryFiles
 				Cell newCell = Cell.newInstance(lib, name);
 				if (newCell == null)
 				{
-					System.out.println("Unable to create cell " + name);
+					System.out.println(filePath + ", line " + lineReader.getLineNumber() + ", Unable to create cell " + name);
 				}
 				Technology tech = Technology.findTechnology((String)pieces.get(3));
 				newCell.setTechnology(tech);
@@ -163,9 +163,31 @@ public class JELIB extends LibraryFiles
 				newCell.lowLevelSetCreationDate(new Date(cDate));
 				newCell.lowLevelSetRevisionDate(new Date(rDate));
 
+				// parse state information in field 6
+				String stateInfo = (String)pieces.get(6);
+				boolean expanded = false, allLocked = false, instLocked = false,
+					cellLib = false, techLib = false;
+				for(int i=0; i<stateInfo.length(); i++)
+				{
+					char chr = stateInfo.charAt(i);
+					if (chr == 'E') expanded = true; else
+					if (chr == 'L') allLocked = true; else
+					if (chr == 'I') instLocked = true; else
+					if (chr == 'C') cellLib = true; else
+					if (chr == 'T') techLib = true;
+				}
+				if (expanded) newCell.setWantExpanded(); else newCell.clearWantExpanded();
+				if (allLocked) newCell.setAllLocked(); else newCell.clearAllLocked();
+				if (instLocked) newCell.setInstancesLocked(); else newCell.clearInstancesLocked();
+				if (cellLib) newCell.setInCellLibrary(); else newCell.clearInCellLibrary();
+				if (techLib) newCell.setInTechnologyLibrary(); else newCell.clearInTechnologyLibrary();
+
+				// add variables in fields 7 and up
+				addVariables(newCell, pieces, 7, filePath, lineReader.getLineNumber());
+
 				// gather the contents of the cell into a list of Strings
 				CellContents cc = new CellContents();
-				cc.lineNumber = lineReader.getLineNumber();
+				cc.lineNumber = lineReader.getLineNumber() + 1;
 				for(;;)
 				{
 					String nextLine = lineReader.readLine();
@@ -182,14 +204,133 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 
+			if (first == 'L')
+			{
+				// cross-library reference
+				List pieces = parseLine(line);
+				String libName = (String)pieces.get(0);
+				Library elib = Library.findLibrary(libName);
+				if (elib != null) continue;
+
+				// recurse
+				elib = readExternalLibraryFromFilename((String)pieces.get(1), OpenFile.Type.JELIB);
+				continue;
+			}
+
+			if (first == 'H')
+			{
+				// parse header
+				List pieces = parseLine(line);
+				curLibName = (String)pieces.get(0);
+				version = (String)pieces.get(1);
+				mainCell = (String)pieces.get(2);
+				continue;
+			}
+
+			if (first == 'O')
+			{
+				// parse Tool information
+				List pieces = parseLine(line);
+				String toolName = (String)pieces.get(0);
+				Tool tool = Tool.findTool(toolName);
+				if (tool == null)
+				{
+					System.out.println(filePath + ", line " + lineReader.getLineNumber() + ", Cannot identify tool " + toolName);
+					continue;
+				}
+
+				// get additional variables starting at position 1
+				addVariables(tool, pieces, 1, filePath, lineReader.getLineNumber());
+				continue;
+			}
+
+			if (first == 'T')
+			{
+				// parse Technology information
+				List pieces = parseLine(line);
+				String techName = (String)pieces.get(0);
+				curTech = Technology.findTechnology(techName);
+				if (curTech == null)
+				{
+					System.out.println(filePath + ", line " + lineReader.getLineNumber() + ", Cannot identify technology " + techName);
+					continue;
+				}
+
+				// get additional variables starting at position 1
+				addVariables(curTech, pieces, 1, filePath, lineReader.getLineNumber());
+				continue;
+			}
+
+			if (first == 'N')
+			{
+				// parse PrimitiveNode information
+				List pieces = parseLine(line);
+				String primName = (String)pieces.get(0);
+				if (curTech == null)
+				{
+					System.out.println(filePath + ", line " + lineReader.getLineNumber() + ", Primitive node " + primName + " has no technology before it");
+					continue;
+				}
+				PrimitiveNode np = curTech.findNodeProto(primName);
+				if (np == null)
+				{
+					System.out.println(filePath + ", line " + lineReader.getLineNumber() + ", Cannot identify primitive node " + primName);
+					continue;
+				}
+
+				// get additional variables starting at position 1
+				addVariables(np, pieces, 1, filePath, lineReader.getLineNumber());
+				continue;
+			}
+
+			if (first == 'A')
+			{
+				// parse ArcProto information
+				List pieces = parseLine(line);
+				String arcName = (String)pieces.get(0);
+				if (curTech == null)
+				{
+					System.out.println(filePath + ", line " + lineReader.getLineNumber() + ", Primitive arc " + arcName + " has no technology before it");
+					continue;
+				}
+				PrimitiveArc ap = curTech.findArcProto(arcName);
+				if (ap == null)
+				{
+					System.out.println(filePath + ", line " + lineReader.getLineNumber() + ", Cannot identify primitive arc " + arcName);
+					continue;
+				}
+
+				// get additional variables starting at position 1
+				addVariables(ap, pieces, 1, filePath, lineReader.getLineNumber());
+				continue;
+			}
+
 			if (first == 'G')
 			{
 				// group information
+				List pieces = parseLine(line);
+				Cell firstCell = null;
+				for(int i=0; i<pieces.size(); i++)
+				{
+					String cellName = (String)pieces.get(i);
+					Cell cell = lib.findNodeProto(cellName);
+					if (cell == null)
+					{
+						System.out.println(filePath + ", line " + lineReader.getLineNumber() + ", Cannot find cell " + cellName);
+						break;
+					}
+					if (i == 0)
+					{
+						firstCell = cell;
+						cell.putInOwnCellGroup();
+					} else
+					{
+						cell.joinGroup(firstCell);
+					}
+				}
 				continue;
 			}
 		}
-
-		instantiateCellContents();
 
 		// set the main cell
 		if (mainCell.length() > 0)
@@ -204,6 +345,10 @@ public class JELIB extends LibraryFiles
 		return false;
 	}
 
+	/**
+	 * Method called after all libraries have been read.
+	 * Instantiates all of the Cell contents that were saved in "allCells".
+	 */
 	private void instantiateCellContents()
 	{
 		// look through all cells
@@ -217,12 +362,20 @@ public class JELIB extends LibraryFiles
 		}
 	}
 	
+	/**
+	 * Method called after all libraries have been read to instantiate a single Cell.
+	 * @param cell the Cell to instantiate.
+	 * @param cc the contents of that cell (the strings from the file).
+	 */
 	private void instantiateCellContent(Cell cell, CellContents cc)
 	{
+		int numStrings = cc.cellStrings.size();
+		String curFile = cell.getLibrary().getLibFile().toString();
+
 		// place all nodes
-		for(Iterator sIt = cc.cellStrings.iterator(); sIt.hasNext(); )
+		for(int line=0; line<numStrings; line++)
 		{
-			String cellString = (String)sIt.next();
+			String cellString = (String)cc.cellStrings.get(line);
 			if (cellString.charAt(0) != 'N') continue;
 
 			// parse the node line
@@ -233,14 +386,14 @@ public class JELIB extends LibraryFiles
 			if (colonPos < 0) np = lib.findNodeProto(protoName); else
 			{
 				String prefixName = protoName.substring(0, colonPos);
-				if (prefixName.equals(curLibName)) np = lib.findNodeProto(protoName); else
+				if (prefixName.equals(curLibName)) np = lib.findNodeProto(protoName.substring(colonPos+1)); else
 				{
 					np = NodeProto.findNodeProto(protoName);
 				}
 			}
 			if (np == null)
 			{
-				System.out.println("Cell " + cell.describe() + ": cannot find node " + protoName);
+				System.out.println(curFile + ", line " + (cc.lineNumber + line) + " (cell " + cell.describe() + ") cannot find node " + protoName);
 				continue;
 			}
 
@@ -264,18 +417,49 @@ public class JELIB extends LibraryFiles
 			NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), wid, hei, angle, cell, nodeName);
 			if (ni == null)
 			{
-				System.out.println("Cell " + cell.describe() + ": cannot create node " + protoName);
+				System.out.println(curFile + ", line " + (cc.lineNumber + line) + " (cell " + cell.describe() + ") cannot create node " + protoName);
 				continue;
 			}
 
 			// parse state information in field 7
-			// add variables in fields 8 and up
+			String stateInfo = (String)pieces.get(7);
+			boolean expanded = false, locked = false, shortened = false,
+				visInside = false, wiped = false, hardSelect = false;
+			for(int i=0; i<stateInfo.length(); i++)
+			{
+				char chr = stateInfo.charAt(i);
+				if (chr == 'E') expanded = true; else
+				if (chr == 'L') locked = true; else
+				if (chr == 'S') shortened = true; else
+				if (chr == 'V') visInside = true; else
+				if (chr == 'W') wiped = true; else
+				if (chr == 'A') hardSelect = true; else
+				if (Character.isDigit(chr))
+				{
+					int techSpecific = TextUtils.atoi(stateInfo.substring(i));
+					ni.setTechSpecific(techSpecific);
+					break;
+				}
+			}
+			if (expanded) ni.setExpanded(); else ni.clearExpanded();
+			if (locked) ni.setLocked(); else ni.clearLocked();
+			if (shortened) ni.setShortened(); else ni.clearShortened();
+			if (visInside) ni.setVisInside(); else ni.clearVisInside();
+			if (wiped) ni.setWiped(); else ni.clearWiped();
+			if (hardSelect) ni.setHardSelect(); else ni.clearHardSelect();
+
+			// get text descriptor for cell instance names
+			String textDescriptorInfo = (String)pieces.get(8);
+			loadTextDescriptor(ni.getProtoTextDescriptor(), null, textDescriptorInfo, curFile, cc.lineNumber + line);
+
+			// add variables in fields 9 and up
+			addVariables(ni, pieces, 9, curFile, cc.lineNumber + line);
 		}
 
 		// place all exports
-		for(Iterator sIt = cc.cellStrings.iterator(); sIt.hasNext(); )
+		for(int line=0; line<numStrings; line++)
 		{
-			String cellString = (String)sIt.next();
+			String cellString = (String)cc.cellStrings.get(line);
 			if (cellString.charAt(0) != 'E') continue;
 
 			// parse the export line
@@ -285,7 +469,7 @@ public class JELIB extends LibraryFiles
 			NodeInst ni = cell.findNode(nodeName);
 			if (ni == null)
 			{
-				System.out.println("Cell " + cell.describe() + ": cannot find export node instance " + nodeName);
+				System.out.println(curFile + ", line " + (cc.lineNumber + line) + " (cell " + cell.describe() + ") cannot find export node instance " + nodeName);
 				continue;
 			}
 			String portName = (String)pieces.get(2);
@@ -293,21 +477,43 @@ public class JELIB extends LibraryFiles
 			if (portName.length() != 0)
 				pi = ni.findPortInst(portName);
 
+			// create the export
 			Export pp = Export.newInstance(cell, pi, exportName);
 			if (pp == null)
 			{
-				System.out.println("Cell " + cell.describe() + ": cannot create export " + exportName);
+				System.out.println(curFile + ", line " + (cc.lineNumber + line) + " (cell " + cell.describe() + ") cannot create export " + exportName);
 				continue;
 			}
 
-			// parse state information in field 7
-			// add variables in fields 8 and up
+			// get text descriptor in field 3
+			String textDescriptorInfo = (String)pieces.get(3);
+			loadTextDescriptor(pp.getTextDescriptor(), null, textDescriptorInfo, curFile, cc.lineNumber + line);
+
+			// parse state information in field 4
+			String stateInfo = (String)pieces.get(4);
+			int slashPos = stateInfo.indexOf('/');
+			if (slashPos >= 0)
+			{
+				String extras = stateInfo.substring(slashPos);
+				stateInfo = stateInfo.substring(0, slashPos);
+				while (extras.length() > 0)
+				{
+					if (extras.charAt(1) == 'A') pp.setAlwaysDrawn(); else
+					if (extras.charAt(1) == 'B') pp.setBodyOnly();
+					extras = extras.substring(2);
+				}
+			}
+			PortProto.Characteristic ch = PortProto.Characteristic.findCharacteristicShort(stateInfo);
+			pp.setCharacteristic(ch);
+
+			// add variables in fields 5 and up
+			addVariables(pp, pieces, 5, curFile, cc.lineNumber + line);
 		}
 
 		// next place all arcs
-		for(Iterator sIt = cc.cellStrings.iterator(); sIt.hasNext(); )
+		for(int line=0; line<numStrings; line++)
 		{
-			String cellString = (String)sIt.next();
+			String cellString = (String)cc.cellStrings.get(line);
 			if (cellString.charAt(0) != 'A') continue;
 
 			// parse the arc line
@@ -316,7 +522,7 @@ public class JELIB extends LibraryFiles
 			ArcProto ap = ArcProto.findArcProto(protoName);
 			if (ap == null)
 			{
-				System.out.println("Cell " + cell.describe() + ": cannot find arc " + protoName);
+				System.out.println(curFile + ", line " + (cc.lineNumber + line) + " (cell " + cell.describe() + ") cannot find arc " + protoName);
 				continue;
 			}
 			String arcName = (String)pieces.get(1);
@@ -326,7 +532,7 @@ public class JELIB extends LibraryFiles
 			NodeInst headNI = cell.findNode(headNodeName);
 			if (headNI == null)
 			{
-				System.out.println("Cell " + cell.describe() + ": cannot find head node instance " + headNodeName);
+				System.out.println(curFile + ", line " + (cc.lineNumber + line) + " (cell " + cell.describe() + ") cannot find head node instance " + headNodeName);
 				continue;
 			}
 			String headPortName = (String)pieces.get(5);
@@ -340,7 +546,7 @@ public class JELIB extends LibraryFiles
 			NodeInst tailNI = cell.findNode(tailNodeName);
 			if (tailNI == null)
 			{
-				System.out.println("Cell " + cell.describe() + ": cannot find tail node instance " + tailNodeName);
+				System.out.println(curFile + ", line " + (cc.lineNumber + line) + " (cell " + cell.describe() + ") cannot find tail node instance " + tailNodeName);
 				continue;
 			}
 			String tailPortName = (String)pieces.get(9);
@@ -354,16 +560,62 @@ public class JELIB extends LibraryFiles
 				tailPI, new Point2D.Double(tailX, tailY), arcName);
 			if (ai == null)
 			{
-				System.out.println("Cell " + cell.describe() + ": cannot create arc " + protoName);
+				System.out.println(curFile + ", line " + (cc.lineNumber + line) + " (cell " + cell.describe() + ") cannot create arc " + protoName);
 				continue;
 			}
 
-			// parse state information in field 7
-			// add variables in fields 8 and up
+			// parse state information in field 3
+			String stateInfo = (String)pieces.get(3);
+			boolean rigid = false, fixedAngle = true, slidable = false,
+				extended = true, directional = false, reverseEnds = false,
+				hardSelect = false, skipHead = false, skipTail = false,
+				tailNegated = false, headNegated = false;
+			for(int i=0; i<stateInfo.length(); i++)
+			{
+				char chr = stateInfo.charAt(i);
+				if (chr == 'R') rigid = true; else
+				if (chr == 'F') fixedAngle = false; else
+				if (chr == 'S') slidable = true; else
+				if (chr == 'E') extended = false; else
+				if (chr == 'D') directional = true; else
+				if (chr == 'V') reverseEnds = true; else
+				if (chr == 'A') hardSelect = true; else
+				if (chr == 'H') skipHead = true; else
+				if (chr == 'T') skipTail = true; else
+				if (chr == 'N') tailNegated = true; else
+				if (chr == 'G') headNegated = true; else
+				if (Character.isDigit(chr))
+				{
+					int angle = TextUtils.atoi(stateInfo.substring(i));
+					ai.setAngle(angle);
+					break;
+				}
+			}
+			ai.setRigid(rigid);
+			ai.setFixedAngle(fixedAngle);
+			ai.setSlidable(slidable);
+			ai.setExtended(extended);
+			ai.setDirectional(directional);
+			ai.setReverseEnds(reverseEnds);
+			ai.setHardSelect(hardSelect);
+			ai.setSkipHead(skipHead);
+			ai.setSkipTail(skipTail);
+			ai.getHead().setNegated(headNegated);
+			ai.getTail().setNegated(tailNegated);
+
+			// add variables in fields 12 and up
+			addVariables(ai, pieces, 12, curFile, cc.lineNumber + line);
 		}
 		cc.filledIn = true;
 	}
 
+	/**
+	 * Method to parse a line from the file, breaking it into a List of Strings.
+	 * Each field in the file is separated by "|".
+	 * Quoted strings are handled properly, as are the escape character, "^".
+	 * @param line the text from the file.
+	 * @return a List of Strings.
+	 */
 	private List parseLine(String line)
 	{
 		List stringPieces = new ArrayList();
@@ -395,308 +647,561 @@ public class JELIB extends LibraryFiles
 		return stringPieces;
 	}
 
-	// --------------------------------- VARIABLE PARSING METHODS ---------------------------------
+	/**
+	 * Method to add variables to an ElectricObject from a List of strings.
+	 * @param eObj the ElectricObject to augment with Variables.
+	 * @param pieces the array of Strings that described the ElectricObject.
+	 * @param position the index in the array of strings where Variable descriptions begin.
+	 * @param fileName the name of the file that this came from (for error reporting).
+	 * @param lineNumber the line number in the file that this came from (for error reporting).
+	 */
+	private void addVariables(ElectricObject eObj, List pieces, int position, String fileName, int lineNumber)
+	{
+		int total = pieces.size();
+		for(int i=position; i<total; i++)
+		{
+			String piece = (String)pieces.get(i);
+			int openPos = piece.indexOf('(');
+			if (openPos < 0)
+			{
+				System.out.println(fileName + ", line " + lineNumber + ", Badly formed variable (no open parenthesis): " + piece);
+				continue;
+			}
+			String varName = piece.substring(0, openPos);
+			Variable.Key varKey = ElectricObject.newKey(varName);
+			if (eObj.isDeprecatedVariable(varKey)) continue;
+			int closePos = piece.indexOf(')', openPos);
+			if (closePos < 0)
+			{
+				System.out.println(fileName + ", line " + lineNumber + ", Badly formed variable (no close parenthesis): " + piece);
+				continue;
+			}
+			String varBits = piece.substring(openPos+1, closePos);
+			int objectPos = closePos + 1;
+			if (objectPos >= piece.length())
+			{
+				System.out.println(fileName + ", line " + lineNumber + ", Variable type missing: " + piece);
+				continue;
+			}
+			char varType = piece.charAt(objectPos++);
+			if (objectPos >= piece.length())
+			{
+				System.out.println(fileName + ", line " + lineNumber + ", Variable value missing: " + piece);
+				continue;
+			}
+			Object obj = null;
+			if (piece.charAt(objectPos) == '[')
+			{
+				List objList = new ArrayList();
+				objectPos++;
+				while (objectPos < piece.length())
+				{
+					if (piece.charAt(objectPos) == ']') break;
+					Object oneObj = getVariableValue(piece, objectPos, varType, fileName, lineNumber);
+					objList.add(oneObj);
+					boolean inQuote = false;
+					while (objectPos < piece.length())
+					{
+						if (inQuote)
+						{
+							if (piece.charAt(objectPos) == '^')
+							{
+								objectPos++;
+							} else if (piece.charAt(objectPos) == '"')
+							{
+								inQuote = false;
+							}
+							objectPos++;
+							continue;
+						}
+						if (piece.charAt(objectPos) == ',') break;
+						if (piece.charAt(objectPos) == '"')
+						{
+							inQuote = true;
+						}
+						objectPos++;
+					}
+					objectPos++;
+				}
+				int limit = objList.size();
+				Object [] objArray = null;
+				switch (varType)
+				{
+					case 'A': objArray = new ArcInst[limit];        break;
+					case 'B': objArray = new Boolean[limit];        break;
+					case 'C': objArray = new Cell[limit];           break;
+					case 'D': objArray = new Double[limit];         break;
+					case 'E': objArray = new Export[limit];         break;
+					case 'F': objArray = new Float[limit];          break;
+					case 'G': objArray = new Long[limit];           break;
+					case 'H': objArray = new Short[limit];          break;
+					case 'I': objArray = new Integer[limit];        break;
+					case 'L': objArray = new Library[limit];        break;
+					case 'N': objArray = new NodeInst[limit];       break;
+					case 'O': objArray = new Tool[limit];           break;
+					case 'P': objArray = new PrimitiveNode[limit];  break;
+					case 'R': objArray = new ArcProto[limit];       break;
+					case 'S': objArray = new String[limit];         break;
+					case 'T': objArray = new Technology[limit];     break;
+					case 'V': objArray = new Point2D[limit];        break;
+					case 'Y': objArray = new Byte[limit];           break;
+				}
+				for(int j=0; j<limit; j++)
+					objArray[j] = objList.get(j);
+				obj = objArray;
+			} else
+			{
+				// a scalar Variable
+				obj = getVariableValue(piece, objectPos, varType, fileName, lineNumber);
+			}
+
+			// something about "meaning" variables
+
+			// create the variable
+			Variable newVar = eObj.newVar(varKey, obj);
+			if (newVar == null)
+			{
+				System.out.println(fileName + ", line " + lineNumber + ", Cannot create variable: " + piece);
+				continue;	
+			}			
+
+			// see if the variable is a "meaning option"
+			if (topLevelLibrary)
+			{
+				Pref.Meaning meaning = Pref.getMeaningVariable(eObj, varName);
+				if (meaning != null) Pref.changedMeaningVariable(meaning);
+			}
+
+			// add in extra information
+			TextDescriptor td = newVar.getTextDescriptor();
+			loadTextDescriptor(td, newVar, varBits, fileName, lineNumber);
+		}
+	}
 
 	/**
-	 * get variables on current object (keyword "variables")
-	 */
-//	private void keywordGetVar()
-//		throws IOException
-//	{
-//		ElectricObject naddr = null;
-//		switch (varPos)
-//		{
-//			case INVTOOL:				// keyword applies to tools
-//				naddr = curTool;
-//				break;
-//			case INVTECHNOLOGY:			// keyword applies to technologies
-//				naddr = curTech;
-//				break;
-//			case INVLIBRARY:			// keyword applies to library
-//				naddr = lib;
-//				break;
-//			case INVNODEPROTO:			// keyword applies to nodeproto
-//				naddr = curNodeProto;
-//				break;
-//			case INVNODEINST:			// keyword applies to nodeinst
-//				naddr = nodeInstList[curCellNumber].theNode[curNodeInstIndex];
-//				break;
-//			case INVPORTPROTO:			// keyword applies to portproto
-//				naddr = exportList[curCellNumber].exportList[curExportIndex];
-//				break;
-//			case INVARCINST:			// keyword applies to arcinst
-//				naddr = arcInstList[curCellNumber].arcList[curArcInstIndex];
-//				break;
-//		}
-//
-//		// find out how many variables to read
-//		int count = Integer.parseInt(keyWord);
-//		for(int i=0; i<count; i++)
-//		{
-//			// read the first keyword with the name, type, and descriptor
-//			if (getKeyword())
-//			{
-//				System.out.println("EOF too soon");
-//				return;
-//			}
-//
-//			// get the variable name
-//			String varName = "";
-//			int len = keyWord.length();
-//			if (keyWord.charAt(len-1) != ':')
-//			{
-//				System.out.println("Error on line "+lineReader.getLineNumber()+": missing colon in variable specification: "+keyWord);
-//				return;
-//			}
-//			for(int j=0; j<len; j++)
-//			{
-//				char cat = keyWord.charAt(j);
-//				if (cat == '^' && j < len-1)
-//				{
-//					j++;
-//					varName += keyWord.charAt(j);
-//					continue;
-//				}
-//				if (cat == '(' || cat == '[' || cat == ':') break;
-//				varName += cat;
-//			}
-//			Variable.Key varKey = ElectricObject.newKey(varName);
-//
-//			// see if the variable is valid
-//			boolean invalid = false;
-//			if (naddr == null) invalid = true; else
-//				invalid = naddr.isDeprecatedVariable(varKey);
-//
-//			// get type
-//			int openSquarePos = keyWord.indexOf('[');
-//			if (openSquarePos < 0)
-//			{
-//				System.out.println("Error on line "+lineReader.getLineNumber()+": missing type information in variable: " + keyWord);
-//				return;
-//			}
-//			int type = TextUtils.atoi(keyWord, openSquarePos+1);
-//
-//			// get the descriptor
-//			int commaPos = keyWord.indexOf(',');
-//			int td0 = 0;
-//			int td1 = 0;
-//			if (commaPos >= 0)
-//			{
-//				td0 = TextUtils.atoi(keyWord, commaPos+1);
-//				td1 = 0;
-//				int slashPos = keyWord.indexOf('/');
-//				if (slashPos >= 0)
-//					td1 = TextUtils.atoi(keyWord, slashPos+1);
-//			}
-//			TextDescriptor td = new TextDescriptor(null, td0, td1, 0);
-//
-//			// get value
-//			if (getKeyword())
-//			{
-//				System.out.println("EOF too soon");
-//				return;
-//			}
-//			Object value = null;
-//			if ((type&ELIBConstants.VISARRAY) == 0)
-//			{
-//				value = variableDecode(keyWord, type);
-//			} else
-//			{
-//				if (keyWord.charAt(0) != '[')
-//				{
-//					System.out.println("Error on line "+lineReader.getLineNumber()+": missing '[' in list of variable values: " + keyWord);
-//					return;
-//				}
-//				ArrayList al = new ArrayList();
-//				int pos = 1;
-//				len = keyWord.length();
-//				for(;;)
-//				{
-//					// string arrays must be handled specially
-//					int start = pos;
-//					if ((type&ELIBConstants.VTYPE) == ELIBConstants.VSTRING)
-//					{
-//						while (keyWord.charAt(pos) != '"' && pos < len-1) pos++;
-//						start = pos;
-//						if (pos < len)
-//						{
-//							pos++;
-//							for(;;)
-//							{
-//								if (keyWord.charAt(pos) == '^' && pos < len-1)
-//								{
-//									pos += 2;
-//									continue;
-//								}
-//								if (keyWord.charAt(pos) == '"' || pos == len-1) break;
-//								pos++;
-//							}
-//							if (pos < len) pos++;
-//						}
-//					} else
-//					{
-//						while (keyWord.charAt(pos) != ',' && keyWord.charAt(pos) != ']' && pos < len) pos++;
-//					}
-//					if (pos >= len)
-//					{
-//						System.out.println("Error on line "+lineReader.getLineNumber()+": array too short in variable values: " + keyWord);
-//						return;
-//					}
-//					String entry = keyWord.substring(start, pos);
-//					al.add(variableDecode(entry, type));
-//					if (keyWord.charAt(pos) == ']') break;
-//					if (keyWord.charAt(pos) != ',')
-//					{
-//						System.out.println("Error on line "+lineReader.getLineNumber()+": missing comma between array entries: " + keyWord);
-//						return;
-//					}
-//					pos++;
-//				}
-//				int arrayLen = al.size();
-//				switch (type&ELIBConstants.VTYPE)
-//				{
-//					case ELIBConstants.VADDRESS:
-//					case ELIBConstants.VINTEGER:    value = new Integer[arrayLen];     break;
-//					case ELIBConstants.VFRACT:      
-//					case ELIBConstants.VFLOAT:      value = new Float[arrayLen];       break;
-//					case ELIBConstants.VDOUBLE:     value = new Double[arrayLen];      break;
-//					case ELIBConstants.VSHORT:      value = new Short[arrayLen];       break;
-//					case ELIBConstants.VBOOLEAN:
-//					case ELIBConstants.VCHAR:       value = new Byte[arrayLen];        break;
-//					case ELIBConstants.VSTRING:     value = new String[arrayLen];      break;
-//					case ELIBConstants.VNODEINST:   value = new NodeInst[arrayLen];    break;
-//					case ELIBConstants.VNODEPROTO:  value = new NodeProto[arrayLen];   break;
-//					case ELIBConstants.VARCPROTO:   value = new ArcProto[arrayLen];    break;
-//					case ELIBConstants.VPORTPROTO:  value = new PortProto[arrayLen];   break;
-//					case ELIBConstants.VARCINST:    value = new ArcInst[arrayLen];     break;
-//					case ELIBConstants.VTECHNOLOGY: value = new Technology[arrayLen];  break;
-//					case ELIBConstants.VLIBRARY:    value = new Library[arrayLen];     break;
-//					case ELIBConstants.VTOOL:       value = new Tool[arrayLen];        break;
-//				}
-//				if (value != null)
-//				{
-//					for(int j=0; j<arrayLen; j++)
-//					{
-//						((Object [])value)[j] = al.get(j);
-//					}
-//				}
-//			}
-//
-//			// Geometric names are saved as variables.
-//			if (value instanceof String)
-//			{
-//				if ((naddr instanceof NodeInst && varKey == NodeInst.NODE_NAME) ||
-//					(naddr instanceof ArcInst && varKey == ArcInst.ARC_NAME))
-//				{
-//					Geometric geom = (Geometric)naddr;
-//					Input.fixTextDescriptorFont(td);
-//					geom.setNameTextDescriptor(td);
-//					Name name = makeGeomName(geom, value, type);
-//					if (naddr instanceof NodeInst)
-//						nodeInstList[curCellNumber].name[curNodeInstIndex] = name;
-//					else
-//						arcInstList[curCellNumber].arcInstName[curArcInstIndex] = name;
-//					continue;
-//				}
-//			}
-//			if (!invalid)
-//			{
-//				Variable var = naddr.newVar(varKey, value);
-//				if (var == null)
-//				{
-//					System.out.println("Error on line "+lineReader.getLineNumber()+": cannot store array variable: " + keyWord);
-//					return;
-//				}
-//				var.setTextDescriptor(td);
-//				var.lowLevelSetFlags(type);
-//
-//				// handle updating of technology caches
-////				if (naddr instanceof Technology)
-////					changedtechnologyvariable(key);
-//			}
-//		}
-//		if (varPos == INVLIBRARY)
-//		{
-//			// cache the font associations
-//			Input.getFontAssociationVariable(lib);
-//		}
-//		Input.fixVariableFont(naddr);
-//	}
+	 * Cell redFour:nor2en_2p{sch}, node redFour:nor2en_2p{ic}[nor2en_2@0] is 5.0x4.25, but prototype is 10.48 x 12.0 ****REPAIRED****
+	 * file:/C:/DevelE/Electric/TESTLIBS/ivan/redFour.jelib, line 4038 (cell redFour:nor2en_2p{sch}) cannot create node redFour:nor2en_2p;1{ic}
 
-//	private Object variableDecode(String name, int type)
-//	{
-//		int thistype = type;
-//		if ((thistype&(ELIBConstants.VCODE1|ELIBConstants.VCODE2)) != 0) thistype = ELIBConstants.VSTRING;
-//
-//		switch (thistype&ELIBConstants.VTYPE)
-//		{
-//			case ELIBConstants.VINTEGER:
-//			case ELIBConstants.VSHORT:
-//			case ELIBConstants.VBOOLEAN:
-//			case ELIBConstants.VADDRESS:
-//				return new Integer(TextUtils.atoi(name));
-//			case ELIBConstants.VFRACT:
-//				return new Float(TextUtils.atoi(name) / 120.0f);
-//			case ELIBConstants.VCHAR:
-//				return new Character(name.charAt(0));
-//			case ELIBConstants.VSTRING:
-//				char [] letters = new char[name.length()];
-//				int outpos = 0;
-//				int inpos = 0;
-//				if (name.charAt(inpos) == '"') inpos++;
-//				for( ; inpos < name.length(); inpos++)
-//				{
-//					if (name.charAt(inpos) == '^' && inpos < name.length()-1)
-//					{
-//						inpos++;
-//						letters[outpos++] = name.charAt(inpos);
-//						continue;
-//					}
-//					if (name.charAt(inpos) == '"') break;
-//					letters[outpos++] = name.charAt(inpos);
-//				}
-//				return new String(letters, 0, outpos);
-//			case ELIBConstants.VFLOAT:
-//				return new Float(Float.parseFloat(name));
-//			case ELIBConstants.VDOUBLE:
-//				return new Double(Double.parseDouble(name));
-//			case ELIBConstants.VNODEINST:
-//				int niIndex = TextUtils.atoi(name);
-//				NodeInst ni = nodeInstList[curCellNumber].theNode[niIndex];
-//				return ni;
-//			case ELIBConstants.VNODEPROTO:
-//				int colonPos = name.indexOf(':');
-//				if (colonPos < 0)
-//				{
-//					// just an integer specification
-//					int cindex = Integer.parseInt(name);
-//					return allCellsArray[cindex];
-//				} else
-//				{
-//					// parse primitive nodeproto name
-//					NodeProto np = NodeProto.findNodeProto(name);
-//					if (np == null)
-//					{
-//						System.out.println("Error on line "+lineReader.getLineNumber()+": cannot find node " + name);
-//						return null;
-//					}
-//					return np;
-//				}
-//			case ELIBConstants.VPORTPROTO:
-//				int ppIndex = TextUtils.atoi(name);
-//				PortProto pp = exportList[curCellNumber].exportList[ppIndex];
-//				return pp;
-//			case ELIBConstants.VARCINST:
-//				int aiIndex = TextUtils.atoi(name);
-//				ArcInst ai = arcInstList[curCellNumber].arcList[aiIndex];
-//				return ai;
-//			case ELIBConstants.VARCPROTO:
-//				return ArcProto.findArcProto(name);
-//			case ELIBConstants.VTECHNOLOGY:
-//				return Technology.findTechnology(name);
-//			case ELIBConstants.VTOOL:
-//				return Tool.findTool(name);
-//		}
-//		return null;
-//	}
+	 * Method to load a TextDescriptor from a String description of it.
+	 * @param td the TextDescriptor to load.
+	 * @param var the Variable that this TextDescriptor resides on.
+	 * It may be null if the TextDescriptor is on a NodeInst or Export.
+	 * @param varBits the String that describes the TextDescriptor.
+	 * @param fileName the name of the file that this came from (for error reporting).
+	 * @param lineNumber the line number in the file that this came from (for error reporting).
+	 */
+	private void loadTextDescriptor(TextDescriptor td, Variable var, String varBits, String fileName, int lineNumber)
+	{
+		for(int j=0; j<varBits.length(); j++)
+		{
+			char varBit = varBits.charAt(j);
+			switch (varBit)
+			{
+				case 'D':		// display position
+					if (var != null) var.setDisplay(true);
+					j++;
+					if (j >= varBits.length())
+					{
+						System.out.println(fileName + ", line " + lineNumber + ", Incorrect display specification: " + varBits);
+						break;
+					}
+					switch (varBits.charAt(j))
+					{
+						case '5': td.setPos(TextDescriptor.Position.CENT);       break;
+						case '8': td.setPos(TextDescriptor.Position.UP);         break;
+						case '2': td.setPos(TextDescriptor.Position.DOWN);       break;
+						case '4': td.setPos(TextDescriptor.Position.LEFT);       break;
+						case '6': td.setPos(TextDescriptor.Position.RIGHT);      break;
+						case '7': td.setPos(TextDescriptor.Position.UPLEFT);     break;
+						case '9': td.setPos(TextDescriptor.Position.UPRIGHT);    break;
+						case '1': td.setPos(TextDescriptor.Position.DOWNLEFT);   break;
+						case '3': td.setPos(TextDescriptor.Position.DOWNRIGHT);  break;
+						case '0': td.setPos(TextDescriptor.Position.BOXED);      break;
+					}
+					break;
+				case 'N':		// display type
+					td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+					break;
+				case 'A':		// absolute text size
+					int semiPos = varBits.indexOf(';', j);
+					if (semiPos < 0)
+					{
+						System.out.println(fileName + ", line " + lineNumber + ", Bad absolute size (semicolon missing): " + varBits);
+						break;	
+					}
+					td.setAbsSize(TextUtils.atoi(varBits.substring(j+1, semiPos)));
+					j = semiPos;
+					break;
+				case 'G':		// relative text size
+					semiPos = varBits.indexOf(';', j);
+					if (semiPos < 0)
+					{
+						System.out.println(fileName + ", line " + lineNumber + ", Bad relative size (semicolon missing): " + varBits);
+						break;	
+					}
+					td.setRelSize(TextUtils.atof(varBits.substring(j+1, semiPos)));
+					j = semiPos;
+					break;
+				case 'X':		// X offset
+					semiPos = varBits.indexOf(';', j);
+					if (semiPos < 0)
+					{
+						System.out.println(fileName + ", line " + lineNumber + ", Bad X offset (semicolon missing): " + varBits);
+						break;	
+					}
+					td.setOff(TextUtils.atof(varBits.substring(j+1, semiPos)), td.getYOff());
+					j = semiPos;
+					break;
+				case 'Y':		// Y offset
+					semiPos = varBits.indexOf(';', j);
+					if (semiPos < 0)
+					{
+						System.out.println(fileName + ", line " + lineNumber + ", Bad Y offset (semicolon missing): " + varBits);
+						break;	
+					}
+					td.setOff(td.getXOff(), TextUtils.atof(varBits.substring(j+1, semiPos)));
+					j = semiPos;
+					break;
+				case 'B':		// bold
+					td.setBold(true);
+					break;
+				case 'I':		// italic
+					td.setItalic(true);
+					break;
+				case 'L':		// underlined
+					td.setUnderline(true);
+					break;
+				case 'F':		// font
+					semiPos = varBits.indexOf(';', j);
+					if (semiPos < 0)
+					{
+						System.out.println(fileName + ", line " + lineNumber + ", Bad font (semicolon missing): " + varBits);
+						break;	
+					}
+					TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(varBits.substring(j+1, semiPos));
+					td.setFace(af.getIndex());
+					j = semiPos;
+					break;
+				case 'C':		// color
+					semiPos = varBits.indexOf(';', j);
+					if (semiPos < 0)
+					{
+						System.out.println(fileName + ", line " + lineNumber + ", Bad color (semicolon missing): " + varBits);
+						break;	
+					}
+					td.setColorIndex(TextUtils.atoi(varBits.substring(j+1, semiPos)));
+					j = semiPos;
+					break;
+				case 'R':		// rotation
+					TextDescriptor.Rotation rot = TextDescriptor.Rotation.ROT90;
+					if (j+1 < varBits.length() && varBits.charAt(j+1) == 'R')
+					{
+						rot = TextDescriptor.Rotation.ROT180;
+						j++;
+					}
+					if (j+1 < varBits.length() && varBits.charAt(j+1) == 'R')
+					{
+						rot = TextDescriptor.Rotation.ROT270;
+						j++;
+					}
+					break;
+				case 'H':		// inheritable
+					td.setInherit(true);
+					break;
+				case 'T':		// interior
+					td.setInterior(true);
+					break;
+				case 'P':		// parameter
+					td.setParam(true);
+					break;
+				case 'O':		// code
+					j++;
+					if (j >= varBits.length())
+					{
+						System.out.println(fileName + ", line " + lineNumber + ", Bad language specification: " + varBits);
+						break;	
+					}
+					char codeLetter = varBits.charAt(j);
+					if (var == null)
+					{
+						System.out.println(fileName + ", line " + lineNumber + ", Illegal use of language specification: " + varBits);
+						break;
+					}
+					if (codeLetter == 'J') var.setCode(Variable.Code.JAVA); else
+					if (codeLetter == 'L') var.setCode(Variable.Code.LISP); else
+					if (codeLetter == 'T') var.setCode(Variable.Code.TCL); else
+					{
+						System.out.println(fileName + ", line " + lineNumber + ", Unknown language specification: " + varBits);
+					}
+					break;
+				case 'U':		// units
+					j++;
+					if (j >= varBits.length())
+					{
+						System.out.println(fileName + ", line " + lineNumber + ", Bad units specification: " + varBits);
+						break;	
+					}
+					char unitsLetter = varBits.charAt(j);
+					if (unitsLetter == 'R') td.setUnit(TextDescriptor.Unit.RESISTANCE); else
+					if (unitsLetter == 'C') td.setUnit(TextDescriptor.Unit.CAPACITANCE); else
+					if (unitsLetter == 'I') td.setUnit(TextDescriptor.Unit.INDUCTANCE); else
+					if (unitsLetter == 'A') td.setUnit(TextDescriptor.Unit.CURRENT); else
+					if (unitsLetter == 'V') td.setUnit(TextDescriptor.Unit.VOLTAGE); else
+					if (unitsLetter == 'D') td.setUnit(TextDescriptor.Unit.DISTANCE); else
+					if (unitsLetter == 'T') td.setUnit(TextDescriptor.Unit.TIME); else
+					{
+						System.out.println(fileName + ", line " + lineNumber + ", Unknown units specification: " + varBits);
+					}
+					break;
+			}
+		}
+	}
+
+	/**
+	 * Method to convert a String to an Object so that it can be stored in a Variable.
+	 * @param piece the String to be converted.
+	 * @param objectPos the character number in the string to consider.
+	 * Note that the string may be larger than the object description, both by having characters
+	 * before it, and also by having characters after it.
+	 * Therefore, do not assume that the end of the string is the proper termination of the object specification.
+	 * @param varType the type of the object to convert (a letter from the file).
+	 * @param fileName the name of the file that this came from (for error reporting).
+	 * @param lineNumber the line number in the file that this came from (for error reporting).
+	 * @return the Object representation of the given String.
+	 */
+	private Object getVariableValue(String piece, int objectPos, char varType, String fileName, int lineNumber)
+	{
+		switch (varType)
+		{
+			case 'A':		// ArcInst (should delay analysis until database is built!!!)
+				int colonPos = piece.indexOf(':', objectPos);
+				if (colonPos < 0)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Badly formed Export (missing library colon): " + piece);
+					break;
+				}
+				String libName = piece.substring(objectPos, colonPos);
+				Library lib = Library.findLibrary(libName);
+				if (lib == null)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown library: " + libName);
+					break;
+				}
+				int secondColonPos = piece.indexOf(':', colonPos+1);
+				if (secondColonPos < 0)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Badly formed Export (missing cell colon): " + piece);
+					break;
+				}
+				String cellName = piece.substring(colonPos+1, secondColonPos);
+				Cell cell = lib.findNodeProto(cellName);
+				if (cell == null)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown Cell: " + piece);
+					break;
+				}
+				String arcName = piece.substring(secondColonPos+1);
+				int commaPos = arcName.indexOf(',');
+				if (commaPos >= 0) arcName = arcName.substring(0, commaPos);
+				ArcInst ai = cell.findArc(arcName);
+				if (ai == null)
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown ArcInst: " + piece);
+				return ai;
+			case 'B':		// Boolean
+				return new Boolean(piece.charAt(objectPos)=='T' ? true : false);
+			case 'C':		// Cell (should delay analysis until database is built!!!)
+				colonPos = piece.indexOf(':', objectPos);
+				if (colonPos < 0)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Badly formed ArcProto (missing colon): " + piece);
+					break;
+				}
+				libName = piece.substring(objectPos, colonPos);
+				lib = Library.findLibrary(libName);
+				if (lib == null)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown library: " + libName);
+					break;
+				}
+				cellName = piece.substring(colonPos+1);
+				commaPos = cellName.indexOf(',');
+				if (commaPos >= 0) cellName = cellName.substring(0, commaPos);
+				cell = lib.findNodeProto(cellName);
+				if (cell == null)
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown Cell: " + piece);
+				return cell;
+			case 'D':		// Double
+				return new Double(TextUtils.atof(piece.substring(objectPos)));
+			case 'E':		// Export (should delay analysis until database is built!!!)
+				colonPos = piece.indexOf(':', objectPos);
+				if (colonPos < 0)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Badly formed Export (missing library colon): " + piece);
+					break;
+				}
+				libName = piece.substring(objectPos, colonPos);
+				lib = Library.findLibrary(libName);
+				if (lib == null)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown library: " + libName);
+					break;
+				}
+				secondColonPos = piece.indexOf(':', colonPos+1);
+				if (secondColonPos < 0)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Badly formed Export (missing cell colon): " + piece);
+					break;
+				}
+				cellName = piece.substring(colonPos+1, secondColonPos);
+				cell = lib.findNodeProto(cellName);
+				if (cell == null)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown Cell: " + piece);
+					break;
+				}
+				String exportName = piece.substring(secondColonPos+1);
+				commaPos = exportName.indexOf(',');
+				if (commaPos >= 0) exportName = exportName.substring(0, commaPos);
+				Export pp = cell.findExport(exportName);
+				if (pp == null)
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown Export: " + piece);
+				return pp;
+			case 'F':		// Float
+				return new Float((float)TextUtils.atof(piece.substring(objectPos)));
+			case 'G':		// Long
+				return new Long(TextUtils.atoi(piece.substring(objectPos)));
+			case 'H':		// Short
+				return new Short((short)TextUtils.atoi(piece.substring(objectPos)));
+			case 'I':		// Integer
+				return new Integer(TextUtils.atoi(piece.substring(objectPos)));
+			case 'L':		// Library (should delay analysis until database is built!!!)
+				libName = piece.substring(objectPos);
+				commaPos = libName.indexOf(',');
+				if (commaPos >= 0) libName = libName.substring(0, commaPos);
+				lib = Library.findLibrary(libName);
+				if (lib == null)
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown Library: " + piece);
+				return lib;
+			case 'N':		// NodeInst (should delay analysis until database is built!!!)
+				colonPos = piece.indexOf(':', objectPos);
+				if (colonPos < 0)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Badly formed Export (missing library colon): " + piece);
+					break;
+				}
+				libName = piece.substring(objectPos, colonPos);
+				lib = Library.findLibrary(libName);
+				if (lib == null)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown library: " + libName);
+					break;
+				}
+				secondColonPos = piece.indexOf(':', colonPos+1);
+				if (secondColonPos < 0)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Badly formed Export (missing cell colon): " + piece);
+					break;
+				}
+				cellName = piece.substring(colonPos+1, secondColonPos);
+				cell = lib.findNodeProto(cellName);
+				if (cell == null)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown Cell: " + piece);
+					break;
+				}
+				String nodeName = piece.substring(secondColonPos+1);
+				commaPos = nodeName.indexOf(',');
+				if (commaPos >= 0) nodeName = nodeName.substring(0, commaPos);
+				NodeInst ni = cell.findNode(nodeName);
+				if (ni == null)
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown NodeInst: " + piece);
+				return ni;
+			case 'O':		// Tool
+				String toolName = piece.substring(objectPos);
+				commaPos = toolName.indexOf(',');
+				if (commaPos >= 0) toolName = toolName.substring(0, commaPos);
+				Tool tool = Tool.findTool(toolName);
+				if (tool == null)
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown Tool: " + piece);
+				return tool;
+			case 'P':		// PrimitiveNode
+				colonPos = piece.indexOf(':', objectPos);
+				if (colonPos < 0)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Badly formed PrimitiveNode (missing colon): " + piece);
+					break;
+				}
+				String techName = piece.substring(objectPos, colonPos);
+				Technology tech = Technology.findTechnology(techName);
+				if (tech == null)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown technology: " + techName);
+					break;
+				}
+				nodeName = piece.substring(colonPos+1);
+				commaPos = nodeName.indexOf(',');
+				if (commaPos >= 0) nodeName = nodeName.substring(0, commaPos);
+				PrimitiveNode np = tech.findNodeProto(nodeName);
+				if (np == null)
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown PrimitiveNode: " + piece);
+				return np;
+			case 'R':		// ArcProto
+				colonPos = piece.indexOf(':', objectPos);
+				if (colonPos < 0)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Badly formed ArcProto (missing colon): " + piece);
+					break;
+				}
+				techName = piece.substring(objectPos, colonPos);
+				tech = Technology.findTechnology(techName);
+				if (tech == null)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown technology: " + techName);
+					break;
+				}
+				arcName = piece.substring(colonPos+1);
+				commaPos = arcName.indexOf(',');
+				if (commaPos >= 0) arcName = arcName.substring(0, commaPos);
+				ArcProto ap = tech.findArcProto(arcName);
+				if (ap == null)
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown ArcProto: " + piece);
+				return ap;
+			case 'S':		// String
+				if (piece.charAt(objectPos) != '"')
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Badly formed string variable (missing open quote): " + piece);
+					break;
+				}
+				StringBuffer sb = new StringBuffer();
+				while (objectPos < piece.length())
+				{
+					objectPos++;
+					if (piece.charAt(objectPos) == '"') break;
+					if (piece.charAt(objectPos) == '^') objectPos++;
+					sb.append(piece.charAt(objectPos));
+				}
+				return sb.toString();
+			case 'T':		// Technology
+				techName = piece.substring(objectPos);
+				commaPos = techName.indexOf(',');
+				if (commaPos >= 0) techName = techName.substring(0, commaPos);
+				tech = Technology.findTechnology(techName);
+				if (tech == null)
+					System.out.println(fileName + ", line " + lineNumber + ", Unknown Technology: " + piece);
+				return tech;
+			case 'V':		// Point2D
+				double x = TextUtils.atof(piece.substring(objectPos));
+				int slashPos = piece.indexOf('/', objectPos);
+				if (slashPos < 0)
+				{
+					System.out.println(fileName + ", line " + lineNumber + ", Badly formed Point2D variable (missing slash): " + piece);
+					break;
+				}
+				double y = TextUtils.atof(piece.substring(slashPos+1));
+				return new Point2D.Double(x, y);
+			case 'Y':		// Byte
+				return new Byte((byte)TextUtils.atoi(piece.substring(objectPos)));
+		}
+		return null;
+	}
 }

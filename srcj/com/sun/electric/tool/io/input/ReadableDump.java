@@ -976,7 +976,7 @@ public class ReadableDump extends LibraryFiles
 		}
 
 		// get the library associated with that name
-		Library elib = readExternalLibraryFromFilename(withoutQuotes);
+		Library elib = readExternalLibraryFromFilename(withoutQuotes, OpenFile.Type.ELIB);
 
 		// find the requested cell in the external library
 		Cell cell = null;

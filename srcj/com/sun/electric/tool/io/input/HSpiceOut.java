@@ -235,10 +235,13 @@ public class HSpiceOut extends Simulate
 			{
 				l = TextUtils.atoi(line.toString(), 0, 10);
 				PA0Line foundPA0Line = null;
-				for(Iterator it = pa0List.iterator(); it.hasNext(); )
+				if (pa0List != null)
 				{
-					PA0Line pa0Line = (PA0Line)it.next();
-					if (pa0Line.number == l) { foundPA0Line = pa0Line;   break; }
+					for(Iterator it = pa0List.iterator(); it.hasNext(); )
+					{
+						PA0Line pa0Line = (PA0Line)it.next();
+						if (pa0Line.number == l) { foundPA0Line = pa0Line;   break; }
+					}
 				}
 				if (foundPA0Line != null)
 				{

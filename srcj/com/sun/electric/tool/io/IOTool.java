@@ -33,6 +33,7 @@ import com.sun.electric.tool.Tool;
 import java.util.Date;
 
 import javax.print.PrintServiceLookup;
+import javax.print.PrintService;
 
 /**
  * This class manages reading files in different formats.
@@ -143,8 +144,9 @@ public class IOTool extends Tool
 	{
 		if (cachePrinterName == null)
 		{
-			cachePrinterName = Pref.makeStringPref("PrinterName", IOTool.tool.prefs,
-				PrintServiceLookup.lookupDefaultPrintService().getName());
+			PrintService defPrintService = PrintServiceLookup.lookupDefaultPrintService();
+			if (defPrintService == null) cachePrinterName = Pref.makeStringPref("PrinterName", IOTool.tool.prefs, ""); else
+				cachePrinterName = Pref.makeStringPref("PrinterName", IOTool.tool.prefs, defPrintService.getName());
 		}
 		return cachePrinterName;
 	}

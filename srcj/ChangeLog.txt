@@ -2,6 +2,15 @@
 
 ************************* Version 8.01l: *********************************
 
+BUG: (9/1/04, SMR) Printing crashes if no printers are defined.
+FIX: Check for valid default printer in "IOTool.getCachePrinterName()".
+
+BUG: (8/31/04, SMR) Changing the case of an export (in Export/Rename) doesn't work.
+FIX: In Export.rename(), allow case-changes without thinking that it is an existing export.
+
+BUG: (8/31/04, SMR) Waveform window crashes when "Down Hierarchy" or "Up Hierachy" commands are used.
+FIX: Ignore these commands: they don't apply to the waveform window.
+
 IMP/MAN: (8/31/04, JKG) "Optimize Gates for Equal Delay With Caching" new menu item,
     eventually old command will be removed.  In Tool->Logical Effort
 

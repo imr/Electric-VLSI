@@ -150,12 +150,19 @@ public class Export extends PortProto
 
         // get unique name
         Cell cell = originalPort.getNodeInst().getParent();
-        String dupName = ElectricObject.uniqueObjectName(newName, cell, PortProto.class);
-        if (!dupName.equals(newName)) {
-            System.out.println("Cell " + cell.describe() + " already has an export named " + newName +
-                    ", making new export named "+dupName);
-            newName = dupName;
-        }
+
+		// special case: if changing case only, allow it
+		if (!getName().equalsIgnoreCase(newName) || getName().equals(newName))
+		{
+			// not changing case
+	        String dupName = ElectricObject.uniqueObjectName(newName, cell, PortProto.class);
+	        if (!dupName.equals(newName))
+	        {
+	            System.out.println("Cell " + cell.describe() + " already has an export named " + newName +
+	                    ", making new export named "+dupName);
+	            newName = dupName;
+	        }
+		}
 
 		// do the rename
 		Name oldName = getNameKey();

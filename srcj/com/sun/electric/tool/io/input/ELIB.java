@@ -58,6 +58,7 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.io.ELIBConstants;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -2033,7 +2034,7 @@ public class ELIB extends LibraryFiles
 		int highY = readBigInteger();
 
 		// get the external library
-		Library elib = readExternalLibraryFromFilename(readString());
+		Library elib = readExternalLibraryFromFilename(readString(), OpenFile.Type.ELIB);
 
  		// read the portproto names on this nodeproto
 		int portCount = readBigInteger();

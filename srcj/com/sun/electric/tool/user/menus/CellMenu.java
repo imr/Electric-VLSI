@@ -175,6 +175,7 @@ public class CellMenu {
      */
     public static void downHierCommand() {
         EditWindow curEdit = EditWindow.needCurrent();
+        if (curEdit == null) return;
         curEdit.downHierarchy();
     }
 
@@ -183,6 +184,7 @@ public class CellMenu {
      */
     public static void upHierCommand() {
         EditWindow curEdit = EditWindow.needCurrent();
+		if (curEdit == null) return;
         curEdit.upHierarchy();
     }
 

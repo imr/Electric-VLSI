@@ -430,25 +430,6 @@ public class Cell extends NodeProto implements Comparable
 	}
 
 	/**
-	 * Method to create a new version of this Cell.
-	 * @return a new Cell that is a new version of this Cell.
-	 */
-	public Cell makeNewVersion()
-	{
-		Cell newVersion = Cell.copyNodeProto(this, lib, noLibDescribe(), false);
-		return newVersion;
-	}
-
-	/**
-	 * Method to move this Cell to the group of another Cell.
-	 * @param otherCell the other cell whose group this Cell should join.
-	 */
-	public void joinGroup(Cell otherCell)
-	{
-        setCellGroup(otherCell.getCellGroup());
-	}
-
-	/**
 	 * Method to copy a Cell to any Library.
 	 * @param fromCell the Cell to copy.
 	 * @param toLib the Library to copy it to.
@@ -1460,6 +1441,24 @@ public class Cell extends NodeProto implements Comparable
 	}
 
 	/**
+	 * Method to find a named ArcInst on this Cell.
+	 * @param name the name of the ArcInst.
+	 * @return the ArcInst.  Returns null if none with that name are found.
+	 */
+	public ArcInst findArc(String name)
+	{
+		int a = arcs.size();
+		for (int i = 0; i < a; i++)
+		{
+			ArcInst ai = (ArcInst)arcs.get(i);
+			String arcNm = ai.getName();
+			if (arcNm != null && arcNm.equals(name))
+				return ai;
+		}
+		return null;
+	}
+
+	/**
 	 * Method to add a new ArcInst to the cell.
 	 * @param ai the ArcInst to be included in the cell.
 	 */
@@ -1986,26 +1985,25 @@ public class Cell extends NodeProto implements Comparable
         return false;
     }
 
-
-    private boolean getIsAParentOf(Cell child) {
-
+    private boolean getIsAParentOf(Cell child)
+    {
         if (this == child) return true;
 
-		/* look through every instance of the child cell */
+		// look through every instance of the child cell
 		Cell lastParent = null;
 		for(Iterator it = child.getInstancesOf(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 
-			/* if two instances in a row have same parent, skip this one */
+			// if two instances in a row have same parent, skip this one
 			if (ni.getParent() == lastParent) continue;
 			lastParent = ni.getParent();
 
-			/* recurse to see if the grandparent belongs to the child */
+			// recurse to see if the grandparent belongs to the child
 			if (getIsAParentOf(ni.getParent())) return true;
 		}
 
-		/* if this has an icon, look at it's instances */
+		// if this has an icon, look at it's instances
 		Cell np = child.iconView();
 		if (np != null)
 		{
@@ -2014,11 +2012,11 @@ public class Cell extends NodeProto implements Comparable
 			{
 				NodeInst ni = (NodeInst)it.next();
 
-				/* if two instances in a row have same parent, skip this one */
+				// if two instances in a row have same parent, skip this one
 				if (ni.getParent() == lastParent) continue;
 				lastParent = ni.getParent();
 
-				/* special case: allow an icon to be inside of the contents for illustration */
+				// special case: allow an icon to be inside of the contents for illustration
 				NodeProto niProto = ni.getProto();
 				if (niProto instanceof Cell)
 				{
@@ -2028,7 +2026,7 @@ public class Cell extends NodeProto implements Comparable
 					}
 				}
 
-				/* recurse to see if the grandparent belongs to the child */
+				// recurse to see if the grandparent belongs to the child
 				if (getIsAParentOf(ni.getParent())) return true;
 			}
 		}
@@ -2059,6 +2057,113 @@ public class Cell extends NodeProto implements Comparable
 			return true;
 		}
 		return false;
+	}
+
+	/****************************** VERSIONS ******************************/
+
+	/**
+	 * Method to create a new version of this Cell.
+	 * @return a new Cell that is a new version of this Cell.
+	 */
+	public Cell makeNewVersion()
+	{
+		Cell newVersion = Cell.copyNodeProto(this, lib, noLibDescribe(), false);
+		return newVersion;
+	}
+
+	/**
+	 * Method to return the version number of this Cell.
+	 * @return the version number of this Cell.
+	 */
+	public int getVersion() { return version; }
+
+	/**
+	 * Method to return the number of different versions of this Cell.
+	 * @return the number of different versions of this Cell.
+	 */
+	public int getNumVersions()
+	{
+		if (versionGroup == null) return 1;
+		return versionGroup.size();
+	}
+
+	/**
+	 * Method to return an Iterator over the different versions of this Cell.
+	 * @return an Iterator over the different versions of this Cell.
+	 */
+	public Iterator getVersions()
+	{
+		// don't know why, but keep getting null pointer exceptions on version group
+		if (versionGroup == null) {
+			VersionGroup vg = new VersionGroup();
+			vg.add(this);
+			return vg.iterator();
+		}
+		return versionGroup.iterator();
+	}
+
+	/**
+	 * Method to return the most recent version of this Cell.
+	 * @return he most recent version of this Cell.
+	 */
+	public Cell getNewestVersion()
+	{
+		return (Cell) getVersions().next();
+	}
+
+	/**
+	 * Method to put this Cell into the given VersionGroup.
+	 * @param versionGroup the VersionGroup that this cell belongs to.
+	 */
+	public void setVersionGroup(VersionGroup versionGroup) { this.versionGroup = versionGroup; }
+
+	/****************************** GROUPS ******************************/
+
+	/**
+	 * Method to move this Cell to the group of another Cell.
+	 * @param otherCell the other cell whose group this Cell should join.
+	 */
+	public void joinGroup(Cell otherCell)
+	{
+		setCellGroup(otherCell.getCellGroup());
+	}
+
+	/**
+	 * Method to get the CellGroup that this Cell is part of.
+	 * @return the CellGroup that this Cell is part of.
+	 */
+	public CellGroup getCellGroup() { return cellGroup; }
+
+	/**
+	 * Method to put this Cell into its own CellGroup.
+	 * If it is already the only Cell in its CellGroup, nothing is done.
+	 */
+	public void putInOwnCellGroup()
+	{
+		if (cellGroup.getNumCells() == 1) return;
+
+		CellGroup newGroup = new CellGroup();
+		setCellGroup(newGroup);
+	}
+
+	/**
+	 * Method to put this Cell into the given CellGroup.
+	 * @param cellGroup the CellGroup that this cell belongs to.
+	 */
+	public void setCellGroup(CellGroup cellGroup)
+	{
+		if (cellGroup == null)
+		{
+			Exception e = new Exception("Cannot set CellGroup to NULL!");
+			ActivityLogger.logException(e);
+		}
+
+		// stop if already that way
+		if (this.cellGroup == cellGroup) return;
+
+		if (this.cellGroup != null) this.cellGroup.remove(this);
+		this.cellGroup = cellGroup;
+		if (cellGroup != null) cellGroup.add(this);
 	}
 
 	/****************************** VIEWS ******************************/
@@ -2511,89 +2616,12 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	public Undo.Change getChange() { return change; }
 
-	/*
+	/**
 	 * Method to determine the appropriate Cell associated with this ElectricObject.
 	 * @return the appropriate Cell associated with this ElectricObject..
 	 * Returns null if no Cell can be found.
 	 */
 	public Cell whichCell()	{ return this; }
-
-	/**
-	 * Method to get the CellGroup that this Cell is part of.
-	 * @return the CellGroup that this Cell is part of.
-	 */
-	public CellGroup getCellGroup() { return cellGroup; }
-
-	/**
-	 * Method to put this Cell into the given CellGroup.
-	 * @param cellGroup the CellGroup that this cell belongs to.
-	 */
-	public void setCellGroup(CellGroup cellGroup) {
-
-        if (cellGroup == null) {
-            Exception e = new Exception("Cannot set CellGroup to NULL!");
-            ActivityLogger.logException(e);
-        }
-
-        // stop if already that way
-        if (this.cellGroup == cellGroup) return;
-
-        if (this.cellGroup != null) this.cellGroup.remove(this);
-        this.cellGroup = cellGroup;
-        if (cellGroup != null) cellGroup.add(this);
-    }
-
-	/**
-	 * Method to return the version number of this Cell.
-	 * @return the version number of this Cell.
-	 */
-	public int getVersion() { return version; }
-
-	/**
-	 * Method to return the number of different versions of this Cell.
-	 * @return the number of different versions of this Cell.
-	 */
-	public int getNumVersions()
-	{
-        if (versionGroup == null) return 1;
-		return versionGroup.size();
-	}
-
-	/**
-	 * Method to return an Iterator over the different versions of this Cell.
-	 * @return an Iterator over the different versions of this Cell.
-	 */
-	public Iterator getVersions()
-	{
-        // don't know why, but keep getting null pointer exceptions on version group
-        if (versionGroup == null) {
-            VersionGroup vg = new VersionGroup();
-            vg.add(this);
-            return vg.iterator();
-        }
-		return versionGroup.iterator();
-	}
-
-	/**
-	 * Method to return the most recent version of this Cell.
-	 * @return he most recent version of this Cell.
-	 */
-	public Cell getNewestVersion()
-	{
-		return (Cell) getVersions().next();
-	}
-
-//	/**
-//	 * Method to get the VersionGroup that this Cell is part of.
-//	 * @return the VersionGroup that this Cell is part of.
-//	 */
-//	public VersionGroup getVersionGroup() { return versionGroup; }
-
-	/**
-	 * Method to put this Cell into the given VersionGroup.
-	 * @param versionGroup the VersionGroup that this cell belongs to.
-	 */
-	public void setVersionGroup(VersionGroup versionGroup) { this.versionGroup = versionGroup; }
 
 	/**
 	 * Method to get the library to which this Cell belongs.
@@ -2831,7 +2859,6 @@ public class Cell extends NodeProto implements Comparable
 		return (true);
 	}
 
-	///////////////////////////// MISCELANEOUS ///////////////////////////////////////
     /**
      * Compares revision dates of Cells.
      * @param obj
@@ -2868,7 +2895,6 @@ public class Cell extends NodeProto implements Comparable
 			{
 				PrimitiveNode np = (PrimitiveNode)nProto;
 				np.getZValues(array);
-
 			}
 		}
 	}

@@ -1,0 +1,234 @@
+# header information:
+Hspiceparts|8.01k|VCCS{ic}|USER_electrical_units()I70464
+
+# Cell ACCurrent{ic}
+CACCurrent|ic|1|artwork|1006816118000|1008720580000|E|ATTR_ACCurrent(D5NG0.5;X7;Y0.75;HP)S"1A"|ATTR_DCCurrent(D5NG0.5;X7;Y0.25;HP)S"1A"|ATTR_Delay(D5NG0.5;X7;Y-0.75;HP)S"1ns"|ATTR_Frequency(D5NG0.5;X7;Y-0.25;HP)S"800M"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S"I$(node_name) $(plus) $(minus) DC='$(DCCurrent)' AC='$(ACCurrent)' SIN ('$(DCCurrent)' '$(ACCurrent)' '$(Frequency)' '$(Delay)')"
+Nartwork:Circle|art@0|7|0|6|6|0|||ART_color()I10
+Nartwork:Opened-Polygon|art@1|7|0|0|5|0|||ART_color()I10|trace()V[0/2.5,0/-2.5]
+Nartwork:Arrow|art@2|7|-2|1|1|2700|||ART_color()I10
+Ngeneric:Invisible-Pin|pin@0|7|-3|0|0|0||
+Ngeneric:Invisible-Pin|pin@1|7|3|0|0|0||
+Eminus|pin@0||D5G1;|U
+Eplus|pin@1||D5G1;|U
+X
+
+# Cell ACVoltage{ic}
+CACVoltage|ic|1|artwork|1006816118000|1006988555000|E|ATTR_ACVoltage(D5NG0.5;X7;Y1;HP)S"1V"|ATTR_DCVoltage(D5NG0.5;X7;Y1.5;HP)S"1V"|ATTR_Delay(D5NG0.5;X7;Y-1.5;HP)S"1ns"|ATTR_Frequency(D5NG0.5;X7;Y-1;HP)S"800M"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S"V$(node_name) $(plus) $(minus) DC='$(DCVoltage)' AC='$(ACVoltage)' SIN ('$(DCVoltage)' '$(ACVoltage)' '$(Frequency)' '$(Delay)')"
+Nartwork:Circle|art@0|7|0|6|6|0|||ART_color()I10
+Ngeneric:Invisible-Pin|pin@0|7|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@1|7|-3|0|0|0||
+Ngeneric:Invisible-Pin|pin@2|7|0|0|0|0|||ART_message(D5G1;)S["AC"]
+Eminus|pin@1||D5G1;|U
+Eplus|pin@0||D5G1;|U
+X
+
+# Cell AnalysisAC{ic}
+CAnalysisAC|ic|1|artwork|1006816118000|1006993322000|E|ATTR_Parameters(D5NG0.5;X7;Y-1.5;HP)S"null"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S".AC $(Parameters)"
+Nartwork:Opened-Polygon|art@0|7|0|6|2|0|||ART_color()I10|trace()V[-3/0,-2/0,-2/1,-1/1,-1/-1,0/-1,0/1,1/1,1/-1,2/-1,2/0,3/0]
+Nartwork:Circle|art@1|7|0|6|6|0|||ART_color()I10
+Ngeneric:Invisible-Pin|pin@0|7|1.75|0|0|0|||ART_message(D5G1;)S["AC"]
+X
+
+# Cell AnalysisDC{ic}
+CAnalysisDC|ic|1|artwork|1006816118000|1006993322000|E|ATTR_Parameters(D5NG0.5;X7;Y-1.5;HP)S"null"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S".DC $(Parameters)"
+Nartwork:Circle|art@0|7|0|6|6|0|||ART_color()I10
+Nartwork:Opened-Polygon|art@1|7|0|6|2|0|||ART_color()I10|trace()V[-3/0,-2/0,-2/1,-1/1,-1/-1,0/-1,0/1,1/1,1/-1,2/-1,2/0,3/0]
+Ngeneric:Invisible-Pin|pin@0|7|1.75|0|0|0|||ART_message(D5G1;)S["DC"]
+X
+
+# Cell AnalysisTransient{ic}
+CAnalysisTransient|ic|1|artwork|1006816118000|1006993322000|E|ATTR_Parameters(D5NG0.5;X7;Y-1.5;HP)S"null"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S".TRAN $(Parameters)"
+Nartwork:Circle|art@0|7|0|6|6|0|||ART_color()I10
+Nartwork:Opened-Polygon|art@1|7|0|6|2|0|||ART_color()I10|trace()V[-3/0,-2/0,-2/1,-1/1,-1/-1,0/-1,0/1,1/1,1/-1,2/-1,2/0,3/0]
+Ngeneric:Invisible-Pin|pin@0|7|1.75|0|0|0|||ART_message(D5G1;)S["Transient"]
+X
+
+# Cell CCCS{ic}
+CCCCS|ic|1|artwork|1006816118000|1006994602000|E|ATTR_Gain(D5NG0.5;X7;Y2;HP)I1|ATTR_Maximum(D5NG0.5;X7;HP)S"10A"|ATTR_Minimum(D5NG0.5;X7;Y1;HP)S"-10A"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S"F$(node_name) $(x) $(y) cccs VSAMPLE '$(Gain)' max='$(Maximum)' min='$(Minimum)'"
+Nartwork:Box|art@0|7|1|8|6|0|||ART_color()I10
+Nartwork:Opened-Polygon|art@1|10.625|1|2.75|4|0|||ART_color()I10|trace()V[1.375/2,-0.625/2,-0.625/0.75,-1.375/0,-0.625/-0.75,-0.625/-2,1.375/-2]
+Nartwork:Opened-Polygon|art@2|10.375|1|0.75|1.5|0|||ART_color()I10|trace()V[-0.375/0.75,0.375/0,-0.375/-0.75]
+Nartwork:Opened-Polygon|art@3|3|3|2|0|0|||ART_color()I10|trace()V[-1/0,1/0]
+Nartwork:Opened-Polygon|art@4|3|-1|2|0|0|||ART_color()I10|trace()V[-1/0,1/0]
+Nartwork:Opened-Dotted-Polygon|art@5|4|1|0|4|0|||ART_color()I10|trace()V[0/2,0/-2]
+Nartwork:Opened-Polygon|art@6|9|1|0|4|0|||ART_color()I10|trace()V[0/2,0/-2]
+Nartwork:Arrow|art@7|9|-0.5|1|1|2700|||ART_color()I10
+Ngeneric:Invisible-Pin|pin@0|12|-1|0|0|0||
+Ngeneric:Invisible-Pin|pin@1|12|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@2|4.5|3|0|0|0|||ART_message(D5G1;)S["+"]
+Ngeneric:Invisible-Pin|pin@3|2|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@4|2|-1|0|0|0||
+Ea|pin@3||D5G1;|U
+Eb|pin@4||D5G1;|U
+Ex|pin@1||D5G1;|U
+Ey|pin@0||D5G1;|U
+X
+
+# Cell CCVS{ic}
+CCCVS|ic|1|artwork|1006816118000|1006995720000|E|ATTR_Maximum(D5NG0.5;X7;HP)S"10A"|ATTR_Minimum(D5NG0.5;X7;Y1;HP)S"-10A"|ATTR_Resistance(D5NG0.5;X7;Y2;HP)I1000|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S"H$(node_name) $(x) $(y) ccvs VSAMPLE '$(Resistance)' max='$(Maximum)' min='$(Minimum)'"
+Nartwork:Opened-Dotted-Polygon|art@0|4|1|0|4|0|||ART_color()I10|trace()V[0/2,0/-2]
+Nartwork:Opened-Polygon|art@1|3|-1|2|0|0|||ART_color()I10|trace()V[-1/0,1/0]
+Nartwork:Opened-Polygon|art@2|3|3|2|0|0|||ART_color()I10|trace()V[-1/0,1/0]
+Nartwork:Opened-Polygon|art@3|11|2.375|2|1.25|0|||ART_color()I10|trace()V[1/0.625,-1/0.625,-1/-0.625]
+Nartwork:Box|art@4|7|1|8|6|0|||ART_color()I10
+Nartwork:Opened-Polygon|art@5|11|-0.375|2|1.25|0|||ART_color()I10|trace()V[1/-0.625,-1/-0.625,-1/0.625]
+Nartwork:Circle|art@6|10|1|1.5|1.5|0|||ART_color()I10
+Ngeneric:Invisible-Pin|pin@0|2|-1|0|0|0||
+Ngeneric:Invisible-Pin|pin@1|2|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@2|4.5|3|0|0|0|||ART_message(D5G1;)S["+"]
+Ngeneric:Invisible-Pin|pin@3|12|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@4|12|-1|0|0|0||
+Ngeneric:Invisible-Pin|pin@5|9.5|3|0|0|0|||ART_message(D5G1;)S["+"]
+Ea|pin@1||D5G1;|U
+Eb|pin@0||D5G1;|U
+Ex|pin@3||D5G1;|U
+Ey|pin@4||D5G1;|U
+X
+
+# Cell DCCurrent{ic}
+CDCCurrent|ic|1|artwork|1006816118000|1006989067000|E|ATTR_DCCurrent(D5NG0.5;X7;HP)S"1mA"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S"I$(node_name) $(plus) $(minus) DC '$(DCCurrent)'"
+Nartwork:Opened-Polygon|art@0|7|0|0|4|0|||ART_color()I10|trace()V[0/-2,0/2]
+Nartwork:Circle|art@1|7|0|6|6|0|||ART_color()I10
+Nartwork:Arrow|art@2|7|-1.5|1|1|2700|||ART_color()I10
+Ngeneric:Invisible-Pin|pin@0|7|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@1|7|-3|0|0|0||
+Eminus|pin@1||D5G1;|U
+Eplus|pin@0||D5G1;|U
+X
+
+# Cell DCVoltage{ic}
+CDCVoltage|ic|1|artwork|1006816118000|1006988902000|E|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S"V$(node_name) $(plus) $(minus) DC '$(Voltage)'"|ATTR_Voltage(D5NG0.5;X7;Y-0.5;HP)S"0V"
+Nartwork:Opened-Polygon|art@0|7|0|2|0|0|||ART_color()I10|trace()V[-1/0,1/0]
+Nartwork:Opened-Polygon|art@1|7|1|4|0|0|||ART_color()I10|trace()V[-2/0,2/0]
+Nartwork:Opened-Polygon|art@2|7|-1|4|0|0|||ART_color()I10|trace()V[-2/0,2/0]
+Nartwork:Opened-Polygon|art@3|7|-2|2|0|0|||ART_color()I10|trace()V[-1/0,1/0]
+Nartwork:Opened-Polygon|art@4|7|2|0|2|0|||ART_color()I10|trace()V[0/-1,0/1]
+Nartwork:Opened-Polygon|art@5|7|-3|0|2|0|||ART_color()I10|trace()V[0/-1,0/1]
+Ngeneric:Invisible-Pin|pin@0|7|-4|0|0|0||
+Ngeneric:Invisible-Pin|pin@1|7|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@2|6|1.5|0|0|0|||ART_message(D5G1;)S["+"]
+Ngeneric:Invisible-Pin|pin@3|6|-3|0|0|0|||ART_message(D5G1;)S["-"]
+Eminus|pin@0||D5G1;|U
+Eplus|pin@1||D5G1;|U
+X
+
+# Cell Extension{ic}
+CExtension|ic|1|artwork|1006816118000|1006993675000|E|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S"X $(plus) $(minus)"
+Nartwork:Circle|art@0|7|0|6|6|0|||ART_color()I10
+Ngeneric:Invisible-Pin|pin@0|7|-3|0|0|0||
+Ngeneric:Invisible-Pin|pin@1|7|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@2|7|0|0|0|0|||ART_message(D5G1;)S["Extension"]
+Eminus|pin@0||D5G1;|U
+Eplus|pin@1||D5G1;|U
+X
+
+# Cell NodeSet{ic}
+CNodeSet|ic|1|artwork|1006816118000|1006993821000|E|ATTR_Parameter(D5NG0.5;X7;Y-1;HP)S"null"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S".NODESET V($(plus))='$(Parameter)'"
+Nartwork:Circle|art@0|7|0|6|6|0|||ART_color()I10
+Ngeneric:Invisible-Pin|pin@0|7|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@1|7|1|0|0|0|||ART_message(D5G1;)S["Node Set"]
+Eplus|pin@0||D5G1;|U
+X
+
+# Cell PulseCurrent{ic}
+CPulseCurrent|ic|1|artwork|1006816118000|1006994126000|E|ATTR_DelayTime(D5NG0.5;X7;Y0.5;HP)S"0ns"|ATTR_FallTime(D5NG0.5;X7;Y-0.5;HP)S"200ps"|ATTR_InitialCurrent(D5NG0.5;X7;Y1.5;HP)I0|ATTR_Period(D5NG0.5;X7;Y-1.5;HP)S"6ns"|ATTR_PulseCurrent(D5NG0.5;X7;Y1;HP)S"1mA"|ATTR_PulseWidth(D5NG0.5;X7;Y-1;HP)S"3ns"|ATTR_RiseTime(D5NG0.5;X7;HP)S"200ps"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S"I$(node_name) $(plus) $(minus) pulse '$(InitialCurrent)' '$(PulseCurrent)' '$(DelayTime)' '$(RiseTime)' '$(FallTime)' '$(PulseWidth)' '$(Period)'"
+Nartwork:Arrow|art@0|7|2|1|1|900|||ART_color()I10
+Nartwork:Circle|art@1|7|0|6|6|0|||ART_color()I10
+Nartwork:Opened-Polygon|art@2|7|-1|3|2|0|||ART_color()I10|trace()V[-1.5/-1,-0.5/-1,-0.5/1,0.5/1,0.5/-1,1.5/-1]
+Nartwork:Opened-Polygon|art@3|7|0.25|0|4.5|0|||ART_color()I10|trace()V[0/-2.25,0/2.25]
+Ngeneric:Invisible-Pin|pin@0|7|-3|0|0|0||
+Ngeneric:Invisible-Pin|pin@1|7|3|0|0|0||
+Eminus|pin@0||D5G1;|U
+Eplus|pin@1||D5G1;|U
+X
+
+# Cell Pulse{ic}
+CPulse|ic|1|artwork|1006816118000|1006988357000|E|ATTR_DelayTime(D5NG0.5;X7;Y0.5;HP)S"0ns"|ATTR_FallTime(D5NG0.5;X7;Y-0.5;HP)S"200ps"|ATTR_InitialVoltage(D5NG0.5;X7;Y1.5;HP)I0|ATTR_Period(D5NG0.5;X7;Y-1.5;HP)S"6ns"|ATTR_PulseVoltage(D5NG0.5;X7;Y1;HP)S"3V"|ATTR_PulseWidth(D5NG0.5;X7;Y-1;HP)S"3ns"|ATTR_RiseTime(D5NG0.5;X7;HP)S"200ps"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S"V$(node_name) $(plus) $(minus) pulse '$(InitialVoltage)' '$(PulseVoltage)' '$(DelayTime)' '$(RiseTime)' '$(FallTime)' '$(PulseWidth)' '$(Period)'"
+Nartwork:Opened-Polygon|art@0|7|0|3|4|0|||ART_color()I10|trace()V[-1.5/-2,-0.5/-2,-0.5/2,0.5/2,0.5/-2,1.5/-2]
+Nartwork:Circle|art@1|7|0|6|6|0|||ART_color()I10
+Ngeneric:Invisible-Pin|pin@0|7|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@1|7|-3|0|0|0||
+Eminus|pin@1||D5G1;|U
+Eplus|pin@0||D5G1;|U
+X
+
+# Cell Transmission{ic}
+CTransmission|ic|1|artwork|1006816118000|1006999549000|E|ATTR_Delay(D5NG0.5;X8;HP)S"100ns"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S"T$(node_name) $(a) $(b) $(x) $(y) z0='$(z0)' td='$(Delay)'"|ATTR_z0(D5NG0.5;X8;Y2;HP)I50
+Nartwork:Opened-Polygon|art@0|8|-2|8|0|0|||ART_color()I10|trace()V[-4/0,4/0]
+Nartwork:Opened-Polygon|art@1|8|4|8|0|0|||ART_color()I10|trace()V[-4/0,4/0]
+Nartwork:Opened-Polygon|art@2|12.75|-1|0.5|0|0|||ART_color()I10|trace()V[-0.25/0,0.25/0]
+Nartwork:Opened-Polygon|art@3|12.75|3|0.5|0|0|||ART_color()I10|trace()V[-0.25/0,0.25/0]
+Nartwork:Circle|art@4|7.4|1|11|11|3270|||ART_color()I10|ART_degrees()F[0.0,1.151917]
+Nartwork:Circle|art@5|-0.65|1|11|11|3270|||ART_color()I10|ART_degrees()F[0.0,1.151917]
+Nartwork:Circle|art@6|8.6|1|11|11|1470|||ART_color()I10|ART_degrees()F[0.0,1.151917]
+Nartwork:Opened-Polygon|art@7|3.5|-1|1|0|0|||ART_color()I10|trace()V[-0.5/0,0.5/0]
+Nartwork:Opened-Polygon|art@8|3.5|3|1|0|0|||ART_color()I10|trace()V[-0.5/0,0.5/0]
+Ngeneric:Invisible-Pin|pin@0|12|3|0|0|0|||ART_message(D5G1;)S["+"]
+Ngeneric:Invisible-Pin|pin@1|5|3|0|0|0|||ART_message(D5G1;)S["+"]
+Ngeneric:Invisible-Pin|pin@2|3|-1|0|0|0||
+Ngeneric:Invisible-Pin|pin@3|3|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@4|13|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@5|13|-1|0|0|0||
+Ea|pin@3||D5G1;|U
+Eb|pin@2||D5G1;|U
+Ex|pin@4||D5G1;|U
+Ey|pin@5||D5G1;|U
+X
+
+# Cell VCCS{ic}
+CVCCS|ic|1|artwork|1006816118000|1006995839000|E|ATTR_Gain(D5NG0.5;X7;Y2;HP)F0.0010|ATTR_Maximum(D5NG0.5;X7;HP)S"1A"|ATTR_Minimum(D5NG0.5;X7;Y1;HP)S"-1A"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S"G$(node_name) $(x) $(y) vccs $(a) $(b) '$(Gain)' max='$(Maximum)' min='$(Minimum)'"
+Nartwork:Arrow|art@0|9|-0.5|1|1|2700|||ART_color()I10
+Nartwork:Opened-Polygon|art@1|9|1|0|4|0|||ART_color()I10|trace()V[0/2,0/-2]
+Nartwork:Opened-Polygon|art@2|3|-1|2|0|0|||ART_color()I10|trace()V[-1/0,1/0]
+Nartwork:Opened-Polygon|art@3|3|3|2|0|0|||ART_color()I10|trace()V[-1/0,1/0]
+Nartwork:Opened-Polygon|art@4|10.375|1|0.75|1.5|0|||ART_color()I10|trace()V[-0.375/0.75,0.375/0,-0.375/-0.75]
+Nartwork:Opened-Polygon|art@5|10.625|1|2.75|4|0|||ART_color()I10|trace()V[1.375/2,-0.625/2,-0.625/0.75,-1.375/0,-0.625/-0.75,-0.625/-2,1.375/-2]
+Nartwork:Box|art@6|7|1|8|6|0|||ART_color()I10
+Ngeneric:Invisible-Pin|pin@0|2|-1|0|0|0||
+Ngeneric:Invisible-Pin|pin@1|2|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@2|4.5|3|0|0|0|||ART_message(D5G1;)S["+"]
+Ngeneric:Invisible-Pin|pin@3|12|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@4|12|-1|0|0|0||
+Ea|pin@1||D5G1;|U
+Eb|pin@0||D5G1;|U
+Ex|pin@3||D5G1;|U
+Ey|pin@4||D5G1;|U
+X
+
+# Cell VCVS{ic}
+CVCVS|ic|1|artwork|1006816118000|1006995929000|E|ATTR_Gain(D5NG0.5;X7;Y2;HP)I1|ATTR_Maximum(D5NG0.5;X7;HP)S"10V"|ATTR_Minimum(D5NG0.5;X7;Y1;HP)S"-10V"|ATTR_SPICE_template(D5NG0.5;X7;Y5;T)S"E$(node_name) $(x) $(y) vcvs $(a) $(b) '$(Gain)' max='$(Maximum)' min='$(Minimum)'"
+Nartwork:Circle|art@0|10|1|1.5|1.5|0|||ART_color()I10
+Nartwork:Opened-Polygon|art@1|11|-0.375|2|1.25|0|||ART_color()I10|trace()V[1/-0.625,-1/-0.625,-1/0.625]
+Nartwork:Box|art@2|7|1|8|6|0|||ART_color()I10
+Nartwork:Opened-Polygon|art@3|11|2.375|2|1.25|0|||ART_color()I10|trace()V[1/0.625,-1/0.625,-1/-0.625]
+Nartwork:Opened-Polygon|art@4|3|3|2|0|0|||ART_color()I10|trace()V[-1/0,1/0]
+Nartwork:Opened-Polygon|art@5|3|-1|2|0|0|||ART_color()I10|trace()V[-1/0,1/0]
+Ngeneric:Invisible-Pin|pin@0|9.5|3|0|0|0|||ART_message(D5G1;)S["+"]
+Ngeneric:Invisible-Pin|pin@1|12|-1|0|0|0||
+Ngeneric:Invisible-Pin|pin@2|12|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@3|4.5|3|0|0|0|||ART_message(D5G1;)S["+"]
+Ngeneric:Invisible-Pin|pin@4|2|3|0|0|0||
+Ngeneric:Invisible-Pin|pin@5|2|-1|0|0|0||
+Ea|pin@4||D5G1;|U
+Eb|pin@5||D5G1;|U
+Ex|pin@2||D5G1;|U
+Ey|pin@1||D5G1;|U
+X
+
+# Groups:
+GACCurrent{ic}
+GACVoltage{ic}
+GAnalysisAC{ic}
+GAnalysisDC{ic}
+GAnalysisTransient{ic}
+GCCCS{ic}
+GCCVS{ic}
+GDCCurrent{ic}
+GDCVoltage{ic}
+GExtension{ic}
+GNodeSet{ic}
+GPulseCurrent{ic}
+GPulse{ic}
+GTransmission{ic}
+GVCCS{ic}
+GVCVS{ic}
