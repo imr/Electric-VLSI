@@ -49,11 +49,126 @@ public final class J3DUtils
 {
     /** standard colors to be used by materials **/         public static final Color3f black = new Color3f(0.0f, 0.0f, 0.0f);
     /** standard colors to be used by materials **/         public static final Color3f white = new Color3f(1.0f, 1.0f, 1.0f);
-    /** Ambiental light **/                 private static Color3f ambientalColor;
-    /** Directional light **/               private static Color3f directionalColor;
-    /** Directional vector **/              private static Vector3f light1 = new Vector3f(-1.0f, -1.0f, -1.0f);
+    /** Ambiental light **/                 private static Color3fObservable ambientalColor;
+    /** Directional light **/               private static Color3fObservable directionalColor;
+    /** Directional vector **/              private static Vector3fObservable light1; // = new Vector3f(-1.0f, -1.0f, -1.0f);
 
     public static final BoundingSphere infiniteBounds = new BoundingSphere(new Point3d(), Double.MAX_VALUE);
+
+    /********************************************************************************************************
+     *   Observer-Observable pattern for Vector3f
+     *******************************************************************************************************/
+    /**
+     * Class using view-model paradigm to update Vector3d-type of variables like directions
+     */
+    private static class Vector3fObservable extends Observable
+    {
+        private Vector3f vector;
+
+        public Vector3fObservable(Vector3f vec)
+        {
+            this.vector = vec;
+        }
+        public void setValue(Vector3f vec)
+        {
+            this.vector = vec;
+            setChanged();
+            notifyObservers(vector);
+            clearChanged();
+        }
+        public Vector3f getValue() {return vector;}
+    }
+
+    /**
+     * Observer class for directional class
+     */
+    private static class DirectionalLightObserver extends DirectionalLight implements Observer
+    {
+        public DirectionalLightObserver(Color3f color3f, Vector3f vector3f)
+        {
+            super(color3f, vector3f);
+        }
+        public void update(Observable o, Object arg)
+        {
+            if (arg != null && arg instanceof Vector3f)
+            {
+                // change the direction
+                setDirection((Vector3f)arg);
+            }
+        }
+    }
+
+    /********************************************************************************************************
+     *   Observer-Observable pattern for Color3f
+     *******************************************************************************************************/
+    private static class Color3fObservable extends Observable
+    {
+        private Color3f color;
+
+        public Color3fObservable(Color3f color)
+        {
+            this.color = color;
+        }
+        public void setValue(Color3f color)
+        {
+            this.color = color;
+            setChanged();
+            notifyObservers(color);
+            clearChanged();
+        }
+        public Color3f getValue() {return color;}
+    }
+
+    private static class AmbientLightObserver extends AmbientLight implements Observer
+    {
+        public AmbientLightObserver(Color3f color3f)
+        {
+            super(color3f);
+        }
+        public void update(Observable o, Object arg)
+        {
+            if (arg != null && arg instanceof Color3f)
+            {
+                // change the color
+                setColor((Color3f)arg);
+            }
+        }
+    }
+
+    /********************************************************************************************************
+     *
+     *******************************************************************************************************/
+
+    public static boolean isValidDirection(String dir)
+    {
+        return !(dir.equals("") || dir.equals("0 0 0 "));
+    }
+
+    public static Vector3f transformIntoVector(String dir)
+    {
+        float[] values = new float[3];
+        StringTokenizer parse = new StringTokenizer(dir, " ", false);
+        int count = 0;
+
+        while (parse.hasMoreTokens() && count < 3)
+        {
+            values[count++] = Float.parseFloat(parse.nextToken());
+        }
+        return (new Vector3f(values));
+    }
+
+    /**
+     * Method to set direction in directional light
+     * @param initValue
+     */
+    public static void setDirection(Object initValue)
+    {
+        Vector3f dir = transformIntoVector(User.get3DLightDirOne());
+        if (light1 == null)
+            light1 = new Vector3fObservable(dir);
+        else if (initValue == null)
+            light1.setValue(dir); // it will notify observers
+    }
 
     /**
      * Method to set ambiental color
@@ -61,16 +176,24 @@ public final class J3DUtils
      */
     public static void setAmbientalColor(Object initValue)
     {
-        ambientalColor = new Color3f(new Color(User.get3DColorAmbientLight()));
-        if (initValue == null)
-            System.out.println("brodcast change in ambiental color");
+        Color3f userColor = new Color3f(new Color(User.get3DColorAmbientLight()));
+        if (ambientalColor == null)
+            ambientalColor = new Color3fObservable(userColor);
+        else if (initValue == null)
+            ambientalColor.setValue(userColor);
     }
 
+    /**
+     * Method to set directional color
+     * @param initValue null if value has to be redone from user data
+     */
     public static void setDirectionalColor(Object initValue)
     {
-        directionalColor = new Color3f(new Color(User.get3DColorDirectionalLight()));
-        if (initValue == null)
-            System.out.println("brodcast change in directional color");
+        Color3f userColor = new Color3f(new Color(User.get3DColorDirectionalLight()));
+        if (directionalColor == null)
+            directionalColor = new Color3fObservable(userColor);
+        else if (initValue == null)
+            directionalColor.setValue(userColor);
     }
 
     public static void createLights(BranchGroup scene, TransformGroup objTrans)
@@ -78,13 +201,26 @@ public final class J3DUtils
         // Checking if light colors are available
         setDirectionalColor(scene);
         setAmbientalColor(scene);
+        setDirection(scene);
 
-        AmbientLight ambientalLight =  new AmbientLight(ambientalColor);
+        AmbientLightObserver ambientalLight =  new AmbientLightObserver(ambientalColor.getValue());
         ambientalLight.setInfluencingBounds(infiniteBounds);
-        DirectionalLight directionalLight = new DirectionalLight(directionalColor, light1);
+        ambientalLight.setCapability(AmbientLight.ALLOW_COLOR_READ);
+        ambientalLight.setCapability(AmbientLight.ALLOW_COLOR_WRITE);
+        // adding observer
+        ambientalColor.addObserver(ambientalLight);
+
+        DirectionalLightObserver directionalLight = new DirectionalLightObserver(directionalColor.getValue(), light1.getValue());
         directionalLight.setInfluencingBounds(infiniteBounds);
         // Allow to turn off light while the scene graph is live
         directionalLight.setCapability(Light.ALLOW_STATE_WRITE);
+        directionalLight.setCapability(DirectionalLight.ALLOW_DIRECTION_READ);
+        directionalLight.setCapability(DirectionalLight.ALLOW_DIRECTION_WRITE);
+        directionalLight.setCapability(DirectionalLight.ALLOW_COLOR_READ);
+        directionalLight.setCapability(DirectionalLight.ALLOW_COLOR_WRITE);
+        // adding observers
+        light1.addObserver(directionalLight);
+        directionalColor.addObserver(directionalLight);
 
         // Add lights to the env.
         scene.addChild(ambientalLight);

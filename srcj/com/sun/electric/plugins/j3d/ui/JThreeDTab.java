@@ -31,6 +31,7 @@ import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
 import com.sun.electric.plugins.j3d.utils.J3DAppearance;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DAppearance;
+import com.sun.electric.plugins.j3d.utils.J3DUtils;
 
 import java.awt.GridBagConstraints;
 import java.awt.event.MouseAdapter;
@@ -49,6 +50,7 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.media.j3d.TransparencyAttributes;
+import javax.vecmath.Vector3f;
 
 /**
  * Class to handle the "3D" tab of the Preferences dialog.
@@ -235,6 +237,10 @@ public class JThreeDTab extends ThreeDTab
         // Light boxes
         String light1 = User.get3DLightDirOne();
         dirOneBox.setSelected(!(light1.equals("") || light1.equals("0 0 0 ")));
+        Vector3f dir = J3DUtils.transformIntoVector(light1);
+        xDirOneField.setText(String.valueOf(dir.x));
+        yDirOneField.setText(String.valueOf(dir.y));
+        zDirOneField.setText(String.valueOf(dir.z));
         // Setting the initial values
 		threeDValuesChanged(false);
 	}
@@ -352,6 +358,12 @@ public class JThreeDTab extends ThreeDTab
             System.out.println(currentValue + " is an invalid zoom factor.");
         else if (currentValue != User.get3DOrigZoom())
             User.set3DOrigZoom(currentValue);
+
+        String dir = xDirOneField.getText() + " " +
+                yDirOneField.getText() + " " +
+                zDirOneField.getText();
+        if (!dir.equals(User.get3DLightDirOne()))
+            User.set3DLightDirOne(dir);
 	}
 
 	/** This method is called from within the constructor to

@@ -1071,7 +1071,19 @@ public class User extends Listener
      * It is stored as string
 	 * @param c the company name to use in schematic frames.
 	 */
-	public static void set3DLightDirOne(String c) { cache3DLightDirOne.setString(c); }
+	public static void set3DLightDirOne(String c)
+    {
+        cache3DLightDirOne.setString(c);
+
+        try
+        {
+            Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+            Method setMethod = j3DUtilsClass.getDeclaredMethod("setDirection", new Class[] {Object.class});
+            setMethod.invoke(j3DUtilsClass, new Object[]{null});
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method setDirection: " + e.getMessage());
+        }
+    }
 
 	/****************************** UNITS PREFERENCES ******************************/
 
