@@ -46,8 +46,10 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.io.ELIBConstants;
 
+import javax.swing.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -1038,6 +1040,12 @@ public class ELIB extends Output
 			if (var.isDontSave()) continue;
 			Variable.Key key = var.getKey();
 			short index = (short)key.getIndex();
+            if (index < 0) {
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"ERROR! Too many unique variable names",
+                    "The ELIB format cannot handle this many unique variables names", "Either delete the excess variables, or save to a readable dump"},
+                    "Error saving ELIB file", JOptionPane.ERROR_MESSAGE);
+                throw new IOException("Variable.Key index too large");
+            }
 			writeSmallInteger(index);
 
 			// create the "type" field

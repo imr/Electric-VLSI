@@ -297,6 +297,7 @@ public class LibraryFiles extends Input
                 System.out.println("Error: cannot find referenced library " + libFile.getPath());
                 System.out.println("...Creating new "+libName+" Library instead");
                 elib = Library.newInstance(libName, null);
+                // TODO: set dummy libFile url here
             }
 //			if (failed) elib->userbits |= UNWANTEDLIB; else
 //			{

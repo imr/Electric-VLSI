@@ -452,13 +452,15 @@ public class FileMenu {
             boolean retVal = false;
             try {
                 retVal = _doIt();
+                if (!retVal) {
+                    JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Error saving files",
+                         "Please check your disk libraries"}, "Saving Failed", JOptionPane.ERROR_MESSAGE);
+                }
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Exception caught when saving files",
-                     "Please check your libraries"}, "Saving Failed", JOptionPane.ERROR_MESSAGE);
-            }
-            if (!retVal) {
-                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Error saving files",
-                     "Please check your libraries"}, "Saving Failed", JOptionPane.ERROR_MESSAGE);
+                     e.getMessage(),
+                     "Please check your disk libraries"}, "Saving Failed", JOptionPane.ERROR_MESSAGE);
+                ActivityLogger.logException(e);
             }
             return retVal;
         }
