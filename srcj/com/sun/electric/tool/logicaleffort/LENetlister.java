@@ -27,6 +27,7 @@ package com.sun.electric.tool.logicaleffort;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.tool.user.ErrorLogger;
 
 public interface LENetlister {
 
@@ -45,10 +46,15 @@ public interface LENetlister {
     /** Call to update and save sizes */
     public void updateSizes();
 
+    /** Get the error logger */
+    public ErrorLogger getErrorLogger();
+
     // ---------------------------- statistics ---------------------------------
 
     /** print the results for the Nodable
      * @return true if successful, false otherwise */
     public boolean printResults(Nodable no, VarContext context);
 
+    /** Get the total size of all gates sized using Logical Effort */
+    public float getTotalLESize();
 }

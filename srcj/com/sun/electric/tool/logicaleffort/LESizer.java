@@ -62,15 +62,15 @@ public class LESizer {
     /** error logger */                             private ErrorLogger errorLogger;
 
     /** Alg is a typesafe enum class that describes the algorithm to be used */
-    protected static class Alg {
+    public static class Alg {
         private final String name;
         private Alg(String name) { this.name = name; }
         public String toString() { return name; }
         
         /** Sizes all gates for user specified equal gate delay */
-        protected static final Alg EQUALGATEDELAYS = new Alg("Equal Gate Delays");
+        public static final Alg EQUALGATEDELAYS = new Alg("Equal Gate Delays");
         /** Sizes for optimal path delay */
-        protected static final Alg PATHDELAY = new Alg("Path Delay");
+        public static final Alg PATHDELAY = new Alg("Path Delay");
     }
         
     /** Creates a new instance of LESizer */

@@ -232,6 +232,8 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         errorLogger = null;
     }
 
+    public ErrorLogger getErrorLogger() { return errorLogger; }    
+
     /** NodeInst should be an LESettings instance */
     private void useLESettings(NodeInst ni, VarContext context) {
         Variable var;
@@ -667,6 +669,19 @@ public class LENetlister2 extends HierarchyEnumerator.Visitor implements LENetli
         //System.out.println("Number of Wires: "+numLEWires);
         System.out.println("Total size of all LEGATEs: "+instsize);
         //System.out.println("Total size of all instances (sized and loads): "+totalsize);
+    }
+
+    public float getTotalLESize() {
+        float instsize = 0f;
+        // iterator over all LEGATEs
+        for (Iterator cit = allLENodables.iterator(); cit.hasNext(); ) {
+            LENodable leno = (LENodable)cit.next();
+            // ignore it if not a sizeable gate
+            if (leno.isLeGate()) {
+                instsize += leno.leX;
+            }
+        }
+        return instsize;
     }
 
     public boolean printResults(Nodable no, VarContext context) {

@@ -189,6 +189,8 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
         errorLogger = null;
     }
 
+    public ErrorLogger getErrorLogger() { return errorLogger; }
+
     /** NodeInst should be an LESettings instance */
     private void useLESettings(NodeInst ni, VarContext context) {
         Variable var;
@@ -577,6 +579,10 @@ public class LENetlister1 extends HierarchyEnumerator.Visitor implements LENetli
         System.out.println("Number of Wires: "+numLEWires);
         System.out.println("Total size of all LEGATEs: "+instsize);
         System.out.println("Total size of all instances (sized and loads): "+totalsize);
+    }
+
+    public float getTotalLESize() {
+        return getTotalSize(Instance.Type.LEGATE) + getTotalSize(Instance.Type.LEKEEPER);
     }
 
     /**
