@@ -62,6 +62,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -484,6 +485,22 @@ public class WaveformWindow implements WindowContent
 			waveWindow.redrawAllPanels();
 		}
 
+		/**
+		 * Method to return a List of WaveSignals in this panel.
+		 * @return a List of WaveSignals in this panel.
+		 */
+		public List getSignals()
+		{
+			List signals = new ArrayList();
+			for(Iterator it = waveSignals.keySet().iterator(); it.hasNext(); )
+			{
+				JButton but = (JButton)it.next();
+				Signal ws = (Signal)waveSignals.get(but);
+				signals.add(ws);
+			}
+			return signals;
+		}
+
 		private void digitalSignalNameClicked(ActionEvent evt)
 		{
 			Set set = waveSignals.keySet();
@@ -539,6 +556,7 @@ public class WaveformWindow implements WindowContent
 		public void closePanel()
 		{
 			waveWindow.closePanel(this);
+			waveWindow.saveSignalOrder();
 		}
 
 		private Signal addSignalToPanel(Simulation.SimSignal sSig)
@@ -574,7 +592,6 @@ public class WaveformWindow implements WindowContent
 			signalButtons.repaint();
 			if (signalButtonsPane != null) signalButtonsPane.validate();
 			repaint();
-			waveWindow.saveSignalOrder();
 			return wsig;
 		}
 
@@ -879,21 +896,29 @@ public class WaveformWindow implements WindowContent
 					double highValue = scaleYToValue(lowY);
 					g.setFont(waveWindowFont);
 
-					// show the low time value
+					// show the low time value and arrow
 					String lowTimeString = convertToEngineeringNotation(lowTime, "s", 9999);
 					GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, lowTimeString);
 					Rectangle2D glyphBounds = gv.getVisualBounds();
 					int textWid = (int)glyphBounds.getWidth();
 					int textHei = (int)glyphBounds.getHeight();
-					g.drawString(lowTimeString, lowX-textWid-2, (lowY+highY)/2+textHei/2);
+					int textY = (lowY+highY)/2;
+					g.drawString(lowTimeString, lowX-textWid-6, textY+textHei/2-10);
+					g.drawLine(lowX-1, textY, lowX-textWid, textY);
+					g.drawLine(lowX-1, textY, lowX-6, textY+4);
+					g.drawLine(lowX-1, textY, lowX-6, textY-4);
 
-					// show the high time value
+					// show the high time value and arrow
 					String highTimeString = convertToEngineeringNotation(highTime, "s", 9999);
 					gv = waveWindowFont.createGlyphVector(waveWindowFRC, highTimeString);
 					glyphBounds = gv.getVisualBounds();
 					textWid = (int)glyphBounds.getWidth();
 					textHei = (int)glyphBounds.getHeight();
-					g.drawString(highTimeString, highX+2, (lowY+highY)/2+textHei/2);
+					int highTimeTextWid = textWid;
+					g.drawString(highTimeString, highX+6, textY+textHei/2-10);
+					g.drawLine(highX+1, textY, highX+textWid, textY);
+					g.drawLine(highX+1, textY, highX+6, textY+4);
+					g.drawLine(highX+1, textY, highX+6, textY-4);
 
 					// show the difference time value
 					String timeDiffString = convertToEngineeringNotation(highTime-lowTime, "s", 9999);
@@ -901,7 +926,34 @@ public class WaveformWindow implements WindowContent
 					glyphBounds = gv.getVisualBounds();
 					textWid = (int)glyphBounds.getWidth();
 					textHei = (int)glyphBounds.getHeight();
-					g.drawString(timeDiffString, lowX+(highX-lowX)/4 - textWid/2, highY-2);
+					if (textWid + 24 < highX - lowX)
+					{
+						// fits inside: draw arrows around text
+						int yPosText = highY + textHei*5;
+						int yPos = yPosText - textHei/2;
+						int xCtr = (highX+lowX)/2;
+						g.drawString(timeDiffString, xCtr - textWid/2, yPosText);
+						g.drawLine(lowX, yPos, xCtr - textWid/2 - 2, yPos);
+						g.drawLine(highX, yPos, xCtr + textWid/2 + 2, yPos);
+						g.drawLine(lowX, yPos, lowX+5, yPos+4);
+						g.drawLine(lowX, yPos, lowX+5, yPos-4);
+						g.drawLine(highX, yPos, highX-5, yPos+4);
+						g.drawLine(highX, yPos, highX-5, yPos-4);
+					} else
+					{
+						// does not fit inside: draw outside of arrows
+						int yPosText = highY + textHei*5;
+						int yPos = yPosText - textHei/2;
+						int xCtr = (highX+lowX)/2;
+						g.drawString(timeDiffString, highX + 12, yPosText);
+						g.drawLine(lowX, yPos, lowX-10, yPos);
+						g.drawLine(highX, yPos, highX+10, yPos);
+						g.drawLine(lowX, yPos, lowX-5, yPos+4);
+						g.drawLine(lowX, yPos, lowX-5, yPos-4);
+						g.drawLine(highX, yPos, highX+5, yPos+4);
+						g.drawLine(highX, yPos, highX+5, yPos-4);
+					}
+
 					if (isAnalog)
 					{
 						// show the low value
@@ -910,7 +962,12 @@ public class WaveformWindow implements WindowContent
 						glyphBounds = gv.getVisualBounds();
 						textWid = (int)glyphBounds.getWidth();
 						textHei = (int)glyphBounds.getHeight();
-						g.drawString(lowValueString, (lowX+highX)/2 - textWid/2, highY + textHei + 3);
+						int xP = (lowX+highX)/2;
+						int yText = lowY - 10 - textHei;
+						g.drawString(lowValueString, xP, yText - 2);
+						g.drawLine(xP, lowY-1, xP, yText);
+						g.drawLine(xP, lowY-1, xP+4, lowY-5);
+						g.drawLine(xP, lowY-1, xP-4, lowY-5);
 
 						// show the high value
 						String highValueString = TextUtils.formatDouble(highValue);
@@ -918,7 +975,11 @@ public class WaveformWindow implements WindowContent
 						glyphBounds = gv.getVisualBounds();
 						textWid = (int)glyphBounds.getWidth();
 						textHei = (int)glyphBounds.getHeight();
-						g.drawString(highValueString, (lowX+highX)/2 - textWid/2, lowY - 2);
+						yText = highY + 10 + textHei;
+						g.drawString(lowValueString, xP, yText + textHei + 2);
+						g.drawLine(xP, highY+1, xP, yText);
+						g.drawLine(xP, highY+1, xP+4, highY+5);
+						g.drawLine(xP, highY+1, xP-4, highY+5);
 
 						// show the value difference
 						String valueDiffString = TextUtils.formatDouble(highValue - lowValue);
@@ -926,7 +987,30 @@ public class WaveformWindow implements WindowContent
 						glyphBounds = gv.getVisualBounds();
 						textWid = (int)glyphBounds.getWidth();
 						textHei = (int)glyphBounds.getHeight();
-						g.drawString(valueDiffString, lowX + 2, lowY+(highY-lowY)/4+textHei/2);
+						if (textHei + 12 < highY - lowY)
+						{
+							// fits inside: draw arrows around text
+							int xPos = highX + highTimeTextWid + 30;
+							int yCtr = (highY+lowY)/2;
+							g.drawString(timeDiffString, xPos+2, yCtr + textHei/2);
+							g.drawLine(xPos, lowY, xPos, highY);
+							g.drawLine(xPos, lowY, xPos+4, lowY+5);
+							g.drawLine(xPos, lowY, xPos-4, lowY+5);
+							g.drawLine(xPos, highY, xPos+4, highY-5);
+							g.drawLine(xPos, highY, xPos-4, highY-5);
+						} else
+						{
+							// does not fit inside: draw outside of arrows
+							int xPos = highX + highTimeTextWid + 30;
+							int yCtr = (highY+lowY)/2;
+							g.drawString(timeDiffString, xPos+4, lowY - textHei/2 - 4);
+							g.drawLine(xPos, lowY, xPos, lowY-10);
+							g.drawLine(xPos, highY, xPos, highY+10);
+							g.drawLine(xPos, lowY, xPos+4, lowY-5);
+							g.drawLine(xPos, lowY, xPos-4, lowY-5);
+							g.drawLine(xPos, highY, xPos+4, highY+5);
+							g.drawLine(xPos, highY, xPos-4, highY+5);
+						}
 					}
 				}
 			}
@@ -1435,8 +1519,10 @@ public class WaveformWindow implements WindowContent
 				if (mode == ToolBar.CursorMode.PAN) mouseMovedPan(evt); else
 					mouseMovedSelect(evt);
 		}
+//static int indexdebug=1;
 		public void mouseDragged(MouseEvent evt)
 		{
+//System.out.println("DRAGGED "+(indexdebug++));
 			ToolBar.CursorMode mode = ToolBar.getCursorMode();
 			if (ClickZoomWireListener.isRightMouse(evt) && (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0)
 				mode = ToolBar.CursorMode.ZOOM;
@@ -1611,7 +1697,17 @@ public class WaveformWindow implements WindowContent
 			{
 				Point pt = new Point(evt.getX(), evt.getY());
 				if (ToolBar.getCursorMode() == ToolBar.CursorMode.MEASURE)
+				{
 					pt = snapPoint(pt);
+					Rectangle rect = getBounds();
+					Panel curPanel = (Panel)evt.getSource();
+					if (!rect.contains(pt))
+					{
+//						startPanel = (Panel)evt.getSource();
+//System.out.println("  OFF SCREEN");
+						waveWindow.redrawAllPanels();
+					}
+				}
 				dragEndX = pt.x;
 				dragEndY = pt.y;
 				this.repaint();
@@ -1978,6 +2074,7 @@ public class WaveformWindow implements WindowContent
 			{
 				// overlay this signal onto an existing panel
 				panel.addSignalToPanel(sSig);
+				panel.waveWindow.saveSignalOrder();
 				panel.makeSelectedPanel();
 				dtde.dropComplete(true);
 				return;
@@ -2190,6 +2287,12 @@ public class WaveformWindow implements WindowContent
 				sigButton.setForeground(this.color);
 			}
 		}
+
+		/**
+		 * Method to return the actual signal information associated with this line in the waveform window.
+		 * @return the actual signal information associated with this line in the waveform window.
+		 */
+		public Simulation.SimSignal getSignal() { return sSig; }
 
 		private void signalNameClicked(ActionEvent evt)
 		{
@@ -2837,6 +2940,12 @@ public class WaveformWindow implements WindowContent
 	}
 
 	/**
+	 * Method to return an Iterator over the Panel in this window.
+	 * @return an Iterator over the Panel in this window.
+	 */
+	public Iterator getPanels() { return wavePanels.iterator(); }
+
+	/**
 	 * Method to return a Panel, given its number.
 	 * @param panelNumber the number of the desired Panel.
 	 * @return the Panel with that number (null if not found).
@@ -2865,13 +2974,6 @@ public class WaveformWindow implements WindowContent
 			EditWindow wnd = (EditWindow)wf.getContent();
 			Cell cell = wnd.getCell();
 			if (cell == null) continue;
-//			Netlist netlist = cell.getUserNetlist();
-			Netlist netlist = cell.acquireUserNetlist();
-			if (netlist == null)
-			{
-				System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
-				return;
-			}
 			Highlighter hl = wnd.getHighlighter();
 
 			Locator loc = new Locator(wnd, this);
@@ -2889,51 +2991,53 @@ public class WaveformWindow implements WindowContent
 					String want = ws.sSig.getFullName();
                     Stack upNodables = new Stack();
                     Network net = null;
-                    for (;;) {
+                    for (;;)
+                    {
                         String contextStr = getSpiceNetName(context, null);
-                        if (contextStr.length() > 0) contextStr += ".";
-                        if (contextStr.length() > 0 && !want.startsWith(contextStr)) {
-                            if (context == VarContext.globalContext) break;
-//                            netlist = context.getNodable().getParent().getUserNetlist();
-                			netlist = context.getNodable().getParent().acquireUserNetlist();
-                			if (netlist == null)
-                			{
-                				System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
-                				freezeWaveformHighlighting = false;
-                				return;
-                			}
-                            upNodables.push(context.getNodable());
-                            context = context.pop();
-                            continue;
-                        }
-                        net = findNetwork(netlist, want.substring(contextStr.length()));
-                        if (net != null)
+                        if (contextStr.length() > 0)
                         {
-                            break;
+                            boolean matches = false;
+                        	contextStr += ".";
+                        	if (want.startsWith(contextStr)) matches = true; else
+                        	{
+                        		contextStr = contextStr.replace('@', '_');
+                            	if (want.startsWith(contextStr)) matches = true;
+                        	}
+                            if (!matches)
+                            {
+                                if (context == VarContext.globalContext) break;
+                                cell = context.getNodable().getParent();
+                                upNodables.push(context.getNodable());
+                                context = context.pop();
+                                continue;
+                            }
                         }
-                        if (context == VarContext.globalContext) break;
-//                        netlist = context.getNodable().getParent().getUserNetlist();
-            			netlist = context.getNodable().getParent().acquireUserNetlist();
+            			Netlist netlist = cell.acquireUserNetlist();
             			if (netlist == null)
             			{
             				System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
-            				freezeWaveformHighlighting = false;
             				return;
             			}
+                        net = findNetwork(netlist, want.substring(contextStr.length()));
+                        if (net != null) break;
+                        if (context == VarContext.globalContext) break;
+
+                        cell = context.getNodable().getParent();
                         upNodables.push(context.getNodable());
                         context = context.pop();
                     }
-                    if (net != null) {
+                    if (net != null)
+                    {
                         // found network
-                        while (!upNodables.isEmpty()) {
+                        while (!upNodables.isEmpty())
+                        {
                             Nodable no = (Nodable)upNodables.pop();
                             net = HierarchyEnumerator.getNetworkInChild(net, no);
                             if (net == null) break;
                         }
                     }
-                    if (net != null) {
+                    if (net != null)
                         hl.addNetwork(net, cell);
-                    }
 				}
 			}
 			hl.finished();
@@ -3254,31 +3358,25 @@ public class WaveformWindow implements WindowContent
 		contextMap.put("", signalsExplorerTree);
 		List signals = sd.getSignals();
 		Collections.sort(signals, new SignalsByName());
+
+		// add branches first
+		for(Iterator it = signals.iterator(); it.hasNext(); )
+		{
+			Simulation.SimSignal sSig = (Simulation.SimSignal)it.next();
+			if (sSig.getSignalContext() != null)
+				makeContext(sSig.getSignalContext(), contextMap);
+		}
+
+		// add all signals to the tree
 		for(Iterator it = signals.iterator(); it.hasNext(); )
 		{
 			Simulation.SimSignal sSig = (Simulation.SimSignal)it.next();
 			DefaultMutableTreeNode thisTree = signalsExplorerTree;
 			if (sSig.getSignalContext() != null)
-			{
-				String fullContext = sSig.getSignalContext();
-				thisTree = makeContext(fullContext, contextMap);
-			}
+				thisTree = makeContext(sSig.getSignalContext(), contextMap);
 			thisTree.add(new DefaultMutableTreeNode(sSig));
 		}
 		return signalsExplorerTree;
-	}
-
-	/**
-	 * Class to sort signals by their name
-	 */
-	private static class SignalsByName implements Comparator
-	{
-		public int compare(Object o1, Object o2)
-		{
-			Simulation.SimSignal s1 = (Simulation.SimSignal)o1;
-			Simulation.SimSignal s2 = (Simulation.SimSignal)o2;
-			return TextUtils.nameSameNumeric(s1.getFullName(), s2.getFullName());
-		}
 	}
 
 	/**
@@ -3308,6 +3406,19 @@ public class WaveformWindow implements WindowContent
 		parentBranch.add(thisTree);
 		contextMap.put(branchName, thisTree);
 		return thisTree;
+	}
+
+	/**
+	 * Class to sort signals by their name
+	 */
+	private static class SignalsByName implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Simulation.SimSignal s1 = (Simulation.SimSignal)o1;
+			Simulation.SimSignal s2 = (Simulation.SimSignal)o2;
+			return TextUtils.nameSameNumeric(s1.getFullName(), s2.getFullName());
+		}
 	}
 
 	private DefaultMutableTreeNode getSweepsForExplorer()
@@ -4189,22 +4300,32 @@ public class WaveformWindow implements WindowContent
 		public boolean doIt()
 		{
 			List signalList = new ArrayList();
-			for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
+			int total = ww.right.getComponentCount();
+			for(int i=0; i<total; i++)
 			{
-				Panel wp = (Panel)it.next();
-				StringBuffer sb = new StringBuffer();
-				boolean first = true;
-				for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+				JPanel rightPart = (JPanel)ww.right.getComponent(i);
+				for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
 				{
-					Signal ws = (Signal)sIt.next();
-					String sigName = ws.sSig.getFullName();
-					if (first) first = false; else
-						sb.append("\t");
-					sb.append(sigName);
+					Panel wp = (Panel)it.next();
+					if (wp.rightHalf == rightPart)
+					{
+						StringBuffer sb = new StringBuffer();
+						boolean first = true;
+						for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+						{
+							Signal ws = (Signal)sIt.next();
+							String sigName = ws.sSig.getFullName();
+							if (first) first = false; else
+								sb.append("\t");
+							sb.append(sigName);
+						}
+						if (!first)
+							signalList.add(sb.toString());
+						break;
+					}
 				}
-				if (!first)
-					signalList.add(sb.toString());
 			}
+
 			if (signalList.size() == 0)
 			{
 				if (cell.getVar(WINDOW_SIGNAL_ORDER) != null)
@@ -4272,7 +4393,7 @@ public class WaveformWindow implements WindowContent
 	/**
 	 * Method called to toggle the display of a grid.
 	 */
-	private void toggleGridPoints()
+	public void toggleGridPoints()
 	{
 		showGrid = !showGrid;
 		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
@@ -4293,7 +4414,7 @@ public class WaveformWindow implements WindowContent
 				if (wp.selected)
 				{
 					wp.addSignalToPanel(sig);
-					return;
+					break;
 				}
 			}
 		} else
@@ -4303,8 +4424,8 @@ public class WaveformWindow implements WindowContent
 			Signal wsig = new Signal(wp, sig);
 			overall.validate();
 			wp.repaint();
-			saveSignalOrder();
 		}
+		saveSignalOrder();
 	}
 
 	/**
@@ -4317,10 +4438,12 @@ public class WaveformWindow implements WindowContent
 			Panel wp = (Panel)it.next();
 			if (!wp.selected) continue;
 			if (wp.isAnalog) deleteSignalFromPanel(wp); else
+			{
+				saveSignalOrder();
 				wp.closePanel();
+			}
 			break;
 		}
-		saveSignalOrder();
 	}
 
 	/**

@@ -643,12 +643,6 @@ public class Highlight
 			NodeProto np = ni.getProto();
 			AffineTransform trans = ni.rotateOutAboutTrueCenter();
 
-            // draw nodeInst outline
-            Poly niPoly = getNodeInstOutline(ni);
-            boolean niOpened = (niPoly.getStyle() == Poly.Type.OPENED);
-            if (highOffX == 0 && highOffY == 0 || point < 0)
-            	drawOutlineFromPoints(wnd, g, niPoly.getPoints(), highOffX, highOffY, niOpened, null);
-
             int offX = highOffX;
             int offY = highOffY;
 /*
@@ -711,7 +705,7 @@ public class Highlight
 				Point2D [] points = ni.getTrace();
 				if (points != null)
 				{
-					boolean showWrap = ni.traceWraps();
+					// draw an "x" through the selected point
 					double x = ni.getAnchorCenterX() + points[point].getX();
 					double y = ni.getAnchorCenterY() + points[point].getY();
 					Point2D thisPt = new Point2D.Double(x, y);
@@ -721,7 +715,8 @@ public class Highlight
 					drawLine(g, wnd, cThis.x + size + offX, cThis.y + size + offY, cThis.x - size + offX, cThis.y - size + offY);
 					drawLine(g, wnd, cThis.x + size + offX, cThis.y - size + offY, cThis.x - size + offX, cThis.y + size + offY);
 
-					// draw two connected lines
+					// find previous and next point, and draw lines to them
+					boolean showWrap = ni.traceWraps();
 					Point2D prevPt = null, nextPt = null;
 					int prevPoint = point - 1;
 					if (prevPoint < 0 && showWrap) prevPoint = points.length - 1;
@@ -761,15 +756,16 @@ public class Highlight
 						if (prevPoint >= 0) arrowLen = Math.min(thisPt.distance(prevPt), arrowLen);
 						if (nextPoint >= 0) arrowLen = Math.min(thisPt.distance(nextPt), arrowLen);
 						arrowLen /= 10;
+						double angleOfArrow = Math.PI * 0.8;
 						if (prevPoint >= 0)
 						{
 							Point2D prevCtr = new Point2D.Double((prevPt.getX()+thisPt.getX()) / 2,
 								(prevPt.getY()+thisPt.getY()) / 2);
 							double prevAngle = DBMath.figureAngleRadians(prevPt, thisPt);
-							Point2D prevArrow1 = new Point2D.Double(prevCtr.getX() + Math.cos(prevAngle+Math.PI*0.75) * arrowLen,
-								prevCtr.getY() + Math.sin(prevAngle+Math.PI*0.75) * arrowLen);
-							Point2D prevArrow2 = new Point2D.Double(prevCtr.getX() + Math.cos(prevAngle-Math.PI*0.75) * arrowLen,
-								prevCtr.getY() + Math.sin(prevAngle-Math.PI*0.75) * arrowLen);
+							Point2D prevArrow1 = new Point2D.Double(prevCtr.getX() + Math.cos(prevAngle+angleOfArrow) * arrowLen,
+								prevCtr.getY() + Math.sin(prevAngle+angleOfArrow) * arrowLen);
+							Point2D prevArrow2 = new Point2D.Double(prevCtr.getX() + Math.cos(prevAngle-angleOfArrow) * arrowLen,
+								prevCtr.getY() + Math.sin(prevAngle-angleOfArrow) * arrowLen);
 							Point cPrevCtr = wnd.databaseToScreen(prevCtr);
 							Point cPrevArrow1 = wnd.databaseToScreen(prevArrow1);
 							Point cPrevArrow2 = wnd.databaseToScreen(prevArrow2);
@@ -782,10 +778,10 @@ public class Highlight
 							Point2D nextCtr = new Point2D.Double((nextPt.getX()+thisPt.getX()) / 2,
 								(nextPt.getY()+thisPt.getY()) / 2);
 							double nextAngle = DBMath.figureAngleRadians(thisPt, nextPt);
-							Point2D nextArrow1 = new Point2D.Double(nextCtr.getX() + Math.cos(nextAngle+Math.PI*0.75) * arrowLen,
-								nextCtr.getY() + Math.sin(nextAngle+Math.PI*0.75) * arrowLen);
-							Point2D nextArrow2 = new Point2D.Double(nextCtr.getX() + Math.cos(nextAngle-Math.PI*0.75) * arrowLen,
-								nextCtr.getY() + Math.sin(nextAngle-Math.PI*0.75) * arrowLen);
+							Point2D nextArrow1 = new Point2D.Double(nextCtr.getX() + Math.cos(nextAngle+angleOfArrow) * arrowLen,
+								nextCtr.getY() + Math.sin(nextAngle+angleOfArrow) * arrowLen);
+							Point2D nextArrow2 = new Point2D.Double(nextCtr.getX() + Math.cos(nextAngle-angleOfArrow) * arrowLen,
+								nextCtr.getY() + Math.sin(nextAngle-angleOfArrow) * arrowLen);
 							Point cNextCtr = wnd.databaseToScreen(nextCtr);
 							Point cNextArrow1 = wnd.databaseToScreen(nextArrow1);
 							Point cNextArrow2 = wnd.databaseToScreen(nextArrow2);
@@ -798,6 +794,15 @@ public class Highlight
 					offX = offY = 0;
 				}
 			}
+
+            // draw nodeInst outline
+            Poly niPoly = getNodeInstOutline(ni);
+            boolean niOpened = (niPoly.getStyle() == Poly.Type.OPENED);
+            if ((offX == 0 && offY == 0) || point < 0)
+            {
+            	Point2D [] points = niPoly.getPoints();
+            	drawOutlineFromPoints(wnd, g, points, offX, offY, niOpened, null);
+            }
 
 			// draw the selected port
 			if (pp != null)
@@ -814,7 +819,7 @@ public class Highlight
 					Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, 0, 360);
 					poly = new Poly(pts);
 					poly.transform(ni.rotateOut());
-					drawOutlineFromPoints(wnd, g, pts, offX, offY, opened, null);
+					points = poly.getPoints();
 				} else if (poly.getStyle() == Poly.Type.CIRCLEARC)
 				{
 					double [] angles = ni.getArcDegrees();
@@ -822,11 +827,9 @@ public class Highlight
 					Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, angles[0], angles[1]);
 					poly = new Poly(pts);
 					poly.transform(ni.rotateOut());
-					drawOutlineFromPoints(wnd, g, pts, offX, offY, opened, null);
-				} else
-				{
-					drawOutlineFromPoints(wnd, g, points, offX, offY, opened, null);
+					points = poly.getPoints();
 				}
+				drawOutlineFromPoints(wnd, g, points, offX, offY, opened, null);
 				g.setColor(mainColor);
 
                 // show name of port
@@ -857,10 +860,9 @@ public class Highlight
                 	{
                 		PortInst ePi = equiv.getOriginalPort();
                 		Poly ePoly = ePi.getPoly();
-	            		Point2D [] linePoints = new Point2D[2];
-	            		linePoints[0] = new Point2D.Double(ePoly.getCenterX(), ePoly.getCenterY());
-	            		linePoints[1] = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
-	            		drawOutlineFromPoints(wnd, g, linePoints, highOffX, highOffY, false, null);
+						Point eP = wnd.databaseToScreen(ePoly.getCenterX(), ePoly.getCenterY());
+						Point p = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
+						drawLine(g, wnd, eP.x, eP.y, p.x + offX, p.y + offY);
                 	}
                 }
 
@@ -1012,8 +1014,8 @@ public class Highlight
                     Point2D [] pointList = new Point2D.Double[numPoints];
                     for(int i=0; i<numPoints; i++)
                     {
-                        pointList[i] = new Point2D.Double(ni.getTrueCenterX() + outline[i].getX(),
-                            ni.getTrueCenterY() + outline[i].getY());
+                        pointList[i] = new Point2D.Double(ni.getAnchorCenterX() + outline[i].getX(),
+                            ni.getAnchorCenterY() + outline[i].getY());
                     }
                     trans.transform(pointList, 0, pointList, 0, numPoints);
                     poly = new Poly(pointList);

@@ -463,11 +463,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	{
 		dragSource = DragSource.getDefaultDragSource();
 		DragGestureRecognizer dgr = dragSource.createDefaultDragGestureRecognizer(this, DnDConstants.ACTION_LINK, this);
-
-		/* Eliminates right mouse clicks as valid actions - useful especially
-		 * if you implement a JPopupMenu for the JTree
-		 */
-//		dgr.setSourceActions(dgr.getSourceActions() & ~InputEvent.BUTTON3_MASK);
 	}
 
 	public void dragGestureRecognized(DragGestureEvent e)
@@ -477,10 +472,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			// Get the Transferable Object
 			Simulation.SimSignal sSig = (Simulation.SimSignal)selectedNode.getUserObject();
-			String sigName = sSig.getSignalContext();
-			if (sigName == null) sigName = sSig.getSignalName(); else
-				sigName += sSig.getSignalName();
-			Transferable transferable = new StringSelection(sigName);
+			Transferable transferable = new StringSelection(sSig.getFullName());
 
 			// begin the drag
 			dragSource.startDrag(e, DragSource.DefaultLinkDrop, transferable, this);

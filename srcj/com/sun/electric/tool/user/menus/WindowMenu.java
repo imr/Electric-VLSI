@@ -50,6 +50,7 @@ import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
 
 /**
@@ -280,9 +281,22 @@ public class WindowMenu {
      */
     public static void toggleGridCommand()
     {
-        EditWindow wnd = EditWindow.needCurrent();
-        if (wnd == null) return;
-        wnd.setGrid(!wnd.isGrid());
+        // get the current frame
+        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+        if (wf == null) return;
+        if (wf.getContent() instanceof EditWindow)
+        {
+        	EditWindow wnd = (EditWindow)wf.getContent();
+	        if (wnd == null) return;
+	        wnd.setGrid(!wnd.isGrid());
+        } else if (wf.getContent() instanceof WaveformWindow)
+        {
+        	WaveformWindow ww = (WaveformWindow)wf.getContent();
+        	ww.toggleGridPoints();
+        } else
+        {
+        	System.out.println("Cannot draw a grid in this type of window");
+        }
     }
 
     /**

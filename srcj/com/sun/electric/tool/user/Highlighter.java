@@ -267,7 +267,12 @@ public class Highlighter implements DatabaseChangeListener {
 	 */
 	public void addNetwork(Network net, Cell cell)
 	{
-		Netlist netlist = cell.getUserNetlist();
+		Netlist netlist = cell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted highlighting (network information unavailable).  Please try again");
+			return;
+		}
         List highlights = NetworkHighlighter.getHighlights(cell, netlist, net, 0, 0);
         for (Iterator it = highlights.iterator(); it.hasNext(); ) {
             Highlight h = (Highlight)it.next();

@@ -1046,17 +1046,23 @@ public class Simulation extends Tool
 		{
 			if (weak)
 			{
-				Variable var = ni.newVar(Simulation.WEAK_NODE_KEY, "Weak");
+				Variable var = ni.newVar(WEAK_NODE_KEY, "Weak");
 				var.setDisplay(true);
 			} else
 			{
-				if (ni.getVar(Simulation.WEAK_NODE_KEY) != null)
-					ni.delVar(Simulation.WEAK_NODE_KEY);
+				if (ni.getVar(WEAK_NODE_KEY) != null)
+					ni.delVar(WEAK_NODE_KEY);
 			}
 			return true;
 		}
 	}
 
+	/**
+	 * Method to display simulation data in a waveform window.
+	 * @param sd the simulation data to display.
+	 * @param ww the waveform window to load.
+	 * If null, create a new waveform window.
+	 */
 	public static void showSimulationData(SimData sd, WaveformWindow ww)
 	{
 		// if the window already exists, update the data
@@ -1065,21 +1071,23 @@ public class Simulation extends Tool
 			ww.setSimData(sd);
 			return;
 		}
+		
+		// create a waveform window
+		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
+		ww = (WaveformWindow)wf.getContent();
 
-		// determine extent of the data
+		// set bounds of the window from extent of the data
 		Rectangle2D bounds = sd.getBounds();
 		double lowTime = bounds.getMinX();
 		double highTime = bounds.getMaxX();
 		double lowValue = bounds.getMinY();
 		double highValue = bounds.getMaxY();
 		double timeRange = highTime - lowTime;
-
-		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
-		ww = (WaveformWindow)wf.getContent();
 		ww.setMainTimeCursor(timeRange*0.2 + lowTime);
 		ww.setExtensionTimeCursor(timeRange*0.8 + lowTime);
 		ww.setDefaultTimeRange(lowTime, highTime);
 
+		// if the data has an associated cell, see if that cell remembers the signals that were in the waveform window
 		if (sd.cell != null)
 		{
 			Variable var = sd.cell.getVar(WaveformWindow.WINDOW_SIGNAL_ORDER);
@@ -1106,54 +1114,71 @@ public class Simulation extends Tool
 							sigName = signalName.substring(start, tabPos);
 							start = tabPos+1;
 						}
-						for(int j=0; j<sd.signals.size(); j++)
+						SimSignal sSig = sd.findSignalForNetwork(sigName);
+						if (sSig != null)
 						{
-							Simulation.SimSignal sSig = (Simulation.SimSignal)sd.signals.get(j);
-							String aSigName = sSig.getSignalName();
-							if (sSig.getSignalContext() != null) aSigName = sSig.getSignalContext() + aSigName;
-							if (sigName.equals(aSigName))
+							if (firstSignal)
 							{
-								if (firstSignal)
-								{
-									firstSignal = false;
-									wp = new WaveformWindow.Panel(ww, isAnalog);
-									if (isAnalog) wp.setValueRange(lowValue, highValue);
-									wp.makeSelectedPanel();
-									showedSomething = true;
-								}
-								new WaveformWindow.Signal(wp, sSig);
-								break;
+								firstSignal = false;
+								wp = new WaveformWindow.Panel(ww, isAnalog);
+								wp.makeSelectedPanel();
+								showedSomething = true;
 							}
+							new WaveformWindow.Signal(wp, sSig);
 						}
 						if (tabPos < 0) break;
 					}
 				}
-				if (showedSomething) return;
+				if (showedSomething)
+				{
+					if (isAnalog)
+					{
+						for(Iterator it = ww.getPanels(); it.hasNext(); )
+						{
+							WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
+							List signals = wp.getSignals();
+							boolean first = true;
+							double lowY = 0, highY = 0;
+							for(Iterator sIt = signals.iterator(); sIt.hasNext(); )
+							{
+								WaveformWindow.Signal ws = (WaveformWindow.Signal)sIt.next();
+								SimSignal sSig = ws.getSignal();
+								Rectangle2D sigBounds = sSig.getBounds();
+								if (first)
+								{
+									lowY = sigBounds.getMinY();
+									highY = sigBounds.getMaxY();
+									first = false;
+								} else
+								{
+									if (sigBounds.getMinY() < lowY) lowY = sigBounds.getMinY();
+									if (sigBounds.getMaxY() > highY) highY = sigBounds.getMaxY();
+								}
+							}
+							if (!first) wp.setValueRange(lowY, highY);
+						}
+					}
+					return;
+				}
 			}
 		}
 
-		// put the first waveform panels in it
-		if (sd.signals.size() > 0)
+		// nothing saved, so show a default set of signals (if it even exists)
+		if (sd.isAnalog())
 		{
-			Simulation.SimSignal sSig = (Simulation.SimSignal)sd.signals.get(0);
-			boolean isAnalog = false;
-			if (sSig instanceof SimAnalogSignal) isAnalog = true;
-			if (isAnalog)
+			WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, true);
+			wp.setValueRange(lowValue, highValue);
+			wp.makeSelectedPanel();
+		} else
+		{
+			// put all top-level signals in
+			for(int i=0; i<sd.signals.size(); i++)
 			{
-				WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, isAnalog);
-				wp.setValueRange(lowValue, highValue);
+				SimDigitalSignal sDSig = (SimDigitalSignal)sd.signals.get(i);
+				if (sDSig.getSignalContext() != null) continue;
+				WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, false);
 				wp.makeSelectedPanel();
-			} else
-			{
-				// put all top-level signals in
-				for(int i=0; i<sd.signals.size(); i++)
-				{
-					Simulation.SimDigitalSignal sDSig = (Simulation.SimDigitalSignal)sd.signals.get(i);
-					if (sDSig.getSignalContext() != null) continue;
-					WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, false);
-					wp.makeSelectedPanel();
-					new WaveformWindow.Signal(wp, sDSig);
-				}
+				new WaveformWindow.Signal(wp, sDSig);
 			}
 		}
 		ww.getPanel().validate();

@@ -4,6 +4,22 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02h: *********************************
 
+IMP: (02/09/05, SMR) Signal names in the explorer tree are now sorted, but with subcells listed first.
+     Also allowed "Window / Toggle Grid" to work in waveform window.
+     Also waveform window "Measure" mode displays better.
+
+BUG: (02/09/05, SMR) Waveform signals that are saved with a cell are not displayed properly.
+FIX: Fixed WaveformWindow.SaveSignalOrder class and Simulation.showSimulationData().
+
+BUG: (02/09/05, SMR) Highlighting of splines does not always work right.
+FIX: Changes to Highlight.showHighlight().
+
+BUG: (02/08/05, SMR) Crossprobing doesn't work when examining lower levels of hierarchy (Bug #173).
+FIX: In WaveformWindow.showSelectedNetworksInSchematic(), allow conversion between "@" and "_".
+
+BUG: (02/08/05, SMR) Mimic stitch doesn't handle layer changing stitches (Bug #194).
+FIX: In MimicStitch.mimicOneArc(), allow a null arc prototype (if no single arc can be used).
+
 IMP: (02/09/05, GVG) First version of new layer coverage tool
 
 IMP: (02/08/05, RK) Make gate layout generator use VarContext from current window

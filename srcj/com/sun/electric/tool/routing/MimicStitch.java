@@ -227,7 +227,7 @@ public class MimicStitch
 					prefY = (lastActivity.createdNodes[0].getAnchorCenterY() +
 						lastActivity.createdNodes[1].getAnchorCenterY()) / 2 - (y0+y1) / 2;
 				}
-				MimicStitchJob job = new MimicStitchJob(ends[0], ends[1], width, proto, prefX, prefY, forced, highlighter);
+				MimicStitchJob job = new MimicStitchJob(ends[0], ends[1], width, null, prefX, prefY, forced, highlighter);
 			}
 			lastActivity.numCreatedArcs = 0;
 			return;
@@ -390,9 +390,7 @@ public class MimicStitch
 		endPi[0] = conn1.getPortInst();   endPi[1] = conn2.getPortInst();
 		Point2D [] endPts = new Point2D[2];
 		endPts[0] = conn1.getLocation();   endPts[1] = conn2.getLocation();
-
 		Cell cell = endPi[0].getNodeInst().getParent();
-//		Netlist netlist = cell.getUserNetlist();
 		Netlist netlist = cell.acquireUserNetlist();
 		if (netlist == null)
 		{
@@ -414,7 +412,10 @@ public class MimicStitch
 			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
 			{
 				PortInst pi = (PortInst)pIt.next();
-				if (!pi.getPortProto().connectsTo(oProto)) continue;
+				if (oProto != null)
+				{
+					if (!pi.getPortProto().connectsTo(oProto)) continue;
+				}
 				cachedPortPoly.put(pi, pi.getPoly());
 			}
 		}
@@ -505,7 +506,6 @@ public class MimicStitch
 						// if this port is not cached, it cannot connect, so ignore it
 						Poly poly = (Poly)cachedPortPoly.get(pi);
 						if (poly == null) continue;
-
 						double x0 = poly.getCenterX();
 						double y0 = poly.getCenterY();
 						x0 += end0Offx;   y0 += end0Offy;
@@ -624,7 +624,6 @@ public class MimicStitch
 								if (netlist.sameNetwork(piNet0.getNodeInst(), piNet0.getPortProto(),
 									piNet1.getNodeInst(), piNet1.getPortProto())) continue;
 							}
-
 							if (pp != port0 || oPp != port1)
 								situation |= LIKELYDIFFPORT;
 							int con2 = ni.getNumConnections() + oNi.getNumConnections();
