@@ -41,7 +41,6 @@ import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.technologies.Generic;
 
 // Java3D packages
 import com.sun.j3d.utils.universe.SimpleUniverse;

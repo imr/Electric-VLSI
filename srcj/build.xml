@@ -4,9 +4,6 @@
     <target name="init" description="Initialization">
         <property name="beanshell" value="../lib/java/bsh-1.2b3.jar"/>
         <property name="AppleJava" value="packaging/AppleJavaExtensions.jar"/>
-	    <property name="Java3DCore" value="packaging/j3dcore.jar"/>
-	    <property name="Java3DUtils" value="packaging/j3dutils.jar"/>
-	    <property name="JavaVecMath" value="packaging/vecmath.jar"/>
 	    <property name="JUnit" value="packaging/junit.jar"/>
     </target>
 
@@ -80,12 +77,48 @@
         <delete file="com/sun/electric/plugins/tsmc90/TSMC90.class"/>
     </target>
 
-    <target name="jar3D" depends="init" description="Make binary Jar plugin for 3D View">
+    <!-- commands to include 3D plugin -->
+	<target name="compileWith3D" depends="init" description="Compile with 3D plugin">
+        <javac debug="true" deprecation="true" destdir="." srcdir="." source="1.4">
+            <classpath><pathelement location="${beanshell}"/></classpath>
+            <classpath><pathelement location="${AppleJava}"/></classpath>
+            <exclude name="intervalsimulation/"/>
+	        <exclude name="com/sun/electric/tests/"/>
+        </javac>
+    </target>
+
+	<target name="jarWith3D" depends="init,compileWith3D" description="Make binary Jar file including 3D plugin">
+        <property name="version" value=""/>
+        <unjar dest="." src="${beanshell}"/>
+        <unjar dest="." src="${AppleJava}"/>
+        <delete dir="META-INF"/>
+        <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
+        <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="electric${version}.mf">
+            <exclude name="apidoc/"/>
+            <exclude name="bin/"/>
+            <exclude name="intervalsimulation/"/>
+            <exclude name="packaging/"/>
+            <exclude name="build.xml"/>
+            <exclude name="ChangeLog.txt"/>
+            <exclude name="electric${version}.jar"/>
+            <exclude name="electric${version}.mf"/>
+            <exclude name="Hack_stack.txt"/>
+            <exclude name="**/*.java"/>
+            <exclude name="**/*.form"/>
+        </jar>
+        <delete file="electric${version}.mf"/>
+        <delete dir="bsh"/>
+        <delete dir="com/apple"/>
+        <delete quiet="true">
+            <fileset dir="com">
+                <include name="**/*.class"/>
+            </fileset>
+        </delete>
+    </target>
+
+	<target name="jar3D" depends="init" description="Make binary Jar plugin for 3D View">
         <javac debug="true" deprecation="true" destdir="." srcdir="." source="1.4">
             <include name="com/sun/electric/plugins/j3d/View3DWindow.java"/>
-	        <classpath><pathelement location="${Java3DCore}"/></classpath>
-	        <classpath><pathelement location="${Java3DUtils}"/></classpath>
-	        <classpath><pathelement location="${JavaVecMath}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>
         </javac>
         <jar basedir="." compress="true" jarfile="electric3d.jar">
@@ -96,7 +129,7 @@
 
     <target name="jarGNU" depends="init,compile" description="Make binary Jar file for GNU">
         <property name="version" value=""/>
-        <unjar dest="." src="${AppleJava}"/> 
+        <unjar dest="." src="${AppleJava}"/>
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
         <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="packaging/electric${version}.mf">
@@ -124,7 +157,7 @@
 
     <target name="jarGNUSource" depends="init,compile" description="Make source Jar file for GNU">
         <property name="version" value=""/>
-        <unjar dest="." src="${AppleJava}"/> 
+        <unjar dest="." src="${AppleJava}"/>
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric${version}.mf"/>
         <jar basedir="." compress="true" jarfile="electric${version}.jar" manifest="packaging/electric${version}.mf">
