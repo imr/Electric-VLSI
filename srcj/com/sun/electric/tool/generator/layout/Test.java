@@ -81,7 +81,6 @@ public class Test extends Job {
 		Point2D p = new Point2D.Double(0,0);
 		System.out.println("lowInst origin in hiCell"+xform.transform(p, null));
 		System.out.println("lowInst bounds:"+lowInst.getBounds());
-		lowInst.setTrace();
 		
 		System.out.println("Done Test");
 	}
