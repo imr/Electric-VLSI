@@ -32,6 +32,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -124,6 +125,7 @@ public class InputBinary extends Input
 	/** the number of NodeInsts in the library */							private int nodeCount;
 	/** list of all NodeInsts in the library */								private NodeInst [] nodeList;
 	/** list of Prototypes of NodeInsts in the library */					private NodeProto [] nodeTypeList;
+	/** list of Names of NodeInsts in the library */						private Name [] nodeNameList;
 	/** list of Low X values for NodeInsts in the library */				private int [] nodeLowXList;
 	/** list of High X values for NodeInsts in the library */				private int [] nodeHighXList;
 	/** list of Low Y values for NodeInsts in the library */				private int [] nodeLowYList;
@@ -135,6 +137,7 @@ public class InputBinary extends Input
 	/** the number of ArcInsts in the library */							private int arcCount;
 	/** list of all ArcInsts in the library */								private ArcInst [] arcList;
 	/** list of the prototype of the ArcInsts in the library */				private ArcProto [] arcTypeList;
+	/** list of the Names of the ArcInsts in the library */					private Name [] arcNameList;
 	/** list of the width of the ArcInsts in the library */					private int [] arcWidthList;
 	/** list of the head X of the ArcInsts in the library */				private int [] arcHeadXPosList;
 	/** list of the head Y of the ArcInsts in the library */				private int [] arcHeadYPosList;
@@ -353,6 +356,7 @@ public class InputBinary extends Input
 		// allocate pointers for the NodeInsts
 		nodeList = new NodeInst[nodeCount];
 		nodeTypeList = new NodeProto[nodeCount];
+		nodeNameList = new Name[nodeCount];
 		nodeLowXList = new int[nodeCount];
 		nodeHighXList = new int[nodeCount];
 		nodeLowYList = new int[nodeCount];
@@ -363,6 +367,7 @@ public class InputBinary extends Input
 		// allocate pointers for the ArcInsts
 		arcList = new ArcInst[arcCount];
 		arcTypeList = new ArcProto[arcCount];
+		arcNameList = new Name[arcCount];
 		arcWidthList = new int[arcCount];
 		arcHeadXPosList = new int[arcCount];
 		arcHeadYPosList = new int[arcCount];
@@ -733,14 +738,14 @@ public class InputBinary extends Input
 		if (readNameSpace()) return true;
 
 		// read the library variables
-		if (readVariables(lib) < 0) return true;
+		if (readVariables(lib, -1) < 0) return true;
 
 		// read the tool variables
 		for(int i=0; i<toolCount; i++)
 		{
 			Tool tool = toolList[i];
 			if (tool == null) ignoreVariables(); else
-				if (readVariables(tool) < 0) return true;
+				if (readVariables(tool, -1) < 0) return true;
 		}
 
 		// read the technology variables
@@ -749,7 +754,7 @@ public class InputBinary extends Input
 			Technology tech = techList[i];
 			if (tech == null) ignoreVariables(); else
 			{
-				int j = readVariables(tech);
+				int j = readVariables(tech, -1);
 				if (j < 0) return true;
 				if (j > 0) getTechList(i);
 			}
@@ -759,7 +764,7 @@ public class InputBinary extends Input
 		for(int i=0; i<arcProtoCount; i++)
 		{
 			PrimitiveArc ap = arcProtoList[i];
-			int j = readVariables(ap);
+			int j = readVariables(ap, -1);
 			if (j < 0) return true;
 			if (j > 0) getArcProtoList(i);
 		}
@@ -768,7 +773,7 @@ public class InputBinary extends Input
 		for(int i=0; i<primNodeProtoCount; i++)
 		{
 			NodeProto np = primNodeProtoList[i];
-			int j = readVariables(np);
+			int j = readVariables(np, -1);
 			if (j < 0) return true;
 			if (j > 0) getPrimNodeProtoList(i);
 		}
@@ -777,7 +782,7 @@ public class InputBinary extends Input
 		for(int i=0; i<primPortProtoCount; i++)
 		{
 			PortProto pp = primPortProtoList[i];
-			int j = readVariables(pp);
+			int j = readVariables(pp, -1);
 			if (j < 0) return true;
 			if (j > 0) getPrimPortProtoList(i);
 		}
@@ -792,7 +797,7 @@ public class InputBinary extends Input
 				View v = getView(j);
 				if (v != null)
 				{
-					if (readVariables(v) < 0) return true;
+					if (readVariables(v, -1) < 0) return true;
 				} else
 				{
 					System.out.println("View index " + j + " not found");
@@ -1075,6 +1080,7 @@ public class InputBinary extends Input
 		{
 			ArcInst ai = arcList[i];
 			ArcProto ap = arcTypeList[i];
+			Name name = arcNameList[i];
 			double width = arcWidthList[i] / lambda;
 			double headX = (arcHeadXPosList[i] - xoff) / lambda;
 			double headY = (arcHeadYPosList[i] - yoff) / lambda;
@@ -1107,6 +1113,7 @@ public class InputBinary extends Input
 				continue;
 			}
 			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY));
+			ai.setNameLow(name);
 			ai.lowLevelLink();
 		}
 	}
@@ -1118,6 +1125,7 @@ public class InputBinary extends Input
 	{
 		NodeInst ni = nodeList[i];
 		NodeProto np = nodeTypeList[i];
+		Name name = nodeNameList[i];
 		double lowX = nodeLowXList[i]-xoff;
 		double lowY = nodeLowYList[i]-yoff;
 		double highX = nodeHighXList[i]-xoff;
@@ -1133,6 +1141,7 @@ public class InputBinary extends Input
 			rotation = (rotation + 900) % 3600;
 		}
 		ni.lowLevelPopulate(np, center, width, height, rotation, cell);
+		ni.setNameLow(name);
 		ni.lowLevelLink();
 
 		// convert outline information, if present
@@ -1317,7 +1326,7 @@ public class InputBinary extends Input
 			}
 
 			// read the export variables
-			if (readVariables(pp) < 0) return true;
+			if (readVariables(pp, -1) < 0) return true;
 
 			portProtoIndex++;
 		}
@@ -1354,7 +1363,7 @@ public class InputBinary extends Input
 		cell.lowLevelSetUserbits(userBits);
 
 		// read variable information
-		if (readVariables(cell) < 0) return true;
+		if (readVariables(cell, -1) < 0) return true;
 
 		// cell read successfully
 		return false;
@@ -1697,7 +1706,7 @@ public class InputBinary extends Input
 		ni.lowLevelSetUserbits(userBits);
 
 		// read variable information
-		if (readVariables(ni) < 0) return true;
+		if (readVariables(ni, nodeIndex) < 0) return true;
 
 		// node read successfully
 		return false;
@@ -1772,7 +1781,7 @@ public class InputBinary extends Input
 		ai.lowLevelSetUserbits(userBits);
 
 		// read variable information
-		if (readVariables(ai) < 0) return true;
+		if (readVariables(ai, arcIndex) < 0) return true;
 
 		// arc read successfully
 		return false;
@@ -1825,7 +1834,7 @@ public class InputBinary extends Input
 	 * routine to read a set of object variables.  returns negative upon error and
 	 * otherwise returns the number of variables read
 	 */
-	private int readVariables(ElectricObject obj)
+	private int readVariables(ElectricObject obj, int index)
 		throws IOException
 	{
 		int count = readBigInteger();
@@ -1931,7 +1940,13 @@ public class InputBinary extends Input
 				obj instanceof ArcInst && realName[key].equals(ArcInst.VAR_ARC_NAME)) &&
 				newAddr instanceof String)
 			{
-				setGeomName((Geometric)obj, newAddr, TextDescriptor.newDescriptor(descript0, descript1), newtype);
+				Geometric geom = (Geometric)obj;
+				geom.setNameTextDescriptor(TextDescriptor.newDescriptor(descript0, descript1));
+				Name name = makeGeomName(geom, newAddr, newtype);
+				if (obj instanceof NodeInst)
+					nodeNameList[index] = name;
+				else
+					arcNameList[index] = name;
 				continue;
 			}
 			// see if the variable is deprecated
@@ -1958,7 +1973,7 @@ public class InputBinary extends Input
 		throws IOException
 	{
 		NodeInst ni = NodeInst.lowLevelAllocate();
-		readVariables(ni);
+		readVariables(ni, -1);
 	}
 
 	/**

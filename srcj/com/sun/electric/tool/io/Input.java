@@ -301,9 +301,9 @@ public class Input
 	 * @param td text descriptor.
 	 * @param type type mask.
 	 */
-	protected void setGeomName(Geometric geom, Object value, TextDescriptor td, int type)
+	protected Name makeGeomName(Geometric geom, Object value, int type)
 	{
-		if (value == null || !(value instanceof String)) return;
+		if (value == null || !(value instanceof String)) return null;
 		String str = (String)value;
 		Name name = Name.findName(str);
 		if ((type & BinaryConstants.VDISPLAY) != 0)
@@ -319,9 +319,8 @@ public class Input
 				}
 				name = Name.findName(newS);
 			}
-		} else if (!name.isTempname()) return;
-		geom.setNameLow(name);
-		geom.setNameTextDescriptor(td);
+		} else if (!name.isTempname()) return null;
+		return name;
 	}
 
 }

@@ -33,6 +33,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -64,6 +65,7 @@ public class InputText extends Input
 	{
 		private NodeInst []  nodeList;
 		private NodeProto [] nodeProto;
+		private Name []      nodeInstName;
 		private int []       nodeInstLowX;
 		private int []       nodeInstHighX;
 		private int []       nodeInstLowY;
@@ -75,6 +77,7 @@ public class InputText extends Input
 	{
 		private ArcInst []   arcList;
 		private ArcProto []  arcProto;
+		private Name []      arcInstName;
 		private int []       arcWidth;
 		private NodeInst []  arcHeadNode;
 		private String []    arcHeadPort;
@@ -437,6 +440,7 @@ public class InputText extends Input
 			if (np == Generic.tech.cellCenterNode)
 			{
 				NodeInst ni = nil.nodeList[j];
+				Name name = nil.nodeInstName[j];
 				int lowX = nil.nodeInstLowX[j];
 				int lowY = nil.nodeInstLowY[j];
 				int highX = nil.nodeInstHighX[j];
@@ -448,6 +452,7 @@ public class InputText extends Input
 				double height = (highY - lowY) / lambda;
 				if (nil.nodeInstTranspose[j]) width = -width;
 				ni.lowLevelPopulate(np, center, width, height, nil.nodeInstRotation[j], cell);
+				ni.setNameLow(name);
 				ni.lowLevelLink();
 			}
 		}
@@ -459,6 +464,7 @@ public class InputText extends Input
 			if (np == null) continue;
 			if (np == Generic.tech.cellCenterNode) continue;
 			NodeInst ni = nil.nodeList[j];
+			Name name = nil.nodeInstName[j];
 			int lowX = nil.nodeInstLowX[j];
 			int lowY = nil.nodeInstLowY[j];
 			int highX = nil.nodeInstHighX[j];
@@ -470,6 +476,7 @@ public class InputText extends Input
 			double height = (highY - lowY) / lambda;
 			if (nil.nodeInstTranspose[j]) width = -width;
 			ni.lowLevelPopulate(np, center, width, height, nil.nodeInstRotation[j], cell);
+			ni.setNameLow(name);
 			ni.lowLevelLink();
 
 			// convert outline information, if present
@@ -481,6 +488,7 @@ public class InputText extends Input
 		{
 			ArcInst ai = ail.arcList[j];
 			ArcProto ap = ail.arcProto[j];
+			Name name = ail.arcInstName[j];
 			double width = ail.arcWidth[j] / lambda;
 			PortInst headPortInst = ail.arcHeadNode[j].findPortInst(ail.arcHeadPort[j]);
 			PortInst tailPortInst = ail.arcTailNode[j].findPortInst(ail.arcTailPort[j]);
@@ -490,6 +498,7 @@ public class InputText extends Input
 			double tailX = (ail.arcTailX[j]-xoff) / lambda;
 			double tailY = (ail.arcTailY[j]-yoff) / lambda;
 			ai.lowLevelPopulate(ap, width, tailPortInst, new Point2D.Double(tailX, tailY), headPortInst, new Point2D.Double(headX, headY));
+			ai.setNameLow(name);
 			ai.lowLevelLink();
 		}
 
@@ -1014,6 +1023,7 @@ public class InputText extends Input
 		nodeInstList[curCellNumber] = nil;
 		nil.nodeList = new NodeInst[nodeInstCount];
 		nil.nodeProto = new NodeProto[nodeInstCount];
+		nil.nodeInstName = new Name[nodeInstCount];
 		nil.nodeInstLowX = new int[nodeInstCount];
 		nil.nodeInstHighX = new int[nodeInstCount];
 		nil.nodeInstLowY = new int[nodeInstCount];
@@ -1037,6 +1047,7 @@ public class InputText extends Input
 		arcInstList[curCellNumber] = ail;
 		ail.arcList = new ArcInst[arcInstCount];
 		ail.arcProto = new ArcProto[arcInstCount];
+		ail.arcInstName = new Name[arcInstCount];
 		ail.arcWidth = new int[arcInstCount];
 		ail.arcHeadNode = new NodeInst[arcInstCount];
 		ail.arcHeadPort = new String[arcInstCount];
@@ -1637,7 +1648,13 @@ public class InputText extends Input
 					naddr instanceof ArcInst && varName.equals(ArcInst.VAR_ARC_NAME)) &&
 				value instanceof String)
 			{
-				setGeomName((Geometric)naddr, value, td, type);
+				Geometric geom = (Geometric)naddr;
+				geom.setNameTextDescriptor(td);
+				Name name = makeGeomName(geom, value, type);
+				if (naddr instanceof NodeInst)
+					nodeInstList[curCellNumber].nodeInstName[curNodeInstIndex] = name;
+				else
+					arcInstList[curCellNumber].arcInstName[curArcInstIndex] = name;
 				continue;
 			}
 			if (!invalid)

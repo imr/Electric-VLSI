@@ -1617,19 +1617,14 @@ public class NodeInst extends Geometric implements Nodable
 		if (name == getNameLow()) return false;
 		if (checkNodeName(name)) return true;
 
-		if (getNameLow() != null)
+		if (nodeUsage != null && getNameLow() != null)
 		{
 			parent.removeNodables(this, null);
 		}
 		super.setNameLow(name);
-		if (name != null)
-		{
-			parent.addNodables(this, null);
-		}
-
-		// If linked, update max suffix
 		if (nodeUsage != null)
 		{
+			if (name != null) parent.addNodables(this, null);
 			parent.updateMaxSuffix(this);
 		}
 
@@ -1668,7 +1663,7 @@ public class NodeInst extends Geometric implements Nodable
 			System.out.println("Bus name <"+name+"> can be assigned only to icon nodes");
 			return true;
 		}
-		if (!parent.isUniqueName(name, NodeInst.class, this))
+		if (nodeUsage != null && !parent.isUniqueName(name, NodeInst.class, this))
 		{
 			System.out.println("Node name <"+name+"> is duplicated in "+parent);
 			return true;
