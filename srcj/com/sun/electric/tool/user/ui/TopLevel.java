@@ -27,6 +27,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.MenuBar;
@@ -119,6 +120,7 @@ public class TopLevel extends JFrame
 		{
 			setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
             //setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            addWindowFocusListener(EDialog.dialogFocusHandler);
 		}
 
 		cursor = Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR);

@@ -63,10 +63,14 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	{
 		if (theDialog == null)
 		{
-			JFrame jf = TopLevel.getCurrentJFrame();
+            JFrame jf;
+            if (TopLevel.isMDIMode())
+			    jf = TopLevel.getCurrentJFrame();
+            else
+                jf = null;
 			theDialog = new GetInfoArc(jf, false);
 		}
-        theDialog.loadArcInfo();
+        theDialog.loadInfo();
         if (!theDialog.isVisible()) theDialog.pack();
 		theDialog.setVisible(true);
 	}
@@ -77,7 +81,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
     public void highlightChanged()
 	{
         if (!isVisible()) return;
-		loadArcInfo();
+		loadInfo();
 	}
 
     /**
@@ -99,11 +103,16 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
         }
         if (reload) {
             // update dialog
-            loadArcInfo();
+            loadInfo();
         }
     }
+
+    /** Don't do anything on little database changes, only after all database changes */
     public void databaseChanged(Undo.Change change) {}
-    public boolean isGUIListener() { return true; }    
+
+    /** This is a GUI listener */
+    public boolean isGUIListener() { return true; }
+
 
 	/** Creates new form Arc Get-Info */
 	private GetInfoArc(java.awt.Frame parent, boolean modal)
@@ -111,16 +120,13 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 		super(parent, modal);
 		initComponents();
         getRootPane().setDefaultButton(ok);
-		loadArcInfo();
-        setLocation(100, 50);
-        // add myself as a highlight listener
         Highlight.addHighlightListener(this);
-        Undo.addDatabaseChangeListener(this);
+        Undo.addDatabaseChangeListener(this);        
 	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }
 
-	private void loadArcInfo()
+	protected void loadInfo()
 	{
 		// must have a single node selected
 		ArcInst ai = null;

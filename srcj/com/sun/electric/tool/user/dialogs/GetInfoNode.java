@@ -100,10 +100,14 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	{
 		if (theDialog == null)
 		{
-			JFrame jf = TopLevel.getCurrentJFrame();
+            JFrame jf;
+            if (TopLevel.isMDIMode())
+			    jf = TopLevel.getCurrentJFrame();
+            else
+                jf = null;
 			theDialog = new GetInfoNode(jf, false);
 		}
-        theDialog.loadNodeInfo();
+        theDialog.loadInfo();
         if (!theDialog.isVisible()) theDialog.pack();
 		theDialog.setVisible(true);
 	}
@@ -114,7 +118,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
     public void highlightChanged()
 	{
         if (!isVisible()) return;
-		loadNodeInfo();
+		loadInfo();
 	}
 
     /**
@@ -136,10 +140,14 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         }
         if (reload) {
             // update dialog
-            loadNodeInfo();
+            loadInfo();
         }
     }
+
+    /** Don't do anything on little database changes, only after all database changes */
     public void databaseChanged(Undo.Change change) {}
+
+    /** This is a GUI listener */
     public boolean isGUIListener() { return true; }
 
 	/** Creates new form Node Get-Info */
@@ -192,7 +200,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         if (buttonSelected == 1)
 		    attributes.setSelected(true);
 
-		loadNodeInfo();
+		loadInfo();
 	}
 
 	protected void escapePressed() { cancelActionPerformed(null); }
@@ -206,7 +214,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		boolean code;
 	};
 
-	private void loadNodeInfo()
+	protected void loadInfo()
 	{
 		// must have a single node selected
 		NodeInst ni = null;

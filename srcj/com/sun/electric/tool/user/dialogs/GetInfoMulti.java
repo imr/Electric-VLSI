@@ -69,7 +69,11 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 	{
 		if (theDialog == null)
 		{
-			JFrame jf = TopLevel.getCurrentJFrame();
+            JFrame jf;
+            if (TopLevel.isMDIMode())
+			    jf = TopLevel.getCurrentJFrame();
+            else
+                jf = null;
 			theDialog = new GetInfoMulti(jf, false);
 		}
         theDialog.loadMultiInfo();
@@ -111,7 +115,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
         }
     }
     public void databaseChanged(Undo.Change change) {}
-    public boolean isGUIListener() { return true; }    
+    public boolean isGUIListener() { return true; }
 
 	/** Creates new form Multi-Object Get Info */
 	private GetInfoMulti(java.awt.Frame parent, boolean modal)

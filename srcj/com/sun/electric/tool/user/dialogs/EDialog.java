@@ -23,14 +23,19 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.tool.user.HighlightListener;
+import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
+
 import java.awt.Rectangle;
 import java.awt.Point;
 import java.awt.Frame;
-import java.awt.event.ComponentListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 import javax.swing.JDialog;
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
@@ -43,6 +48,7 @@ public class EDialog extends JDialog
 {
 	private static HashMap locations = new HashMap();
 	private Class thisClass;
+    public static DialogFocusHandler dialogFocusHandler = new DialogFocusHandler();
 
 	/** Creates new form Search and Replace */
 	protected EDialog(Frame parent, boolean modal)
@@ -62,8 +68,14 @@ public class EDialog extends JDialog
 		{
 			public void actionPerformed(ActionEvent event) { escapePressed(); }
 		});
+
+        if (parent == null && !TopLevel.isMDIMode()) {
+            // add a focus listener for SDI mode so dialogs are always on top
+            dialogFocusHandler.addEDialog(this);
+        }
 	}
 
+    /** used to cancel the dialog */
 	protected void escapePressed() {}
 
 	private static class MoveComponentListener implements ComponentListener
@@ -80,4 +92,25 @@ public class EDialog extends JDialog
 			locations.put(cls, new Point(x, y));
 		}
 	}
+
+    private static class DialogFocusHandler implements WindowFocusListener {
+
+        private List dialogs;
+
+        private DialogFocusHandler() { dialogs = new ArrayList(); }
+
+        public synchronized void addEDialog(EDialog dialog) {
+            dialogs.add(dialog);
+        }
+
+        public synchronized void windowGainedFocus(WindowEvent e) {
+            for (int i=0; i<dialogs.size(); i++) {
+                EDialog dialog = (EDialog)dialogs.get(i);
+                dialog.toFront();
+            }
+        }
+
+        public void windowLostFocus(WindowEvent e) {}
+
+    }
 }

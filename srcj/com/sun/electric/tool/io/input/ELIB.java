@@ -1833,7 +1833,7 @@ public class ELIB extends LibraryFiles
 				// version 12 or later
 				theProtoName = readString();
 				int k = readBigInteger();
-/*
+
                 // fix for new cell version library corruption bug
                 if (k == -1) {
                     // find self in list
@@ -1841,7 +1841,7 @@ public class ELIB extends LibraryFiles
                         if (cell == nodeProtoList[i]) { k = i; break; }
                     }
                 }
-*/
+
 				cell.setTempObj(nodeProtoList[k]);		// the "next in cell group" circular pointer
 				k = readBigInteger();
 //				cell->nextcont = nodeProtoList[k];		// the "next in cell continuation" circular pointer
