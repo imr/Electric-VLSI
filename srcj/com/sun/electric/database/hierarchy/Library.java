@@ -34,11 +34,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.util.List;
-import java.util.Comparator;
-import java.util.Collections;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 import java.net.URL;
 
 /**
@@ -512,6 +508,31 @@ public class Library extends ElectricObject
 	 */
 	public void lowLevelSetUserBits(int userBits) { this.userBits = userBits; }
 
+	/**
+	 * Get list of cells contained in other libraries
+	 * that refer to cells contained in this library
+	 * @param elib to search for
+	 * @return list of cells refering to elements in this library
+	 */
+	public static Set findReferenceInCell(Library elib)
+	{
+		TreeSet list = new TreeSet();
+
+		for (int i = 0; i < libraries.size(); i++)
+		{
+			Library l = (Library) libraries.get(i);
+
+			// skip itself
+			if (l == elib) continue;
+
+			for (int j = 0; j < l.cells.size(); j++)
+			{
+				Cell cell = (Cell) l.cells.get(j);
+				cell.findReferenceInCell(elib, list);
+			}
+		}
+		return list;
+	}
 	/**
 	 * Method to find a Library with the specified name.
 	 * @param libName the name of the Library.

@@ -315,10 +315,27 @@ public class FileMenu {
 
     public static void closeLibraryCommand(Library lib)
     {
+	    Set found = Library.findReferenceInCell(lib);
+	    // You can't close it because there are open cells that refer to library elements
+	    if (found.size() != 0)
+	    {
+		    System.out.println("Cannot close library '" + lib.getName() + "':");
+		    System.out.print("\t Cells ");
+
+		    for (Iterator i = found.iterator(); i.hasNext();)
+		    {
+			   Cell cell = (Cell)i.next();
+			   System.out.print("'" + cell.getName() + "'(" + cell.getLibrary().getName() + ") ");
+		    }
+		    System.out.println("refer to it.");
+		    return;
+	    }
+
         int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(), "Are you sure you want to close library " + lib.getName() + "?");
         if (response != JOptionPane.YES_OPTION) return;
         String libName = lib.getName();
         WindowFrame.removeLibraryReferences(lib);
+
         if (lib.kill())
             System.out.println("Library " + libName + " closed");
         WindowFrame.wantToRedoTitleNames();
@@ -440,6 +457,12 @@ public class FileMenu {
             if (PostScript.syncAll()) return;
         }
         EditWindow wnd = EditWindow.needCurrent();
+
+	    if (wnd == null)
+        {
+            System.out.println("No current window");
+            return;
+        }
         Cell cell = wnd.getCell();
         if (cell == null)
         {

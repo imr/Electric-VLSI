@@ -1094,7 +1094,7 @@ public class ToolMenu {
                             System.out.println("Layer " + layer.getName() + " covers " + TextUtils.formatDouble(layerArea) + " square lambda (" + TextUtils.formatDouble((layerArea/totalArea)*100, 0) + "%)");
                         }
 
-                        System.out.println("Cell is " + TextUtils.formatDouble(totalArea) + " square lambda");
+                        System.out.println("Cell is " + TextUtils.formatDouble(totalArea, 2) + " square lambda");
                     }
                     break;
                 case MERGE:

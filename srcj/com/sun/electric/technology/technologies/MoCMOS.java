@@ -44,6 +44,7 @@ import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
@@ -2808,7 +2809,7 @@ public class MoCMOS extends Technology
 	private void setState()
 	{
 		// set rules
-		DRC.Rules rules = getFactoryDesignRules();
+		DRC.Rules rules = getFactoryDesignRules(null);
 //		if (rules != null)
 //		{
 //			// set the rules on the technology
@@ -3129,7 +3130,7 @@ public class MoCMOS extends Technology
 	 * @return the "factory" design rules for this Technology.
 	 * Returns null if there is an error loading the rules.
 	 */
-	public DRC.Rules getFactoryDesignRules()
+	public DRC.Rules getFactoryDesignRules(ErrorLogger errorLogger)
 	{
 		DRC.Rules rules = new DRC.Rules(this);
 
@@ -3290,7 +3291,8 @@ public class MoCMOS extends Technology
 						setDefNodeSize(nty, distance, distance, rules);
 						break;
 					case SURROUND:
-						setLayerSurroundLayer(nty, lay1, lay2, distance, rules.minWidth);
+						setLayerSurroundLayer(nty, lay1, lay2, distance,
+						        rules.minWidth, errorLogger);
 						break;
 					case ASURROUND:
 						setArcLayerSurroundLayer(aty, lay1, lay2, distance);
@@ -3544,7 +3546,7 @@ public class MoCMOS extends Technology
 	 * the layers are at least "width" wide.  Affects the default arc width
 	 * and the default pin size.
 	 */
-	private void setLayerMinWidth(String layername, double width)
+	private void setLayerMinWidthold(String layername, double width)
 	{
 		// find the arc and set its default width
 		PrimitiveArc ap = findArcProto(layername);
@@ -3603,7 +3605,7 @@ public class MoCMOS extends Technology
 	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
 	 * in node "nty" to "surround".  The array "minsize" is the minimum size of each layer.
 	 */
-	private void setLayerSurroundLayer(PrimitiveNode nty, Layer outerLayer, Layer innerLayer, double surround, Double [] minSize)
+	private void setLayerSurroundLayerOld(PrimitiveNode nty, Layer outerLayer, Layer innerLayer, double surround, Double [] minSize)
 	{
 		// find the inner layer
 		Technology.NodeLayer inLayer = nty.findNodeLayer(innerLayer);
@@ -3657,7 +3659,7 @@ public class MoCMOS extends Technology
 	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
 	 * in arc "aty" to "surround".
 	 */
-	private void setArcLayerSurroundLayer(PrimitiveArc aty, Layer outerLayer, Layer innerLayer, double surround)
+	private void setArcLayerSurroundLayerOld(PrimitiveArc aty, Layer outerLayer, Layer innerLayer, double surround)
 	{
 		// find the inner layer
 		Technology.ArcLayer inLayer = aty.findArcLayer(innerLayer);
@@ -3683,7 +3685,7 @@ public class MoCMOS extends Technology
 	/**
 	 * Method to set the true node size (the highlighted area) of node "nodename" to "wid" x "hei".
 	 */
-	private void setDefNodeSize(PrimitiveNode nty, double wid, double hei, DRC.Rules rules)
+	private void setDefNodeSizeold(PrimitiveNode nty, double wid, double hei, DRC.Rules rules)
 	{
 		SizeOffset so = nty.getProtoSizeOffset();
 		double xindent = (nty.getDefWidth() - wid) / 2;

@@ -1,5 +1,11 @@
 			Java Electric change log
 
+************************* Version 8.01e: *********************************
+IMP: (8/4/04, GVG) Subset of DRC rules for TSMC90 tech. Some functions used in MoCMOS were promoted to Technology class for reusage.
+
+FIX: (8/4/04, GVG) In FileMenu:CloseLibrary: Doesn't close library if there are still some references in other cells.
+FIX: (8/4/04, GVG) In DRC, polygon is not checked against itself while analyzing minimun distances
+
 ************************* Version 8.01b: *********************************
 
 IMP: (8/03/04, JKG) GetInfoNode now shows transistor width/length instead of x/y size

@@ -557,7 +557,7 @@ public class DRC extends Listener
 		if (currentRules != null && tech == currentTechnology) return currentRules;
 
 		// constructing design rules: start with factory rules
-		currentRules = tech.getFactoryDesignRules();
+		currentRules = tech.getFactoryDesignRules(null);
 		if (currentRules != null)
 		{
 			// add overrides
@@ -578,7 +578,7 @@ public class DRC extends Listener
 	public static void setRules(Technology tech, Rules newRules)
 	{
 		// get factory design rules
-		Rules factoryRules = tech.getFactoryDesignRules();
+		Rules factoryRules = tech.getFactoryDesignRules(null);
 
 		// determine override differences from the factory rules
 		StringBuffer changes = getRuleDifferences(tech, factoryRules, newRules);
@@ -905,8 +905,8 @@ public class DRC extends Listener
 
 	/**
 	 * Method to determine the index in the upper-left triangle array for two layers.
-	 * @param layer1 the first layer index.
-	 * @param layer2 the second layer index.
+	 * @param layer1Index the first layer index.
+	 * @param layer2Index the second layer index.
 	 * @return the index in the array that corresponds to these two layers.
 	 */
 	private static int getIndex(Technology tech, int layer1Index, int layer2Index)

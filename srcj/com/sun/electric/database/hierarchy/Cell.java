@@ -2810,8 +2810,7 @@ public class Cell extends NodeProto implements Comparable
 	 */
 	public void getZValues(double [] array)
 	{
-		int n = nodes.size();
-		for (int i = 0; i < n; i++)
+		for (int i = 0; i < nodes.size(); i++)
 		{
 			NodeInst ni = (NodeInst) nodes.get(i);
 			NodeProto nProto = ni.getProto();
@@ -2827,5 +2826,32 @@ public class Cell extends NodeProto implements Comparable
 
 			}
 		}
+	}
+
+	public boolean findReferenceInCell(Library elib, Set set)
+	{
+		// Stop recursive search here
+
+		if (lib == elib)
+		{
+			//set.add(this);
+			return (true);
+		}
+		int initial = set.size();
+
+		for (int i = 0; i < nodes.size(); i++)
+		{
+			NodeInst ni = (NodeInst) nodes.get(i);
+			NodeProto nProto = ni.getProto();
+			if (nProto instanceof Cell)
+			{
+				Cell nCell = (Cell)nProto;
+				if (nCell.getLibrary() == elib)
+					set.add(this);
+				else
+					nCell.findReferenceInCell(elib, set);
+			}
+		}
+		return (set.size() != initial);
 	}
 }

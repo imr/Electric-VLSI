@@ -76,8 +76,17 @@ public class EdgeH
 	 * Sets the adder.
 	 * This is the amount to add to a NodeInst width.
 	 * @param adder the new adder.
+	 * @return true if original value was modified
 	 */
-	public void setAdder(double adder) { this.adder = adder; }
+	public boolean setAdder(double adder)
+	{
+		if (this.adder != adder)
+		{
+			this.adder = adder;
+			return true;
+		}
+		return false;
+	}
 
 	/**
 	 * Describes a position that is in from the left by a specified amount.

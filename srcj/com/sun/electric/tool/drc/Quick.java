@@ -94,7 +94,7 @@ import java.util.Date;
  */
 public class Quick
 {
-	private static final double TINYDELTA = 0.001;
+	private static final double TINYDELTA = DBMath.getEpsilon()*1.1;
 
 	// the different types of errors
 	private static final int SPACINGERROR       = 1;
@@ -478,6 +478,7 @@ public class Quick
 		cp.cellChecked = true;
 
 		// if the cell hasn't changed since the last good check, stop now
+
 		if (allSubCellsStillOK)
 		{
 			Date lastGoodDate = DRC.getLastDRCDate(cell);
@@ -2217,14 +2218,7 @@ public class Quick
 				{
 					Poly poly = layerLookPolyList[i];
 
-					/* @TODO GVG Gilda's new condition  */
-					/*
-					if (Main.getDebug() && thisPoly != null && poly.polySame(thisPoly))
-					{
-						System.out.println("Warning: same polygon");
-						continue;
-					}
-					*/
+					if (thisPoly != null && poly.polySame(thisPoly)) continue;
 
 					if (!tech.sameLayer(poly.getLayer(), layer)) continue;
 					poly.transform(bound);
@@ -3011,7 +3005,7 @@ public class Quick
 
 			if (actual < 0) errorMessage += " OVERLAPS "; else
 				if (actual == 0) errorMessage += " TOUCHES "; else
-					errorMessage += " LESS (BY " + TextUtils.formatDouble(limit-actual) + ") THAN " + TextUtils.formatDouble(limit) + " TO ";
+					errorMessage += " LESS (BY " + TextUtils.formatDouble(limit-actual, 1) + ") THAN " + TextUtils.formatDouble(limit, 1) + " TO ";
 
 			if (np1 != np2)
 				errorMessage += "cell " + np2.describe() + ", ";

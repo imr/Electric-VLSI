@@ -77,8 +77,17 @@ public class EdgeV
 	 * Sets the adder.
 	 * This is the amount to add to a NodeInst height.
 	 * @param adder the new adder.
+	 * @return true if original value was modified
 	 */
-	public void setAdder(double adder) { this.adder = adder; }
+	public boolean setAdder(double adder)
+	{
+		if (this.adder != adder)
+		{
+			this.adder = adder;
+			return true;
+		}
+		return false;
+	}
 
 	/**
 	 * Describes a position that is in from the top by a specified amount.

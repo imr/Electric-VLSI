@@ -50,6 +50,7 @@ import com.sun.electric.technology.technologies.MoCMOSSub;
 import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ErrorLogger;
 
 import java.awt.Dimension;
 import java.awt.Color;
@@ -1084,8 +1085,8 @@ public class Technology extends ElectricObject
 		double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 		//Dimension2D dim = new Dimension2D.Double(width, height);
 		//return dim;
-        TransistorSize size = new TransistorSize(new Double(width), new Double(height));
-        return size;
+		TransistorSize size = new TransistorSize(new Double(width), new Double(height));
+		return size;
 	}
 
     /**
@@ -2327,7 +2328,7 @@ public class Technology extends ElectricObject
 	 * Sets the color map for transparent layers in this technology.
 	 * Users should never call this method.
 	 * It is set once by the technology during initialization.
-	 * @param map an array of colors, one per transparent layer.
+	 * @param layers is an array of colors, one per transparent layer.
 	 * This is expanded to a map that is 2 to the power "getNumTransparentLayers()".
 	 * Color merging is computed automatically.
 	 */
@@ -2429,7 +2430,7 @@ public class Technology extends ElectricObject
 	 * @return the design rules for this Technology.
 	 * Returns null if there are no design rules in this Technology.
 	 */
-	public DRC.Rules getFactoryDesignRules()
+	public DRC.Rules getFactoryDesignRules(ErrorLogger errorLogger)
 	{
 		return null;
 	}
@@ -2500,7 +2501,7 @@ public class Technology extends ElectricObject
 	 * Method to determine the appropriate technology to use for a cell.
 	 * The contents of the cell can be defined by the lists of NodeInsts and ArcInsts, or
 	 * if they are null, then by the contents of the Cell.
-	 * @param cell the Cell to examine.
+	 * @param cellOrPrim the Cell to examine.
 	 * @param nodeProtoList the list of prototypes of NodeInsts in the Cell.
 	 * @param startNodeProto the starting point in the "nodeProtoList" array.
 	 * @param endNodeProto the ending point in the "nodeProtoList" array.
@@ -2733,4 +2734,176 @@ public class Technology extends ElectricObject
 		return "Technology " + techName;
 	}
 
+	///////////////////// Generic methods //////////////////////////////////////////////////////////////
+	/**
+	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
+	 * in node "nty" to "surround".  The array "minsize" is the minimum size of each layer.
+	 */
+	protected void setLayerSurroundLayer(PrimitiveNode nty, Layer outerLayer, Layer innerLayer,
+	                                     double surround, Double [] minSize, ErrorLogger errorLogger)
+	{
+		// find the inner layer
+		Technology.NodeLayer inLayer = nty.findNodeLayer(innerLayer);
+		if (inLayer == null)
+		{
+			System.out.println("Internal error in " + getTechDesc() + " surround computation");
+			return;
+		}
+
+		// find the outer layer
+		Technology.NodeLayer outLayer = nty.findNodeLayer(outerLayer);
+		if (outLayer == null)
+		{
+			System.out.println("Internal error in " + getTechDesc() + " surround computation");
+			return;
+		}
+
+		// determine if minimum size design rules are met
+		TechPoint [] inPoints = inLayer.getPoints();
+		EdgeH inLeft = inPoints[0].getX();
+		EdgeH inRight = inPoints[1].getX();
+		EdgeV inBottom = inPoints[0].getY();
+		EdgeV inTop = inPoints[1].getY();
+		double leftIndent = inLeft.getAdder() - surround;
+		double rightIndent = inRight.getAdder() + surround;
+		double bottomIndent = inBottom.getAdder() - surround;
+		double topIndent = inTop.getAdder() + surround;
+		double xSize = nty.getDefWidth() - leftIndent - rightIndent;
+		double ySize = nty.getDefHeight() - bottomIndent - topIndent;
+		int outerLayerIndex = outerLayer.getIndex();
+		double minSizeValue = minSize[outerLayerIndex].doubleValue();
+		if (xSize < minSizeValue || ySize < minSizeValue)
+		{
+			// make it irregular to force the proper minimum size
+			if (xSize < minSizeValue) rightIndent -= minSizeValue - xSize;
+			if (ySize < minSizeValue) topIndent -= minSizeValue - ySize;
+		}
+
+		TechPoint [] outPoints = outLayer.getPoints();
+		EdgeH outLeft = outPoints[0].getX();
+		EdgeH outRight = outPoints[1].getX();
+		EdgeV outBottom = outPoints[0].getY();
+		EdgeV outTop = outPoints[1].getY();
+		boolean hasChanged = false;
+		// describe the error
+		String errorMessage = "Layer surround error of outer layer '" + outerLayer.getName()
+		        + "' and inner layer '" + innerLayer.getName() + "'in '" + getTechDesc() + "':";
+
+		if (outLeft.getAdder() != leftIndent)
+		{
+			outLeft.setAdder(leftIndent);
+			hasChanged = true;
+			errorMessage += " left=" + leftIndent;
+		}
+		if (outRight.getAdder() != rightIndent)
+		{
+			outRight.setAdder(rightIndent);
+			hasChanged = true;
+			errorMessage += " right=" + rightIndent;
+		}
+		if (outTop.getAdder() != topIndent)
+		{
+			outTop.setAdder(topIndent);
+			hasChanged = true;
+			errorMessage += " top=" + topIndent;
+		}
+		if (outBottom.getAdder() != bottomIndent)
+		{
+			outBottom.setAdder(bottomIndent);
+			hasChanged = true;
+			errorMessage += " bottom=" + bottomIndent;
+		}
+		if (hasChanged)
+		{
+			if (errorLogger != null)
+				errorLogger.logError(errorMessage, null, outerLayer.getIndex());
+			else
+				System.out.println(errorMessage);
+		}
+	}
+
+	/**
+	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
+	 * in arc "aty" to "surround".
+	 */
+	protected void setArcLayerSurroundLayer(PrimitiveArc aty, Layer outerLayer, Layer innerLayer,
+	                                        double surround)
+	{
+		// find the inner layer
+		Technology.ArcLayer inLayer = aty.findArcLayer(innerLayer);
+		if (inLayer == null)
+		{
+			System.out.println("Internal error in " + getTechDesc() + " surround computation");
+			return;
+		}
+
+		// find the outer layer
+		Technology.ArcLayer outLayer = aty.findArcLayer(outerLayer);
+		if (outLayer == null)
+		{
+			System.out.println("Internal error in " + getTechDesc() + " surround computation");
+			return;
+		}
+
+		// compute the indentation of the outer layer
+		double indent = inLayer.getOffset() - surround*2;
+		outLayer.setOffset(indent);
+	}
+
+	/**
+	 * Method to change the design rules for layer "layername" layers so that
+	 * the layers are at least "width" wide.  Affects the default arc width
+	 * and the default pin size.
+	 */
+	protected void setLayerMinWidth(String layername, double width)
+	{
+		// find the arc and set its default width
+		PrimitiveArc ap = findArcProto(layername);
+		if (ap == null) return;
+		ap.setDefaultWidth(width + ap.getWidthOffset());
+
+		// find the arc's pin and set its size and port offset
+		PrimitiveNode np = ap.findPinProto();
+		if (np != null)
+		{
+			SizeOffset so = np.getProtoSizeOffset();
+			double newWidth = width + so.getLowXOffset() + so.getHighXOffset();
+			double newHeight = width + so.getLowYOffset() + so.getHighYOffset();
+			np.setDefSize(newWidth, newHeight);
+
+			PrimitivePort pp = (PrimitivePort)np.getPorts().next();
+			EdgeH left = pp.getLeft();
+			EdgeH right = pp.getRight();
+			EdgeV bottom = pp.getBottom();
+			EdgeV top = pp.getTop();
+			double indent = newWidth / 2;
+
+			//@ TODO GVG put message
+			left.setAdder(indent);
+			right.setAdder(-indent);
+			top.setAdder(-indent);
+			bottom.setAdder(indent);
+		}
+	}
+
+	/**
+	* Method to set the true node size (the highlighted area) of node "nodename" to "wid" x "hei".
+	*/
+	protected void setDefNodeSize(PrimitiveNode nty, double wid, double hei, DRC.Rules rules)
+	{
+		//SizeOffset so = nty.getProtoSizeOffset();
+		double xindent = (nty.getDefWidth() - wid) / 2;
+		double yindent = (nty.getDefHeight() - hei) / 2;
+		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));
+
+		int index = 0;
+		for(Iterator it = getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			if (np == nty) break;
+			index++;
+		}
+		rules.minNodeSize[index*2] = new Double(wid);
+		rules.minNodeSize[index*2+1] = new Double(hei);
+	}
 }
