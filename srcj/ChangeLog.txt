@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01ad: *********************************
+
 ************************* Version 8.01ac: *********************************
 
 BUG: (10/22/04, GVG) Out of bound in Cell.getName() as cell names don't have same length
