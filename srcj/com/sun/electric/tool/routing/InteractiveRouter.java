@@ -43,6 +43,7 @@ import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.*;
+import com.sun.electric.technology.technologies.Artwork;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Line2D;
@@ -479,6 +480,9 @@ public abstract class InteractiveRouter extends Router {
         if (endPoly == null) {
             // if arc, find place to connect to. Otherwise use the center point (default)
             endPoint.setLocation(getClosestOrthogonalPoint(startPoint, clicked));
+            // however, if this is an Artwork technology, just put end point at mouse
+            if (Technology.getCurrent() == Artwork.tech)
+                endPoint.setLocation(clicked);
             return;
         }
 

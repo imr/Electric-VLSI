@@ -33,6 +33,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Point2D;
@@ -123,6 +124,13 @@ public class SimpleWirer extends InteractiveRouter {
         double width = getArcWidthToUse(startRE, useArc);
         double width2 = getArcWidthToUse(endRE, useArc);
         if (width2 > width) width = width2;
+
+        if (Technology.getCurrent() == Artwork.tech) {
+            // draw arbitrary angle arcs
+            RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null, null);
+            route.add(arcRE);
+            return true;
+        }
 
         // this router only draws horizontal and vertical arcs
         // if either X or Y coords are the same, create a single arc
