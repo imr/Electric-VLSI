@@ -407,18 +407,8 @@ public class EditKeyBinding extends EDialog {
      * @return the KeyStroke, or null if invalid text in field.
      */
     private KeyStroke getStroke(JTextField field) {
-
-        // sanity check: if text is empty, shouldn't use this key cause user can't see it
-        if (field.getText() == null || field.getText().equals("")) {
-            return null;
-        }
-        // return last saved key press associated with field
-        if (field == stroke1Input) {
-            return key1;
-        }
-        else return key2;
-        //String str = field.getText();
-        //return KeyStrokePair.stringToKeyStroke(str);
+        String str = field.getText();
+        return KeyStrokePair.stringToKeyStroke(str);
     }
 
     // ------------------------------ Helper Dialogs ------------------------------
@@ -443,7 +433,7 @@ public class EditKeyBinding extends EDialog {
     }
 
     private void dialogBadInput() {
-        JOptionPane.showMessageDialog(null, "Bad or missing text on First Stroke",
+        JOptionPane.showMessageDialog(null, "I cannot bind to the First Stroke key you have specified.  Sorry",
                 "Invalid Input", JOptionPane.WARNING_MESSAGE);
     }
 

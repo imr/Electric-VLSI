@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.ui;
 import javax.swing.*;
 import java.util.HashMap;
 import java.awt.event.KeyEvent;
+import java.awt.*;
 
 /**
  * User: gainsley
@@ -113,6 +114,19 @@ public class KeyStrokePair {
     public static KeyStroke stringToKeyStroke(String str) {
         // change NUMPAD-# to NUMPAD#
         str = str.replaceAll("NumPad\\-", "NUMPAD");
+        // Hack: getKeyStroke does not understand mac's Command key.
+        if (str.matches(".*?command.*")) {
+            // must be a mac, get mac command key
+            str = str.replaceAll("command", "");
+            str = str.trim();
+            KeyStroke key = KeyStroke.getKeyStroke(str);
+            int command_mask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+            if (key != null) {
+                key = KeyStroke.getKeyStroke(key.getKeyCode(), key.getModifiers() | command_mask);
+                return key;
+            }
+            return null;
+        }
         return KeyStroke.getKeyStroke(str);
     }
 
