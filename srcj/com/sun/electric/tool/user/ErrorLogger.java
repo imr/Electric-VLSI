@@ -652,24 +652,28 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 
         if (errs > 0 && explain)
         {
-            //System.out.println(errorSystem+" FOUND "+getNumErrors()+" ERRORS");
             if (!alreadyExplained)
             {
 				alreadyExplained = true;
-                String extraMsg = "errors/warnings";
-                if (getNumErrors() == 0) extraMsg = "warnings";
-                else  if (getNumWarnings() == 0) extraMsg = "errors";
-	            System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
-                if (getNumErrors() > 0) {
-                    SwingUtilities.invokeLater(new Runnable() {
-                        public void run() {
-                            JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-                                    errorSystem + " found "+getNumErrors()+" errors, "+getNumWarnings()+" warnings!",
-                                    errorSystem + " finished with Errors",
-                                    JOptionPane.INFORMATION_MESSAGE);
-                        }
-                    });
-                }
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						// To print consistent message in message window
+						String extraMsg = "errors/warnings";
+						if (getNumErrors() == 0) extraMsg = "warnings";
+						else  if (getNumWarnings() == 0) extraMsg = "errors";
+						String msg = errorSystem + " found "+getNumErrors()+" errors, "+getNumWarnings()+" warnings!";
+						if (getNumLogs() > 0)
+						{
+							System.out.println(msg);
+							System.out.println("Type > and < to step through " + extraMsg + ", or open the ERRORS view in the explorer");
+						}
+						if (getNumErrors() > 0)
+						{
+							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg,
+								errorSystem + " finished with Errors", JOptionPane.INFORMATION_MESSAGE);
+						}
+					}
+				});
             }
         }
         SwingUtilities.invokeLater(new Runnable() {
