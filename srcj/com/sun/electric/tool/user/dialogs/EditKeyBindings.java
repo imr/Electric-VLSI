@@ -471,6 +471,7 @@ public class EditKeyBindings extends PreferencePanel implements TreeSelectionLis
      */
     private JMenuItem getSelectedMenuItem() {
         DefaultMutableTreeNode node = getSelectedTreeNode();
+        if (node == null) return null;
         Object obj = node.getUserObject();
         if (!(obj instanceof KeyBoundTreeNode)) return null;
         KeyBoundTreeNode treeNode = (KeyBoundTreeNode)obj;
