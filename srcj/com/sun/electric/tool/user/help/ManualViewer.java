@@ -28,12 +28,15 @@ import com.sun.electric.Main;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.menus.MenuBar;
+import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Toolkit;
+import java.awt.Frame;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.ActionEvent;
@@ -61,6 +64,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTree;
+import javax.swing.JMenuItem;
+import javax.swing.JMenuBar;
+import javax.swing.JMenu;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
@@ -93,13 +99,14 @@ public class ManualViewer extends EDialog
 	private DefaultMutableTreeNode rootNode;
 	private List pageSequence;
 	private int currentIndex;
+	private boolean menubarShown = false;
 	private static int lastPageVisited = 0;
 
     /**
      * Create a new user's manual dialog.
      * @param parent
      */
-    public ManualViewer(java.awt.Frame parent)
+    public ManualViewer(Frame parent)
     {
         super(parent, false);
         setTitle("User's Manual");
@@ -178,6 +185,66 @@ public class ManualViewer extends EDialog
 		// load the title page of the manual
         loadPage(currentIndex);
     }
+
+	private void loadMenuBar()
+	{
+		if (menubarShown) return;
+		menubarShown = true;
+
+		JMenuBar helpMenuBar = new JMenuBar();
+
+		// convert menuBar to tree
+		TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+		MenuBar menuBar = top.getTheMenuBar();
+		for (int i=0; i<menuBar.getMenuCount(); i++)
+		{
+			Menu menu = (Menu)menuBar.getMenu(i);
+			JMenu helpMenu = new JMenu(menu.getText());
+			helpMenuBar.add(helpMenu);
+			addMenu(menu, helpMenu, menu.getText() + "/");
+		}
+		setJMenuBar(helpMenuBar);
+		pack();
+	}
+
+	private void addMenu(Menu menu, JMenu helpMenu, String cumulative)
+	{
+		for (int i=0; i<menu.getItemCount(); i++)
+		{
+			JMenuItem menuItem = menu.getItem(i);
+			if (menuItem == null)
+			{
+				helpMenu.addSeparator();
+				continue;
+			}
+			if (menuItem instanceof JMenu)
+			{
+				Menu subMenu = (Menu)menuItem;
+				JMenu helpSubMenu = new JMenu(subMenu.getText());
+				helpMenu.add(helpSubMenu);
+				addMenu((Menu)menuItem, helpSubMenu, cumulative + subMenu.getText() + "/");
+			} else
+			{
+				JMenuItem helpMenuItem = new JMenuItem(menuItem.getText());
+				helpMenu.add(helpMenuItem);
+				helpMenuItem.addActionListener(new HelpMenuActionListener(cumulative + menuItem.getText()));
+			}
+		}
+	}
+
+	private static class HelpMenuActionListener implements ActionListener
+	{
+		private String title;
+
+		HelpMenuActionListener(String title) { this.title = title; }
+
+		public void actionPerformed(ActionEvent e) { doHelpMenu(title); }
+
+		private void doHelpMenu(String name)
+		{
+			System.out.println(name);
+		}
+	}
 
 	private String getLine(InputStreamReader is)
 	{
@@ -553,7 +620,7 @@ public class ManualViewer extends EDialog
 		JPanel leftHalf = new JPanel();
 		leftHalf.setLayout(new GridBagLayout());
 		gbc = new GridBagConstraints();
-		gbc.gridx = 0;      gbc.gridy = 0;
+		gbc.gridx = 0;      gbc.gridy = 1;
 		gbc.gridwidth = 2;  gbc.gridheight = 1;
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = 1.0;  gbc.weighty = 1.0;
@@ -563,9 +630,9 @@ public class ManualViewer extends EDialog
 		// forward and backward buttons at the bottom of the left side
 		JButton backButton = new JButton("Prev");
 		gbc = new GridBagConstraints();
-		gbc.gridx = 0;      gbc.gridy = 1;
+		gbc.gridx = 0;      gbc.gridy = 0;
 		gbc.gridwidth = 1;  gbc.gridheight = 1;
-		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		gbc.anchor = GridBagConstraints.CENTER;
 		leftHalf.add(backButton, gbc);
 		backButton.addActionListener(new ActionListener()
@@ -574,9 +641,9 @@ public class ManualViewer extends EDialog
 		});
 		JButton foreButton = new JButton("Next");
 		gbc = new GridBagConstraints();
-		gbc.gridx = 1;      gbc.gridy = 1;
+		gbc.gridx = 1;      gbc.gridy = 0;
 		gbc.gridwidth = 1;  gbc.gridheight = 1;
-		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		gbc.anchor = GridBagConstraints.CENTER;
 		leftHalf.add(foreButton, gbc);
 		foreButton.addActionListener(new ActionListener()
@@ -584,12 +651,36 @@ public class ManualViewer extends EDialog
 			public void actionPerformed(ActionEvent evt) { next(); }
 		});
 
+		// forward and backward buttons at the bottom of the left side
+		JButton menuButton = new JButton("Menu Help");
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;      gbc.gridy = 2;
+		gbc.gridwidth = 1;  gbc.gridheight = 1;
+		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		gbc.anchor = GridBagConstraints.CENTER;
+		leftHalf.add(menuButton, gbc);
+		menuButton.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { loadMenuBar(); }
+		});
+//		JButton foreButton = new JButton("Next");
+//		gbc = new GridBagConstraints();
+//		gbc.gridx = 1;      gbc.gridy = 0;
+//		gbc.gridwidth = 1;  gbc.gridheight = 1;
+//		gbc.insets = new java.awt.Insets(0, 4, 4, 4);
+//		gbc.anchor = GridBagConstraints.CENTER;
+//		leftHalf.add(foreButton, gbc);
+//		foreButton.addActionListener(new ActionListener()
+//		{
+//			public void actionPerformed(ActionEvent evt) { next(); }
+//		});
+
 		if (Main.getDebug())
 		{
 			// manual and edit buttons at the bottom of the left side
-			JButton manualButton = new JButton("Manual");
+			JButton manualButton = new JButton("Make Manual");
 			gbc = new GridBagConstraints();
-			gbc.gridx = 0;      gbc.gridy = 2;
+			gbc.gridx = 0;      gbc.gridy = 3;
 			gbc.gridwidth = 1;  gbc.gridheight = 1;
 			gbc.insets = new java.awt.Insets(0, 4, 4, 4);
 			gbc.anchor = GridBagConstraints.CENTER;
@@ -598,9 +689,9 @@ public class ManualViewer extends EDialog
 			{
 				public void actionPerformed(ActionEvent evt) { manual(); }
 			});
-			JButton editButton = new JButton("Edit");
+			JButton editButton = new JButton("Edit Page");
 			gbc = new GridBagConstraints();
-			gbc.gridx = 1;      gbc.gridy = 2;
+			gbc.gridx = 1;      gbc.gridy = 3;
 			gbc.gridwidth = 1;  gbc.gridheight = 1;
 			gbc.insets = new java.awt.Insets(0, 4, 4, 4);
 			leftHalf.add(editButton, gbc);
