@@ -2265,6 +2265,8 @@ public class Quick
 
 		Collection set = merge.getObjects(layer, false, true);
 
+        if (set == null) return 0; // layer is not present in this cell
+
 		for(Iterator pIt = set.iterator(); pIt.hasNext(); )
 		{
             Object obj = pIt.next();
@@ -2299,8 +2301,9 @@ public class Quick
 				if (minRule == null) continue;
 
 				// isGreaterThan doesn't consider equals condition therefore negate condition is used
-				if (!DBMath.isGreaterThan(minRule.value, area)) continue;
-
+				//if (!DBMath.isGreaterThan(minRule.value, area)) continue;
+                if (!layer.getName().equals("Metal-1")) continue;
+                
 				errorFound++;
 				int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
                 PolyBase simplePn = ((job.mergeMode == GeometryHandler.ALGO_QTREE))
@@ -2335,6 +2338,62 @@ public class Quick
         }
         return (null);
     }
+
+    /**
+	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
+	 * technology "tech" meets minimum area rules. Returns true
+	 * if an error is found.
+	 */
+	private int checkMinAreaNew(Cell cell)
+	{
+		CheckProto cp = getCheckProto(cell);
+		int errorFound = 0;
+
+		// Nothing to check
+		if (minAreaLayerMap.isEmpty() && enclosedAreaLayerMap.isEmpty())
+			return 0;
+
+		// Select/well regions
+        HashMap selectMergeMap = new HashMap();
+
+			CheckAreaEnumerator quickArea = new CheckAreaEnumerator(selectMergeMap, job.mergeMode);
+			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
+            GeometryHandler geom = (GeometryHandler)quickArea.mainMergeMap.get(cell);
+
+		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP.A.1 rule
+        for(Iterator layerIt = cell.getTechnology().getLayers(); layerIt.hasNext(); )
+		{
+			Layer layer = (Layer)layerIt.next();
+            if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
+					continue;
+
+			// Job aborted
+			if (job != null && job.checkAbort()) return 0;
+
+            errorFound += checkMinAreaLayer(geom, cell, layer);
+		}
+
+		// Checking nodes not exported down in the hierarchy. Probably good enought not to collect networks first
+//		quickArea = new CheckAreaEnumerator(notExportedNodes, checkedNodes, job.mergeMode);
+//		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
+		// Non exported nodes
+//		for(Iterator it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
+//		{
+//			Layer layer = (Layer)it.next();
+//			boolean localError = checkMinAreaLayer(quickArea.mainMerge, cell, layer);
+//			if (!errorFound) errorFound = localError;
+//		}
+
+		// Special cases for select areas. You can't evaluate based on networks
+        GeometryHandler selectMerge = (GeometryHandler)selectMergeMap.get(cell);
+		for(Iterator it = selectMerge.getKeyIterator(); it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			errorFound +=  checkMinAreaLayer(selectMerge, cell, layer);
+		}
+
+		return errorFound;
+	}
 
 	/**
 	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
@@ -3961,6 +4020,206 @@ public class Quick
 		}
 
         private void addElement(Poly poly, Layer layer, boolean isNode)
+        {
+            Object obj = null;
+            if (mode == GeometryHandler.ALGO_QTREE)
+                obj = new PolyQTree.PolyNode(poly.getBounds2D());
+            else
+                obj = poly;
+            // otherTypeMerge is null if nonExported nodes are analyzed
+            if ((isNode && otherTypeMerge == null) || layer.getFunction().isMetal() || layer.getFunction().isPoly())
+                mainMerge.add(layer, obj, false);
+            else
+                otherTypeMerge.add(layer, obj, false);
+
+//						if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
+//							mainMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+//						else
+//							otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
+        }
+    }
+
+    /**************************************************************************************************************
+	 *  QuickAreaEnumerator class
+	 **************************************************************************************************************/
+	// Extra functions to check area
+	private class CheckAreaEnumerator extends HierarchyEnumerator.Visitor
+    {
+        HashMap mainMergeMap = new HashMap();
+        private HashMap otherTypeMergeMap;
+        private HashMap doneCells = new HashMap(); // Mark if cells are done already.
+		private Layer polyLayer;
+        private int mode; // geometrical merge algorithm
+
+		public CheckAreaEnumerator(HashMap selectMergeMap, int mode)
+		{
+            this.otherTypeMergeMap = selectMergeMap;
+            this.mode = mode;
+		}
+
+		public CheckAreaEnumerator(int mode)
+		{
+            this.mode = mode;
+		}
+
+		/**
+		 */
+		public boolean enterCell(HierarchyEnumerator.CellInfo info)
+		{
+			if (job != null && job.checkAbort()) return false;
+
+            Cell cell = info.getCell();
+	        GeometryHandler thisMerge = (GeometryHandler)(mainMergeMap.get(cell));
+            GeometryHandler thisOtherMerge = (GeometryHandler)(otherTypeMergeMap.get(cell));
+            boolean firstTime = false;
+
+            if (thisMerge == null)
+            {
+                thisMerge = newMergeTree(mode, cell);
+                thisOtherMerge = newMergeTree(mode, cell);
+                mainMergeMap.put(cell, thisMerge);
+                otherTypeMergeMap.put(cell, thisOtherMerge);
+                firstTime = true;
+            }
+            AffineTransform rTrans = info.getTransformToRoot();
+
+			// Check Arcs too if network is not null
+			if (firstTime)
+			{
+				for(Iterator it = cell.getArcs(); it.hasNext(); )
+				{
+					ArcInst ai = (ArcInst)it.next();
+					Technology tech = ai.getProto().getTechnology();
+					Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+					int tot = arcInstPolyList.length;
+					for(int i=0; i<tot; i++)
+					{
+						Poly poly = arcInstPolyList[i];
+						Layer layer = poly.getLayer();
+
+						// No area associated
+						if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
+							continue;
+
+						// it has to take into account poly and transistor poly as one layer
+						if (layer.getFunction().isPoly())
+						{
+							if (polyLayer == null)
+								polyLayer = layer;
+							layer = polyLayer;
+						}
+						//poly.transform(rTrans);
+
+                        addElement(thisMerge, thisOtherMerge, poly, layer, false);
+					}
+				}
+			}
+			return true;
+		}
+
+		/**
+		 */
+		public void exitCell(HierarchyEnumerator.CellInfo info)
+        {
+            Cell cell = info.getCell();
+            boolean done = doneCells.get(cell) != null;
+
+            if (!done)
+            {
+                GeometryHandler thisMerge = (GeometryHandler)mainMergeMap.get(info.getCell());
+                GeometryHandler thisOtherMerge = (GeometryHandler)otherTypeMergeMap.get(info.getCell());
+                if (mode == GeometryHandler.ALGO_SWEEP)
+                {
+                    ((PolySweepMerge)thisMerge).postProcess();
+                    ((PolySweepMerge)thisOtherMerge).postProcess();
+                }
+
+                // merge everything sub trees
+                for(Iterator it = cell.getNodes(); it.hasNext(); )
+                {
+                    NodeInst ni = (NodeInst)it.next();
+                    NodeProto subNp = ni.getProto();
+                    if (subNp instanceof PrimitiveNode) continue;
+                    // get sub-merge information for the cell instance
+                    GeometryHandler subMerge = (GeometryHandler)mainMergeMap.get(subNp);
+                    if (subMerge != null)
+                    {
+                        AffineTransform tTrans = ni.translateOut(ni.rotateOut());
+                        thisMerge.addAll(subMerge, tTrans);
+                    }
+                    GeometryHandler subOtherMerge = (GeometryHandler)otherTypeMergeMap.get(subNp);
+                    if (subOtherMerge != null)
+                    {
+                        AffineTransform tTrans = ni.translateOut(ni.rotateOut());
+                        thisOtherMerge.addAll(subOtherMerge, tTrans);
+                    }
+                }
+            }
+
+            // To mark if cell is already done
+			doneCells.put(cell, cell);
+        }
+
+		/**
+		 */
+		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
+		{
+			if (job != null && job.checkAbort()) return false;
+
+			Cell cell = info.getCell();
+			NodeInst ni = no.getNodeInst();
+			AffineTransform trans = ni.rotateOut();
+			NodeProto np = ni.getProto();
+//			AffineTransform root = info.getTransformToRoot();
+//			if (root.getType() != AffineTransform.TYPE_IDENTITY)
+//				trans.preConcatenate(root);
+
+			// Cells
+			if (!(np instanceof PrimitiveNode)) return (true);
+
+            // No done yet
+	        if (doneCells.get(cell) == null)
+            {
+                GeometryHandler thisMerge = (GeometryHandler)mainMergeMap.get(cell);
+                GeometryHandler thisOtherMerge = (GeometryHandler)otherTypeMergeMap.get(cell);
+
+                PrimitiveNode pNp = (PrimitiveNode)np;
+				if (np instanceof PrimitiveNode)
+				{
+					if (NodeInst.isSpecialNode(ni)) return (false);
+				}
+
+                Technology tech = pNp.getTechnology();
+                // electrical should not be null due to ports but causes
+                // problems with poly and transistor-poly
+                Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, true, null);
+                int tot = nodeInstPolyList.length;
+                for(int i=0; i<tot; i++)
+                {
+                    Poly poly = nodeInstPolyList[i];
+                    Layer layer = poly.getLayer();
+
+                    // No area rule associated
+                    if (minAreaLayerMap.get(layer) == null && enclosedAreaLayerMap.get(layer) == null)
+                        continue;
+
+                    // it has to take into account poly and transistor poly as one layer
+                    if (layer.getFunction().isPoly())
+                    {
+                        if (polyLayer == null)
+                            polyLayer = layer;
+                        layer = polyLayer;
+                    }
+                    poly.roundPoints(); // Trying to avoid mismatches while joining areas.
+                    poly.transform(trans);
+                    addElement(thisMerge, thisOtherMerge, poly, layer, false);
+                }
+            }
+            return true;
+		}
+
+        private void addElement(GeometryHandler mainMerge, GeometryHandler otherTypeMerge, Poly poly,
+                                Layer layer, boolean isNode)
         {
             Object obj = null;
             if (mode == GeometryHandler.ALGO_QTREE)
