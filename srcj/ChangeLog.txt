@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.01am: *********************************
+
 BUG: (11/9/04, DN) Can't read mixture of JELIB and ELIB files.
 FIX: In JELIB reader use "realizeCellsRecursively" instead of "instantiateCellContents".
 
@@ -11,8 +13,6 @@ IMP: (11/9/04, DN) Forbidden characters ':' and '|' in cell names.
 
 BUG: (11/8/04, SMR) Upper-level text is not shown when editing "down in-place".
 FIX: In "PixelDrawing.drawText()" compute clipping bounds properly.
-
-************************* Version 8.01am: *********************************
 
 IMP: (11/8/04, GVG) Default sizes for new arcs/nodes in TSMC90 now correctly stored and retrieved from preferences
 (moved MoCMOS.init() to Technology.init())
@@ -80,12 +80,6 @@ BUG: (11/4/04, GVG) Rouding points before merging in DRC min area calculation ot
 
 BUG: (11/4/04, GVG) DRC and PolySelect rule, ignoring case when remaining area after second substract was empty.
 FIX: call Area.isEmpty()
-
-IMP: (11/7/04, SMR) Added copy/paste topology (for routers).
-
-IMP: (11/7/04, SMR) Cleaned-up outline-edit mode.
-
-IMP: (11/5/04, SMR) Added EDIF input.
 
 IMP: (11/4/04, SMR) GDS output produces better cell names.
 
