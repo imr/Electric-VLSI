@@ -33,6 +33,7 @@ import java.util.Set;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
+import com.sun.electric.tool.ncc.basic.CompareList;
 import com.sun.electric.tool.ncc.basic.CompareLists;
 
 /** Information needed to perform hierarchical netlist comparison */
@@ -72,7 +73,7 @@ public class HierarchyInfo {
 		List compareLists = CompareLists.getCompareLists(c1, c2);
 		cellsInSharedCellGroups = new HashSet();
 		for (Iterator it=compareLists.iterator(); it.hasNext();) {
-			List compareList = (List) it.next();
+			CompareList compareList = (CompareList) it.next();
 			for (Iterator it2=compareList.iterator(); it2.hasNext();) {
 				Cell c = ((CellContext)it2.next()).cell;
 				cellsInSharedCellGroups.add(c);

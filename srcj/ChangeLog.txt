@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02j: *********************************
 
+IMP: (03/18/05, RK) NCC: hierarchical with size checking compares pairs of Cells only if each is instantiated exactly once.  Regressions updated to test this new functionality.
+
 IMP: (03/16/05, RK) NCC: disambiguate based on MOS lengths in addition to widths
 
 IMP: (03/16/05, RK) NCC qLite regression: remove spurious sizes from /data/qLite/modified.

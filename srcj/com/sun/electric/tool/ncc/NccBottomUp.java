@@ -22,6 +22,7 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -31,6 +32,7 @@ import java.util.Set;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.basic.CellContext;
+import com.sun.electric.tool.ncc.basic.CompareList;
 import com.sun.electric.tool.ncc.basic.CompareLists;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
@@ -77,8 +79,8 @@ public class NccBottomUp {
 		return refCell;
 	}
 
-	private boolean hasBlackBoxAnnotation(List cellCtxts) {
-		for (Iterator it=cellCtxts.iterator(); it.hasNext();) {
+	private boolean hasBlackBoxAnnotation(CompareList compareList) {
+		for (Iterator it=compareList.iterator(); it.hasNext();) {
 			Cell c = ((CellContext) it.next()).cell;
 			NccCellAnnotations ann = NccCellAnnotations.getAnnotations(c);
 			if (ann==null) continue;
@@ -115,23 +117,27 @@ public class NccBottomUp {
 
 	/** @return the result of comparing all Cells in compareList. If we are
 	 * supposed to build just a black box but we couldn't then return null */
-	private NccResult compareCellsInCompareList(List compareList, 
+	private NccResult compareCellsInCompareList(CompareList compareList, 
 							   			        HierarchyInfo hierInfo,
 							   			        boolean blackBoxAnn,
 							   			        NccOptions options) {
-		Cell cell = ((CellContext)compareList.iterator().next()).cell;
+		// build our own list because we need to modify it
+		List cellCntxts = new ArrayList();
+		for (Iterator it=compareList.iterator(); it.hasNext();) 
+		    cellCntxts.add(it.next());
+
+		Cell cell = ((CellContext)cellCntxts.iterator().next()).cell;
 		String grpNm = cell.getLibrary().getName()+":"+cell.getName();
 
 		hierInfo.beginNextCompareList(grpNm);
 
 		// notSubcircuit means check it but don't use it as a subcircuit
-		if (hasNotSubcircuitAnnotation(compareList))  
+		if (hasNotSubcircuitAnnotation(cellCntxts))  
 			hierInfo.purgeCurrentCompareList();
 
 		NccResult result = new NccResult(true, true, true, null);
-		CellContext refCC = 
-			selectAndRemoveReferenceCellContext(compareList);
-		for (Iterator it=compareList.iterator(); it.hasNext();) {
+		CellContext refCC = selectAndRemoveReferenceCellContext(cellCntxts);
+		for (Iterator it=cellCntxts.iterator(); it.hasNext();) {
 			CellContext thisCC = (CellContext) it.next();
 			if (blackBoxAnn || 
 			    (options.skipPassed && passed.getPassed(refCC.cell, thisCC.cell))) {
@@ -181,7 +187,7 @@ public class NccBottomUp {
 		NccResult result = new NccResult(true, true, true, null);
 		HierarchyInfo hierInfo = new HierarchyInfo();
 		for (Iterator it=compareLists.iterator(); it.hasNext();) {
-			List compareList = (List) it.next();
+			CompareList compareList = (CompareList) it.next();
 
 			boolean blackBoxAnn = hasBlackBoxAnnotation(compareList);
 
@@ -189,6 +195,11 @@ public class NccBottomUp {
 			if (options.operation==NccOptions.FLAT_TOP_CELL && !blackBoxAnn &&
 			    it.hasNext()) continue;
 
+			// size checking only works if we compare Cells that are
+			// each instantiated exactly once
+			if (options.checkSizes && !compareList.isSafeToCheckSizes() &&
+				!blackBoxAnn) continue;
+			
 			// release storage from previous comparison
 			result.abandonNccGlobals();
 			

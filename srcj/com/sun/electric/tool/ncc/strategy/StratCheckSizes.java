@@ -117,6 +117,7 @@ public class StratCheckSizes extends Strategy {
     	}
     }
     private void summary() {
+    	if (mismatches.size()==0) return; // no news is good news
     	Collections.sort(mismatches, new MismatchComparator());
     	System.out.println("  There are "+mismatches.size()+" size mismatches.");
     	for (Iterator it=mismatches.iterator(); it.hasNext();) {
