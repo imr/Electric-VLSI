@@ -193,6 +193,21 @@ public class Highlighter implements DatabaseChangeListener {
 		return h;
 	}
 
+	/**
+	 * Method to generic Object.
+	 * @param obj object to add.
+	 * @param cell the Cell in which this object resides.
+	 * @return the newly created Highlight object.
+	 */
+	public Highlight addObject(Object obj, Highlight.Type type, Cell cell)
+	{
+		Highlight h = new Highlight(type, null, cell);
+		h.setObject(obj);
+
+        addHighlight(h);
+		return h;
+	}
+
     /**
 	 * Method to add a line to the list of highlighted objects.
 	 * @param start the start point of the line to add to the list of highlighted objects.

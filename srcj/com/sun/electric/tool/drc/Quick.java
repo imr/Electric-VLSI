@@ -456,7 +456,7 @@ public class Quick
 	private int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds)
 	{
 		// Job aborted or scheduled for abort
-		if (job.getAborted() || job.checkAbort()) return -1;
+		if (job.checkAbort()) return -1;
 
 		// Previous # of errors/warnings
 		int prevErrors = 0;
@@ -479,7 +479,7 @@ public class Quick
 			if (ni.isIconOfParent()) continue;
 
 			// ignore if not in the area
-			Rectangle2D subBounds = bounds;
+			Rectangle2D subBounds = bounds; // sept30
 			if (subBounds != null)
 			{
 				if (!ni.getBounds().intersects(bounds)) continue;
@@ -595,14 +595,10 @@ public class Quick
 		AffineTransform trans = ni.rotateOut();
 
 		// Skipping Facet-Center ugly!
+        // @TODO do I need to check PrimitiveNode?
 		if (np instanceof PrimitiveNode && np == Generic.tech.cellCenterNode)
 			return false;
-
-		/*
-		// Check the area first but only when is not incremental
-		if (!DRC.isIgnoreAreaChecking() && !onlyFirstError)
-			checkMinArea(ni);
-        */
+        if (np.getFunction() == NodeProto.Function.PIN) return false; // Sept 30
 		// get all of the polygons on this node
 		//NodeProto.Function fun = ni.getFunction();
 		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
@@ -616,7 +612,11 @@ public class Quick
 			Poly poly = nodeInstPolyList[j];
 			Layer layer = poly.getLayer();
 			if (layer == null) continue;
-			if (layer.isNonElectrical()) continue;
+			if (layer.isNonElectrical())
+            {
+                    System.out.println("Exception1 " + ni.getName() + " layer " + layer.getName());
+                continue;
+            }
 			poly.transform(trans);
 
 			// determine network for this polygon
@@ -759,11 +759,7 @@ public class Quick
 		{
 			Geometric geom = (Geometric)it.next();
 
-			if ( geom == ni )
-			{
-				//System.out.println("Should I skip it 3?");
-				continue;
-			}
+			if ( geom == ni ) continue; // covered by checkInteraction?
 
 			if (!(geom instanceof NodeInst)) continue;
 			NodeInst oNi = (NodeInst)geom;
@@ -801,8 +797,8 @@ public class Quick
 	private boolean checkCellInstContents(Rectangle2D bounds, NodeInst thisNi,
 		AffineTransform upTrans, int globalIndex, NodeInst oNi, int topGlobalIndex)
 	{
-				// Job aborted or scheduled for abort
-		if (job.getAborted() || job.checkAbort()) return true;
+        // Job aborted or scheduled for abort
+		if (job.checkAbort()) return true;
 
 		Cell cell = (Cell)thisNi.getProto();
 		boolean logsFound = false;
@@ -827,17 +823,11 @@ public class Quick
 			{
 				NodeInst ni = (NodeInst)geom;
 				NodeProto np = ni.getProto();
+
+				if (np == Generic.tech.cellCenterNode) continue;  // Oct 4
+
 				if (np instanceof Cell)
 				{
-					/*
-					Rectangle2D subBounds = new Rectangle2D.Double();
-					subBounds.setRect(bounds);
-					AffineTransform rTransI = ni.rotateIn();
-					AffineTransform tTransI = ni.translateIn();
-					rTransI.preConcatenate(tTransI);
-					DBMath.transformRect(subBounds, rTransI);
-                    */
-
 					AffineTransform subUpTrans = ni.translateOut(ni.rotateOut());
 					subUpTrans.preConcatenate(upTrans);
 
@@ -847,14 +837,14 @@ public class Quick
 
 //					if (!dr_quickparalleldrc) downhierarchy(ni, ni->proto, 0);
 					// changes Sept04: subBound by bb
-					checkCellInstContents(bb, ni, //(Cell)np,
-						subUpTrans, localIndex, oNi, topGlobalIndex);
+					checkCellInstContents(bb, ni, subUpTrans, localIndex, oNi, topGlobalIndex);
 //					if (!dr_quickparalleldrc) uphierarchy();
 				} else
 				{
 					AffineTransform rTrans = ni.rotateOut();
 					rTrans.preConcatenate(upTrans);
-
+                    if (np.getFunction() == NodeProto.Function.PIN) continue; // Sept 30
+                    if (np == Generic.tech.cellCenterNode) continue;  // Sept 30
 					Technology tech = np.getTechnology();
 					Poly [] primPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts);
 					convertPseudoLayers(ni, primPolyList);
@@ -864,13 +854,17 @@ public class Quick
 						Poly poly = primPolyList[j];
 						Layer layer = poly.getLayer();
 						if (layer == null) continue;
-						if (layer.isNonElectrical()) continue;
+						if (layer.isNonElectrical()) //continue; // Sept 30
+                        {
+                            System.out.println("Exception 2");
+                            continue;
+                        }
 						poly.transform(rTrans);
 
 						// determine network for this polygon
 						int net = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
 						boolean ret = badSubBox(poly, layer, net, tech, ni, rTrans,
-							globalIndex, cell, oNi, topGlobalIndex);
+							globalIndex, oNi, topGlobalIndex);
 						if (ret)
 						{
 							if (onlyFirstError) return true;
@@ -901,7 +895,7 @@ public class Quick
 						net = netList[globalIndex].intValue();
 					}
 					boolean ret = badSubBox(poly, layer, net, tech, ai, upTrans,
-						globalIndex, cell, oNi, topGlobalIndex);
+						globalIndex, oNi, topGlobalIndex);
 					if (ret)
 					{
 						if (onlyFirstError) return true;
@@ -919,7 +913,7 @@ public class Quick
 	 * The polygon is compared against things inside node "oNi", and that node's parent has global index "topGlobalIndex". 
 	 */
 	private boolean badSubBox(Poly poly, Layer layer, int net, Technology tech, Geometric geom, AffineTransform trans,
-		int globalIndex, Cell cell, NodeInst oNi, int topGlobalIndex)
+                              int globalIndex, NodeInst oNi, int topGlobalIndex)
 	{
 		// see how far around the box it is necessary to search
 		double maxSize = poly.getMaxSize();
@@ -1018,6 +1012,7 @@ public class Quick
 		rBound.setRect(bounds);
 		DBMath.transformRect(rBound, upTrans); // Step 1
 		Netlist netlist = getCheckProto(cell).netlist;
+        Rectangle2D subBound = new Rectangle2D.Double(); //Sept 30
 
 		// Sept04 changes: bounds by rBound
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
@@ -1036,7 +1031,7 @@ public class Quick
 					AffineTransform rTransI = ni.rotateIn();
 					AffineTransform tTransI = ni.translateIn();
 					rTransI.preConcatenate(tTransI);
-					Rectangle2D subBound = new Rectangle2D.Double();
+					//Rectangle2D subBound = new Rectangle2D.Double();     // Sept 30
 					subBound.setRect(bounds);
 					DBMath.transformRect(subBound, rTransI);
 
@@ -1061,7 +1056,7 @@ public class Quick
 					if (!checkLayerWithNode(layer, np)) continue;
 
 					// see if the objects directly touch
-					boolean touch = objectsTouch(nGeom, geom);
+					boolean touch = Geometric.objectsTouch(nGeom, geom);
 
 					// prepare to examine every layer in this nodeinst
 					AffineTransform rTrans = ni.rotateOut();
@@ -1076,18 +1071,20 @@ public class Quick
 					    /* Step 1 */
 					boolean multi = baseMulti;
 					if (!multi) multi = isMultiCut(ni);
+                    if (np.getFunction() == NodeProto.Function.PIN) continue; // Sept 30
 					for(int j=0; j<tot; j++)
 					{
 						Poly npoly = subPolyList[j];
 						Layer nLayer = npoly.getLayer();
 						if (nLayer == null) continue;
-						if (nLayer.isNonElectrical()) continue;
+						if (nLayer.isNonElectrical()) //continue;   // Sept 30
+                        {
+                                System.out.println("Exception 3 " + ni.getName() + " layer " + layer.getName());
+                            continue;
+                        }
                         //npoly.transform(rTrans);
 
 						Rectangle2D nPolyRect = npoly.getBounds2D();
-                        //DBMath.transformRect(nPolyRect, trans);
-						//DBMath.transformRect(nPolyRect, upTrans);
-						//DBMath.transformRect(nPolyRect, rTrans);
 
 						// can't do this because "lxbound..." is local but the poly bounds are global
 						if (nPolyRect.getMinX() > rBound.getMaxX() ||
@@ -1144,7 +1141,7 @@ public class Quick
 				if (!checkLayerWithArc(layer, ap)) continue;
 
 				// see if the objects directly touch
-				boolean touch = objectsTouch(nGeom, geom);
+				boolean touch = Geometric.objectsTouch(nGeom, geom);
 
 				// see whether the two objects are electrically connected
 				JNetwork jNet = netlist.getNetwork(ai, 0);
@@ -1282,7 +1279,8 @@ public class Quick
 			{
 				// they are electrically connected: see if they touch
 				overlap = (pd < 0);
-				if (pd <= 0)
+                //code decomissioned Sept 04
+				if (Main.getDebug() && pd <= 0)
 				{
 					// they are electrically connected and they touch: look for minimum size errors
 					DRCRules.DRCRule wRule = DRC.getMinValue(layer1, DRCTemplate.MINWID);
@@ -1318,7 +1316,7 @@ public class Quick
 											geom1, layer1, null, null, null);
 									return true;
                                     */
-                                    if (Main.getDebug()) System.out.println("Quick.checkDist code decomissioned");
+                                    System.out.println("Quick.checkDist code decomissioned");
 								}
 							} else
 							{
@@ -1338,7 +1336,7 @@ public class Quick
 											geom1, layer1, null, null, null);
 									return true;
                                    */
-                                   if (Main.getDebug()) System.out.println("Quick.checkDist code decomissioned");
+                                   System.out.println("Quick.checkDist code decomissioned");
 								}
 							}
 						}
@@ -1431,12 +1429,16 @@ public class Quick
 				style != Poly.Type.OPENEDT3 && style != Poly.Type.VECTORS) return false;
 
 			// make sure polygons don't intersect
+            //@TODO combine this calculation otherwise Poly.intersects is called twice!
+            double pd1 = poly1.separation(poly2);
 			if (poly1.intersects(poly2)) pd = 0;
             else
 			{
 				// find distance between polygons
 				pd = poly1.separation(poly2);
 			}
+            if (pd1 != pd)
+                System.out.println("Wrong case in non-nonmanhattan, Quick.");
 		}
 
 		// see if the design rule is met
@@ -1737,6 +1739,7 @@ public class Quick
 			if (node1Orientation < node2Orientation)
 			{
 				NodeInst swapNI = ni1;   ni1 = ni2;   ni2 = swapNI;
+                System.out.println("Check this case in Quick.checkInteraction");
 			}
 		}
 
@@ -2208,6 +2211,7 @@ public class Quick
 	 * touch directly (that is, an arcinst connected to a nodeinst).  The method
 	 * returns true if they touch
 	 */
+    /*
 	private boolean objectsTouch(Geometric geom1, Geometric geom2)
 	{
 		if (geom1 instanceof NodeInst)
@@ -2228,6 +2232,7 @@ public class Quick
 		}
 		return false;
 	}
+    */
 
 	/**
 	 * Method to find two points between polygons "poly1" and "poly2" that can be used to test
@@ -2331,16 +2336,12 @@ public class Quick
 			{
 				if (isBox1.getMinY() > isBox2.getMaxY())
 				{
-					//pt1.setLocation(isBox1.getMaxX(), isBox1.getMaxY());
-					//pt2.setLocation(isBox2.getMinX(), isBox2.getMinY());
 					pt1.setLocation(isBox1.getMaxX(), isBox1.getMinY());
 					pt2.setLocation(isBox2.getMinX(), isBox2.getMaxY());
 					return 1;
 				}
 				if (isBox2.getMinY() > isBox1.getMaxY())
 				{
-					//pt1.setLocation(isBox1.getMaxX(), isBox1.getMinY());
-					//pt2.setLocation(isBox2.getMinX(), isBox2.getMaxY());
 					pt1.setLocation(isBox1.getMaxX(), isBox1.getMaxY());
 					pt2.setLocation(isBox2.getMinX(), isBox2.getMinY());
 					return 1;
@@ -2421,6 +2422,8 @@ public class Quick
 		Rectangle2D bounds, Point2D pt1, Point2D pt2, Point2D pt3, boolean [] pointsFound)
 	{
 		int j;
+        boolean skip = false;
+        Rectangle2D newBounds = new Rectangle2D.Double();  // sept 30
 
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
 		{
@@ -2434,7 +2437,7 @@ public class Quick
 					AffineTransform rotI = ni.rotateIn();
 					AffineTransform transI = ni.translateIn();
 					rotI.preConcatenate(transI);
-					Rectangle2D newBounds = new Rectangle2D.Double();
+					//Rectangle2D newBounds = new Rectangle2D.Double();  // sept 30
 					newBounds.setRect(bounds);
 					DBMath.transformRect(newBounds, rotI);
 
@@ -2464,17 +2467,15 @@ public class Quick
 					if (poly.isInside(pt1)) pointsFound[0] = true;
 					if (poly.isInside(pt2)) pointsFound[1] = true;
 					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
-					boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
 					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
 					boolean newR = (j == pointsFound.length);
-					if (newR != oldR)
-						System.out.println("Error in Quit.lookForLayer");
 					if (newR)
+                    {
+                        if (skip) System.out.println("This case in lookForLayer node");
 						return true;
-					/*
-					if (pointsFound[0] && pointsFound[1] && pointsFound[2])
-						return true;
-						*/
+                    }
+                    // No need of checking rest of the layers?
+                    //break;
 				}
 			} else
 			{
@@ -2490,28 +2491,28 @@ public class Quick
 					if (poly.isInside(pt1)) pointsFound[0] = true;
 					if (poly.isInside(pt2)) pointsFound[1] = true;
 					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
-					boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
 					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
 					boolean newR = (j == pointsFound.length);
-					if (newR != oldR)
-						System.out.println("Error in Quit.lookForLayer");
 					if (newR)
+                    {
+                        if (skip) System.out.println("This case in lookForLayer arc");
 						return true;
+                    }
+                    // No need of checking rest of the layers
+                    //break;
 				}
 			}
 
-			boolean oldR = pointsFound[0] && pointsFound[1] && (pt3 == null || (pt3 != null && pointsFound[2]));
 			for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
-			boolean newR = (j == pointsFound.length);
-			if (newR != oldR)
-				System.out.println("Error in Quit.lookForLayer");
-			if (newR)
-				return true;
-			/*
-			if (pointsFound[0] && pointsFound[1] && pointsFound[2])
-				return true;
-				*/
+            if (j == pointsFound.length)
+            {
+                if (skip) System.out.println("This case in lookForLayer final");
+                System.out.println("When?");
+                return true;
+            }
 		}
+        if (skip) System.out.println("This case in lookForLayerNew antes");
+
 		return false;
 	}
 
@@ -2526,20 +2527,12 @@ public class Quick
 	                                Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound, boolean overlap)
 	{
 		int j;
+        Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
 
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
 		{
 			Geometric g = (Geometric)it.next();
-			// Geometries to exclude from the search
-			/*
-			if ( geo1 == g || geo2 == g )
-			{
-				/*
-				if (Main.getDebug())
-					System.out.println("Should I skip it lookForLayerNew?");
-				continue;
-			}
-			*/
+			// I can't skip geometries to exclude from the search
 			if (g instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)g;
@@ -2549,7 +2542,7 @@ public class Quick
 					AffineTransform rotI = ni.rotateIn();
 					AffineTransform transI = ni.translateIn();
 					rotI.preConcatenate(transI);
-					Rectangle2D newBounds = new Rectangle2D.Double();
+					//Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
 					newBounds.setRect(bounds);
 					DBMath.transformRect(newBounds, rotI);
 
@@ -2583,9 +2576,9 @@ public class Quick
 					if (poly.isInside(pt2)) pointsFound[1] = true;
 					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
 					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
-					boolean newR = (j == pointsFound.length);
-					if (newR)
-						return true;
+					if (j == pointsFound.length) return true;
+                    // No need of checking rest of the layers
+                    break;
 				}
 			} else
 			{
@@ -2602,17 +2595,18 @@ public class Quick
 					if (poly.isInside(pt2)) pointsFound[1] = true;
 					if (pt3 != null && poly.isInside(pt3)) pointsFound[2] = true;
 					for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
-					boolean newR = (j == pointsFound.length);
-					if (newR)
-						return true;
-					// @TODO NO need of checking rest of polygons. They are not going to have same layer!!
+					if (j == pointsFound.length) return true;
+                    // No need of checking rest of the layers
+                    break;
 				}
 			}
 
 			for (j = 0; j < pointsFound.length && pointsFound[j]; j++);
-			boolean newR = (j == pointsFound.length);
-			if (newR)
-				return true;
+			if (j == pointsFound.length)
+            {
+                System.out.println("When?");
+                return true;
+            }
 		}
 		return false;
 	}
@@ -2653,6 +2647,7 @@ public class Quick
 		int net1, int net2, Cell cell, int globalIndex, AffineTransform trans)
 	{
 		Netlist netlist = getCheckProto(cell).netlist;
+		Rectangle2D subBounds = new Rectangle2D.Double();
 		for(Iterator sIt = cell.searchIterator(bounds); sIt.hasNext(); )
 		{
 			Geometric g = (Geometric)sIt.next();
@@ -2665,7 +2660,6 @@ public class Quick
 				AffineTransform tTransI = ni.translateIn();
 				rTransI.preConcatenate(tTransI);
 //				transmult(rTransI, tTransI, temptrans);
-				Rectangle2D subBounds = new Rectangle2D.Double();
 				subBounds.setRect(bounds);
 				DBMath.transformRect(subBounds, rTransI);
 
@@ -3188,12 +3182,16 @@ public class Quick
 		int numLayers = tech.getNumLayers();
 
 		// build the node table
+        if (layersInterNodes != null)
+            System.out.println("Redoing the job again?");
+
 		layersInterNodes = new HashMap();
 		for(Iterator it = tech.getNodes(); it.hasNext(); )
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			boolean [] layersInNode = new boolean[numLayers];
-			for(int i=0; i<numLayers; i++) layersInNode[i] = false;
+			//for(int i=0; i<numLayers; i++) layersInNode[i] = false;   // Sept 30
+            Arrays.fill(layersInNode, false);
 
 			Technology.NodeLayer [] layers = np.getLayers();
 			Technology.NodeLayer [] eLayers = np.getElectricalLayers();
@@ -3536,7 +3534,6 @@ public class Quick
 			{
 				PortInst pi = (PortInst)pIt.next();
 				JNetwork net = info.getNetlist().getNetwork(pi);
-				PortProto subPP = pi.getPortProto();
 				if (jNet == net)
 					found = true;
 			}

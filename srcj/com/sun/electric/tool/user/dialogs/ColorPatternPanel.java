@@ -45,6 +45,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Iterator;
+import java.lang.reflect.Method;
 import javax.swing.JPanel;
 import javax.swing.ImageIcon;
 import javax.swing.JColorChooser;
@@ -58,6 +59,10 @@ import javax.swing.event.DocumentListener;
  */
 public class ColorPatternPanel extends JPanel
 {
+	// 3D view. Static values to avoid unnecessary calls
+	private static final Class view3DClass = Resources.get3DMainClass();
+	private static Method setColorMethod3DClass = null;
+
 	public static class Info
 	{
 		public EGraphics graphics;
@@ -135,7 +140,20 @@ public class ColorPatternPanel extends JPanel
 			if (color != (graphics.getColor().getRGB() & 0xFFFFFF))
 			{
 //System.out.println("Color changed to 0x"+Integer.toHexString(color)+" on "+graphics);
-				graphics.setColor(new Color(color));
+				Color colorObj = new Color(color);
+				graphics.setColor(colorObj);
+				Object obj3D = graphics.get3DAppearance();
+
+				if (obj3D != null)
+				{
+					try
+					{
+						if (setColorMethod3DClass == null) setColorMethod3DClass = view3DClass.getDeclaredMethod("set3DColor", new Class[] {Object.class, java.awt.Color.class});
+						setColorMethod3DClass.invoke(view3DClass, new Object[]{obj3D, colorObj});
+					} catch (Exception e) {
+						System.out.println("Cannot call 3D plugin method set3DColor: " + e.getMessage());
+					}
+				}
 				changed = true;
 			}
 			if (opacity != graphics.getOpacity())

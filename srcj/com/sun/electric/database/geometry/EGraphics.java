@@ -47,6 +47,7 @@ public class EGraphics
 	/** opacity (0 to 1) of color */						private double opacity;
 	/** whether to draw color in foregound */				private boolean foreground;
 	/** stipple pattern to draw */							private int [] pattern;
+	/** 3D appearance */                                    private Object appearance3D;
 
 	private static HashMap usePatternDisplayMap = new HashMap();
 	private static HashMap outlinePatternPrinterMap = new HashMap();
@@ -728,4 +729,16 @@ public class EGraphics
 		return new int [] {LAYERT1, LAYERT2, LAYERT3, LAYERT4, LAYERT5, LAYERT6, LAYERT7, LAYERT8, LAYERT9,
 			LAYERT10, LAYERT11, LAYERT12};
 	}
+
+	/**
+	 * Method to set 3D appearance. If Java3D, Appearance class will be the type.
+	 * @param obj
+	 */
+	public void set3DAppearance(Object obj) {appearance3D = obj;}
+
+	/**
+	 * Method to retrieve current 3D appearance
+	 * @return
+	 */
+	public Object get3DAppearance() {return appearance3D;}
 }

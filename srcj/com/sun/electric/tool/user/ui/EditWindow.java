@@ -684,6 +684,7 @@ public class EditWindow extends JPanel
                 long start = System.currentTimeMillis();
                 mouseOverHighlighter.showHighlights(this, g);
                 highlighter.showHighlights(this, g);
+	            //WindowFrame.show3DHighlight(this);
                 long end = System.currentTimeMillis();
             } catch (Exception e) {
                 TimerTask redrawTask = new TimerTask() {

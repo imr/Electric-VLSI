@@ -109,6 +109,7 @@ public class Highlight
 		/** Describes a thick highlighted line. */				public static final Type THICKLINE = new Type("thick line");
 		/** Describes a non-database text. */					public static final Type MESSAGE = new Type("message");
         /** Describes a Polygon */                              public static final Type POLY = new Type("poly");
+		/** Describes a 3D element */                           public static final Type SHAPE3D = new Type("shape3d");
 	}
 
 	/** The type of the highlighting. */						private Type type;
@@ -122,6 +123,7 @@ public class Highlight
 	/** The center point about which thick lines revolve. */	private Point2D center;
 	/** The highlighted message. */								private String msg;
     /** The highlighted polygon */                              private Poly polygon;
+	/** The highlighted generic object */                       private Object object;
     /** The color used when drawing polygons */                 private Color color;
     /** For Highlighted networks, this prevents excess highlights */ private boolean highlightConnected;
 
@@ -166,6 +168,18 @@ public class Highlight
 	 * @param eobj the ElectricObject associated with this Highlight object.
 	 */
 	protected void setElectricObject(ElectricObject eobj) { this.eobj = eobj; }
+
+	/**
+	 * Method to set a generic Object associated with this Highlight object.
+	 * @param obj the Object associated with this Highlight object.
+	 */
+	protected void setObject(Object obj) { this.object = obj; }
+
+	/**
+	 * Method to return the Object associated with this Highlight object.
+	 * @return obj the Object associated with this Highlight object.
+	 */
+	public Object getObject() { return this.object; }
 
 	/**
 	 * Method to return the Geometric object that is in this Highlight.

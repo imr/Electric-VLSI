@@ -27,6 +27,8 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -1214,4 +1216,29 @@ public abstract class Geometric extends ElectricObject
 		return super.addDisplayableVariables(rect,polys,start+numVars,wnd,multipleStrings)+numVars;
 	}
 
+    /**
+     * Method to tell whether the objects at geometry modules "geom1" and "geom2"
+     * touch directly (that is, an arcinst connected to a nodeinst).  The method
+     * returns true if they touch. Used by DRC and Parasitic tools
+     */
+    public static boolean objectsTouch(Geometric geom1, Geometric geom2)
+    {
+        if (geom1 instanceof NodeInst)
+        {
+            if (geom2 instanceof NodeInst) return false;
+            Geometric temp = geom1;   geom1 = geom2;   geom2 = temp;
+        }
+        if (!(geom2 instanceof NodeInst))
+            return false;
+
+        // see if the arcinst at "geom1" touches the nodeinst at "geom2"
+        NodeInst ni = (NodeInst)geom2;
+        ArcInst ai = (ArcInst)geom1;
+        for(int i=0; i<2; i++)
+        {
+            Connection con = ai.getConnection(i);
+            if (con.getPortInst().getNodeInst() == ni) return true;
+        }
+        return false;
+    }
 }

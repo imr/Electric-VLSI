@@ -25,11 +25,13 @@ package com.sun.electric.plugins.j3d;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.tool.user.*;
@@ -49,7 +51,6 @@ import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
 import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.picking.PickResult;
 import com.sun.j3d.utils.picking.PickCanvas;
-import com.sun.j3d.utils.picking.PickIntersection;
 
 import javax.media.j3d.*;
 import javax.vecmath.Point3d;
@@ -62,15 +63,14 @@ import java.awt.event.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.PathIterator;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Point;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import java.util.Iterator;
-import java.util.HashMap;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -88,13 +88,15 @@ public class View3DWindow extends JPanel
 	private TransformGroup objTrans;
     private OrbitBehavior orbit;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
+	/** reference to 2D view of the cell */                 private WindowContent view2D;
 	/** the cell that is in the window */					private Cell cell;
-	/** the overall panel with disp area and sliders */		private JPanel overall;
-	/** Collection of attributes per layer. It might need to go in other place */ private HashMap appearances = new HashMap();
+	/** Highlighter for this window */                      private Highlighter highlighter;
 	private PickCanvas pickCanvas;
+	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap electricObjectMap = new HashMap();
 
 	// Done only once.
-	/** cell has a unique appearance **/                    private static Appearance cellApp = new Appearance();
+	/** cell has a unique appearance **/                    private static JAppearance cellApp = new JAppearance(null);
+	/** highligh appearance **/                             private static JAppearance highligtAp = new JAppearance(null);
     /** standard colors to be used by materials **/         private static Color3f black = new Color3f(0.0f, 0.0f, 0.0f);
 	/** standard colors to be used by materials **/         private static Color3f white = new Color3f(1.0f, 1.0f, 1.0f);
 
@@ -124,13 +126,35 @@ public class View3DWindow extends JPanel
 		LineAttributes lineAttr = new LineAttributes();
 		lineAttr.setLineAntialiasingEnable(true);
 		cellApp.setLineAttributes(lineAttr);
+
+	    // For highlighted objects
+	    highligtAp.setColoringAttributes(new ColoringAttributes(black, ColoringAttributes.SHADE_GOURAUD));
+	    TransparencyAttributes hTa = new TransparencyAttributes(TransparencyAttributes.BLENDED, 0.5f);
+	    //PolygonAttributes hPa = new PolygonAttributes(PolygonAttributes.POLYGON_LINE, PolygonAttributes.CULL_NONE, 0);
+	    //highligtAp.setPolygonAttributes(hPa);
+	    highligtAp.setTransparencyAttributes(hTa);
 	}
 
+	private static class JAppearance extends Appearance
+	{
+		private EGraphics graphics; // reference to layer for fast access to appearance
+		public JAppearance(EGraphics graphics)
+		{
+			super();
+			this.graphics = graphics;
+		}
+		public void seGraphics(EGraphics graphics) {this.graphics = graphics;}
+		public EGraphics getGraphics() { return graphics;}
+	}
 	// constructor
-	public View3DWindow(Cell cell, WindowFrame wf)
+	public View3DWindow(Cell cell, WindowFrame wf, WindowContent view2D)
 	{
 		this.cell = cell;
         this.wf = wf;
+		this.view2D = view2D;
+
+		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
+        highlighter.addHighlightListener(this);
 
 		/*
 		overall = new JPanel();
@@ -276,7 +300,7 @@ public class View3DWindow extends JPanel
 		// Allow to turn off light while the scene graph is live
 		light.setCapability(Light.ALLOW_STATE_WRITE);
 		// Add light to the env.
-        objTrans.addChild(aLgt);
+        objRoot.addChild(aLgt);
 		objTrans.addChild(light);
 
 		// Picking tools
@@ -319,7 +343,6 @@ public class View3DWindow extends JPanel
 		removeMouseListener(this);
 		removeMouseMotionListener(this);
 		removeMouseWheelListener(this);
-		System.out.println("View3DWindow::finished");
 	}
 
 	public void bottomScrollChanged(int e) {}
@@ -332,7 +355,6 @@ public class View3DWindow extends JPanel
 	public void initTextSearch(String search, boolean caseSensitive, boolean regExp, Set whatToSearch) {}
 	public void zoomOutContents() {}
 	public void zoomInContents() {}
-	public JPanel getIPanel() { return overall; }
 	public JPanel getPanel() { return this; }
 	public void fillScreen() {}
 	public void setCell(Cell cell, VarContext context) {}
@@ -343,7 +365,7 @@ public class View3DWindow extends JPanel
 	public boolean cellHistoryCanGoForward() { return false; }
 	public void fireCellHistoryStatus() {}
 	public void replaceAllText(String replace) {}
-    public Highlighter getHighlighter() { return null; }
+    public Highlighter getHighlighter() { return highlighter; }
 
 	/**
 	 *
@@ -371,7 +393,8 @@ public class View3DWindow extends JPanel
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
 
-		addPolys(tech.getShapeOfArc(ai), null, objTrans);
+		List list = addPolys(tech.getShapeOfArc(ai), null, objTrans);
+		electricObjectMap.put(ai, list);
 	}
 
 	/**
@@ -388,6 +411,7 @@ public class View3DWindow extends JPanel
 		// Skipping Gyph node
 		 if (nProto == Tech.facetCenter) return;
 
+		List list = null;
 		if (!(nProto instanceof PrimitiveNode))
 		{
 			// Cell
@@ -397,18 +421,19 @@ public class View3DWindow extends JPanel
 			values[0] = Double.MAX_VALUE;
 			values[1] = Double.MIN_VALUE;
 			cell.getZValues(values);
-			addPolyhedron(rect, values[0], values[1] - values[0], cellApp, objTrans);
+			list = new ArrayList(1);
+			list.add(addPolyhedron(rect, values[0], values[1] - values[0], cellApp, objTrans));
 		}
 		else
-			addPolys(tech.getShapeOfNode(no, null, true, true), no.rotateOut(), objTrans); 
-		//addPolys(tech.getShapeOfNode(no), no.rotateOut(), objTrans); null, true, true
+			list = addPolys(tech.getShapeOfNode(no, null, true, true), no.rotateOut(), objTrans);
+		electricObjectMap.put(no, list);
 	}
 
 	/**
 	 * Method to add a polyhedron to the transformation group
 	 * @param objTrans
 	 */
-	public void addPolyhedron(Rectangle2D bounds, double distance, double thickness,
+	public Shape3D addPolyhedron(Rectangle2D bounds, double distance, double thickness,
 	                          Appearance ap, TransformGroup objTrans)
 	{
         GeometryInfo gi = new GeometryInfo(GeometryInfo.QUAD_ARRAY);
@@ -435,13 +460,118 @@ public class View3DWindow extends JPanel
         GeometryArray c = gi.getGeometryArray();
         c.setCapability(GeometryArray.ALLOW_INTERSECT);
 
-        //cubeTrans.addChild(new Shape3D(c, ap));
         Shape3D box = new Shape3D(c, ap);
         box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
         box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
         box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
+		box.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+		box.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
+		box.setCapability(Shape3D.ALLOW_BOUNDS_READ);
         PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
         objTrans.addChild(box);
+
+		return(box);
+	}
+
+
+	public Shape3D addPolyhedron(PathIterator pIt, double distance, double thickness,
+	                          Appearance ap, TransformGroup objTrans)
+	{
+        double height = thickness + distance;
+        double [] coords = new double[6];
+		List topList = new ArrayList();
+		List bottomList = new ArrayList();
+        List shapes = new ArrayList();
+
+		while (!pIt.isDone())
+		{
+			int type = pIt.currentSegment(coords);
+			if (type == PathIterator.SEG_CLOSE)
+			{
+				int listLen = topList.size();
+				Point3d [] pts = new Point3d[listLen*2];
+				System.arraycopy(topList.toArray(), 0, pts, 0, listLen);
+				System.arraycopy(bottomList.toArray(), 0, pts, listLen, listLen);
+				int numFaces = listLen + 2; // contour + top + bottom
+				int[] indices = new int[numFaces*4];
+				int[] stripCounts = new int[numFaces];
+                int[] contourCount = new int[numFaces];
+				Arrays.fill(contourCount, 1);
+
+				Arrays.fill(stripCounts, 4);
+				stripCounts[0] = listLen; // top
+				stripCounts[numFaces-1] = listLen; // bottom
+
+				int count = 0;
+				// Top face
+				for (int i = 0; i < listLen; i++)
+					indices[count++] = i;
+				// Contour
+				for (int i = 0; i < listLen; i++)
+				{
+					indices[count++] = i;
+					indices[count++] = i + listLen;
+					indices[count++] = (i+1)%listLen + listLen;
+					indices[count++] = (i+1)%listLen;
+				}
+				// Bottom face
+				for (int i = 0; i < listLen; i++)
+					indices[count++] = i + listLen;
+
+				GeometryInfo gi = new GeometryInfo(GeometryInfo.POLYGON_ARRAY);
+				gi.setCoordinates(pts);
+
+        int[] indices1 = {0, 3, 2, 1, /* bottom z */
+                         0, 4, 7, 3, /* back y */
+                         0, 1, 5, 4, /* back x */
+                         3, 7, 6, 2, /* front x */
+                         2, 6, 5, 1, /* front y */
+                         4, 5, 6, 7}; /* top z */
+
+				gi.setCoordinateIndices(indices1);
+				gi.setStripCounts(stripCounts);
+				gi.setContourCounts(contourCount);
+				NormalGenerator ng = new NormalGenerator();
+				ng.setCreaseAngle ((float) Math.toRadians(30));
+				ng.generateNormals(gi);
+				GeometryArray c = gi.getGeometryArray();
+				c.setCapability(GeometryArray.ALLOW_INTERSECT);
+
+				Shape3D box = new Shape3D(c, ap);
+				box.setCapability(Shape3D.ENABLE_PICK_REPORTING);
+				box.setCapability(Node.ALLOW_LOCAL_TO_VWORLD_READ);
+				box.setCapability(Shape3D.ALLOW_PICKABLE_READ);
+				box.setCapability(Shape3D.ALLOW_APPEARANCE_READ);
+				box.setCapability(Shape3D.ALLOW_APPEARANCE_WRITE);
+				box.setCapability(Shape3D.ALLOW_BOUNDS_READ);
+				PickTool.setCapabilities(box, PickTool.INTERSECT_FULL);
+				objTrans.addChild(box);
+				shapes.add(box);
+
+				topList.clear();
+				bottomList.clear();
+			} else if (type == PathIterator.SEG_MOVETO || type == PathIterator.SEG_LINETO)
+			{
+				Point3d pt = new Point3d(coords[0], coords[1], distance);
+				topList.add(pt);
+				pt = new Point3d(coords[0], coords[1], height);
+				bottomList.add(pt);
+			}
+			pIt.next();
+		}
+
+//        Point3d[] pts = new Point3d[8];
+//        pts[0] = new Point3d(bounds.getMinX(), bounds.getMinY(), distance);
+//        pts[1] = new Point3d(bounds.getMinX(), bounds.getMaxY(), distance);
+//        pts[2] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), distance);
+//        pts[3] = new Point3d(bounds.getMaxX(), bounds.getMinY(), distance);
+//        pts[4] = new Point3d(bounds.getMinX(), bounds.getMinY(), height);
+//        pts[5] = new Point3d(bounds.getMinX(), bounds.getMaxY(), height);
+//        pts[6] = new Point3d(bounds.getMaxX(), bounds.getMaxY(), height);
+//        pts[7] = new Point3d(bounds.getMaxX(), bounds.getMinY(), height);
+
+		if (shapes.size()>1) System.out.println("Error: case not handled");
+		return((Shape3D)shapes.get(0));
 	}
 
 	/**
@@ -450,10 +580,11 @@ public class View3DWindow extends JPanel
 	 * @param transform
 	 * @param objTrans
 	 */
-	public void addPolys(Poly [] polys, AffineTransform transform, TransformGroup objTrans)
+	public List addPolys(Poly [] polys, AffineTransform transform, TransformGroup objTrans)
 	{
-		if (polys == null) return;
+		if (polys == null) return (null);
 
+		List list = new ArrayList();
 		for(int i = 0; i < polys.length; i++)
 		{
 			Poly poly = polys[i];
@@ -468,57 +599,115 @@ public class View3DWindow extends JPanel
 
 			if (transform != null)
 				poly.transform(transform);
-			Rectangle2D bounds = poly.getBounds2D();
 
 			// Setting appearance
-			Appearance ap = (Appearance)appearances.get(layer);
+			EGraphics graphics = layer.getGraphics();
+			JAppearance ap = (JAppearance)graphics.get3DAppearance();
 
 			if (ap == null)
 			{
-				ap = new Appearance();
+				ap = new JAppearance(graphics);
 				Color color = layer.getGraphics().getColor();
 				Color3f objColor = new Color3f(color);
+				/*
 				ColoringAttributes ca = new ColoringAttributes(objColor, ColoringAttributes.SHADE_GOURAUD);
-				//ca.setColor(objColor);
+				ca.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
 				ap.setColoringAttributes(ca);
+                */
 
+				/*
 				TransparencyAttributes ta = new TransparencyAttributes();
 				ta.setTransparencyMode(TransparencyAttributes.BLENDED);
 				ta.setTransparency(0.5f);
 				//ap.setTransparencyAttributes(ta);
+                */
 
-					// Set up the polygon attributes
-				PolygonAttributes pa = new PolygonAttributes();
-				pa.setCullFace(PolygonAttributes.CULL_NONE);
+				// Adding Rendering attributes to access visibility flag
+				RenderingAttributes ra = new RenderingAttributes();
+				ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
+                ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
+				ra.setVisible(layer.isVisible());
+				ap.setRenderingAttributes(ra);
+
+				// Set up the polygon attributes
+				//PolygonAttributes pa = new PolygonAttributes();
+				//pa.setCullFace(PolygonAttributes.CULL_NONE);
 				//pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
-				ap.setPolygonAttributes(pa);
+				//ap.setPolygonAttributes(pa);
 
-				TextureAttributes texAttr = new TextureAttributes();
-				texAttr.setTextureMode(TextureAttributes.MODULATE);
+				//TextureAttributes texAttr = new TextureAttributes();
+				//texAttr.setTextureMode(TextureAttributes.MODULATE);
 				//texAttr.setTextureColorTable(pattern);
-				ap.setTextureAttributes(texAttr);
+				//ap.setTextureAttributes(texAttr);
 
-				LineAttributes lineAttr = new LineAttributes();
-				lineAttr.setLineAntialiasingEnable(true);
-				ap.setLineAttributes(lineAttr);
+				//LineAttributes lineAttr = new LineAttributes();
+				//lineAttr.setLineAntialiasingEnable(true);
+				//ap.setLineAttributes(lineAttr);
 
 				// Adding to internal material
 				Material mat = new Material(objColor, black, objColor, white, 30.0f);
                 mat.setLightingEnable(true);
+				mat.setCapability(Material.ALLOW_COMPONENT_READ);
+				mat.setCapability(Material.ALLOW_COMPONENT_WRITE);
                 ap.setMaterial(mat);
-				
-				appearances.put(layer, ap);
+
+				// For changing color
+				//ap.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_WRITE);
+				//ap.setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
+				// For highlight
+				ap.setCapability(Appearance.ALLOW_MATERIAL_READ);
+				ap.setCapability(Appearance.ALLOW_MATERIAL_WRITE);
+				// For visibility
+				ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_READ);
+                ap.setCapability(Appearance.ALLOW_RENDERING_ATTRIBUTES_WRITE);
+
+				graphics.set3DAppearance(ap);
 			}
 
 
-			addPolyhedron(bounds, distance, thickness, ap, objTrans);
+			if (poly.getBox() == null) // non-manhattan shape
+			{
+				list.add(addPolyhedron(poly.getPathIterator(null), distance, thickness, ap, objTrans));
+			}
+			else
+			{
+				Rectangle2D bounds = poly.getBounds2D();
+				list.add(addPolyhedron(bounds, distance, thickness, ap, objTrans));
+			}
 		}
+		return (list);
 	}
 
 	/**
-	 *
+	 * Method to set visibility in Appearance objects from external tools
+	 * @param obj Appearance object
+	 * @param visible true if visibility is on
 	 */
-	public static void remakeAllAppearances()
+	public static void set3DVisibility(Object obj, Boolean visible)
+	{
+		JAppearance app = (JAppearance)obj;
+		app.getRenderingAttributes().setVisible(visible.booleanValue());
+	}
+
+	/**
+	 * Method to set color in Appearance objects from external tools
+	 * @param obj Appearance object
+	 * @param color new color to setup
+	 */
+	public static void set3DColor(Object obj, java.awt.Color color)
+	{
+		JAppearance app = (JAppearance)obj;
+		Color3f color3D = new Color3f(color);
+		Material mat = app.getMaterial();
+		mat.setAmbientColor(color3D);
+		mat.setDiffuseColor(color3D);
+	}
+
+	/**
+	 * Method to connect 2D and 3D highlights.
+	 * @param view2D
+	 */
+	public static void show3DHighlight(WindowContent view2D)
 	{
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
@@ -526,26 +715,32 @@ public class View3DWindow extends JPanel
 			WindowContent content = wf.getContent();
 			if (!(content instanceof View3DWindow)) continue;
 			View3DWindow wnd = (View3DWindow)content;
-			wnd.remakeAppearances();
-		}
-	}
-	/**
-	 *
-	 */
-	public void remakeAppearances()
-	{
-		for (Iterator it = appearances.keySet().iterator(); it.hasNext();)
-		{
-			Layer layer = (Layer)((it.next()));
 
-			Appearance ap = (Appearance)appearances.get(layer);
+			// Undo previous highlight
+			wnd.selectObject(false, false);
 
-			Color color = layer.getGraphics().getColor();
+			if (wnd.view2D == view2D)
+			{
+				Highlighter highlighter2D = view2D.getHighlighter();
+                List geomList = highlighter2D.getHighlightedEObjs(true, true);
 
-			Color3f objColor = new Color3f(color);
-			ColoringAttributes ca = new ColoringAttributes();
-			ca.setColor(objColor);
-			ap.setColoringAttributes(ca);
+				for (Iterator hIt = geomList.iterator(); hIt.hasNext(); )
+				{
+					ElectricObject eobj = (ElectricObject)hIt.next();
+
+					List list = (List)wnd.electricObjectMap.get(eobj);
+
+					if (list == null || list.size() == 0) continue;
+
+					for (Iterator lIt = list.iterator(); lIt.hasNext();)
+					{
+						Shape3D shape = (Shape3D)lIt.next();
+						wnd.highlighter.addObject(shape, Highlight.Type.SHAPE3D, wnd.cell);
+					}
+				}
+				wnd.selectObject(true, false);
+				return; // done
+			}
 		}
 	}
 
@@ -559,7 +754,6 @@ public class View3DWindow extends JPanel
 	 */
 	public void actionPerformed(ActionEvent e)
 	{
-		System.out.println("Aqui actionPerformed");
 		JMenuItem source = (JMenuItem)e.getSource();
 		// extract library and cell from string
 		Cell cell = (Cell)NodeProto.findNodeProto(source.getText());
@@ -586,6 +780,56 @@ public class View3DWindow extends JPanel
 		//WindowFrame.curMouseListener.mouseReleased(evt);
 	}
 
+	/**
+	 * Internal method to hightlight objects
+	 * @param toSelect true if element must be highlighted
+	 * @param do2D true if 2D highlighter should be called
+	 */
+	private void selectObject(boolean toSelect, boolean do2D)
+	{
+		Highlighter highlighter2D = null;
+		// Clean previous selection
+		if (view2D != null && do2D)
+		{
+			highlighter2D = view2D.getHighlighter();
+			highlighter2D.clear();
+		}
+		for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
+		{
+			Highlight h = (Highlight)it.next();
+			Shape3D obj = (Shape3D)h.getObject();
+			if (toSelect) // highlight cell, set transparency
+			{
+				JAppearance app = (JAppearance)obj.getAppearance();
+				obj.setAppearance(highligtAp);
+				//app.getRenderingAttributes().setVisible(false);
+				highligtAp.seGraphics(app.getGraphics());
+				if (view2D != null && do2D)
+				{
+					//Geometry geo = obj.getGeometry();
+					BoundingBox bb = (BoundingBox)obj.getBounds();
+					Point3d lowerP = new Point3d(), upperP = new Point3d();
+					bb.getUpper(upperP);
+					bb.getLower(lowerP);
+					double[] lowerValues = new double[3];
+					double[] upperValues = new double[3];
+					lowerP.get(lowerValues);
+					upperP.get(upperValues);
+					Rectangle2D area = new Rectangle2D.Double(lowerValues[0], lowerValues[1],
+							(upperValues[0]-lowerValues[0]), (upperValues[1]-lowerValues[1]));
+					highlighter2D.addArea(area, cell);
+				}
+			}
+			else // back to normal
+			{
+				JAppearance origAp = (JAppearance)highligtAp.getGraphics().get3DAppearance();
+				obj.setAppearance(origAp);
+			}
+		}
+		if (!toSelect) highlighter.clear();
+		if (do2D) view2D.fullRepaint();
+	}
+
 	public void mouseClicked(MouseEvent evt)
 	{
 		//lastXPosition = evt.getX();   lastYPosition = evt.getY();
@@ -600,13 +844,23 @@ public class View3DWindow extends JPanel
 		PickResult result = pickCanvas.pickClosest();
         PickResult[] results = pickCanvas.pickAllSorted();
 
-		if (result == null) {
-			System.out.println("Nothing picked");
-		} else {
+		// Clean previous selection
+		selectObject(false, true);
+
+		if (result != null)
+		{
 		   Primitive p = (Primitive)result.getNode(PickResult.PRIMITIVE);
 		   Shape3D s = (Shape3D)result.getNode(PickResult.SHAPE3D);
+			
+			if (s != null)
+			{
+				//selectedObject = s;
+				highlighter.addObject(s, Highlight.Type.SHAPE3D, cell);
+				selectObject(true, true);
+			}
            //PickIntersection pi = result.getClosestIntersection(eyePos);
 
+			/*
             PickIntersection pi =
 		    results[0].getClosestIntersection(eyePos);
 
@@ -639,8 +893,9 @@ public class View3DWindow extends JPanel
 		   } else{
 			  System.out.println("null");
 		   }
+		   */
 		}
-
+        WindowFrame.curMouseListener.mouseClicked(evt);
 	}
 
 	public void mouseEntered(MouseEvent evt)
@@ -689,13 +944,13 @@ public class View3DWindow extends JPanel
 
 	// the KeyListener events
 	public void keyPressed(KeyEvent evt) {
-		System.out.println("Aqui keyPressed");WindowFrame.curKeyListener.keyPressed(evt); }
+		System.out.println("Here keyPressed");WindowFrame.curKeyListener.keyPressed(evt); }
 
 	public void keyReleased(KeyEvent evt) {
-		System.out.println("Aqui keyReleased");WindowFrame.curKeyListener.keyReleased(evt); }
+		System.out.println("Here keyReleased");WindowFrame.curKeyListener.keyReleased(evt); }
 
 	public void keyTyped(KeyEvent evt) {
-		System.out.println("Aqui keyTyped");WindowFrame.curKeyListener.keyTyped(evt); }
+		System.out.println("Here keyTyped");WindowFrame.curKeyListener.keyTyped(evt); }
 
     public void highlightChanged(Highlighter which) {
         repaint();

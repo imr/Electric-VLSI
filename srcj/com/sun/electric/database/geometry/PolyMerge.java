@@ -52,7 +52,7 @@ import java.util.*;
  * <P>
  * At end of merging, call:<BR>
  *    merge.getMergedPoints(layer)<BR>
- * for each layer, and it returns an array of Polys on that layer.
+ * for each layer, and it returns an array of PolyBases on that layer.
  */
 public class PolyMerge
         implements GeometryHandler
@@ -68,23 +68,23 @@ public class PolyMerge
 	}
 
 	/**
-	 * Method to add a Poly to the merged collection.
-	 * @param key the layer that this Poly sits on.
-	 * @param value the Poly to merge.
+	 * Method to add a PolyBase to the merged collection.
+	 * @param key the layer that this PolyBase sits on.
+	 * @param value the PolyBase to merge.
 	 * @param fasterAlgorithm
 	 */
 	public void add(Object key, Object value, boolean fasterAlgorithm)
 	{
 		Layer layer = (Layer)key;
-		Poly poly = (Poly)value;
+		PolyBase poly = (PolyBase)value;
 		addPolygon(layer, poly);
 	}
 	/**
-	 * Method to add a Poly to the merged collection.
+	 * Method to add a PolyBase to the merged collection.
 	 * @param layer the layer that this Poly sits on.
-	 * @param poly the Poly to merge.
+	 * @param poly the PolyBase to merge.
 	 */
-	public void addPolygon(Layer layer, Poly poly)
+	public void addPolygon(Layer layer, PolyBase poly)
 	{
 		Area area = (Area)allLayers.get(layer);
 		if (area == null)
@@ -105,11 +105,11 @@ public class PolyMerge
 	}
 
 	/**
-	 * Method to subtract a Poly from the merged collection.
-	 * @param layer the layer that this Poly sits on.
-	 * @param poly the Poly to merge.
+	 * Method to subtract a PolyBase from the merged collection.
+	 * @param layer the layer that this PolyBase sits on.
+	 * @param poly the PolyBase to merge.
 	 */
-	public void subPolygon(Layer layer, Poly poly)
+	public void subPolygon(Layer layer, PolyBase poly)
 	{
 		throw new Error("not implemented in PolyMerge.subPolygon()");
 	}
@@ -193,7 +193,7 @@ public class PolyMerge
 				int i = 0;
 				for(Iterator it = pointList.iterator(); it.hasNext(); )
 					points[i++] = (Point2D)it.next();
-				Poly poly = new Poly(points);
+				PolyBase poly = new PolyBase(points);
 				poly.setLayer(layer);
 				poly.setStyle(Poly.Type.FILLED);
 				lastMoveTo = null;
@@ -203,7 +203,7 @@ public class PolyMerge
 					Iterator it = polyList.iterator();
 					while (it.hasNext())
 					{
-						Poly pn = (Poly)it.next();
+						PolyBase pn = (PolyBase)it.next();
 						if (pn.contains((Point2D)pointList.get(0)) ||
 						    poly.contains(pn.getPoints()[0]))
 						/*
@@ -216,7 +216,7 @@ public class PolyMerge
 								pointList.add(points[i]);
 							Point2D[] newPoints = new Point2D[pointList.size()];
 							System.arraycopy(pointList.toArray(), 0, newPoints, 0, pointList.size());
-							poly = new Poly(newPoints);
+							poly = new PolyBase(newPoints);
 							toDelete.add(pn);
 							//break;
 						}

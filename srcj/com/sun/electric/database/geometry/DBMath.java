@@ -42,7 +42,7 @@ public class DBMath extends GenMath {
 	/**
 	 * NDECIMALS number digits to round decimal numbers
 	 */
-	private static double NDECIMALS = 2;
+	private static int NDECIMALS = 2;
 
 	/**
 	 * To return private epsilon used for calculation.

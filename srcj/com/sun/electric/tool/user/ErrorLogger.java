@@ -25,6 +25,7 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.hierarchy.Cell;
@@ -178,7 +179,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         /**
          * Method to add polygon "poly" to the error in "errorlist".
          */
-        public void addPoly(Poly poly, boolean thick, Cell cell)
+        public void addPoly(PolyBase poly, boolean thick, Cell cell)
         {
             Point2D [] points = poly.getPoints();
             Point2D center = new Point2D.Double(poly.getCenterX(), poly.getCenterY());

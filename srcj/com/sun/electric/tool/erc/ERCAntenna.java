@@ -23,11 +23,7 @@
  */
 package com.sun.electric.tool.erc;
 
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Dimension2D;
-import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.ArcProto;
@@ -339,7 +335,7 @@ public class ERCAntenna
 							List merges = vmerge.getMergedPoints(oLay, true);
 							for(Iterator mIt = merges.iterator(); mIt.hasNext(); )
 							{
-								Poly merged = (Poly)mIt.next();
+								PolyBase merged = (PolyBase)mIt.next();
 								totalRegionPerimeterArea += merged.getPerimeter() * thickness;
 							}
 						}
@@ -361,7 +357,7 @@ public class ERCAntenna
 								List merges = vmerge.getMergedPoints(oLay, true);
 								for(Iterator mIt = merges.iterator(); mIt.hasNext(); )
 								{
-									Poly merged = (Poly)mIt.next();
+									PolyBase merged = (PolyBase)mIt.next();
 									err.addPoly(merged, true, cell);
 								}
 							}
@@ -599,7 +595,8 @@ public class ERCAntenna
 		if (ap == null) return 0;
 
 		// return its ratio
-		return ap.getAntennaRatio();
+		return ERC.tool.getAntennaRatio(ap);
+        //return ap.getAntennaRatio();
 	}
 
 }

@@ -57,8 +57,10 @@ import java.awt.geom.Rectangle2D;
  */
 public class DRC extends Listener
 {
-	/** the DRC tool. */								public static DRC tool = new DRC();
+	/** the DRC tool. */								protected static DRC tool = new DRC();
 	/** overrides of rules for each technology. */		private static HashMap prefDRCOverride = new HashMap();
+	/** map of cells and their objects to DRC */		private static HashMap cellsToCheck = new HashMap();
+	private static boolean incrementalRunning = false;
 
 	/****************************** DESIGN RULES ******************************/
 
@@ -93,8 +95,11 @@ public class DRC extends Listener
 		setOn();
 	}
 
-	/** map of cells and their objects to DRC */		private static HashMap cellsToCheck = new HashMap();
-	private static boolean incrementalRunning = false;
+    /**
+     * Method to retrieve singlenton associated to ERC tool
+     * @return
+     */
+    public static DRC getDRCTool() { return tool; }
 
 	private static void includeGeometric(Geometric geom)
 	{
@@ -294,6 +299,7 @@ public class DRC extends Listener
 		 */
 		protected boolean checkAbort()
 		{
+            if (getAborted()) return (true);
 			boolean scheduledAbort = getScheduledToAbort();
 			if (scheduledAbort)
 			{

@@ -27,6 +27,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.erc.ERC;
 
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -84,7 +85,7 @@ public class AntennaRulesTab extends PreferencePanel
 			ArcProto ap = (ArcProto)it.next();
 			ArcProto.Function fun = ap.getFunction();
 			if (!fun.isMetal() && fun != ArcProto.Function.POLY1) continue;
-			double ratio = ap.getAntennaRatio();
+			double ratio = ERC.getERCTool().getAntennaRatio(ap); //ap.getAntennaRatio();
 			Pref pref = Pref.makeDoublePref(null, null, ratio);
 			antennaOptions.put(ap, pref);
 			antennaArcListModel.addElement(ap.describe() + " (" + ratio + ")");
@@ -154,7 +155,7 @@ public class AntennaRulesTab extends PreferencePanel
 			ArcProto ap = (ArcProto)it.next();
 			Pref pref = (Pref)antennaOptions.get(ap);
 			if (pref.getDoubleFactoryValue() != pref.getDouble())
-				ap.setAntennaRatio(pref.getDouble());
+				ERC.getERCTool().setAntennaRatio(ap, pref.getDouble()); //ap.setAntennaRatio(pref.getDouble());
 		}
 	}
 

@@ -26,6 +26,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Global;
@@ -436,7 +437,7 @@ public class Spice extends Topology
 				if (polyList == null) continue;
 				for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
 				{
-					Poly poly = (Poly)pIt.next();
+					PolyBase poly = (PolyBase)pIt.next();
 					Point2D [] pointList = poly.getPoints();
 					int count = pointList.length;
 

@@ -28,6 +28,7 @@ import com.sun.electric.Main;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.PolyQTree;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -47,6 +48,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.parasitic.ParasiticTool;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
@@ -158,6 +160,8 @@ public class DebugMenus {
 
         MenuBar.Menu gildaMenu = new MenuBar.Menu("Gilda", 'G');
         menuBar.add(gildaMenu);
+        gildaMenu.addMenuItem("Parasitic", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.parasiticCommand(); } });
 	    gildaMenu.addMenuItem("Check Wells", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(true); } });
 	    gildaMenu.addMenuItem("Check Wells OLD", null,
@@ -811,12 +815,12 @@ public class DebugMenus {
 
 				for (Iterator iter = rectList.iterator(); iter.hasNext();)
 				{
-					Poly p = (Poly)iter.next();
+					PolyBase p = (PolyBase)iter.next();
 					Rectangle2D rect = p.getBounds2D();
 
 					for (Iterator i = list.iterator(); i.hasNext();)
 					{
-						Poly poly = (Poly)i.next();
+						PolyBase poly = (PolyBase)i.next();
 						Rectangle2D r = poly.getBounds2D();
 
 						if (r.equals(rect))
@@ -833,7 +837,7 @@ public class DebugMenus {
 				// Ready to create new implants.
 				for(Iterator i = list.iterator(); i.hasNext(); )
 				{
-					Poly poly = (Poly)i.next();
+					PolyBase poly = (PolyBase)i.next();
 					Rectangle2D rect = poly.getBounds2D();
 					Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
 					PrimitiveNode priNode = layer.getPureLayerNode();

@@ -43,6 +43,7 @@ import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.MimicStitch;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.parasitic.ParasiticTool;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.generator.layout.Tech;
@@ -1340,5 +1341,19 @@ public class ToolMenu {
         }
     }
 
+    /****************** Parasitic Tool ********************/
+    public static void parasiticCommand()
+    {
+        EditWindow wnd = EditWindow.needCurrent();
+        Cell cell = wnd.getCell();
+        if (wnd == null) return;
+        Highlighter highlighter = wnd.getHighlighter();
 
+        Set nets = highlighter.getHighlightedNetworks();
+        for (Iterator it = nets.iterator(); it.hasNext();)
+        {
+            JNetwork net = (JNetwork)it.next();
+            ParasiticTool.getParasiticTool().netwokParasitic(net, cell);
+        }
+    }
 }

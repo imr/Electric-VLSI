@@ -158,9 +158,8 @@ public class WindowMenu {
 	public static void create3DViewCommand()
     {
 	    Cell curCell = WindowFrame.needCurCell();
-
 	    if (curCell == null) return;
-	    WindowFrame.create3DViewtWindow(curCell);
+	    WindowFrame.create3DViewtWindow(curCell, WindowFrame.getCurrentWindowFrame(false).getContent());
     }
 
     public static void fullDisplay()

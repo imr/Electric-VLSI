@@ -26,6 +26,8 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.event.MouseAdapter;
@@ -34,6 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.lang.reflect.Method;
 import javax.swing.JCheckBox;
 import javax.swing.Box;
 
@@ -53,7 +56,11 @@ public class LayerVisibility extends EDialog
 	private boolean initialTextOnAnnotation;
 	private boolean initialTextOnInstance;
 	private boolean initialTextOnCell;
-	
+
+	// 3D view. Static values to avoid unnecessary calls
+	private static final Class view3DClass = Resources.get3DMainClass();
+	private static Method setVisibilityMethod = null;
+
 	/** Creates new form Layer Visibility */
 	public LayerVisibility(java.awt.Frame parent, boolean modal)
 	{
@@ -112,6 +119,18 @@ public class LayerVisibility extends EDialog
 				Boolean layerVis = (Boolean)visibility.get(layer);
                 if (layerVis == null) continue;
 				layer.setVisible(layerVis.booleanValue());
+				// 3D appearance if available
+				Object obj3D = layer.getGraphics().get3DAppearance();
+				if (obj3D != null)
+				{
+					try
+					{
+						if (setVisibilityMethod == null) setVisibilityMethod = view3DClass.getDeclaredMethod("set3DVisibility", new Class[] {Object.class, Boolean.class});
+						setVisibilityMethod.invoke(view3DClass, new Object[]{obj3D, layerVis});
+					} catch (Exception e) {
+						System.out.println("Cannot call 3D plugin method set3DVisibility: " + e.getMessage());
+					}
+				}
 			}
 		}
 

@@ -33,6 +33,7 @@ import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.parasitic.ParasiticTool;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -106,8 +107,9 @@ public class Tool extends ElectricObject
         Simulation.tool.init();
         Routing.tool.init();
         IOTool.tool.init();
-        DRC.tool.init();
-        ERC.tool.init();
+        DRC.getDRCTool().init();
+        ERC.getERCTool().init();
+        ParasiticTool.getParasiticTool().init();
 	}
 
 	/**

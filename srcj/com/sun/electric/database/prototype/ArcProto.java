@@ -28,8 +28,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.tool.erc.ERC;
-import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.user.User;
 
 import java.util.HashMap;
@@ -165,7 +163,6 @@ public abstract class ArcProto extends ElectricObject
 	/** Pref map for arc end extension. */						private static HashMap defaultExtendedPrefs = new HashMap();
 	/** Pref map for arc negation. */							private static HashMap defaultNegatedPrefs = new HashMap();
 	/** Pref map for arc directionality. */						private static HashMap defaultDirectionalPrefs = new HashMap();
-	/** Pref map for arc antenna ratio. */						private static HashMap defaultAntennaRatioPrefs = new HashMap();
 
 	/** The name of this ArcProto. */							protected String protoName;
 	/** The technology in which this ArcProto resides. */		protected Technology tech;
@@ -295,6 +292,7 @@ public abstract class ArcProto extends ElectricObject
 		return getDefaultWidth() - widthOffset;
 	}
 
+    /*
 	private Pref getArcProtoAntennaPref()
 	{
 		Pref pref = (Pref)defaultAntennaRatioPrefs.get(this);
@@ -307,20 +305,21 @@ public abstract class ArcProto extends ElectricObject
 		}
 		return pref;
 	}
+    */
 
 	/**
 	 * Method to set the antenna ratio of this ArcProto.
 	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
 	 * @param ratio the antenna ratio of this ArcProto.
 	 */
-	public void setAntennaRatio(double ratio) { getArcProtoAntennaPref().setDouble(ratio); }
+	//public void setAntennaRatio(double ratio) { getArcProtoAntennaPref().setDouble(ratio); }
 
 	/**
 	 * Method to tell the antenna ratio of this ArcProto.
 	 * Antenna ratios are used in antenna checks that make sure the ratio of the area of a layer is correct.
 	 * @return the antenna ratio of this ArcProto.
 	 */
-	public double getAntennaRatio() { return getArcProtoAntennaPref().getDouble(); }
+	//public double getAntennaRatio() { return getArcProtoAntennaPref().getDouble(); }
 
 	private Pref getArcProtoBitPref(String what, HashMap map, boolean factory)
 	{

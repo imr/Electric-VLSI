@@ -41,10 +41,7 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.menus.EditMenu;
@@ -428,7 +425,8 @@ public class WiringListener
 	{
 		if (User.isPlayClickSoundsWhenCreatingArcs())
 		{
-			URL url = WiringListener.class.getResource("Click.wav");
+			//URL url = WiringListener.class.getResource("Click.wav");
+			URL url = Resources.getURLResource(WiringListener.class, "Click.wav");
 			if (url == null) return;
 			if (clickSound == null)
 				clickSound = Applet.newAudioClip(url);

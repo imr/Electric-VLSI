@@ -30,6 +30,7 @@ import java.awt.Cursor;
 import java.awt.event.*;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.HashMap;
@@ -90,6 +91,13 @@ public class WindowFrame
     /** current key listener */							public static KeyListener curKeyListener = ClickZoomWireListener.theOne;
 
     /** library tree updater */                         private static LibraryTreeUpdater libTreeUpdater = new LibraryTreeUpdater();
+
+
+	/** Main class for 3D plugin */	                    private static final Class view3DClass = Resources.get3DMainClass();
+    /** Constructor of main 3D class */                 private static Constructor constructor3DClass = null;
+    /** Show 3D highlight method */                     private static Method showMethod3DClass = null;
+
+
 	//******************************** CONSTRUCTION ********************************
 
 	// constructor
@@ -130,38 +138,17 @@ public class WindowFrame
 	 * @param cell the cell to display.
 	 * @return the WindowFrame that shows the Cell.
 	 */
-	public static WindowFrame create3DViewtWindow(Cell cell)
+	public static WindowFrame create3DViewtWindow(Cell cell, WindowContent view2D)
 	{
 		WindowFrame frame = new WindowFrame();
 
-		/*
-		WindowContent vWnd = new View3DWindow(cell, frame);
-		frame.buildWindowStructure((WindowContent)vWnd, cell, null);
-		setCurrentWindowFrame(frame);
-		frame.populateJFrame();
-         */
+		if (view3DClass == null) return frame; // error in class initialization
 
-		Class view3DClass;
-
-		try
-        {
-            view3DClass = Class.forName("com.sun.electric.plugins.j3d.View3DWindow");
-
-        } catch (ClassNotFoundException e)
-        {
-            System.out.println("Can't find 3D View plugin: " + e.getMessage());
-			return frame;
-        } catch (Error e)
-        {
-            System.out.println("Java3D not installed: " + e.getMessage());
-			return frame;
-        }
-
-        Constructor constructor = null;
 		try
 		{
-			constructor = view3DClass.getDeclaredConstructor(new Class[] {Cell.class, WindowFrame.class}) ;
-			Object vWnd = constructor.newInstance(new Object[] {cell, frame});
+			if (constructor3DClass == null)
+				constructor3DClass = view3DClass.getDeclaredConstructor(new Class[] {Cell.class, WindowFrame.class, WindowContent.class}) ;
+			Object vWnd = constructor3DClass.newInstance(new Object[] {cell, frame, view2D});
 
 			frame.buildWindowStructure((WindowContent)vWnd, cell, null);
 			setCurrentWindowFrame(frame);
@@ -172,6 +159,29 @@ public class WindowFrame
         }
 
 		return frame;
+	}
+
+	/**
+	 * Method to create a new 3D view window on the screen for the given cell
+	 * @param cell the cell to display.
+	 */
+	/**
+	 * Method to access 3D view and highligh elements if view is available
+	 * @param view2D
+	 */
+	public static void show3DHighlight(WindowContent view2D)
+	{
+		if (view3DClass == null) return; // error in class initialization
+
+		try
+		{
+			if (showMethod3DClass == null)
+				showMethod3DClass = view3DClass.getDeclaredMethod("show3DHighlight", new Class[] {WindowContent.class});
+			showMethod3DClass.invoke(view3DClass, new Object[]{view2D});
+		} catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method: " + e.getMessage());
+            ActivityLogger.logException(e);
+        }
 	}
 
 	/**

@@ -23,10 +23,7 @@
  */
 package com.sun.electric.tool.erc;
 
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.PolyMerge;
-import com.sun.electric.database.geometry.PolyQTree;
-import com.sun.electric.database.geometry.GeometryHandler;
+import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -60,6 +57,15 @@ import java.util.*;
  */
 public class ERCWellCheck
 {
+	// well areas
+	static class WellArea
+	{
+		//Rectangle2D bounds;
+		PolyBase        poly;
+		//Layer       layer;
+		int         netNum;
+		int         index;
+	};
 	// well contacts
 	static class WellCon
 	{
@@ -70,22 +76,6 @@ public class ERCWellCheck
 		//NodeProto          np;
 		int                index;
 	};
-	private static List wellCons = new ArrayList();
-	private static int wellConIndex;
-
-	// well areas
-	static class WellArea
-	{
-		//Rectangle2D bounds;
-		Poly        poly;
-		//Layer       layer;
-		int         netNum;
-		int         index;
-	};
-	private static List wellAreas = new ArrayList();
-
-	private static HashMap cellMerges = new HashMap(); // make a map of merge information in each cell
-	private static HashMap doneCells = new HashMap(); // Mark if cells are done already.
 
 	/*
 	 * Method to analyze the current Cell for well errors.
@@ -107,6 +97,11 @@ public class ERCWellCheck
 		boolean newAlgorithm;
         ErrorLogger errorLogger;
         Highlighter highlighter;
+		List wellCons = new ArrayList();
+	    int wellConIndex;
+		List wellAreas = new ArrayList();
+		HashMap cellMerges = new HashMap(); // make a map of merge information in each cell
+		HashMap doneCells = new HashMap(); // Mark if cells are done already.
 
 		protected WellCheck(Cell cell, boolean newAlg, Highlighter highlighter)
 		{
@@ -124,13 +119,15 @@ public class ERCWellCheck
 
 			// announce start of analysis
 			System.out.println("Checking Wells and Substrates in '" + cell.libDescribe() + "' ...");
+			System.out.println("Free v/s Total Memory " +
+			        Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
 
 			// make a list of well and substrate contacts
-			wellCons.clear();
+			//wellCons.clear();
 			wellConIndex = 0;
 
-			doneCells.clear();
-            cellMerges.clear();
+			//doneCells.clear();
+            //cellMerges.clear();
 
 			// enumerate the hierarchy below here
 			Visitor wcVisitor = new Visitor(newAlgorithm, this);
@@ -140,7 +137,7 @@ public class ERCWellCheck
 	        if (checkForAbort()) return (false);
 
 			// make a list of well and substrate areas
-			wellAreas.clear();
+			//wellAreas.clear();
 			int wellIndex = 0;
 
 			GeometryHandler topMerge = (GeometryHandler)cellMerges.get(cell);
@@ -155,15 +152,15 @@ public class ERCWellCheck
 				for(Iterator pIt = set.iterator(); pIt.hasNext(); )
 				{
 					WellArea wa = new WellArea();
-					Poly poly = null;
+					PolyBase poly = null;
 
 					if (newAlgorithm)
 					{
 						PolyQTree.PolyNode pn = (PolyQTree.PolyNode)pIt.next();
-						poly = new Poly(pn.getPoints());
+						poly = new PolyBase(pn.getPoints());
 					}
 					else
-						poly = (Poly)pIt.next();
+						poly = (PolyBase)pIt.next();
 
 					wa.poly = poly;
 					wa.poly.setLayer(layer);
@@ -187,6 +184,9 @@ public class ERCWellCheck
 			*/
 			System.out.println("Found " + wellAreas.size() + " well/select areas and " + wellCons.size() +
 			        " contact regions (took " + TextUtils.getElapsedTime(System.currentTimeMillis() - startTime) + ")");
+            System.out.println("Free v/s Total Memory Intermediate step: " +
+			        Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
+
 			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
 			{
 				WellArea wa = (WellArea)it.next();
@@ -340,6 +340,8 @@ public class ERCWellCheck
 					if (rule == null)
 					{
 						rule = DRC.getSpacingRule(waLayer, waLayer, con, false, 0);
+                        if (rule == null)
+                            System.out.println("Replace this");
 						if (con)
 							rulesCon.put(waLayer, rule);
 						else
@@ -365,6 +367,8 @@ public class ERCWellCheck
 					}
 				}
 			}
+            System.out.println("Free v/s Total Memory Intermediate step 2: " +
+			        Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
 
 			// compute edge distance if requested
 			if (ERC.isFindWorstCaseWell())
@@ -472,8 +476,12 @@ public class ERCWellCheck
 			{
 				System.out.println("FOUND " + errorCount + " WELL ERRORS (took " + TextUtils.getElapsedTime(endTime - startTime) + ")");
 			}
+			System.out.println("Free v/s Total Memory Final Step: " +
+			        Runtime.getRuntime().freeMemory() + " / " + Runtime.getRuntime().totalMemory());
 			wellAreas.clear();
 			wellCons.clear();
+			doneCells.clear();
+			cellMerges.clear();
 			errorLogger.termLogging(true);
 			return true;
 		}
@@ -518,7 +526,7 @@ public class ERCWellCheck
 
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
-	        GeometryHandler thisMerge = (GeometryHandler)cellMerges.get(cell);
+	        GeometryHandler thisMerge = (GeometryHandler)(job.cellMerges.get(cell));
 
 			if (thisMerge == null)
 			{
@@ -526,7 +534,7 @@ public class ERCWellCheck
 					thisMerge = new PolyQTree(cell.getBounds());
 				else
 					thisMerge = new PolyMerge();
-				cellMerges.put(cell, thisMerge);
+				job.cellMerges.put(cell, thisMerge);
 			}
 
             return true;
@@ -539,11 +547,11 @@ public class ERCWellCheck
 
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
-	        GeometryHandler thisMerge = (GeometryHandler)cellMerges.get(info.getCell());
+	        GeometryHandler thisMerge = (GeometryHandler)job.cellMerges.get(info.getCell());
 			if (thisMerge == null) throw new Error("wrong condition in ERCWellCheck.enterCell()");
 
 	        // To mark if cell is already done
-			doneCells.put(cell, cell);
+			job.doneCells.put(cell, cell);
 
 			// merge everything sub trees
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
@@ -552,7 +560,7 @@ public class ERCWellCheck
 				NodeProto subNp = ni.getProto();
 				if (subNp instanceof PrimitiveNode) continue;
 				// get sub-merge information for the cell instance
-				GeometryHandler subMerge = (GeometryHandler)cellMerges.get(subNp);
+				GeometryHandler subMerge = (GeometryHandler)job.cellMerges.get(subNp);
 				if (subMerge != null)
 				{
 					AffineTransform trans = ni.rotateOut();
@@ -571,10 +579,8 @@ public class ERCWellCheck
 				{
 					Poly poly = arcInstPolyList[i];
 					Layer layer = poly.getLayer();
-					//int layerType = getWellLayerType(layer);
 					// Only interested in well/select
 					if (!isERCLayerRelated(layer)) continue;
-					//if (layerType != ERCPWell && layerType != ERCNWell) continue;
 					if (getWellLayerType(layer) == ERCPSEUDO) continue;
 					Object newElem = poly;
 
@@ -592,7 +598,7 @@ public class ERCWellCheck
 
 			// merge everything
 	        Cell cell = info.getCell();
-	        GeometryHandler thisMerge = (GeometryHandler)cellMerges.get(cell);
+	        GeometryHandler thisMerge = (GeometryHandler)job.cellMerges.get(cell);
 			NodeInst ni = no.getNodeInst();
 			//AffineTransform trans = ni.transformOut();
 			AffineTransform trans = ni.rotateOut();
@@ -600,7 +606,7 @@ public class ERCWellCheck
 	        boolean wellSubsContact = (fun == NodeProto.Function.WELL || fun == NodeProto.Function.SUBSTRATE);
 
 	        // No done yet
-	        if (doneCells.get(cell) == null)
+	        if (job.doneCells.get(cell) == null)
 	        {
 				NodeProto subNp = ni.getProto();
 				if (subNp instanceof PrimitiveNode)
@@ -620,7 +626,10 @@ public class ERCWellCheck
 						Object newElem = poly;
 
 						if (newAlgorithm)
-							newElem = new PolyQTree.PolyNode(poly.getBounds2D());
+                        {
+                            System.out.println("WHy just getBounds2D?");
+                            newElem = new PolyQTree.PolyNode(poly.getBounds2D());
+                        }
 						thisMerge.add(layer, newElem, false);
 					}
 				}
@@ -635,7 +644,7 @@ public class ERCWellCheck
 				info.getTransformToRoot().transform(wc.ctr, wc.ctr);
 				//wc.np = ni.getProto();
 				wc.fun = fun;
-				wc.index = wellConIndex++;
+				wc.index = job.wellConIndex++;
 				PortInst pi = ni.getOnlyPortInst();
 				Netlist netList = info.getNetlist();
 				JNetwork net = netList.getNetwork(pi);
@@ -661,7 +670,7 @@ public class ERCWellCheck
 						}
 					}
 				}
-				wellCons.add(wc);
+				job.wellCons.add(wc);
 			}
             return true;
         }
