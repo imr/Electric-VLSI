@@ -3206,4 +3206,27 @@ public class EditWindow extends JPanel
 		}
 		return img;
 	}
+
+	/**
+	 * Method to pan along X or Y according to fixed amount of ticks
+	 * @param direction 0 is X and 1 is Y
+	 * @param panningAmounts
+	 * @param ticks
+	 */
+	public void panXOrY(int direction, double[] panningAmounts, int ticks)
+	{
+		Cell cell = getCell();
+		if (cell == null) return;
+		Dimension dim = getSize();
+		double panningAmount = panningAmounts[User.getPanningDistance()];
+		double value = (direction == 0) ? dim.width : dim.height;
+		int mult = (int)((double)value * panningAmount / getScale());
+		if (mult == 0) mult = 1;
+		Point2D wndOffset = getOffset();
+		Point2D newOffset = (direction == 0) ?
+		        new Point2D.Double(wndOffset.getX() - mult*ticks, wndOffset.getY()) :
+		        new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
+		setOffset(newOffset);
+		repaintContents(null);
+	}
 }

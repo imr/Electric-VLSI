@@ -51,18 +51,6 @@ import com.sun.electric.tool.user.ui.ExplorerTree;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.j3d.utils.behaviors.mouse.MouseBehavior;
-import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
-import com.sun.j3d.utils.behaviors.mouse.MouseTranslate;
-import com.sun.j3d.utils.behaviors.mouse.MouseZoom;
-import com.sun.j3d.utils.geometry.GeometryInfo;
-import com.sun.j3d.utils.geometry.NormalGenerator;
-import com.sun.j3d.utils.picking.PickCanvas;
-import com.sun.j3d.utils.picking.PickResult;
-import com.sun.j3d.utils.picking.PickTool;
-import com.sun.j3d.utils.universe.SimpleUniverse;
-import com.sun.j3d.utils.universe.Viewer;
-import com.sun.j3d.utils.universe.ViewingPlatform;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -92,6 +80,19 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import com.sun.j3d.utils.behaviors.mouse.MouseBehavior;
+import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
+import com.sun.j3d.utils.behaviors.mouse.MouseTranslate;
+import com.sun.j3d.utils.behaviors.mouse.MouseZoom;
+import com.sun.j3d.utils.geometry.GeometryInfo;
+import com.sun.j3d.utils.geometry.NormalGenerator;
+import com.sun.j3d.utils.picking.PickCanvas;
+import com.sun.j3d.utils.picking.PickResult;
+import com.sun.j3d.utils.picking.PickTool;
+import com.sun.j3d.utils.universe.SimpleUniverse;
+import com.sun.j3d.utils.universe.Viewer;
+import com.sun.j3d.utils.universe.ViewingPlatform;
 
 import javax.media.j3d.AmbientLight;
 import javax.media.j3d.Appearance;
@@ -134,8 +135,9 @@ public class View3DWindow extends JPanel
 	private SimpleUniverse u;
 	private Canvas3D canvas;
 	private TransformGroup objTrans;
-	private MouseBehavior rotateB, translateB;
+	private MouseBehavior rotateB;
 	private JMouseZoom zoomB;
+	private JMouseTranslate translateB;
 	private OffScreenCanvas3D offScreenCanvas3D;
 
 	/** the window frame containing this editwindow */      private WindowFrame wf;
@@ -241,7 +243,7 @@ public class View3DWindow extends JPanel
 		ViewingPlatform viewingPlatform = u.getViewingPlatform();
 		//viewingPlatform.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
 
-        MouseTranslate translate = new MouseTranslate(canvas, MouseTranslate.INVERT_INPUT);
+        JMouseTranslate translate = new JMouseTranslate(canvas, MouseTranslate.INVERT_INPUT);
         translate.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(2));
         translate.setSchedulingBounds(infiniteBounds);
         translate.setFactor(0.1); // default 0.02
@@ -440,8 +442,37 @@ public class View3DWindow extends JPanel
 	public JPanel getPanel() { return this; }
 	public void initTextSearch(String search, boolean caseSensitive, boolean regExp, Set whatToSearch) {}
 
+	/**
+	 * Method to pan along X according to fixed amount of ticks
+	 * @param direction
+	 * @param panningAmounts
+	 * @param ticks
+	 */
+	public void panXOrY(int direction, double[] panningAmounts, int ticks)
+	{
+		Cell cell = getCell();
+		if (cell == null) return;
+		Dimension dim = getSize();
+		double panningAmount = panningAmounts[User.getPanningDistance()];
 
+		//double value = (direction == 0) ? dim.width : dim.height;
+		int mult = (int)((double)10 * panningAmount);
+		if (mult == 0) mult = 1;
+
+		if (direction == 0)
+			translateB.panning(mult*ticks, 0);
+		else
+		    translateB.panning(0, mult*ticks);
+	}
+
+	/**
+	 * Method to zoom out by a factor of 2 plus mouse pre-defined factor
+	 */
 	public void zoomOutContents() {zoomB.zoomInOut(false);}
+
+	/**
+	 * Method to zoom in by a factor of 2 plus mouse pre-defined factor
+	 */
 	public void zoomInContents() {zoomB.zoomInOut(true);}
 
 	/**
@@ -1330,12 +1361,43 @@ public class View3DWindow extends JPanel
 	}
 
 	//************************ SPECIAL BEHAVIORS *********************************************/
+
 	/**
-	 * Extending original zoom class to allow zoom with respect to scene center
+	 * Extending original translate class to allow panning
+	 */
+    public class JMouseTranslate extends MouseTranslate
+	{
+		Vector3d extraTrans = new Vector3d();
+
+		public JMouseTranslate(Component c, int flags) {super(c, flags);}
+
+		void panning(int dx, int dy)
+		{
+			transformGroup.getTransform(currXform);
+
+		    extraTrans.x = dx*getXFactor();
+		    extraTrans.y = -dy*getYFactor();
+
+		    transformX.set(extraTrans);
+
+		    if (invert) {
+			currXform.mul(currXform, transformX);
+		    } else {
+			currXform.mul(transformX, currXform);
+		    }
+
+		    transformGroup.setTransform(currXform);
+
+		    transformChanged( currXform );
+		}
+	}
+
+	/**
+	 * Extending original zoom class to allow zoom not from original behavior
 	 */
 	public class JMouseZoom extends MouseZoom
 	{
-		Vector3d extraTrans = new Vector3d();
+		//Vector3d extraTrans = new Vector3d();
 
 		public JMouseZoom(Component c, int flags) {super(c, flags);}
 
@@ -1370,92 +1432,13 @@ public class View3DWindow extends JPanel
 //			}
 //
 //			// Set old extraTrans back
-//			Vector3d translation = new Vector3d(mat.m03, mat.m13, mat.m23);
-//			currXform.setTranslation(translation);
+//			Vector3d extraTrans = new Vector3d(mat.m03, mat.m13, mat.m23);
+//			currXform.setTranslation(extraTrans);
 
 			transformGroup.setTransform(currXform);
 
 			transformChanged( currXform );
 
-		}
-
-		/**
-		 * Similar to original MouseZoom function but zoom with respect to
-		 * center
-		 * @param evt
-		 */
-		void doProcessOld(MouseEvent evt)
-		{
-			int id;
-			int dy;
-
-			processMouseEvent(evt);
-
-			if (((buttonPress)&&((flags & MANUAL_WAKEUP) == 0)) ||
-			    ((wakeUp)&&((flags & MANUAL_WAKEUP) != 0)))
-			{
-			    id = evt.getID();
-			    if ((id == MouseEvent.MOUSE_DRAGGED) &&
-				evt.isAltDown() && !evt.isMetaDown())
-			    {
-					x = evt.getX();
-					y = evt.getY();
-
-					//dx = x - x_last;
-					dy = y - y_last;
-
-					if (!reset){
-						transformGroup.getTransform(currXform);
-
-						// Remember old matrix
-						Matrix4d mat = new Matrix4d();
-						currXform.get(mat);
-
-//						double z_factor = Math.abs(getFactor()*dy);
-//						boolean out = (dy < 0);
-//			double factor = (out) ? (currXform.getScale()/z_factor) : (currXform.getScale()*z_factor);
-//			currXform.setScale(factor);
-
-						// Translate to origin
-						currXform.setTranslation(new Vector3d(0.0,0.0,0.0));
-
-						extraTrans.z  = dy*getFactor();
-
-						transformX.set(extraTrans);
-
-						if (invert) {
-							currXform.mul(currXform, transformX);
-						} else {
-							currXform.mul(transformX, currXform);
-						}
-
-						// Set old extraTrans back
-						Vector3d translation = new Vector3d(mat.m03, mat.m13, mat.m23);
-						currXform.setTranslation(translation);
-
-						transformGroup.setTransform(currXform);
-
-						transformChanged( currXform );
-
-						/*
-						if (callback!=null)
-						callback.transformChanged( MouseBehaviorCallback.ZOOM,
-									   currXform );
-									   */
-
-					}
-					else {
-						reset = false;
-					}
-
-					x_last = x;
-					y_last = y;
-			    }
-			    else if (id == MouseEvent.MOUSE_PRESSED) {
-					x_last = evt.getX();
-					y_last = evt.getY();
-			    }
-			}
 		}
     }
 

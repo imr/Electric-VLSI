@@ -93,16 +93,16 @@ public class WindowMenu {
         windowMenu.addSeparator();
 
         m = windowMenu.addMenuItem("Pan Left", KeyStroke.getKeyStroke('4', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(WindowFrame.getCurrentWindowFrame(), 1); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panXOrY(0, WindowFrame.getCurrentWindowFrame(), 1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD4, buckyBit), null);
         m = windowMenu.addMenuItem("Pan Right", KeyStroke.getKeyStroke('6', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(WindowFrame.getCurrentWindowFrame(), -1); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panXOrY(0, WindowFrame.getCurrentWindowFrame(), -1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD6, buckyBit), null);
         m = windowMenu.addMenuItem("Pan Up", KeyStroke.getKeyStroke('8', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(WindowFrame.getCurrentWindowFrame(), -1); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panXOrY(1, WindowFrame.getCurrentWindowFrame(), -1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD8, buckyBit), null);
         m = windowMenu.addMenuItem("Pan Down", KeyStroke.getKeyStroke('2', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(WindowFrame.getCurrentWindowFrame(), 1); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panXOrY(1, WindowFrame.getCurrentWindowFrame(), 1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, buckyBit), null);
 
         MenuBar.Menu centerSubMenu = new MenuBar.Menu("Center");

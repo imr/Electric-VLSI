@@ -196,53 +196,14 @@ public class ZoomAndPanListener
 	private static double [] panningAmounts = {0.15, 0.3, 0.6};
 
     /**
-     * Pan in X direction.
+     * Pan in X or Y direction.
+     * @param direction 0 if X or 1 if Y
      * @param wf the WindowFrame
      * @param ticks the amount and direction of pan.
-     * If ticks is 1, pan right. If ticks is -1, pan left.
      */
-    public static void panX(WindowFrame wf, int ticks) {
+    public static void panXOrY(int direction, WindowFrame wf, int ticks) {
 
-		if (wf.getContent() instanceof EditWindow)
-		{
-			Cell cell = wf.getContent().getCell();
-			if (cell == null) return;
-            EditWindow wnd = (EditWindow)wf.getContent();
-            Dimension dim = wnd.getSize();
-			double panningAmount = panningAmounts[User.getPanningDistance()];
-            int mult = (int)((double)dim.width * panningAmount / wnd.getScale());
-            if (mult == 0) mult = 1;
-
-	        Point2D wndOffset = wnd.getOffset();
-	        Point2D newOffset = new Point2D.Double(wndOffset.getX() - mult*ticks, wndOffset.getY());
-	        wnd.setOffset(newOffset);
-	        wnd.repaintContents(null);
-		}
-    }
-
-    /**
-     * Pan in Y direction.
-     * @param wf the WindowFrame
-     * @param ticks the amount and direction of pan.
-     * If ticks is 1, pan up. If ticks is -1, pan down.
-     */
-    public static void panY(WindowFrame wf, int ticks) {
-
-		if (wf.getContent() instanceof EditWindow)
-		{
-	        Cell cell = wf.getContent().getCell();
-	        if (cell == null) return;
-			EditWindow wnd = (EditWindow)wf.getContent();
-			Dimension dim = wnd.getSize();
-			double panningAmount = panningAmounts[User.getPanningDistance()];
-			int mult = (int)((double)dim.height * panningAmount / wnd.getScale());
-            if (mult == 0) mult = 1;
-
-	        Point2D wndOffset = wnd.getOffset();
-	        Point2D newOffset = new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
-	        wnd.setOffset(newOffset);
-	        wnd.repaintContents(null);
-		}
+	    wf.getContent().panXOrY(direction, panningAmounts, ticks);
     }
 
 	/**
