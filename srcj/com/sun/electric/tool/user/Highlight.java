@@ -783,24 +783,27 @@ public class Highlight
 				g.setColor(mainColor);
 				Poly poly = ni.getShapeOfPort(pp);
 				boolean opened = true;
+				Point2D [] points = poly.getPoints();
 				if (poly.getStyle() == Poly.Type.FILLED || poly.getStyle() == Poly.Type.CLOSED) opened = false;
 				if (poly.getStyle() == Poly.Type.CIRCLE || poly.getStyle() == Poly.Type.THICKCIRCLE ||
 					poly.getStyle() == Poly.Type.DISC)
 				{
-					Point2D [] points = poly.getPoints();
 					double sX = points[0].distance(points[1]) * 2;
 					Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, 0, 360);
+					poly = new Poly(pts);
+					poly.transform(ni.rotateOut());
 					drawOutlineFromPoints(wnd, g, pts, offX, offY, opened, null);
 				} else if (poly.getStyle() == Poly.Type.CIRCLEARC)
 				{
-					Point2D [] points = poly.getPoints();
 					double [] angles = ni.getArcDegrees();
 					double sX = points[0].distance(points[1]) * 2;
 					Point2D [] pts = Artwork.fillEllipse(points[0], sX, sX, angles[0], angles[1]);
+					poly = new Poly(pts);
+					poly.transform(ni.rotateOut());
 					drawOutlineFromPoints(wnd, g, pts, offX, offY, opened, null);
 				} else
 				{
-					drawOutlineFromPoints(wnd, g, poly.getPoints(), offX, offY, opened, null);
+					drawOutlineFromPoints(wnd, g, points, offX, offY, opened, null);
 				}
 				g.setColor(mainColor);
 

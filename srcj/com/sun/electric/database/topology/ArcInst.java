@@ -336,8 +336,7 @@ public class ArcInst extends Geometric
 		}
 
 		// copy all variables on the arcinst
-		newar.copyVarsFrom(this);
-		newar.setNameTextDescriptor(getNameTextDescriptor());
+		newar.copyPropertiesFrom(this);
 
 		// now delete the original nodeinst
 		kill();

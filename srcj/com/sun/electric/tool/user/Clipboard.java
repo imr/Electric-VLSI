@@ -663,9 +663,7 @@ public class Clipboard
 					System.out.println("Cannot create arc");
 					return;
 				}
-				newAr.copyStateBits(ai);
-				newAr.copyVarsFrom(ai);
-				newAr.setNameTextDescriptor(ai.getNameTextDescriptor());
+				newAr.copyPropertiesFrom(ai);
 				newArcs.put(ai, newAr);
 			}
 		}

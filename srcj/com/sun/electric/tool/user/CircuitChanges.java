@@ -3847,9 +3847,10 @@ public class CircuitChanges
         /** prototype of new arc */							private ArcProto ap;
         /** width of new arc */								private double wid;
         /** true to make new arc directional */				private boolean directional;
-        /** true to make new arc negated */					private boolean negated;
         /** true to ignore the head of the new arc */		private boolean ignoreHead;
         /** true to ignore the tail of the new arc */		private boolean ignoreTail;
+        /** true to negate the head of the new arc */		private boolean negateHead;
+        /** true to negate the tail of the new arc */		private boolean negateTail;
         /** true to reverse the head/tail on new arc */		private boolean reverseEnd;
         /** the name to use on the reconnected arc */		private String arcName;
         /** TextDescriptor for the reconnected arc name */	private TextDescriptor arcNameTD;
@@ -3977,10 +3978,10 @@ public class CircuitChanges
             ra.wid = ai1.getWidth();
 
             ra.directional = ai1.isDirectional() || ai2.isDirectional();
-//				re.negated = re.reconAr[0].isNegated() || re.reconAr[1].isNegated();
-//				if (re.reconAr[0].isNegated() && re.reconAr[1].isNegated()) re.negated = false;
             ra.ignoreHead = ai1.isSkipHead() || ai2.isSkipHead();
             ra.ignoreTail = ai1.isSkipTail() || ai2.isSkipTail();
+            ra.negateHead = ai1.getHead().isNegated() || ai2.getHead().isNegated();
+            ra.negateTail = ai1.getTail().isNegated() || ai2.getTail().isNegated();
             ra.reverseEnd = ai1.isReverseEnds() || ai2.isReverseEnds();
             ra.arcName = null;
             if (ai1.getName() != null && !ai1.getNameKey().isTempname())
@@ -3995,7 +3996,7 @@ public class CircuitChanges
             }
 
             // special code to handle directionality
-            if (ra.directional || ra.negated || ra.ignoreHead || ra.ignoreTail || ra.reverseEnd)
+            if (ra.directional || ra.negateHead || ra.negateTail || ra.ignoreHead || ra.ignoreTail || ra.reverseEnd)
             {
                 // reverse ends if the arcs point the wrong way
                 for(int i=0; i<2; i++)
@@ -4030,9 +4031,11 @@ public class CircuitChanges
                 if (!ra.reconPi[0].getNodeInst().isLinked() || !ra.reconPi[1].getNodeInst().isLinked()) continue;
                 ArcInst newAi = ArcInst.makeInstance(ra.ap, ra.wid, ra.reconPi[0], ra.reconPi[1], ra.recon[0], ra.recon[1], null);
                 if (newAi == null) continue;
-                if (ra.directional) newAi.setDirectional(true);
-                if (ra.ignoreHead) newAi.setSkipHead(true);
-                if (ra.ignoreTail) newAi.setSkipTail(true);
+                newAi.setDirectional(ra.directional);
+                newAi.setSkipHead(ra.ignoreHead);
+                newAi.setSkipTail(ra.ignoreTail);
+                newAi.getHead().setNegated(ra.negateHead);
+                newAi.getTail().setNegated(ra.negateTail);
                 if (ra.reverseEnd) newAi.setReverseEnds(true);
                 if (ra.arcName != null)
                 {

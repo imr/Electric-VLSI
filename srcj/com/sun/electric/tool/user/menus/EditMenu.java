@@ -1171,6 +1171,8 @@ public class EditMenu {
                 if (tailNegated) newAi3.getTail().setNegated(true);
 				newAi1.setNameTextDescriptor(ai.getNameTextDescriptor());
 				newAi3.setNameTextDescriptor(ai.getNameTextDescriptor());
+				newAi1.getHead().setNegated(ai.getHead().isNegated());
+				newAi3.getTail().setNegated(ai.getTail().isNegated());
 				ai.kill();
                 if (arcName != null)
                 {

@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01x: *********************************
 
+BUG: (10/6/04, SMR) Arc negation is lost during many operations (copy/paste, cross-library copy, insert jog in arc).
+FIX: Must reset this information.
+
+IMP/MAN: (10/6/04, SMR) Added "EDIF" output.
+
 IMP: (10/5/04, GVG) 3DView: Ability to turn on/off antialiasing without closing 3D window. Changes in diffuse, specular
 and ambient colors. Parasitic: arc cropping added.
 

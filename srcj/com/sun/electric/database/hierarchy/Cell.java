@@ -598,12 +598,8 @@ public class Cell extends NodeProto implements Comparable
 			        ai.getTail().getLocation(), ai.getName(), ai.getAngle());
 			if (toAi == null) return null;
 
-			// copy arcinst variables
-			toAi.setNameTextDescriptor(ai.getNameTextDescriptor());
-			toAi.copyVarsFrom(ai);
-
-			// copy miscellaneous information
-			toAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
+			// copy arcinst information
+			toAi.copyPropertiesFrom(ai);
 		}
 
 		// copy the Exports
