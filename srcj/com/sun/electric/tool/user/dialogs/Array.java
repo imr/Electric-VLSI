@@ -111,7 +111,8 @@ public class Array extends javax.swing.JDialog
 		super(parent, modal);
 		setLocation(100, 50);
 		initComponents();
-	
+        getRootPane().setDefaultButton(ok);
+
 		// load the repeat factors
 		xRepeat.setText(Integer.toString(lastXRepeat));
 		flipAlternateColumns.setSelected(lastXFlip);

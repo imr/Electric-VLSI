@@ -119,7 +119,7 @@ public class Artwork extends Technology
 		});
 		solidArc.setFunction(PrimitiveArc.Function.NONELEC);
 		solidArc.setWipable();
-		solidArc.setAngleIncrement(0);
+		solidArc.setFactoryAngleIncrement(0);
 
 		/** Dotted arc */
 		dottedArc = PrimitiveArc.newInstance(this, "Dotted", 0, new Technology.ArcLayer []
@@ -128,7 +128,7 @@ public class Artwork extends Technology
 		});
 		dottedArc.setFunction(PrimitiveArc.Function.NONELEC);
 		dottedArc.setWipable();
-		dottedArc.setAngleIncrement(0);
+		dottedArc.setFactoryAngleIncrement(0);
 
 		/** Dashed arc */
 		dashedArc = PrimitiveArc.newInstance(this, "Dashed", 0, new Technology.ArcLayer []
@@ -137,7 +137,7 @@ public class Artwork extends Technology
 		});
 		dashedArc.setFunction(PrimitiveArc.Function.NONELEC);
 		dashedArc.setWipable();
-		dashedArc.setAngleIncrement(0);
+		dashedArc.setFactoryAngleIncrement(0);
 
 		/** Thicker arc */
 		thickerArc = PrimitiveArc.newInstance(this, "Thicker", 0, new Technology.ArcLayer []
@@ -146,7 +146,7 @@ public class Artwork extends Technology
 		});
 		thickerArc.setFunction(PrimitiveArc.Function.NONELEC);
 		thickerArc.setWipable();
-		thickerArc.setAngleIncrement(0);
+		thickerArc.setFactoryAngleIncrement(0);
 
 		//******************** RECTANGLE DESCRIPTIONS ********************
 

@@ -36,7 +36,10 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.ui.*;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.ClickZoomWireListener;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.StatusBar;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -622,35 +625,17 @@ public class EditOptions extends javax.swing.JDialog
 				PrimitiveArc ap = (PrimitiveArc)it.next();
 				PrimArcInfo pai = (PrimArcInfo)dialog.initialNewArcsPrimInfo.get(ap);
 				if (pai.rigid != pai.initialRigid)
-				{
-					if (pai.rigid) ap.setRigid(); else
-						ap.clearRigid();
-				}
+					ap.setRigid(pai.rigid);
 				if (pai.fixedAngle != pai.initialFixedAngle)
-				{
-					if (pai.fixedAngle) ap.setFixedAngle(); else
-						ap.clearFixedAngle();
-				}
+					ap.setFixedAngle(pai.fixedAngle);
 				if (pai.slidable != pai.initialSlidable)
-				{
-					if (pai.slidable) ap.setSlidable(); else
-						ap.clearSlidable();
-				}
+					ap.setSlidable(pai.slidable);
 				if (pai.negated != pai.initialNegated)
-				{
-					if (pai.negated) ap.setNegated(); else
-						ap.clearNegated();
-				}
+					ap.setNegated(pai.negated);
 				if (pai.directional != pai.initialDirectional)
-				{
-					if (pai.directional) ap.setDirectional(); else
-						ap.clearDirectional();
-				}
+					ap.setDirectional(pai.directional);
 				if (pai.endsExtend != pai.initialEndsExtend)
-				{
-					if (pai.endsExtend) ap.setExtended(); else
-						ap.clearExtended();
-				}
+					ap.setExtended(pai.endsExtend);
 				if (pai.wid != pai.initialWid)
 					ap.setDefaultWidth(pai.wid);
 				if (pai.angleIncrement != pai.initialAngleIncrement)
@@ -1186,8 +1171,8 @@ public class EditOptions extends javax.swing.JDialog
 	{
 		// MOCMOS
 		initialTechRules = MoCMOS.getRuleSet();
-		if (initialTechRules == 0) techMOCMOSSCMOSRules.setSelected(true); else
-			if (initialTechRules == 1) techMOCMOSSubmicronRules.setSelected(true); else
+		if (initialTechRules == MoCMOS.SCMOSRULES) techMOCMOSSCMOSRules.setSelected(true); else
+			if (initialTechRules == MoCMOS.SUBMRULES) techMOCMOSSubmicronRules.setSelected(true); else
 				techMOCMOSDeepRules.setSelected(true);
 
 		techMOCMOSMetalLayers.addItem("2 Layers");
@@ -1260,27 +1245,44 @@ public class EditOptions extends javax.swing.JDialog
 
 			// MOCMOS
 			int currentNumMetals = dialog.techMOCMOSMetalLayers.getSelectedIndex() + 2;
-			if (currentNumMetals != dialog.initialTechNumMetalLayers)
+			int currentRules = MoCMOS.SCMOSRULES;
+			if (dialog.techMOCMOSSubmicronRules.isSelected()) currentRules = MoCMOS.SUBMRULES; else
+				if (dialog.techMOCMOSDeepRules.isSelected()) currentRules = MoCMOS.DEEPRULES;
+
+			switch (currentNumMetals)
 			{
-				MoCMOS.setNumMetal(currentNumMetals);
-				redrawPalette = redrawWindows = true;
+				// cannot use deep rules if less than 5 layers of metal
+				case 2:
+				case 3:
+				case 4:
+					if (currentRules == MoCMOS.DEEPRULES)
+					{
+						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+							"Cannot use Deep rules if there are less than 5 layers of metal...using SubMicron rules.");
+						currentRules = MoCMOS.SUBMRULES;
+					}
+					break;
+
+				// cannot use scmos rules if more than 4 layers of metal
+				case 5:
+				case 6:
+					if (currentRules == MoCMOS.SCMOSRULES)
+					{
+						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+							"Cannot use SCMOS rules if there are more than 4 layers of metal...using SubMicron rules.");
+						currentRules = MoCMOS.SUBMRULES;
+					}
+					break;
 			}
 
-			int currentRules = 0;
-			if (dialog.techMOCMOSSubmicronRules.isSelected()) currentRules = 1; else
-				if (dialog.techMOCMOSDeepRules.isSelected()) currentRules = 2;
+			if (currentNumMetals != dialog.initialTechNumMetalLayers)
+				MoCMOS.setNumMetal(currentNumMetals);
 			if (currentRules != dialog.initialTechRules)
-			{
 				MoCMOS.setRuleSet(currentRules);
-				redrawPalette = redrawWindows = true;
-			}
 
 			boolean currentSecondPolys = dialog.techMOCMOSSecondPoly.isSelected();
 			if (currentSecondPolys != dialog.initialTechSecondPolyLayers)
-			{
 				MoCMOS.setSecondPolysilicon(currentSecondPolys);
-				redrawPalette = redrawWindows = true;
-			}
 
 			boolean currentNoStackedVias = dialog.techMOCMOSDisallowStackedVias.isSelected();
 			if (currentNoStackedVias != dialog.initialTechNoStackedVias)
@@ -1288,10 +1290,7 @@ public class EditOptions extends javax.swing.JDialog
 
 			boolean currentAlternateContact = dialog.techMOCMOSAlternateContactRules.isSelected();
 			if (currentAlternateContact != dialog.initialTechAlternateContactRules)
-			{
 				MoCMOS.setAlternateActivePolyRules(currentAlternateContact);
-				redrawPalette = redrawWindows = true;
-			}
 
 			boolean currentSpecialTransistors = dialog.techMOCMOSShowSpecialTrans.isSelected();
 			if (currentSpecialTransistors != dialog.initialTechSpecialTransistors)

@@ -98,6 +98,7 @@ public class CellLists extends javax.swing.JDialog
 		super(parent, modal);
 		setLocation(100, 50);
 		initComponents();
+        getRootPane().setDefaultButton(ok);
 
 		// make a popup of views
 		for(Iterator it = View.getViews(); it.hasNext(); )

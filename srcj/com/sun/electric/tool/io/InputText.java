@@ -408,6 +408,7 @@ public class InputText extends InputLibrary
 			if (subCell.getLibrary() != lib)
 			{
 				reader = getReaderForLib(subCell.getLibrary());
+				if (reader == null) continue;
 			}
 			int subCellIndex = subCell.getTempInt();
 			double subLambda = reader.cellLambda[subCellIndex];

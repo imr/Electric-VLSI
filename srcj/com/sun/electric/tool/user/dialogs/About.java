@@ -95,6 +95,7 @@ public class About extends javax.swing.JDialog
 		super(parent, modal);
 		setLocation(100, 50);
 		initComponents();
+        getRootPane().setDefaultButton(ok);
 
 		// setup the region popup
 		jComboBox1.addItem("N.America");
@@ -140,14 +141,14 @@ public class About extends javax.swing.JDialog
         TopLeft = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jButton3 = new javax.swing.JButton();
+        ok = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        castOfThousands = new javax.swing.JButton();
         Bottom = new javax.swing.JPanel();
         jLabel9 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
-        jButton2 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
+        warrantyDetails = new javax.swing.JButton();
+        copyingDetails = new javax.swing.JButton();
         jLabel11 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
 
@@ -208,8 +209,8 @@ public class About extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         TopLeft.add(jLabel4, gridBagConstraints);
 
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
@@ -217,12 +218,12 @@ public class About extends javax.swing.JDialog
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         TopLeft.add(jLabel2, gridBagConstraints);
 
-        jButton3.setText("OK");
-        jButton3.addActionListener(new java.awt.event.ActionListener()
+        ok.setText("OK");
+        ok.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
@@ -234,21 +235,21 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridheight = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weighty = 0.1;
-        TopLeft.add(jButton3, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        TopLeft.add(ok, gridBagConstraints);
 
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jLabel3.setText("Written by Steven M. Rubin");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         TopLeft.add(jLabel3, gridBagConstraints);
 
-        jButton1.setText("And A Cast of Thousands");
-        jButton1.addActionListener(new java.awt.event.ActionListener()
+        castOfThousands.setText("And A Cast of Thousands");
+        castOfThousands.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
@@ -260,9 +261,9 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weighty = 0.1;
-        TopLeft.add(jButton1, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        TopLeft.add(castOfThousands, gridBagConstraints);
 
         Top.add(TopLeft, java.awt.BorderLayout.WEST);
 
@@ -275,9 +276,9 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weighty = 0.1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         Bottom.add(jLabel9, gridBagConstraints);
 
         jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
@@ -286,13 +287,13 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weighty = 0.1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         Bottom.add(jLabel8, gridBagConstraints);
 
-        jButton2.setText("Warranty Details");
-        jButton2.addActionListener(new java.awt.event.ActionListener()
+        warrantyDetails.setText("Warranty Details");
+        warrantyDetails.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
@@ -304,10 +305,10 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        Bottom.add(jButton2, gridBagConstraints);
+        Bottom.add(warrantyDetails, gridBagConstraints);
 
-        jButton4.setText("Copying Details");
-        jButton4.addActionListener(new java.awt.event.ActionListener()
+        copyingDetails.setText("Copying Details");
+        copyingDetails.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
@@ -320,16 +321,16 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        Bottom.add(jButton4, gridBagConstraints);
+        Bottom.add(copyingDetails, gridBagConstraints);
 
         jLabel11.setText("redistribute it under certain conditions");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weighty = 0.1;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
         Bottom.add(jLabel11, gridBagConstraints);
 
         jLabel10.setText("This is free software, and you are welcome to");
@@ -337,9 +338,9 @@ public class About extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weighty = 0.1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         Bottom.add(jLabel10, gridBagConstraints);
 
         getContentPane().add(Bottom, java.awt.BorderLayout.SOUTH);
@@ -616,10 +617,8 @@ public class About extends javax.swing.JDialog
     private javax.swing.JPanel Top;
     private javax.swing.JPanel TopLeft;
     private javax.swing.JPanel TopRight;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
+    private javax.swing.JButton castOfThousands;
+    private javax.swing.JButton copyingDetails;
     private javax.swing.JComboBox jComboBox1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -629,6 +628,8 @@ public class About extends javax.swing.JDialog
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
+    private javax.swing.JButton ok;
+    private javax.swing.JButton warrantyDetails;
     // End of variables declaration//GEN-END:variables
 	
 }

@@ -90,13 +90,75 @@ public class Pref
 
 	private static List allPrefs = new ArrayList();
 
-	protected Pref(String name, Preferences prefs, int type)
+	protected Pref() {}
+
+	// factory methods to create these objects
+	protected void initBoolean(String name, Preferences prefs, boolean factory)
 	{
 		this.name = name;
 		this.prefs = prefs;
-		this.type = type;
+		this.type = BOOLEAN;
 		this.meaning = null;
+		this.factoryObj = new Integer(factory ? 1 : 0);
+		this.cachedObj = new Integer(prefs.getBoolean(name, factory) ? 1 : 0);
 		allPrefs.add(this);
+	}
+	public static Pref makeBooleanPref(String name, Preferences prefs, boolean factory)
+	{
+		Pref pref = new Pref();
+		pref.initBoolean(name, prefs, factory);
+		return pref;
+	}
+
+	protected void initInt(String name, Preferences prefs, int factory)
+	{
+		this.name = name;
+		this.prefs = prefs;
+		this.type = INTEGER;
+		this.meaning = null;
+		this.factoryObj = new Integer(factory);
+		this.cachedObj = new Integer(prefs.getInt(name, factory));
+		allPrefs.add(this);
+	}
+	public static Pref makeIntPref(String name, Preferences prefs, int factory)
+	{
+		Pref pref = new Pref();
+		pref.initInt(name, prefs, factory);
+		return pref;
+	}
+
+	protected void initDouble(String name, Preferences prefs, double factory)
+	{
+		this.name = name;
+		this.prefs = prefs;
+		this.type = DOUBLE;
+		this.meaning = null;
+		this.factoryObj = new Double(factory);
+		this.cachedObj = new Double(prefs.getDouble(name, factory));
+		allPrefs.add(this);
+	}
+	public static Pref makeDoublePref(String name, Preferences prefs, double factory)
+	{
+		Pref pref = new Pref();
+		pref.initDouble(name, prefs, factory);
+		return pref;
+	}
+
+	protected void initString(String name, Preferences prefs, String factory)
+	{
+		this.name = name;
+		this.prefs = prefs;
+		this.type = STRING;
+		this.meaning = null;
+		this.factoryObj = new String(factory);
+		this.cachedObj = new String(prefs.get(name, factory));
+		allPrefs.add(this);
+	}
+	public static Pref makeStringPref(String name, Preferences prefs, String factory)
+	{
+		Pref pref = new Pref();
+		pref.initString(name, prefs, factory);
+		return pref;
 	}
 
 	// methods for getting values from the objects
@@ -111,6 +173,10 @@ public class Pref
 	public int getType() { return type; }
 	public Meaning getMeaning() { return meaning; }
 
+	/**
+	 * Method called when this Pref is changed.
+	 * This method is overridden in subclasses that want notification.
+	 */
 	public void setSideEffect() {}
 
 	// methods for setting values on the objects
@@ -159,52 +225,22 @@ public class Pref
 		setSideEffect();
 	}
 
-	// factory methods to create these objects
-	public static Pref makeBooleanPref(String name, Preferences prefs, boolean factory)
-	{
-		Pref pref = new Pref(name, prefs, BOOLEAN);
-		pref.factoryObj = new Integer(factory ? 1 : 0);
-		pref.cachedObj = new Integer(prefs.getBoolean(name, factory) ? 1 : 0);
-		return pref;
-	}
-	public static Pref makeIntPref(String name, Preferences prefs, int factory)
-	{
-		Pref pref = new Pref(name, prefs, INTEGER);
-		pref.factoryObj = new Integer(factory);
-		pref.cachedObj = new Integer(prefs.getInt(name, factory));
-		return pref;
-	}
-	public static Pref makeDoublePref(String name, Preferences prefs, double factory)
-	{
-		Pref pref = new Pref(name, prefs, DOUBLE);
-		pref.factoryObj = new Double(factory);
-		pref.cachedObj = new Double(prefs.getDouble(name, factory));
-		return pref;
-	}
-	public static Pref makeStringPref(String name, Preferences prefs, String factory)
-	{
-		Pref pref = new Pref(name, prefs, STRING);
-		pref.factoryObj = new String(factory);
-		pref.cachedObj = new String(prefs.get(name, factory));
-		return pref;
-	}
-
 	/**
 	 * Method to make this Pref a "meaning" option.
 	 * Options that relate to "meaning"
 	 */
-	public void attachToObject(ElectricObject eobj, String location, String description)
+	public void attachToObject(ElectricObject eObj, String location, String description)
 	{
-		meaning = new Meaning(eobj, this, location, description);
+		meaning = new Meaning(eObj, this, location, description);
 	}
 
-	public static Meaning getMeaningVariable(ElectricObject eobj, String name)
+	public static Meaning getMeaningVariable(ElectricObject eObj, String name)
 	{
 		for(Iterator it = allPrefs.iterator(); it.hasNext(); )
 		{
 			Pref pref = (Pref)it.next();
 			if (pref.meaning == null) continue;
-			if (pref.meaning.eObj != eobj) continue;
+			if (pref.meaning.eObj != eObj) continue;
 			if (pref.name.equals(name))
 			{
 				return pref.meaning;
@@ -242,6 +278,7 @@ public class Pref
 	{
 		meaningVariablesThatChanged = new ArrayList();
 	}
+
 	public static void changedMeaningVariable(Meaning meaning)
 	{
 		meaningVariablesThatChanged.add(meaning);
@@ -263,7 +300,7 @@ public class Pref
 		{
 			Meaning meaning = (Meaning)it.next();
 			meaning.marked = true;
-//System.out.println("Found meaning variable "+meaning.pref.name+" found on " + meaning.eObj);
+System.out.println("Found meaning variable "+meaning.pref.name+" found on " + meaning.eObj);
 			Variable var = meaning.eObj.getVar(meaning.pref.name);
 			if (var == null) continue;
 			Object obj = var.getObject();
@@ -278,6 +315,7 @@ public class Pref
 
 			// this one is not mentioned in the library: make sure it is at factory defaults
 			if (pref.cachedObj.equals(pref.factoryObj)) continue;
+System.out.println("Adding fake meaning variable "+pref.name+" where current="+pref.cachedObj+" but should be "+pref.factoryObj);
 			meaningsToReconcile.add(pref.meaning);
 		}
 		if (meaningsToReconcile.size() == 0) return;

@@ -71,6 +71,7 @@ public class OptionReconcile extends javax.swing.JDialog
 		super(parent, modal);
 		setLocation(100, 50);
 		initComponents();
+        getRootPane().setDefaultButton(ok);
 
 		changedOptions = new HashMap();
 		Box optionBox = Box.createVerticalBox();
@@ -96,8 +97,8 @@ public class OptionReconcile extends javax.swing.JDialog
 			switch (pref.getType())
 			{
 				case Pref.BOOLEAN:
-					oldValue = ((Integer)pref.getValue()).intValue() == 0 ? "FALSE" : "TRUE";
-					newValue = ((Integer)obj).intValue() == 0 ? "FALSE" : "TRUE";
+					oldValue = ((Integer)pref.getValue()).intValue() == 0 ? "OFF" : "ON";
+					newValue = ((Integer)obj).intValue() == 0 ? "OFF" : "ON";
 					break;
 				case Pref.INTEGER:
 					oldValue = Integer.toString(((Integer)pref.getValue()).intValue());
@@ -105,7 +106,14 @@ public class OptionReconcile extends javax.swing.JDialog
 					break;
 				case Pref.DOUBLE:
 					oldValue = Double.toString(((Double)pref.getValue()).doubleValue());
-					newValue = Double.toString(((Double)obj).doubleValue());
+					if (obj instanceof Double)
+						newValue = Double.toString(((Double)obj).doubleValue()); else
+					if (obj instanceof Float)
+						newValue = Float.toString(((Float)obj).floatValue()); else
+					{
+						System.out.println("HEY! option "+pref.getPrefName()+" should have Double/Float but instead has value "+obj);
+						break;
+					}
 					break;
 				case Pref.STRING:
 					oldValue = pref.getValue().toString();
@@ -122,32 +130,55 @@ public class OptionReconcile extends javax.swing.JDialog
 
 	private void termDialog()
 	{
-		for(Iterator it = changedOptions.keySet().iterator(); it.hasNext(); )
+		DoReconciliation job = new DoReconciliation(changedOptions);
+	}
+
+	/**
+	 * Class to apply changes to tool options in a new thread.
+	 */
+	protected static class DoReconciliation extends Job
+	{
+		HashMap changedOptions;
+
+		protected DoReconciliation(HashMap changedOptions)
 		{
-			JCheckBox cb = (JCheckBox)it.next();
-			if (!cb.isSelected()) continue;
-			Pref.Meaning meaning = (Pref.Meaning)changedOptions.get(cb);
-			Pref pref = meaning.getPref();
+			super("Reconcile Options", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.changedOptions = changedOptions;
+			startJob();
+		}
 
-			Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
-			Object obj = null;
-			if (var == null)
+		public void doIt()
+		{
+			for(Iterator it = changedOptions.keySet().iterator(); it.hasNext(); )
 			{
-				// not in a variable, so it must be at factory default
-				obj = pref.getFactoryValue();
-			} else
-			{
-				// in a variable: make sure that value is set
-				obj = var.getObject();
-			}
+				JCheckBox cb = (JCheckBox)it.next();
+				if (!cb.isSelected()) continue;
+				Pref.Meaning meaning = (Pref.Meaning)changedOptions.get(cb);
+				Pref pref = meaning.getPref();
 
-			// set the option
-			switch (pref.getType())
-			{
-				case Pref.BOOLEAN: pref.setBoolean(((Integer)obj).intValue() != 0);   break;
-				case Pref.INTEGER: pref.setInt(((Integer)obj).intValue());            break;
-				case Pref.DOUBLE:  pref.setDouble(((Double)obj).doubleValue());       break;
-				case Pref.STRING:  pref.setString((String)obj);                       break;
+				Variable var = meaning.getElectricObject().getVar(pref.getPrefName());
+				Object obj = null;
+				if (var == null)
+				{
+					// not in a variable, so it must be at factory default
+					obj = pref.getFactoryValue();
+				} else
+				{
+					// in a variable: make sure that value is set
+					obj = var.getObject();
+				}
+
+				// set the option
+				switch (pref.getType())
+				{
+					case Pref.BOOLEAN: pref.setBoolean(((Integer)obj).intValue() != 0);   break;
+					case Pref.INTEGER: pref.setInt(((Integer)obj).intValue());            break;
+					case Pref.DOUBLE:
+						if (obj instanceof Double) pref.setDouble(((Double)obj).doubleValue()); else
+							if (obj instanceof Float) pref.setDouble((double)((Float)obj).floatValue());
+						break;
+					case Pref.STRING:  pref.setString((String)obj);                       break;
+				}
 			}
 		}
 	}
@@ -195,8 +226,8 @@ public class OptionReconcile extends javax.swing.JDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(ok, gridBagConstraints);
 
-        optionPane.setMinimumSize(new java.awt.Dimension(350, 150));
-        optionPane.setPreferredSize(new java.awt.Dimension(350, 150));
+        optionPane.setMinimumSize(new java.awt.Dimension(500, 150));
+        optionPane.setPreferredSize(new java.awt.Dimension(500, 150));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -236,8 +267,8 @@ public class OptionReconcile extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel1, gridBagConstraints);
 
         jLabel2.setText("Unchecked options will use the existing values.");
@@ -245,8 +276,8 @@ public class OptionReconcile extends javax.swing.JDialog
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel2, gridBagConstraints);
 
         pack();

@@ -410,9 +410,9 @@ public class CMOS extends Technology
 			new Technology.ArcLayer(M_lay, 0, Poly.Type.FILLED)
 		});
 		Metal_arc.setFunction(PrimitiveArc.Function.METAL1);
-		Metal_arc.setFixedAngle();
+		Metal_arc.setFactoryFixedAngle(true);
 		Metal_arc.setWipable();
-		Metal_arc.setAngleIncrement(90);
+		Metal_arc.setFactoryAngleIncrement(90);
 
 		/** Polysilicon arc */
 		PrimitiveArc Polysilicon_arc = PrimitiveArc.newInstance(this, "Polysilicon", 2, new Technology.ArcLayer []
@@ -420,9 +420,9 @@ public class CMOS extends Technology
 			new Technology.ArcLayer(P_lay, 0, Poly.Type.FILLED)
 		});
 		Polysilicon_arc.setFunction(PrimitiveArc.Function.POLY1);
-		Polysilicon_arc.setFixedAngle();
+		Polysilicon_arc.setFactoryFixedAngle(true);
 		Polysilicon_arc.setWipable();
-		Polysilicon_arc.setAngleIncrement(90);
+		Polysilicon_arc.setFactoryAngleIncrement(90);
 
 		/** Diffusion-p arc */
 		PrimitiveArc Diffusion_p_arc = PrimitiveArc.newInstance(this, "Diffusion-p", 6, new Technology.ArcLayer []
@@ -431,9 +431,9 @@ public class CMOS extends Technology
 			new Technology.ArcLayer(P0_lay, 0, Poly.Type.FILLED)
 		});
 		Diffusion_p_arc.setFunction(PrimitiveArc.Function.DIFFP);
-		Diffusion_p_arc.setFixedAngle();
+		Diffusion_p_arc.setFactoryFixedAngle(true);
 		Diffusion_p_arc.setWipable();
-		Diffusion_p_arc.setAngleIncrement(90);
+		Diffusion_p_arc.setFactoryAngleIncrement(90);
 		Diffusion_p_arc.setWidthOffset(0);
 
 		/** Diffusion-well arc */
@@ -443,9 +443,9 @@ public class CMOS extends Technology
 			new Technology.ArcLayer(PW_lay, 0, Poly.Type.FILLED)
 		});
 		Diffusion_well_arc.setFunction(PrimitiveArc.Function.DIFFN);
-		Diffusion_well_arc.setFixedAngle();
+		Diffusion_well_arc.setFactoryFixedAngle(true);
 		Diffusion_well_arc.setWipable();
-		Diffusion_well_arc.setAngleIncrement(90);
+		Diffusion_well_arc.setFactoryAngleIncrement(90);
 		Diffusion_well_arc.setWidthOffset(0);
 
 		//******************** RECTANGLE DESCRIPTIONS ********************

@@ -195,14 +195,7 @@ public class GetInfoArc extends javax.swing.JDialog
 		type.setText(ai.getProto().describe());
 		Netlist netlist = ai.getParent().getUserNetlist();
 		int busWidth = netlist.getBusWidth(ai);
-		String netName = "????";
-		if (busWidth > 1)
-			netName = netlist.getNetworkName(ai);
-		else {
-			JNetwork net = netlist.getNetwork(ai, 0);
-			if (net != null)
-				netName = net.describe();
-		}
+		String netName = netlist.getNetworkName(ai);
 		network.setText(netName);
 		name.setText(initialName);
 		width.setText(Double.toString(initialWidth - ai.getProto().getWidthOffset()));

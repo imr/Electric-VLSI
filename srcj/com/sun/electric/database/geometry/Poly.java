@@ -832,7 +832,20 @@ public class Poly implements Shape
 	public void setExactTextBounds(EditWindow wnd)
 	{
 		int numLines = 1;
-		if (var != null) numLines = var.getLength();
+		String theString = getString();
+		if (var != null)
+		{
+			numLines = var.getLength();
+			if (numLines > 1)
+			{
+				Object [] objList = (Object [])var.getObject();
+				for(int i=0; i<numLines; i++)
+				{
+					String str = objList[i].toString();
+					if (str.length() > theString.length()) theString = str;
+				}
+			}
+		}
 
 		Rectangle2D bounds = getBounds2D();
 		double lX = bounds.getMinX();
@@ -840,7 +853,7 @@ public class Poly implements Shape
 		double lY = bounds.getMinY();
 		double hY = bounds.getMaxY();
 		Font font = wnd.getFont(getTextDescriptor());
-		GlyphVector gv = wnd.getGlyphs(getString(), font);
+		GlyphVector gv = wnd.getGlyphs(theString, font);
 		Rectangle2D glyphBounds = gv.getVisualBounds();
 		Point2D corner = getTextCorner(wnd, font, gv, getStyle(), lX, hX, lY, hY);
 		double cX = corner.getX();

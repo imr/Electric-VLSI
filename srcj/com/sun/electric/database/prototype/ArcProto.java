@@ -23,10 +23,14 @@
  */
 package com.sun.electric.database.prototype;
 
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.tool.user.User;
+
+import java.util.HashMap;
 
 /**
  * The ArcProto class defines a type of ArcInst.
@@ -117,20 +121,28 @@ public abstract class ArcProto extends ElectricObject
 	/** The temporary Object for this ArcProto. */				private Object tempObj;
 	/** The temporary flag bits. */								private int flagBits;
 	/** The object used to request flag bits. */				private static FlagSet.Generator flagGenerator = new FlagSet.Generator("ArcProto");
+	/** Pref map for arc width. */								private static HashMap defaultWidthPrefs = new HashMap();
+	/** Pref map for arc angle increment. */					private static HashMap defaultAnglePrefs = new HashMap();
+	/** Pref map for arc rigidity. */							private static HashMap defaultRigidPrefs = new HashMap();
+	/** Pref map for arc fixed angle. */						private static HashMap defaultFixedAnglePrefs = new HashMap();
+	/** Pref map for arc slidable. */							private static HashMap defaultSlidablePrefs = new HashMap();
+	/** Pref map for arc end extension. */						private static HashMap defaultExtendedPrefs = new HashMap();
+	/** Pref map for arc negation. */							private static HashMap defaultNegatedPrefs = new HashMap();
+	/** Pref map for arc directionality. */						private static HashMap defaultDirectionalPrefs = new HashMap();
 
 	// the meaning of the "userBits" field:
-	/** these arcs are fixed-length */					private static final int WANTFIX =            01;
-	/** these arcs are fixed-angle */					private static final int WANTFIXANG =         02;
-	/** set if arcs should not slide in ports */		private static final int WANTCANTSLIDE =      04;
-	/** set if ends do not extend by half width */		private static final int WANTNOEXTEND =      010;
-	/** set if arcs should be negated */				private static final int WANTNEGATED =       020;
-	/** set if arcs should be directional */			private static final int WANTDIRECTIONAL =   040;
+//	/** these arcs are fixed-length */					private static final int WANTFIX =            01;
+//	/** these arcs are fixed-angle */					private static final int WANTFIXANG =         02;
+//	/** set if arcs should not slide in ports */		private static final int WANTCANTSLIDE =      04;
+//	/** set if ends do not extend by half width */		private static final int WANTNOEXTEND =      010;
+//	/** set if arcs should be negated */				private static final int WANTNEGATED =       020;
+//	/** set if arcs should be directional */			private static final int WANTDIRECTIONAL =   040;
 	/** set if arcs can wipe wipable nodes */			private static final int CANWIPE =          0100;
 	/** set if arcs can curve */						private static final int CANCURVE =         0200;
 	/** arc function (from efunction.h) */				private static final int AFUNCTION =      017400;
 	/** right shift for AFUNCTION */					private static final int AFUNCTIONSH =         8;
-	/** angle increment for this type of arc */			private static final int AANGLEINC =   017760000;
-	/** right shift for AANGLEINC */					private static final int AANGLEINCSH =        13;
+//	/** angle increment for this type of arc */			private static final int AANGLEINC =   017760000;
+//	/** right shift for AANGLEINC */					private static final int AANGLEINCSH =        13;
 	/** set if arc is selectable by edge, not area */	private static final int AEDGESELECT = 020000000;
 	/** set if arc is not used */						private static final int ANOTUSED = 020000000000;
 
@@ -161,6 +173,24 @@ public abstract class ArcProto extends ElectricObject
 	 */
 	public Technology getTechnology() { return tech; }
 
+	private Pref getArcProtoWidthPref(double factory)
+	{
+		Pref pref = (Pref)defaultWidthPrefs.get(this);
+		if (pref == null)
+		{
+			pref = Pref.makeDoublePref("DefaultWidthFor" + protoName + "IN" + tech.getTechName(), User.tool.prefs, factory);
+			defaultWidthPrefs.put(this, pref);
+		}
+		return pref;
+	}
+
+	/**
+	 * Method to set the factory-default width of this ArcProto.
+	 * This is only called from PrimitiveArc during construction.
+	 * @param cifLayer the factory-default width of this ArcProto.
+	 */
+	protected void setFactoryDefaultWidth(double defaultWidth) { getArcProtoWidthPref(defaultWidth); }
+
 	/**
 	 * Method to return the full default width of this ArcProto.
 	 * This is the full width, including nonselectable layers such as implants.
@@ -168,7 +198,7 @@ public abstract class ArcProto extends ElectricObject
 	 * This call returns the width of all of these layers. 
 	 * @return the full default width of this ArcProto.
 	 */
-	public double getDefaultWidth() { return defaultWidth; }
+	public void setDefaultWidth(double defaultWidth) { getArcProtoWidthPref(this.defaultWidth).setDouble(defaultWidth); }
 
 	/**
 	 * Method to set the full default width of this ArcProto.
@@ -176,7 +206,7 @@ public abstract class ArcProto extends ElectricObject
 	 * For example, diffusion arcs are always accompanied by a surrounding well and select.
 	 * @param defaultWidth the full default width of this ArcProto.
 	 */
-	public void setDefaultWidth(double defaultWidth) { this.defaultWidth = defaultWidth; }
+	public double getDefaultWidth() { return getArcProtoWidthPref(defaultWidth).getDouble(); }
 
 	/**
 	 * Method to set the width offset of this ArcProto.
@@ -216,38 +246,53 @@ public abstract class ArcProto extends ElectricObject
 		return defaultWidth - widthOffset;
 	}
 
-	/**
-	 * Method to set this ArcProto so that instances of it are rigid.
-	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
-	 */
-	public void setRigid() { userBits |= WANTFIX; }
+	private Pref getArcProtoBitPref(String what, HashMap map, boolean factory)
+	{
+		Pref pref = (Pref)map.get(this);
+		if (pref == null)
+		{
+			pref = Pref.makeBooleanPref("Default" + what + "For" + protoName + "IN" + tech.getTechName(), User.tool.prefs, factory);
+			map.put(this, pref);
+		}
+		return pref;
+	}
 
 	/**
-	 * Method to set this ArcProto so that instances of it are not rigid.
+	 * Method to set the "factory default" rigid state of this ArcProto.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
+	 * @param rigid true if this ArcProto should be rigid by factory-default.
 	 */
-	public void clearRigid() { userBits &= ~WANTFIX; }
+	public void setFactoryRigid(boolean rigid) { getArcProtoBitPref("Rigid", defaultRigidPrefs, rigid); }
+
+	/**
+	 * Method to set the rigidity of this ArcProto.
+	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
+	 * @param rigid true if new instances of this ArcProto should be rigid.
+	 */
+	public void setRigid(boolean rigid) { getArcProtoBitPref("Rigid", defaultRigidPrefs, false).setBoolean(rigid); }
 
 	/**
 	 * Method to tell if instances of this ArcProto are rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 * @return true if instances of this ArcProto are rigid.
 	 */
-	public boolean isRigid() { return (userBits & WANTFIX) != 0; }
+	public boolean isRigid() { return getArcProtoBitPref("Rigid", defaultRigidPrefs, false).getBoolean(); }
 
 	/**
-	 * Method to set this ArcProto so that instances of it are fixed-angle.
+	 * Method to set the "factory default" fixed-angle state of this ArcProto.
 	 * Fixed-angle arcs cannot change their angle, so if one end moves,
 	 * the other may also adjust to keep the arc angle constant.
+	 * @param fixed true if this ArcProto should be fixed-angle by factory-default.
 	 */
-	public void setFixedAngle() { userBits |= WANTFIXANG; }
+	public void setFactoryFixedAngle(boolean fixed) { getArcProtoBitPref("FixedAngle", defaultFixedAnglePrefs, fixed); }
 
 	/**
-	 * Method to set this ArcProto so that instances of it are not fixed-angle.
+	 * Method to set the fixed-angle state of this ArcProto.
 	 * Fixed-angle arcs cannot change their angle, so if one end moves,
 	 * the other may also adjust to keep the arc angle constant.
+	 * @param fixed true if new instances of this ArcProto should be fixed-angle.
 	 */
-	public void clearFixedAngle() { userBits &= ~WANTFIXANG; }
+	public void setFixedAngle(boolean fixed) { getArcProtoBitPref("FixedAngle", defaultFixedAnglePrefs, true).setBoolean(fixed); }
 
 	/**
 	 * Method to tell if instances of this ArcProto are fixed-angle.
@@ -255,23 +300,25 @@ public abstract class ArcProto extends ElectricObject
 	 * the other may also adjust to keep the arc angle constant.
 	 * @return true if instances of this ArcProto are fixed-angle.
 	 */
-	public boolean isFixedAngle() { return (userBits & WANTFIXANG) != 0; }
+	public boolean isFixedAngle() { return getArcProtoBitPref("FixedAngle", defaultFixedAnglePrefs, true).getBoolean(); }
 
 	/**
-	 * Method to set this ArcProto so that instances of it are slidable.
+	 * Method to set the "factory default" slidability state of this ArcProto.
 	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
 	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
+	 * @param fixed true if this ArcProto should be slidability by factory-default.
 	 */
-	public void setSlidable() { userBits &= ~WANTCANTSLIDE; }
+	public void setFactorySlidable(boolean slidable) { getArcProtoBitPref("Slidable", defaultSlidablePrefs, slidable); }
 
 	/**
-	 * Method to set this ArcProto so that instances of it are not slidable.
+	 * Method to set the slidability of this ArcProto.
 	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
 	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
+	 * @param slidable true if new instances of this ArcProto should be slidable.
 	 */
-	public void clearSlidable() { userBits |= WANTCANTSLIDE; }
+	public void setSlidable(boolean slidable) { getArcProtoBitPref("Slidable", defaultSlidablePrefs, true).setBoolean(slidable); }
 
 	/**
 	 * Method to tell if instances of this ArcProto are slidable.
@@ -280,21 +327,23 @@ public abstract class ArcProto extends ElectricObject
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
 	 * @return true if instances of this ArcProto are slidable.
 	 */
-	public boolean isSlidable() { return (userBits & WANTCANTSLIDE) == 0; }
+	public boolean isSlidable() { return getArcProtoBitPref("Slidable", defaultSlidablePrefs, true).getBoolean(); }
 
 	/**
-	 * Method to set this ArcProto so that instances of it have their ends extended.
+	 * Method to set the "factory default" end-extension state of this ArcProto.
 	 * End-extension causes an arc to extend past its endpoint by half of its width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 * @param fixed true if this ArcProto should be end-extended by factory-default.
 	 */
-	public void setExtended() { userBits &= ~WANTNOEXTEND; }
+	public void setFactoryExtended(boolean extended) { getArcProtoBitPref("Extended", defaultExtendedPrefs, extended); }
 
 	/**
-	 * Method to set this ArcProto so that instances of it do not have their ends extended.
+	 * Method to set the end-extension factor of this ArcProto.
 	 * End-extension causes an arc to extend past its endpoint by half of its width.
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 * @param extended true if new instances of this ArcProto should be end-extended.
 	 */
-	public void clearExtended() { userBits |= WANTNOEXTEND; }
+	public void setExtended(boolean extended) { getArcProtoBitPref("Extended", defaultExtendedPrefs, true).setBoolean(extended); }
 
 	/**
 	 * Method to tell if instances of this ArcProto have their ends extended.
@@ -302,21 +351,15 @@ public abstract class ArcProto extends ElectricObject
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @return true if instances of this ArcProto have their ends extended.
 	 */
-	public boolean isExtended() { return (userBits & WANTNOEXTEND) == 0; }
+	public boolean isExtended() { return getArcProtoBitPref("Extended", defaultExtendedPrefs, true).getBoolean(); }
 
 	/**
-	 * Method to set this ArcProto so that instances of it are negated.
+	 * Method to set the negated factor for this ArcProto.
 	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
 	 * This is used only in Schematics technologies to place negating bubbles on any node.
+	 * @param negated true if new instances of this ArcProto should be negated.
 	 */
-	public void setNegated() { userBits |= WANTNEGATED; }
-
-	/**
-	 * Method to set this ArcProto so that instances of it are not negated.
-	 * Negated arcs have a bubble drawn on their tail end to indicate negation.
-	 * This is used only in Schematics technologies to place negating bubbles on any node.
-	 */
-	public void clearNegated() { userBits &= ~WANTNEGATED; }
+	public void setNegated(boolean negated) { getArcProtoBitPref("Negated", defaultNegatedPrefs, false).setBoolean(negated); }
 
 	/**
 	 * Method to tell if instances of this ArcProto are negated.
@@ -324,21 +367,15 @@ public abstract class ArcProto extends ElectricObject
 	 * This is used only in Schematics technologies to place negating bubbles on any node.
 	 * @return true if instances of this ArcProto are negated.
 	 */
-	public boolean isNegated() { return (userBits & WANTNEGATED) != 0; }
+	public boolean isNegated() { return getArcProtoBitPref("Negated", defaultNegatedPrefs, false).getBoolean(); }
 
 	/**
-	 * Method to set this ArcProto so that instances of it are directional.
+	 * Method to set the directional factor for this ArcProto.
 	 * Directional arcs have an arrow drawn on them to indicate flow.
 	 * It is only for documentation purposes and does not affect the circuit.
+	 * @param directional true if new instances of this ArcProto should be directional.
 	 */
-	public void setDirectional() { userBits |= WANTDIRECTIONAL; }
-
-	/**
-	 * Method to set this ArcProto so that instances of it are not directional.
-	 * Directional arcs have an arrow drawn on them to indicate flow.
-	 * It is only for documentation purposes and does not affect the circuit.
-	 */
-	public void clearDirectional() { userBits &= ~WANTDIRECTIONAL; }
+	public void setDirectional(boolean directional) { getArcProtoBitPref("Directional", defaultDirectionalPrefs, false).setBoolean(directional); }
 
 	/**
 	 * Method to tell if instances of this ArcProto are directional.
@@ -346,7 +383,7 @@ public abstract class ArcProto extends ElectricObject
 	 * It is only for documentation purposes and does not affect the circuit.
 	 * @return true if instances of this ArcProto are directional.
 	 */
-	public boolean isDirectional() { return (userBits & WANTDIRECTIONAL) != 0; }
+	public boolean isDirectional() { return getArcProtoBitPref("Directional", defaultDirectionalPrefs, false).getBoolean(); }
 
 	/**
 	 * Method to set this ArcProto so that it is not used.
@@ -469,6 +506,17 @@ public abstract class ArcProto extends ElectricObject
 	public ArcProto.Function getFunction() { return function; }
 
 	/**
+	 * Method to set the factory-default angle of this ArcProto.
+	 * This is only called from PrimitiveArc during construction.
+	 * @param cifLayer the factory-default angle of this ArcProto.
+	 */
+	public void setFactoryAngleIncrement(int angle)
+	{
+		Pref pref = Pref.makeIntPref("DefaultAngleFor" + protoName + "IN" + tech.getTechName(), User.tool.prefs, angle);
+		defaultAnglePrefs.put(this, pref);
+	}
+
+	/**
 	 * Method to set the angle increment on this ArcProto.
 	 * The angle increment is the granularity on placement angle for instances
 	 * of this ArcProto.  It is in degrees.
@@ -476,7 +524,12 @@ public abstract class ArcProto extends ElectricObject
 	 * A value of 0 allows arcs to be created at any angle.
 	 * @param value the angle increment on this ArcProto.
 	 */
-	public void setAngleIncrement(int value) { userBits = (userBits & ~AANGLEINC) | (value << AANGLEINCSH); }
+	public void setAngleIncrement(int angle)
+	{
+		Pref pref = (Pref)defaultAnglePrefs.get(this);
+		if (pref == null) return;
+		pref.setInt(angle);
+	}
 
 	/**
 	 * Method to get the angle increment on this ArcProto.
@@ -486,7 +539,12 @@ public abstract class ArcProto extends ElectricObject
 	 * A value of 0 allows arcs to be created at any angle.
 	 * @return the angle increment on this ArcProto.
 	 */
-	public int getAngleIncrement() { return (userBits & AANGLEINC) >> AANGLEINCSH; }
+	public int getAngleIncrement()
+	{
+		Pref pref = (Pref)defaultAnglePrefs.get(this);
+		if (pref == null) return 90;
+		return pref.getInt();
+	}
 
 	/**
 	 * Method to get access to flag bits on this ArcProto.

@@ -61,10 +61,11 @@ public class PrimitiveArc extends ArcProto
 	private PrimitiveArc(Technology tech, String protoName, double defaultWidth, Technology.ArcLayer [] layers)
 	{
 		this.protoName = protoName;
-		this.defaultWidth = defaultWidth;
 		this.widthOffset = 0;
 		this.tech = tech;
 		this.layers = layers;
+		setFactoryDefaultWidth(defaultWidth);
+		this.defaultWidth = getDefaultWidth();
 	}
 
 	// ------------------------ public methods -------------------------------

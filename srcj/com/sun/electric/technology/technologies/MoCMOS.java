@@ -42,6 +42,8 @@ import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
 import java.util.prefs.Preferences;
@@ -52,12 +54,31 @@ import java.util.prefs.Preferences;
 public class MoCMOS extends Technology
 {
 	/** the MOSIS CMOS Technology object. */	public static final MoCMOS tech = new MoCMOS();
-	/** the state of the MOCMOS technology */	private int state = 0;
+
+	/** Value for standard SCMOS rules. */		public static final int SCMOSRULES = 0;
+	/** Value for submicron rules. */			public static final int SUBMRULES  = 1;
+	/** Value for deep rules. */				public static final int DEEPRULES  = 2;
 
 	/** key of Variable for saving technology state. */
 	public static final Variable.Key TECH_LAST_STATE = ElectricObject.newKey("TECH_last_state");
+
+	// layers
 	private Layer poly1_lay, transistorPoly_lay;
 
+	// arcs
+	/** metal 1 arc */							private PrimitiveArc metal1_arc;
+	/** metal 2 arc */							private PrimitiveArc metal2_arc;
+	/** metal 3 arc */							private PrimitiveArc metal3_arc;
+	/** metal 4 arc */							private PrimitiveArc metal4_arc;
+	/** metal 5 arc */							private PrimitiveArc metal5_arc;
+	/** metal 6 arc */							private PrimitiveArc metal6_arc;
+	/** polysilicon 1 arc */					private PrimitiveArc poly1_arc;
+	/** polysilicon 2 arc */					private PrimitiveArc poly2_arc;
+	/** P-active arc */							private PrimitiveArc pActive_arc;
+	/** N-active arc */							private PrimitiveArc nActive_arc;
+	/** General active arc */					private PrimitiveArc active_arc;
+
+	// nodes
 	/** metal-1-pin */							private PrimitiveNode metal1Pin_node;
 	/** metal-2-pin */							private PrimitiveNode metal2Pin_node;
 	/** metal-3-pin */							private PrimitiveNode metal3Pin_node;
@@ -113,18 +134,6 @@ public class MoCMOS extends Technology
 	/** Polysilicon-1-Transistor-Node */		private PrimitiveNode polyTransistorNode_node;
 	/** Silicide-Block-Node */					private PrimitiveNode silicideBlockNode_node;
 
-	/** metal 1 arc */							private PrimitiveArc metal1_arc;
-	/** metal 2 arc */							private PrimitiveArc metal2_arc;
-	/** metal 3 arc */							private PrimitiveArc metal3_arc;
-	/** metal 4 arc */							private PrimitiveArc metal4_arc;
-	/** metal 5 arc */							private PrimitiveArc metal5_arc;
-	/** metal 6 arc */							private PrimitiveArc metal6_arc;
-	/** polysilicon 1 arc */					private PrimitiveArc poly1_arc;
-	/** polysilicon 2 arc */					private PrimitiveArc poly2_arc;
-	/** P-active arc */							private PrimitiveArc pActive_arc;
-	/** N-active arc */							private PrimitiveArc nActive_arc;
-	/** General active arc */					private PrimitiveArc active_arc;
-
 	// for dynamically modifying the transistor geometry
 	private Technology.NodeLayer pTransistorPolyLayer, nTransistorPolyLayer;
 	private Technology.NodeLayer pTransistorActiveLayer, nTransistorActiveLayer;
@@ -134,10 +143,6 @@ public class MoCMOS extends Technology
 	private Technology.NodeLayer nTransistorPolyLLayer, nTransistorPolyRLayer, nTransistorPolyCLayer;
 	private Technology.NodeLayer pTransistorWellLayer, nTransistorWellLayer;
 	private Technology.NodeLayer pTransistorSelectLayer, nTransistorSelectLayer;
-
-	/**   set if standard SCMOS rules in use */		private static final int SCMOSRULES =       0;
-	/**   set if submicron rules in use */			private static final int SUBMRULES =        1;
-	/**   set if deep rules in use */				private static final int DEEPRULES =        2;
 
 	// design rule constants
 	/** wide rules apply to geometry larger than this */				private static final double WIDELIMIT = 10;
@@ -1282,47 +1287,47 @@ public class MoCMOS extends Technology
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions
-		metal1_lay.setFunction(Layer.Function.METAL1);														// Metal-1
-		metal2_lay.setFunction(Layer.Function.METAL2);														// Metal-2
-		metal3_lay.setFunction(Layer.Function.METAL3);														// Metal-3
-		metal4_lay.setFunction(Layer.Function.METAL4);														// Metal-4
-		metal5_lay.setFunction(Layer.Function.METAL5);														// Metal-5
-		metal6_lay.setFunction(Layer.Function.METAL6);														// Metal-6
-		poly1_lay.setFunction(Layer.Function.POLY1);														// Polysilicon-1
-		poly2_lay.setFunction(Layer.Function.POLY2);														// Polysilicon-2
-		pActive_lay.setFunction(Layer.Function.DIFFP);														// P-Active
-		nActive_lay.setFunction(Layer.Function.DIFFN);														// N-Active
-		pSelect_lay.setFunction(Layer.Function.IMPLANTP);													// P-Select
-		nSelect_lay.setFunction(Layer.Function.IMPLANTN);													// N-Select
-		pWell_lay.setFunction(Layer.Function.WELLP);														// P-Well
-		nWell_lay.setFunction(Layer.Function.WELLN);														// N-Well
-		polyCut_lay.setFunction(Layer.Function.CONTACT1, Layer.Function.CONPOLY);							// Poly-Cut
-		activeCut_lay.setFunction(Layer.Function.CONTACT1, Layer.Function.CONDIFF);							// Active-Cut
-		via1_lay.setFunction(Layer.Function.CONTACT2, Layer.Function.CONMETAL);								// Via-1
-		via2_lay.setFunction(Layer.Function.CONTACT3, Layer.Function.CONMETAL);								// Via-2
-		via3_lay.setFunction(Layer.Function.CONTACT4, Layer.Function.CONMETAL);								// Via-3
-		via4_lay.setFunction(Layer.Function.CONTACT5, Layer.Function.CONMETAL);								// Via-4
-		via5_lay.setFunction(Layer.Function.CONTACT6, Layer.Function.CONMETAL);								// Via-5
-		passivation_lay.setFunction(Layer.Function.OVERGLASS);												// Passivation
-		transistorPoly_lay.setFunction(Layer.Function.GATE);												// Transistor-Poly
-		polyCap_lay.setFunction(Layer.Function.CAP);														// Poly-Cap
-		pActiveWell_lay.setFunction(Layer.Function.DIFFP);													// P-Active-Well
-		silicideBlock_lay.setFunction(Layer.Function.ART);													// Silicide-Block
-		pseudoMetal1_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);							// Pseudo-Metal-1
-		pseudoMetal2_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);							// Pseudo-Metal-2
-		pseudoMetal3_lay.setFunction(Layer.Function.METAL3, Layer.Function.PSEUDO);							// Pseudo-Metal-3
-		pseudoMetal4_lay.setFunction(Layer.Function.METAL4, Layer.Function.PSEUDO);							// Pseudo-Metal-4
-		pseudoMetal5_lay.setFunction(Layer.Function.METAL5, Layer.Function.PSEUDO);							// Pseudo-Metal-5
-		pseudoMetal6_lay.setFunction(Layer.Function.METAL6, Layer.Function.PSEUDO);							// Pseudo-Metal-6
-		pseudoPoly1_lay.setFunction(Layer.Function.POLY1, Layer.Function.PSEUDO);							// Pseudo-Polysilicon-1
-		pseudoPoly2_lay.setFunction(Layer.Function.POLY2, Layer.Function.PSEUDO);							// Pseudo-Polysilicon-2
-		pseudoPActive_lay.setFunction(Layer.Function.DIFFP, Layer.Function.PSEUDO);							// Pseudo-P-Active
-		pseudoNActive_lay.setFunction(Layer.Function.DIFFN, Layer.Function.PSEUDO);							// Pseudo-N-Active
-		pseudoPSelect_lay.setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);						// Pseudo-P-Select
-		pseudoNSelect_lay.setFunction(Layer.Function.IMPLANTN, Layer.Function.PSEUDO);						// Pseudo-N-Select
-		pseudoPWell_lay.setFunction(Layer.Function.WELLP, Layer.Function.PSEUDO);							// Pseudo-P-Well
-		pseudoNWell_lay.setFunction(Layer.Function.WELLN, Layer.Function.PSEUDO);							// Pseudo-N-Well
-		padFrame_lay.setFunction(Layer.Function.ART);														// Pad-Frame
+		metal1_lay.setFunction(Layer.Function.METAL1);									// Metal-1
+		metal2_lay.setFunction(Layer.Function.METAL2);									// Metal-2
+		metal3_lay.setFunction(Layer.Function.METAL3);									// Metal-3
+		metal4_lay.setFunction(Layer.Function.METAL4);									// Metal-4
+		metal5_lay.setFunction(Layer.Function.METAL5);									// Metal-5
+		metal6_lay.setFunction(Layer.Function.METAL6);									// Metal-6
+		poly1_lay.setFunction(Layer.Function.POLY1);									// Polysilicon-1
+		poly2_lay.setFunction(Layer.Function.POLY2);									// Polysilicon-2
+		pActive_lay.setFunction(Layer.Function.DIFFP);									// P-Active
+		nActive_lay.setFunction(Layer.Function.DIFFN);									// N-Active
+		pSelect_lay.setFunction(Layer.Function.IMPLANTP);								// P-Select
+		nSelect_lay.setFunction(Layer.Function.IMPLANTN);								// N-Select
+		pWell_lay.setFunction(Layer.Function.WELLP);									// P-Well
+		nWell_lay.setFunction(Layer.Function.WELLN);									// N-Well
+		polyCut_lay.setFunction(Layer.Function.CONTACT1, Layer.Function.CONPOLY);		// Poly-Cut
+		activeCut_lay.setFunction(Layer.Function.CONTACT1, Layer.Function.CONDIFF);		// Active-Cut
+		via1_lay.setFunction(Layer.Function.CONTACT2, Layer.Function.CONMETAL);			// Via-1
+		via2_lay.setFunction(Layer.Function.CONTACT3, Layer.Function.CONMETAL);			// Via-2
+		via3_lay.setFunction(Layer.Function.CONTACT4, Layer.Function.CONMETAL);			// Via-3
+		via4_lay.setFunction(Layer.Function.CONTACT5, Layer.Function.CONMETAL);			// Via-4
+		via5_lay.setFunction(Layer.Function.CONTACT6, Layer.Function.CONMETAL);			// Via-5
+		passivation_lay.setFunction(Layer.Function.OVERGLASS);							// Passivation
+		transistorPoly_lay.setFunction(Layer.Function.GATE);							// Transistor-Poly
+		polyCap_lay.setFunction(Layer.Function.CAP);									// Poly-Cap
+		pActiveWell_lay.setFunction(Layer.Function.DIFFP);								// P-Active-Well
+		silicideBlock_lay.setFunction(Layer.Function.ART);								// Silicide-Block
+		pseudoMetal1_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo-Metal-1
+		pseudoMetal2_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);		// Pseudo-Metal-2
+		pseudoMetal3_lay.setFunction(Layer.Function.METAL3, Layer.Function.PSEUDO);		// Pseudo-Metal-3
+		pseudoMetal4_lay.setFunction(Layer.Function.METAL4, Layer.Function.PSEUDO);		// Pseudo-Metal-4
+		pseudoMetal5_lay.setFunction(Layer.Function.METAL5, Layer.Function.PSEUDO);		// Pseudo-Metal-5
+		pseudoMetal6_lay.setFunction(Layer.Function.METAL6, Layer.Function.PSEUDO);		// Pseudo-Metal-6
+		pseudoPoly1_lay.setFunction(Layer.Function.POLY1, Layer.Function.PSEUDO);		// Pseudo-Polysilicon-1
+		pseudoPoly2_lay.setFunction(Layer.Function.POLY2, Layer.Function.PSEUDO);		// Pseudo-Polysilicon-2
+		pseudoPActive_lay.setFunction(Layer.Function.DIFFP, Layer.Function.PSEUDO);		// Pseudo-P-Active
+		pseudoNActive_lay.setFunction(Layer.Function.DIFFN, Layer.Function.PSEUDO);		// Pseudo-N-Active
+		pseudoPSelect_lay.setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);	// Pseudo-P-Select
+		pseudoNSelect_lay.setFunction(Layer.Function.IMPLANTN, Layer.Function.PSEUDO);	// Pseudo-N-Select
+		pseudoPWell_lay.setFunction(Layer.Function.WELLP, Layer.Function.PSEUDO);		// Pseudo-P-Well
+		pseudoNWell_lay.setFunction(Layer.Function.WELLN, Layer.Function.PSEUDO);		// Pseudo-N-Well
+		padFrame_lay.setFunction(Layer.Function.ART);									// Pad-Frame
 
 		// The CIF names
 		metal1_lay.setFactoryCIFLayer("CMF");				// Metal-1
@@ -1454,47 +1459,47 @@ public class MoCMOS extends Technology
 		padFrame_lay.setFactorySkillLayer("");				// Pad-Frame
 
 		// The layer height
-		metal1_lay.setHeight(0, 17);				// Metal-1
-		metal2_lay.setHeight(0, 19);				// Metal-2
-		metal3_lay.setHeight(0, 21);				// Metal-3
-		metal4_lay.setHeight(0, 23);				// Metal-4
-		metal5_lay.setHeight(0, 25);				// Metal-5
-		metal6_lay.setHeight(0, 27);				// Metal-6
-		poly1_lay.setHeight(0, 15);					// Polysilicon-1
-		poly2_lay.setHeight(0, 16);					// Polysilicon-2
-		pActive_lay.setHeight(0, 13);				// P-Active
-		nActive_lay.setHeight(0, 13);				// N-Active
-		pSelect_lay.setHeight(0, 12);				// P-Select
-		nSelect_lay.setHeight(0, 12);				// N-Select
-		pWell_lay.setHeight(0, 11);					// P-Well
-		nWell_lay.setHeight(0, 11);					// N-Well
-		polyCut_lay.setHeight(2, 16);				// Poly-Cut
-		activeCut_lay.setHeight(4, 15);				// Active-Cut
-		via1_lay.setHeight(2, 18);					// Via-1
-		via2_lay.setHeight(2, 20);					// Via-2
-		via3_lay.setHeight(2, 22);					// Via-3
-		via4_lay.setHeight(2, 24);					// Via-4
-		via5_lay.setHeight(2, 26);					// Via-5
-		passivation_lay.setHeight(0, 30);			// Passivation
-		transistorPoly_lay.setHeight(0, 15);		// Transistor-Poly
-		polyCap_lay.setHeight(0, 28);				// Poly-Cap
-		pActiveWell_lay.setHeight(0, 13);			// P-Active-Well
-		silicideBlock_lay.setHeight(0, 10);			// Silicide-Block
-		pseudoMetal1_lay.setHeight(0, 17);			// Pseudo-Metal-1
-		pseudoMetal2_lay.setHeight(0, 19);			// Pseudo-Metal-2
-		pseudoMetal3_lay.setHeight(0, 21);			// Pseudo-Metal-3
-		pseudoMetal4_lay.setHeight(0, 23);			// Pseudo-Metal-4
-		pseudoMetal5_lay.setHeight(0, 25);			// Pseudo-Metal-5
-		pseudoMetal6_lay.setHeight(0, 27);			// Pseudo-Metal-6
-		pseudoPoly1_lay.setHeight(0, 12);			// Pseudo-Polysilicon-1
-		pseudoPoly2_lay.setHeight(0, 13);			// Pseudo-Polysilicon-2
-		pseudoPActive_lay.setHeight(0, 11);			// Pseudo-P-Active
-		pseudoNActive_lay.setHeight(0, 11);			// Pseudo-N-Active
-		pseudoPSelect_lay.setHeight(0, 2);			// Pseudo-P-Select
-		pseudoNSelect_lay.setHeight(0, 2);			// Pseudo-N-Select
-		pseudoPWell_lay.setHeight(0, 0);			// Pseudo-P-Well
-		pseudoNWell_lay.setHeight(0, 0);			// Pseudo-N-Well
-		padFrame_lay.setHeight(0, 33);				// Pad-Frame
+		metal1_lay.setHeight(0, 17);						// Metal-1
+		metal2_lay.setHeight(0, 19);						// Metal-2
+		metal3_lay.setHeight(0, 21);						// Metal-3
+		metal4_lay.setHeight(0, 23);						// Metal-4
+		metal5_lay.setHeight(0, 25);						// Metal-5
+		metal6_lay.setHeight(0, 27);						// Metal-6
+		poly1_lay.setHeight(0, 15);							// Polysilicon-1
+		poly2_lay.setHeight(0, 16);							// Polysilicon-2
+		pActive_lay.setHeight(0, 13);						// P-Active
+		nActive_lay.setHeight(0, 13);						// N-Active
+		pSelect_lay.setHeight(0, 12);						// P-Select
+		nSelect_lay.setHeight(0, 12);						// N-Select
+		pWell_lay.setHeight(0, 11);							// P-Well
+		nWell_lay.setHeight(0, 11);							// N-Well
+		polyCut_lay.setHeight(2, 16);						// Poly-Cut
+		activeCut_lay.setHeight(4, 15);						// Active-Cut
+		via1_lay.setHeight(2, 18);							// Via-1
+		via2_lay.setHeight(2, 20);							// Via-2
+		via3_lay.setHeight(2, 22);							// Via-3
+		via4_lay.setHeight(2, 24);							// Via-4
+		via5_lay.setHeight(2, 26);							// Via-5
+		passivation_lay.setHeight(0, 30);					// Passivation
+		transistorPoly_lay.setHeight(0, 15);				// Transistor-Poly
+		polyCap_lay.setHeight(0, 28);						// Poly-Cap
+		pActiveWell_lay.setHeight(0, 13);					// P-Active-Well
+		silicideBlock_lay.setHeight(0, 10);					// Silicide-Block
+		pseudoMetal1_lay.setHeight(0, 17);					// Pseudo-Metal-1
+		pseudoMetal2_lay.setHeight(0, 19);					// Pseudo-Metal-2
+		pseudoMetal3_lay.setHeight(0, 21);					// Pseudo-Metal-3
+		pseudoMetal4_lay.setHeight(0, 23);					// Pseudo-Metal-4
+		pseudoMetal5_lay.setHeight(0, 25);					// Pseudo-Metal-5
+		pseudoMetal6_lay.setHeight(0, 27);					// Pseudo-Metal-6
+		pseudoPoly1_lay.setHeight(0, 12);					// Pseudo-Polysilicon-1
+		pseudoPoly2_lay.setHeight(0, 13);					// Pseudo-Polysilicon-2
+		pseudoPActive_lay.setHeight(0, 11);					// Pseudo-P-Active
+		pseudoNActive_lay.setHeight(0, 11);					// Pseudo-N-Active
+		pseudoPSelect_lay.setHeight(0, 2);					// Pseudo-P-Select
+		pseudoNSelect_lay.setHeight(0, 2);					// Pseudo-N-Select
+		pseudoPWell_lay.setHeight(0, 0);					// Pseudo-P-Well
+		pseudoNWell_lay.setHeight(0, 0);					// Pseudo-N-Well
+		padFrame_lay.setHeight(0, 33);						// Pad-Frame
 
 		// The layer height
 		metal1_lay.setFactoryParasitics(0.06, 0.07, 0);			// Metal-1
@@ -1540,6 +1545,7 @@ public class MoCMOS extends Technology
 		padFrame_lay.setFactoryParasitics(0, 0, 0);				// Pad-Frame
 
 		setFactoryParasitics(50, 0.04);
+
 		String [] headerLevel1 =
 		{
 			"*CMOS/BULK-NWELL (PRELIMINARY PARAMETERS)",
@@ -1587,9 +1593,9 @@ public class MoCMOS extends Technology
 			new Technology.ArcLayer(metal1_lay, 0, Poly.Type.FILLED)
 		});
 		metal1_arc.setFunction(PrimitiveArc.Function.METAL1);
-		metal1_arc.setFixedAngle();
+		metal1_arc.setFactoryFixedAngle(true);
 		metal1_arc.setWipable();
-		metal1_arc.setAngleIncrement(90);
+		metal1_arc.setFactoryAngleIncrement(90);
 
 		/** metal 2 arc */
 		metal2_arc = PrimitiveArc.newInstance(this, "Metal-2", 3.0, new Technology.ArcLayer []
@@ -1597,9 +1603,9 @@ public class MoCMOS extends Technology
 			new Technology.ArcLayer(metal2_lay, 0, Poly.Type.FILLED)
 		});
 		metal2_arc.setFunction(PrimitiveArc.Function.METAL2);
-		metal2_arc.setFixedAngle();
+		metal2_arc.setFactoryFixedAngle(true);
 		metal2_arc.setWipable();
-		metal2_arc.setAngleIncrement(90);
+		metal2_arc.setFactoryAngleIncrement(90);
 
 		/** metal 3 arc */
 		metal3_arc = PrimitiveArc.newInstance(this, "Metal-3", 3.0, new Technology.ArcLayer []
@@ -1607,19 +1613,19 @@ public class MoCMOS extends Technology
 			new Technology.ArcLayer(metal3_lay, 0, Poly.Type.FILLED)
 		});
 		metal3_arc.setFunction(PrimitiveArc.Function.METAL3);
-		metal3_arc.setFixedAngle();
+		metal3_arc.setFactoryFixedAngle(true);
 		metal3_arc.setWipable();
-		metal3_arc.setAngleIncrement(90);
+		metal3_arc.setFactoryAngleIncrement(90);
 
 		/** metal 4 arc */
-		metal4_arc = PrimitiveArc.newInstance(this, "Metal-4", 3.0, new Technology.ArcLayer []
+		metal4_arc = PrimitiveArc.newInstance(this, "Metal-4", 6.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal4_lay, 0, Poly.Type.FILLED)
 		});
 		metal4_arc.setFunction(PrimitiveArc.Function.METAL4);
-		metal4_arc.setFixedAngle();
+		metal4_arc.setFactoryFixedAngle(true);
 		metal4_arc.setWipable();
-		metal4_arc.setAngleIncrement(90);
+		metal4_arc.setFactoryAngleIncrement(90);
 
 		/** metal 5 arc */
 		metal5_arc = PrimitiveArc.newInstance(this, "Metal-5", 3.0, new Technology.ArcLayer []
@@ -1627,9 +1633,9 @@ public class MoCMOS extends Technology
 			new Technology.ArcLayer(metal5_lay, 0, Poly.Type.FILLED)
 		});
 		metal5_arc.setFunction(PrimitiveArc.Function.METAL5);
-		metal5_arc.setFixedAngle();
+		metal5_arc.setFactoryFixedAngle(true);
 		metal5_arc.setWipable();
-		metal5_arc.setAngleIncrement(90);
+		metal5_arc.setFactoryAngleIncrement(90);
 
 		/** metal 6 arc */
 		metal6_arc = PrimitiveArc.newInstance(this, "Metal-6", 4.0, new Technology.ArcLayer []
@@ -1637,9 +1643,9 @@ public class MoCMOS extends Technology
 			new Technology.ArcLayer(metal6_lay, 0, Poly.Type.FILLED)
 		});
 		metal6_arc.setFunction(PrimitiveArc.Function.METAL6);
-		metal6_arc.setFixedAngle();
+		metal6_arc.setFactoryFixedAngle(true);
 		metal6_arc.setWipable();
-		metal6_arc.setAngleIncrement(90);
+		metal6_arc.setFactoryAngleIncrement(90);
 
 		/** polysilicon 1 arc */
 		poly1_arc = PrimitiveArc.newInstance(this, "Polysilicon-1", 2.0, new Technology.ArcLayer []
@@ -1647,9 +1653,9 @@ public class MoCMOS extends Technology
 			new Technology.ArcLayer(poly1_lay, 0, Poly.Type.FILLED)
 		});
 		poly1_arc.setFunction(PrimitiveArc.Function.POLY1);
-		poly1_arc.setFixedAngle();
+		poly1_arc.setFactoryFixedAngle(true);
 		poly1_arc.setWipable();
-		poly1_arc.setAngleIncrement(90);
+		poly1_arc.setFactoryAngleIncrement(90);
 
 		/** polysilicon 2 arc */
 		poly2_arc = PrimitiveArc.newInstance(this, "Polysilicon-2", 7.0, new Technology.ArcLayer []
@@ -1657,9 +1663,9 @@ public class MoCMOS extends Technology
 			new Technology.ArcLayer(poly2_lay, 0, Poly.Type.FILLED)
 		});
 		poly2_arc.setFunction(PrimitiveArc.Function.POLY2);
-		poly2_arc.setFixedAngle();
+		poly2_arc.setFactoryFixedAngle(true);
 		poly2_arc.setWipable();
-		poly2_arc.setAngleIncrement(90);
+		poly2_arc.setFactoryAngleIncrement(90);
 		poly2_arc.setNotUsed();
 
 		/** P-active arc */
@@ -1670,9 +1676,9 @@ public class MoCMOS extends Technology
 			new Technology.ArcLayer(pSelect_lay, 8, Poly.Type.FILLED)
 		});
 		pActive_arc.setFunction(PrimitiveArc.Function.DIFFP);
-		pActive_arc.setFixedAngle();
+		pActive_arc.setFactoryFixedAngle(true);
 		pActive_arc.setWipable();
-		pActive_arc.setAngleIncrement(90);
+		pActive_arc.setFactoryAngleIncrement(90);
 		pActive_arc.setWidthOffset(12.0);
 
 		/** N-active arc */
@@ -1683,9 +1689,9 @@ public class MoCMOS extends Technology
 			new Technology.ArcLayer(nSelect_lay, 8, Poly.Type.FILLED)
 		});
 		nActive_arc.setFunction(PrimitiveArc.Function.DIFFN);
-		nActive_arc.setFixedAngle();
+		nActive_arc.setFactoryFixedAngle(true);
 		nActive_arc.setWipable();
-		nActive_arc.setAngleIncrement(90);
+		nActive_arc.setFactoryAngleIncrement(90);
 		nActive_arc.setWidthOffset(12.0);
 
 		/** General active arc */
@@ -1695,9 +1701,9 @@ public class MoCMOS extends Technology
 			new Technology.ArcLayer(nActive_lay, 0, Poly.Type.FILLED)
 		});
 		active_arc.setFunction(PrimitiveArc.Function.DIFF);
-		active_arc.setFixedAngle();
+		active_arc.setFactoryFixedAngle(true);
 		active_arc.setWipable();
-		active_arc.setAngleIncrement(90);
+		active_arc.setFactoryAngleIncrement(90);
 		active_arc.setNotUsed();
 
 		//**************************************** NODES ****************************************
@@ -2709,167 +2715,14 @@ public class MoCMOS extends Technology
 		silicideBlockNode_node.setSpecialType(PrimitiveNode.POLYGONAL);
 	}
 
-	/******************** TECHNOLOGY INTERFACE METHODS ********************/
-
-//	public static class MoCMOSPref extends Pref
-//	{
-//		protected MoCMOSPref(String name, Preferences prefs, int type)
-//		{
-//			super(name, prefs, type);
-//		}
-//		public void setSideEffect() { tech.setState(); }
-//
-//		public static Pref makeIntPref(String name, Preferences prefs, int factory)
-//		{
-//			MoCMOSPref pref = new MoCMOSPref(name, prefs, INTEGER);
-//			pref.factoryObj = new Integer(factory);
-//			pref.cachedObj = new Integer(prefs.getInt(name, factory));
-//			return pref;
-//		}
-//	}
+	/******************** SUPPORT METHODS ********************/
 
 	/**
 	 * Method for initializing this technology.
 	 */
 	public void init()
 	{
-		// load these DRC tables for a default: submicron, 4 metal, 1 poly
-		if (loadDRCtables()) return;
-	}
-
-	/**
-	 * This method overrides the one in Technology because it knows about equivalence layers for MOCMOS.
-	 */
-	public boolean sameLayer(Layer layer1, Layer layer2)
-	{
-		if (layer1 == layer2) return true;
-		if (layer1 == poly1_lay && layer2 == transistorPoly_lay) return true;
-		if (layer2 == poly1_lay && layer1 == transistorPoly_lay) return true;
-		return false;
-	}
-
-	private static Pref cacheDrawStickFigures = Pref.makeBooleanPref("MoCMOSDrawStickFigures", getTechnologyPreferences(), false);
-	/**
-	 * Method to determine whether this Technology is drawing stick figures.
-	 * @return true if the MOCMOS technology is drawing stick figures.
-	 * Returns false if it is drawing full geometry (the default).
-	 */
-	public static boolean isStickFigures() { return cacheDrawStickFigures.getBoolean(); }
-	/**
-	 * Method to set whether this Technology is drawing stick figures.
-	 * @param on true if the MOCMOS technology is to draw stick figures.
-	 */
-	public static void setStickFigures(boolean on) { cacheDrawStickFigures.setBoolean(on); }
-
-	private static Pref cacheUseSpecialTransistors = Pref.makeBooleanPref("MoCMOSUseSpecialTransistors", getTechnologyPreferences(), false);
-	/**
-	 * Method to determine whether this Technology includes special transistors.
-	 * The default is "false"
-	 * The special transistors include the scalable transistors with built-in contacts.
-	 * @return true if the MOCMOS technology includes special transistors.
-	 */
-	public static boolean isSpecialTransistors() { return cacheUseSpecialTransistors.getBoolean(); }
-	/**
-	 * Method to set whether this Technology includes special transistors.
-	 * The special transistors include the scalable transistors with built-in contacts.
-	 * @param on true if the MOCMOS technology will include special transistors.
-	 */
-	public static void setSpecialTransistors(boolean on) { cacheUseSpecialTransistors.setBoolean(on); }
-
-	private static Pref cacheNumberOfMetalLayers = Pref.makeIntPref("MoCMOSNumberOfMetalLayers", getTechnologyPreferences(), 4);
-    static { cacheNumberOfMetalLayers.attachToObject(tech, "Edit Options, Technology tab", "Number of Metal Layers"); }
-	/**
-	 * Method to tell the number of metal layers in the MoCMOS technology.
-	 * The default is "4".
-	 * @return the number of metal layers in the MoCMOS technology (from 2 to 6).
-	 */
-	public static int getNumMetal() { return cacheNumberOfMetalLayers.getInt(); }
-	/**
-	 * Method to set the number of metal layers in the MoCMOS technology.
-	 * @param num the number of metal layers in the MoCMOS technology (from 2 to 6).
-	 */
-	public static void setNumMetal(int num)
-	{
-		cacheNumberOfMetalLayers.setInt(num);
-		tech.setState();
-	}
-
-	private static Pref cacheRuleSet = Pref.makeIntPref("MoCMOSRuleSet", getTechnologyPreferences(), 0);
-    static { cacheRuleSet.attachToObject(tech, "Edit Options, Technology tab", "Rule set (SCMOS, Submicron, Deep)"); }
-	/**
-	 * Method to tell the current rule set for this Technology.
-	 * @return the current rule set for this Technology:<BR>
-	 * 0: SCMOS rules<BR>
-	 * 1: Submicron rules<BR>
-	 * 2: Deep rules
-	 */
-	public static int getRuleSet() { return cacheRuleSet.getInt(); }
-	/**
-	 * Method to set the rule set for this Technology.
-	 * @param set the new rule set for this Technology:<BR>
-	 * 0: SCMOS rules<BR>
-	 * 1: Submicron rules<BR>
-	 * 2: Deep rules
-	 */
-	public static void setRuleSet(int set)
-	{
-		cacheRuleSet.setInt(set);
-		tech.setState();
-	}
-
-	private static Pref cacheSecondPolysilicon = Pref.makeBooleanPref("MoCMOSSecondPolysilicon", getTechnologyPreferences(), false);
-    static { cacheSecondPolysilicon.attachToObject(tech, "Edit Options, Technology tab", "Second Polysilicon Layer"); }
-	/**
-	 * Method to tell the number of polysilicon layers in this Technology.
-	 * The default is false.
-	 * @return the number of polysilicon layers in this Technology (1 or 2).
-	 */
-	public static boolean isSecondPolysilicon() { return cacheSecondPolysilicon.getBoolean(); }
-	/**
-	 * Method to set the number of polysilicon layers in this Technology.
-	 * @param count the new number of polysilicon layers in this Technology.
-	 * The number of polysilicon layers must be 1 or 2.
-	 */
-	public static void setSecondPolysilicon(boolean on)
-	{
-		cacheSecondPolysilicon.setBoolean(on);
-		tech.setState();
-	}
-
-	private static Pref cacheDisallowStackedVias = Pref.makeBooleanPref("MoCMOSAllowStackedVias", getTechnologyPreferences(), true);
-    static { cacheDisallowStackedVias.attachToObject(tech, "Edit Options, Technology tab", "Disallow Stacked Vias"); }
-	/**
-	 * Method to determine whether this Technology disallows stacked vias.
-	 * The default is true.
-	 * @return true if the MOCMOS technology disallows stacked vias.
-	 */
-	public static boolean isDisallowStackedVias() { return cacheDisallowStackedVias.getBoolean(); }
-	/**
-	 * Method to set whether this Technology disallows stacked vias.
-	 * @param on true if the MOCMOS technology will allow disallows vias.
-	 */
-	public static void setDisallowStackedVias(boolean on)
-	{
-		cacheDisallowStackedVias.setBoolean(on);
-		tech.setState();
-	}
-
-	private static Pref cacheAlternateActivePolyRules = Pref.makeBooleanPref("MoCMOSAlternateActivePolyRules", getTechnologyPreferences(), false);
-    static { cacheAlternateActivePolyRules.attachToObject(tech, "Edit Options, Technology tab", "Alternate Active and Poly Contact Rules"); }
-	/**
-	 * Method to determine whether this Technology is using alternate Active and Poly contact rules.
-	 * The default is false.
-	 * @return true if the MOCMOS technology is using alternate Active and Poly contact rules.
-	 */
-	public static boolean isAlternateActivePolyRules() { return cacheAlternateActivePolyRules.getBoolean(); }
-	/**
-	 * Method to set whether this Technology is using alternate Active and Poly contact rules.
-	 * @param on true if the MOCMOS technology is to use alternate Active and Poly contact rules.
-	 */
-	public static void setAlternateActivePolyRules(boolean on)
-	{
-		cacheAlternateActivePolyRules.setBoolean(on);
-		tech.setState();
+		setState();
 	}
 
 	/**
@@ -2877,84 +2730,6 @@ public class MoCMOS extends Technology
 	 */
 	public void factoryReset()
 	{
-//		int realstate = state;
-//		state++;
-//		setstate(realstate);
-	}
-
-	/******************** SUPPORT METHODS ********************/
-
-	/** set if no stacked vias allowed */			private static final int MOCMOSNOSTACKEDVIAS =   01;
-	/** set for stick-figure display */				private static final int MOCMOSSTICKFIGURE =     02;
-	/** number of metal layers */					private static final int MOCMOSMETALS =         034;
-	/**   2-metal rules */							private static final int MOCMOS2METAL =           0;
-	/**   3-metal rules */							private static final int MOCMOS3METAL =          04;
-	/**   4-metal rules */							private static final int MOCMOS4METAL =         010;
-	/**   5-metal rules */							private static final int MOCMOS5METAL =         014;
-	/**   6-metal rules */							private static final int MOCMOS6METAL =         020;
-	/** type of rules */							private static final int MOCMOSRULESET =       0140;
-	/**   set if submicron rules in use */			private static final int MOCMOSSUBMRULES =        0;
-	/**   set if deep rules in use */				private static final int MOCMOSDEEPRULES =      040;
-	/**   set if standard SCMOS rules in use */		private static final int MOCMOSSCMOSRULES =    0100;
-	/** set to use alternate active/poly rules */	private static final int MOCMOSALTAPRULES =    0200;
-	/** set to use second polysilicon layer */		private static final int MOCMOSTWOPOLY =       0400;
-	/** set to show special transistors */			private static final int MOCMOSSPECIALTRAN =  01000;
-
-	public void convertOldState()
-	{
-		Variable var = getVar(TECH_LAST_STATE);
-		if (var == null) return;
-		int oldBits = ((Integer)var.getObject()).intValue();
-		delVar(TECH_LAST_STATE);
-
-		boolean oldNoStackedVias = (oldBits&MOCMOSNOSTACKEDVIAS) != 0;
-		if (oldNoStackedVias != isDisallowStackedVias())
-		{
-			newVar(cacheDisallowStackedVias.getPrefName(), new Integer(oldNoStackedVias?1:0));
-			Pref.changedMeaningVariable(cacheDisallowStackedVias.getMeaning());
-		}
-
-		int numMetals = 0;
-		switch (oldBits&MOCMOSMETALS)
-		{
-			case MOCMOS2METAL: numMetals = 2;   break;
-			case MOCMOS3METAL: numMetals = 3;   break;
-			case MOCMOS4METAL: numMetals = 4;   break;
-			case MOCMOS5METAL: numMetals = 5;   break;
-			case MOCMOS6METAL: numMetals = 6;   break;
-		}
-		if (numMetals != getNumMetal())
-		{
-			newVar(cacheNumberOfMetalLayers.getPrefName(), new Integer(numMetals));
-			Pref.changedMeaningVariable(cacheNumberOfMetalLayers.getMeaning());
-		}
-
-		int ruleSet = 0;
-		switch (oldBits&MOCMOSRULESET)
-		{
-			case MOCMOSSUBMRULES:  ruleSet = SUBMRULES;   break;
-			case MOCMOSDEEPRULES:  ruleSet = DEEPRULES;   break;
-			case MOCMOSSCMOSRULES: ruleSet = SCMOSRULES;  break;
-		}
-		if (ruleSet != getRuleSet())
-		{
-			newVar(cacheRuleSet.getPrefName(), new Integer(ruleSet));
-			Pref.changedMeaningVariable(cacheRuleSet.getMeaning());
-		}
-
-		boolean alternateContactRules = (oldBits&MOCMOSALTAPRULES) != 0;
-		if (alternateContactRules != isAlternateActivePolyRules())
-		{
-			newVar(cacheAlternateActivePolyRules.getPrefName(), new Integer(alternateContactRules?1:0));
-			Pref.changedMeaningVariable(cacheAlternateActivePolyRules.getMeaning());
-		}
-
-		boolean secondPoly = (oldBits&MOCMOSTWOPOLY) != 0;
-		if (secondPoly != isSecondPolysilicon())
-		{
-			newVar(cacheSecondPolysilicon.getPrefName(), new Integer(secondPoly?1:0));
-			Pref.changedMeaningVariable(cacheSecondPolysilicon.getMeaning());
-		}
 	}
 
 	/**
@@ -2963,24 +2738,6 @@ public class MoCMOS extends Technology
 	 */
 	private void setState()
 	{
-//		switch (getNumMetal())
-//		{
-//			// cannot use deep rules if less than 5 layers of metal
-//			case 2:
-//			case 3:
-//			case 4:
-//				if (getRuleSet() == MOCMOSDEEPRULES)
-//					newstate = (newstate & ~MOCMOSRULESET) | MOCMOSSUBMRULES;
-//				break;
-//
-//			// cannot use scmos rules if more than 4 layers of metal
-//			case 5:
-//			case 6:
-//				if ((newstate&MOCMOSRULESET) == MOCMOSSCMOSRULES)
-//					newstate = (newstate & ~MOCMOSRULESET) | MOCMOSSUBMRULES;
-//				break;
-//		}
-
 //		// set stick-figure state
 //		if ((state&MOCMOSSTICKFIGURE) != 0)
 //		{
@@ -3048,7 +2805,6 @@ public class MoCMOS extends Technology
 		metal6_arc.setNotUsed();
 
 		// enable the desired nodes
-System.out.println("Setting nummetals="+getNumMetal());
 		switch (getNumMetal())
 		{
 			case 6:
@@ -3106,26 +2862,22 @@ System.out.println("Setting nummetals="+getNumMetal());
 		String rules = "";
 		switch (getRuleSet())
 		{
-			case SCMOSRULES:
-				rules = "now standard";
-				break;
-			case DEEPRULES:
-				rules = "now deep";
-				break;
-			case SUBMRULES:
-				rules = "now submicron";
-				break;
+			case SCMOSRULES: rules = "now standard";    break;
+			case DEEPRULES:  rules = "now deep";        break;
+			case SUBMRULES:  rules = "now submicron";   break;
 		}
 		int numPolys = 1;
 		if (isSecondPolysilicon()) numPolys = 2;
 		String description = "Complementary MOS (from MOSIS, 2-6 metals [now " + numMetals + "], 1-2 polys [now " +
 			numPolys + "], flex rules [" + rules + "]";
-		if (isStickFigures()) description += ", stick-figures";
 		if (isDisallowStackedVias()) description += ", stacked vias disallowed";
 		if (isAlternateActivePolyRules()) description += ", alternate contact rules";
 		if (isSpecialTransistors()) description += ", shows special transistors";
+		if (isStickFigures()) description += ", stick-figures";
 		return description + ")";
 	}
+
+	/******************** PARAMETERIZABLE DESIGN RULES ********************/
 
 	/**
 	 * Method to remove all information in the design rule tables.
@@ -3477,12 +3229,23 @@ System.out.println("Setting nummetals="+getNumMetal());
 		nTransistorPolyLayer.setSerpentineExtentB(overhang);
 
 		// for the electrical rule versions with split active
-//		trp1box[1] = trpbox[1];
-//		trp2box[5] = trpbox[5];
-//		tpaE_l[TRANSEPOLY1LAYER].extendb = (INTSML)overhang;
-//		tpaE_l[TRANSEPOLY2LAYER].extendt = (INTSML)overhang;
-//		tnaE_l[TRANSEPOLY1LAYER].extendb = (INTSML)overhang;
-//		tnaE_l[TRANSEPOLY2LAYER].extendt = (INTSML)overhang;
+		TechPoint [] pPolyLPoints = pTransistorPolyLLayer.getPoints();
+		TechPoint [] pPolyRPoints = pTransistorPolyRLayer.getPoints();
+		EdgeH pPolyLLeft = pPolyLPoints[0].getX();
+		EdgeH pPolyRRight = pPolyRPoints[1].getX();
+		pPolyLLeft.setAdder(6-overhang);
+		pPolyRRight.setAdder(-6+overhang);
+		pTransistorPolyLLayer.setSerpentineExtentT(overhang);
+		pTransistorPolyRLayer.setSerpentineExtentB(overhang);
+
+		TechPoint [] nPolyLPoints = nTransistorPolyLLayer.getPoints();
+		TechPoint [] nPolyRPoints = nTransistorPolyRLayer.getPoints();
+		EdgeH nPolyLLeft = nPolyLPoints[0].getX();
+		EdgeH nPolyRRight = nPolyRPoints[1].getX();
+		nPolyLLeft.setAdder(6-overhang);
+		nPolyRRight.setAdder(-6+overhang);
+		nTransistorPolyLLayer.setSerpentineExtentT(overhang);
+		nTransistorPolyRLayer.setSerpentineExtentB(overhang);
 	}
 
 	/**
@@ -3493,6 +3256,10 @@ System.out.println("Setting nummetals="+getNumMetal());
 	{
 		TechPoint [] pActivePoints = pTransistorActiveLayer.getPoints();
 		TechPoint [] nActivePoints = nTransistorActiveLayer.getPoints();
+		TechPoint [] pActiveTPoints = pTransistorActiveTLayer.getPoints();
+		TechPoint [] nActiveTPoints = nTransistorActiveTLayer.getPoints();
+		TechPoint [] pActiveBPoints = pTransistorActiveBLayer.getPoints();
+		TechPoint [] nActiveBPoints = nTransistorActiveBLayer.getPoints();
 		TechPoint [] pWellPoints = pTransistorWellLayer.getPoints();
 		TechPoint [] nWellPoints = nTransistorWellLayer.getPoints();
 		TechPoint [] pSelectPoints = pTransistorSelectLayer.getPoints();
@@ -3514,18 +3281,14 @@ System.out.println("Setting nummetals="+getNumMetal());
 		nActiveTop.setAdder(-10+overhang);
 
 		// for the electrical rule versions with split active
-//		tra1box[7] = trpobox[7] + overhang;
-//		tra2box[3] = trpobox[3] - overhang;
-
-		// extension of well about active (2.3)
-		EdgeV pWellBottom = pWellPoints[0].getY();
-		EdgeV pWellTop = pWellPoints[1].getY();
-		pWellBottom.setAdder(pActiveBottom.getAdder()-wellOverhang);
-		pWellTop.setAdder(pActiveTop.getAdder()+wellOverhang);
-		EdgeV nWellBottom = nWellPoints[0].getY();
-		EdgeV nWellTop = nWellPoints[1].getY();
-		nWellBottom.setAdder(nActiveBottom.getAdder()-wellOverhang);
-		nWellTop.setAdder(nActiveTop.getAdder()+wellOverhang);
+		EdgeV pActiveBBottom = pActiveBPoints[0].getY();
+		EdgeV pActiveTTop = pActiveTPoints[1].getY();
+		pActiveBBottom.setAdder(10-overhang);
+		pActiveTTop.setAdder(-10+overhang);
+		EdgeV nActiveBBottom = nActiveBPoints[0].getY();
+		EdgeV nActiveTTop = nActiveTPoints[1].getY();
+		nActiveBBottom.setAdder(10-overhang);
+		nActiveTTop.setAdder(-10+overhang);
 
 		// extension of select about active = 2 (4.2)
 		EdgeV pSelectBottom = pSelectPoints[0].getY();
@@ -3537,36 +3300,37 @@ System.out.println("Setting nummetals="+getNumMetal());
 		nSelectBottom.setAdder(nActiveBottom.getAdder()-2);
 		nSelectTop.setAdder(nActiveTop.getAdder()+2);
 
-//		// the serpentine active overhang
-//		polywidth = tpa.ysize/2 - trpobox[3];
-//		tpa_l[TRANSACTLAYER].lwidth = (INTSML)(polywidth + overhang);
-//		tpa_l[TRANSACTLAYER].rwidth = (INTSML)(polywidth + overhang);
-//		tpaE_l[TRANSEACT1LAYER].lwidth = (INTSML)(polywidth + overhang);
-//		tpaE_l[TRANSEACT2LAYER].rwidth = (INTSML)(polywidth + overhang);
-//		tna_l[TRANSACTLAYER].lwidth = (INTSML)(polywidth + overhang);
-//		tna_l[TRANSACTLAYER].rwidth = (INTSML)(polywidth + overhang);
-//		tnaE_l[TRANSEACT1LAYER].lwidth = (INTSML)(polywidth + overhang);
-//		tnaE_l[TRANSEACT2LAYER].rwidth = (INTSML)(polywidth + overhang);
-//
-//		// serpentine: extension of well about active (2.3)
-//		tpa_l[TRANSWELLLAYER].lwidth = (INTSML)(polywidth + overhang + welloverhang);
-//		tpa_l[TRANSWELLLAYER].rwidth = (INTSML)(polywidth + overhang + welloverhang);
-//		tpaE_l[TRANSEWELLLAYER].lwidth = (INTSML)(polywidth + overhang + welloverhang);
-//		tpaE_l[TRANSEWELLLAYER].rwidth = (INTSML)(polywidth + overhang + welloverhang);
-//		tna_l[TRANSWELLLAYER].lwidth = (INTSML)(polywidth + overhang + welloverhang);
-//		tna_l[TRANSWELLLAYER].rwidth = (INTSML)(polywidth + overhang + welloverhang);
-//		tnaE_l[TRANSEWELLLAYER].lwidth = (INTSML)(polywidth + overhang + welloverhang);
-//		tnaE_l[TRANSEWELLLAYER].rwidth = (INTSML)(polywidth + overhang + welloverhang);
-//
-//		// serpentine: extension of select about active = 2 (4.2)
-//		tpa_l[TRANSSELECTLAYER].lwidth = (INTSML)(polywidth + overhang + K2);
-//		tpa_l[TRANSSELECTLAYER].rwidth = (INTSML)(polywidth + overhang + K2);
-//		tpaE_l[TRANSESELECTLAYER].lwidth = (INTSML)(polywidth + overhang + K2);
-//		tpaE_l[TRANSESELECTLAYER].rwidth = (INTSML)(polywidth + overhang + K2);
-//		tna_l[TRANSSELECTLAYER].lwidth = (INTSML)(polywidth + overhang + K2);
-//		tna_l[TRANSSELECTLAYER].rwidth = (INTSML)(polywidth + overhang + K2);
-//		tnaE_l[TRANSESELECTLAYER].lwidth = (INTSML)(polywidth + overhang + K2);
-//		tnaE_l[TRANSESELECTLAYER].rwidth = (INTSML)(polywidth + overhang + K2);
+		// extension of well about active (2.3)
+		EdgeV pWellBottom = pWellPoints[0].getY();
+		EdgeV pWellTop = pWellPoints[1].getY();
+		pWellBottom.setAdder(pActiveBottom.getAdder()-wellOverhang);
+		pWellTop.setAdder(pActiveTop.getAdder()+wellOverhang);
+		EdgeV nWellBottom = nWellPoints[0].getY();
+		EdgeV nWellTop = nWellPoints[1].getY();
+		nWellBottom.setAdder(nActiveBottom.getAdder()-wellOverhang);
+		nWellTop.setAdder(nActiveTop.getAdder()+wellOverhang);
+
+		// the serpentine active overhang
+		SizeOffset so = pTransistor_node.getSizeOffset();
+		double halfPolyWidth = (pTransistor_node.getDefHeight() - so.getHighYOffset() - so.getLowYOffset()) / 2;
+		pTransistorActiveLayer.setSerpentineLWidth(halfPolyWidth+overhang);
+		pTransistorActiveLayer.setSerpentineRWidth(halfPolyWidth+overhang);
+		pTransistorActiveTLayer.setSerpentineRWidth(halfPolyWidth+overhang);
+		pTransistorActiveBLayer.setSerpentineLWidth(halfPolyWidth+overhang);
+		nTransistorActiveLayer.setSerpentineLWidth(halfPolyWidth+overhang);
+		nTransistorActiveLayer.setSerpentineRWidth(halfPolyWidth+overhang);
+		nTransistorActiveTLayer.setSerpentineRWidth(halfPolyWidth+overhang);
+		nTransistorActiveBLayer.setSerpentineLWidth(halfPolyWidth+overhang);
+
+		pTransistorSelectLayer.setSerpentineLWidth(halfPolyWidth+overhang+2);
+		pTransistorSelectLayer.setSerpentineRWidth(halfPolyWidth+overhang+2);
+		nTransistorSelectLayer.setSerpentineLWidth(halfPolyWidth+overhang+2);
+		nTransistorSelectLayer.setSerpentineRWidth(halfPolyWidth+overhang+2);
+
+		pTransistorWellLayer.setSerpentineLWidth(halfPolyWidth+overhang+wellOverhang);
+		pTransistorWellLayer.setSerpentineRWidth(halfPolyWidth+overhang+wellOverhang);
+		nTransistorWellLayer.setSerpentineLWidth(halfPolyWidth+overhang+wellOverhang);
+		nTransistorWellLayer.setSerpentineRWidth(halfPolyWidth+overhang+wellOverhang);
 	}
 
 	/**
@@ -3612,14 +3376,15 @@ System.out.println("Setting nummetals="+getNumMetal());
 		nWellTop.setAdder(nActiveTop.getAdder()+overhang);
 
 		// the serpentine poly overhang
-//		tpa_l[TRANSWELLLAYER].extendt = tpa_l[TRANSWELLLAYER].extendb = (INTSML)overhang;
-//		tpa_l[TRANSWELLLAYER].lwidth = tpa_l[TRANSWELLLAYER].rwidth = (INTSML)(overhang+K4);
-//		tpaE_l[TRANSEWELLLAYER].extendt = tpaE_l[TRANSEWELLLAYER].extendb = (INTSML)overhang;
-//		tpaE_l[TRANSEWELLLAYER].lwidth = tpaE_l[TRANSEWELLLAYER].rwidth = (INTSML)(overhang+K4);
-//		tna_l[TRANSWELLLAYER].extendt = tna_l[TRANSWELLLAYER].extendb = (INTSML)overhang;
-//		tna_l[TRANSWELLLAYER].lwidth = tna_l[TRANSWELLLAYER].rwidth = (INTSML)(overhang+K4);
-//		tnaE_l[TRANSEWELLLAYER].extendt = tnaE_l[TRANSEWELLLAYER].extendb = (INTSML)overhang;
-//		tnaE_l[TRANSEWELLLAYER].lwidth = tnaE_l[TRANSEWELLLAYER].rwidth = (INTSML)(overhang+K4);
+		pTransistorWellLayer.setSerpentineLWidth(overhang+4);
+		pTransistorWellLayer.setSerpentineRWidth(overhang+4);
+		nTransistorWellLayer.setSerpentineLWidth(overhang+4);
+		nTransistorWellLayer.setSerpentineRWidth(overhang+4);
+
+		pTransistorWellLayer.setSerpentineExtentT(overhang);
+		pTransistorWellLayer.setSerpentineExtentB(overhang);
+		nTransistorWellLayer.setSerpentineExtentT(overhang);
+		nTransistorWellLayer.setSerpentineExtentB(overhang);
 	}
 
 	/**
@@ -3714,14 +3479,16 @@ System.out.println("Setting nummetals="+getNumMetal());
 		double rightIndent = inRight.getAdder() + surround;
 		double bottomIndent = inBottom.getAdder() - surround;
 		double topIndent = inTop.getAdder() + surround;
-//		xsize = nty->xsize - leftIndent - rightIndent;
-//		ysize = nty->ysize - bottomIndent - topIndent;
-//		if (xsize < minsize[outerlayer] || ysize < minsize[outerlayer])
-//		{
-//			// make it irregular to force the proper minimum size
-//			if (xsize < minsize[outerlayer]) rightIndent -= minsize[outerlayer] - xsize;
-//			if (ysize < minsize[outerlayer]) topIndent -= minsize[outerlayer] - ysize;
-//		}
+		double xSize = nty.getDefWidth() - leftIndent - rightIndent;
+		double ySize = nty.getDefHeight() - bottomIndent - topIndent;
+		int outerLayerIndex = outerLayer.getIndex();
+		double minSizeValue = minSize[outerLayerIndex].doubleValue();
+		if (xSize < minSizeValue || ySize < minSizeValue)
+		{
+			// make it irregular to force the proper minimum size
+			if (xSize < minSizeValue) rightIndent -= minSizeValue - xSize;
+			if (ySize < minSizeValue) topIndent -= minSizeValue - ySize;
+		}
 
 		TechPoint [] outPoints = outLayer.getPoints();
 		EdgeH outLeft = outPoints[0].getX();
@@ -3772,23 +3539,244 @@ System.out.println("Setting nummetals="+getNumMetal());
 		nty.setSizeOffset(new SizeOffset(xindent, xindent, yindent, yindent));
 	}
 
-//	INTBIG request(CHAR *command, va_list ap)
-//	{
-//		REGISTER INTBIG realstate;
-//		static INTBIG equivtable[3] = {poly1_lay,transistorPoly_lay, -1};
-//
-//		if (namesame(command, "get-layer-equivalences")) == 0)
-//		{
-//			return((INTBIG)equivtable);
-//		}
-//		if (namesame(command, "switch-n-and-p")) == 0)
-//		{
-//			switchnp();
-//			return(0);
-//		}
-//		return(0);
-//	}
-//
+	/******************** OVERRIDES ********************/
+
+	/**
+	 * This method overrides the one in Technology because it knows about equivalence layers for MOCMOS.
+	 */
+	public boolean sameLayer(Layer layer1, Layer layer2)
+	{
+		if (layer1 == layer2) return true;
+		if (layer1 == poly1_lay && layer2 == transistorPoly_lay) return true;
+		if (layer2 == poly1_lay && layer1 == transistorPoly_lay) return true;
+		return false;
+	}
+
+	/**
+	 * Method to convert old primitive names to their proper NodeProtos.
+	 * @param name the name of the old primitive.
+	 * @return the proper PrimitiveNode to use (or null if none can be determined).
+	 */
+	public PrimitiveNode convertOldNodeName(String name)
+	{
+		if (name.equals("Metal-1-Substrate-Con")) return(metal1NWellContact_node);
+		if (name.equals("Metal-1-Well-Con")) return(metal1PWellContact_node);
+		return null;
+	}
+
+	/******************** OPTIONS ********************/
+
+	/**
+	 * Class to extend prefs so that changes to MOSIS CMOS options will update the display.
+	 */
+	public static class MoCMOSPref extends Pref
+	{
+		protected MoCMOSPref() {}
+
+		public void setSideEffect()
+		{
+			tech.setState();
+			TopLevel.getPaletteFrame().loadForTechnology();
+			EditWindow.repaintAllContents();
+		}
+
+		public static Pref makeBooleanPref(String name, Preferences prefs, boolean factory)
+		{
+			MoCMOSPref pref = new MoCMOSPref();
+			pref.initBoolean(name, prefs, factory);
+			return pref;
+		}
+
+		public static Pref makeIntPref(String name, Preferences prefs, int factory)
+		{
+			MoCMOSPref pref = new MoCMOSPref();
+			pref.initInt(name, prefs, factory);
+			return pref;
+		}
+	}
+
+	private static Pref cacheDrawStickFigures = Pref.makeBooleanPref("MoCMOSDrawStickFigures", getTechnologyPreferences(), false);
+	/**
+	 * Method to determine whether this Technology is drawing stick figures.
+	 * @return true if the MOCMOS technology is drawing stick figures.
+	 * Returns false if it is drawing full geometry (the default).
+	 */
+	public static boolean isStickFigures() { return cacheDrawStickFigures.getBoolean(); }
+	/**
+	 * Method to set whether this Technology is drawing stick figures.
+	 * @param on true if the MOCMOS technology is to draw stick figures.
+	 */
+	public static void setStickFigures(boolean on) { cacheDrawStickFigures.setBoolean(on); }
+
+	private static Pref cacheUseSpecialTransistors = Pref.makeBooleanPref("MoCMOSUseSpecialTransistors", getTechnologyPreferences(), false);
+	/**
+	 * Method to determine whether this Technology includes special transistors.
+	 * The default is "false"
+	 * The special transistors include the scalable transistors with built-in contacts.
+	 * @return true if the MOCMOS technology includes special transistors.
+	 */
+	public static boolean isSpecialTransistors() { return cacheUseSpecialTransistors.getBoolean(); }
+	/**
+	 * Method to set whether this Technology includes special transistors.
+	 * The special transistors include the scalable transistors with built-in contacts.
+	 * @param on true if the MOCMOS technology will include special transistors.
+	 */
+	public static void setSpecialTransistors(boolean on) { cacheUseSpecialTransistors.setBoolean(on); }
+
+	private static Pref cacheNumberOfMetalLayers = MoCMOSPref.makeIntPref("MoCMOSNumberOfMetalLayers", getTechnologyPreferences(), 4);
+    static { cacheNumberOfMetalLayers.attachToObject(tech, "Edit Options, Technology tab", "Number of Metal Layers"); }
+	/**
+	 * Method to tell the number of metal layers in the MoCMOS technology.
+	 * The default is "4".
+	 * @return the number of metal layers in the MoCMOS technology (from 2 to 6).
+	 */
+	public static int getNumMetal() { return cacheNumberOfMetalLayers.getInt(); }
+	/**
+	 * Method to set the number of metal layers in the MoCMOS technology.
+	 * @param num the number of metal layers in the MoCMOS technology (from 2 to 6).
+	 */
+	public static void setNumMetal(int num) { cacheNumberOfMetalLayers.setInt(num); }
+
+	private static Pref cacheRuleSet = MoCMOSPref.makeIntPref("MoCMOSRuleSet", getTechnologyPreferences(), 1);
+    static { cacheRuleSet.attachToObject(tech, "Edit Options, Technology tab", "Rule set (0=SCMOS, 1=Submicron, 2=Deep)"); }
+	/**
+	 * Method to tell the current rule set for this Technology.
+	 * @return the current rule set for this Technology:<BR>
+	 * 0: SCMOS rules<BR>
+	 * 1: Submicron rules (the default)<BR>
+	 * 2: Deep rules
+	 */
+	public static int getRuleSet() { return cacheRuleSet.getInt(); }
+	/**
+	 * Method to set the rule set for this Technology.
+	 * @param set the new rule set for this Technology:<BR>
+	 * 0: SCMOS rules<BR>
+	 * 1: Submicron rules<BR>
+	 * 2: Deep rules
+	 */
+	public static void setRuleSet(int set) { cacheRuleSet.setInt(set); }
+
+	private static Pref cacheSecondPolysilicon = MoCMOSPref.makeBooleanPref("MoCMOSSecondPolysilicon", getTechnologyPreferences(), false);
+    static { cacheSecondPolysilicon.attachToObject(tech, "Edit Options, Technology tab", "Second Polysilicon Layer"); }
+	/**
+	 * Method to tell the number of polysilicon layers in this Technology.
+	 * The default is false.
+	 * @return the number of polysilicon layers in this Technology (1 or 2).
+	 */
+	public static boolean isSecondPolysilicon() { return cacheSecondPolysilicon.getBoolean(); }
+	/**
+	 * Method to set the number of polysilicon layers in this Technology.
+	 * @param count the new number of polysilicon layers in this Technology.
+	 * The number of polysilicon layers must be 1 or 2.
+	 */
+	public static void setSecondPolysilicon(boolean on) { cacheSecondPolysilicon.setBoolean(on); }
+
+	private static Pref cacheDisallowStackedVias = MoCMOSPref.makeBooleanPref("MoCMOSDisallowStackedVias", getTechnologyPreferences(), false);
+    static { cacheDisallowStackedVias.attachToObject(tech, "Edit Options, Technology tab", "Disallow Stacked Vias"); }
+	/**
+	 * Method to determine whether this Technology disallows stacked vias.
+	 * The default is false (they are allowed).
+	 * @return true if the MOCMOS technology disallows stacked vias.
+	 */
+	public static boolean isDisallowStackedVias() { return cacheDisallowStackedVias.getBoolean(); }
+	/**
+	 * Method to set whether this Technology disallows stacked vias.
+	 * @param on true if the MOCMOS technology will allow disallows vias.
+	 */
+	public static void setDisallowStackedVias(boolean on) { cacheDisallowStackedVias.setBoolean(on); }
+
+	private static Pref cacheAlternateActivePolyRules = MoCMOSPref.makeBooleanPref("MoCMOSAlternateActivePolyRules", getTechnologyPreferences(), false);
+    static { cacheAlternateActivePolyRules.attachToObject(tech, "Edit Options, Technology tab", "Alternate Active and Poly Contact Rules"); }
+	/**
+	 * Method to determine whether this Technology is using alternate Active and Poly contact rules.
+	 * The default is false.
+	 * @return true if the MOCMOS technology is using alternate Active and Poly contact rules.
+	 */
+	public static boolean isAlternateActivePolyRules() { return cacheAlternateActivePolyRules.getBoolean(); }
+	/**
+	 * Method to set whether this Technology is using alternate Active and Poly contact rules.
+	 * @param on true if the MOCMOS technology is to use alternate Active and Poly contact rules.
+	 */
+	public static void setAlternateActivePolyRules(boolean on) { cacheAlternateActivePolyRules.setBoolean(on); }
+
+	/** set if no stacked vias allowed */			private static final int MOCMOSNOSTACKEDVIAS =   01;
+	/** set for stick-figure display */				private static final int MOCMOSSTICKFIGURE =     02;
+	/** number of metal layers */					private static final int MOCMOSMETALS =         034;
+	/**   2-metal rules */							private static final int MOCMOS2METAL =           0;
+	/**   3-metal rules */							private static final int MOCMOS3METAL =          04;
+	/**   4-metal rules */							private static final int MOCMOS4METAL =         010;
+	/**   5-metal rules */							private static final int MOCMOS5METAL =         014;
+	/**   6-metal rules */							private static final int MOCMOS6METAL =         020;
+	/** type of rules */							private static final int MOCMOSRULESET =       0140;
+	/**   set if submicron rules in use */			private static final int MOCMOSSUBMRULES =        0;
+	/**   set if deep rules in use */				private static final int MOCMOSDEEPRULES =      040;
+	/**   set if standard SCMOS rules in use */		private static final int MOCMOSSCMOSRULES =    0100;
+	/** set to use alternate active/poly rules */	private static final int MOCMOSALTAPRULES =    0200;
+	/** set to use second polysilicon layer */		private static final int MOCMOSTWOPOLY =       0400;
+	/** set to show special transistors */			private static final int MOCMOSSPECIALTRAN =  01000;
+
+	/**
+	 * Method to convert any old-style state information to the new options.
+	 */
+	public void convertOldState()
+	{
+		Variable var = getVar(TECH_LAST_STATE);
+		if (var == null) return;
+		int oldBits = ((Integer)var.getObject()).intValue();
+		delVar(TECH_LAST_STATE);
+
+		boolean oldNoStackedVias = (oldBits&MOCMOSNOSTACKEDVIAS) != 0;
+		if (oldNoStackedVias != isDisallowStackedVias())
+		{
+			newVar(cacheDisallowStackedVias.getPrefName(), new Integer(oldNoStackedVias?1:0));
+			Pref.changedMeaningVariable(cacheDisallowStackedVias.getMeaning());
+		}
+
+		int numMetals = 0;
+		switch (oldBits&MOCMOSMETALS)
+		{
+			case MOCMOS2METAL: numMetals = 2;   break;
+			case MOCMOS3METAL: numMetals = 3;   break;
+			case MOCMOS4METAL: numMetals = 4;   break;
+			case MOCMOS5METAL: numMetals = 5;   break;
+			case MOCMOS6METAL: numMetals = 6;   break;
+		}
+		if (numMetals != getNumMetal())
+		{
+			newVar(cacheNumberOfMetalLayers.getPrefName(), new Integer(numMetals));
+			Pref.changedMeaningVariable(cacheNumberOfMetalLayers.getMeaning());
+		}
+
+		int ruleSet = 0;
+		switch (oldBits&MOCMOSRULESET)
+		{
+			case MOCMOSSUBMRULES:  ruleSet = SUBMRULES;   break;
+			case MOCMOSDEEPRULES:  ruleSet = DEEPRULES;   break;
+			case MOCMOSSCMOSRULES: ruleSet = SCMOSRULES;  break;
+		}
+		if (ruleSet != getRuleSet())
+		{
+			newVar(cacheRuleSet.getPrefName(), new Integer(ruleSet));
+			Pref.changedMeaningVariable(cacheRuleSet.getMeaning());
+		}
+
+		boolean alternateContactRules = (oldBits&MOCMOSALTAPRULES) != 0;
+		if (alternateContactRules != isAlternateActivePolyRules())
+		{
+			newVar(cacheAlternateActivePolyRules.getPrefName(), new Integer(alternateContactRules?1:0));
+			Pref.changedMeaningVariable(cacheAlternateActivePolyRules.getMeaning());
+		}
+
+		boolean secondPoly = (oldBits&MOCMOSTWOPOLY) != 0;
+		if (secondPoly != isSecondPolysilicon())
+		{
+			newVar(cacheSecondPolysilicon.getPrefName(), new Integer(secondPoly?1:0));
+			Pref.changedMeaningVariable(cacheSecondPolysilicon.getMeaning());
+		}
+	}
+
+	/******************** SWITCHING N AND P LAYERS ********************/
+
 //	/*
 //	 * Method to switch N and P layers (not terribly useful)
 //	 */
@@ -4482,17 +4470,5 @@ System.out.println("Setting nummetals="+getNumMetal());
 //	if ((ai->userbits&NOTEND1) == 0)
 //		tech_addheadarrow(poly, angle, x2, y2, lambdaofarc(ai));
 //}
-
-	/**
-	 * Method to convert old primitive names to their proper NodeProtos.
-	 * @param name the name of the old primitive.
-	 * @return the proper PrimitiveNode to use (or null if none can be determined).
-	 */
-	public PrimitiveNode convertOldNodeName(String name)
-	{
-		if (name.equals("Metal-1-Substrate-Con")) return(metal1NWellContact_node);
-		if (name.equals("Metal-1-Well-Con")) return(metal1PWellContact_node);
-		return null;
-	}
 
 }

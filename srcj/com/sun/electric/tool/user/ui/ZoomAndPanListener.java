@@ -176,6 +176,14 @@ public class ZoomAndPanListener
         wnd.fillScreen();
     }
 
+    public static void redrawDisplay()
+    {
+        // get the current window
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+        wnd.repaintContents();
+    }
+
     public static void zoomOutDisplay()
     {
         // get the current window

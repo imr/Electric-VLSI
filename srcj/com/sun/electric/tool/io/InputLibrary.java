@@ -117,7 +117,8 @@ public class InputLibrary extends Input
 				reader = getReaderForLib(otherCell.getLibrary());
 
 			// subcell: make sure that cell is setup
-			reader.realizeCellsRecursively(otherCell, markCellForNodes, null, 0);
+			if (reader != null)
+				reader.realizeCellsRecursively(otherCell, markCellForNodes, null, 0);
 		}
 		cell.setBit(markCellForNodes);
 	}

@@ -69,6 +69,7 @@ public class MakeCellInstance extends javax.swing.JDialog
 		super(parent, modal);
 		setLocation(100, 50);
 		initComponents();
+        getRootPane().setDefaultButton(ok);
 
 		// build the cell list
 		cellListModel = new DefaultListModel();

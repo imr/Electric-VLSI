@@ -44,6 +44,8 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.ErrorLog;
 
@@ -114,6 +116,8 @@ public class Schematic
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
+			if (ni.getProto() instanceof PrimitiveNode &&
+				ni.getProto().getTechnology() == Generic.tech) continue;
 			schematicDoCheck(netlist, ni);
 		}
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
@@ -303,10 +307,11 @@ public class Schematic
 			if (checkDangle)
 			{
 				// do not check for dangle when busses are on named networks
-//				if (ai.getProto() == Schematics.tech.bus_arc)
-//				{
-//					if (ai->network->namecount > 0 && ai->network->tempname == 0) checkDangle = false;
-//				}
+				if (ai.getProto() == Schematics.tech.bus_arc)
+				{
+					Name name = netlist.getBusName(ai);
+					if (name != null && !name.isTempname()) checkDangle = false;
+				}
 			}
 			if (checkDangle)
 			{
@@ -385,7 +390,6 @@ public class Schematic
 			NodeProto np = ni.getProto();
 			AffineTransform localTrans = ni.rotateOut();
 			localTrans.preConcatenate(trans);
-//			transmult(xformR, trans, localTrans);
 			if (np instanceof Cell)
 			{
 				if (ni.isExpanded())
@@ -393,7 +397,6 @@ public class Schematic
 					// expand the instance
 					AffineTransform subRot = ni.translateOut();
 					subRot.preConcatenate(localTrans);
-//					transmult(xformt, localtrans, subRot);
 					Cell subCell = (Cell)np;
 					for(Iterator it = subCell.getNodes(); it.hasNext(); )
 					{
@@ -464,6 +467,8 @@ public class Schematic
 			{
 				// found node nearby
 				NodeInst oNi = (NodeInst)oGeom;
+				if (oNi.getProto() instanceof PrimitiveNode &&
+					oNi.getProto().getTechnology() == Generic.tech) continue;
 				if (geom instanceof NodeInst)
 				{
 					// this is node, nearby is node: see if two nodes touch
@@ -582,12 +587,10 @@ public class Schematic
 			NodeProto np = ni.getProto();
 			AffineTransform thisTrans = ni.rotateOut();
 			thisTrans.preConcatenate(oTrans);
-//			transmult(xformr, otrans, thisTrans);
 			if (np instanceof Cell)
 			{
 				AffineTransform subRot = ni.translateOut();
 				subRot.preConcatenate(thisTrans);
-//				transmult(xformt, thistrans, subRot);
 				Cell subCell = (Cell)np;
 				for(Iterator it = subCell.getNodes(); it.hasNext(); )
 				{

@@ -1052,9 +1052,9 @@ public class MoCMOSSub extends Technology
 			new Technology.ArcLayer(M_lay, 0, Poly.Type.FILLED)
 		});
 		Metal_1_arc.setFunction(PrimitiveArc.Function.METAL1);
-		Metal_1_arc.setFixedAngle();
+		Metal_1_arc.setFactoryFixedAngle(true);
 		Metal_1_arc.setWipable();
-		Metal_1_arc.setAngleIncrement(90);
+		Metal_1_arc.setFactoryAngleIncrement(90);
 
 		/** Metal-2 arc */
 		PrimitiveArc Metal_2_arc = PrimitiveArc.newInstance(this, "Metal-2", 3, new Technology.ArcLayer []
@@ -1062,9 +1062,9 @@ public class MoCMOSSub extends Technology
 			new Technology.ArcLayer(M0_lay, 0, Poly.Type.FILLED)
 		});
 		Metal_2_arc.setFunction(PrimitiveArc.Function.METAL2);
-		Metal_2_arc.setFixedAngle();
+		Metal_2_arc.setFactoryFixedAngle(true);
 		Metal_2_arc.setWipable();
-		Metal_2_arc.setAngleIncrement(90);
+		Metal_2_arc.setFactoryAngleIncrement(90);
 
 		/** Metal-3 arc */
 		PrimitiveArc Metal_3_arc = PrimitiveArc.newInstance(this, "Metal-3", 3, new Technology.ArcLayer []
@@ -1072,9 +1072,9 @@ public class MoCMOSSub extends Technology
 			new Technology.ArcLayer(M1_lay, 0, Poly.Type.FILLED)
 		});
 		Metal_3_arc.setFunction(PrimitiveArc.Function.METAL3);
-		Metal_3_arc.setFixedAngle();
+		Metal_3_arc.setFactoryFixedAngle(true);
 		Metal_3_arc.setWipable();
-		Metal_3_arc.setAngleIncrement(90);
+		Metal_3_arc.setFactoryAngleIncrement(90);
 
 		/** Metal-4 arc */
 		PrimitiveArc Metal_4_arc = PrimitiveArc.newInstance(this, "Metal-4", 3, new Technology.ArcLayer []
@@ -1082,9 +1082,9 @@ public class MoCMOSSub extends Technology
 			new Technology.ArcLayer(M2_lay, 0, Poly.Type.FILLED)
 		});
 		Metal_4_arc.setFunction(PrimitiveArc.Function.METAL4);
-		Metal_4_arc.setFixedAngle();
+		Metal_4_arc.setFactoryFixedAngle(true);
 		Metal_4_arc.setWipable();
-		Metal_4_arc.setAngleIncrement(90);
+		Metal_4_arc.setFactoryAngleIncrement(90);
 
 		/** Metal-5 arc */
 		PrimitiveArc Metal_5_arc = PrimitiveArc.newInstance(this, "Metal-5", 3, new Technology.ArcLayer []
@@ -1092,9 +1092,9 @@ public class MoCMOSSub extends Technology
 			new Technology.ArcLayer(M3_lay, 0, Poly.Type.FILLED)
 		});
 		Metal_5_arc.setFunction(PrimitiveArc.Function.METAL5);
-		Metal_5_arc.setFixedAngle();
+		Metal_5_arc.setFactoryFixedAngle(true);
 		Metal_5_arc.setWipable();
-		Metal_5_arc.setAngleIncrement(90);
+		Metal_5_arc.setFactoryAngleIncrement(90);
 
 		/** Metal-6 arc */
 		PrimitiveArc Metal_6_arc = PrimitiveArc.newInstance(this, "Metal-6", 3, new Technology.ArcLayer []
@@ -1102,9 +1102,9 @@ public class MoCMOSSub extends Technology
 			new Technology.ArcLayer(M4_lay, 0, Poly.Type.FILLED)
 		});
 		Metal_6_arc.setFunction(PrimitiveArc.Function.METAL6);
-		Metal_6_arc.setFixedAngle();
+		Metal_6_arc.setFactoryFixedAngle(true);
 		Metal_6_arc.setWipable();
-		Metal_6_arc.setAngleIncrement(90);
+		Metal_6_arc.setFactoryAngleIncrement(90);
 
 		/** Polysilicon-1 arc */
 		PrimitiveArc Polysilicon_1_arc = PrimitiveArc.newInstance(this, "Polysilicon-1", 2, new Technology.ArcLayer []
@@ -1112,9 +1112,9 @@ public class MoCMOSSub extends Technology
 			new Technology.ArcLayer(P_lay, 0, Poly.Type.FILLED)
 		});
 		Polysilicon_1_arc.setFunction(PrimitiveArc.Function.POLY1);
-		Polysilicon_1_arc.setFixedAngle();
+		Polysilicon_1_arc.setFactoryFixedAngle(true);
 		Polysilicon_1_arc.setWipable();
-		Polysilicon_1_arc.setAngleIncrement(90);
+		Polysilicon_1_arc.setFactoryAngleIncrement(90);
 
 		/** Polysilicon-2 arc */
 		PrimitiveArc Polysilicon_2_arc = PrimitiveArc.newInstance(this, "Polysilicon-2", 3, new Technology.ArcLayer []
@@ -1122,9 +1122,9 @@ public class MoCMOSSub extends Technology
 			new Technology.ArcLayer(P0_lay, 0, Poly.Type.FILLED)
 		});
 		Polysilicon_2_arc.setFunction(PrimitiveArc.Function.POLY2);
-		Polysilicon_2_arc.setFixedAngle();
+		Polysilicon_2_arc.setFactoryFixedAngle(true);
 		Polysilicon_2_arc.setWipable();
-		Polysilicon_2_arc.setAngleIncrement(90);
+		Polysilicon_2_arc.setFactoryAngleIncrement(90);
 
 		/** P-Active arc */
 		PrimitiveArc P_Active_arc = PrimitiveArc.newInstance(this, "P-Active", 15, new Technology.ArcLayer []
@@ -1134,9 +1134,9 @@ public class MoCMOSSub extends Technology
 			new Technology.ArcLayer(NW_lay, 0, Poly.Type.FILLED)
 		});
 		P_Active_arc.setFunction(PrimitiveArc.Function.DIFFP);
-		P_Active_arc.setFixedAngle();
+		P_Active_arc.setFactoryFixedAngle(true);
 		P_Active_arc.setWipable();
-		P_Active_arc.setAngleIncrement(90);
+		P_Active_arc.setFactoryAngleIncrement(90);
 		P_Active_arc.setWidthOffset(0);
 
 		/** N-Active arc */
@@ -1147,9 +1147,9 @@ public class MoCMOSSub extends Technology
 			new Technology.ArcLayer(PW_lay, 0, Poly.Type.FILLED)
 		});
 		N_Active_arc.setFunction(PrimitiveArc.Function.DIFFN);
-		N_Active_arc.setFixedAngle();
+		N_Active_arc.setFactoryFixedAngle(true);
 		N_Active_arc.setWipable();
-		N_Active_arc.setAngleIncrement(90);
+		N_Active_arc.setFactoryAngleIncrement(90);
 		N_Active_arc.setWidthOffset(0);
 
 		/** Active arc */
@@ -1159,9 +1159,9 @@ public class MoCMOSSub extends Technology
 			new Technology.ArcLayer(PA_lay, 0, Poly.Type.FILLED)
 		});
 		Active_arc.setFunction(PrimitiveArc.Function.DIFF);
-		Active_arc.setFixedAngle();
+		Active_arc.setFactoryFixedAngle(true);
 		Active_arc.setWipable();
-		Active_arc.setAngleIncrement(90);
+		Active_arc.setFactoryAngleIncrement(90);
 
 		//******************** RECTANGLE DESCRIPTIONS ********************
 

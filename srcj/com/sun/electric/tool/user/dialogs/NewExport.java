@@ -58,6 +58,7 @@ public class NewExport extends javax.swing.JDialog
 		super(parent, modal);
 		setLocation(100, 50);
 		initComponents();
+        getRootPane().setDefaultButton(ok);
 
 		// setup the export characteristics popup
 		String last = latestCharacteristic;

@@ -504,6 +504,38 @@ public final class MenuCommands
 		Menu windowMenu = new Menu("Window", 'W');
 		menuBar.add(windowMenu);
 
+        m = windowMenu.addMenuItem("Fill Display", KeyStroke.getKeyStroke('9', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.fullDisplay(); } });
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD9, buckyBit), null);
+        m = windowMenu.addMenuItem("Redisplay Window", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.redrawDisplay(); } });
+        m = windowMenu.addMenuItem("Zoom Out", KeyStroke.getKeyStroke('0', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.zoomOutDisplay(); } });
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, buckyBit), null);
+        m = windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.zoomInDisplay(); } });
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
+        m = windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.focusOnHighlighted(); } });
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, buckyBit), null);
+
+        windowMenu.addSeparator();
+
+        m = windowMenu.addMenuItem("Pan Left", KeyStroke.getKeyStroke('4', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(EditWindow.getCurrent(), 4); }});
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD4, buckyBit), null);
+        m = windowMenu.addMenuItem("Pan Right", KeyStroke.getKeyStroke('6', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(EditWindow.getCurrent(), -4); }});
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD6, buckyBit), null);
+        m = windowMenu.addMenuItem("Pan Up", KeyStroke.getKeyStroke('8', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(EditWindow.getCurrent(), -4); }});
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD8, buckyBit), null);
+        m = windowMenu.addMenuItem("Pan Down", KeyStroke.getKeyStroke('2', buckyBit),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(EditWindow.getCurrent(), 4); }});
+        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, buckyBit), null);
+
+        windowMenu.addSeparator();
+
 		windowMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toggleGridCommand(); } });
 
@@ -531,34 +563,6 @@ public final class MenuCommands
 
         windowMenu.addMenuItem("Layer Visibility...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { layerVisibilityCommand(); } });
-
-        windowMenu.addSeparator();
-
-        m = windowMenu.addMenuItem("Fill Display", KeyStroke.getKeyStroke('9', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.fullDisplay(); } });
-        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD9, buckyBit), null);
-        m = windowMenu.addMenuItem("Zoom Out", KeyStroke.getKeyStroke('0', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.zoomOutDisplay(); } });
-        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, buckyBit), null);
-        m = windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.zoomInDisplay(); } });
-        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
-        m = windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.focusOnHighlighted(); } });
-        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, buckyBit), null);
-
-        m = windowMenu.addMenuItem("Pan Up", KeyStroke.getKeyStroke('8', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(EditWindow.getCurrent(), -4); }});
-        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD8, buckyBit), null);
-        m = windowMenu.addMenuItem("Pan Down", KeyStroke.getKeyStroke('2', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panY(EditWindow.getCurrent(), 4); }});
-        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, buckyBit), null);
-        m = windowMenu.addMenuItem("Pan Left", KeyStroke.getKeyStroke('4', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(EditWindow.getCurrent(), 4); }});
-        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD4, buckyBit), null);
-        m = windowMenu.addMenuItem("Pan Right", KeyStroke.getKeyStroke('6', buckyBit),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panX(EditWindow.getCurrent(), -4); }});
-        m.addDefaultKeyBinding(KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD6, buckyBit), null);
 
 		/****************************** THE TOOL MENU ******************************/
 

@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 // import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 // import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -440,6 +441,18 @@ public class Netlist
 		JNetwork network = getNetwork(ai, 0);
 		if (network == null) return null;
 		return network.describe();
+	}
+
+	/**
+	 * Method to return the name of the bus on this ArcInst.
+	 * @return the name of the bus on this ArcInst.
+	 */
+	public Name getBusName(ArcInst ai) {
+		checkForModification();
+		if (ai.getParent() != netCell.cell) return null;
+		int busWidth = netCell.getBusWidth(ai);
+		if (busWidth <= 1) return null;
+		return netCell.getBusName(ai);
 	}
 
 	/**

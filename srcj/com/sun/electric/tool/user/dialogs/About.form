@@ -128,7 +128,7 @@
                 </Constraint>
               </Constraints>
             </Component>
-            <Component class="javax.swing.JButton" name="jButton3">
+            <Component class="javax.swing.JButton" name="ok">
               <Properties>
                 <Property name="text" type="java.lang.String" value="OK"/>
               </Properties>
@@ -152,7 +152,7 @@
                 </Constraint>
               </Constraints>
             </Component>
-            <Component class="javax.swing.JButton" name="jButton1">
+            <Component class="javax.swing.JButton" name="castOfThousands">
               <Properties>
                 <Property name="text" type="java.lang.String" value="And A Cast of Thousands"/>
               </Properties>
@@ -199,7 +199,7 @@
             </Constraint>
           </Constraints>
         </Component>
-        <Component class="javax.swing.JButton" name="jButton2">
+        <Component class="javax.swing.JButton" name="warrantyDetails">
           <Properties>
             <Property name="text" type="java.lang.String" value="Warranty Details"/>
           </Properties>
@@ -212,7 +212,7 @@
             </Constraint>
           </Constraints>
         </Component>
-        <Component class="javax.swing.JButton" name="jButton4">
+        <Component class="javax.swing.JButton" name="copyingDetails">
           <Properties>
             <Property name="text" type="java.lang.String" value="Copying Details"/>
           </Properties>

@@ -299,9 +299,9 @@ public class Schematics extends Technology
 			new Technology.ArcLayer(arc_lay, 0, Poly.Type.FILLED)
 		});
 		wire_arc.setFunction(PrimitiveArc.Function.METAL1);
-		wire_arc.setFixedAngle();
-		wire_arc.clearSlidable();
-		wire_arc.setAngleIncrement(45);
+		wire_arc.setFactoryFixedAngle(true);
+		wire_arc.setFactorySlidable(false);
+		wire_arc.setFactoryAngleIncrement(45);
 
 		/** bus arc */
 		bus_arc = PrimitiveArc.newInstance(this, "bus", 1.0, new Technology.ArcLayer []
@@ -309,10 +309,10 @@ public class Schematics extends Technology
 			new Technology.ArcLayer(bus_lay, 0, Poly.Type.FILLED)
 		});
 		bus_arc.setFunction(PrimitiveArc.Function.BUS);
-		bus_arc.setFixedAngle();
-		bus_arc.clearSlidable();
-		bus_arc.clearExtended();
-		bus_arc.setAngleIncrement(45);
+		bus_arc.setFactoryFixedAngle(true);
+		bus_arc.setFactorySlidable(false);
+		bus_arc.setFactoryExtended(false);
+		bus_arc.setFactoryAngleIncrement(45);
 
 
 		//**************************************** NODES ****************************************

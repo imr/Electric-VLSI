@@ -1046,7 +1046,8 @@ public class InputBinary extends InputLibrary
 				if (!subCell.isBit(recursiveSetupFlag))
 				{
 					InputLibrary reader = getReaderForLib(subCell.getLibrary());
-					reader.realizeCellsRecursively(subCell, recursiveSetupFlag, null, 0);
+					if (reader != null)
+						reader.realizeCellsRecursively(subCell, recursiveSetupFlag, null, 0);
 				}
 
 				int startPort = firstPortIndex[cI];
@@ -1168,10 +1169,15 @@ public class InputBinary extends InputLibrary
 			InputLibrary reader = this;
 			if (subCell.getLibrary() != lib)
 			{
-				InputLibrary properReader = getReaderForLib(subCell.getLibrary());
-				if (properReader != null) reader = properReader;
+				reader = getReaderForLib(subCell.getLibrary());
+				if (reader == null) continue;
 			}
 			int subCellIndex = subCell.getTempInt();
+//			if (subCellIndex < 0 || subCellIndex >= reader.cellLambda.length)
+//			{
+//				System.out.println("Index is "+subCellIndex+" but limit is "+reader.cellLambda.length);
+//				continue;
+//			}
 			double subLambda = reader.cellLambda[subCellIndex];
 			if (subLambda < thisLambda)
 			{
@@ -1435,7 +1441,8 @@ public class InputBinary extends InputLibrary
 							{
 								reader = getReaderForLib(subCell.getLibrary());
 							}
-							reader.realizeCellsRecursively(subCell, recursiveSetupFlag, scaledCellName, scaleX);
+							if (reader != null)
+								reader.realizeCellsRecursively(subCell, recursiveSetupFlag, scaledCellName, scaleX);
 							scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
 							if (scaledCell == null)
 							{

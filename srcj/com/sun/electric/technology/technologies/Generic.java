@@ -117,8 +117,8 @@ public class Generic extends Technology
 			new Technology.ArcLayer(universal_lay, 0, Poly.Type.FILLED)
 		});
 		universal_arc.setFunction(PrimitiveArc.Function.UNKNOWN);
-		universal_arc.setFixedAngle();
-		universal_arc.setAngleIncrement(45);
+		universal_arc.setFactoryFixedAngle(true);
+		universal_arc.setFactoryAngleIncrement(45);
 
 		/** Invisible arc */
 		invisible_arc = PrimitiveArc.newInstance(this, "Invisible", 0.0, new Technology.ArcLayer []
@@ -126,8 +126,8 @@ public class Generic extends Technology
 			new Technology.ArcLayer(invisible_lay, 0, Poly.Type.FILLED)
 		});
 		invisible_arc.setFunction(PrimitiveArc.Function.NONELEC);
-		invisible_arc.setFixedAngle();
-		invisible_arc.setAngleIncrement(45);
+		invisible_arc.setFactoryFixedAngle(true);
+		invisible_arc.setFactoryAngleIncrement(45);
 
 		/** Unrouted arc */
 		unrouted_arc = PrimitiveArc.newInstance(this, "Unrouted", 0.0, new Technology.ArcLayer []
@@ -135,8 +135,8 @@ public class Generic extends Technology
 			new Technology.ArcLayer(unrouted_lay, 0, Poly.Type.FILLED)
 		});
 		unrouted_arc.setFunction(PrimitiveArc.Function.UNROUTED);
-		unrouted_arc.setFixedAngle();
-		unrouted_arc.setAngleIncrement(0);
+		unrouted_arc.setFactoryFixedAngle(true);
+		unrouted_arc.setFactoryAngleIncrement(0);
 
 		//**************************************** NODES ****************************************
 

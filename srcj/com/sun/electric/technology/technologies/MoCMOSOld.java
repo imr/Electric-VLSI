@@ -720,9 +720,9 @@ public class MoCMOSOld extends Technology
 			new Technology.ArcLayer(M_lay, 0, Poly.Type.FILLED)
 		});
 		Metal_1_arc.setFunction(PrimitiveArc.Function.METAL1);
-		Metal_1_arc.setFixedAngle();
+		Metal_1_arc.setFactoryFixedAngle(true);
 		Metal_1_arc.setWipable();
-		Metal_1_arc.setAngleIncrement(90);
+		Metal_1_arc.setFactoryAngleIncrement(90);
 
 		/** Metal-2 arc */
 		PrimitiveArc Metal_2_arc = PrimitiveArc.newInstance(this, "Metal-2", 3, new Technology.ArcLayer []
@@ -730,9 +730,9 @@ public class MoCMOSOld extends Technology
 			new Technology.ArcLayer(M0_lay, 0, Poly.Type.FILLED)
 		});
 		Metal_2_arc.setFunction(PrimitiveArc.Function.METAL2);
-		Metal_2_arc.setFixedAngle();
+		Metal_2_arc.setFactoryFixedAngle(true);
 		Metal_2_arc.setWipable();
-		Metal_2_arc.setAngleIncrement(90);
+		Metal_2_arc.setFactoryAngleIncrement(90);
 
 		/** Polysilicon arc */
 		PrimitiveArc Polysilicon_arc = PrimitiveArc.newInstance(this, "Polysilicon", 2, new Technology.ArcLayer []
@@ -740,9 +740,9 @@ public class MoCMOSOld extends Technology
 			new Technology.ArcLayer(P_lay, 0, Poly.Type.FILLED)
 		});
 		Polysilicon_arc.setFunction(PrimitiveArc.Function.POLY1);
-		Polysilicon_arc.setFixedAngle();
+		Polysilicon_arc.setFactoryFixedAngle(true);
 		Polysilicon_arc.setWipable();
-		Polysilicon_arc.setAngleIncrement(90);
+		Polysilicon_arc.setFactoryAngleIncrement(90);
 
 		/** S-Active arc */
 		PrimitiveArc S_Active_arc = PrimitiveArc.newInstance(this, "S-Active", 6, new Technology.ArcLayer []
@@ -751,9 +751,9 @@ public class MoCMOSOld extends Technology
 			new Technology.ArcLayer(PS_lay, 0, Poly.Type.FILLED)
 		});
 		S_Active_arc.setFunction(PrimitiveArc.Function.DIFFP);
-		S_Active_arc.setFixedAngle();
+		S_Active_arc.setFactoryFixedAngle(true);
 		S_Active_arc.setWipable();
-		S_Active_arc.setAngleIncrement(90);
+		S_Active_arc.setFactoryAngleIncrement(90);
 		S_Active_arc.setWidthOffset(0);
 
 		/** D-Active arc */
@@ -763,9 +763,9 @@ public class MoCMOSOld extends Technology
 			new Technology.ArcLayer(PW_lay, 0, Poly.Type.FILLED)
 		});
 		D_Active_arc.setFunction(PrimitiveArc.Function.DIFFN);
-		D_Active_arc.setFixedAngle();
+		D_Active_arc.setFactoryFixedAngle(true);
 		D_Active_arc.setWipable();
-		D_Active_arc.setAngleIncrement(90);
+		D_Active_arc.setFactoryAngleIncrement(90);
 		D_Active_arc.setWidthOffset(0);
 
 		/** Active arc */
@@ -775,9 +775,9 @@ public class MoCMOSOld extends Technology
 			new Technology.ArcLayer(SA_lay, 0, Poly.Type.FILLED)
 		});
 		Active_arc.setFunction(PrimitiveArc.Function.DIFF);
-		Active_arc.setFixedAngle();
+		Active_arc.setFactoryFixedAngle(true);
 		Active_arc.setWipable();
-		Active_arc.setAngleIncrement(90);
+		Active_arc.setFactoryAngleIncrement(90);
 
 		//******************** RECTANGLE DESCRIPTIONS ********************
 
