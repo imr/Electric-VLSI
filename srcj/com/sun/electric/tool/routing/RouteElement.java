@@ -112,6 +112,9 @@ public class RouteElement {
     // ---- Existing PortInst info ----
     /** the existing PortInst */                    private PortInst existingPortInst;
 
+    // ---- New Node and Existing PortInst info ----
+    /** point to connect arc to, if not center of pi */ private Point2D connPoint;
+
     /**
      * Private Constructor
      * @param action the action this RouteElementAction will do.
@@ -141,6 +144,7 @@ public class RouteElement {
         e.newArcs = new ArrayList();
         e.setNodeSize(new Dimension2D.Double(width, height));
         e.showHighlight = true;
+        e.connPoint = null;
         return e;
     }
 
@@ -204,14 +208,16 @@ public class RouteElement {
      * start and/or ends of the route, which exist before
      * we start building the route.
      * @param existingPortInst the already existing portInst to connect to
+     * @param connPoint the end point of the arc, if not the center of the portInst
      */
-    public static RouteElement existingPortInst(PortInst existingPortInst) {
+    public static RouteElement existingPortInst(PortInst existingPortInst, Point2D connPoint) {
         RouteElement e = new RouteElement(RouteElementAction.existingPortInst);
         e.done = true;                           // already exists, so done is true
         e.existingPortInst = existingPortInst;
         e.newArcs = new ArrayList();
         e.cell = existingPortInst.getNodeInst().getParent();
         e.showHighlight = true;
+        e.connPoint = connPoint;
         return e;
     }
 
@@ -280,8 +286,7 @@ public class RouteElement {
     public Point2D getLocation() {
         if (action == RouteElementAction.newNode) return location;
         if (action == RouteElementAction.existingPortInst)
-            return new Point2D.Double(existingPortInst.getBounds().getCenterX(),
-                                      existingPortInst.getBounds().getCenterY());
+            return getConnPoint();
         if (action == RouteElementAction.deleteNode)
             return nodeInstToDelete.getTrueCenter();
         return null;
@@ -508,6 +513,29 @@ public class RouteElement {
         }
     }
 
+    /**
+     * Get connecting point of node for arc to connect to. If this was
+     * not specified earlier, this returns the center of the portInst.
+     * Note that this will return null for a newNode that has not yet been
+     * created, as it does not yet have a portInst.
+     * @return the connecting port for an arc, or null if none exists yet.
+     */
+    public Point2D getConnPoint() {
+        if (action == RouteElementAction.newNode) {
+            if (connPoint != null) return connPoint;
+            if (done) {
+                Rectangle2D bounds = getConnectingPort().getBounds();
+                return new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+            }
+        }
+        if (action == RouteElementAction.existingPortInst) {
+            if (connPoint != null) return connPoint;
+            Rectangle2D bounds = getConnectingPort().getBounds();
+            return new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+        }
+        return null;
+    }
+
     /** Set show highlight property */
     public void setShowHighlight(boolean b) { showHighlight = b; }
 
@@ -541,7 +569,9 @@ public class RouteElement {
         if (action == RouteElementAction.newArc) {
             PortInst headPi = headRE.getConnectingPort();
             PortInst tailPi = tailRE.getConnectingPort();
-            ArcInst newAi = ArcInst.makeInstance(ap, arcWidth, headPi, tailPi, arcName);
+            Point2D headPoint = headRE.getConnPoint();
+            Point2D tailPoint = tailRE.getConnPoint();
+            ArcInst newAi = ArcInst.makeInstance(ap, arcWidth, headPi, headPoint, tailPi, tailPoint, arcName);
             if (arcAngle != 0)
                 newAi.setAngle(arcAngle);
             setDone();

@@ -95,8 +95,10 @@ public abstract class Router {
      * @return false on error, route should be ignored.
      */
     public boolean planRoute(Route route, Cell cell, PortInst startPort, PortInst endPort, Point2D hint) {
-        RouteElement startRE = RouteElement.existingPortInst(startPort);
-        RouteElement endRE = RouteElement.existingPortInst(endPort);
+        Point2D startPoint = InteractiveRouter.getExistingPortEndPoint(startPort, hint);
+        Point2D endPoint = InteractiveRouter.getExistingPortEndPoint(endPort, hint);
+        RouteElement startRE = RouteElement.existingPortInst(startPort, startPoint);
+        RouteElement endRE = RouteElement.existingPortInst(endPort, endPoint);
         route.add(startRE);
         route.setStart(startRE);
         route.setEnd(startRE);

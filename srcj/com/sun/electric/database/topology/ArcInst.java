@@ -223,13 +223,7 @@ public class ArcInst extends Geometric
 	 */
 	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail, String name)
 	{
-		Rectangle2D headBounds = head.getBounds();
-		double headX = headBounds.getCenterX();
-		double headY = headBounds.getCenterY();
-		Rectangle2D tailBounds = tail.getBounds();
-		double tailX = tailBounds.getCenterX();
-		double tailY = tailBounds.getCenterY();
-		return newInstance(type, width, head, new Point2D.Double(headX, headY), tail, new Point2D.Double(tailX, tailY), name);
+		return newInstance(type, width, head, null, tail, null, name);
 	}
 
 	/**
@@ -247,6 +241,16 @@ public class ArcInst extends Geometric
 	public static ArcInst newInstance(ArcProto type, double width,
 		PortInst head, Point2D headPt, PortInst tail, Point2D tailPt, String name)
 	{
+        // if points are null, create them as would newInstance
+        if (headPt == null) {
+            Rectangle2D headBounds = head.getBounds();
+            headPt = new Point2D.Double(headBounds.getCenterX(), headBounds.getCenterY());
+        }
+        if (tailPt == null) {
+            Rectangle2D tailBounds = tail.getBounds();
+            tailPt = new Point2D.Double(tailBounds.getCenterX(), tailBounds.getCenterY());
+        }
+
 		ArcInst ai = lowLevelAllocate();
 		if (ai.lowLevelPopulate(type, width, head, headPt, tail, tailPt, 0)) return null;
 		if (!ai.stillInPort(ai.getHead(), headPt, false))
