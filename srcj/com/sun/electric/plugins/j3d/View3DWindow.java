@@ -81,6 +81,8 @@ import com.sun.j3d.utils.behaviors.mouse.MouseBehavior;
 import com.sun.j3d.utils.behaviors.mouse.MouseRotate;
 import com.sun.j3d.utils.behaviors.mouse.MouseTranslate;
 import com.sun.j3d.utils.behaviors.mouse.MouseZoom;
+import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
+import com.sun.j3d.utils.behaviors.interpolators.KBRotPosScaleSplinePathInterpolator;
 import com.sun.j3d.utils.geometry.GeometryInfo;
 import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.picking.PickCanvas;
@@ -138,7 +140,8 @@ public class View3DWindow extends JPanel
 	private JMouseZoom zoomB;
 	private JMouseTranslate translateB;
 	private OffScreenCanvas3D offScreenCanvas3D;
-    
+    private BranchGroup scene;
+
     Alpha alpha = new Alpha (1,Alpha.INCREASING_ENABLE,0,0,1000,0,0,0,0,0);
     PositionInterpolator inter;
 
@@ -223,7 +226,7 @@ public class View3DWindow extends JPanel
 		canvas.addMouseListener(this);
 
 		// Create a simple scene and attach it to the virtual universe
-		BranchGroup scene = createSceneGraph(cell, infiniteBounds);
+		scene = createSceneGraph(cell, infiniteBounds);
 
 		ViewingPlatform viewP = new ViewingPlatform(4);
 		viewP.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
@@ -1113,7 +1116,7 @@ public class View3DWindow extends JPanel
      * @param y
      * @param z
      */
-    public static void set3DCamera(WindowContent content, Double x, Double y, Double z)
+    public static void set3DCameraOld(WindowContent content, Double x, Double y, Double z)
     {
         if (!(content instanceof View3DWindow)) return;
         View3DWindow wnd = (View3DWindow)content;
@@ -1149,6 +1152,7 @@ public class View3DWindow extends JPanel
         wnd.inter.setEnable(false);
         wnd.inter.setTransformAxis(t);
         wnd.inter.setEnable(true);
+        //wnd.inter.initialize();
     }
 
 	/**
@@ -1569,5 +1573,85 @@ public class View3DWindow extends JPanel
         public void postSwap() {
         // No-op since we always wait for off-screen rendering to complete
         }
+    }
+
+    // Setting Camera functions
+
+    public static void set3DCamera(WindowContent content, Double x, Double y, Double z)
+    {
+        KBKeyFrame[] splineKeyFrames = new KBKeyFrame[6];
+       BranchGroup behaviorBranch = new BranchGroup();
+
+        if (!(content instanceof View3DWindow)) return;
+        View3DWindow wnd = (View3DWindow)content;
+        Cell cell = wnd.cell;
+
+       setupSplineKeyFrames (splineKeyFrames);
+       Transform3D yAxis = new Transform3D();
+       Interpolator splineInterpolator =
+         new KBRotPosScaleSplinePathInterpolator(wnd.alpha, wnd.objTrans,
+                                                  yAxis, splineKeyFrames);
+       splineInterpolator.setSchedulingBounds((BoundingSphere)wnd.scene.getBounds());
+        behaviorBranch.addChild(splineInterpolator);
+       //wnd.objTrans.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE); 
+       wnd.objTrans.addChild(behaviorBranch);
+    }
+
+    private static void setupSplineKeyFrames (KBKeyFrame[] splineKeyFrames) {
+
+    Vector3f           pos0 = new Vector3f(-5.0f, -5.0f, 0.0f);
+    Vector3f           pos1 = new Vector3f(-5.0f,  5.0f, 0.0f);
+    Vector3f           pos2 = new Vector3f( 0.0f,  5.0f, 0.0f);
+    Vector3f           pos3 = new Vector3f( 0.0f, -5.0f, 0.0f);
+    Vector3f           pos4 = new Vector3f( 5.0f, -5.0f, 0.0f);
+    Vector3f           pos5 = new Vector3f( 5.0f,  5.0f, 0.0f);
+      // Prepare spline keyframe data
+      Point3f p   = new Point3f (pos0);            // position
+      float head  = (float)Math.PI/2.0f;           // heading
+      float pitch = 0.0f;                          // pitch
+      float bank  = 0.0f;                          // bank
+      Point3f s   = new Point3f(1.0f, 1.0f, 1.0f); // uniform scale
+      splineKeyFrames[0] =
+         new KBKeyFrame(0.0f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
+
+      p = new Point3f (pos1);
+      head  = 0.0f;                               // heading
+      pitch = 0.0f;                               // pitch
+      bank  = (float)-Math.PI/2.0f;               // bank
+      s = new Point3f(1.0f, 1.0f, 1.0f);          // uniform scale
+      splineKeyFrames[1] =
+         new KBKeyFrame(0.2f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
+
+      p = new Point3f (pos2);
+      head  = 0.0f;                               // heading
+      pitch = 0.0f;                               // pitch
+      bank  = 0.0f;                               // bank
+      s = new Point3f(0.7f, 0.7f, 0.7f);          // uniform scale
+      splineKeyFrames[2] =
+         new KBKeyFrame(0.4f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
+
+      p = new Point3f (pos3);
+      head  = (float)Math.PI/2.0f;                // heading
+      pitch = 0.0f;                               // pitch
+      bank  = (float)Math.PI/2.0f;                // bank
+      s = new Point3f(0.5f, 0.5f, 0.5f);          // uniform scale
+      splineKeyFrames[3] =
+         new KBKeyFrame(0.6f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
+
+      p = new Point3f (pos4);
+      head  = (float)-Math.PI/2.0f;               // heading
+      pitch = (float)-Math.PI/2.0f;               // pitch
+      bank  = (float)Math.PI/2.0f;                // bank
+      s = new Point3f(0.4f, 0.4f, 0.4f);          // uniform scale
+      splineKeyFrames[4] =
+         new KBKeyFrame(0.8f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
+
+      p = new Point3f (pos5);
+      head  = 0.0f;                               // heading
+      pitch = 0.0f;                               // pitch
+      bank  = 0.0f;                               // bank
+      s = new Point3f(1.0f, 1.0f, 1.0f);          // uniform scale
+      splineKeyFrames[5] =
+         new KBKeyFrame(1.0f, 0, p, head, pitch, bank, s, 0.0f, 0.0f, 0.0f);
     }
 }
