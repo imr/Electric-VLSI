@@ -76,26 +76,52 @@ public final class UserInitial
 		fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.quitCommand(); } });
 
+		// setup the Edit menu
+		UIMenu editMenu = UIMenu.CreateUIMenu("Edit", 'E');
+		editMenu.addMenuItem("Undo", KeyStroke.getKeyStroke('Z', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.undoCommand(); } });
+		editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.redoCommand(); } });
+		editMenu.addMenuItem("Show Undo List", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showUndoListCommand(); } });
+
+		// setup the Cell menu
+		UIMenu cellMenu = UIMenu.CreateUIMenu("Cell", 'C');
+        cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', InputEvent.CTRL_MASK),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.downHierCommand(); }});
+        cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', InputEvent.CTRL_MASK),
+            new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.upHierCommand(); }});
+		cellMenu.addMenuItem("Show Cell Groups", KeyStroke.getKeyStroke('T', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showCellGroupsCommand(); } });
+
+		// setup the Export menu
+		UIMenu exportMenu = UIMenu.CreateUIMenu("Export", 'X');
+
+		// setup the View menu
+		UIMenu viewMenu = UIMenu.CreateUIMenu("View", 'V');
+
+		// setup the Window menu
+		UIMenu windowMenu = UIMenu.CreateUIMenu("Window", 'W');
+		windowMenu.addMenuItem("Full Display", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.fullDisplayCommand(); } });
+		windowMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', InputEvent.CTRL_MASK),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.toggleGridCommand(); } });
+
+		// setup the Technology menu
+		UIMenu technologyMenu = UIMenu.CreateUIMenu("Technology", 'H');
+
+		// setup the Tool menu
+		UIMenu toolMenu = UIMenu.CreateUIMenu("Tool", 'T');
+
+		// setup the Help menu
+		UIMenu helpMenu = UIMenu.CreateUIMenu("Help", 'H');
+
 		// setup Steve's test menu
 		UIMenu steveMenu = UIMenu.CreateUIMenu("Steve", 'S');
-		steveMenu.addMenuItem("Show Cell Groups", KeyStroke.getKeyStroke('T', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showCellGroupsCommand(); } });
 		steveMenu.addMenuItem("Get Info", KeyStroke.getKeyStroke('I', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.getInfoCommand(); } });
 		steveMenu.addMenuItem("Show R-Tree", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showRTreeCommand(); } });
-		steveMenu.addSeparator();
-		steveMenu.addMenuItem("Full Display", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.fullDisplayCommand(); } });
-		steveMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.toggleGridCommand(); } });
-		steveMenu.addSeparator();
-		steveMenu.addMenuItem("Undo", KeyStroke.getKeyStroke('Z', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.undoCommand(); } });
-		steveMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.redoCommand(); } });
-		steveMenu.addMenuItem("Show Undo List", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.showUndoListCommand(); } });
 
 		// setup Russell's test menu
 		UIMenu russMenu = UIMenu.CreateUIMenu("Russell", 'R');
@@ -109,10 +135,6 @@ public final class UserInitial
 
         // setup JonGainsley's test menu
         UIMenu jongMenu = UIMenu.CreateUIMenu("JonG", 'J');
-        jongMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', InputEvent.CTRL_MASK),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.downHierCommand(); }});
-        jongMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', InputEvent.CTRL_MASK),
-            new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.upHierCommand(); }});
         jongMenu.addMenuItem("Describe Vars", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.listVarsOnObject(); }});
         jongMenu.addMenuItem("Eval Vars", null,
@@ -122,6 +144,14 @@ public final class UserInitial
 		// create the menu bar
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.add(fileMenu);
+		menuBar.add(editMenu);
+		menuBar.add(cellMenu);
+		menuBar.add(exportMenu);
+		menuBar.add(viewMenu);
+		menuBar.add(windowMenu);
+		menuBar.add(technologyMenu);
+		menuBar.add(toolMenu);
+		menuBar.add(helpMenu);
 		menuBar.add(steveMenu);
 		menuBar.add(russMenu);
 		menuBar.add(dimaMenu);

@@ -26,7 +26,6 @@ package com.sun.electric.tool.user;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.VarContext;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -39,6 +38,7 @@ import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Technology;
@@ -215,29 +215,33 @@ public class Highlight
 
 		// highlight a NodeInst
 		NodeInst ni = (NodeInst)geom;
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		
-		// special case for outline nodes
-		int [] specialValues = np.getSpecialValues();
-		if (np.isHoldsOutline())
+		NodeProto np = ni.getProto();
+		SizeOffset so = new SizeOffset(0, 0, 0, 0);
+		if (np instanceof PrimitiveNode)
 		{
-			Float [] outline = ni.getTrace();
-			if (outline != null)
+			PrimitiveNode pnp = (PrimitiveNode)np;
+			so = Technology.getSizeOffset(ni);
+
+			// special case for outline nodes
+			int [] specialValues = pnp.getSpecialValues();
+			if (np.isHoldsOutline())
 			{
-				int numPoints = outline.length / 2;
-				Point2D.Double [] pointList = new Point2D.Double[numPoints];
-				for(int i=0; i<numPoints; i++)
+				Float [] outline = ni.getTrace();
+				if (outline != null)
 				{
-					pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].floatValue(),
-						ni.getCenterY() + outline[i*2+1].floatValue());
+					int numPoints = outline.length / 2;
+					Point2D.Double [] pointList = new Point2D.Double[numPoints];
+					for(int i=0; i<numPoints; i++)
+					{
+						pointList[i] = new Point2D.Double(ni.getCenterX() + outline[i*2].floatValue(),
+							ni.getCenterY() + outline[i*2+1].floatValue());
+					}
+					drawOutlineFromPoints(wnd, g,  pointList, highOffX, highOffY);
 				}
-				drawOutlineFromPoints(wnd, g,  pointList, highOffX, highOffY);
 			}
 		}
 		
 		// setup outline of node with standard offset
-		SizeOffset so = new SizeOffset(0, 0, 0, 0);
-		if (ni.getProto() instanceof PrimitiveNode) so = Technology.getSizeOffset(ni);
 		double portLowX = ni.getCenterX() - ni.getXSize()/2 + so.getLowXOffset();
 		double portHighX = ni.getCenterX() + ni.getXSize()/2 - so.getHighXOffset();
 		double portLowY = ni.getCenterY() - ni.getYSize()/2 + so.getLowYOffset();
