@@ -50,7 +50,6 @@ public class TopLevel extends JFrame
 {
 	private static JDesktopPane desktop;
 	private static TopLevel topLevel;
-	private static String libdir;
 
 	private TopLevel(String s)
 	{
@@ -60,20 +59,16 @@ public class TopLevel extends JFrame
 	public static void Initialize()
 	{
 		// setup specific look-and-feel
-		libdir = null;
 		try{
 			String os = System.getProperty("os.name").toLowerCase();
 			if (os.startsWith("windows"))
 			{
-				libdir = "C:\\DevelE\\Electric\\lib\\";
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 			} else if (os.startsWith("linux") || os.startsWith("solaris") || os.startsWith("sunos"))
 			{
-				libdir = System.getProperty("user.dir") + "/../lib/";
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MotifLookAndFeel");
 			} else if (os.startsWith("mac"))
 			{
-				libdir = System.getProperty("user.dir") + "/../lib/";
 				UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.MacLookAndFeel");
 			}
 		} catch(Exception e) {}
@@ -108,8 +103,6 @@ public class TopLevel extends JFrame
 	}
 
 	public static JDesktopPane getDesktop() { return desktop; }
-
-	public static String getLibDir() { return libdir; }
 
 	public static EditWindow getCurrentEditWindow()
 	{

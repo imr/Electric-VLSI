@@ -175,7 +175,7 @@ public class NodeInst extends Geometric
 			// transform by the relevant amount
 			AffineTransform scale = new AffineTransform();
 			scale.setToScale(sX, sY);
-			AffineTransform rotate = rotateAbout(angle, isTransposed(), 0, 0);
+			AffineTransform rotate = rotateAbout(angle, 0, 0, sX, sY);
 			AffineTransform translate = new AffineTransform();
 			translate.setToTranslation(cX, cY);
 			rotate.concatenate(scale);
@@ -203,7 +203,9 @@ public class NodeInst extends Geometric
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param center the center location of this NodeInst.
 	 * @param width the width of this NodeInst.
+	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
 	 * @param height the height of this NodeInst.
+	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
 	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param parent the Cell in which this NodeInst will reside.
 	 * @return true on error.
@@ -267,7 +269,9 @@ public class NodeInst extends Geometric
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param center the center location of this NodeInst.
 	 * @param width the width of this NodeInst.
+	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
 	 * @param height the height of this NodeInst.
+	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
 	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param parent the Cell in which this NodeInst will reside.
 	 * @return the newly created NodeInst, or null on error.
@@ -406,6 +410,12 @@ public class NodeInst extends Geometric
 	public void getInfo()
 	{
 		System.out.println("-------------- NODE INSTANCE " + describe() + ": --------------");
+		String xMir = "";
+		String yMir = "";
+		if (isXMirrored()) xMir = ", MirrorX";
+		if (isYMirrored()) yMir = ", MirrorY";
+		System.out.println(" Center: (" + cX + "," + cY + "), size: " + getXSize() + "x" + getYSize() + ", rotated " + angle/10.0 +
+			xMir + yMir);
 		super.getInfo();
 		System.out.println(" Ports:");
 		for(Iterator it = getPortInsts(); it.hasNext();)
@@ -720,6 +730,22 @@ public class NodeInst extends Geometric
 	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
 
 	/**
+	 * Routine to tell whether this NodeInst is mirrored in the X axis.
+	 * Mirroring in the X axis implies that X coordinates are negated.
+	 * Thus, it is equivalent to mirroring ABOUT the Y axis.
+	 * @return true if this NodeInst is mirrored in the X axis.
+	 */
+	public boolean isXMirrored() { return sX < 0; }
+
+	/**
+	 * Routine to tell whether this NodeInst is mirrored in the Y axis.
+	 * Mirroring in the Y axis implies that Y coordinates are negated.
+	 * Thus, it is equivalent to mirroring ABOUT the X axis.
+	 * @return true if this NodeInst is mirrored in the Y axis.
+	 */
+	public boolean isYMirrored() { return sY < 0; }
+
+	/**
 	 * Routine to return a list of Polys that describes all text on this NodeInst.
 	 * @param hardToSelect is true if considering hard-to-select text.
 	 * @param wnd the window in which the text will be drawn.
@@ -780,14 +806,6 @@ public class NodeInst extends Geometric
 		addDisplayableVariables(getBounds(), polys, start, wnd, false);
 		return polys;
 	}
-
-	/**
-	 * Routine to tell whether this NodeInst is transposed.
-	 * Transformed nodes have a negative size factor.
-	 * Graphically, they are transposed about the diagonal.
-	 * @return true if this NodeInst is transposed.
-	 */
-	public boolean isTransposed() { return sX < 0 || sY < 0; }
 
 	/**
 	 * Routine to return a transformation that moves up the hierarchy.
@@ -907,7 +925,7 @@ public class NodeInst extends Geometric
 	 */
 	public AffineTransform rotateOut()
 	{
-		return rotateAbout(angle, isTransposed(), cX, cY);
+		return rotateAbout(angle, cX, cY, sX, sY);
 	}
 
 	/**

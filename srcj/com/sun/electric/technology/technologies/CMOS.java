@@ -299,17 +299,17 @@ public class CMOS extends Technology
 		M_lay.setFunction(Layer.Function.METAL1);		// Metal
 		P_lay.setFunction(Layer.Function.POLY1);		// Polysilicon
 		D_lay.setFunction(Layer.Function.DIFF);		// Diffusion
-		P0_lay.setFunction(Layer.Function.IMPLANT, Layer.Function.PTYPE);		// P+
+		P0_lay.setFunction(Layer.Function.IMPLANTP);		// P+
 		CC_lay.setFunction(Layer.Function.CONTACT1);		// Contact-Cut
 		OC_lay.setFunction(Layer.Function.CONTACT2);		// Ohmic-Cut
-		PW_lay.setFunction(Layer.Function.WELL, Layer.Function.PTYPE);		// P-Well
+		PW_lay.setFunction(Layer.Function.WELLP);		// P-Well
 		O_lay.setFunction(Layer.Function.OVERGLASS);		// Overglass
 		T_lay.setFunction(Layer.Function.TRANSISTOR, Layer.Function.PSEUDO);		// Transistor
 		PM_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo-Metal
 		PP_lay.setFunction(Layer.Function.POLY1, Layer.Function.PSEUDO);		// Pseudo-Polysilicon
 		PD_lay.setFunction(Layer.Function.DIFF, Layer.Function.PSEUDO);		// Pseudo-Diffusion
-		PP0_lay.setFunction(Layer.Function.IMPLANT, Layer.Function.PTYPE|Layer.Function.PSEUDO);		// Pseudo-P+
-		PPW_lay.setFunction(Layer.Function.WELL, Layer.Function.PTYPE|Layer.Function.PSEUDO);		// Pseudo-P-Well
+		PP0_lay.setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);		// Pseudo-P+
+		PPW_lay.setFunction(Layer.Function.WELLP, Layer.Function.PSEUDO);		// Pseudo-P-Well
 
 		// The CIF names
 		M_lay.setCIFLayer("CM");		// Metal

@@ -494,28 +494,28 @@ public class MoCMOSOld extends Technology
 		M_lay.setFunction(Layer.Function.METAL1);		// Metal-1
 		M0_lay.setFunction(Layer.Function.METAL2);		// Metal-2
 		P_lay.setFunction(Layer.Function.POLY1);		// Polysilicon
-		SA_lay.setFunction(Layer.Function.DIFF, Layer.Function.PTYPE);		// S-Active
-		DA_lay.setFunction(Layer.Function.DIFF, Layer.Function.NTYPE);		// D-Active
-		PS_lay.setFunction(Layer.Function.IMPLANT, Layer.Function.PTYPE);		// P-Select
-		NS_lay.setFunction(Layer.Function.IMPLANT, Layer.Function.NTYPE);		// N-Select
-		PW_lay.setFunction(Layer.Function.WELL, Layer.Function.PTYPE);		// P-Well
-		NW_lay.setFunction(Layer.Function.WELL, Layer.Function.NTYPE);		// N-Well
+		SA_lay.setFunction(Layer.Function.DIFFP);		// S-Active
+		DA_lay.setFunction(Layer.Function.DIFFN);		// D-Active
+		PS_lay.setFunction(Layer.Function.IMPLANTP);		// P-Select
+		NS_lay.setFunction(Layer.Function.IMPLANTN);		// N-Select
+		PW_lay.setFunction(Layer.Function.WELLP);		// P-Well
+		NW_lay.setFunction(Layer.Function.WELLN);		// N-Well
 		CC_lay.setFunction(Layer.Function.CONTACT1);		// Contact-Cut
 		V_lay.setFunction(Layer.Function.CONTACT2, Layer.Function.CONMETAL);		// Via
 		P0_lay.setFunction(Layer.Function.OVERGLASS);		// Passivation
 		T_lay.setFunction(Layer.Function.TRANSISTOR, Layer.Function.PSEUDO);		// Transistor
 		PC_lay.setFunction(Layer.Function.CONTACT1, Layer.Function.CONPOLY);		// Poly-Cut
 		AC_lay.setFunction(Layer.Function.CONTACT1, Layer.Function.CONDIFF);		// Active-Cut
-		SAW_lay.setFunction(Layer.Function.DIFF, Layer.Function.PTYPE);		// S-Active-Well
+		SAW_lay.setFunction(Layer.Function.DIFFP);		// S-Active-Well
 		PM_lay.setFunction(Layer.Function.METAL1, Layer.Function.PSEUDO);		// Pseudo-Metal-1
 		PM0_lay.setFunction(Layer.Function.METAL2, Layer.Function.PSEUDO);		// Pseudo-Metal-2
 		PP_lay.setFunction(Layer.Function.POLY1, Layer.Function.PSEUDO);		// Pseudo-Polysilicon
-		PSA_lay.setFunction(Layer.Function.DIFF, Layer.Function.PTYPE|Layer.Function.PSEUDO);		// Pseudo-S-Active
-		PDA_lay.setFunction(Layer.Function.DIFF, Layer.Function.NTYPE|Layer.Function.PSEUDO);		// Pseudo-D-Active
-		PPS_lay.setFunction(Layer.Function.IMPLANT, Layer.Function.PTYPE|Layer.Function.PSEUDO);		// Pseudo-P-Select
-		PNS_lay.setFunction(Layer.Function.IMPLANT, Layer.Function.NTYPE|Layer.Function.PSEUDO);		// Pseudo-N-Select
-		PPW_lay.setFunction(Layer.Function.WELL, Layer.Function.PTYPE|Layer.Function.PSEUDO);		// Pseudo-P-Well
-		PNW_lay.setFunction(Layer.Function.WELL, Layer.Function.NTYPE|Layer.Function.PSEUDO);		// Pseudo-N-Well
+		PSA_lay.setFunction(Layer.Function.DIFFP, Layer.Function.PSEUDO);		// Pseudo-S-Active
+		PDA_lay.setFunction(Layer.Function.DIFFN, Layer.Function.PSEUDO);		// Pseudo-D-Active
+		PPS_lay.setFunction(Layer.Function.IMPLANTP, Layer.Function.PSEUDO);		// Pseudo-P-Select
+		PNS_lay.setFunction(Layer.Function.IMPLANTN, Layer.Function.PSEUDO);		// Pseudo-N-Select
+		PPW_lay.setFunction(Layer.Function.WELLP, Layer.Function.PSEUDO);		// Pseudo-P-Well
+		PNW_lay.setFunction(Layer.Function.WELLN, Layer.Function.PSEUDO);		// Pseudo-N-Well
 		PF_lay.setFunction(Layer.Function.ART);		// Pad-Frame
 
 		// The CIF names

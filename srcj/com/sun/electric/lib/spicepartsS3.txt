@@ -1,0 +1,2451 @@
+****library: "spicepartsS3"
+version: 6.07ap
+aids: 15
+aidname: user
+aidname: io
+aidname: dbmirror
+aidname: compaction
+aidname: pla
+aidname: routing
+aidname: silicon-compiler
+aidname: vhdl-compiler
+aidname: compensation
+aidname: logeffort
+aidname: network
+aidname: drc
+aidname: erc
+aidname: simulation
+aidname: project
+userbits: 4
+techcount: 16
+techname: generic lambda: 2000
+techname: nmos lambda: 4000
+techname: cmos lambda: 4000
+techname: mocmos lambda: 400
+techname: mocmosold lambda: 2000
+techname: mocmossub lambda: 400
+techname: bicmos lambda: 2000
+techname: rcmos lambda: 2000
+techname: cmosdodn lambda: 2000
+techname: bipolar lambda: 4000
+techname: schematic lambda: 4000
+techname: fpga lambda: 2000
+techname: pcb lambda: 2540000
+techname: artwork lambda: 4000
+techname: gem lambda: 2000
+techname: efido lambda: 20000
+view: schematic-page-2{p2}
+view: schematic-page-1{p1}
+view: layout{lay}
+view: schematic{sch}
+view: icon{ic}
+view: documentation{doc}
+view: compensated{comp}
+view: skeleton{sk}
+view: Verilog{ver}
+view: VHDL{vhdl}
+view: netlist{net}
+view: netlist-als-format{net-als}
+view: netlist-quisc-format{net-quisc}
+view: netlist-silos-format{net-silos}
+view: netlist-rsim-format{net-rsim}
+view: netlist-netlisp-format{net-netlisp}
+view: simulation-snapshot{sim}
+view: unknown{}
+cellcount: 28
+maincell: -1
+variables: 1
+USER_electrical_units[01,00/0400]: 70464
+***cell: 0
+name: V_Generic{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014646926
+lowx: 20000 highx: 36000 lowy: -9000 highy: 9000
+aadirty: 6638
+userbits: 262146
+nodes: 9 arcs: 0 porttypes: 2
+variables: 3
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_SPICE_template[0104,0300342040/0200]: "V$(node_name) $(plus) $(minus) $(Voltage)"
+ATTR_Voltage[0104,0100465004/0200]: "DC 0 AC 0"
+**node: 0
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 3072
+**node: 1
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+**node: 2
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 3
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 4
+type: generic:Invisible-Pin
+lowx: 27000 highx: 29000 lowy: 7000 highy: 9000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 5
+type: generic:Invisible-Pin
+lowx: 27000 highx: 29000 lowy: -9000 highy: -7000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 6
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 7
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 8
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: -4000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**porttype: 0
+subnode: 4
+subport: center
+name: plus
+descript: 0/512
+userbits: 92160
+**porttype: 1
+subnode: 5
+subport: center
+name: minus
+descript: 0/512
+userbits: 92160
+celldone: V_Generic
+***cell: 1
+name: NodeSet{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014650673
+lowx: 20000 highx: 36000 lowy: 0 highy: 6000
+aadirty: 6638
+userbits: 262146
+nodes: 5 arcs: 1 porttypes: 1
+variables: 3
+prototype_center[02201,00/0400]: [28000,0]
+ATTR_SPICE_template[0104,0500342040/0200]: ".NODESET V($(plus))=$(Parameter)"
+ATTR_Parameter[0104,0160345020/0200]: "null"
+**node: 0
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 4000 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/0400]: ["Node Set"]
+**node: 1
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 2
+type: artwork:Box
+lowx: 20000 highx: 36000 lowy: 2000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+*port: box
+arc: 0
+arc: 0
+**node: 3
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 0 highy: 2000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 4
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 8424448
+**porttype: 0
+subnode: 1
+subport: center
+name: plus
+descript: 0/256
+userbits: -1610520576
+**arc: 0
+type: artwork:Solid
+width: 0 length: 0
+userbits: 1879056832
+*end: 0
+node: 2
+nodeport: box
+xpos: 36000 ypos: 4000
+*end: 1
+node: 2
+nodeport: box
+xpos: 36000 ypos: 4000
+celldone: NodeSet
+***cell: 2
+name: VCCS{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1006995839
+lowx: 8000 highx: 48000 lowy: -8000 highy: 16000
+aadirty: 6638
+userbits: 262146
+nodes: 12 arcs: 0 porttypes: 4
+variables: 2
+ATTR_Gain[0105,0200345020/0200]: 0.001000
+ATTR_SPICE_template[0104,0500342040/0200]: "G$(node_name) $(x) $(y) $(a) $(b) $(Gain)"
+**node: 0
+type: generic:Invisible-Pin
+lowx: 48000 highx: 48000 lowy: -4000 highy: -4000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 1
+type: generic:Invisible-Pin
+lowx: 48000 highx: 48000 lowy: 12000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 2
+type: artwork:Box
+lowx: 12000 highx: 44000 lowy: -8000 highy: 16000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 3
+type: artwork:Opened-Polygon
+lowx: 37000 highx: 48000 lowy: -4000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[016201,00/0400]: [5500,8000,-2500,8000,-2500,3000,-5500,0,-2500,-3000,-2500,-8000,5500,-8000]
+ART_color[01,00/0400]: 10
+**node: 4
+type: artwork:Opened-Polygon
+lowx: 40000 highx: 43000 lowy: 1000 highy: 7000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[06201,00/0400]: [-1500,3000,1500,0,-1500,-3000]
+ART_color[01,00/0400]: 10
+**node: 5
+type: artwork:Opened-Polygon
+lowx: 8000 highx: 16000 lowy: 12000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-4000,0,4000,0]
+ART_color[01,00/0400]: 10
+**node: 6
+type: artwork:Opened-Polygon
+lowx: 8000 highx: 16000 lowy: -4000 highy: -4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-4000,0,4000,0]
+ART_color[01,00/0400]: 10
+**node: 7
+type: generic:Invisible-Pin
+lowx: 18000 highx: 18000 lowy: 12000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/0400]: ["+"]
+**node: 8
+type: artwork:Opened-Polygon
+lowx: 36000 highx: 36000 lowy: -4000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,8000,0,-8000]
+ART_color[01,00/0400]: 10
+**node: 9
+type: artwork:Arrow
+lowx: 34000 highx: 38000 lowy: -4000 highy: 0
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 10
+type: generic:Invisible-Pin
+lowx: 8000 highx: 8000 lowy: 12000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 2
+**node: 11
+type: generic:Invisible-Pin
+lowx: 8000 highx: 8000 lowy: -4000 highy: -4000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 3
+**porttype: 0
+subnode: 0
+subport: center
+name: y
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 1
+subport: center
+name: x
+descript: 0/256
+userbits: -1610520576
+**porttype: 2
+subnode: 10
+subport: center
+name: a
+descript: 0/256
+userbits: -1610520576
+**porttype: 3
+subnode: 11
+subport: center
+name: b
+descript: 0/256
+userbits: -1610520576
+celldone: VCCS
+***cell: 3
+name: Transmission{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1017416335
+lowx: 12000 highx: 48000 lowy: 0 highy: 12000
+aadirty: 6638
+userbits: 262146
+nodes: 14 arcs: 0 porttypes: 4
+variables: 3
+ATTR_z0[0101,0200405020/0200]: 50
+ATTR_SPICE_template[0104,0500342040/0200]: "T$(node_name) $(a) $(b) $(x) $(y) z0=$(z0) td=$(Delay)"
+ATTR_Delay[0104,0100405020/0200]: "100ns"
+**node: 0
+type: generic:Invisible-Pin
+lowx: 48000 highx: 48000 lowy: 4000 highy: 4000
+rotation: 0 transpose: 0
+userbits: 1024
+*port: center
+exported: 0
+**node: 1
+type: generic:Invisible-Pin
+lowx: 48000 highx: 48000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 2
+type: artwork:Opened-Polygon
+lowx: 12000 highx: 17000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-2500,0,2500,0]
+ART_color[01,00/0400]: 10
+**node: 3
+type: artwork:Opened-Polygon
+lowx: 12000 highx: 17000 lowy: 4000 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-2500,0,2500,0]
+ART_color[01,00/0400]: 10
+**node: 4
+type: generic:Invisible-Pin
+lowx: 12000 highx: 12000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 2
+**node: 5
+type: generic:Invisible-Pin
+lowx: 12000 highx: 12000 lowy: 4000 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 3
+**node: 6
+type: artwork:Opened-Polygon
+lowx: 46000 highx: 48000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-1000,0,1000,0]
+ART_color[01,00/0400]: 10
+**node: 7
+type: artwork:Opened-Polygon
+lowx: 46000 highx: 48000 lowy: 4000 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-1000,0,1000,0]
+ART_color[01,00/0400]: 10
+**node: 8
+type: generic:Invisible-Pin
+lowx: 20000 highx: 20000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/0400]: ["+"]
+**node: 9
+type: generic:Invisible-Pin
+lowx: 44000 highx: 44000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/0400]: ["+"]
+**node: 10
+type: artwork:Circle
+lowx: 14000 highx: 18000 lowy: 0 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 11
+type: artwork:Circle
+lowx: 38000 highx: 50000 lowy: 4000 highy: 8000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+ART_degrees[01,00/0400]: 1800
+ART_color[01,00/0400]: 10
+**node: 12
+type: artwork:Opened-Polygon
+lowx: 16000 highx: 44000 lowy: 12000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-14000,0,14000,0]
+ART_color[01,00/0400]: 10
+**node: 13
+type: artwork:Opened-Polygon
+lowx: 16000 highx: 44000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-14000,0,14000,0]
+ART_color[01,00/0400]: 10
+**porttype: 0
+subnode: 0
+subport: center
+name: y
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 1
+subport: center
+name: x
+descript: 0/256
+userbits: -1610520576
+**porttype: 2
+subnode: 4
+subport: center
+name: a
+descript: 0/256
+userbits: -1610520576
+**porttype: 3
+subnode: 5
+subport: center
+name: b
+descript: 0/256
+userbits: -1610520576
+celldone: Transmission
+***cell: 4
+name: AnalysisAC{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014405827
+lowx: 6000 highx: 18000 lowy: -6000 highy: 6000
+aadirty: 6638
+userbits: 262146
+nodes: 2 arcs: 0 porttypes: 0
+variables: 2
+ATTR_Parameters[0104,0245004/0400]: "null"
+ATTR_SPICE_template[0104,0100202040/0200]: ".AC $(Parameters)"
+**node: 0
+type: artwork:Circle
+lowx: 6000 highx: 18000 lowy: -6000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 1
+type: generic:Invisible-Pin
+lowx: 12000 highx: 12000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/01000]: ["AC"]
+celldone: AnalysisAC
+***cell: 5
+name: VCVS{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1006995929
+lowx: 8000 highx: 48000 lowy: -8000 highy: 16000
+aadirty: 6638
+userbits: 262146
+nodes: 12 arcs: 0 porttypes: 4
+variables: 2
+ATTR_Gain[0101,0200345020/0200]: 1
+ATTR_SPICE_template[0104,0500342040/0200]: "E$(node_name) $(x) $(y) $(a) $(b) $(Gain)"
+**node: 0
+type: generic:Invisible-Pin
+lowx: 8000 highx: 8000 lowy: -4000 highy: -4000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 3
+**node: 1
+type: generic:Invisible-Pin
+lowx: 8000 highx: 8000 lowy: 12000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 2
+**node: 2
+type: generic:Invisible-Pin
+lowx: 18000 highx: 18000 lowy: 12000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/0400]: ["+"]
+**node: 3
+type: artwork:Opened-Polygon
+lowx: 8000 highx: 16000 lowy: -4000 highy: -4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-4000,0,4000,0]
+ART_color[01,00/0400]: 10
+**node: 4
+type: artwork:Opened-Polygon
+lowx: 8000 highx: 16000 lowy: 12000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-4000,0,4000,0]
+ART_color[01,00/0400]: 10
+**node: 5
+type: artwork:Opened-Polygon
+lowx: 40000 highx: 48000 lowy: 7000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[06201,00/0400]: [4000,2500,-4000,2500,-4000,-2500]
+ART_color[01,00/0400]: 10
+**node: 6
+type: artwork:Box
+lowx: 12000 highx: 44000 lowy: -8000 highy: 16000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 7
+type: generic:Invisible-Pin
+lowx: 48000 highx: 48000 lowy: 12000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 8
+type: generic:Invisible-Pin
+lowx: 48000 highx: 48000 lowy: -4000 highy: -4000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 9
+type: artwork:Opened-Polygon
+lowx: 40000 highx: 48000 lowy: -4000 highy: 1000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[06201,00/0400]: [4000,-2500,-4000,-2500,-4000,2500]
+ART_color[01,00/0400]: 10
+**node: 10
+type: artwork:Circle
+lowx: 37000 highx: 43000 lowy: 1000 highy: 7000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 11
+type: generic:Invisible-Pin
+lowx: 38000 highx: 38000 lowy: 12000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/0400]: ["+"]
+**porttype: 0
+subnode: 8
+subport: center
+name: y
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 7
+subport: center
+name: x
+descript: 0/256
+userbits: -1610520576
+**porttype: 2
+subnode: 1
+subport: center
+name: a
+descript: 0/256
+userbits: -1610520576
+**porttype: 3
+subnode: 0
+subport: center
+name: b
+descript: 0/256
+userbits: -1610520576
+celldone: VCVS
+***cell: 6
+name: AnalysisDC{ic}
+version: 2
+creationdate: 1006816118
+revisiondate: 1014405827
+lowx: 6000 highx: 18000 lowy: -6000 highy: 6000
+aadirty: 6638
+userbits: 262146
+nodes: 2 arcs: 0 porttypes: 0
+variables: 2
+ATTR_Parameters[0104,0245004/0400]: "null"
+ATTR_SPICE_template[0104,0100202040/0200]: ".DC $(Parameters)"
+**node: 0
+type: generic:Invisible-Pin
+lowx: 12000 highx: 12000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/01000]: ["DC"]
+**node: 1
+type: artwork:Circle
+lowx: 6000 highx: 18000 lowy: -6000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+celldone: AnalysisDC
+***cell: 7
+name: VPWL{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014646523
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+aadirty: 6638
+userbits: 262146
+nodes: 8 arcs: 0 porttypes: 2
+variables: 6
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_SPICE_template[0104,0400342040/0200]: "V$(node_name) $(plus) $(minus) pwl ($(pwl)) DC $(VDC) AC $(ACM) $(ACP)"
+ATTR_ACP[0101,020040465044/0200]: 0
+ATTR_VDC[0104,020100465044/0200]: "0V"
+ATTR_ACM[0104,0465044/0200]: "0V"
+ATTR_pwl[0104,040465044/0200]: "0 0 1 1"
+**node: 0
+type: artwork:Opened-Polygon
+lowx: 22000 highx: 34000 lowy: -2000 highy: 2000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[014201,00/0400]: [-6000,-2000,-4000,-2000,-2000,2000,2000,2000,2000,0,6000,0]
+ART_color[01,00/0400]: 10
+**node: 1
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 2
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 3
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 4
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 5
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 6
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 7
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: -4000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**porttype: 0
+subnode: 3
+subport: center
+name: minus
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 4
+subport: center
+name: plus
+descript: 0/256
+userbits: -1610520576
+celldone: VPWL
+***cell: 8
+name: VSFFM{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014655513
+lowx: 20000 highx: 36000 lowy: -9000 highy: 9000
+aadirty: 6638
+userbits: 262146
+nodes: 10 arcs: 0 porttypes: 2
+variables: 10
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_MDI[0101,020040465044/0200]: 0
+ATTR_SPICE_template[0104,0300342040/0200]: "V$(node_name) $(plus) $(minus) SFFM ($(VO) $(VA) $(FC) $(MDI) $(FS)) DC $(VDC) AC $(ACM) $(ACP)"
+ATTR_FC[0104,0465044/0200]: "1Hz"
+ATTR_FS[0104,020100465044/0200]: "1Hz"
+ATTR_VO[0104,0100465044/0200]: "0V"
+ATTR_ACP[0101,020100465044/0200]: 0
+ATTR_VA[0104,040465044/0200]: "1V"
+ATTR_VDC[0104,0100465004/0200]: "1V"
+ATTR_ACM[0104,0465044/0200]: "0V"
+**node: 0
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: -4000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 1
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 2
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 3
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 3072
+**node: 4
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+**node: 5
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 6
+type: generic:Invisible-Pin
+lowx: 27000 highx: 29000 lowy: 7000 highy: 9000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 7
+type: generic:Invisible-Pin
+lowx: 27000 highx: 29000 lowy: -9000 highy: -7000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 8
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 9
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/0400]: ["FM"]
+**porttype: 0
+subnode: 6
+subport: center
+name: plus
+descript: 0/512
+userbits: 92160
+**porttype: 1
+subnode: 7
+subport: center
+name: minus
+descript: 0/512
+userbits: 92160
+celldone: VSFFM
+***cell: 9
+name: IDC{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014639762
+lowx: 20000 highx: 36000 lowy: -9000 highy: 9000
+aadirty: 6638
+userbits: 262146
+nodes: 8 arcs: 0 porttypes: 2
+variables: 5
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_SPICE_template[0104,0300342040/0200]: "I$(node_name) $(plus) $(minus) DC $(IDC) AC $(ACM) $(ACP)"
+ATTR_ACP[0101,020100465044/0200]: 0
+ATTR_ACM[0104,0465044/0200]: "0A"
+ATTR_IDC[0104,0100465004/0200]: "1mA"
+**node: 0
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 3072
+**node: 1
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+**node: 2
+type: artwork:Arrow
+lowx: 26000 highx: 30000 lowy: -6000 highy: -2000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 3
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 4
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,6000,0,-6000]
+ART_color[01,00/0400]: 10
+**node: 5
+type: generic:Invisible-Pin
+lowx: 27000 highx: 29000 lowy: 7000 highy: 9000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 6
+type: generic:Invisible-Pin
+lowx: 27000 highx: 29000 lowy: -9000 highy: -7000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 7
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**porttype: 0
+subnode: 5
+subport: center
+name: plus
+descript: 0/512
+userbits: 92160
+**porttype: 1
+subnode: 6
+subport: center
+name: minus
+descript: 0/512
+userbits: 92160
+celldone: IDC
+***cell: 10
+name: Switch_V{ic}
+version: 1
+creationdate: 1017841196
+revisiondate: 1017843960
+lowx: -4000 highx: 16000 lowy: -4000 highy: 6000
+aadirty: 6638
+userbits: 131074
+nodes: 10 arcs: 0 porttypes: 4
+variables: 3
+prototype_center[02201,00/0400]: [-4000,0]
+ATTR_SPICE_template[0104,0300002040/00]: "S$(node_name) $(A) $(B) $(X) $(Y) $(Model)"
+ATTR_Model[0104,0200045020/0200]: "null"
+**node: 0
+type: generic:Invisible-Pin
+lowx: -4000 highx: -4000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 1
+type: generic:Invisible-Pin
+lowx: 16000 highx: 16000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 3
+**node: 2
+type: artwork:Opened-Polygon
+lowx: -4000 highx: 12000 lowy: 0 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[06201,00/0400]: [-8000,-2000,-4000,-2000,8000,2000]
+ART_color[01,00/0400]: 10
+**node: 3
+type: artwork:Opened-Polygon
+lowx: 12000 highx: 16000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-2000,0,2000,0]
+ART_color[01,00/0400]: 10
+**node: 4
+type: artwork:Opened-Polygon
+lowx: 0 highx: 0 lowy: -4000 highy: -2000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 5
+type: artwork:Opened-Polygon
+lowx: 12000 highx: 12000 lowy: -4000 highy: -2000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 6
+type: generic:Invisible-Pin
+lowx: 0 highx: 0 lowy: -4000 highy: -4000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 7
+type: generic:Invisible-Pin
+lowx: 12000 highx: 12000 lowy: -4000 highy: -4000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 2
+**node: 8
+type: generic:Facet-Center
+lowx: -4000 highx: -4000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 9
+type: artwork:Box
+lowx: -2000 highx: 14000 lowy: -2000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**porttype: 0
+subnode: 0
+subport: center
+name: A
+descript: 0/512
+userbits: 92160
+**porttype: 1
+subnode: 6
+subport: center
+name: X
+descript: 0/512
+userbits: 92160
+**porttype: 2
+subnode: 7
+subport: center
+name: Y
+descript: 0/512
+userbits: 92160
+**porttype: 3
+subnode: 1
+subport: center
+name: B
+descript: 0/512
+userbits: 92160
+celldone: Switch_V
+***cell: 11
+name: VSIN{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014646646
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+aadirty: 6638
+userbits: 262146
+nodes: 8 arcs: 0 porttypes: 2
+variables: 10
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_Theta[0104,020040465044/0200]: "0"
+ATTR_TD[0104,0465044/0200]: "0ns"
+ATTR_SPICE_template[0104,0500342040/0200]: "V$(node_name) $(plus) $(minus) sin ($(VO) $(VA) $(Freq) $(TD) $(Theta)) DC $(VDC) AC $(ACM) $(ACP)"
+ATTR_VO[0101,0140465044/0200]: 0
+ATTR_ACP[0101,020240465044/0200]: 0
+ATTR_VA[0104,0100465044/0200]: "1V"
+ATTR_VDC[0104,020300465044/0200]: "0V"
+ATTR_ACM[0104,020200465044/0200]: "0V"
+ATTR_Freq[0104,040465044/0200]: "1Hz"
+**node: 0
+type: artwork:Spline
+lowx: 20000 highx: 36000 lowy: -4000 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[012201,00/0400]: [-8000,0,-4000,4000,0,0,4000,-4000,8000,0]
+ART_color[01,00/0400]: 10
+**node: 1
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 2
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 3
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 4
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 5
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 6
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 7
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: -4000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**porttype: 0
+subnode: 3
+subport: center
+name: minus
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 2
+subport: center
+name: plus
+descript: 0/256
+userbits: -1610520576
+celldone: VSIN
+***cell: 12
+name: RC_Line{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1017419971
+lowx: 12000 highx: 36000 lowy: 0 highy: 14000
+aadirty: 6638
+userbits: 262146
+nodes: 9 arcs: 1 porttypes: 3
+variables: 2
+ATTR_SPICE_template[0104,0500342040/0200]: "U$(node_name) $(a) $(b) $(c) $(Model)"
+ATTR_Model[0104,0300305020/0200]: ""
+**node: 0
+type: generic:Invisible-Pin
+lowx: 36000 highx: 36000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 2
+**node: 1
+type: generic:Invisible-Pin
+lowx: 12000 highx: 12000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 2
+type: generic:Invisible-Pin
+lowx: 24000 highx: 24000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 3
+type: artwork:Pin
+lowx: 14000 highx: 18000 lowy: 10000 highy: 14000
+rotation: 0 transpose: 0
+userbits: 3080
+*port: site
+arc: 0
+arc: 0
+**node: 4
+type: artwork:Box
+lowx: 16000 highx: 32000 lowy: 6000 highy: 10000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 5
+type: artwork:Opened-Polygon
+lowx: 12000 highx: 16000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [2000,0,-2000,0]
+ART_color[01,00/0400]: 10
+**node: 6
+type: artwork:Opened-Polygon
+lowx: 32000 highx: 36000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [2000,0,-2000,0]
+ART_color[01,00/0400]: 10
+**node: 7
+type: artwork:Opened-Polygon
+lowx: 16000 highx: 32000 lowy: 4000 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-8000,0,8000,0]
+ART_color[01,00/0400]: 10
+**node: 8
+type: artwork:Opened-Polygon
+lowx: 24000 highx: 24000 lowy: 0 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,2000,0,-2000]
+ART_color[01,00/0400]: 10
+**porttype: 0
+subnode: 2
+subport: center
+name: c
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 1
+subport: center
+name: a
+descript: 0/256
+userbits: -1610520576
+**porttype: 2
+subnode: 0
+subport: center
+name: b
+descript: 0/256
+userbits: -1610520576
+**arc: 0
+type: artwork:Solid
+width: 0 length: 0
+userbits: 805315008
+*end: 0
+node: 3
+nodeport: site
+xpos: 16000 ypos: 12000
+*end: 1
+node: 3
+nodeport: site
+xpos: 16000 ypos: 12000
+celldone: RC_Line
+***cell: 13
+name: VPulse{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014646216
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+aadirty: 6638
+userbits: 262146
+nodes: 8 arcs: 0 porttypes: 2
+variables: 12
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_TD[0104,040465044/0200]: "0ns"
+ATTR_PW[0104,020100465044/0200]: "3ns"
+ATTR_SPICE_template[0104,0500342040/0200]: "V$(node_name) $(plus) $(minus) pulse ($(V1) $(V2) $(TD) $(TR) $(TF) $(PW) $(Per)) DC $(VDC) AC $(ACM) $(ACP)"
+ATTR_TF[0104,020040465044/0200]: "200ps"
+ATTR_ACP[0101,020240465044/0200]: 0
+ATTR_VDC[0104,020300465044/0200]: "0V"
+ATTR_Per[0104,020140465044/0200]: "6ns"
+ATTR_V2[0104,0100465044/0200]: "1V"
+ATTR_TR[0104,0465044/0200]: "200ps"
+ATTR_V1[0101,0140465044/0200]: 0
+ATTR_ACM[0104,020200465044/0200]: "0V"
+**node: 0
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 1
+type: artwork:Opened-Polygon
+lowx: 22000 highx: 34000 lowy: -2000 highy: 2000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[014201,00/0400]: [-6000,-2000,-2000,-2000,-2000,2000,2000,2000,2000,-2000,6000,-2000]
+ART_color[01,00/0400]: 10
+**node: 2
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 3
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 1024
+*port: center
+exported: 0
+**node: 4
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 5
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 6
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 7
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: -4000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**porttype: 0
+subnode: 3
+subport: center
+name: minus
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 4
+subport: center
+name: plus
+descript: 0/256
+userbits: -1610520576
+celldone: VPulse
+***cell: 14
+name: CCVS{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014650354
+lowx: 20000 highx: 36000 lowy: -4000 highy: 12000
+aadirty: 6638
+userbits: 262146
+nodes: 7 arcs: 0 porttypes: 2
+variables: 4
+prototype_center[02201,00/0400]: [28000,-4000]
+ATTR_SPICE_template[0104,0500342040/0200]: "H$(node_name) $(x) $(y) $(VSAMPLE) $(Resistance)"
+ATTR_Resistance[0101,0425024/0200]: 1000
+ATTR_VSAMPLE[0104,020040425024/0200]: "V1"
+**node: 0
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -4000 highy: -4000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 1
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 12000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 2
+type: artwork:Closed-Polygon
+lowx: 20000 highx: 36000 lowy: -4000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[010201,00/0400]: [0,8000,-8000,0,0,-8000,8000,0]
+ART_color[01,00/0400]: 10
+**node: 3
+type: artwork:Opened-Polygon
+lowx: 27000 highx: 29000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-1000,0,1000,0]
+ART_color[01,00/0400]: 10
+**node: 4
+type: artwork:Opened-Polygon
+lowx: 27000 highx: 29000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-1000,0,1000,0]
+ART_color[01,00/0400]: 10
+**node: 5
+type: artwork:Opened-Polygon
+lowx: 27000 highx: 29000 lowy: 8000 highy: 8000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-1000,0,1000,0]
+ART_color[01,00/0400]: 10
+**node: 6
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -4000 highy: -4000
+rotation: 0 transpose: 0
+userbits: 8424448
+**porttype: 0
+subnode: 0
+subport: center
+name: y
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 1
+subport: center
+name: x
+descript: 0/256
+userbits: -1610520576
+celldone: CCVS
+***cell: 15
+name: IEXP{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014646051
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+aadirty: 6638
+userbits: 262146
+nodes: 7 arcs: 0 porttypes: 2
+variables: 11
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_I1[0101,0140465024/0200]: 0
+ATTR_SPICE_template[0104,0400402040/0200]: "I$(node_name) $(plus) $(minus) exp ($(I1) $(I2) $(TD1) $(Tau1) $(TD2) $(Tau2)) DC $(IDC) AC $(ACM) $(ACP)"
+ATTR_I2[0104,0100465024/0200]: "1A"
+ATTR_ACP[0101,020200465024/0200]: 0
+ATTR_Tau2[0104,020100465024/0200]: "200ps"
+ATTR_Tau1[0104,0465024/0200]: "200ps"
+ATTR_TD2[0104,020040465024/0200]: "0ns"
+ATTR_TD1[0104,040465024/0200]: "0ns"
+ATTR_ACM[0104,020140465024/0200]: "0A"
+ATTR_IDC[0104,020240465024/0200]: "0A"
+**node: 0
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 1
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 2
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 3
+type: artwork:Spline
+lowx: 22000 highx: 34000 lowy: 0 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[020201,00/0400]: [-6000,-2000,-2000,-2000,-2000,-2000,-2000,2000,2000,2000,2000,2000,2000,-2000,6000,-2000]
+ART_color[01,00/0400]: 10
+**node: 4
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 5
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,6000,0,-6000]
+ART_color[01,00/0400]: 10
+**node: 6
+type: artwork:Arrow
+lowx: 26000 highx: 30000 lowy: -6000 highy: -2000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**porttype: 0
+subnode: 0
+subport: center
+name: minus
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 1
+subport: center
+name: plus
+descript: 0/256
+userbits: -1610520576
+celldone: IEXP
+***cell: 16
+name: IPWL{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014640325
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+aadirty: 6638
+userbits: 262146
+nodes: 7 arcs: 0 porttypes: 2
+variables: 6
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_SPICE_template[0104,0400342040/0200]: "I$(node_name) $(plus) $(minus) pwl ($(pwl)) DC $(IDC) AC $(ACM) $(ACP)"
+ATTR_ACP[0101,020040465044/0200]: 0
+ATTR_ACM[0104,0465044/0200]: "0A"
+ATTR_IDC[0104,020100465044/0200]: "0A"
+ATTR_pwl[0104,040465044/0200]: "0 0 1 1"
+**node: 0
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 1
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 2
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 3
+type: artwork:Arrow
+lowx: 26000 highx: 30000 lowy: -6000 highy: -2000
+rotation: 0 transpose: 1
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 4
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,6000,0,-6000]
+ART_color[01,00/0400]: 10
+**node: 5
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 6
+type: artwork:Opened-Polygon
+lowx: 22000 highx: 34000 lowy: 0 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[014201,00/0400]: [-6000,-2000,-4000,-2000,-2000,2000,2000,2000,2000,0,6000,0]
+ART_color[01,00/0400]: 10
+**porttype: 0
+subnode: 2
+subport: center
+name: minus
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 1
+subport: center
+name: plus
+descript: 0/256
+userbits: -1610520576
+celldone: IPWL
+***cell: 17
+name: ISIN{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014644310
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+aadirty: 6638
+userbits: 262146
+nodes: 7 arcs: 0 porttypes: 2
+variables: 10
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_Theta[0104,020040465044/0200]: "0"
+ATTR_TD[0104,0465044/0200]: "0ns"
+ATTR_IO[0101,0140465044/0200]: 0
+ATTR_SPICE_template[0104,0500342040/0200]: "I$(node_name) $(plus) $(minus) sin ($(IO) $(IA) $(Freq) $(TD) $(Theta)) DC $(IDC) AC $(ACM) $(ACP)"
+ATTR_ACP[0101,020240465044/0200]: 0
+ATTR_ACM[0104,020200465044/0200]: "0A"
+ATTR_IDC[0104,020300465044/0200]: "0A"
+ATTR_IA[0104,0100465044/0200]: "1mA"
+ATTR_Freq[0104,040465044/0200]: "1Hz"
+**node: 0
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 1
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,6000,0,-6000]
+ART_color[01,00/0400]: 10
+**node: 2
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 3
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 4
+type: artwork:Arrow
+lowx: 26000 highx: 30000 lowy: -6000 highy: -2000
+rotation: 0 transpose: 1
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 5
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 6
+type: artwork:Spline
+lowx: 20000 highx: 36000 lowy: -4000 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[012201,00/0400]: [-8000,0,-4000,4000,0,0,4000,-4000,8000,0]
+ART_color[01,00/0400]: 10
+**porttype: 0
+subnode: 2
+subport: center
+name: minus
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 3
+subport: center
+name: plus
+descript: 0/256
+userbits: -1610520576
+celldone: ISIN
+***cell: 18
+name: I_Generic{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014639762
+lowx: 20000 highx: 36000 lowy: -9000 highy: 9000
+aadirty: 6638
+userbits: 262146
+nodes: 8 arcs: 0 porttypes: 2
+variables: 3
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_Current[0104,0100465004/0200]: "DC 0 AC 0"
+ATTR_SPICE_template[0104,0300342040/0200]: "I$(node_name) $(plus) $(minus) $(Current)"
+**node: 0
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 1
+type: generic:Invisible-Pin
+lowx: 27000 highx: 29000 lowy: -9000 highy: -7000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 2
+type: generic:Invisible-Pin
+lowx: 27000 highx: 29000 lowy: 7000 highy: 9000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 3
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,6000,0,-6000]
+ART_color[01,00/0400]: 10
+**node: 4
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 5
+type: artwork:Arrow
+lowx: 26000 highx: 30000 lowy: -6000 highy: -2000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 6
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+**node: 7
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 3072
+**porttype: 0
+subnode: 2
+subport: center
+name: plus
+descript: 0/512
+userbits: 92160
+**porttype: 1
+subnode: 1
+subport: center
+name: minus
+descript: 0/512
+userbits: 92160
+celldone: I_Generic
+***cell: 19
+name: NonLinSource{ic}
+version: 1
+creationdate: 1014651311
+revisiondate: 1014652539
+lowx: -44000 highx: -28000 lowy: 15000 highy: 33000
+aadirty: 6638
+userbits: 262146
+nodes: 4 arcs: 0 porttypes: 2
+variables: 3
+prototype_center[02201,00/0400]: [-36000,16000]
+ATTR_SPICE_template[04,01110460040/0400]: "B$(node_name) $(A) $(B) $(Expression)"
+ATTR_Expression[0104,0710325004/0200]: "V=0"
+**node: 0
+type: artwork:Circle
+lowx: -44000 highx: -28000 lowy: 16000 highy: 32000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 1
+type: generic:Invisible-Pin
+lowx: -37000 highx: -35000 lowy: 31000 highy: 33000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 2
+type: generic:Invisible-Pin
+lowx: -37000 highx: -35000 lowy: 15000 highy: 17000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 3
+type: generic:Facet-Center
+lowx: -36000 highx: -36000 lowy: 16000 highy: 16000
+rotation: 0 transpose: 0
+userbits: 8424448
+**porttype: 0
+subnode: 1
+subport: center
+name: A
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 2
+subport: center
+name: B
+descript: 0/256
+userbits: -1610520576
+celldone: NonLinSource
+***cell: 20
+name: ISFFM{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014654154
+lowx: 20000 highx: 36000 lowy: -9000 highy: 9000
+aadirty: 6638
+userbits: 262146
+nodes: 8 arcs: 0 porttypes: 2
+variables: 10
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_MDI[0101,020040465044/0200]: 0
+ATTR_IO[0104,0100465044/0200]: "0A"
+ATTR_SPICE_template[0104,0300342040/0200]: "I$(node_name) $(plus) $(minus) SFFM ($(IO) $(IA) $(FC) $(MDI) $(FS)) DC $(IDC) AC $(ACM) $(ACP)"
+ATTR_FC[0104,0465044/0200]: "1Hz"
+ATTR_FS[0104,020100465044/0200]: "1Hz"
+ATTR_ACP[0101,020100465044/0200]: 0
+ATTR_ACM[0104,0465044/0200]: "0A"
+ATTR_IDC[0104,0100465024/0200]: "0A"
+ATTR_IA[0104,040465044/0200]: "1A"
+**node: 0
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 1
+type: generic:Invisible-Pin
+lowx: 27000 highx: 29000 lowy: -9000 highy: -7000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 2
+type: generic:Invisible-Pin
+lowx: 27000 highx: 29000 lowy: 7000 highy: 9000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 3
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 4
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+**node: 5
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 3072
+**node: 6
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,6000,0,-6000]
+ART_color[01,00/0400]: 10
+**node: 7
+type: artwork:Arrow
+lowx: 26000 highx: 30000 lowy: -6000 highy: -2000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**porttype: 0
+subnode: 2
+subport: center
+name: plus
+descript: 0/512
+userbits: 92160
+**porttype: 1
+subnode: 1
+subport: center
+name: minus
+descript: 0/512
+userbits: 92160
+celldone: ISFFM
+***cell: 21
+name: TransmissionL{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1017830555
+lowx: 12000 highx: 48000 lowy: 0 highy: 12000
+aadirty: 6638
+userbits: 262146
+nodes: 16 arcs: 0 porttypes: 4
+variables: 2
+ATTR_SPICE_template[0104,0500342040/0200]: "O$(node_name) $(a) $(b) $(x) $(y) $(Model)"
+ATTR_Model[0104,0100405020/0200]: ""
+**node: 0
+type: generic:Invisible-Pin
+lowx: 32000 highx: 32000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/0200]: ["Lossy"]
+**node: 1
+type: generic:Invisible-Pin
+lowx: 32000 highx: 32000 lowy: 6000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/0200]: ["Transmission Line"]
+**node: 2
+type: artwork:Opened-Polygon
+lowx: 16000 highx: 44000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-14000,0,14000,0]
+ART_color[01,00/0400]: 10
+**node: 3
+type: artwork:Opened-Polygon
+lowx: 16000 highx: 44000 lowy: 12000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-14000,0,14000,0]
+ART_color[01,00/0400]: 10
+**node: 4
+type: artwork:Circle
+lowx: 38000 highx: 50000 lowy: 4000 highy: 8000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+ART_degrees[01,00/0400]: 1800
+ART_color[01,00/0400]: 10
+**node: 5
+type: artwork:Circle
+lowx: 14000 highx: 18000 lowy: 0 highy: 12000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 6
+type: generic:Invisible-Pin
+lowx: 44000 highx: 44000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/0400]: ["+"]
+**node: 7
+type: generic:Invisible-Pin
+lowx: 20000 highx: 20000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/0400]: ["+"]
+**node: 8
+type: artwork:Opened-Polygon
+lowx: 46000 highx: 48000 lowy: 4000 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-1000,0,1000,0]
+ART_color[01,00/0400]: 10
+**node: 9
+type: artwork:Opened-Polygon
+lowx: 46000 highx: 48000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-1000,0,1000,0]
+ART_color[01,00/0400]: 10
+**node: 10
+type: generic:Invisible-Pin
+lowx: 12000 highx: 12000 lowy: 4000 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 3
+**node: 11
+type: generic:Invisible-Pin
+lowx: 12000 highx: 12000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 2
+**node: 12
+type: artwork:Opened-Polygon
+lowx: 12000 highx: 17000 lowy: 4000 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-2500,0,2500,0]
+ART_color[01,00/0400]: 10
+**node: 13
+type: artwork:Opened-Polygon
+lowx: 12000 highx: 17000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-2500,0,2500,0]
+ART_color[01,00/0400]: 10
+**node: 14
+type: generic:Invisible-Pin
+lowx: 48000 highx: 48000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 15
+type: generic:Invisible-Pin
+lowx: 48000 highx: 48000 lowy: 4000 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**porttype: 0
+subnode: 15
+subport: center
+name: y
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 14
+subport: center
+name: x
+descript: 0/256
+userbits: -1610520576
+**porttype: 2
+subnode: 11
+subport: center
+name: a
+descript: 0/256
+userbits: -1610520576
+**porttype: 3
+subnode: 10
+subport: center
+name: b
+descript: 0/256
+userbits: -1610520576
+celldone: TransmissionL
+***cell: 22
+name: IPulse{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014639865
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+aadirty: 6638
+userbits: 262146
+nodes: 7 arcs: 0 porttypes: 2
+variables: 12
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_TD[0104,040465044/0200]: "0ns"
+ATTR_I1[0101,0140465044/0200]: 0
+ATTR_PW[0104,020100465044/0200]: "3ns"
+ATTR_SPICE_template[0104,0500342040/0200]: "I$(node_name) $(plus) $(minus) pulse ($(I1) $(I2) $(TD) $(TR) $(TF) $(PW) $(Per)) DC $(IDC) AC $(ACM) $(ACP)"
+ATTR_I2[0104,0100465044/0200]: "1mA"
+ATTR_TF[0104,020040465044/0200]: "200ps"
+ATTR_ACP[0101,020240465044/0200]: 0
+ATTR_Per[0104,020140465044/0200]: "6ns"
+ATTR_TR[0104,0465044/0200]: "200ps"
+ATTR_ACM[0104,020200465044/0200]: "0A"
+ATTR_IDC[0104,020300465044/0200]: "0A"
+**node: 0
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 1
+type: artwork:Arrow
+lowx: 26000 highx: 30000 lowy: -6000 highy: -2000
+rotation: 0 transpose: 1
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 2
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 3
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 4
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,6000,0,-6000]
+ART_color[01,00/0400]: 10
+**node: 5
+type: artwork:Opened-Polygon
+lowx: 22000 highx: 34000 lowy: 0 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[014201,00/0400]: [-6000,-2000,-2000,-2000,-2000,2000,2000,2000,2000,-2000,6000,-2000]
+ART_color[01,00/0400]: 10
+**node: 6
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**porttype: 0
+subnode: 3
+subport: center
+name: minus
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 2
+subport: center
+name: plus
+descript: 0/256
+userbits: -1610520576
+celldone: IPulse
+***cell: 23
+name: AnalysisTransient{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014405827
+lowx: 6000 highx: 18000 lowy: -6000 highy: 6000
+aadirty: 6638
+userbits: 262146
+nodes: 2 arcs: 0 porttypes: 0
+variables: 2
+ATTR_Parameters[0104,0245004/0400]: "null"
+ATTR_SPICE_template[0104,0100202040/0200]: ".TRAN $(Parameters)"
+**node: 0
+type: generic:Invisible-Pin
+lowx: 12000 highx: 12000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_message[01304,00/0400]: ["Tran"]
+**node: 1
+type: artwork:Circle
+lowx: 6000 highx: 18000 lowy: -6000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+celldone: AnalysisTransient
+***cell: 24
+name: Switch_I{ic}
+version: 1
+creationdate: 1017841196
+revisiondate: 1017844491
+lowx: -4000 highx: 16000 lowy: -2000 highy: 6000
+aadirty: 6638
+userbits: 131074
+nodes: 6 arcs: 0 porttypes: 2
+variables: 4
+prototype_center[02201,00/0400]: [-4000,0]
+ATTR_SPICE_template[0104,0300002040/00]: "W$(node_name) $(A) $(B) $(VNAM) $(Model)"
+ATTR_VNAM[0104,0240045020/0200]: "null"
+ATTR_Model[0104,0200045020/0200]: "null"
+**node: 0
+type: artwork:Box
+lowx: -2000 highx: 14000 lowy: -2000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 1
+type: generic:Facet-Center
+lowx: -4000 highx: -4000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 2
+type: artwork:Opened-Polygon
+lowx: 12000 highx: 16000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [-2000,0,2000,0]
+ART_color[01,00/0400]: 10
+**node: 3
+type: artwork:Opened-Polygon
+lowx: -4000 highx: 12000 lowy: 0 highy: 4000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[06201,00/0400]: [-8000,-2000,-4000,-2000,8000,2000]
+ART_color[01,00/0400]: 10
+**node: 4
+type: generic:Invisible-Pin
+lowx: 16000 highx: 16000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 5
+type: generic:Invisible-Pin
+lowx: -4000 highx: -4000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**porttype: 0
+subnode: 5
+subport: center
+name: A
+descript: 0/512
+userbits: 92160
+**porttype: 1
+subnode: 4
+subport: center
+name: B
+descript: 0/512
+userbits: 92160
+celldone: Switch_I
+***cell: 25
+name: VEXP{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014645866
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+aadirty: 6638
+userbits: 262146
+nodes: 8 arcs: 0 porttypes: 2
+variables: 11
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_SPICE_template[0104,0400402040/0200]: "V$(node_name) $(plus) $(minus) exp ($(V1) $(V2) $(TD1) $(Tau1) $(TD2) $(Tau2)) DC $(VDC) AC $(ACM) $(ACP)"
+ATTR_ACP[0101,020200465024/0200]: 0
+ATTR_Tau2[0104,020100465024/0200]: "200ps"
+ATTR_Tau1[0104,0465024/0200]: "200ps"
+ATTR_VDC[0104,020240465024/0200]: "0V"
+ATTR_TD2[0104,020040465024/0200]: "0ns"
+ATTR_V2[0104,0100465024/0200]: "1V"
+ATTR_TD1[0104,040465024/0200]: "0ns"
+ATTR_V1[0101,0140465024/0200]: 0
+ATTR_ACM[0104,020140465024/0200]: "0V"
+**node: 0
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: -4000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 1
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 2
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 3
+type: artwork:Spline
+lowx: 22000 highx: 34000 lowy: -2000 highy: 2000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[020201,00/0400]: [-6000,-2000,-2000,-2000,-2000,-2000,-2000,2000,2000,2000,2000,2000,2000,-2000,6000,-2000]
+ART_color[01,00/0400]: 10
+**node: 4
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 5
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 6
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 7
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**porttype: 0
+subnode: 7
+subport: center
+name: minus
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 6
+subport: center
+name: plus
+descript: 0/256
+userbits: -1610520576
+celldone: VEXP
+***cell: 26
+name: CCCS{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014650095
+lowx: 20000 highx: 36000 lowy: 0 highy: 16000
+aadirty: 6638
+userbits: 262146
+nodes: 6 arcs: 0 porttypes: 2
+variables: 4
+prototype_center[02201,00/0400]: [28000,0]
+ATTR_Gain[0101,040425024/0200]: 1
+ATTR_SPICE_template[0104,0500342040/0200]: "F$(node_name) $(x) $(y) $(VSAMPLE) $(Gain)"
+ATTR_VSAMPLE[0104,0100425024/0200]: "V1"
+**node: 0
+type: artwork:Arrow
+lowx: 26000 highx: 30000 lowy: 2000 highy: 6000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 1
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 16000 highy: 16000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 2
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 3
+type: artwork:Closed-Polygon
+lowx: 20000 highx: 36000 lowy: 0 highy: 16000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[010201,00/0400]: [0,8000,-8000,0,0,-8000,8000,0]
+ART_color[01,00/0400]: 10
+**node: 4
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 2000 highy: 14000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,6000,0,-6000]
+ART_color[01,00/0400]: 10
+**node: 5
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 8424448
+**porttype: 0
+subnode: 2
+subport: center
+name: y
+descript: 0/256
+userbits: -1610520576
+**porttype: 1
+subnode: 1
+subport: center
+name: x
+descript: 0/256
+userbits: -1610520576
+celldone: CCCS
+***cell: 27
+name: VDC{ic}
+version: 1
+creationdate: 1006816118
+revisiondate: 1014646137
+lowx: 20000 highx: 36000 lowy: -9000 highy: 9000
+aadirty: 6638
+userbits: 262146
+nodes: 9 arcs: 0 porttypes: 2
+variables: 5
+prototype_center[02201,00/0400]: [28000,-8000]
+ATTR_SPICE_template[0104,0300342040/0200]: "V$(node_name) $(plus) $(minus) DC $(VDC) AC $(ACM) $(ACP)"
+ATTR_ACP[0101,020100465044/0200]: 0
+ATTR_VDC[0104,0100465004/0200]: "1V"
+ATTR_ACM[0104,0465044/0200]: "0V"
+**node: 0
+type: generic:Facet-Center
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 8424448
+**node: 1
+type: generic:Invisible-Pin
+lowx: 27000 highx: 29000 lowy: -9000 highy: -7000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 1
+**node: 2
+type: generic:Invisible-Pin
+lowx: 27000 highx: 29000 lowy: 7000 highy: 9000
+rotation: 0 transpose: 0
+userbits: 3072
+*port: center
+exported: 0
+**node: 3
+type: artwork:Circle
+lowx: 20000 highx: 36000 lowy: -8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 1
+ART_color[01,00/0400]: 10
+**node: 4
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: 8000 highy: 8000
+rotation: 0 transpose: 0
+userbits: 3072
+**node: 5
+type: generic:Invisible-Pin
+lowx: 28000 highx: 28000 lowy: -8000 highy: -8000
+rotation: 0 transpose: 0
+userbits: 3072
+**node: 6
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 7
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: 4000 highy: 6000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**node: 8
+type: artwork:Opened-Polygon
+lowx: 28000 highx: 28000 lowy: -6000 highy: -4000
+rotation: 2700 transpose: 0
+userbits: 3072
+variables: 2
+trace[04201,00/0400]: [0,1000,0,-1000]
+ART_color[01,00/0400]: 10
+**porttype: 0
+subnode: 2
+subport: center
+name: plus
+descript: 0/512
+userbits: 92160
+**porttype: 1
+subnode: 1
+subport: center
+name: minus
+descript: 0/512
+userbits: 92160
+celldone: VDC

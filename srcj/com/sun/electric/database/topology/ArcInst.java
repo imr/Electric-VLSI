@@ -733,6 +733,7 @@ public class ArcInst extends Geometric /*implements Networkable*/
 		loc = tail.getLocation();
 		System.out.println(" Tail on " + tail.getPortInst().getNodeInst().describe() +
 			" at (" + loc.getX() + "," + loc.getY() + ")");
+		System.out.println(" Center: (" + cX + "," + cY + "), width: " + getXSize() + ", length:" + getYSize() + ", angle " + angle/10.0);
 		super.getInfo();
 	}
 

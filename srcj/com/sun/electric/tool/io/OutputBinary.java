@@ -506,6 +506,7 @@ public class OutputBinary extends Output
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
+System.out.println("Writing "+cell.getProtoName()+" which has "+cell.getNumArcs()+" arcs and "+cell.getNumNodes()+" nodes");
 			for(Iterator ait = cell.getArcs(); ait.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)ait.next();
@@ -654,9 +655,20 @@ public class OutputBinary extends Output
 		writeBigInteger(highX);
 		writeBigInteger(highY);
 		int transpose = 0;
-		if (ni.isTransposed()) transpose = 1;
-		writeBigInteger(transpose);
 		int rotation = ni.getAngle();
+		if (ni.isXMirrored())
+		{
+			if (ni.isYMirrored()) rotation = (rotation + 1800) % 3600; else
+			{
+				rotation = (rotation + 900) % 3600;
+				transpose = 1 - transpose;
+			}
+		} else if (ni.isYMirrored())
+		{
+			rotation = (rotation + 2700) % 3600;
+			transpose = 1 - transpose;
+		}
+		writeBigInteger(transpose);
 		writeBigInteger(rotation);
 
 		TextDescriptor td = ni.getTextDescriptor();
@@ -796,6 +808,8 @@ public class OutputBinary extends Output
 
 			// create the "type" field
 			Object varObj = var.getObject();
+			boolean convertTrace = false;
+			if (varObj instanceof Object[] && vn.getName().equals("trace")) convertTrace = true;
 			int type = var.lowLevelGetFlags() & ~(BinaryConstants.VTYPE|BinaryConstants.VISARRAY|BinaryConstants.VLENGTH);
 			if (varObj instanceof Object[])
 			{
@@ -805,6 +819,7 @@ public class OutputBinary extends Output
 			{
 				type |= getVarType(varObj);
 			}
+			if (convertTrace) type = (type & ~BinaryConstants.VTYPE) | BinaryConstants.VINTEGER;
 			writeBigInteger(type);
 
 			// write the text descriptor
@@ -818,13 +833,13 @@ public class OutputBinary extends Output
 				writeBigInteger(len);
 
 				// special case for "trace" on a node: scale the values
-				if (vn.getName().equals("trace"))
+				if (convertTrace)
 				{
-					Integer [] outline = (Integer[])varObj;
+					Float [] outline = (Float [])varObj;
 					for(int i=0; i<len; i++)
 					{
-						int oneVal = outline[i].intValue();
-						writeBigInteger((int)(oneVal*scale));
+						int oneVal = (int)(outline[i].intValue() * scale);
+						writeBigInteger(oneVal);
 					}
 				} else
 				{

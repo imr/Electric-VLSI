@@ -49,9 +49,9 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.BinaryConstants;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.DialogOpenFile;
 import com.sun.electric.tool.user.ui.ProgressDialog;
+import com.sun.electric.lib.LibFile;
 
 import java.io.IOException;
 import java.io.File;
@@ -1021,55 +1021,24 @@ public class InputBinary extends Input
 		Technology cellTech = Technology.whatTechnology(cell, nodeTypeList, startNode, endNode, arcTypeList, startArc, endArc);
 		if (cellTech != null) lambda = techScale[cellTech.getIndex()];
 
-		// finish initializing the NodeInsts in the cell
+		// finish initializing the NodeInsts in the cell: start with the cell-center
 		int xoff = 0, yoff = 0;
 		for(int i=startNode; i<endNode; i++)
 		{
-			// convert to new style
-			NodeInst ni = nodeList[i];
-			NodeProto np = nodeTypeList[i];
-			if (np == Generic.tech.cellCenter_node)
+			if (nodeTypeList[i] == Generic.tech.cellCenter_node)
 			{
-				int lowX = nodeLowXList[i];
-				int lowY = nodeLowYList[i];
-				int highX = nodeHighXList[i];
-				int highY = nodeHighYList[i];
-				boolean transpose = nodeTransposeList[i];
-				int rotation = nodeRotationList[i];
-				xoff = (lowX + highX) / 2;
-				yoff = (lowY + highY) / 2;
-				Point2D.Double center = new Point2D.Double(xoff / lambda, yoff / lambda);
-				double width = (highX - lowX) / lambda;
-				double height = (highY - lowY) / lambda;
-				if (transpose) width = -width;
-				ni.lowLevelPopulate(np, center, width, height, highY, cell);
-				ni.lowLevelLink();
+				buildNodeInst(i, xoff, yoff, lambda, cell);
+				xoff = (nodeLowXList[i] + nodeHighXList[i]) / 2;
+				yoff = (nodeLowYList[i] + nodeHighYList[i]) / 2;
+				break;
 			}
 		}
 
 		// finish creating the rest of the NodeInsts
 		for(int i=startNode; i<endNode; i++)
 		{
-			// convert to new style
-			NodeInst ni = nodeList[i];
-			NodeProto np = nodeTypeList[i];
-			if (np == Generic.tech.cellCenter_node) continue;
-
-			double lowX = nodeLowXList[i]-xoff;
-			double lowY = nodeLowYList[i]-yoff;
-			double highX = nodeHighXList[i]-xoff;
-			double highY = nodeHighYList[i]-yoff;
-			boolean transpose = nodeTransposeList[i];
-			int rotation = nodeRotationList[i];
-			Point2D.Double center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
-			double width = (highX - lowX) / lambda;
-			double height = (highY - lowY) / lambda;
-			if (transpose) width = -width;
-			ni.lowLevelPopulate(np, center, width, height, rotation, cell);
-			ni.lowLevelLink();
-
-			// convert outline information, if present
-			scaleOutlineInformation(ni, np, lambda);
+			if (nodeTypeList[i] != Generic.tech.cellCenter_node)
+				buildNodeInst(i, xoff, yoff, lambda, cell);
 		}
 
 		// finish initializing the Exports in the cell
@@ -1138,6 +1107,34 @@ public class InputBinary extends Input
 			ai.lowLevelPopulate(ap, width, tailPortInst, tailX, tailY, headPortInst, headX, headY);
 			ai.lowLevelLink();
 		}
+	}
+
+	/**
+	 * Routine to build a NodeInst.
+	 */
+	private void buildNodeInst(int i, int xoff, int yoff, double lambda, Cell cell)
+	{
+		NodeInst ni = nodeList[i];
+		NodeProto np = nodeTypeList[i];
+		double lowX = nodeLowXList[i]-xoff;
+		double lowY = nodeLowYList[i]-yoff;
+		double highX = nodeHighXList[i]-xoff;
+		double highY = nodeHighYList[i]-yoff;
+		boolean transpose = nodeTransposeList[i];
+		int rotation = nodeRotationList[i];
+		Point2D.Double center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
+		double width = (highX - lowX) / lambda;
+		double height = (highY - lowY) / lambda;
+		if (transpose)
+		{
+			height = -height;
+			rotation = (rotation + 900) % 3600;
+		}
+		ni.lowLevelPopulate(np, center, width, height, rotation, cell);
+		ni.lowLevelLink();
+
+		// convert outline information, if present
+		scaleOutlineInformation(ni, np, lambda);
 	}
 
 	// --------------------------------- HIGH-LEVEL OBJECTS ---------------------------------
@@ -1436,10 +1433,7 @@ public class InputBinary extends Input
 				if (!testFile.exists())
 				{
 					// try the Electric library area
-					String libraryDirectory = TopLevel.getLibDir();
-					externalFile = libraryDirectory + File.separator + libFileName;
-					testFile = new File(externalFile);
-					if (!testFile.exists()) externalFile = null;
+					externalFile = LibFile.getLibFile(libFileName);
 				}
 			}
 			if (externalFile == null)

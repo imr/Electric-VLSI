@@ -802,34 +802,37 @@ public class Geometric extends ElectricObject
 	 */
 	public void getInfo()
 	{
-		System.out.println(" Parent cell: " + parent.describe());
-		System.out.println(" Center: (" + cX + "," + cY + "), size: " + sX + "x" + sY + ", rotated " + angle/10.0);
 		System.out.println(" Bounds: (" + visBounds.getCenterX() + "," + visBounds.getCenterY() + "), size: " +
 			visBounds.getWidth() + "x" + visBounds.getHeight());
+		System.out.println(" Parent cell: " + parent.describe());
         super.getInfo();
 	}
 
-	private AffineTransform rotateTranspose = null;
+	private AffineTransform rotateTranspose = new AffineTransform();
+	private AffineTransform mirrorX = new AffineTransform(-1, 0, 0, 1, 0, 0);
+	private AffineTransform mirrorY = new AffineTransform(1, 0, 0, -1, 0, 0);
 
 	/**
 	 * Routine to return a transformation that rotates an object about a point.
 	 * @param angle the amount to rotate (in tenth-degrees).
-	 * @param transpose true if a transposition will be done after rotation.
 	 * @param cX the center X coordinate about which to rotate.
 	 * @param cY the center Y coordinate about which to rotate.
+	 * @param sX the scale in X (negative to flip the X coordinate, or flip ABOUT the Y axis).
+	 * @param sY the scale in Y (negative to flip the Y coordinate, or flip ABOUT the X axis).
 	 * @return a transformation that rotates about that point.
 	 */
-	public AffineTransform rotateAbout(int angle, boolean transpose, double cX, double cY)
+	public AffineTransform rotateAbout(int angle, double cX, double cY, double sX, double sY)
 	{
 		AffineTransform transform = new AffineTransform();
-		if (transpose)
+		if (sX < 0 || sY < 0)
 		{
-			// must do transposition, so it is trickier
+			// must do mirroring, so it is trickier
 			double cosine = EMath.cos(angle);
 			double sine = EMath.sin(angle);
-			if (rotateTranspose == null) rotateTranspose = new AffineTransform();
-			rotateTranspose.setTransform(-sine, -cosine, -cosine, sine, 0.0, 0.0);
+			rotateTranspose.setToRotation(angle * Math.PI / 1800.0, 0, 0);
 			transform.setToTranslation(cX, cY);
+			if (sX < 0) transform.concatenate(mirrorX);
+			if (sY < 0) transform.concatenate(mirrorY);
 			transform.concatenate(rotateTranspose);
 			transform.translate(-cX, -cY);
 		} else
