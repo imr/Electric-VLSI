@@ -78,6 +78,7 @@ import com.apple.eawt.ApplicationEvent;
 public final class Main
 {
     private static boolean DEBUG;   // global debug flag
+    public static boolean LOCALDEBUGFLAG; // Gilda's case
     public static boolean NOTHREADING = false;             // to turn off Job threading
 	public static boolean BATCHMODE = false; // to run it in batch mode
 
@@ -146,6 +147,7 @@ public final class Main
 
 		// -debug for debugging
 		if (hasCommandLineOption(argsList, "-debug")) DEBUG = true;
+        if (hasCommandLineOption(argsList, "-gilda")) LOCALDEBUGFLAG = true;
         if (hasCommandLineOption(argsList, "-NOTHREADING")) NOTHREADING = true;
 		if (hasCommandLineOption(argsList, "-batch")) BATCHMODE = true;
 
