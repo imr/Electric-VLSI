@@ -119,7 +119,13 @@ public class TextUtils
                 if (defaultVal != null) return defaultVal.doubleValue();
                 return 0;
             }
-			v = Double.parseDouble(text.substring(start, end-start));
+			try
+			{
+				v = Double.parseDouble(text.substring(start, end-start));
+			} catch (NumberFormatException exs)
+			{
+				System.out.println("Aqui");
+			}
 		}
 		return v;
 	}

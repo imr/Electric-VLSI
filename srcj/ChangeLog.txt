@@ -6,6 +6,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.01ad: *********************************
 
+BUG: (10/25/04, GVG) JELIB$GroupsByName.compare, Cell$CellGroup.getName crashed if cell names don't have same length
+FIX: Fix put on Oct 22 was not good enough
+
+IMP: (10/25/04, GVG) Adding PP.A.A in TSMC90 (Area rule for P+ regions).
+
 BUG: (10/25/04, DN) Network tool didn't recompute icon after removal of export.
 FIX: "NetCell.exportsChanged" corrected.
 

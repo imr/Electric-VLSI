@@ -284,9 +284,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				for(Iterator it = groupNames.iterator(); it.hasNext(); )
 				{
 					String oneName = (String)it.next();
-					if (lastName != null)
+					if (lastName != null && oneName.length() > i && lastName.length() > i)
 					{
-						if (oneName.length() < i || !lastName.substring(0, i).equals(oneName.substring(0, i))) { allSame = false;   break; }
+						if (!lastName.substring(0, i).equals(oneName.substring(0, i))) { allSame = false;   break; }
 					}
 					lastName = oneName;
 				}

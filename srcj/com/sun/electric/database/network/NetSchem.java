@@ -40,7 +40,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.ActivityLogger;
 
 import java.util.Arrays;
 import java.util.List;

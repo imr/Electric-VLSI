@@ -29,7 +29,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.user.ExportChanges;
 
 import java.util.*;
 
