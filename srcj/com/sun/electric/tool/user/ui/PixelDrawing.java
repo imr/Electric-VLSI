@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -321,10 +321,10 @@ public class PixelDrawing
 		} else
 		{
 			// determine which cells should be cached (must have at least 2 instances)
-			countCell(cell, EMath.MATID);
+			countCell(cell, DBMath.MATID);
 
 			// now render it all
-			drawCell(cell, bounds, EMath.MATID, true);
+			drawCell(cell, bounds, DBMath.MATID, true);
 		}
 
 		// merge transparent image into opaque one
@@ -532,7 +532,7 @@ public class PixelDrawing
 			int numPolys = cell.numDisplayableVariables(true);
 			Poly [] polys = new Poly[numPolys];
 			cell.addDisplayableVariables(CENTERRECT, polys, 0, wnd, true);
-			drawPolys(polys, EMath.MATID);
+			drawPolys(polys, DBMath.MATID);
 		}
 	}
 
@@ -594,7 +594,7 @@ public class PixelDrawing
 					transRI.preConcatenate(transTI);
 					Rectangle2D subBounds = new Rectangle2D.Double();
 					subBounds.setRect(bounds);
-					EMath.transformRect(subBounds, transRI);
+					DBMath.transformRect(subBounds, transRI);
 					bounds = subBounds;
 				}
 			}

@@ -24,7 +24,7 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -156,7 +156,7 @@ public class CIF extends Geometry
 //			bytesread >>= 8;
 //		}
 //		crcChecksum = ~crcChecksum & 0xFFFFFFFF;
-//		System.out.println("MOSIS CRC: " + EMath.unsignedIntValue(crcChecksum) + " " + crcNumChars);
+//		System.out.println("MOSIS CRC: " + GenMath.unsignedIntValue(crcChecksum) + " " + crcNumChars);
 	}
 
 	/**
@@ -289,8 +289,8 @@ public class CIF extends Geometry
 
 		// write a call to the cell
 		int cellNum = ((Integer)cellNumbers.get(cell)).intValue();
-		int rotx = (int)(EMath.cos(ni.getAngle()) * 100);
-		int roty = (int)(EMath.sin(ni.getAngle()) * 100);
+		int rotx = (int)(DBMath.cos(ni.getAngle()) * 100);
+		int roty = (int)(DBMath.sin(ni.getAngle()) * 100);
 		String line = "C " + cellNum + " R " + rotx + " " + roty;
 		if (ni.isMirroredAboutXAxis()) line += " M Y";
 		if (ni.isMirroredAboutYAxis()) line += " M X";

@@ -23,7 +23,7 @@
  */
 package com.sun.electric.technology.technologies;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Library;
@@ -1708,8 +1708,8 @@ public class Schematics extends Technology
 		double tailX = tailLoc.getX();   double tailY = tailLoc.getY();
 		int angle = ai.getAngle();
 		double bubbleSize = getNegatingBubbleSize();
-		double cosDist = EMath.cos(angle) * bubbleSize;
-		double sinDist = EMath.sin(angle) * bubbleSize;
+		double cosDist = DBMath.cos(angle) * bubbleSize;
+		double sinDist = DBMath.sin(angle) * bubbleSize;
 		Point2D bubbleEdge;
 		if (ai.getHead().isNegated())
 		{
@@ -2160,7 +2160,7 @@ public class Schematics extends Technology
 		// look at all circuitry and see which technologies are in use
 		HashMap usedTechnologies = new HashMap();
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
-			usedTechnologies.put(it.next(), new EMath.MutableInteger(0));
+			usedTechnologies.put(it.next(), new DBMath.MutableInteger(0));
 		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
 		{
 			Library lib = (Library)lIt.next();
@@ -2170,7 +2170,7 @@ public class Schematics extends Technology
 				Cell cell = (Cell)cIt.next();
 				Technology tech = cell.getTechnology();
 				if (tech == null) continue;
-				EMath.MutableInteger mi = (EMath.MutableInteger)usedTechnologies.get(tech);
+				DBMath.MutableInteger mi = (DBMath.MutableInteger)usedTechnologies.get(tech);
 				mi.increment();
 			}
 		}
@@ -2179,7 +2179,7 @@ public class Schematics extends Technology
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			EMath.MutableInteger mi = (EMath.MutableInteger)usedTechnologies.get(tech);
+			DBMath.MutableInteger mi = (DBMath.MutableInteger)usedTechnologies.get(tech);
 			if (tech == Schematics.tech || tech == Generic.tech ||
 				tech.isNonElectrical() || tech.isNoPrimitiveNodes()) mi.setValue(-1);
 		}
@@ -2193,7 +2193,7 @@ public class Schematics extends Technology
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
 			Technology tech = (Technology)it.next();
-			EMath.MutableInteger mi = (EMath.MutableInteger)usedTechnologies.get(tech);
+			DBMath.MutableInteger mi = (DBMath.MutableInteger)usedTechnologies.get(tech);
 			if (mi.intValue() <= bestAmount) continue;
 			bestAmount = mi.intValue();
 			bestTech = tech;

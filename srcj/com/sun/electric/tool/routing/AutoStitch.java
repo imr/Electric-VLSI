@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -158,7 +158,7 @@ public class AutoStitch
 						}
 						Rectangle2D bounds = new Rectangle2D.Double(rNi.getAnchorCenterX() - rNi.getXSize()/2, 
 							rNi.getAnchorCenterY() - rNi.getYSize()/2, rNi.getXSize(), rNi.getYSize());
-						EMath.transformRect(bounds, trans);
+						DBMath.transformRect(bounds, trans);
 						bbArray[i++] = bounds.getMinX();
 						bbArray[i++] = bounds.getMaxX();
 						bbArray[i++] = bounds.getMinY();

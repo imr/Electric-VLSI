@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
@@ -120,7 +120,7 @@ public class ColorsTab extends PreferencePanel
 			StringBuffer layerNames = (StringBuffer)transparentLayers.get(layerNumber);
 			colorLayerModel.addElement("Transparent " + layerNumber.intValue() + ": " + layerNames.toString());
 			int color = currentMap[1 << (layerNumber.intValue()-1)].getRGB();
-			transAndSpecialMap.put(layerNumber, new EMath.MutableInteger(color));
+			transAndSpecialMap.put(layerNumber, new GenMath.MutableInteger(color));
 		}
 
 		// add the nontransparent layers
@@ -135,39 +135,39 @@ public class ColorsTab extends PreferencePanel
 
 //			ColorPatternPanel.Info li = (ColorPatternPanel.Info)layerMap.get(layer);
 //			int color = layer.getGraphics().getColor().getRGB();
-//			colorMap.put(layer, new EMath.MutableInteger(color));
+//			colorMap.put(layer, new GenMath.MutableInteger(color));
 		}
 
 		// add the special colors
 		int color = User.getColorBackground();
 		String name = "Special: BACKGROUND";
 		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
 		color = User.getColorGrid();
 		name = "Special: GRID";
 		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
 		color = User.getColorHighlight();
 		name = "Special: HIGHLIGHT";
 		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
 		color = User.getColorPortHighlight();
 		name = "Special: PORT HIGHLIGHT";
 		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
 		color = User.getColorText();
 		name = "Special: TEXT";
 		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
 		color = User.getColorInstanceOutline();
 		name = "Special: INSTANCE OUTLINES";
 		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new EMath.MutableInteger(color));
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
 		// finish initialization
 		colorLayerList.setSelectedIndex(0);
@@ -194,26 +194,26 @@ public class ColorsTab extends PreferencePanel
 		if (layerName.startsWith("Transparent "))
 		{
 			int layerNumber = TextUtils.atoi(layerName.substring(12));
-			return (EMath.MutableInteger)transAndSpecialMap.get(new Integer(layerNumber));
+			return (GenMath.MutableInteger)transAndSpecialMap.get(new Integer(layerNumber));
 		}
 		if (layerName.startsWith("Special: "))
 		{
-			return (EMath.MutableInteger)transAndSpecialMap.get(layerName);
+			return (GenMath.MutableInteger)transAndSpecialMap.get(layerName);
 		}
 		Layer layer = curTech.findLayer(layerName);
 		if (layer == null) return null;
 		ColorPatternPanel.Info li = (ColorPatternPanel.Info)LayersTab.layerMap.get(layer);
 		return li;
-//		return (EMath.MutableInteger)colorMap.get(layer);
+//		return (GenMath.MutableInteger)colorMap.get(layer);
 	}
 
 	private void colorChanged()
 	{
 		Object colorObj = colorGetCurrent();
 		if (colorObj == null) return;
-		if (colorObj instanceof EMath.MutableInteger)
+		if (colorObj instanceof GenMath.MutableInteger)
 		{
-			((EMath.MutableInteger)colorObj).setValue(colorChooser.getColor().getRGB());
+			((GenMath.MutableInteger)colorObj).setValue(colorChooser.getColor().getRGB());
 		} else if (colorObj instanceof ColorPatternPanel.Info)
 		{
 			ColorPatternPanel.Info ci = (ColorPatternPanel.Info)colorObj;
@@ -227,9 +227,9 @@ public class ColorsTab extends PreferencePanel
 	{
 		Object colorObj = colorGetCurrent();
 		if (colorObj == null) return;
-		if (colorObj instanceof EMath.MutableInteger)
+		if (colorObj instanceof GenMath.MutableInteger)
 		{
-			colorChooser.setColor(new Color(((EMath.MutableInteger)colorObj).intValue()));
+			colorChooser.setColor(new Color(((GenMath.MutableInteger)colorObj).intValue()));
 		} else  if (colorObj instanceof ColorPatternPanel.Info)
 		{
 			ColorPatternPanel.Info ci = (ColorPatternPanel.Info)colorObj;
@@ -253,7 +253,7 @@ public class ColorsTab extends PreferencePanel
 			if (layerName.startsWith("Transparent "))
 			{
 				int layerNumber = TextUtils.atoi(layerName.substring(12));
-				EMath.MutableInteger color = (EMath.MutableInteger)transAndSpecialMap.get(new Integer(layerNumber));
+				GenMath.MutableInteger color = (GenMath.MutableInteger)transAndSpecialMap.get(new Integer(layerNumber));
 				transparentLayerColors[layerNumber-1] = new Color(color.intValue());
 				int mapIndex = 1 << (layerNumber-1);
 				int origColor = currentMap[mapIndex].getRGB();
@@ -264,7 +264,7 @@ public class ColorsTab extends PreferencePanel
 				}
 			} else if (layerName.startsWith("Special: "))
 			{
-				EMath.MutableInteger color = (EMath.MutableInteger)transAndSpecialMap.get(layerName);
+				GenMath.MutableInteger color = (GenMath.MutableInteger)transAndSpecialMap.get(layerName);
 				if (layerName.equals("Special: BACKGROUND"))
 				{
 					if (color.intValue() != User.getColorBackground())
@@ -312,7 +312,7 @@ public class ColorsTab extends PreferencePanel
 //			{
 //				Layer layer = curTech.findLayer(layerName);
 //				if (layer == null) continue;
-//				EMath.MutableInteger color = (EMath.MutableInteger)colorMap.get(layer);
+//				GenMath.MutableInteger color = (GenMath.MutableInteger)colorMap.get(layer);
 //				int origColor = layer.getGraphics().getColor().getRGB();
 //				if (color.intValue() != origColor)
 //				{

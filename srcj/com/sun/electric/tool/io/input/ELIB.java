@@ -23,9 +23,10 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Export;
@@ -1464,7 +1465,7 @@ public class ELIB extends LibraryFiles
 					double scaleY = height / bounds.getHeight();
 					String scaledCellName = subCell.getName() + "-SCALED-BY-" + scaleX +
 						"{" + subCell.getView().getAbbreviation() + "}";
-					if (!EMath.doublesClose(scaleX, scaleY))
+					if (!DBMath.doublesClose(scaleX, scaleY))
 					{
                         // don't scale, most likely the size changed, and this is not a lambda problem
                         //scaledCellName = null;
@@ -2018,10 +2019,10 @@ public class ELIB extends LibraryFiles
 //			if (cellTech != null) lambda = techScale[cellTech.getIndex()];
 //			double cellWidth = (highX - lowX) / lambda;
 //			double cellHeight = (highY - lowY) / lambda;
-//			if (!EMath.doublesEqual(bounds.getWidth(), cellWidth) || !EMath.doublesEqual(bounds.getHeight(), cellHeight))
+//			if (!DBMath.doublesEqual(bounds.getWidth(), cellWidth) || !DBMath.doublesEqual(bounds.getHeight(), cellHeight))
 //			{
 //				// bounds differ, but lambda scaling is inaccurate: see if aspect ratio changed
-//				if (!EMath.doublesEqual(bounds.getWidth() * cellHeight, bounds.getHeight() * cellWidth))
+//				if (!DBMath.doublesEqual(bounds.getWidth() * cellHeight, bounds.getHeight() * cellWidth))
 //				{
 //					System.out.println("Error: cell " + c.noLibDescribe() + " in library " + elib.getName() +
 //						" has changed size since its use in library " + lib.getName());

@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.hierarchy.Library;
@@ -247,10 +247,10 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				subCell = subCell.contentsView();
 				if (subCell == null) continue;
 			}
-			EMath.MutableInteger mi = (EMath.MutableInteger)cellCount.get(subCell);
+			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellCount.get(subCell);
 			if (mi == null)
 			{
-				mi = new EMath.MutableInteger(0);
+				mi = new DBMath.MutableInteger(0);
 				cellCount.put(subCell, mi);
 			}
 			mi.setValue(mi.intValue()+1);
@@ -260,7 +260,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		for(Iterator it = cellCount.keySet().iterator(); it.hasNext(); )
 		{
 			Cell subCell = (Cell)it.next();
-			EMath.MutableInteger mi = (EMath.MutableInteger)cellCount.get(subCell);
+			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellCount.get(subCell);
 			if (mi == null) continue;
 
 			CellAndCount cc = new CellAndCount(subCell, mi.intValue());

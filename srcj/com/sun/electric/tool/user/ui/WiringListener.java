@@ -25,7 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.ArcProto;
@@ -558,8 +558,8 @@ public class WiringListener
 			if (end.getNodeObject() == null) endLoc.setLocation(end.getNodeLocation()); else
 				endLoc.setLocation(figureCenter(end.getNodeObject(), end.getNodePort(), end.getNodeLocation()));
 
-			if (EMath.doublesEqual(startLoc.getX(), endLoc.getX()) ||
-				EMath.doublesEqual(startLoc.getY(), endLoc.getY()))
+			if (DBMath.doublesEqual(startLoc.getX(), endLoc.getX()) ||
+				DBMath.doublesEqual(startLoc.getY(), endLoc.getY()))
 			{
 				// they line up: make one arc
 				WiringPlan [] list = new WiringPlan[1];
@@ -633,7 +633,7 @@ public class WiringListener
 					// splitting the arc in the middle
 					PrimitiveNode np = ((PrimitiveArc)ai.getProto()).findOverridablePinProto();
 					PrimitivePort pp = (PrimitivePort)np.getPorts().next();
-					Point2D center = EMath.closestPointToSegment(aiHead.getLocation(), aiTail.getLocation(), startPoint);
+					Point2D center = DBMath.closestPointToSegment(aiHead.getLocation(), aiTail.getLocation(), startPoint);
 					EditWindow.gridAlign(center);
 					WiringPlan [] list = new WiringPlan[4];
 					list[0] = WiringPlan.makeNode(null, np, pp, center, np.getDefWidth(), np.getDefHeight());
@@ -749,7 +749,7 @@ public class WiringListener
 					{
 						Point2D radialEnd = new Point2D.Double(center.getX() + Math.cos(a*Math.PI/180.0),
 							center.getY() + Math.sin(a*Math.PI/180.0));
-						Point2D closestToRadial = EMath.closestPointToLine(center, radialEnd, endPt);
+						Point2D closestToRadial = DBMath.closestPointToLine(center, radialEnd, endPt);
 						double thisDist = closestToRadial.distance(endPt);
 						if (thisDist < bestDist)
 						{

@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -807,7 +807,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			}
 
 			double currentWidth = Double.parseDouble(dialog.width.getText()) + ai.getProto().getWidthOffset();
-			if (!EMath.doublesEqual(currentWidth, dialog.initialWidth) || changed)
+			if (!DBMath.doublesEqual(currentWidth, dialog.initialWidth) || changed)
 			{
 				ai.modify(currentWidth - dialog.initialWidth, 0, 0, 0, 0);
 				dialog.initialWidth = currentWidth;

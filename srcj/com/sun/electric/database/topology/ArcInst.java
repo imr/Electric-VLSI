@@ -24,7 +24,7 @@
 package com.sun.electric.database.topology;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -482,16 +482,16 @@ public class ArcInst extends Geometric
 		unLinkGeom(parent);
 
 		// now make the change
-		width = EMath.smooth(width + dWidth);
+		width = DBMath.smooth(width + dWidth);
 		if (dHeadX != 0 || dHeadY != 0)
 		{
 			Point2D pt = ends[HEADEND].getLocation();
-			ends[HEADEND].setLocation(new Point2D.Double(EMath.smooth(dHeadX+pt.getX()), EMath.smooth(pt.getY()+dHeadY)));
+			ends[HEADEND].setLocation(new Point2D.Double(DBMath.smooth(dHeadX+pt.getX()), DBMath.smooth(pt.getY()+dHeadY)));
 		}
 		if (dTailX != 0 || dTailY != 0)
 		{
 			Point2D pt = ends[TAILEND].getLocation();
-			ends[TAILEND].setLocation(new Point2D.Double(EMath.smooth(dTailX+pt.getX()), EMath.smooth(pt.getY()+dTailY)));
+			ends[TAILEND].setLocation(new Point2D.Double(DBMath.smooth(dTailX+pt.getX()), DBMath.smooth(pt.getY()+dTailY)));
 		}
 		updateGeometric(getAngle());
 
@@ -594,7 +594,7 @@ public class ArcInst extends Geometric
 		if (Math.abs(radius)*2 < ai.getLength()) return null;
 
 		// determine the center of the circle
-		Point2D [] centers = EMath.findCenters(Math.abs(radius), ai.getHead().getLocation(),
+		Point2D [] centers = DBMath.findCenters(Math.abs(radius), ai.getHead().getLocation(),
 			ai.getTail().getLocation(), ai.getLength());
 		if (centers == null) return null;
 
@@ -606,8 +606,8 @@ public class ArcInst extends Geometric
 		}
 
 		// determine the base and range of angles
-		int angleBase = EMath.figureAngle(centerPt, ai.getHead().getLocation());
-		int angleRange = EMath.figureAngle(centerPt, ai.getTail().getLocation());
+		int angleBase = DBMath.figureAngle(centerPt, ai.getHead().getLocation());
+		int angleRange = DBMath.figureAngle(centerPt, ai.getTail().getLocation());
 		if (ai.isReverseEnds())
 		{
 			int i = angleBase;
@@ -633,7 +633,7 @@ public class ArcInst extends Geometric
 		for(int i=0; i<=pieces; i++)
 		{
 			int a = (angleBase + i * angleRange / pieces) % 3600;
-			double sin = EMath.sin(a);   double cos = EMath.cos(a);
+			double sin = DBMath.sin(a);   double cos = DBMath.cos(a);
 			pointArray[i] = new Point2D.Double(cos * innerRadius + centerPt.getX(), sin * innerRadius + centerPt.getY());
 			pointArray[points-1-i] = new Point2D.Double(cos * outerRadius + centerPt.getX(), sin * outerRadius + centerPt.getY());
 		}
@@ -698,8 +698,8 @@ public class ArcInst extends Geometric
 		double xextra, yextra, xe1, ye1, xe2, ye2;
 		if (len == 0)
 		{
-			double sa = EMath.sin(angle);
-			double ca = EMath.cos(angle);
+			double sa = DBMath.sin(angle);
+			double ca = DBMath.cos(angle);
 			xe1 = x1 - ca * extendH;
 			ye1 = y1 - sa * extendH;
 			xe2 = x2 + ca * extendT;
@@ -847,7 +847,7 @@ public class ArcInst extends Geometric
 		double dy = p2.getY() - p1.getY();
 		length = Math.sqrt(dx * dx + dy * dy);
 		if (p1.equals(p2)) angle = defAngle; else
-			angle = EMath.figureAngle(p1, p2);
+			angle = DBMath.figureAngle(p1, p2);
 
 		// compute the bounds
 		Poly poly = makePoly(length, width, Poly.Type.FILLED);
@@ -978,7 +978,7 @@ public class ArcInst extends Geometric
 		if (!stillInPort(getHead(), headPt, false))
 		{
 			// allow for round-off error
-			headPt.setLocation(EMath.smooth(headPt.getX()), EMath.smooth(headPt.getY()));
+			headPt.setLocation(DBMath.smooth(headPt.getX()), DBMath.smooth(headPt.getY()));
 			if (!stillInPort(getHead(), headPt, false))
 			{
 				Poly poly = getHead().getPortInst().getPoly();
@@ -993,7 +993,7 @@ public class ArcInst extends Geometric
 		if (!stillInPort(getTail(), tailPt, false))
 		{
 			// allow for round-off error
-			tailPt.setLocation(EMath.smooth(tailPt.getX()), EMath.smooth(tailPt.getY()));
+			tailPt.setLocation(DBMath.smooth(tailPt.getX()), DBMath.smooth(tailPt.getY()));
 			if (!stillInPort(getTail(), tailPt, false))
 			{
 				Poly poly = getTail().getPortInst().getPoly();

@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.JNetwork;
 import com.sun.electric.database.network.Netlist;
@@ -797,7 +797,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 				Point2D from = new Point2D.Double(fX, fY);
 				Point2D to = new Point2D.Double(tX, tY);
 				sz = getSize();
-				if (EMath.clipLine(from, to, VERTLABELWIDTH, sz.width, 0, sz.height)) return;
+				if (GenMath.clipLine(from, to, VERTLABELWIDTH, sz.width, 0, sz.height)) return;
 				fX = (int)from.getX();
 				fY = (int)from.getY();
 				tX = (int)to.getX();
@@ -935,7 +935,7 @@ public class WaveformWindow implements WindowContent, HighlightListener
 							// should see if the line is in the area
 							Point2D from = new Point2D.Double(lastXd, lastYd);
 							Point2D to = new Point2D.Double(x, y);
-							if (!EMath.clipLine(from, to, lXd, hXd, lYd, hYd))
+							if (!GenMath.clipLine(from, to, lXd, hXd, lYd, hYd))
 							{
 								foundList.add(ws);
 								break;
@@ -2194,7 +2194,7 @@ System.out.println("Loading signal explorer tree");
 			negative = "-";
 			time = -time;
 		}
-		if (EMath.doublesEqual(time, 0.0)) return "0" + unit;
+		if (GenMath.doublesEqual(time, 0.0)) return "0" + unit;
 		if (time < 1.0E-15 || time >= 1000.0) return negative + TextUtils.formatDouble(time) + unit;
 
 		// get proper time unit to use

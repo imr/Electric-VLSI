@@ -25,7 +25,7 @@ package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Export;
@@ -114,7 +114,7 @@ public class ReadableDump extends Output
 			for(Iterator it = oLib.getCells(); it.hasNext(); )
 			{
 				Cell cell = (Cell)it.next();
-				cellOrdering.put(cell, new EMath.MutableInteger(-1));
+				cellOrdering.put(cell, new DBMath.MutableInteger(-1));
 			}
 		}
 		cellNumber = 0;
@@ -126,7 +126,7 @@ public class ReadableDump extends Output
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			EMath.MutableInteger mi = (EMath.MutableInteger)cellOrdering.get(cell);
+			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
 			if (mi == null || mi.intValue() < 0) textRecurse(cell);
 		}
 		if (cellNumber > 0)
@@ -138,7 +138,7 @@ public class ReadableDump extends Output
 				for(Iterator it = oLib.getCells(); it.hasNext(); )
 				{
 					Cell cell = (Cell)it.next();
-					EMath.MutableInteger mi = (EMath.MutableInteger)cellOrdering.get(cell);
+					DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
 					if (mi.intValue() >= 0)
 						cells[mi.intValue()] = cell;
 				}
@@ -149,19 +149,19 @@ public class ReadableDump extends Output
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			cellGrouping.put(cell, new EMath.MutableInteger(0));
+			cellGrouping.put(cell, new DBMath.MutableInteger(0));
 		}
 		int cellGroup = 0;
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			EMath.MutableInteger mi = (EMath.MutableInteger)cellGrouping.get(cell);
+			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellGrouping.get(cell);
 			if (mi == null || mi.intValue() != 0) continue;
 			cellGroup++;
 			for(Iterator gIt = cell.getCellGroup().getCells(); gIt.hasNext(); )
 			{
 				Cell oCell = (Cell)gIt.next();
-				mi = (EMath.MutableInteger)cellGrouping.get(oCell);
+				mi = (DBMath.MutableInteger)cellGrouping.get(oCell);
 				mi.setValue(cellGroup);
 			}
 		}
@@ -193,7 +193,7 @@ public class ReadableDump extends Output
 		Cell curCell = lib.getCurCell();
 		if (curCell != null)
 		{
-			EMath.MutableInteger mi = (EMath.MutableInteger)cellOrdering.get(curCell);
+			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(curCell);
 			printWriter.print("maincell: " + mi.intValue() + "\n");
 		}
 
@@ -205,9 +205,9 @@ public class ReadableDump extends Output
 		{
 			// write the nodeproto name
 			Cell cell = cells[i];
-			EMath.MutableInteger mi = (EMath.MutableInteger)cellOrdering.get(cell);
+			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
 			int groupIndex = 0;
-			EMath.MutableInteger mig = (EMath.MutableInteger)cellGrouping.get(cell);
+			DBMath.MutableInteger mig = (DBMath.MutableInteger)cellGrouping.get(cell);
 			if (mig != null) groupIndex = mig.intValue();
 			printWriter.print("***cell: " + mi.intValue() + "/" + groupIndex + "\n");
 			printWriter.print("name: " + cell.getName());
@@ -275,7 +275,7 @@ public class ReadableDump extends Output
 				printWriter.print("**node: " + nodeIndex.intValue() + "\n");
 				if (np instanceof Cell)
 				{
-					EMath.MutableInteger subMi = (EMath.MutableInteger)cellOrdering.get(np);
+					DBMath.MutableInteger subMi = (DBMath.MutableInteger)cellOrdering.get(np);
 					printWriter.print("type: [" + subMi.intValue() + "]\n");
 				} else
 				{
@@ -452,12 +452,12 @@ public class ReadableDump extends Output
 			NodeInst ni = (NodeInst)it.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
 			Cell subCell = (Cell)ni.getProto();
-			EMath.MutableInteger mi = (EMath.MutableInteger)cellOrdering.get(subCell);
+			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(subCell);
 			if (mi == null || mi.intValue() < 0) textRecurse(subCell);
 		}
 
 		// add this cell to the list
-		EMath.MutableInteger mi = (EMath.MutableInteger)cellOrdering.get(cell);
+		DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
 		mi.setValue(cellNumber++);
 	}
 
@@ -655,7 +655,7 @@ public class ReadableDump extends Output
 		if (obj instanceof Cell)
 		{
 			Cell cell = (Cell)obj;
-			EMath.MutableInteger mi = (EMath.MutableInteger)cellOrdering.get(cell);
+			DBMath.MutableInteger mi = (DBMath.MutableInteger)cellOrdering.get(cell);
 			int cIndex = -1;
 			if (mi != null) cIndex = mi.intValue();
 			infstr.append(Integer.toString(cIndex));

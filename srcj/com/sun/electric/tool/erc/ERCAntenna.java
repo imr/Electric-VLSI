@@ -25,7 +25,7 @@ package com.sun.electric.tool.erc;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -264,7 +264,7 @@ public class ERCAntenna
 				totalGateArea = 0.0;
 				pathList = new ArrayList();
 
-				int found = followNode(ni, pi.getPortProto(), lay, EMath.MATID);
+				int found = followNode(ni, pi.getPortProto(), lay, DBMath.MATID);
 				if (found == ERCANTPATHGATE)
 				{
 					// gather the geometry here

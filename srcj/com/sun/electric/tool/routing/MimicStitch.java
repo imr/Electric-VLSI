@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.routing;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
@@ -186,7 +186,7 @@ public class MimicStitch
 		Point2D pt1 = activity.deletedArcs[0].getTail().getLocation();
 		double dist = pt0.distance(pt1);
 		int angle = 0;
-		if (dist != 0) angle = EMath.figureAngle(pt0, pt1);
+		if (dist != 0) angle = DBMath.figureAngle(pt0, pt1);
 
 		// look for a similar situation to delete
 		Cell cell = activity.deletedNodes[0].getParent();
@@ -216,7 +216,7 @@ public class MimicStitch
 			if (dist != thisdist) continue;
 			if (dist != 0)
 			{
-				int thisangle = EMath.figureAngle(end0, end1);
+				int thisangle = DBMath.figureAngle(end0, end1);
 				if ((angle%1800) != (thisangle%1800)) continue;
 			}
 
@@ -416,12 +416,12 @@ public class MimicStitch
 				Point2D pt1 = endPts[1-end];
 				double dist = pt0.distance(pt1);
 				int angle = 0;
-				if (dist != 0) angle = EMath.figureAngle(pt0, pt1);
+				if (dist != 0) angle = DBMath.figureAngle(pt0, pt1);
 				boolean useFAngle = false;
 				double angleRadians = 0;
 				if ((angle%900) != 0)
 				{
-					angleRadians = EMath.figureAngleRadians(pt0, pt1);
+					angleRadians = DBMath.figureAngleRadians(pt0, pt1);
 					useFAngle = true;
 				}
 				Poly port0Poly = pi0.getPoly();   // node0.getShapeOfPort(port0);
@@ -486,8 +486,8 @@ public class MimicStitch
 									wantY1 = y0 + Math.sin(angleRadians) * dist;
 								} else
 								{
-									wantX1 = x0 + EMath.cos(angle) * dist;
-									wantY1 = y0 + EMath.sin(angle) * dist;
+									wantX1 = x0 + DBMath.cos(angle) * dist;
+									wantY1 = y0 + DBMath.sin(angle) * dist;
 								}
 							}
 							Point2D xy0 = new Point2D.Double(x0, y0);
@@ -522,7 +522,7 @@ public class MimicStitch
 								// see if there are already wires going in this direction
 								int desiredAngle = -1;
 								if (x0 != wantX1 || y0 != wantY1)
-									desiredAngle = EMath.figureAngle(xy0, want1);
+									desiredAngle = DBMath.figureAngle(xy0, want1);
 								PortInst piNet0 = null;
 								for(Iterator pII = ni.getConnections(); pII.hasNext(); )
 								{
@@ -546,7 +546,7 @@ public class MimicStitch
 												continue;
 										int thisend = 0;
 										if (oai.getTail().getPortInst() == pi) thisend = 1;
-										int existingAngle = EMath.figureAngle(oai.getConnection(thisend).getLocation(),
+										int existingAngle = DBMath.figureAngle(oai.getConnection(thisend).getLocation(),
 											oai.getConnection(1-thisend).getLocation());
 										if (existingAngle == desiredAngle)
 										{
@@ -558,7 +558,7 @@ public class MimicStitch
 
 								desiredAngle = -1;
 								if (x0 != wantX1 || y0 != wantY1)
-									desiredAngle = EMath.figureAngle(want1, xy0);
+									desiredAngle = DBMath.figureAngle(want1, xy0);
 								PortInst piNet1 = null;
 								for(Iterator pII = oNi.getConnections(); pII.hasNext(); )
 								{
@@ -582,7 +582,7 @@ public class MimicStitch
 												continue;
 										int thisend = 0;
 										if (oai.getTail().getPortInst() == pi) thisend = 1;
-										int existingAngle = EMath.figureAngle(oai.getConnection(thisend).getLocation(),
+										int existingAngle = DBMath.figureAngle(oai.getConnection(thisend).getLocation(),
 											oai.getConnection(1-thisend).getLocation());
 										if (existingAngle == desiredAngle)
 										{
@@ -748,8 +748,8 @@ public class MimicStitch
 					Poly portPoly2 = pa.ni2.getShapeOfPort(pa.pp2);
 					Point2D bend = new Point2D.Double((portPoly1.getCenterX() + portPoly2.getCenterX()) / 2 + prefX,
 						(portPoly1.getCenterY() + portPoly2.getCenterY()) / 2 + prefY);
-					List added = WiringListener.makeConnection(pa.ni1, pa.pp1, pa.ni2, pa.pp2, bend, false, false);
-                    /*PortInst pi1 = pa.ni1.findPortInstFromProto(pa.pp1);
+					//List added = WiringListener.makeConnection(pa.ni1, pa.pp1, pa.ni2, pa.pp2, bend, false, false);
+                    PortInst pi1 = pa.ni1.findPortInstFromProto(pa.pp1);
                     PortInst pi2 = pa.ni2.findPortInstFromProto(pa.pp2);
                     Route route = router.planRoute(pa.ni1.getParent(), pi1, pi2, bend);
                     if (route.size() == 0)
@@ -757,7 +757,7 @@ public class MimicStitch
 						System.out.println("Problem creating arc");
 						return count;
 					}
-                    Router.createRouteNoJob(route, pa.ni1.getParent(), false);*/
+                    Router.createRouteNoJob(route, pa.ni1.getParent(), false);
 					flushStructureChanges = true;
 					count++;
 				}

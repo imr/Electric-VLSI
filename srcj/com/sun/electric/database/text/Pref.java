@@ -23,7 +23,7 @@
  */
 package com.sun.electric.database.text;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
@@ -672,7 +672,7 @@ public class Pref
 			Variable var = meaning.eObj.getVar(meaning.pref.name);
 			if (var == null) continue;
 			Object obj = var.getObject();
-			if (EMath.objectsReallyEqual(obj, meaning.pref.cachedObj)) continue;
+			if (DBMath.objectsReallyEqual(obj, meaning.pref.cachedObj)) continue;
 			meaning.setDesiredValue(obj);
 			if (!meaning.isValidOption()) continue;
 //System.out.println("Meaning variable "+meaning.pref.name+" found on " + meaning.eObj+" is "+obj+" but is cached as "+meaning.pref.cachedObj);
@@ -685,7 +685,7 @@ public class Pref
 			if (pref.meaning.marked) continue;
 
 			// this one is not mentioned in the library: make sure it is at factory defaults
-			if (EMath.objectsReallyEqual(pref.cachedObj, pref.factoryObj)) continue;
+			if (DBMath.objectsReallyEqual(pref.cachedObj, pref.factoryObj)) continue;
 
 //System.out.println("Adding fake meaning variable "+pref.name+" where current="+pref.cachedObj+" but should be "+pref.factoryObj);
 			pref.meaning.setDesiredValue(pref.factoryObj);

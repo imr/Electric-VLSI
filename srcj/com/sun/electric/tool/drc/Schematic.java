@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.drc;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -372,7 +372,7 @@ public class Schematic
 		}
 
 		// check for overlap
-		checkObjectVicinity(netlist, geom, geom, EMath.MATID);
+		checkObjectVicinity(netlist, geom, geom, DBMath.MATID);
 	}
 
 	/*
@@ -499,7 +499,7 @@ public class Schematic
 				}
 
 				// no connection: check for touching another
-				if (checkPoly(geom, poly, oGeom, oGeom, EMath.MATID, false))
+				if (checkPoly(geom, poly, oGeom, oGeom, DBMath.MATID, false))
 				{
 					return true;
 				}
@@ -522,7 +522,7 @@ public class Schematic
 					}
 					if (found) continue;
 
-					if (checkPoly(geom, poly, oGeom, oGeom, EMath.MATID, false))
+					if (checkPoly(geom, poly, oGeom, oGeom, DBMath.MATID, false))
 					{
 						return true;
 					}
@@ -556,7 +556,7 @@ public class Schematic
 					}
 					if (!connected)
 					{
-						if (checkPoly(geom, poly, oGeom, oGeom, EMath.MATID, true))
+						if (checkPoly(geom, poly, oGeom, oGeom, DBMath.MATID, true))
 						{
 							return true;
 						}
@@ -712,8 +712,8 @@ public class Schematic
 		} else
 		{
 			// general case
-			ang = EMath.figureAngle(new Point2D.Double(fx, fy), new Point2D.Double(tx, ty));
-			int oAng = EMath.figureAngle(new Point2D.Double(oFx, oFy), new Point2D.Double(oTx, oTy));
+			ang = DBMath.figureAngle(new Point2D.Double(fx, fy), new Point2D.Double(tx, ty));
+			int oAng = DBMath.figureAngle(new Point2D.Double(oFx, oFy), new Point2D.Double(oTx, oTy));
 			if (ang != oAng && Math.min(ang, oAng) + 1800 != Math.max(ang, oAng)) return false;
 			if ((oFx-fx) * (ty-fy) / (tx-fx) != oFy-fy) return false;
 			if ((oTx-fx) * (ty-fy) / (tx-fx) != oTy-fy) return false;

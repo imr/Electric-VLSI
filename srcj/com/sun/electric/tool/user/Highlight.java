@@ -25,7 +25,7 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.JNetwork;
@@ -1266,7 +1266,7 @@ public class Highlight
 						{
 							Point2D prevCtr = new Point2D.Double((prevPt.getX()+thisPt.getX()) / 2,
 								(prevPt.getY()+thisPt.getY()) / 2);
-							double prevAngle = EMath.figureAngleRadians(prevPt, thisPt);
+							double prevAngle = DBMath.figureAngleRadians(prevPt, thisPt);
 							Point2D prevArrow1 = new Point2D.Double(prevCtr.getX() + Math.cos(prevAngle+Math.PI*0.75) * arrowLen,
 								prevCtr.getY() + Math.sin(prevAngle+Math.PI*0.75) * arrowLen);
 							Point2D prevArrow2 = new Point2D.Double(prevCtr.getX() + Math.cos(prevAngle-Math.PI*0.75) * arrowLen,
@@ -1282,7 +1282,7 @@ public class Highlight
 						{
 							Point2D nextCtr = new Point2D.Double((nextPt.getX()+thisPt.getX()) / 2,
 								(nextPt.getY()+thisPt.getY()) / 2);
-							double nextAngle = EMath.figureAngleRadians(thisPt, nextPt);
+							double nextAngle = DBMath.figureAngleRadians(thisPt, nextPt);
 							Point2D nextArrow1 = new Point2D.Double(nextCtr.getX() + Math.cos(nextAngle+Math.PI*0.75) * arrowLen,
 								nextCtr.getY() + Math.sin(nextAngle+Math.PI*0.75) * arrowLen);
 							Point2D nextArrow2 = new Point2D.Double(nextCtr.getX() + Math.cos(nextAngle-Math.PI*0.75) * arrowLen,
@@ -2085,7 +2085,7 @@ public class Highlight
 
 		// standard distance to the arc
 		double wid = ai.getWidth() - ai.getProto().getWidthOffset();
-		if (EMath.doublesEqual(wid, 0)) wid = 1;
+		if (DBMath.doublesEqual(wid, 0)) wid = 1;
 //		if (curvedarcoutline(ai, poly, FILLED, wid))
 			Poly poly = ai.makePoly(ai.getLength(), wid, Poly.Type.FILLED);
 		return poly.polyDistance(bounds);
@@ -2108,8 +2108,8 @@ public class Highlight
 		for(int i=1; i<points.length; i++)
 		{
 			Point p = wnd.databaseToScreen(points[i].getX(), points[i].getY());
-			if (EMath.doublesEqual(p.getX(), firstP.getX()) &&
-				EMath.doublesEqual(p.getY(), firstP.getY())) continue;
+			if (DBMath.doublesEqual(p.getX(), firstP.getX()) &&
+				DBMath.doublesEqual(p.getY(), firstP.getY())) continue;
 			onePoint = false;
 			break;
 		}

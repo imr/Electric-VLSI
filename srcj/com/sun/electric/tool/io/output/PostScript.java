@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Cell;
@@ -866,8 +866,8 @@ public class PostScript extends Output
 		Point2D ps1 = psXform(pt1);
 		Point2D ps2 = psXform(pt2);
 		double radius = pc.distance(ps1);
-		int startAngle = (EMath.figureAngle(pc, ps2) + 5) / 10;
-		int endAngle = (EMath.figureAngle(pc, ps1) + 5) / 10;
+		int startAngle = (DBMath.figureAngle(pc, ps2) + 5) / 10;
+		int endAngle = (DBMath.figureAngle(pc, ps1) + 5) / 10;
 		printWriter.print("newpath " + pc.getX() + " " + pc.getY() + " " + radius + " " +
 			startAngle + " " + endAngle + " arc stroke\n");
 	}

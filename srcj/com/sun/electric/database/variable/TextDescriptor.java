@@ -24,7 +24,7 @@
 package com.sun.electric.database.variable;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.Pref;
@@ -369,7 +369,7 @@ public class TextDescriptor
 		public boolean equals(Size other)
 		{
 			if (this.absolute != other.absolute) return false;
-			if (!EMath.doublesEqual(this.size, other.size)) return false;
+			if (!DBMath.doublesEqual(this.size, other.size)) return false;
 			return true;
 		}
 

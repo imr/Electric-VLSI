@@ -24,7 +24,7 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.network.Netlist;
@@ -1050,8 +1050,8 @@ public class Cell extends NodeProto implements Comparable
 				if (lowy < cellLowY) cellLowY = lowy;
 				if (highy > cellHighY) cellHighY = highy;
 			}
-			cellBounds.setRect(EMath.smooth(cellLowX), EMath.smooth(cellLowY),
-				EMath.smooth(cellHighX - cellLowX), EMath.smooth(cellHighY - cellLowY));
+			cellBounds.setRect(DBMath.smooth(cellLowX), DBMath.smooth(cellLowY),
+				DBMath.smooth(cellHighX - cellLowX), DBMath.smooth(cellHighY - cellLowY));
 			boundsDirty = false;
 		}
 		return cellBounds;

@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -591,8 +591,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		if (np == Artwork.tech.circleNode || np == Artwork.tech.thickCircleNode)
 		{
 			double [] arcData = ni.getArcDegrees();
-			double start = EMath.smooth(arcData[0] * 180.0 / Math.PI);
-			double curvature = EMath.smooth(arcData[1] * 180.0 / Math.PI);
+			double start = DBMath.smooth(arcData[0] * 180.0 / Math.PI);
+			double curvature = DBMath.smooth(arcData[1] * 180.0 / Math.PI);
 			if (start != 0.0)
 			{
 				textFieldLabel.setText("Offset angle / Degrees of circle:");
@@ -979,10 +979,10 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			double currentYSize = Double.parseDouble(dialog.ySize.getText()) + so.getLowYOffset() + so.getHighYOffset();
 			if (dialog.mirrorY.isSelected()) currentYSize = -currentYSize;
 			int currentRotation = (int)(Double.parseDouble(dialog.rotation.getText()) * 10);
-			if (!EMath.doublesEqual(currentXPos, dialog.initialXPos) ||
-				!EMath.doublesEqual(currentYPos, dialog.initialYPos) ||
-				!EMath.doublesEqual(currentXSize, dialog.initialXSize) ||
-				!EMath.doublesEqual(currentYSize, dialog.initialYSize) ||
+			if (!DBMath.doublesEqual(currentXPos, dialog.initialXPos) ||
+				!DBMath.doublesEqual(currentYPos, dialog.initialYPos) ||
+				!DBMath.doublesEqual(currentXSize, dialog.initialXSize) ||
+				!DBMath.doublesEqual(currentYSize, dialog.initialYSize) ||
 				currentRotation != dialog.initialRotation || changed)
 			{
 				ni.modifyInstance(currentXPos - dialog.initialXPos, currentYPos - dialog.initialYPos,

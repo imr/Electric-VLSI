@@ -24,7 +24,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
@@ -956,9 +956,9 @@ public class Technology extends ElectricObject
 				int backAngle1 = angle - angleOfArrow;
 				int backAngle2 = angle + angleOfArrow;
 				points[0] = new Point2D.Double(headX, headY);
-				points[1] = new Point2D.Double(headX + EMath.cos(backAngle1), headY + EMath.sin(backAngle1));
+				points[1] = new Point2D.Double(headX + DBMath.cos(backAngle1), headY + DBMath.sin(backAngle1));
 				points[2] = points[0];
-				points[3] = new Point2D.Double(headX + EMath.cos(backAngle2), headY + EMath.sin(backAngle2));
+				points[3] = new Point2D.Double(headX + DBMath.cos(backAngle2), headY + DBMath.sin(backAngle2));
 			}
 			polys[polyNum] = new Poly(points);
 			polys[polyNum].setStyle(Poly.Type.VECTORS);
@@ -1436,8 +1436,8 @@ public class Technology extends ElectricObject
 				double y = portLocation.getY();
 				PrimitivePort pp = (PrimitivePort)con.getPortInst().getPortProto();
 				int angle = pp.getAngle() * 10;
-				double dX = EMath.cos(angle) * bubbleRadius;
-				double dY = EMath.sin(angle) * bubbleRadius;
+				double dX = DBMath.cos(angle) * bubbleRadius;
+				double dY = DBMath.sin(angle) * bubbleRadius;
 				Point2D [] points = new Point2D[2];
 				points[0] = new Point2D.Double(x+dX, y+dY);
 				points[1] = new Point2D.Double(x, y);
@@ -1681,47 +1681,47 @@ public class Technology extends ElectricObject
 			int thissg = segment;   int next = segment+1;
 			Point2D thisPt = points[thissg];
 			Point2D nextPt = points[next];
-			int angle = EMath.figureAngle(thisPt, nextPt);
+			int angle = DBMath.figureAngle(thisPt, nextPt);
 
 			// push the points at the ends of the transistor
 			if (thissg == 0)
 			{
 				// extend "thissg" 180 degrees back
 				int ang = angle+1800;
-				thisPt = EMath.addPoints(thisPt, EMath.cos(ang) * extendt, EMath.sin(ang) * extendt);
+				thisPt = DBMath.addPoints(thisPt, DBMath.cos(ang) * extendt, DBMath.sin(ang) * extendt);
 			}
 			if (next == numSegments)
 			{
 				// extend "next" 0 degrees forward
-				nextPt = EMath.addPoints(nextPt, EMath.cos(angle) * extendb, EMath.sin(angle) * extendb);
+				nextPt = DBMath.addPoints(nextPt, DBMath.cos(angle) * extendb, DBMath.sin(angle) * extendb);
 			}
 
 			// compute endpoints of line parallel to and left of center line
 			int ang = angle+LEFTANGLE;
-			double sin = EMath.sin(ang) * lwid;
-			double cos = EMath.cos(ang) * lwid;
-			Point2D thisL = EMath.addPoints(thisPt, cos, sin);
-			Point2D nextL = EMath.addPoints(nextPt, cos, sin);
+			double sin = DBMath.sin(ang) * lwid;
+			double cos = DBMath.cos(ang) * lwid;
+			Point2D thisL = DBMath.addPoints(thisPt, cos, sin);
+			Point2D nextL = DBMath.addPoints(nextPt, cos, sin);
 
 			// compute endpoints of line parallel to and right of center line
 			ang = angle+RIGHTANGLE;
-			sin = EMath.sin(ang) * rwid;
-			cos = EMath.cos(ang) * rwid;
-			Point2D thisR = EMath.addPoints(thisPt, cos, sin);
-			Point2D nextR = EMath.addPoints(nextPt, cos, sin);
+			sin = DBMath.sin(ang) * rwid;
+			cos = DBMath.cos(ang) * rwid;
+			Point2D thisR = DBMath.addPoints(thisPt, cos, sin);
+			Point2D nextR = DBMath.addPoints(nextPt, cos, sin);
 
 			// determine proper intersection of this and the previous segment
 			if (thissg != 0)
 			{
 				Point2D otherPt = points[thissg-1];
-				int otherang = EMath.figureAngle(otherPt, thisPt);
+				int otherang = DBMath.figureAngle(otherPt, thisPt);
 				if (otherang != angle)
 				{
 					ang = otherang + LEFTANGLE;
-					thisL = EMath.intersect(EMath.addPoints(thisPt, EMath.cos(ang)*lwid, EMath.sin(ang)*lwid),
+					thisL = DBMath.intersect(DBMath.addPoints(thisPt, DBMath.cos(ang)*lwid, DBMath.sin(ang)*lwid),
 						otherang, thisL,angle);
 					ang = otherang + RIGHTANGLE;
-					thisR = EMath.intersect(EMath.addPoints(thisPt, EMath.cos(ang)*rwid, EMath.sin(ang)*rwid),
+					thisR = DBMath.intersect(DBMath.addPoints(thisPt, DBMath.cos(ang)*rwid, DBMath.sin(ang)*rwid),
 						otherang, thisR,angle);
 				}
 			}
@@ -1730,24 +1730,24 @@ public class Technology extends ElectricObject
 			if (next != numSegments)
 			{
 				Point2D otherPt = points[next+1];
-				int otherang = EMath.figureAngle(nextPt, otherPt);
+				int otherang = DBMath.figureAngle(nextPt, otherPt);
 				if (otherang != angle)
 				{
 					ang = otherang + LEFTANGLE;
-					Point2D newPtL = EMath.addPoints(nextPt, EMath.cos(ang)*lwid, EMath.sin(ang)*lwid);
-					nextL = EMath.intersect(newPtL, otherang, nextL,angle);
+					Point2D newPtL = DBMath.addPoints(nextPt, DBMath.cos(ang)*lwid, DBMath.sin(ang)*lwid);
+					nextL = DBMath.intersect(newPtL, otherang, nextL,angle);
 					ang = otherang + RIGHTANGLE;
-					Point2D newPtR = EMath.addPoints(nextPt, EMath.cos(ang)*rwid, EMath.sin(ang)*rwid);
-					nextR = EMath.intersect(newPtR, otherang, nextR,angle);
+					Point2D newPtR = DBMath.addPoints(nextPt, DBMath.cos(ang)*rwid, DBMath.sin(ang)*rwid);
+					nextR = DBMath.intersect(newPtR, otherang, nextR,angle);
 				}
 			}
 
 			// fill the polygon
 			Point2D [] points = new Point2D.Double[4];
-			points[0] = EMath.addPoints(thisL, xoff, yoff);
-			points[1] = EMath.addPoints(thisR, xoff, yoff);
-			points[2] = EMath.addPoints(nextR, xoff, yoff);
-			points[3] = EMath.addPoints(nextL, xoff, yoff);
+			points[0] = DBMath.addPoints(thisL, xoff, yoff);
+			points[1] = DBMath.addPoints(thisR, xoff, yoff);
+			points[2] = DBMath.addPoints(nextR, xoff, yoff);
+			points[3] = DBMath.addPoints(nextL, xoff, yoff);
 			Poly retPoly = new Poly(points);
 
 			// see if the sides of the polygon intersect
@@ -1821,18 +1821,18 @@ public class Technology extends ElectricObject
 			{
 				Point2D thisPt = new Point2D.Double(points[0].getX(), points[0].getY());
 				Point2D nextPt = new Point2D.Double(points[1].getX(), points[1].getY());
-				int angle = EMath.figureAngle(thisPt, nextPt);
+				int angle = DBMath.figureAngle(thisPt, nextPt);
 				int ang = (angle+1800) % 3600;
-				thisPt.setLocation(thisPt.getX() + EMath.cos(ang) * polyExtend + xOff,
-					thisPt.getY() + EMath.sin(ang) * polyExtend + yOff);
+				thisPt.setLocation(thisPt.getX() + DBMath.cos(ang) * polyExtend + xOff,
+					thisPt.getY() + DBMath.sin(ang) * polyExtend + yOff);
 
 				ang = (angle+LEFTANGLE) % 3600;
-				Point2D end1 = new Point2D.Double(thisPt.getX() + EMath.cos(ang) * (defWid/2-polyInset),
-					thisPt.getY() + EMath.sin(ang) * (defWid/2-polyInset));
+				Point2D end1 = new Point2D.Double(thisPt.getX() + DBMath.cos(ang) * (defWid/2-polyInset),
+					thisPt.getY() + DBMath.sin(ang) * (defWid/2-polyInset));
 
 				ang = (angle+RIGHTANGLE) % 3600;
-				Point2D end2 = new Point2D.Double(thisPt.getX() + EMath.cos(ang) * (defWid/2-polyInset),
-					thisPt.getY() + EMath.sin(ang) * (defWid/2-polyInset));
+				Point2D end2 = new Point2D.Double(thisPt.getX() + DBMath.cos(ang) * (defWid/2-polyInset),
+					thisPt.getY() + DBMath.sin(ang) * (defWid/2-polyInset));
 
 				Point2D [] portPoints = new Point2D.Double[2];
 				portPoints[0] = end1;
@@ -1846,18 +1846,18 @@ public class Technology extends ElectricObject
 			{
 				Point2D thisPt = new Point2D.Double(points[total-1].getX(), points[total-1].getY());
 				Point2D nextPt = new Point2D.Double(points[total-2].getX(), points[total-2].getY());
-				int angle = EMath.figureAngle(thisPt, nextPt);
+				int angle = DBMath.figureAngle(thisPt, nextPt);
 				int ang = (angle+1800) % 3600;
-				thisPt.setLocation(thisPt.getX() + EMath.cos(ang) * polyExtend + xOff,
-					thisPt.getY() + EMath.sin(ang) * polyExtend + yOff);
+				thisPt.setLocation(thisPt.getX() + DBMath.cos(ang) * polyExtend + xOff,
+					thisPt.getY() + DBMath.sin(ang) * polyExtend + yOff);
 
 				ang = (angle+LEFTANGLE) % 3600;
-				Point2D end1 = new Point2D.Double(thisPt.getX() + EMath.cos(ang) * (defWid/2-polyInset),
-					thisPt.getY() + EMath.sin(ang) * (defWid/2-polyInset));
+				Point2D end1 = new Point2D.Double(thisPt.getX() + DBMath.cos(ang) * (defWid/2-polyInset),
+					thisPt.getY() + DBMath.sin(ang) * (defWid/2-polyInset));
 
 				ang = (angle+RIGHTANGLE) % 3600;
-				Point2D end2 = new Point2D.Double(thisPt.getX() + EMath.cos(ang) * (defWid/2-polyInset),
-					thisPt.getY() + EMath.sin(ang) * (defWid/2-polyInset));
+				Point2D end2 = new Point2D.Double(thisPt.getX() + DBMath.cos(ang) * (defWid/2-polyInset),
+					thisPt.getY() + DBMath.sin(ang) * (defWid/2-polyInset));
 
 				Point2D [] portPoints = new Point2D.Double[2];
 				portPoints[0] = end1;
@@ -1886,27 +1886,27 @@ public class Technology extends ElectricObject
 				int thisIndex = nextIndex-1;
 				Point2D thisPt = new Point2D.Double(points[thisIndex].getX() + xOff, points[thisIndex].getY() + yOff);
 				Point2D nextPt = new Point2D.Double(points[nextIndex].getX() + xOff, points[nextIndex].getY() + yOff);
-				int angle = EMath.figureAngle(thisPt, nextPt);
+				int angle = DBMath.figureAngle(thisPt, nextPt);
 
 				// determine the points
 				if (thisIndex == 0)
 				{
 					// extend "this" 0 degrees forward
-					thisPt.setLocation(thisPt.getX() + EMath.cos(angle) * diffInset,
-						thisPt.getY() + EMath.sin(angle) * diffInset);
+					thisPt.setLocation(thisPt.getX() + DBMath.cos(angle) * diffInset,
+						thisPt.getY() + DBMath.sin(angle) * diffInset);
 				}
 				if (nextIndex == total-1)
 				{
 					// extend "next" 180 degrees back
 					int backAng = (angle+1800) % 3600;
-					nextPt.setLocation(nextPt.getX() + EMath.cos(backAng) * diffInset,
-						nextPt.getY() + EMath.sin(backAng) * diffInset);
+					nextPt.setLocation(nextPt.getX() + DBMath.cos(backAng) * diffInset,
+						nextPt.getY() + DBMath.sin(backAng) * diffInset);
 				}
 
 				// compute endpoints of line parallel to center line
 				int ang = (angle+LEFTANGLE) % 3600;
-				double sine = EMath.sin(ang);
-				double cosine = EMath.cos(ang);
+				double sine = DBMath.sin(ang);
+				double cosine = DBMath.cos(ang);
 				thisPt.setLocation(thisPt.getX() + cosine * (defWid/2+diffExtend),
 					thisPt.getY() + sine * (defWid/2+diffExtend));
 				nextPt.setLocation(nextPt.getX() + cosine * (defWid/2+diffExtend),
@@ -1915,7 +1915,7 @@ public class Technology extends ElectricObject
 				if (thisIndex != 0)
 				{
 					// compute intersection of this and previous line
-					thisPt = EMath.intersect(lastPoint, lastAngle, thisPt, angle);
+					thisPt = DBMath.intersect(lastPoint, lastAngle, thisPt, angle);
 				}
 				portPoints[thisIndex] = thisPt;
 				lastPoint = thisPt;

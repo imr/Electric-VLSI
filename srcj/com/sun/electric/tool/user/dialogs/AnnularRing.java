@@ -24,7 +24,7 @@
 
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -155,16 +155,16 @@ public class AnnularRing extends EDialog
 				for(int i=0; i<=lastSegments; i++)
 				{
 					int p = degrees * i / lastSegments;
-					double x = lastInner * EMath.cos(p);
-					double y = lastInner * EMath.sin(p);
+					double x = lastInner * DBMath.cos(p);
+					double y = lastInner * DBMath.sin(p);
 					points[l++] = new Point2D.Double(x, y);
 				}
 			}
 			for(int i=lastSegments; i>=0; i--)
 			{
 				int p = degrees*i/lastSegments;
-				double x = lastOuter * EMath.cos(p);
-				double y = lastOuter * EMath.sin(p);
+				double x = lastOuter * DBMath.cos(p);
+				double y = lastOuter * DBMath.sin(p);
 				points[l++] = new Point2D.Double(x, y);
 			}
 			double lX = points[0].getX();

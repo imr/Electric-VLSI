@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -953,7 +953,7 @@ public final class ExportChanges
 		{
 			if (center.getX() == portList[i].loc.getX() && center.getY() == portList[i].loc.getY())
 				portList[i].angle = 0; else
-					portList[i].angle = -EMath.figureAngle(center, portList[i].loc);
+					portList[i].angle = -DBMath.figureAngle(center, portList[i].loc);
 		}
 
 		List portLabels = new ArrayList();

@@ -28,7 +28,7 @@ import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -1342,7 +1342,7 @@ public class CircuitChanges
 				double hYExt = hY + halfWidth;
 				Point2D tailPtAdj = new Point2D.Double(tailPt.getX(), tailPt.getY());
 				Point2D headPtAdj = new Point2D.Double(headPt.getX(), headPt.getY());
-				if (EMath.clipLine(tailPtAdj, headPtAdj, lXExt, hXExt, lYExt, hYExt)) continue;
+				if (DBMath.clipLine(tailPtAdj, headPtAdj, lXExt, hXExt, lYExt, hYExt)) continue;
 				if (tailPtAdj.distance(headPt) + headPtAdj.distance(tailPt) <
 					headPtAdj.distance(headPt) + tailPtAdj.distance(tailPt))
 				{
@@ -3767,15 +3767,15 @@ public class CircuitChanges
 							if (con.getArc() != ai) { oai = con.getArc();   break; }
 						}
 						if (oai == null) break;
-						if (EMath.doublesEqual(oai.getHead().getLocation().getX(), oai.getTail().getLocation().getX()))
+						if (DBMath.doublesEqual(oai.getHead().getLocation().getX(), oai.getTail().getLocation().getX()))
 						{
-							Point2D iPt = EMath.intersect(oai.getHead().getLocation(), 900,
+							Point2D iPt = DBMath.intersect(oai.getHead().getLocation(), 900,
 								new Point2D.Double(ai.getHead().getLocation().getX()+dX, ai.getHead().getLocation().getY()+dY), arcangle);
 							deltaXs[j] = iPt.getX() - ai.getConnection(j).getLocation().getX();
 							deltaYs[j] = iPt.getY() - ai.getConnection(j).getLocation().getY();
-						} else if (EMath.doublesEqual(oai.getHead().getLocation().getY(), oai.getTail().getLocation().getY()))
+						} else if (DBMath.doublesEqual(oai.getHead().getLocation().getY(), oai.getTail().getLocation().getY()))
 						{
-							Point2D iPt = EMath.intersect(oai.getHead().getLocation(), 0,
+							Point2D iPt = DBMath.intersect(oai.getHead().getLocation(), 0,
 								new Point2D.Double(ai.getHead().getLocation().getX()+dX, ai.getHead().getLocation().getY()+dY), arcangle);
 							deltaXs[j] = iPt.getX() - ai.getConnection(j).getLocation().getX();
 							deltaYs[j] = iPt.getY() - ai.getConnection(j).getLocation().getY();

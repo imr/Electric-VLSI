@@ -23,7 +23,7 @@
 */
 package com.sun.electric.tool.user.dialogs;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.TextUtils;
@@ -307,8 +307,8 @@ public class TextInfoPanel extends javax.swing.JPanel
         // handle changes to the offset
         double currentXOffset = TextUtils.atof(xOffset.getText());
         double currentYOffset = TextUtils.atof(yOffset.getText());
-        if (!EMath.doublesEqual(currentXOffset, initialXOffset) ||
-                !EMath.doublesEqual(currentYOffset, initialYOffset))
+        if (!DBMath.doublesEqual(currentXOffset, initialXOffset) ||
+                !DBMath.doublesEqual(currentYOffset, initialYOffset))
             changed = true;
 
         // handle changes to the anchor point

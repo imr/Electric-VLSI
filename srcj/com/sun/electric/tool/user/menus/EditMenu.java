@@ -37,7 +37,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.technology.PrimitiveArc;
@@ -865,7 +865,7 @@ public class EditMenu {
         private Point2D getInsertPoint(MouseEvent evt)
         {
             Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
-            Point2D insert = EMath.closestPointToSegment(ai.getHead().getLocation(), ai.getTail().getLocation(), mouseDB);
+            Point2D insert = DBMath.closestPointToSegment(ai.getHead().getLocation(), ai.getTail().getLocation(), mouseDB);
             EditWindow.gridAlign(insert);
             return insert;
         }

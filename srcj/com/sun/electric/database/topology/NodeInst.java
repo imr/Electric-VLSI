@@ -25,7 +25,7 @@ package com.sun.electric.database.topology;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -532,7 +532,7 @@ public class NodeInst extends Geometric implements Nodable
 			{
 				if (newPoint[0].getX() != newPoint[1].getX() || newPoint[0].getY() != newPoint[1].getY())
 				{
-					int ii = EMath.figureAngle(newPoint[0], newPoint[1]);
+					int ii = DBMath.figureAngle(newPoint[0], newPoint[1]);
 					int ang = ai.getAngle();
 					if ((ii%1800) != (ang%1800)) zigzag = true;
 				}
@@ -707,10 +707,10 @@ public class NodeInst extends Geometric implements Nodable
 		unLinkGeom(parent);
 
 		// make the change
-		center.setLocation(EMath.smooth(getAnchorCenterX() + dX), EMath.smooth(getAnchorCenterY() + dY));
+		center.setLocation(DBMath.smooth(getAnchorCenterX() + dX), DBMath.smooth(getAnchorCenterY() + dY));
 
-		sX = EMath.smooth(this.sX + dXSize);
-		sY = EMath.smooth(this.sY + dYSize);
+		sX = DBMath.smooth(this.sX + dXSize);
+		sY = DBMath.smooth(this.sY + dYSize);
 
 		angle = (angle +dRot) % 3600;
 
@@ -1803,8 +1803,8 @@ public class NodeInst extends Geometric implements Nodable
 		{
 			Point2D zero = new Point2D.Double(0, 0);
 			if ((delta[0].getX() != 0 || delta[0].getY() != 0) && (delta[1].getX() != 0 || delta[1].getY() != 0) &&
-				EMath.figureAngle(zero, delta[0]) !=
-				EMath.figureAngle(delta[1], zero)) return false;
+				DBMath.figureAngle(zero, delta[0]) !=
+				DBMath.figureAngle(delta[1], zero)) return false;
 		}
 		if (reconAr[0].getVar(ArcInst.ARC_RADIUS) != null) return false;
 		if (reconAr[1].getVar(ArcInst.ARC_RADIUS) != null) return false;

@@ -24,8 +24,9 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.JNetwork;
@@ -346,7 +347,7 @@ public class Quick
 
 		// now search for DRC exclusion areas
 		exclusionList.clear();
-		accumulateExclusion(cell, EMath.MATID);
+		accumulateExclusion(cell, DBMath.MATID);
 
  		Rectangle2D bounds = null;
 		if (justArea)
@@ -447,7 +448,7 @@ public class Quick
 				trans.preConcatenate(xTrnI);
 				subBounds = new Rectangle2D.Double();
 				subBounds.setRect(bounds);
-				EMath.transformRect(subBounds, trans);
+				DBMath.transformRect(subBounds, trans);
 			}
 
 			CheckProto cp = getCheckProto((Cell)np);
@@ -659,7 +660,7 @@ public class Quick
 			if (layer.isNonElectrical()) continue;
 			int layerNum = layer.getIndex();
 			int netNumber = netNumbers[globalIndex].intValue();
-			boolean ret = badBox(poly, layer, netNumber, tech, ai, EMath.MATID, ai.getParent(), globalIndex);
+			boolean ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex);
 			if (ret)
 			{
 				if (onlyFirstError) return true;
@@ -763,7 +764,7 @@ public class Quick
 					AffineTransform rTransI = ni.rotateIn();
 					AffineTransform tTransI = ni.translateIn();
 					rTransI.preConcatenate(tTransI);
-					EMath.transformRect(subBounds, rTransI);
+					DBMath.transformRect(subBounds, rTransI);
 
 					AffineTransform subUpTrans = ni.translateOut();
 					AffineTransform rTrans = ni.rotateOut();
@@ -857,7 +858,7 @@ public class Quick
 		AffineTransform downTrans = oNi.rotateIn();
 		AffineTransform tTransI = oNi.translateIn();
 		downTrans.preConcatenate(tTransI);
-		EMath.transformRect(bounds, downTrans);
+		DBMath.transformRect(bounds, downTrans);
 		double minSize = poly.getMinSize();
 
 		AffineTransform upTrans = oNi.translateOut();
@@ -918,7 +919,7 @@ public class Quick
 		bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
 		return badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex,
 			bounds, cell, globalIndex,
-			cell, globalIndex, EMath.MATID, minSize, baseMulti, true);
+			cell, globalIndex, DBMath.MATID, minSize, baseMulti, true);
 	}
 
 	/**
@@ -943,7 +944,7 @@ public class Quick
 	{
 		Rectangle2D rBound = new Rectangle2D.Double();
 		rBound.setRect(bounds);
-		EMath.transformRect(rBound, topTrans);
+		DBMath.transformRect(rBound, topTrans);
 		Netlist netlist = getCheckProto(cell).netlist;
 		int count = 0;
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
@@ -964,7 +965,7 @@ public class Quick
 					rTransI.preConcatenate(tTransI);
 					Rectangle2D subBound = new Rectangle2D.Double();
 					subBound.setRect(bounds);
-					EMath.transformRect(subBound, rTransI);
+					DBMath.transformRect(subBound, rTransI);
 
 					CheckInst ci = (CheckInst)checkInsts.get(ni);
 					int localIndex = cellGlobalIndex * ci.multiplier + ci.localIndex + ci.offset;
@@ -1519,7 +1520,7 @@ public class Quick
 		boolean baseMulti = false;
 		Technology tech = null;
 		Poly [] nodeInstPolyList = null;
-		AffineTransform trans = EMath.MATID;
+		AffineTransform trans = DBMath.MATID;
 		if (geom instanceof NodeInst)
 		{
 			// get all of the polygons on this node
@@ -1576,7 +1577,7 @@ public class Quick
 			AffineTransform tempTrans = ni.rotateIn();
 			AffineTransform tTransI = ni.translateIn();
 			tempTrans.preConcatenate(tTransI);
-			EMath.transformRect(subBounds, tempTrans);
+			DBMath.transformRect(subBounds, tempTrans);
 
 			AffineTransform subTrans = ni.translateOut();
 			AffineTransform rTrans = ni.rotateOut();
@@ -1887,11 +1888,11 @@ public class Quick
 			pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
 			Rectangle2D newBounds = new Rectangle2D.Double(bounds.getMinX()-TINYDELTA, bounds.getMinY()-TINYDELTA,
 				bounds.getWidth()+TINYDELTA*2, bounds.getHeight()+TINYDELTA*2);
-			if (lookForLayer(cell, layer, EMath.MATID, newBounds,
+			if (lookForLayer(cell, layer, DBMath.MATID, newBounds,
 				left1, left2, left3, pointsFound)) return false;
 
 			pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-			if (lookForLayer(cell, layer, EMath.MATID, newBounds,
+			if (lookForLayer(cell, layer, DBMath.MATID, newBounds,
 				right1, right2, right3, pointsFound)) return false;
 
 			reportError(MINWIDTHERROR, tech, null, cell, minWidth, actual, minWidthRule.rule,
@@ -1926,7 +1927,7 @@ public class Quick
 			Point2D to = points[i];
 			if (from.equals(to)) continue;
 			
-			double ang = EMath.figureAngleRadians(from, to);
+			double ang = DBMath.figureAngleRadians(from, to);
 			Point2D center = new Point2D.Double((from.getX() + to.getX()) / 2, (from.getY() + to.getY()) / 2);
 			double perpang = ang + Math.PI / 2;
 			for(int j=0; j<count; j++)
@@ -1937,24 +1938,24 @@ public class Quick
 					oFrom = points[j-1];
 				Point2D oTo = points[j];
 				if (oFrom.equals(oTo)) continue;
-				double oAng = EMath.figureAngleRadians(oFrom, oTo);
+				double oAng = DBMath.figureAngleRadians(oFrom, oTo);
 				double rAng = ang;   while (rAng > Math.PI) rAng -= Math.PI;
 				double rOAng = oAng;   while (rOAng > Math.PI) rOAng -= Math.PI;
-				if (EMath.doublesEqual(oAng, rOAng))
+				if (DBMath.doublesEqual(oAng, rOAng))
 				{
 					// lines are parallel: see if they are colinear
-					if (EMath.isOnLine(from, to, oFrom)) continue;
-					if (EMath.isOnLine(from, to, oTo)) continue;
-					if (EMath.isOnLine(oFrom, oTo, from)) continue;
-					if (EMath.isOnLine(oFrom, oTo, to)) continue;
+					if (DBMath.isOnLine(from, to, oFrom)) continue;
+					if (DBMath.isOnLine(from, to, oTo)) continue;
+					if (DBMath.isOnLine(oFrom, oTo, from)) continue;
+					if (DBMath.isOnLine(oFrom, oTo, to)) continue;
 				}
-				Point2D inter = EMath.intersectRadians(center, perpang, oFrom, oAng);
+				Point2D inter = DBMath.intersectRadians(center, perpang, oFrom, oAng);
 				if (inter == null) continue;
 				if (inter.getX() < Math.min(oFrom.getX(), oTo.getX()) || inter.getX() > Math.max(oFrom.getX(), oTo.getX())) continue;
 				if (inter.getY() < Math.min(oFrom.getY(), oTo.getY()) || inter.getY() > Math.max(oFrom.getY(), oTo.getY())) continue;
 				double fdx = center.getX() - inter.getX();
 				double fdy = center.getY() - inter.getY();
-				actual = EMath.smooth(Math.sqrt(fdx*fdx + fdy*fdy));
+				actual = DBMath.smooth(Math.sqrt(fdx*fdx + fdy*fdy));
 
 				// becuase this is done in integer, accuracy may suffer
 //				actual += 2;
@@ -2150,7 +2151,7 @@ public class Quick
 		// search the cell for geometry that fills the notch
 		boolean [] pointsFound = new boolean[3];
 		pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-		boolean allFound = lookForLayer(cell, layer, EMath.MATID, bounds,
+		boolean allFound = lookForLayer(cell, layer, DBMath.MATID, bounds,
 			pt1, pt2, pt3, pointsFound);
 		if (needBoth)
 		{
@@ -2186,7 +2187,7 @@ public class Quick
 					rotI.preConcatenate(transI);
 					Rectangle2D newBounds = new Rectangle2D.Double();
 					newBounds.setRect(bounds);
-					EMath.transformRect(newBounds, rotI);
+					DBMath.transformRect(newBounds, rotI);
 
 					// compute new matrix for sub-cell examination
 					AffineTransform trans = ni.translateOut();
@@ -2262,7 +2263,7 @@ public class Quick
 		Rectangle2D bounds1 = poly1.getBounds2D();
 		Rectangle2D bounds2 = poly2.getBounds2D();
 		Rectangle2D.union(bounds1, bounds2, bounds1);
-		return activeOnTransistorRecurse(bounds1, net1, net2, cell, globalIndex, EMath.MATID);
+		return activeOnTransistorRecurse(bounds1, net1, net2, cell, globalIndex, DBMath.MATID);
 	}
 
 	private boolean activeOnTransistorRecurse(Rectangle2D bounds,
@@ -2283,7 +2284,7 @@ public class Quick
 //				transmult(rTransI, tTransI, temptrans);
 				Rectangle2D subBounds = new Rectangle2D.Double();
 				subBounds.setRect(bounds);
-				EMath.transformRect(subBounds, rTransI);
+				DBMath.transformRect(subBounds, rTransI);
 
 				CheckInst ci = (CheckInst)checkInsts.get(ni);
 				int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;

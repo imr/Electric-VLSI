@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
@@ -99,8 +99,8 @@ public class ThreeDTab extends PreferencePanel
 			Layer layer = (Layer)it.next();
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 			threeDLayerModel.addElement(layer.getName());
-			threeDThicknessMap.put(layer, new EMath.MutableDouble(layer.getThickness()));
-			threeDHeightMap.put(layer, new EMath.MutableDouble(layer.getHeight()));
+			threeDThicknessMap.put(layer, new GenMath.MutableDouble(layer.getThickness()));
+			threeDHeightMap.put(layer, new GenMath.MutableDouble(layer.getHeight()));
 		}
 		threeDLayerList.setSelectedIndex(0);
 		threeDHeight.getDocument().addDocumentListener(new ThreeDInfoDocumentListener(this));
@@ -139,8 +139,8 @@ public class ThreeDTab extends PreferencePanel
 			{
 				Layer layer = (Layer)it.next();
 				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
-				EMath.MutableDouble thickness = (EMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
-				EMath.MutableDouble height = (EMath.MutableDouble)dialog.threeDHeightMap.get(layer);
+				GenMath.MutableDouble thickness = (GenMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
+				GenMath.MutableDouble height = (GenMath.MutableDouble)dialog.threeDHeightMap.get(layer);
 				if (first)
 				{
 					lowHeight = height.doubleValue() - thickness.doubleValue()/2;
@@ -180,8 +180,8 @@ public class ThreeDTab extends PreferencePanel
 				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 				if (layer == selectedLayer) g.setColor(Color.RED); else
 					g.setColor(Color.BLACK);
-				EMath.MutableDouble thickness = (EMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
-				EMath.MutableDouble height = (EMath.MutableDouble)dialog.threeDHeightMap.get(layer);
+				GenMath.MutableDouble thickness = (GenMath.MutableDouble)dialog.threeDThicknessMap.get(layer);
+				GenMath.MutableDouble height = (GenMath.MutableDouble)dialog.threeDHeightMap.get(layer);
 				int yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
 				int yHeight = (int)(thickness.doubleValue() / (highHeight - lowHeight) * dim.height + 0.5);
 				if (yHeight == 0)
@@ -218,7 +218,7 @@ public class ThreeDTab extends PreferencePanel
 			Dimension dim = getSize();
 			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
 			Layer selectedLayer = dialog.curTech.findLayer(layerName);
-			EMath.MutableDouble height = (EMath.MutableDouble)dialog.threeDHeightMap.get(selectedLayer);
+			GenMath.MutableDouble height = (GenMath.MutableDouble)dialog.threeDHeightMap.get(selectedLayer);
 			int yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
 			if (Math.abs(yValue - evt.getY()) > 5)
 			{
@@ -227,7 +227,7 @@ public class ThreeDTab extends PreferencePanel
 				{
 					Layer layer = (Layer)it.next();
 					if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
-					height = (EMath.MutableDouble)dialog.threeDHeightMap.get(layer);
+					height = (GenMath.MutableDouble)dialog.threeDHeightMap.get(layer);
 					yValue = dim.height - (int)((height.doubleValue() - lowHeight) / (highHeight - lowHeight) * dim.height + 0.5);
 					int dist = Math.abs(yValue - evt.getY());
 					if (dist < bestDist)
@@ -252,7 +252,7 @@ public class ThreeDTab extends PreferencePanel
 			Dimension dim = getSize();
 			String layerName = (String)dialog.threeDLayerList.getSelectedValue();
 			Layer layer = dialog.curTech.findLayer(layerName);
-			EMath.MutableDouble height = (EMath.MutableDouble)threeDHeightMap.get(layer);
+			GenMath.MutableDouble height = (GenMath.MutableDouble)threeDHeightMap.get(layer);
 			double newHeight = (double)(dim.height - evt.getY()) / dim.height * (highHeight - lowHeight) + lowHeight;
 			if (height.doubleValue() != newHeight)
 			{
@@ -283,8 +283,8 @@ public class ThreeDTab extends PreferencePanel
 		String layerName = (String)threeDLayerList.getSelectedValue();
 		Layer layer = curTech.findLayer(layerName);
 		if (layer == null) return;
-		EMath.MutableDouble thickness = (EMath.MutableDouble)threeDThicknessMap.get(layer);
-		EMath.MutableDouble height = (EMath.MutableDouble)threeDHeightMap.get(layer);
+		GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
+		GenMath.MutableDouble height = (GenMath.MutableDouble)threeDHeightMap.get(layer);
 		thickness.setValue(TextUtils.atof(threeDThickness.getText()));
 		height.setValue(TextUtils.atof(threeDHeight.getText()));
 		threeDSideView.repaint();
@@ -296,8 +296,8 @@ public class ThreeDTab extends PreferencePanel
 		String layerName = (String)threeDLayerList.getSelectedValue();
 		Layer layer = curTech.findLayer(layerName);
 		if (layer == null) return;
-		EMath.MutableDouble thickness = (EMath.MutableDouble)threeDThicknessMap.get(layer);
-		EMath.MutableDouble height = (EMath.MutableDouble)threeDHeightMap.get(layer);
+		GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
+		GenMath.MutableDouble height = (GenMath.MutableDouble)threeDHeightMap.get(layer);
 		threeDHeight.setText(TextUtils.formatDouble(height.doubleValue()));
 		threeDThickness.setText(TextUtils.formatDouble(thickness.doubleValue()));
 		initial3DTextChanging = false;
@@ -314,8 +314,8 @@ public class ThreeDTab extends PreferencePanel
 		{
 			Layer layer = (Layer)it.next();
 			if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
-			EMath.MutableDouble thickness = (EMath.MutableDouble)threeDThicknessMap.get(layer);
-			EMath.MutableDouble height = (EMath.MutableDouble)threeDHeightMap.get(layer);
+			GenMath.MutableDouble thickness = (GenMath.MutableDouble)threeDThicknessMap.get(layer);
+			GenMath.MutableDouble height = (GenMath.MutableDouble)threeDHeightMap.get(layer);
 			if (thickness.doubleValue() != layer.getThickness())
 				layer.setThickness(thickness.doubleValue());
 			if (height.doubleValue() != layer.getHeight())

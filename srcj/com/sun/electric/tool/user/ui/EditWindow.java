@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
@@ -665,7 +665,7 @@ public class EditWindow extends JPanel
 	{
 		offscreen.clearImage(false);
 		setScale(scale);
-		offscreen.drawNode(ni, EMath.MATID, true, null);
+		offscreen.drawNode(ni, DBMath.MATID, true, null);
 		return offscreen.composite();
 	}
 
@@ -677,7 +677,7 @@ public class EditWindow extends JPanel
 	{
 		offscreen.clearImage(false);
 		setScale(scale);
-		offscreen.drawArc(ai, EMath.MATID);
+		offscreen.drawArc(ai, DBMath.MATID);
 		return offscreen.composite();
 	}
 
@@ -1074,16 +1074,16 @@ public class EditWindow extends JPanel
 		double scaleY = sz.height / (lY - hY);
 
 		// initial grid location
-		double x1 = EMath.toNearest(lX, spacingX);
-		double y1 = EMath.toNearest(lY, spacingY);
+		double x1 = DBMath.toNearest(lX, spacingX);
+		double y1 = DBMath.toNearest(lY, spacingY);
 
 		// adjust grid placement according to scale
 		boolean allBoldDots = false;
 		if (spacingX * scaleX < 5 || spacingY * scaleY < 5)
 		{
 			// normal grid is too fine: only show the "bold dots"
-			x1 = EMath.toNearest(x1, boldSpacingX);   spacingX = boldSpacingX;
-			y1 = EMath.toNearest(y1, boldSpacingY);   spacingY = boldSpacingY;
+			x1 = DBMath.toNearest(x1, boldSpacingX);   spacingX = boldSpacingX;
+			y1 = DBMath.toNearest(y1, boldSpacingY);   spacingY = boldSpacingY;
 
 			// if even the bold dots are too close, don't draw a grid
 			if (spacingX * scaleX < 10 || spacingY * scaleY < 10) return;

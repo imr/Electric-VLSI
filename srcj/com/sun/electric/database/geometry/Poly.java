@@ -577,12 +577,12 @@ public class Poly implements Shape
 			Rectangle2D bounds = getBox();
 			if (bounds != null)
 			{
-                //if (EMath.pointInRect(pt, bounds)) return true;
-                if (EMath.pointCloseToWithinRect(pt, bounds)) return true;
+                //if (DBMath.pointInRect(pt, bounds)) return true;
+                if (DBMath.pointInRect(pt, bounds)) return true;
                 // special case: single point, take care of double precision error
                 if (bounds.getWidth() == 0 && bounds.getHeight() == 0) {
-                    if (EMath.doublesClose(pt.getX(), bounds.getX()) &&
-                        EMath.doublesClose(pt.getY(), bounds.getY())) return true;
+                    if (DBMath.doublesClose(pt.getX(), bounds.getX()) &&
+                        DBMath.doublesClose(pt.getY(), bounds.getY())) return true;
                 }
 				return false;
 			}
@@ -591,14 +591,14 @@ public class Poly implements Shape
 			double ang = 0;
 			Point2D lastPoint = points[points.length-1];
             //if (pt.equals(lastPoint)) return true;
-            if (EMath.pointsClose(pt, lastPoint)) return true;
-			int lastp = EMath.figureAngle(pt, lastPoint);
+            if (DBMath.pointsClose(pt, lastPoint)) return true;
+			int lastp = DBMath.figureAngle(pt, lastPoint);
 			for(int i=0; i<points.length; i++)
 			{
 				Point2D thisPoint = points[i];
 				//if (pt.equals(thisPoint)) return true;
-                if (EMath.pointsClose(pt, lastPoint)) return true;
-				int thisp = EMath.figureAngle(pt, thisPoint);
+                if (DBMath.pointsClose(pt, lastPoint)) return true;
+				int thisp = DBMath.figureAngle(pt, thisPoint);
 				int tang = lastp - thisp;
 				if (tang < -1800) tang += 3600;
 				if (tang > 1800) tang -= 3600;
@@ -611,7 +611,7 @@ public class Poly implements Shape
 
 		if (style == Type.CROSS || style == Type.BIGCROSS)
 		{
-            if (EMath.doublesClose(getCenterX(), pt.getX()) && EMath.doublesClose(getCenterY(), pt.getY())) return true;
+            if (DBMath.doublesClose(getCenterX(), pt.getX()) && DBMath.doublesClose(getCenterY(), pt.getY())) return true;
 			//if (getCenterX() == pt.getX() && getCenterY() == pt.getY()) return true;
 			return false;
 		}
@@ -623,17 +623,17 @@ public class Poly implements Shape
 			//for(int i=0; i<points.length; i++)
 			//	if (pt.equals(points[i])) return true;
             for(int i=0; i<points.length; i++)
-                if (EMath.pointsClose(pt, points[i])) return true;
+                if (DBMath.pointsClose(pt, points[i])) return true;
 
 			// see if the point is on one of the edges
 			if (style == Type.VECTORS)
 			{
 				for(int i=0; i<points.length; i += 2)
-					if (EMath.isCloseToLine(points[i], points[i+1], pt)) return true;
+					if (DBMath.isOnLine(points[i], points[i+1], pt)) return true;
 			} else
 			{
 				for(int i=1; i<points.length; i++)
-					if (EMath.isCloseToLine(points[i-1], points[i], pt)) return true;
+					if (DBMath.isOnLine(points[i-1], points[i], pt)) return true;
 			}
 			return false;
 		}
@@ -649,9 +649,9 @@ public class Poly implements Shape
 		if (style == Type.CIRCLEARC || style == Type.THICKCIRCLEARC)
 		{
 			// first see if the point is at the proper angle from the center of the arc
-			int ang = EMath.figureAngle(points[0], pt);
-			int endangle = EMath.figureAngle(points[0], points[1]);
-			int startangle = EMath.figureAngle(points[0], points[2]);
+			int ang = DBMath.figureAngle(points[0], pt);
+			int endangle = DBMath.figureAngle(points[0], points[1]);
+			int startangle = DBMath.figureAngle(points[0], points[2]);
 			double angrange;
 			if (endangle > startangle)
 			{
@@ -683,7 +683,7 @@ public class Poly implements Shape
 				}
 			}
 			//if (dist == wantdist) return true;
-            if (EMath.doublesClose(dist, wantdist)) return true;
+            if (DBMath.doublesClose(dist, wantdist)) return true;
 			return false;
 		}
 
@@ -704,15 +704,15 @@ public class Poly implements Shape
 			double dx = Math.abs(ctr.getX() - points[1].getX());
 			double dy = Math.abs(ctr.getY() - points[1].getY());
 			double rad = Math.max(dx, dy);
-            if (!EMath.pointCloseToWithinRect(new Point2D.Double(ctr.getX()+rad,ctr.getY()+rad), bounds)) return false;
-            if (!EMath.pointCloseToWithinRect(new Point2D.Double(ctr.getX()-rad,ctr.getY()-rad), bounds)) return false;
+            if (!DBMath.pointInRect(new Point2D.Double(ctr.getX()+rad,ctr.getY()+rad), bounds)) return false;
+            if (!DBMath.pointInRect(new Point2D.Double(ctr.getX()-rad,ctr.getY()-rad), bounds)) return false;
 			//if (!bounds.contains(new Point2D.Double(ctr.getX()+rad,ctr.getY()+rad))) return false;
 			//if (!bounds.contains(new Point2D.Double(ctr.getX()-rad,ctr.getY()-rad))) return false;
 			return true;
 		}
 		for(int i=0; i<points.length; i++)
 		{
-            if (!EMath.pointCloseToWithinRect(points[i], bounds)) return false;
+            if (!DBMath.pointInRect(points[i], bounds)) return false;
 			//if (!bounds.contains(points[i])) return false;
 		}
 		return true;
@@ -1122,7 +1122,7 @@ public class Poly implements Shape
 					Point2D thisPt = points[i];
 
 					// compute distance of close point to "otherPt"
-					double dist = EMath.distToLine(lastPt, thisPt, otherPt);
+					double dist = DBMath.distToLine(lastPt, thisPt, otherPt);
 					if (dist < bestDist) bestDist = dist;
 				}
 				return bestDist;
@@ -1146,7 +1146,7 @@ public class Poly implements Shape
 					Point2D thisPt = points[i];
 
 					// compute distance of close point to "otherPt"
-					double dist = EMath.distToLine(lastPt, thisPt, otherPt);
+					double dist = DBMath.distToLine(lastPt, thisPt, otherPt);
 					if (dist < bestDist) bestDist = dist;
 				}
 				return bestDist;
@@ -1169,7 +1169,7 @@ public class Poly implements Shape
 					Point2D thisPt = points[i+1];
 
 					// compute distance of close point to "otherPt"
-					double dist = EMath.distToLine(lastPt, thisPt, otherPt);
+					double dist = DBMath.distToLine(lastPt, thisPt, otherPt);
 					if (dist < bestDist) bestDist = dist;
 				}
 				return bestDist;
@@ -1201,9 +1201,9 @@ public class Poly implements Shape
 				double dist = Math.min(sdist, edist);
 
 				// see if the point is in the segment of the arc
-				int pang = EMath.figureAngle(points[0], otherPt);
-				int sang = EMath.figureAngle(points[0], points[1]);
-				int eang = EMath.figureAngle(points[0], points[2]);
+				int pang = DBMath.figureAngle(points[0], otherPt);
+				int sang = DBMath.figureAngle(points[0], points[1]);
+				int eang = DBMath.figureAngle(points[0], points[2]);
 				if (eang > sang)
 				{
 					if (pang < eang && pang > sang) return dist;
@@ -1296,7 +1296,7 @@ public class Poly implements Shape
 				int lastI;
 				if (i == 0) lastI = points.length-1; else
 					lastI = i-1;
-				Point2D pc = EMath.closestPointToSegment(points[lastI], points[i], pt);
+				Point2D pc = DBMath.closestPointToSegment(points[lastI], points[i], pt);
 				double dist = pc.distance(pt);
 				if (dist > bestDist) continue;
 				bestDist = dist;
@@ -1312,7 +1312,7 @@ public class Poly implements Shape
 			Point2D bestPoint = new Point2D.Double();
 			for(int i=1; i<points.length; i++)
 			{
-				Point2D pc = EMath.closestPointToSegment(points[i-1], points[i], pt);
+				Point2D pc = DBMath.closestPointToSegment(points[i-1], points[i], pt);
 				double dist = pc.distance(pt);
 				if (dist > bestDist) continue;
 				bestDist = dist;
@@ -1327,7 +1327,7 @@ public class Poly implements Shape
 			Point2D bestPoint = new Point2D.Double();
 			for(int i=0; i<points.length; i += 2)
 			{
-				Point2D pc = EMath.closestPointToSegment(points[i], points[i+1], pt);
+				Point2D pc = DBMath.closestPointToSegment(points[i], points[i+1], pt);
 				double dist = pc.distance(pt);
 				if (dist > bestDist) continue;
 				bestDist = dist;
@@ -1510,8 +1510,8 @@ public class Poly implements Shape
 					if (Math.min(p2.getY(),t2.getY()) > p1.getY() || Math.max(p2.getY(),t2.getY()) < p1.getY()) continue;
 					return true;
 				}
-				int ang = EMath.figureAngle(p1, t1);
-				Point2D inter = EMath.intersect(p2, 900, p1, ang);
+				int ang = DBMath.figureAngle(p1, t1);
+				Point2D inter = DBMath.intersect(p2, 900, p1, ang);
 				if (inter == null) continue;
 				if (inter.getX() != p2.getX() || inter.getY() < Math.min(p2.getY(),t2.getY()) || inter.getY() > Math.max(p2.getY(),t2.getY())) continue;
 				return true;
@@ -1534,8 +1534,8 @@ public class Poly implements Shape
 					if (Math.min(p2.getX(),t2.getX()) > p1.getX() || Math.max(p2.getX(),t2.getX()) < p1.getX()) continue;
 					return true;
 				}
-				int ang = EMath.figureAngle(p1, t1);
-				Point2D inter = EMath.intersect(p2, 0, p1, ang);
+				int ang = DBMath.figureAngle(p1, t1);
+				Point2D inter = DBMath.intersect(p2, 0, p1, ang);
 				if (inter == null) continue;
 				if (inter.getY() != p2.getY() || inter.getX() < Math.min(p2.getX(),t2.getX()) || inter.getX() > Math.max(p2.getX(),t2.getX())) continue;
 				return true;
@@ -1546,9 +1546,9 @@ public class Poly implements Shape
 				Math.min(p1.getY(),t1.getY()) > Math.max(p2.getY(),t2.getY()) || Math.max(p1.getY(),t1.getY()) < Math.min(p2.getY(),t2.getY())) continue;
 
 			// general case of line intersection
-			int ang1 = EMath.figureAngle(p1, t1);
-			int ang2 = EMath.figureAngle(p2, t2);
-			Point2D inter = EMath.intersect(p2, ang2, p1, ang1);
+			int ang1 = DBMath.figureAngle(p1, t1);
+			int ang2 = DBMath.figureAngle(p2, t2);
+			Point2D inter = DBMath.intersect(p2, ang2, p1, ang1);
 			if (inter == null) continue;
 			if (inter.getX() < Math.min(p2.getX(),t2.getX()) || inter.getX() > Math.max(p2.getX(),t2.getX()) ||
 				inter.getY() < Math.min(p2.getY(),t2.getY()) || inter.getY() > Math.max(p2.getY(),t2.getY()) ||

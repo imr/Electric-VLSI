@@ -24,7 +24,7 @@
 package com.sun.electric.database.constraint;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -700,8 +700,8 @@ public class Layout extends Constraints
 			// figure out the new location of this arcinst connection
 			Point2D src = new Point2D.Double(thisEnd.getLocation().getX()-ox, thisEnd.getLocation().getY()-oy);
 			trans.transform(src, newPts[thisEndIndex]);
-			newPts[thisEndIndex].setLocation(EMath.smooth(newPts[thisEndIndex].getX()),
-				EMath.smooth(newPts[thisEndIndex].getY()));
+			newPts[thisEndIndex].setLocation(DBMath.smooth(newPts[thisEndIndex].getX()),
+				DBMath.smooth(newPts[thisEndIndex].getY()));
 
 			// make sure the arc end is still in the port
 			Poly poly = thisEnd.getPortInst().getPoly();
@@ -763,10 +763,10 @@ public class Layout extends Constraints
 				double dy = newPts[thisEndIndex].getY() - thisEnd.getLocation().getY();
 				double odx = newPts[thatEndIndex].getX() - thatEnd.getLocation().getX();
 				double ody = newPts[thatEndIndex].getY() - thatEnd.getLocation().getY();
-				if (EMath.doublesEqual(thisEnd.getLocation().getX(), thatEnd.getLocation().getX()))
+				if (DBMath.doublesEqual(thisEnd.getLocation().getX(), thatEnd.getLocation().getX()))
 				{
 					// null arcinst must not be explicitly horizontal
-					if (!EMath.doublesEqual(thisEnd.getLocation().getY(), thatEnd.getLocation().getY()) ||
+					if (!DBMath.doublesEqual(thisEnd.getLocation().getY(), thatEnd.getLocation().getY()) ||
 						ai.getAngle() == 900 || ai.getAngle() == 2700)
 					{
 						// vertical arcinst: see if it really moved in X
@@ -776,7 +776,7 @@ public class Layout extends Constraints
 						newPts[thatEndIndex].setLocation(newPts[thatEndIndex].getX() + dx-odx, newPts[thatEndIndex].getY());
 
 						// see if next nodeinst need not be moved
-						if (!EMath.doublesEqual(dx, odx) && ai.isSlidable() && ai.stillInPort(thatEnd, newPts[thatEndIndex], true))
+						if (!DBMath.doublesEqual(dx, odx) && ai.isSlidable() && ai.stillInPort(thatEnd, newPts[thatEndIndex], true))
 							dx = odx = 0;
 
 						// if other node already moved, don't move it any more
@@ -784,7 +784,7 @@ public class Layout extends Constraints
 
 						if (dx != odx)
 						{
-							double xAmount = EMath.smooth(dx-odx);
+							double xAmount = DBMath.smooth(dx-odx);
 							if (DEBUG) System.out.println("  Moving node "+ono.describe()+" by ("+xAmount+",0)");
 							if (alterNodeInst(ono, xAmount, 0, 0, 0, 0, true))
 								examineCell = true;
@@ -792,28 +792,28 @@ public class Layout extends Constraints
 						if (DEBUG) System.out.println("  Moving vertical arc so head=("+newPts[0].getX()+","+newPts[0].getY()+
 							") and tail=("+newPts[1].getX()+","+newPts[1].getY()+")");
 						doMoveArcInst(ai, newPts[0], newPts[1], 1);
-						if (!EMath.doublesEqual(dx, odx))
+						if (!DBMath.doublesEqual(dx, odx))
 							if (modNodeArcs(ono, 0, 0, 0, false, false)) examineCell = true;
 						continue;
 					}
 				}
-				if (EMath.doublesEqual(thisEnd.getLocation().getY(), thatEnd.getLocation().getY()))
+				if (DBMath.doublesEqual(thisEnd.getLocation().getY(), thatEnd.getLocation().getY()))
 				{
 					// horizontal arcinst: see if it really moved in Y
-					if (EMath.doublesEqual(dy, ody)) dy = ody = 0;
+					if (DBMath.doublesEqual(dy, ody)) dy = ody = 0;
 
 					// shrink horizontal, move vertical
 					newPts[thatEndIndex].setLocation(newPts[thatEndIndex].getX(), newPts[thatEndIndex].getY() + dy-ody);
 
 					// see if next nodeinst need not be moved
-					if (!EMath.doublesEqual(dy, ody) && ai.isSlidable() &&
+					if (!DBMath.doublesEqual(dy, ody) && ai.isSlidable() &&
 						ai.stillInPort(thatEnd, newPts[thatEndIndex], true))
 							dy = ody = 0;
 
 					// if other node already moved, don't move it any more
 					if (ono.getChangeClock() >= changeClock) dx = odx = 0;
 
-					if (!EMath.doublesEqual(dy, ody))
+					if (!DBMath.doublesEqual(dy, ody))
 					{
 						if (DEBUG) System.out.println("  Moving node "+ono.describe()+" by (0,"+(dy-ody)+")");
 						if (alterNodeInst(ono, 0, dy-ody, 0, 0, 0, true))
@@ -822,7 +822,7 @@ public class Layout extends Constraints
 					if (DEBUG) System.out.println("  Moving horizontal arc so head=("+newPts[0].getX()+","+newPts[0].getY()+
 						") and tail=("+newPts[1].getX()+","+newPts[1].getY()+")");
 					doMoveArcInst(ai, newPts[0], newPts[1], 1);
-					if (!EMath.doublesEqual(dy, ody))
+					if (!DBMath.doublesEqual(dy, ody))
 						if (modNodeArcs(ono, 0, 0, 0, false, false)) examineCell = true;
 					continue;
 				}
@@ -897,7 +897,7 @@ public class Layout extends Constraints
 		}
 
 		// compute intersection of arc "bestai" with new moved arc "ai"
-		Point2D inter = EMath.intersect(newPts[thisEndIndex], ai.getAngle(),
+		Point2D inter = DBMath.intersect(newPts[thisEndIndex], ai.getAngle(),
 			bestAI.getHead().getLocation(), bestAI.getAngle());
 		if (inter == null)
 		{
@@ -1025,7 +1025,7 @@ public class Layout extends Constraints
 			(ai.isRigid() && ai.getChangeClock() != changeClock-1) ||
 			ai.getChangeClock() == changeClock-2 ||
 			headPt.equals(tailPt) ||
-			(ai.getAngle() % 1800) == (EMath.figureAngle(tailPt, headPt) % 1800))
+			(ai.getAngle() % 1800) == (DBMath.figureAngle(tailPt, headPt) % 1800))
 		{
 			updateArc(ai, headPt, tailPt, arctyp);
 			return;
@@ -1047,7 +1047,7 @@ public class Layout extends Constraints
 
 		// replace it with three arcs and two nodes
 		NodeInst no1 = null, no2 = null;
-		if (EMath.doublesEqual(head.getLocation().getX(), tail.getLocation().getX()))
+		if (DBMath.doublesEqual(head.getLocation().getX(), tail.getLocation().getX()))
 		{
 			// arcinst was vertical
 			double oldyA = (tailPt.getY()+headPt.getY()) / 2;
@@ -1319,8 +1319,8 @@ public class Layout extends Constraints
 				double sX = ni.getXSize();
 				double sY = ni.getYSize();
 
-				double dSX = EMath.smooth(cellBounds.getWidth() - ni.getXSize());
-				double dSY = EMath.smooth(cellBounds.getHeight() - ni.getYSize());
+				double dSX = DBMath.smooth(cellBounds.getWidth() - ni.getXSize());
+				double dSY = DBMath.smooth(cellBounds.getHeight() - ni.getYSize());
 				if (ni.isMirroredAboutYAxis()) dSX = -dSX;
 				if (ni.isMirroredAboutXAxis()) dSY = -dSY;
 				if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;
@@ -1466,8 +1466,8 @@ public class Layout extends Constraints
 				double sX = ni.getXSize();
 				double sY = ni.getYSize();
 
-				double dSX = EMath.smooth(cellBounds.getWidth() - ni.getXSize());
-				double dSY = EMath.smooth(cellBounds.getHeight() - ni.getYSize());
+				double dSX = DBMath.smooth(cellBounds.getWidth() - ni.getXSize());
+				double dSY = DBMath.smooth(cellBounds.getHeight() - ni.getYSize());
 				if (ni.isMirroredAboutYAxis()) dSX = -dSX;
 				if (ni.isMirroredAboutXAxis()) dSY = -dSY;
 				if (alterNodeInst(ni, 0, 0, dSX, dSY, 0, true)) forcedLook = true;
