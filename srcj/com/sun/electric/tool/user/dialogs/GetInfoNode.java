@@ -468,26 +468,10 @@ public class GetInfoNode extends javax.swing.JDialog
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-		if (fun == NodeProto.Function.FLIPFLOP)
+		if (fun.isFlipFlop())
 		{
 			popupLabel.setText("Flip-flop type:");
-//			for(i=0; i<12; i++) newlang[i] = TRANSLATE(flipfloptype[i]);
-//			setPopup(DGIN_SPECIAL2, 12, newlang);
-//			switch (ni->userbits&FFTYPE)
-//			{
-//				case FFTYPERS: i = 0;   break;
-//				case FFTYPEJK: i = 1;   break;
-//				case FFTYPED:  i = 2;   break;
-//				case FFTYPET:  i = 3;   break;
-//			}
-//			switch (ni->userbits&FFCLOCK)
-//			{
-//				case FFCLOCKMS: i += 0;   break;
-//				case FFCLOCKP:  i += 4;   break;
-//				case FFCLOCKN:  i += 8;   break;
-//			}
-//			setPopupEntry(DGIN_SPECIAL2, i);
-//			popup.setEnabled(true);
+			popup.addItem(fun.getName());
 		}
 		if (np == Schematics.tech.globalNode)
 		{
@@ -852,9 +836,6 @@ public class GetInfoNode extends javax.swing.JDialog
 					dialog.initialTextField = currentTextField;
 					changed = true;
 				}
-			}
-			if (fun == NodeProto.Function.FLIPFLOP)
-			{
 			}
 			if (np == Schematics.tech.globalNode)
 			{

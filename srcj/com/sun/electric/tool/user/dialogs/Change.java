@@ -78,6 +78,7 @@ public class Change extends javax.swing.JDialog
     private static String libSelected = null;
 	private JList changeList;
 	private DefaultListModel changeListModel;
+	private List changeNodeProtoList;
 
 	public static void showChangeDialog()
 	{
@@ -108,6 +109,7 @@ public class Change extends javax.swing.JDialog
 		changeList = new JList(changeListModel);
 		changeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		listPane.setViewportView(changeList);
+		changeNodeProtoList = new ArrayList();
 
 		// make a popup of libraries
 		List libList = Library.getVisibleLibrariesSortedByName();
@@ -233,6 +235,7 @@ public class Change extends javax.swing.JDialog
 	private void reload()
 	{
 		changeListModel.clear();
+		changeNodeProtoList.clear();
 		Technology curTech = Technology.getCurrent();
 		if (geomToChange instanceof NodeInst)
 		{
@@ -246,6 +249,7 @@ public class Change extends javax.swing.JDialog
 				{
 					Cell cell = (Cell)it.next();
 					changeListModel.addElement(cell.noLibDescribe());
+					changeNodeProtoList.add(cell);
 				}
 //				(void)us_setscrolltocurrentcell(DCHG_ALTLIST, TRUE, FALSE, FALSE, FALSE, dia);
                 changeList.setSelectedIndex(0);
@@ -268,12 +272,16 @@ public class Change extends javax.swing.JDialog
 				{
 					PrimitiveNode np = (PrimitiveNode)it.next();
 					changeListModel.addElement(np.describe());
+					changeNodeProtoList.add(np);
 				}
 				if (curTech != Generic.tech)
 				{
 					changeListModel.addElement("Generic:Universal-Pin");
+					changeNodeProtoList.add(Generic.tech.universalPinNode);
 					changeListModel.addElement("Generic:Invisible-Pin");
+					changeNodeProtoList.add(Generic.tech.invisiblePinNode);
 					changeListModel.addElement("Generic:Unrouted-Pin");
+					changeNodeProtoList.add(Generic.tech.unroutedPinNode);
 				}
                 changeList.setSelectedIndex(0);
 			}
@@ -359,8 +367,10 @@ public class Change extends javax.swing.JDialog
                 String line = dialog.getLibSelected();
                 Library library = Library.findLibrary(line);
                 if (library == null) return;
-				line = (String)dialog.changeList.getSelectedValue();
-                NodeProto np = NodeProto.findNodeProto(line);
+                int index = dialog.changeList.getSelectedIndex();
+                NodeProto np = (NodeProto)dialog.changeNodeProtoList.get(index);
+//				line = (String)dialog.changeList.getSelectedValue();
+//                NodeProto np = NodeProto.findNodeProto(line);
 				if (np == null) return;
 
 				// sanity check

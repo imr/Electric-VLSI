@@ -781,14 +781,23 @@ public class ToolOptions extends javax.swing.JDialog
 
 	//******************************** SPICE ********************************
 
-	private JList spiceLayerList, spiceCellList;
-	private DefaultListModel spiceLayerListModel, spiceCellListModel;
+	private JList spiceLayerList;
+	private JList spiceCellList;
+	private DefaultListModel spiceLayerListModel;
+	private DefaultListModel spiceCellListModel;
 	private int spiceEngineInitial;
-	private String spiceLevelInitial, spiceOutputFormatInitial, spicePartsLibraryInitial;
-	private boolean spiceUseParasiticsInitial, spiceUseNodeNamesInitial, spiceForceGlobalPwrGndInitial;
-	private boolean spiceUseCellParametersInitial, spiceWriteTransSizesInLambdaInitial;
-	private double spiceTechMinResistanceInitial, spiceTechMinCapacitanceInitial;
-	private String spiceHeaderCardInitial, spiceTrailerCardInitial;
+	private String spiceLevelInitial;
+	private String spiceOutputFormatInitial;
+	private String spicePartsLibraryInitial;
+	private boolean spiceUseParasiticsInitial;
+	private boolean spiceUseNodeNamesInitial;
+	private boolean spiceForceGlobalPwrGndInitial;
+	private boolean spiceUseCellParametersInitial;
+//	private boolean spiceWriteTransSizesInLambdaInitial;
+	private double spiceTechMinResistanceInitial;
+	private double spiceTechMinCapacitanceInitial;
+	private String spiceHeaderCardInitial;
+	private String spiceTrailerCardInitial;
 	private HashMap spiceLayerResistanceOptions;
 	private HashMap spiceLayerCapacitanceOptions;
 	private HashMap spiceLayerEdgeCapacitanceOptions;
@@ -841,8 +850,9 @@ public class ToolOptions extends javax.swing.JDialog
 		spiceUseCellParametersInitial = Simulation.isSpiceUseCellParameters();
 		spiceUseCellParameters.setSelected(spiceUseCellParametersInitial);
 
-		spiceWriteTransSizesInLambdaInitial = Simulation.isSpiceWriteTransSizeInLambda();
-		spiceWriteTransSizesInLambda.setSelected(spiceWriteTransSizesInLambdaInitial);
+//		spiceWriteTransSizesInLambdaInitial = Simulation.isSpiceWriteTransSizeInLambda();
+//		spiceWriteTransSizesInLambda.setSelected(spiceWriteTransSizesInLambdaInitial);
+		spiceWriteTransSizesInLambda.setEnabled(false);
 
 		spiceRunParameters.setEnabled(false);
 
@@ -1014,8 +1024,8 @@ public class ToolOptions extends javax.swing.JDialog
 		booleanNow = spiceUseCellParameters.isSelected();
 		if (spiceUseCellParametersInitial != booleanNow) Simulation.setSpiceUseCellParameters(booleanNow);
 
-		booleanNow = spiceWriteTransSizesInLambda.isSelected();
-		if (spiceWriteTransSizesInLambdaInitial != booleanNow) Simulation.setSpiceWriteTransSizeInLambda(booleanNow);
+//		booleanNow = spiceWriteTransSizesInLambda.isSelected();
+//		if (spiceWriteTransSizesInLambdaInitial != booleanNow) Simulation.setSpiceWriteTransSizeInLambda(booleanNow);
 
 		booleanNow = spiceUseParasitics.isSelected();
 		if (spiceUseParasiticsInitial != booleanNow) Simulation.setSpiceUseParasitics(booleanNow);

@@ -2,6 +2,8 @@
 
 ************************* Version 8.00a: Released  *************************
 
+IMP: (5/17/04, SMR) Added Flip-flop creation and support.
+
 BUG: (5/17/04, SMR) When a cell is displayed, its bounds are set to include text.
 FIX: In "EditWindow.fillScreen()" do not adjust the cell bounds stored in the cell.
 

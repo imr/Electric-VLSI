@@ -405,14 +405,33 @@ public class PaletteFrame
 				if (obj == Schematics.tech.flipflopNode)
 				{
 					JPopupMenu menu = new JPopupMenu("Flip-flop");
-					menu.add(menuItem = new JMenuItem("R-S"));
-					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOP, 0)));
-					menu.add(menuItem = new JMenuItem("J-K"));
-					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOP, 0)));
-					menu.add(menuItem = new JMenuItem("D"));
-					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOP, 0)));
-					menu.add(menuItem = new JMenuItem("T"));
-					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOP, 0)));
+					menu.add(menuItem = new JMenuItem("R-S master/slave"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPRSMS, 0)));
+					menu.add(menuItem = new JMenuItem("R-S positive"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPRSP, 0)));
+					menu.add(menuItem = new JMenuItem("R-S negative"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPRSN, 0)));
+					menu.addSeparator();
+					menu.add(menuItem = new JMenuItem("J-K master/slave"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPJKMS, 0)));
+					menu.add(menuItem = new JMenuItem("J-K positive"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPJKP, 0)));
+					menu.add(menuItem = new JMenuItem("J-K negative"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPJKN, 0)));
+					menu.addSeparator();
+					menu.add(menuItem = new JMenuItem("D master/slave"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPDMS, 0)));
+					menu.add(menuItem = new JMenuItem("D positive"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPDP, 0)));
+					menu.add(menuItem = new JMenuItem("D negative"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPDN, 0)));
+					menu.addSeparator();
+					menu.add(menuItem = new JMenuItem("T master/slave"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPTMS, 0)));
+					menu.add(menuItem = new JMenuItem("T positive"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPTP, 0)));
+					menu.add(menuItem = new JMenuItem("T negative"));
+					menuItem.addActionListener(new PlacePopupListener(panel, makeNodeInst(Schematics.tech.flipflopNode, NodeProto.Function.FLIPFLOPTN, 0)));
 					menu.show(panel, e.getX(), e.getY());
 					return;
 				}
