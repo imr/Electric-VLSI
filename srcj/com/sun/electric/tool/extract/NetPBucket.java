@@ -18,6 +18,7 @@ import java.util.Collection;
 public class NetPBucket implements ExtractedPBucket
 {
     protected GeometryHandler merge;
+    protected GeometryHandler mediaAxis; // to get the resistance value
     private String net;
 
     public NetPBucket(Cell cell, String net)

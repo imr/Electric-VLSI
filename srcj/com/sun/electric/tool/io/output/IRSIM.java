@@ -112,7 +112,7 @@ public class IRSIM extends Output
 		IRSIMNetlister netlister = new IRSIMNetlister();
 		Netlist netlist = cell.getNetlist(false);
         this.context = context;
-       if (context == null) this.context = VarContext.globalContext;
+        if (context == null) this.context = VarContext.globalContext;
         components = new ArrayList();
 		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
 		return components;
@@ -120,13 +120,8 @@ public class IRSIM extends Output
 
 	private List getNetlist(Cell cell, VarContext context)
 	{
-		// gather all components
-//		IRSIMNetlister netlister = new IRSIMNetlister();
-//		Netlist netlist = cell.getNetlist(true);
         this.context = context;
-       if (context == null) this.context = VarContext.globalContext;
-//        components = new ArrayList();
-//		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
+        if (context == null) this.context = VarContext.globalContext;
         components = ParasiticTool.calculateParasistic(this, cell, context);
 		return components;
 	}
@@ -247,6 +242,7 @@ public class IRSIM extends Output
             IRSIMCellInfo iinfo = (IRSIMCellInfo)info;
             iinfo.extInit();
             double scale = technology.getScale() / 10;
+            int numRemoveParents = context.getNumLevels();
 
             Netlist netlist = info.getNetlist();
             // Calculating capacitance and resistance for arcs
@@ -256,11 +252,8 @@ public class IRSIM extends Output
                 int width = netlist.getBusWidth(arc);
                 Network net = netlist.getNetwork(arc, 0);
                 ComponentInfoOLD ci = new ComponentInfoOLD();
-                String removeContext = context.getInstPath("/");
-                int len = removeContext.length();
-                if (len > 0) len++;
                 ci.type = 'C';
-                ci.netName1 = iinfo.getUniqueNetName(net, "/").substring(len);
+                ci.netName1 = iinfo.getUniqueNetNameProxy(net, "/").toString(numRemoveParents);
                 ci.netName2 = "gnd";
                 Poly[] polys = technology.getShapeOfArc(arc);
                 if (polys.length != 1)
@@ -364,7 +357,6 @@ public class IRSIM extends Output
             if (ni.getFunction() == PrimitiveNode.Function.TRANMOS || ni.getFunction() == PrimitiveNode.Function.TRA4NMOS)
             	ci.type = 'n'; else
             		ci.type = 'p';
-            iinfo.getUniqueNetName(gnet, "/");
             ci.netName1 = iinfo.getUniqueNetNameProxy(gnet, "/").toString(numRemoveParents);
             ci.netName2 = iinfo.getUniqueNetNameProxy(snet, "/").toString(numRemoveParents);
             ci.netName3 = iinfo.getUniqueNetNameProxy(dnet, "/").toString(numRemoveParents);
@@ -428,6 +420,7 @@ public class IRSIM extends Output
     {
         ExtractedPBucket bucket = null;
         Netlist netlist = info.getNetlist();
+        int numRemoveParents = context.getNumLevels();
 
         // Depending on primitive node
         if (ni.isPrimitiveTransistor())
@@ -458,12 +451,9 @@ public class IRSIM extends Output
             }
 
             // print out transistor
-            String removeContext = context.getInstPath("/");
-            int len = removeContext.length();
-            if (len > 0) len++;
-            String gName = info.getUniqueNetName(gnet, "/").substring(len);
-            String sName = info.getUniqueNetName(snet, "/").substring(len);
-            String dName = info.getUniqueNetName(dnet, "/").substring(len);
+            String gName = info.getUniqueNetNameProxy(gnet, "/").toString(numRemoveParents);
+            String sName = info.getUniqueNetNameProxy(snet, "/").toString(numRemoveParents);
+            String dName = info.getUniqueNetNameProxy(dnet, "/").toString(numRemoveParents);
 
             bucket = new TransistorPBucket(ni, dim, gName, sName, dName, info.getMFactor());
         }
@@ -506,21 +496,11 @@ public class IRSIM extends Output
 	                System.out.println("Warning, ignoring unconnected component " + ni + " in cell " + info.getCell());
 	                return null;
 	            }
-	            String removeContext = context.getInstPath("/");
-	            int len = removeContext.length();
-	            if (len > 0) len++;
-
-                char type = (fun == PrimitiveNode.Function.RESIST) ?
-                    'r' : 'C';
-//                StringBuffer line = new StringBuffer();
-//                line.append(type);
-//                line.append(" " + info.getUniqueNetName(net1, "/").substring(len));
-//                line.append(" " + info.getUniqueNetName(net2, "/").substring(len));
-//                line.append(" " + TextUtils.atof(extra));
-
+                char type = (fun == PrimitiveNode.Function.RESIST) ? 'r' : 'C';
                 double rcValue = TextUtils.atof(extra);
-                    bucket = new RCPBucket(type, info.getUniqueNetName(net1, "/").substring(len),
-                            info.getUniqueNetName(net2, "/").substring(len), rcValue);
+
+                bucket = new RCPBucket(type, info.getUniqueNetNameProxy(net1, "/").toString(numRemoveParents),
+                            info.getUniqueNetNameProxy(net2, "/").toString(numRemoveParents), rcValue);
             }
         }
         return bucket;

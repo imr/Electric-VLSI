@@ -68,8 +68,8 @@ public class TransistorPBucket implements ExtractedPBucket
         line.append(" " + TextUtils.formatDouble(ni.getAnchorCenterY()));
         if (type == 'n') line.append(" g=S_gnd");
         else line.append(" g=S_vdd"); // type = 'p'
-        line.append(" s=A_" + activeArea + ",P_" + activePerim);
-        line.append(" d=A_" + activeArea + ",P_" + activePerim);
+        line.append(" s=A_" + (int)activeArea + ",P_" + (int)activePerim);
+        line.append(" d=A_" + (int)activeArea + ",P_" + (int)activePerim);
         return line.toString();
     }
 }

@@ -83,9 +83,9 @@ public class ParasiticTool extends Tool{
 
     public static List calculateParasistic(ParasiticGenerator tool, Cell cell, VarContext context)
     {
-        Netlist netList = cell.getNetlist(true);
+        Netlist netList = cell.getNetlist(false);
         if (context == null) context = VarContext.globalContext;
-        ParasiticVisitor visitor = new ParasiticVisitor(tool, cell, netList);
+        ParasiticVisitor visitor = new ParasiticVisitor(tool, netList, context);
         HierarchyEnumerator.enumerateCell(cell, context, netList, visitor);
         List list = visitor.getParasitics();
         return list;
@@ -95,12 +95,13 @@ public class ParasiticTool extends Tool{
 	{
 		private HashMap netMap;
         private Netlist netList;
-        private List transList = new ArrayList();
+        private List transAndRCList = new ArrayList();
         private ParasiticGenerator tool;
+        private VarContext context;
 
         public List getParasitics()
         {
-            List list = new ArrayList(transList);
+            List list = new ArrayList(transAndRCList);
 
             for (Iterator it = netMap.keySet().iterator(); it.hasNext();)
             {
@@ -113,11 +114,12 @@ public class ParasiticTool extends Tool{
 
         public HierarchyEnumerator.CellInfo newCellInfo() { return new ParasiticCellInfo(); }
 
-		public ParasiticVisitor(ParasiticGenerator tool, Cell cell, Netlist netList)
+		public ParasiticVisitor(ParasiticGenerator tool, Netlist netList, VarContext context)
 		{
             this.netList = netList;
             this.tool = tool;
             netMap = new HashMap(netList.getNumNetworks());
+            this.context = context;
 		}
 
         /**
@@ -141,12 +143,11 @@ public class ParasiticTool extends Tool{
         private NetPBucket getNetParasiticsBucket(Network net, HierarchyEnumerator.CellInfo info)
         {
             NetPBucket parasiticNet = (NetPBucket)netMap.get(net);
+            int numRemoveParents = context.getNumLevels();
+            
             if (parasiticNet == null)
             {
-                String removeContext = info.getContext().getInstPath("/");
-                int len = removeContext.length();
-                if (len > 0) len++;
-                String name = info.getUniqueNetName(net, "/").substring(len);
+                String name = info.getUniqueNetNameProxy(net, "/").toString(numRemoveParents);
                 parasiticNet = new NetPBucket(info.getCell(), name);
                 netMap.put(net, parasiticNet);
             }
@@ -214,7 +215,7 @@ public class ParasiticTool extends Tool{
             Technology tech = np.getTechnology();
             AffineTransform trans = ni.rotateOut();
             ExtractedPBucket parasitic = tool.createBucket(ni, netList, (ParasiticCellInfo)info);
-            if (parasitic != null) transList.add(parasitic);
+            if (parasitic != null) transAndRCList.add(parasitic);
 
             Poly [] polyList = tech.getShapeOfNode(ni, null, true, true, null);
             int tot = polyList.length;
