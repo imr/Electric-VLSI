@@ -263,7 +263,7 @@ public class View3DWindow extends JPanel
 
 		// Light
 		Vector3f lightDir = new Vector3f(0.0f, 0.0f, -1.0f);
-		Color3f white = new Color3f(1f, 1f, 1f);
+		Color3f white = new Color3f(0.7f, 0.7f, 0.0f);
 		DirectionalLight light = new DirectionalLight(white, lightDir);
 
 		// Setting the influencing bounds
@@ -271,7 +271,7 @@ public class View3DWindow extends JPanel
 		// Allow to turn off light while the scene graph is live
 		light.setCapability(Light.ALLOW_STATE_WRITE);
 		// Add light to the env.
-		//objRoot.addChild(light);
+		objTrans.addChild(light);
 
 		// Picking tools
         //PickZoomBehavior behavior2 = new PickZoomBehavior(objRoot, canvas, infiniteBounds);
@@ -470,8 +470,8 @@ public class View3DWindow extends JPanel
 				ap = new Appearance();
 				Color color = layer.getGraphics().getColor();
 				Color3f objColor = new Color3f(color);
-				ColoringAttributes ca = new ColoringAttributes();
-				ca.setColor(objColor);
+				ColoringAttributes ca = new ColoringAttributes(objColor, ColoringAttributes.SHADE_GOURAUD);
+				//ca.setColor(objColor);
 				ap.setColoringAttributes(ca);
 
 				TransparencyAttributes ta = new TransparencyAttributes();
@@ -494,8 +494,11 @@ public class View3DWindow extends JPanel
 				lineAttr.setLineAntialiasingEnable(true);
 				ap.setLineAttributes(lineAttr);
 
-				//ap.setMaterial(layerMaterial);
 				// Adding to internal map
+				Material mat = new Material();
+                mat.setLightingEnable(true);
+                ap.setMaterial(mat);
+				
 				appearances.put(layer, ap);
 			}
 

@@ -1010,13 +1010,17 @@ public class ToolMenu {
 
 	            // Checking if any network is found
 				boolean found = (netSet == null);
-				for (Iterator it = netlist.getNetworks(); !found && it.hasNext(); ) {
+				for (Iterator it = netlist.getNetworks(); !found && it.hasNext(); )
+				{
 					JNetwork aNet = (JNetwork)it.next();
-					if (netSet.contains(aNet))
-					{
-						found = true;
-						break;
+					JNetwork parentNet = aNet;
+					HierarchyEnumerator.CellInfo cinfo = info;
+					boolean netFound = false;
+					while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
+						parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
+						cinfo = cinfo.getParentInfo();
 					}
+                     found = netFound;
 				}
 				if (!found) return (false);
 
@@ -1027,17 +1031,25 @@ public class ToolMenu {
 	                int width = netlist.getBusWidth(arc);
 					found = (netSet == null);
 
-					for (int i=0; !false && i<width; i++)
+					for (int i=0; !found && i<width; i++)
 					{
-						JNetwork oNet = netlist.getNetwork(arc, i);
+						JNetwork parentNet = netlist.getNetwork(arc, i);
+						HierarchyEnumerator.CellInfo cinfo = info;
+						boolean netFound = false;
+						while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
+							parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
+							cinfo = cinfo.getParentInfo();
+						}
+		                found = netFound;
+						/*
 						if (netSet.contains(oNet))
 						{
 							found = true;
 							break;
 						}
+						*/
 					}
-					if (!found)
-						continue; // skipping this arc
+					if (!found) continue; // skipping this arc
                     ArcProto arcType = arc.getProto();
                     Technology tech = arcType.getTechnology();
                     Poly[] polyList = tech.getShapeOfArc(arc);
@@ -1053,6 +1065,7 @@ public class ToolMenu {
 	                    boolean value = IsValidFunction(func, function, testCase);
                         if (!value) continue;
 
+	                    poly.transform(info.getTransformToRoot());
 						PolyQTree.PolyNode pnode = new PolyQTree.PolyNode(poly);
 						if (function == IMPLANT)
 						{
@@ -1085,11 +1098,16 @@ public class ToolMenu {
 						PortInst pi = (PortInst)pIt.next();
 						PortProto subPP = pi.getPortProto();
 						JNetwork oNet = info.getNetlist().getNetwork(node, subPP, 0);
-		                if (netSet.contains(oNet))
-		                    found = true;
+						JNetwork parentNet = oNet;
+						HierarchyEnumerator.CellInfo cinfo = info;
+						boolean netFound = false;
+						while ((netFound = netSet.contains(parentNet)) == false && cinfo.getParentInst() != null) {
+							parentNet = HierarchyEnumerator.getNetworkInParent(parentNet, cinfo.getParentInst());
+							cinfo = cinfo.getParentInfo();
+						}
+		                found = netFound;
 					}
-					if (!found)
-						continue; // skipping this node
+					if (!found) continue; // skipping this node
 
                     // Coverage implants are pure primitive nodes
                     // and they are ignored.

@@ -6,14 +6,16 @@ IMP/MAN: (9/24/04, SMR) Added Silos netlisting.
 
 ************************* Version 8.01x: *********************************
 
+BUG: (9/24/04, GVG) Geometries on Network: arcs were not transformed up to the top cell and adding export detection.
+
 BUG: (9/24/04, SMR) Cell names are sorted incorrectly.
 FIX: In TextUtils.nameSameNumeric(), make sure numbers are evaluated in base 10.
 
 BUG: (9/24/04, DN) Reading libraries from script and from menu is different.
 FIX: Change control of circular library dependences in Cell.addNode
 
-FIX: (9/23/04, GVG) Minor fixes for 3D view: Avoid exception if highlighter is null (3D view),
-     new depth value for active cut, drawing physical layers
+FIX: (9/23/04, GVG) Minor fixes for 3D view: Avoid exception if highlighter is null (3D view), new depth value for
+active cut, drawing physical layers
 
 IMP: (9/23/04, GVG) Improvements in scheduled aborts in ERC.
 
@@ -23,7 +25,7 @@ FIX: (9/23/04, GVG) ERC fix to properly detect polygons with multiple loops insi
      This error could be seen in qfour2:pads180nm_100um:pad_part_flwout{lay}.
 
 IMP: (9/23/04, GVG) Tuning of ERC sequence of steps. Results: ERC on pad2core:fillpads_all{lay} runs in 5 mins
-     compared to more than 1hr (42793 areas and 38350 contact regions checked)
+compared to more than 1hr (42793 areas and 38350 contact regions checked)
 
 ************************* Version 8.01w: *********************************
 
