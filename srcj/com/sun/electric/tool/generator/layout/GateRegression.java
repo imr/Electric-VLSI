@@ -83,7 +83,7 @@ public class GateRegression extends Job {
 //		Pms2_sy.makePart(x, stdCell); traceGate();
 //		Inv_passgate.makePart(x, stdCell); traceGate();
 		Inv.makePart(x, stdCell); traceGate();
-		Inv2_star.makePart(x, "", stdCell); traceGate();
+//		Inv2_star.makePart(x, "", stdCell); traceGate();
 //		InvCTLn.makePart(x, stdCell); traceGate();
 //		InvLT.makePart(x, stdCell); traceGate();
 //		InvHT.makePart(x, stdCell); traceGate();
@@ -154,8 +154,8 @@ public class GateRegression extends Job {
 		  LayoutLib.openLibForWrite("scratch", homeDir+"scratch");
 
 		StdCellParams stdCell = new StdCellParams(scratchLib);
-//		stdCell.enableNCC(
-//			homeDir + "work/async/electric-jkl-28august/purpleFour.elib");
+		stdCell.enableNCC(
+			homeDir + "work/async/electric-jkl-28august/purpleFour.elib");
 		stdCell.setSizeQuantizationError(0.05);
 		stdCell.setMaxMosWidth(1000);
 		stdCell.setVddY(21);

@@ -111,10 +111,34 @@ public class NccEngine {
 	 * Check to see if all cells are electrically equivalent.  Note that
 	 * the NCC engine can compare any number of Cells at the same time.
 	 * @param cells a list of cells to compare.
+	 * @param contexts a list of VarContexts for the corresponding Cell. The
+	 * VarContxt is used to evaluate schematic 
+	 * variables. Use null if variables don't need to be evaluated. 
+	 * @param netlists a list of Netlists for each Cell. This is needed when
+	 * the caller wants a netlist with a particular model of connectivity, for
+	 * example treat resistors as shorted. Use null if you want to
+	 * use the Cell's current netlist. 
 	 */
 	public static boolean compare(List cells, List contexts, List netlists,
 							   NccOptions options) {
 		NccEngine ncc = new NccEngine(cells, contexts, netlists, options);
 		return ncc.matched;
+	}
+	/** compare two Cells */
+	public static boolean compare(
+		Cell cell1, VarContext context1, Netlist netlist1, 
+	    Cell cell2, VarContext context2, Netlist netlist2, NccOptions options) {
+	    	
+		ArrayList cells = new ArrayList();
+		cells.add(cell1);
+		cells.add(cell2);
+		ArrayList contexts = new ArrayList();
+		contexts.add(context1);
+		contexts.add(context2);
+		ArrayList netlists = new ArrayList();
+		netlists.add(netlist1);
+		netlists.add(netlist2);
+		
+		return compare(cells, contexts, netlists, options);
 	}
 }

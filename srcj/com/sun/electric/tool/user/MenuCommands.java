@@ -58,7 +58,7 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.generator.PadGenerator;
-import com.sun.electric.tool.generator.layout.Loco;
+import com.sun.electric.tool.generator.layout.GateLayoutGenerator;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.Output;
@@ -997,7 +997,7 @@ public final class MenuCommands
 		russMenu.addMenuItem("Generate gate layouts", null,
 							 new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.generator.layout.Loco();
+				new com.sun.electric.tool.generator.layout.GateLayoutGenerator();
 			}
 		});
 		russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {

@@ -42,7 +42,7 @@ import com.sun.electric.tool.generator.layout.gates.*;
 /*
  * Regression test for gate generators
  */
-public class Loco extends Job {
+public class GateLayoutGenerator extends Job {
 	// specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
 		public boolean skip(NodeInst ni) {
@@ -121,7 +121,7 @@ public class Loco extends Job {
 		
 		System.out.println("done.");
 	}
-	public Loco() {
+	public GateLayoutGenerator() {
 		super("Generate gate layouts", User.tool, Job.Type.CHANGE, 
 			  null, null, Job.Priority.ANALYSIS);
 		startJob();
