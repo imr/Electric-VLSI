@@ -1178,12 +1178,18 @@ public class ClickZoomWireListener
                     if (ap.getFunction() == PrimitiveArc.Function.METAL5) { found = true; } break; }
                 case 6: {
                     if (ap.getFunction() == PrimitiveArc.Function.METAL6) { found = true; } break; }
+                case 7: {
+                    if (ap.getFunction() == PrimitiveArc.Function.METAL7) { found = true; } break; }
+                case 8: {
+                    if (ap.getFunction() == PrimitiveArc.Function.METAL8) { found = true; } break; }
+                case 9: {
+                    if (ap.getFunction() == PrimitiveArc.Function.METAL9) { found = true; } break; }
             }
             if (found) break;
         }
         if (!found) return;
 
-        if (ap == User.tool.getCurrentArcProto()) return;
+        //if (ap == User.tool.getCurrentArcProto()) return;
 
         // if a single portinst highlighted, route from that to node that can connect to arc
         if (highlighter.getNumHighlights() == 1 && cell != null) {
