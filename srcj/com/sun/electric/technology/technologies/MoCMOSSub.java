@@ -67,7 +67,7 @@ public class MoCMOSSub extends Technology
 
 		/** M layer */
 		Layer M_lay = Layer.newInstance(this, "Metal-1",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 107,226,96,0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -87,7 +87,7 @@ public class MoCMOSSub extends Technology
 
 		/** M0 layer */
 		Layer M0_lay = Layer.newInstance(this, "Metal-2",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -107,7 +107,7 @@ public class MoCMOSSub extends Technology
 
 		/** M1 layer */
 		Layer M1_lay = Layer.newInstance(this, "Metal-3",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -127,7 +127,7 @@ public class MoCMOSSub extends Technology
 
 		/** M2 layer */
 		Layer M2_lay = Layer.newInstance(this, "Metal-4",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,true,
 			new int[] { 0x0808,   //     X       X   
 						0x1818,   //    XX      XX   
 						0x2828,   //   X X     X X   
@@ -147,7 +147,7 @@ public class MoCMOSSub extends Technology
 
 		/** M3 layer */
 		Layer M3_lay = Layer.newInstance(this, "Metal-5",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,true,
 			new int[] { 0xfcfc,   // XXXXXX  XXXXXX  
 						0x8080,   // X       X       
 						0x8080,   // X       X       
@@ -167,7 +167,7 @@ public class MoCMOSSub extends Technology
 
 		/** M4 layer */
 		Layer M4_lay = Layer.newInstance(this, "Metal-6",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 161,184,69,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 161,184,69,0.8,true,
 			new int[] { 0x1818,   //    XX      XX   
 						0x6060,   //  XX      XX     
 						0x8080,   // X       X       
@@ -187,7 +187,7 @@ public class MoCMOSSub extends Technology
 
 		/** P layer */
 		Layer P_lay = Layer.newInstance(this, "Polysilicon-1",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 224,95,255,0.8,true,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xffff,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
@@ -207,7 +207,7 @@ public class MoCMOSSub extends Technology
 
 		/** P0 layer */
 		Layer P0_lay = Layer.newInstance(this, "Polysilicon-2",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,true,
 			new int[] { 0xafaf,   // X X XXXXX X XXXX
 						0x8888,   // X   X   X   X   
 						0xfafa,   // XXXXX X XXXXX X 
@@ -227,7 +227,7 @@ public class MoCMOSSub extends Technology
 
 		/** PA layer */
 		Layer PA_lay = Layer.newInstance(this, "P-Active",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -247,7 +247,7 @@ public class MoCMOSSub extends Technology
 
 		/** NA layer */
 		Layer NA_lay = Layer.newInstance(this, "N-Active",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -267,7 +267,7 @@ public class MoCMOSSub extends Technology
 
 		/** PS layer */
 		Layer PS_lay = Layer.newInstance(this, "P-Select",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 162,170,97,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 162,170,97,0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -287,7 +287,7 @@ public class MoCMOSSub extends Technology
 
 		/** NS layer */
 		Layer NS_lay = Layer.newInstance(this, "N-Select",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 162,170,97,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 162,170,97,0.8,true,
 			new int[] { 0x0100,   //        X        
 						0x0000,   //                 
 						0x0000,   //                 
@@ -307,7 +307,7 @@ public class MoCMOSSub extends Technology
 
 		/** PW layer */
 		Layer PW_lay = Layer.newInstance(this, "P-Well",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,true,
 			new int[] { 0x0202,   //       X       X 
 						0x0101,   //        X       X
 						0x8080,   // X       X       
@@ -327,7 +327,7 @@ public class MoCMOSSub extends Technology
 
 		/** NW layer */
 		Layer NW_lay = Layer.newInstance(this, "N-Well",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,true,
 			new int[] { 0x0002,   //               X 
 						0x0000,   //                 
 						0x0000,   //                 
@@ -347,42 +347,42 @@ public class MoCMOSSub extends Technology
 
 		/** PC layer */
 		Layer PC_lay = Layer.newInstance(this, "Poly-Cut",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 161,151,126,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 161,151,126,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** AC layer */
 		Layer AC_lay = Layer.newInstance(this, "Active-Cut",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 161,151,126,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 161,151,126,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** V layer */
 		Layer V_lay = Layer.newInstance(this, "Via1",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** V0 layer */
 		Layer V0_lay = Layer.newInstance(this, "Via2",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** V1 layer */
 		Layer V1_lay = Layer.newInstance(this, "Via3",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** V2 layer */
 		Layer V2_lay = Layer.newInstance(this, "Via4",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** V3 layer */
 		Layer V3_lay = Layer.newInstance(this, "Via5",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P1 layer */
 		Layer P1_lay = Layer.newInstance(this, "Passivation",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,true,
 			new int[] { 0x1c1c,   //    XXX     XXX  
 						0x3e3e,   //   XXXXX   XXXXX 
 						0x3636,   //   XX XX   XX XX 
@@ -402,17 +402,17 @@ public class MoCMOSSub extends Technology
 
 		/** T layer */
 		Layer T_lay = Layer.newInstance(this, "Transistor",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 200,200,200,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 200,200,200,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PC0 layer */
 		Layer PC0_lay = Layer.newInstance(this, "Poly-Cap",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 161,151,126,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 161,151,126,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PAW layer */
 		Layer PAW_lay = Layer.newInstance(this, "P-Active-Well",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -432,7 +432,7 @@ public class MoCMOSSub extends Technology
 
 		/** PM layer */
 		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal-1",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 107,226,96,0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -452,7 +452,7 @@ public class MoCMOSSub extends Technology
 
 		/** PM0 layer */
 		Layer PM0_lay = Layer.newInstance(this, "Pseudo-Metal-2",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -472,7 +472,7 @@ public class MoCMOSSub extends Technology
 
 		/** PM1 layer */
 		Layer PM1_lay = Layer.newInstance(this, "Pseudo-Metal-3",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -492,7 +492,7 @@ public class MoCMOSSub extends Technology
 
 		/** PM2 layer */
 		Layer PM2_lay = Layer.newInstance(this, "Pseudo-Metal-4",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,true,
 			new int[] { 0x0808,   //     X       X   
 						0x1818,   //    XX      XX   
 						0x2828,   //   X X     X X   
@@ -512,7 +512,7 @@ public class MoCMOSSub extends Technology
 
 		/** PM3 layer */
 		Layer PM3_lay = Layer.newInstance(this, "Pseudo-Metal-5",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,true,
 			new int[] { 0xfcfc,   // XXXXXX  XXXXXX  
 						0x8080,   // X       X       
 						0x8080,   // X       X       
@@ -532,7 +532,7 @@ public class MoCMOSSub extends Technology
 
 		/** PM4 layer */
 		Layer PM4_lay = Layer.newInstance(this, "Pseudo-Metal-6",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 161,184,69,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 161,184,69,0.8,true,
 			new int[] { 0x1818,   //    XX      XX   
 						0x6060,   //  XX      XX     
 						0x8080,   // X       X       
@@ -552,7 +552,7 @@ public class MoCMOSSub extends Technology
 
 		/** PP layer */
 		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 224,95,255,0.8,true,
 			new int[] { 0x1111,   //    X   X   X   X
 						0xffff,   // XXXXXXXXXXXXXXXX
 						0x1111,   //    X   X   X   X
@@ -572,7 +572,7 @@ public class MoCMOSSub extends Technology
 
 		/** PE layer */
 		Layer PE_lay = Layer.newInstance(this, "Pseudo-Electrode",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,true,
 			new int[] { 0xafaf,   // X X XXXXX X XXXX
 						0x8888,   // X   X   X   X   
 						0xfafa,   // XXXXX X XXXXX X 
@@ -592,7 +592,7 @@ public class MoCMOSSub extends Technology
 
 		/** PPA layer */
 		Layer PPA_lay = Layer.newInstance(this, "Pseudo-P-Active",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -612,7 +612,7 @@ public class MoCMOSSub extends Technology
 
 		/** PNA layer */
 		Layer PNA_lay = Layer.newInstance(this, "Pseudo-N-Active",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 247,251,20,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -632,7 +632,7 @@ public class MoCMOSSub extends Technology
 
 		/** PPS layer */
 		Layer PPS_lay = Layer.newInstance(this, "Pseudo-P-Select",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 162,170,97,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 162,170,97,0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -652,7 +652,7 @@ public class MoCMOSSub extends Technology
 
 		/** PNS layer */
 		Layer PNS_lay = Layer.newInstance(this, "Pseudo-N-Select",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 162,170,97,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 162,170,97,0.8,true,
 			new int[] { 0x0100,   //        X        
 						0x0000,   //                 
 						0x0000,   //                 
@@ -672,7 +672,7 @@ public class MoCMOSSub extends Technology
 
 		/** PPW layer */
 		Layer PPW_lay = Layer.newInstance(this, "Pseudo-P-Well",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,true,
 			new int[] { 0x0202,   //       X       X 
 						0x0101,   //        X       X
 						0x8080,   // X       X       
@@ -692,7 +692,7 @@ public class MoCMOSSub extends Technology
 
 		/** PNW layer */
 		Layer PNW_lay = Layer.newInstance(this, "Pseudo-N-Well",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,true,
 			new int[] { 0x0002,   //               X 
 						0x0000,   //                 
 						0x0000,   //                 
@@ -712,7 +712,7 @@ public class MoCMOSSub extends Technology
 
 		/** PF layer */
 		Layer PF_lay = Layer.newInstance(this, "Pad-Frame",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 170,83,170,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 170,83,170,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions

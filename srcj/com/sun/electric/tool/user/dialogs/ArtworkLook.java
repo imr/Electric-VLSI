@@ -109,7 +109,7 @@ public class ArtworkLook extends EDialog
 		EGraphics graphics = Artwork.makeGraphics(eObj);
 		if (graphics == null)
 		{
-			graphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 0.8,1,
+			graphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 0.8,true,
 				new int[] {0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff,
 					0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff, 0xffff});
 		}

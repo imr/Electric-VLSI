@@ -35,6 +35,7 @@ import java.util.HashMap;
  * Class to define the appearance of a piece of geometry.
  */
 public class EGraphics
+        implements Cloneable
 {
 	/** the Layer associated with this graphics. */			private Layer layer;
 	/** display: true to use patterns; false for solid */	private boolean displayPatterned;
@@ -44,7 +45,7 @@ public class EGraphics
 	/** transparent layer to use (0 for none) */			private int transparentLayer;
 	/** color to use */										private int red, green, blue;
 	/** opacity (0 to 1) of color */						private double opacity;
-	/** whether to draw color in foregound */				private int foreground;
+	/** whether to draw color in foregound */				private boolean foreground;
 	/** stipple pattern to draw */							private int [] pattern;
 
 	private static HashMap usePatternDisplayMap = new HashMap();
@@ -133,18 +134,17 @@ public class EGraphics
 	/**
 	 * Method to create a graphics object.
 	 * @param displayMethod the way to show this EGraphics on a display (SOLID, PATTERNED, or OUTLINEPAT).
-	 * @param printMethod the way to show this EGraphics on paper (SOLID, PATTERNED, or OUTLINEPAT).
-	 * @param transparentLayer the transparent layer number (0 for none).
-	 * @param red the red component of this EGraphics.
-	 * @param green the green component of this EGraphics.
-	 * @param blue the blue component of this EGraphics.
-	 * @param opacity the opacity of this EGraphics (1 for opaque, 0 for transparent).
-	 * @param foreground the foreground factor of this EGraphics (1 for to be in foreground).
-	 * @param pattern the 16x16 stipple pattern of this EGraphics (16 integers).
-	 * This pattern is tessellated across the polygon.
+	 @param printMethod the way to show this EGraphics on paper (SOLID, PATTERNED, or OUTLINEPAT).
+	 @param transparentLayer the transparent layer number (0 for none).
+	 @param red the red component of this EGraphics.
+	 @param green the green component of this EGraphics.
+	 @param blue the blue component of this EGraphics.
+	 @param opacity the opacity of this EGraphics (1 for opaque, 0 for transparent).
+	 @param foreground the foreground factor of this EGraphics (1 for to be in foreground).
+	 @param pattern the 16x16 stipple pattern of this EGraphics (16 integers).
 	 */
 	public EGraphics(int displayMethod, int printMethod, int transparentLayer,
-		int red, int green, int blue, double opacity, int foreground, int[] pattern)
+		int red, int green, int blue, double opacity, boolean foreground, int[] pattern)
 	{
 		this.layer = null;
 		this.displayPatterned = (displayMethod != SOLID);
@@ -173,10 +173,37 @@ public class EGraphics
 	}
 
 	/**
-	 * Method tells which Layer is associated with this EGraphics.
-	 * @return the Layer that is associated with this EGraphics.
-	 * Returns null if no Layer is associated.
+	 * Method to easily copy graphics between similar layers
+	 * @param g graphics to copy data from
 	 */
+	public EGraphics(EGraphics g)
+	{
+		this.layer = null;
+		this.displayPatterned = g.isPatternedOnDisplay();
+		this.displayOutlined = g.isOutlinedOnDisplay();
+		this.printPatterned = g.isPatternedOnPrinter();
+		this.printOutlined = g.isOutlinedOnPrinter();
+		this.transparentLayer = g.getTransparentLayer();
+		Color gColor = g.getColor();
+		this.red = gColor.getRed();
+		this.green = gColor.getGreen();
+		this.blue = gColor.getBlue();
+		this.opacity = g.getOpacity();
+		this.foreground = g.getForeground();
+		this.pattern = (int[])g.getPattern().clone();
+		if (pattern.length != 16)
+		{
+			System.out.println("Graphics bad: has " + pattern.length + " pattern entries instead of 16");
+		}
+		if (transparentLayer < 0 || transparentLayer >= TRANSPARENT_12)
+		{
+			System.out.println("Graphics transparent color bad: " + transparentLayer);
+		}
+		if (red < 0 || red > 255 || green < 0 || green > 255 || blue < 0 || blue > 255)
+		{
+			System.out.println("Graphics color bad: (" + red + "," + green + "," + blue + ")");
+		}
+	}
 	public Layer getLayer() { return layer; }
 
 	/**
@@ -417,7 +444,7 @@ public class EGraphics
 	 * The background is typically used by implant and well layers.
 	 * @return the whether this EGraphics should be drawn in the foreground.
 	 */
-	public boolean getForeground() { return foreground != 0; }
+	public boolean getForeground() { return foreground; }
 
 	/**
 	 * Method to return the color associated with this EGraphics.

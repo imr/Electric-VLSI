@@ -75,7 +75,7 @@ public class RCMOS extends Technology
 
 		/** Metal-1 layer */
 		Layer metal1_lay = Layer.newInstance(this, "Metal-1",
-			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_1, 96,209,255,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_1, 96,209,255,0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -93,7 +93,7 @@ public class RCMOS extends Technology
 						0x8888,   // X   X   X   X   
 						0x0000}));//                 
 		Layer metal2_lay = Layer.newInstance(this, "Metal-2",
-			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_5, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_5, 224,95,255,0.8,true,
 			new int[] { 0x1010,   //    X       X   
 						0x2020,   //   X       X    
 						0x4040,   //  X       X     
@@ -113,7 +113,7 @@ public class RCMOS extends Technology
 
 		/** P layer */
 		Layer polysilicon_lay = Layer.newInstance(this, "Polysilicon",
-			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_2, 255,155,192,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_2, 255,155,192,0.8,true,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -133,7 +133,7 @@ public class RCMOS extends Technology
 
 		/** S-Active layer */
 		Layer sActive_lay = Layer.newInstance(this, "S-Active",
-			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -153,7 +153,7 @@ public class RCMOS extends Technology
 
 		/** D-Active layer */
 		Layer dActive_lay = Layer.newInstance(this, "D-Active",
-			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_3, 107,226,96,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -173,7 +173,7 @@ public class RCMOS extends Technology
 
 		/** Select layer */
 		Layer select_lay = Layer.newInstance(this, "Select",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 255,255,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 255,255,0,0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -193,7 +193,7 @@ public class RCMOS extends Technology
 
 		/** Well layer */
 		Layer well_lay = Layer.newInstance(this, "Well",
-			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_4, 240,221,181,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_4, 240,221,181,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x00c0,   //         XX      
 						0x0000,   //                 
@@ -213,17 +213,17 @@ public class RCMOS extends Technology
 
 		/** Cut layer */
 		Layer cut_lay = Layer.newInstance(this, "Contact-Cut",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Via layer */
 		Layer via_lay = Layer.newInstance(this, "Via",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Passivation layer */
 		Layer passivation_lay = Layer.newInstance(this, "Passivation",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 100,100,100,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 100,100,100,0.8,true,
 			new int[] { 0x1c1c,   //    XXX     XXX  
 						0x3e3e,   //   XXXXX   XXXXX 
 						0x3636,   //   XX XX   XX XX 
@@ -243,17 +243,17 @@ public class RCMOS extends Technology
 
 		/** Poly Cut layer */
 		Layer polyCut_lay = Layer.newInstance(this, "Poly-Cut",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Active Cut layer */
 		Layer activeCut_lay = Layer.newInstance(this, "Active-Cut",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** Pseudo-Metal-1 layer */
 		Layer pseudoMetal1_lay = Layer.newInstance(this, "Pseudo-Metal-1",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 96,209,255,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 96,209,255,0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -273,7 +273,7 @@ public class RCMOS extends Technology
 
 		/** Pseudo-Metal-2 layer */
 		Layer pseudoMetal2_lay = Layer.newInstance(this, "Pseudo-Metal-2",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 224,95,255,0.8,true,
 			new int[] { 0x1010,   //    X       X   
 						0x2020,   //   X       X    
 						0x4040,   //  X       X     
@@ -293,7 +293,7 @@ public class RCMOS extends Technology
 
 		/** Pseudo-Polysilicon layer */
 		Layer pseudoPolysilicon_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 255,155,192,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 255,155,192,0.8,true,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -313,7 +313,7 @@ public class RCMOS extends Technology
 
 		/** Pseudo-S-Active layer */
 		Layer pseudoSActive_lay = Layer.newInstance(this, "Pseudo-S-Active",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 107,226,96,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -333,7 +333,7 @@ public class RCMOS extends Technology
 
 		/** Pseudo-D-Active layer */
 		Layer pseudoDActive_lay = Layer.newInstance(this, "Pseudo-D-Active",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 107,226,96,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -353,7 +353,7 @@ public class RCMOS extends Technology
 
 		/** Pseudo-Select layer */
 		Layer pseudoSelect_lay = Layer.newInstance(this, "Pseudo-Select",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 255,255,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 255,255,0,0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -373,7 +373,7 @@ public class RCMOS extends Technology
 
 		/** Pseudo-Well layer */
 		Layer pseudoWell_lay = Layer.newInstance(this, "Pseudo-Well",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 240,221,181,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 240,221,181,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x00c0,   //         XX      
 						0x0000,   //                 

@@ -67,7 +67,7 @@ public class MoCMOSOld extends Technology
 
 		/** M layer */
 		Layer M_lay = Layer.newInstance(this, "Metal-1",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 107,226,96,0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -87,7 +87,7 @@ public class MoCMOSOld extends Technology
 
 		/** M0 layer */
 		Layer M0_lay = Layer.newInstance(this, "Metal-2",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -107,7 +107,7 @@ public class MoCMOSOld extends Technology
 
 		/** P layer */
 		Layer P_lay = Layer.newInstance(this, "Polysilicon",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 224,95,255,0.8,true,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -127,7 +127,7 @@ public class MoCMOSOld extends Technology
 
 		/** SA layer */
 		Layer SA_lay = Layer.newInstance(this, "S-Active",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -147,7 +147,7 @@ public class MoCMOSOld extends Technology
 
 		/** DA layer */
 		Layer DA_lay = Layer.newInstance(this, "D-Active",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -167,7 +167,7 @@ public class MoCMOSOld extends Technology
 
 		/** PS layer */
 		Layer PS_lay = Layer.newInstance(this, "P-Select",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 89,44,51,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 89,44,51,0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -187,7 +187,7 @@ public class MoCMOSOld extends Technology
 
 		/** NS layer */
 		Layer NS_lay = Layer.newInstance(this, "N-Select",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 89,44,51,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 89,44,51,0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -207,7 +207,7 @@ public class MoCMOSOld extends Technology
 
 		/** PW layer */
 		Layer PW_lay = Layer.newInstance(this, "P-Well",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,true,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -227,7 +227,7 @@ public class MoCMOSOld extends Technology
 
 		/** NW layer */
 		Layer NW_lay = Layer.newInstance(this, "N-Well",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,true,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -247,17 +247,17 @@ public class MoCMOSOld extends Technology
 
 		/** CC layer */
 		Layer CC_lay = Layer.newInstance(this, "Contact-Cut",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 107,137,72,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 107,137,72,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** V layer */
 		Layer V_lay = Layer.newInstance(this, "Via",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 107,137,72,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 107,137,72,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** P0 layer */
 		Layer P0_lay = Layer.newInstance(this, "Passivation",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,0,0,0.8,true,
 			new int[] { 0x1c1c,   //    XXX     XXX  
 						0x3e3e,   //   XXXXX   XXXXX 
 						0x3636,   //   XX XX   XX XX 
@@ -277,22 +277,22 @@ public class MoCMOSOld extends Technology
 
 		/** T layer */
 		Layer T_lay = Layer.newInstance(this, "Transistor",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 200,200,200,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 200,200,200,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** PC layer */
 		Layer PC_lay = Layer.newInstance(this, "Poly-Cut",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 107,137,72,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 107,137,72,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** AC layer */
 		Layer AC_lay = Layer.newInstance(this, "Active-Cut",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 107,137,72,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 107,137,72,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		/** SAW layer */
 		Layer SAW_lay = Layer.newInstance(this, "S-Active-Well",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -312,7 +312,7 @@ public class MoCMOSOld extends Technology
 
 		/** PM layer */
 		Layer PM_lay = Layer.newInstance(this, "Pseudo-Metal-1",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 107,226,96,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_1, 107,226,96,0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -332,7 +332,7 @@ public class MoCMOSOld extends Technology
 
 		/** PM0 layer */
 		Layer PM0_lay = Layer.newInstance(this, "Pseudo-Metal-2",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_4, 0,0,0,0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -352,7 +352,7 @@ public class MoCMOSOld extends Technology
 
 		/** PP layer */
 		Layer PP_lay = Layer.newInstance(this, "Pseudo-Polysilicon",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 224,95,255,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_2, 224,95,255,0.8,true,
 			new int[] { 0x0808,   //     X       X   
 						0x0404,   //      X       X  
 						0x0202,   //       X       X 
@@ -372,7 +372,7 @@ public class MoCMOSOld extends Technology
 
 		/** PSA layer */
 		Layer PSA_lay = Layer.newInstance(this, "Pseudo-S-Active",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -392,7 +392,7 @@ public class MoCMOSOld extends Technology
 
 		/** PDA layer */
 		Layer PDA_lay = Layer.newInstance(this, "Pseudo-D-Active",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_3, 240,221,181,0.8,true,
 			new int[] { 0x0000,   //                 
 						0x0303,   //       XX      XX
 						0x4848,   //  X  X    X  X   
@@ -412,7 +412,7 @@ public class MoCMOSOld extends Technology
 
 		/** PPS layer */
 		Layer PPS_lay = Layer.newInstance(this, "Pseudo-P-Select",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 89,44,51,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 89,44,51,0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -432,7 +432,7 @@ public class MoCMOSOld extends Technology
 
 		/** PNS layer */
 		Layer PNS_lay = Layer.newInstance(this, "Pseudo-N-Select",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 89,44,51,0.8,1,
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 89,44,51,0.8,true,
 			new int[] { 0x1010,   //    X       X    
 						0x2020,   //   X       X     
 						0x4040,   //  X       X      
@@ -452,7 +452,7 @@ public class MoCMOSOld extends Technology
 
 		/** PPW layer */
 		Layer PPW_lay = Layer.newInstance(this, "Pseudo-P-Well",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,true,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -472,7 +472,7 @@ public class MoCMOSOld extends Technology
 
 		/** PNW layer */
 		Layer PNW_lay = Layer.newInstance(this, "Pseudo-N-Well",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, EGraphics.TRANSPARENT_5, 0,0,0,0.8,true,
 			new int[] { 0x1000,   //    X            
 						0x0020,   //           X     
 						0x0000,   //                 
@@ -492,7 +492,7 @@ public class MoCMOSOld extends Technology
 
 		/** PF layer */
 		Layer PF_lay = Layer.newInstance(this, "Pad-Frame",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 224,57,192,0.8,1,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 224,57,192,0.8,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 		// The layer functions
