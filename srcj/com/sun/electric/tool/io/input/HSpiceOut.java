@@ -175,6 +175,8 @@ public class HSpiceOut extends Simulate
 
 		// get version number (known to work with 9007, 9601)
 		int version = getHSpiceInt();
+		if (version != 9007 && version != 9601)
+			System.out.println("Warning: may not be able to read HSpice files of type " + version);
 
 		// ignore the unused/title information (4+72 characters over line break)
 		for(int j=0; j<76; j++)
@@ -236,6 +238,10 @@ public class HSpiceOut extends Simulate
 				if (version == 9007 && j >= 16) break;
 			}
 			int l = (j+16) / 16 * 16 - 1;
+			if (version == 9007)
+			{
+				l = (j+15) / 16 * 16 - 1;
+			}
 			for(; j<l; j++)
 			{
 				int i = getByteFromFile();
