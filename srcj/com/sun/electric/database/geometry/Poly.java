@@ -1465,6 +1465,7 @@ public class Poly implements Shape
 	 */
 	public boolean contains(Point2D p)
 	{
+		/* profiling Sept 22
 		if (Main.getDebug())
 		{
 			Point2D newP = new Point2D.Double(p.getX(), p.getY());
@@ -1472,6 +1473,7 @@ public class Poly implements Shape
 			if ( !newP.equals(p) )
 				System.out.println("local copy changed in Poly.contains(Point2D) " + newP + " " + p);
 		}
+		*/
 
 		return isInside(p);
 	}
