@@ -51,7 +51,7 @@ public class J3DViewDialog extends EDialog
     private List knots = new ArrayList();
     private Map interMap;
 
-    public static void createThreeViewDialog(java.awt.Frame parent, String hostname)
+    public static void create3DViewDialog(java.awt.Frame parent, String hostname)
     {
         View3DWindow view3D = null;
         WindowContent content = WindowFrame.getCurrentWindowFrame().getContent();
@@ -591,7 +591,7 @@ public class J3DViewDialog extends EDialog
         }
         else
         {
-           demo.setText("Start Demo");
+            demo.setText("Start Demo");
             view3D.removeInterpolator(interMap);
         }
         //view3D.set3DCamera(spline.getSelectedIndex());

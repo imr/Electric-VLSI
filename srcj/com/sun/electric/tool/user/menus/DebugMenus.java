@@ -838,7 +838,7 @@ try {
 
         try
         {
-            Method createDialog = three3DViewDialog.getDeclaredMethod("createThreeViewDialog",
+            Method createDialog = three3DViewDialog.getDeclaredMethod("create3DViewDialog",
                     new Class[] {java.awt.Frame.class});
             createDialog.invoke(three3DViewDialog, new Object[]{TopLevel.getCurrentJFrame()});
         } catch (Exception e) {

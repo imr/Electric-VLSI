@@ -116,6 +116,7 @@ public class View3DWindow extends JPanel
     //KBRotPosScaleSplinePathInterpolator kbSplineInter;
     //RotPosScaleTCBSplinePathInterpolator tcbSplineInter;
     private Map interpolatorMap = new HashMap();
+    private J3DKeyCollision keyBehavior;
 
     private J3DAlpha jAlpha = new J3DAlpha(new Alpha (-1,
         Alpha.INCREASING_ENABLE | Alpha.DECREASING_ENABLE,
@@ -386,7 +387,7 @@ public class View3DWindow extends JPanel
 //		objRoot.addChild( key );
 
         // create the KeyBehavior and attach
-		J3DKeyCollision keyBehavior = new J3DKeyCollision(objTrans, this);
+		keyBehavior = new J3DKeyCollision(objTrans, this);
 		keyBehavior.setSchedulingBounds(infiniteBounds);
 		//keyBehavior.setMovementRate( 0.7 );
 		objTrans.addChild(keyBehavior);
@@ -1023,12 +1024,12 @@ public class View3DWindow extends JPanel
 
                 grp.getTransform(currXform);
                 currXform.setTranslation(newPos);
-//                tmpTrans.set(newPos);
+//                tmpVec.set(newPos);
                 boolean invert = true;
 //                if (invert) {
-//                    currXform.mul(currXform, tmpTrans);
+//                    currXform.mul(currXform, tmpVec);
 //                } else {
-//                    currXform.mul(tmpTrans, currXform);
+//                    currXform.mul(tmpVec, currXform);
 //                }
                 grp.setTransform(currXform);
 
@@ -1038,15 +1039,15 @@ public class View3DWindow extends JPanel
                 // Remember old matrix
                 currXform.get(mat);
 
-                //tmpTrans.setEuler(rotation);
+                //tmpVec.setEuler(rotation);
 
                 // Translate to rotation point
                 currXform.setTranslation(new Vector3d(values[6], values[7], values[8]));
                 currXform.setRotation(quaf);
 //                if (invert) {
-//                currXform.mul(currXform, tmpTrans);
+//                currXform.mul(currXform, tmpVec);
 //                } else {
-//                currXform.mul(tmpTrans, currXform);
+//                currXform.mul(tmpVec, currXform);
 //                }
 
                 // Set old translation back
@@ -1391,8 +1392,9 @@ public class View3DWindow extends JPanel
 
     ///////////////////// KEY BEHAVIOR FUNCTION ///////////////////////////////
 
-    private Vector3d tmpTrans = new Vector3d();
+    private Vector3d tmpVec = new Vector3d();
     private Vector3d mapSize = null;
+    private Transform3D tmpTrans = new Transform3D();
 
     protected double getScale( )
 	{
@@ -1421,25 +1423,25 @@ public class View3DWindow extends JPanel
     public boolean isCollision( Transform3D t3d, boolean bViewSide )
 	{
 		// get the translation
-		t3d.get( tmpTrans );
+		t3d.get( tmpVec );
 
 		// we need to scale up by the scale that was
 		// applied to the root TG on the view side of the scenegraph
 		if( bViewSide != false )
-			tmpTrans.scale( 1.0 / getScale( ) );
+			tmpVec.scale( 1.0 / getScale( ) );
 
 //        Vector3d mapSquareSize = getMapSize( );
 
 		// first check that we are still inside the "world"
-//		if (tmpTrans.x < -getPanel().getWidth() + mapSquareSize.x ||
-//			tmpTrans.x > getPanel().getWidth() - mapSquareSize.x ||
-//			tmpTrans.y < -getPanel().getHeight() + mapSquareSize.y ||
-//			tmpTrans.y > getPanel().getHeight() - mapSquareSize.y  )
+//		if (tmpVec.x < -getPanel().getWidth() + mapSquareSize.x ||
+//			tmpVec.x > getPanel().getWidth() - mapSquareSize.x ||
+//			tmpVec.y < -getPanel().getHeight() + mapSquareSize.y ||
+//			tmpVec.y > getPanel().getHeight() - mapSquareSize.y  )
 //			return true;
 
 		if( bViewSide != false )
 			// then do a pixel based look up using the map
-			return isCollision(tmpTrans);
+			return isCollision(tmpVec);
 
 		return false;
 	}
@@ -1483,4 +1485,14 @@ public class View3DWindow extends JPanel
 //		// we can't walk through walls or bookcases
 //		return( color == m_ColorWall || color == m_ColorBookcase );
 	}
+
+    public J3DUtils.ThreeDDemoKnot addFrame()
+    {
+        objTrans.getTransform(tmpTrans);
+        tmpTrans.get(tmpVec);
+        Quat4f rot = new Quat4f();
+        tmpTrans.get(rot);
+
+        return(new J3DUtils.ThreeDDemoKnot(1, new Vector3f(tmpVec), rot));
+    }
 }

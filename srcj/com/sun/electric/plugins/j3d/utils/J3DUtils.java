@@ -150,11 +150,6 @@ public final class J3DUtils
      *
      *******************************************************************************************************/
 
-    private static boolean isValidDirection(String dir)
-    {
-        return !(dir.equals("") || dir.equals("0 0 0"));
-    }
-
     public static Vector3f[] transformIntoVectors(String dir)
     {
         float[][] values = new float[2][3];
@@ -311,86 +306,6 @@ public final class J3DUtils
 
     }
 
-    /**
-     * Method to generate each individual frame key for the interporlation
-     * based on Poly information
-     * @param ratio
-     * @param knot
-     * @return
-     */
-    public static KBKeyFrame getNextKBKeyFrame(float ratio, ThreeDDemoKnot knot)
-    {
-        // Prepare spline keyframe data
-        Vector3f pos = new Vector3f (knot.xValue+100, knot.yValue+100, knot.zValue);
-        Point3f point   = new Point3f (pos);            // position
-        Point3f scale   = new Point3f(knot.scale, knot.scale, knot.scale); // uniform scale3D
-        KBKeyFrame key = new KBKeyFrame(ratio, 0, point, knot.heading, knot.pitch, knot.bank, scale, 0.0f, 0.0f, 1.0f);
-        return key;
-    }
-
-    public static TCBKeyFrame getNextTCBKeyFrame(float ratio, ThreeDDemoKnot knot)
-    {
-        // Prepare spline keyframe data
-        Vector3f pos = new Vector3f (knot.xValue, knot.yValue, knot.zValue);
-        Point3f point = new Point3f (pos);            // position
-        Quat4f quat = createQuaternionFromEuler(knot.rotX, knot.rotY, knot.rotZ);
-        Point3f scale = new Point3f(knot.scale, knot.scale, knot.scale); // uniform scale3D
-        TCBKeyFrame key = new TCBKeyFrame(ratio, 0, point, quat, scale, 0.0f, 0.0f, 1.0f);
-        return key;
-    }
-
-    /**
-     * Convert an angular rotation about an axis to a Quaternion.
-     * From Selman's book
-     * @param axis
-     * @param angle
-     * @return
-     */
-	public static Quat4f createQuaternionFromAxisAndAngle( Vector3d axis, double angle )
-	{
-		double sin_a = Math.sin( angle / 2 );
-		double cos_a = Math.cos( angle / 2 );
-
-		// use a vector so we can call normalize
-		Vector4f q = new Vector4f( );
-
-		q.x = (float) (axis.x * sin_a);
-		q.y = (float) (axis.y * sin_a);
-		q.z = (float) (axis.z * sin_a);
-		q.w = (float) cos_a;
-
-		// It is necessary to normalise the quaternion
-		// in case any values are very close to zero.
-		q.normalize( );
-
-		// convert to a Quat4f and return
-		return new Quat4f( q );
-	}
-
-    /**
-     * Convert three rotations about the Euler axes to a Quaternion.
-     * From Selman's book
-     * @param angleX
-     * @param angleY
-     * @param angleZ
-     * @return
-     */
-	public static Quat4f createQuaternionFromEuler( double angleX, double angleY, double angleZ )
-	{
-		// simply call createQuaternionFromAxisAndAngle
-		// for each axis and multiply the results
-		Quat4f qx = createQuaternionFromAxisAndAngle( new Vector3d( 1,0,0 ), angleX );
-		Quat4f qy = createQuaternionFromAxisAndAngle( new Vector3d( 0,1,0 ), angleY );
-		Quat4f qz = createQuaternionFromAxisAndAngle( new Vector3d( 0,0,1 ), angleZ );
-
-		// qx = qx * qy
-		qx.mul( qy );
-
-		// qx = qx * qz
-		qx.mul( qz );
-
-		return qx;
-	}
 
     public static double covertToDegrees(double radiant)
     {
@@ -708,18 +623,25 @@ public final class J3DUtils
         }
     }
 
+    /*******************************************************************************************************
+     *                      DEMO SECTION
+     *******************************************************************************************************/
     public static class ThreeDDemoKnot
     {
         float xValue;
         float yValue;
         float zValue;
+        Vector3f translation;
+
         float scale;
         float heading; // Sets the camera's heading. This automatically modifies the target's position.
         float pitch; // Sets the camera's pitch in degrees. This automatically modifies the target's position.
         float bank; // Sets the camera's bank in degrees. The angle is relative to the horizon.
+
         double rotZ;
         double rotY;
         double rotX;
+        Quat4f rotation;
 
         public ThreeDDemoKnot(double xValue, double yValue, double zValue, double scale,
                               double heading, double pitch, double bank,
@@ -736,8 +658,106 @@ public final class J3DUtils
             this.rotX = rotX;
             this.rotY = rotY;
         }
+
+        public ThreeDDemoKnot(double scale, Vector3f trans, Quat4f rot)
+        {
+            this.scale = (float)scale;
+            this.translation = trans;
+            this.rotation = rot;
+        }
     }
 
+    /**
+     * Method to generate each individual frame key for the interporlation
+     * based on Poly information
+     * @param ratio
+     * @param knot
+     * @return
+     */
+    public static KBKeyFrame getNextKBKeyFrame(float ratio, ThreeDDemoKnot knot)
+    {
+        // Prepare spline keyframe data
+        Vector3f pos = new Vector3f (knot.xValue+100, knot.yValue+100, knot.zValue);
+        Point3f point   = new Point3f (pos);            // position
+        Point3f scale   = new Point3f(knot.scale, knot.scale, knot.scale); // uniform scale3D
+        KBKeyFrame key = new KBKeyFrame(ratio, 0, point, knot.heading, knot.pitch, knot.bank, scale, 0.0f, 0.0f, 1.0f);
+        return key;
+    }
+
+    public static TCBKeyFrame getNextTCBKeyFrame(float ratio, ThreeDDemoKnot knot)
+    {
+        // Prepare spline keyframe data
+        Vector3f pos = knot.translation;
+        // Initial translatio is not given as vector
+        if (pos == null)
+            pos = new Vector3f (knot.xValue, knot.yValue, knot.zValue);
+        Point3f point = new Point3f (pos);            // position
+
+        Quat4f quat = knot.rotation;
+        // Initial rotation not given as Quat4f
+        if (quat == null)
+            quat = createQuaternionFromEuler(knot.rotX, knot.rotY, knot.rotZ);
+        Point3f scale = new Point3f(knot.scale, knot.scale, knot.scale); // uniform scale3D
+        TCBKeyFrame key = new TCBKeyFrame(ratio, 0, point, quat, scale, 0.0f, 0.0f, 1.0f);
+        return key;
+    }
+
+    /**
+     * Convert an angular rotation about an axis to a Quaternion.
+     * From Selman's book
+     * @param axis
+     * @param angle
+     * @return
+     */
+	public static Quat4f createQuaternionFromAxisAndAngle( Vector3d axis, double angle )
+	{
+		double sin_a = Math.sin( angle / 2 );
+		double cos_a = Math.cos( angle / 2 );
+
+		// use a vector so we can call normalize
+		Vector4f q = new Vector4f( );
+
+		q.x = (float) (axis.x * sin_a);
+		q.y = (float) (axis.y * sin_a);
+		q.z = (float) (axis.z * sin_a);
+		q.w = (float) cos_a;
+
+		// It is necessary to normalise the quaternion
+		// in case any values are very close to zero.
+		q.normalize( );
+
+		// convert to a Quat4f and return
+		return new Quat4f( q );
+	}
+
+    /**
+     * Convert three rotations about the Euler axes to a Quaternion.
+     * From Selman's book
+     * @param angleX
+     * @param angleY
+     * @param angleZ
+     * @return
+     */
+	public static Quat4f createQuaternionFromEuler( double angleX, double angleY, double angleZ )
+	{
+		// simply call createQuaternionFromAxisAndAngle
+		// for each axis and multiply the results
+		Quat4f qx = createQuaternionFromAxisAndAngle( new Vector3d( 1,0,0 ), angleX );
+		Quat4f qy = createQuaternionFromAxisAndAngle( new Vector3d( 0,1,0 ), angleY );
+		Quat4f qz = createQuaternionFromAxisAndAngle( new Vector3d( 0,0,1 ), angleZ );
+
+		// qx = qx * qy
+		qx.mul( qy );
+
+		// qx = qx * qz
+		qx.mul( qz );
+
+		return qx;
+	}
+
+    /*******************************************************************************************************
+     *                      IMAGE SECTION
+     *******************************************************************************************************/
     /**
      * Class to create offscreen from canvas 3D
      */

@@ -62,21 +62,18 @@ public class J3DMenu {
         MenuBar.Menu j3DMenu = new MenuBar.Menu("3D", '3');
         menuBar.add(j3DMenu);
 
+        j3DMenu.addMenuItem("Capture Frame", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame());} });
 		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
         j3DMenu.addMenuItem("Read Capacitance Data From Socket", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { readDemoDataFromSocket(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DViewDialog.create3DViewDialog(TopLevel.getCurrentJFrame(), "localhost"); } });
         j3DMenu.addMenuItem("Read Capacitance Data From File", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { readDemoDataFromFile(); } });
 		return j3DMenu;
     }
 
     // ---------------------- THE 3D MENU FUNCTIONS -----------------
-
-    public static void readDemoDataFromSocket()
-    {
-        J3DViewDialog.createThreeViewDialog(TopLevel.getCurrentJFrame(), "localhost");
-    }
 
     public static void readDemoDataFromFile()
     {
