@@ -553,22 +553,28 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 	 * Method to determine if existing report was not looged already
 	 * as error or warning
 	 */
-	public synchronized boolean findMessage(Cell cell, Geometric geom1, Cell cell2, Geometric geom2)
+	public synchronized boolean findMessage(Cell cell, Geometric geom1, Cell cell2, Geometric geom2, boolean onlyError)
 	{
-		for (int i = 0; i < allErrors.size(); i++)
-		{
-			MessageLog el = (MessageLog)allErrors.get(i);
+        if (onlyError)
+        {
+            for (int i = 0; i < allErrors.size(); i++)
+            {
+                MessageLog el = (MessageLog)allErrors.get(i);
 
-			if (el.findGeometries(geom1, cell, geom2, cell2))
-				return (true);
-		}
-		for (int i = 0; i < allWarnings.size(); i++)
-		{
-			MessageLog el = (MessageLog)allWarnings.get(i);
+                if (el.findGeometries(geom1, cell, geom2, cell2))
+                    return (true);
+		    }
+        }
+        else
+        {
+            for (int i = 0; i < allWarnings.size(); i++)
+            {
+                MessageLog el = (MessageLog)allWarnings.get(i);
 
-			if (el.findGeometries(geom1, cell, geom2, cell2))
-				return (true);
-		}
+                if (el.findGeometries(geom1, cell, geom2, cell2))
+                    return (true);
+            }
+        }
 		return (false);
 	}
 
