@@ -114,6 +114,6 @@ public interface Nodable
      * @param ni a NodeInst
      * @return true if this Nodable contains ni, false otherwise
      */
-    public boolean contains(NodeInst ni);
+    public boolean contains(NodeInst ni, int arrayIndex);
 
 }

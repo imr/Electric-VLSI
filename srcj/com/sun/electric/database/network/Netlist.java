@@ -189,12 +189,12 @@ public class Netlist
 	// ---------------------- public methods -----------------
 
     // JKG: trying this out
-    public static Nodable getNodableFor(NodeInst ni) {
+    public static Nodable getNodableFor(NodeInst ni, int arrayIndex) {
         Cell parent = ni.getParent();
         Netlist netlist = Network.getUserNetlist(parent);
         for (Iterator it = netlist.getNodables(); it.hasNext(); ) {
             Nodable no = (Nodable)it.next();
-            if (no.contains(ni)) return no;
+            if (no.contains(ni, arrayIndex)) return no;
         }
         return null;
     }

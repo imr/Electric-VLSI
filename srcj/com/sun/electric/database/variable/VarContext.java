@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -183,14 +184,19 @@ public class VarContext
         Variable var = ni.getVar(name);
         if (var == null) {
             // look up default var on prototype
-            NodeProto np;
-            if (ni instanceof NodeInst) {
-                NodeInst nni = (NodeInst)ni;
-                Nodable no = Netlist.getNodableFor(nni);
-                np = no.getProto();
-            } else {
-                np = ni.getProto();
-            }
+			NodeProto np = ni.getProto();
+			if (np.isIcon()) {
+				Cell cell = ((Cell)np).getEquivalent();
+				if (cell != null) np = cell;
+			}
+//             NodeProto np;
+//             if (ni instanceof NodeInst) {
+//                 NodeInst nni = (NodeInst)ni;
+//                 Nodable no = Netlist.getNodableFor(nni);
+//                 np = no.getProto();
+//             } else {
+//                 np = ni.getProto();
+//             }
             var = np.getVar(name);
         }
         if (var == null) return "Var "+name.replaceFirst("ATTR_", "")+" not found";
@@ -219,14 +225,19 @@ public class VarContext
             Variable var = ni.getVar(name);             // look up var
 			if (var != null)
 				return scan.pop().evalVar(var, ni);
-            NodeProto np;                               // look up default var value on prototype
-            if (ni instanceof NodeInst) {
-                NodeInst nni = (NodeInst)ni;
-                Nodable no = Netlist.getNodableFor(nni);
-                np = no.getProto();
-            } else {
-                np = ni.getProto();
-            }
+			NodeProto np = ni.getProto();               // look up default var value on prototype
+			if (np.isIcon()) {
+				Cell cell = ((Cell)np).getEquivalent();
+				if (cell != null) np = cell;
+			}
+//            NodeProto np;                               // look up default var value on prototype
+//             if (ni instanceof NodeInst) {
+//                 NodeInst nni = (NodeInst)ni;
+//                 Nodable no = Netlist.getNodableFor(nni);
+//                 np = no.getProto();
+//             } else {
+//                 np = ni.getProto();
+//             }
             var = np.getVar(name);
             if (var != null)
                 return scan.pop().evalVar(var, ni);

@@ -230,8 +230,8 @@ class NetSchem extends NetCell {
 		public String toString() { return "NetSchem.Proxy " + getName(); }
 
         // JKG: trying this out
-        public boolean contains(NodeInst ni) {
-            if (nodeInst == ni) return true;
+        public boolean contains(NodeInst ni, int arrayIndex) {
+            if (nodeInst == ni && this.arrayIndex == arrayIndex) return true;
             return false;
         }
 

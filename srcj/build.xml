@@ -24,6 +24,16 @@
         </java>
     </target>
 
+    <target name="runMain" depends="init,compile">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" maxmemory="256m">
+            <classpath>
+                <pathelement location="."/>
+                <pathelement location="${beanshell}"/>
+                <pathelement location="${AppleJava}"/>
+           </classpath>
+        </java>
+    </target>
+
     <target name="jar" depends="init,compile" description="Make binary Jar file">
         <!-- To make a standalone app: -->
         <!-- 1. Create electric.mf manifest. -->

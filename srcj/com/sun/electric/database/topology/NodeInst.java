@@ -2012,8 +2012,8 @@ public class NodeInst extends Geometric implements Nodable
      * Implements Nodable.contains(NodeInst ni).
      * True if ni is the same as this.  False otherwise
      */
-    public boolean contains(NodeInst ni) {
-        if (ni == this) return true;
+    public boolean contains(NodeInst ni, int arrayIndex) {
+        if (ni == this && arrayIndex == 0) return true;
         return false;
     }
 

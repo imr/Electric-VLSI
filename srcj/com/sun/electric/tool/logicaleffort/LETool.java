@@ -117,7 +117,8 @@ public class LETool extends Tool {
             NodeInst ni = (NodeInst)no;
             Cell parent = no.getParent();                               // Cell in which inst which has LE.subdrive is
             if (parent == null) return "subdrive(): null parent";
-            no = Netlist.getNodableFor(ni);
+			int arrayIndex = 0; // Which array index ?
+            no = Netlist.getNodableFor(ni, arrayIndex);
             if (no == null) return "subdrive(): can't get equivalent schematic";
 
         }
