@@ -144,14 +144,8 @@ public abstract class Job implements ActionListener, Runnable {
                 job.run();
                 // turn off busy cursor if no more change jobs
                 synchronized(this) {
-                    Iterator it;
-                    for (it = allJobs.iterator(); it.hasNext(); ) {
-                        Job j = (Job)it.next();
-                        if (j.jobType == Type.CHANGE) break;
-                    }
-                    if (!it.hasNext()) {
+                    if (!isChangeJobQueuedOrRunning())
                         SwingUtilities.invokeLater(new Runnable() { public void run() { TopLevel.setBusyCursor(false); }});
-                    }
                 }
 			}
 		}
@@ -230,8 +224,8 @@ public abstract class Job implements ActionListener, Runnable {
          */
         private boolean addInthreadExamineJob(InthreadExamineJob j, boolean wait) {
             synchronized(this) {
-                // check if change job running:
-                if (allJobs.size() > numExamine) {
+                // check if change job running or queued: if so, can't run immediately
+                if (isChangeJobQueuedOrRunning()) {
                     if (!wait) return false;
                     // need to queue because it may not be able to run immediately
                     addJob(j);
@@ -317,10 +311,20 @@ public abstract class Job implements ActionListener, Runnable {
             }
             return jobsList.iterator();
         }
+
+        private synchronized boolean isChangeJobQueuedOrRunning() {
+            Iterator it;
+            for (it = allJobs.iterator(); it.hasNext(); ) {
+                Job j = (Job)it.next();
+                if (j.finished) continue;               // ignore finished jobs
+                if (j.jobType == Type.CHANGE) return true;
+            }
+            return false;
+        }
 	}
 
 	/** default execution time in milis */      private static final int MIN_NUM_SECONDS = 60000;
-	/** database changes thread */              private static DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
+	/** database changes thread */              private static final DatabaseChangesThread databaseChangesThread = new DatabaseChangesThread();
 	/** changing job */                         private static Job changingJob;
     /** my tree node */                         private DefaultMutableTreeNode myNode;
     /** delete when done if true */             private boolean deleteWhenDone;
