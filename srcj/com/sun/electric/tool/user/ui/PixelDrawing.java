@@ -713,13 +713,16 @@ public class PixelDrawing
         // see if the arc is completely clipped from the screen
 		Rectangle2D arcBounds = ai.getBounds();
         Rectangle2D dbBounds = new Rectangle2D.Double(arcBounds.getX(), arcBounds.getY(), arcBounds.getWidth(), arcBounds.getHeight());
-        // java doesn't think they intersect if they contain no area, so add some area if needed
-        if (arcBounds.getWidth() == 0) dbBounds.setRect(dbBounds.getX(), dbBounds.getY(), 0.0001, dbBounds.getHeight());
-        if (arcBounds.getHeight() == 0) dbBounds.setRect(dbBounds.getX(), dbBounds.getY(), dbBounds.getWidth(), 0.0001);
+        // java doesn't think they intersect if they contain no area, so don't use that method
         Poly p = new Poly(dbBounds);
         p.transform(trans);
-        if (drawBounds != null && !p.getBounds2D().intersects(drawBounds)) {
-            return;
+        dbBounds = p.getBounds2D();
+        if (drawBounds != null) {
+            if (!drawBounds.contains(dbBounds.getX(), dbBounds.getY()) &&
+                !drawBounds.contains(dbBounds.getX(), dbBounds.getY()+dbBounds.getHeight()) &&
+                !drawBounds.contains(dbBounds.getX()+dbBounds.getWidth(), dbBounds.getY()) &&
+                !drawBounds.contains(dbBounds.getX()+dbBounds.getWidth(), dbBounds.getY()+dbBounds.getHeight()))
+                return;
         }
 
         double arcSize = Math.max(arcBounds.getWidth(), arcBounds.getHeight());
