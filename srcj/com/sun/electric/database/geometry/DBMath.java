@@ -25,7 +25,6 @@ package com.sun.electric.database.geometry;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
 
 /**
  * This class is a collection of math utilities used for
@@ -40,6 +39,10 @@ public class DBMath extends GenMath {
      * will still be regarded as "equal".
      */
     private static double EPSILON = 0.01;
+	/**
+	 * NDECIMALS number digits to round decimal numbers
+	 */
+	private static double NDECIMALS = 2;
 
     /**
      * Method to tell whether a point is inside of a bounds, compensating
@@ -68,6 +71,21 @@ public class DBMath extends GenMath {
         if (Math.abs(a-b) < EPSILON) return true;
         return false;
     }
+
+	/**
+	 * pre: x >= 0.0 and -15 <= n <= 15
+	 * @param x
+	 * @return the return value is an approximation of x rounded to n digits
+	 */
+	public static double round(double x)
+	{
+		double result = 0;
+        double pow10 = Math.pow(10, NDECIMALS);
+
+        result = Math.floor(x*pow10 + 0.5) / pow10;
+
+        return result;
+	}
 
     /**
      * Method to compare two double-precision database coordinates within an approximate epsilon.
