@@ -18,8 +18,7 @@ import java.util.Iterator;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.sql.Time;
-import java.io.*;
-import javax.swing.tree.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.JPopupMenu;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -125,7 +124,17 @@ public abstract class Job extends Thread implements ActionListener {
     /** progress */                             private String progress = null;
     
     
-    /** Creates a new instance of Job */
+    /**
+	 * Constructor creates a new instance of Job.
+	 * @param jobName a string that describes this Job.
+	 * @param tool the Tool that originated this Job.
+	 * @param jobType the Type of this Job (EXAMINE or CHANGE).
+	 * @param upCell the Cell at the bottom of a hierarchical "up cone" of change.
+	 * If this and "downCell" are null, the entire database is presumed.
+	 * @param downCell the Cell at the top of a hierarchical "down tree" of changes/examinations.
+	 * If this and "upCell" are null, the entire database is presumed.
+	 * @param priority the priority of this Job.
+	 */
     public Job(String jobName, Tool tool, Type jobType, Cell upCell, Cell downCell, Priority priority) {
         super(jobName);
 

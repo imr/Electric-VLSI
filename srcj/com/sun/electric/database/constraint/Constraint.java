@@ -58,7 +58,7 @@ public class Constraint implements Change
 	public void modifyNodeInsts(NodeInst [] nis, double [] dCX, double [] dCY, double [] dSX, double [] dSY, int [] dRot) {}
 	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid) {}
 	public void modifyExport(Export pp, PortInst oldPi) {}
-	public void modifyCell(Cell cell) {}
+	public void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY) {}
 	public void modifyTextDescript(ElectricObject obj, int key, Object oldValue) {}
 
 	public void newObject(ElectricObject obj) {}

@@ -24,6 +24,7 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.constraint.Constraint;
 import com.sun.electric.database.geometry.EMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -399,7 +400,7 @@ public class Cell extends NodeProto
 			Undo.Change ch = Undo.newChange(cell, Undo.Type.CELLNEW);
 
 			// tell constraint system about new Cell
-//			(*el_curconstraint->newobject)((INTBIG)cell, VNODEPROTO);
+			Constraint.getCurrent().newObject(cell);
 		}
 		return cell;
 	}
@@ -420,7 +421,7 @@ public class Cell extends NodeProto
 			Undo.Change ch = Undo.newChange(this, Undo.Type.CELLKILL);
 
 			// tell constraint system about killed Cell
-//			(*el_curconstraint->newobject)((INTBIG)this, VNODEPROTO);
+			Constraint.getCurrent().killObject(this);
 		}
 	}
 

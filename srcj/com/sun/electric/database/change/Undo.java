@@ -39,6 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * This interface defines changes that are made to the database.
@@ -190,7 +191,7 @@ public class Undo
 				for(Iterator it = Tool.getTools(); it.hasNext(); )
 				{
 					Tool tool = (Tool)it.next();
-//					if (tool.isOn()) (*el_tools[i].modifynodeproto)((NODEPROTO *)c->entryaddr);
+					if (tool.isOn()) tool.modifyCell((Cell)obj, a1, a2, a3, a4);
 				}
 			} else if (type == Type.OBJECTSTART)
 			{
@@ -370,10 +371,9 @@ public class Undo
 			if (type == Type.CELLMOD)
 			{
 				Cell cell = (Cell)obj;
-//				oldval = cell->lowx;    cell->lowx = c->p1;    c->p1 = oldval;
-//				oldval = cell->highx;   cell->highx = c->p2;   c->p2 = oldval;
-//				oldval = cell->lowy;    cell->lowy = c->p3;    c->p3 = oldval;
-//				oldval = cell->highy;   cell->highy = c->p4;   c->p4 = oldval;
+				Rectangle2D bounds = cell.getBounds();
+				a1 = bounds.getMinX();   a2 = bounds.getMaxX();
+				a3 = bounds.getMinY();   a4 = bounds.getMaxY();
 				return;
 			}
 			if (type == Type.OBJECTSTART)
@@ -730,10 +730,7 @@ public class Undo
 			if (type == Type.CELLMOD)
 			{
 				Cell cell = (Cell)obj;
-				return "Cell " + cell.describe() + " modified";
-//				formatinfstr(infstr, M_(" Cell '%s' modified [was from %s<=X<=%s %s<=Y<=%s]"),
-//					describenodeproto(np), latoa(p1, lambda), latoa(p2, lambda),
-//						latoa(p3, lambda), latoa(p4, lambda));
+				return "Cell " + cell.describe() + " modified [was from " + a1 + "<=X<=" + a2 + " " + a3 + "<=Y<=" + a4 + "]";
 			}
 			if (type == Type.OBJECTSTART)
 			{

@@ -158,7 +158,6 @@ public class WindowFrame // extends JInternalFrame
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.tree.updateUI();
-            //wf.tree.treeDidChange();
 		}
 	}
 
@@ -171,7 +170,6 @@ public class WindowFrame // extends JInternalFrame
 		for(Iterator it = getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
-			//wf.tree.updateUI();
             wf.tree.treeDidChange();
 		}
 	}
