@@ -2100,6 +2100,7 @@ public class Schematics extends Technology
      * You should most likely be calling NodeInst.getTransistorSize instead of this.
 	 * @param ni the NodeInst.
      * @param context the VarContext, set to VarContext.globalContext if not needed.
+     * set to Null to avoid evaluation of variable.
 	 * @return the size of the NodeInst.
 	 * For FET transistors, the width of the Dimension is the width of the transistor
 	 * and the height of the Dimension is the length of the transistor.
@@ -2112,32 +2113,39 @@ public class Schematics extends Technology
             Object lengthObj = null;
             Variable var = ni.getVar(ATTR_LENGTH);
             if (var != null) {
-                double length = VarContext.objectToDouble(var.getObject(), -1);
-                if (length != -1)
-                    lengthObj = new Double(length);
-                else {
+                if (context != null) {
+                    lengthObj = context.evalVar(var, ni);
+                } else {
                     lengthObj = var.getObject();
                 }
+                double length = VarContext.objectToDouble(lengthObj, -1);
+                if (length != -1)
+                    lengthObj = new Double(length);
             }
 
             Object widthObj = null;
             var = ni.getVar(ATTR_WIDTH);
             if (var != null) {
-                double width = VarContext.objectToDouble(var.getObject(), -1);
-                if (width != -1)
-                    widthObj = new Double(width);
-                else {
+                if (context != null) {
+                    widthObj = context.evalVar(var, ni);
+                } else {
                     widthObj = var.getObject();
                 }
+                double width = VarContext.objectToDouble(widthObj, -1);
+                if (width != -1)
+                    widthObj = new Double(width);
             }
 			//Dimension2D dim = new Dimension2D.Double(width, length);
 	        //return dim;
             TransistorSize size = new TransistorSize(widthObj, lengthObj);
             return size;
 		}
-        Object areaObj = context.evalVar(ni.getVar(ATTR_AREA));
-		double area = VarContext.objectToDouble(areaObj, -1);
-        if (area != -1) areaObj = new Double(area);
+        Object areaObj = new Double(0);
+        if (context != null) {
+            areaObj = context.evalVar(ni.getVar(ATTR_AREA));
+            double area = VarContext.objectToDouble(areaObj, -1);
+            if (area != -1) areaObj = new Double(area);
+        }
 		//Dimension2D dim = new Dimension2D.Double(area, 0);
 		//return dim;
         TransistorSize size = new TransistorSize(areaObj, new Double(0));

@@ -372,7 +372,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		rotation.setText(TextUtils.formatDouble(initialRotation / 10.0));
 
         // special case for transistors
-        TransistorSize transSize = ni.getTransistorSize(VarContext.globalContext);
+        TransistorSize transSize = ni.getTransistorSize(null);
         if (transSize != null) {
             swapXY = false;
             xsizeLabel.setText("Width:");
@@ -506,7 +506,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		{
             /*
 			textField.setEditable(true);
-			TransistorSize d = ni.getTransistorSize(VarContext.globalContext);
+			TransistorSize d = ni.getTransistorSize(null);
 			if (ni.isFET())
 			{
 				textFieldLabel.setText("Width / length:");
@@ -525,7 +525,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                 textField.setEditable(true);
                 textFieldLabel.setText("Area:");
 
-                TransistorSize d = ni.getTransistorSize(VarContext.globalContext);
+                TransistorSize d = ni.getTransistorSize(null);
                 initialTextField = Double.toString(d.getDoubleWidth());
 
                 textField.setText(initialTextField);
@@ -1055,7 +1055,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             // The following code is specific for transistors, and uses the X/Y size fields for
             // Width and Length, and therefore may override the values such that the node size does not
             // get set by them.
-            if (ni.getTransistorSize(VarContext.globalContext) != null) {
+            if (ni.getTransistorSize(null) != null) {
 
                 // ignore and calculated size change: it's not applicable
                 currentXSize = initXSize;

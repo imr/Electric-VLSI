@@ -1095,7 +1095,8 @@ public class Technology extends ElectricObject
      * You should most likely be calling NodeInst.getTransistorSize instead of this.
 	 * @param ni the NodeInst.
      * @param context the VarContext in which any vars will be evaluated,
-     * pass in VarContext.globalContext if no context needed.
+     * pass in VarContext.globalContext if no context needed, or set to null
+     * to avoid evaluation of variables (if any).
 	 * @return the size of the NodeInst.
 	 */
 	public TransistorSize getTransistorSize(NodeInst ni, VarContext context)
