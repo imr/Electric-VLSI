@@ -338,29 +338,6 @@ public class NewExport extends EDialog
 			if (ch.isReference())
 				e.newVar(Export.EXPORT_REFERENCE_NAME, referenceName);
 
-            // create export on icon, if any
-            Cell icon = cell.iconView();
-            if (icon != null) {
-                // find analagous point to create export
-                Rectangle2D bounds = cell.getBounds();
-                double locX = pi.getPoly().getCenterX();
-                double locY = pi.getPoly().getCenterY();
-                Rectangle2D iconBounds = icon.getBounds();
-                double relLocXPercent = (locX - bounds.getX())/bounds.getWidth();
-                double relLocYPercent = (locY - bounds.getY())/bounds.getHeight();
-                double newlocX = relLocXPercent*iconBounds.getWidth() + iconBounds.getX();
-                double newlocY = relLocYPercent*iconBounds.getHeight() + iconBounds.getY();
-                // round
-                Point2D point = new Point2D.Double(newlocX, newlocY);
-                EditWindow.gridAlign(point);
-                newlocX = point.getX();
-                newlocY = point.getY();
-                // create export in icon
-                if (!CircuitChanges.makeIconExport(e, 0, newlocX, newlocY, newlocX+1, newlocY, icon)) {
-                    System.out.println("Warning: Failed to create associated export in icon "+icon.describe());
-                }
-            }
-
 			return true;
 		}
 	}

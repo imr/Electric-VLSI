@@ -6,16 +6,16 @@
 
 ************************* Version 8.01a: Released 7/22/04 ************************
 
-IMP: (7/22/04, JKG) Numerical display now always formats to show postfix. Units Preferences
+IMP/MAN: (7/22/04, JKG) Numerical display now always formats to show postfix. Units Preferences
      disabled, as they no longer make sense. Use TextUtils.parseUserInput to read in numbers.
 
 FIX: (7/22/04, JKG) Many many small fixes in copy/moving/arraying/editing/displaying.
 
-IMP: (7/21/04, JKG) Wiring Tool revamped, all cases checked
+IMP/MAN: (7/21/04, JKG) Wiring Tool revamped, all cases checked
 
 IMP: (7/22/04, GVG) New interface for geometrical operation. Error thrown if Java3D is not found. Some improvements in ERC.
 
-IMP: (7/20/04, RK) Add Regular Expressions to FindText Dialog. Allow user selection of objects to be searched. Report finds and changes in Messages Window. Persist dialog settings.  Allow temporary arc and node inst names to be searched.
+IMP/MAN: (7/20/04, RK) Add Regular Expressions to FindText Dialog. Allow user selection of objects to be searched. Report finds and changes in Messages Window. Persist dialog settings.  Allow temporary arc and node inst names to be searched.
 
 BUG: (7/20/04, RK) Fix button (it did nothing). Exports weren't being searched.
 

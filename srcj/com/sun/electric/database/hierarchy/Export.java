@@ -34,8 +34,11 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.CircuitChanges;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.regex.Pattern;
@@ -96,6 +99,29 @@ public class Export extends PortProto
 		if (pp.lowLevelPopulate(portInst)) return null;
 		if (pp.lowLevelLink(null)) return null;
 		pp.getTextDescriptor().setSmartPlacement();
+
+        // if this was made on a schematic, and an icon exists, make the export on the icon as well
+        Cell icon = parent.iconView();
+        if (icon != null) {
+            // find analagous point to create export
+            Rectangle2D bounds = parent.getBounds();
+            double locX = portInst.getPoly().getCenterX();
+            double locY = portInst.getPoly().getCenterY();
+            Rectangle2D iconBounds = icon.getBounds();
+            double relLocXPercent = (locX - bounds.getX())/bounds.getWidth();
+            double relLocYPercent = (locY - bounds.getY())/bounds.getHeight();
+            double newlocX = relLocXPercent*iconBounds.getWidth() + iconBounds.getX();
+            double newlocY = relLocYPercent*iconBounds.getHeight() + iconBounds.getY();
+            // round
+            Point2D point = new Point2D.Double(newlocX, newlocY);
+            EditWindow.gridAlign(point);
+            newlocX = point.getX();
+            newlocY = point.getY();
+            // create export in icon
+            if (!CircuitChanges.makeIconExport(pp, 0, newlocX, newlocY, newlocX+1, newlocY, icon)) {
+                System.out.println("Warning: Failed to create associated export in icon "+icon.describe());
+            }
+        }
 
 		// handle change control, constraint, and broadcast
 		Undo.newObject(pp);
