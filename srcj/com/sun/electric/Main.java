@@ -66,7 +66,6 @@ public final class Main
 	{
 		// initialize Mac OS 10 if applicable
 		MacOSXInterface.registerMacOSXApplication();
-//		macOSXRegistration();
 
 		// convert args to array list
         ArrayList argsList = new ArrayList();
@@ -180,7 +179,6 @@ public final class Main
 //		try
 //		{
 //			Class osxAdapter = Class.forName("com.sun.electric.Main.MacOSXInterface");
-////			Class osxAdapter = Class.forName("com.sun.electric.tool.user.ui.MacOSXInterface");
 //			Class[] defArgs = {};
 //			Method registerMethod = osxAdapter.getDeclaredMethod("registerMacOSXApplication", defArgs);
 //			if (registerMethod != null)
@@ -190,9 +188,7 @@ public final class Main
 //			}
 //		} catch (NoClassDefFoundError e)
 //		{
-//			// This will be thrown if the OSXAdapter is loaded on a system without the EAWT
-//			// because OSXAdapter extends ApplicationAdapter in its def
-//			System.err.println("NoClassDefFoundError: This version of Mac OS X does not support the Apple EAWT.  Application Menu handling has been disabled (" + e + ")");
+//			System.err.println("This version of Mac OS X does not support the Apple EAWT (" + e + ")");
 //		} catch (ClassNotFoundException e)
 //		{
 //			// If the class is not found, then perhaps this isn't a Macintosh, and we should stop

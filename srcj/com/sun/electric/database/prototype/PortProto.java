@@ -95,14 +95,16 @@ public abstract class PortProto extends ElectricObject
 	public static class Characteristic
 	{
 		private final String name;
+		private final String fullName;
 		private final int bits;
 		private final int order;
 		private static int ordering = 0;
 
 		private static HashMap characteristicList = new HashMap();
 
-		private Characteristic(String name, int bits)
+		private Characteristic(String fullName, String name, int bits)
 		{
+			this.fullName = fullName;
 			this.name = name;
 			this.bits = bits;
 			this.order = ordering++;
@@ -116,8 +118,20 @@ public abstract class PortProto extends ElectricObject
 		public int getBits() { return bits; }
 
 		/**
-		 * Method to return the name of this Characteristic.
-		 * @return the name of this Characteristic.
+		 * Method to return the ordering of this Characteristic.
+		 * @return the order number of this Characteristic.
+		 */
+		public int getOrder() { return order; }
+
+		/**
+		 * Method to return the full name of this Characteristic.
+		 * @return the full name of this Characteristic.
+		 */
+		public String getFullName() { return fullName; }
+
+		/**
+		 * Method to return the short name of this Characteristic.
+		 * @return the short name of this Characteristic.
 		 */
 		public String getName() { return name; }
 
@@ -188,22 +202,38 @@ public abstract class PortProto extends ElectricObject
 		 */
 		public String toString() { return name; }
 
-		/** Describes an unknown port. */						public static final Characteristic UNKNOWN = new Characteristic("unknown", 0);
-		/** Describes an input port. */							public static final Characteristic IN = new Characteristic("input", INPORT);
-		/** Describes an output port. */						public static final Characteristic OUT = new Characteristic("output", OUTPORT);
-		/** Describes a bidirectional port. */					public static final Characteristic BIDIR = new Characteristic("bidirectional", BIDIRPORT);
-		/** Describes a power port. */							public static final Characteristic PWR = new Characteristic("power", PWRPORT);
-		/** Describes a ground port. */							public static final Characteristic GND = new Characteristic("ground", GNDPORT);
-		/** Describes an un-phased clock port. */				public static final Characteristic CLK = new Characteristic("clock", CLKPORT);
-		/** Describes a clock phase 1 port. */					public static final Characteristic C1 = new Characteristic("clock1", C1PORT);
-		/** Describes a clock phase 2 port. */					public static final Characteristic C2 = new Characteristic("clock2", C2PORT);
-		/** Describes a clock phase 3 port. */					public static final Characteristic C3 = new Characteristic("clock3", C3PORT);
-		/** Describes a clock phase 4 port. */					public static final Characteristic C4 = new Characteristic("clock4", C4PORT);
-		/** Describes a clock phase 5 port. */					public static final Characteristic C5 = new Characteristic("clock5", C5PORT);
-		/** Describes a clock phase 6 port. */					public static final Characteristic C6 = new Characteristic("clock6", C6PORT);
-		/** Describes a bias-level reference output port. */	public static final Characteristic REFOUT = new Characteristic("refout", REFOUTPORT);
-		/** Describes a bias-level reference input port. */		public static final Characteristic REFIN = new Characteristic("refin", REFINPORT);
-		/** Describes a bias-level reference base port. */		public static final Characteristic REFBASE = new Characteristic("refbase", REFBASEPORT);
+		/** Describes an unknown port. */
+			public static final Characteristic UNKNOWN = new Characteristic("Unknown", "unknown", 0);
+		/** Describes an input port. */
+			public static final Characteristic IN      = new Characteristic("Input", "input", INPORT);
+		/** Describes an output port. */
+			public static final Characteristic OUT     = new Characteristic("Output", "output", OUTPORT);
+		/** Describes a bidirectional port. */
+			public static final Characteristic BIDIR   = new Characteristic("Bidirectional", "bidirectional", BIDIRPORT);
+		/** Describes a power port. */
+			public static final Characteristic PWR     = new Characteristic("Power", "power", PWRPORT);
+		/** Describes a ground port. */
+			public static final Characteristic GND     = new Characteristic("Ground", "ground", GNDPORT);
+		/** Describes an un-phased clock port. */
+			public static final Characteristic CLK     = new Characteristic("Clock", "clock", CLKPORT);
+		/** Describes a clock phase 1 port. */
+			public static final Characteristic C1      = new Characteristic("Clock Phase 1", "clock1", C1PORT);
+		/** Describes a clock phase 2 port. */
+			public static final Characteristic C2      = new Characteristic("Clock Phase 2", "clock2", C2PORT);
+		/** Describes a clock phase 3 port. */
+			public static final Characteristic C3      = new Characteristic("Clock Phase 3", "clock3", C3PORT);
+		/** Describes a clock phase 4 port. */
+			public static final Characteristic C4      = new Characteristic("Clock Phase 4", "clock4", C4PORT);
+		/** Describes a clock phase 5 port. */
+			public static final Characteristic C5      = new Characteristic("Clock Phase 5", "clock5", C5PORT);
+		/** Describes a clock phase 6 port. */
+			public static final Characteristic C6      = new Characteristic("Clock Phase 6", "clock6", C6PORT);
+		/** Describes a bias-level reference output port. */
+			public static final Characteristic REFOUT  = new Characteristic("Reference Output", "refout", REFOUTPORT);
+		/** Describes a bias-level reference input port. */
+			public static final Characteristic REFIN   = new Characteristic("Reference Input", "refin", REFINPORT);
+		/** Describes a bias-level reference base port. */
+			public static final Characteristic REFBASE = new Characteristic("Reference Base", "refbase", REFBASEPORT);
 	}
 
 	// ------------------------ private data --------------------------

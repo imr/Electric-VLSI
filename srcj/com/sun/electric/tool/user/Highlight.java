@@ -432,6 +432,55 @@ public class Highlight
 			if (h.getType() == Type.TEXT)
 			{
 				if (highlightedText.contains(h)) continue;
+
+				// if this text is on a selected object, don't include the text
+				ElectricObject eobj = h.getElectricObject();
+				ElectricObject onObj = null;
+				if (h.getVar() != null)
+				{
+					if (eobj instanceof Export)
+					{
+						onObj = ((Export)eobj).getOriginalPort().getNodeInst();
+					} else if (eobj instanceof PortInst)
+					{
+						onObj = ((PortInst)eobj).getNodeInst();
+					} else if (eobj instanceof Geometric)
+					{
+						onObj = eobj;
+					}
+				} else
+				{
+					if (h.getName() != null)
+					{
+						if (eobj instanceof Geometric) onObj = eobj;
+					} else
+					{
+						if (eobj instanceof Export)
+						{
+							onObj = ((Export)eobj).getOriginalPort().getNodeInst();
+						} else
+						{
+							if (eobj instanceof NodeInst) onObj = eobj;
+						}
+					}
+				}
+
+				// now see if the object is in the list
+				if (eobj != null)
+				{
+					boolean found = false;
+					for(Iterator fIt = getHighlights(); fIt.hasNext(); )
+					{
+						Highlight oH = (Highlight)fIt.next();
+						if (oH.getType() != Type.EOBJ) continue;
+						ElectricObject fobj = oH.getElectricObject();
+						if (fobj instanceof PortInst) fobj = ((PortInst)fobj).getNodeInst();
+						if (fobj == onObj) { found = true;   break; }
+					}
+					if (found) continue;
+				}
+
+				// add this text
 				highlightedText.add(h);
 			}
 		}
@@ -466,8 +515,11 @@ public class Highlight
 				}
 			} else if (h.getType() == Type.TEXT)
 			{
-				Poly poly = h.computeTextPoly(wnd);
-				if (poly != null) highBounds = poly.getBounds2D();
+				if (wnd != null)
+				{
+					Poly poly = h.computeTextPoly(wnd);
+					if (poly != null) highBounds = poly.getBounds2D();
+				}
 			} else if (h.getType() == Type.BBOX)
 			{
 				highBounds = h.getBounds();
@@ -587,7 +639,7 @@ public class Highlight
 			{
 				Point2D start = wnd.screenToDatabase((int)x, (int)y);
 				Poly poly = h.computeTextPoly(wnd);
-				return poly.isInside(start);
+				if (poly.isInside(start)) return true;
 			} else if (style == Highlight.Type.EOBJ)
 			{
 				Point2D slop = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE*2, EXACTSELECTDISTANCE*2);
@@ -598,6 +650,7 @@ public class Highlight
 				Rectangle2D searchArea = new Rectangle2D.Double(start.getX()-slopWidth/2, start.getY()-slopHeight/2, slopWidth, slopHeight);
 
 				ElectricObject eobj = h.getElectricObject();
+				if (eobj instanceof PortInst) eobj = ((PortInst)eobj).getNodeInst();
 				if (eobj instanceof Geometric)
 				{
 					Highlight got = checkOutObject((Geometric)eobj, true, true, searchArea, wnd, directHitDist, false);
@@ -956,6 +1009,7 @@ public class Highlight
 					poly.setTextDescriptor(td);
 					poly.setString(pp.getProtoName());
 					poly.setExactTextBounds(wnd);
+					poly.transform(pp.getOriginalPort().getNodeInst().rotateOut());
 				} else
 				{
 					// cell instance name

@@ -56,14 +56,16 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Point;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -74,6 +76,23 @@ public class CircuitChanges
 {
 	// constructor, never used
 	CircuitChanges() {}
+
+	/****************************** NODE TRANSFORMATION ******************************/
+
+	public static void rotateObjects()
+	{
+		System.out.println("Cannot rotate yet");
+	}
+
+	public static void mirrorObjects()
+	{
+		System.out.println("Cannot mirror yet");
+	}
+
+	public static void sizeObjects()
+	{
+		System.out.println("Cannot size yet");
+	}
 
 	/****************************** DELETE SELECTED OBJECTS ******************************/
 
@@ -133,7 +152,7 @@ public class CircuitChanges
 				Cell np = high.getCell();
 				if (np != null)
 				{
-//					if (us_cantedit(np, NONODEINST, TRUE)) continue;
+					if (cantEdit(np, null, true)) continue;
 				}
 
 //				/* do not deal with text on an object if the object is already in the list */
@@ -645,7 +664,7 @@ public class CircuitChanges
 				if (pp.isBodyOnly()) continue;
 				int index = iconPosition(pp);
 				switch (index)
-				{
+			{
 					case 0: pp.setTempInt(leftSide++);    break;
 					case 1: pp.setTempInt(rightSide++);   break;
 					case 2: pp.setTempInt(topSide++);     break;
@@ -1315,7 +1334,8 @@ public class CircuitChanges
 			}
 
 			// also move selected text
-			moveSelectedText(highlightedText);
+			Point screenDelta = wnd.deltaDatabaseToScreen(dX, dY);
+			moveSelectedText(highlightedText, screenDelta);
 		}
 
 		/*
@@ -1324,7 +1344,7 @@ public class CircuitChanges
 		 * and the "total" nodes in "nodelist" have already been moved, so don't move any text that
 		 * is on these objects.
 		 */
-		private void moveSelectedText(List highlightedText)
+		private void moveSelectedText(List highlightedText, Point screenDelta)
 		{
 			for(Iterator it = highlightedText.iterator(); it.hasNext(); )
 			{
@@ -1334,7 +1354,7 @@ public class CircuitChanges
 				Cell np = high.getCell();
 				if (np != null)
 				{
-//					if (us_cantedit(np, null, true)) continue;
+					if (cantEdit(np, null, true)) continue;
 				}
 
 				// moving variable on object
@@ -1343,19 +1363,17 @@ public class CircuitChanges
 				if (var != null)
 				{
 					TextDescriptor td = var.getTextDescriptor();
-//					if (eobj instanceof NodeInst || eobj instanceof PortInst || eobj instanceof Export)
-//					{
-//						NodeInst ni = null;
-//						if (eobj instanceof NodeInst) ni = (NodeInst)eobj; else
-//							if (eobj instanceof PortInst) ni = ((PortInst)eobj).getNodeInst(); else
-//								if (eobj instanceof Export) ni = ((Export)eobj).getOriginalPort().getNodeInst();
-//						if (ni != null)
-//						{
-//							AffineTransform rotate = ni.rotateOut();
-//							Point2D txtLoc = new Point2D.Double(td.getXOff(), td.getYOff());
-//							rotate.transform(txtLoc, txtLoc);
-//						}
-//					} else
+					if (eobj instanceof NodeInst || eobj instanceof PortInst || eobj instanceof Export)
+					{
+						NodeInst ni = null;
+						if (eobj instanceof NodeInst) ni = (NodeInst)eobj; else
+							if (eobj instanceof PortInst) ni = ((PortInst)eobj).getNodeInst(); else
+								if (eobj instanceof Export) ni = ((Export)eobj).getOriginalPort().getNodeInst();
+						if (ni != null)
+						{
+							adjustTextDescriptor(td, ni);
+						}
+					} else
 					{
 						td.setOff(td.getXOff()+dX, td.getYOff()+dY);
 					}
@@ -1364,99 +1382,38 @@ public class CircuitChanges
 					if (high.getName() != null)
 					{
 						TextDescriptor td = ((Geometric)eobj).getNameTextDescriptor();
-						td.setOff(td.getXOff()+dX, td.getYOff()+dY);
+						if (eobj instanceof NodeInst)
+						{
+							NodeInst ni = (NodeInst)eobj;
+							adjustTextDescriptor(td, ni);
+						} else
+							td.setOff(td.getXOff()+dX, td.getYOff()+dY);
 					} else
 					{
 						if (eobj instanceof Export)
 						{
 							Export pp = (Export)eobj;
 							TextDescriptor td = pp.getTextDescriptor();
-							td.setOff(td.getXOff()+dX, td.getYOff()+dY);
+							adjustTextDescriptor(td, pp.getOriginalPort().getNodeInst());
 						}
 					}
 				}
 			}
 		}
+
+		private void adjustTextDescriptor(TextDescriptor td, NodeInst ni)
+		{
+			Point2D curLoc = new Point2D.Double(ni.getGrabCenterX()+td.getXOff(), ni.getGrabCenterY()+td.getYOff());
+			AffineTransform rotateOut = ni.rotateOut();
+			rotateOut.transform(curLoc, curLoc);
+			curLoc.setLocation(curLoc.getX()+dX, curLoc.getY()+dY);
+			AffineTransform rotateIn = ni.rotateIn();
+			rotateIn.transform(curLoc, curLoc);
+			td.setOff(curLoc.getX()-ni.getGrabCenterX(), curLoc.getY()-ni.getGrabCenterY());
+		}
 	}
 
-//
-//
-//
-//
-//				/* undraw the text */
-//				if (eobj instanceof Export)
-//				{
-//					NodeInst ni = ((Export)eobj).getOriginalPort().getNodeInst();
-////					for(j=0; list[j] != NOGEOM; j++)
-////						if (list[j]->entryisnode && list[j]->entryaddr.ni == ni) break;
-////					if (list[j] != NOGEOM) continue;
-//
-//					if (us_nodemoveswithtext(high))
-//					{
-//						modifynodeinst(ni, dX, dY, dX, dY, 0, 0);
-//						continue;
-//					}
-////					if (ni->transpose != 0)
-////						makeangle(ni->rotation, ni->transpose, trans); else
-////							makeangle((3600-ni->rotation)%3600, 0, trans);
-////					xform(dX, dY, &dX, &dY, trans);
-//				} else if (eobj instanceof NodeInst)
-//					{
-//						NodeInst ni = (NodeInst)eobj;
-////						for(j=0; list[j] != NOGEOM; j++)
-////							if (list[j]->entryisnode && list[j]->entryaddr.ni == ni) break;
-////						if (list[j] != NOGEOM) continue;
-//
-//						if (us_nodemoveswithtext(high))
-//						{
-//							modifynodeinst(ni, dX, dY, dX, dY, 0, 0);
-//							continue;
-//						}
-////						if (ni->transpose != 0)
-////							makeangle(ni->rotation, ni->transpose, trans); else
-////								makeangle((3600-ni->rotation)%3600, 0, trans);
-////						xform(dX, dY, &dX, &dY, trans);
-//					}
-//				}
-////				if (eobj == NodeProto && high.getVar() != null)
-////					us_undrawcellvariable(high.fromvar, (NODEPROTO *)addr);
-//
-//				/* set the new descriptor on the text */
-//				dX = dX*4/lambda;   dY = dY*4/lambda;
-//				us_gethighdescript(&high, descript);
-//				dX += TDGETXOFF(descript);
-//				dY += TDGETYOFF(descript);
-//				us_setdescriptoffset(descript, dX, dY);
-//				us_modifytextdescript(&high, descript);
-//
-//				/* redisplay the text */
-//				if (type == VNODEPROTO && high.fromvar != NOVARIABLE)
-//					us_drawcellvariable(high.fromvar, (NODEPROTO *)addr);
-//				if (type == VPORTPROTO)
-//				{
-//					endobjectchange((INTBIG)ni, VNODEINST);
-//				} else
-//				{
-//					endobjectchange(addr, type);
-//				}
-//				us_addhighlight(&high);
-//
-//				/* modify all higher-level nodes if port moved */
-//				if (high.fromvar == NOVARIABLE && high.fromport != NOPORTPROTO)
-//				{
-//					for(ni = high.fromport->parent->firstinst; ni != NONODEINST; ni = ni->nextinst)
-//					{
-//						if ((ni->userbits&NEXPAND) != 0 &&
-//							(high.fromport->userbits&PORTDRAWN) == 0) continue;
-//						startobjectchange((INTBIG)ni, VNODEINST);
-//						endobjectchange((INTBIG)ni, VNODEINST);
-//					}
-//				}
-//			}
-//		}
-//	}
-
-//	typedef struct Ireconnect
+	//	typedef struct Ireconnect
 //	{
 //		NETWORK *net;					/* network for this reconnection */
 //		INTBIG arcsfound;				/* number of arcs found on this reconnection */
@@ -2356,6 +2313,271 @@ public class CircuitChanges
 		addr.newVar(var.getKey(), newIncrString);
 
 		return retVal;
+	}
+
+	/****************************** EXPORT CHANGES ******************************/
+
+	/**
+	 * Method to re-export all unwired/unexported ports on cell instances in the current Cell.
+	 */
+	public static void reExportAll()
+	{
+		// make sure there is a current cell
+		Cell cell = Library.needCurCell();
+		if (cell == null) return;
+
+		// disallow port action if lock is on
+		if (cantEdit(cell, null, true)) return;
+
+		ReExport job = new ReExport(cell, null, false);
+	}
+
+	/**
+	 * Method to re-export all unwired/unexported ports on cell instances in the current Cell.
+	 * Only works in the currently highlighted area.
+	 */
+	public static void reExportHighlighted()
+	{
+		// make sure there is a current cell
+		Cell cell = Library.needCurCell();
+		if (cell == null) return;
+
+		// disallow port action if lock is on
+		if (cantEdit(cell, null, true)) return;
+
+		Rectangle2D bounds = Highlight.getHighlightedArea(null);
+		if (bounds == null)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Must select something before re-exporting the highlighted objects",
+					"Re-export failed", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		ReExport job = new ReExport(cell, bounds, false);
+	}
+
+	/**
+	 * Method to re-export all unwired/unexported ports on cell instances in the current Cell.
+	 * Only works for power and ground ports.
+	 */
+	public static void reExportPowerAndGround()
+	{
+		// make sure there is a current cell
+		Cell cell = Library.needCurCell();
+		if (cell == null) return;
+
+		// disallow port action if lock is on
+		if (cantEdit(cell, null, true)) return;
+
+		ReExport job = new ReExport(cell, null, true);
+	}
+
+	protected static class ReExport extends Job
+	{
+		Cell cell;
+		Rectangle2D bounds;
+		boolean pAndG;
+
+		protected ReExport(Cell cell, Rectangle2D bounds, boolean pAndG)
+		{
+			super("Re-export ports", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.bounds = bounds;
+			this.pAndG = pAndG;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			FlagSet portMarked = PortProto.getFlagSet(1);
+
+			// look at every node in this cell
+			int total = 0;
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+
+				// only look for cells, not primitives
+				if (!(ni.getProto() instanceof Cell)) continue;
+
+				// ignore recursive references (showing icon in contents)
+				if (ni.isIconOfParent()) continue;
+
+				// clear marks on the ports of this node
+				for(Iterator pIt = ni.getProto().getPorts(); pIt.hasNext(); )
+				{
+					PortProto pp = (PortProto)pIt.next();
+					pp.clearBit(portMarked);
+				}
+
+				// mark the connected and exports
+				for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
+				{
+					Connection con = (Connection)pIt.next();
+					con.getPortInst().getPortProto().setBit(portMarked);
+				}
+				for(Iterator pIt = ni.getExports(); pIt.hasNext(); )
+				{
+					Export e = (Export)pIt.next();
+					e.getOriginalPort().getPortProto().setBit(portMarked);
+				}
+
+				// initialize for queueing creation of new exports
+				List queuedExports = new ArrayList();
+
+				// now export the remaining ports
+				for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+				{
+					PortInst pi = (PortInst)pIt.next();
+					if (pi.getPortProto().isBit(portMarked)) continue;
+
+					// if Power and Ground is requested, make sure this is so
+					if (pAndG)
+					{
+						PortProto pp = pi.getPortProto();
+						if (!pp.isPower() && !pp.isGround()) continue;
+					}
+
+					// if a highlighted area is specified, make sure this is in it
+					if (bounds != null)
+					{
+						Poly portPoly = pi.getPoly();
+						if (!bounds.contains(portPoly.getCenterX(), portPoly.getCenterY())) continue;
+					}
+					queuedExports.add(pi);
+				}
+				Collections.sort(queuedExports, new PortInstSorted());
+
+				// now create the exports
+				for(Iterator pIt = queuedExports.iterator(); pIt.hasNext(); )
+				{
+					PortInst pi = (PortInst)pIt.next();
+					String portName = ElectricObject.uniqueObjectName(pi.getPortProto().getProtoName(), cell, PortProto.class);
+					Export newPp = Export.newInstance(cell, pi, portName);
+					if (newPp != null)
+					{
+						newPp.setTextDescriptor(pi.getPortProto().getTextDescriptor());
+						newPp.copyVars(pi.getPortProto());
+						total++;
+					}
+				}
+			}
+			if (total == 0) System.out.println("No ports to export"); else
+				System.out.println(total + " ports exported");
+			portMarked.freeFlagSet();
+		}
+
+		static class PortInstSorted implements Comparator
+		{
+			public int compare(Object o1, Object o2)
+			{
+				PortInst pi1 = (PortInst)o1;
+				PortInst pi2 = (PortInst)o2;
+				String s1 = pi1.getPortProto().getProtoName();
+				String s2 = pi2.getPortProto().getProtoName();
+				return s1.compareToIgnoreCase(s2);
+			}
+		}
+	}
+
+	/**
+	 * Method to delete all exports on the highlighted objects.
+	 */
+	public static void deleteExportsOnHighlighted()
+	{
+		// make sure there is a current cell
+		Cell cell = Library.needCurCell();
+		if (cell == null) return;
+
+		// disallow port action if lock is on
+		if (cantEdit(cell, null, true)) return;
+
+		List exportsToDelete = new ArrayList();
+		List highs = Highlight.getHighlighted(true, false);
+		for(Iterator it = highs.iterator(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+			{
+				exportsToDelete.add(eIt.next());
+			}
+		}
+		if (exportsToDelete.size() == 0)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"There are no exports on the highlighted objects",
+					"Re-export failed", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		DeleteExports job = new DeleteExports(exportsToDelete);
+	}
+
+	/**
+	 * Method to delete all exports in the highlighted area.
+	 */
+	public static void deleteExportsInArea()
+	{
+		// make sure there is a current cell
+		Cell cell = Library.needCurCell();
+		if (cell == null) return;
+
+		// disallow port action if lock is on
+		if (cantEdit(cell, null, true)) return;
+
+		List exportsToDelete = new ArrayList();
+		Rectangle2D bounds = Highlight.getHighlightedArea(null);
+		if (bounds == null)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"Must select something before deleting the highlighted exports",
+					"Export delete failed", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+			{
+				Export e = (Export)eIt.next();
+				PortInst pi = e.getOriginalPort();
+				Poly poly = pi.getPoly();
+				if (bounds.contains(poly.getCenterX(), poly.getCenterY()))
+					exportsToDelete.add(e);
+			}
+		}
+		if (exportsToDelete.size() == 0)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"There are no exports in the highlighted area",
+					"Re-export failed", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		DeleteExports job = new DeleteExports(exportsToDelete);
+	}
+
+	protected static class DeleteExports extends Job
+	{
+		List exportsToDelete;
+
+		protected DeleteExports(List exportsToDelete)
+		{
+			super("Delete exports", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.exportsToDelete = exportsToDelete;
+			this.startJob();
+		}
+
+		public void doIt()
+		{
+			int total = 0;
+			for(Iterator it = exportsToDelete.iterator(); it.hasNext(); )
+			{
+				Export e = (Export)it.next();
+				e.kill();
+				total++;
+			}
+			if (total == 0) System.out.println("No exports deleted"); else
+				System.out.println(total + " exports deleted");
+		}
 	}
 
 	/****************************** DETERMINE ABILITY TO MAKE CHANGES ******************************/

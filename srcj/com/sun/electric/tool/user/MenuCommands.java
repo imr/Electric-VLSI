@@ -25,6 +25,7 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.EMath;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
@@ -94,6 +95,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Comparator;
+import java.util.Collections;
+import java.awt.Toolkit;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionListener;
@@ -126,19 +130,20 @@ public final class MenuCommands
 	{
 		// create the menu bar
 		JMenuBar menuBar = new JMenuBar();
+		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
 		/****************************** THE FILE MENU ******************************/
 
 		Menu fileMenu = Menu.createMenu("File", 'F');
 		menuBar.add(fileMenu);
 
-		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK),
+		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openLibraryCommand(); } });
 		Menu importSubMenu = Menu.createMenu("Import");
 		fileMenu.add(importSubMenu);
 		importSubMenu.addMenuItem("Readable Dump", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(); } });
-        fileMenu.addMenuItem("Save", KeyStroke.getKeyStroke('S', InputEvent.CTRL_MASK),
+        fileMenu.addMenuItem("Save", KeyStroke.getKeyStroke('S', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveLibraryCommand(); } });
 		fileMenu.addMenuItem("Save as...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { saveAsLibraryCommand(); } });
@@ -149,7 +154,7 @@ public final class MenuCommands
 		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
 		{
 			fileMenu.addSeparator();
-			fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', InputEvent.CTRL_MASK),
+			fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', buckyBit),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { quitCommand(); } });
 		}
 
@@ -158,18 +163,11 @@ public final class MenuCommands
 		Menu editMenu = Menu.createMenu("Edit", 'E');
 		menuBar.add(editMenu);
 
-		editMenu.addMenuItem("Undo", KeyStroke.getKeyStroke('Z', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { new UndoCommand(); } });
-		editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', InputEvent.CTRL_MASK),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { new RedoCommand(); } });
-
-		editMenu.addSeparator();
-
-		editMenu.addMenuItem("Cut", KeyStroke.getKeyStroke('X', InputEvent.CTRL_MASK),
+		editMenu.addMenuItem("Cut", KeyStroke.getKeyStroke('X', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { cutCommand(); } });
-		editMenu.addMenuItem("Copy", KeyStroke.getKeyStroke('C', InputEvent.CTRL_MASK),
+		editMenu.addMenuItem("Copy", KeyStroke.getKeyStroke('C', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { copyCommand(); } });
-		editMenu.addMenuItem("Paste", KeyStroke.getKeyStroke('V', InputEvent.CTRL_MASK),
+		editMenu.addMenuItem("Paste", KeyStroke.getKeyStroke('V', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { pasteCommand(); } });
 
 		editMenu.addSeparator();
@@ -187,6 +185,27 @@ public final class MenuCommands
 
 		editMenu.addSeparator();
 
+		editMenu.addMenuItem("Undo", KeyStroke.getKeyStroke('Z', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new UndoCommand(); } });
+		editMenu.addMenuItem("Redo", KeyStroke.getKeyStroke('Y', buckyBit),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new RedoCommand(); } });
+
+		editMenu.addSeparator();
+
+		editMenu.addMenuItem("Rotate", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(); } });
+		editMenu.addMenuItem("Mirror", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(); } });
+		editMenu.addMenuItem("Size", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.sizeObjects(); } });
+
+		editMenu.addSeparator();
+
+		editMenu.addMenuItem("Erase", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteSelected(); } });
+
+		editMenu.addSeparator();
+
 		editMenu.addMenuItem("I/O Options...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ioOptionsCommand(); } });
 		editMenu.addMenuItem("Edit Options...",null,
@@ -195,9 +214,10 @@ public final class MenuCommands
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toolOptionsCommand(); } });
         editMenu.addMenuItem("Key Bindings...",null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { keyBindingsCommand(); } });
+
 		editMenu.addSeparator();
 
-		editMenu.addMenuItem("Get Info...", KeyStroke.getKeyStroke('I', InputEvent.CTRL_MASK),
+		editMenu.addMenuItem("Get Info...", KeyStroke.getKeyStroke('I', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { getInfoCommand(); } });
 		editMenu.addMenuItem("Attributes...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { attributesCommand(); } });
@@ -259,7 +279,7 @@ public final class MenuCommands
 
 		Menu selListSubMenu = Menu.createMenu("Selection");
 		editMenu.add(selListSubMenu);
-        selListSubMenu.addMenuItem("Select All", KeyStroke.getKeyStroke('A', InputEvent.CTRL_MASK), 
+        selListSubMenu.addMenuItem("Select All", KeyStroke.getKeyStroke('A', buckyBit), 
             new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllCommand(); }});
         selListSubMenu.addMenuItem("Show Next Error", KeyStroke.getKeyStroke('>'), 
             new ActionListener() { public void actionPerformed(ActionEvent e) { showNextErrorCommand(); }});
@@ -273,7 +293,7 @@ public final class MenuCommands
 
 		cellMenu.addMenuItem("Cell Control...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellControlCommand(); }});
-		cellMenu.addMenuItem("New Cell...", KeyStroke.getKeyStroke('N', InputEvent.CTRL_MASK),
+		cellMenu.addMenuItem("New Cell...", KeyStroke.getKeyStroke('N', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { newCellCommand(); } });
 		cellMenu.addMenuItem("Delete Current Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { deleteCellCommand(); } });
@@ -282,9 +302,9 @@ public final class MenuCommands
 
 		cellMenu.addSeparator();
  
-		cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', InputEvent.CTRL_MASK),
+		cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
-        cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', InputEvent.CTRL_MASK),
+        cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
 
 		cellMenu.addSeparator();
@@ -337,8 +357,31 @@ public final class MenuCommands
 		Menu exportMenu = Menu.createMenu("Export", 'X');
 		menuBar.add(exportMenu);
 
-		exportMenu.addMenuItem("Create Export...", KeyStroke.getKeyStroke('E', InputEvent.CTRL_MASK),
+		exportMenu.addMenuItem("Create Export...", KeyStroke.getKeyStroke('E', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { newExportCommand(); } });
+
+		exportMenu.addSeparator();
+
+		exportMenu.addMenuItem("Re-Export Everything", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.reExportAll(); } });
+		exportMenu.addMenuItem("Re-Export Highlighted", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.reExportHighlighted(); } });
+		exportMenu.addMenuItem("Re-Export Power and Ground", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.reExportPowerAndGround(); } });
+
+		exportMenu.addSeparator();
+
+		exportMenu.addMenuItem("Delete All Exports on Highlighted", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteExportsOnHighlighted(); } });
+		exportMenu.addMenuItem("Delete Exports in Area", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteExportsInArea(); } });
+
+		exportMenu.addSeparator();
+
+		exportMenu.addMenuItem("Summarize Exports", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { describeExports(true); } });
+		exportMenu.addMenuItem("List Exports", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { describeExports(false); } });
 
 		/****************************** THE VIEW MENU ******************************/
 
@@ -375,18 +418,18 @@ public final class MenuCommands
 		Menu windowMenu = Menu.createMenu("Window", 'W');
 		menuBar.add(windowMenu);
 
-		windowMenu.addMenuItem("Fill Display", KeyStroke.getKeyStroke('9', InputEvent.CTRL_MASK),
+		windowMenu.addMenuItem("Fill Display", KeyStroke.getKeyStroke('9', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { fullDisplayCommand(); } });
-		windowMenu.addMenuItem("Zoom Out", KeyStroke.getKeyStroke('0', InputEvent.CTRL_MASK),
+		windowMenu.addMenuItem("Zoom Out", KeyStroke.getKeyStroke('0', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomOutDisplayCommand(); } });
-		windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', InputEvent.CTRL_MASK),
+		windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplayCommand(); } });
-		windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', InputEvent.CTRL_MASK),
+		windowMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlightedCommand(); } });
 
 		windowMenu.addSeparator();
 
-		windowMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', InputEvent.CTRL_MASK),
+		windowMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toggleGridCommand(); } });
 
 		windowMenu.addSeparator();
@@ -1229,6 +1272,307 @@ public final class MenuCommands
 	{
  		NewExport dialog = new NewExport(TopLevel.getCurrentJFrame(), true);
 		dialog.show();
+	}
+
+	static class ExportList
+	{
+		Export pp;
+		int equiv;
+		int busList;
+	};
+
+	private static void describeExports(boolean summarize)
+	{
+		Cell cell = Library.needCurCell();
+		if (cell == null) return;
+
+		/* compute the associated cell to check */
+//		wnp = contentsview(np);
+//		if (wnp == NONODEPROTO) wnp = iconview(np);
+//		if (wnp == np) wnp = NONODEPROTO;
+
+		/* count the number of exports */
+		if (cell.getNumPorts() == 0)
+		{
+			System.out.println("There are no exports on cell " + cell.describe());
+			return;
+		}
+
+		/* make a list of exports */
+		List exports = new ArrayList();
+		for(Iterator it = cell.getPorts(); it.hasNext(); )
+		{
+			ExportList el = new ExportList();
+			el.pp = (Export)it.next();
+			el.equiv = -1;
+			el.busList = -1;
+			exports.add(el);
+		}
+
+		/* sort exports by name within type */
+		Collections.sort(exports, new ExportSortedByNameAndType());
+
+		/* if summarizing, make associations that combine exports */
+		int num_found = exports.size();
+		if (summarize)
+		{
+			/* make associations among electrically equivalent exports */
+			for(int j=0; j<num_found; j++)
+			{
+				int eqJ = ((ExportList)exports.get(j)).equiv;
+				int blJ = ((ExportList)exports.get(j)).busList;
+				if (eqJ != -1 || blJ != -1) continue;
+				for(int k=j+1; k<num_found; k++)
+				{
+					int eqK = ((ExportList)exports.get(k)).equiv;
+					int blK = ((ExportList)exports.get(k)).busList;
+					if (eqK != -1 || blK != -1) continue;
+					Export ppJ = ((ExportList)exports.get(j)).pp;
+					Export ppK = ((ExportList)exports.get(k)).pp;
+					if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
+//					if (pplist[j]->network != pplist[k]->network) continue;
+					((ExportList)exports.get(k)).equiv = j;
+					((ExportList)exports.get(j)).equiv = -2;
+				}
+			}
+
+			/* make associations among bussed exports */
+			for(int j=0; j<num_found; j++)
+			{
+				int eqJ = ((ExportList)exports.get(j)).equiv;
+				int blJ = ((ExportList)exports.get(j)).busList;
+				if (eqJ != -1 || blJ != -1) continue;
+				for(int k=j+1; k<num_found; k++)
+				{
+					int eqK = ((ExportList)exports.get(k)).equiv;
+					int blK = ((ExportList)exports.get(k)).busList;
+					if (eqK != -1 || blK != -1) continue;
+					Export ppJ = ((ExportList)exports.get(j)).pp;
+					Export ppK = ((ExportList)exports.get(k)).pp;
+					if (ppJ.getCharacteristic() != ppK.getCharacteristic()) break;
+
+					String pt1 = ppJ.getProtoName();
+					String pt2 = ppK.getProtoName();
+					int sqPos1 = pt1.indexOf('[');
+					int sqPos2 = pt2.indexOf('[');
+					if (sqPos1 != sqPos2 || sqPos1 < 0) continue;
+					if (pt1.substring(0, sqPos1).equalsIgnoreCase(pt2.substring(0, sqPos2)))
+					{
+						((ExportList)exports.get(k)).equiv = j;
+						((ExportList)exports.get(j)).equiv = -2;
+					}
+				}
+			}
+		}
+
+		/* describe each export */
+		System.out.println("----- Exports on cell " + cell.describe() + " -----");
+		for(int j=0; j<num_found; j++)
+		{
+			ExportList el = (ExportList)exports.get(j);
+			Export pp = el.pp;
+			if (el.equiv >= 0 || el.busList >= 0) continue;
+
+			/* reset flags for arcs that can connect */
+//			for(tech = el_technologies; tech != NOTECHNOLOGY; tech = tech->nexttechnology)
+//				for(ap = tech->firstarcproto; ap != NOARCPROTO; ap = ap->nextarcproto)
+//					ap->temp1 = 0;
+
+			String infstr = null;
+			String activity = pp.getCharacteristic().getFullName();
+			int m = j+1;
+			for( ; m<num_found; m++)
+			{
+				if (((ExportList)exports.get(m)).equiv == j) break;
+			}
+			double lx = 0, hx = 0, ly = 0, hy = 0;
+			if (m < num_found)
+			{
+				/* many exports that are electrically equivalent */
+				infstr += activity + " exports ";
+				for(int k=j; k<num_found; k++)
+				{
+					if (j != k && ((ExportList)exports.get(k)).equiv != j) continue;
+					if (j != k) infstr += ", ";
+					Export opp = ((ExportList)exports.get(k)).pp;
+					infstr += "'" + opp.getProtoName() + "'";
+					Poly poly = opp.getOriginalPort().getPoly();
+					double x = poly.getCenterX();
+					double y = poly.getCenterY();
+					if (j == k)
+					{
+						lx = hx = x;   ly = hy = y;
+					} else
+					{
+						if (x < lx) lx = x;
+						if (x > hx) hx = x;
+						if (y < ly) ly = y;
+						if (y > hy) hy = y;
+					}
+//					for(i=0; opp->connects[i] != NOARCPROTO; i++)
+//						opp->connects[i]->temp1 = 1;
+				}
+				infstr += " at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), electrically connected to";
+//				us_addpossiblearcconnections(infstr);
+			} else
+			{
+				m = j + 1;
+				for( ; m<num_found; m++)
+				{
+					if (((ExportList)exports.get(m)).busList == j) break;
+				}
+				if (m < num_found)
+				{
+					/* many exports from the same bus */
+					int tot = 0;
+					for(int k=j; k<num_found; k++)
+					{
+						if (j != k && ((ExportList)exports.get(k)).busList != j) continue;
+						tot++;
+						Export opp = ((ExportList)exports.get(k)).pp;
+						Poly poly = opp.getOriginalPort().getPoly();
+						double x = poly.getCenterX();
+						double y = poly.getCenterY();
+						if (j == k)
+						{
+							lx = hx = x;   ly = hy = y;
+						} else
+						{
+							if (x < lx) lx = x;
+							if (x > hx) hx = x;
+							if (y < ly) ly = y;
+							if (y > hy) hy = y;
+						}
+//						for(i=0; opp->connects[i] != NOARCPROTO; i++)
+//							opp->connects[i]->temp1 = 1;
+					}
+
+					List sortedBusList = new ArrayList();
+					sortedBusList.add(((ExportList)exports.get(j)).pp);
+					for(int k=j+1; k<num_found; k++)
+					{
+						ExportList elK = (ExportList)exports.get(k);
+						if (elK.busList == j) sortedBusList.add(elK.pp);
+					}
+
+					/* sort the bus by indices */
+//					esort(pplist, tot, sizeof (PORTPROTO *), us_exportnameindexascending);
+					boolean first = true;
+					for(Iterator it = sortedBusList.iterator(); it.hasNext(); )
+					{
+						Export ppS = (Export)it.next();
+						String pt1 = ppS.getProtoName();
+						int openPos = pt1.indexOf('[');
+						if (first)
+						{
+							infstr += activity + " ports '" + pt1.substring(0, openPos) + "[";
+						} else
+						{
+							infstr += ",";
+						}
+						int closePos = pt1.lastIndexOf(']');
+						infstr += pt1.substring(openPos+1, closePos);
+					}
+					infstr += "] at (" + lx + "<=X<=" + hx + ", " + ly + "<=Y<=" + hy + "), same bus, connects to";
+//					us_addpossiblearcconnections(infstr);
+				} else
+				{
+					/* isolated export */
+					Poly poly = pp.getOriginalPort().getPoly();
+					double x = poly.getCenterX();
+					double y = poly.getCenterY();
+					infstr += activity + " export '" + pp.getProtoName() + "' at (" + x + ", " + y + ") connects to";
+//					for(i=0; pp->connects[i] != NOARCPROTO; i++)
+//						pp->connects[i]->temp1 = 1;
+//					us_addpossiblearcconnections(infstr);
+
+					/* check for the export in the associated cell */
+//					if (wnp != NONODEPROTO)
+//					{
+//						if (equivalentport(np, pp, wnp) == NOPORTPROTO)
+//							formatinfstr(infstr, _(" *** no equivalent in %s"), describenodeproto(wnp));
+//					}
+				}
+			}
+
+			System.out.println(infstr);
+//			str = returninfstr(infstr);
+//			prefix = x_("");
+//			while (estrlen(str) > 80)
+//			{
+//				for(i=80; i > 0; i--) if (str[i] == ' ' || str[i] == ',') break;
+//				if (i <= 0) i = 80;
+//				if (str[i] == ',') i++;
+//				save = str[i];
+//				str[i] = 0;
+//				System.out.println(x_("%s%s"), prefix, str);
+//				str[i] = save;
+//				str = &str[i];
+//				if (str[0] == ' ') str++;
+//				prefix = x_("   ");
+//			}
+//			System.out.println(x_("%s%s"), prefix, str);
+		}
+//		if (wnp != NONODEPROTO)
+//		{
+//			for(pp = wnp->firstportproto; pp != NOPORTPROTO; pp = pp->nextportproto)
+//			{
+//				m = pp->userbits & STATEBITS;
+//				for(i=0; i<numtypes; i++) if (porttype[i] == m) break;
+//				if (i >= numtypes) continue;
+//				if (equivalentport(wnp, pp, np) == NOPORTPROTO)
+//					System.out.println(_("*** Export %s, found in cell %s, is missing here"),
+//						pp->protoname, describenodeproto(wnp));
+//			}
+//		}
+	}
+
+	/*
+	 * Helper routine to add all marked arc prototypes to the infinite string.
+	 * Marking is done by having the "temp1" field be nonzero.
+	 */
+//	void us_addpossiblearcconnections(void *infstr)
+//	{
+//		REGISTER TECHNOLOGY *tech;
+//		REGISTER INTBIG i;
+//		REGISTER ARCPROTO *ap;
+//
+//		i = 0;
+//		for(tech = el_technologies; tech != NOTECHNOLOGY; tech = tech->nexttechnology)
+//			for(ap = tech->firstarcproto; ap != NOARCPROTO; ap = ap->nextarcproto)
+//				if (ap->temp1 == 0) i++;
+//		if (i == 0) addstringtoinfstr(infstr, _(" EVERYTHING")); else
+//		{
+//			i = 0;
+//			for(tech = el_technologies; tech != NOTECHNOLOGY; tech = tech->nexttechnology)
+//			{
+//				if (tech == gen_tech) continue;
+//				for(ap = tech->firstarcproto; ap != NOARCPROTO; ap = ap->nextarcproto)
+//				{
+//					if (ap->temp1 == 0) continue;
+//					if (i != 0) addtoinfstr(infstr, ',');
+//					i++;
+//					formatinfstr(infstr, x_(" %s"), ap->protoname);
+//				}
+//			}
+//		}
+//	}
+
+	static class ExportSortedByNameAndType implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			ExportList el1 = (ExportList)o1;
+			ExportList el2 = (ExportList)o2;
+			Export e1 = el1.pp;
+			Export e2 = el2.pp;
+			PortProto.Characteristic ch1 = e1.getCharacteristic();
+			PortProto.Characteristic ch2 = e2.getCharacteristic();
+			if (ch1 != ch2) return ch1.getOrder() - ch2.getOrder();
+			String s1 = e1.getProtoName();
+			String s2 = e2.getProtoName();
+			return s1.compareToIgnoreCase(s2);
+		}
 	}
 
 	// ---------------------- THE VIEW MENU -----------------

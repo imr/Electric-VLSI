@@ -675,7 +675,7 @@ public class Clipboard
 
 	/**
 	 * Method to queue the creation of an export from port "pp" of node "ni".
-	 * The port is being copied from an original port "origpp".  Returns true on error.
+	 * The port is being copied from an original port "origPp".  Returns true on error.
 	 */
 	public static void createQueuedExports(List queuedExports)
 	{
@@ -684,8 +684,8 @@ public class Clipboard
 
 		for(Iterator it = queuedExports.iterator(); it.hasNext(); )
 		{
-			Export origpp = (Export)it.next();
-			PortInst pi = origpp.getOriginalPort();
+			Export origPp = (Export)it.next();
+			PortInst pi = origPp.getOriginalPort();
 			NodeInst ni = pi.getNodeInst();
 			ni = (NodeInst)ni.getTempObj();
 
@@ -693,11 +693,11 @@ public class Clipboard
 			PortInst newPi = ni.findPortInstFromProto(pp);
 
 			Cell cell = ni.getParent();
-			String portname = ElectricObject.uniqueObjectName(origpp.getProtoName(), cell, PortProto.class);
-			Export newpp =  Export.newInstance(cell, newPi, portname);
-			if (newpp == null) return;
-			newpp.setTextDescriptor(origpp.getTextDescriptor());
-			newpp.copyVars(origpp);
+			String portName = ElectricObject.uniqueObjectName(origPp.getProtoName(), cell, PortProto.class);
+			Export newPp = Export.newInstance(cell, newPi, portName);
+			if (newPp == null) return;
+			newPp.setTextDescriptor(origPp.getTextDescriptor());
+			newPp.copyVars(origPp);
 		}
 	}
 
