@@ -33,6 +33,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -723,27 +724,28 @@ public class Highlighter implements DatabaseChangeListener {
 					if (eObj instanceof PortInst)
 					{
 						PortInst pi = (PortInst)eObj;
-						boolean added = false;
-						for(Iterator aIt = pi.getNodeInst().getConnections(); aIt.hasNext(); )
-						{
-							Connection con = (Connection)aIt.next();
-							ArcInst ai = con.getArc();
-							int wid = netlist.getBusWidth(ai);
-							for(int i=0; i<wid; i++)
-							{
-								Network net = netlist.getNetwork(ai, i);
-								if (net != null)
-								{
-									added = true;
-									nets.add(net);
-								}
-							}
-						}
-						if (!added)
-						{
-							Network net = netlist.getNetwork(pi);
-							if (net != null) nets.add(net);
-						}
+                        nets = NetworkTool.getNetworksOnPort(pi, netlist, nets);
+//						boolean added = false;
+//						for(Iterator aIt = pi.getNodeInst().getConnections(); aIt.hasNext(); )
+//						{
+//							Connection con = (Connection)aIt.next();
+//							ArcInst ai = con.getArc();
+//							int wid = netlist.getBusWidth(ai);
+//							for(int i=0; i<wid; i++)
+//							{
+//								Network net = netlist.getNetwork(ai, i);
+//								if (net != null)
+//								{
+//									added = true;
+//									nets.add(net);
+//								}
+//							}
+//						}
+//						if (!added)
+//						{
+//							Network net = netlist.getNetwork(pi);
+//							if (net != null) nets.add(net);
+//						}
 					} else if (eObj instanceof ArcInst)
 					{
 						ArcInst ai = (ArcInst)eObj;
