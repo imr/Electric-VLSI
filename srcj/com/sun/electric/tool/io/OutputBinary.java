@@ -45,12 +45,11 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.InputBinary;
+import com.sun.electric.tool.io.BinaryConstants;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.GregorianCalendar;
-import java.util.Date;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
@@ -555,8 +554,8 @@ public class OutputBinary extends Output
 		writeBigInteger(nextCont);
 		writeBigInteger(cell.getView().getTempInt());
 		writeBigInteger(cell.getVersion());
-		writeBigInteger((int)toElectricDate(cell.getCreationDate()));
-		writeBigInteger((int)toElectricDate(cell.getRevisionDate()));
+		writeBigInteger((int)BinaryConstants.toElectricDate(cell.getCreationDate()));
+		writeBigInteger((int)BinaryConstants.toElectricDate(cell.getRevisionDate()));
 
 		// write the nodeproto bounding box
 		Technology tech = cell.getTechnology();
@@ -738,56 +737,7 @@ public class OutputBinary extends Output
 		writeVariables(ai, 0);
 	}
 
-	/**
-	 * routine to convert the Java Date object to an Electric-format date (seconds since the epoch).
-	 */
-	private long toElectricDate(Date date)
-	{
-		GregorianCalendar creation = new GregorianCalendar();
-		creation.setTime(date);
-		return creation.getTimeInMillis() / 1000;
-	}
-
 	// --------------------------------- VARIABLES ---------------------------------
-
-	// this list is also in "InputBinary.java"
-	private static final int VUNKNOWN =                  0;		/** undefined variable */
-	private static final int VINTEGER =                 01;		/** 32-bit integer variable */
-	private static final int VADDRESS =                 02;		/** unsigned address */
-	private static final int VCHAR =                    03;		/** character variable */
-	private static final int VSTRING =                  04;		/** string variable */
-	private static final int VFLOAT =                   05;		/** floating point variable */
-	private static final int VDOUBLE =                  06;		/** double-precision floating point */
-	private static final int VNODEINST =                07;		/** nodeinst pointer */
-	private static final int VNODEPROTO =              010;		/** nodeproto pointer */
-	private static final int VPORTARCINST =            011;		/** portarcinst pointer */
-	private static final int VPORTEXPINST =            012;		/** portexpinst pointer */
-	private static final int VPORTPROTO =              013;		/** portproto pointer */
-	private static final int VARCINST =                014;		/** arcinst pointer */
-	private static final int VARCPROTO =               015;		/** arcproto pointer */
-	private static final int VGEOM =                   016;		/** geometry pointer */
-	private static final int VLIBRARY =                017;		/** library pointer */
-	private static final int VTECHNOLOGY =             020;		/** technology pointer */
-	private static final int VTOOL =                   021;		/** tool pointer */
-	private static final int VRTNODE =                 022;		/** R-tree pointer */
-	private static final int VFRACT =                  023;		/** fractional integer (scaled by WHOLE) */
-	private static final int VNETWORK =                024;		/** network pointer */
-	private static final int VVIEW =                   026;		/** view pointer */
-	private static final int VWINDOWPART =             027;		/** window partition pointer */
-	private static final int VGRAPHICS =               030;		/** graphics object pointer */
-	private static final int VSHORT =                  031;		/** 16-bit integer */
-	private static final int VCONSTRAINT =             032;		/** constraint solver */
-	private static final int VGENERAL =                033;		/** general address/type pairs (used only in fixed-length arrays) */
-	private static final int VWINDOWFRAME =            034;		/** window frame pointer */
-	private static final int VPOLYGON =                035;		/** polygon pointer */
-	private static final int VBOOLEAN =                036;		/** boolean variable */
-	private static final int VTYPE =                   037;		/** all above type fields */
-	private static final int VCODE1 =                  040;		/** variable is interpreted code (with VCODE2) */
-	private static final int VDISPLAY =               0100;		/** display variable (uses textdescript field) */
-	private static final int VISARRAY =               0200;		/** set if variable is array of above objects */
-	private static final int VLENGTH =         03777777000;		/** array length (0: array is -1 terminated) */
-	private static final int VLENGTHSH =                 9;		/** right shift for VLENGTH */
-	private static final int VCODE2 =          04000000000;		/** variable is interpreted code (with VCODE1) */
 
 	/**
 	 * routine to write the global namespace.  returns true upon error
@@ -847,11 +797,11 @@ public class OutputBinary extends Output
 
 			// create the "type" field
 			Object varObj = var.getObject();
-			int type = var.lowLevelGetFlags() & ~(VTYPE|VISARRAY|VLENGTH);
+			int type = var.lowLevelGetFlags() & ~(BinaryConstants.VTYPE|BinaryConstants.VISARRAY|BinaryConstants.VLENGTH);
 			if (varObj instanceof Object[])
 			{
 				Object [] objList = (Object [])varObj;
-				type |= getVarType(objList[0]) | VISARRAY | (objList.length << VLENGTHSH);
+				type |= getVarType(objList[0]) | BinaryConstants.VISARRAY | (objList.length << BinaryConstants.VLENGTHSH);
 			} else
 			{
 				type |= getVarType(varObj);
@@ -895,21 +845,21 @@ public class OutputBinary extends Output
 
 	private int getVarType(Object obj)
 	{
-		if (obj instanceof Integer) return VINTEGER;
-		if (obj instanceof Short) return VSHORT;
-		if (obj instanceof Byte) return VCHAR;
-		if (obj instanceof String) return VSTRING;
-		if (obj instanceof Float) return VFLOAT;
-		if (obj instanceof Double) return VDOUBLE;
-		if (obj instanceof Technology) return VTECHNOLOGY;
-		if (obj instanceof Library) return VLIBRARY;
-		if (obj instanceof Tool) return VTOOL;
-		if (obj instanceof NodeInst) return VNODEINST;
-		if (obj instanceof ArcInst) return VARCINST;
-		if (obj instanceof NodeProto) return VNODEPROTO;
-		if (obj instanceof ArcProto) return VARCPROTO;
-		if (obj instanceof PortProto) return VPORTPROTO;
-		return VUNKNOWN;
+		if (obj instanceof Integer) return BinaryConstants.VINTEGER;
+		if (obj instanceof Short) return BinaryConstants.VSHORT;
+		if (obj instanceof Byte) return BinaryConstants.VCHAR;
+		if (obj instanceof String) return BinaryConstants.VSTRING;
+		if (obj instanceof Float) return BinaryConstants.VFLOAT;
+		if (obj instanceof Double) return BinaryConstants.VDOUBLE;
+		if (obj instanceof Technology) return BinaryConstants.VTECHNOLOGY;
+		if (obj instanceof Library) return BinaryConstants.VLIBRARY;
+		if (obj instanceof Tool) return BinaryConstants.VTOOL;
+		if (obj instanceof NodeInst) return BinaryConstants.VNODEINST;
+		if (obj instanceof ArcInst) return BinaryConstants.VARCINST;
+		if (obj instanceof NodeProto) return BinaryConstants.VNODEPROTO;
+		if (obj instanceof ArcProto) return BinaryConstants.VARCPROTO;
+		if (obj instanceof PortProto) return BinaryConstants.VPORTPROTO;
+		return BinaryConstants.VUNKNOWN;
 	}
 
 	/**

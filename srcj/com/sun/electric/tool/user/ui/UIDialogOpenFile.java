@@ -34,7 +34,8 @@ public class UIDialogOpenFile extends JFileChooser
 	/** The description of files associated with this dialog */		private String description;
 	/** True if this is a file save dialog */						private boolean saveDialog;
 
-	public static final UIDialogOpenFile TEXT = new UIDialogOpenFile(null, "Any File");
+	public static final UIDialogOpenFile ANY = new UIDialogOpenFile(null, "Any File");
+	public static final UIDialogOpenFile TEXT = new UIDialogOpenFile("txt", "Text File");
 	public static final UIDialogOpenFile ELIB = new UIDialogOpenFile("elib", "Library File");
 
 	/**
@@ -56,12 +57,15 @@ public class UIDialogOpenFile extends JFileChooser
 	public String chooseInputFile(String newDescription)
 	{
 		saveDialog = false;
-		UIFileFilter filter = new UIFileFilter();
-		if (extension != null) filter.addExtension(extension);
 		if (newDescription == null) setDialogTitle("Read " + description); else
 			setDialogTitle(newDescription);
-		filter.setDescription(description);
-		setFileFilter(filter);
+		if (extension != null)
+		{
+			UIFileFilter filter = new UIFileFilter();
+			filter.addExtension(extension);
+			filter.setDescription(description);
+			setFileFilter(filter);
+		}
 		int returnVal = showOpenDialog(null);
 		if (returnVal == JFileChooser.APPROVE_OPTION)
 		{

@@ -932,7 +932,7 @@ public class Cell extends NodeProto
 			return this;
 		}
 
-		View sch = View.getView("schematic");
+		View sch = View.findView("schematic");
 		for (Iterator it = cellGroup.getCells(); it.hasNext();)
 		{
 			Cell f = (Cell) it.next();

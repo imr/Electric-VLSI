@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: nMOS.java
+ * File: nmos.java
  * nmos technology description
  * Generated automatically from a library
  *
@@ -122,7 +122,7 @@ public class nMOS extends Technology
 
 		/** I layer */
 		Layer I_lay = Layer.newInstance("Implant",
-			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 21364,4096,27960,0.8,1,
+			new EGraphics(EGraphics.SOLIDC, EGraphics.SOLIDC, 21364,4096,24384,0.8,1,
 			new int[] { 0x0000,   //                 
 						0x0000,   //                 
 						0x1111,   //    X   X   X   X
@@ -509,7 +509,7 @@ public class nMOS extends Technology
 		//******************** NODES ********************
 
 		/** Metal-Pin */
-		PrimitiveNode mp_node = PrimitiveNode.newInstance("Metal-Pin", this, 4, 4, null,
+		PrimitiveNode mp_node = PrimitiveNode.newInstance("Metal-Pin", this, 4, 4, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(PM_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN0HBOX)
@@ -524,7 +524,7 @@ public class nMOS extends Technology
 		mp_node.setArcsShrink();
 
 		/** Polysilicon-Pin */
-		PrimitiveNode pp_node = PrimitiveNode.newInstance("Polysilicon-Pin", this, 4, 4, null,
+		PrimitiveNode pp_node = PrimitiveNode.newInstance("Polysilicon-Pin", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(PP_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
@@ -539,7 +539,7 @@ public class nMOS extends Technology
 		pp_node.setArcsShrink();
 
 		/** Diffusion-Pin */
-		PrimitiveNode dp_node = PrimitiveNode.newInstance("Diffusion-Pin", this, 4, 4, null,
+		PrimitiveNode dp_node = PrimitiveNode.newInstance("Diffusion-Pin", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(PD_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
@@ -554,7 +554,7 @@ public class nMOS extends Technology
 		dp_node.setArcsShrink();
 
 		/** Metal-Polysilicon-Con */
-		PrimitiveNode mpc_node = PrimitiveNode.newInstance("Metal-Polysilicon-Con", this, 6, 6, null,
+		PrimitiveNode mpc_node = PrimitiveNode.newInstance("Metal-Polysilicon-Con", this, 6, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX),
@@ -569,7 +569,7 @@ public class nMOS extends Technology
 		mpc_node.setFunction(NodeProto.Function.CONTACT);
 
 		/** Metal-Diffusion-Con */
-		PrimitiveNode mdc_node = PrimitiveNode.newInstance("Metal-Diffusion-Con", this, 6, 6, null,
+		PrimitiveNode mdc_node = PrimitiveNode.newInstance("Metal-Diffusion-Con", this, 6, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX),
@@ -584,7 +584,7 @@ public class nMOS extends Technology
 		mdc_node.setFunction(NodeProto.Function.CONTACT);
 
 		/** Butting-Con */
-		PrimitiveNode bc_node = PrimitiveNode.newInstance("Butting-Con", this, 8, 6, null,
+		PrimitiveNode bc_node = PrimitiveNode.newInstance("Butting-Con", this, 8, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_17),
@@ -602,7 +602,7 @@ public class nMOS extends Technology
 		bc_node.setFunction(NodeProto.Function.CONNECT);
 
 		/** Buried-Con-Cross */
-		PrimitiveNode bcc_node = PrimitiveNode.newInstance("Buried-Con-Cross", this, 8, 6, null,
+		PrimitiveNode bcc_node = PrimitiveNode.newInstance("Buried-Con-Cross", this, 8, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_15),
@@ -623,7 +623,7 @@ public class nMOS extends Technology
 		bcc_node.setFunction(NodeProto.Function.CONNECT);
 
 		/** Transistor */
-		PrimitiveNode t_node = PrimitiveNode.newInstance("Transistor", this, 8, 8, null,
+		PrimitiveNode t_node = PrimitiveNode.newInstance("Transistor", this, 8, 8, new SizeOffset(3, 3, 3, 3),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_15, 3, 3, 0, 0),
@@ -645,7 +645,7 @@ public class nMOS extends Technology
 		t_node.setCanShrink();
 
 		/** Implant-Transistor */
-		PrimitiveNode it_node = PrimitiveNode.newInstance("Implant-Transistor", this, 8, 8, null,
+		PrimitiveNode it_node = PrimitiveNode.newInstance("Implant-Transistor", this, 8, 8, new SizeOffset(3, 3, 3, 3),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_13, 1, 1, 2, 2),
@@ -668,7 +668,7 @@ public class nMOS extends Technology
 		it_node.setCanShrink();
 
 		/** Buried-Con-Cross-S */
-		PrimitiveNode bccs_node = PrimitiveNode.newInstance("Buried-Con-Cross-S", this, 6, 6, null,
+		PrimitiveNode bccs_node = PrimitiveNode.newInstance("Buried-Con-Cross-S", this, 6, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_14),
@@ -689,7 +689,7 @@ public class nMOS extends Technology
 		bccs_node.setFunction(NodeProto.Function.CONNECT);
 
 		/** Buried-Con-Cross-T */
-		PrimitiveNode bcct_node = PrimitiveNode.newInstance("Buried-Con-Cross-T", this, 6, 6, null,
+		PrimitiveNode bcct_node = PrimitiveNode.newInstance("Buried-Con-Cross-T", this, 6, 6, new SizeOffset(1, 1, 0, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_9),
@@ -708,7 +708,7 @@ public class nMOS extends Technology
 		bcct_node.setFunction(NodeProto.Function.CONNECT);
 
 		/** Buried-Con-Polysurr */
-		PrimitiveNode bcp_node = PrimitiveNode.newInstance("Buried-Con-Polysurr", this, 7, 6, null,
+		PrimitiveNode bcp_node = PrimitiveNode.newInstance("Buried-Con-Polysurr", this, 7, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_10),
@@ -729,7 +729,7 @@ public class nMOS extends Technology
 		bcp_node.setFunction(NodeProto.Function.CONNECT);
 
 		/** Buried-Con-Diffsurr-I */
-		PrimitiveNode bcdi_node = PrimitiveNode.newInstance("Buried-Con-Diffsurr-I", this, 7, 4, null,
+		PrimitiveNode bcdi_node = PrimitiveNode.newInstance("Buried-Con-Diffsurr-I", this, 7, 4, new SizeOffset(1, 0, 1, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_10),
@@ -746,7 +746,7 @@ public class nMOS extends Technology
 		bcdi_node.setFunction(NodeProto.Function.CONNECT);
 
 		/** Buried-Con-Diffsurr-T */
-		PrimitiveNode bcdt_node = PrimitiveNode.newInstance("Buried-Con-Diffsurr-T", this, 8, 6, null,
+		PrimitiveNode bcdt_node = PrimitiveNode.newInstance("Buried-Con-Diffsurr-T", this, 8, 6, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, box_4),
@@ -765,7 +765,7 @@ public class nMOS extends Technology
 		bcdt_node.setFunction(NodeProto.Function.CONNECT);
 
 		/** Buried-Con-Diffsurr-L */
-		PrimitiveNode bcdl_node = PrimitiveNode.newInstance("Buried-Con-Diffsurr-L", this, 6, 6, null,
+		PrimitiveNode bcdl_node = PrimitiveNode.newInstance("Buried-Con-Diffsurr-L", this, 6, 6, new SizeOffset(1, 1, 0, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.POINTS, box_2),
@@ -782,7 +782,7 @@ public class nMOS extends Technology
 		bcdl_node.setFunction(NodeProto.Function.CONNECT);
 
 		/** Metal-Node */
-		PrimitiveNode mn_node = PrimitiveNode.newInstance("Metal-Node", this, 4, 4, null,
+		PrimitiveNode mn_node = PrimitiveNode.newInstance("Metal-Node", this, 4, 4, new SizeOffset(0.5, 0.5, 0.5, 0.5),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(M_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN0HBOX)
@@ -796,7 +796,7 @@ public class nMOS extends Technology
 		mn_node.setHoldsOutline();
 
 		/** Polysilicon-Node */
-		PrimitiveNode pn_node = PrimitiveNode.newInstance("Polysilicon-Node", this, 4, 4, null,
+		PrimitiveNode pn_node = PrimitiveNode.newInstance("Polysilicon-Node", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(P_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
@@ -810,7 +810,7 @@ public class nMOS extends Technology
 		pn_node.setHoldsOutline();
 
 		/** Diffusion-Node */
-		PrimitiveNode dn_node = PrimitiveNode.newInstance("Diffusion-Node", this, 4, 4, null,
+		PrimitiveNode dn_node = PrimitiveNode.newInstance("Diffusion-Node", this, 4, 4, new SizeOffset(1, 1, 1, 1),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(D_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN1BOX)
@@ -824,7 +824,7 @@ public class nMOS extends Technology
 		dn_node.setHoldsOutline();
 
 		/** Implant-Node */
-		PrimitiveNode in_node = PrimitiveNode.newInstance("Implant-Node", this, 6, 6, null,
+		PrimitiveNode in_node = PrimitiveNode.newInstance("Implant-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(I_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
@@ -838,7 +838,7 @@ public class nMOS extends Technology
 		in_node.setHoldsOutline();
 
 		/** Cut-Node */
-		PrimitiveNode cn_node = PrimitiveNode.newInstance("Cut-Node", this, 6, 6, null,
+		PrimitiveNode cn_node = PrimitiveNode.newInstance("Cut-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(CC_lay, 0, Poly.Type.CROSSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
@@ -852,7 +852,7 @@ public class nMOS extends Technology
 		cn_node.setHoldsOutline();
 
 		/** Buried-Node */
-		PrimitiveNode bn_node = PrimitiveNode.newInstance("Buried-Node", this, 6, 6, null,
+		PrimitiveNode bn_node = PrimitiveNode.newInstance("Buried-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(BC_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
@@ -866,7 +866,7 @@ public class nMOS extends Technology
 		bn_node.setHoldsOutline();
 
 		/** Overglass-Node */
-		PrimitiveNode on_node = PrimitiveNode.newInstance("Overglass-Node", this, 6, 6, null,
+		PrimitiveNode on_node = PrimitiveNode.newInstance("Overglass-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(O_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
@@ -880,7 +880,7 @@ public class nMOS extends Technology
 		on_node.setHoldsOutline();
 
 		/** Light-Implant-Node */
-		PrimitiveNode lin_node = PrimitiveNode.newInstance("Light-Implant-Node", this, 6, 6, null,
+		PrimitiveNode lin_node = PrimitiveNode.newInstance("Light-Implant-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(LI_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
@@ -894,7 +894,7 @@ public class nMOS extends Technology
 		lin_node.setHoldsOutline();
 
 		/** Oversize-Cut-Node */
-		PrimitiveNode ocn_node = PrimitiveNode.newInstance("Oversize-Cut-Node", this, 6, 6, null,
+		PrimitiveNode ocn_node = PrimitiveNode.newInstance("Oversize-Cut-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(OC_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
@@ -908,7 +908,7 @@ public class nMOS extends Technology
 		ocn_node.setHoldsOutline();
 
 		/** Hard-Enhancement-Node */
-		PrimitiveNode hen_node = PrimitiveNode.newInstance("Hard-Enhancement-Node", this, 6, 6, null,
+		PrimitiveNode hen_node = PrimitiveNode.newInstance("Hard-Enhancement-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(HE_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)
@@ -922,7 +922,7 @@ public class nMOS extends Technology
 		hen_node.setHoldsOutline();
 
 		/** Light-Enhancement-Node */
-		PrimitiveNode len_node = PrimitiveNode.newInstance("Light-Enhancement-Node", this, 6, 6, null,
+		PrimitiveNode len_node = PrimitiveNode.newInstance("Light-Enhancement-Node", this, 6, 6, new SizeOffset(2, 2, 2, 2),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(LE_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.IN2BOX)

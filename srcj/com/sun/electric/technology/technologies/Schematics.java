@@ -354,7 +354,7 @@ public class Schematics extends Technology
 		letterJ.setMessage("J");
 
 		/** general buffer */
-		buffer_node = PrimitiveNode.newInstance("Buffer", this, 6.0, 6.0, new SizeOffset(0, 1, 0, 0),
+		buffer_node = PrimitiveNode.newInstance("Buffer", this, 6.0, 6.0, new SizeOffset(0, 0, 1, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.POINTS,
@@ -376,7 +376,7 @@ public class Schematics extends Technology
 		buffer_node.setFunction(NodeProto.Function.BUFFER);
 
 		/** general and */
-		and_node = PrimitiveNode.newInstance("And", this, 8.0, 6.0, new SizeOffset(0, 0.5, 0, 0),
+		and_node = PrimitiveNode.newInstance("And", this, 8.0, 6.0, new SizeOffset(0, 0, 0.5, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -409,7 +409,7 @@ public class Schematics extends Technology
 		and_node.setFunction(NodeProto.Function.GATEAND);
 
 		/** general or */
-		or_node = PrimitiveNode.newInstance("Or", this, 10.0, 6.0, new SizeOffset(1, 0.5, 0, 0),
+		or_node = PrimitiveNode.newInstance("Or", this, 10.0, 6.0, new SizeOffset(1, 0, 0.5, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -451,7 +451,7 @@ public class Schematics extends Technology
 		or_node.setFunction(NodeProto.Function.GATEOR);
 
 		/** general xor */
-		xor_node = PrimitiveNode.newInstance("Xor", this, 10.0, 6.0, new SizeOffset(0, 0.5, 0, 0),
+		xor_node = PrimitiveNode.newInstance("Xor", this, 10.0, 6.0, new SizeOffset(0, 0, 0.5, 0),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(node_lay, 0, Poly.Type.CIRCLEARC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {

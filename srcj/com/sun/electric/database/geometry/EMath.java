@@ -56,6 +56,75 @@ public class EMath
 	}
 
 	/**
+	 * Routine to parse the number in a string.
+	 * <P>
+	 * There are many reasons to use this routine instead of Integer.parseInt...
+	 * <UL>
+	 * <LI>This routine can handle any radix.
+	 *     If the number begins with "0", presume base 8.
+	 *     If the number begins with "0x", presume base 16.
+	 *     Otherwise presume base 10.
+	 * <LI>This routine can handle numbers that affect the sign bit.
+	 *     If you give 0xFFFFFFFF to Integer.parseInt, you get a numberFormat exception.
+	 *     This routine properly returns -1.
+	 * <LI>This routine does not require that the entire string be part of the number.
+	 *     If there is extra text after the end, Integer.parseInt fails (for example "123xx").
+	 * </UL>
+	 * @param s the string with a number in it.
+	 * @return the numeric value.
+	 */
+	public static int atoi(String s)
+	{
+		return atoi(s, 0);
+	}
+
+	/**
+	 * Routine to parse the number in a string.
+	 * See the comments for "atoi(String s)" for reasons why this routine exists.
+	 * @param s the string with a number in it.
+	 * @param pos the starting position in the string to find the number.
+	 * @return the numeric value.
+	 */
+	public static int atoi(String s, int pos)
+	{
+		int base = 10;
+		int num = 0;
+		int sign = 1;
+		int len = s.length();
+		if (s.charAt(pos) == '-')
+		{
+			pos++;
+			sign = -1;
+		}
+		if (s.charAt(pos) == '0')
+		{
+			pos++;
+			base = 8;
+			if (pos < len && (s.charAt(pos) == 'x' || s.charAt(pos) == 'X'))
+			{
+				pos++;
+				base = 16;
+			}
+		}
+		for(; pos < len; pos++)
+		{
+			char cat = s.charAt(pos);
+			if ((cat >= 'a' && cat <= 'f') || (cat >= 'A' && cat <= 'F'))
+			{
+				if (base != 16) break;
+				num = num * 16;
+				if (cat >= 'a' && cat <= 'f') num += cat - 'a' + 10; else
+					num += cat - 'A' + 10;
+				continue;
+			}
+			if (!Character.isDigit(cat)) break;
+			if (cat >= '8' && base == 8) break;
+			num = num * base + cat - '0';
+		}
+		return(num * sign);
+	}
+
+	/**
 	 * Routine to tell whether a point is on a given line segment.
 	 * @param end1 the first end of the line segment.
 	 * @param end2 the second end of the line segment.

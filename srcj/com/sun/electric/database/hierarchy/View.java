@@ -230,7 +230,7 @@ public class View extends ElectricObject
 	 * @param name the name of the View.
 	 * @return the named View, or null if no such View exists.
 	 */
-	public static View getView(String name)
+	public static View findView(String name)
 	{
 		return (View) viewNames.get(name);
 	}

@@ -25,15 +25,15 @@ package com.sun.electric.tool.io;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -44,14 +44,13 @@ import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.io.BinaryConstants;
 import com.sun.electric.tool.user.ui.UITopLevel;
 import com.sun.electric.tool.user.ui.UIDialogOpenFile;
 
 import java.io.IOException;
 import java.io.File;
 import java.util.Iterator;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.Date;
 import java.awt.geom.Point2D;
 import java.nio.ByteBuffer;
@@ -146,6 +145,7 @@ public class InputBinary extends Input
 	/** list of NodeInsts that are origins of Exports in the library */		private NodeInst [] portProtoSubNodeList;
 	/** list of PortProtos that are origins of Exports in the library */	private Object [] portProtoSubPortList;
 	/** list of Export names in the library */								private String [] portProtoNameList;
+	/** list of Export userbits in the library */							private int [] portProtoUserbits;
 
 	// the geometric information (only used for old format files)
 	/** the number of Geometrics in the file */								private int geomCount;
@@ -162,17 +162,17 @@ public class InputBinary extends Input
 
 	// ".elib" file version numbers
 	/** current magic number: version 12 */		public static final int MAGIC12 = -1595;
-	/** older magic number: version 11 */		public static final int MAGIC11 = -1593;
-	/** older magic number: version 10 */		public static final int MAGIC10 = -1591;
-	/** older magic number: version 9 */		public static final int MAGIC9 =  -1589;
-	/** older magic number: version 8 */		public static final int MAGIC8 =  -1587;
-	/** older magic number: version 7 */		public static final int MAGIC7 =  -1585;
-	/** older magic number: version 6 */		public static final int MAGIC6 =  -1583;
-	/** older magic number: version 5 */		public static final int MAGIC5 =  -1581;
-	/** older magic number: version 4 */		public static final int MAGIC4 =  -1579;
-	/** older magic number: version 3 */		public static final int MAGIC3 =  -1577;
-	/** older magic number: version 2 */		public static final int MAGIC2 =  -1575;
-	/** oldest magic number: version 1 */		public static final int MAGIC1 =  -1573;
+	/** older magic number: version 11 */		private static final int MAGIC11 = -1593;
+	/** older magic number: version 10 */		private static final int MAGIC10 = -1591;
+	/** older magic number: version 9 */		private static final int MAGIC9 =  -1589;
+	/** older magic number: version 8 */		private static final int MAGIC8 =  -1587;
+	/** older magic number: version 7 */		private static final int MAGIC7 =  -1585;
+	/** older magic number: version 6 */		private static final int MAGIC6 =  -1583;
+	/** older magic number: version 5 */		private static final int MAGIC5 =  -1581;
+	/** older magic number: version 4 */		private static final int MAGIC4 =  -1579;
+	/** older magic number: version 3 */		private static final int MAGIC3 =  -1577;
+	/** older magic number: version 2 */		private static final int MAGIC2 =  -1575;
+	/** oldest magic number: version 1 */		private static final int MAGIC1 =  -1573;
 
 	InputBinary() {}
 
@@ -292,7 +292,7 @@ public class InputBinary extends Input
 			{
 				String viewName = readString();
 				String viewShortName = readString();
-				View view = View.getView(viewName);
+				View view = View.findView(viewName);
 				if (view == null)
 				{
 					view = View.newInstance(viewName, viewShortName);
@@ -377,6 +377,7 @@ public class InputBinary extends Input
 		portProtoSubNodeList = new NodeInst[portProtoCount];
 		portProtoSubPortList = new Object[portProtoCount];
 		portProtoNameList = new String[portProtoCount];
+		portProtoUserbits = new int[portProtoCount];
 
 		// versions 9 to 11 allocate fake-cell pointers
 		if (magic <= MAGIC9 && magic >= MAGIC11)
@@ -506,19 +507,19 @@ public class InputBinary extends Input
 			Technology tech = null;
 			if (convertMosisCmosTechnologies)
 			{
-				if (name == "mocmossub") tech = Technology.findTechnology("mocmos"); else
-					if (name == "mocmos") tech = Technology.findTechnology("mocmosold");
+				if (name.equals("mocmossub")) tech = Technology.findTechnology("mocmos"); else
+					if (name.equals("mocmos")) tech = Technology.findTechnology("mocmosold");
 			}
 			if (tech == null) tech = Technology.findTechnology(name);
 			boolean imosconv = false;
-			if (tech == null && name == "imos")
+			if (tech == null && name.equals("imos"))
 			{
 				tech = Technology.findTechnology("mocmos");
 				if (tech != null) imosconv = true;
 			}
-			if (tech == null && name == "logic")
+			if (tech == null && name.equals("logic"))
 				tech = Technology.findTechnology("schematic");
-			if (tech == null && (name == "epic8c" || name == "epic7c"))
+			if (tech == null && (name.equals("epic8c") || name.equals("epic7c")))
 				tech = Technology.findTechnology("epic7s");
 			if (tech == null)
 			{
@@ -541,7 +542,7 @@ public class InputBinary extends Input
 				if (pnp == null)
 				{
 					// automatic conversion of "Active-Node" in to "P-Active-Node" (MOSIS CMOS)
-					if (name == "Active-Node")
+					if (name.equals("Active-Node"))
 						pnp = tech.findNodeProto("P-Active-Node");
 				}
 				if (pnp == null)
@@ -977,7 +978,6 @@ public class InputBinary extends Input
 			completeCellSetupRecursively(cell, cellIndex);
 		}
 		NodeProto.freeFlagSet(recursiveSetupFlag);
-
 		if (curCell >= 0)
 		{
 			NodeProto currentCell = convertNodeProto(curCell);
@@ -1002,12 +1002,16 @@ public class InputBinary extends Input
 			NodeInst ni = nodeList[i];
 			NodeProto np = nodeTypeList[i];
 			if (np instanceof PrimitiveNode) continue;
+			Cell otherCell = (Cell)np;
+
+			// ignore cross-reference instances
+			if (otherCell.getLibrary() != cell.getLibrary()) continue;
 
 			// subcell: make sure that cell is setup
-			if (np.isBit(recursiveSetupFlag)) continue;
+			if (otherCell.isBit(recursiveSetupFlag)) continue;
 
 			// setup the subcell recursively
-			completeCellSetupRecursively((Cell)np,  np.getTempInt());
+			completeCellSetupRecursively(otherCell,  otherCell.getTempInt());
 		}
 		cell.setBit(recursiveSetupFlag);
 
@@ -1053,30 +1057,6 @@ public class InputBinary extends Input
 			NodeProto np = nodeTypeList[i];
 			if (np == Generic.tech.cellCenter_node) continue;
 
-			// determine the value of lambda for this node
-			if (np instanceof PrimitiveNode)
-			{
-				// special case for "trace" on a node: scale the values and convert from Integer to Float
-				if (np.isHoldsOutline())
-				{
-					Variable var = ni.getVal("trace", Integer[].class);
-					if (var != null)
-					{
-						Integer [] outline = (Integer [])var.getObject();
-						Float [] newOutline = new Float[outline.length];
-						for(int j=0; j<outline.length; j++)
-						{
-							float oldValue = outline[j].intValue();
-							newOutline[j] = new Float(oldValue/lambda);
-						}
-						ni.delVal("trace");
-						Variable newVar = ni.setVal("trace", newOutline);
-						if (newVar == null)
-							System.out.println("Could not preserve outline information on node in cell "+cell.describe());
-					}
-				}
-			}
-
 			double lowX = nodeLowXList[i]-xoff;
 			double lowY = nodeLowYList[i]-yoff;
 			double highX = nodeHighXList[i]-xoff;
@@ -1090,6 +1070,9 @@ public class InputBinary extends Input
 			if (transpose) width = -width;
 			ni.lowLevelPopulate(np, center, width, height, angle, cell);
 			ni.lowLevelLink();
+
+			// convert outline information, if present
+			scaleOutlineInformation(ni, np, lambda);
 		}
 
 		// finish initializing the Exports in the cell
@@ -1114,6 +1097,7 @@ public class InputBinary extends Input
 			String exportName = portProtoNameList[i];
 			PortInst pi = subNodeInst.findPortInst(subPortProto.getProtoName());
 			if (pp.lowLevelPopulate(pi)) return;
+			pp.lowLevelSetUserbits(portProtoUserbits[i]);
 		}
 
 		// finish initializing the ArcInsts in the cell
@@ -1235,8 +1219,8 @@ public class InputBinary extends Input
 			theProtoName += ";" + version + "{" + v.getAbbreviation() + "}";
 			int creationDate = readBigInteger();
 			int revisionDate = readBigInteger();
-			cell.lowLevelSetCreationDate(fromElectricDate(creationDate));
-			cell.lowLevelSetRevisionDate(fromElectricDate(revisionDate));
+			cell.lowLevelSetCreationDate(BinaryConstants.fromElectricDate(creationDate));
+			cell.lowLevelSetRevisionDate(BinaryConstants.fromElectricDate(revisionDate));
 		} else
 		{
 			// versions 8 and earlier read a cell name
@@ -1316,21 +1300,20 @@ public class InputBinary extends Input
 			if (magic > MAGIC9) readBigInteger();
 
 			// read the portproto's "user bits"
-			int userBits = 0;
+			portProtoUserbits[portProtoIndex] = 0;
 			if (magic <= MAGIC7)
 			{
 				// version 7 and later simply read the relevant data
-				userBits = readBigInteger();
+				portProtoUserbits[portProtoIndex] = readBigInteger();
 
 				// versions 7 and 8 ignore net number
 				if (magic >= MAGIC8) readBigInteger();
 			} else
 			{
 				// version 6 and earlier must sift through the information
-				if (toolBCount >= 1) userBits = readBigInteger();
+				if (toolBCount >= 1) portProtoUserbits[portProtoIndex] = readBigInteger();
 				for(int i=1; i<toolBCount; i++) readBigInteger();
 			}
-			pp.lowLevelSetUserbits(userBits);
 
 			// read the export variables
 			if (readVariables(pp) < 0) return true;
@@ -1401,8 +1384,8 @@ public class InputBinary extends Input
 		if (v == null) v = View.UNKNOWN;
 		int version = readBigInteger();
 		String fullCellName = theProtoName + ";" + version + "{" + v.getAbbreviation() + "}";
-		Date creationDate = fromElectricDate(readBigInteger());
-		Date revisionDate = fromElectricDate(readBigInteger());
+		Date creationDate = BinaryConstants.fromElectricDate(readBigInteger());
+		Date revisionDate = BinaryConstants.fromElectricDate(readBigInteger());
 
 		// read the nodeproto bounding box
 		int lowX = readBigInteger();
@@ -1870,45 +1853,6 @@ public class InputBinary extends Input
 
 	// --------------------------------- VARIABLES ---------------------------------
 
-	// this list is also in "OutputBinary.java"
-	private static final int VUNKNOWN =                  0;		/** undefined variable */
-	private static final int VINTEGER =                 01;		/** 32-bit integer variable */
-	private static final int VADDRESS =                 02;		/** unsigned address */
-	private static final int VCHAR =                    03;		/** character variable */
-	private static final int VSTRING =                  04;		/** string variable */
-	private static final int VFLOAT =                   05;		/** floating point variable */
-	private static final int VDOUBLE =                  06;		/** double-precision floating point */
-	private static final int VNODEINST =                07;		/** nodeinst pointer */
-	private static final int VNODEPROTO =              010;		/** nodeproto pointer */
-	private static final int VPORTARCINST =            011;		/** portarcinst pointer */
-	private static final int VPORTEXPINST =            012;		/** portexpinst pointer */
-	private static final int VPORTPROTO =              013;		/** portproto pointer */
-	private static final int VARCINST =                014;		/** arcinst pointer */
-	private static final int VARCPROTO =               015;		/** arcproto pointer */
-	private static final int VGEOM =                   016;		/** geometry pointer */
-	private static final int VLIBRARY =                017;		/** library pointer */
-	private static final int VTECHNOLOGY =             020;		/** technology pointer */
-	private static final int VTOOL =                   021;		/** tool pointer */
-	private static final int VRTNODE =                 022;		/** R-tree pointer */
-	private static final int VFRACT =                  023;		/** fractional integer (scaled by WHOLE) */
-	private static final int VNETWORK =                024;		/** network pointer */
-	private static final int VVIEW =                   026;		/** view pointer */
-	private static final int VWINDOWPART =             027;		/** window partition pointer */
-	private static final int VGRAPHICS =               030;		/** graphics object pointer */
-	private static final int VSHORT =                  031;		/** 16-bit integer */
-	private static final int VCONSTRAINT =             032;		/** constraint solver */
-	private static final int VGENERAL =                033;		/** general address/type pairs (used only in fixed-length arrays) */
-	private static final int VWINDOWFRAME =            034;		/** window frame pointer */
-	private static final int VPOLYGON =                035;		/** polygon pointer */
-	private static final int VBOOLEAN =                036;		/** boolean variable */
-	private static final int VTYPE =                   037;		/** all above type fields */
-	private static final int VCODE1 =                  040;		/** variable is interpreted code (with VCODE2) */
-	private static final int VDISPLAY =               0100;		/** display variable (uses textdescript field) */
-	private static final int VISARRAY =               0200;		/** set if variable is array of above objects */
-	private static final int VLENGTH =         03777777000;		/** array length (0: array is -1 terminated) */
-	private static final int VLENGTHSH =                 9;		/** right shift for VLENGTH */
-	private static final int VCODE2 =          04000000000;		/** variable is interpreted code (with VCODE1) */
-
 	/**
 	 * routine to read the global namespace.  returns true upon error
 	 */
@@ -1952,7 +1896,7 @@ public class InputBinary extends Input
 					definedDescript = true;
 				} else
 				{
-					if ((newtype&VDISPLAY) != 0)
+					if ((newtype&BinaryConstants.VDISPLAY) != 0)
 					{
 						if (convertTextDescriptors)
 						{
@@ -1972,34 +1916,34 @@ public class InputBinary extends Input
 //				defaulttextdescript(newDescript, NOGEOM);
 			}
 			Object newAddr;
-			if ((newtype&VISARRAY) != 0)
+			if ((newtype&BinaryConstants.VISARRAY) != 0)
 			{
 				int len = readBigInteger();
 				int cou = len;
-				if ((newtype&VLENGTH) == 0) cou++;
+				if ((newtype&BinaryConstants.VLENGTH) == 0) cou++;
 				Object [] newAddrArray = null;
-				switch (newtype&VTYPE)
+				switch (newtype&BinaryConstants.VTYPE)
 				{
-					case VADDRESS:
-					case VINTEGER:
-					case VFRACT:      newAddrArray = new Integer[cou];     break;
-					case VFLOAT:      newAddrArray = new Float[cou];       break;
-					case VDOUBLE:     newAddrArray = new Double[cou];      break;
-					case VSHORT:      newAddrArray = new Short[cou];       break;
-					case VBOOLEAN:
-					case VCHAR:       newAddrArray = new Byte[cou];        break;
-					case VSTRING:     newAddrArray = new String[cou];      break;
-					case VNODEINST:   newAddrArray = new NodeInst[cou];    break;
-					case VNODEPROTO:  newAddrArray = new NodeProto[cou];   break;
-					case VARCPROTO:   newAddrArray = new ArcProto[cou];    break;
-					case VPORTPROTO:  newAddrArray = new PortProto[cou];   break;
-					case VARCINST:    newAddrArray = new ArcInst[cou];     break;
-					case VTECHNOLOGY: newAddrArray = new Technology[cou];  break;
-					case VLIBRARY:    newAddrArray = new Library[cou];     break;
-					case VTOOL:       newAddrArray = new Tool[cou];        break;
+					case BinaryConstants.VADDRESS:
+					case BinaryConstants.VINTEGER:
+					case BinaryConstants.VFRACT:      newAddrArray = new Integer[cou];     break;
+					case BinaryConstants.VFLOAT:      newAddrArray = new Float[cou];       break;
+					case BinaryConstants.VDOUBLE:     newAddrArray = new Double[cou];      break;
+					case BinaryConstants.VSHORT:      newAddrArray = new Short[cou];       break;
+					case BinaryConstants.VBOOLEAN:
+					case BinaryConstants.VCHAR:       newAddrArray = new Byte[cou];        break;
+					case BinaryConstants.VSTRING:     newAddrArray = new String[cou];      break;
+					case BinaryConstants.VNODEINST:   newAddrArray = new NodeInst[cou];    break;
+					case BinaryConstants.VNODEPROTO:  newAddrArray = new NodeProto[cou];   break;
+					case BinaryConstants.VARCPROTO:   newAddrArray = new ArcProto[cou];    break;
+					case BinaryConstants.VPORTPROTO:  newAddrArray = new PortProto[cou];   break;
+					case BinaryConstants.VARCINST:    newAddrArray = new ArcInst[cou];     break;
+					case BinaryConstants.VTECHNOLOGY: newAddrArray = new Technology[cou];  break;
+					case BinaryConstants.VLIBRARY:    newAddrArray = new Library[cou];     break;
+					case BinaryConstants.VTOOL:       newAddrArray = new Tool[cou];        break;
 				}
 				newAddr = newAddrArray;
-				if ((newtype&VTYPE) == VGENERAL)
+				if ((newtype&BinaryConstants.VTYPE) == BinaryConstants.VGENERAL)
 				{
 					for(int j=0; j<len; j += 2)
 					{
@@ -2031,7 +1975,7 @@ public class InputBinary extends Input
 			}
 
 			// see if the variable is deprecated
-			boolean invalid = obj.isdeprecatedvariable(realName[key]);
+			boolean invalid = obj.isDeprecatedVariable(realName[key]);
 			if (!invalid)
 			{
 //				nextChangeQuiet();
@@ -2110,58 +2054,58 @@ public class InputBinary extends Input
 	{
 		int i;
 
-		if ((ty&(VCODE1|VCODE2)) != 0) ty = VSTRING;
-		switch (ty&VTYPE)
+		if ((ty&(BinaryConstants.VCODE1|BinaryConstants.VCODE2)) != 0) ty = BinaryConstants.VSTRING;
+		switch (ty&BinaryConstants.VTYPE)
 		{
-			case VADDRESS:
-			case VINTEGER:
-			case VFRACT:
+			case BinaryConstants.VADDRESS:
+			case BinaryConstants.VINTEGER:
+			case BinaryConstants.VFRACT:
 				return new Integer(readBigInteger());
-			case VFLOAT:
+			case BinaryConstants.VFLOAT:
 				return new Float(readFloat());
-			case VDOUBLE:
+			case BinaryConstants.VDOUBLE:
 				return new Double(readDouble());
-			case VSHORT:
+			case BinaryConstants.VSHORT:
 				return new Short(readSmallInteger());
-			case VBOOLEAN:
-			case VCHAR:
+			case BinaryConstants.VBOOLEAN:
+			case BinaryConstants.VCHAR:
 				return new Byte(readByte());
-			case VSTRING:
+			case BinaryConstants.VSTRING:
 				return readString();
-			case VNODEINST:
+			case BinaryConstants.VNODEINST:
 				i = readBigInteger();
 				if (i < 0 || i >= nodeCount) return null;
 				return nodeList[i];
-			case VNODEPROTO:
+			case BinaryConstants.VNODEPROTO:
 				i = readBigInteger();
 				return convertNodeProto(i);
-			case VARCPROTO:
+			case BinaryConstants.VARCPROTO:
 				i = readBigInteger();
 				return convertArcProto(i);
-			case VPORTPROTO:
+			case BinaryConstants.VPORTPROTO:
 				i = readBigInteger();
 				return convertPortProto(i);
-			case VARCINST:
+			case BinaryConstants.VARCINST:
 				i = readBigInteger();
 				if (i < 0 || i >= arcCount) return null;
 				return arcList[i];
-			case VGEOM:
+			case BinaryConstants.VGEOM:
 				readBigInteger();
 				return null;
-			case VTECHNOLOGY:
+			case BinaryConstants.VTECHNOLOGY:
 				i = readBigInteger();
 				if (i == -1) return null;
 				return getTechList(i);
-			case VPORTARCINST:
+			case BinaryConstants.VPORTARCINST:
 				readBigInteger();
 				return null;
-			case VPORTEXPINST:
+			case BinaryConstants.VPORTEXPINST:
 				readBigInteger();
 				return null;
-			case VLIBRARY:
+			case BinaryConstants.VLIBRARY:
 				String libName = readString();
 				return Library.findLibrary(libName);
-			case VTOOL:
+			case BinaryConstants.VTOOL:
 				i = readBigInteger();
 				if (i < 0 || i >= toolCount) return null;
 				Tool tool = toolList[i];
@@ -2175,7 +2119,7 @@ public class InputBinary extends Input
 					}
 				}
 				return tool;
-			case VRTNODE:
+			case BinaryConstants.VRTNODE:
 				readBigInteger();
 				return null;
 		}
@@ -2309,18 +2253,6 @@ public class InputBinary extends Input
 		}
 		return null;
 	}
-	
-	/**
-	 * routine to convert the Electric-format date "secondsSinceEpoch" to a Java Data object.
-	 */
-	private Date fromElectricDate(int secondsSinceEpoch)
-	{
-		GregorianCalendar creation = new GregorianCalendar();
-		creation.setTimeInMillis(0);
-		creation.setLenient(true);
-		creation.add(Calendar.SECOND, secondsSinceEpoch);
-		return creation.getTime();
-	}
 
 	// --------------------------------- LOW-LEVEL INPUT ---------------------------------
 
@@ -2332,6 +2264,7 @@ public class InputBinary extends Input
 	{
 		int value = dataInputStream.read();
 		if (value == -1) throw new IOException();
+		readMoreBytes(1);
 		return (byte)value;
 	}
 
@@ -2346,6 +2279,7 @@ public class InputBinary extends Input
 	{
 		if (bytesSwapped)
 		{
+			readMoreBytes(4);
 			return dataInputStream.readInt();
 		} else
 		{
@@ -2366,6 +2300,7 @@ public class InputBinary extends Input
 	{
 		if (bytesSwapped)
 		{
+			readMoreBytes(4);
 			return dataInputStream.readFloat();
 		} else
 		{
@@ -2386,6 +2321,7 @@ public class InputBinary extends Input
 	{
 		if (bytesSwapped)
 		{
+			readMoreBytes(8);
 			return dataInputStream.readDouble();
 		} else
 		{
@@ -2410,6 +2346,7 @@ public class InputBinary extends Input
 	{
 		if (bytesSwapped)
 		{
+			readMoreBytes(2);
 			return dataInputStream.readShort();
 		} else
 		{
@@ -2440,6 +2377,7 @@ public class InputBinary extends Input
 			byte [] stringBytes = new byte[len];
 			int ret = dataInputStream.read(stringBytes, 0, len);
 			if (ret != len) throw new IOException();
+			readMoreBytes(len);
 			String theString = new String(stringBytes);
 			return theString;
 		}
@@ -2488,6 +2426,11 @@ public class InputBinary extends Input
 				}
 			}
 		}
+		readMoreBytes(diskSize);
+	}
+	
+	private void readMoreBytes(int diskSize)
+	{
 		byteCount += diskSize;
 		if (progress != null && fileLength > 0)
 		{

@@ -299,7 +299,7 @@ public class Generic extends Technology
 	 */
 	public PrimitiveNode convertOldNodeName(String name)
 	{
-		if (name == "Cell-Center") return(cellCenter_node);
+		if (name.equals("Cell-Center")) return(cellCenter_node);
 		return null;
 	}
 }

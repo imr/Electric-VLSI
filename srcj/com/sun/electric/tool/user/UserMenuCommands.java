@@ -53,11 +53,11 @@ public final class UserMenuCommands
 	/**
 	 * Class to read a library in a new thread.
 	 */
-	private static class OpenLibraryThread extends Thread
+	private static class OpenBinLibraryThread extends Thread
 	{
 		private String fileName;
 
-		OpenLibraryThread(String fileName) { this.fileName = fileName; }
+		OpenBinLibraryThread(String fileName) { this.fileName = fileName; }
 
 		public void run()
 		{
@@ -76,7 +76,38 @@ public final class UserMenuCommands
 		if (fileName != null)
 		{
 			// start a new thread to do the input
-			OpenLibraryThread oThread = new OpenLibraryThread(fileName);
+			OpenBinLibraryThread oThread = new OpenBinLibraryThread(fileName);
+			oThread.start();
+		}
+	}
+
+	/**
+	 * Class to read a library in a new thread.
+	 */
+	private static class OpenTxtLibraryThread extends Thread
+	{
+		private String fileName;
+
+		OpenTxtLibraryThread(String fileName) { this.fileName = fileName; }
+
+		public void run()
+		{
+			Library lib = Input.readLibrary(fileName, Input.ImportType.TEXT);
+			if (lib == null) return;
+			Library.setCurrent(lib);
+			Cell cell = lib.getCurCell();
+			if (cell == null) System.out.println("No current cell in this library"); else
+				UIEditFrame.CreateEditWindow(cell);
+		}
+	}
+
+	public static void importLibraryCommand()
+	{
+		String fileName = UIDialogOpenFile.TEXT.chooseInputFile(null);
+		if (fileName != null)
+		{
+			// start a new thread to do the input
+			OpenTxtLibraryThread oThread = new OpenTxtLibraryThread(fileName);
 			oThread.start();
 		}
 	}

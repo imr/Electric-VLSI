@@ -126,13 +126,13 @@ public class Variable
 				{
 					/* in an array, quote strings */
 					if (purpose < 0) purpose = 0;
-					returnVal += "[";
+					if (len > 1) returnVal += "[";
 					for(int i=0; i<len; i++)
 					{
 						if (i != 0) returnVal += ",";
 						returnVal += makeStringVar(addrArray[i], purpose, units);
 					}
-					returnVal += "]";
+					if (len > 1) returnVal += "]";
 				}
 			} else returnVal += makeStringVar(addr, purpose, units);
 		}

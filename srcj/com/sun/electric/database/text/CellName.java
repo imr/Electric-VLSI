@@ -81,7 +81,7 @@ public class CellName
 		if (openCurly != -1 && closeCurly != -1)
 		{
 			String viewName = name.substring(openCurly+1, closeCurly);
-			n.view = View.getView(viewName);
+			n.view = View.findView(viewName);
 			if (n.view == null)
 			{
 				System.out.println("Unknown view: " + viewName);

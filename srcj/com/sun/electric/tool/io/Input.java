@@ -25,6 +25,9 @@ package com.sun.electric.tool.io;
 
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.ui.UITopLevel;
 
 import java.io.*;
@@ -42,11 +45,11 @@ public class Input
 	
 	/** Name of the file being input. */					protected String filePath;
 	/** The Library being input. */							protected Library lib;
+	/** The raw input stream. */							protected FileInputStream fileInputStream;
 	/** The binary input stream. */							protected DataInputStream dataInputStream;
 	/** The length of the file. */							protected long fileLength;
 	/** The progress during input. */						protected static ProgressMonitor progress = null;
 	/** the path to the library being read. */				protected static String mainLibDirectory = null;
-	/** The raw input stream. */							private FileInputStream fileInputStream;
 	/** static list of all libraries in Electric */			private static List newLibraries = new ArrayList();
 
 	/**
@@ -143,12 +146,7 @@ public class Input
 			in = (Input)new InputBinary();
 		} else if (type == ImportType.TEXT)
 		{
-//			in = (Input)new InputText();
-			
-			// no text reader yet, see if an elib can be found
-			n.setExtension("elib");
-			fileName = n.makeName();
-			in = (Input)new InputBinary();
+			in = (Input)new InputText();
 		} else
 		{
 			System.out.println("Unknown import type: " + type);
@@ -195,6 +193,8 @@ public class Input
 		{
 			progress = new ProgressMonitor(null, "Reading library "+lib.getLibName()+"...", "", 0, 1001);
 			progress.setProgress(0);
+			progress.setMillisToDecideToPopup(0);
+			progress.setMillisToPopup(0);
 		}
 		boolean error = in.ReadLib();
 		if (topLevel && progress != null) progress.close();
@@ -242,5 +242,37 @@ public class Input
 //			}
 //		}
 		return in.lib;
+	}
+	
+	/**
+	 * Routine to handle conversion of nodes read from disk that have outline information.
+	 * @param ni the NodeInst being converted.
+	 * @param np the prototype of the NodeInst being converted.
+	 * @param lambda the conversion factor.
+	 */
+	protected void scaleOutlineInformation(NodeInst ni, NodeProto np, double lambda)
+	{
+		// ignore if not a primitive
+		if (!(np instanceof PrimitiveNode)) return;
+
+		// ignore if it doesn't hold outline information
+		if (!np.isHoldsOutline()) return;
+
+		// see if there really is outline information
+		Variable var = ni.getVal("trace", Integer[].class);
+		if (var == null) return;
+
+		// scale the outline information
+		Integer [] outline = (Integer [])var.getObject();
+		Float [] newOutline = new Float[outline.length];
+		for(int j=0; j<outline.length; j++)
+		{
+			float oldValue = outline[j].intValue();
+			newOutline[j] = new Float(oldValue/lambda);
+		}
+		ni.delVal("trace");
+		Variable newVar = ni.setVal("trace", newOutline);
+		if (newVar == null)
+			System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
 	}
 }

@@ -369,7 +369,8 @@ public class NodeInst extends Geometric
 			for (int i = 0; i < exports.size(); i++)
 			{
 				Export ex = (Export) exports.get(i);
-				System.out.println("     " + ex);
+				System.out.println("     " + ex + " characteristic " + ex.getCharacteristic());
+				System.out.println("     userbits: " + ex.lowLevelGetUserbits());
 			}
 		}
 	}

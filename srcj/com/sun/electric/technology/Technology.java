@@ -1415,20 +1415,20 @@ public class Technology extends ElectricObject
 	{
 //		if (np == sch_sourceprim || np == sch_meterprim)
 //		{
-//			if (portname == "top") return np->firstportproto;
-//			if (portname == "bottom") return np->firstportproto->nextportproto;
+//			if (portname.equals("top")) return np->firstportproto;
+//			if (portname.equals("bottom")) return np->firstportproto->nextportproto;
 //		}
 //		if (np == sch_twoportprim)
 //		{
-//			if (portname == "upperleft") return(np->firstportproto);
-//			if (portname == "lowerleft") return(np->firstportproto->nextportproto);
-//			if (portname == "upperright") return(np->firstportproto->nextportproto->nextportproto);
-//			if (portname == "lowerright") return(np->firstportproto->nextportproto->nextportproto->nextportproto);
+//			if (portname.equals("upperleft")) return(np->firstportproto);
+//			if (portname.equals("lowerleft")) return(np->firstportproto->nextportproto);
+//			if (portname.equals("upperright")) return(np->firstportproto->nextportproto->nextportproto);
+//			if (portname.equals("lowerright")) return(np->firstportproto->nextportproto->nextportproto->nextportproto);
 //		}
 
 		// some technologies switched from ports ending in "-bot" to the ending "-bottom"
 		int len = portName.length() - 4;
-		if (len > 0 && portName.substring(len) == "-bot")
+		if (len > 0 && portName.substring(len).equals("-bot"))
 		{
 			PrimitivePort pp = (PrimitivePort)np.findPortProto(portName + "tom");
 			if (pp != null) return pp;
@@ -1475,6 +1475,7 @@ public class Technology extends ElectricObject
 			for(int i=startNodeProto; i<endNodeProto; i++)
 			{
 				NodeProto np = nodeProtoList[i];
+				if (np == null) continue;
 				Technology nodeTech = np.getTechnology();
 				if (nodeTech != null) useCount[nodeTech.getIndex()]++;
 			}
@@ -1496,6 +1497,7 @@ public class Technology extends ElectricObject
 			for(int i=startArcProto; i<endArcProto; i++)
 			{
 				ArcProto ap = arcProtoList[i];
+				if (ap == null) continue;
 				useCount[ap.getTechnology().getIndex()]++;
 			}
 		} else

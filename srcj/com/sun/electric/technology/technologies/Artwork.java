@@ -690,10 +690,10 @@ public class Artwork extends Technology
 	 */
 	public PrimitiveNode convertOldNodeName(String name)
 	{
-		if (name == "Message" || name == "Centered-Message" ||
-			name == "Left-Message" || name == "Right-Message")
+		if (name.equals("Message") || name.equals("Centered-Message") ||
+			name.equals("Left-Message") || name.equals("Right-Message"))
 				return (PrimitiveNode)NodeProto.findNodeProto("generic:Invisible-Pin");
-		if (name == "Opened-FarDotted-Polygon") return openedThickerPolygonNode;
+		if (name.equals("Opened-FarDotted-Polygon")) return openedThickerPolygonNode;
 		return null;
 	}
 
@@ -704,9 +704,9 @@ public class Artwork extends Technology
 	 */
 	public PrimitiveArc convertOldArcName(String name)
 	{
-		if (name == "Dash-1") return dottedArc;
-		if (name == "Dash-2") return dashedArc;
-		if (name == "Dash-3") return thickerArc;
+		if (name.equals("Dash-1")) return dottedArc;
+		if (name.equals("Dash-2")) return dashedArc;
+		if (name.equals("Dash-3")) return thickerArc;
 		return null;
 	}
 }

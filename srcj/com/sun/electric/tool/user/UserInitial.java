@@ -57,6 +57,8 @@ public final class UserInitial
 		UIMenu fileMenu = UIMenu.CreateUIMenu("File", 'F');
 		fileMenu.addMenuItem("Open", KeyStroke.getKeyStroke('O', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.openLibraryCommand(); } });
+		fileMenu.addMenuItem("Import", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.importLibraryCommand(); } });
 		fileMenu.addMenuItem("Save", KeyStroke.getKeyStroke('S', InputEvent.CTRL_MASK),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { UserMenuCommands.saveLibraryCommand(); } });
 		fileMenu.addMenuItem("Save as...",null,

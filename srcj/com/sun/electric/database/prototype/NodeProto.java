@@ -1284,11 +1284,11 @@ public abstract class NodeProto extends ElectricObject
 	 * @param name the name of the variable.
 	 * @return true if the variable name is deprecated.
 	 */
-	public boolean isdeprecatedvariable(String name)
+	public boolean isDeprecatedVariable(String name)
 	{
-		if (name == "NET_last_good_ncc" ||
-			name == "NET_last_good_ncc_facet" ||
-			name == "SIM_window_signal_order") return true;
+		if (name.equals("NET_last_good_ncc") ||
+			name.equals("NET_last_good_ncc_facet") ||
+			name.equals("SIM_window_signal_order")) return true;
 		return false;
 	}
 

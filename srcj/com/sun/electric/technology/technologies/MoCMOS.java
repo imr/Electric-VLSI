@@ -1847,11 +1847,11 @@ public class MoCMOS extends Technology
 			{
 				PrimitivePort.newInstance(this, pTransistor_node, new ArcProto[] {poly1_arc}, "p-trans-poly-left", 180,90, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(4), EdgeV.fromBottom(11), EdgeH.fromLeft(4), EdgeV.fromTop(11)),
-				PrimitivePort.newInstance(this, pTransistor_node, new ArcProto[] {pActive_arc}, "p-trans-diff-top", 90,90, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pTransistor_node, new ArcProto[] {pActive_arc}, "p-trans-diff-top", 90,90, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5), EdgeH.fromRight(7.5), EdgeV.fromTop(7)),
 				PrimitivePort.newInstance(this, pTransistor_node, new ArcProto[] {poly1_arc}, "p-trans-poly-right", 0,90, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromRight(4), EdgeV.fromBottom(11), EdgeH.fromRight(4), EdgeV.fromTop(11)),
-				PrimitivePort.newInstance(this, pTransistor_node, new ArcProto[] {pActive_arc}, "p-trans-diff-bottom", 270,90, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pTransistor_node, new ArcProto[] {pActive_arc}, "p-trans-diff-bottom", 270,90, 2, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(7.5), EdgeV.fromBottom(7), EdgeH.fromRight(7.5), EdgeV.fromBottom(7.5))
 			});
 		pTransistor_node.setFunction(NodeProto.Function.TRAPMOS);
@@ -1879,11 +1879,11 @@ public class MoCMOS extends Technology
 			{
 				PrimitivePort.newInstance(this, nTransistor_node, new ArcProto[] {poly1_arc}, "n-trans-poly-left", 180,90, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(4), EdgeV.fromBottom(11), EdgeH.fromLeft(4), EdgeV.fromTop(11)),
-				PrimitivePort.newInstance(this, nTransistor_node, new ArcProto[] {nActive_arc}, "n-trans-diff-top", 90,90, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, nTransistor_node, new ArcProto[] {nActive_arc}, "n-trans-diff-top", 90,90, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5), EdgeH.fromRight(7.5), EdgeV.fromTop(7)),
 				PrimitivePort.newInstance(this, nTransistor_node, new ArcProto[] {poly1_arc}, "n-trans-poly-right", 0,90, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromRight(4), EdgeV.fromBottom(11), EdgeH.fromRight(4), EdgeV.fromTop(11)),
-				PrimitivePort.newInstance(this, nTransistor_node, new ArcProto[] {nActive_arc}, "n-trans-diff-bottom", 270,90, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, nTransistor_node, new ArcProto[] {nActive_arc}, "n-trans-diff-bottom", 270,90, 2, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromLeft(7.5), EdgeV.fromBottom(7), EdgeH.fromRight(7.5), EdgeV.fromBottom(7.5))
 			});
 		nTransistor_node.setFunction(NodeProto.Function.TRANMOS);
@@ -1926,11 +1926,11 @@ public class MoCMOS extends Technology
 			{
 				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {poly1_arc}, "p-trans-sca-poly-left", 180,90, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromCenter(-3.5), EdgeV.CENTER, EdgeH.fromCenter(-3.5), EdgeV.CENTER),
-				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {pActive_arc, metal1_arc}, "p-trans-sca-diff-top", 90,90, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {pActive_arc, metal1_arc}, "p-trans-sca-diff-top", 90,90, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.CENTER, EdgeV.fromCenter(4.5), EdgeH.CENTER, EdgeV.fromCenter(4.5)),
 				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {poly1_arc}, "p-trans-sca-poly-right", 0,90, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromCenter(3.5), EdgeV.CENTER, EdgeH.fromCenter(3.5), EdgeV.CENTER),
-				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {pActive_arc, metal1_arc}, "p-trans-sca-diff-bottom", 270,90, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {pActive_arc, metal1_arc}, "p-trans-sca-diff-bottom", 270,90, 2, PortProto.Characteristic.UNKNOWN,
 					EdgeH.CENTER, EdgeV.fromCenter(-4.5), EdgeH.CENTER, EdgeV.fromCenter(-4.5))
 			});
 		scalablePTransistor_node.setFunction(NodeProto.Function.TRAPMOS);
@@ -1971,11 +1971,11 @@ public class MoCMOS extends Technology
 			{
 				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {poly1_arc}, "n-trans-sca-poly-left", 180,90, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromCenter(-3.5), EdgeV.CENTER, EdgeH.fromCenter(-3.5), EdgeV.CENTER),
-				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {nActive_arc, metal1_arc}, "n-trans-sca-diff-top", 90,90, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {nActive_arc, metal1_arc}, "n-trans-sca-diff-top", 90,90, 1, PortProto.Characteristic.UNKNOWN,
 					EdgeH.CENTER, EdgeV.fromCenter(4.5), EdgeH.CENTER, EdgeV.fromCenter(4.5)),
 				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {poly1_arc}, "n-trans-sca-poly-right", 0,90, 0, PortProto.Characteristic.UNKNOWN,
 					EdgeH.fromCenter(3.5), EdgeV.CENTER, EdgeH.fromCenter(3.5), EdgeV.CENTER),
-				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {nActive_arc, metal1_arc}, "n-trans-sca-diff-bottom", 270,90, 0, PortProto.Characteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {nActive_arc, metal1_arc}, "n-trans-sca-diff-bottom", 270,90, 2, PortProto.Characteristic.UNKNOWN,
 					EdgeH.CENTER, EdgeV.fromCenter(-4.5), EdgeH.CENTER, EdgeV.fromCenter(-4.5))
 			});
 		scalableNTransistor_node.setFunction(NodeProto.Function.TRANMOS);
@@ -2516,8 +2516,8 @@ public class MoCMOS extends Technology
 	 */
 	public PrimitiveNode convertOldNodeName(String name)
 	{
-		if (name == "Metal-1-Substrate-Con") return(metal1NWellContact_node);
-		if (name == "Metal-1-Well-Con") return(metal1PWellContact_node);
+		if (name.equals("Metal-1-Substrate-Con")) return(metal1NWellContact_node);
+		if (name.equals("Metal-1-Well-Con")) return(metal1PWellContact_node);
 		return null;
 	}
 

@@ -135,17 +135,17 @@ public class Tool extends ElectricObject
 	 * @param name the name of the variable.
 	 * @return true if the variable name is deprecated.
 	 */
-	public boolean isdeprecatedvariable(String name)
+	public boolean isDeprecatedVariable(String name)
 	{
-		if (name == "NET_auto_name" ||
-			name == "NET_use_port_names" ||
-			name == "NET_compare_hierarchy" ||
-			name == "D" ||
-			name == "<" ||
-			name == "USER_alignment_obj" ||
-			name == "USER_alignment_edge" ||
-			name == "s" ||
-			name == "DRC_pointout") return true;
+		if (name.equals("NET_auto_name") ||
+			name.equals("NET_use_port_names") ||
+			name.equals("NET_compare_hierarchy") ||
+			name.equals("D") ||
+			name.equals("<") ||
+			name.equals("USER_alignment_obj") ||
+			name.equals("USER_alignment_edge") ||
+			name.equals("s") ||
+			name.equals("DRC_pointout")) return true;
 		return false;
 	}
 

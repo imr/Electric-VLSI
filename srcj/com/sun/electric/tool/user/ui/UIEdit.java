@@ -708,7 +708,6 @@ public class UIEdit extends JPanel
 		if (doingDrag)
 		{
 			clearHighlighting();
-System.out.println("Screen dragged from ("+startDrag.getX()+","+startDrag.getY()+") to ("+endDrag.getX()+","+endDrag.getY()+")");
 			double minSelX = Math.min(startDrag.getX(), endDrag.getX())-EXACTSELECTDISTANCE;
 			double maxSelX = Math.max(startDrag.getX(), endDrag.getX())+EXACTSELECTDISTANCE;
 			double minSelY = Math.min(startDrag.getY(), endDrag.getY())-EXACTSELECTDISTANCE;
@@ -717,13 +716,11 @@ System.out.println("Screen dragged from ("+startDrag.getX()+","+startDrag.getY()
 			Point2D.Double end = screenToDatabase((int)maxSelX, (int)maxSelY);
 			Rectangle2D.Double searchArea = new Rectangle2D.Double(Math.min(start.getX(), end.getX()),
 				Math.min(start.getY(), end.getY()), Math.abs(start.getX() - end.getX()), Math.abs(start.getY() - end.getY()));
-System.out.println("Screen the search area is "+searchArea);
 			Geometric.Search sea = new Geometric.Search(searchArea, cell);
 			for(;;)
 			{
 				Geometric nextGeom = sea.nextObject();
 				if (nextGeom == null) break;
-System.out.println("Found "+nextGeom.describe()+ " at "+nextGeom.getBounds());
 				addHighlighting(nextGeom);
 			}
 			doingDrag = false;

@@ -39,20 +39,20 @@ package com.sun.electric.technology;
  */
 public class SizeOffset
 {
-	private double lx, ly, hx, hy;
+	private double lx, hx, ly, hy;
 
 	/**
 	 * Constructor to create a SizeOffset from the specified parameters.
 	 * @param lx the low-X offset (distance from left side to actual bounds).
-	 * @param ly the low-Y offset (distance from bottom side to actual bounds).
 	 * @param hx the high-X offset (distance from left side to actual bounds).
+	 * @param ly the low-Y offset (distance from bottom side to actual bounds).
 	 * @param hy the high-Y offset (distance from top side to actual bounds).
 	 */
-	public SizeOffset(double lx, double ly, double hx, double hy)
+	public SizeOffset(double lx, double hx, double ly, double hy)
 	{
 		this.lx = lx;
-		this.ly = ly;
 		this.hx = hx;
+		this.ly = ly;
 		this.hy = hy;
 	}
 

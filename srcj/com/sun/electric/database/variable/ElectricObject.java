@@ -203,7 +203,7 @@ public class ElectricObject
 	 * @param name the name of the Variable.
 	 * @return true if the Variable name is deprecated.
 	 */
-	public boolean isdeprecatedvariable(String name)
+	public boolean isDeprecatedVariable(String name)
 	{
 		return false;
 	}
