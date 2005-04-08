@@ -230,6 +230,7 @@ public class IRSIM extends Output
             char type = 0;
             Network net1 = null, net2 = null;
             String net1Name = null, net2Name = null;
+            Technology tech = info.getCell().getTechnology();
 
             if (fun == PrimitiveNode.Function.CONTACT)
             {
@@ -269,6 +270,9 @@ public class IRSIM extends Output
                 if (thisLayer != null)
                     rcValue = thisLayer.getResistance()/cuts;
                 type = 'R';
+                // Only valid for layout
+                if ((rcValue < tech.getMinResistance()))
+                    return null;
             }
 			else if (fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.CAPAC ||
 				fun == PrimitiveNode.Function.ECAPAC)
@@ -314,12 +318,8 @@ public class IRSIM extends Output
                 rcValue = TextUtils.atof(extra);
             }
             if (type == 0) return null;
-            Technology tech = info.getCell().getTechnology();
             if ((type == 'C' && rcValue < tech.getMinCapacitance()))
                 return null;
-            // put zero resistance if value is smaller than min
-            if ((type == 'R' && rcValue < tech.getMinResistance()))
-                rcValue = 0;
             bucket = new RCPBucket(type, net1Name, net2Name, rcValue);
         }
         return bucket;
