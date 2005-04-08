@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+BUG: (04/07/05, GVG) No writing resistance if value is smaller than minimum in parasitics extraction
+FIX: Writes 0 instead
+
 BUG: (04/06/05, GVG) Parasitic tool was wrongly ignoring active layers in HierarchyEnumator call
 FIX: Use correct netlist
 

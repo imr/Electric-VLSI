@@ -315,9 +315,11 @@ public class IRSIM extends Output
             }
             if (type == 0) return null;
             Technology tech = info.getCell().getTechnology();
-            if ((type == 'R' && rcValue < tech.getMinResistance()) ||
-                (type == 'C' && rcValue < tech.getMinCapacitance()))
+            if ((type == 'C' && rcValue < tech.getMinCapacitance()))
                 return null;
+            // put zero resistance if value is smaller than min
+            if ((type == 'R' && rcValue < tech.getMinResistance()))
+                rcValue = 0;
             bucket = new RCPBucket(type, net1Name, net2Name, rcValue);
         }
         return bucket;
