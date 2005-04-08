@@ -202,23 +202,27 @@ public class Analyzer extends Engine
 
 		public boolean doIt()
 		{
-			System.out.println("IRSIM, version " + simVersion);
+			synchronized(analyzer)
+			{
+				System.out.println("IRSIM, version " + simVersion);
 
-			// now initialize the simulator
-			Sim sim = analyzer.theSim;
-			analyzer.initRSim();
+				// now initialize the simulator
+				Sim sim = analyzer.theSim;
+				analyzer.initRSim();
 
-			// Load network
-			Stimuli sd = analyzer.getCircuit();
- 			Simulation.showSimulationData(sd, null);
+				// Load network
+				System.out.println("Loading netlist for cell " + analyzer.cell.describe() + "...");
+				Stimuli sd = analyzer.getCircuit();
+	 			Simulation.showSimulationData(sd, null);
 
- 			// make a waveform window
- 			analyzer.ww = sd.getWaveformWindow();
-			analyzer.ww.setSimEngine(analyzer);
-			analyzer.ww.setDefaultTimeRange(0.0, DEFIRSIMTIMERANGE);
-			analyzer.ww.setMainTimeCursor(DEFIRSIMTIMERANGE/5.0*2.0);
-			analyzer.ww.setExtensionTimeCursor(DEFIRSIMTIMERANGE/5.0*3.0);
-			analyzer.init();
+	 			// make a waveform window
+	 			analyzer.ww = sd.getWaveformWindow();
+				analyzer.ww.setSimEngine(analyzer);
+				analyzer.ww.setDefaultTimeRange(0.0, DEFIRSIMTIMERANGE);
+				analyzer.ww.setMainTimeCursor(DEFIRSIMTIMERANGE/5.0*2.0);
+				analyzer.ww.setExtensionTimeCursor(DEFIRSIMTIMERANGE/5.0*3.0);
+				analyzer.init();
+			}
 			return true;
 		}
 	}
@@ -300,142 +304,145 @@ public class Analyzer extends Engine
 	 */
 	public void doCommand(String com)
 	{
-		if (com.equals("l") || com.equals("h") || com.equals("x"))
+		synchronized(this)
 		{
-			int command = VECTORL;
-			if (com.equals("h")) command = VECTORH; else
-				if (com.equals("x")) command = VECTORX;
-			List signals = ww.getHighlightedNetworkNames();
-			String [] parameters = new String[1];
-			for(Iterator it = signals.iterator(); it.hasNext(); )
+			if (com.equals("l") || com.equals("h") || com.equals("x"))
 			{
-				Signal sig = (Signal)it.next();
-				parameters[0] = sig.getFullName().replace('.', '/');
-				newVector(command, parameters, ww.getMainTimeCursor(), false);
-			}
-			if (Simulation.isIRSIMResimulateEach())
-				playVectors();
-			return;
-		}
-
-		if (com.equals("clear"))
-		{
-			List signals = ww.getHighlightedNetworkNames();
-			if (signals.size() != 1)
-			{
-				System.out.println("Must select a single signal on which to clear stimuli");
-				return;
-			}
-			Signal sig = (Signal)signals.get(0);
-			String highsigname = sig.getFullName();
-			sig.clearControlPoints();
-
-			SimVector lastSV = null;
-			for(SimVector sv = firstVector; sv != null; sv = sv.next)
-			{
-				if (sv.command == VECTORL || sv.command == VECTORH || sv.command == VECTORX ||
-					sv.command == VECTORASSERT || sv.command == VECTORSET)
+				int command = VECTORL;
+				if (com.equals("h")) command = VECTORH; else
+					if (com.equals("x")) command = VECTORX;
+				List signals = ww.getHighlightedNetworkNames();
+				String [] parameters = new String[1];
+				for(Iterator it = signals.iterator(); it.hasNext(); )
 				{
-					if (sv.sigs.contains(sig))
-					{
-						if (lastSV == null)
-							firstVector = sv.next; else
-								lastSV.next = sv.next;
-						continue;
-					}
+					Signal sig = (Signal)it.next();
+					parameters[0] = sig.getFullName().replace('.', '/');
+					newVector(command, parameters, ww.getMainTimeCursor(), false);
 				}
-				lastSV = sv;
-			}
-			lastVector = lastSV;
-			if (Simulation.isIRSIMResimulateEach())
-				playVectors();
-			return;
-		}
-
-		if (com.equals("clearSelected"))
-		{
-			boolean found = false;
-			for(Iterator it = ww.getPanels(); it.hasNext(); )
-			{
-				WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-				for(Iterator sIt = wp.getSignals().iterator(); sIt.hasNext(); )
-				{
-					WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
-					if (!ws.isSelected()) continue;
-					double [] selectedCPs = ws.getSelectedControlPoints();
-					if (selectedCPs == null) continue;
-					for(int i=0; i<selectedCPs.length; i++)
-					{
-						if (clearControlPoint(ws.getSignal(), selectedCPs[i]))
-							found = true;
-					}
-				}
-			}
-			if (!found)
-			{
-				System.out.println("There are no selected control points to remove");
+				if (Simulation.isIRSIMResimulateEach())
+					playVectors();
 				return;
 			}
 
-			// resimulate if requested
-			if (Simulation.isIRSIMResimulateEach())
-				playVectors();
-			return;
-		}
-
-		if (com.equals("clearAll"))
-		{
-			for(Iterator it = ww.getPanels(); it.hasNext(); )
+			if (com.equals("clear"))
 			{
-				WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-				for(Iterator sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+				List signals = ww.getHighlightedNetworkNames();
+				if (signals.size() != 1)
 				{
-					WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
-					ws.getSignal().clearControlPoints();
+					System.out.println("Must select a single signal on which to clear stimuli");
+					return;
 				}
+				Signal sig = (Signal)signals.get(0);
+				String highsigname = sig.getFullName();
+				sig.clearControlPoints();
+
+				SimVector lastSV = null;
+				for(SimVector sv = firstVector; sv != null; sv = sv.next)
+				{
+					if (sv.command == VECTORL || sv.command == VECTORH || sv.command == VECTORX ||
+						sv.command == VECTORASSERT || sv.command == VECTORSET)
+					{
+						if (sv.sigs.contains(sig))
+						{
+							if (lastSV == null)
+								firstVector = sv.next; else
+									lastSV.next = sv.next;
+							continue;
+						}
+					}
+					lastSV = sv;
+				}
+				lastVector = lastSV;
+				if (Simulation.isIRSIMResimulateEach())
+					playVectors();
+				return;
 			}
 
-			if (Simulation.isIRSIMResimulateEach())
-				clearAllVectors();
-			return;
-		}
-
-		if (com.equals("update"))
-		{
-			playVectors();
-			return;
-		}
-
-		if (com.equals("info"))
-		{
-			List signals = ww.getHighlightedNetworkNames();
-			for(Iterator it = signals.iterator(); it.hasNext(); )
+			if (com.equals("clearSelected"))
 			{
-				Signal sig = (Signal)it.next();
-				SimVector excl = new SimVector();
-				excl.command = VECTOREXCL;
-				excl.sigs = new ArrayList();
-				excl.sigs.add(sig);
-				issueCommand(excl);
+				boolean found = false;
+				for(Iterator it = ww.getPanels(); it.hasNext(); )
+				{
+					WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
+					for(Iterator sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+					{
+						WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
+						if (!ws.isSelected()) continue;
+						double [] selectedCPs = ws.getSelectedControlPoints();
+						if (selectedCPs == null) continue;
+						for(int i=0; i<selectedCPs.length; i++)
+						{
+							if (clearControlPoint(ws.getSignal(), selectedCPs[i]))
+								found = true;
+						}
+					}
+				}
+				if (!found)
+				{
+					System.out.println("There are no selected control points to remove");
+					return;
+				}
 
-				excl.command = VECTORQUESTION;
-				issueCommand(excl);
+				// resimulate if requested
+				if (Simulation.isIRSIMResimulateEach())
+					playVectors();
+				return;
 			}
-			return;
-		}
 
-		if (com.equals("save"))
-		{
-			saveVectorFile();
-			return;
-		}
+			if (com.equals("clearAll"))
+			{
+				for(Iterator it = ww.getPanels(); it.hasNext(); )
+				{
+					WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
+					for(Iterator sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+					{
+						WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
+						ws.getSignal().clearControlPoints();
+					}
+				}
 
-		if (com.equals("restore"))
-		{
-			vectorFileName = OpenFile.chooseInputFile(FileType.IRSIMVECTOR, "IRSIM Vector file");
-			if (vectorFileName == null) return;
-			loadVectorFile();
-			return;
+				if (Simulation.isIRSIMResimulateEach())
+					clearAllVectors();
+				return;
+			}
+
+			if (com.equals("update"))
+			{
+				playVectors();
+				return;
+			}
+
+			if (com.equals("info"))
+			{
+				List signals = ww.getHighlightedNetworkNames();
+				for(Iterator it = signals.iterator(); it.hasNext(); )
+				{
+					Signal sig = (Signal)it.next();
+					SimVector excl = new SimVector();
+					excl.command = VECTOREXCL;
+					excl.sigs = new ArrayList();
+					excl.sigs.add(sig);
+					issueCommand(excl);
+	
+					excl.command = VECTORQUESTION;
+					issueCommand(excl);
+				}
+				return;
+			}
+
+			if (com.equals("save"))
+			{
+				saveVectorFile();
+				return;
+			}
+
+			if (com.equals("restore"))
+			{
+				vectorFileName = OpenFile.chooseInputFile(FileType.IRSIMVECTOR, "IRSIM Vector file");
+				if (vectorFileName == null) return;
+				loadVectorFile();
+				return;
+			}
 		}
 	}
 

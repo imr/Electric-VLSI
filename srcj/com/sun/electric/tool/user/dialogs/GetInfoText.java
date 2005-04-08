@@ -52,6 +52,7 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -444,7 +445,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		if (cti.td.getDispPart() != TextDescriptor.DispPos.VALUE && (cti.var == null || cti.var.getLength() == 1))
 		{
 			GlyphVector gv = curWnd.getGlyphs(cti.initialText, theFont);
-			Rectangle2D glyphBounds = gv.getVisualBounds();
+			Rectangle2D glyphBounds = gv.getLogicalBounds();
 			lowX = highX - (int)glyphBounds.getWidth();
 		}
 
@@ -550,7 +551,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			{
 				String str = textArray[i];
 				GlyphVector gv = wnd.getGlyphs(str, theFont);
-				Rectangle2D glyphBounds = gv.getVisualBounds();
+				Rectangle2D glyphBounds = gv.getLogicalBounds();
 				totalHeight += size;
 				if (glyphBounds.getWidth() > totalWidth) totalWidth = glyphBounds.getWidth();
 			}

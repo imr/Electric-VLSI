@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+BUG: (04/07/05, SMR) Technology editing layer bit selection works now (Bug #243).
+FIX: In Highligher.findAllInArea(), do not add 0.4 units of slop to selection.
+
+BUG: (04/07/05, SMR) Editing text "in-place" now draws a large enough editing area (Bug #236).
+FIX: In GetInfoText.EditInPlaceListener.figureSize(), use the logical bounds of the glyph.
+
+IMP: (04/07/05, SMR) Explorer window no longer opens to current library when jobs change (Bug #244).
+
 BUG: (04/07/05, GVG) GDS export was crashing if non-layout layers were found in cell such as art nodes
 FIX: Skipping those layers
 

@@ -341,7 +341,11 @@ public class EditMenu {
 		specialSubMenu.addSeparator();
 		specialSubMenu.addMenuItem("Convert Technology to Library for Editing...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Generate.makeLibFromTech(); }});
-
+		specialSubMenu.addMenuItem("Identify Primitive Layers", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_teceditidentify(false); }});
+		specialSubMenu.addMenuItem("Identify Ports", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_teceditidentify(true); }});
+		
 		MenuBar.Menu selListSubMenu = new MenuBar.Menu("Selection");
 		editMenu.add(selListSubMenu);
 		selListSubMenu.addMenuItem("Select All", KeyStroke.getKeyStroke('A', buckyBit),

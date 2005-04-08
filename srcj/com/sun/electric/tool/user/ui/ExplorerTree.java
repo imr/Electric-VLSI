@@ -1138,11 +1138,11 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 					JMenuItem menuItem = new JMenuItem("Add New Layer");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.makeCell(1); } });
 
 					menuItem = new JMenuItem("Reorder Layers");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_reorderprimdlog("Layers", "layer-", Generate.LAYERSEQUENCE_KEY); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_reorderprimdlog(1); } });
 
 					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;
@@ -1153,11 +1153,11 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 					JMenuItem menuItem = new JMenuItem("Add New Arc");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.makeCell(2); } });
 
 					menuItem = new JMenuItem("Reorder Arcs");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_reorderprimdlog("Arcs", "arc-", Generate.ARCSEQUENCE_KEY); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_reorderprimdlog(2); } });
 
 					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;
@@ -1168,11 +1168,11 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 					JMenuItem menuItem = new JMenuItem("Add New Node");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { openAction(); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.makeCell(3); } });
 
 					menuItem = new JMenuItem("Reorder Nodes");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_reorderprimdlog("Nodes", "node-", Generate.NODESEQUENCE_KEY); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_reorderprimdlog(3); } });
 
 					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;

@@ -49,11 +49,15 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.tecEdit.Generate.ArcInfo;
+import com.sun.electric.tool.user.tecEdit.Generate.NodeInfo;
 import com.sun.electric.tool.user.tecEdit.Generate.LayerInfo;
 import com.sun.electric.tool.user.tecEdit.Generate.LibFromTechJob;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PromptAt;
+import com.sun.electric.tool.user.dialogs.PromptAt.Field;
 import com.sun.electric.tool.user.Highlighter;
 
 import java.util.List;
@@ -61,12 +65,21 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.util.Iterator;
 import java.util.HashSet;
+
+import javax.swing.DefaultListModel;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JButton;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
+
 import java.awt.geom.Rectangle2D;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
@@ -194,87 +207,6 @@ public class Manipulate
 //			if (count <= 1) pp = 0; else
 //				pp = par[1];
 //			us_tecfromlibinit(el_curlib, pp, 0);
-//			return;
-//		}
-//		if (namesamen(pp, x_("edit-node"), l) == 0 && l >= 6)
-//		{
-//			if (count < 2)
-//			{
-//				ttyputusage(x_("technology edit edit-node NODENAME"));
-//				return;
-//			}
-//			infstr = initinfstr();
-//			addstringtoinfstr(infstr, x_("node-"));
-//			addstringtoinfstr(infstr, par[1]);
-//			(void)allocstring(&cellname, returninfstr(infstr), el_tempcluster);
-//	
-//			// first make sure all fields exist
-//			np = getnodeproto(cellname);
-//			if (np != NONODEPROTO)
-//			{
-//				us_tecedmakenode(np, NPUNKNOWN, FALSE, FALSE, FALSE, FALSE, 0);
-//				(*el_curconstraint.solve)(np);
-//			}
-//	
-//			np = us_tecedentercell(cellname);
-//			efree(cellname);
-//			if (np == NONODEPROTO) return;
-//			us_tecedmakenode(np, NPUNKNOWN, FALSE, FALSE, FALSE, FALSE, 0);
-//			(*el_curconstraint.solve)(np);
-//			np.userbits |= TECEDITCELL;
-//			(void)us_tecedentercell(describenodeproto(np));
-//			return;
-//		}
-//		if (namesamen(pp, x_("edit-arc"), l) == 0 && l >= 6)
-//		{
-//			if (count < 2)
-//			{
-//				ttyputusage(x_("technology edit edit-arc ARCNAME"));
-//				return;
-//			}
-//			infstr = initinfstr();
-//			addstringtoinfstr(infstr, x_("arc-"));
-//			addstringtoinfstr(infstr, par[1]);
-//			(void)allocstring(&cellname, returninfstr(infstr), el_tempcluster);
-//			np = us_tecedentercell(cellname);
-//			efree(cellname);
-//			if (np == NONODEPROTO) return;
-//			us_tecedmakearc(np, APUNKNOWN, 1, 1, 0, 90);
-//			(*el_curconstraint.solve)(np);
-//			np.userbits |= TECEDITCELL;
-//			(void)us_tecedentercell(describenodeproto(np));
-//			return;
-//		}
-//		if (namesamen(pp, x_("edit-layer"), l) == 0 && l >= 6)
-//		{
-//			if (count < 2)
-//			{
-//				ttyputusage(x_("technology edit edit-layer LAYERNAME"));
-//				return;
-//			}
-//			infstr = initinfstr();
-//			addstringtoinfstr(infstr, x_("layer-"));
-//			addstringtoinfstr(infstr, par[1]);
-//			(void)allocstring(&cellname, returninfstr(infstr), el_tempcluster);
-//	
-//			// first make sure all fields exist
-//			for(i=0; i<16; i++) stip[i] = 0;
-//			np = getnodeproto(cellname);
-//			if (np != NONODEPROTO)
-//			{
-//				us_tecedmakelayer(np, COLORT1, stip, SOLIDC, x_("XX"), LFUNKNOWN, x_("x"), x_(""),
-//					x_(""), 0.0, 0.0, 0.0, 0, 0, 0);
-//				(*el_curconstraint.solve)(np);
-//			}
-//	
-//			np = us_tecedentercell(cellname);
-//			efree(cellname);
-//			if (np == NONODEPROTO) return;
-//			us_tecedmakelayer(np, COLORT1, stip, SOLIDC, x_("XX"), LFUNKNOWN, x_("x"), x_(""),
-//				x_(""), 0.0, 0.0, 0.0, 0, 0, 0);
-//			(*el_curconstraint.solve)(np);
-//			np.userbits |= TECEDITCELL;
-//			(void)us_tecedentercell(describenodeproto(np));
 //			return;
 //		}
 //		if (namesamen(pp, x_("edit-colors"), l) == 0 && l >= 6)
@@ -1266,6 +1198,99 @@ public class Manipulate
 	}
 
 	/**
+	 * Make a new technology-edit cell of a given type.
+	 * @param type 1=layer, 2=arc, 3=node, 4=factors
+	 */
+	public static void makeCell(int type)
+	{
+		Library lib = Library.getCurrent();
+		String cellName = null;
+		switch (type)
+		{
+			case 1:		// layer
+				String layerName = JOptionPane.showInputDialog("Name of new layer:", "");
+				if (layerName == null) return;
+				cellName = "layer-" + layerName;
+				break;
+			case 2:		// arc
+				String arcName = JOptionPane.showInputDialog("Name of new arc:", "");
+				if (arcName == null) return;
+				cellName = "arc-" + arcName;
+				break;
+			case 3:		// node
+				String nodeName = JOptionPane.showInputDialog("Name of new node:", "");
+				if (nodeName == null) return;
+				cellName = "node-" + nodeName;
+				break;
+			case 4:		// factors
+				cellName = "factors";
+				break;
+		}
+
+		// see if the cell exists
+		Cell cell = lib.findNodeProto(cellName);
+		if (cell != null)
+		{
+			// cell exists: put it in the current window
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			if (wf != null) wf.setCellWindow(cell);
+			return;
+		}
+
+		// create the cell
+		MakeOneCellJob job = new MakeOneCellJob(lib, cellName, type);
+	}
+
+	/**
+	 * Class to create a single cell in a technology-library.
+	 */
+	public static class MakeOneCellJob extends Job
+	{
+		private Library lib;
+		private String name;
+		private int type;
+	
+		public MakeOneCellJob(Library lib, String name, int type)
+		{
+			super("Make Cell in Technology-Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.lib = lib;
+			this.name = name;
+			this.type = type;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			Cell cell = Cell.makeInstance(lib, name);
+			if (cell == null) return false;
+			cell.setInTechnologyLibrary();
+			cell.setTechnology(Artwork.tech);
+
+			// specialty initialization
+			switch (type)
+			{
+				case 1:
+					LayerInfo li = LayerInfo.makeInstance();
+					li.us_tecedmakelayer(cell);
+					break;
+				case 2:
+					ArcInfo aIn = ArcInfo.makeInstance();
+					aIn.us_tecedmakearc(cell);
+					break;
+				case 3:
+					NodeInfo nIn = NodeInfo.makeInstance();
+					nIn.us_tecedmakenode(cell);
+					break;
+			}
+
+			// show it
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			if (wf != null) wf.setCellWindow(cell);
+			return true;
+		}
+	}
+
+	/**
 	 * Method to complete the creation of a new node in a technology edit cell.
 	 * @param newNi the node that was just created.
 	 */
@@ -1312,11 +1337,11 @@ public class Manipulate
 		}
 	}
 
-//	/*
-//	 * routine to highlight information about all layers (or ports if "doports" is true)
-//	 */
-//	void us_teceditidentify(BOOLEAN doports)
-//	{
+	/**
+	 * Method to highlight information about all layers (or ports if "doports" is true)
+	 */
+	public static void us_teceditidentify(boolean doports)
+	{
 //		REGISTER NODEPROTO *np;
 //		REGISTER INTBIG total, qtotal, i, j, bestrot, indent;
 //		REGISTER INTBIG xsep, ysep, *xpos, *ypos, dist, bestdist, *style;
@@ -1326,55 +1351,52 @@ public class Manipulate
 //		static POLYGON *poly = NOPOLYGON;
 //		extern GRAPHICS us_hbox;
 //	
-//		np = us_needcell();
-//		if (np == NONODEPROTO) return;
-//	
-//		if (doports)
-//		{
-//			if (namesamen(np.protoname, x_("node-"), 5) != 0)
-//			{
-//				us_abortcommand(_("Must be editing a node to identify ports"));
-//				if ((us_tool.toolstate&NODETAILS) == 0)
-//					ttyputmsg(M_("Use the 'edit-node' option"));
-//				return;
-//			}
-//		} else
-//		{
-//			if (namesamen(np.protoname, x_("node-"), 5) != 0 &&
-//				namesamen(np.protoname, x_("arc-"), 4) != 0)
-//			{
-//				us_abortcommand(_("Must be editing a node or arc to identify layers"));
-//				if ((us_tool.toolstate&NODETAILS) == 0)
-//					ttyputmsg(M_("Use 'edit-node' or 'edit-arc' options"));
-//				return;
-//			}
-//		}
-//	
-//		// get examples
-//		if (namesamen(np.protoname, x_("node-"), 5) == 0)
-//			nelist = us_tecedgetexamples(np, TRUE); else
-//				nelist = us_tecedgetexamples(np, FALSE);
-//		if (nelist == NOEXAMPLE) return;
-//	
-//		// count the number of appropriate samples in the main example
-//		total = 0;
-//		for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
-//		{
-//			if (!doports)
-//			{
-//				if (ns.layer != gen_portprim) total++;
-//			} else
-//			{
-//				if (ns.layer == gen_portprim) total++;
-//			}
-//		}
-//		if (total == 0)
-//		{
+		Cell np = WindowFrame.needCurCell();
+		if (np == null) return;
+	
+		if (doports)
+		{
+			if (!np.getName().startsWith("node-"))
+			{
+				System.out.println("Must be editing a node to identify ports");
+				return;
+			}
+		} else
+		{
+			if (!np.getName().startsWith("node-") && !np.getName().startsWith("arc-"))
+			{
+				System.out.println("Must be editing a node or arc to identify layers");
+				return;
+			}
+		}
+	
+		// get examples
+		Parse.Example nelist = null;
+		if (np.getName().startsWith("node-"))
+			nelist = Parse.us_tecedgetexamples(np, true); else
+				nelist = Parse.us_tecedgetexamples(np, false);
+		if (nelist == null) return;
+	
+		// count the number of appropriate samples in the main example
+		int total = 0;
+		for(Parse.Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+		{
+			if (!doports)
+			{
+				if (ns.layer != Generic.tech.portNode) total++;
+			} else
+			{
+				if (ns.layer == Generic.tech.portNode) total++;
+			}
+		}
+		if (total == 0)
+		{
 //			us_tecedfreeexamples(nelist);
-//			us_abortcommand(_("There are no %s to identify"), (!doports ? _("layers") : _("ports")));
-//			return;
-//		}
-//	
+			System.out.println("There are no " + (doports ? "ports" : "layers") + " to identify");
+			return;
+		}
+
+System.out.println("Found "+total+" relevant things to identify");
 //		// make arrays for position and association
 //		xpos = (INTBIG *)emalloc(total * SIZEOFINTBIG, el_tempcluster);
 //		if (xpos == 0) return;
@@ -1529,7 +1551,7 @@ public class Manipulate
 //	
 //		// free all examples
 //		us_tecedfreeexamples(nelist);
-//	}
+	}
 	
 	/**
 	 * Method to return information about a given object.
@@ -2049,7 +2071,39 @@ public class Manipulate
 			layerNames[i] = layerCells[i].getName().substring(6);
 		return layerNames;
 	}
+
+	/**
+	 * Method to get a list of arcs in the current library (in the proper order).
+	 * @return an array of strings with the names of the arcs.
+	 */
+	static String [] us_tecedgetarcnamelist()
+	{
+		Library [] dependentlibs = us_teceditgetdependents(Library.getCurrent());
+		Cell [] arcCells = us_teceditfindsequence(dependentlibs, "arc-", Generate.ARCSEQUENCE_KEY);
 	
+		// build and fill array of layers for DRC parsing
+		String [] arcNames = new String[arcCells.length];
+		for(int i=0; i<arcCells.length; i++)
+			arcNames[i] = arcCells[i].getName().substring(4);
+		return arcNames;
+	}
+
+	/**
+	 * Method to get a list of arcs in the current library (in the proper order).
+	 * @return an array of strings with the names of the arcs.
+	 */
+	static String [] us_tecedgetnodenamelist()
+	{
+		Library [] dependentlibs = us_teceditgetdependents(Library.getCurrent());
+		Cell [] nodeCells = us_teceditfindsequence(dependentlibs, "node-", Generate.NODESEQUENCE_KEY);
+	
+		// build and fill array of nodes
+		String [] nodeNames = new String[nodeCells.length];
+		for(int i=0; i<nodeCells.length; i++)
+			nodeNames[i] = nodeCells[i].getName().substring(5);
+		return nodeNames;
+	}
+
 	/**
 	 * Method to get the list of libraries that are used in the construction
 	 * of library "lib".  Returns an array of libraries, terminated with "lib".
@@ -2133,7 +2187,7 @@ public class Manipulate
 		// if there is no sequence, simply return the list
 		Variable var = dependentlibs[dependentlibs.length-1].getVar(seqKey);
 		if (var == null) return (Cell [])npList.toArray();
-	
+
 		// build a new list with the sequence
 		List sequence = new ArrayList();
 		String [] sequenceNames = (String [])var.getObject();
@@ -2143,7 +2197,7 @@ public class Manipulate
 			for(int l = 0; l < npList.size(); l++)
 			{
 				Cell np = (Cell)npList.get(l);
-				if (np.getName().equals(sequenceNames[i])) { foundCell = np;   break; }
+				if (np.getName().substring(match.length()).equals(sequenceNames[i])) { foundCell = np;   break; }
 			}
 			if (foundCell != null)
 			{
@@ -2523,35 +2577,6 @@ public class Manipulate
 		}
 	}
 
-//	/**
-//	 * Method to call up the cell "cellname" (either create it or reedit it)
-//	 * returns NONODEPROTO if there is an error or the cell exists
-//	 */
-//	NODEPROTO *us_tecedentercell(CHAR *cellname)
-//	{
-//		REGISTER NODEPROTO *np;
-//		CHAR *newpar[2];
-//	
-//		np = getnodeproto(cellname);
-//		if (np != NONODEPROTO && np.primindex == 0)
-//		{
-//			newpar[0] = x_("editcell");
-//			newpar[1] = cellname;
-//			telltool(us_tool, 2, newpar);
-//			return(NONODEPROTO);
-//		}
-//	
-//		// create the cell
-//		np = newnodeproto(cellname, el_curlib);
-//		if (np == NONODEPROTO) return(NONODEPROTO);
-//	
-//		// now edit the cell
-//		newpar[0] = x_("editcell");
-//		newpar[1] = cellname;
-//		telltool(us_tool, 2, newpar);
-//		return(np);
-//	}
-
 	/**
 	 * Method to redraw the demo layer in "layer" cell "np"
 	 */
@@ -2675,50 +2700,6 @@ public class Manipulate
 //			if (var != NOVARIABLE)
 //				(void)delvalkey((INTBIG)us_tool, VTOOL, us_ignoreoptionchangeskey);
 //		}
-//	}
-//	
-//	void us_teceditgetprintcol(VARIABLE *var, INTBIG *r, INTBIG *g, INTBIG *b, INTBIG *o, INTBIG *f)
-//	{
-//		REGISTER CHAR *pt;
-//	
-//		// set default values
-//		*r = *g = *b = *o = *f = 0;
-//		if (var == NOVARIABLE) return;
-//	
-//		// skip the header
-//		pt = (CHAR *)var.addr;
-//		while (*pt != 0 && *pt != ':') pt++;
-//		if (*pt == ':') pt++;
-//	
-//		// get red
-//		while (*pt == ' ') pt++;
-//		*r = myatoi(pt);
-//		while (*pt != 0 && *pt != ',') pt++;
-//		if (*pt == ',') pt++;
-//	
-//		// get green
-//		while (*pt == ' ') pt++;
-//		*g = myatoi(pt);
-//		while (*pt != 0 && *pt != ',') pt++;
-//		if (*pt == ',') pt++;
-//	
-//		// get blue
-//		while (*pt == ' ') pt++;
-//		*b = myatoi(pt);
-//		while (*pt != 0 && *pt != ',') pt++;
-//		if (*pt == ',') pt++;
-//	
-//		// get opacity
-//		while (*pt == ' ') pt++;
-//		*o = myatoi(pt);
-//		while (*pt != 0 && *pt != ',') pt++;
-//		if (*pt == ',') pt++;
-//	
-//		// get foreground
-//		while (*pt == ' ') pt++;
-//		if (namesamen(pt, x_("on"), 2) == 0) *f = 1; else
-//			if (namesamen(pt, x_("off"), 3) == 0) *f = 0; else
-//				*f = myatoi(pt);
 //	}
 	
 	/**
@@ -2957,103 +2938,210 @@ public class Manipulate
 //		if (layernp == NONODEPROTO) return(x_("HIGHLIGHT"));
 //		return(&layernp.protoname[6]);
 //	}
-//	
-//	/* Technology Edit Reorder */
-//	static DIALOGITEM us_tecedredialogitems[] =
-//	{
-//	 /*  1 */ {0, {376,208,400,288}, BUTTON, N_("OK")},
-//	 /*  2 */ {0, {344,208,368,288}, BUTTON, N_("Cancel")},
-//	 /*  3 */ {0, {28,4,404,200}, SCROLL, x_("")},
-//	 /*  4 */ {0, {4,4,20,284}, MESSAGE, x_("")},
-//	 /*  5 */ {0, {168,208,192,268}, BUTTON, N_("Up")},
-//	 /*  6 */ {0, {212,208,236,268}, BUTTON, N_("Down")},
-//	 /*  7 */ {0, {136,208,160,280}, BUTTON, N_("Far Up")},
-//	 /*  8 */ {0, {244,208,268,280}, BUTTON, N_("Far Down")}
-//	};
-//	static DIALOG us_tecedredialog = {{75,75,488,373}, N_("Reorder Technology Primitives"), 0, 8, us_tecedredialogitems, 0, 0};
-//	
-//	/* special items for the "Reorder Primitives" dialog: */
-//	#define DTER_LIST           3		/* List of primitives (scroll) */
-//	#define DTER_TITLE          4		/* Primitive title (message) */
-//	#define DTER_UP             5		/* Move Up (button) */
-//	#define DTER_DOWN           6		/* Move Down (button) */
-//	#define DTER_FARUP          7		/* Move Far Up (button) */
-//	#define DTER_FARDOWN        8		/* Move Far Down (button) */
 
-	public static void us_reorderprimdlog(String type, String prefix, Variable.Key varname)
+	public static void us_reorderprimdlog(int type)
 	{
-//		REGISTER INTBIG itemHit, i, j, total, len, amt;
-//		CHAR line[100], **seqname;
-//		REGISTER BOOLEAN changed;
-//		LIBRARY *thelib[1];
-//		NODEPROTO **sequence, *np;
-//		REGISTER void *dia;
-//	
-//		dia = DiaInitDialog(&us_tecedredialog);
-//		if (dia == 0) return;
-//		DiaInitTextDialog(dia, DTER_LIST, DiaNullDlogList, DiaNullDlogItem,
-//			DiaNullDlogDone, -1, SCSELMOUSE);
-//		esnprintf(line, 100, _("%s in technology %s"), type, el_curlib.libname);
-//		DiaSetText(dia, DTER_TITLE, line);
-//		thelib[0] = el_curlib;
-//		total = us_teceditfindsequence(thelib, 1, prefix, varname, &sequence);
-//		len = strlen(prefix);
-//		for(i=0; i<total; i++)
-//			DiaStuffLine(dia, DTER_LIST, &sequence[i].protoname[len]);
-//		DiaSelectLine(dia, DTER_LIST, 0);
-//	
-//		changed = FALSE;
-//		for(;;)
-//		{
-//			itemHit = DiaNextHit(dia);
-//			if (itemHit == OK || itemHit == CANCEL) break;
-//			if (itemHit == DTER_UP || itemHit == DTER_FARUP)
-//			{
-//				// shift up
-//				if (itemHit == DTER_UP) amt = 1; else amt = 10;
-//				for(j=0; j<amt; j++)
-//				{
-//					i = DiaGetCurLine(dia, DTER_LIST);
-//					if (i <= 0) break;
-//					np = sequence[i];
-//					sequence[i] = sequence[i-1];
-//					sequence[i-1] = np;
-//					DiaSetScrollLine(dia, DTER_LIST, i, &sequence[i].protoname[len]);
-//					DiaSetScrollLine(dia, DTER_LIST, i-1, &sequence[i-1].protoname[len]);
-//				}
-//				changed = TRUE;
-//				continue;
-//			}
-//			if (itemHit == DTER_DOWN || itemHit == DTER_FARDOWN)
-//			{
-//				// shift down
-//				if (itemHit == DTER_DOWN) amt = 1; else amt = 10;
-//				for(j=0; j<amt; j++)
-//				{
-//					i = DiaGetCurLine(dia, DTER_LIST);
-//					if (i >= total-1) continue;
-//					np = sequence[i];
-//					sequence[i] = sequence[i+1];
-//					sequence[i+1] = np;
-//					DiaSetScrollLine(dia, DTER_LIST, i, &sequence[i].protoname[len]);
-//					DiaSetScrollLine(dia, DTER_LIST, i+1, &sequence[i+1].protoname[len]);
-//				}
-//				changed = TRUE;
-//				continue;
-//			}
-//		}
-//	
-//		// preserve order
-//		if (itemHit == OK && changed)
-//		{
-//			seqname = (CHAR **)emalloc(total * (sizeof (CHAR *)), el_tempcluster);
-//			for(i=0; i<total; i++)
-//				seqname[i] = &sequence[i].protoname[len];
-//			setval((INTBIG)el_curlib, VLIBRARY, varname, (INTBIG)seqname,
-//				VSTRING|VISARRAY|(total<<VLENGTHSH));
-//			efree((CHAR *)seqname);
-//		}
-//		efree((CHAR *)sequence);
-//		DiaDoneDialog(dia);
+		RearrangeOrder dialog = new RearrangeOrder();
+		dialog.lib = Library.getCurrent();
+		dialog.type = type;
+		dialog.initComponents();
+		dialog.setVisible(true);
+	}
+
+	/**
+	 * This class displays a dialog for rearranging layers, arcs, or nodes in a technology library.
+	 */
+	public static class RearrangeOrder extends EDialog
+	{
+		private JList list;
+		private DefaultListModel model;
+		private Library lib;
+		private int type;
+
+		/** Creates new form Rearrange technology components */
+		public RearrangeOrder()
+		{
+			super(null, true);
+		}
+		
+		private void ok() { exit(true); }
+		
+		protected void escapePressed() { exit(false); }
+		 
+		// Call this method when the user clicks the OK button
+		private void exit(boolean goodButton)
+		{
+			if (goodButton)
+			{
+				String [] newList = new String[model.size()];
+				for(int i=0; i<model.size(); i++)
+					newList[i] = (String)model.getElementAt(i);
+				new UpdateOrderingJob(lib, newList, type);
+			}
+			dispose();
+		}
+
+		private static class UpdateOrderingJob extends Job
+		{
+			private Library lib;
+			private String [] newList;
+			private int type;
+		
+			public UpdateOrderingJob(Library lib, String [] newList, int type)
+			{
+				super("Update Ordering", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+				this.lib = lib;
+				this.newList = newList;
+				this.type = type;
+				startJob();
+			}
+
+			public boolean doIt()
+			{
+				switch (type)
+				{
+					case 1: lib.newVar(Generate.LAYERSEQUENCE_KEY, newList);   break;
+					case 2: lib.newVar(Generate.ARCSEQUENCE_KEY, newList);     break;
+					case 3: lib.newVar(Generate.NODESEQUENCE_KEY, newList);    break;
+				}
+				return true;
+			}
+		}
+
+		/**
+		 * Call when an up/down button is pressed.
+		 * @param direction -2: far down   -1: down   1: up   2: far up
+		 */
+		private void moveSelected(int direction)
+		{
+			int index = list.getSelectedIndex();
+			if (index < 0) return;
+			int newIndex = index;
+			switch (direction)
+			{
+				case -2: newIndex -= 10;   break;
+				case -1: newIndex -= 1;    break;
+				case  1: newIndex += 1;    break;
+				case  2: newIndex += 10;   break;
+			}
+			if (newIndex < 0) newIndex = 0;
+			if (newIndex >= model.size()) newIndex = model.size()-1;
+			Object was = model.getElementAt(index);
+			model.remove(index);
+			model.add(newIndex, was);
+			list.setSelectedIndex(newIndex);
+			list.ensureIndexIsVisible(newIndex);
+		}
+
+
+		private void initComponents()
+		{
+			getContentPane().setLayout(new GridBagLayout());
+
+			switch (type)
+			{
+				case 1: setTitle("Rearrange Layer Order");   break;
+				case 2: setTitle("Rearrange Arc Order");     break;
+				case 3: setTitle("Rearrange Node Order");    break;
+			}
+			setName("");
+			addWindowListener(new WindowAdapter()
+			{
+				public void windowClosing(WindowEvent evt) { exit(false); }
+			});
+
+			JScrollPane center = new JScrollPane();
+			center.setMinimumSize(new java.awt.Dimension(100, 50));
+			center.setPreferredSize(new java.awt.Dimension(300, 200));
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;      gbc.gridy = 1;
+			gbc.weightx = 1;    gbc.weighty = 1;
+			gbc.gridwidth = 2;  gbc.gridheight = 4;
+			gbc.anchor = java.awt.GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+	        getContentPane().add(center, gbc);
+
+			model = new DefaultListModel();
+			list = new JList(model);
+			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			center.setViewportView(list);
+
+			model.clear();
+			String [] listNames = null;
+			switch (type)
+			{
+				case 1: listNames = us_tecedgetlayernamelist();   break;
+				case 2: listNames = us_tecedgetarcnamelist();     break;
+				case 3: listNames = us_tecedgetnodenamelist();    break;
+			}
+			for(int i=0; i<listNames.length; i++)
+				model.addElement(listNames[i]);
+
+			JButton farUp = new JButton("Far Up");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 2;   gbc.gridy = 1;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(farUp, gbc);
+			farUp.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { moveSelected(-2); }
+			});
+
+			JButton up = new JButton("Up");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 2;   gbc.gridy = 2;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(up, gbc);
+			up.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { moveSelected(-1); }
+			});
+
+			JButton down = new JButton("Down");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 2;   gbc.gridy = 3;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(down, gbc);
+			down.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { moveSelected(1); }
+			});
+
+			JButton farDown = new JButton("Far Down");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 2;   gbc.gridy = 4;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(farDown, gbc);
+			farDown.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { moveSelected(2); }
+			});
+
+			// OK and Cancel
+			JButton cancel = new JButton("Cancel");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;
+			gbc.gridy = 5;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(cancel, gbc);
+			cancel.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { exit(false); }
+			});
+
+			JButton ok = new JButton("OK");
+			getRootPane().setDefaultButton(ok);
+			gbc = new java.awt.GridBagConstraints();
+			gbc.gridx = 1;
+			gbc.gridy = 5;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(ok, gbc);
+			ok.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent evt) { exit(true); }
+			});
+
+			pack();
+		}
 	}
 }

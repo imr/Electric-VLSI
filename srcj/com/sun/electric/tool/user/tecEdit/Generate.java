@@ -92,6 +92,17 @@ public class Generate
 		{
 		}
 
+		static LayerInfo makeInstance()
+		{
+			LayerInfo li = new LayerInfo();
+			li.desc = new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, 0, 0, 0, 0, 1, false, new int[16]);
+			li.fun = Layer.Function.UNKNOWN;
+			li.cif = "";
+			li.dxf = "";
+			li.gds = "";
+			return li;
+		}
+
 		/**
 		 * Method to build the appropriate descriptive information for a layer into
 		 * cell "np".  The color is "colorindex"; the stipple array is in "stip"; the
@@ -251,8 +262,7 @@ public class Generate
 		static LayerInfo us_teceditgetlayerinfo(Cell np)
 		{
 			// create and initialize the GRAPHICS structure
-			LayerInfo li = new LayerInfo();
-			li.desc = new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, 0, 0, 0, 0, 1, false, new int[16]);
+			LayerInfo li = LayerInfo.makeInstance();
 		
 			// look at all nodes in the layer description cell
 			int patterncount = 0;
@@ -444,6 +454,13 @@ public class Generate
 		{
 		}
 
+		static ArcInfo makeInstance()
+		{
+			ArcInfo aIn = new ArcInfo();
+			aIn.func = ArcProto.Function.UNKNOWN;
+			return aIn;
+		}
+
 		/**
 		 * Method to build the appropriate descriptive information for an arc into
 		 * cell "np".  The function is in "func"; the arc is fixed-angle if "fixang"
@@ -478,6 +495,66 @@ public class Generate
 		
 			// now create those text objects
 			us_tecedcreatespecialtext(np, us_tecedarctexttable);
+		}
+	}
+
+	static class NodeInfo
+	{
+		PrimitiveNode.Function func;
+		boolean serp;
+		boolean square;
+		boolean wipes;
+		boolean lockable;
+		double multicutsep;
+
+		NodeInfo()
+		{
+		}
+
+		static NodeInfo makeInstance()
+		{
+			NodeInfo nIn = new NodeInfo();
+			nIn.func = PrimitiveNode.Function.UNKNOWN;
+			return nIn;
+		}
+		
+		/**
+		 * Method to build the appropriate descriptive information for a node into
+		 * cell "np".  The function is in "func", the serpentine transistor factor
+		 * is in "serp", the node is square if "square" is true, the node
+		 * is invisible on 1 or 2 arcs if "wipes" is true, and the node is lockable
+		 * if "lockable" is true.
+		 */
+		void us_tecedmakenode(Cell np)
+		{	
+			// load up the structure with the current values
+			for(int i=0; i < us_tecednodetexttable.length; i++)
+			{
+				switch (us_tecednodetexttable[i].funct)
+				{
+					case NODEFUNCTION:
+						us_tecednodetexttable[i].value = func;
+						break;
+					case NODESERPENTINE:
+						us_tecednodetexttable[i].value = new Boolean(serp);
+						break;
+					case NODESQUARE:
+						us_tecednodetexttable[i].value = new Boolean(square);
+						break;
+					case NODEWIPES:
+						us_tecednodetexttable[i].value = new Boolean(wipes);
+						break;
+					case NODELOCKABLE:
+						us_tecednodetexttable[i].value = new Boolean(lockable);
+						break;
+					case NODEMULTICUT:
+						us_tecednodetexttable[i].value = new Double(multicutsep);
+						break;
+				}
+			}
+		
+			// now create those text objects
+			us_tecedcreatespecialtext(np, us_tecednodetexttable);
 		}
 	}
 
@@ -577,52 +654,6 @@ public class Generate
 		new TechVar("SIM_spice_model_file",      /*VSTRING,*/          "Disk file with SPICE header cards"),
 		new TechVar("SIM_spice_trailer_file",    /*VSTRING,*/          "Disk file with SPICE trailer cards")
 	};
-
-//	typedef struct Ilist
-//	{
-//		CHAR  *name;
-//		CHAR  *constant;
-//		INTBIG value;
-//	} LIST;
-//
-//
-//	#define NOSAMPLE ((SAMPLE *)-1)
-//
-//	typedef struct Isample
-//	{
-//		NODEINST        *node;					/* true node used for sample */
-//		NODEPROTO       *layer;					/* type of node used for sample */
-//		INTBIG           xpos, ypos;			/* center of sample */
-//		struct Isample  *assoc;					/* associated sample in first example */
-//		struct Irule    *rule;					/* rule associated with this sample */
-//		struct Iexample *parent;				/* example containing this sample */
-//		struct Isample  *nextsample;			/* next sample in list */
-//	} SAMPLE;
-//
-//
-//	#define NOEXAMPLE ((EXAMPLE *)-1)
-//
-//	typedef struct Iexample
-//	{
-//		SAMPLE          *firstsample;			/* head of list of samples in example */
-//		SAMPLE          *studysample;			/* sample under analysis */
-//		INTBIG           lx, hx, ly, hy;		/* bounding box of example */
-//		struct Iexample *nextexample;			/* next example in list */
-//	} EXAMPLE;
-//
-//
-//	/* port connections */
-//	#define NOPCON ((PCON *)-1)
-//
-//	typedef struct Ipcon
-//	{
-//		INTBIG       *connects;
-//		INTBIG       *assoc;
-//		INTBIG        total;
-//		INTBIG        pcindex;
-//		struct Ipcon *nextpcon;
-//	} PCON;
-//
 //
 //	/* rectangle rules */
 //	#define NORULE ((RULE *)-1)
@@ -844,6 +875,7 @@ public class Generate
 
 			Cell lNp = Cell.makeInstance(lib, fname);
 			if (lNp == null) return null;
+			lNp.setTechnology(Artwork.tech);
 			lNp.setInTechnologyLibrary();
 			layerCells.put(layer, lNp);
 
@@ -893,6 +925,7 @@ public class Generate
 	
 			Cell aNp = Cell.makeInstance(lib, fname);
 			if (aNp == null) return null;
+			aNp.setTechnology(Artwork.tech);
 			aNp.setInTechnologyLibrary();
 
 			ArcInfo aIn = new ArcInfo();
@@ -1062,21 +1095,24 @@ public class Generate
 
 						nNp = Cell.makeInstance(lib, fName);
 						if (nNp == null) return null;
+
+						nNp.setTechnology(Artwork.tech);
 						nNp.setInTechnologyLibrary();
-						PrimitiveNode.Function func = pnp.getFunction();
-						boolean serp = false;
-						if ((func == PrimitiveNode.Function.TRANMOS || func == PrimitiveNode.Function.TRAPMOS || func == PrimitiveNode.Function.TRADMOS) &&
-							pnp.isHoldsOutline()) serp = true;
-						boolean square = pnp.isSquare();
-						boolean wipes = pnp.isWipeOn1or2();
-						boolean lockable = pnp.isLockedPrim();
-						double multiCutSep = 0;
+						NodeInfo nIn = new NodeInfo();
+						nIn.func = pnp.getFunction();
+						nIn.serp = false;
+						if ((nIn.func == PrimitiveNode.Function.TRANMOS || nIn.func == PrimitiveNode.Function.TRAPMOS ||
+							nIn.func == PrimitiveNode.Function.TRADMOS) && pnp.isHoldsOutline()) nIn.serp = true;
+						nIn.square = pnp.isSquare();
+						nIn.wipes = pnp.isWipeOn1or2();
+						nIn.lockable = pnp.isLockedPrim();
+						nIn.multicutsep = 0;
 						if (pnp.getSpecialType() == PrimitiveNode.MULTICUT)
 						{
 							double [] values = pnp.getSpecialValues();
-							multiCutSep = values[4];
+							nIn.multicutsep = values[4];
 						}
-						us_tecedmakenode(nNp, func, serp, square, wipes, lockable, multiCutSep);
+						nIn.us_tecedmakenode(nNp);
 					}
 
 					// create the node to describe this layer
@@ -1350,7 +1386,7 @@ public class Generate
 			switch (us_tecedmisctexttable[i].funct)
 			{
 				case TECHLAMBDA:
-					us_tecedmisctexttable[i].value = new Integer(1);
+					us_tecedmisctexttable[i].value = new Double(100);
 					break;
 				case TECHDESCRIPT:
 					us_tecedmisctexttable[i].value = description;
@@ -1360,46 +1396,6 @@ public class Generate
 	
 		// now create those text objects
 		us_tecedcreatespecialtext(np, us_tecedmisctexttable);
-	}
-	
-	/**
-	 * Method to build the appropriate descriptive information for a node into
-	 * cell "np".  The function is in "func", the serpentine transistor factor
-	 * is in "serp", the node is square if "square" is true, the node
-	 * is invisible on 1 or 2 arcs if "wipes" is true, and the node is lockable
-	 * if "lockable" is true.
-	 */
-	static void us_tecedmakenode(Cell np, PrimitiveNode.Function func, boolean serp, boolean square, boolean wipes,
-			boolean lockable, double multicutsep)
-	{	
-		// load up the structure with the current values
-		for(int i=0; i < us_tecednodetexttable.length; i++)
-		{
-			switch (us_tecednodetexttable[i].funct)
-			{
-				case NODEFUNCTION:
-					us_tecednodetexttable[i].value = func;
-					break;
-				case NODESERPENTINE:
-					us_tecednodetexttable[i].value = new Boolean(serp);
-					break;
-				case NODESQUARE:
-					us_tecednodetexttable[i].value = new Boolean(square);
-					break;
-				case NODEWIPES:
-					us_tecednodetexttable[i].value = new Boolean(wipes);
-					break;
-				case NODELOCKABLE:
-					us_tecednodetexttable[i].value = new Boolean(lockable);
-					break;
-				case NODEMULTICUT:
-					us_tecednodetexttable[i].value = new Double(multicutsep);
-					break;
-			}
-		}
-	
-		// now create those text objects
-		us_tecedcreatespecialtext(np, us_tecednodetexttable);
 	}
 
 	static String makeLayerFunctionName(Layer.Function fun, int extraBits)
@@ -1431,7 +1427,7 @@ public class Generate
 				switch (table[i].funct)
 				{
 					case TECHLAMBDA:
-						str = "Lambda: " + ((Integer)table[i].value).intValue();
+						str = "Scale: " + ((Double)table[i].value).doubleValue();
 						break;
 					case TECHDESCRIPT:
 						str = "Description: " + (String)table[i].value;

@@ -139,8 +139,12 @@ public class Simulation extends Tool
 				if (wf == WindowFrame.getCurrentWindowFrame()) break;
 			}
 		}
-		if (engine != null)
-			engine.doCommand(command);
+		if (engine == null)
+		{
+			System.out.println("No simulator is ready to handle the command");
+			return;
+		}
+		engine.doCommand(command);
 	}
 
 	/**

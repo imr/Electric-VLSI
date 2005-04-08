@@ -1401,7 +1401,7 @@ public class Highlighter implements DatabaseChangeListener {
 		if (wnd != null)
 		{
 			Point2D extra = wnd.deltaScreenToDatabase(EXACTSELECTDISTANCE, EXACTSELECTDISTANCE);
-			directHitDist = extra.getX() + 0.4;
+			directHitDist = extra.getX(); // + 0.4;
 		}
 
         if (!Job.acquireExamineLock(false)) return list;

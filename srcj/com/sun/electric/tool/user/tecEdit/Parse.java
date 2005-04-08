@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -40,58 +41,60 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.technology.technologies.Generic;
 
+import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
+import java.util.HashMap;
 
 /**
 * This class creates technology libraries from technologies.
 */
 public class Parse
 {
-//	/* -*- tab-width: 4 -*-
-//	 *
-//	 * Electric(tm) VLSI Design System
-//	 *
-//	 * File: usredtecp.c
-//	 * User interface technology editor: conversion from library to technology
-//	 * Written by: Steven M. Rubin, Static Free Software
-//	 *
-//	 * Copyright (c) 2000 Static Free Software.
-//	 *
-//	 * Electric(tm) is free software; you can redistribute it and/or modify
-//	 * it under the terms of the GNU General Public License as published by
-//	 * the Free Software Foundation; either version 2 of the License, or
-//	 * (at your option) any later version.
-//	 *
-//	 * Electric(tm) is distributed in the hope that it will be useful,
-//	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//	 * GNU General Public License for more details.
-//	 *
-//	 * You should have received a copy of the GNU General Public License
-//	 * along with Electric(tm); see the file COPYING.  If not, write to
-//	 * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
-//	 * Boston, Mass 02111-1307, USA.
-//	 *
-//	 * Static Free Software
-//	 * 4119 Alpine Road
-//	 * Portola Valley, California 94028
-//	 * info@staticfreesoft.com
-//	 */
-//	
-//	#include "global.h"
-//	#include "egraphics.h"
-//	#include "efunction.h"
-//	#include "tech.h"
-//	#include "tecgen.h"
-//	#include "tecart.h"
-//	#include "usr.h"
-//	#include "drc.h"
-//	#include "usredtec.h"
+
+//	typedef struct Ilist
+//	{
+//		CHAR  *name;
+//		CHAR  *constant;
+//		INTBIG value;
+//	} LIST;
+
+	static class Sample
+	{
+		NodeInst  node;					/* true node used for sample */
+		NodeProto layer;				/* type of node used for sample */
+		double    xpos, ypos;			/* center of sample */
+		Sample    assoc;				/* associated sample in first example */
+//		Rule      rule;					/* rule associated with this sample */
+		Example   parent;				/* example containing this sample */
+		Sample    nextsample;			/* next sample in list */
+	};
+
+	static class Example
+	{
+		Sample    firstsample;			/* head of list of samples in example */
+		Sample    studysample;			/* sample under analysis */
+		double    lx, hx, ly, hy;		/* bounding box of example */
+		Example   nextexample;			/* next example in list */
+	};
+
+
+	/* port connections */
+//	typedef struct Ipcon
+//	{
+//		INTBIG       *connects;
+//		INTBIG       *assoc;
+//		INTBIG        total;
+//		INTBIG        pcindex;
+//		struct Ipcon *nextpcon;
+//	} PCON;
+
 //	
 //	/* the globals that define a technology */
 //	static INTBIG           us_tecflags;
@@ -2160,222 +2163,204 @@ public class Parse
 //			efree((CHAR *)ne);
 //		}
 //	}
-//	
-//	/*
-//	 * routine to parse the node examples in cell "np" and return a list of
-//	 * EXAMPLEs (one per example).  "isnode" is true if this is a node
-//	 * being examined.  Returns NOEXAMPLE on error.
-//	 */
-//	EXAMPLE *us_tecedgetexamples(NODEPROTO *np, BOOLEAN isnode)
-//	{
-//		REGISTER SAMPLE *ns;
-//		REGISTER EXAMPLE *ne, *nelist, *bestne;
-//		REGISTER NODEINST *ni, *otherni;
-//		REGISTER INTBIG sea, sizex, sizey, newsize, locx, locy, lambda, hcount, funct;
-//		REGISTER BOOLEAN foundone, gotbbox;
-//		INTBIG lx, hx, ly, hy, sflx, sfhx, sfly, sfhy;
-//		REGISTER GEOM *geom;
-//		XARRAY trans;
-//		static POLYGON *poly = NOPOLYGON;
-//	
-//		for(ni = np.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
-//		{
-//			ni.temp1 = (INTBIG)NOEXAMPLE;
-//	
-//			// ignore special nodes with function information
-//			funct = us_tecedgetoption(ni);
-//			if (funct != LAYERPATCH && funct != PORTOBJ && funct != HIGHLIGHTOBJ) ni.temp1 = 0;
-//		}
-//	
-//		nelist = NOEXAMPLE;
-//		for(ni = np.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
-//		{
-//			if (ni.temp1 != (INTBIG)NOEXAMPLE) continue;
-//	
-//			// get a new cluster of nodes
-//			ne = (EXAMPLE *)emalloc((sizeof (EXAMPLE)), us_tool.cluster);
-//			if (ne == 0) return(NOEXAMPLE);
-//			ne.firstsample = NOSAMPLE;
-//			gotbbox = FALSE;
-//			(void)needstaticpolygon(&poly, 4, us_tool.cluster);
-//			nodesizeoffset(ni, &lx, &ly, &hx, &hy);
-//			maketruerectpoly(ni.lowx+lx, ni.highx-hx, ni.lowy+ly, ni.highy-hy, poly);
-//			makerot(ni, trans);
-//			xformpoly(poly, trans);
-//			getbbox(poly, &sflx, &sfhx, &sfly, &sfhy);
-//			ne.nextexample = nelist;
-//			nelist = ne;
-//	
-//			// now find all others that touch this area
-//			foundone = TRUE;
-//			hcount = 0;
-//			while (foundone)
-//			{
-//				foundone = FALSE;
-//	
-//				// begin to search the area so far
-//				sea = initsearch(sflx, sfhx, sfly, sfhy, np);
-//				if (sea == -1) return(NOEXAMPLE);
-//				for(;;)
-//				{
-//					// get next node in the area
-//					geom = nextobject(sea);
-//					if (geom == NOGEOM) break;
-//					if (!geom.entryisnode) continue;
-//					otherni = geom.entryaddr.ni;
-//					(void)needstaticpolygon(&poly, 4, us_tool.cluster);
-//					nodesizeoffset(otherni, &lx, &ly, &hx, &hy);
-//					maketruerectpoly(otherni.lowx+lx, otherni.highx-hx, otherni.lowy+ly, otherni.highy-hy, poly);
-//					makerot(otherni, trans);
-//					xformpoly(poly, trans);
-//					getbbox(poly, &lx, &hx, &ly, &hy);
-//					if (hx < sflx || lx > sfhx || hy < sfly || ly > sfhy) continue;
-//	
-//					// make sure the node is valid
-//					if (otherni.temp1 != (INTBIG)NOEXAMPLE)
-//					{
-//						if (otherni.temp1 == 0) continue;
-//						if (otherni.temp1 == (INTBIG)ne) continue;
+	
+	/**
+	 * Method to parse the node examples in cell "np" and return a list of
+	 * EXAMPLEs (one per example).  "isnode" is true if this is a node
+	 * being examined.  Returns NOEXAMPLE on error.
+	 */
+	static Example us_tecedgetexamples(Cell np, boolean isnode)
+	{
+		HashMap nodeExamples = new HashMap();
+		for(Iterator it = np.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+	
+			// ignore special nodes with function information
+			int funct = Manipulate.us_tecedgetoption(ni);
+			if (funct != Generate.LAYERPATCH && funct != Generate.PORTOBJ && funct != Generate.HIGHLIGHTOBJ)
+			{
+				nodeExamples.put(ni, new Integer(0));
+			}
+		}
+	
+		Example nelist = null;
+		for(Iterator it = np.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (nodeExamples.get(ni) != null) continue;
+	
+			// get a new cluster of nodes
+			Example ne = new Example();
+			ne.firstsample = null;
+			boolean gotbbox = false;
+			SizeOffset so = ni.getSizeOffset();
+			
+			Poly poly = new Poly(ni.getAnchorCenterX(), ni.getAnchorCenterY(),
+				ni.getXSize() - so.getLowXOffset() - so.getHighXOffset(),
+				ni.getYSize() - so.getLowYOffset() - so.getHighYOffset());
+			poly.transform(ni.rotateOut());
+			Rectangle2D sofar = poly.getBounds2D();
+			ne.nextexample = nelist;
+			nelist = ne;
+	
+			// now find all others that touch this area
+			boolean foundone = true;
+			int hcount = 0;
+			while (foundone)
+			{
+				foundone = false;
+	
+				// begin to search the area so far
+	            for(Iterator oIt = np.searchIterator(sofar); oIt.hasNext(); )
+	            {
+	                Geometric geom = (Geometric)oIt.next();
+					if (geom == null) break;
+					if (!(geom instanceof NodeInst)) continue;
+					NodeInst otherni = (NodeInst)geom;
+					SizeOffset oSo = ni.getSizeOffset();
+					Poly oPoly = new Poly(otherni.getAnchorCenterX(), otherni.getAnchorCenterY(),
+							otherni.getXSize() - oSo.getLowXOffset() - oSo.getHighXOffset(),
+							otherni.getYSize() - oSo.getLowYOffset() - oSo.getHighYOffset());
+					oPoly.transform(otherni.rotateOut());
+					Rectangle2D otherRect = oPoly.getBounds2D();
+					if (!sofar.intersects(otherRect.getMinX(), otherRect.getMinY(), otherRect.getWidth(), otherRect.getHeight())) continue;
+	
+					// make sure the node is valid
+					Object otherAssn = nodeExamples.get(otherni);
+					if (otherAssn != null)
+					{
+						if (otherAssn instanceof Integer) continue;
+						if ((Example)otherAssn == ne) continue;
 //						us_tecedpointout(otherni, np);
-//						ttyputerr(_("Examples are too close in %s"), describenodeproto(np));
-//						termsearch(sea);
-//						return(NOEXAMPLE);
-//					}
-//					otherni.temp1 = (INTBIG)ne;
-//	
-//					// add it to the cluster
-//					ns = (SAMPLE *)emalloc((sizeof (SAMPLE)), us_tool.cluster);
-//					if (ns == 0) return(NOEXAMPLE);
-//					ns.node = otherni;
-//					ns.rule = NORULE;
-//					ns.parent = ne;
-//					ns.nextsample = ne.firstsample;
-//					ne.firstsample = ns;
-//					ns.assoc = NOSAMPLE;
-//					ns.xpos = (lx + hx) / 2;
-//					ns.ypos = (ly + hy) / 2;
-//					if (otherni.proto == gen_portprim)
-//					{
-//						if (!isnode)
-//						{
+						System.out.println("Examples are too close in " + np.describe());
+						return null;
+					}
+					nodeExamples.put(otherni, ne);
+	
+					// add it to the cluster
+					Sample ns = new Sample();
+					ns.node = otherni;
+//					ns.rule = null;
+					ns.parent = ne;
+					ns.nextsample = ne.firstsample;
+					ne.firstsample = ns;
+					ns.assoc = null;
+					ns.xpos = otherRect.getCenterX();
+					ns.ypos = otherRect.getCenterY();
+					if (otherni.getProto() == Generic.tech.portNode)
+					{
+						if (!isnode)
+						{
 //							us_tecedpointout(otherni, np);
-//							ttyputerr(_("%s cannot have ports.  Delete this"), describenodeproto(np));
-//							termsearch(sea);
-//							return(NOEXAMPLE);
-//						}
-//						ns.layer = gen_portprim;
-//					} else if (otherni.proto == gen_cellcenterprim)
-//					{
-//						if (!isnode)
-//						{
+							System.out.println(np.describe() + " cannot have ports.  Delete this");
+							return null;
+						}
+						ns.layer = Generic.tech.portNode;
+					} else if (otherni.getProto() == Generic.tech.cellCenterNode)
+					{
+						if (!isnode)
+						{
 //							us_tecedpointout(otherni, np);
-//							ttyputerr(_("%s cannot have a grab point.  Delete this"), describenodeproto(np));
-//							termsearch(sea);
-//							return(NOEXAMPLE);
-//						}
-//						ns.layer = gen_cellcenterprim;
-//					} else
-//					{
-//						ns.layer = us_tecedgetlayer(otherni);
-//						if (ns.layer == 0)
-//						{
-//							us_tecedpointout(otherni, np);
-//							ttyputerr(_("No layer information on this sample in %s"),
-//								describenodeproto(np));
-//							if ((us_tool.toolstate&NODETAILS) == 0)
-//								ttyputmsg(_("Use 'change' option or delete it"));
-//							termsearch(sea);
-//							return(NOEXAMPLE);
-//						}
-//						if (ns.layer == NONODEPROTO) hcount++;
-//					}
-//	
-//					// accumulate state if this is not a "grab point" mark
-//					if (otherni.proto != gen_cellcenterprim)
-//					{
-//						if (!gotbbox)
-//						{
-//							ne.lx = lx;   ne.hx = hx;
-//							ne.ly = ly;   ne.hy = hy;
-//							gotbbox = TRUE;
-//						} else
-//						{
-//							if (lx < ne.lx) ne.lx = lx;
-//							if (hx > ne.hx) ne.hx = hx;
-//							if (ly < ne.ly) ne.ly = ly;
-//							if (hy > ne.hy) ne.hy = hy;
-//						}
-//						sflx = ne.lx;   sfhx = ne.hx;
-//						sfly = ne.ly;   sfhy = ne.hy;
-//					}
-//					foundone = TRUE;
-//				}
-//			}
-//			if (hcount == 0)
-//			{
+							System.out.println(np.describe() + " cannot have a grab point.  Delete this");
+							return null;
+						}
+						ns.layer = Generic.tech.cellCenterNode;
+					} else
+					{
+						int funct = Manipulate.us_tecedgetoption(otherni);
+						if (funct == Generate.HIGHLIGHTOBJ) hcount++; else
+						{
+							ns.layer = Manipulate.us_tecedgetlayer(otherni);
+							if (ns.layer == null)
+							{
+	//							us_tecedpointout(otherni, np);
+								System.out.println("No layer information on node " + otherni.describe() + " in " + np.describe());
+								return null;
+							}
+						}
+					}
+	
+					// accumulate state if this is not a "grab point" mark
+					if (otherni.getProto() != Generic.tech.cellCenterNode)
+					{
+						if (!gotbbox)
+						{
+							ne.lx = otherRect.getMinX();   ne.hx = otherRect.getMaxX();
+							ne.ly = otherRect.getMinY();   ne.hy = otherRect.getMaxY();
+							gotbbox = true;
+						} else
+						{
+							if (otherRect.getMinX() < ne.lx) ne.lx = otherRect.getMinX();
+							if (otherRect.getMaxX() > ne.hx) ne.hx = otherRect.getMaxX();
+							if (otherRect.getMinY() < ne.ly) ne.ly = otherRect.getMinY();
+							if (otherRect.getMaxY() > ne.hy) ne.hy = otherRect.getMaxY();
+						}
+						sofar.setRect(ne.lx, ne.ly, ne.hx-ne.lx, ne.hy-ne.ly);
+					}
+					foundone = true;
+				}
+			}
+			if (hcount == 0)
+			{
 //				us_tecedpointout(NONODEINST, np);
-//				ttyputerr(_("No highlight layer in %s example"), describenodeproto(np));
-//				if ((us_tool.toolstate&NODETAILS) == 0)
-//					ttyputmsg(_("Use 'place-layer' option to create HIGHLIGHT"));
-//				return(NOEXAMPLE);
-//			}
-//			if (hcount != 1)
-//			{
+				System.out.println("No highlight layer in " + np.describe() + " example");
+				return null;
+			}
+			if (hcount != 1)
+			{
 //				us_tecedpointout(NONODEINST, np);
-//				ttyputerr(_("Too many highlight layers in %s example.  Delete some"), describenodeproto(np));
-//				return(NOEXAMPLE);
-//			}
-//		}
-//		if (nelist == NOEXAMPLE)
-//		{
+				System.out.println("Too many highlight layers in " + np.describe() + " example.  Delete some");
+				return null;
+			}
+		}
+		if (nelist == null)
+		{
 //			us_tecedpointout(NONODEINST, np);
-//			ttyputerr(_("No examples found in %s"), describenodeproto(np));
-//			if ((us_tool.toolstate&NODETAILS) == 0)
-//				ttyputmsg(_("Use 'place-layer' option to produce some geometry"));
-//			return(nelist);
-//		}
-//	
-//		/*
-//		 * now search the list for the smallest, most upper-right example
-//		 * (the "main" example)
-//		 */
-//		lambda = el_curlib.lambda[art_tech.techindex];
-//		sizex = (nelist.hx - nelist.lx) / lambda;
-//		sizey = (nelist.hy - nelist.ly) / lambda;
-//		locx = (nelist.lx + nelist.hx) / 2;
-//		locy = (nelist.ly + nelist.hy) / 2;
-//		bestne = nelist;
-//		for(ne = nelist; ne != NOEXAMPLE; ne = ne.nextexample)
-//		{
-//			newsize = (ne.hx-ne.lx) / lambda;
-//			newsize *= (ne.hy-ne.ly) / lambda;
-//			if (newsize > sizex*sizey) continue;
-//			if (newsize == sizex*sizey && (ne.lx+ne.hx)/2 >= locx && (ne.ly+ne.hy)/2 <= locy)
-//				continue;
-//			sizex = (ne.hx - ne.lx) / lambda;
-//			sizey = (ne.hy - ne.ly) / lambda;
-//			locx = (ne.lx + ne.hx) / 2;
-//			locy = (ne.ly + ne.hy) / 2;
-//			bestne = ne;
-//		}
-//	
-//		// place the main example at the top of the list
-//		if (bestne != nelist)
-//		{
-//			for(ne = nelist; ne != NOEXAMPLE; ne = ne.nextexample)
-//				if (ne.nextexample == bestne)
-//			{
-//				ne.nextexample = bestne.nextexample;
-//				break;
-//			}
-//			bestne.nextexample = nelist;
-//			nelist = bestne;
-//		}
-//	
-//		// done
-//		return(nelist);
-//	}
-//	
+			System.out.println("No examples found in " + np.describe());
+			return nelist;
+		}
+	
+		/*
+		 * now search the list for the smallest, most upper-right example
+		 * (the "main" example)
+		 */
+		double sizex = nelist.hx - nelist.lx;
+		double sizey = nelist.hy - nelist.ly;
+		double locx = (nelist.lx + nelist.hx) / 2;
+		double locy = (nelist.ly + nelist.hy) / 2;
+		Example bestne = nelist;
+		for(Example ne = nelist; ne != null; ne = ne.nextexample)
+		{
+			double newsize = ne.hx-ne.lx;
+			newsize *= ne.hy-ne.ly;
+			if (newsize > sizex*sizey) continue;
+			if (newsize == sizex*sizey && (ne.lx+ne.hx)/2 >= locx && (ne.ly+ne.hy)/2 <= locy)
+				continue;
+			sizex = ne.hx - ne.lx;
+			sizey = ne.hy - ne.ly;
+			locx = (ne.lx + ne.hx) / 2;
+			locy = (ne.ly + ne.hy) / 2;
+			bestne = ne;
+		}
+	
+		// place the main example at the top of the list
+		if (bestne != nelist)
+		{
+			for(Example ne = nelist; ne != null; ne = ne.nextexample)
+				if (ne.nextexample == bestne)
+			{
+				ne.nextexample = bestne.nextexample;
+				break;
+			}
+			bestne.nextexample = nelist;
+			nelist = bestne;
+		}
+	
+		// done
+		return nelist;
+	}
+	
 //	/*
 //	 * Routine to associate the samples of example "nelist" in cell "np"
 //	 * Returns true if there is an error

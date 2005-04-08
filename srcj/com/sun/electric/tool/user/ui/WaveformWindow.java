@@ -897,7 +897,7 @@ public class WaveformWindow implements WindowContent
 							g.drawLine(VERTLABELWIDTH-10, y, VERTLABELWIDTH, y);
 							String yValue = prettyPrint(value, ss.rangeScale, ss.stepScale);
 							GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, yValue);
-							Rectangle2D glyphBounds = gv.getVisualBounds();
+							Rectangle2D glyphBounds = gv.getLogicalBounds();
 							int height = (int)glyphBounds.getHeight();
 							int yPos = y + height / 2;
 							if (yPos-height <= 0) yPos = height+1;
@@ -945,7 +945,7 @@ public class WaveformWindow implements WindowContent
 					// show the low time value and arrow
 					String lowTimeString = convertToEngineeringNotation(lowTime, "s", 9999);
 					GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, lowTimeString);
-					Rectangle2D glyphBounds = gv.getVisualBounds();
+					Rectangle2D glyphBounds = gv.getLogicalBounds();
 					int textWid = (int)glyphBounds.getWidth();
 					int textHei = (int)glyphBounds.getHeight();
 					int textY = (lowY+highY)/2;
@@ -957,7 +957,7 @@ public class WaveformWindow implements WindowContent
 					// show the high time value and arrow
 					String highTimeString = convertToEngineeringNotation(highTime, "s", 9999);
 					gv = waveWindowFont.createGlyphVector(waveWindowFRC, highTimeString);
-					glyphBounds = gv.getVisualBounds();
+					glyphBounds = gv.getLogicalBounds();
 					textWid = (int)glyphBounds.getWidth();
 					textHei = (int)glyphBounds.getHeight();
 					int highTimeTextWid = textWid;
@@ -969,7 +969,7 @@ public class WaveformWindow implements WindowContent
 					// show the difference time value
 					String timeDiffString = convertToEngineeringNotation(highTime-lowTime, "s", 9999);
 					gv = waveWindowFont.createGlyphVector(waveWindowFRC, timeDiffString);
-					glyphBounds = gv.getVisualBounds();
+					glyphBounds = gv.getLogicalBounds();
 					textWid = (int)glyphBounds.getWidth();
 					textHei = (int)glyphBounds.getHeight();
 					if (textWid + 24 < highX - lowX)
@@ -1005,7 +1005,7 @@ public class WaveformWindow implements WindowContent
 						// show the low value
 						String lowValueString = TextUtils.formatDouble(highValue);
 						gv = waveWindowFont.createGlyphVector(waveWindowFRC, lowValueString);
-						glyphBounds = gv.getVisualBounds();
+						glyphBounds = gv.getLogicalBounds();
 						textWid = (int)glyphBounds.getWidth();
 						textHei = (int)glyphBounds.getHeight();
 						int xP = (lowX+highX)/2;
@@ -1018,7 +1018,7 @@ public class WaveformWindow implements WindowContent
 						// show the high value
 						String highValueString = TextUtils.formatDouble(lowValue);
 						gv = waveWindowFont.createGlyphVector(waveWindowFRC, highValueString);
-						glyphBounds = gv.getVisualBounds();
+						glyphBounds = gv.getLogicalBounds();
 						textWid = (int)glyphBounds.getWidth();
 						textHei = (int)glyphBounds.getHeight();
 						yText = highY + 10 + textHei;
@@ -1030,7 +1030,7 @@ public class WaveformWindow implements WindowContent
 						// show the value difference
 						String valueDiffString = TextUtils.formatDouble(highValue - lowValue);
 						gv = waveWindowFont.createGlyphVector(waveWindowFRC, valueDiffString);
-						glyphBounds = gv.getVisualBounds();
+						glyphBounds = gv.getLogicalBounds();
 						textWid = (int)glyphBounds.getWidth();
 						textHei = (int)glyphBounds.getHeight();
 						if (textHei + 12 < highY - lowY)
@@ -1225,7 +1225,7 @@ public class WaveformWindow implements WindowContent
 									if (curDefined) valString = Long.toString(curValue);
 									g.setFont(waveWindowFont);
 									GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, valString);
-									Rectangle2D glyphBounds = gv.getVisualBounds();
+									Rectangle2D glyphBounds = gv.getLogicalBounds();
 									int textHei = (int)glyphBounds.getHeight();
 									g.drawString(valString, x+2, hei/2+textHei/2);
 								}
@@ -4671,7 +4671,34 @@ if (wp.signalButtons != null)
 	{
 		Cell cell = getCell();
 		if (cell == null) return;
-		new SaveSignalOrder(cell, this);
+		List signalList = new ArrayList();
+		int total = right.getComponentCount();
+		for(int i=0; i<total; i++)
+		{
+			JPanel rightPart = (JPanel)right.getComponent(i);
+			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+				if (wp.rightHalf == rightPart)
+				{
+					StringBuffer sb = new StringBuffer();
+					boolean first = true;
+					for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+					{
+						WaveSignal ws = (WaveSignal)sIt.next();
+						String sigName = ws.sSig.getFullName();
+						if (first) first = false; else
+							sb.append("\t");
+						sb.append(sigName);
+					}
+					if (!first)
+						signalList.add(sb.toString());
+					break;
+				}
+			}
+		}
+
+		new SaveSignalOrder(cell, signalList);
 	}
 
 	/**
@@ -4680,66 +4707,32 @@ if (wp.signalButtons != null)
 	private static class SaveSignalOrder extends Job
 	{
 		private Cell cell;
-		private WaveformWindow ww;
+		private List list;
 
-		private SaveSignalOrder(Cell cell, WaveformWindow ww)
+		private SaveSignalOrder(Cell cell, List list)
 		{
 			super("Save Signal Order", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
-			this.ww = ww;
+			this.list = list;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-			try
+			if (list.size() == 0)
 			{
-				List signalList = new ArrayList();
-				int total = ww.right.getComponentCount();
-				for(int i=0; i<total; i++)
-				{
-					JPanel rightPart = (JPanel)ww.right.getComponent(i);
-					for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
-					{
-						Panel wp = (Panel)it.next();
-						if (wp.rightHalf == rightPart)
-						{
-							StringBuffer sb = new StringBuffer();
-							boolean first = true;
-							for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
-							{
-								WaveSignal ws = (WaveSignal)sIt.next();
-								String sigName = ws.sSig.getFullName();
-								if (first) first = false; else
-									sb.append("\t");
-								sb.append(sigName);
-							}
-							if (!first)
-								signalList.add(sb.toString());
-							break;
-						}
-					}
-				}
-	
-				if (signalList.size() == 0)
-				{
-					if (cell.getVar(WINDOW_SIGNAL_ORDER) != null)
-						cell.delVar(WINDOW_SIGNAL_ORDER);
-				} else
-				{
-					String [] strings = new String[signalList.size()];
-					int i = 0;
-					for(Iterator it = signalList.iterator(); it.hasNext(); )
-					{
-						strings[i] = (String)it.next();
-						i++;
-					}
-					cell.newVar(WINDOW_SIGNAL_ORDER, strings);
-				}
-			} catch (java.util.ConcurrentModificationException e)
+				if (cell.getVar(WINDOW_SIGNAL_ORDER) != null)
+					cell.delVar(WINDOW_SIGNAL_ORDER);
+			} else
 			{
-				// if saving signals while modifying them, just stop saving for now
-				// because the modifying process will request a new save soon enough
+				String [] strings = new String[list.size()];
+				int i = 0;
+				for(Iterator it = list.iterator(); it.hasNext(); )
+				{
+					strings[i] = (String)it.next();
+					i++;
+				}
+				cell.newVar(WINDOW_SIGNAL_ORDER, strings);
 			}
 			return true;
 		}

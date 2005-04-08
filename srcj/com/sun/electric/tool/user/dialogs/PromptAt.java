@@ -369,7 +369,7 @@ public class PromptAt extends EDialog
 		JButton ok = new JButton(goodButton);
 		getRootPane().setDefaultButton(ok);
 		gbc = new java.awt.GridBagConstraints();
-		gbc.gridx = 2;
+		gbc.gridx = 1;
 		gbc.gridy = buttonRow;
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		gbc.weightx = 0.5;
