@@ -141,7 +141,7 @@ public class NetPBucket implements ExtractedPBucket
                 parasitic.append("\n");
             first = false;
             if (value > tech.getMinResistance())
-                parasitic.append("R " + nameList.get(0) + " " + nameList.get(1) + " " + value);
+                parasitic.append("r " + nameList.get(0) + " " + nameList.get(1) + " " + value);
         }
 
         // Capacitance values

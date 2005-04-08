@@ -269,7 +269,7 @@ public class IRSIM extends Output
                 }
                 if (thisLayer != null)
                     rcValue = thisLayer.getResistance()/cuts;
-                type = 'R';
+                type = 'r';
                 // Only valid for layout
                 if ((rcValue < tech.getMinResistance()))
                     return null;
@@ -314,7 +314,7 @@ public class IRSIM extends Output
 					}
 				}
 
-                type = (fun == PrimitiveNode.Function.RESIST) ? 'R' : 'C';
+                type = (fun == PrimitiveNode.Function.RESIST) ? 'r' : 'C';
                 rcValue = TextUtils.atof(extra);
             }
             if (type == 0) return null;
