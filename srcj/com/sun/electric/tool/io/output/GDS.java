@@ -186,6 +186,8 @@ public class GDS extends Geometry
 		for (Iterator it = layers.iterator(); it.hasNext();)
 		{
 			Layer layer = (Layer)it.next();
+            // No technology associated, case when art elements are added in layout
+            if (layer == null || layer.getTechnology() == null) continue;
 			selectLayer(layer);
 			List polyList = (List)cellGeom.polyMap.get(layer);
 			for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )
