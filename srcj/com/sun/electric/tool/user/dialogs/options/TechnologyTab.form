@@ -45,7 +45,7 @@
               <Properties>
                 <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                   <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
-                    <TitledBorder title="Default Technology"/>
+                    <TitledBorder title="Default Technology for Startup/IO Reading"/>
                   </Border>
                 </Property>
               </Properties>
@@ -101,10 +101,10 @@
                 </Component>
                 <Component class="javax.swing.JRadioButton" name="techMOCMOSSCMOSRules">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="SCMOS rules (4 metal or less)"/>
                     <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                       <ComponentRef name="techMOCMOSRules"/>
                     </Property>
+                    <Property name="text" type="java.lang.String" value="SCMOS rules (4 metal or less)"/>
                   </Properties>
                   <Constraints>
                     <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -114,10 +114,10 @@
                 </Component>
                 <Component class="javax.swing.JRadioButton" name="techMOCMOSSubmicronRules">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Submicron rules"/>
                     <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                       <ComponentRef name="techMOCMOSRules"/>
                     </Property>
+                    <Property name="text" type="java.lang.String" value="Submicron rules"/>
                   </Properties>
                   <Constraints>
                     <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -127,10 +127,10 @@
                 </Component>
                 <Component class="javax.swing.JRadioButton" name="techMOCMOSDeepRules">
                   <Properties>
-                    <Property name="text" type="java.lang.String" value="Deep rules (5 metal or more)"/>
                     <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                       <ComponentRef name="techMOCMOSRules"/>
                     </Property>
+                    <Property name="text" type="java.lang.String" value="Deep rules (5 metal or more)"/>
                   </Properties>
                   <Constraints>
                     <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+IMP/MAN: (04/08/05, GVG) Title in default technology frame title in TechnologyTab was changed. This
+required a change in manual.
+
 BUG: (04/07/05, SMR) Technology editing layer bit selection works now (Bug #243).
 FIX: In Highligher.findAllInArea(), do not add 0.4 units of slop to selection.
 
