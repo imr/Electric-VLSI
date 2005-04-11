@@ -142,7 +142,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 //          inPalette.add(Schematics.tech.globalNode);
             list = new ArrayList();
 	        list.add(Technology.makeNodeInst(Schematics.tech.globalNode, PrimitiveNode.Function.CONNECT, 0, false, "Global Signal", 4.5));
-	        list.add(Technology.makeNodeInst(Schematics.tech.globaPartitionNode, PrimitiveNode.Function.CONNECT, 0, false, "Global Partition", 4.5));
+	        list.add(Technology.makeNodeInst(Schematics.tech.globalPartitionNode, PrimitiveNode.Function.CONNECT, 0, false, "Global Partition", 4.5));
             inPalette.add(list);
 
             inPalette.add(Schematics.tech.powerNode);

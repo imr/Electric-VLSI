@@ -92,6 +92,7 @@ class NetCell
 	/** */															private int[] tailConn;
 	/** */															int[] drawns;
 	/** */															int numDrawns;
+	/** */															int numConnectedDrawns;
 
 	/** A map from Name to NetName. */								Map netNames = new HashMap();
 	/** Counter for enumerating NetNames. */						private int netNameCount;
@@ -181,6 +182,14 @@ class NetCell
 	 * Get offset in networks map for given global signal.
 	 */
 	int getNetMapOffset(Global global) { return -1; }
+
+	/**
+	 * Get offset in networks map for given global of nodable.
+	 * @param no nodable.
+	 * @param global global signal.
+	 * @return offset in networks map.
+	 */
+    int getNetMapOffset(Nodable no, Global global) { return -1; }
 
 	/*
 	 * Get offset in networks map for given port instance.
@@ -437,6 +446,7 @@ class NetCell
 				addToDrawn(tpi);
 			numDrawns++;
 		}
+		numConnectedDrawns = numDrawns;
 		for (int i = 0; i < numNodes; i++) {
 			NodeInst ni = cell.getNode(i);
 			NodeProto np = ni.getProto();

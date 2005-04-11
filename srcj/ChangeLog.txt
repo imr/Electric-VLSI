@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+IMP: (04/11/05, DN) Global-Partition schematic primitive is handled by NetworkTool.
+     Added method "Netlist.getNetwork(Nodable, Global) to check globals of subcells.
+
 IMP/MAN: (04/08/05, GVG) Title in default technology frame title in TechnologyTab was changed. This
 required a change in manual.
 

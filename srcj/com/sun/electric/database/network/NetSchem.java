@@ -46,8 +46,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This is the mirror of group of Icon and Schematic cells in Network tool.
@@ -392,6 +394,7 @@ class NetSchem extends NetCell {
 	/** Node offsets. */											int[] nodeOffsets;
 	/** Node offsets. */											int[] drawnOffsets;
 	/** Node offsets. */											Proxy[] nodeProxies;
+	/** Proxies with global rebindes. */							Map/*<Proxy,Set<Global>>*/ proxyExcludeGlobals;
 	/** Map from names to proxies. Contains non-temporary names. */	Map name2proxy = new HashMap();
 	/** */															Global.Set globals = Global.Set.empty;
 	/** */															int[] portOffsets = new int[1];
@@ -464,7 +467,7 @@ class NetSchem extends NetCell {
 		if (portIndex < 0) return -1;
 		int portOffset = implementation.portOffsets[portIndex] + busIndex;
 		if (busIndex < 0 || portOffset >= implementation.portOffsets[portIndex+1]) return -1;
-		return portOffset - implementation.portOffsets[0];
+		return portOffset;
 	}
 
 	NetSchem getSchem() { return implementation; }
@@ -517,6 +520,21 @@ class NetSchem extends NetCell {
 	 * Get offset in networks map for given global signal.
 	 */
 	int getNetMapOffset(Global global) { return globals.indexOf(global); }
+
+	/**
+	 * Get offset in networks map for given global of nodable.
+	 * @param no nodable.
+	 * @param global global signal.
+	 * @return offset in networks map.
+	 */
+    int getNetMapOffset(Nodable no, Global global) {
+		if (!(no instanceof Proxy)) return -1;
+		Proxy proxy = (Proxy)no;
+		NetSchem schem = NetworkTool.getNetCell((Cell)proxy.nodeInst.getProto()).getSchem();
+		int i = schem.globals.indexOf(global);
+		if (i < 0) return -1;
+		return proxy.nodeOffset + i;
+	}
 
 	/*
 	 * Get offset in networks map for given port instance.
@@ -603,8 +621,9 @@ class NetSchem extends NetCell {
 		if (nodeOffsets == null || nodeOffsets.length != cell.getNumNodes())
 			nodeOffsets = new int[cell.getNumNodes()];
 		int numNodes = cell.getNumNodes();
-		Global.clearBuf();
+		Global.Buf globalBuf = new Global.Buf();
 		int nodeProxiesOffset = 0;
+		Map/*<NodeInst,Set<Global>>*/ nodeInstExcludeGlobal = null;
 		for (int i = 0; i < numNodes; i++) {
 			NodeInst ni = cell.getNode(i);
 			NodeProto np = ni.getProto();
@@ -630,9 +649,43 @@ class NetSchem extends NetCell {
 				nodeOffsets[i] = 0;
 			}
 			if (netCell != null) {
-				NetSchem sch = NetworkTool.getNetCell((Cell)np).getSchem();
+				NetSchem sch = netCell.getSchem();
 				if (sch != null && sch != this) {
-					String errorMsg = Global.addToBuf(sch.globals);
+					Global.Set gs = sch.globals;
+
+					// Check for rebinding globals
+					int numPortInsts = np.getNumPorts();
+					Set/*<Global>*/ gb = null;
+					for (int j = 0; j < numPortInsts; j++) {
+						PortInst pi = ni.getPortInst(j);
+						int piOffset = getPortInstOffset(pi);
+						int drawn = drawns[piOffset];
+						if (drawn < 0 || drawn >= numConnectedDrawns) continue;
+						int portIndex = ((NetSchem)netCell).portImplementation[j];
+						if (portIndex < 0) continue;
+						Export e = (Export)sch.cell.getPort(portIndex);
+						if (!e.isGlobalPartition()) continue;
+						if (gb == null) gb = new HashSet/*<Global>*/();
+						for (int k = 0, busWidth = e.getNameKey().busWidth(); k < busWidth; k++) {
+							int q = sch.equivPortsF[sch.portOffsets[portIndex] + k];
+							for (int l = 0; l < sch.globals.size(); l++) {
+								if (sch.equivPortsF[l] == q) {
+									Global g = sch.globals.get(l);
+									gb.add(g);
+								}
+							}
+						}
+					}
+					if (gb != null) {
+						// remember excluded globals for this NodeInst
+						if (nodeInstExcludeGlobal == null)
+							nodeInstExcludeGlobal = new HashMap/*<NodeInst,Set<Global>>*/();
+						nodeInstExcludeGlobal.put(ni, gb);
+						// fix Set of globals
+						gs = gs.remove(gb.iterator());
+					}
+
+					String errorMsg = globalBuf.addToBuf(gs);
 					if (errorMsg != null) {
 						String msg = "Network: Cell " + cell.describe() + " has globals with conflicting characteristic " + errorMsg;
                         System.out.println(msg);
@@ -660,7 +713,7 @@ class NetSchem extends NetCell {
 							characteristic = PortCharacteristic.UNKNOWN;
 						}
 					}
-					String errorMsg = Global.addToBuf(g, characteristic);
+					String errorMsg = globalBuf.addToBuf(g, characteristic);
 					if (errorMsg != null) {
 						String msg = "Network: Cell " + cell.describe() + " has global with conflicting characteristic " + errorMsg;
                         System.out.println(msg);
@@ -670,7 +723,7 @@ class NetSchem extends NetCell {
 				}
 			}
 		}
-		Global.Set newGlobals = Global.getBuf();
+		Global.Set newGlobals = globalBuf.getBuf();
 		boolean changed = false;
 		if (globals != newGlobals) {
 			changed = true;
@@ -701,6 +754,7 @@ class NetSchem extends NetCell {
 		if (nodeProxies == null || nodeProxies.length != nodeProxiesOffset)
 			nodeProxies = new Proxy[nodeProxiesOffset];
 		name2proxy.clear();
+		proxyExcludeGlobals = null;
 		for (int n = 0; n < numNodes; n++) {
 			NodeInst ni = (NodeInst)cell.getNode(n);
 			int proxyOffset = nodeOffsets[n];
@@ -709,6 +763,9 @@ class NetSchem extends NetCell {
 			Cell iconCell = (Cell)ni.getProto();
 			NetSchem netSchem = NetworkTool.getNetCell(iconCell).getSchem();
 			if (ni.isIconOfParent()) netSchem = null;
+			Set/*<Global>*/ gs = null; // exclude set of globals
+			if (netSchem != null && nodeInstExcludeGlobal != null)
+				gs = (Set)nodeInstExcludeGlobal.get(ni);
 			for (int i = 0; i < ni.getNameKey().busWidth(); i++) {
 				Proxy proxy = null;
 				if (netSchem != null) {
@@ -744,7 +801,17 @@ class NetSchem extends NetCell {
 							name2proxy.put(name, proxy);
 						if (NetworkTool.debug) System.out.println(proxy+" "+mapOffset+" "+netSchem.equivPortsF.length);
 						proxy.nodeOffset = mapOffset;
-						mapOffset += (netSchem.equivPortsF.length - netSchem.globals.size());
+						mapOffset += netSchem.equivPortsF.length;
+					}
+					if (gs != null) {
+						if (proxyExcludeGlobals == null)
+							proxyExcludeGlobals = new HashMap/*<Proxy,Set<Global>>*/();
+						Set/*<Global>*/ gs0 = (Set)proxyExcludeGlobals.get(proxy);
+						if (gs0 != null) {
+							gs = new HashSet/*<Global>*/(gs);
+							gs.addAll(gs0);
+						}
+						proxyExcludeGlobals.put(proxy, gs);
 					}
 				}
 				nodeProxies[~proxyOffset + i] = proxy;
@@ -959,7 +1026,7 @@ class NetSchem extends NetCell {
 				int portIndex = m;
 				portIndex = icon.portImplementation[portIndex];
 				if (portIndex < 0) continue;
-				int portOffset = schem.portOffsets[portIndex] - schem.portOffsets[0];
+				int portOffset = schem.portOffsets[portIndex];
 				int busWidth = e.getNameKey().busWidth();
 				int drawn = drawns[ni_pi[k] + m];
 				if (drawn < 0) continue;
@@ -992,6 +1059,24 @@ class NetSchem extends NetCell {
 			for (int i = 0; i < busWidth; i++) {
 				NetName nn = (NetName)netNames.get(arcNm.subname(i));
 				netlistF.connectMap(drawnOffset + i, netNamesOffset + nn.index);
+			}
+		}
+
+		// Globals of proxies
+		for (int k = 0; k < nodeProxies.length; k++) {
+			Proxy proxy = nodeProxies[k];
+			if (proxy == null) continue;
+			NodeProto np = proxy.getProto();
+			NetSchem schem = (NetSchem)NetworkTool.getNetCell((Cell)np);
+			int numGlobals = schem.portOffsets[0];
+			if (numGlobals == 0) continue;
+			Set/*<Global>*/ excludeGlobals = null;
+			if (proxyExcludeGlobals != null)
+				excludeGlobals = (Set)proxyExcludeGlobals.get(proxy);
+			for (int i = 0; i < numGlobals; i++) {
+				Global g = schem.globals.get(i);
+				if (excludeGlobals != null && excludeGlobals.contains(g)) continue;
+				netlistF.connectMap(this.globals.indexOf(g), proxy.nodeOffset + i);
 			}
 		}
 	}
@@ -1057,24 +1142,19 @@ class NetSchem extends NetCell {
 			if (proxy == null) continue;
 			NodeProto np = proxy.getProto();
 			NetSchem schem = (NetSchem)NetworkTool.getNetCell((Cell)np);
-			int numGlobals = schem.portOffsets[0];
-			int nodeOffset = proxy.nodeOffset - numGlobals;
 			int[] eqF = schem.equivPortsF;
 			int[] eqT = schem.equivPortsT;
 			assert(eqF.length == eqT.length);
 			for (int i = 0; i < eqF.length; i++) {
-				int io = (i >= numGlobals ? nodeOffset + i : this.globals.indexOf(schem.globals.get(i)));
+				int io = proxy.nodeOffset + i;
 
 				int jF = eqF[i];
-				if (i != jF) {
-					int jo = (jF >= numGlobals ? nodeOffset + jF : this.globals.indexOf(schem.globals.get(jF)));
-					netlistF.connectMap(io, jo);
-				}
+				if (i != jF)
+					netlistF.connectMap(io, proxy.nodeOffset + jF);
+
 				int jT = eqT[i];
-				if (i != jT) {
-					int jo = (jT >= numGlobals ? nodeOffset + jT : this.globals.indexOf(schem.globals.get(jT)));
-					netlistT.connectMap(io, jo);
-				}
+				if (i != jT)
+					netlistT.connectMap(io, proxy.nodeOffset + jT);
 			}
 		}
 	}
@@ -1150,9 +1230,9 @@ class NetSchem extends NetCell {
 		/*
 		// debug info
 		System.out.println("BuildNetworkList "+cell);
-		for (k = 0; k < 2; k++) {
+		for (int kk = 0; kk < 2; kk++) {
 		    Netlist netlist;
-			if (k == 0) {
+			if (kk == 0) {
 				netlist = netlistF;
 				System.out.println("NetlistF");
 			} else {

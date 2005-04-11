@@ -281,6 +281,19 @@ public class Netlist
 	}
 
 	/**
+	 * Get net index of a global signal of nodable.
+	 * @param no nodable.
+	 * @param global global signal.
+	 * @return net index of a global signal of nodable.
+	 */
+    int getNetIndex(Nodable no, Global global) {
+		checkForModification();
+		int netMapIndex = netCell.getNetMapOffset(no, global);
+		if (netMapIndex < 0) return -1;
+		return nm_net[netMapIndex];
+	}
+
+	/**
 	 * Get net index of signal in a port instance of nodable.
 	 * @param no nodable 
 	 * @param portProto port of nodable
@@ -346,6 +359,18 @@ public class Netlist
 	 */
 	public Network getNetwork(Global global) {
 		int netIndex = getNetIndex(global);
+		if (netIndex < 0) return null;
+		return networks[netIndex];
+	}
+
+	/**
+	 * Get network of a global signal of nodable.
+	 * @param no nodable.
+	 * @param global global signal.
+	 * @return net index of a gloabal signal of nodable.
+	 */
+	public Network getNetwork(Nodable no, Global global) {
+		int netIndex = getNetIndex(no, global);
 		if (netIndex < 0) return null;
 		return networks[netIndex];
 	}

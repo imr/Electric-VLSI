@@ -29,6 +29,7 @@ import com.sun.electric.database.text.Name;
 
 import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +45,6 @@ public class Global
 	/** the 0-based index of this Global. */	private int index;
 
 	/** All Globals. */							private static Global[] allGlobals = new Global[0];
-	/** Buffer for construction Global.Set. */	private static PortCharacteristic[] globalsBuf;
 	/** Map Name -> Global. */					private static Map globalsByName = new HashMap();
 
 	/** global signal ground. */				public static final Global ground = newGlobal("gnd");
@@ -58,14 +58,11 @@ public class Global
 		this.name = name;
 		index = allGlobals.length;
 		Global[] newGlobals = new Global[index + 1];
-		PortCharacteristic[] newGlobalsBuf = new PortCharacteristic[index + 1];
 		for (int i = 0; i < index; i++) {
 			newGlobals[i] = allGlobals[i];
-			newGlobalsBuf[i] = globalsBuf[i];
 		}
 		newGlobals[index] = this;
 		allGlobals = newGlobals;
-		globalsBuf = newGlobalsBuf;
 		globalsByName.put(name.lowerCase(), this);
 	}
 
@@ -250,6 +247,21 @@ public class Global
 		}
 
 		/**
+		 * Returns this Set with removed all globals given by the iterator.
+		 * @param gs iterator with globals
+		 * @return Set with removed globals.
+		 */
+		public Global.Set remove(Iterator/*<Global>*/ gs) {
+			Buf buf = new Buf(this);
+			for (;gs.hasNext(); ) {
+				Global g = (Global)gs.next();
+				if (g.index < buf.buf.length)
+					buf.buf[g.index] = null;
+			}
+			return buf.getBuf();
+		}
+
+		/**
 		 * Finds or creates Global.Set with specified bitmap of Globals.
 		 * @param elemMap bitmap which specifies which elemenst are in set.
 		 * @return set of specified Globals.
@@ -267,48 +279,62 @@ public class Global
 	}
 
 	// Global.Set buffer for constructing sets of Global.
+	public static class Buf {
+		/** Buffer for construction Global.Set. */	private PortCharacteristic[] buf = new PortCharacteristic[allGlobals.length];
 
-	/**
-	 * Clear all Globals from the buffer.
-	 */
-	static void clearBuf() {
-		Arrays.fill(globalsBuf, null);
-	}
+		/**
+		 * Constructs buffer.
+		 */
+		Buf() {}
 
-	/**
-	 * Add specified Global to the buffer.
-	 * @param g specified Global.
-	 */
-	static String addToBuf(Global g, PortCharacteristic characteristic) {
-		String errorMsg = null;
-		PortCharacteristic oldCharacteristic = globalsBuf[g.index];
-		if (oldCharacteristic == null)
-			globalsBuf[g.index] = characteristic;
-		else if (oldCharacteristic != characteristic)
-			errorMsg = g.getName() + "(" + oldCharacteristic.getName() + "->" + characteristic.getName() + ")";
-		return errorMsg;
-	}
-
-	/**
-	 * Add specified Global.Set to the buffer.
-	 * @param set specified Global.Set.
-	 */
-	static String addToBuf(Global.Set set) {
-		String errorMsg = null;
-		for (int i = 0; i < set.elems.length; i++) {
-			int index = set.elems[i].index;
-			String msg = addToBuf(allGlobals[index], set.elemMap[index]);
-			if (msg != null) {
-				if (errorMsg != null) errorMsg += " ";
-				errorMsg += msg;
-			}
+		/**
+		 * Constructs buffer from Set.
+		 * @param set set of globals.
+		 */
+		Buf(Global.Set set) {
+			buf = set.elemMap.clone();
 		}
-		return errorMsg;
-	}
 
-	/**
-	 * Returns Global.Set of element in the buffer.
-	 * @return set of Globals in the buffer.
-	 */
-	static Global.Set getBuf() { return Global.Set.newSet(globalsBuf); }
+		/**
+		 * Add specified Global to the buffer.
+		 * @param g specified Global.
+		 */
+		String addToBuf(Global g, PortCharacteristic characteristic) {
+			String errorMsg = null;
+			if (buf.length <= g.index) {
+				PortCharacteristic[] newBuf = new PortCharacteristic[g.index+1];
+				System.arraycopy(buf, 0, newBuf, 0, buf.length);
+				buf = newBuf;
+			}
+			PortCharacteristic oldCharacteristic = buf[g.index];
+			if (oldCharacteristic == null)
+				buf[g.index] = characteristic;
+			else if (oldCharacteristic != characteristic)
+				errorMsg = g.getName() + "(" + oldCharacteristic.getName() + "->" + characteristic.getName() + ")";
+			return errorMsg;
+		}
+
+		/**
+		 * Add specified Global.Set to the buffer.
+		 * @param set specified Global.Set.
+		 */
+		String addToBuf(Global.Set set) {
+			String errorMsg = null;
+			for (int i = 0; i < set.elems.length; i++) {
+				int index = set.elems[i].index;
+				String msg = addToBuf(allGlobals[index], set.elemMap[index]);
+				if (msg != null) {
+					if (errorMsg != null) errorMsg += " ";
+					errorMsg += msg;
+				}
+			}
+			return errorMsg;
+		}
+
+		/**
+		 * Returns Global.Set of element in the buffer.
+		 * @return set of Globals in the buffer.
+		 */
+		Global.Set getBuf() { return Global.Set.newSet(buf); }
+	}
 }

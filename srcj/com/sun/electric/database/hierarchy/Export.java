@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -736,6 +737,17 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		if (name.indexOf("ground") >= 0) return true;
 		return false;
 	}
+
+	/**
+	 * Returns true if this export has its original port on Global-Partition schematics
+	 * primitive.
+	 * @return true if this export is Global-Partition export.
+	 */
+	public boolean isGlobalPartition()
+	{
+		return originalPort.getNodeInst().getProto() == Schematics.tech.globalPartitionNode;
+	}
+
 
 	/**
 	 * Method to set this PortProto to be always drawn.
