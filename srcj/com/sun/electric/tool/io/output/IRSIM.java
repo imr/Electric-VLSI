@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
@@ -313,9 +314,18 @@ public class IRSIM extends Output
 						extra = TextUtils.displayedUnits(pureValue, unit, TextUtils.UnitScale.NONE);
 					}
 				}
+                rcValue = TextUtils.parsePostFixNumber(extra).doubleValue();
+                //rcValue = TextUtils.atof(extra);
 
-                type = (fun == PrimitiveNode.Function.RESIST) ? 'r' : 'C';
-                rcValue = TextUtils.atof(extra);
+                if (fun == PrimitiveNode.Function.RESIST)
+                {
+                    type = 'r';
+                }
+                else
+                {
+                    type = 'C';
+                    rcValue = Math.rint((rcValue/ 1e-15) * 1000) / 1000;
+                }
             }
             if (type == 0) return null;
             if ((type == 'C' && rcValue < tech.getMinCapacitance()))

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+BUG: (04/11/05, GVG) Wrong scale for schematic capacitors in IRSIM (Bug #249)
+FIX: Dividing value by 1e-15 to convert it into Femto units.
+
 IMP: (04/11/05, DN) Global-Partition schematic primitive is handled by NetworkTool.
      Added method "Netlist.getNetwork(Nodable, Global) to check globals of subcells.
 
