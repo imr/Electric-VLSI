@@ -2249,6 +2249,7 @@ public class Analyzer extends Engine
 
 			if (t1 >= lastTime) continue;
 			Sim.HistEnt h = nd.wind;
+			if (h == null) continue;
 			int count = 0;
 			long curT = 0;
 			long endT = t2;

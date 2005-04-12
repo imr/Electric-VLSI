@@ -337,7 +337,9 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         // initialize library combo box with choices
         libraryComboBox.addItem("All");
 
-        lastSelectedLib = prefs.get(action+prefSelectedLib, null);
+        Cell cell = WindowFrame.getCurrentCell();
+        if (cell != null) lastSelectedLib = cell.getLibrary().getName(); else
+        	lastSelectedLib = prefs.get(action+prefSelectedLib, null);
         int curLibIndex = -1;
         int curIndex = -1;
         int i = 1;

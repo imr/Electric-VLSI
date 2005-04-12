@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+IMP: (04/12/05, SMR) IRSIM doesn't crash when reloaded (Bug #247).
+
+IMP: (04/12/05, SMR) "Rename Cell" now defaults to current cell (Bug #250).
+
 BUG: (04/12/05, SMR) IRSIM results are different than other IRSIM implementations (Bug #248).
 FIX: In Sim.java, include transistors only once.
 
