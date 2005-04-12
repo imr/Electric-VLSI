@@ -23,7 +23,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.IRSIM;
@@ -37,7 +36,6 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -211,7 +209,8 @@ public class Analyzer extends Engine
 				analyzer.initRSim();
 
 				// Load network
-				System.out.println("Loading netlist for cell " + analyzer.cell.describe() + "...");
+				if (analyzer.cell != null) System.out.println("Loading netlist for cell " + analyzer.cell.describe() + "..."); else
+					System.out.println("Loading netlist for file " + analyzer.fileName + "...");
 				Stimuli sd = analyzer.getCircuit();
 	 			Simulation.showSimulationData(sd, null);
 

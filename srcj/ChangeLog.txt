@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+BUG: (04/12/05, SMR) IRSIM results are different than other IRSIM implementations (Bug #248).
+FIX: In Sim.java, include transistors only once.
+
 IMP: (04/11/05, SMR) GDS input and output now handles pin layers correctly.
 
 IMP: (04/11/05, SMR) Added checking in NodeInst.newInstance().

@@ -277,6 +277,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
 	                                   Cell parent, int angle, String name, int techBits)
 	{
+        if (protoType == null) return null;
         if (parent == null) return null;
         
 		if (protoType instanceof Cell)

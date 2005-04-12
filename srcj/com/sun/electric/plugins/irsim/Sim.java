@@ -20,15 +20,13 @@ package com.sun.electric.plugins.irsim;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.lib.LibFile;
-import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.simulation.Stimuli;
-import com.sun.electric.tool.simulation.DigitalSignal;
-import com.sun.electric.tool.io.output.IRSIM;
-import com.sun.electric.tool.extract.TransistorPBucket;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.extract.ExtractedPBucket;
 import com.sun.electric.tool.extract.RCPBucket;
-import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.extract.TransistorPBucket;
+import com.sun.electric.tool.simulation.DigitalSignal;
+import com.sun.electric.tool.simulation.Simulation;
 
 import java.io.File;
 import java.io.IOException;
@@ -1108,9 +1106,6 @@ public class Sim
 							t.drain.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CDA +
 								activePerim * theConfig.lambda * theConfig.CDP;
 							t.r = theConfig.rEquiv(NCHAN, width, length);
-
-							// link it to the list
-							readTransistorList.add(t);
 							break;
 						case 'p':
 							t.tType = PCHAN;
@@ -1120,8 +1115,6 @@ public class Sim
 							t.drain.nCap += activeArea * theConfig.lambda * theConfig.lambda * theConfig.CPDA +
 								activePerim * theConfig.lambda * theConfig.CPDP;
 							t.r = theConfig.rEquiv(PCHAN, width, length);
-
-							// link it to the list
 							break;
 					}
 					readTransistorList.add(t);

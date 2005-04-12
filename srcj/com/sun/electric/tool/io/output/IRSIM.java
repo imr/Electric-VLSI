@@ -25,38 +25,35 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.PolyBase;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.extract.ExtractedPBucket;
+import com.sun.electric.tool.extract.ParasiticGenerator;
+import com.sun.electric.tool.extract.ParasiticTool;
+import com.sun.electric.tool.extract.RCPBucket;
+import com.sun.electric.tool.extract.TransistorPBucket;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.extract.*;
 
 import java.util.Date;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Class to write IRSIM netlists.

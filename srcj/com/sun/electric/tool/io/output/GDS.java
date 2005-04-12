@@ -205,7 +205,7 @@ public class GDS extends Geometry
 		}
 
 		// now write exports
-		if (IOTool.getGDSOutDefaultTextLayer() >= 0 && IOTool.isGDSOutWritesExportPins())
+		if (IOTool.getGDSOutDefaultTextLayer() >= 0)
 		{
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
 			{
@@ -232,40 +232,50 @@ public class GDS extends Geometry
 				if (currentLayerNumbers.text >= 0) textLayer = currentLayerNumbers.text;
 				if (currentLayerNumbers.pin >= 0) pinLayer = currentLayerNumbers.pin;
 
-				outputHeader(HDR_TEXT, 0);
-				outputHeader(HDR_LAYER, textLayer);
-				outputHeader(HDR_TEXTTYPE, 0);
-				outputHeader(HDR_PRESENTATION, EXPORTPRESENTATION);
+				// put out a pin if requested
+				if (IOTool.isGDSOutWritesExportPins())
+					writeExportOnLayer(pp, pinLayer);
 
-				// now the orientation
-				NodeInst ni = pp.getOriginalPort().getNodeInst();
-				int transValue = 0;
-				int angle = ni.getAngle();
-				if (ni.isXMirrored() != ni.isYMirrored()) transValue |= STRANS_REFLX;
-				if (ni.isYMirrored()) angle = (3600 - angle)%3600;
-				if (ni.isXMirrored()) angle = (1800 - angle)%3600;
-				outputHeader(HDR_STRANS, transValue);
-
-				// reduce the size of export text by a factor of 2
-				outputMag(0.5);
-				outputAngle(angle);
-				outputShort((short)12);
-				outputShort(HDR_XY);
-				Poly portPoly = pp.getOriginalPort().getPoly();
-				outputInt((int)(scaleDBUnit(portPoly.getCenterX())));
-				outputInt((int)(scaleDBUnit(portPoly.getCenterY())));
-
-				// now the string
-				String str = pp.getName();
-                if (IOTool.getGDSOutputConvertsBracketsInExports()) {
-                    // convert brackets to underscores
-                    str = str.replaceAll("[\\[\\]]", "_");
-                }
-                outputString(str, HDR_STRING);
-				outputHeader(HDR_ENDEL, 0);
+				// write the text
+				writeExportOnLayer(pp, textLayer);
 			}
 		}
 		outputHeader(HDR_ENDSTR, 0);
+	}
+
+	private void writeExportOnLayer(Export pp, int layer)
+	{
+		outputHeader(HDR_TEXT, 0);
+		outputHeader(HDR_LAYER, layer);
+		outputHeader(HDR_TEXTTYPE, 0);
+		outputHeader(HDR_PRESENTATION, EXPORTPRESENTATION);
+
+		// now the orientation
+		NodeInst ni = pp.getOriginalPort().getNodeInst();
+		int transValue = 0;
+		int angle = ni.getAngle();
+		if (ni.isXMirrored() != ni.isYMirrored()) transValue |= STRANS_REFLX;
+		if (ni.isYMirrored()) angle = (3600 - angle)%3600;
+		if (ni.isXMirrored()) angle = (1800 - angle)%3600;
+		outputHeader(HDR_STRANS, transValue);
+
+		// reduce the size of export text by a factor of 2
+		outputMag(0.5);
+		outputAngle(angle);
+		outputShort((short)12);
+		outputShort(HDR_XY);
+		Poly portPoly = pp.getOriginalPort().getPoly();
+		outputInt((int)(scaleDBUnit(portPoly.getCenterX())));
+		outputInt((int)(scaleDBUnit(portPoly.getCenterY())));
+
+		// now the string
+		String str = pp.getName();
+        if (IOTool.getGDSOutputConvertsBracketsInExports()) {
+            // convert brackets to underscores
+            str = str.replaceAll("[\\[\\]]", "_");
+        }
+        outputString(str, HDR_STRING);
+		outputHeader(HDR_ENDEL, 0);
 	}
 
 	/**

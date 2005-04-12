@@ -444,7 +444,10 @@ public class EditMenu {
      */
     public static void repeatLastCommand() {
         AbstractButton lastActivated = MenuBar.repeatLastCommandListener.getLastActivated();
-        if (lastActivated != null) lastActivated.doClick();
+        if (lastActivated != null)
+        {
+        	lastActivated.doClick();
+        }
     }
 
 	/**

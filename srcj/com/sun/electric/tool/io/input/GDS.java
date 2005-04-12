@@ -29,11 +29,13 @@ package com.sun.electric.tool.io.input;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Layer;
@@ -48,6 +50,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
@@ -103,6 +106,7 @@ public class GDS extends Input
 	private NodeProto      theNodeProto;
 	private NodeProto      layerNodeProto;
 	private boolean        layerUsed;
+	private boolean        layerIsPin;
 	private Technology     curTech;
 	private int            recordCount;
 	private GSymbol        theToken;
@@ -115,6 +119,7 @@ public class GDS extends Input
 	private Point2D []     theVertices;
 	private double         theScale;
 	private HashMap        layerNames;
+	private HashSet        pinLayers;
 
 	private static class GSymbol
 	{
@@ -323,6 +328,7 @@ public class GDS extends Input
 
 		// get the array of GDS names
 		layerNames = new HashMap();
+		pinLayers = new HashSet();
 		boolean valid = false;
 		curTech = Technology.getCurrent();
 		for(Iterator it = curTech.getLayers(); it.hasNext(); )
@@ -331,11 +337,16 @@ public class GDS extends Input
 			String gdsName = layer.getGDSLayer();
 			if (gdsName != null && gdsName.length() > 0)
 			{
-				List allGDSNumbers = parseLayerNumbers(gdsName);
-				for(Iterator nIt = allGDSNumbers.iterator(); nIt.hasNext(); )
+				String [] numberStrings = gdsName.split(",");
+				for(int i=0; i<numberStrings.length; i++)
 				{
-					Integer lay = (Integer)nIt.next();
+					String numberString = numberStrings[i].trim();
+					if (numberString.length() == 0) continue;
+					int layNum = TextUtils.atoi(numberString);
+					if (layNum == 0 && !numberString.equals("0")) continue;
+					Integer lay = new Integer(layNum);
 					if (layerNames.get(lay) == null) layerNames.put(lay, layer);
+					if (numberString.endsWith("p")) pinLayers.add(lay);
 				}
 				valid = true;
 			}
@@ -1022,9 +1033,26 @@ public class GDS extends Input
 	private void readText(String charstring, int vjust, int hjust, int angle, boolean trans, double scale)
 		throws IOException
 	{
-		// no text
-		if (!layerUsed || !IOTool.isGDSInIncludesText()) return;
+		// stop if layer invalid
+		if (!layerUsed) return;
 
+		// handle pins specially 
+		if (layerIsPin)
+		{
+//			NodeProto np = layerNodeProto;
+			NodeProto np = Generic.tech.universalPinNode;
+			NodeInst ni = NodeInst.makeInstance(np, theVertices[0], np.getDefWidth(), np.getDefHeight(), theCell);
+			if (ni == null) handleError("Could not create pin marker");
+			if (ni.getNumPortInsts() > 0)
+			{
+				PortInst pi = ni.getPortInst(0);
+				Export.newInstance(theCell, pi, charstring);
+			}
+			return;
+		}
+
+		// stop of not handling text in GDS
+		if (!IOTool.isGDSInIncludesText()) return;
 		double x = theVertices[0].getX() + MINFONTWIDTH * charstring.length();
 		double y = theVertices[0].getY() + MINFONTHEIGHT;
 		theVertices[1].setLocation(x, y);
@@ -1089,6 +1117,7 @@ public class GDS extends Input
 		determinePoints(2, MAXPOINTS);
 		if (layerUsed)
 		{
+if (layerIsPin) System.out.println("PIN in BOX");
 			// create the box
 			NodeInst ni = NodeInst.makeInstance(layerNodeProto, theVertices[0], 0, 0, theCell);
 			if (ni == null) handleError("Failed to create box");
@@ -1098,7 +1127,9 @@ public class GDS extends Input
 	private void setLayer(int layerNum)
 	{
 		layerUsed = true;
-		Layer layer = (Layer)layerNames.get(new Integer(layerNum));
+		layerIsPin = false;
+		Integer layerInt = new Integer(layerNum);
+		Layer layer = (Layer)layerNames.get(layerInt);
 		if (layer == null)
 		{
 			if (IOTool.isGDSInIgnoresUnknownLayers())
@@ -1107,13 +1138,17 @@ public class GDS extends Input
 			} else
 			{
 				System.out.println("GDS layer " + layerNum + " unknown, using Generic:DRC");
-				layer = Generic.tech.drc_lay;
-				layerNames.put(new Integer(layerNum), layer);
-				layerUsed = false;
 			}
+			layerNames.put(new Integer(layerNum), Generic.tech.drc_lay);
+			layerUsed = false;
 		}
 		if (layer == null) layerNodeProto = null; else
 		{
+			if (layer == Generic.tech.drc_lay)
+			{
+				if (IOTool.isGDSInIgnoresUnknownLayers()) layerUsed = false;
+			}
+			if (pinLayers.contains(layerInt)) layerIsPin = true;
 			layerNodeProto = layer.getPureLayerNode();
 		}
 	}

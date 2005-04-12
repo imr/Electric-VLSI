@@ -640,6 +640,7 @@ public class JELIB extends Output
 	 */
 	private void makeStringVar(StringBuffer infstr, Object obj, Cell curCell, boolean inArray)
 	{
+		if (obj == null) return;
 		if (obj instanceof Integer)
 		{
 			infstr.append(((Integer)obj).intValue());
@@ -758,6 +759,7 @@ public class JELIB extends Output
 	 */
 	private String getVarType(Object obj)
 	{
+		if (obj == null) return "X";
 		if (obj instanceof ArcInst) return "S"; // "A"
 		if (obj instanceof Boolean) return "B";
 		if (obj instanceof Cell) return "C";

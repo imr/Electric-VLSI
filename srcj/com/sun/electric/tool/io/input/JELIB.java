@@ -1326,6 +1326,7 @@ public class JELIB extends LibraryFiles
 				case 'S':
 				case 'T':
 				case 'V':
+				case 'X':
 				case 'Y':
 					break; // break from switch
 				default:
@@ -1333,89 +1334,98 @@ public class JELIB extends LibraryFiles
 						", Variable type invalid: " + piece, null, -1);
 					continue; // continue loop
 			}
+			Object obj = null;
 			if (objectPos >= piece.length())
 			{
-				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					", Variable value missing: " + piece, null, -1);
-				continue;
-			}
-			Object obj = null;
-			if (piece.charAt(objectPos) == '[')
-			{
-				List objList = new ArrayList();
-				objectPos++;
-				while (objectPos < piece.length())
-				{
-					int start = objectPos;
-					inQuote = false;
-					while (objectPos < piece.length())
-					{
-						if (inQuote)
-						{
-							if (piece.charAt(objectPos) == escapeChar)
-							{
-								objectPos++;
-							} else if (piece.charAt(objectPos) == '"')
-							{
-								inQuote = false;
-							}
-							objectPos++;
-							continue;
-						}
-						if (piece.charAt(objectPos) == ',' || piece.charAt(objectPos) == ']') break;
-						if (piece.charAt(objectPos) == '"')
-						{
-							inQuote = true;
-						}
-						objectPos++;
-					}
-					Object oneObj = getVariableValue(piece.substring(start, objectPos), varType, fileName, lineNumber);
-					objList.add(oneObj);
-					if (piece.charAt(objectPos) == ']') break;
-					objectPos++;
-				}
-				if (objectPos >= piece.length())
+				if (varType != 'X')
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed array (no closed bracket): " + piece, null, -1);
+						", Variable value missing: " + piece, null, -1);
 					continue;
 				}
-				else if (objectPos < piece.length() - 1)
-				{
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed array (extra characters after closed bracket): " + piece, null, -1);
-					continue;
-				}
-				int limit = objList.size();
-				Object [] objArray = null;
-				switch (varType)
-				{
-// 					case 'A': objArray = new ArcInst[limit];        break;
-					case 'B': objArray = new Boolean[limit];        break;
-					case 'C': objArray = new Cell[limit];           break;
-					case 'D': objArray = new Double[limit];         break;
-					case 'E': objArray = new Export[limit];         break;
-					case 'F': objArray = new Float[limit];          break;
-					case 'G': objArray = new Long[limit];           break;
-					case 'H': objArray = new Short[limit];          break;
-					case 'I': objArray = new Integer[limit];        break;
-					case 'L': objArray = new Library[limit];        break;
-// 					case 'N': objArray = new NodeInst[limit];       break;
-					case 'O': objArray = new Tool[limit];           break;
-					case 'P': objArray = new PrimitiveNode[limit];  break;
-					case 'R': objArray = new ArcProto[limit];       break;
-					case 'S': objArray = new String[limit];         break;
-					case 'T': objArray = new Technology[limit];     break;
-					case 'V': objArray = new Point2D[limit];        break;
-					case 'Y': objArray = new Byte[limit];           break;
-				}
-				for(int j=0; j<limit; j++)
-					objArray[j] = objList.get(j);
-				obj = objArray;
 			} else
 			{
-				// a scalar Variable
-				obj = getVariableValue(piece.substring(objectPos), varType, fileName, lineNumber);
+				if (piece.charAt(objectPos) == '[')
+				{
+					List objList = new ArrayList();
+					objectPos++;
+					while (objectPos < piece.length())
+					{
+						int start = objectPos;
+						inQuote = false;
+						while (objectPos < piece.length())
+						{
+							if (inQuote)
+							{
+								if (piece.charAt(objectPos) == escapeChar)
+								{
+									objectPos++;
+								} else if (piece.charAt(objectPos) == '"')
+								{
+									inQuote = false;
+								}
+								objectPos++;
+								continue;
+							}
+							if (piece.charAt(objectPos) == ',' || piece.charAt(objectPos) == ']') break;
+							if (piece.charAt(objectPos) == '"')
+							{
+								inQuote = true;
+							}
+							objectPos++;
+						}
+						Object oneObj = getVariableValue(piece.substring(start, objectPos), varType, fileName, lineNumber);
+						objList.add(oneObj);
+						if (piece.charAt(objectPos) == ']') break;
+						objectPos++;
+					}
+					if (objectPos >= piece.length())
+					{
+						Input.errorLogger.logError(fileName + ", line " + lineNumber +
+							", Badly formed array (no closed bracket): " + piece, null, -1);
+						continue;
+					}
+					else if (objectPos < piece.length() - 1)
+					{
+						Input.errorLogger.logError(fileName + ", line " + lineNumber +
+							", Badly formed array (extra characters after closed bracket): " + piece, null, -1);
+						continue;
+					}
+					int limit = objList.size();
+					Object [] objArray = null;
+					switch (varType)
+					{
+// 						case 'A': objArray = new ArcInst[limit];        break;
+						case 'B': objArray = new Boolean[limit];        break;
+						case 'C': objArray = new Cell[limit];           break;
+						case 'D': objArray = new Double[limit];         break;
+						case 'E': objArray = new Export[limit];         break;
+						case 'F': objArray = new Float[limit];          break;
+						case 'G': objArray = new Long[limit];           break;
+						case 'H': objArray = new Short[limit];          break;
+						case 'I': objArray = new Integer[limit];        break;
+						case 'L': objArray = new Library[limit];        break;
+// 						case 'N': objArray = new NodeInst[limit];       break;
+						case 'O': objArray = new Tool[limit];           break;
+						case 'P': objArray = new PrimitiveNode[limit];  break;
+						case 'R': objArray = new ArcProto[limit];       break;
+						case 'S': objArray = new String[limit];         break;
+						case 'T': objArray = new Technology[limit];     break;
+						case 'V': objArray = new Point2D[limit];        break;
+						case 'Y': objArray = new Byte[limit];           break;
+					}
+					if (objArray == null && limit > 0)
+					{
+						System.out.println("HHEY");
+					}
+					for(int j=0; j<limit; j++)
+						objArray[j] = objList.get(j);
+					obj = objArray;
+				} else
+				{
+					// a scalar Variable
+					obj = getVariableValue(piece.substring(objectPos), varType, fileName, lineNumber);
+				}
 			}
 
 			// create the variable
@@ -2010,6 +2020,8 @@ public class JELIB extends LibraryFiles
 				}
 				double y = TextUtils.atof(piece.substring(slashPos+1));
 				return new Point2D.Double(x, y);
+			case 'X':		// null
+				return null;
 			case 'Y':		// Byte
 				return new Byte((byte)TextUtils.atoi(piece));
 		}
