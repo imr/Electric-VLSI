@@ -219,6 +219,19 @@ public class WindowFrame extends Observable
 		return frame;
 	}
 
+	/**
+	 * Method to update all technology popup selectors.
+	 * Called when a new technology has been created.
+	 */
+	public static void updateTechnologyLists()
+	{
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			wf.paletteTab.loadTechnologies(false);
+		}
+	}
+
 	private void buildWindowStructure(WindowContent content, Cell cell, GraphicsConfiguration gc)
 	{
 		this.content = content;

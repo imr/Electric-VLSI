@@ -46,6 +46,7 @@ import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.tecEdit.Manipulate;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
@@ -149,12 +150,32 @@ public class User extends Listener
 		if (obj instanceof Cell)
 		{
 			Cell cell = (Cell)obj;
+			if (cell.isInTechnologyLibrary())
+			{
+				Manipulate.renamedCell((String)oldName, cell.getName());
+			}
 			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 			{
 				WindowFrame wf = (WindowFrame)it.next();
 				WindowContent content = wf.getContent();
 				if (content.getCell() != cell) continue;
 				content.setWindowTitle();
+			}
+		}
+	}
+
+	/**
+	 * Method to handle the deletion of an ElectricObject.
+	 * @param obj the ElectricObject that was just deleted.
+	 */
+	public void killObject(ElectricObject obj)
+	{
+		if (obj instanceof Cell)
+		{
+			Cell cell = (Cell)obj;
+			if (cell.isInTechnologyLibrary())
+			{
+				Manipulate.deletedCell(cell);
 			}
 		}
 	}

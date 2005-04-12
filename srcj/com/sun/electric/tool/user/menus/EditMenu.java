@@ -68,6 +68,7 @@ import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.dialogs.Spread;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.Generate;
+import com.sun.electric.tool.user.tecEdit.Parse;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.OutlineListener;
 import com.sun.electric.tool.user.ui.SizeListener;
@@ -341,6 +342,9 @@ public class EditMenu {
 		specialSubMenu.addSeparator();
 		specialSubMenu.addMenuItem("Convert Technology to Library for Editing...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Generate.makeLibFromTech(); }});
+		specialSubMenu.addMenuItem("Convert Library to Technology...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Parse.makeTechFromLib(); }});
+		specialSubMenu.addSeparator();
 		specialSubMenu.addMenuItem("Identify Primitive Layers", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_teceditidentify(false); }});
 		specialSubMenu.addMenuItem("Identify Ports", null,

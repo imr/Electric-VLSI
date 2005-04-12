@@ -429,6 +429,7 @@ public class CMOS extends Technology
 		Diffusion_p_arc.setWipable();
 		Diffusion_p_arc.setFactoryAngleIncrement(90);
 		Diffusion_p_arc.setWidthOffset(0);
+		Diffusion_p_arc.setWidthOffset(4);
 
 		/** Diffusion-well arc */
 		PrimitiveArc Diffusion_well_arc = PrimitiveArc.newInstance(this, "Diffusion-well", 8, new Technology.ArcLayer []
@@ -441,6 +442,7 @@ public class CMOS extends Technology
 		Diffusion_well_arc.setWipable();
 		Diffusion_well_arc.setFactoryAngleIncrement(90);
 		Diffusion_well_arc.setWidthOffset(0);
+		Diffusion_well_arc.setWidthOffset(6);
 
 		//******************** RECTANGLE DESCRIPTIONS ********************
 

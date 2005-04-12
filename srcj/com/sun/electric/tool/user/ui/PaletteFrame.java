@@ -142,6 +142,26 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 		return palette;
 	}
 
+	/**
+	 * Method to update the technology popup selector.
+	 * Called at initialization or when a new technology has been created.
+	 * @param makeCurrent true to keep the current technology selected,
+	 * false to set to the current technology.
+	 */
+	public void loadTechnologies(boolean makeCurrent)
+	{
+        Technology cur = Technology.getCurrent();
+        if (!makeCurrent) cur = Technology.findTechnology((String)techSelector.getSelectedItem());
+        techSelector.removeAllItems();
+        for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+        {
+            Technology tech = (Technology)it.next();
+            if (tech == Generic.tech) continue;
+            techSelector.addItem(tech.getTechName());
+        }
+        techSelector.setSelectedItem(cur.getTechName());
+	}
+
     private void initComponents(WindowFrame ww) {
 //        Container content = ((RootPaneContainer)container).getContentPane();
         Container content = topPanel;
@@ -212,16 +232,9 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 //        paletteSwitcher.add(techPalette, TECHPALETTE);
 //        paletteSwitcher.add(libraryPalette, LIBRARYPALETTE);
 
-        // Because the technology choices don't change, just popuplate the combo box here
-        for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
-        {
-            Technology tech = (Technology)it.next();
-            if (tech == Generic.tech) continue;
-            techSelector.addItem(tech.getTechName());
-        }
         // Getting default tech stored
         //techSelector.setSelectedItem(User.getDefaultTechnology());
-        techSelector.setSelectedItem(Technology.getCurrent().getTechName());
+        loadTechnologies(true);
 
         PaletteControlListener l = new PaletteControlListener(this, ww);
 //        techRadioButton.addActionListener(l);

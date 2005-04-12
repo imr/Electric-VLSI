@@ -31,26 +31,63 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.output.Output;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.tecEdit.Generate.ArcInfo;
+import com.sun.electric.tool.user.tecEdit.Generate.LayerInfo;
+import com.sun.electric.tool.user.tecEdit.Generate.NodeInfo;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 
+import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JList;
+import javax.swing.JTextField;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
 * This class creates technology libraries from technologies.
@@ -71,7 +108,7 @@ public class Parse
 		NodeProto layer;				/* type of node used for sample */
 		double    xpos, ypos;			/* center of sample */
 		Sample    assoc;				/* associated sample in first example */
-//		Rule      rule;					/* rule associated with this sample */
+		Rule      rule;					/* rule associated with this sample */
 		Example   parent;				/* example containing this sample */
 		Sample    nextsample;			/* next sample in list */
 	};
@@ -82,6 +119,20 @@ public class Parse
 		Sample    studysample;			/* sample under analysis */
 		double    lx, hx, ly, hy;		/* bounding box of example */
 		Example   nextexample;			/* next example in list */
+	};
+	
+	/* rectangle rules */
+	static class Rule
+	{
+		Technology.TechPoint []     value;					/* data points for rule */
+		String        msg;
+		int        istext;					/* nonzero if text at end of rule */
+		int        rindex;					/* identifier for this rule */
+		boolean       used;						/* nonzero if actually used */
+		boolean       multicut;					/* nonzero if this is multiple cut */
+		double        multixs, multiys;			/* size of multicut */
+		double        multiindent, multisep;	/* indent and separation of multicuts */
+		Rule nextrule;
 	};
 
 
@@ -97,7 +148,7 @@ public class Parse
 
 //	
 //	/* the globals that define a technology */
-//	static INTBIG           us_tecflags;
+	static int           us_tecflags;
 //	static INTBIG           us_teclayer_count;
 //	static CHAR           **us_teclayer_iname = 0;
 //	static CHAR           **us_teclayer_names = 0;
@@ -152,7 +203,7 @@ public class Parse
 //	};
 //	
 //	static PCON  *us_tecedfirstpcon = NOPCON;	/* list of port connections */
-//	static RULE  *us_tecedfirstrule = NORULE;	/* list of rules */
+	static Rule  us_tecedfirstrule = null;	/* list of rules */
 //	
 //	/* working memory for "us_tecedmakeprim()" */
 //	static INTBIG *us_tecedmakepx, *us_tecedmakepy, *us_tecedmakefactor,
@@ -164,114 +215,79 @@ public class Parse
 //	/* working memory for "us_teceditgetdependents()" */
 //	static LIBRARY **us_teceddepliblist;
 //	static INTBIG    us_teceddepliblistsize = 0;
-//	
-//	/*
-//	 * Routine to free all memory associated with this module.
-//	 */
-//	void us_freeedtecpmemory(void)
-//	{
-//		if (us_tecedmakearrlen != 0)
+	
+	/**
+	 * Method invoked for the "technology edit library-to-tech" command.  Dumps
+	 * code if "dumpformat" is nonzero
+	 */
+	public static void makeTechFromLib()
+	{
+		GenerateTechnology dialog = new GenerateTechnology();
+		dialog.initComponents();
+		dialog.setVisible(true);
+	}
+	
+	private static class SoftTech extends Technology
+	{
+		SoftTech(String name)
+		{
+			super(name);
+			setNoNegatedArcs();
+		}
+
+		void setTheScale(double scale)
+		{
+			setFactoryScale(scale, true);
+		}
+	}
+
+	private static void makeTech(String newName, String renameName, boolean alsoJava)
+	{
+		Library lib = Library.getCurrent();
+
+		// loop until the name is valid
+		String newtechname = newName;
+		boolean modified = false;
+		for(;;)
+		{
+			// search by hand because "gettechnology" handles partial matches
+			if (Technology.findTechnology(newtechname) == null) break;
+			newtechname += "X";
+			modified = true;
+		}
+
+		SoftTech tech = new SoftTech(newtechname);
+//		setFactoryScale(2000, true);   // in nanometers: really 2 microns
+//		setFactoryTransparentLayers(new Color []
 //		{
-//			efree((CHAR *)us_tecedmakepx);
-//			efree((CHAR *)us_tecedmakepy);
-//			efree((CHAR *)us_tecedmakecx);
-//			efree((CHAR *)us_tecedmakecy);
-//			efree((CHAR *)us_tecedmakefactor);
-//			efree((CHAR *)us_tecedmakeleftdist);
-//			efree((CHAR *)us_tecedmakerightdist);
-//			efree((CHAR *)us_tecedmakebotdist);
-//			efree((CHAR *)us_tecedmaketopdist);
-//			efree((CHAR *)us_tecedmakecentxdist);
-//			efree((CHAR *)us_tecedmakecentydist);
-//			efree((CHAR *)us_tecedmakeratiox);
-//			efree((CHAR *)us_tecedmakeratioy);
-//		}
-//		if (us_teceddepliblistsize != 0) efree((CHAR *)us_teceddepliblist);
-//		us_tecedfreetechmemory();
-//	}
-//	
-//	/*
-//	 * the routine invoked for the "technology edit library-to-tech" command.  Dumps
-//	 * C code if "dumpc" is nonzero
-//	 */
-//	void us_tecfromlibinit(LIBRARY *lib, CHAR *techname, INTBIG dumpformat)
-//	{
-//		REGISTER FILE *f;
-//		REGISTER TECHNOLOGY *tech;
-//		REGISTER CLUSTER *clus;
-//		REGISTER VARIABLE *var, *ovar;
-//		REGISTER CHAR **varnames;
-//		CHAR *truename, *newtechname;
-//		LIBRARY **dependentlibs;
-//		REGISTER INTBIG dependentlibcount, i, j, modified;
-//		REGISTER void *infstr;
-//		static TECH_VARIABLES us_tecvariables[2] = {{NULL, NULL, 0.0, 0},
-//	                                                {NULL, NULL, 0.0, 0}};
-//	
-//		// make sure network tool is on
-//		if ((net_tool.toolstate&TOOLON) == 0)
-//		{
-//			ttyputerr(_("Network tool must be running...turning it on"));
-//			toolturnon(net_tool);
-//			ttyputerr(_("...now reissue the technology editing command"));
-//			return;
-//		}
-//	
-//		// loop until the name is valid
-//		if (techname == 0) techname = lib.libname;
-//		if (allocstring(&newtechname, techname, el_tempcluster)) return;
-//		modified = 0;
-//		for(;;)
-//		{
-//			// search by hand because "gettechnology" handles partial matches
-//			for(tech = el_technologies; tech != NOTECHNOLOGY; tech = tech.nexttechnology)
-//				if (namesame(newtechname, tech.techname) == 0) break;
-//			if (tech == NOTECHNOLOGY) break;
-//			infstr = initinfstr();
-//			addstringtoinfstr(infstr, newtechname);
-//			addtoinfstr(infstr, 'X');
-//			(void)reallocstring(&newtechname, returninfstr(infstr), el_tempcluster);
-//			modified= 1;
-//		}
-//	
-//		// create the technology
-//		infstr = initinfstr();
-//		addstringtoinfstr(infstr, x_("tech:"));
-//		addstringtoinfstr(infstr, newtechname);
-//		clus = alloccluster(returninfstr(infstr));
-//		if (clus == NOCLUSTER) return;
-//		tech = alloctechnology(clus);
-//		if (tech == NOTECHNOLOGY) return;
-//	
-//		// set the technology name
-//		if (allocstring(&tech.techname, newtechname, clus)) return;
-//		efree((CHAR *)newtechname);
-//		if (modified != 0)
-//			ttyputmsg(_("Warning: already a technology called %s.  Naming this %s"),
-//				techname, tech.techname);
-//	
-//		// set technology description
-//		if (allocstring(&tech.techdescript, tech.techname, clus)) return;
-//	
-//		// free any previous memory for the technology
-//		us_tecedfreetechmemory();
-//	
-//		// get list of dependent libraries
-//		dependentlibcount = us_teceditgetdependents(lib, &dependentlibs);
-//	
-//		// initialize the state of this technology
-//		us_tecflags = 0;
-//		if (us_tecedmakefactors(dependentlibs, dependentlibcount, tech)) return;
-//	
-//		// build layer structures
-//		if (us_tecedmakelayers(dependentlibs, dependentlibcount, tech)) return;
-//	
-//		// build arc structures
-//		if (us_tecedmakearcs(dependentlibs, dependentlibcount, tech)) return;
-//	
-//		// build node structures
-//		if (us_tecedmakenodes(dependentlibs, dependentlibcount, tech)) return;
-//	
+//			new Color(  0,  0,255), // Metal
+//			new Color(223,  0,  0), // Polysilicon
+//			new Color(  0,255,  0), // Diffusion
+//			new Color(255,190,  6), // P+
+//			new Color(170,140, 30)  // P-Well
+//		});
+
+		// set the technology name
+		if (modified)
+			System.out.println("Warning: already a technology called " + newName + ".  Naming this " + newtechname);
+	
+		// get list of dependent libraries
+		Library [] dependentlibs = Manipulate.us_teceditgetdependents(lib);
+	
+		// initialize the state of this technology
+		us_tecflags = 0;
+		if (us_tecedmakefactors(dependentlibs, tech)) return;
+	
+		// build layer structures
+		Generate.LayerInfo [] lis = us_tecedmakelayers(dependentlibs, tech);
+		if (lis == null) return;
+	
+		// build arc structures
+		if (us_tecedmakearcs(dependentlibs, tech, lis)) return;
+	
+		// build node structures
+		if (us_tecedmakenodes(dependentlibs, tech, lis)) return;
+	
 //		// copy any miscellaneous variables (should use dependent libraries facility)
 //		Variable var = lib.getVar(Generate.VARIABLELIST_KEY);
 //		if (var != NOVARIABLE)
@@ -289,31 +305,6 @@ public class Parse
 //		// check technology for consistency
 //		us_tecedcheck(tech);
 //	
-//		if (dumpformat > 0)
-//		{
-//			// print the technology as C code
-//			infstr = initinfstr();
-//			addstringtoinfstr(infstr, x_("tec"));
-//			addstringtoinfstr(infstr, techname);
-//			addstringtoinfstr(infstr, x_(".c"));
-//			f = xcreate(returninfstr(infstr), el_filetypetext, _("Technology Code File"), &truename);
-//			if (f == NULL)
-//			{
-//				if (truename != 0) ttyputerr(_("Cannot write %s"), truename);
-//				return;
-//			}
-//			ttyputverbose(M_("Writing: %s"), truename);
-//	
-//			// write the layers, arcs, and nodes
-//			us_teceditdumplayers(f, tech, techname);
-//			us_teceditdumparcs(f, tech, techname);
-//			us_teceditdumpnodes(f, tech, techname);
-//			us_teceditdumpvars(f, tech, techname);
-//	
-//			// clean up
-//			xclose(f);
-//		}
-//	
 //		if (dumpformat < 0)
 //		{
 //			// print the technology as Java code
@@ -323,7 +314,7 @@ public class Parse
 //			f = xcreate(returninfstr(infstr), el_filetypetext, _("Technology Code File"), &truename);
 //			if (f == NULL)
 //			{
-//				if (truename != 0) ttyputerr(_("Cannot write %s"), truename);
+//				if (truename != 0) System.out.println(_("Cannot write %s"), truename);
 //				return;
 //			}
 //			ttyputverbose(M_("Writing: %s"), truename);
@@ -345,38 +336,166 @@ public class Parse
 //			us_tecvariables[0].value = (CHAR *)us_tecnode_grab;
 //			us_tecvariables[0].type = us_tecnode_grabcount/3;
 //		}
-//		tech.variables = us_tecvariables;
-//		if (tech_doinitprocess(tech)) return;
-//		if (tech_doaddportsandvars(tech)) return;
-//	
-//		// install the technology fully
-//		addtechnology(tech);
-//	
-//		// let the user interface process it
-//		us_figuretechopaque(tech);
-//	
-//		// switch to this technology
-//		ttyputmsg(_("Technology %s built.  Switching to it."), tech.techname);
-//		us_setnodeproto(NONODEPROTO);
-//		us_setarcproto(NOARCPROTO, TRUE);
-//	
-//		// disable option tracking while colormap is updated
-//		(void)setvalkey((INTBIG)us_tool, VTOOL, us_ignoreoptionchangeskey, 1,
-//			VINTEGER|VDONTSAVE);
-//		us_getcolormap(tech, COLORSEXISTING, TRUE);
-//		var = getvalkey((INTBIG)us_tool, VTOOL, VINTEGER, us_ignoreoptionchangeskey);
-//		if (var != NOVARIABLE)
-//			(void)delvalkey((INTBIG)us_tool, VTOOL, us_ignoreoptionchangeskey);
-//	
-//		(void)setvalkey((INTBIG)us_tool, VTOOL, us_current_technology_key, (INTBIG)tech,
-//			VTECHNOLOGY|VDONTSAVE);
-//	
-//		// fix up the menu entries
-//		us_setmenunodearcs();
-//		if ((us_state&NONPERSISTENTCURNODE) == 0) us_setnodeproto(tech.firstnodeproto);
-//		us_setarcproto(tech.firstarcproto, TRUE);
-//	}
-//	
+	
+		// switch to this technology
+		System.out.println("Technology " + tech.getTechName() + " built.  Switching to it.");
+		WindowFrame.updateTechnologyLists();
+		tech.setCurrent();
+	}
+
+	/**
+	 * This class displays a dialog for converting a library to a technology.
+	 */
+	public static class GenerateTechnology extends EDialog
+	{
+		private JLabel lab2, lab3;
+		private JTextField renameName, newName;
+		private JCheckBox alsoJava;
+
+		/** Creates new form convert library to technology */
+		public GenerateTechnology()
+		{
+			super(null, true);
+		}
+
+		private void ok() { exit(true); }
+
+		protected void escapePressed() { exit(false); }
+
+		// Call this method when the user clicks the OK button
+		private void exit(boolean goodButton)
+		{
+			if (goodButton)
+			{
+				makeTech(newName.getText(), renameName.getText(), alsoJava.isSelected());
+			}
+			dispose();
+		}
+
+		private void nameChanged()
+		{
+			String techName = newName.getText();
+			if (Technology.findTechnology(techName) != null)
+			{
+				// name exists, offer to rename it
+				lab2.setEnabled(true);
+				lab3.setEnabled(true);
+				renameName.setEnabled(true);
+				renameName.setEditable(true);
+			} else
+			{
+				// name is unique, don't offer to rename it
+				lab2.setEnabled(false);
+				lab3.setEnabled(false);
+				renameName.setEnabled(false);
+				renameName.setEditable(false);
+			}
+		}
+
+		private void initComponents()
+		{
+			getContentPane().setLayout(new GridBagLayout());
+
+			setTitle("Convert Library to Technology");
+			setName("");
+			addWindowListener(new WindowAdapter()
+			{
+				public void windowClosing(WindowEvent evt) { exit(false); }
+			});
+
+			JLabel lab1 = new JLabel("Creating new technology:");
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 0;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(lab1, gbc);
+
+			newName = new JTextField(Library.getCurrent().getName());
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = 0;
+			gbc.gridwidth = 2;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.weightx = 1;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(newName, gbc);
+			TechNameDocumentListener myDocumentListener = new TechNameDocumentListener(this);
+			newName.getDocument().addDocumentListener(myDocumentListener);
+
+			lab2 = new JLabel("Already a technology with this name");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 1;
+			gbc.gridwidth = 3;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(lab2, gbc);
+
+			lab3 = new JLabel("Rename existing technology to:");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 2;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(lab3, gbc);
+
+			renameName = new JTextField();
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = 2;
+			gbc.gridwidth = 2;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.weightx = 1;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(renameName, gbc);
+
+			alsoJava = new JCheckBox("Also write Java code");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 3;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(alsoJava, gbc);
+
+			// OK and Cancel
+			JButton cancel = new JButton("Cancel");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;
+			gbc.gridy = 3;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(cancel, gbc);
+			cancel.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { exit(false); }
+			});
+
+			JButton ok = new JButton("OK");
+			getRootPane().setDefaultButton(ok);
+			gbc = new java.awt.GridBagConstraints();
+			gbc.gridx = 2;
+			gbc.gridy = 3;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(ok, gbc);
+			ok.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent evt) { exit(true); }
+			});
+
+			pack();
+		}
+
+		/**
+		 * Class to handle special changes to changes to a GDS layer.
+		 */
+		private static class TechNameDocumentListener implements DocumentListener
+		{
+			GenerateTechnology dialog;
+
+			TechNameDocumentListener(GenerateTechnology dialog) { this.dialog = dialog; }
+
+			public void changedUpdate(DocumentEvent e) { dialog.nameChanged(); }
+			public void insertUpdate(DocumentEvent e) { dialog.nameChanged(); }
+			public void removeUpdate(DocumentEvent e) { dialog.nameChanged(); }
+		}
+	}
+
 //	void us_tecedcheck(TECHNOLOGY *tech)
 //	{
 //		REGISTER INTBIG i, j, k, l;
@@ -395,7 +514,7 @@ public class Parse
 //				if (plist.layernum == i) break;
 //			}
 //			if (j < tech.nodeprotocount) continue;
-//			ttyputmsg(_("Warning: Layer %s has no associated pure-layer node"),
+//			System.out.println(_("Warning: Layer %s has no associated pure-layer node"),
 //				us_teclayer_names[i]);
 //		}
 //	
@@ -424,279 +543,87 @@ public class Parse
 //					if ((us_teclayer_function[plist.layernum]&LFPSEUDO) == 0) break;
 //				}
 //				if (k < nlist.layercount)
-//					ttyputmsg(_("Warning: Pin %s is not composed of pseudo-layers"),
+//					System.out.println(_("Warning: Pin %s is not composed of pseudo-layers"),
 //						tech.nodeprotos[j].nodename);
 //				continue;
 //			}
-//			ttyputmsg(_("Warning: Arc %s has no associated pin node"), tech.arcprotos[i].arcname);
+//			System.out.println(_("Warning: Arc %s has no associated pin node"), tech.arcprotos[i].arcname);
 //		}
 //	}
-//	
-//	void us_tecedfreetechmemory(void)
-//	{
-//		REGISTER INTBIG i;
-//		REGISTER PCON *pc;
-//		REGISTER RULE *r;
-//	
-//		// free DRC layer name information
-//		if (us_teceddrclayernames != 0)
-//		{
-//			for(i=0; i<us_teceddrclayers; i++) efree(us_teceddrclayernames[i]);
-//			efree((CHAR *)us_teceddrclayernames);
-//			us_teceddrclayernames = 0;
-//		}
-//	
-//		if (us_teclayer_iname != 0)
-//		{
-//			for(i=0; i<us_teclayer_count; i++)
-//				if (us_teclayer_iname[i] != 0) efree((CHAR *)us_teclayer_iname[i]);
-//			efree((CHAR *)us_teclayer_iname);
-//			us_teclayer_iname = 0;
-//		}
-//		if (us_teclayer_names != 0)
-//		{
-//			for(i=0; i<us_teclayer_count; i++)
-//				if (us_teclayer_names[i] != 0) efree((CHAR *)us_teclayer_names[i]);
-//			efree((CHAR *)us_teclayer_names);
-//			us_teclayer_names = 0;
-//		}
-//		if (us_teccif_layers != 0)
-//		{
-//			for(i=0; i<us_teclayer_count; i++)
-//				if (us_teccif_layers[i] != 0) efree((CHAR *)us_teccif_layers[i]);
-//			efree((CHAR *)us_teccif_layers);
-//			us_teccif_layers = 0;
-//		}
-//		if (us_tecdxf_layers != 0)
-//		{
-//			for(i=0; i<us_teclayer_count; i++)
-//				if (us_tecdxf_layers[i] != 0) efree((CHAR *)us_tecdxf_layers[i]);
-//			efree((CHAR *)us_tecdxf_layers);
-//			us_tecdxf_layers = 0;
-//		}
-//		if (us_tecgds_layers != 0)
-//		{
-//			for(i=0; i<us_teclayer_count; i++)
-//				if (us_tecgds_layers[i] != 0) efree((CHAR *)us_tecgds_layers[i]);
-//			efree((CHAR *)us_tecgds_layers);
-//			us_tecgds_layers = 0;
-//		}
-//		if (us_teclayer_function != 0)
-//		{
-//			efree((CHAR *)us_teclayer_function);
-//			us_teclayer_function = 0;
-//		}
-//		if (us_teclayer_letters != 0)
-//		{
-//			for(i=0; i<us_teclayer_count; i++)
-//				if (us_teclayer_letters[i] != 0) efree((CHAR *)us_teclayer_letters[i]);
-//			efree((CHAR *)us_teclayer_letters);
-//			us_teclayer_letters = 0;
-//		}
-//		if (us_tecdrc_rules != 0)
-//		{
-//			dr_freerules(us_tecdrc_rules);
-//			us_tecdrc_rules = 0;
-//		}
-//		if (us_tecspice_res != 0)
-//		{
-//			efree((CHAR *)us_tecspice_res);
-//			us_tecspice_res = 0;
-//		}
-//		if (us_tecspice_cap != 0)
-//		{
-//			efree((CHAR *)us_tecspice_cap);
-//			us_tecspice_cap = 0;
-//		}
-//		if (us_tecspice_ecap != 0)
-//		{
-//			efree((CHAR *)us_tecspice_ecap);
-//			us_tecspice_ecap = 0;
-//		}
-//		if (us_tec3d_height != 0)
-//		{
-//			efree((CHAR *)us_tec3d_height);
-//			us_tec3d_height = 0;
-//		}
-//		if (us_tec3d_thickness != 0)
-//		{
-//			efree((CHAR *)us_tec3d_thickness);
-//			us_tec3d_thickness = 0;
-//		}
-//		if (us_tecprint_colors != 0)
-//		{
-//			efree((CHAR *)us_tecprint_colors);
-//			us_tecprint_colors = 0;
-//		}
-//	
-//		if (us_tecarc_widoff != 0)
-//		{
-//			efree((CHAR *)us_tecarc_widoff);
-//			us_tecarc_widoff = 0;
-//		}
-//	
-//		if (us_tecnode_widoff != 0)
-//		{
-//			efree((CHAR *)us_tecnode_widoff);
-//			us_tecnode_widoff = 0;
-//		}
-//		if (us_tecnode_grab != 0)
-//		{
-//			efree((CHAR *)us_tecnode_grab);
-//			us_tecnode_grab = 0;
-//		}
-//	
-//		while (us_tecedfirstpcon != NOPCON)
-//		{
-//			pc = us_tecedfirstpcon;
-//			us_tecedfirstpcon = us_tecedfirstpcon.nextpcon;
-//			efree((CHAR *)pc.connects);
-//			efree((CHAR *)pc.assoc);
-//			efree((CHAR *)pc);
-//		}
-//	
-//		while (us_tecedfirstrule != NORULE)
-//		{
-//			r = us_tecedfirstrule;
-//			us_tecedfirstrule = us_tecedfirstrule.nextrule;
-//			efree((CHAR *)r.value);
-//			efree((CHAR *)r);
-//		}
-//	}
-//	
-//	/*
-//	 * routine to scan the "dependentlibcount" libraries in "dependentlibs",
-//	 * and get global factors for technology "tech".  Returns true on error.
-//	 */
-//	BOOLEAN us_tecedmakefactors(LIBRARY **dependentlibs, INTBIG dependentlibcount, TECHNOLOGY *tech)
-//	{
-//		REGISTER NODEPROTO *np;
-//		REGISTER NODEINST *ni;
-//		REGISTER VARIABLE *var;
-//		REGISTER INTBIG opt;
-//		REGISTER CHAR *str;
-//		REGISTER INTBIG i;
-//	
-//		np = NONODEPROTO;
-//		for(i=dependentlibcount-1; i>=0; i--)
-//		{
-//			for(np = dependentlibs[i].firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//				if (namesame(np.protoname, x_("factors")) == 0) break;
-//			if (np != NONODEPROTO) break;
-//		}
-//		if (np == NONODEPROTO)
-//		{
-//			tech.deflambda = 2000;
-//			return(FALSE);
-//		}
-//	
-//		for(ni = np.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
-//		{
-//			opt = us_tecedgetoption(ni);
-//			var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, art_messagekey);
-//			if (var == NOVARIABLE) continue;
-//			str = (CHAR *)var.addr;
-//			switch (opt)
-//			{
-//				case TECHLAMBDA:	// lambda
-//					tech.deflambda = myatoi(&str[8]);
-//					break;
-//				case TECHDESCRIPT:	// description
-//					(void)reallocstring(&tech.techdescript, &str[13], tech.cluster);
-//					break;
-//				default:
-//					us_tecedpointout(ni, np);
-//					ttyputerr(_("Unknown object in miscellaneous-information cell"));
-//					return(TRUE);
-//			}
-//		}
-//		return(FALSE);
-//	}
-//	
-//	/*
-//	 * routine to scan the "dependentlibcount" libraries in "dependentlibs",
-//	 * and build the layer structures for it in technology "tech".  Returns true on error.
-//	 */
-//	BOOLEAN us_tecedmakelayers(LIBRARY **dependentlibs, INTBIG dependentlibcount, TECHNOLOGY *tech)
-//	{
-//		REGISTER NODEPROTO *np;
-//		NODEPROTO **sequence, **nodesequence;
-//		REGISTER INTBIG i, j, l, total, nodecount, *drcptr, drcsize;
-//		REGISTER CHAR *ab;
-//		REGISTER VARIABLE *var;
-//		REGISTER void *infstr;
-//	
-//		// first find the number of layers
-//		tech.layercount = us_teceditfindsequence(dependentlibs, "layer-", Generate.LAYERSEQUENCE_KEY);
-//		if (tech.layercount <= 0)
-//		{
-//			ttyputerr(_("No layers found"));
-//			if ((us_tool.toolstate&NODETAILS) == 0)
-//				ttyputerr(_("Create them with the 'edit-layer' option"));
-//			return(TRUE);
-//		}
-//	
-//		// allocate the arrays for the layers
-//		us_teclayer_count = tech.layercount;
-//		drcsize = us_teclayer_count*us_teclayer_count/2 + (us_teclayer_count+1)/2;
-//	
-//		us_teclayer_iname = (CHAR **)emalloc((us_teclayer_count * (sizeof (CHAR *))), us_tool.cluster);
-//		if (us_teclayer_iname == 0) return(TRUE);
-//		for(i=0; i<us_teclayer_count; i++) us_teclayer_iname[i] = 0;
-//	
-//		tech.layers = (GRAPHICS **)emalloc(((us_teclayer_count+1) * (sizeof (GRAPHICS *))), tech.cluster);
-//		if (tech.layers == 0) return(TRUE);
-//		for(i=0; i<us_teclayer_count; i++) tech.layers[i] = (GRAPHICS *)emalloc(sizeof (GRAPHICS), tech.cluster);
-//		tech.layers[us_teclayer_count] = NOGRAPHICS;
-//	
-//		us_teclayer_names = (CHAR **)emalloc((us_teclayer_count * (sizeof (CHAR *))), us_tool.cluster);
-//		if (us_teclayer_names == 0) return(TRUE);
-//		for(i=0; i<us_teclayer_count; i++) us_teclayer_names[i] = 0;
-//	
-//		us_teccif_layers = (CHAR **)emalloc((us_teclayer_count * (sizeof (CHAR *))), us_tool.cluster);
-//		if (us_teccif_layers == 0) return(TRUE);
-//		for(i=0; i<us_teclayer_count; i++) us_teccif_layers[i] = 0;
-//	
-//		us_tecdxf_layers = (CHAR **)emalloc((us_teclayer_count * (sizeof (CHAR *))), us_tool.cluster);
-//		if (us_tecdxf_layers == 0) return(TRUE);
-//		for(i=0; i<us_teclayer_count; i++) us_tecdxf_layers[i] = 0;
-//	
-//		us_tecgds_layers = (CHAR **)emalloc((us_teclayer_count * (sizeof (CHAR *))), us_tool.cluster);
-//		if (us_tecgds_layers == 0) return(TRUE);
-//		for(i=0; i<us_teclayer_count; i++) us_tecgds_layers[i] = 0;
-//	
-//		us_teclayer_function = emalloc((us_teclayer_count * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_teclayer_function == 0) return(TRUE);
-//	
-//		us_teclayer_letters = (CHAR **)emalloc((us_teclayer_count * (sizeof (CHAR *))), us_tool.cluster);
-//		if (us_teclayer_letters == 0) return(TRUE);
-//		for(i=0; i<us_teclayer_count; i++) us_teclayer_letters[i] = 0;
-//	
-//		us_tecspice_res = (float *)emalloc((us_teclayer_count * (sizeof (float))), us_tool.cluster);
-//		if (us_tecspice_res == 0) return(TRUE);
-//		for(i=0; i<us_teclayer_count; i++) us_tecspice_res[i] = 0.0;
-//	
-//		us_tecspice_cap = (float *)emalloc((us_teclayer_count * (sizeof (float))), us_tool.cluster);
-//		if (us_tecspice_cap == 0) return(TRUE);
-//		for(i=0; i<us_teclayer_count; i++) us_tecspice_cap[i] = 0.0;
-//	
-//		us_tecspice_ecap = (float *)emalloc((us_teclayer_count * (sizeof (float))), us_tool.cluster);
-//		if (us_tecspice_ecap == 0) return(TRUE);
-//		for(i=0; i<us_teclayer_count; i++) us_tecspice_ecap[i] = 0.0;
-//	
-//		us_tec3d_height = (INTBIG *)emalloc((us_teclayer_count * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tec3d_height == 0) return(TRUE);
-//		for(i=0; i<us_teclayer_count; i++) us_tec3d_height[i] = 0;
-//	
-//		us_tec3d_thickness = (INTBIG *)emalloc((us_teclayer_count * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tec3d_thickness == 0) return(TRUE);
-//		for(i=0; i<us_teclayer_count; i++) us_tec3d_thickness[i] = 0;
-//	
-//		us_tecprint_colors = (INTBIG *)emalloc((us_teclayer_count * 5 * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecprint_colors == 0) return(TRUE);
-//		for(i=0; i<us_teclayer_count*5; i++) us_tecprint_colors[i] = 0;
-//	
+	
+	/**
+	 * Method to scan the "dependentlibcount" libraries in "dependentlibs",
+	 * and get global factors for technology "tech".  Returns true on error.
+	 */
+	static boolean us_tecedmakefactors(Library [] dependentlibs, SoftTech tech)
+	{
+		Cell np = null;
+		for(int i=dependentlibs.length-1; i>=0; i--)
+		{
+			np = dependentlibs[i].findNodeProto("factors");
+			if (np != null) break;
+		}
+		if (np == null) return false;
+	
+		for(Iterator it = np.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			int opt = Manipulate.us_tecedgetoption(ni);
+			String str = Manipulate.getValueOnNode(ni);
+			switch (opt)
+			{
+				case Generate.TECHLAMBDA:	// lambda
+					tech.setTheScale(TextUtils.atof(str));
+					break;
+				case Generate.TECHDESCRIPT:	// description
+					tech.setTechDesc(str);
+					break;
+				case Generate.CENTEROBJ:
+					break;
+				default:
+					us_tecedpointout(ni, np);
+					System.out.println("Unknown object in miscellaneous-information cell (node " + ni.describe() + ")");
+					return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Method to scan the "dependentlibcount" libraries in "dependentlibs",
+	 * and build the layer structures for it in technology "tech".  Returns true on error.
+	 */
+	static Generate.LayerInfo [] us_tecedmakelayers(Library [] dependentlibs, SoftTech tech)
+	{
+		// first find the number of layers
+		Cell [] layerCells = Manipulate.us_teceditfindsequence(dependentlibs, "layer-", Generate.LAYERSEQUENCE_KEY);
+		if (layerCells.length <= 0)
+		{
+			System.out.println("No layers found");
+			return null;
+		}
+
+		// create the layers
+		Generate.LayerInfo [] lis = new Generate.LayerInfo[layerCells.length];
+		for(int i=0; i<layerCells.length; i++)
+		{
+			lis[i] = Generate.LayerInfo.us_teceditgetlayerinfo(layerCells[i]);
+			if (lis[i] == null) continue;
+			Layer lay = Layer.newInstance(tech, lis[i].name, lis[i].desc);
+			lay.setFunction(lis[i].fun, lis[i].funExtra);
+			lay.setCIFLayer(lis[i].cif);
+			lay.setGDSLayer(lis[i].gds);
+			lay.setDXFLayer(lis[i].dxf);
+			lay.setResistance(lis[i].spires);
+			lay.setCapacitance(lis[i].spicap);
+			lay.setEdgeCapacitance(lis[i].spiecap);
+			lay.setDistance(lis[i].height3d);
+			lay.setThickness(lis[i].thick3d);
+			lis[i].generated = lay;
+		}
+
 //		// get the design rules
+//		drcsize = us_teclayer_count*us_teclayer_count/2 + (us_teclayer_count+1)/2;
 //		us_tecedgetlayernamelist();
 //		if (us_tecdrc_rules != 0)
 //		{
@@ -718,35 +645,7 @@ public class Parse
 //			if (var != NOVARIABLE) break;
 //		}
 //		us_teceditgetdrcarrays(var, us_tecdrc_rules);
-//	
-//		// now scan each layer and fill in the data
-//		for(total=0; total<us_teclayer_count; total++)
-//		{
-//			// set the layer name
-//			np = sequence[total];
-//			(void)allocstring(&us_teclayer_names[total], &np.protoname[6], us_tool.cluster);
-//	
-//			if (us_teceditgetlayerinfo(np, tech.layers[total], &us_teccif_layers[total],
-//				&us_teclayer_function[total], &us_teclayer_letters[total], &us_tecdxf_layers[total],
-//					&us_tecgds_layers[total], &us_tecspice_res[total], &us_tecspice_cap[total],
-//						&us_tecspice_ecap[total], &us_tecdrc_rules.minwidth[total],
-//							&us_tec3d_height[total], &us_tec3d_thickness[total],
-//								&us_tecprint_colors[total*5])) return(TRUE);
-//			if (us_teccif_layers[total] != 0 && namesame(us_teccif_layers[total], x_("xx")) != 0)
-//				us_tecflags |= HASCIF;
-//			if (us_tecdxf_layers[total] != 0) us_tecflags |= HASDXF;
-//			if (us_tecgds_layers[total] != 0) us_tecflags |= HASGDS;
-//			if (us_tecspice_res[total] != 0.0) us_tecflags |= HASSPIRES;
-//			if (us_tecspice_cap[total] != 0.0) us_tecflags |= HASSPICAP;
-//			if (us_tecspice_ecap[total] != 0.0) us_tecflags |= HASSPIECAP;
-//			if (us_tec3d_height[total] != 0 || us_tec3d_thickness[total] != 0) us_tecflags |= HAS3DINFO;
-//			if (us_tecprint_colors[total*5] != 0 || us_tecprint_colors[total*5+1] != 0 ||
-//				us_tecprint_colors[total*5+2] != 0 || us_tecprint_colors[total*5+3] != 0 ||
-//				us_tecprint_colors[total*5+4] != 0) us_tecflags |= HASPRINTCOL;
-//			tech.layers[total].firstvar = NOVARIABLE;
-//			tech.layers[total].numvar = 0;
-//		}
-//	
+	
 //		for(i=0; i<total; i++)
 //		{
 //			(void)allocstring(&us_teclayer_iname[i], makeabbrev(us_teclayer_names[i], TRUE),
@@ -772,7 +671,7 @@ public class Parse
 //				}
 //			}
 //		}
-//	
+	
 //		// get the color map
 //		var = NOVARIABLE;
 //		for(i=dependentlibcount-1; i>=0; i--)
@@ -791,7 +690,7 @@ public class Parse
 //				us_teccolmap[i].blue = (INTSML)drcptr[(i<<2)*3+2];
 //			}
 //		}
-//	
+	
 //		// see which design rules exist
 //		for(i=0; i<us_teceddrclayers; i++)
 //		{
@@ -821,26 +720,11 @@ public class Parse
 //				us_tecdrc_rules.minnodesize[i*2+1] > 0) us_tecflags |= HASMINNODE;
 //			if (*us_tecdrc_rules.minnodesizeR[i] != 0) us_tecflags |= HASMINNODER;
 //		}
-//	
+	
 //		// store this information on the technology object
-//		(void)setval((INTBIG)tech, VTECHNOLOGY, x_("TECH_layer_names"), (INTBIG)us_teclayer_names,
-//			VSTRING|VDONTSAVE|VISARRAY|(tech.layercount<<VLENGTHSH));
-//		(void)setval((INTBIG)tech, VTECHNOLOGY, x_("TECH_layer_function"), (INTBIG)us_teclayer_function,
-//			VINTEGER|VDONTSAVE|VISARRAY|(tech.layercount<<VLENGTHSH));
-//		(void)setvalkey((INTBIG)tech, VTECHNOLOGY, us_layer_letters_key, (INTBIG)us_teclayer_letters,
-//			VSTRING|VDONTSAVE|VISARRAY|(tech.layercount<<VLENGTHSH));
 //		if ((us_tecflags&HASCOLORMAP) != 0)
 //			(void)setval((INTBIG)tech, VTECHNOLOGY, x_("USER_color_map"), (INTBIG)us_teccolmap,
 //				VCHAR|VDONTSAVE|VISARRAY|((sizeof us_teccolmap)<<VLENGTHSH));
-//		if ((us_tecflags&HASCIF) != 0)
-//			(void)setval((INTBIG)tech, VTECHNOLOGY, x_("IO_cif_layer_names"), (INTBIG)us_teccif_layers,
-//				VSTRING|VDONTSAVE|VISARRAY|(tech.layercount<<VLENGTHSH));
-//		if ((us_tecflags&HASDXF) != 0)
-//			(void)setval((INTBIG)tech, VTECHNOLOGY, x_("IO_dxf_layer_names"), (INTBIG)us_tecdxf_layers,
-//				VSTRING|VDONTSAVE|VISARRAY|(tech.layercount<<VLENGTHSH));
-//		if ((us_tecflags&HASGDS) != 0)
-//			(void)setval((INTBIG)tech, VTECHNOLOGY, x_("IO_gds_layer_numbers"), (INTBIG)us_tecgds_layers,
-//				VSTRING|VDONTSAVE|VISARRAY|(tech.layercount<<VLENGTHSH));
 //	
 //		if ((us_tecflags&(HASCONDRCW|HASUNCONDRCW)) != 0)
 //			(void)setvalkey((INTBIG)tech, VTECHNOLOGY, dr_wide_limitkey, us_tecdrc_rules.widelimit,
@@ -899,238 +783,116 @@ public class Parse
 //		if ((us_tecflags&HASMINNODER) != 0)
 //			(void)setvalkey((INTBIG)tech, VTECHNOLOGY, dr_min_node_size_rulekey,
 //				(INTBIG)us_tecdrc_rules.minnodesizeR, VSTRING|VDONTSAVE|VISARRAY|(us_tecdrc_rules.numnodes<<VLENGTHSH));
-//		if ((us_tecflags&HASSPIRES) != 0)
-//			(void)setval((INTBIG)tech, VTECHNOLOGY, x_("SIM_spice_resistance"), (INTBIG)us_tecspice_res,
-//				VFLOAT|VDONTSAVE|VISARRAY|(tech.layercount<<VLENGTHSH));
-//		if ((us_tecflags&HASSPICAP) != 0)
-//			(void)setval((INTBIG)tech, VTECHNOLOGY, x_("SIM_spice_capacitance"), (INTBIG)us_tecspice_cap,
-//				VFLOAT|VDONTSAVE|VISARRAY|(tech.layercount<<VLENGTHSH));
-//		if ((us_tecflags&HASSPIECAP) != 0)
-//			(void)setval((INTBIG)tech, VTECHNOLOGY, x_("SIM_spice_edge_capacitance"), (INTBIG)us_tecspice_ecap,
-//				VFLOAT|VDONTSAVE|VISARRAY|(tech.layercount<<VLENGTHSH));
-//		if ((us_tecflags&HAS3DINFO) != 0)
-//		{
-//			(void)setval((INTBIG)tech, VTECHNOLOGY, x_("TECH_layer_3dheight"), (INTBIG)us_tec3d_height,
-//				VINTEGER|VDONTSAVE|VISARRAY|(tech.layercount<<VLENGTHSH));
-//			(void)setval((INTBIG)tech, VTECHNOLOGY, x_("TECH_layer_3dthickness"), (INTBIG)us_tec3d_thickness,
-//				VINTEGER|VDONTSAVE|VISARRAY|(tech.layercount<<VLENGTHSH));
-//		}
-//		if ((us_tecflags&HASPRINTCOL) != 0)
-//			(void)setval((INTBIG)tech, VTECHNOLOGY, x_("USER_print_colors"), (INTBIG)us_tecprint_colors,
-//				VINTEGER|VDONTSAVE|VISARRAY|((tech.layercount*5)<<VLENGTHSH));
-//	
-//	
-//		efree((CHAR *)sequence);
-//		return(FALSE);
-//	}
-//	
-//	/*
-//	 * routine to scan the "dependentlibcount" libraries in "dependentlibs",
-//	 * and build the arc structures for it in technology "tech".  Returns true on error.
-//	 */
-//	BOOLEAN us_tecedmakearcs(LIBRARY **dependentlibs, INTBIG dependentlibcount,
-//		TECHNOLOGY *tech)
-//	{
-//		REGISTER NODEPROTO *np;
-//		NODEPROTO **sequence;
-//		REGISTER INTBIG arcindex, count, j, k, layerindex, typ;
-//		REGISTER INTBIG maxwid, hwid, wid, lambda;
-//		REGISTER CHAR *str;
-//		REGISTER NODEINST *ni;
-//		REGISTER EXAMPLE *nelist;
-//		REGISTER SAMPLE *ns;
-//		REGISTER VARIABLE *var;
-//	
-//		// count the number of arcs in the technology
-//		us_tecarc_count = us_teceditfindsequence(dependentlibs, "arc-", Generate.ARCSEQUENCE_KEY);
-//		if (us_tecarc_count <= 0)
-//		{
-//			ttyputerr(_("No arcs found"));
-//			if ((us_tool.toolstate&NODETAILS) == 0)
-//				ttyputerr(_("Create them with the 'edit-arc' option"));
-//			return(TRUE);
-//		}
-//		tech.arcprotocount = us_tecarc_count;
-//	
-//		// allocate the arcs
-//		tech.arcprotos = (TECH_ARCS **)emalloc(((us_tecarc_count+1) * (sizeof (TECH_ARCS *))),
-//			tech.cluster);
-//		if (tech.arcprotos == 0) return(TRUE);
-//		tech.arcprotos[us_tecarc_count] = ((TECH_ARCS *)-1);
-//		us_tecarc_widoff = emalloc((us_tecarc_count * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecarc_widoff == 0) return(TRUE);
-//	
-//		// create the arc structures
-//		lambda = el_curlib.lambda[art_tech.techindex];
-//		for(arcindex=0; arcindex<us_tecarc_count; arcindex++)
-//		{
-//			// build a list of examples found in this arc
-//			np = sequence[arcindex];
-//			nelist = us_tecedgetexamples(np, FALSE);
-//			if (nelist == NOEXAMPLE) return(TRUE);
-//			if (nelist.nextexample != NOEXAMPLE)
-//			{
-//				us_tecedpointout(NONODEINST, np);
-//				ttyputerr(_("Can only be one example of %s but more were found"),
-//					describenodeproto(np));
-//				us_tecedfreeexamples(nelist);
-//				return(TRUE);
-//			}
-//	
-//			// get width and polygon count information
-//			count = 0;
-//			maxwid = hwid = -1;
-//			for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
-//			{
-//				wid = mini(ns.node.highx - ns.node.lowx, ns.node.highy - ns.node.lowy);
-//				if (wid > maxwid) maxwid = wid;
-//				if (ns.layer == NONODEPROTO) hwid = wid; else count++;
-//			}
-//	
-//			// error if there is no highlight box
-//			if (hwid < 0)
-//			{
-//				us_tecedpointout(NONODEINST, np);
-//				ttyputerr(_("No highlight layer found in %s"), describenodeproto(np));
-//				if ((us_tool.toolstate&NODETAILS) == 0)
-//					ttyputmsg(_("Use 'place-layer' option to create HIGHLIGHT"));
-//				us_tecedfreeexamples(nelist);
-//				return(TRUE);
-//			}
-//	
-//			// create and fill the basic structure entries for this arc
-//			tech.arcprotos[arcindex] = (TECH_ARCS *)emalloc(sizeof (TECH_ARCS), tech.cluster);
-//			if (tech.arcprotos[arcindex] == 0) return(TRUE);
-//			(void)allocstring(&tech.arcprotos[arcindex].arcname, &np.protoname[4],
-//				tech.cluster);
-//			tech.arcprotos[arcindex].arcwidth = maxwid * WHOLE / lambda;
-//			tech.arcprotos[arcindex].arcindex = arcindex;
-//			tech.arcprotos[arcindex].creation = NOARCPROTO;
-//			tech.arcprotos[arcindex].laycount = count;
-//			us_tecarc_widoff[arcindex] = (maxwid - hwid) * WHOLE / lambda;
-//			if (us_tecarc_widoff[arcindex] != 0) us_tecflags |= HASARCWID;
-//	
-//			// look for descriptive nodes in the cell
-//			tech.arcprotos[arcindex].initialbits = 0;
-//			for(ni = np.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
-//			{
-//				typ = us_tecedgetoption(ni);
-//				var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, art_messagekey);
-//				if (var == NOVARIABLE) continue;
-//	
-//				// the "Function:" node
-//				if (typ == ARCFUNCTION)
-//				{
-//					str = us_teceditgetparameter(var);
-//					for(j=0; us_tecarc_functions[j].name != 0; j++)
-//						if (namesame(str, us_tecarc_functions[j].name) == 0)
-//					{
-//						tech.arcprotos[arcindex].initialbits |=
-//							(us_tecarc_functions[j].value << AFUNCTIONSH);
-//						break;
-//					}
-//				}
-//	
-//				// the "Fixed-angle:" node
-//				if (typ == ARCFIXANG)
-//				{
-//					str = (CHAR *)var.addr;
-//					if (str[9] == ':') str = &str[11]; else str = &str[13];
-//					if (namesame(str, x_("yes")) == 0)
-//						tech.arcprotos[arcindex].initialbits |= WANTFIXANG;
-//				}
-//	
-//				// the "Wipes pins:" node
-//				if (typ == ARCWIPESPINS)
-//				{
-//					str = us_teceditgetparameter(var);
-//					if (namesame(str, x_("yes")) == 0)
-//						tech.arcprotos[arcindex].initialbits |= CANWIPE;
-//				}
-//	
-//				// the "Extend arcs:" node
-//				if (typ == ARCNOEXTEND)
-//				{
-//					str = us_teceditgetparameter(var);
-//					if (namesame(str, x_("no")) == 0)
-//						tech.arcprotos[arcindex].initialbits |= WANTNOEXTEND;
-//				}
-//	
-//				// the "Angle increment:" node
-//				if (typ == ARCINC)
-//				{
-//					str = us_teceditgetparameter(var);
-//					j = myatoi(str) % 360;
-//					if (j < 0) j += 360;
-//					tech.arcprotos[arcindex].initialbits &= ~AANGLEINC;
-//					tech.arcprotos[arcindex].initialbits |= (j << AANGLEINCSH);
-//				}
-//			}
-//	
-//			// allocate the individual arc layer structures
-//			tech.arcprotos[arcindex].list = (TECH_ARCLAY *)emalloc((count * (sizeof (TECH_ARCLAY))),
-//				tech.cluster);
-//			if (tech.arcprotos[arcindex].list == 0) return(TRUE);
-//	
-//			// fill the individual arc layer structures
-//			layerindex = 0;
-//			for(k=0; k<2; k++)
-//				for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
-//			{
-//				if (ns.layer == NONODEPROTO) continue;
-//	
-//				// get the layer index
-//				for(j=0; j<tech.layercount; j++)
-//					if (namesame(&ns.layer.protoname[6], us_teclayer_names[j]) == 0) break;
-//				if (j >= tech.layercount)
-//				{
-//					ttyputerr(_("Cannot find layer %s, used in %s"), describenodeproto(ns.layer),
-//						describenodeproto(np));
-//					us_tecedfreeexamples(nelist);
-//					return(TRUE);
-//				}
-//	
-//				// only add transparent layers when k=0
-//				if (k == 0)
-//				{
-//					if (tech.layers[j].bits == LAYERO) continue;
-//				} else
-//				{
-//					if (tech.layers[j].bits != LAYERO) continue;
-//				}
-//	
-//				tech.arcprotos[arcindex].list[layerindex].lay = j;
-//	
-//				// determine the style of this arc layer
-//				if (ns.node.proto == art_filledboxprim)
-//					tech.arcprotos[arcindex].list[layerindex].style = FILLED; else
-//						tech.arcprotos[arcindex].list[layerindex].style = CLOSED;
-//	
-//				// determine the width offset of this arc layer
-//				wid = mini(ns.node.highx-ns.node.lowx, ns.node.highy-ns.node.lowy);
-//				tech.arcprotos[arcindex].list[layerindex].off = (maxwid-wid) * WHOLE /
-//					lambda;
-//	
-//				layerindex++;
-//			}
-//			us_tecedfreeexamples(nelist);
-//		}
-//	
-//		// store width offset on the technology
-//		if ((us_tecflags&HASARCWID) != 0)
-//			(void)setval((INTBIG)tech, VTECHNOLOGY, x_("TECH_arc_width_offset"), (INTBIG)us_tecarc_widoff,
-//				VFRACT|VDONTSAVE|VISARRAY|(us_tecarc_count<<VLENGTHSH));
-//		efree((CHAR *)sequence);
-//		return(FALSE);
-//	}
-//	
-//	/*
-//	 * routine to scan the "dependentlibcount" libraries in "dependentlibs",
-//	 * and build the node structures for it in technology "tech".  Returns true on error.
-//	 */
-//	BOOLEAN us_tecedmakenodes(LIBRARY **dependentlibs, INTBIG dependentlibcount,
-//		TECHNOLOGY *tech)
-//	{
+
+		return lis;
+	}
+	
+	/**
+	 * Method to scan the "dependentlibcount" libraries in "dependentlibs",
+	 * and build the arc structures for it in technology "tech".  Returns true on error.
+	 */
+	static boolean us_tecedmakearcs(Library [] dependentlibs, SoftTech tech, Generate.LayerInfo [] lis)
+	{
+		// count the number of arcs in the technology
+		Cell [] arcCells = Manipulate.us_teceditfindsequence(dependentlibs, "arc-", Generate.ARCSEQUENCE_KEY);
+		if (arcCells.length <= 0)
+		{
+			System.out.println("No arcs found");
+			return true;
+		}
+
+		for(int i=0; i<arcCells.length; i++)
+		{
+			Cell np = arcCells[i];
+			Generate.ArcInfo ain = Generate.ArcInfo.us_teceditgetarcinfo(np);
+
+			// build a list of examples found in this arc
+			Example nelist = us_tecedgetexamples(np, false);
+			if (nelist == null) return true;
+			if (nelist.nextexample != null)
+			{
+				us_tecedpointout(null, np);
+				System.out.println("Can only be one example of " + np.describe() + " but more were found");
+				return true;
+			}
+	
+			// get width and polygon count information
+			double maxwid = -1, hwid = -1;
+			int count = 0;
+			for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+			{
+				double wid = Math.min(ns.node.getXSize(), ns.node.getYSize());
+				if (wid > maxwid) maxwid = wid;
+				if (ns.layer == null) hwid = wid; else count++;
+			}
+	
+			// error if there is no highlight box
+			if (hwid < 0)
+			{
+				us_tecedpointout(null, np);
+				System.out.println("No highlight layer found in " + np.describe());
+				return true;
+			}
+			Technology.ArcLayer [] layers = new Technology.ArcLayer[count];
+			
+			// fill the individual arc layer structures
+			int layerindex = 0;
+			for(int k=0; k<2; k++)
+				for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+			{
+				if (ns.layer == null) continue;
+	
+				// get the layer index
+				String sampleLayer = ns.layer.getName().substring(6);
+				Generate.LayerInfo li = null;
+				for(int j=0; j<lis.length; j++)
+				{
+					if (sampleLayer.equals(lis[j].name)) { li = lis[j];   break; }
+				}
+				if (li == null)
+				{
+					System.out.println("Cannot find layer " + sampleLayer + ", used in " + np.describe());
+					return true;
+				}
+
+				// only add transparent layers when k=0
+				if (k == 0)
+				{
+					if (li.desc.getTransparentLayer() == 0) continue;
+				} else
+				{
+					if (li.desc.getTransparentLayer() != 0) continue;
+				}
+	
+				// determine the style of this arc layer
+				Poly.Type style = Poly.Type.CLOSED;
+				if (ns.node.getProto() == Artwork.tech.filledBoxNode)
+					style = Poly.Type.FILLED;
+	
+				// determine the width offset of this arc layer
+				double wid = Math.min(ns.node.getXSize(), ns.node.getYSize());
+				layers[layerindex] = new Technology.ArcLayer(li.generated, maxwid-wid, style);
+				layerindex++;
+			}
+
+			// create and fill the basic structure entries for this arc
+			PrimitiveArc newArc = PrimitiveArc.newInstance(tech, np.getName().substring(3), maxwid, layers);
+			newArc.setFunction(ain.func);
+			newArc.setFactoryFixedAngle(ain.fixang);
+			if (ain.wipes) newArc.setWipable(); else newArc.clearWipable();
+			newArc.setFactoryAngleIncrement(ain.anginc);
+			newArc.setExtended(!ain.noextend);
+			newArc.setWidthOffset(maxwid - hwid);
+		}
+		return false;
+	}
+	
+	/*
+	 * routine to scan the "dependentlibcount" libraries in "dependentlibs",
+	 * and build the node structures for it in technology "tech".  Returns true on error.
+	 */
+	static boolean us_tecedmakenodes(Library [] dependentlibs, SoftTech tech, Generate.LayerInfo [] lis)
+	{
 //		REGISTER NODEPROTO *np;
 //		NODEPROTO **sequence;
 //		REGISTER NODEINST *ni;
@@ -1146,205 +908,82 @@ public class Parse
 //		REGISTER PCON *pc;
 //		REGISTER RULE *r;
 //		REGISTER TECH_NODES *tlist;
-//	
-//		// no rectangle rules
-//		us_tecedfirstrule = NORULE;
-//	
-//		us_tecnode_count = us_teceditfindsequence(dependentlibs, "node-", Generate.NODESEQUENCE_KEY);
-//		if (us_tecnode_count <= 0)
-//		{
-//			ttyputerr(_("No nodes found"));
-//			if ((us_tool.toolstate&NODETAILS) == 0)
-//				ttyputerr(_("Create them with the 'edit-node' option"));
-//			return(TRUE);
-//		}
-//		tech.nodeprotocount = us_tecnode_count;
-//	
-//		// allocate the nodes
-//		tech.nodeprotos = (TECH_NODES **)emalloc((us_tecnode_count+1) *
-//			(sizeof (TECH_NODES *)), tech.cluster);
-//		if (tech.nodeprotos == 0) return(TRUE);
-//		tech.nodeprotos[us_tecnode_count] = ((TECH_NODES *)-1);
-//		us_tecnode_widoff = emalloc((4*us_tecnode_count * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecnode_widoff == 0) return(TRUE);
-//		us_tecnode_grab = emalloc((3*us_tecnode_count * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecnode_grab == 0) return(TRUE);
-//		us_tecnode_grabcount = 0;
-//	
-//		// get the nodes
-//		lambda = el_curlib.lambda[art_tech.techindex];
-//		nodeindex = 0;
-//		for(pass=0; pass<3; pass++)
-//			for(m=0; m<us_tecnode_count; m++)
-//		{
-//			// make sure this is the right type of node for this pass of the nodes
-//			np = sequence[m];
-//			nfunction = NPUNKNOWN;
-//			for(ni = np.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
+	
+		// no rectangle rules
+		us_tecedfirstrule = null;
+
+		Cell [] nodeCells = Manipulate.us_teceditfindsequence(dependentlibs, "node-", Generate.NODESEQUENCE_KEY);
+		if (nodeCells.length <= 0)
+		{
+			System.out.println("No nodes found");
+			return true;
+		}
+	
+		// get the nodes
+		int nodeindex = 0;
+		for(int pass=0; pass<3; pass++)
+			for(int m=0; m<nodeCells.length; m++)
+		{
+			// make sure this is the right type of node for this pass of the nodes
+			Cell np = nodeCells[m];
+			Generate.NodeInfo nin = Generate.NodeInfo.us_teceditgetnodeinfo(np);
+	
+			// only want pins on pass 0, pure-layer nodes on pass 2
+			if (pass == 0 && nin.func != PrimitiveNode.Function.PIN) continue;
+			if (pass == 1 && (nin.func == PrimitiveNode.Function.PIN || nin.func == PrimitiveNode.Function.NODE)) continue;
+			if (pass == 2 && nin.func != PrimitiveNode.Function.NODE) continue;
+
+			// build a list of examples found in this node
+			Example nelist = us_tecedgetexamples(np, true);
+			if (nelist == null) return true;
+	
+			// associate the samples in each example
+			if (us_tecedassociateexamples(nelist, np)) return true;
+
+			// derive primitives from the examples
+			nin.nodeLayers = us_tecedmakeprim(nelist, np, tech, lis);
+			if (nin.nodeLayers == null) return true;
+			String nodeName = np.getName().substring(5);
+			PrimitiveNode prim = PrimitiveNode.newInstance(nodeName, tech, 3, 3, null, nin.nodeLayers);
+			prim.setFunction(nin.func);
+			if (nin.wipes) prim.setArcsWipe();
+			if (nin.lockable) prim.setLockedPrim();
+			if (nin.square) prim.setSquare();
+//			prim.addPrimitivePorts(new PrimitivePort[]
 //			{
-//				// get the node function
-//				if (us_tecedgetoption(ni) != NODEFUNCTION) continue;
-//				var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, art_messagekey);
-//				if (var == NOVARIABLE) continue;
-//				str = us_teceditgetparameter(var);
-//				for(j=0; j<MAXNODEFUNCTION; j++)
-//					if (namesame(str, nodefunctionname(j, NONODEINST)) == 0) break;
-//				if (j < MAXNODEFUNCTION)
+//					PrimitivePort.newInstance(tech, prim, new ArcProto [] {Metal_arc}, "metal", 0,180, 0, PortCharacteristic.UNKNOWN,
+//					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
+//			});
+
+			// analyze special node function circumstances
+			if (nin.func == PrimitiveNode.Function.NODE)
+			{
+//				if (tlist.special != 0)
 //				{
-//					nfunction = j;
-//					break;
+//					us_tecedpointout(null, np);
+//					System.out.println(_("Pure layer %s can not be serpentine"), describenodeproto(np));
+//					us_tecedfreeexamples(nelist);
+//					return(TRUE);
 //				}
-//			}
-//	
-//			// only want pins on pass 0, pure-layer nodes on pass 2
-//			if (pass == 0 && nfunction != NPPIN) continue;
-//			if (pass == 1 && (nfunction == NPPIN || nfunction == NPNODE)) continue;
-//			if (pass == 2 && nfunction != NPNODE) continue;
-//	
-//			// build a list of examples found in this node
-//			nelist = us_tecedgetexamples(np, TRUE);
-//			if (nelist == NOEXAMPLE) return(TRUE);
-//	
-//			// associate the samples in each example
-//			if (us_tecedassociateexamples(nelist, np))
-//			{
-//				us_tecedfreeexamples(nelist);
-//				return(TRUE);
-//			}
-//	
-//			// allocate and fill the TECH_NODES structure
-//			tlist = (TECH_NODES *)emalloc(sizeof (TECH_NODES), tech.cluster);
-//			if (tlist == 0) return(TRUE);
-//			tech.nodeprotos[nodeindex] = tlist;
-//			(void)allocstring(&tlist.nodename, &np.protoname[5], tech.cluster);
-//			tlist.nodeindex = (INTSML)(nodeindex + 1);
-//			tlist.creation = NONODEPROTO;
-//			tlist.xsize = (nelist.hx-nelist.lx)*WHOLE/lambda;
-//			tlist.ysize = (nelist.hy-nelist.ly)*WHOLE/lambda;
-//			tlist.layerlist = 0;
-//			tlist.layercount = 0;
-//			tlist.special = 0;
-//			tlist.f1 = 0;
-//			tlist.f2 = 0;
-//			tlist.f3 = 0;
-//			tlist.f4 = 0;
-//			tlist.f5 = 0;
-//			tlist.f6 = 0;
-//			tlist.gra = 0;
-//			tlist.ele = 0;
-//	
-//			// determine user bits
-//			tlist.initialbits = nfunction<<NFUNCTIONSH;
-//			for(ni = np.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
-//			{
-//				opt = us_tecedgetoption(ni);
-//	
-//				// pick up square node information
-//				if (opt == NODESQUARE)
+//				tlist.special = POLYGONAL;
+//				tlist.initialbits |= HOLDSTRACE;
+			} else if (nin.func == PrimitiveNode.Function.PIN)
+			{
+//				if ((tlist.initialbits&WIPEON1OR2) == 0)
 //				{
-//					var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, art_messagekey);
-//					if (var == NOVARIABLE) continue;
-//					str = us_teceditgetparameter(var);
-//					if (namesame(str, x_("yes")) == 0) tlist.initialbits |= NSQUARE;
-//					continue;
+//					tlist.initialbits |= ARCSWIPE;
+//					tlist.initialbits |= ARCSHRINK;
 //				}
-//	
-//				// pick up invisible on 1 or 2 arc information
-//				if (opt == NODEWIPES)
-//				{
-//					var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, art_messagekey);
-//					if (var == NOVARIABLE) continue;
-//					str = us_teceditgetparameter(var);
-//					if (namesame(str, x_("yes")) == 0)
-//						tlist.initialbits = WIPEON1OR2 | (tlist.initialbits & ~(ARCSWIPE|ARCSHRINK));
-//					continue;
-//				}
-//	
-//				// pick up lockable information
-//				if (opt == NODELOCKABLE)
-//				{
-//					var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, art_messagekey);
-//					if (var == NOVARIABLE) continue;
-//					str = us_teceditgetparameter(var);
-//					if (namesame(str, x_("yes")) == 0) tlist.initialbits |= LOCKEDPRIM;
-//					continue;
-//				}
-//	
-//				// pick up multicut information
-//				if (opt == NODEMULTICUT)
-//				{
-//					var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, art_messagekey);
-//					if (var == NOVARIABLE) continue;
-//					str = us_teceditgetparameter(var);
-//					tlist.f4 = (INTSML)atofr(str);
-//					continue;
-//				}
-//	
-//				// pick up serpentine transistor information
-//				if (opt == NODESERPENTINE)
-//				{
-//					var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, art_messagekey);
-//					if (var == NOVARIABLE) continue;
-//					str = us_teceditgetparameter(var);
-//					if (namesame(str, x_("yes")) == 0)
-//					{
-//						if (tlist.special != 0)
-//						{
-//							us_tecedpointout(ni, np);
-//							ttyputerr(_("Serpentine %s must have Transistor function"),
-//								describenodeproto(np));
-//							us_tecedfreeexamples(nelist);
-//							return(TRUE);
-//						}
-//						tlist.special = SERPTRANS;
-//						tlist.initialbits |= (NODESHRINK | HOLDSTRACE);
-//					}
-//					continue;
-//				}
-//			}
-//	
-//			// derive primitives from the examples
-//			if (us_tecedmakeprim(nelist, np, tech, tlist, lambda))
-//			{
-//				us_tecedfreeexamples(nelist);
-//				efree((CHAR *)tlist.nodename);
-//				efree((CHAR *)tlist);
-//				return(TRUE);
-//			}
-//	
-//			// analyze special node function circumstances
-//			switch (nfunction)
-//			{
-//				case NPNODE:
-//					if (tlist.special != 0)
-//					{
-//						us_tecedpointout(NONODEINST, np);
-//						ttyputerr(_("Pure layer %s can not be serpentine"), describenodeproto(np));
-//						us_tecedfreeexamples(nelist);
-//						return(TRUE);
-//					}
-//					tlist.special = POLYGONAL;
-//					tlist.initialbits |= HOLDSTRACE;
-//					break;
-//				case NPPIN:
-//					if ((tlist.initialbits&WIPEON1OR2) == 0)
-//					{
-//						tlist.initialbits |= ARCSWIPE;
-//						tlist.initialbits |= ARCSHRINK;
-//					}
-//					break;
-//			}
-//	
+			}
+	
 //			// count the number of ports on this node
 //			tlist.portcount = 0;
 //			for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
-//				if (ns.layer == gen_portprim) tlist.portcount++;
+//				if (ns.layer == Generic.tech.portNode) tlist.portcount++;
 //			if (tlist.portcount == 0)
 //			{
 //				us_tecedpointout(NONODEINST, np);
-//				ttyputerr(_("No ports found in %s"), describenodeproto(np));
-//				if ((us_tool.toolstate&NODETAILS) == 0)
-//					ttyputmsg(_("Use 'place-layer port' option to create one"));
+//				System.out.println(_("No ports found in %s"), describenodeproto(np));
 //				us_tecedfreeexamples(nelist);
 //				return(TRUE);
 //			}
@@ -1359,7 +998,7 @@ public class Parse
 //			i = 0;
 //			for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
 //			{
-//				if (ns.layer != gen_portprim) continue;
+//				if (ns.layer != Generic.tech.portNode) continue;
 //	
 //				// port connections
 //				var = ns.node.getVar(Generate.CONNECTION_KEY);
@@ -1379,11 +1018,8 @@ public class Parse
 //						if (k >= tech.arcprotocount)
 //						{
 //							us_tecedpointout(ns.node, ns.node.parent);
-//							ttyputerr(_("Invalid connection list on port in %s"),
+//							System.out.println(_("Invalid connection list on port in %s"),
 //								describenodeproto(np));
-//							if ((us_tool.toolstate&NODETAILS) == 0)
-//								ttyputmsg(_("Use 'change' option to remove arc %s"),
-//									&((NODEPROTO **)var.addr)[j].protoname[4]);
 //							us_tecedfreeexamples(nelist);
 //							return(TRUE);
 //						}
@@ -1435,7 +1071,7 @@ public class Parse
 //				if (portname == 0)
 //				{
 //					us_tecedpointout(ns.node, np);
-//					ttyputerr(_("Cell %s: port does not have a name"), describenodeproto(np));
+//					System.out.println(_("Cell %s: port does not have a name"), describenodeproto(np));
 //					us_tecedfreeexamples(nelist);
 //					return(TRUE);
 //				}
@@ -1443,7 +1079,7 @@ public class Parse
 //					if (*str <= ' ' || *str >= 0177)
 //				{
 //					us_tecedpointout(ns.node, np);
-//					ttyputerr(_("Invalid port name '%s' in %s"), portname,
+//					System.out.println(_("Invalid port name '%s' in %s"), portname,
 //						describenodeproto(np));
 //					us_tecedfreeexamples(nelist);
 //					return(TRUE);
@@ -1467,7 +1103,7 @@ public class Parse
 //					j = 0;
 //					for(ons = nelist.firstsample; ons != ns; ons = ons.nextsample)
 //					{
-//						if (ons.layer != gen_portprim) continue;
+//						if (ons.layer != Generic.tech.portNode) continue;
 //						if (ons.node.firstportarcinst != NOPORTARCINST)
 //						{
 //							if (ns.node.firstportarcinst.conarcinst.network ==
@@ -1503,7 +1139,7 @@ public class Parse
 //				if (pol1port < 0 || pol2port < 0 || dif1port < 0 || dif2port < 0)
 //				{
 //					us_tecedpointout(NONODEINST, np);
-//					ttyputerr(_("Need 2 gate and 2 active ports on field-effect transistor %s"),
+//					System.out.println(_("Need 2 gate and 2 active ports on field-effect transistor %s"),
 //						describenodeproto(np));
 //					us_tecedfreeexamples(nelist);
 //					return(TRUE);
@@ -1592,8 +1228,8 @@ public class Parse
 //			tlist.layercount = 0;
 //			for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
 //			{
-//				if (ns.rule != NORULE && ns.layer != gen_portprim &&
-//					ns.layer != gen_cellcenterprim && ns.layer != NONODEPROTO)
+//				if (ns.rule != NORULE && ns.layer != Generic.tech.portNode &&
+//					ns.layer != Generic.tech.cellCenterNode && ns.layer != NONODEPROTO)
 //						tlist.layercount++;
 //			}
 //	
@@ -1620,8 +1256,8 @@ public class Parse
 //				for(nsindex=0, ns = nelist.firstsample; ns != NOSAMPLE; nsindex++, ns = ns.nextsample)
 //			{
 //				r = ns.rule;
-//				if (r == NORULE || ns.layer == gen_portprim ||
-//					ns.layer == gen_cellcenterprim || ns.layer == NONODEPROTO) continue;
+//				if (r == NORULE || ns.layer == Generic.tech.portNode ||
+//					ns.layer == Generic.tech.cellCenterNode || ns.layer == NONODEPROTO) continue;
 //	
 //				// add cut layers last (only when k=2)
 //				if (k == 2)
@@ -1630,7 +1266,7 @@ public class Parse
 //					if (tlist.special != 0)
 //					{
 //						us_tecedpointout(ns.node, ns.node.parent);
-//						ttyputerr(_("%s is too complex (multiple cuts AND serpentine)"),
+//						System.out.println(_("%s is too complex (multiple cuts AND serpentine)"),
 //							describenodeproto(np));
 //						us_tecedfreeexamples(nelist);
 //						return(TRUE);
@@ -1650,7 +1286,7 @@ public class Parse
 //					if (namesame(&ns.layer.protoname[6], us_teclayer_names[j]) == 0) break;
 //				if (j >= tech.layercount)
 //				{
-//					ttyputerr(_("Cannot find layer %s in %s"), describenodeproto(ns.layer),
+//					System.out.println(_("Cannot find layer %s in %s"), describenodeproto(ns.layer),
 //						describenodeproto(np));
 //					return(TRUE);
 //				}
@@ -1669,18 +1305,18 @@ public class Parse
 //				if (ns.node.proto == art_filledboxprim)             sty = FILLEDRECT; else
 //				if (ns.node.proto == art_boxprim)                   sty = CLOSEDRECT; else
 //				if (ns.node.proto == art_crossedboxprim)            sty = CROSSED; else
-//				if (ns.node.proto == art_filledpolygonprim)         sty = FILLED; else
-//				if (ns.node.proto == art_closedpolygonprim)         sty = CLOSED; else
-//				if (ns.node.proto == art_openedpolygonprim)         sty = OPENED; else
-//				if (ns.node.proto == art_openeddottedpolygonprim)   sty = OPENEDT1; else
-//				if (ns.node.proto == art_openeddashedpolygonprim)   sty = OPENEDT2; else
-//				if (ns.node.proto == art_openedthickerpolygonprim)  sty = OPENEDT3; else
-//				if (ns.node.proto == art_filledcircleprim)          sty = DISC; else
-//				if (ns.node.proto == art_circleprim)
+//				if (ns.node.proto == Artwork.tech.filledPolygonNode)         sty = FILLED; else
+//				if (ns.node.proto == Artwork.tech.closedPolygonNode)         sty = CLOSED; else
+//				if (ns.node.proto == Artwork.tech.openedPolygonNode)         sty = OPENED; else
+//				if (ns.node.proto == Artwork.tech.openedDottedPolygonNode)   sty = OPENEDT1; else
+//				if (ns.node.proto == Artwork.tech.openedDashedPolygonNode)   sty = OPENEDT2; else
+//				if (ns.node.proto == Artwork.tech.openedThickerPolygonNode)  sty = OPENEDT3; else
+//				if (ns.node.proto == Artwork.tech.filledCircleNode)          sty = DISC; else
+//				if (ns.node.proto == Artwork.tech.circleNode)
 //				{
 //					var = getvalkey((INTBIG)ns.node, VNODEINST, VINTEGER, art_degreeskey);
 //					if (var != NOVARIABLE) sty = CIRCLEARC; else sty = CIRCLE;
-//				} else if (ns.node.proto == art_thickcircleprim)
+//				} else if (ns.node.proto == Artwork.tech.thickCircleNode)
 //				{
 //					var = getvalkey((INTBIG)ns.node, VNODEINST, VINTEGER, art_degreeskey);
 //					if (var != NOVARIABLE) sty = THICKCIRCLEARC; else sty = THICKCIRCLE;
@@ -1705,7 +1341,7 @@ public class Parse
 //					}
 //				}
 //				if (sty == -1)
-//					ttyputmsg(_("Cannot determine style to use for %s node in %s"),
+//					System.out.println(_("Cannot determine style to use for %s node in %s"),
 //						describenodeproto(ns.node.proto), describenodeproto(np));
 //	
 //				// load the layer structure(s)
@@ -1739,7 +1375,7 @@ public class Parse
 //					{
 //						if (tlist.gra[i].basics.count == 4)
 //						{
-//							ttyputmsg(_("Ignoring Minimum-Size setting on layer %s in serpentine transistor %s"),
+//							System.out.println(_("Ignoring Minimum-Size setting on layer %s in serpentine transistor %s"),
 //								&ns.layer.protoname[6], &np.protoname[5]);
 //							tlist.gra[i].basics.count = 2;
 //						}
@@ -1792,7 +1428,7 @@ public class Parse
 //				if (diflayer == NOSAMPLE || pollayer == NOSAMPLE || dif1port < 0)
 //				{
 //					us_tecedpointout(NONODEINST, np);
-//					ttyputerr(_("No diffusion and polysilicon layers in transistor %s"),
+//					System.out.println(_("No diffusion and polysilicon layers in transistor %s"),
 //						describenodeproto(np));
 //					us_tecedfreeexamples(nelist);
 //					return(TRUE);
@@ -1866,7 +1502,7 @@ public class Parse
 //					if (ns == NOSAMPLE)
 //					{
 //						us_tecedpointout(NONODEINST, np);
-//						ttyputerr(_("Internal error in serpentine %s"), describenodeproto(np));
+//						System.out.println(_("Internal error in serpentine %s"), describenodeproto(np));
 //						us_tecedfreeexamples(nelist);
 //						continue;
 //					}
@@ -1907,7 +1543,7 @@ public class Parse
 //						if (r.count != 8)
 //						{
 //							us_tecedpointout(NONODEINST, np);
-//							ttyputerr(_("Nonrectangular diffusion in Serpentine %s"),
+//							System.out.println(_("Nonrectangular diffusion in Serpentine %s"),
 //								describenodeproto(np));
 //							us_tecedfreeexamples(nelist);
 //							return(TRUE);
@@ -1917,7 +1553,7 @@ public class Parse
 //							serprule[4] != H0 || serprule[6] != H0)
 //						{
 //							us_tecedpointout(NONODEINST, np);
-//							ttyputerr(_("Unusual diffusion in Serpentine %s"), describenodeproto(np));
+//							System.out.println(_("Unusual diffusion in Serpentine %s"), describenodeproto(np));
 //							us_tecedfreeexamples(nelist);
 //							return(TRUE);
 //						}
@@ -1973,8 +1609,8 @@ public class Parse
 //						i++;
 //					}
 //				}
-//			}
-//	
+			}
+	
 //			// extract width offset information
 //			us_tecnode_widoff[nodeindex*4] = 0;
 //			us_tecnode_widoff[nodeindex*4+1] = 0;
@@ -2039,30 +1675,28 @@ public class Parse
 //					if (err != 0)
 //					{
 //						us_tecedpointout(ns.node, ns.node.parent);
-//						ttyputmsg(_("Highlighting cannot scale from center in %s"), describenodeproto(np));
+//						System.out.println(_("Highlighting cannot scale from center in %s"), describenodeproto(np));
 //						us_tecedfreeexamples(nelist);
 //						return(TRUE);
 //					}
 //				} else
 //				{
 //					us_tecedpointout(ns.node, ns.node.parent);
-//					ttyputerr(_("No rule found for highlight in %s"), describenodeproto(np));
+//					System.out.println(_("No rule found for highlight in %s"), describenodeproto(np));
 //					us_tecedfreeexamples(nelist);
 //					return(TRUE);
 //				}
 //			} else
 //			{
 //				us_tecedpointout(NONODEINST, np);
-//				ttyputerr(_("No highlight found in %s"), describenodeproto(np));
-//				if ((us_tool.toolstate&NODETAILS) == 0)
-//					ttyputmsg(_("Use 'place-layer' option to create HIGHLIGHT"));
+//				System.out.println(_("No highlight found in %s"), describenodeproto(np));
 //				us_tecedfreeexamples(nelist);
 //				return(TRUE);
 //			}
 //	
 //			// get grab point information
 //			for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
-//				if (ns.layer == gen_cellcenterprim) break;
+//				if (ns.layer == Generic.tech.cellCenterNode) break;
 //			if (ns != NOSAMPLE)
 //			{
 //				us_tecnode_grab[us_tecnode_grabcount++] = nodeindex+1;
@@ -2086,9 +1720,9 @@ public class Parse
 //		(void)setval((INTBIG)tech, VTECHNOLOGY, x_("TECH_node_width_offset"), (INTBIG)us_tecnode_widoff,
 //			VFRACT|VDONTSAVE|VISARRAY|((us_tecnode_count*4)<<VLENGTHSH));
 //		efree((CHAR *)sequence);
-//		return(FALSE);
-//	}
-//	
+		return false;
+	}
+	
 //	/*
 //	 * routine to find the closest port to the layer describe by "lx<=X<=hx" and
 //	 * "ly<+Y<=hy" in the list "nelist".  The ports are listed in "tlist".  The algorithm
@@ -2232,7 +1866,7 @@ public class Parse
 					{
 						if (otherAssn instanceof Integer) continue;
 						if ((Example)otherAssn == ne) continue;
-//						us_tecedpointout(otherni, np);
+						us_tecedpointout(otherni, np);
 						System.out.println("Examples are too close in " + np.describe());
 						return null;
 					}
@@ -2241,7 +1875,7 @@ public class Parse
 					// add it to the cluster
 					Sample ns = new Sample();
 					ns.node = otherni;
-//					ns.rule = null;
+					ns.rule = null;
 					ns.parent = ne;
 					ns.nextsample = ne.firstsample;
 					ne.firstsample = ns;
@@ -2252,7 +1886,7 @@ public class Parse
 					{
 						if (!isnode)
 						{
-//							us_tecedpointout(otherni, np);
+							us_tecedpointout(otherni, np);
 							System.out.println(np.describe() + " cannot have ports.  Delete this");
 							return null;
 						}
@@ -2261,7 +1895,7 @@ public class Parse
 					{
 						if (!isnode)
 						{
-//							us_tecedpointout(otherni, np);
+							us_tecedpointout(otherni, np);
 							System.out.println(np.describe() + " cannot have a grab point.  Delete this");
 							return null;
 						}
@@ -2274,7 +1908,7 @@ public class Parse
 							ns.layer = Manipulate.us_tecedgetlayer(otherni);
 							if (ns.layer == null)
 							{
-	//							us_tecedpointout(otherni, np);
+								us_tecedpointout(otherni, np);
 								System.out.println("No layer information on node " + otherni.describe() + " in " + np.describe());
 								return null;
 							}
@@ -2303,20 +1937,20 @@ public class Parse
 			}
 			if (hcount == 0)
 			{
-//				us_tecedpointout(NONODEINST, np);
+				us_tecedpointout(null, np);
 				System.out.println("No highlight layer in " + np.describe() + " example");
 				return null;
 			}
 			if (hcount != 1)
 			{
-//				us_tecedpointout(NONODEINST, np);
+				us_tecedpointout(null, np);
 				System.out.println("Too many highlight layers in " + np.describe() + " example.  Delete some");
 				return null;
 			}
 		}
 		if (nelist == null)
 		{
-//			us_tecedpointout(NONODEINST, np);
+			us_tecedpointout(null, np);
 			System.out.println("No examples found in " + np.describe());
 			return nelist;
 		}
@@ -2361,457 +1995,489 @@ public class Parse
 		return nelist;
 	}
 	
-//	/*
-//	 * Routine to associate the samples of example "nelist" in cell "np"
-//	 * Returns true if there is an error
-//	 */
-//	BOOLEAN us_tecedassociateexamples(EXAMPLE *nelist, NODEPROTO *np)
-//	{
-//		REGISTER EXAMPLE *ne;
-//		REGISTER SAMPLE *ns, *nslist, *nsfound, **listsort, **thissort;
-//		REGISTER INTBIG total, i;
-//		REGISTER CHAR *name, *othername;
-//	
-//		// if there is only one example, no association
-//		if (nelist.nextexample == NOEXAMPLE) return(FALSE);
-//	
-//		// associate each example "ne" with the original in "nelist"
-//		for(ne = nelist.nextexample; ne != NOEXAMPLE; ne = ne.nextexample)
-//		{
-//			// clear associations for every sample "ns" in the example "ne"
-//			for(ns = ne.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
-//				ns.assoc = NOSAMPLE;
-//	
-//			// associate every sample "ns" in the example "ne"
-//			for(ns = ne.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
+	/**
+	 * Method to associate the samples of example "nelist" in cell "np"
+	 * Returns true if there is an error
+	 */
+	static boolean us_tecedassociateexamples(Example nelist, Cell np)
+	{	
+		// if there is only one example, no association
+		if (nelist.nextexample == null) return false;
+	
+		// associate each example "ne" with the original in "nelist"
+		for(Example ne = nelist.nextexample; ne != null; ne = ne.nextexample)
+		{
+			// clear associations for every sample "ns" in the example "ne"
+			for(Sample ns = ne.firstsample; ns != null; ns = ns.nextsample)
+				ns.assoc = null;
+	
+			// associate every sample "ns" in the example "ne"
+			for(Sample ns = ne.firstsample; ns != null; ns = ns.nextsample)
+			{
+				if (ns.assoc != null) continue;
+	
+				// cannot have center in other examples
+				if (ns.layer == Generic.tech.cellCenterNode)
+				{
+					us_tecedpointout(ns.node, ns.node.getParent());
+					System.out.println("Grab point should only be in main example of " + np.describe());
+					return true;
+				}
+	
+				// count number of similar layers in original example "nelist"
+				int total = 0;
+				Sample nsfound = null;
+				for(Sample nslist = nelist.firstsample; nslist != null; nslist = nslist.nextsample)
+				{
+					if (nslist.layer != ns.layer) continue;
+					total++;
+					nsfound = nslist;
+				}
+	
+				// no similar layer found in the original: error
+				if (total == 0)
+				{
+					us_tecedpointout(ns.node, ns.node.getParent());
+					System.out.println("Layer " + us_tecedsamplename(ns.layer) + " not found in main example of " + np.describe());
+					return true;
+				}
+	
+				// just one in the original: simple association
+				if (total == 1)
+				{
+					ns.assoc = nsfound;
+					continue;
+				}
+	
+				// if it is a port, associate by port name
+				if (ns.layer == Generic.tech.portNode)
+				{
+					String name = Manipulate.us_tecedgetportname(ns.node);
+					if (name == null)
+					{
+						us_tecedpointout(ns.node, ns.node.getParent());
+						System.out.println("Cell " + np.describe() + ": port does not have a name");
+						return true;
+					}
+	
+					// search the original for that port
+					boolean found = false;
+					for(Sample nslist = nelist.firstsample; nslist != null; nslist = nslist.nextsample)
+						if (nslist.layer == Generic.tech.portNode)
+					{
+						String othername = Manipulate.us_tecedgetportname(nslist.node);
+						if (othername == null)
+						{
+							us_tecedpointout(nslist.node, nslist.node.getParent());
+							System.out.println("Cell " + np.describe() + ": port does not have a name");
+							return true;
+						}
+						if (!name.equalsIgnoreCase(othername)) continue;
+						ns.assoc = nslist;
+						found = true;
+						break;
+					}
+					if (!found)
+					{
+						us_tecedpointout(null, np);
+						System.out.println("Could not find port " + name + " in all examples of " + np.describe());
+						return true;
+					}
+					continue;
+				}
+	
+				// count the number of this layer in example "ne"
+				int i = 0;
+				for(Sample nslist = ne.firstsample; nslist != null; nslist = nslist.nextsample)
+					if (nslist.layer == ns.layer) i++;
+	
+				// if number of similar layers differs: error
+				if (total != i)
+				{
+					us_tecedpointout(ns.node, ns.node.getParent());
+					System.out.println("Layer " + us_tecedsamplename(ns.layer) + " found " + total + " times in main example, " + i + " in other");
+					System.out.println("Make the counts consistent");
+					return true;
+				}
+	
+				// make a list of samples on this layer in original
+				List mainList = new ArrayList();
+				i = 0;
+				for(Sample nslist = nelist.firstsample; nslist != null; nslist = nslist.nextsample)
+					if (nslist.layer == ns.layer) mainList.add(nslist);
+	
+				// make a list of samples on this layer in example "ne"
+				List thisList = new ArrayList();
+				i = 0;
+				for(Sample nslist = ne.firstsample; nslist != null; nslist = nslist.nextsample)
+					if (nslist.layer == ns.layer) thisList.add(nslist);
+	
+				// sort each list in X/Y/shape
+				Collections.sort(mainList, new SampleCoordAscending());
+				Collections.sort(thisList, new SampleCoordAscending());
+	
+				// see if the lists have duplication
+				for(i=1; i<total; i++)
+				{
+					Sample thisSample = (Sample)thisList.get(i);
+					Sample lastSample = (Sample)thisList.get(i-1);
+					Sample thisMainSample = (Sample)mainList.get(i);
+					Sample lastMainSample = (Sample)mainList.get(i-1);
+					if ((thisSample.xpos == lastSample.xpos &&
+							thisSample.ypos == lastSample.ypos &&
+							thisSample.node.getProto() == lastSample.node.getProto()) ||
+						(thisMainSample.xpos == lastMainSample.xpos &&
+							thisMainSample.ypos == lastMainSample.ypos &&
+							thisMainSample.node.getProto() == lastMainSample.node.getProto())) break;
+				}
+				if (i >= total)
+				{
+					// association can be made in X
+					for(i=0; i<total; i++)
+					{
+						Sample thisSample = (Sample)thisList.get(i);
+						thisSample.assoc = (Sample)mainList.get(i);
+					}
+					continue;
+				}
+	
+				// don't know how to associate this sample
+				Sample thisSample = (Sample)thisList.get(i);
+				us_tecedpointout(thisSample.node, thisSample.node.getParent());
+				System.out.println("Sample " + us_tecedsamplename(thisSample.layer) + " is unassociated in " + np.describe());
+				return true;
+			}
+	
+			// final check: make sure every sample in original example associates
+			for(Sample nslist = nelist.firstsample; nslist != null;
+				nslist = nslist.nextsample) nslist.assoc = null;
+			for(Sample ns = ne.firstsample; ns != null; ns = ns.nextsample)
+				ns.assoc.assoc = ns;
+			for(Sample nslist = nelist.firstsample; nslist != null; nslist = nslist.nextsample)
+				if (nslist.assoc == null)
+			{
+				if (nslist.layer == Generic.tech.cellCenterNode) continue;
+				us_tecedpointout(nslist.node, nslist.node.getParent());
+				System.out.println("Layer " + us_tecedsamplename(nslist.layer) + " found in main example, but not others in " + np.describe());
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static class SampleCoordAscending implements Comparator
+	{
+		public int compare(Object o1, Object o2)
+		{
+			Sample s1 = (Sample)o1;
+			Sample s2 = (Sample)o2;
+			if (s1.xpos != s2.xpos) return (int)(s1.xpos - s2.xpos);
+			if (s1.ypos != s2.ypos) return (int)(s1.ypos - s2.ypos);
+//			return s1.node.getProto().hashCode() - s2.node.proto;
+			return 0;
+		}
+	}
+
+	/* flags about the edge positions in the examples */
+	private static final int TOEDGELEFT     =   01;		/* constant to left edge */
+	private static final int TOEDGERIGHT    =   02;		/* constant to right edge */
+	private static final int TOEDGETOP      =   04;		/* constant to top edge */
+	private static final int TOEDGEBOT      =  010;		/* constant to bottom edge */
+	private static final int FROMCENTX      =  020;		/* constant in X to center */
+	private static final int FROMCENTY      =  040;		/* constant in Y to center */
+	private static final int RATIOCENTX     = 0100;		/* fixed ratio from X center to edge */
+	private static final int RATIOCENTY     = 0200;		/* fixed ratio from Y center to edge */
+
+	static Technology.NodeLayer [] makeNodeScaledUniformly(Example nelist, NodeProto np, Generate.LayerInfo [] lis)
+	{
+		int count = 0;
+		for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample) count++;
+
+		Technology.NodeLayer [] nodeLayers = new Technology.NodeLayer[count];
+		count = 0;
+		for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+		{
+			Rectangle2D nodeBounds = ns.node.getBounds();
+			AffineTransform trans = ns.node.rotateOut();
+			if (ns.layer == null || ns.layer == Generic.tech.portNode) continue;
+//			// if a multicut separation was given and this is a cut, add the rule
+//			if (tlist.f4 > 0 && ns.layer != null && ns.layer != Generic.tech.portNode)
 //			{
-//				if (ns.assoc != NOSAMPLE) continue;
-//	
-//				// cannot have center in other examples
-//				if (ns.layer == gen_cellcenterprim)
+//				for(int i=0; i<lis.length; i++)
 //				{
-//					us_tecedpointout(ns.node, ns.node.parent);
-//					ttyputerr(_("Grab point should only be in main example of %s"),
-//						describenodeproto(np));
-//					return(TRUE);
-//				}
-//	
-//				// count number of similar layers in original example "nelist"
-//				for(total = 0, nslist = nelist.firstsample; nslist != NOSAMPLE;
-//					nslist = nslist.nextsample)
-//				{
-//					if (nslist.layer != ns.layer) continue;
-//					total++;
-//					nsfound = nslist;
-//				}
-//	
-//				// no similar layer found in the original: error
-//				if (total == 0)
-//				{
-//					us_tecedpointout(ns.node, ns.node.parent);
-//					ttyputerr(_("Layer %s not found in main example of %s"),
-//						us_tecedsamplename(ns.layer), describenodeproto(np));
-//					return(TRUE);
-//				}
-//	
-//				// just one in the original: simple association
-//				if (total == 1)
-//				{
-//					ns.assoc = nsfound;
-//					continue;
-//				}
-//	
-//				// if it is a port, associate by port name
-//				if (ns.layer == gen_portprim)
-//				{
-//					name = us_tecedgetportname(ns.node);
-//					if (name == 0)
-//					{
-//						us_tecedpointout(ns.node, ns.node.parent);
-//						ttyputerr(_("Cell %s: port does not have a name"), describenodeproto(np));
-//						return(TRUE);
-//					}
-//	
-//					// search the original for that port
-//					for(nslist = nelist.firstsample; nslist != NOSAMPLE; nslist = nslist.nextsample)
-//						if (nslist.layer == gen_portprim)
-//					{
-//						othername = us_tecedgetportname(nslist.node);
-//						if (othername == 0)
-//						{
-//							us_tecedpointout(nslist.node, nslist.node.parent);
-//							ttyputerr(_("Cell %s: port does not have a name"), describenodeproto(np));
-//							return(TRUE);
-//						}
-//						if (namesame(name, othername) != 0) continue;
-//						ns.assoc = nslist;
-//						break;
-//					}
-//					if (nslist == NOSAMPLE)
-//					{
-//						us_tecedpointout(NONODEINST, np);
-//						ttyputerr(_("Could not find port %s in all examples of %s"),
-//							name, describenodeproto(np));
-//						return(TRUE);
-//					}
-//					continue;
-//				}
-//	
-//				// count the number of this layer in example "ne"
-//				for(i = 0, nslist = ne.firstsample; nslist != NOSAMPLE;
-//					nslist = nslist.nextsample)
-//						if (nslist.layer == ns.layer) i++;
-//	
-//				// if number of similar layers differs: error
-//				if (total != i)
-//				{
-//					us_tecedpointout(ns.node, ns.node.parent);
-//					ttyputerr(_("Layer %s found %ld times in main example, %ld in other"),
-//						us_tecedsamplename(ns.layer), total, i);
-//					ttyputmsg(_("Make the counts consistent"));
-//					return(TRUE);
-//				}
-//	
-//				// make a list of samples on this layer in original
-//				listsort = (SAMPLE **)emalloc((total * (sizeof (SAMPLE *))), el_tempcluster);
-//				if (listsort == 0) return(TRUE);
-//				for(i = 0, nslist = nelist.firstsample; nslist != NOSAMPLE;
-//					nslist = nslist.nextsample)
-//						if (nslist.layer == ns.layer) listsort[i++] = nslist;
-//	
-//				// make a list of samples on this layer in example "ne"
-//				thissort = (SAMPLE **)emalloc((total * (sizeof (SAMPLE *))), el_tempcluster);
-//				if (thissort == 0) return(TRUE);
-//				for(i = 0, nslist = ne.firstsample; nslist != NOSAMPLE; nslist = nslist.nextsample)
-//					if (nslist.layer == ns.layer) thissort[i++] = nslist;
-//	
-//				// sort each list in X/Y/shape
-//				esort(listsort, total, sizeof (SAMPLE *), us_samplecoordascending);
-//				esort(thissort, total, sizeof (SAMPLE *), us_samplecoordascending);
-//	
-//				// see if the lists have duplication
-//				for(i=1; i<total; i++)
-//					if ((thissort[i].xpos == thissort[i-1].xpos &&
-//						thissort[i].ypos == thissort[i-1].ypos &&
-//							thissort[i].node.proto == thissort[i-1].node.proto) ||
-//						(listsort[i].xpos == listsort[i-1].xpos &&
-//							listsort[i].ypos == listsort[i-1].ypos &&
-//								listsort[i].node.proto == listsort[i-1].node.proto)) break;
-//				if (i >= total)
-//				{
-//					// association can be made in X
-//					for(i=0; i<total; i++) thissort[i].assoc = listsort[i];
-//					efree((CHAR *)thissort);
-//					efree((CHAR *)listsort);
-//					continue;
-//				}
-//	
-//				// don't know how to associate this sample
-//				us_tecedpointout(thissort[i].node, thissort[i].node.parent);
-//				ttyputerr(_("Sample %s is unassociated in %s"),
-//					us_tecedsamplename(thissort[i].layer), describenodeproto(np));
-//				efree((CHAR *)thissort);
-//				efree((CHAR *)listsort);
-//				return(TRUE);
-//			}
-//	
-//			// final check: make sure every sample in original example associates
-//			for(nslist = nelist.firstsample; nslist != NOSAMPLE;
-//				nslist = nslist.nextsample) nslist.assoc = NOSAMPLE;
-//			for(ns = ne.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
-//				ns.assoc.assoc = ns;
-//			for(nslist = nelist.firstsample; nslist != NOSAMPLE;
-//				nslist = nslist.nextsample) if (nslist.assoc == NOSAMPLE)
-//			{
-//				if (nslist.layer == gen_cellcenterprim) continue;
-//				us_tecedpointout(nslist.node, nslist.node.parent);
-//				ttyputerr(_("Layer %s found in main example, but not others in %s"),
-//					us_tecedsamplename(nslist.layer), describenodeproto(np));
-//				return(TRUE);
-//			}
-//		}
-//		return(FALSE);
-//	}
-//	
-//	/*
-//	 * Helper routine to "xx()" for sorting samples by coordinate value.
-//	 */
-//	int us_samplecoordascending(const void *e1, const void *e2)
-//	{
-//		SAMPLE *s1, *s2;
-//	
-//		s1 = *((SAMPLE **)e1);
-//		s2 = *((SAMPLE **)e2);
-//		if (s1.xpos != s2.xpos) return(s1.xpos - s2.xpos);
-//		if (s1.ypos != s2.ypos) return(s1.ypos - s2.ypos);
-//		return(s1.node.proto - s2.node.proto);
-//	}
-//	
-//	/* flags about the edge positions in the examples */
-//	#define TOEDGELEFT       01		/* constant to left edge */
-//	#define TOEDGERIGHT      02		/* constant to right edge */
-//	#define TOEDGETOP        04		/* constant to top edge */
-//	#define TOEDGEBOT       010		/* constant to bottom edge */
-//	#define FROMCENTX       020		/* constant in X to center */
-//	#define FROMCENTY       040		/* constant in Y to center */
-//	#define RATIOCENTX     0100		/* fixed ratio from X center to edge */
-//	#define RATIOCENTY     0200		/* fixed ratio from Y center to edge */
-//	
-//	BOOLEAN us_tecedmakeprim(EXAMPLE *nelist, NODEPROTO *np, TECHNOLOGY *tech, TECH_NODES *tlist, INTBIG lambda)
-//	{
-//		REGISTER SAMPLE *ns, *nso, *hs;
-//		REGISTER EXAMPLE *ne;
-//		REGISTER INTBIG total, count, newcount, i, truecount, multixs, multiys, multiindent, multisep;
-//		REGISTER INTBIG *newrule, r, dist;
-//		XARRAY trans;
-//		REGISTER CHAR *str;
-//		REGISTER VARIABLE *var, *var2, *var3;
-//		REGISTER NODEINST *ni;
-//	
-//		// look at every sample "ns" in the main example "nelist"
-//		for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
-//		{
-//			// ignore grab point specification
-//			if (ns.layer == gen_cellcenterprim) continue;
-//	
-//			// if there is only one example: make sample scale with edge
-//			if (nelist.nextexample == NOEXAMPLE)
-//			{
-//				// if a multicut separation was given and this is a cut, add the rule
-//				if (tlist.f4 > 0 && ns.layer != NONODEPROTO && ns.layer != gen_portprim)
-//				{
-//					for(i=0; i<us_teclayer_count; i++)
-//						if (namesame(us_teclayer_names[i], &ns.layer.protoname[6]) == 0) break;
-//					if (i < us_teclayer_count)
+//					if (ns.layer.getName().substring(6).equalsIgnoreCase(lis[i].name))
 //					{
 //						if (layeriscontact(us_teclayer_function[i]))
 //						{
 //							hs = us_tecedneedhighlightlayer(nelist, np);
-//							if (hs == 0) return(TRUE);
+//							if (hs == 0) return true;
 //							multixs = ns.node.highx - ns.node.lowx;
 //							multiys = ns.node.highy - ns.node.lowy;
 //							multiindent = ns.node.lowx - hs.node.lowx;
 //							multisep = muldiv(tlist.f4, lambda, WHOLE);
 //							ns.rule = us_tecedaddmulticutrule(multixs, multiys, multiindent, multisep);
-//							if (ns.rule == 0) return(TRUE);
+//							if (ns.rule == 0) return true;
 //							continue;
 //						}
 //					}
 //				}
-//	
-//				// see if there is polygonal information
-//				if (ns.node.proto == art_filledpolygonprim ||
-//					ns.node.proto == art_closedpolygonprim ||
-//					ns.node.proto == art_openedpolygonprim ||
-//					ns.node.proto == art_openeddottedpolygonprim ||
-//					ns.node.proto == art_openeddashedpolygonprim ||
-//					ns.node.proto == art_openedthickerpolygonprim)
-//				{
-//					var = gettrace(ns.node);
-//				} else var = NOVARIABLE;
-//				if (var != NOVARIABLE)
-//				{
-//					// make sure the arrays hold "count" points
-//					count = getlength(var) / 2;
-//					us_tecedforcearrays(count);
-//	
-//					// fill the array
-//					makerot(ns.node, trans);
-//					for(i=0; i<count; i++)
-//					{
-//						xform((ns.node.geom.lowx + ns.node.geom.highx)/2 +
-//							((INTBIG *)var.addr)[i*2],
-//								(ns.node.geom.lowy + ns.node.geom.highy)/2 +
-//									((INTBIG *)var.addr)[i*2+1], &us_tecedmakepx[i], &us_tecedmakepy[i], trans);
-//						us_tecedmakefactor[i] = FROMCENTX|FROMCENTY;
-//					}
-//				} else
-//				{
-//					// see if it is an arc of a circle
-//					count = 2;
-//					if (ns.node.proto == art_circleprim || ns.node.proto == art_thickcircleprim)
-//					{
-//						var = getvalkey((INTBIG)ns.node, VNODEINST, VINTEGER, art_degreeskey);
-//						if (var != NOVARIABLE) count = 3;
-//					} else var = NOVARIABLE;
-//	
-//					// make sure the arrays hold enough points
-//					us_tecedforcearrays(count);
-//	
-//					// set sample description
-//					if (var != NOVARIABLE)
-//					{
-//						// handle circular arc sample
-//						us_tecedmakepx[0] = (ns.node.geom.lowx + ns.node.geom.highx) / 2;
-//						us_tecedmakepy[0] = (ns.node.geom.lowy + ns.node.geom.highy) / 2;
-//						makerot(ns.node, trans);
-//						dist = ns.node.geom.highx - us_tecedmakepx[0];
-//						xform(us_tecedmakepx[0] + mult(dist, cosine(var.addr)),
-//							us_tecedmakepy[0] + mult(dist, sine(var.addr)), &us_tecedmakepx[1], &us_tecedmakepy[1], trans);
-//						xform(ns.node.geom.highx,
-//							(ns.node.geom.lowy + ns.node.geom.highy) / 2, &us_tecedmakepx[2], &us_tecedmakepy[2], trans);
-//						us_tecedmakefactor[0] = FROMCENTX|FROMCENTY;
-//						us_tecedmakefactor[1] = RATIOCENTX|RATIOCENTY;
-//						us_tecedmakefactor[2] = RATIOCENTX|RATIOCENTY;
-//					} else if (ns.node.proto == art_circleprim || ns.node.proto == art_thickcircleprim ||
-//						ns.node.proto == art_filledcircleprim)
-//					{
-//						// handle circular sample
-//						us_tecedmakepx[0] = (ns.node.geom.lowx + ns.node.geom.highx) / 2;
-//						us_tecedmakepy[0] = (ns.node.geom.lowy + ns.node.geom.highy) / 2;
-//						us_tecedmakepx[1] = ns.node.geom.highx;
-//						us_tecedmakepy[1] = (ns.node.geom.lowy + ns.node.geom.highy) / 2;
-//						us_tecedmakefactor[0] = FROMCENTX|FROMCENTY;
-//						us_tecedmakefactor[1] = TOEDGERIGHT|FROMCENTY;
-//					} else
-//					{
-//						// rectangular sample: get the bounding box in (px, py)
-//						us_tecedgetbbox(ns.node, &us_tecedmakepx[0], &us_tecedmakepx[1], &us_tecedmakepy[0], &us_tecedmakepy[1]);
-//	
-//						// preset stretch factors to go to the edges of the box
-//						us_tecedmakefactor[0] = TOEDGELEFT|TOEDGEBOT;
-//						us_tecedmakefactor[1] = TOEDGERIGHT|TOEDGETOP;
-//					}
-//				}
-//	
-//				// add the rule to the collection
-//				newrule = us_tecedstretchpoints(us_tecedmakepx,us_tecedmakepy, count, us_tecedmakefactor, ns, np,
-//					nelist);
-//				if (newrule == 0) return(TRUE);
-//				var = getvalkey((INTBIG)ns.node, VNODEINST, VSTRING|VISARRAY, art_messagekey);
-//				if (var == NOVARIABLE) str = (CHAR *)0; else
-//					str = ((CHAR **)var.addr)[0];
-//				ns.rule = us_tecedaddrule(newrule, count*4, FALSE, str);
-//				if (ns.rule == NORULE) return(TRUE);
-//				efree((CHAR *)newrule);
-//				continue;
 //			}
-//	
-//			// look at other examples and find samples associated with this
-//			nelist.studysample = ns;
-//			for(ne = nelist.nextexample; ne != NOEXAMPLE; ne = ne.nextexample)
-//			{
-//				// count number of samples associated with the main sample
-//				total = 0;
-//				for(nso = ne.firstsample; nso != NOSAMPLE; nso = nso.nextsample)
-//					if (nso.assoc == ns)
-//				{
-//					ne.studysample = nso;
-//					total++;
-//				}
-//				if (total == 0)
-//				{
-//					us_tecedpointout(ns.node, ns.node.parent);
-//					ttyputerr(_("Still unassociated sample in %s (shouldn't happen)"),
-//						describenodeproto(np));
-//					return(TRUE);
-//				}
-//	
-//				// if there are multiple associations, it must be a contact cut
-//				if (total > 1)
-//				{
-//					// make sure the layer is real geometry, not highlight or a port
-//					if (ns.layer == NONODEPROTO || ns.layer == gen_portprim)
-//					{
-//						us_tecedpointout(ns.node, ns.node.parent);
-//						ttyputerr(_("Only contact layers may be iterated in examples of %s"),
-//							describenodeproto(np));
-//						return(TRUE);
-//					}
-//	
-//					// make sure the contact cut layer is opaque
-//					for(i=0; i<tech.layercount; i++)
-//						if (namesame(&ns.layer.protoname[6], us_teclayer_names[i]) == 0)
-//					{
-//						if (tech.layers[i].bits != LAYERO)
-//						{
-//							us_tecedpointout(ns.node, ns.node.parent);
-//							ttyputerr(_("Multiple contact layers must not be transparent in %s"),
-//								describenodeproto(np));
-//							return(TRUE);
-//						}
-//						break;
-//					}
-//	
-//					// add the rule
-//					if (us_tecedmulticut(ns, nelist, np)) return(TRUE);
-//					break;
-//				}
-//			}
-//			if (ne != NOEXAMPLE) continue;
-//	
-//			// associations done for this sample, now analyze them
-//			if (ns.node.proto == art_filledpolygonprim ||
-//				ns.node.proto == art_closedpolygonprim ||
-//				ns.node.proto == art_openedpolygonprim ||
-//				ns.node.proto == art_openeddottedpolygonprim ||
-//				ns.node.proto == art_openeddashedpolygonprim ||
-//				ns.node.proto == art_openedthickerpolygonprim)
-//			{
-//				var = gettrace(ns.node);
-//			} else var = NOVARIABLE;
-//			if (var != NOVARIABLE)
-//			{
-//				truecount = count = getlength(var) / 2;
-//	
-//				// make sure the arrays hold "count" points
-//				us_tecedforcearrays(count);
-//				makerot(ns.node, trans);
-//				for(i=0; i<count; i++)
-//					xform((ns.node.geom.lowx + ns.node.geom.highx)/2 + ((INTBIG *)var.addr)[i*2],
-//						(ns.node.geom.lowy + ns.node.geom.highy)/2 +
-//							((INTBIG *)var.addr)[i*2+1], &us_tecedmakepx[i], &us_tecedmakepy[i], trans);
-//			} else
-//			{
-//				// make sure the arrays hold enough points
-//				count = 2;
-//				if (ns.node.proto == art_circleprim || ns.node.proto == art_thickcircleprim)
-//				{
-//					var3 = getvalkey((INTBIG)ns.node, VNODEINST, VINTEGER, art_degreeskey);
-//					if (var3 != NOVARIABLE) count = 3;
-//				} else var3 = NOVARIABLE;
-//				truecount = count;
-//				if (var3 == NOVARIABLE)
-//				{
+
+			// see if there is polygonal information
+			Point2D [] us_tecedmakep = null;
+			int [] us_tecedmakefactor = null;
+			Point2D [] points = null;
+			Variable var = null;
+			if (ns.node.getProto() == Artwork.tech.filledPolygonNode ||
+				ns.node.getProto() == Artwork.tech.closedPolygonNode ||
+				ns.node.getProto() == Artwork.tech.openedPolygonNode ||
+				ns.node.getProto() == Artwork.tech.openedDottedPolygonNode ||
+				ns.node.getProto() == Artwork.tech.openedDashedPolygonNode ||
+				ns.node.getProto() == Artwork.tech.openedThickerPolygonNode)
+			{
+				points = ns.node.getTrace();
+			}
+			if (points != null)
+			{
+				// fill the array
+				us_tecedmakep = new Point2D[points.length];
+				us_tecedmakefactor = new int[points.length];
+				for(int i=0; i<points.length; i++)
+				{
+					us_tecedmakep[i] = new Point2D.Double(nodeBounds.getCenterX() + points[i].getX(),
+						nodeBounds.getCenterY() + points[i].getY());
+					trans.transform(us_tecedmakep[i], us_tecedmakep[i]);
+					us_tecedmakefactor[i] = FROMCENTX|FROMCENTY;
+				}
+			} else
+			{
+				// see if it is an arc of a circle
+				double [] angles = null;
+				if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode)
+				{
+					angles = ns.node.getArcDegrees();
+					if (angles[0] == 0 && angles[1] == 0) angles = null;
+				}
+	
+				// set sample description
+				if (angles != null)
+				{
+					// handle circular arc sample
+					us_tecedmakep = new Point2D[3];
+					us_tecedmakefactor = new int[3];
+					us_tecedmakep[0] = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY());
+					double dist = nodeBounds.getMaxX() - nodeBounds.getCenterX();
+	//				xform(us_tecedmakepx[0] + mult(dist, cosine(var.addr)),
+	//					us_tecedmakepy[0] + mult(dist, sine(var.addr)), &us_tecedmakepx[1], &us_tecedmakepy[1], trans);
+	//				xform(ns.node.geom.highx,
+	//					(ns.node.geom.lowy + ns.node.geom.highy) / 2, &us_tecedmakepx[2], &us_tecedmakepy[2], trans);
+					us_tecedmakefactor[0] = FROMCENTX|FROMCENTY;
+					us_tecedmakefactor[1] = RATIOCENTX|RATIOCENTY;
+					us_tecedmakefactor[2] = RATIOCENTX|RATIOCENTY;
+				} else if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode ||
+					ns.node.getProto() == Artwork.tech.filledCircleNode)
+				{
+					// handle circular sample
+					us_tecedmakep = new Point2D[2];
+					us_tecedmakefactor = new int[2];
+					us_tecedmakep[0] = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY());
+					us_tecedmakep[1] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getCenterY());
+					us_tecedmakefactor[0] = FROMCENTX|FROMCENTY;
+					us_tecedmakefactor[1] = TOEDGERIGHT|FROMCENTY;
+				} else
+				{
+					// rectangular sample: get the bounding box in (px, py)
+					us_tecedmakep = new Point2D[2];
+					us_tecedmakefactor = new int[2];
+					us_tecedmakep[0] = new Point2D.Double(nodeBounds.getMinX(), nodeBounds.getMinY());
+					us_tecedmakep[1] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getMaxY());
+//					us_tecedmakep[2] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getMaxY());
+//					us_tecedmakep[3] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getMinY());
+	//				us_tecedgetbbox(ns.node, &us_tecedmakepx[0], &us_tecedmakepx[1], &us_tecedmakepy[0], &us_tecedmakepy[1]);
+	
+					// preset stretch factors to go to the edges of the box
+					us_tecedmakefactor[0] = TOEDGELEFT|TOEDGEBOT;
+					us_tecedmakefactor[1] = TOEDGERIGHT|TOEDGETOP;
+				}
+			}
+	
+			// add the rule to the collection
+			Technology.TechPoint [] newrule = us_tecedstretchpoints(us_tecedmakep, us_tecedmakefactor, ns, np, nelist);
+			if (newrule == null) return null;
+			String str = Manipulate.getValueOnNode(ns.node);
+			if (str != null && str.length() == 0) str = null;
+			ns.rule = us_tecedaddrule(newrule, false, str);
+			if (ns.rule == null) return null;
+
+			// determine the layer
+			Layer layer = null;
+			String layerName = ns.layer.getName();
+			String desiredLayer = ns.layer.getName().substring(6);
+			for(int i=0; i<lis.length; i++)
+			{
+				if (desiredLayer.equals(lis[i].name)) { layer = lis[i].generated;   break; }
+			}
+			if (layer == null)
+			{
+				System.out.println("Cannot find layer " + desiredLayer);
+				return null;
+			}
+			nodeLayers[count] = new Technology.NodeLayer(layer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, newrule);
+			count++;
+		}
+		return nodeLayers;
+	}
+
+	static Technology.NodeLayer [] us_tecedmakeprim(Example nelist, NodeProto np, Technology tech, Generate.LayerInfo [] lis)
+	{	
+		// if there is only one example: make sample scale with edge
+		if (nelist.nextexample == null)
+		{
+			return makeNodeScaledUniformly(nelist, np, lis);
+		}
+
+		// look at every sample "ns" in the main example "nelist"
+		for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+		{
+			// ignore grab point specification
+			if (ns.layer == Generic.tech.cellCenterNode) continue;
+			AffineTransform trans = ns.node.rotateOut();
+			Rectangle2D nodeBounds = ns.node.getBounds();
+	
+			// look at other examples and find samples associated with this
+			nelist.studysample = ns;
+			boolean error = false;
+			for(Example ne = nelist.nextexample; ne != null; ne = ne.nextexample)
+			{
+				// count number of samples associated with the main sample
+				int total = 0;
+				for(Sample nso = ne.firstsample; nso != null; nso = nso.nextsample)
+					if (nso.assoc == ns)
+				{
+					ne.studysample = nso;
+					total++;
+				}
+				if (total == 0)
+				{
+					us_tecedpointout(ns.node, ns.node.getParent());
+					System.out.println("Still unassociated sample in " + np.describe() + " (shouldn't happen)");
+					return null;
+				}
+	
+				// if there are multiple associations, it must be a contact cut
+				if (total > 1)
+				{
+					// make sure the layer is real geometry, not highlight or a port
+					if (ns.layer == null || ns.layer == Generic.tech.portNode)
+					{
+						us_tecedpointout(ns.node, ns.node.getParent());
+						System.out.println("Only contact layers may be iterated in examples of " + np.describe());
+						return null;
+					}
+	
+					// make sure the contact cut layer is opaque
+					for(int i=0; i<lis.length; i++)
+					{
+						if (ns.layer.getName().substring(6).equalsIgnoreCase(lis[i].name))
+						{
+//							if (tech.layers[i].bits != LAYERO)
+//							{
+//								us_tecedpointout(ns.node, ns.node.getParent());
+//								System.out.println(_("Multiple contact layers must not be transparent in %s"),
+//									describenodeproto(np));
+//								return true;
+//							}
+							break;
+						}
+					}
+	
+					// add the rule
+//					if (us_tecedmulticut(ns, nelist, np)) return true;
+					error = true;
+					break;
+				}
+			}
+			if (error) continue;
+	
+			// associations done for this sample, now analyze them
+			Point2D [] us_tecedmakep = null;
+			int [] us_tecedmakefactor = null;
+			Point2D [] points = null;
+			if (ns.node.getProto() == Artwork.tech.filledPolygonNode ||
+				ns.node.getProto() == Artwork.tech.closedPolygonNode ||
+				ns.node.getProto() == Artwork.tech.openedPolygonNode ||
+				ns.node.getProto() == Artwork.tech.openedDottedPolygonNode ||
+				ns.node.getProto() == Artwork.tech.openedDashedPolygonNode ||
+				ns.node.getProto() == Artwork.tech.openedThickerPolygonNode)
+			{
+				points = ns.node.getTrace();
+			}
+			if (points != null)
+			{	
+				// make sure the arrays hold "count" points
+				us_tecedmakep = new Point2D[points.length];
+				us_tecedmakefactor = new int[points.length];
+
+				for(int i=0; i<points.length; i++)
+				{
+					us_tecedmakep[i] = new Point2D.Double(nodeBounds.getCenterX() + points[i].getX(),
+						nodeBounds.getCenterY() + points[i].getY());
+					trans.transform(us_tecedmakep[i], us_tecedmakep[i]);
+				}
+			} else
+			{
+				// make sure the arrays hold enough points
+				double [] angles = null;
+				if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode)
+				{
+					angles = ns.node.getArcDegrees();
+					if (angles[0] == 0 && angles[1] == 0) angles = null;
+				}
+				if (angles == null)
+				{
 //					Variable var2 = ns.node.getVar(Generate.MINSIZEBOX_KEY);
 //					if (var2 != null) count *= 2;
-//				}
-//				us_tecedforcearrays(count);
-//	
-//				// set sample description
-//				if (var3 != NOVARIABLE)
-//				{
-//					// handle circular arc sample
+				}
+	
+				// set sample description
+				if (angles != null)
+				{
+					// handle circular arc sample
+					us_tecedmakep = new Point2D[3];
+					us_tecedmakefactor = new int[3];
 //					us_tecedmakepx[0] = (ns.node.geom.lowx + ns.node.geom.highx) / 2;
 //					us_tecedmakepy[0] = (ns.node.geom.lowy + ns.node.geom.highy) / 2;
-//					makerot(ns.node, trans);
 //					dist = ns.node.geom.highx - us_tecedmakepx[0];
 //					xform(us_tecedmakepx[0] + mult(dist, cosine(var3.addr)),
 //						us_tecedmakepy[0] + mult(dist, sine(var3.addr)), &us_tecedmakepx[1], &us_tecedmakepy[1], trans);
 //					xform(ns.node.geom.highx,
 //						(ns.node.geom.lowy + ns.node.geom.highy) / 2, &us_tecedmakepx[2], &us_tecedmakepy[2], trans);
-//				} else if (ns.node.proto == art_circleprim || ns.node.proto == art_thickcircleprim ||
-//					ns.node.proto == art_filledcircleprim)
-//				{
-//					// handle circular sample
+				} else if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode ||
+					ns.node.getProto() == Artwork.tech.filledCircleNode)
+				{
+					// handle circular sample
+					us_tecedmakep = new Point2D[2];
+					us_tecedmakefactor = new int[2];
 //					us_tecedmakepx[0] = (ns.node.geom.lowx + ns.node.geom.highx) / 2;
 //					us_tecedmakepy[0] = (ns.node.geom.lowy + ns.node.geom.highy) / 2;
 //					us_tecedmakepx[1] = ns.node.geom.highx;
 //					us_tecedmakepy[1] = (ns.node.geom.lowy + ns.node.geom.highy) / 2;
-//				} else
-//				{
-//					// rectangular sample: get the bounding box in (us_tecedmakepx, us_tecedmakepy)
+				} else
+				{
+					// rectangular sample: get the bounding box in (us_tecedmakepx, us_tecedmakepy)
+					us_tecedmakep = new Point2D[2];
+					us_tecedmakefactor = new int[2];
 //					us_tecedgetbbox(ns.node, &us_tecedmakepx[0], &us_tecedmakepx[1], &us_tecedmakepy[0], &us_tecedmakepy[1]);
-//				}
-//				if (var2 != NOVARIABLE)
+				}
+//				if (var2 != null)
 //				{
 //					us_tecedmakepx[2] = us_tecedmakepx[0];   us_tecedmakepy[2] = us_tecedmakepy[0];
 //					us_tecedmakepx[3] = us_tecedmakepx[1];   us_tecedmakepy[3] = us_tecedmakepy[1];
 //				}
-//			}
-//	
-//			for(i=0; i<count; i++)
-//			{
+			}
+	
+			for(int i=0; i<us_tecedmakefactor.length; i++)
+			{
 //				us_tecedmakeleftdist[i] = us_tecedmakepx[i] - nelist.lx;
 //				us_tecedmakerightdist[i] = nelist.hx - us_tecedmakepx[i];
 //				us_tecedmakebotdist[i] = us_tecedmakepy[i] - nelist.ly;
@@ -2826,37 +2492,38 @@ public class Parse
 //					us_tecedmakefactor[i] = TOEDGELEFT | TOEDGERIGHT | TOEDGETOP | TOEDGEBOT | FROMCENTX |
 //						FROMCENTY | RATIOCENTX | RATIOCENTY; else
 //							us_tecedmakefactor[i] = FROMCENTX | FROMCENTY;
-//			}
-//			for(ne = nelist.nextexample; ne != NOEXAMPLE; ne = ne.nextexample)
-//			{
-//				ni = ne.studysample.node;
-//				if (ni.proto == art_filledpolygonprim ||
-//					ni.proto == art_closedpolygonprim ||
-//					ni.proto == art_openedpolygonprim ||
-//					ni.proto == art_openeddottedpolygonprim ||
-//					ni.proto == art_openeddashedpolygonprim ||
-//					ni.proto == art_openedthickerpolygonprim)
-//				{
-//					var = gettrace(ni);
-//				} else var = NOVARIABLE;
-//				if (var != NOVARIABLE)
-//				{
+			}
+			for(Example ne = nelist.nextexample; ne != null; ne = ne.nextexample)
+			{
+				NodeInst ni = ne.studysample.node;
+				Point2D [] oPoints = null;
+				if (ni.getProto() == Artwork.tech.filledPolygonNode ||
+					ni.getProto() == Artwork.tech.closedPolygonNode ||
+					ni.getProto() == Artwork.tech.openedPolygonNode ||
+					ni.getProto() == Artwork.tech.openedDottedPolygonNode ||
+					ni.getProto() == Artwork.tech.openedDashedPolygonNode ||
+					ni.getProto() == Artwork.tech.openedThickerPolygonNode)
+				{
+					oPoints = ni.getTrace();
+				}
+				if (oPoints != null)
+				{
 //					newcount = getlength(var) / 2;
 //					makerot(ni, trans);
 //					for(i=0; i<mini(truecount, newcount); i++)
 //						xform((ni.geom.lowx + ni.geom.highx)/2 + ((INTBIG *)var.addr)[i*2],
 //							(ni.geom.lowy + ni.geom.highy)/2 +
 //								((INTBIG *)var.addr)[i*2+1], &us_tecedmakecx[i], &us_tecedmakecy[i], trans);
-//				} else
-//				{
-//					newcount = 2;
-//					if (ni.proto == art_circleprim || ni.proto == art_thickcircleprim)
-//					{
-//						var3 = getvalkey((INTBIG)ni, VNODEINST, VINTEGER, art_degreeskey);
-//						if (var3 != NOVARIABLE) newcount = 3;
-//					} else var3 = NOVARIABLE;
-//					if (var3 != NOVARIABLE)
-//					{
+				} else
+				{
+					double [] angles = null;
+					if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode)
+					{
+						angles = ni.getArcDegrees();
+						if (angles[0] == 0 && angles[1] == 0) angles = null;
+					}
+					if (angles != null)
+					{
 //						us_tecedmakecx[0] = (ni.geom.lowx + ni.geom.highx) / 2;
 //						us_tecedmakecy[0] = (ni.geom.lowy + ni.geom.highy) / 2;
 //						makerot(ni, trans);
@@ -2865,28 +2532,27 @@ public class Parse
 //							us_tecedmakecy[0] + mult(dist, sine(var3.addr)), &us_tecedmakecx[1], &us_tecedmakecy[1], trans);
 //						xform(ni.geom.highx, (ni.geom.lowy + ni.geom.highy) / 2,
 //							&us_tecedmakecx[2], &us_tecedmakecy[2], trans);
-//					} else if (ni.proto == art_circleprim || ni.proto == art_thickcircleprim ||
-//						ni.proto == art_filledcircleprim)
-//					{
+					} else if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode ||
+						ni.getProto() == Artwork.tech.filledCircleNode)
+					{
 //						us_tecedmakecx[0] = (ni.geom.lowx + ni.geom.highx) / 2;
 //						us_tecedmakecy[0] = (ni.geom.lowy + ni.geom.highy) / 2;
 //						us_tecedmakecx[1] = ni.geom.highx;
 //						us_tecedmakecy[1] = (ni.geom.lowy + ni.geom.highy) / 2;
-//					} else
-//					{
+					} else
+					{
 //						us_tecedgetbbox(ni, &us_tecedmakecx[0], &us_tecedmakecx[1], &us_tecedmakecy[0], &us_tecedmakecy[1]);
-//					}
-//				}
+					}
+				}
 //				if (newcount != truecount)
 //				{
 //					us_tecedpointout(ni, ni.parent);
-//					ttyputerr(_("Main example of %s has %ld points but this has %ld in %s"),
-//						us_tecedsamplename(ne.studysample.layer),
-//							truecount, newcount, describenodeproto(np));
-//					return(TRUE);
+//					System.out.println(_("Main example of " + us_tecedsamplename(ne.studysample.layer) +
+//						" has " + truecount + " points but this has " + newcount + " in " + np.describe());
+//					return true;
 //				}
-//	
-//				for(i=0; i<truecount; i++)
+	
+//				for(int i=0; i<truecount; i++)
 //				{
 //					// see if edges are fixed distance from example edge
 //					if (us_tecedmakeleftdist[i] != us_tecedmakecx[i] - ne.lx) us_tecedmakefactor[i] &= ~TOEDGELEFT;
@@ -2906,202 +2572,165 @@ public class Parse
 //						r = (us_tecedmakecy[i] - (ne.ly+ne.hy)/2) * WHOLE / (ne.hy-ne.ly);
 //					if (r != us_tecedmakeratioy[i]) us_tecedmakefactor[i] &= ~RATIOCENTY;
 //				}
-//	
-//				// make sure port information is on the primary example
-//				if (ns.layer != gen_portprim) continue;
-//	
-//				// check port angle
+	
+				// make sure port information is on the primary example
+				if (ns.layer != Generic.tech.portNode) continue;
+	
+				// check port angle
 //				var = ns.node.getVar(Generate.PORTANGLE_KEY);
 //				var2 = ni.getVar(Generate.PORTANGLE_KEY);
 //				if (var == null && var2 != null)
 //				{
-//					us_tecedpointout(NONODEINST, np);
-//					ttyputerr(_("Warning: moving port angle to main example of %s"),
+//					us_tecedpointout(null, np);
+//					System.out.println(_("Warning: moving port angle to main example of %s"),
 //						describenodeproto(np));
 //					ns.node.newVar(Generate.PORTANGLE_KEY, new Integer(var2.addr));
 //				}
-//	
-//				// check port range
+	
+				// check port range
 //				var = ns.node.getVar(Generate.PORTRANGE_KEY);
 //				var2 = ni.getVar(Generate.PORTRANGE_KEY);
 //				if (var == null && var2 != null)
 //				{
-//					us_tecedpointout(NONODEINST, np);
-//					ttyputerr(_("Warning: moving port range to main example of %s"), describenodeproto(np));
+//					us_tecedpointout(null, np);
+//					System.out.println(_("Warning: moving port range to main example of %s"), describenodeproto(np));
 //					ns.node.newVar(Generate.PORTRANGE_KEY, new Integer(var2.addr));
 //				}
-//	
-//				// check connectivity
+	
+				// check connectivity
 //				var = ns.node.getVar(Generate.CONNECTION_KEY);
 //				var2 = ni.getVar(Generate.CONNECTION_KEY);
 //				if (var == null && var2 != null)
 //				{
-//					us_tecedpointout(NONODEINST, np);
-//					ttyputerr(_("Warning: moving port connections to main example of %s"),
+//					us_tecedpointout(null, np);
+//					System.out.println(_("Warning: moving port connections to main example of %s"),
 //						describenodeproto(np));
 //					ns.node.newVar(Generate.CONNECTION_KEY, var2.addr);
 //				}
-//			}
-//	
-//			// error check for the highlight layer
-//			if (ns.layer == NONODEPROTO)
+			}
+	
+			// error check for the highlight layer
+//			if (ns.layer == null)
 //				for(i=0; i<truecount; i++)
 //					if ((us_tecedmakefactor[i]&(TOEDGELEFT|TOEDGERIGHT)) == 0 ||
 //						(us_tecedmakefactor[i]&(TOEDGETOP|TOEDGEBOT)) == 0)
 //			{
 //				us_tecedpointout(ns.node, ns.node.parent);
-//				ttyputerr(_("Highlight must be constant distance from edge in %s"), describenodeproto(np));
-//				return(TRUE);
+//				System.out.println(_("Highlight must be constant distance from edge in %s"), describenodeproto(np));
+//				return true;
 //			}
-//	
-//			// finally, make a rule for this sample
+	
+			// finally, make a rule for this sample
 //			newrule = us_tecedstretchpoints(us_tecedmakepx, us_tecedmakepy, count, us_tecedmakefactor, ns, np, nelist);
 //			if (newrule == 0) return(TRUE);
-//	
-//			// add the rule to the global list
+	
+			// add the rule to the global list
 //			var = getvalkey((INTBIG)ns.node, VNODEINST, VSTRING|VISARRAY, art_messagekey);
-//			if (var == NOVARIABLE) str = (CHAR *)0; else
+//			if (var == null) str = (CHAR *)0; else
 //				str = ((CHAR **)var.addr)[0];
 //			ns.rule = us_tecedaddrule(newrule, count*4, FALSE, str);
-//			if (ns.rule == NORULE) return(TRUE);
+//			if (ns.rule == null) return true;
 //			efree((CHAR *)newrule);
-//		}
-//		return(FALSE);
-//	}
-//	
-//	/*
-//	 * routine to ensure that the 13 global arrays are all at least "want" long.
-//	 * Their current size is "us_tecedmakearrlen".
-//	 */
-//	void us_tecedforcearrays(INTBIG want)
-//	{
-//		if (us_tecedmakearrlen >= want) return;
-//		if (us_tecedmakearrlen != 0)
-//		{
-//			efree((CHAR *)us_tecedmakepx);
-//			efree((CHAR *)us_tecedmakepy);
-//			efree((CHAR *)us_tecedmakecx);
-//			efree((CHAR *)us_tecedmakecy);
-//			efree((CHAR *)us_tecedmakefactor);
-//			efree((CHAR *)us_tecedmakeleftdist);
-//			efree((CHAR *)us_tecedmakerightdist);
-//			efree((CHAR *)us_tecedmakebotdist);
-//			efree((CHAR *)us_tecedmaketopdist);
-//			efree((CHAR *)us_tecedmakecentxdist);
-//			efree((CHAR *)us_tecedmakecentydist);
-//			efree((CHAR *)us_tecedmakeratiox);
-//			efree((CHAR *)us_tecedmakeratioy);
-//		}
-//		us_tecedmakearrlen = want;
-//		us_tecedmakepx = emalloc((want * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecedmakepx == 0) return;
-//		us_tecedmakepy = emalloc((want * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecedmakepy == 0) return;
-//		us_tecedmakecx = emalloc((want * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecedmakecx == 0) return;
-//		us_tecedmakecy = emalloc((want * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecedmakecy == 0) return;
-//		us_tecedmakefactor = emalloc((want * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecedmakefactor == 0) return;
-//		us_tecedmakeleftdist = emalloc((want * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecedmakeleftdist == 0) return;
-//		us_tecedmakerightdist = emalloc((want * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecedmakerightdist == 0) return;
-//		us_tecedmakebotdist = emalloc((want * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecedmakebotdist == 0) return;
-//		us_tecedmaketopdist = emalloc((want * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecedmaketopdist == 0) return;
-//		us_tecedmakecentxdist = emalloc((want * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecedmakecentxdist == 0) return;
-//		us_tecedmakecentydist = emalloc((want * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecedmakecentydist == 0) return;
-//		us_tecedmakeratiox = emalloc((want * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecedmakeratiox == 0) return;
-//		us_tecedmakeratioy = emalloc((want * SIZEOFINTBIG), us_tool.cluster);
-//		if (us_tecedmakeratioy == 0) return;
-//	}
-//	
-//	/*
-//	 * routine to adjust the "count"-long array of points in "px" and "py" according
-//	 * to the stretch factor bits in "factor" and return an array that describes
-//	 * these points.  Returns zero on error.
-//	 */
-//	INTBIG *us_tecedstretchpoints(INTBIG *px, INTBIG *py, INTBIG count, INTBIG *factor,
-//		SAMPLE *ns, NODEPROTO *np, EXAMPLE *nelist)
-//	{
-//		REGISTER INTBIG *newrule, lambda;
-//		REGISTER INTBIG i;
-//	
-//		newrule = emalloc((count*4*SIZEOFINTBIG), el_tempcluster);
-//		if (newrule == 0) return(0);
-//	
-//		lambda = el_curlib.lambda[art_tech.techindex];
-//		for(i=0; i<count; i++)
-//		{
-//			// determine the X algorithm
-//			if ((factor[i]&TOEDGELEFT) != 0)
-//			{
-//				// left edge rule
-//				newrule[i*4] = -H0;
-//				newrule[i*4+1] = (px[i]-nelist.lx) * WHOLE/lambda;
-//			} else if ((factor[i]&TOEDGERIGHT) != 0)
-//			{
-//				// right edge rule
-//				newrule[i*4] = H0;
-//				newrule[i*4+1] = (px[i]-nelist.hx) * WHOLE/lambda;
-//			} else if ((factor[i]&FROMCENTX) != 0)
-//			{
-//				// center rule
-//				newrule[i*4] = 0;
-//				newrule[i*4+1] = (px[i]-(nelist.lx+nelist.hx)/2) * WHOLE/lambda;
-//			} else if ((factor[i]&RATIOCENTX) != 0)
-//			{
-//				// constant stretch rule
-//				if (nelist.hx == nelist.lx) newrule[i*4] = 0; else
-//					newrule[i*4] = (px[i] - (nelist.lx+nelist.hx)/2) * WHOLE / (nelist.hx-nelist.lx);
-//				newrule[i*4+1] = 0;
-//			} else
-//			{
-//				us_tecedpointout(ns.node, ns.node.parent);
-//				ttyputerr(_("Cannot determine X stretching rule for layer %s in %s"),
-//					us_tecedsamplename(ns.layer), describenodeproto(np));
-//				return(0);
-//			}
-//	
-//			// determine the Y algorithm
-//			if ((factor[i]&TOEDGEBOT) != 0)
-//			{
-//				// bottom edge rule
-//				newrule[i*4+2] = -H0;
-//				newrule[i*4+3] = (py[i]-nelist.ly) * WHOLE/lambda;
-//			} else if ((factor[i]&TOEDGETOP) != 0)
-//			{
-//				// top edge rule
-//				newrule[i*4+2] = H0;
-//				newrule[i*4+3] = (py[i]-nelist.hy) * WHOLE/lambda;
-//			} else if ((factor[i]&FROMCENTY) != 0)
-//			{
-//				// center rule
-//				newrule[i*4+2] = 0;
-//				newrule[i*4+3] = (py[i]-(nelist.ly+nelist.hy)/2) * WHOLE/lambda;
-//			} else if ((factor[i]&RATIOCENTY) != 0)
-//			{
-//				// constant stretch rule
-//				if (nelist.hy == nelist.ly) newrule[i*4+2] = 0; else
-//					newrule[i*4+2] = (py[i] - (nelist.ly+nelist.hy)/2) * WHOLE /
-//						(nelist.hy-nelist.ly);
-//				newrule[i*4+3] = 0;
-//			} else
-//			{
-//				us_tecedpointout(ns.node, ns.node.parent);
-//				ttyputerr(_("Cannot determine Y stretching rule for layer %s in %s"),
-//					us_tecedsamplename(ns.layer), describenodeproto(np));
-//				return(0);
-//			}
-//		}
-//		return(newrule);
-//	}
-//	
+		}
+		return null;
+	}
+	
+	/**
+	 * Method to return the actual bounding box of layer node "ni" in the
+	 * reference variables "lx", "hx", "ly", and "hy"
+	 */
+	static Rectangle2D us_tecedgetbbox(NodeInst ni)
+	{	
+		Rectangle2D bounds = ni.getBounds();
+		if (ni.getProto() == Generic.tech.portNode)
+		{
+			double portGrowth = 2;
+			bounds.setRect(bounds.getMinX() - portGrowth, bounds.getMinY() - portGrowth,
+				bounds.getWidth()+portGrowth*2, bounds.getHeight()+portGrowth*2);
+		}
+		return bounds;
+	}
+
+	/**
+	 * Method to adjust the "count"-long array of points in "px" and "py" according
+	 * to the stretch factor bits in "factor" and return an array that describes
+	 * these points.  Returns zero on error.
+	 */
+	static Technology.TechPoint [] us_tecedstretchpoints(Point2D [] pts, int [] factor,
+		Sample ns, NodeProto np, Example nelist)
+	{
+		Technology.TechPoint [] newrule = new Technology.TechPoint[pts.length];
+
+		for(int i=0; i<pts.length; i++)
+		{
+			// determine the X algorithm
+			EdgeH horiz = null;
+			if ((factor[i]&TOEDGELEFT) != 0)
+			{
+				// left edge rule
+				horiz = EdgeH.fromLeft(pts[i].getX()-nelist.lx);
+			} else if ((factor[i]&TOEDGERIGHT) != 0)
+			{
+				// right edge rule
+				horiz = EdgeH.fromRight(pts[i].getX()-nelist.hx);
+			} else if ((factor[i]&FROMCENTX) != 0)
+			{
+				// center rule
+				horiz = EdgeH.fromCenter(pts[i].getX()-(nelist.lx+nelist.hx)/2);
+			} else if ((factor[i]&RATIOCENTX) != 0)
+			{
+				// constant stretch rule
+				if (nelist.hx == nelist.lx)
+				{
+					horiz = EdgeH.makeCenter();
+				} else
+				{
+					horiz = new EdgeH((pts[i].getX()-(nelist.lx+nelist.hx)/2) / (nelist.hx-nelist.lx), 0);
+				}
+			} else
+			{
+				us_tecedpointout(ns.node, ns.node.getParent());
+				System.out.println("Cannot determine X stretching rule for layer " + us_tecedsamplename(ns.layer) +
+					" in " + np.describe());
+				return null;
+			}
+	
+			// determine the Y algorithm
+			EdgeV vert = null;
+			if ((factor[i]&TOEDGEBOT) != 0)
+			{
+				// bottom edge rule
+				vert = EdgeV.fromBottom(pts[i].getY()-nelist.ly);
+			} else if ((factor[i]&TOEDGETOP) != 0)
+			{
+				// top edge rule
+				vert = EdgeV.fromTop(pts[i].getY()-nelist.hy);
+			} else if ((factor[i]&FROMCENTY) != 0)
+			{
+				// center rule
+				vert = EdgeV.fromCenter(pts[i].getY()-(nelist.ly+nelist.hy)/2);
+			} else if ((factor[i]&RATIOCENTY) != 0)
+			{
+				// constant stretch rule
+				if (nelist.hy == nelist.ly)
+				{
+					vert = EdgeV.makeCenter();
+				} else
+				{
+					vert = new EdgeV((pts[i].getY()-(nelist.ly+nelist.hy)/2) / (nelist.hy-nelist.ly), 0);
+				}
+			} else
+			{
+				us_tecedpointout(ns.node, ns.node.getParent());
+				System.out.println("Cannot determine Y stretching rule for layer " + us_tecedsamplename(ns.layer) +
+					" in " + np.describe());
+				return null;
+			}
+			newrule[i] = new Technology.TechPoint(horiz, vert);
+		}
+		return newrule;
+	}
+	
 //	SAMPLE *us_tecedneedhighlightlayer(EXAMPLE *nelist, NODEPROTO *np)
 //	{
 //		REGISTER SAMPLE *hs;
@@ -3111,9 +2740,7 @@ public class Parse
 //			if (hs.layer == NONODEPROTO) return(hs);
 //	
 //		us_tecedpointout(NONODEINST, np);
-//		ttyputerr(_("No highlight layer on contact %s"), describenodeproto(np));
-//		if ((us_tool.toolstate&NODETAILS) == 0)
-//			ttyputmsg(_("Use 'place-layer' option to create HIGHLIGHT"));
+//		System.out.println(_("No highlight layer on contact %s"), describenodeproto(np));
 //		return(0);
 //	}
 //	
@@ -3143,7 +2770,7 @@ public class Parse
 //			hs.node.highy - ns.node.highy != multiindent)
 //		{
 //			us_tecedpointout(ns.node, ns.node.parent);
-//			ttyputerr(_("Multiple contact cuts must be indented uniformly in %s"),
+//			System.out.println(_("Multiple contact cuts must be indented uniformly in %s"),
 //				describenodeproto(np));
 //			return(TRUE);
 //		}
@@ -3162,7 +2789,7 @@ public class Parse
 //					multiys != nso.node.highy - nso.node.lowy)
 //				{
 //					us_tecedpointout(nso.node, nso.node.parent);
-//					ttyputerr(_("Multiple contact cuts must not differ in size in %s"),
+//					System.out.println(_("Multiple contact cuts must not differ in size in %s"),
 //						describenodeproto(np));
 //					return(TRUE);
 //				}
@@ -3191,7 +2818,7 @@ public class Parse
 //				if (sepx < multixs && sepy < multiys)
 //				{
 //					us_tecedpointout(nslist[i].node, nslist[i].node.parent);
-//					ttyputerr(_("Multiple contact cuts must not overlap in %s"),
+//					System.out.println(_("Multiple contact cuts must not overlap in %s"),
 //						describenodeproto(np));
 //					efree((CHAR *)nslist);
 //					return(TRUE);
@@ -3225,7 +2852,7 @@ public class Parse
 //				if (sepx / xsep * xsep != sepx)
 //				{
 //					us_tecedpointout(nslist[i].node, nslist[i].node.parent);
-//					ttyputerr(_("Multiple contact cut X spacing must be uniform in %s"),
+//					System.out.println(_("Multiple contact cut X spacing must be uniform in %s"),
 //						describenodeproto(np));
 //					efree((CHAR *)nslist);
 //					return(TRUE);
@@ -3235,7 +2862,7 @@ public class Parse
 //				if (sepy / ysep * ysep != sepy)
 //				{
 //					us_tecedpointout(nslist[i].node, nslist[i].node.parent);
-//					ttyputerr(_("Multiple contact cut Y spacing must be uniform in %s"),
+//					System.out.println(_("Multiple contact cut Y spacing must be uniform in %s"),
 //						describenodeproto(np));
 //					efree((CHAR *)nslist);
 //					return(TRUE);
@@ -3247,7 +2874,7 @@ public class Parse
 //		if (multisep != ysep - multiys)
 //		{
 //			us_tecedpointout(NONODEINST, np);
-//			ttyputerr(_("Multiple contact cut X and Y spacing must be the same in %s"),
+//			System.out.println(_("Multiple contact cut X and Y spacing must be the same in %s"),
 //				describenodeproto(np));
 //			return(TRUE);
 //		}
@@ -3319,1426 +2946,38 @@ public class Parse
 //		us_tecedfirstpcon = pc;
 //		return(pc);
 //	}
-//	
-//	RULE *us_tecedaddrule(INTBIG list[8], INTBIG count, BOOLEAN multcut, CHAR *istext)
-//	{
-//		REGISTER RULE *r;
-//		REGISTER INTBIG i, textinc;
-//	
-//		for(r = us_tecedfirstrule; r != NORULE; r = r.nextrule)
-//		{
-//			if (multcut != r.multicut) continue;
-//			if (istext != 0 && r.istext != 0)
-//			{
-//				if (namesame(istext, (CHAR *)r.value[count]) != 0) continue;
-//			} else if (istext != 0 || r.istext != 0) continue;
-//			if (count != r.count) continue;
-//			for(i=0; i<count; i++) if (r.value[i] != list[i]) break;
-//			if (i >= count) return(r);
-//		}
-//	
-//		r = (RULE *)emalloc((sizeof (RULE)), us_tool.cluster);
-//		if (r == 0) return(NORULE);
-//		if (istext != 0) textinc = 1; else textinc = 0;
-//		r.value = emalloc(((count+textinc) * SIZEOFINTBIG), us_tool.cluster);
-//		if (r.value == 0) return(NORULE);
-//		r.count = count;
-//		r.nextrule = us_tecedfirstrule;
-//		r.used = FALSE;
-//		r.multicut = multcut;
-//		us_tecedfirstrule = r;
-//		for(i=0; i<count; i++) r.value[i] = list[i];
-//		r.istext = 0;
-//		if (istext != 0)
-//		{
-//			(void)allocstring((CHAR **)(&r.value[count]), istext, us_tool.cluster);
-//			r.istext = 1;
-//		}
-//		return(r);
-//	}
 	
-//	/****************************** WRITE TECHNOLOGY AS "C" CODE ******************************/
-//	
-//	/*
-//	 * routine to dump the layer information in technology "tech" to the stream in
-//	 * "f".
-//	 */
-//	void us_teceditdumplayers(FILE *f, TECHNOLOGY *tech, CHAR *techname)
-//	{
-//		CHAR *sym, *colorname, *colorsymbol, date[30];
-//		REGISTER INTBIG i, j, k, l;
-//		REGISTER CHAR *l1, *l2, *l3, *l4, *l5;
-//		REGISTER void *infstr;
-//	
-//		// write information for "tectable.c"
-//		xprintf(f, x_("#if 0\n"));
-//		xprintf(f, _("/* the next 4 lines belong at the top of 'tectable.c': */\n"));
-//		xprintf(f, x_("extern GRAPHICS *%s_layers[];\n"), us_tecedmakesymbol(techname));
-//		xprintf(f, x_("extern TECH_ARCS *%s_arcprotos[];\n"), us_tecedmakesymbol(techname));
-//		xprintf(f, x_("extern TECH_NODES *%s_nodeprotos[];\n"), us_tecedmakesymbol(techname));
-//		xprintf(f, x_("extern TECH_VARIABLES %s_variables[];\n"), us_tecedmakesymbol(techname));
-//		xprintf(f, x_("\n/* the next 8 lines belong in the 'el_technologylist' array of 'tectable.c': */\n"));
-//		xprintf(f, x_("\t{x_(\"%s\"), 0, %ld, NONODEPROTO,NOARCPROTO,NOVARIABLE,0,NOCOMCOMP,NOCLUSTER,\t/* info */\n"),
-//			us_tecedmakesymbol(techname), tech.deflambda);
-//		xprintf(f, x_("\tN_(\"%s\"),\t/* description */\n"), tech.techdescript);
-//		xprintf(f, x_("\t0, %s_layers,"), us_tecedmakesymbol(techname));
-//		xprintf(f, x_(" 0, %s_arcprotos,"), us_tecedmakesymbol(techname));
-//		xprintf(f, x_(" 0, %s_nodeprotos,"), us_tecedmakesymbol(techname));
-//		xprintf(f, x_(" %s_variables,\t/* tables */\n"), us_tecedmakesymbol(techname));
-//		xprintf(f, x_("\t0, 0, 0, 0,\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t/* control routines */\n"));
-//		xprintf(f, x_("\t0, 0, 0, 0, 0, 0, 0,\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t/* node routines */\n"));
-//		xprintf(f, x_("\t0,\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t/* port routine */\n"));
-//		xprintf(f, x_("\t0, 0, 0, 0,\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t/* arc routines */\n"));
-//		xprintf(f, x_("\tNOTECHNOLOGY, NONEGATEDARCS|STATICTECHNOLOGY, 0, 0},\t\t\t\t\t\t\t/* miscellaneous */\n"));
-//		xprintf(f, x_("#endif\n"));
-//	
-//		// write legal banner
-//		xprintf(f, x_("/*\n"));
-//		xprintf(f, x_(" * Electric(tm) VLSI Design System\n"));
-//		xprintf(f, x_(" *\n"));
-//		xprintf(f, x_(" * File: %s.c\n"), techname);
-//		xprintf(f, x_(" * %s technology description\n"), techname);
-//		xprintf(f, x_(" * Generated automatically from a library\n"));
-//		xprintf(f, x_(" *\n"));
-//		estrcpy(date, timetostring(getcurrenttime()));
-//		date[24] = 0;
-//		xprintf(f, x_(" * Copyright (c) %s Static Free Software.\n"), &date[20]);
-//		xprintf(f, x_(" *\n"));
-//		xprintf(f, x_(" * Electric(tm) is free software; you can redistribute it and/or modify\n"));
-//		xprintf(f, x_(" * it under the terms of the GNU General Public License as published by\n"));
-//		xprintf(f, x_(" * the Free Software Foundation; either version 2 of the License, or\n"));
-//		xprintf(f, x_(" * (at your option) any later version.\n"));
-//		xprintf(f, x_(" *\n"));
-//		xprintf(f, x_(" * Electric(tm) is distributed in the hope that it will be useful,\n"));
-//		xprintf(f, x_(" * but WITHOUT ANY WARRANTY; without even the implied warranty of\n"));
-//		xprintf(f, x_(" * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"));
-//		xprintf(f, x_(" * GNU General Public License for more details.\n"));
-//		xprintf(f, x_(" *\n"));
-//		xprintf(f, x_(" * You should have received a copy of the GNU General Public License\n"));
-//		xprintf(f, x_(" * along with Electric(tm); see the file COPYING.  If not, write to\n"));
-//		xprintf(f, x_(" * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,\n"));
-//		xprintf(f, x_(" * Boston, Mass 02111-1307, USA.\n"));
-//		xprintf(f, x_(" *\n"));
-//		xprintf(f, x_(" * Static Free Software\n"));
-//		xprintf(f, x_(" * 4119 Alpine Road\n"));
-//		xprintf(f, x_(" * Portola Valley, California 94028\n"));
-//		xprintf(f, x_(" * info@staticfreesoft.com\n"));
-//		xprintf(f, x_(" */\n"));
-//	
-//		// write header
-//		xprintf(f, x_("#include \"global.h\"\n"));
-//		xprintf(f, x_("#include \"egraphics.h\"\n"));
-//		xprintf(f, x_("#include \"tech.h\"\n"));
-//		xprintf(f, x_("#include \"efunction.h\"\n"));
-//	
-//		// write the layer declarations
-//		xprintf(f, x_("\n/******************** LAYERS ********************/\n"));
-//		k = 8;
-//		for(i=0; i<tech.layercount; i++) k = maxi(k, estrlen(us_teclayer_iname[i]));
-//		k++;
-//		xprintf(f, x_("\n#define MAXLAYERS"));
-//		for(j=8; j<k; j++) xprintf(f, x_(" "));
-//		xprintf(f, x_("%ld\n"), tech.layercount);
-//		for(i=0; i<tech.layercount; i++)
-//		{
-//			xprintf(f, x_("#define L%s"), us_teclayer_iname[i]);
-//			for(j=estrlen(us_teclayer_iname[i]); j<k; j++) xprintf(f, x_(" "));
-//			xprintf(f, x_("%ld\t\t\t\t/* %s */\n"), i, us_teclayer_names[i]);
-//		}
-//		xprintf(f, x_("\n"));
-//	
-//		// write the layer descriptions
-//		for(i=0; i<tech.layercount; i++)
-//		{
-//			xprintf(f, x_("static GRAPHICS %s_%s_lay = {"), us_tecedmakesymbol(techname),
-//				us_teclayer_iname[i]);
-//			switch (tech.layers[i].bits)
-//			{
-//				case LAYERT1: xprintf(f, x_("LAYERT1, "));   break;
-//				case LAYERT2: xprintf(f, x_("LAYERT2, "));   break;
-//				case LAYERT3: xprintf(f, x_("LAYERT3, "));   break;
-//				case LAYERT4: xprintf(f, x_("LAYERT4, "));   break;
-//				case LAYERT5: xprintf(f, x_("LAYERT5, "));   break;
-//				case LAYERO:  xprintf(f, x_("LAYERO, "));    break;
-//			}
-//			if (ecolorname(tech.layers[i].col, &colorname, &colorsymbol)) colorsymbol = x_("unknown");
-//			xprintf(f, x_("%s, "), colorsymbol);
-//			if ((tech.layers[i].colstyle&NATURE) == SOLIDC) xprintf(f, x_("SOLIDC")); else
-//			{
-//				xprintf(f, x_("PATTERNED"));
-//				if ((tech.layers[i].colstyle&OUTLINEPAT) != 0) xprintf(f, x_("|OUTLINEPAT"));
-//			}
-//			xprintf(f, x_(", "));
-//			if ((tech.layers[i].bwstyle&NATURE) == SOLIDC) xprintf(f, x_("SOLIDC")); else
-//			{
-//				xprintf(f, x_("PATTERNED"));
-//				if ((tech.layers[i].bwstyle&OUTLINEPAT) != 0) xprintf(f, x_("|OUTLINEPAT"));
-//			}
-//			xprintf(f, x_(","));
-//	
-//			xprintf(f, x_("\n"));
-//			for(j=0; j<16; j++) if (tech.layers[i].raster[j] != 0) break;
-//			if (j >= 16)
-//				xprintf(f, x_("\t{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, NOVARIABLE, 0};\n")); else
-//			{
-//				for(j=0; j<16; j++)
-//				{
-//					xprintf(f, x_("\t"));
-//					if (j == 0) xprintf(f, x_("{"));
-//					xprintf(f, x_("0x%04x"), tech.layers[i].raster[j]&0xFFFF);
-//					if (j == 15) xprintf(f, x_("}"));
-//					xprintf(f, x_(","));
-//					if (j > 0 && j < 15) xprintf(f, x_(" "));
-//					xprintf(f, x_("  /* "));
-//					for(k=0; k<16; k++)
-//						if ((tech.layers[i].raster[j] & (1 << (15-k))) != 0)
-//							xprintf(f, x_("X")); else xprintf(f, x_(" "));
-//					xprintf(f, x_(" */\n"));
-//				}
-//				xprintf(f, x_("\tNOVARIABLE, 0};\n"));
-//			}
-//		}
-//	
-//		// write the aggregation of all layers
-//		sym = us_tecedmakesymbol(techname);
-//		xprintf(f, x_("\nGRAPHICS *%s_layers[MAXLAYERS+1] = {\n"), sym);
-//		for(i=0; i<tech.layercount; i++)
-//		{
-//			xprintf(f, x_("\t&%s_%s_lay,"), sym, us_teclayer_iname[i]);
-//			xprintf(f, x_("\t\t/* %s */\n"), us_teclayer_names[i]);
-//		}
-//		xprintf(f, x_("\tNOGRAPHICS\n};\n"));
-//	
-//		// write the layer names
-//		sym = us_tecedmakesymbol(techname);
-//		l = estrlen(sym) + 40;
-//		xprintf(f, x_("static char *%s_layer_names[MAXLAYERS] = {"), sym);
-//		for(i=0; i<tech.layercount; i++)
-//		{
-//			if (i != 0) { xprintf(f, x_(", ")); l += 2; }
-//			if (us_teclayer_names[i] == 0) sym = x_(""); else sym = us_teclayer_names[i];
-//			if (l + estrlen(sym) + 2 > 80)
-//			{
-//				xprintf(f, x_("\n\t"));
-//				l = 4;
-//			}
-//			xprintf(f, x_("x_(\"%s\")"), sym);
-//			l += estrlen(sym) + 2;
-//		}
-//		xprintf(f, x_("};\n"));
-//	
-//		// write the CIF layer names
-//		if ((us_tecflags&HASCIF) != 0)
-//		{
-//			xprintf(f, x_("static char *%s_cif_layers[MAXLAYERS] = {\n"), us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				if (us_teccif_layers[i] == 0) xprintf(f, x_("\tx_(\"\")")); else
-//					xprintf(f, x_("\tx_(\"%s\")"), us_teccif_layers[i]);
-//				if (i != tech.layercount-1) xprintf(f, x_(","));
-//				xprintf(f, x_("\t\t/* %s */\n"), us_teclayer_names[i]);
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//	
-//		// write the DXF layer numbers
-//		if ((us_tecflags&HASDXF) != 0)
-//		{
-//			xprintf(f, x_("static char *%s_dxf_layers[MAXLAYERS] = {\n"), us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				xprintf(f, x_("\tx_(\"%s\")"), us_tecdxf_layers[i]);
-//				if (i != tech.layercount-1) xprintf(f, x_(","));
-//				xprintf(f, x_("\t\t/* %s */\n"), us_teclayer_names[i]);
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//	
-//		// write the Calma GDS-II layer number
-//		if ((us_tecflags&HASGDS) != 0)
-//		{
-//			xprintf(f, x_("static CHAR *%s_gds_layers[MAXLAYERS] = {\n"), us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				xprintf(f, x_("\tx_(\"%s\")"), us_tecgds_layers[i]);
-//				if (i != tech.layercount-1) xprintf(f, x_(","));
-//				xprintf(f, x_("\t\t/* %s */\n"), us_teclayer_names[i]);
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//	
-//		// write the layer functions
-//		xprintf(f, x_("static INTBIG %s_layer_function[MAXLAYERS] = {\n"), us_tecedmakesymbol(techname));
-//		for(i=0; i<tech.layercount; i++)
-//		{
-//			infstr = initinfstr();
-//			addstringtoinfstr(infstr, us_teclayer_functions[us_teclayer_function[i]&LFTYPE].constant);
-//			for(j=0; us_teclayer_functions[j].name != 0; j++)
-//			{
-//				if (us_teclayer_functions[j].value <= LFTYPE) continue;
-//				if ((us_teclayer_function[i]&us_teclayer_functions[j].value) != 0)
-//				{
-//					addtoinfstr(infstr, '|');
-//					addstringtoinfstr(infstr, us_teclayer_functions[j].constant);
-//				}
-//			}
-//			if (tech.layers[i].bits == LAYERT1) addstringtoinfstr(infstr, x_("|LFTRANS1")); else
-//			if (tech.layers[i].bits == LAYERT2) addstringtoinfstr(infstr, x_("|LFTRANS2")); else
-//			if (tech.layers[i].bits == LAYERT3) addstringtoinfstr(infstr, x_("|LFTRANS3")); else
-//			if (tech.layers[i].bits == LAYERT4) addstringtoinfstr(infstr, x_("|LFTRANS4")); else
-//			if (tech.layers[i].bits == LAYERT5) addstringtoinfstr(infstr, x_("|LFTRANS5"));
-//			xprintf(f, x_("\t%s"), returninfstr(infstr));
-//			if (i != tech.layercount-1) xprintf(f, x_(","));
-//			xprintf(f, x_("\t\t/* %s */\n"), us_teclayer_names[i]);
-//		}
-//		xprintf(f, x_("};\n"));
-//	
-//		// write the layer letters
-//		xprintf(f, x_("static char *%s_layer_letters[MAXLAYERS] = {\n"), us_tecedmakesymbol(techname));
-//		for(i=0; i<tech.layercount; i++)
-//		{
-//			if (us_teclayer_letters[i] == 0) xprintf(f, x_("\tx_(\"\")")); else
-//				xprintf(f, x_("\tx_(\"%s\")"), us_teclayer_letters[i]);
-//			if (i != tech.layercount-1) xprintf(f, x_(","));
-//			xprintf(f, x_("\t\t/* %s */\n"), us_teclayer_names[i]);
-//		}
-//		xprintf(f, x_("};\n"));
-//	
-//		// write the SPICE information
-//		if ((us_tecflags&HASSPIRES) != 0)
-//		{
-//			xprintf(f, x_("static float %s_sim_spice_resistance[MAXLAYERS] = {\n"),
-//				us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				xprintf(f, x_("\t%s"), us_tecedmakefloatstring(us_tecspice_res[i]));
-//				if (i != tech.layercount-1) xprintf(f, x_(","));
-//				xprintf(f, x_("\t\t/* %s */\n"), us_teclayer_names[i]);
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//		if ((us_tecflags&HASSPICAP) != 0)
-//		{
-//			xprintf(f, x_("static float %s_sim_spice_capacitance[MAXLAYERS] = {\n"),
-//				us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				xprintf(f, x_("\t%s"), us_tecedmakefloatstring(us_tecspice_cap[i]));
-//				if (i != tech.layercount-1) xprintf(f, x_(","));
-//				xprintf(f, x_("\t\t/* %s */\n"), us_teclayer_names[i]);
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//		if ((us_tecflags&HASSPIECAP) != 0)
-//		{
-//			xprintf(f, x_("static float %s_sim_spice_edge_cap[MAXLAYERS] = {\n"),
-//				us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				xprintf(f, x_("\t%s"), us_tecedmakefloatstring(us_tecspice_ecap[i]));
-//				if (i != tech.layercount-1) xprintf(f, x_(","));
-//				xprintf(f, x_("\t\t/* %s */\n"), us_teclayer_names[i]);
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//	
-//		// write the 3D information
-//		if ((us_tecflags&HAS3DINFO) != 0)
-//		{
-//			xprintf(f, x_("static INTBIG %s_3dheight_layers[MAXLAYERS] = {\n"),
-//				us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				xprintf(f, x_("\t%ld"), us_tec3d_height[i]);
-//				if (i != tech.layercount-1) xprintf(f, x_(","));
-//				xprintf(f, x_("\t\t/* %s */\n"), us_teclayer_names[i]);
-//			}
-//			xprintf(f, x_("};\n"));
-//			xprintf(f, x_("static INTBIG %s_3dthick_layers[MAXLAYERS] = {\n"),
-//				us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				xprintf(f, x_("\t%ld"), us_tec3d_thickness[i]);
-//				if (i != tech.layercount-1) xprintf(f, x_(","));
-//				xprintf(f, x_("\t\t/* %s */\n"), us_teclayer_names[i]);
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//		if ((us_tecflags&HASPRINTCOL) != 0)
-//		{
-//			xprintf(f, x_("static INTBIG %s_printcolors_layers[MAXLAYERS*5] = {\n"),
-//				us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				xprintf(f, x_("\t%ld,%ld,%ld, %ld,%ld"), us_tecprint_colors[i*5],
-//					us_tecprint_colors[i*5+1], us_tecprint_colors[i*5+2],
-//						us_tecprint_colors[i*5+3], us_tecprint_colors[i*5+4]);
-//				if (i != tech.layercount-1) xprintf(f, x_(","));
-//				xprintf(f, x_("\t\t/* %s */\n"), us_teclayer_names[i]);
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//	
-//		// write the color map
-//		if ((us_tecflags&HASCOLORMAP) != 0)
-//		{
-//			// determine the five transparent layers
-//			l1 = l2 = l3 = l4 = l5 = 0;
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				if (tech.layers[i].bits == LAYERT1 && l1 == 0)
-//					l1 = us_teclayer_names[i]; else
-//				if (tech.layers[i].bits == LAYERT2 && l2 == 0)
-//					l2 = us_teclayer_names[i]; else
-//				if (tech.layers[i].bits == LAYERT3 && l3 == 0)
-//					l3 = us_teclayer_names[i]; else
-//				if (tech.layers[i].bits == LAYERT4 && l4 == 0)
-//					l4 = us_teclayer_names[i]; else
-//				if (tech.layers[i].bits == LAYERT5 && l5 == 0)
-//					l5 = us_teclayer_names[i];
-//			}
-//			if (l1 == 0) l1 = x_("layer 1");
-//			if (l2 == 0) l2 = x_("layer 2");
-//			if (l3 == 0) l3 = x_("layer 3");
-//			if (l4 == 0) l4 = x_("layer 4");
-//			if (l5 == 0) l5 = x_("layer 5");
-//			xprintf(f, x_("\nstatic TECH_COLORMAP %s_colmap[32] =\n{\n"), us_tecedmakesymbol(techname));
-//			for(i=0; i<32; i++)
-//			{
-//				xprintf(f, x_("\t{%3d,%3d,%3d}, /* %2d: "), us_teccolmap[i].red,
-//					us_teccolmap[i].green, us_teccolmap[i].blue, i);
-//				if ((i&1) != 0) xprintf(f, x_("%s"), l1); else
-//					for(j=0; j<(INTBIG)estrlen(l1); j++) xprintf(f, x_(" "));
-//				xprintf(f, x_("+"));
-//				if ((i&2) != 0) xprintf(f, x_("%s"), l2); else
-//					for(j=0; j<(INTBIG)estrlen(l2); j++) xprintf(f, x_(" "));
-//				xprintf(f, x_("+"));
-//				if ((i&4) != 0) xprintf(f, x_("%s"), l3); else
-//					for(j=0; j<(INTBIG)estrlen(l3); j++) xprintf(f, x_(" "));
-//				xprintf(f, x_("+"));
-//				if ((i&8) != 0) xprintf(f, x_("%s"), l4); else
-//					for(j=0; j<(INTBIG)estrlen(l4); j++) xprintf(f, x_(" "));
-//				xprintf(f, x_("+"));
-//				if ((i&16) != 0) xprintf(f, x_("%s"), l5); else
-//					for(j=0; j<(INTBIG)estrlen(l5); j++) xprintf(f, x_(" "));
-//				xprintf(f, x_(" */\n"));
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//	
-//		// write design rules
-//		if ((us_tecflags&(HASDRCMINWID|HASCONDRC|HASUNCONDRC|HASCONDRCW|HASUNCONDRCW|HASCONDRCM|HASUNCONDRCM|HASEDGEDRC)) != 0)
-//		{
-//			xprintf(f, x_("\n/******************** DESIGN RULES ********************/\n"));
-//	
-//			// write the DRC minimum width information
-//			if ((us_tecflags&HASDRCMINWID) != 0)
-//			{
-//				xprintf(f, x_("static INTBIG %s_minimum_width[MAXLAYERS] = {"),
-//					us_tecedmakesymbol(techname));
-//				for(i=0; i<tech.layercount; i++)
-//				{
-//					if (i != 0) xprintf(f, x_(", "));
-//					xprintf(f, x_("%s"), us_tecedmakefract(us_tecdrc_rules.minwidth[i]));
-//				}
-//				xprintf(f, x_("};\n"));
-//				if ((us_tecflags&HASDRCMINWIDR) != 0)
-//				{
-//					xprintf(f, x_("static char *%s_minimum_width_rule[MAXLAYERS] = {"),
-//						us_tecedmakesymbol(techname));
-//					for(i=0; i<tech.layercount; i++)
-//					{
-//						if (i != 0) xprintf(f, x_(", "));
-//						xprintf(f, x_("x_(\"%s\")"), us_tecdrc_rules.minwidthR[i]);
-//					}
-//					xprintf(f, x_("};\n"));
-//				}
-//			}
-//	
-//			if ((us_tecflags&HASCONDRC) != 0)
-//			{
-//				xprintf(f, x_("\nstatic INTBIG %s_connectedtable[] = {\n"),
-//					us_tecedmakesymbol(techname));
-//				us_teceditdumpdrctab(f, us_tecdrc_rules.conlist, tech, FALSE);
-//				if ((us_tecflags&HASCONDRCR) != 0)
-//				{
-//					xprintf(f, x_("\nstatic char *%s_connectedtable_rule[] = {\n"),
-//						us_tecedmakesymbol(techname));
-//					us_teceditdumpdrctab(f, us_tecdrc_rules.conlistR, tech, TRUE);
-//				}
-//			}
-//			if ((us_tecflags&HASUNCONDRC) != 0)
-//			{
-//				xprintf(f, x_("\nstatic INTBIG %s_unconnectedtable[] = {\n"),
-//					us_tecedmakesymbol(techname));
-//				us_teceditdumpdrctab(f, us_tecdrc_rules.unconlist, tech, FALSE);
-//				if ((us_tecflags&HASUNCONDRCR) != 0)
-//				{
-//					xprintf(f, x_("\nstatic char *%s_unconnectedtable_rule[] = {\n"),
-//						us_tecedmakesymbol(techname));
-//					us_teceditdumpdrctab(f, us_tecdrc_rules.unconlistR, tech, TRUE);
-//				}
-//			}
-//			if ((us_tecflags&HASCONDRCW) != 0)
-//			{
-//				xprintf(f, x_("\nstatic INTBIG %s_connectedtable_wide[] = {\n"),
-//					us_tecedmakesymbol(techname));
-//				us_teceditdumpdrctab(f, us_tecdrc_rules.conlistW, tech, FALSE);
-//				if ((us_tecflags&HASCONDRCWR) != 0)
-//				{
-//					xprintf(f, x_("\nstatic char *%s_connectedtable_wide_rule[] = {\n"),
-//						us_tecedmakesymbol(techname));
-//					us_teceditdumpdrctab(f, us_tecdrc_rules.conlistWR, tech, TRUE);
-//				}
-//			}
-//			if ((us_tecflags&HASUNCONDRCW) != 0)
-//			{
-//				xprintf(f, x_("\nstatic INTBIG %s_unconnectedtable_wide[] = {\n"),
-//					us_tecedmakesymbol(techname));
-//				us_teceditdumpdrctab(f, us_tecdrc_rules.unconlistW, tech, FALSE);
-//				if ((us_tecflags&HASUNCONDRCWR) != 0)
-//				{
-//					xprintf(f, x_("\nstatic char *%s_unconnectedtable_wide_rule[] = {\n"),
-//						us_tecedmakesymbol(techname));
-//					us_teceditdumpdrctab(f, us_tecdrc_rules.unconlistWR, tech, TRUE);
-//				}
-//			}
-//			if ((us_tecflags&HASCONDRCM) != 0)
-//			{
-//				xprintf(f, x_("\nstatic INTBIG %s_connectedtable_multi[] = {\n"),
-//					us_tecedmakesymbol(techname));
-//				us_teceditdumpdrctab(f, us_tecdrc_rules.conlistM, tech, FALSE);
-//				if ((us_tecflags&HASCONDRCMR) != 0)
-//				{
-//					xprintf(f, x_("\nstatic char *%s_connectedtable_multi_rule[] = {\n"),
-//						us_tecedmakesymbol(techname));
-//					us_teceditdumpdrctab(f, us_tecdrc_rules.conlistMR, tech, TRUE);
-//				}
-//			}
-//			if ((us_tecflags&HASUNCONDRCM) != 0)
-//			{
-//				xprintf(f, x_("\nstatic INTBIG %s_unconnectedtable_multi[] = {\n"),
-//					us_tecedmakesymbol(techname));
-//				us_teceditdumpdrctab(f, us_tecdrc_rules.unconlistM, tech, FALSE);
-//				if ((us_tecflags&HASUNCONDRCMR) != 0)
-//				{
-//					xprintf(f, x_("\nstatic char *%s_unconnectedtable_multi_rule[] = {\n"),
-//						us_tecedmakesymbol(techname));
-//					us_teceditdumpdrctab(f, us_tecdrc_rules.unconlistMR, tech, TRUE);
-//				}
-//			}
-//			if ((us_tecflags&HASEDGEDRC) != 0)
-//			{
-//				xprintf(f, x_("\nstatic INTBIG %s_edgetable[] = {\n"),
-//					us_tecedmakesymbol(techname));
-//				us_teceditdumpdrctab(f, us_tecdrc_rules.edgelist, tech, FALSE);
-//				if ((us_tecflags&HASEDGEDRCR) != 0)
-//				{
-//					xprintf(f, x_("\nstatic char *%s_edgetable_rule[] = {\n"),
-//						us_tecedmakesymbol(techname));
-//					us_teceditdumpdrctab(f, us_tecdrc_rules.edgelistR, tech, TRUE);
-//				}
-//			}
-//		}
-//	}
-//	
-//	void us_teceditdumpdrctab(FILE *f, void *distances, TECHNOLOGY *tech, BOOLEAN isstring)
-//	{
-//		REGISTER INTBIG i, j;
-//		REGISTER INTBIG amt, mod, *amtlist;
-//		CHAR shortname[7], *msg, **distlist;
-//	
-//		for(i=0; i<6; i++)
-//		{
-//			xprintf(f, x_("/*            "));
-//			for(j=0; j<tech.layercount; j++)
-//			{
-//				if ((INTBIG)estrlen(us_teclayer_iname[j]) <= i) xprintf(f, x_(" ")); else
-//					xprintf(f, x_("%c"), us_teclayer_iname[j][i]);
-//				xprintf(f, x_("  "));
-//			}
-//			xprintf(f, x_(" */\n"));
-//		}
-//		if (isstring) distlist = (CHAR **)distances; else
-//			amtlist = (INTBIG *)distances;
-//		for(j=0; j<tech.layercount; j++)
-//		{
-//			(void)estrncpy(shortname, us_teclayer_iname[j], 6);
-//			shortname[6] = 0;
-//			xprintf(f, x_("/* %-6s */ "), shortname);
-//			for(i=0; i<j; i++) xprintf(f, x_("   "));
-//			for(i=j; i<tech.layercount; i++)
-//			{
-//				if (isstring)
-//				{
-//					msg = *distlist++;
-//					xprintf(f, x_("x_(\"%s\")"), msg);
-//				} else
-//				{
-//					amt = *amtlist++;
-//					if (amt < 0) xprintf(f, x_("XX")); else
-//					{
-//						mod = amt % WHOLE;
-//						if (mod == 0) xprintf(f, x_("K%ld"), amt/WHOLE); else
-//						if (mod == WHOLE/2) xprintf(f, x_("H%ld"), amt/WHOLE); else
-//						if (mod == WHOLE/4) xprintf(f, x_("Q%ld"), amt/WHOLE); else
-//						if (mod == WHOLE/4*3) xprintf(f, x_("T%ld"), amt/WHOLE); else
-//							xprintf(f, x_("%ld"), amt);
-//					}
-//				}
-//				if (j != tech.layercount-1 || i != tech.layercount-1)
-//					xprintf(f, x_(","));
-//			}
-//			xprintf(f, x_("\n"));
-//		}
-//		xprintf(f, x_("};\n"));
-//	}
-//	
-//	/*
-//	 * routine to dump the arc information in technology "tech" to the stream in
-//	 * "f".
-//	 */
-//	void us_teceditdumparcs(FILE *f, TECHNOLOGY *tech, CHAR *techname)
-//	{
-//		REGISTER INTBIG i, j, k;
-//	
-//		// print the header
-//		xprintf(f, x_("\n/******************** ARCS ********************/\n"));
-//	
-//		// compute the width of the widest arc name
-//		k = 12;
-//		for(i=0; i<tech.arcprotocount; i++)
-//			k = maxi(k, estrlen(tech.arcprotos[i].arcname));
-//		k++;
-//	
-//		// write the number of arcs
-//		xprintf(f, x_("\n#define ARCPROTOCOUNT"));
-//		for(j=12; j<k; j++) xprintf(f, x_(" "));
-//		xprintf(f, x_("%ld\n"), tech.arcprotocount);
-//	
-//		// write defines for each arc
-//		for(i=0; i<tech.arcprotocount; i++)
-//		{
-//			xprintf(f, x_("#define A%s"), us_tecedmakeupper(tech.arcprotos[i].arcname));
-//			for(j=estrlen(tech.arcprotos[i].arcname); j<k; j++)
-//				xprintf(f, x_(" "));
-//			xprintf(f, x_("%ld\t\t\t\t/* %s */\n"), i, tech.arcprotos[i].arcname);
-//		}
-//	
-//		// now write the arcs
-//		for(i=0; i<tech.arcprotocount; i++)
-//		{
-//			xprintf(f, x_("\nstatic TECH_ARCLAY %s_al_%ld[] = {"),
-//				us_tecedmakesymbol(techname), i);
-//			for(k=0; k<tech.arcprotos[i].laycount; k++)
-//			{
-//				if (k != 0) xprintf(f, x_(", "));
-//				xprintf(f, x_("{"));
-//				xprintf(f, x_("L%s,"), us_teclayer_iname[tech.arcprotos[i].list[k].lay]);
-//				if (tech.arcprotos[i].list[k].off == 0) xprintf(f, x_("0,")); else
-//					xprintf(f, x_("%s,"), us_tecedmakefract(tech.arcprotos[i].list[k].off));
-//				if (tech.arcprotos[i].list[k].style == FILLED) xprintf(f, x_("FILLED}")); else
-//					xprintf(f, x_("CLOSED}"));
-//			}
-//			xprintf(f, x_("};\n"));
-//			xprintf(f, x_("static TECH_ARCS %s_a_%ld = {\n"), us_tecedmakesymbol(techname), i);
-//			xprintf(f, x_("\tx_(\"%s\"), "), tech.arcprotos[i].arcname);
-//			xprintf(f, x_("%s, "), us_tecedmakefract(tech.arcprotos[i].arcwidth));
-//			xprintf(f, x_("A%s,NOARCPROTO,\n"), us_tecedmakeupper(tech.arcprotos[i].arcname));
-//			xprintf(f, x_("\t%d, %s_al_%ld,\n"), tech.arcprotos[i].laycount,
-//				us_tecedmakesymbol(techname), i);
-//			for(j=0; us_tecarc_functions[j].name != 0; j++)
-//				if (us_tecarc_functions[j].value ==
-//					(INTBIG)((tech.arcprotos[i].initialbits&AFUNCTION)>>AFUNCTIONSH))
-//			{
-//				xprintf(f, x_("\t(%s<<AFUNCTIONSH)"), us_tecarc_functions[j].constant);
-//				break;
-//			}
-//			if (us_tecarc_functions[j].name == 0)                    xprintf(f, x_("\t(APUNKNOWN<<AFUNCTIONSH)"));
-//			if ((tech.arcprotos[i].initialbits&WANTFIXANG) != 0)   xprintf(f, x_("|WANTFIXANG"));
-//			if ((tech.arcprotos[i].initialbits&CANWIPE) != 0)      xprintf(f, x_("|CANWIPE"));
-//			if ((tech.arcprotos[i].initialbits&WANTNOEXTEND) != 0) xprintf(f, x_("|WANTNOEXTEND"));
-//			xprintf(f, x_("|(%ld<<AANGLEINCSH)"), (tech.arcprotos[i].initialbits&AANGLEINC)>>AANGLEINCSH);
-//			xprintf(f, x_("};\n"));
-//		}
-//	
-//		// print the summary
-//		xprintf(f, x_("\nTECH_ARCS *%s_arcprotos[ARCPROTOCOUNT+1] = {\n\t"),
-//			us_tecedmakesymbol(techname));
-//		for(i=0; i<tech.arcprotocount; i++)
-//			xprintf(f, x_("&%s_a_%ld, "), us_tecedmakesymbol(techname), i);
-//		xprintf(f, x_("((TECH_ARCS *)-1)};\n"));
-//	
-//		// print the variable with the width offsets
-//		if ((us_tecflags&HASARCWID) != 0)
-//		{
-//			xprintf(f, x_("\nstatic INTBIG %s_arc_widoff[ARCPROTOCOUNT] = {"),
-//				us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.arcprotocount; i++)
-//			{
-//				if (i != 0) xprintf(f, x_(", "));
-//				if (us_tecarc_widoff[i] == 0) xprintf(f, x_("0")); else
-//					xprintf(f, x_("%s"), us_tecedmakefract(us_tecarc_widoff[i]));
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//	}
-//	
-//	/*
-//	 * routine to dump the node information in technology "tech" to the stream in
-//	 * "f".
-//	 */
-//	void us_teceditdumpnodes(FILE *f, TECHNOLOGY *tech, CHAR *techname)
-//	{
-//		REGISTER RULE *r;
-//		REGISTER INTBIG i, j, k, l, tot;
-//		CHAR *ab, *sym;
-//		BOOLEAN yaxis;
-//		REGISTER PCON *pc;
-//		REGISTER TECH_POLYGON *plist;
-//		REGISTER TECH_SERPENT *slist;
-//		REGISTER TECH_NODES *nlist;
-//		REGISTER void *infstr;
-//	
-//		// make abbreviations for each node
-//		for(i=0; i<tech.nodeprotocount; i++)
-//		{
-//			(void)allocstring(&ab, makeabbrev(tech.nodeprotos[i].nodename, FALSE), el_tempcluster);
-//			tech.nodeprotos[i].creation = (NODEPROTO *)ab;
-//	
-//			// loop until the name is unique
-//			for(;;)
-//			{
-//				// see if a previously assigned abbreviation is the same
-//				for(j=0; j<i; j++)
-//					if (namesame(ab, (CHAR *)tech.nodeprotos[j].creation) == 0) break;
-//				if (j == i) break;
-//	
-//				// name conflicts: change it
-//				l = estrlen(ab);
-//				if (ab[l-1] >= '0' && ab[l-1] <= '8') ab[l-1]++; else
-//				{
-//					infstr = initinfstr();
-//					addstringtoinfstr(infstr, ab);
-//					addtoinfstr(infstr, '0');
-//					(void)reallocstring(&ab, returninfstr(infstr), el_tempcluster);
-//					tech.nodeprotos[i].creation = (NODEPROTO *)ab;
-//				}
-//			}
-//		}
-//	
-//		// write the port lists
-//		xprintf(f, x_("\n/******************** PORT CONNECTIONS ********************/\n\n"));
-//		i = 1;
-//		for(pc = us_tecedfirstpcon; pc != NOPCON; pc = pc.nextpcon)
-//		{
-//			pc.pcindex = i++;
-//			xprintf(f, x_("static INTBIG %s_pc_%ld[] = {-1, "),
-//				us_tecedmakesymbol(techname), pc.pcindex);
-//			for(j=0; j<pc.total; j++)
-//			{
-//				k = pc.connects[j+1];
-//				xprintf(f, x_("A%s, "), us_tecedmakeupper(tech.arcprotos[k].arcname));
-//			}
-//			xprintf(f, x_("ALLGEN, -1};\n"));
-//		}
-//	
-//		xprintf(f, x_("\n/******************** RECTANGLE DESCRIPTIONS ********************/"));
-//		xprintf(f, x_("\n\n"));
-//	
-//		// print box information
-//		i = 1;
-//		for(r = us_tecedfirstrule; r != NORULE; r = r.nextrule)
-//		{
-//			if (!r.used) continue;
-//			r.rindex = i++;
-//			xprintf(f, x_("static INTBIG %s_box%ld[%ld] = {"),
-//				us_tecedmakesymbol(techname), r.rindex, r.count);
-//			for(j=0; j<r.count; j += 2)
-//			{
-//				if (j != 0) xprintf(f, x_(", "));
-//				if ((j%4) == 0) yaxis = FALSE; else yaxis = TRUE;
-//				xprintf(f, x_("%s"), us_tecededgelabel(r.value[j], r.value[j+1], yaxis));
-//			}
-//			if (r.istext != 0)
-//				xprintf(f, x_(", x_(\"%s\")"), (CHAR *)r.value[r.count]);
-//			xprintf(f, x_("};\n"));
-//		}
-//	
-//		xprintf(f, x_("\n/******************** NODES ********************/\n"));
-//	
-//		// compute widest node name
-//		k = 13;
-//		for(i=0; i<tech.nodeprotocount; i++)
-//			k = maxi(k, estrlen((CHAR *)tech.nodeprotos[i].creation));
-//		k++;
-//	
-//		// write the total define
-//		xprintf(f, x_("\n#define NODEPROTOCOUNT"));
-//		for(j=13; j<k; j++) xprintf(f, x_(" "));
-//		xprintf(f, x_("%ld\n"), tech.nodeprotocount);
-//	
-//		// write the other defines
-//		for(i=0; i<tech.nodeprotocount; i++)
-//		{
-//			ab = (CHAR *)tech.nodeprotos[i].creation;
-//			xprintf(f, x_("#define N%s"), us_tecedmakeupper(ab));
-//			for(j=estrlen(ab); j<k; j++) xprintf(f, x_(" "));
-//			xprintf(f, x_("%ld\t\t\t\t/* %s */\n"), i+1, tech.nodeprotos[i].nodename);
-//		}
-//	
-//		// print node information
-//		for(i=0; i<tech.nodeprotocount; i++)
-//		{
-//			// header comment
-//			nlist = tech.nodeprotos[i];
-//			ab = (CHAR *)nlist.creation;
-//			xprintf(f, x_("\n/* %s */\n"), nlist.nodename);
-//	
-//			// print ports
-//			xprintf(f, x_("static TECH_PORTS %s_%s_p[] = {\n"), us_tecedmakesymbol(techname), ab);
-//			for(j=0; j<nlist.portcount; j++)
-//			{
-//				if (j != 0) xprintf(f, x_(",\n"));
-//	
-//				// the name of the connection structure
-//				for(pc = us_tecedfirstpcon; pc != NOPCON; pc = pc.nextpcon)
-//					if (pc.connects == nlist.portlist[j].portarcs) break;
-//				if (pc != NOPCON)
-//					xprintf(f, x_("\t{%s_pc_%ld, "), us_tecedmakesymbol(techname), pc.pcindex);
-//	
-//				// the port name
-//				xprintf(f, x_("x_(\"%s\"), NOPORTPROTO, "), nlist.portlist[j].protoname);
-//	
-//				// the port userbits
-//				xprintf(f, x_("(%ld<<PORTARANGESH)"),
-//					(nlist.portlist[j].initialbits&PORTARANGE)>>PORTARANGESH);
-//				if ((nlist.portlist[j].initialbits&PORTANGLE) != 0)
-//					xprintf(f, x_("|(%ld<<PORTANGLESH)"),
-//						(nlist.portlist[j].initialbits&PORTANGLE)>>PORTANGLESH);
-//				if ((nlist.portlist[j].initialbits&PORTNET) != 0)
-//					xprintf(f, x_("|(%ld<<PORTNETSH)"), (nlist.portlist[j].initialbits&PORTNET)>>PORTNETSH);
-//				xprintf(f, x_(",\n"));
-//	
-//				// the port area
-//				xprintf(f, x_("\t\t%s, %s, %s, %s}"),
-//					us_tecededgelabel(nlist.portlist[j].lowxmul, nlist.portlist[j].lowxsum, FALSE),
-//					us_tecededgelabel(nlist.portlist[j].lowymul, nlist.portlist[j].lowysum, TRUE),
-//					us_tecededgelabel(nlist.portlist[j].highxmul, nlist.portlist[j].highxsum, FALSE),
-//					us_tecededgelabel(nlist.portlist[j].highymul, nlist.portlist[j].highysum, TRUE));
-//			}
-//			xprintf(f, x_("};\n"));
-//	
-//			// print layers
-//			for(k=0; k<2; k++)
-//			{
-//				if (nlist.special == SERPTRANS)
-//				{
-//					if (k == 0)
-//					{
-//						xprintf(f, x_("static TECH_SERPENT %s_%s_l[] = {\n"),
-//							us_tecedmakesymbol(techname), ab);
-//						tot = nlist.layercount;
-//					} else
-//					{
-//						xprintf(f, x_("static TECH_SERPENT %s_%sE_l[] = {\n"),
-//							us_tecedmakesymbol(techname), ab);
-//						tot = nlist.layercount + 1;
-//					}
-//				} else
-//				{
-//					if (k != 0) continue;
-//					xprintf(f, x_("static TECH_POLYGON %s_%s_l[] = {\n"),
-//						us_tecedmakesymbol(techname), ab);
-//					tot = nlist.layercount;
-//				}
-//				for(j=0; j<tot; j++)
-//				{
-//					if (j != 0) xprintf(f, x_(",\n"));
-//					xprintf(f, x_("\t"));
-//					if (nlist.special == SERPTRANS)
-//					{
-//						xprintf(f, x_("{"));
-//						if (k == 0) plist = &nlist.gra[j].basics;
-//							else plist = &nlist.ele[j].basics;
-//					} else plist = &nlist.layerlist[j];
-//					xprintf(f, x_("{L%s,"), us_teclayer_iname[plist.layernum]);
-//					xprintf(f, x_(" %d,"), plist.portnum);
-//					xprintf(f, x_(" %d,"), plist.count);
-//					switch (plist.style)
-//					{
-//						case FILLEDRECT:     xprintf(f, x_(" FILLEDRECT,"));     break;
-//						case CLOSEDRECT:     xprintf(f, x_(" CLOSEDRECT,"));     break;
-//						case CROSSED:        xprintf(f, x_(" CROSSED,"));        break;
-//						case FILLED:         xprintf(f, x_(" FILLED,"));         break;
-//						case CLOSED:         xprintf(f, x_(" CLOSED,"));         break;
-//						case OPENED:         xprintf(f, x_(" OPENED,"));         break;
-//						case OPENEDT1:       xprintf(f, x_(" OPENEDT1,"));       break;
-//						case OPENEDT2:       xprintf(f, x_(" OPENEDT2,"));       break;
-//						case OPENEDT3:       xprintf(f, x_(" OPENEDT3,"));       break;
-//						case VECTORS:        xprintf(f, x_(" VECTORS,"));        break;
-//						case CIRCLE:         xprintf(f, x_(" CIRCLE,"));         break;
-//						case THICKCIRCLE:    xprintf(f, x_(" THICKCIRCLE,"));    break;
-//						case DISC:           xprintf(f, x_(" DISC,"));           break;
-//						case CIRCLEARC:      xprintf(f, x_(" CIRCLEARC,"));      break;
-//						case THICKCIRCLEARC: xprintf(f, x_(" THICKCIRCLEARC,")); break;
-//						case TEXTCENT:       xprintf(f, x_(" TEXTCENT,"));       break;
-//						case TEXTTOP:        xprintf(f, x_(" TEXTTOP,"));        break;
-//						case TEXTBOT:        xprintf(f, x_(" TEXTBOT,"));        break;
-//						case TEXTLEFT:       xprintf(f, x_(" TEXTLEFT,"));       break;
-//						case TEXTRIGHT:      xprintf(f, x_(" TEXTRIGHT,"));      break;
-//						case TEXTTOPLEFT:    xprintf(f, x_(" TEXTTOPLEFT,"));    break;
-//						case TEXTBOTLEFT:    xprintf(f, x_(" TEXTBOTLEFT,"));    break;
-//						case TEXTTOPRIGHT:   xprintf(f, x_(" TEXTTOPRIGHT,"));   break;
-//						case TEXTBOTRIGHT:   xprintf(f, x_(" TEXTBOTRIGHT,"));   break;
-//						case TEXTBOX:        xprintf(f, x_(" TEXTBOX,"));        break;
-//						default:             xprintf(f, x_(" ????,"));           break;
-//					}
-//					switch (plist.representation)
-//					{
-//						case BOX:    xprintf(f, x_(" BOX,"));     break;
-//						case MINBOX: xprintf(f, x_(" MINBOX,"));  break;
-//						case POINTS: xprintf(f, x_(" POINTS,"));  break;
-//						default:     xprintf(f, x_(" ????,"));    break;
-//					}
-//					for(r = us_tecedfirstrule; r != NORULE; r = r.nextrule)
-//						if (r.value == plist.points) break;
-//					if (r != NORULE)
-//						xprintf(f, x_(" %s_box%ld"), us_tecedmakesymbol(techname), r.rindex); else
-//							xprintf(f, x_(" %s_box??"), us_tecedmakesymbol(techname));
-//					xprintf(f, x_("}"));
-//					if (nlist.special == SERPTRANS)
-//					{
-//						if (k == 0) slist = &nlist.gra[j]; else
-//							slist = &nlist.ele[j];
-//						xprintf(f, x_(", %s"), us_tecedmakefract(slist.lwidth));
-//						xprintf(f, x_(", %s"), us_tecedmakefract(slist.rwidth));
-//						xprintf(f, x_(", %s"), us_tecedmakefract(slist.extendt));
-//						xprintf(f, x_(", %s}"), us_tecedmakefract(slist.extendb));
-//					}
-//				}
-//				xprintf(f, x_("};\n"));
-//			}
-//	
-//			// print the node information
-//			xprintf(f, x_("static TECH_NODES %s_%s = {\n"), us_tecedmakesymbol(techname), ab);
-//			xprintf(f, x_("\tx_(\"%s\"), N%s, NONODEPROTO,\n"), nlist.nodename, us_tecedmakeupper(ab));
-//			xprintf(f, x_("\t%s,"), us_tecedmakefract(nlist.xsize));
-//			xprintf(f, x_(" %s,\n"), us_tecedmakefract(nlist.ysize));
-//			xprintf(f, x_("\t%d, %s_%s_p,\n"), nlist.portcount, us_tecedmakesymbol(techname), ab);
-//			if (nlist.special == SERPTRANS)
-//				xprintf(f, x_("\t%d, (TECH_POLYGON *)0,\n"), nlist.layercount); else
-//					xprintf(f, x_("\t%d, %s_%s_l,\n"), nlist.layercount,
-//						us_tecedmakesymbol(techname), ab);
-//			j = (nlist.initialbits&NFUNCTION)>>NFUNCTIONSH;
-//			if (j < 0 || j >= MAXNODEFUNCTION) j = 0;
-//			xprintf(f, x_("\t(%s<<NFUNCTIONSH)"), nodefunctionconstantname(j));
-//			if ((nlist.initialbits&WIPEON1OR2) != 0) xprintf(f, x_("|WIPEON1OR2"));
-//			if ((nlist.initialbits&HOLDSTRACE) != 0) xprintf(f, x_("|HOLDSTRACE"));
-//			if ((nlist.initialbits&NSQUARE) != 0)    xprintf(f, x_("|NSQUARE"));
-//			if ((nlist.initialbits&ARCSWIPE) != 0)   xprintf(f, x_("|ARCSWIPE"));
-//			if ((nlist.initialbits&ARCSHRINK) != 0)  xprintf(f, x_("|ARCSHRINK"));
-//			if ((nlist.initialbits&NODESHRINK) != 0) xprintf(f, x_("|NODESHRINK"));
-//			if ((nlist.initialbits&LOCKEDPRIM) != 0) xprintf(f, x_("|LOCKEDPRIM"));
-//			xprintf(f, x_(",\n"));
-//			switch (nlist.special)
-//			{
-//				case 0:
-//					xprintf(f, x_("\t0,0,0,0,0,0,0,0,0"));
-//					break;
-//				case SERPTRANS:
-//					xprintf(f, x_("\tSERPTRANS,%d,"), nlist.f1);
-//					xprintf(f, x_("%s,"), us_tecedmakefract(nlist.f2));
-//					xprintf(f, x_("%s,"), us_tecedmakefract(nlist.f3));
-//					xprintf(f, x_("%s,"), us_tecedmakefract(nlist.f4));
-//					xprintf(f, x_("%s,"), us_tecedmakefract(nlist.f5));
-//					xprintf(f, x_("%s,"), us_tecedmakefract(nlist.f6));
-//					xprintf(f, x_("%s_%s_l,"), us_tecedmakesymbol(techname), ab);
-//					xprintf(f, x_("%s_%sE_l"), us_tecedmakesymbol(techname), ab);
-//					break;
-//				case MULTICUT:
-//					xprintf(f, x_("\tMULTICUT,%s,"), us_tecedmakefract(nlist.f1));
-//					xprintf(f, x_("%s,"), us_tecedmakefract(nlist.f2));
-//					xprintf(f, x_("%s,"), us_tecedmakefract(nlist.f3));
-//					xprintf(f, x_("%s,0,0,0,0"), us_tecedmakefract(nlist.f4));
-//					break;
-//				case POLYGONAL:
-//					xprintf(f, x_("\tPOLYGONAL,0,0,0,0,0,0,0,0"));
-//					break;
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//	
-//		// print summary of nodes
-//		xprintf(f, x_("\nTECH_NODES *%s_nodeprotos[NODEPROTOCOUNT+1] = {\n\t"),
-//			us_tecedmakesymbol(techname));
-//		l = 4;
-//		for(i=0; i<tech.nodeprotocount; i++)
-//		{
-//			sym = us_tecedmakesymbol(techname);
-//			if (l + estrlen(sym) + estrlen((CHAR *)tech.nodeprotos[i].creation) + 4 > 80)
-//			{
-//				xprintf(f, x_("\n\t"));
-//				l = 4;
-//			}
-//			xprintf(f, x_("&%s_%s, "), sym, (CHAR *)tech.nodeprotos[i].creation);
-//			l += estrlen(sym) + estrlen((CHAR *)tech.nodeprotos[i].creation) + 4;
-//		}
-//		xprintf(f, x_("((TECH_NODES *)-1)};\n"));
-//	
-//		// print highlight offset information
-//		xprintf(f, x_("\nstatic INTBIG %s_node_widoff[NODEPROTOCOUNT*4] = {\n\t"),
-//			us_tecedmakesymbol(techname));
-//		l = 4;
-//		for(i=0; i<tech.nodeprotocount; i++)
-//		{
-//			if (i != 0) { xprintf(f, x_(", ")); l += 2; }
-//			infstr = initinfstr();
-//			if (us_tecnode_widoff[i*4] == 0) addtoinfstr(infstr, '0'); else
-//				addstringtoinfstr(infstr, us_tecedmakefract(us_tecnode_widoff[i*4]));
-//			addtoinfstr(infstr, ',');
-//			if (us_tecnode_widoff[i*4+1] == 0) addtoinfstr(infstr, '0'); else
-//				addstringtoinfstr(infstr, us_tecedmakefract(us_tecnode_widoff[i*4+1]));
-//			addtoinfstr(infstr, ',');
-//			if (us_tecnode_widoff[i*4+2] == 0) addtoinfstr(infstr, '0'); else
-//				addstringtoinfstr(infstr, us_tecedmakefract(us_tecnode_widoff[i*4+2]));
-//			addtoinfstr(infstr, ',');
-//			if (us_tecnode_widoff[i*4+3] == 0) addtoinfstr(infstr, '0'); else
-//				addstringtoinfstr(infstr, us_tecedmakefract(us_tecnode_widoff[i*4+3]));
-//			sym = returninfstr(infstr);
-//			l += estrlen(sym);
-//			if (l > 80)
-//			{
-//				xprintf(f, x_("\n\t"));
-//				l = 4;
-//			}
-//			xprintf(f, x_("%s"), sym);
-//		}
-//		xprintf(f, x_("};\n"));
-//	
-//		// print grab point informaton if it exists
-//		if ((us_tecflags&HASGRAB) != 0 && us_tecnode_grabcount > 0)
-//		{
-//			xprintf(f, x_("\nstatic INTBIG %s_centergrab[] = {\n"), us_tecedmakesymbol(techname));
-//			for(i=0; i<us_tecnode_grabcount; i += 3)
-//			{
-//				ab = (CHAR *)tech.nodeprotos[us_tecnode_grab[i]-1].creation;
-//				xprintf(f, x_("\tN%s, %ld, %ld"), us_tecedmakeupper(ab), us_tecnode_grab[i+1],
-//					us_tecnode_grab[i+2]);
-//				if (i != us_tecnode_grabcount-3) xprintf(f, x_(",\n"));
-//			}
-//			xprintf(f, x_("\n};\n"));
-//		}
-//	
-//		// print minimum node size informaton if it exists
-//		if ((us_tecflags&HASMINNODE) != 0)
-//		{
-//			xprintf(f, x_("\nstatic INTBIG %s_node_minsize[NODEPROTOCOUNT*2] = {\n"), us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.nodeprotocount; i++)
-//			{
-//				if (us_tecdrc_rules.minnodesize[i*2] < 0) ab = x_("XX"); else
-//					ab = us_tecedmakefract(us_tecdrc_rules.minnodesize[i*2]);
-//				xprintf(f, x_("\t%s, "), ab);
-//				if (us_tecdrc_rules.minnodesize[i*2+1] < 0) ab = x_("XX"); else
-//					ab = us_tecedmakefract(us_tecdrc_rules.minnodesize[i*2+1]);
-//				xprintf(f, x_("%s"), ab);
-//				if (i == tech.nodeprotocount-1) ab = x_(""); else ab = x_(",");
-//				xprintf(f, x_("%s\t\t/* %s */\n"), ab, tech.nodeprotos[i].nodename);
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//		if ((us_tecflags&HASMINNODER) != 0)
-//		{
-//			xprintf(f, x_("\nstatic char *%s_node_minsize_rule[NODEPROTOCOUNT] = {\n"), us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.nodeprotocount; i++)
-//			{
-//				if (i == tech.nodeprotocount-1) ab = x_(""); else ab = x_(",");
-//				xprintf(f, x_("\tx_(\"%s\")%s\t\t/* %s */\n"), us_tecdrc_rules.minnodesizeR[i], ab,
-//					tech.nodeprotos[i].nodename);
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//	
-//		// clean up
-//		for(i=0; i<tech.nodeprotocount; i++)
-//		{
-//			efree((CHAR *)tech.nodeprotos[i].creation);
-//			tech.nodeprotos[i].creation = NONODEPROTO;
-//		}
-//	}
-//	
-//	/*
-//	 * routine to dump the variable information in technology "tech" to the stream in
-//	 * "f".
-//	 */
-//	void us_teceditdumpvars(FILE *f, TECHNOLOGY *tech, CHAR *techname)
-//	{
-//		REGISTER INTBIG i, j, k;
-//		REGISTER CHAR *pt;
-//		REGISTER VARIABLE *var;
-//	
-//		xprintf(f, x_("\n/******************** VARIABLE AGGREGATION ********************/\n"));
-//	
-//		// write any miscellaneous string array variables
-//		for(i=0; us_knownvars[i].varname != 0; i++)
-//		{
-//			var = getval((INTBIG)tech, VTECHNOLOGY, -1, us_knownvars[i].varname);
-//			if (var == NOVARIABLE) continue;
-//			if ((var.type&(VTYPE|VISARRAY)) == (VSTRING|VISARRAY))
-//			{
-//				xprintf(f, x_("\nchar *%s_%s[] = {\n"), us_tecedmakesymbol(techname),
-//					us_knownvars[i].varname);
-//				j = getlength(var);
-//				for(k=0; k<j; k++)
-//				{
-//					xprintf(f, x_("\tx_(\""));
-//					for(pt = ((CHAR **)var.addr)[k]; *pt != 0; pt++)
-//					{
-//						if (*pt == '"') xprintf(f, x_("\\"));
-//						xprintf(f, x_("%c"), *pt);
-//					}
-//					xprintf(f, x_("\"),\n"));
-//				}
-//				xprintf(f, x_("\tNOSTRING};\n"));
-//			}
-//		}
-//	
-//		xprintf(f, x_("\nTECH_VARIABLES %s_variables[] =\n{\n"), us_tecedmakesymbol(techname));
-//	
-//		xprintf(f, x_("\t{x_(\"TECH_layer_names\"), (CHAR *)%s_layer_names, 0.0,\n"),
-//			us_tecedmakesymbol(techname));
-//		xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},\n"));
-//	
-//		xprintf(f, x_("\t{x_(\"TECH_layer_function\"), (CHAR *)%s_layer_function, 0.0,\n"),
-//			us_tecedmakesymbol(techname));
-//		xprintf(f, x_("\t\tVINTEGER|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},\n"));
-//	
-//		xprintf(f, x_("\t{x_(\"TECH_node_width_offset\"), (CHAR *)%s_node_widoff, 0.0,\n"),
-//			us_tecedmakesymbol(techname));
-//		xprintf(f, x_("\t\tVFRACT|VDONTSAVE|VISARRAY|((NODEPROTOCOUNT*4)<<VLENGTHSH)},\n"));
-//		if ((us_tecflags&HASGRAB) != 0 && us_tecnode_grabcount > 0)
-//			xprintf(f, x_("\t{x_(\"prototype_center\"), (CHAR *)%s_centergrab, 0.0, %ld},\n"),
-//				us_tecedmakesymbol(techname), us_tecnode_grabcount/3);
-//	
-//		if ((us_tecflags&HASMINNODE) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"DRC_min_node_size\"), (CHAR *)%s_node_minsize, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVFRACT|VDONTSAVE|VISARRAY|((NODEPROTOCOUNT*2)<<VLENGTHSH)},\n"));
-//		}
-//		if ((us_tecflags&HASMINNODER) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"DRC_min_node_size_rule\"), (CHAR *)%s_node_minsize_rule, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|(NODEPROTOCOUNT<<VLENGTHSH)},\n"));
-//		}
-//	
-//		if ((us_tecflags&HASARCWID) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"TECH_arc_width_offset\"), (CHAR *)%s_arc_widoff, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVFRACT|VDONTSAVE|VISARRAY|(ARCPROTOCOUNT<<VLENGTHSH)},\n"));
-//		}
-//	
-//		if ((us_tecflags&HAS3DINFO) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"TECH_layer_3dthickness\"), (CHAR *)%s_3dthick_layers, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVINTEGER|VDONTSAVE|VISARRAY|(ARCPROTOCOUNT<<VLENGTHSH)},\n"));
-//			xprintf(f, x_("\t{x_(\"TECH_layer_3dheight\"), (CHAR *)%s_3dheight_layers, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVINTEGER|VDONTSAVE|VISARRAY|(ARCPROTOCOUNT<<VLENGTHSH)},\n"));
-//		}
-//		if ((us_tecflags&HASPRINTCOL) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"USER_print_colors\"), (CHAR *)%s_printcolors_layers, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVINTEGER|VDONTSAVE|VISARRAY|((MAXLAYERS*5)<<VLENGTHSH)},\n"));
-//		}
-//	
-//		xprintf(f, x_("\t{x_(\"USER_layer_letters\"), (CHAR *)%s_layer_letters, 0.0,\n"),
-//			us_tecedmakesymbol(techname));
-//		xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},\n"));
-//	
-//		if ((us_tecflags&HASCOLORMAP) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"USER_color_map\"), (CHAR *)%s_colmap, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVCHAR|VDONTSAVE|VISARRAY|((sizeof %s_colmap)<<VLENGTHSH)},\n"),
-//				us_tecedmakesymbol(techname));
-//		}
-//	
-//		if ((us_tecflags&HASCIF) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"IO_cif_layer_names\"), (CHAR *)%s_cif_layers, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},\n"));
-//		}
-//	
-//		if ((us_tecflags&HASDXF) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"IO_dxf_layer_names\"), (CHAR *)%s_dxf_layers, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},\n"));
-//		}
-//	
-//		if ((us_tecflags&HASGDS) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"IO_gds_layer_numbers\"), (CHAR *)%s_gds_layers, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},\n"));
-//		}
-//	
-//		if ((us_tecflags&HASDRCMINWID) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"DRC_min_width\"), (CHAR *)%s_minimum_width, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVFRACT|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},\n"));
-//			if ((us_tecflags&HASDRCMINWIDR) != 0)
-//			{
-//				xprintf(f, x_("\t{x_(\"DRC_min_width_rule\"), (CHAR *)%s_minimum_width_rule, 0.0,\n"),
-//					us_tecedmakesymbol(techname));
-//				xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},\n"));
-//			}
-//		}
-//		if ((us_tecflags&(HASCONDRCW|HASUNCONDRCW)) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"DRC_wide_limit\"), (CHAR *)%ld, 0.0,\n"),
-//				us_tecdrc_rules.widelimit);
-//			xprintf(f, x_("\t\tVFRACT|VDONTSAVE},\n"));
-//		}
-//	
-//		if ((us_tecflags&HASCONDRC) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"DRC_min_connected_distances\"), (CHAR *)%s_connectedtable, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVFRACT|VDONTSAVE|VISARRAY|\n"));
-//			xprintf(f, x_("\t\t\t(((sizeof %s_connectedtable)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//				us_tecedmakesymbol(techname));
-//			if ((us_tecflags&HASCONDRCR) != 0)
-//			{
-//				xprintf(f, x_("\t{x_(\"DRC_min_connected_distances_rule\"), (CHAR *)%s_connectedtable_rule, 0.0,\n"),
-//					us_tecedmakesymbol(techname));
-//				xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|\n"));
-//				xprintf(f, x_("\t\t\t(((sizeof %s_connectedtable_rule)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//					us_tecedmakesymbol(techname));
-//			}
-//		}
-//		if ((us_tecflags&HASUNCONDRC) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"DRC_min_unconnected_distances\"), (CHAR *)%s_unconnectedtable, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVFRACT|VDONTSAVE|VISARRAY|\n"));
-//			xprintf(f, x_("\t\t   (((sizeof %s_unconnectedtable)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//				us_tecedmakesymbol(techname));
-//			if ((us_tecflags&HASUNCONDRCR) != 0)
-//			{
-//				xprintf(f, x_("\t{x_(\"DRC_min_unconnected_distances_rule\"), (CHAR *)%s_unconnectedtable_rule, 0.0,\n"),
-//					us_tecedmakesymbol(techname));
-//				xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|\n"));
-//				xprintf(f, x_("\t\t\t(((sizeof %s_unconnectedtable_rule)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//					us_tecedmakesymbol(techname));
-//			}
-//		}
-//	
-//		if ((us_tecflags&HASCONDRCW) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"DRC_min_connected_distances_wide\"), (CHAR *)%s_connectedtable_wide, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVFRACT|VDONTSAVE|VISARRAY|\n"));
-//			xprintf(f, x_("\t\t\t(((sizeof %s_connectedtable_wide)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//				us_tecedmakesymbol(techname));
-//			if ((us_tecflags&HASCONDRCWR) != 0)
-//			{
-//				xprintf(f, x_("\t{x_(\"DRC_min_connected_distances_wide_rule\"), (CHAR *)%s_connectedtable_wide_rule, 0.0,\n"),
-//					us_tecedmakesymbol(techname));
-//				xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|\n"));
-//				xprintf(f, x_("\t\t\t(((sizeof %s_connectedtable_wide_rule)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//					us_tecedmakesymbol(techname));
-//			}
-//		}
-//		if ((us_tecflags&HASUNCONDRCW) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"DRC_min_unconnected_distances_wide\"), (CHAR *)%s_unconnectedtable_wide, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVFRACT|VDONTSAVE|VISARRAY|\n"));
-//			xprintf(f, x_("\t\t   (((sizeof %s_unconnectedtable_wide)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//				us_tecedmakesymbol(techname));
-//			if ((us_tecflags&HASUNCONDRCWR) != 0)
-//			{
-//				xprintf(f, x_("\t{x_(\"DRC_min_unconnected_distances_wide_rule\"), (CHAR *)%s_unconnectedtable_wide_rule, 0.0,\n"),
-//					us_tecedmakesymbol(techname));
-//				xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|\n"));
-//				xprintf(f, x_("\t\t\t(((sizeof %s_unconnectedtable_wide)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//					us_tecedmakesymbol(techname));
-//			}
-//		}
-//	
-//		if ((us_tecflags&HASCONDRCM) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"DRC_min_connected_distances_multi\"), (CHAR *)%s_connectedtable_multi, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVFRACT|VDONTSAVE|VISARRAY|\n"));
-//			xprintf(f, x_("\t\t\t(((sizeof %s_connectedtable_multi)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//				us_tecedmakesymbol(techname));
-//			if ((us_tecflags&HASCONDRCMR) != 0)
-//			{
-//				xprintf(f, x_("\t{x_(\"DRC_min_connected_distances_multi_rule\"), (CHAR *)%s_connectedtable_multi_rule, 0.0,\n"),
-//					us_tecedmakesymbol(techname));
-//				xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|\n"));
-//				xprintf(f, x_("\t\t\t(((sizeof %s_connectedtable_multi_rule)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//					us_tecedmakesymbol(techname));
-//			}
-//		}
-//		if ((us_tecflags&HASUNCONDRCM) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"DRC_min_unconnected_distances_multi\"), (CHAR *)%s_unconnectedtable_multi, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVFRACT|VDONTSAVE|VISARRAY|\n"));
-//			xprintf(f, x_("\t\t   (((sizeof %s_unconnectedtable_multi)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//				us_tecedmakesymbol(techname));
-//			if ((us_tecflags&HASUNCONDRCMR) != 0)
-//			{
-//				xprintf(f, x_("\t{x_(\"DRC_min_unconnected_distances_multi_rule\"), (CHAR *)%s_unconnectedtable_multi_rule, 0.0,\n"),
-//					us_tecedmakesymbol(techname));
-//				xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|\n"));
-//				xprintf(f, x_("\t\t\t(((sizeof %s_unconnectedtable_multi)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//					us_tecedmakesymbol(techname));
-//			}
-//		}
-//		if ((us_tecflags&HASEDGEDRC) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"DRC_min_edge_distances\"), (CHAR *)%s_edgetable, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVFRACT|VDONTSAVE|VISARRAY|\n"));
-//			xprintf(f, x_("\t\t   (((sizeof %s_edgetable)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//				us_tecedmakesymbol(techname));
-//			if ((us_tecflags&HASEDGEDRCR) != 0)
-//			{
-//				xprintf(f, x_("\t{x_(\"DRC_min_edge_distances_rule\"), (CHAR *)%s_edgetable_rule, 0.0,\n"),
-//					us_tecedmakesymbol(techname));
-//				xprintf(f, x_("\t\tVSTRING|VDONTSAVE|VISARRAY|\n"));
-//				xprintf(f, x_("\t\t\t(((sizeof %s_edgetable)/SIZEOFINTBIG)<<VLENGTHSH)},\n"),
-//					us_tecedmakesymbol(techname));
-//			}
-//		}
-//	
-//		if ((us_tecflags&HASSPIRES) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"SIM_spice_resistance\"), (CHAR *)%s_sim_spice_resistance, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVFLOAT|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},\n"));
-//		}
-//		if ((us_tecflags&HASSPICAP) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"SIM_spice_capacitance\"), (CHAR *)%s_sim_spice_capacitance, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVFLOAT|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},\n"));
-//		}
-//		if ((us_tecflags&HASSPIECAP) != 0)
-//		{
-//			xprintf(f, x_("\t{x_(\"SIM_spice_edge_capacitance\"), (CHAR *)%s_sim_spice_edge_cap, 0.0,\n"),
-//				us_tecedmakesymbol(techname));
-//			xprintf(f, x_("\t\tVFLOAT|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)},\n"));
-//		}
-//	
-//		// throw in pointers to any miscellaneous variables
-//		for(i=0; us_knownvars[i].varname != 0; i++)
-//		{
-//			var = getval((INTBIG)tech, VTECHNOLOGY, -1, us_knownvars[i].varname);
-//			if (var == NOVARIABLE) continue;
-//			xprintf(f, x_("\t{x_(\"%s\"), "), us_knownvars[i].varname);
-//			switch (var.type&(VTYPE|VISARRAY))
-//			{
-//				case VINTEGER:
-//					xprintf(f, x_("(CHAR *)%ld, 0.0, VINTEGER|VDONTSAVE"), var.addr);
-//					break;
-//				case VFLOAT:
-//					xprintf(f, x_("(CHAR *)0, %g, VFLOAT|VDONTSAVE"), castfloat(var.addr));
-//					break;
-//				case VSTRING:
-//					xprintf(f, x_("x_(\"%s\"), 0.0, VSTRING|VDONTSAVE"), (CHAR *)var.addr);
-//					break;
-//				case VSTRING|VISARRAY:
-//					xprintf(f, x_("(CHAR *)%s_%s, 0.0,\n\t\tVSTRING|VDONTSAVE|VISARRAY|(MAXLAYERS<<VLENGTHSH)"),
-//						us_tecedmakesymbol(techname), us_knownvars[i].varname);
-//					break;
-//			}
-//			xprintf(f, x_("},\n"));
-//		}
-//	
-//		xprintf(f, x_("\t{NULL, NULL, 0.0, 0}\n};\n"));
-//	}
-//	
-//	/*
-//	 * routine to convert the multiplication and addition factors in "mul" and
-//	 * "add" into proper constant names.  The "yaxis" is false for X and 1 for Y
-//	 */
-//	CHAR *us_tecededgelabel(INTBIG mul, INTBIG add, BOOLEAN yaxis)
-//	{
-//		CHAR line[20];
-//		REGISTER INTBIG amt;
-//		REGISTER void *infstr;
-//	
-//		infstr = initinfstr();
-//	
-//		// handle constant distance from center (handles halves up to 5.5)
-//		if (mul == 0 && (add%H0) == 0 && abs(add) < K6)
-//		{
-//			addstringtoinfstr(infstr, x_("CENTER"));
-//			if (add == 0) return(returninfstr(infstr));
-//			if (!yaxis)
-//			{
-//				if (add < 0) addtoinfstr(infstr, 'L'); else addtoinfstr(infstr, 'R');
-//			} else
-//			{
-//				if (add < 0) addtoinfstr(infstr, 'D'); else addtoinfstr(infstr, 'U');
-//			}
-//			amt = abs(add);
-//			switch (amt%WHOLE)
-//			{
-//				case 0:  (void)esnprintf(line, 20, x_("%ld"),  amt/WHOLE);   break;
-//				case H0: (void)esnprintf(line, 20, x_("%ldH"), amt/WHOLE);   break;
-//			}
-//			addstringtoinfstr(infstr, line);
-//			return(returninfstr(infstr));
-//		}
-//	
-//		// handle constant distance from edge (handles quarters up to 10, halves to 20)
-//		if ((mul == H0 || mul == -H0) &&
-//			(((add%Q0) == 0 && abs(add) < K10) || ((add%H0) == 0 && abs(add) < K20)))
-//		{
-//			if (!yaxis)
-//			{
-//				if (mul < 0) addstringtoinfstr(infstr, x_("LEFT")); else
-//					addstringtoinfstr(infstr, x_("RIGHT"));
-//			} else
-//			{
-//				if (mul < 0) addstringtoinfstr(infstr, x_("BOT")); else
-//					addstringtoinfstr(infstr, x_("TOP"));
-//			}
-//			if (add == 0) addstringtoinfstr(infstr, x_("EDGE")); else
-//			{
-//				amt = abs(add);
-//				switch (amt%WHOLE)
-//				{
-//					case 0:  (void)esnprintf(line, 20, x_("IN%ld"),  amt/WHOLE);   break;
-//					case Q0: (void)esnprintf(line, 20, x_("IN%ldQ"), amt/WHOLE);   break;
-//					case H0: (void)esnprintf(line, 20, x_("IN%ldH"), amt/WHOLE);   break;
-//					case T0: (void)esnprintf(line, 20, x_("IN%ldT"), amt/WHOLE);   break;
-//				}
-//				addstringtoinfstr(infstr, line);
-//			}
-//			return(returninfstr(infstr));
-//		}
-//	
-//		// generate two-value description
-//		addstringtoinfstr(infstr, us_tecedmakefract(mul));
-//		addtoinfstr(infstr, ',');
-//		addstringtoinfstr(infstr, us_tecedmakefract(add));
-//		return(returninfstr(infstr));
-//	}
-//	
+	static Rule us_tecedaddrule(Technology.TechPoint [] list, boolean multcut, String istext)
+	{
+		for(Rule r = us_tecedfirstrule; r != null; r = r.nextrule)
+		{
+			if (multcut != r.multicut) continue;
+			if (istext != null && r.msg != null)
+			{
+				if (!istext.equalsIgnoreCase(r.msg)) continue;
+			} else if (istext != null || r.msg != null) continue;
+			if (list.length != r.value.length) continue;
+			boolean same = true;
+			for(int i=0; i<list.length; i++) if (r.value[i] != list[i]) { same = false;   break; }
+			if (same) return r;
+		}
+	
+		Rule r = new Rule();
+		r.value = new Technology.TechPoint[list.length];
+		r.nextrule = us_tecedfirstrule;
+		r.used = false;
+		r.multicut = multcut;
+		us_tecedfirstrule = r;
+		for(int i=0; i<list.length; i++) r.value[i] = list[i];
+		r.istext = 0;
+		if (istext != null)
+		{
+			r.msg = istext;
+			r.istext = 1;
+		}
+		return r;
+	}
+
 //	/****************************** WRITE TECHNOLOGY AS "JAVA" CODE ******************************/
 //	
 //	/*
@@ -5722,4 +3961,32 @@ public class Parse
 //		while (*str == ' ') str++;
 //		return(str);
 //	}
+	
+	static void us_tecedpointout(NodeInst ni, Cell np)
+	{
+//		REGISTER WINDOWPART *w;
+//		CHAR *newpar[2];
+//	
+//		for(w = el_topwindowpart; w != NOWINDOWPART; w = w.nextwindowpart)
+//			if (w.curnodeproto == np) break;
+//		if (w == NOWINDOWPART)
+//		{
+//			newpar[0] = describenodeproto(np);
+//			us_editcell(1, newpar);
+//		}
+//		if (ni != NONODEINST)
+//		{
+//			us_clearhighlightcount();
+//			(void)asktool(us_tool, x_("show-object"), (INTBIG)ni.geom);
+//		}
+	}
+	
+	static String us_tecedsamplename(NodeProto layernp)
+	{
+		if (layernp == Generic.tech.portNode) return "PORT";
+		if (layernp == Generic.tech.cellCenterNode) return "GRAB";
+		if (layernp == null) return "HIGHLIGHT";
+		return layernp.getName().substring(6);
+	}
+
 }

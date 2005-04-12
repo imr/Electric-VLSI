@@ -34,6 +34,7 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -41,6 +42,8 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
@@ -76,6 +79,7 @@ public class Generate
 
 	static class LayerInfo
 	{
+		String name;
 		EGraphics desc;
 		Layer.Function fun;
 		int funExtra;
@@ -87,6 +91,7 @@ public class Generate
 		double spiecap;
 		double height3d;
 		double thick3d;
+		Layer generated;
 
 		LayerInfo()
 		{
@@ -95,6 +100,7 @@ public class Generate
 		static LayerInfo makeInstance()
 		{
 			LayerInfo li = new LayerInfo();
+			li.name = "";
 			li.desc = new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, 0, 0, 0, 0, 1, false, new int[16]);
 			li.fun = Layer.Function.UNKNOWN;
 			li.cif = "";
@@ -255,7 +261,7 @@ public class Generate
 			// now create those text objects
 			us_tecedcreatespecialtext(np, us_tecedlayertexttable);
 		}
-		
+
 		/**
 		 * Method to parse the layer cell in "np" and return a LayerInfo object that describes it.
 		 */
@@ -263,6 +269,7 @@ public class Generate
 		{
 			// create and initialize the GRAPHICS structure
 			LayerInfo li = LayerInfo.makeInstance();
+			li.name = np.getName().substring(6);
 		
 			// look at all nodes in the layer description cell
 			int patterncount = 0;
@@ -272,14 +279,7 @@ public class Generate
 				NodeInst ni = (NodeInst)it.next();
 				Variable varkey = ni.getVar(OPTION_KEY);
 				if (varkey == null) continue;
-				Variable var = ni.getVar(Artwork.ART_MESSAGE);
-				String str = "";
-				if (var != null)
-				{
-					str = (String)var.getObject();
-					int colonPos = str.indexOf(':');
-					if (colonPos >= 0) str = str.substring(colonPos+2);
-				}
+				String str = Manipulate.getValueOnNode(ni);
 		
 				switch (((Integer)varkey.getObject()).intValue())
 				{
@@ -496,6 +496,54 @@ public class Generate
 			// now create those text objects
 			us_tecedcreatespecialtext(np, us_tecedarctexttable);
 		}
+
+		/**
+		 * Method to parse the arc cell in "np" and return an ArcInfo object that describes it.
+		 */
+		static ArcInfo us_teceditgetarcinfo(Cell np)
+		{
+			// create and initialize the GRAPHICS structure
+			ArcInfo ain = ArcInfo.makeInstance();
+
+			// look at all nodes in the arc description cell
+			for(Iterator it = np.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				Variable varkey = ni.getVar(OPTION_KEY);
+				if (varkey == null) continue;
+				String str = Manipulate.getValueOnNode(ni);
+		
+				switch (((Integer)varkey.getObject()).intValue())
+				{
+					case ARCFUNCTION:
+						ain.func = ArcProto.Function.UNKNOWN;
+						List allFuncs = ArcProto.Function.getFunctions();
+						for(Iterator fIt = allFuncs.iterator(); fIt.hasNext(); )
+						{
+							ArcProto.Function fun = (ArcProto.Function)fIt.next();
+							if (fun.toString().equalsIgnoreCase(str))
+							{
+								ain.func = fun;
+								break;
+							}
+						}
+						break;
+					case ARCINC:
+						ain.anginc = TextUtils.atoi(str);
+						break;
+					case ARCFIXANG:
+						ain.fixang = str.equalsIgnoreCase("yes");
+						break;
+					case ARCWIPESPINS:
+						ain.wipes = str.equalsIgnoreCase("yes");
+						break;
+					case ARCNOEXTEND:
+						ain.noextend = str.equalsIgnoreCase("yes");
+						break;
+				}
+			}
+			return ain;
+		}
 	}
 
 	static class NodeInfo
@@ -506,6 +554,8 @@ public class Generate
 		boolean wipes;
 		boolean lockable;
 		double multicutsep;
+		Technology.NodeLayer [] nodeLayers;
+		PrimitivePort[] primPorts;
 
 		NodeInfo()
 		{
@@ -555,6 +605,56 @@ public class Generate
 		
 			// now create those text objects
 			us_tecedcreatespecialtext(np, us_tecednodetexttable);
+		}
+
+		/**
+		 * Method to parse the node cell in "np" and return an NodeInfo object that describes it.
+		 */
+		static NodeInfo us_teceditgetnodeinfo(Cell np)
+		{
+			NodeInfo nin = NodeInfo.makeInstance();
+
+			// look at all nodes in the arc description cell
+			for(Iterator it = np.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				Variable varkey = ni.getVar(OPTION_KEY);
+				if (varkey == null) continue;
+				String str = Manipulate.getValueOnNode(ni);
+		
+				switch (((Integer)varkey.getObject()).intValue())
+				{
+					case NODEFUNCTION:
+						nin.func = PrimitiveNode.Function.UNKNOWN;
+						List allFuncs = PrimitiveNode.Function.getFunctions();
+						for(Iterator fIt = allFuncs.iterator(); fIt.hasNext(); )
+						{
+							PrimitiveNode.Function fun = (PrimitiveNode.Function)fIt.next();
+							if (fun.toString().equalsIgnoreCase(str))
+							{
+								nin.func = fun;
+								break;
+							}
+						}
+						break;
+					case NODEMULTICUT:
+						nin.multicutsep = TextUtils.atof(str);
+						break;
+					case NODESQUARE:
+						nin.square = str.equalsIgnoreCase("yes");
+						break;
+					case NODEWIPES:
+						nin.wipes = str.equalsIgnoreCase("yes");
+						break;
+					case NODELOCKABLE:
+						nin.lockable = str.equalsIgnoreCase("yes");
+						break;
+					case NODESERPENTINE:
+						nin.serp = str.equalsIgnoreCase("yes");
+						break;
+				}
+			}
+			return nin;
 		}
 	}
 
@@ -654,22 +754,6 @@ public class Generate
 		new TechVar("SIM_spice_model_file",      /*VSTRING,*/          "Disk file with SPICE header cards"),
 		new TechVar("SIM_spice_trailer_file",    /*VSTRING,*/          "Disk file with SPICE trailer cards")
 	};
-//
-//	/* rectangle rules */
-//	#define NORULE ((RULE *)-1)
-//
-//	typedef struct Irule
-//	{
-//		INTBIG       *value;					/* data points for rule */
-//		INTBIG        count;					/* number of points in rule */
-//		INTBIG        istext;					/* nonzero if text at end of rule */
-//		INTBIG        rindex;					/* identifier for this rule */
-//		BOOLEAN       used;						/* nonzero if actually used */
-//		BOOLEAN       multicut;					/* nonzero if this is multiple cut */
-//		INTBIG        multixs, multiys;			/* size of multicut */
-//		INTBIG        multiindent, multisep;	/* indent and separation of multicuts */
-//		struct Irule *nextrule;
-//	} RULE;
 //
 //
 //	/* the meaning of "us_tecflags" */

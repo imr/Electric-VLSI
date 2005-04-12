@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+IMP: (04/11/05, SMR) GDS input and output now handles pin layers correctly.
+
+IMP: (04/11/05, SMR) Added checking in NodeInst.newInstance().
+
+BUG/MAN: (04/11/05, SMR) JELIB I/O doesn't handle null pointers.
+FIX: New attribute type "X" for null objects.
+
 BUG: (04/11/05, GVG) Wrong scale for schematic capacitors in IRSIM (Bug #249)
 FIX: Dividing value by 1e-15 to convert it into Femto units.
 

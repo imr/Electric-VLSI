@@ -44,6 +44,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -78,6 +79,7 @@ import javax.swing.JButton;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.Dimension;
 import java.awt.Point;
@@ -159,10 +161,6 @@ public class Manipulate
 //		{NULL, NULL, 0}
 //	};
 //	
-//	static GRAPHICS us_edtechigh = {LAYERH, HIGHLIT, SOLIDC, SOLIDC,
-//		{0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
-//		0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}, NOVARIABLE, 0};
-//	
 //	/**
 //	 * the entry Method for all technology editing
 //	 */
@@ -217,16 +215,6 @@ public class Manipulate
 //		if (namesamen(pp, x_("edit-design-rules"), l) == 0 && l >= 6)
 //		{
 //			us_teceditdrc();
-//			return;
-//		}
-//		if (namesamen(pp, x_("identify-layers"), l) == 0 && l >= 10)
-//		{
-//			us_teceditidentify(FALSE);
-//			return;
-//		}
-//		if (namesamen(pp, x_("identify-ports"), l) == 0 && l >= 10)
-//		{
-//			us_teceditidentify(TRUE);
 //			return;
 //		}
 //		if (namesamen(pp, x_("dependent-libraries"), l) == 0 && l >= 2)
@@ -496,12 +484,11 @@ public class Manipulate
 //		dr_freerules(rules);
 //	}
 //	
-	/*
-	 * Routine to update tables to reflect that cell "oldname" is now called "newname".
+	/**
+	 * Method to update tables to reflect that cell "oldname" is now called "newname".
 	 * If "newname" is not valid, any rule that refers to "oldname" is removed.
-	 * 
 	 */
-	void us_tecedrenamecell(String oldname, String newname)
+	public static void renamedCell(String oldname, String newname)
 	{
 //		REGISTER VARIABLE *var;
 //		REGISTER INTBIG i, len;
@@ -632,7 +619,59 @@ public class Manipulate
 //			VSTRING|VISARRAY|(count<<VLENGTHSH));
 //		killstringarray(sa);
 	}
-	
+
+	/**
+	 * Method called when a cell has been deleted.
+	 */
+	public static void deletedCell(Cell np)
+	{
+//		REGISTER VARIABLE *var;
+//		REGISTER NODEPROTO *onp;
+//		REGISTER NODEINST *ni;
+//		REGISTER BOOLEAN warned, isnode;
+//		REGISTER CHAR *layername;
+//		REGISTER void *infstr;
+//	
+		if (np.getName().startsWith("layer-"))
+		{
+//			// may have deleted layer cell in technology library
+//			layername = &np.protoname[6];
+//			warned = FALSE;
+//			for(onp = np.lib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
+//			{
+//				if (namesamen(onp.protoname, x_("node-"), 5) == 0) isnode = TRUE; else
+//					if (namesamen(onp.protoname, x_("arc-"), 4) == 0) isnode = FALSE; else
+//						continue;
+//				for(ni = onp.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
+//				{
+//					var = ni.getVar(Generate.LAYER_KEY);
+//					if (var == null) continue;
+//					if ((NODEPROTO *)var.addr == np) break;
+//				}
+//				if (ni != NONODEINST)
+//				{
+//					if (warned) addtoinfstr(infstr, ','); else
+//					{
+//						infstr = initinfstr();
+//						formatinfstr(infstr, _("Warning: layer %s is used in"), layername);
+//						warned = TRUE;
+//					}
+//					if (isnode) formatinfstr(infstr, _(" node %s"), &onp.protoname[5]); else
+//						formatinfstr(infstr, _(" arc %s"), &onp.protoname[4]);
+//				}
+//			}
+//			if (warned)
+//				ttyputmsg(x_("%s"), returninfstr(infstr));
+//		
+//			// see if this layer is mentioned in the design rules
+//			renamedCell(np.protoname, "");
+		} else if (np.getName().startsWith("node-"))
+		{
+//			// see if this node is mentioned in the design rules
+//			renamedCell(np.protoname, "");
+		}
+	}
+
 	/**
 	 * Method to rename the layer/arc/node sequence arrays to account for a name change.
 	 * The sequence array is in variable "varname", and the item has changed from "oldname" to
@@ -640,28 +679,14 @@ public class Manipulate
 	 */
 	static void us_tecedrenamesequence(Variable.Key varname, String oldname, String newname)
 	{
-//		REGISTER VARIABLE *var;
-//		CHAR **strings;
-//		REGISTER INTBIG i, len;
-//		INTBIG count;
-//		void *sa;
-//	
-//		var = getval((INTBIG)el_curlib, VLIBRARY, VSTRING|VISARRAY, varname);
-//		if (var == NOVARIABLE) return;
-//	
-//		strings = (CHAR **)var.addr;
-//		len = getlength(var);
-//		sa = newstringarray(us_tool.cluster);
-//		for(i=0; i<len; i++)
-//		{
-//			if (namesame(strings[i], oldname) == 0)
-//				addtostringarray(sa, newname); else
-//					addtostringarray(sa, strings[i]);
-//		}
-//		strings = getstringarray(sa, &count);
-//		setval((INTBIG)el_curlib, VLIBRARY, varname, (INTBIG)strings,
-//			VSTRING|VISARRAY|(count<<VLENGTHSH));
-//		killstringarray(sa);
+		Library lib = Library.getCurrent();
+		Variable var = lib.getVar(varname);
+		if (var == null) return;
+	
+		String [] strings = (String [])var.getObject();
+		for(int i=0; i<strings.length; i++)
+			if (strings[i].equals(oldname)) strings[i] = newname;
+		lib.newVar(varname, strings);
 	}
 	
 //	/*
@@ -1342,17 +1367,9 @@ public class Manipulate
 	 */
 	public static void us_teceditidentify(boolean doports)
 	{
-//		REGISTER NODEPROTO *np;
-//		REGISTER INTBIG total, qtotal, i, j, bestrot, indent;
-//		REGISTER INTBIG xsep, ysep, *xpos, *ypos, dist, bestdist, *style;
-//		INTBIG lx, hx, ly, hy;
-//		REGISTER EXAMPLE *nelist;
-//		REGISTER SAMPLE *ns, **whichsam;
-//		static POLYGON *poly = NOPOLYGON;
-//		extern GRAPHICS us_hbox;
-//	
+		EditWindow wnd = EditWindow.getCurrent();
 		Cell np = WindowFrame.needCurCell();
-		if (np == null) return;
+		if (wnd == null || np == null) return;
 	
 		if (doports)
 		{
@@ -1391,166 +1408,138 @@ public class Manipulate
 		}
 		if (total == 0)
 		{
-//			us_tecedfreeexamples(nelist);
 			System.out.println("There are no " + (doports ? "ports" : "layers") + " to identify");
 			return;
 		}
 
-System.out.println("Found "+total+" relevant things to identify");
-//		// make arrays for position and association
-//		xpos = (INTBIG *)emalloc(total * SIZEOFINTBIG, el_tempcluster);
-//		if (xpos == 0) return;
-//		ypos = (INTBIG *)emalloc(total * SIZEOFINTBIG, el_tempcluster);
-//		if (ypos == 0) return;
-//		style = (INTBIG *)emalloc(total * SIZEOFINTBIG, el_tempcluster);
-//		if (style == 0) return;
-//		whichsam = (SAMPLE **)emalloc(total * (sizeof (SAMPLE *)), el_tempcluster);
-//		if (whichsam == 0) return;
-//	
-//		// fill in label positions
-//		qtotal = (total+3) / 4;
-//		ysep = (el_curwindowpart.screenhy-el_curwindowpart.screenly) / qtotal;
-//		xsep = (el_curwindowpart.screenhx-el_curwindowpart.screenlx) / qtotal;
-//		indent = (el_curwindowpart.screenhy-el_curwindowpart.screenly) / 15;
-//		for(i=0; i<qtotal; i++)
-//		{
-//			// label on the left side
-//			xpos[i] = el_curwindowpart.screenlx + indent;
-//			ypos[i] = el_curwindowpart.screenly + ysep * i + ysep/2;
-//			style[i] = TEXTLEFT;
-//			if (i+qtotal < total)
-//			{
-//				// label on the top side
-//				xpos[i+qtotal] = el_curwindowpart.screenlx + xsep * i + xsep/2;
-//				ypos[i+qtotal] = el_curwindowpart.screenhy - indent;
-//				style[i+qtotal] = TEXTTOP;
-//			}
-//			if (i+qtotal*2 < total)
-//			{
-//				// label on the right side
-//				xpos[i+qtotal*2] = el_curwindowpart.screenhx - indent;
-//				ypos[i+qtotal*2] = el_curwindowpart.screenly + ysep * i + ysep/2;
-//				style[i+qtotal*2] = TEXTRIGHT;
-//			}
-//			if (i+qtotal*3 < total)
-//			{
-//				// label on the bottom side
-//				xpos[i+qtotal*3] = el_curwindowpart.screenlx + xsep * i + xsep/2;
-//				ypos[i+qtotal*3] = el_curwindowpart.screenly + indent;
-//				style[i+qtotal*3] = TEXTBOT;
-//			}
-//		}
-//	
-//		// fill in sample associations
-//		i = 0;
-//		for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
-//		{
-//			if (!doports)
-//			{
-//				if (ns.layer != gen_portprim) whichsam[i++] = ns;
-//			} else
-//			{
-//				if (ns.layer == gen_portprim) whichsam[i++] = ns;
-//			}
-//		}
-//	
-//		// rotate through all configurations, finding least distance
-//		bestdist = MAXINTBIG;
-//		for(i=0; i<total; i++)
-//		{
-//			// find distance from each label to its sample center
-//			dist = 0;
-//			for(j=0; j<total; j++)
-//				dist += computedistance(xpos[j], ypos[j], whichsam[j].xpos, whichsam[j].ypos);
-//			if (dist < bestdist)
-//			{
-//				bestdist = dist;
-//				bestrot = i;
-//			}
-//	
-//			// rotate the samples
-//			ns = whichsam[0];
-//			for(j=1; j<total; j++) whichsam[j-1] = whichsam[j];
-//			whichsam[total-1] = ns;
-//		}
-//	
-//		// rotate back to the best orientation
-//		for(i=0; i<bestrot; i++)
-//		{
-//			ns = whichsam[0];
-//			for(j=1; j<total; j++) whichsam[j-1] = whichsam[j];
-//			whichsam[total-1] = ns;
-//		}
-//	
-//		// get polygon
-//		(void)needstaticpolygon(&poly, 2, us_tool.cluster);
-//	
-//		// draw the highlighting
-//		us_clearhighlightcount();
-//		for(i=0; i<total; i++)
-//		{
-//			ns = whichsam[i];
-//			poly.xv[0] = xpos[i];
-//			poly.yv[0] = ypos[i];
-//			poly.count = 1;
-//			if (ns.layer == NONODEPROTO)
-//			{
-//				poly.string = x_("HIGHLIGHT");
-//			} else if (ns.layer == gen_cellcenterprim)
-//			{
-//				poly.string = x_("GRAB");
-//			} else if (ns.layer == gen_portprim)
-//			{
-//				poly.string = us_tecedgetportname(ns.node);
-//				if (poly.string == 0) poly.string = x_("?");
-//			} else poly.string = &ns.layer.protoname[6];
-//			poly.desc = &us_hbox;
+		// make arrays for position and association
+		double [] xpos = new double[total];
+		double [] ypos = new double[total];
+		Poly.Type [] style = new Poly.Type[total];
+		Parse.Sample [] whichsam = new Parse.Sample[total];
+	
+		// fill in label positions
+		int qtotal = (total+3) / 4;
+		Rectangle2D screen = wnd.getBoundsInWindow();
+		double ysep = screen.getHeight() / qtotal;
+		double xsep = screen.getWidth() / qtotal;
+		double indent = screen.getHeight() / 15;
+		for(int i=0; i<qtotal; i++)
+		{
+			// label on the left side
+			xpos[i] = screen.getMinX() + indent;
+			ypos[i] = screen.getMinY() + ysep * i + ysep/2;
+			style[i] = Poly.Type.TEXTLEFT;
+			if (i+qtotal < total)
+			{
+				// label on the top side
+				xpos[i+qtotal] = screen.getMinX() + xsep * i + xsep/2;
+				ypos[i+qtotal] = screen.getMaxY() - indent;
+				style[i+qtotal] = Poly.Type.TEXTTOP;
+			}
+			if (i+qtotal*2 < total)
+			{
+				// label on the right side
+				xpos[i+qtotal*2] = screen.getMaxX() - indent;
+				ypos[i+qtotal*2] = screen.getMinY() + ysep * i + ysep/2;
+				style[i+qtotal*2] = Poly.Type.TEXTRIGHT;
+			}
+			if (i+qtotal*3 < total)
+			{
+				// label on the bottom side
+				xpos[i+qtotal*3] = screen.getMinX() + xsep * i + xsep/2;
+				ypos[i+qtotal*3] = screen.getMinY() + indent;
+				style[i+qtotal*3] = Poly.Type.TEXTBOT;
+			}
+		}
+	
+		// fill in sample associations
+		int k = 0;
+		for(Parse.Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+		{
+			if (!doports)
+			{
+				if (ns.layer != Generic.tech.portNode) whichsam[k++] = ns;
+			} else
+			{
+				if (ns.layer == Generic.tech.portNode) whichsam[k++] = ns;
+			}
+		}
+	
+		// rotate through all configurations, finding least distance
+		double bestdist = Double.MAX_VALUE;
+		int bestrot = 0;
+		for(int i=0; i<total; i++)
+		{
+			// find distance from each label to its sample center
+			double dist = 0;
+			for(int j=0; j<total; j++)
+				dist += new Point2D.Double(xpos[j], ypos[j]).distance(new Point2D.Double(whichsam[j].xpos, whichsam[j].ypos));
+			if (dist < bestdist)
+			{
+				bestdist = dist;
+				bestrot = i;
+			}
+	
+			// rotate the samples
+			Parse.Sample ns = whichsam[0];
+			for(int j=1; j<total; j++) whichsam[j-1] = whichsam[j];
+			whichsam[total-1] = ns;
+		}
+	
+		// rotate back to the best orientation
+		for(int i=0; i<bestrot; i++)
+		{
+			Parse.Sample ns = whichsam[0];
+			for(int j=1; j<total; j++) whichsam[j-1] = whichsam[j];
+			whichsam[total-1] = ns;
+		}
+	
+		// draw the highlighting
+        Highlighter highlighter = wnd.getHighlighter();
+		highlighter.clear();
+		for(int i=0; i<total; i++)
+		{
+			Parse.Sample ns = whichsam[i];
+			String msg = null;
+			if (ns.layer == null)
+			{
+				msg = "HIGHLIGHT";
+			} else if (ns.layer == Generic.tech.cellCenterNode)
+			{
+				msg = "GRAB";
+			} else if (ns.layer == Generic.tech.portNode)
+			{
+				msg = us_tecedgetportname(ns.node);
+				if (msg == null) msg = "?";
+			} else msg = ns.layer.getName().substring(6);
 //			poly.style = style[i];
-//			TDCLEAR(poly.textdescript);
-//			TDSETSIZE(poly.textdescript, TXTSETQLAMBDA(4));
-//			poly.tech = el_curtech;
-//			us_hbox.col = HIGHLIT;
-//	
-//			nodesizeoffset(ns.node, &lx, &ly, &hx, &hy);
-//			switch (poly.style)
-//			{
-//				case TEXTLEFT:
-//					poly.xv[1] = ns.node.lowx+lx;
-//					poly.yv[1] = (ns.node.lowy + ns.node.highy) / 2;
-//					poly.style = TEXTBOTLEFT;
-//					break;
-//				case TEXTRIGHT:
-//					poly.xv[1] = ns.node.highx-hx;
-//					poly.yv[1] = (ns.node.lowy + ns.node.highy) / 2;
-//					poly.style = TEXTBOTRIGHT;
-//					break;
-//				case TEXTTOP:
-//					poly.xv[1] = (ns.node.lowx + ns.node.highx) / 2;
-//					poly.yv[1] = ns.node.highy-hy;
-//					poly.style = TEXTTOPLEFT;
-//					break;
-//				case TEXTBOT:
-//					poly.xv[1] = (ns.node.lowx + ns.node.highx) / 2;
-//					poly.yv[1] = ns.node.lowy+ly;
-//					poly.style = TEXTBOTLEFT;
-//					break;
-//			}
-//			us_showpoly(poly, el_curwindowpart);
-//	
-//			// now draw the vector polygon
-//			poly.count = 2;
-//			poly.style = VECTORS;
-//			us_showpoly(poly, el_curwindowpart);
-//		}
-//	
-//		// free rotation arrays
-//		efree((CHAR *)xpos);
-//		efree((CHAR *)ypos);
-//		efree((CHAR *)style);
-//		efree((CHAR *)whichsam);
-//	
-//		// free all examples
-//		us_tecedfreeexamples(nelist);
+			Point2D curPt = new Point2D.Double(xpos[i], ypos[i]);
+			highlighter.addMessage(np, msg, curPt);
+
+			SizeOffset so = ns.node.getSizeOffset();
+			Rectangle2D nodeBounds = ns.node.getBounds();
+			Point2D other = null;
+			if (style[i] == Poly.Type.TEXTLEFT)
+			{
+				other = new Point2D.Double(nodeBounds.getMinX()+so.getLowXOffset(), nodeBounds.getCenterY());
+//				poly.style = Poly.Type.TEXTBOTLEFT;
+			} else if (style[i] == Poly.Type.TEXTRIGHT)
+			{
+				other = new Point2D.Double(nodeBounds.getMaxX()-so.getHighXOffset(), nodeBounds.getCenterY());
+//				poly.style = Poly.Type.TEXTBOTRIGHT;
+			} else if (style[i] == Poly.Type.TEXTTOP)
+			{
+				other = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getMaxY()-so.getHighYOffset());
+//				poly.style = Poly.Type.TEXTTOPLEFT;
+			} else if (style[i] == Poly.Type.TEXTBOT)
+			{
+				other = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getMinY()+so.getLowYOffset());
+//				poly.style = Poly.Type.TEXTBOTLEFT;
+			}
+			highlighter.addLine(curPt, other, np);
+		}
+		highlighter.finished();
 	}
 	
 	/**
@@ -2402,7 +2391,7 @@ System.out.println("Found "+total+" relevant things to identify");
 		us_tecedsetnode(ni, "Function: " + choice);
 	}
 
-	private static String getValueOnNode(NodeInst ni)
+	public static String getValueOnNode(NodeInst ni)
 	{
 		String initial = "";
 		Variable var = ni.getVar(Artwork.ART_MESSAGE, String.class);
@@ -2783,102 +2772,9 @@ System.out.println("Found "+total+" relevant things to identify");
 		}
 		return option;
 	}
-	
-//	/**
-//	 * Method called when cell "np" has been deleted (and it may be a layer cell because its name
-//	 * started with "layer-").
-//	 */
-//	void us_teceddeletelayercell(NODEPROTO *np)
-//	{
-//		REGISTER VARIABLE *var;
-//		REGISTER NODEPROTO *onp;
-//		REGISTER NODEINST *ni;
-//		REGISTER BOOLEAN warned, isnode;
-//		REGISTER CHAR *layername;
-//		REGISTER void *infstr;
-//	
-//		// may have deleted layer cell in technology library
-//		layername = &np.protoname[6];
-//		warned = FALSE;
-//		for(onp = np.lib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
-//		{
-//			if (namesamen(onp.protoname, x_("node-"), 5) == 0) isnode = TRUE; else
-//				if (namesamen(onp.protoname, x_("arc-"), 4) == 0) isnode = FALSE; else
-//					continue;
-//			for(ni = onp.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
-//			{
-//				var = ni.getVar(Generate.LAYER_KEY);
-//				if (var == null) continue;
-//				if ((NODEPROTO *)var.addr == np) break;
-//			}
-//			if (ni != NONODEINST)
-//			{
-//				if (warned) addtoinfstr(infstr, ','); else
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, _("Warning: layer %s is used in"), layername);
-//					warned = TRUE;
-//				}
-//				if (isnode) formatinfstr(infstr, _(" node %s"), &onp.protoname[5]); else
-//					formatinfstr(infstr, _(" arc %s"), &onp.protoname[4]);
-//			}
-//		}
-//		if (warned)
-//			ttyputmsg(x_("%s"), returninfstr(infstr));
-//	
-//		// see if this layer is mentioned in the design rules
-//		us_tecedrenamecell(np.protoname, x_(""));
-//	}
-//	
-//	/**
-//	 * Method called when cell "np" has been deleted (and it may be a node cell because its name
-//	 * started with "node-").
-//	 */
-//	void us_teceddeletenodecell(NODEPROTO *np)
-//	{
-//		// see if this node is mentioned in the design rules
-//		us_tecedrenamecell(np.protoname, x_(""));
-//	}
-//	
+
 //	/******************** SUPPORT FOR "usredtecp.c" ROUTINES ********************/
-//	
-//	/**
-//	 * Method to return the actual bounding box of layer node "ni" in the
-//	 * reference variables "lx", "hx", "ly", and "hy"
-//	 */
-//	void us_tecedgetbbox(NODEINST *ni, INTBIG *lx, INTBIG *hx, INTBIG *ly, INTBIG *hy)
-//	{
-//		REGISTER INTBIG twolambda;
-//	
-//		*lx = ni.geom.lowx;
-//		*hx = ni.geom.highx;
-//		*ly = ni.geom.lowy;
-//		*hy = ni.geom.highy;
-//		if (ni.proto != gen_portprim) return;
-//		twolambda = lambdaofnode(ni) * 2;
-//		*lx += twolambda;   *hx -= twolambda;
-//		*ly += twolambda;   *hy -= twolambda;
-//	}
-//	
-//	void us_tecedpointout(NODEINST *ni, NODEPROTO *np)
-//	{
-//		REGISTER WINDOWPART *w;
-//		CHAR *newpar[2];
-//	
-//		for(w = el_topwindowpart; w != NOWINDOWPART; w = w.nextwindowpart)
-//			if (w.curnodeproto == np) break;
-//		if (w == NOWINDOWPART)
-//		{
-//			newpar[0] = describenodeproto(np);
-//			us_editcell(1, newpar);
-//		}
-//		if (ni != NONODEINST)
-//		{
-//			us_clearhighlightcount();
-//			(void)asktool(us_tool, x_("show-object"), (INTBIG)ni.geom);
-//		}
-//	}
-//	
+	
 //	/**
 //	 * Method to swap entries "p1" and "p2" of the port list in "tlist"
 //	 */
@@ -2929,14 +2825,6 @@ System.out.println("Found "+total+" relevant things to identify");
 //	
 //		// finally, swap the actual identifiers
 //		temp = *p1;   *p1 = *p2;   *p2 = temp;
-//	}
-//	
-//	CHAR *us_tecedsamplename(NODEPROTO *layernp)
-//	{
-//		if (layernp == gen_portprim) return(x_("PORT"));
-//		if (layernp == gen_cellcenterprim) return(x_("GRAB"));
-//		if (layernp == NONODEPROTO) return(x_("HIGHLIGHT"));
-//		return(&layernp.protoname[6]);
 //	}
 
 	public static void us_reorderprimdlog(int type)
