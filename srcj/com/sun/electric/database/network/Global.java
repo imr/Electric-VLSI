@@ -292,7 +292,7 @@ public class Global
 		 * @param set set of globals.
 		 */
 		Buf(Global.Set set) {
-			buf = set.elemMap.clone();
+			buf = (PortCharacteristic[])set.elemMap.clone();
 		}
 
 		/**
