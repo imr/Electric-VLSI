@@ -1030,16 +1030,19 @@ public class TextUtils
 	 * Method to return the directory path part of a URL (excluding the file name).
 	 * For example, the URL "file:/users/strubin/gates.elib" has the directory part "/users/strubin/".
 	 * @param url the URL to the file.
-	 * @return the directory path part (including the trailing "/").
+	 * @return the directory path part (including the trailing "/", ":", or "\").
 	 * If there is no directory part, returns "".
 	 */
 	public static String getFilePath(URL url)
 	{
 		if (url == null) return "";
 		String filePath = url.getFile();
+		int backSlashPos = filePath.lastIndexOf('\\');
+		int colonPos = filePath.lastIndexOf(':');
 		int slashPos = filePath.lastIndexOf('/');
-		if (slashPos < 0) return "";
-		return filePath.substring(0, slashPos+1);
+		int charPos = Math.max(backSlashPos, Math.max(colonPos, slashPos));
+		if (charPos < 0) return "";
+		return filePath.substring(0, charPos+1);
 	}
 
 	/**

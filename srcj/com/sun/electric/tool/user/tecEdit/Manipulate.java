@@ -42,7 +42,9 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
@@ -82,6 +84,7 @@ import javax.swing.ListSelectionModel;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.Dimension;
+import java.awt.Color;
 import java.awt.Point;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
@@ -2773,60 +2776,8 @@ public class Manipulate
 		return option;
 	}
 
-//	/******************** SUPPORT FOR "usredtecp.c" ROUTINES ********************/
+	/******************** SUPPORT FOR "usredtecp.c" ROUTINES ********************/
 	
-//	/**
-//	 * Method to swap entries "p1" and "p2" of the port list in "tlist"
-//	 */
-//	void us_tecedswapports(INTBIG *p1, INTBIG *p2, TECH_NODES *tlist)
-//	{
-//		REGISTER INTBIG temp, *templ;
-//		REGISTER CHAR *tempc;
-//	
-//		templ = tlist.portlist[*p1].portarcs;
-//		tlist.portlist[*p1].portarcs = tlist.portlist[*p2].portarcs;
-//		tlist.portlist[*p2].portarcs = templ;
-//	
-//		tempc = tlist.portlist[*p1].protoname;
-//		tlist.portlist[*p1].protoname = tlist.portlist[*p2].protoname;
-//		tlist.portlist[*p2].protoname = tempc;
-//	
-//		temp = tlist.portlist[*p1].initialbits;
-//		tlist.portlist[*p1].initialbits = tlist.portlist[*p2].initialbits;
-//		tlist.portlist[*p2].initialbits = temp;
-//	
-//		temp = tlist.portlist[*p1].lowxmul;
-//		tlist.portlist[*p1].lowxmul = tlist.portlist[*p2].lowxmul;
-//		tlist.portlist[*p2].lowxmul = (INTSML)temp;
-//		temp = tlist.portlist[*p1].lowxsum;
-//		tlist.portlist[*p1].lowxsum = tlist.portlist[*p2].lowxsum;
-//		tlist.portlist[*p2].lowxsum = (INTSML)temp;
-//	
-//		temp = tlist.portlist[*p1].lowymul;
-//		tlist.portlist[*p1].lowymul = tlist.portlist[*p2].lowymul;
-//		tlist.portlist[*p2].lowymul = (INTSML)temp;
-//		temp = tlist.portlist[*p1].lowysum;
-//		tlist.portlist[*p1].lowysum = tlist.portlist[*p2].lowysum;
-//		tlist.portlist[*p2].lowysum = (INTSML)temp;
-//	
-//		temp = tlist.portlist[*p1].highxmul;
-//		tlist.portlist[*p1].highxmul = tlist.portlist[*p2].highxmul;
-//		tlist.portlist[*p2].highxmul = (INTSML)temp;
-//		temp = tlist.portlist[*p1].highxsum;
-//		tlist.portlist[*p1].highxsum = tlist.portlist[*p2].highxsum;
-//		tlist.portlist[*p2].highxsum = (INTSML)temp;
-//	
-//		temp = tlist.portlist[*p1].highymul;
-//		tlist.portlist[*p1].highymul = tlist.portlist[*p2].highymul;
-//		tlist.portlist[*p2].highymul = (INTSML)temp;
-//		temp = tlist.portlist[*p1].highysum;
-//		tlist.portlist[*p1].highysum = tlist.portlist[*p2].highysum;
-//		tlist.portlist[*p2].highysum = (INTSML)temp;
-//	
-//		// finally, swap the actual identifiers
-//		temp = *p1;   *p1 = *p2;   *p2 = temp;
-//	}
-
 	public static void us_reorderprimdlog(int type)
 	{
 		RearrangeOrder dialog = new RearrangeOrder();
@@ -3031,5 +2982,291 @@ public class Manipulate
 
 			pack();
 		}
+	}
+
+	/**
+	 * Method to print detailled information about a given technology.
+	 * @param tech the technology to describe.
+	 */
+	public static void us_printtechnology(Technology tech)
+	{
+		// ***************************** dump layers ******************************
+
+		// allocate space for all layer fields
+		int layerCount = tech.getNumLayers();
+		String [] layerNames = new String[layerCount+1];
+		String [] layerColors = new String[layerCount+1];
+		String [] layerStyles = new String[layerCount+1];
+		String [] layerCifs = new String[layerCount+1];
+		String [] layerGdss = new String[layerCount+1];
+		String [] layerFuncs = new String[layerCount+1];
+
+		// load the header
+		layerNames[0] = "Layer";
+		layerColors[0] = "Color";
+		layerStyles[0] = "Style";
+		layerCifs[0] = "CIF";
+		layerGdss[0] = "GDS";
+		layerFuncs[0] = "Function";
+
+		// compute each layer
+		for(int i=0; i<layerCount; i++)
+		{
+			Layer layer = tech.getLayer(i);
+			layerNames[i+1] = layer.getName();
+
+			EGraphics gra = layer.getGraphics();
+			if (gra.getTransparentLayer() > 0) layerColors[i+1] = "Transparent " + gra.getTransparentLayer(); else
+			{
+				Color col = gra.getColor();
+				layerColors[i+1] = "(" + col.getRed() + "," + col.getGreen() + "," + col.getBlue() + ")";
+			}
+
+			layerStyles[i+1] = "?";
+			if (gra.isPatternedOnDisplay())
+			{
+				if (gra.isOutlinedOnDisplay()) layerStyles[i+1] = "pat/outl"; else
+					layerStyles[i+1] = "pat";
+			} else
+			{
+				layerStyles[i+1] = "solid";
+			}
+
+			layerCifs[i+1] = layer.getCIFLayer();
+			layerGdss[i+1] = layer.getGDSLayer();
+			layerFuncs[i+1] = layer.getFunction().toString();
+		}
+
+		// write the layer information
+		String [][] fields = new String[6][];
+		fields[0] = layerNames;   fields[1] = layerColors;   fields[2] = layerStyles;
+		fields[3] = layerCifs;    fields[4] = layerGdss;     fields[5] = layerFuncs;
+		us_dumpfields(fields, layerCount+1, "LAYERS");
+
+		// ****************************** dump arcs ******************************
+
+		// allocate space for all arc fields
+		int tot = 1;
+		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		{
+			PrimitiveArc ap = (PrimitiveArc)it.next();
+			ArcInst ai = ArcInst.makeDummyInstance(ap, 4000);
+			Poly [] polys = tech.getShapeOfArc(ai);
+			tot += polys.length;
+		}
+		String [] arcNames = new String[tot];
+		String [] arcLayers = new String[tot];
+		String [] arcLayerSizes = new String[tot];
+		String [] arcExtensions = new String[tot];
+		String [] arcAngles = new String[tot];
+		String [] arcWipes = new String[tot];
+		String [] arcFuncs = new String[tot];
+
+		// load the header
+		arcNames[0] = "Arc";
+		arcLayers[0] = "Layer";
+		arcLayerSizes[0] = "Size";
+		arcExtensions[0] = "Extend";
+		arcAngles[0] = "Angle";
+		arcWipes[0] = "Wipes";
+		arcFuncs[0] = "Function";
+
+		tot = 1;
+		for(Iterator it = tech.getArcs(); it.hasNext(); )
+		{
+			PrimitiveArc ap = (PrimitiveArc)it.next();
+			arcNames[tot] = ap.getName();
+			arcExtensions[tot] = (ap.isExtended() ? "yes" : "no");
+			arcAngles[tot] = "" + ap.getAngleIncrement();
+			arcWipes[tot] = (ap.isWipable() ? "yes" : "no");
+			arcFuncs[tot] = ap.getFunction().toString();
+
+			ArcInst ai = ArcInst.makeDummyInstance(ap, 4000);
+			ai.setExtended(ArcInst.HEADEND, false);
+			ai.setExtended(ArcInst.TAILEND, false);
+			Poly [] polys = tech.getShapeOfArc(ai);
+			for(int k=0; k<polys.length; k++)
+			{
+				Poly poly = polys[k];
+				arcLayers[tot] = poly.getLayer().getName();
+				double area = poly.getArea() / ai.getLength();
+				arcLayerSizes[tot] = TextUtils.formatDouble(area);
+				if (k > 0)
+				{
+					arcNames[tot] = "";
+					arcExtensions[tot] = "";
+					arcAngles[tot] = "";
+					arcWipes[tot] = "";
+					arcFuncs[tot] = "";
+				}
+				tot++;
+			}
+		}
+
+		// write the arc information
+		fields = new String[7][];
+		fields[0] = arcNames;        fields[1] = arcLayers;   fields[2] = arcLayerSizes;
+		fields[3] = arcExtensions;   fields[4] = arcAngles;   fields[5] = arcWipes;
+		fields[6] = arcFuncs;
+		us_dumpfields(fields, tot, "ARCS");
+
+		// ****************************** dump nodes ******************************
+
+		// allocate space for all node fields
+		int total = 1;
+		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			NodeInst ni = NodeInst.makeDummyInstance(np);
+			Poly [] polys = tech.getShapeOfNode(ni);
+			int l = 0;
+			for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
+			{
+				PrimitivePort pp = (PrimitivePort)pIt.next();
+				int m = 0;
+				ArcProto [] apArray = pp.getConnections();
+				for(int k=0; k<apArray.length; k++)
+					if (apArray[k].getTechnology() == tech) m++;
+				if (m == 0) m = 1;
+				l += m;
+			}
+			total += Math.max(polys.length, l);
+		}
+		String [] nodeNames = new String[total];
+		String [] nodeFuncs = new String[total];
+		String[] nodeLayers = new String[total];
+		String [] nodeLayerSizes = new String[total];
+		String [] nodePorts = new String[total];
+		String [] nodePortSizes = new String[total];
+		String [] nodePortAngles = new String[total];
+		String [] nodeConnections = new String[total];
+
+		// load the header
+		nodeNames[0] = "Node";
+		nodeFuncs[0] = "Function";
+		nodeLayers[0] = "Layers";
+		nodeLayerSizes[0] = "Size";
+		nodePorts[0] = "Ports";
+		nodePortSizes[0] = "Size";
+		nodePortAngles[0] = "Angle";
+		nodeConnections[0] = "Connections";
+
+		tot = 1;
+		for(Iterator it = tech.getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			int base = tot;
+			nodeNames[tot] = np.getName();
+			nodeFuncs[tot] = np.getFunction().getName();
+
+			NodeInst ni = NodeInst.makeDummyInstance(np);
+			Poly [] polys = tech.getShapeOfNode(ni);
+			for(int k=0; k<polys.length; k++)
+			{
+				Poly poly = polys[k];
+				if (tot >= total)
+				{
+					System.out.println("ARRAY OVERFLOW: LIMIT IS " + total);
+					break;
+				}
+				nodeLayers[tot] = poly.getLayer().getName();
+				Rectangle2D polyBounds = poly.getBounds2D();
+				nodeLayerSizes[tot] = polyBounds.getWidth() + " x " + polyBounds.getHeight();
+				if (k > 0)
+				{
+					nodeNames[tot] = "";
+					nodeFuncs[tot] = "";
+				}
+				tot++;
+			}
+			for(Iterator pIt = np.getPorts(); pIt.hasNext(); )
+			{
+				PrimitivePort pp = (PrimitivePort)pIt.next();
+				nodePorts[base] = pp.getName();
+				Poly portPoly = ni.getShapeOfPort(pp);
+				Rectangle2D portRect = portPoly.getBounds2D();
+				nodePortSizes[base] = portRect.getWidth() + " x " + portRect.getHeight();
+				if (pp.getAngleRange() == 180) nodePortAngles[base] = ""; else
+					nodePortAngles[base] = "" + pp.getAngleRange();
+				int m = 0;
+				ArcProto [] conList = pp.getConnections();
+				for(int k=0; k<conList.length; k++)
+				{
+					if (conList[k].getTechnology() != tech) continue;
+					nodeConnections[base] = conList[k].getName();
+					if (m != 0)
+					{
+						nodePorts[base] = "";
+						nodePortSizes[base] = "";
+						nodePortAngles[base] = "";
+					}
+					m++;
+					base++;
+				}
+				if (m == 0) nodeConnections[base++] = "<NONE>";
+			}
+			for( ; base < tot; base++)
+			{
+				nodePorts[base] = "";
+				nodePortSizes[base] = "";
+				nodePortAngles[base] = "";
+				nodeConnections[base] = "";
+			}
+			for( ; tot < base; tot++)
+			{
+				nodeNames[tot] = "";
+				nodeFuncs[tot] = "";
+				nodeLayers[tot] = "";
+				nodeLayerSizes[tot] = "";
+			}
+		}
+
+		// write the node information */
+		fields = new String[8][];
+		fields[0] = nodeNames;        fields[1] = nodeFuncs;    fields[2] = nodeLayers;
+		fields[3] = nodeLayerSizes;   fields[4] = nodePorts;    fields[5] = nodePortSizes;
+		fields[6] = nodePortAngles;   fields[7] = nodeConnections;
+		us_dumpfields(fields, tot, "NODES");
+	}
+
+	static void us_dumpfields(String [][] fields, int length, String title)
+	{
+		int totwid = 0;
+		int [] widths = new int[fields.length];
+		for(int i=0; i<fields.length; i++)
+		{
+			widths[i] = 8;
+			for(int j=0; j<length; j++)
+			{
+				if (fields[i][j] == null) continue;
+				int len = fields[i][j].length();
+				if (len > widths[i]) widths[i] = len;
+			}
+			widths[i]++;
+			totwid += widths[i];
+		}
+
+		int stars = (totwid - title.length() - 2) / 2;
+		for(int i=0; i<stars; i++) System.out.print("*");
+		System.out.print(" " + title + " ");
+		for(int i=0; i<stars; i++) System.out.print("*");
+		System.out.println();
+
+		for(int j=0; j<length; j++)
+		{
+			for(int i=0; i<fields.length; i++)
+			{
+				int len = 0;
+				if (fields[i][j] != null)
+				{
+					System.out.print(fields[i][j]);
+					len = fields[i][j].length();
+				}
+				if (i == fields.length-1) continue;
+				for(int k=len; k<widths[i]; k++) System.out.print(" ");
+			}
+			System.out.println();
+		}
+		System.out.println();
 	}
 }

@@ -161,11 +161,6 @@ public class CellProperties extends EDialog
 		frameDesigner.getDocument().addDocumentListener(new TextFieldListener(this));
 
 		loadCellList();
-
-		// not yet
-		useTechEditor.setEnabled(false);
-		setUseTechEditor.setEnabled(false);
-		clearUseTechEditor.setEnabled(false);
 		finishInitialization();
 	}
 
@@ -604,7 +599,7 @@ public class CellProperties extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(clearPartOfCellLib, gridBagConstraints);
 
-        useTechEditor.setText("Use technology editor on this cell");
+        useTechEditor.setText("Part of technology editor library");
         useTechEditor.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)

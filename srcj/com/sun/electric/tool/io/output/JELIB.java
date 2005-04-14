@@ -137,7 +137,13 @@ public class JELIB extends Output
 				libraryHeaderPrinted = true;
 			}
 			URL libUrl = eLib.getLibFile();
-			String libFile = libUrl != null ? libUrl.toString() : eLib.getName();
+			String libFile = eLib.getName();
+			if (libUrl != null)
+			{
+				String mainLibPath = TextUtils.getFilePath(lib.getLibFile());
+				String thisLibPath = TextUtils.getFilePath(libUrl);
+				if (!mainLibPath.equals(thisLibPath)) libFile = libUrl.toString();
+			}
 			printWriter.println();
 			printWriter.println("L" + convertString(eLib.getName()) + "|" + convertString(libFile));
 			for(Iterator cIt = eLib.getCells(); cIt.hasNext(); )
@@ -235,7 +241,7 @@ public class JELIB extends Output
 
 			// write the Cell name
 			printWriter.println();
-			printWriter.println("# Cell " + cell.describe());
+			printWriter.println("# Cell " + cell.noLibDescribe());
 			printWriter.print("C" + convertString(cell.getCellName().toString()));
 			printWriter.print("|" + convertString(cell.getTechnology().getTechName()));
 			printWriter.print("|" + cell.getCreationDate().getTime());

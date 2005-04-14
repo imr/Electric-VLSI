@@ -205,7 +205,7 @@
     </Component>
     <Component class="javax.swing.JCheckBox" name="useTechEditor">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Use technology editor on this cell"/>
+        <Property name="text" type="java.lang.String" value="Part of technology editor library"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="useTechEditorActionPerformed"/>

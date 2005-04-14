@@ -84,7 +84,16 @@ public class Layer
 		 * Returns a printable version of this Layer.
 		 * @return a printable version of this Layer.
 		 */
-		public String toString() { return name; }
+		public String toString()
+		{
+			String toStr = name;
+			for(int i=0; i<extras.length; i++)
+			{
+				if ((extraBits & extras[i]) == 0) continue;
+				toStr += "," + getExtraName(extras[i]);
+			}
+			return toStr;
+		}
 
 		/**
 		 * Method to return a list of all Layer Functions.

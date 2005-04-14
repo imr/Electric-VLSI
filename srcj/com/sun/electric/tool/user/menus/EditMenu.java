@@ -349,7 +349,10 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_teceditidentify(false); }});
 		specialSubMenu.addMenuItem("Identify Ports", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_teceditidentify(true); }});
-		
+		specialSubMenu.addSeparator();
+		specialSubMenu.addMenuItem("Document Current Technology", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_printtechnology(Technology.getCurrent()); }});
+
 		MenuBar.Menu selListSubMenu = new MenuBar.Menu("Selection");
 		editMenu.add(selListSubMenu);
 		selListSubMenu.addMenuItem("Select All", KeyStroke.getKeyStroke('A', buckyBit),

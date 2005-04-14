@@ -55,7 +55,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.menus.CellMenu.SetMultiPageJob;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -76,6 +75,44 @@ import javax.swing.JOptionPane;
  */
 public class Generate
 {
+
+	static class GeneralInfo
+	{
+		String description;
+		double scale;
+
+		/**
+		 * Method to parse the miscellaneous-info cell in "np" and return a GeneralInfo object that describes it.
+		 */
+		public static GeneralInfo us_teceditgetlayerinfo(Cell np)
+		{
+			// create and initialize the GRAPHICS structure
+			GeneralInfo gi = new GeneralInfo();
+		
+			for(Iterator it = np.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				int opt = Manipulate.us_tecedgetoption(ni);
+				String str = Manipulate.getValueOnNode(ni);
+				switch (opt)
+				{
+					case Generate.TECHLAMBDA:
+						gi.scale = TextUtils.atof(str);
+						break;
+					case Generate.TECHDESCRIPT:
+						gi.description = str;
+						break;
+					case Generate.CENTEROBJ:
+						break;
+					default:
+						Parse.us_tecedpointout(ni, np);
+						System.out.println("Unknown object in miscellaneous-information cell (node " + ni.describe() + ")");
+						break;
+				}
+			}
+			return gi;
+		}
+	}
 
 	static class LayerInfo
 	{
@@ -442,13 +479,25 @@ public class Generate
 		}
 	}
 
+	static class ArcDetails
+	{
+		LayerInfo layer;
+		double width;
+		Poly.Type style;
+	}
+
 	static class ArcInfo
 	{
+		String name;
 		ArcProto.Function func;
 		boolean fixang;
 		boolean wipes;
 		boolean noextend;
 		int anginc;
+		ArcProto generated;
+		ArcDetails [] arcDetails;
+		double widthOffset;
+		double maxWidth;
 
 		ArcInfo()
 		{
@@ -504,6 +553,7 @@ public class Generate
 		{
 			// create and initialize the GRAPHICS structure
 			ArcInfo ain = ArcInfo.makeInstance();
+			ain.name = np.getName().substring(4);
 
 			// look at all nodes in the arc description cell
 			for(Iterator it = np.getNodes(); it.hasNext(); )
@@ -538,7 +588,7 @@ public class Generate
 						ain.wipes = str.equalsIgnoreCase("yes");
 						break;
 					case ARCNOEXTEND:
-						ain.noextend = str.equalsIgnoreCase("yes");
+						ain.noextend = str.equalsIgnoreCase("no");
 						break;
 				}
 			}
@@ -546,16 +596,40 @@ public class Generate
 		}
 	}
 
+	static class NodePortDetails
+	{
+		String name;
+		Generate.ArcInfo [] connections;
+		int angle;
+		int range;
+		int netIndex;
+		Parse.Rule rule;
+	}
+
+	static class NodeLayerDetails
+	{
+		LayerInfo layer;
+		Poly.Type style;
+		Parse.Rule rule;
+		int portIndex;
+	}
+
 	static class NodeInfo
 	{
+		String name;
 		PrimitiveNode.Function func;
 		boolean serp;
 		boolean square;
 		boolean wipes;
 		boolean lockable;
 		double multicutsep;
-		Technology.NodeLayer [] nodeLayers;
+		NodeLayerDetails [] nodeLayers;
+		NodePortDetails [] nodePortDetails;
 		PrimitivePort[] primPorts;
+		SizeOffset so;
+		int specialType;
+		double [] specialValues;
+		double xSize, ySize;
 
 		NodeInfo()
 		{

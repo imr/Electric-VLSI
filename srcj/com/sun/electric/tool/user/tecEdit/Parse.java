@@ -39,6 +39,7 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.EdgeH;
@@ -50,14 +51,19 @@ import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.tecEdit.Generate.ArcInfo;
+import com.sun.electric.tool.user.tecEdit.Generate.GeneralInfo;
 import com.sun.electric.tool.user.tecEdit.Generate.LayerInfo;
 import com.sun.electric.tool.user.tecEdit.Generate.NodeInfo;
+import com.sun.electric.tool.user.tecEdit.Generate.NodePortDetails;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 
@@ -69,8 +75,16 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.text.DateFormat;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.List;
@@ -137,17 +151,17 @@ public class Parse
 
 
 	/* port connections */
-//	typedef struct Ipcon
-//	{
-//		INTBIG       *connects;
-//		INTBIG       *assoc;
-//		INTBIG        total;
-//		INTBIG        pcindex;
-//		struct Ipcon *nextpcon;
-//	} PCON;
+	static class PCon
+	{
+		Generate.ArcInfo [] connects;
+		boolean []          assoc;
+		int                 total;
+		int                 pcindex;
+		PCon                nextpcon;
+	};
 
-//	
-//	/* the globals that define a technology */
+
+	/* the globals that define a technology */
 	static int           us_tecflags;
 //	static INTBIG           us_teclayer_count;
 //	static CHAR           **us_teclayer_iname = 0;
@@ -201,10 +215,10 @@ public class Parse
 //		{x_("nonelectrical"),       x_("APNONELEC"),  APNONELEC},
 //		{NULL, NULL, 0}
 //	};
-//	
-//	static PCON  *us_tecedfirstpcon = NOPCON;	/* list of port connections */
+	
+	static PCon  us_tecedfirstpcon = null;	/* list of port connections */
 	static Rule  us_tecedfirstrule = null;	/* list of rules */
-//	
+	
 //	/* working memory for "us_tecedmakeprim()" */
 //	static INTBIG *us_tecedmakepx, *us_tecedmakepy, *us_tecedmakefactor,
 //		*us_tecedmakeleftdist, *us_tecedmakerightdist, *us_tecedmakebotdist,
@@ -245,7 +259,7 @@ public class Parse
 	{
 		Library lib = Library.getCurrent();
 
-		// loop until the name is valid
+		// get a new name for the technology
 		String newtechname = newName;
 		boolean modified = false;
 		for(;;)
@@ -255,9 +269,43 @@ public class Parse
 			newtechname += "X";
 			modified = true;
 		}
+		if (modified)
+			System.out.println("Warning: already a technology called " + newName + ".  Naming this " + newtechname);
+	
+		// get list of dependent libraries
+		Library [] dependentlibs = Manipulate.us_teceditgetdependents(lib);
+	
+		// initialize the state of this technology
+//		us_tecflags = 0;
 
+		// get general information from the "factors" cell
+		Cell np = null;
+		for(int i=dependentlibs.length-1; i>=0; i--)
+		{
+			np = dependentlibs[i].findNodeProto("factors");
+			if (np != null) break;
+		}
+		if (np == null)
+		{
+			System.out.println("Cell with general information, called 'factors', is missing");
+			return;
+		}
+		Generate.GeneralInfo gi = Generate.GeneralInfo.us_teceditgetlayerinfo(np);
+
+		// get layer information
+		Generate.LayerInfo [] lList = us_tecedmakelayers(dependentlibs);
+		if (lList == null) return;
+
+		// get arc information
+		Generate.ArcInfo [] aList = us_tecedmakearcs(dependentlibs, lList);
+		if (aList == null) return;
+
+		// get node information
+		Generate.NodeInfo [] nList = us_tecedmakenodes(dependentlibs, lList, aList);
+		if (nList == null) return;
+
+		// create the technology
 		SoftTech tech = new SoftTech(newtechname);
-//		setFactoryScale(2000, true);   // in nanometers: really 2 microns
 //		setFactoryTransparentLayers(new Color []
 //		{
 //			new Color(  0,  0,255), // Metal
@@ -266,28 +314,108 @@ public class Parse
 //			new Color(255,190,  6), // P+
 //			new Color(170,140, 30)  // P-Well
 //		});
+		tech.setTheScale(gi.scale);
+		tech.setTechDesc(gi.description);
 
-		// set the technology name
-		if (modified)
-			System.out.println("Warning: already a technology called " + newName + ".  Naming this " + newtechname);
+		// create the layers
+		for(int i=0; i<lList.length; i++)
+		{
+			Layer lay = Layer.newInstance(tech, lList[i].name, lList[i].desc);
+			lay.setFunction(lList[i].fun, lList[i].funExtra);
+			lay.setCIFLayer(lList[i].cif);
+			lay.setGDSLayer(lList[i].gds);
+			lay.setDXFLayer(lList[i].dxf);
+			lay.setResistance(lList[i].spires);
+			lay.setCapacitance(lList[i].spicap);
+			lay.setEdgeCapacitance(lList[i].spiecap);
+			lay.setDistance(lList[i].height3d);
+			lay.setThickness(lList[i].thick3d);
+			lList[i].generated = lay;
+		}
+
+		// create the arcs
+		for(int i=0; i<aList.length; i++)
+		{
+			Generate.ArcDetails [] ad = aList[i].arcDetails;
+			Technology.ArcLayer [] arcLayers = new Technology.ArcLayer[ad.length];
+			for(int j=0; j<ad.length; j++)
+				arcLayers[j] = new Technology.ArcLayer(ad[j].layer.generated, ad[j].width, ad[j].style);
+			PrimitiveArc newArc = PrimitiveArc.newInstance(tech, aList[i].name, aList[i].maxWidth, arcLayers);
+			newArc.setFunction(aList[i].func);
+			newArc.setFactoryFixedAngle(aList[i].fixang);
+			if (aList[i].wipes) newArc.setWipable(); else newArc.clearWipable();
+			newArc.setFactoryAngleIncrement(aList[i].anginc);
+			newArc.setExtended(!aList[i].noextend);
+			newArc.setWidthOffset(aList[i].widthOffset);
+			aList[i].generated = newArc;
+		}
+
+		// create the nodes
+		for(int i=0; i<nList.length; i++)
+		{
+			Generate.NodeLayerDetails [] nd = nList[i].nodeLayers;
+			Technology.NodeLayer [] nodeLayers = new Technology.NodeLayer[nd.length];
+			for(int j=0; j<nd.length; j++)
+			{
+				LayerInfo li = nd[j].layer;
+				Layer lay = li.generated;
+				TechPoint [] points = nd[j].rule.value;
+				nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, Technology.NodeLayer.BOX, points);
+			}
+			PrimitiveNode prim = PrimitiveNode.newInstance(nList[i].name, tech, nList[i].xSize, nList[i].ySize, nList[i].so, nodeLayers);
+			prim.setFunction(nList[i].func);
+			if (nList[i].wipes) prim.setArcsWipe();
+			if (nList[i].lockable) prim.setLockedPrim();
+			if (nList[i].square) prim.setSquare();
 	
-		// get list of dependent libraries
-		Library [] dependentlibs = Manipulate.us_teceditgetdependents(lib);
-	
-		// initialize the state of this technology
-		us_tecflags = 0;
-		if (us_tecedmakefactors(dependentlibs, tech)) return;
-	
-		// build layer structures
-		Generate.LayerInfo [] lis = us_tecedmakelayers(dependentlibs, tech);
-		if (lis == null) return;
-	
-		// build arc structures
-		if (us_tecedmakearcs(dependentlibs, tech, lis)) return;
-	
-		// build node structures
-		if (us_tecedmakenodes(dependentlibs, tech, lis)) return;
-	
+			// analyze special node function circumstances
+			if (nList[i].func == PrimitiveNode.Function.NODE)
+			{
+				prim.setHoldsOutline();
+			} else if (nList[i].func == PrimitiveNode.Function.PIN)
+			{
+				if (!prim.isWipeOn1or2())
+				{
+					prim.setArcsWipe();
+					prim.setArcsShrink();
+				}
+			}
+
+			int numPorts = nList[i].nodePortDetails.length;
+			PrimitivePort [] portList = new PrimitivePort[numPorts];
+			for(int j=0; j<numPorts; j++)
+			{
+				Generate.NodePortDetails portDetail = nList[i].nodePortDetails[j];
+				ArcProto [] cons = new ArcProto[portDetail.connections.length];
+				for(int k=0; k<portDetail.connections.length; k++)
+					cons[k] = portDetail.connections[k].generated;
+				portList[j] = PrimitivePort.newInstance(tech, prim, cons, portDetail.name, portDetail.angle,portDetail.range,
+					portDetail.netIndex, PortCharacteristic.UNKNOWN,
+					portDetail.rule.value[0].getX(), portDetail.rule.value[0].getY(),
+					portDetail.rule.value[1].getX(), portDetail.rule.value[1].getY());
+			}
+			prim.addPrimitivePorts(portList);
+		}
+
+//System.out.println("Technology "+tech.getTechName()+" has "+tech.getNumLayers()+" layers:");
+//for(Iterator it = tech.getLayers(); it.hasNext(); )
+//{
+//	Layer layer = (Layer)it.next();
+//	System.out.println("   Layer "+layer.getName());
+//}
+//System.out.println("Technology "+tech.getTechName()+" has "+tech.getNumArcs()+" arcs:");
+//for(Iterator it = tech.getArcs(); it.hasNext(); )
+//{
+//	ArcProto ap = (ArcProto)it.next();
+//	System.out.println("   Arc "+ap.getName());
+//}
+//System.out.println("Technology "+tech.getTechName()+" has "+tech.getNumNodes()+" nodes:");
+//for(Iterator it = tech.getNodes(); it.hasNext(); )
+//{
+//	PrimitiveNode n = (PrimitiveNode)it.next();
+//	System.out.println("   Node "+n.describe());
+//}
+
 //		// copy any miscellaneous variables (should use dependent libraries facility)
 //		Variable var = lib.getVar(Generate.VARIABLELIST_KEY);
 //		if (var != NOVARIABLE)
@@ -301,34 +429,36 @@ public class Parse
 //				(void)setval((INTBIG)tech, VTECHNOLOGY, varnames[i], ovar.addr, ovar.type);
 //			}
 //		}
-//	
-//		// check technology for consistency
-//		us_tecedcheck(tech);
-//	
-//		if (dumpformat < 0)
-//		{
-//			// print the technology as Java code
-//			infstr = initinfstr();
-//			addstringtoinfstr(infstr, techname);
-//			addstringtoinfstr(infstr, x_(".java"));
-//			f = xcreate(returninfstr(infstr), el_filetypetext, _("Technology Code File"), &truename);
-//			if (f == NULL)
-//			{
-//				if (truename != 0) System.out.println(_("Cannot write %s"), truename);
-//				return;
-//			}
-//			ttyputverbose(M_("Writing: %s"), truename);
-//	
-//			// write the layers, arcs, and nodes
-//			us_teceditdumpjavalayers(f, tech, techname);
-//			us_teceditdumpjavaarcs(f, tech, techname);
-//			us_teceditdumpjavanodes(f, tech, techname);
-//			xprintf(f, x_("}\n"));
-//	
-//			// clean up
-//			xclose(f);
-//		}
-//	
+	
+		// check technology for consistency
+		us_tecedcheck(lList, aList, nList);
+	
+		if (alsoJava)
+		{
+			// print the technology as Java code
+			String fileName = OpenFile.chooseOutputFile(FileType.JAVA, "File for Technology's Java Code", "X.java");
+			if (fileName != null)
+			{
+				FileOutputStream fileOutputStream = null;
+				try {
+				    PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
+			
+					// write the layers, arcs, and nodes
+					us_teceditdumpjavalayers(buffWriter, lList);
+					us_teceditdumpjavaarcs(buffWriter, aList);
+					us_teceditdumpjavanodes(buffWriter, nList);
+					buffWriter.println("}");
+			
+					// clean up
+					buffWriter.close();
+					System.out.println("Wrote " + fileName);
+				} catch (IOException e)
+				{
+					System.out.println("Error creating " + fileName);
+				}
+			}
+		}
+	
 //		// finish initializing the technology
 //		if ((us_tecflags&HASGRAB) == 0) us_tecvariables[0].name = 0; else
 //		{
@@ -496,104 +626,72 @@ public class Parse
 		}
 	}
 
-//	void us_tecedcheck(TECHNOLOGY *tech)
-//	{
-//		REGISTER INTBIG i, j, k, l;
-//		REGISTER TECH_POLYGON *plist;
-//		REGISTER TECH_NODES *nlist;
-//	
-//		// make sure there is a pure-layer node for every nonpseudo layer
-//		for(i=0; i<tech.layercount; i++)
-//		{
-//			if ((us_teclayer_function[i]&LFPSEUDO) != 0) continue;
-//			for(j=0; j<tech.nodeprotocount; j++)
-//			{
-//				nlist = tech.nodeprotos[j];
-//				if (((nlist.initialbits&NFUNCTION)>>NFUNCTIONSH) != NPNODE) continue;
-//				plist = &nlist.layerlist[0];
-//				if (plist.layernum == i) break;
-//			}
-//			if (j < tech.nodeprotocount) continue;
-//			System.out.println(_("Warning: Layer %s has no associated pure-layer node"),
-//				us_teclayer_names[i]);
-//		}
-//	
-//		// make sure there is a pin for every arc and that it uses pseudo-layers
-//		for(i=0; i<tech.arcprotocount; i++)
-//		{
-//			for(j=0; j<tech.nodeprotocount; j++)
-//			{
-//				nlist = tech.nodeprotos[j];
-//				if (((nlist.initialbits&NFUNCTION)>>NFUNCTIONSH) != NPPIN) continue;
-//				for(k=0; k<nlist.portcount; k++)
-//				{
-//					for(l=1; nlist.portlist[k].portarcs[l] >= 0; l++)
-//						if (nlist.portlist[k].portarcs[l] == i) break;
-//					if (nlist.portlist[k].portarcs[l] >= 0) break;
-//				}
-//				if (k < nlist.portcount) break;
-//			}
-//			if (j < tech.nodeprotocount)
-//			{
-//				// pin found: make sure it uses pseudo-layers
-//				nlist = tech.nodeprotos[j];
-//				for(k=0; k<nlist.layercount; k++)
-//				{
-//					plist = &nlist.layerlist[k];
-//					if ((us_teclayer_function[plist.layernum]&LFPSEUDO) == 0) break;
-//				}
-//				if (k < nlist.layercount)
-//					System.out.println(_("Warning: Pin %s is not composed of pseudo-layers"),
-//						tech.nodeprotos[j].nodename);
-//				continue;
-//			}
-//			System.out.println(_("Warning: Arc %s has no associated pin node"), tech.arcprotos[i].arcname);
-//		}
-//	}
-	
-	/**
-	 * Method to scan the "dependentlibcount" libraries in "dependentlibs",
-	 * and get global factors for technology "tech".  Returns true on error.
-	 */
-	static boolean us_tecedmakefactors(Library [] dependentlibs, SoftTech tech)
+	private static void us_tecedcheck(Generate.LayerInfo [] lList, Generate.ArcInfo [] aList, Generate.NodeInfo [] nList)
 	{
-		Cell np = null;
-		for(int i=dependentlibs.length-1; i>=0; i--)
+		// make sure there is a pure-layer node for every nonpseudo layer
+		for(int i=0; i<lList.length; i++)
 		{
-			np = dependentlibs[i].findNodeProto("factors");
-			if (np != null) break;
-		}
-		if (np == null) return false;
-	
-		for(Iterator it = np.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			int opt = Manipulate.us_tecedgetoption(ni);
-			String str = Manipulate.getValueOnNode(ni);
-			switch (opt)
+			if ((lList[i].funExtra & Layer.Function.PSEUDO) != 0) continue;
+			boolean found = false;
+			for(int j=0; j<nList.length; j++)
 			{
-				case Generate.TECHLAMBDA:	// lambda
-					tech.setTheScale(TextUtils.atof(str));
+				Generate.NodeInfo nin = nList[j];
+				if (nin.func != PrimitiveNode.Function.NODE) continue;
+				if (nin.nodeLayers[0].layer == lList[i])
+				{
+					found = true;
 					break;
-				case Generate.TECHDESCRIPT:	// description
-					tech.setTechDesc(str);
-					break;
-				case Generate.CENTEROBJ:
-					break;
-				default:
-					us_tecedpointout(ni, np);
-					System.out.println("Unknown object in miscellaneous-information cell (node " + ni.describe() + ")");
-					return true;
+				}
 			}
+			if (found) continue;
+			System.out.println("Warning: Layer " + lList[i].name + " has no associated pure-layer node");
 		}
-		return false;
-	}
 	
+		// make sure there is a pin for every arc and that it uses pseudo-layers
+		for(int i=0; i<aList.length; i++)
+		{
+			// find that arc's pin
+			boolean found = false;
+			for(int j=0; j<nList.length; j++)
+			{
+				Generate.NodeInfo nin = nList[j];
+				if (nin.func != PrimitiveNode.Function.PIN) continue;
+
+				for(int k=0; k<nin.nodePortDetails.length; k++)
+				{
+					Generate.ArcInfo [] connections = nin.nodePortDetails[k].connections;
+					for(int l=0; l<connections.length; l++)
+					{
+						if (connections[l] == aList[i])
+						{
+							// pin found: make sure it uses pseudo-layers
+							boolean allPseudo = true;
+							for(int m=0; m<nin.nodeLayers.length; m++)
+							{
+								Generate.LayerInfo lin = nin.nodeLayers[m].layer;
+								if ((lin.funExtra & Layer.Function.PSEUDO) == 0) { allPseudo = false;   break; }
+							}
+							if (!allPseudo)
+								System.out.println("Warning: Pin " + nin.name + " is not composed of pseudo-layers");
+
+							found = true;
+							break;
+						}
+					}
+					if (found) break;
+				}
+				if (found) break;
+			}
+			if (!found)
+				System.out.println("Warning: Arc " + aList[i].name + " has no associated pin node");
+		}
+	}
+
 	/**
 	 * Method to scan the "dependentlibcount" libraries in "dependentlibs",
 	 * and build the layer structures for it in technology "tech".  Returns true on error.
 	 */
-	static Generate.LayerInfo [] us_tecedmakelayers(Library [] dependentlibs, SoftTech tech)
+	static Generate.LayerInfo [] us_tecedmakelayers(Library [] dependentlibs)
 	{
 		// first find the number of layers
 		Cell [] layerCells = Manipulate.us_teceditfindsequence(dependentlibs, "layer-", Generate.LAYERSEQUENCE_KEY);
@@ -609,17 +707,6 @@ public class Parse
 		{
 			lis[i] = Generate.LayerInfo.us_teceditgetlayerinfo(layerCells[i]);
 			if (lis[i] == null) continue;
-			Layer lay = Layer.newInstance(tech, lis[i].name, lis[i].desc);
-			lay.setFunction(lis[i].fun, lis[i].funExtra);
-			lay.setCIFLayer(lis[i].cif);
-			lay.setGDSLayer(lis[i].gds);
-			lay.setDXFLayer(lis[i].dxf);
-			lay.setResistance(lis[i].spires);
-			lay.setCapacitance(lis[i].spicap);
-			lay.setEdgeCapacitance(lis[i].spiecap);
-			lay.setDistance(lis[i].height3d);
-			lay.setThickness(lis[i].thick3d);
-			lis[i].generated = lay;
 		}
 
 //		// get the design rules
@@ -791,29 +878,30 @@ public class Parse
 	 * Method to scan the "dependentlibcount" libraries in "dependentlibs",
 	 * and build the arc structures for it in technology "tech".  Returns true on error.
 	 */
-	static boolean us_tecedmakearcs(Library [] dependentlibs, SoftTech tech, Generate.LayerInfo [] lis)
+	static Generate.ArcInfo [] us_tecedmakearcs(Library [] dependentlibs, Generate.LayerInfo [] lList)
 	{
 		// count the number of arcs in the technology
 		Cell [] arcCells = Manipulate.us_teceditfindsequence(dependentlibs, "arc-", Generate.ARCSEQUENCE_KEY);
 		if (arcCells.length <= 0)
 		{
 			System.out.println("No arcs found");
-			return true;
+			return null;
 		}
 
+		Generate.ArcInfo [] allArcs = new Generate.ArcInfo[arcCells.length];
 		for(int i=0; i<arcCells.length; i++)
 		{
 			Cell np = arcCells[i];
-			Generate.ArcInfo ain = Generate.ArcInfo.us_teceditgetarcinfo(np);
+			allArcs[i] = Generate.ArcInfo.us_teceditgetarcinfo(np);
 
 			// build a list of examples found in this arc
 			Example nelist = us_tecedgetexamples(np, false);
-			if (nelist == null) return true;
+			if (nelist == null) return null;
 			if (nelist.nextexample != null)
 			{
 				us_tecedpointout(null, np);
 				System.out.println("Can only be one example of " + np.describe() + " but more were found");
-				return true;
+				return null;
 			}
 	
 			// get width and polygon count information
@@ -825,15 +913,17 @@ public class Parse
 				if (wid > maxwid) maxwid = wid;
 				if (ns.layer == null) hwid = wid; else count++;
 			}
+			allArcs[i].widthOffset = maxwid - hwid;
+			allArcs[i].maxWidth = maxwid;
 	
 			// error if there is no highlight box
 			if (hwid < 0)
 			{
 				us_tecedpointout(null, np);
 				System.out.println("No highlight layer found in " + np.describe());
-				return true;
+				return null;
 			}
-			Technology.ArcLayer [] layers = new Technology.ArcLayer[count];
+			allArcs[i].arcDetails = new Generate.ArcDetails[count];
 			
 			// fill the individual arc layer structures
 			int layerindex = 0;
@@ -845,14 +935,14 @@ public class Parse
 				// get the layer index
 				String sampleLayer = ns.layer.getName().substring(6);
 				Generate.LayerInfo li = null;
-				for(int j=0; j<lis.length; j++)
+				for(int j=0; j<lList.length; j++)
 				{
-					if (sampleLayer.equals(lis[j].name)) { li = lis[j];   break; }
+					if (sampleLayer.equals(lList[j].name)) { li = lList[j];   break; }
 				}
 				if (li == null)
 				{
 					System.out.println("Cannot find layer " + sampleLayer + ", used in " + np.describe());
-					return true;
+					return null;
 				}
 
 				// only add transparent layers when k=0
@@ -863,35 +953,30 @@ public class Parse
 				{
 					if (li.desc.getTransparentLayer() != 0) continue;
 				}
+				allArcs[i].arcDetails[layerindex] = new Generate.ArcDetails();
+				allArcs[i].arcDetails[layerindex].layer = li;
 	
 				// determine the style of this arc layer
 				Poly.Type style = Poly.Type.CLOSED;
 				if (ns.node.getProto() == Artwork.tech.filledBoxNode)
 					style = Poly.Type.FILLED;
+				allArcs[i].arcDetails[layerindex].style = style;
 	
 				// determine the width offset of this arc layer
 				double wid = Math.min(ns.node.getXSize(), ns.node.getYSize());
-				layers[layerindex] = new Technology.ArcLayer(li.generated, maxwid-wid, style);
+				allArcs[i].arcDetails[layerindex].width = maxwid-wid;
+
 				layerindex++;
 			}
-
-			// create and fill the basic structure entries for this arc
-			PrimitiveArc newArc = PrimitiveArc.newInstance(tech, np.getName().substring(3), maxwid, layers);
-			newArc.setFunction(ain.func);
-			newArc.setFactoryFixedAngle(ain.fixang);
-			if (ain.wipes) newArc.setWipable(); else newArc.clearWipable();
-			newArc.setFactoryAngleIncrement(ain.anginc);
-			newArc.setExtended(!ain.noextend);
-			newArc.setWidthOffset(maxwid - hwid);
 		}
-		return false;
+		return allArcs;
 	}
-	
-	/*
-	 * routine to scan the "dependentlibcount" libraries in "dependentlibs",
+
+	/**
+	 * Method to scan the "dependentlibcount" libraries in "dependentlibs",
 	 * and build the node structures for it in technology "tech".  Returns true on error.
 	 */
-	static boolean us_tecedmakenodes(Library [] dependentlibs, SoftTech tech, Generate.LayerInfo [] lis)
+	static Generate.NodeInfo [] us_tecedmakenodes(Library [] dependentlibs, Generate.LayerInfo [] lList, Generate.ArcInfo [] aList)
 	{
 //		REGISTER NODEPROTO *np;
 //		NODEPROTO **sequence;
@@ -916,11 +1001,13 @@ public class Parse
 		if (nodeCells.length <= 0)
 		{
 			System.out.println("No nodes found");
-			return true;
+			return null;
 		}
-	
+
+		Generate.NodeInfo [] nList = new Generate.NodeInfo[nodeCells.length];
+
 		// get the nodes
-		int nodeindex = 0;
+		int nodeIndex = 0;
 		for(int pass=0; pass<3; pass++)
 			for(int m=0; m<nodeCells.length; m++)
 		{
@@ -932,229 +1019,205 @@ public class Parse
 			if (pass == 0 && nin.func != PrimitiveNode.Function.PIN) continue;
 			if (pass == 1 && (nin.func == PrimitiveNode.Function.PIN || nin.func == PrimitiveNode.Function.NODE)) continue;
 			if (pass == 2 && nin.func != PrimitiveNode.Function.NODE) continue;
+			if (nin.func == PrimitiveNode.Function.NODE)
+			{
+				if (nin.serp)
+				{
+					us_tecedpointout(null, np);
+					System.out.println("Pure layer " + nin.name + " can not be serpentine");
+					return null;
+				}
+				nin.specialType = PrimitiveNode.POLYGONAL;
+			}
+
+			nList[nodeIndex] = nin;
+			nin.name = np.getName().substring(5);
 
 			// build a list of examples found in this node
 			Example nelist = us_tecedgetexamples(np, true);
-			if (nelist == null) return true;
+			if (nelist == null)
+			{
+				System.out.println("Cannot analyze cell " + np.describe());
+				return null;
+			}
+			nin.xSize = nelist.hx - nelist.lx;
+			nin.ySize = nelist.hy - nelist.ly;
 	
 			// associate the samples in each example
-			if (us_tecedassociateexamples(nelist, np)) return true;
+			if (us_tecedassociateexamples(nelist, np))
+			{
+				System.out.println("Cannot match different examples in " + np.describe());
+				return null;
+			}
 
 			// derive primitives from the examples
-			nin.nodeLayers = us_tecedmakeprim(nelist, np, tech, lis);
-			if (nin.nodeLayers == null) return true;
-			String nodeName = np.getName().substring(5);
-			PrimitiveNode prim = PrimitiveNode.newInstance(nodeName, tech, 3, 3, null, nin.nodeLayers);
-			prim.setFunction(nin.func);
-			if (nin.wipes) prim.setArcsWipe();
-			if (nin.lockable) prim.setLockedPrim();
-			if (nin.square) prim.setSquare();
-//			prim.addPrimitivePorts(new PrimitivePort[]
-//			{
-//					PrimitivePort.newInstance(tech, prim, new ArcProto [] {Metal_arc}, "metal", 0,180, 0, PortCharacteristic.UNKNOWN,
-//					EdgeH.fromLeft(1.5), EdgeV.fromBottom(1.5), EdgeH.fromRight(1.5), EdgeV.fromTop(1.5))
-//			});
-
-			// analyze special node function circumstances
-			if (nin.func == PrimitiveNode.Function.NODE)
+			nin.nodeLayers = us_tecedmakeprim(nelist, np, lList);
+			if (nin.nodeLayers == null)
 			{
-//				if (tlist.special != 0)
-//				{
-//					us_tecedpointout(null, np);
-//					System.out.println(_("Pure layer %s can not be serpentine"), describenodeproto(np));
-//					us_tecedfreeexamples(nelist);
-//					return(TRUE);
-//				}
-//				tlist.special = POLYGONAL;
-//				tlist.initialbits |= HOLDSTRACE;
-			} else if (nin.func == PrimitiveNode.Function.PIN)
-			{
-//				if ((tlist.initialbits&WIPEON1OR2) == 0)
-//				{
-//					tlist.initialbits |= ARCSWIPE;
-//					tlist.initialbits |= ARCSHRINK;
-//				}
+				System.out.println("Cannot derive stretching rules for " + np.describe());
+				return null;
 			}
 	
-//			// count the number of ports on this node
-//			tlist.portcount = 0;
-//			for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
-//				if (ns.layer == Generic.tech.portNode) tlist.portcount++;
-//			if (tlist.portcount == 0)
-//			{
-//				us_tecedpointout(NONODEINST, np);
-//				System.out.println(_("No ports found in %s"), describenodeproto(np));
-//				us_tecedfreeexamples(nelist);
-//				return(TRUE);
-//			}
-//	
-//			// allocate space for the ports
-//			tlist.portlist = (TECH_PORTS *)emalloc((tlist.portcount * (sizeof (TECH_PORTS))),
-//				tech.cluster);
-//			if (tlist.portlist == 0) return(TRUE);
-//	
-//			// fill the port structures
-//			pol1port = pol2port = dif1port = dif2port = -1;
-//			i = 0;
-//			for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
-//			{
-//				if (ns.layer != Generic.tech.portNode) continue;
-//	
-//				// port connections
-//				var = ns.node.getVar(Generate.CONNECTION_KEY);
-//				if (var == NOVARIABLE) pc = us_tecedaddportlist(0, (INTBIG *)0); else
+			// count the number of ports on this node
+			int portcount = 0;
+			for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+				if (ns.layer == Generic.tech.portNode) portcount++;
+			if (portcount == 0)
+			{
+				us_tecedpointout(null, np);
+				System.out.println("No ports found in " + np.describe());
+				return null;
+			}
+	
+			// allocate space for the ports
+			nin.nodePortDetails = new Generate.NodePortDetails[portcount];
+
+			// fill the port structures
+			int pol1port = -1, pol2port = -1, dif1port = -1, dif2port = -1;
+			int i = 0;
+			for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+			{
+				if (ns.layer != Generic.tech.portNode) continue;
+	
+				// port connections
+				nin.nodePortDetails[i] = new Generate.NodePortDetails();
+				nin.nodePortDetails[i].connections = new Generate.ArcInfo[0];
+				Variable var = ns.node.getVar(Generate.CONNECTION_KEY);
+				if (var != null)
+				{
+					// convert "arc-CELL" pointers to indices
+					Cell [] arcCells = (Cell [])var.getObject();					
+					Generate.ArcInfo [] connections = new Generate.ArcInfo[arcCells.length];
+					nin.nodePortDetails[i].connections = connections;
+					boolean portchecked = false;
+					for(int j=0; j<arcCells.length; j++)
+					{
+						// find arc that connects
+						connections[j] = null;
+						for(int k=0; k<aList.length; k++)
+						{
+							if (aList[k].name.equalsIgnoreCase(arcCells[j].getName().substring(4)))
+							{
+								connections[j] = aList[k];
+								break;
+							}
+						}
+						if (connections[j] == null)
+						{
+							us_tecedpointout(ns.node, ns.node.getParent());
+							System.out.println("Invalid connection list on port in " + np.describe());
+							return null;
+						}
+	
+						// find port characteristics for possible transistors
+						if (portchecked) continue;
+						if (connections[j].func.isPoly())
+						{
+							if (pol1port < 0)
+							{
+								pol1port = i;
+								portchecked = true;
+							} else if (pol2port < 0)
+							{
+								pol2port = i;
+								portchecked = true;
+							}
+						} else if (connections[j].func.isDiffusion())
+						{
+							if (dif1port < 0)
+							{
+								dif1port = i;
+								portchecked = true;
+							} else if (dif2port < 0)
+							{
+								dif2port = i;
+								portchecked = true;
+							}
+						}
+					}
+				}
+	
+				// link connection list to the port
+				if (nin.nodePortDetails[i].connections == null) return null;
+	
+				// port name
+				String portname = Manipulate.us_tecedgetportname(ns.node);
+				if (portname == null)
+				{
+					us_tecedpointout(ns.node, np);
+					System.out.println("Cell " + np.describe() + ": port does not have a name");
+					return null;
+				}
+				for(int c=0; c<portname.length(); c++)
+				{
+					char str = portname.charAt(c);
+					if (str <= ' ' || str >= 0177)
+					{
+						us_tecedpointout(ns.node, np);
+						System.out.println("Invalid port name '" + portname + "' in " + np.describe());
+						return null;
+					}
+				}
+				nin.nodePortDetails[i].name = portname;
+	
+				// port angle and range
+				nin.nodePortDetails[i].angle = 0;
+				Variable varAngle = ns.node.getVar(Generate.PORTANGLE_KEY);
+				if (varAngle != null)
+					nin.nodePortDetails[i].angle |= ((Integer)varAngle.getObject()).intValue();
+				nin.nodePortDetails[i].range = 180;
+				Variable varRange = ns.node.getVar(Generate.PORTRANGE_KEY);
+				if (varRange != null)
+					nin.nodePortDetails[i].range |= ((Integer)varRange.getObject()).intValue();
+	
+				// port connectivity
+				nin.nodePortDetails[i].netIndex = i;
+//				if (ns.node.firstportarcinst != null)
 //				{
-//					// convert "arc-CELL" pointers to indices
-//					l = getlength(var);
-//					list = emalloc((l * SIZEOFINTBIG), el_tempcluster);
-//					if (list == 0) return(TRUE);
-//					portchecked = 0;
-//					for(j=0; j<l; j++)
-//					{
-//						// find arc that connects
-//						for(k=0; k<tech.arcprotocount; k++)
-//							if (namesame(tech.arcprotos[k].arcname,
-//								&((NODEPROTO **)var.addr)[j].protoname[4]) == 0) break;
-//						if (k >= tech.arcprotocount)
-//						{
-//							us_tecedpointout(ns.node, ns.node.parent);
-//							System.out.println(_("Invalid connection list on port in %s"),
-//								describenodeproto(np));
-//							us_tecedfreeexamples(nelist);
-//							return(TRUE);
-//						}
-//	
-//						// fill in the connection information
-//						list[j] = k;
-//	
-//						// find port characteristics for possible transistors
-//						if (portchecked != 0) continue;
-//						switch ((tech.arcprotos[k].initialbits&AFUNCTION)>>AFUNCTIONSH)
-//						{
-//							case APPOLY1:   case APPOLY2:
-//								if (pol1port < 0)
-//								{
-//									pol1port = i;
-//									portchecked++;
-//								} else if (pol2port < 0)
-//								{
-//									pol2port = i;
-//									portchecked++;
-//								}
-//								break;
-//							case APDIFF:    case APDIFFP:   case APDIFFN:
-//							case APDIFFS:   case APDIFFW:
-//								if (dif1port < 0)
-//								{
-//									dif1port = i;
-//									portchecked++;
-//								} else if (dif2port < 0)
-//								{
-//									dif2port = i;
-//									portchecked++;
-//								}
-//								break;
-//						}
-//					}
-//	
-//					// store complete list in memory
-//					pc = us_tecedaddportlist(l, list);
-//					efree((CHAR *)list);
-//				}
-//	
-//				// link connection list to the port
-//				if (pc == NOPCON) return(TRUE);
-//				tlist.portlist[i].portarcs = pc.connects;
-//	
-//				// port name
-//				portname = us_tecedgetportname(ns.node);
-//				if (portname == 0)
-//				{
-//					us_tecedpointout(ns.node, np);
-//					System.out.println(_("Cell %s: port does not have a name"), describenodeproto(np));
-//					us_tecedfreeexamples(nelist);
-//					return(TRUE);
-//				}
-//				for(str = portname; *str != 0; str++)
-//					if (*str <= ' ' || *str >= 0177)
-//				{
-//					us_tecedpointout(ns.node, np);
-//					System.out.println(_("Invalid port name '%s' in %s"), portname,
-//						describenodeproto(np));
-//					us_tecedfreeexamples(nelist);
-//					return(TRUE);
-//				}
-//				(void)allocstring(&tlist.portlist[i].protoname, portname, tech.cluster);
-//	
-//				// port angle and range
-//				tlist.portlist[i].initialbits = 0;
-//				var = ns.node.getVar(Generate.PORTANGLE_KEY);
-//				if (var != NOVARIABLE)
-//					tlist.portlist[i].initialbits |= var.addr << PORTANGLESH;
-//				var = ns.node.getVar(Generate.PORTRANGE_KEY);
-//				if (var != NOVARIABLE)
-//					tlist.portlist[i].initialbits |= var.addr << PORTARANGESH; else
-//						tlist.portlist[i].initialbits |= 180 << PORTARANGESH;
-//	
-//				// port connectivity
-//				net = i;
-//				if (ns.node.firstportarcinst != NOPORTARCINST)
-//				{
-//					j = 0;
-//					for(ons = nelist.firstsample; ons != ns; ons = ons.nextsample)
+//					int j = 0;
+//					for(Sample ons = nelist.firstsample; ons != ns; ons = ons.nextsample)
 //					{
 //						if (ons.layer != Generic.tech.portNode) continue;
-//						if (ons.node.firstportarcinst != NOPORTARCINST)
+//						if (ons.node.firstportarcinst != null)
 //						{
 //							if (ns.node.firstportarcinst.conarcinst.network ==
 //								ons.node.firstportarcinst.conarcinst.network)
 //							{
-//								net = j;
+//								nin.nodePortDetails[i].netIndex = j;
 //								break;
 //							}
 //						}
 //						j++;
 //					}
 //				}
-//				tlist.portlist[i].initialbits |= (net << PORTNETSH);
-//	
-//				// port area rule
-//				r = ns.rule;
-//				if (r == NORULE) continue;
-//				tlist.portlist[i].lowxmul = (INTSML)r.value[0];
-//				tlist.portlist[i].lowxsum = (INTSML)r.value[1];
-//				tlist.portlist[i].lowymul = (INTSML)r.value[2];
-//				tlist.portlist[i].lowysum = (INTSML)r.value[3];
-//				tlist.portlist[i].highxmul = (INTSML)r.value[4];
-//				tlist.portlist[i].highxsum = (INTSML)r.value[5];
-//				tlist.portlist[i].highymul = (INTSML)r.value[6];
-//				tlist.portlist[i].highysum = (INTSML)r.value[7];
-//				i++;
-//			}
-//	
-//			// on FET transistors, make sure ports 0 and 2 are poly
-//			if (nfunction == NPTRANMOS || nfunction == NPTRADMOS || nfunction == NPTRAPMOS ||
-//				nfunction == NPTRADMES || nfunction == NPTRAEMES)
-//			{
-//				if (pol1port < 0 || pol2port < 0 || dif1port < 0 || dif2port < 0)
-//				{
-//					us_tecedpointout(NONODEINST, np);
-//					System.out.println(_("Need 2 gate and 2 active ports on field-effect transistor %s"),
-//						describenodeproto(np));
-//					us_tecedfreeexamples(nelist);
-//					return(TRUE);
-//				}
-//				if (pol1port != 0)
-//				{
+	
+				// port area rule
+				nin.nodePortDetails[i].rule = ns.rule;
+				i++;
+			}
+	
+			// on FET transistors, make sure ports 0 and 2 are poly
+			if (nin.func == PrimitiveNode.Function.TRANMOS || nin.func == PrimitiveNode.Function.TRADMOS ||
+				nin.func == PrimitiveNode.Function.TRAPMOS || nin.func == PrimitiveNode.Function.TRADMES ||
+				nin.func == PrimitiveNode.Function.TRAEMES)
+			{
+				if (pol1port < 0 || pol2port < 0 || dif1port < 0 || dif2port < 0)
+				{
+					us_tecedpointout(null, np);
+					System.out.println("Need 2 gate and 2 active ports on field-effect transistor " + np.describe());
+					return null;
+				}
+				if (pol1port != 0)
+				{
 //					if (pol2port == 0) us_tecedswapports(&pol1port, &pol2port, tlist); else
 //					if (dif1port == 0) us_tecedswapports(&pol1port, &dif1port, tlist); else
 //					if (dif2port == 0) us_tecedswapports(&pol1port, &dif2port, tlist);
-//				}
-//				if (pol2port != 2)
-//				{
+				}
+				if (pol2port != 2)
+				{
 //					if (dif1port == 2) us_tecedswapports(&pol2port, &dif1port, tlist); else
 //					if (dif2port == 2) us_tecedswapports(&pol2port, &dif2port, tlist);
-//				}
+				}
 //				if (dif1port != 1) us_tecedswapports(&dif1port, &dif2port, tlist);
 //	
 //				// also make sure that dif1port is positive and dif2port is negative
@@ -1222,17 +1285,17 @@ public class Parse
 //						j = pol1port;   pol1port = pol2port;   pol2port = j;
 //					}
 //				}
-//			}
-//	
-//			// count the number of layers on the node
-//			tlist.layercount = 0;
-//			for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
-//			{
-//				if (ns.rule != NORULE && ns.layer != Generic.tech.portNode &&
-//					ns.layer != Generic.tech.cellCenterNode && ns.layer != NONODEPROTO)
-//						tlist.layercount++;
-//			}
-//	
+			}
+	
+			// count the number of layers on the node
+			int layercount = 0;
+			for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+			{
+				if (ns.rule != null && ns.layer != Generic.tech.portNode &&
+					ns.layer != Generic.tech.cellCenterNode && ns.layer != null)
+						layercount++;
+			}
+	
 //			// allocate space for the layers
 //			if (tlist.special != SERPTRANS)
 //			{
@@ -1609,91 +1672,71 @@ public class Parse
 //						i++;
 //					}
 //				}
-			}
-	
-//			// extract width offset information
-//			us_tecnode_widoff[nodeindex*4] = 0;
-//			us_tecnode_widoff[nodeindex*4+1] = 0;
-//			us_tecnode_widoff[nodeindex*4+2] = 0;
-//			us_tecnode_widoff[nodeindex*4+3] = 0;
-//			for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
-//				if (ns.layer == NONODEPROTO) break;
-//			if (ns != NOSAMPLE)
-//			{
-//				r = ns.rule;
-//				if (r != NORULE)
-//				{
-//					err = 0;
-//					switch (r.value[0])		// left edge offset
-//					{
-//						case -H0:
-//							us_tecnode_widoff[nodeindex*4] = r.value[1];
-//							break;
-//						case H0:
-//							us_tecnode_widoff[nodeindex*4] = tlist.xsize + r.value[1];
-//							break;
-//						default:
-//							err++;
-//							break;
-//					}
-//					switch (r.value[2])		// bottom edge offset
-//					{
-//						case -H0:
-//							us_tecnode_widoff[nodeindex*4+2] = r.value[3];
-//							break;
-//						case H0:
-//							us_tecnode_widoff[nodeindex*4+2] = tlist.ysize + r.value[3];
-//							break;
-//						default:
-//							err++;
-//							break;
-//					}
-//					switch (r.value[4])		// right edge offset
-//					{
-//						case H0:
-//							us_tecnode_widoff[nodeindex*4+1] = -r.value[5];
-//							break;
-//						case -H0:
-//							us_tecnode_widoff[nodeindex*4+1] = tlist.xsize - r.value[5];
-//							break;
-//						default:
-//							err++;
-//							break;
-//					}
-//					switch (r.value[6])		// top edge offset
-//					{
-//						case H0:
-//							us_tecnode_widoff[nodeindex*4+3] = -r.value[7];
-//							break;
-//						case -H0:
-//							us_tecnode_widoff[nodeindex*4+3] = tlist.ysize - r.value[7];
-//							break;
-//						default:
-//							err++;
-//							break;
-//					}
-//					if (err != 0)
-//					{
-//						us_tecedpointout(ns.node, ns.node.parent);
-//						System.out.println(_("Highlighting cannot scale from center in %s"), describenodeproto(np));
-//						us_tecedfreeexamples(nelist);
-//						return(TRUE);
-//					}
-//				} else
-//				{
-//					us_tecedpointout(ns.node, ns.node.parent);
-//					System.out.println(_("No rule found for highlight in %s"), describenodeproto(np));
-//					us_tecedfreeexamples(nelist);
-//					return(TRUE);
-//				}
-//			} else
-//			{
-//				us_tecedpointout(NONODEINST, np);
-//				System.out.println(_("No highlight found in %s"), describenodeproto(np));
-//				us_tecedfreeexamples(nelist);
-//				return(TRUE);
 //			}
-//	
+	
+			// extract width offset information from highlight box
+			double lx = 0, hx = 0, ly = 0, hy = 0;
+			boolean found = false;
+			for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+			{
+				if (ns.layer != null) continue;
+				found = true;
+				Rule r = ns.rule;
+				if (r != null)
+				{
+					boolean err = false;
+					if (r.value[0].getX().getMultiplier() == -0.5)		// left edge offset
+					{
+						lx = r.value[0].getX().getAdder();
+					} else if (r.value[0].getX().getMultiplier() == 0.5)
+					{
+						lx = nin.xSize + r.value[0].getX().getAdder();
+					} else err = true;
+					if (r.value[0].getY().getMultiplier() == -0.5)		// bottom edge offset
+					{
+						ly = r.value[0].getY().getAdder();
+					} else if (r.value[0].getY().getMultiplier() == 0.5)
+					{
+						ly = nin.ySize + r.value[0].getY().getAdder();;
+					} else err = true;
+					if (r.value[1].getX().getMultiplier() == 0.5)		// right edge offset
+					{
+						hx = -r.value[1].getX().getAdder();
+					} else if (r.value[1].getX().getMultiplier() == -0.5)
+					{
+						hx = nin.xSize - r.value[1].getX().getAdder();
+					} else err = true;
+					if (r.value[1].getY().getMultiplier() == 0.5)		// top edge offset
+					{
+						hy = -r.value[1].getY().getAdder();
+					} else if (r.value[1].getY().getMultiplier() == -0.5)
+					{
+						hy = nin.ySize - r.value[1].getY().getAdder();
+					} else err = true;
+					if (err)
+					{
+						us_tecedpointout(ns.node, ns.node.getParent());
+						System.out.println("Highlighting cannot scale from center in " + np.describe());
+						return null;
+					}
+				} else
+				{
+					us_tecedpointout(ns.node, ns.node.getParent());
+					System.out.println("No rule found for highlight in " + np.describe());
+					return null;
+				}
+			}
+			if (!found)
+			{
+				us_tecedpointout(null, np);
+				System.out.println("No highlight found in " + np.describe());
+				return null;
+			}
+			if (lx != 0 || hx != 0 || ly != 0 || hy != 0)
+			{
+				nList[nodeIndex].so = new SizeOffset(lx, hx, ly, hy);
+			}
+
 //			// get grab point information
 //			for(ns = nelist.firstsample; ns != NOSAMPLE; ns = ns.nextsample)
 //				if (ns.layer == Generic.tech.cellCenterNode) break;
@@ -1708,21 +1751,65 @@ public class Parse
 //					el_curlib.lambda[tech.techindex] / lambda;
 //				us_tecflags |= HASGRAB;
 //			}
-//	
-//			// free all examples
-//			us_tecedfreeexamples(nelist);
-//	
-//			// advance the fill pointer
-//			nodeindex++;
-//		}
-//	
-//		// store width offset on the technology
-//		(void)setval((INTBIG)tech, VTECHNOLOGY, x_("TECH_node_width_offset"), (INTBIG)us_tecnode_widoff,
-//			VFRACT|VDONTSAVE|VISARRAY|((us_tecnode_count*4)<<VLENGTHSH));
-//		efree((CHAR *)sequence);
-		return false;
-	}
 	
+			// advance the fill pointer
+			nodeIndex++;
+		}
+		return nList;
+	}
+
+//	/**
+//	 * Method to swap entries "p1" and "p2" of the port list in "tlist"
+//	 */
+//	void us_tecedswapports(INTBIG *p1, INTBIG *p2, TECH_NODES *tlist)
+//	{
+//		REGISTER INTBIG temp, *templ;
+//		REGISTER CHAR *tempc;
+//	
+//		templ = tlist.portlist[*p1].portarcs;
+//		tlist.portlist[*p1].portarcs = tlist.portlist[*p2].portarcs;
+//		tlist.portlist[*p2].portarcs = templ;
+//	
+//		tempc = tlist.portlist[*p1].protoname;
+//		tlist.portlist[*p1].protoname = tlist.portlist[*p2].protoname;
+//		tlist.portlist[*p2].protoname = tempc;
+//	
+//		temp = tlist.portlist[*p1].initialbits;
+//		tlist.portlist[*p1].initialbits = tlist.portlist[*p2].initialbits;
+//		tlist.portlist[*p2].initialbits = temp;
+//	
+//		temp = tlist.portlist[*p1].lowxmul;
+//		tlist.portlist[*p1].lowxmul = tlist.portlist[*p2].lowxmul;
+//		tlist.portlist[*p2].lowxmul = (INTSML)temp;
+//		temp = tlist.portlist[*p1].lowxsum;
+//		tlist.portlist[*p1].lowxsum = tlist.portlist[*p2].lowxsum;
+//		tlist.portlist[*p2].lowxsum = (INTSML)temp;
+//	
+//		temp = tlist.portlist[*p1].lowymul;
+//		tlist.portlist[*p1].lowymul = tlist.portlist[*p2].lowymul;
+//		tlist.portlist[*p2].lowymul = (INTSML)temp;
+//		temp = tlist.portlist[*p1].lowysum;
+//		tlist.portlist[*p1].lowysum = tlist.portlist[*p2].lowysum;
+//		tlist.portlist[*p2].lowysum = (INTSML)temp;
+//	
+//		temp = tlist.portlist[*p1].highxmul;
+//		tlist.portlist[*p1].highxmul = tlist.portlist[*p2].highxmul;
+//		tlist.portlist[*p2].highxmul = (INTSML)temp;
+//		temp = tlist.portlist[*p1].highxsum;
+//		tlist.portlist[*p1].highxsum = tlist.portlist[*p2].highxsum;
+//		tlist.portlist[*p2].highxsum = (INTSML)temp;
+//	
+//		temp = tlist.portlist[*p1].highymul;
+//		tlist.portlist[*p1].highymul = tlist.portlist[*p2].highymul;
+//		tlist.portlist[*p2].highymul = (INTSML)temp;
+//		temp = tlist.portlist[*p1].highysum;
+//		tlist.portlist[*p1].highysum = tlist.portlist[*p2].highysum;
+//		tlist.portlist[*p2].highysum = (INTSML)temp;
+//	
+//		// finally, swap the actual identifiers
+//		temp = *p1;   *p1 = *p2;   *p2 = temp;
+//	}
+
 //	/*
 //	 * routine to find the closest port to the layer describe by "lx<=X<=hx" and
 //	 * "ly<+Y<=hy" in the list "nelist".  The ports are listed in "tlist".  The algorithm
@@ -1827,18 +1914,18 @@ public class Parse
 			// get a new cluster of nodes
 			Example ne = new Example();
 			ne.firstsample = null;
-			boolean gotbbox = false;
+			ne.nextexample = nelist;
+			nelist = ne;
+
 			SizeOffset so = ni.getSizeOffset();
-			
 			Poly poly = new Poly(ni.getAnchorCenterX(), ni.getAnchorCenterY(),
 				ni.getXSize() - so.getLowXOffset() - so.getHighXOffset(),
 				ni.getYSize() - so.getLowYOffset() - so.getHighYOffset());
 			poly.transform(ni.rotateOut());
 			Rectangle2D sofar = poly.getBounds2D();
-			ne.nextexample = nelist;
-			nelist = ne;
 	
 			// now find all others that touch this area
+			boolean gotbbox = false;
 			boolean foundone = true;
 			int hcount = 0;
 			while (foundone)
@@ -1852,14 +1939,13 @@ public class Parse
 					if (geom == null) break;
 					if (!(geom instanceof NodeInst)) continue;
 					NodeInst otherni = (NodeInst)geom;
-					SizeOffset oSo = ni.getSizeOffset();
+					SizeOffset oSo = otherni.getSizeOffset();
 					Poly oPoly = new Poly(otherni.getAnchorCenterX(), otherni.getAnchorCenterY(),
-							otherni.getXSize() - oSo.getLowXOffset() - oSo.getHighXOffset(),
-							otherni.getYSize() - oSo.getLowYOffset() - oSo.getHighYOffset());
+						otherni.getXSize() - oSo.getLowXOffset() - oSo.getHighXOffset(),
+						otherni.getYSize() - oSo.getLowYOffset() - oSo.getHighYOffset());
 					oPoly.transform(otherni.rotateOut());
 					Rectangle2D otherRect = oPoly.getBounds2D();
-					if (!sofar.intersects(otherRect.getMinX(), otherRect.getMinY(), otherRect.getWidth(), otherRect.getHeight())) continue;
-	
+					if (!GenMath.rectsIntersect(otherRect, sofar)) continue;
 					// make sure the node is valid
 					Object otherAssn = nodeExamples.get(otherni);
 					if (otherAssn != null)
@@ -1882,29 +1968,31 @@ public class Parse
 					ns.assoc = null;
 					ns.xpos = otherRect.getCenterX();
 					ns.ypos = otherRect.getCenterY();
-					if (otherni.getProto() == Generic.tech.portNode)
+					int funct = Manipulate.us_tecedgetoption(otherni);
+					switch (funct)
 					{
-						if (!isnode)
-						{
-							us_tecedpointout(otherni, np);
-							System.out.println(np.describe() + " cannot have ports.  Delete this");
-							return null;
-						}
-						ns.layer = Generic.tech.portNode;
-					} else if (otherni.getProto() == Generic.tech.cellCenterNode)
-					{
-						if (!isnode)
-						{
-							us_tecedpointout(otherni, np);
-							System.out.println(np.describe() + " cannot have a grab point.  Delete this");
-							return null;
-						}
-						ns.layer = Generic.tech.cellCenterNode;
-					} else
-					{
-						int funct = Manipulate.us_tecedgetoption(otherni);
-						if (funct == Generate.HIGHLIGHTOBJ) hcount++; else
-						{
+						case Generate.PORTOBJ:
+							if (!isnode)
+							{
+								us_tecedpointout(otherni, np);
+								System.out.println(np.describe() + " cannot have ports.  Delete this");
+								return null;
+							}
+							ns.layer = Generic.tech.portNode;
+							break;
+						case Generate.CENTEROBJ:
+							if (!isnode)
+							{
+								us_tecedpointout(otherni, np);
+								System.out.println(np.describe() + " cannot have a grab point.  Delete this");
+								return null;
+							}
+							ns.layer = Generic.tech.cellCenterNode;
+							break;
+						case Generate.HIGHLIGHTOBJ:
+							hcount++;
+							break;
+						default:
 							ns.layer = Manipulate.us_tecedgetlayer(otherni);
 							if (ns.layer == null)
 							{
@@ -1912,7 +2000,7 @@ public class Parse
 								System.out.println("No layer information on node " + otherni.describe() + " in " + np.describe());
 								return null;
 							}
-						}
+							break;
 					}
 	
 					// accumulate state if this is not a "grab point" mark
@@ -2173,8 +2261,7 @@ public class Parse
 			Sample s2 = (Sample)o2;
 			if (s1.xpos != s2.xpos) return (int)(s1.xpos - s2.xpos);
 			if (s1.ypos != s2.ypos) return (int)(s1.ypos - s2.ypos);
-//			return s1.node.getProto().hashCode() - s2.node.proto;
-			return 0;
+			return s1.node.getName().compareTo(s2.node.getName());
 		}
 	}
 
@@ -2188,18 +2275,22 @@ public class Parse
 	private static final int RATIOCENTX     = 0100;		/* fixed ratio from X center to edge */
 	private static final int RATIOCENTY     = 0200;		/* fixed ratio from Y center to edge */
 
-	static Technology.NodeLayer [] makeNodeScaledUniformly(Example nelist, NodeProto np, Generate.LayerInfo [] lis)
+	static Generate.NodeLayerDetails [] makeNodeScaledUniformly(Example nelist, NodeProto np, Generate.LayerInfo [] lis)
 	{
+		// count the number of real layers in the node
 		int count = 0;
-		for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample) count++;
+		for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+		{
+			if (ns.layer != null && ns.layer != Generic.tech.portNode) count++;
+		}
 
-		Technology.NodeLayer [] nodeLayers = new Technology.NodeLayer[count];
+		Generate.NodeLayerDetails [] nodeLayers = new Generate.NodeLayerDetails[count];
 		count = 0;
 		for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
 		{
 			Rectangle2D nodeBounds = ns.node.getBounds();
 			AffineTransform trans = ns.node.rotateOut();
-			if (ns.layer == null || ns.layer == Generic.tech.portNode) continue;
+
 //			// if a multicut separation was given and this is a cut, add the rule
 //			if (tlist.f4 > 0 && ns.layer != null && ns.layer != Generic.tech.portNode)
 //			{
@@ -2267,10 +2358,9 @@ public class Parse
 					us_tecedmakefactor = new int[3];
 					us_tecedmakep[0] = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY());
 					double dist = nodeBounds.getMaxX() - nodeBounds.getCenterX();
-	//				xform(us_tecedmakepx[0] + mult(dist, cosine(var.addr)),
-	//					us_tecedmakepy[0] + mult(dist, sine(var.addr)), &us_tecedmakepx[1], &us_tecedmakepy[1], trans);
-	//				xform(ns.node.geom.highx,
-	//					(ns.node.geom.lowy + ns.node.geom.highy) / 2, &us_tecedmakepx[2], &us_tecedmakepy[2], trans);
+					us_tecedmakep[1] = new Point2D.Double(nodeBounds.getCenterX() + dist * Math.cos(angles[0]),
+						nodeBounds.getCenterY() + dist * Math.sin(angles[0]));
+					trans.transform(us_tecedmakep[1], us_tecedmakep[1]);
 					us_tecedmakefactor[0] = FROMCENTX|FROMCENTY;
 					us_tecedmakefactor[1] = RATIOCENTX|RATIOCENTY;
 					us_tecedmakefactor[2] = RATIOCENTX|RATIOCENTY;
@@ -2291,9 +2381,6 @@ public class Parse
 					us_tecedmakefactor = new int[2];
 					us_tecedmakep[0] = new Point2D.Double(nodeBounds.getMinX(), nodeBounds.getMinY());
 					us_tecedmakep[1] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getMaxY());
-//					us_tecedmakep[2] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getMaxY());
-//					us_tecedmakep[3] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getMinY());
-	//				us_tecedgetbbox(ns.node, &us_tecedmakepx[0], &us_tecedmakepx[1], &us_tecedmakepy[0], &us_tecedmakepy[1]);
 	
 					// preset stretch factors to go to the edges of the box
 					us_tecedmakefactor[0] = TOEDGELEFT|TOEDGEBOT;
@@ -2303,38 +2390,61 @@ public class Parse
 	
 			// add the rule to the collection
 			Technology.TechPoint [] newrule = us_tecedstretchpoints(us_tecedmakep, us_tecedmakefactor, ns, np, nelist);
-			if (newrule == null) return null;
+			if (newrule == null)
+			{
+				System.out.println("Error creating stretch point in " + np.describe());
+				return null;
+			}
 			String str = Manipulate.getValueOnNode(ns.node);
 			if (str != null && str.length() == 0) str = null;
 			ns.rule = us_tecedaddrule(newrule, false, str);
-			if (ns.rule == null) return null;
+			if (ns.rule == null)
+			{
+				System.out.println("Cannot save stretching rule in " + np.describe());
+				return null;
+			}
+
+			// stop now if a highlight or port object
+			if (ns.layer == null || ns.layer == Generic.tech.portNode) continue;
 
 			// determine the layer
-			Layer layer = null;
-			String layerName = ns.layer.getName();
+			Generate.LayerInfo layer = null;
 			String desiredLayer = ns.layer.getName().substring(6);
 			for(int i=0; i<lis.length; i++)
 			{
-				if (desiredLayer.equals(lis[i].name)) { layer = lis[i].generated;   break; }
+				if (desiredLayer.equals(lis[i].name)) { layer = lis[i];   break; }
 			}
 			if (layer == null)
 			{
 				System.out.println("Cannot find layer " + desiredLayer);
 				return null;
 			}
-			nodeLayers[count] = new Technology.NodeLayer(layer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, newrule);
+			nodeLayers[count] = new Generate.NodeLayerDetails();
+			nodeLayers[count].layer = layer;
+			nodeLayers[count].style = Poly.Type.FILLED;
+			nodeLayers[count].rule = ns.rule;
 			count++;
 		}
 		return nodeLayers;
 	}
 
-	static Technology.NodeLayer [] us_tecedmakeprim(Example nelist, NodeProto np, Technology tech, Generate.LayerInfo [] lis)
+	static Generate.NodeLayerDetails [] us_tecedmakeprim(Example nelist, Cell np, Generate.LayerInfo [] lis)
 	{	
 		// if there is only one example: make sample scale with edge
 		if (nelist.nextexample == null)
 		{
 			return makeNodeScaledUniformly(nelist, np, lis);
 		}
+
+		// count the number of real layers in the node
+		int count = 0;
+		for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+		{
+			if (ns.layer != null && ns.layer != Generic.tech.portNode) count++;
+		}
+
+		Generate.NodeLayerDetails [] nodeLayers = new Generate.NodeLayerDetails[count];
+		count = 0;
 
 		// look at every sample "ns" in the main example "nelist"
 		for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
@@ -2412,6 +2522,7 @@ public class Parse
 			{
 				points = ns.node.getTrace();
 			}
+			int trueCount = 0;
 			if (points != null)
 			{	
 				// make sure the arrays hold "count" points
@@ -2424,6 +2535,7 @@ public class Parse
 						nodeBounds.getCenterY() + points[i].getY());
 					trans.transform(us_tecedmakep[i], us_tecedmakep[i]);
 				}
+				trueCount = points.length;
 			} else
 			{
 				// make sure the arrays hold enough points
@@ -2433,10 +2545,11 @@ public class Parse
 					angles = ns.node.getArcDegrees();
 					if (angles[0] == 0 && angles[1] == 0) angles = null;
 				}
+				int minFactor = 0;
 				if (angles == null)
 				{
 //					Variable var2 = ns.node.getVar(Generate.MINSIZEBOX_KEY);
-//					if (var2 != null) count *= 2;
+//					if (var2 != null) minFactor = 2;
 				}
 	
 				// set sample description
@@ -2445,57 +2558,69 @@ public class Parse
 					// handle circular arc sample
 					us_tecedmakep = new Point2D[3];
 					us_tecedmakefactor = new int[3];
-//					us_tecedmakepx[0] = (ns.node.geom.lowx + ns.node.geom.highx) / 2;
-//					us_tecedmakepy[0] = (ns.node.geom.lowy + ns.node.geom.highy) / 2;
-//					dist = ns.node.geom.highx - us_tecedmakepx[0];
-//					xform(us_tecedmakepx[0] + mult(dist, cosine(var3.addr)),
-//						us_tecedmakepy[0] + mult(dist, sine(var3.addr)), &us_tecedmakepx[1], &us_tecedmakepy[1], trans);
-//					xform(ns.node.geom.highx,
-//						(ns.node.geom.lowy + ns.node.geom.highy) / 2, &us_tecedmakepx[2], &us_tecedmakepy[2], trans);
+					us_tecedmakep[0] = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY());
+					double dist = nodeBounds.getMaxX() - nodeBounds.getCenterX();
+					us_tecedmakep[1] = new Point2D.Double(nodeBounds.getCenterX() + dist * Math.cos(angles[0]),
+						nodeBounds.getCenterY() + dist * Math.sin(angles[0]));
+					trans.transform(us_tecedmakep[1], us_tecedmakep[1]);
+					trueCount = 3;
 				} else if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode ||
 					ns.node.getProto() == Artwork.tech.filledCircleNode)
 				{
 					// handle circular sample
-					us_tecedmakep = new Point2D[2];
-					us_tecedmakefactor = new int[2];
-//					us_tecedmakepx[0] = (ns.node.geom.lowx + ns.node.geom.highx) / 2;
-//					us_tecedmakepy[0] = (ns.node.geom.lowy + ns.node.geom.highy) / 2;
-//					us_tecedmakepx[1] = ns.node.geom.highx;
-//					us_tecedmakepy[1] = (ns.node.geom.lowy + ns.node.geom.highy) / 2;
+					us_tecedmakep = new Point2D[2+minFactor];
+					us_tecedmakefactor = new int[2+minFactor];
+					us_tecedmakep[0] = new Point2D.Double(nodeBounds.getCenterX(), nodeBounds.getCenterY());
+					us_tecedmakep[0] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getCenterY());
+					trueCount = 2;
 				} else
 				{
 					// rectangular sample: get the bounding box in (us_tecedmakepx, us_tecedmakepy)
-					us_tecedmakep = new Point2D[2];
-					us_tecedmakefactor = new int[2];
-//					us_tecedgetbbox(ns.node, &us_tecedmakepx[0], &us_tecedmakepx[1], &us_tecedmakepy[0], &us_tecedmakepy[1]);
+					us_tecedmakep = new Point2D[2+minFactor];
+					us_tecedmakefactor = new int[2+minFactor];
+					us_tecedmakep[0] = new Point2D.Double(nodeBounds.getMinX(), nodeBounds.getMinY());
+					us_tecedmakep[1] = new Point2D.Double(nodeBounds.getMaxX(), nodeBounds.getMaxY());
+					trueCount = 2;
 				}
-//				if (var2 != null)
-//				{
-//					us_tecedmakepx[2] = us_tecedmakepx[0];   us_tecedmakepy[2] = us_tecedmakepy[0];
-//					us_tecedmakepx[3] = us_tecedmakepx[1];   us_tecedmakepy[3] = us_tecedmakepy[1];
-//				}
+				if (minFactor > 1)
+				{
+					us_tecedmakep[2] = new Point2D.Double(us_tecedmakep[0].getX(),us_tecedmakep[0].getY());
+					us_tecedmakep[3] = new Point2D.Double(us_tecedmakep[1].getX(),us_tecedmakep[1].getY());
+				}
 			}
-	
+
+			double [] us_tecedmakeleftdist = new double[us_tecedmakefactor.length];
+			double [] us_tecedmakerightdist = new double[us_tecedmakefactor.length];
+			double [] us_tecedmakebotdist = new double[us_tecedmakefactor.length];
+			double [] us_tecedmaketopdist = new double[us_tecedmakefactor.length];
+			double [] us_tecedmakecentxdist = new double[us_tecedmakefactor.length];
+			double [] us_tecedmakecentydist = new double[us_tecedmakefactor.length];
+			double [] us_tecedmakeratiox = new double[us_tecedmakefactor.length];
+			double [] us_tecedmakeratioy = new double[us_tecedmakefactor.length];
 			for(int i=0; i<us_tecedmakefactor.length; i++)
 			{
-//				us_tecedmakeleftdist[i] = us_tecedmakepx[i] - nelist.lx;
-//				us_tecedmakerightdist[i] = nelist.hx - us_tecedmakepx[i];
-//				us_tecedmakebotdist[i] = us_tecedmakepy[i] - nelist.ly;
-//				us_tecedmaketopdist[i] = nelist.hy - us_tecedmakepy[i];
-//				us_tecedmakecentxdist[i] = us_tecedmakepx[i] - (nelist.lx+nelist.hx)/2;
-//				us_tecedmakecentydist[i] = us_tecedmakepy[i] - (nelist.ly+nelist.hy)/2;
-//				if (nelist.hx == nelist.lx) us_tecedmakeratiox[i] = 0; else
-//					us_tecedmakeratiox[i] = (us_tecedmakepx[i] - (nelist.lx+nelist.hx)/2) * WHOLE / (nelist.hx-nelist.lx);
-//				if (nelist.hy == nelist.ly) us_tecedmakeratioy[i] = 0; else
-//					us_tecedmakeratioy[i] = (us_tecedmakepy[i] - (nelist.ly+nelist.hy)/2) * WHOLE / (nelist.hy-nelist.ly);
-//				if (i < truecount)
-//					us_tecedmakefactor[i] = TOEDGELEFT | TOEDGERIGHT | TOEDGETOP | TOEDGEBOT | FROMCENTX |
-//						FROMCENTY | RATIOCENTX | RATIOCENTY; else
-//							us_tecedmakefactor[i] = FROMCENTX | FROMCENTY;
+				us_tecedmakeleftdist[i] = us_tecedmakep[i].getX() - nelist.lx;
+				us_tecedmakerightdist[i] = nelist.hx - us_tecedmakep[i].getX();
+				us_tecedmakebotdist[i] = us_tecedmakep[i].getY() - nelist.ly;
+				us_tecedmaketopdist[i] = nelist.hy - us_tecedmakep[i].getY();
+				us_tecedmakecentxdist[i] = us_tecedmakep[i].getX() - (nelist.lx+nelist.hx)/2;
+				us_tecedmakecentydist[i] = us_tecedmakep[i].getY() - (nelist.ly+nelist.hy)/2;
+				if (nelist.hx == nelist.lx) us_tecedmakeratiox[i] = 0; else
+					us_tecedmakeratiox[i] = (us_tecedmakep[i].getX() - (nelist.lx+nelist.hx)/2) / (nelist.hx-nelist.lx);
+				if (nelist.hy == nelist.ly) us_tecedmakeratioy[i] = 0; else
+					us_tecedmakeratioy[i] = (us_tecedmakep[i].getY() - (nelist.ly+nelist.hy)/2) / (nelist.hy-nelist.ly);
+				if (i < trueCount)
+					us_tecedmakefactor[i] = TOEDGELEFT | TOEDGERIGHT | TOEDGETOP | TOEDGEBOT | FROMCENTX |
+						FROMCENTY | RATIOCENTX | RATIOCENTY; else
+							us_tecedmakefactor[i] = FROMCENTX | FROMCENTY;
 			}
+
+			Point2D [] us_tecedmakec = new Point2D[us_tecedmakefactor.length];
 			for(Example ne = nelist.nextexample; ne != null; ne = ne.nextexample)
 			{
 				NodeInst ni = ne.studysample.node;
+				AffineTransform oTrans = ni.rotateOut();
+				Rectangle2D oNodeBounds = ni.getBounds();
 				Point2D [] oPoints = null;
 				if (ni.getProto() == Artwork.tech.filledPolygonNode ||
 					ni.getProto() == Artwork.tech.closedPolygonNode ||
@@ -2506,14 +2631,16 @@ public class Parse
 				{
 					oPoints = ni.getTrace();
 				}
+				int newCount = 2;
 				if (oPoints != null)
 				{
-//					newcount = getlength(var) / 2;
-//					makerot(ni, trans);
-//					for(i=0; i<mini(truecount, newcount); i++)
-//						xform((ni.geom.lowx + ni.geom.highx)/2 + ((INTBIG *)var.addr)[i*2],
-//							(ni.geom.lowy + ni.geom.highy)/2 +
-//								((INTBIG *)var.addr)[i*2+1], &us_tecedmakecx[i], &us_tecedmakecy[i], trans);
+					newCount = oPoints.length;
+					for(int i=0; i<Math.min(trueCount, newCount); i++)
+					{
+						us_tecedmakec[i] = new Point2D.Double(oNodeBounds.getCenterX() + oPoints[i].getX(),
+							oNodeBounds.getCenterY() + oPoints[i].getY());
+						oTrans.transform(us_tecedmakec[i], us_tecedmakec[i]);
+					}
 				} else
 				{
 					double [] angles = null;
@@ -2524,115 +2651,134 @@ public class Parse
 					}
 					if (angles != null)
 					{
-//						us_tecedmakecx[0] = (ni.geom.lowx + ni.geom.highx) / 2;
-//						us_tecedmakecy[0] = (ni.geom.lowy + ni.geom.highy) / 2;
-//						makerot(ni, trans);
-//						dist = ni.geom.highx - us_tecedmakecx[0];
-//						xform(us_tecedmakecx[0] + mult(dist, cosine(var3.addr)),
-//							us_tecedmakecy[0] + mult(dist, sine(var3.addr)), &us_tecedmakecx[1], &us_tecedmakecy[1], trans);
-//						xform(ni.geom.highx, (ni.geom.lowy + ni.geom.highy) / 2,
-//							&us_tecedmakecx[2], &us_tecedmakecy[2], trans);
+						us_tecedmakec[0] = new Point2D.Double(oNodeBounds.getCenterX(), oNodeBounds.getCenterY());
+						double dist = oNodeBounds.getMaxX() - oNodeBounds.getCenterX();
+						us_tecedmakec[1] = new Point2D.Double(oNodeBounds.getCenterX() + dist * Math.cos(angles[0]),
+								oNodeBounds.getCenterY() + dist * Math.sin(angles[0]));
+						oTrans.transform(us_tecedmakec[1], us_tecedmakec[1]);
 					} else if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode ||
 						ni.getProto() == Artwork.tech.filledCircleNode)
 					{
-//						us_tecedmakecx[0] = (ni.geom.lowx + ni.geom.highx) / 2;
-//						us_tecedmakecy[0] = (ni.geom.lowy + ni.geom.highy) / 2;
-//						us_tecedmakecx[1] = ni.geom.highx;
-//						us_tecedmakecy[1] = (ni.geom.lowy + ni.geom.highy) / 2;
+						us_tecedmakec[0] = new Point2D.Double(oNodeBounds.getCenterX(), oNodeBounds.getCenterY());
+						us_tecedmakec[1] = new Point2D.Double(oNodeBounds.getMaxX(), oNodeBounds.getCenterY());
 					} else
 					{
-//						us_tecedgetbbox(ni, &us_tecedmakecx[0], &us_tecedmakecx[1], &us_tecedmakecy[0], &us_tecedmakecy[1]);
+						us_tecedmakec[0] = new Point2D.Double(oNodeBounds.getMinX(), oNodeBounds.getMinY());
+						us_tecedmakec[1] = new Point2D.Double(oNodeBounds.getMaxX(), oNodeBounds.getMaxY());
 					}
 				}
-//				if (newcount != truecount)
-//				{
-//					us_tecedpointout(ni, ni.parent);
-//					System.out.println(_("Main example of " + us_tecedsamplename(ne.studysample.layer) +
-//						" has " + truecount + " points but this has " + newcount + " in " + np.describe());
-//					return true;
-//				}
+				if (newCount != trueCount)
+				{
+					us_tecedpointout(ni, ni.getParent());
+					System.out.println("Main example of " + us_tecedsamplename(ne.studysample.layer) +
+						" has " + trueCount + " points but this has " + newCount + " in " + np.describe());
+					return null;
+				}
 	
-//				for(int i=0; i<truecount; i++)
-//				{
-//					// see if edges are fixed distance from example edge
-//					if (us_tecedmakeleftdist[i] != us_tecedmakecx[i] - ne.lx) us_tecedmakefactor[i] &= ~TOEDGELEFT;
-//					if (us_tecedmakerightdist[i] != ne.hx - us_tecedmakecx[i]) us_tecedmakefactor[i] &= ~TOEDGERIGHT;
-//					if (us_tecedmakebotdist[i] != us_tecedmakecy[i] - ne.ly) us_tecedmakefactor[i] &= ~TOEDGEBOT;
-//					if (us_tecedmaketopdist[i] != ne.hy - us_tecedmakecy[i]) us_tecedmakefactor[i] &= ~TOEDGETOP;
-//	
-//					// see if edges are fixed distance from example center
-//					if (us_tecedmakecentxdist[i] != us_tecedmakecx[i] - (ne.lx+ne.hx)/2) us_tecedmakefactor[i] &= ~FROMCENTX;
-//					if (us_tecedmakecentydist[i] != us_tecedmakecy[i] - (ne.ly+ne.hy)/2) us_tecedmakefactor[i] &= ~FROMCENTY;
-//	
-//					// see if edges are fixed ratio from example center
-//					if (ne.hx == ne.lx) r = 0; else
-//						r = (us_tecedmakecx[i] - (ne.lx+ne.hx)/2) * WHOLE / (ne.hx-ne.lx);
-//					if (r != us_tecedmakeratiox[i]) us_tecedmakefactor[i] &= ~RATIOCENTX;
-//					if (ne.hy == ne.ly) r = 0; else
-//						r = (us_tecedmakecy[i] - (ne.ly+ne.hy)/2) * WHOLE / (ne.hy-ne.ly);
-//					if (r != us_tecedmakeratioy[i]) us_tecedmakefactor[i] &= ~RATIOCENTY;
-//				}
+				for(int i=0; i<trueCount; i++)
+				{
+					// see if edges are fixed distance from example edge
+					if (us_tecedmakeleftdist[i] != us_tecedmakec[i].getX() - ne.lx) us_tecedmakefactor[i] &= ~TOEDGELEFT;
+					if (us_tecedmakerightdist[i] != ne.hx - us_tecedmakec[i].getX()) us_tecedmakefactor[i] &= ~TOEDGERIGHT;
+					if (us_tecedmakebotdist[i] != us_tecedmakec[i].getY() - ne.ly) us_tecedmakefactor[i] &= ~TOEDGEBOT;
+					if (us_tecedmaketopdist[i] != ne.hy - us_tecedmakec[i].getY()) us_tecedmakefactor[i] &= ~TOEDGETOP;
+	
+					// see if edges are fixed distance from example center
+					if (us_tecedmakecentxdist[i] != us_tecedmakec[i].getX() - (ne.lx+ne.hx)/2) us_tecedmakefactor[i] &= ~FROMCENTX;
+					if (us_tecedmakecentydist[i] != us_tecedmakec[i].getY() - (ne.ly+ne.hy)/2) us_tecedmakefactor[i] &= ~FROMCENTY;
+	
+					// see if edges are fixed ratio from example center
+					double r = 0;
+					if (ne.hx != ne.lx)
+						r = (us_tecedmakec[i].getX() - (ne.lx+ne.hx)/2) / (ne.hx-ne.lx);
+					if (r != us_tecedmakeratiox[i]) us_tecedmakefactor[i] &= ~RATIOCENTX;
+					if (ne.hy == ne.ly) r = 0; else
+						r = (us_tecedmakec[i].getY() - (ne.ly+ne.hy)/2) / (ne.hy-ne.ly);
+					if (r != us_tecedmakeratioy[i]) us_tecedmakefactor[i] &= ~RATIOCENTY;
+				}
 	
 				// make sure port information is on the primary example
 				if (ns.layer != Generic.tech.portNode) continue;
 	
 				// check port angle
-//				var = ns.node.getVar(Generate.PORTANGLE_KEY);
-//				var2 = ni.getVar(Generate.PORTANGLE_KEY);
-//				if (var == null && var2 != null)
-//				{
-//					us_tecedpointout(null, np);
-//					System.out.println(_("Warning: moving port angle to main example of %s"),
-//						describenodeproto(np));
-//					ns.node.newVar(Generate.PORTANGLE_KEY, new Integer(var2.addr));
-//				}
+				Variable var = ns.node.getVar(Generate.PORTANGLE_KEY);
+				Variable var2 = ni.getVar(Generate.PORTANGLE_KEY);
+				if (var == null && var2 != null)
+				{
+					us_tecedpointout(null, np);
+					System.out.println("Warning: moving port angle to main example of " + np.describe());
+					ns.node.newVar(Generate.PORTANGLE_KEY, var2.getObject());
+				}
 	
 				// check port range
-//				var = ns.node.getVar(Generate.PORTRANGE_KEY);
-//				var2 = ni.getVar(Generate.PORTRANGE_KEY);
-//				if (var == null && var2 != null)
-//				{
-//					us_tecedpointout(null, np);
-//					System.out.println(_("Warning: moving port range to main example of %s"), describenodeproto(np));
-//					ns.node.newVar(Generate.PORTRANGE_KEY, new Integer(var2.addr));
-//				}
+				var = ns.node.getVar(Generate.PORTRANGE_KEY);
+				var2 = ni.getVar(Generate.PORTRANGE_KEY);
+				if (var == null && var2 != null)
+				{
+					us_tecedpointout(null, np);
+					System.out.println("Warning: moving port range to main example of " + np.describe());
+					ns.node.newVar(Generate.PORTRANGE_KEY, var2.getObject());
+				}
 	
 				// check connectivity
-//				var = ns.node.getVar(Generate.CONNECTION_KEY);
-//				var2 = ni.getVar(Generate.CONNECTION_KEY);
-//				if (var == null && var2 != null)
-//				{
-//					us_tecedpointout(null, np);
-//					System.out.println(_("Warning: moving port connections to main example of %s"),
-//						describenodeproto(np));
-//					ns.node.newVar(Generate.CONNECTION_KEY, var2.addr);
-//				}
+				var = ns.node.getVar(Generate.CONNECTION_KEY);
+				var2 = ni.getVar(Generate.CONNECTION_KEY);
+				if (var == null && var2 != null)
+				{
+					us_tecedpointout(null, np);
+					System.out.println("Warning: moving port connections to main example of " + np.describe());
+					ns.node.newVar(Generate.CONNECTION_KEY, var2.getObject());
+				}
 			}
 	
 			// error check for the highlight layer
-//			if (ns.layer == null)
-//				for(i=0; i<truecount; i++)
-//					if ((us_tecedmakefactor[i]&(TOEDGELEFT|TOEDGERIGHT)) == 0 ||
-//						(us_tecedmakefactor[i]&(TOEDGETOP|TOEDGEBOT)) == 0)
-//			{
-//				us_tecedpointout(ns.node, ns.node.parent);
-//				System.out.println(_("Highlight must be constant distance from edge in %s"), describenodeproto(np));
-//				return true;
-//			}
+			if (ns.layer == null)
+			{
+				for(int i=0; i<trueCount; i++)
+					if ((us_tecedmakefactor[i]&(TOEDGELEFT|TOEDGERIGHT)) == 0 ||
+						(us_tecedmakefactor[i]&(TOEDGETOP|TOEDGEBOT)) == 0)
+				{
+					us_tecedpointout(ns.node, ns.node.getParent());
+					System.out.println("Highlight must be constant distance from edge in " + np.describe());
+					return null;
+				}
+			}
 	
 			// finally, make a rule for this sample
-//			newrule = us_tecedstretchpoints(us_tecedmakepx, us_tecedmakepy, count, us_tecedmakefactor, ns, np, nelist);
-//			if (newrule == 0) return(TRUE);
-	
+			Technology.TechPoint [] newrule = us_tecedstretchpoints(us_tecedmakep, us_tecedmakefactor, ns, np, nelist);
+			if (newrule == null) return null;
+
 			// add the rule to the global list
-//			var = getvalkey((INTBIG)ns.node, VNODEINST, VSTRING|VISARRAY, art_messagekey);
-//			if (var == null) str = (CHAR *)0; else
-//				str = ((CHAR **)var.addr)[0];
-//			ns.rule = us_tecedaddrule(newrule, count*4, FALSE, str);
-//			if (ns.rule == null) return true;
-//			efree((CHAR *)newrule);
+			String str = Manipulate.getValueOnNode(ns.node);
+			if (str != null && str.length() == 0) str = null;
+			ns.rule = us_tecedaddrule(newrule, false, str);
+			if (ns.rule == null) return null;
+
+			// stop now if a highlight or port object
+			if (ns.layer == null || ns.layer == Generic.tech.portNode) continue;
+
+			// determine the layer
+			Generate.LayerInfo layer = null;
+			String desiredLayer = ns.layer.getName().substring(6);
+			for(int i=0; i<lis.length; i++)
+			{
+				if (desiredLayer.equals(lis[i].name)) { layer = lis[i];   break; }
+			}
+			if (layer == null)
+			{
+				System.out.println("Cannot find layer " + desiredLayer);
+				return null;
+			}
+
+			nodeLayers[count] = new Generate.NodeLayerDetails();
+			nodeLayers[count].layer = layer;
+			nodeLayers[count].style = Poly.Type.FILLED;
+			nodeLayers[count].rule = ns.rule;
+			count++;
 		}
-		return null;
+		if (count != nodeLayers.length)
+			System.out.println("Generated only " + count + " of " + nodeLayers.length + " layers for " + np.describe());
+		return nodeLayers;
 	}
 	
 	/**
@@ -2900,53 +3046,7 @@ public class Parse
 //		rule.multisep = multisep;
 //		return(rule);
 //	}
-//	
-//	/*
-//	 * routine to add the "len"-long list of port connections in "conlist" to
-//	 * the list of port connections, and return the port connection entry
-//	 * for this one.  Returns NOPCON on error
-//	 */
-//	PCON *us_tecedaddportlist(INTBIG len, INTBIG *conlist)
-//	{
-//		REGISTER PCON *pc;
-//		REGISTER INTBIG i, j;
-//	
-//		// find a port connection that is the same
-//		for(pc = us_tecedfirstpcon; pc != NOPCON; pc = pc.nextpcon)
-//		{
-//			if (pc.total != len) continue;
-//			for(j=0; j<pc.total; j++) pc.assoc[j] = 0;
-//			for(i=0; i<len; i++)
-//			{
-//				for(j=0; j<pc.total; j++) if (pc.connects[j+1] == conlist[i])
-//				{
-//					pc.assoc[j]++;
-//					break;
-//				}
-//			}
-//			for(j=0; j<pc.total; j++) if (pc.assoc[j] == 0) break;
-//			if (j >= pc.total) return(pc);
-//		}
-//	
-//		// not found: add to list
-//		pc = (PCON *)emalloc((sizeof (PCON)), us_tool.cluster);
-//		if (pc == 0) return(NOPCON);
-//		pc.total = len;
-//		pc.connects = emalloc(((len+5)*SIZEOFINTBIG), us_tool.cluster);
-//		if (pc.connects == 0) return(NOPCON);
-//		pc.assoc = emalloc((len*SIZEOFINTBIG), us_tool.cluster);
-//		if (pc.assoc == 0) return(NOPCON);
-//		for(j=0; j<len; j++) pc.connects[j+1] = conlist[j];
-//		pc.connects[0] = -1;
-//		pc.connects[len+1] = AUNIV;
-//		pc.connects[len+2] = AINVIS;
-//		pc.connects[len+3] = AUNROUTED;
-//		pc.connects[len+4] = -1;
-//		pc.nextpcon = us_tecedfirstpcon;
-//		us_tecedfirstpcon = pc;
-//		return(pc);
-//	}
-	
+
 	static Rule us_tecedaddrule(Technology.TechPoint [] list, boolean multcut, String istext)
 	{
 		for(Rule r = us_tecedfirstrule; r != null; r = r.nextrule)
@@ -2978,14 +3078,14 @@ public class Parse
 		return r;
 	}
 
-//	/****************************** WRITE TECHNOLOGY AS "JAVA" CODE ******************************/
-//	
-//	/*
-//	 * routine to dump the layer information in technology "tech" to the stream in
-//	 * "f".
-//	 */
-//	void us_teceditdumpjavalayers(FILE *f, TECHNOLOGY *tech, CHAR *techname)
-//	{
+	/****************************** WRITE TECHNOLOGY AS "JAVA" CODE ******************************/
+	
+	/**
+	 * Method to dump the layer information in technology "tech" to the stream in
+	 * "f".
+	 */
+	static void us_teceditdumpjavalayers(PrintStream buffWriter, Generate.LayerInfo [] lList)
+	{
 //		CHAR date[30], *transparent, *l1, *l2, *l3, *l4, *l5;
 //		REGISTER INTBIG i, j, k, red, green, blue;
 //		REGISTER void *infstr;
@@ -3328,8 +3428,8 @@ public class Parse
 //				us_teceditdumpjavadrctab(f, us_tecdrc_rules.unconlist, tech, FALSE);
 //			}
 //		}
-//	}
-//	
+	}
+	
 //	void us_teceditdumpjavadrctab(FILE *f, void *distances, TECHNOLOGY *tech, BOOLEAN isstring)
 //	{
 //		REGISTER INTBIG i, j;
@@ -3376,13 +3476,13 @@ public class Parse
 //		}
 //		xprintf(f, x_("\t\t};\n"));
 //	}
-//	
-//	/*
-//	 * routine to dump the arc information in technology "tech" to the stream in
-//	 * "f".
-//	 */
-//	void us_teceditdumpjavaarcs(FILE *f, TECHNOLOGY *tech, CHAR *techname)
-//	{
+	
+	/**
+	 * Method to dump the arc information in technology "tech" to the stream in
+	 * "f".
+	 */
+	static void us_teceditdumpjavaarcs(PrintStream buffWriter, Generate.ArcInfo [] aList)
+	{
 //		REGISTER INTBIG i, j, k;
 //	
 //		// print the header
@@ -3433,14 +3533,14 @@ public class Parse
 //				(tech.arcprotos[i].initialbits&AANGLEINC)>>AANGLEINCSH);
 //	
 //		}
-//	}
-//	
-//	/*
-//	 * routine to dump the node information in technology "tech" to the stream in
-//	 * "f".
-//	 */
-//	void us_teceditdumpjavanodes(FILE *f, TECHNOLOGY *tech, CHAR *techname)
-//	{
+	}
+	
+	/**
+	 * Method to dump the node information in technology "tech" to the stream in
+	 * "f".
+	 */
+	static void us_teceditdumpjavanodes(PrintStream buffWriter, Generate.NodeInfo [] nList)
+	{
 //		REGISTER RULE *r;
 //		REGISTER INTBIG i, j, k, l, tot;
 //		CHAR *ab;
@@ -3759,8 +3859,8 @@ public class Parse
 //			efree((CHAR *)tech.nodeprotos[i].creation);
 //			tech.nodeprotos[i].creation = NONODEPROTO;
 //		}
-//	}
-//	
+	}
+	
 //	/*
 //	 * Routine to remove illegal Java charcters from "string".
 //	 */
