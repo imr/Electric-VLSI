@@ -196,10 +196,15 @@ public class ColorsTab extends PreferencePanel
 		colorLayerModel.addElement(name);
 		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
-        color = User.get3DColorAxis();
+        double[] colors = User.transformIntoValues(User.get3DColorAxes());
+        String[] axisNames = {" X", " Y", " Z"};
 		name = "Special: 3D AXIS";
-		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+        for (int i = 0; i < colors.length; i++)
+        {
+            String color3DName = name+axisNames[i];
+            colorLayerModel.addElement(color3DName);
+            transAndSpecialMap.put(color3DName, new GenMath.MutableInteger((int)colors[i]));
+        }
 
 		// finish initialization
 		colorLayerList.setSelectedIndex(0);
@@ -279,6 +284,7 @@ public class ColorsTab extends PreferencePanel
 		boolean colorChanged = false;
 		boolean mapChanged = false;
 		Color [] transparentLayerColors = new Color[curTech.getNumTransparentLayers()];
+        GenMath.MutableInteger [] colors3D = new GenMath.MutableInteger[3];
 		for(int i=0; i<colorLayerModel.getSize(); i++)
 		{
 			String layerName = (String)colorLayerModel.get(i);
@@ -374,14 +380,12 @@ public class ColorsTab extends PreferencePanel
 						User.set3DColorDirectionalLight(color.intValue());
 						colorChanged = true;
 					}
-                } else if (layerName.equals("Special: 3D AXIS"))
-				{
-					if (color.intValue() != User.get3DColorAxis())
-					{
-						User.set3DColorAxis(color.intValue());
-						colorChanged = true;
-					}
-				}
+                } else if (layerName.equals("Special: 3D AXIS X"))
+                    colors3D[0] = color;
+                else if (layerName.equals("Special: 3D AXIS Y"))
+                    colors3D[1] = color;
+                else if (layerName.equals("Special: 3D AXIS Z"))
+                    colors3D[2] = color;
 //			} else
 //			{
 //				Layer layer = curTech.findLayer(layerName);
@@ -395,6 +399,15 @@ public class ColorsTab extends PreferencePanel
 //				}
 			}
 		}
+        // For 3D colors as they are stored together
+        String newColors = "("+colors3D[0].intValue()+" "+
+                colors3D[1].intValue()+" "+
+                colors3D[2].intValue()+")";
+        if (!newColors.equals(User.get3DColorAxes()))
+        {
+            User.set3DColorAxes(newColors);
+            colorChanged = true;
+        }
 		if (mapChanged)
 		{
 			// rebuild color map from primaries

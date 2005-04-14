@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+IMP: (04/14/05, GVG) New 3D axis strategy provided by Java3D team.
+
 IMP: (04/12/05, SMR) IRSIM doesn't crash when reloaded (Bug #247).
 
 IMP: (04/12/05, SMR) "Rename Cell" now defaults to current cell (Bug #250).

@@ -167,25 +167,6 @@ public final class J3DUtils
         }
     }
 
-    /********************************************************************************************************
-     *
-     *******************************************************************************************************/
-
-    public static double[] transformIntoValues(String rotation)
-    {
-        double[] values = new double[3];
-        StringTokenizer parse = new StringTokenizer(rotation, "( )", false);
-        int pair = 0;
-
-        while (parse.hasMoreTokens() && pair < 3)
-        {
-            String value = parse.nextToken();
-            values[pair++] = Double.parseDouble(value);
-        }
-
-        return values;
-    }
-
     public static Vector3f[] transformIntoVectors(String dir)
     {
         float[][] values = new float[2][3];

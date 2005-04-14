@@ -54,6 +54,7 @@ import java.awt.Color;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.StringTokenizer;
 import java.lang.reflect.Method;
 
 /**
@@ -1125,20 +1126,21 @@ public class User extends Listener
         }
     }
 
-    private static Pref cache3DColorAxis = Pref.makeIntPref("3DColorAxis", User.tool.prefs, Color.BLACK.getRGB());
+    private static Pref cache3DColorAxes = Pref.makeStringPref("3DColorAxes", User.tool.prefs,
+            "("+Color.RED.getRGB()+" "+ Color.BLUE.getRGB() + " "+ Color.GREEN.getRGB() + ")");
 	/**
 	 * Method to get the color of the axes on the 3D display.
 	 * The default is "gray".
 	 * @return the color of the axes on the 3D display.
 	 */
-	public static int get3DColorAxis() { return cache3DColorAxis.getInt(); }
+	public static String get3DColorAxes() { return cache3DColorAxes.getString(); }
 	/**
 	 * Method to set the color of the axes on the 3D display.
 	 * @param c the color of the axes on the 3D display.
 	 */
-	public static void set3DColorAxis(int c)
+	public static void set3DColorAxes(String c)
     {
-        cache3DColorAxis.setInt(c);
+        cache3DColorAxes.setString(c);
 
         try
         {
@@ -1752,4 +1754,27 @@ public class User extends Listener
 	 */
 	public static void setNewNodeMirrorX(boolean on) { cacheNewNodeMirrorX.setBoolean(on); }
 
+    /********************************************************************************************************
+     *
+     *******************************************************************************************************/
+
+    public static double[] transformIntoValues(String rotation)
+    {
+        double[] values = new double[3];
+        StringTokenizer parse = new StringTokenizer(rotation, "( )", false);
+        int pair = 0;
+
+        while (parse.hasMoreTokens() && pair < 3)
+        {
+            String value = parse.nextToken();
+            try{
+                values[pair++] = Double.parseDouble(value);
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+        return values;
+    }
 }

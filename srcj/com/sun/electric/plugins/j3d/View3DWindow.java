@@ -69,15 +69,14 @@ import java.util.*;
 import java.util.List;
 import java.io.*;
 
-import com.sun.j3d.utils.behaviors.mouse.*;
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
 import com.sun.j3d.utils.behaviors.interpolators.TCBKeyFrame;
+import com.sun.j3d.utils.behaviors.vp.OrbitBehavior;
 import com.sun.j3d.utils.picking.PickCanvas;
 import com.sun.j3d.utils.picking.PickResult;
 import com.sun.j3d.utils.picking.PickIntersection;
 import com.sun.j3d.utils.universe.SimpleUniverse;
-import com.sun.j3d.utils.universe.Viewer;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 import com.sun.j3d.utils.universe.PlatformGeometry;
 import com.sun.j3d.utils.geometry.Cone;
@@ -105,10 +104,11 @@ public class View3DWindow extends JPanel
 	private J3DCanvas3D canvas;
 	protected TransformGroup objTrans;
     private BranchGroup scene;
-    private BranchGroup axes;
-	private JMouseRotate rotateB;
-	private JMouseZoom zoomB;
-	private JMouseTranslate translateB;
+    private OrbitBehavior orbit;
+////    //private BranchGroup axes;
+//	private JMouseRotate rotateB;
+//	private JMouseZoom zoomB;
+//	private JMouseTranslate translateB;
 	//private J3DUtils.OffScreenCanvas3D offScreenCanvas3D;
 
     // For demo cases
@@ -188,8 +188,8 @@ public class View3DWindow extends JPanel
         //
         GraphicsConfigTemplate3D gc3D = new GraphicsConfigTemplate3D( );
 		gc3D.setSceneAntialiasing( GraphicsConfigTemplate.PREFERRED );
-		GraphicsDevice gd[] = GraphicsEnvironment.getLocalGraphicsEnvironment( ).getScreenDevices( );
-        config = gd[0].getBestConfiguration( gc3D );
+		//GraphicsDevice gd[] = GraphicsEnvironment.getLocalGraphicsEnvironment( ).getScreenDevices( );
+        //config = gd[0].getBestConfiguration( gc3D );
 
 		canvas = new J3DCanvas3D(config); //Canvas3D(config);
 		add("Center", canvas);
@@ -206,64 +206,98 @@ public class View3DWindow extends JPanel
 		// Have Java 3D perform optimizations on this scene graph.
 	    scene.compile();
 
-		ViewingPlatform viewingPlatform = new ViewingPlatform(4);
-		viewingPlatform.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
-		Viewer viewer = new Viewer(canvas);
-		u = new SimpleUniverse(viewingPlatform, viewer);
-		u.addBranchGraph(scene);
+		//ViewingPlatform viewingPlatform = new ViewingPlatform(4);
+		//viewingPlatform.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
+		//Viewer viewer = new Viewer(canvas);
+		u = new SimpleUniverse(canvas); // viewingPlatform, viewer);
 
         // lights on ViewPlatform geometry group
         PlatformGeometry pg = new PlatformGeometry();
         J3DUtils.createLights(pg);
+
+        	// Create axis with associated behavior
+        BranchGroup axisRoot = new BranchGroup();
+
+        // Position the axis
+        Transform3D t = new Transform3D();
+        t.set(new Vector3d(-0.5, -0.5, -1.5));
+        t.set(new Vector3d(-0.7, -0.5, -2.0));
+        TransformGroup axisTranslation = new TransformGroup(t);
+        axisRoot.addChild(axisTranslation);
+
+        // Create transform group to orient the axis and make it
+        // readable & writable (this will be the target of the axis
+        // behavior)
+        TransformGroup axisTG = new TransformGroup();
+        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+        axisTranslation.addChild(axisTG);
+
+        // Create the axis geometry
+        J3DAxis axis = new J3DAxis();
+        axisTG.addChild(axis);
+
+        // Add axis into BG
+        pg.addChild(axisRoot);
+
+        ViewingPlatform viewingPlatform = u.getViewingPlatform();
+
+        // Create the axis behavior
+        TransformGroup viewPlatformTG =
+            viewingPlatform.getViewPlatformTransform();
+        J3DAxisBehavior axisBehavior = new J3DAxisBehavior(axisTG, viewPlatformTG);
+        axisBehavior.setSchedulingBounds(J3DUtils.infiniteBounds);
+        pg.addChild(axisBehavior);
+
         viewingPlatform.setPlatformGeometry(pg) ;
 
-        JMouseTranslate translate = new JMouseTranslate(canvas, MouseTranslate.INVERT_INPUT);
-        translate.setTransformGroup(objTrans); //viewingPlatform.getMultiTransformGroup().getTransformGroup(2));
-        translate.setSchedulingBounds(J3DUtils.infiniteBounds);
-		double scale = (cell.getDefWidth() < cell.getDefHeight()) ? cell.getDefWidth() : cell.getDefHeight();
-        translate.setFactor(0.01 * scale); // default 0.02
-        BranchGroup translateBG = new BranchGroup();
-        translateBG.addChild(translate);
-        viewingPlatform.addChild(translateBG);
-		translateB = translate;
+//        JMouseTranslate translate = new JMouseTranslate(canvas, MouseTranslate.INVERT_INPUT);
+//        //translate.setTransformGroup(objTrans); //viewingPlatform.getMultiTransformGroup().getTransformGroup(2));
+//        translate.setSchedulingBounds(J3DUtils.infiniteBounds);
+//		double scale = (cell.getDefWidth() < cell.getDefHeight()) ? cell.getDefWidth() : cell.getDefHeight();
+//        translate.setFactor(0.01 * scale); // default 0.02
+//        BranchGroup translateBG = new BranchGroup();
+//        translateBG.addChild(translate);
+//        //viewingPlatform.addChild(translateBG);
+//		translateB = translate;
 
-        JMouseZoom zoom = new JMouseZoom(canvas, MouseZoom.INVERT_INPUT);
-        zoom.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(1));
-        zoom.setSchedulingBounds(J3DUtils.infiniteBounds);
-        zoom.setFactor(0.7);    // default 0.4
-        BranchGroup zoomBG = new BranchGroup();
-        zoomBG.addChild(zoom);
-        viewingPlatform.addChild(zoomBG);
-		zoomB = zoom;
+//        JMouseZoom zoom = new JMouseZoom(canvas, MouseZoom.INVERT_INPUT);
+//        //zoom.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(1));
+//        zoom.setSchedulingBounds(J3DUtils.infiniteBounds);
+//        zoom.setFactor(0.7);    // default 0.4
+//        BranchGroup zoomBG = new BranchGroup();
+//        zoomBG.addChild(zoom);
+//        //viewingPlatform.addChild(zoomBG);
+//		zoomB = zoom;
 
-        JMouseRotate rotate = new JMouseRotate(MouseRotate.INVERT_INPUT);
-        rotate.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(0));
-        BranchGroup rotateBG = new BranchGroup();
-        rotateBG.addChild(rotate);
-        viewingPlatform.addChild(rotateBG);
-        rotate.setSchedulingBounds(J3DUtils.infiniteBounds);
-		rotateB = rotate;
-
-//		OrbitBehavior orbit = new OrbitBehavior(canvas, OrbitBehavior.REVERSE_ALL);
-//		orbit.setSchedulingBounds(infiniteBounds);
-//
-//		/** step A **/
-//		Point3d center = new Point3d(0, 0, 0);
-//
-//		//if (!User.is3DPerspective()) center = new Point3d(cell.getBounds().getCenterX(),cell.getBounds().getCenterY(), -10);
-//
-//		orbit.setRotationCenter(center);
-//		orbit.setMinRadius(0);
-//		orbit.setZoomFactor(10);
-//		orbit.setTransFactors(10, 10);
-//        orbit.setProportionalZoom(true);
-
-//    	viewingPlatform.setViewPlatformBehavior(orbit);
+//        JMouseRotate rotate = new JMouseRotate(MouseRotate.INVERT_INPUT);
+//        //rotate.setTransformGroup(viewingPlatform.getMultiTransformGroup().getTransformGroup(0));
+//        BranchGroup rotateBG = new BranchGroup();
+//        rotateBG.addChild(rotate);
+//        //viewingPlatform.addChild(rotateBG);
+//        rotate.setSchedulingBounds(J3DUtils.infiniteBounds);
+//		rotateB = rotate;
 
 		// This will move the ViewPlatform back a bit so the
         // objects in the scene can be viewed.
-        //viewingPlatform.setNominalViewingTransform();
+        viewingPlatform.setNominalViewingTransform();
 
+		orbit = new OrbitBehavior(canvas, OrbitBehavior.REVERSE_ALL);
+		orbit.setSchedulingBounds(J3DUtils.infiniteBounds);
+        orbit.setCapability(OrbitBehavior.ALLOW_LOCAL_TO_VWORLD_READ);
+
+		/** step A **/
+		Point3d center = new Point3d(0, 0, 0);
+
+		//if (!User.is3DPerspective()) center = new Point3d(cell.getBounds().getCenterX(),cell.getBounds().getCenterY(), -10);
+
+		orbit.setRotationCenter(center);
+		orbit.setMinRadius(0);
+		orbit.setZoomFactor(10);
+		orbit.setTransFactors(10, 10);
+        orbit.setProportionalZoom(true);
+
+    	viewingPlatform.setViewPlatformBehavior(orbit);
 
 		BoundingSphere sceneBnd = (BoundingSphere)scene.getBounds();
 		double radius = sceneBnd.getRadius();
@@ -297,9 +331,9 @@ public class View3DWindow extends JPanel
 
         //translateB.setView(cellBnd.getWidth(), 0);
         Rectangle2D cellBnd = cell.getBounds();
-        double[] rotVals = J3DUtils.transformIntoValues(User.get3DRotation());
-        rotateB.setRotation(rotVals[0], rotVals[1], rotVals[2]);
-        zoomB.setZoom(User.get3DOrigZoom());
+        double[] rotVals = User.transformIntoValues(User.get3DRotation());
+        //rotateB.setRotation(rotVals[0], rotVals[1], rotVals[2]);
+        //zoomB.setZoom(User.get3DOrigZoom());
 		proj.ortho(cellBnd.getMinX(), cellBnd.getMinX(), cellBnd.getMinY(), cellBnd.getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
 
 		vTrans.set(vCenter);
@@ -308,6 +342,7 @@ public class View3DWindow extends JPanel
 		view.setFrontClipDistance((vDist+radius)/200.0);
 		view.setBackClipPolicy(View.VIRTUAL_EYE);
 		view.setFrontClipPolicy(View.VIRTUAL_EYE);
+        viewingPlatform.getViewPlatformBehavior().setHomeTransform(vTrans);
 		if (User.is3DPerspective())
 		{
 			viewingPlatform.getViewPlatformTransform().setTransform(vTrans);
@@ -317,6 +352,7 @@ public class View3DWindow extends JPanel
 			view.setVpcToEc(proj);
 			//viewingPlatform.getViewPlatformTransform().setTransform(lookAt);
 		}
+		u.addBranchGraph(scene);
 		setWindowTitle();
 	}
 
@@ -351,7 +387,7 @@ public class View3DWindow extends JPanel
         TransformGroup cylinderG = new TransformGroup(cylinderTrans);
         float diameter = (float)length*.03f;
         Primitive axis = new Cylinder(diameter, (float)length);
-        axis.setAppearance(J3DAppearance.axisApp);
+        axis.setAppearance(J3DAppearance.axisApps[0]);
         cylinderG.addChild(axis);
         axes.addChild(cylinderG);
 
@@ -363,7 +399,7 @@ public class View3DWindow extends JPanel
              new Point3f( -label.length()/2.0f, (float)length, 0));
         Shape3D sh = new Shape3D();
         sh.setGeometry(txt);
-        sh.setAppearance(J3DAppearance.axisApp);
+        sh.setAppearance(J3DAppearance.axisApps[0]);
         axes.addChild(sh);
 
         // Arrow
@@ -372,7 +408,7 @@ public class View3DWindow extends JPanel
         arrowTrans.set(arrowLocation);
         TransformGroup arrowG = new TransformGroup(arrowTrans);
         Primitive arrow = new Cone(1.5f * diameter, (float)length/3);
-        arrow.setAppearance(J3DAppearance.axisApp);
+        arrow.setAppearance(J3DAppearance.axisApps[0]);
         arrowG.addChild(arrow);
 
         axes.addChild(arrowG);
@@ -393,6 +429,14 @@ public class View3DWindow extends JPanel
         objRoot.setCapability(BranchGroup.ENABLE_PICK_REPORTING);
         objRoot.setCapability(BranchGroup.ALLOW_BOUNDS_WRITE);
 
+        // Create a Transformgroup to scale all objects so they
+        // appear in the scene.
+        TransformGroup objScale = new TransformGroup();
+        Transform3D t3d = new Transform3D();
+        t3d.setScale(0.7);
+        objScale.setTransform(t3d);
+        objRoot.addChild(objScale);
+
 		// Create the TransformGroup node and initialize it to the
 		// identity. Enable the TRANSFORM_WRITE capability so that
 		// our behavior code can modify it at run time. Add it to
@@ -405,7 +449,8 @@ public class View3DWindow extends JPanel
         objTrans.setCapability(TransformGroup.ALLOW_CHILDREN_READ);
         objTrans.setCapability(TransformGroup.ALLOW_CHILDREN_WRITE);
         objTrans.setCapability(TransformGroup.ALLOW_BOUNDS_READ);
-		objRoot.addChild(objTrans);
+		//objRoot.addChild(objTrans);
+        objScale.addChild(objTrans);
 
 		// Background
         J3DUtils.createBackground(objRoot);
@@ -414,16 +459,16 @@ public class View3DWindow extends JPanel
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
 
         // Create Axes
-        Rectangle2D cellBnd = cell.getBounds();
-        double length = cellBnd.getHeight() > cellBnd.getWidth() ? cellBnd.getHeight() : cellBnd.getWidth();
-        length *= 0.1;
-        Vector3d center = new Vector3d(cellBnd.getMinX() - length, cellBnd.getMinY() - length, 0);
-        axes = new BranchGroup();
-        axes.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-        createAxis(axes, J3DUtils.axisX, center, "X", length);
-        createAxis(axes, J3DUtils.axisY, center, "Y", length);
-        createAxis(axes, J3DUtils.axisZ, center, "Z", length);
-        objRoot.addChild(axes);
+//        Rectangle2D cellBnd = cell.getBounds();
+//        double length = cellBnd.getHeight() > cellBnd.getWidth() ? cellBnd.getHeight() : cellBnd.getWidth();
+//        length *= 0.1;
+//        Vector3d center = new Vector3d(cellBnd.getMinX() - length, cellBnd.getMinY() - length, 0);
+//        axes = new BranchGroup();
+//        axes.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
+//        createAxis(axes, J3DUtils.axisX, center, "X", length);
+//        createAxis(axes, J3DUtils.axisY, center, "Y", length);
+//        createAxis(axes, J3DUtils.axisZ, center, "Z", length);
+//        objRoot.addChild(axes);
 
         // new arrow
 //        BranchGroup axesq = new BranchGroup();
@@ -501,41 +546,56 @@ public class View3DWindow extends JPanel
 		int mult = (int)((double)10 * panningAmount);
 		if (mult == 0) mult = 1;
 
-		if (direction == 0)
-			translateB.panning(mult*ticks, 0);
-		else
-		    translateB.panning(0, mult*ticks);
+//		if (direction == 0)
+//			translateB.panning(mult*ticks, 0);
+//		else
+//		    translateB.panning(0, mult*ticks);
 	}
 
     public void setViewAndZoom(double x, double y, double zoom)
     {
-        translateB.setView(x, y);
+//        translateB.setView(x, y);
     }
 
 	/**
 	 * Method to zoom out by a factor of 2 plus mouse pre-defined factor
 	 */
-	public void zoomOutContents() {zoomB.zoomInOut(false);}
+	public void zoomOutContents()
+    {
+//        zoomB.zoomInOut(false);
+    }
 
 	/**
 	 * Method to zoom in by a factor of 2 plus mouse pre-defined factor
 	 */
-	public void zoomInContents() {zoomB.zoomInOut(true);}
+	public void zoomInContents()
+    {
+        Transform3D trans = new Transform3D();
+        TransformGroup transformGroup = u.getViewingPlatform().getViewPlatformTransform();
+        double z_factor = orbit.getZoomFactor();
+        double factor = (false) ? (1/z_factor) : (z_factor);
+        Matrix4d mat = new Matrix4d();
+        trans.get(mat);
+        double dy = trans.getScale() * factor;
+        trans.setScale(dy);
+        transformGroup.setTransform(trans);
+        //zoomB.zoomInOut(true);
+    }
 
 	/**
 	 * Method to reset zoom/rotation/extraTrans to original place (Fill Window operation)
 	 */
 	public void fillScreen()
 	{
-		Transform3D trans = new Transform3D();
-
-	    Transform3D x = new Transform3D();
-		zoomB.getTransformGroup().getTransform(x);
-		zoomB.getTransformGroup().setTransform(trans);
-		rotateB.getTransformGroup().getTransform(x);
-		rotateB.getTransformGroup().setTransform(trans);
-		translateB.getTransformGroup().getTransform(x);
-		translateB.getTransformGroup().setTransform(trans);
+//		Transform3D trans = new Transform3D();
+//	    Transform3D x = new Transform3D();
+//		zoomB.getTransformGroup().getTransform(x);
+//		zoomB.getTransformGroup().setTransform(trans);
+//		rotateB.getTransformGroup().getTransform(x);
+//		rotateB.getTransformGroup().setTransform(trans);
+//		translateB.getTransformGroup().getTransform(x);
+//		translateB.getTransformGroup().setTransform(trans);
+        u.getViewingPlatform().getViewPlatformBehavior().goHome();
 	}
 
 	public void setCell(Cell cell, VarContext context) {}

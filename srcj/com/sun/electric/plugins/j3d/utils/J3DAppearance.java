@@ -1,13 +1,7 @@
 package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.plugins.j3d.utils.J3DUtils;
-import com.sun.electric.plugins.j3d.View3DWindow;
 
 import javax.media.j3d.*;
 import javax.vecmath.Color3f;
@@ -35,7 +29,7 @@ public class J3DAppearance extends Appearance
 
 	/** cell has a unique appearance **/    public static J3DAppearance cellApp;
     /** highligh appearance **/             public static J3DAppearance highligtApp;
-    /** Appearance for axes */              public static J3DAppearance axisApp;
+    /** Appearance for axes */              public static J3DAppearance[] axisApps = new J3DAppearance[3];
 
     public J3DAppearance(J3DAppearance app)
     {
@@ -194,6 +188,8 @@ public class J3DAppearance extends Appearance
         mat.setDiffuseColor(objColor);
         //mat.setSpecularColor(objColor);
         mat.setAmbientColor(objColor);
+        if (getColoringAttributes() != null)
+            getColoringAttributes().setColor(objColor);
     }
 
     /**
@@ -202,20 +198,44 @@ public class J3DAppearance extends Appearance
      */
     public static void setAxisAppearanceValues(Object initValue)
     {
-        Color userColor = new Color(User.get3DColorAxis());
+        double[] colors = User.transformIntoValues(User.get3DColorAxes());
 
-        if (axisApp == null)
+        for (int i = 0; i < axisApps.length; i++)
         {
-            axisApp = new J3DAppearance(null, TransparencyAttributes.NONE, 0.5f, userColor);
+            Color userColor = new Color((int)colors[i]);
 
-            RenderingAttributes ra = new RenderingAttributes();
-            ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
-            ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
-            ra.setVisible(User.is3DAxesOn());
-            axisApp.setRenderingAttributes(ra);
+            if (axisApps[i] == null)
+            {
+                axisApps[i] = new J3DAppearance(null, TransparencyAttributes.NONE, 0.5f, userColor);
+
+                // Turn off face culling so we can see the back side of the labels
+                // (since we're not using font extrusion)
+                PolygonAttributes polygonAttributes = new PolygonAttributes();
+                polygonAttributes.setCullFace(PolygonAttributes.CULL_NONE);
+
+                // Make the axis lines 2 pixels wide
+                LineAttributes lineAttributes = new LineAttributes();
+                lineAttributes.setLineWidth(3.0f);
+
+                ColoringAttributes colorAttrib = new ColoringAttributes();
+                colorAttrib.setColor(new Color3f(userColor));
+                colorAttrib.setCapability(ColoringAttributes.ALLOW_COLOR_READ);
+                colorAttrib.setCapability(ColoringAttributes.ALLOW_COLOR_WRITE);
+                axisApps[i].setColoringAttributes(colorAttrib);
+                axisApps[i].setPolygonAttributes(polygonAttributes);
+                axisApps[i].setLineAttributes(lineAttributes);
+                axisApps[i].setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_READ);
+                axisApps[i].setCapability(Appearance.ALLOW_COLORING_ATTRIBUTES_WRITE);
+
+                RenderingAttributes ra = new RenderingAttributes();
+                ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
+                ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
+                ra.setVisible(User.is3DAxesOn());
+                axisApps[i].setRenderingAttributes(ra);
+            }
+            else if (initValue == null) // redoing color only when it was changed in GUI
+                axisApps[i].set3DColor(null, userColor);
         }
-        else if (initValue == null) // redoing color only when it was changed in GUI
-            axisApp.set3DColor(null, userColor);
     }
 
     /**

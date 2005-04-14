@@ -165,7 +165,7 @@ public class JThreeDTab extends ThreeDTab
 		threeD.add(threeDSideView, gbc);
 
         scaleField.setText(TextUtils.formatDouble(User.get3DFactor()));
-        double[] rot = J3DUtils.transformIntoValues(User.get3DRotation());
+        double[] rot = User.transformIntoValues(User.get3DRotation());
         xRotField.setText(TextUtils.formatDouble(rot[0]));
         yRotField.setText(TextUtils.formatDouble(rot[1]));
         zRotField.setText(TextUtils.formatDouble(rot[2]));
@@ -316,7 +316,9 @@ public class JThreeDTab extends ThreeDTab
         currentBoolean = threeDAxes.isSelected();
 		if (currentBoolean != User.is3DAxesOn())
 		{
-            J3DAppearance.axisApp.getRenderingAttributes().setVisible(currentBoolean);
+            J3DAppearance.axisApps[0].getRenderingAttributes().setVisible(currentBoolean);
+            J3DAppearance.axisApps[1].getRenderingAttributes().setVisible(currentBoolean);
+            J3DAppearance.axisApps[2].getRenderingAttributes().setVisible(currentBoolean);
 			User.set3DAxesOn(currentBoolean);
 		}
 
