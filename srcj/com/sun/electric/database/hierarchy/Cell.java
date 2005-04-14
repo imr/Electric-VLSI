@@ -3773,8 +3773,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public void setTechnology(Technology tech)
 	{
-		if (this instanceof Cell)
-			this.tech = tech;
+        this.tech = tech;
 	}
 
 	/**
