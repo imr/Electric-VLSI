@@ -108,7 +108,7 @@ public class ERCWellCheck
 		Cell curCell = wnd.getCell();
 		if (curCell == null) return;
 
-        Job job = new WellCheckJob(curCell, newAlgorithm, highlighter);
+        new WellCheckJob(curCell, newAlgorithm, highlighter);
 	}
 
 	/**
@@ -302,7 +302,7 @@ public class ERCWellCheck
 			}
 			if (!found)
 			{
-				MessageLog err = errorLogger.logError("No N-Well contact found in this cell", cell, 0);
+				errorLogger.logError("No N-Well contact found in this cell", cell, 0);
 			}
 		}
 
@@ -317,7 +317,7 @@ public class ERCWellCheck
 			}
 			if (!found)
 			{
-				MessageLog err = errorLogger.logError("No P-Well contact found in this cell", cell, 0);
+				errorLogger.logError("No P-Well contact found in this cell", cell, 0);
 			}
 		}
 
@@ -328,6 +328,7 @@ public class ERCWellCheck
 		{
 			HashMap rulesCon = new HashMap();
 			HashMap rulesNonCon = new HashMap();
+            int techMode = DRC.getFoundry();
 			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
 			{
 				WellArea wa = (WellArea)it.next();
@@ -349,7 +350,7 @@ public class ERCWellCheck
 					// @TODO Might still return NULL the first time!!. Need another array or aux class?
 					if (rule == null)
 					{
-						rule = DRC.getSpacingRule(waLayer, waLayer, con, false, 0);
+						rule = DRC.getSpacingRule(waLayer, waLayer, con, false, 0, techMode);
 						if (rule == null)
 							System.out.println("Replace this");
 						if (con)
@@ -565,21 +566,6 @@ public class ERCWellCheck
 			{
                 thisMerge = GeometryHandler.createGeometryHandler(check.mode,
                         ercLayers.size(), cell.getBounds());
-//                switch(check.mode)
-//                {
-//                    case GeometryHandler.ALGO_SWEEP:
-//                        PolySweepMerge sweepMerge = new PolySweepMerge(ercLayers.size());
-//                        if (Main.LOCALDEBUGFLAG)
-//                            sweepMerge.setMode(PolySweepMerge.TWO_FRONTIER_MODE);
-//                        thisMerge = sweepMerge;
-//                        break;
-//                    case GeometryHandler.ALGO_QTREE:
-//                        thisMerge = new PolyQTree(cell.getBounds());
-//                        break;
-//                    case GeometryHandler.ALGO_MERGE:
-//                        thisMerge = new PolyMerge();
-//                        break;
-//                }
 				check.cellMerges.put(cell, thisMerge);
 			}
 

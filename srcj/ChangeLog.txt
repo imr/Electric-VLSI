@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+IMP: (04/14/05, GVG) Changes in TSM90 and DRC to handle multiple foundries (ST, TSMC). DRC rules
+are chosen depending on foundry selected: ST, TSMC, Combined(ST, TSMC). Names/Values for some DRC rules
+varie according to foundry (eg. VT{H/L}_{P/N}.S.2/VT{H/L}_{P/N}.D.2). Added corresponding ST rules.
+New native thick transistors, RPO, OD33, OD25 nodes. New "forbidden" and "combination" rules to handle
+presence of forbidden nodes for particular foundry or combinations of nodes in the same die.
+
 IMP: (04/14/05, SMR) JELIB output now includes full path to references libraries only if they are
      not in the same directory as the main output file (for CVS merging).
 

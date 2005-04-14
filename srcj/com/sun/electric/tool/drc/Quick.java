@@ -31,7 +31,6 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
@@ -59,14 +58,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This is the "quick" DRC which does full hierarchical examination of the circuit.
@@ -113,10 +105,12 @@ public class Quick
 	private static final int LAYERSURROUNDERROR = 6;
 	private static final int MINAREAERROR       = 7;
 	private static final int ENCLOSEDAREAERROR  = 8;
-	private static final int POLYSELECTERROR   = 9;
+	private static final int POLYSELECTERROR    = 9;
+    private static final int SURROUNDERROR      = 10;
+    private static final int FORBIDDEN = 11;
 	// Different types of warnings
-	private static final int ZEROLENGTHARCWARN  = 10;
-	private static final int TECHMIXWARN  = 11;
+	private static final int ZEROLENGTHARCWARN  = 12;
+	private static final int TECHMIXWARN  = 13;
 
 	/**
 	 * The CheckInst object is associated with every cell instance in the library.
@@ -159,13 +153,16 @@ public class Quick
 	private DRC.CheckDRCLayoutJob job; // Reference to running job
 	private HashMap cellsMap = new HashMap(); // for cell caching
     private HashMap nodesMap = new HashMap(); // for node caching
-    private byte activeBits = 0; // to caching current extra bits
+    private int activeBits = 0; // to caching current extra bits
     private int mergeMode = GeometryHandler.ALGO_QTREE;
+    private int techMode = DRCTemplate.NONE;       /** To control different rules for ST and TSMC technologies */
+    private Map od2Layers = new HashMap(3);  /** to control OD2 combination in the same die according to foundries */
 
 	public Quick(DRC.CheckDRCLayoutJob job, int mode)
 	{
 		this.job = job;
         this.mergeMode = mode;
+        this.techMode = DRC.getFoundry();
 	}
 
 	/**
@@ -197,7 +194,7 @@ public class Quick
 
 
 	/** number of processes for doing DRC */					private int numberOfThreads;
-	/** error type */				                            private int errorType;
+	/** error type search */				                    private int errorTypeSearch;
 	/** true to ignore center cuts in large contacts. */		private boolean ignoreCenterCuts;
 	/** maximum area to examine (the worst spacing rule). */	private double worstInteractionDistance;
 	/** time stamp for numbering networks. */					private int checkTimeStamp;
@@ -258,7 +255,7 @@ public class Quick
 		if (rules == null || rules.getNumberOfRules() == 0) return 0;
 
 		// get the current DRC options
-		errorType = DRC.getErrorType();
+		errorTypeSearch = DRC.getErrorType();
 		ignoreCenterCuts = DRC.isIgnoreCenterCuts();
 		numberOfThreads = DRC.getNumberOfThreads();
 	    topCell = cell; /* Especially important for minArea checking */
@@ -266,7 +263,7 @@ public class Quick
 		// if checking specific instances, adjust options and processor count
 		if (count > 0)
 		{
-			errorType = DRC.ERROR_CHECK_CELL;
+			errorTypeSearch = DRC.ERROR_CHECK_CELL;
 			numberOfThreads = 1;
 		}
 
@@ -290,19 +287,19 @@ public class Quick
 	    nodesMap.clear();
 
 	    // No incremental neither per Cell
-	    if (!DRC.isIgnoreAreaChecking() && errorType != DRC.ERROR_CHECK_CELL)
+	    if (!DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.ERROR_CHECK_CELL)
 	    {
 		    for(Iterator it = tech.getLayers(); it.hasNext(); )
 			{
 				Layer layer = (Layer)it.next();
 
 				// Storing min areas
-				DRCRules.DRCRule minAreaRule = DRC.getMinValue(layer, DRCTemplate.AREA);
+				DRCRules.DRCRule minAreaRule = DRC.getMinValue(layer, DRCTemplate.AREA,techMode);
 				if (minAreaRule != null)
 					minAreaLayerMap.put(layer, minAreaRule);
 
 				// Storing enclosed areas
-				DRCRules.DRCRule enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.ENCLOSEDAREA);
+				DRCRules.DRCRule enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.ENCLOSEDAREA, techMode);
 				if (enclosedAreaRule != null)
 					enclosedAreaLayerMap.put(layer, enclosedAreaRule);
 			}
@@ -330,7 +327,7 @@ public class Quick
 		checkEnumerateInstances(cell);
 
 		// now allocate space for hierarchical network arrays
-		int totalNetworks = 0;
+		//int totalNetworks = 0;
 		networkLists = new HashMap();
 		for(Iterator it = checkProtos.entrySet().iterator(); it.hasNext(); )
 		{
@@ -346,7 +343,7 @@ public class Quick
 					Integer [] netNumbers = new Integer[subCP.hierInstanceCount];
 					for(int i=0; i<subCP.hierInstanceCount; i++) netNumbers[i] = new Integer(0);
 					networkLists.put(net, netNumbers);
-					totalNetworks += subCP.hierInstanceCount;
+					//totalNetworks += subCP.hierInstanceCount;
 				}
 			}
 			for(Iterator nIt = libCell.getNodes(); nIt.hasNext(); )
@@ -400,7 +397,7 @@ public class Quick
 
 		// now search for DRC exclusion areas
 		exclusionList.clear();
-		accumulateExclusion(cell, DBMath.MATID);
+		accumulateExclusion(cell);
 
 		// now do the DRC
 
@@ -446,7 +443,7 @@ public class Quick
 	    // some cells don't have valid DRC date anymore and therefore they should be clean
 	    if (goodDRCDate.size() > 0 || cleanDRCDate.size() > 0)
 	    {
-		    UpdateDRCDates job = new UpdateDRCDates(goodDRCDate, cleanDRCDate);
+		    new UpdateDRCDates(goodDRCDate, cleanDRCDate);
 	    }
 
         return logsFound;
@@ -470,7 +467,7 @@ public class Quick
 
 		public boolean doIt()
 		{
-            byte bits = DRC.getActiveBits();
+            int bits = DRC.getActiveBits();
 
 			for(Iterator it = goodDRCDate.keySet().iterator(); it.hasNext(); )
 			{
@@ -576,7 +573,7 @@ public class Quick
 
 		// Check the area first but only when is not incremental
 		// Only for the most top cell
-		if (cell == topCell && !DRC.isIgnoreAreaChecking() && errorType != DRC.ERROR_CHECK_CELL)
+		if (cell == topCell && !DRC.isIgnoreAreaChecking() && errorTypeSearch != DRC.ERROR_CHECK_CELL)
 			totalMsgFound = checkMinArea(cell);
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -591,7 +588,7 @@ public class Quick
 			if (ret)
 			{
 				totalMsgFound++;
-				if (errorType == DRC.ERROR_CHECK_CELL) break;
+				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) break;
 			}
 		}
 		Technology cellTech = cell.getTechnology();
@@ -611,7 +608,7 @@ public class Quick
 			if (checkArcInst(cp, ai, globalIndex))
 			{
 				totalMsgFound++;
-				if (errorType == DRC.ERROR_CHECK_CELL) break;
+				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) break;
 			}
 		}
 
@@ -659,18 +656,24 @@ public class Quick
 		NodeProto np = ni.getProto();
 		Technology tech = np.getTechnology();
 		AffineTransform trans = ni.rotateOut();
-
-		if (nodesMap.get(ni) != null)
-		{
-			if (Main.LOCALDEBUGFLAG) System.out.println("Done already node " + ni.getName());
-			return (false);
-		}
-		nodesMap.put(ni, ni);
+		boolean errorsFound = false;
 
 		// Skipping special nodes
 		if (NodeInst.isSpecialNode(ni)) return false; // Oct 5;
 
         if (np.getFunction() == PrimitiveNode.Function.PIN) return false; // Sept 30
+
+        // Already done
+		if (nodesMap.get(ni) != null)
+			return (false);
+		nodesMap.put(ni, ni);
+
+        if (np instanceof PrimitiveNode && DRC.isForbiddenNode(((PrimitiveNode)np).getPrimNodeIndexInTech(), DRCTemplate.FORBIDDEN, tech, techMode))
+        {
+            reportError(FORBIDDEN, " is not allowed by selected foundry", cell, -1, -1, null, null, ni, null, null, null, null);
+            if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
+            errorsFound = true;
+        }
 
 		// get all of the polygons on this node
 		Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, ignoreCenterCuts, null);
@@ -678,28 +681,34 @@ public class Quick
 		int tot = nodeInstPolyList.length;
         boolean isTransistor =  np.getFunction().isTransistor();
 		// examine the polygons on this node
-		boolean errorsFound = false;
 		for(int j=0; j<tot; j++)
 		{
 			Poly poly = nodeInstPolyList[j];
 			Layer layer = poly.getLayer();
 			if (layer == null) continue;
 
+            boolean ret = checkOD2Combination(tech, ni, layer);
+            if (ret)
+            {
+                // panic errors -> return regarless errorTypeSearch
+                return true;
+            }
+
 			poly.transform(trans);
 
 			// determine network for this polygon
 			int netNumber = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);
 
-			boolean ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex);
+			ret = badBox(poly, layer, netNumber, tech, ni, trans, cell, globalIndex);
 			if (ret)
 			{
-				if (errorType == DRC.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			ret = checkMinWidth(ni, layer, poly, tot==1);
 			if (ret)
 			{
-				if (errorType == DRC.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			// Check PP.R.1 select over transistor poly
@@ -707,14 +716,14 @@ public class Quick
 			ret = !isTransistor && checkSelectOverPolysilicon(ni, layer, poly, cell);
 			if (ret)
 			{
-				if (errorType == DRC.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			if (tech == layersValidTech && !layersValid[layer.getIndex()])
 			{
 				reportError(BADLAYERERROR, null, cell, 0, 0, null,
 					poly, ni, layer, null, null, null);
-				if (errorType == DRC.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 		}
@@ -744,6 +753,46 @@ public class Quick
 		}
 		return errorsFound;
 	}
+
+    /**
+     * Method to check which combination of OD2 layers are allowed
+     * @param layer
+     * @return
+     */
+    private boolean checkOD2Combination(Technology tech, NodeInst ni, Layer layer)
+    {
+        int funExtras = layer.getFunctionExtras();
+        boolean notOk = false;
+
+        if (layer.getFunction().isImplant() && (funExtras&Layer.Function.THICK) != 0)
+        {
+            // Only stores first node found
+            od2Layers.put(layer, ni);
+
+            // More than one type used.
+            if (od2Layers.size() != 1)
+            {
+                Set set = od2Layers.keySet();
+                Object[] keys = set.toArray();
+                for (int i = 0; i < set.size(); i++)
+                {
+                    Layer lay1 = (Layer)keys[i];
+                    if (lay1 == layer) continue;
+                    int index = tech.getRuleIndex(lay1.getIndex(), layer.getIndex());
+                    if (DRC.isForbiddenNode(index, DRCTemplate.COMBINATION, tech, techMode))
+                    {
+                        NodeInst node = (NodeInst)od2Layers.get(lay1);
+                        String message = "- combination of layers '" + layer.getName() + "' and '" + lay1.getName() + "' (in '" +
+                                node.getParent().getName() + ":" + node.getName() +"') not allowed by selected foundry";
+                        reportError(FORBIDDEN, message, ni.getParent(), -1, -1, null, null, ni, null, null, node, null);
+
+                        return true;
+                    }
+                }
+            }
+        }
+        return notOk;
+    }
 
 	/**
 	 * Method to check the design rules about arcinst "ai".
@@ -782,27 +831,27 @@ public class Quick
 			boolean ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex);
 			if (ret)
 			{
-				if (errorType == DRC.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			ret = checkMinWidth(ai, layer, poly, tot==1);
 			if (ret)
 			{
-				if (errorType == DRC.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			// Check PP.R.1 select over transistor poly
 			ret = checkSelectOverPolysilicon(ai, layer, poly, ai.getParent());
 			if (ret)
 			{
-				if (errorType == DRC.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 			if (tech == layersValidTech && !layersValid[layerNum])
 			{
 				reportError(BADLAYERERROR, null, ai.getParent(), 0, 0, null,
 					(tot==1)?null:poly, ai, layer, null, null, null);
-				if (errorType == DRC.ERROR_CHECK_CELL) return true;
+				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
 		}
@@ -889,11 +938,6 @@ public class Quick
 		for(Iterator it = cell.searchIterator(bb); it.hasNext(); )
 		{
 			Geometric geom = (Geometric)it.next();
-			if (Main.getDebug() && geom == thisNi )
-			{
-				System.out.println("Should I skip it 2?");
-				//continue;
-			}
 
 			if (geom instanceof NodeInst)
 			{
@@ -918,7 +962,7 @@ public class Quick
 					boolean ret = checkCellInstContents(bb, ni, subUpTrans, localIndex, oNi, topGlobalIndex);
 					if (ret)
 					{
-						if (errorType == DRC.ERROR_CHECK_CELL) return true;
+						if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 						logsFound = true;
 					}
 				} else
@@ -947,7 +991,7 @@ public class Quick
 							globalIndex, oNi, topGlobalIndex);
 						if (ret)
 						{
-							if (errorType == DRC.ERROR_CHECK_CELL) return true;
+							if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 							logsFound = true;
 						}
 					}
@@ -985,7 +1029,7 @@ public class Quick
 						globalIndex, oNi, topGlobalIndex);
 					if (ret)
 					{
-						if (errorType == DRC.ERROR_CHECK_CELL) return true;
+						if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 						logsFound = true;
 					}
 				}
@@ -1101,6 +1145,7 @@ public class Quick
 		{
 			Geometric nGeom = (Geometric)it.next();
 			if (sameInstance && (nGeom == geom)) continue;
+
 			if (nGeom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)nGeom;
@@ -1108,11 +1153,6 @@ public class Quick
 
 				if (NodeInst.isSpecialNode(ni)) continue; // Oct 5;
 
-                // Check if error was already found
-//                if (Main.getDebug() && Main.LOCALDEBUGFLAG && errorLogger.findMessage(cell, geom, nGeom.getParent(), nGeom, true))
-//                {
-//                    continue;
-//                }
 				// ignore nodes that are not primitive
 				if (np instanceof Cell)
 				{
@@ -1134,21 +1174,26 @@ public class Quick
 						             topCell, topGlobalIndex, subTrans, minSize, baseMulti, sameInstance))
                     {
                         foundError = true;
-                        if (errorType != DRC.ERROR_CHECK_EXHAUSTIVE) return true;
+                        if (errorTypeSearch != DRC.ERROR_CHECK_EXHAUSTIVE) return true;
                     }
 				} else
 				{
 					// don't check between technologies
 					if (np.getTechnology() != tech) continue;
 
+                    // Possible forbidden overlap between layer and PrimitiveNode
+//                    if (np instanceof PrimitiveNode && poly.getBounds2D().intersects(nGeom.getBounds()))
+//                    {
+//                        int index = tech.getRuleIndex(layer.getIndex(), ((PrimitiveNode)np).getPrimNodeIndexInTech());
+//                        if (DRC.isForbiddenNode(index, DRCTemplate.FORBIDDEN, tech, techMode))
+//                        {
+//                            foundError = true;
+//                            if (errorTypeSearch != DRC.ERROR_CHECK_EXHAUSTIVE) return true;
+//                        }
+//                    }
+
 					// see if this type of node can interact with this layer
 					if (!checkLayerWithNode(layer, np)) continue;
-
-                    if (np.getFunction() == PrimitiveNode.Function.PIN)
-                    {
-	                    System.out.println("This should not happen in Quick.badBoxInArea");
-	                    continue; // Sept 30
-                    }
 
 					// see if the objects directly touch
 					boolean touch = Geometric.objectsTouch(nGeom, geom);
@@ -1192,33 +1237,26 @@ public class Quick
 						if (con && touch) continue;
 
 						double nMinSize = npoly.getMinSize();
-						DRCRules.DRCRule dRule = getAdjustedMinDist(layer, minSize,
-                                nLayer, nMinSize, con, multi);
-						DRCRules.DRCRule eRule = DRC.getEdgeRule(layer, nLayer);
-						if (dRule == null && eRule == null) continue;
-						double dist = -1;
+
 						boolean edge = false;
-						String rule;
-						if (dRule != null)
-						{
-							dist = dRule.value;
-							rule = dRule.rule;
-						} else
-						{
-							dist = eRule.value;
-							rule = eRule.rule;
-							edge = true;
-						}
+						DRCRules.DRCRule theRule = getAdjustedMinDist(layer, minSize,
+                                nLayer, nMinSize, con, multi);
+                        if (theRule == null)
+                        {
+						    theRule = DRC.getEdgeRule(layer, nLayer);
+                            edge = true;
+                        }
+						if (theRule == null) continue;
 
 						// check the distance
 						boolean ret = checkDist(tech, topCell, topGlobalIndex,
 							poly, layer, net, geom, trans, globalIndex,
 							npoly, nLayer, nNet, nGeom, rTrans, cellGlobalIndex,
-							con, dist, edge, rule);
+							con, theRule, edge);
 						if (ret)
                         {
                             foundError = true;
-                            if (errorType != DRC.ERROR_CHECK_EXHAUSTIVE) return true;
+                            if (errorTypeSearch != DRC.ERROR_CHECK_EXHAUSTIVE) return true;
                         }
 					}
 				}
@@ -1268,33 +1306,25 @@ public class Quick
 
 					// see how close they can get
 					double nMinSize = nPoly.getMinSize();
-					DRCRules.DRCRule dRule = getAdjustedMinDist(layer, minSize,
-						nLayer, nMinSize, con, multi);
-					DRCRules.DRCRule eRule = DRC.getEdgeRule(layer, nLayer);
-					if (dRule == null && eRule == null) continue;
-					double dist = -1;
-					boolean edge = false;
-					String rule;
-					if (dRule != null)
-					{
-						dist = dRule.value;
-						rule = dRule.rule;
-					} else
-					{
-						dist = eRule.value;
-						rule = eRule.rule;
-						edge = true;
-					}
+                    boolean edge = false;
+                    DRCRules.DRCRule theRule = getAdjustedMinDist(layer, minSize,
+                            nLayer, nMinSize, con, multi);
+                    if (theRule == null)
+                    {
+                        theRule = DRC.getEdgeRule(layer, nLayer);
+                        edge = true;
+                    }
+                    if (theRule == null) continue;
 
 					// check the distance
 					boolean ret = checkDist(tech, topCell, topGlobalIndex,
 						poly, layer, net, geom, trans, globalIndex,
 						nPoly, nLayer, nNet, nGeom, upTrans, cellGlobalIndex,
-						con, dist, edge, rule);
+						con, theRule, edge);
 					if (ret)
                     {
                         foundError = true;
-                        if (errorType != DRC.ERROR_CHECK_EXHAUSTIVE) return true;
+                        if (errorTypeSearch != DRC.ERROR_CHECK_EXHAUSTIVE) return true;
                     }
 				}
 			}
@@ -1320,7 +1350,7 @@ public class Quick
 	private boolean checkDist(Technology tech, Cell cell, int globalIndex,
 		Poly poly1, Layer layer1, int net1, Geometric geom1, AffineTransform trans1, int globalIndex1,
 		Poly poly2, Layer layer2, int net2, Geometric geom2, AffineTransform trans2, int globalIndex2,
-		boolean con, double dist, boolean edge, String rule)
+		boolean con, DRCRules.DRCRule theRule, boolean edge)
 	{
 		// turn off flag that the nodeinst may be undersized
 		tinyNodeInst = null;
@@ -1384,7 +1414,7 @@ public class Quick
 				{
 					// they are electrically connected and they overlap: look for minimum size errors
 					// of the overlapping region.
-					DRCRules.DRCRule wRule = DRC.getMinValue(layer1, DRCTemplate.MINWID);
+					DRCRules.DRCRule wRule = DRC.getMinValue(layer1, DRCTemplate.MINWID, techMode);
 					if (wRule != null)
 					{
 						double minWidth = wRule.value;
@@ -1457,7 +1487,7 @@ public class Quick
 							// Nothing found
 							if (!pointsFound[0] && !pointsFound[1])
 							{
-								reportError(MINWIDTHERROR, null, cell, minWidth, actual, wRule.rule, rebuild,
+								reportError(MINWIDTHERROR, null, cell, minWidth, actual, wRule.ruleName, rebuild,
                                                 geom1, layer1, rebuild, geom2, layer2);
 								allFound = false;
 							}
@@ -1564,7 +1594,7 @@ public class Quick
 					// They are overlapping if pdx < 0 && pdy < 0
 					pd = DBMath.round(Math.max(pdx, pdy));
 
-					if (pd < dist && pd > 0)
+					if (pd < theRule.value && pd > 0)
 					{
 						pd = poly1.separation(poly2);
 					}
@@ -1598,72 +1628,86 @@ public class Quick
                 System.out.println("Wrong case in non-nonmanhattan, Quick.");
 		}
 
-		// see if the design rule is met
-		if (pd >= dist)
-		{
-			return false;
-		}
 		int errorType = SPACINGERROR;
-
-		/*
-		 * special case: ignore errors between two active layers connected
-		 * to either side of a field-effect transistor that is inside of
-		 * the error area.
-		 */
-		if (activeOnTransistor(poly1, layer1, net1, poly2, layer2, net2, cell, globalIndex))
-			return false;
-
-		// special cases if the layers are the same
-		if (tech.sameLayer(layer1, layer2))
+//        if (theRule.type == DRCTemplate.SURROUND)
+//        {
+//            pd = Math.abs(pd);
+//            errorType = SURROUNDERROR;
+//        }
+		// see if the design rule is met
+		if (pd >= theRule.value)
 		{
-			// special case: check for "notch"
-			if (maytouch)
-			{
-				// if they touch, it is acceptable
-				if (pd <= 0) return false;
-
-				// see if the notch is filled
-				boolean newR = lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
-				if (Main.LOCALDEBUGFLAG)
-				{
-					Point2D pt1 = new Point2D.Double();
-					Point2D pt2 = new Point2D.Double();
-					int intervening = findInterveningPoints(poly1, poly2, pt1, pt2, false);
-					if (intervening == 0)
-					{
-						if (!newR)
-						{
-							System.out.println("DIfferent");
-							lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
-
-						}
-						//return false;
-					}
-					boolean needBoth = true;
-					if (intervening == 1) needBoth = false;
-
-					if (lookForPoints(pt1, pt2, layer1, cell, needBoth))
-					{
-						if (!newR)
-						{
-							System.out.println("DIfferent");
-							lookForPoints(pt1, pt2, layer1, cell, needBoth);
-							lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
-						//return false;
-						}
-					}
-
-					boolean oldR = lookForPoints(pt1, pt2, layer1, cell, needBoth);
-					if (oldR != newR)
-							System.out.println("DIfferent 2");
-				}
-				if (newR) return false;
-
-				// look further if on the same net and diagonally separate (1 intervening point)
-				//if (net1 == net2 && intervening == 1) return false;
-				errorType = NOTCHERROR;
-			}
+			return false;
 		}
+//        if (theRule.type != DRCTemplate.SURROUND)
+        {
+            /*
+             * special case: ignore errors between two active layers connected
+             * to either side of a field-effect transistor that is inside of
+             * the error area.
+             */
+            if (activeOnTransistor(poly1, layer1, net1, poly2, layer2, net2, cell, globalIndex))
+                return false;
+
+            /**
+             * Special case: ignore spacing errors generated by rule VT{H/L}_{P/N}.S.2 if poly is already
+             * part of a VTH-transistors. Not very elegant solution but should work for now.
+             */
+            if (polyCoverByAnyVTLayer(cell, theRule, tech, new Poly[]{poly1, poly2}, new Layer[]{layer1, layer2}, new Geometric[]{geom1, geom2}))
+                return false;
+
+            // special cases if the layers are the same
+            if (tech.sameLayer(layer1, layer2))
+            {
+                // special case: check for "notch"
+                if (maytouch)
+                {
+                    // if they touch, it is acceptable
+                    if (pd <= 0) return false;
+
+                    // see if the notch is filled
+                    boolean newR = lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
+                    if (Main.LOCALDEBUGFLAG)
+                    {
+                        Point2D pt1 = new Point2D.Double();
+                        Point2D pt2 = new Point2D.Double();
+                        int intervening = findInterveningPoints(poly1, poly2, pt1, pt2, false);
+                        if (intervening == 0)
+                        {
+                            if (!newR)
+                            {
+                                System.out.println("DIfferent");
+                                lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
+
+                            }
+                            //return false;
+                        }
+                        boolean needBoth = true;
+                        if (intervening == 1) needBoth = false;
+
+                        if (lookForPoints(pt1, pt2, layer1, cell, needBoth))
+                        {
+                            if (!newR)
+                            {
+                                System.out.println("DIfferent");
+                                lookForPoints(pt1, pt2, layer1, cell, needBoth);
+                                lookForCrossPolygons(geom1, poly1, geom2, poly2, layer1, cell, overlap);
+                            //return false;
+                            }
+                        }
+
+                        boolean oldR = lookForPoints(pt1, pt2, layer1, cell, needBoth);
+                        if (oldR != newR)
+                                System.out.println("DIfferent 2");
+                    }
+                    if (newR) return false;
+
+                    // look further if on the same net and diagonally separate (1 intervening point)
+                    //if (net1 == net2 && intervening == 1) return false;
+                    errorType = NOTCHERROR;
+                }
+            }
+        }
 
 		String msg = null;
 		if (tinyNodeInst != null)
@@ -1676,10 +1720,82 @@ public class Quick
 			}
 		}
 
-		reportError(errorType, msg, cell, dist, pd, rule,
-                origPoly1, geom1, layer1, origPoly2, geom2, layer2);
+		reportError(errorType, msg, cell, theRule.value, pd, theRule.ruleName, origPoly1, geom1, layer1, origPoly2, geom2, layer2);
 		return true;
 	}
+
+    private static final List vtLayers = new ArrayList(2);
+
+        static {
+            vtLayers.add(Layer.Function.IMPLANTP);
+            vtLayers.add(Layer.Function.IMPLANTN);
+        };
+
+    /**
+     * This method determines if one of the polysilicon polygons is covered by a vth layer. If yes, VT{H/L}_{P/N}.S.2
+     * doesn't apply
+     * @param polys
+     * @param layers
+     * @param geoms
+     * @return
+     */
+    private boolean polyCoverByAnyVTLayer(Cell cell, DRCRules.DRCRule theRule, Technology tech, Poly[] polys, Layer[] layers, Geometric[] geoms)
+    {
+        // Not the correct rule
+        if (theRule.type != DRCTemplate.UCONSPA || !theRule.ruleName.equalsIgnoreCase("VT{H/L}_{P/N}.S.2"))
+            return false;
+        int polyIndex = -1, vtIndex = -1;
+
+        for (int i = 0; i < polys.length; i++)
+        {
+            Layer.Function fun = layers[i].getFunction();
+            int funExtras = layers[i].getFunctionExtras();
+            if (fun.isGatePoly())
+                polyIndex = i;
+            else if (fun.isImplant() && (funExtras&Layer.Function.HLVT) != 0)
+                vtIndex = i;
+        }
+        // Not the correct layers
+        if (polyIndex == -1 || vtIndex == -1)
+            return false;
+
+        if (geoms[polyIndex] instanceof NodeInst)
+        {
+            NodeProto np = ((NodeInst)geoms[polyIndex]).getProto();
+            if (np instanceof PrimitiveNode && ((PrimitiveNode)np).getSpecialType() == PrimitiveNode.HIGHLOWVT)
+                return true; // condition valid by construction
+        }
+
+        Rectangle2D searchBounds = polys[polyIndex].getBounds2D();
+
+        // Searches for any posible VTH/VTH that fully covers the polysilicon.
+        // It has to be recursive and could be expensive
+        for (Iterator it = cell.searchIterator(searchBounds); it.hasNext(); )
+        {
+            Geometric geom = (Geometric)it.next();
+
+			if (geom == geoms[vtIndex]) continue; // skipping original VT node
+
+			if (geom instanceof ArcInst) continue; // no arcs with such layer
+
+			NodeInst oNi = (NodeInst)geom;
+			if (oNi.getProto() instanceof Cell)
+                System.out.println("Recursive checking no implemented in polyCoverByAnyVTLayer");
+            else
+			{
+                Poly[] vtPolys = tech.getShapeOfNode(oNi, null, true, ignoreCenterCuts, vtLayers);
+
+                for (int i = 0; i < vtPolys.length; i++)
+                {
+                    Poly poly = vtPolys[i];
+                    // An approximation. Bounding box contains the given polygon associated to the poly
+                    if (polys[polyIndex].isInside(poly.getBounds2D()))
+                        return true;
+                }
+			}
+        }
+        return false;
+    }
 
 	/*************************** QUICK DRC SEE IF GEOMETRICS CAUSE ERRORS ***************************/
 
@@ -1754,12 +1870,6 @@ public class Quick
 				if (checkGeomAgainstInstance(netlist, geom, ni)) return true;
 				continue;
 			}
-
-//			// ignore if it is one of the geometrics in the list
-//			boolean found = false;
-//			for(int j=0; j<count; j++)
-//				if (oNi == geomsToCheck[j]) { found = true;   break; }
-//			if (found) continue;
 
 			// found other instance "oNi", look for everything in "ni" that is near it
 			Rectangle2D subNodeBounds = oNi.getBounds();
@@ -1866,7 +1976,7 @@ public class Quick
 	 */
 	private boolean checkInteraction(NodeInst ni1, NodeInst ni2)
 	{
-        if (errorType == DRC.ERROR_CHECK_EXHAUSTIVE) return false;
+        if (errorTypeSearch == DRC.ERROR_CHECK_EXHAUSTIVE) return false;
 
 		// must recheck parameterized instances always
 		CheckProto cp = getCheckProto((Cell)ni1.getProto());
@@ -2116,7 +2226,7 @@ public class Quick
 	private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, boolean onlyOne)
 	{
 		Cell cell = geom.getParent();
-		DRCRules.DRCRule minWidthRule = DRC.getMinValue(layer, DRCTemplate.MINWID);
+		DRCRules.DRCRule minWidthRule = DRC.getMinValue(layer, DRCTemplate.MINWID, techMode);
 		if (minWidthRule == null) return false;
 
 		// simpler analysis if manhattan
@@ -2171,7 +2281,7 @@ public class Quick
 
             int errorType = MINWIDTHERROR;
 			String extraMsg = msg;
-			String rule = minWidthRule.rule;
+			String rule = minWidthRule.ruleName;
 			if (zeroWide)
 			{
 				if (overlapLayer) extraMsg = " but covered by other layer";
@@ -2195,7 +2305,7 @@ public class Quick
 		double actual = Math.min(bounds.getWidth(), bounds.getHeight());
 		if (actual < minWidthRule.value)
 		{
-			reportError(MINWIDTHERROR, null, cell, minWidthRule.value, actual, minWidthRule.rule,
+			reportError(MINWIDTHERROR, null, cell, minWidthRule.value, actual, minWidthRule.ruleName,
 				(onlyOne) ? null : poly, geom, layer, null, null, null);
 			return true;
 		}
@@ -2250,11 +2360,11 @@ public class Quick
 					if (poly.isInside(new Point2D.Double((center.getX()+inter.getX())/2, (center.getY()+inter.getY())/2)))
 					{
 						reportError(MINWIDTHERROR, null, cell, minWidthRule.value,
-							actual, minWidthRule.rule, (onlyOne) ? null : poly, geom, layer, null, null, null);
+							actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, null, null, null);
 					} else
 					{
 						reportError(NOTCHERROR, null, cell, minWidthRule.value,
-							actual, minWidthRule.rule, (onlyOne) ? null : poly, geom, layer, poly, geom, layer);
+							actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, poly, geom, layer);
 					}
 					return true;
 				}
@@ -2319,7 +2429,7 @@ public class Quick
                         ? new PolyBase(((PolyQTree.PolyNode)listObj).getPoints(true))
                         : (PolyBase)listObj;
 
-				reportError(errorType, null, cell, minRule.value, area, minRule.rule,
+				reportError(errorType, null, cell, minRule.value, area, minRule.ruleName,
 						simplePn, null /*ni*/, layer, null, null, null);
 			}
 		}
@@ -2625,7 +2735,7 @@ public class Quick
 	{
 		Point2D pt1 = new Point2D.Double();
 		Point2D pt2 = new Point2D.Double();
-		int intervening = findInterveningPoints(poly1, poly2, pt1, pt2, true);
+		findInterveningPoints(poly1, poly2, pt1, pt2, true);
 
 		// compute bounds for searching inside cells
 		double flx = Math.min(pt1.getX(), pt2.getX());   double fhx = Math.max(pt1.getX(), pt2.getX());
@@ -2854,7 +2964,7 @@ public class Quick
 		if (!layer.getFunction().isPoly()) return false;
 		// One layer must be select and other polysilicon. They are not connected
 
-		DRCRules.DRCRule minOverlapRule = DRC.getMinValue(layer, DRCTemplate.POLYSELECT);
+		DRCRules.DRCRule minOverlapRule = DRC.getMinValue(layer, DRCTemplate.EXTENSION, techMode);
 		if (minOverlapRule == null) return false;
 
 		Rectangle2D polyBnd = poly.getBounds2D();
@@ -2873,7 +2983,7 @@ public class Quick
             for (Iterator it = polyList.iterator(); it.hasNext(); )
             {
                 PolyBase nPoly = (PolyBase)it.next();
-                reportError(POLYSELECTERROR, "Polysilicon not covered, ", cell, minOverlapRule.value, -1, minOverlapRule.rule,
+                reportError(POLYSELECTERROR, "Polysilicon not covered, ", cell, minOverlapRule.value, -1, minOverlapRule.ruleName,
                             nPoly, geom, layer, null, null, null);
             }
 		}
@@ -2891,7 +3001,7 @@ public class Quick
 			boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, extraPoints, founds);
 
 			if (!foundAll)
-				reportError(POLYSELECTERROR, "No enough surround, ", geom.getParent(), minOverlapRule.value, -1, minOverlapRule.rule,
+				reportError(POLYSELECTERROR, "No enough surround, ", geom.getParent(), minOverlapRule.value, -1, minOverlapRule.ruleName,
 									 poly, geom, layer, null, null, null);
 		}
 		return (!found);
@@ -2909,7 +3019,7 @@ public class Quick
 	        if (g == geom) continue;
 			if (!(g instanceof NodeInst))
             {
-                if (Main.LOCALDEBUGFLAG)
+                if (Main.LOCALDEBUGFLAG && !DRC.isIgnorePolySelectChecking())
                     System.out.println("Skipping arcs!");
                 continue; // Skipping arcs!!!!
             }
@@ -3317,7 +3427,6 @@ public class Quick
 		// search for adjoining transistor in the cell
 		boolean cropped = false;
 		boolean halved = false;
-		int count = 0;
 		for(int i=0; i<2; i++)
 		{
 			Connection con = ai.getConnection(i);
@@ -3431,8 +3540,8 @@ public class Quick
 	 * "tech" and library "lib".  If "con" is true, the layers are connected.  Also forces
 	 * connectivity for same-implant layers.
 	 */
-	private DRCRules.DRCRule getAdjustedMinDist(Layer layer1, double size1,
-	                                   Layer layer2, double size2, boolean con, boolean multi)
+	private DRCRules.DRCRule getAdjustedMinDist(Layer layer1, double size1, Layer layer2, double size2,
+                                                boolean con, boolean multi)
 	{
 		// if they are implant on the same layer, they connect
 		if (!con && layer1 == layer2)
@@ -3449,7 +3558,7 @@ public class Quick
 		// see how close they can get.
 		double wideS = (size1 > size2) ? size1 : size2;
 
-		return (DRC.getSpacingRule(layer1, layer2, con, multi, wideS));
+		return (DRC.getSpacingRule(layer1, layer2, con, multi, wideS, techMode));
 	}
 
 	/**
@@ -3484,7 +3593,7 @@ public class Quick
 		// build the node table
         if (layersInterNodes != null && old != null && job != null)
         {
-	        ErrorLogger.MessageLog err =  errorLogger.logWarning("Switching from '" + old.getTechName() +
+	        errorLogger.logWarning("Switching from '" + old.getTechName() +
 	                "' to '" +  tech.getTechName() + "' in DRC process. Check for non desired nodes in cell '" +
 	                job.cell.describe() + "'", null, -1);
         }
@@ -3494,7 +3603,6 @@ public class Quick
 		{
 			PrimitiveNode np = (PrimitiveNode)it.next();
 			boolean [] layersInNode = new boolean[numLayers];
-			//for(int i=0; i<numLayers; i++) layersInNode[i] = false;   // Sept 30
             Arrays.fill(layersInNode, false);
 
 			Technology.NodeLayer [] layers = np.getLayers();
@@ -3568,7 +3676,7 @@ public class Quick
 	 * Method to recursively scan cell "cell" (transformed with "trans") searching
 	 * for DRC Exclusion nodes.  Each node is added to the global list "exclusionList".
 	 */
-	private void accumulateExclusion(Cell cell, AffineTransform upTrans)
+	private void accumulateExclusion(Cell cell)
 	{
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -3607,8 +3715,8 @@ public class Quick
 			if (np instanceof Cell)
 			{
 				// examine contents
-				AffineTransform tTrans = ni.translateOut(ni.rotateOut());
-				accumulateExclusion((Cell)np, tTrans);
+//				AffineTransform tTrans = ni.translateOut(ni.rotateOut());
+				accumulateExclusion((Cell)np);
 			}
 		}
 	}
@@ -3666,16 +3774,19 @@ public class Quick
 
 		// Message already logged
         boolean onlyWarning = (errorType == ZEROLENGTHARCWARN || errorType == TECHMIXWARN);
-		if ( geom2 != null && errorLogger.findMessage(cell, geom1, geom2.getParent(), geom2, !onlyWarning))
+        // Until a decent algorithm is in place for detecting repeated errors, ERROR_CHECK_EXHAUSTIVE might report duplicate errros
+		if ( geom2 != null && errorTypeSearch != DRC.ERROR_CHECK_EXHAUSTIVE && errorLogger.findMessage(cell, geom1, geom2.getParent(), geom2, !onlyWarning))
             return;
 
 		StringBuffer errorMessage = new StringBuffer();
 		int sortLayer = cell.hashCode(); // 0;
-		if (errorType == SPACINGERROR || errorType == NOTCHERROR)
+		if (errorType == SPACINGERROR || errorType == NOTCHERROR || errorType == SURROUNDERROR)
 		{
 			// describe spacing width error
 			if (errorType == SPACINGERROR)
 				errorMessage.append("Spacing");
+			else if (errorType == SURROUNDERROR)
+				errorMessage.append("Surround");
 			else
 				errorMessage.append("Notch");
 			if (layer1 == layer2)
@@ -3716,6 +3827,10 @@ public class Quick
 			StringBuffer errorMessagePart2 = null;
 			switch (errorType)
 			{
+                case FORBIDDEN:
+                    errorMessage.append("Forbidden error:");
+					errorMessagePart2 = new StringBuffer(msg);
+                    break;
 				case MINAREAERROR:
 					errorMessage.append("Minimum area error:");
 					errorMessagePart2 = new StringBuffer(", layer " + layer1.getName());
@@ -4084,7 +4199,6 @@ public class Quick
                 otherTypeMergeMap.put(cell, thisOtherMerge);
                 firstTime = true;
             }
-            AffineTransform rTrans = info.getTransformToRoot();
 
 			// Check Arcs too if network is not null
 			if (firstTime)
@@ -4111,7 +4225,6 @@ public class Quick
 								polyLayer = layer;
 							layer = polyLayer;
 						}
-						//poly.transform(rTrans);
 
                         addElement(thisMerge, thisOtherMerge, poly, layer, false);
 					}
@@ -4171,9 +4284,6 @@ public class Quick
 			NodeInst ni = no.getNodeInst();
 			AffineTransform trans = ni.rotateOut();
 			NodeProto np = ni.getProto();
-//			AffineTransform root = info.getTransformToRoot();
-//			if (root.getType() != AffineTransform.TYPE_IDENTITY)
-//				trans.preConcatenate(root);
 
 			// Cells
 			if (!(np instanceof PrimitiveNode)) return (true);
@@ -4232,11 +4342,6 @@ public class Quick
                 mainMerge.add(layer, obj, false);
             else
                 otherTypeMerge.add(layer, obj, false);
-
-//						if (layer.getFunction().isMetal() || layer.getFunction().isPoly())
-//							mainMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
-//						else
-//							otherTypeMerge.add(layer, new PolyQTree.PolyNode(poly.getBounds2D()), false);
         }
     }
 }

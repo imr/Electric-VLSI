@@ -3254,24 +3254,24 @@ public class MoCMOS extends Technology
 				// find the layer names
 				Layer lay1 = null;
 				int layert1 = -1;
-				if (theRules[i].layer1 != null)
+				if (theRules[i].name1 != null)
 				{
-					lay1 = findLayer(theRules[i].layer1);
+					lay1 = findLayer(theRules[i].name1);
 					if (lay1 == null)
 					{
-						System.out.println("Warning: no layer '" + theRules[i].layer1 + "' in mocmos technology");
+						System.out.println("Warning: no layer '" + theRules[i].name1 + "' in mocmos technology");
 						return null;
 					}
 					layert1 = lay1.getIndex();
 				}
 				Layer lay2 = null;
 				int layert2 = -1;
-				if (theRules[i].layer2 != null)
+				if (theRules[i].name2 != null)
 				{
-					lay2 = findLayer(theRules[i].layer2);
+					lay2 = findLayer(theRules[i].name2);
 					if (lay2 == null)
 					{
-						System.out.println("Warning: no layer '" + theRules[i].layer2 + "' in mocmos technology");
+						System.out.println("Warning: no layer '" + theRules[i].name2 + "' in mocmos technology");
 						return null;
 					}
 					layert2 = lay2.getIndex();
@@ -3281,7 +3281,7 @@ public class MoCMOS extends Technology
 				int index = -1;
 				if (layert1 >= 0 && layert2 >= 0)
 				{
-					index = getLayerIndex(layert1, layert2);
+					index = getRuleIndex(layert1, layert2);
 				}
 
 				// find the nodes and arcs associated with the rule
@@ -3348,7 +3348,7 @@ public class MoCMOS extends Technology
 							System.out.println("Error in swap old tech");
 						rules.minWidth[layert1] = new Double(distance);
 						rules.minWidthRules[layert1] = rule;
-						setLayerMinWidth(theRules[i].layer1, theRules[i].rule, distance);
+						setLayerMinWidth(theRules[i].name1, theRules[i].rule, distance);
 						break;
 					case DRCTemplate.NODSIZ:
 						setDefNodeSize(nty, distance, distance, rules);
@@ -3448,7 +3448,7 @@ public class MoCMOS extends Technology
 		for(int l1=0; l1<tech.getNumLayers(); l1++)
 			for(int l2=0; l2<=l1; l2++)
 		{
-			int i = tech.getLayerIndex(l2, l1);
+			int i = tech.getRuleIndex(l2, l1);
 			if (!newRules.conList[i].equals(origRules.conList[i]))
 			{
 				changes.append("c:"+tech.getLayer(l1).getName()+"/"+tech.getLayer(l2).getName()+"="+newRules.conList[i]+";");

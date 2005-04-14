@@ -24,7 +24,6 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
@@ -34,24 +33,19 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.DRCRules;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.Rectangle2D;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
+import java.util.*;
 import java.util.prefs.Preferences;
 
 /**
@@ -62,6 +56,7 @@ public class DRC extends Listener
 	/** the DRC tool. */								protected static DRC tool = new DRC();
 	/** overrides of rules for each technology. */		private static HashMap prefDRCOverride = new HashMap();
 	/** map of cells and their objects to DRC */		private static HashMap cellsToCheck = new HashMap();
+    /** static list of all Manufacturers in Electric */     private static List foundries;
 	private static boolean incrementalRunning = false;
     /** key of Variable for last valid DRC date on a Cell. */
     private static final Variable.Key DRC_LAST_GOOD_DATE = ElectricObject.newKey("DRC_last_good_drc_date");
@@ -69,6 +64,8 @@ public class DRC extends Listener
     private static final Variable.Key DRC_LAST_GOOD_BIT = ElectricObject.newKey("DRC_last_good_drc_bit");
     public static final int DRC_BIT_AREA = 01; /* Min area condition */
     public static final int DRC_BIT_COVERAGE = 02;   /* Coverage DRC condition */
+    public static final int DRC_BIT_ST_FOUNDRY = 03; /* For ST foundry selection */
+    public static final int DRC_BIT_TSMC_FOUNDRY = 04; /* For TSMC foundry selection */
     /** Control different level of error checking */
     public static final int ERROR_CHECK_DEFAULT = 0;    /** DRC stops after first error between 2 nodes is found (default) */
     public static final int ERROR_CHECK_CELL = 1;       /** DRC stops after first error per cell is found */
@@ -97,6 +94,12 @@ public class DRC extends Listener
 	private DRC()
 	{
 		super("drc");
+
+        // Initialize foundries
+        foundries = new ArrayList();
+        foundries.add(new Foundry("Combined", DRCTemplate.ALL));
+        foundries.add(new Foundry("TSMC", DRCTemplate.TSMC));
+        foundries.add(new Foundry("ST", DRCTemplate.ST));
 	}
 
     /**
@@ -112,6 +115,41 @@ public class DRC extends Listener
      * @return the DRC tool.
      */
     public static DRC getDRCTool() { return tool; }
+
+
+    /********************* Foundry **********************/
+    public static class Foundry
+    {
+        public String name;
+        public int techMode; // this value goes according to DRCTemplate.mode
+
+        Foundry(String name, int mode)
+        {
+            this.name = name;
+            this.techMode = mode;
+        }
+    }
+
+    /**
+	 * Get an iterator over all of the Manufacturers.
+	 * @return an iterator over all of the Manufacturers.
+	 */
+	public static Iterator getFactories()
+	{
+		return foundries.iterator();
+	}
+
+    public static int getFoundry()
+    {
+        String foundryName = getUserFoundry();
+        for (int i = 0; i < foundries.size(); i++)
+        {
+            Foundry man = (Foundry)foundries.get(i);
+            if (man.name.equals(foundryName))
+                return man.techMode;
+        }
+        return DRCTemplate.NONE;
+    }
 
 	private static void includeGeometric(Geometric geom)
 	{
@@ -178,7 +216,7 @@ public class DRC extends Listener
 			int i = 0;
 			for(Iterator it = cellSet.iterator(); it.hasNext(); )
 				objectsToCheck[i++] = (Geometric)it.next();
-			CheckLayoutIncrementally job = new CheckLayoutIncrementally(cellToCheck, objectsToCheck);
+			new CheckLayoutIncrementally(cellToCheck, objectsToCheck);
 		}
 	}
 
@@ -282,11 +320,11 @@ public class DRC extends Listener
 			curCell.isIcon() || curCell.getTechnology() == Artwork.tech)
 		{
 			// hierarchical check of schematics
-			CheckSchematicHierarchically job = new CheckSchematicHierarchically(curCell, bounds);
+			new CheckSchematicHierarchically(curCell, bounds);
 		} else
 		{
 			// hierarchical check of layout
-			CheckLayoutHierarchically job = new CheckLayoutHierarchically(curCell, bounds, mode);
+			new CheckLayoutHierarchically(curCell, bounds, mode);
 		}
 	}
 
@@ -522,16 +560,17 @@ public class DRC extends Listener
 	 * @param layer2 the second layer.
 	 * @param connected true to find the distance when the layers are connected.
 	 * @param multiCut true to find the distance when this is part of a multicut contact.
+     * @param techMode to choose betweeb ST or TSMC foundry
 	 * @return the spacing rule between the layers.
 	 * Returns null if there is no spacing rule.
 	 */
 	public static DRCRules.DRCRule getSpacingRule(Layer layer1, Layer layer2, boolean connected,
-	                                  boolean multiCut, double wideS)
+                                                  boolean multiCut, double wideS, int techMode)
 	{
 		Technology tech = layer1.getTechnology();
 		DRCRules rules = getRules(tech);
 		if (rules == null) return null;
-        return (rules.getSpacingRule(tech, layer1, layer2, connected, multiCut, wideS));
+        return (rules.getSpacingRule(tech, layer1, layer2, connected, multiCut, wideS, techMode));
 	}
 
 	/**
@@ -553,16 +592,35 @@ public class DRC extends Listener
 	 * where <type> is the rule type. E.g. MinWidth or Area
 	 * @param layer the Layer to examine.
 	 * @param type rule type
+     * @param techmode to choose betweeb ST or TSMC foundry
 	 * @return the minimum width rule for the layer.
 	 * Returns null if there is no minimum width rule.
 	 */
-	public static DRCRules.DRCRule getMinValue(Layer layer, int type)
+	public static DRCRules.DRCRule getMinValue(Layer layer, int type, int techmode)
 	{
 		Technology tech = layer.getTechnology();
 		DRCRules rules = getRules(tech);
 		if (rules == null) return null;
-        return (rules.getMinValue(layer, type));
+        return (rules.getMinValue(layer, type, techmode));
 	}
+
+    /**
+     * Determine if node represented by index in DRC mapping table is forbidden under
+     * this foundry
+     * @param elemIndex
+     * @param type
+     * @param tech
+     * @param techmode
+     * @return
+     */
+    public static boolean isForbiddenNode(int elemIndex, int type, Technology tech, int techmode)
+    {
+        DRCRules rules = getRules(tech);
+        if (rules == null) return false;
+        int index = elemIndex;
+        if (type == DRCTemplate.FORBIDDEN) index += tech.getNumLayers();
+        return (rules.isForbiddenNode(index, type, techmode));
+    }
 
 	/**
 	 * Method to get the minimum size rule for a NodeProto.
@@ -577,8 +635,6 @@ public class DRC extends Listener
 		if (pnp.getMinWidth() < 0 && pnp.getMinHeight() < 0) return null;
 		return new NodeSizeRule(pnp.getMinWidth(), pnp.getMinHeight(), pnp.getMinSizeRule());
 	}
-
-
 
 	/****************************** SUPPORT FOR DESIGN RULES ******************************/
 
@@ -620,6 +676,75 @@ public class DRC extends Listener
 		}
 		pref.setString(sb.toString());
 	}
+
+
+    /**
+     * Method to tell the date of the last successful DRC of a given Cell.
+     * @param cell the cell to query.
+     * @return the date of the last successful DRC of that Cell.
+     */
+    public static Date getLastDRCDateBasedOnBits(Cell cell, int activeBits)
+    {
+        Variable varDate = cell.getVar(DRC_LAST_GOOD_DATE, Integer[].class);
+        if (varDate == null) return null;
+        Variable varBits = cell.getVar(DRC_LAST_GOOD_BIT, Integer.class);
+        int thisByte = ((Integer)varBits.getObject()).intValue();
+        boolean area = (thisByte & DRC_BIT_AREA) == (activeBits & DRC_BIT_AREA);
+        boolean coverage = (thisByte & DRC_BIT_COVERAGE) == (activeBits & DRC_BIT_COVERAGE);
+        int techMode = getFoundry();
+        // DRC date is invalid if conditions were checked for another foundry
+        boolean sameManufacturer = (thisByte & DRC_BIT_TSMC_FOUNDRY) == (activeBits & DRC_BIT_TSMC_FOUNDRY) &&
+                (thisByte & DRC_BIT_ST_FOUNDRY) == (activeBits & DRC_BIT_ST_FOUNDRY);
+        if (activeBits != 0 && (!area || !coverage || !sameManufacturer))
+            return null;
+        Integer [] lastDRCDateAsInts = (Integer [])varDate.getObject();
+        long lastDRCDateInSecondsHigh = lastDRCDateAsInts[0].intValue();
+        long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
+        long lastDRCDateInSeconds = (lastDRCDateInSecondsHigh << 32) | (lastDRCDateInSecondsLow & 0xFFFFFFFFL);
+        Date lastDRCDate = new Date(lastDRCDateInSeconds);
+        return lastDRCDate;
+    }
+
+    /**
+     * Method to set the date of the last successful DRC of a given Cell.
+     * @param cell the cell to modify.
+     * @param date the date of the last successful DRC of that Cell.
+     * @param bits extra bits to set
+     */
+    public static void setLastDRCDateAndBits(Cell cell, Date date, int bits)
+    {
+        long iVal = date.getTime();
+        Integer [] dateArray = new Integer[2];
+        dateArray[0] = new Integer((int)(iVal >> 32));
+        dateArray[1] = new Integer((int)(iVal & 0xFFFFFFFF));
+        cell.newVar(DRC_LAST_GOOD_DATE, dateArray);
+        Integer b = new Integer(bits);
+        cell.newVar(DRC_LAST_GOOD_BIT, b);
+    }
+
+    /**
+     * Method to clean any DRC date stored previously
+     * @param cell the cell to clean
+     */
+    public static void cleanDRCDateAndBits(Cell cell)
+    {
+        cell.delVar(DRC_LAST_GOOD_DATE);
+        cell.delVar(DRC_LAST_GOOD_BIT);
+    }
+
+    public static int getActiveBits()
+    {
+        int bits = 0;
+        if (!isIgnoreAreaChecking()) bits |= DRC_BIT_AREA;
+        if (!isIgnorePolySelectChecking()) bits |= DRC_BIT_COVERAGE;
+        // Adding foundry to bits set
+        int foundry = getFoundry();
+        if (foundry != DRCTemplate.ALL)
+            bits |= (foundry == DRCTemplate.ST) ? DRC_BIT_ST_FOUNDRY : DRC_BIT_TSMC_FOUNDRY;
+//        bits |= getFoundry();
+        return bits;
+    }
+
 
     /****************************** OPTIONS ******************************/
 
@@ -719,68 +844,24 @@ public class DRC extends Listener
 	 */
 	public static void setIgnorePolySelectChecking(boolean on) { cacheIgnorePolySelectChecking.setBoolean(on); }
 
-	public static final Variable.Key POSTSCRIPT_FILEDATE = ElectricObject.newKey("IO_postscript_filedate");
+    private static Pref cacheFoundry = Pref.makeStringPref("Foundry", User.tool.prefs, "TSMC");
+	static { cacheFoundry.attachToObject(User.tool, "Tools/DRC tab", "Foundry for DRC rules"); }
 	/**
-	 * Method to tell the date of the last successful DRC of a given Cell.
-	 * @param cell the cell to query.
-	 * @return the date of the last successful DRC of that Cell.
+	 * Method to get foundry in Tech Palette. Different foundry can define different DRC rules.
+	 * The default is "Generic".
+	 * @return the foundry to use in Tech Palette
 	 */
-	public static Date getLastDRCDateBasedOnBits(Cell cell, byte activeBits)
-	{
-		Variable varDate = cell.getVar(DRC_LAST_GOOD_DATE, Integer[].class);
-		if (varDate == null) return null;
-
-        Variable varBits = cell.getVar(DRC_LAST_GOOD_BIT, Byte.class);
-        byte thisByte = ((Byte)varBits.getObject()).byteValue();
-        boolean area = (thisByte & DRC_BIT_AREA) == (activeBits & DRC_BIT_AREA);
-        boolean coverage = (thisByte & DRC_BIT_COVERAGE) == (activeBits & DRC_BIT_COVERAGE);
-        if (activeBits != 0 && (!area || !coverage))
-        //if ((((Byte)varBits.getObject()).byteValue() & activeBits) == 0 )
-        {
-            return null;
-        }
-
-		Integer [] lastDRCDateAsInts = (Integer [])varDate.getObject();
-		long lastDRCDateInSecondsHigh = lastDRCDateAsInts[0].intValue();
-		long lastDRCDateInSecondsLow = lastDRCDateAsInts[1].intValue();
-		long lastDRCDateInSeconds = (lastDRCDateInSecondsHigh << 32) | (lastDRCDateInSecondsLow & 0xFFFFFFFFL);
-		Date lastDRCDate = new Date(lastDRCDateInSeconds);
-		return lastDRCDate;
-	}
-	
+	public static String getUserFoundry() { return cacheFoundry.getString(); }
 	/**
-	 * Method to set the date of the last successful DRC of a given Cell.
-	 * @param cell the cell to modify.
-	 * @param date the date of the last successful DRC of that Cell.
-     * @param bits extra bits to set
+	 * Method to set foundry for DRC rules.
+	 * @param t the foundry for DRC rules.
 	 */
-	public static void setLastDRCDateAndBits(Cell cell, Date date, byte bits)
-	{
-		long iVal = date.getTime();
-		Integer [] dateArray = new Integer[2];
-		dateArray[0] = new Integer((int)(iVal >> 32));
-		dateArray[1] = new Integer((int)(iVal & 0xFFFFFFFF));
-		cell.newVar(DRC_LAST_GOOD_DATE, dateArray);
-        Byte b = new Byte(bits);
-        cell.newVar(DRC_LAST_GOOD_BIT, b);
-	}
-
-	/**
-	 * Method to clean any DRC date stored previously
-	 * @param cell the cell to clean
-	 */
-	public static void cleanDRCDateAndBits(Cell cell)
-	{
-		cell.delVar(DRC_LAST_GOOD_DATE);
-        cell.delVar(DRC_LAST_GOOD_BIT);
-	}
-
-    public static byte getActiveBits()
+	public static void setUserFoundry(String t)
     {
-        byte bits = 0;
-        if (!isIgnoreAreaChecking()) bits |= DRC_BIT_AREA;
-        if (!isIgnorePolySelectChecking()) bits |= DRC_BIT_COVERAGE;
-        return bits;
+        cacheFoundry.setString(t);
+        // It also resets the current set of rules cached.
+        currentRules = null;
     }
 
+	public static final Variable.Key POSTSCRIPT_FILEDATE = ElectricObject.newKey("IO_postscript_filedate");
 }

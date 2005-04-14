@@ -23,30 +23,29 @@
  */
 package com.sun.electric.technology;
 
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.ElectricObject;
-
 public interface DRCRules {
 	public void setMinNodeSize(int index, double value);
 	public double getWorstSpacingDistance();
     public double getMaxSurround(Technology tech, Layer layer, double maxSize);
     public DRCRule getEdgeRule(Technology tech, Layer layer1, Layer layer2);
     public DRCRules.DRCRule getSpacingRule(Technology tech, Layer layer1, Layer layer2, boolean connected,
-                                           boolean multiCut, double wideS);
+                                           boolean multiCut, double wideS, int techMode);
     public boolean isAnyRule(Technology tech, Layer layer1, Layer layer2);
 	public int getNumberOfRules();
-    public DRCRules.DRCRule getMinValue(Layer layer, int type);
+    public DRCRules.DRCRule getMinValue(Layer layer, int type, int techMode);
     public void applyDRCOverrides(String override, Technology tech);
-    
+    public boolean isForbiddenNode(int nodeIndex, int type, int techMode);
     public static class DRCRule
 	{
 		public double value;
-		public String rule;
+		public String ruleName;
+		public int type;
 
-		public DRCRule(double distance, String rule)
+		public DRCRule(double distance, String rule, int type)
 		{
 			this.value = distance;
-			this.rule = rule;
+			this.ruleName = rule;
+            this.type = type;
 		}
 	}
 }

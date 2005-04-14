@@ -79,7 +79,9 @@ public class MOSRules implements DRCRules {
 		// compute sizes
 		numLayers = tech.getNumLayers();
 		numNodes = tech.getNumNodes();
-		uTSize = (numLayers * numLayers + numLayers) / 2;
+        int numIndices = numLayers + numNodes;
+		uTSize = (numIndices * numIndices + numIndices) / 2;
+        //uTSize = (numLayers * numLayers + numLayers) / 2;
 
 		// initialize the width limit
 		wideLimit = new Double(0);
@@ -156,6 +158,18 @@ public class MOSRules implements DRCRules {
 		}
 	}
 
+    /**
+     * Method to determine if given node is not allowed by foundry
+     * @param nodeIndex index of node in DRC rules map to examine
+     * @param type rule type
+     * @param techMode foundry
+     * @return
+     */
+    public boolean isForbiddenNode(int nodeIndex, int type, int techMode)
+    {
+        return false;
+    }
+
 	/**
 	 * Method to create a set of Design Rules from some simple spacing arrays.
 	 * Used by simpler technologies that do not have full-sets of design rules.
@@ -219,7 +233,7 @@ public class MOSRules implements DRCRules {
 
 		for(int i=0; i<tot; i++)
 		{
-			int pIndex = tech.getLayerIndex(layerIndex, i);
+			int pIndex = tech.getRuleIndex(layerIndex, i);
 			double dist = unConList[pIndex].doubleValue();
 			if (dist > worstLayerRule) worstLayerRule = dist;
 			if (maxSize > wide)
@@ -241,10 +255,10 @@ public class MOSRules implements DRCRules {
 	 */
 	public DRCRule getEdgeRule(Technology tech, Layer layer1, Layer layer2)
 	{
-		int pIndex = tech.getLayerIndex(layer1.getIndex(), layer2.getIndex());
+		int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
 		double dist = edgeList[pIndex].doubleValue();
 		if (dist < 0) return null;
-		return new DRCRule(dist, edgeListRules[pIndex]);
+		return new DRCRule(dist, edgeListRules[pIndex], DRCTemplate.SPACINGE);
 	}
 
      /**
@@ -257,9 +271,9 @@ public class MOSRules implements DRCRules {
 	 * Returns null if there is no spacing rule.
 	 */
 	public DRCRules.DRCRule getSpacingRule(Technology tech, Layer layer1, Layer layer2, boolean connected,
-                                           boolean multiCut, double wideS)
+                                           boolean multiCut, double wideS, int techMode)
 	{
-		int pIndex = tech.getLayerIndex(layer1.getIndex(), layer2.getIndex());
+		int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
 
 		double bestDist = -1;
 		String rule = null;
@@ -299,7 +313,7 @@ public class MOSRules implements DRCRules {
 			}
 		}
 		if (bestDist < 0) return null;
-		return new DRCRules.DRCRule(bestDist, rule);
+		return new DRCRules.DRCRule(bestDist, rule, DRCTemplate.SPACING);
 	}
 
     /**
@@ -310,7 +324,7 @@ public class MOSRules implements DRCRules {
      */
     public boolean isAnyRule(Technology tech, Layer layer1, Layer layer2)
     {
-        int pIndex = tech.getLayerIndex(layer1.getIndex(), layer2.getIndex());
+        int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
         if (conList[pIndex].doubleValue() >= 0) return true;
         if (unConList[pIndex].doubleValue() >= 0) return true;
         if (conListWide[pIndex].doubleValue() >= 0) return true;
@@ -364,10 +378,11 @@ public class MOSRules implements DRCRules {
 	 * where <type> is the rule type. E.g. MinWidth or Area
 	 * @param layer the Layer to examine.
 	 * @param type rule type
+     * @param techmode to choose betweeb ST or TSMC
 	 * @return the minimum width rule for the layer.
 	 * Returns null if there is no minimum width rule.
 	 */
-    public DRCRules.DRCRule getMinValue(Layer layer, int type)
+    public DRCRules.DRCRule getMinValue(Layer layer, int type, int techmode)
 	{
 	    if (type != DRCTemplate.MINWID) return (null);
 	    
@@ -375,7 +390,7 @@ public class MOSRules implements DRCRules {
         double dist = minWidth[index].doubleValue();
 
         if (dist < 0) return null;
-		return (new DRCRules.DRCRule(dist, minWidthRules[index]));
+		return (new DRCRules.DRCRule(dist, minWidthRules[index], DRCTemplate.MINWID));
 	}
 
     /**
@@ -410,7 +425,7 @@ public class MOSRules implements DRCRules {
 				endKey = override.indexOf(';', startKey);
 				if (endKey < 0) break;
 				String newValue = override.substring(startKey+1, endKey);
-				int index = tech.getLayerIndex(layer1.getIndex(), layer2.getIndex());
+				int index = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
 				if (key.equals("c"))
 				{
 					conList[index] = new Double(TextUtils.atof(newValue));

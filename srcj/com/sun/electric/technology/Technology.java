@@ -54,7 +54,6 @@ import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TechPalette;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -497,7 +496,7 @@ public class Technology implements Comparable
 	/** full description of this technology */				private String techDesc;
 	/** flags for this technology */						private int userBits;
 	/** 0-based index of this technology */					private int techIndex;
-	/** critical dimensions for this technology */			private double scale;
+	///** critical dimensions for this technology */			private double scale;
 	/** true if "scale" is relevant to this technology */	private boolean scaleRelevant;
 	/** number of transparent layers in technology */		private int transparentLayers;
 	/** the saved transparent colors for this technology */	private Pref [] transparentColorPrefs;
@@ -505,6 +504,7 @@ public class Technology implements Comparable
 	/** list of layers in this technology */				private List layers;
 	/** count of layers in this technology */				private int layerIndex = 0;
 	/** list of primitive nodes in this technology */		private LinkedHashMap nodes = new LinkedHashMap();
+    /** count of primitive nodes in this technology */      private int nodeIndex = 0;
 	/** list of arcs in this technology */					private LinkedHashMap arcs = new LinkedHashMap();
 	/** list of NodeLayers in this Technology. */			private List nodeLayers;
 	/** Spice header cards, level 1. */						private String [] spiceHeaderLevel1;
@@ -532,7 +532,7 @@ public class Technology implements Comparable
 		this.techName = techName;
 		this.layers = new ArrayList();
 		this.nodeLayers = new ArrayList();
-		this.scale = 1.0;
+		//this.scale = 1.0;
 		this.scaleRelevant = true;
 		this.techIndex = techNumber++;
 		userBits = 0;
@@ -821,18 +821,37 @@ public class Technology implements Comparable
 	}
 
     /**
-	 * Method to determine the index in the upper-left triangle array for two layers.
-	 * @param layer1Index the first layer index.
-	 * @param layer2Index the second layer index.
-	 * @return the index in the array that corresponds to these two layers.
+	 * Method to determine the index in the upper-left triangle array for two layers/nodes.
+	 * @param index1 the first layer/node index.
+	 * @param index2 the second layer/node index.
+	 * @return the index in the array that corresponds to these two layers/nodes.
 	 */
-	public int getLayerIndex(int layer1Index, int layer2Index)
+	public int getRuleIndex(int index1, int index2)
 	{
-		if (layer1Index > layer2Index) { int temp = layer1Index; layer1Index = layer2Index;  layer2Index = temp; }
-		int pIndex = (layer1Index+1) * (layer1Index/2) + (layer1Index&1) * ((layer1Index+1)/2);
-		pIndex = layer2Index + getNumLayers() * layer1Index - pIndex;
+		if (index1 > index2) { int temp = index1; index1 = index2;  index2 = temp; }
+		int pIndex = (index1+1) * (index1/2) + (index1&1) * ((index1+1)/2);
+		pIndex = index2 + (getNumLayers() + getNumNodes()) * index1 - pIndex;
 		return pIndex;
 	}
+
+    /**
+     * Method to determine index of layer or node involved in the rule
+     * @param name name of the layer or node
+     * @return
+     */
+    public int getRuleNodeIndex(String name)
+    {
+        // Checking if node is found
+        // Be careful because iterator might change over time?
+        int count = 0;
+        for (Iterator it = getNodes(); it.hasNext(); count++)
+        {
+            PrimitiveNode pn = (PrimitiveNode)it.next();
+            if (pn.getName().equalsIgnoreCase(name))
+                return (getNumLayers() + count);
+        }
+        return -1;
+    }
 
     public static Layer getLayerFromOverride(String override, int startPos, char endChr, Technology tech)
     {
@@ -1271,6 +1290,7 @@ public class Technology implements Comparable
 	public void addNodeProto(PrimitiveNode np)
 	{
 		assert findNodeProto(np.getName()) == null;
+        np.setPrimNodeIndexInTech(nodeIndex++);
 		nodes.put(np.getName(), np);
 	}
 

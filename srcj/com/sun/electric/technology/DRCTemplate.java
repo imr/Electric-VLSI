@@ -29,11 +29,12 @@ import java.util.ArrayList;
 /**
  * Class to define rules from TSCM files...
  */
-public class DRCTemplate
+public final class DRCTemplate
 {
     // design rule constants
     
     // the meaning of "when" in the DRC table
+    /** None */                                                         public static final int NONE =    -1;
     /** always */			                                            public static final int ALL =      0;
     /** only applies if there are 2 metal layers in process */			public static final int M2 =      01;
     /** only applies if there are 3 metal layers in process */			public static final int M3 =      02;
@@ -41,11 +42,11 @@ public class DRCTemplate
     /** only applies if there are 5 metal layers in process */			public static final int M5 =     010;
     /** only applies if there are 6 metal layers in process */			public static final int M6 =     020;
     /** only applies if there are 2-3 metal layers in process */		public static final int M23 =     03;
-    /** only applies if there are 2-4 metal layers in process */		public static final int M234 =    07;
-    /** only applies if there are 2-5 metal layers in process */		public static final int M2345 =  017;
+//    /** only applies if there are 2-4 metal layers in process */		public static final int M234 =    07;
+//    /** only applies if there are 2-5 metal layers in process */		public static final int M2345 =  017;
     /** only applies if there are 4-6 metal layers in process */		public static final int M456 =   034;
     /** only applies if there are 5-6 metal layers in process */		public static final int M56 =    030;
-    /** only applies if there are 3-6 metal layers in process */		public static final int M3456 =  036;
+//    /** only applies if there are 3-6 metal layers in process */		public static final int M3456 =  036;
 
     /** only applies if alternate contact rules are in effect */		public static final int AC =     040;
     /** only applies if alternate contact rules are not in effect */	public static final int NAC =   0100;
@@ -54,6 +55,9 @@ public class DRCTemplate
     /** only applies if deep rules are in effect */						public static final int DE =   01000;
     /** only applies if submicron rules are in effect */				public static final int SU =   02000;
     /** only applies if scmos rules are in effect */					public static final int SC =   04000;
+    /** only for TSMC technology */                                     public static final int TSMC = 010000;
+    /** only for ST technology */                                       public static final int ST =   020000;
+
 
     // the meaning of "ruletype" in the DRC table
     /** a minimum-width rule */			public static final int MINWID =     1;
@@ -78,24 +82,27 @@ public class DRCTemplate
     /** arc surround rule */			public static final int ASURROUND = 20;
     /** minimum area rule */			public static final int AREA = 21;
     /** enclosed area rule */			public static final int ENCLOSEDAREA = 22;
-	/** a poly select rule */           public static final int POLYSELECT = 23;
+	/** extension rule */               public static final int EXTENSION = 23;
+    /** forbidden rule */               public static final int FORBIDDEN = 24;
+    /** layer combination rule */       public static final int COMBINATION = 25;
 
     public String rule;			/* the name of the rule */
     public int when;				/* when the rule is used */
     public int ruleType;			/* the type of the rule */
-    public String layer1, layer2;	/* two layers that are used by the rule */
+    public String name1, name2;	/* two layers/nodes that are used by the rule */
     public double distance;		/* the spacing of the rule */
     public double maxW;         /* max length where spacing is valid */
     public String nodeName;		/* the node that is used by the rule */
 	public boolean multiCut;         /* multi cut rule */
 
-    public DRCTemplate(String rule, int when, int ruleType, String layer1, String layer2, double distance, String nodeName)
+
+    public DRCTemplate(String rule, int when, int ruleType, String name1, String name2, double distance, String nodeName)
     {
         this.rule = rule;
         this.when = when;
         this.ruleType = ruleType;
-        this.layer1 = layer1;
-        this.layer2 = layer2;
+        this.name1 = name1;
+        this.name2 = name2;
         this.distance = distance;
         this.nodeName = nodeName;
 
@@ -103,7 +110,7 @@ public class DRCTemplate
         {
             case SPACING:
                 {
-                    if (layer1 == null || layer2 == null)
+                    if (name1 == null || name2 == null)
                     {
                         System.out.println("Error: missing one layer in no '" + rule + "' ");
                     }
@@ -116,13 +123,13 @@ public class DRCTemplate
 	/**
 	 * For different spacing depending on wire length and multi cuts.
 	 */
-    public DRCTemplate(String rule, int when, int ruleType, double maxW, String layer1, String layer2, double distance, boolean multiCut)
+    public DRCTemplate(String rule, int when, int ruleType, double maxW, String name1, String name2, double distance, boolean multiCut)
     {
         this.rule = rule;
         this.when = when;
         this.ruleType = ruleType;
-        this.layer1 = layer1;
-        this.layer2 = layer2;
+        this.name1 = name1;
+        this.name2 = name2;
         this.distance = distance;
         this.maxW = maxW;
 		this.multiCut = multiCut;
@@ -131,7 +138,7 @@ public class DRCTemplate
         {
             case SPACING:
                 {
-                    if (layer1 == null || layer2 == null)
+                    if (name1 == null || name2 == null)
                     {
                         System.out.println("Error: missing one layer in no '" + rule + "' ");
                     }

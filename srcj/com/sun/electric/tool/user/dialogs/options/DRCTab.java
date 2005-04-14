@@ -28,9 +28,9 @@ import com.sun.electric.tool.drc.DRC;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Iterator;
 
 import javax.swing.JPanel;
-
 
 /**
  * Class to handle the "DRC" tab of the Preferences dialog.
@@ -86,6 +86,15 @@ public class DRCTab extends PreferencePanel
 		drcUseMultipleThreads.setEnabled(false);
 		drcNumberOfThreads.setEditable(false);
 		drcEditRulesDeck.setEnabled(false);
+        jLabel33.setEnabled(false);
+
+        // Foundry
+        for (Iterator it = DRC.getFactories(); it.hasNext(); )
+        {
+            DRC.Foundry factory = (DRC.Foundry)it.next();
+            defaultFoundryPulldown.addItem(factory.name);
+        }
+        defaultFoundryPulldown.setSelectedItem(DRC.getUserFoundry());
 	}
 
 	/**
@@ -128,6 +137,10 @@ public class DRCTab extends PreferencePanel
 			DRC.setIgnorePolySelectChecking(currentValue);
 
 		if (requestedDRCClearDates) DRC.resetDRCDates();
+
+        String foundryName = (String)defaultFoundryPulldown.getSelectedItem();
+        if (!foundryName.equals(DRC.getUserFoundry()))
+            DRC.setUserFoundry(foundryName);
 	}
 
 	/** This method is called from within the constructor to
@@ -155,6 +168,8 @@ public class DRCTab extends PreferencePanel
         drcIgnorePolySelect = new javax.swing.JCheckBox();
         drcIgnoreArea = new javax.swing.JCheckBox();
         firstSeparator = new javax.swing.JSeparator();
+        defaultFoundryLabel = new javax.swing.JLabel();
+        defaultFoundryPulldown = new javax.swing.JComboBox();
         jPanel6 = new javax.swing.JPanel();
         drcEditRulesDeck = new javax.swing.JButton();
 
@@ -243,7 +258,7 @@ public class DRCTab extends PreferencePanel
         drcUseMultipleThreads.setText("Use multiple threads");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
@@ -252,7 +267,7 @@ public class DRCTab extends PreferencePanel
         jLabel33.setText("Number of threads:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel5.add(jLabel33, gridBagConstraints);
@@ -260,13 +275,13 @@ public class DRCTab extends PreferencePanel
         drcNumberOfThreads.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridy = 1;
         jPanel5.add(drcNumberOfThreads, gridBagConstraints);
 
         drcIgnoreCenterCuts.setText("Ignore center cuts in large contacts");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 11;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
@@ -275,7 +290,7 @@ public class DRCTab extends PreferencePanel
         drcIgnorePolySelect.setText("Ignore polysilicon select rule");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
@@ -284,18 +299,34 @@ public class DRCTab extends PreferencePanel
         drcIgnoreArea.setText("Ignore area checking");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel5.add(drcIgnoreArea, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         jPanel5.add(firstSeparator, gridBagConstraints);
+
+        defaultFoundryLabel.setText("Foundry:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
+        jPanel5.add(defaultFoundryLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        jPanel5.add(defaultFoundryPulldown, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -334,6 +365,8 @@ public class DRCTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel defaultFoundryLabel;
+    private javax.swing.JComboBox defaultFoundryPulldown;
     private javax.swing.JPanel drc;
     private javax.swing.JButton drcClearValidDates;
     private javax.swing.JButton drcEditRulesDeck;

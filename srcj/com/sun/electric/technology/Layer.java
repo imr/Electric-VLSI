@@ -56,6 +56,7 @@ public class Layer
 		/** Describes a layer that contacts metal (used to identify contacts/vias). */	public static final int CONMETAL =     040000;
 		/** Describes a layer that contacts polysilicon (used to identify contacts). */	public static final int CONPOLY =     0100000;
 		/** Describes a layer that contacts diffusion (used to identify contacts). */	public static final int CONDIFF =     0200000;
+		/** Describes a layer that is VTH or VTL */								        public static final int HLVT =      010000000;
 		/** Describes a layer that is inside transistor. */								public static final int INTRANS =   020000000;
 		/** Describes a thick layer. */								                    public static final int THICK =     040000000;
 
@@ -128,6 +129,7 @@ public class Layer
 			if (extra == CONDIFF) return "connects-diff";
 			if (extra == INTRANS) return "inside-transistor";
 			if (extra == THICK) return "thick";
+            if (extra == HLVT) return "vt";
 			return "";
 		}
 
@@ -151,6 +153,8 @@ public class Layer
 			if (name.equalsIgnoreCase("connects-diff")) return CONDIFF;
 			if (name.equalsIgnoreCase("inside-transistor")) return INTRANS;
 			if (name.equalsIgnoreCase("thick")) return THICK;
+            if (name.equalsIgnoreCase("vt")) return HLVT;
+
 			return 0;
 		}
 		/** Describes an unknown layer. */						public static final Function UNKNOWN    = new Function("unknown",    "LFUNKNOWN",    0, 0, 35, 0);

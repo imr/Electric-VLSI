@@ -432,6 +432,7 @@ public class PrimitiveNode implements NodeProto, Comparable
 	/** Defines a serpentine transistor. */			public static final int SERPTRANS = 1;
 	/** Defines a polygonal transistor. */			public static final int POLYGONAL = 2;
 	/** Defines a multi-cut contact. */				public static final int MULTICUT =  3;
+	/** Defines a high/low transistor. */			public static final int HIGHLOWVT =  4;
 
 	/** set if nonmanhattan instances shrink */				private static final int NODESHRINK =           01;
 	/** set if instances can be wiped */					private static final int ARCSWIPE =          01000;
@@ -457,7 +458,8 @@ public class PrimitiveNode implements NodeProto, Comparable
 	/** electrical layers describing this */		private Technology.NodeLayer [] electricalLayers;
 	/** PrimitivePorts on the PrimitiveNode. */		private PrimitivePort[] primPorts;
 	/** flag bits */								private int userBits;
-	/** Index of this PrimitiveNode. */				private int primNodeIndex;
+	/** Global index of this PrimitiveNode. */		private int globalPrimNodeIndex;
+    /** Index of this PrimitiveNode per tech */     private int techPrimNodeIndex = -1;
 	/** special type of unusual primitives */		private int specialType;
 	/** special factors for unusual primitives */	private double[] specialValues;
 	/** minimum width and height */					private double minWidth, minHeight;
@@ -496,7 +498,7 @@ public class PrimitiveNode implements NodeProto, Comparable
 		this.autoGrowth = null;
 		this.minWidth = this.minHeight = -1;
 		this.minSizeRule = "";
-		primNodeIndex = primNodeNumber++;
+		globalPrimNodeIndex = primNodeNumber++;
 
 		// add to the nodes in this technology
 		tech.addNodeProto(this);
@@ -1318,6 +1320,18 @@ public class PrimitiveNode implements NodeProto, Comparable
 // 	public final int getPrimNodeIndex() { return primNodeIndex; }
 
     /**
+     * Method to retrieve index of the node in the given technology
+     * @return
+     */
+    public final int getPrimNodeIndexInTech() { return techPrimNodeIndex;}
+
+    /**
+     * Method to set properly the index of the node in the particular technology
+     * @param index
+     */
+    public void setPrimNodeIndexInTech(int index) { techPrimNodeIndex = index; }
+
+    /**
      * Compares PrimtiveNodes by their Technologies and definition order.
      * @param obj the other PrimitiveNode.
      * @return a comparison between the PrimitiveNodes.
@@ -1330,7 +1344,7 @@ public class PrimitiveNode implements NodeProto, Comparable
 			int cmp = this.tech.compareTo(that.tech);
 			if (cmp != 0) return cmp;
 		}
-		return this.primNodeIndex - that.primNodeIndex;
+		return this.globalPrimNodeIndex - that.globalPrimNodeIndex;
 	}
 
 	/**

@@ -79,9 +79,6 @@ import com.sun.j3d.utils.picking.PickIntersection;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.j3d.utils.universe.ViewingPlatform;
 import com.sun.j3d.utils.universe.PlatformGeometry;
-import com.sun.j3d.utils.geometry.Cone;
-import com.sun.j3d.utils.geometry.Primitive;
-import com.sun.j3d.utils.geometry.Cylinder;
 
 import javax.media.j3d.*;
 import javax.swing.*;
@@ -215,41 +212,7 @@ public class View3DWindow extends JPanel
         PlatformGeometry pg = new PlatformGeometry();
         J3DUtils.createLights(pg);
 
-        	// Create axis with associated behavior
-        BranchGroup axisRoot = new BranchGroup();
-
-        // Position the axis
-        Transform3D t = new Transform3D();
-        t.set(new Vector3d(-0.5, -0.5, -1.5));
-        t.set(new Vector3d(-0.7, -0.5, -2.0));
-        TransformGroup axisTranslation = new TransformGroup(t);
-        axisRoot.addChild(axisTranslation);
-
-        // Create transform group to orient the axis and make it
-        // readable & writable (this will be the target of the axis
-        // behavior)
-        TransformGroup axisTG = new TransformGroup();
-        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-        axisTranslation.addChild(axisTG);
-
-        // Create the axis geometry
-        J3DAxis axis = new J3DAxis();
-        axisTG.addChild(axis);
-
-        // Add axis into BG
-        pg.addChild(axisRoot);
-
         ViewingPlatform viewingPlatform = u.getViewingPlatform();
-
-        // Create the axis behavior
-        TransformGroup viewPlatformTG =
-            viewingPlatform.getViewPlatformTransform();
-        J3DAxisBehavior axisBehavior = new J3DAxisBehavior(axisTG, viewPlatformTG);
-        axisBehavior.setSchedulingBounds(J3DUtils.infiniteBounds);
-        pg.addChild(axisBehavior);
-
-        viewingPlatform.setPlatformGeometry(pg) ;
 
 //        JMouseTranslate translate = new JMouseTranslate(canvas, MouseTranslate.INVERT_INPUT);
 //        //translate.setTransformGroup(objTrans); //viewingPlatform.getMultiTransformGroup().getTransformGroup(2));
@@ -286,20 +249,19 @@ public class View3DWindow extends JPanel
 		orbit.setSchedulingBounds(J3DUtils.infiniteBounds);
         orbit.setCapability(OrbitBehavior.ALLOW_LOCAL_TO_VWORLD_READ);
 
-		/** step A **/
+		/** Setting rotation center */
 		Point3d center = new Point3d(0, 0, 0);
-
-		//if (!User.is3DPerspective()) center = new Point3d(cell.getBounds().getCenterX(),cell.getBounds().getCenterY(), -10);
-
+		BoundingSphere sceneBnd = (BoundingSphere)scene.getBounds();
+        sceneBnd.getCenter(center);
 		orbit.setRotationCenter(center);
 		orbit.setMinRadius(0);
-		orbit.setZoomFactor(10);
+		//orbit.setZoomFactor(10);
 		orbit.setTransFactors(10, 10);
         orbit.setProportionalZoom(true);
 
+        //viewingPlatform.setNominalViewingTransform();
     	viewingPlatform.setViewPlatformBehavior(orbit);
 
-		BoundingSphere sceneBnd = (BoundingSphere)scene.getBounds();
 		double radius = sceneBnd.getRadius();
 		View view = u.getViewer().getView();
 
@@ -315,6 +277,7 @@ public class View3DWindow extends JPanel
         view.setTransparencySortingPolicy(View.TRANSPARENCY_SORT_GEOMETRY);
         view.setDepthBufferFreezeTransparent(false); // set to true only for transparent layers
 
+        // Setting a good viewpoint for the camera
 		Point3d c1 = new Point3d();
 		sceneBnd.getCenter(c1);
 		Vector3d vCenter = new Vector3d(c1);
@@ -323,18 +286,13 @@ public class View3DWindow extends JPanel
 
         sceneBnd.getCenter(c2);
 		c2.z += vDist;
-
-		//if (User.is3DPerspective())
 		vCenter.z += vDist;
 		Transform3D vTrans = new Transform3D();
-		Transform3D proj = new Transform3D();
 
         //translateB.setView(cellBnd.getWidth(), 0);
-        Rectangle2D cellBnd = cell.getBounds();
-        double[] rotVals = User.transformIntoValues(User.get3DRotation());
+        //double[] rotVals = User.transformIntoValues(User.get3DRotation());
         //rotateB.setRotation(rotVals[0], rotVals[1], rotVals[2]);
         //zoomB.setZoom(User.get3DOrigZoom());
-		proj.ortho(cellBnd.getMinX(), cellBnd.getMinX(), cellBnd.getMinY(), cellBnd.getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
 
 		vTrans.set(vCenter);
 
@@ -342,16 +300,57 @@ public class View3DWindow extends JPanel
 		view.setFrontClipDistance((vDist+radius)/200.0);
 		view.setBackClipPolicy(View.VIRTUAL_EYE);
 		view.setFrontClipPolicy(View.VIRTUAL_EYE);
-        viewingPlatform.getViewPlatformBehavior().setHomeTransform(vTrans);
 		if (User.is3DPerspective())
 		{
-			viewingPlatform.getViewPlatformTransform().setTransform(vTrans);
+            viewingPlatform.getViewPlatformBehavior().setHomeTransform(vTrans);
+            viewingPlatform.getViewPlatformBehavior().goHome();
+			//viewingPlatform.getViewPlatformTransform().setTransform(vTrans);
 		}
 		else
 		{
+            Transform3D proj = new Transform3D();
+            Rectangle2D cellBnd = cell.getBounds();
+            proj.ortho(cellBnd.getMinX(), cellBnd.getMinX(), cellBnd.getMinY(), cellBnd.getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
 			view.setVpcToEc(proj);
 			//viewingPlatform.getViewPlatformTransform().setTransform(lookAt);
 		}
+
+        // Create axis with associated behavior
+        BranchGroup axisRoot = new BranchGroup();
+
+        // Position the axis
+        Transform3D t = new Transform3D();
+        //t.set(new Vector3d(-0.5, -0.5, -1.5));
+        t.set(new Vector3d(-0.7, -0.5, -2.0)); // good for Mac?
+        t.set(new Vector3d(-0.9, -0.5, -2.5)); // set on Linux
+        TransformGroup axisTranslation = new TransformGroup(t);
+        axisRoot.addChild(axisTranslation);
+
+        // Create transform group to orient the axis and make it
+        // readable & writable (this will be the target of the axis
+        // behavior)
+        TransformGroup axisTG = new TransformGroup();
+        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+        axisTranslation.addChild(axisTG);
+
+        // Create the axis geometry
+        J3DAxis axis = new J3DAxis();
+        axisTG.addChild(axis);
+
+        // Add axis into BG
+        pg.addChild(axisRoot);
+
+        // Create the axis behavior
+        TransformGroup viewPlatformTG =
+            viewingPlatform.getViewPlatformTransform();
+        J3DAxisBehavior axisBehavior = new J3DAxisBehavior(axisTG, viewPlatformTG);
+        axisBehavior.setSchedulingBounds(J3DUtils.infiniteBounds);
+        pg.addChild(axisBehavior);
+
+        viewingPlatform.setPlatformGeometry(pg) ;
+
+
 		u.addBranchGraph(scene);
 		setWindowTitle();
 	}
@@ -362,59 +361,59 @@ public class View3DWindow extends JPanel
      * Method to create axes for reference
      * @return
      */
-    private BranchGroup createAxis(BranchGroup main, Vector3d dir, Vector3d center, String label, double length)
-    {
-        // Create Axes;
-        TransformGroup branch = new TransformGroup(); // This transform will control all movements
-        branch.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-        branch.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-        main.addChild(branch);
-        Transform3D axisTrans = new Transform3D();
-
-        if (dir == J3DUtils.axisX)
-            axisTrans.rotZ(-Math.PI/2);
-        else if (dir == J3DUtils.axisZ)
-           axisTrans.rotX(Math.PI/2);
-        //center.y += 10;
-        axisTrans.setTranslation(center);
-        TransformGroup axes = new TransformGroup(axisTrans);
-        axes.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-        axes.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-
-        Transform3D cylinderTrans = new Transform3D();
-        Vector3d cylinderLocation = new Vector3d(0, length/2, 0); // Cylinder and cone are along Y
-        cylinderTrans.setTranslation(cylinderLocation);
-        TransformGroup cylinderG = new TransformGroup(cylinderTrans);
-        float diameter = (float)length*.03f;
-        Primitive axis = new Cylinder(diameter, (float)length);
-        axis.setAppearance(J3DAppearance.axisApps[0]);
-        cylinderG.addChild(axis);
-        axes.addChild(cylinderG);
-
-        // Text
-        if (font3D == null)
-            font3D = new Font3D(new Font(User.getDefaultFont(), Font.PLAIN, 8),
-                     new FontExtrusion());
-        Text3D txt = new Text3D(font3D, label,
-             new Point3f( -label.length()/2.0f, (float)length, 0));
-        Shape3D sh = new Shape3D();
-        sh.setGeometry(txt);
-        sh.setAppearance(J3DAppearance.axisApps[0]);
-        axes.addChild(sh);
-
-        // Arrow
-        Transform3D arrowTrans = new Transform3D();
-        Vector3d arrowLocation = new Vector3d(0, length, 0); // Cylinder and cone are along Y
-        arrowTrans.set(arrowLocation);
-        TransformGroup arrowG = new TransformGroup(arrowTrans);
-        Primitive arrow = new Cone(1.5f * diameter, (float)length/3);
-        arrow.setAppearance(J3DAppearance.axisApps[0]);
-        arrowG.addChild(arrow);
-
-        axes.addChild(arrowG);
-        branch.addChild(axes);
-        return main;
-    }
+//    private BranchGroup createAxis(BranchGroup main, Vector3d dir, Vector3d center, String label, double length)
+//    {
+//        // Create Axes;
+//        TransformGroup branch = new TransformGroup(); // This transform will control all movements
+//        branch.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+//        branch.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+//        main.addChild(branch);
+//        Transform3D axisTrans = new Transform3D();
+//
+//        if (dir == J3DUtils.axisX)
+//            axisTrans.rotZ(-Math.PI/2);
+//        else if (dir == J3DUtils.axisZ)
+//           axisTrans.rotX(Math.PI/2);
+//        //center.y += 10;
+//        axisTrans.setTranslation(center);
+//        TransformGroup axes = new TransformGroup(axisTrans);
+//        axes.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+//        axes.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+//
+//        Transform3D cylinderTrans = new Transform3D();
+//        Vector3d cylinderLocation = new Vector3d(0, length/2, 0); // Cylinder and cone are along Y
+//        cylinderTrans.setTranslation(cylinderLocation);
+//        TransformGroup cylinderG = new TransformGroup(cylinderTrans);
+//        float diameter = (float)length*.03f;
+//        Primitive axis = new Cylinder(diameter, (float)length);
+//        axis.setAppearance(J3DAppearance.axisApps[0]);
+//        cylinderG.addChild(axis);
+//        axes.addChild(cylinderG);
+//
+//        // Text
+//        if (font3D == null)
+//            font3D = new Font3D(new Font(User.getDefaultFont(), Font.PLAIN, 8),
+//                     new FontExtrusion());
+//        Text3D txt = new Text3D(font3D, label,
+//             new Point3f( -label.length()/2.0f, (float)length, 0));
+//        Shape3D sh = new Shape3D();
+//        sh.setGeometry(txt);
+//        sh.setAppearance(J3DAppearance.axisApps[0]);
+//        axes.addChild(sh);
+//
+//        // Arrow
+//        Transform3D arrowTrans = new Transform3D();
+//        Vector3d arrowLocation = new Vector3d(0, length, 0); // Cylinder and cone are along Y
+//        arrowTrans.set(arrowLocation);
+//        TransformGroup arrowG = new TransformGroup(arrowTrans);
+//        Primitive arrow = new Cone(1.5f * diameter, (float)length/3);
+//        arrow.setAppearance(J3DAppearance.axisApps[0]);
+//        arrowG.addChild(arrow);
+//
+//        axes.addChild(arrowG);
+//        branch.addChild(axes);
+//        return main;
+//    }
 
     /**
      * Method to create main transformation group
@@ -1354,7 +1353,6 @@ public class View3DWindow extends JPanel
      */
     private void setInterpolator()
     {
-        //BranchGroup behaviorBranch = new BranchGroup();
         Transform3D yAxis = new Transform3D();
         List polys = new ArrayList();
 

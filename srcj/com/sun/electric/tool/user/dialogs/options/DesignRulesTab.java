@@ -280,7 +280,7 @@ public class DesignRulesTab extends PreferencePanel
 			int dindex = (lowLayer+1) * (lowLayer/2) + (lowLayer&1) * ((lowLayer+1)/2);
 			dindex = highLayer + drRules.numLayers * lowLayer - dindex;
             */
-            int dindex = curTech.getLayerIndex(layer1, layer2);
+            int dindex = curTech.getRuleIndex(layer1, layer2);
 
 			// get new normal spacing values
 			String a = drNormalConnected.getText();

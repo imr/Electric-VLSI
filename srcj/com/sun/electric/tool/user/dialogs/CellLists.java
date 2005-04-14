@@ -214,7 +214,7 @@ public class CellLists extends EDialog
 		if (maxlen < 0) line += "\t"; else line += " ";
 
 		boolean goodDRC = false;
-        byte activeBits = DRC.getActiveBits();
+        int activeBits = DRC.getActiveBits();
 		Date lastGoodDate = DRC.getLastDRCDateBasedOnBits(cell, activeBits);
 		if (!Main.getDebug() && lastGoodDate != null && cell.getRevisionDate().before(lastGoodDate)) goodDRC = true;
 		if (goodDRC) line += "D"; else line += " ";
