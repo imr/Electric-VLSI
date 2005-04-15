@@ -234,10 +234,12 @@ public class GDS extends Geometry
 
 				// put out a pin if requested
 				if (IOTool.isGDSOutWritesExportPins())
+                {
 					writeExportOnLayer(pp, pinLayer);
 
-				// write the text
-				writeExportOnLayer(pp, textLayer);
+                    // write the text
+                    writeExportOnLayer(pp, textLayer);
+                }
 			}
 		}
 		outputHeader(HDR_ENDSTR, 0);

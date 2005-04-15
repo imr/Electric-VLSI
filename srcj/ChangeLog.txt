@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+IMP: (04/15/05, GVG) GDS ouput still writing text associated to exports even if WriteExportPins is off.
+
 BUG: (04/15/05, GVG) Autoadvance flag in IRSIM tab wronlgy set based on "resimulate each" flag,
 no setting of skillGDSNameLimit in Skill tab and wrong comparison of globalTextScale in TextTab.
 
