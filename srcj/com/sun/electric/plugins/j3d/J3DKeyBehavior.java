@@ -165,7 +165,7 @@ public class J3DKeyBehavior extends Behavior
     private static double[] values = new double[3];
     private static Vector3d move = new Vector3d();
 
-	private void moveAlong(int axis, int dir)
+	public void moveAlong(int axis, int dir)
 	{
         Arrays.fill(values, 0);
         values[axis] = dir * getMovementRate();

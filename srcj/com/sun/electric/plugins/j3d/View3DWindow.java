@@ -538,20 +538,16 @@ public class View3DWindow extends JPanel
 		if (cell == null) return;
 		double panningAmount = panningAmounts[User.getPanningDistance()];
 
-		//double value = (direction == 0) ? dim.width : dim.height;
 		int mult = (int)((double)10 * panningAmount);
 		if (mult == 0) mult = 1;
 
-//		if (direction == 0)
-//			translateB.panning(mult*ticks, 0);
-//		else
-//		    translateB.panning(0, mult*ticks);
+        keyBehavior.moveAlong(direction, mult*ticks);
 	}
 
-    public void setViewAndZoom(double x, double y, double zoom)
-    {
-//        translateB.setView(x, y);
-    }
+//    public void setViewAndZoom(double x, double y, double zoom)
+//    {
+////        translateB.setView(x, y);
+//    }
 
 	/**
 	 * Method to zoom out by a factor of 2 plus mouse pre-defined factor
@@ -583,14 +579,6 @@ public class View3DWindow extends JPanel
 	 */
 	public void fillScreen()
 	{
-//		Transform3D trans = new Transform3D();
-//	    Transform3D x = new Transform3D();
-//		zoomB.getTransformGroup().getTransform(x);
-//		zoomB.getTransformGroup().setTransform(trans);
-//		rotateB.getTransformGroup().getTransform(x);
-//		rotateB.getTransformGroup().setTransform(trans);
-//		translateB.getTransformGroup().getTransform(x);
-//		translateB.getTransformGroup().setTransform(trans);
         u.getViewingPlatform().getViewPlatformBehavior().goHome();
 	}
 
