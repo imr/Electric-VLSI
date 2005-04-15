@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+BUG: (04/15/05, GVG) Autoadvance flag in IRSIM tab wronlgy set based on "resimulate each" flag,
+no setting of skillGDSNameLimit in Skill tab and wrong comparison of globalTextScale in TextTab.
+
 IMP/MAN: (04/14/05, GVG) Ability to choose technology while creating a new cell (Bug #245)
 
 IMP/MAN: (04/14/05, GVG) Changes in TSM90 and DRC to handle multiple foundries (ST, TSMC). DRC rules

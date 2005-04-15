@@ -42,8 +42,6 @@ public class WellCheckTab extends PreferencePanel
 
 	public String getName() { return "Well Check"; }
 
-	//private boolean initialWellCheckNWellConnectToPower;
-
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Well Check tab.

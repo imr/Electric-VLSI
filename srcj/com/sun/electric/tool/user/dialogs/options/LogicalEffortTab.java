@@ -63,11 +63,6 @@ public class LogicalEffortTab extends PreferencePanel
 	private JList leArcList;
 	private DefaultListModel leArcListModel;
 	private HashMap leArcOptions;
-	private boolean leUseLocalSettingsInitial, leDisplayIntermediateCapsInitial, leHighlightComponentsInitial;
-	private double leGlobalFanOutInitial, leConvergenceInitial;
-	private int leMaxIterationsInitial;
-	private double leGateCapacitanceInitial, leDefaultWireCapRatioInitial, leDiffToGateCapRatioInitial;
-	private double leKeeperSizeRatioInitial;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -75,35 +70,16 @@ public class LogicalEffortTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		leHighlightComponentsInitial = LETool.isHighlightComponents();
-		leHighlightComponents.setSelected(leHighlightComponentsInitial);
-
-		leUseLocalSettingsInitial = LETool.isUseLocalSettings();
-		leUseLocalSettings.setSelected(leUseLocalSettingsInitial);
-
-		leDisplayIntermediateCapsInitial = LETool.isShowIntermediateCapacitances();
-		leDisplayIntermediateCaps.setSelected(leDisplayIntermediateCapsInitial);
-
-		leGlobalFanOutInitial = LETool.getGlobalFanout();
-		leGlobalFanOut.setText(TextUtils.formatDouble(leGlobalFanOutInitial));
-
-		leConvergenceInitial = LETool.getConvergenceEpsilon();
-		leConvergence.setText(TextUtils.formatDouble(leConvergenceInitial));
-
-		leMaxIterationsInitial = LETool.getMaxIterations();
-		leMaxIterations.setText(Integer.toString(leMaxIterationsInitial));
-
-		leGateCapacitanceInitial = LETool.getGateCapacitance();
-		leGateCapacitance.setText(TextUtils.formatDouble(leGateCapacitanceInitial));
-
-		leDefaultWireCapRatioInitial = LETool.getWireRatio();
-		leDefaultWireCapRatio.setText(TextUtils.formatDouble(leDefaultWireCapRatioInitial));
-
-		leDiffToGateCapRatioInitial = LETool.getDiffAlpha();
-		leDiffToGateCapRatio.setText(TextUtils.formatDouble(leDiffToGateCapRatioInitial));
-
-		leKeeperSizeRatioInitial = LETool.getKeeperRatio();
-		leKeeperSizeRatio.setText(TextUtils.formatDouble(leKeeperSizeRatioInitial));
+		leUseLocalSettings.setSelected(LETool.isUseLocalSettings());
+		leDisplayIntermediateCaps.setSelected(LETool.isShowIntermediateCapacitances());
+		leHighlightComponents.setSelected(LETool.isHighlightComponents());
+		leGlobalFanOut.setText(TextUtils.formatDouble(LETool.getGlobalFanout()));
+		leConvergence.setText(TextUtils.formatDouble(LETool.getConvergenceEpsilon()));
+		leMaxIterations.setText(Integer.toString(LETool.getMaxIterations()));
+		leGateCapacitance.setText(TextUtils.formatDouble(LETool.getGateCapacitance()));
+		leDefaultWireCapRatio.setText(TextUtils.formatDouble(LETool.getWireRatio()));
+		leDiffToGateCapRatio.setText(TextUtils.formatDouble(LETool.getDiffAlpha()));
+		leKeeperSizeRatio.setText(TextUtils.formatDouble(LETool.getKeeperRatio()));
 
 		// make an empty list for the layer names
 		leArcOptions = new HashMap();
@@ -142,34 +118,34 @@ public class LogicalEffortTab extends PreferencePanel
 	public void term()
 	{
         boolean nowBoolean = leUseLocalSettings.isSelected();
-		if (leUseLocalSettingsInitial != nowBoolean) LETool.setUseLocalSettings(nowBoolean);
+		if (LETool.isUseLocalSettings() != nowBoolean) LETool.setUseLocalSettings(nowBoolean);
 
 		nowBoolean = leDisplayIntermediateCaps.isSelected();
-		if (leDisplayIntermediateCapsInitial != nowBoolean) LETool.setShowIntermediateCapacitances(nowBoolean);
+		if (LETool.isShowIntermediateCapacitances() != nowBoolean) LETool.setShowIntermediateCapacitances(nowBoolean);
 
 		nowBoolean = leHighlightComponents.isSelected();
-		if (leHighlightComponentsInitial != nowBoolean) LETool.setHighlightComponents(nowBoolean);
+		if (LETool.isHighlightComponents() != nowBoolean) LETool.setHighlightComponents(nowBoolean);
 
 		double nowDouble = TextUtils.atof(leGlobalFanOut.getText());
-		if (leGlobalFanOutInitial != nowDouble) LETool.setGlobalFanout(nowDouble);
+		if (LETool.getGlobalFanout() != nowDouble) LETool.setGlobalFanout(nowDouble);
 
 		nowDouble = TextUtils.atof(leConvergence.getText());
-		if (leConvergenceInitial != nowDouble) LETool.setConvergenceEpsilon(nowDouble);
+		if (LETool.getConvergenceEpsilon() != nowDouble) LETool.setConvergenceEpsilon(nowDouble);
 
 		int nowInt = TextUtils.atoi(leMaxIterations.getText());
-		if (leMaxIterationsInitial != nowInt) LETool.setMaxIterations(nowInt);
+		if (LETool.getMaxIterations() != nowInt) LETool.setMaxIterations(nowInt);
 
 		nowDouble = TextUtils.atof(leGateCapacitance.getText());
-		if (leGateCapacitanceInitial != nowDouble) LETool.setGateCapacitance(nowDouble);
+		if (LETool.getGateCapacitance() != nowDouble) LETool.setGateCapacitance(nowDouble);
 
 		nowDouble = TextUtils.atof(leDefaultWireCapRatio.getText());
-		if (leDefaultWireCapRatioInitial != nowDouble) LETool.setWireRatio(nowDouble);
+		if (LETool.getWireRatio() != nowDouble) LETool.setWireRatio(nowDouble);
 
 		nowDouble = TextUtils.atof(leDiffToGateCapRatio.getText());
-		if (leDiffToGateCapRatioInitial != nowDouble) LETool.setDiffAlpha(nowDouble);
+		if (LETool.getDiffAlpha() != nowDouble) LETool.setDiffAlpha(nowDouble);
 
 		nowDouble = TextUtils.atof(leKeeperSizeRatio.getText());
-		if (leKeeperSizeRatioInitial != nowDouble) LETool.setKeeperRatio(nowDouble);
+		if (LETool.getKeeperRatio() != nowDouble) LETool.setKeeperRatio(nowDouble);
 
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
 		{

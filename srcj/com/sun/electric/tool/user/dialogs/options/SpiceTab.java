@@ -65,25 +65,7 @@ public class SpiceTab extends PreferencePanel
 
 	private JList spiceCellList;
 	private DefaultListModel spiceCellListModel;
-	private int spiceEngineInitial;
-	private String spiceLevelInitial;
-	private String spiceOutputFormatInitial;
-	private String spicePartsLibraryInitial;
-	private boolean spiceUseParasiticsInitial;
-	private boolean spiceUseNodeNamesInitial;
-	private boolean spiceForceGlobalPwrGndInitial;
-	private boolean spiceUseCellParametersInitial;
-	private boolean spiceWriteTransSizesInLambdaInitial;
-	private String spiceHeaderCardInitial;
-	private String spiceTrailerCardInitial;
 	private HashMap spiceCellModelOptions;
-    private boolean spiceUseRunDirInitial;
-    private String spiceRunDirInitial;
-    private boolean overwriteOutputFileInitial;
-    private boolean spiceRunProbeInitial;
-    private String spiceRunProgramInitial;
-    private String spiceRunProgramArgsInitial;
-    private String spiceRunPopupInitial;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -92,78 +74,53 @@ public class SpiceTab extends PreferencePanel
 	public void init()
 	{
 		// the top section: general controls
-		spiceEngineInitial = Simulation.getSpiceEngine();
 		spiceEnginePopup.addItem("Spice 2");
 		spiceEnginePopup.addItem("Spice 3");
 		spiceEnginePopup.addItem("HSpice");
 		spiceEnginePopup.addItem("PSpice");
 		spiceEnginePopup.addItem("Gnucap");
 		spiceEnginePopup.addItem("SmartSpice");
-		spiceEnginePopup.setSelectedIndex(spiceEngineInitial);
+		spiceEnginePopup.setSelectedIndex(Simulation.getSpiceEngine());
 
-		spiceLevelInitial = Simulation.getSpiceLevel();
 		spiceLevelPopup.addItem("1");
 		spiceLevelPopup.addItem("2");
 		spiceLevelPopup.addItem("3");
-		spiceLevelPopup.setSelectedItem(spiceLevelInitial);
+		spiceLevelPopup.setSelectedItem(Simulation.getSpiceLevel());
 
-		spiceOutputFormatInitial = Simulation.getSpiceOutputFormat();
 		spiceOutputFormatPopup.addItem("Standard");
 		spiceOutputFormatPopup.addItem("Raw");
 		spiceOutputFormatPopup.addItem("Raw/Smart");
-		spiceOutputFormatPopup.setSelectedItem(spiceOutputFormatInitial);
+		spiceOutputFormatPopup.setSelectedItem(Simulation.getSpiceOutputFormat());
 
-		spiceUseParasiticsInitial = Simulation.isSpiceUseParasitics();
-		spiceUseParasitics.setSelected(spiceUseParasiticsInitial);
-
-		spiceUseNodeNamesInitial = Simulation.isSpiceUseNodeNames();
-		spiceUseNodeNames.setSelected(spiceUseNodeNamesInitial);
-
-		spiceForceGlobalPwrGndInitial = Simulation.isSpiceForceGlobalPwrGnd();
-		spiceForceGlobalPwrGnd.setSelected(spiceForceGlobalPwrGndInitial);
-
-		spiceUseCellParametersInitial = Simulation.isSpiceUseCellParameters();
-		spiceUseCellParameters.setSelected(spiceUseCellParametersInitial);
-
-		spiceWriteTransSizesInLambdaInitial = Simulation.isSpiceWriteTransSizeInLambda();
-		spiceWriteTransSizesInLambda.setSelected(spiceWriteTransSizesInLambdaInitial);
+		spiceUseParasitics.setSelected(Simulation.isSpiceUseParasitics());
+		spiceUseNodeNames.setSelected(Simulation.isSpiceUseNodeNames());
+		spiceForceGlobalPwrGnd.setSelected(Simulation.isSpiceForceGlobalPwrGnd());
+		spiceUseCellParameters.setSelected(Simulation.isSpiceUseCellParameters());
+		spiceWriteTransSizesInLambda.setSelected(Simulation.isSpiceWriteTransSizeInLambda());
 
         // spice Run options
-        spiceRunDirInitial = Simulation.getSpiceRunDir();
-        useDir.setText(spiceRunDirInitial);
+        useDir.setText(Simulation.getSpiceRunDir());
+        useDirCheckBox.setSelected(Simulation.getSpiceUseRunDir());
+        overwriteOutputFile.setSelected(Simulation.getSpiceOutputOverwrite());
+        spiceRunProbe.setSelected(Simulation.getSpiceRunProbe());
+        spiceRunProgram.setText(Simulation.getSpiceRunProgram());
+        spiceRunProgramArgs.setText(Simulation.getSpiceRunProgramArgs());
 
-        spiceUseRunDirInitial = Simulation.getSpiceUseRunDir();
-        useDirCheckBox.setSelected(spiceUseRunDirInitial);
-
-        overwriteOutputFileInitial = Simulation.getSpiceOutputOverwrite();
-        overwriteOutputFile.setSelected(overwriteOutputFileInitial);
-
-        spiceRunProbeInitial = Simulation.getSpiceRunProbe();
-        spiceRunProbe.setSelected(spiceRunProbeInitial);
-
-        spiceRunProgramInitial = Simulation.getSpiceRunProgram();
-        spiceRunProgram.setText(spiceRunProgramInitial);
-
-        spiceRunProgramArgsInitial = Simulation.getSpiceRunProgramArgs();
-        spiceRunProgramArgs.setText(spiceRunProgramArgsInitial);
-
-		spicePartsLibraryInitial = Simulation.getSpicePartsLibrary();
 		String [] libFiles = LibFile.getSpicePartsLibraries();
 		for(int i=0; i<libFiles.length; i++)
 			spicePrimitivesetPopup.addItem(libFiles[i]);
-		spicePrimitivesetPopup.setSelectedItem(spicePartsLibraryInitial);
+		spicePrimitivesetPopup.setSelectedItem(Simulation.getSpicePartsLibrary());
 
         String [] runChoices = Simulation.getSpiceRunChoiceValues();
         for (int i=0; i<runChoices.length; i++) {
             spiceRunPopup.addItem(runChoices[i]);
         }
-        spiceRunPopupInitial = Simulation.getSpiceRunChoice();
-        spiceRunPopup.setSelectedItem(spiceRunPopupInitial);
+        spiceRunPopup.setSelectedItem(Simulation.getSpiceRunChoice());
         if (spiceRunPopup.getSelectedIndex() == 0) setSpiceRunOptionsEnabled(false);
         else setSpiceRunOptionsEnabled(true);
 
 		// the next section: header and trailer cards
-		spiceHeaderCardInitial = Simulation.getSpiceHeaderCardInfo();
+		String spiceHeaderCardInitial = Simulation.getSpiceHeaderCardInfo();
 		if (spiceHeaderCardInitial.length() == 0) spiceNoHeaderCards.setSelected(true); else
 		{
 			if (spiceHeaderCardInitial.startsWith(Spice.SPICE_EXTENSION_PREFIX))
@@ -176,7 +133,7 @@ public class SpiceTab extends PreferencePanel
 				spiceHeaderCardFile.setText(spiceHeaderCardInitial);
 			}
 		}
-		spiceTrailerCardInitial = Simulation.getSpiceTrailerCardInfo();
+		String spiceTrailerCardInitial = Simulation.getSpiceTrailerCardInfo();
 		if (spiceTrailerCardInitial.length() == 0) spiceNoTrailerCards.setSelected(true); else
 		{
 			if (spiceTrailerCardInitial.startsWith(Spice.SPICE_EXTENSION_PREFIX))
@@ -333,53 +290,53 @@ public class SpiceTab extends PreferencePanel
 	{
 		// the top section: general controls
 		int intNow = spiceEnginePopup.getSelectedIndex();
-		if (spiceEngineInitial != intNow) Simulation.setSpiceEngine(intNow);
+		if (Simulation.getSpiceEngine() != intNow) Simulation.setSpiceEngine(intNow);
 
 		String stringNow = (String)spiceLevelPopup.getSelectedItem();
-		if (!spiceLevelInitial.equals(stringNow)) Simulation.setSpiceLevel(stringNow);
+		if (!Simulation.getSpiceLevel().equals(stringNow)) Simulation.setSpiceLevel(stringNow);
 
 		stringNow = (String)spiceOutputFormatPopup.getSelectedItem();
-		if (!spiceOutputFormatInitial.equals(stringNow)) Simulation.setSpiceOutputFormat(stringNow);
+		if (!Simulation.getSpiceOutputFormat().equals(stringNow)) Simulation.setSpiceOutputFormat(stringNow);
 
 		stringNow = (String)spicePrimitivesetPopup.getSelectedItem();
-		if (!spicePartsLibraryInitial.equals(stringNow)) Simulation.setSpicePartsLibrary(stringNow);
+		if (!Simulation.getSpicePartsLibrary().equals(stringNow)) Simulation.setSpicePartsLibrary(stringNow);
 
 		boolean booleanNow = spiceUseNodeNames.isSelected();
-		if (spiceUseNodeNamesInitial != booleanNow) Simulation.setSpiceUseNodeNames(booleanNow);
+		if (Simulation.isSpiceUseNodeNames() != booleanNow) Simulation.setSpiceUseNodeNames(booleanNow);
 
 		booleanNow = spiceForceGlobalPwrGnd.isSelected();
-		if (spiceForceGlobalPwrGndInitial != booleanNow) Simulation.setSpiceForceGlobalPwrGnd(booleanNow);
+		if (Simulation.isSpiceForceGlobalPwrGnd() != booleanNow) Simulation.setSpiceForceGlobalPwrGnd(booleanNow);
 
 		booleanNow = spiceUseCellParameters.isSelected();
-		if (spiceUseCellParametersInitial != booleanNow) Simulation.setSpiceUseCellParameters(booleanNow);
+		if (Simulation.isSpiceUseCellParameters() != booleanNow) Simulation.setSpiceUseCellParameters(booleanNow);
 
 		booleanNow = spiceWriteTransSizesInLambda.isSelected();
-		if (spiceWriteTransSizesInLambdaInitial != booleanNow) Simulation.setSpiceWriteTransSizeInLambda(booleanNow);
+		if (Simulation.isSpiceWriteTransSizeInLambda() != booleanNow) Simulation.setSpiceWriteTransSizeInLambda(booleanNow);
 
 		booleanNow = spiceUseParasitics.isSelected();
-		if (spiceUseParasiticsInitial != booleanNow) Simulation.setSpiceUseParasitics(booleanNow);
+		if (Simulation.isSpiceUseParasitics() != booleanNow) Simulation.setSpiceUseParasitics(booleanNow);
 
         // spice run options
         stringNow = (String)spiceRunPopup.getSelectedItem();
-        if (!spiceRunPopupInitial.equals(stringNow)) Simulation.setSpiceRunChoice(stringNow);
+        if (!Simulation.getSpiceRunChoice().equals(stringNow)) Simulation.setSpiceRunChoice(stringNow);
 
         stringNow = useDir.getText();
-        if (!spiceRunDirInitial.equals(stringNow)) Simulation.setSpiceRunDir(stringNow);
+        if (!Simulation.getSpiceRunDir().equals(stringNow)) Simulation.setSpiceRunDir(stringNow);
 
         booleanNow = useDirCheckBox.isSelected();
-        if (spiceUseRunDirInitial != booleanNow) Simulation.setSpiceUseRunDir(booleanNow);
+        if (Simulation.getSpiceUseRunDir() != booleanNow) Simulation.setSpiceUseRunDir(booleanNow);
 
         booleanNow = overwriteOutputFile.isSelected();
-        if (overwriteOutputFileInitial != booleanNow) Simulation.setSpiceOutputOverwrite(booleanNow);
+        if (Simulation.getSpiceOutputOverwrite() != booleanNow) Simulation.setSpiceOutputOverwrite(booleanNow);
 
         booleanNow = spiceRunProbe.isSelected();
-        if (spiceRunProbeInitial != booleanNow) Simulation.setSpiceRunProbe(booleanNow);
+        if (Simulation.getSpiceRunProbe() != booleanNow) Simulation.setSpiceRunProbe(booleanNow);
 
         stringNow = spiceRunProgram.getText();
-        if (!spiceRunProgramInitial.equals(stringNow)) Simulation.setSpiceRunProgram(stringNow);
+        if (!Simulation.getSpiceRunProgram().equals(stringNow)) Simulation.setSpiceRunProgram(stringNow);
 
         stringNow = spiceRunProgramArgs.getText();
-        if (!spiceRunProgramArgsInitial.equals(stringNow)) Simulation.setSpiceRunProgramArgs(stringNow);
+        if (!Simulation.getSpiceRunProgramArgs().equals(stringNow)) Simulation.setSpiceRunProgramArgs(stringNow);
 
 		// the next section: header and trailer cards
 		String header = "";
@@ -390,7 +347,7 @@ public class SpiceTab extends PreferencePanel
 		{
 			header = spiceHeaderCardFile.getText();
 		}
-		if (!spiceHeaderCardInitial.equals(header)) Simulation.setSpiceHeaderCardInfo(header);
+		if (!Simulation.getSpiceTrailerCardInfo().equals(header)) Simulation.setSpiceHeaderCardInfo(header);
 
 		String trailer = "";
 		if (spiceTrailerCardsWithExtension.isSelected())
@@ -400,7 +357,7 @@ public class SpiceTab extends PreferencePanel
 		{
 			trailer = spiceTrailerCardFile.getText();
 		}
-		if (!spiceTrailerCardInitial.equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
+		if (!Simulation.getSpiceHeaderCardInfo().equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
 
 		// bottom section: model file overrides for cells
 		for(Iterator it = curLib.getCells(); it.hasNext(); )

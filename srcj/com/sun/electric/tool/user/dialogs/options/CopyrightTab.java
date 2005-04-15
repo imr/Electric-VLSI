@@ -47,8 +47,6 @@ public class CopyrightTab extends PreferencePanel
 
 	public String getName() { return "Copyright"; }
 
-	private boolean initialUseCopyrightMessage;
-	private String initialCopyrightMessage;
 	private JTextArea copyrightTextArea;
 
 	/**
@@ -57,14 +55,12 @@ public class CopyrightTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initialUseCopyrightMessage = IOTool.isUseCopyrightMessage();
-		if (initialUseCopyrightMessage) copyrightUse.setSelected(true); else
+		if (IOTool.isUseCopyrightMessage()) copyrightUse.setSelected(true); else
 			copyrightNone.setSelected(true);
 
 		copyrightTextArea = new JTextArea();
 		copyrightMessage.setViewportView(copyrightTextArea);
-		initialCopyrightMessage = IOTool.getCopyrightMessage();
-		copyrightTextArea.setText(initialCopyrightMessage);
+		copyrightTextArea.setText(IOTool.getCopyrightMessage());
 		copyrightTextArea.addKeyListener(new KeyAdapter()
 		{
 			public void keyTyped(KeyEvent evt) { copyrightMessageKeyTyped(evt); }
@@ -83,11 +79,11 @@ public class CopyrightTab extends PreferencePanel
 	public void term()
 	{
 		boolean currentUseCopyrightMessage = copyrightUse.isSelected();
-		if (currentUseCopyrightMessage != initialUseCopyrightMessage)
+		if (currentUseCopyrightMessage != IOTool.isUseCopyrightMessage())
 			IOTool.setUseCopyrightMessage(currentUseCopyrightMessage);
 
 		String msg = copyrightTextArea.getText();
-		if (!msg.equals(initialCopyrightMessage))
+		if (!msg.equals(IOTool.getCopyrightMessage()))
 			IOTool.setCopyrightMessage(msg);
 	}
 

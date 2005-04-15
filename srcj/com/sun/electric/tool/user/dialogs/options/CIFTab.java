@@ -25,7 +25,6 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
 
 import java.awt.event.MouseAdapter;
@@ -55,12 +54,6 @@ public class CIFTab extends PreferencePanel
 
 	public String getName() { return "CIF"; }
 
-	private boolean initialCIFOutputMimicsDisplay;
-	private boolean initialCIFOutputMergesPolygons;
-	private boolean initialCIFOutputInstantiatesTopLevel;
-	private boolean initialCIFOutputCheckResolution;
-	private double initialCIFOutputResolution;
-	private boolean initialCIFInputSquaresWires;
 	private JList cifLayersList;
 	private DefaultListModel cifLayersModel;
 	private boolean changingCIF = false;
@@ -71,23 +64,12 @@ public class CIFTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initialCIFOutputMimicsDisplay = IOTool.isCIFOutMimicsDisplay();
-		cifOutputMimicsDisplay.setSelected(initialCIFOutputMimicsDisplay);
-
-		initialCIFOutputMergesPolygons = IOTool.isCIFOutMergesBoxes();
-		cifOutputMergesBoxes.setSelected(initialCIFOutputMergesPolygons);
-
-		initialCIFOutputInstantiatesTopLevel = IOTool.isCIFOutInstantiatesTopLevel();
-		cifOutputInstantiatesTopLevel.setSelected(initialCIFOutputInstantiatesTopLevel);
-
-		initialCIFOutputCheckResolution = IOTool.isCIFOutCheckResolution();
-		cifCheckResolution.setSelected(initialCIFOutputCheckResolution);
-
-		initialCIFOutputResolution = IOTool.getCIFOutResolution();
-		cifResolutionValue.setText(TextUtils.formatDouble(initialCIFOutputResolution));
-
-		initialCIFInputSquaresWires = IOTool.isCIFInSquaresWires();
-		cifInputSquaresWires.setSelected(initialCIFInputSquaresWires);
+		cifOutputMimicsDisplay.setSelected(IOTool.isCIFOutMimicsDisplay());
+		cifOutputMergesBoxes.setSelected(IOTool.isCIFOutMergesBoxes());
+		cifOutputInstantiatesTopLevel.setSelected(IOTool.isCIFOutInstantiatesTopLevel());
+		cifCheckResolution.setSelected(IOTool.isCIFOutCheckResolution());
+		cifResolutionValue.setText(TextUtils.formatDouble(IOTool.getCIFOutResolution()));
+		cifInputSquaresWires.setSelected(IOTool.isCIFInSquaresWires());
 
 		// build the layers list
 		cifTechnology.setText("Technology " + curTech.getTechName() + ":");
@@ -198,29 +180,29 @@ public class CIFTab extends PreferencePanel
 			if (currentCIFNumbers.equalsIgnoreCase(layer.getCIFLayer())) continue;
 			layer.setCIFLayer(currentCIFNumbers);
 		}
-		boolean currentMimicsDisplay = cifOutputMimicsDisplay.isSelected();
-		if (currentMimicsDisplay != initialCIFOutputMimicsDisplay)
-			IOTool.setCIFOutMimicsDisplay(currentMimicsDisplay);
+		boolean currentValue = cifOutputMimicsDisplay.isSelected();
+		if (currentValue != IOTool.isCIFOutMimicsDisplay())
+			IOTool.setCIFOutMimicsDisplay(currentValue);
 
-		boolean currentMergesPolygons = cifOutputMergesBoxes.isSelected();
-		if (currentMergesPolygons != initialCIFOutputMergesPolygons)
-			IOTool.setCIFOutMergesBoxes(currentMergesPolygons);
+		currentValue = cifOutputMergesBoxes.isSelected();
+		if (currentValue != IOTool.isCIFOutMergesBoxes())
+			IOTool.setCIFOutMergesBoxes(currentValue);
 
-		boolean currentInstantiatesTopLevel = cifOutputInstantiatesTopLevel.isSelected();
-		if (currentInstantiatesTopLevel != initialCIFOutputInstantiatesTopLevel)
-			IOTool.setCIFOutInstantiatesTopLevel(currentInstantiatesTopLevel);
+		currentValue = cifOutputInstantiatesTopLevel.isSelected();
+		if (currentValue != IOTool.isCIFOutInstantiatesTopLevel())
+			IOTool.setCIFOutInstantiatesTopLevel(currentValue);
 
-		boolean currentCheckResolution = cifCheckResolution.isSelected();
-		if (currentCheckResolution != initialCIFOutputCheckResolution)
-			IOTool.setCIFOutCheckResolution(currentCheckResolution);
+		currentValue = cifCheckResolution.isSelected();
+		if (currentValue != IOTool.isCIFOutCheckResolution())
+			IOTool.setCIFOutCheckResolution(currentValue);
 
 		double currentResolution = TextUtils.atof(cifResolutionValue.getText());
-		if (currentResolution != initialCIFOutputResolution)
+		if (currentResolution != IOTool.getCIFOutResolution())
 			IOTool.setCIFOutResolution(currentResolution);
 
-		boolean currentInputSquaresWires = cifInputSquaresWires.isSelected();
-		if (currentInputSquaresWires != initialCIFInputSquaresWires)
-			IOTool.setCIFInSquaresWires(currentInputSquaresWires);
+		currentValue = cifInputSquaresWires.isSelected();
+		if (currentValue != IOTool.isCIFInSquaresWires())
+			IOTool.setCIFInSquaresWires(currentValue);
 	}
 
 	/** This method is called from within the constructor to

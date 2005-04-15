@@ -43,70 +43,53 @@ public class NetworkTab extends PreferencePanel
 
 	public String getName() { return "Network"; }
 
-	private boolean netUnifyPwrGndInitial, netUnifyLikeNamedNetsInitial, netIgnoreResistorsInitial;
-	private String netUnificationPrefixInitial;
-	private boolean netBusBaseZeroInitial, netBusAscendingInitial;
-	private boolean netExtractExactCutsInitial, netExtractGridAlignInitial;
-
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Network tab.
 	 */
 	public void init()
 	{
-		netUnifyPwrGndInitial = NetworkTool.isUnifyPowerAndGround();
-		netUnifyPwrGnd.setSelected(netUnifyPwrGndInitial);
+		netUnifyPwrGnd.setSelected(NetworkTool.isUnifyPowerAndGround());
+		netUnifyLikeNamedNets.setSelected(NetworkTool.isUnifyLikeNamedNets());
+		netIgnoreResistors.setSelected(NetworkTool.isIgnoreResistors());
+		netUnificationPrefix.setText(NetworkTool.getUnificationPrefix());
 
-		netUnifyLikeNamedNetsInitial = NetworkTool.isUnifyLikeNamedNets();
-		netUnifyLikeNamedNets.setSelected(netUnifyLikeNamedNetsInitial);
-
-		netIgnoreResistorsInitial = NetworkTool.isIgnoreResistors();
-		netIgnoreResistors.setSelected(netIgnoreResistorsInitial);
-
-		netUnificationPrefixInitial = NetworkTool.getUnificationPrefix();
-		netUnificationPrefix.setText(netUnificationPrefixInitial);
-
-		netBusBaseZeroInitial = NetworkTool.isBusBaseZero();
 		netStartingIndex.addItem("0");
 		netStartingIndex.addItem("1");
-		if (!netBusBaseZeroInitial) netStartingIndex.setSelectedIndex(1);
+		if (!NetworkTool.isBusBaseZero()) netStartingIndex.setSelectedIndex(1);
 
-		netBusAscendingInitial = NetworkTool.isBusAscending();
-		if (netBusAscendingInitial) netAscending.setSelected(true); else
+		if (NetworkTool.isBusAscending()) netAscending.setSelected(true); else
 			netDescending.setSelected(true);
 
-		netExtractExactCutsInitial = Extract.isExactCutExtraction();
-		extractExactContacts.setSelected(netExtractExactCutsInitial);
-
-		netExtractGridAlignInitial = Extract.isGridAlignExtraction();
-		extractGridAlign.setSelected(netExtractGridAlignInitial);
+		extractExactContacts.setSelected(Extract.isExactCutExtraction());
+		extractGridAlign.setSelected(Extract.isGridAlignExtraction());
 	}
 
 	public void term()
 	{
 		boolean nowBoolean = netUnifyPwrGnd.isSelected();
-		if (netUnifyPwrGndInitial != nowBoolean) NetworkTool.setUnifyPowerAndGround(nowBoolean);
+		if (NetworkTool.isUnifyPowerAndGround() != nowBoolean) NetworkTool.setUnifyPowerAndGround(nowBoolean);
 
 		nowBoolean = netUnifyLikeNamedNets.isSelected();
-		if (netUnifyLikeNamedNetsInitial != nowBoolean) NetworkTool.setUnifyLikeNamedNets(nowBoolean);
+		if (NetworkTool.isUnifyLikeNamedNets() != nowBoolean) NetworkTool.setUnifyLikeNamedNets(nowBoolean);
 
 		nowBoolean = netIgnoreResistors.isSelected();
-		if (netIgnoreResistorsInitial != nowBoolean) NetworkTool.setIgnoreResistors(nowBoolean);
+		if (NetworkTool.isIgnoreResistors() != nowBoolean) NetworkTool.setIgnoreResistors(nowBoolean);
 
 		String nowString = netUnificationPrefix.getText();
-		if (!netUnificationPrefixInitial.equals(nowString)) NetworkTool.setUnificationPrefix(nowString);
+		if (!NetworkTool.getUnificationPrefix().equals(nowString)) NetworkTool.setUnificationPrefix(nowString);
 
 		nowBoolean = netStartingIndex.getSelectedIndex() == 0;
-		if (netBusBaseZeroInitial != nowBoolean) NetworkTool.setBusBaseZero(nowBoolean);
+		if (NetworkTool.isBusBaseZero() != nowBoolean) NetworkTool.setBusBaseZero(nowBoolean);
 
 		nowBoolean = netAscending.isSelected();
-		if (netBusAscendingInitial != nowBoolean) NetworkTool.setBusAscending(nowBoolean);
+		if (NetworkTool.isBusAscending() != nowBoolean) NetworkTool.setBusAscending(nowBoolean);
 
 		nowBoolean = extractExactContacts.isSelected();
-		if (netExtractExactCutsInitial != nowBoolean) Extract.setExactCutExtraction(nowBoolean);
+		if (Extract.isExactCutExtraction() != nowBoolean) Extract.setExactCutExtraction(nowBoolean);
 
 		nowBoolean = extractGridAlign.isSelected();
-		if (netExtractGridAlignInitial != nowBoolean) Extract.setGridAlignExtraction(nowBoolean);
+		if (Extract.isGridAlignExtraction() != nowBoolean) Extract.setGridAlignExtraction(nowBoolean);
 	}
 
 	/** This method is called from within the constructor to

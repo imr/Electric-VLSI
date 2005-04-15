@@ -43,33 +43,27 @@ public class PortsAndExportsTab extends PreferencePanel
 	public JPanel getPanel() { return port; }
 
 	public String getName() { return "Ports/Exports"; }
-
-	private int initialPortDisplayPortLevel;
-	private int initialPortDisplayExportLevel;
-	private boolean initialPortMoveNodeWithExport;
-
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Ports tab.
 	 */
 	public void init()
 	{
-		switch (initialPortDisplayPortLevel = User.getPortDisplayLevel())
+		switch (User.getPortDisplayLevel())
 		{
 			case 0: portFullPort.setSelected(true);    break;
 			case 1: portShortPort.setSelected(true);   break;
 			case 2: portCrossPort.setSelected(true);   break;
 		}
 
-		switch (initialPortDisplayExportLevel = User.getExportDisplayLevel())
+		switch (User.getExportDisplayLevel())
 		{
 			case 0: portFullExport.setSelected(true);    break;
 			case 1: portShortExport.setSelected(true);   break;
 			case 2: portCrossExport.setSelected(true);   break;
 		}
 
-		initialPortMoveNodeWithExport = User.isMoveNodeWithExport();
-		portMoveNode.setSelected(initialPortMoveNodeWithExport);
+		portMoveNode.setSelected(User.isMoveNodeWithExport());
 	}
 
 	/**
@@ -78,26 +72,31 @@ public class PortsAndExportsTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		int currentDisplayPortLevel = 0;
-		if (portShortPort.isSelected()) currentDisplayPortLevel = 1; else
-			if (portCrossPort.isSelected()) currentDisplayPortLevel = 2;
-		if (currentDisplayPortLevel != initialPortDisplayPortLevel)
-			User.setPortDisplayLevels(currentDisplayPortLevel);
+		int curInt = 0;
+        boolean redraw = false;
+		if (portShortPort.isSelected()) curInt = 1; else
+			if (portCrossPort.isSelected()) curInt = 2;
+		if (curInt != User.getPortDisplayLevel())
+        {
+			User.setPortDisplayLevels(curInt);
+            redraw = true;
+        }
 
-		int currentDisplayExportLevel = 0;
-		if (portShortExport.isSelected()) currentDisplayExportLevel = 1; else
-			if (portCrossExport.isSelected()) currentDisplayExportLevel = 2;
-		if (currentDisplayExportLevel != initialPortDisplayExportLevel)
-			User.setExportDisplayLevels(currentDisplayExportLevel);
+		curInt = 0;
+		if (portShortExport.isSelected()) curInt = 1; else
+			if (portCrossExport.isSelected()) curInt = 2;
+		if (curInt != User.getExportDisplayLevel())
+        {
+			User.setExportDisplayLevels(curInt); 
+            redraw = true;
+        }
 
 		boolean currentMoveNodeWithExport = portMoveNode.isSelected();
-		if (currentMoveNodeWithExport != initialPortMoveNodeWithExport)
+		if (currentMoveNodeWithExport != User.isMoveNodeWithExport())
 			User.setMoveNodeWithExport(currentMoveNodeWithExport);
 
 		// redisplay everything if port options changed
-		if (currentDisplayPortLevel != initialPortDisplayPortLevel ||
-			currentDisplayExportLevel != initialPortDisplayExportLevel)
-				EditWindow.repaintAllContents();
+		if (redraw) EditWindow.repaintAllContents();
 	}
 
 	/** This method is called from within the constructor to

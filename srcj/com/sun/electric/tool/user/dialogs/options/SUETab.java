@@ -33,8 +33,6 @@ import javax.swing.JPanel;
  */
 public class SUETab extends PreferencePanel
 {
-	private boolean initialUse4PortTransistors;
-
 	/** Creates new form SUETab */
 	public SUETab(java.awt.Frame parent, boolean modal)
 	{
@@ -51,8 +49,7 @@ public class SUETab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initialUse4PortTransistors = IOTool.isSueUses4PortTransistors();
-		sueMake4PortTransistors.setSelected(initialUse4PortTransistors);
+		sueMake4PortTransistors.setSelected(IOTool.isSueUses4PortTransistors());
 	}
 
 	/**
@@ -62,7 +59,7 @@ public class SUETab extends PreferencePanel
 	public void term()
 	{
 		boolean currentUse4PortTransistors = sueMake4PortTransistors.isSelected();
-		if (currentUse4PortTransistors != initialUse4PortTransistors)
+		if (currentUse4PortTransistors != IOTool.isSueUses4PortTransistors())
 			IOTool.setSueUses4PortTransistors(currentUse4PortTransistors);
 	}
 

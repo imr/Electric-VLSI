@@ -63,8 +63,6 @@ public class VerilogTab extends PreferencePanel
 
 	public String getName() { return "Verilog"; }
 
-	private boolean initialVerilogUseAssign;
-	private boolean initialVerilogUseTrireg;
 	private HashMap initialVerilogBehaveFiles;
 	private JList verilogCellList;
 	private DefaultListModel verilogCellListModel;
@@ -75,11 +73,8 @@ public class VerilogTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initialVerilogUseAssign = Simulation.getVerilogUseAssign();
-		verUseAssign.setSelected(initialVerilogUseAssign);
-
-		initialVerilogUseTrireg = Simulation.getVerilogUseTrireg();
-		verDefWireTrireg.setSelected(initialVerilogUseTrireg);
+		verUseAssign.setSelected(Simulation.getVerilogUseAssign());
+		verDefWireTrireg.setSelected(Simulation.getVerilogUseTrireg());
 
 		// gather all existing behave file information
 		initialVerilogBehaveFiles = new HashMap();
@@ -247,13 +242,13 @@ public class VerilogTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		boolean currentUseAssign = verUseAssign.isSelected();
-		if (currentUseAssign != initialVerilogUseAssign)
-			Simulation.setVerilogUseAssign(currentUseAssign);
+		boolean currBoolean = verUseAssign.isSelected();
+		if (currBoolean != Simulation.getVerilogUseAssign())
+			Simulation.setVerilogUseAssign(currBoolean);
 
-		boolean currentUseTrireg = verDefWireTrireg.isSelected();
-		if (currentUseTrireg != initialVerilogUseTrireg)
-			Simulation.setVerilogUseTrireg(currentUseTrireg);
+		currBoolean = verDefWireTrireg.isSelected();
+		if (currBoolean != Simulation.getVerilogUseTrireg())
+			Simulation.setVerilogUseTrireg(currBoolean);
 
 		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
 		{

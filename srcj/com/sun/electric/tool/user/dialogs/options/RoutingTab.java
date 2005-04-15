@@ -46,15 +46,7 @@ public class RoutingTab extends PreferencePanel
 
 	public String getName() { return "Routing"; }
 
-	private boolean initRoutMimicOn, initRoutAutoOn;
 	private ArcProto initRoutDefArc;
-	private boolean initRoutMimicCanUnstitch;
-	private boolean initRoutMimicInteractive;
-	private boolean initRoutMimicMatchPorts;
-	private boolean initRoutMimicMatchNumArcs;
-	private boolean initRoutMimicMatchNodeSize;
-	private boolean initRoutMimicMatchNodeType;
-	private boolean initRoutMimicNoArcsSameDir;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -62,9 +54,10 @@ public class RoutingTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initRoutMimicOn = Routing.isMimicStitchOn();
-		initRoutAutoOn = Routing.isAutoStitchOn();
-		if (!initRoutMimicOn && !initRoutAutoOn) routNoStitcher.setSelected(true); else
+		boolean initRoutMimicOn = Routing.isMimicStitchOn();
+		boolean initRoutAutoOn = Routing.isAutoStitchOn();
+		if (!initRoutMimicOn && !initRoutAutoOn) routNoStitcher.setSelected(true);
+        else
 		{
 			if (initRoutMimicOn) routMimicStitcher.setSelected(true); else
 				routAutoStitcher.setSelected(true);
@@ -83,26 +76,13 @@ public class RoutingTab extends PreferencePanel
 		if (initRoutDefArc != null)
 			routDefaultArc.setSelectedItem(initRoutDefArc.describe());
 
-		initRoutMimicCanUnstitch = Routing.isMimicStitchCanUnstitch();
-		routMimicCanUnstitch.setSelected(initRoutMimicCanUnstitch);
-
-		initRoutMimicMatchPorts = Routing.isMimicStitchMatchPorts();
-		routMimicPortsMustMatch.setSelected(initRoutMimicMatchPorts);
-
-		initRoutMimicMatchNumArcs = Routing.isMimicStitchMatchNumArcs();
-		routMimicNumArcsMustMatch.setSelected(initRoutMimicMatchNumArcs);
-
-		initRoutMimicMatchNodeSize = Routing.isMimicStitchMatchNodeSize();
-		routMimicNodeSizesMustMatch.setSelected(initRoutMimicMatchNodeSize);
-
-		initRoutMimicMatchNodeType = Routing.isMimicStitchMatchNodeType();
-		routMimicNodeTypesMustMatch.setSelected(initRoutMimicMatchNodeType);
-
-		initRoutMimicNoArcsSameDir = Routing.isMimicStitchNoOtherArcsSameDir();
-		routMimicNoOtherArcs.setSelected(initRoutMimicNoArcsSameDir);
-
-		initRoutMimicInteractive = Routing.isMimicStitchInteractive();
-		routMimicInteractive.setSelected(initRoutMimicInteractive);
+		routMimicCanUnstitch.setSelected(Routing.isMimicStitchCanUnstitch());
+		routMimicPortsMustMatch.setSelected(Routing.isMimicStitchMatchPorts());
+		routMimicNumArcsMustMatch.setSelected(Routing.isMimicStitchMatchNumArcs());
+		routMimicNodeSizesMustMatch.setSelected(Routing.isMimicStitchMatchNodeSize());
+		routMimicNodeTypesMustMatch.setSelected(Routing.isMimicStitchMatchNodeType());
+		routMimicNoOtherArcs.setSelected(Routing.isMimicStitchNoOtherArcsSameDir());
+		routMimicInteractive.setSelected(Routing.isMimicStitchInteractive());
 	}
 
 	/**
@@ -112,10 +92,10 @@ public class RoutingTab extends PreferencePanel
 	public void term()
 	{
 		boolean curMimic = routMimicStitcher.isSelected();
-		if (curMimic != initRoutMimicOn)
+		if (curMimic != Routing.isMimicStitchOn())
 			Routing.setMimicStitchOn(curMimic);
 		boolean curAuto = routAutoStitcher.isSelected();
-		if (curAuto != initRoutAutoOn)
+		if (curAuto != Routing.isAutoStitchOn())
 			Routing.setAutoStitchOn(curAuto);
 
 		ArcProto ap = null;
@@ -133,31 +113,31 @@ public class RoutingTab extends PreferencePanel
 		}
 	
 		boolean cur = routMimicCanUnstitch.isSelected();
-		if (cur != initRoutMimicCanUnstitch)
+		if (cur != Routing.isMimicStitchCanUnstitch())
 			Routing.setMimicStitchCanUnstitch(cur);
 
 		cur = routMimicPortsMustMatch.isSelected();
-		if (cur != initRoutMimicMatchPorts)
+		if (cur != Routing.isMimicStitchMatchPorts())
 			Routing.setMimicStitchMatchPorts(cur);
 
 		cur = routMimicNumArcsMustMatch.isSelected();
-		if (cur != initRoutMimicMatchNumArcs)
+		if (cur != Routing.isMimicStitchMatchNumArcs())
 			Routing.setMimicStitchMatchNumArcs(cur);
 
 		cur = routMimicNodeSizesMustMatch.isSelected();
-		if (cur != initRoutMimicMatchNodeSize)
+		if (cur != Routing.isMimicStitchMatchNodeSize())
 			Routing.setMimicStitchMatchNodeSize(cur);
 
 		cur = routMimicNodeTypesMustMatch.isSelected();
-		if (cur != initRoutMimicMatchNodeType)
+		if (cur != Routing.isMimicStitchMatchNodeType())
 			Routing.setMimicStitchMatchNodeType(cur);
 
 		cur = routMimicNoOtherArcs.isSelected();
-		if (cur != initRoutMimicNoArcsSameDir)
+		if (cur != Routing.isMimicStitchNoOtherArcsSameDir())
 			Routing.setMimicStitchNoOtherArcsSameDir(cur);
 
 		cur = routMimicInteractive.isSelected();
-		if (cur != initRoutMimicInteractive)
+		if (cur != Routing.isMimicStitchInteractive())
 			Routing.setMimicStitchInteractive(cur);
 	}
 

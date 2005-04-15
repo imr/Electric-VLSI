@@ -45,12 +45,6 @@ public class GridAndAlignmentTab extends PreferencePanel
 
 	public String getName() { return "Grid"; }
 
-	private double initialGridXSpacing, initialGridYSpacing;
-	private double initialGridDefXSpacing, initialGridDefYSpacing;
-	private int initialGridDefXBoldFrequency, initialGridDefYBoldFrequency;
-	private boolean initialGridAlignWithCircuitry;
-	private double initialGridAlignment;
-
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Grid tab.
@@ -60,7 +54,6 @@ public class GridAndAlignmentTab extends PreferencePanel
 		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null)
 		{
-			initialGridXSpacing = initialGridYSpacing = 0;
 			gridCurrentHoriz.setEditable(false);
 			gridCurrentHoriz.setText("");
 			gridCurrentVert.setEditable(false);
@@ -68,17 +61,17 @@ public class GridAndAlignmentTab extends PreferencePanel
 		} else
 		{
 			gridCurrentHoriz.setEditable(true);
-			gridCurrentHoriz.setText(TextUtils.formatDouble(initialGridXSpacing = wnd.getGridXSpacing()));
+			gridCurrentHoriz.setText(TextUtils.formatDouble(wnd.getGridXSpacing()));
 			gridCurrentVert.setEditable(true);
-			gridCurrentVert.setText(TextUtils.formatDouble(initialGridYSpacing = wnd.getGridYSpacing()));
+			gridCurrentVert.setText(TextUtils.formatDouble(wnd.getGridYSpacing()));
 		}
 
-		gridNewHoriz.setText(TextUtils.formatDouble(initialGridDefXSpacing = User.getDefGridXSpacing()));
-		gridNewVert.setText(TextUtils.formatDouble(initialGridDefYSpacing = User.getDefGridYSpacing()));
-		gridBoldHoriz.setText(TextUtils.formatDouble(initialGridDefXBoldFrequency = User.getDefGridXBoldFrequency()));
-		gridBoldVert.setText(TextUtils.formatDouble(initialGridDefYBoldFrequency = User.getDefGridYBoldFrequency()));
+		gridNewHoriz.setText(TextUtils.formatDouble(User.getDefGridXSpacing()));
+		gridNewVert.setText(TextUtils.formatDouble(User.getDefGridYSpacing()));
+		gridBoldHoriz.setText(TextUtils.formatDouble(User.getDefGridXBoldFrequency()));
+		gridBoldVert.setText(TextUtils.formatDouble(User.getDefGridYBoldFrequency()));
 
-		gridAlignCursor.setText(TextUtils.formatDouble(initialGridAlignment = User.getAlignmentToGrid()));
+		gridAlignCursor.setText(TextUtils.formatDouble(User.getAlignmentToGrid()));
 	}
 
 	/**
@@ -88,36 +81,38 @@ public class GridAndAlignmentTab extends PreferencePanel
 	public void term()
 	{
 		EditWindow wnd = EditWindow.getCurrent();
+        double currDouble;
+
 		if (wnd != null)
 		{
-			double currentXSpacing = TextUtils.atof(gridCurrentHoriz.getText());
-			if (currentXSpacing != initialGridXSpacing)
-				wnd.setGridXSpacing(currentXSpacing);
+			currDouble = TextUtils.atof(gridCurrentHoriz.getText());
+			if (currDouble != wnd.getGridXSpacing())
+				wnd.setGridXSpacing(currDouble);
 
-			double currentYSpacing = TextUtils.atof(gridCurrentVert.getText());
-			if (currentYSpacing != initialGridYSpacing)
-				wnd.setGridYSpacing(currentYSpacing);
+			currDouble = TextUtils.atof(gridCurrentVert.getText());
+			if (currDouble != wnd.getGridYSpacing())
+				wnd.setGridYSpacing(currDouble);
 		}
 
-		double currentDefXSpacing = TextUtils.atof(gridNewHoriz.getText());
-		if (currentDefXSpacing != initialGridDefXSpacing)
-			User.setDefGridXSpacing(currentDefXSpacing);
+		currDouble = TextUtils.atof(gridNewHoriz.getText());
+		if (currDouble != User.getDefGridXSpacing())
+			User.setDefGridXSpacing(currDouble);
 
-		double currentDefYSpacing = TextUtils.atof(gridNewVert.getText());
-		if (currentDefYSpacing != initialGridDefYSpacing)
-			User.setDefGridYSpacing(currentDefYSpacing);
+		currDouble = TextUtils.atof(gridNewVert.getText());
+		if (currDouble != User.getDefGridYSpacing())
+			User.setDefGridYSpacing(currDouble);
 
-		int currentDefXBoldFrequency = TextUtils.atoi(gridBoldHoriz.getText());
-		if (currentDefXBoldFrequency != initialGridDefXBoldFrequency)
-			User.setDefGridXBoldFrequency(currentDefXBoldFrequency);
+		int currInt = TextUtils.atoi(gridBoldHoriz.getText());
+		if (currInt != User.getDefGridXBoldFrequency())
+			User.setDefGridXBoldFrequency(currInt);
 
-		int currentDefYBoldFrequency = TextUtils.atoi(gridBoldVert.getText());
-		if (currentDefYBoldFrequency != initialGridDefYBoldFrequency)
-			User.setDefGridYBoldFrequency(currentDefYBoldFrequency);
+		currInt = TextUtils.atoi(gridBoldVert.getText());
+		if (currInt != User.getDefGridYBoldFrequency())
+			User.setDefGridYBoldFrequency(currInt);
 
-		double currentAlignment = TextUtils.atof(gridAlignCursor.getText());
-		if (currentAlignment != initialGridAlignment)
-			User.setAlignmentToGrid(currentAlignment);
+		currDouble = TextUtils.atof(gridAlignCursor.getText());
+		if (currDouble != User.getAlignmentToGrid())
+			User.setAlignmentToGrid(currDouble);
 	}
 
 	/** This method is called from within the constructor to

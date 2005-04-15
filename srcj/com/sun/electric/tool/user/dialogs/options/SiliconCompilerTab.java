@@ -47,24 +47,6 @@ public class SiliconCompilerTab extends PreferencePanel
 
 	public String getName() { return "Silicon Compiler"; }
 
-	private int initialNumRows;
-	private String initialHorizRoutingArc;
-	private double initialHorizArcWidth;
-	private String initialVertRoutingArc;
-	private double initialVertArcWidth;
-	private double initialPowerWidth;
-	private double initialMainPowerWidth;
-	private String initialMainPowerArc;
-	private double initialPWellHeight;
-	private double initialPWellOffset;
-	private double initialNWellHeight;
-	private double initialNWellOffset;
-	private double initialViaSize;
-	private double initialMinMetalSpacing;
-	private double initialFeedThruSize;
-	private double initialMinPortDist;
-	private double initialMinActiveDist;
-
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Selection tab.
@@ -72,8 +54,7 @@ public class SiliconCompilerTab extends PreferencePanel
 	public void init()
 	{
 		// the layout information
-		initialNumRows = SilComp.getNumberOfRows();
-		numRows.setText(Integer.toString(initialNumRows));
+		numRows.setText(Integer.toString(SilComp.getNumberOfRows()));
 
 		// the arc information
 		for(Iterator it = Technology.getCurrent().getArcs(); it.hasNext(); )
@@ -83,44 +64,27 @@ public class SiliconCompilerTab extends PreferencePanel
 			vertRoutingArc.addItem(ap.getName());
 			mainPowerArc.addItem(ap.getName());
 		}
-		initialHorizRoutingArc = SilComp.getHorizRoutingArc();
-		horizRoutingArc.setSelectedItem(initialHorizRoutingArc);
-		initialHorizArcWidth = SilComp.getHorizArcWidth();
-		horizWireWidth.setText(TextUtils.formatDouble(initialHorizArcWidth));
+		horizRoutingArc.setSelectedItem(SilComp.getHorizRoutingArc());
+		horizWireWidth.setText(TextUtils.formatDouble(SilComp.getHorizArcWidth()));
+		vertRoutingArc.setSelectedItem(SilComp.getVertRoutingArc());
+		vertWireWidth.setText(TextUtils.formatDouble(SilComp.getVertArcWidth()));
 
-		initialVertRoutingArc = SilComp.getVertRoutingArc();
-		vertRoutingArc.setSelectedItem(initialVertRoutingArc);
-		initialVertArcWidth = SilComp.getVertArcWidth();
-		vertWireWidth.setText(TextUtils.formatDouble(initialVertArcWidth));
-
-		initialPowerWidth = SilComp.getPowerWireWidth();
-		powerWidth.setText(TextUtils.formatDouble(initialPowerWidth));
-		initialMainPowerWidth = SilComp.getMainPowerWireWidth();
-		mainPowerWidth.setText(TextUtils.formatDouble(initialMainPowerWidth));
-		initialMainPowerArc = SilComp.getMainPowerArc();
-		mainPowerArc.setSelectedItem(initialMainPowerArc);
+		powerWidth.setText(TextUtils.formatDouble(SilComp.getPowerWireWidth()));
+		mainPowerWidth.setText(TextUtils.formatDouble(SilComp.getMainPowerWireWidth()));
+		mainPowerArc.setSelectedItem(SilComp.getMainPowerArc());
 
 		// the Well information
-		initialPWellHeight = SilComp.getPWellHeight();
-		pWellHeight.setText(TextUtils.formatDouble(initialPWellHeight));
-		initialPWellOffset = SilComp.getPWellOffset();
-		pWellOffset.setText(TextUtils.formatDouble(initialPWellOffset));
-		initialNWellHeight = SilComp.getNWellHeight();
-		nWellHeight.setText(TextUtils.formatDouble(initialNWellHeight));
-		initialNWellOffset = SilComp.getNWellOffset();
-		nWellOffset.setText(TextUtils.formatDouble(initialNWellOffset));
+		pWellHeight.setText(TextUtils.formatDouble(SilComp.getPWellHeight()));
+		pWellOffset.setText(TextUtils.formatDouble(SilComp.getPWellOffset()));
+		nWellHeight.setText(TextUtils.formatDouble(SilComp.getNWellHeight()));
+		nWellOffset.setText(TextUtils.formatDouble(SilComp.getNWellOffset()));
 
-		// the Design Rules
-		initialViaSize = SilComp.getViaSize();
-		viaSize.setText(TextUtils.formatDouble(initialViaSize));
-		initialMinMetalSpacing = SilComp.getMinMetalSpacing();
-		minMetalSpacing.setText(TextUtils.formatDouble(initialMinMetalSpacing));
-		initialFeedThruSize = SilComp.getFeedThruSize();
-		feedThruSize.setText(TextUtils.formatDouble(initialFeedThruSize));
-		initialMinPortDist = SilComp.getMinPortDistance();
-		minPortDist.setText(TextUtils.formatDouble(initialMinPortDist));
-		initialMinActiveDist = SilComp.getMinActiveDistance();
-		minActiveDist.setText(TextUtils.formatDouble(initialMinActiveDist));
+		// the Design Rules);
+		viaSize.setText(TextUtils.formatDouble(SilComp.getViaSize()));
+		minMetalSpacing.setText(TextUtils.formatDouble(SilComp.getMinMetalSpacing()));
+		feedThruSize.setText(TextUtils.formatDouble(SilComp.getFeedThruSize()));
+		minPortDist.setText(TextUtils.formatDouble(SilComp.getMinPortDistance()));
+		minActiveDist.setText(TextUtils.formatDouble(SilComp.getMinActiveDistance()));
 	}
 
 	/**
@@ -131,64 +95,64 @@ public class SiliconCompilerTab extends PreferencePanel
 	{
 		// layout
 		int currentNumRows = TextUtils.atoi(numRows.getText());
-		if (currentNumRows != initialNumRows)
+		if (currentNumRows != SilComp.getNumberOfRows())
 			SilComp.setNumberOfRows(currentNumRows);
 
 		// arcs
 		String currentHorizRoutingArc = (String)horizRoutingArc.getSelectedItem();
-		if (!currentHorizRoutingArc.equals(initialHorizRoutingArc))
+		if (!currentHorizRoutingArc.equals(SilComp.getHorizRoutingArc()))
 			SilComp.setHorizRoutingArc(currentHorizRoutingArc);
-		double currentHorizArcWidth = TextUtils.atof(horizWireWidth.getText());
-		if (currentHorizArcWidth != initialHorizArcWidth)
-			SilComp.setHorizArcWidth(currentHorizArcWidth);
+		double currDouble = TextUtils.atof(horizWireWidth.getText());
+		if (currDouble != SilComp.getHorizArcWidth())
+			SilComp.setHorizArcWidth(currDouble);
 
 		String currentVertRoutingArc = (String)vertRoutingArc.getSelectedItem();
-		if (!currentVertRoutingArc.equals(initialVertRoutingArc))
+		if (!currentVertRoutingArc.equals(SilComp.getVertRoutingArc()))
 			SilComp.setVertRoutingArc(currentVertRoutingArc);
-		double currentVertArcWidth = TextUtils.atof(vertWireWidth.getText());
-		if (currentVertArcWidth != initialVertArcWidth)
-			SilComp.setVertArcWidth(currentVertArcWidth);
+		currDouble = TextUtils.atof(vertWireWidth.getText());
+		if (currDouble != SilComp.getVertArcWidth())
+			SilComp.setVertArcWidth(currDouble);
 
-		double currentPowerWidth = TextUtils.atof(powerWidth.getText());
-		if (currentPowerWidth != initialPowerWidth)
-			SilComp.setPowerWireWidth(currentPowerWidth);
-		double currentMainPowerWidth = TextUtils.atof(mainPowerWidth.getText());
-		if (currentMainPowerWidth != initialMainPowerWidth)
-			SilComp.setMainPowerWireWidth(currentMainPowerWidth);
+		currDouble = TextUtils.atof(powerWidth.getText());
+		if (currDouble != SilComp.getPowerWireWidth())
+			SilComp.setPowerWireWidth(currDouble);
+		currDouble = TextUtils.atof(mainPowerWidth.getText());
+		if (currDouble != SilComp.getMainPowerWireWidth())
+			SilComp.setMainPowerWireWidth(currDouble);
 		String currentMainPowerArc = (String)mainPowerArc.getSelectedItem();
-		if (!currentMainPowerArc.equals(initialMainPowerArc))
+		if (!currentMainPowerArc.equals(SilComp.getMainPowerArc()))
 			SilComp.setMainPowerArc(currentMainPowerArc);
 
 		// wells
-		double currentPWellHeight = TextUtils.atof(pWellHeight.getText());
-		if (currentPWellHeight != initialPWellHeight)
-			SilComp.setPWellHeight(currentPWellHeight);
-		double currentPWellOffset = TextUtils.atof(pWellOffset.getText());
-		if (currentPWellOffset != initialPWellOffset)
-			SilComp.setPWellOffset(currentPWellOffset);
-		double currentNWellHeight = TextUtils.atof(nWellHeight.getText());
-		if (currentNWellHeight != initialNWellHeight)
-			SilComp.setNWellHeight(currentNWellHeight);
-		double currentNWellOffset = TextUtils.atof(nWellOffset.getText());
-		if (currentNWellOffset != initialNWellOffset)
-			SilComp.setNWellOffset(currentNWellOffset);
+		currDouble = TextUtils.atof(pWellHeight.getText());
+		if (currDouble != SilComp.getPWellHeight())
+			SilComp.setPWellHeight(currDouble);
+		currDouble = TextUtils.atof(pWellOffset.getText());
+		if (currDouble != SilComp.getPWellOffset())
+			SilComp.setPWellOffset(currDouble);
+		currDouble = TextUtils.atof(nWellHeight.getText());
+		if (currDouble != SilComp.getNWellHeight())
+			SilComp.setNWellHeight(currDouble);
+		currDouble = TextUtils.atof(nWellOffset.getText());
+		if (currDouble != SilComp.getNWellOffset())
+			SilComp.setNWellOffset(currDouble);
 
 		// design rules
-		double currentViaSize = TextUtils.atof(viaSize.getText());
-		if (currentViaSize != initialViaSize)
-			SilComp.setViaSize(currentViaSize);
-		double currentMinMetalSpacing = TextUtils.atof(minMetalSpacing.getText());
-		if (currentMinMetalSpacing != initialMinMetalSpacing)
-			SilComp.setMinMetalSpacing(currentMinMetalSpacing);
-		double currentFeedThruSize = TextUtils.atof(feedThruSize.getText());
-		if (currentFeedThruSize != initialFeedThruSize)
-			SilComp.setFeedThruSize(currentFeedThruSize);
-		double currentMinPortDist = TextUtils.atof(minPortDist.getText());
-		if (currentMinPortDist != initialMinPortDist)
-			SilComp.setMinPortDistance(currentMinPortDist);
-		double currentMinActiveDist = TextUtils.atof(minActiveDist.getText());
-		if (currentMinActiveDist != initialMinActiveDist)
-			SilComp.setMinActiveDistance(currentMinActiveDist);
+		currDouble = TextUtils.atof(viaSize.getText());
+		if (currDouble != SilComp.getViaSize())
+			SilComp.setViaSize(currDouble);
+		currDouble = TextUtils.atof(minMetalSpacing.getText());
+		if (currDouble != SilComp.getMinMetalSpacing())
+			SilComp.setMinMetalSpacing(currDouble);
+		currDouble = TextUtils.atof(feedThruSize.getText());
+		if (currDouble != SilComp.getFeedThruSize())
+			SilComp.setFeedThruSize(currDouble);
+		currDouble = TextUtils.atof(minPortDist.getText());
+		if (currDouble != SilComp.getMinPortDistance())
+			SilComp.setMinPortDistance(currDouble);
+		currDouble= TextUtils.atof(minActiveDist.getText());
+		if (currDouble != SilComp.getMinActiveDistance())
+			SilComp.setMinActiveDistance(currDouble);
 	}
 
 	/** This method is called from within the constructor to

@@ -43,16 +43,13 @@ public class LibraryTab extends PreferencePanel
 
 	public String getName() { return "Library"; }
 
-    private int initialBackupState;
-
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Library tab.
 	 */
 	public void init()
 	{
-		initialBackupState = IOTool.getBackupRedundancy();
-		switch (initialBackupState)
+		switch (IOTool.getBackupRedundancy())
 		{
 			case 0: noBackup.setSelected(true);        break;
 			case 1: backupOneLevel.setSelected(true);  break;
@@ -70,7 +67,7 @@ public class LibraryTab extends PreferencePanel
 		if (noBackup.isSelected()) currentBackupState = 0; else
 			if (backupOneLevel.isSelected()) currentBackupState = 1; else
 				if (backupAll.isSelected()) currentBackupState = 2;
-		if (currentBackupState != initialBackupState)
+		if (currentBackupState != IOTool.getBackupRedundancy())
 			IOTool.setBackupRedundancy(currentBackupState);
 	}
 

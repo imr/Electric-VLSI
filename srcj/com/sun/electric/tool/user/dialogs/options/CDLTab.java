@@ -42,24 +42,15 @@ public class CDLTab extends PreferencePanel
 
 	public String getName() { return "CDL"; }
 
-	private String initialCDLLibName;
-	private String initialCDLLibPath;
-	private boolean initialCDLConvertBrackets;
-
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the CDL tab.
 	 */
 	public void init()
 	{
-		initialCDLLibName = Simulation.getCDLLibName();
-		cdlLibraryName.setText(initialCDLLibName);
-
-		initialCDLLibPath = Simulation.getCDLLibPath();
-		cdlLibraryPath.setText(initialCDLLibPath);
-
-		initialCDLConvertBrackets = Simulation.isCDLConvertBrackets();
-		cdlConvertBrackets.setSelected(initialCDLConvertBrackets);
+		cdlLibraryName.setText(Simulation.getCDLLibName());
+		cdlLibraryPath.setText(Simulation.getCDLLibPath());
+		cdlConvertBrackets.setSelected(Simulation.isCDLConvertBrackets());
 	}
 
 	/**
@@ -69,13 +60,13 @@ public class CDLTab extends PreferencePanel
 	public void term()
 	{
 		String nameNow = cdlLibraryName.getText();
-		if (!nameNow.equals(initialCDLLibName)) Simulation.setCDLLibName(nameNow);
+		if (!nameNow.equals(Simulation.getCDLLibName())) Simulation.setCDLLibName(nameNow);
 
-		String pathNow = cdlLibraryPath.getText();
-		if (!pathNow.equals(initialCDLLibPath)) Simulation.setCDLLibPath(pathNow);
+		nameNow = cdlLibraryPath.getText();
+		if (!nameNow.equals(Simulation.getCDLLibPath())) Simulation.setCDLLibPath(nameNow);
 
 		boolean convertNow = cdlConvertBrackets.isSelected();
-		if (convertNow != initialCDLConvertBrackets) Simulation.setCDLConvertBrackets(convertNow);
+		if (convertNow != Simulation.isCDLConvertBrackets()) Simulation.setCDLConvertBrackets(convertNow);
 	}
 
 	/** This method is called from within the constructor to

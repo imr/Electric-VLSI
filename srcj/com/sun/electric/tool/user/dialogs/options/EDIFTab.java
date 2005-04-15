@@ -34,9 +34,6 @@ import javax.swing.JPanel;
  */
 public class EDIFTab extends PreferencePanel
 {
-	private boolean initialUseSchematicView;
-	private double initialInputScale;
-
 	/** Creates new form EDIFTab */
 	public EDIFTab(java.awt.Frame parent, boolean modal)
 	{
@@ -53,11 +50,8 @@ public class EDIFTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initialUseSchematicView = IOTool.isEDIFUseSchematicView();
-		edifUseSchematicView.setSelected(initialUseSchematicView);
-
-		initialInputScale = IOTool.getEDIFInputScale();
-		edifInputScale.setText(TextUtils.formatDouble(initialInputScale));
+		edifUseSchematicView.setSelected(IOTool.isEDIFUseSchematicView());
+		edifInputScale.setText(TextUtils.formatDouble(IOTool.getEDIFInputScale()));
 	}
 
 	/**
@@ -67,11 +61,11 @@ public class EDIFTab extends PreferencePanel
 	public void term()
 	{
 		boolean currentUseSchematicView = edifUseSchematicView.isSelected();
-		if (currentUseSchematicView != initialUseSchematicView)
+		if (currentUseSchematicView != IOTool.isEDIFUseSchematicView())
 			IOTool.setEDIFUseSchematicView(currentUseSchematicView);
 
 		double currentInputScale = TextUtils.atof(edifInputScale.getText());
-		if (currentInputScale != initialInputScale)
+		if (currentInputScale != IOTool.getEDIFInputScale())
 			IOTool.setEDIFInputScale(currentInputScale);
 	}
 

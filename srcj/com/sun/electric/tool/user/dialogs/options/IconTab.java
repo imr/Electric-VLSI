@@ -50,13 +50,6 @@ public class IconTab extends PreferencePanel
 
 	public String getName() { return "Icon"; }
 
-	private int initialIconInputPos, initialIconOutputPos, initialIconBidirPos;
-	private int initialIconPowerPos, initialIconGroundPos, initialIconClockPos;
-	private int initialIconExportLocation, initialIconExportStyle, initialIconExportTech;
-	private int initialIconInstanceLocation;
-	private boolean initialIconDrawLeads, initialIconDrawBody, initialIconReverseExportOrder;
-	private double initialIconLeadLength, initialIconLeadSpacing;
-
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Icon tab.
@@ -85,64 +78,64 @@ public class IconTab extends PreferencePanel
 		iconInputPos.addItem("Right Side");
 		iconInputPos.addItem("Top Side");
 		iconInputPos.addItem("Bottom Side");
-		iconInputPos.setSelectedIndex(initialIconInputPos = User.getIconGenInputSide());
+		iconInputPos.setSelectedIndex(User.getIconGenInputSide());
 
 		iconOutputPos.addItem("Left Side");
 		iconOutputPos.addItem("Right Side");
 		iconOutputPos.addItem("Top Side");
 		iconOutputPos.addItem("Bottom Side");
-		iconOutputPos.setSelectedIndex(initialIconOutputPos = User.getIconGenOutputSide());
+		iconOutputPos.setSelectedIndex(User.getIconGenOutputSide());
 
 		iconBidirPos.addItem("Left Side");
 		iconBidirPos.addItem("Right Side");
 		iconBidirPos.addItem("Top Side");
 		iconBidirPos.addItem("Bottom Side");
-		iconBidirPos.setSelectedIndex(initialIconBidirPos = User.getIconGenBidirSide());
+		iconBidirPos.setSelectedIndex(User.getIconGenBidirSide());
 
 		iconPowerPos.addItem("Left Side");
 		iconPowerPos.addItem("Right Side");
 		iconPowerPos.addItem("Top Side");
 		iconPowerPos.addItem("Bottom Side");
-		iconPowerPos.setSelectedIndex(initialIconPowerPos = User.getIconGenPowerSide());
+		iconPowerPos.setSelectedIndex(User.getIconGenPowerSide());
 
 		iconGroundPos.addItem("Left Side");
 		iconGroundPos.addItem("Right Side");
 		iconGroundPos.addItem("Top Side");
 		iconGroundPos.addItem("Bottom Side");
-		iconGroundPos.setSelectedIndex(initialIconGroundPos = User.getIconGenGroundSide());
+		iconGroundPos.setSelectedIndex(User.getIconGenGroundSide());
 
 		iconClockPos.addItem("Left Side");
 		iconClockPos.addItem("Right Side");
 		iconClockPos.addItem("Top Side");
 		iconClockPos.addItem("Bottom Side");
-		iconClockPos.setSelectedIndex(initialIconClockPos = User.getIconGenClockSide());
+		iconClockPos.setSelectedIndex(User.getIconGenClockSide());
 
 		iconExportPos.addItem("Body");
 		iconExportPos.addItem("Lead End");
 		iconExportPos.addItem("Lead Middle");
-		iconExportPos.setSelectedIndex(initialIconExportLocation = User.getIconGenExportLocation());
+		iconExportPos.setSelectedIndex(User.getIconGenExportLocation());
 
 		iconExportStyle.addItem("Centered");
 		iconExportStyle.addItem("Inward");
 		iconExportStyle.addItem("Outward");
-		iconExportStyle.setSelectedIndex(initialIconExportStyle = User.getIconGenExportStyle());
+		iconExportStyle.setSelectedIndex(User.getIconGenExportStyle());
 
 		iconExportTechnology.addItem("Universal");
 		iconExportTechnology.addItem("Schematic");
-		iconExportTechnology.setSelectedIndex(initialIconExportTech = User.getIconGenExportTech());
+		iconExportTechnology.setSelectedIndex(User.getIconGenExportTech());
 
 		iconInstancePos.addItem("Upper-right");
 		iconInstancePos.addItem("Upper-left");
 		iconInstancePos.addItem("Lower-right");
 		iconInstancePos.addItem("Lower-left");
-		iconInstancePos.setSelectedIndex(initialIconInstanceLocation = User.getIconGenInstanceLocation());
+		iconInstancePos.setSelectedIndex(User.getIconGenInstanceLocation());
 
-		iconDrawLeads.setSelected(initialIconDrawLeads = User.isIconGenDrawLeads());
-		iconDrawBody.setSelected(initialIconDrawBody = User.isIconGenDrawBody());
-		iconReverseOrder.setSelected(initialIconReverseExportOrder = User.isIconGenReverseExportOrder());
+		iconDrawLeads.setSelected(User.isIconGenDrawLeads());
+		iconDrawBody.setSelected(User.isIconGenDrawBody());
+		iconReverseOrder.setSelected(User.isIconGenReverseExportOrder());
 
-		iconLeadLength.setText(TextUtils.formatDouble(initialIconLeadLength = User.getIconGenLeadLength()));
-		iconLeadSpacing.setText(TextUtils.formatDouble(initialIconLeadSpacing = User.getIconGenLeadSpacing()));
+		iconLeadLength.setText(TextUtils.formatDouble(User.getIconGenLeadLength()));
+		iconLeadSpacing.setText(TextUtils.formatDouble(User.getIconGenLeadSpacing()));
 	}
 
 	/**
@@ -151,65 +144,65 @@ public class IconTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		int currentInputPos = iconInputPos.getSelectedIndex();
-		if (currentInputPos != initialIconInputPos)
-			User.setIconGenInputSide(currentInputPos);
+		int currInt = iconInputPos.getSelectedIndex();
+		if (currInt != User.getIconGenInputSide())
+			User.setIconGenInputSide(currInt);
 
-		int currentOutputPos = iconOutputPos.getSelectedIndex();
-		if (currentOutputPos != initialIconOutputPos)
-			User.setIconGenOutputSide(currentOutputPos);
+		currInt = iconOutputPos.getSelectedIndex();
+		if (currInt != User.getIconGenOutputSide())
+			User.setIconGenOutputSide(currInt);
 
-		int currentBidirPos = iconBidirPos.getSelectedIndex();
-		if (currentBidirPos != initialIconBidirPos)
-			User.setIconGenBidirSide(currentBidirPos);
+		currInt = iconBidirPos.getSelectedIndex();
+		if (currInt != User.getIconGenBidirSide())
+			User.setIconGenBidirSide(currInt);
 
-		int currentPowerPos = iconPowerPos.getSelectedIndex();
-		if (currentPowerPos != initialIconPowerPos)
-			User.setIconGenPowerSide(currentPowerPos);
+		currInt = iconPowerPos.getSelectedIndex();
+		if (currInt != User.getIconGenPowerSide())
+			User.setIconGenPowerSide(currInt);
 
-		int currentGroundPos = iconGroundPos.getSelectedIndex();
-		if (currentGroundPos != initialIconGroundPos)
-			User.setIconGenGroundSide(currentGroundPos);
+		currInt = iconGroundPos.getSelectedIndex();
+		if (currInt != User.getIconGenGroundSide())
+			User.setIconGenGroundSide(currInt);
 
-		int currentClockPos = iconClockPos.getSelectedIndex();
-		if (currentClockPos != initialIconClockPos)
-			User.setIconGenClockSide(currentClockPos);
+		currInt = iconClockPos.getSelectedIndex();
+		if (currInt != User.getIconGenClockSide())
+			User.setIconGenClockSide(currInt);
 
-		int currentExportPos = iconExportPos.getSelectedIndex();
-		if (currentExportPos != initialIconExportLocation)
-			User.setIconGenExportLocation(currentExportPos);
+		currInt = iconExportPos.getSelectedIndex();
+		if (currInt != User.getIconGenExportLocation())
+			User.setIconGenExportLocation(currInt);
 
-		int currentExportStyle = iconExportStyle.getSelectedIndex();
-		if (currentExportStyle != initialIconExportStyle)
-			User.setIconGenExportStyle(currentExportStyle);
+		currInt = iconExportStyle.getSelectedIndex();
+		if (currInt != User.getIconGenExportStyle())
+			User.setIconGenExportStyle(currInt);
 
-		int currentExportTechnology = iconExportTechnology.getSelectedIndex();
-		if (currentExportTechnology != initialIconExportTech)
-			User.setIconGenExportTech(currentExportTechnology);
+		currInt = iconExportTechnology.getSelectedIndex();
+		if (currInt != User.getIconGenExportTech())
+			User.setIconGenExportTech(currInt);
 
-		int currentInstancePos = iconInstancePos.getSelectedIndex();
-		if (currentInstancePos != initialIconInstanceLocation)
-			User.setIconGenInstanceLocation(currentInstancePos);
+		currInt = iconInstancePos.getSelectedIndex();
+		if (currInt != User.getIconGenInstanceLocation())
+			User.setIconGenInstanceLocation(currInt);
 
-		boolean currentDrawLeads = iconDrawLeads.isSelected();
-		if (currentDrawLeads != initialIconDrawLeads)
-			User.setIconGenDrawLeads(currentDrawLeads);
+		boolean currBoolean = iconDrawLeads.isSelected();
+		if (currBoolean != User.isIconGenDrawLeads())
+			User.setIconGenDrawLeads(currBoolean);
 
-		boolean currentDrawBody = iconDrawBody.isSelected();
-		if (currentDrawBody != initialIconDrawBody)
-			User.setIconGenDrawBody(currentDrawBody);
+		currBoolean = iconDrawBody.isSelected();
+		if (currBoolean != User.isIconGenDrawBody())
+			User.setIconGenDrawBody(currBoolean);
 
-		boolean currentReverseOrder = iconReverseOrder.isSelected();
-		if (currentReverseOrder != initialIconReverseExportOrder)
-			User.setIconGenReverseExportOrder(currentReverseOrder);
+		currBoolean = iconReverseOrder.isSelected();
+		if (currBoolean != User.isIconGenReverseExportOrder())
+			User.setIconGenReverseExportOrder(currBoolean);
 
-		double currentLeadLength = TextUtils.atof(iconLeadLength.getText());
-		if (currentLeadLength != initialIconLeadLength)
-			User.setIconGenLeadLength(currentLeadLength);
+		double currDouble = TextUtils.atof(iconLeadLength.getText());
+		if (currDouble != User.getIconGenLeadLength())
+			User.setIconGenLeadLength(currDouble);
 
-		double currentLeadSpacing = TextUtils.atof(iconLeadSpacing.getText());
-		if (currentLeadSpacing != initialIconLeadSpacing)
-			User.setIconGenLeadSpacing(currentLeadSpacing);
+		currDouble = TextUtils.atof(iconLeadSpacing.getText());
+		if (currDouble != User.getIconGenLeadSpacing())
+			User.setIconGenLeadSpacing(currDouble);
 	}
 
 	/** This method is called from within the constructor to

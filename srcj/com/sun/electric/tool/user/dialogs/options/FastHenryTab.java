@@ -37,15 +37,6 @@ import javax.swing.JPanel;
  */
 public class FastHenryTab extends PreferencePanel
 {
-	private boolean initialUseSingleFrequency;
-	private double initialFreqStart, initialFreqEnd;
-	private int initialRunsPerDecade;
-	private boolean initialMultiPole;
-	private int initialNumPoles;
-	private double initialDefThickness;
-	private int initialWidthSubdivisions, initialHeightSubdivisions;
-	private double initialMaxSegLength;
-
 	/** Creates new form FastHenryTab */
 	public FastHenryTab(java.awt.Frame parent, boolean modal)
 	{
@@ -62,43 +53,26 @@ public class FastHenryTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initialUseSingleFrequency = Simulation.isFastHenryUseSingleFrequency();
-		fhUseSingleFrequency.setSelected(initialUseSingleFrequency);
+		fhUseSingleFrequency.setSelected(Simulation.isFastHenryUseSingleFrequency());
 		fhUseSingleFrequency.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { updateWhatIsEnabled(); }
 		});
 
-		initialFreqStart = Simulation.getFastHenryStartFrequency();
-		fhFrequencyStart.setText(TextUtils.formatDouble(initialFreqStart));
-
-		initialFreqEnd = Simulation.getFastHenryEndFrequency();
-		fhFrequencyEnd.setText(TextUtils.formatDouble(initialFreqEnd));
-
-		initialRunsPerDecade = Simulation.getFastHenryRunsPerDecade();
-		fhRunsPerDecade.setText(Integer.toString(initialRunsPerDecade));
-
-		initialMultiPole = Simulation.isFastHenryMultiPole();
-		fhMakeMultipole.setSelected(initialMultiPole);
+		fhFrequencyStart.setText(TextUtils.formatDouble(Simulation.getFastHenryStartFrequency()));
+		fhFrequencyEnd.setText(TextUtils.formatDouble(Simulation.getFastHenryEndFrequency()));
+		fhRunsPerDecade.setText(Integer.toString(Simulation.getFastHenryRunsPerDecade()));
+		fhMakeMultipole.setSelected(Simulation.isFastHenryMultiPole());
 		fhMakeMultipole.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { updateWhatIsEnabled(); }
 		});
 
-		initialNumPoles = Simulation.getFastHenryNumPoles();
-		fhNumberOfPoles.setText(Integer.toString(initialNumPoles));
-
-		initialDefThickness = Simulation.getFastHenryDefThickness();
-		fhDefaultThickness.setText(TextUtils.formatDouble(initialDefThickness));
-
-		initialWidthSubdivisions = Simulation.getFastHenryWidthSubdivisions();
-		fhDefaultWidthSubs.setText(Integer.toString(initialWidthSubdivisions));
-
-		initialHeightSubdivisions = Simulation.getFastHenryHeightSubdivisions();
-		fhDefaultHeightSubs.setText(Integer.toString(initialHeightSubdivisions));
-
-		initialMaxSegLength = Simulation.getFastHenryMaxSegLength();
-		fhMaxSegmentLength.setText(TextUtils.formatDouble(initialMaxSegLength));
+		fhNumberOfPoles.setText(Integer.toString(Simulation.getFastHenryNumPoles()));
+		fhDefaultThickness.setText(TextUtils.formatDouble(Simulation.getFastHenryDefThickness()));
+		fhDefaultWidthSubs.setText(Integer.toString(Simulation.getFastHenryWidthSubdivisions()));
+		fhDefaultHeightSubs.setText(Integer.toString(Simulation.getFastHenryHeightSubdivisions()));
+		fhMaxSegmentLength.setText(TextUtils.formatDouble(Simulation.getFastHenryMaxSegLength()));
 
 		updateWhatIsEnabled();
 	}
@@ -119,45 +93,45 @@ public class FastHenryTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		boolean currentUseSingleFrequency = fhUseSingleFrequency.isSelected();
-		if (currentUseSingleFrequency != initialUseSingleFrequency)
-			Simulation.setFastHenryUseSingleFrequency(currentUseSingleFrequency);
+		boolean currBoolean = fhUseSingleFrequency.isSelected();
+		if (currBoolean != Simulation.isFastHenryUseSingleFrequency())
+			Simulation.setFastHenryUseSingleFrequency(currBoolean);
 
-		double currentFreqStart = TextUtils.atof(fhFrequencyStart.getText());
-		if (currentFreqStart != initialFreqStart)
-			Simulation.setFastHenryStartFrequency(currentFreqStart);
+		double currDouble = TextUtils.atof(fhFrequencyStart.getText());
+		if (currDouble != Simulation.getFastHenryStartFrequency())
+			Simulation.setFastHenryStartFrequency(currDouble);
 
-		double currentFreqEnd = TextUtils.atof(fhFrequencyEnd.getText());
-		if (currentFreqEnd != initialFreqEnd)
-			Simulation.setFastHenryEndFrequency(currentFreqEnd);
+		currDouble = TextUtils.atof(fhFrequencyEnd.getText());
+		if (currDouble != Simulation.getFastHenryEndFrequency())
+			Simulation.setFastHenryEndFrequency(currDouble);
 
-		int currentRunsPerDecade = TextUtils.atoi(fhRunsPerDecade.getText());
-		if (currentRunsPerDecade != initialRunsPerDecade)
-			Simulation.setFastHenryRunsPerDecade(currentRunsPerDecade);
+		int currInt = TextUtils.atoi(fhRunsPerDecade.getText());
+		if (currInt != Simulation.getFastHenryRunsPerDecade())
+			Simulation.setFastHenryRunsPerDecade(currInt);
 
-		boolean currentMultiPole = fhMakeMultipole.isSelected();
-		if (currentMultiPole != initialMultiPole)
-			Simulation.setFastHenryMultiPole(currentMultiPole);
+		currBoolean = fhMakeMultipole.isSelected();
+		if (currBoolean != Simulation.isFastHenryMultiPole())
+			Simulation.setFastHenryMultiPole(currBoolean);
 
-		int currentNumPoles = TextUtils.atoi(fhNumberOfPoles.getText());
-		if (currentNumPoles != initialNumPoles)
-			Simulation.setFastHenryNumPoles(currentNumPoles);
+		currInt = TextUtils.atoi(fhNumberOfPoles.getText());
+		if (currInt != Simulation.getFastHenryNumPoles())
+			Simulation.setFastHenryNumPoles(currInt);
 
-		double currentDefThickness = TextUtils.atof(fhDefaultThickness.getText());
-		if (currentDefThickness != initialDefThickness)
-			Simulation.setFastHenryDefThickness(currentDefThickness);
+		currDouble = TextUtils.atof(fhDefaultThickness.getText());
+		if (currDouble != Simulation.getFastHenryDefThickness())
+			Simulation.setFastHenryDefThickness(currDouble);
 
-		int currentWidthSubdivisions = TextUtils.atoi(fhDefaultWidthSubs.getText());
-		if (currentWidthSubdivisions != initialWidthSubdivisions)
-			Simulation.setFastHenryWidthSubdivisions(currentWidthSubdivisions);
+		currInt = TextUtils.atoi(fhDefaultWidthSubs.getText());
+		if (currInt != Simulation.getFastHenryWidthSubdivisions())
+			Simulation.setFastHenryWidthSubdivisions(currInt);
 
-		int currentHeightSubdivisions = TextUtils.atoi(fhDefaultHeightSubs.getText());
-		if (currentHeightSubdivisions != initialHeightSubdivisions)
-			Simulation.setFastHenryHeightSubdivisions(currentHeightSubdivisions);
+		currInt = TextUtils.atoi(fhDefaultHeightSubs.getText());
+		if (currInt != Simulation.getFastHenryHeightSubdivisions())
+			Simulation.setFastHenryHeightSubdivisions(currInt);
 
-		double currentMaxSegLength = TextUtils.atof(fhMaxSegmentLength.getText());
-		if (currentMaxSegLength != initialMaxSegLength)
-			Simulation.setFastHenryMaxSegLength(currentMaxSegLength);
+		currDouble = TextUtils.atof(fhMaxSegmentLength.getText());
+		if (currDouble != Simulation.getFastHenryMaxSegLength())
+			Simulation.setFastHenryMaxSegLength(currDouble);
 	}
 
 	/** This method is called from within the constructor to

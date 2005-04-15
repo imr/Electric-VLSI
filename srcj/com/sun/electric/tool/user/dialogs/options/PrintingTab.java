@@ -50,15 +50,6 @@ public class PrintingTab extends PreferencePanel
 
 	public String getName() { return "Printing"; }
 
-	private int initialPrintArea;
-	private int initialPrintResolution;
-	private boolean initialPrintDate;
-	private boolean initialPrintEncapsulated;
-	private boolean initialPrintPlotter;
-	private double initialPrintWidth, initialPrintHeight, initialPrintMargin;
-	private double initialLineWidth;
-	private int initialPrintRotation;
-	private int initialPrintColorMethod;
 	private Cell initialCell;
 	private double initialEPSScale;
 	private String initialEPSSyncFile;
@@ -69,49 +60,36 @@ public class PrintingTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initialPrintArea = IOTool.getPlotArea();
-		switch (initialPrintArea)
+		switch (IOTool.getPlotArea())
 		{
 			case 0: printPlotEntireCell.setSelected(true);        break;
 			case 1: printPlotHighlightedArea.setSelected(true);   break;
 			case 2: printPlotDisplayedWindow.setSelected(true);   break;
 		}
 
-		initialPrintDate = IOTool.isPlotDate();
-		printPlotDateInCorner.setSelected(initialPrintDate);
+		printPlotDateInCorner.setSelected(IOTool.isPlotDate());
+		printEncapsulated.setSelected(IOTool.isPrintEncapsulated());
+		printResolution.setText(Integer.toString(IOTool.getPrintResolution()));
 
-		initialPrintEncapsulated = IOTool.isPrintEncapsulated();
-		printEncapsulated.setSelected(initialPrintEncapsulated);
-
-		initialPrintResolution = IOTool.getPrintResolution();
-		printResolution.setText(Integer.toString(initialPrintResolution));
-
-		initialPrintPlotter = IOTool.isPrintForPlotter();
-		if (initialPrintPlotter) printUsePlotter.setSelected(true); else
+		if (IOTool.isPrintForPlotter()) printUsePlotter.setSelected(true); else
 			printUsePrinter.setSelected(true);
 
-		initialPrintWidth = IOTool.getPrintWidth();
-		printWidth.setText(TextUtils.formatDouble(initialPrintWidth));
-		initialPrintHeight = IOTool.getPrintHeight();
-		printHeight.setText(TextUtils.formatDouble(initialPrintHeight));
-		initialPrintMargin = IOTool.getPrintMargin();
-		printMargin.setText(TextUtils.formatDouble(initialPrintMargin));
+		printWidth.setText(TextUtils.formatDouble(IOTool.getPrintWidth()));
+		printHeight.setText(TextUtils.formatDouble(IOTool.getPrintHeight()));
+		printMargin.setText(TextUtils.formatDouble(IOTool.getPrintMargin()));
 
-		initialLineWidth = IOTool.getPrintPSLineWidth();
-		printLineWidth.setText(TextUtils.formatDouble(initialLineWidth));
+		printLineWidth.setText(TextUtils.formatDouble(IOTool.getPrintPSLineWidth()));
 
 		printRotation.addItem("No Rotation");
 		printRotation.addItem("Rotate plot 90 degrees");
 		printRotation.addItem("Auto-rotate plot to fit");
-		initialPrintRotation = IOTool.getPrintRotation();
-		printRotation.setSelectedIndex(initialPrintRotation);
+		printRotation.setSelectedIndex(IOTool.getPrintRotation());
 
 		printPostScriptStyle.addItem("Black&White");
 		printPostScriptStyle.addItem("Color");
 		printPostScriptStyle.addItem("Color Stippled");
 		printPostScriptStyle.addItem("Color Merged");
-		initialPrintColorMethod = IOTool.getPrintColorMethod();
-		printPostScriptStyle.setSelectedIndex(initialPrintColorMethod);
+		printPostScriptStyle.setSelectedIndex(IOTool.getPrintColorMethod());
 
 		initialCell = WindowFrame.getCurrentCell();
 		initialEPSScale = 1;
@@ -152,57 +130,57 @@ public class PrintingTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		int printArea = 0;
-		if (printPlotHighlightedArea.isSelected()) printArea = 1; else
-			if (printPlotDisplayedWindow.isSelected()) printArea = 2;
-		if (printArea != initialPrintArea)
-			IOTool.setPlotArea(printArea);
+		int currInt = 0;
+		if (printPlotHighlightedArea.isSelected()) currInt = 1; else
+			if (printPlotDisplayedWindow.isSelected()) currInt = 2;
+		if (currInt != IOTool.getPlotArea())
+			IOTool.setPlotArea(currInt);
 
-		boolean plotDate = printPlotDateInCorner.isSelected();
-		if (plotDate != initialPrintDate)
-			IOTool.setPlotDate(plotDate);
+		boolean currBoolean = printPlotDateInCorner.isSelected();
+		if (currBoolean != IOTool.isPlotDate())
+			IOTool.setPlotDate(currBoolean);
 
-		boolean encapsulated = printEncapsulated.isSelected();
-		if (encapsulated != initialPrintEncapsulated)
-			IOTool.setPrintEncapsulated(encapsulated);
+		currBoolean = printEncapsulated.isSelected();
+		if (currBoolean != IOTool.isPrintEncapsulated())
+			IOTool.setPrintEncapsulated(currBoolean);
 
-		int resolution = TextUtils.atoi(printResolution.getText());
-		if (resolution != initialPrintResolution)
-			IOTool.setPrintResolution(resolution);
+		currInt = TextUtils.atoi(printResolution.getText());
+		if (currInt != IOTool.getPrintResolution())
+			IOTool.setPrintResolution(currInt);
 
-		boolean plotter = printUsePlotter.isSelected();
-		if (plotter != initialPrintPlotter)
-			IOTool.setPrintForPlotter(plotter);
+		currBoolean = printUsePlotter.isSelected();
+		if (currBoolean != IOTool.isPrintForPlotter())
+			IOTool.setPrintForPlotter(currBoolean);
 
-		double width = TextUtils.atof(printWidth.getText());
-		if (width != initialPrintWidth)
-			IOTool.setPrintWidth(width);
+		double currDouble = TextUtils.atof(printWidth.getText());
+		if (currDouble != IOTool.getPrintWidth())
+			IOTool.setPrintWidth(currDouble);
 
-		double height = TextUtils.atof(printHeight.getText());
-		if (height != initialPrintHeight)
-			IOTool.setPrintHeight(height);
+		currDouble = TextUtils.atof(printHeight.getText());
+		if (currDouble != IOTool.getPrintHeight())
+			IOTool.setPrintHeight(currDouble);
 
-		double margin = TextUtils.atof(printMargin.getText());
-		if (margin != initialPrintMargin)
-			IOTool.setPrintMargin(margin);
+		currDouble = TextUtils.atof(printMargin.getText());
+		if (currDouble != IOTool.getPrintMargin())
+			IOTool.setPrintMargin(currDouble);
 
-		double lineWid = TextUtils.atof(printLineWidth.getText());
-		if (lineWid != initialLineWidth)
-			IOTool.setPrintPSLineWidth(lineWid);
+		currDouble = TextUtils.atof(printLineWidth.getText());
+		if (currDouble != IOTool.getPrintPSLineWidth())
+			IOTool.setPrintPSLineWidth(currDouble);
 
-		int rotation = printRotation.getSelectedIndex();
-		if (rotation != initialPrintRotation)
-			IOTool.setPrintRotation(rotation);
+		currInt = printRotation.getSelectedIndex();
+		if (currInt != IOTool.getPrintRotation())
+			IOTool.setPrintRotation(currInt);
 
-		int colorMethod = printPostScriptStyle.getSelectedIndex();
-		if (colorMethod != initialPrintColorMethod)
-			IOTool.setPrintColorMethod(colorMethod);
+		currInt = printPostScriptStyle.getSelectedIndex();
+		if (currInt != IOTool.getPrintColorMethod())
+			IOTool.setPrintColorMethod(currInt);
 
 		if (initialCell != null)
 		{
-			double currentEPSScale = TextUtils.atof(printEPSScale.getText());
-			if (currentEPSScale != initialEPSScale && currentEPSScale != 0)
-				IOTool.setPrintEPSScale(initialCell, currentEPSScale);
+			currDouble = TextUtils.atof(printEPSScale.getText());
+			if (currDouble != initialEPSScale && currDouble != 0)
+				IOTool.setPrintEPSScale(initialCell, currDouble);
 			String currentEPSSyncFile = printSyncFileName.getText();
 			if (!currentEPSSyncFile.equals(initialEPSSyncFile))
 				IOTool.setPrintEPSSynchronizeFile(initialCell, currentEPSSyncFile);

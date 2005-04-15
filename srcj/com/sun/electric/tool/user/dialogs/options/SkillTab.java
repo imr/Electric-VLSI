@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.io.IOTool;
@@ -45,9 +44,6 @@ import javax.swing.event.DocumentListener;
  */
 public class SkillTab extends PreferencePanel
 {
-	private boolean initialExcludesSubcells;
-	private boolean initialFlattensHierarchy;
-    private boolean initialGDSNameLimit;
 	private JList skillLayerList;
 	private DefaultListModel skillLayerModel;
 	private HashMap skillLayers;
@@ -96,12 +92,9 @@ public class SkillTab extends PreferencePanel
 
 		skillLayerName.getDocument().addDocumentListener(new LayerDocumentListener(this));
 
-		initialExcludesSubcells = IOTool.isSkillExcludesSubcells();
-		initialFlattensHierarchy = IOTool.isSkillFlattensHierarchy();
-        initialGDSNameLimit = IOTool.isSkillGDSNameLimit();
-		skillNoSubCells.setSelected(initialExcludesSubcells);
-		skillFlattenHierarchy.setSelected(initialFlattensHierarchy);
-
+		skillNoSubCells.setSelected(IOTool.isSkillExcludesSubcells());
+		skillFlattenHierarchy.setSelected( IOTool.isSkillFlattensHierarchy());
+        skillGDSNameLimit.setSelected(IOTool.isSkillGDSNameLimit());
 		if (!IOTool.hasSkill())
 			skillNoSkill.setText("SKILL OUTPUT IS NOT INSTALLED!");
 	}
@@ -158,17 +151,17 @@ public class SkillTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		boolean currentExcludesSubcells = skillNoSubCells.isSelected();
-		if (currentExcludesSubcells != initialExcludesSubcells)
-			IOTool.setSkillExcludesSubcells(currentExcludesSubcells);
+		boolean currBoolean = skillNoSubCells.isSelected();
+		if (currBoolean != IOTool.isSkillExcludesSubcells())
+			IOTool.setSkillExcludesSubcells(currBoolean);
 
-		boolean currentFlattensHierarchy = skillFlattenHierarchy.isSelected();
-		if (currentFlattensHierarchy != initialFlattensHierarchy)
-			IOTool.setSkillFlattensHierarchy(currentFlattensHierarchy);
+		currBoolean = skillFlattenHierarchy.isSelected();
+		if (currBoolean !=  IOTool.isSkillFlattensHierarchy())
+			IOTool.setSkillFlattensHierarchy(currBoolean);
 
-        boolean currentGDSNameLimit = skillGDSNameLimit.isSelected();
-        if (currentGDSNameLimit != initialGDSNameLimit)
-            IOTool.setSkillGDSNameLimit(currentGDSNameLimit);
+        currBoolean = skillGDSNameLimit.isSelected();
+        if (currBoolean != IOTool.isSkillGDSNameLimit())
+            IOTool.setSkillGDSNameLimit(currBoolean);
 
 		for(Iterator it = skillLayers.keySet().iterator(); it.hasNext(); )
 		{

@@ -46,56 +46,34 @@ public class GeneralTab extends PreferencePanel
 
 	public String getName() { return "General"; }
 
-	private boolean initialBeepAfterLongJobs;
-	private boolean initialShowFileSelectionForNetlists;
-	private boolean initialShowCursorCoordinates;
-	private boolean initialIncludeDateAndVersion;
-	private int initialPanningDistance;
-	private int initialErrorLimit;
-	private long initialMaxMem;
-    private int initialMaxUndo;
-    private String initialWorkingDirSetting;
-
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the General tab.
 	 */
 	public void init()
 	{
-		initialBeepAfterLongJobs = User.isBeepAfterLongJobs();
-		generalBeepAfterLongJobs.setSelected(initialBeepAfterLongJobs);
+		generalBeepAfterLongJobs.setSelected(User.isBeepAfterLongJobs());
+		generalShowFileDialog.setSelected(User.isShowFileSelectionForNetlists());
+		generalShowCursorCoordinates.setSelected(User.isShowHierarchicalCursorCoordinates());
+		generalIncludeDateAndVersion.setSelected(User.isIncludeDateAndVersionInOutput());
 
-		initialShowFileSelectionForNetlists = User.isShowFileSelectionForNetlists();
-		generalShowFileDialog.setSelected(initialShowFileSelectionForNetlists);
-
-		initialShowCursorCoordinates = User.isShowHierarchicalCursorCoordinates();
-		generalShowCursorCoordinates.setSelected(initialShowCursorCoordinates);
-
-		initialIncludeDateAndVersion = User.isIncludeDateAndVersionInOutput();
-		generalIncludeDateAndVersion.setSelected(initialIncludeDateAndVersion);
-
-        initialWorkingDirSetting = User.getInitialWorkingDirectorySetting();
         for (Iterator it = User.getInitialWorkingDirectorySettings(); it.hasNext(); )
             workingDirComboBox.addItem(it.next());
-        workingDirComboBox.setSelectedItem(initialWorkingDirSetting);
+        workingDirComboBox.setSelectedItem(User.getInitialWorkingDirectorySetting());
 
 		generalPanningDistance.addItem("Small");
 		generalPanningDistance.addItem("Medium");
 		generalPanningDistance.addItem("Large");
-		initialPanningDistance = User.getPanningDistance();
-		generalPanningDistance.setSelectedIndex(initialPanningDistance);
+		generalPanningDistance.setSelectedIndex(User.getPanningDistance());
 
-		initialErrorLimit = User.getErrorLimit();
-		generalErrorLimit.setText(Integer.toString(initialErrorLimit));
+		generalErrorLimit.setText(Integer.toString(User.getErrorLimit()));
 
-        initialMaxUndo = User.getMaxUndoHistory();
-        maxUndoHistory.setText(Integer.toString(initialMaxUndo));
+        maxUndoHistory.setText(Integer.toString(User.getMaxUndoHistory()));
 
 		java.lang.Runtime runtime = java.lang.Runtime.getRuntime();
 		long maxMemLimit = runtime.maxMemory() / 1024 / 1024;
 		generalMemoryUsage.setText("Current memory usage: " + Long.toString(maxMemLimit) + " megabytes");
-		initialMaxMem = User.getMemorySize();
-		generalMaxMem.setText(Long.toString(initialMaxMem));
+		generalMaxMem.setText(Long.toString(User.getMemorySize()));
 	}
 
 	/**
@@ -104,42 +82,42 @@ public class GeneralTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		boolean curentBeepAfterLongJobs = generalBeepAfterLongJobs.isSelected();
-		if (curentBeepAfterLongJobs != initialBeepAfterLongJobs)
-			User.setBeepAfterLongJobs(curentBeepAfterLongJobs);
+		boolean currBoolean = generalBeepAfterLongJobs.isSelected();
+		if (currBoolean != User.isBeepAfterLongJobs())
+			User.setBeepAfterLongJobs(currBoolean);
 
-		boolean curentShowFileSelectionForNetlists = generalShowFileDialog.isSelected();
-		if (curentShowFileSelectionForNetlists != initialShowFileSelectionForNetlists)
-			User.setShowFileSelectionForNetlists(curentShowFileSelectionForNetlists);
+		currBoolean = generalShowFileDialog.isSelected();
+		if (currBoolean != User.isShowFileSelectionForNetlists())
+			User.setShowFileSelectionForNetlists(currBoolean);
 
-		boolean currentShowCursorCoordinates = generalShowCursorCoordinates.isSelected();
-		if (currentShowCursorCoordinates != initialShowCursorCoordinates)
-			User.setShowHierarchicalCursorCoordinates(currentShowCursorCoordinates);
+		currBoolean = generalShowCursorCoordinates.isSelected();
+		if (currBoolean != User.isShowHierarchicalCursorCoordinates())
+			User.setShowHierarchicalCursorCoordinates(currBoolean);
 
-		boolean curentIncludeDateAndVersion = generalIncludeDateAndVersion.isSelected();
-		if (curentIncludeDateAndVersion != initialIncludeDateAndVersion)
-			User.setIncludeDateAndVersionInOutput(curentIncludeDateAndVersion);
+		currBoolean = generalIncludeDateAndVersion.isSelected();
+		if (currBoolean != User.isIncludeDateAndVersionInOutput())
+			User.setIncludeDateAndVersionInOutput(currBoolean);
 
         String currentInitialWorkingDirSetting = (String)workingDirComboBox.getSelectedItem();
-        if (!currentInitialWorkingDirSetting.equals(initialWorkingDirSetting))
+        if (!currentInitialWorkingDirSetting.equals(User.getInitialWorkingDirectorySetting()))
             User.setInitialWorkingDirectorySetting(currentInitialWorkingDirSetting);
 
-		int currentPanningDistance = generalPanningDistance.getSelectedIndex();
-		if (currentPanningDistance != initialPanningDistance)
-			User.setPanningDistance(currentPanningDistance);
+		int currInt = generalPanningDistance.getSelectedIndex();
+		if (currInt != User.getPanningDistance())
+			User.setPanningDistance(currInt);
 
-		int curentErrorLimit = TextUtils.atoi(generalErrorLimit.getText());
-		if (curentErrorLimit != initialErrorLimit)
-			User.setErrorLimit(curentErrorLimit);
+		currInt = TextUtils.atoi(generalErrorLimit.getText());
+		if (currInt != User.getErrorLimit())
+			User.setErrorLimit(currInt);
 
-		int currentMaxMem = TextUtils.atoi(generalMaxMem.getText());
-		if (currentMaxMem != initialMaxMem)
-			User.setMemorySize(currentMaxMem);
+		currInt = TextUtils.atoi(generalMaxMem.getText());
+		if (currInt != User.getMemorySize())
+			User.setMemorySize(currInt);
 
-        int currentMaxUndo = TextUtils.atoi(maxUndoHistory.getText());
-        if (currentMaxUndo != initialMaxUndo) {
-            User.setMaxUndoHistory(currentMaxUndo);
-            Undo.setHistoryListSize(currentMaxUndo);
+        currInt = TextUtils.atoi(maxUndoHistory.getText());
+        if (currInt != User.getMaxUndoHistory()) {
+            User.setMaxUndoHistory(currInt);
+            Undo.setHistoryListSize(currInt);
         }
 	}
 

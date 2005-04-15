@@ -32,8 +32,6 @@ import javax.swing.JPanel;
  */
 public class CompactionTab extends PreferencePanel
 {
-	private boolean initialAllowSpreading;
-
 	/** Creates new form CompactionTab */
 	public CompactionTab(java.awt.Frame parent, boolean modal)
 	{
@@ -50,8 +48,7 @@ public class CompactionTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initialAllowSpreading = Compaction.isAllowsSpreading();
-		compAllowSpreading.setSelected(initialAllowSpreading);
+		compAllowSpreading.setSelected(Compaction.isAllowsSpreading());
 	}
 
 	/**
@@ -61,7 +58,7 @@ public class CompactionTab extends PreferencePanel
 	public void term()
 	{
 		boolean currentAllowSpreading = compAllowSpreading.isSelected();
-		if (currentAllowSpreading != initialAllowSpreading)
+		if (currentAllowSpreading != Compaction.isAllowsSpreading())
 			Compaction.setAllowsSpreading(currentAllowSpreading);
 	}
 

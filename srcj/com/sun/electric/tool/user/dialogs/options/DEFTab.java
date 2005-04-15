@@ -34,9 +34,6 @@ import javax.swing.JPanel;
  */
 public class DEFTab extends PreferencePanel
 {
-	private boolean initialLogicalPlacement;
-	private boolean initialPhysicalPlacement;
-
 	/** Creates new form DEFTab */
 	public DEFTab(java.awt.Frame parent, boolean modal)
 	{
@@ -53,10 +50,8 @@ public class DEFTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initialLogicalPlacement = IOTool.isDEFLogicalPlacement();
-		defPlaceLogical.setSelected(initialLogicalPlacement);
-		initialPhysicalPlacement = IOTool.isDEFPhysicalPlacement();
-		defPlacePhysical.setSelected(initialPhysicalPlacement);
+		defPlaceLogical.setSelected(IOTool.isDEFLogicalPlacement());
+		defPlacePhysical.setSelected(IOTool.isDEFPhysicalPlacement());
 	}
 
 	/**
@@ -65,13 +60,13 @@ public class DEFTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		boolean currentLogicalPlacement = defPlaceLogical.isSelected();
-		if (currentLogicalPlacement != initialLogicalPlacement)
-			IOTool.setDEFLogicalPlacement(currentLogicalPlacement);
+		boolean currentValue = defPlaceLogical.isSelected();
+		if (currentValue != IOTool.isDEFLogicalPlacement())
+			IOTool.setDEFLogicalPlacement(currentValue);
 
-		boolean currentPhysicalPlacement = defPlacePhysical.isSelected();
-		if (currentPhysicalPlacement != initialPhysicalPlacement)
-			IOTool.setDEFPhysicalPlacement(currentPhysicalPlacement);
+		currentValue = defPlacePhysical.isSelected();
+		if (currentValue != IOTool.isDEFPhysicalPlacement())
+			IOTool.setDEFPhysicalPlacement(currentValue);
 	}
 
 	/** This method is called from within the constructor to

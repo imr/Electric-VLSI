@@ -53,10 +53,6 @@ public class FrameTab extends PreferencePanel
 
 	public String getName() { return "Frame"; }
 
-	private String initialFrameCompanyName;
-	private String initialFrameDesignerName;
-	private String initialFrameProjectName;
-	private String initialFrameSize;
 	private static class LibraryFrameInfo
 	{
 		Pref companyName;
@@ -108,12 +104,9 @@ public class FrameTab extends PreferencePanel
 		frameLibraryProject.getDocument().addDocumentListener(new NewFrameLibInfoListener(this));
 		frameLibrary.setSelectedItem(curLib.getName());
 
-		initialFrameCompanyName = User.getFrameCompanyName();
-		frameDefaultCompany.setText(initialFrameCompanyName);
-		initialFrameDesignerName = User.getFrameDesignerName();
-		frameDefaultDesigner.setText(initialFrameDesignerName);
-		initialFrameProjectName = User.getFrameProjectName();
-		frameDefaultProject.setText(initialFrameProjectName);
+		frameDefaultCompany.setText(User.getFrameCompanyName());
+		frameDefaultDesigner.setText(User.getFrameDesignerName());
+		frameDefaultProject.setText(User.getFrameProjectName());
 
 		loadFrameLibInfo();
 	}
@@ -164,15 +157,15 @@ public class FrameTab extends PreferencePanel
 	public void term()
 	{
 		// save default title box info
-		String currentCompanyName = frameDefaultCompany.getText();
-		if (!currentCompanyName.equals(initialFrameCompanyName))
-			User.setFrameCompanyName(currentCompanyName);
-		String currentDesignerName = frameDefaultDesigner.getText();
-		if (!currentDesignerName.equals(initialFrameDesignerName))
-			User.setFrameDesignerName(currentDesignerName);
-		String currentProjectName = frameDefaultProject.getText();
-		if (!currentProjectName.equals(initialFrameProjectName))
-			User.setFrameProjectName(currentProjectName);
+		String currValue = frameDefaultCompany.getText();
+		if (!currValue.equals(User.getFrameCompanyName()))
+			User.setFrameCompanyName(currValue);
+		currValue = frameDefaultDesigner.getText();
+		if (!currValue.equals(User.getFrameDesignerName()))
+			User.setFrameDesignerName(currValue);
+		currValue = frameDefaultProject.getText();
+		if (!currValue.equals(User.getFrameProjectName()))
+			User.setFrameProjectName(currValue);
 
 		// save per-library title box info
 		for(Iterator it = frameLibInfo.keySet().iterator(); it.hasNext(); )

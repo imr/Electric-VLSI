@@ -62,13 +62,6 @@ public class NewNodesTab extends PreferencePanel
 		Variable var;
 	}
 	private HashMap initialNewNodesPrimInfo;
-	private boolean initialNewNodesCheckDatesDuringCreation;
-	private boolean initialNewNodesAutoTechnologySwitch;
-	private boolean initialNewNodesPlaceCellCenter;
-	private boolean initialNewNodesDisallowModificationLockedPrims;
-	private boolean initialNewNodesMoveAfterDuplicate;
-	private boolean initialNewNodesDupCopiesExports;
-	private boolean initialNewNodesExtractCopiesExports;
 	private boolean newNodesDataChanging = false;
 
 	/**
@@ -93,15 +86,15 @@ public class NewNodesTab extends PreferencePanel
 		newNodesPrimPopupChanged();
 
 		// set checkboxes for "Cells" area
-		nodeCheckCellDates.setSelected(initialNewNodesCheckDatesDuringCreation = User.isCheckCellDates());
-		nodeSwitchTechnology.setSelected(initialNewNodesAutoTechnologySwitch = User.isAutoTechnologySwitch());
-		nodePlaceCellCenter.setSelected(initialNewNodesPlaceCellCenter = User.isPlaceCellCenter());
+		nodeCheckCellDates.setSelected(User.isCheckCellDates());
+		nodeSwitchTechnology.setSelected(User.isAutoTechnologySwitch());
+		nodePlaceCellCenter.setSelected(User.isPlaceCellCenter());
 
 		// set checkboxes for "all nodes" area
-		nodeDisallowModificationLockedPrims.setSelected(initialNewNodesDisallowModificationLockedPrims = User.isDisallowModificationLockedPrims());
-		nodeMoveAfterDuplicate.setSelected(initialNewNodesMoveAfterDuplicate = User.isMoveAfterDuplicate());
-		nodeDupArrayCopyExports.setSelected(initialNewNodesDupCopiesExports = User.isDupCopiesExports());
-		nodeExtractCopyExports.setSelected(initialNewNodesExtractCopiesExports = User.isExtractCopiesExports());
+		nodeDisallowModificationLockedPrims.setSelected(User.isDisallowModificationLockedPrims());
+		nodeMoveAfterDuplicate.setSelected(User.isMoveAfterDuplicate());
+		nodeDupArrayCopyExports.setSelected(User.isDupCopiesExports());
+		nodeExtractCopyExports.setSelected(User.isExtractCopiesExports());
 	
 		// setup listeners to react to any changes to a primitive size
 		nodePrimitive.addActionListener(new ActionListener()
@@ -175,33 +168,33 @@ public class NewNodesTab extends PreferencePanel
 			}
 		}
 
-		boolean currentCheckCellDates = nodeCheckCellDates.isSelected();
-		if (currentCheckCellDates != initialNewNodesCheckDatesDuringCreation)
-			User.setCheckCellDates(currentCheckCellDates);
+		boolean currBoolean = nodeCheckCellDates.isSelected();
+		if (currBoolean != User.isCheckCellDates())
+			User.setCheckCellDates(currBoolean);
 
-		boolean currentSwitchTechnology = nodeSwitchTechnology.isSelected();
-		if (currentSwitchTechnology != initialNewNodesAutoTechnologySwitch)
-			User.setAutoTechnologySwitch(currentSwitchTechnology);
+		currBoolean = nodeSwitchTechnology.isSelected();
+		if (currBoolean != User.isAutoTechnologySwitch())
+			User.setAutoTechnologySwitch(currBoolean);
 
-		boolean currentPlaceCellCenters = nodePlaceCellCenter.isSelected();
-		if (currentPlaceCellCenters != initialNewNodesPlaceCellCenter)
-			User.setPlaceCellCenter(currentPlaceCellCenters);
+		currBoolean = nodePlaceCellCenter.isSelected();
+		if (currBoolean != User.isPlaceCellCenter())
+			User.setPlaceCellCenter(currBoolean);
 
-		boolean currentDisallowModificationLockedPrims = nodeDisallowModificationLockedPrims.isSelected();
-		if (currentDisallowModificationLockedPrims != initialNewNodesDisallowModificationLockedPrims)
-			User.setDisallowModificationLockedPrims(currentDisallowModificationLockedPrims);
+		currBoolean = nodeDisallowModificationLockedPrims.isSelected();
+		if (currBoolean != User.isDisallowModificationLockedPrims())
+			User.setDisallowModificationLockedPrims(currBoolean);
 
-		boolean currentMoveAfterDuplicate = nodeMoveAfterDuplicate.isSelected();
-		if (currentMoveAfterDuplicate != initialNewNodesMoveAfterDuplicate)
-			User.setMoveAfterDuplicate(currentMoveAfterDuplicate);
+		currBoolean = nodeMoveAfterDuplicate.isSelected();
+		if (currBoolean != User.isMoveAfterDuplicate())
+			User.setMoveAfterDuplicate(currBoolean);
 
-		boolean currentCopyExports = nodeDupArrayCopyExports.isSelected();
-		if (currentCopyExports != initialNewNodesDupCopiesExports)
-			User.setDupCopiesExports(currentCopyExports);
+		currBoolean = nodeDupArrayCopyExports.isSelected();
+		if (currBoolean != User.isDupCopiesExports())
+			User.setDupCopiesExports(currBoolean);
 
-		boolean currentExtractCopyExports = nodeExtractCopyExports.isSelected();
-		if (currentExtractCopyExports != initialNewNodesExtractCopiesExports)
-			User.setExtractCopiesExports(currentExtractCopyExports);
+		currBoolean = nodeExtractCopyExports.isSelected();
+		if (currBoolean != User.isExtractCopiesExports())
+			User.setExtractCopiesExports(currBoolean);
 	}
 
 	/** This method is called from within the constructor to

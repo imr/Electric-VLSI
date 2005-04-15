@@ -37,9 +37,6 @@ public class DXFTab extends PreferencePanel
 {
 	private Layer artworkLayer;
 	private String initialNames;
-	private boolean initialInputFlattensHierarchy;
-	private boolean initialInputReadsAllLayers;
-	private int initialScale;
 	private TextUtils.UnitScale [] scales;
 
 	/** Creates new form DXFTab */
@@ -67,18 +64,15 @@ public class DXFTab extends PreferencePanel
 		}
 
 		// initialize the scale popup
-		initialScale = IOTool.getDXFScale();
 		scales = TextUtils.UnitScale.getUnitScales();
 		for(int i=0; i<scales.length; i++)
 		{
 			dxfScale.addItem(scales[i].getName() + "Meter");
 		}
-		dxfScale.setSelectedItem(TextUtils.UnitScale.findFromIndex(initialScale).getName() + "Meter");
+		dxfScale.setSelectedItem(TextUtils.UnitScale.findFromIndex(IOTool.getDXFScale()).getName() + "Meter");
 
-		initialInputFlattensHierarchy = IOTool.isDXFInputFlattensHierarchy();
-		dxfInputFlattensHierarchy.setSelected(initialInputFlattensHierarchy);
-		initialInputReadsAllLayers = IOTool.isDXFInputReadsAllLayers();
-		dxfInputReadsAllLayers.setSelected(initialInputReadsAllLayers);
+		dxfInputFlattensHierarchy.setSelected(IOTool.isDXFInputFlattensHierarchy());
+		dxfInputReadsAllLayers.setSelected(IOTool.isDXFInputReadsAllLayers());
 	}
 
 	/**
@@ -91,18 +85,17 @@ public class DXFTab extends PreferencePanel
 		if (!currentNames.equals(initialNames))
 			artworkLayer.setDXFLayer(currentNames);
 
-		int currentScaleIndex = dxfScale.getSelectedIndex();
-		int currentScale = scales[currentScaleIndex].getIndex();
-		if (currentScale != initialScale)
+		int currentScale = scales[dxfScale.getSelectedIndex()].getIndex();
+		if (currentScale != IOTool.getDXFScale())
 			IOTool.setDXFScale(currentScale);
 
-		boolean currentInputFlattensHierarchy = dxfInputFlattensHierarchy.isSelected();
-		if (currentInputFlattensHierarchy != initialInputFlattensHierarchy)
-			IOTool.setDXFInputFlattensHierarchy(currentInputFlattensHierarchy);
+		boolean currentValue = dxfInputFlattensHierarchy.isSelected();
+		if (currentValue != IOTool.isDXFInputFlattensHierarchy())
+			IOTool.setDXFInputFlattensHierarchy(currentValue);
 
-		boolean currentInputReadsAllLayers = dxfInputReadsAllLayers.isSelected();
-		if (currentInputReadsAllLayers != initialInputReadsAllLayers)
-			IOTool.setDXFInputReadsAllLayers(currentInputReadsAllLayers);
+		currentValue = dxfInputReadsAllLayers.isSelected();
+		if (currentValue != IOTool.isDXFInputReadsAllLayers())
+			IOTool.setDXFInputReadsAllLayers(currentValue);
 	}
 
 	/** This method is called from within the constructor to

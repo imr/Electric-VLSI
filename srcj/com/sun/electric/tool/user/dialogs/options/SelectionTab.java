@@ -44,10 +44,6 @@ public class SelectionTab extends PreferencePanel
 
 	public String getName() { return "Selection"; }
 
-	private boolean initialSelectionEasyCellInstances;
-	private boolean initialSelectionEasyAnnotationText;
-	private boolean initialSelectionDraggingMustEnclose;
-    private boolean initialMouseOverHighlighting;
     private long cancelMoveDelayMillis;
 
 	/**
@@ -56,12 +52,12 @@ public class SelectionTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		selEasyCellInstances.setSelected(initialSelectionEasyCellInstances = User.isEasySelectionOfCellInstances());
-		selEasyAnnotationText.setSelected(initialSelectionEasyAnnotationText = User.isEasySelectionOfAnnotationText());
-		selDraggingEnclosesEntireObject.setSelected(initialSelectionDraggingMustEnclose = User.isDraggingMustEncloseObjects());
+		selEasyCellInstances.setSelected(User.isEasySelectionOfCellInstances());
+		selEasyAnnotationText.setSelected(User.isEasySelectionOfAnnotationText());
+		selDraggingEnclosesEntireObject.setSelected(User.isDraggingMustEncloseObjects());
         cancelMoveDelayMillis = ClickZoomWireListener.theOne.getCancelMoveDelayMillis();
         selectionCancelMoveDelay.setText(String.valueOf(cancelMoveDelayMillis));
-        useMouseOverHighlighting.setSelected(initialMouseOverHighlighting = User.isMouseOverHighlightingEnabled());
+        useMouseOverHighlighting.setSelected(User.isMouseOverHighlightingEnabled());
 	}
 
 	/**
@@ -70,21 +66,21 @@ public class SelectionTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		boolean currentEasyCellInstances = selEasyCellInstances.isSelected();
-		if (currentEasyCellInstances != initialSelectionEasyCellInstances)
-			User.setEasySelectionOfCellInstances(currentEasyCellInstances);
+		boolean currBoolean = selEasyCellInstances.isSelected();
+		if (currBoolean != User.isEasySelectionOfCellInstances())
+			User.setEasySelectionOfCellInstances(currBoolean);
 
-		boolean currentEasyAnnotationText = selEasyAnnotationText.isSelected();
-		if (currentEasyAnnotationText != initialSelectionEasyAnnotationText)
-			User.setEasySelectionOfAnnotationText(currentEasyAnnotationText);
+		currBoolean = selEasyAnnotationText.isSelected();
+		if (currBoolean != User.isEasySelectionOfAnnotationText())
+			User.setEasySelectionOfAnnotationText(currBoolean);
 
-		boolean currentDraggingMustEnclose = selDraggingEnclosesEntireObject.isSelected();
-		if (currentDraggingMustEnclose != initialSelectionDraggingMustEnclose)
-			User.setDraggingMustEncloseObjects(currentDraggingMustEnclose);
+		currBoolean = selDraggingEnclosesEntireObject.isSelected();
+		if (currBoolean != User.isDraggingMustEncloseObjects())
+			User.setDraggingMustEncloseObjects(currBoolean);
 
-        boolean currentMouseOverHighlightingEnabled = useMouseOverHighlighting.isSelected();
-        if (currentMouseOverHighlightingEnabled != initialMouseOverHighlighting)
-            User.setMouseOverHighlightingEnabled(currentMouseOverHighlightingEnabled);
+        currBoolean = useMouseOverHighlighting.isSelected();
+        if (currBoolean != User.isMouseOverHighlightingEnabled())
+            User.setMouseOverHighlightingEnabled(currBoolean);
 
         long delay;
         try {

@@ -36,15 +36,6 @@ import javax.swing.JPanel;
  */
 public class IRSIMTab extends PreferencePanel
 {
-	private boolean initialResimulateEach;
-	private boolean initialAutoAdvance;
-	private boolean initialShowCommands;
-	private int initialParasiticsLevel;
-	private int initialDebugging;
-	private String initialParameterFile;
-	private String initialSteppingModel;
-    private boolean initialDelayedX;
-
 	/** Creates new form CompactionTab */
 	public IRSIMTab(java.awt.Frame parent, boolean modal)
 	{
@@ -69,27 +60,19 @@ public class IRSIMTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		initialResimulateEach = Simulation.isIRSIMResimulateEach();
-		resimulateEachChange.setSelected(initialResimulateEach);
+		resimulateEachChange.setSelected(Simulation.isIRSIMResimulateEach());
+		autoAdvanceTime.setSelected(Simulation.isIRSIMAutoAdvance());
+		showCommands.setSelected(Simulation.isIRSIMShowsCommands());
+        delayedX.setSelected(Simulation.isIRSIMDelayedX());
 
-		initialAutoAdvance = Simulation.isIRSIMAutoAdvance();
-		autoAdvanceTime.setSelected(initialAutoAdvance);
-
-		initialShowCommands = Simulation.isIRSIMShowsCommands();
-		showCommands.setSelected(initialShowCommands);
-
-        initialDelayedX = Simulation.isIRSIMDelayedX();
-        delayedX.setSelected(initialDelayedX);
-
-		initialParasiticsLevel = Simulation.getIRSIMParasiticLevel();
-		switch (initialParasiticsLevel)
+		switch (Simulation.getIRSIMParasiticLevel())
 		{
 			case 0: quickParasitics.setSelected(true);   break;
 			case 1: localParasitics.setSelected(true);   break;
 			case 2: fullParasitics.setSelected(true);    break;
 		}
 
-		initialDebugging = Simulation.getIRSIMDebugging();
+		int initialDebugging = Simulation.getIRSIMDebugging();
 		if ((initialDebugging&DEBUG_EV) != 0) debugEv.setSelected(true);
 		if ((initialDebugging&DEBUG_DC) != 0) debugDC.setSelected(true);
 		if ((initialDebugging&DEBUG_TAU) != 0) debugTau.setSelected(true);
@@ -97,13 +80,11 @@ public class IRSIMTab extends PreferencePanel
 		if ((initialDebugging&DEBUG_SPK) != 0) debugSpk.setSelected(true);
 		if ((initialDebugging&DEBUG_TW) != 0) debugTW.setSelected(true);
 
-		initialParameterFile = Simulation.getIRSIMParameterFile();
-		parameterFile.setText(initialParameterFile);
+		parameterFile.setText(Simulation.getIRSIMParameterFile());
 
 		simModel.addItem("RC");
 		simModel.addItem("Linear");
-		initialSteppingModel = Simulation.getIRSIMStepModel();
-		simModel.setSelectedItem(initialSteppingModel);
+		simModel.setSelectedItem(Simulation.getIRSIMStepModel());
 
 		// not yet:
 		quickParasitics.setEnabled(false);
@@ -117,46 +98,46 @@ public class IRSIMTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		boolean currentResimulateEach = resimulateEachChange.isSelected();
-		if (currentResimulateEach != initialResimulateEach)
-			Simulation.setIRSIMResimulateEach(currentResimulateEach);
+		boolean currBoolean = resimulateEachChange.isSelected();
+		if (currBoolean != Simulation.isIRSIMResimulateEach())
+			Simulation.setIRSIMResimulateEach(currBoolean);
 
-		boolean currentAutoAdvance = autoAdvanceTime.isSelected();
-		if (currentAutoAdvance != initialResimulateEach)
-			Simulation.setIRSIMAutoAdvance(currentAutoAdvance);
+		currBoolean = autoAdvanceTime.isSelected();
+		if (currBoolean != Simulation.isIRSIMAutoAdvance())
+			Simulation.setIRSIMAutoAdvance(currBoolean);
 
-		boolean currentShowCommands = showCommands.isSelected();
-		if (currentShowCommands != initialShowCommands)
-			Simulation.setIRSIMShowsCommands(currentShowCommands);
+		currBoolean = showCommands.isSelected();
+		if (currBoolean != Simulation.isIRSIMShowsCommands())
+			Simulation.setIRSIMShowsCommands(currBoolean);
 
-        boolean currentDelayedX = delayedX.isSelected();
-        if (currentDelayedX != initialDelayedX)
-            Simulation.setIRSIMDelayedX(currentDelayedX);
+        currBoolean = delayedX.isSelected();
+        if (currBoolean != Simulation.isIRSIMDelayedX())
+            Simulation.setIRSIMDelayedX(currBoolean);
 
-		int currentParasiticsLevel = 0;
-		if (quickParasitics.isSelected()) currentParasiticsLevel = 0; else
-			if (localParasitics.isSelected()) currentParasiticsLevel = 1; else
-				if (fullParasitics.isSelected()) currentParasiticsLevel = 2;
-		if (currentParasiticsLevel != initialParasiticsLevel)
-			Simulation.setIRSIMParasiticLevel(currentParasiticsLevel);
+		int currInt = 0;
+		if (quickParasitics.isSelected()) currInt = 0; else
+			if (localParasitics.isSelected()) currInt = 1; else
+				if (fullParasitics.isSelected()) currInt = 2;
+		if (currInt != Simulation.getIRSIMParasiticLevel())
+			Simulation.setIRSIMParasiticLevel(currInt);
 
-		int currentDebugging = 0;
-		if (debugEv.isSelected()) currentDebugging |= DEBUG_EV;
-		if (debugDC.isSelected()) currentDebugging |= DEBUG_DC;
-		if (debugTau.isSelected()) currentDebugging |= DEBUG_TAU;
-		if (debugTauP.isSelected()) currentDebugging |= DEBUG_TAUP;
-		if (debugSpk.isSelected()) currentDebugging |= DEBUG_SPK;
-		if (debugTW.isSelected()) currentDebugging |= DEBUG_TW;
-		if (currentDebugging != initialDebugging)
-			Simulation.setIRSIMDebugging(currentDebugging);
+		currInt = 0;
+		if (debugEv.isSelected()) currInt |= DEBUG_EV;
+		if (debugDC.isSelected()) currInt |= DEBUG_DC;
+		if (debugTau.isSelected()) currInt |= DEBUG_TAU;
+		if (debugTauP.isSelected()) currInt |= DEBUG_TAUP;
+		if (debugSpk.isSelected()) currInt |= DEBUG_SPK;
+		if (debugTW.isSelected()) currInt |= DEBUG_TW;
+		if (currInt != Simulation.getIRSIMParasiticLevel())
+			Simulation.setIRSIMDebugging(currInt);
 
-		String currentParameterFile = parameterFile.getText();
-		if (!currentParameterFile.equals(initialParameterFile))
-			Simulation.setIRSIMParameterFile(currentParameterFile);
+		String currString = parameterFile.getText();
+		if (!currString.equals(Simulation.getIRSIMParameterFile()))
+			Simulation.setIRSIMParameterFile(currString);
 
-		String currentSteppingModel = (String)simModel.getSelectedItem();
-		if (!currentSteppingModel.equals(initialSteppingModel))
-			Simulation.setIRSIMStepModel(currentSteppingModel);
+		currString = (String)simModel.getSelectedItem();
+		if (!currString.equals(Simulation.getIRSIMStepModel()))
+			Simulation.setIRSIMStepModel(currString);
 	}
 
 	/** This method is called from within the constructor to

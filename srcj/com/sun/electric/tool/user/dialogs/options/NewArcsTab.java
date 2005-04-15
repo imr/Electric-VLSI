@@ -27,7 +27,6 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -69,9 +68,7 @@ public class NewArcsTab extends PreferencePanel
 		PrimitiveNode initialPin, pin;
 	}
 	private HashMap initialNewArcsPrimInfo;
-	private boolean initialClickSounds;
 	private boolean newArcsDataChanging = false;
-	private boolean initialNewArcsIncrementsNames;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -143,11 +140,8 @@ public class NewArcsTab extends PreferencePanel
             public void actionPerformed(ActionEvent evt) { newArcsPrimDataChanged(); }
         });
 
-		initialClickSounds = User.isPlayClickSoundsWhenCreatingArcs();
-		playClickSounds.setSelected(initialClickSounds);
-
-		initialNewArcsIncrementsNames = User.isArcsAutoIncremented();
-		incrementArcNames.setSelected(initialNewArcsIncrementsNames);
+		playClickSounds.setSelected(User.isPlayClickSoundsWhenCreatingArcs());
+		incrementArcNames.setSelected(User.isArcsAutoIncremented());
 	}
 
 	/**
@@ -248,13 +242,13 @@ public class NewArcsTab extends PreferencePanel
 			}
 		}
 
-		boolean curentClickSounds = playClickSounds.isSelected();
-		if (curentClickSounds != initialClickSounds)
-			User.setPlayClickSoundsWhenCreatingArcs(curentClickSounds);
+		boolean currBoolean = playClickSounds.isSelected();
+		if (currBoolean != User.isPlayClickSoundsWhenCreatingArcs())
+			User.setPlayClickSoundsWhenCreatingArcs(currBoolean);
 
-		boolean curentNewArcsIncrementsNames = incrementArcNames.isSelected();
-		if (curentNewArcsIncrementsNames != initialNewArcsIncrementsNames)
-			User.setArcsAutoIncremented(curentNewArcsIncrementsNames);
+		currBoolean = incrementArcNames.isSelected();
+		if (currBoolean != User.isArcsAutoIncremented())
+			User.setArcsAutoIncremented(currBoolean);
 	}
 
 	/** This method is called from within the constructor to

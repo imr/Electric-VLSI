@@ -53,7 +53,6 @@ public class TextTab extends PreferencePanel
 
 	public String getName() { return "Text"; }
 
-	private String initialTextFontName;
 	private MutableTextDescriptor initialTextNodeDescriptor, currentTextNodeDescriptor;
 	private MutableTextDescriptor initialTextArcDescriptor, currentTextArcDescriptor;
 	private MutableTextDescriptor initialTextExportDescriptor, currentTextExportDescriptor;
@@ -61,9 +60,6 @@ public class TextTab extends PreferencePanel
 	private MutableTextDescriptor initialTextInstanceDescriptor, currentTextInstanceDescriptor;
 	private MutableTextDescriptor initialTextCellDescriptor, currentTextCellDescriptor;
 	private MutableTextDescriptor currentTextDescriptor;
-	private int initialTextSmartVertical;
-	private int initialTextSmartHorizontal;
-	private double initialGlobalTextScale;
 	private boolean textValuesChanging = false;
 
 	/**
@@ -94,22 +90,20 @@ public class TextTab extends PreferencePanel
 		currentTextInstanceDescriptor = MutableTextDescriptor.getInstanceTextDescriptor();
 		currentTextCellDescriptor = MutableTextDescriptor.getCellTextDescriptor();
 
-		initialTextSmartVertical = User.getSmartVerticalPlacement();
-		switch (initialTextSmartVertical)
+		switch (User.getSmartVerticalPlacement())
 		{
 			case 0: textSmartVerticalOff.setSelected(true);       break;
 			case 1: textSmartVerticalInside.setSelected(true);    break;
 			case 2: textSmartVerticalOutside.setSelected(true);   break;
 		}
-		initialTextSmartHorizontal = User.getSmartHorizontalPlacement();
-		switch (initialTextSmartVertical)
+
+		switch (User.getSmartHorizontalPlacement())
 		{
 			case 0: textSmartHorizontalOff.setSelected(true);       break;
 			case 1: textSmartHorizontalInside.setSelected(true);    break;
 			case 2: textSmartHorizontalOutside.setSelected(true);   break;
 		}
 
-		initialTextFontName = User.getDefaultFont();
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		String [] fontNames = ge.getAvailableFontFamilyNames();
 		textFace.addItem("DEFAULT FONT");
@@ -118,10 +112,9 @@ public class TextTab extends PreferencePanel
 			textDefaultFont.addItem(fontNames[i]);
 			textFace.addItem(fontNames[i]);
 		}
-		textDefaultFont.setSelectedItem(initialTextFontName);
+		textDefaultFont.setSelectedItem(User.getDefaultFont());
 
-		initialGlobalTextScale = User.getGlobalTextScale() * 100;
-		textGlobalScale.setText(TextUtils.formatDouble(initialGlobalTextScale));
+		textGlobalScale.setText(TextUtils.formatDouble(User.getGlobalTextScale() * 100));
 		
 		textNodes.setSelected(true);
 		textButtonChanged();
@@ -298,7 +291,7 @@ public class TextTab extends PreferencePanel
 	public void term()
 	{
 		String currentFontName = (String)textDefaultFont.getSelectedItem();
-		if (!currentFontName.equalsIgnoreCase(initialTextFontName))
+		if (!currentFontName.equalsIgnoreCase(User.getDefaultFont()))
 			User.setDefaultFont(currentFontName);
 
 		if (!currentTextNodeDescriptor.equals(initialTextNodeDescriptor))
@@ -314,20 +307,20 @@ public class TextTab extends PreferencePanel
 		if (!currentTextCellDescriptor.equals(initialTextCellDescriptor))
 			TextDescriptor.setCellTextDescriptor(currentTextCellDescriptor);
 
-		int currentSmartVertical = 0;
-		if (textSmartVerticalInside.isSelected()) currentSmartVertical = 1; else
-			if (textSmartVerticalOutside.isSelected()) currentSmartVertical = 2;
-		if (currentSmartVertical != initialTextSmartVertical)
-			User.setSmartVerticalPlacement(currentSmartVertical);
+		int currInt = 0;
+		if (textSmartVerticalInside.isSelected()) currInt = 1; else
+			if (textSmartVerticalOutside.isSelected()) currInt = 2;
+		if (currInt != User.getSmartVerticalPlacement())
+			User.setSmartVerticalPlacement(currInt);
 
-		int currentSmartHorizontal = 0;
-		if (textSmartHorizontalInside.isSelected()) currentSmartHorizontal = 1; else
-			if (textSmartHorizontalOutside.isSelected()) currentSmartHorizontal = 2;
-		if (currentSmartHorizontal != initialTextSmartHorizontal)
-			User.setSmartHorizontalPlacement(currentSmartHorizontal);
+		currInt = 0;
+		if (textSmartHorizontalInside.isSelected()) currInt = 1; else
+			if (textSmartHorizontalOutside.isSelected()) currInt = 2;
+		if (currInt != User.getSmartHorizontalPlacement())
+			User.setSmartHorizontalPlacement(currInt);
 
 		double currentGlobalScale = TextUtils.atof(textGlobalScale.getText()) / 100;
-		if (currentGlobalScale != initialGlobalTextScale)
+		if (currentGlobalScale != User.getGlobalTextScale())
 			User.setGlobalTextScale(currentGlobalScale);
 	}
 
