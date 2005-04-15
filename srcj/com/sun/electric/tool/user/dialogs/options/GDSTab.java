@@ -23,10 +23,8 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.output.GDS;
 
@@ -56,15 +54,6 @@ public class GDSTab extends PreferencePanel
 
 	public String getName() { return "GDS"; }
 
-	private boolean initialGDSOutputMergesBoxes;
-	private boolean initialGDSOutputWritesExportPins;
-	private boolean initialGDSOutputUpperCase;
-    private boolean initialGDSOutputConvertsBracketsInExports;
-	private boolean initialGDSInputIncludesText;
-	private boolean initialGDSInputExpandsCells;
-	private boolean initialGDSInputInstantiatesArrays;
-	private boolean initialGDSInputIgnoresUnknownLayers;
-	private int initialGDSTextLayer;
 	private JList gdsLayersList;
 	private DefaultListModel gdsLayersModel;
 	private boolean changingGDS = false;
@@ -76,25 +65,16 @@ public class GDSTab extends PreferencePanel
 	public void init()
 	{
 		gdsTechName.setText("Technology " + curTech.getTechName() + ":");
-		initialGDSOutputMergesBoxes = IOTool.isGDSOutMergesBoxes();
-		gdsOutputMergesBoxes.setSelected(initialGDSOutputMergesBoxes);
-		initialGDSOutputWritesExportPins = IOTool.isGDSOutWritesExportPins();
-		gdsOutputWritesExportPins.setSelected(initialGDSOutputWritesExportPins);
-		initialGDSOutputUpperCase = IOTool.isGDSOutUpperCase();
-		gdsOutputUpperCase.setSelected(initialGDSOutputUpperCase);
-		initialGDSTextLayer = IOTool.getGDSOutDefaultTextLayer();
-		gdsDefaultTextLayer.setText(Integer.toString(initialGDSTextLayer));
-        initialGDSOutputConvertsBracketsInExports = IOTool.getGDSOutputConvertsBracketsInExports();
-        gdsOutputConvertsBracketsInExports.setSelected(initialGDSOutputConvertsBracketsInExports);
+		gdsOutputMergesBoxes.setSelected(IOTool.isGDSOutMergesBoxes());
+		gdsOutputWritesExportPins.setSelected(IOTool.isGDSOutWritesExportPins());
+		gdsOutputUpperCase.setSelected(IOTool.isGDSOutUpperCase());
+		gdsDefaultTextLayer.setText(Integer.toString(IOTool.getGDSOutDefaultTextLayer()));
+        gdsOutputConvertsBracketsInExports.setSelected(IOTool.getGDSOutputConvertsBracketsInExports());
 
-		initialGDSInputIncludesText = IOTool.isGDSInIncludesText();
-		gdsInputIncludesText.setSelected(initialGDSInputIncludesText);
-		initialGDSInputExpandsCells = IOTool.isGDSInExpandsCells();
-		gdsInputExpandsCells.setSelected(initialGDSInputExpandsCells);
-		initialGDSInputInstantiatesArrays = IOTool.isGDSInInstantiatesArrays();
-		gdsInputInstantiatesArrays.setSelected(initialGDSInputInstantiatesArrays);
-		initialGDSInputIgnoresUnknownLayers = IOTool.isGDSInIgnoresUnknownLayers();
-		gdsInputIgnoresUnknownLayers.setSelected(initialGDSInputIgnoresUnknownLayers);
+		gdsInputIncludesText.setSelected(IOTool.isGDSInIncludesText());
+		gdsInputExpandsCells.setSelected(IOTool.isGDSInExpandsCells());
+		gdsInputInstantiatesArrays.setSelected(IOTool.isGDSInInstantiatesArrays());
+		gdsInputIgnoresUnknownLayers.setSelected(IOTool.isGDSInIgnoresUnknownLayers());
 
 		// build the layers list
 		gdsLayersModel = new DefaultListModel();
@@ -223,35 +203,35 @@ public class GDSTab extends PreferencePanel
 			if (currentGDSNumbers.equalsIgnoreCase(layer.getGDSLayer())) continue;
 			layer.setGDSLayer(currentGDSNumbers);
 		}
-		boolean currentOutputMergesBoxes = gdsOutputMergesBoxes.isSelected();
-		if (currentOutputMergesBoxes != initialGDSOutputMergesBoxes)
-			IOTool.setGDSOutMergesBoxes(currentOutputMergesBoxes);
-		boolean currentOutputWritesExportPins = gdsOutputWritesExportPins.isSelected();
-		if (currentOutputWritesExportPins != initialGDSOutputWritesExportPins)
-			IOTool.setGDSOutWritesExportPins(currentOutputWritesExportPins);
-		boolean currentOutputUpperCase = gdsOutputUpperCase.isSelected();
-		if (currentOutputUpperCase != initialGDSOutputUpperCase)
-			IOTool.setGDSOutUpperCase(currentOutputUpperCase);
-        boolean currentOutputConvertsBrackets = gdsOutputConvertsBracketsInExports.isSelected();
-        if (currentOutputConvertsBrackets != initialGDSOutputConvertsBracketsInExports)
-            IOTool.setGDSOutputConvertsBracketsInExports(currentOutputConvertsBrackets);
+		boolean currentValue = gdsOutputMergesBoxes.isSelected();
+		if (currentValue != IOTool.isGDSOutMergesBoxes())
+			IOTool.setGDSOutMergesBoxes(currentValue);
+		currentValue = gdsOutputWritesExportPins.isSelected();
+		if (currentValue != IOTool.isGDSOutWritesExportPins())
+			IOTool.setGDSOutWritesExportPins(currentValue);
+		currentValue = gdsOutputUpperCase.isSelected();
+		if (currentValue != IOTool.isGDSOutUpperCase())
+			IOTool.setGDSOutUpperCase(currentValue);
+        currentValue = gdsOutputConvertsBracketsInExports.isSelected();
+        if (currentValue !=  IOTool.getGDSOutputConvertsBracketsInExports())
+            IOTool.setGDSOutputConvertsBracketsInExports(currentValue);
 
 		int currentTextLayer = TextUtils.atoi(gdsDefaultTextLayer.getText());
-		if (currentTextLayer != initialGDSTextLayer)
+		if (currentTextLayer != IOTool.getGDSOutDefaultTextLayer())
 			IOTool.setGDSOutDefaultTextLayer(currentTextLayer);
 
-		boolean currentInputIncludesText = gdsInputIncludesText.isSelected();
-		if (currentInputIncludesText != initialGDSInputIncludesText)
-			IOTool.setGDSInIncludesText(currentInputIncludesText);
-		boolean currentInputExpandsCells = gdsInputExpandsCells.isSelected();
-		if (currentInputExpandsCells != initialGDSInputExpandsCells)
-			IOTool.setGDSInExpandsCells(currentInputExpandsCells);
-		boolean currentInputInstantiatesArrays = gdsInputInstantiatesArrays.isSelected();
-		if (currentInputInstantiatesArrays != initialGDSInputInstantiatesArrays)
-			IOTool.setGDSInInstantiatesArrays(currentInputInstantiatesArrays);
-		boolean currentInputIgnoresUnknownLayers = gdsInputIgnoresUnknownLayers.isSelected();
-		if (currentInputIgnoresUnknownLayers != initialGDSInputIgnoresUnknownLayers)
-			IOTool.setGDSInIgnoresUnknownLayers(currentInputIgnoresUnknownLayers);
+		currentValue = gdsInputIncludesText.isSelected();
+		if (currentValue != IOTool.isGDSInIncludesText())
+			IOTool.setGDSInIncludesText(currentValue);
+		currentValue = gdsInputExpandsCells.isSelected();
+		if (currentValue != IOTool.isGDSInExpandsCells())
+			IOTool.setGDSInExpandsCells(currentValue);
+		currentValue = gdsInputInstantiatesArrays.isSelected();
+		if (currentValue != IOTool.isGDSInInstantiatesArrays())
+			IOTool.setGDSInInstantiatesArrays(currentValue);
+		currentValue = gdsInputIgnoresUnknownLayers.isSelected();
+		if (currentValue != IOTool.isGDSInIgnoresUnknownLayers())
+			IOTool.setGDSInIgnoresUnknownLayers(currentValue);
 	}
 
 	/** This method is called from within the constructor to
