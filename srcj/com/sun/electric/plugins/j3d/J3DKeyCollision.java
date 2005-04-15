@@ -30,20 +30,16 @@
 
 package com.sun.electric.plugins.j3d;
 
-import com.sun.j3d.utils.behaviors.keyboard.KeyNavigatorBehavior;
-
 import javax.media.j3d.*;
 
 public class J3DKeyCollision extends J3DKeyBehavior // KeyNavigatorBehavior
 {
 	private J3DCollisionChecker		m_CollisionChecker = null;
-//    protected TransformGroup transformGroup;
-//    protected Transform3D transform3D;
 
 
-	public J3DKeyCollision(TransformGroup tg, BranchGroup axes, J3DCollisionDetector collisionDetector)
+	public J3DKeyCollision(TransformGroup tg, J3DCollisionDetector collisionDetector)
 	{
-		super(tg, axes);
+		super(tg);
 
         transformGroup = tg;
         transform3D = new Transform3D( );

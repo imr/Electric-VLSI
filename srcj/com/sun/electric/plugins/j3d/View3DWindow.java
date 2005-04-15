@@ -355,8 +355,6 @@ public class View3DWindow extends JPanel
 		setWindowTitle();
 	}
 
-    /** Font for 3D axis labels */ private static Font3D font3D;
-
     /**
      * Method to create axes for reference
      * @return
@@ -483,9 +481,8 @@ public class View3DWindow extends JPanel
         setInterpolator();
 
         // create the KeyBehavior and attach main transformation group
-		keyBehavior = new J3DKeyCollision(objTrans, null, this);
+		keyBehavior = new J3DKeyCollision(objTrans, this);
 		keyBehavior.setSchedulingBounds(J3DUtils.infiniteBounds);
-		//keyBehavior.setMovementRate( 0.7 );
 		objTrans.addChild(keyBehavior);
 
 		return objRoot;
@@ -998,7 +995,7 @@ public class View3DWindow extends JPanel
 	public BufferedImage getOffScreenImage(ElectricPrinter ep)
     {
 		BufferedImage bImage = ep.getBufferedImage();
-        int OFF_SCREEN_SCALE = 3;
+        //int OFF_SCREEN_SCALE = 3;
 
 		// might have problems if visibility of some layers is switched off
 		if (bImage == null)
@@ -1120,7 +1117,7 @@ public class View3DWindow extends JPanel
                 grp.getTransform(currXform);
                 currXform.setTranslation(newPos);
 //                tmpVec.set(newPos);
-                boolean invert = true;
+//                boolean invert = true;
 //                if (invert) {
 //                    currXform.mul(currXform, tmpVec);
 //                } else {

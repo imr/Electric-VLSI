@@ -37,9 +37,7 @@ import java.awt.AWTEvent;
 import java.awt.event.*;
 import java.util.Enumeration;
 import java.util.Arrays;
-import java.util.Collections;
 
-import com.sun.j3d.utils.universe.*;
 import javax.media.j3d.*;
 import javax.vecmath.*;
 
@@ -50,7 +48,6 @@ public class J3DKeyBehavior extends Behavior
 	protected static final double SLOW_SPEED = 0.5;
 
 	protected TransformGroup transformGroup; /* Contains main scene*/
-    //private BranchGroup axes; /* Contains the 3 axes, they should only be rotated */
 	protected Transform3D transform3D;
 	protected WakeupCondition keyCriterion;
     public Vector3d positionVector = null;
@@ -64,12 +61,11 @@ public class J3DKeyBehavior extends Behavior
 	private int leftKey = KeyEvent.VK_LEFT;
 	private int rightKey = KeyEvent.VK_RIGHT;
 
-	public J3DKeyBehavior(TransformGroup tg, BranchGroup axes)
+	public J3DKeyBehavior(TransformGroup tg)
 	{
 		super();
 
 		transformGroup = tg;
-        //this.axes = axes;
 		transform3D = new Transform3D( );
         positionVector = new Vector3d();
 	}
@@ -197,21 +193,6 @@ public class J3DKeyBehavior extends Behavior
         return true;
 	}
 
-    /**
-     * Method to rotate always the axes
-     */
-    private void rotateAxes(Transform3D toMove)
-    {
-//        for (Enumeration e = axes.getAllChildren(); e.hasMoreElements(); )
-//        {
-//            TransformGroup axisTrans = (TransformGroup)e.nextElement();
-//            Transform3D tmp = new Transform3D( );
-//            axisTrans.getTransform(tmp);
-//            tmp.mul(toMove);
-//            axisTrans.setTransform(tmp);
-//        }
-    }
-
     private static final int X = 0;
     private static final int Y = 1;
     private static final int Z = 2;
@@ -241,12 +222,11 @@ public class J3DKeyBehavior extends Behavior
 		transform3D.mul(toMove);
         // Need to move in opposite direction to avoid collision
         boolean noCollision = updateTransform(force);
-        rotateAxes(toMove);
         return (noCollision);
 	}
 
 	private static Transform3D toMove = new Transform3D();
-    protected boolean doMove(Vector3d theMove, boolean force)
+    private boolean doMove(Vector3d theMove, boolean force)
 	{
 		transformGroup.getTransform(transform3D);
         toMove.setIdentity();
