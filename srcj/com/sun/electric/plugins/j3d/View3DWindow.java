@@ -554,6 +554,7 @@ public class View3DWindow extends JPanel
 	 */
 	public void zoomOutContents()
     {
+        keyBehavior.zoomInOut(false);
 //        zoomB.zoomInOut(false);
     }
 
@@ -562,15 +563,16 @@ public class View3DWindow extends JPanel
 	 */
 	public void zoomInContents()
     {
-        Transform3D trans = new Transform3D();
-        TransformGroup transformGroup = u.getViewingPlatform().getViewPlatformTransform();
-        double z_factor = orbit.getZoomFactor();
-        double factor = (false) ? (1/z_factor) : (z_factor);
-        Matrix4d mat = new Matrix4d();
-        trans.get(mat);
-        double dy = trans.getScale() * factor;
-        trans.setScale(dy);
-        transformGroup.setTransform(trans);
+        keyBehavior.zoomInOut(true);
+//        Transform3D trans = new Transform3D();
+//        TransformGroup transformGroup = u.getViewingPlatform().getViewPlatformTransform();
+//        double z_factor = orbit.getZoomFactor();
+//        double factor = (false) ? (1/z_factor) : (z_factor);
+//        Matrix4d mat = new Matrix4d();
+//        trans.get(mat);
+//        double dy = trans.getScale() * factor;
+//        trans.setScale(dy);
+//        transformGroup.setTransform(trans);
         //zoomB.zoomInOut(true);
     }
 

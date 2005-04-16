@@ -50,7 +50,6 @@ public class J3DKeyBehavior extends Behavior
 	protected TransformGroup transformGroup; /* Contains main scene*/
 	protected Transform3D transform3D;
 	protected WakeupCondition keyCriterion;
-    public Vector3d positionVector = null;
 
 	private double rotateAmount = Math.PI / 16.0;
 	private double moveRate = 5;
@@ -66,8 +65,7 @@ public class J3DKeyBehavior extends Behavior
 		super();
 
 		transformGroup = tg;
-		transform3D = new Transform3D( );
-        positionVector = new Vector3d();
+		transform3D = new Transform3D();
 	}
 
 	public void initialize( )
@@ -225,13 +223,28 @@ public class J3DKeyBehavior extends Behavior
         return (noCollision);
 	}
 
+    void zoomInOut(boolean out)
+    {
+        double z_factor = 0.7;//Math.abs(0.7);
+        //double factor = (out) ? (0.5/z_factor) : (2*z_factor);
+        double factor = (out) ? (1/z_factor) : (z_factor);
+
+        // Remember old matrix
+        transformGroup.getTransform(transform3D);
+        Matrix4d mat = new Matrix4d();
+        transform3D.get(mat);
+        double dy = transform3D.getScale() * factor;
+        transform3D.setScale(dy);
+        transformGroup.setTransform(transform3D);
+    }
+
 	private static Transform3D toMove = new Transform3D();
     private boolean doMove(Vector3d theMove, boolean force)
 	{
 		transformGroup.getTransform(transform3D);
         toMove.setIdentity();
 		toMove.setTranslation(theMove);
-        positionVector.add (theMove);
+        //positionVector.add (theMove);
 		transform3D.mul( toMove );
 		return updateTransform(force);
 	}
