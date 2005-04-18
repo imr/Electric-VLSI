@@ -334,11 +334,12 @@ public class NewRStep extends Eval
 			{
 				incLevel = ((theSim.irDebug & (Sim.DEBUG_TAU | Sim.DEBUG_TW)) == (Sim.DEBUG_TAU | Sim.DEBUG_TW) &&
 					(nd.nFlags & Sim.WATCHED) != 0) ? 1 : 0;
-				if (incLevel == 0 && ((theSim.irDebug & Sim.DEBUG_TAU) == Sim.DEBUG_TAU &&
-					(nd.nFlags & Sim.WATCHED) != 0))
-						printTau(nd, r, -1);
 
 				r = getTau(nd, (Sim.Trans) null, dom, incLevel);
+
+                if (incLevel == 0 && ((theSim.irDebug & Sim.DEBUG_TAU) == Sim.DEBUG_TAU &&
+                    (nd.nFlags & Sim.WATCHED) != 0))
+                        printTau(nd, r, -1);
 
 				r.tauA = r.rDom * r.cA;
 				r.tauD = r.rDom * r.cD;
@@ -1224,9 +1225,9 @@ public class NewRStep extends Eval
 		long dtau = Sim.psToDelta(tau);
 
 		System.out.print(" [event " + theSim.curNode.nName + "->" +
-		Sim.vChars.charAt(theSim.curNode.nPot) + "@ " + Sim.deltaToNS(theSim.curDelta) + "] ");
+		Sim.vChars.charAt(theSim.curNode.nPot) + " @ " + Sim.deltaToNS(theSim.curDelta) + "] ");
 
-		System.out.print((queued ? "causes %stransition for" : (theSim.withDriven ? "" : "CS ") + "evaluates"));
+		System.out.print(queued ? ("causes " + (theSim.withDriven ? "" : "CS") + "transition for\"") : "evaluates");
 
 		System.out.print(" " + nd.nName + ": " + Sim.vChars.charAt(nd.nPot) + " -> " + Sim.vChars.charAt(r.finall));
 		System.out.println(" (tau=" + Sim.deltaToNS(dtau) + "ns, delay=" + Sim.deltaToNS(delay) + "ns)");
@@ -1251,11 +1252,11 @@ public class NewRStep extends Eval
 
 	private void printTau(Sim.Node n, Sim.Thev r, int level)
 	{
-		System.out.print("compute_tau(" + n.nName + ")");
-		System.out.print("{Rmin=" + rToAscii(r.rMin) + "  Rdom=" + rToAscii(r.rDom) + "  Rmax=" + rToAscii(r.rMax) + "}");
-		System.out.println("  {Ca=" + r.cA + "  Cd=" + r.cD + "}");
+		System.out.print(" ....compute_tau(" + n.nName + ")");
+		System.out.print("  {Rmin=" + rToAscii(r.rMin) + "  Rdom=" + rToAscii(r.rDom) + "  Rmax=" + rToAscii(r.rMax) + "}");
+		System.out.println(" {Ca=" + r.cA + "  Cd=" + r.cD + "}");
 
-		System.out.print("tauA=" + Sim.psToNS(r.rDom * r.cA) + "  tauD=" + Sim.psToNS(r.rDom * r.cD) + " ns, RTin=");
+		System.out.print("     tauA=" + Sim.psToNS(r.rDom * r.cA) + "  tauD=" + Sim.psToNS(r.rDom * r.cD) + " ns, RTin=");
 		if ((r.flags & T_INT) != 0)
 			System.out.println(Sim.deltaToNS((long)r.tIn) + " ohm*ns");
 		else
