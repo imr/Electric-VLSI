@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+BUG: (04/15/05, SMR) JELIB output does not always get the type of variable arrays if the first entry is null.
+FIX: In output.JELIB.makeString(), determine the type of the array, not the first entry.
+
 IMP: (04/18/05, DN) Global-Partition schematic primitive is handled by HierarchicalEnumerator.
      Spice netlister tries to handle it too when Spice.USE_GLOBALS = false
 

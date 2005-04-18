@@ -26,48 +26,39 @@
 package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.output.Output;
+import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Color;
-import java.awt.Dimension;
-import java.util.Iterator;
-import java.util.List;
-import java.util.HashMap;
-import java.util.StringTokenizer;
-import java.util.ArrayList;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.StringTokenizer;
+
 import javax.swing.JOptionPane;
 
 /**
@@ -80,11 +71,40 @@ public class Generate
 	{
 		String description;
 		double scale;
+		double minres, mincap;
+		double gateShrinkage;
+		boolean includeGateInResistance;
+		boolean includeGround;
+		Color [] transparentColors;
+
+		/**
+		 * Method to build the appropriate descriptive information for a layer into
+		 * cell "np".  The color is "colorindex"; the stipple array is in "stip"; the
+		 * layer style is in "style", the CIF layer is in "ciflayer"; the function is
+		 * in "functionindex"; the Calma GDS-II layer is in "gds"; the SPICE resistance is in "spires",
+		 * the SPICE capacitance is in "spicap", the SPICE edge capacitance is in "spiecap",
+		 * the 3D height is in "height3d", and the 3D thickness is in "thick3d".
+		 */
+		void us_tecedmakeinfo(Cell np)
+		{
+			// load up the structure with the current values
+			loadTableEntry(us_tecedmisctexttable, TECHLAMBDA, new Double(scale));
+			loadTableEntry(us_tecedmisctexttable, TECHDESCRIPT, description);
+			loadTableEntry(us_tecedmisctexttable, TECHSPICEMINRES, new Double(minres));
+			loadTableEntry(us_tecedmisctexttable, TECHSPICEMINCAP, new Double(mincap));
+			loadTableEntry(us_tecedmisctexttable, TECHGATESHRINK, new Double(gateShrinkage));
+			loadTableEntry(us_tecedmisctexttable, TECHGATEINCLUDED, new Boolean(includeGateInResistance));
+			loadTableEntry(us_tecedmisctexttable, TECHGROUNDINCLUDED, new Boolean(includeGround));
+			loadTableEntry(us_tecedmisctexttable, TECHTRANSPCOLORS, transparentColors);
+
+			// now create those text objects
+			us_tecedcreatespecialtext(np, us_tecedmisctexttable);
+		}
 
 		/**
 		 * Method to parse the miscellaneous-info cell in "np" and return a GeneralInfo object that describes it.
 		 */
-		public static GeneralInfo us_teceditgetlayerinfo(Cell np)
+		public static GeneralInfo us_teceditgettechinfo(Cell np)
 		{
 			// create and initialize the GRAPHICS structure
 			GeneralInfo gi = new GeneralInfo();
@@ -96,13 +116,36 @@ public class Generate
 				String str = Manipulate.getValueOnNode(ni);
 				switch (opt)
 				{
-					case Generate.TECHLAMBDA:
+					case TECHLAMBDA:
 						gi.scale = TextUtils.atof(str);
 						break;
-					case Generate.TECHDESCRIPT:
+					case TECHDESCRIPT:
 						gi.description = str;
 						break;
-					case Generate.CENTEROBJ:
+					case TECHSPICEMINRES:
+						gi.minres = TextUtils.atof(str);
+						break;
+					case TECHSPICEMINCAP:
+						gi.mincap = TextUtils.atof(str);
+						break;
+					case TECHGATESHRINK:
+						gi.gateShrinkage = TextUtils.atof(str);
+						break;
+					case TECHGATEINCLUDED:
+						gi.includeGateInResistance = str.equalsIgnoreCase("yes");
+						break;
+					case TECHGROUNDINCLUDED:
+						gi.includeGround = str.equalsIgnoreCase("yes");
+						break;
+					case TECHTRANSPCOLORS:
+						Variable var = ni.getVar(TRANSLAYER_KEY);
+						if (var != null)
+						{
+							Color [] colors = getTransparentColors((String)var.getObject());
+							if (colors != null) gi.transparentColors = colors;
+						}
+						break;						
+					case CENTEROBJ:
 						break;
 					default:
 						Parse.us_tecedpointout(ni, np);
@@ -117,17 +160,18 @@ public class Generate
 	static class LayerInfo
 	{
 		String name;
+		String javaName;
 		EGraphics desc;
 		Layer.Function fun;
 		int funExtra;
 		String cif;
-		String dxf;
 		String gds;
 		double spires;
 		double spicap;
 		double spiecap;
 		double height3d;
 		double thick3d;
+		double coverage;
 		Layer generated;
 
 		LayerInfo()
@@ -141,7 +185,6 @@ public class Generate
 			li.desc = new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, 0, 0, 0, 0, 1, false, new int[16]);
 			li.fun = Layer.Function.UNKNOWN;
 			li.cif = "";
-			li.dxf = "";
 			li.gds = "";
 			return li;
 		}
@@ -150,20 +193,22 @@ public class Generate
 		 * Method to build the appropriate descriptive information for a layer into
 		 * cell "np".  The color is "colorindex"; the stipple array is in "stip"; the
 		 * layer style is in "style", the CIF layer is in "ciflayer"; the function is
-		 * in "functionindex"; the DXF layer name(s)
-		 * are "dxf"; the Calma GDS-II layer is in "gds"; the SPICE resistance is in "spires",
+		 * in "functionindex"; the Calma GDS-II layer is in "gds"; the SPICE resistance is in "spires",
 		 * the SPICE capacitance is in "spicap", the SPICE edge capacitance is in "spiecap",
 		 * the 3D height is in "height3d", and the 3D thickness is in "thick3d".
 		 */
 		void us_tecedmakelayer(Cell np)
 		{
-			NodeInst laystipple = null, laypatclear = null, laypatinvert = null, laypatcopy = null, laypatpaste = null;
+			NodeInst laystipple = null, laypatclear = null, laypatinvert = null, laypatcopy = null, laypatpaste = null, patchNode = null;
 			for(Iterator it = np.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				Variable var = ni.getVar(OPTION_KEY);
-				if (var == null) continue;
-				switch (((Integer)var.getObject()).intValue())
+				int opt = Manipulate.us_tecedgetoption(ni);
+				if (ni.getProto() == Artwork.tech.filledBoxNode)
+				{
+					if (opt != Generate.LAYERPATTERN) patchNode = ni;
+				}
+				switch (opt)
 				{
 					case LAYERPATTERN:   laystipple = ni;    break;
 					case LAYERPATCLEAR:  laypatclear = ni;   break;
@@ -174,15 +219,13 @@ public class Generate
 			}
 		
 			// create the transparency information if it is not there
-			Variable patchVar = np.getVar(Generate.COLORNODE_KEY);
-			if (patchVar == null)
+			if (patchNode == null)
 			{
 				// create the graphic color object
 				NodeInst nicolor = NodeInst.makeInstance(Artwork.tech.filledBoxNode, new Point2D.Double(-15000/SCALEALL,15000/SCALEALL),
 					10000/SCALEALL, 10000/SCALEALL, np);
 				if (nicolor == null) return;
 				Manipulate.us_teceditsetpatch(nicolor, desc);
-				np.newVar(COLORNODE_KEY, nicolor);
 			}
 		
 			// create the stipple pattern objects if none are there
@@ -251,6 +294,19 @@ public class Generate
 			}
 
 			// load up the structure with the current values
+			loadTableEntry(us_tecedlayertexttable, LAYERFUNCTION, fun);
+			loadTableEntry(us_tecedlayertexttable, LAYERCOLOR, desc);
+			loadTableEntry(us_tecedlayertexttable, LAYERTRANSPARENCY, desc);
+			loadTableEntry(us_tecedlayertexttable, LAYERSTYLE, desc);
+			loadTableEntry(us_tecedlayertexttable, LAYERCIF, cif);
+			loadTableEntry(us_tecedlayertexttable, LAYERGDS, gds);
+			loadTableEntry(us_tecedlayertexttable, LAYERSPIRES, new Double(spires));
+			loadTableEntry(us_tecedlayertexttable, LAYERSPICAP, new Double(spicap));
+			loadTableEntry(us_tecedlayertexttable, LAYERSPIECAP, new Double(spiecap));
+			loadTableEntry(us_tecedlayertexttable, LAYER3DHEIGHT, new Double(height3d));
+			loadTableEntry(us_tecedlayertexttable, LAYER3DTHICK, new Double(thick3d));
+			loadTableEntry(us_tecedlayertexttable, LAYERCOVERAGE, new Double(coverage));
+			
 			for(int i=0; i<us_tecedlayertexttable.length; i++)
 			{
 				switch (us_tecedlayertexttable[i].funct)
@@ -259,42 +315,9 @@ public class Generate
 						us_tecedlayertexttable[i].value = fun;
 						us_tecedlayertexttable[i].extra = funExtra;
 						break;
-					case LAYERCOLOR:
-						us_tecedlayertexttable[i].value = desc;
-						break;
-					case LAYERTRANSPARENCY:
-						us_tecedlayertexttable[i].value = desc;
-						break;
-					case LAYERSTYLE:
-						us_tecedlayertexttable[i].value = desc;
-						break;
-					case LAYERCIF:
-						us_tecedlayertexttable[i].value = cif;
-						break;
-					case LAYERGDS:
-						us_tecedlayertexttable[i].value = gds;
-						break;
-					case LAYERDXF:
-						us_tecedlayertexttable[i].value = dxf;
-						break;
-					case LAYERSPIRES:
-						us_tecedlayertexttable[i].value = new Double(spires);
-						break;
-					case LAYERSPICAP:
-						us_tecedlayertexttable[i].value = new Double(spicap);
-						break;
-					case LAYERSPIECAP:
-						us_tecedlayertexttable[i].value = new Double(spiecap);
-						break;
-					case LAYER3DHEIGHT:
-						us_tecedlayertexttable[i].value = new Double(height3d);
-						break;
-					case LAYER3DTHICK:
-						us_tecedlayertexttable[i].value = new Double(thick3d);
-						break;
 				}
 			}
-		
+
 			// now create those text objects
 			us_tecedcreatespecialtext(np, us_tecedlayertexttable);
 		}
@@ -418,9 +441,6 @@ public class Generate
 						if (str.equals("-1")) str = "";
 						li.gds = str;
 						break;
-					case LAYERDXF:
-						li.dxf = str;
-						break;
 					case LAYERSPIRES:
 						li.spires = TextUtils.atof(str);
 						break;
@@ -436,9 +456,12 @@ public class Generate
 					case LAYER3DTHICK:
 						li.thick3d = TextUtils.atof(str);
 						break;
+					case LAYERCOVERAGE:
+						li.coverage = TextUtils.atof(str);
+						break;
 				}
 			}
-		
+
 			if (patterncount != 16*16 && patterncount != 16*8)
 			{
 				System.out.println("Incorrect number of pattern boxes in " + np.describe() +
@@ -489,6 +512,7 @@ public class Generate
 	static class ArcInfo
 	{
 		String name;
+		String javaName;
 		ArcProto.Function func;
 		boolean fixang;
 		boolean wipes;
@@ -498,6 +522,7 @@ public class Generate
 		ArcDetails [] arcDetails;
 		double widthOffset;
 		double maxWidth;
+		double antennaRatio;
 
 		ArcInfo()
 		{
@@ -520,27 +545,12 @@ public class Generate
 		void us_tecedmakearc(Cell np)
 		{
 			// load up the structure with the current values
-			for(int i=0; i<us_tecedarctexttable.length; i++)
-			{
-				switch (us_tecedarctexttable[i].funct)
-				{
-					case ARCFUNCTION:
-						us_tecedarctexttable[i].value = func;
-						break;
-					case ARCFIXANG:
-						us_tecedarctexttable[i].value = new Boolean(fixang);
-						break;
-					case ARCWIPESPINS:
-						us_tecedarctexttable[i].value = new Boolean(wipes);
-						break;
-					case ARCNOEXTEND:
-						us_tecedarctexttable[i].value = new Boolean(noextend);
-						break;
-					case ARCINC:
-						us_tecedarctexttable[i].value = new Integer(anginc);
-						break;
-				}
-			}
+			loadTableEntry(us_tecedarctexttable, ARCFUNCTION, func);
+			loadTableEntry(us_tecedarctexttable, ARCFIXANG, new Boolean(fixang));
+			loadTableEntry(us_tecedarctexttable, ARCWIPESPINS, new Boolean(wipes));
+			loadTableEntry(us_tecedarctexttable, ARCNOEXTEND, new Boolean(noextend));
+			loadTableEntry(us_tecedarctexttable, ARCINC, new Integer(anginc));
+			loadTableEntry(us_tecedarctexttable, ARCANTENNARATIO, new Double(antennaRatio));
 		
 			// now create those text objects
 			us_tecedcreatespecialtext(np, us_tecedarctexttable);
@@ -590,6 +600,9 @@ public class Generate
 					case ARCNOEXTEND:
 						ain.noextend = str.equalsIgnoreCase("no");
 						break;
+					case ARCANTENNARATIO:
+						ain.antennaRatio = TextUtils.atof(str);
+						break;
 				}
 			}
 			return ain;
@@ -603,26 +616,33 @@ public class Generate
 		int angle;
 		int range;
 		int netIndex;
-		Parse.Rule rule;
+		Technology.TechPoint[] values;
 	}
 
 	static class NodeLayerDetails
 	{
 		LayerInfo layer;
 		Poly.Type style;
-		Parse.Rule rule;
+		int representation;
+		Technology.TechPoint[] values;
+		Parse.Sample ns;
 		int portIndex;
+		boolean multiCut;				/* true if a multi-cut layer */
+		double        multixs, multiys;			/* size of multicut */
+		double        multiindent, multisep;	/* indent and separation of multicuts */
+		double lWidth, rWidth, extendT, extendB;		/* serpentine transistor information */
 	}
 
 	static class NodeInfo
 	{
 		String name;
+		String abbrev;
+		PrimitiveNode generated;
 		PrimitiveNode.Function func;
 		boolean serp;
 		boolean square;
 		boolean wipes;
 		boolean lockable;
-		double multicutsep;
 		NodeLayerDetails [] nodeLayers;
 		NodePortDetails [] nodePortDetails;
 		PrimitivePort[] primPorts;
@@ -650,32 +670,13 @@ public class Generate
 		 * if "lockable" is true.
 		 */
 		void us_tecedmakenode(Cell np)
-		{	
+		{
 			// load up the structure with the current values
-			for(int i=0; i < us_tecednodetexttable.length; i++)
-			{
-				switch (us_tecednodetexttable[i].funct)
-				{
-					case NODEFUNCTION:
-						us_tecednodetexttable[i].value = func;
-						break;
-					case NODESERPENTINE:
-						us_tecednodetexttable[i].value = new Boolean(serp);
-						break;
-					case NODESQUARE:
-						us_tecednodetexttable[i].value = new Boolean(square);
-						break;
-					case NODEWIPES:
-						us_tecednodetexttable[i].value = new Boolean(wipes);
-						break;
-					case NODELOCKABLE:
-						us_tecednodetexttable[i].value = new Boolean(lockable);
-						break;
-					case NODEMULTICUT:
-						us_tecednodetexttable[i].value = new Double(multicutsep);
-						break;
-				}
-			}
+			loadTableEntry(us_tecednodetexttable, NODEFUNCTION, func);
+			loadTableEntry(us_tecednodetexttable, NODESERPENTINE, new Boolean(serp));
+			loadTableEntry(us_tecednodetexttable, NODESQUARE, new Boolean(square));
+			loadTableEntry(us_tecednodetexttable, NODEWIPES, new Boolean(wipes));
+			loadTableEntry(us_tecednodetexttable, NODELOCKABLE, new Boolean(lockable));
 		
 			// now create those text objects
 			us_tecedcreatespecialtext(np, us_tecednodetexttable);
@@ -711,9 +712,6 @@ public class Generate
 							}
 						}
 						break;
-					case NODEMULTICUT:
-						nin.multicutsep = TextUtils.atof(str);
-						break;
 					case NODESQUARE:
 						nin.square = str.equalsIgnoreCase("yes");
 						break;
@@ -734,7 +732,13 @@ public class Generate
 
 	static final double SCALEALL = 2000;
 
-	/* the meaning of OPTION_KEY on nodes */
+	/*
+	 * the meaning of OPTION_KEY on nodes
+	 * Note that these values are stored in the technology libraries and therefore cannot be changed.
+	 * Gaps in the table are where older values became obsolete.
+	 * Do not reuse lower numbers when creating a new attribute: add at the end
+	 * (as Ivan Sutherland likes to say, numbers are cheap).
+	 */
 	static final int LAYERTRANSPARENCY =  1;					/* transparency layer (layer cell) */
 	static final int LAYERSTYLE        =  2;					/* style (layer cell) */
 	static final int LAYERCIF          =  3;					/* CIF name (layer cell) */
@@ -771,95 +775,34 @@ public class Generate
 	static final int LAYERPATCLEAR     = 34;					/* clear the pattern (layer cell) */
 	static final int LAYERPATINVERT    = 35;					/* invert the pattern (layer cell) */
 	static final int LAYERPATCOPY      = 36;					/* copy the pattern (layer cell) */
-	static final int LAYERPATPASTE     = 37;					/* paste the pattern (layer cell) */
+	static final int LAYERPATPASTE     = 37;					/* copy the pattern (layer cell) */
+	static final int TECHSPICEMINRES   = 38;					/* Minimum resistance of SPICE elements (info cell) */
+	static final int TECHSPICEMINCAP   = 39;					/* Minimum capacitance of SPICE elements (info cell) */
+	static final int ARCANTENNARATIO   = 40;					/* Maximum antenna ratio (arc cell) */
+	static final int LAYERCOVERAGE     = 41;					/* Desired coverage percentage (layer cell) */
+	static final int TECHGATESHRINK    = 42;					/* gate shrinkage, in um (info cell) */
+	static final int TECHGATEINCLUDED  = 43;					/* true if gate is included in resistance (info cell) */
+	static final int TECHGROUNDINCLUDED= 44;					/* true to include the ground network (info cell) */
+	static final int TECHTRANSPCOLORS  = 45;					/* the transparent colors (info cell) */
 
 	/** key of Variable holding option information. */	public static final Variable.Key OPTION_KEY = ElectricObject.newKey("EDTEC_option");
 	/** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = ElectricObject.newKey("EDTEC_layer");
 	/** key of Variable holding arc ordering. */		public static final Variable.Key ARCSEQUENCE_KEY = ElectricObject.newKey("EDTEC_arcsequence");
 	/** key of Variable holding node ordering. */		public static final Variable.Key NODESEQUENCE_KEY = ElectricObject.newKey("EDTEC_nodesequence");
 	/** key of Variable holding layer ordering. */		public static final Variable.Key LAYERSEQUENCE_KEY = ElectricObject.newKey("EDTEC_layersequence");
-	/** key of Variable holding extra variables. */		public static final Variable.Key VARIABLELIST_KEY = ElectricObject.newKey("EDTEC_variable_list");
 	/** key of Variable marking geometry as min-size. */public static final Variable.Key MINSIZEBOX_KEY = ElectricObject.newKey("EDTEC_minbox");
 	/** key of Variable holding port name. */			public static final Variable.Key PORTNAME_KEY = ElectricObject.newKey("EDTEC_portname");
 	/** key of Variable holding port angle. */			public static final Variable.Key PORTANGLE_KEY = ElectricObject.newKey("EDTEC_portangle");
 	/** key of Variable holding port range. */			public static final Variable.Key PORTRANGE_KEY = ElectricObject.newKey("EDTEC_portrange");
 	/** key of Variable holding arc connection list. */	public static final Variable.Key CONNECTION_KEY = ElectricObject.newKey("EDTEC_connects");
-	/** key of Variable with color node in layer cell. */public static final Variable.Key COLORNODE_KEY = ElectricObject.newKey("EDTEC_colornode");
 	/** key of Variable with color map table. */		public static final Variable.Key COLORMAP_KEY = ElectricObject.newKey("EDTEC_colormap");
 	/** key of Variable with color map table. */		public static final Variable.Key DEPENDENTLIB_KEY = ElectricObject.newKey("EDTEC_dependent_libraries");
-
-	/* additional technology variables */
-	static class TechVar
-	{
-		String    varname;
-		TechVar   nexttechvar;
-		boolean   changed;
-		int       ival;
-		float     fval;
-		String    sval;
-		int       vartype;
-		String    description;
-
-		TechVar(String name, String desc)
-		{
-			varname = name;
-			description = desc;
-		}
-	};
+	/** key of Variable with transparent color list. */	public static final Variable.Key TRANSLAYER_KEY = ElectricObject.newKey("EDTEC_transparent_layers");
 	
-//	#define MAXNAMELEN 25		/* max chars in a new name */
-//	
 //	INTBIG us_teceddrclayers = 0;
 //	CHAR **us_teceddrclayernames = 0;
-	
-	/* the known technology variables */
-	static TechVar [] us_knownvars =
-	{
-		new TechVar("DRC_ecad_deck",             /*VSTRING|VISARRAY,*/ "Dracula design-rule deck"),
-		new TechVar("IO_cif_polypoints",         /*VINTEGER,*/         "Maximum points in a CIF polygon"),
-		new TechVar("IO_cif_resolution",         /*VINTEGER,*/         "Minimum resolution of CIF coordinates"),
-		new TechVar("IO_gds_polypoints",         /*VINTEGER,*/         "Maximum points in a GDS-II polygon"),
-		new TechVar("SIM_spice_min_resistance",  /*VFLOAT,*/           "Minimum resistance of SPICE elements"),
-		new TechVar("SIM_spice_min_capacitance", /*VFLOAT,*/           "Minimum capacitance of SPICE elements"),
-		new TechVar("SIM_spice_mask_scale",      /*VFLOAT,*/           "Scaling factor for SPICE decks"),
-		new TechVar("SIM_spice_header_level1",   /*VSTRING|VISARRAY,*/ "Level 1 header for SPICE decks"),
-		new TechVar("SIM_spice_header_level2",   /*VSTRING|VISARRAY,*/ "Level 2 header for SPICE decks"),
-		new TechVar("SIM_spice_header_level3",   /*VSTRING|VISARRAY,*/ "Level 3 header for SPICE decks"),
-		new TechVar("SIM_spice_model_file",      /*VSTRING,*/          "Disk file with SPICE header cards"),
-		new TechVar("SIM_spice_trailer_file",    /*VSTRING,*/          "Disk file with SPICE trailer cards")
-	};
-//
-//
-//	/* the meaning of "us_tecflags" */
-//	#define HASDRCMINWID         01				/* has DRC minimum width information */
-//	#define HASDRCMINWIDR        02				/* has DRC minimum width information */
-//	#define HASCOLORMAP          04				/* has color map */
-//	#define HASARCWID           010				/* has arc width offset factors */
-//	#define HASCIF              020				/* has CIF layers */
-//	#define HASDXF              040				/* has DXF layers */
-//	#define HASGDS             0100				/* has Calma GDS-II layers */
-//	#define HASGRAB            0200				/* has grab point information */
-//	#define HASSPIRES          0400				/* has SPICE resistance information */
-//	#define HASSPICAP         01000				/* has SPICE capacitance information */
-//	#define HASSPIECAP        02000				/* has SPICE edge capacitance information */
-//	#define HAS3DINFO         04000				/* has 3D height/thickness information */
-//	#define HASCONDRC        010000				/* has connected design rules */
-//	#define HASCONDRCR       020000				/* has connected design rules reasons */
-//	#define HASUNCONDRC      040000				/* has unconnected design rules */
-//	#define HASUNCONDRCR    0100000				/* has unconnected design rules reasons */
-//	#define HASCONDRCW      0200000				/* has connected wide design rules */
-//	#define HASCONDRCWR     0400000				/* has connected wide design rules reasons */
-//	#define HASUNCONDRCW   01000000				/* has unconnected wide design rules */
-//	#define HASUNCONDRCWR  02000000				/* has unconnected wide design rules reasons */
-//	#define HASCONDRCM     04000000				/* has connected multicut design rules */
-//	#define HASCONDRCMR   010000000				/* has connected multicut design rules reasons */
-//	#define HASUNCONDRCM  020000000				/* has unconnected multicut design rules */
-//	#define HASUNCONDRCMR 040000000				/* has unconnected multicut design rules reasons */
-//	#define HASEDGEDRC   0100000000				/* has edge design rules */
-//	#define HASEDGEDRCR  0200000000				/* has edge design rules reasons */
-//	#define HASMINNODE   0400000000				/* has minimum node size */
-//	#define HASMINNODER 01000000000				/* has minimum node size reasons */
-//	#define HASPRINTCOL 02000000000				/* has print colors */
+//	extern INTBIG           us_teceddrclayers;
+//	extern CHAR           **us_teceddrclayernames;
 
 	/* for describing special text in a cell */
 	static class SpecialTextDescr
@@ -880,14 +823,16 @@ public class Generate
 		}
 	};
 
-//	/* the globals that define a technology */
-//	extern INTBIG           us_teceddrclayers;
-//	extern CHAR           **us_teceddrclayernames;
-
 	static SpecialTextDescr [] us_tecedmisctexttable =
 	{
-		new SpecialTextDescr(0/SCALEALL, 6000/SCALEALL, TECHLAMBDA),
-		new SpecialTextDescr(0/SCALEALL,    0/SCALEALL, TECHDESCRIPT)
+		new SpecialTextDescr(0/SCALEALL,  6000/SCALEALL, TECHLAMBDA),
+		new SpecialTextDescr(0/SCALEALL,     0/SCALEALL, TECHDESCRIPT),
+		new SpecialTextDescr(0/SCALEALL, -6000/SCALEALL, TECHSPICEMINRES),
+		new SpecialTextDescr(0/SCALEALL,-12000/SCALEALL, TECHSPICEMINCAP),
+		new SpecialTextDescr(0/SCALEALL,-18000/SCALEALL, TECHGATESHRINK),
+		new SpecialTextDescr(0/SCALEALL,-24000/SCALEALL, TECHGATEINCLUDED),
+		new SpecialTextDescr(0/SCALEALL,-30000/SCALEALL, TECHGROUNDINCLUDED),
+		new SpecialTextDescr(0/SCALEALL,-36000/SCALEALL, TECHTRANSPCOLORS),
 	};
 	
 	static SpecialTextDescr [] us_tecedlayertexttable =
@@ -898,31 +843,31 @@ public class Generate
 		new SpecialTextDescr(28000/SCALEALL,  18000/SCALEALL, LAYERSTYLE),
 		new SpecialTextDescr(28000/SCALEALL,  12000/SCALEALL, LAYERCIF),
 		new SpecialTextDescr(28000/SCALEALL,   6000/SCALEALL, LAYERGDS),
-		new SpecialTextDescr(28000/SCALEALL,      0/SCALEALL, LAYERDXF),
-		new SpecialTextDescr(28000/SCALEALL,  -6000/SCALEALL, LAYERSPIRES),
-		new SpecialTextDescr(28000/SCALEALL, -12000/SCALEALL, LAYERSPICAP),
-		new SpecialTextDescr(28000/SCALEALL, -18000/SCALEALL, LAYERSPIECAP),
-		new SpecialTextDescr(28000/SCALEALL, -24000/SCALEALL, LAYER3DHEIGHT),
-		new SpecialTextDescr(28000/SCALEALL, -30000/SCALEALL, LAYER3DTHICK)
+		new SpecialTextDescr(28000/SCALEALL,      0/SCALEALL, LAYERSPIRES),
+		new SpecialTextDescr(28000/SCALEALL,  -6000/SCALEALL, LAYERSPICAP),
+		new SpecialTextDescr(28000/SCALEALL, -12000/SCALEALL, LAYERSPIECAP),
+		new SpecialTextDescr(28000/SCALEALL, -18000/SCALEALL, LAYER3DHEIGHT),
+		new SpecialTextDescr(28000/SCALEALL, -24000/SCALEALL, LAYER3DTHICK),
+		new SpecialTextDescr(28000/SCALEALL, -30000/SCALEALL, LAYERCOVERAGE)
 	};
-	
+
 	static SpecialTextDescr [] us_tecedarctexttable =
 	{
-		new SpecialTextDescr(0/SCALEALL, 30000/SCALEALL, ARCFUNCTION),
-		new SpecialTextDescr(0/SCALEALL, 24000/SCALEALL, ARCFIXANG),
-		new SpecialTextDescr(0/SCALEALL, 18000/SCALEALL, ARCWIPESPINS),
-		new SpecialTextDescr(0/SCALEALL, 12000/SCALEALL, ARCNOEXTEND),
-		new SpecialTextDescr(0/SCALEALL,  6000/SCALEALL, ARCINC)
+		new SpecialTextDescr(0/SCALEALL, 36000/SCALEALL, ARCFUNCTION),
+		new SpecialTextDescr(0/SCALEALL, 30000/SCALEALL, ARCFIXANG),
+		new SpecialTextDescr(0/SCALEALL, 24000/SCALEALL, ARCWIPESPINS),
+		new SpecialTextDescr(0/SCALEALL, 18000/SCALEALL, ARCNOEXTEND),
+		new SpecialTextDescr(0/SCALEALL, 12000/SCALEALL, ARCINC),
+		new SpecialTextDescr(0/SCALEALL,  6000/SCALEALL, ARCANTENNARATIO)
 	};
-	
+
 	static SpecialTextDescr [] us_tecednodetexttable =
 	{
-		new SpecialTextDescr(0/SCALEALL, 36000/SCALEALL, NODEFUNCTION),
-		new SpecialTextDescr(0/SCALEALL, 30000/SCALEALL, NODESERPENTINE),
-		new SpecialTextDescr(0/SCALEALL, 24000/SCALEALL, NODESQUARE),
-		new SpecialTextDescr(0/SCALEALL, 18000/SCALEALL, NODEWIPES),
-		new SpecialTextDescr(0/SCALEALL, 12000/SCALEALL, NODELOCKABLE),
-		new SpecialTextDescr(0/SCALEALL,  6000/SCALEALL, NODEMULTICUT)
+		new SpecialTextDescr(0/SCALEALL, 30000/SCALEALL, NODEFUNCTION),
+		new SpecialTextDescr(0/SCALEALL, 24000/SCALEALL, NODESERPENTINE),
+		new SpecialTextDescr(0/SCALEALL, 18000/SCALEALL, NODESQUARE),
+		new SpecialTextDescr(0/SCALEALL, 12000/SCALEALL, NODEWIPES),
+		new SpecialTextDescr(0/SCALEALL,  6000/SCALEALL, NODELOCKABLE)
 	};
 
 	public static void makeLibFromTech()
@@ -983,33 +928,26 @@ public class Generate
 		}
 		System.out.println("Created library " + tech.getTechName() + "...");
 	
-		// create the information node
-		Cell fNp = Cell.makeInstance(lib, "factors");
+		// create the miscellaneous info cell (called "factors")
+		Cell fNp = Cell.newInstance(lib, "factors");
 		if (fNp == null) return null;
 		fNp.setInTechnologyLibrary();
-	
-		// create the miscellaneous info cell (called "factors")
-		us_tecedmakeinfo(fNp, tech.getTechDesc());
-	
-		// copy any miscellaneous variables and make a list of their names
-		int varCount = 0;
-//		for(int i=0; i<us_knownvars.length; i++)
-//		{
-//			us_knownvars[i].ival = 0;
-//			Variable var = tech.getVar(us_knownvars[i].varname);
-//			if (var == null) continue;
-//			us_knownvars[i].ival = 1;
-//			varCount++;
-//			lib.newVar(us_knownvars[i].varname, var.getObject());
-//		}
-		if (varCount > 0)
-		{
-			String [] varnames = new String[varCount];
-			varCount = 0;
-			for(int i=0; i<us_knownvars.length; i++)
-				if (us_knownvars[i].ival != 0) varnames[varCount++] = us_knownvars[i].varname;
-			lib.newVar(VARIABLELIST_KEY, varnames);
-		}
+
+		// build the layer cell
+		GeneralInfo gi = new GeneralInfo();
+		gi.scale = tech.getScale();
+		gi.description = tech.getTechDesc();
+		gi.minres = tech.getMinResistance();
+		gi.mincap = tech.getMinCapacitance();
+		gi.gateShrinkage = tech.getGateLengthSubtraction();
+		gi.includeGateInResistance = tech.isGateIncluded();
+		gi.includeGround = tech.isGroundNetIncluded();
+		Color [] wholeMap = tech.getColorMap();
+		int numLayers = tech.getNumTransparentLayers();
+		gi.transparentColors = new Color[numLayers];
+		for(int i=0; i<numLayers; i++)
+			gi.transparentColors[i] = wholeMap[1<<i];
+		gi.us_tecedmakeinfo(fNp);
 	
 		// create the layer node names
 		int layertotal = tech.getNumLayers();
@@ -1031,7 +969,7 @@ public class Generate
 				break;
 			}
 
-			Cell lNp = Cell.makeInstance(lib, fname);
+			Cell lNp = Cell.newInstance(lib, fname);
 			if (lNp == null) return null;
 			lNp.setTechnology(Artwork.tech);
 			lNp.setInTechnologyLibrary();
@@ -1045,7 +983,6 @@ public class Generate
 			// compute foreign file formats
 			li.cif = layer.getCIFLayer();
 			li.gds = layer.getGDSLayer();
-			li.dxf = layer.getDXFLayer();
 	
 			// compute the SPICE information
 			li.spires = layer.getResistance();
@@ -1058,7 +995,7 @@ public class Generate
 	
 			// build the layer cell
 			li.us_tecedmakelayer(lNp);
-			layerSequence[i] = lNp.getName();
+			layerSequence[i] = lNp.getName().substring(6);
 		}
 	
 		// save the layer sequence
@@ -1092,10 +1029,8 @@ public class Generate
 			aIn.wipes = ap.isWipable();
 			aIn.noextend = ap.isExtended();
 			aIn.anginc = ap.getAngleIncrement();
+			aIn.antennaRatio = ERC.getERCTool().getAntennaRatio(ap);
 			arcCells.put(ap, aNp);
-//			var = getvalkey((INTBIG)ap, VARCPROTO, VINTEGER, us_arcstylekey);
-//			if (var != NOVARIABLE) bits = var.addr; else
-//				bits = ap.userbits;
 			aIn.us_tecedmakearc(aNp);
 	
 			// now create the arc layers
@@ -1109,7 +1044,6 @@ public class Generate
             	Layer arcLayer = poly.getLayer();
             	if (arcLayer == null) continue;
             	EGraphics arcDesc = arcLayer.getGraphics();
-//				if (arcDesc.bits == LAYERN) continue;
 	
 				// scale the arc geometry appropriately
             	Point2D [] points = poly.getPoints();
@@ -1135,7 +1069,7 @@ public class Generate
 			arctotal++;
 
 			// compact it accordingly
-//			us_tecedcompact(aNp);
+			us_tecedcompactArc(aNp);
 		}
 	
 		// save the arc sequence
@@ -1223,7 +1157,6 @@ public class Generate
 					Layer nodeLayer = poly.getLayer();
 					if (nodeLayer == null) continue;
 					EGraphics desc = nodeLayer.getGraphics();
-//					if (desc.bits == LAYERN) continue;
 
 					// accumulate total size of main example
 					if (e == 0)
@@ -1264,12 +1197,6 @@ public class Generate
 						nIn.square = pnp.isSquare();
 						nIn.wipes = pnp.isWipeOn1or2();
 						nIn.lockable = pnp.isLockedPrim();
-						nIn.multicutsep = 0;
-						if (pnp.getSpecialType() == PrimitiveNode.MULTICUT)
-						{
-							double [] values = pnp.getSpecialValues();
-							nIn.multicutsep = values[4];
-						}
 						nIn.us_tecedmakenode(nNp);
 					}
 
@@ -1320,6 +1247,7 @@ public class Generate
 //				}
 	
 				// also draw ports
+				HashMap portNodes = new HashMap();
 				for(Iterator pIt = pnp.getPorts(); pIt.hasNext(); )
 				{
 					PrimitivePort pp = (PrimitivePort)pIt.next();
@@ -1330,6 +1258,7 @@ public class Generate
 					NodeInst pNi = NodeInst.makeInstance(Generic.tech.portNode, new Point2D.Double(poly.getCenterX(), poly.getCenterY()),
 						width, height, nNp);
 					if (pNi == null) return null;
+					portNodes.put(pp, pNi);
 					pNi.newVar(OPTION_KEY, new Integer(LAYERPATCH));
 					Variable var = pNi.newVar(PORTNAME_KEY, pp.getName());
 					if (var != null)
@@ -1342,37 +1271,37 @@ public class Generate
 						pNi.newVar(PORTANGLE_KEY, new Integer(pp.getAngle()));
 						pNi.newVar(PORTRANGE_KEY, new Integer(pp.getAngleRange()));
 					}
-	
+
 					// add in the "local" port connections (from this tech)
 					ArcProto [] connects = pp.getConnections();
-					int tcon = 0;
+					List validConns = new ArrayList();
 					for(int i=0; i<connects.length; i++)
 					{
-						if (connects[i].getTechnology() == tech) tcon++;
+						if (connects[i].getTechnology() != tech) continue;
+						Cell cell = (Cell)arcCells.get(connects[i]);
+						if (cell != null) validConns.add(cell);						
 					}
-					if (tcon != 0)
+					if (validConns.size() > 0)
 					{
-						Cell [] aplist = new Cell[tcon];
-						int k = 0;
-						for(int i=0; i<connects.length; i++)
-						{
-							if (connects[i].getTechnology() == tech) aplist[k++] = (Cell)arcCells.get(connects[i]);
-						}
+						Cell [] aplist = new Cell[validConns.size()];
+						for(int i=0; i<validConns.size(); i++)
+							aplist[i] = (Cell)validConns.get(i);
 						pNi.newVar(CONNECTION_KEY, aplist);
 					}
 	
 					// connect the connected ports
-//					for(opp = pnp.firstportproto; opp != pp; opp = opp.nextportproto)
-//					{
-//						if (opp.network != pp.network) continue;
-//						nni = (NODEINST *)opp.temp1;
-//						if (nni == null) continue;
-//						if (newarcinst(gen_universalarc, 0, 0, pNi, pNi.proto.firstportproto,
-//							(pNi.highx+pNi.lowx)/2, (pNi.highy+pNi.lowy)/2, nni,
-//								nni.proto.firstportproto, (nni.highx+nni.lowx)/2,
-//									(nni.highy+nni.lowy)/2, np) == NOARCINST) return(NOLIBRARY);
-//						break;
-//					}
+					for(Iterator oPIt = pnp.getPorts(); oPIt.hasNext(); )
+					{
+						PrimitivePort opp = (PrimitivePort)oPIt.next();
+						if (opp == pp) break;
+						if (opp.getTopology() != pp.getTopology()) continue;
+						NodeInst nni = (NodeInst)portNodes.get(opp);
+						if (nni == null) continue;
+						PortInst head = nni.getOnlyPortInst();
+						PortInst tail = pNi.getOnlyPortInst();
+						ArcInst.newInstance(Generic.tech.universal_arc, 0, head, tail);
+						break;
+					}
 				}
 			}
 //			minnodesize[nodetotal*2] = mainBounds.getWidth();
@@ -1380,40 +1309,11 @@ public class Generate
 			nodetotal++;
 	
 			// compact it accordingly
-//			us_tecedcompact(np);
+			us_tecedcompactNode(nNp);
 		}
 	
 		// save the node sequence
 		lib.newVar(NODESEQUENCE_KEY, nodeSequence);
-	
-		// create the color map information
-//		System.out.println("Adding color map and design rules...");
-//		Variable var2 = getval((INTBIG)tech, VTECHNOLOGY, VCHAR|VISARRAY, x_("USER_color_map"));
-//		Variable varred = getvalkey((INTBIG)us_tool, VTOOL, VINTEGER|VISARRAY, us_colormap_red_key);
-//		Variable vargreen = getvalkey((INTBIG)us_tool, VTOOL, VINTEGER|VISARRAY, us_colormap_green_key);
-//		Variable varblue = getvalkey((INTBIG)us_tool, VTOOL, VINTEGER|VISARRAY, us_colormap_blue_key);
-//		if (varred != NOVARIABLE && vargreen != NOVARIABLE && varblue != NOVARIABLE &&
-//			var2 != NOVARIABLE)
-//		{
-//			newmap = emalloc((256*3*SIZEOFINTBIG), el_tempcluster);
-//			if (newmap == 0) return(NOLIBRARY);
-//			mapptr = newmap;
-//			colmap = (TECH_COLORMAP *)var2.addr;
-//			for(i=0; i<256; i++)
-//			{
-//				*mapptr++ = ((INTBIG *)varred.addr)[i];
-//				*mapptr++ = ((INTBIG *)vargreen.addr)[i];
-//				*mapptr++ = ((INTBIG *)varblue.addr)[i];
-//			}
-//			for(i=0; i<32; i++)
-//			{
-//				newmap[(i<<2)*3]   = colmap[i].red;
-//				newmap[(i<<2)*3+1] = colmap[i].green;
-//				newmap[(i<<2)*3+2] = colmap[i].blue;
-//			}
-//			lib.newVar(COLORMAP_KEY, newmap);
-//			efree((CHAR *)newmap);
-//		}
 	
 //		// create the design rule information
 //		rules = dr_allocaterules(layertotal, nodetotal, tech.techname);
@@ -1532,30 +1432,6 @@ public class Generate
 	
 	/*************************** CELL CREATION HELPERS ***************************/
 	
-	/**
-	 * Method to build the appropriate descriptive information for the information
-	 * cell "np".
-	 */
-	private static void us_tecedmakeinfo(Cell np, String description)
-	{
-		// load up the structure with the current values
-		for(int i=0; i < us_tecedmisctexttable.length; i++)
-		{
-			switch (us_tecedmisctexttable[i].funct)
-			{
-				case TECHLAMBDA:
-					us_tecedmisctexttable[i].value = new Double(100);
-					break;
-				case TECHDESCRIPT:
-					us_tecedmisctexttable[i].value = description;
-					break;
-			}
-		}
-	
-		// now create those text objects
-		us_tecedcreatespecialtext(np, us_tecedmisctexttable);
-	}
-
 	static String makeLayerFunctionName(Layer.Function fun, int extraBits)
 	{
 		String str = fun.toString();
@@ -1568,146 +1444,172 @@ public class Generate
 		return str;
 	}
 
+	private static void foundNodeForFunction(NodeInst ni, int func, SpecialTextDescr [] table)
+	{
+		for(int i=0; i<table.length; i++)
+		{
+			if (table[i].funct == func)
+			{
+				table[i].ni = ni;
+				return;
+			}
+		}
+	}
+
+	private static void loadTableEntry(SpecialTextDescr [] table, int func, Object value)
+	{
+		for(int i=0; i<table.length; i++)
+		{
+			if (func == table[i].funct)
+			{
+				table[i].value = value;
+				return;
+			}
+		}
+	}
+
 	/**
 	 * Method to create special text geometry described by "table" in cell "np".
 	 */
 	static void us_tecedcreatespecialtext(Cell np, SpecialTextDescr [] table)
 	{
-		us_tecedfindspecialtext(np, table);
-		for(int i=0; i < table.length; i++)
-		{
-			NodeInst ni = table[i].ni;
-			if (ni == null)
-			{
-				ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(table[i].x, table[i].y), 0, 0, np);
-				if (ni == null) return;
-				String str = null;
-				switch (table[i].funct)
-				{
-					case TECHLAMBDA:
-						str = "Scale: " + ((Double)table[i].value).doubleValue();
-						break;
-					case TECHDESCRIPT:
-						str = "Description: " + (String)table[i].value;
-						break;
-					case LAYERFUNCTION:
-						str = "Function: " + makeLayerFunctionName((Layer.Function)table[i].value, table[i].extra);
-						break;
-					case LAYERCOLOR:
-						EGraphics desc = (EGraphics)table[i].value;
-						str = "Color: " + desc.getColor().getRed() + "," + desc.getColor().getGreen() + "," +
-							desc.getColor().getBlue() + ", " + desc.getOpacity() + "," + (desc.getForeground() ? "on" : "off");
-						break;
-					case LAYERTRANSPARENCY:
-						desc = (EGraphics)table[i].value;
-						str = "Transparency: " + (desc.getTransparentLayer() == 0 ? "none" : "layer " + desc.getTransparentLayer());
-						break;
-					case LAYERSTYLE:
-						desc = (EGraphics)table[i].value;
-						str = "Style: ";
-						if (desc.isPatternedOnDisplay())
-						{
-							if (desc.isOutlinedOnDisplay())
-							{
-								str += "patterned/outlined";
-							} else
-							{
-								str += "patterned";
-							}
-						} else
-						{
-							str += "solid";
-						}
-						break;
-					case LAYERCIF:
-						str = "CIF Layer: " + (String)table[i].value;
-						break;
-					case LAYERGDS:
-						str = "GDS-II Layer: " + (String)table[i].value;
-						break;
-					case LAYERDXF:
-						str = "DXF Layer(s): " + (String)table[i].value;
-						break;
-					case LAYERSPIRES:
-						str = "SPICE Resistance: " + ((Double)table[i].value).doubleValue();
-						break;
-					case LAYERSPICAP:
-						str = "SPICE Capacitance: " + ((Double)table[i].value).doubleValue();
-						break;
-					case LAYERSPIECAP:
-						str = "SPICE Edge Capacitance: " + ((Double)table[i].value).doubleValue();
-						break;
-					case LAYER3DHEIGHT:
-						str = "3D Height: " + ((Double)table[i].value).doubleValue();
-						break;
-					case LAYER3DTHICK:
-						str = "3D Thickness: " + ((Double)table[i].value).doubleValue();
-						break;
-					case ARCFUNCTION:
-						str = "Function: " + ((ArcProto.Function)table[i].value).toString();
-						break;
-					case ARCFIXANG:
-						str = "Fixed-angle: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
-						break;
-					case ARCWIPESPINS:
-						str = "Wipes pins: "  + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
-						break;
-					case ARCNOEXTEND:
-						str = "Extend arcs: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
-						break;
-					case ARCINC:
-						str = "Angle increment: " + ((Integer)table[i].value).intValue();
-						break;
-					case NODEFUNCTION:
-						str = "Function: " + ((PrimitiveNode.Function)table[i].value).toString();
-						break;
-					case NODESERPENTINE:
-						str = "Serpentine transistor: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
-						break;
-					case NODESQUARE:
-						str = "Square node: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
-						break;
-					case NODEWIPES:
-						str = "Invisible with 1 or 2 arcs: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
-						break;
-					case NODELOCKABLE:
-						str = "Lockable: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
-						break;
-					case NODEMULTICUT:
-						str = "Multicut separation: " + ((Double)table[i].value).doubleValue();
-						break;
-				}
-				Variable var = ni.newVar(Artwork.ART_MESSAGE, str);
-				if (var != null)
-					var.setDisplay(true);
-				var = ni.newVar(OPTION_KEY, new Integer(table[i].funct));
-			}
-		}
-	}
-	
-	/**
-	 * Method to locate the nodes with the special node-cell text.  In cell "np", finds
-	 * the relevant text nodes in "table" and loads them into the structure.
-	 */
-	static void us_tecedfindspecialtext(Cell np, SpecialTextDescr [] table)
-	{
-		// clear the node assignments
-		for(int i=0; i < table.length; i++)
-			table[i].ni = null;
-	
-		// determine the number of special texts here
+		// don't create any nodes already there
+		for(int i=0; i < table.length; i++) table[i].ni = null;
 		for(Iterator it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			Variable var = ni.getVar(OPTION_KEY);
 			if (var == null) continue;
-			int opt = ((Integer)var.getObject()).intValue();
-			for(int i=0; i < table.length; i++)
+			foundNodeForFunction(ni, ((Integer)var.getObject()).intValue(), table);
+		}
+
+		for(int i=0; i < table.length; i++)
+		{
+			if (table[i].ni != null) continue;
+			table[i].ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(table[i].x, table[i].y), 0, 0, np);
+			if (table[i].ni == null) return;
+			String str = null;
+			switch (table[i].funct)
 			{
-				if (opt != table[i].funct) continue;
-				table[i].ni = ni;
-				break;
+				case TECHLAMBDA:
+					str = "Scale: " + ((Double)table[i].value).doubleValue();
+					break;
+				case TECHDESCRIPT:
+					str = "Description: " + (String)table[i].value;
+					break;
+				case TECHSPICEMINRES:
+					str = "Minimum Resistance: " + ((Double)table[i].value).doubleValue();
+					break;
+				case TECHSPICEMINCAP:
+					str = "Minimum Capacitance: " + ((Double)table[i].value).doubleValue();
+					break;
+				case TECHGATESHRINK:
+					str = "Gate Shrinkage: " + ((Double)table[i].value).doubleValue();
+					break;
+				case TECHGATEINCLUDED:
+					str = "Gates Included in Resistance: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					break;
+				case TECHGROUNDINCLUDED:
+					str = "Parasitics Includes Ground: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					break;
+				case TECHTRANSPCOLORS:
+					table[i].ni.newVar(TRANSLAYER_KEY, makeTransparentColorsLine((Color [])table[i].value));
+					str = "Transparent Colors";
+					break;
+
+				case LAYERFUNCTION:
+					str = "Function: " + makeLayerFunctionName((Layer.Function)table[i].value, table[i].extra);
+					break;
+				case LAYERCOLOR:
+					EGraphics desc = (EGraphics)table[i].value;
+					str = "Color: " + desc.getColor().getRed() + "," + desc.getColor().getGreen() + "," +
+						desc.getColor().getBlue() + ", " + desc.getOpacity() + "," + (desc.getForeground() ? "on" : "off");
+					break;
+				case LAYERTRANSPARENCY:
+					desc = (EGraphics)table[i].value;
+					str = "Transparency: " + (desc.getTransparentLayer() == 0 ? "none" : "layer " + desc.getTransparentLayer());
+					break;
+				case LAYERSTYLE:
+					desc = (EGraphics)table[i].value;
+					str = "Style: ";
+					if (desc.isPatternedOnDisplay())
+					{
+						if (desc.isOutlinedOnDisplay())
+						{
+							str += "patterned/outlined";
+						} else
+						{
+							str += "patterned";
+						}
+					} else
+					{
+						str += "solid";
+					}
+					break;
+				case LAYERCIF:
+					str = "CIF Layer: " + (String)table[i].value;
+					break;
+				case LAYERGDS:
+					str = "GDS-II Layer: " + (String)table[i].value;
+					break;
+				case LAYERSPIRES:
+					str = "SPICE Resistance: " + ((Double)table[i].value).doubleValue();
+					break;
+				case LAYERSPICAP:
+					str = "SPICE Capacitance: " + ((Double)table[i].value).doubleValue();
+					break;
+				case LAYERSPIECAP:
+					str = "SPICE Edge Capacitance: " + ((Double)table[i].value).doubleValue();
+					break;
+				case LAYER3DHEIGHT:
+					str = "3D Height: " + ((Double)table[i].value).doubleValue();
+					break;
+				case LAYER3DTHICK:
+					str = "3D Thickness: " + ((Double)table[i].value).doubleValue();
+					break;
+				case LAYERCOVERAGE:
+					str = "Coverage percent: " + ((Double)table[i].value).doubleValue();
+					break;
+
+				case ARCFUNCTION:
+					str = "Function: " + ((ArcProto.Function)table[i].value).toString();
+					break;
+				case ARCFIXANG:
+					str = "Fixed-angle: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					break;
+				case ARCWIPESPINS:
+					str = "Wipes pins: "  + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					break;
+				case ARCNOEXTEND:
+					str = "Extend arcs: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					break;
+				case ARCINC:
+					str = "Angle increment: " + ((Integer)table[i].value).intValue();
+					break;
+				case ARCANTENNARATIO:
+					str = "Antenna Ratio: " + ((Double)table[i].value).doubleValue();
+					break;
+
+				case NODEFUNCTION:
+					str = "Function: " + ((PrimitiveNode.Function)table[i].value).toString();
+					break;
+				case NODESERPENTINE:
+					str = "Serpentine transistor: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					break;
+				case NODESQUARE:
+					str = "Square node: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					break;
+				case NODEWIPES:
+					str = "Invisible with 1 or 2 arcs: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					break;
+				case NODELOCKABLE:
+					str = "Lockable: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
+					break;
 			}
+			Variable var = table[i].ni.newVar(Artwork.ART_MESSAGE, str);
+			if (var != null)
+				var.setDisplay(true);
+			var = table[i].ni.newVar(OPTION_KEY, new Integer(table[i].funct));
 		}
 	}
 	
@@ -1877,5 +1779,153 @@ public class Generate
 			return nni;
 		}
 		return(null);
+	}
+	
+	static Color [] getTransparentColors(String str)
+	{
+		String [] colorNames = str.split("/");
+		Color [] colors = new Color[colorNames.length];
+		for(int i=0; i<colorNames.length; i++)
+		{
+			String colorName = colorNames[i].trim();
+			String [] rgb = colorName.split(",");
+			if (rgb.length != 3) return null;
+			int r = TextUtils.atoi(rgb[0]);
+			int g = TextUtils.atoi(rgb[1]);
+			int b = TextUtils.atoi(rgb[2]);
+			colors[i] = new Color(r, g, b);
+		}
+		return colors;
+	}
+
+	static String makeTransparentColorsLine(Color [] trans)
+	{
+		String str = "The Transparent Colors: ";
+		for(int j=0; j<trans.length; j++)
+		{
+			if (j != 0) str += " /";
+			str += " " + trans[j].getRed() + "," + trans[j].getGreen() + "," + trans[j].getBlue();
+		}
+		return str;
+	}
+	
+	/**
+	 * Method to compact an Arc technology-edit cell
+	 */
+	private static void us_tecedcompactArc(Cell cell)
+	{
+		// compute bounds of arc contents
+		Rectangle2D nonSpecBounds = null;
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+
+			// ignore the special text nodes
+			boolean special = false;
+			for(int i=0; i<us_tecedarctexttable.length; i++)
+				if (us_tecedarctexttable[i].ni == ni) special = true;
+			if (special) continue;
+
+			// compute overall bounds
+			Rectangle2D bounds = ni.getBounds();
+			if (nonSpecBounds == null) nonSpecBounds = bounds; else
+				Rectangle2D.union(nonSpecBounds, bounds, nonSpecBounds);
+		}
+
+		// now rearrange the geometry
+		if (nonSpecBounds != null)
+		{
+			double xoff = -nonSpecBounds.getCenterX();
+			double yoff = -nonSpecBounds.getMaxY();
+			if (xoff != 0 || yoff != 0)
+			{
+				for(Iterator it = cell.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)it.next();
+					if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+
+					// ignore the special text nodes
+					boolean special = false;
+					for(int i=0; i<us_tecedarctexttable.length; i++)
+						if (us_tecedarctexttable[i].ni == ni) special = true;
+					if (special) continue;
+
+					// center the geometry
+					ni.modifyInstance(xoff, yoff, 0, 0, 0);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Method to compact a Node technology-edit cell
+	 */
+	private static void us_tecedcompactNode(Cell cell)
+	{
+		// move the examples
+		Parse.Example nelist = Parse.us_tecedgetexamples(cell, true);
+		if (nelist == null) return;
+		int numexamples = 0;
+		Parse.Example smallest = nelist;
+		Parse.Example biggest = nelist;
+		for(Parse.Example ne = nelist; ne != null; ne = ne.nextexample)
+		{
+			numexamples++;
+			if (ne.hx-ne.lx > biggest.hx-biggest.lx) biggest = ne;
+		}
+		if (numexamples == 1)
+		{
+			moveExample(nelist, -(nelist.lx + nelist.hx) / 2, -nelist.hy);
+			return;
+		}
+		if (numexamples != 4) return;
+
+		Parse.Example stretchX = null;
+		Parse.Example stretchY = null;
+		for(Parse.Example ne = nelist; ne != null; ne = ne.nextexample)
+		{
+			if (ne == biggest || ne == smallest) continue;
+			if (stretchX == null) stretchX = ne; else
+				if (stretchY == null) stretchY = ne;
+		}
+		if (stretchX.hx-stretchX.lx < stretchY.hx-stretchY.lx)
+		{
+			Parse.Example swap = stretchX;
+			stretchX = stretchY;
+			stretchY = swap;
+		}
+
+		double separation = Math.min(smallest.hx - smallest.lx, smallest.hy - smallest.ly);
+		double totalWid = (stretchX.hx-stretchX.lx) + (smallest.hx-smallest.lx) + separation;
+		double totalHei = (stretchY.hy-stretchY.ly) + (smallest.hy-smallest.ly) + separation;
+
+		// center the smallest (main) example
+		double cX = -totalWid / 2 - smallest.lx;
+		double cY = -smallest.hy - 1;
+		moveExample(smallest, cX, cY);
+
+		// center the stretch-x (upper-right) example
+		cX = totalWid/2 - stretchX.hx;
+		cY = -stretchX.hy - 1;
+		moveExample(stretchX, cX, cY);
+
+		// center the stretch-y (lower-left) example
+		cX = -totalWid/2 - stretchY.lx;
+		cY = -totalHei - stretchY.ly - 1;
+		moveExample(stretchY, cX, cY);
+
+		// center the biggest (lower-right) example
+		cX = totalWid/2 - biggest.hx;
+		cY = -totalHei - biggest.ly - 1;
+		moveExample(biggest, cX, cY);
+	}
+
+	private static void moveExample(Parse.Example ne, double dX, double dY)
+	{
+		for(Parse.Sample ns = ne.firstsample; ns != null; ns = ns.nextsample)
+		{
+			ns.node.modifyInstance(dX, dY, 0, 0, 0);
+		}
 	}
 }

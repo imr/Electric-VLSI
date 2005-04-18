@@ -55,14 +55,17 @@ public abstract class ArcProto
 	public static class Function
 	{
 		private final String name;
+		private final String constantName;
 		private int level;
 		private static HashMap metalLayers = new HashMap();
 		private static HashMap polyLayers = new HashMap();
 		private static List allFunctions = new ArrayList();
 
-		private Function(String name, int metalLevel, int polyLevel)
+		private Function(String name, String constantName, int metalLevel, int polyLevel)
 		{
-			this.name = name;   this.level = 0;
+			this.name = name;
+			this.constantName = constantName;
+			this.level = 0;
 			if (metalLevel != 0) metalLayers.put(new Integer(this.level = metalLevel), this);
 			if (polyLevel != 0) polyLayers.put(new Integer(this.level = polyLevel), this);
 			allFunctions.add(this);
@@ -71,59 +74,66 @@ public abstract class ArcProto
 		public String toString() { return name; }
 
 		/**
+		 * Returns the constant name for this Function.
+		 * Constant names are used when writing Java code, so they must be the same as the actual symbol name.
+		 * @return the constant name for this Function.
+		 */
+		public String getConstantName() { return constantName; }
+
+		/**
 		 * Method to return a List of all ArcProto functions.
 		 * @return a List of all ArcProto functions.
 		 */
 		public static List getFunctions() { return allFunctions; }
 
 		/** Describes an arc with unknown type. */
-		public static final Function UNKNOWN = new Function("unknown", 0, 0);
+		public static final Function UNKNOWN = new Function("unknown", "UNKNOWN", 0, 0);
 		/** Describes an arc on Metal layer 1. */
-		public static final Function METAL1 = new Function("metal-1", 1, 0);
+		public static final Function METAL1 = new Function("metal-1", "METAL1", 1, 0);
 		/** Describes an arc on Metal layer 2. */
-		public static final Function METAL2 = new Function("metal-2", 2, 0);
+		public static final Function METAL2 = new Function("metal-2", "METAL2", 2, 0);
 		/** Describes an arc on Metal layer 3. */
-		public static final Function METAL3 = new Function("metal-3", 3, 0);
+		public static final Function METAL3 = new Function("metal-3", "METAL3", 3, 0);
 		/** Describes an arc on Metal layer 4. */
-		public static final Function METAL4 = new Function("metal-4", 4, 0);
+		public static final Function METAL4 = new Function("metal-4", "METAL4", 4, 0);
 		/** Describes an arc on Metal layer 5. */
-		public static final Function METAL5 = new Function("metal-5", 5, 0);
+		public static final Function METAL5 = new Function("metal-5", "METAL5", 5, 0);
 		/** Describes an arc on Metal layer 6. */
-		public static final Function METAL6 = new Function("metal-6", 6, 0);
+		public static final Function METAL6 = new Function("metal-6", "METAL6", 6, 0);
 		/** Describes an arc on Metal layer 7. */
-		public static final Function METAL7 = new Function("metal-7", 7, 0);
+		public static final Function METAL7 = new Function("metal-7", "METAL7", 7, 0);
 		/** Describes an arc on Metal layer 8. */
-		public static final Function METAL8 = new Function("metal-8", 8, 0);
+		public static final Function METAL8 = new Function("metal-8", "METAL8", 8, 0);
 		/** Describes an arc on Metal layer 9. */
-		public static final Function METAL9 = new Function("metal-9", 9, 0);
+		public static final Function METAL9 = new Function("metal-9", "METAL9", 9, 0);
 		/** Describes an arc on Metal layer 10. */
-		public static final Function METAL10 = new Function("metal-10", 10, 0);
+		public static final Function METAL10 = new Function("metal-10", "METAL10", 10, 0);
 		/** Describes an arc on Metal layer 11. */
-		public static final Function METAL11 = new Function("metal-11", 11, 0);
+		public static final Function METAL11 = new Function("metal-11", "METAL11", 11, 0);
 		/** Describes an arc on Metal layer 12. */
-		public static final Function METAL12 = new Function("metal-12", 12, 0);
+		public static final Function METAL12 = new Function("metal-12", "METAL12", 12, 0);
 		/** Describes an arc on Polysilicon layer 1. */
-		public static final Function POLY1 = new Function("polysilicon-1", 0, 1);
+		public static final Function POLY1 = new Function("polysilicon-1", "POLY1", 0, 1);
 		/** Describes an arc on Polysilicon layer 2. */
-		public static final Function POLY2 = new Function("polysilicon-2", 0, 2);
+		public static final Function POLY2 = new Function("polysilicon-2", "POLY2", 0, 2);
 		/** Describes an arc on Polysilicon layer 3. */
-		public static final Function POLY3 = new Function("polysilicon-3", 0, 3);
+		public static final Function POLY3 = new Function("polysilicon-3", "POLY3", 0, 3);
 		/** Describes an arc on the Diffusion layer. */
-		public static final Function DIFF = new Function("diffusion", 0, 0);
+		public static final Function DIFF = new Function("diffusion", "DIFF", 0, 0);
 		/** Describes an arc on the P-Diffusion layer. */
-		public static final Function DIFFP = new Function("p-diffusion", 0, 0);
+		public static final Function DIFFP = new Function("p-diffusion", "DIFFP", 0, 0);
 		/** Describes an arc on the N-Diffusion layer. */
-		public static final Function DIFFN = new Function("n-diffusion", 0, 0);
+		public static final Function DIFFN = new Function("n-diffusion", "DIFFN", 0, 0);
 		/** Describes an arc on the Substrate-Diffusion layer. */
-		public static final Function DIFFS = new Function("substrate-diffusion", 0, 0);
+		public static final Function DIFFS = new Function("substrate-diffusion", "DIFFS", 0, 0);
 		/** Describes an arc on the Well-Diffusion layer. */
-		public static final Function DIFFW = new Function("well-diffusion", 0, 0);
+		public static final Function DIFFW = new Function("well-diffusion", "DIFFW", 0, 0);
 		/** Describes a bus arc. */
-		public static final Function BUS = new Function("bus", 0, 0);
+		public static final Function BUS = new Function("bus", "BUS", 0, 0);
 		/** Describes an arc that is unrouted (to be replaced by routers). */
-		public static final Function UNROUTED = new Function("unrouted", 0, 0);
+		public static final Function UNROUTED = new Function("unrouted", "UNROUTED", 0, 0);
 		/** Describes an arc that is non-electrical (does not make a circuit connection). */
-		public static final Function NONELEC = new Function("nonelectrical", 0, 0);
+		public static final Function NONELEC = new Function("nonelectrical", "NONELEC", 0, 0);
 
 		/**
 		 * Method to get the level of this ArcProto.Function.

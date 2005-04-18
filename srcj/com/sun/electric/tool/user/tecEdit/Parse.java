@@ -25,22 +25,21 @@
 */
 package com.sun.electric.tool.user.tecEdit;
 
-import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.EvalJavaBsh;
-import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
@@ -50,56 +49,44 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.output.Output;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.tecEdit.Generate.ArcInfo;
-import com.sun.electric.tool.user.tecEdit.Generate.GeneralInfo;
-import com.sun.electric.tool.user.tecEdit.Generate.LayerInfo;
-import com.sun.electric.tool.user.tecEdit.Generate.NodeInfo;
-import com.sun.electric.tool.user.tecEdit.Generate.NodePortDetails;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.erc.ERC;
+import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.text.DateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JList;
-import javax.swing.JTextField;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.ListSelectionModel;
+import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -107,14 +94,37 @@ import javax.swing.event.DocumentListener;
 * This class creates technology libraries from technologies.
 */
 public class Parse
-{
-
-//	typedef struct Ilist
-//	{
-//		CHAR  *name;
-//		CHAR  *constant;
-//		INTBIG value;
-//	} LIST;
+{	
+	/* the meaning of "us_tecflags" */
+	private static final int HASDRCMINWID  =          01;				/* has DRC minimum width information */
+	private static final int HASDRCMINWIDR =          02;				/* has DRC minimum width information */
+	private static final int HASCOLORMAP   =          04;				/* has color map */
+	private static final int HASARCWID     =         010;				/* has arc width offset factors */
+	private static final int HASCIF        =         020;				/* has CIF layers */
+	private static final int HASDXF        =         040;				/* has DXF layers */
+	private static final int HASGDS        =        0100;				/* has Calma GDS-II layers */
+	private static final int HASGRAB       =        0200;				/* has grab point information */
+	private static final int HASSPIRES     =        0400;				/* has SPICE resistance information */
+	private static final int HASSPICAP     =       01000;				/* has SPICE capacitance information */
+	private static final int HASSPIECAP    =       02000;				/* has SPICE edge capacitance information */
+	private static final int HAS3DINFO     =       04000;				/* has 3D height/thickness information */
+	private static final int HASCONDRC     =      010000;				/* has connected design rules */
+	private static final int HASCONDRCR    =      020000;				/* has connected design rules reasons */
+	private static final int HASUNCONDRC   =      040000;				/* has unconnected design rules */
+	private static final int HASUNCONDRCR  =     0100000;				/* has unconnected design rules reasons */
+	private static final int HASCONDRCW    =     0200000;				/* has connected wide design rules */
+	private static final int HASCONDRCWR   =     0400000;				/* has connected wide design rules reasons */
+	private static final int HASUNCONDRCW  =    01000000;				/* has unconnected wide design rules */
+	private static final int HASUNCONDRCWR =    02000000;				/* has unconnected wide design rules reasons */
+	private static final int HASCONDRCM    =    04000000;				/* has connected multicut design rules */
+	private static final int HASCONDRCMR   =   010000000;				/* has connected multicut design rules reasons */
+	private static final int HASUNCONDRCM  =   020000000;				/* has unconnected multicut design rules */
+	private static final int HASUNCONDRCMR =   040000000;				/* has unconnected multicut design rules reasons */
+	private static final int HASEDGEDRC    =  0100000000;				/* has edge design rules */
+	private static final int HASEDGEDRCR   =  0200000000;				/* has edge design rules reasons */
+	private static final int HASMINNODE    =  0400000000;				/* has minimum node size */
+	private static final int HASMINNODER   = 01000000000;				/* has minimum node size reasons */
+	private static final int HASPRINTCOL   = 02000000000;				/* has print colors */
 
 	static class Sample
 	{
@@ -122,7 +132,10 @@ public class Parse
 		NodeProto layer;				/* type of node used for sample */
 		double    xpos, ypos;			/* center of sample */
 		Sample    assoc;				/* associated sample in first example */
-		Rule      rule;					/* rule associated with this sample */
+
+		Technology.TechPoint [] values;	/* points that describe the sample */
+		String    msg;					/* string (null if none) */
+
 		Example   parent;				/* example containing this sample */
 		Sample    nextsample;			/* next sample in list */
 	};
@@ -134,101 +147,16 @@ public class Parse
 		double    lx, hx, ly, hy;		/* bounding box of example */
 		Example   nextexample;			/* next example in list */
 	};
-	
-	/* rectangle rules */
-	static class Rule
-	{
-		Technology.TechPoint []     value;					/* data points for rule */
-		String        msg;
-		int        istext;					/* nonzero if text at end of rule */
-		int        rindex;					/* identifier for this rule */
-		boolean       used;						/* nonzero if actually used */
-		boolean       multicut;					/* nonzero if this is multiple cut */
-		double        multixs, multiys;			/* size of multicut */
-		double        multiindent, multisep;	/* indent and separation of multicuts */
-		Rule nextrule;
-	};
-
-
-	/* port connections */
-	static class PCon
-	{
-		Generate.ArcInfo [] connects;
-		boolean []          assoc;
-		int                 total;
-		int                 pcindex;
-		PCon                nextpcon;
-	};
-
 
 	/* the globals that define a technology */
 	static int           us_tecflags;
 //	static INTBIG           us_teclayer_count;
 //	static CHAR           **us_teclayer_iname = 0;
 //	static CHAR           **us_teclayer_names = 0;
-//	static CHAR           **us_teccif_layers = 0;
-//	static CHAR           **us_tecdxf_layers = 0;
-//	static CHAR           **us_tecgds_layers = 0;
 //	static INTBIG          *us_teclayer_function = 0;
-//	static CHAR           **us_teclayer_letters = 0;
 //	static DRCRULES        *us_tecdrc_rules = 0;
-//	static float           *us_tecspice_res = 0;
-//	static float           *us_tecspice_cap = 0;
-//	static float           *us_tecspice_ecap = 0;
-//	static INTBIG          *us_tec3d_height = 0;
-//	static INTBIG          *us_tec3d_thickness = 0;
-//	static INTBIG          *us_tecprint_colors = 0;
-//	static INTBIG           us_tecarc_count;
-//	static INTBIG          *us_tecarc_widoff = 0;
-//	static INTBIG           us_tecnode_count;
-//	static INTBIG          *us_tecnode_widoff = 0;
 //	static INTBIG          *us_tecnode_grab = 0;
 //	static INTBIG           us_tecnode_grabcount;
-//	static TECH_COLORMAP    us_teccolmap[32];
-//	
-//	/* these must correspond to the layer functions in "efunction.h" */
-//	LIST us_tecarc_functions[] =
-//	{
-//		{x_("unknown"),             x_("APUNKNOWN"),  APUNKNOWN},
-//		{x_("metal-1"),             x_("APMETAL1"),   APMETAL1},
-//		{x_("metal-2"),             x_("APMETAL2"),   APMETAL2},
-//		{x_("metal-3"),             x_("APMETAL3"),   APMETAL3},
-//		{x_("metal-4"),             x_("APMETAL4"),   APMETAL4},
-//		{x_("metal-5"),             x_("APMETAL5"),   APMETAL5},
-//		{x_("metal-6"),             x_("APMETAL6"),   APMETAL6},
-//		{x_("metal-7"),             x_("APMETAL7"),   APMETAL7},
-//		{x_("metal-8"),             x_("APMETAL8"),   APMETAL8},
-//		{x_("metal-9"),             x_("APMETAL9"),   APMETAL9},
-//		{x_("metal-10"),            x_("APMETAL10"),  APMETAL10},
-//		{x_("metal-11"),            x_("APMETAL11"),  APMETAL11},
-//		{x_("metal-12"),            x_("APMETAL12"),  APMETAL12},
-//		{x_("polysilicon-1"),       x_("APPOLY1"),    APPOLY1},
-//		{x_("polysilicon-2"),       x_("APPOLY2"),    APPOLY2},
-//		{x_("polysilicon-3"),       x_("APPOLY3"),    APPOLY3},
-//		{x_("diffusion"),           x_("APDIFF"),     APDIFF},
-//		{x_("p-Diffusion"),         x_("APDIFFP"),    APDIFFP},
-//		{x_("n-Diffusion"),         x_("APDIFFN"),    APDIFFN},
-//		{x_("substrate-Diffusion"), x_("APDIFFS"),    APDIFFS},
-//		{x_("well-Diffusion"),      x_("APDIFFW"),    APDIFFW},
-//		{x_("bus"),                 x_("APBUS"),      APBUS},
-//		{x_("unrouted"),            x_("APUNROUTED"), APUNROUTED},
-//		{x_("nonelectrical"),       x_("APNONELEC"),  APNONELEC},
-//		{NULL, NULL, 0}
-//	};
-	
-	static PCon  us_tecedfirstpcon = null;	/* list of port connections */
-	static Rule  us_tecedfirstrule = null;	/* list of rules */
-	
-//	/* working memory for "us_tecedmakeprim()" */
-//	static INTBIG *us_tecedmakepx, *us_tecedmakepy, *us_tecedmakefactor,
-//		*us_tecedmakeleftdist, *us_tecedmakerightdist, *us_tecedmakebotdist,
-//		*us_tecedmaketopdist, *us_tecedmakecentxdist, *us_tecedmakecentydist, *us_tecedmakeratiox,
-//		*us_tecedmakeratioy, *us_tecedmakecx, *us_tecedmakecy;
-//	static INTBIG us_tecedmakearrlen = 0;
-//	
-//	/* working memory for "us_teceditgetdependents()" */
-//	static LIBRARY **us_teceddepliblist;
-//	static INTBIG    us_teceddepliblistsize = 0;
 	
 	/**
 	 * Method invoked for the "technology edit library-to-tech" command.  Dumps
@@ -252,6 +180,11 @@ public class Parse
 		void setTheScale(double scale)
 		{
 			setFactoryScale(scale, true);
+		}
+
+		void setTransparentColors(Color [] colors)
+		{
+			this.setFactoryTransparentLayers(colors);
 		}
 	}
 
@@ -290,7 +223,7 @@ public class Parse
 			System.out.println("Cell with general information, called 'factors', is missing");
 			return;
 		}
-		Generate.GeneralInfo gi = Generate.GeneralInfo.us_teceditgetlayerinfo(np);
+		Generate.GeneralInfo gi = Generate.GeneralInfo.us_teceditgettechinfo(np);
 
 		// get layer information
 		Generate.LayerInfo [] lList = us_tecedmakelayers(dependentlibs);
@@ -306,16 +239,14 @@ public class Parse
 
 		// create the technology
 		SoftTech tech = new SoftTech(newtechname);
-//		setFactoryTransparentLayers(new Color []
-//		{
-//			new Color(  0,  0,255), // Metal
-//			new Color(223,  0,  0), // Polysilicon
-//			new Color(  0,255,  0), // Diffusion
-//			new Color(255,190,  6), // P+
-//			new Color(170,140, 30)  // P-Well
-//		});
 		tech.setTheScale(gi.scale);
 		tech.setTechDesc(gi.description);
+		tech.setMinResistance(gi.minres);
+		tech.setMinCapacitance(gi.mincap);
+		tech.setGateLengthSubtraction(gi.gateShrinkage);
+		tech.setGateIncluded(gi.includeGateInResistance);
+		tech.setGroundNetIncluded(gi.includeGround);
+		if (gi.transparentColors != null) tech.setTransparentColors(gi.transparentColors);
 
 		// create the layers
 		for(int i=0; i<lList.length; i++)
@@ -324,7 +255,6 @@ public class Parse
 			lay.setFunction(lList[i].fun, lList[i].funExtra);
 			lay.setCIFLayer(lList[i].cif);
 			lay.setGDSLayer(lList[i].gds);
-			lay.setDXFLayer(lList[i].dxf);
 			lay.setResistance(lList[i].spires);
 			lay.setCapacitance(lList[i].spicap);
 			lay.setEdgeCapacitance(lList[i].spiecap);
@@ -347,6 +277,7 @@ public class Parse
 			newArc.setFactoryAngleIncrement(aList[i].anginc);
 			newArc.setExtended(!aList[i].noextend);
 			newArc.setWidthOffset(aList[i].widthOffset);
+			ERC.getERCTool().setAntennaRatio(newArc, aList[i].antennaRatio);
 			aList[i].generated = newArc;
 		}
 
@@ -357,17 +288,29 @@ public class Parse
 			Technology.NodeLayer [] nodeLayers = new Technology.NodeLayer[nd.length];
 			for(int j=0; j<nd.length; j++)
 			{
-				LayerInfo li = nd[j].layer;
+				Generate.LayerInfo li = nd[j].layer;
 				Layer lay = li.generated;
-				TechPoint [] points = nd[j].rule.value;
+				TechPoint [] points = nd[j].values;
 				nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, Technology.NodeLayer.BOX, points);
 			}
 			PrimitiveNode prim = PrimitiveNode.newInstance(nList[i].name, tech, nList[i].xSize, nList[i].ySize, nList[i].so, nodeLayers);
+			nList[i].generated = prim;
 			prim.setFunction(nList[i].func);
 			if (nList[i].wipes) prim.setArcsWipe();
 			if (nList[i].lockable) prim.setLockedPrim();
 			if (nList[i].square) prim.setSquare();
-	
+
+			// add special information if present
+			if (nList[i].specialType == PrimitiveNode.MULTICUT ||
+				nList[i].specialType == PrimitiveNode.SERPTRANS ||
+				nList[i].specialType == PrimitiveNode.POLYGONAL)
+			{
+				prim.setSpecialType(nList[i].specialType);
+				if (nList[i].specialType == PrimitiveNode.MULTICUT ||
+					nList[i].specialType == PrimitiveNode.SERPTRANS)
+						prim.setSpecialValues(nList[i].specialValues);
+			}
+
 			// analyze special node function circumstances
 			if (nList[i].func == PrimitiveNode.Function.NODE)
 			{
@@ -389,54 +332,40 @@ public class Parse
 				ArcProto [] cons = new ArcProto[portDetail.connections.length];
 				for(int k=0; k<portDetail.connections.length; k++)
 					cons[k] = portDetail.connections[k].generated;
-				portList[j] = PrimitivePort.newInstance(tech, prim, cons, portDetail.name, portDetail.angle,portDetail.range,
-					portDetail.netIndex, PortCharacteristic.UNKNOWN,
-					portDetail.rule.value[0].getX(), portDetail.rule.value[0].getY(),
-					portDetail.rule.value[1].getX(), portDetail.rule.value[1].getY());
+				portList[j] = PrimitivePort.newInstance(tech, prim, cons, portDetail.name,
+					portDetail.angle, portDetail.range, portDetail.netIndex, PortCharacteristic.UNKNOWN,
+					portDetail.values[0].getX(), portDetail.values[0].getY(),
+					portDetail.values[1].getX(), portDetail.values[1].getY());
 			}
 			prim.addPrimitivePorts(portList);
 		}
-
-//System.out.println("Technology "+tech.getTechName()+" has "+tech.getNumLayers()+" layers:");
-//for(Iterator it = tech.getLayers(); it.hasNext(); )
-//{
-//	Layer layer = (Layer)it.next();
-//	System.out.println("   Layer "+layer.getName());
-//}
-//System.out.println("Technology "+tech.getTechName()+" has "+tech.getNumArcs()+" arcs:");
-//for(Iterator it = tech.getArcs(); it.hasNext(); )
-//{
-//	ArcProto ap = (ArcProto)it.next();
-//	System.out.println("   Arc "+ap.getName());
-//}
-//System.out.println("Technology "+tech.getTechName()+" has "+tech.getNumNodes()+" nodes:");
-//for(Iterator it = tech.getNodes(); it.hasNext(); )
-//{
-//	PrimitiveNode n = (PrimitiveNode)it.next();
-//	System.out.println("   Node "+n.describe());
-//}
-
-//		// copy any miscellaneous variables (should use dependent libraries facility)
-//		Variable var = lib.getVar(Generate.VARIABLELIST_KEY);
-//		if (var != NOVARIABLE)
-//		{
-//			j = getlength(var);
-//			varnames = (CHAR **)var.addr;
-//			for(i=0; i<j; i++)
-//			{
-//				ovar = getval((INTBIG)lib, VLIBRARY, -1, varnames[i]);
-//				if (ovar == NOVARIABLE) continue;
-//				(void)setval((INTBIG)tech, VTECHNOLOGY, varnames[i], ovar.addr, ovar.type);
-//			}
-//		}
+		
+		// create the pure-layer associations
+		for(int i=0; i<lList.length; i++)
+		{
+			if ((lList[i].funExtra&Layer.Function.PSEUDO) != 0) continue;
 	
+			// find the pure layer node
+			for(int j=0; j<nList.length; j++)
+			{
+				if (nList[j].func != PrimitiveNode.Function.NODE) continue;
+				Generate.NodeLayerDetails nld = nList[j].nodeLayers[0];
+				if (nld.layer == lList[i])
+				{
+					lList[i].generated.setPureLayerNode(nList[j].generated);
+					break;
+				}
+			}
+		}
+
 		// check technology for consistency
 		us_tecedcheck(lList, aList, nList);
 	
 		if (alsoJava)
 		{
 			// print the technology as Java code
-			String fileName = OpenFile.chooseOutputFile(FileType.JAVA, "File for Technology's Java Code", "X.java");
+			String fileName = OpenFile.chooseOutputFile(FileType.JAVA, "File for Technology's Java Code",
+				newtechname + ".java");
 			if (fileName != null)
 			{
 				FileOutputStream fileOutputStream = null;
@@ -444,9 +373,9 @@ public class Parse
 				    PrintStream buffWriter = new PrintStream(new FileOutputStream(fileName));
 			
 					// write the layers, arcs, and nodes
-					us_teceditdumpjavalayers(buffWriter, lList);
-					us_teceditdumpjavaarcs(buffWriter, aList);
-					us_teceditdumpjavanodes(buffWriter, nList);
+					us_teceditdumpjavalayers(buffWriter, newtechname, lList, gi);
+					us_teceditdumpjavaarcs(buffWriter, newtechname, aList, gi);
+					us_teceditdumpjavanodes(buffWriter, newtechname, nList, lList, gi);
 					buffWriter.println("}");
 			
 					// clean up
@@ -759,25 +688,6 @@ public class Parse
 //			}
 //		}
 	
-//		// get the color map
-//		var = NOVARIABLE;
-//		for(i=dependentlibcount-1; i>=0; i--)
-//		{
-//			var = dependentlibs[i].getVar(Generate.COLORMAP_KEY);
-//			if (var != null) break;
-//		}
-//		if (var != NOVARIABLE)
-//		{
-//			us_tecflags |= HASCOLORMAP;
-//			drcptr = (INTBIG *)var.addr;
-//			for(i=0; i<32; i++)
-//			{
-//				us_teccolmap[i].red = (INTSML)drcptr[(i<<2)*3];
-//				us_teccolmap[i].green = (INTSML)drcptr[(i<<2)*3+1];
-//				us_teccolmap[i].blue = (INTSML)drcptr[(i<<2)*3+2];
-//			}
-//		}
-	
 //		// see which design rules exist
 //		for(i=0; i<us_teceddrclayers; i++)
 //		{
@@ -809,10 +719,6 @@ public class Parse
 //		}
 	
 //		// store this information on the technology object
-//		if ((us_tecflags&HASCOLORMAP) != 0)
-//			(void)setval((INTBIG)tech, VTECHNOLOGY, x_("USER_color_map"), (INTBIG)us_teccolmap,
-//				VCHAR|VDONTSAVE|VISARRAY|((sizeof us_teccolmap)<<VLENGTHSH));
-//	
 //		if ((us_tecflags&(HASCONDRCW|HASUNCONDRCW)) != 0)
 //			(void)setvalkey((INTBIG)tech, VTECHNOLOGY, dr_wide_limitkey, us_tecdrc_rules.widelimit,
 //				VFRACT|VDONTSAVE);
@@ -978,25 +884,6 @@ public class Parse
 	 */
 	static Generate.NodeInfo [] us_tecedmakenodes(Library [] dependentlibs, Generate.LayerInfo [] lList, Generate.ArcInfo [] aList)
 	{
-//		REGISTER NODEPROTO *np;
-//		NODEPROTO **sequence;
-//		REGISTER NODEINST *ni;
-//		REGISTER VARIABLE *var;
-//		REGISTER CHAR *str, *portname;
-//		REGISTER INTBIG *list, save1, nfunction, x1pos, x2pos, y1pos, y2pos, net, lambda;
-//		REGISTER INTBIG i, j, k, l, m, pass, nodeindex, sty, difindex, polindex,
-//			serpdifind, opt, nsindex, err, portchecked;
-//		INTBIG pol1port, pol2port, dif1port, dif2port;
-//		INTBIG serprule[8];
-//		REGISTER EXAMPLE *nelist;
-//		REGISTER SAMPLE *ns, *ons, *diflayer, *pollayer;
-//		REGISTER PCON *pc;
-//		REGISTER RULE *r;
-//		REGISTER TECH_NODES *tlist;
-	
-		// no rectangle rules
-		us_tecedfirstrule = null;
-
 		Cell [] nodeCells = Manipulate.us_teceditfindsequence(dependentlibs, "node-", Generate.NODESEQUENCE_KEY);
 		if (nodeCells.length <= 0)
 		{
@@ -1014,7 +901,13 @@ public class Parse
 			// make sure this is the right type of node for this pass of the nodes
 			Cell np = nodeCells[m];
 			Generate.NodeInfo nin = Generate.NodeInfo.us_teceditgetnodeinfo(np);
-	
+			Netlist netList = np.acquireUserNetlist();
+			if (netList == null)
+			{
+				System.out.println("Sorry, a deadlock technology generation (network information unavailable).  Please try again");
+				return null;
+			}
+
 			// only want pins on pass 0, pure-layer nodes on pass 2
 			if (pass == 0 && nin.func != PrimitiveNode.Function.PIN) continue;
 			if (pass == 1 && (nin.func == PrimitiveNode.Function.PIN || nin.func == PrimitiveNode.Function.NODE)) continue;
@@ -1057,6 +950,30 @@ public class Parse
 				System.out.println("Cannot derive stretching rules for " + np.describe());
 				return null;
 			}
+
+			// handle multicut layers
+			for(int i=0; i<nin.nodeLayers.length; i++)
+			{
+				Generate.NodeLayerDetails nld = nin.nodeLayers[i];
+				if (nld.multiCut)
+				{
+					nin.specialType = PrimitiveNode.MULTICUT;
+					nin.specialValues = new double[6];
+					nin.specialValues[0] = nin.nodeLayers[i].multixs;
+					nin.specialValues[1] = nin.nodeLayers[i].multiys;
+					nin.specialValues[2] = nin.nodeLayers[i].multiindent;
+					nin.specialValues[3] = nin.nodeLayers[i].multiindent;
+					nin.specialValues[4] = nin.nodeLayers[i].multisep;
+					nin.specialValues[5] = nin.nodeLayers[i].multisep;
+
+					// make the multicut layer the last one
+					Generate.NodeLayerDetails nldLast = nin.nodeLayers[nin.nodeLayers.length-1];
+					Generate.NodeLayerDetails nldMC = nin.nodeLayers[i];
+					nin.nodeLayers[i] = nldLast;
+					nin.nodeLayers[nin.nodeLayers.length-1] = nldMC;
+					break;
+				}
+			}
 	
 			// count the number of ports on this node
 			int portcount = 0;
@@ -1093,13 +1010,18 @@ public class Parse
 					for(int j=0; j<arcCells.length; j++)
 					{
 						// find arc that connects
+						Cell arcCell = arcCells[j];
 						connections[j] = null;
-						for(int k=0; k<aList.length; k++)
+						if (arcCell != null)
 						{
-							if (aList[k].name.equalsIgnoreCase(arcCells[j].getName().substring(4)))
+							String cellName = arcCell.getName().substring(4);
+							for(int k=0; k<aList.length; k++)
 							{
-								connections[j] = aList[k];
-								break;
+								if (aList[k].name.equalsIgnoreCase(cellName))
+								{
+									connections[j] = aList[k];
+									break;
+								}
 							}
 						}
 						if (connections[j] == null)
@@ -1172,31 +1094,34 @@ public class Parse
 	
 				// port connectivity
 				nin.nodePortDetails[i].netIndex = i;
-//				if (ns.node.firstportarcinst != null)
-//				{
-//					int j = 0;
-//					for(Sample ons = nelist.firstsample; ons != ns; ons = ons.nextsample)
-//					{
-//						if (ons.layer != Generic.tech.portNode) continue;
-//						if (ons.node.firstportarcinst != null)
-//						{
-//							if (ns.node.firstportarcinst.conarcinst.network ==
-//								ons.node.firstportarcinst.conarcinst.network)
-//							{
-//								nin.nodePortDetails[i].netIndex = j;
-//								break;
-//							}
-//						}
-//						j++;
-//					}
-//				}
+				if (ns.node.getNumConnections() != 0)
+				{
+					ArcInst ai1 = ((Connection)ns.node.getConnections().next()).getArc();
+					Network net1 = netList.getNetwork(ai1, 0);
+					int j = 0;
+					for(Sample ons = nelist.firstsample; ons != ns; ons = ons.nextsample)
+					{
+						if (ons.layer != Generic.tech.portNode) continue;
+						if (ons.node.getNumConnections() != 0)
+						{
+							ArcInst ai2 = ((Connection)ons.node.getConnections().next()).getArc();
+							Network net2 = netList.getNetwork(ai2, 0);
+							if (net1 == net2)
+							{
+								nin.nodePortDetails[i].netIndex = j;
+								break;
+							}
+						}
+						j++;
+					}
+				}
 	
 				// port area rule
-				nin.nodePortDetails[i].rule = ns.rule;
+				nin.nodePortDetails[i].values = ns.values;
 				i++;
 			}
 	
-			// on FET transistors, make sure ports 0 and 2 are poly
+			// on field-effect transistors, make sure ports 0 and 2 are poly
 			if (nin.func == PrimitiveNode.Function.TRANMOS || nin.func == PrimitiveNode.Function.TRADMOS ||
 				nin.func == PrimitiveNode.Function.TRAPMOS || nin.func == PrimitiveNode.Function.TRADMES ||
 				nin.func == PrimitiveNode.Function.TRAEMES)
@@ -1209,390 +1134,257 @@ public class Parse
 				}
 				if (pol1port != 0)
 				{
-//					if (pol2port == 0) us_tecedswapports(&pol1port, &pol2port, tlist); else
-//					if (dif1port == 0) us_tecedswapports(&pol1port, &dif1port, tlist); else
-//					if (dif2port == 0) us_tecedswapports(&pol1port, &dif2port, tlist);
+					if (pol2port == 0)
+					{
+						Generate.NodePortDetails formerPortA = nin.nodePortDetails[pol1port];
+						Generate.NodePortDetails formerPortB = nin.nodePortDetails[pol2port];
+						int swap = pol1port;   pol1port = pol2port;   pol2port = swap;
+						nin.nodePortDetails[pol1port] = formerPortA;
+						nin.nodePortDetails[pol2port] = formerPortB;
+					} else if (dif1port == 0)
+					{
+						Generate.NodePortDetails formerPortA = nin.nodePortDetails[pol1port];
+						Generate.NodePortDetails formerPortB = nin.nodePortDetails[dif1port];
+						int swap = pol1port;   pol1port = dif1port;   dif1port = swap;
+						nin.nodePortDetails[pol1port] = formerPortA;
+						nin.nodePortDetails[dif1port] = formerPortB;
+					} else if (dif2port == 0)
+					{
+						Generate.NodePortDetails formerPortA = nin.nodePortDetails[pol1port];
+						Generate.NodePortDetails formerPortB = nin.nodePortDetails[dif2port];
+						int swap = pol1port;   pol1port = dif2port;   dif2port = swap;
+						nin.nodePortDetails[pol1port] = formerPortA;
+						nin.nodePortDetails[dif2port] = formerPortB;
+					}
 				}
 				if (pol2port != 2)
 				{
-//					if (dif1port == 2) us_tecedswapports(&pol2port, &dif1port, tlist); else
-//					if (dif2port == 2) us_tecedswapports(&pol2port, &dif2port, tlist);
+					if (dif1port == 2)
+					{
+						Generate.NodePortDetails formerPortA = nin.nodePortDetails[pol2port];
+						Generate.NodePortDetails formerPortB = nin.nodePortDetails[dif1port];
+						int swap = pol2port;   pol2port = dif1port;   dif1port = swap;
+						nin.nodePortDetails[pol2port] = formerPortA;
+						nin.nodePortDetails[dif1port] = formerPortB;
+					} else if (dif2port == 2)
+					{
+						Generate.NodePortDetails formerPortA = nin.nodePortDetails[pol2port];
+						Generate.NodePortDetails formerPortB = nin.nodePortDetails[dif2port];
+						int swap = pol2port;   pol2port = dif2port;   dif2port = swap;
+						nin.nodePortDetails[pol2port] = formerPortA;
+						nin.nodePortDetails[dif2port] = formerPortB;
+					}
 				}
-//				if (dif1port != 1) us_tecedswapports(&dif1port, &dif2port, tlist);
-//	
-//				// also make sure that dif1port is positive and dif2port is negative
-//				x1pos = (tlist.portlist[dif1port].lowxmul*tlist.xsize +
-//					tlist.portlist[dif1port].lowxsum +
-//						tlist.portlist[dif1port].highxmul*tlist.xsize +
-//							tlist.portlist[dif1port].highxsum) / 2;
-//				x2pos = (tlist.portlist[dif2port].lowxmul*tlist.xsize +
-//					tlist.portlist[dif2port].lowxsum +
-//						tlist.portlist[dif2port].highxmul*tlist.xsize +
-//							tlist.portlist[dif2port].highxsum) / 2;
-//				y1pos = (tlist.portlist[dif1port].lowymul*tlist.ysize +
-//					tlist.portlist[dif1port].lowysum +
-//						tlist.portlist[dif1port].highymul*tlist.ysize +
-//							tlist.portlist[dif1port].highysum) / 2;
-//				y2pos = (tlist.portlist[dif2port].lowymul*tlist.ysize +
-//					tlist.portlist[dif2port].lowysum +
-//						tlist.portlist[dif2port].highymul*tlist.ysize +
-//							tlist.portlist[dif2port].highysum) / 2;
-//				if (abs(x1pos-x2pos) > abs(y1pos-y2pos))
-//				{
-//					if (x1pos < x2pos)
-//					{
-//						us_tecedswapports(&dif1port, &dif2port, tlist);
-//						j = dif1port;   dif1port = dif2port;   dif2port = j;
-//					}
-//				} else
-//				{
-//					if (y1pos < y2pos)
-//					{
-//						us_tecedswapports(&dif1port, &dif2port, tlist);
-//						j = dif1port;   dif1port = dif2port;   dif2port = j;
-//					}
-//				}
-//	
-//				// also make sure that pol1port is negative and pol2port is positive
-//				x1pos = (tlist.portlist[pol1port].lowxmul*tlist.xsize +
-//					tlist.portlist[pol1port].lowxsum +
-//						tlist.portlist[pol1port].highxmul*tlist.xsize +
-//							tlist.portlist[pol1port].highxsum) / 2;
-//				x2pos = (tlist.portlist[pol2port].lowxmul*tlist.xsize +
-//					tlist.portlist[pol2port].lowxsum +
-//						tlist.portlist[pol2port].highxmul*tlist.xsize +
-//							tlist.portlist[pol2port].highxsum) / 2;
-//				y1pos = (tlist.portlist[pol1port].lowymul*tlist.ysize +
-//					tlist.portlist[pol1port].lowysum +
-//						tlist.portlist[pol1port].highymul*tlist.ysize +
-//							tlist.portlist[pol1port].highysum) / 2;
-//				y2pos = (tlist.portlist[pol2port].lowymul*tlist.ysize +
-//					tlist.portlist[pol2port].lowysum +
-//						tlist.portlist[pol2port].highymul*tlist.ysize +
-//							tlist.portlist[pol2port].highysum) / 2;
-//				if (abs(x1pos-x2pos) > abs(y1pos-y2pos))
-//				{
-//					if (x1pos > x2pos)
-//					{
-//						us_tecedswapports(&pol1port, &pol2port, tlist);
-//						j = pol1port;   pol1port = pol2port;   pol2port = j;
-//					}
-//				} else
-//				{
-//					if (y1pos > y2pos)
-//					{
-//						us_tecedswapports(&pol1port, &pol2port, tlist);
-//						j = pol1port;   pol1port = pol2port;   pol2port = j;
-//					}
-//				}
+				if (dif1port != 1)
+				{
+					Generate.NodePortDetails formerPortA = nin.nodePortDetails[dif1port];
+					Generate.NodePortDetails formerPortB = nin.nodePortDetails[dif2port];
+					int swap = dif1port;   dif1port = dif2port;   dif2port = swap;
+					nin.nodePortDetails[dif1port] = formerPortA;
+					nin.nodePortDetails[dif2port] = formerPortB;
+				}
+	
+				// also make sure that dif1port is positive and dif2port is negative
+				double x1pos = (nin.nodePortDetails[dif1port].values[0].getX().getMultiplier() * nin.xSize +
+					nin.nodePortDetails[dif1port].values[0].getX().getAdder() +
+					nin.nodePortDetails[dif1port].values[1].getX().getMultiplier() * nin.xSize +
+					nin.nodePortDetails[dif1port].values[1].getX().getAdder()) / 2;
+				double x2pos = (nin.nodePortDetails[dif2port].values[0].getX().getMultiplier() * nin.xSize +
+					nin.nodePortDetails[dif2port].values[0].getX().getAdder() +
+					nin.nodePortDetails[dif2port].values[1].getX().getMultiplier() * nin.xSize +
+					nin.nodePortDetails[dif2port].values[1].getX().getAdder()) / 2;
+				double y1pos = (nin.nodePortDetails[dif1port].values[0].getY().getMultiplier() * nin.ySize +
+					nin.nodePortDetails[dif1port].values[0].getY().getAdder() +
+					nin.nodePortDetails[dif1port].values[1].getY().getMultiplier() * nin.ySize +
+					nin.nodePortDetails[dif1port].values[1].getY().getAdder()) / 2;
+				double y2pos = (nin.nodePortDetails[dif2port].values[0].getY().getMultiplier() * nin.ySize +
+					nin.nodePortDetails[dif2port].values[0].getY().getAdder() +
+					nin.nodePortDetails[dif2port].values[1].getY().getMultiplier() * nin.ySize +
+					nin.nodePortDetails[dif2port].values[1].getY().getAdder()) / 2;
+				if (Math.abs(x1pos-x2pos) > Math.abs(y1pos-y2pos))
+				{
+					if (x1pos < x2pos)
+					{
+						Generate.NodePortDetails formerPortA = nin.nodePortDetails[dif1port];
+						Generate.NodePortDetails formerPortB = nin.nodePortDetails[dif2port];
+						nin.nodePortDetails[dif1port] = formerPortA;
+						nin.nodePortDetails[dif2port] = formerPortB;
+					}
+				} else
+				{
+					if (y1pos < y2pos)
+					{
+						Generate.NodePortDetails formerPortA = nin.nodePortDetails[dif1port];
+						Generate.NodePortDetails formerPortB = nin.nodePortDetails[dif2port];
+						nin.nodePortDetails[dif1port] = formerPortA;
+						nin.nodePortDetails[dif2port] = formerPortB;
+					}
+				}
+	
+				// also make sure that pol1port is negative and pol2port is positive
+				x1pos = (nin.nodePortDetails[pol1port].values[0].getX().getMultiplier() * nin.xSize +
+					nin.nodePortDetails[pol1port].values[0].getX().getAdder() +
+					nin.nodePortDetails[pol1port].values[1].getX().getMultiplier() * nin.xSize +
+					nin.nodePortDetails[pol1port].values[1].getX().getAdder()) / 2;
+				x2pos = (nin.nodePortDetails[pol2port].values[0].getX().getMultiplier() * nin.xSize +
+					nin.nodePortDetails[pol2port].values[0].getX().getAdder() +
+					nin.nodePortDetails[pol2port].values[1].getX().getMultiplier() * nin.xSize +
+					nin.nodePortDetails[pol2port].values[1].getX().getAdder()) / 2;
+				y1pos = (nin.nodePortDetails[pol1port].values[0].getY().getMultiplier() * nin.ySize +
+					nin.nodePortDetails[pol1port].values[0].getY().getAdder() +
+					nin.nodePortDetails[pol1port].values[1].getY().getMultiplier() * nin.ySize +
+					nin.nodePortDetails[pol1port].values[1].getY().getAdder()) / 2;
+				y1pos = (nin.nodePortDetails[pol2port].values[0].getY().getMultiplier() * nin.ySize +
+					nin.nodePortDetails[pol2port].values[0].getY().getAdder() +
+					nin.nodePortDetails[pol2port].values[1].getY().getMultiplier() * nin.ySize +
+					nin.nodePortDetails[pol2port].values[1].getY().getAdder()) / 2;
+				if (Math.abs(x1pos-x2pos) > Math.abs(y1pos-y2pos))
+				{
+					if (x1pos > x2pos)
+					{
+						Generate.NodePortDetails formerPortA = nin.nodePortDetails[pol1port];
+						Generate.NodePortDetails formerPortB = nin.nodePortDetails[pol2port];
+						nin.nodePortDetails[pol1port] = formerPortA;
+						nin.nodePortDetails[pol2port] = formerPortB;
+					}
+				} else
+				{
+					if (y1pos > y2pos)
+					{
+						Generate.NodePortDetails formerPortA = nin.nodePortDetails[pol1port];
+						Generate.NodePortDetails formerPortB = nin.nodePortDetails[pol2port];
+						nin.nodePortDetails[pol1port] = formerPortA;
+						nin.nodePortDetails[pol2port] = formerPortB;
+					}
+				}
 			}
 	
 			// count the number of layers on the node
 			int layercount = 0;
 			for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
 			{
-				if (ns.rule != null && ns.layer != Generic.tech.portNode &&
+				if (ns.values != null && ns.layer != Generic.tech.portNode &&
 					ns.layer != Generic.tech.cellCenterNode && ns.layer != null)
 						layercount++;
 			}
+
+			// finish up serpentine transistors
+			if (nList[i].specialType == PrimitiveNode.SERPTRANS)
+			{
+				// determine port numbers for serpentine transistors
+				int polindex = -1, difindex = -1;
+				for(int k=0; k<nin.nodeLayers.length; k++)
+				{
+					Generate.NodeLayerDetails nld = nin.nodeLayers[k];
+					if (nld.layer.fun.isPoly())
+					{
+						polindex = k;
+					} else if (nld.layer.fun.isDiff())
+					{
+						difindex = i;
+					}
+				}
+				if (difindex < 0 || polindex < 0)
+				{
+					us_tecedpointout(null, np);
+					System.out.println("No diffusion and polysilicon layers in transistor " + np.describe());
+					return null;
+				}
+
+				// compute port extension factors
+				nin.specialValues = new double[6];
+				nin.specialValues[0] = layercount+1;
+				if (nin.nodePortDetails[dif1port].values[0].getX().getAdder() >
+					nin.nodePortDetails[dif1port].values[0].getY().getAdder())
+				{
+					// vertical diffusion layer: determine polysilicon width
+					nin.specialValues[3] = (nin.ySize * nin.nodeLayers[polindex].values[1].getY().getMultiplier() +
+						nin.nodeLayers[polindex].values[1].getY().getAdder()) -
+						(nin.ySize * nin.nodeLayers[polindex].values[0].getY().getMultiplier() +
+						nin.nodeLayers[polindex].values[0].getY().getAdder());
 	
-//			// allocate space for the layers
-//			if (tlist.special != SERPTRANS)
-//			{
-//				tlist.layerlist = (TECH_POLYGON *)emalloc((tlist.layercount *
-//					(sizeof (TECH_POLYGON))), tech.cluster);
-//				if (tlist.layerlist == 0) return(TRUE);
-//			} else
-//			{
-//				tlist.gra = (TECH_SERPENT *)emalloc(((sizeof (TECH_SERPENT)) * tlist.layercount),
-//					tech.cluster);
-//				if (tlist.gra == 0) return(TRUE);
-//				tlist.ele = (TECH_SERPENT *)emalloc(((sizeof (TECH_SERPENT)) * (tlist.layercount+1)),
-//					tech.cluster);
-//				if (tlist.ele == 0) return(TRUE);
-//			}
-//	
-//			// fill the layer structures (3 times: transparent, opaque, multicut)
-//			i = 0;
-//			pollayer = diflayer = NOSAMPLE;
-//			for(k=0; k<3; k++)
-//				for(nsindex=0, ns = nelist.firstsample; ns != NOSAMPLE; nsindex++, ns = ns.nextsample)
-//			{
-//				r = ns.rule;
-//				if (r == NORULE || ns.layer == Generic.tech.portNode ||
-//					ns.layer == Generic.tech.cellCenterNode || ns.layer == NONODEPROTO) continue;
-//	
-//				// add cut layers last (only when k=2)
-//				if (k == 2)
+					// determine diffusion port rule
+					nin.specialValues[1] = (nin.xSize * nin.nodePortDetails[dif1port].values[0].getX().getMultiplier() +
+						nin.nodePortDetails[dif1port].values[0].getX().getAdder()) -
+						(nin.xSize * nin.nodeLayers[difindex].values[0].getX().getMultiplier() +
+						nin.nodeLayers[difindex].values[0].getX().getAdder());
+					nin.specialValues[2] = (nin.ySize * nin.nodePortDetails[dif1port].values[0].getY().getMultiplier() +
+						nin.nodePortDetails[dif1port].values[0].getY().getAdder()) -
+						(nin.ySize * nin.nodeLayers[polindex].values[1].getY().getMultiplier() +
+						nin.nodeLayers[polindex].values[1].getY().getAdder());
+	
+					// determine polysilicon port rule
+					nin.specialValues[4] = (nin.ySize * nin.nodePortDetails[pol1port].values[0].getY().getMultiplier() +
+						nin.nodePortDetails[pol1port].values[0].getY().getAdder()) -
+						(nin.ySize * nin.nodeLayers[polindex].values[0].getY().getMultiplier() +
+						nin.nodeLayers[polindex].values[0].getY().getAdder());
+					nin.specialValues[5] = (nin.xSize * nin.nodeLayers[difindex].values[0].getX().getMultiplier() +
+						nin.nodeLayers[difindex].values[0].getX().getAdder()) -
+						(nin.xSize * nin.nodePortDetails[pol1port].values[1].getX().getMultiplier() +
+						nin.nodePortDetails[pol1port].values[1].getX().getAdder());
+				} else
+				{
+					// horizontal diffusion layer: determine polysilicon width
+					nin.specialValues[3] = (nin.xSize * nin.nodeLayers[polindex].values[1].getX().getMultiplier() +
+						nin.nodeLayers[polindex].values[1].getX().getAdder()) -
+						(nin.xSize * nin.nodeLayers[polindex].values[0].getX().getMultiplier() +
+						nin.nodeLayers[polindex].values[0].getX().getAdder());
+	
+					// determine diffusion port rule
+					nin.specialValues[1] = (nin.ySize * nin.nodePortDetails[dif1port].values[0].getY().getMultiplier() +
+						nin.nodePortDetails[dif1port].values[0].getY().getAdder()) -
+						(nin.ySize * nin.nodeLayers[difindex].values[0].getY().getMultiplier() +
+						nin.nodeLayers[difindex].values[0].getY().getAdder());
+					nin.specialValues[2] = (nin.xSize * nin.nodeLayers[polindex].values[0].getX().getMultiplier() +
+						nin.nodeLayers[polindex].values[0].getX().getAdder()) -
+						(nin.xSize * nin.nodePortDetails[dif1port].values[1].getX().getMultiplier() +
+						nin.nodePortDetails[dif1port].values[1].getX().getAdder());
+	
+					// determine polysilicon port rule
+					nin.specialValues[4] = (nin.xSize * nin.nodePortDetails[pol1port].values[0].getX().getMultiplier() +
+						nin.nodePortDetails[pol1port].values[0].getX().getAdder()) -
+						(nin.xSize * nin.nodeLayers[polindex].values[0].getX().getMultiplier() +
+						nin.nodeLayers[polindex].values[0].getX().getAdder());
+					nin.specialValues[5] = (nin.ySize * nin.nodeLayers[difindex].values[0].getY().getMultiplier() +
+						nin.nodeLayers[difindex].values[0].getY().getAdder()) -
+						(nin.ySize * nin.nodePortDetails[pol1port].values[1].getY().getMultiplier() +
+						nin.nodePortDetails[pol1port].values[1].getY().getAdder());
+				}
+	
+				// find width and extension from comparison to poly layer
+//				for(int k=0; k<nin.nodeLayers.length; k++)
 //				{
-//					if (!r.multicut) continue;
-//					if (tlist.special != 0)
-//					{
-//						us_tecedpointout(ns.node, ns.node.parent);
-//						System.out.println(_("%s is too complex (multiple cuts AND serpentine)"),
-//							describenodeproto(np));
-//						us_tecedfreeexamples(nelist);
-//						return(TRUE);
-//					}
-//					tlist.special = MULTICUT;
-//					tlist.f1 = (INTSML)(r.multixs*WHOLE/lambda);
-//					tlist.f2 = (INTSML)(r.multiys*WHOLE/lambda);
-//					tlist.f3 = (INTSML)(r.multiindent*WHOLE/lambda);
-//					tlist.f4 = (INTSML)(r.multisep*WHOLE/lambda);
-//				} else
-//				{
-//					if (r.multicut) continue;
-//				}
-//	
-//				// layer number
-//				for(j=0; j<tech.layercount; j++)
-//					if (namesame(&ns.layer.protoname[6], us_teclayer_names[j]) == 0) break;
-//				if (j >= tech.layercount)
-//				{
-//					System.out.println(_("Cannot find layer %s in %s"), describenodeproto(ns.layer),
-//						describenodeproto(np));
-//					return(TRUE);
-//				}
-//	
-//				// only add transparent layers when k=0
-//				if (k == 0)
-//				{
-//					if (tech.layers[j].bits == LAYERO) continue;
-//				} else if (k == 1)
-//				{
-//					if (tech.layers[j].bits != LAYERO) continue;
-//				}
-//	
-//				// layer style
-//				sty = -1;
-//				if (ns.node.proto == art_filledboxprim)             sty = FILLEDRECT; else
-//				if (ns.node.proto == art_boxprim)                   sty = CLOSEDRECT; else
-//				if (ns.node.proto == art_crossedboxprim)            sty = CROSSED; else
-//				if (ns.node.proto == Artwork.tech.filledPolygonNode)         sty = FILLED; else
-//				if (ns.node.proto == Artwork.tech.closedPolygonNode)         sty = CLOSED; else
-//				if (ns.node.proto == Artwork.tech.openedPolygonNode)         sty = OPENED; else
-//				if (ns.node.proto == Artwork.tech.openedDottedPolygonNode)   sty = OPENEDT1; else
-//				if (ns.node.proto == Artwork.tech.openedDashedPolygonNode)   sty = OPENEDT2; else
-//				if (ns.node.proto == Artwork.tech.openedThickerPolygonNode)  sty = OPENEDT3; else
-//				if (ns.node.proto == Artwork.tech.filledCircleNode)          sty = DISC; else
-//				if (ns.node.proto == Artwork.tech.circleNode)
-//				{
-//					var = getvalkey((INTBIG)ns.node, VNODEINST, VINTEGER, art_degreeskey);
-//					if (var != NOVARIABLE) sty = CIRCLEARC; else sty = CIRCLE;
-//				} else if (ns.node.proto == Artwork.tech.thickCircleNode)
-//				{
-//					var = getvalkey((INTBIG)ns.node, VNODEINST, VINTEGER, art_degreeskey);
-//					if (var != NOVARIABLE) sty = THICKCIRCLEARC; else sty = THICKCIRCLE;
-//				} else if (ns.node.proto == gen_invispinprim)
-//				{
-//					var = getvalkey((INTBIG)ns.node, VNODEINST, VSTRING|VISARRAY, art_messagekey);
-//					if (var != NOVARIABLE)
-//					{
-//						switch (TDGETPOS(var.textdescript))
-//						{
-//							case VTPOSBOXED:     sty = TEXTBOX;       break;
-//							case VTPOSCENT:      sty = TEXTCENT;      break;
-//							case VTPOSUP:        sty = TEXTBOT;       break;
-//							case VTPOSDOWN:      sty = TEXTTOP;       break;
-//							case VTPOSLEFT:      sty = TEXTRIGHT;     break;
-//							case VTPOSRIGHT:     sty = TEXTLEFT;      break;
-//							case VTPOSUPLEFT:    sty = TEXTBOTRIGHT;  break;
-//							case VTPOSUPRIGHT:   sty = TEXTBOTLEFT;   break;
-//							case VTPOSDOWNLEFT:  sty = TEXTTOPRIGHT;  break;
-//							case VTPOSDOWNRIGHT: sty = TEXTTOPLEFT;   break;
-//						}
-//					}
-//				}
-//				if (sty == -1)
-//					System.out.println(_("Cannot determine style to use for %s node in %s"),
-//						describenodeproto(ns.node.proto), describenodeproto(np));
-//	
-//				// load the layer structure(s)
-//				if (tlist.special == SERPTRANS)
-//				{
-//					// determine port numbers for serpentine transistors
-//					if (layerismetal(us_teclayer_function[j]))
-//					{
-//						tlist.gra[i].basics.portnum = 0;
-//					} else if (layerispoly(us_teclayer_function[j]))
-//					{
-//						pollayer = ns;
-//						if (pol1port >= 0)
-//							tlist.gra[i].basics.portnum = (INTSML)pol1port; else
-//								tlist.gra[i].basics.portnum = 0;
-//						polindex = i;
-//					} else if ((us_teclayer_function[j]&LFTYPE) == LFDIFF)
-//					{
-//						diflayer = ns;
-//						difindex = i;
-//						tlist.gra[i].basics.portnum = 0;
-//					} else
-//					{
-//						tlist.gra[i].basics.portnum = -1;
-//					}
-//	
-//					tlist.gra[i].basics.layernum = (INTSML)j;
-//					tlist.gra[i].basics.count = (INTSML)(r.count/4);
-//					if (sty == CROSSED || sty == FILLEDRECT || sty == FILLED || sty == CLOSEDRECT ||
-//						sty == CLOSED)
-//					{
-//						if (tlist.gra[i].basics.count == 4)
-//						{
-//							System.out.println(_("Ignoring Minimum-Size setting on layer %s in serpentine transistor %s"),
-//								&ns.layer.protoname[6], &np.protoname[5]);
-//							tlist.gra[i].basics.count = 2;
-//						}
-//					}
-//					tlist.gra[i].basics.style = (INTSML)sty;
-//					if (tlist.gra[i].basics.count == 2 && (sty == CROSSED ||
-//						sty == FILLEDRECT || sty == FILLED || sty == CLOSEDRECT || sty == CLOSED))
-//					{
-//						tlist.gra[i].basics.representation = BOX;
-//						tlist.gra[i].basics.count = 4;
-//					} else tlist.gra[i].basics.representation = POINTS;
-//					tlist.gra[i].basics.points = r.value;
-//					tlist.gra[i].lwidth = (INTSML)nsindex;
-//					tlist.gra[i].rwidth = 0;
-//					tlist.gra[i].extendt = 0;
-//					tlist.gra[i].extendb = 0;
-//				} else
-//				{
-//					tlist.layerlist[i].portnum = (INTSML)us_tecedfindport(tlist, nelist,
-//						ns.node.lowx, ns.node.highx, ns.node.lowy, ns.node.highy,
-//							lambdaofnode(ns.node));
-//					tlist.layerlist[i].layernum = (INTSML)j;
-//					tlist.layerlist[i].count = (INTSML)(r.count/4);
-//					tlist.layerlist[i].style = (INTSML)sty;
-//					tlist.layerlist[i].representation = POINTS;
-//					if (sty == CROSSED || sty == FILLEDRECT || sty == FILLED || sty == CLOSEDRECT ||
-//						sty == CLOSED)
-//					{
-//						if (r.count == 8)
-//						{
-//							tlist.layerlist[i].representation = BOX;
-//							tlist.layerlist[i].count = 4;
-//						} else if (r.count == 16)
-//						{
-//							tlist.layerlist[i].representation = MINBOX;
-//							tlist.layerlist[i].count = 4;
-//						}
-//					}
-//					tlist.layerlist[i].points = r.value;
-//				}
-//	
-//				// mark this rectangle rule "used"
-//				r.used = TRUE;
-//				i++;
-//			}
-//	
-//			// finish up serpentine transistors
-//			if (tlist.special == SERPTRANS)
-//			{
-//				if (diflayer == NOSAMPLE || pollayer == NOSAMPLE || dif1port < 0)
-//				{
-//					us_tecedpointout(NONODEINST, np);
-//					System.out.println(_("No diffusion and polysilicon layers in transistor %s"),
-//						describenodeproto(np));
-//					us_tecedfreeexamples(nelist);
-//					return(TRUE);
-//				}
-//	
-//				// compute port extension factors
-//				tlist.f1 = tlist.layercount+1;
-//				if (tlist.portlist[dif1port].lowxsum >
-//					tlist.portlist[dif1port].lowysum)
-//				{
-//					// vertical diffusion layer: determine polysilicon width
-//					tlist.f4 = (INTSML)((muldiv(tlist.ysize, tlist.gra[polindex].basics.points[6], WHOLE) +
-//						tlist.gra[polindex].basics.points[7]) -
-//							(muldiv(tlist.ysize, tlist.gra[polindex].basics.points[2], WHOLE) +
-//								tlist.gra[polindex].basics.points[3]));
-//	
-//					// determine diffusion port rule
-//					tlist.f2 = (INTSML)((muldiv(tlist.xsize, tlist.portlist[dif1port].lowxmul, WHOLE) +
-//						tlist.portlist[dif1port].lowxsum) -
-//							(muldiv(tlist.xsize, tlist.gra[difindex].basics.points[0], WHOLE) +
-//								tlist.gra[difindex].basics.points[1]));
-//					tlist.f3 = (INTSML)((muldiv(tlist.ysize, tlist.portlist[dif1port].lowymul, WHOLE) +
-//						tlist.portlist[dif1port].lowysum) -
-//							(muldiv(tlist.ysize, tlist.gra[polindex].basics.points[6], WHOLE) +
-//								tlist.gra[polindex].basics.points[7]));
-//	
-//					// determine polysilicon port rule
-//					tlist.f5 = (INTSML)((muldiv(tlist.ysize, tlist.portlist[pol1port].lowymul, WHOLE) +
-//						tlist.portlist[pol1port].lowysum) -
-//							(muldiv(tlist.ysize, tlist.gra[polindex].basics.points[2], WHOLE) +
-//								tlist.gra[polindex].basics.points[3]));
-//					tlist.f6 = (INTSML)((muldiv(tlist.xsize, tlist.gra[difindex].basics.points[0], WHOLE) +
-//						tlist.gra[difindex].basics.points[1]) -
-//							(muldiv(tlist.xsize, tlist.portlist[pol1port].highxmul, WHOLE) +
-//								tlist.portlist[pol1port].highxsum));
-//				} else
-//				{
-//					// horizontal diffusion layer: determine polysilicon width
-//					tlist.f4 = (INTSML)((muldiv(tlist.xsize, tlist.gra[polindex].basics.points[4], WHOLE) +
-//						tlist.gra[polindex].basics.points[5]) -
-//							(muldiv(tlist.xsize, tlist.gra[polindex].basics.points[0], WHOLE) +
-//								tlist.gra[polindex].basics.points[1]));
-//	
-//					// determine diffusion port rule
-//					tlist.f2 = (INTSML)((muldiv(tlist.ysize, tlist.portlist[dif1port].lowymul, WHOLE) +
-//						tlist.portlist[dif1port].lowysum) -
-//							(muldiv(tlist.ysize, tlist.gra[difindex].basics.points[2], WHOLE) +
-//								tlist.gra[difindex].basics.points[3]));
-//					tlist.f3 = (INTSML)((muldiv(tlist.xsize, tlist.gra[polindex].basics.points[0], WHOLE) +
-//						tlist.gra[polindex].basics.points[1]) -
-//							(muldiv(tlist.xsize, tlist.portlist[dif1port].highxmul, WHOLE) +
-//								tlist.portlist[dif1port].highxsum));
-//	
-//					// determine polysilicon port rule
-//					tlist.f5 = (INTSML)((muldiv(tlist.xsize, tlist.portlist[pol1port].lowxmul, WHOLE) +
-//						tlist.portlist[pol1port].lowxsum) -
-//							(muldiv(tlist.xsize, tlist.gra[polindex].basics.points[0], WHOLE) +
-//								tlist.gra[polindex].basics.points[1]));
-//					tlist.f6 = (INTSML)((muldiv(tlist.ysize, tlist.gra[difindex].basics.points[2], WHOLE) +
-//						tlist.gra[difindex].basics.points[3]) -
-//							(muldiv(tlist.ysize, tlist.portlist[pol1port].highymul, WHOLE) +
-//								tlist.portlist[pol1port].highysum));
-//				}
-//	
-//				// find width and extension from comparison to poly layer
-//				for(i=0; i<tlist.layercount; i++)
-//				{
-//					for(nsindex=0, ns = nelist.firstsample; ns != NOSAMPLE;
-//						nsindex++, ns = ns.nextsample)
-//							if (tlist.gra[i].lwidth == nsindex) break;
-//					if (ns == NOSAMPLE)
-//					{
-//						us_tecedpointout(NONODEINST, np);
-//						System.out.println(_("Internal error in serpentine %s"), describenodeproto(np));
-//						us_tecedfreeexamples(nelist);
-//						continue;
-//					}
-//	
-//					if (pollayer.node.highx-pollayer.node.lowx >
-//						pollayer.node.highy-pollayer.node.lowy)
+//					Generate.NodeLayerDetails nld = nin.nodeLayers[k];
+//
+////					for(nsindex=0, ns = nelist.firstsample; ns != null;
+////						nsindex++, ns = ns.nextsample)
+////							if (tlist.gra[i].lwidth == nsindex) break;
+////					if (ns == null)
+////					{
+////						us_tecedpointout(null, np);
+////						System.out.println("Internal error in serpentine " + np.describe());
+////						continue;
+////					}
+//
+//					Sample ns = nld.ns;
+//					Sample polNs = nin.nodeLayers[polindex].ns;
+//					Rectangle2D polNodeBounds = polNs.node.getBounds();
+//					if (polNodeBounds.getWidth() > polNodeBounds.getHeight())
 //					{
 //						// horizontal layer
-//						tlist.gra[i].lwidth = (INTSML)((ns.node.highy - (ns.parent.ly + ns.parent.hy)/2) *
-//							WHOLE/lambda);
-//						tlist.gra[i].rwidth = (INTSML)(((ns.parent.ly + ns.parent.hy)/2 - ns.node.lowy) *
-//							WHOLE/lambda);
-//						tlist.gra[i].extendt = (INTSML)((diflayer.node.lowx - ns.node.lowx) * WHOLE /
-//							lambda);
+//						nld.lWidth = polNodeBounds.getMaxY() - (ns.parent.ly + ns.parent.hy)/2;
+//						nld.rWidth = (ns.parent.ly + ns.parent.hy)/2 - polNodeBounds.getMinY();
+//						nld.extendT = diflayer.node.lowx - polNodeBounds.getMinX();
 //					} else
 //					{
 //						// vertical layer
-//						tlist.gra[i].lwidth = (INTSML)((ns.node.highx - (ns.parent.lx + ns.parent.hx)/2) *
-//							WHOLE/lambda);
-//						tlist.gra[i].rwidth = (INTSML)(((ns.parent.lx + ns.parent.hx)/2 - ns.node.lowx) *
-//							WHOLE/lambda);
-//						tlist.gra[i].extendt = (INTSML)((diflayer.node.lowy - ns.node.lowy) * WHOLE /
-//							lambda);
+//						nld.lWidth = polNodeBounds.getMaxX() - (ns.parent.lx + ns.parent.hx)/2;
+//						nld.rWidth = (ns.parent.lx + ns.parent.hx)/2 - polNodeBounds.getMinX();
+//						nld.extendT = diflayer.node.lowy - polNodeBounds.getMinY();
 //					}
-//					tlist.gra[i].extendb = tlist.gra[i].extendt;
+//					nld.extendB = nld.extendT;
 //				}
-//	
+	
 //				// copy basic graphics to electrical version, doubling diffusion
 //				i = 0;
 //				for(j=0; j<tlist.layercount; j++)
@@ -1605,23 +1397,20 @@ public class Parse
 //						r = diflayer.rule;
 //						if (r.count != 8)
 //						{
-//							us_tecedpointout(NONODEINST, np);
-//							System.out.println(_("Nonrectangular diffusion in Serpentine %s"),
-//								describenodeproto(np));
-//							us_tecedfreeexamples(nelist);
-//							return(TRUE);
+//							us_tecedpointout(null, np);
+//							System.out.println("Nonrectangular diffusion in Serpentine " + np.describe());
+//							return true;
 //						}
 //						for(l=0; l<r.count; l++) serprule[l] = r.value[l];
 //						if (serprule[0] != -H0 || serprule[2] != -H0 ||
 //							serprule[4] != H0 || serprule[6] != H0)
 //						{
-//							us_tecedpointout(NONODEINST, np);
-//							System.out.println(_("Unusual diffusion in Serpentine %s"), describenodeproto(np));
-//							us_tecedfreeexamples(nelist);
-//							return(TRUE);
+//							us_tecedpointout(null, np);
+//							System.out.println("Unusual diffusion in Serpentine " + np.describe());
+//							return true;
 //						}
-//						if (tlist.xsize - serprule[1] + serprule[5] <
-//							tlist.ysize - serprule[3] + serprule[7]) serpdifind = 2; else
+//						if (nin.xSize - serprule[1] + serprule[5] <
+//							nin.ySize - serprule[3] + serprule[7]) serpdifind = 2; else
 //								serpdifind = 0;
 //					}
 //					for(l=0; l<k; l++)
@@ -1646,7 +1435,7 @@ public class Parse
 //								// in transistor, diffusion stops in center
 //								serprule[serpdifind] = 0;
 //								serprule[serpdifind+1] = 0;
-//								r = us_tecedaddrule(serprule, 8, FALSE, (CHAR *)0);
+//								r = us_tecedaddrule(serprule, 8, FALSE, 0);
 //								if (r == NORULE) return(TRUE);
 //								r.used = TRUE;
 //								tlist.ele[i].basics.points = r.value;
@@ -1661,8 +1450,8 @@ public class Parse
 //								// in transistor, diffusion stops in center
 //								serprule[serpdifind+4] = 0;
 //								serprule[serpdifind+5] = 0;
-//								r = us_tecedaddrule(serprule, 8, FALSE, (CHAR *)0);
-//								if (r == NORULE) return(TRUE);
+//								r = us_tecedaddrule(serprule, 8, FALSE, 0);
+//								if (r == null) return(TRUE);
 //								r.used = TRUE;
 //								tlist.ele[i].basics.points = r.value;
 //								serprule[serpdifind+4] = H0;
@@ -1672,7 +1461,7 @@ public class Parse
 //						i++;
 //					}
 //				}
-//			}
+			}
 	
 			// extract width offset information from highlight box
 			double lx = 0, hx = 0, ly = 0, hy = 0;
@@ -1681,37 +1470,36 @@ public class Parse
 			{
 				if (ns.layer != null) continue;
 				found = true;
-				Rule r = ns.rule;
-				if (r != null)
+				if (ns.values != null)
 				{
 					boolean err = false;
-					if (r.value[0].getX().getMultiplier() == -0.5)		// left edge offset
+					if (ns.values[0].getX().getMultiplier() == -0.5)		// left edge offset
 					{
-						lx = r.value[0].getX().getAdder();
-					} else if (r.value[0].getX().getMultiplier() == 0.5)
+						lx = ns.values[0].getX().getAdder();
+					} else if (ns.values[0].getX().getMultiplier() == 0.5)
 					{
-						lx = nin.xSize + r.value[0].getX().getAdder();
+						lx = nin.xSize + ns.values[0].getX().getAdder();
 					} else err = true;
-					if (r.value[0].getY().getMultiplier() == -0.5)		// bottom edge offset
+					if (ns.values[0].getY().getMultiplier() == -0.5)		// bottom edge offset
 					{
-						ly = r.value[0].getY().getAdder();
-					} else if (r.value[0].getY().getMultiplier() == 0.5)
+						ly = ns.values[0].getY().getAdder();
+					} else if (ns.values[0].getY().getMultiplier() == 0.5)
 					{
-						ly = nin.ySize + r.value[0].getY().getAdder();;
+						ly = nin.ySize + ns.values[0].getY().getAdder();;
 					} else err = true;
-					if (r.value[1].getX().getMultiplier() == 0.5)		// right edge offset
+					if (ns.values[1].getX().getMultiplier() == 0.5)		// right edge offset
 					{
-						hx = -r.value[1].getX().getAdder();
-					} else if (r.value[1].getX().getMultiplier() == -0.5)
+						hx = -ns.values[1].getX().getAdder();
+					} else if (ns.values[1].getX().getMultiplier() == -0.5)
 					{
-						hx = nin.xSize - r.value[1].getX().getAdder();
+						hx = nin.xSize - ns.values[1].getX().getAdder();
 					} else err = true;
-					if (r.value[1].getY().getMultiplier() == 0.5)		// top edge offset
+					if (ns.values[1].getY().getMultiplier() == 0.5)		// top edge offset
 					{
-						hy = -r.value[1].getY().getAdder();
-					} else if (r.value[1].getY().getMultiplier() == -0.5)
+						hy = -ns.values[1].getY().getAdder();
+					} else if (ns.values[1].getY().getMultiplier() == -0.5)
 					{
-						hy = nin.ySize - r.value[1].getY().getAdder();
+						hy = nin.ySize - ns.values[1].getY().getAdder();
 					} else err = true;
 					if (err)
 					{
@@ -1758,133 +1546,6 @@ public class Parse
 		return nList;
 	}
 
-//	/**
-//	 * Method to swap entries "p1" and "p2" of the port list in "tlist"
-//	 */
-//	void us_tecedswapports(INTBIG *p1, INTBIG *p2, TECH_NODES *tlist)
-//	{
-//		REGISTER INTBIG temp, *templ;
-//		REGISTER CHAR *tempc;
-//	
-//		templ = tlist.portlist[*p1].portarcs;
-//		tlist.portlist[*p1].portarcs = tlist.portlist[*p2].portarcs;
-//		tlist.portlist[*p2].portarcs = templ;
-//	
-//		tempc = tlist.portlist[*p1].protoname;
-//		tlist.portlist[*p1].protoname = tlist.portlist[*p2].protoname;
-//		tlist.portlist[*p2].protoname = tempc;
-//	
-//		temp = tlist.portlist[*p1].initialbits;
-//		tlist.portlist[*p1].initialbits = tlist.portlist[*p2].initialbits;
-//		tlist.portlist[*p2].initialbits = temp;
-//	
-//		temp = tlist.portlist[*p1].lowxmul;
-//		tlist.portlist[*p1].lowxmul = tlist.portlist[*p2].lowxmul;
-//		tlist.portlist[*p2].lowxmul = (INTSML)temp;
-//		temp = tlist.portlist[*p1].lowxsum;
-//		tlist.portlist[*p1].lowxsum = tlist.portlist[*p2].lowxsum;
-//		tlist.portlist[*p2].lowxsum = (INTSML)temp;
-//	
-//		temp = tlist.portlist[*p1].lowymul;
-//		tlist.portlist[*p1].lowymul = tlist.portlist[*p2].lowymul;
-//		tlist.portlist[*p2].lowymul = (INTSML)temp;
-//		temp = tlist.portlist[*p1].lowysum;
-//		tlist.portlist[*p1].lowysum = tlist.portlist[*p2].lowysum;
-//		tlist.portlist[*p2].lowysum = (INTSML)temp;
-//	
-//		temp = tlist.portlist[*p1].highxmul;
-//		tlist.portlist[*p1].highxmul = tlist.portlist[*p2].highxmul;
-//		tlist.portlist[*p2].highxmul = (INTSML)temp;
-//		temp = tlist.portlist[*p1].highxsum;
-//		tlist.portlist[*p1].highxsum = tlist.portlist[*p2].highxsum;
-//		tlist.portlist[*p2].highxsum = (INTSML)temp;
-//	
-//		temp = tlist.portlist[*p1].highymul;
-//		tlist.portlist[*p1].highymul = tlist.portlist[*p2].highymul;
-//		tlist.portlist[*p2].highymul = (INTSML)temp;
-//		temp = tlist.portlist[*p1].highysum;
-//		tlist.portlist[*p1].highysum = tlist.portlist[*p2].highysum;
-//		tlist.portlist[*p2].highysum = (INTSML)temp;
-//	
-//		// finally, swap the actual identifiers
-//		temp = *p1;   *p1 = *p2;   *p2 = temp;
-//	}
-
-//	/*
-//	 * routine to find the closest port to the layer describe by "lx<=X<=hx" and
-//	 * "ly<+Y<=hy" in the list "nelist".  The ports are listed in "tlist".  The algorithm
-//	 * is to find a port that overlaps this layer.  If there is only one, or if all of
-//	 * them electrically connect, use that.  If there are no such ports, or multiple
-//	 * unconnected ports, presume that the layer is not related to any port.
-//	 */
-//	INTBIG us_tecedfindport(TECH_NODES *tlist, EXAMPLE *nelist, INTBIG lx, INTBIG hx, INTBIG ly,
-//		INTBIG hy, INTBIG lambda)
-//	{
-//		REGISTER INTBIG bestport, l, oldnet, newnet;
-//		INTBIG portlx, porthx, portly, porthy;
-//		REGISTER INTBIG swap;
-//	
-//		bestport = -1;
-//		for(l=0; l<tlist.portcount; l++)
-//		{
-//			subrange(nelist.lx, nelist.hx, tlist.portlist[l].lowxmul,
-//				tlist.portlist[l].lowxsum, tlist.portlist[l].highxmul,
-//					tlist.portlist[l].highxsum, &portlx, &porthx, lambda);
-//			if (portlx > porthx)
-//			{
-//				swap = portlx;   portlx = porthx;   porthx = swap;
-//			}
-//			subrange(nelist.ly, nelist.hy, tlist.portlist[l].lowymul,
-//				tlist.portlist[l].lowysum, tlist.portlist[l].highymul,
-//					tlist.portlist[l].highysum, &portly, &porthy, lambda);
-//			if (portlx > porthx)
-//			{
-//				swap = portly;   portly = porthy;   porthy = swap;
-//			}
-//	
-//			// ignore the port if there is no intersection
-//			if (lx > porthx || hx < portlx || ly > porthy || hy < portly) continue;
-//	
-//			// if there is no previous overlapping port, use this
-//			if (bestport == -1)
-//			{
-//				bestport = l;
-//				continue;
-//			}
-//	
-//			// if these two ports connect, all is well
-//			newnet = (tlist.portlist[l].initialbits & PORTNET) >> PORTNETSH;
-//			oldnet = (tlist.portlist[bestport].initialbits & PORTNET) >> PORTNETSH;
-//			if (newnet == oldnet) continue;
-//	
-//			// two unconnected ports intersect layer: make it free
-//			return(-1);
-//		}
-//		return(bestport);
-//	}
-//	
-//	/*
-//	 * Routine to free the examples created by "us_tecedgetexamples()".
-//	 */
-//	void us_tecedfreeexamples(EXAMPLE *nelist)
-//	{
-//		REGISTER EXAMPLE *ne;
-//		REGISTER SAMPLE *ns;
-//	
-//		while (nelist != NOEXAMPLE)
-//		{
-//			ne = nelist;
-//			nelist = nelist.nextexample;
-//			while (ne.firstsample != NOSAMPLE)
-//			{
-//				ns = ne.firstsample;
-//				ne.firstsample = ne.firstsample.nextsample;
-//				efree((CHAR *)ns);
-//			}
-//			efree((CHAR *)ne);
-//		}
-//	}
-	
 	/**
 	 * Method to parse the node examples in cell "np" and return a list of
 	 * EXAMPLEs (one per example).  "isnode" is true if this is a node
@@ -1961,7 +1622,8 @@ public class Parse
 					// add it to the cluster
 					Sample ns = new Sample();
 					ns.node = otherni;
-					ns.rule = null;
+					ns.values = null;
+					ns.msg = null;
 					ns.parent = ne;
 					ns.nextsample = ne.firstsample;
 					ne.firstsample = ns;
@@ -2275,6 +1937,54 @@ public class Parse
 	private static final int RATIOCENTX     = 0100;		/* fixed ratio from X center to edge */
 	private static final int RATIOCENTY     = 0200;		/* fixed ratio from Y center to edge */
 
+	static Poly.Type getStyle(NodeInst ni)
+	{
+		// layer style
+		Poly.Type sty = null;
+		if (ni.getProto() == Artwork.tech.filledBoxNode)             sty = Poly.Type.FILLED; else
+		if (ni.getProto() == Artwork.tech.boxNode)                   sty = Poly.Type.CLOSED; else
+		if (ni.getProto() == Artwork.tech.crossedBoxNode)            sty = Poly.Type.CROSSED; else
+		if (ni.getProto() == Artwork.tech.filledPolygonNode)         sty = Poly.Type.FILLED; else
+		if (ni.getProto() == Artwork.tech.closedPolygonNode)         sty = Poly.Type.CLOSED; else
+		if (ni.getProto() == Artwork.tech.openedPolygonNode)         sty = Poly.Type.OPENED; else
+		if (ni.getProto() == Artwork.tech.openedDottedPolygonNode)   sty = Poly.Type.OPENEDT1; else
+		if (ni.getProto() == Artwork.tech.openedDashedPolygonNode)   sty = Poly.Type.OPENEDT2; else
+		if (ni.getProto() == Artwork.tech.openedThickerPolygonNode)  sty = Poly.Type.OPENEDT3; else
+		if (ni.getProto() == Artwork.tech.filledCircleNode)          sty = Poly.Type.DISC; else
+		if (ni.getProto() == Artwork.tech.circleNode)
+		{
+			sty = Poly.Type.CIRCLE;
+			double [] angles = ni.getArcDegrees();
+			if (angles[0] != 0 || angles[1] != 0) sty = Poly.Type.CIRCLEARC;
+		} else if (ni.getProto() == Artwork.tech.thickCircleNode)
+		{
+			sty = Poly.Type.THICKCIRCLE;
+			double [] angles = ni.getArcDegrees();
+			if (angles[0] != 0 || angles[1] != 0) sty = Poly.Type.THICKCIRCLEARC;
+		} else if (ni.getProto() == Generic.tech.invisiblePinNode)
+		{
+			Variable var = ni.getVar(Artwork.ART_MESSAGE);
+			if (var != null)
+			{
+				TextDescriptor.Position pos = var.getTextDescriptor().getPos();
+				if (pos == TextDescriptor.Position.BOXED)     sty = Poly.Type.TEXTBOX; else
+				if (pos == TextDescriptor.Position.CENT)      sty = Poly.Type.TEXTCENT; else
+				if (pos == TextDescriptor.Position.UP)        sty = Poly.Type.TEXTBOT; else
+				if (pos == TextDescriptor.Position.DOWN)      sty = Poly.Type.TEXTTOP; else
+				if (pos == TextDescriptor.Position.LEFT)      sty = Poly.Type.TEXTRIGHT; else
+				if (pos == TextDescriptor.Position.RIGHT)     sty = Poly.Type.TEXTLEFT; else
+				if (pos == TextDescriptor.Position.UPLEFT)    sty = Poly.Type.TEXTBOTRIGHT; else
+				if (pos == TextDescriptor.Position.UPRIGHT)   sty = Poly.Type.TEXTBOTLEFT; else
+				if (pos == TextDescriptor.Position.DOWNLEFT)  sty = Poly.Type.TEXTTOPRIGHT; else
+				if (pos == TextDescriptor.Position.DOWNRIGHT) sty = Poly.Type.TEXTTOPLEFT;
+			}
+		}
+		if (sty == null)
+			System.out.println("Cannot determine style to use for " + ni.getProto().describe() +
+				" node in " + ni.getParent().describe());
+		return sty;
+	}
+
 	static Generate.NodeLayerDetails [] makeNodeScaledUniformly(Example nelist, NodeProto np, Generate.LayerInfo [] lis)
 	{
 		// count the number of real layers in the node
@@ -2288,31 +1998,8 @@ public class Parse
 		count = 0;
 		for(Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
 		{
-			Rectangle2D nodeBounds = ns.node.getBounds();
+			Rectangle2D nodeBounds = us_tecedgetbbox(ns.node);
 			AffineTransform trans = ns.node.rotateOut();
-
-//			// if a multicut separation was given and this is a cut, add the rule
-//			if (tlist.f4 > 0 && ns.layer != null && ns.layer != Generic.tech.portNode)
-//			{
-//				for(int i=0; i<lis.length; i++)
-//				{
-//					if (ns.layer.getName().substring(6).equalsIgnoreCase(lis[i].name))
-//					{
-//						if (layeriscontact(us_teclayer_function[i]))
-//						{
-//							hs = us_tecedneedhighlightlayer(nelist, np);
-//							if (hs == 0) return true;
-//							multixs = ns.node.highx - ns.node.lowx;
-//							multiys = ns.node.highy - ns.node.lowy;
-//							multiindent = ns.node.lowx - hs.node.lowx;
-//							multisep = muldiv(tlist.f4, lambda, WHOLE);
-//							ns.rule = us_tecedaddmulticutrule(multixs, multiys, multiindent, multisep);
-//							if (ns.rule == 0) return true;
-//							continue;
-//						}
-//					}
-//				}
-//			}
 
 			// see if there is polygonal information
 			Point2D [] us_tecedmakep = null;
@@ -2387,7 +2074,7 @@ public class Parse
 					us_tecedmakefactor[1] = TOEDGERIGHT|TOEDGETOP;
 				}
 			}
-	
+
 			// add the rule to the collection
 			Technology.TechPoint [] newrule = us_tecedstretchpoints(us_tecedmakep, us_tecedmakefactor, ns, np, nelist);
 			if (newrule == null)
@@ -2395,14 +2082,9 @@ public class Parse
 				System.out.println("Error creating stretch point in " + np.describe());
 				return null;
 			}
-			String str = Manipulate.getValueOnNode(ns.node);
-			if (str != null && str.length() == 0) str = null;
-			ns.rule = us_tecedaddrule(newrule, false, str);
-			if (ns.rule == null)
-			{
-				System.out.println("Cannot save stretching rule in " + np.describe());
-				return null;
-			}
+			ns.msg = Manipulate.getValueOnNode(ns.node);
+			if (ns.msg != null && ns.msg.length() == 0) ns.msg = null;
+			ns.values = newrule;
 
 			// stop now if a highlight or port object
 			if (ns.layer == null || ns.layer == Generic.tech.portNode) continue;
@@ -2421,8 +2103,21 @@ public class Parse
 			}
 			nodeLayers[count] = new Generate.NodeLayerDetails();
 			nodeLayers[count].layer = layer;
-			nodeLayers[count].style = Poly.Type.FILLED;
-			nodeLayers[count].rule = ns.rule;
+			nodeLayers[count].ns = ns;
+			nodeLayers[count].style = getStyle(ns.node);
+			nodeLayers[count].representation = Technology.NodeLayer.POINTS;
+			if (nodeLayers[count].style == Poly.Type.CROSSED ||
+				nodeLayers[count].style == Poly.Type.FILLED ||
+				nodeLayers[count].style == Poly.Type.CLOSED)
+			{
+				nodeLayers[count].representation = Technology.NodeLayer.BOX;
+//				if (r.count == 16)
+//				{
+//					nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
+//					tlist.layerlist[i].count = 4;
+//				}
+			}
+			nodeLayers[count].values = ns.values;
 			count++;
 		}
 		return nodeLayers;
@@ -2452,11 +2147,27 @@ public class Parse
 			// ignore grab point specification
 			if (ns.layer == Generic.tech.cellCenterNode) continue;
 			AffineTransform trans = ns.node.rotateOut();
-			Rectangle2D nodeBounds = ns.node.getBounds();
-	
+			Rectangle2D nodeBounds = us_tecedgetbbox(ns.node);
+
+			// determine the layer
+			Generate.LayerInfo giLayer = null;
+			if (ns.layer != null && ns.layer != Generic.tech.portNode)
+			{
+				String desiredLayer = ns.layer.getName().substring(6);
+				for(int i=0; i<lis.length; i++)
+				{
+					if (desiredLayer.equals(lis[i].name)) { giLayer = lis[i];   break; }
+				}
+				if (giLayer == null)
+				{
+					System.out.println("Cannot find layer " + desiredLayer);
+					return null;
+				}
+			}
+
 			// look at other examples and find samples associated with this
 			nelist.studysample = ns;
-			boolean error = false;
+			Generate.NodeLayerDetails multiRule = null;
 			for(Example ne = nelist.nextexample; ne != null; ne = ne.nextexample)
 			{
 				// count number of samples associated with the main sample
@@ -2473,7 +2184,7 @@ public class Parse
 					System.out.println("Still unassociated sample in " + np.describe() + " (shouldn't happen)");
 					return null;
 				}
-	
+
 				// if there are multiple associations, it must be a contact cut
 				if (total > 1)
 				{
@@ -2484,31 +2195,20 @@ public class Parse
 						System.out.println("Only contact layers may be iterated in examples of " + np.describe());
 						return null;
 					}
-	
-					// make sure the contact cut layer is opaque
-					for(int i=0; i<lis.length; i++)
-					{
-						if (ns.layer.getName().substring(6).equalsIgnoreCase(lis[i].name))
-						{
-//							if (tech.layers[i].bits != LAYERO)
-//							{
-//								us_tecedpointout(ns.node, ns.node.getParent());
-//								System.out.println(_("Multiple contact layers must not be transparent in %s"),
-//									describenodeproto(np));
-//								return true;
-//							}
-							break;
-						}
-					}
-	
+
 					// add the rule
-//					if (us_tecedmulticut(ns, nelist, np)) return true;
-					error = true;
-					break;
+					multiRule = us_tecedmulticut(ns, nelist, np);
+					if (multiRule != null) break;
 				}
 			}
-			if (error) continue;
-	
+			if (multiRule != null)
+			{
+				multiRule.layer = giLayer;
+				nodeLayers[count] = multiRule;
+				count++;
+				continue;
+			}
+
 			// associations done for this sample, now analyze them
 			Point2D [] us_tecedmakep = null;
 			int [] us_tecedmakefactor = null;
@@ -2551,7 +2251,7 @@ public class Parse
 //					Variable var2 = ns.node.getVar(Generate.MINSIZEBOX_KEY);
 //					if (var2 != null) minFactor = 2;
 				}
-	
+
 				// set sample description
 				if (angles != null)
 				{
@@ -2620,7 +2320,7 @@ public class Parse
 			{
 				NodeInst ni = ne.studysample.node;
 				AffineTransform oTrans = ni.rotateOut();
-				Rectangle2D oNodeBounds = ni.getBounds();
+				Rectangle2D oNodeBounds = us_tecedgetbbox(ni);
 				Point2D [] oPoints = null;
 				if (ni.getProto() == Artwork.tech.filledPolygonNode ||
 					ni.getProto() == Artwork.tech.closedPolygonNode ||
@@ -2674,7 +2374,7 @@ public class Parse
 						" has " + trueCount + " points but this has " + newCount + " in " + np.describe());
 					return null;
 				}
-	
+
 				for(int i=0; i<trueCount; i++)
 				{
 					// see if edges are fixed distance from example edge
@@ -2682,11 +2382,11 @@ public class Parse
 					if (us_tecedmakerightdist[i] != ne.hx - us_tecedmakec[i].getX()) us_tecedmakefactor[i] &= ~TOEDGERIGHT;
 					if (us_tecedmakebotdist[i] != us_tecedmakec[i].getY() - ne.ly) us_tecedmakefactor[i] &= ~TOEDGEBOT;
 					if (us_tecedmaketopdist[i] != ne.hy - us_tecedmakec[i].getY()) us_tecedmakefactor[i] &= ~TOEDGETOP;
-	
+
 					// see if edges are fixed distance from example center
 					if (us_tecedmakecentxdist[i] != us_tecedmakec[i].getX() - (ne.lx+ne.hx)/2) us_tecedmakefactor[i] &= ~FROMCENTX;
 					if (us_tecedmakecentydist[i] != us_tecedmakec[i].getY() - (ne.ly+ne.hy)/2) us_tecedmakefactor[i] &= ~FROMCENTY;
-	
+
 					// see if edges are fixed ratio from example center
 					double r = 0;
 					if (ne.hx != ne.lx)
@@ -2696,10 +2396,10 @@ public class Parse
 						r = (us_tecedmakec[i].getY() - (ne.ly+ne.hy)/2) / (ne.hy-ne.ly);
 					if (r != us_tecedmakeratioy[i]) us_tecedmakefactor[i] &= ~RATIOCENTY;
 				}
-	
+
 				// make sure port information is on the primary example
 				if (ns.layer != Generic.tech.portNode) continue;
-	
+
 				// check port angle
 				Variable var = ns.node.getVar(Generate.PORTANGLE_KEY);
 				Variable var2 = ni.getVar(Generate.PORTANGLE_KEY);
@@ -2709,7 +2409,7 @@ public class Parse
 					System.out.println("Warning: moving port angle to main example of " + np.describe());
 					ns.node.newVar(Generate.PORTANGLE_KEY, var2.getObject());
 				}
-	
+
 				// check port range
 				var = ns.node.getVar(Generate.PORTRANGE_KEY);
 				var2 = ni.getVar(Generate.PORTRANGE_KEY);
@@ -2719,7 +2419,7 @@ public class Parse
 					System.out.println("Warning: moving port range to main example of " + np.describe());
 					ns.node.newVar(Generate.PORTRANGE_KEY, var2.getObject());
 				}
-	
+
 				// check connectivity
 				var = ns.node.getVar(Generate.CONNECTION_KEY);
 				var2 = ni.getVar(Generate.CONNECTION_KEY);
@@ -2730,7 +2430,7 @@ public class Parse
 					ns.node.newVar(Generate.CONNECTION_KEY, var2.getObject());
 				}
 			}
-	
+
 			// error check for the highlight layer
 			if (ns.layer == null)
 			{
@@ -2743,56 +2443,55 @@ public class Parse
 					return null;
 				}
 			}
-	
+
 			// finally, make a rule for this sample
 			Technology.TechPoint [] newrule = us_tecedstretchpoints(us_tecedmakep, us_tecedmakefactor, ns, np, nelist);
 			if (newrule == null) return null;
 
 			// add the rule to the global list
-			String str = Manipulate.getValueOnNode(ns.node);
-			if (str != null && str.length() == 0) str = null;
-			ns.rule = us_tecedaddrule(newrule, false, str);
-			if (ns.rule == null) return null;
+			ns.msg = Manipulate.getValueOnNode(ns.node);
+			if (ns.msg != null && ns.msg.length() == 0) ns.msg = null;
+			ns.values = newrule;
 
 			// stop now if a highlight or port object
 			if (ns.layer == null || ns.layer == Generic.tech.portNode) continue;
 
-			// determine the layer
-			Generate.LayerInfo layer = null;
-			String desiredLayer = ns.layer.getName().substring(6);
-			for(int i=0; i<lis.length; i++)
-			{
-				if (desiredLayer.equals(lis[i].name)) { layer = lis[i];   break; }
-			}
-			if (layer == null)
-			{
-				System.out.println("Cannot find layer " + desiredLayer);
-				return null;
-			}
-
 			nodeLayers[count] = new Generate.NodeLayerDetails();
-			nodeLayers[count].layer = layer;
-			nodeLayers[count].style = Poly.Type.FILLED;
-			nodeLayers[count].rule = ns.rule;
+			nodeLayers[count].layer = giLayer;
+			nodeLayers[count].ns = ns;
+			nodeLayers[count].style = getStyle(ns.node);
+			nodeLayers[count].representation = Technology.NodeLayer.POINTS;
+			if (nodeLayers[count].style == Poly.Type.CROSSED ||
+				nodeLayers[count].style == Poly.Type.FILLED ||
+				nodeLayers[count].style == Poly.Type.CLOSED)
+			{
+				nodeLayers[count].representation = Technology.NodeLayer.BOX;
+//				if (r.count == 16)
+//				{
+//					nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
+//					tlist.layerlist[i].count = 4;
+//				}
+			}
+			nodeLayers[count].values = ns.values;
 			count++;
 		}
 		if (count != nodeLayers.length)
 			System.out.println("Generated only " + count + " of " + nodeLayers.length + " layers for " + np.describe());
 		return nodeLayers;
 	}
-	
+
 	/**
 	 * Method to return the actual bounding box of layer node "ni" in the
 	 * reference variables "lx", "hx", "ly", and "hy"
 	 */
 	static Rectangle2D us_tecedgetbbox(NodeInst ni)
-	{	
+	{
 		Rectangle2D bounds = ni.getBounds();
 		if (ni.getProto() == Generic.tech.portNode)
 		{
-			double portGrowth = 2;
-			bounds.setRect(bounds.getMinX() - portGrowth, bounds.getMinY() - portGrowth,
-				bounds.getWidth()+portGrowth*2, bounds.getHeight()+portGrowth*2);
+			double portShrink = 2;
+			bounds.setRect(bounds.getMinX() + portShrink, bounds.getMinY() + portShrink,
+				bounds.getWidth()-portShrink*2, bounds.getHeight()-portShrink*2);
 		}
 		return bounds;
 	}
@@ -2818,7 +2517,7 @@ public class Parse
 			} else if ((factor[i]&TOEDGERIGHT) != 0)
 			{
 				// right edge rule
-				horiz = EdgeH.fromRight(pts[i].getX()-nelist.hx);
+				horiz = EdgeH.fromRight(nelist.hx-pts[i].getX());
 			} else if ((factor[i]&FROMCENTX) != 0)
 			{
 				// center rule
@@ -2850,7 +2549,7 @@ public class Parse
 			} else if ((factor[i]&TOEDGETOP) != 0)
 			{
 				// top edge rule
-				vert = EdgeV.fromTop(pts[i].getY()-nelist.hy);
+				vert = EdgeV.fromTop(nelist.hy-pts[i].getY());
 			} else if ((factor[i]&FROMCENTY) != 0)
 			{
 				// center rule
@@ -2877,554 +2576,460 @@ public class Parse
 		return newrule;
 	}
 	
-//	SAMPLE *us_tecedneedhighlightlayer(EXAMPLE *nelist, NODEPROTO *np)
-//	{
-//		REGISTER SAMPLE *hs;
-//	
-//		// find the highlight layer
-//		for(hs = nelist.firstsample; hs != NOSAMPLE; hs = hs.nextsample)
-//			if (hs.layer == NONODEPROTO) return(hs);
-//	
-//		us_tecedpointout(NONODEINST, np);
-//		System.out.println(_("No highlight layer on contact %s"), describenodeproto(np));
-//		return(0);
-//	}
-//	
-//	/*
-//	 * routine to build a rule for multiple contact-cut sample "ns" from the
-//	 * overall example list in "nelist".  Returns true on error.
-//	 */
-//	BOOLEAN us_tecedmulticut(SAMPLE *ns, EXAMPLE *nelist, NODEPROTO *np)
-//	{
-//		REGISTER INTBIG total, i, multixs, multiys, multiindent, multisep;
-//		REGISTER INTBIG xsep, ysep, sepx, sepy;
-//		REGISTER SAMPLE **nslist, *nso, *hs;
-//		REGISTER EXAMPLE *ne;
-//	
-//		// find the highlight layer
-//		hs = us_tecedneedhighlightlayer(nelist, np);
-//		if (hs == 0) return(TRUE);
-//	
-//		// determine size of each cut
-//		multixs = ns.node.highx - ns.node.lowx;
-//		multiys = ns.node.highy - ns.node.lowy;
-//	
-//		// determine indentation of cuts
-//		multiindent = ns.node.lowx - hs.node.lowx;
-//		if (hs.node.highx - ns.node.highx != multiindent ||
-//			ns.node.lowy - hs.node.lowy != multiindent ||
-//			hs.node.highy - ns.node.highy != multiindent)
-//		{
-//			us_tecedpointout(ns.node, ns.node.parent);
-//			System.out.println(_("Multiple contact cuts must be indented uniformly in %s"),
-//				describenodeproto(np));
-//			return(TRUE);
-//		}
-//	
-//		// look at every example after the first
-//		xsep = ysep = -1;
-//		for(ne = nelist.nextexample; ne != NOEXAMPLE; ne = ne.nextexample)
-//		{
-//			// count number of samples equivalent to the main sample
-//			total = 0;
-//			for(nso = ne.firstsample; nso != NOSAMPLE; nso = nso.nextsample)
-//				if (nso.assoc == ns)
-//			{
-//				// make sure size is proper
-//				if (multixs != nso.node.highx - nso.node.lowx ||
-//					multiys != nso.node.highy - nso.node.lowy)
-//				{
-//					us_tecedpointout(nso.node, nso.node.parent);
-//					System.out.println(_("Multiple contact cuts must not differ in size in %s"),
-//						describenodeproto(np));
-//					return(TRUE);
-//				}
-//				total++;
-//			}
-//	
-//			// allocate space for these samples
-//			nslist = (SAMPLE **)emalloc((total * (sizeof (SAMPLE *))), el_tempcluster);
-//			if (nslist == 0) return(TRUE);
-//	
-//			// fill the list of samples
-//			i = 0;
-//			for(nso = ne.firstsample; nso != NOSAMPLE; nso = nso.nextsample)
-//				if (nso.assoc == ns) nslist[i++] = nso;
-//	
-//			// analyze the samples for separation
-//			for(i=1; i<total; i++)
-//			{
-//				// find separation
-//				sepx = abs((nslist[i-1].node.highx + nslist[i-1].node.lowx) / 2 -
-//					(nslist[i].node.highx + nslist[i].node.lowx) / 2);
-//				sepy = abs((nslist[i-1].node.highy + nslist[i-1].node.lowy) / 2 -
-//					(nslist[i].node.highy + nslist[i].node.lowy) / 2);
-//	
-//				// check for validity
-//				if (sepx < multixs && sepy < multiys)
-//				{
-//					us_tecedpointout(nslist[i].node, nslist[i].node.parent);
-//					System.out.println(_("Multiple contact cuts must not overlap in %s"),
-//						describenodeproto(np));
-//					efree((CHAR *)nslist);
-//					return(TRUE);
-//				}
-//	
-//				// accumulate minimum separation
-//				if (sepx >= multixs)
-//				{
-//					if (xsep < 0) xsep = sepx; else
-//					{
-//						if (xsep > sepx) xsep = sepx;
-//					}
-//				}
-//				if (sepy >= multiys)
-//				{
-//					if (ysep < 0) ysep = sepy; else
-//					{
-//						if (ysep > sepy) ysep = sepy;
-//					}
-//				}
-//			}
-//	
-//			// finally ensure that all separations are multiples of "multisep"
-//			for(i=1; i<total; i++)
-//			{
-//				// find X separation
-//				sepx = abs((nslist[i-1].node.highx + nslist[i-1].node.lowx) / 2 -
-//					(nslist[i].node.highx + nslist[i].node.lowx) / 2);
-//				sepy = abs((nslist[i-1].node.highy + nslist[i-1].node.lowy) / 2 -
-//					(nslist[i].node.highy + nslist[i].node.lowy) / 2);
-//				if (sepx / xsep * xsep != sepx)
-//				{
-//					us_tecedpointout(nslist[i].node, nslist[i].node.parent);
-//					System.out.println(_("Multiple contact cut X spacing must be uniform in %s"),
-//						describenodeproto(np));
-//					efree((CHAR *)nslist);
-//					return(TRUE);
-//				}
-//	
-//				// find Y separation
-//				if (sepy / ysep * ysep != sepy)
-//				{
-//					us_tecedpointout(nslist[i].node, nslist[i].node.parent);
-//					System.out.println(_("Multiple contact cut Y spacing must be uniform in %s"),
-//						describenodeproto(np));
-//					efree((CHAR *)nslist);
-//					return(TRUE);
-//				}
-//			}
-//			efree((CHAR *)nslist);
-//		}
-//		multisep = xsep - multixs;
-//		if (multisep != ysep - multiys)
-//		{
-//			us_tecedpointout(NONODEINST, np);
-//			System.out.println(_("Multiple contact cut X and Y spacing must be the same in %s"),
-//				describenodeproto(np));
-//			return(TRUE);
-//		}
-//		ns.rule = us_tecedaddmulticutrule(multixs, multiys, multiindent, multisep);
-//		if (ns.rule == 0) return(TRUE);
-//		return(FALSE);
-//	}
-//	
-//	RULE *us_tecedaddmulticutrule(INTBIG multixs, INTBIG multiys, INTBIG multiindent, INTBIG multisep)
-//	{
-//		REGISTER RULE *rule;
-//		INTBIG rulearr[8];
-//	
-//		rulearr[0] = -H0;   rulearr[1] = K1;
-//		rulearr[2] = -H0;   rulearr[3] = K1;
-//		rulearr[4] = -H0;   rulearr[5] = K3;
-//		rulearr[6] = -H0;   rulearr[7] = K3;
-//		rule = us_tecedaddrule(rulearr, 8, TRUE, (CHAR *)0);
-//		if (rule == NORULE) return(0);
-//		rule.multixs = multixs;
-//		rule.multiys = multiys;
-//		rule.multiindent = multiindent;
-//		rule.multisep = multisep;
-//		return(rule);
-//	}
-
-	static Rule us_tecedaddrule(Technology.TechPoint [] list, boolean multcut, String istext)
+	private static Sample us_tecedneedhighlightlayer(Example nelist, Cell np)
 	{
-		for(Rule r = us_tecedfirstrule; r != null; r = r.nextrule)
-		{
-			if (multcut != r.multicut) continue;
-			if (istext != null && r.msg != null)
-			{
-				if (!istext.equalsIgnoreCase(r.msg)) continue;
-			} else if (istext != null || r.msg != null) continue;
-			if (list.length != r.value.length) continue;
-			boolean same = true;
-			for(int i=0; i<list.length; i++) if (r.value[i] != list[i]) { same = false;   break; }
-			if (same) return r;
-		}
+		// find the highlight layer
+		for(Sample hs = nelist.firstsample; hs != null; hs = hs.nextsample)
+			if (hs.layer == null) return hs;
 	
-		Rule r = new Rule();
-		r.value = new Technology.TechPoint[list.length];
-		r.nextrule = us_tecedfirstrule;
-		r.used = false;
-		r.multicut = multcut;
-		us_tecedfirstrule = r;
-		for(int i=0; i<list.length; i++) r.value[i] = list[i];
-		r.istext = 0;
-		if (istext != null)
+		us_tecedpointout(null, np);
+		System.out.println("No highlight layer on contact " + np.describe());
+		return null;
+	}
+
+	/**
+	 * Method to build a rule for multiple contact-cut sample "ns" from the
+	 * overall example list in "nelist".  Returns true on error.
+	 */
+	static Generate.NodeLayerDetails us_tecedmulticut(Sample ns, Example nelist, Cell np)
+	{
+		// find the highlight layer
+		Sample hs = us_tecedneedhighlightlayer(nelist, np);
+		if (hs == null) return null;
+		Rectangle2D highlightBounds = hs.node.getBounds();
+
+		// determine size of each cut
+		Rectangle2D nodeBounds = ns.node.getBounds();
+		double multixs = nodeBounds.getWidth();
+		double multiys = nodeBounds.getHeight();
+
+		// determine indentation of cuts
+		double multiindent = nodeBounds.getMinX() - highlightBounds.getMinX();
+		if (highlightBounds.getMaxX() - nodeBounds.getMaxX() != multiindent ||
+			nodeBounds.getMinY() - highlightBounds.getMinY() != multiindent ||
+			highlightBounds.getMaxY() - nodeBounds.getMaxY() != multiindent)
 		{
-			r.msg = istext;
-			r.istext = 1;
+			us_tecedpointout(ns.node, ns.node.getParent());
+			System.out.println("Multiple contact cuts must be indented uniformly in " + np.describe());
+			return null;
 		}
-		return r;
+
+		// look at every example after the first
+		double xsep = -1, ysep = -1;
+		for(Example ne = nelist.nextexample; ne != null; ne = ne.nextexample)
+		{
+			// count number of samples equivalent to the main sample
+			int total = 0;
+			for(Sample nso = ne.firstsample; nso != null; nso = nso.nextsample)
+				if (nso.assoc == ns)
+			{
+				// make sure size is proper
+				Rectangle2D oNodeBounds = nso.node.getBounds();
+				if (multixs != oNodeBounds.getWidth() || multiys != oNodeBounds.getHeight())
+				{
+					us_tecedpointout(nso.node, nso.node.getParent());
+					System.out.println("Multiple contact cuts must not differ in size in " + np.describe());
+					return null;
+				}
+				total++;
+			}
+
+			// allocate space for these samples
+			Sample [] nslist = new Sample[total];
+
+			// fill the list of samples
+			int fill = 0;
+			for(Sample nso = ne.firstsample; nso != null; nso = nso.nextsample)
+				if (nso.assoc == ns) nslist[fill++] = nso;
+
+			// analyze the samples for separation
+			for(int i=1; i<total; i++)
+			{
+				// find separation
+				Rectangle2D thisNodeBounds = nslist[i].node.getBounds();
+				Rectangle2D lastNodeBounds = nslist[i-1].node.getBounds();
+				double sepx = Math.abs(lastNodeBounds.getCenterX() - thisNodeBounds.getCenterX());
+				double sepy = Math.abs(lastNodeBounds.getCenterY() - thisNodeBounds.getCenterY());
+
+				// check for validity
+				if (sepx < multixs && sepy < multiys)
+				{
+					us_tecedpointout(nslist[i].node, nslist[i].node.getParent());
+					System.out.println("Multiple contact cuts must not overlap in " + np.describe());
+					return null;
+				}
+
+				// accumulate minimum separation
+				if (sepx >= multixs)
+				{
+					if (xsep < 0) xsep = sepx; else
+					{
+						if (xsep > sepx) xsep = sepx;
+					}
+				}
+				if (sepy >= multiys)
+				{
+					if (ysep < 0) ysep = sepy; else
+					{
+						if (ysep > sepy) ysep = sepy;
+					}
+				}
+			}
+
+			// finally ensure that all separations are multiples of "multisep"
+			for(int i=1; i<total; i++)
+			{
+				// find X separation
+				Rectangle2D thisNodeBounds = nslist[i].node.getBounds();
+				Rectangle2D lastNodeBounds = nslist[i-1].node.getBounds();
+				double sepx = Math.abs(lastNodeBounds.getCenterX() - thisNodeBounds.getCenterX());
+				double sepy = Math.abs(lastNodeBounds.getCenterY() - thisNodeBounds.getCenterY());
+				if (sepx / xsep * xsep != sepx)
+				{
+					us_tecedpointout(nslist[i].node, nslist[i].node.getParent());
+					System.out.println("Multiple contact cut X spacing must be uniform in " + np.describe());
+					return null;
+				}
+
+				// find Y separation
+				if (sepy / ysep * ysep != sepy)
+				{
+					us_tecedpointout(nslist[i].node, nslist[i].node.getParent());
+					System.out.println("Multiple contact cut Y spacing must be uniform in " + np.describe());
+					return null;
+				}
+			}
+		}
+		double multisep = xsep - multixs;
+		if (multisep != ysep - multiys)
+		{
+			us_tecedpointout(null, np);
+			System.out.println("Multiple contact cut X and Y spacing must be the same in " + np.describe());
+			return null;
+		}
+		ns.values = new Technology.TechPoint[2];
+		ns.values[0] = new Technology.TechPoint(EdgeH.fromLeft(1), EdgeV.fromBottom(1));
+		ns.values[1] = new Technology.TechPoint(EdgeH.fromLeft(3), EdgeV.fromBottom(3));
+
+		Generate.NodeLayerDetails multiDetails = new Generate.NodeLayerDetails();
+		multiDetails.style = getStyle(ns.node);
+		multiDetails.representation = Technology.NodeLayer.POINTS;
+		if (multiDetails.style == Poly.Type.CROSSED ||
+			multiDetails.style == Poly.Type.FILLED ||
+			multiDetails.style == Poly.Type.CLOSED)
+		{
+			multiDetails.representation = Technology.NodeLayer.BOX;
+//			if (r.count == 16)
+//			{
+//				multiDetails.representation = Technology.NodeLayer.MINBOX;
+//				tlist.layerlist[i].count = 4;
+//			}
+		}
+		multiDetails.values = ns.values;
+		multiDetails.ns = ns;
+		multiDetails.multiCut = true;
+		multiDetails.multixs = multixs;
+		multiDetails.multiys = multiys;
+		multiDetails.multiindent = multiindent;
+		multiDetails.multisep = multisep;
+		return multiDetails;
 	}
 
 	/****************************** WRITE TECHNOLOGY AS "JAVA" CODE ******************************/
-	
+
 	/**
 	 * Method to dump the layer information in technology "tech" to the stream in
 	 * "f".
 	 */
-	static void us_teceditdumpjavalayers(PrintStream buffWriter, Generate.LayerInfo [] lList)
+	static void us_teceditdumpjavalayers(PrintStream buffWriter, String techName, Generate.LayerInfo [] lList, Generate.GeneralInfo gi)
 	{
-//		CHAR date[30], *transparent, *l1, *l2, *l3, *l4, *l5;
-//		REGISTER INTBIG i, j, k, red, green, blue;
-//		REGISTER void *infstr;
-//		float r, c;
-//		REGISTER BOOLEAN extrafunction;
-//		REGISTER VARIABLE *varr, *varc, *rvar, *gvar, *bvar;
-//	
-//		// write legal banner
-//		xprintf(f, x_("// BE SURE TO INCLUDE THIS TECHNOLOGY IN Technology.initAllTechnologies()\n\n"));
-//		xprintf(f, x_("/* -*- tab-width: 4 -*-\n"));
-//		xprintf(f, x_(" *\n"));
-//		xprintf(f, x_(" * Electric(tm) VLSI Design System\n"));
-//		xprintf(f, x_(" *\n"));
-//		xprintf(f, x_(" * File: %s.java\n"), techname);
-//		xprintf(f, x_(" * %s technology description\n"), techname);
-//		xprintf(f, x_(" * Generated automatically from a library\n"));
-//		xprintf(f, x_(" *\n"));
-//		estrcpy(date, timetostring(getcurrenttime()));
-//		date[24] = 0;
-//		xprintf(f, x_(" * Copyright (c) %s Sun Microsystems and Static Free Software\n"), &date[20]);
-//		xprintf(f, x_(" *\n"));
-//		xprintf(f, x_(" * Electric(tm) is free software; you can redistribute it and/or modify\n"));
-//		xprintf(f, x_(" * it under the terms of the GNU General Public License as published by\n"));
-//		xprintf(f, x_(" * the Free Software Foundation; either version 2 of the License, or\n"));
-//		xprintf(f, x_(" * (at your option) any later version.\n"));
-//		xprintf(f, x_(" *\n"));
-//		xprintf(f, x_(" * Electric(tm) is distributed in the hope that it will be useful,\n"));
-//		xprintf(f, x_(" * but WITHOUT ANY WARRANTY; without even the implied warranty of\n"));
-//		xprintf(f, x_(" * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"));
-//		xprintf(f, x_(" * GNU General Public License for more details.\n"));
-//		xprintf(f, x_(" *\n"));
-//		xprintf(f, x_(" * You should have received a copy of the GNU General Public License\n"));
-//		xprintf(f, x_(" * along with Electric(tm); see the file COPYING.  If not, write to\n"));
-//		xprintf(f, x_(" * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,\n"));
-//		xprintf(f, x_(" * Boston, Mass 02111-1307, USA.\n"));
-//		xprintf(f, x_(" */\n"));
-//		xprintf(f, x_("package com.sun.electric.technology.technologies;\n"));
-//		xprintf(f, x_("\n"));
-//	
-//		// write header
-//		xprintf(f, x_("import com.sun.electric.database.geometry.EGraphics;\n"));
-//		xprintf(f, x_("import com.sun.electric.database.geometry.Poly;\n"));
-//		xprintf(f, x_("import com.sun.electric.database.prototype.ArcProto;\n"));
-//		xprintf(f, x_("import com.sun.electric.database.prototype.PortProto;\n"));
-//		xprintf(f, x_("import com.sun.electric.database.prototype.NodeProto;\n"));
-//		xprintf(f, x_("import com.sun.electric.technology.DRCRules;\n"));
-//		xprintf(f, x_("import com.sun.electric.technology.EdgeH;\n"));
-//		xprintf(f, x_("import com.sun.electric.technology.EdgeV;\n"));
-//		xprintf(f, x_("import com.sun.electric.technology.Layer;\n"));
-//		xprintf(f, x_("import com.sun.electric.technology.PrimitiveArc;\n"));
-//		xprintf(f, x_("import com.sun.electric.technology.PrimitiveNode;\n"));
-//		xprintf(f, x_("import com.sun.electric.technology.PrimitivePort;\n"));
-//		xprintf(f, x_("import com.sun.electric.technology.SizeOffset;\n"));
-//		xprintf(f, x_("import com.sun.electric.technology.Technology;\n"));
-//		xprintf(f, x_("import com.sun.electric.technology.technologies.utils.MOSRules;\n"));
-//		xprintf(f, x_("\n"));
-//		xprintf(f, x_("import java.awt.Color;\n"));
-//		xprintf(f, x_("\n"));
-//	
-//		xprintf(f, x_("/**\n"));
-//		xprintf(f, x_(" * This is the %s Technology.\n"), tech.techdescript);
-//		xprintf(f, x_(" */\n"));
-//		xprintf(f, x_("public class %s extends Technology\n"), techname);
-//		xprintf(f, x_("{\n"), techname);
-//		xprintf(f, x_("\t/** the %s Technology object. */	public static final %s tech = new %s();\n"),
-//			tech.techdescript, techname, techname);
+		// write header
+		buffWriter.println("// BE SURE TO INCLUDE THIS TECHNOLOGY IN Technology.initAllTechnologies()");
+		buffWriter.println();
+		buffWriter.println("/* -*- tab-width: 4 -*-");
+		buffWriter.println(" *");
+		buffWriter.println(" * Electric(tm) VLSI Design System");
+		buffWriter.println(" *");
+		buffWriter.println(" * File: " + techName + ".java");
+		buffWriter.println(" * " + techName + " technology description");
+		buffWriter.println(" * Generated automatically from a library");
+		buffWriter.println(" *");
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(new Date());
+		buffWriter.println(" * Copyright (c) " + cal.get(Calendar.YEAR) + " Sun Microsystems and Static Free Software");
+		buffWriter.println(" *");
+		buffWriter.println(" * Electric(tm) is free software; you can redistribute it and/or modify");
+		buffWriter.println(" * it under the terms of the GNU General Public License as published by");
+		buffWriter.println(" * the Free Software Foundation; either version 2 of the License, or");
+		buffWriter.println(" * (at your option) any later version.");
+		buffWriter.println(" *");
+		buffWriter.println(" * Electric(tm) is distributed in the hope that it will be useful,");
+		buffWriter.println(" * but WITHOUT ANY WARRANTY; without even the implied warranty of");
+		buffWriter.println(" * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the");
+		buffWriter.println(" * GNU General Public License for more details.");
+		buffWriter.println(" *");
+		buffWriter.println(" * You should have received a copy of the GNU General Public License");
+		buffWriter.println(" * along with Electric(tm); see the file COPYING.  If not, write to");
+		buffWriter.println(" * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,");
+		buffWriter.println(" * Boston, Mass 02111-1307, USA.");
+		buffWriter.println(" */");
+		buffWriter.println("package com.sun.electric.technology.technologies;");
+		buffWriter.println();
+	
+		// write imports
+		buffWriter.println("import com.sun.electric.database.geometry.EGraphics;");
+		buffWriter.println("import com.sun.electric.database.geometry.Poly;");
+		buffWriter.println("import com.sun.electric.database.prototype.ArcProto;");
+		buffWriter.println("import com.sun.electric.database.prototype.PortCharacteristic;");
+		buffWriter.println("import com.sun.electric.database.prototype.PortProto;");
+		buffWriter.println("import com.sun.electric.database.prototype.NodeProto;");
+		buffWriter.println("import com.sun.electric.technology.DRCRules;");
+		buffWriter.println("import com.sun.electric.technology.EdgeH;");
+		buffWriter.println("import com.sun.electric.technology.EdgeV;");
+		buffWriter.println("import com.sun.electric.technology.Layer;");
+		buffWriter.println("import com.sun.electric.technology.PrimitiveArc;");
+		buffWriter.println("import com.sun.electric.technology.PrimitiveNode;");
+		buffWriter.println("import com.sun.electric.technology.PrimitivePort;");
+		buffWriter.println("import com.sun.electric.technology.SizeOffset;");
+		buffWriter.println("import com.sun.electric.technology.Technology;");
+		buffWriter.println("import com.sun.electric.technology.technologies.utils.MOSRules;");
+		buffWriter.println();
+		buffWriter.println("import java.awt.Color;");
+		buffWriter.println();
+	
+		buffWriter.println("/**");
+		buffWriter.println(" * This is the " + gi.description + " Technology.");
+		buffWriter.println(" */");
+		buffWriter.println("public class " + techName + " extends Technology");
+		buffWriter.println("{");
+		buffWriter.println("\t/** the " + gi.description + " Technology object. */	public static final " +
+				techName + " tech = new " + techName + "();");
+		if ((us_tecflags&(HASCONDRC|HASUNCONDRC)) != 0)
+		{
+			buffWriter.println("\tprivate static final double XX = -1;");
+			buffWriter.println("\tprivate double [] conDist, unConDist;");
+		}
+		buffWriter.println();
+	
+		buffWriter.println("\tprivate " + techName + "()");
+		buffWriter.println("\t{");
+		buffWriter.println("\t\tsuper(\"" + techName + "\");");
+		buffWriter.println("\t\tsetTechDesc(\"" + gi.description + "\");");
+		buffWriter.println("\t\tsetFactoryScale(" + TextUtils.formatDouble(gi.scale) + ", true);   // in nanometers: really " +
+			(gi.scale / 1000) + " microns");
+		buffWriter.println("\t\tsetMinResistance(" + gi.minres + ");");
+		buffWriter.println("\t\tsetMinCapacitance(" + gi.mincap + ");");
+		buffWriter.println("\t\tsetGateLengthSubtraction(" + gi.gateShrinkage + ");");
+		buffWriter.println("\t\tsetGateIncluded(" + gi.includeGateInResistance + ");");
+		buffWriter.println("\t\tsetGroundNetIncluded(" + gi.includeGround + ");");
+		buffWriter.println("\t\tsetNoNegatedArcs();");
+		buffWriter.println("\t\tsetStaticTechnology();");
+
+		if (gi.transparentColors != null && gi.transparentColors.length > 0)
+		{
+			buffWriter.println("\t\tsetFactoryTransparentLayers(new Color []");
+			buffWriter.println("\t\t{");
+			for(int i=0; i<gi.transparentColors.length; i++)
+			{
+				Color col = gi.transparentColors[i];
+				buffWriter.print("\t\t\tnew Color(" + col.getRed() + "," + col.getGreen() + "," + col.getBlue() + ")");
+				if (i+1 < gi.transparentColors.length) buffWriter.print(",");
+				buffWriter.println();
+			}
+			buffWriter.println("\t\t});");
+		}
+		buffWriter.println();
+	
+		// write the layer declarations
+		buffWriter.println("\t\t//**************************************** LAYERS ****************************************");
+		for(int i=0; i<lList.length; i++)
+		{
+			lList[i].javaName = us_teceditconverttojava(lList[i].name);
+			buffWriter.print("\t\t/** " + lList[i].name + " layer */");
+			buffWriter.println("\t\tLayer " + lList[i].javaName + "_lay = Layer.newInstance(this, \"" + lList[i].name + "\",");
+			buffWriter.print("\t\t\tnew EGraphics(");
+			if (lList[i].desc.isPatternedOnDisplay())
+			{
+				if (lList[i].desc.isOutlinedOnDisplay()) buffWriter.print("EGraphics.OUTLINEPAT"); else
+					buffWriter.print("EGraphics.PATTERNED");
+			} else
+			{
+				buffWriter.print("EGraphics.SOLID");
+			}
+			buffWriter.print(", ");
+			if (lList[i].desc.isPatternedOnPrinter())
+			{
+				if (lList[i].desc.isOutlinedOnPrinter()) buffWriter.print("EGraphics.OUTLINEPAT"); else
+					buffWriter.print("EGraphics.PATTERNED");
+			} else
+			{
+				buffWriter.print("EGraphics.SOLID");
+			}
+			String transparent = "0";
+			if (lList[i].desc.getTransparentLayer() > 0)
+				transparent = "EGraphics.TRANSPARENT_" + lList[i].desc.getTransparentLayer();
+			int red = lList[i].desc.getColor().getRed();
+			int green = lList[i].desc.getColor().getGreen();
+			int blue = lList[i].desc.getColor().getBlue();
+			if (red < 0 || red > 255) red = 0;
+			if (green < 0 || green > 255) green = 0;
+			if (blue < 0 || blue > 255) blue = 0;
+			buffWriter.println(", " + transparent + ", " + red + "," + green + "," + blue + ", 0.8,true,");
+
+			boolean hasPattern = false;
+			int [] pattern = lList[i].desc.getPattern();
+			for(int j=0; j<16; j++) if (pattern[j] != 0) hasPattern = true;
+			if (hasPattern)
+			{
+				for(int j=0; j<16; j++)
+				{
+					buffWriter.print("\t\t\t");
+					if (j == 0) buffWriter.print("new int[] { "); else
+						buffWriter.print("\t\t\t");
+					String hexValue = Integer.toHexString(pattern[j] & 0xFFFF);
+					while (hexValue.length() < 4) hexValue = "0" + hexValue;
+					buffWriter.print("0x" + hexValue);
+					if (j == 15) buffWriter.print("}));"); else
+						buffWriter.print(",   ");
+	
+					buffWriter.print("// ");
+					for(int k=0; k<16; k++)
+						if ((pattern[j] & (1 << (15-k))) != 0)
+							buffWriter.print("X"); else buffWriter.print(" ");
+					buffWriter.println();
+				}
+				buffWriter.println();
+			} else
+			{
+				buffWriter.println("\t\t\tnew int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));");
+			}
+		}
+	
+		// write the layer functions
+		buffWriter.println();
+		buffWriter.println("\t\t// The layer functions");
+		for(int i=0; i<lList.length; i++)
+		{
+			Layer.Function fun = lList[i].fun;
+			int funExtra = lList[i].funExtra;
+			String infstr = lList[i].javaName + "_lay.setFunction(Layer.Function.";
+			if (fun.isDiff() && (funExtra&Layer.Function.PTYPE) != 0)
+			{
+				infstr += "DIFFP";
+				funExtra &= ~Layer.Function.PTYPE;
+			} else if (fun.isDiff() && (funExtra&Layer.Function.NTYPE) != 0)
+			{
+				infstr += "DIFFN";
+				funExtra &= ~Layer.Function.NTYPE;
+			} else if (fun == Layer.Function.WELL && (funExtra&Layer.Function.PTYPE) != 0)
+			{
+				infstr += "WELLP";
+				funExtra &= ~Layer.Function.PTYPE;
+			} else if (fun == Layer.Function.WELL && (funExtra&Layer.Function.NTYPE) != 0)
+			{
+				infstr += "WELLN";
+				funExtra &= ~Layer.Function.NTYPE;
+			} else if (fun == Layer.Function.IMPLANT && (funExtra&Layer.Function.PTYPE) != 0)
+			{
+				infstr += "IMPLANTP";
+				funExtra &= ~Layer.Function.PTYPE;
+			} else if (fun == Layer.Function.IMPLANT && (funExtra&Layer.Function.NTYPE) != 0)
+			{
+				infstr += "IMPLANTN";
+				funExtra &= ~Layer.Function.NTYPE;
+			} else if (fun.isPoly() && (funExtra&Layer.Function.INTRANS) != 0)
+			{
+				infstr += "GATE";
+				funExtra &= ~Layer.Function.INTRANS;
+			} else
+			{
+				infstr += fun.getConstantName();
+			}
+			boolean extrafunction = false;
+			int [] extras = Layer.Function.getFunctionExtras();
+			for(int j=0; j<extras.length; j++)
+			{
+				if ((funExtra&extras[j]) != 0)
+				{
+					if (extrafunction) infstr += "|"; else
+						infstr += ", ";
+					infstr += "Layer.Function.";
+					infstr += Layer.Function.getExtraConstantName(extras[j]);
+					extrafunction = true;
+				}
+			}
+			infstr += ");";
+			buffWriter.println("\t\t" + infstr + "\t\t// " + lList[i].name);
+		}
+	
+		// write the CIF layer names
+		for(int j=0; j<lList.length; j++)
+		{
+			if (lList[j].cif.length() > 0)
+			{
+				buffWriter.println("\n\t\t// The CIF names");
+				for(int i=0; i<lList.length; i++)
+					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactoryCIFLayer(\"" + lList[i].cif +
+						"\");\t\t// " + lList[i].name);
+				break;
+			}
+		}
+	
+		// write the Calma GDS-II layer number
+		for(int j=0; j<lList.length; j++)
+		{
+			if (lList[j].gds.length() > 0)
+			{
+				buffWriter.println("\n\t\t// The GDS names");
+				for(int i=0; i<lList.length; i++)
+					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactoryGDSLayer(\"" + lList[i].gds +
+						"\");\t\t// " + lList[i].name);
+				break;
+			}
+		}
+	
+		// write the 3D information
+		for(int j=0; j<lList.length; j++)
+		{
+			if (lList[j].thick3d != 0 || lList[j].height3d != 0)
+			{
+				buffWriter.println("\n\t\t// The layer height");
+				for(int i=0; i<lList.length; i++)
+					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactory3DInfo(" +
+						TextUtils.formatDouble(lList[i].thick3d) + ", " + TextUtils.formatDouble(lList[i].height3d) +
+						");\t\t// " + lList[i].name);
+				break;
+			}
+		}
+	
+		// write the SPICE information
+		for(int j=0; j<lList.length; j++)
+		{
+			if (lList[j].spires != 0 || lList[j].spicap != 0 || lList[j].spiecap != 0)
+			{
+				buffWriter.println("\n\t\t// The SPICE information");
+				for(int i=0; i<lList.length; i++)
+					buffWriter.println("\t\t" + lList[i].javaName + "_lay.setFactoryParasitics(" +
+						TextUtils.formatDouble(lList[i].spires) + ", " +
+						TextUtils.formatDouble(lList[i].spicap) + ", " +
+						TextUtils.formatDouble(lList[i].spiecap) + ");\t\t// " + lList[i].name);
+				break;
+			}
+		}
+	
+		// write design rules
 //		if ((us_tecflags&(HASCONDRC|HASUNCONDRC)) != 0)
 //		{
-//			xprintf(f, x_("\tprivate static final double XX = -1;\n"));
-//			xprintf(f, x_("\tprivate double [] conDist, unConDist;\n"));
-//		}
-//		xprintf(f, x_("\n"));
-//	
-//		xprintf(f, x_("\t// -------------------- private and protected methods ------------------------\n"));
-//		xprintf(f, x_("\tprivate %s()\n"), techname);
-//		xprintf(f, x_("\t{\n"));
-//		xprintf(f, x_("\t\tsuper(\"%s\");\n"), techname);
-//		xprintf(f, x_("\t\tsetTechDesc(\"%s\");\n"), tech.techdescript);
-//		xprintf(f, x_("\t\tsetFactoryScale(%ld, true);   // in nanometers: really %g microns\n"),
-//			tech.deflambda / 2, (float)tech.deflambda / 2000.0);
-//		xprintf(f, x_("\t\tsetNoNegatedArcs();\n"));
-//		xprintf(f, x_("\t\tsetStaticTechnology();\n"));
-//	
-//		// write the color map
-//		if ((us_tecflags&HASCOLORMAP) != 0)
-//		{
-//			// determine the five transparent layers
-//			l1 = x_("layer 1");
-//			l2 = x_("layer 2");
-//			l3 = x_("layer 3");
-//			l4 = x_("layer 4");
-//			l5 = x_("layer 5");
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				if (tech.layers[i].bits == LAYERT1 && l1 == 0)
-//					l1 = us_teclayer_names[i]; else
-//				if (tech.layers[i].bits == LAYERT2 && l2 == 0)
-//					l2 = us_teclayer_names[i]; else
-//				if (tech.layers[i].bits == LAYERT3 && l3 == 0)
-//					l3 = us_teclayer_names[i]; else
-//				if (tech.layers[i].bits == LAYERT4 && l4 == 0)
-//					l4 = us_teclayer_names[i]; else
-//				if (tech.layers[i].bits == LAYERT5 && l5 == 0)
-//					l5 = us_teclayer_names[i];
-//			}
-//			xprintf(f, x_("\t\tsetFactoryTransparentLayers(new Color []\n"));
-//			xprintf(f, x_("\t\t{\n"));
-//			xprintf(f, x_("\t\t\tnew Color(%3d,%3d,%3d), // %s\n"),
-//				us_teccolmap[1].red, us_teccolmap[1].green, us_teccolmap[1].blue, l1);
-//			xprintf(f, x_("\t\t\tnew Color(%3d,%3d,%3d), // %s\n"),
-//				us_teccolmap[2].red, us_teccolmap[2].green, us_teccolmap[2].blue, l2);
-//			xprintf(f, x_("\t\t\tnew Color(%3d,%3d,%3d), // %s\n"),
-//				us_teccolmap[4].red, us_teccolmap[4].green, us_teccolmap[4].blue, l3);
-//			xprintf(f, x_("\t\t\tnew Color(%3d,%3d,%3d), // %s\n"),
-//				us_teccolmap[8].red, us_teccolmap[8].green, us_teccolmap[8].blue, l4);
-//			xprintf(f, x_("\t\t\tnew Color(%3d,%3d,%3d), // %s\n"),
-//				us_teccolmap[16].red, us_teccolmap[16].green, us_teccolmap[16].blue, l5);
-//			xprintf(f, x_("\t\t});\n"));
-//		}
-//		xprintf(f, x_("\n"));
-//	
-//		// write the layer declarations
-//		xprintf(f, x_("\t\t//**************************************** LAYERS ****************************************\n\n"));
-//		for(i=0; i<tech.layercount; i++)
-//		{
-//			xprintf(f, x_("\t\t/** %s layer */\n"), us_teclayer_iname[i]);
-//			xprintf(f, x_("\t\tLayer %s_lay = Layer.newInstance(this, \"%s\",\n"), us_teclayer_iname[i],
-//				us_teclayer_names[i]);
-//			xprintf(f, x_("\t\t\tnew EGraphics("));
-//			if ((tech.layers[i].colstyle&NATURE) == SOLIDC) xprintf(f, x_("EGraphics.SOLID")); else
-//			{
-//				if ((tech.layers[i].colstyle&OUTLINEPAT) == 0)
-//					xprintf(f, x_("EGraphics.PATTERNED")); else
-//						xprintf(f, x_("EGraphics.OUTLINEPAT"));
-//			}
-//			xprintf(f, x_(", "));
-//			if ((tech.layers[i].bwstyle&NATURE) == SOLIDC) xprintf(f, x_("EGraphics.SOLID")); else
-//			{
-//				if ((tech.layers[i].bwstyle&OUTLINEPAT) == 0)
-//					xprintf(f, x_("EGraphics.PATTERNED")); else
-//						xprintf(f, x_("EGraphics.OUTLINEPAT"));
-//			}
-//			transparent = "0";
-//			switch (tech.layers[i].bits)
-//			{
-//				case LAYERT1: transparent = "EGraphics.TRANSPARENT_1";   break;
-//				case LAYERT2: transparent = "EGraphics.TRANSPARENT_2";   break;
-//				case LAYERT3: transparent = "EGraphics.TRANSPARENT_3";   break;
-//				case LAYERT4: transparent = "EGraphics.TRANSPARENT_4";   break;
-//				case LAYERT5: transparent = "EGraphics.TRANSPARENT_5";   break;
-//			}
-//			if (tech.layers[i].bits == LAYERO)
-//			{
-//				rvar = getvalkey((INTBIG)us_tool, VTOOL, VINTEGER|VISARRAY, us_colormap_red_key);
-//				gvar = getvalkey((INTBIG)us_tool, VTOOL, VINTEGER|VISARRAY, us_colormap_green_key);
-//				bvar = getvalkey((INTBIG)us_tool, VTOOL, VINTEGER|VISARRAY, us_colormap_blue_key);
-//				if (rvar != NOVARIABLE && gvar != NOVARIABLE && bvar != NOVARIABLE)
-//				{
-//					red = ((INTBIG *)rvar.addr)[tech.layers[i].col];
-//					green = ((INTBIG *)gvar.addr)[tech.layers[i].col];
-//					blue = ((INTBIG *)bvar.addr)[tech.layers[i].col];
-//				}
-//			} else
-//			{
-//				red = us_teccolmap[tech.layers[i].col].red;
-//				green = us_teccolmap[tech.layers[i].col].green;
-//				blue = us_teccolmap[tech.layers[i].col].blue;
-//			}
-//			if (red < 0 || red > 255) red = 0;
-//			if (green < 0 || green > 255) green = 0;
-//			if (blue < 0 || blue > 255) blue = 0;
-//			xprintf(f, x_(", %s, %ld,%ld,%ld, 0.8,true,\n"), transparent, red, green, blue);
-//	
-//			for(j=0; j<16; j++) if (tech.layers[i].raster[j] != 0) break;
-//			if (j >= 16)
-//				xprintf(f, x_("\t\t\tnew int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));\n\n")); else
-//			{
-//				for(j=0; j<16; j++)
-//				{
-//					xprintf(f, x_("\t\t\t"));
-//					if (j == 0) xprintf(f, x_("new int[] { ")); else
-//						xprintf(f, x_("\t\t\t"));
-//					xprintf(f, x_("0x%04x"), tech.layers[i].raster[j]&0xFFFF);
-//					if (j == 15) xprintf(f, x_("}));")); else
-//						xprintf(f, x_(",   "));
-//	
-//					xprintf(f, x_("// "));
-//					for(k=0; k<16; k++)
-//						if ((tech.layers[i].raster[j] & (1 << (15-k))) != 0)
-//							xprintf(f, x_("X")); else xprintf(f, x_(" "));
-//					xprintf(f, x_("\n"));
-//				}
-//				xprintf(f, x_("\n"));
-//			}
-//		}
-//	
-//		// write the layer functions
-//		xprintf(f, x_("\t\t// The layer functions\n"));
-//		for(i=0; i<tech.layercount; i++)
-//		{
-//			k = us_teclayer_function[i];
-//			infstr = initinfstr();
-//			formatinfstr(infstr, x_("%s_lay.setFunction(Layer.Function."), us_teclayer_iname[i]);
-//			if ((k&(LFTYPE|LFPTYPE)) == (LFDIFF|LFPTYPE))
-//			{
-//				addstringtoinfstr(infstr, "DIFFP");
-//				k &= ~LFPTYPE;
-//			} else if ((k&(LFTYPE|LFNTYPE)) == (LFDIFF|LFNTYPE))
-//			{
-//				addstringtoinfstr(infstr, "DIFFN");
-//				k &= ~LFNTYPE;
-//			} else if ((k&(LFTYPE|LFPTYPE)) == (LFWELL|LFPTYPE))
-//			{
-//				addstringtoinfstr(infstr, "WELLP");
-//				k &= ~LFPTYPE;
-//			} else if ((k&(LFTYPE|LFNTYPE)) == (LFWELL|LFNTYPE))
-//			{
-//				addstringtoinfstr(infstr, "WELLN");
-//				k &= ~LFNTYPE;
-//			} else if ((k&(LFTYPE|LFPTYPE)) == (LFIMPLANT|LFPTYPE))
-//			{
-//				addstringtoinfstr(infstr, "IMPLANTP");
-//				k &= ~LFPTYPE;
-//			} else if ((k&(LFTYPE|LFNTYPE)) == (LFIMPLANT|LFNTYPE))
-//			{
-//				addstringtoinfstr(infstr, "IMPLANTN");
-//				k &= ~LFNTYPE;
-//			} else if ((k&(LFTYPE|LFINTRANS)) == (LFPOLY1|LFINTRANS))
-//			{
-//				addstringtoinfstr(infstr, "GATE");
-//				k &= ~LFINTRANS;
-//			} else
-//			{
-//				addstringtoinfstr(infstr, &us_teclayer_functions[k&LFTYPE].constant[2]);
-//			}
-//			extrafunction = FALSE;
-//			for(j=0; us_teclayer_functions[j].name != 0; j++)
-//			{
-//				if (us_teclayer_functions[j].value <= LFTYPE) continue;
-//				if ((k&us_teclayer_functions[j].value) != 0)
-//				{
-//					if (extrafunction) addstringtoinfstr(infstr, "|"); else
-//						addstringtoinfstr(infstr, ", ");
-//					addstringtoinfstr(infstr, "Layer.Function.");
-//					addstringtoinfstr(infstr, &us_teclayer_functions[j].constant[2]);
-//					extrafunction = TRUE;
-//				}
-//			}
-//			addstringtoinfstr(infstr, ");");
-//			xprintf(f, x_("\t\t%s"), returninfstr(infstr));
-//			xprintf(f, x_("\t\t// %s\n"), us_teclayer_names[i]);
-//		}
-//	
-//		// write the CIF layer names
-//		if ((us_tecflags&HASCIF) != 0)
-//		{
-//			xprintf(f, x_("\n\t\t// The CIF names\n"));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				xprintf(f, x_("\t\t%s_lay.setFactoryCIFLayer(\""), us_teclayer_iname[i]);
-//				if (us_teccif_layers[i] != 0) xprintf(f, x_("%s"), us_teccif_layers[i]);
-//				xprintf(f, x_("\");\t\t// %s\n"), us_teclayer_names[i]);
-//			}
-//		}
-//	
-//		// write the DXF layer numbers
-//		if ((us_tecflags&HASDXF) != 0)
-//		{
-//			xprintf(f, x_("\n\t\t// The DXF names\n"));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				xprintf(f, x_("\t\t%s_lay.setFactoryDXFLayer(\""), us_teclayer_iname[i]);
-//				xprintf(f, x_("%s"), us_tecdxf_layers[i]);
-//				xprintf(f, x_("\");\t\t// %s\n"), us_teclayer_names[i]);
-//			}
-//		}
-//	
-//		// write the Calma GDS-II layer number
-//		if ((us_tecflags&HASGDS) != 0)
-//		{
-//			xprintf(f, x_("\n\t\t// The GDS names\n"));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				xprintf(f, x_("\t\t%s_lay.setFactoryGDSLayer(\""), us_teclayer_iname[i]);
-//				xprintf(f, x_("%s"), us_tecgds_layers[i]);
-//				xprintf(f, x_("\");\t\t// %s\n"), us_teclayer_names[i]);
-//			}
-//		}
-//	
-//		// write the 3D information
-//		if ((us_tecflags&HAS3DINFO) != 0)
-//		{
-//			xprintf(f, x_("\n\t\t// The layer height\n"));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				xprintf(f, x_("\t\t%s_lay.setFactory3DInfo("), us_teclayer_iname[i]);
-//				xprintf(f, x_("%ld, %ld"), us_tec3d_thickness[i], us_tec3d_height[i]);
-//				xprintf(f, x_(");\t\t// %s\n"), us_teclayer_names[i]);
-//			}
-//		}
-//	
-//		// write the SPICE information
-//		if ((us_tecflags&(HASSPIRES|HASSPICAP|HASSPIECAP)) != 0)
-//		{
-//			xprintf(f, x_("\n\t\t// The SPICE information\n"));
-//			for(i=0; i<tech.layercount; i++)
-//			{
-//				xprintf(f, x_("\t\t%s_lay.setFactoryParasitics("), us_teclayer_iname[i]);
-//				if ((us_tecflags&HASSPIRES) == 0) xprintf(f, x_("0, ")); else
-//					xprintf(f, x_("%s, "), us_tecedmakefloatstring(us_tecspice_res[i]));
-//				if ((us_tecflags&HASSPICAP) == 0) xprintf(f, x_("0, ")); else
-//					xprintf(f, x_("%s, "), us_tecedmakefloatstring(us_tecspice_cap[i]));
-//				if ((us_tecflags&HASSPIECAP) == 0) xprintf(f, x_("0")); else
-//					xprintf(f, x_("%s"), us_tecedmakefloatstring(us_tecspice_ecap[i]));
-//				xprintf(f, x_(");\t\t// %s\n"), us_teclayer_names[i]);
-//			}
-//		}
-//		varr = getval((INTBIG)tech, VTECHNOLOGY, -1, x_("SIM_spice_min_resistance"));
-//		varc = getval((INTBIG)tech, VTECHNOLOGY, -1, x_("SIM_spice_min_capacitance"));
-//		if (varr != NOVARIABLE || varc != NOVARIABLE)
-//		{
-//			if (varr != NOVARIABLE) r = castfloat(varr.addr); else r = 0.0;
-//			if (varc != NOVARIABLE) c = castfloat(varr.addr); else c = 0.0;
-//	        xprintf(f, x_("\t\tsetFactoryParasitics(%g, %g);\n"), r, c);
-//		}
-//	
-//		// write design rules
-//		if ((us_tecflags&(HASCONDRC|HASUNCONDRC)) != 0)
-//		{
-//			xprintf(f, x_("\n\t\t//******************** DESIGN RULES ********************\n"));
+//			buffWriter.println("\n\t\t//******************** DESIGN RULES ********************");
 //	
 //			if ((us_tecflags&HASCONDRC) != 0)
 //			{
-//				xprintf(f, x_("\n\t\tconDist = new double[] {\n"));
+//				buffWriter.println("\n\t\tconDist = new double[] {");
 //				us_teceditdumpjavadrctab(f, us_tecdrc_rules.conlist, tech, FALSE);
 //			}
 //			if ((us_tecflags&HASUNCONDRC) != 0)
 //			{
-//				xprintf(f, x_("\n\t\tunConDist = new double[] {\n"));
+//				buffWriter.println("\n\t\tunConDist = new double[] {");
 //				us_teceditdumpjavadrctab(f, us_tecdrc_rules.unconlist, tech, FALSE);
 //			}
 //		}
@@ -3438,14 +3043,14 @@ public class Parse
 //	
 //		for(i=0; i<6; i++)
 //		{
-//			xprintf(f, x_("\t\t\t//            "));
+//			buffWriter.println("\t\t\t//            "));
 //			for(j=0; j<tech.layercount; j++)
 //			{
-//				if ((INTBIG)estrlen(us_teclayer_iname[j]) <= i) xprintf(f, x_(" ")); else
-//					xprintf(f, x_("%c"), us_teclayer_iname[j][i]);
-//				xprintf(f, x_("  "));
+//				if ((INTBIG)estrlen(us_teclayer_iname[j]) <= i) buffWriter.println(" ")); else
+//					buffWriter.println("%c"), us_teclayer_iname[j][i]);
+//				buffWriter.println("  "));
 //			}
-//			xprintf(f, x_("\n"));
+//			buffWriter.println();
 //		}
 //		if (isstring) distlist = (CHAR **)distances; else
 //			amtlist = (INTBIG *)distances;
@@ -3453,632 +3058,409 @@ public class Parse
 //		{
 //			(void)estrncpy(shortname, us_teclayer_iname[j], 6);
 //			shortname[6] = 0;
-//			xprintf(f, x_("\t\t\t/* %-6s */ "), shortname);
-//			for(i=0; i<j; i++) xprintf(f, x_("   "));
+//			buffWriter.println("\t\t\t/* %-6s */ "), shortname);
+//			for(i=0; i<j; i++) buffWriter.println("   "));
 //			for(i=j; i<tech.layercount; i++)
 //			{
 //				if (isstring)
 //				{
 //					msg = *distlist++;
-//					xprintf(f, x_("x_(\"%s\")"), msg);
+//					buffWriter.println("x_(\"%s\")"), msg);
 //				} else
 //				{
 //					amt = *amtlist++;
-//					if (amt < 0) xprintf(f, x_("XX")); else
+//					if (amt < 0) buffWriter.println("XX")); else
 //					{
-//						xprintf(f, x_("%g"), (float)amt/WHOLE);
+//						buffWriter.println("%g"), (float)amt/WHOLE);
 //					}
 //				}
 //				if (j != tech.layercount-1 || i != tech.layercount-1)
-//					xprintf(f, x_(","));
+//					buffWriter.println(","));
 //			}
-//			xprintf(f, x_("\n"));
+//			buffWriter.println("\n"));
 //		}
-//		xprintf(f, x_("\t\t};\n"));
+//		buffWriter.println("\t\t};\n"));
 //	}
 	
 	/**
 	 * Method to dump the arc information in technology "tech" to the stream in
 	 * "f".
 	 */
-	static void us_teceditdumpjavaarcs(PrintStream buffWriter, Generate.ArcInfo [] aList)
+	static void us_teceditdumpjavaarcs(PrintStream buffWriter, String techName, Generate.ArcInfo [] aList, Generate.GeneralInfo gi)
 	{
-//		REGISTER INTBIG i, j, k;
-//	
-//		// print the header
-//		xprintf(f, x_("\n\t\t//******************** ARCS ********************\n"));
-//	
-//		// now write the arcs
-//		for(i=0; i<tech.arcprotocount; i++)
-//		{
-//			xprintf(f, x_("\n\t\t/** %s arc */\n"), tech.arcprotos[i].arcname);
-//			xprintf(f, x_("\t\tPrimitiveArc %s_arc = PrimitiveArc.newInstance(this, \"%s\", %g, new Technology.ArcLayer []\n"),
-//				us_teceditconverttojava(tech.arcprotos[i].arcname), tech.arcprotos[i].arcname, (float)tech.arcprotos[i].arcwidth/WHOLE);
-//			xprintf(f, x_("\t\t{\n"));
-//			for(k=0; k<tech.arcprotos[i].laycount; k++)
-//			{
-//				xprintf(f, x_("\t\t\tnew Technology.ArcLayer(%s_lay, "),
-//					us_teclayer_iname[tech.arcprotos[i].list[k].lay]);
-//				if (tech.arcprotos[i].list[k].off == 0) xprintf(f, x_("0,")); else
-//					xprintf(f, x_("%g,"), (float)tech.arcprotos[i].list[k].off/WHOLE);
-//				if (tech.arcprotos[i].list[k].style == FILLED) xprintf(f, x_(" Poly.Type.FILLED)")); else
-//					xprintf(f, x_(" Poly.Type.CLOSED)"));
-//				if (k+1 < tech.arcprotos[i].laycount) xprintf(f, x_(","));
-//				xprintf(f, x_("\n"));
-//			}
-//			xprintf(f, x_("\t\t});\n"));
-//			for(j=0; us_tecarc_functions[j].name != 0; j++)
-//				if (us_tecarc_functions[j].value ==
-//					(INTBIG)((tech.arcprotos[i].initialbits&AFUNCTION)>>AFUNCTIONSH))
-//			{
-//				xprintf(f, x_("\t\t%s_arc.setFunction(PrimitiveArc.Function.%s);\n"),
-//					us_teceditconverttojava(tech.arcprotos[i].arcname), &us_tecarc_functions[j].constant[2]);
-//				break;
-//			}
-//			if (us_tecarc_functions[j].name == 0)
-//				xprintf(f, x_("\t\t%s_arc.setFunction(PrimitiveArc.Function.UNKNOWN);\n"), us_teceditconverttojava(tech.arcprotos[i].arcname));
-//			if ((tech.arcprotos[i].initialbits&CANWIPE) != 0)
-//				xprintf(f, x_("\t\t%s_arc.setWipable();\n"), us_teceditconverttojava(tech.arcprotos[i].arcname));
-//			if ((us_tecflags&HASARCWID) != 0 && us_tecarc_widoff[i] != 0)
-//			{
-//				xprintf(f, x_("\t\t%s_arc.setWidthOffset(%ld);\n"), us_teceditconverttojava(tech.arcprotos[i].arcname),
-//					(float)us_tecarc_widoff[i]/WHOLE);
-//			}
-//	
-//			if ((tech.arcprotos[i].initialbits&WANTFIXANG) != 0)
-//				xprintf(f, x_("\t\t%s_arc.setFactoryFixedAngle(true);\n"), us_teceditconverttojava(tech.arcprotos[i].arcname));
-//			if ((tech.arcprotos[i].initialbits&WANTNOEXTEND) != 0)
-//				xprintf(f, x_("\t\t%s_arc.setFactoryExtended(false);\n"), us_teceditconverttojava(tech.arcprotos[i].arcname));
-//			xprintf(f, x_("\t\t%s_arc.setFactoryAngleIncrement(%ld);\n"), us_teceditconverttojava(tech.arcprotos[i].arcname),
-//				(tech.arcprotos[i].initialbits&AANGLEINC)>>AANGLEINCSH);
-//	
-//		}
-	}
+		// print the header
+		buffWriter.println();
+		buffWriter.println("\t\t//******************** ARCS ********************");
 	
+		// now write the arcs
+		for(int i=0; i<aList.length; i++)
+		{
+			aList[i].javaName = us_teceditconverttojava(aList[i].name);
+			buffWriter.println("\n\t\t/** " + aList[i].name + " arc */");
+			buffWriter.println("\t\tPrimitiveArc " + aList[i].javaName + "_arc = PrimitiveArc.newInstance(this, \"" +
+				aList[i].name + "\", " + TextUtils.formatDouble(aList[i].maxWidth) + ", new Technology.ArcLayer []");
+			buffWriter.println("\t\t{");
+			for(int k=0; k<aList[i].arcDetails.length; k++)
+			{
+				buffWriter.print("\t\t\tnew Technology.ArcLayer(" + aList[i].arcDetails[k].layer.javaName + "_lay, ");
+				buffWriter.print(TextUtils.formatDouble(aList[i].arcDetails[k].width) + ",");
+				if (aList[i].arcDetails[k].style == Poly.Type.FILLED) buffWriter.print(" Poly.Type.FILLED)"); else
+					buffWriter.print(" Poly.Type.CLOSED)");
+				if (k+1 < aList[i].arcDetails.length) buffWriter.print(",");
+				buffWriter.println();
+			}
+			buffWriter.println("\t\t});");
+			buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFunction(ArcProto.Function." + aList[i].func.getConstantName() + ");");
+			if (aList[i].wipes)
+				buffWriter.println("\t\t" + aList[i].javaName + "_arc.setWipable();");
+			buffWriter.println("\t\t" + aList[i].javaName + "_arc.setWidthOffset(" +
+				TextUtils.formatDouble(aList[i].widthOffset) + ");");
+			if (aList[i].fixang)
+				buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFactoryFixedAngle(true);");
+			if (aList[i].noextend)
+				buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFactoryExtended(false);");
+			buffWriter.println("\t\t" + aList[i].javaName + "_arc.setFactoryAngleIncrement(" + aList[i].anginc + ");");
+			buffWriter.println("\t\tERC.getERCTool().setAntennaRatio(" + aList[i].javaName + ", " +
+				TextUtils.formatDouble(aList[i].antennaRatio) + ");");
+		}
+	}
+
+	/**
+	 * Method to make an abbreviation for a string.
+	 * @param pt the string to abbreviate.
+	 * @param upper true to make it an upper-case abbreviation.
+	 * @return the abbreviation for the string.
+	 */
+	static String makeabbrev(String pt, boolean upper)
+	{
+		// generate an abbreviated name for this prototype
+		StringBuffer infstr = new StringBuffer();
+		for(int i=0; i<pt.length(); )
+		{
+			char chr = pt.charAt(i);
+			if (Character.isLetterOrDigit(chr))
+			{
+				if (upper) infstr.append(Character.toUpperCase(chr)); else
+					infstr.append(Character.toLowerCase(chr));
+				while (Character.isLetterOrDigit(chr))
+				{
+					i++;
+					if (i >= pt.length()) break;
+					chr = pt.charAt(i);
+				}
+			}
+			while (!Character.isLetterOrDigit(chr))
+			{
+				i++;
+				if (i >= pt.length()) break;
+				chr = pt.charAt(i);
+			}
+		}
+		return infstr.toString();
+	}
+
 	/**
 	 * Method to dump the node information in technology "tech" to the stream in
 	 * "f".
 	 */
-	static void us_teceditdumpjavanodes(PrintStream buffWriter, Generate.NodeInfo [] nList)
+	static void us_teceditdumpjavanodes(PrintStream buffWriter, String techName, Generate.NodeInfo [] nList,
+		Generate.LayerInfo [] lList, Generate.GeneralInfo gi)
 	{
-//		REGISTER RULE *r;
-//		REGISTER INTBIG i, j, k, l, tot;
-//		CHAR *ab;
-//		REGISTER PCON *pc;
-//		REGISTER BOOLEAN yaxis;
-//		REGISTER TECH_POLYGON *plist;
-//		REGISTER TECH_NODES *nlist;
-//		REGISTER void *infstr;
-//	
-//		// make abbreviations for each node
-//		for(i=0; i<tech.nodeprotocount; i++)
-//		{
-//			(void)allocstring(&ab, makeabbrev(tech.nodeprotos[i].nodename, FALSE), el_tempcluster);
-//			tech.nodeprotos[i].creation = (NODEPROTO *)ab;
-//	
-//			// loop until the name is unique
-//			for(;;)
-//			{
-//				// see if a previously assigned abbreviation is the same
-//				for(j=0; j<i; j++)
-//					if (namesame(ab, (CHAR *)tech.nodeprotos[j].creation) == 0) break;
-//				if (j == i) break;
-//	
-//				// name conflicts: change it
-//				l = estrlen(ab);
-//				if (ab[l-1] >= '0' && ab[l-1] <= '8') ab[l-1]++; else
-//				{
-//					infstr = initinfstr();
-//					addstringtoinfstr(infstr, ab);
-//					addtoinfstr(infstr, '0');
-//					(void)reallocstring(&ab, returninfstr(infstr), el_tempcluster);
-//					tech.nodeprotos[i].creation = (NODEPROTO *)ab;
-//				}
-//			}
-//		}
-//	
-//		xprintf(f, x_("\n\t\t//******************** RECTANGLE DESCRIPTIONS ********************"));
-//		xprintf(f, x_("\n\n"));
-//	
-//		// print box information
-//		i = 1;
-//		for(r = us_tecedfirstrule; r != NORULE; r = r.nextrule)
-//		{
-//			if (!r.used) continue;
-//			r.rindex = i++;
-//			xprintf(f, x_("\t\tTechnology.TechPoint [] box_%ld = new Technology.TechPoint[] {\n"),
-//				r.rindex);
-//			for(j=0; j<r.count; j += 2)
-//			{
-//				if ((j%4) == 0)
-//				{
-//					yaxis = FALSE;
-//					xprintf(f, x_("\t\t\tnew Technology.TechPoint("));
-//				} else
-//				{
-//					yaxis = TRUE;
-//				}
-//				xprintf(f, x_("%s"), us_tecededgelabeljava(r.value[j], r.value[j+1], yaxis));
-//				if ((j%4) == 0) xprintf(f, x_(", ")); else
-//				{
-//					xprintf(f, x_(")"));
-//					if (j+1 < r.count) xprintf(f, x_(","));
-//					xprintf(f, x_("\n"));
-//				}
-//			}
-//			xprintf(f, x_("\t\t};\n"));
-//		}
-//	
-//		xprintf(f, x_("\n\t\t//******************** NODES ********************\n"));
-//	
-//		// print node information
-//		for(i=0; i<tech.nodeprotocount; i++)
-//		{
-//			// header comment
-//			nlist = tech.nodeprotos[i];
-//			ab = (CHAR *)nlist.creation;
-//			xprintf(f, x_("\n\t\t/** %s */\n"), nlist.nodename);
-//	
-//			xprintf(f, x_("\t\tPrimitiveNode %s_node = PrimitiveNode.newInstance(\"%s\", this, %g, %g, "),
-//				ab, nlist.nodename, (float)nlist.xsize/WHOLE, (float)nlist.ysize/WHOLE);
-//			if (us_tecnode_widoff[i*4] != 0 || us_tecnode_widoff[i*4+1] != 0 ||
-//				us_tecnode_widoff[i*4+2] != 0 || us_tecnode_widoff[i*4+3] != 0)
-//			{
-//				xprintf(f, x_("new SizeOffset(%g, %g, %g, %g),\n"),
-//					(float)us_tecnode_widoff[i*4] / WHOLE, (float)us_tecnode_widoff[i*4+1] / WHOLE,
-//					(float)us_tecnode_widoff[i*4+2] / WHOLE, (float)us_tecnode_widoff[i*4+3] / WHOLE);
-//			} else
-//			{
-//				xprintf(f, x_("null,\n"));
-//			}
-//	
-//			// print layers
-//			xprintf(f, x_("\t\t\tnew Technology.NodeLayer []\n"));
-//			xprintf(f, x_("\t\t\t{\n"));
-//			tot = nlist.layercount;
-//			for(j=0; j<tot; j++)
-//			{
-//				if (nlist.special == SERPTRANS) plist = &nlist.gra[j].basics; else
+		// make abbreviations for each node
+		HashSet abbrevs = new HashSet();
+		for(int i=0; i<nList.length; i++)
+		{
+			String ab = makeabbrev(nList[i].name, false);
+	
+			// loop until the name is unique
+			for(;;)
+			{
+				// see if a previously assigned abbreviation is the same
+				if (!abbrevs.contains(ab)) break;
+	
+				// name conflicts: change it
+				int l = ab.length() - 1;
+				char last = ab.charAt(l);
+				if (last >= '0' && last <= '8')
+				{
+					ab = ab.substring(0, l) + (last+1);
+				} else
+				{
+					ab += "0";
+				}
+			}
+			abbrevs.add(ab);
+			nList[i].abbrev = ab;
+		}
+		buffWriter.println();
+
+		// print node information
+		buffWriter.println("\t\t//******************** NODES ********************");
+		for(int i=0; i<nList.length; i++)
+		{
+			// header comment
+			String ab = nList[i].abbrev;
+			buffWriter.println();
+			buffWriter.println("\t\t/** " + nList[i].name + " */");
+	
+			buffWriter.print("\t\tPrimitiveNode " + ab + "_node = PrimitiveNode.newInstance(\"" +
+				nList[i].name + "\", this, " + TextUtils.formatDouble(nList[i].xSize) + ", " +
+				TextUtils.formatDouble(nList[i].ySize) + ", ");
+			if (nList[i].so == null) buffWriter.println("null,"); else
+			{
+				buffWriter.println("new SizeOffset(" + TextUtils.formatDouble(nList[i].so.getLowXOffset()) + ", " +
+					TextUtils.formatDouble(nList[i].so.getHighXOffset()) + ", " +
+					TextUtils.formatDouble(nList[i].so.getLowYOffset()) + ", " +
+					TextUtils.formatDouble(nList[i].so.getHighYOffset()) + "),");
+			}
+	
+			// print layers
+			buffWriter.println("\t\t\tnew Technology.NodeLayer []");
+			buffWriter.println("\t\t\t{");
+			int tot = nList[i].nodeLayers.length;
+			for(int j=0; j<tot; j++)
+			{
+//				if (nlist.special == PrimitiveNode.SERPTRANS) plist = &nlist.gra[j].basics; else
 //					plist = &nlist.layerlist[j];
-//				xprintf(f, x_("\t\t\t\tnew Technology.NodeLayer(%s_lay, %ld, Poly.Type."),
-//					us_teclayer_iname[plist.layernum], plist.portnum);
-//				switch (plist.style)
+				int portNum = nList[i].nodeLayers[j].portIndex;
+				buffWriter.print("\t\t\t\tnew Technology.NodeLayer(" +
+					nList[i].nodeLayers[j].layer.javaName + "_lay, " + portNum + ", Poly.Type." +
+					nList[i].nodeLayers[j].style.getConstantName() + ",");
+				switch (nList[i].nodeLayers[j].representation)
+				{
+					case Technology.NodeLayer.BOX:
+						buffWriter.print(" Technology.NodeLayer.BOX,");     break;
+					case Technology.NodeLayer.MINBOX:
+						buffWriter.print(" Technology.NodeLayer.MINBOX,");  break;
+					case Technology.NodeLayer.POINTS:
+						buffWriter.print(" Technology.NodeLayer.POINTS,");  break;
+					default:
+						buffWriter.print(" Technology.NodeLayer.????,");    break;
+				}
+				buffWriter.println(" new Technology.TechPoint [] {");
+				int totLayers = nList[i].nodeLayers[j].values.length;
+				for(int k=0; k<totLayers; k++)
+				{
+					Technology.TechPoint tp = nList[i].nodeLayers[j].values[k];
+					buffWriter.print("\t\t\t\t\tnew Technology.TechPoint(" +
+						us_tecededgelabeljava(tp, false) + ", " + us_tecededgelabeljava(tp, true) + ")");
+					if (k < totLayers-1) buffWriter.println(","); else
+						buffWriter.print("}");
+				}
+//				if (nlist.special == PrimitiveNode.SERPTRANS)
 //				{
-//					case FILLEDRECT:     xprintf(f, x_("FILLED,"));         break;
-//					case CLOSEDRECT:     xprintf(f, x_("CLOSED,"));         break;
-//					case CROSSED:        xprintf(f, x_("CROSSED,"));        break;
-//					case FILLED:         xprintf(f, x_("FILLED,"));         break;
-//					case CLOSED:         xprintf(f, x_("CLOSED,"));         break;
-//					case OPENED:         xprintf(f, x_("OPENED,"));         break;
-//					case OPENEDT1:       xprintf(f, x_("OPENEDT1,"));       break;
-//					case OPENEDT2:       xprintf(f, x_("OPENEDT2,"));       break;
-//					case OPENEDT3:       xprintf(f, x_("OPENEDT3,"));       break;
-//					case VECTORS:        xprintf(f, x_("VECTORS,"));        break;
-//					case CIRCLE:         xprintf(f, x_("CIRCLE,"));         break;
-//					case THICKCIRCLE:    xprintf(f, x_("THICKCIRCLE,"));    break;
-//					case DISC:           xprintf(f, x_("DISC,"));           break;
-//					case CIRCLEARC:      xprintf(f, x_("CIRCLEARC,"));      break;
-//					case THICKCIRCLEARC: xprintf(f, x_("THICKCIRCLEARC,")); break;
-//					case TEXTCENT:       xprintf(f, x_("TEXTCENT,"));       break;
-//					case TEXTTOP:        xprintf(f, x_("TEXTTOP,"));        break;
-//					case TEXTBOT:        xprintf(f, x_("TEXTBOT,"));        break;
-//					case TEXTLEFT:       xprintf(f, x_("TEXTLEFT,"));       break;
-//					case TEXTRIGHT:      xprintf(f, x_("TEXTRIGHT,"));      break;
-//					case TEXTTOPLEFT:    xprintf(f, x_("TEXTTOPLEFT,"));    break;
-//					case TEXTBOTLEFT:    xprintf(f, x_("TEXTBOTLEFT,"));    break;
-//					case TEXTTOPRIGHT:   xprintf(f, x_("TEXTTOPRIGHT,"));   break;
-//					case TEXTBOTRIGHT:   xprintf(f, x_("TEXTBOTRIGHT,"));   break;
-//					case TEXTBOX:        xprintf(f, x_("TEXTBOX,"));        break;
-//					default:             xprintf(f, x_("????,"));           break;
-//				}
-//				switch (plist.representation)
-//				{
-//					case BOX:    xprintf(f, x_(" Technology.NodeLayer.BOX,"));     break;
-//					case MINBOX: xprintf(f, x_(" Technology.NodeLayer.MINBOX,"));  break;
-//					case POINTS: xprintf(f, x_(" Technology.NodeLayer.POINTS,"));  break;
-//					default:     xprintf(f, x_(" Technology.NodeLayer.????,"));    break;
-//				}
-//				for(r = us_tecedfirstrule; r != NORULE; r = r.nextrule)
-//					if (r.value == plist.points) break;
-//				if (r != NORULE)
-//				{
-//					xprintf(f, x_(" box_%ld"), r.rindex);
-//				} else
-//					xprintf(f, x_(" box??"));
-//				if (nlist.special == SERPTRANS)
-//				{
-//					xprintf(f, x_(", %g, %g, %g, %g"),
+//					buffWriter.println(", %g, %g, %g, %g"),
 //						nlist.gra[j].lwidth / (float)WHOLE, nlist.gra[j].rwidth / (float)WHOLE,
 //						nlist.gra[j].extendb / (float)WHOLE, nlist.gra[j].extendt / (float)WHOLE);
 //				}
-//				xprintf(f, x_(")"));
-//				if (j+1 < tot) xprintf(f, x_(","));
-//				xprintf(f, x_("\n"));
-//			}
-//			xprintf(f, x_("\t\t\t});\n"));
-//	
-//			// print ports
-//			xprintf(f, x_("\t\t%s_node.addPrimitivePorts(new PrimitivePort[]\n"), ab);
-//			xprintf(f, x_("\t\t\t{\n"));
-//			for(j=0; j<nlist.portcount; j++)
-//			{
-//				xprintf(f, x_("	\t\t\tPrimitivePort.newInstance(this, %s_node, new ArcProto [] {"), ab);
-//				for(pc = us_tecedfirstpcon; pc != NOPCON; pc = pc.nextpcon)
-//					if (pc.connects == nlist.portlist[j].portarcs) break;
-//				if (pc != NOPCON)
-//				{
-//					for(l=0; l<pc.total; l++)
-//					{
-//						k = pc.connects[l+1];
-//						xprintf(f, x_("%s_arc"), us_teceditconverttojava(tech.arcprotos[k].arcname));
-//						if (l+1 < pc.total) xprintf(f, x_(", "));
-//					}
-//				}
-//				xprintf(f, x_("}, \"%s\", %ld,%ld, %ld, PortCharacteristic.UNKNOWN,\n"),
-//					nlist.portlist[j].protoname,
-//					(nlist.portlist[j].initialbits&PORTANGLE)>>PORTANGLESH,
-//					(nlist.portlist[j].initialbits&PORTARANGE)>>PORTARANGESH,
-//					(nlist.portlist[j].initialbits&PORTNET)>>PORTNETSH);
-//				xprintf(f, x_("\t\t\t\t\t%s, %s, %s, %s)"),
-//					us_tecededgelabeljava(nlist.portlist[j].lowxmul, nlist.portlist[j].lowxsum, FALSE),
-//					us_tecededgelabeljava(nlist.portlist[j].lowymul, nlist.portlist[j].lowysum, TRUE),
-//					us_tecededgelabeljava(nlist.portlist[j].highxmul, nlist.portlist[j].highxsum, FALSE),
-//					us_tecededgelabeljava(nlist.portlist[j].highymul, nlist.portlist[j].highysum, TRUE));
-//	
-//				if (j+1 < nlist.portcount) xprintf(f, x_(","));
-//				xprintf(f, x_("\n"));
-//			}
-//			xprintf(f, x_("\t\t\t});\n"));
-//	
-//			// print the node information
-//			j = (nlist.initialbits&NFUNCTION)>>NFUNCTIONSH;
-//			if (j < 0 || j >= MAXNODEFUNCTION) j = 0;
-//			xprintf(f, x_("\t\t%s_node.setFunction(PrimitiveNode.Function.%s);\n"), ab, &nodefunctionconstantname(j)[2]);
-//	
-//			if ((nlist.initialbits&WIPEON1OR2) != 0)
-//				xprintf(f, x_("\t\t%s_node.setWipeOn1or2();\n"), ab);
-//			if ((nlist.initialbits&HOLDSTRACE) != 0)
-//				xprintf(f, x_("\t\t%s_node.setHoldsOutline();\n"), ab);
-//			if ((nlist.initialbits&NSQUARE) != 0)
-//				xprintf(f, x_("\t\t%s_node.setSquare();\n"), ab);
-//			if ((nlist.initialbits&ARCSWIPE) != 0)
-//				xprintf(f, x_("\t\t%s_node.setArcsWipe();\n"), ab);
-//			if ((nlist.initialbits&ARCSHRINK) != 0)
-//				xprintf(f, x_("\t\t%s_node.setArcsShrink();\n"), ab);
-//			if ((nlist.initialbits&NODESHRINK) != 0)
-//				xprintf(f, x_("\t\t%s_node.setCanShrink();\n"), ab);
-//			if ((nlist.initialbits&LOCKEDPRIM) != 0)
-//				xprintf(f, x_("\t\t%s_node.setLockedPrim();\n"), ab);
-//			if (nlist.special != 0)
-//			{
-//				switch (nlist.special)
-//				{
-//					case SERPTRANS:
-//						xprintf(f, x_("\t\t%s_node.setSpecialType(PrimitiveNode.SERPTRANS);\n"), ab);
-//						xprintf(f, x_("\t\t%s_node.setSpecialValues(new double [] {%g, %g, %g, %g, %g, %g});\n"),
-//							ab, (float)nlist.f1/WHOLE, (float)nlist.f2/WHOLE, (float)nlist.f3/WHOLE,
-//								(float)nlist.f4/WHOLE, (float)nlist.f5/WHOLE, (float)nlist.f6/WHOLE);
-//						break;
-//					case POLYGONAL:
-//						xprintf(f, x_("\t\t%s_node.setSpecialType(PrimitiveNode.POLYGONAL);\n"), ab);
-//						break;
-//					case MULTICUT:
-//						xprintf(f, x_("\t\t%s_node.setSpecialType(PrimitiveNode.MULTICUT);\n"), ab);
-//						xprintf(f, x_("\t\t%s_node.setSpecialValues(new double [] {%g, %g, %g, %g, %g, %g});\n"),
-//							ab, (float)nlist.f1/WHOLE, (float)nlist.f2/WHOLE,
-//								(float)nlist.f3/WHOLE, (float)nlist.f3/WHOLE,
-//								(float)nlist.f4/WHOLE, (float)nlist.f4/WHOLE);
-//						break;
-//				}
-//			}
-//		}
-//	
-//		// write the pure-layer associations
-//		xprintf(f, x_("\n\t\t// The pure layer nodes\n"));
-//		for(i=0; i<tech.layercount; i++)
-//		{
-//			if ((us_teclayer_function[i]&LFPSEUDO) != 0) continue;
-//	
-//			// find the pure layer node
-//			for(j=0; j<tech.nodeprotocount; j++)
-//			{
-//				nlist = tech.nodeprotos[j];
-//				if (((nlist.initialbits&NFUNCTION)>>NFUNCTIONSH) != NPNODE) continue;
-//				plist = &nlist.layerlist[0];
-//				if (plist.layernum == i) break;
-//			}
-//			if (j >= tech.nodeprotocount) continue;
-//			ab = (CHAR *)tech.nodeprotos[j].creation;
-//			xprintf(f, x_("\t\t%s_lay.setPureLayerNode("), us_teclayer_iname[i]);
-//			xprintf(f, x_("%s_node"), ab);
-//			xprintf(f, x_(");\t\t// %s\n"), us_teclayer_names[i]);
-//		}
-//	
-//		xprintf(f, x_("\t};\n"));
-//	
-//	#if 0
-//		// print grab point informaton if it exists
-//		if ((us_tecflags&HASGRAB) != 0 && us_tecnode_grabcount > 0)
-//		{
-//			xprintf(f, x_("\nstatic INTBIG %s_centergrab[] = {\n"), us_tecedmakesymbol(techname));
-//			for(i=0; i<us_tecnode_grabcount; i += 3)
-//			{
-//				ab = (CHAR *)tech.nodeprotos[us_tecnode_grab[i]-1].creation;
-//				xprintf(f, x_("\tN%s, %ld, %ld"), us_tecedmakeupper(ab), us_tecnode_grab[i+1],
-//					us_tecnode_grab[i+2]);
-//				if (i != us_tecnode_grabcount-3) xprintf(f, x_(",\n"));
-//			}
-//			xprintf(f, x_("\n};\n"));
-//		}
-//	
-//		// print minimum node size informaton if it exists
-//		if ((us_tecflags&HASMINNODE) != 0)
-//		{
-//			xprintf(f, x_("\nstatic INTBIG %s_node_minsize[NODEPROTOCOUNT*2] = {\n"), us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.nodeprotocount; i++)
-//			{
-//				if (us_tecdrc_rules.minnodesize[i*2] < 0) ab = x_("XX"); else
-//					ab = us_tecedmakefract(us_tecdrc_rules.minnodesize[i*2]);
-//				xprintf(f, x_("\t%s, "), ab);
-//				if (us_tecdrc_rules.minnodesize[i*2+1] < 0) ab = x_("XX"); else
-//					ab = us_tecedmakefract(us_tecdrc_rules.minnodesize[i*2+1]);
-//				xprintf(f, x_("%s"), ab);
-//				if (i == tech.nodeprotocount-1) ab = x_(""); else ab = x_(",");
-//				xprintf(f, x_("%s\t\t/* %s */\n"), ab, tech.nodeprotos[i].nodename);
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//		if ((us_tecflags&HASMINNODER) != 0)
-//		{
-//			xprintf(f, x_("\nstatic char *%s_node_minsize_rule[NODEPROTOCOUNT] = {\n"), us_tecedmakesymbol(techname));
-//			for(i=0; i<tech.nodeprotocount; i++)
-//			{
-//				if (i == tech.nodeprotocount-1) ab = x_(""); else ab = x_(",");
-//				xprintf(f, x_("\tx_(\"%s\")%s\t\t/* %s */\n"), us_tecdrc_rules.minnodesizeR[i], ab,
-//					tech.nodeprotos[i].nodename);
-//			}
-//			xprintf(f, x_("};\n"));
-//		}
-//	#endif
-//	
+				buffWriter.print(")");
+				if (j+1 < tot) buffWriter.print(",");
+				buffWriter.println();
+			}
+			buffWriter.println("\t\t\t});");
+	
+			// print ports
+			buffWriter.println("\t\t" + ab + "_node.addPrimitivePorts(new PrimitivePort[]");
+			buffWriter.println("\t\t\t{");
+			int numPorts = nList[i].nodePortDetails.length;
+			for(int j=0; j<numPorts; j++)
+			{
+				Generate.NodePortDetails portDetail = nList[i].nodePortDetails[j];
+				buffWriter.print("\t\t\t\tPrimitivePort.newInstance(this, " + ab + "_node, new ArcProto [] {");
+				Generate.ArcInfo [] conns = portDetail.connections;
+				for(int l=0; l<conns.length; l++)
+				{
+					buffWriter.print(conns[l].javaName + "_arc");
+					if (l+1 < conns.length) buffWriter.print(", ");
+				}
+				buffWriter.println("}, \"" + portDetail.name + "\", " + portDetail.angle + "," +
+					portDetail.range + ", " + portDetail.netIndex + ", PortCharacteristic.UNKNOWN,");
+				buffWriter.print("\t\t\t\t\t" + us_tecededgelabeljava(portDetail.values[0], false) + ", " +
+					us_tecededgelabeljava(portDetail.values[0], true) + ", " +
+					us_tecededgelabeljava(portDetail.values[1], false) + ", " +
+					us_tecededgelabeljava(portDetail.values[1], true) + ")");
+	
+				if (j+1 < numPorts) buffWriter.print(",");
+				buffWriter.println();
+			}
+			buffWriter.println("\t\t\t});");
+	
+			// print the node information
+			PrimitiveNode.Function fun = nList[i].func;
+			buffWriter.println("\t\t" + ab + "_node.setFunction(PrimitiveNode.Function." + fun.getConstantName() + ");");
+	
+			if (nList[i].wipes) buffWriter.println("\t\t" + ab + "_node.setWipeOn1or2();");
+//			if ((nlist.initialbits&HOLDSTRACE) != 0) buffWriter.println("\t\t" + ab + "_node.setHoldsOutline();");
+			if (nList[i].square) buffWriter.println("\t\t" + ab + "_node.setSquare();");
+//			if ((nlist.initialbits&ARCSWIPE) != 0) buffWriter.println("\t\t" + ab + "_node.setArcsWipe();");
+//			if ((nlist.initialbits&ARCSHRINK) != 0) buffWriter.println("\t\t" + ab + "_node.setArcsShrink();");
+//			if ((nlist.initialbits&NODESHRINK) != 0) buffWriter.println("\t\t" + ab + "_node.setCanShrink();");
+			if (nList[i].lockable) buffWriter.println("\t\t" + ab + "_node.setLockedPrim();");
+			if (nList[i].specialType != 0)
+			{
+				switch (nList[i].specialType)
+				{
+					case PrimitiveNode.SERPTRANS:
+						buffWriter.println("\t\t" + ab + "_node.setSpecialType(PrimitiveNode.SERPTRANS);");
+						buffWriter.println("\t\t" + ab + "_node.setSpecialValues(new double [] {" +
+							nList[i].specialValues[0] + ", " + nList[i].specialValues[1] + ", " +
+							nList[i].specialValues[2] + ", " + nList[i].specialValues[3] + ", " +
+							nList[i].specialValues[4] + ", " + nList[i].specialValues[5] + "});");
+						break;
+					case PrimitiveNode.POLYGONAL:
+						buffWriter.println("\t\t" + ab + "_node.setSpecialType(PrimitiveNode.POLYGONAL);");
+						break;
+					case PrimitiveNode.MULTICUT:
+						buffWriter.println("\t\t" + ab + "_node.setSpecialType(PrimitiveNode.MULTICUT);");
+						buffWriter.println("\t\t" + ab + "_node.setSpecialValues(new double [] {" +
+							nList[i].specialValues[0] + ", " + nList[i].specialValues[1] + ", " +
+							nList[i].specialValues[2] + ", " + nList[i].specialValues[3] + ", " +
+							nList[i].specialValues[4] + ", " + nList[i].specialValues[5] + "});");
+						break;
+				}
+			}
+		}
+	
+		// write the pure-layer associations
+		buffWriter.println();
+		buffWriter.println("\t\t// The pure layer nodes");
+		for(int i=0; i<lList.length; i++)
+		{
+			if ((lList[i].funExtra&Layer.Function.PSEUDO) != 0) continue;
+	
+			// find the pure layer node
+			for(int j=0; j<nList.length; j++)
+			{
+				if (nList[j].func != PrimitiveNode.Function.NODE) continue;
+				Generate.NodeLayerDetails nld = nList[j].nodeLayers[0];
+				if (nld.layer == lList[i])
+				{
+					buffWriter.println("\t\t" + lList[i].name + "_lay.setPureLayerNode(" +
+						nList[j].abbrev + "_node);\t\t// " + lList[i].name);
+					break;
+				}
+			}
+		}
+	
+		buffWriter.println("\t};");
+
 //		// write method to reset rules
 //		if ((us_tecflags&(HASCONDRC|HASUNCONDRC)) != 0)
 //		{
 //			CHAR *conword, *unconword;
 //			if ((us_tecflags&HASCONDRC) != 0) conword = "conDist"; else conword = "null";
 //			if ((us_tecflags&HASUNCONDRC) != 0) unconword = "unConDist"; else unconword = "null";
-//			xprintf(f, x_("\tpublic DRCRules getFactoryDesignRules()\n"));
-//			xprintf(f, x_("\t{\n"));
-//			xprintf(f, x_("\t\treturn MOSRules.makeSimpleRules(this, %s, %s);\n"), conword, unconword);
-//			xprintf(f, x_("\t}\n"));
-//		}
-//	
-//		// clean up
-//		for(i=0; i<tech.nodeprotocount; i++)
-//		{
-//			efree((CHAR *)tech.nodeprotos[i].creation);
-//			tech.nodeprotos[i].creation = NONODEPROTO;
+//			buffWriter.println("\tpublic DRCRules getFactoryDesignRules()\n"));
+//			buffWriter.println("\t{\n"));
+//			buffWriter.println("\t\treturn MOSRules.makeSimpleRules(this, %s, %s);\n"), conword, unconword);
+//			buffWriter.println("\t}\n"));
 //		}
 	}
 	
-//	/*
-//	 * Routine to remove illegal Java charcters from "string".
-//	 */
-//	CHAR *us_teceditconverttojava(CHAR *string)
-//	{
-//		REGISTER void *infstr;
-//		REGISTER CHAR *pt;
-//	
-//		infstr = initinfstr();
-//		for(pt = string; *pt != 0; pt++)
-//		{
-//			if (*pt == '-') addtoinfstr(infstr, '_'); else
-//				addtoinfstr(infstr, *pt);
-//		}
-//		return(returninfstr(infstr));
-//	}
-//	
-//	/*
-//	 * routine to convert the multiplication and addition factors in "mul" and
-//	 * "add" into proper constant names.  The "yaxis" is false for X and 1 for Y
-//	 */
-//	CHAR *us_tecededgelabeljava(INTBIG mul, INTBIG add, BOOLEAN yaxis)
-//	{
-//		REGISTER INTBIG amt;
-//		REGISTER void *infstr;
-//	
-//		infstr = initinfstr();
-//	
-//		// handle constant distance from center
-//		if (mul == 0)
-//		{
-//			if (yaxis) addstringtoinfstr(infstr, "EdgeV."); else
-//				addstringtoinfstr(infstr, "EdgeH.");
-//			if (add == 0)
-//			{
-//				addstringtoinfstr(infstr, x_("makeCenter()"));
-//			} else
-//			{
-//				formatinfstr(infstr, x_("fromCenter(%g)"), (float)add/WHOLE);
-//			}
-//			return(returninfstr(infstr));
-//		}
-//	
-//		// handle constant distance from edge
-//		if ((mul == H0 || mul == -H0))
-//		{
-//			if (yaxis) addstringtoinfstr(infstr, "EdgeV."); else
-//				addstringtoinfstr(infstr, "EdgeH.");
-//			amt = abs(add);
-//			if (!yaxis)
-//			{
-//				if (mul < 0)
-//				{
-//					if (add == 0) addstringtoinfstr(infstr, x_("makeLeftEdge()")); else
-//						formatinfstr(infstr, x_("fromLeft(%g)"), (float)amt/WHOLE);
-//				} else
-//				{
-//					if (add == 0) addstringtoinfstr(infstr, x_("makeRightEdge()")); else
-//						formatinfstr(infstr, x_("fromRight(%g)"), (float)amt/WHOLE);
-//				}
-//			} else
-//			{
-//				if (mul < 0)
-//				{
-//					if (add == 0) addstringtoinfstr(infstr, x_("makeBottomEdge()")); else
-//						formatinfstr(infstr, x_("fromBottom(%g)"), (float)amt/WHOLE);
-//				} else
-//				{
-//					if (add == 0) addstringtoinfstr(infstr, x_("makeTopEdge()")); else
-//						formatinfstr(infstr, x_("fromTop(%g)"), (float)amt/WHOLE);
-//				}
-//			}
-//			return(returninfstr(infstr));
-//		}
-//	
-//		// generate two-value description
-//		if (!yaxis)
-//			formatinfstr(infstr, x_("new EdgeH(%g, %g)"), (float)mul/WHOLE, (float)add/WHOLE); else
-//			formatinfstr(infstr, x_("new EdgeV(%g, %g)"), (float)mul/WHOLE, (float)add/WHOLE);
-//		return(returninfstr(infstr));
-//	}
-//	
-//	/****************************** SUPPORT FOR SOURCE-CODE GENERATION ******************************/
-//	
-//	/*
-//	 * Routine to return a string representation of the floating point value "v".
-//	 * The letter "f" is added to the end if appropriate.
-//	 */
-//	CHAR *us_tecedmakefloatstring(float v)
-//	{
-//		static CHAR retstr[50];
-//		REGISTER CHAR *pt;
-//	
-//		esnprintf(retstr, 50, x_("%g"), v);
-//		if (estrcmp(retstr, x_("0")) == 0) return(retstr);
-//		for(pt = retstr; *pt != 0; pt++)
-//			if (*pt == '.') break;
-//		if (*pt == 0) estrcat(retstr, x_(".0"));
-//		estrcat(retstr, x_("f"));
-//		return(retstr);
-//	}
-//	
-//	/*
-//	 * routine to convert the fractional value "amt" to a technology constant.
-//	 * The presumption is that quarter values exist from K0 to K10, that
-//	 * half values exist up to K20, that whole values exist up to K30, and
-//	 * that other values are not necessarily defined in "tech.h".
-//	 */
-//	CHAR *us_tecedmakefract(INTBIG amt)
-//	{
-//		static CHAR line[21];
-//		REGISTER INTBIG whole;
-//		REGISTER CHAR *pt;
-//	
-//		pt = line;
-//		if (amt < 0)
-//		{
-//			*pt++ = '-';
-//			amt = -amt;
-//		}
-//		whole = amt/WHOLE;
-//		switch (amt%WHOLE)
-//		{
-//			case 0:
-//				if (whole <= 30) (void)esnprintf(pt, 20, x_("K%ld"), whole); else
-//					(void)esnprintf(pt, 20, x_("%ld"), amt);
-//				break;
-//			case Q0:
-//				if (whole <= 10) (void)esnprintf(pt, 20, x_("Q%ld"), whole); else
-//					(void)esnprintf(pt, 20, x_("%ld"), amt);
-//				break;
-//			case H0:
-//				if (whole <= 20) (void)esnprintf(pt, 20, x_("H%ld"), whole); else
-//					(void)esnprintf(pt, 20, x_("%ld"), amt);
-//				break;
-//			case T0:
-//				if (whole <= 10) (void)esnprintf(pt, 20, x_("T%ld"), whole); else
-//					(void)esnprintf(pt, 20, x_("%ld"), amt);
-//				break;
-//			default:
-//				(void)esnprintf(pt, 20, x_("%ld"), amt);
-//				break;
-//		}
-//		return(line);
-//	}
-//	
-//	/*
-//	 * routine to convert all characters in string "str" to upper case and to
-//	 * change any nonalphanumeric characters to a "_"
-//	 */
-//	CHAR *us_tecedmakeupper(CHAR *str)
-//	{
-//		REGISTER CHAR ch;
-//		REGISTER void *infstr;
-//	
-//		infstr = initinfstr();
-//		while (*str != 0)
-//		{
-//			ch = *str++;
-//			if (islower(ch)) ch = toupper(ch);
-//			if (!isalnum(ch)) ch = '_';
-//			addtoinfstr(infstr, ch);
-//		}
-//		return(returninfstr(infstr));
-//	}
-//	
-//	/*
-//	 * routine to change any nonalphanumeric characters in string "str" to a "_"
-//	 */
-//	CHAR *us_tecedmakesymbol(CHAR *str)
-//	{
-//		REGISTER CHAR ch;
-//		REGISTER void *infstr;
-//	
-//		infstr = initinfstr();
-//		while (*str != 0)
-//		{
-//			ch = *str++;
-//			if (!isalnum(ch)) ch = '_';
-//			addtoinfstr(infstr, ch);
-//		}
-//		return(returninfstr(infstr));
-//	}
-//	
-//	/*
-//	 * Routine to find the parameter value in a string that has been stored as a message
-//	 * on a node.  These parameters always have the form "name: value".  This returns a pointer
-//	 * to the "value" part.
-//	 */
-//	CHAR *us_teceditgetparameter(VARIABLE *var)
-//	{
-//		REGISTER CHAR *str, *orig;
-//	
-//		orig = str = (CHAR *)var.addr;
-//		while (*str != 0 && *str != ':') str++;
-//		if (*str == 0) return(orig);
-//		*str++;
-//		while (*str == ' ') str++;
-//		return(str);
-//	}
-	
-	static void us_tecedpointout(NodeInst ni, Cell np)
+	/**
+	 * Method to remove illegal Java charcters from "string".
+	 */
+	static String us_teceditconverttojava(String string)
 	{
-//		REGISTER WINDOWPART *w;
-//		CHAR *newpar[2];
-//	
-//		for(w = el_topwindowpart; w != NOWINDOWPART; w = w.nextwindowpart)
-//			if (w.curnodeproto == np) break;
-//		if (w == NOWINDOWPART)
-//		{
-//			newpar[0] = describenodeproto(np);
-//			us_editcell(1, newpar);
-//		}
-//		if (ni != NONODEINST)
-//		{
-//			us_clearhighlightcount();
-//			(void)asktool(us_tool, x_("show-object"), (INTBIG)ni.geom);
-//		}
+		StringBuffer infstr = new StringBuffer();
+		for(int i=0; i<string.length(); i++)
+		{
+			char chr = string.charAt(i);
+			if (i == 0) chr = Character.toLowerCase(chr);
+			if (chr == '-') infstr.append('_'); else
+				infstr.append(chr);
+		}
+		return infstr.toString();
+	}
+	
+	/**
+	 * Method to convert the multiplication and addition factors in "mul" and
+	 * "add" into proper constant names.  The "yaxis" is false for X and 1 for Y
+	 */
+	static String us_tecededgelabeljava(Technology.TechPoint pt, boolean yaxis)
+	{
+		double mul, add;
+		if (yaxis)
+		{
+			add = pt.getY().getAdder();
+			mul = pt.getY().getMultiplier();
+		} else
+		{
+			add = pt.getX().getAdder();
+			mul = pt.getX().getMultiplier();
+		}
+		StringBuffer infstr = new StringBuffer();
+	
+		// handle constant distance from center
+		if (mul == 0)
+		{
+			if (yaxis) infstr.append("EdgeV."); else
+				infstr.append("EdgeH.");
+			if (add == 0)
+			{
+				infstr.append("makeCenter()");
+			} else
+			{
+				infstr.append("fromCenter(" + TextUtils.formatDouble(add) + ")");
+			}
+			return infstr.toString();
+		}
+	
+		// handle constant distance from edge
+		if (mul == 0.5 || mul == -0.5)
+		{
+			if (yaxis) infstr.append("EdgeV."); else
+				infstr.append("EdgeH.");
+			double amt = Math.abs(add);
+			if (!yaxis)
+			{
+				if (mul < 0)
+				{
+					if (add == 0) infstr.append("makeLeftEdge()"); else
+						infstr.append("fromLeft(" + TextUtils.formatDouble(amt) + ")");
+				} else
+				{
+					if (add == 0) infstr.append("makeRightEdge()"); else
+						infstr.append("fromRight(" + TextUtils.formatDouble(amt) + ")");
+				}
+			} else
+			{
+				if (mul < 0)
+				{
+					if (add == 0) infstr.append("makeBottomEdge()"); else
+						infstr.append("fromBottom(" + TextUtils.formatDouble(amt) + ")");
+				} else
+				{
+					if (add == 0) infstr.append("makeTopEdge()"); else
+						infstr.append("fromTop(" + TextUtils.formatDouble(amt) + ")");
+				}
+			}
+			return infstr.toString();
+		}
+	
+		// generate two-value description
+		if (!yaxis)
+			infstr.append("new EdgeH(" + TextUtils.formatDouble(mul) + ", " + TextUtils.formatDouble(add) + ")"); else
+			infstr.append("new EdgeV(" + TextUtils.formatDouble(mul) + ", " + TextUtils.formatDouble(add) + ")");
+		return infstr.toString();
+	}
+	
+	/****************************** SUPPORT FOR SOURCE-CODE GENERATION ******************************/
+
+	static void us_tecedpointout(NodeInst ni, Cell cell)
+	{
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf == null) return;
+		if (!(wf.getContent() instanceof EditWindow)) return;
+		EditWindow wnd = (EditWindow)wf.getContent();
+		wf.setCellWindow(cell);
+		if (ni != null)
+		{
+			Highlighter highligher = wnd.getHighlighter();
+			highligher.clear();
+			highligher.addElectricObject(ni, cell);
+			highligher.finished();
+		}
 	}
 	
 	static String us_tecedsamplename(NodeProto layernp)

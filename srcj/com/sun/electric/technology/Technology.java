@@ -563,6 +563,7 @@ public class Technology implements Comparable
 		MoCMOS.tech.setup();
 		MoCMOSOld.tech.setup();
 		MoCMOSSub.tech.setup();
+//com.sun.electric.technology.technologies.mocmosd.tech.setup();
 		nMOS.tech.setup();
 		PCB.tech.setup();
 		RCMOS.tech.setup();
