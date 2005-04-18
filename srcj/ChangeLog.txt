@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+BUG: (04/18/05, DN) List Export on Network command causes StackOverflowError (Bug #263).
+FIX: In "ToolMenu.findPortsUp" don't add "listedExports" HashSet to itself.
+
 IMP: (04/15/05, GVG) GDS ouput still writing text associated to exports even if WriteExportPins is off.
 
 BUG: (04/15/05, GVG) Autoadvance flag in IRSIM tab wronlgy set based on "resimulate each" flag,

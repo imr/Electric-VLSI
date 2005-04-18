@@ -796,7 +796,7 @@ public class ToolMenu {
             System.out.println("Network '" + net.describe() + "':");
 
             // find all exports on network "net"
-            HashSet listedExports = new HashSet();
+            HashSet/*<Export>*/ listedExports = new HashSet/*<Export>*/();
             System.out.println("  Going up the hierarchy from cell " + cell.describe() + ":");
             if (findPortsUp(netlist, net, cell, listedExports)) break;
             System.out.println("  Going down the hierarchy from cell " + cell.describe() + ":");
@@ -838,7 +838,7 @@ public class ToolMenu {
      * ports connected to net "net" in cell "cell", and recurse up the hierarchy.
      * @return true if an error occurred.
      */
-    private static boolean findPortsUp(Netlist netlist, Network net, Cell cell, HashSet listedExports)
+    private static boolean findPortsUp(Netlist netlist, Network net, Cell cell, HashSet/*<Export>*/ listedExports)
     {
         // look at every node in the cell
         for(Iterator it = cell.getPorts(); it.hasNext(); )
@@ -850,7 +850,8 @@ public class ToolMenu {
                 Network ppNet = netlist.getNetwork(pp, i);
                 if (ppNet != net) continue;
                 if (listedExports.contains(pp)) continue;
-                listedExports.add(listedExports);
+                listedExports.add(pp);
+//                listedExports.add(listedExports);
                 System.out.println("    Export " + pp.getName() + " in cell " + cell.describe());
 
                 // code to find the proper instance
@@ -887,7 +888,7 @@ public class ToolMenu {
      * ports connected to net "net" in cell "cell", and recurse down the hierarchy
      * @return true on error.
      */
-    private static boolean findPortsDown(Netlist netlist, Network net, Cell cell, HashSet listedExports)
+    private static boolean findPortsDown(Netlist netlist, Network net, Cell cell, HashSet/*<Export>*/ listedExports)
     {
         // look at every node in the cell
         for(Iterator it = netlist.getNodables(); it.hasNext(); )
