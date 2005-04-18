@@ -1227,7 +1227,7 @@ public class NewRStep extends Eval
 		System.out.print(" [event " + theSim.curNode.nName + "->" +
 		Sim.vChars.charAt(theSim.curNode.nPot) + " @ " + Sim.deltaToNS(theSim.curDelta) + "] ");
 
-		System.out.print(queued ? ("causes " + (theSim.withDriven ? "" : "CS") + "transition for\"") : "evaluates");
+		System.out.print(queued ? ("causes " + (theSim.withDriven ? "" : "CS") + "transition for") : "evaluates");
 
 		System.out.print(" " + nd.nName + ": " + Sim.vChars.charAt(nd.nPot) + " -> " + Sim.vChars.charAt(r.finall));
 		System.out.println(" (tau=" + Sim.deltaToNS(dtau) + "ns, delay=" + Sim.deltaToNS(delay) + "ns)");

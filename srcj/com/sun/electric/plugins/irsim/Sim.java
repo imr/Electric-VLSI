@@ -589,13 +589,12 @@ public class Sim
 	/**
 	 * Convert ns to deltas.
 	 */
-	static long nsToDelta(double d) { return Math.round(d * 100); }
+	static long nsToDelta(double d) { return (long)(d * 100); }
 
 	/**
 	 * Convert ps to deltas.
 	 */
-	static long psToDelta(double d) { return Math.round(d * 0.1); }
-
+	static long psToDelta(double d) { return (long)(d * 0.1); }
 	/**
 	 * Convert ps to ns
 	 */
