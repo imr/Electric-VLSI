@@ -1252,11 +1252,11 @@ public class NewRStep extends Eval
 
 	private void printTau(Sim.Node n, Sim.Thev r, int level)
 	{
-		System.out.print(" ....compute_tau(" + n.nName + ")");
-		System.out.print("  {Rmin=" + rToAscii(r.rMin) + "  Rdom=" + rToAscii(r.rDom) + "  Rmax=" + rToAscii(r.rMax) + "}");
+		System.out.println(" ...............compute_tau(" + n.nName + ")");
+		System.out.print  ("                {Rmin=" + rToAscii(r.rMin) + "  Rdom=" + rToAscii(r.rDom) + "  Rmax=" + rToAscii(r.rMax) + "}");
 		System.out.println(" {Ca=" + r.cA + "  Cd=" + r.cD + "}");
 
-		System.out.print("     tauA=" + Sim.psToNS(r.rDom * r.cA) + "  tauD=" + Sim.psToNS(r.rDom * r.cD) + " ns, RTin=");
+		System.out.print  ("                tauA=" + Sim.psToNS(r.rDom * r.cA) + "  tauD=" + Sim.psToNS(r.rDom * r.cD) + " ns, RTin=");
 		if ((r.flags & T_INT) != 0)
 			System.out.println(Sim.deltaToNS((long)r.tIn) + " ohm*ns");
 		else

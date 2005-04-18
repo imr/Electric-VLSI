@@ -152,11 +152,11 @@ public class Eval
 	{
 		if ((n.nFlags & Sim.INPUT) != 0)
 		{
-			System.out.println(" @ " + Sim.deltaToNS(e.nTime) + "ns input " + n.nName + ": . " + Sim.vChars.charAt(e.eval));
+			System.out.println(" @ " + Sim.deltaToNS(e.nTime) + "ns input " + n.nName + ": -> " + Sim.vChars.charAt(e.eval));
 			return;
 		}
 		System.out.print(" @ " + Sim.deltaToNS(e.nTime) + "ns " + n.nName + ": " +
-			Sim.vChars.charAt(n.nPot) + " . " + Sim.vChars.charAt(e.eval));
+			Sim.vChars.charAt(n.nPot) + " -> " + Sim.vChars.charAt(e.eval));
 
 		int tmp = (theSim.irDebug & Sim.DEBUG_EV) != 0 ? (Sim.REPORT_TAU | Sim.REPORT_DELAY) : theSim.tReport;
 		switch (tmp & (Sim.REPORT_TAU | Sim.REPORT_DELAY))
@@ -672,7 +672,7 @@ if (DEBUG) System.out.println("Adding of event at time "+eTime + " in requeueEve
 			{
 				if (!(evhdr instanceof Event)) continue;
 				Event ev = (Event)evhdr;
-				System.out.println("   Event at time " + Sim.deltaToNS(ev.nTime) + " caused by node " + ev.cause.nName);
+				if (DEBUG) System.out.println("   Event at time " + Sim.deltaToNS(ev.nTime) + " caused by node " + ev.cause.nName);
 			}
 		}
 	}
