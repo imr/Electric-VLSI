@@ -249,6 +249,7 @@ public abstract class Topology extends Output
 		protected CellAggregateSignal getAggregateSignal() { return aggregateSignal; }
 		protected boolean isDescending() { return descending; }
 		protected boolean isGlobal() { return globalSignal != null; }
+		protected Global getGlobal() { return globalSignal; }
 		protected boolean isPower() { return power; }
 		protected boolean isGround() { return ground; }
 		protected boolean isExported() { return pp != null; }

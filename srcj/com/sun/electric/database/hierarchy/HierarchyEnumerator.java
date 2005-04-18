@@ -122,12 +122,10 @@ public final class HierarchyEnumerator {
 	// --------------------- private data ------------------------------
 	private Visitor visitor;
 	private boolean caching;
-	//private int nextNetID = 0; // first unassigned net number
 	private int cellCnt = 0; // For statistics
 	private int instCnt = 0; // For statistics
 
 	private Global.Set rootGlobals;
-	private int[] globalToNetID;
 	private List netIdToNetDesc = new ArrayList();
 	// All netIDs between 0 and largestGlobalNetID are global nets
 	private int largestGlobalNetID = -1;
@@ -146,19 +144,23 @@ public final class HierarchyEnumerator {
 		int numNets = netlist.getNumNetworks();
 		int[] netNdxToNetID = new int[numNets];
 		Arrays.fill(netNdxToNetID, -1);
-		Global.Set globals = netlist.getGlobals();
-		for (int i = 0; i < globals.size(); i++) {
-			Global global = globals.get(i);
-			int netIndex = netlist.getNetwork(global).getNetIndex();
-			int globalIndex = rootGlobals.indexOf(global);
-			netNdxToNetID[netIndex] = globalToNetID[globalIndex];
-		}
-		for (int i = 0; i < portNdxToNetIDs.length; i++) {
-			Export export = (Export) cell.getPort(i);
-			int[] ids = portNdxToNetIDs[i];
-			for (int j=0; j<ids.length; j++) {
-				int netIndex = netlist.getNetwork(export, j).getNetIndex();
-				netNdxToNetID[netIndex] = ids[j];
+		if (portNdxToNetIDs != null) {
+			assert portNdxToNetIDs.length == cell.getNumPorts() + 1;
+			Global.Set globals = netlist.getGlobals();
+			assert portNdxToNetIDs[0].length == globals.size();
+			for (int i = 0; i < globals.size(); i++) {
+				Global global = globals.get(i);
+				int netIndex = netlist.getNetwork(global).getNetIndex();
+				netNdxToNetID[netIndex] = portNdxToNetIDs[0][i];
+			}
+			for (int i = 0, numPorts = cell.getNumPorts(); i < numPorts; i++) {
+				Export export = (Export) cell.getPort(i);
+				int[] ids = portNdxToNetIDs[i + 1];
+				assert ids.length == export.getNameKey().busWidth();
+				for (int j=0; j<ids.length; j++) {
+					int netIndex = netlist.getNetwork(export, j).getNetIndex();
+					netNdxToNetID[netIndex] = ids[j];
+				}
 			}
 		}
 		for (int i = 0; i < numNets; i++) {
@@ -173,6 +175,18 @@ public final class HierarchyEnumerator {
 		return netNdxToNetID;
 	}
 	
+	private static int[] getGlobalNetIDs(Nodable no, Netlist netlist, int[] netNdxToNetID) {
+		Global.Set gs = netlist.getNetlist(no).getGlobals();
+		int[] netIDs = new int[gs.size()];
+		for (int i = 0; i < gs.size(); i++) {
+			int netIndex = netlist.getNetwork(no, gs.get(i)).getNetIndex();
+			int netID = netNdxToNetID[netIndex];
+			error(netID<0, "no netID for net");
+			netIDs[i] = netID;
+		}
+		return netIDs;
+	}
+
 	private static int[] getPortNetIDs(Nodable no, PortProto pp,
 									   Netlist netlist, int[] netNdxToNetID) {
 		int busWidth = pp.getNameKey().busWidth();
@@ -190,33 +204,26 @@ public final class HierarchyEnumerator {
 							     int[] netNdxToNetID) {
 		Cell cell = (Cell)ni.getProto();
 		int numPorts = cell.getNumPorts();
-		int[][] portNdxToNetIDs = new int[numPorts][];
+		int[][] portNdxToNetIDs = new int[numPorts + 1][];
+		portNdxToNetIDs[0] = getGlobalNetIDs(ni, netlist, netNdxToNetID);
 		for (int i=0; i<numPorts; i++) {
 			PortProto pp = cell.getPort(i);
-			portNdxToNetIDs[i] = getPortNetIDs(ni, pp, netlist, netNdxToNetID);
+			portNdxToNetIDs[i + 1] = getPortNetIDs(ni, pp, netlist, netNdxToNetID);
 		}
 		return portNdxToNetIDs;
 	}
 
 	private void allocateGlobalNetIDs(CellInfo rootInfo, Netlist rootNetlist) {
-		error(globalToNetID!=null, "already initialized?");
-		globalToNetID = new int[rootGlobals.size()];
+		error(largestGlobalNetID != -1, "already initialized?");
 		for (int i=0; i<rootGlobals.size(); i++) {	
 			Global global = rootGlobals.get(i);
 			error(rootGlobals.indexOf(global)!=i, "bad index?");
 			Network net = rootNetlist.getNetwork(global);
 			int netIndex = net.getNetIndex();
-			globalToNetID[i] = netIndex;
-			if (netIndex == nextNetID()) {
-				netIdToNetDesc.add(new NetDescription(net, rootInfo));
-				//System.out.println(global + " added at " + netIndex);
-			} else {
-				error(netIndex>nextNetID(),	
-					  "HierarchyEnumerator: unexpected order of global signal "+
-					  global);
-			}
+			if (netIndex <= largestGlobalNetID) continue;
+			assert netIndex == largestGlobalNetID + 1;
+			largestGlobalNetID = netIndex;
 		}
-		largestGlobalNetID = nextNetID() - 1;
 	}
 
 	/** portNdxToNetIDs translates an Export's index to an array of NetIDs */ 
@@ -280,7 +287,7 @@ public final class HierarchyEnumerator {
 		this.visitor = visitor;
 		this.caching = cache;
 		if (context == null) context = VarContext.globalContext;
-		int[][] exportNdxToNetIDs = new int[0][];
+		int[][] exportNdxToNetIDs = null;
 		rootGlobals = netlist.getGlobals();
 		enumerateCell(null,	root, context, netlist, exportNdxToNetIDs,
 		              new AffineTransform(), null);
@@ -606,7 +613,7 @@ public final class HierarchyEnumerator {
 				}
 				return netIDs;
 			} else {
-				return exportNdxToNetIDs[e.getPortIndex()];
+				return exportNdxToNetIDs[e.getPortIndex() + 1];
 			}
 		}
 

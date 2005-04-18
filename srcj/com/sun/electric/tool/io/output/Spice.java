@@ -89,6 +89,7 @@ public class Spice extends Topology
 	/** legal characters in a spice deck */						private static final String SPICELEGALCHARS        = "!#$%*+-/<>[]_@";
 	/** legal characters in a CDL deck */						private static final String CDLNOBRACKETLEGALCHARS = "!#$%*+-/<>_";
     /** if CDL writes out empty subckt definitions */           private static final boolean CDLWRITESEMPTYSUBCKTS = false;
+    /** if use spice globals */                                 private static final boolean USE_GLOBALS = true;
 
 	/** default Technology to use. */				private Technology layoutTechnology;
 	/** Mask shrink factor (default =1) */			private double  maskScale;
@@ -298,25 +299,28 @@ public class Spice extends Topology
 		}
 
 		// gather all global signal names (HSPICE and PSPICE only)
-		Netlist netList = getNetlistForCell(topCell);
-		Global.Set globals = netList.getGlobals();
-		int globalSize = globals.size();
-		if (!Simulation.isSpiceUseNodeNames() || spiceEngine != Simulation.SPICE_ENGINE_3)
+		if (USE_GLOBALS)
 		{
-			if (globalSize > 0)
+			Netlist netList = getNetlistForCell(topCell);
+			Global.Set globals = netList.getGlobals();
+			int globalSize = globals.size();
+			if (!Simulation.isSpiceUseNodeNames() || spiceEngine != Simulation.SPICE_ENGINE_3)
 			{
-				StringBuffer infstr = new StringBuffer();
-				infstr.append("\n.global");
-				for(int i=0; i<globalSize; i++)
+				if (globalSize > 0)
 				{
-					Global global = (Global)globals.get(i);
-					String name = global.getName();
-					if (global == Global.power) { if (getPowerName(null) != null) name = getPowerName(null); }
-					if (global == Global.ground) { if (getGroundName(null) != null) name = getGroundName(null); }
-					infstr.append(" " + name);
+					StringBuffer infstr = new StringBuffer();
+					infstr.append("\n.global");
+					for(int i=0; i<globalSize; i++)
+					{
+						Global global = (Global)globals.get(i);
+						String name = global.getName();
+						if (global == Global.power) { if (getPowerName(null) != null) name = getPowerName(null); }
+						if (global == Global.ground) { if (getGroundName(null) != null) name = getGroundName(null); }
+						infstr.append(" " + name);
+					}
+					infstr.append("\n");
+					multiLinePrint(false, infstr.toString());
 				}
-				infstr.append("\n");
-				multiLinePrint(false, infstr.toString());
 			}
 		}
 	}
@@ -520,9 +524,15 @@ public class Spice extends Topology
 
 				// ignore networks that aren't exported
 				PortProto pp = cs.getExport();
-				if (pp == null) continue;
+				if (USE_GLOBALS)
+				{
+					if (pp == null) continue;
 
-				if (cs.isGlobal() && !cs.getNetwork().isExported()) continue;
+					if (cs.isGlobal() && !cs.getNetwork().isExported()) continue;
+				} else
+				{
+					if (pp == null && !cs.isGlobal()) continue;
+				}
 				if (useCDL)
 				{
 //					// if this is output and the last was input (or visa-versa), insert "/"
@@ -535,14 +545,17 @@ public class Spice extends Topology
 
 			Global.Set globals = netList.getGlobals();
 			int globalSize = globals.size();
-			if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SPICE_ENGINE_3)
+			if (USE_GLOBALS)
 			{
-				for(int i=0; i<globalSize; i++)
+				if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SPICE_ENGINE_3)
 				{
-					Global global = (Global)globals.get(i);
-					Network net = netList.getNetwork(global);
-					CellSignal cs = cni.getCellSignal(net);
-					infstr.append(" " + cs.getName());
+					for(int i=0; i<globalSize; i++)
+					{
+						Global global = (Global)globals.get(i);
+						Network net = netList.getNetwork(global);
+						CellSignal cs = cni.getCellSignal(net);
+						infstr.append(" " + cs.getName());
+					}
 				}
 			}
 			if (!useCDL && Simulation.isSpiceUseCellParameters())
@@ -631,21 +644,35 @@ public class Spice extends Topology
 
 					// ignore networks that aren't exported
 					PortProto pp = subCS.getExport();
-					if (pp == null) continue;
+					Network net;
+					if (USE_GLOBALS)
+					{
+						if (pp == null) continue;
 
-					Network net = netList.getNetwork(no, pp, subCS.getExportIndex());
+						net = netList.getNetwork(no, pp, subCS.getExportIndex());
+					} else
+					{
+						if (pp == null && !subCS.isGlobal()) continue;
+						if (subCS.isGlobal())
+							net = netList.getNetwork(no, subCS.getGlobal());
+						else
+							net = netList.getNetwork(no, pp, subCS.getExportIndex());
+					}
 					CellSignal cs = cni.getCellSignal(net);
 					infstr.append(" " + cs.getName());
 				}
 
-				if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SPICE_ENGINE_3)
+				if (USE_GLOBALS)
 				{
-					Global.Set globals = subCni.getNetList().getGlobals();
-					int globalSize = globals.size();
-					for(int i=0; i<globalSize; i++)
+					if (!Simulation.isSpiceUseNodeNames() || spiceEngine == Simulation.SPICE_ENGINE_3)
 					{
-						Global global = globals.get(i);
-						infstr.append(" " + global.getName());
+						Global.Set globals = subCni.getNetList().getGlobals();
+						int globalSize = globals.size();
+						for(int i=0; i<globalSize; i++)
+						{
+							Global global = globals.get(i);
+							infstr.append(" " + global.getName());
+						}
 					}
 				}
                 if (useCDL) {
