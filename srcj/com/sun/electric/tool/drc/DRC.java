@@ -688,7 +688,14 @@ public class DRC extends Listener
         Variable varDate = cell.getVar(DRC_LAST_GOOD_DATE, Integer[].class);
         if (varDate == null) return null;
         Variable varBits = cell.getVar(DRC_LAST_GOOD_BIT, Integer.class);
-        int thisByte = ((Integer)varBits.getObject()).intValue();
+        int thisByte = 0;
+        if (varBits == null) // old Byte class
+        {
+            varBits = cell.getVar(DRC_LAST_GOOD_BIT, Byte.class);
+            thisByte =((Byte)varBits.getObject()).byteValue();
+        }
+        else
+            thisByte = ((Integer)varBits.getObject()).intValue();
         boolean area = (thisByte & DRC_BIT_AREA) == (activeBits & DRC_BIT_AREA);
         boolean coverage = (thisByte & DRC_BIT_COVERAGE) == (activeBits & DRC_BIT_COVERAGE);
         int techMode = getFoundry();
