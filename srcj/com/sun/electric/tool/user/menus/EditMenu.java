@@ -114,7 +114,7 @@ public class EditMenu {
 
 		// mnemonic keys available:  B       JK     Q     W  
 		// still don't have mnemonic for "Repeat Last Action"
-		MenuBar.Menu editMenu = new MenuBar.Menu("Edit", 'E');
+		MenuBar.Menu editMenu = MenuBar.makeMenu("_Edit");
         menuBar.add(editMenu);
 
 		editMenu.addMenuItem("Cu_t", KeyStroke.getKeyStroke('X', buckyBit),
@@ -144,7 +144,7 @@ public class EditMenu {
 		editMenu.addSeparator();
 
 		// mnemonic keys available: AB  EFGHIJKLMN PQRSTUV XYZ
-		MenuBar.Menu rotateSubMenu = new MenuBar.Menu("Rotate", 'R');
+		MenuBar.Menu rotateSubMenu = MenuBar.makeMenu("_Rotate");
 		editMenu.add(rotateSubMenu);
 		rotateSubMenu.addMenuItem("90 Degrees Clock_wise", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(2700); }});
@@ -156,7 +156,7 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(0); }});
 
 		// mnemonic keys available: ABCDEFG IJKLMNOPQRSTU WXYZ
-		MenuBar.Menu mirrorSubMenu = new MenuBar.Menu("Mirror", 'M');
+		MenuBar.Menu mirrorSubMenu = MenuBar.makeMenu("_Mirror");
 		editMenu.add(mirrorSubMenu);
 		mirrorSubMenu.addMenuItem("_Horizontally (flip over X-axis)", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(true); }});
@@ -164,7 +164,7 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(false); }});
 
 		// mnemonic keys available:  BCDEFGH JKLM OPQRSTUVWXYZ
-		MenuBar.Menu sizeSubMenu = new MenuBar.Menu("Size", 'Z');
+		MenuBar.Menu sizeSubMenu = MenuBar.makeMenu("Si_ze");
 		editMenu.add(sizeSubMenu);
 		sizeSubMenu.addMenuItem("_Interactively", KeyStroke.getKeyStroke('B', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { SizeListener.sizeObjects(); } });
@@ -174,7 +174,7 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { SizeListener.sizeAllArcs(); }});
 
 		// mnemonic keys available:    DEFGHIJK  NOPQ   U WXYZ
-		MenuBar.Menu moveSubMenu = new MenuBar.Menu("Move", 'V');
+		MenuBar.Menu moveSubMenu = MenuBar.makeMenu("Mo_ve");
 		editMenu.add(moveSubMenu);
 		moveSubMenu.addMenuItem("_Spread...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Spread.showSpreadDialog(); }});
@@ -210,7 +210,7 @@ public class EditMenu {
 		editMenu.addSeparator();
 
 		// mnemonic keys available: ABCDEFGHIJKLMNOPQRS  VWXYZ
-		MenuBar.Menu editInfoSubMenu = new MenuBar.Menu("Info", 'F');
+		MenuBar.Menu editInfoSubMenu = MenuBar.makeMenu("In_fo");
 		editMenu.add(editInfoSubMenu);
 //		editInfoSubMenu.addMenuItem("List Layer Coverage", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { LayerCoverageJob.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
@@ -220,7 +220,7 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { describeTechnologyCommand(); } });
 
 		// mnemonic keys available:  BC EFG IJK M  PQR TUVWXYZ
-		MenuBar.Menu editPropertiesSubMenu = new MenuBar.Menu("Properties", 'I');
+		MenuBar.Menu editPropertiesSubMenu = MenuBar.makeMenu("Propert_ies");
 		editMenu.add(editPropertiesSubMenu);
 		editPropertiesSubMenu.addMenuItem("_Object Properties...", KeyStroke.getKeyStroke('I', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { getInfoCommand(false); } });
@@ -239,7 +239,7 @@ public class EditMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { updateInheritance(true); } });
 
 		// mnemonic keys available:   C E G I KLM OPQ S UVWXYZ
-		MenuBar.Menu arcSubMenu = new MenuBar.Menu("Arc", 'C');
+		MenuBar.Menu arcSubMenu = MenuBar.makeMenu("Ar_c");
 		editMenu.add(arcSubMenu);
 		arcSubMenu.addMenuItem("_Rigid", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcRigidCommand(); }});
@@ -263,11 +263,11 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.ripBus(); }});
 
 		// mnemonic keys available: ABCD FGHIJKL NOPQR TUVWXYZ
-		MenuBar.Menu modeSubMenu = new MenuBar.Menu("Modes", 'O');
+		MenuBar.Menu modeSubMenu = MenuBar.makeMenu("M_odes");
 		editMenu.add(modeSubMenu); 
 
 		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-		MenuBar.Menu modeSubMenuEdit = new MenuBar.Menu("Edit", 'E');
+		MenuBar.Menu modeSubMenuEdit = MenuBar.makeMenu("_Edit");
 		modeSubMenu.add(modeSubMenuEdit);
 		ButtonGroup editGroup = new ButtonGroup();
         JMenuItem cursorClickZoomWire, cursorSelect, cursorWiring, cursorPan, cursorZoom, cursorOutline, cursorMeasure;
@@ -290,7 +290,7 @@ public class EditMenu {
 		if (cm == ToolBar.CursorMode.MEASURE) cursorMeasure.setSelected(true);
 
 		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-		MenuBar.Menu modeSubMenuMovement = new MenuBar.Menu("Movement", 'M');
+		MenuBar.Menu modeSubMenuMovement = MenuBar.makeMenu("_Movement");
 		modeSubMenu.add(modeSubMenuMovement);
 		ButtonGroup movementGroup = new ButtonGroup();
         JMenuItem moveFull, moveHalf, moveQuarter;
@@ -306,7 +306,7 @@ public class EditMenu {
 			moveQuarter.setSelected(true);
 
 		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-		MenuBar.Menu modeSubMenuSelect = new MenuBar.Menu("Select", 'S');
+		MenuBar.Menu modeSubMenuSelect = MenuBar.makeMenu("_Select");
 		modeSubMenu.add(modeSubMenuSelect);
 		ButtonGroup selectGroup = new ButtonGroup();
 		JMenuItem selectArea, selectObjects;
@@ -321,7 +321,7 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.toggleSelectSpecialCommand(e); } });
 
 		// mnemonic keys available: AB  E GH JKLMNOPQRSTUVWXYZ
-		MenuBar.Menu textSubMenu = new MenuBar.Menu("Text", 'X');
+		MenuBar.Menu textSubMenu = MenuBar.makeMenu("Te_xt");
 		editMenu.add(textSubMenu);
 		textSubMenu.addMenuItem("_Find Text...", KeyStroke.getKeyStroke('L', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FindText.findTextDialog(); }});
@@ -333,7 +333,7 @@ public class EditMenu {
 				new ActionListener() { public void actionPerformed(ActionEvent e) { changeGlobalTextSize(0.8); }});
 
 		// mnemonic keys available: ABCD FGHIJK M O QR TUVWXYZ
-		MenuBar.Menu cleanupSubMenu = new MenuBar.Menu("Cleanup Cell", 'N');
+		MenuBar.Menu cleanupSubMenu = MenuBar.makeMenu("Clea_nup Cell");
 		editMenu.add(cleanupSubMenu);
 		cleanupSubMenu.addMenuItem("Cleanup _Pins", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.cleanupPinsCommand(false); }});
@@ -347,7 +347,7 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
 
 		// mnemonic keys available:  B  EFGH JK M O QRS UVWXYZ
-		MenuBar.Menu specialSubMenu = new MenuBar.Menu("Technology Specific", 'G');
+		MenuBar.Menu specialSubMenu = MenuBar.makeMenu("Technolo_gy Specific");
 		editMenu.add(specialSubMenu);
 		specialSubMenu.addMenuItem("Toggle Port _Negation", KeyStroke.getKeyStroke('T', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.toggleNegatedCommand(); }});
@@ -370,7 +370,7 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.describeTechnology(Technology.getCurrent()); }});
 
 		// mnemonic keys available:  B   F  I KLM  PQR       Z
-		MenuBar.Menu selListSubMenu = new MenuBar.Menu("Selection", 'S');
+		MenuBar.Menu selListSubMenu = MenuBar.makeMenu("_Selection");
 		editMenu.add(selListSubMenu);
 		selListSubMenu.addMenuItem("Sele_ct All", KeyStroke.getKeyStroke('A', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllCommand(); }});

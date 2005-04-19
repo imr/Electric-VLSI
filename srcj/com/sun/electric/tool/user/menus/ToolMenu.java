@@ -127,14 +127,14 @@ public class ToolMenu {
 
 		/****************************** THE TOOL MENU ******************************/
 
-		// mnemonic keys available: AB   F H JK    PQ   U  XYZ
-		MenuBar.Menu toolMenu = new MenuBar.Menu("Tool", 'T');
+		// mnemonic keys available: AB   F H JK    PQ      XYZ
+		MenuBar.Menu toolMenu = MenuBar.makeMenu("_Tool");
 		menuBar.add(toolMenu);
 
 		//------------------- DRC
 
 		// mnemonic keys available: ABCDEFG IJKLMNOPQR TUVWXYZ
-		MenuBar.Menu drcSubMenu = new MenuBar.Menu("DRC", 'D');
+		MenuBar.Menu drcSubMenu = MenuBar.makeMenu("_DRC");
 		toolMenu.add(drcSubMenu);
 		drcSubMenu.addMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false, GeometryHandler.ALGO_QTREE); }});
@@ -146,7 +146,7 @@ public class ToolMenu {
 		if (Simulation.hasIRSIM())
 		{
 			// mnemonic keys available:  B  EF   JK  N PQ  T V XYZ
-			MenuBar.Menu irsimSimulationSubMenu = new MenuBar.Menu("Simulation (IRSIM)", 'I');
+			MenuBar.Menu irsimSimulationSubMenu = MenuBar.makeMenu("Simulation (_IRSIM)");
 			toolMenu.add(irsimSimulationSubMenu);
 			irsimSimulationSubMenu.addMenuItem("Si_mulate Current Cell", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(false); } });
@@ -183,7 +183,7 @@ public class ToolMenu {
 		//------------------- Simulation (SPICE)
 
 		// mnemonic keys available: AB  E   IJK  NO QR   VWXYZ
-		MenuBar.Menu spiceSimulationSubMenu = new MenuBar.Menu("Simulation (Spice)", 'S');
+		MenuBar.Menu spiceSimulationSubMenu = MenuBar.makeMenu("Simulation (_Spice)");
 		toolMenu.add(spiceSimulationSubMenu);
 		spiceSimulationSubMenu.addMenuItem("Write Spice _Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.SPICE, true); }});
@@ -218,7 +218,7 @@ public class ToolMenu {
 		//------------------- Simulation (Verilog)
 
 		// mnemonic keys available: AB  EFGHIJKLMNOPQRS U WXYZ
-		MenuBar.Menu verilogSimulationSubMenu = new MenuBar.Menu("Simulation (Verilog)", 'V');
+		MenuBar.Menu verilogSimulationSubMenu = MenuBar.makeMenu("Simulation (_Verilog)");
 		toolMenu.add(verilogSimulationSubMenu);
 		verilogSimulationSubMenu.addMenuItem("Write _Verilog Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.VERILOG, true); } });
@@ -233,7 +233,7 @@ public class ToolMenu {
 		verilogSimulationSubMenu.addSeparator();
 
 		// mnemonic keys available: ABC EFGHIJKLMNOPQRS UV XYZ
-		MenuBar.Menu verilogWireTypeSubMenu = new MenuBar.Menu("Set Verilog Wire", 'W');
+		MenuBar.Menu verilogWireTypeSubMenu = MenuBar.makeMenu("Set Verilog _Wire");
 		verilogWireTypeSubMenu.addMenuItem("_Wire", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(0); }});
 		verilogWireTypeSubMenu.addMenuItem("_Trireg", null,
@@ -243,7 +243,7 @@ public class ToolMenu {
 		verilogSimulationSubMenu.add(verilogWireTypeSubMenu);
 
 		// mnemonic keys available: ABCDEFGHIJKLM OPQRSTUV XYZ
-		MenuBar.Menu transistorStrengthSubMenu = new MenuBar.Menu("Transistor Strength", 'T');
+		MenuBar.Menu transistorStrengthSubMenu = MenuBar.makeMenu("_Transistor Strength");
 		transistorStrengthSubMenu.addMenuItem("_Weak", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(true); }});
 		transistorStrengthSubMenu.addMenuItem("_Normal", null,
@@ -253,7 +253,7 @@ public class ToolMenu {
 		//------------------- Simulation (others)
 
 		// mnemonic keys available:  B D  GH JKL N  Q   UVWXYZ
-		MenuBar.Menu netlisters = new MenuBar.Menu("Simulation (Others)", 'O');
+		MenuBar.Menu netlisters = MenuBar.makeMenu("Simulation (_Others)");
 		toolMenu.add(netlisters);
 		netlisters.addMenuItem("Write _Maxwell Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.MAXWELL, true); } });
@@ -286,7 +286,7 @@ public class ToolMenu {
 		//------------------- ERC
 
 		// mnemonic keys available:  BCDEFGHIJKLMNOPQRSTUV XYZ
-		MenuBar.Menu ercSubMenu = new MenuBar.Menu("ERC", 'E');
+		MenuBar.Menu ercSubMenu = MenuBar.makeMenu("_ERC");
 		toolMenu.add(ercSubMenu);
 		ercSubMenu.addMenuItem("Check _Wells", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_SWEEP); } });
@@ -295,7 +295,7 @@ public class ToolMenu {
 
 		// ------------------- NCC
 		// mnemonic keys available: AB DEFGHIJKLMNOPQRS UVWXYZ
-		MenuBar.Menu nccSubMenu = new MenuBar.Menu("NCC", 'N');
+		MenuBar.Menu nccSubMenu = MenuBar.makeMenu("_NCC");
 		toolMenu.add(nccSubMenu);
 		nccSubMenu.addMenuItem("Schematic and Layout Views of Cell in _Current Window", null, new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -311,7 +311,7 @@ public class ToolMenu {
 		//------------------- Network
 
 		// mnemonic keys available: A  D F  IJK M O QRS   W YZ
-		MenuBar.Menu networkSubMenu = new MenuBar.Menu("Network", 'W');
+		MenuBar.Menu networkSubMenu = MenuBar.makeMenu("Net_work");
 		toolMenu.add(networkSubMenu);
 		networkSubMenu.addMenuItem("Show _Network", KeyStroke.getKeyStroke('K', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showNetworkCommand(); } });
@@ -347,7 +347,7 @@ public class ToolMenu {
 		//------------------- Logical Effort
 
 		// mnemonic keys available:    DEFGHIJKLM   QRSTUVWXYZ
-		MenuBar.Menu logEffortSubMenu = new MenuBar.Menu("Logical Effort", 'L');
+		MenuBar.Menu logEffortSubMenu = MenuBar.makeMenu("_Logical Effort");
         toolMenu.add(logEffortSubMenu);
 		logEffortSubMenu.addMenuItem("_Optimize for Equal Gate Delays", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(true); }});
@@ -365,7 +365,7 @@ public class ToolMenu {
 		//------------------- Routing
 
 		// mnemonic keys available:  B D FG IJKL  OPQ    V XY 
-		MenuBar.Menu routingSubMenu = new MenuBar.Menu("Routing", 'R');
+		MenuBar.Menu routingSubMenu = MenuBar.makeMenu("_Routing");
 		toolMenu.add(routingSubMenu);
 		routingSubMenu.addCheckBox("Enable _Auto-Stitching", Routing.isAutoStitchOn(), null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.toggleEnableAutoStitching(e); } });
@@ -407,7 +407,7 @@ public class ToolMenu {
 		//------------------- Generation
 
 		// mnemonic keys available: AB DEFGHIJKL NO Q S UVWXYZ
-		MenuBar.Menu generationSubMenu = new MenuBar.Menu("Generation", 'G');
+		MenuBar.Menu generationSubMenu = MenuBar.makeMenu("_Generation");
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("_Coverage Implants Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
@@ -424,7 +424,7 @@ public class ToolMenu {
 		//------------------- Silicon Compiler
 
 		// mnemonic keys available: AB DEFGHIJKLMNOPQRSTUVWXYZ
-		MenuBar.Menu silCompSubMenu = new MenuBar.Menu("Silicon Compiler", 'M');
+		MenuBar.Menu silCompSubMenu = MenuBar.makeMenu("Silicon Co_mpiler");
 		toolMenu.add(silCompSubMenu);
 		silCompSubMenu.addMenuItem("_Convert Current Cell to Layout", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { doSiliconCompilation(); }});
@@ -432,7 +432,7 @@ public class ToolMenu {
 		//------------------- Compaction
 
 		// mnemonic keys available: AB DEFGHIJKLMNOPQRSTUVWXYZ
-		MenuBar.Menu compactionSubMenu = new MenuBar.Menu("Compaction", 'C');
+		MenuBar.Menu compactionSubMenu = MenuBar.makeMenu("_Compaction");
 		toolMenu.add(compactionSubMenu);
 		compactionSubMenu.addMenuItem("Do _Compaction", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Compaction.compactNow();}});
@@ -445,7 +445,7 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listToolsCommand(); } });
 
 		// mnemonic keys available: ABCDEFGHIJKLMNOPQ STUVWXYZ
-		MenuBar.Menu languagesSubMenu = new MenuBar.Menu("Languages");
+		MenuBar.Menu languagesSubMenu = MenuBar.makeMenu("Lang_uages");
 		languagesSubMenu.addMenuItem("_Run Java Bean Shell Script", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
 		toolMenu.add(languagesSubMenu);

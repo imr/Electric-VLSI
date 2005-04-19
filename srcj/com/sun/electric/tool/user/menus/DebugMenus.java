@@ -105,7 +105,7 @@ public class DebugMenus {
 
         /****************************** Russell's TEST MENU ******************************/
 
-        MenuBar.Menu russMenu = new MenuBar.Menu("Russell", 'R');
+        MenuBar.Menu russMenu = MenuBar.makeMenu("_Russell");
         menuBar.add(russMenu);
 		russMenu.addMenuItem("Gate Generator Regression (MoCMOS)", null,
 							 new ActionListener() {
@@ -134,7 +134,7 @@ public class DebugMenus {
 
         /****************************** Jon's TEST MENU ******************************/
 
-        MenuBar.Menu jongMenu = new MenuBar.Menu("JonG", 'J');
+        MenuBar.Menu jongMenu = MenuBar.makeMenu("_JonG");
         menuBar.add(jongMenu);
         jongMenu.addMenuItem("Describe Vars", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { listVarsOnObject(false); }});
@@ -170,7 +170,7 @@ public class DebugMenus {
 
         /****************************** Gilda's TEST MENU ******************************/
 
-        MenuBar.Menu gildaMenu = new MenuBar.Menu("Gilda", 'G');
+        MenuBar.Menu gildaMenu = MenuBar.makeMenu("_Gilda");
         menuBar.add(gildaMenu);
         gildaMenu.addMenuItem("DRC QTree", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {DRC.checkHierarchically(false, GeometryHandler.ALGO_QTREE);}});
@@ -209,7 +209,7 @@ public class DebugMenus {
 
         /****************************** Dima's TEST MENU ******************************/
 
-        MenuBar.Menu dimaMenu = new MenuBar.Menu("Dima", 'D');
+        MenuBar.Menu dimaMenu = MenuBar.makeMenu("_Dima");
         menuBar.add(dimaMenu);
 	    dimaMenu.addMenuItem("Plot diode", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { Diode.plotDiode(User.getWorkingDirectory() + File.separator + "diode.raw"); } });

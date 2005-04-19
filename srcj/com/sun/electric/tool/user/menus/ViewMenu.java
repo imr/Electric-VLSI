@@ -50,7 +50,7 @@ public class ViewMenu {
         /****************************** THE VIEW MENU ******************************/
 
 		// mnemonic keys available:  B DEF   J  M  PQR     X Z
-        MenuBar.Menu viewMenu = new MenuBar.Menu("View", 'V');
+        MenuBar.Menu viewMenu = MenuBar.makeMenu("_View");
         menuBar.add(viewMenu);
 
         viewMenu.addMenuItem("View _Control...", null,

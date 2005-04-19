@@ -69,7 +69,7 @@ public class CellMenu {
         /****************************** THE CELL MENU ******************************/
 
 		// mnemonic keys available:  B       J      Q       YZ
-        MenuBar.Menu cellMenu = new MenuBar.Menu("Cell", 'C');
+        MenuBar.Menu cellMenu = MenuBar.makeMenu("_Cell");
         menuBar.add(cellMenu);
 
         cellMenu.addMenuItem("Ne_w Cell...", KeyStroke.getKeyStroke('N', buckyBit),
@@ -86,7 +86,7 @@ public class CellMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.deleteCell); }});
 
         // mnemonic keys available: AB   FGHIJKL NOPQRSTU WXYZ
-        MenuBar.Menu multiPageSubMenu = new MenuBar.Menu("Multi-Page Cells", 'M');
+        MenuBar.Menu multiPageSubMenu = MenuBar.makeMenu("_Multi-Page Cells");
         cellMenu.add(multiPageSubMenu);
         multiPageSubMenu.addMenuItem("_Make Cell Multi-Page", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeMultiPageCell(); }});
@@ -125,7 +125,7 @@ public class CellMenu {
         cellMenu.addSeparator();
 
 		// mnemonic keys available:  BC    H JKLM OPQRST  WXYZ
-        MenuBar.Menu cellInfoSubMenu = new MenuBar.Menu("Cell Info", 'F');
+        MenuBar.Menu cellInfoSubMenu = MenuBar.makeMenu("Cell In_fo");
         cellMenu.add(cellInfoSubMenu);
         cellInfoSubMenu.addMenuItem("_Describe this Cell", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.describeThisCellCommand(); } });
@@ -155,7 +155,7 @@ public class CellMenu {
         cellMenu.addSeparator();
 
 		// mnemonic keys available:  BCDEFGHIJKLMN PQR TUVWXYZ
-        MenuBar.Menu expandListSubMenu = new MenuBar.Menu("Expand Cell Instances", 'X');
+        MenuBar.Menu expandListSubMenu = MenuBar.makeMenu("E_xpand Cell Instances");
         cellMenu.add(expandListSubMenu);
         expandListSubMenu.addMenuItem("_One Level Down", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandOneLevelDownCommand(); }});
@@ -165,7 +165,7 @@ public class CellMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandSpecificCommand(); }});
 
         // mnemonic keys available:  BCDEFGHIJKLMN PQR TUVWXYZ
-        MenuBar.Menu unExpandListSubMenu = new MenuBar.Menu("Unexpand Cell Instances", 'T');
+        MenuBar.Menu unExpandListSubMenu = MenuBar.makeMenu("Unexpand Cell Ins_tances");
         cellMenu.add(unExpandListSubMenu);
         unExpandListSubMenu.addMenuItem("_One Level Up", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandOneLevelUpCommand(); }});

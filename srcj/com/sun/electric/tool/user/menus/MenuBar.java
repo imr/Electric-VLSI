@@ -177,6 +177,22 @@ public class MenuBar extends JMenuBar
         public String getDescription();
     }
 
+    public static Menu makeMenu(String s)
+    {
+    	int mark = s.indexOf('_');
+    	if (mark >= 0)
+    	{
+    		s = s.substring(0, mark) + s.substring(mark+1);
+    	}
+        Menu menu = new Menu(s);
+        if (mark >= 0)
+        {
+        	menu.setMnemonic(s.charAt(mark));
+			menu.setDisplayedMnemonicIndex(mark);
+        }
+        return menu;
+    }
+
     /**
      * Custom MenuItem extends JMenuItem.  Also conforms to
      * common Interface MenuItemInterface so that all custom
@@ -228,7 +244,6 @@ public class MenuBar extends JMenuBar
         /** parent menu */                      private JComponent parentMenu = null;
 
         public Menu(String s) { super(s); }
-        public Menu(String text, char mnemonic) { super(text); setMnemonic(mnemonic); }
 
         public void setParentMenu(JComponent menu) { parentMenu = menu; }
         public JComponent getParentMenu() { return parentMenu; }

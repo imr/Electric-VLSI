@@ -44,7 +44,7 @@ public class ExportMenu {
         /****************************** THE EXPORT MENU ******************************/
 
 		// mnemonic keys available:  B   F  IJK     Q   UV XY 
-        MenuBar.Menu exportMenu = new MenuBar.Menu("Export", 'X');
+        MenuBar.Menu exportMenu = MenuBar.makeMenu("E_xport");
         menuBar.add(exportMenu);
 
         exportMenu.addMenuItem("_Create Export...", KeyStroke.getKeyStroke('E', buckyBit),

@@ -59,7 +59,7 @@ public class J3DMenu {
 
         /****************************** THE 3D MENU ******************************/
 
-        MenuBar.Menu j3DMenu = new MenuBar.Menu("3D", '3');
+        MenuBar.Menu j3DMenu = MenuBar.makeMenu("_3D");
         menuBar.add(j3DMenu);
 
         j3DMenu.addMenuItem("Capture Frame", null,

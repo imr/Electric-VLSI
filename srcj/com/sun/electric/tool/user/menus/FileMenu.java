@@ -87,7 +87,7 @@ public class FileMenu {
 		/****************************** THE FILE MENU ******************************/
 
 		// mnemonic keys available:    D     J         T  WXYZ
-		MenuBar.Menu fileMenu = new MenuBar.Menu("File", 'F');
+		MenuBar.Menu fileMenu = MenuBar.makeMenu("_File");
         menuBar.add(fileMenu);
 
 		fileMenu.addMenuItem("_New Library...", null,
@@ -96,7 +96,7 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openLibraryCommand(); } });
 
 		// mnemonic keys available: A    F HIJK MNO QRS  VW YZ
-		MenuBar.Menu importSubMenu = new MenuBar.Menu("Import", 'I');
+		MenuBar.Menu importSubMenu = MenuBar.makeMenu("_Import");
 		fileMenu.add(importSubMenu);
 		importSubMenu.addMenuItem("_CIF (Caltech Intermediate Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.CIF); } });
@@ -136,7 +136,7 @@ public class FileMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveAllLibrariesInFormatCommand(); } });
 
 		// mnemonic keys available:    D     J  M   Q   UVW YZ
-		MenuBar.Menu exportSubMenu = new MenuBar.Menu("Export", 'E');
+		MenuBar.Menu exportSubMenu = MenuBar.makeMenu("_Export");
 		fileMenu.add(exportSubMenu);
 		exportSubMenu.addMenuItem("_CIF (Caltech Intermediate Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.CIF, false); } });
@@ -190,7 +190,7 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.markAllLibrariesForSavingCommand(); } });
 
 		// mnemonic keys available: AB DEFGHIJKLMNOPQ STUVWXYZ
-		MenuBar.Menu checkSubMenu = new MenuBar.Menu("Check Libraries", 'H');
+		MenuBar.Menu checkSubMenu = MenuBar.makeMenu("C_heck Libraries");
 		fileMenu.add(checkSubMenu);
 		checkSubMenu.addMenuItem("_Check", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.checkAndRepairCommand(false); } });

@@ -66,7 +66,7 @@ public class WindowMenu {
         /****************************** THE WINDOW MENU ******************************/
 
 		// mnemonic keys available: AB      I K  N PQ      XY 
-        MenuBar.Menu windowMenu = new MenuBar.Menu("Window", 'W');
+        MenuBar.Menu windowMenu = MenuBar.makeMenu("_Window");
         menuBar.add(windowMenu);
 
         m = windowMenu.addMenuItem("_Fill Window", KeyStroke.getKeyStroke('9', buckyBit),
@@ -82,7 +82,7 @@ public class WindowMenu {
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
 
 		// mnemonic keys available: ABCDEF  IJKLMNOPQRSTUV XY 
-        MenuBar.Menu specialZoomSubMenu = new MenuBar.Menu("Special Zoom", 'S');
+        MenuBar.Menu specialZoomSubMenu = MenuBar.makeMenu("_Special Zoom");
         windowMenu.add(specialZoomSubMenu);
         m = specialZoomSubMenu.addMenuItem("Focus on _Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlighted(); } });
@@ -110,7 +110,7 @@ public class WindowMenu {
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, buckyBit), null);
 
 		// mnemonic keys available: AB DEFGHIJKLMNOPQR TUVWXYZ
-        MenuBar.Menu centerSubMenu = new MenuBar.Menu("Center", 'T');
+        MenuBar.Menu centerSubMenu = MenuBar.makeMenu("Cen_ter");
         windowMenu.add(centerSubMenu);
         centerSubMenu.addMenuItem("_Selection", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.centerSelection(); }});
@@ -128,7 +128,7 @@ public class WindowMenu {
         windowMenu.addSeparator();
 
 		// mnemonic keys available: AB DEFG IJKLMNOPQRSTU WXYZ
-        MenuBar.Menu windowPartitionSubMenu = new MenuBar.Menu("Adjust Position", 'J');
+        MenuBar.Menu windowPartitionSubMenu = MenuBar.makeMenu("Ad_just Position");
         windowMenu.add(windowPartitionSubMenu);
         windowPartitionSubMenu.addMenuItem("Tile _Horizontally", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { tileHorizontallyCommand(); }});
@@ -154,7 +154,7 @@ public class WindowMenu {
         windowMenu.addSeparator();
 
         // mnemonic keys available: A CDEFGHIJKLMNOPQ STUV XYZ
-        MenuBar.Menu colorSubMenu = new MenuBar.Menu("Color Schemes", 'C');
+        MenuBar.Menu colorSubMenu = MenuBar.makeMenu("_Color Schemes");
         windowMenu.add(colorSubMenu);
         colorSubMenu.addMenuItem("_Restore Default Colors", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { defaultBackgroundCommand(); }});
@@ -164,7 +164,7 @@ public class WindowMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { whiteBackgroundCommand(); }});
 
 		// mnemonic keys available: AB DE GHIJKLMNOPQR TUVWXYZ
-        MenuBar.Menu messagesSubMenu = new MenuBar.Menu("Messages Window", 'M');
+        MenuBar.Menu messagesSubMenu = MenuBar.makeMenu("_Messages Window");
         windowMenu.add(messagesSubMenu);
         messagesSubMenu.addMenuItem("_Save Messages...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().save(); }});
