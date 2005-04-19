@@ -24,13 +24,14 @@
  */
 package com.sun.electric.database.geometry;
 
-import com.sun.electric.technology.Layer;
-
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
+import java.awt.geom.Area;
+import java.awt.*;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Comparator;
 
 /**
  * To handle merge operation. Two different classes have been proposed
@@ -42,6 +43,8 @@ public abstract class GeometryHandler {
     public static final int ALGO_MERGE = 0;
     public static final int ALGO_QTREE = 1;
     public static final int ALGO_SWEEP = 2;
+    public static final ShapeSort shapeSort = new ShapeSort();
+    public static final AreaSort areaSort = new AreaSort();
 
     /**
      * Method to create appropiate GeometryHandler depending on the mode
@@ -148,5 +151,37 @@ public abstract class GeometryHandler {
     public void postProcess(boolean merge)
     {
         if (!merge) System.out.println("Error: postProcess not implemented for GeometryHandler subclass " + this.getClass().getName());
+    }
+
+    /**
+     * Auxiliar class to sort shapes in array
+     */
+    public static class ShapeSort implements Comparator
+    {
+        public int compare(Object o1, Object o2)
+        {
+            double bb1 = ((Shape)o1).getBounds2D().getX();
+            double bb2 = ((Shape)o2).getBounds2D().getX();
+            // Sorting along X
+            if (bb1 < bb2) return -1;
+            else if (bb1 > bb2) return 1;
+            return (0); // identical
+        }
+    }
+
+    /**
+     * Auxiliar class to sort areas in array
+     */
+    public static class AreaSort implements Comparator
+    {
+        public int compare(Object o1, Object o2)
+        {
+            double bb1 = ((Area)o1).getBounds2D().getX();
+            double bb2 = ((Area)o2).getBounds2D().getX();
+            // Sorting along X
+            if (bb1 < bb2) return -1;
+            else if (bb1 > bb2) return 1;
+            return (0); // identical
+        }
     }
 }

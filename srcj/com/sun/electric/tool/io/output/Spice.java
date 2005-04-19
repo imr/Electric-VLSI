@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Global;
@@ -61,7 +62,6 @@ import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 import java.io.File;
 import java.net.URL;
 import java.util.*;
@@ -448,10 +448,12 @@ public class Spice extends Topology
 				Layer layer = (Layer)lIt.next();
 				List polyList = spNet.merge.getMergedPoints(layer, true);
 				if (polyList == null) continue;
+                if (polyList.size() > 1)
+                    Collections.sort(polyList, GeometryHandler.shapeSort);
 				for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
 				{
 					PolyBase poly = (PolyBase)pIt.next();
-					Point2D [] pointList = poly.getPoints();
+					//Point2D [] pointList = poly.getPoints();
 					//int count = pointList.length;
 
 					// compute perimeter and area

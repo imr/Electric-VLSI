@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+IMP: (04/19/05, GVG) Invariant for capacitance extraction for layouts in Spice.
+
 IMP: (04/19/05, JKG) Changed minimum resolution of IRSIM simulations from 10ps to 1ps
 
 BUG: (04/19/05, GVG) Crash in 3D View if transistor has more than 2 active physical layers.

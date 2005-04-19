@@ -1,7 +1,6 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.technology.Layer;
-import com.sun.electric.Main;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -16,46 +15,12 @@ import java.util.*;
  */
 public class PolySweepMerge extends GeometryHandler
 {
-    static final PolySweepShapeSort shapeSort = new PolySweepShapeSort();
-    static final PolySweepAreaSort areaSort = new PolySweepAreaSort();
     public static final int ONE_FRONTIER_MODE = 1;
     public static final int TWO_FRONTIER_MODE = 2;
 
-    private int mode = ONE_FRONTIER_MODE;
+    //private int mode = ONE_FRONTIER_MODE;
 
     /**
-     * Auxiliar class to sort shapes in array
-     */
-    private static class PolySweepShapeSort implements Comparator
-    {
-        public int compare(Object o1, Object o2)
-        {
-            double bb1 = ((Shape)o1).getBounds2D().getX();
-            double bb2 = ((Shape)o2).getBounds2D().getX();
-            // Sorting along X
-            if (bb1 < bb2) return -1;
-            else if (bb1 > bb2) return 1;
-            return (0); // identical
-        }
-    }
-
-    /**
-     * Auxiliar class to sort areas in array
-     */
-    private static class PolySweepAreaSort implements Comparator
-    {
-        public int compare(Object o1, Object o2)
-        {
-            double bb1 = ((Area)o1).getBounds2D().getX();
-            double bb2 = ((Area)o2).getBounds2D().getX();
-            // Sorting along X
-            if (bb1 < bb2) return -1;
-            else if (bb1 > bb2) return 1;
-            return (0); // identical
-        }
-    }
-
-	/**
 	 * Method to create a new "merge" object.
 	 */
 	public PolySweepMerge()
@@ -110,32 +75,6 @@ public class PolySweepMerge extends GeometryHandler
             for (int i = 0; i < areas.size(); i++)
             {
                 Area a = (Area)areas.get(i);
-                a.subtract(elem);
-            }
-        }
-    }
-
-    private static class PolySweepContainerOld
-    {
-        List polyList = null;
-        private List areas = null; // Needs to be a list to apply sort
-
-        public PolySweepContainerOld(boolean createPolyList)
-        {
-            polyList = (createPolyList) ? new ArrayList() : null;
-        }
-
-        public void add(Object value)
-        {
-            polyList.add(value);
-        }
-
-        public void subtract(Object element)
-        {
-            Area elem = (Area)element;
-            for (int i = 0; i < polyList.size(); i++)
-            {
-                Area a = (Area)polyList.get(i);
                 a.subtract(elem);
             }
         }

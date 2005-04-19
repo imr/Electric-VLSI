@@ -680,7 +680,7 @@ public class View3DWindow extends JPanel
                     {
                         // Only 2 active regions are allowed
                         if (count > 1)
-                            System.out.println("More than 2 active regions detected in Transistor " + no.getName());
+                            System.out.println("More than 2 active regions detected in Transistor '" + no.getName() + "'. Ignoring this layer");
                         else
                             active[count++] = i;
                     }
