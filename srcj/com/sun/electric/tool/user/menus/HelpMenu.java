@@ -50,26 +50,26 @@ public class HelpMenu {
 
         /****************************** THE HELP MENU ******************************/
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available:   CDEFGHIJKLMNOPQR T VWXYZ
         MenuBar.Menu helpMenu = new MenuBar.Menu("Help", 'H');
         menuBar.add(helpMenu);
 
         if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
         {
-            helpMenu.addMenuItem("About Electric...", null,
+            helpMenu.addMenuItem("_About Electric...", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { aboutCommand(); } });
 			helpMenu.addSeparator();
         }
 
-		helpMenu.addMenuItem("User's Manual...", null,
+		helpMenu.addMenuItem("_User's Manual...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { userManualCommand(); } });
-		helpMenu.addMenuItem("Load Samples Library", null,
+		helpMenu.addMenuItem("Load _Samples Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.loadSamplesLibrary(); } });
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: ABCDEFGHIJKL NOPQRSTUVWXYZ
 		MenuBar.Menu builtInLibSubMenu = new MenuBar.Menu("Load Built-in Libraries", 'B');
 		helpMenu.add(builtInLibSubMenu);
-		builtInLibSubMenu.addMenuItem("MOSIS CMOS Pads", null,
+		builtInLibSubMenu.addMenuItem("_MOSIS CMOS Pads", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { loadBuiltInLibraryCommand("pads4u"); } });
 		return helpMenu;
     }

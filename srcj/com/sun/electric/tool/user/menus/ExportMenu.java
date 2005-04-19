@@ -43,58 +43,58 @@ public class ExportMenu {
 
         /****************************** THE EXPORT MENU ******************************/
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available:  B   F  IJK     Q   UV XY 
         MenuBar.Menu exportMenu = new MenuBar.Menu("Export", 'X');
         menuBar.add(exportMenu);
 
-        exportMenu.addMenuItem("Create Export...", KeyStroke.getKeyStroke('E', buckyBit),
+        exportMenu.addMenuItem("_Create Export...", KeyStroke.getKeyStroke('E', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.newExportCommand(); } });
 
         exportMenu.addSeparator();
 
-        exportMenu.addMenuItem("Re-Export Everything", null,
+        exportMenu.addMenuItem("Re-Export _Everything", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportAll(); } });
-        exportMenu.addMenuItem("Re-Export Selected", null,
+        exportMenu.addMenuItem("Re-Export Sele_cted", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportSelected(false); } });
-        exportMenu.addMenuItem("Re-Export Selected, With Wired Ports", null,
+        exportMenu.addMenuItem("Re-Export Selected, With _Wired Ports", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportSelected(true); } });
-        exportMenu.addMenuItem("Re-Export Highlighted Area", null,
+        exportMenu.addMenuItem("Re-Export _Highlighted Area", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportHighlighted(false); } });
-        exportMenu.addMenuItem("Re-Export Highlighted Area, With Wired Ports", null,
+        exportMenu.addMenuItem("Re-Export Hi_ghlighted Area, With Wired Ports", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportHighlighted(true); } });
-        exportMenu.addMenuItem("Re-Export Power and Ground", null,
+        exportMenu.addMenuItem("Re-Export _Power and Ground", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.reExportPowerAndGround(); } });
 
         exportMenu.addSeparator();
 
-        exportMenu.addMenuItem("Delete Export", null,
+        exportMenu.addMenuItem("_Delete Export", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.deleteExport(); } });
-        exportMenu.addMenuItem("Delete Exports on Selected", null,
+        exportMenu.addMenuItem("Delete Exports _on Selected", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.deleteExportsOnSelected(); } });
-        exportMenu.addMenuItem("Delete Exports in Highlighted Area", null,
+        exportMenu.addMenuItem("De_lete Exports in Highlighted Area", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.deleteExportsInArea(); } });
-        exportMenu.addMenuItem("Move Export", null,
+        exportMenu.addMenuItem("_Move Export", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.moveExport(); } });
-        exportMenu.addMenuItem("Rename Export...", null,
+        exportMenu.addMenuItem("_Rename Export...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.renameExport(); } });
 
         exportMenu.addSeparator();
 
-        exportMenu.addMenuItem("Summarize Exports", null,
+        exportMenu.addMenuItem("Summari_ze Exports", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.describeExports(true); } });
-        exportMenu.addMenuItem("List Exports", null,
+        exportMenu.addMenuItem("Lis_t Exports", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.describeExports(false); } });
-        exportMenu.addMenuItem("Show Exports", null,
+        exportMenu.addMenuItem("_Show Exports", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.showExports(); } });
 
         exportMenu.addSeparator();
 
-        exportMenu.addMenuItem("Show Ports on Node", null,
+        exportMenu.addMenuItem("Show Ports on _Node", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.showPorts(); } });
 
         exportMenu.addSeparator();
 
-        exportMenu.addMenuItem("Add Exports from Library...", null,
+        exportMenu.addMenuItem("_Add Exports from Library...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ExportChanges.synchronizeLibrary(); } });
     }
 }

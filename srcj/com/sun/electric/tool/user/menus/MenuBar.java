@@ -282,7 +282,17 @@ public class MenuBar extends JMenuBar
          */
         public JMenuItem addCheckBox(String s, boolean state, KeyStroke accelerator, ActionListener action)
         {
+        	int mark = s.indexOf('_');
+        	if (mark >= 0)
+        	{
+        		s = s.substring(0, mark) + s.substring(mark+1);
+        	}
             JMenuItem item = new CheckBoxMenuItem(s, state);
+            if (mark >= 0)
+            {
+				item.setMnemonic(s.charAt(mark));
+				item.setDisplayedMnemonicIndex(mark);
+            }
             addItem(item, accelerator, action);
             return item;
         }

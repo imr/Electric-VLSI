@@ -68,120 +68,120 @@ public class CellMenu {
 
         /****************************** THE CELL MENU ******************************/
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available:  B       J      Q       YZ
         MenuBar.Menu cellMenu = new MenuBar.Menu("Cell", 'C');
         menuBar.add(cellMenu);
 
-        cellMenu.addMenuItem("New Cell...", KeyStroke.getKeyStroke('N', buckyBit),
+        cellMenu.addMenuItem("Ne_w Cell...", KeyStroke.getKeyStroke('N', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { newCellCommand(); } });
-        cellMenu.addMenuItem("Edit Cell...", null,
+        cellMenu.addMenuItem("_Edit Cell...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.editCell); }});
-        cellMenu.addMenuItem("Place Cell Instance...", KeyStroke.getKeyStroke('N', 0),
+        cellMenu.addMenuItem("_Place Cell Instance...", KeyStroke.getKeyStroke('N', 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.newInstance); }});
-        cellMenu.addMenuItem("Rename Cell...", null,
+        cellMenu.addMenuItem("_Rename Cell...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.renameCell); }});
-        cellMenu.addMenuItem("Duplicate Cell...", null,
+        cellMenu.addMenuItem("Duplic_ate Cell...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.duplicateCell); }});
-        cellMenu.addMenuItem("Delete Cell...", null,
+        cellMenu.addMenuItem("De_lete Cell...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.deleteCell); }});
 
-        // mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        MenuBar.Menu multiPageSubMenu = new MenuBar.Menu("Multi-Page Cells");
+        // mnemonic keys available: AB   FGHIJKL NOPQRSTU WXYZ
+        MenuBar.Menu multiPageSubMenu = new MenuBar.Menu("Multi-Page Cells", 'M');
         cellMenu.add(multiPageSubMenu);
-        multiPageSubMenu.addMenuItem("Make Cell Multi-Page", null,
+        multiPageSubMenu.addMenuItem("_Make Cell Multi-Page", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeMultiPageCell(); }});
-        multiPageSubMenu.addMenuItem("Create New Page", null,
+        multiPageSubMenu.addMenuItem("_Create New Page", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { createNewMultiPage(); }});
-        multiPageSubMenu.addMenuItem("Delete This Page", null,
+        multiPageSubMenu.addMenuItem("_Delete This Page", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { deleteThisMultiPage(); }});
-        multiPageSubMenu.addMenuItem("Edit Next Page", null,
+        multiPageSubMenu.addMenuItem("_Edit Next Page", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editNextMultiPage(); }});
-        multiPageSubMenu.addMenuItem("Convert old-style Multi-Page Schematics", null,
+        multiPageSubMenu.addMenuItem("Con_vert old-style Multi-Page Schematics", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.convertMultiPageViews(); }});
 
         cellMenu.addSeparator();
 
-         cellMenu.addMenuItem("Cross-Library Copy...", null,
+        cellMenu.addMenuItem("_Cross-Library Copy...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { crossLibraryCopyCommand(); } });
 
         cellMenu.addSeparator();
 
-        cellMenu.addMenuItem("Down Hierarchy", KeyStroke.getKeyStroke('D', buckyBit),
+        cellMenu.addMenuItem("_Down Hierarchy", KeyStroke.getKeyStroke('D', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { downHierCommand(); }});
-        cellMenu.addMenuItem("Down Hierarchy In Place", KeyStroke.getKeyStroke('D', 0),
+        cellMenu.addMenuItem("Down _Hierarchy In Place", KeyStroke.getKeyStroke('D', 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { downHierInPlaceCommand(); }});
-        cellMenu.addMenuItem("Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
+        cellMenu.addMenuItem("_Up Hierarchy", KeyStroke.getKeyStroke('U', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { upHierCommand(); }});
 
         cellMenu.addSeparator();
 
-        cellMenu.addMenuItem("New Version of Current Cell", null,
+        cellMenu.addMenuItem("New _Version of Current Cell", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { newCellVersionCommand(); } });
-        cellMenu.addMenuItem("Duplicate Current Cell", null,
+        cellMenu.addMenuItem("Duplicate Curre_nt Cell", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { duplicateCellCommand(); } });
-        cellMenu.addMenuItem("Delete Unused Old Versions", null,
+        cellMenu.addMenuItem("Delete Unused _Old Versions", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { deleteOldCellVersionsCommand(); } });
 
         cellMenu.addSeparator();
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        MenuBar.Menu cellInfoSubMenu = new MenuBar.Menu("Cell Info");
+		// mnemonic keys available:  BC    H JKLM OPQRST  WXYZ
+        MenuBar.Menu cellInfoSubMenu = new MenuBar.Menu("Cell Info", 'F');
         cellMenu.add(cellInfoSubMenu);
-        cellInfoSubMenu.addMenuItem("Describe this Cell", null,
+        cellInfoSubMenu.addMenuItem("_Describe this Cell", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.describeThisCellCommand(); } });
-        cellInfoSubMenu.addMenuItem("General Cell Lists...", null,
+        cellInfoSubMenu.addMenuItem("_General Cell Lists...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.generalCellListsCommand(); } });
         cellInfoSubMenu.addSeparator();
-        cellInfoSubMenu.addMenuItem("List Nodes in this Cell", null,
+        cellInfoSubMenu.addMenuItem("List _Nodes in this Cell", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listNodesInCellCommand(); }});
-        cellInfoSubMenu.addMenuItem("List Cell Instances", null,
+        cellInfoSubMenu.addMenuItem("List Cell _Instances", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellInstancesCommand(); }});
-        cellInfoSubMenu.addMenuItem("List Cell Usage", null,
+        cellInfoSubMenu.addMenuItem("List Cell _Usage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellUsageCommand(); }});
         cellInfoSubMenu.addSeparator();
-        cellInfoSubMenu.addMenuItem("List Layer Coverage on Cell", null,
+        cellInfoSubMenu.addMenuItem("List Layer Co_verage on Cell", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
-        cellInfoSubMenu.addMenuItem("Area Coverage Tool", null,
+        cellInfoSubMenu.addMenuItem("_Area Coverage Tool", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(null, GeometryHandler.ALGO_SWEEP, true);} });
         cellInfoSubMenu.addSeparator();
-                cellInfoSubMenu.addMenuItem("Graphically, Entire Library", null,
+        cellInfoSubMenu.addMenuItem("Graphically, _Entire Library", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.graphCellsInLibrary(); }});
-        cellInfoSubMenu.addMenuItem("Graphically, From Current Cell", null,
+        cellInfoSubMenu.addMenuItem("Graphically, _From Current Cell", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.graphCellsFromCell(); }});
 
-        cellMenu.addMenuItem("Cell Properties...", null,
+        cellMenu.addMenuItem("Cell Propertie_s...", null,
              new ActionListener() { public void actionPerformed(ActionEvent e) { cellControlCommand(); }});
 
         cellMenu.addSeparator();
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        MenuBar.Menu expandListSubMenu = new MenuBar.Menu("Expand Cell Instances");
+		// mnemonic keys available:  BCDEFGHIJKLMN PQR TUVWXYZ
+        MenuBar.Menu expandListSubMenu = new MenuBar.Menu("Expand Cell Instances", 'X');
         cellMenu.add(expandListSubMenu);
-        expandListSubMenu.addMenuItem("One Level Down", null,
+        expandListSubMenu.addMenuItem("_One Level Down", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandOneLevelDownCommand(); }});
-        expandListSubMenu.addMenuItem("All the Way", null,
+        expandListSubMenu.addMenuItem("_All the Way", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandFullCommand(); }});
-        expandListSubMenu.addMenuItem("Specified Amount...", null,
+        expandListSubMenu.addMenuItem("_Specified Amount...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandSpecificCommand(); }});
 
-        // mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        MenuBar.Menu unExpandListSubMenu = new MenuBar.Menu("Unexpand Cell Instances");
+        // mnemonic keys available:  BCDEFGHIJKLMN PQR TUVWXYZ
+        MenuBar.Menu unExpandListSubMenu = new MenuBar.Menu("Unexpand Cell Instances", 'T');
         cellMenu.add(unExpandListSubMenu);
-        unExpandListSubMenu.addMenuItem("One Level Up", null,
+        unExpandListSubMenu.addMenuItem("_One Level Up", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandOneLevelUpCommand(); }});
-        unExpandListSubMenu.addMenuItem("All the Way", null,
+        unExpandListSubMenu.addMenuItem("_All the Way", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandFullCommand(); }});
-        unExpandListSubMenu.addMenuItem("Specified Amount...", null,
+        unExpandListSubMenu.addMenuItem("_Specified Amount...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.unexpandSpecificCommand(); }});
-        cellMenu.addMenuItem("Look Inside Highlighted", KeyStroke.getKeyStroke('P', buckyBit),
+
+        cellMenu.addMenuItem("Loo_k Inside Highlighted", KeyStroke.getKeyStroke('P', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.peekCommand(); }});
 
         cellMenu.addSeparator();
-        cellMenu.addMenuItem("Package Into Cell...", null,
+        cellMenu.addMenuItem("Packa_ge Into Cell...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.packageIntoCell(); } });
-        cellMenu.addMenuItem("Extract Cell Instance", null,
+        cellMenu.addMenuItem("Extract Cell _Instance", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.extractCells(); } });
-
     }
 
     /**

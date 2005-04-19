@@ -113,6 +113,7 @@ public class EditMenu {
 		/****************************** THE EDIT MENU ******************************/
 
 		// mnemonic keys available:  B       JK     Q     W  
+		// still don't have mnemonic for "Repeat Last Action"
 		MenuBar.Menu editMenu = new MenuBar.Menu("Edit", 'E');
         menuBar.add(editMenu);
 
@@ -208,65 +209,65 @@ public class EditMenu {
 
 		editMenu.addSeparator();
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRS  VWXYZ
 		MenuBar.Menu editInfoSubMenu = new MenuBar.Menu("Info", 'F');
 		editMenu.add(editInfoSubMenu);
 //		editInfoSubMenu.addMenuItem("List Layer Coverage", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { LayerCoverageJob.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
-		editInfoSubMenu.addMenuItem("Show Undo List", null,
+		editInfoSubMenu.addMenuItem("Show _Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
-		editInfoSubMenu.addMenuItem("Describe this Technology", null,
+		editInfoSubMenu.addMenuItem("Describe this _Technology", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { describeTechnologyCommand(); } });
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available:  BC EFG IJK M  PQR TUVWXYZ
 		MenuBar.Menu editPropertiesSubMenu = new MenuBar.Menu("Properties", 'I');
 		editMenu.add(editPropertiesSubMenu);
-		editPropertiesSubMenu.addMenuItem("Object Properties...", KeyStroke.getKeyStroke('I', buckyBit),
+		editPropertiesSubMenu.addMenuItem("_Object Properties...", KeyStroke.getKeyStroke('I', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { getInfoCommand(false); } });
-		editPropertiesSubMenu.addMenuItem("Attribute Properties...", null,
+		editPropertiesSubMenu.addMenuItem("_Attribute Properties...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Attributes.showDialog(); } });
 		editPropertiesSubMenu.addSeparator();
-		editPropertiesSubMenu.addMenuItem("See All Attributes on Node", null,
+		editPropertiesSubMenu.addMenuItem("_See All Attributes on Node", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { seeAllParametersCommand(); } });
-		editPropertiesSubMenu.addMenuItem("Hide All Attributes on Node", null,
+		editPropertiesSubMenu.addMenuItem("_Hide All Attributes on Node", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { hideAllParametersCommand(); } });
-		editPropertiesSubMenu.addMenuItem("Default Attribute Visibility", null,
+		editPropertiesSubMenu.addMenuItem("_Default Attribute Visibility", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { defaultParamVisibilityCommand(); } });
-        editPropertiesSubMenu.addMenuItem("Update Attributes Inheritance on Node", null,
+        editPropertiesSubMenu.addMenuItem("Update Attributes Inheritance on _Node", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { updateInheritance(false); } });
-        editPropertiesSubMenu.addMenuItem("Update Attributes Inheritance all Libraries", null,
+        editPropertiesSubMenu.addMenuItem("Update Attributes Inheritance all _Libraries", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { updateInheritance(true); } });
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available:   C E G I KLM OPQ S UVWXYZ
 		MenuBar.Menu arcSubMenu = new MenuBar.Menu("Arc", 'C');
 		editMenu.add(arcSubMenu);
-		arcSubMenu.addMenuItem("Rigid", null,
+		arcSubMenu.addMenuItem("_Rigid", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcRigidCommand(); }});
-		arcSubMenu.addMenuItem("Not Rigid", null,
+		arcSubMenu.addMenuItem("_Not Rigid", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcNotRigidCommand(); }});
-		arcSubMenu.addMenuItem("Fixed Angle", null,
+		arcSubMenu.addMenuItem("_Fixed Angle", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcFixedAngleCommand(); }});
-		arcSubMenu.addMenuItem("Not Fixed Angle", null,
+		arcSubMenu.addMenuItem("Not Fixed _Angle", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcNotFixedAngleCommand(); }});
 		arcSubMenu.addSeparator();
-		arcSubMenu.addMenuItem("Toggle Directionality", null,
+		arcSubMenu.addMenuItem("Toggle _Directionality", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcDirectionalCommand(); }});
-		arcSubMenu.addMenuItem("Toggle End Extension of Head", null,
+		arcSubMenu.addMenuItem("Toggle End Extension of _Head", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcHeadExtendCommand(); }});
-		arcSubMenu.addMenuItem("Toggle End Extension of Tail", null,
+		arcSubMenu.addMenuItem("Toggle End Extension of _Tail", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcTailExtendCommand(); }});
 		arcSubMenu.addSeparator();
-		arcSubMenu.addMenuItem("Insert Jog In Arc", null,
+		arcSubMenu.addMenuItem("Insert _Jog In Arc", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { insertJogInArcCommand(); } });
-		arcSubMenu.addMenuItem("Rip Bus", null,
+		arcSubMenu.addMenuItem("Rip _Bus", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.ripBus(); }});
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: ABCD FGHIJKL NOPQR TUVWXYZ
 		MenuBar.Menu modeSubMenu = new MenuBar.Menu("Modes", 'O');
 		editMenu.add(modeSubMenu); 
 
 		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-		MenuBar.Menu modeSubMenuEdit = new MenuBar.Menu("Edit");
+		MenuBar.Menu modeSubMenuEdit = new MenuBar.Menu("Edit", 'E');
 		modeSubMenu.add(modeSubMenuEdit);
 		ButtonGroup editGroup = new ButtonGroup();
         JMenuItem cursorClickZoomWire, cursorSelect, cursorWiring, cursorPan, cursorZoom, cursorOutline, cursorMeasure;
@@ -289,7 +290,7 @@ public class EditMenu {
 		if (cm == ToolBar.CursorMode.MEASURE) cursorMeasure.setSelected(true);
 
 		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-		MenuBar.Menu modeSubMenuMovement = new MenuBar.Menu("Movement");
+		MenuBar.Menu modeSubMenuMovement = new MenuBar.Menu("Movement", 'M');
 		modeSubMenu.add(modeSubMenuMovement);
 		ButtonGroup movementGroup = new ButtonGroup();
         JMenuItem moveFull, moveHalf, moveQuarter;
@@ -305,7 +306,7 @@ public class EditMenu {
 			moveQuarter.setSelected(true);
 
 		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-		MenuBar.Menu modeSubMenuSelect = new MenuBar.Menu("Select");
+		MenuBar.Menu modeSubMenuSelect = new MenuBar.Menu("Select", 'S');
 		modeSubMenu.add(modeSubMenuSelect);
 		ButtonGroup selectGroup = new ButtonGroup();
 		JMenuItem selectArea, selectObjects;
@@ -319,16 +320,16 @@ public class EditMenu {
 		modeSubMenuSelect.addCheckBox(ToolBar.specialSelectName, false, null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.toggleSelectSpecialCommand(e); } });
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: AB  E GH JKLMNOPQRSTUVWXYZ
 		MenuBar.Menu textSubMenu = new MenuBar.Menu("Text", 'X');
 		editMenu.add(textSubMenu);
-		textSubMenu.addMenuItem("Find Text...", KeyStroke.getKeyStroke('L', buckyBit),
+		textSubMenu.addMenuItem("_Find Text...", KeyStroke.getKeyStroke('L', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FindText.findTextDialog(); }});
-		textSubMenu.addMenuItem("Change Text Size...", null,
+		textSubMenu.addMenuItem("_Change Text Size...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ChangeText.changeTextDialog(); }});
-		textSubMenu.addMenuItem("Increase All Text Size", KeyStroke.getKeyStroke('=', buckyBit),
+		textSubMenu.addMenuItem("_Increase All Text Size", KeyStroke.getKeyStroke('=', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { changeGlobalTextSize(1.25); }});
-		textSubMenu.addMenuItem("Decrease All Text Size", KeyStroke.getKeyStroke('-', buckyBit),
+		textSubMenu.addMenuItem("_Decrease All Text Size", KeyStroke.getKeyStroke('-', buckyBit),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { changeGlobalTextSize(0.8); }});
 
 		// mnemonic keys available: ABCD FGHIJK M O QR TUVWXYZ
@@ -345,75 +346,74 @@ public class EditMenu {
 		cleanupSubMenu.addMenuItem("_Shorten Selected Arcs", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available:  B  EFGH JK M O QRS UVWXYZ
 		MenuBar.Menu specialSubMenu = new MenuBar.Menu("Technology Specific", 'G');
 		editMenu.add(specialSubMenu);
-		specialSubMenu.addMenuItem("Toggle Port Negation", KeyStroke.getKeyStroke('T', buckyBit),
+		specialSubMenu.addMenuItem("Toggle Port _Negation", KeyStroke.getKeyStroke('T', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.toggleNegatedCommand(); }});
-		specialSubMenu.addMenuItem("Artwork Appearance...", null,
+		specialSubMenu.addMenuItem("_Artwork Appearance...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ArtworkLook.showArtworkLookDialog(); }});
 		specialSubMenu.addSeparator();
-		specialSubMenu.addMenuItem("Convert Technology to Library for Editing...", null,
+		specialSubMenu.addMenuItem("Convert Technology to _Library for Editing...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TechToLib.makeLibFromTech(); }});
-		specialSubMenu.addMenuItem("Convert Library to Technology...", null,
+		specialSubMenu.addMenuItem("Convert Library to _Technology...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { LibToTech.makeTechFromLib(); }});
 		specialSubMenu.addSeparator();
-		specialSubMenu.addMenuItem("Identify Primitive Layers", null,
+		specialSubMenu.addMenuItem("_Identify Primitive Layers", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.identifyLayers(false); }});
-		specialSubMenu.addMenuItem("Identify Ports", null,
+		specialSubMenu.addMenuItem("Identify _Ports", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.identifyLayers(true); }});
 		specialSubMenu.addSeparator();
-		specialSubMenu.addMenuItem("Edit Library Dependencies...", null,
+		specialSubMenu.addMenuItem("Edit Library _Dependencies...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.editLibraryDependencies(); }});
-		specialSubMenu.addMenuItem("Document Current Technology", null,
+		specialSubMenu.addMenuItem("Do_cument Current Technology", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.describeTechnology(Technology.getCurrent()); }});
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available:  B   F  I KLM  PQR       Z
 		MenuBar.Menu selListSubMenu = new MenuBar.Menu("Selection", 'S');
 		editMenu.add(selListSubMenu);
-		selListSubMenu.addMenuItem("Select All", KeyStroke.getKeyStroke('A', buckyBit),
+		selListSubMenu.addMenuItem("Sele_ct All", KeyStroke.getKeyStroke('A', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllCommand(); }});
-		selListSubMenu.addMenuItem("Select All Like This", null,
+		selListSubMenu.addMenuItem("Select All Like _This", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectAllLikeThisCommand(); }});
-		selListSubMenu.addMenuItem("Select All Easy", null,
+		selListSubMenu.addMenuItem("Select All _Easy", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectEasyCommand(); }});
-		selListSubMenu.addMenuItem("Select All Hard", null,
+		selListSubMenu.addMenuItem("Select All _Hard", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectHardCommand(); }});
-		selListSubMenu.addMenuItem("Select Nothing", null,
+		selListSubMenu.addMenuItem("Select Nothin_g", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectNothingCommand(); }});
 		selListSubMenu.addSeparator();
-		selListSubMenu.addMenuItem("Select Object...", null,
+		selListSubMenu.addMenuItem("_Select Object...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { SelectObject.selectObjectDialog(); }});
-		selListSubMenu.addMenuItem("Deselect All Arcs", null,
+		selListSubMenu.addMenuItem("Deselect All _Arcs", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { deselectAllArcsCommand(); }});
 		selListSubMenu.addSeparator();
-		selListSubMenu.addMenuItem("Make Selected Easy", null,
+		selListSubMenu.addMenuItem("Make Selected Eas_y", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeEasyCommand(); }});
-		selListSubMenu.addMenuItem("Make Selected Hard", null,
+		selListSubMenu.addMenuItem("Make Selected Har_d", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeHardCommand(); }});
 		selListSubMenu.addSeparator();
-		selListSubMenu.addMenuItem("Push Selection", KeyStroke.getKeyStroke('1', buckyBit),
+		selListSubMenu.addMenuItem("P_ush Selection", KeyStroke.getKeyStroke('1', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) {
                 EditWindow wnd = EditWindow.getCurrent(); if (wnd == null) return;
                 wnd.getHighlighter().pushHighlight(); }});
-		selListSubMenu.addMenuItem("Pop Selection", KeyStroke.getKeyStroke('3', buckyBit),
+		selListSubMenu.addMenuItem("P_op Selection", KeyStroke.getKeyStroke('3', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) {
                 EditWindow wnd = EditWindow.getCurrent(); if (wnd ==null) return;
                 wnd.getHighlighter().popHighlight(); }});
 		selListSubMenu.addSeparator();
-		selListSubMenu.addMenuItem("Enclosed Objects", null,
+		selListSubMenu.addMenuItem("Enclosed Ob_jects", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectEnclosedObjectsCommand(); }});
 		selListSubMenu.addSeparator();
-		selListSubMenu.addMenuItem("Show Next Error", KeyStroke.getKeyStroke('>'),
+		selListSubMenu.addMenuItem("Show Ne_xt Error", KeyStroke.getKeyStroke('>'),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showNextErrorCommand(); }});
-		selListSubMenu.addMenuItem("Show Previous Error", KeyStroke.getKeyStroke('<'),
+		selListSubMenu.addMenuItem("Show Pre_vious Error", KeyStroke.getKeyStroke('<'),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showPrevErrorCommand(); }});
 		selListSubMenu.addSeparator();
-		selListSubMenu.addMenuItem("Add to Waveform in New Panel", KeyStroke.getKeyStroke('A', 0),
+		selListSubMenu.addMenuItem("Add to Waveform in _New Panel", KeyStroke.getKeyStroke('A', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { addToWaveformNewCommand(); }});
-		selListSubMenu.addMenuItem("Add to Waveform in Current Panel", KeyStroke.getKeyStroke('O', 0),
+		selListSubMenu.addMenuItem("Add to _Waveform in Current Panel", KeyStroke.getKeyStroke('O', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { addToWaveformCurrentCommand(); }});
-
     }
 
     public static void undoCommand() { new UndoCommand(); }

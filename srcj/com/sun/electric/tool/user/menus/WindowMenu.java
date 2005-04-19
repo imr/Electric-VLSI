@@ -65,83 +65,85 @@ public class WindowMenu {
 
         /****************************** THE WINDOW MENU ******************************/
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: AB      I K  N PQ      XY 
         MenuBar.Menu windowMenu = new MenuBar.Menu("Window", 'W');
         menuBar.add(windowMenu);
 
-        m = windowMenu.addMenuItem("Fill Window", KeyStroke.getKeyStroke('9', buckyBit),
+        m = windowMenu.addMenuItem("_Fill Window", KeyStroke.getKeyStroke('9', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { fullDisplay(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD9, buckyBit), null);
-        m = windowMenu.addMenuItem("Redisplay Window", null,
+        m = windowMenu.addMenuItem("Redisplay _Window", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.redrawDisplay(); } });
-        m = windowMenu.addMenuItem("Zoom Out", KeyStroke.getKeyStroke('0', buckyBit),
+        m = windowMenu.addMenuItem("Zoom _Out", KeyStroke.getKeyStroke('0', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { zoomOutDisplay(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD0, buckyBit), null);
-        m = windowMenu.addMenuItem("Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
+        m = windowMenu.addMenuItem("_Zoom In", KeyStroke.getKeyStroke('7', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplay(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        MenuBar.Menu specialZoomSubMenu = new MenuBar.Menu("Special Zoom");
+		// mnemonic keys available: ABCDEF  IJKLMNOPQRSTUV XY 
+        MenuBar.Menu specialZoomSubMenu = new MenuBar.Menu("Special Zoom", 'S');
         windowMenu.add(specialZoomSubMenu);
-        m = specialZoomSubMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
+        m = specialZoomSubMenu.addMenuItem("Focus on _Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { focusOnHighlighted(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD5, buckyBit), null);
-        m = specialZoomSubMenu.addMenuItem("Zoom Box", null,
+        m = specialZoomSubMenu.addMenuItem("_Zoom Box", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { zoomBoxCommand(); }});
-        specialZoomSubMenu.addMenuItem("Make Grid Just Visible", null,
+        specialZoomSubMenu.addMenuItem("Make _Grid Just Visible", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { makeGridJustVisibleCommand(); }});
-        specialZoomSubMenu.addMenuItem("Match Other Window", null,
+        specialZoomSubMenu.addMenuItem("Match Other _Window", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { matchOtherWindowCommand(); }});
 
         windowMenu.addSeparator();
 
-        m = windowMenu.addMenuItem("Pan Left", KeyStroke.getKeyStroke('4', buckyBit),
+        m = windowMenu.addMenuItem("Pan _Left", KeyStroke.getKeyStroke('4', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panXOrY(0, WindowFrame.getCurrentWindowFrame(), 1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD4, buckyBit), null);
-        m = windowMenu.addMenuItem("Pan Right", KeyStroke.getKeyStroke('6', buckyBit),
+        m = windowMenu.addMenuItem("Pan _Right", KeyStroke.getKeyStroke('6', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panXOrY(0, WindowFrame.getCurrentWindowFrame(), -1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD6, buckyBit), null);
-        m = windowMenu.addMenuItem("Pan Up", KeyStroke.getKeyStroke('8', buckyBit),
+        m = windowMenu.addMenuItem("Pan _Up", KeyStroke.getKeyStroke('8', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panXOrY(1, WindowFrame.getCurrentWindowFrame(), -1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD8, buckyBit), null);
-        m = windowMenu.addMenuItem("Pan Down", KeyStroke.getKeyStroke('2', buckyBit),
+        m = windowMenu.addMenuItem("Pan _Down", KeyStroke.getKeyStroke('2', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panXOrY(1, WindowFrame.getCurrentWindowFrame(), 1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, buckyBit), null);
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        MenuBar.Menu centerSubMenu = new MenuBar.Menu("Center");
+		// mnemonic keys available: AB DEFGHIJKLMNOPQR TUVWXYZ
+        MenuBar.Menu centerSubMenu = new MenuBar.Menu("Center", 'T');
         windowMenu.add(centerSubMenu);
-        centerSubMenu.addMenuItem("Selection", null,
+        centerSubMenu.addMenuItem("_Selection", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.centerSelection(); }});
-        centerSubMenu.addMenuItem("Cursor", KeyStroke.getKeyStroke('5', buckyBit),
+        centerSubMenu.addMenuItem("_Cursor", KeyStroke.getKeyStroke('5', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.centerCursor(e); }});
-        windowMenu.addMenuItem("Saved Views...", null,
+
+        windowMenu.addMenuItem("Saved _Views...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { SavedViews.showSavedViewsDialog(); } });
 
         windowMenu.addSeparator();
 
-        windowMenu.addMenuItem("Toggle Grid", KeyStroke.getKeyStroke('G', buckyBit),
+        windowMenu.addMenuItem("Toggle _Grid", KeyStroke.getKeyStroke('G', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { toggleGridCommand(); } });
 
         windowMenu.addSeparator();
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        MenuBar.Menu windowPartitionSubMenu = new MenuBar.Menu("Adjust Position");
+		// mnemonic keys available: AB DEFG IJKLMNOPQRSTU WXYZ
+        MenuBar.Menu windowPartitionSubMenu = new MenuBar.Menu("Adjust Position", 'J');
         windowMenu.add(windowPartitionSubMenu);
-        windowPartitionSubMenu.addMenuItem("Tile Horizontally", null,
+        windowPartitionSubMenu.addMenuItem("Tile _Horizontally", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { tileHorizontallyCommand(); }});
-        windowPartitionSubMenu.addMenuItem("Tile Vertically", KeyStroke.getKeyStroke(KeyEvent.VK_F9, 0),
+        windowPartitionSubMenu.addMenuItem("Tile _Vertically", KeyStroke.getKeyStroke(KeyEvent.VK_F9, 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { tileVerticallyCommand(); }});
-        windowPartitionSubMenu.addMenuItem("Cascade", null,
+        windowPartitionSubMenu.addMenuItem("_Cascade", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { cascadeWindowsCommand(); }});
-        windowMenu.addMenuItem("Close Window", KeyStroke.getKeyStroke(KeyEvent.VK_W, buckyBit),
+
+        windowMenu.addMenuItem("Clos_e Window", KeyStroke.getKeyStroke(KeyEvent.VK_W, buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { WindowFrame curWF = WindowFrame.getCurrentWindowFrame();
                 curWF.finished(); }});
 
         if (!TopLevel.isMDIMode()) {
             windowMenu.addSeparator();
-            m = windowMenu.addMenuItem("Move to Other Display", null,
+            m = windowMenu.addMenuItem("Move to Ot_her Display", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { moveToOtherDisplayCommand(); } });
             if (getAllGraphicsDevices().length < 2) {
                 // only 1 screen, disable menu
@@ -151,29 +153,29 @@ public class WindowMenu {
 
         windowMenu.addSeparator();
 
-        // mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        MenuBar.Menu colorSubMenu = new MenuBar.Menu("Color Schemes");
+        // mnemonic keys available: A CDEFGHIJKLMNOPQ STUV XYZ
+        MenuBar.Menu colorSubMenu = new MenuBar.Menu("Color Schemes", 'C');
         windowMenu.add(colorSubMenu);
-        colorSubMenu.addMenuItem("Restore Default Colors", null,
+        colorSubMenu.addMenuItem("_Restore Default Colors", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { defaultBackgroundCommand(); }});
-        colorSubMenu.addMenuItem("Black Background Colors", null,
+        colorSubMenu.addMenuItem("_Black Background Colors", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { blackBackgroundCommand(); }});
-        colorSubMenu.addMenuItem("White Background Colors", null,
+        colorSubMenu.addMenuItem("_White Background Colors", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { whiteBackgroundCommand(); }});
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-        MenuBar.Menu messagesSubMenu = new MenuBar.Menu("Messages Window");
+		// mnemonic keys available: AB DE GHIJKLMNOPQR TUVWXYZ
+        MenuBar.Menu messagesSubMenu = new MenuBar.Menu("Messages Window", 'M');
         windowMenu.add(messagesSubMenu);
-        messagesSubMenu.addMenuItem("Save Messages...", null,
+        messagesSubMenu.addMenuItem("_Save Messages...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().save(); }});
-        messagesSubMenu.addMenuItem("Clear", null,
+        messagesSubMenu.addMenuItem("_Clear", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().clear(); }});
-        messagesSubMenu.addMenuItem("Set Font...", null,
+        messagesSubMenu.addMenuItem("Set F_ont...", null,
              new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().selectFont(); }});
 
         /** 3D view */
-	    windowMenu.addMenuItem("3D Display", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(false); } });
+	    windowMenu.addMenuItem("_3D Display", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(false); } });
     }
    
 	/**

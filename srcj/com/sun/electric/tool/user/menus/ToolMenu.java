@@ -127,170 +127,170 @@ public class ToolMenu {
 
 		/****************************** THE TOOL MENU ******************************/
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: AB   F H JK    PQ   U  XYZ
 		MenuBar.Menu toolMenu = new MenuBar.Menu("Tool", 'T');
 		menuBar.add(toolMenu);
 
 		//------------------- DRC
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: ABCDEFG IJKLMNOPQR TUVWXYZ
 		MenuBar.Menu drcSubMenu = new MenuBar.Menu("DRC", 'D');
 		toolMenu.add(drcSubMenu);
-		drcSubMenu.addMenuItem("Check Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
+		drcSubMenu.addMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false, GeometryHandler.ALGO_QTREE); }});
-		drcSubMenu.addMenuItem("Check Selection Area Hierarchically", null,
+		drcSubMenu.addMenuItem("Check _Selection Area Hierarchically", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true, GeometryHandler.ALGO_QTREE); }});
 
 		//------------------- Simulation (IRSIM)
 
 		if (Simulation.hasIRSIM())
 		{
-			// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+			// mnemonic keys available:  B  EF   JK  N PQ  T V XYZ
 			MenuBar.Menu irsimSimulationSubMenu = new MenuBar.Menu("Simulation (IRSIM)", 'I');
 			toolMenu.add(irsimSimulationSubMenu);
-			irsimSimulationSubMenu.addMenuItem("Simulate Current Cell", null,
+			irsimSimulationSubMenu.addMenuItem("Si_mulate Current Cell", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(false); } });
-			irsimSimulationSubMenu.addMenuItem("Update Simulation Window", null,
+			irsimSimulationSubMenu.addMenuItem("_Update Simulation Window", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("update"); } });
 			irsimSimulationSubMenu.addSeparator();
-			irsimSimulationSubMenu.addMenuItem("Set Signal High at Main Time", KeyStroke.getKeyStroke('V', 0),
+			irsimSimulationSubMenu.addMenuItem("Set Signal _High at Main Time", KeyStroke.getKeyStroke('V', 0),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("h"); } });
-			irsimSimulationSubMenu.addMenuItem("Set Signal Low at Main Time", KeyStroke.getKeyStroke('G', 0),
+			irsimSimulationSubMenu.addMenuItem("Set Signal _Low at Main Time", KeyStroke.getKeyStroke('G', 0),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("l"); } });
-			irsimSimulationSubMenu.addMenuItem("Set Signal Undefined at Main Time", KeyStroke.getKeyStroke('X', 0),
+			irsimSimulationSubMenu.addMenuItem("Set Signal Un_defined at Main Time", KeyStroke.getKeyStroke('X', 0),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("x"); } });
-			irsimSimulationSubMenu.addMenuItem("Get Information about Selected Signals", null,
+			irsimSimulationSubMenu.addMenuItem("_Get Information about Selected Signals", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("info"); } });
 			irsimSimulationSubMenu.addSeparator();
-			irsimSimulationSubMenu.addMenuItem("Clear Selected Vectors", null,
+			irsimSimulationSubMenu.addMenuItem("_Clear Selected Vectors", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("clearSelected"); } });
-			irsimSimulationSubMenu.addMenuItem("Clear All Vectors on Selected Signals", null,
+			irsimSimulationSubMenu.addMenuItem("Clear All Vectors _on Selected Signals", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("clear"); } });
-			irsimSimulationSubMenu.addMenuItem("Clear All Vectors", null,
+			irsimSimulationSubMenu.addMenuItem("Clear _All Vectors", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("clearAll"); } });
 			irsimSimulationSubMenu.addSeparator();
-			irsimSimulationSubMenu.addMenuItem("Write IRSIM Deck...", null,
+			irsimSimulationSubMenu.addMenuItem("_Write IRSIM Deck...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.IRSIM, true); }});
-			irsimSimulationSubMenu.addMenuItem("Simulate IRSIM Deck...", null,
+			irsimSimulationSubMenu.addMenuItem("Simulate _IRSIM Deck...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(true); }});
 			irsimSimulationSubMenu.addSeparator();
-			irsimSimulationSubMenu.addMenuItem("Save Vectors to Disk...", null,
+			irsimSimulationSubMenu.addMenuItem("_Save Vectors to Disk...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("save"); } });
-			irsimSimulationSubMenu.addMenuItem("Restore Vectors from Disk...", null,
+			irsimSimulationSubMenu.addMenuItem("_Restore Vectors from Disk...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("restore"); } });
         }
 
 		//------------------- Simulation (SPICE)
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: AB  E   IJK  NO QR   VWXYZ
 		MenuBar.Menu spiceSimulationSubMenu = new MenuBar.Menu("Simulation (Spice)", 'S');
 		toolMenu.add(spiceSimulationSubMenu);
-		spiceSimulationSubMenu.addMenuItem("Write Spice Deck...", null,
+		spiceSimulationSubMenu.addMenuItem("Write Spice _Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.SPICE, true); }});
-		spiceSimulationSubMenu.addMenuItem("Write CDL Deck...", null,
+		spiceSimulationSubMenu.addMenuItem("Write _CDL Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.CDL, true); }});
-		spiceSimulationSubMenu.addMenuItem("Plot Spice Listing...", null,
+		spiceSimulationSubMenu.addMenuItem("Plot Spice _Listing...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResults(); }});
-		spiceSimulationSubMenu.addMenuItem("Plot Spice for This Cell", null,
+		spiceSimulationSubMenu.addMenuItem("Plot Spice _for This Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotSpiceResultsThisCell(); }});
-		spiceSimulationSubMenu.addMenuItem("Set Spice Model...", null,
+		spiceSimulationSubMenu.addMenuItem("Set Spice _Model...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setSpiceModel(); }});
-		spiceSimulationSubMenu.addMenuItem("Add Multiplier", null,
+		spiceSimulationSubMenu.addMenuItem("Add M_ultiplier", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { addMultiplierCommand(); }});
 
 		spiceSimulationSubMenu.addSeparator();
 
-		spiceSimulationSubMenu.addMenuItem("Set Generic Spice Template", null,
+		spiceSimulationSubMenu.addMenuItem("Set Generic Spice _Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_TEMPLATE_KEY); }});
-		spiceSimulationSubMenu.addMenuItem("Set Spice 2 Template", null,
+		spiceSimulationSubMenu.addMenuItem("Set Spice _2 Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_2_TEMPLATE_KEY); }});
-		spiceSimulationSubMenu.addMenuItem("Set Spice 3 Template", null,
+		spiceSimulationSubMenu.addMenuItem("Set Spice _3 Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_3_TEMPLATE_KEY); }});
-		spiceSimulationSubMenu.addMenuItem("Set HSpice Template", null,
+		spiceSimulationSubMenu.addMenuItem("Set _HSpice Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_H_TEMPLATE_KEY); }});
-		spiceSimulationSubMenu.addMenuItem("Set PSpice Template", null,
+		spiceSimulationSubMenu.addMenuItem("Set _PSpice Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_P_TEMPLATE_KEY); }});
-		spiceSimulationSubMenu.addMenuItem("Set GnuCap Template", null,
+		spiceSimulationSubMenu.addMenuItem("Set _GnuCap Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_GC_TEMPLATE_KEY); }});
-		spiceSimulationSubMenu.addMenuItem("Set SmartSpice Template", null,
+		spiceSimulationSubMenu.addMenuItem("Set _SmartSpice Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Spice.SPICE_SM_TEMPLATE_KEY); }});
 
 		//------------------- Simulation (Verilog)
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: AB  EFGHIJKLMNOPQRS U WXYZ
 		MenuBar.Menu verilogSimulationSubMenu = new MenuBar.Menu("Simulation (Verilog)", 'V');
 		toolMenu.add(verilogSimulationSubMenu);
-		verilogSimulationSubMenu.addMenuItem("Write Verilog Deck...", null,
+		verilogSimulationSubMenu.addMenuItem("Write _Verilog Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.VERILOG, true); } });
-		verilogSimulationSubMenu.addMenuItem("Plot Verilog VCD Dump...", null,
+		verilogSimulationSubMenu.addMenuItem("Plot Verilog VCD _Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResults(); }});
-		verilogSimulationSubMenu.addMenuItem("Plot Verilog for This Cell", null,
+		verilogSimulationSubMenu.addMenuItem("Plot Verilog for This _Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotVerilogResultsThisCell(); }});
 		verilogSimulationSubMenu.addSeparator();
-		verilogSimulationSubMenu.addMenuItem("Set Verilog Template", null,
+		verilogSimulationSubMenu.addMenuItem("Set Verilog _Template", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeTemplate(Verilog.VERILOG_TEMPLATE_KEY); }});
 
 		verilogSimulationSubMenu.addSeparator();
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: ABC EFGHIJKLMNOPQRS UV XYZ
 		MenuBar.Menu verilogWireTypeSubMenu = new MenuBar.Menu("Set Verilog Wire", 'W');
-		verilogWireTypeSubMenu.addMenuItem("Wire", null,
+		verilogWireTypeSubMenu.addMenuItem("_Wire", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(0); }});
-		verilogWireTypeSubMenu.addMenuItem("Trireg", null,
+		verilogWireTypeSubMenu.addMenuItem("_Trireg", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(1); }});
-		verilogWireTypeSubMenu.addMenuItem("Default", null,
+		verilogWireTypeSubMenu.addMenuItem("_Default", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setVerilogWireCommand(2); }});
 		verilogSimulationSubMenu.add(verilogWireTypeSubMenu);
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: ABCDEFGHIJKLM OPQRSTUV XYZ
 		MenuBar.Menu transistorStrengthSubMenu = new MenuBar.Menu("Transistor Strength", 'T');
-		transistorStrengthSubMenu.addMenuItem("Weak", null,
+		transistorStrengthSubMenu.addMenuItem("_Weak", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(true); }});
-		transistorStrengthSubMenu.addMenuItem("Normal", null,
+		transistorStrengthSubMenu.addMenuItem("_Normal", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setTransistorStrengthCommand(false); }});
 		verilogSimulationSubMenu.add(transistorStrengthSubMenu);
 
 		//------------------- Simulation (others)
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-		MenuBar.Menu netlisters = new MenuBar.Menu("Simulation (Others)");
+		// mnemonic keys available:  B D  GH JKL N  Q   UVWXYZ
+		MenuBar.Menu netlisters = new MenuBar.Menu("Simulation (Others)", 'O');
 		toolMenu.add(netlisters);
-		netlisters.addMenuItem("Write Maxwell Deck...", null,
+		netlisters.addMenuItem("Write _Maxwell Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.MAXWELL, true); } });
-		netlisters.addMenuItem("Write Tegas Deck...", null,
+		netlisters.addMenuItem("Write _Tegas Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.TEGAS, true); } });
-		netlisters.addMenuItem("Write SILOS Deck...", null,
+		netlisters.addMenuItem("Write _SILOS Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.SILOS, true); }});
-		netlisters.addMenuItem("Write PAL Deck...", null,
+		netlisters.addMenuItem("Write _PAL Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.PAL, true); } });
 		netlisters.addSeparator();
 		if (!Simulation.hasIRSIM())
 		{
-			netlisters.addMenuItem("Write IRSIM Deck...", null,
+			netlisters.addMenuItem("Write _IRSIM Deck...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.IRSIM, true); }});
 		}
-		netlisters.addMenuItem("Write ESIM/RNL Deck...", null,
+		netlisters.addMenuItem("Write _ESIM/RNL Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.ESIM, true); }});
-		netlisters.addMenuItem("Write RSIM Deck...", null,
+		netlisters.addMenuItem("Write _RSIM Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.RSIM, true); }});
-		netlisters.addMenuItem("Write COSMOS Deck...", null,
+		netlisters.addMenuItem("Write _COSMOS Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.COSMOS, true); }});
-		netlisters.addMenuItem("Write MOSSIM Deck...", null,
+		netlisters.addMenuItem("Write M_OSSIM Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.MOSSIM, true); }});
 		netlisters.addSeparator();
-		netlisters.addMenuItem("Write FastHenry Deck...", null,
+		netlisters.addMenuItem("Write _FastHenry Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.FASTHENRY, true); }});
-		netlisters.addMenuItem("FastHenry Arc Properties...", null,
+		netlisters.addMenuItem("FastHenry _Arc Properties...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FastHenryArc.showFastHenryArcDialog(); }});
 
 		//------------------- ERC
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available:  BCDEFGHIJKLMNOPQRSTUV XYZ
 		MenuBar.Menu ercSubMenu = new MenuBar.Menu("ERC", 'E');
 		toolMenu.add(ercSubMenu);
-		ercSubMenu.addMenuItem("Check Wells", null,
+		ercSubMenu.addMenuItem("Check _Wells", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_SWEEP); } });
-		ercSubMenu.addMenuItem("Antenna Check", null,
+		ercSubMenu.addMenuItem("_Antenna Check", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new ERCAntenna(); } });
 
 		// ------------------- NCC
@@ -310,143 +310,143 @@ public class ToolMenu {
 
 		//------------------- Network
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
-		MenuBar.Menu networkSubMenu = new MenuBar.Menu("Network", 'e');
+		// mnemonic keys available: A  D F  IJK M O QRS   W YZ
+		MenuBar.Menu networkSubMenu = new MenuBar.Menu("Network", 'W');
 		toolMenu.add(networkSubMenu);
-		networkSubMenu.addMenuItem("Show Network", KeyStroke.getKeyStroke('K', buckyBit),
+		networkSubMenu.addMenuItem("Show _Network", KeyStroke.getKeyStroke('K', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showNetworkCommand(); } });
-		networkSubMenu.addMenuItem("List Networks", null,
+		networkSubMenu.addMenuItem("_List Networks", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listNetworksCommand(); } });
-		networkSubMenu.addMenuItem("List Connections on Network", null,
+		networkSubMenu.addMenuItem("List _Connections on Network", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listConnectionsOnNetworkCommand(); } });
-		networkSubMenu.addMenuItem("List Exports on Network", null,
+		networkSubMenu.addMenuItem("List _Exports on Network", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listExportsOnNetworkCommand(); } });
-		networkSubMenu.addMenuItem("List Exports below Network", null,
+		networkSubMenu.addMenuItem("List Exports _below Network", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listExportsBelowNetworkCommand(); } });
-		networkSubMenu.addMenuItem("List Geometry on Network", null,
+		networkSubMenu.addMenuItem("List _Geometry on Network", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listGeometryOnNetworkCommand(GeometryHandler.ALGO_SWEEP); } });
-        networkSubMenu.addMenuItem("List Total Wire Lengths on All Networks", null,
+        networkSubMenu.addMenuItem("List _Total Wire Lengths on All Networks", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { listGeomsAllNetworksCommand(); }});
 
         networkSubMenu.addSeparator();
 		
-        networkSubMenu.addMenuItem("Extract Current Cell", null,
+        networkSubMenu.addMenuItem("E_xtract Current Cell", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { Connectivity.extractCurCell(false); }});
-        networkSubMenu.addMenuItem("Extract Current Hierarchy", null,
+        networkSubMenu.addMenuItem("Extract Current _Hierarchy", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { Connectivity.extractCurCell(true); }});
 
         networkSubMenu.addSeparator();
 
-        networkSubMenu.addMenuItem("Show Power and Ground", null,
+        networkSubMenu.addMenuItem("Show _Power and Ground", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showPowerAndGround(); } });
-		networkSubMenu.addMenuItem("Validate Power and Ground", null,
+		networkSubMenu.addMenuItem("_Validate Power and Ground", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { validatePowerAndGround(); } });
-		networkSubMenu.addMenuItem("Redo Network Numbering", null,
+		networkSubMenu.addMenuItem("Redo Network N_umbering", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new NetworkTool.RenumberJob(); } });
 
 		//------------------- Logical Effort
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available:    DEFGHIJKLM   QRSTUVWXYZ
 		MenuBar.Menu logEffortSubMenu = new MenuBar.Menu("Logical Effort", 'L');
         toolMenu.add(logEffortSubMenu);
-		logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays", null,
+		logEffortSubMenu.addMenuItem("_Optimize for Equal Gate Delays", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(true); }});
-		logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays (no caching)", null,
+		logEffortSubMenu.addMenuItem("Optimize for Equal Gate Delays (no _caching)", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { optimizeEqualGateDelaysCommand(false); }});
-		logEffortSubMenu.addMenuItem("Print Info for Selected Node", null,
+		logEffortSubMenu.addMenuItem("_Print Info for Selected Node", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { printLEInfoCommand(); }});
-        logEffortSubMenu.addMenuItem("Back Annotate Wire Lengths for Current Cell", null,
+        logEffortSubMenu.addMenuItem("_Back Annotate Wire Lengths for Current Cell", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { backAnnotateCommand(); }});
-		logEffortSubMenu.addMenuItem("Clear Sizes on Selected Node(s)", null,
+		logEffortSubMenu.addMenuItem("Clear Sizes on Selected _Node(s)", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesNodableCommand(); }});
-		logEffortSubMenu.addMenuItem("Clear Sizes in all Libraries", null,
+		logEffortSubMenu.addMenuItem("Clear Sizes in _all Libraries", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesCommand(); }});
 
 		//------------------- Routing
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available:  B D FG IJKL  OPQ    V XY 
 		MenuBar.Menu routingSubMenu = new MenuBar.Menu("Routing", 'R');
 		toolMenu.add(routingSubMenu);
-		routingSubMenu.addCheckBox("Enable Auto-Stitching", Routing.isAutoStitchOn(), null,
+		routingSubMenu.addCheckBox("Enable _Auto-Stitching", Routing.isAutoStitchOn(), null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.toggleEnableAutoStitching(e); } });
-		routingSubMenu.addMenuItem("Auto-Stitch Now", null,
+		routingSubMenu.addMenuItem("Auto-_Stitch Now", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(false, true); }});
-		routingSubMenu.addMenuItem("Auto-Stitch Highlighted Now", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0),
+		routingSubMenu.addMenuItem("Auto-Stitch _Highlighted Now", KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { AutoStitch.autoStitch(true, true); }});
 
 		routingSubMenu.addSeparator();
 
-		routingSubMenu.addCheckBox("Enable Mimic-Stitching", Routing.isMimicStitchOn(), null,
+		routingSubMenu.addCheckBox("Enable _Mimic-Stitching", Routing.isMimicStitchOn(), null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.toggleEnableMimicStitching(e); }});
-		routingSubMenu.addMenuItem("Mimic-Stitch Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0),
+		routingSubMenu.addMenuItem("Mimic-Stitch _Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
-		routingSubMenu.addMenuItem("Mimic Selected", null,
+		routingSubMenu.addMenuItem("Mimic S_elected", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.tool.mimicSelected(); }});
 
 		routingSubMenu.addSeparator();
 
-		routingSubMenu.addMenuItem("Maze Route", null,
+		routingSubMenu.addMenuItem("Ma_ze Route", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Maze.mazeRoute(); }});
 
 		routingSubMenu.addSeparator();
 
-		routingSubMenu.addMenuItem("River-Route", null,
+		routingSubMenu.addMenuItem("_River-Route", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { River.riverRoute(); }});
 
 		routingSubMenu.addSeparator();
 
-		routingSubMenu.addMenuItem("Unroute", null,
+		routingSubMenu.addMenuItem("_Unroute", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.unrouteCurrent(); }});
-		routingSubMenu.addMenuItem("Get Unrouted Wire", null,
+		routingSubMenu.addMenuItem("Get Unrouted _Wire", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { getUnroutedArcCommand(); }});
-		routingSubMenu.addMenuItem("Copy Routing Topology", null,
+		routingSubMenu.addMenuItem("_Copy Routing Topology", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.copyRoutingTopology(); }});
-		routingSubMenu.addMenuItem("Paste Routing Topology", null,
+		routingSubMenu.addMenuItem("Pas_te Routing Topology", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.pasteRoutingTopology(); }});
 
 		//------------------- Generation
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: AB DEFGHIJKL NO Q S UVWXYZ
 		MenuBar.Menu generationSubMenu = new MenuBar.Menu("Generation", 'G');
 		toolMenu.add(generationSubMenu);
-		generationSubMenu.addMenuItem("Coverage Implants Generator", null,
+		generationSubMenu.addMenuItem("_Coverage Implants Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
-		generationSubMenu.addMenuItem("Pad Frame Generator", null,
+		generationSubMenu.addMenuItem("_Pad Frame Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
-		generationSubMenu.addMenuItem("ROM Generator...", null,
+		generationSubMenu.addMenuItem("_ROM Generator...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ROMGenerator.generateROM(); }});
-		generationSubMenu.addMenuItem("Generate gate layouts (MoCMOS)", null,
+		generationSubMenu.addMenuItem("Generate gate layouts (_MoCMOS)", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(MoCMOS.tech); }});
 		if (Technology.getTSMC90Technology() != null)
-	        generationSubMenu.addMenuItem("Generate gate layouts (TSMC90)", null,
+	        generationSubMenu.addMenuItem("Generate gate layouts (_TSMC90)", null,
 	            new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(Technology.getTSMC90Technology()); }});
 
 		//------------------- Silicon Compiler
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: AB DEFGHIJKLMNOPQRSTUVWXYZ
 		MenuBar.Menu silCompSubMenu = new MenuBar.Menu("Silicon Compiler", 'M');
 		toolMenu.add(silCompSubMenu);
-		silCompSubMenu.addMenuItem("Convert Current Cell to Layout", null,
+		silCompSubMenu.addMenuItem("_Convert Current Cell to Layout", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { doSiliconCompilation(); }});
 
 		//------------------- Compaction
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: AB DEFGHIJKLMNOPQRSTUVWXYZ
 		MenuBar.Menu compactionSubMenu = new MenuBar.Menu("Compaction", 'C');
 		toolMenu.add(compactionSubMenu);
-		compactionSubMenu.addMenuItem("Do Compaction", null,
+		compactionSubMenu.addMenuItem("Do _Compaction", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Compaction.compactNow();}});
 
         //------------------- Others
 
 		toolMenu.addSeparator();
 
-		toolMenu.addMenuItem("List Tools",null,
+		toolMenu.addMenuItem("List _Tools",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { listToolsCommand(); } });
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQ STUVWXYZ
 		MenuBar.Menu languagesSubMenu = new MenuBar.Menu("Languages");
-		languagesSubMenu.addMenuItem("Run Java Bean Shell Script", null,
+		languagesSubMenu.addMenuItem("_Run Java Bean Shell Script", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { javaBshScriptCommand(); }});
 		toolMenu.add(languagesSubMenu);
 

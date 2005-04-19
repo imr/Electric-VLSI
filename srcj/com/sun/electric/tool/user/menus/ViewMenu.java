@@ -49,47 +49,46 @@ public class ViewMenu {
 
         /****************************** THE VIEW MENU ******************************/
 
-		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available:  B DEF   J  M  PQR     X Z
         MenuBar.Menu viewMenu = new MenuBar.Menu("View", 'V');
         menuBar.add(viewMenu);
 
-        viewMenu.addMenuItem("View Control...", null,
+        viewMenu.addMenuItem("View _Control...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { viewControlCommand(); } });
-        viewMenu.addMenuItem("Change Cell's View...", null,
+        viewMenu.addMenuItem("Chan_ge Cell's View...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { changeViewCommand(); } });
 
         viewMenu.addSeparator();
 
-        viewMenu.addMenuItem("Edit Layout View", null,
+        viewMenu.addMenuItem("Edit La_yout View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editLayoutViewCommand(); } });
-        viewMenu.addMenuItem("Edit Schematic View", null,
+        viewMenu.addMenuItem("Edit Schema_tic View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editSchematicViewCommand(); } });
-        viewMenu.addMenuItem("Edit Icon View", null,
+        viewMenu.addMenuItem("Edit Ic_on View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editIconViewCommand(); } });
-        viewMenu.addMenuItem("Edit VHDL View", null,
+        viewMenu.addMenuItem("Edit V_HDL View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editVHDLViewCommand(); } });
-        viewMenu.addMenuItem("Edit Documentation View", null,
+        viewMenu.addMenuItem("Edit Document_ation View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editDocViewCommand(); } });
-        viewMenu.addMenuItem("Edit Skeleton View", null,
+        viewMenu.addMenuItem("Edit S_keleton View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editSkeletonViewCommand(); } });
-        viewMenu.addMenuItem("Edit Other View...", null,
+        viewMenu.addMenuItem("Edit Other Vie_w...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { editOtherViewCommand(); } });
 
         viewMenu.addSeparator();
 
-        viewMenu.addMenuItem("Make Icon View", null,
+        viewMenu.addMenuItem("Make _Icon View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeIconViewCommand(); } });
-		viewMenu.addMenuItem("Make Schematic View", null,
+		viewMenu.addMenuItem("Make _Schematic View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeSchematicView(); } });
-		viewMenu.addMenuItem("Make Alternate Layout View...", null,
+		viewMenu.addMenuItem("Make Alternate Layo_ut View...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeLayoutView(); } });
-		viewMenu.addMenuItem("Make Skeleton View", null,
+		viewMenu.addMenuItem("Make Ske_leton View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeSkeletonViewCommand(); } });
-		viewMenu.addMenuItem("Make VHDL View", null,
+		viewMenu.addMenuItem("Make _VHDL View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.makeVHDL();}});
-		viewMenu.addMenuItem("Compile VHDL to Netlist View", null,
+		viewMenu.addMenuItem("Compile VHDL to _Netlist View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.compileVHDL();}});
-
     }
 
     /**
