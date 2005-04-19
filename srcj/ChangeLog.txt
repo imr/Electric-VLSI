@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+IMP/MAN: (04/19/05, SMR) Added technology editor (commands under Edit / Technology Specific).
+
 BUG: (04/18/05, GVG) Bug introduced in DRC while extending foundries (Bug #265)
 FIX: Detect old style in format (Byte) and then makes the transition.
 

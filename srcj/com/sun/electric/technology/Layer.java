@@ -82,8 +82,8 @@ public class Layer
 		}
 
 		/**
-		 * Returns a printable version of this Layer.
-		 * @return a printable version of this Layer.
+		 * Returns a printable version of this Function.
+		 * @return a printable version of this Function.
 		 */
 		public String toString()
 		{
@@ -97,9 +97,15 @@ public class Layer
 		}
 
 		/**
-		 * Returns the constant name for this Layer.
+		 * Returns the name for this Function.
+		 * @return the name for this Function.
+		 */
+		public String getName() { return name; }
+
+		/**
+		 * Returns the constant name for this Function.
 		 * Constant names are used when writing Java code, so they must be the same as the actual symbol name.
-		 * @return the constant name for this Layer.
+		 * @return the constant name for this Function.
 		 */
 		public String getConstantName() { return constantName; }
 
@@ -185,7 +191,6 @@ public class Layer
 			if (name.equalsIgnoreCase("inside-transistor")) return INTRANS;
 			if (name.equalsIgnoreCase("thick")) return THICK;
             if (name.equalsIgnoreCase("vt")) return HLVT;
-
 			return 0;
 		}
 		/** Describes an unknown layer. */						public static final Function UNKNOWN    = new Function("unknown",    "UNKNOWN",    0, 0, 35, 0);

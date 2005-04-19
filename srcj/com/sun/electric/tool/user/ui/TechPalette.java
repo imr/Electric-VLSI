@@ -50,7 +50,7 @@ import com.sun.electric.tool.user.dialogs.AnnularRing;
 import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.LayoutText;
 import com.sun.electric.tool.user.menus.CellMenu;
-import com.sun.electric.tool.user.tecEdit.Generate;
+import com.sun.electric.tool.user.tecEdit.Info;
 
 import java.awt.*;
 import java.awt.dnd.DnDConstants;
@@ -664,7 +664,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             {
             	// place a technology-edit highlight box
             	NodeInst ni = NodeInst.makeDummyInstance(Artwork.tech.boxNode);
-            	ni.newVar(Generate.LAYER_KEY, null);
+            	ni.newVar(Info.LAYER_KEY, null);
                 PaletteFrame.placeInstance(ni, panel, false);
             } if (msg.equals("Port"))
             {

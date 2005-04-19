@@ -44,8 +44,11 @@ import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.CellMenu;
-import com.sun.electric.tool.user.tecEdit.Generate;
+import com.sun.electric.tool.user.tecEdit.Info;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
+import com.sun.electric.tool.user.tecEdit.ArcInfo;
+import com.sun.electric.tool.user.tecEdit.LayerInfo;
+import com.sun.electric.tool.user.tecEdit.NodeInfo;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -246,22 +249,20 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		libTree.add(arcTree);
 		libTree.add(nodeTree);
 		libTree.add(miscTree);
-		Library [] oneLib = new Library[1];
-		oneLib[0] = lib;
 		HashSet allCells = new HashSet();
-		Cell [] layerCells = Manipulate.us_teceditfindsequence(oneLib, "layer-", Generate.LAYERSEQUENCE_KEY);
+		Cell [] layerCells = LayerInfo.getLayerCells(lib);
 		for(int i=0; i<layerCells.length; i++)
 		{
 			allCells.add(layerCells[i]);
 			layerTree.add(new DefaultMutableTreeNode(layerCells[i]));
 		}
-		Cell [] arcCells = Manipulate.us_teceditfindsequence(oneLib, "arc-", Generate.ARCSEQUENCE_KEY);
+		Cell [] arcCells = ArcInfo.getArcCells(lib);
 		for(int i=0; i<arcCells.length; i++)
 		{
 			allCells.add(arcCells[i]);
 			arcTree.add(new DefaultMutableTreeNode(arcCells[i]));
 		}
-		Cell [] nodeCells = Manipulate.us_teceditfindsequence(oneLib, "node-", Generate.NODESEQUENCE_KEY);
+		Cell [] nodeCells = NodeInfo.getNodeCells(lib);
 		for(int i=0; i<nodeCells.length; i++)
 		{
 			allCells.add(nodeCells[i]);
@@ -1142,7 +1143,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 					menuItem = new JMenuItem("Reorder Layers");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_reorderprimdlog(1); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.reorderPrimitives(1); } });
 
 					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;
@@ -1157,7 +1158,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 					menuItem = new JMenuItem("Reorder Arcs");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_reorderprimdlog(2); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.reorderPrimitives(2); } });
 
 					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;
@@ -1172,7 +1173,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 					menuItem = new JMenuItem("Reorder Nodes");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.us_reorderprimdlog(3); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.reorderPrimitives(3); } });
 
 					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;

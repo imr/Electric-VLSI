@@ -1416,7 +1416,7 @@ public class JELIB extends LibraryFiles
 					}
 					if (objArray == null && limit > 0)
 					{
-						System.out.println("HHEY");
+						System.out.println("HHEY, vartype="+varType+" on line "+lineNumber);
 					}
 					for(int j=0; j<limit; j++)
 						objArray[j] = objList.get(j);
@@ -1795,11 +1795,12 @@ public class JELIB extends LibraryFiles
 			case 'B':		// Boolean
 				return new Boolean(piece.charAt(0)=='T' ? true : false);
 			case 'C':		// Cell (should delay analysis until database is built!!!)
+				if (piece.length() == 0) return null;
 				colonPos = piece.indexOf(':');
 				if (colonPos < 0)
 				{
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Badly formed ArcProto (missing colon): " + piece, null, -1);
+						", Badly formed Cell (missing colon): " + piece, null, -1);
 					break;
 				}
 				libName = piece.substring(0, colonPos);

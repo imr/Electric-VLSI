@@ -587,7 +587,6 @@ public class JELIB extends Output
 //			if (var.isDontSave()) continue;
 			String tdString = describeDescriptor(var, var.getTextDescriptor());
 			printWriter.print("|" + convertVariableName(diskName(var)) + "(" + tdString + ")");
-
 			Object varObj = var.getObject();
 			String pt = makeString(varObj, curCell);
 			if (pt == null) pt = "";
@@ -626,7 +625,7 @@ public class JELIB extends Output
 				Object oneObj = objArray[i];
 				if (i != 0) infstr.append(","); else
 				{
-					infstr.append(getVarType(oneObj));
+					infstr.append(getVarType(obj));
 					infstr.append("[");
 				}					
 				makeStringVar(infstr, oneObj, curCell, true);
@@ -766,24 +765,24 @@ public class JELIB extends Output
 	private String getVarType(Object obj)
 	{
 		if (obj == null) return "X";
-		if (obj instanceof ArcInst) return "S"; // "A"
-		if (obj instanceof Boolean) return "B";
-		if (obj instanceof Cell) return "C";
-		if (obj instanceof Double) return "D";
-		if (obj instanceof Export) return "E";
-		if (obj instanceof Float) return "F";
-		if (obj instanceof Long) return "G";
-		if (obj instanceof Short) return "H";
-		if (obj instanceof Integer) return "I";
-		if (obj instanceof Library) return "L";
-		if (obj instanceof NodeInst) return "S"; // "N"
-		if (obj instanceof Tool) return "O";
-		if (obj instanceof PrimitiveNode) return "P";
-		if (obj instanceof ArcProto) return "R";
-		if (obj instanceof String) return "S";
-		if (obj instanceof Technology) return "T";
-		if (obj instanceof Point2D) return "V";
-		if (obj instanceof Byte) return "Y";
+		if (obj instanceof ArcInst       || obj instanceof ArcInst [])       return "S"; // "A"
+		if (obj instanceof Boolean       || obj instanceof Boolean [])       return "B";
+		if (obj instanceof Cell          || obj instanceof Cell [])          return "C";
+		if (obj instanceof Double        || obj instanceof Double [])        return "D";
+		if (obj instanceof Export        || obj instanceof Export [])        return "E";
+		if (obj instanceof Float         || obj instanceof Float [])         return "F";
+		if (obj instanceof Long          || obj instanceof Long [])          return "G";
+		if (obj instanceof Short         || obj instanceof Short [])         return "H";
+		if (obj instanceof Integer       || obj instanceof Integer [])       return "I";
+		if (obj instanceof Library       || obj instanceof Library [])       return "L";
+		if (obj instanceof NodeInst      || obj instanceof NodeInst [])      return "S"; // "N"
+		if (obj instanceof Tool          || obj instanceof Tool [])          return "O";
+		if (obj instanceof PrimitiveNode || obj instanceof PrimitiveNode []) return "P";
+		if (obj instanceof ArcProto      || obj instanceof ArcProto [])      return "R";
+		if (obj instanceof String        || obj instanceof String [])        return "S";
+		if (obj instanceof Technology    || obj instanceof Technology [])    return "T";
+		if (obj instanceof Point2D       || obj instanceof Point2D [])       return "V";
+		if (obj instanceof Byte          || obj instanceof Byte [])          return "Y";
 		return null;
 	}
 

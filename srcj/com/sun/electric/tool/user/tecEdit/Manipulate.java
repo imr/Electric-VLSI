@@ -3,7 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: Manipulate.java
- * User tool: Technology Editor, creation
+ * Technology Editor, editing technology libraries
  * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
@@ -50,9 +50,6 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.PromptAt;
-import com.sun.electric.tool.user.tecEdit.Generate.ArcInfo;
-import com.sun.electric.tool.user.tecEdit.Generate.LayerInfo;
-import com.sun.electric.tool.user.tecEdit.Generate.NodeInfo;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -77,140 +74,41 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 
 /**
- * This class manipulates technology libraries from technologies.
+ * This class manipulates technology libraries.
  */
 public class Manipulate
 {
-
-//	/**
-//	 * the entry Method for all technology editing
-//	 */
-//	void us_tecedentry(INTBIG count, CHAR *par[])
-//	{
-//		if (count == 0)
-//		{
-//			ttyputusage(x_("technology edit OPTION"));
-//			return;
-//		}
-//	
-//		l = estrlen(pp = par[0]);
-//		if (namesamen(pp, x_("edit-design-rules"), l) == 0 && l >= 6)
-//		{
-//			us_teceditdrc();
-//			return;
-//		}
-//		if (namesamen(pp, x_("dependent-libraries"), l) == 0 && l >= 2)
-//		{
-//			if (count < 2)
-//			{
-//				// display dependent library names
-//				var = el_curlib.getVar(Generate.DEPENDENTLIB_KEY);
-//				if (var == NOVARIABLE) ttyputmsg(_("There are no dependent libraries")); else
-//				{
-//					i = getlength(var);
-//					ttyputmsg(_("%ld dependent %s:"), i, makeplural(x_("library"), i));
-//					for(l=0; l<i; l++)
-//					{
-//						pp = ((CHAR **)var.addr)[l];
-//						lib = getlibrary(pp);
-//						ttyputmsg(x_("    %s%s"), pp, (lib == NOLIBRARY ? _(" (not read in)") : x_("")));
-//					}
-//				}
-//				return;
-//			}
-//	
-//			// clear list if just "-" is given
-//			if (count == 2 && estrcmp(par[1], x_("-")) == 0)
-//			{
-//				var = el_curlib.getVar(Generate.DEPENDENTLIB_KEY);
-//				if (var != NOVARIABLE)
-//					delval((INTBIG)el_curlib, VLIBRARY, Generate.DEPENDENTLIB_KEY);
-//				return;
-//			}
-//	
-//			// create a list
-//			dependentlist = (CHAR **)emalloc((count-1) * (sizeof (CHAR *)), el_tempcluster);
-//			if (dependentlist == 0) return;
-//			for(i=1; i<count; i++) dependentlist[i-1] = par[i];
-//			el_curlib.newVar(Generate.DEPENDENTLIB_KEY, dependentlist);
-//			efree((CHAR *)dependentlist);
-//			return;
-//		}
-//		ttyputbadusage(x_("technology edit"));
-//	}
-//	
-//	/*
-//	 * Routine for editing the DRC tables.
-//	 */
-//	void us_teceditdrc(void)
-//	{
-//		REGISTER INTBIG i, changed, nodecount;
-//		NODEPROTO **nodesequence;
-//		LIBRARY *liblist[1];
-//		REGISTER VARIABLE *var;
-//		REGISTER DRCRULES *rules;
-//	
-//		// get the current list of layer and node names
-//		us_tecedgetlayernamelist();
-//		liblist[0] = el_curlib;
-//		nodecount = us_teceditfindsequence(liblist, "node-", Generate.NODESEQUENCE_KEY);
-//	
-//		// create a RULES structure
-//		rules = dr_allocaterules(us_teceddrclayers, nodecount, x_("EDITED TECHNOLOGY"));
-//		if (rules == NODRCRULES) return;
-//		for(i=0; i<us_teceddrclayers; i++)
-//			(void)allocstring(&rules.layernames[i], us_teceddrclayernames[i], el_tempcluster);
-//		for(i=0; i<nodecount; i++)
-//			(void)allocstring(&rules.nodenames[i], &nodesequence[i].protoname[5], el_tempcluster);
-//		if (nodecount > 0) efree((CHAR *)nodesequence);
-//	
-//		// get the text-list of design rules and convert them into arrays
-//		var = getval((INTBIG)el_curlib, VLIBRARY, VSTRING|VISARRAY, x_("EDTEC_DRC"));
-//		us_teceditgetdrcarrays(var, rules);
-//	
-//		// edit the design-rule arrays
-//		changed = dr_rulesdlog(NOTECHNOLOGY, rules);
-//	
-//		// if changes were made, convert the arrays back into a text-list
-//		if (changed != 0)
-//		{
-//			us_tecedloaddrcmessage(rules, el_curlib);
-//		}
-//	
-//		// free the arrays
-//		dr_freerules(rules);
-//	}
-//	
 	/**
-	 * Method to update tables to reflect that cell "oldname" is now called "newname".
-	 * If "newname" is not valid, any rule that refers to "oldname" is removed.
+	 * Method to update tables to reflect that cell "oldName" is now called "newName".
+	 * If "newName" is not valid, any rule that refers to "oldName" is removed.
 	 */
-	public static void renamedCell(String oldname, String newname)
-	{	
+	public static void renamedCell(String oldName, String newName)
+	{
 		// if this is a layer, rename the layer sequence array
-		if (oldname.startsWith("layer-") && newname.startsWith("layer-"))
+		if (oldName.startsWith("layer-") && newName.startsWith("layer-"))
 		{
-			us_tecedrenamesequence(Generate.LAYERSEQUENCE_KEY, oldname.substring(6), newname.substring(6));
+			renameSequence(Info.LAYERSEQUENCE_KEY, oldName.substring(6), newName.substring(6));
 		}
-	
+
 		// if this is an arc, rename the arc sequence array
-		if (oldname.startsWith("arc-") && newname.startsWith("arc-"))
+		if (oldName.startsWith("arc-") && newName.startsWith("arc-"))
 		{
-			us_tecedrenamesequence(Generate.ARCSEQUENCE_KEY, oldname.substring(4), newname.substring(4));
+			renameSequence(Info.ARCSEQUENCE_KEY, oldName.substring(4), newName.substring(4));
 		}
-	
+
 		// if this is a node, rename the node sequence array
-		if (oldname.startsWith("node-") && newname.startsWith("node-"))
+		if (oldName.startsWith("node-") && newName.startsWith("node-"))
 		{
-			us_tecedrenamesequence(Generate.NODESEQUENCE_KEY, oldname.substring(5), newname.substring(5));
+			renameSequence(Info.NODESEQUENCE_KEY, oldName.substring(5), newName.substring(5));
 		}
-	
+
 //		// see if there are design rules in the current library
 //		var = getval((INTBIG)el_curlib, VLIBRARY, VSTRING|VISARRAY, x_("EDTEC_DRC"));
 //		if (var == NOVARIABLE) return;
-//	
+//
 //		// examine the rules and convert the name
 //		len = getlength(var);
 //		sa = newstringarray(us_tool.cluster);
@@ -221,26 +119,26 @@ public class Manipulate
 //			origstr = str;
 //			firstkeyword = getkeyword(&str, x_(" "));
 //			if (firstkeyword == NOSTRING) return;
-//	
+//
 //			// pass wide wire limitation through
 //			if (*firstkeyword == 'l')
 //			{
 //				addtostringarray(sa, origstr);
 //				continue;
 //			}
-//	
+//
 //			// rename nodes in the minimum node size rule
 //			if (*firstkeyword == 'n')
 //			{
-//				if (namesamen(oldname, x_("node-"), 5) == 0 &&
-//					namesame(&oldname[5], &firstkeyword[1]) == 0)
+//				if (namesamen(oldName, x_("node-"), 5) == 0 &&
+//					namesame(&oldName[5], &firstkeyword[1]) == 0)
 //				{
 //					// substitute the new name
-//					if (namesamen(newname, x_("node-"), 5) == 0)
+//					if (namesamen(newName, x_("node-"), 5) == 0)
 //					{
 //						infstr = initinfstr();
 //						addstringtoinfstr(infstr, x_("n"));
-//						addstringtoinfstr(infstr, &newname[5]);
+//						addstringtoinfstr(infstr, &newName[5]);
 //						addstringtoinfstr(infstr, str);
 //						addtostringarray(sa, returninfstr(infstr));
 //					}
@@ -249,7 +147,7 @@ public class Manipulate
 //				addtostringarray(sa, origstr);
 //				continue;
 //			}
-//	
+//
 //			// rename layers in the minimum layer size rule
 //			if (*firstkeyword == 's')
 //			{
@@ -258,11 +156,11 @@ public class Manipulate
 //				formatinfstr(infstr, x_("%s "), firstkeyword);
 //				keyword = getkeyword(&str, x_(" "));
 //				if (keyword == NOSTRING) return;
-//				if (namesamen(oldname, x_("layer-"), 6) == 0 &&
-//					namesame(&oldname[6], keyword) == 0)
+//				if (namesamen(oldName, x_("layer-"), 6) == 0 &&
+//					namesame(&oldName[6], keyword) == 0)
 //				{
-//					if (namesamen(newname, x_("layer-"), 6) != 0) valid = FALSE; else
-//						addstringtoinfstr(infstr, &newname[6]);
+//					if (namesamen(newName, x_("layer-"), 6) != 0) valid = FALSE; else
+//						addstringtoinfstr(infstr, &newName[6]);
 //				} else
 //					addstringtoinfstr(infstr, keyword);
 //				addstringtoinfstr(infstr, str);
@@ -270,37 +168,37 @@ public class Manipulate
 //				if (valid) addtostringarray(sa, str);
 //				continue;
 //			}
-//	
+//
 //			// layer width rule: substitute layer names
 //			infstr = initinfstr();
 //			formatinfstr(infstr, x_("%s "), firstkeyword);
 //			valid = TRUE;
-//	
+//
 //			// get the first layer name and convert it
 //			keyword = getkeyword(&str, x_(" "));
 //			if (keyword == NOSTRING) return;
-//			if (namesamen(oldname, x_("layer-"), 6) == 0 &&
-//				namesame(&oldname[6], keyword) == 0)
+//			if (namesamen(oldName, x_("layer-"), 6) == 0 &&
+//				namesame(&oldName[6], keyword) == 0)
 //			{
 //				// substitute the new name
-//				if (namesamen(newname, x_("layer-"), 6) != 0) valid = FALSE; else
-//					addstringtoinfstr(infstr, &newname[6]);
+//				if (namesamen(newName, x_("layer-"), 6) != 0) valid = FALSE; else
+//					addstringtoinfstr(infstr, &newName[6]);
 //			} else
 //				addstringtoinfstr(infstr, keyword);
 //			addtoinfstr(infstr, ' ');
-//	
+//
 //			// get the second layer name and convert it
 //			keyword = getkeyword(&str, x_(" "));
 //			if (keyword == NOSTRING) return;
-//			if (namesamen(oldname, x_("layer-"), 6) == 0 &&
-//				namesame(&oldname[6], keyword) == 0)
+//			if (namesamen(oldName, x_("layer-"), 6) == 0 &&
+//				namesame(&oldName[6], keyword) == 0)
 //			{
 //				// substitute the new name
-//				if (namesamen(newname, x_("layer-"), 6) != 0) valid = FALSE; else
-//					addstringtoinfstr(infstr, &newname[6]);
+//				if (namesamen(newName, x_("layer-"), 6) != 0) valid = FALSE; else
+//					addstringtoinfstr(infstr, &newName[6]);
 //			} else
 //				addstringtoinfstr(infstr, keyword);
-//	
+//
 //			addstringtoinfstr(infstr, str);
 //			str = returninfstr(infstr);
 //			if (valid) addtostringarray(sa, str);
@@ -319,34 +217,34 @@ public class Manipulate
 		if (np.getName().startsWith("layer-"))
 		{
 			// may have deleted layer cell in technology library
-			String layername = np.getName().substring(6);
+			String layerName = np.getName().substring(6);
 			StringBuffer warning = null;
 			for(Iterator it = np.getLibrary().getCells(); it.hasNext(); )
 			{
-				Cell onp = (Cell)it.next();
+				Cell oNp = (Cell)it.next();
 				boolean isNode = false;
-				if (onp.getName().startsWith("node-")) isNode = true; else
-					if (!onp.getName().startsWith("arc-")) continue;
-				for(Iterator nIt = onp.getNodes(); nIt.hasNext(); )
+				if (oNp.getName().startsWith("node-")) isNode = true; else
+					if (!oNp.getName().startsWith("arc-")) continue;
+				for(Iterator nIt = oNp.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();
-					Variable var = ni.getVar(Generate.LAYER_KEY);
+					Variable var = ni.getVar(Info.LAYER_KEY);
 					if (var == null) continue;
 					if ((Cell)var.getObject() == np)
 					{
 						if (warning != null) warning.append(","); else
 						{
 							warning = new StringBuffer();
-							warning.append("Warning: layer " + layername + " is used in");
+							warning.append("Warning: layer " + layerName + " is used in");
 						}
-						if (isNode) warning.append(" node " + onp.getName().substring(5)); else
-							warning.append(" arc " + onp.getName().substring(4));
+						if (isNode) warning.append(" node " + oNp.getName().substring(5)); else
+							warning.append(" arc " + oNp.getName().substring(4));
 						break;
 					}
 				}
 			}
 			if (warning != null) System.out.println(warning.toString());
-		
+
 			// see if this layer is mentioned in the design rules
 			renamedCell(np.getName(), "");
 		} else if (np.getName().startsWith("node-"))
@@ -358,394 +256,20 @@ public class Manipulate
 
 	/**
 	 * Method to rename the layer/arc/node sequence arrays to account for a name change.
-	 * The sequence array is in variable "varname", and the item has changed from "oldname" to
-	 * "newname".
+	 * The sequence array is in variable "varName", and the item has changed from "oldName" to
+	 * "newName".
 	 */
-	private static void us_tecedrenamesequence(Variable.Key varname, String oldname, String newname)
+	private static void renameSequence(Variable.Key varName, String oldName, String newName)
 	{
 		Library lib = Library.getCurrent();
-		Variable var = lib.getVar(varname);
+		Variable var = lib.getVar(varName);
 		if (var == null) return;
-	
+
 		String [] strings = (String [])var.getObject();
 		for(int i=0; i<strings.length; i++)
-			if (strings[i].equals(oldname)) strings[i] = newname;
-		lib.newVar(varname, strings);
+			if (strings[i].equals(oldName)) strings[i] = newName;
+		lib.newVar(varName, strings);
 	}
-	
-//	/*
-//	 * Routine to create arrays describing the design rules in the variable "var" (which is
-//	 * from "EDTEC_DRC" on a library).  The arrays are stored in "rules".
-//	 */
-//	void us_teceditgetdrcarrays(VARIABLE *var, DRCRULES *rules)
-//	{
-//		REGISTER INTBIG i, l;
-//		INTBIG amt;
-//		BOOLEAN connected, wide, multi, edge;
-//		INTBIG widrule, layer1, layer2, j;
-//		REGISTER CHAR *str, *pt;
-//		CHAR *rule;
-//	
-//		// get the design rules
-//		if (var == NOVARIABLE) return;
-//	
-//		l = getlength(var);
-//		for(i=0; i<l; i++)
-//		{
-//			// parse the DRC rule
-//			str = ((CHAR **)var.addr)[i];
-//			while (*str == ' ') str++;
-//			if (*str == 0) continue;
-//	
-//			// special case for node minimum size rule
-//			if (*str == 'n')
-//			{
-//				str++;
-//				for(pt = str; *pt != 0; pt++) if (*pt == ' ') break;
-//				if (*pt == 0)
-//				{
-//					ttyputmsg(_("Bad node size rule (line %ld): %s"), i+1, str);
-//					continue;
-//				}
-//				*pt = 0;
-//				for(j=0; j<rules.numnodes; j++)
-//					if (namesame(str, rules.nodenames[j]) == 0) break;
-//				*pt = ' ';
-//				if (j >= rules.numnodes)
-//				{
-//					ttyputmsg(_("Unknown node (line %ld): %s"), i+1, str);
-//					continue;
-//				}
-//				while (*pt == ' ') pt++;
-//				rules.minnodesize[j*2] = atofr(pt);
-//				while (*pt != 0 && *pt != ' ') pt++;
-//				while (*pt == ' ') pt++;
-//				rules.minnodesize[j*2+1] = atofr(pt);
-//				while (*pt != 0 && *pt != ' ') pt++;
-//				while (*pt == ' ') pt++;
-//				if (*pt != 0) reallocstring(&rules.minnodesizeR[j], pt, el_tempcluster);
-//				continue;
-//			}
-//	
-//			// parse the layer rule
-//			if (us_tecedgetdrc(str, &connected, &wide, &multi, &widrule, &edge,
-//				&amt, &layer1, &layer2, &rule, rules.numlayers, rules.layernames))
-//			{
-//				ttyputmsg(_("DRC line %ld is: %s"), i+1, str);
-//				continue;
-//			}
-//	
-//			// set the layer spacing
-//			if (widrule == 1)
-//			{
-//				rules.minwidth[layer1] = amt;
-//				if (*rule != 0)
-//					(void)reallocstring(&rules.minwidthR[layer1], rule, el_tempcluster);
-//			} else if (widrule == 2)
-//			{
-//				rules.widelimit = amt;
-//			} else
-//			{
-//				if (layer1 > layer2) { j = layer1;  layer1 = layer2;  layer2 = j; }
-//				j = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
-//				j = layer2 + rules.numlayers * layer1 - j;
-//				if (edge)
-//				{
-//					rules.edgelist[j] = amt;
-//					if (*rule != 0)
-//						(void)reallocstring(&rules.edgelistR[j], rule, el_tempcluster);
-//				} else if (wide)
-//				{
-//					if (connected)
-//					{
-//						rules.conlistW[j] = amt;
-//						if (*rule != 0)
-//							(void)reallocstring(&rules.conlistWR[j], rule, el_tempcluster);
-//					} else
-//					{
-//						rules.unconlistW[j] = amt;
-//						if (*rule != 0)
-//							(void)reallocstring(&rules.unconlistWR[j], rule, el_tempcluster);
-//					}
-//				} else if (multi)
-//				{
-//					if (connected)
-//					{
-//						rules.conlistM[j] = amt;
-//						if (*rule != 0)
-//							(void)reallocstring(&rules.conlistMR[j], rule, el_tempcluster);
-//					} else
-//					{
-//						rules.unconlistM[j] = amt;
-//						if (*rule != 0)
-//							(void)reallocstring(&rules.unconlistMR[j], rule, el_tempcluster);
-//					}
-//				} else
-//				{
-//					if (connected)
-//					{
-//						rules.conlist[j] = amt;
-//						if (*rule != 0)
-//							(void)reallocstring(&rules.conlistR[j], rule, el_tempcluster);
-//					} else
-//					{
-//						rules.unconlist[j] = amt;
-//						if (*rule != 0)
-//							(void)reallocstring(&rules.unconlistR[j], rule, el_tempcluster);
-//					}
-//				}
-//			}
-//		}
-//	}
-//	
-//	/*
-//	 * routine to parse DRC line "str" and fill the factors "connected" (set nonzero
-//	 * if rule is for connected layers), "amt" (rule distance), "layer1" and "layer2"
-//	 * (the layers).  Presumes that there are "maxlayers" layer names in the
-//	 * array "layernames".  Returns true on error.
-//	 */
-//	BOOLEAN us_tecedgetdrc(CHAR *str, BOOLEAN *connected, BOOLEAN *wide, BOOLEAN *multi, INTBIG *widrule,
-//		BOOLEAN *edge, INTBIG *amt, INTBIG *layer1, INTBIG *layer2, CHAR **rule, INTBIG maxlayers,
-//		CHAR **layernames)
-//	{
-//		REGISTER CHAR *pt;
-//		REGISTER INTBIG save;
-//	
-//		*connected = *wide = *multi = *edge = FALSE;
-//		for( ; *str != 0; str++)
-//		{
-//			if (tolower(*str) == 'c')
-//			{
-//				*connected = TRUE;
-//				continue;
-//			}
-//			if (tolower(*str) == 'w')
-//			{
-//				*wide = TRUE;
-//				continue;
-//			}
-//			if (tolower(*str) == 'm')
-//			{
-//				*multi = TRUE;
-//				continue;
-//			}
-//			if (tolower(*str) == 'e')
-//			{
-//				*edge = TRUE;
-//				continue;
-//			}
-//			break;
-//		}
-//		*widrule = 0;
-//		if (tolower(*str) == 's')
-//		{
-//			*widrule = 1;
-//			str++;
-//		} else if (tolower(*str) == 'l')
-//		{
-//			*widrule = 2;
-//			str++;
-//		}
-//	
-//		// get the distance
-//		pt = str;
-//		while (*pt != 0 && *pt != ' ' && *pt != '\t') pt++;
-//		while (*pt == ' ' || *pt == '\t') pt++;
-//		*amt = atofr(str);
-//	
-//		// get the first layer
-//		if (*widrule != 2)
-//		{
-//			str = pt;
-//			if (*str == 0)
-//			{
-//				ttyputerr(_("Cannot find layer names on DRC line"));
-//				return(TRUE);
-//			}
-//			while (*pt != 0 && *pt != ' ' && *pt != '\t') pt++;
-//			if (*pt == 0)
-//			{
-//				ttyputerr(_("Cannot find layer name on DRC line"));
-//				return(TRUE);
-//			}
-//			save = *pt;
-//			*pt = 0;
-//			for(*layer1 = 0; *layer1 < maxlayers; (*layer1)++)
-//				if (namesame(str, layernames[*layer1]) == 0) break;
-//			*pt++ = (CHAR)save;
-//			if (*layer1 >= maxlayers)
-//			{
-//				ttyputerr(_("First DRC layer name unknown"));
-//				return(TRUE);
-//			}
-//			while (*pt == ' ' || *pt == '\t') pt++;
-//		}
-//	
-//		// get the second layer
-//		if (*widrule == 0)
-//		{
-//			str = pt;
-//			while (*pt != 0 && *pt != ' ' && *pt != '\t') pt++;
-//			save = *pt;
-//			*pt = 0;
-//			for(*layer2 = 0; *layer2 < maxlayers; (*layer2)++)
-//				if (namesame(str, layernames[*layer2]) == 0) break;
-//			*pt = (CHAR)save;
-//			if (*layer2 >= maxlayers)
-//			{
-//				ttyputerr(_("Second DRC layer name unknown"));
-//				return(TRUE);
-//			}
-//		}
-//	
-//		while (*pt == ' ' || *pt == '\t') pt++;
-//		*rule = pt;
-//		return(FALSE);
-//	}
-//	
-//	/*
-//	 * Helper routine to examine the arrays describing the design rules and create
-//	 * the variable "EDTEC_DRC" on library "lib".
-//	 */
-//	void us_tecedloaddrcmessage(DRCRULES *rules, LIBRARY *lib)
-//	{
-//		REGISTER INTBIG drccount, drcindex, i, k, j;
-//		REGISTER CHAR **drclist;
-//		REGISTER void *infstr;
-//	
-//		// determine the number of lines in the text-version of the design rules
-//		drccount = 0;
-//		for(i=0; i<rules.utsize; i++)
-//		{
-//			if (rules.conlist[i] >= 0) drccount++;
-//			if (rules.unconlist[i] >= 0) drccount++;
-//			if (rules.conlistW[i] >= 0) drccount++;
-//			if (rules.unconlistW[i] >= 0) drccount++;
-//			if (rules.conlistM[i] >= 0) drccount++;
-//			if (rules.unconlistM[i] >= 0) drccount++;
-//			if (rules.edgelist[i] >= 0) drccount++;
-//		}
-//		for(i=0; i<rules.numlayers; i++)
-//		{
-//			if (rules.minwidth[i] >= 0) drccount++;
-//		}
-//		for(i=0; i<rules.numnodes; i++)
-//		{
-//			if (rules.minnodesize[i*2] > 0 || rules.minnodesize[i*2+1] > 0) drccount++;
-//		}
-//	
-//		// load the arrays
-//		if (drccount != 0)
-//		{
-//			drccount++;
-//			drclist = (CHAR **)emalloc((drccount * (sizeof (CHAR *))), el_tempcluster);
-//			if (drclist == 0) return;
-//			drcindex = 0;
-//	
-//			// write the width limit
-//			infstr = initinfstr();
-//			formatinfstr(infstr, x_("l%s"), frtoa(rules.widelimit));
-//			(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//	
-//			// write the minimum width for each layer
-//			for(i=0; i<rules.numlayers; i++)
-//			{
-//				if (rules.minwidth[i] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("s%s %s %s"), frtoa(rules.minwidth[i]),
-//						rules.layernames[i], rules.minwidthR[i]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//			}
-//	
-//			// write the minimum size for each node
-//			for(i=0; i<rules.numnodes; i++)
-//			{
-//				if (rules.minnodesize[i*2] <= 0 && rules.minnodesize[i*2+1] <= 0) continue;
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("n%s %s %s %s"), rules.nodenames[i],
-//						frtoa(rules.minnodesize[i*2]), frtoa(rules.minnodesize[i*2+1]),
-//						rules.minnodesizeR[i]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//			}
-//	
-//			// now do the distance rules
-//			k = 0;
-//			for(i=0; i<rules.numlayers; i++) for(j=i; j<rules.numlayers; j++)
-//			{
-//				if (rules.conlist[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("c%s %s %s %s"), frtoa(rules.conlist[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.conlistR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				if (rules.unconlist[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("%s %s %s %s"), frtoa(rules.unconlist[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.unconlistR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				if (rules.conlistW[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("cw%s %s %s %s"), frtoa(rules.conlistW[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.conlistWR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				if (rules.unconlistW[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("w%s %s %s %s"), frtoa(rules.unconlistW[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.unconlistWR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				if (rules.conlistM[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("cm%s %s %s %s"), frtoa(rules.conlistM[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.conlistMR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				if (rules.unconlistM[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("m%s %s %s %s"), frtoa(rules.unconlistM[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.unconlistMR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				if (rules.edgelist[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("e%s %s %s %s"), frtoa(rules.edgelist[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.edgelistR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				k++;
-//			}
-//	
-//			(void)setval((INTBIG)lib, VLIBRARY, x_("EDTEC_DRC"), (INTBIG)drclist,
-//				VSTRING|VISARRAY|(drccount<<VLENGTHSH));
-//			for(i=0; i<drccount; i++) efree(drclist[i]);
-//			efree((CHAR *)drclist);
-//		} else
-//		{
-//			// no rules: remove the variable
-//			if (getval((INTBIG)lib, VLIBRARY, VSTRING|VISARRAY, x_("EDTEC_DRC")) != NOVARIABLE)
-//				(void)delval((INTBIG)lib, VLIBRARY, x_("EDTEC_DRC"));
-//		}
-//	}
 
 	/**
 	 * Method to determine whether it is legal to place an instance in a technology-edit cell.
@@ -821,8 +345,8 @@ public class Manipulate
 		private Library lib;
 		private String name;
 		private int type;
-	
-		public MakeOneCellJob(Library lib, String name, int type)
+
+		private MakeOneCellJob(Library lib, String name, int type)
 		{
 			super("Make Cell in Technology-Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lib = lib;
@@ -842,16 +366,16 @@ public class Manipulate
 			switch (type)
 			{
 				case 1:
-					LayerInfo li = LayerInfo.makeInstance();
-					li.us_tecedmakelayer(cell);
+					LayerInfo li = new LayerInfo();
+					li.generate(cell);
 					break;
 				case 2:
-					ArcInfo aIn = ArcInfo.makeInstance();
-					aIn.us_tecedmakearc(cell);
+					ArcInfo aIn = new ArcInfo();
+					aIn.generate(cell);
 					break;
 				case 3:
-					NodeInfo nIn = NodeInfo.makeInstance();
-					nIn.us_tecedmakenode(cell);
+					NodeInfo nIn = new NodeInfo();
+					nIn.generate(cell);
 					break;
 			}
 
@@ -868,15 +392,15 @@ public class Manipulate
 	 */
 	public static void completeNodeCreation(NodeInst newNi, Object toDraw)
 	{
-		newNi.newVar(Generate.OPTION_KEY, new Integer(Generate.LAYERPATCH));
-		
+		newNi.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
+
 		// postprocessing on the nodes
 		if (newNi.getProto() == Generic.tech.portNode)
 		{
 			// a port layer
 			String portName = JOptionPane.showInputDialog("Port name:", "");
 			if (portName == null) return;
-			Variable var = newNi.newVar(Generate.PORTNAME_KEY, portName);
+			Variable var = newNi.newVar(Info.PORTNAME_KEY, portName);
 			if (var != null) var.setDisplay(true);
 			return;
 		}
@@ -886,39 +410,39 @@ public class Manipulate
 			if (toDraw instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)toDraw;
-				if (ni.getVar(Generate.LAYER_KEY) != null)
+				if (ni.getVar(Info.LAYER_KEY) != null)
 				{
-					newNi.newVar(Generate.LAYER_KEY, null);
+					newNi.newVar(Info.LAYER_KEY, null);
 					return;
 				}
 			}
 		}
 
 		// a real layer: default to the first one
-		String [] layerNames = us_tecedgetlayernamelist();
+		String [] layerNames = getLayerNameList();
 		if (layerNames != null && layerNames.length > 0)
 		{
 			Cell cell = Library.getCurrent().findNodeProto(layerNames[0]);
 			if (cell != null)
 			{
-				newNi.newVar(Generate.LAYER_KEY, cell);
-				Generate.LayerInfo li = Generate.LayerInfo.us_teceditgetlayerinfo(cell);
+				newNi.newVar(Info.LAYER_KEY, cell);
+				LayerInfo li = LayerInfo.parseCell(cell);
 				if (li != null)
-					us_teceditsetpatch(newNi, li.desc);
+					setPatch(newNi, li.desc);
 			}
 		}
 	}
 
 	/**
-	 * Method to highlight information about all layers (or ports if "doports" is true)
+	 * Method to highlight information about all layers (or ports if "doPorts" is true)
 	 */
-	public static void us_teceditidentify(boolean doports)
+	public static void identifyLayers(boolean doPorts)
 	{
 		EditWindow wnd = EditWindow.getCurrent();
 		Cell np = WindowFrame.needCurCell();
 		if (wnd == null || np == null) return;
-	
-		if (doports)
+
+		if (doPorts)
 		{
 			if (!np.getName().startsWith("node-"))
 			{
@@ -933,19 +457,20 @@ public class Manipulate
 				return;
 			}
 		}
-	
+
 		// get examples
-		Parse.Example nelist = null;
+		Example neList = null;
 		if (np.getName().startsWith("node-"))
-			nelist = Parse.us_tecedgetexamples(np, true); else
-				nelist = Parse.us_tecedgetexamples(np, false);
-		if (nelist == null) return;
-	
+			neList = Example.getExamples(np, true); else
+				neList = Example.getExamples(np, false);
+		if (neList == null) return;
+
 		// count the number of appropriate samples in the main example
 		int total = 0;
-		for(Parse.Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+		for(Iterator it = neList.samples.iterator(); it.hasNext(); )
 		{
-			if (!doports)
+			Sample ns = (Sample)it.next();
+			if (!doPorts)
 			{
 				if (ns.layer != Generic.tech.portNode) total++;
 			} else
@@ -955,99 +480,100 @@ public class Manipulate
 		}
 		if (total == 0)
 		{
-			System.out.println("There are no " + (doports ? "ports" : "layers") + " to identify");
+			System.out.println("There are no " + (doPorts ? "ports" : "layers") + " to identify");
 			return;
 		}
 
 		// make arrays for position and association
-		double [] xpos = new double[total];
-		double [] ypos = new double[total];
+		double [] xPos = new double[total];
+		double [] yPos = new double[total];
 		Poly.Type [] style = new Poly.Type[total];
-		Parse.Sample [] whichsam = new Parse.Sample[total];
-	
+		Sample [] whichSam = new Sample[total];
+
 		// fill in label positions
-		int qtotal = (total+3) / 4;
+		int qTotal = (total+3) / 4;
 		Rectangle2D screen = wnd.getBoundsInWindow();
-		double ysep = screen.getHeight() / qtotal;
-		double xsep = screen.getWidth() / qtotal;
+		double ySep = screen.getHeight() / qTotal;
+		double xSep = screen.getWidth() / qTotal;
 		double indent = screen.getHeight() / 15;
-		for(int i=0; i<qtotal; i++)
+		for(int i=0; i<qTotal; i++)
 		{
 			// label on the left side
-			xpos[i] = screen.getMinX() + indent;
-			ypos[i] = screen.getMinY() + ysep * i + ysep/2;
+			xPos[i] = screen.getMinX() + indent;
+			yPos[i] = screen.getMinY() + ySep * i + ySep/2;
 			style[i] = Poly.Type.TEXTLEFT;
-			if (i+qtotal < total)
+			if (i+qTotal < total)
 			{
 				// label on the top side
-				xpos[i+qtotal] = screen.getMinX() + xsep * i + xsep/2;
-				ypos[i+qtotal] = screen.getMaxY() - indent;
-				style[i+qtotal] = Poly.Type.TEXTTOP;
+				xPos[i+qTotal] = screen.getMinX() + xSep * i + xSep/2;
+				yPos[i+qTotal] = screen.getMaxY() - indent;
+				style[i+qTotal] = Poly.Type.TEXTTOP;
 			}
-			if (i+qtotal*2 < total)
+			if (i+qTotal*2 < total)
 			{
 				// label on the right side
-				xpos[i+qtotal*2] = screen.getMaxX() - indent;
-				ypos[i+qtotal*2] = screen.getMinY() + ysep * i + ysep/2;
-				style[i+qtotal*2] = Poly.Type.TEXTRIGHT;
+				xPos[i+qTotal*2] = screen.getMaxX() - indent;
+				yPos[i+qTotal*2] = screen.getMinY() + ySep * i + ySep/2;
+				style[i+qTotal*2] = Poly.Type.TEXTRIGHT;
 			}
-			if (i+qtotal*3 < total)
+			if (i+qTotal*3 < total)
 			{
 				// label on the bottom side
-				xpos[i+qtotal*3] = screen.getMinX() + xsep * i + xsep/2;
-				ypos[i+qtotal*3] = screen.getMinY() + indent;
-				style[i+qtotal*3] = Poly.Type.TEXTBOT;
+				xPos[i+qTotal*3] = screen.getMinX() + xSep * i + xSep/2;
+				yPos[i+qTotal*3] = screen.getMinY() + indent;
+				style[i+qTotal*3] = Poly.Type.TEXTBOT;
 			}
 		}
-	
+
 		// fill in sample associations
 		int k = 0;
-		for(Parse.Sample ns = nelist.firstsample; ns != null; ns = ns.nextsample)
+		for(Iterator it = neList.samples.iterator(); it.hasNext(); )
 		{
-			if (!doports)
+			Sample ns = (Sample)it.next();
+			if (!doPorts)
 			{
-				if (ns.layer != Generic.tech.portNode) whichsam[k++] = ns;
+				if (ns.layer != Generic.tech.portNode) whichSam[k++] = ns;
 			} else
 			{
-				if (ns.layer == Generic.tech.portNode) whichsam[k++] = ns;
+				if (ns.layer == Generic.tech.portNode) whichSam[k++] = ns;
 			}
 		}
-	
+
 		// rotate through all configurations, finding least distance
-		double bestdist = Double.MAX_VALUE;
-		int bestrot = 0;
+		double bestDist = Double.MAX_VALUE;
+		int bestRot = 0;
 		for(int i=0; i<total; i++)
 		{
 			// find distance from each label to its sample center
 			double dist = 0;
 			for(int j=0; j<total; j++)
-				dist += new Point2D.Double(xpos[j], ypos[j]).distance(new Point2D.Double(whichsam[j].xpos, whichsam[j].ypos));
-			if (dist < bestdist)
+				dist += new Point2D.Double(xPos[j], yPos[j]).distance(new Point2D.Double(whichSam[j].xPos, whichSam[j].yPos));
+			if (dist < bestDist)
 			{
-				bestdist = dist;
-				bestrot = i;
+				bestDist = dist;
+				bestRot = i;
 			}
-	
+
 			// rotate the samples
-			Parse.Sample ns = whichsam[0];
-			for(int j=1; j<total; j++) whichsam[j-1] = whichsam[j];
-			whichsam[total-1] = ns;
+			Sample ns = whichSam[0];
+			for(int j=1; j<total; j++) whichSam[j-1] = whichSam[j];
+			whichSam[total-1] = ns;
 		}
-	
+
 		// rotate back to the best orientation
-		for(int i=0; i<bestrot; i++)
+		for(int i=0; i<bestRot; i++)
 		{
-			Parse.Sample ns = whichsam[0];
-			for(int j=1; j<total; j++) whichsam[j-1] = whichsam[j];
-			whichsam[total-1] = ns;
+			Sample ns = whichSam[0];
+			for(int j=1; j<total; j++) whichSam[j-1] = whichSam[j];
+			whichSam[total-1] = ns;
 		}
-	
+
 		// draw the highlighting
-        Highlighter highlighter = wnd.getHighlighter();
+		Highlighter highlighter = wnd.getHighlighter();
 		highlighter.clear();
 		for(int i=0; i<total; i++)
 		{
-			Parse.Sample ns = whichsam[i];
+			Sample ns = whichSam[i];
 			String msg = null;
 			if (ns.layer == null)
 			{
@@ -1057,10 +583,10 @@ public class Manipulate
 				msg = "GRAB";
 			} else if (ns.layer == Generic.tech.portNode)
 			{
-				msg = us_tecedgetportname(ns.node);
+				msg = Info.getPortName(ns.node);
 				if (msg == null) msg = "?";
 			} else msg = ns.layer.getName().substring(6);
-			Point2D curPt = new Point2D.Double(xpos[i], ypos[i]);
+			Point2D curPt = new Point2D.Double(xPos[i], yPos[i]);
 			highlighter.addMessage(np, msg, curPt);
 
 			SizeOffset so = ns.node.getSizeOffset();
@@ -1083,11 +609,11 @@ public class Manipulate
 		}
 		highlighter.finished();
 	}
-	
+
 	/**
 	 * Method to return information about a given object.
 	 */
-	public static String us_teceditinquire(Geometric geom)
+	public static String describeNodeMeaning(Geometric geom)
 	{
 		if (geom instanceof ArcInst)
 		{
@@ -1098,122 +624,122 @@ public class Manipulate
 			if (ai.getHead().getPortInst().getNodeInst().getProto() != Generic.tech.portNode ||
 				ai.getTail().getPortInst().getNodeInst().getProto() != Generic.tech.portNode)
 					return "This arc makes an unimportant connection";
-			String pt1 = us_tecedgetportname(ai.getHead().getPortInst().getNodeInst());
-			String pt2 = us_tecedgetportname(ai.getTail().getPortInst().getNodeInst());
+			String pt1 = Info.getPortName(ai.getHead().getPortInst().getNodeInst());
+			String pt2 = Info.getPortName(ai.getTail().getPortInst().getNodeInst());
 			if (pt1 == null || pt2 == null)
 				return "This arc connects two port objects";
 			return "This arc connects ports '" + pt1 + "' and '" + pt2 + "'";
 		}
 		NodeInst ni = (NodeInst)geom;
 		Cell cell = ni.getParent();
-		int opt = us_tecedgetoption(ni);
+		int opt = getOptionOnNode(ni);
 		if (opt < 0) return "No relevance";
-	
+
 		switch (opt)
 		{
-			case Generate.TECHDESCRIPT:
+			case Info.TECHDESCRIPT:
 				return "The technology description";
-			case Generate.TECHLAMBDA:
+			case Info.TECHSCALE:
 				return "The technology scale";
-			case Generate.TECHSPICEMINRES:
+			case Info.TECHSPICEMINRES:
 				return "Minimum resistance of SPICE elements";
-			case Generate.TECHSPICEMINCAP:
+			case Info.TECHSPICEMINCAP:
 				return "Minimum capacitance of SPICE elements";
-			case Generate.TECHGATESHRINK:
+			case Info.TECHGATESHRINK:
 				return "The shrinkage of gates, in um";
-			case Generate.TECHGATEINCLUDED:
+			case Info.TECHGATEINCLUDED:
 				return "Whether gates are included in resistance";
-			case Generate.TECHGROUNDINCLUDED:
+			case Info.TECHGROUNDINCLUDED:
 				return "Whether to include the ground network in parasitics";
-			case Generate.TECHTRANSPCOLORS:
+			case Info.TECHTRANSPCOLORS:
 				return "The transparent colors";
 
-			case Generate.LAYER3DHEIGHT:
+			case Info.LAYER3DHEIGHT:
 				return "The 3D height of " + cell.describe();
-			case Generate.LAYER3DTHICK:
+			case Info.LAYER3DTHICK:
 				return "The 3D thickness of " + cell.describe();
-			case Generate.LAYERTRANSPARENCY:
+			case Info.LAYERTRANSPARENCY:
 				return "The transparency layer of " + cell.describe();
-			case Generate.LAYERCIF:
+			case Info.LAYERCIF:
 				return "The CIF name of " + cell.describe();
-			case Generate.LAYERCOLOR:
+			case Info.LAYERCOLOR:
 				return "The color of " + cell.describe();
-			case Generate.LAYERLETTERS:
+			case Info.LAYERLETTERS:
 				return "The unique letter for " + cell.describe() + " (obsolete)";
-			case Generate.LAYERDXF:
+			case Info.LAYERDXF:
 				return "The DXF name(s) of " + cell.describe() + " (obsolete)";
-			case Generate.LAYERDRCMINWID:
+			case Info.LAYERDRCMINWID:
 				return "DRC minimum width " + cell.describe() + " (obsolete)";
-			case Generate.LAYERFUNCTION:
+			case Info.LAYERFUNCTION:
 				return "The function of " + cell.describe();
-			case Generate.LAYERGDS:
+			case Info.LAYERGDS:
 				return "The Calma GDS-II number of " + cell.describe();
-			case Generate.LAYERPATCONT:
+			case Info.LAYERPATCONT:
 				return "A stipple-pattern controller";
-			case Generate.LAYERPATTERN:
+			case Info.LAYERPATTERN:
 				return "One of the bitmap squares in " + cell.describe();
-			case Generate.LAYERSPICAP:
+			case Info.LAYERSPICAP:
 				return "The SPICE capacitance of " + cell.describe();
-			case Generate.LAYERSPIECAP:
+			case Info.LAYERSPIECAP:
 				return "The SPICE edge capacitance of " + cell.describe();
-			case Generate.LAYERSPIRES:
+			case Info.LAYERSPIRES:
 				return "The SPICE resistance of " + cell.describe();
-			case Generate.LAYERSTYLE:
+			case Info.LAYERSTYLE:
 				return "The style of " + cell.describe();
-			case Generate.LAYERCOVERAGE:
+			case Info.LAYERCOVERAGE:
 				return "The desired coverage percentage for " + cell.describe();
 
-			case Generate.ARCFIXANG:
+			case Info.ARCFIXANG:
 				return "Whether " + cell.describe() + " is fixed-angle";
-			case Generate.ARCFUNCTION:
+			case Info.ARCFUNCTION:
 				return "The function of " + cell.describe();
-			case Generate.ARCINC:
+			case Info.ARCINC:
 				return "The prefered angle increment of " + cell.describe();
-			case Generate.ARCNOEXTEND:
+			case Info.ARCNOEXTEND:
 				return "The arc extension of " + cell.describe();
-			case Generate.ARCWIPESPINS:
+			case Info.ARCWIPESPINS:
 				return "Thie arc coverage of " + cell.describe();
-			case Generate.ARCANTENNARATIO:
+			case Info.ARCANTENNARATIO:
 				return "The maximum antenna ratio for " + cell.describe();
 
-			case Generate.NODEFUNCTION:
+			case Info.NODEFUNCTION:
 				return "The function of " + cell.describe();
-			case Generate.NODELOCKABLE:
+			case Info.NODELOCKABLE:
 				return "Whether " + cell.describe() + " can be locked (used in array technologies)";
-			case Generate.NODEMULTICUT:
+			case Info.NODEMULTICUT:
 				return "The separation between multiple contact cuts in " + cell.describe() + " (obsolete)";
-			case Generate.NODESERPENTINE:
+			case Info.NODESERPENTINE:
 				return "Whether " + cell.describe() + " is a serpentine transistor";
-			case Generate.NODESQUARE:
+			case Info.NODESQUARE:
 				return "Whether " + cell.describe() + " is square";
-			case Generate.NODEWIPES:
+			case Info.NODEWIPES:
 				return "Whether " + cell.describe() + " disappears when conencted to one or two arcs";
 
-			case Generate.CENTEROBJ:
+			case Info.CENTEROBJ:
 				return "The grab point of " + cell.describe();
-			case Generate.LAYERPATCH:
-			case Generate.HIGHLIGHTOBJ:
-				Cell np = us_tecedgetlayer(ni);
+			case Info.LAYERPATCH:
+			case Info.HIGHLIGHTOBJ:
+				Cell np = getLayerCell(ni);
 				if (np == null) return "Highlight box";
 				String msg = "Layer '" + np.getName().substring(6) + "'";
-				Variable var = ni.getVar(Generate.MINSIZEBOX_KEY);
+				Variable var = ni.getVar(Info.MINSIZEBOX_KEY);
 				if (var != null) msg += " (at minimum size)";
 				return msg;
-			case Generate.PORTOBJ:
-				String pt = us_tecedgetportname(ni);
+			case Info.PORTOBJ:
+				String pt = Info.getPortName(ni);
 				if (pt == null) return "Unnamed port";
 				return "Port '" + pt + "'";
 		}
 		return "Unknown information";
 	}
-	
+
 	/**
 	 * Method to obtain the layer associated with node "ni".  Returns 0 if the layer is not
 	 * there or invalid.  Returns NONODEPROTO if this is the highlight layer.
 	 */
-	public static Cell us_tecedgetlayer(NodeInst ni)
+	static Cell getLayerCell(NodeInst ni)
 	{
-		Variable var = ni.getVar(Generate.LAYER_KEY);
+		Variable var = ni.getVar(Info.LAYER_KEY);
 		if (var == null) return null;
 		Cell np = (Cell)var.getObject();
 		if (np != null)
@@ -1227,67 +753,58 @@ public class Manipulate
 		}
 		return null;
 	}
-	
-	/**
-	 * Method to return the name of the technology-edit port on node "ni".  Typically,
-	 * this is stored on the Generate.PORTNAME_KEY variable, but it may also be the node's name.
-	 */
-	static String us_tecedgetportname(NodeInst ni)
-	{	
-		Variable var = ni.getVar(Generate.PORTNAME_KEY);
-		if (var != null) return (String)var.getObject();
-		var = ni.getVar(NodeInst.NODE_NAME);
-		if (var != null) return (String)var.getObject();
-		return null;
-	}
-	
+
 	/**
 	 * Method for modifying the selected object.  If two are selected, connect them.
 	 */
-	public static void us_teceditmodobject(EditWindow wnd, NodeInst ni, int opt)
+	public static void modifyObject(EditWindow wnd, NodeInst ni, int opt)
 	{
 		// handle other cases
 		switch (opt)
 		{
-			case Generate.PORTOBJ:           us_tecedmodport(wnd, ni);                break;
-			case Generate.LAYERFUNCTION:     us_tecedlayerfunction(wnd, ni);          break;
-			case Generate.LAYERCOLOR:        us_tecedlayercolor(wnd, ni);             break;
-			case Generate.LAYERTRANSPARENCY: us_tecedlayertransparency(wnd, ni);      break;
-			case Generate.LAYERSTYLE:        us_tecedlayerstyle(wnd, ni);             break;
-			case Generate.LAYERCIF:          us_tecedlayercif(wnd, ni);               break;
-			case Generate.LAYERGDS:          us_tecedlayergds(wnd, ni);               break;
-			case Generate.LAYERSPIRES:       us_tecedlayerspires(wnd, ni);            break;
-			case Generate.LAYERSPICAP:       us_tecedlayerspicap(wnd, ni);            break;
-			case Generate.LAYERSPIECAP:      us_tecedlayerspiecap(wnd, ni);           break;
-			case Generate.LAYER3DHEIGHT:     us_tecedlayer3dheight(wnd, ni);          break;
-			case Generate.LAYER3DTHICK:      us_tecedlayer3dthick(wnd, ni);           break;
-			case Generate.LAYERPATTERN:      us_tecedlayerpattern(wnd, ni);           break;
-			case Generate.LAYERPATCONT:      us_tecedlayerpatterncontrol(wnd, ni, 0); break;
-			case Generate.LAYERPATCLEAR:     us_tecedlayerpatterncontrol(wnd, ni, 1); break;
-			case Generate.LAYERPATINVERT:    us_tecedlayerpatterncontrol(wnd, ni, 2); break;
-			case Generate.LAYERPATCOPY:      us_tecedlayerpatterncontrol(wnd, ni, 3); break;
-			case Generate.LAYERPATPASTE:     us_tecedlayerpatterncontrol(wnd, ni, 4); break;
-			case Generate.LAYERPATCH:        us_tecedlayertype(wnd, ni);              break;
-			case Generate.ARCFIXANG:         us_tecedarcfixang(wnd, ni);              break;
-			case Generate.ARCFUNCTION:       us_tecedarcfunction(wnd, ni);            break;
-			case Generate.ARCINC:            us_tecedarcinc(wnd, ni);                 break;
-			case Generate.ARCNOEXTEND:       us_tecedarcnoextend(wnd, ni);            break;
-			case Generate.ARCWIPESPINS:      us_tecedarcwipes(wnd, ni);               break;
-			case Generate.NODEFUNCTION:      us_tecednodefunction(wnd, ni);           break;
-			case Generate.NODELOCKABLE:      us_tecednodelockable(wnd, ni);           break;
-			case Generate.NODESERPENTINE:    us_tecednodeserpentine(wnd, ni);         break;
-			case Generate.NODESQUARE:        us_tecednodesquare(wnd, ni);             break;
-			case Generate.NODEWIPES:         us_tecednodewipes(wnd, ni);              break;
-			case Generate.TECHDESCRIPT:      us_tecedinfodescript(wnd, ni);           break;
-			case Generate.TECHLAMBDA:        us_tecedinfolambda(wnd, ni);             break;
-			case Generate.TECHSPICEMINRES:   editSpiceMinRes(wnd, ni);                break;
-			case Generate.TECHSPICEMINCAP:   editSpiceMinCap(wnd, ni);                break;
-			case Generate.ARCANTENNARATIO:   editAntennaRatio(wnd, ni);               break;
-			case Generate.LAYERCOVERAGE:     editLayerCoverage(wnd, ni);              break;
-			case Generate.TECHGATESHRINK:    editGateShrinkage(wnd, ni);              break;
-			case Generate.TECHGATEINCLUDED:  editGateInRes(wnd, ni);                  break;
-			case Generate.TECHGROUNDINCLUDED:editGroundInParasitics(wnd, ni);         break;
-			case Generate.TECHTRANSPCOLORS:  editTransparentColors(wnd, ni);          break;
+			case Info.TECHDESCRIPT:      modTechDescription(wnd, ni);        break;
+			case Info.TECHSCALE:         modTechScale(wnd, ni);              break;
+			case Info.TECHSPICEMINRES:   modTechMinResistance(wnd, ni);      break;
+			case Info.TECHSPICEMINCAP:   modTechMinCapacitance(wnd, ni);     break;
+			case Info.TECHGATESHRINK:    modTechGateShrinkage(wnd, ni);      break;
+			case Info.TECHGATEINCLUDED:  modTechGateIncluded(wnd, ni);       break;
+			case Info.TECHGROUNDINCLUDED:modTechGroundIncluded(wnd, ni);     break;
+			case Info.TECHTRANSPCOLORS:  modTechTransparentColors(wnd, ni);  break;
+
+			case Info.LAYERFUNCTION:     modLayerFunction(wnd, ni);          break;
+			case Info.LAYERCOLOR:        modLayerColor(wnd, ni);             break;
+			case Info.LAYERTRANSPARENCY: modLayerTransparency(wnd, ni);      break;
+			case Info.LAYERSTYLE:        modLayerStyle(wnd, ni);             break;
+			case Info.LAYERCIF:          modLayerCIF(wnd, ni);               break;
+			case Info.LAYERGDS:          modLayerGDS(wnd, ni);               break;
+			case Info.LAYERSPIRES:       modLayerResistance(wnd, ni);        break;
+			case Info.LAYERSPICAP:       modLayerCapacitance(wnd, ni);       break;
+			case Info.LAYERSPIECAP:      modLayerEdgeCapacitance(wnd, ni);   break;
+			case Info.LAYER3DHEIGHT:     modLayerHeight(wnd, ni);            break;
+			case Info.LAYER3DTHICK:      modLayerThickness(wnd, ni);         break;
+			case Info.LAYERPATTERN:      modLayerPattern(wnd, ni);           break;
+			case Info.LAYERPATCONT:      doPatternControl(wnd, ni, 0);       break;
+			case Info.LAYERPATCLEAR:     doPatternControl(wnd, ni, 1);       break;
+			case Info.LAYERPATINVERT:    doPatternControl(wnd, ni, 2);       break;
+			case Info.LAYERPATCOPY:      doPatternControl(wnd, ni, 3);       break;
+			case Info.LAYERPATPASTE:     doPatternControl(wnd, ni, 4);       break;
+			case Info.LAYERPATCH:        modLayerPatch(wnd, ni);             break;
+			case Info.LAYERCOVERAGE:     modLayerCoverage(wnd, ni);          break;
+
+			case Info.ARCFIXANG:         modArcFixAng(wnd, ni);              break;
+			case Info.ARCFUNCTION:       modArcFunction(wnd, ni);            break;
+			case Info.ARCINC:            modArcAngInc(wnd, ni);              break;
+			case Info.ARCNOEXTEND:       modArcExtension(wnd, ni);           break;
+			case Info.ARCWIPESPINS:      modArcWipes(wnd, ni);               break;
+			case Info.ARCANTENNARATIO:   modArcAntennaRatio(wnd, ni);        break;
+
+			case Info.NODEFUNCTION:      modNodeFunction(wnd, ni);           break;
+			case Info.NODELOCKABLE:      modNodeLockability(wnd, ni);        break;
+			case Info.NODESERPENTINE:    modNodeSerpentine(wnd, ni);         break;
+			case Info.NODESQUARE:        modNodeSquare(wnd, ni);             break;
+			case Info.NODEWIPES:         modNodeWipes(wnd, ni);              break;
+
+			case Info.PORTOBJ:           modPort(wnd, ni);                   break;
 			default:
 				System.out.println("Cannot modify this object");
 				break;
@@ -1296,51 +813,51 @@ public class Manipulate
 
 	/***************************** OBJECT MODIFICATION *****************************/
 
-	private static void editSpiceMinRes(EditWindow wnd, NodeInst ni)
+	private static void modTechMinResistance(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
-		String newUnit = PromptAt.showPromptAt(wnd, ni, "Set Minimum Resistance",
+		String initialMsg = Info.getValueOnNode(ni);
+		String newUnit = PromptAt.showPromptAt(wnd, ni, "Change Minimum Resistance",
 			"Minimum resistance (for parasitics):", initialMsg);
 		if (newUnit != null) new SetTextJob(ni, "Minimum Resistance: " + newUnit);
 	}
 
-	private static void editSpiceMinCap(EditWindow wnd, NodeInst ni)
+	private static void modTechMinCapacitance(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
-		String newUnit = PromptAt.showPromptAt(wnd, ni, "Set Minimum Capacitance",
+		String initialMsg = Info.getValueOnNode(ni);
+		String newUnit = PromptAt.showPromptAt(wnd, ni, "Change Minimum Capacitance",
 			"Minimum capacitance (for parasitics):", initialMsg);
 		if (newUnit != null) new SetTextJob(ni, "Minimum Capacitance: " + newUnit);
 	}
 
-	private static void editAntennaRatio(EditWindow wnd, NodeInst ni)
+	private static void modArcAntennaRatio(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
-		String newUnit = PromptAt.showPromptAt(wnd, ni, "Set Antenna Ratio",
+		String initialMsg = Info.getValueOnNode(ni);
+		String newUnit = PromptAt.showPromptAt(wnd, ni, "Change Antenna Ratio",
 			"Maximum antenna ratio for this layer:", initialMsg);
 		if (newUnit != null) new SetTextJob(ni, "Antenna Ratio: " + newUnit);
 	}
 
-	private static void editLayerCoverage(EditWindow wnd, NodeInst ni)
+	private static void modLayerCoverage(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
-		String newUnit = PromptAt.showPromptAt(wnd, ni, "Set Coverage Percent",
+		String initialMsg = Info.getValueOnNode(ni);
+		String newUnit = PromptAt.showPromptAt(wnd, ni, "Change Coverage Percent",
 			"Desired coverage percentage:", initialMsg);
 		if (newUnit != null) new SetTextJob(ni, "Coverage percent: " + newUnit);
 	}
 
-	private static void editGateShrinkage(EditWindow wnd, NodeInst ni)
+	private static void modTechGateShrinkage(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
-		String newUnit = PromptAt.showPromptAt(wnd, ni, "Set Gate Shrinkage",
+		String initialMsg = Info.getValueOnNode(ni);
+		String newUnit = PromptAt.showPromptAt(wnd, ni, "Change Gate Shrinkage",
 			"Gate shrinkage (in um):", initialMsg);
 		if (newUnit != null) new SetTextJob(ni, "Gate Shrinkage: " + newUnit);
 	}
 
-	private static void editGateInRes(EditWindow wnd, NodeInst ni)
+	private static void modTechGateIncluded(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		boolean initialChoice = initialMsg.equalsIgnoreCase("yes");
-		boolean finalChoice = PromptAt.showPromptAt(wnd, ni, "Set Whether Gate is Included in Resistance",
+		boolean finalChoice = PromptAt.showPromptAt(wnd, ni, "Change Whether Gate is Included in Resistance",
 			"Should the gate be included in resistance?", initialChoice);
 		if (finalChoice != initialChoice)
 		{
@@ -1348,11 +865,11 @@ public class Manipulate
 		}
 	}
 
-	private static void editGroundInParasitics(EditWindow wnd, NodeInst ni)
+	private static void modTechGroundIncluded(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		boolean initialChoice = initialMsg.equalsIgnoreCase("yes");
-		boolean finalChoice = PromptAt.showPromptAt(wnd, ni, "Set Whether parasitics include the ground network",
+		boolean finalChoice = PromptAt.showPromptAt(wnd, ni, "Change Whether parasitics include the ground network",
 			"Should parasitics include the ground network?", initialChoice);
 		if (finalChoice != initialChoice)
 		{
@@ -1360,11 +877,11 @@ public class Manipulate
 		}
 	}
 
-	private static void editTransparentColors(EditWindow wnd, NodeInst ni)
+	private static void modTechTransparentColors(EditWindow wnd, NodeInst ni)
 	{
-		Variable var = ni.getVar(Generate.TRANSLAYER_KEY);
+		Variable var = ni.getVar(Info.TRANSLAYER_KEY);
 		if (var == null) return;
-		Color [] colors = Generate.getTransparentColors((String)var.getObject());
+		Color [] colors = GeneralInfo.getTransparentColors((String)var.getObject());
 		for(;;)
 		{
 			PromptAt.Field [][] fields = new PromptAt.Field[colors.length+1][2];
@@ -1384,7 +901,7 @@ public class Manipulate
 				// done
 				for(int i=0; i<colors.length; i++)
 					colors[i] = (Color)fields[i][0].getFinal();
-				SetTransparentColorJob job = new SetTransparentColorJob(ni, Generate.makeTransparentColorsLine(colors));
+				SetTransparentColorJob job = new SetTransparentColorJob(ni, GeneralInfo.makeTransparentColorsLine(colors));
 
 				// redraw the demo layer in this cell
 				new RedoLayerGraphicsJob(ni.getParent());
@@ -1414,26 +931,26 @@ public class Manipulate
 			colors = newColors;
 		}
 	}
-	
-	private static void us_tecedlayer3dheight(EditWindow wnd, NodeInst ni)
+
+	private static void modLayerHeight(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		String newHei = PromptAt.showPromptAt(wnd, ni, "Change 3D Height",
 			"New 3D height (depth) for this layer:", initialMsg);
 		if (newHei != null) new SetTextJob(ni, "3D Height: " + newHei);
 	}
-	
-	private static void us_tecedlayer3dthick(EditWindow wnd, NodeInst ni)
+
+	private static void modLayerThickness(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		String newThk = PromptAt.showPromptAt(wnd, ni, "Change 3D Thickness",
 			"New 3D thickness for this layer:", initialMsg);
 		if (newThk != null) new SetTextJob(ni, "3D Thickness: " + newThk);
 	}
-	
-	private static void us_tecedlayercolor(EditWindow wnd, NodeInst ni)
+
+	private static void modLayerColor(EditWindow wnd, NodeInst ni)
 	{
-		String initialString = getValueOnNode(ni);
+		String initialString = Info.getValueOnNode(ni);
 		StringTokenizer st = new StringTokenizer(initialString, ",");
 		if (st.countTokens() != 5)
 		{
@@ -1444,7 +961,7 @@ public class Manipulate
 		int r = TextUtils.atoi(st.nextToken());
 		int g = TextUtils.atoi(st.nextToken());
 		int b = TextUtils.atoi(st.nextToken());
-		
+
 		fields[0] = new PromptAt.Field("Color:", new Color(r, g, b));
 		fields[1] = new PromptAt.Field("Opacity (0-1):", st.nextToken());
 		fields[2] = new PromptAt.Field("Foreground:", new String [] {"on", "off"}, st.nextToken());
@@ -1461,10 +978,10 @@ public class Manipulate
 		// redraw the demo layer in this cell
 		new RedoLayerGraphicsJob(ni.getParent());
 	}
-	
-	private static void us_tecedlayertransparency(EditWindow wnd, NodeInst ni)
+
+	private static void modLayerTransparency(EditWindow wnd, NodeInst ni)
 	{
-		String initialTransLayer = getValueOnNode(ni);
+		String initialTransLayer = Info.getValueOnNode(ni);
 		String [] transNames = new String[11];
 		transNames[0] = "none";
 		transNames[1] = "layer 1";
@@ -1486,9 +1003,9 @@ public class Manipulate
 		new RedoLayerGraphicsJob(ni.getParent());
 	}
 
-	private static void us_tecedlayerstyle(EditWindow wnd, NodeInst ni)
+	private static void modLayerStyle(EditWindow wnd, NodeInst ni)
 	{
-		String initialStyleName = getValueOnNode(ni);
+		String initialStyleName = Info.getValueOnNode(ni);
 		String [] styleNames = new String[3];
 		styleNames[0] = "Solid";
 		styleNames[1] = "Patterned";
@@ -1501,48 +1018,48 @@ public class Manipulate
 		// redraw the demo layer in this cell
 		new RedoLayerGraphicsJob(ni.getParent());
 	}
-	
-	private static void us_tecedlayercif(EditWindow wnd, NodeInst ni)
+
+	private static void modLayerCIF(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		String newCIF = PromptAt.showPromptAt(wnd, ni, "Change CIF layer name", "New CIF symbol for this layer:", initialMsg);
 		if (newCIF != null) new SetTextJob(ni, "CIF Layer: " + newCIF);
 	}
-	
-	private static void us_tecedlayergds(EditWindow wnd, NodeInst ni)
+
+	private static void modLayerGDS(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		String newGDS = PromptAt.showPromptAt(wnd, ni, "Change GDS layer name", "New GDS symbol for this layer:", initialMsg);
 		if (newGDS != null) new SetTextJob(ni, "GDS-II Layer: " + newGDS);
 	}
-	
-	private static void us_tecedlayerspires(EditWindow wnd, NodeInst ni)
+
+	private static void modLayerResistance(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		String newRes = PromptAt.showPromptAt(wnd, ni, "Change SPICE Layer Resistance",
 			"New SPICE resistance for this layer:", initialMsg);
 		if (newRes != null) new SetTextJob(ni, "SPICE Resistance: " + newRes);
 	}
-	
-	private static void us_tecedlayerspicap(EditWindow wnd, NodeInst ni)
+
+	private static void modLayerCapacitance(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		String newCap = PromptAt.showPromptAt(wnd, ni, "Change SPICE Layer Capacitance",
 			"New SPICE capacitance for this layer:", initialMsg);
 		if (newCap != null) new SetTextJob(ni, "SPICE Capacitance: " + newCap);
 	}
-	
-	private static void us_tecedlayerspiecap(EditWindow wnd, NodeInst ni)
+
+	private static void modLayerEdgeCapacitance(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		String newCap = PromptAt.showPromptAt(wnd, ni, "Change SPICE Layer Edge Capacitance",
 			"New SPICE edge capacitance for this layer:", initialMsg);
 		if (newCap != null) new SetTextJob(ni, "SPICE Edge Capacitance: " + newCap);
 	}
 
-	private static void us_tecedlayerfunction(EditWindow wnd, NodeInst ni)
+	private static void modLayerFunction(EditWindow wnd, NodeInst ni)
 	{
-		String initialFuncName = getValueOnNode(ni);
+		String initialFuncName = Info.getValueOnNode(ni);
 		int commaPos = initialFuncName.indexOf(',');
 		if (commaPos >= 0) initialFuncName = initialFuncName.substring(0, commaPos);
 
@@ -1570,7 +1087,7 @@ public class Manipulate
 			if (choice.equals(Layer.Function.getExtraName(extraBits[i]))) { thisExtraBit = extraBits[i];   break; }
 		}
 
-		LayerInfo li = Generate.LayerInfo.us_teceditgetlayerinfo(ni.getParent());
+		LayerInfo li = LayerInfo.parseCell(ni.getParent());
 		if (li == null) return;
 		if (thisExtraBit > 0)
 		{
@@ -1590,12 +1107,12 @@ public class Manipulate
 				}
 			}
 		}
-		new SetTextJob(ni, "Function: " + Generate.makeLayerFunctionName(li.fun, li.funExtra));
+		new SetTextJob(ni, "Function: " + LayerInfo.makeLayerFunctionName(li.fun, li.funExtra));
 	}
 
 	private static int [] copiedPattern = null;
 
-	private static void us_tecedlayerpatterncontrol(EditWindow wnd, NodeInst ni, int forced)
+	private static void doPatternControl(EditWindow wnd, NodeInst ni, int forced)
 	{
 		if (forced == 0)
 		{
@@ -1617,13 +1134,13 @@ public class Manipulate
 				for(Iterator it = ni.getParent().getNodes(); it.hasNext(); )
 				{
 					NodeInst pni = (NodeInst)it.next();
-					int opt = us_tecedgetoption(pni);
-					if (opt != Generate.LAYERPATTERN) continue;
-					int color = us_tecedlayergetpattern(pni);
+					int opt = getOptionOnNode(pni);
+					if (opt != Info.LAYERPATTERN) continue;
+					int color = getLayerColor(pni);
 					if (color != 0)
 						new SetLayerPatternJob(pni, 0);
 				}
-		
+
 				// redraw the demo layer in this cell
 				new RedoLayerGraphicsJob(ni.getParent());
 				break;
@@ -1631,34 +1148,34 @@ public class Manipulate
 				for(Iterator it = ni.getParent().getNodes(); it.hasNext(); )
 				{
 					NodeInst pni = (NodeInst)it.next();
-					int opt = us_tecedgetoption(pni);
-					if (opt != Generate.LAYERPATTERN) continue;
-					int color = us_tecedlayergetpattern(pni);
+					int opt = getOptionOnNode(pni);
+					if (opt != Info.LAYERPATTERN) continue;
+					int color = getLayerColor(pni);
 					new SetLayerPatternJob(pni, ~color);
 				}
-		
+
 				// redraw the demo layer in this cell
 				new RedoLayerGraphicsJob(ni.getParent());
 				break;
 			case 3:		// copy pattern
-				Generate.LayerInfo li = Generate.LayerInfo.us_teceditgetlayerinfo(ni.getParent());
+				LayerInfo li = LayerInfo.parseCell(ni.getParent());
 				if (li == null) return;
 				copiedPattern = li.desc.getPattern();
 				break;
 			case 4:		// paste pattern
 				if (copiedPattern == null) return;
-				us_teceditsetlayerpattern(ni.getParent(), copiedPattern);
-		
+				setLayerPattern(ni.getParent(), copiedPattern);
+
 				// redraw the demo layer in this cell
 				new RedoLayerGraphicsJob(ni.getParent());
 				break;
 		}
 	}
-	
+
 	/**
 	 * Method to return the color in layer-pattern node "ni" (off is 0, on is 0xFFFF).
 	 */
-	private static int us_tecedlayergetpattern(NodeInst ni)
+	private static int getLayerColor(NodeInst ni)
 	{
 		if (ni.getProto() == Artwork.tech.boxNode) return 0;
 		if (ni.getProto() != Artwork.tech.filledBoxNode) return 0;
@@ -1667,15 +1184,15 @@ public class Manipulate
 		return ((Short[])var.getObject())[0].intValue();
 	}
 
-    /**
-     * Class to create a technology-library from a technology.
-     */
+	/**
+	 * Class to create a technology-library from a technology.
+	 */
 	private static class SetLayerPatternJob extends Job
 	{
 		private NodeInst ni;
 		private int color;
 
-		public SetLayerPatternJob(NodeInst ni, int color)
+		private SetLayerPatternJob(NodeInst ni, int color)
 		{
 			super("Change Pattern In Layer", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
@@ -1688,7 +1205,7 @@ public class Manipulate
 			if (ni.getProto() == Artwork.tech.boxNode)
 			{
 				if (color == 0) return true;
-				NodeInst newni = ni.replace(Artwork.tech.filledBoxNode, false, false);
+				ni.replace(Artwork.tech.filledBoxNode, false, false);
 			} else if (ni.getProto() == Artwork.tech.filledBoxNode)
 			{
 				Short [] col = new Short[16];
@@ -1703,15 +1220,15 @@ public class Manipulate
 	 * Method to toggle the color of layer-pattern node "ni" (called when the user does a
 	 * "technology edit" click on the node).
 	 */
-	private static void us_tecedlayerpattern(EditWindow wnd, NodeInst ni)
+	private static void modLayerPattern(EditWindow wnd, NodeInst ni)
 	{
-		int color = us_tecedlayergetpattern(ni);
+		int color = getLayerColor(ni);
 		new SetLayerPatternJob(ni, ~color);
 
 		Highlighter h = wnd.getHighlighter();
 		h.clear();
 		h.addElectricObject(ni, ni.getParent());
-	
+
 		// redraw the demo layer in this cell
 		new RedoLayerGraphicsJob(ni.getParent());
 	}
@@ -1720,11 +1237,11 @@ public class Manipulate
 	 * Method to get a list of layers in the current library (in the proper order).
 	 * @return an array of strings with the names of the layers.
 	 */
-	private static String [] us_tecedgetlayernamelist()
+	private static String [] getLayerNameList()
 	{
-		Library [] dependentlibs = us_teceditgetdependents(Library.getCurrent());
-		Cell [] layerCells = us_teceditfindsequence(dependentlibs, "layer-", Generate.LAYERSEQUENCE_KEY);
-	
+		Library [] dependentlibs = Info.getDependentLibraries(Library.getCurrent());
+		Cell [] layerCells = Info.findCellSequence(dependentlibs, "layer-", Info.LAYERSEQUENCE_KEY);
+
 		// build and fill array of layers for DRC parsing
 		String [] layerNames = new String[layerCells.length];
 		for(int i=0; i<layerCells.length; i++)
@@ -1736,11 +1253,11 @@ public class Manipulate
 	 * Method to get a list of arcs in the current library (in the proper order).
 	 * @return an array of strings with the names of the arcs.
 	 */
-	private static String [] us_tecedgetarcnamelist()
+	private static String [] getArcNameList()
 	{
-		Library [] dependentlibs = us_teceditgetdependents(Library.getCurrent());
-		Cell [] arcCells = us_teceditfindsequence(dependentlibs, "arc-", Generate.ARCSEQUENCE_KEY);
-	
+		Library [] dependentlibs = Info.getDependentLibraries(Library.getCurrent());
+		Cell [] arcCells = Info.findCellSequence(dependentlibs, "arc-", Info.ARCSEQUENCE_KEY);
+
 		// build and fill array of layers for DRC parsing
 		String [] arcNames = new String[arcCells.length];
 		for(int i=0; i<arcCells.length; i++)
@@ -1752,11 +1269,11 @@ public class Manipulate
 	 * Method to get a list of arcs in the current library (in the proper order).
 	 * @return an array of strings with the names of the arcs.
 	 */
-	private static String [] us_tecedgetnodenamelist()
+	private static String [] getNodeNameList()
 	{
-		Library [] dependentlibs = us_teceditgetdependents(Library.getCurrent());
-		Cell [] nodeCells = us_teceditfindsequence(dependentlibs, "node-", Generate.NODESEQUENCE_KEY);
-	
+		Library [] dependentlibs = Info.getDependentLibraries(Library.getCurrent());
+		Cell [] nodeCells = Info.findCellSequence(dependentlibs, "node-", Info.NODESEQUENCE_KEY);
+
 		// build and fill array of nodes
 		String [] nodeNames = new String[nodeCells.length];
 		for(int i=0; i<nodeCells.length; i++)
@@ -1765,121 +1282,12 @@ public class Manipulate
 	}
 
 	/**
-	 * Method to get the list of libraries that are used in the construction
-	 * of library "lib".  Returns an array of libraries, terminated with "lib".
-	 */
-	public static Library [] us_teceditgetdependents(Library lib)
-	{
-		// get list of dependent libraries
-		List dependentLibs = new ArrayList();
-		Variable var = lib.getVar(Generate.DEPENDENTLIB_KEY);
-		if (var != null)
-		{
-			String [] libNames = (String [])var.getObject();
-			for(int i=0; i<libNames.length; i++)
-			{
-				String pt = libNames[i];
-				Library dLib = Library.findLibrary(pt);
-				if (dLib == null)
-				{
-					System.out.println("Cannot find dependent technology library " + pt + ", ignoring");
-					continue;
-				}
-				if (dLib == lib)
-				{
-					System.out.println("Library " + lib.getName() + " cannot depend on itself, ignoring dependency");
-					continue;
-				}
-				dependentLibs.add(dLib);
-			}
-		}
-		dependentLibs.add(lib);
-		Library [] theLibs = new Library[dependentLibs.size()];
-		for(int i=0; i<dependentLibs.size(); i++)
-			theLibs[i] = (Library)dependentLibs.get(i);
-		return theLibs;
-	}
-
-	/**
-	 * general-purpose method to scan the libraries in "dependentlibs",
-	 * looking for cells that begin with the string "match".  It then uses the
-	 * variable "seqname" on the last library to determine an ordering of the cells.
-	 * Then, it returns the cells in an array.
-	 */
-	public static Cell [] us_teceditfindsequence(Library [] dependentlibs, String match, Variable.Key seqKey)
-	{
-		// look backwards through libraries for the appropriate cells
-		int total = 0;
-		List npList = new ArrayList();
-		for(int i=dependentlibs.length-1; i>=0; i--)
-		{
-			Library olderlib = dependentlibs[i];
-			for(Iterator it = olderlib.getCells(); it.hasNext(); )
-			{
-				Cell np = (Cell)it.next();
-				if (!np.getName().startsWith(match)) continue;
-
-				// see if this cell is used in a later library
-				boolean foundInLater = false;
-				for(int j=i+1; j<dependentlibs.length; j++)
-				{
-					Library laterLib = dependentlibs[j];
-					for(Iterator oIt = laterLib.getCells(); oIt.hasNext(); )
-					{
-						Cell lNp = (Cell)oIt.next();
-						if (!lNp.getName().equals(np.getName())) continue;
-						foundInLater = true;
-
-						// got older and later version of same cell: check dates
-						if (lNp.getRevisionDate().before(np.getRevisionDate()))
-							System.out.println("Warning: library " + olderlib.getName() + " has newer " + np.getName() +
-								" than library " + laterLib.getName());
-						break;
-					}
-					if (foundInLater) break;
-				}
-	
-				// if no later library has this, add to total
-				if (!foundInLater) npList.add(np);
-			}
-		}
-	
-		// if there is no sequence, simply return the list
-		Variable var = dependentlibs[dependentlibs.length-1].getVar(seqKey);
-		if (var == null) return (Cell [])npList.toArray();
-
-		// build a new list with the sequence
-		List sequence = new ArrayList();
-		String [] sequenceNames = (String [])var.getObject();
-		for(int i=0; i<sequenceNames.length; i++)
-		{
-			Cell foundCell = null;
-			for(int l = 0; l < npList.size(); l++)
-			{
-				Cell np = (Cell)npList.get(l);
-				if (np.getName().substring(match.length()).equals(sequenceNames[i])) { foundCell = np;   break; }
-			}
-			if (foundCell != null)
-			{
-				sequence.add(foundCell);
-				npList.remove(foundCell);
-			}
-		}
-		for(Iterator it = npList.iterator(); it.hasNext(); )
-			sequence.add(it.next());
-		Cell [] theCells = new Cell[sequence.size()];
-		for(int i=0; i<sequence.size(); i++)
-			theCells[i] = (Cell)sequence.get(i);
-		return theCells;
-	}
-
-	/**
 	 * Method to modify the layer information in node "ni".
 	 */
-	private static void us_tecedlayertype(EditWindow wnd, NodeInst ni)
+	private static void modLayerPatch(EditWindow wnd, NodeInst ni)
 	{
-		Library [] dependentlibs = us_teceditgetdependents(Library.getCurrent());
-		Cell [] layerCells = us_teceditfindsequence(dependentlibs, "layer-", Generate.LAYERSEQUENCE_KEY);
+		Library [] dependentlibs = Info.getDependentLibraries(Library.getCurrent());
+		Cell [] layerCells = Info.findCellSequence(dependentlibs, "layer-", Info.LAYERSEQUENCE_KEY);
 		if (layerCells == null) return;
 
 		String [] options = new String[layerCells.length + 2];
@@ -1888,7 +1296,7 @@ public class Manipulate
 		options[layerCells.length] = "SET-MINIMUM-SIZE";
 		options[layerCells.length+1] = "CLEAR-MINIMUM-SIZE";
 		String initial = options[0];
-		Variable curLay = ni.getVar(Generate.LAYER_KEY);
+		Variable curLay = ni.getVar(Info.LAYER_KEY);
 		if (curLay != null) initial = ((Cell)curLay.getObject()).getName().substring(6);
 		String choice = PromptAt.showPromptAt(wnd, ni, "Change Layer", "New layer for this geometry:", initial, options);
 		if (choice == null) return;
@@ -1897,16 +1305,16 @@ public class Manipulate
 		ModifyLayerJob job = new ModifyLayerJob(ni, choice, layerCells);
 	}
 
-    /**
-     * Class to modify a port object in a node of the technology editor.
-     */
+	/**
+	 * Class to modify a port object in a node of the technology editor.
+	 */
 	private static class ModifyLayerJob extends Job
 	{
 		private NodeInst ni;
 		private String choice;
 		private Cell [] layerCells;
 
-		public ModifyLayerJob(NodeInst ni, String choice, Cell [] layerCells)
+		private ModifyLayerJob(NodeInst ni, String choice, Cell [] layerCells)
 		{
 			super("Change Layer Information", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
@@ -1924,43 +1332,43 @@ public class Manipulate
 					System.out.println("Can only set minimum size in node descriptions");
 					return true;
 				}
-				Variable var = ni.newVar(Generate.MINSIZEBOX_KEY, "MIN");
+				Variable var = ni.newVar(Info.MINSIZEBOX_KEY, "MIN");
 				if (var != null) var.setDisplay(true);
 				return true;
 			}
-		
+
 			if (choice.equals("CLEAR-MINIMUM-SIZE"))
 			{
-				if (ni.getVar(Generate.MINSIZEBOX_KEY) == null)
+				if (ni.getVar(Info.MINSIZEBOX_KEY) == null)
 				{
 					System.out.println("Minimum size is not set on this layer");
 					return true;
 				}
-				ni.delVar(Generate.MINSIZEBOX_KEY);
+				ni.delVar(Info.MINSIZEBOX_KEY);
 				return true;
 			}
-		
+
 			// find the actual cell with that layer specification
 			for(int i=0; i<layerCells.length; i++)
 			{
 				if (choice.equals(layerCells[i].getName().substring(6)))
 				{
 					// found the name, set the patch
-					Generate.LayerInfo li = Generate.LayerInfo.us_teceditgetlayerinfo(layerCells[i]);
+					LayerInfo li = LayerInfo.parseCell(layerCells[i]);
 					if (li == null) return true;
-					us_teceditsetpatch(ni, li.desc);
-					ni.newVar(Generate.LAYER_KEY, layerCells[i]);
+					setPatch(ni, li.desc);
+					ni.newVar(Info.LAYER_KEY, layerCells[i]);
 				}
 			}
 			System.out.println("Cannot find layer primitive " + choice);
 			return true;
 		}
 	}
-	
+
 	/**
 	 * Method to modify port characteristics
 	 */
-	private static void us_tecedmodport(EditWindow wnd, NodeInst ni)
+	private static void modPort(EditWindow wnd, NodeInst ni)
 	{
 		// count the number of arcs in this technology
 		List allArcs = new ArrayList();
@@ -1972,7 +1380,7 @@ public class Manipulate
 
 		// make a set of those arcs which can connect to this port
 		HashSet connectSet = new HashSet();
-		Variable var = ni.getVar(Generate.CONNECTION_KEY);
+		Variable var = ni.getVar(Info.CONNECTION_KEY);
 		if (var != null)
 		{
 			Cell [] connects = (Cell [])var.getObject();
@@ -1989,10 +1397,10 @@ public class Manipulate
 			fields[i] = new PromptAt.Field(cell.getName().substring(4),
 				new String [] {"Allowed", "Disallowed"}, (doesConnect ? "Allowed" : "Disallowed"));
 		}
-		Variable angVar = ni.getVar(Generate.PORTANGLE_KEY);
+		Variable angVar = ni.getVar(Info.PORTANGLE_KEY);
 		int ang = 0;
 		if (angVar != null) ang = ((Integer)angVar.getObject()).intValue();
-		Variable rangeVar = ni.getVar(Generate.PORTRANGE_KEY);
+		Variable rangeVar = ni.getVar(Info.PORTRANGE_KEY);
 		int range = 180;
 		if (rangeVar != null) range = ((Integer)rangeVar.getObject()).intValue();
 		fields[allArcs.size()] = new PromptAt.Field("Angle:", TextUtils.formatDouble(ang));
@@ -2004,16 +1412,16 @@ public class Manipulate
 		ModifyPortJob job = new ModifyPortJob(ni, allArcs, fields);
 	}
 
-    /**
-     * Class to modify a port object in a node of the technology editor.
-     */
+	/**
+	 * Class to modify a port object in a node of the technology editor.
+	 */
 	private static class ModifyPortJob extends Job
 	{
 		private NodeInst ni;
 		private List allArcs;
 		private PromptAt.Field [] fields;
 
-		public ModifyPortJob(NodeInst ni, List allArcs, PromptAt.Field [] fields)
+		private ModifyPortJob(NodeInst ni, List allArcs, PromptAt.Field [] fields)
 		{
 			super("Change Port Information", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
@@ -2037,19 +1445,19 @@ public class Manipulate
 				String answer = (String)fields[i].getFinal();
 				if (answer.equals("Allowed")) newConnects[k++] = (Cell)allArcs.get(i);
 			}
-			ni.newVar(Generate.CONNECTION_KEY, newConnects);
+			ni.newVar(Info.CONNECTION_KEY, newConnects);
 
 			int newAngle = TextUtils.atoi((String)fields[allArcs.size()].getFinal());
-			ni.newVar(Generate.PORTANGLE_KEY, new Integer(newAngle));
+			ni.newVar(Info.PORTANGLE_KEY, new Integer(newAngle));
 			int newRange = TextUtils.atoi((String)fields[allArcs.size()+1].getFinal());
-			ni.newVar(Generate.PORTRANGE_KEY, new Integer(newRange));
+			ni.newVar(Info.PORTRANGE_KEY, new Integer(newRange));
 			return true;
 		}
 	}
 
-	private static void us_tecedarcfunction(EditWindow wnd, NodeInst ni)
+	private static void modArcFunction(EditWindow wnd, NodeInst ni)
 	{
-		String initialFuncName = getValueOnNode(ni);
+		String initialFuncName = Info.getValueOnNode(ni);
 		List funs = ArcProto.Function.getFunctions();
 		String [] functionNames = new String[funs.size()];
 		for(int i=0; i<funs.size(); i++)
@@ -2062,22 +1470,9 @@ public class Manipulate
 		new SetTextJob(ni, "Function: " + choice);
 	}
 
-	public static String getValueOnNode(NodeInst ni)
+	private static void modArcFixAng(EditWindow wnd, NodeInst ni)
 	{
-		String initial = "";
-		Variable var = ni.getVar(Artwork.ART_MESSAGE, String.class);
-		if (var != null)
-		{
-			initial = (String)var.getObject();
-			int colonPos = initial.indexOf(':');
-			if (colonPos > 0) initial = initial.substring(colonPos+2);
-		}
-		return initial;
-	}
-
-	private static void us_tecedarcfixang(EditWindow wnd, NodeInst ni)
-	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		boolean initialChoice = initialMsg.equalsIgnoreCase("yes");
 		boolean finalChoice = PromptAt.showPromptAt(wnd, ni, "Set whether this Arc Remains at a Fixed Angle",
 			"Should instances of this arc be created with the 'fixed angle' constraint?", initialChoice);
@@ -2086,10 +1481,10 @@ public class Manipulate
 			new SetTextJob(ni, "Fixed-angle: " + (finalChoice ? "Yes" : "No"));
 		}
 	}
-	
-	private static void us_tecedarcwipes(EditWindow wnd, NodeInst ni)
+
+	private static void modArcWipes(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		boolean initialChoice = initialMsg.equalsIgnoreCase("yes");
 		boolean finalChoice = PromptAt.showPromptAt(wnd, ni, "Set Whether this Arc Can Obscure a Pin Node",
 			"Can this arc obscure a pin node (that is obscurable)?", initialChoice);
@@ -2098,10 +1493,10 @@ public class Manipulate
 			new SetTextJob(ni, "Wipes pins: " + (finalChoice ? "Yes" : "No"));
 		}
 	}
-	
-	private static void us_tecedarcnoextend(EditWindow wnd, NodeInst ni)
+
+	private static void modArcExtension(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		boolean initialChoice = initialMsg.equalsIgnoreCase("yes");
 		boolean finalChoice = PromptAt.showPromptAt(wnd, ni, "Set Extension Default",
 			"Are new instances of this arc drawn with ends extended?", initialChoice);
@@ -2110,18 +1505,18 @@ public class Manipulate
 			new SetTextJob(ni, "Extend arcs: " + (finalChoice ? "Yes" : "No"));
 		}
 	}
-	
-	private static void us_tecedarcinc(EditWindow wnd, NodeInst ni)
+
+	private static void modArcAngInc(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		String newInc = PromptAt.showPromptAt(wnd, ni, "Change Angle Increment",
 			"New angular granularity for placing this type of arc:", initialMsg);
 		if (newInc != null) new SetTextJob(ni, "Angle increment: " + newInc);
 	}
-	
-	private static void us_tecednodefunction(EditWindow wnd, NodeInst ni)
+
+	private static void modNodeFunction(EditWindow wnd, NodeInst ni)
 	{
-		String initialFuncName = getValueOnNode(ni);
+		String initialFuncName = Info.getValueOnNode(ni);
 		List funs = PrimitiveNode.Function.getFunctions();
 		String [] functionNames = new String[funs.size()];
 		for(int i=0; i<funs.size(); i++)
@@ -2133,10 +1528,10 @@ public class Manipulate
 		if (choice == null) return;
 		new SetTextJob(ni, "Function: " + choice);
 	}
-	
-	private static void us_tecednodeserpentine(EditWindow wnd, NodeInst ni)
+
+	private static void modNodeSerpentine(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		boolean initialChoice = initialMsg.equalsIgnoreCase("yes");
 		boolean finalChoice = PromptAt.showPromptAt(wnd, ni, "Set Serpentine Transistor Capability",
 			"Is this node a serpentine transistor?", initialChoice);
@@ -2145,10 +1540,10 @@ public class Manipulate
 			new SetTextJob(ni, "Serpentine transistor: " + (finalChoice ? "Yes" : "No"));
 		}
 	}
-	
-	private static void us_tecednodesquare(EditWindow wnd, NodeInst ni)
+
+	private static void modNodeSquare(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		boolean initialChoice = initialMsg.equalsIgnoreCase("yes");
 		boolean finalChoice = PromptAt.showPromptAt(wnd, ni, "Does Node Remain Square",
 			"Must this node remain square?", initialChoice);
@@ -2157,10 +1552,10 @@ public class Manipulate
 			new SetTextJob(ni, "Square node: " + (finalChoice ? "Yes" : "No"));
 		}
 	}
-	
-	private static void us_tecednodewipes(EditWindow wnd, NodeInst ni)
+
+	private static void modNodeWipes(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		boolean initialChoice = initialMsg.equalsIgnoreCase("yes");
 		boolean finalChoice = PromptAt.showPromptAt(wnd, ni, "Set How Arcs Obscure This Node",
 			"Is this node invisible when 1 or 2 arcs connect to it?", initialChoice);
@@ -2169,10 +1564,10 @@ public class Manipulate
 			new SetTextJob(ni, "Invisible with 1 or 2 arcs: " + (finalChoice ? "Yes" : "No"));
 		}
 	}
-	
-	private static void us_tecednodelockable(EditWindow wnd, NodeInst ni)
+
+	private static void modNodeLockability(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		boolean initialChoice = initialMsg.equalsIgnoreCase("yes");
 		boolean finalChoice = PromptAt.showPromptAt(wnd, ni, "Set Node Lockability",
 			"Is this node able to be locked down (used for FPGA primitives):", initialChoice);
@@ -2181,34 +1576,34 @@ public class Manipulate
 			new SetTextJob(ni, "Lockable: " + (finalChoice ? "Yes" : "No"));
 		}
 	}
-	
-	private static void us_tecedinfolambda(EditWindow wnd, NodeInst ni)
+
+	private static void modTechScale(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		String newUnit = PromptAt.showPromptAt(wnd, ni, "Set Unit Size",
 			"The scale of this technology (nanometers per grid unit):", initialMsg);
 		if (newUnit != null) new SetTextJob(ni, "Lambda: " + newUnit);
 	}
-	
-	private static void us_tecedinfodescript(EditWindow wnd, NodeInst ni)
+
+	private static void modTechDescription(EditWindow wnd, NodeInst ni)
 	{
-		String initialMsg = getValueOnNode(ni);
+		String initialMsg = Info.getValueOnNode(ni);
 		String newDesc = PromptAt.showPromptAt(wnd, ni, "Set Technology Description",
 			"Full description of this technology:", initialMsg);
 		if (newDesc != null) new SetTextJob(ni, "Description: " + newDesc);
 	}
-	
+
 	/****************************** UTILITIES ******************************/
 
-    /**
-     * Class to create a technology-library from a technology.
-     */
-    private static class SetTextJob extends Job
+	/**
+	 * Class to create a technology-library from a technology.
+	 */
+	private static class SetTextJob extends Job
 	{
 		private NodeInst ni;
 		private String chr;
 
-		public SetTextJob(NodeInst ni, String chr)
+		private SetTextJob(NodeInst ni, String chr)
 		{
 			super("Make Technology Library from Technology", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
@@ -2225,15 +1620,15 @@ public class Manipulate
 		}
 	}
 
-    /**
-     * Class to set transparent colors on a technology.
-     */
-    private static class SetTransparentColorJob extends Job
+	/**
+	 * Class to set transparent colors on a technology.
+	 */
+	private static class SetTransparentColorJob extends Job
 	{
 		private NodeInst ni;
 		private String chr;
 
-		public SetTransparentColorJob(NodeInst ni, String chr)
+		private SetTransparentColorJob(NodeInst ni, String chr)
 		{
 			super("Set Transparent Colors", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
@@ -2243,19 +1638,19 @@ public class Manipulate
 
 		public boolean doIt()
 		{
-			ni.newVar(Generate.TRANSLAYER_KEY, chr);
+			ni.newVar(Info.TRANSLAYER_KEY, chr);
 			return true;
 		}
 	}
 
-    /**
-     * Class to create a technology-library from a technology.
-     */
-    private static class RedoLayerGraphicsJob extends Job
+	/**
+	 * Class to create a technology-library from a technology.
+	 */
+	private static class RedoLayerGraphicsJob extends Job
 	{
 		private Cell cell;
 
-		public RedoLayerGraphicsJob(Cell cell)
+		private RedoLayerGraphicsJob(Cell cell)
 		{
 			super("Redo Layer Graphics", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -2269,20 +1664,20 @@ public class Manipulate
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getProto() != Artwork.tech.filledBoxNode) continue;
-				int opt = us_tecedgetoption(ni);
-				if (opt == Generate.LAYERPATTERN) continue;
+				int opt = getOptionOnNode(ni);
+				if (opt == Info.LAYERPATTERN) continue;
 				patchNi = ni;
 				break;
 			}
 			if (patchNi == null) return false;
 
 			// get the current description of this layer
-			Generate.LayerInfo li = Generate.LayerInfo.us_teceditgetlayerinfo(cell);
+			LayerInfo li = LayerInfo.parseCell(cell);
 			if (li == null) return false;
-		
+
 			// modify the demo patch to reflect the color and pattern
-			us_teceditsetpatch(patchNi, li.desc);
-		
+			setPatch(patchNi, li.desc);
+
 			// now do this to all layers in all cells!
 			for(Iterator cIt = cell.getLibrary().getCells(); cIt.hasNext(); )
 			{
@@ -2291,18 +1686,18 @@ public class Manipulate
 				for(Iterator nIt = onp.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst cNi = (NodeInst)nIt.next();
-					if (us_tecedgetoption(cNi) != Generate.LAYERPATCH) continue;
-					Variable varLay = cNi.getVar(Generate.LAYER_KEY);
+					if (getOptionOnNode(cNi) != Info.LAYERPATCH) continue;
+					Variable varLay = cNi.getVar(Info.LAYER_KEY);
 					if (varLay == null) continue;
 					if ((Cell)varLay.getObject() != cell) continue;
-					us_teceditsetpatch(cNi, li.desc);
+					setPatch(cNi, li.desc);
 				}
 			}
 			return true;
 		}
 	}
 
-	public static void us_teceditsetpatch(NodeInst ni, EGraphics desc)
+	static void setPatch(NodeInst ni, EGraphics desc)
 	{
 		if (desc.getTransparentLayer() > 0)
 		{
@@ -2335,88 +1730,88 @@ public class Manipulate
 	/**
 	 * Method to set the layer-pattern squares of cell "np" to the bits in "desc".
 	 */
-	private static void us_teceditsetlayerpattern(Cell np, int [] pattern)
+	private static void setLayerPattern(Cell np, int [] pattern)
 	{
 		// look at all nodes in the layer description cell
-		int patterncount = 0;
+		int patternCount = 0;
 		Rectangle2D patternBounds = null;
 		for(Iterator it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() == Artwork.tech.boxNode || ni.getProto() == Artwork.tech.filledBoxNode)
 			{
-				Variable var = ni.getVar(Generate.OPTION_KEY);
+				Variable var = ni.getVar(Info.OPTION_KEY);
 				if (var == null) continue;
-				if (((Integer)var.getObject()).intValue() != Generate.LAYERPATTERN) continue;
+				if (((Integer)var.getObject()).intValue() != Info.LAYERPATTERN) continue;
 				Rectangle2D bounds = ni.getBounds();
-				if (patterncount == 0)
+				if (patternCount == 0)
 				{
 					patternBounds = bounds;
 				} else
 				{
 					Rectangle2D.union(patternBounds, bounds, patternBounds);
 				}
-				patterncount++;
+				patternCount++;
 			}
 		}
-	
-		if (patterncount != 16*16 && patterncount != 16*8)
+
+		if (patternCount != 16*16 && patternCount != 16*8)
 		{
 			System.out.println("Incorrect number of pattern boxes in " + np.describe() +
-				" (has " + patterncount + ", not " + (16*16) + ")");
+				" (has " + patternCount + ", not " + (16*16) + ")");
 			return;
 		}
-	
+
 		// set the pattern
 		for(Iterator it = np.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() != Artwork.tech.boxNode && ni.getProto() != Artwork.tech.filledBoxNode) continue;
-			Variable var = ni.getVar(Generate.OPTION_KEY);
+			Variable var = ni.getVar(Info.OPTION_KEY);
 			if (var == null) continue;
-			if (((Integer)var.getObject()).intValue() != Generate.LAYERPATTERN) continue;
+			if (((Integer)var.getObject()).intValue() != Info.LAYERPATTERN) continue;
 
 			Rectangle2D niBounds = ni.getBounds();
 			int x = (int)((niBounds.getMinX() - patternBounds.getMinX()) / (patternBounds.getWidth() / 16));
 			int y = (int)((patternBounds.getMaxY() - niBounds.getMaxY()) / (patternBounds.getHeight() / 16));
 			int wantColor = 0;
 			if ((pattern[y] & (1 << (15-x))) != 0) wantColor = 0xFFFF;
-	
-			int color = us_tecedlayergetpattern(ni);
+
+			int color = getLayerColor(ni);
 			if (color != wantColor)
 				new SetLayerPatternJob(ni, wantColor);
 		}
 	}
-	
+
 	/**
 	 * Method to return the option index of node "ni"
 	 */
-	public static int us_tecedgetoption(NodeInst ni)
+	public static int getOptionOnNode(NodeInst ni)
 	{
 		// port objects are readily identifiable
-		if (ni.getProto() == Generic.tech.portNode) return Generate.PORTOBJ;
-	
+		if (ni.getProto() == Generic.tech.portNode) return Info.PORTOBJ;
+
 		// center objects are also readily identifiable
-		if (ni.getProto() == Generic.tech.cellCenterNode) return Generate.CENTEROBJ;
-	
-		Variable var = ni.getVar(Generate.OPTION_KEY);
+		if (ni.getProto() == Generic.tech.cellCenterNode) return Info.CENTEROBJ;
+
+		Variable var = ni.getVar(Info.OPTION_KEY);
 		if (var == null) return -1;
 		int option = ((Integer)var.getObject()).intValue();
-		if (option == Generate.LAYERPATCH)
+		if (option == Info.LAYERPATCH)
 		{
 			// may be a highlight object
-			Variable var2 = ni.getVar(Generate.LAYER_KEY);
+			Variable var2 = ni.getVar(Info.LAYER_KEY);
 			if (var2 != null)
 			{
-				if (var2.getObject() == null) return Generate.HIGHLIGHTOBJ;
+				if (var2.getObject() == null) return Info.HIGHLIGHTOBJ;
 			}
 		}
 		return option;
 	}
 
-	/******************** SUPPORT FOR "usredtecp.c" ROUTINES ********************/
-	
-	public static void us_reorderprimdlog(int type)
+	/******************** SUPPORT ROUTINES ********************/
+
+	public static void reorderPrimitives(int type)
 	{
 		RearrangeOrder dialog = new RearrangeOrder();
 		dialog.lib = Library.getCurrent();
@@ -2436,15 +1831,15 @@ public class Manipulate
 		private int type;
 
 		/** Creates new form Rearrange technology components */
-		public RearrangeOrder()
+		private RearrangeOrder()
 		{
 			super(null, true);
 		}
-		
+	
 		private void ok() { exit(true); }
-		
+
 		protected void escapePressed() { exit(false); }
-		 
+
 		// Call this method when the user clicks the OK button
 		private void exit(boolean goodButton)
 		{
@@ -2463,8 +1858,8 @@ public class Manipulate
 			private Library lib;
 			private String [] newList;
 			private int type;
-		
-			public UpdateOrderingJob(Library lib, String [] newList, int type)
+
+			private UpdateOrderingJob(Library lib, String [] newList, int type)
 			{
 				super("Update Ordering", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 				this.lib = lib;
@@ -2477,9 +1872,18 @@ public class Manipulate
 			{
 				switch (type)
 				{
-					case 1: lib.newVar(Generate.LAYERSEQUENCE_KEY, newList);   break;
-					case 2: lib.newVar(Generate.ARCSEQUENCE_KEY, newList);     break;
-					case 3: lib.newVar(Generate.NODESEQUENCE_KEY, newList);    break;
+					case 1: lib.newVar(Info.LAYERSEQUENCE_KEY, newList);   break;
+					case 2: lib.newVar(Info.ARCSEQUENCE_KEY, newList);     break;
+					case 3: lib.newVar(Info.NODESEQUENCE_KEY, newList);    break;
+				}
+
+				// force redraw of explorer tree
+				if (!SwingUtilities.isEventDispatchThread())
+				{
+					SwingUtilities.invokeLater(new Runnable()
+					{
+						public void run() { WindowFrame.wantToRedoLibraryTree(); }
+					});
 				}
 				return true;
 			}
@@ -2535,7 +1939,7 @@ public class Manipulate
 			gbc.gridwidth = 2;  gbc.gridheight = 4;
 			gbc.anchor = java.awt.GridBagConstraints.WEST;
 			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
-	        getContentPane().add(center, gbc);
+			getContentPane().add(center, gbc);
 
 			model = new DefaultListModel();
 			list = new JList(model);
@@ -2546,9 +1950,9 @@ public class Manipulate
 			String [] listNames = null;
 			switch (type)
 			{
-				case 1: listNames = us_tecedgetlayernamelist();   break;
-				case 2: listNames = us_tecedgetarcnamelist();     break;
-				case 3: listNames = us_tecedgetnodenamelist();    break;
+				case 1: listNames = getLayerNameList();   break;
+				case 2: listNames = getArcNameList();     break;
+				case 3: listNames = getNodeNameList();    break;
 			}
 			for(int i=0; i<listNames.length; i++)
 				model.addElement(listNames[i]);
@@ -2625,7 +2029,7 @@ public class Manipulate
 	 * Method to print detailled information about a given technology.
 	 * @param tech the technology to describe.
 	 */
-	public static void us_printtechnology(Technology tech)
+	public static void describeTechnology(Technology tech)
 	{
 		// ***************************** dump layers ******************************
 
@@ -2682,7 +2086,7 @@ public class Manipulate
 		fields[0] = layerNames;     fields[1] = layerColors;   fields[2] = layerStyles;
 		fields[3] = layerCifs;      fields[4] = layerGdss;     fields[5] = layerFuncs;
 		fields[6] = layerCoverage;
-		us_dumpfields(fields, layerCount+1, "LAYERS IN " + tech.getTechName().toUpperCase());
+		dumpFields(fields, layerCount+1, "LAYERS IN " + tech.getTechName().toUpperCase());
 
 		// ****************************** dump arcs ******************************
 
@@ -2752,7 +2156,7 @@ public class Manipulate
 		fields[0] = arcNames;        fields[1] = arcLayers;    fields[2] = arcLayerSizes;
 		fields[3] = arcExtensions;   fields[4] = arcAngles;    fields[5] = arcWipes;
 		fields[6] = arcFuncs;        fields[7] = arcAntennas;
-		us_dumpfields(fields, tot, "ARCS IN " + tech.getTechName().toUpperCase());
+		dumpFields(fields, tot, "ARCS IN " + tech.getTechName().toUpperCase());
 
 		// ****************************** dump nodes ******************************
 
@@ -2870,12 +2274,12 @@ public class Manipulate
 		fields[0] = nodeNames;        fields[1] = nodeFuncs;       fields[2] = nodeLayers;
 		fields[3] = nodeLayerSizes;   fields[4] = nodePorts;       fields[5] = nodePortSizes;
 		fields[6] = nodePortAngles;   fields[7] = nodeConnections;
-		us_dumpfields(fields, tot, "NODES IN " + tech.getTechName().toUpperCase());
+		dumpFields(fields, tot, "NODES IN " + tech.getTechName().toUpperCase());
 	}
 
-	private static void us_dumpfields(String [][] fields, int length, String title)
+	private static void dumpFields(String [][] fields, int length, String title)
 	{
-		int totwid = 0;
+		int totWid = 0;
 		int [] widths = new int[fields.length];
 		for(int i=0; i<fields.length; i++)
 		{
@@ -2887,10 +2291,10 @@ public class Manipulate
 				if (len > widths[i]) widths[i] = len;
 			}
 			widths[i] += 2;
-			totwid += widths[i];
+			totWid += widths[i];
 		}
 
-		int stars = (totwid - title.length() - 4) / 2;
+		int stars = (totWid - title.length() - 4) / 2;
 		for(int i=0; i<stars; i++) System.out.print("*");
 		System.out.print(" " + title + " ");
 		for(int i=0; i<stars; i++) System.out.print("*");
@@ -2924,4 +2328,477 @@ public class Manipulate
 		}
 		System.out.println();
 	}
+
+//	/**
+//	 * the entry Method for all technology editing
+//	 */
+//	void us_tecedentry(INTBIG count, CHAR *par[])
+//	{
+//		if (count == 0)
+//		{
+//			ttyputusage(x_("technology edit OPTION"));
+//			return;
+//		}
+//
+//		l = estrlen(pp = par[0]);
+//		if (namesamen(pp, x_("edit-design-rules"), l) == 0 && l >= 6)
+//		{
+//			us_teceditdrc();
+//			return;
+//		}
+//		if (namesamen(pp, x_("dependent-libraries"), l) == 0 && l >= 2)
+//		{
+//			if (count < 2)
+//			{
+//				// display dependent library names
+//				var = el_curlib.getVar(DEPENDENTLIB_KEY);
+//				if (var == NOVARIABLE) ttyputmsg(_("There are no dependent libraries")); else
+//				{
+//					i = getlength(var);
+//					ttyputmsg(_("%ld dependent %s:"), i, makeplural(x_("library"), i));
+//					for(l=0; l<i; l++)
+//					{
+//						pp = ((CHAR **)var.addr)[l];
+//						lib = getlibrary(pp);
+//						ttyputmsg(x_("    %s%s"), pp, (lib == NOLIBRARY ? _(" (not read in)") : x_("")));
+//					}
+//				}
+//				return;
+//			}
+//
+//			// clear list if just "-" is given
+//			if (count == 2 && estrcmp(par[1], x_("-")) == 0)
+//			{
+//				var = el_curlib.getVar(DEPENDENTLIB_KEY);
+//				if (var != NOVARIABLE)
+//					delval((INTBIG)el_curlib, VLIBRARY, DEPENDENTLIB_KEY);
+//				return;
+//			}
+//
+//			// create a list
+//			dependentlist = (CHAR **)emalloc((count-1) * (sizeof (CHAR *)), el_tempcluster);
+//			if (dependentlist == 0) return;
+//			for(i=1; i<count; i++) dependentlist[i-1] = par[i];
+//			el_curlib.newVar(DEPENDENTLIB_KEY, dependentlist);
+//			efree((CHAR *)dependentlist);
+//			return;
+//		}
+//		ttyputbadusage(x_("technology edit"));
+//	}
+//
+//	/*
+//	 * Routine for editing the DRC tables.
+//	 */
+//	void us_teceditdrc(void)
+//	{
+//		REGISTER INTBIG i, changed, nodecount;
+//		NODEPROTO **nodesequence;
+//		LIBRARY *liblist[1];
+//		REGISTER VARIABLE *var;
+//		REGISTER DRCRULES *rules;
+//
+//		// get the current list of layer and node names
+//		getLayerNameList();
+//		liblist[0] = el_curlib;
+//		nodecount = findCellSequence(liblist, "node-", NODESEQUENCE_KEY);
+//
+//		// create a RULES structure
+//		rules = dr_allocaterules(us_teceddrclayers, nodecount, x_("EDITED TECHNOLOGY"));
+//		if (rules == NODRCRULES) return;
+//		for(i=0; i<us_teceddrclayers; i++)
+//			(void)allocstring(&rules.layernames[i], us_teceddrclayernames[i], el_tempcluster);
+//		for(i=0; i<nodecount; i++)
+//			(void)allocstring(&rules.nodenames[i], &nodesequence[i].protoname[5], el_tempcluster);
+//		if (nodecount > 0) efree((CHAR *)nodesequence);
+//
+//		// get the text-list of design rules and convert them into arrays
+//		var = getval((INTBIG)el_curlib, VLIBRARY, VSTRING|VISARRAY, x_("EDTEC_DRC"));
+//		us_teceditgetdrcarrays(var, rules);
+//
+//		// edit the design-rule arrays
+//		changed = dr_rulesdlog(NOTECHNOLOGY, rules);
+//
+//		// if changes were made, convert the arrays back into a text-list
+//		if (changed != 0)
+//		{
+//			us_tecedloaddrcmessage(rules, el_curlib);
+//		}
+//
+//		// free the arrays
+//		dr_freerules(rules);
+//	}
+//
+//	/*
+//	 * Routine to create arrays describing the design rules in the variable "var" (which is
+//	 * from "EDTEC_DRC" on a library).  The arrays are stored in "rules".
+//	 */
+//	void us_teceditgetdrcarrays(VARIABLE *var, DRCRULES *rules)
+//	{
+//		REGISTER INTBIG i, l;
+//		INTBIG amt;
+//		BOOLEAN connected, wide, multi, edge;
+//		INTBIG widrule, layer1, layer2, j;
+//		REGISTER CHAR *str, *pt;
+//		CHAR *rule;
+//
+//		// get the design rules
+//		if (var == NOVARIABLE) return;
+//
+//		l = getlength(var);
+//		for(i=0; i<l; i++)
+//		{
+//			// parse the DRC rule
+//			str = ((CHAR **)var.addr)[i];
+//			while (*str == ' ') str++;
+//			if (*str == 0) continue;
+//
+//			// special case for node minimum size rule
+//			if (*str == 'n')
+//			{
+//				str++;
+//				for(pt = str; *pt != 0; pt++) if (*pt == ' ') break;
+//				if (*pt == 0)
+//				{
+//					ttyputmsg(_("Bad node size rule (line %ld): %s"), i+1, str);
+//					continue;
+//				}
+//				*pt = 0;
+//				for(j=0; j<rules.numnodes; j++)
+//					if (namesame(str, rules.nodenames[j]) == 0) break;
+//				*pt = ' ';
+//				if (j >= rules.numnodes)
+//				{
+//					ttyputmsg(_("Unknown node (line %ld): %s"), i+1, str);
+//					continue;
+//				}
+//				while (*pt == ' ') pt++;
+//				rules.minnodesize[j*2] = atofr(pt);
+//				while (*pt != 0 && *pt != ' ') pt++;
+//				while (*pt == ' ') pt++;
+//				rules.minnodesize[j*2+1] = atofr(pt);
+//				while (*pt != 0 && *pt != ' ') pt++;
+//				while (*pt == ' ') pt++;
+//				if (*pt != 0) reallocstring(&rules.minnodesizeR[j], pt, el_tempcluster);
+//				continue;
+//			}
+//
+//			// parse the layer rule
+//			if (us_tecedgetdrc(str, &connected, &wide, &multi, &widrule, &edge,
+//				&amt, &layer1, &layer2, &rule, rules.numlayers, rules.layernames))
+//			{
+//				ttyputmsg(_("DRC line %ld is: %s"), i+1, str);
+//				continue;
+//			}
+//
+//			// set the layer spacing
+//			if (widrule == 1)
+//			{
+//				rules.minwidth[layer1] = amt;
+//				if (*rule != 0)
+//					(void)reallocstring(&rules.minwidthR[layer1], rule, el_tempcluster);
+//			} else if (widrule == 2)
+//			{
+//				rules.widelimit = amt;
+//			} else
+//			{
+//				if (layer1 > layer2) { j = layer1;  layer1 = layer2;  layer2 = j; }
+//				j = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
+//				j = layer2 + rules.numlayers * layer1 - j;
+//				if (edge)
+//				{
+//					rules.edgelist[j] = amt;
+//					if (*rule != 0)
+//						(void)reallocstring(&rules.edgelistR[j], rule, el_tempcluster);
+//				} else if (wide)
+//				{
+//					if (connected)
+//					{
+//						rules.conlistW[j] = amt;
+//						if (*rule != 0)
+//							(void)reallocstring(&rules.conlistWR[j], rule, el_tempcluster);
+//					} else
+//					{
+//						rules.unconlistW[j] = amt;
+//						if (*rule != 0)
+//							(void)reallocstring(&rules.unconlistWR[j], rule, el_tempcluster);
+//					}
+//				} else if (multi)
+//				{
+//					if (connected)
+//					{
+//						rules.conlistM[j] = amt;
+//						if (*rule != 0)
+//							(void)reallocstring(&rules.conlistMR[j], rule, el_tempcluster);
+//					} else
+//					{
+//						rules.unconlistM[j] = amt;
+//						if (*rule != 0)
+//							(void)reallocstring(&rules.unconlistMR[j], rule, el_tempcluster);
+//					}
+//				} else
+//				{
+//					if (connected)
+//					{
+//						rules.conlist[j] = amt;
+//						if (*rule != 0)
+//							(void)reallocstring(&rules.conlistR[j], rule, el_tempcluster);
+//					} else
+//					{
+//						rules.unconlist[j] = amt;
+//						if (*rule != 0)
+//							(void)reallocstring(&rules.unconlistR[j], rule, el_tempcluster);
+//					}
+//				}
+//			}
+//		}
+//	}
+//
+//	/*
+//	 * routine to parse DRC line "str" and fill the factors "connected" (set nonzero
+//	 * if rule is for connected layers), "amt" (rule distance), "layer1" and "layer2"
+//	 * (the layers).  Presumes that there are "maxlayers" layer names in the
+//	 * array "layernames".  Returns true on error.
+//	 */
+//	BOOLEAN us_tecedgetdrc(CHAR *str, BOOLEAN *connected, BOOLEAN *wide, BOOLEAN *multi, INTBIG *widrule,
+//		BOOLEAN *edge, INTBIG *amt, INTBIG *layer1, INTBIG *layer2, CHAR **rule, INTBIG maxlayers,
+//		CHAR **layernames)
+//	{
+//		REGISTER CHAR *pt;
+//		REGISTER INTBIG save;
+//
+//		*connected = *wide = *multi = *edge = FALSE;
+//		for( ; *str != 0; str++)
+//		{
+//			if (tolower(*str) == 'c')
+//			{
+//				*connected = TRUE;
+//				continue;
+//			}
+//			if (tolower(*str) == 'w')
+//			{
+//				*wide = TRUE;
+//				continue;
+//			}
+//			if (tolower(*str) == 'm')
+//			{
+//				*multi = TRUE;
+//				continue;
+//			}
+//			if (tolower(*str) == 'e')
+//			{
+//				*edge = TRUE;
+//				continue;
+//			}
+//			break;
+//		}
+//		*widrule = 0;
+//		if (tolower(*str) == 's')
+//		{
+//			*widrule = 1;
+//			str++;
+//		} else if (tolower(*str) == 'l')
+//		{
+//			*widrule = 2;
+//			str++;
+//		}
+//
+//		// get the distance
+//		pt = str;
+//		while (*pt != 0 && *pt != ' ' && *pt != '\t') pt++;
+//		while (*pt == ' ' || *pt == '\t') pt++;
+//		*amt = atofr(str);
+//
+//		// get the first layer
+//		if (*widrule != 2)
+//		{
+//			str = pt;
+//			if (*str == 0)
+//			{
+//				ttyputerr(_("Cannot find layer names on DRC line"));
+//				return(TRUE);
+//			}
+//			while (*pt != 0 && *pt != ' ' && *pt != '\t') pt++;
+//			if (*pt == 0)
+//			{
+//				ttyputerr(_("Cannot find layer name on DRC line"));
+//				return(TRUE);
+//			}
+//			save = *pt;
+//			*pt = 0;
+//			for(*layer1 = 0; *layer1 < maxlayers; (*layer1)++)
+//				if (namesame(str, layernames[*layer1]) == 0) break;
+//			*pt++ = (CHAR)save;
+//			if (*layer1 >= maxlayers)
+//			{
+//				ttyputerr(_("First DRC layer name unknown"));
+//				return(TRUE);
+//			}
+//			while (*pt == ' ' || *pt == '\t') pt++;
+//		}
+//
+//		// get the second layer
+//		if (*widrule == 0)
+//		{
+//			str = pt;
+//			while (*pt != 0 && *pt != ' ' && *pt != '\t') pt++;
+//			save = *pt;
+//			*pt = 0;
+//			for(*layer2 = 0; *layer2 < maxlayers; (*layer2)++)
+//				if (namesame(str, layernames[*layer2]) == 0) break;
+//			*pt = (CHAR)save;
+//			if (*layer2 >= maxlayers)
+//			{
+//				ttyputerr(_("Second DRC layer name unknown"));
+//				return(TRUE);
+//			}
+//		}
+//
+//		while (*pt == ' ' || *pt == '\t') pt++;
+//		*rule = pt;
+//		return(FALSE);
+//	}
+//
+//	/*
+//	 * Helper routine to examine the arrays describing the design rules and create
+//	 * the variable "EDTEC_DRC" on library "lib".
+//	 */
+//	void us_tecedloaddrcmessage(DRCRULES *rules, LIBRARY *lib)
+//	{
+//		REGISTER INTBIG drccount, drcindex, i, k, j;
+//		REGISTER CHAR **drclist;
+//		REGISTER void *infstr;
+//
+//		// determine the number of lines in the text-version of the design rules
+//		drccount = 0;
+//		for(i=0; i<rules.utsize; i++)
+//		{
+//			if (rules.conlist[i] >= 0) drccount++;
+//			if (rules.unconlist[i] >= 0) drccount++;
+//			if (rules.conlistW[i] >= 0) drccount++;
+//			if (rules.unconlistW[i] >= 0) drccount++;
+//			if (rules.conlistM[i] >= 0) drccount++;
+//			if (rules.unconlistM[i] >= 0) drccount++;
+//			if (rules.edgelist[i] >= 0) drccount++;
+//		}
+//		for(i=0; i<rules.numlayers; i++)
+//		{
+//			if (rules.minwidth[i] >= 0) drccount++;
+//		}
+//		for(i=0; i<rules.numnodes; i++)
+//		{
+//			if (rules.minnodesize[i*2] > 0 || rules.minnodesize[i*2+1] > 0) drccount++;
+//		}
+//
+//		// load the arrays
+//		if (drccount != 0)
+//		{
+//			drccount++;
+//			drclist = (CHAR **)emalloc((drccount * (sizeof (CHAR *))), el_tempcluster);
+//			if (drclist == 0) return;
+//			drcindex = 0;
+//
+//			// write the width limit
+//			infstr = initinfstr();
+//			formatinfstr(infstr, x_("l%s"), frtoa(rules.widelimit));
+//			(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
+//
+//			// write the minimum width for each layer
+//			for(i=0; i<rules.numlayers; i++)
+//			{
+//				if (rules.minwidth[i] >= 0)
+//				{
+//					infstr = initinfstr();
+//					formatinfstr(infstr, x_("s%s %s %s"), frtoa(rules.minwidth[i]),
+//						rules.layernames[i], rules.minwidthR[i]);
+//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
+//				}
+//			}
+//
+//			// write the minimum size for each node
+//			for(i=0; i<rules.numnodes; i++)
+//			{
+//				if (rules.minnodesize[i*2] <= 0 && rules.minnodesize[i*2+1] <= 0) continue;
+//				{
+//					infstr = initinfstr();
+//					formatinfstr(infstr, x_("n%s %s %s %s"), rules.nodenames[i],
+//						frtoa(rules.minnodesize[i*2]), frtoa(rules.minnodesize[i*2+1]),
+//						rules.minnodesizeR[i]);
+//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
+//				}
+//			}
+//
+//			// now do the distance rules
+//			k = 0;
+//			for(i=0; i<rules.numlayers; i++) for(j=i; j<rules.numlayers; j++)
+//			{
+//				if (rules.conlist[k] >= 0)
+//				{
+//					infstr = initinfstr();
+//					formatinfstr(infstr, x_("c%s %s %s %s"), frtoa(rules.conlist[k]),
+//						rules.layernames[i], rules.layernames[j],
+//							rules.conlistR[k]);
+//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
+//				}
+//				if (rules.unconlist[k] >= 0)
+//				{
+//					infstr = initinfstr();
+//					formatinfstr(infstr, x_("%s %s %s %s"), frtoa(rules.unconlist[k]),
+//						rules.layernames[i], rules.layernames[j],
+//							rules.unconlistR[k]);
+//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
+//				}
+//				if (rules.conlistW[k] >= 0)
+//				{
+//					infstr = initinfstr();
+//					formatinfstr(infstr, x_("cw%s %s %s %s"), frtoa(rules.conlistW[k]),
+//						rules.layernames[i], rules.layernames[j],
+//							rules.conlistWR[k]);
+//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
+//				}
+//				if (rules.unconlistW[k] >= 0)
+//				{
+//					infstr = initinfstr();
+//					formatinfstr(infstr, x_("w%s %s %s %s"), frtoa(rules.unconlistW[k]),
+//						rules.layernames[i], rules.layernames[j],
+//							rules.unconlistWR[k]);
+//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
+//				}
+//				if (rules.conlistM[k] >= 0)
+//				{
+//					infstr = initinfstr();
+//					formatinfstr(infstr, x_("cm%s %s %s %s"), frtoa(rules.conlistM[k]),
+//						rules.layernames[i], rules.layernames[j],
+//							rules.conlistMR[k]);
+//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
+//				}
+//				if (rules.unconlistM[k] >= 0)
+//				{
+//					infstr = initinfstr();
+//					formatinfstr(infstr, x_("m%s %s %s %s"), frtoa(rules.unconlistM[k]),
+//						rules.layernames[i], rules.layernames[j],
+//							rules.unconlistMR[k]);
+//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
+//				}
+//				if (rules.edgelist[k] >= 0)
+//				{
+//					infstr = initinfstr();
+//					formatinfstr(infstr, x_("e%s %s %s %s"), frtoa(rules.edgelist[k]),
+//						rules.layernames[i], rules.layernames[j],
+//							rules.edgelistR[k]);
+//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
+//				}
+//				k++;
+//			}
+//
+//			(void)setval((INTBIG)lib, VLIBRARY, x_("EDTEC_DRC"), (INTBIG)drclist,
+//				VSTRING|VISARRAY|(drccount<<VLENGTHSH));
+//			for(i=0; i<drccount; i++) efree(drclist[i]);
+//			efree((CHAR *)drclist);
+//		} else
+//		{
+//			// no rules: remove the variable
+//			if (getval((INTBIG)lib, VLIBRARY, VSTRING|VISARRAY, x_("EDTEC_DRC")) != NOVARIABLE)
+//				(void)delval((INTBIG)lib, VLIBRARY, x_("EDTEC_DRC"));
+//		}
+//	}
 }
