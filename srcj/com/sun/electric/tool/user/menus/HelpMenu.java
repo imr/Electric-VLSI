@@ -50,6 +50,7 @@ public class HelpMenu {
 
         /****************************** THE HELP MENU ******************************/
 
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu helpMenu = new MenuBar.Menu("Help", 'H');
         menuBar.add(helpMenu);
 
@@ -65,6 +66,7 @@ public class HelpMenu {
 		helpMenu.addMenuItem("Load Samples Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.loadSamplesLibrary(); } });
 
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
 		MenuBar.Menu builtInLibSubMenu = new MenuBar.Menu("Load Built-in Libraries", 'B');
 		helpMenu.add(builtInLibSubMenu);
 		builtInLibSubMenu.addMenuItem("MOSIS CMOS Pads", null,

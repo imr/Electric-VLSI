@@ -43,6 +43,7 @@ public class ExportMenu {
 
         /****************************** THE EXPORT MENU ******************************/
 
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu exportMenu = new MenuBar.Menu("Export", 'X');
         menuBar.add(exportMenu);
 

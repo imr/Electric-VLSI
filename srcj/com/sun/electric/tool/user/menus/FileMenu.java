@@ -86,129 +86,134 @@ public class FileMenu {
 
 		/****************************** THE FILE MENU ******************************/
 
+		// mnemonic keys available:    D     J         T  WXYZ
 		MenuBar.Menu fileMenu = new MenuBar.Menu("File", 'F');
         menuBar.add(fileMenu);
 
-		fileMenu.addMenuItem("New Library...", null,
+		fileMenu.addMenuItem("_New Library...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { newLibraryCommand(); } });
-		fileMenu.addMenuItem("Open Library...", KeyStroke.getKeyStroke('O', buckyBit),
+		fileMenu.addMenuItem("_Open Library...", KeyStroke.getKeyStroke('O', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openLibraryCommand(); } });
 
-		MenuBar.Menu importSubMenu = new MenuBar.Menu("Import");
+		// mnemonic keys available: A    F HIJK MNO QRS  VW YZ
+		MenuBar.Menu importSubMenu = new MenuBar.Menu("Import", 'I');
 		fileMenu.add(importSubMenu);
-		importSubMenu.addMenuItem("CIF (Caltech Intermediate Format)...", null,
+		importSubMenu.addMenuItem("_CIF (Caltech Intermediate Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.CIF); } });
-		importSubMenu.addMenuItem("GDS II (Stream)...", null,
+		importSubMenu.addMenuItem("_GDS II (Stream)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.GDS); } });
-		importSubMenu.addMenuItem("EDIF (Electronic Design Interchange Format)...", null,
+		importSubMenu.addMenuItem("_EDIF (Electronic Design Interchange Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.EDIF); } });
-		importSubMenu.addMenuItem("LEF (Library Exchange Format)...", null,
+		importSubMenu.addMenuItem("_LEF (Library Exchange Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.LEF); } });
-		importSubMenu.addMenuItem("DEF (Design Exchange Format)...", null,
+		importSubMenu.addMenuItem("_DEF (Design Exchange Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.DEF); } });
-		importSubMenu.addMenuItem("DXF (AutoCAD)...", null,
+		importSubMenu.addMenuItem("D_XF (AutoCAD)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.DXF); } });
-		importSubMenu.addMenuItem("SUE (Schematic User Environment)...", null,
+		importSubMenu.addMenuItem("S_UE (Schematic User Environment)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.SUE); } });
 		importSubMenu.addSeparator();
-		importSubMenu.addMenuItem("ELIB...", null,
+		importSubMenu.addMenuItem("ELI_B...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.ELIB); } });
-		importSubMenu.addMenuItem("Readable Dump...", null,
+		importSubMenu.addMenuItem("_Readable Dump...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.READABLEDUMP); } });
-		importSubMenu.addMenuItem("Text Cell Contents...", null,
+		importSubMenu.addMenuItem("_Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.readTextCell(); }});
-		importSubMenu.addMenuItem("Preferences...", null,
+		importSubMenu.addMenuItem("_Preferences...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Pref.importPrefs(); }});
 
 		fileMenu.addSeparator();
 
-		fileMenu.addMenuItem("Close Library", null,
+		fileMenu.addMenuItem("_Close Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { closeLibraryCommand(Library.getCurrent()); } });
-		fileMenu.addMenuItem("Save Library", null,
+		fileMenu.addMenuItem("Sa_ve Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveLibraryCommand(Library.getCurrent(), FileType.DEFAULTLIB, false, true); } });
-		fileMenu.addMenuItem("Save Library as...", null,
+		fileMenu.addMenuItem("Save Library _As...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveAsLibraryCommand(Library.getCurrent()); } });
-		fileMenu.addMenuItem("Save All Libraries", KeyStroke.getKeyStroke('S', buckyBit),
+		fileMenu.addMenuItem("_Save All Libraries", KeyStroke.getKeyStroke('S', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveAllLibrariesCommand(); } });
-        fileMenu.addMenuItem("Save All Libraries in Format...", null,
+        fileMenu.addMenuItem("Save All Libraries in _Format...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveAllLibrariesInFormatCommand(); } });
 
-		MenuBar.Menu exportSubMenu = new MenuBar.Menu("Export");
+		// mnemonic keys available:    D     J  M   Q   UVW YZ
+		MenuBar.Menu exportSubMenu = new MenuBar.Menu("Export", 'E');
 		fileMenu.add(exportSubMenu);
-		exportSubMenu.addMenuItem("CIF (Caltech Intermediate Format)...", null,
+		exportSubMenu.addMenuItem("_CIF (Caltech Intermediate Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.CIF, false); } });
-		exportSubMenu.addMenuItem("GDS II (Stream)...", null,
+		exportSubMenu.addMenuItem("_GDS II (Stream)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.GDS, false); } });
-		exportSubMenu.addMenuItem("EDIF (Electronic Design Interchange Format)...", null,
+		exportSubMenu.addMenuItem("ED_IF (Electronic Design Interchange Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.EDIF, false); } });
-		exportSubMenu.addMenuItem("LEF (Library Exchange Format)...", null,
+		exportSubMenu.addMenuItem("LE_F (Library Exchange Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.LEF, false); } });
-		exportSubMenu.addMenuItem("L...", null,
+		exportSubMenu.addMenuItem("_L...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.L, false); } });
 		if (IOTool.hasSkill()) {
-			exportSubMenu.addMenuItem("Skill (Cadence Commands)...", null,
+			exportSubMenu.addMenuItem("S_kill (Cadence Commands)...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.SKILL, false); } });
-            exportSubMenu.addMenuItem("Skill Exports Only (Cadence Commands)...", null,
+            exportSubMenu.addMenuItem("Skill Exports _Only (Cadence Commands)...", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.SKILLEXPORTSONLY, false); } });
         }
 		exportSubMenu.addSeparator();
-		exportSubMenu.addMenuItem("Eagle...", null,
+		exportSubMenu.addMenuItem("_Eagle...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.EAGLE, false); } });
-		exportSubMenu.addMenuItem("ECAD...", null,
+		exportSubMenu.addMenuItem("EC_AD...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.ECAD, false); } });
-		exportSubMenu.addMenuItem("Pads...", null,
+		exportSubMenu.addMenuItem("Pad_s...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.PADS, false); } });
 		exportSubMenu.addSeparator();
-		exportSubMenu.addMenuItem("Text Cell Contents...", null,
+		exportSubMenu.addMenuItem("_Text Cell Contents...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TextWindow.writeTextCell(); }});
-		exportSubMenu.addMenuItem("PostScript...", null,
+		exportSubMenu.addMenuItem("_PostScript...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.POSTSCRIPT, false); } });
-	    exportSubMenu.addMenuItem("PNG (Portable Network Graphics)...", null,
+	    exportSubMenu.addMenuItem("P_NG (Portable Network Graphics)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.PNG, false); } });
-		exportSubMenu.addMenuItem("HPGL...", null,
+		exportSubMenu.addMenuItem("_HPGL...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.HPGL, false); } });
-		exportSubMenu.addMenuItem("DXF (AutoCAD)...", null,
+		exportSubMenu.addMenuItem("D_XF (AutoCAD)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { exportCommand(FileType.DXF, false); } });
 		exportSubMenu.addSeparator();
-		exportSubMenu.addMenuItem("ELIB (Version 6)...", null,
+		exportSubMenu.addMenuItem("ELI_B (Version 6)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { if (checkInvariants()) saveLibraryCommand(Library.getCurrent(), FileType.ELIB, true, false); } });
-		exportSubMenu.addMenuItem("Preferences...", null,
+		exportSubMenu.addMenuItem("P_references...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Pref.exportPrefs(); }});
 
 		fileMenu.addSeparator();
 
-		fileMenu.addMenuItem("Change Current Library...", null,
+		fileMenu.addMenuItem("Change Current _Library...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.changeCurrentLibraryCommand(); } });
-		fileMenu.addMenuItem("List Libraries", null,
+		fileMenu.addMenuItem("List Li_braries", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.listLibrariesCommand(); } });
-		fileMenu.addMenuItem("Rename Library...", null,
+		fileMenu.addMenuItem("Rena_me Library...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.renameLibrary(Library.getCurrent()); } });
-		fileMenu.addMenuItem("Mark All Libraries for Saving", null,
+		fileMenu.addMenuItem("Mar_k All Libraries for Saving", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.markAllLibrariesForSavingCommand(); } });
-		MenuBar.Menu checkSubMenu = new MenuBar.Menu("Check Libraries");
+
+		// mnemonic keys available: AB DEFGHIJKLMNOPQ STUVWXYZ
+		MenuBar.Menu checkSubMenu = new MenuBar.Menu("Check Libraries", 'H');
 		fileMenu.add(checkSubMenu);
-		checkSubMenu.addMenuItem("Check", null,
+		checkSubMenu.addMenuItem("_Check", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.checkAndRepairCommand(false); } });
-		checkSubMenu.addMenuItem("Repair", null,
+		checkSubMenu.addMenuItem("_Repair", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.checkAndRepairCommand(true); } });
 
         fileMenu.addSeparator();
 
-        fileMenu.addMenuItem("Page Setup...", null,
+        fileMenu.addMenuItem("Pa_ge Setup...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { pageSetupCommand(); } });
-		fileMenu.addMenuItem("Print...", null,
+		fileMenu.addMenuItem("_Print...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { printCommand(); } });
 
 		fileMenu.addSeparator();
-		fileMenu.addMenuItem("Preferences...",null,
+		fileMenu.addMenuItem("P_references...",null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { PreferencesFrame.preferencesCommand(); } });
 
 		if (TopLevel.getOperatingSystem() != TopLevel.OS.MACINTOSH)
 		{
-			fileMenu.addMenuItem("Quit", KeyStroke.getKeyStroke('Q', buckyBit),
+			fileMenu.addMenuItem("_Quit", KeyStroke.getKeyStroke('Q', buckyBit),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { quitCommand(); } });
 		}
-        fileMenu.addMenuItem("Force Quit (and Save)", null,
+        fileMenu.addMenuItem("Force Q_uit (and Save)", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { forceQuit(); } });
 
     }

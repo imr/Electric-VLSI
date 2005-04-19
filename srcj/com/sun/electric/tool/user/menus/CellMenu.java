@@ -68,6 +68,7 @@ public class CellMenu {
 
         /****************************** THE CELL MENU ******************************/
 
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu cellMenu = new MenuBar.Menu("Cell", 'C');
         menuBar.add(cellMenu);
 
@@ -83,6 +84,8 @@ public class CellMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.duplicateCell); }});
         cellMenu.addMenuItem("Delete Cell...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { cellBrowserCommand(CellBrowser.DoAction.deleteCell); }});
+
+        // mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu multiPageSubMenu = new MenuBar.Menu("Multi-Page Cells");
         cellMenu.add(multiPageSubMenu);
         multiPageSubMenu.addMenuItem("Make Cell Multi-Page", null,
@@ -121,6 +124,7 @@ public class CellMenu {
 
         cellMenu.addSeparator();
 
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu cellInfoSubMenu = new MenuBar.Menu("Cell Info");
         cellMenu.add(cellInfoSubMenu);
         cellInfoSubMenu.addMenuItem("Describe this Cell", null,
@@ -150,6 +154,7 @@ public class CellMenu {
 
         cellMenu.addSeparator();
 
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu expandListSubMenu = new MenuBar.Menu("Expand Cell Instances");
         cellMenu.add(expandListSubMenu);
         expandListSubMenu.addMenuItem("One Level Down", null,
@@ -158,6 +163,8 @@ public class CellMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandFullCommand(); }});
         expandListSubMenu.addMenuItem("Specified Amount...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.expandSpecificCommand(); }});
+
+        // mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu unExpandListSubMenu = new MenuBar.Menu("Unexpand Cell Instances");
         cellMenu.add(unExpandListSubMenu);
         unExpandListSubMenu.addMenuItem("One Level Up", null,

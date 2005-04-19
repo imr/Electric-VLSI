@@ -434,6 +434,13 @@ public class Manipulate
 	}
 
 	/**
+	 * Method to reorganize the dependent libraries
+	 */
+	public static void editLibraryDependencies()
+	{
+	}
+
+	/**
 	 * Method to highlight information about all layers (or ports if "doPorts" is true)
 	 */
 	public static void identifyLayers(boolean doPorts)

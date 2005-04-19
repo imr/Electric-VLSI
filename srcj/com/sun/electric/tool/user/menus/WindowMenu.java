@@ -65,6 +65,7 @@ public class WindowMenu {
 
         /****************************** THE WINDOW MENU ******************************/
 
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu windowMenu = new MenuBar.Menu("Window", 'W');
         menuBar.add(windowMenu);
 
@@ -80,6 +81,7 @@ public class WindowMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { zoomInDisplay(); } });
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD7, buckyBit), null);
 
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu specialZoomSubMenu = new MenuBar.Menu("Special Zoom");
         windowMenu.add(specialZoomSubMenu);
         m = specialZoomSubMenu.addMenuItem("Focus on Highlighted", KeyStroke.getKeyStroke('F', buckyBit),
@@ -107,6 +109,7 @@ public class WindowMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { ZoomAndPanListener.panXOrY(1, WindowFrame.getCurrentWindowFrame(), 1); }});
         menuBar.addDefaultKeyBinding(m, KeyStroke.getKeyStroke(KeyEvent.VK_NUMPAD2, buckyBit), null);
 
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu centerSubMenu = new MenuBar.Menu("Center");
         windowMenu.add(centerSubMenu);
         centerSubMenu.addMenuItem("Selection", null,
@@ -123,6 +126,7 @@ public class WindowMenu {
 
         windowMenu.addSeparator();
 
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu windowPartitionSubMenu = new MenuBar.Menu("Adjust Position");
         windowMenu.add(windowPartitionSubMenu);
         windowPartitionSubMenu.addMenuItem("Tile Horizontally", null,
@@ -147,8 +151,7 @@ public class WindowMenu {
 
         windowMenu.addSeparator();
 
-//        windowMenu.addMenuItem("Layer Visibility...", null,
-//            new ActionListener() { public void actionPerformed(ActionEvent e) { layerVisibilityCommand(); } });
+        // mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu colorSubMenu = new MenuBar.Menu("Color Schemes");
         windowMenu.add(colorSubMenu);
         colorSubMenu.addMenuItem("Restore Default Colors", null,
@@ -158,6 +161,7 @@ public class WindowMenu {
         colorSubMenu.addMenuItem("White Background Colors", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { whiteBackgroundCommand(); }});
 
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu messagesSubMenu = new MenuBar.Menu("Messages Window");
         windowMenu.add(messagesSubMenu);
         messagesSubMenu.addMenuItem("Save Messages...", null,

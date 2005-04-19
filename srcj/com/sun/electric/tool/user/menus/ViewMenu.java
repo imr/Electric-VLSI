@@ -49,6 +49,7 @@ public class ViewMenu {
 
         /****************************** THE VIEW MENU ******************************/
 
+		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
         MenuBar.Menu viewMenu = new MenuBar.Menu("View", 'V');
         menuBar.add(viewMenu);
 
