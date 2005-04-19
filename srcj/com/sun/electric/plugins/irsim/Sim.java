@@ -579,22 +579,22 @@ public class Sim
 	/**
 	 * Convert deltas to ns.
 	 */
-	static double deltaToNS(long d) { return d * 0.01; }
+	static double deltaToNS(long d) { return ((double)d / (double)Analyzer.getResolutionScale()); }
 
 	/**
 	 * Convert deltas to ps.
 	 */
-	static double deltaToPS(long d) { return d * 10.0; }
+	static double deltaToPS(long d) { return ((double)(d * 1000) / (double)Analyzer.getResolutionScale()); }
 
 	/**
 	 * Convert ns to deltas.
 	 */
-	static long nsToDelta(double d) { return (long)(d * 100); }
+	static long nsToDelta(double d) { return (long)(d * Analyzer.getResolutionScale()); }
 
 	/**
 	 * Convert ps to deltas.
 	 */
-	static long psToDelta(double d) { return (long)(d * 0.1); }
+	static long psToDelta(double d) { return (long)(d / 1000 * Analyzer.getResolutionScale()); }
 	/**
 	 * Convert ps to ns
 	 */

@@ -103,6 +103,9 @@ public class Analyzer extends Engine
 	/** maximum width of print line */					private static final int	MAXCOL        = 80;
 
 	/** set of potential characters */					private static final String potChars = "luxh.";
+    /** scale factor for resolution */                  private static final long   resolutionScale = 1000;
+    /** 1 -> 1ns, 100 -> 0.01ns resolution, etc */
+    /** time values in command file are in ns */        private static final double cmdFileUnits = 0.000000001;
 
 	/**
 	 * Class that defines a single low-level IRSIM control command.
@@ -601,7 +604,7 @@ public class Analyzer extends Engine
 				// keep track of time
 				if (command == VECTORS)
 				{
-					currentTime += sv.value / 1000000000.0;
+					currentTime += sv.value * cmdFileUnits;
 					continue;
 				}
 
@@ -880,7 +883,7 @@ public class Analyzer extends Engine
 			lastSV = lastVector;
 		} else
 		{
-			double defaultStepSize = 10.0 / 1000000000.0;
+			double defaultStepSize = 10.0 * cmdFileUnits;
 			double curTime = 0.0;
 			int clockPhases = 0;
 			for(SimVector sv = firstVector; sv != null; sv = sv.next)
@@ -888,20 +891,20 @@ public class Analyzer extends Engine
 				switch (sv.command)
 				{
 					case VECTORS:
-						double stepSze = sv.value / 1000000000.0;
-						long ss = Sim.nsToDelta(((curTime + stepSze) - insertTime) * 1000000000.0);
+						double stepSze = sv.value * cmdFileUnits;
+						long ss = Sim.nsToDelta(((curTime + stepSze) - insertTime) / cmdFileUnits);
 						if (ss != 0 && GenMath.doublesLessThan(insertTime, curTime+stepSze))
 						{
 							// splitting step at "insertTime"
 							sv.parameters = new String[1];
-							sv.value = (insertTime-curTime) * 1000000000.0;
+							sv.value = (insertTime-curTime) / cmdFileUnits;
 							sv.parameters[0] = TextUtils.formatDouble(sv.value);
 
 							// create second step to advance after this signal
 							SimVector afterSV = new SimVector();
 							afterSV.command = VECTORS;
 							afterSV.parameters = new String[1];
-							afterSV.value = curTime + stepSze - insertTime * 1000000000.0;
+							afterSV.value = curTime + stepSze - insertTime / cmdFileUnits;
 							afterSV.parameters[0] = TextUtils.formatDouble(afterSV.value);
 							afterSV.next = sv.next;
 							sv.next = afterSV;
@@ -910,7 +913,7 @@ public class Analyzer extends Engine
 						break;
 					case VECTORSTEPSIZE:
 						if (sv.parameters.length > 0)
-							defaultStepSize = TextUtils.atof(sv.parameters[0]) / 1000000000.0;
+							defaultStepSize = TextUtils.atof(sv.parameters[0]) * cmdFileUnits;
 						break;
 					case VECTORCLOCK:
 						clockPhases = sv.parameters.length - 1;
@@ -931,13 +934,13 @@ public class Analyzer extends Engine
 			if (GenMath.doublesLessThan(curTime, insertTime))
 			{
 				// create step to advance to the insertion time
-				double thisStep = (insertTime-curTime) * 1000000000.0;
+				double thisStep = (insertTime-curTime) / cmdFileUnits;
 				if (thisStep > 0.005)
 				{
 					SimVector afterSV = new SimVector();
 					afterSV.command = VECTORS;
 					afterSV.parameters = new String[1];
-					afterSV.parameters[0] = TextUtils.formatDouble(thisStep * 1000000000.0);
+					afterSV.parameters[0] = TextUtils.formatDouble(thisStep / cmdFileUnits);
 					afterSV.value = thisStep;
 					if (lastSV == null)
 					{
@@ -970,7 +973,7 @@ public class Analyzer extends Engine
 
 	private boolean clearControlPoint(Signal sig, double insertTime)
 	{
-		double defaultStepSize = 10.0 / 1000000000.0;
+		double defaultStepSize = 10.0 * cmdFileUnits;
 		double curTime = 0.0;
 		int clockPhases = 0;
 		SimVector lastSV = null;
@@ -981,12 +984,12 @@ public class Analyzer extends Engine
 			{
 				case VECTORS:
 					double stepSze = defaultStepSize;
-					if (sv.value != 0) stepSze = sv.value / 1000000000.0;
+					if (sv.value != 0) stepSze = sv.value * cmdFileUnits;
 					curTime += stepSze;
 					break;
 				case VECTORSTEPSIZE:
 					if (sv.parameters.length > 0)
-						defaultStepSize = TextUtils.atof(sv.parameters[0]) / 1000000000.0;
+						defaultStepSize = TextUtils.atof(sv.parameters[0]) * cmdFileUnits;
 					break;
 				case VECTORCLOCK:
 					clockPhases = sv.parameters.length - 1;
@@ -1074,7 +1077,7 @@ public class Analyzer extends Engine
 	 */
 	private double getEndTime()
 	{
-		double defaultStepSize = 10.0 / 1000000000.0;
+		double defaultStepSize = 10.0 * cmdFileUnits;
 		double curTime = 0.0;
 		int clockPhases = 0;
 		for(SimVector sv = firstVector; sv != null; sv = sv.next)
@@ -1083,12 +1086,12 @@ public class Analyzer extends Engine
 			{
 				case VECTORS:
 					double stepSze = defaultStepSize;
-					if (sv.value != 0) stepSze = sv.value / 1000000000.0;
+					if (sv.value != 0) stepSze = sv.value * cmdFileUnits;
 					curTime += stepSze;
 					break;
 				case VECTORSTEPSIZE:
 					if (sv.parameters.length > 0)
-						defaultStepSize = TextUtils.atof(sv.parameters[0]) / 1000000000.0;
+						defaultStepSize = TextUtils.atof(sv.parameters[0]) * cmdFileUnits;
 					break;
 				case VECTORCLOCK:
 					clockPhases = sv.parameters.length - 1;
@@ -2173,6 +2176,16 @@ public class Analyzer extends Engine
 		}
 	}
 
+    /**
+     * Get the resolution scale.  As this number increases the min resolution
+     * descreases (becomes more accurate).  A value of 1 corresponds to 1ns resolution.
+     * A value of 1000 corresponds to 1ps resolution.
+     * @return resolution scale factor
+     */
+    protected static long getResolutionScale() {
+        return resolutionScale;
+    }
+
 	/**
 	 * Update the cache (begining of window and cursor) for traces that just
 	 * became visible (or were just added).
@@ -2286,7 +2299,8 @@ public class Analyzer extends Engine
 					traceTotal = newTotal;
 				}
 
-				traceTime[count] = curT / 100000000000.0;
+				//traceTime[count] = curT / 100000000000.0;
+				traceTime[count] = Sim.deltaToNS(curT) / 1000000000;
 				switch (val)
 				{
 					case Sim.LOW:

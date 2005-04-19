@@ -1225,24 +1225,24 @@ public class NewRStep extends Eval
 		long dtau = Sim.psToDelta(tau);
 
 		System.out.print(" [event " + theSim.curNode.nName + "->" +
-		Sim.vChars.charAt(theSim.curNode.nPot) + " @ " + Sim.deltaToNS(theSim.curDelta) + "] ");
+		Sim.vChars.charAt(theSim.curNode.nPot) + " @ " + Sim.deltaToNS(theSim.curDelta) + "ns] ");
 
 		System.out.print(queued ? ("causes " + (theSim.withDriven ? "" : "CS") + "transition for") : "evaluates");
 
 		System.out.print(" " + nd.nName + ": " + Sim.vChars.charAt(nd.nPot) + " -> " + Sim.vChars.charAt(r.finall));
-		System.out.println(" (tau=" + Sim.deltaToNS(dtau) + "ns, delay=" + Sim.deltaToNS(delay) + "ns)");
+		System.out.println(" (tau=" + Sim.deltaToPS(dtau) + "ps, delay=" + Sim.deltaToPS(delay) + "ps)");
 	}
 
 	private void printSpike(Sim.Node nd, SpikeRec spk, long chDelay, long drDelay)
 	{
 		System.out.print("  [event " + theSim.curNode.nName + "->" +
-				Sim.vChars.charAt(theSim.curNode.nPot) + "@ " + Sim.deltaToNS(theSim.curDelta) + "] causes ");
+				Sim.vChars.charAt(theSim.curNode.nPot) + "@ " + Sim.deltaToNS(theSim.curDelta) + "ns] causes ");
 		if (drDelay <= chDelay)
 			System.out.print("suppressed ");
 
 		System.out.print("spike for " + nd.nName + ": " + Sim.vChars.charAt(nd.nPot) + " -> " +
 			Sim.vChars.charAt(spk.charge) + " -> " + Sim.vChars.charAt(nd.nPot));
-		System.out.println(" (peak=" + spk.peak + " delay: ch=" + Sim.deltaToNS(chDelay) + "ns, dr=" + Sim.deltaToNS(drDelay) + "ns)");
+		System.out.println(" (peak=" + spk.peak + " delay: ch=" + Sim.deltaToPS(chDelay) + "ps, dr=" + Sim.deltaToPS(drDelay) + "ps)");
 	}
 
 	private void printTauP(Sim.Node n, int level, double taup)
