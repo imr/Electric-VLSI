@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02k: *********************************
 
+BUG: (04/19/05, GVG) Crash in 3D View if transistor has more than 2 active physical layers.
+FIX: Ignore layer if there are already 2 defined.
+
 IMP/MAN: (04/19/05, SMR) Added mnemonic characters to the entire menu.
 
 IMP/MAN: (04/19/05, SMR) Added technology editor (commands under Edit / Technology Specific).

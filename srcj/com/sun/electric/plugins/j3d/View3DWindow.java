@@ -678,12 +678,14 @@ public class View3DWindow extends JPanel
                     Layer.Function fun = polys[i].getLayer().getFunction();
                     if (fun.isDiff())
                     {
-                        active[count++] = i;
+                        // Only 2 active regions are allowed
+                        if (count > 1)
+                            System.out.println("More than 2 active regions detected in Transistor " + no.getName());
+                        else
+                            active[count++] = i;
                     }
                     else if (fun.isGatePoly())
-                    {
                         gate = i;
-                    }
                     else if (fun.isPoly())
                         poly = i;
                 }
