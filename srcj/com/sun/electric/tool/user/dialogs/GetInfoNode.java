@@ -638,7 +638,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		if (ni.getParent().isInTechnologyLibrary())
 		{
 			popupLabel.setText("Tech. editor:");
-			popup.addItem(Manipulate.us_teceditinquire(ni));
+			popup.addItem(Manipulate.describeNodeMeaning(ni));
 		} else
 		{
 			// load color of artwork primitives
