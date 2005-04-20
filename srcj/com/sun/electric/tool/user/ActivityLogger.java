@@ -186,8 +186,8 @@ public class ActivityLogger {
             out.flush();
         }
         e.printStackTrace(System.out);
-        String [] msg = {"Exception Caught!!!", "The exception below has been logged.",
-                         "Please send \""+outputFile+ "\" to the developers",
+        String [] msg = {"Exception Caught!!!", "The exception below has been logged in '" +outputFile+"'.",
+                         "Please help us and report error to developers using 'Bugzilla'. In case of no access, send logfile to the developers.",
                          "   " + e.toString() };
 	    if (!Main.BATCHMODE)
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg, "Exception Caught", JOptionPane.ERROR_MESSAGE);
