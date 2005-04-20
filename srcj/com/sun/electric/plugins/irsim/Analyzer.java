@@ -604,6 +604,7 @@ public class Analyzer extends Engine
 				// keep track of time
 				if (command == VECTORS)
 				{
+                    if (sv == null) continue;
 					currentTime += sv.value * cmdFileUnits;
 					continue;
 				}
@@ -832,7 +833,7 @@ public class Analyzer extends Engine
 					if (lNewSize <= 0)
 					{
 						System.out.println("Bad step size: " + TextUtils.formatDouble(newSize*1000) + "psec (must be 10 psec or larger), ignoring");
-						newSize = 0;
+						return null;
 					}
 				}
 				newsv.value = newSize;
