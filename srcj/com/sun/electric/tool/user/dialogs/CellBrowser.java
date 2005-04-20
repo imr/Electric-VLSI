@@ -642,15 +642,16 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         // clear filter
         cellFilter.setText("");
 
-        if (cell == null) return;
-        // this will make cell selected on update of list
-        lastSelectedCell = cell.noLibDescribe();
-
-        Library lib = cell.getLibrary();
-        setLibrary(lib);
-        View view = cell.getView();
-        setView(view);
-        //updateCellList();
+        if (cell != null)
+		{
+	        // this will make cell selected on update of list
+	        lastSelectedCell = cell.noLibDescribe();
+	        Library lib = cell.getLibrary();
+	        setLibrary(lib);
+	        View view = cell.getView();
+	        setView(view);
+		}
+        updateCellList();
     }
 
     // ---------------------------------- List ----------------------------------------

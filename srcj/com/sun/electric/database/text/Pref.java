@@ -313,7 +313,7 @@ public class Pref
 	public static void exportPrefs()
 	{
 		// prompt for the XML file
-        String fileName = OpenFile.chooseOutputFile(FileType.PREFS, "Saved Preferences", "electricPrefs");
+        String fileName = OpenFile.chooseOutputFile(FileType.PREFS, "Saved Preferences", "electricPrefs.xml");
         if (fileName == null) return;
 
         exportPrefs(fileName);

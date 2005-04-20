@@ -277,15 +277,16 @@ public class LibToTech
 			PrimitiveNode prim = PrimitiveNode.newInstance(nList[i].name, tech, nList[i].xSize, nList[i].ySize, nList[i].so, nodeLayers);
 			nList[i].generated = prim;
 			prim.setFunction(nList[i].func);
-			if (nList[i].wipes) prim.setArcsWipe();
-			if (nList[i].lockable) prim.setLockedPrim();
+			if (nList[i].wipes) prim.setWipeOn1or2();
 			if (nList[i].square) prim.setSquare();
+			if (nList[i].lockable) prim.setLockedPrim();
 
 			// add special information if present
 			switch (nList[i].specialType)
 			{
 				case PrimitiveNode.SERPTRANS:
 					prim.setHoldsOutline();
+					prim.setCanShrink();
 					prim.setSpecialValues(nList[i].specialValues);
 					prim.setSpecialType(nList[i].specialType);
 					break;
@@ -317,8 +318,9 @@ public class LibToTech
 			for(int j=0; j<numPorts; j++)
 			{
 				NodeInfo.PortDetails portDetail = nList[i].nodePortDetails[j];
-				ArcProto [] cons = new ArcProto[portDetail.connections.length];
-				for(int k=0; k<portDetail.connections.length; k++)
+				int numConns = portDetail.connections.length;
+				ArcProto [] cons = new ArcProto[numConns];
+				for(int k=0; k<numConns; k++)
 					cons[k] = portDetail.connections[k].generated;
 				portList[j] = PrimitivePort.newInstance(tech, prim, cons, portDetail.name,
 					portDetail.angle, portDetail.range, portDetail.netIndex, PortCharacteristic.UNKNOWN,
@@ -345,6 +347,9 @@ public class LibToTech
 				}
 			}
 		}
+
+		// setup the generic technology to handle all connections
+		Generic.tech.makeUnivList();
 
 		// check technology for consistency
 		checkAndWarn(lList, aList, nList);
@@ -385,9 +390,8 @@ public class LibToTech
 //		}
 
 		// switch to this technology
-		System.out.println("Technology " + tech.getTechName() + " built.  Switching to it.");
+		System.out.println("Technology " + tech.getTechName() + " built.");
 		WindowFrame.updateTechnologyLists();
-		tech.setCurrent();
 	}
 
 	/**
@@ -1056,11 +1060,11 @@ public class LibToTech
 				nIn.nodePortDetails[i].angle = 0;
 				Variable varAngle = ns.node.getVar(Info.PORTANGLE_KEY);
 				if (varAngle != null)
-					nIn.nodePortDetails[i].angle |= ((Integer)varAngle.getObject()).intValue();
+					nIn.nodePortDetails[i].angle = ((Integer)varAngle.getObject()).intValue();
 				nIn.nodePortDetails[i].range = 180;
 				Variable varRange = ns.node.getVar(Info.PORTRANGE_KEY);
 				if (varRange != null)
-					nIn.nodePortDetails[i].range |= ((Integer)varRange.getObject()).intValue();
+					nIn.nodePortDetails[i].range = ((Integer)varRange.getObject()).intValue();
 
 				// port connectivity
 				nIn.nodePortDetails[i].netIndex = i;
@@ -3039,18 +3043,20 @@ public class LibToTech
 			buffWriter.println("\t\t" + ab + "_node.setFunction(PrimitiveNode.Function." + fun.getConstantName() + ");");
 
 			if (nList[i].wipes) buffWriter.println("\t\t" + ab + "_node.setWipeOn1or2();");
-//			if ((nlist.initialbits&HOLDSTRACE) != 0) buffWriter.println("\t\t" + ab + "_node.setHoldsOutline();");
 			if (nList[i].square) buffWriter.println("\t\t" + ab + "_node.setSquare();");
-//			if ((nlist.initialbits&ARCSWIPE) != 0) buffWriter.println("\t\t" + ab + "_node.setArcsWipe();");
-//			if ((nlist.initialbits&ARCSHRINK) != 0) buffWriter.println("\t\t" + ab + "_node.setArcsShrink();");
-//			if ((nlist.initialbits&NODESHRINK) != 0) buffWriter.println("\t\t" + ab + "_node.setCanShrink();");
 			if (nList[i].lockable) buffWriter.println("\t\t" + ab + "_node.setLockedPrim();");
+			if (fun == PrimitiveNode.Function.PIN)
+			{
+				buffWriter.println("\t\t" + ab + "_node.setArcsWipe();");
+				buffWriter.println("\t\t" + ab + "_node.setArcsShrink();");
+			}
 			if (nList[i].specialType != 0)
 			{
 				switch (nList[i].specialType)
 				{
 					case PrimitiveNode.SERPTRANS:
 						buffWriter.println("\t\t" + ab + "_node.setHoldsOutline();");
+						buffWriter.println("\t\t" + ab + "_node.setCanShrink();");
 						buffWriter.println("\t\t" + ab + "_node.setSpecialType(PrimitiveNode.SERPTRANS);");
 						buffWriter.println("\t\t" + ab + "_node.setSpecialValues(new double [] {" +
 							nList[i].specialValues[0] + ", " + nList[i].specialValues[1] + ", " +

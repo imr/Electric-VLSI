@@ -56,6 +56,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 
 
 /**
@@ -67,16 +68,16 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	private static ArcInst shownArc = null;
 	private static Preferences prefs = Preferences.userNodeForPackage(GetInfoArc.class);
 
-    private String initialName;
+	private String initialName;
 	private double initialWidth;
 	private boolean initialEasyToSelect;
 	private boolean initialRigid, initialFixedAngle, initialSlidable;
 	private int initialExtension, initialDirectional, initialNegated;
-    private String initialColor;
-    private EditWindow wnd;
-    private AttributesTable attributesTable;
+	private String initialColor;
+	private EditWindow wnd;
+	private AttributesTable attributesTable;
 	private List allAttributes;
-    /** true if need to reload info due to failure to get Examine lock on DB */ private boolean needReload = false;
+	/** true if need to reload info due to failure to get Examine lock on DB */ private boolean needReload = false;
 	private boolean bigger;
 
 	/**
@@ -86,74 +87,74 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	{
 		if (theDialog == null)
 		{
-            JFrame jf;
-            if (TopLevel.isMDIMode())
-			    jf = TopLevel.getCurrentJFrame();
-            else
-                jf = null;
+			JFrame jf;
+			if (TopLevel.isMDIMode())
+				jf = TopLevel.getCurrentJFrame();
+			else
+				jf = null;
 			theDialog = new GetInfoArc(jf, false);
 		}
-        theDialog.loadInfo();
-        if (!theDialog.isVisible()) theDialog.pack();
+		theDialog.loadInfo();
+		if (!theDialog.isVisible()) theDialog.pack();
 		theDialog.setVisible(true);
 	}
 
-    /**
-     * Reloads the dialog when Highlights change
-     */
-    public void highlightChanged(Highlighter which)
+	/**
+	 * Reloads the dialog when Highlights change
+	 */
+	public void highlightChanged(Highlighter which)
 	{
-        if (!isVisible()) return;
+		if (!isVisible()) return;
 		loadInfo();
 	}
 
-    /**
-     * Called when by a Highlighter when it loses focus. The argument
-     * is the Highlighter that has gained focus (may be null).
-     * @param highlighterGainedFocus the highlighter for the current window (may be null).
-     */
-    public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
-        if (!isVisible()) return;
-        loadInfo();
-    }
+	/**
+	 * Called when by a Highlighter when it loses focus. The argument
+	 * is the Highlighter that has gained focus (may be null).
+	 * @param highlighterGainedFocus the highlighter for the current window (may be null).
+	 */
+	public void highlighterLostFocus(Highlighter highlighterGainedFocus) {
+		if (!isVisible()) return;
+		loadInfo();
+	}
 
-    /**
-     * Respond to database changes
-     * @param e database change event
-     */
-    public void databaseChanged(DatabaseChangeEvent e) {
-        if (!isVisible()) return;
+	/**
+	 * Respond to database changes
+	 * @param e database change event
+	 */
+	public void databaseChanged(DatabaseChangeEvent e) {
+		if (!isVisible()) return;
 
-        // check if we need to reload because we couldn't
-        // load before because a Change Job was running
-        if (needReload) {
-            needReload = false;
-            loadInfo();
-            return;
-        }
+		// check if we need to reload because we couldn't
+		// load before because a Change Job was running
+		if (needReload) {
+			needReload = false;
+			loadInfo();
+			return;
+		}
 
-        // update dialog if we care about the changes
+		// update dialog if we care about the changes
 		if (e.objectChanged(shownArc))
-            loadInfo();
-    }
+			loadInfo();
+	}
 
-//     /**
-//      * Respond to database changes
-//      * @param batch a batch of changes completed
-//      */
-//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
-//         if (!isVisible()) return;
+//	 /**
+//	  * Respond to database changes
+//	  * @param batch a batch of changes completed
+//	  */
+//	 public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
+//		 if (!isVisible()) return;
 
-//         // check if we need to reload because we couldn't
-//         // load before because a Change Job was running
-//         if (needReload) {
-//             needReload = false;
-//             loadInfo();
-//             return;
-//         }
+//		 // check if we need to reload because we couldn't
+//		 // load before because a Change Job was running
+//		 if (needReload) {
+//			 needReload = false;
+//			 loadInfo();
+//			 return;
+//		 }
 
-//         // check if we care about the changes
-//         boolean reload = false;
+//		 // check if we care about the changes
+//	     boolean reload = false;
 //         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
 //             Undo.Change change = (Undo.Change)it.next();
 //             ElectricObject obj = change.getObject();
@@ -179,53 +180,53 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	{
 		super(parent, modal);
 		initComponents();
-        getRootPane().setDefaultButton(ok);
-        Undo.addDatabaseChangeListener(this);
+		getRootPane().setDefaultButton(ok);
+		Undo.addDatabaseChangeListener(this);
 
-        bigger = prefs.getBoolean("GetInfoArc-bigger", false);
-        int buttonSelected = prefs.getInt("GetInfoNode-buttonSelected", 0);
+		bigger = prefs.getBoolean("GetInfoArc-bigger", false);
+		int buttonSelected = prefs.getInt("GetInfoNode-buttonSelected", 0);
 
 		// start small
 		if (!bigger)
 		{
-		    getContentPane().remove(jPanel2);
-		    getContentPane().remove(jPanel3);
-		    getContentPane().remove(attributesPane);
-		    moreLess.setText("More");
-            pack();
-        } else
-        {
-            moreLess.setText("Less");
-        }
+			getContentPane().remove(jPanel2);
+			getContentPane().remove(jPanel3);
+			getContentPane().remove(attributesPane);
+			moreLess.setText("More");
+			pack();
+		} else
+		{
+			moreLess.setText("Less");
+		}
 
-        // populate arc color combo box (only for Artwork technology)
-        int [] colorIndices = EGraphics.getColorIndices();
-        arcColorComboBox.addItem("DEFAULT COLOR");
-        for (int i=0; i<colorIndices.length; i++) {
-            String str = EGraphics.getColorIndexName(colorIndices[i]);
-            arcColorComboBox.addItem(str);
-        }
+		// populate arc color combo box (only for Artwork technology)
+		int [] colorIndices = EGraphics.getColorIndices();
+		arcColorComboBox.addItem("DEFAULT COLOR");
+		for (int i=0; i<colorIndices.length; i++) {
+			String str = EGraphics.getColorIndexName(colorIndices[i]);
+			arcColorComboBox.addItem(str);
+		}
 
-        // initialize the state bit popups
-        negation.addItem("None");
-        negation.addItem("Head");
-        negation.addItem("Tail");
-        negation.addItem("Both");
+		// initialize the state bit popups
+		negation.addItem("None");
+		negation.addItem("Head");
+		negation.addItem("Tail");
+		negation.addItem("Both");
 
-        extension.addItem("Both ends");
-        extension.addItem("Neither end");
-        extension.addItem("Head only");
-        extension.addItem("Tail only");
+		extension.addItem("Both ends");
+		extension.addItem("Neither end");
+		extension.addItem("Head only");
+		extension.addItem("Tail only");
 
-        directionality.addItem("None");
-        directionality.addItem("Head and Body");
-        directionality.addItem("Tail and Body");
-        directionality.addItem("Body only");
-        directionality.addItem("Head/Tail/Body");
+		directionality.addItem("None");
+		directionality.addItem("Head and Body");
+		directionality.addItem("Tail and Body");
+		directionality.addItem("Body only");
+		directionality.addItem("Head/Tail/Body");
 
-        // make the attributes list
+		// make the attributes list
 		allAttributes = new ArrayList();
-        attributesTable = new AttributesTable(null, true, false, false);
+		attributesTable = new AttributesTable(null, true, false, false);
 		attributesPane.setViewportView(attributesTable);
 		finishInitialization();
 	}
@@ -234,20 +235,31 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 
 	protected void loadInfo()
 	{
-        Job.checkSwingThread();
+		if (!SwingUtilities.isEventDispatchThread())
+		{
+			SwingUtilities.invokeLater(new Runnable()
+			{
+				public void run() { doLoadInfo(); }
+			});
+			return;
+		}
+		doLoadInfo();
+	}
 
-        // update current window
-        EditWindow curWnd = EditWindow.getCurrent();
-        if ((wnd != curWnd) && (curWnd != null)) {
-            if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
-            curWnd.getHighlighter().addHighlightListener(this);
-            wnd = curWnd;
-        }
-        if (wnd == null)
-        {
-            disableDialog();
-            return;
-        }
+	private void doLoadInfo()
+	{
+		// update current window
+		EditWindow curWnd = EditWindow.getCurrent();
+		if ((wnd != curWnd) && (curWnd != null)) {
+			if (wnd != null) wnd.getHighlighter().removeHighlightListener(this);
+			curWnd.getHighlighter().addHighlightListener(this);
+			wnd = curWnd;
+		}
+		if (wnd == null)
+		{
+			disableDialog();
+			return;
+		}
 
 		// must have a single node selected
 		ArcInst ai = null;
@@ -272,186 +284,186 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			return;
 		}
 
-        // try to get Examine lock. If fails, set needReload to true to
-        // call loadInfo again when database is done changing
-        if (!Job.acquireExamineLock(false))
-        {
-            needReload = true;
-            disableDialog();
-            return;
-        }
-        // else: lock acquired
-        try {
-            focusClearOnTextField(name);
+		// try to get Examine lock. If fails, set needReload to true to
+		// call loadInfo again when database is done changing
+		if (!Job.acquireExamineLock(false))
+		{
+			needReload = true;
+			disableDialog();
+			return;
+		}
+		// else: lock acquired
+		try {
+			focusClearOnTextField(name);
 
-            // enable it
-            name.setEditable(true);
-            width.setEditable(true);
-            easyToSelect.setEnabled(true);
-            rigid.setEnabled(true);
-            fixedAngle.setEnabled(true);
-            slidable.setEnabled(true);
-            directionality.setEnabled(true);
-            extension.setEnabled(true);
-            negation.setEnabled(true);
-            headSee.setEnabled(true);
-            tailSee.setEnabled(true);
-            apply.setEnabled(true);
-            attributes.setEnabled(true);
-            arcColorComboBox.setEnabled(false);
+			// enable it
+			name.setEditable(true);
+			width.setEditable(true);
+			easyToSelect.setEnabled(true);
+			rigid.setEnabled(true);
+			fixedAngle.setEnabled(true);
+			slidable.setEnabled(true);
+			directionality.setEnabled(true);
+			extension.setEnabled(true);
+			negation.setEnabled(true);
+			headSee.setEnabled(true);
+			tailSee.setEnabled(true);
+			apply.setEnabled(true);
+			attributes.setEnabled(true);
+			arcColorComboBox.setEnabled(false);
 
-            // get initial values
-            initialName = ai.getName();
-            initialWidth = ai.getWidth();
-            initialEasyToSelect = !ai.isHardSelect();
-            initialRigid = ai.isRigid();
-            initialFixedAngle = ai.isFixedAngle();
-            initialSlidable = ai.isSlidable();
+			// get initial values
+			initialName = ai.getName();
+			initialWidth = ai.getWidth();
+			initialEasyToSelect = !ai.isHardSelect();
+			initialRigid = ai.isRigid();
+			initialFixedAngle = ai.isFixedAngle();
+			initialSlidable = ai.isSlidable();
 
-            initialNegated = 0;
-            if (ai.isHeadNegated())
-            {
-            	if (ai.isTailNegated()) initialNegated = 3; else
-            		initialNegated = 1;
-            } else if (ai.isTailNegated()) initialNegated = 2;
+			initialNegated = 0;
+			if (ai.isHeadNegated())
+			{
+				if (ai.isTailNegated()) initialNegated = 3; else
+					initialNegated = 1;
+			} else if (ai.isTailNegated()) initialNegated = 2;
 
-            initialExtension = 0;
-            if (!ai.isHeadExtended())
-            {
-            	if (!ai.isTailExtended()) initialExtension = 1; else
-            		initialExtension = 3;
-            } else if (!ai.isTailExtended()) initialExtension = 2;
+			initialExtension = 0;
+			if (!ai.isHeadExtended())
+			{
+				if (!ai.isTailExtended()) initialExtension = 1; else
+					initialExtension = 3;
+			} else if (!ai.isTailExtended()) initialExtension = 2;
 
-            initialDirectional = 0;
-            if (ai.isBodyArrowed() && ai.isHeadArrowed() && !ai.isTailArrowed()) initialDirectional = 1;
-            if (ai.isBodyArrowed() && !ai.isHeadArrowed() && ai.isTailArrowed()) initialDirectional = 2;
-            if (ai.isBodyArrowed() && !ai.isHeadArrowed() && !ai.isTailArrowed()) initialDirectional = 3;
-            if (ai.isBodyArrowed() && ai.isHeadArrowed() && ai.isTailArrowed()) initialDirectional = 4;
+			initialDirectional = 0;
+			if (ai.isBodyArrowed() && ai.isHeadArrowed() && !ai.isTailArrowed()) initialDirectional = 1;
+			if (ai.isBodyArrowed() && !ai.isHeadArrowed() && ai.isTailArrowed()) initialDirectional = 2;
+			if (ai.isBodyArrowed() && !ai.isHeadArrowed() && !ai.isTailArrowed()) initialDirectional = 3;
+			if (ai.isBodyArrowed() && ai.isHeadArrowed() && ai.isTailArrowed()) initialDirectional = 4;
 
-            // load the dialog
-            type.setText(ai.getProto().describe());
-//            Netlist netlist = ai.getParent().getUserNetlist();
-    		Netlist netlist = ai.getParent().acquireUserNetlist();
-            int busWidth = 1;
-            String netName = "UNKNOWN";
-    		if (netlist != null)
-    		{
+			// load the dialog
+			type.setText(ai.getProto().describe());
+//			Netlist netlist = ai.getParent().getUserNetlist();
+			Netlist netlist = ai.getParent().acquireUserNetlist();
+			int busWidth = 1;
+			String netName = "UNKNOWN";
+			if (netlist != null)
+			{
 				busWidth = netlist.getBusWidth(ai);
 				netName = netlist.getNetworkName(ai);
 				if (netName != null && netName.length() > 80)
 				netName = netName.substring(0, 80) + "...";
-    		}
-            network.setText(netName);
-            name.setText(initialName);
-            width.setText(TextUtils.formatDouble(initialWidth - ai.getProto().getWidthOffset()));
-            length.setText(TextUtils.formatDouble(ai.getLength()));
-            busSize.setText(Integer.toString(busWidth));
-            angle.setText("Angle: " + TextUtils.formatDouble(ai.getAngle() / 10.0));
-            easyToSelect.setSelected(initialEasyToSelect);
-            headNode.setText(ai.getHead().getPortInst().getNodeInst().describe());
-            Point2D headPt = ai.getHead().getLocation();
-            headLoc.setText("(" + headPt.getX() + "," + headPt.getY() + ")");
-            tailNode.setText(ai.getTail().getPortInst().getNodeInst().describe());
-            Point2D tailPt = ai.getTail().getLocation();
-            tailLoc.setText("(" + tailPt.getX() + "," + tailPt.getY() + ")");
-            rigid.setSelected(initialRigid);
-            fixedAngle.setSelected(initialFixedAngle);
-            slidable.setSelected(initialSlidable);
-            negation.setSelectedIndex(initialNegated);
-            extension.setSelectedIndex(initialExtension);
-            directionality.setSelectedIndex(initialDirectional);
+			}
+			network.setText(netName);
+			name.setText(initialName);
+			width.setText(TextUtils.formatDouble(initialWidth - ai.getProto().getWidthOffset()));
+			length.setText(TextUtils.formatDouble(ai.getLength()));
+			busSize.setText(Integer.toString(busWidth));
+			angle.setText("Angle: " + TextUtils.formatDouble(ai.getAngle() / 10.0));
+			easyToSelect.setSelected(initialEasyToSelect);
+			headNode.setText(ai.getHead().getPortInst().getNodeInst().describe());
+			Point2D headPt = ai.getHead().getLocation();
+			headLoc.setText("(" + headPt.getX() + "," + headPt.getY() + ")");
+			tailNode.setText(ai.getTail().getPortInst().getNodeInst().describe());
+			Point2D tailPt = ai.getTail().getLocation();
+			tailLoc.setText("(" + tailPt.getX() + "," + tailPt.getY() + ")");
+			rigid.setSelected(initialRigid);
+			fixedAngle.setSelected(initialFixedAngle);
+			slidable.setSelected(initialSlidable);
+			negation.setSelectedIndex(initialNegated);
+			extension.setSelectedIndex(initialExtension);
+			directionality.setSelectedIndex(initialDirectional);
 
-            // arc color
-            initialColor = "";
-            Variable var = ai.getVar(Artwork.ART_COLOR);
-            if (var != null) {
-                Integer integer = (Integer)var.getObject();
-                initialColor = EGraphics.getColorIndexName(integer.intValue());
-            }
-            arcColorComboBox.setSelectedItem(initialColor);
-            if (ai.getProto().getTechnology() == Artwork.tech) {
-                arcColorComboBox.setEnabled(true);
-            }
+			// arc color
+			initialColor = "";
+			Variable var = ai.getVar(Artwork.ART_COLOR);
+			if (var != null) {
+				Integer integer = (Integer)var.getObject();
+				initialColor = EGraphics.getColorIndexName(integer.intValue());
+			}
+			arcColorComboBox.setSelectedItem(initialColor);
+			if (ai.getProto().getTechnology() == Artwork.tech) {
+				arcColorComboBox.setEnabled(true);
+			}
 
-    		// grab all attributes and parameters
-    		allAttributes.clear();
-    		for(Iterator it = ai.getVariables(); it.hasNext(); )
-    		{
-    			Variable aVar = (Variable)it.next();
-    			String name = aVar.getKey().getName();
-    			if (!name.startsWith("ATTR_")) continue;
+			// grab all attributes and parameters
+			allAttributes.clear();
+			for(Iterator it = ai.getVariables(); it.hasNext(); )
+			{
+				Variable aVar = (Variable)it.next();
+				String name = aVar.getKey().getName();
+				if (!name.startsWith("ATTR_")) continue;
 
-    			// found an attribute
-    			AttributesTable.AttValPair avp = new AttributesTable.AttValPair();
-    			avp.key = aVar.getKey();
-    			avp.trueName = aVar.getTrueName();
-    			avp.value = aVar.getObject().toString();
-    			avp.code = aVar.isCode();
-    			allAttributes.add(avp);
-    		}
-            attributesTable.setEnabled(allAttributes.size() != 0);
-            attributesTable.setElectricObject(ai);
+				// found an attribute
+				AttributesTable.AttValPair avp = new AttributesTable.AttValPair();
+				avp.key = aVar.getKey();
+				avp.trueName = aVar.getTrueName();
+				avp.value = aVar.getObject().toString();
+				avp.code = aVar.isCode();
+				allAttributes.add(avp);
+			}
+			attributesTable.setEnabled(allAttributes.size() != 0);
+			attributesTable.setElectricObject(ai);
 
-    		Job.releaseExamineLock();
-        } catch (Error e) {
-            Job.releaseExamineLock();
-            throw e;
-        }
+			Job.releaseExamineLock();
+		} catch (Error e) {
+			Job.releaseExamineLock();
+			throw e;
+		}
 
 		shownArc = ai;
-        focusOnTextField(name);
+		focusOnTextField(name);
 	}
 
-    private void disableDialog() {
-        // no arc selected, disable the dialog
-        type.setText("");
-        network.setText("");
-        name.setEditable(false);
-        name.setText("");
-        width.setEditable(false);
-        width.setText("");
-        length.setText("");
-        busSize.setText("");
-        angle.setText("Angle:");
-        easyToSelect.setEnabled(false);
-        headNode.setText("");
-        headLoc.setText("");
-        headSee.setEnabled(false);
-        tailNode.setText("");
-        tailLoc.setText("");
-        tailSee.setEnabled(false);
-        rigid.setEnabled(false);
-        rigid.setSelected(false);
-        fixedAngle.setEnabled(false);
-        fixedAngle.setSelected(false);
-        slidable.setEnabled(false);
-        slidable.setSelected(false);
-        negation.setEnabled(false);
-        extension.setEnabled(false);
-        directionality.setEnabled(false);
-        apply.setEnabled(false);
-        attributes.setEnabled(false);
-        arcColorComboBox.setEnabled(false);
-        attributesTable.setElectricObject(null);
-        attributesTable.setEnabled(false);
+	private void disableDialog() {
+		// no arc selected, disable the dialog
+		type.setText("");
+		network.setText("");
+		name.setEditable(false);
+		name.setText("");
+		width.setEditable(false);
+		width.setText("");
+		length.setText("");
+		busSize.setText("");
+		angle.setText("Angle:");
+		easyToSelect.setEnabled(false);
+		headNode.setText("");
+		headLoc.setText("");
+		headSee.setEnabled(false);
+		tailNode.setText("");
+		tailLoc.setText("");
+		tailSee.setEnabled(false);
+		rigid.setEnabled(false);
+		rigid.setSelected(false);
+		fixedAngle.setEnabled(false);
+		fixedAngle.setSelected(false);
+		slidable.setEnabled(false);
+		slidable.setSelected(false);
+		negation.setEnabled(false);
+		extension.setEnabled(false);
+		directionality.setEnabled(false);
+		apply.setEnabled(false);
+		attributes.setEnabled(false);
+		arcColorComboBox.setEnabled(false);
+		attributesTable.setElectricObject(null);
+		attributesTable.setEnabled(false);
 
-        shownArc = null;
-    }
+		shownArc = null;
+	}
 
 	/** This method is called from within the constructor to
 	 * initialize the form.
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents() {//GEN-BEGIN:initComponents
-        java.awt.GridBagConstraints gridBagConstraints;
+	private void initComponents() {//GEN-BEGIN:initComponents
+		java.awt.GridBagConstraints gridBagConstraints;
 
-        jPanel1 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        type = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        network = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
+		jPanel1 = new javax.swing.JPanel();
+		jLabel1 = new javax.swing.JLabel();
+		type = new javax.swing.JLabel();
+		jLabel3 = new javax.swing.JLabel();
+		network = new javax.swing.JLabel();
+	    jLabel5 = new javax.swing.JLabel();
         name = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         width = new javax.swing.JTextField();

@@ -437,9 +437,7 @@ public class PromptAt extends EDialog
 		switch (field.type)
 		{
 			case Field.FIELD_STRING:
-				field.textField = new JTextField();
-				field.textField.setColumns(8);
-				field.textField.setText((String)field.initial);
+				field.textField = new JTextField((String)field.initial);
 				GridBagConstraints gbc = new java.awt.GridBagConstraints();
 				gbc.gridx = j*4+1;
 				gbc.gridy = i;

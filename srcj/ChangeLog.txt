@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02l: *********************************
 
+IMP: (04/20/05, SMR) Improved PostScript output by removing tiny polygons (Bug #273).
+
+IMP: (04/20/05, SMR) Exported preferences files have the ".xml" extension.
+
+BUG: (04/20/05, SMR) Arc Properties dialog crashes if not in the Swing thread (Bug #272).
+FIX: In GetInfoArc.loadInfo(), delay activity if not in the Swing thread.
+
 IMP/MAN: (04/19/05, GVG) GetInfo on job running will printing accumulated running time.
 
 ************************* Version 8.02k: *********************************

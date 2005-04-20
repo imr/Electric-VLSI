@@ -2488,7 +2488,7 @@ public class Manipulate
 				Rectangle2D portRect = portPoly.getBounds2D();
 				nodePortSizes[base] = portRect.getWidth() + " x " + portRect.getHeight();
 				if (pp.getAngleRange() == 180) nodePortAngles[base] = ""; else
-					nodePortAngles[base] = "" + pp.getAngleRange();
+					nodePortAngles[base] = "" + pp.getAngle();
 				int m = 0;
 				ArcProto [] conList = pp.getConnections();
 				for(int k=0; k<conList.length; k++)
