@@ -70,11 +70,16 @@ import java.util.StringTokenizer;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * This class manipulates technology libraries.
@@ -438,6 +443,247 @@ public class Manipulate
 	 */
 	public static void editLibraryDependencies()
 	{
+		EditDependentLibraries dialog = new EditDependentLibraries();
+	}
+
+	/**
+	 * This class displays a dialog for editing library dependencies.
+	 */
+	private static class EditDependentLibraries extends EDialog
+	{
+		private JList allLibsList, depLibsList;
+		private DefaultListModel allLibsModel, depLibsModel;
+		private JTextField libToAdd;
+
+		/** Creates new form edit library dependencies */
+		private EditDependentLibraries()
+		{
+			super(null, true);
+			initComponents();
+			setVisible(true);
+		}
+
+		private void ok() { exit(true); }
+
+		protected void escapePressed() { exit(false); }
+
+		// Call this method when the user clicks the OK button
+		private void exit(boolean goodButton)
+		{
+			if (goodButton)
+			{
+				new ModifyDependenciesJob(depLibsModel);
+			}
+			setVisible(false);
+			dispose();
+		}
+
+		/**
+		 * Class for saving library dependencies.
+		 */
+		private static class ModifyDependenciesJob extends Job
+		{
+			private DefaultListModel depLibsModel;
+
+			private ModifyDependenciesJob(DefaultListModel depLibsModel)
+			{
+				super("Modify Library Dependencies", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+				this.depLibsModel = depLibsModel;
+				startJob();
+			}
+
+			public boolean doIt()
+			{
+				Library lib = Library.getCurrent();
+				int numDeps = depLibsModel.size();
+				if (numDeps == 0)
+				{
+					if (lib.getVar(Info.DEPENDENTLIB_KEY) != null)
+						lib.delVar(Info.DEPENDENTLIB_KEY);
+				} else
+				{
+					String [] depLibs = new String[numDeps];
+					for(int i=0; i<numDeps; i++)
+						depLibs[i] = (String)depLibsModel.get(i);
+					lib.newVar(Info.DEPENDENTLIB_KEY, depLibs);
+				}
+				return true;
+			}
+		}
+
+		private void removeLib()
+		{
+			int index = depLibsList.getSelectedIndex();
+			if (index < 0) return;
+			depLibsModel.remove(index);
+		}
+
+		private void addLib()
+		{
+			String value = (String)allLibsList.getSelectedValue();
+			String specialLib = libToAdd.getText();
+			if (specialLib.length() > 0)
+			{
+				value = specialLib;
+				libToAdd.setText("");
+			}
+
+			if (value == null) return;
+			for(int i=0; i<depLibsModel.size(); i++)
+			{
+				String depLib = (String)depLibsModel.get(i);
+				if (depLib.equals(value)) return;
+			}
+			depLibsModel.addElement(value);
+		}
+
+		private void initComponents()
+		{
+			getContentPane().setLayout(new GridBagLayout());
+
+			setTitle("Dependent Library Selection");
+			setName("");
+			addWindowListener(new WindowAdapter()
+			{
+				public void windowClosing(WindowEvent evt) { exit(false); }
+			});
+
+			// left column
+			JLabel lab1 = new JLabel("Dependent Libraries:");
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 0;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(lab1, gbc);
+
+			JScrollPane depLibsPane = new JScrollPane();
+			depLibsModel = new DefaultListModel();
+			depLibsList = new JList(depLibsModel);
+			depLibsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			depLibsPane.setViewportView(depLibsList);
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 1;
+			gbc.gridheight = 4;
+			gbc.fill = GridBagConstraints.BOTH;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(depLibsPane, gbc);
+			depLibsModel.clear();
+			Library [] libs = Info.getDependentLibraries(Library.getCurrent());
+			for(int i=0; i<libs.length; i++)
+			{
+				if (libs[i] == Library.getCurrent()) continue;
+				depLibsModel.addElement(libs[i].getName());
+			}
+
+			JLabel lab2 = new JLabel("Current: " + Library.getCurrent().getName());
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 5;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(lab2, gbc);
+
+			JLabel lab3 = new JLabel("Libraries are examined from bottom up");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 6;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(lab3, gbc);
+
+
+			// center column
+			JButton remove = new JButton("Remove");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;
+			gbc.gridy = 1;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(remove, gbc);
+			remove.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { removeLib(); }
+			});
+
+			JButton add = new JButton("<< Add");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;
+			gbc.gridy = 2;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(add, gbc);
+			add.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { addLib(); }
+			});
+
+
+			// right column
+			JLabel lab4 = new JLabel("All Libraries:");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 2;   gbc.gridy = 0;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(lab4, gbc);
+
+			JScrollPane allLibsPane = new JScrollPane();
+			allLibsModel = new DefaultListModel();
+			allLibsList = new JList(allLibsModel);
+			allLibsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			allLibsPane.setViewportView(allLibsList);
+			gbc = new GridBagConstraints();
+			gbc.gridx = 2;   gbc.gridy = 1;
+			gbc.gridheight = 2;
+			gbc.fill = GridBagConstraints.BOTH;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(allLibsPane, gbc);
+			allLibsModel.clear();
+			for(Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+			{
+				Library lib = (Library)it.next();
+				allLibsModel.addElement(lib.getName());
+			}
+
+			JLabel lab5 = new JLabel("Library (if not in list):");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 2;   gbc.gridy = 3;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(lab5, gbc);
+
+			libToAdd = new JTextField("");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 2;   gbc.gridy = 4;
+			gbc.anchor = GridBagConstraints.WEST;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.weightx = 1;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(libToAdd, gbc);
+
+			// OK and Cancel
+			JButton cancel = new JButton("Cancel");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;
+			gbc.gridy = 6;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(cancel, gbc);
+			cancel.addActionListener(new ActionListener()
+			{
+				public void actionPerformed(ActionEvent evt) { exit(false); }
+			});
+
+			JButton ok = new JButton("OK");
+			getRootPane().setDefaultButton(ok);
+			gbc = new java.awt.GridBagConstraints();
+			gbc.gridx = 2;
+			gbc.gridy = 6;
+			gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+			getContentPane().add(ok, gbc);
+			ok.addActionListener(new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent evt) { exit(true); }
+			});
+
+			pack();
+		}
 	}
 
 	/**
