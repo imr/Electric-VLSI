@@ -831,8 +831,8 @@ public class Analyzer extends Engine
 					long lNewSize = Sim.nsToDelta(newSize);
 					if (lNewSize <= 0)
 					{
-						System.out.println("Bad step size: " + TextUtils.formatDouble(newSize*1000) + "psec (must be 10 psec or larger)");
-						return null;
+						System.out.println("Bad step size: " + TextUtils.formatDouble(newSize*1000) + "psec (must be 10 psec or larger), ignoring");
+						newSize = 0;
 					}
 				}
 				newsv.value = newSize;
