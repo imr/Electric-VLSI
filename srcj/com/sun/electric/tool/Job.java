@@ -27,7 +27,6 @@ package com.sun.electric.tool;
 import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.Highlighter;
@@ -359,10 +358,10 @@ public abstract class Job implements ActionListener, Runnable {
     /** name of job */                          private String jobName;
     /** tool running the job */                 private Tool tool;
     /** type of job (change or examine) */      private Type jobType;
-    /** priority of job */                      private Priority priority;
+//    /** priority of job */                      private Priority priority;
     /** bottom of "up-tree" of cells affected */private Cell upCell;
-    /** top of "down-tree" of cells affected */ private Cell downCell;
-    /** status */                               private String status = null;
+//    /** top of "down-tree" of cells affected */ private Cell downCell;
+//    /** status */                               private String status = null;
     /** progress */                             private String progress = null;
     /** list of saved Highlights */             private List savedHighlights;
     /** saved Highlight offset */               private Point2D savedHighlightsOffset;
@@ -385,9 +384,9 @@ public abstract class Job implements ActionListener, Runnable {
 		this.jobName = jobName;
 		this.tool = tool;
 		this.jobType = jobType;
-		this.priority = priority;
+//		this.priority = priority;
 		this.upCell = upCell;
-		this.downCell = downCell;
+//		this.downCell = downCell;
         this.display = true;
         this.deleteWhenDone = true;
         startTime = endTime = 0;
@@ -445,15 +444,15 @@ public abstract class Job implements ActionListener, Runnable {
     
     //--------------------------PRIVATE JOB METHODS--------------------------
 
-    /** Locks the database to prevent changes to it */
-    private void lockDatabase() {
-        
-    }
-    
-    /** Unlocks database */
-    private void unlockDatabase() {
-        
-    }
+//    /** Locks the database to prevent changes to it */
+//    private void lockDatabase() {
+//
+//    }
+//
+//    /** Unlocks database */
+//    private void unlockDatabase() {
+//
+//    }
 
 	//--------------------------PROTECTED JOB METHODS-----------------------
 	/** Set reportExecution flag on/off */
@@ -886,7 +885,6 @@ public abstract class Job implements ActionListener, Runnable {
     public JPopupMenu getPopupStatus() {
         JPopupMenu popup = new JPopupMenu();
         JMenuItem m;
-        JMenu menu;
         m = new JMenuItem("Get Info"); m.addActionListener(this); popup.add(m);
         m = new JMenuItem("Abort"); m.addActionListener(this); popup.add(m);
         m = new JMenuItem("Delete"); m.addActionListener(this); popup.add(m);
@@ -923,7 +921,8 @@ public abstract class Job implements ActionListener, Runnable {
             buf.append(" took: "+TextUtils.getElapsedTime(time));
             buf.append(" (started at "+start+")");
         } else if (getProgress() == null) {
-	        buf.append(" does not have finished.");
+            long time = System.currentTimeMillis()-startTime;
+	        buf.append(" does not have finished. Current running time: " + TextUtils.getElapsedTime(time));
         } else {
             buf.append(" did not successfully finish.");
         }

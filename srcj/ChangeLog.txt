@@ -2,6 +2,10 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.02l: *********************************
+
+IMP/MAN: (04/19/05, GVG) GetInfo on job running will printing accumulated running time.
+
 ************************* Version 8.02k: *********************************
 
 IMP: (04/19/05, GVG) Invariant for capacitance extraction for layouts in Spice.
