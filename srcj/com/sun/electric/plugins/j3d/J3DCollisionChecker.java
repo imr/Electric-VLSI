@@ -35,9 +35,6 @@ import javax.media.j3d.*;
 public class J3DCollisionChecker
 {
 	J3DCollisionDetector		m_Detector = null;
-
-//	Transform3D				m_ToWorld = null;
-//	Transform3D				m_Transform3D = null;
 	Node					m_Node = null;
 	boolean					m_bViewSide = false;
 

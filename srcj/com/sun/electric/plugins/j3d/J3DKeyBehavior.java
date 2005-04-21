@@ -196,6 +196,16 @@ public class J3DKeyBehavior extends Behavior
     private static final int Z = 2;
 
     /**
+     * Method to set the original rotation
+     * @param rotVals
+     */
+    public void setHomeRotation(double[] rotVals)
+    {
+        for (int i = 0; i < rotVals.length; i++)
+            doRotate(i, rotVals[i], true);
+    }
+
+    /**
      * Method that rotates along given axis
      * @param axis
      * @param radians

@@ -46,7 +46,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
@@ -77,7 +76,7 @@ public abstract class Job implements ActionListener, Runnable {
 
     private static final boolean DEBUG = false;
 
-	/**
+    /**
 	 * Type is a typesafe enum class that describes the type of job (CHANGE or EXAMINE).
 	 */
 	public static class Type
@@ -433,8 +432,28 @@ public abstract class Job implements ActionListener, Runnable {
             databaseChangesThread.addJob(this);
         }
     }
-    
-    
+
+    /**
+     * Method to access scheduled abort flag in Job and
+     * set the flag to abort if scheduled flag is true.
+     * This is because setAbort and getScheduledToAbort
+     * are protected in Job.
+     * @return true if job is scheduled for abort or aborted.
+     * and it will report it to std output
+     */
+    public boolean checkForAbort()
+    {
+        if (getAborted()) return (true);
+        boolean abort = getScheduledToAbort();
+        if (abort)
+        {
+            setAborted();
+            setReportExecutionFlag(true); // Force reporting
+            System.out.println(jobName +" aborted");
+        }
+        return (abort);
+    }
+
 	//--------------------------ABSTRACT METHODS--------------------------
     
     /** This is the main work method.  This method should

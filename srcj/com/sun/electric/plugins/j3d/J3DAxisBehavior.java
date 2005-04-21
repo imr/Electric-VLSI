@@ -1,5 +1,5 @@
 /*
- * $RCSfile$
+ * $RCSfile: J3DAxisBehavior.java,v $
  *
  * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
  *
@@ -37,9 +37,9 @@
  * intended for use in the design, construction, operation or
  * maintenance of any nuclear facility.
  *
- * $Revision$
- * $Date$
- * $State$
+ * $Revision: 1.1 $
+ * $Date: 2005/04/14 18:10:28 $
+ * $State: Exp $
  */
 package com.sun.electric.plugins.j3d;
 
@@ -78,49 +78,52 @@ public class J3DAxisBehavior extends Behavior {
      * Constructs a new J3DAxisBehavior from the specified view
      * platform transform group and axis transform group.
      */
-    public J3DAxisBehavior(TransformGroup axisTG, TransformGroup viewPlatformTG) {
-	// Save references to source and target transform groups
-	this.axisTG = axisTG;
-	this.viewPlatformTG = viewPlatformTG;
+    public J3DAxisBehavior(TransformGroup axisTG, TransformGroup viewPlatformTG)
+    {
+        // Save references to source and target transform groups
+        this.axisTG = axisTG;
+        this.viewPlatformTG = viewPlatformTG;
 
-	// Run this behavior in the last scheduling interval
-	setSchedulingInterval(Behavior.getNumSchedulingIntervals() - 1);
+        // Run this behavior in the last scheduling interval
+        setSchedulingInterval(Behavior.getNumSchedulingIntervals() - 1);
     }
 
     /**
      * Initialize local variables and set the initial wakeup
      * condition. Called when the behavior is first made live.
      */
-    public void initialize() {
-	// Initiialize to identity (no rotation)
-	lastTransform.setIdentity();
-	t1.setIdentity();
-	axisTG.setTransform(t1);
+    public void initialize()
+    {
+        // Initiialize to identity (no rotation)
+        lastTransform.setIdentity();
+        t1.setIdentity();
+        axisTG.setTransform(t1);
 
-	// Set the initial wakeup condition
-	wakeupOn(w);
+        // Set the initial wakeup condition
+        wakeupOn(w);
     }
 
     /**
      * Extract the rotation from the view platform transform (if it has
      * changed) and update the target transform with its inverse.
      */
-    public void processStimulus(Enumeration criteria) {
-	viewPlatformTG.getTransform(t1);
+    public void processStimulus(Enumeration criteria)
+    {
+        viewPlatformTG.getTransform(t1);
 
-	// Compute the new axis transform if the viewPlatformTransform
-	// has changed
-	if (!lastTransform.equals(t1)) {
-	    lastTransform.set(t1);
+        // Compute the new axis transform if the viewPlatformTransform
+        // has changed
+        if (!lastTransform.equals(t1)) {
+            lastTransform.set(t1);
 
-	    t1.get(rotMat);
-	    t1.setIdentity();
-	    t1.set(rotMat);
-	    t1.invert();
-	    axisTG.setTransform(t1);
-	}
+            t1.get(rotMat);
+            t1.setIdentity();
+            t1.set(rotMat);
+            t1.invert();
+            axisTG.setTransform(t1);
+        }
 
-	// Reset the wakeup condition so we will wakeup next frame
-	wakeupOn(w);
+        // Reset the wakeup condition so we will wakeup next frame
+        wakeupOn(w);
     }
 }

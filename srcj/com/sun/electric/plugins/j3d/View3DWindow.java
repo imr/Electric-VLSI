@@ -95,7 +95,7 @@ public class View3DWindow extends JPanel
         HighlightListener, J3DCollisionDetector, Observer
 {
 
-	/** # of nodes to consider scene graph big */       private static final int MAX3DVIEWNODES = 5000;
+	/** # of nodes to consider scene graph big */       private static final int MAX3DVIEWNODES = 1000;
 
 	private SimpleUniverse u;
 	private J3DCanvas3D canvas;
@@ -134,40 +134,73 @@ public class View3DWindow extends JPanel
 	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap electricObjectMap = new HashMap();
     private boolean oneTransformPerNode = false;
     /** Map with object transformation for individual moves */ private HashMap transformGroupMap = new HashMap();
+    /** To detect max number of nodes */                    private boolean reachLimit = false;
+    /** To ask question only once */                        private boolean alreadyChecked = false;
+    /** Job reference */                                    private Job job;
 
-    public static WindowContent create3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, Boolean transPerNode)
+    /** Inner class to create 3D view in a job. This should be safer in terms of the number of nodes
+     * and be able to stop it
+     */
+    private static class View3DWindowJob extends Job
     {
-        int number = cell.getNumNodes() + cell.getNumArcs();
-        if (number < MAX3DVIEWNODES)
+        private Cell cell;
+        private WindowFrame windowFrame;
+        private WindowContent view2D;
+        private boolean transPerNode;
+
+        public View3DWindowJob(Cell cell, WindowFrame wf, WindowContent view2D, boolean transPerNode)
         {
-            for (int i = 0; i < cell.getNumNodes(); i++)
+            super("3D View Job", null, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            this.windowFrame = wf;
+            this.view2D = view2D;
+            this.transPerNode = transPerNode;
+			startJob();
+        }
+        public boolean doIt()
+        {
+            View3DWindow window = new View3DWindow(cell, windowFrame, view2D, transPerNode, this);
+            if (!window.reachLimit)
             {
-                NodeInst node = cell.getNode(i);
-                if (node.getProto() instanceof Cell && node.isExpanded())
-                {
-                    Cell np = (Cell)node.getProto();
-                    number += (np.getNumArcs() + np.getNumNodes());
-                }
+                windowFrame.finishWindowFrameInformation(window, cell);
+                return true;
             }
+            return false;
         }
+    }
 
-        if (number >= MAX3DVIEWNODES)
+    public static void create3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, Boolean transPerNode)
+    {
+        new View3DWindowJob(cell, wf, view2D, transPerNode.booleanValue());
+    }
+
+    /**
+     * Method to return if size limit has been reached
+     * @param number
+     * @return true if number of nodes is still under maximum value
+     */
+    private boolean isSizeLimitOK(int number)
+    {
+        if (reachLimit || number > MAX3DVIEWNODES)
         {
-            int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-                "The graph scene contains " + number + " nodes, are you sure you want to open 3D view of " + cell.describe() + "?",
+            // Only ask once
+            if (!alreadyChecked)
+            {
+                int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
+                "Number of nodes in graph scene reached limit of " + MAX3DVIEWNODES + " (contains " + number + " nodes), are you sure you want to open 3D view of " + cell.describe() + "?",
                     "Warning", JOptionPane.OK_CANCEL_OPTION);
-            if (response == JOptionPane.CANCEL_OPTION) return null;
+                alreadyChecked = true;
+                if (response == JOptionPane.CANCEL_OPTION)
+                    reachLimit = true;
+            }
+            if (reachLimit)
+                return false;
         }
-
-//        View3DWindow window = (transPerNode.booleanValue()) ?
-//                new J3DDemoView(cell, wf, view2D, true) : new View3DWindow(cell, wf, view2D, false);
-
-        View3DWindow window = new View3DWindow(cell, wf, view2D, transPerNode.booleanValue());
-        return (window);
+        return true;
     }
 
     // constructor
-	View3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, boolean transPerNode)
+	View3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, boolean transPerNode, Job job)
 	{
 		this.cell = cell;
         this.wf = wf;
@@ -175,6 +208,7 @@ public class View3DWindow extends JPanel
         // Adding observer
         this.view2D.getWindowFrame().addObserver(this);
         this.oneTransformPerNode = transPerNode;
+        this.job = job;
 
 		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
         highlighter.addHighlightListener(this);
@@ -199,6 +233,7 @@ public class View3DWindow extends JPanel
 
 		// Create a simple scene and attach it to the virtual universe
 		scene = createSceneGraph(cell);
+        if (scene == null) return;
 
 		// Have Java 3D perform optimizations on this scene graph.
 	    scene.compile();
@@ -259,61 +294,6 @@ public class View3DWindow extends JPanel
 		orbit.setTransFactors(10, 10);
         orbit.setProportionalZoom(true);
 
-        //viewingPlatform.setNominalViewingTransform();
-    	viewingPlatform.setViewPlatformBehavior(orbit);
-
-		double radius = sceneBnd.getRadius();
-		View view = u.getViewer().getView();
-
-		// Too expensive at this point
-        if (canvas.getSceneAntialiasingAvailable() && User.is3DAntialiasing())
-		    view.setSceneAntialiasingEnable(true);
-
-		// Setting the projection policy
-		view.setProjectionPolicy(User.is3DPerspective()? View.PERSPECTIVE_PROJECTION : View.PARALLEL_PROJECTION);
-		if (!User.is3DPerspective()) view.setCompatibilityModeEnable(true);
-
-        // Setting transparency sorting
-        view.setTransparencySortingPolicy(View.TRANSPARENCY_SORT_GEOMETRY);
-        view.setDepthBufferFreezeTransparent(false); // set to true only for transparent layers
-
-        // Setting a good viewpoint for the camera
-		Point3d c1 = new Point3d();
-		sceneBnd.getCenter(c1);
-		Vector3d vCenter = new Vector3d(c1);
-		double vDist = 1.4 * radius / Math.tan(view.getFieldOfView()/2.0);
-        Point3d c2 = new Point3d();
-
-        sceneBnd.getCenter(c2);
-		c2.z += vDist;
-		vCenter.z += vDist;
-		Transform3D vTrans = new Transform3D();
-
-        //translateB.setView(cellBnd.getWidth(), 0);
-        //double[] rotVals = User.transformIntoValues(User.get3DRotation());
-        //rotateB.setRotation(rotVals[0], rotVals[1], rotVals[2]);
-        //zoomB.setZoom(User.get3DOrigZoom());
-
-		vTrans.set(vCenter);
-
-		view.setBackClipDistance((vDist+radius)*200.0);
-		view.setFrontClipDistance((vDist+radius)/200.0);
-		view.setBackClipPolicy(View.VIRTUAL_EYE);
-		view.setFrontClipPolicy(View.VIRTUAL_EYE);
-		if (User.is3DPerspective())
-		{
-            viewingPlatform.getViewPlatformBehavior().setHomeTransform(vTrans);
-            viewingPlatform.getViewPlatformBehavior().goHome();
-			//viewingPlatform.getViewPlatformTransform().setTransform(vTrans);
-		}
-		else
-		{
-            Transform3D proj = new Transform3D();
-            Rectangle2D cellBnd = cell.getBounds();
-            proj.ortho(cellBnd.getMinX(), cellBnd.getMinX(), cellBnd.getMinY(), cellBnd.getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
-			view.setVpcToEc(proj);
-			//viewingPlatform.getViewPlatformTransform().setTransform(lookAt);
-		}
 
         // Create axis with associated behavior
         BranchGroup axisRoot = new BranchGroup();
@@ -350,6 +330,63 @@ public class View3DWindow extends JPanel
 
         viewingPlatform.setPlatformGeometry(pg) ;
 
+        //viewingPlatform.setNominalViewingTransform();
+    	viewingPlatform.setViewPlatformBehavior(orbit);
+
+		double radius = sceneBnd.getRadius();
+		View view = u.getViewer().getView();
+
+		// Too expensive at this point
+        if (canvas.getSceneAntialiasingAvailable() && User.is3DAntialiasing())
+		    view.setSceneAntialiasingEnable(true);
+
+		// Setting the projection policy
+		view.setProjectionPolicy(User.is3DPerspective()? View.PERSPECTIVE_PROJECTION : View.PARALLEL_PROJECTION);
+		if (!User.is3DPerspective()) view.setCompatibilityModeEnable(true);
+
+        // Setting transparency sorting
+        view.setTransparencySortingPolicy(View.TRANSPARENCY_SORT_GEOMETRY);
+        view.setDepthBufferFreezeTransparent(false); // set to true only for transparent layers
+
+        // Setting a good viewpoint for the camera
+		Point3d c1 = new Point3d();
+		sceneBnd.getCenter(c1);
+		Vector3d vCenter = new Vector3d(c1);
+		double vDist = 1.4 * radius / Math.tan(view.getFieldOfView()/2.0);
+        Point3d c2 = new Point3d();
+
+        sceneBnd.getCenter(c2);
+		c2.z += vDist;
+		vCenter.z += vDist;
+		Transform3D vTrans = new Transform3D();
+
+        //translateB.setView(cellBnd.getWidth(), 0);
+        //double[] rotVals = User.transformIntoValues(User.get3DRotation());
+        //rotateB.setRotation(rotVals[0], rotVals[1], rotVals[2]);
+        //zoomB.setZoom(User.get3DOrigZoom());
+
+		vTrans.setTranslation(vCenter);
+
+		view.setBackClipDistance((vDist+radius)*200.0);
+		view.setFrontClipDistance((vDist+radius)/200.0);
+		view.setBackClipPolicy(View.VIRTUAL_EYE);
+		view.setFrontClipPolicy(View.VIRTUAL_EYE);
+		if (User.is3DPerspective())
+		{
+            keyBehavior.setHomeRotation(User.transformIntoValues(User.get3DRotation()));
+
+            viewingPlatform.getViewPlatformBehavior().setHomeTransform(vTrans);
+            viewingPlatform.getViewPlatformBehavior().goHome();
+			//viewingPlatform.getViewPlatformTransform().setTransform(vTrans);
+		}
+		else
+		{
+            Transform3D proj = new Transform3D();
+            Rectangle2D cellBnd = cell.getBounds();
+            proj.ortho(cellBnd.getMinX(), cellBnd.getMinX(), cellBnd.getMinY(), cellBnd.getMaxY(), (vDist+radius)/200.0, (vDist+radius)*2.0);
+			view.setVpcToEc(proj);
+			//viewingPlatform.getViewPlatformTransform().setTransform(lookAt);
+		}
 
 		u.addBranchGraph(scene);
 		setWindowTitle();
@@ -454,6 +491,8 @@ public class View3DWindow extends JPanel
 
 		View3DEnumerator view3D = new View3DEnumerator();
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
+
+        if (reachLimit) return null; // limit reached
 
         // Create Axes
 //        Rectangle2D cellBnd = cell.getBounds();
@@ -564,15 +603,6 @@ public class View3DWindow extends JPanel
 	public void zoomInContents()
     {
         keyBehavior.zoomInOut(true);
-//        Transform3D trans = new Transform3D();
-//        TransformGroup transformGroup = u.getViewingPlatform().getViewPlatformTransform();
-//        double z_factor = orbit.getZoomFactor();
-//        double factor = (false) ? (1/z_factor) : (z_factor);
-//        Matrix4d mat = new Matrix4d();
-//        trans.get(mat);
-//        double dy = trans.getScale() * factor;
-//        trans.setScale(dy);
-//        transformGroup.setTransform(trans);
         //zoomB.zoomInOut(true);
     }
 
@@ -1274,6 +1304,9 @@ public class View3DWindow extends JPanel
 		 */
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
+            if (job != null && job.checkAbort()) return false;
+            if (!isSizeLimitOK(info.getCell().getNumArcs() + objTrans.numChildren())) return false;  // limit reached
+
             AffineTransform rTrans = info.getTransformToRoot();
 
 			for(Iterator it = info.getCell().getArcs(); it.hasNext(); )
@@ -1291,6 +1324,9 @@ public class View3DWindow extends JPanel
 		 */
 		public boolean visitNodeInst(Nodable no, HierarchyEnumerator.CellInfo info)
 		{
+            if (reachLimit) return false;
+            if (job != null && job.checkAbort()) return false;
+
 			NodeInst ni = no.getNodeInst();
 			AffineTransform trans = ni.rotateOutAboutTrueCenter();
 			AffineTransform root = info.getTransformToRoot();
@@ -1310,6 +1346,8 @@ public class View3DWindow extends JPanel
             }
 			addNode(ni, trans, grp);
 
+            if (!isSizeLimitOK(grp.numChildren())) return false;  // limit reached
+
 			// For cells, it should go into the hierarchy
             return ni.isExpanded();
 		}
@@ -1323,19 +1361,19 @@ public class View3DWindow extends JPanel
      * by interpolator
      * @param mode 0 if KB spline, 1 if TCB spline
      */
-    public void set3DCamera(int mode)
-    {
-//        if (mode == 0)
-//        {
-//            boolean state = kbSplineInter.getEnable();
-//            kbSplineInter.setEnable(!state);
-//        }
-//        else
-//        {
-//            boolean state = tcbSplineInter.getEnable();
-//            tcbSplineInter.setEnable(!state);
-//        }
-    }
+//    public void set3DCamera(int mode)
+//    {
+////        if (mode == 0)
+////        {
+////            boolean state = kbSplineInter.getEnable();
+////            kbSplineInter.setEnable(!state);
+////        }
+////        else
+////        {
+////            boolean state = tcbSplineInter.getEnable();
+////            tcbSplineInter.setEnable(!state);
+////        }
+//    }
 
     /**
      * Method to create spline interpolator for demo mode

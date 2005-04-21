@@ -66,20 +66,17 @@ import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.logicaleffort.LETool;
-import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccResult;
 import com.sun.electric.tool.ncc.NetEquivalence;
 import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.routing.Maze;
 import com.sun.electric.tool.routing.MimicStitch;
@@ -122,7 +119,6 @@ import javax.swing.KeyStroke;
 public class ToolMenu {
 
 	protected static void addToolMenu(MenuBar menuBar) {
-		MenuBar.MenuItem m;
 		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
 		/****************************** THE TOOL MENU ******************************/
@@ -568,7 +564,7 @@ public class ToolMenu {
             // update wire models
             for (Iterator it = networks.iterator(); it.hasNext(); ) {
                 Network schNet = (Network)it.next();
-                Netlist netlist = schLayCells[0].getNetlist(true);
+//                Netlist netlist = schLayCells[0].getNetlist(true);
                 // find equivalent network in layouy
                 NetEquivalence equiv = result.getNetEquivalence();
                 HierarchyEnumerator.NetNameProxy proxy = equiv.findEquivalent(VarContext.globalContext, schNet);
@@ -652,7 +648,7 @@ public class ToolMenu {
 		}
 		highlighter.showNetworks(nets, netlist, cell);
         // 3D display if available
-        WindowFrame.show3DHighlight(wnd);
+        WindowFrame.show3DHighlight();
 		highlighter.finished();
 	}
 

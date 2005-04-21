@@ -521,28 +521,7 @@ public class ERCWellCheck
 		{
 			return(checkERCWell(cell, this, newAlgorithm, highlighter) == 0);
 		}
-
-		/**
-		 * Method to access scheduled abort flag in Job and
-		 * set the flag to abort if scheduled flag is true.
-		 * This is because setAbort and getScheduledToAbort
-		 * are protected in Job.
-		 * @return true if job is scheduled for abort or aborted.
-		 * and it will report it to std output
-		 */
-		protected boolean checkForAbort()
-		{
-			if (getAborted()) return (true);
-			boolean abort = getScheduledToAbort();
-			if (abort)
-			{
-				setAborted();
-				setReportExecutionFlag(true); // Force reporting
-		        System.out.println("WellCheck aborted");
-			}
-			return (abort);
-		}
-	}
+    }
 
 	private static class Visitor extends HierarchyEnumerator.Visitor
     {

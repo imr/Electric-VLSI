@@ -26,7 +26,7 @@ public class J3DDemoView extends View3DWindow
 
     public J3DDemoView(Cell cell, WindowFrame wf, WindowContent view2D, boolean transPerNode)
     {
-        super(cell, wf, view2D, transPerNode);
+        super(cell, wf, view2D, transPerNode, null);
     }
 
     protected BranchGroup createSceneGraph(Cell cell)

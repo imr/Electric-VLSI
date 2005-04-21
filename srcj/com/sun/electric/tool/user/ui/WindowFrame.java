@@ -32,7 +32,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -121,16 +120,12 @@ public class WindowFrame extends Observable
 		if (cell != null && cell.getView().isTextView())
 		{
 			TextWindow tWnd = new TextWindow(cell, frame);
-			frame.buildWindowStructure(tWnd, cell, null);
-			setCurrentWindowFrame(frame);
-			frame.populateJFrame();
+            frame.finishWindowFrameInformation(tWnd, cell);
 			tWnd.fillScreen();
 		} else
 		{
 			EditWindow eWnd = EditWindow.CreateElectricDoc(cell, frame);
-			frame.buildWindowStructure(eWnd, cell, null);
-			setCurrentWindowFrame(frame);
-			frame.populateJFrame();
+            frame.finishWindowFrameInformation(eWnd, cell);
 
 			// make sure the edit window has the right size
 			eWnd.setScreenSize(eWnd.getSize());
@@ -141,6 +136,18 @@ public class WindowFrame extends Observable
         removeUIBinding(frame.js, KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
 		return frame;
 	}
+
+    /**
+     * Method to finish with frame pointers.
+     * @param wnd
+     * @param cell
+     */
+    public void finishWindowFrameInformation(WindowContent wnd, Cell cell)
+    {
+        buildWindowStructure(wnd, cell, null);
+        setCurrentWindowFrame(this);
+        populateJFrame();
+    }
 
     /*****************************************************************************
      *          3D Stuff                                                         *
@@ -169,13 +176,7 @@ public class WindowFrame extends Observable
 		{
             if (create3DMethod == null) create3DMethod = view3DClass.getDeclaredMethod("create3DWindow", new Class[] {Cell.class, WindowFrame.class,
                                                                                     WindowContent.class, Boolean.class}) ;
-            Object vWnd = create3DMethod.invoke(view3DClass, new Object[] {cell, frame, view2D, new Boolean(transPerNode)});
-
-            // null if max number of nodes is exceeded.
-            if (vWnd == null) return null;
-			frame.buildWindowStructure((WindowContent)vWnd, cell, null);
-			setCurrentWindowFrame(frame);
-			frame.populateJFrame();
+            create3DMethod.invoke(view3DClass, new Object[] {cell, frame, view2D, new Boolean(transPerNode)});
 		} catch (Exception e) {
             System.out.println("Can't open 3D View window: " + e.getMessage());
             ActivityLogger.logException(e);
@@ -186,9 +187,8 @@ public class WindowFrame extends Observable
 
 	/**
 	 * Method to access 3D view and highligh elements if view is available
-	 * @param view2D
 	 */
-	public static void show3DHighlight(WindowContent view2D)
+	public static void show3DHighlight()
 	{
         for(Iterator it = getWindows(); it.hasNext(); )
 		{
@@ -212,9 +212,7 @@ public class WindowFrame extends Observable
 	{
 		WindowFrame frame = new WindowFrame();
 		WaveformWindow wWnd = new WaveformWindow(sd, frame);
-		frame.buildWindowStructure(wWnd, sd.getCell(), null);
-		setCurrentWindowFrame(frame);
-		frame.populateJFrame();
+        frame.finishWindowFrameInformation(wWnd, sd.getCell());
 		wWnd.fillScreen();
 		return frame;
 	}
