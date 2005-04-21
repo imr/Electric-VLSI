@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02l: *********************************
 
+BUG: (04/21/05, SMR) GDS output writes the year incorrectly.
+FIX: In "output.GDS.outputDate()", subtract 1900 from the year.
+
+BUG: (04/21/05, SMR) Adding a signal to the waveform window doesn't show it at the
+     same scale as the other signals (Bug #277).
+FIX: In WaveformWindow.java, set the scale when creating a new panel.
+
 IMP: (04/21/05, GVG) 3DView creation embedded in Job to abort big examples. Ability to stop creation if number
 of nodes reached predefined limit.
 

@@ -627,7 +627,8 @@ public class GDS extends Geometry
 
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(val);
-		date[0] = (short)cal.get(Calendar.YEAR);
+		int year = cal.get(Calendar.YEAR) - 1900;
+		date[0] = (short)year;
 		date[1] = (short)cal.get(Calendar.MONTH);
 		date[2] = (short)cal.get(Calendar.DAY_OF_MONTH);
 		date[3] = (short)cal.get(Calendar.HOUR);

@@ -678,7 +678,7 @@ public class WaveformWindow implements WindowContent
 				for(Iterator bIt = bussedSignals.iterator(); bIt.hasNext(); )
 				{
 					DigitalSignal subDS = (DigitalSignal)bIt.next();
-					Panel wp = new Panel(waveWindow, false);
+					Panel wp = waveWindow.makeNewPanel(false);
 					WaveSignal wsig = new WaveSignal(wp, subDS);
 
 					// remove the panels and put them in the right place
@@ -2253,7 +2253,7 @@ public class WaveformWindow implements WindowContent
 			// add this signal in a new panel
 			boolean isAnalog = false;
 			if (sSig instanceof AnalogSignal) isAnalog = true;
-			panel = new Panel(ww, isAnalog);
+			panel = ww.makeNewPanel(isAnalog);
 			if (isAnalog)
 			{
 				AnalogSignal as = (AnalogSignal)sSig;
@@ -3812,7 +3812,7 @@ if (wp.signalButtons != null)
 			{
 				boolean isAnalog = false;
 				if (sSig instanceof AnalogSignal) isAnalog = true;
-				wp = new Panel(this, isAnalog);
+				wp = makeNewPanel(isAnalog);
 				if (isAnalog)
 				{
 					AnalogSignal as = (AnalogSignal)sSig;
@@ -4073,6 +4073,29 @@ if (wp.signalButtons != null)
 		extPos.setText("Ext: " + amount);
 		String diff = convertToEngineeringNotation(Math.abs(mainTime - extTime), "s", 9999);
 		delta.setText("Delta: " + diff);
+	}
+
+	/**
+	 * Method to create a new panel with a time range similar to others on the display.
+	 * @param isAnalog true if the new panel holds analog signals.
+	 * @return the newly created Panel.
+	 */
+	private Panel makeNewPanel(boolean isAnalog)
+	{
+		// get some other panel to match the time scale
+		Panel oPanel = null;
+		Iterator pIt = getPanels();
+		if (pIt.hasNext())
+		{
+			oPanel = (Panel)pIt.next();
+		}
+	
+		// add this signal in a new panel
+		Panel panel = new Panel(this, isAnalog);
+
+		// make its time range match the other panel
+		if (oPanel != null) panel.setTimeRange(oPanel.minTime, oPanel.maxTime);
+		return panel;
 	}
 
 	/**
@@ -4813,7 +4836,7 @@ if (wp.signalButtons != null)
 		} else
 		{
 			// add digital signal in new panel
-			Panel wp = new Panel(this, false);
+			Panel wp = makeNewPanel(false);
 			WaveSignal wsig = new WaveSignal(wp, sig);
 			overall.validate();
 			wp.repaint();

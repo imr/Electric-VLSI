@@ -1039,7 +1039,6 @@ public class GDS extends Input
 		// handle pins specially 
 		if (layerIsPin)
 		{
-//			NodeProto np = layerNodeProto;
 			NodeProto np = Generic.tech.universalPinNode;
 			NodeInst ni = NodeInst.makeInstance(np, theVertices[0], np.getDefWidth(), np.getDefHeight(), theCell);
 			if (ni == null) handleError("Could not create pin marker");
@@ -1117,7 +1116,6 @@ public class GDS extends Input
 		determinePoints(2, MAXPOINTS);
 		if (layerUsed)
 		{
-if (layerIsPin) System.out.println("PIN in BOX");
 			// create the box
 			NodeInst ni = NodeInst.makeInstance(layerNodeProto, theVertices[0], 0, 0, theCell);
 			if (ni == null) handleError("Failed to create box");
