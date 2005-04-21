@@ -2,7 +2,7 @@
 <project basedir="." default="jar" name="electric">
 
     <target name="init" description="Initialization">
-        <property name="beanshell" value="../lib/java/bsh-2.0b2.jar"/>
+        <property name="beanshell" value="packaging/bsh-2.0b2.jar"/>
         <property name="AppleJava" value="packaging/AppleJavaExtensions.jar"/>
 	    <property name="JUnit" value="packaging/junit.jar"/>
     </target>
@@ -24,14 +24,36 @@
         </javac>
     </target>
 
-    <target name="run" depends="init,compile" description="Run">
+    <target name="compileToBin" depends="init" description="Compile to 'bin' directory">
+        <javac debug="true" deprecation="true" destdir="bin" srcdir="."
+            source="1.4" fork="true" memoryMaximumSize="256m">
+            <classpath><pathelement location="${beanshell}"/></classpath>
+            <classpath><pathelement location="${AppleJava}"/></classpath>
+            <exclude name="intervalsimulation/"/>
+        </javac>
+        <copy todir="bin/com">
+            <fileset dir="com">
+                <include name="**/*.bsh"/>
+                <include name="**/*.gif"/>
+                <include name="**/*.html"/>
+                <include name="**/*.jelib"/>
+                <include name="**/*.png"/>
+                <include name="**/*.prm"/>
+                <include name="**/*.txt"/>
+                <include name="**/*.wav"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="runFromBin" depends="init,compileToBin" description="Run from 'bin' directory">
         <java classname="com.sun.electric.Launcher" failonerror="true"
             fork="true" maxmemory="1024m">
             <classpath>
-                <pathelement location="."/>
+                <pathelement location="bin"/>
                 <pathelement location="${beanshell}"/>
                 <pathelement location="${AppleJava}"/>
            </classpath>
+           <arg value="-debug"/>
         </java>
     </target>
 
@@ -121,7 +143,6 @@
             <exclude name="ChangeLog.txt" unless="source"/>
             <exclude name="electric*.jar"/>
             <exclude name="electric.mf"/>
-            <exclude name="Hack_stack.txt"/>
 	        <exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
 	        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
@@ -143,16 +164,6 @@
                 <include name="**/*.class"/>
             </fileset>
         </delete>
-    </target>
-
-    <target name="testJar" depends="init,jar" description="Run Jar file">
-        <java classname="com.sun.electric.Launcher" failonerror="true" fork="true">
-            <classpath>
-                <pathelement location="."/>
-                <pathelement location="${beanshell}"/>
-                <pathelement location="${AppleJava}"/>
-           </classpath>
-        </java>
     </target>
 
     <target name="mac-app" depends="jar" description="Build Macintosh Application">
@@ -192,6 +203,7 @@
         </delete>
         <delete quiet="false" file="electric*.jar"/>
         <delete dir="apidoc"/>
+        <delete dir="bin/com"/>
     </target>
 
 </project>

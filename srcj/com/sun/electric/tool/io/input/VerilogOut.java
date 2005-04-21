@@ -189,7 +189,7 @@ public class VerilogOut extends Simulate
 					}
 					numSignals++;
 
-					DigitalSignal sig = new DigitalSignal(null);
+					DigitalSignal sig = new DigitalSignal(sd);
 					sig.setSignalName(signalName + index);
 					sig.setSignalContext(currentScope);
 					sig.tempList = new ArrayList();
@@ -371,7 +371,7 @@ public class VerilogOut extends Simulate
 			{
 				Signal sSig = (Signal)it.next();
 				String context = sSig.getSignalContext();
-				if (context.length() <= len) sSig.setSignalContext(null); else
+				if (context == null || context.length() <= len) sSig.setSignalContext(null); else
 					sSig.setSignalContext(context.substring(len+1));
 			}
 		}

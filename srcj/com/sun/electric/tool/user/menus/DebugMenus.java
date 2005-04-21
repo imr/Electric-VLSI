@@ -97,11 +97,11 @@ public class DebugMenus {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("mocmos", true); } });
 		if (Technology.getTSMC90Technology() != null)
 			helpMenu.addMenuItem("Make fake circuitry TSMC90", null,
-					new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("tsmc90", true); } });
+				new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeCircuitryCommand("tsmc90", true); } });
 		helpMenu.addMenuItem("Make fake analog simulation window", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeWaveformCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeWaveformCommand(); }});
 		helpMenu.addMenuItem("Make fake interval simulation window", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeIntervalWaveformCommand(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { makeFakeIntervalWaveformCommand(); }});
 
         /****************************** Russell's TEST MENU ******************************/
 
