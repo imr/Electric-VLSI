@@ -220,15 +220,13 @@ public class View3DWindow extends JPanel
         highlighter.addHighlightListener(this);
 
 		setLayout(new BorderLayout());
-        GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
-
-        //
+        //GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
         GraphicsConfigTemplate3D gc3D = new GraphicsConfigTemplate3D( );
 		gc3D.setSceneAntialiasing( GraphicsConfigTemplate.PREFERRED );
-		//GraphicsDevice gd[] = GraphicsEnvironment.getLocalGraphicsEnvironment( ).getScreenDevices( );
-        //config = gd[0].getBestConfiguration( gc3D );
+		GraphicsDevice gd[] = GraphicsEnvironment.getLocalGraphicsEnvironment( ).getScreenDevices( );
+        GraphicsConfiguration config = gd[0].getBestConfiguration( gc3D );
 
-		canvas = new J3DCanvas3D(config); //Canvas3D(config);
+		canvas = new J3DCanvas3D(config);
 		add("Center", canvas);
 		canvas.addMouseListener(this);
 
@@ -610,6 +608,7 @@ public class View3DWindow extends JPanel
 	 */
 	public void fillScreen()
 	{
+        objTrans.setTransform(new Transform3D());
         u.getViewingPlatform().getViewPlatformBehavior().goHome();
 	}
 
