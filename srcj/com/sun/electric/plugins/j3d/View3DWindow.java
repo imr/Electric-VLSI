@@ -220,11 +220,11 @@ public class View3DWindow extends JPanel
         highlighter.addHighlightListener(this);
 
 		setLayout(new BorderLayout());
-        //GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
-        GraphicsConfigTemplate3D gc3D = new GraphicsConfigTemplate3D( );
-		gc3D.setSceneAntialiasing( GraphicsConfigTemplate.PREFERRED );
-		GraphicsDevice gd[] = GraphicsEnvironment.getLocalGraphicsEnvironment( ).getScreenDevices( );
-        GraphicsConfiguration config = gd[0].getBestConfiguration( gc3D );
+        GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
+//        GraphicsConfigTemplate3D gc3D = new GraphicsConfigTemplate3D( );
+//		gc3D.setSceneAntialiasing( GraphicsConfigTemplate.PREFERRED );
+//		GraphicsDevice gd[] = GraphicsEnvironment.getLocalGraphicsEnvironment( ).getScreenDevices( );
+//        GraphicsConfiguration config = gd[0].getBestConfiguration( gc3D );
 
 		canvas = new J3DCanvas3D(config);
 		add("Center", canvas);
@@ -878,13 +878,15 @@ public class View3DWindow extends JPanel
 		for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
 		{
 			Highlight h = (Highlight)it.next();
-			Shape3D obj = (Shape3D)h.getObject();
+//			Shape3D obj = (Shape3D)h.getObject();
+            HighlightShape3D hObj = (HighlightShape3D)h.getObject();
+            Shape3D obj = hObj.shape;
 			if (toSelect) // highlight cell, set transparency
 			{
-				J3DAppearance app = (J3DAppearance)obj.getAppearance();
+				//J3DAppearance app = (J3DAppearance)obj.getAppearance();
 				obj.setAppearance(J3DAppearance.highligtApp);
 				//app.getRenderingAttributes().setVisible(false);
-				J3DAppearance.highligtApp.setGraphics(app.getGraphics());
+				//J3DAppearance.highligtApp.setGraphics(app.getGraphics());
 				if (view2D != null && do2D)
 				{
 					//Geometry geo = obj.getGeometry();
@@ -903,11 +905,12 @@ public class View3DWindow extends JPanel
 			}
 			else // back to normal
 			{
-				EGraphics graphics = J3DAppearance.highligtApp.getGraphics();
-				if (graphics != null)
+				//EGraphics graphics = J3DAppearance.highligtApp.getGraphics();
+                if (hObj.origApp != null)
+				//if (graphics != null)
 				{
-					J3DAppearance origAp = (J3DAppearance)graphics.get3DAppearance();
-					obj.setAppearance(origAp);
+					//J3DAppearance origAp = (J3DAppearance)graphics.get3DAppearance();
+					obj.setAppearance(hObj.origApp);
 				}
 				else // its a cell
 					obj.setAppearance(J3DAppearance.cellApp);
@@ -943,11 +946,26 @@ public class View3DWindow extends JPanel
                 for (Iterator lIt = list.iterator(); lIt.hasNext();)
                 {
                     Shape3D shape = (Shape3D)lIt.next();
-                    highlighter.addObject(shape, Highlight.Type.SHAPE3D, cell);
+                    highlighter.addObject(new HighlightShape3D(shape), Highlight.Type.SHAPE3D, cell);
                 }
             }
             selectObject(true, false);
             return; // done
+        }
+    }
+
+    /** This class will help to remember original appearance of the node
+     *
+     */
+    private static class HighlightShape3D
+    {
+        Shape3D shape;
+        Appearance origApp;
+
+        HighlightShape3D(Shape3D shape)
+        {
+            this.shape = shape;
+            this.origApp = shape.getAppearance();;
         }
     }
 
@@ -1197,7 +1215,7 @@ public class View3DWindow extends JPanel
 			
 			if (s != null)
 			{
-				highlighter.addObject(s, Highlight.Type.SHAPE3D, cell);
+				highlighter.addObject(new HighlightShape3D(s), Highlight.Type.SHAPE3D, cell);
 				selectObject(true, true);
 			}
 		}
@@ -1259,7 +1277,7 @@ public class View3DWindow extends JPanel
 		System.out.println("Here keyTyped");WindowFrame.curKeyListener.keyTyped(evt); }
 
     public void highlightChanged(Highlighter which) {
-        repaint();
+        //repaint();
     }
 
     public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
@@ -1553,9 +1571,9 @@ public class View3DWindow extends JPanel
 
     ///////////////////// KEY BEHAVIOR FUNCTION ///////////////////////////////
 
-    private Vector3d tmpVec = new Vector3d();
-    private Vector3d mapSize = null;
-    private Transform3D tmpTrans = new Transform3D();
+    private static Vector3d tmpVec = new Vector3d();
+    private static Vector3d mapSize = null;
+    private static Transform3D tmpTrans = new Transform3D();
 
     protected double getScale( )
 	{

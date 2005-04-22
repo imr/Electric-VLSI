@@ -3,7 +3,10 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02l: *********************************
-                                                                 
+
+BUG: (04/22/05, GVG) Bug found in 3D highlight for primitives (original appearance not restored).
+FIX: Extra class holds the information.
+                                                               
 BUG: (04/22/05. GVG) Exception in Spice netlist if icon instance has a parameter not defined in Schematic (Bug #279)
 FIX: Prevent setParam(true) in Examine job (Variable.java:1000)
 
