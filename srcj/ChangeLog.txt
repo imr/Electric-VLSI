@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.02m: *********************************
+
 ************************* Version 8.02l: *********************************
 
 BUG: (04/22/05, GVG) Bug found in 3D highlight for primitives (original appearance not restored).
