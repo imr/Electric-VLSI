@@ -40,20 +40,17 @@ import java.util.Iterator;
 
 import javax.swing.KeyStroke;
 
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.SavedViews;
 import com.sun.electric.tool.user.ui.LayerTab;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.MessagesWindow;
-import com.sun.electric.tool.user.ui.PaletteFrame;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
-import com.sun.electric.plugins.j3d.ui.J3DMenu;
 
 /**
  * Class to handle the commands in the "Window" pulldown menu.
