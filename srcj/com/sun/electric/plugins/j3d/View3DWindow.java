@@ -1174,7 +1174,7 @@ public class View3DWindow extends JPanel
 //        return(new J3DUtils.ThreeDDemoKnot(values[0], values[1], values[2], 1,
 //                        0, 0, 0, values[3], values[4], values[5]));
 
-        return(new J3DUtils.ThreeDDemoKnot(1, newPos, quaf));
+        return(new J3DUtils.ThreeDDemoKnot(1, newPos, quaf, null));
     }
 
 	public void mouseClicked(MouseEvent evt)
@@ -1520,8 +1520,8 @@ public class View3DWindow extends JPanel
             keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(knotList.size()-1)), knot);
         }
         Transform3D yAxis = new Transform3D();
-        Interpolator tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(jAlpha, grp,
-                                                  yAxis, keyFrames);
+        Interpolator tcbSplineInter = new J3DRotPosScaleTCBSplinePathInterpolator(jAlpha, grp,
+                                                  yAxis, keyFrames, knotList);
         tcbSplineInter.setSchedulingBounds(new BoundingSphere(new Point3d(), Double.MAX_VALUE));
         behaviorBranch.addChild(tcbSplineInter);
         interMap.put(grp, behaviorBranch);
@@ -1674,8 +1674,14 @@ public class View3DWindow extends JPanel
         tmpTrans.get(tmpVec);
         Quat4f rot = new Quat4f();
         tmpTrans.get(rot);
-
-        return(new J3DUtils.ThreeDDemoKnot(1, new Vector3f(tmpVec), rot));
+        Shape3D shape = null;
+        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
+		{
+			Highlight h = (Highlight)it.next();
+			shape = (Shape3D)h.getObject();
+            break;
+        }
+        return(new J3DUtils.ThreeDDemoKnot(1, new Vector3f(tmpVec), rot, shape));
     }
 
 
@@ -1695,7 +1701,7 @@ public class View3DWindow extends JPanel
             ObjectInputStream in = new ObjectInputStream(inputStream);
             J3DSerialization serial = (J3DSerialization)in.readObject();
             list = serial.list;
-            objTrans.getTransform(tmpTrans);
+//            objTrans.getTransform(tmpTrans);
             Transform3D trans = new Transform3D(serial.matrix);
             objTrans.setTransform(trans);
         }
@@ -1734,4 +1740,35 @@ public class View3DWindow extends JPanel
             e.printStackTrace();
         }
     }
+
+    private static class J3DRotPosScaleTCBSplinePathInterpolator extends com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator
+    {
+        List knotList;
+        int previousUpper = -1, previousLower = -1;
+
+        public J3DRotPosScaleTCBSplinePathInterpolator(Alpha alpha, TransformGroup target, Transform3D axisOfTransform, TCBKeyFrame[] keys, List list)
+        {
+            super(alpha, target, axisOfTransform, keys);
+            knotList = list;
+        }
+
+        public void processStimulus(java.util.Enumeration criteria)
+        {
+            super.processStimulus(criteria);
+
+            if (upperKnot == previousUpper && lowerKnot == previousLower) return;
+            previousUpper = upperKnot;
+            previousLower = lowerKnot;
+            J3DUtils.ThreeDDemoKnot knot = (J3DUtils.ThreeDDemoKnot)knotList.get(upperKnot-1);
+            if (knot != null && knot.shape != null)
+                target.addChild(knot.shape);
+//            knot.shape.getAppearance().getRenderingAttributes().setVisible(true);
+            knot = (J3DUtils.ThreeDDemoKnot)knotList.get(lowerKnot-1);
+            if (knot != null && knot.shape != null)
+//                target.removeChild(knot.shape);
+            knot.shape.getAppearance().getRenderingAttributes().setVisible(false);
+//            System.out.println("Criteria " + upperKnot + " " + lowerKnot);
+        }
+    }
 }
+;

@@ -806,6 +806,7 @@ public final class J3DUtils
         double rotY;
         double rotX;
         Quat4f rotation;
+        public Shape3D shape;
 
         public ThreeDDemoKnot(double xValue, double yValue, double zValue, double scale,
                               double heading, double pitch, double bank,
@@ -823,11 +824,12 @@ public final class J3DUtils
             this.rotY = rotY;
         }
 
-        public ThreeDDemoKnot(double scale, Vector3f trans, Quat4f rot)
+        public ThreeDDemoKnot(double scale, Vector3f trans, Quat4f rot, Shape3D shape)
         {
             this.scale = (float)scale;
             this.translation = trans;
             this.rotation = rot;
+            this.shape = shape;
         }
     }
 
