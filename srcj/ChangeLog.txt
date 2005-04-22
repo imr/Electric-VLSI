@@ -11,8 +11,9 @@ BUG: (04/21/05, SMR) Adding a signal to the waveform window doesn't show it at t
      same scale as the other signals (Bug #277).
 FIX: In WaveformWindow.java, set the scale when creating a new panel.
 
-IMP: (04/21/05, GVG) 3DView creation embedded in Job to abort big examples. Ability to stop creation if number
-of nodes reached predefined limit.
+IMP/MAN: (04/21/05, GVG) 3DView creation embedded in Job to abort big examples. Ability to stop creation if number
+of nodes reached predefined limit (dialog with 3 options). Max number of nodes allowed in preferences.
+3D Display option moved to 3D menu. Fix on axis location.
 
 IMP: (04/20/05, SMR) Improved PostScript output by removing tiny polygons (Bug #273).
 

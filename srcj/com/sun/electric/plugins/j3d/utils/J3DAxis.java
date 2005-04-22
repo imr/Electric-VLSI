@@ -1,5 +1,5 @@
 /*
- * $RCSfile$
+ * $RCSfile: J3DAxis.java,v $
  *
  * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
  *
@@ -37,9 +37,9 @@
  * intended for use in the design, construction, operation or
  * maintenance of any nuclear facility.
  *
- * $Revision$
- * $Date$
- * $State$
+ * $Revision: 1.1 $
+ * $Date: 2005/04/14 18:07:25 $
+ * $State: Exp $
  */
 package com.sun.electric.plugins.j3d.utils;
 
@@ -63,14 +63,9 @@ public class J3DAxis extends Group {
 	};
     /** Font for 3D axis labels */ private static Font3D font3D;
 
-	public J3DAxis()
+	public J3DAxis(double factor)
     {
 	    Transform3D t = new Transform3D();
-
-	    // Define 3D font
-//	    Font font = new Font(null, Font.PLAIN, 2);
-//	    FontExtrusion extrude = null;
-//	    Font3D f3d = new Font3D(font, extrude);
 
         if (font3D == null)
             font3D = new Font3D(new Font(User.getDefaultFont(), Font.PLAIN, 2),
@@ -80,6 +75,7 @@ public class J3DAxis extends Group {
 	    //
 
 	    t = new Transform3D();
+        t.setScale(factor);  // Axes are scaled according to sphere radius of the scene graph
 	    TransformGroup xAxisTG = new TransformGroup(t); // Identity transform
 
 	    // X-axis lines
@@ -105,6 +101,7 @@ public class J3DAxis extends Group {
 	    //
 	    t = new Transform3D();
 	    t.rotZ(Math.PI/2.0); // rotate about Z-axis to create Y-axis
+        t.setScale(factor);
 	    TransformGroup yAxisTG = new TransformGroup(t);
 
 	    // Y-axis lines
@@ -131,6 +128,7 @@ public class J3DAxis extends Group {
 
 	    t = new Transform3D();
 	    t.rotY(-Math.PI/2.0); // rotate about Y-axis to create Z-axis
+        t.setScale(factor);
 	    TransformGroup zAxisTG = new TransformGroup(t);
 
 	    // Z-axis lines

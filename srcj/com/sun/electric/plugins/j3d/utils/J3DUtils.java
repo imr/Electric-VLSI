@@ -31,6 +31,7 @@ import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.database.text.Pref;
 
 import javax.vecmath.*;
 import javax.media.j3d.*;
@@ -57,6 +58,113 @@ public final class J3DUtils
     /** Directional vectors **/              private static Vector3fObservable[] lights = new Vector3fObservable[2]; // = new Vector3f(-1.0f, -1.0f, -1.0f);
 
     public static final BoundingSphere infiniteBounds = new BoundingSphere(new Point3d(), Double.MAX_VALUE);
+    private static Pref cache3DOrigZoom = Pref.makeDoublePref("3DOrigZoom3D", User.tool.prefs, 1);
+    private static Pref cache3DRot = Pref.makeStringPref("3DRotation", User.tool.prefs, "(0 0 0)");
+    private static Pref cache3DFactor = Pref.makeDoublePref("3DScaleZ", User.tool.prefs, 1.0);
+    private static Pref cache3DAntialiasing = Pref.makeBooleanPref("3DAntialiasing", User.tool.prefs, false);
+	private static Pref cache3DPerspective = Pref.makeBooleanPref("3DPerspective", User.tool.prefs, true);
+    private static Pref cache3DCellBnd = Pref.makeBooleanPref("3DCellBnd", User.tool.prefs, true);
+    private static Pref cache3DAxes = Pref.makeBooleanPref("3DAxes", User.tool.prefs, true);
+    private static Pref cache3DMaxNumber = Pref.makeIntPref("3DMaxNumNodes", User.tool.prefs, 1000);
+
+    /**
+     * Method to get maximum number of nodes to consider a scene graph bi
+     * The default is "1000".
+     * @return maximim number of nodes.
+     */
+    public static int get3DMaxNumNodes() { return cache3DMaxNumber.getInt(); }
+    /**
+     * Method to set maximum number of nodes to display in 3D view.
+     * @param num maximim number of nodes.
+     */
+    public static void set3DMaxNumNodes(int num) { cache3DMaxNumber.setInt(num); }
+
+    /**
+     * Method to tell whether to draw 3D axes or not.
+     * The default is "true".
+     * @return true to draw 3D axes.
+     */
+    public static boolean is3DAxesOn() { return cache3DAxes.getBoolean(); }
+    /**
+     * Method to set whether to draw 3D axes or not.
+     * @param on true to draw 3D axes.
+     */
+    public static void set3DAxesOn(boolean on) { cache3DAxes.setBoolean(on); }
+
+	/**
+	 * Method to tell whether to draw bounding box for the cells.
+	 * The default is "true".
+	 * @return true to draw bounding box for the cells.
+	 */
+	public static boolean is3DCellBndOn() { return cache3DCellBnd.getBoolean(); }
+	/**
+	 * Method to set whether to draw bounding box for the cells.
+	 * @param on true to draw bounding box for the cells.
+	 */
+	public static void set3DCellBndOn(boolean on) { cache3DCellBnd.setBoolean(on); }
+
+	/**
+	 * Method to tell whether to draw 3D views with perspective.
+	 * The default is "true".
+	 * @return true to draw 3D views with perspective.
+	 */
+	public static boolean is3DPerspective() { return cache3DPerspective.getBoolean(); }
+	/**
+	 * Method to set whether to draw 3D views with perspective.
+	 * @param on true to draw 3D views with perspective.
+	 */
+	public static void set3DPerspective(boolean on) { cache3DPerspective.setBoolean(on); }
+
+	/**
+	 * Method to tell whether to use antialiasing in 3D view.
+	 * The default is "false" due to performance.
+	 * @return true to draw 3D views with perspective.
+	 */
+	public static boolean is3DAntialiasing() { return cache3DAntialiasing.getBoolean(); }
+	/**
+	 * Method to set whether to draw 3D views with perspective.
+	 * @param on true to draw 3D views with perspective.
+	 */
+	public static void set3DAntialiasing(boolean on) { cache3DAntialiasing.setBoolean(on); }
+
+    /**
+	 * Method to get original zoom factor for the view
+	 * The default is 1
+	 * @return original zoom factor
+	 */
+	public static double get3DOrigZoom() { return cache3DOrigZoom.getDouble(); }
+
+    /**
+	 * Method to set default zoom factor
+	 * @param value angle on Y
+	 */
+	public static void set3DOrigZoom(double value) { cache3DOrigZoom.setDouble(value); }
+
+    /**
+	 * Method to get default rotation for the view along X, Y and Z
+	 * The default is (0 0 0) and values are in radiant
+	 * @return rotation along X, y and Z axes.
+	 */
+	public static String get3DRotation() { return cache3DRot.getString(); }
+
+    /**
+	 * Method to set default rotation angles along X, Y and Z. Values are in radiant
+	 * @param value angles on X, Y and Z
+	 */
+	public static void set3DRotation(String value) { cache3DRot.setString(value); }
+
+    /**
+	 * Method to get current scale factor for Z values.
+	 * The default is 1.0
+	 * @return scale factor along Z.
+	 */
+	public static double get3DFactor() { return cache3DFactor.getDouble(); }
+
+    /**
+	 * Method to set 3D scale factor
+	 * @param value 3D scale factor to set.
+	 */
+	public static void set3DFactor(double value) { cache3DFactor.setDouble(value); }
 
     /********************************************************************************************************
      *   Observer-Observable pattern for Vector3f
@@ -313,12 +421,12 @@ public final class J3DUtils
 		View view = u.getViewer().getView();
 
 		// Too expensive at this point
-        if (canvas.getSceneAntialiasingAvailable() && User.is3DAntialiasing())
+        if (canvas.getSceneAntialiasingAvailable() && is3DAntialiasing())
 		    view.setSceneAntialiasingEnable(true);
 
 		// Setting the projection policy
-		view.setProjectionPolicy(User.is3DPerspective()? View.PERSPECTIVE_PROJECTION : View.PARALLEL_PROJECTION);
-		if (!User.is3DPerspective()) view.setCompatibilityModeEnable(true);
+		view.setProjectionPolicy(is3DPerspective()? View.PERSPECTIVE_PROJECTION : View.PARALLEL_PROJECTION);
+		if (!is3DPerspective()) view.setCompatibilityModeEnable(true);
 
          // Setting transparency sorting
         //view.setTransparencySortingPolicy(View.TRANSPARENCY_SORT_GEOMETRY);
@@ -343,7 +451,7 @@ public final class J3DUtils
 		view.setFrontClipDistance((vDist+radius)/200.0);
 		view.setBackClipPolicy(View.VIRTUAL_EYE);
 		view.setFrontClipPolicy(View.VIRTUAL_EYE);
-		if (User.is3DPerspective())
+		if (is3DPerspective())
 		{
 			u.getViewingPlatform().getViewPlatformTransform().setTransform(vTrans);
 		}

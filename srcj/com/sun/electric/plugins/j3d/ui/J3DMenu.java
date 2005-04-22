@@ -24,24 +24,20 @@
 
 package com.sun.electric.plugins.j3d.ui;
 
-import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.tool.user.menus.WindowMenu;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.plugins.j3d.ui.J3DViewDialog;
 import com.sun.electric.plugins.j3d.View3DWindow;
-import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileReader;
 import java.io.LineNumberReader;
-import java.util.StringTokenizer;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -62,10 +58,13 @@ public class J3DMenu {
         MenuBar.Menu j3DMenu = MenuBar.makeMenu("_3D");
         menuBar.add(j3DMenu);
 
+        /** 3D view */
+	    j3DMenu.addMenuItem("_3D View", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(false); } });
         j3DMenu.addMenuItem("Capture Frame", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame());} });
-		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
+//		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
         j3DMenu.addMenuItem("Read Capacitance Data From Socket", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { createSocketDialog(); } });
         j3DMenu.addMenuItem("Read Capacitance Data From File", null,
@@ -127,5 +126,16 @@ public class J3DMenu {
 
 
 
+    }
+
+    /**
+	 * This method creates 3D view of current cell
+     * @param transPerNode
+     */
+	public static void create3DViewCommand(boolean transPerNode)
+    {
+	    Cell curCell = WindowFrame.needCurCell();
+	    if (curCell == null) return;
+	    WindowFrame.create3DViewtWindow(curCell, WindowFrame.getCurrentWindowFrame(false).getContent(), transPerNode);
     }
 }

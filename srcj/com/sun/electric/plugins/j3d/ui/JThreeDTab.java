@@ -164,18 +164,19 @@ public class JThreeDTab extends ThreeDTab
 		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
 		threeD.add(threeDSideView, gbc);
 
-        scaleField.setText(TextUtils.formatDouble(User.get3DFactor()));
-        double[] rot = User.transformIntoValues(User.get3DRotation());
+        scaleField.setText(TextUtils.formatDouble(J3DUtils.get3DFactor()));
+        double[] rot = User.transformIntoValues(J3DUtils.get3DRotation());
         xRotField.setText(TextUtils.formatDouble(rot[0]));
         yRotField.setText(TextUtils.formatDouble(rot[1]));
         zRotField.setText(TextUtils.formatDouble(rot[2]));
 
-		threeDPerspective.setSelected(User.is3DPerspective());
+		threeDPerspective.setSelected(J3DUtils.is3DPerspective());
         // to turn on antialising if available. No by default because of performance.
-        threeDAntialiasing.setSelected(User.is3DAntialiasing());
-        threeDZoom.setText(TextUtils.formatDouble(User.get3DOrigZoom()));
-        threeDCellBnd.setSelected(User.is3DCellBndOn());
-        threeDAxes.setSelected(User.is3DAxesOn());
+        threeDAntialiasing.setSelected(J3DUtils.is3DAntialiasing());
+        threeDZoom.setText(TextUtils.formatDouble(J3DUtils.get3DOrigZoom()));
+        threeDCellBnd.setSelected(J3DUtils.is3DCellBndOn());
+        threeDAxes.setSelected(J3DUtils.is3DAxesOn());
+        maxNodeField.setText(String.valueOf(J3DUtils.get3DMaxNumNodes()));
 
         for (Iterator it = modeMap.keySet().iterator(); it.hasNext();)
         {
@@ -298,49 +299,49 @@ public class JThreeDTab extends ThreeDTab
 		}
 
 		boolean currentBoolean = threeDPerspective.isSelected();
-		if (currentBoolean != User.is3DPerspective())
-			User.set3DPerspective(currentBoolean);
+		if (currentBoolean != J3DUtils.is3DPerspective())
+			J3DUtils.set3DPerspective(currentBoolean);
 
         currentBoolean = threeDAntialiasing.isSelected();
-		if (currentBoolean != User.is3DAntialiasing())
+		if (currentBoolean != J3DUtils.is3DAntialiasing())
 		{
             View3DWindow.setAntialiasing(currentBoolean);
-			User.set3DAntialiasing(currentBoolean);
+			J3DUtils.set3DAntialiasing(currentBoolean);
 		}
         currentBoolean = threeDCellBnd.isSelected();
-		if (currentBoolean != User.is3DCellBndOn())
+		if (currentBoolean != J3DUtils.is3DCellBndOn())
 		{
             J3DAppearance.cellApp.getRenderingAttributes().setVisible(currentBoolean);
-			User.set3DCellBndOn(currentBoolean);
+			J3DUtils.set3DCellBndOn(currentBoolean);
 		}
         currentBoolean = threeDAxes.isSelected();
-		if (currentBoolean != User.is3DAxesOn())
+		if (currentBoolean != J3DUtils.is3DAxesOn())
 		{
             J3DAppearance.axisApps[0].getRenderingAttributes().setVisible(currentBoolean);
             J3DAppearance.axisApps[1].getRenderingAttributes().setVisible(currentBoolean);
             J3DAppearance.axisApps[2].getRenderingAttributes().setVisible(currentBoolean);
-			User.set3DAxesOn(currentBoolean);
+			J3DUtils.set3DAxesOn(currentBoolean);
 		}
 
         double currentValue = TextUtils.atof(scaleField.getText());
-        if (currentValue != User.get3DFactor())
+        if (currentValue != J3DUtils.get3DFactor())
         {
             View3DWindow.setScaleFactor(currentValue);
-            User.set3DFactor(currentValue);
+            J3DUtils.set3DFactor(currentValue);
         }
 
         String rotationValue = "(" +
                 xRotField.getText() + " " +
                 yRotField.getText() + " " +
                 zRotField.getText() + ")";
-        if (!rotationValue.equals(User.get3DRotation()))
-            User.set3DRotation(rotationValue);
+        if (!rotationValue.equals(J3DUtils.get3DRotation()))
+            J3DUtils.set3DRotation(rotationValue);
 
         currentValue = TextUtils.atof(threeDZoom.getText());
         if (GenMath.doublesEqual(currentValue, 0))
             System.out.println(currentValue + " is an invalid zoom factor.");
-        else if (currentValue != User.get3DOrigZoom())
-            User.set3DOrigZoom(currentValue);
+        else if (currentValue != J3DUtils.get3DOrigZoom())
+            J3DUtils.set3DOrigZoom(currentValue);
 
         StringBuffer dir = new StringBuffer();
         if (dirOneBox.isSelected())
@@ -357,6 +358,9 @@ public class JThreeDTab extends ThreeDTab
             dir.append("(0 0 0)");
         if (!dir.equals(User.get3DLightDirs()))
             User.set3DLightDirs(dir.toString());
+        int currentInt = TextUtils.atoi(maxNodeField.getText());
+        if (currentInt != J3DUtils.get3DMaxNumNodes())
+            J3DUtils.set3DMaxNumNodes(currentInt);
 	}
 
 	/** This method is called from within the constructor to
@@ -370,8 +374,8 @@ public class JThreeDTab extends ThreeDTab
         threeD = new javax.swing.JPanel();
         threeDTechnology = new javax.swing.JLabel();
         threeDLayerPane = new javax.swing.JScrollPane();
-        jLabel45 = new javax.swing.JLabel();
-        jLabel47 = new javax.swing.JLabel();
+        thickLabel = new javax.swing.JLabel();
+        distanceLabel = new javax.swing.JLabel();
         threeDThickness = new javax.swing.JTextField();
         threeDHeight = new javax.swing.JTextField();
         threeDPerspective = new javax.swing.JCheckBox();
@@ -412,6 +416,8 @@ public class JThreeDTab extends ThreeDTab
         scaleField = new javax.swing.JTextField();
         scaleLabel = new javax.swing.JLabel();
         threeDAxes = new javax.swing.JCheckBox();
+        maxNodeLabel = new javax.swing.JLabel();
+        maxNodeField = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -444,21 +450,21 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDLayerPane, gridBagConstraints);
 
-        jLabel45.setText("Thickness:");
+        thickLabel.setText("Thickness:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(jLabel45, gridBagConstraints);
+        threeD.add(thickLabel, gridBagConstraints);
 
-        jLabel47.setText("Distance:");
+        distanceLabel.setText("Distance:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        threeD.add(jLabel47, gridBagConstraints);
+        threeD.add(distanceLabel, gridBagConstraints);
 
         threeDThickness.setColumns(6);
         threeDThickness.setMinimumSize(new java.awt.Dimension(70, 19));
@@ -543,7 +549,7 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.gridheight = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
         threeD.add(transparencyPanel, gridBagConstraints);
 
@@ -803,6 +809,24 @@ public class JThreeDTab extends ThreeDTab
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(threeDAxes, gridBagConstraints);
 
+        maxNodeLabel.setText("Max. # Nodes:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(maxNodeLabel, gridBagConstraints);
+
+        maxNodeField.setColumns(6);
+        maxNodeField.setMinimumSize(new java.awt.Dimension(70, 19));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(maxNodeField, gridBagConstraints);
+
         getContentPane().add(threeD, new java.awt.GridBagConstraints());
 
         pack();
@@ -830,13 +854,15 @@ public class JThreeDTab extends ThreeDTab
     private javax.swing.JCheckBox dirTwoBox;
     private javax.swing.JPanel dirTwoPanel;
     private javax.swing.JPanel directionPanel;
+    private javax.swing.JLabel distanceLabel;
     private javax.swing.JLabel initZoomLabel;
     private javax.swing.JPanel initialViewPanel;
-    private javax.swing.JLabel jLabel45;
-    private javax.swing.JLabel jLabel47;
+    private javax.swing.JTextField maxNodeField;
+    private javax.swing.JLabel maxNodeLabel;
     private javax.swing.JTextField scaleField;
     private javax.swing.JLabel scaleLabel;
     private javax.swing.JSeparator separator;
+    private javax.swing.JLabel thickLabel;
     private javax.swing.JPanel threeD;
     private javax.swing.JCheckBox threeDAntialiasing;
     private javax.swing.JCheckBox threeDAxes;

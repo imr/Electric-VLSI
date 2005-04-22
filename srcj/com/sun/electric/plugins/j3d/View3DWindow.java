@@ -94,9 +94,6 @@ public class View3DWindow extends JPanel
         implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
         HighlightListener, J3DCollisionDetector, Observer
 {
-
-	/** # of nodes to consider scene graph big */       private static final int MAX3DVIEWNODES = 1000;
-
 	private SimpleUniverse u;
 	private J3DCanvas3D canvas;
 	protected TransformGroup objTrans;
@@ -128,7 +125,7 @@ public class View3DWindow extends JPanel
 	/** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private EditWindow view2D;
 	/** the cell that is in the window */					protected Cell cell;
-    /** scale3D factor in Z axis */                         private double scale3D = User.get3DFactor();
+    /** scale3D factor in Z axis */                         private double scale3D = J3DUtils.get3DFactor();
 	/** Highlighter for this window */                      private Highlighter highlighter;
 	private PickCanvas pickCanvas;
 	/** Lis with all Shape3D drawn per ElectricObject */    private HashMap electricObjectMap = new HashMap();
@@ -137,6 +134,7 @@ public class View3DWindow extends JPanel
     /** To detect max number of nodes */                    private boolean reachLimit = false;
     /** To ask question only once */                        private boolean alreadyChecked = false;
     /** Job reference */                                    private Job job;
+    /** Reference to limit to consider scene graph big */   private int maxNumNodes;
 
     /** Inner class to create 3D view in a job. This should be safer in terms of the number of nodes
      * and be able to stop it
@@ -160,7 +158,7 @@ public class View3DWindow extends JPanel
         public boolean doIt()
         {
             View3DWindow window = new View3DWindow(cell, windowFrame, view2D, transPerNode, this);
-            if (!window.reachLimit)
+            if (!window.job.getAborted())
             {
                 windowFrame.finishWindowFrameInformation(window, cell);
                 return true;
@@ -181,17 +179,24 @@ public class View3DWindow extends JPanel
      */
     private boolean isSizeLimitOK(int number)
     {
-        if (reachLimit || number > MAX3DVIEWNODES)
+        if (reachLimit || number > maxNumNodes)
         {
             // Only ask once
             if (!alreadyChecked)
             {
-                int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-                "Number of nodes in graph scene reached limit of " + MAX3DVIEWNODES + " (contains " + number + " nodes), are you sure you want to open 3D view of " + cell.describe() + "?",
-                    "Warning", JOptionPane.OK_CANCEL_OPTION);
+                Object[] possibleValues = { "Full", "Limit", "Cancel" };
+                int response = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+                "Number of nodes in graph scene reached limit of " + maxNumNodes +
+                        " (loaded " + number + " nodes so far).\nClick 'Full' to include all nodes in '" +cell.describe() +
+                        "', 'Limit' to show " + number + " nodes or 'Cancel' to abort process.\nUnexpand cells to reduce the number).",
+                    "Warning", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, possibleValues, possibleValues[2]);
                 alreadyChecked = true;
-                if (response == JOptionPane.CANCEL_OPTION)
+                if (response > 0) // Cancel or limit
+                {
+                    if (response == 2)
+                        job.abort();
                     reachLimit = true;
+                }
             }
             if (reachLimit)
                 return false;
@@ -209,6 +214,7 @@ public class View3DWindow extends JPanel
         this.view2D.getWindowFrame().addObserver(this);
         this.oneTransformPerNode = transPerNode;
         this.job = job;
+        this.maxNumNodes = J3DUtils.get3DMaxNumNodes();
 
 		highlighter = new Highlighter(Highlighter.SELECT_HIGHLIGHTER, wf);
         highlighter.addHighlightListener(this);
@@ -290,73 +296,31 @@ public class View3DWindow extends JPanel
         sceneBnd.getCenter(center);
 		orbit.setRotationCenter(center);
 		orbit.setMinRadius(0);
-		//orbit.setZoomFactor(10);
-		orbit.setTransFactors(10, 10);
+//		orbit.setZoomFactor(10);
+//		orbit.setTransFactors(10, 10);
         orbit.setProportionalZoom(true);
 
-
-        // Create axis with associated behavior
-        BranchGroup axisRoot = new BranchGroup();
-
-        // Position the axis
-        Transform3D t = new Transform3D();
-        //t.set(new Vector3d(-0.5, -0.5, -1.5));
-        t.set(new Vector3d(-0.7, -0.5, -2.0)); // good for Mac?
-        t.set(new Vector3d(-0.9, -0.5, -2.5)); // set on Linux
-        TransformGroup axisTranslation = new TransformGroup(t);
-        axisRoot.addChild(axisTranslation);
-
-        // Create transform group to orient the axis and make it
-        // readable & writable (this will be the target of the axis
-        // behavior)
-        TransformGroup axisTG = new TransformGroup();
-        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-        axisTranslation.addChild(axisTG);
-
-        // Create the axis geometry
-        J3DAxis axis = new J3DAxis();
-        axisTG.addChild(axis);
-
-        // Add axis into BG
-        pg.addChild(axisRoot);
-
-        // Create the axis behavior
-        TransformGroup viewPlatformTG =
-            viewingPlatform.getViewPlatformTransform();
-        J3DAxisBehavior axisBehavior = new J3DAxisBehavior(axisTG, viewPlatformTG);
-        axisBehavior.setSchedulingBounds(J3DUtils.infiniteBounds);
-        pg.addChild(axisBehavior);
-
-        viewingPlatform.setPlatformGeometry(pg) ;
-
-        //viewingPlatform.setNominalViewingTransform();
+        viewingPlatform.setNominalViewingTransform();
     	viewingPlatform.setViewPlatformBehavior(orbit);
 
 		double radius = sceneBnd.getRadius();
 		View view = u.getViewer().getView();
 
 		// Too expensive at this point
-        if (canvas.getSceneAntialiasingAvailable() && User.is3DAntialiasing())
+        if (canvas.getSceneAntialiasingAvailable() && J3DUtils.is3DAntialiasing())
 		    view.setSceneAntialiasingEnable(true);
 
 		// Setting the projection policy
-		view.setProjectionPolicy(User.is3DPerspective()? View.PERSPECTIVE_PROJECTION : View.PARALLEL_PROJECTION);
-		if (!User.is3DPerspective()) view.setCompatibilityModeEnable(true);
+		view.setProjectionPolicy(J3DUtils.is3DPerspective()? View.PERSPECTIVE_PROJECTION : View.PARALLEL_PROJECTION);
+		if (!J3DUtils.is3DPerspective()) view.setCompatibilityModeEnable(true);
 
         // Setting transparency sorting
         view.setTransparencySortingPolicy(View.TRANSPARENCY_SORT_GEOMETRY);
         view.setDepthBufferFreezeTransparent(false); // set to true only for transparent layers
 
         // Setting a good viewpoint for the camera
-		Point3d c1 = new Point3d();
-		sceneBnd.getCenter(c1);
-		Vector3d vCenter = new Vector3d(c1);
+		Vector3d vCenter = new Vector3d(center);
 		double vDist = 1.4 * radius / Math.tan(view.getFieldOfView()/2.0);
-        Point3d c2 = new Point3d();
-
-        sceneBnd.getCenter(c2);
-		c2.z += vDist;
 		vCenter.z += vDist;
 		Transform3D vTrans = new Transform3D();
 
@@ -369,11 +333,11 @@ public class View3DWindow extends JPanel
 
 		view.setBackClipDistance((vDist+radius)*200.0);
 		view.setFrontClipDistance((vDist+radius)/200.0);
-		view.setBackClipPolicy(View.VIRTUAL_EYE);
-		view.setFrontClipPolicy(View.VIRTUAL_EYE);
-		if (User.is3DPerspective())
+//		view.setBackClipPolicy(View.VIRTUAL_EYE);
+//		view.setFrontClipPolicy(View.VIRTUAL_EYE);
+		if (J3DUtils.is3DPerspective())
 		{
-            keyBehavior.setHomeRotation(User.transformIntoValues(User.get3DRotation()));
+            //keyBehavior.setHomeRotation(User.transformIntoValues(J3DUtils.get3DRotation()));
 
             viewingPlatform.getViewPlatformBehavior().setHomeTransform(vTrans);
             viewingPlatform.getViewPlatformBehavior().goHome();
@@ -389,6 +353,41 @@ public class View3DWindow extends JPanel
 		}
 
 		u.addBranchGraph(scene);
+
+        // Create axis with associated behavior
+        BranchGroup axisRoot = new BranchGroup();
+
+        // Position the axis
+        Transform3D t = new Transform3D();
+//        t.set(new Vector3d(-0.9, -0.5, -2.5)); // set on Linux
+        t.set(new Vector3d(-radius/10, -radius/16, -radius/3.5));
+        TransformGroup axisTranslation = new TransformGroup(t);
+        axisRoot.addChild(axisTranslation);
+
+        // Create transform group to orient the axis and make it
+        // readable & writable (this will be the target of the axis
+        // behavior)
+        TransformGroup axisTG = new TransformGroup();
+        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+        axisTranslation.addChild(axisTG);
+
+        // Create the axis geometry
+        J3DAxis axis = new J3DAxis(radius/10);
+        axisTG.addChild(axis);
+
+        // Add axis into BG
+        pg.addChild(axisRoot);
+
+        // Create the axis behavior
+        TransformGroup viewPlatformTG =
+            viewingPlatform.getViewPlatformTransform();
+        J3DAxisBehavior axisBehavior = new J3DAxisBehavior(axisTG, viewPlatformTG);
+        axisBehavior.setSchedulingBounds(J3DUtils.infiniteBounds);
+        pg.addChild(axisBehavior);
+
+        viewingPlatform.setPlatformGeometry(pg) ;
+
 		setWindowTitle();
 	}
 
@@ -492,7 +491,7 @@ public class View3DWindow extends JPanel
 		View3DEnumerator view3D = new View3DEnumerator();
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
 
-        if (reachLimit) return null; // limit reached
+        if (job.checkAbort()) return null; // Job cancel
 
         // Create Axes
 //        Rectangle2D cellBnd = cell.getBounds();

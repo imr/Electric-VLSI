@@ -171,7 +171,10 @@ public class J3DAppearance extends Appearance
 	 */
 	private void set3DVisibility(Boolean visible)
 	{
-		getRenderingAttributes().setVisible(visible.booleanValue());
+        if (getRenderingAttributes() == null || visible == null)
+            System.out.println("Error in J3DAppearance.set3DVisibility");
+		else
+            getRenderingAttributes().setVisible(visible.booleanValue());
 	}
 
     /**
@@ -230,7 +233,7 @@ public class J3DAppearance extends Appearance
                 RenderingAttributes ra = new RenderingAttributes();
                 ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
                 ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
-                ra.setVisible(User.is3DAxesOn());
+                ra.setVisible(J3DUtils.is3DAxesOn());
                 axisApps[i].setRenderingAttributes(ra);
             }
             else if (initValue == null) // redoing color only when it was changed in GUI
@@ -268,7 +271,7 @@ public class J3DAppearance extends Appearance
             RenderingAttributes ra = new RenderingAttributes();
             ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_READ);
             ra.setCapability(RenderingAttributes.ALLOW_VISIBLE_WRITE);
-            ra.setVisible(User.is3DCellBndOn());
+            ra.setVisible(J3DUtils.is3DCellBndOn());
             cellApp.setRenderingAttributes(ra);
 
 			// Set up the polygon attributes

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.Main;
+import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
@@ -1414,99 +1415,6 @@ public class User extends Listener
 	 * @param t the default tab to show.
 	 */
 	public static void setDefaultWindowTab(int t) { cacheDefaultWindowTab.setInt(t); }
-
-    /**************************** 3D Display Preferences **************************************/
-    private static Pref cache3DAxes = Pref.makeBooleanPref("3DAxes", User.tool.prefs, true);
-    /**
-     * Method to tell whether to draw 3D axes or not.
-     * The default is "true".
-     * @return true to draw 3D axes.
-     */
-    public static boolean is3DAxesOn() { return cache3DAxes.getBoolean(); }
-    /**
-     * Method to set whether to draw 3D axes or not.
-     * @param on true to draw 3D axes.
-     */
-    public static void set3DAxesOn(boolean on) { cache3DAxes.setBoolean(on); }
-
-    private static Pref cache3DCellBnd = Pref.makeBooleanPref("3DCellBnd", User.tool.prefs, true);
-	/**
-	 * Method to tell whether to draw bounding box for the cells.
-	 * The default is "true".
-	 * @return true to draw bounding box for the cells.
-	 */
-	public static boolean is3DCellBndOn() { return cache3DCellBnd.getBoolean(); }
-	/**
-	 * Method to set whether to draw bounding box for the cells.
-	 * @param on true to draw bounding box for the cells.
-	 */
-	public static void set3DCellBndOn(boolean on) { cache3DCellBnd.setBoolean(on); }
-
-	private static Pref cache3DPerspective = Pref.makeBooleanPref("3DPerspective", User.tool.prefs, true);
-	/**
-	 * Method to tell whether to draw 3D views with perspective.
-	 * The default is "true".
-	 * @return true to draw 3D views with perspective.
-	 */
-	public static boolean is3DPerspective() { return cache3DPerspective.getBoolean(); }
-	/**
-	 * Method to set whether to draw 3D views with perspective.
-	 * @param on true to draw 3D views with perspective.
-	 */
-	public static void set3DPerspective(boolean on) { cache3DPerspective.setBoolean(on); }
-
-    private static Pref cache3DAntialiasing = Pref.makeBooleanPref("3DAntialiasing", User.tool.prefs, false);
-	/**
-	 * Method to tell whether to use antialiasing in 3D view.
-	 * The default is "false" due to performance.
-	 * @return true to draw 3D views with perspective.
-	 */
-	public static boolean is3DAntialiasing() { return cache3DAntialiasing.getBoolean(); }
-	/**
-	 * Method to set whether to draw 3D views with perspective.
-	 * @param on true to draw 3D views with perspective.
-	 */
-	public static void set3DAntialiasing(boolean on) { cache3DAntialiasing.setBoolean(on); }
-    
-    private static Pref cache3DFactor = Pref.makeDoublePref("3DScaleZ", User.tool.prefs, 1.0);
-	/**
-	 * Method to get current scale factor for Z values.
-	 * The default is 1.0
-	 * @return scale factor along Z.
-	 */
-	public static double get3DFactor() { return cache3DFactor.getDouble(); }
-	/**
-	 * Method to set 3D scale factor
-	 * @param value 3D scale factor to set.
-	 */
-	public static void set3DFactor(double value) { cache3DFactor.setDouble(value); }
-
-    private static Pref cache3DRot = Pref.makeStringPref("3DRotation", User.tool.prefs, "(0 0 0)");
-	/**
-	 * Method to get default rotation for the view along X, Y and Z
-	 * The default is (0 0 0) and values are in radiant
-	 * @return rotation along X, y and Z axes.
-	 */
-	public static String get3DRotation() { return cache3DRot.getString(); }
-	/**
-	 * Method to set default rotation angles along X, Y and Z. Values are in radiant
-	 * @param value angles on X, Y and Z
-	 */
-	public static void set3DRotation(String value) { cache3DRot.setString(value); }
-
-    private static Pref cache3DOrigZoom = Pref.makeDoublePref("3DOrigZoom3D", User.tool.prefs, 1);
-	/**
-	 * Method to get original zoom factor for the view
-	 * The default is 1
-	 * @return original zoom factor
-	 */
-	public static double get3DOrigZoom() { return cache3DOrigZoom.getDouble(); }
-	/**
-	 * Method to set default zoom factor
-	 * @param value angle on Y
-	 */
-	public static void set3DOrigZoom(double value) { cache3DOrigZoom.setDouble(value); }
-    /**************************** End of 3D Display Preferences **************************************/
 
 	private static Pref cachePlayClickSoundsWhenCreatingArcs = Pref.makeBooleanPref("PlayClickSoundsWhenCreatingArcs", User.tool.prefs, true);
 	/**

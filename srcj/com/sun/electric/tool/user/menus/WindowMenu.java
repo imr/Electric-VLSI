@@ -53,6 +53,7 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.ZoomAndPanListener;
+import com.sun.electric.plugins.j3d.ui.J3DMenu;
 
 /**
  * Class to handle the commands in the "Window" pulldown menu.
@@ -172,21 +173,6 @@ public class WindowMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().clear(); }});
         messagesSubMenu.addMenuItem("Set F_ont...", null,
              new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().selectFont(); }});
-
-        /** 3D view */
-	    windowMenu.addMenuItem("_3D Display", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(false); } });
-    }
-   
-	/**
-	 * This method creates 3D view of current cell
-     * @param transPerNode
-     */
-	public static void create3DViewCommand(boolean transPerNode)
-    {
-	    Cell curCell = WindowFrame.needCurCell();
-	    if (curCell == null) return;
-	    WindowFrame.create3DViewtWindow(curCell, WindowFrame.getCurrentWindowFrame(false).getContent(), transPerNode);
     }
 
     public static void fullDisplay()
