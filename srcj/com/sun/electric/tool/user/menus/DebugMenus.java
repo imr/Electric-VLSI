@@ -69,6 +69,7 @@ import com.sun.electric.tool.simulation.interval.Diode;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.ui.*;
+import com.sun.electric.plugins.j3d.ui.J3DMenu;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
