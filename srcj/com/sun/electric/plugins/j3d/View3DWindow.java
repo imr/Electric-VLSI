@@ -1277,7 +1277,7 @@ public class View3DWindow extends JPanel
 		System.out.println("Here keyTyped");WindowFrame.curKeyListener.keyTyped(evt); }
 
     public void highlightChanged(Highlighter which) {
-        //repaint();
+        repaint();
     }
 
     public void highlighterLostFocus(Highlighter highlighterGainedFocus) {}
@@ -1693,12 +1693,13 @@ public class View3DWindow extends JPanel
         Quat4f rot = new Quat4f();
         tmpTrans.get(rot);
         Shape3D shape = null;
-        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
-		{
-			Highlight h = (Highlight)it.next();
-			shape = (Shape3D)h.getObject();
-            break;
-        }
+//        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
+//		{
+//			Highlight h = (Highlight)it.next();
+//			shape = (Shape3D)h.getObject();
+//            break;
+//        }
+//        repaint();
         return(new J3DUtils.ThreeDDemoKnot(1, new Vector3f(tmpVec), rot, shape));
     }
 
@@ -1773,19 +1774,19 @@ public class View3DWindow extends JPanel
         public void processStimulus(java.util.Enumeration criteria)
         {
             super.processStimulus(criteria);
-
-            if (upperKnot == previousUpper && lowerKnot == previousLower) return;
-            previousUpper = upperKnot;
-            previousLower = lowerKnot;
-            J3DUtils.ThreeDDemoKnot knot = (J3DUtils.ThreeDDemoKnot)knotList.get(upperKnot-1);
-            if (knot != null && knot.shape != null)
-                target.addChild(knot.shape);
-//            knot.shape.getAppearance().getRenderingAttributes().setVisible(true);
-            knot = (J3DUtils.ThreeDDemoKnot)knotList.get(lowerKnot-1);
-            if (knot != null && knot.shape != null)
-//                target.removeChild(knot.shape);
-            knot.shape.getAppearance().getRenderingAttributes().setVisible(false);
-//            System.out.println("Criteria " + upperKnot + " " + lowerKnot);
+//
+//            if (upperKnot == previousUpper && lowerKnot == previousLower) return;
+//            previousUpper = upperKnot;
+//            previousLower = lowerKnot;
+//            J3DUtils.ThreeDDemoKnot knot = (J3DUtils.ThreeDDemoKnot)knotList.get(upperKnot-1);
+//            if (knot != null && knot.shape != null)
+//                target.addChild(knot.shape);
+////            knot.shape.getAppearance().getRenderingAttributes().setVisible(true);
+//            knot = (J3DUtils.ThreeDDemoKnot)knotList.get(lowerKnot-1);
+//            if (knot != null && knot.shape != null)
+////                target.removeChild(knot.shape);
+//            knot.shape.getAppearance().getRenderingAttributes().setVisible(false);
+////            System.out.println("Criteria " + upperKnot + " " + lowerKnot);
         }
     }
 }
