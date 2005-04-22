@@ -3,6 +3,9 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02l: *********************************
+                                                                 
+BUG: (04/22/05. GVG) Exception in Spice netlist if icon instance has a parameter not defined in Schematic (Bug #279)
+FIX: Prevent setParam(true) in Examine job (Variable.java:1000)
 
 BUG: (04/21/05, SMR) GDS output writes the year incorrectly.
 FIX: In "output.GDS.outputDate()", subtract 1900 from the year.
