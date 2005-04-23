@@ -65,10 +65,16 @@ public class J3DMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame());} });
 //		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
-        j3DMenu.addMenuItem("Read Capacitance Data From Socket", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { createSocketDialog(); } });
-        j3DMenu.addMenuItem("Read Capacitance Data From File", null,
+
+        MenuBar.Menu demoSubMenu = MenuBar.makeMenu("Demo");
+		j3DMenu.add(demoSubMenu);
+        demoSubMenu.addMenuItem("Open 3D View Demo", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(true); } });
+        demoSubMenu.addMenuItem("Read Capacitance Data From File", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { readDemoDataFromFile(); } });
+        demoSubMenu.addMenuItem("Read Capacitance Data From Socket", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { createSocketDialog(); } });
+
 		return j3DMenu;
     }
 
@@ -88,7 +94,7 @@ public class J3DMenu {
 
         if (fileName == null) return; // Cancel
 
-        Object[] possibleValues = { "OK", "Skip", "Cancel" };
+        Object[] possibleValues = { "Accept All", "OK", "Skip", "Cancel" };
         View3DWindow view3D = null;
         WindowContent content = WindowFrame.getCurrentWindowFrame().getContent();
         if (content instanceof View3DWindow)
@@ -102,18 +108,21 @@ public class J3DMenu {
         try {
             LineNumberReader lineReader = new LineNumberReader(new FileReader(fileName));
             List knotList = new ArrayList();
-
+            int response = -1;
             for(;;)
             {
                 // get keyword from file
                 String line = lineReader.readLine();
                 if (line == null) break;
-                int response = JOptionPane.showOptionDialog(null,
-                "Applying following data " + line, "Action", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, possibleValues,
-                        possibleValues[0]);
-                if (response == 1) continue; // skip
-                else if (response == 2) break; // cancel option
-
+                // responce 0 -> Accept All
+                if (response != 0)
+                {
+                    response = JOptionPane.showOptionDialog(null,
+                    "Applying following data " + line, "Action", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, possibleValues,
+                            possibleValues[0]);
+                    if (response == 2) continue; // skip
+                    else if (response == 3) break; // cancel option
+                }
                 String[] stringValues = J3DClientApp.parseValues(line, 0);
                 double[] values = J3DClientApp.convertValues(stringValues);
                 knotList.add(view3D.moveAndRotate(values));
