@@ -25,21 +25,16 @@
 package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DClientApp;
+import com.sun.electric.plugins.j3d.utils.J3DUtils;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileReader;
-import java.io.LineNumberReader;
-import java.util.List;
-import java.util.ArrayList;
 
 import javax.swing.*;
 
@@ -61,7 +56,7 @@ public class J3DMenu {
         /** 3D view */
 	    j3DMenu.addMenuItem("_3D View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(false); } });
-        j3DMenu.addMenuItem("Capture/Play Frame", null,
+        j3DMenu.addMenuItem("Capture Frame/Start Demo", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame());} });
 //		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
@@ -88,53 +83,16 @@ public class J3DMenu {
             J3DViewDialog.create3DViewDialog(TopLevel.getCurrentJFrame(), value.toString());
     }
 
-    public static void readDemoDataFromFile()
+    private static void readDemoDataFromFile()
     {
-        String fileName = OpenFile.chooseInputFile(FileType.TEXT, null);
-
-        if (fileName == null) return; // Cancel
-
-        Object[] possibleValues = { "Accept All", "OK", "Skip", "Cancel" };
-        View3DWindow view3D = null;
         WindowContent content = WindowFrame.getCurrentWindowFrame().getContent();
-        if (content instanceof View3DWindow)
-            view3D = (View3DWindow)content;
-        else
+        if (!(content instanceof View3DWindow))
         {
             System.out.println("Current Window Frame is not a 3D View for Read Demo Data");
             return;
         }
-
-        try {
-            LineNumberReader lineReader = new LineNumberReader(new FileReader(fileName));
-            List knotList = new ArrayList();
-            int response = -1;
-            for(;;)
-            {
-                // get keyword from file
-                String line = lineReader.readLine();
-                if (line == null) break;
-                // responce 0 -> Accept All
-                if (response != 0)
-                {
-                    response = JOptionPane.showOptionDialog(null,
-                    "Applying following data " + line, "Action", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, possibleValues,
-                            possibleValues[0]);
-                    if (response == 2) continue; // skip
-                    else if (response == 3) break; // cancel option
-                }
-                String[] stringValues = J3DClientApp.parseValues(line, 0);
-                double[] values = J3DClientApp.convertValues(stringValues);
-                knotList.add(view3D.moveAndRotate(values));
-            }
-            view3D.addInterpolator(knotList);
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-
-
-
+        View3DWindow view3D = (View3DWindow)content;
+        view3D.addInterpolator(null); //J3DUtils.readDemoDataFromFile(view3D));
     }
 
     /**

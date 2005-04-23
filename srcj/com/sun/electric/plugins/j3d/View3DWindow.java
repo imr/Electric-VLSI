@@ -24,7 +24,6 @@
  */
 package com.sun.electric.plugins.j3d;
 
-import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -67,7 +66,6 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.util.*;
 import java.util.List;
-import java.io.*;
 
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
@@ -159,6 +157,16 @@ public class View3DWindow extends JPanel
     public static void create3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, Boolean transPerNode)
     {
         new View3DWindowJob(cell, wf, view2D, transPerNode.booleanValue());
+    }
+
+    public void getObjTransform(Transform3D trans)
+    {
+        objTrans.getTransform(trans);
+    }
+
+    public void setObjTransform(Transform3D trans)
+    {
+        objTrans.setTransform(trans);
     }
 
     /**
@@ -1181,9 +1189,6 @@ public class View3DWindow extends JPanel
                 grp.setTransform(currXform);
             }
         }
-//        return(new J3DUtils.ThreeDDemoKnot(values[0], values[1], values[2], 1,
-//                        0, 0, 0, values[3], values[4], values[5]));
-
         return(new J3DUtils.ThreeDDemoKnot(1, newPos, quaf, null));
     }
 
@@ -1458,11 +1463,11 @@ public class View3DWindow extends JPanel
     /**
      * Method to create a path interpolator using knots
      * defined in input list
-     * @param knotList
+     * @param knotList list with knot data. If null, search for data attached to nodes
      */
     public Map addInterpolator(List knotList)
     {
-        if (knotList.size() < 2)
+        if (knotList != null && knotList.size() < 2)
         {
             System.out.println("Needs at least 2 frams for the interpolator");
             return null;
@@ -1474,19 +1479,25 @@ public class View3DWindow extends JPanel
             NodeInst ni = (NodeInst)it.next();
             Variable var = (Variable)ni.getVar("3D_NODE_DEMO");
             if (var == null) continue;
+            List tmpList = knotList;
+            if (tmpList == null)
+            {
+                tmpList = J3DUtils.readDemoDataFromFile(this);
+                if (tmpList == null) continue; // nothing load
+            }
             List list = (List)electricObjectMap.get(ni);
             for (int j = 0; j < list.size(); j++)
             {
                 Shape3D obj = (Shape3D)list.get(j);
                 TransformGroup grp = (TransformGroup)transformGroupMap.get(obj);
-                interMap = addInterpolatorPerGroup(knotList, grp, interMap);
+                interMap = addInterpolatorPerGroup(tmpList, grp, interMap, false);
                 BranchGroup behaviorBranch = new BranchGroup();
                 behaviorBranch.setCapability(BranchGroup.ALLOW_DETACH); // to detach this branch from parent group
-                TCBKeyFrame[] keyFrames = new TCBKeyFrame[knotList.size()];
-                for (int i = 0; i < knotList.size(); i++)
+                TCBKeyFrame[] keyFrames = new TCBKeyFrame[tmpList.size()];
+                for (int i = 0; i < tmpList.size(); i++)
                 {
-                    J3DUtils.ThreeDDemoKnot knot = (J3DUtils.ThreeDDemoKnot)knotList.get(i);
-                    keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(knotList.size()-1)), knot);
+                    J3DUtils.ThreeDDemoKnot knot = (J3DUtils.ThreeDDemoKnot)tmpList.get(i);
+                    keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(tmpList.size()-1)), knot);
                 }
                 Transform3D yAxis = new Transform3D();
                 Interpolator tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(J3DUtils.jAlpha, grp,
@@ -1509,7 +1520,7 @@ public class View3DWindow extends JPanel
      * @param interMap
      * @return
      */
-    public Map addInterpolatorPerGroup(List knotList, TransformGroup grp, Map interMap)
+    public Map addInterpolatorPerGroup(List knotList, TransformGroup grp, Map interMap, boolean useView)
     {
         if (knotList.size() < 2)
         {
@@ -1520,7 +1531,10 @@ public class View3DWindow extends JPanel
         if (interMap == null)
             interMap = new HashMap(1);
         if (grp == null)
-            grp = objTrans;
+        {
+            if (!useView) grp = objTrans;
+            else grp = u.getViewingPlatform().getViewPlatformTransform();
+        }
         BranchGroup behaviorBranch = new BranchGroup();
         behaviorBranch.setCapability(BranchGroup.ALLOW_DETACH); // to detach this branch from parent group
         TCBKeyFrame[] keyFrames = new TCBKeyFrame[knotList.size()];
@@ -1559,7 +1573,6 @@ public class View3DWindow extends JPanel
 
     private static Vector3d tmpVec = new Vector3d();
     private static Vector3d mapSize = null;
-    private static Transform3D tmpTrans = new Transform3D();
 
     protected double getScale( )
 	{
@@ -1655,14 +1668,14 @@ public class View3DWindow extends JPanel
 
         if (result != null && result.getNode(PickResult.SHAPE3D) != null)
         {
-             Shape3D shape = (Shape3D)result.getNode(PickResult.SHAPE3D);
+//             Shape3D shape = (Shape3D)result.getNode(PickResult.SHAPE3D);
              //shape.setAppearance(J3DAppearance.highligtApp);
             for (int i = 0; i < result.numIntersections(); i++)
             {
                 PickIntersection inter = result.getIntersection(i);
 //            System.out.println("Collision " + inter.getDistance() + " " + inter.getPointCoordinates() + " normal " + inter.getPointNormal());
 //                 System.out.println("Point  " + point + " world " + worldCoord);
-                GeometryArray geo = inter.getGeometryArray();
+//                GeometryArray geo = inter.getGeometryArray();
 
                 if (inter.getDistance() < 6) 
                     return (true); // collision
@@ -1672,13 +1685,17 @@ public class View3DWindow extends JPanel
         return (false);
 	}
 
-    public J3DUtils.ThreeDDemoKnot addFrame()
+    public J3DUtils.ThreeDDemoKnot addFrame(boolean useView)
     {
-        objTrans.getTransform(tmpTrans);
+        Transform3D tmpTrans = new Transform3D();
+        if (!useView) objTrans.getTransform(tmpTrans);
+        else u.getViewingPlatform().getViewPlatformTransform().getTransform(tmpTrans);
         tmpTrans.get(tmpVec);
         Quat4f rot = new Quat4f();
         tmpTrans.get(rot);
         Shape3D shape = null;
+
+
 //        for (Iterator it = highlighter.getHighlights().iterator(); it.hasNext();)
 //		{
 //			Highlight h = (Highlight)it.next();
@@ -1689,61 +1706,10 @@ public class View3DWindow extends JPanel
         return(new J3DUtils.ThreeDDemoKnot(1, new Vector3f(tmpVec), rot, shape));
     }
 
-
-    /**
-     * Method to read in demo knots from disk using serialization
-     * @param filename
-     * @return
-     */
-    public List readDemo(String filename)
-    {
-        if (filename == null) return null;
-
-        List list = null;
-        try
-        {
-            FileInputStream inputStream = new FileInputStream(filename);
-            ObjectInputStream in = new ObjectInputStream(inputStream);
-            J3DSerialization serial = (J3DSerialization)in.readObject();
-            list = serial.list;
-//            objTrans.getTransform(tmpTrans);
-            Transform3D trans = new Transform3D(serial.matrix);
-            objTrans.setTransform(trans);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
     public void saveMovie(String filename)
     {
         if (filename != null)
             canvas.saveMovie(filename);
-    }
-
-    /**
-     * Method to store demo knots in disk using serialization
-     * @param knotList
-     * @param filename
-     */
-    public void saveDemo(List knotList, String filename)
-    {
-        if (filename == null || knotList == null) return;
-
-        try
-        {
-            FileOutputStream outputStream = new FileOutputStream(filename);
-            ObjectOutputStream out = new ObjectOutputStream(outputStream);
-            objTrans.getTransform(tmpTrans);
-            J3DSerialization serial = new J3DSerialization(knotList, tmpTrans);
-            out.writeObject(serial);
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
     }
 
     private static class J3DRotPosScaleTCBSplinePathInterpolator extends com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator

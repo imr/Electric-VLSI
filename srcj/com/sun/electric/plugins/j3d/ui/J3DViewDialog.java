@@ -30,9 +30,6 @@ import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
-import com.sun.electric.plugins.j3d.utils.J3DAlpha;
-import com.sun.electric.plugins.j3d.utils.J3DUtils;
-import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -91,7 +88,7 @@ public class J3DViewDialog extends EDialog
 
     public void socketAction(String inData)
     {
-        String[] stringValues = J3DClientApp.parseValues(inData, 0);
+        String[] stringValues = J3DUtils.parseValues(inData, 0);
 
         xField.setText(stringValues[0]);
         yField.setText(stringValues[1]);
@@ -103,7 +100,7 @@ public class J3DViewDialog extends EDialog
         yRotPosField.setText(stringValues[7]);
         zRotPosField.setText(stringValues[8]);
         setOtherValues(stringValues[9], stringValues[10]);
-        double[] values = J3DClientApp.convertValues(stringValues);
+        double[] values = J3DUtils.convertValues(stringValues);
         knots.add(view3D.moveAndRotate(values));
     }
 
@@ -593,7 +590,6 @@ public class J3DViewDialog extends EDialog
             demo.setText("Start Demo");
             view3D.removeInterpolator(interMap);
         }
-        //view3D.set3DCamera(spline.getSelectedIndex());
     }//GEN-LAST:event_demoActionPerformed
 
     private void connectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectActionPerformed

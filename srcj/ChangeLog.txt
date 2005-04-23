@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02m: *********************************
 
-IMP/MAN: (04/22/05, GVG) Alpha control in 3D preferences
+IMP/MAN: (04/22/05, GVG) Alpha control in 3D preferences. Ability to load more than one file per capacitance demo.
 
 ************************* Version 8.02l: *********************************
 

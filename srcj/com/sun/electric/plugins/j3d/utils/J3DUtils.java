@@ -31,15 +31,20 @@ import com.sun.j3d.utils.geometry.NormalGenerator;
 import com.sun.j3d.utils.picking.PickTool;
 import com.sun.j3d.utils.universe.SimpleUniverse;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.plugins.j3d.View3DWindow;
 
 import javax.vecmath.*;
 import javax.media.j3d.*;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.PathIterator;
 import java.awt.image.BufferedImage;
 import java.util.*;
+import java.util.List;
 import java.io.*;
 
 /**
@@ -68,6 +73,9 @@ public final class J3DUtils
     private static Pref cache3DMaxNumber = Pref.makeIntPref("3DMaxNumNodes", User.tool.prefs, 1000);
     private static Pref cache3DAlpha = Pref.makeIntPref("3DAlpha", User.tool.prefs, 1000);
     public static J3DAlpha jAlpha = null;
+    // For reading data files (capacitance)
+    private static final int VALUES_PER_LINE = 11;
+    private static double[] lastValidValues = new double[VALUES_PER_LINE];
 
     /**
      * Method to get maximum number of nodes to consider a scene graph bi
@@ -183,6 +191,92 @@ public final class J3DUtils
     {
         cache3DAlpha.setInt(value);
         setAlpha(value);
+    }
+
+    /**
+     * Method to generate knots for interpolator from a file
+     * @param view3D
+     * @return list with knot points. Null if operation was cancelled
+     */
+    public static List readDemoDataFromFile(View3DWindow view3D)
+    {
+        String fileName = OpenFile.chooseInputFile(FileType.TEXT, null);
+
+        if (fileName == null) return null; // Cancel
+
+        Object[] possibleValues = { "Accept All", "OK", "Skip", "Cancel" };
+
+        List knotList = null;
+        try {
+            LineNumberReader lineReader = new LineNumberReader(new FileReader(fileName));
+            int response = -1;
+            for(;;)
+            {
+                // get keyword from file
+                String line = lineReader.readLine();
+                if (line == null) break;
+                // responce 0 -> Accept All
+                if (response != 0)
+                {
+                    response = JOptionPane.showOptionDialog(null,
+                    "Applying following data " + line, "Action", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, possibleValues,
+                            possibleValues[0]);
+                    if (response == 2) continue; // skip
+                    else if (response == 3) break; // cancel option
+                }
+                String[] stringValues = parseValues(line, 0);
+                double[] values = convertValues(stringValues);
+                if (knotList == null) knotList = new ArrayList();
+                knotList.add(view3D.moveAndRotate(values));
+            }
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        return knotList;
+    }
+
+    public static double[] convertValues(String[] stringValues)
+    {
+        double[] values = new double[stringValues.length];
+        for (int i = 0; i < stringValues.length; i++)
+        {
+            try
+            {
+                values[i] = Double.parseDouble(stringValues[i]);
+            }
+            catch (Exception e) // invalid number in line
+            {
+                values[i] = lastValidValues[i];
+            }
+            lastValidValues[i] = values[i];
+            if (2 < i && i < 6 )
+                values[i] = convertToRadiant(values[i]);   // original value is in degrees
+        }
+        return values;
+    }
+
+    /**
+     * To parse capacitance data from line
+     * Format: posX posY posZ rotX rotY rotZ rotPosX rotPosY rotPosZ capacitance radius error
+     * @param line
+     * @param lineNumner
+     */
+    public static String[] parseValues(String line, int lineNumner)
+    {
+        int count = 0;
+        String[] strings = new String[VALUES_PER_LINE]; // 12 is the max value including errors
+        StringTokenizer parse = new StringTokenizer(line, " ", false);
+
+        while (parse.hasMoreTokens() && count < VALUES_PER_LINE)
+        {
+            strings[count++] = parse.nextToken();
+        }
+        if (count < 9 || count > 13)
+        {
+            System.out.println("Error reading capacitance file in line " + lineNumner);
+        }
+        return strings;
     }
 
     /********************************************************************************************************

@@ -23,23 +23,23 @@
  */
 package com.sun.electric.plugins.j3d.ui;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.plugins.j3d.View3DWindow;
-import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
-import com.sun.electric.plugins.j3d.utils.J3DAlpha;
-import com.sun.electric.plugins.j3d.utils.J3DUtils;
-import com.sun.electric.plugins.j3d.utils.J3DClientApp;
+import com.sun.electric.plugins.j3d.utils.J3DSerialization;
 
-import javax.media.j3d.TransformGroup;
+import javax.media.j3d.Transform3D;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 
 /**
  * Class to handle the "3D View Demo Dialog" dialog.
@@ -72,15 +72,15 @@ public class J3DDemoDialog extends EDialog
 	{
 		super(parent, modal);
 		initComponents();
-        this.view3D = view3d;;
+        this.view3D = view3d;
         getRootPane().setDefaultButton(enter);
-        J3DAlpha alpha = J3DUtils.jAlpha;
-        if (alpha != null)
+        if (J3DUtils.jAlpha != null)
         {
-            slider.addChangeListener(alpha);
-            auto.setSelected(alpha.getAutoMode());
+            slider.addChangeListener(J3DUtils.jAlpha);
+            auto.setSelected(J3DUtils.jAlpha.getAutoMode());
         }
-
+        demoMode.addItem("Viewplatform");
+        demoMode.addItem("Scene");
         // to calculate window position
 		finishInitialization();
 	}
@@ -102,6 +102,7 @@ public class J3DDemoDialog extends EDialog
         read = new javax.swing.JButton();
         save = new javax.swing.JButton();
         movie = new javax.swing.JButton();
+        demoMode = new javax.swing.JComboBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -216,6 +217,15 @@ public class J3DDemoDialog extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(movie, gridBagConstraints);
 
+        demoMode.setToolTipText("");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(demoMode, gridBagConstraints);
+
         pack();
     }//GEN-END:initComponents
 
@@ -224,25 +234,62 @@ public class J3DDemoDialog extends EDialog
         view3D.saveMovie(fileName);
     }//GEN-LAST:event_movieActionPerformed
 
+
     private void saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveActionPerformed
         String fileName = OpenFile.chooseOutputFile(FileType.J3D, "Save 3D Demo File", "demo.j3d");
-        view3D.saveDemo(knots, fileName);
+        if (fileName == null || knots == null) return;
+
+        try
+        {
+            Transform3D tmpTrans = new Transform3D();
+            FileOutputStream outputStream = new FileOutputStream(fileName);
+            ObjectOutputStream out = new ObjectOutputStream(outputStream);
+            view3D.getObjTransform(tmpTrans);
+            boolean useViewplatform = ((String)demoMode.getSelectedItem()).equals("Viewplatform");
+            J3DSerialization serial = new J3DSerialization(new Boolean(useViewplatform), knots, tmpTrans);
+            out.writeObject(serial);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }//GEN-LAST:event_saveActionPerformed
 
     private void readActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readActionPerformed
         String fileName = OpenFile.chooseInputFile(FileType.J3D, "Read 3D Demo Frames");
-        knots = view3D.readDemo(fileName);
+
+        if (fileName == null) return;
+
+        knots = null;
+        try
+        {
+            FileInputStream inputStream = new FileInputStream(fileName);
+            ObjectInputStream in = new ObjectInputStream(inputStream);
+            J3DSerialization serial = (J3DSerialization)in.readObject();
+            boolean useViewplatform = false;
+            if (serial.useView != null) // old file is false;
+                useViewplatform = serial.useView.booleanValue();
+            demoMode.setSelectedIndex(useViewplatform ? 0 : 1);
+            knots = serial.list;
+            Transform3D tmpTrans = new Transform3D();
+            tmpTrans.set(serial.matrix);
+            view3D.setObjTransform(tmpTrans);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        };
     }//GEN-LAST:event_readActionPerformed
 
     private void enterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enterActionPerformed
-        knots.add(view3D.addFrame());
+        knots.add(view3D.addFrame(demoMode.getSelectedIndex() == 0));
         view3D.saveImage(true);
 
     }//GEN-LAST:event_enterActionPerformed
 
     private void demoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_demoActionPerformed
         if (demo.getText().equals("Start Demo")) {
-            interMap = view3D.addInterpolatorPerGroup(knots, null, interMap);
+            interMap = view3D.addInterpolatorPerGroup(knots, null, interMap, demoMode.getSelectedIndex() == 0);
             if (interMap != null) // no error
                 demo.setText("Stop Demo");
         } else {
@@ -274,6 +321,7 @@ public class J3DDemoDialog extends EDialog
     private javax.swing.JCheckBox auto;
     private javax.swing.JButton close;
     private javax.swing.JButton demo;
+    private javax.swing.JComboBox demoMode;
     private javax.swing.JButton enter;
     private javax.swing.JButton movie;
     private javax.swing.JButton read;

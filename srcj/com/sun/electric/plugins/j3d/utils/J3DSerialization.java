@@ -14,9 +14,11 @@ public class J3DSerialization implements Serializable
 
     public List list;
     public Matrix4d matrix;
+    public Boolean useView;
 
-    public J3DSerialization(List l, Transform3D t)
+    public J3DSerialization(Boolean useView, List l, Transform3D t)
     {
+        this.useView = useView;
         list = l;
         matrix = new Matrix4d(); // 16 elements are in transformation matrix
         t.get(matrix);
