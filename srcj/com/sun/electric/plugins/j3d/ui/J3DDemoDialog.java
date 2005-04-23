@@ -74,7 +74,7 @@ public class J3DDemoDialog extends EDialog
 		initComponents();
         this.view3D = view3d;;
         getRootPane().setDefaultButton(enter);
-        J3DAlpha alpha = view3d.getAlpha();
+        J3DAlpha alpha = J3DUtils.jAlpha;
         if (alpha != null)
         {
             slider.addChangeListener(alpha);
@@ -253,7 +253,7 @@ public class J3DDemoDialog extends EDialog
     }//GEN-LAST:event_demoActionPerformed
 
     private void autoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_autoActionPerformed
-        view3D.getAlpha().setAutoMode(auto.isSelected());
+        J3DUtils.jAlpha.setAutoMode(auto.isSelected());
     }//GEN-LAST:event_autoActionPerformed
 
     private void closeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeActionPerformed

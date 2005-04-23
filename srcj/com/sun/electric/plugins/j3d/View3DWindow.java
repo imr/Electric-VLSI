@@ -111,18 +111,7 @@ public class View3DWindow extends JPanel
     private Map interpolatorMap = new HashMap();
     private J3DKeyCollision keyBehavior;
 
-    private J3DAlpha jAlpha = new J3DAlpha(new Alpha (-1,
-        Alpha.INCREASING_ENABLE | Alpha.DECREASING_ENABLE,
-        0,
-        0,
-        2500, // 25000
-        400,  // 4000
-        100,
-        2000,  //20000
-        5000,
-        50 ), true, 0.5f);
-
-	/** the window frame containing this editwindow */      private WindowFrame wf;
+    /** the window frame containing this editwindow */      private WindowFrame wf;
 	/** reference to 2D view of the cell */                 private EditWindow view2D;
 	/** the cell that is in the window */					protected Cell cell;
     /** scale3D factor in Z axis */                         private double scale3D = J3DUtils.get3DFactor();
@@ -234,6 +223,9 @@ public class View3DWindow extends JPanel
         J3DAppearance.setCellAppearanceValues(this);
         J3DAppearance.setHighlightedAppearanceValues(this);
         J3DAppearance.setAxisAppearanceValues(this);
+
+        // Set global alpha value
+        J3DUtils.setAlpha(J3DUtils.get3DAlpha());
 
 		// Create a simple scene and attach it to the virtual universe
 		scene = createSceneGraph(cell);
@@ -1451,7 +1443,7 @@ public class View3DWindow extends JPanel
 //        //behaviorBranch.addChild(kbSplineInter);
 //        kbSplineInter.setEnable(false);
 
-        Interpolator tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(jAlpha, objTrans,
+        Interpolator tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(J3DUtils.jAlpha, objTrans,
                                                   yAxis, keyFrames);
         tcbSplineInter.setSchedulingBounds(J3DUtils.infiniteBounds);
         //behaviorBranch.addChild(tcbSplineInter);
@@ -1497,7 +1489,7 @@ public class View3DWindow extends JPanel
                     keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(knotList.size()-1)), knot);
                 }
                 Transform3D yAxis = new Transform3D();
-                Interpolator tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(jAlpha, grp,
+                Interpolator tcbSplineInter = new RotPosScaleTCBSplinePathInterpolator(J3DUtils.jAlpha, grp,
                                                           yAxis, keyFrames);
                 tcbSplineInter.setSchedulingBounds(new BoundingSphere(new Point3d(), Double.MAX_VALUE));
                 behaviorBranch.addChild(tcbSplineInter);
@@ -1538,7 +1530,7 @@ public class View3DWindow extends JPanel
             keyFrames[i] = J3DUtils.getNextTCBKeyFrame((float)((float)i/(knotList.size()-1)), knot);
         }
         Transform3D yAxis = new Transform3D();
-        Interpolator tcbSplineInter = new J3DRotPosScaleTCBSplinePathInterpolator(jAlpha, grp,
+        Interpolator tcbSplineInter = new J3DRotPosScaleTCBSplinePathInterpolator(J3DUtils.jAlpha, grp,
                                                   yAxis, keyFrames, knotList);
         tcbSplineInter.setSchedulingBounds(new BoundingSphere(new Point3d(), Double.MAX_VALUE));
         behaviorBranch.addChild(tcbSplineInter);
@@ -1562,12 +1554,6 @@ public class View3DWindow extends JPanel
             grp.removeChild(node);
         }
     }
-
-    /**
-     * Method to retrieve alpha value associated to this view
-     * @return
-     */
-    public J3DAlpha getAlpha() { return jAlpha; }
 
     ///////////////////// KEY BEHAVIOR FUNCTION ///////////////////////////////
 

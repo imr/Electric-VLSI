@@ -177,6 +177,7 @@ public class JThreeDTab extends ThreeDTab
         threeDCellBnd.setSelected(J3DUtils.is3DCellBndOn());
         threeDAxes.setSelected(J3DUtils.is3DAxesOn());
         maxNodeField.setText(String.valueOf(J3DUtils.get3DMaxNumNodes()));
+        alphaField.setText(String.valueOf(J3DUtils.get3DAlpha()));
 
         for (Iterator it = modeMap.keySet().iterator(); it.hasNext();)
         {
@@ -361,6 +362,9 @@ public class JThreeDTab extends ThreeDTab
         int currentInt = TextUtils.atoi(maxNodeField.getText());
         if (currentInt != J3DUtils.get3DMaxNumNodes())
             J3DUtils.set3DMaxNumNodes(currentInt);
+        currentInt = TextUtils.atoi(alphaField.getText());
+        if (currentInt != J3DUtils.get3DAlpha())
+            J3DUtils.set3DAlpha(currentInt);
 	}
 
 	/** This method is called from within the constructor to
@@ -418,6 +422,8 @@ public class JThreeDTab extends ThreeDTab
         threeDAxes = new javax.swing.JCheckBox();
         maxNodeLabel = new javax.swing.JLabel();
         maxNodeField = new javax.swing.JTextField();
+        alphaLabel = new javax.swing.JLabel();
+        alphaField = new javax.swing.JTextField();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -812,7 +818,7 @@ public class JThreeDTab extends ThreeDTab
         maxNodeLabel.setText("Max. # Nodes:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(maxNodeLabel, gridBagConstraints);
@@ -821,11 +827,29 @@ public class JThreeDTab extends ThreeDTab
         maxNodeField.setMinimumSize(new java.awt.Dimension(70, 19));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         threeD.add(maxNodeField, gridBagConstraints);
+
+        alphaLabel.setText("Alpha:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(alphaLabel, gridBagConstraints);
+
+        alphaField.setColumns(6);
+        alphaField.setMinimumSize(new java.awt.Dimension(70, 19));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        threeD.add(alphaField, gridBagConstraints);
 
         getContentPane().add(threeD, new java.awt.GridBagConstraints());
 
@@ -849,6 +873,8 @@ public class JThreeDTab extends ThreeDTab
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField alphaField;
+    private javax.swing.JLabel alphaLabel;
     private javax.swing.JCheckBox dirOneBox;
     private javax.swing.JPanel dirOnePanel;
     private javax.swing.JCheckBox dirTwoBox;

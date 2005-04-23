@@ -66,6 +66,8 @@ public final class J3DUtils
     private static Pref cache3DCellBnd = Pref.makeBooleanPref("3DCellBnd", User.tool.prefs, true);
     private static Pref cache3DAxes = Pref.makeBooleanPref("3DAxes", User.tool.prefs, true);
     private static Pref cache3DMaxNumber = Pref.makeIntPref("3DMaxNumNodes", User.tool.prefs, 1000);
+    private static Pref cache3DAlpha = Pref.makeIntPref("3DAlpha", User.tool.prefs, 1000);
+    public static J3DAlpha jAlpha = null;
 
     /**
      * Method to get maximum number of nodes to consider a scene graph bi
@@ -165,6 +167,23 @@ public final class J3DUtils
 	 * @param value 3D scale factor to set.
 	 */
 	public static void set3DFactor(double value) { cache3DFactor.setDouble(value); }
+
+    /**
+	 * Method to get current alpha speed for 3D demos
+	 * The default is 1000
+	 * @return alpha speed.
+	 */
+	public static int get3DAlpha() { return cache3DAlpha.getInt(); }
+
+    /**
+	 * Method to set 3D alpha speed
+	 * @param value 3D alpha to set.
+	 */
+	public static void set3DAlpha(int value)
+    {
+        cache3DAlpha.setInt(value);
+        setAlpha(value);
+    }
 
     /********************************************************************************************************
      *   Observer-Observable pattern for Vector3f
@@ -367,6 +386,18 @@ public final class J3DUtils
         backgroundColor.addObserver(bg);
 		bg.setApplicationBounds(infiniteBounds);
 		scene.addChild(bg);
+    }
+
+    /**
+     * Create alpha according to given interval time in miliseconds
+     * @param speed
+     */
+    public static void setAlpha(int speed)
+    {
+        if (jAlpha == null)
+            jAlpha = new J3DAlpha(speed, true, 0.5f);
+        else
+            jAlpha.setAlphaSpeed(speed);
     }
 
     /**

@@ -40,12 +40,29 @@ public class J3DAlpha extends Alpha implements ChangeListener
     private Alpha alpha;
     private float manualValue = 0.5f; // in the middle
     private boolean autoMode = true;
+    private int speed;  // in miliseconds
 
-    public J3DAlpha(Alpha alpha, boolean mode, float value)
+    public J3DAlpha(int speed, boolean mode, float value)
     {
-        this.alpha = alpha;
+        this.speed = speed;
         this.autoMode = mode;
         this.manualValue = value;
+        setAlphaSpeed(speed);
+    }
+
+    public void setAlphaSpeed(int speed)
+    {
+        // previous value is OK
+        if (alpha != null && this.speed == speed) return;
+        alpha = new Alpha (-1, Alpha.INCREASING_ENABLE | Alpha.DECREASING_ENABLE,
+                    0,
+                    0,
+                    (long)(2.5*speed), // 2500
+                    (long)(0.4*speed),  // 400
+                    (long)(0.1*speed),  // 100
+                    (long)(2*speed),  //2000
+                    (long)(5*speed), // 5000
+                    (long)(0.05*speed)); // 50
     }
 
     /**

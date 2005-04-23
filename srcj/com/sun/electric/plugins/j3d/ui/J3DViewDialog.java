@@ -76,11 +76,10 @@ public class J3DViewDialog extends EDialog
         getRootPane().setDefaultButton(connect);
 //        spline.addItem("KB Spline");
 //        spline.addItem("TCB Spline");
-        J3DAlpha alpha = view3d.getAlpha();
-        if (alpha != null)
+        if (J3DUtils.jAlpha != null)
         {
-            slider.addChangeListener(alpha);
-            auto.setSelected(alpha.getAutoMode());
+            slider.addChangeListener(J3DUtils.jAlpha);
+            auto.setSelected(J3DUtils.jAlpha.getAutoMode());
         }
 
         // setting initial other values
@@ -564,7 +563,7 @@ public class J3DViewDialog extends EDialog
     }//GEN-END:initComponents
 
     private void autoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_autoActionPerformed
-        view3D.getAlpha().setAutoMode(auto.isSelected());
+        J3DUtils.jAlpha.setAutoMode(auto.isSelected());
     }//GEN-LAST:event_autoActionPerformed
 
     private void enterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enterActionPerformed
