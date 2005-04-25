@@ -56,7 +56,7 @@ public class J3DMenu {
         /** 3D view */
 	    j3DMenu.addMenuItem("_3D View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(false); } });
-        j3DMenu.addMenuItem("Capture Frame/Start Animation", null,
+        j3DMenu.addMenuItem("Capture Frame/Animate", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame());} });
 //		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
