@@ -214,6 +214,10 @@ public class WindowFrame extends Observable
 		WaveformWindow wWnd = new WaveformWindow(sd, frame);
         frame.finishWindowFrameInformation(wWnd, sd.getCell());
 		wWnd.fillScreen();
+
+		// open the "SIGNALS" part of the explorer panel
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() { WindowFrame.wantToOpenCurrentLibrary(false); }});
 		return frame;
 	}
 
@@ -477,7 +481,53 @@ public class WindowFrame extends Observable
 	private boolean wantToRedoErrorTree = false;
 	private boolean wantToRedoSignalTree = false;
 
-    /**
+	/**
+	 * Method to force the explorer tree to show the current library or signals list.
+	 * @param openLib true to open the current library, false to open the signals list.
+	 */
+	public static void wantToOpenCurrentLibrary(boolean openLib)
+	{
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			wf.openCurrentLibrary(new TreePath(wf.rootNode), openLib);
+		}
+	}
+
+	/**
+	 * Method to recursively scan the explorer tree and open the current library or signals list.
+	 * @param path the current position in the explorer tree.
+	 */
+	private void openCurrentLibrary(TreePath path, boolean openLib)
+	{
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
+		Object obj = node.getUserObject();
+		int numChildren = node.getChildCount();
+		if (numChildren == 0) return;
+
+		if (openLib && (obj instanceof Library))
+		{
+			Library lib = (Library)obj;
+			if (lib == Library.getCurrent()) explorerTab.expandPath(path);
+		} else if (obj instanceof String)
+		{
+			String msg = (String)obj;
+			if ((msg.equalsIgnoreCase("libraries") && openLib) ||
+				(msg.equalsIgnoreCase("signals") && !openLib))
+					explorerTab.expandPath(path);
+		}
+
+		// now recurse
+		for(int i=0; i<numChildren; i++)
+		{
+			DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
+			TreePath descentPath = path.pathByAddingChild(child);
+			if (descentPath == null) continue;
+			openCurrentLibrary(descentPath, openLib);
+		}
+	}
+
+	/**
      * Method to request that the library tree be reloaded.
      */
 	public static void wantToRedoLibraryTree()
@@ -486,7 +536,7 @@ public class WindowFrame extends Observable
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoLibraryTree = true;
-            wf.redoExplorerTreeIfRequested(true);
+            wf.redoExplorerTreeIfRequested();
 		}
 	}
 
@@ -503,7 +553,7 @@ public class WindowFrame extends Observable
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoJobTree = true;
 			//wf.getContent().repaint();
-            wf.redoExplorerTreeIfRequested(false);
+            wf.redoExplorerTreeIfRequested();
 		}
 	}
 
@@ -520,7 +570,7 @@ public class WindowFrame extends Observable
 			WindowFrame wf = (WindowFrame)it.next();
             wf.wantToRedoErrorTree = true;
 			//wf.getContent().repaint();
-            wf.redoExplorerTreeIfRequested(false);
+            wf.redoExplorerTreeIfRequested();
 		}
 	}
 
@@ -534,17 +584,17 @@ public class WindowFrame extends Observable
         }
         wantToRedoSignalTree = true;
 		content.loadExplorerTree(rootNode);
-		redoExplorerTreeIfRequested(false);
+		redoExplorerTreeIfRequested();
 	}
 
-	public void redoExplorerTreeIfRequested(boolean showCurrentLibrary)
+	private void redoExplorerTreeIfRequested()
 	{
         Job.checkSwingThread();
 		if (!wantToRedoLibraryTree && !wantToRedoJobTree && !wantToRedoErrorTree && !wantToRedoSignalTree) return;
 
 		// remember the state of the tree
 		HashSet expanded = new HashSet();
-		recursivelyCache(expanded, new TreePath(rootNode), true, showCurrentLibrary);
+		recursivelyCache(expanded, new TreePath(rootNode), true);
 
 		// get the new library tree part
 		if (wantToRedoLibraryTree)
@@ -565,10 +615,10 @@ public class WindowFrame extends Observable
 
 		explorerTab.treeDidChange();
 		treeModel.reload();
-		recursivelyCache(expanded, new TreePath(rootNode), false, showCurrentLibrary);
+		recursivelyCache(expanded, new TreePath(rootNode), false);
 	}
 
-	private void recursivelyCache(HashSet expanded, TreePath path, boolean cache, boolean showCurrentLibrary)
+	private void recursivelyCache(HashSet expanded, TreePath path, boolean cache)
 	{
 		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
 		Object obj = node.getUserObject();
@@ -580,22 +630,7 @@ public class WindowFrame extends Observable
 			if (explorerTab.isExpanded(path)) expanded.add(obj);
 		} else
 		{
-			if (expanded.contains(obj)) explorerTab.expandPath(path); else
-			{
-				if (showCurrentLibrary)
-				{
-					if (obj instanceof Library)
-					{
-						Library lib = (Library)obj;
-						if (lib == Library.getCurrent()) explorerTab.expandPath(path);
-					} else if (obj instanceof String)
-					{
-						String msg = (String)obj;
-						if (msg.equalsIgnoreCase("libraries") || msg.equalsIgnoreCase("signals"))
-							explorerTab.expandPath(path);
-					}
-				}
-			}
+			if (expanded.contains(obj)) explorerTab.expandPath(path);
 		}
 
 		// now recurse
@@ -604,7 +639,7 @@ public class WindowFrame extends Observable
 			DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
 			TreePath descentPath = path.pathByAddingChild(child);
 			if (descentPath == null) continue;
-			recursivelyCache(expanded, descentPath, cache, showCurrentLibrary);
+			recursivelyCache(expanded, descentPath, cache);
 		}
 	}
 
@@ -1070,7 +1105,7 @@ public class WindowFrame extends Observable
             for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
                 WindowFrame frame = (WindowFrame)it.next();
                 frame.wantToRedoLibraryTree = true;
-                frame.redoExplorerTreeIfRequested(true);
+                frame.redoExplorerTreeIfRequested();
             }
         }
 

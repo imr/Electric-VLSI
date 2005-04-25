@@ -44,6 +44,7 @@ import com.sun.electric.tool.user.menus.HelpMenu;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.AWTEvent;
 import java.awt.BorderLayout;
@@ -383,6 +384,8 @@ public final class Main
                     // remove the splash screen
                     if (sw != null) sw.removeNotify();
                     TopLevel.InitializeWindows();
+					WindowFrame.wantToOpenCurrentLibrary(true);
+
                     // run script
                     if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
                 }

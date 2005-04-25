@@ -107,6 +107,7 @@ import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -115,6 +116,7 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -1019,7 +1021,7 @@ public class EditWindow extends JPanel
 		BufferedImage img = offscreen.getBufferedImage();
 		// TODO: Do not need synchronization here
 		synchronized(img) { g.drawImage(img, 0, 0, this); };
-
+		
 		// overlay other things if there is a valid cell
 		if (cell != null)
 		{

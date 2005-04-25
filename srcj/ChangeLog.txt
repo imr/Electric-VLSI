@@ -4,6 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02m: *********************************
 
+BUG: (04/25/05, SMR) Explorer tree expansion is incorrect (Bugs #269 and #285).
+FIX: Only expand to the current library after reading it.
+
+IMP (04/25/05, SMR) When replacing a library, error messages are more clear (Bug #255).
+
+IMP/MAN: (04/25/05, SMR) HSpice input can now accept files with the extension .tr1, .tr2, ... (Bug #258).
+
+IMP/MAN: (04/25/05, SMR) Waveform window now allows dragging of the vertical axis on the left (Bug #252).
+	Waveform window now shows intermediate tick marks (Bug #241).
+
 ************************* Version 8.02l: *********************************
 
 IMP/MAN: (04/22/05, GVG) Alpha control in 3D preferences. Ability to load more than one file per capacitance demo.

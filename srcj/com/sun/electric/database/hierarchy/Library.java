@@ -151,10 +151,11 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 
 	/**
 	 * Method to delete this Library.
+	 * @param reason the reason for deleting this library (replacement or deletion).
 	 * @return true if the library was deleted.
 	 * Returns false on error.
 	 */
-	public boolean kill()
+	public boolean kill(String reason)
 	{
 		if (!isLinked())
 		{
@@ -212,7 +213,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 						if (subCell.getLibrary() == this)
 						{
 							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-								"Cannot delete library " + getName() + " because one of its cells (" +
+								"Cannot " + reason + " library " + getName() + " because one of its cells (" +
 								subCell.describe() + ") is being used (by " + cell.libDescribe() + ")",
 								"Close library", JOptionPane.ERROR_MESSAGE);
 							 referenced = true;

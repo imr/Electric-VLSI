@@ -310,7 +310,7 @@ public class FileMenu {
 			{
 				if (Library.getVisibleLibraries().size() > 1)
 				{
-					if (!deleteLib.kill()) return false;
+					if (!deleteLib.kill("replace")) return false;
 					deleteLib = null;
 				} else
 				{
@@ -321,7 +321,7 @@ public class FileMenu {
 			}
 			openALibrary(fileURL, type);
 			if (deleteLib != null)
-				deleteLib.kill();
+				deleteLib.kill("replace");
 			return true;
 		}
 	}
@@ -382,7 +382,7 @@ public class FileMenu {
             {
                 if (!noname.getCells().hasNext())
                 {
-                    noname.kill();
+                    noname.kill("delete");
                 }
             }
         }
@@ -400,6 +400,8 @@ public class FileMenu {
                 creator.run();
             }
         }
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() { WindowFrame.wantToOpenCurrentLibrary(true); }});
         return true;
     }
 
@@ -485,7 +487,7 @@ public class FileMenu {
         }
 
         public boolean doIt() {
-            if (lib.kill())
+            if (lib.kill("delete"))
             {
                 System.out.println("Library " + lib.getName() + " closed");
 	            WindowFrame.wantToRedoTitleNames();

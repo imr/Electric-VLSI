@@ -99,15 +99,17 @@
         <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="electric.mf">
             <exclude name="apidoc/"/>
             <exclude name="bin/"/>
-            <exclude name="intervalsimulation/"/>
+        	<exclude name="intervalsimulation/"/>
+            <exclude name="nbproject/"/>
             <exclude name="packaging/"/>
+            <exclude name="xml/"/>
             <exclude name="build.xml" unless="source"/>
             <exclude name="ChangeLog.txt" unless="source"/>
             <exclude name="electric-${version}.jar"/>
             <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
-	        <exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
-	        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
+        	<exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
+        	<exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/fill90nm/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/gates90nm/*.*" if="GNU"/>

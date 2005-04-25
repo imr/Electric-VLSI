@@ -179,7 +179,7 @@ public class WaveformWindow implements WindowContent
 	/** current "extension" time cursor */					private double extTime;
 	/** default range along horozintal axis */				private double minTime, maxTime;
 	/** true if the time axis is the same in each panel */	private boolean timeLocked;
-	private int highlightedSweep = -1;
+	/** the sweep signal that is highlighted */				private int highlightedSweep = -1;
 	/** true to show points on vertices (analog only) */	private boolean showVertexPoints;
 	/** true to show a grid (analog only) */				private boolean showGrid;
 	/** the actual screen coordinates of the waveform */	private int screenLowX, screenHighX;
@@ -232,7 +232,7 @@ public class WaveformWindow implements WindowContent
 		/** high value displayed in this panel (analog) */		private double analogHighValue;
 		/** vertical range displayed in this panel (analog) */	private double analogRange;
 		/** the size of the window (in pixels) */				private Dimension sz;
-		/** true if a time cursor is being dragged */			private boolean draggingMain, draggingExt;
+		/** true if a time cursor is being dragged */			private boolean draggingMain, draggingExt, draggingVertAxis;
 		/** true if an area is being dragged */					private boolean draggingArea;
 		/** true if this waveform panel is selected */			private boolean selected;
 		/** true if this waveform panel is hidden */			private boolean hidden;
@@ -242,6 +242,7 @@ public class WaveformWindow implements WindowContent
 		/** all panels that the "measure" tool crosses into */	private HashSet measureWindows;
 		/** extent of area dragged-out by cursor */				private int dragStartX, dragStartY;
 		/** extent of area dragged-out by cursor */				private int dragEndX, dragEndY;
+		/** the location of the Y axis vertical line */			private int vertAxisPos;
 
 		private static final int VERTLABELWIDTH = 60;
 		private static Color background = null;
@@ -261,6 +262,7 @@ public class WaveformWindow implements WindowContent
 			this.isAnalog = isAnalog;
 			this.selected = false;
 			this.panelNumber = nextPanelNumber++;
+			this.vertAxisPos = VERTLABELWIDTH;
 
 			// setup this panel window
 			int height = panelSizeDigital;
@@ -801,7 +803,7 @@ public class WaveformWindow implements WindowContent
 				g.setColor(gridColor);
 
 				// draw the vertical grid lines
-				double displayedXLow = scaleXToTime(WaveformWindow.Panel.VERTLABELWIDTH);
+				double displayedXLow = scaleXToTime(vertAxisPos);
 				double displayedXHigh = scaleXToTime(wid);
 				StepSize ss = getSensibleValues(displayedXHigh, displayedXLow, 10);
 				if (ss.separation != 0.0)
@@ -857,7 +859,7 @@ public class WaveformWindow implements WindowContent
 						{
 							if (value > displayedHigh || value > ss.high) break;
 							int y = scaleValueToY(value);
-							g.drawLine(VERTLABELWIDTH, y, wid, y);
+							g.drawLine(vertAxisPos, y, wid, y);
 						}
 						value += ss.separation;
 					}
@@ -871,12 +873,12 @@ public class WaveformWindow implements WindowContent
 
 			// draw the vertical label
 			g.setColor(Color.WHITE);
-			g.drawLine(VERTLABELWIDTH, 0, VERTLABELWIDTH, hei);
+			g.drawLine(vertAxisPos, 0, vertAxisPos, hei);
 			if (selected)
 			{
-				g.drawLine(VERTLABELWIDTH-1, 0, VERTLABELWIDTH-1, hei);
-				g.drawLine(VERTLABELWIDTH-2, 0, VERTLABELWIDTH-2, hei-1);
-				g.drawLine(VERTLABELWIDTH-3, 0, VERTLABELWIDTH-3, hei-2);
+				g.drawLine(vertAxisPos-1, 0, vertAxisPos-1, hei);
+				g.drawLine(vertAxisPos-2, 0, vertAxisPos-2, hei-1);
+				g.drawLine(vertAxisPos-3, 0, vertAxisPos-3, hei-2);
 			}
 			if (isAnalog)
 			{
@@ -888,13 +890,32 @@ public class WaveformWindow implements WindowContent
 					double value = ss.low;
 					g.setFont(waveWindowFont);
 					Graphics2D g2 = (Graphics2D)g;
+					int lastY = -1;
 					for(int i=0; ; i++)
 					{
+						if (value > displayedHigh) break;
 						if (value >= displayedLow)
 						{
-							if (value > displayedHigh) break;
 							int y = scaleValueToY(value);
-							g.drawLine(VERTLABELWIDTH-10, y, VERTLABELWIDTH, y);
+							if (lastY >= 0)
+							{
+								if (lastY - y > 100)
+								{
+									// add 5 tick marks
+									for(int j=1; j<5; j++)
+									{
+										int intY = (lastY - y) / 5 * j + y;
+										g.drawLine(vertAxisPos-5, intY, vertAxisPos, intY);
+									}
+								} else if (lastY - y > 25)
+								{
+									// add 1 tick mark
+									int intY = (lastY - y) / 2 + y;
+									g.drawLine(vertAxisPos-5, intY, vertAxisPos, intY);
+								}
+							}
+
+							g.drawLine(vertAxisPos-10, y, vertAxisPos, y);
 							String yValue = prettyPrint(value, ss.rangeScale, ss.stepScale);
 							GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, yValue);
 							Rectangle2D glyphBounds = gv.getLogicalBounds();
@@ -902,7 +923,8 @@ public class WaveformWindow implements WindowContent
 							int yPos = y + height / 2;
 							if (yPos-height <= 0) yPos = height+1;
 							if (yPos >= hei) yPos = hei;
-							g.drawString(yValue, VERTLABELWIDTH-10-(int)glyphBounds.getWidth()-2, yPos);
+							g.drawString(yValue, vertAxisPos-10-(int)glyphBounds.getWidth()-2, yPos);
+							lastY = y;
 						}
 						value += ss.separation;
 					}
@@ -913,11 +935,11 @@ public class WaveformWindow implements WindowContent
 			Graphics2D g2 = (Graphics2D)g;
 			g2.setStroke(Highlight.dashedLine);
 			int x = scaleTimeToX(waveWindow.mainTime);
-			if (x >= VERTLABELWIDTH)
+			if (x >= vertAxisPos)
 				g.drawLine(x, 0, x, hei);
 			g.setColor(Color.YELLOW);
 			x = scaleTimeToX(waveWindow.extTime);
-			if (x >= VERTLABELWIDTH)
+			if (x >= vertAxisPos)
 				g.drawLine(x, 0, x, hei);
 			g2.setStroke(Highlight.solidLine);
 
@@ -1167,7 +1189,7 @@ public class WaveformWindow implements WindowContent
 						int busWidth = bussedSignals.size();
 						long curValue = 0;
 						double curTime = 0;
-						int lastX = VERTLABELWIDTH;
+						int lastX = vertAxisPos;
 						for(;;)
 						{
 							double nextTime = Double.MAX_VALUE;
@@ -1200,9 +1222,9 @@ public class WaveformWindow implements WindowContent
 								bit++;
 							}
 							int x = scaleTimeToX(curTime);
-							if (x >= VERTLABELWIDTH)
+							if (x >= vertAxisPos)
 							{
-								if (x < VERTLABELWIDTH+5)
+								if (x < vertAxisPos+5)
 								{
 									// on the left edge: just draw the "<"
 									if (processALine(g, x, hei/2, x+5, hei-5, bounds, selectedObjects, ws, -1)) return selectedObjects;
@@ -1244,7 +1266,7 @@ public class WaveformWindow implements WindowContent
 					}
 
 					// a simple digital signal
-					int lastx = VERTLABELWIDTH;
+					int lastx = vertAxisPos;
 					int lastState = 0;
 					if (ds.getStateVector() == null) continue;
 					int numEvents = ds.getNumEvents();
@@ -1382,12 +1404,12 @@ public class WaveformWindow implements WindowContent
 			}
 
 			// clip to left edge
-			if (fX < VERTLABELWIDTH || tX < VERTLABELWIDTH)
+			if (fX < vertAxisPos || tX < vertAxisPos)
 			{
 				Point2D from = new Point2D.Double(fX, fY);
 				Point2D to = new Point2D.Double(tX, tY);
 				sz = getSize();
-				if (GenMath.clipLine(from, to, VERTLABELWIDTH, sz.width, 0, sz.height)) return false;
+				if (GenMath.clipLine(from, to, vertAxisPos, sz.width, 0, sz.height)) return false;
 				fX = (int)from.getX();
 				fY = (int)from.getY();
 				tX = (int)to.getX();
@@ -1436,7 +1458,7 @@ public class WaveformWindow implements WindowContent
 		 */
 		private int scaleTimeToX(double time)
 		{
-			double x = (time - minTime) / (maxTime - minTime) * (sz.width - VERTLABELWIDTH) + VERTLABELWIDTH;
+			double x = (time - minTime) / (maxTime - minTime) * (sz.width - vertAxisPos) + vertAxisPos;
 			return (int)x;
 		}
 
@@ -1447,7 +1469,7 @@ public class WaveformWindow implements WindowContent
 		 */
 		private double scaleXToTime(int x)
 		{
-			double time = ((double)(x - VERTLABELWIDTH)) / (sz.width - VERTLABELWIDTH) * (maxTime - minTime) + minTime;
+			double time = ((double)(x - vertAxisPos)) / (sz.width - vertAxisPos) * (maxTime - minTime) + minTime;
 			return time;
 		}
 
@@ -1458,7 +1480,7 @@ public class WaveformWindow implements WindowContent
 		 */
 		private double scaleDeltaXToTime(int dx)
 		{
-			double dTime = ((double)dx) / (sz.width - VERTLABELWIDTH) * (maxTime - minTime);
+			double dTime = ((double)dx) / (sz.width - vertAxisPos) * (maxTime - minTime);
 			return dTime;
 		}
 
@@ -1595,7 +1617,7 @@ public class WaveformWindow implements WindowContent
 				wp.draggingArea = false;
 			}
 
-			if (evt.getClickCount() == 2 && evt.getX() < VERTLABELWIDTH)
+			if (evt.getClickCount() == 2 && evt.getX() < vertAxisPos)
 			{
 				WaveformZoom dialog = new WaveformZoom(TopLevel.getCurrentJFrame(), analogLowValue, analogHighValue, minTime, maxTime, waveWindow, this);
 				return;
@@ -1673,7 +1695,7 @@ public class WaveformWindow implements WindowContent
 		public void mousePressedSelect(MouseEvent evt)
 		{
 			// see if the time cursors are selected
-			draggingMain = draggingExt = false;
+			draggingMain = draggingExt = draggingVertAxis = false;
 			int mainX = scaleTimeToX(waveWindow.mainTime);
 			if (Math.abs(mainX - evt.getX()) < 5)
 			{
@@ -1684,6 +1706,11 @@ public class WaveformWindow implements WindowContent
 			if (Math.abs(extX - evt.getX()) < 5)
 			{
 				draggingExt = true;
+				return;
+			}
+			if (Math.abs(vertAxisPos - evt.getX()) < 5)
+			{
+				draggingVertAxis = true;
 				return;
 			}
 
@@ -1820,14 +1847,33 @@ public class WaveformWindow implements WindowContent
 		{
 			if (draggingMain)
 			{
+				if (evt.getX() <= 0) return;
 				double time = scaleXToTime(evt.getX());
 				waveWindow.setMainTimeCursor(time);
 				waveWindow.redrawAllPanels();
 			} else if (draggingExt)
 			{
+				if (evt.getX() <= 0) return;
 				double time = scaleXToTime(evt.getX());
 				waveWindow.setExtensionTimeCursor(time);
 				waveWindow.redrawAllPanels();
+			} else if (draggingVertAxis)
+			{
+				if (evt.getX() <= 0) return;
+				if (waveWindow.timeLocked)
+				{
+					for(Iterator it = waveWindow.getPanels(); it.hasNext(); )
+					{
+						Panel wp = (Panel)it.next();
+						wp.vertAxisPos = evt.getX();
+					}
+					waveWindow.redrawAllPanels();
+					waveWindow.mainTimePanel.repaint();
+				} else
+				{
+					vertAxisPos = evt.getX();
+					repaintWithTime();
+				}
 			} else if (draggingArea)
 			{
 				Point pt = new Point(evt.getX(), evt.getY());
@@ -1889,7 +1935,8 @@ public class WaveformWindow implements WindowContent
 			// see if over time cursors
 			int mainX = scaleTimeToX(waveWindow.mainTime);
 			int extX = scaleTimeToX(waveWindow.extTime);
-			if (Math.abs(mainX - evt.getX()) < 5 || Math.abs(extX - evt.getX()) < 5)
+			if (Math.abs(mainX - evt.getX()) < 5 || Math.abs(extX - evt.getX()) < 5 ||
+				Math.abs(vertAxisPos - evt.getX()) < 5)
 			{
 				setCursor(dragTimeCursor);
 			} else
@@ -2336,21 +2383,40 @@ public class WaveformWindow implements WindowContent
 			// draw the time ticks
 			g.setColor(Color.WHITE);
 			if (wavePanel != null)
-				g.drawLine(WaveformWindow.Panel.VERTLABELWIDTH + offX, hei-1, wid+offX, hei-1);
-			double displayedLow = drawHere.scaleXToTime(WaveformWindow.Panel.VERTLABELWIDTH);
+				g.drawLine(drawHere.vertAxisPos + offX, hei-1, wid+offX, hei-1);
+			double displayedLow = drawHere.scaleXToTime(drawHere.vertAxisPos);
 			double displayedHigh = drawHere.scaleXToTime(wid);
 			StepSize ss = getSensibleValues(displayedHigh, displayedLow, 10);
 			if (ss.separation == 0.0) return;
 			double time = ss.low;
+			int lastX = -1;
 			for(;;)
 			{
+				if (time > ss.high) break;
 				if (time >= displayedLow)
 				{
-					if (time > ss.high) break;
 					int x = drawHere.scaleTimeToX(time) + offX;
 					g.drawLine(x, 0, x, hei);
+					if (lastX >= 0)
+					{
+						if (x - lastX > 100)
+						{
+							// add 5 tick marks
+							for(int i=1; i<5; i++)
+							{
+								int intX = (x - lastX) / 5 * i + lastX;
+								g.drawLine(intX, hei/2, intX, hei);
+							}
+						} else if (x - lastX > 25)
+						{
+							// add 1 tick mark
+							int intX = (x - lastX) / 2 + lastX;
+							g.drawLine(intX, hei/2, intX, hei);
+						}
+					}
 					String timeVal = convertToEngineeringNotation(time, "s", ss.stepScale);
 					g.drawString(timeVal, x+2, hei-2);
+					lastX = x;
 				}
 				time += ss.separation;
 			}
@@ -4623,6 +4689,7 @@ if (wp.signalButtons != null)
 			timeLock.setIcon(iconLockTime);
 			addMainTimePanel();
 			double minTime = 0, maxTime = 0;
+			int vertAxis = 0;
 			boolean first = true;
 			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 			{
@@ -4633,6 +4700,7 @@ if (wp.signalButtons != null)
 					first = false;
 					minTime = wp.minTime;
 					maxTime = wp.maxTime;
+					vertAxis = wp.vertAxisPos;
 				} else
 				{
 					if (wp.minTime < minTime)
@@ -4640,6 +4708,7 @@ if (wp.signalButtons != null)
 						minTime = wp.minTime;
 						maxTime = wp.maxTime;
 					}
+					wp.vertAxisPos = vertAxis;
 				}
 			}
 
@@ -4647,11 +4716,8 @@ if (wp.signalButtons != null)
 			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
 			{
 				Panel wp = (Panel)it.next();
-				if (wp.minTime != minTime || wp.maxTime != maxTime)
-				{
-					wp.minTime = minTime;
-					wp.maxTime = maxTime;
-				}
+				wp.minTime = minTime;
+				wp.maxTime = maxTime;
 			}
 		} else
 		{

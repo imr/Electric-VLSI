@@ -66,6 +66,7 @@ import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.MoveBy;
 import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.dialogs.Spread;
+import com.sun.electric.tool.user.tecEdit.Calibre;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
 import com.sun.electric.tool.user.tecEdit.LibToTech;
@@ -346,7 +347,7 @@ public class EditMenu {
 		cleanupSubMenu.addMenuItem("_Shorten Selected Arcs", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
 
-		// mnemonic keys available:  B  EFGH JK M O QRS UVWXYZ
+		// mnemonic keys available:     EFGH JK M O QRS UVWXYZ
 		MenuBar.Menu specialSubMenu = MenuBar.makeMenu("Technolo_gy Specific");
 		editMenu.add(specialSubMenu);
 		specialSubMenu.addMenuItem("Toggle Port _Negation", KeyStroke.getKeyStroke('T', buckyBit),
@@ -356,6 +357,8 @@ public class EditMenu {
 		specialSubMenu.addSeparator();
 		specialSubMenu.addMenuItem("Convert Technology to _Library for Editing...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TechToLib.makeLibFromTech(); }});
+		specialSubMenu.addMenuItem("Import Cali_bre File...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Calibre.readCalibre(); }});
 		specialSubMenu.addMenuItem("Convert Library to _Technology...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { LibToTech.makeTechFromLib(); }});
 		specialSubMenu.addSeparator();
