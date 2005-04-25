@@ -69,7 +69,6 @@ import com.sun.electric.tool.simulation.interval.Diode;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.ui.*;
-import com.sun.electric.plugins.j3d.ui.J3DMenu;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -191,8 +190,6 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { ERCWellCheck.analyzeCurCell(GeometryHandler.ALGO_QTREE); } });
 	    gildaMenu.addMenuItem("List Geometry on Network SWEEP", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.listGeometryOnNetworkCommand(GeometryHandler.ALGO_SWEEP); } });
-	    gildaMenu.addMenuItem("3D View", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { J3DMenu.create3DViewCommand(false); } });
         gildaMenu.addMenuItem("Merge Polyons qTree", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_QTREE);}});
         gildaMenu.addMenuItem("Merge Polyons Sweep", null,
