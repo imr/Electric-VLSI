@@ -35,13 +35,13 @@ import javax.media.j3d.*;
 public class J3DCollisionChecker
 {
 	J3DCollisionDetector		m_Detector = null;
-	Node					m_Node = null;
+//	Node					m_Node = null;
 	boolean					m_bViewSide = false;
 
 	public J3DCollisionChecker( Node node, J3DCollisionDetector detector, boolean bViewSide )
 	{
 		m_Detector = detector;
-		m_Node = node;
+//		m_Node = node;
 		m_bViewSide = bViewSide;
 	}
 

@@ -421,12 +421,11 @@ public final class Main
         }
     }
 
-
-    private static void runThreadStatusTimer() {
-        int delay = 1000*60*10; // milliseconds
-        Timer timer = new Timer(delay, new ThreadStatusTask());
-        timer.start();
-    }
+//    private static void runThreadStatusTimer() {
+//        int delay = 1000*60*10; // milliseconds
+//        Timer timer = new Timer(delay, new ThreadStatusTask());
+//        timer.start();
+//    }
 
     public static class ThreadStatusTask implements ActionListener {
         public void actionPerformed(ActionEvent e) {

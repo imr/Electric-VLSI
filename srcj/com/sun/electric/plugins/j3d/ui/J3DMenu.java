@@ -56,44 +56,37 @@ public class J3DMenu {
         /** 3D view */
 	    j3DMenu.addMenuItem("_3D View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(false); } });
-        j3DMenu.addMenuItem("Capture Frame/Start Demo", null,
+        j3DMenu.addMenuItem("Capture Frame/Start Animation", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame());} });
 //		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
 
-        MenuBar.Menu demoSubMenu = MenuBar.makeMenu("Demo");
+        MenuBar.Menu demoSubMenu = MenuBar.makeMenu("Capacitance Demo");
 		j3DMenu.add(demoSubMenu);
-        demoSubMenu.addMenuItem("Open Capacitance Demo", null,
+        demoSubMenu.addMenuItem("3D View for Demo", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(true); } });
-        demoSubMenu.addMenuItem("Read Capacitance Data From File", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { readDemoDataFromFile(); } });
-        demoSubMenu.addMenuItem("Read Capacitance Data From Socket", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { createSocketDialog(); } });
+//        demoSubMenu.addMenuItem("Read Data From File", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { readDemoDataFromFile(); } });
+        demoSubMenu.addMenuItem("Read Data", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DViewDialog.create3DViewDialog(TopLevel.getCurrentJFrame()); } });
 
 		return j3DMenu;
     }
 
     // ---------------------- THE 3D MENU FUNCTIONS -----------------
 
-    public static void createSocketDialog()
-    {
-        Object value = JOptionPane.showInputDialog(null, "Hostname Dialog", "Enter hostname for socket connection", JOptionPane.PLAIN_MESSAGE,
-                null, null, "localhost");
-        if (value != null)
-            J3DViewDialog.create3DViewDialog(TopLevel.getCurrentJFrame(), value.toString());
-    }
-
-    private static void readDemoDataFromFile()
-    {
-        WindowContent content = WindowFrame.getCurrentWindowFrame().getContent();
-        if (!(content instanceof View3DWindow))
-        {
-            System.out.println("Current Window Frame is not a 3D View for Read Demo Data");
-            return;
-        }
-        View3DWindow view3D = (View3DWindow)content;
-        view3D.addInterpolator(null); //J3DUtils.readDemoDataFromFile(view3D));
-    }
+//    private static void readDemoDataFromFile()
+//    {
+//        WindowContent content = WindowFrame.getCurrentWindowFrame().getContent();
+//        if (!(content instanceof View3DWindow))
+//        {
+//            System.out.println("Current Window Frame is not a 3D View for Read Demo Data");
+//            return;
+//        }
+//        View3DWindow view3D = (View3DWindow)content;
+//        view3D.addInterpolator(null); //J3DUtils.readDemoDataFromFile(view3D));
+//        J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame());
+//    }
 
     /**
 	 * This method creates 3D view of current cell

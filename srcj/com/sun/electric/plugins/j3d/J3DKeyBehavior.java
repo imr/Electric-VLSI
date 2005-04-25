@@ -45,7 +45,7 @@ public class J3DKeyBehavior extends Behavior
 {
 	protected static final double FAST_SPEED = 20.0;
 	protected static final double NORMAL_SPEED = 1.0;
-	protected static final double SLOW_SPEED = 0.5;
+//	protected static final double SLOW_SPEED = 0.5;
 
 	protected TransformGroup transformGroup; /* Contains main scene*/
 	protected Transform3D transform3D;
@@ -269,18 +269,18 @@ public class J3DKeyBehavior extends Behavior
 		moveRate = meters; // Travel rate in meters/frame
 	}
 
-	public void setForwardKey( int key )
-	{
-		forwardKey = key;
-	}
+//	public void setForwardKey( int key )
+//	{
+//		forwardKey = key;
+//	}
 
-	public void setBackKey( int key )
-	{
-		backKey = key;
-	}
+//	public void setBackKey( int key )
+//	{
+//		backKey = key;
+//	}
 
-	public void setLeftKey( int key )
-	{
-		leftKey = key;
-	}
+//	public void setLeftKey( int key )
+//	{
+//		leftKey = key;
+//	}
 }

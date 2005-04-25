@@ -39,7 +39,6 @@ public class J3DCanvas3D extends Canvas3D  {
     public String filePath = null;
     public boolean writePNG_;
     public BufferedImage img;
-    private Shape3D axis;
     private int count;
     public boolean movieMode;
 
@@ -52,21 +51,6 @@ public class J3DCanvas3D extends Canvas3D  {
 	{
         try {
             super.renderField( fieldDesc );
-//            GraphicsContext3D g = getGraphicsContext3D( );
-//                Dimension dim = getScreen3D().getSize();
-//            if (axis == null)
-//            {
-//                Cylinder cylinder = new Cylinder(1, (float)10);
-//                axis = cylinder.getShape(0);
-//            }
-//            Screen3D sOn = getScreen3D();
-//            Dimension dim1 = sOn.getSize();
-//            Transform3D cylinderTrans = new Transform3D();
-//        Vector3d cylinderLocation = new Vector3d(dim1.getWidth()/2, dim1.getHeight()/3, 0); // Cylinder and cone are along Y
-//            cylinderTrans.lookAt(new Point3d(10, 10, 10), new Point3d(0, 0, 0), new Vector3d(0, 0, -11));
-//        //cylinderTrans.setTranslation(cylinderLocation);
-//            g.setModelTransform(cylinderTrans);
-//            g.draw(axis);
         } catch (Exception e)
         {
             e.printStackTrace();

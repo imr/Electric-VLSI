@@ -404,7 +404,7 @@ public class DRC extends Listener
 	private static class CheckSchematicHierarchically extends Job
 	{
 		Cell cell;
-		Rectangle2D bounds;
+//		Rectangle2D bounds;
 
         /**
          * Check bounds within Cell.  If bounds is null, check entire cell.
@@ -415,7 +415,7 @@ public class DRC extends Listener
 		{
 			super("Design-Rule Check", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
-			this.bounds = bounds;
+//			this.bounds = bounds;
 			startJob();
 		}
 
@@ -870,5 +870,5 @@ public class DRC extends Listener
         currentRules = null;
     }
 
-	public static final Variable.Key POSTSCRIPT_FILEDATE = ElectricObject.newKey("IO_postscript_filedate");
+//	public static final Variable.Key POSTSCRIPT_FILEDATE = ElectricObject.newKey("IO_postscript_filedate");
 }

@@ -31,6 +31,7 @@ import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
 
+import javax.swing.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -44,11 +45,10 @@ public class J3DViewDialog extends EDialog
 {
     private View3DWindow view3D = null;
     private J3DClientApp socketJob = null;
-    private String hostname;
     private List knots = new ArrayList();
     private Map interMap;
 
-    public static void create3DViewDialog(java.awt.Frame parent, String hostname)
+    public static void create3DViewDialog(java.awt.Frame parent)
     {
         View3DWindow view3D = null;
         WindowContent content = WindowFrame.getCurrentWindowFrame().getContent();
@@ -59,17 +59,16 @@ public class J3DViewDialog extends EDialog
             System.out.println("Current Window Frame is not a 3D View");
             return;
         }
-        J3DViewDialog dialog = new J3DViewDialog(parent, view3D, false, hostname);
+        J3DViewDialog dialog = new J3DViewDialog(parent, view3D, false);
 		dialog.setVisible(true);
     }
 
 	/** Creates new form ThreeView */
-	public J3DViewDialog(java.awt.Frame parent, View3DWindow view3d, boolean modal, String hostname)
+	public J3DViewDialog(java.awt.Frame parent, View3DWindow view3d, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
         this.view3D = view3d;
-        this.hostname = hostname;
         getRootPane().setDefaultButton(connect);
 //        spline.addItem("KB Spline");
 //        spline.addItem("TCB Spline");
@@ -166,10 +165,11 @@ public class J3DViewDialog extends EDialog
         close = new javax.swing.JButton();
         connect = new javax.swing.JButton();
         enter = new javax.swing.JButton();
+        read = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
-        setTitle("3D Demo Control Dialog");
+        setTitle("3D Capacitance Demo Control Dialog");
         setBackground(java.awt.Color.white);
         setName("");
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -508,7 +508,7 @@ public class J3DViewDialog extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(demo, gridBagConstraints);
 
@@ -539,7 +539,7 @@ public class J3DViewDialog extends EDialog
         });
 
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(connect, gridBagConstraints);
 
@@ -556,8 +556,27 @@ public class J3DViewDialog extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(enter, gridBagConstraints);
 
+        read.setText("Read from File");
+        read.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                readActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(read, gridBagConstraints);
+
         pack();
     }//GEN-END:initComponents
+
+    private void readActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readActionPerformed
+        interMap = view3D.addInterpolator(null);
+        if (interMap != null) // no error
+            demo.setText("Stop Demo");
+    }//GEN-LAST:event_readActionPerformed
 
     private void autoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_autoActionPerformed
         J3DUtils.jAlpha.setAutoMode(auto.isSelected());
@@ -595,8 +614,11 @@ public class J3DViewDialog extends EDialog
     private void connectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectActionPerformed
         if (connect.getText().equals("Connect"))
         {
+            Object value = JOptionPane.showInputDialog(null, "Hostname Dialog", "Enter hostname for socket connection", JOptionPane.PLAIN_MESSAGE,
+                null, null, "localhost");
+            if (value == null) return; //nothing to do
             connect.setText("Disconnect");
-            socketJob = new J3DClientApp(this, hostname);
+            socketJob = new J3DClientApp(this, value.toString());
             socketJob.startJob();
             enter.setEnabled(false);// don't want to add data if stream is connected
         }
@@ -653,6 +675,7 @@ public class J3DViewDialog extends EDialog
     private javax.swing.JPanel otherPanel;
     private javax.swing.JPanel positionPanel;
     private javax.swing.JLabel radiusLabel;
+    private javax.swing.JButton read;
     private javax.swing.JPanel rotationPanel;
     private javax.swing.JSeparator separator;
     private javax.swing.JSeparator separator1;
