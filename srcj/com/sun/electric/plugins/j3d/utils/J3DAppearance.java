@@ -151,6 +151,17 @@ public class J3DAppearance extends Appearance
         return (ap);
     }
 
+    public void setTransparencyAndRenderingAttributes(TransparencyAttributes transparencyAttributes, boolean rendering)
+    {
+        super.setTransparencyAttributes(transparencyAttributes);
+        super.getRenderingAttributes().setDepthBufferEnable(rendering);
+        int mode = transparencyAttributes.getTransparencyMode();
+        graphics.getLayer().getIntegerPref("3DTransparencyMode",
+                    graphics3DTransModePrefs, mode).setInt(mode);
+        double factor = transparencyAttributes.getTransparency();
+        graphics.getLayer().getDoublePref("3DTransparencyFactor", graphics3DTransFactorPrefs, factor).setDouble(factor);
+    }
+
     /********************************************************************************************************
      *                  Model-View paradigm to control refresh from 2D
      ********************************************************************************************************/

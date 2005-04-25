@@ -24,7 +24,6 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.prototype.ArcProto.Function;
 import com.sun.electric.database.text.Pref;
 
 import java.util.HashMap;
