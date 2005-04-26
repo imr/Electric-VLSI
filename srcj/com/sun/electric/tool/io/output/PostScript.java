@@ -120,13 +120,14 @@ public class PostScript extends Output
 		PostScript out = new PostScript(cell, job);
 //		out.cell = cell;
 		if (out.openTextOutputStream(filePath)) error = true;
+        else // write out the cell
+        {
+            out.start();
+            out.scanCircuit();
+            out.done();
 
-		// write out the cell
-		out.start();
-		out.scanCircuit();
-		out.done();
-
-		if (out.closeTextOutputStream()) error = true;
+            if (out.closeTextOutputStream()) error = true;
+        }
 		if (!error)
 		{
 			System.out.println(filePath + " written");

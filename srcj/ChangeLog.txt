@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02m: *********************************
 
+BUG: (04/26/05, GVG) Exception in postscript generation if directory is write-protected (Bug #289)
+FIX: Detect the condition and abort job
+
 BUG: (04/26/05, GVG) Ability to abort PostScript generation (Bug #286)
 FIX: Any output call passes Job class in case particular tool wants to monitor abort operation.
 
