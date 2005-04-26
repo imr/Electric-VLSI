@@ -45,6 +45,21 @@ public class JThreeDSideView extends JPanel
     private PickCanvas pickCanvas;
     private JThreeDTab parentDialog;
 
+    // This class will store previous Z values assigned to layer
+    private static class Shape3DTab
+    {
+        Shape3D shape;
+        double origDist;
+        double origThick;
+
+        Shape3DTab(Shape3D shape, double dist, double thick)
+        {
+            this.shape = shape;
+            this.origDist = dist;
+            this.origThick = thick;
+        }
+    }
+
     public JThreeDSideView(JThreeDTab dialog)
     {
         parentDialog = dialog;
@@ -168,7 +183,8 @@ public class JThreeDSideView extends JPanel
             double dis = distance.doubleValue();
             double thick = thickness.doubleValue();
             Rectangle2D bounds = new Rectangle2D.Double(0, 0, 10*xyFactor, 20*xyFactor);
-            layerPolyhedra.put(layer, J3DUtils.addPolyhedron(bounds, dis, thick, ap, nodesGroup));
+            Shape3DTab shape = new Shape3DTab(J3DUtils.addPolyhedron(bounds, dis, thick, ap, nodesGroup), dis, thick);
+            layerPolyhedra.put(layer, shape);
             if (dis < lowHeight)
                 lowHeight = dis;
             double max = dis + thick;
@@ -193,18 +209,18 @@ public class JThreeDSideView extends JPanel
      */
     public void showLayer(Layer layer)
     {
-        Shape3D shape;
+        Shape3DTab shape;
 
         if (currentLayerSelected != null)
         {
             // For this shape, its appareance has to be set back to normal
-            shape = (Shape3D)layerPolyhedra.get(currentLayerSelected);
+            shape = (Shape3DTab)layerPolyhedra.get(currentLayerSelected);
             if (shape != null) // is null if previous shape belongs to another dialog (another tech)
-                shape.setAppearance((J3DAppearance)parentDialog.transparencyMap.get(currentLayerSelected));
+                shape.shape.setAppearance((J3DAppearance)parentDialog.transparencyMap.get(currentLayerSelected));
         }
-        shape = (Shape3D)layerPolyhedra.get(layer);
+        shape = (Shape3DTab)layerPolyhedra.get(layer);
         if (shape != null)
-            shape.setAppearance(J3DAppearance.highligtApp);
+            shape.shape.setAppearance(J3DAppearance.highligtApp);
         else
             System.out.println("Shape is null in JThreeDSideView.showLayer");
         currentLayerSelected = layer;
@@ -212,9 +228,15 @@ public class JThreeDSideView extends JPanel
 
     public void updateZValues(Layer layer, double thickness, double distance)
     {
-        Shape3D shape = (Shape3D)layerPolyhedra.get(layer);
+        Shape3DTab shape = (Shape3DTab)layerPolyhedra.get(layer);
 
-        J3DUtils.updateZValues(shape, distance, distance+thickness);
+        if (J3DUtils.updateZValues(shape.shape, (float)shape.origDist,  (float)(shape.origDist+shape.origThick),
+                (float)distance, (float)(distance+thickness)))
+        {
+            // It has to remember temporary new values until they are committed into database
+            shape.origDist = distance;
+            shape.origThick = thickness;
+        }
     }
 
     // the MouseEvent events

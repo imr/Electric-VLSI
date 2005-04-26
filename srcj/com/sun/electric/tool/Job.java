@@ -441,18 +441,18 @@ public abstract class Job implements ActionListener, Runnable {
      * @return true if job is scheduled for abort or aborted.
      * and it will report it to std output
      */
-    public boolean checkForAbort()
-    {
-        if (getAborted()) return (true);
-        boolean abort = getScheduledToAbort();
-        if (abort)
-        {
-            setAborted();
-            setReportExecutionFlag(true); // Force reporting
-            System.out.println(jobName +" aborted");
-        }
-        return (abort);
-    }
+//    public boolean checkForAbort()
+//    {
+//        if (getAborted()) return (true);
+//        boolean abort = getScheduledToAbort();
+//        if (abort)
+//        {
+//            setAborted();
+//            setReportExecutionFlag(true); // Force reporting
+//            System.out.println(jobName +" aborted");
+//        }
+//        return (abort);
+//    }
 
 	//--------------------------ABSTRACT METHODS--------------------------
     
@@ -591,7 +591,10 @@ public abstract class Job implements ActionListener, Runnable {
 	/**
 	* Check if we are scheduled to abort. If so, print msg if non null
 	 * and return true.
-	 * @return true on abort, false otherwise
+     * This is because setAbort and getScheduledToAbort
+     * are protected in Job.
+	 * @return true on abort, false otherwise. If job is scheduled for abort or aborted.
+     * and it will report it to std output
 	 */
 	public boolean checkAbort()
 	{
@@ -600,6 +603,7 @@ public abstract class Job implements ActionListener, Runnable {
 		if (scheduledAbort)
 		{
 			System.out.println(this + ": aborted");  // should call Job.toString()
+            setReportExecutionFlag(true); // Force reporting
 			setAborted();                   // Job has been aborted
 		}
 		return scheduledAbort;

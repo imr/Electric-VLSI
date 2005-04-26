@@ -63,22 +63,24 @@ public class Maxwell extends Output
 
 	/**
 	 * Main entry point for Maxwell output.
-	 * @param cell the top-level cell to write.
-	 * @param filePath the name of the file to create.
+	 * @param cellJob contains following information
+     * cell: the top-level cell to write.
+     * context: the hierarchical context to the cell.
+	 * filePath: the name of the file to create.
 	 */
-	public static void writeMaxwellFile(Cell cell, VarContext context, String filePath)
+	public static void writeMaxwellFile(OutputCellInfo cellJob)
 	{
 		Maxwell out = new Maxwell();
-		if (out.openTextOutputStream(filePath)) return;
-		out.initialize(cell);
+		if (out.openTextOutputStream(cellJob.filePath)) return;
+		out.initialize(cellJob.cell);
 
 		// enumerate the hierarchy below here
 		Visitor wcVisitor = new Visitor(out);
-		HierarchyEnumerator.enumerateCell(cell, context, null, wcVisitor);
+		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, null, wcVisitor);
 
 		out.terminate();
 		if (out.closeTextOutputStream()) return;
-		System.out.println(filePath + " written");
+		System.out.println(cellJob.filePath + " written");
 	}
 
 	/**

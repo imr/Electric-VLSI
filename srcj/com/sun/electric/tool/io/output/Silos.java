@@ -70,16 +70,18 @@ public class Silos extends Topology
 
 	/**
 	 * The main entry point for Silos deck writing.
-	 * @param cell the top-level cell to write.
-	 * @param filePath the disk file to create with Silos.
+	 * @param cellJob contains following information
+     * cell: the top-level cell to write.
+	 * context: the hierarchical context to the cell.
+	 * filePath: the disk file to create with Silos.
 	 */
-	public static void writeSilosFile(Cell cell, VarContext context, String filePath)
+	public static void writeSilosFile(OutputCellInfo cellJob)
 	{
 		Silos out = new Silos();
-		if (out.openTextOutputStream(filePath)) return;
-		if (out.writeCell(cell, context)) return;
+		if (out.openTextOutputStream(cellJob.filePath)) return;
+		if (out.writeCell(cellJob.cell, cellJob.context)) return;
 		if (out.closeTextOutputStream()) return;
-		System.out.println(filePath + " written");
+		System.out.println(cellJob.filePath + " written");
 	}
 
 	/**

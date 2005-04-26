@@ -749,7 +749,7 @@ public class FileMenu {
                 if (filePath == null) return;
             }
 
-            exportCellCommand(cell, context, filePath, type);
+            Output.exportCellCommand(cell, context, filePath, type);
             return;
         }
 
@@ -770,49 +770,10 @@ public class FileMenu {
 			return;
 	    }
 
-        exportCellCommand(cell, context, filePath, type);
+        Output.exportCellCommand(cell, context, filePath, type);
     }
 
-    /**
-     * This is the non-interactive version of exportCellCommand
-     */
-    public static void exportCellCommand(Cell cell, VarContext context, String filePath, FileType type)
-    {
-        ExportCell job = new ExportCell(cell, context, filePath, type);
-    }
-
-    /**
-     * Class to export a cell in a new thread.
-     * For a non-interactive script, use
-     * ExportCell job = new ExportCell(Cell cell, String filename, Output.ExportType type).
-     * Saves as an elib.
-     */
-    private static class ExportCell extends Job
-    {
-        Cell cell;
-        VarContext context;
-        String filePath;
-        FileType type;
-
-        public ExportCell(Cell cell, VarContext context, String filePath, FileType type)
-        {
-            super("Export "+cell.describe()+" ("+type+")", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.context = context;
-            this.filePath = filePath;
-            this.type = type;
-            startJob();
-        }
-
-        public boolean doIt()
-        {
-            Output.writeCell(cell, context, filePath, type);
-            return true;
-        }
-
-    }
-
-	private static class ExportImage extends Job
+    private static class ExportImage extends Job
 	{
 		String filePath;
 		WindowContent wnd;

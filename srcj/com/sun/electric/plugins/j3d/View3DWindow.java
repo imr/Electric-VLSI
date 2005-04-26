@@ -1008,6 +1008,37 @@ public class View3DWindow extends JPanel
 	}
 
     /**
+     * Method to change geometry of all nodes using this particular layer
+     * This could be an expensive function!.
+     * @param layer
+     * @param distance
+     * @param thickness
+     */
+    public static void setZValues(Layer layer, Double origDist, Double origThick, Double distance, Double thickness)
+    {
+        for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+        {
+            WindowFrame wf = (WindowFrame)it.next();
+            WindowContent content = wf.getContent();
+            if (!(content instanceof View3DWindow)) continue;
+            View3DWindow wnd = (View3DWindow)content;
+            for (int i = 0; i < wnd.objTrans.numChildren(); i++)
+            {
+                Node node = wnd.objTrans.getChild(i);
+                if (node instanceof Shape3D)
+                {
+                    Shape3D shape = (Shape3D)node;
+                    J3DAppearance app = (J3DAppearance)shape.getAppearance();
+                    if (app.getGraphics().getLayer() == layer)
+                        J3DUtils.updateZValues(shape, origDist.floatValue(), (float)(origDist.floatValue()+origThick.floatValue()),
+                                distance.floatValue(), (float)(distance.floatValue()+thickness.floatValue()));
+
+                }
+            }
+        }
+    }
+
+    /**
      * Method to export directly PNG file
      * @param ep
      * @param filePath

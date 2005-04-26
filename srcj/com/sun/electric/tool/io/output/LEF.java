@@ -69,20 +69,22 @@ public class LEF extends Output
 
 	/**
 	 * The main entry point for LEF deck writing.
-	 * @param cell the top-level cell to write.
-	 * @param filePath the disk file to create with LEF.
+	 * @param cellJob contains following information
+     * cell: the top-level cell to write.
+     * context: the hierarchical context to the cell.
+	 * filePath: the disk file to create with LEF.
 	 */
-	public static void writeLEFFile(Cell cell, VarContext context, String filePath)
+	public static void writeLEFFile(OutputCellInfo cellJob)
 	{
 		LEF out = new LEF();
-		if (out.openTextOutputStream(filePath)) return;
+		if (out.openTextOutputStream(cellJob.filePath)) return;
 
-		out.init(cell);
-		HierarchyEnumerator.enumerateCell(cell, context, null, new Visitor(out));
-		out.term(cell);
+		out.init(cellJob.cell);
+		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, null, new Visitor(out));
+		out.term(cellJob.cell);
 
 		if (out.closeTextOutputStream()) return;
-		System.out.println(filePath + " written");
+		System.out.println(cellJob.filePath + " written");
 	}
 
 	/**

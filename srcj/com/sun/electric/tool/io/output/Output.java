@@ -44,11 +44,14 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -80,7 +83,15 @@ import javax.swing.JOptionPane;
  */
 public class Output
 {
-	static class OrderedConnections implements Comparator
+    /**
+     * This is the non-interactive version of exportCellCommand
+     */
+    public static void exportCellCommand(Cell cell, VarContext context, String filePath, FileType type)
+    {
+        OutputCellInfo job = new OutputCellInfo(cell, context, filePath, type);
+    }
+
+    static class OrderedConnections implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{
@@ -304,91 +315,89 @@ public class Output
 	 * also include the hierarchy below it.
 	 * The alternative is to write the entire library, regardless of
 	 * hierarchical structure (use "WriteLibrary").
-     * @param cell the Cell to be written.
-     * @param context the VarContext of the Cell (its position in the hierarchy above it).
-     * @param filePath the path to the disk file to be written.
-     * @param type the format of the output file.
+     * @param cellJob contains following information
+     * cell: the Cell to be written.
+     * context: the VarContext of the Cell (its position in the hierarchy above it).
+     * filePath: the path to the disk file to be written.
+     * type: the format of the output file.
      */
-    public static void writeCell(Cell cell, VarContext context, String filePath, FileType type)
+    private static void writeCell(OutputCellInfo cellJob) //Cell cell, VarContext context, String filePath, FileType type, Job job)
     {
-		if (type == FileType.CDL)
+		if (cellJob.type == FileType.CDL)
 		{
-			Spice.writeSpiceFile(cell, context, filePath, true);
-		} else if (type == FileType.CIF)
+			Spice.writeSpiceFile(cellJob, true);
+		} else if (cellJob.type == FileType.CIF)
 		{
-			CIF.writeCIFFile(cell, context, filePath);
-		} else if (type == FileType.COSMOS)
+			CIF.writeCIFFile(cellJob);
+		} else if (cellJob.type == FileType.COSMOS)
 		{
-			Sim.writeSimFile(cell, context, filePath, type);
-		} else if (type == FileType.DXF)
+			Sim.writeSimFile(cellJob);
+		} else if (cellJob.type == FileType.DXF)
 		{
-			DXF.writeDXFFile(cell, context, filePath);
-		} else if (type == FileType.EAGLE)
+			DXF.writeDXFFile(cellJob);
+		} else if (cellJob.type == FileType.EAGLE)
 		{
-			Eagle.writeEagleFile(cell, context, filePath);
-		} else if (type == FileType.ECAD)
+			Eagle.writeEagleFile(cellJob);
+		} else if (cellJob.type == FileType.ECAD)
 		{
-			ECAD.writeECADFile(cell, context, filePath);
-		} else if (type == FileType.EDIF)
+			ECAD.writeECADFile(cellJob);
+		} else if (cellJob.type == FileType.EDIF)
 		{
-			EDIF.writeEDIFFile(cell, context, filePath);
-		} else if (type == FileType.ESIM)
+			EDIF.writeEDIFFile(cellJob);
+		} else if (cellJob.type == FileType.ESIM || cellJob.type == FileType.RSIM)
 		{
-			Sim.writeSimFile(cell, context, filePath, type);
-		} else if (type == FileType.FASTHENRY)
+			Sim.writeSimFile(cellJob);
+		} else if (cellJob.type == FileType.FASTHENRY)
 		{
-			FastHenry.writeFastHenryFile(cell, context, filePath);
-		} else if (type == FileType.HPGL)
+			FastHenry.writeFastHenryFile(cellJob);
+		} else if (cellJob.type == FileType.HPGL)
 		{
-			HPGL.writeHPGLFile(cell, context, filePath);
-		} else if (type == FileType.GDS)
+			HPGL.writeHPGLFile(cellJob);
+		} else if (cellJob.type == FileType.GDS)
 		{
-			GDS.writeGDSFile(cell, context, filePath);
-		} else if (type == FileType.IRSIM)
+			GDS.writeGDSFile(cellJob);
+		} else if (cellJob.type == FileType.IRSIM)
 		{
-			IRSIM.writeIRSIMFile(cell, context, filePath);
-		} else if (type == FileType.L)
+			IRSIM.writeIRSIMFile(cellJob);
+		} else if (cellJob.type == FileType.L)
 		{
-			L.writeLFile(cell, context, filePath);
-		} else if (type == FileType.LEF)
+			L.writeLFile(cellJob);
+		} else if (cellJob.type == FileType.LEF)
 		{
-			LEF.writeLEFFile(cell, context, filePath);
-		} else if (type == FileType.MAXWELL)
+			LEF.writeLEFFile(cellJob);
+		} else if (cellJob.type == FileType.MAXWELL)
 		{
-			Maxwell.writeMaxwellFile(cell, context, filePath);
-		} else if (type == FileType.MOSSIM)
+			Maxwell.writeMaxwellFile(cellJob);
+		} else if (cellJob.type == FileType.MOSSIM)
 		{
-			MOSSIM.writeMOSSIMFile(cell, context, filePath);
-		} else if (type == FileType.PADS)
+			MOSSIM.writeMOSSIMFile(cellJob);
+		} else if (cellJob.type == FileType.PADS)
 		{
-			Pads.writePadsFile(cell, context, filePath);
-		} else if (type == FileType.PAL)
+			Pads.writePadsFile(cellJob);
+		} else if (cellJob.type == FileType.PAL)
 		{
-			PAL.writePALFile(cell, context, filePath);
-		} else if (type == FileType.POSTSCRIPT || type == FileType.EPS)
+			PAL.writePALFile(cellJob);
+		} else if (cellJob.type == FileType.POSTSCRIPT || cellJob.type == FileType.EPS)
 		{
-			PostScript.writePostScriptFile(cell, context, filePath);
-		} else if (type == FileType.RSIM)
+			PostScript.writePostScriptFile(cellJob);
+		} else if (cellJob.type == FileType.SILOS)
 		{
-			Sim.writeSimFile(cell, context, filePath, type);
-		} else if (type == FileType.SILOS)
+			Silos.writeSilosFile(cellJob);
+		} else if (cellJob.type == FileType.SKILL)
 		{
-			Silos.writeSilosFile(cell, context, filePath);
-		} else if (type == FileType.SKILL)
-		{
-			IOTool.writeSkill(cell, filePath, false);
-        } else if (type == FileType.SKILLEXPORTSONLY)
+			IOTool.writeSkill(cellJob.cell, cellJob.filePath, false);
+        } else if (cellJob.type == FileType.SKILLEXPORTSONLY)
         {
-            IOTool.writeSkill(cell, filePath, true);
-		} else if (type == FileType.SPICE)
+            IOTool.writeSkill(cellJob.cell, cellJob.filePath, true);
+		} else if (cellJob.type == FileType.SPICE)
 		{
-			Spice.writeSpiceFile(cell, context, filePath, false);
-		} else if (type == FileType.TEGAS)
+			Spice.writeSpiceFile(cellJob, false);
+		} else if (cellJob.type == FileType.TEGAS)
 		{
-			Tegas.writeTegasFile(cell, context, filePath);
-		} else if (type == FileType.VERILOG)
+			Tegas.writeTegasFile(cellJob);
+		} else if (cellJob.type == FileType.VERILOG)
 		{
-			Verilog.writeVerilogFile(cell, context, filePath);
+			Verilog.writeVerilogFile(cellJob);
 		}
     }
 
@@ -858,5 +867,42 @@ public class Output
 		return bounds;
 	}
 
+    /**
+     * Class to export a cell in a new thread.
+     * For a non-interactive script, use
+     * OutputCellInfo job = new OutputCellInfo(Cell cell, String filename, Output.ExportType type).
+     * Saves as an elib.
+     */
+    protected static class OutputCellInfo extends Job
+    {
+        Cell cell;
+        VarContext context;
+        String filePath;
+        FileType type;
+
+        /**
+         *
+        * @param cell the Cell to be written.
+        * @param context the VarContext of the Cell (its position in the hierarchy above it).
+        * @param filePath the path to the disk file to be written.
+        * @param type the format of the output file.
+         */
+        public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type)
+        {
+            super("Export "+cell.describe()+" ("+type+")", User.tool, Type.EXAMINE, null, null, Priority.USER);
+            this.cell = cell;
+            this.context = context;
+            this.filePath = filePath;
+            this.type = type;
+            startJob();
+        }
+
+        public boolean doIt()
+        {
+            writeCell(this);
+            return true;
+        }
+
+    }
 }
 

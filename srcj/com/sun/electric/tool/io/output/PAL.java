@@ -56,20 +56,22 @@ public class PAL extends Output
 
 	/**
 	 * The main entry point for PAL deck writing.
-	 * @param cell the top-level cell to write.
-	 * @param filePath the disk file to create with PAL.
+	 * @param cellJob contains following information
+     * cell: the top-level cell to write.
+	 * context: the hierarchical context to the cell.
+	 * filePath: the disk file to create with Pal.
 	 */
-	public static void writePALFile(Cell cell, VarContext context, String filePath)
+	public static void writePALFile(OutputCellInfo cellJob)
 	{
 		PAL out = new PAL();
-		if (out.openTextOutputStream(filePath)) return;
-		out.initialize(cell);
+		if (out.openTextOutputStream(cellJob.filePath)) return;
+		out.initialize(cellJob.cell);
 		PALNetlister netlister = new PALNetlister(out);
-		Netlist netlist = cell.getNetlist(true);
-		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
-		out.terminate(cell);
+		Netlist netlist = cellJob.cell.getNetlist(true);
+		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, netlist, netlister);
+		out.terminate(cellJob.cell);
 		if (out.closeTextOutputStream()) return;
-		System.out.println(filePath + " written");
+		System.out.println(cellJob.filePath + " written");
 	}
 
 	/**

@@ -51,6 +51,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.Job;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -87,6 +88,7 @@ public class PostScript extends Output
 	/** true to generate stippled color PostScript. */					private boolean psUseColorStip;
 	/** true to generate merged color PostScript. */					private boolean psUseColorMerge;
 	/** the Cell being written. */										private Cell cell;
+    /** the Job being run for this operation */                         private Job job;
 	/** the WindowFrame in which the cell resides. */					private WindowFrame wf;
 	/** the EditWindow in which the cell resides. */					private EditWindow wnd;
 	/** number of patterns emitted so far. */							private int psNumPatternsEmitted;
@@ -101,20 +103,22 @@ public class PostScript extends Output
 
 	/**
 	 * Main entry point for PostScript output.
-	 * @param cell the top-level cell to write.
-	 * @param filePath the name of the file to create.
+	 * @param cellJob contains following information
+     * cell: the top-level cell to write.
+	 * context: the hierarchical context to the cell.
+	 * filePath: the name of the file to create.
 	 */
-	public static void writePostScriptFile(Cell cell, VarContext context, String filePath)
+	public static void writePostScriptFile(OutputCellInfo cellJob)
 	{
 		// just do this file
-		writeCellToFile(cell, context, filePath);
+		writeCellToFile(cellJob.cell, cellJob.filePath, cellJob);
 	}
 
-	private static boolean writeCellToFile(Cell cell, VarContext context, String filePath)
+	private static boolean writeCellToFile(Cell cell, String filePath, Job job)
 	{
 		boolean error = false;
-		PostScript out = new PostScript();
-		out.cell = cell;
+		PostScript out = new PostScript(cell, job);
+//		out.cell = cell;
 		if (out.openTextOutputStream(filePath)) error = true;
 
 		// write out the cell
@@ -131,8 +135,10 @@ public class PostScript extends Output
 	}
 
 	/** Creates a new instance of PostScript */
-	private PostScript()
+	private PostScript(Cell cell, Job job)
 	{
+        this.cell = cell;
+        this.job = job;
 	}
 
 	/**
@@ -530,6 +536,9 @@ public class PostScript extends Output
 
 	private void recurseCircuitLevel(Cell cell, AffineTransform trans, boolean topLevel)
 	{
+        // Job has been aborted
+        if (job != null && job.checkAbort()) return;
+
 		// write the cells
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -787,7 +796,7 @@ public class PostScript extends Output
 					Date lastChangeDate = oCell.getRevisionDate();
 					if (lastSavedDate.after(lastChangeDate)) continue;
 				}
-				boolean err = writeCellToFile(oCell, VarContext.globalContext, syncFileName);
+				boolean err = writeCellToFile(oCell, syncFileName, null);
 				if (err) return true;
 
 				// mark the synchronized date

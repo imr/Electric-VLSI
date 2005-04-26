@@ -26,8 +26,6 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.TextUtils;
@@ -48,7 +46,6 @@ import com.sun.electric.tool.extract.ParasiticGenerator;
 import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.extract.RCPBucket;
 import com.sun.electric.tool.extract.TransistorPBucket;
-import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 
 import java.util.Date;
@@ -67,14 +64,15 @@ public class IRSIM extends Output
 
 	/**
 	 * The main entry point for IRSIM deck writing.
-	 * @param cell the top-level cell to write.
-	 * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create with IRSIM.
+	 * @param cellJob contains following information
+     * cell: the top-level cell to write.
+	 * context: the hierarchical context to the cell.
+	 * filePath: the disk file to create with IRSIM.
 	 */
-	public static void writeIRSIMFile(Cell cell, VarContext context, String filePath)
+	public static void writeIRSIMFile(OutputCellInfo cellJob)
 	{
-		IRSIM out = new IRSIM(cell);
-        out.writeNetlist(cell, context, filePath);
+		IRSIM out = new IRSIM(cellJob.cell);
+        out.writeNetlist(cellJob.cell, cellJob.context, cellJob.filePath);
 	}
 
 	/**
@@ -150,33 +148,6 @@ public class IRSIM extends Output
 			technology = User.getSchematicTechnology();
 	}
 
-    //----------------------------IRSIM Cell Info for HierarchyEnumerator--------------------
-
-    /** IRSIM Cell Info class */
-    private class IRSIMCellInfo extends HierarchyEnumerator.CellInfo
-    {
-        /** M-factor to be applied to size */       private float mFactor;
-
-        /** initialize LECellInfo: assumes CellInfo.init() has been called */
-        protected void extInit()
-        {
-            HierarchyEnumerator.CellInfo parent = getParentInfo();
-            if (parent == null) mFactor = 1f;
-            	else mFactor = ((IRSIMCellInfo)parent).getMFactor();
-            // get mfactor from instance we pushed into
-            Nodable ni = getContext().getNodable();
-            if (ni == null) return;
-            Variable mvar = ni.getVar(Simulation.M_FACTOR_KEY);
-            if (mvar == null) return;
-            Object mval = getContext().evalVar(mvar, null);
-            if (mval == null) return;
-            mFactor = mFactor * VarContext.objectToFloat(mval, 1f);
-        }
-
-        /** get mFactor */
-        protected float getMFactor() { return mFactor; }
-    }
-    
     //---------------------------- ParasiticGenerator interface --------------------
 
     public ExtractedPBucket createBucket(NodeInst ni, ParasiticTool.ParasiticCellInfo info)

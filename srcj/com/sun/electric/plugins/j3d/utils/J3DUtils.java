@@ -34,6 +34,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.plugins.j3d.View3DWindow;
 
 import javax.vecmath.*;
@@ -606,12 +607,14 @@ public final class J3DUtils
      */
     private static class JGeometryUpdater implements GeometryUpdater
     {
+        float z1, z2, origZ1, origZ2;
 
-        private double[] pts; // new set of points for this geometry, 3 values per point.
-
-        public JGeometryUpdater(double[] pts)
+        public JGeometryUpdater(float origZ1, float origZ2, float z1, float z2)
         {
-            this.pts = pts;
+            this.z1 = z1;
+            this.z2 = z2;
+            this.origZ1 = origZ1;
+            this.origZ2 = origZ2;
         }
 
         public void updateData(Geometry geometry)
@@ -619,49 +622,35 @@ public final class J3DUtils
             if (!(geometry instanceof GeometryArray)) return;
 
             GeometryArray ga = (GeometryArray)geometry;
-            ga.setCoordRefDouble(pts);
+            float[] vals = ga.getCoordRefFloat();
 
+            for (int i = 0; i < vals.length/3; i++)
+            {
+                if (DBMath.areEquals(vals[i*3+2], origZ1))
+                    vals[i*3+2] = z1;
+                else if (DBMath.areEquals(vals[i*3+2], origZ2))
+                    vals[i*3+2] = z2;
+            }
+
+            ga.setCoordRefFloat(vals);
         }
     }
 
     /**
      * Method to reset z values of shapes created with addPolyhedron
      * @param shape
+     * @param origZ1
+     * @param origZ2
      * @param z1
      * @param z2
+     * @return true if values were valid
      */
-    public static void updateZValues(Shape3D shape, double z1, double z2)
+    public static boolean updateZValues(Shape3D shape, float origZ1, float origZ2, float z1, float z2)
     {
+        if (DBMath.areEquals(z1, z2)) return false; // nothing to do. Eg. 0 as value
         GeometryArray ga = (GeometryArray)shape.getGeometry();
-        Point3d[] pts = new Point3d[8];
-        double[] values = new double[3*8];
-        //double[] newValues = ga.getCoordRefDouble();
-
-        // They must be 8-points polyhedra
-        for (int i = 0; i < 4; i++)
-        {
-//            newValues[i*3+2] = z1;
-            pts[i] = new Point3d();
-            ga.getCoordinate(i, pts[i]);
-            pts[i].z = z1;
-            ga.setCoordinate(i, pts[i]);
-//            values[i*3] = pts[i].x;
-//            values[i*3+1] = pts[i].y;
-//            values[i*3+2] = z1;
-        }
-
-        for (int i = 4; i < 8; i++)
-        {
-            //newValues[i*3+2] = z2;
-            pts[i] = new Point3d();
-            ga.getCoordinate(i, pts[i]);
-            pts[i].z = z2;
-            ga.setCoordinate(i, pts[i]);
-//            values[i*3] = pts[i].x;
-//            values[i*3+1] = pts[i].y;
-//            values[i*3+2] = z2;
-        }
-        //ga.updateData(new JGeometryUpdater(newValues));
+        ga.updateData(new JGeometryUpdater(origZ1, origZ2, z1, z2));
+        return true;
     }
 
     /**
@@ -692,29 +681,7 @@ public final class J3DUtils
         gi.setCoordinateIndices(indices);
         NormalGenerator ng = new NormalGenerator();
         ng.generateNormals(gi);
-        GeometryArray c = gi.getGeometryArray();
-//
-//        Point3f[] pts1 = gi.getCoordinates();
-//
-//        //gi.getTexCoordSetMapLength();
-//        //c.get
-//
-//        GeometryArray c = new QuadArray(8,
-//          GeometryArray.COORDINATES | GeometryArray.NORMALS | GeometryArray.BY_REFERENCE);
-//
-//        double[] values = new double[3*8];
-//        for (int i = 0; i < 8; i++)
-//        {
-//            values[i*3] = pts1[i].x;
-//            values[i*3+1] = pts1[i].y;
-//            values[i*3+2] = pts1[i].z;
-//        }
-//        float[] valuesf = new float[8*3];
-//        old.getCoordinates(0, valuesf);
-//        c.setCoordRefFloat(valuesf);
-//        float[] normals = new float[8*3];
-//        old.getNormals(0, normals);
-//        c.setNormalRefFloat(normals);
+        GeometryArray c = gi.getGeometryArray(true, false, false);
 
         c.setCapability(GeometryArray.ALLOW_INTERSECT);
         //c.setCapability(GeometryArray.ALLOW_COORDINATE_READ);

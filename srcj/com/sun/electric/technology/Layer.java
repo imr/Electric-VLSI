@@ -25,11 +25,13 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.tool.user.Resources;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.lang.reflect.Method;
 
 /**
  * The Layer class defines a single layer of material, out of which NodeInst and ArcInst objects are created.
@@ -671,15 +673,30 @@ public class Layer
 	 * The higher the distance value, the farther from the wafer.
 	 * @param distance the distance of this layer above the ground plane.
 	 */
-	public void setDistance(double distance) { getDoublePref("Distance", layer3DDistancePrefs, this.distance).setDouble(distance); }
+	public void setDistance(double distance)
+    {
+        // Not done with observer/observable to avoid long list of elements attached to this class
+        // so reflection will be used.
+        try
+        {
+            Class viewClass = Resources.get3DClass("View3DWindow");
+            Method setMethod = viewClass.getDeclaredMethod("setZValues", new Class[] {Layer.class, Double.class, Double.class, Double.class, Double.class});
+            setMethod.invoke(viewClass,  new Object[] {this, new Double(getDistance()), new Double(getThickness()), new Double(distance), new Double(getThickness())});
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method setZValues: " + e.getMessage());
+            e.printStackTrace();
+        }
+        getDoublePref("Distance", layer3DDistancePrefs, this.distance).setDouble(distance);
+    }
 
 	/**
 	 * Method to calculate Z value of the upper part of the layer.
 	 * Note: not called getHeight to avoid confusion
 	 * with getDistance())
+     * Don't call distance+thickness because those are factory values.
 	 * @return Height of the layer
 	 */
-	public double getDepth() { return (distance+thickness); }
+	public double getDepth() { return (getDistance()+getThickness()); }
 
 	/**
 	 * Method to return the thickness of this layer.
@@ -693,7 +710,21 @@ public class Layer
 	 * Layers can have a thickness of 0, which causes them to be rendered flat.
 	 * @param thickness the thickness of this layer.
 	 */
-	public void setThickness(double thickness) { getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setDouble(thickness); }
+	public void setThickness(double thickness)
+    {
+        // Not done with observer/observable to avoid long list of elements attached to this class
+        // so reflection will be used.
+        try
+        {
+            Class viewClass = Resources.get3DClass("View3DWindow");
+            Method setMethod = viewClass.getDeclaredMethod("setZValues", new Class[] {Layer.class, Double.class, Double.class, Double.class, Double.class});
+            setMethod.invoke(viewClass,  new Object[] {this, new Double(getDistance()), new Double(getThickness()), new Double(distance), new Double(thickness)});
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method setZValues: " + e.getMessage());
+            e.printStackTrace();
+        }
+        getDoublePref("Thickness", layer3DThicknessPrefs, thickness).setDouble(thickness);
+    }
 
 	/**
 	 * Method to set the factory-default CIF name of this Layer.

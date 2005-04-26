@@ -38,7 +38,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -135,26 +134,28 @@ public class GDS extends Geometry
 	/** constant for GDS units */				private static double scaleFactor;				
 	/** cell naming map */						private HashMap cellNames;
 	/** layer number map */						private HashMap layerNumbers;
-    /** property number */                      private int propNumber;
+//    /** property number */                      private int propNumber;
 
 	/**
 	 * Main entry point for GDS output.
-	 * @param cell the top-level cell to write.
-	 * @param filePath the name of the file to create.
+	 * @param cellJob contains following information
+     * cell: the top-level cell to write.
+     * context: the hierarchical context to the cell.
+	 * filePath: the name of the file to create.
 	 */
-	public static void writeGDSFile(Cell cell, VarContext context, String filePath)
+	public static void writeGDSFile(OutputCellInfo cellJob)
 	{
-		if (cell.getView() != View.LAYOUT)
+		if (cellJob.cell.getView() != View.LAYOUT)
 		{
 			System.out.println("Can only write GDS for layout cells");
 			return;
 		}
 		GDS out = new GDS();
-		if (out.openBinaryOutputStream(filePath)) return;
-		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cell));
-		if (out.writeCell(cell, context, visitor)) return;
+		if (out.openBinaryOutputStream(cellJob.filePath)) return;
+		BloatVisitor visitor = out.makeBloatVisitor(getMaxHierDepth(cellJob.cell));
+		if (out.writeCell(cellJob.cell, cellJob.context, visitor)) return;
 		if (out.closeBinaryOutputStream()) return;
-		System.out.println(filePath + " written");
+		System.out.println(cellJob.filePath + " written");
 	}
 
 	/** Creates a new instance of GDS */

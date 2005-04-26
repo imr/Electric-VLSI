@@ -141,7 +141,7 @@ public class ERCWellCheck
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, wcVisitor);
 
 		// Checking if job is scheduled for abort or already aborted
-		if (job != null && job.checkForAbort()) return (0);
+		if (job != null && job.checkAbort()) return (0);
 
 		// make a list of well and substrate areas
 		int wellIndex = 0;
@@ -335,7 +335,7 @@ public class ERCWellCheck
 				for(Iterator oIt = wellAreas.iterator(); oIt.hasNext(); )
 				{
 					// Checking if job is scheduled for abort or already aborted
-					if (job != null && job.checkForAbort()) return (0);
+					if (job != null && job.checkAbort()) return (0);
 
 					WellArea oWa = (WellArea)oIt.next();
 					if (wa.index <= oWa.index) continue;
@@ -535,7 +535,7 @@ public class ERCWellCheck
         public boolean enterCell(HierarchyEnumerator.CellInfo info)
         {
 	        // Checking if job is scheduled for abort or already aborted
-	        if (check.job != null && check.job.checkForAbort()) return (false);
+	        if (check.job != null && check.job.checkAbort()) return (false);
 
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();
@@ -554,7 +554,7 @@ public class ERCWellCheck
         public void exitCell(HierarchyEnumerator.CellInfo info)
         {
 	        // Checking if job is scheduled for abort or already aborted
-	        if (check.job != null && check.job.checkForAbort()) return;
+	        if (check.job != null && check.job.checkAbort()) return;
 
 			// make an object for merging all of the wells in this cell
 			Cell cell = info.getCell();

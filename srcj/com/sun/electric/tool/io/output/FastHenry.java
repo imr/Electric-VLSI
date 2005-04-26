@@ -138,16 +138,18 @@ public class FastHenry extends Output
 
 	/**
 	 * The main entry point for FastHenry deck writing.
-	 * @param cell the top-level cell to write.
-	 * @param filePath the disk file to create with FastHenry.
+	 * @param cellJob contains following information
+     * cell: the top-level cell to write.
+     * context: the hierarchical context to the cell.
+	 * filePath: the disk file to create with FastHenry.
 	 */
-	public static void writeFastHenryFile(Cell cell, VarContext context, String filePath)
+	public static void writeFastHenryFile(OutputCellInfo cellJob)
 	{
 		FastHenry out = new FastHenry();
-		if (out.openTextOutputStream(filePath)) return;
-		out.writeFH(cell, context);
+		if (out.openTextOutputStream(cellJob.filePath)) return;
+		out.writeFH(cellJob.cell, cellJob.context);
 		if (out.closeTextOutputStream()) return;
-		System.out.println(filePath + " written");
+		System.out.println(cellJob.filePath + " written");
 	}
 
 	/**

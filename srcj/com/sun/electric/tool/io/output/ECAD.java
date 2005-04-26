@@ -31,7 +31,6 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
@@ -83,14 +82,15 @@ public class ECAD extends Output
 
 	/**
 	 * The main entry point for ECAD deck writing.
-	 * @param cell the top-level cell to write.
-	 * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create with ECAD.
+	 * @param cellJob contains following information
+     * cell: the top-level cell to write.
+	 * context: the hierarchical context to the cell.
+	 * filePath: the disk file to create with ECAD.
 	 */
-	public static void writeECADFile(Cell cell, VarContext context, String filePath)
+	public static void writeECADFile(OutputCellInfo cellJob)
 	{
 		ECAD out = new ECAD();
-		out.writeNetlist(cell, context, filePath);
+		out.writeNetlist(cellJob.cell, cellJob.context, cellJob.filePath);
 	}
 
 	private void writeNetlist(Cell cell, VarContext context, String filePath)

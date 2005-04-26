@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02m: *********************************
 
+BUG: (04/26/05, GVG) Ability to abort PostScript generation (Bug #286)
+FIX: Any output call passes Job class in case particular tool wants to monitor abort operation.
+
+BUG: (04/26/05, GVG) 3D View: distance and thickness modifications in 3D Preferences not reflected in 3D View windows
+FIX: Code now handles geometries by reference.
+
 BUG: (04/25/05, SMR) Explorer tree expansion is incorrect (Bugs #269 and #285).
 FIX: Only expand to the current library after reading it.
 

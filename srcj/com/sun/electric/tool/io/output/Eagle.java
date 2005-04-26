@@ -31,7 +31,6 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
@@ -85,14 +84,15 @@ public class Eagle extends Output
 
 	/**
 	 * The main entry point for Eagle deck writing.
-	 * @param cell the top-level cell to write.
-	 * @param context the hierarchical context to the cell.
-	 * @param filePath the disk file to create with Eagle.
+	 * @param cellJob contains following information
+     * cell: the top-level cell to write.
+	 * context: the hierarchical context to the cell.
+	 * filePath: the disk file to create with Eagle.
 	 */
-	public static void writeEagleFile(Cell cell, VarContext context, String filePath)
+	public static void writeEagleFile(OutputCellInfo cellJob)
 	{
 		Eagle out = new Eagle();
-		out.writeNetlist(cell, context, filePath);
+		out.writeNetlist(cellJob.cell, cellJob.context, cellJob.filePath);
 	}
 
 	private void writeNetlist(Cell cell, VarContext context, String filePath)

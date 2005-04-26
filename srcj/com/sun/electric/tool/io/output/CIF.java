@@ -83,17 +83,18 @@ public class CIF extends Geometry
     
     /**
 	 * Main entry point for CIF output.
-	 * @param cell the top-level cell to write.
-	 * @param filePath the name of the file to create.
+	 * @param cellJob contains following information
+     * cell: the top-level cell to write.
+	 * filePath: the name of the file to create.
 	 * @return the number of errors detected
 	 */
-	public static int writeCIFFile(Cell cell, VarContext context, String filePath)
+	public static int writeCIFFile(OutputCellInfo cellJob)
 	{
 		// initialize preferences
 		double minAllowedResolution = 0;
 		if (IOTool.isCIFOutCheckResolution())
 			minAllowedResolution = IOTool.getCIFOutResolution();
-		return writeCIFFile(cell, context, filePath, minAllowedResolution);
+		return writeCIFFile(cellJob.cell, cellJob.context, cellJob.filePath, minAllowedResolution);
 	}
     /**
 	 * User Interface independent entry point for CIF output.

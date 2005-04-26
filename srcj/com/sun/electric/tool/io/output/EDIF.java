@@ -75,7 +75,7 @@ public class EDIF extends Topology
 	}
 	private static final EGraphic EGUNKNOWN = new EGraphic("UNKNOWN");
 	private static final EGraphic EGART = new EGraphic("ARTWORK");
-	private static final EGraphic EGTEXT = new EGraphic("TEXT");
+//	private static final EGraphic EGTEXT = new EGraphic("TEXT");
 	private static final EGraphic EGWIRE = new EGraphic("WIRE");
 	private static final EGraphic EGBUS = new EGraphic("BUS");
 
@@ -84,16 +84,18 @@ public class EDIF extends Topology
 
 	/**
 	 * The main entry point for EDIF deck writing.
-	 * @param cell the top-level cell to write.
-	 * @param filePath the disk file to create with EDIF.
+	 * @param cellJob contains following information
+     * cell: the top-level cell to write.
+     * context: the hierarchical context to the cell.
+	 * filePath: the disk file to create with EDIF.
 	 */
-	public static void writeEDIFFile(Cell cell, VarContext context, String filePath)
+	public static void writeEDIFFile(OutputCellInfo cellJob)
 	{
 		EDIF out = new EDIF();
-		if (out.openTextOutputStream(filePath)) return;
-		if (out.writeCell(cell, context)) return;
+		if (out.openTextOutputStream(cellJob.filePath)) return;
+		if (out.writeCell(cellJob.cell, cellJob.context)) return;
 		if (out.closeTextOutputStream()) return;
-		System.out.println(filePath + " written");
+		System.out.println(cellJob.filePath + " written");
 	}
 
 	/**
