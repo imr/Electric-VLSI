@@ -24,10 +24,8 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.GridBagConstraints;
