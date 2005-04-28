@@ -89,7 +89,6 @@ public final class MenuCommands
         ViewMenu.addViewMenu(menuBar);
         WindowMenu.addWindowMenu(menuBar);
         ToolMenu.addToolMenu(menuBar);
-		MenuBar.Menu helpMenu = HelpMenu.addHelpMenu(menuBar);
 
         Class plugin3D = Resources.get3DClass("ui.J3DMenu");
         if (plugin3D != null)
@@ -104,6 +103,8 @@ public final class MenuCommands
                 ActivityLogger.logException(e);
             }
         }
+        
+        MenuBar.Menu helpMenu = HelpMenu.addHelpMenu(menuBar);
 
 		if (Main.getDebug())
 	        DebugMenus.addDebugMenus(menuBar, helpMenu);

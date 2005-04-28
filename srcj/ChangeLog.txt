@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02m: *********************************
 
+IMP: (04/27/05, GVG) Modification in mac-app (ant) and Info.plist to get it working on Mac OS X.
+"command" is deprecated and it was replaced by "executable"
+
 BUG: (04/26/05, GVG) Exception in postscript generation if directory is write-protected (Bug #289)
 FIX: Detect the condition and abort job
 

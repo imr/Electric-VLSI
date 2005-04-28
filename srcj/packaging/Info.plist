@@ -2,29 +2,32 @@
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleAllowMixedLocalizations</key>
+	<string>true</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
+	<key>CFBundleExecutable</key>
+	<string>JavaApplicationStub</string>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleTypeExtensions</key>
 			<array>
 				<string>jelib</string>
+				<string>elib</string>
 			</array>
 			<key>CFBundleTypeIconFile</key>
-			<string>Electric.icns</string>
+			<string>electric.icns</string>
 			<key>CFBundleTypeName</key>
 			<string>Electric File</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 		</dict>
 	</array>
-	<key>CFBundleExecutable</key>
-	<string>Electric</string>
 	<key>CFBundleIconFile</key>
 	<string>electric.icns</string>
 	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
+	<string>8.02m</string>
 	<key>CFBundleName</key>
 	<string>Electric</string>
 	<key>CFBundlePackageType</key>

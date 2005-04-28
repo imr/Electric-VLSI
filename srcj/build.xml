@@ -169,7 +169,7 @@
     </target>
 
     <target name="mac-app" depends="jar" description="Build Macintosh Application">
-        <property name="appdir" value="electric.app"/>
+        <property name="appdir" value="Electric.app"/>
         <mkdir dir="${appdir}"/>
         <mkdir dir="${appdir}/Contents"/>
         <mkdir dir="${appdir}/Contents/MacOS"/>
@@ -181,7 +181,10 @@
         <copy file="packaging/PkgInfo" todir="${appdir}/Contents"/>
         <copy file="packaging/electric.icns" todir="${appdir}/Contents/Resources"/>
         <copy file="electric.jar" todir="${appdir}/Contents/Resources/Java"/>
-        <exec command="/Developer/Tools/SetFile -a B ${appdir}"/>
+        <!--<exec command="/Developer/Tools/SetFile -a B ${appdir}"/> -->
+        <exec executable="/Developer/Tools/SetFile">
+            <arg value="-a"/> <arg value="B" /> <arg value="${appdir}" />
+        </exec>
     </target>
 
     <target name="javadoc" depends="init" description="Create Javadoc">
