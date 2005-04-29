@@ -119,6 +119,7 @@ public class Signal
 	public void buildBussedSignalList()
 	{
 		bussedSignals = new ArrayList();
+if (sd == null) System.out.println("SD IS NULL!!!!!!!");
 		sd.getBussedSignals().add(this);
 	}
 

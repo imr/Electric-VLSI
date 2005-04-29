@@ -93,6 +93,7 @@ import javax.swing.event.DocumentListener;
 
 /**
  * This class reads a Calibre file into Electric.
+ * Calibre uses Mentor's "Standard Verification Rule Format" (SVRF) language.
  */
 public class Calibre
 {
@@ -186,12 +187,12 @@ public class Calibre
 	 * Method to evaluate a derived layer rule.
 	 * Examples are:
 	 *     AA = COPY BB
-	 *     AA = BB NOT CC
-	 *     AA = BB AND CC
-	 *     AA = BB OR CC
-	 *     AA = BB [NOT] INTERACT CC [== 22]
-	 *     AA = BB [NOT] TOUCH CC [== 22]
-	 *     AA = BB ENCLOSE CC
+	 *     AA = BB NOT CC     BB subtract CC
+	 *     AA = BB AND CC     intersection
+	 *     AA = BB OR CC      union
+	 *     AA = BB [NOT] INTERACT CC [== 22]            returns distance between BB and CC
+	 *     AA = BB [NOT] TOUCH CC [== 22]   (touch, not touch, touch edge)
+	 *     AA = BB ENCLOSE CC          returns BB that has CC in it
 	 *     AA = BB ANGLE == 22
 	 *     AA = BB WITH EDGE CC
 	 *     AA = STAMP BB BY CC
@@ -207,7 +208,6 @@ public class Calibre
 	 *     AA = BB [NOT] COIN INSIDE EDGE CC
 	 *     AA = BB [NOT] OUTSIDE [EDGE] CC
 	 *     AA = BB [NOT] COIN OUTSIDE EDGE CC
-	 *     AA = EXPAND EDGE BB INSIDE BY 32 [EXTEND BY 12]
 	 *     AA = EXPAND EDGE BB OUTSIDE BY 32 [EXTEND BY 12]
 	 *     AA = EXT BB CC == 22 ABUT<90 OPPOSITE REGION
 	 *     AA = EXT BB CC == 22 ABUT<90 SINGULAR REGION

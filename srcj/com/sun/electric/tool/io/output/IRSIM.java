@@ -218,8 +218,9 @@ public class IRSIM extends Output
                         net2Name = info.getUniqueNetNameProxy(net2, "/").toString(numRemoveParents) + "_" + c.getArc().getName();
                     }
                     else
-                        System.out.println("Warning: more than 2 connections?");
+                        System.out.println("Warning: contact " + ni.describe() + " has more than 2 connections, RC estimation may be wrong");
                 }
+
                 // RC value will be via resistance divided by number of cuts of this contact
                 // Searching for via layer
                 PrimitiveNode pn = (PrimitiveNode)ni.getProto();

@@ -63,6 +63,7 @@ import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.OutlineListener;
+import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.StatusBar;
 import com.sun.electric.tool.user.ui.ToolBar;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -4726,6 +4727,7 @@ public class CircuitChanges
 				Undo.redrawObject(ni);
 			}
 			expandFlagBit = null;
+			PixelDrawing.clearSubCellCache();
 			EditWindow.repaintAllContents();
 			return true;
 		}
