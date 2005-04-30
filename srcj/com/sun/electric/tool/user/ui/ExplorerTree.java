@@ -1233,6 +1233,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			Library lib = (Library)currentSelectedObject;
 			lib.setCurrent();
 			WindowFrame.wantToRedoTitleNames();
+            WindowFrame.wantToRedoLibraryTree();
 			EditWindow.repaintAll();
 		}
 
