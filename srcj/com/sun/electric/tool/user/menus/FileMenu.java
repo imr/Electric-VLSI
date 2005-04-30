@@ -36,7 +36,6 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
-import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.io.output.PostScript;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -57,7 +56,6 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
@@ -81,7 +79,6 @@ public class FileMenu {
 
 
 	protected static void addFileMenu(MenuBar menuBar) {
-        MenuBar.MenuItem m;
 		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
 		/****************************** THE FILE MENU ******************************/
@@ -261,7 +258,6 @@ public class FileMenu {
             // start a job to do the input
             URL fileURL = TextUtils.makeURLToFile(fileName);
 			String libName = TextUtils.getFileNameWithoutExtension(fileURL);
-			Library deleteThis = null;
 			Library deleteLib = Library.findLibrary(libName);
 			if (deleteLib != null)
 			{
@@ -441,7 +437,6 @@ public class FileMenu {
 			// start a job to do the input
 			URL fileURL = TextUtils.makeURLToFile(fileName);
 			String libName = TextUtils.getFileNameWithoutExtension(fileURL);
-			Library deleteThis = null;
 			Library deleteLib = Library.findLibrary(libName);
 			if (deleteLib != null)
 			{
@@ -472,7 +467,6 @@ public class FileMenu {
 	    }
 	    if (preventLoss(lib, 1)) return;
 
-        String libName = lib.getName();
         WindowFrame.removeLibraryReferences(lib);
         CloseLibrary job = new CloseLibrary(lib);
     }
@@ -835,7 +829,7 @@ public class FileMenu {
 
         PrinterJob pj = PrinterJob.getPrinterJob();
         pj.setJobName(wf.getTitle());
-	    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
+//	    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
 // 		if (pageFormat == null)
 //		 {
 //			pageFormat = pj.defaultPage();
