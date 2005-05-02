@@ -69,7 +69,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 
 /**
  * This class initializes Electric and starts the system. How to run Electric:
