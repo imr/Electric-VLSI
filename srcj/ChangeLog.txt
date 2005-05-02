@@ -4,6 +4,23 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02m: *********************************
 
+BUG: (05/02/05, SMR) Explorer tree doesn't remember what is expanded when SIGNALS are shown (Bug #283).
+FIX: Must remember entire path through tree, not just leaf nodes.
+
+BUG: (05/02/05, SMR) PostScript text is too large, EPS bounding boxes are wrong (Bug #292).
+FIX: In PostScript.psText(), reduce the text size.
+
+BUG: (05/02/05, SMR) Layer opacity is not remembered (Bug #288).
+FIX: In EGraphics.setOpacity(), use preferences.
+
+BUG: (05/02/05, SMR) When a referenced library cannot be found, prompting the user gives
+     limited file type choices (Bug #260).
+FIX: In LibraryFiles.readExternalLibraryFromFilename(), allow any library file extension.
+     Created new FileType called "LIBFILE" which has all 3 extensions (jelib, elib, txt).
+
+BUG: (05/02/05, SMR) PostScript doesn't use stipple pattern setting properly (Bug #287).
+FIX: In PostScript.psPolygon(), use the layer's printed stipple pattern setting.
+
 BUG: (05/02/05, GVG) Electric not longer remember library context in Cell Instance place (Bug #291)
 FIX: this case was introduced while fixing Bug #250. Only when selectedLibrary is null, then the current library
 will be taken into account.

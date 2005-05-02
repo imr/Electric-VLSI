@@ -70,14 +70,14 @@ import javax.swing.JOptionPane;
  */
 public class PostScript extends Output
 {
-	/** scale factor for PostScript */				private static final int PSSCALE         =    4;
-	/** size of text in the corner */				private static final int CORNERDATESIZE   =  14;
+	/** scale factor for PostScript */				private static final int PSSCALE        =  4;
+	/** size of text in the corner */				private static final int CORNERDATESIZE = 14;
 
-	/** write macros for dot drawing */				private static final int HEADERDOT      = 1;
-	/** write macros for line drawing */			private static final int HEADERLINE     = 2;
-	/** write macros for polygon drawing */			private static final int HEADERPOLYGON  = 3;
-	/** write macros for filled polygon drawing */	private static final int HEADERFPOLYGON = 4;
-	/** write macros for text drawing */			private static final int HEADERSTRING   = 5;
+	/** write macros for dot drawing */				private static final int HEADERDOT      =  1;
+	/** write macros for line drawing */			private static final int HEADERLINE     =  2;
+	/** write macros for polygon drawing */			private static final int HEADERPOLYGON  =  3;
+	/** write macros for filled polygon drawing */	private static final int HEADERFPOLYGON =  4;
+	/** write macros for text drawing */			private static final int HEADERSTRING   =  5;
 
 	/** true if the "dot" header code has been written. */				private boolean putHeaderDot;
 	/** true if the "line" header code has been written. */				private boolean putHeaderLine;
@@ -99,7 +99,7 @@ public class PostScript extends Output
 	/** true to plot date information in the corner. */					private boolean plotDates;
 	/** matrix from database units to PS units. */						private AffineTransform matrix;
 	/** fake layer for drawing outlines and text. */					private static Layer blackLayer = Layer.newInstance(null, "black",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
+		new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 100,100,100,1.0,true, new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}));
 
 	/**
 	 * Main entry point for PostScript output.
@@ -118,7 +118,6 @@ public class PostScript extends Output
 	{
 		boolean error = false;
 		PostScript out = new PostScript(cell, job);
-//		out.cell = cell;
 		if (out.openTextOutputStream(filePath)) error = true;
         else // write out the cell
         {
@@ -262,20 +261,20 @@ public class PostScript extends Output
 		matrix = new AffineTransform(matrix00, matrix01, matrix10, matrix11, matrix20, matrix21);
 
 		// write PostScript header
-		if (epsFormat) printWriter.print("%!PS-Adobe-2.0 EPSF-2.0\n"); else
-			printWriter.print("%!PS-Adobe-1.0\n");
-		printWriter.print("%%Title: " + cell.describe() + "\n");
+		if (epsFormat) printWriter.println("%!PS-Adobe-2.0 EPSF-2.0"); else
+			printWriter.println("%!PS-Adobe-1.0");
+		printWriter.println("%%Title: " + cell.describe());
 		if (User.isIncludeDateAndVersionInOutput())
 		{
-			printWriter.print("%%Creator: Electric VLSI Design System version " + Version.getVersion() + "\n");
+			printWriter.println("%%Creator: Electric VLSI Design System version " + Version.getVersion());
 			Date now = new Date();
-			printWriter.print("%%CreationDate: " + TextUtils.formatDate(now) + "\n");
+			printWriter.println("%%CreationDate: " + TextUtils.formatDate(now));
 		} else
 		{
-			printWriter.print("%%Creator: Electric VLSI Design System\n");
+			printWriter.println("%%Creator: Electric VLSI Design System");
 		}
-		if (epsFormat) printWriter.print("%%Pages: 0\n"); else
-			printWriter.print("%%Pages: 1\n");
+		if (epsFormat) printWriter.println("%%Pages: 0"); else
+			printWriter.println("%%Pages: 1");
 		emitCopyright("% ", "");
 
 		// transform to PostScript units
@@ -316,60 +315,61 @@ public class PostScript extends Output
 		 * Increase the size of the bbox by one "pixel" to
 		 * prevent the edges from being obscured by some drawing tools
 		 */
-		printWriter.print("%%BoundingBox: " + (int)(bblx-1) + " " + (int)(bbly-1) + " " + (int)(bbhx+1) + " " + (int)(bbhy+1) + "\n");
-		printWriter.print("%%DocumentFonts: Times-Roman\n");
-		printWriter.print("%%EndComments\n");
+		printWriter.println("%%BoundingBox: " + (int)(bblx-1) + " " + (int)(bbly-1) + " " + (int)(bbhx+1) + " " + (int)(bbhy+1));
+		printWriter.println("%%DocumentFonts: Times-Roman");
+		printWriter.println("%%EndComments");
+		if (!epsFormat) printWriter.println("%%Page: 1 1");
 
 		// PostScript: add some debugging info
 		if (cell != null)
 		{
 			Rectangle2D bounds = cell.getBounds();
-			printWriter.print("% cell dimensions: " + bounds.getWidth() + " wide x " + bounds.getHeight() + " high (database units)\n");
-			printWriter.print("% origin: " + bounds.getMinX() + " " + bounds.getMinY() + "\n");
+			printWriter.println("% cell dimensions: " + bounds.getWidth() + " wide x " + bounds.getHeight() + " high (database units)");
+			printWriter.println("% origin: " + bounds.getMinX() + " " + bounds.getMinY());
 		}
 
 		// disclaimers
 		if (epsFormat)
 		{
-			printWriter.print("% The EPS header should declare a private dictionary.\n");
+			printWriter.println("% The EPS header should declare a private dictionary.");
 		} else
 		{
-			printWriter.print("% The non-EPS header does not claim conformance to Adobe-2.0\n");
-			printWriter.print("% because the structure may not be exactly correct.\n");
+			printWriter.println("% The non-EPS header does not claim conformance to Adobe-2.0");
+			printWriter.println("% because the structure may not be exactly correct.");
 		}
-		printWriter.print("%\n");
+		printWriter.println("%");
 
 		// set the page size if this is a plotter
 		if (usePlotter)
 		{
-			printWriter.print("<< /PageSize [" + (int)(pageWid * 72 / 75) + " " + (int)(pageHei * 72 / 75) + "] >> setpagedevice\n");
+			printWriter.println("<< /PageSize [" + (int)(pageWid * 72 / 75) + " " + (int)(pageHei * 72 / 75) + "] >> setpagedevice");
 		}
 
 		// make the scale be exactly equal to one page pixel
-		printWriter.print("72 " + PSSCALE*75 + " div 72 " + PSSCALE*75 + " div scale\n");
+		printWriter.println("72 " + PSSCALE*75 + " div 72 " + PSSCALE*75 + " div scale");
 
 		// set the proper typeface
-		printWriter.print("/DefaultFont /Times-Roman def\n");
-		printWriter.print("/scaleFont {\n");
-		printWriter.print("    DefaultFont findfont\n");
-		printWriter.print("    exch scalefont setfont} def\n");
+		printWriter.println("/DefaultFont /Times-Roman def");
+		printWriter.println("/scaleFont {");
+		printWriter.println("    DefaultFont findfont");
+		printWriter.println("    exch scalefont setfont} def");
 
 		// make the line width proper
 		lineWidth = (int)(PSSCALE/2 * IOTool.getPrintPSLineWidth());
-		printWriter.print(lineWidth + " setlinewidth\n");
+		printWriter.println(lineWidth + " setlinewidth");
 
 		// make the line ends look right
-		printWriter.print("1 setlinecap\n");
+		printWriter.println("1 setlinecap");
 
 		// rotate the image if requested
 		if (rotatePlot)
 		{
 			if (usePlotter)
 			{
-				printWriter.print((pageWid/75) + " 300 mul " + ((pageHei-pageWid)/2/75) + " 300 mul translate 90 rotate\n");
+				printWriter.println((pageWid/75) + " 300 mul " + ((pageHei-pageWid)/2/75) + " 300 mul translate 90 rotate");
 			} else
 			{
-				printWriter.print((pageHei+pageWid)/2/75 + " 300 mul " + (pageHei-pageWid)/2/75 + " 300 mul translate 90 rotate\n");
+				printWriter.println((pageHei+pageWid)/2/75 + " 300 mul " + (pageHei-pageWid)/2/75 + " 300 mul translate 90 rotate");
 			}
 		}
 
@@ -385,7 +385,7 @@ public class PostScript extends Output
 	private void done()
 	{
 		// draw the grid if requested
-		if (psUseColor) printWriter.print("0 0 0 setrgbcolor\n");
+		if (psUseColor) printWriter.println("0 0 0 setrgbcolor");
 		if (wnd != null && wnd.isGrid())
 		{
 			int gridx = (int)wnd.getGridXSpacing();
@@ -410,16 +410,18 @@ public class PostScript extends Output
 			double matrix11 = matrix.getScaleY();
 			double matrix20 = matrix.getTranslateX();
 			double matrix21 = matrix.getTranslateY();
-			printWriter.print(gridlx + " " + gridx + " " + hx + "\n{\n");
-			printWriter.print("    " + gridly + " " + gridy + " " + hy + "\n    {\n");	// x y
-			printWriter.print("        dup 3 -1 roll dup dup\n");				// y y x x x
-			printWriter.print("        5 1 roll 3 1 roll\n");					// x y x y x
-			printWriter.print("        " + matrix00 + " mul exch " + matrix10 + " mul add " + matrix20 + " add\n");		// x y x x'
-			printWriter.print("        3 1 roll\n");							// x x' y x
-			printWriter.print("        " + matrix01 + " mul exch " + matrix11 + " mul add " + matrix21 + " add\n");		// x x' y'
-			printWriter.print("        newpath moveto 0 0 rlineto stroke\n");
-			printWriter.print("    } for\n");
-			printWriter.print("} for\n");
+			printWriter.println(gridlx + " " + gridx + " " + hx);
+			printWriter.println("{");
+			printWriter.println("    " + gridly + " " + gridy + " " + hy);	// x y
+			printWriter.println("    {");
+			printWriter.println("        dup 3 -1 roll dup dup");				// y y x x x
+			printWriter.println("        5 1 roll 3 1 roll");					// x y x y x
+			printWriter.println("        " + matrix00 + " mul exch " + matrix10 + " mul add " + matrix20 + " add");		// x y x x'
+			printWriter.println("        3 1 roll");							// x x' y x
+			printWriter.println("        " + matrix01 + " mul exch " + matrix11 + " mul add " + matrix21 + " add");		// x x' y'
+			printWriter.println("        newpath moveto 0 0 rlineto stroke");
+			printWriter.println("    } for");
+			printWriter.println("} for");
 		}
 
 		// draw frame if it is there
@@ -432,19 +434,19 @@ public class PostScript extends Output
 			putPSHeader(HEADERSTRING);
 			printWriter.print("0 " + (int)(2 * CORNERDATESIZE * PSSCALE) + " ");
 			writePSString("Cell: " + cell.describe());
-			printWriter.print(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring\n");
+			printWriter.println(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring");
 
 			printWriter.print("0 " + (int)(CORNERDATESIZE * PSSCALE) + " ");
 			writePSString("Created: " + TextUtils.formatDate(cell.getCreationDate()));
-			printWriter.print(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring\n");
+			printWriter.println(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring");
 
 			printWriter.print("0 0 ");
 			writePSString("Revised: " + TextUtils.formatDate(cell.getRevisionDate()));
-			printWriter.print(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring\n");
+			printWriter.println(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring");
 		}
 
-		printWriter.print("showpage\n");
-		printWriter.print("%%Trailer\n");
+		printWriter.println("showpage");
+		printWriter.println("%%Trailer");
 	}
 
 	/**
@@ -820,7 +822,7 @@ public class PostScript extends Output
 			if (col.getRGB() != lastColor)
 			{
 				lastColor = col.getRGB();
-				printWriter.print(col.getRed()/255.0f + " " + col.getGreen()/255.0f + " " + col.getBlue()/255.0f + " setrgbcolor\n");
+				printWriter.println(col.getRed()/255.0f + " " + col.getGreen()/255.0f + " " + col.getBlue()/255.0f + " setrgbcolor");
 			}
 		}
 	}
@@ -984,7 +986,7 @@ public class PostScript extends Output
 	{
 		Point2D ps = psXform(pt);
 		putPSHeader(HEADERDOT);
-		printWriter.print(TextUtils.formatDouble(ps.getX()) + " " + TextUtils.formatDouble(ps.getY()) + " Putdot\n");
+		printWriter.println(TextUtils.formatDouble(ps.getX()) + " " + TextUtils.formatDouble(ps.getY()) + " Putdot");
 	}
 
 	/**
@@ -999,26 +1001,26 @@ public class PostScript extends Output
 		switch (pattern)
 		{
 			case 0:
-				printWriter.print(TextUtils.formatDouble(pt1.getX()) + " " + TextUtils.formatDouble(pt1.getY()) + " " +
-					TextUtils.formatDouble(pt2.getX()) + " " + TextUtils.formatDouble(pt2.getY()) + " Drawline\n");
+				printWriter.println(TextUtils.formatDouble(pt1.getX()) + " " + TextUtils.formatDouble(pt1.getY()) + " " +
+					TextUtils.formatDouble(pt2.getX()) + " " + TextUtils.formatDouble(pt2.getY()) + " Drawline");
 				break;
 			case 1:
 				printWriter.print("[" + i + " " + i*3 + "] 0 setdash ");
-				printWriter.print(TextUtils.formatDouble(pt1.getX()) + " " + TextUtils.formatDouble(pt1.getY()) + " " +
-					TextUtils.formatDouble(pt2.getX()) + " " + TextUtils.formatDouble(pt2.getY()) + " Drawline\n");
-				printWriter.print(" [] 0 setdash\n");
+				printWriter.println(TextUtils.formatDouble(pt1.getX()) + " " + TextUtils.formatDouble(pt1.getY()) + " " +
+					TextUtils.formatDouble(pt2.getX()) + " " + TextUtils.formatDouble(pt2.getY()) + " Drawline");
+				printWriter.println(" [] 0 setdash");
 				break;
 			case 2:
 				printWriter.print("[" + i*6 + " " + i*3 + "] 0 setdash ");
-				printWriter.print(TextUtils.formatDouble(pt1.getX()) + " " + TextUtils.formatDouble(pt1.getY()) + " " +
-					TextUtils.formatDouble(pt2.getX()) + " " + TextUtils.formatDouble(pt2.getY()) + " Drawline\n");
-				printWriter.print(" [] 0 setdash\n");
+				printWriter.println(TextUtils.formatDouble(pt1.getX()) + " " + TextUtils.formatDouble(pt1.getY()) + " " +
+					TextUtils.formatDouble(pt2.getX()) + " " + TextUtils.formatDouble(pt2.getY()) + " Drawline");
+				printWriter.println(" [] 0 setdash");
 				break;
 			case 3:
 				printWriter.print((lineWidth*2) + " setlinewidth ");
-				printWriter.print(TextUtils.formatDouble(pt1.getX()) + " " + TextUtils.formatDouble(pt1.getY()) + " " +
-					TextUtils.formatDouble(pt2.getX()) + " " + TextUtils.formatDouble(pt2.getY()) + " Drawline\n");
-				printWriter.print(lineWidth + " setlinewidth\n");
+				printWriter.println(TextUtils.formatDouble(pt1.getX()) + " " + TextUtils.formatDouble(pt1.getY()) + " " +
+					TextUtils.formatDouble(pt2.getX()) + " " + TextUtils.formatDouble(pt2.getY()) + " Drawline");
+				printWriter.println(lineWidth + " setlinewidth");
 				break;
 		}
 	}
@@ -1034,8 +1036,8 @@ public class PostScript extends Output
 		double radius = pc.distance(ps1);
 		int startAngle = (DBMath.figureAngle(pc, ps2) + 5) / 10;
 		int endAngle = (DBMath.figureAngle(pc, ps1) + 5) / 10;
-		printWriter.print("newpath " + TextUtils.formatDouble(pc.getX()) + " " + TextUtils.formatDouble(pc.getY()) + " " + radius + " " +
-			startAngle + " " + endAngle + " arc stroke\n");
+		printWriter.println("newpath " + TextUtils.formatDouble(pc.getX()) + " " + TextUtils.formatDouble(pc.getY()) + " " + radius + " " +
+			startAngle + " " + endAngle + " arc stroke");
 	}
 
 	/**
@@ -1046,7 +1048,7 @@ public class PostScript extends Output
 		Point2D pc = psXform(center);
 		Point2D ps = psXform(pt);
 		double radius = pc.distance(ps);
-		printWriter.print("newpath " + TextUtils.formatDouble(pc.getX()) + " " + TextUtils.formatDouble(pc.getY()) + " " + radius + " 0 360 arc stroke\n");
+		printWriter.println("newpath " + TextUtils.formatDouble(pc.getX()) + " " + TextUtils.formatDouble(pc.getY()) + " " + radius + " 0 360 arc stroke");
 	}
 
 	/**
@@ -1057,7 +1059,7 @@ public class PostScript extends Output
 		Point2D pc = psXform(center);
 		Point2D ps = psXform(pt);
 		double radius = pc.distance(ps);
-		printWriter.print("newpath " + TextUtils.formatDouble(pc.getX()) + " " + TextUtils.formatDouble(pc.getY()) + " " + radius + " 0 360 arc fill\n");
+		printWriter.println("newpath " + TextUtils.formatDouble(pc.getX()) + " " + TextUtils.formatDouble(pc.getY()) + " " + radius + " 0 360 arc fill");
 	}
 
 	/**
@@ -1081,23 +1083,7 @@ public class PostScript extends Output
 		EGraphics desc = poly.getLayer().getGraphics();
 
 		// use solid color if solid pattern or no pattern
-		boolean stipplePattern = false;
-		if (psUseColor)
-		{
-			if (psUseColorStip)
-			{
-				// use stippled color if possible
-				if (desc.isPatternedOnDisplay() || desc.isPatternedOnPrinter())
-					stipplePattern = true;
-			} else
-			{
-				// use solid color if default color style is solid
-				if (desc.isPatternedOnDisplay()) stipplePattern = true;
-			}
-		} else
-		{
-			if (desc.isPatternedOnPrinter()) stipplePattern = true;
-		}
+		boolean stipplePattern = desc.isPatternedOnPrinter();
 
 		// if stipple pattern is solid, just use solid fill
 		if (stipplePattern)
@@ -1120,7 +1106,7 @@ public class PostScript extends Output
 				Point2D ps = psXform(points[i]);
 				printWriter.print(TextUtils.formatDouble(ps.getX()) + " " + TextUtils.formatDouble(ps.getY()));
 			}
-			printWriter.print("] Polygon fill\n");
+			printWriter.println("] Polygon fill");
 			return;
 		}
 
@@ -1145,8 +1131,8 @@ public class PostScript extends Output
 			if (psi.getX() < lx) lx = psi.getX();   if (psi.getX() > hx) hx = psi.getX();
 			if (psi.getY() < ly) ly = psi.getY();   if (psi.getY() > hy) hy = psi.getY();
 		}
-		printWriter.print("] " + TextUtils.formatDouble(hx-lx+1) + " " + TextUtils.formatDouble(hy-ly+1) + " " +
-			TextUtils.formatDouble(lx) + " " + TextUtils.formatDouble(ly) + " Filledpolygon\n");
+		printWriter.println("] " + TextUtils.formatDouble(hx-lx+1) + " " + TextUtils.formatDouble(hy-ly+1) + " " +
+			TextUtils.formatDouble(lx) + " " + TextUtils.formatDouble(ly) + " Filledpolygon");
 	}
 
 	String defaultFontName = "Times";
@@ -1159,7 +1145,8 @@ public class PostScript extends Output
 		Poly.Type style = poly.getStyle();
 		TextDescriptor td = poly.getTextDescriptor();
 		if (td == null) return;
-		int size = (int)(td.getTrueSize(wnd) * PSSCALE * 3 / 4);
+//		int size = (int)(td.getTrueSize(wnd) * PSSCALE * 3 / 4);
+		int size = (int)(td.getTrueSize(wnd) * PSSCALE / 2);
 		Rectangle2D bounds = poly.getBounds2D();
 
 		// get the font size
@@ -1189,7 +1176,7 @@ public class PostScript extends Output
 		if (faceName != null)
 		{
 			String fixedFaceName = faceName.replace(' ', '-');
-			printWriter.print("/DefaultFont /" + fixedFaceName + " def\n");
+			printWriter.println("/DefaultFont /" + fixedFaceName + " def");
 			changedFont = true;
 		} else
 		{
@@ -1197,16 +1184,16 @@ public class PostScript extends Output
 			{
 				if (td.isBold())
 				{
-					printWriter.print("/DefaultFont /" + defaultFontName + "-BoldItalic def\n");
+					printWriter.println("/DefaultFont /" + defaultFontName + "-BoldItalic def");
 					changedFont = true;
 				} else
 				{
-					printWriter.print("/DefaultFont /" + defaultFontName + "-Italic def\n");
+					printWriter.println("/DefaultFont /" + defaultFontName + "-Italic def");
 					changedFont = true;
 				}
 			} else if (td.isBold())
 			{
-				printWriter.print("/DefaultFont /" + defaultFontName + "-Bold def\n");
+				printWriter.println("/DefaultFont /" + defaultFontName + "-Bold def");
 				changedFont = true;
 			}
 		}
@@ -1215,7 +1202,7 @@ public class PostScript extends Output
 			printWriter.print(TextUtils.formatDouble(cX) + " " + TextUtils.formatDouble(cY) + " " +
 				TextUtils.formatDouble(sX) + " " + TextUtils.formatDouble(sY) + " ");
 			writePSString(text);
-			printWriter.print(" " + size + " Boxstring\n");
+			printWriter.println(" " + size + " Boxstring");
 		} else
 		{
 			String opName = null;
@@ -1279,41 +1266,41 @@ public class PostScript extends Output
 				if (rot == TextDescriptor.Rotation.ROT90)
 				{
 					// 90 degrees counterclockwise
-					printWriter.print(xoff + " " + yoff + " translate 90 rotate\n");
+					printWriter.println(xoff + " " + yoff + " translate 90 rotate");
 				} else if (rot == TextDescriptor.Rotation.ROT180)
 				{
 					// 180 degrees
-					printWriter.print(xoff + " " + yoff + " translate 180 rotate\n");
+					printWriter.println(xoff + " " + yoff + " translate 180 rotate");
 				} else if (rot == TextDescriptor.Rotation.ROT270)
 				{
 					// 90 degrees clockwise
-					printWriter.print(xoff + " " + yoff + " translate 270 rotate\n");
+					printWriter.println(xoff + " " + yoff + " translate 270 rotate");
 				}
 			}
 			printWriter.print(TextUtils.formatDouble(x) + " " + TextUtils.formatDouble(y) + " ");
 			writePSString(text);
-			printWriter.print(" " + size + " " + opName + "\n");
+			printWriter.println(" " + size + " " + opName);
 			if (rot != TextDescriptor.Rotation.ROT0)
 			{
 				if (rot == TextDescriptor.Rotation.ROT90)
 				{
 					// 90 degrees counterclockwise
-					printWriter.print("-90 rotate " + (-xoff) + " " + (-yoff) + " translate\n");
+					printWriter.println("-90 rotate " + (-xoff) + " " + (-yoff) + " translate");
 				} else if (rot == TextDescriptor.Rotation.ROT180)
 				{
 					// 180 degrees
-					printWriter.print("-180 rotate " + (-xoff) + " " + (-yoff) + " translate\n");
+					printWriter.println("-180 rotate " + (-xoff) + " " + (-yoff) + " translate");
 				} else if (rot == TextDescriptor.Rotation.ROT270)
 				{
 					// 90 degrees clockwise
-					printWriter.print("-270 rotate " + (-xoff) + " " + (-yoff) + " translate\n");
+					printWriter.println("-270 rotate " + (-xoff) + " " + (-yoff) + " translate");
 				}
 			}
 		}
 
 		if (changedFont)
 		{
-			printWriter.print("/DefaultFont /" + defaultFontName + " def\n");
+			printWriter.println("/DefaultFont /" + defaultFontName + " def");
 		}
 	}
 
@@ -1594,38 +1581,37 @@ public class PostScript extends Output
 
 	private void putPSHeader(int which)
 	{
-
 		switch (which)
 		{
 			case HEADERDOT:
 				if (putHeaderDot) return;
 				putHeaderDot = true;
 				for(int i=0; i<headerDot.length; i++)
-					printWriter.print(headerDot[i] + "\n");
+					printWriter.println(headerDot[i]);
 				break;
 			case HEADERLINE:
 				if (putHeaderLine) return;
 				putHeaderLine = true;
 				for(int i=0; i<headerLine.length; i++)
-					printWriter.print(headerLine[i] + "\n");
+					printWriter.println(headerLine[i]);
 				break;
 			case HEADERPOLYGON:
 				if (putHeaderPolygon) return;
 				putHeaderPolygon = true;
 				for(int i=0; i<headerPolygon.length; i++)
-					printWriter.print(headerPolygon[i] + "\n");
+					printWriter.println(headerPolygon[i]);
 				break;
 			case HEADERFPOLYGON:
 				if (putHeaderFilledPolygon) return;
 				putHeaderFilledPolygon = true;
 				for(int i=0; i<headerFilledPolygon.length; i++)
-					printWriter.print(headerFilledPolygon[i] + "\n");
+					printWriter.println(headerFilledPolygon[i]);
 				break;
 			case HEADERSTRING:
 				if (putHeaderString) return;
 				putHeaderString = true;
 				for(int i=0; i<headerString.length; i++)
-					printWriter.print(headerString[i] + "\n");
+					printWriter.println(headerString[i]);
 				break;
 		}
 	}
@@ -1656,11 +1642,11 @@ public class PostScript extends Output
 		 *
 		 * see: "Making a User Defined Font", PostScript Cookbook
 		 */
-		printWriter.print("StippleFont1 begin\n");
-		printWriter.print("    Encoding (" + indexChar + ") 0 get /Stipple" + indexChar + " put\n");
-		printWriter.print("    CharacterDefs /Stipple" + indexChar + " {\n");
-		printWriter.print("        128 128 true [128 0 0 -128 0 128]\n");
-		printWriter.print("        { <\n");
+		printWriter.println("StippleFont1 begin");
+		printWriter.println("    Encoding (" + indexChar + ") 0 get /Stipple" + indexChar + " put");
+		printWriter.println("    CharacterDefs /Stipple" + indexChar + " {");
+		printWriter.println("        128 128 true [128 0 0 -128 0 128]");
+		printWriter.println("        { <");
 		for(int i=0; i<8; i++)
 		{
 			int bl = raster[i] & 0x00FF;
@@ -1684,12 +1670,12 @@ public class PostScript extends Output
 				printWriter.print("            ");
 				for(int j=0; j<4; j++)
 					printWriter.print((bhd&0xFFFF) + " " + (bld&0xFFFF) + " ");
-				printWriter.print("\n");
+				printWriter.println();
 			}
 		}
-		printWriter.print("        > } imagemask\n");
-		printWriter.print("    } put\n");
-		printWriter.print("end\n");
+		printWriter.println("        > } imagemask");
+		printWriter.println("    } put");
+		printWriter.println("end");
 		return indexChar;
 	}
 

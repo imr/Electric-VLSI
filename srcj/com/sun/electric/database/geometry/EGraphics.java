@@ -58,6 +58,7 @@ public class EGraphics extends Observable
 	private static HashMap usePatternPrinterMap = new HashMap();
 	private static HashMap outlinePatternDisplayMap = new HashMap();
 	private static HashMap transparentLayerMap = new HashMap();
+	private static HashMap opacityMap = new HashMap();
 	private static HashMap colorMap = new HashMap();
 	private static HashMap patternMap = new HashMap();
 
@@ -248,6 +249,11 @@ public class EGraphics extends Observable
 		transparentLayer = transparentLayerPref.getInt();
 		transparentLayerMap.put(layer, transparentLayerPref);
 
+		Pref opacityPref = Pref.makeDoublePref("OpacityFor" + layer.getName() + "In" + tech.getTechName(),
+			Technology.getTechnologyPreferences(), opacity);
+		opacity = opacityPref.getDouble();
+		opacityMap.put(layer, opacityPref);
+		
 		Pref colorPref = Pref.makeIntPref("ColorFor" + layer.getName() + "In" + tech.getTechName(),
 			Technology.getTechnologyPreferences(), (red<<16) | (green << 8) | blue);
 		int color = colorPref.getInt();
@@ -441,7 +447,16 @@ public class EGraphics extends Observable
 	 * Opacity runs from 0 (transparent) to 1 (opaque).
 	 * @param opacity the opacity of this EGraphics.
 	 */
-	public void setOpacity(double opacity) { this.opacity = opacity; }
+	public void setOpacity(double opacity)
+	{
+		this.opacity = opacity;
+
+		if (layer != null)
+		{
+			Pref pref = (Pref)opacityMap.get(layer);
+			if (pref != null) pref.setDouble(opacity);
+		}
+	}
 
 	/**
 	 * Method to get whether this EGraphics should be drawn in the foreground.

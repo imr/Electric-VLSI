@@ -259,7 +259,7 @@ public abstract class LibraryFiles extends Input
 			while (true) {
 				// continue to ask the user where the library is until they hit "cancel"
 				String description = "Reference library '" + libFileName + "'";
-				pt = OpenFile.chooseInputFile(defaultType, description);
+				pt = OpenFile.chooseInputFile(FileType.LIBFILE, description);
 				if (pt == null) {
 					// user cancelled, break
 					break;

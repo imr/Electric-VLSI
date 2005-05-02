@@ -61,6 +61,7 @@ public class FileType {
     /** Describes J3D files.*/				public static final FileType J3D          = makeFileType("J3D", new String[] {"j3d"}, "Java3D Demo File (j3d}");
     /** Describes L files.*/				public static final FileType L            = makeFileType("L", new String[] {"L"}, "L File (L)");
 	/** Describes LEF files.*/				public static final FileType LEF          = makeFileType("LEF", new String[] {"lef"}, "LEF File (lef)");
+	/** Describes Library files.*/			public static final FileType LIBFILE      = makeFileType("LIBFILE", new String[] {"jelib", "elib", "txt"}, "Library File");
 	/** Describes Maxwell decks. */			public static final FileType MAXWELL      = makeFileType("Maxwell", new String[] {"mac"}, "Maxwell Deck (mac)");
 	/** Describes MOSSIM decks. */			public static final FileType MOSSIM       = makeFileType("MOSSIM", new String[] {"ntk"}, "MOSSIM Deck (ntk)");
     /** Describes Movie files. */			public static final FileType MOV          = makeFileType("Movie", new String[] {"mov"}, "Movie File (mov)");

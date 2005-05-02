@@ -636,16 +636,23 @@ public class WindowFrame extends Observable
 	private void recursivelyCache(HashSet expanded, TreePath path, boolean cache)
 	{
 		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
-		Object obj = node.getUserObject();
 		int numChildren = node.getChildCount();
 		if (numChildren == 0) return;
 
 		if (cache)
 		{
-			if (explorerTab.isExpanded(path)) expanded.add(obj);
+			if (explorerTab.isExpanded(path))
+			{
+				Object obj = getProperTreeObject(node);
+				expanded.add(obj);
+			} else numChildren = 0;
 		} else
 		{
-			if (expanded.contains(obj)) explorerTab.expandPath(path);
+			Object obj = getProperTreeObject(node);
+			if (expanded.contains(obj))
+			{
+				explorerTab.expandPath(path);
+			} else numChildren = 0;
 		}
 
 		// now recurse
@@ -658,6 +665,30 @@ public class WindowFrame extends Observable
 		}
 	}
 
+	/**
+	 * Method to get the object at a specific node in the explorer tree.
+	 * For String objects, a complete path to the top of the tree is built.
+	 * This is necessary because using the final name may not be unique.
+	 * @param node the tree node at that point in the tree.
+	 * @return the proper Object to describe that tree node.
+	 */
+	private Object getProperTreeObject(DefaultMutableTreeNode node)
+	{
+		Object obj = node.getUserObject();
+		if (obj instanceof String)
+		{
+			DefaultMutableTreeNode climb = node;
+			for(;;)
+			{
+				climb = (DefaultMutableTreeNode)climb.getParent();
+				if (climb == null) break;
+				Object parentObj = climb.getUserObject();
+				if (!(parentObj instanceof String)) break;
+				obj = ((String)parentObj) + "." + ((String)obj);
+			}
+		}
+		return obj;
+	}
 	//******************************** INTERFACE ********************************
 
 	/**

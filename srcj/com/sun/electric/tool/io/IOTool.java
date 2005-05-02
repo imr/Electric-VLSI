@@ -206,9 +206,10 @@ public class IOTool extends Tool
 	{
 		if (cachePrinterName == null)
 		{
-			PrintService defPrintService = PrintServiceLookup.lookupDefaultPrintService();
-			if (defPrintService == null) cachePrinterName = Pref.makeStringPref("PrinterName", IOTool.tool.prefs, ""); else
-				cachePrinterName = Pref.makeStringPref("PrinterName", IOTool.tool.prefs, defPrintService.getName());
+			cachePrinterName = Pref.makeStringPref("PrinterName", IOTool.tool.prefs, "");
+//			PrintService defPrintService = PrintServiceLookup.lookupDefaultPrintService();
+//			if (defPrintService == null) cachePrinterName = Pref.makeStringPref("PrinterName", IOTool.tool.prefs, ""); else
+//				cachePrinterName = Pref.makeStringPref("PrinterName", IOTool.tool.prefs, defPrintService.getName());
 		}
 		return cachePrinterName;
 	}
