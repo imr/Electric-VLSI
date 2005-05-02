@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02m: *********************************
 
+BUG: (05/01/05, RK) clarify NCC error message. For hierarchical comparison specify path relative to current Cell
+
 BUG: (05/01/05, RK) NCC shouldn't blow up if Cell has no wires.
 
 BUG: (04/29/05, GVG) Missing refresh in explorer tree if current library is changed (Bug #251, #270)
