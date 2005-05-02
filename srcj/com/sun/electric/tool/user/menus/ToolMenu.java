@@ -65,6 +65,7 @@ import com.sun.electric.tool.extract.Connectivity;
 import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
+import com.sun.electric.tool.generator.cmosPLA.PLA;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.input.Simulate;
@@ -402,7 +403,7 @@ public class ToolMenu {
 
 		//------------------- Generation
 
-		// mnemonic keys available: AB DEFGHIJKL NO Q S UVWXYZ
+		// mnemonic keys available: AB DEFGHIJK  NO Q S UVWXYZ
 		MenuBar.Menu generationSubMenu = MenuBar.makeMenu("_Generation");
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("_Coverage Implants Generator", null,
@@ -411,6 +412,8 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("_ROM Generator...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ROMGenerator.generateROM(); }});
+		generationSubMenu.addMenuItem("MOSIS CMOS P_LA Generator...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { PLA.generate(); }});
 		generationSubMenu.addMenuItem("Generate gate layouts (_MoCMOS)", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(MoCMOS.tech); }});
 		if (Technology.getTSMC90Technology() != null)

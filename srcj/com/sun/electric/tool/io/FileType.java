@@ -48,6 +48,7 @@ public class FileType {
 	/** Describes Encapsulated PS files. */	public static final FileType EPS          = makeFileType("Encapsulated PostScript", new String[] {"eps"}, "Encapsulated PostScript (eps)");
 	/** Describes ESIM/RNL output. */		public static final FileType ESIM         = makeFileType("ESIM", new String[] {"sim"}, "ESIM File (sim)");
 	/** Describes FastHenry files.*/		public static final FileType FASTHENRY    = makeFileType("FastHenry", new String[] {"inp"}, "FastHenry File (inp)");
+	/** Describes FPGA files.*/				public static final FileType FPGA         = makeFileType("FPGA", new String[] {"fpga"}, "FPGA Architecture File (fpga)");
 	/** Describes GDS files. */				public static final FileType GDS          = makeFileType("GDS", new String[] {"gds"}, "GDS File (gds)");
 	/** Describes HSpice output. */			public static final FileType HSPICEOUT    = makeFileTypeNumeric("HSpiceOutput", new String[] {"tr"}, "HSpice Output File (tr0,1,2...)");
 	/** Describes HPGL files. */			public static final FileType HPGL         = makeFileType("HPGL", new String[] {"hpgl2"}, "HPGL File (hpgl2)");

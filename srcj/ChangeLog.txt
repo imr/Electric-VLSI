@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02m: *********************************
 
+IMP/MAN: (05/01/05, SMR) Added MOSIS CMOS PLA generator.
+
+BUG: (05/01/05, SMR) Readable dump input does not handle old port name conversion.
+FIX: Added the method input.ReadableDump.findProperPortInst().
+
 IMP: (05/02/05. GVG) Extra work to allow libraries expanded in Explorer view if you open them with View->Edit view (Bug# 223).
 
 BUG: (05/01/05, RK) clarify NCC error message. For hierarchical comparison specify path relative to current Cell

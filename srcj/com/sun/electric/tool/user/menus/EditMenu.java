@@ -41,6 +41,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.extract.LayerCoverageJob;
@@ -347,13 +348,24 @@ public class EditMenu {
 		cleanupSubMenu.addMenuItem("_Shorten Selected Arcs", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
 
-		// mnemonic keys available:     EFGH JK M O QRS UVWXYZ
+		// mnemonic keys available:     E GH JK M O QRS UVWXYZ
 		MenuBar.Menu specialSubMenu = MenuBar.makeMenu("Technolo_gy Specific");
 		editMenu.add(specialSubMenu);
 		specialSubMenu.addMenuItem("Toggle Port _Negation", KeyStroke.getKeyStroke('T', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.toggleNegatedCommand(); }});
 		specialSubMenu.addMenuItem("_Artwork Appearance...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ArtworkLook.showArtworkLookDialog(); }});
+
+		specialSubMenu.addSeparator();
+
+		// mnemonic keys available:  BCDEFGHIJKLMNO QRSTUVWXYZ
+		MenuBar.Menu fpgaSubMenu = MenuBar.makeMenu("_FPGA");
+		specialSubMenu.add(fpgaSubMenu);
+		fpgaSubMenu.addMenuItem("Read _Architecture And Primitives...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.readArchitectureFile(true); }});
+		fpgaSubMenu.addMenuItem("Read _Primitives...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.readArchitectureFile(false); }});
+
 		specialSubMenu.addSeparator();
 		specialSubMenu.addMenuItem("Convert Technology to _Library for Editing...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TechToLib.makeLibFromTech(); }});

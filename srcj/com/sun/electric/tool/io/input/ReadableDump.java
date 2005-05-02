@@ -47,6 +47,7 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -599,12 +600,34 @@ public class ReadableDump extends LibraryFiles
 		{
 			Export pp = el.exportList[j];
 			if (pp.lowLevelName(cell, el.exportName[j])) return;
-			PortInst pi = el.exportSubNode[j].findPortInst(el.exportSubPort[j]);
+			PortInst pi = findProperPortInst(el.exportSubNode[j], el.exportSubPort[j]);
 			int userBits = pp.lowLevelGetUserbits();
 			if (pp.lowLevelPopulate(pi)) return;
 			pp.lowLevelSetUserbits(userBits);
 			if (pp.lowLevelLink(null)) return;
 		}
+	}
+
+	/**
+	 * Method to find the PortInst associated with a named port on a NodeInst.
+	 * Does the proper conversion of old port names if necessary.
+	 * @param ni the NodeInst to explore.
+	 * @param portName the name of the port on that NodeInst.
+	 * @return the PortInst, null if not found.
+	 */
+	private PortInst findProperPortInst(NodeInst ni, String portName)
+	{
+		NodeProto np = ni.getProto();
+		PortProto pp = np.findPortProto(portName);
+
+		// convert special port names
+		if (pp == null && np instanceof PrimitiveNode)
+		{
+			Technology tech = np.getTechnology();
+			pp = tech.convertOldPortName(portName, (PrimitiveNode)np);
+		}
+		if (pp == null) return null;
+		return ni.findPortInstFromProto(pp);
 	}
 
 	private void realizeArcs(Cell cell, int cellIndex)
@@ -624,8 +647,8 @@ public class ReadableDump extends LibraryFiles
 			String name = ail.arcInstName[j];
 			double width = ail.arcWidth[j] / lambda;
 			if (!ail.arcHeadNode[j].isLinked() || !ail.arcTailNode[j].isLinked()) continue;
-			PortInst headPortInst = ail.arcHeadNode[j].findPortInst(ail.arcHeadPort[j]);
-			PortInst tailPortInst = ail.arcTailNode[j].findPortInst(ail.arcTailPort[j]);
+			PortInst headPortInst = findProperPortInst(ail.arcHeadNode[j], ail.arcHeadPort[j]);
+			PortInst tailPortInst = findProperPortInst(ail.arcTailNode[j], ail.arcTailPort[j]);
 			if (ap == null || headPortInst == null || tailPortInst == null) continue;
 			double headX = (ail.arcHeadX[j]-xoff) / lambda;
 			double headY = (ail.arcHeadY[j]-yoff) / lambda;
