@@ -23,19 +23,11 @@
  */
 package com.sun.electric.database.text;
 
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.user.User;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,14 +37,10 @@ import java.net.URLConnection;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.StringTokenizer;
-import java.util.TimeZone;
-import java.util.HashMap;
 
 /**
  * This class is a collection of text utilities.
@@ -546,7 +534,7 @@ public class TextUtils
 	public static class UnitScale
 	{
 		private final String name;
-		private final String description;
+//		private final String description;
 		private final int index;
         private final String postFix;
         private final Number multiplier;
@@ -554,7 +542,7 @@ public class TextUtils
 		private UnitScale(String name, String description, int index, String postFix, Number multiplier)
 		{
 			this.name = name;
-			this.description = description;
+//			this.description = description;
 			this.index = index;
             this.postFix = postFix;
             this.multiplier = multiplier;
@@ -665,46 +653,45 @@ public class TextUtils
 	 * Method to express "value" as a string in "unittype" electrical units.
 	 * The scale of the units is in "unitscale".
 	 */
-	public static String displayedUnits(double value, TextDescriptor.Unit unitType, UnitScale unitScale)
-	{
-/*		String postFix = "";
-		if (unitScale == UnitScale.GIGA)
-		{
-			value /= 1000000000.0f;
-			postFix = "g";
-		} else if (unitScale == UnitScale.MEGA)
-		{
-			value /= 1000000.0f;
-			postFix = "meg";		// SPICE wants "x"
-		} else if (unitScale == UnitScale.KILO)
-		{
-			value /= 1000.0f;
-			postFix = "k";
-		} else if (unitScale == UnitScale.MILLI)
-		{
-			value *= 1000.0f;
-			postFix = "m";
-		} else if (unitScale == UnitScale.MICRO)
-		{
-			value *= 1000000.0f;
-			postFix = "u";
-		} else if (unitScale == UnitScale.NANO)
-		{
-			value *= 1000000000.0f;
-			postFix = "n";
-		} else if (unitScale == UnitScale.PICO)
-		{
-			value *= 1000000000000.0f;
-			postFix = "p";
-		} else if (unitScale == UnitScale.FEMTO)
-		{
-			value *= 1000000000000000.0f;
-			postFix = "f";
-		}
-		return value + postFix;
-        */
-        return formatDoublePostFix(value);
-	}
+//	public static String displayedUnits(double value, TextDescriptor.Unit unitType, UnitScale unitScale)
+//	{
+//        String postFix = "";
+//		if (unitScale == UnitScale.GIGA)
+//		{
+//			value /= 1000000000.0f;
+//			postFix = "g";
+//		} else if (unitScale == UnitScale.MEGA)
+//		{
+//			value /= 1000000.0f;
+//			postFix = "meg";		// SPICE wants "x"
+//		} else if (unitScale == UnitScale.KILO)
+//		{
+//			value /= 1000.0f;
+//			postFix = "k";
+//		} else if (unitScale == UnitScale.MILLI)
+//		{
+//			value *= 1000.0f;
+//			postFix = "m";
+//		} else if (unitScale == UnitScale.MICRO)
+//		{
+//			value *= 1000000.0f;
+//			postFix = "u";
+//		} else if (unitScale == UnitScale.NANO)
+//		{
+//			value *= 1000000000.0f;
+//			postFix = "n";
+//		} else if (unitScale == UnitScale.PICO)
+//		{
+//			value *= 1000000000000.0f;
+//			postFix = "p";
+//		} else if (unitScale == UnitScale.FEMTO)
+//		{
+//			value *= 1000000000000000.0f;
+//			postFix = "f";
+//		}
+//		return value + postFix;
+////        return formatDoublePostFix(value);
+//	}
 
 	/**
 	 * Method to convert a floating point value to a string, given that it is a particular type of unit.
@@ -723,21 +710,21 @@ public class TextUtils
 //			return formatDouble(value, 0);
 			return formatDouble(value);
 		}
-		if (units == TextDescriptor.Unit.RESISTANCE)
-			return displayedUnits(value, units, User.getResistanceUnits());
-		if (units == TextDescriptor.Unit.CAPACITANCE)
-			return displayedUnits(value, units, User.getCapacitanceUnits());
-		if (units == TextDescriptor.Unit.INDUCTANCE)
-			return displayedUnits(value, units, User.getInductanceUnits());
-		if (units == TextDescriptor.Unit.CURRENT)
-			return displayedUnits(value, units, User.getAmperageUnits());
-		if (units == TextDescriptor.Unit.VOLTAGE)
-			return displayedUnits(value, units, User.getVoltageUnits());
-		if (units == TextDescriptor.Unit.TIME)
-			return displayedUnits(value, units, User.getTimeUnits());
-
-		// shouldn't get here
-		return "?";
+//		if (units == TextDescriptor.Unit.RESISTANCE)
+//			return displayedUnits(value, units, User.getResistanceUnits());
+//		if (units == TextDescriptor.Unit.CAPACITANCE)
+//			return displayedUnits(value, units, User.getCapacitanceUnits());
+//		if (units == TextDescriptor.Unit.INDUCTANCE)
+//			return displayedUnits(value, units, User.getInductanceUnits());
+//		if (units == TextDescriptor.Unit.CURRENT)
+//			return displayedUnits(value, units, User.getAmperageUnits());
+//		if (units == TextDescriptor.Unit.VOLTAGE)
+//			return displayedUnits(value, units, User.getVoltageUnits());
+//		if (units == TextDescriptor.Unit.TIME)
+//			return displayedUnits(value, units, User.getTimeUnits());
+        return (formatDoublePostFix(value));
+//		// shouldn't get here
+//		return "?";
 	}
 
     /**

@@ -725,7 +725,7 @@ public class Spice extends Topology
 						if (TextUtils.isANumber(extra))
 						{
 							double pureValue = TextUtils.atof(extra);
-							extra = TextUtils.displayedUnits(pureValue, TextDescriptor.Unit.RESISTANCE, TextUtils.UnitScale.NONE);
+							extra = TextUtils.formatDoublePostFix(pureValue); //displayedUnits(pureValue, TextDescriptor.Unit.RESISTANCE, TextUtils.UnitScale.NONE);
 						}
 					}
 					writeTwoPort(ni, "R", extra, cni, netList, context);
@@ -739,7 +739,7 @@ public class Spice extends Topology
 						if (TextUtils.isANumber(extra))
 						{
 							double pureValue = TextUtils.atof(extra);
-							extra = TextUtils.displayedUnits(pureValue, TextDescriptor.Unit.CAPACITANCE, TextUtils.UnitScale.NONE);
+							extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.CAPACITANCE, TextUtils.UnitScale.NONE);
 						}
 					}
 					writeTwoPort(ni, "C", extra, cni, netList, context);
@@ -753,7 +753,7 @@ public class Spice extends Topology
 						if (TextUtils.isANumber(extra))
 						{
 							double pureValue = TextUtils.atof(extra);
-							extra = TextUtils.displayedUnits(pureValue, TextDescriptor.Unit.INDUCTANCE, TextUtils.UnitScale.NONE);
+							extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.INDUCTANCE, TextUtils.UnitScale.NONE);
 						}
 					}
 					writeTwoPort(ni, "L", extra, cni, netList, context);

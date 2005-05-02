@@ -280,7 +280,7 @@ public class IRSIM extends Output
 					if (TextUtils.isANumber(extra))
 					{
 						double pureValue = TextUtils.atof(extra);
-						extra = TextUtils.displayedUnits(pureValue, unit, TextUtils.UnitScale.NONE);
+						extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, unit, TextUtils.UnitScale.NONE);
 					}
 				}
                 rcValue = TextUtils.parsePostFixNumber(extra).doubleValue();
