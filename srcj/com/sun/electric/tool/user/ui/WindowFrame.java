@@ -24,12 +24,12 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.Main;
-import com.sun.electric.database.change.DatabaseChangeEvent;
-import com.sun.electric.database.change.DatabaseChangeListener;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.change.DatabaseChangeEvent;
+import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Stimuli;
@@ -68,7 +68,7 @@ import javax.swing.tree.TreePath;
 public class WindowFrame extends Observable
 {
 	/** the nature of the main window part (from above) */	private WindowContent content;
-	/** the text edit window part */					private JTextArea textWnd;
+//	/** the text edit window part */					private JTextArea textWnd;
 	/** the split pane that shows explorer and edit. */	private JSplitPane js;
     /** the internal frame (if MDI). */					private JInternalFrame jif = null;
     /** the top-level frame (if SDI). */				private TopLevel jf = null;
@@ -114,9 +114,9 @@ public class WindowFrame extends Observable
 	 * @param cell the cell to display.
 	 * @return the WindowFrame that shows the Cell.
 	 */
-	public static WindowFrame createEditWindow(Cell cell)
+	public static WindowFrame createEditWindow(final Cell cell)
 	{
-		WindowFrame frame = new WindowFrame();
+		final WindowFrame frame = new WindowFrame();
 		if (cell != null && cell.getView().isTextView())
 		{
 			TextWindow tWnd = new TextWindow(cell, frame);
@@ -134,6 +134,17 @@ public class WindowFrame extends Observable
 		}
         removeUIBinding(frame.js, KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
         removeUIBinding(frame.js, KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
+
+        if (cell != null)
+        {
+            SwingUtilities.invokeLater(new Runnable()
+            {
+                public void run()
+                {
+                    frame.openLibraryInExplorerTree(cell.getLibrary(), new TreePath(frame.rootNode), true);
+                }
+            });
+        }
 		return frame;
 	}
 
@@ -490,15 +501,17 @@ public class WindowFrame extends Observable
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)it.next();
-			wf.openCurrentLibrary(new TreePath(wf.rootNode), openLib);
+			wf.openLibraryInExplorerTree(Library.getCurrent(), new TreePath(wf.rootNode), openLib);
 		}
 	}
 
 	/**
 	 * Method to recursively scan the explorer tree and open the current library or signals list.
-	 * @param path the current position in the explorer tree.
-	 */
-	private void openCurrentLibrary(TreePath path, boolean openLib)
+     * @param library the library to open
+     * @param path the current position in the explorer tree.
+     * @param openLib true for libraries, false for waveforms
+     */
+	public void openLibraryInExplorerTree(Library library, TreePath path, boolean openLib)
 	{
 		DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getLastPathComponent();
 		Object obj = node.getUserObject();
@@ -508,7 +521,9 @@ public class WindowFrame extends Observable
 		if (openLib && (obj instanceof Library))
 		{
 			Library lib = (Library)obj;
-			if (lib == Library.getCurrent()) explorerTab.expandPath(path);
+			if (lib == library) explorerTab.expandPath(path);
+//            if (lib == Library.getCurrent())
+//                explorerTab.expandPath(path);
 		} else if (obj instanceof String)
 		{
 			String msg = (String)obj;
@@ -523,7 +538,7 @@ public class WindowFrame extends Observable
 			DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
 			TreePath descentPath = path.pathByAddingChild(child);
 			if (descentPath == null) continue;
-			openCurrentLibrary(descentPath, openLib);
+			openLibraryInExplorerTree(library, descentPath, openLib);
 		}
 	}
 
@@ -904,7 +919,7 @@ public class WindowFrame extends Observable
 	 * Method to return the text edit window associated with this frame.
 	 * @return the text edit window associated with this frame.
 	 */
-	public JTextArea getTextEditWindow() { return textWnd; }
+//	public JTextArea getTextEditWindow() { return textWnd; }
 
 //	/**
 //	 * Method to return the Explorer tab associated with this WindowFrame.

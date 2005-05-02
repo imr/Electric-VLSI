@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02m: *********************************
 
+IMP: (05/02/05. GVG) Extra work to allow libraries expanded in Explorer view if you open them with View->Edit view (Bug# 223).
+
 BUG: (05/01/05, RK) clarify NCC error message. For hierarchical comparison specify path relative to current Cell
 
 BUG: (05/01/05, RK) NCC shouldn't blow up if Cell has no wires.

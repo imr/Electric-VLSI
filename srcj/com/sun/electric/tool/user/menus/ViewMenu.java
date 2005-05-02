@@ -26,17 +26,15 @@ package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ViewControl;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.JOptionPane;
+import javax.swing.*;
 
 /**
  * Class to handle the commands in the "View" pulldown menu.
@@ -44,8 +42,8 @@ import javax.swing.JOptionPane;
 public class ViewMenu {
 
     protected static void addViewMenu(MenuBar menuBar) {
-        MenuBar.MenuItem m;
-		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+//        MenuBar.MenuItem m;
+//		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
         /****************************** THE VIEW MENU ******************************/
 
@@ -133,7 +131,7 @@ public class ViewMenu {
     {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
-        Cell schematicView = curCell.otherView(View.SCHEMATIC);
+        final Cell schematicView = curCell.otherView(View.SCHEMATIC);
         if (schematicView != null)
             WindowFrame.createEditWindow(schematicView);
         else
