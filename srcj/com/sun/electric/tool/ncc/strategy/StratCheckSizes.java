@@ -58,13 +58,26 @@ public class StratCheckSizes extends Strategy {
 		public abstract String widLen();
 		public abstract String wl();
 		public String toString() {
+			// don't round if error rounds to zero
+			double relErr, absErr, minSz, maxSz;
+			if (relErr()*100<.1 || absErr()<.1) {
+				relErr = relErr()*100;
+				absErr = absErr();
+				minSz = min;
+				maxSz = max;
+			} else {
+				relErr = NccUtils.round(relErr()*100,1);
+				absErr = NccUtils.round(absErr(),2);
+				minSz = NccUtils.round(min,2);
+				maxSz = NccUtils.round(max,2);
+			}
 			aln("    MOS"+
 				(isCap()?" capacitor":"")+
 				" "+widLen()+"s don't match. "+
-				" relativeError="+NccUtils.round(relErr()*100,1)+"%"+
-				" absoluteError="+NccUtils.round(absErr(),2));
-			aln("      "+wl()+"="+NccUtils.round(min,2)+" for "+minMos.fullDescription());
-			aln("      "+wl()+"="+NccUtils.round(max,2)+" for "+maxMos.fullDescription());
+				" relativeError="+relErr+"%"+
+				" absoluteError="+absErr);
+			aln("      "+wl()+"="+minSz+" for "+minMos.fullDescription());
+			aln("      "+wl()+"="+maxSz+" for "+maxMos.fullDescription());
 			return sb.toString();
 		}
 	}

@@ -6,6 +6,8 @@ NOTE: Please place changes under the version that will be released next.
 
 IMP/MAN: (05/01/05, SMR) Added MOSIS CMOS PLA generator.
 
+BUG: (05/01/05, RK) NCC: improve size mismatch error messages for the case when NCC tolerances are configured to zero. Don't round the mismatch amounts if rounding would result in the value zero. (Bug# 282)
+
 BUG: (05/01/05, SMR) Readable dump input does not handle old port name conversion.
 FIX: Added the method input.ReadableDump.findProperPortInst().
 
