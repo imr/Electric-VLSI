@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02m: *********************************
 
+BUG: (05/02/05, GVG) Electric not longer remember library context in Cell Instance place (Bug #291)
+FIX: this case was introduced while fixing Bug #250. Only when selectedLibrary is null, then the current library
+will be taken into account.
+
 IMP/MAN: (05/01/05, SMR) Added MOSIS CMOS PLA generator.
 
 BUG: (05/01/05, RK) NCC: improve size mismatch error messages for the case when NCC tolerances are configured to zero. Don't round the mismatch amounts if rounding would result in the value zero. (Bug# 282)
