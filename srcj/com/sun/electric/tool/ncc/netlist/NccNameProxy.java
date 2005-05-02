@@ -38,7 +38,8 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 public abstract class NccNameProxy {
 	private String commonPathPrefix;
 	
-	private String removePrefix(String fullName) {
+	public static String removePrefix(String commonPathPrefix,
+			                          String fullName) {
 		if (commonPathPrefix.length()==0) return fullName;
 		LayoutLib.error(!fullName.startsWith(commonPathPrefix), 
                         "common path prefix not found");
@@ -69,11 +70,11 @@ public abstract class NccNameProxy {
 	public String leafName() {return nameProxy().leafName();}
 	/** Name whose instance path starts from the Cell from which NCC was run */
 	public String getName() {
-		return removePrefix(nameProxy().toString());
+		return removePrefix(commonPathPrefix, nameProxy().toString());
 	}
 	/** Cell instance path starting from the Cell from which NCC was run. */
 	public String cellInstPath() {
-		return removePrefix(nameProxy().getContext().getInstPath("/"));
+		return removePrefix(commonPathPrefix, nameProxy().getContext().getInstPath("/"));
 	}
 
 	public static class PartNameProxy extends NccNameProxy {

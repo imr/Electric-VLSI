@@ -46,7 +46,9 @@ public class StratCountPartPinsOnWires extends Strategy {
 	private LeafList doYourJob2() {
         EquivRecord wires = globals.getWires();
 
-		LeafList offspring = doFor(wires);
+		// don't blow up if no wires
+		LeafList offspring = wires!=null ? doFor(wires) : new LeafList();
+		
 		setReasons(offspring);
 		summary(offspring);
 		return offspring;

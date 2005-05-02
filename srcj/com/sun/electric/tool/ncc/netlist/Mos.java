@@ -358,6 +358,11 @@ public class Mos extends Part {
 				}
 			}
 			msg += pins[i].getName();
+
+			// RKao debug
+			//Wire w = pins[i];
+			//msg += "(hash="+w.getCode()+")";
+
 		}
 		return msg;
 	}

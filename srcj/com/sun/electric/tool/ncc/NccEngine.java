@@ -76,6 +76,7 @@ public class NccEngine {
 	
 	private int[] getNetObjCounts(EquivRecord rec, int numCells) {
 		int[] counts = new int[numCells];
+		// don't blow up if no parts or wires
 		if (rec==null) return counts;
 		int i=0;
 		for (Iterator it=rec.getCircuits(); it.hasNext(); i++) {

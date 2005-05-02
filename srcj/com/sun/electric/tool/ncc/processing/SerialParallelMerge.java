@@ -65,11 +65,14 @@ public class SerialParallelMerge {
 	private boolean serialMerge() {
 		int numMerged = 0;
 		EquivRecord wires = globals.getWires();
-		for (Iterator it=wires.getCircuits(); it.hasNext();) {
-			Circuit ckt = (Circuit) it.next();
-			for (Iterator ni=ckt.getNetObjs(); ni.hasNext();) {
-				Wire w = (Wire) ni.next();
-				if (Mos.joinOnWire(w)) numMerged++;
+		if (wires!=null) {
+			// don't blow up if no wires
+			for (Iterator it=wires.getCircuits(); it.hasNext();) {
+				Circuit ckt = (Circuit) it.next();
+				for (Iterator ni=ckt.getNetObjs(); ni.hasNext();) {
+					Wire w = (Wire) ni.next();
+					if (Mos.joinOnWire(w)) numMerged++;
+				}
 			}
 		}
 		globals.status2("    Serial merged "+numMerged+" Transistors");
@@ -135,11 +138,14 @@ public class SerialParallelMerge {
 	private boolean parallelMerge() {
 		int numMerged = 0;
 		EquivRecord er = globals.getWires();
-		for (Iterator it=er.getCircuits(); it.hasNext();) {
-			Circuit ckt = (Circuit) it.next();
-			for (Iterator ni=ckt.getNetObjs(); ni.hasNext();) {
-				Wire w = (Wire) ni.next();
-				numMerged += parallelMergePartsOnWire(w);
+		if (er!=null) {
+			// don't blow up if no wires
+			for (Iterator it=er.getCircuits(); it.hasNext();) {
+				Circuit ckt = (Circuit) it.next();
+				for (Iterator ni=ckt.getNetObjs(); ni.hasNext();) {
+					Wire w = (Wire) ni.next();
+					numMerged += parallelMergePartsOnWire(w);
+				}
 			}
 		}
 		globals.status2("    Parallel merged " + numMerged + " Parts");

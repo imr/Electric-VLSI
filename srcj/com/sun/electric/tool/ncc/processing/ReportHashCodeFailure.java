@@ -50,7 +50,7 @@ public class ReportHashCodeFailure {
 		private void printEquivRecs(String type, EquivRecord partsOrWires, 
 				                    int num) {
 			classNum = 1;
-			netObjDescr = "Part";
+			netObjDescr = type;
 			prln("  "+num+" mismatched "+type+" equivalence classes:");
 			maxMismatches = globals.getOptions().maxMismatchedEquivRecsToPrint;
 			if (num>maxMismatches) {
@@ -117,7 +117,7 @@ public class ReportHashCodeFailure {
 		private void printEquivRecs(String type, EquivRecord partsOrWires, 
 				                    int num) {
 			classNum = 1;
-			netObjDescr = "Part";
+			netObjDescr = type;
 			prln("  "+num+" matched "+type+" equivalence classes:");
 			maxMatches = globals.getOptions().maxMatchedEquivRecsToPrint;
 			if (num>maxMatches) {

@@ -457,9 +457,11 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 	private void printExportAssertionFailure(HashMap wireToExports,
 	                                         NccCellInfo info) {
-		String instPath = info.getContext().getInstPath("/");
+		String instPath = 
+			NccNameProxy.removePrefix(pathPrefix, 
+				                      info.getContext().getInstPath("/"));
 		String cellName = NccUtils.fullName(info.getCell());
-		prln("Assertion: exportsConnectedByParent in cell: "+
+		prln("  Assertion: exportsConnectedByParent in cell: "+
 			 cellName+" fails. Instance path is: "+instPath);
 		prln("    The exports are connected to "+
 		     wireToExports.size()+" different networks");

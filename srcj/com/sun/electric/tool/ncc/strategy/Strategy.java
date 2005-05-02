@@ -151,9 +151,9 @@ public abstract class Strategy {
 		String msg = "  offspring counts: #matched="+matched+
 			         " #mismatched="+mismatched+" #active="+active;
 //		if (mismatched!=0) {
-//			globals.println(msg);
+//			globals.status1(msg);
 //			//StrategyPrint.doYourJob(globals.getRoot(), globals);
-//			StrategyDebug.doYourJob(globals);
+//			StratDebug.doYourJob(globals);
 //			globals.error("mismatched!");
 //			return null;		        		
 //		}
