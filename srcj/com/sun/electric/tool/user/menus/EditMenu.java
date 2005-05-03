@@ -365,6 +365,13 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.readArchitectureFile(true); }});
 		fpgaSubMenu.addMenuItem("Read _Primitives...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.readArchitectureFile(false); }});
+		fpgaSubMenu.addSeparator();
+		fpgaSubMenu.addMenuItem("Show No Wires", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.setWireDisplay(0); }});
+		fpgaSubMenu.addMenuItem("Show Active Wires", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.setWireDisplay(1); }});
+		fpgaSubMenu.addMenuItem("Show All Wires", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.setWireDisplay(2); }});
 
 		specialSubMenu.addSeparator();
 		specialSubMenu.addMenuItem("Convert Technology to _Library for Editing...", null,

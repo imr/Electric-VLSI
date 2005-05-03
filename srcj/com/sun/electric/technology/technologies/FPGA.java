@@ -31,14 +31,20 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
@@ -47,6 +53,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.User;
@@ -71,9 +78,9 @@ import java.util.List;
 public class FPGA extends Technology
 {
 	/** the FPGA Technology object. */	public static final FPGA tech = new FPGA();
-	private Layer fpga_c_lay;
+	private Layer fpga_w_lay, fpga_c_lay, fpga_p_lay;
 	private PrimitiveArc wire_arc;
-	private PrimitiveNode wirePinNode, repeaterNode;
+	private PrimitiveNode wirePinNode, pipNode, repeaterNode;
 
 	// -------------------- private and protected methods ------------------------
 	private FPGA()
@@ -89,7 +96,7 @@ public class FPGA extends Technology
 		//**************************************** LAYERS ****************************************
 
 		/** Wire layer */
-		Layer fpga_w_lay = Layer.newInstance(this, "Wire",
+		fpga_w_lay = Layer.newInstance(this, "Wire",
 			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0,1,true,
 			new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
@@ -99,7 +106,7 @@ public class FPGA extends Technology
 			new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
 		/** Pip layer */
-		Layer fpga_p_lay = Layer.newInstance(this, "Pip",
+		fpga_p_lay = Layer.newInstance(this, "Pip",
 			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,255,0,1,true,
 			new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
@@ -129,7 +136,7 @@ public class FPGA extends Technology
 		//**************************************** NODES ****************************************
 
 		/** wire pin */
-		wirePinNode = PrimitiveNode.newInstance("Wire_Pin", this, 1, 1, new SizeOffset(0.5, 0.5, 0.5, 0.5),
+		wirePinNode = PrimitiveNode.newInstance("Wire_Pin", this, 1, 1, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(fpga_w_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
@@ -146,7 +153,7 @@ public class FPGA extends Technology
 		wirePinNode.setWipeOn1or2();
 
 		/** pip */
-		PrimitiveNode pipNode = PrimitiveNode.newInstance("Pip", this, 2, 2, new SizeOffset(1.5, 1.5, 1.5, 1.5),
+		pipNode = PrimitiveNode.newInstance("Pip", this, 2, 2, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(fpga_p_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -232,8 +239,8 @@ public class FPGA extends Technology
 		int     con1, con2;
 		double  posx, posy;
 	};
-	
-	private static class FPGANode
+
+	private static class FPGANode extends PrimitiveNode
 	{
 		int         portcount;
 		FPGAPort [] portlist;
@@ -241,6 +248,12 @@ public class FPGA extends Technology
 		FPGANet []  netlist;
 		int         pipcount;
 		FPGAPip []  piplist;
+
+		protected FPGANode(String protoName, Technology tech, double defWidth, double defHeight,
+			SizeOffset offset, Technology.NodeLayer [] layers)
+		{
+			super(protoName, tech, defWidth, defHeight, offset, layers);
+		}
 	};
 	
 	/* the display level */
@@ -249,22 +262,16 @@ public class FPGA extends Technology
 	private static final int FULLPRIMDISPLAY    =  01;		/*   display all internals */
 	private static final int ACTIVEPRIMDISPLAY  =  02;		/*   display only active internals */
 	private static final int TEXTDISPLAY        = 010;		/* set to display text */
-	
-//	static TECHNOLOGY    *fpga_tech;
-//	static INTBIG         fpga_internaldisplay;
+
+	static int         fpga_internaldisplay = ACTIVEPRIMDISPLAY | TEXTDISPLAY;
 //	static INTBIG         fpga_curpip;
 //	static INTBIG         fpga_curnet, fpga_cursegment;
-//	static INTBIG         fpga_lineno;
-//	static INTBIG         fpga_filesize;
-//	static INTBIG         fpga_activepipskey;		/* variable key for "FPGA_activepips" */
-//	static INTBIG         fpga_activerepeaterskey;	/* variable key for "FPGA_activerepeaters" */
-//	static INTBIG         fpga_nodepipcachekey;		/* variable key for "FPGA_nodepipcache" */
-//	static INTBIG         fpga_arcactivecachekey;	/* variable key for "FPGA_arcactivecache" */
-//	static FPGANODE      *fpga_fn;					/* current pointer for pip examining */
-//	static CHAR          *fpga_repeatername;		/* name of current repeater for activity examining */
-//	static BOOLEAN        fpga_repeaterisactive;	/* nonzero if current repeater is found to be active */
-//	static NODEPROTO     *fpga_wirepinprim;			/* wire pin */
-//	static NODEPROTO     *fpga_repeaterprim;		/* repeater */
+	/** key of Variable holding active pips. */				public static final Variable.Key ACTIVEPIPS_KEY = ElectricObject.newKey("FPGA_activepips");
+	/** key of Variable holding active repeaters. */		public static final Variable.Key ACTIVEREPEATERS_KEY = ElectricObject.newKey("FPGA_activerepeaters");
+	/** key of Variable holding cache of pips on node. */	public static final Variable.Key NODEPIPCACHE_KEY = ElectricObject.newKey("FPGA_nodepipcache");
+	/** key of Variable holding cache of active arcs. */	public static final Variable.Key ARCACTIVECACHE_KEY = ElectricObject.newKey("FPGA_arcactivecache");
+	static String         fpga_repeatername;		/* name of current repeater for activity examining */
+	static boolean        fpga_repeaterisactive;	/* nonzero if current repeater is found to be active */
 //	
 //	/* working memory for "fpga_arcactive()" */
 //	static INTBIG         fpga_arcbufsize = 0;
@@ -277,60 +284,6 @@ public class FPGA extends Technology
 	static int     fpga_nodecount;
 	static FPGANode [] fpga_nodes;
 	
-//	/******************** STANDARD TECHNOLOGY STRUCTURES ********************/
-//	
-//	/* the options table */
-//	static COMCOMP fpgareadp = {NOKEYWORD, topoffile, nextfile, NOPARAMS,
-//		0, x_(" \t"), M_("FPGA Architecture file"), x_("")};
-//	static KEYWORD fpgadltopt[] =
-//	{
-//		{x_("on"),            0,{NOKEY,NOKEY,NOKEY,NOKEY,NOKEY}},
-//		{x_("off"),           0,{NOKEY,NOKEY,NOKEY,NOKEY,NOKEY}},
-//		TERMKEY
-//	};
-//	static COMCOMP fpgatdispp = {fpgadltopt, NOTOPLIST, NONEXTLIST, NOPARAMS,
-//		0, x_(" \t"), M_("FPGA text display option"), x_("")};
-//	static KEYWORD fpgadlopt[] =
-//	{
-//		{x_("full"),          0,{NOKEY,NOKEY,NOKEY,NOKEY,NOKEY}},
-//		{x_("active"),        0,{NOKEY,NOKEY,NOKEY,NOKEY,NOKEY}},
-//		{x_("text"),          1,{&fpgatdispp,NOKEY,NOKEY,NOKEY,NOKEY}},
-//		{x_("empty"),         0,{NOKEY,NOKEY,NOKEY,NOKEY,NOKEY}},
-//		TERMKEY
-//	};
-//	static COMCOMP fpgadispp = {fpgadlopt, NOTOPLIST, NONEXTLIST, NOPARAMS,
-//		0, x_(" \t"), M_("FPGA display level"), x_("")};
-//	static KEYWORD fpgaopt[] =
-//	{
-//		{x_("read-architecture-file"),    1,{&fpgareadp,NOKEY,NOKEY,NOKEY,NOKEY}},
-//		{x_("only-primitives-file"),      1,{&fpgareadp,NOKEY,NOKEY,NOKEY,NOKEY}},
-//		{x_("display-level"),             1,{&fpgadispp,NOKEY,NOKEY,NOKEY,NOKEY}},
-//		{x_("clear-node-cache"),          0,{NOKEY,NOKEY,NOKEY,NOKEY,NOKEY}},
-//		{x_("wipe-cache"),                0,{NOKEY,NOKEY,NOKEY,NOKEY,NOKEY}},
-//		TERMKEY
-//	};
-//	COMCOMP fpga_parse = {fpgaopt, NOTOPLIST, NONEXTLIST, NOPARAMS,
-//		0, x_(" \t"), M_("FPGA option"), x_("")};
-//	
-//	/******************** INTERFACE ROUTINES ********************/
-//	
-//	BOOLEAN fpga_initprocess(TECHNOLOGY *tech, INTBIG pass)
-//	{
-//		if (pass == 0) fpga_tech = tech; else
-//			if (pass == 1)
-//		{
-//			fpga_wirepinprim = getnodeproto(x_("fpga:Wire_Pin"));
-//			fpga_repeaterprim = getnodeproto(x_("fpga:Repeater"));
-//			fpga_activepipskey = makekey(x_("FPGA_activepips"));
-//			fpga_activerepeaterskey = makekey(x_("FPGA_activerepeaters"));
-//			fpga_nodepipcachekey = makekey(x_("FPGA_nodepipcache"));
-//			fpga_arcactivecachekey = makekey(x_("FPGA_arcactivecache"));
-//		}
-//		fpga_internaldisplay = ACTIVEPRIMDISPLAY | TEXTDISPLAY;
-//		fpga_nodecount = 0;
-//		return(FALSE);
-//	}
-//	
 //	void fpga_setmode(INTBIG count, CHAR *par[])
 //	{
 //		REGISTER CHAR *pp;
@@ -343,50 +296,10 @@ public class FPGA extends Technology
 //		static INTBIG filetypefpga = -1;
 //		REGISTER void *infstr, *dia;
 //	
-//		if (count == 0)
-//		{
-//			ttyputusage(x_("technology tell fpga OPTIONS"));
-//			return;
-//		}
-//	
 //		l = estrlen(pp = par[0]);
 //		if (namesamen(pp, x_("display-level"), l) == 0)
 //		{
-//			if (count == 1)
-//			{
-//				infstr = initinfstr();
-//				switch (fpga_internaldisplay & DISPLAYLEVEL)
-//				{
-//					case NOPRIMDISPLAY:     addstringtoinfstr(infstr, _("No internal display"));       break;
-//					case FULLPRIMDISPLAY:   addstringtoinfstr(infstr, _("Full internal display"));     break;
-//					case ACTIVEPRIMDISPLAY: addstringtoinfstr(infstr, _("Active internal display"));   break;
-//				}
-//				if ((fpga_internaldisplay & TEXTDISPLAY) == 0)
-//					 addstringtoinfstr(infstr, _(", no text")); else
-//						 addstringtoinfstr(infstr, _(", with text"));
-//				ttyputmsg(x_("%s"), returninfstr(infstr));
-//				return;
-//			}
-//	
 //			l = estrlen(pp = par[1]);
-//			if (namesamen(pp, x_("empty"), l) == 0)
-//			{
-//				fpga_internaldisplay = (fpga_internaldisplay & ~DISPLAYLEVEL) | NOPRIMDISPLAY;
-//				ttyputverbose(M_("No internal display"));
-//				return;
-//			}
-//			if (namesamen(pp, x_("full"), l) == 0)
-//			{
-//				fpga_internaldisplay = (fpga_internaldisplay & ~DISPLAYLEVEL) | FULLPRIMDISPLAY;
-//				ttyputverbose(M_("Full internal display"));
-//				return;
-//			}
-//			if (namesamen(pp, x_("active"), l) == 0)
-//			{
-//				fpga_internaldisplay = (fpga_internaldisplay & ~DISPLAYLEVEL) | ACTIVEPRIMDISPLAY;
-//				ttyputverbose(M_("Active internal display"));
-//				return;
-//			}
 //			if (namesamen(pp, x_("text"), l) == 0)
 //			{
 //				if (count == 2)
@@ -431,69 +344,70 @@ public class FPGA extends Technology
 //	
 //		ttyputbadusage(x_("technology tell fpga"));
 //	}
-//	
-//	INTBIG fpga_nodepolys(NODEINST *ni, INTBIG *reasonable, WINDOWPART *win)
-//	{
-//		return(fpga_intnodepolys(ni, reasonable, win, &tech_oneprocpolyloop));
-//	}
-//	
-//	INTBIG fpga_intnodepolys(NODEINST *ni, INTBIG *reasonable, WINDOWPART *win, POLYLOOP *pl)
-//	{
-//		REGISTER INTBIG total, i, pindex, j, otherend;
-//		INTBIG depth, *indexlist;
-//		REGISTER ARCINST *ai;
-//		REGISTER NODEINST *oni;
-//		NODEINST **nilist;
-//		REGISTER PORTARCINST *pi;
-//		REGISTER FPGANODE *fn;
-//	
-//		// get the default number of polygons and list of layers
-//		pindex = ni.proto.primindex;
-//		if (pindex <= NODEPROTOCOUNT)
-//		{
-//			// static primitive
-//			total = fpga_nodeprotos[pindex-1].layercount;
-//			switch(pindex)
-//			{
-//				case NWIREPIN:
-//					if (tech_pinusecount(ni, win)) total = 0;
-//					break;
-//				case NREPEATER:
-//					if ((fpga_internaldisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
-//					{
-//						if (!fpga_repeateractive(ni)) total = 0;
-//					}
-//					break;
-//			}
-//		} else
-//		{
-//			// dynamic primitive
-//			switch (fpga_internaldisplay & DISPLAYLEVEL)
-//			{
-//				case NOPRIMDISPLAY:
-//					total = 1;
-//					if ((fpga_internaldisplay&TEXTDISPLAY) != 0) total++;
-//					break;
-//				case ACTIVEPRIMDISPLAY:
-//					// count number of active nets and pips
-//					fn = fpga_nodes[pindex - NODEPROTOCOUNT - 1];
-//	
-//					// hard reset of all segment and pip activity
-//					for(i=0; i<fn.netcount; i++) fn.netlist[i].segactive = 0;
-//					for(i=0; i<fn.pipcount; i++) fn.piplist[i].pipactive = 0;
-//	
-//					// determine the active segments and pips
-//					fpga_reevaluatepips(ni, fn);
-//	
-//					// save the activity bits
-//					for(i=0; i<fn.netcount; i++)
-//						if ((fn.netlist[i].segactive&ACTIVEPART) != 0)
-//							fn.netlist[i].segactive |= ACTIVESAVE;
-//					for(i=0; i<fn.pipcount; i++)
-//						if ((fn.piplist[i].pipactive&ACTIVEPART) != 0)
-//							fn.piplist[i].pipactive |= ACTIVESAVE;
-//	
-//					// propagate inactive segments to others that may be active
+
+
+	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer [] {};
+
+	/**
+	 * Method to return a list of Polys that describe a given NodeInst.
+	 * This method overrides the general one in the Technology object
+	 * because of the unusual primitives in this Technology.
+	 * @param ni the NodeInst to describe.
+	 * @param wnd the window in which this node will be drawn.
+	 * @param electrical true to get the "electrical" layers.
+	 * This makes no sense for Schematics primitives.
+	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
+	 * This makes no sense for Schematics primitives.
+	 * @param primLayers an array of NodeLayer objects to convert to Poly objects.
+	 * @param layerOverride the layer to use for all generated polygons (if not null).
+	 * @return an array of Poly objects.
+	 */
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
+	{
+		NodeProto prototype = ni.getProto();
+		if (!(prototype instanceof PrimitiveNode)) return null;
+
+		PrimitiveNode np = (PrimitiveNode)prototype;
+		if (np == tech.wirePinNode)
+		{
+			if (ni.pinUseCount()) primLayers = NULLNODELAYER;
+		} else if (np == tech.repeaterNode)
+		{
+			if ((fpga_internaldisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
+			{
+				if (!fpga_repeateractive(ni)) primLayers = NULLNODELAYER;
+			}
+		} else if (np instanceof FPGANode)
+		{
+			// dynamic primitive
+			FPGANode fn = (FPGANode)np;
+
+			// hard reset of all segment and pip activity
+			int numPips = 0, numSegs = 0;
+			for(int i=0; i<fn.netcount; i++) fn.netlist[i].segactive = 0;
+			for(int i=0; i<fn.pipcount; i++) fn.piplist[i].pipactive = 0;
+
+			switch (fpga_internaldisplay & DISPLAYLEVEL)
+			{
+				case NOPRIMDISPLAY:
+					break;
+				case ACTIVEPRIMDISPLAY:
+					// count number of active nets and pips
+	
+					// determine the active segments and pips
+					VarContext context = null;
+					if (wnd != null) context = wnd.getVarContext();
+					fpga_reevaluatepips(ni, fn, context);
+	
+					// save the activity bits
+					for(int i=0; i<fn.netcount; i++)
+						if ((fn.netlist[i].segactive&ACTIVEPART) != 0)
+							fn.netlist[i].segactive |= ACTIVESAVE;
+					for(int i=0; i<fn.pipcount; i++)
+						if ((fn.piplist[i].pipactive&ACTIVEPART) != 0)
+							fn.piplist[i].pipactive |= ACTIVESAVE;
+
+					// propagate inactive segments to others that may be active
 //					gettraversalpath(ni.parent, NOWINDOWPART, &nilist, &indexlist, &depth, 1);
 //					if (depth > 0)
 //					{
@@ -518,305 +432,129 @@ public class FPGA extends Technology
 //						}
 //						downhierarchy(oni, oni.proto, 0);
 //					}
-//	
-//					// add up the active segments
-//					total = 1;
-//					for(i=0; i<fn.pipcount; i++)
-//						if ((fn.piplist[i].pipactive&ACTIVESAVE) != 0) total++;
-//					for(i=0; i<fn.netcount; i++)
-//						if ((fn.netlist[i].segactive&ACTIVESAVE) != 0)
-//							total += fn.netlist[i].segcount;
-//					fpga_curpip = fpga_curnet = 0;   fpga_cursegment = -1;
-//					break;
-//				case FULLPRIMDISPLAY:
-//					fn = fpga_nodes[pindex - NODEPROTOCOUNT - 1];
-//					total = fn.pipcount + 1;
-//					for(i=0; i<fn.netcount; i++) total += fn.netlist[i].segcount;
-//					fpga_curnet = fpga_cursegment = 0;
-//					break;
-//				default:
-//					total = 0;
-//			}
-//		}
-//	
-//		// add in displayable variables
-//		pl.realpolys = total;
-//		if ((fpga_internaldisplay&TEXTDISPLAY) != 0)
-//			total += tech_displayablenvars(ni, pl.curwindowpart, pl);
-//		if (reasonable != 0) *reasonable = total;
-//		return(total);
-//	}
-//	
-//	void fpga_shapenodepoly(NODEINST *ni, INTBIG box, POLYGON *poly)
-//	{
-//		fpga_intshapenodepoly(ni, box, poly, &tech_oneprocpolyloop);
-//	}
-//	
-//	void fpga_intshapenodepoly(NODEINST *ni, INTBIG box, POLYGON *poly, POLYLOOP *pl)
-//	{
-//		REGISTER INTBIG pindex;
-//		REGISTER INTBIG lambda;
-//		REGISTER FPGANODE *fn;
-//		REGISTER FPGANET *fnet;
-//	
-//		// handle displayable variables
-//		if (box >= pl.realpolys)
-//		{
-//			(void)tech_filldisplayablenvar(ni, poly, pl.curwindowpart, 0, pl);
-//			return;
-//		}
-//	
-//		lambda = lambdaofnode(ni);
-//		pindex = ni.proto.primindex;
-//		if (pindex <= NODEPROTOCOUNT)
-//		{
-//			// static primitive
-//			tech_fillpoly(poly, &fpga_nodeprotos[pindex-1].layerlist[box], ni, lambda,
-//				FILLED);
-//			poly.desc = fpga_layers[poly.layer];
-//			return;
-//		}
-//	
-//		// dynamic primitive
-//		if (box == 0)
-//		{
-//			// first box is always the outline
-//			if (poly.limit < 2) (void)extendpolygon(poly, 2);
-//			subrange(ni.lowx, ni.highx, -H0, 0, H0, 0, &poly.xv[0], &poly.xv[1], lambda);
-//			subrange(ni.lowy, ni.highy, -H0, 0, H0, 0, &poly.yv[0], &poly.yv[1], lambda);
-//			poly.count = 2;
-//			poly.style = CLOSEDRECT;
-//			poly.layer = LCOMP;
-//		} else
-//		{
-//			// subsequent boxes depend on the display level
-//			switch (fpga_internaldisplay & DISPLAYLEVEL)
-//			{
-//				case NOPRIMDISPLAY:
-//					// just the name
-//					if (poly.limit < 4) (void)extendpolygon(poly, 4);
-//					subrange(ni.lowx, ni.highx, -H0, 0, H0, 0, &poly.xv[0], &poly.xv[2], lambda);
-//					subrange(ni.lowy, ni.highy, -H0, 0, H0, 0, &poly.yv[0], &poly.yv[1], lambda);
-//					poly.xv[1] = poly.xv[0];   poly.xv[3] = poly.xv[2];
-//					poly.yv[3] = poly.yv[0];   poly.yv[2] = poly.yv[1];
-//					poly.count = 4;
-//					poly.style = TEXTBOX;
-//					poly.string = ni.proto.protoname;
-//					TDCLEAR(poly.textdescript);
-//					TDSETSIZE(poly.textdescript, TXTSETQLAMBDA(12));
-//					poly.tech = fpga_tech;
-//					poly.layer = LCOMP;
-//					break;
-//	
-//				case ACTIVEPRIMDISPLAY:
-//					fn = fpga_nodes[pindex - NODEPROTOCOUNT - 1];
-//	
-//					// draw active segments
-//					if (fpga_curnet < fn.netcount)
-//					{
-//						// advance to next active net
-//						if (fpga_cursegment < 0)
-//						{
-//							for( ; fpga_curnet<fn.netcount; fpga_curnet++)
-//								if ((fn.netlist[fpga_curnet].segactive&ACTIVESAVE) != 0) break;
-//							fpga_cursegment = 0;
-//						}
-//	
-//						// add in a net segment
-//						if (fpga_curnet < fn.netcount)
-//						{
-//							fnet = fn.netlist[fpga_curnet];
-//							fpga_describenetseg(ni, fnet, fpga_cursegment, poly);
-//	
-//							// advance to next segment
-//							fpga_cursegment++;
-//							if (fpga_cursegment >= fn.netlist[fpga_curnet].segcount)
-//							{
-//								fpga_curnet++;
-//								fpga_cursegment = -1;
-//							}
-//							break;
-//						}
-//					}
-//	
-//					// draw active pips
-//					if (fpga_curpip < fn.pipcount)
-//					{
-//						for( ; fpga_curpip<fn.pipcount; fpga_curpip++)
-//							if ((fn.piplist[fpga_curpip].pipactive&ACTIVESAVE) != 0) break;
-//						if (fpga_curpip < fn.pipcount)
-//						{
-//							fpga_describepip(ni, fn, fpga_curpip, poly);
-//							fpga_curpip++;
-//							break;
-//						}
-//					}
-//					break;
-//	
-//				case FULLPRIMDISPLAY:
-//					// show pips
-//					fn = fpga_nodes[pindex - NODEPROTOCOUNT - 1];
-//					if (box <= fn.pipcount)
-//					{
-//						fpga_describepip(ni, fn, box-1, poly);
-//						break;
-//					}
-//	
-//					// add in a net segment
-//					fnet = fn.netlist[fpga_curnet];
-//					fpga_describenetseg(ni, fnet, fpga_cursegment, poly);
-//	
-//					// advance to next segment
-//					fpga_cursegment++;
-//					if (fpga_cursegment >= fn.netlist[fpga_curnet].segcount)
-//					{
-//						fpga_curnet++;
-//						fpga_cursegment = 0;
-//					}
-//					break;
-//			}
-//		}
-//		poly.desc = fpga_layers[poly.layer];
-//	}
-//	
-//	/*
-//	 * Warning: to make this routine truly callable in parallel, you must either:
-//	 * (1) take care of the setting of globals such as "fpga_nodes".
-//	 * (2) wrap the routine in mutual-exclusion locks
-//	 */
-//	INTBIG fpga_allnodepolys(NODEINST *ni, POLYLIST *plist, WINDOWPART *win, BOOLEAN onlyreasonable)
-//	{
-//		REGISTER INTBIG tot, j;
-//		INTBIG reasonable;
-//		REGISTER NODEPROTO *np;
-//		REGISTER POLYGON *poly;
-//		POLYLOOP mypl;
-//	
-//		// code cannot be called by multiple procesors: uses globals
-//		NOT_REENTRANT;
-//	
-//		np = ni.proto;
-//		mypl.curwindowpart = win;
-//		tot = fpga_intnodepolys(ni, &reasonable, win, &mypl);
-//		if (onlyreasonable) tot = reasonable;
-//		if (mypl.realpolys < tot) tot = mypl.realpolys;
-//		if (ensurepolylist(plist, tot, db_cluster)) return(-1);
-//		for(j = 0; j < tot; j++)
-//		{
-//			poly = plist.polygons[j];
-//			poly.tech = fpga_tech;
-//			fpga_intshapenodepoly(ni, j, poly, &mypl);
-//		}
-//		return(tot);
-//	}
-//	
-//	void fpga_shapeportpoly(NODEINST *ni, PORTPROTO *pp, POLYGON *poly, XARRAY trans, BOOLEAN purpose)
-//	{
-//		REGISTER INTBIG pindex, i;
-//		REGISTER FPGANODE *fn;
-//		Q_UNUSED( purpose );
-//	
-//		pindex = ni.proto.primindex;
-//		if (pindex <= NODEPROTOCOUNT)
-//		{
-//			// static primitive
-//			tech_fillportpoly(ni, pp, poly, trans, fpga_nodeprotos[pindex-1], CLOSED, lambdaofnode(ni));
-//			return;
-//		}
-//	
-//		// dynamic primitive
-//		if (poly.limit < 1) (void)extendpolygon(poly, 1);
-//		fn = fpga_nodes[pindex - NODEPROTOCOUNT - 1];
-//		poly.count = 1;
-//		poly.style = CROSS;
-//		poly.xv[0] = (ni.lowx+ni.highx) / 2;
-//		poly.yv[0] = (ni.lowy+ni.highy) / 2;
-//		for(i=0; i<fn.portcount; i++)
-//			if (fn.portlist[i].pp == pp)
-//		{
-//			poly.xv[0] += fn.portlist[i].posx;
-//			poly.yv[0] += fn.portlist[i].posy;
-//			break;
-//		}
-//		xform(poly.xv[0], poly.yv[0], &poly.xv[0], &poly.yv[0], trans);
-//	}
-//	
-//	INTBIG fpga_arcpolys(ARCINST *ai, WINDOWPART *win)
-//	{
-//		return(fpga_intarcpolys(ai, win, &tech_oneprocpolyloop));
-//	}
-//	
-//	INTBIG fpga_intarcpolys(ARCINST *ai, WINDOWPART *win, POLYLOOP *pl)
-//	{
-//		REGISTER INTBIG i, aindex;
-//	
-//		aindex = ai.proto.arcindex;
-//	
-//		// presume display of the arc
-//		i = fpga_arcprotos[aindex].laycount;
-//		if ((fpga_internaldisplay&DISPLAYLEVEL) == NOPRIMDISPLAY ||
-//			(fpga_internaldisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
-//		{
-//			if (!fpga_arcactive(ai)) i = 0;
-//		}
-//	
-//		// add in displayable variables
-//		pl.realpolys = i;
-//		if ((fpga_internaldisplay&TEXTDISPLAY) != 0)
-//			i += tech_displayableavars(ai, win, pl);
-//		return(i);
-//	}
-//	
-//	void fpga_shapearcpoly(ARCINST *ai, INTBIG box, POLYGON *poly)
-//	{
-//		fpga_intshapearcpoly(ai, box, poly, &tech_oneprocpolyloop);
-//	}
-//	
-//	void fpga_intshapearcpoly(ARCINST *ai, INTBIG box, POLYGON *poly, POLYLOOP *pl)
-//	{
-//		REGISTER INTBIG aindex;
-//		REGISTER TECH_ARCLAY *thista;
-//	
-//		// handle displayable variables
-//		if (box >= pl.realpolys)
-//		{
-//			(void)tech_filldisplayableavar(ai, poly, pl.curwindowpart, 0, pl);
-//			return;
-//		}
-//	
-//		// initialize for the arc
-//		aindex = ai.proto.arcindex;
-//	
-//		// normal wires
-//		thista = &fpga_arcprotos[aindex].list[box];
-//		poly.layer = thista.lay;
-//		poly.desc = fpga_layers[poly.layer];
-//	
-//		// simple wire arc
-//		makearcpoly(ai.length, ai.width-thista.off*lambdaofarc(ai)/WHOLE,
-//			ai, poly, thista.style);
-//	}
-//	
-//	INTBIG fpga_allarcpolys(ARCINST *ai, POLYLIST *plist, WINDOWPART *win)
-//	{
-//		REGISTER INTBIG tot, j;
-//		POLYLOOP mypl;
-//	
-//		mypl.curwindowpart = win;
-//		tot = fpga_intarcpolys(ai, win, &mypl);
-//		tot = mypl.realpolys;
-//		if (ensurepolylist(plist, tot, db_cluster)) return(-1);
-//		for(j = 0; j < tot; j++)
-//		{
-//			fpga_intshapearcpoly(ai, j, plist.polygons[j], &mypl);
-//		}
-//		return(tot);
-//	}
-//	
-//	/******************** TECHNOLOGY INTERFACE SUPPORT ********************/
-//	
-//	BOOLEAN fpga_arcendactive(ARCINST *ai, INTBIG j)
-//	{
+	
+					// add up the active segments
+					for(int i=0; i<fn.pipcount; i++)
+						if ((fn.piplist[i].pipactive&ACTIVESAVE) != 0) numPips++;
+					for(int i=0; i<fn.netcount; i++)
+						if ((fn.netlist[i].segactive&ACTIVESAVE) != 0)
+							numSegs += fn.netlist[i].segcount;
+					break;
+				case FULLPRIMDISPLAY:
+					for(int i=0; i<fn.netcount; i++)
+					{
+						fn.netlist[i].segactive |= ACTIVESAVE;
+						numSegs += fn.netlist[i].segcount;
+					}
+					break;
+			}
+			int total = 1 + numPips + numSegs;
+//			if ((fpga_internaldisplay&TEXTDISPLAY) != 0) total++;
+
+			// construct the polygon array
+			if (wnd != null) total += ni.numDisplayableVariables(true);
+			Poly [] polys = new Poly[total];
+
+			// add the basic box layer
+ 			double xCenter = ni.getTrueCenterX();
+ 			double yCenter = ni.getTrueCenterY();
+			double xSize = ni.getXSize();
+			double ySize = ni.getYSize();
+			Point2D [] pointList = Poly.makePoints(xCenter - xSize/2, xCenter + xSize/2, yCenter - ySize/2, yCenter + ySize/2);
+			polys[0] = new Poly(pointList);
+			polys[0].setStyle(fn.getLayers()[0].getStyle());
+			polys[0].setLayer(tech.fpga_c_lay);
+
+			// add in the pips
+			int fillPos = 1;
+			for(int i=0; i<fn.pipcount; i++)
+			{
+				if ((fn.piplist[i].pipactive&ACTIVESAVE) == 0) continue;
+				double x = xCenter - xSize/2 + fn.piplist[i].posx;
+				double y = yCenter - ySize/2 + fn.piplist[i].posy;
+				polys[fillPos] = new Poly(Poly.makePoints(x-1, x+1, y-1, y+1));
+				polys[fillPos].setStyle(Poly.Type.FILLED);
+				polys[fillPos].setLayer(tech.fpga_p_lay);
+				fillPos++;
+			}
+
+			// add in the network segments
+			for(int i=0; i<fn.netcount; i++)
+			{
+				if ((fn.netlist[i].segactive&ACTIVESAVE) == 0) continue;
+				for(int j=0; j<fn.netlist[i].segcount; j++)
+				{
+					double fX = xCenter + fn.netlist[i].segf[j].getX();
+					double fY = yCenter + fn.netlist[i].segf[j].getY();
+					double tX = xCenter + fn.netlist[i].segt[j].getX();
+					double tY = yCenter + fn.netlist[i].segt[j].getY();
+					Point2D [] line = new Point2D[2];
+					line[0] = new Point2D.Double(fX, fY);
+					line[1] = new Point2D.Double(tX, tY);
+					polys[fillPos] = new Poly(line);
+					polys[fillPos].setStyle(Poly.Type.OPENED);
+					polys[fillPos].setLayer(tech.fpga_w_lay);
+					fillPos++;
+				}
+			}
+
+			// add in displayable variables
+			if (wnd != null)
+			{
+				Rectangle2D rect = ni.getUntransformedBounds();
+				ni.addDisplayableVariables(rect, polys, fillPos, wnd, true);
+			}
+			return polys;
+		}
+
+		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, layerOverride);
+	}
+
+	/**
+	 * Method to return a list of Polys that describe a given ArcInst.
+	 * This method overrides the general one in the Technology object
+	 * because of the unusual primitives in this Technology.
+	 * @param ai the ArcInst to describe.
+	 * @param wnd the window in which this arc will be drawn.
+	 * @param onlyTheseLayers to filter the only required layers
+	 * @return an array of Poly objects.
+	 */
+	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd, Layer layerOverride, List onlyTheseLayers)
+	{
+		boolean active = true;
+		if ((fpga_internaldisplay&DISPLAYLEVEL) == NOPRIMDISPLAY ||
+			(fpga_internaldisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
+		{
+//			if (!fpga_arcactive(ai)) active = false;
+		}
+
+		int total = active ? 1 : 0;
+		int numDisplayable = 0;
+		if (wnd != null) numDisplayable = ai.numDisplayableVariables(true);
+		Poly [] polys = new Poly[total+numDisplayable];
+
+		int polyNum = 0;
+		if (active)
+		{
+			polys[polyNum] = ai.makePoly(ai.getLength(), ai.getWidth(), Poly.Type.FILLED);
+			if (polys[polyNum] == null) return null;
+			polys[polyNum].setLayer(tech.fpga_w_lay);
+			polyNum++;
+		}
+
+		// add in the displayable variables
+		if (numDisplayable > 0)
+		{
+			Rectangle2D rect = ai.getBounds();
+			ai.addDisplayableVariables(rect, polys, polyNum, wnd, true);
+		}
+		return polys;
+	}
+
+	/******************** TECHNOLOGY INTERFACE SUPPORT ********************/
+	
+	private boolean fpga_arcendactive(ArcInst ai, int j)
+	{
 //		REGISTER PORTARCINST *pi;
 //		REGISTER PORTEXPINST *pe;
 //		REGISTER ARCINST *oai;
@@ -826,11 +564,11 @@ public class FPGA extends Technology
 //		REGISTER FPGANODE *fn;
 //		NODEINST **nilist;
 //		INTBIG depth, *indexlist;
-//	
+	
 //		// examine end
 //		ni = ai.end[j].nodeinst;
 //		pi = ai.end[j].portarcinst;
-//		if (pi == NOPORTARCINST) return(FALSE);
+//		if (pi == NOPORTARCINST) return false;
 //		pp = pi.proto;
 //		pindex = ni.proto.primindex;
 //		if (pindex == 0)
@@ -846,7 +584,7 @@ public class FPGA extends Technology
 //			}
 //			uphierarchy();
 //			if (pi != NOPORTARCINST) return(TRUE);
-//			return(FALSE);
+//			return false;
 //		} else
 //		{
 //			// primitive: see if it is one of ours
@@ -902,11 +640,11 @@ public class FPGA extends Technology
 //				}
 //			}
 //		}
-//		return(FALSE);
-//	}
-//	
-//	BOOLEAN fpga_arcactive(ARCINST *ai)
-//	{
+		return false;
+	}
+	
+	private boolean fpga_arcactive(ArcInst ai)
+	{
 //		REGISTER INTBIG i, size, cachedepth;
 //		REGISTER BOOLEAN value;
 //		INTBIG depth, *indexlist;
@@ -914,12 +652,12 @@ public class FPGA extends Technology
 //		REGISTER VARIABLE *var;
 //		NODEINST **nilist;
 //		UCHAR1 *ptr;
-//	
-//		if (ai.end[0].portarcinst == NOPORTARCINST) return(FALSE);
-//	
-//		// see if there is a cache on the arc
+	
+//		if (ai.end[0].portarcinst == NOPORTARCINST) return false;
+	
+		// see if there is a cache on the arc
 //		gettraversalpath(ai.parent, NOWINDOWPART, &nilist, &indexlist, &depth, 0);
-//		var = getvalkey((INTBIG)ai, VARCINST, VCHAR|VISARRAY, fpga_arcactivecachekey);
+//		var = getvalkey((INTBIG)ai, VARCINST, VCHAR|VISARRAY, ARCACTIVECACHE_KEY);
 //		if (var != NOVARIABLE)
 //		{
 //			ptr = (UCHAR1 *)var.addr;
@@ -934,18 +672,18 @@ public class FPGA extends Technology
 //				if (i >= cachedepth)
 //				{
 //					// cache applies to this arc: get active factor
-//					if (((INTSML *)ptr)[0] == 0) return(FALSE);
-//					return(TRUE);
+//					if (((INTSML *)ptr)[0] == 0) return false;
+//					return true;
 //				}
 //			}
 //		}
-//	
-//		// compute arc activity
-//		value = FALSE;
-//		if (fpga_arcendactive(ai, 0)) value = TRUE; else
-//			if (fpga_arcendactive(ai, 1)) value = TRUE;
-//	
-//		// store the cache
+	
+		// compute arc activity
+		boolean value = false;
+		if (fpga_arcendactive(ai, 0)) value = true; else
+			if (fpga_arcendactive(ai, 1)) value = true;
+	
+		// store the cache
 //		size = depth * (sizeof (NODEINST *)) + SIZEOFINTBIG + SIZEOFINTSML;
 //		if (size > fpga_arcbufsize)
 //		{
@@ -963,17 +701,17 @@ public class FPGA extends Technology
 //		}
 //		((INTSML *)ptr)[0] = value ? 1 : 0;
 //		nextchangequiet();
-//		setvalkey((INTBIG)ai, VARCINST, fpga_arcactivecachekey, (INTBIG)fpga_arcbuf,
+//		setvalkey((INTBIG)ai, VARCINST, ARCACTIVECACHE_KEY, (INTBIG)fpga_arcbuf,
 //			VCHAR|VISARRAY|(size<<VLENGTHSH)|VDONTSAVE);
-//		return(value);
-//	}
-//	
-//	/*
-//	 * Routine to reevaluate primitive node "ni" (which is associated with internal
-//	 * structure "fn").  Finds programming of pips and sets pip and net activity.
-//	 */
-//	void fpga_reevaluatepips(NODEINST *ni, FPGANODE *fn)
-//	{
+		return value;
+	}
+	
+	/**
+	 * Method to reevaluate primitive node "ni" (which is associated with internal
+	 * structure "fn").  Finds programming of pips and sets pip and net activity.
+	 */
+	private void fpga_reevaluatepips(NodeInst ni, FPGANode fn, VarContext context)
+	{
 //		REGISTER INTBIG i, value, size, cachedepth;
 //		INTBIG depth, *indexlist;
 //		REGISTER FPGAPIP *fpip;
@@ -981,13 +719,13 @@ public class FPGA extends Technology
 //		REGISTER VARIABLE *var;
 //		NODEINST **nilist;
 //		UCHAR1 *ptr;
-//	
-//		// primitives with no pips or nets need no evaluation
-//		if (fn.netcount == 0 && fn.pipcount == 0) return;
-//	
-//		// see if there is a cache on the node
+	
+		// primitives with no pips or nets need no evaluation
+		if (fn.netcount == 0 && fn.pipcount == 0) return;
+	
+		// see if there is a cache on the node
 //		gettraversalpath(ni.parent, NOWINDOWPART, &nilist, &indexlist, &depth, 0);
-//		var = getvalkey((INTBIG)ni, VNODEINST, VCHAR|VISARRAY, fpga_nodepipcachekey);
+//		var = getvalkey((INTBIG)ni, VNODEINST, VCHAR|VISARRAY, NODEPIPCACHE_KEY);
 //		if (var != NOVARIABLE)
 //		{
 //			ptr = (UCHAR1 *)var.addr;
@@ -1018,24 +756,23 @@ public class FPGA extends Technology
 //				}
 //			}
 //		}
-//	
-//		// reevaluate: presume all nets and pips are inactive
-//		for(i=0; i<fn.netcount; i++) fn.netlist[i].segactive &= ~ACTIVEPART;
-//		for(i=0; i<fn.pipcount; i++) fn.piplist[i].pipactive &= ~ACTIVEPART;
-//	
-//		// look for pip programming
-//		fpga_fn = fn;
-//		fpga_findvariableobjects(ni, fpga_activepipskey, fpga_setpips);
-//	
-//		// set nets active where they touch active pips
-//		for(i=0; i<fn.pipcount; i++)
-//		{
-//			fpip = fn.piplist[i];
-//			if ((fpip.pipactive&ACTIVEPART) == 0) continue;
-//			if (fpip.con1 > 0) fn.netlist[fpip.con1].segactive |= ACTIVEPART;
-//			if (fpip.con2 > 0) fn.netlist[fpip.con2].segactive |= ACTIVEPART;
-//		}
-//	
+	
+		// reevaluate: presume all nets and pips are inactive
+		for(int i=0; i<fn.netcount; i++) fn.netlist[i].segactive &= ~ACTIVEPART;
+		for(int i=0; i<fn.pipcount; i++) fn.piplist[i].pipactive &= ~ACTIVEPART;
+	
+		// look for pip programming
+		fpga_findvariableobjects(fn, ni, ACTIVEPIPS_KEY, true, context);
+	
+		// set nets active where they touch active pips
+		for(int i=0; i<fn.pipcount; i++)
+		{
+			FPGAPip fpip = fn.piplist[i];
+			if ((fpip.pipactive&ACTIVEPART) == 0) continue;
+			if (fpip.con1 > 0) fn.netlist[fpip.con1].segactive |= ACTIVEPART;
+			if (fpip.con2 > 0) fn.netlist[fpip.con2].segactive |= ACTIVEPART;
+		}
+	
 //		// store the cache
 //		size = depth * (sizeof (NODEINST *)) + SIZEOFINTBIG + fn.netcount * SIZEOFINTSML +
 //			fn.pipcount * SIZEOFINTSML;
@@ -1066,48 +803,21 @@ public class FPGA extends Technology
 //			ptr += SIZEOFINTSML;
 //		}
 //		nextchangequiet();
-//		setvalkey((INTBIG)ni, VNODEINST, fpga_nodepipcachekey, (INTBIG)fpga_pipbuf,
+//		setvalkey((INTBIG)ni, VNODEINST, NODEPIPCACHE_KEY, (INTBIG)fpga_pipbuf,
 //			VCHAR|VISARRAY|(size<<VLENGTHSH)|VDONTSAVE);
-//	}
-//	
-//	/*
-//	 * Helper routine for fpga_reevaluatepips() to set pip "name".
-//	 */
-//	void fpga_setpips(CHAR *name)
-//	{
-//		REGISTER INTBIG i;
-//	
-//		for(i=0; i<fpga_fn.pipcount; i++)
-//			if (namesame(fpga_fn.piplist[i].pipname, name) == 0)
-//		{
-//			fpga_fn.piplist[i].pipactive |= ACTIVEPART;
-//			return;
-//		}
-//	}
-//	
-//	/*
-//	 * Routine to examine primitive node "ni" and return true if the repeater is active.
-//	 */
-//	BOOLEAN fpga_repeateractive(NODEINST *ni)
-//	{
-//		REGISTER VARIABLE *var;
-//	
-//		var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, el_node_name_key);
-//		if (var == NOVARIABLE) return(FALSE);
-//		fpga_repeatername = (CHAR *)var.addr;
-//		fpga_repeaterisactive = FALSE;
-//		fpga_findvariableobjects(ni, fpga_activerepeaterskey, fpga_setrepeater);
-//		return(fpga_repeaterisactive);
-//	}
-//	
-//	/*
-//	 * Helper routine for fpga_repeateractive() to determine whether repeater "name" is on.
-//	 */
-//	void fpga_setrepeater(CHAR *name)
-//	{
-//		if (namesame(fpga_repeatername, name) == 0) fpga_repeaterisactive = TRUE;
-//	}
-//	
+	}
+	
+	/**
+	 * Method to examine primitive node "ni" and return true if the repeater is active.
+	 */
+	private boolean fpga_repeateractive(NodeInst ni)
+	{
+		fpga_repeatername = ni.getName();
+		fpga_repeaterisactive = false;
+		fpga_findvariableobjects(null, ni, ACTIVEREPEATERS_KEY, false, null);
+		return fpga_repeaterisactive;
+	}
+
 //	/*
 //	 * Routine to clear the cache of arc activity in the current cell.  If "ni" is NONODEINST,
 //	 * clear all node caches as well, otherwise only clear the node cache on "ni".
@@ -1126,77 +836,81 @@ public class FPGA extends Technology
 //		}
 //		for(ai = np.firstarcinst; ai != NOARCINST; ai = ai.nextarcinst)
 //		{
-//			var = getvalkey((INTBIG)ai, VARCINST, VCHAR|VISARRAY, fpga_arcactivecachekey);
+//			var = getvalkey((INTBIG)ai, VARCINST, VCHAR|VISARRAY, ARCACTIVECACHE_KEY);
 //			if (var != NOVARIABLE)
-//				(void)delvalkey((INTBIG)ai, VARCINST, fpga_arcactivecachekey);
+//				(void)delvalkey((INTBIG)ai, VARCINST, ARCACTIVECACHE_KEY);
 //		}
 //		if (ni != NONODEINST)
 //		{
-//			var = getvalkey((INTBIG)ni, VNODEINST, VCHAR|VISARRAY, fpga_nodepipcachekey);
+//			var = getvalkey((INTBIG)ni, VNODEINST, VCHAR|VISARRAY, NODEPIPCACHE_KEY);
 //			if (var != NOVARIABLE)
-//				(void)delvalkey((INTBIG)ni, VNODEINST, fpga_nodepipcachekey);
+//				(void)delvalkey((INTBIG)ni, VNODEINST, NODEPIPCACHE_KEY);
 //		}
 //	}
-//	
-//	void fpga_findvariableobjects(NODEINST *ni, INTBIG varkey, void (*setit)(CHAR*))
-//	{
-//		static NODEINST *mynilist[200];
-//		NODEINST **localnilist;
-//		REGISTER INTBIG curdepth, i, pathgood, depth;
-//		INTBIG localdepth, *indexlist;
-//		REGISTER CHAR *pt, *start, save1, save2, *dotpos;
-//		REGISTER VARIABLE *var;
-//		CHAR tempbuf[100];
-//	
-//		// search hierarchical path
-//		gettraversalpath(ni.parent, NOWINDOWPART, &localnilist, &indexlist, &localdepth, 0);
-//		depth = 0;
-//		for(i = localdepth - 1; i >= 0; i--)
-//		{
-//			ni = localnilist[i];
-//			mynilist[depth] = ni;
-//			depth++;
-//			var = getvalkey((INTBIG)ni, VNODEINST, VSTRING, varkey);
-//			if (var != NOVARIABLE)
-//			{
-//				pt = (CHAR *)var.addr;
-//				for(;;)
-//				{
-//					while (*pt == ' ' || *pt == '\t') pt++;
-//					start = pt;
-//					while (*pt != ' ' && *pt != '\t' && *pt != 0) pt++;
-//					save1 = *pt;
-//					*pt = 0;
-//	
-//					// find pip name in "start"
-//					pathgood = 1;
-//					for(curdepth = depth-2; curdepth >= 0; curdepth--)
-//					{
-//						if (*start == 0) { pathgood = 0;   break; }
-//						dotpos = start;
-//						while (*dotpos != '.' && *dotpos != 0) dotpos++;
-//						if (*dotpos != '.') break;
-//	
-//						save2 = *dotpos;   *dotpos = 0;
-//						estrcpy(tempbuf, start);
-//						*dotpos++ = save2;
-//						start = dotpos;
-//	
-//						// make sure instance has the right name
-//						var = getvalkey((INTBIG)mynilist[curdepth], VNODEINST, VSTRING, el_node_name_key);
-//						if (var == NOVARIABLE) { pathgood = 0;   break; }
-//						if (namesame((CHAR *)var.addr, tempbuf) != 0) { pathgood = 0;   break; }
-//					}
-//					if (pathgood != 0) setit(start);
-//	
-//					*pt = save1;
-//					if (*pt == 0) break;
-//				}
-//				return;
-//			}
-//		}
-//	}
-//	
+
+	Nodable [] path = new Nodable[100];
+
+	private void fpga_findvariableobjects(FPGANode fn, NodeInst ni, Variable.Key varkey, boolean setPips, VarContext context)
+	{
+		// search hierarchical path
+		int depth = 0;
+		path[depth++] = ni;
+		while(context != null)
+		{
+			Nodable niClimb = context.getNodable();
+            if (niClimb == null) break;
+			path[depth++] = niClimb;
+			context = context.pop();
+		}
+
+		// look for programming variables on the nodes
+		for(int c=0; c<depth; c++)
+		{
+			Nodable niClimb = path[c];
+			Variable var = niClimb.getVar(varkey);
+			if (var == null) continue;
+
+			// found pip settings: evaluate them
+			String pt = (String)var.getObject();
+			String [] pipNames = pt.split(" ");
+			for(int i=0; i<pipNames.length; i++)
+			{
+				String start = pipNames[i];
+				if (start.length() == 0) continue;
+
+				// find pip name in "start"
+				String [] pipParts = start.split("\\.");
+				if (pipParts.length == 0 || pipParts.length > depth) continue;
+				boolean pathgood = true;
+				VarContext climb = context;
+				for(int j=0; j<pipParts.length-1; j++)
+				{
+					if (!pipParts[j].equalsIgnoreCase(path[depth-2-j].getName()))
+					{
+						pathgood = false;
+						break;
+					}
+				}
+				if (pathgood)
+				{
+					String lastPart = pipParts[pipParts.length-1];
+					if (setPips)
+					{
+						for(int k=0; k<fn.pipcount; k++)
+							if (fn.piplist[k].pipname.equalsIgnoreCase(lastPart))
+						{
+							fn.piplist[i].pipactive |= ACTIVEPART;
+						}
+					} else
+					{
+						if (fpga_repeatername.equalsIgnoreCase(lastPart)) fpga_repeaterisactive = true;
+					}
+				}
+			}
+			break;
+		}
+	}
+	
 //	/*
 //	 * Routine to fill polygon "poly" with a description of pip "pipindex" on node "ni"
 //	 * which is a FPGA NODE "fn".
@@ -1264,6 +978,22 @@ public class FPGA extends Technology
 
 		// turn the tree into primitives
 		new BuildTechnology(lt, placeAndWire);
+	}
+
+	public static void setWireDisplay(int level)
+	{
+		switch (level)
+		{
+			case 0:		// no wires
+				fpga_internaldisplay = (fpga_internaldisplay & ~DISPLAYLEVEL) | NOPRIMDISPLAY;
+				break;
+			case 1:		// active wires
+				fpga_internaldisplay = (fpga_internaldisplay & ~DISPLAYLEVEL) | ACTIVEPRIMDISPLAY;
+				break;
+			case 2:		// all wires
+				fpga_internaldisplay = (fpga_internaldisplay & ~DISPLAYLEVEL) | FULLPRIMDISPLAY;
+				break;
+		}
 	}
 
 	/**
@@ -1544,7 +1274,7 @@ public class FPGA extends Technology
 		// scan the attributes section
 		if (ltattribute == null)
 		{
-//			System.out.println("Missing 'attributes' sections on a primitive (line " + scanlt.lineno + ")");
+			System.out.println("Missing 'attributes' sections on a primitive (line " + lt.lineno + ")");
 			return true;
 		}
 		String primname = null;
@@ -1594,8 +1324,7 @@ public class FPGA extends Technology
 		// make the primitive
 		double sizex = TextUtils.atof(primsizex);
 		double sizey = TextUtils.atof(primsizey);
-
-		PrimitiveNode primnp = PrimitiveNode.newInstance(primname, tech, sizex, sizey, null,
+		FPGANode primnp = new FPGANode(primname, tech, sizex, sizey, null,
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(tech.fpga_c_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, new Technology.TechPoint[] {
@@ -1604,6 +1333,7 @@ public class FPGA extends Technology
 				})
 			});
 		primnp.setLockedPrim();
+		fpga_nodecount++;
 
 		// add any unrecognized attributes
 		for(int j=0; j<ltattribute.paramtype.size(); j++)
@@ -1622,21 +1352,9 @@ public class FPGA extends Technology
 			}
 //			primnp.newVar(scanlt.keyword, (String)scanlt.paramvalue.get(0));
 		}
-	
-		// create a local structure for this node
-		FPGANode fn = new FPGANode();
-//		fnlist = (FPGANODE **)emalloc((primnp.primindex - NODEPROTOCOUNT) * (sizeof (FPGANODE *)),
-//			fpga_tech.cluster);
-//		if (fnlist == 0) return true;
-//		for(j=0; j<primnp.primindex - NODEPROTOCOUNT - 1; j++)
-//			fnlist[j] = fpga_nodes[j];
-//		fnlist[primnp.primindex - NODEPROTOCOUNT - 1] = fn;
-//		if (fpga_nodecount > 0) efree((CHAR *)fpga_nodes);
-//		fpga_nodes = fnlist;
-//		fpga_nodecount++;
-	
+
 		// get ports
-		fn.portcount = 0;
+		primnp.portcount = 0;
 		if (ltports != null)
 		{
 			// count ports
@@ -1644,16 +1362,16 @@ public class FPGA extends Technology
 			{
 				if (((Integer)ltports.paramtype.get(j)).intValue() != PARAMBRANCH) continue;
 				LispTree scanlt = (LispTree)ltports.paramvalue.get(j);
-				if (scanlt.keyword.equalsIgnoreCase("port")) fn.portcount++;
+				if (scanlt.keyword.equalsIgnoreCase("port")) primnp.portcount++;
 			}
 	
 			// create local port structures
-			fn.portlist = new FPGAPort[fn.portcount];
-			PrimitivePort [] ports = new PrimitivePort[fn.portcount];
-			for(int i=0; i<fn.portcount; i++)
+			primnp.portlist = new FPGAPort[primnp.portcount];
+			PrimitivePort [] ports = new PrimitivePort[primnp.portcount];
+			for(int i=0; i<primnp.portcount; i++)
 			{
-				fn.portlist[i] = new FPGAPort();
-				fn.portlist[i].pp = null;
+				primnp.portlist[i] = new FPGAPort();
+				primnp.portlist[i].pp = null;
 			}
 	
 			// create the ports
@@ -1665,8 +1383,8 @@ public class FPGA extends Technology
 				LispTree scanlt = (LispTree)ltports.paramvalue.get(j);
 				if (scanlt.keyword.equalsIgnoreCase("port"))
 				{
-					if (fpga_makeprimport(primnp, scanlt, fn.portlist[portNumber], portNumber)) return true;
-					ports[portNumber] = fn.portlist[portNumber].pp;
+					if (fpga_makeprimport(primnp, scanlt, primnp.portlist[portNumber], portNumber)) return true;
+					ports[portNumber] = primnp.portlist[portNumber].pp;
 					for(int k=0; k<portNumber; k++)
 					{
 						if (ports[k].getName().equalsIgnoreCase(ports[portNumber].getName()))
@@ -1684,7 +1402,7 @@ public class FPGA extends Technology
 		}
 	
 		// get nets
-		fn.netcount = 0;
+		primnp.netcount = 0;
 		if (ltnets != null)
 		{
 			// count the nets
@@ -1693,16 +1411,16 @@ public class FPGA extends Technology
 				Integer type = (Integer)ltnets.paramtype.get(j);
 				if (type.intValue() != PARAMBRANCH) continue;
 				LispTree scanlt = (LispTree)ltnets.paramvalue.get(j);
-				if (scanlt.keyword.equalsIgnoreCase("net")) fn.netcount++;
+				if (scanlt.keyword.equalsIgnoreCase("net")) primnp.netcount++;
 			}
 	
 			// create local net structures
-			fn.netlist = new FPGANet[fn.netcount];
-			for(int i=0; i<fn.netcount; i++)
+			primnp.netlist = new FPGANet[primnp.netcount];
+			for(int i=0; i<primnp.netcount; i++)
 			{
-				fn.netlist[i] = new FPGANet();
-				fn.netlist[i].netname = null;
-				fn.netlist[i].segcount = 0;
+				primnp.netlist[i] = new FPGANet();
+				primnp.netlist[i].netname = null;
+				primnp.netlist[i].segcount = 0;
 			}
 	
 			// create the nets
@@ -1714,23 +1432,23 @@ public class FPGA extends Technology
 				LispTree scanlt = (LispTree)ltnets.paramvalue.get(j);
 				if (scanlt.keyword.equalsIgnoreCase("net"))
 				{
-					if (fpga_makeprimnet(primnp, scanlt, fn, fn.netlist[i])) return true;
+					if (fpga_makeprimnet(primnp, scanlt, primnp, primnp.netlist[i])) return true;
 					i++;
 				}
 			}
 		}
 	
 		// associate nets and ports
-		for(int k=0; k<fn.portcount; k++)
+		for(int k=0; k<primnp.portcount; k++)
 		{
-			FPGAPort fp = fn.portlist[k];
-			for(int i=0; i<fn.netcount; i++)
+			FPGAPort fp = primnp.portlist[k];
+			for(int i=0; i<primnp.netcount; i++)
 			{
 				boolean found = false;
-				for(int j=0; j<fn.netlist[i].segcount; j++)
+				for(int j=0; j<primnp.netlist[i].segcount; j++)
 				{
-					if ((fn.netlist[i].segf[j].getX() == fp.posx && fn.netlist[i].segf[j].getY() == fp.posy) ||
-						(fn.netlist[i].segt[j].getX() == fp.posx && fn.netlist[i].segt[j].getY() == fp.posy))
+					if ((primnp.netlist[i].segf[j].getX() == fp.posx && primnp.netlist[i].segf[j].getY() == fp.posy) ||
+						(primnp.netlist[i].segt[j].getX() == fp.posx && primnp.netlist[i].segt[j].getY() == fp.posy))
 					{
 						fp.con = i;
 						found = true;
@@ -1742,23 +1460,23 @@ public class FPGA extends Technology
 		}
 	
 		// set electrical connectivity
-		for(int k=0; k<fn.portcount; k++)
+		for(int k=0; k<primnp.portcount; k++)
 		{
-			if (fn.portlist[k].con < 0)
+			if (primnp.portlist[k].con < 0)
 			{
-//				fn.portlist[k].pp.userbits |= PORTNET;
+//				primnp.portlist[k].pp.userbits |= PORTNET;
 			} else
 			{
-//				if (fn.portlist[k].con >= (PORTNET >> PORTNETSH))
+//				if (primnp.portlist[k].con >= (PORTNET >> PORTNETSH))
 //				{
 //					System.out.println("Too many networks in FPGA primitive");
 //				}
-//				fn.portlist[k].pp.userbits |= (fn.portlist[k].con >> PORTNETSH);
+//				primnp.portlist[k].pp.userbits |= (primnp.portlist[k].con >> PORTNETSH);
 			}
 		}
 	
 		// get pips
-		fn.pipcount = 0;
+		primnp.pipcount = 0;
 		if (ltcomponents != null)
 		{
 			// count the pips
@@ -1767,14 +1485,14 @@ public class FPGA extends Technology
 				Integer type = (Integer)ltcomponents.paramtype.get(j);
 				if (type.intValue() != PARAMBRANCH) continue;
 				LispTree scanlt = (LispTree)ltcomponents.paramvalue.get(j);
-				if (scanlt.keyword.equalsIgnoreCase("pip")) fn.pipcount++;
+				if (scanlt.keyword.equalsIgnoreCase("pip")) primnp.pipcount++;
 			}
 	
 			// create local pips structures
-			fn.piplist = new FPGAPip[fn.pipcount];
-			for(int i=0; i<fn.pipcount; i++)
+			primnp.piplist = new FPGAPip[primnp.pipcount];
+			for(int i=0; i<primnp.pipcount; i++)
 			{
-				fn.piplist[i] = new FPGAPip();
+				primnp.piplist[i] = new FPGAPip();
 			}
 	
 			// create the pips
@@ -1786,7 +1504,7 @@ public class FPGA extends Technology
 				LispTree scanlt = (LispTree)ltcomponents.paramvalue.get(j);
 				if (scanlt.keyword.equalsIgnoreCase("pip"))
 				{
-					if (fpga_makeprimpip(primnp, scanlt, fn, fn.piplist[i])) return true;
+					if (fpga_makeprimpip(primnp, scanlt, primnp, primnp.piplist[i])) return true;
 					i++;
 				}
 			}
@@ -1868,13 +1586,15 @@ public class FPGA extends Technology
 		}
 
 		// create the portproto
+		double x = TextUtils.atof((String)ltposition.paramvalue.get(0)) - np.getDefWidth()/2;
+		double y = TextUtils.atof((String)ltposition.paramvalue.get(1)) - np.getDefHeight()/2;
 		PrimitivePort newpp = PrimitivePort.newInstance(tech, np, new ArcProto [] {tech.wire_arc},
 			(String)ltname.paramvalue.get(0), 0,180, net, characteristic,
-			EdgeH.fromLeft(0), EdgeV.fromBottom(0), EdgeH.fromRight(0), EdgeV.fromTop(0));
+			EdgeH.fromCenter(x), EdgeV.fromCenter(y), EdgeH.fromCenter(x), EdgeV.fromCenter(y));
 
 		// add it to the local port structure
-		fp.posx = TextUtils.atof((String)ltposition.paramvalue.get(0)); // + np.lowx;
-		fp.posy = TextUtils.atof((String)ltposition.paramvalue.get(1)); // + np.lowy;
+		fp.posx = x; // + np.lowx;
+		fp.posy = y; // + np.lowy;
 		fp.pp = newpp;
 		fp.con = -1;
 		return false;
@@ -1935,8 +1655,8 @@ public class FPGA extends Technology
 							System.out.println("Must have atoms in block net segment (line " + scanlt.lineno + ")");
 							return true;
 						}
-						double x = TextUtils.atof((String)scanlt.paramvalue.get(pos+1)); // + np.lowx;
-						double y = TextUtils.atof((String)scanlt.paramvalue.get(pos+2)); // + np.lowy;
+						double x = TextUtils.atof((String)scanlt.paramvalue.get(pos+1)) - np.getDefWidth()/2;
+						double y = TextUtils.atof((String)scanlt.paramvalue.get(pos+2)) - np.getDefHeight()/2;
 						seg[i] = new Point2D.Double(x, y);
 						pos += 3;
 					} else if (((String)scanlt.paramvalue.get(pos)).equalsIgnoreCase("port"))
@@ -2168,7 +1888,7 @@ public class FPGA extends Technology
 		}
 	
 		// make the cell
-		Cell cell = Cell.makeInstance(Library.getCurrent(), blockname);
+		Cell cell = Cell.newInstance(Library.getCurrent(), blockname);
 		if (cell == null) return null;
 		System.out.println("Creating cell '" + blockname + "'");
 	
@@ -2324,8 +2044,8 @@ public class FPGA extends Technology
 			System.out.println("Need one atom in 'type' of block instance (line " + lttype.lineno + ")");
 			return true;
 		}
-		PrimitiveNode np = tech.findNodeProto((String)lttype.paramvalue.get(0));
-//		if (np == null) np = getnodeproto((String)lttype.paramvalue.get(0));
+		NodeProto np = tech.findNodeProto((String)lttype.paramvalue.get(0));
+		if (np == null) np = cell.getLibrary().findNodeProto((String)lttype.paramvalue.get(0));
 		if (np == null)
 		{
 			System.out.println("Cannot find block type '" + (String)lttype.paramvalue.get(0) + "' (line " + lttype.lineno + ")");
@@ -2337,7 +2057,7 @@ public class FPGA extends Technology
 			return true;
 		}
 		if (ltposition.paramtype.size() != 2 || ((Integer)ltposition.paramtype.get(0)).intValue() != PARAMATOM ||
-				((Integer)ltposition.paramtype.get(1)).intValue() != PARAMATOM)
+			((Integer)ltposition.paramtype.get(1)).intValue() != PARAMATOM)
 		{
 			System.out.println("Need two atoms in 'position' of block instance (line " + ltposition.lineno + ")");
 			return true;

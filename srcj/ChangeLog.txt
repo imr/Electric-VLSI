@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02m: *********************************
 
+BUG: (05/03/05, SMR) Spice primitives generate incorrect Verilog output (Bug #293).
+FIX: In Verilog.writeCellTopology(), ignore cell instances whose prototypes are icons.
+
+BUG: (05/03/05, SMR) Reading ELIB files may consume all of memory (Bug #294).
+FIX: In input.ELIB.readString(), if a string's length is greater than the remaining bytes
+     in the file, flag it as an error.
+
 IMP: (05/03/05, GVG) Adding class to query hardware accelaration for J3D.
 
 BUG: (05/02/05. GVG) Double-click on jelib/elib file doesn't open the library in Electric.app (Bug #290)

@@ -483,7 +483,7 @@ public class PrimitiveNode implements NodeProto, Comparable
 	/**
 	 * The constructor is never called externally.  Use the factory "newInstance" instead.
 	 */
-	private PrimitiveNode(String protoName, Technology tech, double defWidth, double defHeight,
+	protected PrimitiveNode(String protoName, Technology tech, double defWidth, double defHeight,
 		SizeOffset offset, Technology.NodeLayer [] layers)
 	{
 		// things in the base class

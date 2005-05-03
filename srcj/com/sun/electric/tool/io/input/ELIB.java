@@ -3127,10 +3127,12 @@ public class ELIB extends LibraryFiles
 			// disk and memory match: read the data
 			int len = readBigInteger();
 			if (len <= 0) return "";
+			if (len > fileLength - byteCount)
+			{
+				System.out.println("Corrupt ELIB file requests string that is " + len + " long");
+				throw new IOException();
+			}
 			byte [] stringBytes = new byte[len];
-            if ((len > 150) || (len < 0)) {
-                System.out.flush();
-            }
             int ret = dataInputStream.read(stringBytes, 0, len);
             if (ret != len) throw new IOException();
 			updateProgressDialog(len);
