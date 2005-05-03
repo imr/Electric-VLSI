@@ -50,7 +50,6 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Rectangle2D;
@@ -88,7 +87,7 @@ public class Output
      */
     public static void exportCellCommand(Cell cell, VarContext context, String filePath, FileType type)
     {
-        OutputCellInfo job = new OutputCellInfo(cell, context, filePath, type);
+        new OutputCellInfo(cell, context, filePath, type, true);
     }
 
     static class OrderedConnections implements Comparator
@@ -625,7 +624,6 @@ public class Output
 	 * and returns an array of Strings that describes the font associations.
 	 * Each String is of the format NUMBER/FONTNAME where NUMBER is the font number
 	 * in the TextDescriptor and FONTNAME is the font name.
-	 * @param lib the Library to examine.
 	 * @return font association array or null.
 	 */
 	String[] createFontAssociation()
@@ -886,15 +884,17 @@ public class Output
         * @param context the VarContext of the Cell (its position in the hierarchy above it).
         * @param filePath the path to the disk file to be written.
         * @param type the format of the output file.
+        * @param startJob to start job immediately
          */
-        public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type)
+        public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type, boolean startJob)
         {
             super("Export "+cell.describe()+" ("+type+")", User.tool, Type.EXAMINE, null, null, Priority.USER);
             this.cell = cell;
             this.context = context;
             this.filePath = filePath;
             this.type = type;
-            startJob();
+            if (startJob)
+                startJob();
         }
 
         public boolean doIt()
