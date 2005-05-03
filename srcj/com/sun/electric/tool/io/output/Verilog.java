@@ -976,7 +976,9 @@ public class Verilog extends Topology
 	 */
 	protected String getSafeCellName(String name)
 	{
-		return getSafeNetName(name, false);
+		String n = getSafeNetName(name, false);
+        // [ and ] are not allowed in cell names
+        return n.replaceAll("[\\[\\]]", "_");
 	}
 
 	/** Method to return the proper name of Power */
