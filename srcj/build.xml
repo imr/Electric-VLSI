@@ -169,7 +169,12 @@
     </target>
 
     <target name="mac-app" depends="jar" description="Build Macintosh Application">
-        <property name="appdir" value="Electric.app"/>
+        <!--<java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+        	<arg value="-v"/>
+        </java>       -->
+        <property name="releasedir" value="Release${version}"/>
+        <property name="appdir" value="${releasedir}/Electric.app"/>
+        <mkdir dir="${releasedir}"/>
         <mkdir dir="${appdir}"/>
         <mkdir dir="${appdir}/Contents"/>
         <mkdir dir="${appdir}/Contents/MacOS"/>

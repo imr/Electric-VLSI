@@ -48,7 +48,7 @@ public final class Launcher
 	public static void main(String[] args)
 	{
 		// initialize Mac OS 10 if applicable
-		Main.MacOSXInterface.registerMacOSXApplication();
+//		Main.MacOSXInterface.registerMacOSXApplication();
 
         // ignore launcher if specified to do so
         for (int i=0; i<args.length; i++) {

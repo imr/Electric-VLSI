@@ -116,7 +116,7 @@ public final class Main
 		}
 
 		// initialize Mac OS 10 if applicable
-		MacOSXInterface.registerMacOSXApplication();
+		MacOSXInterface.registerMacOSXApplication(argsList);
 
 		// -version
 		if (hasCommandLineOption(argsList, "-version"))
@@ -157,9 +157,6 @@ public final class Main
         //runThreadStatusTimer();
         EventProcessor ep = new EventProcessor();
 
-		// initialize Mac OS 10 if applicable
-		MacOSXInterface.registerMacOSXApplication();
-
 		SplashWindow sw = null;
 
 
@@ -181,7 +178,9 @@ public final class Main
 		if (hasCommandLineOption(argsList, "-pulldowns")) dumpPulldownMenus();
 
 		// initialize database
-		new InitDatabase(argsList, sw);
+		InitDatabase job = new InitDatabase(argsList, sw);
+        MacOSXInterface.adapter.initJob = job;
+        job.startJob();
 	}
 
 	/**
@@ -350,7 +349,7 @@ public final class Main
 			super("Init database", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.argsList = argsList;
 			this.sw = sw;
-			startJob();
+			//startJob();
 		}
 
 		public boolean doIt()
@@ -453,8 +452,13 @@ public final class Main
 	{
 		private static MacOSXInterface adapter = null;
 		private static Application application = null;
+        private static List argsList; // references to args list to add the file that triggers the opening
+        protected Job initJob;
 
-		private MacOSXInterface () {}
+		private MacOSXInterface (List list)
+        {
+            argsList = list;
+        }
 
 		/**
 		 * Method called when the "About" item is selected in the Macintosh "Electric" menu.
@@ -483,10 +487,27 @@ public final class Main
 			FileMenu.quitCommand();
 		}
 
+        public void handleOpenFile(ApplicationEvent ae)
+        {
+            ae.setHandled(true);
+            // First open
+            if (initJob == null || !initJob.isFinished())
+            {
+                argsList.add(ae.getFilename());
+            }
+            else
+            {
+                // Handle the rest of double-clicks on files.
+                List list = new ArrayList(1);
+                list.add(ae.getFilename());
+                openCommandLineLibs(list);
+            }
+        }
+
 		/**
 		 * Method to initialize the Macintosh OS X environment.
 		 */
-		public static void registerMacOSXApplication()
+		public static void registerMacOSXApplication(List argsList)
 		{
 			// tell it to use the system menubar
 			System.setProperty("com.apple.macos.useScreenMenuBar", "true");
@@ -497,7 +518,7 @@ public final class Main
 
 			// create Mac objects for handling the "Electric" menu
 			if (application == null) application = new com.apple.eawt.Application();
-			if (adapter == null) adapter = new MacOSXInterface();
+			if (adapter == null) adapter = new MacOSXInterface(argsList);
 			application.addApplicationListener(adapter);
 			application.setEnabledPreferencesMenu(true);
 		}

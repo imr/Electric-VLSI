@@ -547,7 +547,7 @@ public abstract class Job implements ActionListener, Runnable {
     private synchronized String getProgress() { return progress; }
 
     /** Return run status */
-    //public boolean isFinished() { return finished; }
+    public boolean isFinished() { return finished; }
     
     /** Tell thread to abort. Extending class should check
      * abort when/where applicable
