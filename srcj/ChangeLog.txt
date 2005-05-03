@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02m: *********************************
 
+IMP: (05/03/05, GVG) Verbose Redo/Undo: extra message in message window (for Tarik).
+
 BUG: (05/03/05, SMR) Spice primitives generate incorrect Verilog output (Bug #293).
 FIX: In Verilog.writeCellTopology(), ignore cell instances whose prototypes are icons.
 

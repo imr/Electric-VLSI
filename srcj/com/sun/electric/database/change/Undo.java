@@ -144,7 +144,7 @@ public class Undo
 		 * Method to set the type of this Change.
 		 * @param type the new type of this Change.
 		 */
-		private void setType(Type type) { this.type = type; }
+//		private void setType(Type type) { this.type = type; }
 		/**
 		 * Method to get the first floating-point value associated with this Change.
 		 * @return the first floating-point value associated with this Change.
@@ -770,7 +770,7 @@ public class Undo
 			if (type == Type.CELLGROUPMOD)
 			{
 				Cell cell = (Cell)obj;
-				Cell.CellGroup group = (Cell.CellGroup)o1;
+//				Cell.CellGroup group = (Cell.CellGroup)o1;
 				return "Cell " + cell.describe() + " moved to group";
 			}
 			if (type == Type.OBJECTNEW)
@@ -828,8 +828,8 @@ public class Undo
 	{
 		private List changes;
 		private int batchNumber;
-		private boolean done;
-		private Tool tool;
+//		private boolean done;
+//		private Tool tool;
 		private String activity;
 		private Cell upCell;
 		private List startingHighlights = null;				// highlights before changes made
@@ -853,7 +853,7 @@ public class Undo
 		 */
 		public int getNumChanges() { return changes.size(); }
 
-		private void describe()
+		private void describe(String title)
 		{
 			// display the change batches
 			int nodeInst = 0, arcInst = 0, export = 0, cell = 0, object = 0, variable = 0;
@@ -927,7 +927,7 @@ public class Undo
 				}
 			}
 
-			String message = "*** Batch " + batchNumber + " (" + activity + ") has " + batchSize + " changes and affects";
+			String message = "*** Batch '" + title + "', " + batchNumber + " (" + activity + ") has " + batchSize + " changes and affects";
 			if (nodeInst != 0) message += " " + nodeInst + " nodes";
 			if (arcInst != 0) message += " " + arcInst + " arcs";
 			if (export != 0) message += " " + export + " exports";
@@ -982,8 +982,8 @@ public class Undo
 		currentBatch = new ChangeBatch();
 		currentBatch.changes = new ArrayList();
 		currentBatch.batchNumber = ++overallBatchNumber;
-		currentBatch.done = true;
-		currentBatch.tool = tool;
+//		currentBatch.done = true;
+//		currentBatch.tool = tool;
 		currentBatch.activity = activity;
 		currentBatch.upCell = cell;
 		currentBatch.startingHighlights = startingHighlights;
@@ -1213,8 +1213,8 @@ public class Undo
 		Change.setDirty(change, obj, o1);
 
 		// see if this is the first change
-		boolean firstChange = false;
-		if (currentBatch.getNumChanges() == 0) firstChange = true;
+//		boolean firstChange = false;
+//		if (currentBatch.getNumChanges() == 0) firstChange = true;
 
 		// get change module
 		Change ch = new Change(obj, change);
@@ -1658,6 +1658,8 @@ public class Undo
 			ch.broadcast(firstChange, true);
 			firstChange = false;
 		}
+        // Put message in Message Window
+        batch.describe("Undo");
 
 		// broadcast the end-batch
 		for(Iterator it = Tool.getListeners(); it.hasNext(); )
@@ -1684,7 +1686,7 @@ public class Undo
 		}
 
 		// mark that this batch is undone
-		batch.done = false;
+//		batch.done = false;
 		return true;
 	}
 
@@ -1730,6 +1732,8 @@ public class Undo
 			ch.broadcast(firstChange, true);
 			firstChange = false;
 		}
+        // Put message in Message Window
+        batch.describe("Redo");
 
 		// broadcast the end-batch
 		for(Iterator it = Tool.getListeners(); it.hasNext(); )
@@ -1754,7 +1758,7 @@ public class Undo
 		}
 
 		// mark that this batch is redone
-		batch.done = true;
+//		batch.done = true;
 		return true;
 	}
 
@@ -1837,13 +1841,13 @@ public class Undo
 		for(int i=0; i<doneList.size(); i++)
 		{
 			ChangeBatch batch = (ChangeBatch)doneList.get(i);
-			batch.describe();
+			batch.describe("Done");
 		}
 		System.out.println("----------  Undone batches (" + undoneList.size() + ") ----------:");
 		for(int i=0; i<undoneList.size(); i++)
 		{
 			ChangeBatch batch = (ChangeBatch)undoneList.get(i);
-			batch.describe();
+			batch.describe("Undone");
 		}
 	}
 }

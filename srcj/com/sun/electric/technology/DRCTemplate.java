@@ -165,6 +165,20 @@ public final class DRCTemplate
 		return list;
 	}
 
+    /**
+     * For same rules but with different names depending on the foundry
+     */
+    public static List makeRuleTemplates(String[] names, int[] when, int type, double maxW, double value, String arrayL[][])
+	{
+        List list = new ArrayList(names.length);
+
+        for (int i = 0; i < names.length; i++)
+        {
+            list.addAll(makeRuleTemplates(names[i], when[i], type, maxW, value, arrayL, false));    
+        }
+		return list;
+	}
+
 	/**
 	 * For multi cuts as well.
 	 */
