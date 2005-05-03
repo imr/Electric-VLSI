@@ -4,9 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02m: *********************************
 
+IMP: (05/03/05, GVG) Adding class to query hardware accelaration for J3D.
+
 BUG: (05/02/05. GVG) Double-click on jelib/elib file doesn't open the library in Electric.app (Bug #290)
 FIX: Missing code in MacOSXInterface.handleOpenFile.
- 
+
 BUG: (05/02/05, SMR) Explorer tree doesn't remember what is expanded when SIGNALS are shown (Bug #283).
 FIX: Must remember entire path through tree, not just leaf nodes.
 

@@ -32,6 +32,7 @@ import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.plugins.j3d.View3DWindow;
 import com.sun.electric.plugins.j3d.utils.J3DClientApp;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
+import com.sun.electric.plugins.j3d.utils.J3DQueryProperties;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -70,6 +71,9 @@ public class J3DMenu {
         demoSubMenu.addMenuItem("Read Data", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DViewDialog.create3DViewDialog(TopLevel.getCurrentJFrame()); } });
 
+        j3DMenu.addSeparator();
+        j3DMenu.addMenuItem("Test Hardware", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DQueryProperties.queryHardwareAcceleration(); ;} });
 		return j3DMenu;
     }
 
