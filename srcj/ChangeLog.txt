@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.02n: *********************************
+
 ************************* Version 8.02m: *********************************
 
 IMP: (05/03/05, GVG) Verbose Redo/Undo: extra message in message window (for Tarik).
