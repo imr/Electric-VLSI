@@ -50,6 +50,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Date;
 import java.util.ArrayList;
@@ -60,6 +61,115 @@ import java.util.HashMap;
  */
 public class Verilog extends Topology
 {
+	/** A set of keywords that are reserved in Verilog */
+	private static HashSet reservedWords;
+	static
+	{
+		reservedWords = new HashSet();
+		reservedWords.add("always");
+		reservedWords.add("and");
+		reservedWords.add("assign");
+		reservedWords.add("attribute");
+		reservedWords.add("begin");
+		reservedWords.add("buf");
+		reservedWords.add("bufif0");
+		reservedWords.add("bufif1");
+		reservedWords.add("case");
+		reservedWords.add("casex");
+		reservedWords.add("casez");
+		reservedWords.add("cmos");
+		reservedWords.add("deassign");
+		reservedWords.add("default");
+		reservedWords.add("defpram");
+		reservedWords.add("disable");
+		reservedWords.add("edge");
+		reservedWords.add("else");
+		reservedWords.add("end");
+		reservedWords.add("endattribute");
+		reservedWords.add("endcase");
+		reservedWords.add("endfunction");
+		reservedWords.add("endmodule");
+		reservedWords.add("endprimitive");
+		reservedWords.add("endspecify");
+		reservedWords.add("endtable");
+		reservedWords.add("endtask");
+		reservedWords.add("event");
+		reservedWords.add("for");
+		reservedWords.add("force");
+		reservedWords.add("forever");
+		reservedWords.add("fork");
+		reservedWords.add("function");
+		reservedWords.add("highz0");
+		reservedWords.add("highz1");
+		reservedWords.add("if");
+		reservedWords.add("initial");
+		reservedWords.add("inout");
+		reservedWords.add("input");
+		reservedWords.add("integer");
+		reservedWords.add("join");
+		reservedWords.add("large");
+		reservedWords.add("macromodule");
+		reservedWords.add("meduim");
+		reservedWords.add("module");
+		reservedWords.add("nand");
+		reservedWords.add("negedge");
+		reservedWords.add("nmos");
+		reservedWords.add("nor");
+		reservedWords.add("not");
+		reservedWords.add("notif0");
+		reservedWords.add("notif1");
+		reservedWords.add("or");
+		reservedWords.add("output");
+		reservedWords.add("parameter");
+		reservedWords.add("pmos");
+		reservedWords.add("posedge");
+		reservedWords.add("primitive");
+		reservedWords.add("pull0");
+		reservedWords.add("pull1");
+		reservedWords.add("pulldown");
+		reservedWords.add("pullup");
+		reservedWords.add("rcmos");
+		reservedWords.add("real");
+		reservedWords.add("realtime");
+		reservedWords.add("reg");
+		reservedWords.add("release");
+		reservedWords.add("repeat");
+		reservedWords.add("rtranif1");
+		reservedWords.add("scalared");
+		reservedWords.add("signed");
+		reservedWords.add("small");
+		reservedWords.add("specify");
+		reservedWords.add("specpram");
+		reservedWords.add("strength");
+		reservedWords.add("strong0");
+		reservedWords.add("strong1");
+		reservedWords.add("supply0");
+		reservedWords.add("supply1");
+		reservedWords.add("table");
+		reservedWords.add("task");
+		reservedWords.add("time");
+		reservedWords.add("tran");
+		reservedWords.add("tranif0");
+		reservedWords.add("tranif1");
+		reservedWords.add("tri");
+		reservedWords.add("tri0");
+		reservedWords.add("tri1");
+		reservedWords.add("triand");
+		reservedWords.add("trior");
+		reservedWords.add("trireg");
+		reservedWords.add("unsigned");
+		reservedWords.add("vectored");
+		reservedWords.add("wait");
+		reservedWords.add("wand");
+		reservedWords.add("weak0");
+		reservedWords.add("weak1");
+		reservedWords.add("while");
+		reservedWords.add("wire");
+		reservedWords.add("wor");
+		reservedWords.add("xnor");
+		reservedWords.add("xor");
+	}
+
 	/** maximum size of output line */						private static final int MAXDECLARATIONWIDTH = 80;
 	/** name of inverters generated from negated wires */	private static final String IMPLICITINVERTERNODENAME = "Imp";
 	/** name of signals generated from negated wires */		private static final String IMPLICITINVERTERSIGNAME = "ImpInv";
@@ -1002,7 +1112,7 @@ public class Verilog extends Topology
 
 	/** Method to report whether input and output names are separated. */
 	protected boolean isSeparateInputAndOutput() { return true; }
-
+	
 	/**
 	 * Method to adjust a network name to be safe for Verilog output.
 	 * Verilog does permit a digit in the first location; prepend a "_" if found.
@@ -1026,35 +1136,41 @@ public class Verilog extends Topology
 			if (chr == '[') { openSquareCount++;   openSquarePos = i; }
 			if (!TextUtils.isLetterOrDigit(chr)) allAlnum = false;
 		}
-		if (allAlnum && Character.isLetter(name.charAt(0))) return name;
-
-		// if there are indexed values, make sure they are numeric
-		if (openSquareCount == 1)
+		if (!allAlnum || !Character.isLetter(name.charAt(0)))
 		{
-			if (openSquarePos+1 >= name.length() ||
-				!Character.isDigit(name.charAt(openSquarePos+1))) openSquareCount = 0;
-		}
-		if (bus) openSquareCount = 0;
-
-		StringBuffer sb = new StringBuffer();
-		for(int t=0; t<name.length(); t++)
-		{
-			char chr = name.charAt(t);
-			if (chr == '[' || chr == ']')
+			// if there are indexed values, make sure they are numeric
+			if (openSquareCount == 1)
 			{
-				if (openSquareCount == 1) sb.append(chr); else
-				{
-					sb.append('_');
-					if (t+1 < name.length() && chr == ']' && name.charAt(t+1) == '[') t++;
-				}
-			} else
-			{
-				if (TextUtils.isLetterOrDigit(chr) || chr == '$')
-					sb.append(chr); else
-						sb.append('_');
+				if (openSquarePos+1 >= name.length() ||
+					!Character.isDigit(name.charAt(openSquarePos+1))) openSquareCount = 0;
 			}
+			if (bus) openSquareCount = 0;
+
+			StringBuffer sb = new StringBuffer();
+			for(int t=0; t<name.length(); t++)
+			{
+				char chr = name.charAt(t);
+				if (chr == '[' || chr == ']')
+				{
+					if (openSquareCount == 1) sb.append(chr); else
+					{
+						sb.append('_');
+						if (t+1 < name.length() && chr == ']' && name.charAt(t+1) == '[') t++;
+					}
+				} else
+				{
+					if (TextUtils.isLetterOrDigit(chr) || chr == '$')
+						sb.append(chr); else
+							sb.append('_');
+				}
+			}
+			name = sb.toString();
 		}
-		return sb.toString();
+
+		// make sure it isn't a reserved word
+		if (reservedWords.contains(name)) name = "_" + name;
+
+		return name;
 	}
 
 	/**

@@ -27,7 +27,9 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -51,6 +53,7 @@ import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -247,6 +250,10 @@ public class Schematics extends Technology
 		setFactoryScale(2000, false);			// in nanometers: really 2 micron
 		setNonStandard();
 		setStaticTechnology();
+		setFactoryTransparentLayers(new Color []
+   		{
+   			new Color(107, 226, 96)  // Bus
+   		});
 
 		//**************************************** LAYERS ****************************************
 
@@ -258,7 +265,7 @@ public class Schematics extends Technology
 
 		/** bus layer */
 		bus_lay = Layer.newInstance(this, "Bus",
-			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, 0, 107,226,96,0.8,true,
+			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_1, 107,226,96, 0.8,true,
 			new int[] { 0x2222,   //   X   X   X   X 
 						0x0000,   //                 
 						0x8888,   // X   X   X   X   
@@ -278,13 +285,13 @@ public class Schematics extends Technology
 
 		/** node layer */
 		node_lay = Layer.newInstance(this, "Node",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0,0.8,true,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0, 0.8,true,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** text layer */
 		text_lay = Layer.newInstance(this, "Text",
-			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,0.8,true,
+			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 0.8,true,
 			new int[] {0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
@@ -363,7 +370,6 @@ public class Schematics extends Technology
 			});
 		busPinNode.setFunction(PrimitiveNode.Function.PIN);
 		busPinNode.setSquare();
-		busPinNode.setWipeOn1or2();
 		busPinNode.setCanBeZeroSize();
 
 		/** wire con */
@@ -1413,27 +1419,31 @@ public class Schematics extends Technology
 			int implicitCon = 0;
 			if (busCon == 0 && nonBusCon == 0) implicitCon = 1;
 
-//			/* if the next level up the hierarchy is visible, consider arcs connected there */
-//			if (win != NOWINDOWPART && ni->firstportexpinst != NOPORTEXPINST)
-//			{
-//				db_gettraversalpath(ni->parent, NOWINDOWPART, &nilist, &depth);
-//				if (depth == 1)
-//				{
-//					upni = nilist[0];
-//					if (upni->proto == ni->parent && upni->parent == win->curnodeproto)
-//					{
-//						for(pe = ni->firstportexpinst; pe != NOPORTEXPINST; pe = pe->nextportexpinst)
-//						{
-//							for (pi = upni->firstportarcinst; pi != NOPORTARCINST; pi = pi->nextportarcinst)
-//							{
-//								if (pi->proto != pe->exportproto) continue;
-//								if (pi->conarcinst->proto == sch_busarc) busCon++; else
-//									nonBusCon++;
-//							}
-//						}
-//					}
-//				}
-//			}
+			// if the next level up the hierarchy is visible, consider arcs connected there
+			VarContext context = null;
+			if (wnd != null) context = wnd.getVarContext();
+			if (context != null && ni.getNumExports() != 0)
+			{
+				Nodable no = context.getNodable();
+				if (no != null && no instanceof NodeInst)
+				{
+					NodeInst upni = (NodeInst)no;
+					if (upni.getProto() == ni.getParent() && upni.getParent() == wnd.getCell())
+					{
+						for(Iterator it = ni.getExports(); it.hasNext(); )
+						{
+							Export pp = (Export)it.next();
+							for(Iterator pIt = upni.getConnections(); pIt.hasNext(); )
+							{
+								Connection con = (Connection)pIt.next();
+								if (con.getPortInst().getPortProto() != pp) continue;
+								if (con.getArc().getProto() == bus_arc) busCon++; else
+									nonBusCon++;
+							}
+						}
+					}
+				}
+			}
 
 			// bus pins don't show wire pin in center if not tapped
 			double wireDiscSize = 0.125;

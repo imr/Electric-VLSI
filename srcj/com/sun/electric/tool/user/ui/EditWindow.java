@@ -2586,6 +2586,12 @@ public class EditWindow extends JPanel
      */
     public VarContext getVarContext() { return cellVarContext; }
 
+    /**
+     * Set the window's VarContext
+     * @param context the new VarContext.
+     */
+    public void setVarContext(VarContext context) { cellVarContext = context; }
+
     /** 
      * Push into an instance (go down the hierarchy)
      */

@@ -41,6 +41,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
@@ -716,7 +717,10 @@ public class PixelDrawing
 				if (!expandedCellCached(subCell, subTrans, topWnd))
 				{
 					// just draw it directly
+					VarContext oldContext = topWnd.getVarContext();
+					topWnd.setVarContext(oldContext.push(ni));
 					drawCell(subCell, expandBounds, subTrans, topWnd);
+					topWnd.setVarContext(oldContext);
 				}
 				showCellPorts(ni, trans, Color.BLACK);
 			} else

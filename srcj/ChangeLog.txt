@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02n: *********************************
 
+BUG: (05/04/05, SMR) Schematic busses don't have clean ends;
+     wires connecting to busses don't show blobs.
+FIX: Better determination of bus pin drawing.
+
+BUG: (05/04/05, SMR) Verilog allows reserved words in its files (Bug #296).
+FIX: Check for reserved words and prepend a "_".
+
 ************************* Version 8.02m: *********************************
 
 IMP: (05/03/05, GVG) Verbose Redo/Undo: extra message in message window (for Tarik).
