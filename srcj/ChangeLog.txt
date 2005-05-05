@@ -4,8 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02n: *********************************
 
+BUG: (05/05/05, DN) Busses with complex names don't associate with exports properly (Bug #262).
+FIX: Fixed getBusWidth(Nodable,PortProto) in the netlister.
+
 BUG: (05/05/05, SMR) Mimic stitching doesn't preview proper locations (Bug #300).
-FIX: Temporary fix in MimicStitch.presentNextSituation().  Proper fix coming soon.
+FIX: In MimicStitch.presentNextSituation(), compute endpoints properly.
 
 IMP: (05/05/05, SMR) Selecting attributes on node and arcs now shows the original object (Bug #295).
 

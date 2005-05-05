@@ -876,27 +876,18 @@ public class MimicStitch
 			{
 				Route route = (Route)it.next();
 
-				// the right thing to do is to get the location from the route, but that's broken now ... smr
-//				Point2D sPt = route.getStart().getLocation();
-//				Point2D ePt = route.getEnd().getLocation();
-
-				// the workaround hack is to recompute the location from the ports
+				// determine the actual endpoints of the route
 				Poly sPi = route.getStart().getPortInst().getPoly();
 				Poly ePi = route.getEnd().getPortInst().getPoly();
-				Point2D sPt = new Point2D.Double(sPi.getCenterX(), sPi.getCenterY());
-				Point2D ePt = new Point2D.Double(ePi.getCenterX(), ePi.getCenterY());
-
-				double fX = sPt.getX();
-				double fY = sPt.getY();
-				double tX = route.getEnd().getLocation().getX();
-				double tY = ePt.getY();
+				double fX = sPi.getCenterX();   double fY = sPi.getCenterY();
+				double tX = ePi.getCenterX();   double tY = ePi.getCenterY();
 				if (fX == tX && fY == tY)
 				{
 					Rectangle2D pointRect = new Rectangle2D.Double(fX-1, fY-1, 2, 2);
 					highlighter.addArea(pointRect, cell);
 				} else
 				{
-					highlighter.addLine(sPt, ePt, cell);
+					highlighter.addLine(new Point2D.Double(fX, fY), new Point2D.Double(tX, tY), cell);
 				}
 			}
 			highlighter.finished();
