@@ -140,8 +140,9 @@ public class EditMenu {
         Undo.addPropertyChangeListener(new MenuCommands.MenuEnabler(redo, Undo.propRedoEnabled));
         redo.setEnabled(Undo.getRedoEnabled());
         // TODO: figure out how to remove this property change listener for correct garbage collection
-        editMenu.addMenuItem("Repeat Last Action", KeyStroke.getKeyStroke(KeyEvent.VK_AMPERSAND, 0),
+        MenuBar.MenuItem repeatAction = editMenu.addMenuItem("Repeat Last Action", KeyStroke.getKeyStroke(KeyEvent.VK_AMPERSAND, 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { repeatLastCommand(); } });
+        MenuBar.repeatLastCommandListener.setRepeatActionMenu(repeatAction);
 
 		editMenu.addSeparator();
 
