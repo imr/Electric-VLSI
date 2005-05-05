@@ -311,7 +311,7 @@ public class Netlist
 		}
 		if (busIndex < 0 || busIndex >= netCell.getBusWidth(no, portProto))
 		{
- 			System.out.println("Nodable.getNetwork: invalid arguments busIndex="+busIndex+" portProto="+portProto);
+// 			System.out.println("Nodable.getNetwork: invalid arguments busIndex="+busIndex+" portProto="+portProto);
  			return -1;
  		}
 		int netMapIndex = netCell.getNetMapOffset(no, portProto, busIndex);

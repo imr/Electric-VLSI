@@ -263,18 +263,21 @@ public class JELIB extends LibraryFiles
 			{
 				// cross-library cell information
 				List pieces = parseLine(line);
-				int numPieces = revision >= 1 ? 7 : 5;
-				if (pieces.size() != numPieces)
+				if (pieces.size() != 5 && pieces.size( ) != 7)
+// 				int numPieces = revision >= 1 ? 7 : 5;
+// 				if (pieces.size() != numPieces)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +
-						", External cell declaration needs " + numPieces + " fields: " + line, null, -1);
+						", External cell declaration needs 5 or 7 fields: " + line, null, -1);
+//						", External cell declaration needs " + numPieces + " fields: " + line, null, -1);
 					continue;
 				}
 				double lowX = TextUtils.atof((String)pieces.get(1));
 				double highX = TextUtils.atof((String)pieces.get(2));
 				double lowY = TextUtils.atof((String)pieces.get(3));
 				double highY = TextUtils.atof((String)pieces.get(4));
-				if (revision >= 1)
+				if (pieces.size() > 5)
+//				if (revision >= 1)
 				{
 					long cDate = Long.parseLong((String)pieces.get(5));
 					long rDate = Long.parseLong((String)pieces.get(6));
