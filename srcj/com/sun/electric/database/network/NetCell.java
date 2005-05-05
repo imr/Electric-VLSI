@@ -199,6 +199,12 @@ class NetCell
 		return drawns[ni_pi[ni.getNodeIndex()] + portProto.getPortIndex()];
 	}
 
+	/**
+	 * Method to return the port width of port of the Nodable.
+	 * @return the either the port width.
+	 */
+	int getBusWidth(Nodable no, PortProto portProto) { return 1; }
+
 	/*
 	 * Get offset in networks map for given export..
 	 */

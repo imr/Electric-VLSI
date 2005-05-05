@@ -309,11 +309,11 @@ public class Netlist
 			System.out.println("Netlist.getNetwork: invalid argument portProto");
 			return -1;
 		}
-// 		if (busIndex < 0 || busIndex >= portProto.getNameKey().busWidth())
-// 		{
-// 			System.out.println("Nodable.getNetwork: invalid arguments busIndex="+busIndex+" portProto="+portProto);
-// 			return -1;
-// 		}
+		if (busIndex < 0 || busIndex >= netCell.getBusWidth(no, portProto))
+		{
+ 			System.out.println("Nodable.getNetwork: invalid arguments busIndex="+busIndex+" portProto="+portProto);
+ 			return -1;
+ 		}
 		int netMapIndex = netCell.getNetMapOffset(no, portProto, busIndex);
 		if (netMapIndex < 0) return -1;
 		return nm_net[netMapIndex];
@@ -404,8 +404,8 @@ public class Netlist
 		if (no instanceof NodeInst && !((NodeInst)no).isLinked()) return false;
 		if (port1 instanceof Export && !((Export)port1).isLinked()) return false;
 		if (port2 instanceof Export && !((Export)port2).isLinked()) return false;
-		int busWidth = port1.getNameKey().busWidth();
-		if (port2.getNameKey().busWidth() != busWidth) return false;
+		int busWidth = netCell.getBusWidth(no, port1);
+		if (netCell.getBusWidth(no, port2) != busWidth) return false;
 		for (int i = 0; i < busWidth; i++) {
 			if (getNetIndex(no, port1, i) != getNetIndex(no, port2, i))
 				return false;
@@ -493,7 +493,7 @@ public class Netlist
 		if (no instanceof NodeInst && !((NodeInst)no).isLinked()) return false;
 		if (pp instanceof Export && !((Export)pp).isLinked()) return false;
 		if (!ai.isLinked()) return false;
-		int busWidth1 = pp.getNameKey().busWidth();
+		int busWidth1 = netCell.getBusWidth(no, pp);
 		int busWidth2 = netCell.getBusWidth(ai);
 		if (busWidth1 != busWidth2) return false;
 		for(int i=0; i<busWidth1; i++)
@@ -520,8 +520,8 @@ public class Netlist
 		if (pp1 instanceof Export && !((Export)pp1).isLinked()) return false;
 		if (no2 instanceof NodeInst && !((NodeInst)no2).isLinked()) return false;
 		if (pp2 instanceof Export && !((Export)pp2).isLinked()) return false;
-		int busWidth1 = pp1.getNameKey().busWidth();
-		int busWidth2 = pp2.getNameKey().busWidth();
+		int busWidth1 = netCell.getBusWidth(no1, pp1);
+		int busWidth2 = netCell.getBusWidth(no2, pp2);
 		if (busWidth1 != busWidth2) return false;
 		for(int i=0; i<busWidth1; i++)
 		{

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02n: *********************************
 
+BUG: (05/04/05, DN) Highlighting an off-page connector does not highlight an attached bus (Bug #262)
+FIX: In Netlist use getBusWidth(Nodable, PortProto) instead of PortProto.getNameKey().busWidth().
+
 BUG: (05/04/05, SMR) Schematic busses don't have clean ends;
      wires connecting to busses don't show blobs.
 FIX: Better determination of bus pin drawing.

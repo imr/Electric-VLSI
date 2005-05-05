@@ -564,6 +564,25 @@ class NetSchem extends NetCell {
 		return proxy.nodeOffset + portOffset;
 	}
 
+	/**
+	 * Method to return the port width of port of the Nodable.
+	 * @return the either the port width.
+	 */
+	int getBusWidth(Nodable no, PortProto portProto) {
+		if (no instanceof NodeInst) {
+			NodeInst ni = (NodeInst)no;
+			int nodeIndex = ni.getNodeIndex();
+			int proxyOffset = nodeOffsets[nodeIndex];
+			//if (proxyOffset >= 0) {
+				int drawn = drawns[ni_pi[nodeIndex] + portProto.getPortIndex()];
+				if (drawn < 0) return 0;
+				return drawnWidths[drawn];
+			//}
+		} else {
+			return portProto.getNameKey().busWidth();
+		}
+	}
+
 	/*
 	 * Get offset in networks map for given export.
 	 */
