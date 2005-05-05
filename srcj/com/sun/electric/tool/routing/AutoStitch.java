@@ -1196,6 +1196,7 @@ public class AutoStitch
 		// compute the list of polygons
 		Technology tech = ni.getProto().getTechnology();
 		Poly [] nodePolys = tech.getShapeOfNode(ni, null, true, true, null);
+		if (nodePolys.length == 0) return nodePolys;
 
 		// if this is a pin, check the arcs that cover it
 		if (ni.getFunction() == PrimitiveNode.Function.PIN)

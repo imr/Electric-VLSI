@@ -1146,7 +1146,7 @@ public class PostScript extends Output
 		TextDescriptor td = poly.getTextDescriptor();
 		if (td == null) return;
 //		int size = (int)(td.getTrueSize(wnd) * PSSCALE * 3 / 4);
-		int size = (int)(td.getTrueSize(wnd) * PSSCALE / 2);
+		int size = (int)(td.getTrueSize(wnd) * 0.45 * PSSCALE);
 		Rectangle2D bounds = poly.getBounds2D();
 
 		// get the font size

@@ -367,12 +367,20 @@ public class EditMenu {
 		fpgaSubMenu.addMenuItem("Read _Primitives...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.readArchitectureFile(false); }});
 		fpgaSubMenu.addSeparator();
+		fpgaSubMenu.addMenuItem("Edit Pips...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.programPips(); }});
+		fpgaSubMenu.addSeparator();
 		fpgaSubMenu.addMenuItem("Show No Wires", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.setWireDisplay(0); }});
 		fpgaSubMenu.addMenuItem("Show Active Wires", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.setWireDisplay(1); }});
 		fpgaSubMenu.addMenuItem("Show All Wires", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.setWireDisplay(2); }});
+		fpgaSubMenu.addSeparator();
+		fpgaSubMenu.addMenuItem("Show Text", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.setTextDisplay(true); }});
+		fpgaSubMenu.addMenuItem("Hide Text", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.setTextDisplay(false); }});
 
 		specialSubMenu.addSeparator();
 		specialSubMenu.addMenuItem("Convert Technology to _Library for Editing...", null,

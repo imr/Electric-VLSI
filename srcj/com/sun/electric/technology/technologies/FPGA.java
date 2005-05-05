@@ -3,7 +3,8 @@
  * Electric(tm) VLSI Design System
  *
  * File: FPGA.java
- * FPGA technology
+ * FPGA, a customizable technology.
+ * Written by Steven M. Rubin
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -36,8 +37,8 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -55,15 +56,15 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.dialogs.PromptAt;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -82,8 +83,8 @@ public class FPGA extends Technology
 {
 	/** the FPGA Technology object. */	public static final FPGA tech = new FPGA();
 
-	private Layer fpga_w_lay, fpga_c_lay, fpga_p_lay, fpga_r_lay;
-	private PrimitiveArc wire_arc;
+	private Layer wireLayer, componentLayer, pipLayer, repeaterLayer;
+	private PrimitiveArc wireArc;
 	private PrimitiveNode wirePinNode, pipNode, repeaterNode;
 
 	private FPGA()
@@ -99,42 +100,42 @@ public class FPGA extends Technology
 		//**************************************** LAYERS ****************************************
 
 		/** Wire layer */
-		fpga_w_lay = Layer.newInstance(this, "Wire",
+		wireLayer = Layer.newInstance(this, "Wire",
 			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0,1,true,
 			new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
 		/** Component layer */
-		fpga_c_lay = Layer.newInstance(this, "Component",
+		componentLayer = Layer.newInstance(this, "Component",
 			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0,1,true,
 			new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
 		/** Pip layer */
-		fpga_p_lay = Layer.newInstance(this, "Pip",
+		pipLayer = Layer.newInstance(this, "Pip",
 			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,255,0,1,true,
 			new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
 		/** Repeater layer */
-		fpga_r_lay = Layer.newInstance(this, "Repeater",
+		repeaterLayer = Layer.newInstance(this, "Repeater",
 			new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,255,1,true,
 			new int[] {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}));
 
 		// The layer functions
-		fpga_w_lay.setFunction(Layer.Function.METAL1);		// wire
-		fpga_c_lay.setFunction(Layer.Function.ART);			// component
-		fpga_p_lay.setFunction(Layer.Function.ART);			// pip
-		fpga_r_lay.setFunction(Layer.Function.ART);			// repeater
+		wireLayer.setFunction(Layer.Function.METAL1);		// wire
+		componentLayer.setFunction(Layer.Function.ART);			// component
+		pipLayer.setFunction(Layer.Function.ART);			// pip
+		repeaterLayer.setFunction(Layer.Function.ART);			// repeater
 
 		//**************************************** ARC ****************************************
 
 		/** wire arc */
-		wire_arc = PrimitiveArc.newInstance(this, "wire", 0.0, new Technology.ArcLayer []
+		wireArc = PrimitiveArc.newInstance(this, "wire", 0.0, new Technology.ArcLayer []
 		{
-			new Technology.ArcLayer(fpga_w_lay, 0, Poly.Type.FILLED)
+			new Technology.ArcLayer(wireLayer, 0, Poly.Type.FILLED)
 		});
-		wire_arc.setFunction(PrimitiveArc.Function.METAL1);
-		wire_arc.setFactoryFixedAngle(true);
-		wire_arc.setFactorySlidable(false);
-		wire_arc.setFactoryAngleIncrement(45);
+		wireArc.setFunction(PrimitiveArc.Function.METAL1);
+		wireArc.setFactoryFixedAngle(true);
+		wireArc.setFactorySlidable(false);
+		wireArc.setFactoryAngleIncrement(45);
 
 		//**************************************** NODES ****************************************
 
@@ -142,13 +143,13 @@ public class FPGA extends Technology
 		wirePinNode = PrimitiveNode.newInstance("Wire_Pin", this, 1, 1, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(fpga_w_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+				new Technology.NodeLayer(wireLayer, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.makeCenter(), EdgeV.makeCenter()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
 		wirePinNode.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, wirePinNode, new ArcProto[] {wire_arc}, "wire", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, wirePinNode, new ArcProto[] {wireArc}, "wire", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		wirePinNode.setFunction(PrimitiveNode.Function.PIN);
@@ -159,13 +160,13 @@ public class FPGA extends Technology
 		pipNode = PrimitiveNode.newInstance("Pip", this, 2, 2, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(fpga_p_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+				new Technology.NodeLayer(pipLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge())})
 			});
 		pipNode.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, pipNode, new ArcProto[] {wire_arc}, "pip", 0,180, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, pipNode, new ArcProto[] {wireArc}, "pip", 0,180, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		pipNode.setFunction(PrimitiveNode.Function.CONNECT);
@@ -175,15 +176,15 @@ public class FPGA extends Technology
 		repeaterNode = PrimitiveNode.newInstance("Repeater", this, 10, 3, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(fpga_r_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+				new Technology.NodeLayer(repeaterLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge())})
 			});
 		repeaterNode.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, repeaterNode, new ArcProto[] {wire_arc}, "a", 180,45, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, repeaterNode, new ArcProto[] {wireArc}, "a", 180,45, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.makeLeftEdge(), EdgeV.makeCenter(), EdgeH.makeLeftEdge(), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, repeaterNode, new ArcProto[] {wire_arc}, "b", 0,45, 1, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, repeaterNode, new ArcProto[] {wireArc}, "b", 0,45, 1, PortCharacteristic.UNKNOWN,
 					EdgeH.makeRightEdge(), EdgeV.makeCenter(), EdgeH.makeRightEdge(), EdgeV.makeCenter())
 			});
 		repeaterNode.setFunction(PrimitiveNode.Function.CONNECT);
@@ -191,12 +192,12 @@ public class FPGA extends Technology
 
 	/******************** TREE STRUCTURE FOR ARCHITECTURE FILE ********************/
 
-	private static final int MAXDEPTH	= 50;		/* max depth of FPGA nesting */
-	
+	/** max depth of FPGA nesting */	private static final int MAXDEPTH = 50;
+
 	private static class LispTree
 	{
 		private String keyword;
-		private int    lineno;
+		private int    lineNumber;
 		private List   values;
 
 		LispTree()
@@ -216,96 +217,86 @@ public class FPGA extends Technology
 
 		LispTree getBranch(int i) { return (LispTree)values.get(i); }
 	};
-	
-	private static LispTree [] fpga_treestack = new LispTree[MAXDEPTH];
-	private static int         fpga_treedepth;
-	private static LispTree    fpga_treepos;
-	
+
+	private static LispTree [] treeStack = new LispTree[MAXDEPTH];
+	private static int         treeDepth;
+	private static LispTree    treePosition;
+
 	/******************** ADDITIONAL INFORMATION ABOUT PRIMITIVES ********************/
-	
-	private static final int ACTIVEPART   = 1;			/* set if segment or pip is active */
-	private static final int ACTIVESAVE   = 2;			/* saved area for segment/pip activity */
-	
+
+	/** level of display */						private static final int DISPLAYLEVEL       =  07;
+	/**   display no internals */				private static final int NOPRIMDISPLAY      =   0;
+	/**   display all internals */				private static final int FULLPRIMDISPLAY    =  01;
+	/**   display only active internals */		private static final int ACTIVEPRIMDISPLAY  =  02;
+	/** set to display text */					private static final int TEXTDISPLAY        = 010;
+
+	/** set if segment or pip is active */		private static final int ACTIVEPART = 1;
+	/** saved area for segment/pip activity */	private static final int ACTIVESAVE = 2;
+
 	private static class FPGAPort
 	{
 		String             name;
-		double             posx, posy;
+		double             posX, posY;
 		int                con;
 		PortCharacteristic characteristic;
 		PrimitivePort      pp;
 	};
-	
+
 	private static class FPGANet
 	{
 		String     name;
-		int        segactive;
-		Point2D [] segf;
-		Point2D [] segt;
+		int        segActive;
+		Point2D [] segFrom;
+		Point2D [] segTo;
 	};
-	
+
 	private static class FPGAPip
 	{
 		String  name;
-		int     pipactive;
+		int     pipActive;
 		int     con1, con2;
-		double  posx, posy;
+		double  posX, posY;
 	};
 
 	private static class FPGANode extends PrimitiveNode
 	{
-		FPGAPort [] portlist;
-		FPGANet  [] netlist;
-		FPGAPip  [] piplist;
+		FPGAPort [] portList;
+		FPGANet  [] netList;
+		FPGAPip  [] pipList;
 
 		protected FPGANode(String protoName, Technology tech, double defWidth, double defHeight,
 			SizeOffset offset, Technology.NodeLayer [] layers)
 		{
 			super(protoName, tech, defWidth, defHeight, offset, layers);
 		}
+
+		int numPorts()
+		{
+			if (portList == null) return 0;
+			return portList.length;
+		}
+
+		int numNets()
+		{
+			if (netList == null) return 0;
+			return netList.length;
+		}
+
+		int numPips()
+		{
+			if (pipList == null) return 0;
+			return pipList.length;
+		}
 	};
-	
-	/* the display level */
-	private static final int DISPLAYLEVEL       =  07;		/* level of display */
-	private static final int NOPRIMDISPLAY      =   0;		/*   display no internals */
-	private static final int FULLPRIMDISPLAY    =  01;		/*   display all internals */
-	private static final int ACTIVEPRIMDISPLAY  =  02;		/*   display only active internals */
-	private static final int TEXTDISPLAY        = 010;		/* set to display text */
 
-	/** key of Variable holding active pips. */				public static final Variable.Key ACTIVEPIPS_KEY = ElectricObject.newKey("FPGA_activepips");
-	/** key of Variable holding active repeaters. */		public static final Variable.Key ACTIVEREPEATERS_KEY = ElectricObject.newKey("FPGA_activerepeaters");
-	/** key of Variable holding cache of pips on node. */	public static final Variable.Key NODEPIPCACHE_KEY = ElectricObject.newKey("FPGA_nodepipcache");
-	/** key of Variable holding cache of active arcs. */	public static final Variable.Key ARCACTIVECACHE_KEY = ElectricObject.newKey("FPGA_arcactivecache");
-	static String         fpga_repeatername;		/* name of current repeater for activity examining */
-	static boolean        fpga_repeaterisactive;	/* nonzero if current repeater is found to be active */
-	static int            fpga_internaldisplay = ACTIVEPRIMDISPLAY | TEXTDISPLAY;
-	static int            fpga_nodecount = 0;
-//	
-//	/* working memory for "fpga_arcactive()" */
-//	static INTBIG         fpga_arcbufsize = 0;
-//	static UCHAR1        *fpga_arcbuf;
-//	
-//	/* working memory for "fpga_reevaluatepips()" */
-//	static INTBIG         fpga_pipbufsize = 0;
-//	static UCHAR1        *fpga_pipbuf;
-
-	
-//	void fpga_setmode(INTBIG count, CHAR *par[])
-//	{
-//		l = estrlen(pp = par[0]);
-//		if (namesamen(pp, x_("wipe-cache"), l) == 0)
-//		{
-//			fpga_clearcache(NONODEINST);
-//			return;
-//		}
-//		if (namesamen(pp, x_("clear-node-cache"), l) == 0)
-//		{
-//			ni = (NODEINST *)us_getobject(VNODEINST, FALSE);
-//			if (ni == NONODEINST) return;
-//			fpga_clearcache(ni);
-//			return;
-//		}
-//	}
-
+	/** key of Variable holding active pips. */				private static final Variable.Key ACTIVEPIPS_KEY = ElectricObject.newKey("FPGA_activepips");
+	/** key of Variable holding active repeaters. */		private static final Variable.Key ACTIVEREPEATERS_KEY = ElectricObject.newKey("FPGA_activerepeaters");
+	/** key of Variable holding cache of pips on node. */	private static final Variable.Key NODEPIPCACHE_KEY = ElectricObject.newKey("FPGA_nodepipcache");
+	/** key of Variable holding cache of active arcs. */	private static final Variable.Key ARCACTIVECACHE_KEY = ElectricObject.newKey("FPGA_arcactivecache");
+	/** name of current repeater for activity examining */	private static String         repeaterName;
+	/** nonzero if current repeater is found to be active */private static boolean        repeaterActive;
+	/** what is being displayed */							private static int            internalDisplay = ACTIVEPRIMDISPLAY | TEXTDISPLAY;
+	/** whether the technology has been read */				private static boolean        defined = false;
 
 	private static Technology.NodeLayer[] NULLNODELAYER = new Technology.NodeLayer[0];
 	private static Poly[] NULLPOLYS = new Poly[0];
@@ -335,9 +326,9 @@ public class FPGA extends Technology
 			if (ni.pinUseCount()) primLayers = NULLNODELAYER;
 		} else if (np == tech.repeaterNode)
 		{
-			if ((fpga_internaldisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
+			if ((internalDisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
 			{
-				if (!fpga_repeateractive(ni)) primLayers = NULLNODELAYER;
+				if (!repeaterActive(ni)) primLayers = NULLNODELAYER;
 			}
 		} else if (np instanceof FPGANode)
 		{
@@ -346,76 +337,79 @@ public class FPGA extends Technology
 
 			// hard reset of all segment and pip activity
 			int numPips = 0, numSegs = 0;
-			for(int i=0; i<fn.netlist.length; i++) fn.netlist[i].segactive = 0;
-			for(int i=0; i<fn.piplist.length; i++) fn.piplist[i].pipactive = 0;
+			for(int i=0; i<fn.numNets(); i++) fn.netList[i].segActive = 0;
+			for(int i=0; i<fn.numPips(); i++) fn.pipList[i].pipActive = 0;
 
-			switch (fpga_internaldisplay & DISPLAYLEVEL)
+			switch (internalDisplay & DISPLAYLEVEL)
 			{
 				case NOPRIMDISPLAY:
 					break;
 				case ACTIVEPRIMDISPLAY:
 					// count number of active nets and pips
-	
+
 					// determine the active segments and pips
 					VarContext context = null;
 					if (wnd != null) context = wnd.getVarContext();
-					fpga_reevaluatepips(ni, fn, context);
-	
+					reEvaluatePips(ni, fn, context);
+
 					// save the activity bits
-					for(int i=0; i<fn.netlist.length; i++)
-						if ((fn.netlist[i].segactive&ACTIVEPART) != 0)
-							fn.netlist[i].segactive |= ACTIVESAVE;
-					for(int i=0; i<fn.piplist.length; i++)
-						if ((fn.piplist[i].pipactive&ACTIVEPART) != 0)
-							fn.piplist[i].pipactive |= ACTIVESAVE;
+					for(int i=0; i<fn.numNets(); i++)
+						if ((fn.netList[i].segActive&ACTIVEPART) != 0)
+							fn.netList[i].segActive |= ACTIVESAVE;
+					for(int i=0; i<fn.numPips(); i++)
+						if ((fn.pipList[i].pipActive&ACTIVEPART) != 0)
+							fn.pipList[i].pipActive |= ACTIVESAVE;
 
 					// propagate inactive segments to others that may be active
 					if (context != null && context.getNodable() != null)
 					{
 						NodeInst oNi = (NodeInst)context.getNodable();
 						VarContext higher = context.pop();
-						for(int i=0; i<fn.netlist.length; i++)
+						for(int i=0; i<fn.numNets(); i++)
 						{
-							if ((fn.netlist[i].segactive&ACTIVESAVE) != 0) continue;
+							if ((fn.netList[i].segActive&ACTIVESAVE) != 0) continue;
 							boolean found = false;
-							for(int j=0; j<fn.portlist.length; j++)
+							for(int j=0; j<fn.numPorts(); j++)
 							{
-								if (fn.portlist[j].con != i) continue;
+								if (fn.portList[j].con != i) continue;
 								for(Iterator it = ni.getConnections(); it.hasNext(); )
 								{
 									Connection con = (Connection)it.next();
-									if (con.getPortInst().getPortProto() != fn.portlist[j].pp) continue;
+									if (con.getPortInst().getPortProto() != fn.portList[j].pp) continue;
 									ArcInst ai = con.getArc();
 									int otherEnd = 0;
 									if (ai.getConnection(0) == con) otherEnd = 1;
-									if (fpga_arcendactive(ai, otherEnd, higher)) { found = true;   break; }
+									if (arcEndActive(ai, otherEnd, higher)) { found = true;   break; }
 								}
 								if (found) break;
 							}
-							if (found) fn.netlist[i].segactive |= ACTIVESAVE;
+							if (found) fn.netList[i].segActive |= ACTIVESAVE;
 						}
 					}
-	
+
 					// add up the active segments
-					for(int i=0; i<fn.piplist.length; i++)
-						if ((fn.piplist[i].pipactive&ACTIVESAVE) != 0) numPips++;
-					for(int i=0; i<fn.netlist.length; i++)
-						if ((fn.netlist[i].segactive&ACTIVESAVE) != 0)
-							numSegs += fn.netlist[i].segf.length;
+					for(int i=0; i<fn.numPips(); i++)
+						if ((fn.pipList[i].pipActive&ACTIVESAVE) != 0) numPips++;
+					for(int i=0; i<fn.numNets(); i++)
+						if ((fn.netList[i].segActive&ACTIVESAVE) != 0)
+							numSegs += fn.netList[i].segFrom.length;
 					break;
 				case FULLPRIMDISPLAY:
-					for(int i=0; i<fn.netlist.length; i++)
+					for(int i=0; i<fn.numNets(); i++)
 					{
-						fn.netlist[i].segactive |= ACTIVESAVE;
-						numSegs += fn.netlist[i].segf.length;
+						fn.netList[i].segActive |= ACTIVESAVE;
+						numSegs += fn.netList[i].segFrom.length;
 					}
 					break;
 			}
 			int total = 1 + numPips + numSegs;
-//			if ((fpga_internaldisplay&TEXTDISPLAY) != 0) total++;
+			if ((internalDisplay&TEXTDISPLAY) != 0)
+			{
+				total++;
+				if (wnd != null) total += ni.numDisplayableVariables(true);
+			}
 
 			// construct the polygon array
-			if (wnd != null) total += ni.numDisplayableVariables(true);
 			Poly [] polys = new Poly[total];
 
 			// add the basic box layer
@@ -426,46 +420,59 @@ public class FPGA extends Technology
 			Point2D [] pointList = Poly.makePoints(xCenter - xSize/2, xCenter + xSize/2, yCenter - ySize/2, yCenter + ySize/2);
 			polys[0] = new Poly(pointList);
 			polys[0].setStyle(fn.getLayers()[0].getStyle());
-			polys[0].setLayer(tech.fpga_c_lay);
+			polys[0].setLayer(tech.componentLayer);
+			int fillPos = 1;
 
 			// add in the pips
-			int fillPos = 1;
-			for(int i=0; i<fn.piplist.length; i++)
+			for(int i=0; i<fn.numPips(); i++)
 			{
-				if ((fn.piplist[i].pipactive&ACTIVESAVE) == 0) continue;
-				double x = xCenter - xSize/2 + fn.piplist[i].posx;
-				double y = yCenter - ySize/2 + fn.piplist[i].posy;
+				if ((fn.pipList[i].pipActive&ACTIVESAVE) == 0) continue;
+				double x = xCenter + fn.pipList[i].posX;
+				double y = yCenter + fn.pipList[i].posY;
 				polys[fillPos] = new Poly(Poly.makePoints(x-1, x+1, y-1, y+1));
 				polys[fillPos].setStyle(Poly.Type.FILLED);
-				polys[fillPos].setLayer(tech.fpga_p_lay);
+				polys[fillPos].setLayer(tech.pipLayer);
 				fillPos++;
 			}
 
 			// add in the network segments
-			for(int i=0; i<fn.netlist.length; i++)
+			for(int i=0; i<fn.numNets(); i++)
 			{
-				if ((fn.netlist[i].segactive&ACTIVESAVE) == 0) continue;
-				for(int j=0; j<fn.netlist[i].segf.length; j++)
+				if ((fn.netList[i].segActive&ACTIVESAVE) == 0) continue;
+				for(int j=0; j<fn.netList[i].segFrom.length; j++)
 				{
-					double fX = xCenter + fn.netlist[i].segf[j].getX();
-					double fY = yCenter + fn.netlist[i].segf[j].getY();
-					double tX = xCenter + fn.netlist[i].segt[j].getX();
-					double tY = yCenter + fn.netlist[i].segt[j].getY();
+					double fX = xCenter + fn.netList[i].segFrom[j].getX();
+					double fY = yCenter + fn.netList[i].segFrom[j].getY();
+					double tX = xCenter + fn.netList[i].segTo[j].getX();
+					double tY = yCenter + fn.netList[i].segTo[j].getY();
 					Point2D [] line = new Point2D[2];
 					line[0] = new Point2D.Double(fX, fY);
 					line[1] = new Point2D.Double(tX, tY);
 					polys[fillPos] = new Poly(line);
 					polys[fillPos].setStyle(Poly.Type.OPENED);
-					polys[fillPos].setLayer(tech.fpga_w_lay);
+					polys[fillPos].setLayer(tech.wireLayer);
 					fillPos++;
 				}
 			}
 
-			// add in displayable variables
-			if (wnd != null)
+			// add the primitive name if requested
+			if ((internalDisplay&TEXTDISPLAY) != 0)
 			{
-				Rectangle2D rect = ni.getUntransformedBounds();
-				ni.addDisplayableVariables(rect, polys, fillPos, wnd, true);
+				polys[fillPos] = new Poly(pointList);
+				polys[fillPos].setStyle(Poly.Type.TEXTBOX);
+				polys[fillPos].setLayer(tech.componentLayer);
+				polys[fillPos].setString(fn.getName());
+				MutableTextDescriptor td = new MutableTextDescriptor();
+				td.setRelSize(3);
+				polys[fillPos].setTextDescriptor(td);
+				fillPos++;
+
+				// add in displayable variables
+				if (wnd != null)
+				{
+					Rectangle2D rect = ni.getUntransformedBounds();
+					ni.addDisplayableVariables(rect, polys, fillPos, wnd, true);
+				}
 			}
 			return polys;
 		}
@@ -485,12 +492,12 @@ public class FPGA extends Technology
 	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd, Layer layerOverride, List onlyTheseLayers)
 	{
 		boolean active = true;
-		if ((fpga_internaldisplay&DISPLAYLEVEL) == NOPRIMDISPLAY ||
-			(fpga_internaldisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
+		if ((internalDisplay&DISPLAYLEVEL) == NOPRIMDISPLAY ||
+			(internalDisplay&DISPLAYLEVEL) == ACTIVEPRIMDISPLAY)
 		{
 			VarContext context = VarContext.globalContext;
 			if (wnd != null) context = wnd.getVarContext();
-			if (!fpga_arcactive(ai, context)) active = false;
+			if (!arcActive(ai, context)) active = false;
 		}
 		if (!active) return NULLPOLYS;
 
@@ -502,7 +509,7 @@ public class FPGA extends Technology
 		// draw the arc
 		polys[polyNum] = ai.makePoly(ai.getLength(), ai.getWidth(), Poly.Type.FILLED);
 		if (polys[polyNum] == null) return null;
-		polys[polyNum].setLayer(tech.fpga_w_lay);
+		polys[polyNum].setLayer(tech.wireLayer);
 		polyNum++;
 
 		// add in the displayable variables
@@ -515,12 +522,11 @@ public class FPGA extends Technology
 	}
 
 	/******************** TECHNOLOGY INTERFACE SUPPORT ********************/
-	
-	private boolean fpga_arcendactive(ArcInst ai, int j, VarContext curContext)
+
+	private boolean arcEndActive(ArcInst ai, int j, VarContext curContext)
 	{
 		// examine end
-		Connection con = ai.getConnection(j);
-		PortInst pi = con.getPortInst();
+		PortInst pi = ai.getConnection(j).getPortInst();
 		NodeInst ni = pi.getNodeInst();
 		PortProto pp = pi.getPortProto();
 		NodeProto np = ni.getProto();
@@ -535,7 +541,7 @@ public class FPGA extends Technology
 				ArcInst oAi = nextCon.getArc();
 				int newEnd = 0;
 				if (oAi.getConnection(0).getPortInst().getNodeInst() == subni) newEnd = 1;
-				if (fpga_arcendactive(oAi, newEnd, down)) return true;
+				if (arcEndActive(oAi, newEnd, down)) return true;
 			}
 			return false;
 		} else
@@ -545,59 +551,67 @@ public class FPGA extends Technology
 			{
 				FPGANode fn = (FPGANode)np;
 //				VarContext down = curContext.push(ni);
-				fpga_reevaluatepips(ni, fn, curContext);
-				for(int i = 0; i < fn.portlist.length; i++)
+				reEvaluatePips(ni, fn, curContext);
+				for(int i = 0; i < fn.numPorts(); i++)
 				{
-					if (fn.portlist[i].pp != pp) continue;
-					if ((fn.netlist[fn.portlist[i].con].segactive&ACTIVEPART) != 0) return true;
+					if (fn.portList[i].pp != pp) continue;
+					int index = fn.portList[i].con;
+					if (index >= 0 && fn.netList != null)
+					{
+						if ((fn.netList[index].segActive&ACTIVEPART) != 0) return true;
+					}
 					break;
 				}
 			}
 		}
-	
+
 		// propagate
-		Netlist nl = ai.getParent().acquireUserNetlist();
-		Network net = nl.getNetwork(ni, pp, 0);
-		if (net != null)
+		Cell parent = ai.getParent();
+		if (parent != null)
 		{
-			for(Iterator it = ni.getConnections(); it.hasNext(); )
+			Netlist nl = parent.acquireUserNetlist();
+			Network net = nl.getNetwork(ni, pp, 0);
+			if (net != null)
 			{
-				Connection nextCon = (Connection)it.next();
-				ArcInst oAi = nextCon.getArc();
-				if (oAi == ai) continue;
-				Network oNet = nl.getNetwork(oAi, 0);
-				if (oNet != net) continue;
-				int newEnd = 0;
-				if (oAi.getConnection(0) == nextCon) newEnd = 1;
-				if (fpga_arcendactive(oAi, newEnd, curContext)) return true;
-			}
-
-			VarContext higher = curContext.pop();
-			if (higher != null && higher.getNodable() != null)
-			{
-				NodeInst oNi = (NodeInst)higher.getNodable();
-				for (Iterator it = ni.getExports(); it.hasNext(); )
+				for(Iterator it = ni.getConnections(); it.hasNext(); )
 				{
-					Export opp = (Export)it.next();
-					Network oNet = nl.getNetwork(opp, 0);
+					Connection nextCon = (Connection)it.next();
+					ArcInst oAi = nextCon.getArc();
+					if (oAi == ai) continue;
+					Network oNet = nl.getNetwork(oAi, 0);
 					if (oNet != net) continue;
+					int newEnd = 0;
+					if (oAi.getConnection(0) == nextCon) newEnd = 1;
+					if (arcEndActive(oAi, newEnd, curContext)) return true;
+				}
 
-					for(Iterator uIt = oNi.getConnections(); uIt.hasNext(); )
+				VarContext higher = curContext.pop();
+				if (higher != null && higher.getNodable() != null)
+				{
+					NodeInst oNi = (NodeInst)higher.getNodable();
+					for (Iterator it = ni.getExports(); it.hasNext(); )
 					{
-						Connection nextCon = (Connection)uIt.next();
-						ArcInst oAi = nextCon.getArc();
-						if (nextCon.getPortInst().getPortProto() != opp) continue;
-						int newEnd = 0;
-						if (oAi.getConnection(0) == nextCon) newEnd = 1;
-						if (fpga_arcendactive(oAi, newEnd, higher)) return true;
+						Export opp = (Export)it.next();
+						Network oNet = nl.getNetwork(opp, 0);
+						if (oNet != net) continue;
+
+						for(Iterator uIt = oNi.getConnections(); uIt.hasNext(); )
+						{
+							Connection nextCon = (Connection)uIt.next();
+							ArcInst oAi = nextCon.getArc();
+							if (nextCon.getPortInst().getPortProto() != opp) continue;
+							int newEnd = 0;
+							if (oAi.getConnection(0) == nextCon) newEnd = 1;
+							if (arcEndActive(oAi, newEnd, higher)) return true;
+						}
 					}
 				}
 			}
 		}
 		return false;
 	}
-	
-	private boolean fpga_arcactive(ArcInst ai, VarContext curContext)
+
+	private boolean arcActive(ArcInst ai, VarContext curContext)
 	{
 		// see if there is a cache on the arc
 //		gettraversalpath(ai.parent, NOWINDOWPART, &nilist, &indexlist, &depth, 0);
@@ -621,23 +635,23 @@ public class FPGA extends Technology
 //				}
 //			}
 //		}
-	
+
 		// compute arc activity
 		boolean value = false;
-		if (fpga_arcendactive(ai, 0, curContext)) value = true; else
-			if (fpga_arcendactive(ai, 1, curContext)) value = true;
-	
+		if (arcEndActive(ai, 0, curContext)) value = true; else
+			if (arcEndActive(ai, 1, curContext)) value = true;
+
 		// store the cache
 //		size = depth * (sizeof (NODEINST *)) + SIZEOFINTBIG + SIZEOFINTSML;
-//		if (size > fpga_arcbufsize)
+//		if (size > arcBufSize)
 //		{
-//			if (fpga_arcbufsize > 0) efree((CHAR *)fpga_arcbuf);
-//			fpga_arcbufsize = 0;
-//			fpga_arcbuf = (UCHAR1 *)emalloc(size, fpga_tech.cluster);
-//			if (fpga_arcbuf == 0) return(value);
-//			fpga_arcbufsize = size;
+//			if (arcBufSize > 0) efree((CHAR *)arcBuf);
+//			arcBufSize = 0;
+//			arcBuf = (UCHAR1 *)emalloc(size, tech.cluster);
+//			if (arcBuf == 0) return(value);
+//			arcBufSize = size;
 //		}
-//		ptr = fpga_arcbuf;
+//		ptr = arcBuf;
 //		((INTBIG *)ptr)[0] = depth;   ptr += SIZEOFINTBIG;
 //		for(i=0; i<depth; i++)
 //		{
@@ -645,20 +659,20 @@ public class FPGA extends Technology
 //		}
 //		((INTSML *)ptr)[0] = value ? 1 : 0;
 //		nextchangequiet();
-//		setvalkey((INTBIG)ai, VARCINST, ARCACTIVECACHE_KEY, (INTBIG)fpga_arcbuf,
+//		setvalkey((INTBIG)ai, VARCINST, ARCACTIVECACHE_KEY, (INTBIG)arcBuf,
 //			VCHAR|VISARRAY|(size<<VLENGTHSH)|VDONTSAVE);
 		return value;
 	}
-	
+
 	/**
 	 * Method to reevaluate primitive node "ni" (which is associated with internal
 	 * structure "fn").  Finds programming of pips and sets pip and net activity.
 	 */
-	private void fpga_reevaluatepips(NodeInst ni, FPGANode fn, VarContext context)
+	private void reEvaluatePips(NodeInst ni, FPGANode fn, VarContext context)
 	{
 		// primitives with no pips or nets need no evaluation
-		if (fn.netlist.length == 0 && fn.piplist.length == 0) return;
-	
+		if (fn.numNets() == 0 && fn.numPips() == 0) return;
+
 		// see if there is a cache on the node
 //		gettraversalpath(ni.parent, NOWINDOWPART, &nilist, &indexlist, &depth, 0);
 //		var = getvalkey((INTBIG)ni, VNODEINST, VCHAR|VISARRAY, NODEPIPCACHE_KEY);
@@ -676,122 +690,92 @@ public class FPGA extends Technology
 //				if (i >= cachedepth)
 //				{
 //					// cache applies to this node: get values
-//					for(i=0; i<fn.netlist.length; i++)
+//					for(i=0; i<fn.numNets(); i++)
 //					{
 //						value = ((INTSML *)ptr)[0];   ptr += SIZEOFINTSML;
-//						if (value != 0) fn.netlist[i].segactive |= ACTIVEPART; else
-//							fn.netlist[i].segactive &= ~ACTIVEPART;
+//						if (value != 0) fn.netList[i].segActive |= ACTIVEPART; else
+//							fn.netList[i].segActive &= ~ACTIVEPART;
 //					}
-//					for(i=0; i<fn.piplist.length; i++)
+//					for(i=0; i<fn.numPips(); i++)
 //					{
 //						value = ((INTSML *)ptr)[0];   ptr += SIZEOFINTSML;
-//						if (value != 0) fn.piplist[i].pipactive |= ACTIVEPART; else
-//							fn.piplist[i].pipactive &= ~ACTIVEPART;
+//						if (value != 0) fn.pipList[i].pipActive |= ACTIVEPART; else
+//							fn.pipList[i].pipActive &= ~ACTIVEPART;
 //					}
 //					return;
 //				}
 //			}
 //		}
-	
+
 		// reevaluate: presume all nets and pips are inactive
-		for(int i=0; i<fn.netlist.length; i++) fn.netlist[i].segactive &= ~ACTIVEPART;
-		for(int i=0; i<fn.piplist.length; i++) fn.piplist[i].pipactive &= ~ACTIVEPART;
-	
+		for(int i=0; i<fn.numNets(); i++) fn.netList[i].segActive &= ~ACTIVEPART;
+		for(int i=0; i<fn.numPips(); i++) fn.pipList[i].pipActive &= ~ACTIVEPART;
+
 		// look for pip programming
-		fpga_findvariableobjects(fn, ni, ACTIVEPIPS_KEY, true, context);
-	
+		findVariableObjects(fn, ni, ACTIVEPIPS_KEY, true, context);
+
 		// set nets active where they touch active pips
-		for(int i=0; i<fn.piplist.length; i++)
+		for(int i=0; i<fn.numPips(); i++)
 		{
-			FPGAPip fpip = fn.piplist[i];
-			if ((fpip.pipactive&ACTIVEPART) == 0) continue;
-			if (fpip.con1 > 0) fn.netlist[fpip.con1].segactive |= ACTIVEPART;
-			if (fpip.con2 > 0) fn.netlist[fpip.con2].segactive |= ACTIVEPART;
+			FPGAPip fPip = fn.pipList[i];
+			if ((fPip.pipActive&ACTIVEPART) == 0) continue;
+			if (fPip.con1 > 0) fn.netList[fPip.con1].segActive |= ACTIVEPART;
+			if (fPip.con2 > 0) fn.netList[fPip.con2].segActive |= ACTIVEPART;
 		}
-	
+
 //		// store the cache
-//		size = depth * (sizeof (NODEINST *)) + SIZEOFINTBIG + fn.netlist.length * SIZEOFINTSML +
-//			fn.piplist.length * SIZEOFINTSML;
-//		if (size > fpga_pipbufsize)
+//		size = depth * (sizeof (NODEINST *)) + SIZEOFINTBIG + fn.numNets() * SIZEOFINTSML +
+//			fn.numPips() * SIZEOFINTSML;
+//		if (size > pipBufSize)
 //		{
-//			if (fpga_pipbufsize > 0) efree((CHAR *)fpga_pipbuf);
-//			fpga_pipbufsize = 0;
-//			fpga_pipbuf = (UCHAR1 *)emalloc(size, fpga_tech.cluster);
-//			if (fpga_pipbuf == 0) return;
-//			fpga_pipbufsize = size;
+//			if (pipBufSize > 0) efree((CHAR *)pipBuf);
+//			pipBufSize = 0;
+//			pipBuf = (UCHAR1 *)emalloc(size, tech.cluster);
+//			if (pipBuf == 0) return;
+//			pipBufSize = size;
 //		}
-//		ptr = fpga_pipbuf;
+//		ptr = pipBuf;
 //		((INTBIG *)ptr)[0] = depth;   ptr += SIZEOFINTBIG;
 //		for(i=0; i<depth; i++)
 //		{
 //			((NODEINST **)ptr)[0] = nilist[i];   ptr += (sizeof (NODEINST *));
 //		}
-//		for(i=0; i<fn.netlist.length; i++)
+//		for(i=0; i<fn.numNets(); i++)
 //		{
-//			if ((fn.netlist[i].segactive&ACTIVEPART) != 0) ((INTSML *)ptr)[0] = 1; else
+//			if ((fn.netList[i].segActive&ACTIVEPART) != 0) ((INTSML *)ptr)[0] = 1; else
 //				((INTSML *)ptr)[0] = 0;
 //			ptr += SIZEOFINTSML;
 //		}
-//		for(i=0; i<fn.piplist.length; i++)
+//		for(i=0; i<fn.numPips(); i++)
 //		{
-//			if ((fn.piplist[i].pipactive&ACTIVEPART) != 0) ((INTSML *)ptr)[0] = 1; else
+//			if ((fn.pipList[i].pipActive&ACTIVEPART) != 0) ((INTSML *)ptr)[0] = 1; else
 //				((INTSML *)ptr)[0] = 0;
 //			ptr += SIZEOFINTSML;
 //		}
 //		nextchangequiet();
-//		setvalkey((INTBIG)ni, VNODEINST, NODEPIPCACHE_KEY, (INTBIG)fpga_pipbuf,
+//		setvalkey((INTBIG)ni, VNODEINST, NODEPIPCACHE_KEY, (INTBIG)pipBuf,
 //			VCHAR|VISARRAY|(size<<VLENGTHSH)|VDONTSAVE);
 	}
-	
+
 	/**
 	 * Method to examine primitive node "ni" and return true if the repeater is active.
 	 */
-	private boolean fpga_repeateractive(NodeInst ni)
+	private boolean repeaterActive(NodeInst ni)
 	{
-		fpga_repeatername = ni.getName();
-		fpga_repeaterisactive = false;
-		fpga_findvariableobjects(null, ni, ACTIVEREPEATERS_KEY, false, null);
-		return fpga_repeaterisactive;
+		repeaterName = ni.getName();
+		repeaterActive = false;
+		findVariableObjects(null, ni, ACTIVEREPEATERS_KEY, false, null);
+		return repeaterActive;
 	}
-
-//	/*
-//	 * Routine to clear the cache of arc activity in the current cell.  If "ni" is NONODEINST,
-//	 * clear all node caches as well, otherwise only clear the node cache on "ni".
-//	 */
-//	void fpga_clearcache(NODEINST *ni)
-//	{
-//		REGISTER VARIABLE *var;
-//		REGISTER ARCINST *ai;
-//		REGISTER NODEPROTO *np;
-//	
-//		np = getcurcell();
-//		if (np == NONODEPROTO)
-//		{
-//			ttyputerr(_("Must edit a cell to clear its cache"));
-//			return;
-//		}
-//		for(ai = np.firstarcinst; ai != NOARCINST; ai = ai.nextarcinst)
-//		{
-//			var = getvalkey((INTBIG)ai, VARCINST, VCHAR|VISARRAY, ARCACTIVECACHE_KEY);
-//			if (var != NOVARIABLE)
-//				(void)delvalkey((INTBIG)ai, VARCINST, ARCACTIVECACHE_KEY);
-//		}
-//		if (ni != NONODEINST)
-//		{
-//			var = getvalkey((INTBIG)ni, VNODEINST, VCHAR|VISARRAY, NODEPIPCACHE_KEY);
-//			if (var != NOVARIABLE)
-//				(void)delvalkey((INTBIG)ni, VNODEINST, NODEPIPCACHE_KEY);
-//		}
-//	}
 
 	Nodable [] path = new Nodable[100];
 
-	private void fpga_findvariableobjects(FPGANode fn, NodeInst ni, Variable.Key varkey, boolean setPips, VarContext context)
+	private void findVariableObjects(FPGANode fn, NodeInst ni, Variable.Key varKey, boolean setPips, VarContext context)
 	{
 		// search hierarchical path
 		int depth = 0;
 		path[depth++] = ni;
-		while(context != null)
+		while (context != null)
 		{
 			Nodable niClimb = context.getNodable();
             if (niClimb == null) break;
@@ -803,7 +787,7 @@ public class FPGA extends Technology
 		for(int c=0; c<depth; c++)
 		{
 			Nodable niClimb = path[c];
-			Variable var = niClimb.getVar(varkey);
+			Variable var = niClimb.getVar(varKey);
 			if (var == null) continue;
 
 			// found pip settings: evaluate them
@@ -817,29 +801,29 @@ public class FPGA extends Technology
 				// find pip name in "start"
 				String [] pipParts = start.split("\\.");
 				if (pipParts.length == 0 || pipParts.length > depth) continue;
-				boolean pathgood = true;
+				boolean pathGood = true;
 				VarContext climb = context;
 				for(int j=0; j<pipParts.length-1; j++)
 				{
 					if (!pipParts[j].equalsIgnoreCase(path[depth-2-j].getName()))
 					{
-						pathgood = false;
+						pathGood = false;
 						break;
 					}
 				}
-				if (pathgood)
+				if (pathGood)
 				{
 					String lastPart = pipParts[pipParts.length-1];
 					if (setPips)
 					{
-						for(int k=0; k<fn.piplist.length; k++)
-							if (fn.piplist[k].name.equalsIgnoreCase(lastPart))
+						for(int k=0; k<fn.numPips(); k++)
+							if (fn.pipList[k].name.equalsIgnoreCase(lastPart))
 						{
-							fn.piplist[i].pipactive |= ACTIVEPART;
+							fn.pipList[k].pipActive |= ACTIVEPART;
 						}
 					} else
 					{
-						if (fpga_repeatername.equalsIgnoreCase(lastPart)) fpga_repeaterisactive = true;
+						if (repeaterName.equalsIgnoreCase(lastPart)) repeaterActive = true;
 					}
 				}
 			}
@@ -847,11 +831,66 @@ public class FPGA extends Technology
 		}
 	}
 
+//	/* working memory for "arcActive()" */
+//	static INTBIG         arcBufSize = 0;
+//	static UCHAR1        *arcBuf;
+//
+//	/* working memory for "reEvaluatePips()" */
+//	static INTBIG         pipBufSize = 0;
+//	static UCHAR1        *pipBuf;
+
+//	void setMode(INTBIG count, CHAR *par[])
+//	{
+//		l = estrlen(pp = par[0]);
+//		if (namesamen(pp, x_("wipe-cache"), l) == 0)
+//		{
+//			clearCache(null);
+//			return;
+//		}
+//		if (namesamen(pp, x_("clear-node-cache"), l) == 0)
+//		{
+//			ni = (NODEINST *)us_getobject(VNODEINST, FALSE);
+//			if (ni == null) return;
+//			clearCache(ni);
+//			return;
+//		}
+//	}
+
+//	/*
+//	 * Routine to clear the cache of arc activity in the current cell.  If "ni" is NONODEINST,
+//	 * clear all node caches as well, otherwise only clear the node cache on "ni".
+//	 */
+//	void clearCache(NodeInst ni)
+//	{
+//		REGISTER VARIABLE *var;
+//		REGISTER ARCINST *ai;
+//		REGISTER NODEPROTO *np;
+//
+//		np = getcurcell();
+//		if (np == null)
+//		{
+//			ttyputerr(_("Must edit a cell to clear its cache"));
+//			return;
+//		}
+//		for(ai = np.firstarcinst; ai != null; ai = ai.nextarcinst)
+//		{
+//			var = getvalkey((INTBIG)ai, VARCINST, VCHAR|VISARRAY, ARCACTIVECACHE_KEY);
+//			if (var != NOVARIABLE)
+//				(void)delvalkey((INTBIG)ai, VARCINST, ARCACTIVECACHE_KEY);
+//		}
+//		if (ni != null)
+//		{
+//			var = getvalkey((INTBIG)ni, VNODEINST, VCHAR|VISARRAY, NODEPIPCACHE_KEY);
+//			if (var != NOVARIABLE)
+//				(void)delvalkey((INTBIG)ni, VNODEINST, NODEPIPCACHE_KEY);
+//		}
+//	}
+
 	/******************** TECHNOLOGY CONTROL ********************/
 
 	public static void readArchitectureFile(boolean placeAndWire)
 	{
-		if (fpga_nodecount != 0)
+		if (defined)
 		{
 			System.out.println("This technology already has primitives defined");
 			return;
@@ -862,13 +901,12 @@ public class FPGA extends Technology
 		if (fileName == null) return;
 
 		// read the file
-		LispTree lt = fpga_readfile(fileName);
+		LispTree lt = readFile(fileName);
 		if (lt == null)
 		{
 			System.out.println("Error reading file");
 			return;
 		}
-		System.out.println("FPGA file read");
 
 		// turn the tree into primitives
 		new BuildTechnology(lt, placeAndWire);
@@ -879,13 +917,13 @@ public class FPGA extends Technology
 		switch (level)
 		{
 			case 0:		// no wires
-				fpga_internaldisplay = (fpga_internaldisplay & ~DISPLAYLEVEL) | NOPRIMDISPLAY;
+				internalDisplay = (internalDisplay & ~DISPLAYLEVEL) | NOPRIMDISPLAY;
 				break;
 			case 1:		// active wires
-				fpga_internaldisplay = (fpga_internaldisplay & ~DISPLAYLEVEL) | ACTIVEPRIMDISPLAY;
+				internalDisplay = (internalDisplay & ~DISPLAYLEVEL) | ACTIVEPRIMDISPLAY;
 				break;
 			case 2:		// all wires
-				fpga_internaldisplay = (fpga_internaldisplay & ~DISPLAYLEVEL) | FULLPRIMDISPLAY;
+				internalDisplay = (internalDisplay & ~DISPLAYLEVEL) | FULLPRIMDISPLAY;
 				break;
 		}
 		EditWindow.repaintAllContents();
@@ -893,9 +931,52 @@ public class FPGA extends Technology
 
 	public static void setTextDisplay(boolean show)
 	{
-		if (show) fpga_internaldisplay |= TEXTDISPLAY; else
-			fpga_internaldisplay &= ~TEXTDISPLAY;
+		if (show) internalDisplay |= TEXTDISPLAY; else
+			internalDisplay &= ~TEXTDISPLAY;
 		EditWindow.repaintAllContents();
+	}
+
+	public static void programPips()
+	{
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (wf == null) return;
+		Highlighter highlighter = wf.getContent().getHighlighter();
+		if (highlighter == null) return;
+		ElectricObject eObj = highlighter.getOneElectricObject(NodeInst.class);
+		if (eObj == null) return;
+		NodeInst ni = (NodeInst)eObj;
+		String pips = "";
+		Variable var = ni.getVar(ACTIVEPIPS_KEY);
+		if (var != null) pips = (String)var.getObject();
+
+		String newPips = PromptAt.showPromptAt((EditWindow)wf.getContent(), ni, "Edit Pips",
+			"Pips on this node:", pips);
+		if (newPips == null) return;
+		new SetPips(ni, newPips);
+	}
+
+	/**
+	 * This class sets pip programming on a node.
+	 */
+	private static class SetPips extends Job
+	{
+		private NodeInst ni;
+		private String newPips;
+
+		protected SetPips(NodeInst ni, String newPips)
+		{
+			super("Program Pips", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.ni = ni;
+			this.newPips = newPips;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			ni.newVar(ACTIVEPIPS_KEY, newPips);
+			EditWindow.repaintAllContents();
+			return true;
+		}
 	}
 
 	/**
@@ -916,7 +997,7 @@ public class FPGA extends Technology
 
 		public boolean doIt()
 		{
-			int total = fpga_makeprimitives(lt);
+			int total = makePrimitives(lt);
 			System.out.println("Created " + total + " primitives");
 
 			// setup the generic technology to handle all connections
@@ -925,11 +1006,11 @@ public class FPGA extends Technology
 			// place and wire the primitives
 			if (placeAndWire)
 			{
-				Cell topcell = fpga_placeprimitives(lt);
-				if (topcell != null)
+				Cell topCell = placePrimitives(lt);
+				if (topCell != null)
 				{
 					// display top cell
-					WindowFrame.createEditWindow(topcell);
+					WindowFrame.createEditWindow(topCell);
 				}
 			}
 			return true;
@@ -940,15 +1021,15 @@ public class FPGA extends Technology
 	 * Method to read the FPGA file in "f" and create a LISPTREE structure which is returned.
 	 * Returns zero on error.
 	 */
-	private static LispTree fpga_readfile(String fileName)
-	{	
+	private static LispTree readFile(String fileName)
+	{
 		// make the tree top
-		LispTree treetop = new LispTree();
-		treetop.keyword = "TOP";
-	
+		LispTree treeTop = new LispTree();
+		treeTop.keyword = "TOP";
+
 		// initialize current position and stack
-		fpga_treepos = treetop;
-		fpga_treedepth = 0;
+		treePosition = treeTop;
+		treeDepth = 0;
 
 		URL url = TextUtils.makeURLToFile(fileName);
 		try
@@ -963,7 +1044,7 @@ public class FPGA extends Technology
 				// get the next line of text
 				String line = lnr.readLine();
 				if (line == null) break;
-		
+
 				// stop now if it is a comment
 				line = line.trim();
 				if (line.length() == 0) continue;
@@ -976,16 +1057,16 @@ public class FPGA extends Technology
 					// skip spaces
 					while (pt < line.length() && Character.isWhitespace(line.charAt(pt))) pt++;
 					if (pt >= line.length()) break;
-		
+
 					// check for special characters
 					char chr = line.charAt(pt);
 					if (chr == ')')
 					{
-						if (fpga_pushkeyword(line.substring(pt, pt+1), lnr)) return null;
+						if (pushKeyword(line.substring(pt, pt+1), lnr)) return null;
 						pt++;
 						continue;
 					}
-		
+
 					// gather a keyword
 					int ptEnd = pt;
 					for(;;)
@@ -1006,7 +1087,7 @@ public class FPGA extends Technology
 						}
 						ptEnd++;
 					}
-					if (fpga_pushkeyword(line.substring(pt, ptEnd), lnr)) return null;
+					if (pushKeyword(line.substring(pt, ptEnd), lnr)) return null;
 					pt = ptEnd;
 				}
 			}
@@ -1017,232 +1098,229 @@ public class FPGA extends Technology
 			System.out.println("Error reading " + fileName);
 			return null;
 		}
-	
-		if (fpga_treedepth != 0)
+
+		if (treeDepth != 0)
 		{
 			System.out.println("Not enough close parenthesis in file");
 			return null;
 		}
-		return treetop;
+		return treeTop;
 	}
-	
+
 	/**
 	 * Method to add the next keyword "keyword" to the lisp tree in the globals.
 	 * Returns true on error.
 	 */
-	private static boolean fpga_pushkeyword(String keyword, LineNumberReader lnr)
+	private static boolean pushKeyword(String keyword, LineNumberReader lnr)
 	{
 		if (keyword.startsWith("("))
 		{
-			if (fpga_treedepth >= MAXDEPTH)
+			if (treeDepth >= MAXDEPTH)
 			{
 				System.out.println("Nesting too deep (more than " + MAXDEPTH + ")");
 				return true;
 			}
-	
+
 			// create a new tree branch
-			LispTree newtree = new LispTree();
-			newtree.lineno = lnr.getLineNumber();
-	
+			LispTree newTree = new LispTree();
+			newTree.lineNumber = lnr.getLineNumber();
+
 			// add branch to previous branch
-			fpga_treepos.add(newtree);
-	
+			treePosition.add(newTree);
+
 			// add keyword
 			int pt = 1;
 			while (pt < keyword.length() && Character.isWhitespace(keyword.charAt(pt))) pt++;
-			newtree.keyword = keyword.substring(pt);
-	
+			newTree.keyword = keyword.substring(pt);
+
 			// push tree onto stack
-			fpga_treestack[fpga_treedepth] = fpga_treepos;
-			fpga_treedepth++;
-			fpga_treepos = newtree;
+			treeStack[treeDepth] = treePosition;
+			treeDepth++;
+			treePosition = newTree;
 			return false;
 		}
-	
+
 		if (keyword.equals(")"))
 		{
 			// pop tree stack
-			if (fpga_treedepth <= 0)
+			if (treeDepth <= 0)
 			{
 				System.out.println("Too many close parenthesis");
 				return true;
 			}
-			fpga_treedepth--;
-			fpga_treepos = fpga_treestack[fpga_treedepth];
+			treeDepth--;
+			treePosition = treeStack[treeDepth];
 			return false;
 		}
-	
+
 		// just add the atomic keyword
 		if (keyword.startsWith("\"") && keyword.endsWith("\""))
 			keyword = keyword.substring(1, keyword.length()-1);
-		fpga_treepos.add(keyword);
+		treePosition.add(keyword);
 		return false;
 	}
-	
+
 	/******************** ARCHITECTURE PARSING: PRIMITIVES ********************/
-	
+
 	/**
 	 * Method to parse the entire tree and create primitives.
 	 * Returns the number of primitives made.
 	 */
-	private static int fpga_makeprimitives(LispTree lt)
+	private static int makePrimitives(LispTree lt)
 	{
 		// look through top level for the "primdef"s
 		int total = 0;
 		for(int i=0; i<lt.size(); i++)
 		{
 			if (lt.isLeaf(i)) continue;
-			LispTree sublt = lt.getBranch(i);
-			if (!sublt.keyword.equalsIgnoreCase("primdef")) continue;
-	
+			LispTree subLT = lt.getBranch(i);
+			if (!subLT.keyword.equalsIgnoreCase("primdef")) continue;
+
 			// create the primitive
-			if (fpga_makeprimitive(sublt)) return(0);
+			if (makePrimitive(subLT)) return(0);
 			total++;
 		}
 		return total;
 	}
-	
+
 	/**
 	 * Method to create a primitive from a subtree "lt".
 	 * Tree has "(primdef...)" structure.
 	 */
-	private static boolean fpga_makeprimitive(LispTree lt)
+	private static boolean makePrimitive(LispTree lt)
 	{
 		// find all of the pieces of this primitive
-		LispTree ltattribute = null, ltnets = null, ltports = null, ltcomponents = null;
-		String primname = null;
-		String primsizex = null;
-		String primsizey = null;
+		LispTree ltAttribute = null, ltNets = null, ltPorts = null, ltComponents = null;
+		String primName = null;
+		String primSizeX = null;
+		String primSizeY = null;
 		for(int i=0; i<lt.size(); i++)
 		{
 			if (lt.isLeaf(i)) continue;
-			LispTree scanlt = lt.getBranch(i);
-			if (scanlt.keyword.equalsIgnoreCase("attributes"))
+			LispTree scanLT = lt.getBranch(i);
+			if (scanLT.keyword.equalsIgnoreCase("attributes"))
 			{
-				if (ltattribute != null)
+				if (ltAttribute != null)
 				{
-					System.out.println("Multiple 'attributes' sections for a primitive (line " + scanlt.lineno + ")");
+					System.out.println("Multiple 'attributes' sections for a primitive (line " + scanLT.lineNumber + ")");
 					return true;
 				}
-				for(int j=0; j<scanlt.size(); j++)
+				for(int j=0; j<scanLT.size(); j++)
 				{
-					if (scanlt.isLeaf(j)) continue;
-					LispTree subLT = scanlt.getBranch(j);
+					if (scanLT.isLeaf(j)) continue;
+					LispTree subLT = scanLT.getBranch(j);
 					if (subLT.keyword.equalsIgnoreCase("name"))
 					{
 						if (subLT.size() != 1 || subLT.isBranch(0))
 						{
-							System.out.println("Primitive 'name' attribute should take a single atomic parameter (line " + subLT.lineno + ")");
+							System.out.println("Primitive 'name' attribute should take a single atomic parameter (line " + subLT.lineNumber + ")");
 							return true;
 						}
-						primname = subLT.getLeaf(0);
+						primName = subLT.getLeaf(0);
 						continue;
 					}
 					if (subLT.keyword.equalsIgnoreCase("size"))
 					{
 						if (subLT.size() != 2 || subLT.isBranch(0) || subLT.isBranch(1))
 						{
-							System.out.println("Primitive 'size' attribute should take two atomic parameters (line " + subLT.lineno + ")");
+							System.out.println("Primitive 'size' attribute should take two atomic parameters (line " + subLT.lineNumber + ")");
 							return true;
 						}
-						primsizex = subLT.getLeaf(0);
-						primsizey = subLT.getLeaf(1);
+						primSizeX = subLT.getLeaf(0);
+						primSizeY = subLT.getLeaf(1);
 						continue;
 					}
 				}
-				ltattribute = scanlt;
+				ltAttribute = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("nets"))
+			if (scanLT.keyword.equalsIgnoreCase("nets"))
 			{
-				if (ltnets != null)
+				if (ltNets != null)
 				{
-					System.out.println("Multiple 'nets' sections for a primitive (line " + scanlt.lineno + ")");
+					System.out.println("Multiple 'nets' sections for a primitive (line " + scanLT.lineNumber + ")");
 					return true;
 				}
-				ltnets = scanlt;
+				ltNets = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("ports"))
+			if (scanLT.keyword.equalsIgnoreCase("ports"))
 			{
-				if (ltports != null)
+				if (ltPorts != null)
 				{
-					System.out.println("Multiple 'ports' sections for a primitive (line " + scanlt.lineno + ")");
+					System.out.println("Multiple 'ports' sections for a primitive (line " + scanLT.lineNumber + ")");
 					return true;
 				}
-				ltports = scanlt;
+				ltPorts = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("components"))
+			if (scanLT.keyword.equalsIgnoreCase("components"))
 			{
-				if (ltcomponents != null)
+				if (ltComponents != null)
 				{
-					System.out.println("Multiple 'components' sections for a primitive (line " + scanlt.lineno + ")");
+					System.out.println("Multiple 'components' sections for a primitive (line " + scanLT.lineNumber + ")");
 					return true;
 				}
-				ltcomponents = scanlt;
+				ltComponents = scanLT;
 				continue;
 			}
 		}
-	
+
 		// make sure a name and size were given
-		if (primname == null)
+		if (primName == null)
 		{
-			System.out.println("Missing 'name' attribute in primitive definition (line " + lt.lineno + ")");
+			System.out.println("Missing 'name' attribute in primitive definition (line " + lt.lineNumber + ")");
 			return true;
 		}
-		if (primsizex == null || primsizey == null)
+		if (primSizeX == null || primSizeY == null)
 		{
-			System.out.println("Missing 'size' attribute in primitive definition (line " + lt.lineno + ")");
+			System.out.println("Missing 'size' attribute in primitive definition (line " + lt.lineNumber + ")");
 			return true;
 		}
-	
+
 		// make the primitive
-		double sizex = TextUtils.atof(primsizex);
-		double sizey = TextUtils.atof(primsizey);
-		FPGANode primnp = new FPGANode(primname, tech, sizex, sizey, null,
+		double sizeX = TextUtils.atof(primSizeX);
+		double sizeY = TextUtils.atof(primSizeY);
+		FPGANode primNP = new FPGANode(primName, tech, sizeX, sizeY, null,
 			new Technology.NodeLayer []
 			{
-				new Technology.NodeLayer(tech.fpga_c_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, new Technology.TechPoint[] {
+				new Technology.NodeLayer(tech.componentLayer, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, new Technology.TechPoint[] {
 					new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge()),
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeTopEdge()),
 				})
 			});
-		primnp.setLockedPrim();
-		fpga_nodecount++;
+		primNP.setLockedPrim();
+		defined = true;
 
 		// get ports
-		if (ltports != null)
+		if (ltPorts != null)
 		{
 			// count ports
 			int portCount = 0;
-			for(int j=0; j<ltports.size(); j++)
+			for(int j=0; j<ltPorts.size(); j++)
 			{
-				if (ltports.isLeaf(j)) continue;
-				LispTree scanlt = ltports.getBranch(j);
-				if (scanlt.keyword.equalsIgnoreCase("port")) portCount++;
+				if (ltPorts.isLeaf(j)) continue;
+				LispTree scanLT = ltPorts.getBranch(j);
+				if (scanLT.keyword.equalsIgnoreCase("port")) portCount++;
 			}
-	
-			// create local port structures
-			primnp.portlist = new FPGAPort[portCount];
-			for(int i=0; i<portCount; i++)
-				primnp.portlist[i] = new FPGAPort();
-	
+
 			// create the ports
+			primNP.portList = new FPGAPort[portCount];
 			int portNumber = 0;
-			for(int j=0; j<ltports.size(); j++)
+			for(int j=0; j<ltPorts.size(); j++)
 			{
-				if (ltports.isLeaf(j)) continue;
-				LispTree scanlt = ltports.getBranch(j);
-				if (scanlt.keyword.equalsIgnoreCase("port"))
+				if (ltPorts.isLeaf(j)) continue;
+				LispTree scanLT = ltPorts.getBranch(j);
+				if (scanLT.keyword.equalsIgnoreCase("port"))
 				{
-					FPGAPort fp = primnp.portlist[portNumber];
-					if (fpga_makeprimport(primnp, scanlt, fp, portNumber)) return true;
+					FPGAPort fp = new FPGAPort();
+					primNP.portList[portNumber] = fp;
+					if (makePrimPort(primNP, scanLT, fp, portNumber)) return true;
 					for(int k=0; k<portNumber; k++)
 					{
-						if (primnp.portlist[k].name.equalsIgnoreCase(fp.name))
+						if (primNP.portList[k].name.equalsIgnoreCase(fp.name))
 						{
-							System.out.println("Duplicate port name: " + fp.name + " (line " + scanlt.lineno + ")");
+							System.out.println("Duplicate port name: " + fp.name + " (line " + scanLT.lineNumber + ")");
 							return true;
 						}
 					}
@@ -1250,51 +1328,46 @@ public class FPGA extends Technology
 				}
 			}
 		}
-	
+
 		// get nets
-		if (ltnets != null)
+		if (ltNets != null)
 		{
 			// count the nets
 			int netCount = 0;
-			for(int j=0; j<ltnets.size(); j++)
+			for(int j=0; j<ltNets.size(); j++)
 			{
-				if (ltnets.isLeaf(j)) continue;
-				LispTree scanlt = ltnets.getBranch(j);
-				if (scanlt.keyword.equalsIgnoreCase("net")) netCount++;
+				if (ltNets.isLeaf(j)) continue;
+				LispTree scanLT = ltNets.getBranch(j);
+				if (scanLT.keyword.equalsIgnoreCase("net")) netCount++;
 			}
-	
-			// create local net structures
-			primnp.netlist = new FPGANet[netCount];
-			for(int i=0; i<netCount; i++)
-			{
-				primnp.netlist[i] = new FPGANet();
-			}
-	
+
 			// create the nets
-			int i = 0;
-			for(int j=0; j<ltnets.size(); j++)
+			primNP.netList = new FPGANet[netCount];
+			int index = 0;
+			for(int j=0; j<ltNets.size(); j++)
 			{
-				if (ltnets.isLeaf(j)) continue;
-				LispTree scanlt = ltnets.getBranch(j);
-				if (scanlt.keyword.equalsIgnoreCase("net"))
+				if (ltNets.isLeaf(j)) continue;
+				LispTree scanLT = ltNets.getBranch(j);
+				if (scanLT.keyword.equalsIgnoreCase("net"))
 				{
-					if (fpga_makeprimnet(primnp, scanlt, primnp, primnp.netlist[i])) return true;
-					i++;
+					primNP.netList[index] = new FPGANet();
+					if (makePrimNet(primNP, scanLT, primNP, primNP.netList[index])) return true;
+					index++;
 				}
 			}
 		}
-	
+
 		// associate nets and ports
-		for(int k=0; k<primnp.portlist.length; k++)
+		for(int k=0; k<primNP.numPorts(); k++)
 		{
-			FPGAPort fp = primnp.portlist[k];
-			for(int i=0; i<primnp.netlist.length; i++)
+			FPGAPort fp = primNP.portList[k];
+			for(int i=0; i<primNP.numNets(); i++)
 			{
 				boolean found = false;
-				for(int j=0; j<primnp.netlist[i].segf.length; j++)
+				for(int j=0; j<primNP.netList[i].segFrom.length; j++)
 				{
-					if ((primnp.netlist[i].segf[j].getX() == fp.posx && primnp.netlist[i].segf[j].getY() == fp.posy) ||
-						(primnp.netlist[i].segt[j].getX() == fp.posx && primnp.netlist[i].segt[j].getY() == fp.posy))
+					if ((primNP.netList[i].segFrom[j].getX() == fp.posX && primNP.netList[i].segFrom[j].getY() == fp.posY) ||
+						(primNP.netList[i].segTo[j].getX() == fp.posX && primNP.netList[i].segTo[j].getY() == fp.posY))
 					{
 						fp.con = i;
 						found = true;
@@ -1306,204 +1379,200 @@ public class FPGA extends Technology
 		}
 
 		// create the ports on the primitive
-		PrimitivePort [] ports = new PrimitivePort[primnp.portlist.length];
-		for(int i=0; i<primnp.portlist.length; i++)
+		PrimitivePort [] ports = new PrimitivePort[primNP.numPorts()];
+		for(int i=0; i<primNP.numPorts(); i++)
 		{
-			FPGAPort fp = primnp.portlist[i];
-			fp.pp = PrimitivePort.newInstance(tech, primnp, new ArcProto [] {tech.wire_arc}, fp.name, 0,180, fp.con,
-				fp.characteristic,EdgeH.fromCenter(fp.posx), EdgeV.fromCenter(fp.posy), EdgeH.fromCenter(fp.posx),
-				EdgeV.fromCenter(fp.posy));
+			FPGAPort fp = primNP.portList[i];
+			fp.pp = PrimitivePort.newInstance(tech, primNP, new ArcProto [] {tech.wireArc}, fp.name, 0,180, fp.con,
+				fp.characteristic,EdgeH.fromCenter(fp.posX), EdgeV.fromCenter(fp.posY), EdgeH.fromCenter(fp.posX),
+				EdgeV.fromCenter(fp.posY));
 			ports[i] = fp.pp;
 		}
-		primnp.addPrimitivePorts(ports);
+		primNP.addPrimitivePorts(ports);
 
 		// get pips
-		if (ltcomponents != null)
+		if (ltComponents != null)
 		{
 			// count the pips
 			int pipCount = 0;
-			for(int j=0; j<ltcomponents.size(); j++)
+			for(int j=0; j<ltComponents.size(); j++)
 			{
-				if (ltcomponents.isLeaf(j)) continue;
-				LispTree scanlt = ltcomponents.getBranch(j);
-				if (scanlt.keyword.equalsIgnoreCase("pip")) pipCount++;
+				if (ltComponents.isLeaf(j)) continue;
+				LispTree scanLT = ltComponents.getBranch(j);
+				if (scanLT.keyword.equalsIgnoreCase("pip")) pipCount++;
 			}
-	
-			// create local pips structures
-			primnp.piplist = new FPGAPip[pipCount];
-			for(int i=0; i<pipCount; i++)
-				primnp.piplist[i] = new FPGAPip();
-	
+
 			// create the pips
+			primNP.pipList = new FPGAPip[pipCount];
 			int i = 0;
-			for(int j=0; j<ltcomponents.size(); j++)
+			for(int j=0; j<ltComponents.size(); j++)
 			{
-				if (ltcomponents.isLeaf(j)) continue;
-				LispTree scanlt = ltcomponents.getBranch(j);
-				if (scanlt.keyword.equalsIgnoreCase("pip"))
+				if (ltComponents.isLeaf(j)) continue;
+				LispTree scanLT = ltComponents.getBranch(j);
+				if (scanLT.keyword.equalsIgnoreCase("pip"))
 				{
-					if (fpga_makeprimpip(primnp, scanlt, primnp, primnp.piplist[i])) return true;
+					primNP.pipList[i] = new FPGAPip();
+					if (makePrimPip(primNP, scanLT, primNP, primNP.pipList[i])) return true;
 					i++;
 				}
 			}
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to add a port to primitive "np" from the tree in "lt" and
 	 * store information about it in the local structure "fp".
 	 * Tree has "(port...)" structure.  Returns true on error.
 	 */
-	private static boolean fpga_makeprimport(PrimitiveNode np, LispTree lt, FPGAPort fp, int net)
+	private static boolean makePrimPort(PrimitiveNode np, LispTree lt, FPGAPort fp, int net)
 	{
 		// look for keywords
-		LispTree ltname = null, ltposition = null, ltdirection = null;
+		LispTree ltName = null, ltPosition = null, ltDirection = null;
 		for(int j=0; j<lt.size(); j++)
 		{
 			if (lt.isLeaf(j)) continue;
-			LispTree scanlt = lt.getBranch(j);
-			if (scanlt.keyword.equalsIgnoreCase("name"))
+			LispTree scanLT = lt.getBranch(j);
+			if (scanLT.keyword.equalsIgnoreCase("name"))
 			{
-				ltname = scanlt;
+				ltName = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("position"))
+			if (scanLT.keyword.equalsIgnoreCase("position"))
 			{
-				ltposition = scanlt;
+				ltPosition = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("direction"))
+			if (scanLT.keyword.equalsIgnoreCase("direction"))
 			{
-				ltdirection = scanlt;
+				ltDirection = scanLT;
 				continue;
 			}
 		}
-	
-		// validate
-		if (ltname == null)
-		{
-			System.out.println("Port has no name (line " + lt.lineno + ")");
-			return true;
-		}
-		if (ltname.size() != 1 || ltname.isBranch(0))
-		{
-			System.out.println("Port name must be a single atom (line " + ltname.lineno + ")");
-			return true;
-		}
-		fp.name = ltname.getLeaf(0);
 
-		if (ltposition == null)
+		// validate
+		if (ltName == null)
 		{
-			System.out.println("Port has no position (line " + lt.lineno + ")");
+			System.out.println("Port has no name (line " + lt.lineNumber + ")");
 			return true;
 		}
-		if (ltposition.size() != 2 || ltposition.isBranch(0) || ltposition.isBranch(1))
+		if (ltName.size() != 1 || ltName.isBranch(0))
 		{
-			System.out.println("Port position must be two atoms (line " + ltposition.lineno + ")");
+			System.out.println("Port name must be a single atom (line " + ltName.lineNumber + ")");
 			return true;
 		}
-		fp.posx = TextUtils.atof(ltposition.getLeaf(0)) - np.getDefWidth()/2;
-		fp.posy = TextUtils.atof(ltposition.getLeaf(1)) - np.getDefHeight()/2;
-	
+		fp.name = ltName.getLeaf(0);
+
+		if (ltPosition == null)
+		{
+			System.out.println("Port has no position (line " + lt.lineNumber + ")");
+			return true;
+		}
+		if (ltPosition.size() != 2 || ltPosition.isBranch(0) || ltPosition.isBranch(1))
+		{
+			System.out.println("Port position must be two atoms (line " + ltPosition.lineNumber + ")");
+			return true;
+		}
+		fp.posX = TextUtils.atof(ltPosition.getLeaf(0)) - np.getDefWidth()/2;
+		fp.posY = TextUtils.atof(ltPosition.getLeaf(1)) - np.getDefHeight()/2;
+
 		// determine directionality
 		fp.characteristic = PortCharacteristic.UNKNOWN;
-		if (ltdirection != null)
+		if (ltDirection != null)
 		{
-			if (ltdirection.size() != 1 || ltdirection.isBranch(0))
+			if (ltDirection.size() != 1 || ltDirection.isBranch(0))
 			{
-				System.out.println("Port direction must be a single atom (line " + ltdirection.lineno + ")");
+				System.out.println("Port direction must be a single atom (line " + ltDirection.lineNumber + ")");
 				return true;
 			}
-			String dir = ltdirection.getLeaf(0);
+			String dir = ltDirection.getLeaf(0);
 			if (dir.equalsIgnoreCase("input")) fp.characteristic = PortCharacteristic.IN; else
 				if (dir.equalsIgnoreCase("output")) fp.characteristic = PortCharacteristic.OUT; else
 					if (dir.equalsIgnoreCase("bidir")) fp.characteristic = PortCharacteristic.BIDIR; else
 			{
-				System.out.println("Unknown port direction (line " + ltdirection.lineno + ")");
+				System.out.println("Unknown port direction (line " + ltDirection.lineNumber + ")");
 				return true;
 			}
 		}
 		fp.con = net;
-
 		return false;
 	}
-	
+
 	/**
 	 * Method to add a net to primitive "np" from the tree in "lt" and store information
-	 * about it in the local object "fnet".
+	 * about it in the local object "fNet".
 	 * Tree has "(net...)" structure.  Returns true on error.
 	 */
-	private static boolean fpga_makeprimnet(PrimitiveNode np, LispTree lt, FPGANode fn, FPGANet fnet)
+	private static boolean makePrimNet(PrimitiveNode np, LispTree lt, FPGANode fn, FPGANet fNet)
 	{
 		// scan for information in the tree
-		fnet.name = null;
+		fNet.name = null;
 		int segCount = 0;
 		Point2D [] seg = new Point2D[2];
 		for(int j=0; j<lt.size(); j++)
 		{
 			if (lt.isLeaf(j)) continue;
-			LispTree scanlt = lt.getBranch(j);
-			if (scanlt.keyword.equalsIgnoreCase("name") && scanlt.size() == 1 && scanlt.isLeaf(0))
+			LispTree scanLT = lt.getBranch(j);
+			if (scanLT.keyword.equalsIgnoreCase("name") && scanLT.size() == 1 && scanLT.isLeaf(0))
 			{
-				if (fnet.name != null)
+				if (fNet.name != null)
 				{
-					System.out.println("Multiple names for network (line " + lt.lineno + ")");
+					System.out.println("Multiple names for network (line " + lt.lineNumber + ")");
 					return true;
 				}
-				fnet.name = scanlt.getLeaf(0);
+				fNet.name = scanLT.getLeaf(0);
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("segment"))
+			if (scanLT.keyword.equalsIgnoreCase("segment"))
 			{
 				int pos = 0;
 				for(int i=0; i<2; i++)
 				{
 					// get end of net segment
-					if (scanlt.size() < pos+1)
+					if (scanLT.size() < pos+1)
 					{
-						System.out.println("Incomplete block net segment (line " + scanlt.lineno + ")");
+						System.out.println("Incomplete block net segment (line " + scanLT.lineNumber + ")");
 						return true;
 					}
-					if (scanlt.isBranch(pos))
+					if (scanLT.isBranch(pos))
 					{
-						System.out.println("Must have atoms in block net segment (line " + scanlt.lineno + ")");
+						System.out.println("Must have atoms in block net segment (line " + scanLT.lineNumber + ")");
 						return true;
 					}
-					if (scanlt.getLeaf(pos).equalsIgnoreCase("coord"))
+					if (scanLT.getLeaf(pos).equalsIgnoreCase("coord"))
 					{
-						if (scanlt.size() < pos+3)
+						if (scanLT.size() < pos+3)
 						{
-							System.out.println("Incomplete block net segment (line " + scanlt.lineno + ")");
+							System.out.println("Incomplete block net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
-						if (scanlt.isBranch(pos+1) || scanlt.isBranch(pos+2))
+						if (scanLT.isBranch(pos+1) || scanLT.isBranch(pos+2))
 						{
-							System.out.println("Must have atoms in block net segment (line " + scanlt.lineno + ")");
+							System.out.println("Must have atoms in block net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
-						double x = TextUtils.atof(scanlt.getLeaf(pos+1)) - np.getDefWidth()/2;
-						double y = TextUtils.atof(scanlt.getLeaf(pos+2)) - np.getDefHeight()/2;
+						double x = TextUtils.atof(scanLT.getLeaf(pos+1)) - np.getDefWidth()/2;
+						double y = TextUtils.atof(scanLT.getLeaf(pos+2)) - np.getDefHeight()/2;
 						seg[i] = new Point2D.Double(x, y);
 						pos += 3;
-					} else if (scanlt.getLeaf(pos).equalsIgnoreCase("port"))
+					} else if (scanLT.getLeaf(pos).equalsIgnoreCase("port"))
 					{
-						if (scanlt.size() < pos+2)
+						if (scanLT.size() < pos+2)
 						{
-							System.out.println("Incomplete block net segment (line " + scanlt.lineno + ")");
+							System.out.println("Incomplete block net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
-						if (scanlt.isBranch(pos+1))
+						if (scanLT.isBranch(pos+1))
 						{
-							System.out.println("Must have atoms in block net segment (line " + scanlt.lineno + ")");
+							System.out.println("Must have atoms in block net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
-	
+
 						// find port
 						int found = -1;
-						for(int k=0; k<fn.portlist.length; k++)
+						for(int k=0; k<fn.numPorts(); k++)
 						{
-							if (fn.portlist[k].name.equalsIgnoreCase(scanlt.getLeaf(pos+1)))
+							if (fn.portList[k].name.equalsIgnoreCase(scanLT.getLeaf(pos+1)))
 							{
 								found = k;
 								break;
@@ -1511,17 +1580,17 @@ public class FPGA extends Technology
 						}
 						if (found < 0)
 						{
-							System.out.println("Unknown port on primitive net segment (line " + scanlt.lineno + ")");
+							System.out.println("Unknown port on primitive net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
-						double x = fn.portlist[found].posx;
-						double y = fn.portlist[found].posy;
+						double x = fn.portList[found].posX;
+						double y = fn.portList[found].posY;
 						seg[i] = new Point2D.Double(x, y);
 						pos += 2;
 					} else
 					{
-						System.out.println("Unknown keyword '" + scanlt.getLeaf(pos) +
-							"' in block net segment (line " + scanlt.lineno + ")");
+						System.out.println("Unknown keyword '" + scanLT.getLeaf(pos) +
+							"' in block net segment (line " + scanLT.lineNumber + ")");
 						return true;
 					}
 				}
@@ -1530,587 +1599,583 @@ public class FPGA extends Technology
 				Point2D [] newTo = new Point2D[segCount+1];
 				for(int i=0; i<segCount; i++)
 				{
-					newFrom[i] = fnet.segf[i];
-					newTo[i] = fnet.segt[i];
+					newFrom[i] = fNet.segFrom[i];
+					newTo[i] = fNet.segTo[i];
 				}
 				newFrom[segCount] = seg[0];
 				newTo[segCount] = seg[1];
-				fnet.segf = newFrom;
-				fnet.segt = newTo;
+				fNet.segFrom = newFrom;
+				fNet.segTo = newTo;
 				segCount++;
 				continue;
 			}
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to add a pip to primitive "np" from the tree in "lt" and save
 	 * information about it in the local object "fpip".
 	 * Tree has "(pip...)" structure.  Returns true on error.
 	 */
-	private static boolean fpga_makeprimpip(PrimitiveNode np, LispTree lt, FPGANode fn, FPGAPip fpip)
+	private static boolean makePrimPip(PrimitiveNode np, LispTree lt, FPGANode fn, FPGAPip fPip)
 	{
 		// scan for information in this FPGAPIP object
-		fpip.name = null;
-		fpip.con1 = fpip.con2 = -1;
+		fPip.name = null;
+		fPip.con1 = fPip.con2 = -1;
 		for(int j=0; j<lt.size(); j++)
 		{
 			if (lt.isLeaf(j)) continue;
-			LispTree scanlt = lt.getBranch(j);
-			if (scanlt.keyword.equalsIgnoreCase("name") && scanlt.size() == 1 && scanlt.isLeaf(0))
+			LispTree scanLT = lt.getBranch(j);
+			if (scanLT.keyword.equalsIgnoreCase("name") && scanLT.size() == 1 && scanLT.isLeaf(0))
 			{
-				if (fpip.name != null)
+				if (fPip.name != null)
 				{
-					System.out.println("Multiple names for pip (line " + lt.lineno + ")");
+					System.out.println("Multiple names for pip (line " + lt.lineNumber + ")");
 					return true;
 				}
-				fpip.name = scanlt.getLeaf(0);
+				fPip.name = scanLT.getLeaf(0);
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("position") && scanlt.size() == 2 &&
-				scanlt.isLeaf(0) && scanlt.isLeaf(1))
+			if (scanLT.keyword.equalsIgnoreCase("position") && scanLT.size() == 2 &&
+				scanLT.isLeaf(0) && scanLT.isLeaf(1))
 			{
-				fpip.posx = TextUtils.atof(scanlt.getLeaf(0)); // + np.lowx;
-				fpip.posy = TextUtils.atof(scanlt.getLeaf(1)); // + np.lowy;
+				fPip.posX = TextUtils.atof(scanLT.getLeaf(0)) - np.getDefWidth()/2;
+				fPip.posY = TextUtils.atof(scanLT.getLeaf(1)) - np.getDefHeight()/2;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("connectivity") && scanlt.size() == 2 &&
-				scanlt.isLeaf(0) && scanlt.isLeaf(1))
+			if (scanLT.keyword.equalsIgnoreCase("connectivity") && scanLT.size() == 2 &&
+				scanLT.isLeaf(0) && scanLT.isLeaf(1))
 			{
-				for(int i=0; i<fn.netlist.length; i++)
+				for(int i=0; i<fn.numNets(); i++)
 				{
-					if (fn.netlist[i].name.equalsIgnoreCase(scanlt.getLeaf(0)))
-						fpip.con1 = i;
-					if (fn.netlist[i].name.equalsIgnoreCase(scanlt.getLeaf(1)))
-						fpip.con2 = i;
+					if (fn.netList[i].name.equalsIgnoreCase(scanLT.getLeaf(0))) fPip.con1 = i;
+					if (fn.netList[i].name.equalsIgnoreCase(scanLT.getLeaf(1))) fPip.con2 = i;
 				}
 				continue;
 			}
 		}
 		return false;
 	}
-	
+
 	/******************** ARCHITECTURE PARSING: LAYOUT ********************/
-	
+
 	/**
 	 * Method to scan the entire tree for block definitions and create them.
 	 */
-	private static Cell fpga_placeprimitives(LispTree lt)
+	private static Cell placePrimitives(LispTree lt)
 	{
 		// look through top level for the "blockdef"s
-		Cell toplevel = null;
+		Cell topLevel = null;
 		for(int i=0; i<lt.size(); i++)
 		{
 			if (lt.isLeaf(i)) continue;
-			LispTree sublt = lt.getBranch(i);
-			if (!sublt.keyword.equalsIgnoreCase("blockdef") &&
-				!sublt.keyword.equalsIgnoreCase("architecture")) continue;
-	
+			LispTree subLT = lt.getBranch(i);
+			if (!subLT.keyword.equalsIgnoreCase("blockdef") &&
+				!subLT.keyword.equalsIgnoreCase("architecture")) continue;
+
 			// create the primitive
-			Cell np = fpga_makecell(sublt);
+			Cell np = makeCell(subLT);
 			if (np == null) return null;
-			if (sublt.keyword.equalsIgnoreCase("architecture")) toplevel = np;
+			if (subLT.keyword.equalsIgnoreCase("architecture")) topLevel = np;
 		}
-		return toplevel;
+		return topLevel;
 	}
-	
+
 	/**
 	 * Method to create a cell from a subtree "lt".
 	 * Tree has "(blockdef...)" or "(architecture...)" structure.
 	 * Returns nonzero on error.
 	 */
-	private static Cell fpga_makecell(LispTree lt)
+	private static Cell makeCell(LispTree lt)
 	{
 		// find all of the pieces of this block
-		LispTree ltattribute = null, ltnets = null, ltports = null, ltcomponents = null;
+		LispTree ltAttribute = null, ltNets = null, ltPorts = null, ltComponents = null;
 		for(int i=0; i<lt.size(); i++)
 		{
 			if (lt.isLeaf(i)) continue;
-			LispTree scanlt = lt.getBranch(i);
-			if (scanlt.keyword.equalsIgnoreCase("attributes"))
+			LispTree scanLT = lt.getBranch(i);
+			if (scanLT.keyword.equalsIgnoreCase("attributes"))
 			{
-				if (ltattribute != null)
+				if (ltAttribute != null)
 				{
-					System.out.println("Multiple 'attributes' sections for a block (line " + lt.lineno + ")");
+					System.out.println("Multiple 'attributes' sections for a block (line " + lt.lineNumber + ")");
 					return null;
 				}
-				ltattribute = scanlt;
+				ltAttribute = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("nets"))
+			if (scanLT.keyword.equalsIgnoreCase("nets"))
 			{
-				if (ltnets != null)
+				if (ltNets != null)
 				{
-					System.out.println("Multiple 'nets' sections for a block (line " + lt.lineno + ")");
+					System.out.println("Multiple 'nets' sections for a block (line " + lt.lineNumber + ")");
 					return null;
 				}
-				ltnets = scanlt;
+				ltNets = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("ports"))
+			if (scanLT.keyword.equalsIgnoreCase("ports"))
 			{
-				if (ltports != null)
+				if (ltPorts != null)
 				{
-					System.out.println("Multiple 'ports' sections for a block (line " + lt.lineno + ")");
+					System.out.println("Multiple 'ports' sections for a block (line " + lt.lineNumber + ")");
 					return null;
 				}
-				ltports = scanlt;
+				ltPorts = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("components"))
+			if (scanLT.keyword.equalsIgnoreCase("components"))
 			{
-				if (ltcomponents != null)
+				if (ltComponents != null)
 				{
-					System.out.println("Multiple 'components' sections for a block (line " + lt.lineno + ")");
+					System.out.println("Multiple 'components' sections for a block (line " + lt.lineNumber + ")");
 					return null;
 				}
-				ltcomponents = scanlt;
+				ltComponents = scanLT;
 				continue;
 			}
 		}
-	
+
 		// scan the attributes section
-		if (ltattribute == null)
+		if (ltAttribute == null)
 		{
-			System.out.println("Missing 'attributes' sections on a block (line " + lt.lineno + ")");
+			System.out.println("Missing 'attributes' sections on a block (line " + lt.lineNumber + ")");
 			return null;
 		}
-		String blockname = null;
-		boolean gotsize = false;
-		double sizex = 0, sizey = 0;
-		for(int j=0; j<ltattribute.size(); j++)
+		String blockName = null;
+		boolean gotSize = false;
+		double sizeX = 0, sizeY = 0;
+		for(int j=0; j<ltAttribute.size(); j++)
 		{
-			if (ltattribute.isLeaf(j)) continue;
-			LispTree scanlt = ltattribute.getBranch(j);
-			if (scanlt.keyword.equalsIgnoreCase("name"))
+			if (ltAttribute.isLeaf(j)) continue;
+			LispTree scanLT = ltAttribute.getBranch(j);
+			if (scanLT.keyword.equalsIgnoreCase("name"))
 			{
-				if (scanlt.size() != 1 || scanlt.isBranch(0))
+				if (scanLT.size() != 1 || scanLT.isBranch(0))
 				{
-					System.out.println("Block 'name' attribute should take a single atomic parameter (line " + scanlt.lineno + ")");
+					System.out.println("Block 'name' attribute should take a single atomic parameter (line " + scanLT.lineNumber + ")");
 					return null;
 				}
-				blockname = scanlt.getLeaf(0);
+				blockName = scanLT.getLeaf(0);
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("size") && scanlt.size() == 2 &&
-				scanlt.isLeaf(0) && scanlt.isLeaf(1))
+			if (scanLT.keyword.equalsIgnoreCase("size") && scanLT.size() == 2 &&
+				scanLT.isLeaf(0) && scanLT.isLeaf(1))
 			{
-				gotsize = true;
-				sizex = TextUtils.atof(scanlt.getLeaf(0));
-				sizey = TextUtils.atof(scanlt.getLeaf(1));
+				gotSize = true;
+				sizeX = TextUtils.atof(scanLT.getLeaf(0));
+				sizeY = TextUtils.atof(scanLT.getLeaf(1));
 				continue;
 			}
 		}
-	
+
 		// validate
-		if (blockname == null)
+		if (blockName == null)
 		{
-			System.out.println("Missing 'name' attribute in block definition (line " + ltattribute.lineno + ")");
+			System.out.println("Missing 'name' attribute in block definition (line " + ltAttribute.lineNumber + ")");
 			return null;
 		}
-	
+
 		// make the cell
-		Cell cell = Cell.newInstance(Library.getCurrent(), blockname);
+		Cell cell = Cell.newInstance(Library.getCurrent(), blockName);
 		if (cell == null) return null;
-		System.out.println("Creating cell '" + blockname + "'");
-	
+		System.out.println("Creating cell '" + blockName + "'");
+
 		// force size by placing pins in the corners
-		if (gotsize)
+		if (gotSize)
 		{
 			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(0.5, 0.5), 1, 1, cell);
-			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(sizex-0.5, 0.5), 1, 1, cell);
-			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(0.5, sizey-0.5), 1, 1, cell);
-			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(sizex-0.5, sizey-0.5), 1, 1, cell);
+			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(sizeX-0.5, 0.5), 1, 1, cell);
+			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(0.5, sizeY-0.5), 1, 1, cell);
+			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(sizeX-0.5, sizeY-0.5), 1, 1, cell);
 		}
-	
+
 		// add any unrecognized attributes
-		for(int j=0; j<ltattribute.size(); j++)
+		for(int j=0; j<ltAttribute.size(); j++)
 		{
-			if (ltattribute.isLeaf(j)) continue;
-			LispTree scanlt = ltattribute.getBranch(j);
-			if (scanlt.keyword.equalsIgnoreCase("name")) continue;
-			if (scanlt.keyword.equalsIgnoreCase("size")) continue;
-	
-			if (scanlt.size() != 1 || scanlt.isBranch(0))
+			if (ltAttribute.isLeaf(j)) continue;
+			LispTree scanLT = ltAttribute.getBranch(j);
+			if (scanLT.keyword.equalsIgnoreCase("name")) continue;
+			if (scanLT.keyword.equalsIgnoreCase("size")) continue;
+
+			if (scanLT.size() != 1 || scanLT.isBranch(0))
 			{
-				System.out.println("Attribute '" + scanlt.keyword + "' attribute should take a single atomic parameter (line " +
-					scanlt.lineno + ")");
+				System.out.println("Attribute '" + scanLT.keyword + "' attribute should take a single atomic parameter (line " +
+					scanLT.lineNumber + ")");
 				return null;
 			}
-			cell.newVar(scanlt.keyword, scanlt.getLeaf(0));
+			cell.newVar(scanLT.keyword, scanLT.getLeaf(0));
 		}
-	
+
 		// place block components
-		if (ltcomponents != null)
+		if (ltComponents != null)
 		{
-			for(int j=0; j<ltcomponents.size(); j++)
+			for(int j=0; j<ltComponents.size(); j++)
 			{
-				if (ltcomponents.isLeaf(j)) continue;
-				LispTree scanlt = ltcomponents.getBranch(j);
-				if (scanlt.keyword.equalsIgnoreCase("repeater"))
+				if (ltComponents.isLeaf(j)) continue;
+				LispTree scanLT = ltComponents.getBranch(j);
+				if (scanLT.keyword.equalsIgnoreCase("repeater"))
 				{
-					if (fpga_makeblockrepeater(cell, scanlt)) return null;
+					if (makeBlockRepeater(cell, scanLT)) return null;
 					continue;
 				}
-				if (scanlt.keyword.equalsIgnoreCase("instance"))
+				if (scanLT.keyword.equalsIgnoreCase("instance"))
 				{
-					if (fpga_makeblockinstance(cell, scanlt)) return null;
+					if (makeBlockInstance(cell, scanLT)) return null;
 					continue;
 				}
 			}
 		}
-	
+
 		// place block ports
-		if (ltports != null)
+		if (ltPorts != null)
 		{
-			for(int j=0; j<ltports.size(); j++)
+			for(int j=0; j<ltPorts.size(); j++)
 			{
-				if (ltports.isLeaf(j)) continue;
-				LispTree scanlt = ltports.getBranch(j);
-				if (scanlt.keyword.equalsIgnoreCase("port"))
+				if (ltPorts.isLeaf(j)) continue;
+				LispTree scanLT = ltPorts.getBranch(j);
+				if (scanLT.keyword.equalsIgnoreCase("port"))
 				{
-					if (fpga_makeblockport(cell, scanlt)) return null;
+					if (makeBlockPort(cell, scanLT)) return null;
 				}
 			}
 		}
-	
+
 		// place block nets
-		if (ltnets != null)
+		if (ltNets != null)
 		{
 			// read the block nets
-			for(int j=0; j<ltnets.size(); j++)
+			for(int j=0; j<ltNets.size(); j++)
 			{
-				if (ltnets.isLeaf(j)) continue;
-				LispTree scanlt = ltnets.getBranch(j);
-				if (scanlt.keyword.equalsIgnoreCase("net"))
+				if (ltNets.isLeaf(j)) continue;
+				LispTree scanLT = ltNets.getBranch(j);
+				if (scanLT.keyword.equalsIgnoreCase("net"))
 				{
-					if (fpga_makeblocknet(cell, scanlt)) return null;
+					if (makeBlockNet(cell, scanLT)) return null;
 				}
 			}
 		}
 		return cell;
 	}
-	
+
 	/**
 	 * Method to place an instance in cell "cell" from the LISPTREE in "lt".
 	 * Tree has "(instance...)" structure.  Returns true on error.
 	 */
-	private static boolean fpga_makeblockinstance(Cell cell, LispTree lt)
+	private static boolean makeBlockInstance(Cell cell, LispTree lt)
 	{
 		// scan for information in this block instance object
-		LispTree lttype = null, ltname = null, ltposition = null, ltrotation = null, ltattribute = null;
+		LispTree ltType = null, ltName = null, ltPosition = null, ltRotation = null, ltAttribute = null;
 		for(int i=0; i<lt.size(); i++)
 		{
 			if (lt.isLeaf(i)) continue;
-			LispTree scanlt = lt.getBranch(i);
-			if (scanlt.keyword.equalsIgnoreCase("type"))
+			LispTree scanLT = lt.getBranch(i);
+			if (scanLT.keyword.equalsIgnoreCase("type"))
 			{
-				if (lttype != null)
+				if (ltType != null)
 				{
-					System.out.println("Multiple 'type' sections for a block (line " + lt.lineno + ")");
+					System.out.println("Multiple 'type' sections for a block (line " + lt.lineNumber + ")");
 					return true;
 				}
-				lttype = scanlt;
+				ltType = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("name"))
+			if (scanLT.keyword.equalsIgnoreCase("name"))
 			{
-				if (ltname != null)
+				if (ltName != null)
 				{
-					System.out.println("Multiple 'name' sections for a block (line " + lt.lineno + ")");
+					System.out.println("Multiple 'name' sections for a block (line " + lt.lineNumber + ")");
 					return true;
 				}
-				ltname = scanlt;
+				ltName = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("position"))
+			if (scanLT.keyword.equalsIgnoreCase("position"))
 			{
-				if (ltposition != null)
+				if (ltPosition != null)
 				{
-					System.out.println("Multiple 'position' sections for a block (line " + lt.lineno + ")");
+					System.out.println("Multiple 'position' sections for a block (line " + lt.lineNumber + ")");
 					return true;
 				}
-				ltposition = scanlt;
+				ltPosition = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("rotation"))
+			if (scanLT.keyword.equalsIgnoreCase("rotation"))
 			{
-				if (ltrotation != null)
+				if (ltRotation != null)
 				{
-					System.out.println("Multiple 'rotation' sections for a block (line " + lt.lineno + ")");
+					System.out.println("Multiple 'rotation' sections for a block (line " + lt.lineNumber + ")");
 					return true;
 				}
-				ltrotation = scanlt;
+				ltRotation = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("attributes"))
+			if (scanLT.keyword.equalsIgnoreCase("attributes"))
 			{
-				if (ltattribute != null)
+				if (ltAttribute != null)
 				{
-					System.out.println("Multiple 'attributes' sections for a block (line " + lt.lineno + ")");
+					System.out.println("Multiple 'attributes' sections for a block (line " + lt.lineNumber + ")");
 					return true;
 				}
-				ltattribute = scanlt;
+				ltAttribute = scanLT;
 				continue;
 			}
 		}
-	
+
 		// validate
-		if (lttype == null)
+		if (ltType == null)
 		{
-			System.out.println("No 'type' specified for block instance (line " + lt.lineno + ")");
+			System.out.println("No 'type' specified for block instance (line " + lt.lineNumber + ")");
 			return true;
 		}
-		if (lttype.size() != 1 || lttype.isBranch(0))
+		if (ltType.size() != 1 || ltType.isBranch(0))
 		{
-			System.out.println("Need one atom in 'type' of block instance (line " + lttype.lineno + ")");
+			System.out.println("Need one atom in 'type' of block instance (line " + ltType.lineNumber + ")");
 			return true;
 		}
-		NodeProto np = tech.findNodeProto(lttype.getLeaf(0));
-		if (np == null) np = cell.getLibrary().findNodeProto(lttype.getLeaf(0));
+		NodeProto np = tech.findNodeProto(ltType.getLeaf(0));
+		if (np == null) np = cell.getLibrary().findNodeProto(ltType.getLeaf(0));
 		if (np == null)
 		{
-			System.out.println("Cannot find block type '" + lttype.getLeaf(0) + "' (line " + lttype.lineno + ")");
+			System.out.println("Cannot find block type '" + ltType.getLeaf(0) + "' (line " + ltType.lineNumber + ")");
 			return true;
 		}
-		if (ltposition == null)
+		if (ltPosition == null)
 		{
-			System.out.println("No 'position' specified for block instance (line " + lt.lineno + ")");
+			System.out.println("No 'position' specified for block instance (line " + lt.lineNumber + ")");
 			return true;
 		}
-		if (ltposition.size() != 2 || ltposition.isBranch(0) || ltposition.isBranch(1))
+		if (ltPosition.size() != 2 || ltPosition.isBranch(0) || ltPosition.isBranch(1))
 		{
-			System.out.println("Need two atoms in 'position' of block instance (line " + ltposition.lineno + ")");
+			System.out.println("Need two atoms in 'position' of block instance (line " + ltPosition.lineNumber + ")");
 			return true;
 		}
 		int rotation = 0;
-		if (ltrotation != null)
+		if (ltRotation != null)
 		{
-			if (ltrotation.size() != 1 || ltrotation.isBranch(0))
+			if (ltRotation.size() != 1 || ltRotation.isBranch(0))
 			{
-				System.out.println("Need one atom in 'rotation' of block instance (line " + ltrotation.lineno + ")");
+				System.out.println("Need one atom in 'rotation' of block instance (line " + ltRotation.lineNumber + ")");
 				return true;
 			}
-			rotation = TextUtils.atoi(ltrotation.getLeaf(0)) * 10;
+			rotation = TextUtils.atoi(ltRotation.getLeaf(0)) * 10;
 		}
-		
+
 		// name the instance if one is given
 		String nodeName = null;
-		if (ltname != null)
+		if (ltName != null)
 		{
-			if (ltname.size() != 1 || ltname.isBranch(0))
+			if (ltName.size() != 1 || ltName.isBranch(0))
 			{
-				System.out.println("Need one atom in 'name' of block instance (line " + ltname.lineno + ")");
+				System.out.println("Need one atom in 'name' of block instance (line " + ltName.lineNumber + ")");
 				return true;
 			}
-			nodeName = ltname.getLeaf(0);
+			nodeName = ltName.getLeaf(0);
 		}
 
 		// place the instance
-		double posx = TextUtils.atof(ltposition.getLeaf(0));
-		double posy = TextUtils.atof(ltposition.getLeaf(1));
+		double posX = TextUtils.atof(ltPosition.getLeaf(0));
+		double posY = TextUtils.atof(ltPosition.getLeaf(1));
 		double wid = np.getDefWidth();
 		double hei = np.getDefHeight();
-		Point2D ctr = new Point2D.Double(posx + wid/2, posy + hei/2);
+		if (np instanceof PrimitiveNode)
+		{
+			posX += wid/2;
+			posY += hei/2;
+		}
+		Point2D ctr = new Point2D.Double(posX, posY);
 		NodeInst ni = NodeInst.makeInstance(np, ctr, wid, hei, cell, rotation, nodeName, 0);
 		if (ni == null) return true;
-	
+
 		// add any attributes
-		if (ltattribute != null)
+		if (ltAttribute != null)
 		{
-			for(int i=0; i<ltattribute.size(); i++)
+			for(int i=0; i<ltAttribute.size(); i++)
 			{
-				if (ltattribute.isLeaf(i)) continue;
-				LispTree scanlt = ltattribute.getBranch(i);
-				if (scanlt.size() != 1 || scanlt.isBranch(0))
+				if (ltAttribute.isLeaf(i)) continue;
+				LispTree scanLT = ltAttribute.getBranch(i);
+				if (scanLT.size() != 1 || scanLT.isBranch(0))
 				{
-					System.out.println("Attribute '" + scanlt.keyword+ "' attribute should take a single atomic parameter (line " + lt.lineno + ")");
+					System.out.println("Attribute '" + scanLT.keyword+ "' attribute should take a single atomic parameter (line " + lt.lineNumber + ")");
 					return true;
 				}
-				ni.newVar(scanlt.keyword, scanlt.getLeaf(0));
+				ni.newVar(scanLT.keyword, scanLT.getLeaf(0));
 			}
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to add a port to block "cell" from the tree in "lt".
 	 * Tree has "(port...)" structure.  Returns true on error.
 	 */
-	private static boolean fpga_makeblockport(Cell cell, LispTree lt)
+	private static boolean makeBlockPort(Cell cell, LispTree lt)
 	{
-		LispTree ltname = null, ltposition = null;
+		LispTree ltName = null, ltPosition = null;
 		for(int j=0; j<lt.size(); j++)
 		{
 			if (lt.isLeaf(j)) continue;
-			LispTree scanlt = lt.getBranch(j);
-			if (scanlt.keyword.equalsIgnoreCase("name"))
+			LispTree scanLT = lt.getBranch(j);
+			if (scanLT.keyword.equalsIgnoreCase("name"))
 			{
-				ltname = scanlt;
+				ltName = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("position"))
+			if (scanLT.keyword.equalsIgnoreCase("position"))
 			{
-				ltposition = scanlt;
+				ltPosition = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("direction"))
+			if (scanLT.keyword.equalsIgnoreCase("direction"))
 			{
-				// ltdirection = scanlt;
 				continue;
 			}
 		}
-	
+
 		// make the port
-		if (ltname == null)
+		if (ltName == null)
 		{
-			System.out.println("Port has no name (line " + lt.lineno + ")");
+			System.out.println("Port has no name (line " + lt.lineNumber + ")");
 			return true;
 		}
-		if (ltname.size() != 1 || ltname.isBranch(0))
+		if (ltName.size() != 1 || ltName.isBranch(0))
 		{
-			System.out.println("Port name must be a single atom (line " + ltname.lineno + ")");
+			System.out.println("Port name must be a single atom (line " + ltName.lineNumber + ")");
 		}
-		if (ltposition == null)
+		if (ltPosition == null)
 		{
-			System.out.println("Port has no position (line " + lt.lineno + ")");
+			System.out.println("Port has no position (line " + lt.lineNumber + ")");
 			return true;
 		}
-		if (ltposition.size() != 2 || ltposition.isBranch(0) || ltposition.isBranch(1))
+		if (ltPosition.size() != 2 || ltPosition.isBranch(0) || ltPosition.isBranch(1))
 		{
-			System.out.println("Port position must be two atoms (line " + ltposition.lineno + ")");
+			System.out.println("Port position must be two atoms (line " + ltPosition.lineNumber + ")");
 		}
-	
+
 		// create the structure
-		double posx = TextUtils.atof(ltposition.getLeaf(0));
-		double posy = TextUtils.atof(ltposition.getLeaf(1));
-		NodeInst ni = NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(posx, posy), 0, 0, cell);
+		double posX = TextUtils.atof(ltPosition.getLeaf(0));
+		double posY = TextUtils.atof(ltPosition.getLeaf(1));
+		NodeInst ni = NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(posX, posY), 0, 0, cell);
 		if (ni == null)
 		{
-			System.out.println("Error creating pin for port '" + ltname.getLeaf(0) + "' (line " + lt.lineno + ")");
+			System.out.println("Error creating pin for port '" + ltName.getLeaf(0) + "' (line " + lt.lineNumber + ")");
 			return true;
 		}
 		PortInst pi = ni.getOnlyPortInst();
-		Export expp = Export.newInstance(cell, pi, ltname.getLeaf(0));
-		if (expp == null)
+		Export e = Export.newInstance(cell, pi, ltName.getLeaf(0));
+		if (e == null)
 		{
-			System.out.println("Error creating port '" + ltname.getLeaf(0) + "' (line " + lt.lineno + ")");
+			System.out.println("Error creating port '" + ltName.getLeaf(0) + "' (line " + lt.lineNumber + ")");
 			return true;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to place a repeater in cell "cell" from the LISPTREE in "lt".
 	 * Tree has "(repeater...)" structure.  Returns true on error.
 	 */
-	private static boolean fpga_makeblockrepeater(Cell cell, LispTree lt)
+	private static boolean makeBlockRepeater(Cell cell, LispTree lt)
 	{
-		LispTree ltname = null, ltporta = null, ltportb = null;
+		LispTree ltName = null, ltPortA = null, ltPortB = null;
 		for(int j=0; j<lt.size(); j++)
 		{
 			if (lt.isLeaf(j)) continue;
-			LispTree scanlt = lt.getBranch(j);
-			if (scanlt.keyword.equalsIgnoreCase("name"))
+			LispTree scanLT = lt.getBranch(j);
+			if (scanLT.keyword.equalsIgnoreCase("name"))
 			{
-				ltname = scanlt;
+				ltName = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("porta"))
+			if (scanLT.keyword.equalsIgnoreCase("porta"))
 			{
-				ltporta = scanlt;
+				ltPortA = scanLT;
 				continue;
 			}
-			if (scanlt.keyword.equalsIgnoreCase("portb"))
+			if (scanLT.keyword.equalsIgnoreCase("portb"))
 			{
-				ltportb = scanlt;
-				continue;
-			}
-			if (scanlt.keyword.equalsIgnoreCase("direction"))
-			{
-				// ltdirection = scanlt;
+				ltPortB = scanLT;
 				continue;
 			}
 		}
-	
+
 		// make the repeater
-		if (ltporta == null)
+		if (ltPortA == null)
 		{
-			System.out.println("Repeater has no 'porta' (line " + lt.lineno + ")");
+			System.out.println("Repeater has no 'porta' (line " + lt.lineNumber + ")");
 			return true;
 		}
-		if (ltporta.size() != 2 || ltporta.isBranch(0) || ltporta.isBranch(1))
+		if (ltPortA.size() != 2 || ltPortA.isBranch(0) || ltPortA.isBranch(1))
 		{
-			System.out.println("Repeater 'porta' position must be two atoms (line " + ltporta.lineno + ")");
+			System.out.println("Repeater 'porta' position must be two atoms (line " + ltPortA.lineNumber + ")");
 		}
-		if (ltportb == null)
+		if (ltPortB == null)
 		{
-			System.out.println("Repeater has no 'portb' (line " + lt.lineno + ")");
+			System.out.println("Repeater has no 'portb' (line " + lt.lineNumber + ")");
 			return true;
 		}
-		if (ltportb.size() != 2 || ltportb.isBranch(0) || ltportb.isBranch(1))
+		if (ltPortB.size() != 2 || ltPortB.isBranch(0) || ltPortB.isBranch(1))
 		{
-			System.out.println("Repeater 'portb' position must be two atoms (line " + ltportb.lineno + ")");
+			System.out.println("Repeater 'portb' position must be two atoms (line " + ltPortB.lineNumber + ")");
 		}
-		
+
 		// name the repeater if one is given
-		String repeaterName = null;
-		if (ltname != null)
+		String name = null;
+		if (ltName != null)
 		{
-			if (ltname.size() != 1 || ltname.isBranch(0))
+			if (ltName.size() != 1 || ltName.isBranch(0))
 			{
-				System.out.println("Need one atom in 'name' of block repeater (line " + ltname.lineno + ")");
+				System.out.println("Need one atom in 'name' of block repeater (line " + ltName.lineNumber + ")");
 				return true;
 			}
-			repeaterName = ltname.getLeaf(0);
+			name = ltName.getLeaf(0);
 		}
 
 		// create the repeater
-		double portax = TextUtils.atof(ltporta.getLeaf(0));
-		double portay = TextUtils.atof(ltporta.getLeaf(1));
-		double portbx = TextUtils.atof(ltportb.getLeaf(0));
-		double portby = TextUtils.atof(ltportb.getLeaf(1));
-		int angle = GenMath.figureAngle(new Point2D.Double(portax, portay), new Point2D.Double(portbx, portby));
-		Point2D ctr = new Point2D.Double((portax + portbx) / 2, (portay + portby) / 2);
-		NodeInst ni = NodeInst.makeInstance(tech.repeaterNode, ctr, 10,3, cell, angle, repeaterName, 0);
+		double portAX = TextUtils.atof(ltPortA.getLeaf(0));
+		double portAY = TextUtils.atof(ltPortA.getLeaf(1));
+		double portBX = TextUtils.atof(ltPortB.getLeaf(0));
+		double portBY = TextUtils.atof(ltPortB.getLeaf(1));
+		int angle = GenMath.figureAngle(new Point2D.Double(portAX, portAY), new Point2D.Double(portBX, portBY));
+		Point2D ctr = new Point2D.Double((portAX + portBX) / 2, (portAY + portBY) / 2);
+		NodeInst ni = NodeInst.makeInstance(tech.repeaterNode, ctr, 10,3, cell, angle, name, 0);
 		if (ni == null)
 		{
-			System.out.println("Error creating repeater (line " + lt.lineno + ")");
+			System.out.println("Error creating repeater (line " + lt.lineNumber + ")");
 			return true;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to extract block net information from the LISPTREE in "lt".
 	 * Tree has "(net...)" structure.  Returns true on error.
 	 */
-	private static boolean fpga_makeblocknet(Cell cell, LispTree lt)
+	private static boolean makeBlockNet(Cell cell, LispTree lt)
 	{
 		// find the net name
 		for(int j=0; j<lt.size(); j++)
 		{
 			if (lt.isLeaf(j)) continue;
-			LispTree scanlt = lt.getBranch(j);
-			if (scanlt.keyword.equalsIgnoreCase("name"))
+			LispTree scanLT = lt.getBranch(j);
+			if (scanLT.keyword.equalsIgnoreCase("name"))
 			{
-				if (scanlt.size() != 1 || scanlt.isBranch(0))
+				if (scanLT.size() != 1 || scanLT.isBranch(0))
 				{
-					System.out.println("Net name must be a single atom (line " + scanlt.lineno + ")");
+					System.out.println("Net name must be a single atom (line " + scanLT.lineNumber + ")");
 					return true;
 				}
-				// ltname = scanlt;
 				continue;
 			}
 		}
-	
+
 		// scan for segment objects
 		for(int j=0; j<lt.size(); j++)
 		{
 			if (lt.isLeaf(j)) continue;
-			LispTree scanlt = lt.getBranch(j);
-			if (scanlt.keyword.equalsIgnoreCase("segment"))
+			LispTree scanLT = lt.getBranch(j);
+			if (scanLT.keyword.equalsIgnoreCase("segment"))
 			{
 				int pos = 0;
 				NodeInst [] nis = new NodeInst[2];
@@ -2118,32 +2183,32 @@ public class FPGA extends Technology
 				for(int i=0; i<2; i++)
 				{
 					// get end of arc
-					if (scanlt.size() < pos+1)
+					if (scanLT.size() < pos+1)
 					{
-						System.out.println("Incomplete block net segment (line " + scanlt.lineno + ")");
+						System.out.println("Incomplete block net segment (line " + scanLT.lineNumber + ")");
 						return true;
 					}
-					if (scanlt.isBranch(pos))
+					if (scanLT.isBranch(pos))
 					{
-						System.out.println("Must have atoms in block net segment (line " + scanlt.lineno + ")");
+						System.out.println("Must have atoms in block net segment (line " + scanLT.lineNumber + ")");
 						return true;
 					}
-					if (scanlt.getLeaf(pos).equalsIgnoreCase("component"))
+					if (scanLT.getLeaf(pos).equalsIgnoreCase("component"))
 					{
-						if (scanlt.size() < pos+3)
+						if (scanLT.size() < pos+3)
 						{
-							System.out.println("Incomplete block net segment (line " + scanlt.lineno + ")");
+							System.out.println("Incomplete block net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
-						if (scanlt.isBranch(pos+1) || scanlt.isBranch(pos+2))
+						if (scanLT.isBranch(pos+1) || scanLT.isBranch(pos+2))
 						{
-							System.out.println("Must have atoms in block net segment (line " + scanlt.lineno + ")");
+							System.out.println("Must have atoms in block net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
-	
+
 						// find component and port
 						NodeInst niFound = null;
-						String name = scanlt.getLeaf(pos+1);
+						String name = scanLT.getLeaf(pos+1);
 						for(Iterator it = cell.getNodes(); it.hasNext(); )
 						{
 							NodeInst ni = (NodeInst)it.next();
@@ -2155,36 +2220,36 @@ public class FPGA extends Technology
 						}
 						if (niFound == null)
 						{
-							System.out.println("Cannot find component '" + scanlt.getLeaf(pos+1) +
-								"' in block net segment (line " + scanlt.lineno + ")");
+							System.out.println("Cannot find component '" + scanLT.getLeaf(pos+1) +
+								"' in block net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
 						nis[i] = niFound;
-						pps[i] = niFound.getProto().findPortProto(scanlt.getLeaf(pos+2));
+						pps[i] = niFound.getProto().findPortProto(scanLT.getLeaf(pos+2));
 						if (pps[i] == null)
 						{
-							System.out.println("Cannot find port '" + scanlt.getLeaf(pos+2) +
-								"' on component '" + scanlt.getLeaf(pos+1) +
-								"' in block net segment (line " + scanlt.lineno + ")");
+							System.out.println("Cannot find port '" + scanLT.getLeaf(pos+2) +
+								"' on component '" + scanLT.getLeaf(pos+1) +
+								"' in block net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
 						pos += 3;
-					} else if (scanlt.getLeaf(pos).equalsIgnoreCase("coord"))
+					} else if (scanLT.getLeaf(pos).equalsIgnoreCase("coord"))
 					{
-						if (scanlt.size() < pos+3)
+						if (scanLT.size() < pos+3)
 						{
-							System.out.println("Incomplete block net segment (line " + scanlt.lineno + ")");
+							System.out.println("Incomplete block net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
-						if (scanlt.isBranch(pos+1) || scanlt.isBranch(pos+2))
+						if (scanLT.isBranch(pos+1) || scanLT.isBranch(pos+2))
 						{
-							System.out.println("Must have atoms in block net segment (line " + scanlt.lineno + ")");
+							System.out.println("Must have atoms in block net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
-						double x = TextUtils.atof(scanlt.getLeaf(pos+1));
-						double y = TextUtils.atof(scanlt.getLeaf(pos+2));
+						double x = TextUtils.atof(scanLT.getLeaf(pos+1));
+						double y = TextUtils.atof(scanLT.getLeaf(pos+2));
 						Rectangle2D search = new Rectangle2D.Double(x, y, 0, 0);
-	
+
 						// find pin at this point
 						NodeInst niFound = null;
 						for(Iterator it = cell.searchIterator(search); it.hasNext(); )
@@ -2204,32 +2269,32 @@ public class FPGA extends Technology
 							niFound = NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(x, y), 0, 0, cell);
 							if (niFound == null)
 							{
-								System.out.println("Cannot create pin for block net segment (line " + scanlt.lineno + ")");
+								System.out.println("Cannot create pin for block net segment (line " + scanLT.lineNumber + ")");
 								return true;
 							}
 						}
 						nis[i] = niFound;
 						pps[i] = niFound.getProto().getPort(0);
 						pos += 3;
-					} else if (scanlt.getLeaf(pos).equalsIgnoreCase("port"))
+					} else if (scanLT.getLeaf(pos).equalsIgnoreCase("port"))
 					{
-						if (scanlt.size() < pos+2)
+						if (scanLT.size() < pos+2)
 						{
-							System.out.println("Incomplete block net segment (line " + scanlt.lineno + ")");
+							System.out.println("Incomplete block net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
-						if (scanlt.isBranch(pos+1))
+						if (scanLT.isBranch(pos+1))
 						{
-							System.out.println("Must have atoms in block net segment (line " + scanlt.lineno + ")");
+							System.out.println("Must have atoms in block net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
-	
+
 						// find port
-						Export pp = cell.findExport(scanlt.getLeaf(pos+1));
+						Export pp = cell.findExport(scanLT.getLeaf(pos+1));
 						if (pp == null)
 						{
-							System.out.println("Cannot find port '" + scanlt.getLeaf(pos+1) +
-								"' in block net segment (line " + scanlt.lineno + ")");
+							System.out.println("Cannot find port '" + scanLT.getLeaf(pos+1) +
+								"' in block net segment (line " + scanLT.lineNumber + ")");
 							return true;
 						}
 						pps[i] = pp.getOriginalPort().getPortProto();
@@ -2237,19 +2302,19 @@ public class FPGA extends Technology
 						pos += 2;
 					} else
 					{
-						System.out.println("Unknown keyword '" + scanlt.getLeaf(pos) +
-							"' in block net segment (line " + scanlt.lineno + ")");
+						System.out.println("Unknown keyword '" + scanLT.getLeaf(pos) +
+							"' in block net segment (line " + scanLT.lineNumber + ")");
 						return true;
 					}
 				}
-	
+
 				// now create the arc
 				PortInst pi0 = nis[0].findPortInstFromProto(pps[0]);
 				PortInst pi1 = nis[1].findPortInstFromProto(pps[1]);
-				ArcInst ai = ArcInst.makeInstance(tech.wire_arc, 0, pi0, pi1);
+				ArcInst ai = ArcInst.makeInstance(tech.wireArc, 0, pi0, pi1);
 				if (ai == null)
 				{
-					System.out.println("Cannot run segment (line " + scanlt.lineno + ")");
+					System.out.println("Cannot run segment (line " + scanLT.lineNumber + ")");
 					return true;
 				}
 			}

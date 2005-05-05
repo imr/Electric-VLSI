@@ -83,6 +83,26 @@ public class TextUtils
     }
 
 	/**
+	 * Method to determine if one string is a subset of another, but case-insensitive.
+	 * @param main the main string.
+	 * @param with the substring.
+	 * @return true if the main string starts with the substring, ignoring case.
+	 */
+	public static boolean startsWithIgnoreCase(String main, String with)
+	{
+		int mainLen = main.length();
+		int withLen = with.length();
+		if (withLen > mainLen) return false;
+		for(int i=0; i<withLen; i++)
+		{
+			char mainChr = Character.toLowerCase(main.charAt(i));
+			char withChr = Character.toLowerCase(with.charAt(i));
+			if (mainChr != withChr) return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Method to parse the floating-point number in a string.
 	 * <P>
 	 * There is one reason to use this method instead of Double.parseDouble...

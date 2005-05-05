@@ -4,6 +4,29 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02n: *********************************
 
+BUG: (05/05/05, SMR) Mimic stitching doesn't preview proper locations (Bug #300).
+FIX: Temporary fix in MimicStitch.presentNextSituation().  Proper fix coming soon.
+
+IMP: (05/05/05, SMR) Selecting attributes on node and arcs now shows the original object (Bug #295).
+
+IMP: (05/05/05, SMR) Selecting a port on the "sample icon" in a schematic now shows
+     the entire network connected to that export.
+
+BUG: (05/05/05, SMR) PostScript text is still too large, EPS bounding boxes are wrong (Bug #292).
+FIX: In PostScript.psText(), reduce the text size by another 10%.
+
+BUG: (05/05/05, SMR) Auto-stitcher crashes on schematic pins (Bug #299).
+FIX: In AutoStitch.shapeOfNode(), check for null poly lists.
+
+BUG: (05/05/05, SMR) GDS import fails if pseudo-layers have different GDS numbers
+     than regular layers (Bug #297).
+FIX: In input.GDS.setLayer(), convert pseudo-layers to regular layers.
+
+BUG: (05/05/05, SMR) Multiple exports with different case may cause a crash (Bug #298).
+FIX: In Cell.getUniqueNameIndex(), do case-insensitive compares.
+
+IMP/MAN: (05/04/05, SMR) Added FPGA technology.
+
 BUG: (05/05/05, GVG) Infinite loop after executing "Repeat Last Action" (Bug #246)
 FIX: In RepeatLastCommandListener, we ignore actions coming from "Repeat Last Action". 
 

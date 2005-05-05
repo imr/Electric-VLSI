@@ -2622,7 +2622,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			for(Iterator it = getPorts(); it.hasNext(); )
 			{
 				PortProto pp = (PortProto)it.next();
-				if (pp.getName().startsWith(prefix))
+				if (TextUtils.startsWithIgnoreCase(pp.getName(), prefix))
 				{
 					String restOfName = pp.getName().substring(len);
 					if (TextUtils.isANumber(restOfName))
@@ -2637,7 +2637,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			for(Iterator it = getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				if (ni.getName().startsWith(prefix))
+				if (TextUtils.startsWithIgnoreCase(ni.getName(), prefix))
 				{
 					String restOfName = ni.getName().substring(len);
 					if (TextUtils.isANumber(restOfName))
@@ -2652,7 +2652,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			for(Iterator it = getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
-				if (ai.getName().startsWith(prefix))
+				if (TextUtils.startsWithIgnoreCase(ai.getName(), prefix))
 				{
 					String restOfName = ai.getName().substring(len);
 					if (TextUtils.isANumber(restOfName))

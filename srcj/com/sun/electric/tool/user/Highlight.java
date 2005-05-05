@@ -516,7 +516,7 @@ public class Highlight
 	 * @param wnd the window in which to draw this highlight.
 	 * @param g the Graphics associated with the window.
 	 */
-	public void showHighlight(EditWindow wnd, Graphics g, int highOffX, int highOffY, boolean showArcConstraints,
+	public void showHighlight(EditWindow wnd, Graphics g, int highOffX, int highOffY, boolean onlyHighlight,
                               Color mainColor, Stroke primaryStroke)
 	{
         if (!isValid()) return;
@@ -564,6 +564,38 @@ public class Highlight
 				linePoints[1] = points[i+1];
 				drawOutlineFromPoints(wnd, g, linePoints, highOffX, highOffY, false, null);
 			}
+			if (onlyHighlight)
+			{
+                // this is the only thing highlighted: show the attached object
+				ElectricObject eObj = getElectricObject();
+				if (eObj != null && eObj instanceof Geometric)
+				{
+					Geometric geom = (Geometric)eObj;
+					if (geom instanceof ArcInst || !((NodeInst)geom).isInvisiblePinWithText())
+					{
+	                    Point c = wnd.databaseToScreen(geom.getTrueCenter());
+						int lowX = Integer.MAX_VALUE, highX = Integer.MIN_VALUE;
+						int lowY = Integer.MAX_VALUE, highY = Integer.MIN_VALUE;
+						for(int i=0; i<points.length; i++)
+						{
+							Point a = wnd.databaseToScreen(points[i]);
+							if (a.x < lowX) lowX = a.x;
+							if (a.x > highX) highX = a.x;
+							if (a.y < lowY) lowY = a.y;
+							if (a.y > highY) highY = a.y;
+						}
+						int cX = (lowX+highX)/2;
+						int cY = (lowY+highY)/2;
+						if (Math.abs(cX - c.x) > 4 || Math.abs(cY - c.y) > 4)
+						{
+		                    g.fillOval(c.x-4, c.y-4, 8, 8);
+		                    g2.setStroke(dottedLine);
+		                    drawLine(g, wnd, c.x, c.y, cX, cY);
+		                    g2.setStroke(solidLine);
+						}
+					}
+				}
+			}
 			return;
 		}
         if (type == Type.POLY) {
@@ -599,7 +631,7 @@ public class Highlight
                 if (poly == null) return;
                 drawOutlineFromPoints(wnd, g, poly.getPoints(), highOffX, highOffY, false, null);
 
-                if (showArcConstraints)
+                if (onlyHighlight)
                 {
                     // this is the only thing highlighted: give more information about constraints
                     String constraints = "X";
@@ -852,19 +884,19 @@ public class Highlight
                 }
 
                 // if this is a port on an "example icon", show the equivalent port in the cell
-                if (ni.isIconOfParent())
-                {
-                	// find export in parent
-                	Export equiv = (Export)cell.findPortProto(pp.getName());
-                	if (equiv != null)
-                	{
-                		PortInst ePi = equiv.getOriginalPort();
-                		Poly ePoly = ePi.getPoly();
-						Point eP = wnd.databaseToScreen(ePoly.getCenterX(), ePoly.getCenterY());
-						Point p = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
-						drawLine(g, wnd, eP.x, eP.y, p.x + offX, p.y + offY);
-                	}
-                }
+//                if (ni.isIconOfParent())
+//                {
+//                	// find export in parent
+//                	Export equiv = (Export)cell.findPortProto(pp.getName());
+//                	if (equiv != null)
+//                	{
+//                		PortInst ePi = equiv.getOriginalPort();
+//                		Poly ePoly = ePi.getPoly();
+//						Point eP = wnd.databaseToScreen(ePoly.getCenterX(), ePoly.getCenterY());
+//						Point p = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
+//						drawLine(g, wnd, eP.x, eP.y, p.x + offX, p.y + offY);
+//                	}
+//                }
 
                 // highlight objects that are electrically connected to this object
                 // unless specified not to. HighlightConnected is set to false by addNetwork when
@@ -873,6 +905,17 @@ public class Highlight
                 if (highlightConnected) {
                     Netlist netlist = cell.acquireUserNetlist();
 					if (netlist == null) return;
+		            if (ni.isIconOfParent())
+		            {
+	                	// find export in parent
+	                	Export equiv = (Export)cell.findPortProto(pp.getName());
+	                	if (equiv != null)
+						{
+	                		PortInst ePi = equiv.getOriginalPort();
+							ni = ePi.getNodeInst();
+							pp = ePi.getPortProto();
+						}
+		            }
                     Nodable no = Netlist.getNodableFor(ni, 0);
 					PortProto epp = pp;
 					if (pp instanceof Export) {
