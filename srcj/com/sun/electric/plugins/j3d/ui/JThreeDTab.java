@@ -165,7 +165,7 @@ public class JThreeDTab extends ThreeDTab
 		threeD.add(threeDSideView, gbc);
 
         scaleField.setText(TextUtils.formatDouble(J3DUtils.get3DFactor()));
-        double[] rot = User.transformIntoValues(J3DUtils.get3DRotation());
+        double[] rot = J3DUtils.transformIntoValues(J3DUtils.get3DRotation());
         xRotField.setText(TextUtils.formatDouble(rot[0]));
         yRotField.setText(TextUtils.formatDouble(rot[1]));
         zRotField.setText(TextUtils.formatDouble(rot[2]));
@@ -191,7 +191,7 @@ public class JThreeDTab extends ThreeDTab
         });
 
         // Light boxes
-        String lights = User.get3DLightDirs();
+        String lights = J3DUtils.get3DLightDirs();
         Vector3f[] dirs = J3DUtils.transformIntoVectors(lights);
         dirOneBox.setSelected(dirs[0] != null);
         if (dirOneBox.isSelected())
@@ -356,8 +356,8 @@ public class JThreeDTab extends ThreeDTab
                 zDirTwoField.getText() + ")");
         else
             dir.append("(0 0 0)");
-        if (!dir.equals(User.get3DLightDirs()))
-            User.set3DLightDirs(dir.toString());
+        if (!dir.equals(J3DUtils.get3DLightDirs()))
+            J3DUtils.set3DLightDirs(dir.toString());
         int currentInt = TextUtils.atoi(maxNodeField.getText());
         if (currentInt != J3DUtils.get3DMaxNumNodes())
             J3DUtils.set3DMaxNumNodes(currentInt);

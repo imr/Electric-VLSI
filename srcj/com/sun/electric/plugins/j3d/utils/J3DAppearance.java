@@ -1,7 +1,6 @@
 package com.sun.electric.plugins.j3d.utils;
 
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.tool.user.User;
 
 import javax.media.j3d.*;
 import javax.vecmath.Color3f;
@@ -212,7 +211,7 @@ public class J3DAppearance extends Appearance
      */
     public static void setAxisAppearanceValues(Object initValue)
     {
-        double[] colors = User.transformIntoValues(User.get3DColorAxes());
+        double[] colors = J3DUtils.transformIntoValues(J3DUtils.get3DColorAxes());
 
         for (int i = 0; i < axisApps.length; i++)
         {
@@ -258,7 +257,7 @@ public class J3DAppearance extends Appearance
      */
     public static void setHighlightedAppearanceValues(Object initValue)
     {
-        Color userColor = new Color(User.get3DColorHighlighted());
+        Color userColor = new Color(J3DUtils.get3DColorHighlighted());
 
         if (highligtApp == null)
             highligtApp = new J3DAppearance(null, TransparencyAttributes.BLENDED, 0.5f, userColor);
@@ -273,7 +272,7 @@ public class J3DAppearance extends Appearance
      */
     public static void setCellAppearanceValues(Object initValue)
     {
-        Color3f userColor = new Color3f(new Color(User.get3DColorInstanceCell()));
+        Color3f userColor = new Color3f(new Color(J3DUtils.get3DColorInstanceCell()));
 
         if (cellApp == null)
         {
@@ -291,10 +290,10 @@ public class J3DAppearance extends Appearance
             pa.setPolygonMode(PolygonAttributes.POLYGON_LINE);
             cellApp.setPolygonAttributes(pa);
 
-            TextureAttributes texAttr = new TextureAttributes();
-            texAttr.setTextureMode(TextureAttributes.MODULATE);
-            //texAttr.setTextureColorTable(pattern);
-            cellApp.setTextureAttributes(texAttr);
+//            TextureAttributes texAttr = new TextureAttributes();
+//            texAttr.setTextureMode(TextureAttributes.MODULATE);
+//            //texAttr.setTextureColorTable(pattern);
+//            cellApp.setTextureAttributes(texAttr);
 
             LineAttributes lineAttr = new LineAttributes();
             lineAttr.setLineAntialiasingEnable(true);

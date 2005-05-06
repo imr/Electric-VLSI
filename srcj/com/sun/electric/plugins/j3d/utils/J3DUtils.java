@@ -35,6 +35,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.plugins.j3d.View3DWindow;
 
 import javax.vecmath.*;
@@ -73,10 +74,67 @@ public final class J3DUtils
     private static Pref cache3DAxes = Pref.makeBooleanPref("3DAxes", User.tool.prefs, true);
     private static Pref cache3DMaxNumber = Pref.makeIntPref("3DMaxNumNodes", User.tool.prefs, 1000);
     private static Pref cache3DAlpha = Pref.makeIntPref("3DAlpha", User.tool.prefs, 1000);
+    private static Pref cache3DColorInstanceCell = Pref.makeIntPref("3DColorInstanceCell", User.tool.prefs, Color.GRAY.getRGB());
+    private static Pref cache3DColorHighlighted = Pref.makeIntPref("3DColorHighlighted", User.tool.prefs, Color.GRAY.getRGB());
+    private static Pref cache3DColorAmbient = Pref.makeIntPref("3DColorAmbient", User.tool.prefs, Color.GRAY.getRGB());
+    private static Pref cache3DColorAxes = Pref.makeStringPref("3DColorAxes", User.tool.prefs,
+            "("+Color.RED.getRGB()+" "+ Color.BLUE.getRGB() + " "+ Color.GREEN.getRGB() + ")");
+    private static Pref cache3DColorDirectionalLight = Pref.makeIntPref("3DColorDirectionalLight", User.tool.prefs, Color.WHITE.getRGB());
+    private static Pref cache3DLightDirs = Pref.makeStringPref("3DLightDirs", User.tool.prefs, "(-1 1 -1)(1 -1 -1)");
+
     public static J3DAlpha jAlpha = null;
     // For reading data files (capacitance)
     private static final int VALUES_PER_LINE = 11;
     private static double[] lastValidValues = new double[VALUES_PER_LINE];
+
+	/**
+	 * Method to get the color of directional light on the 3D display.
+	 * The default is "gray".
+	 * @return the color of directional light on the 3D display.
+	 */
+	public static int get3DColorDirectionalLight() { return cache3DColorDirectionalLight.getInt(); }
+	/**
+	 * Method to set the color of directional light on the 3D display.
+	 * @param c the color of directional light on the 3D display.
+	 */
+	public static void set3DColorDirectionalLight(int c)
+    {
+        cache3DColorDirectionalLight.setInt(c);
+        setDirectionalColor(null);
+    }
+
+    /**
+	 * Method to return the first light direction.
+	 * The default is the X axis.
+	 * @return the company name to use in schematic frames.
+	 */
+	public static String get3DLightDirs() { return cache3DLightDirs.getString(); }
+	/**
+	 * Method to set the first light direction.
+     * It is stored as string
+	 * @param c the company name to use in schematic frames.
+	 */
+	public static void set3DLightDirs(String c)
+    {
+        cache3DLightDirs.setString(c);
+        setDirections(null);
+    }
+
+	/**
+	 * Method to get the color of the axes on the 3D display.
+	 * The default is "gray".
+	 * @return the color of the axes on the 3D display.
+	 */
+	public static String get3DColorAxes() { return cache3DColorAxes.getString(); }
+	/**
+	 * Method to set the color of the axes on the 3D display.
+	 * @param c the color of the axes on the 3D display.
+	 */
+	public static void set3DColorAxes(String c)
+    {
+        cache3DColorAxes.setString(c);
+        J3DAppearance.setAxisAppearanceValues(null);
+    }
 
     /**
      * Method to get maximum number of nodes to consider a scene graph bi
@@ -280,6 +338,57 @@ public final class J3DUtils
         return strings;
     }
 
+    /**
+	 * Method to get the color of the cell instance on the 3D display.
+	 * The default is "gray".
+	 * @return the color of the cell instance on the 3D display.
+	 */
+	public static int get3DColorInstanceCell() { return cache3DColorInstanceCell.getInt(); }
+
+    /**
+	 * Method to set the color of the cell instance on the 3D display.
+	 * @param c the color of the cell instance on the 3D display.
+	 */
+	public static void set3DColorInstanceCell(int c)
+    {
+        cache3DColorInstanceCell.setInt(c);
+        J3DAppearance.setCellAppearanceValues(null);
+    }
+
+    /**
+	 * Method to get the color of the highlighted instance on the 3D display.
+	 * The default is "gray".
+	 * @return the color of the highlighted instance on the 3D display.
+	 */
+	public static int get3DColorHighlighted() { return cache3DColorHighlighted.getInt(); }
+
+    /**
+	 * Method to set the color of the highlighted instance on the 3D display.
+	 * @param c the color of the highlighted instance on the 3D display.
+	 */
+	public static void set3DColorHighlighted(int c)
+    {
+        cache3DColorHighlighted.setInt(c);
+        J3DAppearance.setHighlightedAppearanceValues(null);
+    }
+
+    /**
+	 * Method to get the ambiental color on the 3D display.
+	 * The default is "gray".
+	 * @return the ambiental color on the 3D display.
+	 */
+	public static int get3DColorAmbientLight() { return cache3DColorAmbient.getInt(); }
+
+    /**
+	 * Method to set the ambiental color on the 3D display.
+	 * @param c the ambiental color on the 3D display.
+	 */
+	public static void set3DColorAmbientLight(int c)
+    {
+        cache3DColorAmbient.setInt(c);
+        setAmbientalColor(null);
+    }
+
     /********************************************************************************************************
      *   Observer-Observable pattern for Vector3f
      *******************************************************************************************************/
@@ -422,7 +531,7 @@ public final class J3DUtils
      */
     public static void setDirections(Object initValue)
     {
-        Vector3f[] dirs = transformIntoVectors(User.get3DLightDirs());
+        Vector3f[] dirs = transformIntoVectors(get3DLightDirs());
         for (int i = 0; i < dirs.length; i++)
         {
             if (lights[i] == null)
@@ -438,7 +547,7 @@ public final class J3DUtils
      */
     public static void setAmbientalColor(Object initValue)
     {
-        Color3f userColor = new Color3f(new Color(User.get3DColorAmbientLight()));
+        Color3f userColor = new Color3f(new Color(get3DColorAmbientLight()));
         if (ambientalColor == null)
             ambientalColor = new Color3fObservable(userColor);
         else if (initValue == null)
@@ -451,7 +560,7 @@ public final class J3DUtils
      */
     public static void setDirectionalColor(Object initValue)
     {
-        Color3f userColor = new Color3f(new Color(User.get3DColorDirectionalLight()));
+        Color3f userColor = new Color3f(new Color(get3DColorDirectionalLight()));
         if (directionalColor == null)
             directionalColor = new Color3fObservable(userColor);
         else if (initValue == null)
@@ -1016,6 +1125,129 @@ public final class J3DUtils
 
 		return qx;
 	}
+
+    /*******************************************************************************************************
+     *                      Color Tab SECTION
+     *******************************************************************************************************/
+
+
+    /********************************************************************************************************
+     *
+     *******************************************************************************************************/
+
+    public static double[] transformIntoValues(String rotation)
+    {
+        double[] values = new double[3];
+        StringTokenizer parse = new StringTokenizer(rotation, "( )", false);
+        int pair = 0;
+
+        while (parse.hasMoreTokens() && pair < 3)
+        {
+            String value = parse.nextToken();
+            try{
+                values[pair++] = Double.parseDouble(value);
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
+
+        return values;
+    }
+
+    public static void get3DColorsInTab(DefaultListModel colorLayerModel, HashMap transAndSpecialMap)
+    {
+            // 3D Stuff
+        int color = get3DColorInstanceCell();
+		String name = "Special: 3D CELL INSTANCES";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+        color = get3DColorHighlighted();
+		name = "Special: 3D HIGHLIGHTED INSTANCES";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+        color = get3DColorAmbientLight();
+		name = "Special: 3D AMBIENT LIGHT";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+        color = get3DColorDirectionalLight();
+		name = "Special: 3D DIRECTIONAL LIGHT";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+        double[] colors = transformIntoValues(get3DColorAxes());
+        String[] axisNames = {" X", " Y", " Z"};
+		name = "Special: 3D AXIS";
+        for (int i = 0; i < colors.length; i++)
+        {
+            String color3DName = name+axisNames[i];
+            colorLayerModel.addElement(color3DName);
+            transAndSpecialMap.put(color3DName, new GenMath.MutableInteger((int)colors[i]));
+        }
+    }
+
+    public static Boolean set3DColorsInTab(DefaultListModel colorLayerModel, HashMap transAndSpecialMap)
+    {
+        GenMath.MutableInteger [] colors3D = new GenMath.MutableInteger[3];
+		boolean colorChanged = false;
+
+		for(int i=0; i<colorLayerModel.getSize(); i++)
+		{
+			String layerName = (String)colorLayerModel.get(i);
+			if (layerName.startsWith("Special: "))
+			{
+				GenMath.MutableInteger color = (GenMath.MutableInteger)transAndSpecialMap.get(layerName);
+				if (layerName.equals("Special: 3D CELL INSTANCES"))
+				{
+					if (color.intValue() != get3DColorInstanceCell())
+					{
+						set3DColorInstanceCell(color.intValue());
+						colorChanged = true;
+					}
+                } else if (layerName.equals("Special: 3D HIGHLIGHTED INSTANCES"))
+				{
+					if (color.intValue() != get3DColorHighlighted())
+					{
+						set3DColorHighlighted(color.intValue());
+						colorChanged = true;
+					}
+                } else if (layerName.equals("Special: 3D AMBIENT LIGHT"))
+				{
+					if (color.intValue() != get3DColorAmbientLight())
+					{
+						set3DColorAmbientLight(color.intValue());
+						colorChanged = true;
+					}
+                } else if (layerName.equals("Special: 3D DIRECTIONAL LIGHT"))
+				{
+					if (color.intValue() != get3DColorDirectionalLight())
+					{
+						set3DColorDirectionalLight(color.intValue());
+						colorChanged = true;
+					}
+                } else if (layerName.equals("Special: 3D AXIS X"))
+                    colors3D[0] = color;
+                else if (layerName.equals("Special: 3D AXIS Y"))
+                    colors3D[1] = color;
+                else if (layerName.equals("Special: 3D AXIS Z"))
+                    colors3D[2] = color;
+			}
+		}
+        // For 3D colors as they are stored together
+        String newColors = "("+colors3D[0].intValue()+" "+
+                colors3D[1].intValue()+" "+
+                colors3D[2].intValue()+")";
+
+        if (!newColors.equals(get3DColorAxes()))
+        {
+            set3DColorAxes(newColors);
+            colorChanged = true;
+        }
+        return (new Boolean(colorChanged));
+    }
 
     /*******************************************************************************************************
      *                      IMAGE SECTION

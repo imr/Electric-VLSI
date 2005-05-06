@@ -27,11 +27,10 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
@@ -43,6 +42,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.lang.reflect.Method;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -176,34 +176,14 @@ public class ColorsTab extends PreferencePanel
 		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
         // 3D Stuff
-        color = User.get3DColorInstanceCell();
-		name = "Special: 3D CELL INSTANCES";
-		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
-
-        color = User.get3DColorHighlighted();
-		name = "Special: 3D HIGHLIGHTED INSTANCES";
-		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
-
-        color = User.get3DColorAmbientLight();
-		name = "Special: 3D AMBIENT LIGHT";
-		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
-
-        color = User.get3DColorDirectionalLight();
-		name = "Special: 3D DIRECTIONAL LIGHT";
-		colorLayerModel.addElement(name);
-		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
-
-        double[] colors = User.transformIntoValues(User.get3DColorAxes());
-        String[] axisNames = {" X", " Y", " Z"};
-		name = "Special: 3D AXIS";
-        for (int i = 0; i < colors.length; i++)
+        try
         {
-            String color3DName = name+axisNames[i];
-            colorLayerModel.addElement(color3DName);
-            transAndSpecialMap.put(color3DName, new GenMath.MutableInteger((int)colors[i]));
+            Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+            Method setMethod = j3DUtilsClass.getDeclaredMethod("get3DColorsInTab", new Class[] {DefaultListModel.class, HashMap.class});
+            setMethod.invoke(j3DUtilsClass, new Object[]{colorLayerModel, transAndSpecialMap});
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method get3DColorsInTab: " + e.getMessage());
+            e.printStackTrace();
         }
 
 		// finish initialization
@@ -284,7 +264,7 @@ public class ColorsTab extends PreferencePanel
 		boolean colorChanged = false;
 		boolean mapChanged = false;
 		Color [] transparentLayerColors = new Color[curTech.getNumTransparentLayers()];
-        GenMath.MutableInteger [] colors3D = new GenMath.MutableInteger[3];
+
 		for(int i=0; i<colorLayerModel.getSize(); i++)
 		{
 			String layerName = (String)colorLayerModel.get(i);
@@ -352,40 +332,7 @@ public class ColorsTab extends PreferencePanel
 						User.setColorInstanceOutline(color.intValue());
 						colorChanged = true;
 					}
-                } else if (layerName.equals("Special: 3D CELL INSTANCES"))
-				{
-					if (color.intValue() != User.get3DColorInstanceCell())
-					{
-						User.set3DColorInstanceCell(color.intValue());
-						colorChanged = true;
-					}
-                } else if (layerName.equals("Special: 3D HIGHLIGHTED INSTANCES"))
-				{
-					if (color.intValue() != User.get3DColorHighlighted())
-					{
-						User.set3DColorHighlighted(color.intValue());
-						colorChanged = true;
-					}
-                } else if (layerName.equals("Special: 3D AMBIENT LIGHT"))
-				{
-					if (color.intValue() != User.get3DColorAmbientLight())
-					{
-						User.set3DColorAmbientLight(color.intValue());
-						colorChanged = true;
-					}
-                } else if (layerName.equals("Special: 3D DIRECTIONAL LIGHT"))
-				{
-					if (color.intValue() != User.get3DColorDirectionalLight())
-					{
-						User.set3DColorDirectionalLight(color.intValue());
-						colorChanged = true;
-					}
-                } else if (layerName.equals("Special: 3D AXIS X"))
-                    colors3D[0] = color;
-                else if (layerName.equals("Special: 3D AXIS Y"))
-                    colors3D[1] = color;
-                else if (layerName.equals("Special: 3D AXIS Z"))
-                    colors3D[2] = color;
+                }
 //			} else
 //			{
 //				Layer layer = curTech.findLayer(layerName);
@@ -399,15 +346,22 @@ public class ColorsTab extends PreferencePanel
 //				}
 			}
 		}
-        // For 3D colors as they are stored together
-        String newColors = "("+colors3D[0].intValue()+" "+
-                colors3D[1].intValue()+" "+
-                colors3D[2].intValue()+")";
-        if (!newColors.equals(User.get3DColorAxes()))
+
+        // 3D Stuff
+        try
         {
-            User.set3DColorAxes(newColors);
-            colorChanged = true;
+            Class j3DUtilsClass = Resources.get3DClass("utils.J3DUtils");
+            Method setMethod = j3DUtilsClass.getDeclaredMethod("set3DColorsInTab", new Class[] {DefaultListModel.class, HashMap.class});
+            Object color3DChanged = setMethod.invoke(j3DUtilsClass, new Object[]{colorLayerModel, transAndSpecialMap});
+            if (!colorChanged && color3DChanged != null)
+            {
+                colorChanged = ((Boolean)color3DChanged).booleanValue();
+            }
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method set3DColorsInTab: " + e.getMessage());
+            e.printStackTrace();
         }
+
 		if (mapChanged)
 		{
 			// rebuild color map from primaries
