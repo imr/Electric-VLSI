@@ -938,7 +938,7 @@ public abstract class Job implements ActionListener, Runnable {
         Date start = new Date(startTime);
         //buf.append("  start time: "+start+"\n");
         if (finished) {
-            Date end = new Date(endTime);
+//            Date end = new Date(endTime);
             //buf.append("  end time: "+end+"\n");
             long time = endTime - startTime;
             buf.append(" took: "+TextUtils.getElapsedTime(time));
