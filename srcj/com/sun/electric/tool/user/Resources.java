@@ -23,7 +23,6 @@
  */
 package com.sun.electric.tool.user;
 
-import com.sun.electric.Main;
 import javax.swing.ImageIcon;
 import java.net.URL;
 
@@ -76,11 +75,11 @@ public class Resources {
 
         } catch (ClassNotFoundException e)
         {
-            if (Main.getDebug()) System.out.println("Can't find class '" + name +
+            System.out.println("Can't find class '" + name +
                     "' from " + plugin + " plugin: " + e.getMessage());
         } catch (Error e)
         {
-            if (Main.getDebug()) System.out.println(plugin + " not installed: " + e.getMessage());
+            System.out.println(plugin + " not installed: " + e.getMessage());
         }
 		return (jmfClass);
     }
