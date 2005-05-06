@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 
+import com.sun.electric.Main;
 import javax.swing.ImageIcon;
 import java.net.URL;
 
@@ -68,20 +69,20 @@ public class Resources {
 
     private static Class getClass(String name, String plugin)
     {
-        Class jmfClass = null;
+        Class theClass = null;
 		try
         {
-            jmfClass = Class.forName(plugin+"."+name);
+            theClass = Class.forName(plugin+"."+name);
 
         } catch (ClassNotFoundException e)
         {
-            System.out.println("Can't find class '" + name +
+            if (Main.getDebug()) System.out.println("Can't find class '" + name +
                     "' from " + plugin + " plugin: " + e.getMessage());
         } catch (Error e)
         {
             System.out.println(plugin + " not installed: " + e.getMessage());
         }
-		return (jmfClass);
+		return (theClass);
     }
 
     private static Class view3DClass = null;
