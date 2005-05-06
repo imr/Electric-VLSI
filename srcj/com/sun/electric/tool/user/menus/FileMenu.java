@@ -1091,6 +1091,7 @@ public class FileMenu {
         }
         // try to create the panic directory
         String currentDir = User.getWorkingDirectory();
+        System.out.println("Saving libraries in panic directory under " + currentDir); System.out.flush();
         File panicDir = new File(currentDir, "panic");
         if (!panicDir.exists() && !panicDir.mkdir()) {
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Could not create panic directory",
@@ -1104,6 +1105,7 @@ public class FileMenu {
         {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
+            System.out.print("."); System.out.flush();
             URL libURL = lib.getLibFile();
             File newLibFile = null;
             if (libURL.getPath() == null) {
@@ -1122,6 +1124,7 @@ public class FileMenu {
                 retValue = false;
             }
         }
+        System.out.println(" Libraries saved");
         return retValue;
     }
 }
