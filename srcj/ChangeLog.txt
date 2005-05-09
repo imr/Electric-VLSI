@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02n: *********************************
 
+BUG: (05/09/05, GVG) Cell attributes wrongly copied by Clipboard if a previous clipboard copied a cell attribute (Bug #306).
+FIX: Include cell attributes in Clipboard cleanup process.
+
+BUG: (05/09/05, GVG) Cut/Paste or Copy/Paste of cell attributes not working (Bug #304)
+FIX: Extra code in Clipboard to handle cell attributes
+
 BUG: (05/09/05, SMR) Screen redraws too much (Bug #307).
 FIX: VarContext information must be passed down the hierarchy by the redisplay code, and
      not stored in the EditWindow.  In addition, the Technology method "getShapeOfNode()"
