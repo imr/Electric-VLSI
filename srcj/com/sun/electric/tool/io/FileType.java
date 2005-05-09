@@ -71,6 +71,7 @@ public class FileType {
 	/** Describes PostScript files. */		public static final FileType POSTSCRIPT   = makeFileType("PostScript", new String[] {"ps"}, "PostScript (ps)");
 	/** Describes PostScript files. */		public static final FileType PNG          = makeFileType("PNG", new String[] {"png"}, "PNG (png)");
 	/** Describes Preferences files. */		public static final FileType PREFS        = makeFileType("Preferences", new String[] {"xml"}, "Preferences (xml)");
+	/** Describes Project files. */			public static final FileType PROJECT      = makeFileType("Project Management", new String[] {"proj"}, "Project Management (proj)");
 	/** Describes PSpice standard output.*/	public static final FileType PSPICEOUT    = makeFileType("PSpiceOutput", new String[] {"spo"}, "PSpice/Spice3 Output File (spo)");
 	/** Describes Raw Spice output. */		public static final FileType RAWSPICEOUT  = makeFileType("RawSpiceOutput", new String[] {"raw"}, "Spice Raw Output File (raw)");
 	/** Describes Raw SmartSpice output. */	public static final FileType RAWSSPICEOUT = makeFileType("RawSmartSpiceOutput", new String[] {"raw"}, "SmartSPICE Raw Output File (raw)");

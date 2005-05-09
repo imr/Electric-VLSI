@@ -410,7 +410,7 @@ public class PromptAt extends EDialog
 		Point locInWnd = wnd.databaseToScreen(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 		Point textfield = centerIt.getLocation();
 		Dimension textSize = centerIt.getSize();
-		this.setLocation(locInWnd.x+ew.x-(textfield.x+textSize.width/2), locInWnd.y+ew.y-(textfield.y+textSize.height/2+20));
+		setLocation(locInWnd.x+ew.x-(textfield.x+textSize.width/2), locInWnd.y+ew.y-(textfield.y+textSize.height/2+20));
 	}
 
 	/**

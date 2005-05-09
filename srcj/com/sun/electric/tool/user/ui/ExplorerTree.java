@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
@@ -52,6 +53,7 @@ import com.sun.electric.tool.user.tecEdit.NodeInfo;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.PixelGrabber;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -103,6 +105,14 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	private static final int SHOWBYHIERARCHY    = 3;
 	private static int howToShow = SHOWBYCELLGROUP;
 
+	private static class IconGroup
+	{
+		/** the icon for a normal cell */					private ImageIcon regular;
+		/** the icon for an old version of a cell */		private ImageIcon old;
+		/** the icon for a checked-in cell */				private ImageIcon available;
+		/** the icon for a cell checked-out to others */	private ImageIcon locked;
+		/** the icon for a cell checked-out to you */		private ImageIcon unlocked;
+	}
 	private static ImageIcon iconLibrary = null;
 	private static ImageIcon iconGroup = null;
 	private static ImageIcon iconJobs = null;
@@ -113,16 +123,15 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	private static ImageIcon iconSignals = null;
 	private static ImageIcon iconSweeps = null;
 	private static ImageIcon iconViewIcon = null;
-	private static ImageIcon iconViewOldIcon = null;
 	private static ImageIcon iconViewLayout = null;
-	private static ImageIcon iconViewOldLayout = null;
 	private static ImageIcon iconViewMultiPageSchematics = null;
 	private static ImageIcon iconViewSchematics = null;
-	private static ImageIcon iconViewOldSchematics = null;
 	private static ImageIcon iconViewMisc = null;
-	private static ImageIcon iconViewOldMisc = null;
 	private static ImageIcon iconViewText = null;
-	private static ImageIcon iconViewOldText = null;
+	private static ImageIcon iconSpiderWeb = null;
+	private static ImageIcon iconLocked = null;
+	private static ImageIcon iconUnlocked = null;
+	private static ImageIcon iconAvailable = null;
 
 	private static class CellAndCount
 	{
@@ -603,46 +612,21 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			if (nodeInfo instanceof Cell)
 			{
 				Cell cell = (Cell)nodeInfo;
-				if (cell.isIcon())
+				IconGroup ig;
+				if (cell.isIcon()) ig = findIconGroup(View.ICON); else
+					if (cell.getView() == View.LAYOUT) ig = findIconGroup(View.LAYOUT); else
+						if (cell.isSchematic()) ig = findIconGroup(View.SCHEMATIC); else
+							if (cell.getView().isTextView()) ig = findIconGroup(View.DOC); else
+								ig = findIconGroup(View.UNKNOWN);
+				if (cell.getNewestVersion() != cell) setIcon(ig.old); else
 				{
-					if (iconViewIcon == null)
-						iconViewIcon = Resources.getResource(getClass(), "IconViewIcon.gif");
-					if (iconViewOldIcon == null)
-						iconViewOldIcon = Resources.getResource(getClass(), "IconViewOldIcon.gif");
-					if (cell.getNewestVersion() == cell) setIcon(iconViewIcon); else
-						setIcon(iconViewOldIcon);
-				} else if (cell.getView() == View.LAYOUT)
-				{
-					if (iconViewLayout == null)
-						iconViewLayout = Resources.getResource(getClass(), "IconViewLayout.gif");
-					if (iconViewOldLayout == null)
-						iconViewOldLayout = Resources.getResource(getClass(), "IconViewOldLayout.gif");
-					if (cell.getNewestVersion() == cell) setIcon(iconViewLayout); else
-						setIcon(iconViewOldLayout);
-				} else if (cell.isSchematic())
-				{
-					if (iconViewSchematics == null)
-						iconViewSchematics = Resources.getResource(getClass(), "IconViewSchematics.gif");
-					if (iconViewOldSchematics == null)
-						iconViewOldSchematics = Resources.getResource(getClass(), "IconViewOldSchematics.gif");
-					if (cell.getNewestVersion() == cell) setIcon(iconViewSchematics); else
-						setIcon(iconViewOldSchematics);
-				} else if (cell.getView().isTextView())
-				{
-					if (iconViewText == null)
-						iconViewText = Resources.getResource(getClass(), "IconViewText.gif");
-					if (iconViewOldText == null)
-						iconViewOldText = Resources.getResource(getClass(), "IconViewOldText.gif");
-					if (cell.getNewestVersion() == cell) setIcon(iconViewText); else
-						setIcon(iconViewOldText);
-				} else
-				{
-					if (iconViewMisc == null)
-						iconViewMisc = Resources.getResource(getClass(), "IconViewMisc.gif");
-					if (iconViewOldMisc == null)
-						iconViewOldMisc = Resources.getResource(getClass(), "IconViewOldMisc.gif");
-					if (cell.getNewestVersion() == cell) setIcon(iconViewMisc); else
-						setIcon(iconViewOldMisc);
+					switch (Project.getCellStatus(cell))
+					{
+						case Project.NOTMANAGED:         setIcon(ig.regular);     break;
+						case Project.CHECKEDIN:          setIcon(ig.available);   break;
+						case Project.CHECKEDOUTTOOTHERS: setIcon(ig.locked);      break;
+						case Project.CHECKEDOUTTOYOU:    setIcon(ig.unlocked);    break;
+					}
 				}
 			}
 			if (nodeInfo instanceof MultiPageCell)
@@ -710,6 +694,66 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				//System.out.println("set tool tip to "+j.getToolTip());
 			}
 			return this;
+		}
+
+		private HashMap iconGroups = new HashMap();
+
+		private IconGroup findIconGroup(View view)
+		{
+			IconGroup ig = (IconGroup)iconGroups.get(view);
+			if (ig == null)
+			{
+				ig = new IconGroup();
+
+				// get the appropriate background icon
+				if (view == View.LAYOUT) ig.regular = Resources.getResource(getClass(), "IconViewLayout.gif"); else
+				if (view == View.SCHEMATIC) ig.regular = Resources.getResource(getClass(), "IconViewSchematics.gif"); else
+				if (view == View.ICON) ig.regular = Resources.getResource(getClass(), "IconViewIcon.gif"); else
+				if (view == View.DOC) ig.regular = Resources.getResource(getClass(), "IconViewText.gif"); else
+				ig.regular = Resources.getResource(getClass(), "IconViewMisc.gif");
+
+				// make sure the overlay icons have been read
+				if (iconSpiderWeb == null) iconSpiderWeb = Resources.getResource(getClass(), "IconSpiderWeb.gif");
+				if (iconLocked == null) iconLocked = Resources.getResource(getClass(), "IconLocked.gif");
+				if (iconUnlocked == null) iconUnlocked = Resources.getResource(getClass(), "IconUnlocked.gif");
+				if (iconAvailable == null) iconAvailable = Resources.getResource(getClass(), "IconAvailable.gif");
+
+				ig.old = buildIcon(iconSpiderWeb, ig.regular);
+				ig.available = buildIcon(iconAvailable, ig.regular);
+				ig.locked = buildIcon(iconLocked, ig.regular);
+				ig.unlocked = buildIcon(iconUnlocked, ig.regular);
+				iconGroups.put(view, ig);
+			}
+			return ig;
+		}
+
+		private ImageIcon buildIcon(ImageIcon fg, ImageIcon bg)
+		{
+			// overlay and create the other icons for this view
+			int wid = fg.getIconWidth();
+			int hei = fg.getIconHeight();
+			BufferedImage bi = new BufferedImage(wid, hei, BufferedImage.TYPE_INT_RGB);
+
+			int [] backgroundValues = new int[wid*hei];
+			PixelGrabber background = new PixelGrabber(bg.getImage(), 0, 0, wid, hei, backgroundValues, 0, wid);
+			int [] foregroundValues = new int[wid*hei];
+			PixelGrabber foreground = new PixelGrabber(fg.getImage(), 0, 0, wid, hei, foregroundValues, 0, wid);
+			try
+			{
+				background.grabPixels();
+				foreground.grabPixels();
+			} catch (InterruptedException e) {}
+			for(int y=0; y<hei; y++)
+			{
+				for(int x=0; x<wid; x++)
+				{
+					int bCol = backgroundValues[y*wid+x];
+					int fCol = foregroundValues[y*wid+x];
+					if ((fCol&0xFFFFFF) != 0xFFFFFF) bCol = fCol;
+					bi.setRGB(x, y, bCol);
+				}
+			}
+			return new ImageIcon(bi);
 		}
 	}
 

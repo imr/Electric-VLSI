@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02n: *********************************
 
+BUG: (05/09/05, SMR) Screen is shifted after PostScript output (Bug #301).
+FIX: In EditWindow.getBoundsInWindow(), restore scale and offset information properly.
+
+IMP: (05/05/05, SMR) Added special "properties" dialogs for schematic components:
+     resistor, capacitor, inductor, diode, transistor, and global.
+
 BUG: (05/05/05, DN) Busses with complex names don't associate with exports properly (Bug #262).
 FIX: Fixed getBusWidth(Nodable,PortProto) in the netlister.
 

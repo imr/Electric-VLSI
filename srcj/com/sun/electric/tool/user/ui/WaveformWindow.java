@@ -4303,7 +4303,8 @@ if (wp.signalButtons != null)
 		}
 
 		int p = i1 - 12 - 1;
-		if (p < 0) p = 0;
+//		if (p < 0) p = 0;
+		if (p <= 0) p = 1;
 		String s = TextUtils.formatDouble(v/d, p);
 		return s + "e" + i2;
 	}

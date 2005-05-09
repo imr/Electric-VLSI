@@ -2291,6 +2291,18 @@ public class EditWindow extends JPanel
 		computeDatabaseBounds();
 	}
 
+	private void setScreenBounds(Rectangle2D bounds)
+	{
+		double width = bounds.getWidth();
+		double height = bounds.getHeight();
+		if (width == 0) width = 2;
+		if (height == 0) height = 2;
+		double scalex = sz.width/width * 0.9;
+		double scaley = sz.height/height * 0.9;
+		setScale(Math.min(scalex, scaley));
+		setOffset(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()));
+	}
+
 	private void computeDatabaseBounds()
 	{
 		double width = sz.width/scale;
@@ -2454,19 +2466,6 @@ public class EditWindow extends JPanel
         repaintContents(null);
     }
 
-	private void setScreenBounds(Rectangle2D bounds)
-	{
-		double width = bounds.getWidth();
-		double height = bounds.getHeight();
-		if (width == 0) width = 2;
-		if (height == 0) height = 2;
-		double scalex = sz.width/width * 0.9;
-		double scaley = sz.height/height * 0.9;
-		scale = Math.min(scalex, scaley);
-		offx = bounds.getCenterX();
-		offy = bounds.getCenterY();
-	}
-
 	/**
 	 * Method to focus the screen so that an area fills it.
 	 * @param bounds the area to make fill the screen.
@@ -2488,7 +2487,6 @@ public class EditWindow extends JPanel
 		}
 		setScreenBounds(bounds);
 		setScrollPosition();
-		computeDatabaseBounds();
 		repaintContents(null);
 	}
 
@@ -2521,14 +2519,22 @@ public class EditWindow extends JPanel
             }
 
             // make sure text fits
-            setScreenBounds(cellBounds);
-            Rectangle2D relativeTextBounds = cell.getRelativeTextBounds(this);
-            if (relativeTextBounds != null)
-            {
-                Rectangle2D newCellBounds = new Rectangle2D.Double();
-                Rectangle2D.union(relativeTextBounds, cellBounds, newCellBounds);
-                cellBounds = newCellBounds;
-            }
+    		if (wf != null && runningNow != null)
+    			System.out.println("Warning: screen extent computation is inaccurate"); else
+    		{
+	            double oldScale = getScale();
+	            Point2D oldOffset = getOffset();
+	            setScreenBounds(cellBounds);
+	            Rectangle2D relativeTextBounds = cell.getRelativeTextBounds(this);
+	            if (relativeTextBounds != null)
+	            {
+	                Rectangle2D newCellBounds = new Rectangle2D.Double();
+	                Rectangle2D.union(relativeTextBounds, cellBounds, newCellBounds);
+	                cellBounds = newCellBounds;
+	            }
+	            setScale(oldScale);
+	            setOffset(oldOffset);
+    		}
 
             // make sure title box fits (if there is just a title box)
             if (frameFactor == 1)

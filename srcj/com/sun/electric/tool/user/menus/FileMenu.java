@@ -37,6 +37,7 @@ import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.output.PostScript;
+import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -193,6 +194,17 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.checkAndRepairCommand(false); } });
 		checkSubMenu.addMenuItem("_Repair", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.checkAndRepairCommand(true); } });
+
+        fileMenu.addSeparator();
+
+        // mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+		MenuBar.Menu projectSubMenu = MenuBar.makeMenu("Project Management");
+		fileMenu.add(projectSubMenu);
+		projectSubMenu.addMenuItem("Check In-and-Out...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkInAndOut(); } });
+		projectSubMenu.addSeparator();
+		projectSubMenu.addMenuItem("Build Repository...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.buildRepository(); } });
 
         fileMenu.addSeparator();
 

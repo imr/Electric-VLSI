@@ -27,7 +27,6 @@ package com.sun.electric.tool.user.menus;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -43,8 +42,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.FPGA;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.extract.LayerCoverageJob;
-import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -66,11 +63,12 @@ import com.sun.electric.tool.user.dialogs.GetInfoOutline;
 import com.sun.electric.tool.user.dialogs.GetInfoText;
 import com.sun.electric.tool.user.dialogs.MoveBy;
 import com.sun.electric.tool.user.dialogs.SelectObject;
+import com.sun.electric.tool.user.dialogs.SpecialProperties;
 import com.sun.electric.tool.user.dialogs.Spread;
 import com.sun.electric.tool.user.tecEdit.Calibre;
+import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
-import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.OutlineListener;
 import com.sun.electric.tool.user.ui.SizeListener;
@@ -569,19 +567,13 @@ public class EditMenu {
 				}
 			}
 
-			// in technology editing mode, handle double-click on special node or text
+			// special dialogs for double-clicking on known nodes
 			if (doubleClick)
 			{
 				if (arcCount == 0 && exportCount == 0 && graphicsCount == 0 &&
 					nodeCount + textCount == 1 && theNode != null)
 				{
-		    		// if double-clicked on a technology editing object, modify it
-	    			int opt = Manipulate.getOptionOnNode(theNode);
-	    			if (opt >= 0)
-	    			{
-	    				Manipulate.modifyObject(wnd, theNode, opt);
-	    				return;
-		    		}
+					if (SpecialProperties.doubleClickOnNode(wnd, theNode)) return;
 				}
 			}
 

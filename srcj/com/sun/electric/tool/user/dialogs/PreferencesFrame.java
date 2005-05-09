@@ -57,6 +57,7 @@ import com.sun.electric.tool.user.dialogs.options.ParasiticTab;
 import com.sun.electric.tool.user.dialogs.options.PortsAndExportsTab;
 import com.sun.electric.tool.user.dialogs.options.PreferencePanel;
 import com.sun.electric.tool.user.dialogs.options.PrintingTab;
+import com.sun.electric.tool.user.dialogs.options.ProjectManagementTab;
 import com.sun.electric.tool.user.dialogs.options.RoutingTab;
 import com.sun.electric.tool.user.dialogs.options.SUETab;
 import com.sun.electric.tool.user.dialogs.options.ScaleTab;
@@ -165,9 +166,9 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(nat);
 		generalSet.add(new DefaultMutableTreeNode(nat.getName()));
 
-		CopyrightTab cot = new CopyrightTab(parent, modal);
-		optionPanes.add(cot);
-		generalSet.add(new DefaultMutableTreeNode(cot.getName()));
+		ProjectManagementTab pmt = new ProjectManagementTab(parent, modal);
+		optionPanes.add(pmt);
+		generalSet.add(new DefaultMutableTreeNode(pmt.getName()));
 
 		PrintingTab prt = new PrintingTab(parent, modal);
 		optionPanes.add(prt);
@@ -249,6 +250,10 @@ public class PreferencesFrame extends EDialog
 		LibraryTab lit = new LibraryTab(parent, modal);
 		optionPanes.add(lit);
 		ioSet.add(new DefaultMutableTreeNode(lit.getName()));
+
+		CopyrightTab cot = new CopyrightTab(parent, modal);
+		optionPanes.add(cot);
+		ioSet.add(new DefaultMutableTreeNode(cot.getName()));
 
 
 		// the "Tools" section of the Preferences

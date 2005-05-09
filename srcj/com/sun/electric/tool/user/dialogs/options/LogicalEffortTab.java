@@ -58,7 +58,7 @@ public class LogicalEffortTab extends PreferencePanel
 	}
 	public JPanel getPanel() { return logicalEffort; }
 
-	public String getName() { return "LogicalEffort"; }
+	public String getName() { return "Logical Effort"; }
 
 	private JList leArcList;
 	private DefaultListModel leArcListModel;

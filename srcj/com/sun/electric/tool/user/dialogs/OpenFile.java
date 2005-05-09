@@ -76,9 +76,30 @@ public class OpenFile
 	 */
 	public static String chooseInputFile(FileType type, String title)
 	{
+		return chooseInputFile(type, title, false);
+	}
+
+	/**
+	 * Factory method to create a new open dialog box to search for a directory.
+	 * @param title dialog title to use; if null uses "Select Directory".
+	 */
+	public static String chooseDirectory(String title)
+	{
+		return chooseInputFile(null, title, true);
+	}
+
+	/**
+	 * Factory method to create a new open dialog box using the default Type.
+	 * @param type the type of file to read. Defaults to ANY if null.
+	 * @param title dialog title to use; if null uses "Open 'filetype'".
+	 * @param wantDirectory true to request a directory be selected, instead of a file.
+	 */
+	private static String chooseInputFile(FileType type, String title, boolean wantDirectory)
+	{
 		if (title == null)
 		{
-			title = "Open file";
+			if (wantDirectory) title = "Choose Directory"; else
+				title = "Open file";
 			if (type != null) title = "Open " + type.getDescription();
 		}
 
@@ -93,8 +114,9 @@ public class OpenFile
 			OpenFileSwing dialog = new OpenFileSwing();
 			dialog.saveDialog = false;
 			dialog.setDialogTitle(title);
-			dialog.setFileFilter(type.getFileFilterSwing());
+			if (type != null) dialog.setFileFilter(type.getFileFilterSwing());
 			dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
+			if (wantDirectory) dialog.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 //			dialog.setLocation(location.x, location.y);
 //			dialog.addComponentListener(new MoveComponentListener());
 			int returnVal = dialog.showOpenDialog(null);
@@ -109,7 +131,7 @@ public class OpenFile
 			// the AWT way
 			FileDialog dialog = new FileDialog(TopLevel.getCurrentJFrame(), title, FileDialog.LOAD);
 			dialog.setDirectory(User.getWorkingDirectory());
-			dialog.setFilenameFilter(type.getFileFilterAWT());
+			if (type != null) dialog.setFilenameFilter(type.getFileFilterAWT());
 			dialog.setVisible(true);
 			String fileName = dialog.getFile();
 			if (fileName == null) return null;
