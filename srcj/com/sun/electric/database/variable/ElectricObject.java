@@ -39,8 +39,6 @@ import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 
 import java.awt.Font;
-import java.awt.Point;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.List;
@@ -48,7 +46,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 /**
  * This class is the base class of all Electric objects that can be extended with "Variables".
@@ -400,7 +397,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 			} else if (this instanceof Cell)
 			{
 				Cell cell = (Cell)this;
-				Rectangle2D bounds = cell.getBounds();
+//				Rectangle2D bounds = cell.getBounds();
 				Poly [] polys = cell.getPolyList(var, 0, 0, wnd, false);
 				if (polys.length > 0) poly = polys[0];
 			}
@@ -1295,7 +1292,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 			if (val == null) continue;
 			if (firstvar) System.out.println("Variables:");   firstvar = false;
 			Object addr = val.getObject();
-            TextDescriptor td = val.getTextDescriptor();
+//            TextDescriptor td = val.getTextDescriptor();
             String par = val.isParam() ? "(param)" : "";
 			if (addr instanceof Object[])
 			{

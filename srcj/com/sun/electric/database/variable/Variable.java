@@ -34,10 +34,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.text.FieldPosition;
-import java.util.Locale;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Collections;
