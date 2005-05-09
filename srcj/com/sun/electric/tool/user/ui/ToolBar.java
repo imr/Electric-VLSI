@@ -28,6 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -48,10 +49,15 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -88,6 +94,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
     /** Go forward button */        private JButton goForwardButton;
     /** Undo button */              private JButton undoButton;
     /** Redo button */              private JButton redoButton;
+    /** bookmark button */          private JButton bookmarkButton;
 	/** Save button */              private ToolBarButton saveLibraryButton;
 
     /**
@@ -352,6 +359,20 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             new ActionListener() { public void actionPerformed(ActionEvent e) { goBackButtonCommand(); } });
         toolbar.goBackButton.setToolTipText("Go Back a Cell");
         toolbar.goBackButton.setEnabled(false);
+        toolbar.goBackButton.addMouseListener(
+            new MouseListener() {
+                public void mouseClicked(MouseEvent e) {}
+                public void mouseEntered(MouseEvent e) {}
+                public void mouseExited(MouseEvent e) {}
+                public void mousePressed(MouseEvent e) {}
+                public void mouseReleased(MouseEvent e) {
+                    AbstractButton b = (AbstractButton) e.getSource();
+
+                    //if(b.contains(e.getX(), e.getY()))
+                    //    System.out.println("Mouse released");
+                }
+            }
+        );
         toolbar.add(toolbar.goBackButton);
 
         toolbar.goForwardButton = new JButton(Resources.getResource(toolbar.getClass(), "ButtonGoForward.gif"));
@@ -360,7 +381,6 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         toolbar.goForwardButton.setToolTipText("Go Forward a Cell");
         toolbar.goForwardButton.setEnabled(false);
         toolbar.add(toolbar.goForwardButton);
-
 
 		// a separator
 		toolbar.addSeparator();
