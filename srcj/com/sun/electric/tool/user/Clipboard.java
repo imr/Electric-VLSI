@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -78,7 +77,7 @@ import javax.swing.KeyStroke;
  */
 public class Clipboard
 {
-	/** The only Clipboard object. */					private static Clipboard theClipboard = new Clipboard();
+	/** The only Clipboard object. */					private static Clipboard    theClipboard = new Clipboard();
 	/** The Clipboard Library. */						private static Library clipLib = null;
 	/** The Clipboard Cell. */							private static Cell clipCell;
 
@@ -153,6 +152,15 @@ public class Clipboard
 		{
 			NodeInst ni = (NodeInst)it.next();
 			ni.kill();
+		}
+
+        // Delete all variables
+        List varsToDelete = new ArrayList();
+        for(Iterator it = clipCell.getVariables(); it.hasNext(); )
+		{
+			Variable var = (Variable)it.next();
+            clipCell.delVar(var.getKey());
+			//varsToDelete.add(var);
 		}
 	}
 
@@ -370,7 +378,8 @@ public class Clipboard
 		Clipboard.init();
 		int nTotal = clipCell.getNumNodes();
 		int aTotal = clipCell.getNumArcs();
-		int total = nTotal + aTotal;
+        int vTotal = clipCell.getNumVariables();
+		int total = nTotal + aTotal + vTotal;
 		if (total == 0)
 		{
 			System.out.println("Nothing in the clipboard to paste");
@@ -432,6 +441,13 @@ public class Clipboard
 			ArcInst ai = (ArcInst)it.next();
 			pasteList.add(ai);
 		}
+        for (Iterator it = clipCell.getVariables(); it.hasNext(); )
+        {
+            Variable var = (Variable)it.next();
+            pasteList.add(var);
+        }
+
+        if (pasteList.size() == 0) return;
 
         if (User.isMoveAfterDuplicate())
 		{
@@ -600,28 +616,44 @@ public class Clipboard
         // make a list of all objects to be copied (includes end points of arcs)
         List theNodes = new ArrayList();
         List theArcs = new ArrayList();
+        List theTextVariables = new ArrayList();
         for (Iterator it = list.iterator(); it.hasNext(); )
         {
 	        Object obj = it.next();
-			if (obj instanceof Highlight) obj = ((Highlight)obj).getGeometric();
-			if (!(obj instanceof Geometric)) continue;
-            Geometric geom = (Geometric)obj;
-
-            if (geom instanceof NodeInst)
+            Highlight h = null;
+			if (obj instanceof Highlight)
             {
-            	if (!theNodes.contains(geom)) theNodes.add(geom);
+                h = (Highlight)obj;
+                obj = h.getGeometric();
             }
-            if (geom instanceof ArcInst)
+            if (obj instanceof Geometric)
             {
-                ArcInst ai = (ArcInst)geom;
-                theArcs.add(ai);
-                NodeInst head = ai.getHead().getPortInst().getNodeInst();
-                NodeInst tail = ai.getTail().getPortInst().getNodeInst();
-                if (!theNodes.contains(head)) theNodes.add(head);
-                if (!theNodes.contains(tail)) theNodes.add(tail);
+                Geometric geom = (Geometric)obj;
+
+                if (geom instanceof NodeInst)
+                {
+                    if (!theNodes.contains(geom)) theNodes.add(geom);
+                }
+                if (geom instanceof ArcInst)
+                {
+                    ArcInst ai = (ArcInst)geom;
+                    theArcs.add(ai);
+                    NodeInst head = ai.getHead().getPortInst().getNodeInst();
+                    NodeInst tail = ai.getTail().getPortInst().getNodeInst();
+                    if (!theNodes.contains(head)) theNodes.add(head);
+                    if (!theNodes.contains(tail)) theNodes.add(tail);
+                }
+            }
+            // For text variables
+            if (h != null && h.getType() == Highlight.Type.TEXT)
+            {
+                Variable var = h.getVar();
+                if (var != null && h.getElectricObject() instanceof Cell)
+                    theTextVariables.add(var);
             }
         }
-		if (theNodes.size() == 0) return;
+
+		if (theNodes.size() == 0 && theTextVariables.size() == 0) return;
 
 		// check for recursion
 		for(Iterator it = theNodes.iterator(); it.hasNext(); )
@@ -740,15 +772,16 @@ public class Clipboard
 		}
 
 		// copy variables on cells
-		for(Iterator it = list.iterator(); it.hasNext(); )
+        for(Iterator it = theTextVariables.iterator(); it.hasNext(); )
+		//for(Iterator it = list.iterator(); it.hasNext(); )
 		{
-			Object obj = it.next();
-			if (!(obj instanceof Highlight)) continue;
-			Highlight h = (Highlight)obj;
-			if (h.getType() != Highlight.Type.TEXT) continue;
-			Variable var = h.getVar();
-			if (var == null) continue;
-			if (!(h.getElectricObject() instanceof Cell)) continue;
+			Variable var = (Variable)it.next();
+//			if (!(obj instanceof Highlight)) continue;
+//			Highlight h = (Highlight)obj;
+//			if (h.getType() != Highlight.Type.TEXT) continue;
+//			Variable var = h.getVar();
+//			if (var == null) continue;
+//			if (!(h.getElectricObject() instanceof Cell)) continue;
 
 			Variable cellVar = toCell.newVar(var.getKey().getName(), var.getObject());
 			if (cellVar != null)
@@ -816,25 +849,11 @@ public class Clipboard
         // figure out lower-left corner and upper-rigth corner of this collection of objects
         for(Iterator it = pasteList.iterator(); it.hasNext(); )
         {
-            Geometric geom = (Geometric)it.next();
-            if (geom instanceof NodeInst) {
-                NodeInst ni = (NodeInst)geom;
-                Point2D pt = ni.getAnchorCenter();
-
-                if (llcorner == null) {
-                    llcorner = new Point2D.Double(pt.getX(), pt.getY());
-                    urcorner = new Point2D.Double(pt.getX(), pt.getY());
-                    continue;
-                }
-                if (pt.getX() < llcorner.getX()) llcorner.setLocation(pt.getX(), llcorner.getY());
-                if (pt.getY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), pt.getY());
-                if (pt.getX() > urcorner.getX()) urcorner.setLocation(pt.getX(), urcorner.getY());
-                if (pt.getY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), pt.getY());
-            }
-            if (geom instanceof ArcInst) {
-                ArcInst ai = (ArcInst)geom;
-                double wid = ai.getWidth() - ai.getProto().getWidthOffset();
-                Poly poly = ai.makePoly(ai.getLength(), wid, Poly.Type.FILLED);
+            Object obj = it.next();
+            if ((obj instanceof Variable))
+            {
+                Variable var = (Variable)obj;
+                Poly poly = clipCell.computeTextPoly(EditWindow.needCurrent(), var, null);
                 Rectangle2D bounds = poly.getBounds2D();
 
                 if (llcorner == null) {
@@ -846,6 +865,40 @@ public class Clipboard
                 if (bounds.getMinY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), bounds.getMinY());
                 if (bounds.getMaxX() > urcorner.getX()) urcorner.setLocation(bounds.getMaxX(), urcorner.getY());
                 if (bounds.getMaxY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), bounds.getMaxY());
+            }
+            else
+            {
+                Geometric geom = (Geometric)obj;
+                if (geom instanceof NodeInst) {
+                    NodeInst ni = (NodeInst)geom;
+                    Point2D pt = ni.getAnchorCenter();
+
+                    if (llcorner == null) {
+                        llcorner = new Point2D.Double(pt.getX(), pt.getY());
+                        urcorner = new Point2D.Double(pt.getX(), pt.getY());
+                        continue;
+                    }
+                    if (pt.getX() < llcorner.getX()) llcorner.setLocation(pt.getX(), llcorner.getY());
+                    if (pt.getY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), pt.getY());
+                    if (pt.getX() > urcorner.getX()) urcorner.setLocation(pt.getX(), urcorner.getY());
+                    if (pt.getY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), pt.getY());
+                }
+                if (geom instanceof ArcInst) {
+                    ArcInst ai = (ArcInst)geom;
+                    double wid = ai.getWidth() - ai.getProto().getWidthOffset();
+                    Poly poly = ai.makePoly(ai.getLength(), wid, Poly.Type.FILLED);
+                    Rectangle2D bounds = poly.getBounds2D();
+
+                    if (llcorner == null) {
+                        llcorner = new Point2D.Double(bounds.getMinX(), bounds.getMinY());
+                        urcorner = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY());
+                        continue;
+                    }
+                    if (bounds.getMinX() < llcorner.getX()) llcorner.setLocation(bounds.getMinX(), llcorner.getY());
+                    if (bounds.getMinY() < llcorner.getY()) llcorner.setLocation(llcorner.getX(), bounds.getMinY());
+                    if (bounds.getMaxX() > urcorner.getX()) urcorner.setLocation(bounds.getMaxX(), urcorner.getY());
+                    if (bounds.getMaxY() > urcorner.getY()) urcorner.setLocation(urcorner.getX(), bounds.getMaxY());
+                }
             }
         }
 
@@ -1055,66 +1108,78 @@ public class Clipboard
 			highlighter.clear();
 			for(Iterator it = pasteList.iterator(); it.hasNext(); )
 			{
-				Geometric geom = (Geometric)it.next();
-				Point2D [] points = null;
-				if (geom instanceof ArcInst)
-				{
-					ArcInst ai = (ArcInst)geom;
-					Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
-					points = poly.getPoints();
-				} else
-				{
-					NodeInst ni = (NodeInst)geom;
-					if (ni.isInvisiblePinWithText())
-					{
-						// find text on the invisible pin
-						for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
-						{
-							Variable var = (Variable)vIt.next();
-							if (var.isDisplay())
-							{
-								points = Highlighter.describeHighlightText(wnd, geom, var, null);
-								break;
-							}
-						}
-					}
-					if (points != null)
-					{
-						for(int i=0; i<points.length; i += 2)
-						{
-							double fX = points[i].getX();
-							double fY = points[i].getY();
-							double tX = points[i+1].getX();
-							double tY = points[i+1].getY();
-							highlighter.addLine(new Point2D.Double(fX+oX, fY+oY), new Point2D.Double(tX+oX, tY+oY), cell);
-						}
-						continue;
-					}
-					SizeOffset so = ni.getSizeOffset();
-					AffineTransform trans = ni.rotateOutAboutTrueCenter();
-					double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
-					double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
-					double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
-					double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
-					double nodeX = (nodeLowX + nodeHighX) / 2;
-					double nodeY = (nodeLowY + nodeHighY) / 2;
-					Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
-					poly.transform(trans);
-					points = poly.getPoints();
-				}
-				if (points != null)
-				{
-					for(int i=0; i<points.length; i++)
-					{
-						int lastI = i - 1;
-						if (lastI < 0) lastI = points.length - 1;
-						double fX = points[lastI].getX();
-						double fY = points[lastI].getY();
-						double tX = points[i].getX();
-						double tY = points[i].getY();
-						highlighter.addLine(new Point2D.Double(fX+oX, fY+oY), new Point2D.Double(tX+oX, tY+oY), cell);
-					}
-				}
+                Object obj = it.next();
+                Point2D [] points = null;
+
+                if (obj instanceof Variable)
+                {
+                    Variable var = (Variable)obj;
+                    Poly poly = clipCell.computeTextPoly(EditWindow.needCurrent(), var, null);
+                    points = poly.getPoints();
+                }
+                else
+                {
+                    if (!(obj instanceof Geometric)) continue;
+                    Geometric geom = (Geometric)obj;
+                    if (geom instanceof ArcInst)
+                    {
+                        ArcInst ai = (ArcInst)geom;
+                        Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+                        points = poly.getPoints();
+                    } else
+                    {
+                        NodeInst ni = (NodeInst)geom;
+                        if (ni.isInvisiblePinWithText())
+                        {
+                            // find text on the invisible pin
+                            for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
+                            {
+                                Variable var = (Variable)vIt.next();
+                                if (var.isDisplay())
+                                {
+                                    points = Highlighter.describeHighlightText(wnd, geom, var, null);
+                                    break;
+                                }
+                            }
+                        }
+                        if (points != null)
+                        {
+                            for(int i=0; i<points.length; i += 2)
+                            {
+                                double fX = points[i].getX();
+                                double fY = points[i].getY();
+                                double tX = points[i+1].getX();
+                                double tY = points[i+1].getY();
+                                highlighter.addLine(new Point2D.Double(fX+oX, fY+oY), new Point2D.Double(tX+oX, tY+oY), cell);
+                            }
+                            continue;
+                        }
+                        SizeOffset so = ni.getSizeOffset();
+                        AffineTransform trans = ni.rotateOutAboutTrueCenter();
+                        double nodeLowX = ni.getTrueCenterX() - ni.getXSize()/2 + so.getLowXOffset();
+                        double nodeHighX = ni.getTrueCenterX() + ni.getXSize()/2 - so.getHighXOffset();
+                        double nodeLowY = ni.getTrueCenterY() - ni.getYSize()/2 + so.getLowYOffset();
+                        double nodeHighY = ni.getTrueCenterY() + ni.getYSize()/2 - so.getHighYOffset();
+                        double nodeX = (nodeLowX + nodeHighX) / 2;
+                        double nodeY = (nodeLowY + nodeHighY) / 2;
+                        Poly poly = new Poly(nodeX, nodeY, nodeHighX-nodeLowX, nodeHighY-nodeLowY);
+                        poly.transform(trans);
+                        points = poly.getPoints();
+                    }
+                }
+                if (points != null)
+                {
+                    for(int i=0; i<points.length; i++)
+                    {
+                        int lastI = i - 1;
+                        if (lastI < 0) lastI = points.length - 1;
+                        double fX = points[lastI].getX();
+                        double fY = points[lastI].getY();
+                        double tX = points[i].getX();
+                        double tY = points[i].getY();
+                        highlighter.addLine(new Point2D.Double(fX+oX, fY+oY), new Point2D.Double(tX+oX, tY+oY), cell);
+                    }
+                }
 			}
             // show delta from original
             Rectangle2D bounds = wnd.getDisplayedBounds();
