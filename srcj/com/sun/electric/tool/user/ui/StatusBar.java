@@ -271,8 +271,16 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 		if (coords == null) fieldCoords.setText(""); else
 			fieldCoords.setText(coords);
 
-		if (hierCoords == null) fieldHierCoords.setText(""); else
-			fieldHierCoords.setText(hierCoords);
+        // if too many chars to display in space provided, truncate.
+        if (hierCoords != null) {
+            int width = fieldHierCoords.getFontMetrics(fieldHierCoords.getFont()).stringWidth(hierCoords);
+            if (width > fieldHierCoords.getParent().getWidth()) {
+                int chars = (int)(hierCoords.length() * fieldHierCoords.getParent().getWidth() / width);
+                hierCoords = hierCoords.substring(hierCoords.length() - chars, hierCoords.length());
+            }
+            fieldHierCoords.setText(hierCoords);
+        } else
+		    fieldHierCoords.setText("");
 	}
 
     private void updateSelectedText() {

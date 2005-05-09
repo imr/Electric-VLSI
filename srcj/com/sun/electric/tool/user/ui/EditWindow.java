@@ -393,14 +393,14 @@ public class EditWindow extends JPanel
 							break;
 						}
 						ni = (NodeInst)no;
-						if (((Cell)ni.getProto()).getView() == View.ICON)
-						{
-							validPath = false;
-							break;
-						}
-						if (first) first = false; else
-							path += " / ";
-						path = ni.describe() + path;
+//						if (((Cell)ni.getProto()).getView() == View.ICON)
+//						{
+//							validPath = false;
+//							break;
+//						}
+                        path = ni.getParent().getName() + "[" + ni.getName() + "]" + (first? "" : " / ") + path;
+                        if (first) first = false;
+                        //path = ni.getName() + path;
 //						AffineTransform trans = ni.rotateOut(ni.translateOut());
 						AffineTransform trans = ni.translateOut(ni.rotateOut());
 						trans.transform(ptPath, ptPath);
@@ -408,8 +408,12 @@ public class EditWindow extends JPanel
 					}
 					if (validPath)
 					{
-						path = "Location in " + ni.getParent().describe() + " / " + path + " is (" +
-							TextUtils.formatDouble(ptPath.getX(), 2) + ", " + TextUtils.formatDouble(ptPath.getY(), 2) + ")";
+                        if (ni.getParent().getView() == View.SCHEMATIC) {
+                            path = "Location is " + ni.getParent().describe() + " / " + path;
+                        } else {
+                            path = "Location in " + ni.getParent().describe() + " / " + path + " is (" +
+                                TextUtils.formatDouble(ptPath.getX(), 2) + ", " + TextUtils.formatDouble(ptPath.getY(), 2) + ")";
+                        }
 					} else path = null;
 				}
 				StatusBar.setHierarchicalCoordinates(path, wnd.wf);
