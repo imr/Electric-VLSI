@@ -480,7 +480,7 @@ public class Connectivity
 				if (pi != null) touchingNodes.add(pi);
 				continue;
 			}
-			Poly [] polys = tech.getShapeOfNode(ni, null, true, true, null);
+			Poly [] polys = tech.getShapeOfNode(ni, null, null, true, true, null);
 			AffineTransform trans = ni.rotateOut();
 			for(int i=0; i<polys.length; i++)
 			{
@@ -537,7 +537,7 @@ public class Connectivity
 			{
 				Technology tech = subNi.getProto().getTechnology();
 				AffineTransform trans = subNi.rotateOut();
-				Poly [] polyList = tech.getShapeOfNode(subNi, null, true, true, null);
+				Poly [] polyList = tech.getShapeOfNode(subNi, null, null, true, true, null);
 				for(int i=0; i<polyList.length; i++)
 				{
 					Poly poly = polyList[i];
@@ -1679,7 +1679,7 @@ public class Connectivity
 			if (ni.getProto() instanceof Cell) continue;
 			AffineTransform trans = ni.rotateOut();
 			Technology tech = ni.getProto().getTechnology();
-			Poly [] nodePolys = tech.getShapeOfNode(ni, null, true, true, null);
+			Poly [] nodePolys = tech.getShapeOfNode(ni, null, null, true, true, null);
 			for(int i=0; i<nodePolys.length; i++)
 			{
 				Poly nodePoly = nodePolys[i];

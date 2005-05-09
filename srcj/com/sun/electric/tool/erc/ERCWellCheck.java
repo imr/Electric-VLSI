@@ -634,7 +634,7 @@ public class ERCWellCheck
 					PrimitiveNode pNp = (PrimitiveNode)subNp;
 					Technology tech = pNp.getTechnology();
 					// Getting only ercLayers
-					Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, true, true, ercLayers);
+					Poly [] nodeInstPolyList = tech.getShapeOfNode(ni, null, null, true, true, ercLayers);
 					int tot = nodeInstPolyList.length;
 
 					for(int i=0; i<tot; i++)

@@ -240,7 +240,7 @@ public class ParasiticTool extends Tool{
             // In case of contacts, the area is substracted.
             boolean add = function != PrimitiveNode.Function.CONTACT;
 
-            Poly [] polyList = tech.getShapeOfNode(ni, null, true, true, null);
+            Poly [] polyList = tech.getShapeOfNode(ni, null, null, true, true, null);
             int tot = polyList.length;
             for(int i=0; i<tot; i++)
             {

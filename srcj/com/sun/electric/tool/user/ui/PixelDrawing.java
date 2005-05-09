@@ -368,7 +368,7 @@ public class PixelDrawing
 			countCell(cell, expandBounds, DBMath.MATID);
 
 			// now render it all
-			drawCell(cell, expandBounds, DBMath.MATID, wnd);
+			drawCell(cell, expandBounds, DBMath.MATID, wnd, wnd.getVarContext());
 		}
 
 		// merge transparent image into opaque one
@@ -610,7 +610,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw the contents of a cell, transformed through "prevTrans".
 	 */
-	private void drawCell(Cell cell, Rectangle2D expandBounds, AffineTransform prevTrans, EditWindow topWnd)
+	private void drawCell(Cell cell, Rectangle2D expandBounds, AffineTransform prevTrans, EditWindow topWnd, VarContext context)
 	{
         renderPolyTime = 0;
         renderTextTime = 0;
@@ -624,7 +624,7 @@ public class PixelDrawing
 		// draw all nodes
 		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
 		{
-			drawNode((NodeInst)nodes.next(), prevTrans, topWnd, expandBounds, false);
+			drawNode((NodeInst)nodes.next(), prevTrans, topWnd, expandBounds, false, context);
 		}
 
 		// show cell variables if at the top level
@@ -652,8 +652,9 @@ public class PixelDrawing
      * @param topLevel true if this is the top-level of display (not in a subcell).
      * @param expandBounds bounds in which to draw nodes fully expanded
      * @param forceVisible true if layer visibility information should be ignored and force the drawing
+	 * @param context the VarContext to this node in the hierarchy.
      */
-	public void drawNode(NodeInst ni, AffineTransform trans, EditWindow topWnd, Rectangle2D expandBounds, boolean forceVisible)
+	public void drawNode(NodeInst ni, AffineTransform trans, EditWindow topWnd, Rectangle2D expandBounds, boolean forceVisible, VarContext context)
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
@@ -714,13 +715,11 @@ public class PixelDrawing
 			if (expanded)
 			{
 				// show the contents of the cell
-				if (!expandedCellCached(subCell, subTrans, topWnd))
+				if (!expandedCellCached(subCell, subTrans, topWnd, context))
 				{
 					// just draw it directly
-					VarContext oldContext = topWnd.getVarContext();
-					topWnd.setVarContext(oldContext.push(ni));
-					drawCell(subCell, expandBounds, subTrans, topWnd);
-					topWnd.setVarContext(oldContext);
+					VarContext newContext = context.push(ni);
+					drawCell(subCell, expandBounds, subTrans, topWnd, newContext);
 				}
 				showCellPorts(ni, trans, Color.BLACK);
 			} else
@@ -775,7 +774,7 @@ public class PixelDrawing
 					if (!User.isTextVisibilityOnAnnotation()) nodeWnd = null;
 				}
 				Technology tech = prim.getTechnology();
-				Poly [] polys = tech.getShapeOfNode(ni, nodeWnd);
+				Poly [] polys = tech.getShapeOfNode(ni, nodeWnd, context, false, false, null);
 				drawPolys(polys, localTrans, forceVisible);
 			}
 		}
@@ -1013,7 +1012,7 @@ public class PixelDrawing
 	 * @return true if the cell is properly handled and need no further processing.
 	 * False to render the contents recursively.
 	 */
-	private boolean expandedCellCached(Cell subCell, AffineTransform origTrans, EditWindow topWnd)
+	private boolean expandedCellCached(Cell subCell, AffineTransform origTrans, EditWindow topWnd, VarContext context)
 	{
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return false;
@@ -1075,7 +1074,7 @@ public class PixelDrawing
 
 			// render the contents of the expanded cell into its own offscreen cache
 			renderedCell.getOffscreen().renderedWindow = false;
-			renderedCell.getOffscreen().drawCell(subCell, null, origTrans, topWnd);
+			renderedCell.getOffscreen().drawCell(subCell, null, origTrans, topWnd, context);
             expandedCellCount.offscreen = renderedCell.getOffscreen();
             offscreen = expandedCellCount.offscreen;
 

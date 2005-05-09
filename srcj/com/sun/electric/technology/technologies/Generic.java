@@ -29,6 +29,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
@@ -276,6 +277,7 @@ public class Generic extends Technology
 	 * because of the unusual primitives in the Schematics Technology.
 	 * @param ni the NodeInst to describe.
 	 * @param wnd the window in which this node will be drawn.
+	 * @param context the VarContext to this node in the hierarchy.
 	 * @param electrical true to get the "electrical" layers.
 	 * This makes no sense for Schematics primitives.
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
@@ -284,7 +286,7 @@ public class Generic extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable,
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, VarContext context, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		NodeProto prototype = ni.getProto();
@@ -295,7 +297,7 @@ public class Generic extends Technology
 			if (ni.isInvisiblePinWithText())
 				primLayers = NULLNODELAYER;
 		}
-		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, layerOverride);
+		return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
 	}
 	
 	/**

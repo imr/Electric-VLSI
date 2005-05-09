@@ -408,7 +408,7 @@ public class GDS extends Geometry
 		{
 			PrimitiveNode prim = (PrimitiveNode)ni.getProto();
 			Technology tech = prim.getTechnology();
-			Poly [] polys = tech.getShapeOfNode(ni, null);
+			Poly [] polys = tech.getShapeOfNode(ni);
 			Layer firstLayer = null;
 			for (int i=0; i<polys.length; i++)
 			{

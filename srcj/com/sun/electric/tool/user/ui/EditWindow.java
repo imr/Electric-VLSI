@@ -393,6 +393,22 @@ public class EditWindow extends JPanel
 							break;
 						}
 						ni = (NodeInst)no;
+						if (((Cell)ni.getProto()).getView() == View.ICON)
+						{
+							validPath = false;
+							break;
+						}
+						if (first) first = false; else
+							path += " / ";
+						path = ni.describe() + path;
+//						if (((Cell)ni.getProto()).getView() == View.ICON)
+//						{
+//							validPath = false;
+//							break;
+//						}
+                        path = ni.getParent().getName() + "[" + ni.getName() + "]" + (first? "" : " / ") + path;
+                        if (first) first = false;
+                        //path = ni.getName() + path;
 //						if (((Cell)ni.getProto()).getView() == View.ICON)
 //						{
 //							validPath = false;
@@ -438,7 +454,7 @@ public class EditWindow extends JPanel
 	public void keyTyped(KeyEvent evt) { WindowFrame.curKeyListener.keyTyped(evt); }
 
     public void highlightChanged(Highlighter which) {
-        repaint();
+		repaint();
     }
 
     /**
@@ -1245,7 +1261,7 @@ public class EditWindow extends JPanel
 	{
 		offscreen.clearImage(false);
 		setScale(scale);
-		offscreen.drawNode(ni, DBMath.MATID, null, null, forceVisible);
+		offscreen.drawNode(ni, DBMath.MATID, null, null, forceVisible, null);
 		return offscreen.composite();
 	}
 
@@ -2564,7 +2580,7 @@ public class EditWindow extends JPanel
                 return;
             }
         }
-        repaint();
+		repaint();
 	}
 
 	public void zoomOutContents()

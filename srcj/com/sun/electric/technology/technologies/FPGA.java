@@ -307,6 +307,7 @@ public class FPGA extends Technology
 	 * because of the unusual primitives in this Technology.
 	 * @param ni the NodeInst to describe.
 	 * @param wnd the window in which this node will be drawn.
+	 * @param context the VarContext to this node in the hierarchy.
 	 * @param electrical true to get the "electrical" layers.
 	 * This makes no sense for Schematics primitives.
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
@@ -315,7 +316,7 @@ public class FPGA extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, VarContext context, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -348,8 +349,6 @@ public class FPGA extends Technology
 					// count number of active nets and pips
 
 					// determine the active segments and pips
-					VarContext context = null;
-					if (wnd != null) context = wnd.getVarContext();
 					reEvaluatePips(ni, fn, context);
 
 					// save the activity bits
@@ -477,7 +476,7 @@ public class FPGA extends Technology
 			return polys;
 		}
 
-		return super.getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, layerOverride);
+		return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
 	}
 
 	/**

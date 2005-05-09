@@ -567,7 +567,6 @@ public class WindowFrame extends Observable
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.wantToRedoJobTree = true;
-			//wf.getContent().repaint();
             wf.redoExplorerTreeIfRequested();
 		}
 	}
@@ -584,7 +583,6 @@ public class WindowFrame extends Observable
 		{
 			WindowFrame wf = (WindowFrame)it.next();
             wf.wantToRedoErrorTree = true;
-			//wf.getContent().repaint();
             wf.redoExplorerTreeIfRequested();
 		}
 	}

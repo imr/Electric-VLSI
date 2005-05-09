@@ -189,7 +189,7 @@ public class Maxwell extends Output
 				if (!(np instanceof PrimitiveNode)) continue;
 				AffineTransform transRot = ni.rotateOut();
 				Technology tech = np.getTechnology();
-				Poly [] polyList = tech.getShapeOfNode(ni, null, true, false, null);
+				Poly [] polyList = tech.getShapeOfNode(ni, null, null, true, false, null);
 				int tot = polyList.length;
 				for(int i=0; i<tot; i++)
 				{

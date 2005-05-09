@@ -1344,7 +1344,7 @@ public class Technology implements Comparable
      */
     public double getTransistorActiveLength(NodeInst ni)
     {
-        Poly [] diffList = getShapeOfNode(ni, null, true, false, diffLayers);
+        Poly [] diffList = getShapeOfNode(ni, null, null, true, false, diffLayers);
         double activeLen = 0;
         if (diffList.length > 0)
         {
@@ -1536,7 +1536,7 @@ public class Technology implements Comparable
 	 */
 	public Poly [] getShapeOfNode(NodeInst ni)
 	{
-		return getShapeOfNode(ni, null, false, false, null);
+		return getShapeOfNode(ni, null, null, false, false, null);
 	}
 
 	/**
@@ -1549,7 +1549,7 @@ public class Technology implements Comparable
 	 */
 	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd)
 	{
-		return getShapeOfNode(ni, wnd, false, false, null);
+		return getShapeOfNode(ni, wnd, wnd.getVarContext(), false, false, null);
 	}
 
 	/**
@@ -1557,6 +1557,7 @@ public class Technology implements Comparable
 	 * @param ni the NodeInst that is being described.
 	 * The prototype of this NodeInst must be a PrimitiveNode and not a Cell.
 	 * @param wnd the window in which this node will be drawn (null if no window scaling should be done).
+	 * @param context the VarContext to this node in the hierarchy.
 	 * @param electrical true to get the "electrical" layers.
 	 * When electrical layers are requested, each layer is tied to a specific port on the node.
 	 * If any piece of geometry covers more than one port,
@@ -1566,10 +1567,11 @@ public class Technology implements Comparable
 	 * The active must be split since each half corresponds to a different PrimitivePort on the PrimitiveNode.
 	 * @param reasonable true to get only a minimal set of contact cuts in large contacts.
 	 * The minimal set covers all edge contacts, but ignores the inner cuts in large contacts.
+	 * @param onlyTheseLayers a List of layers to draw (if null, draw all layers).
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, List onlyTheseLayers)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, VarContext context, boolean electrical, boolean reasonable, List onlyTheseLayers)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -1610,7 +1612,7 @@ public class Technology implements Comparable
 		if (primLayers.length == 0)
 			return new Poly[0];
 
-		return getShapeOfNode(ni, wnd, electrical, reasonable, primLayers, null);
+		return getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, null);
 	}
 
 	/**
@@ -1619,6 +1621,7 @@ public class Technology implements Comparable
 	 * @param ni the NodeInst that is being described.
 	 * @param wnd the window in which this node will be drawn.
 	 * If this is null, no window scaling can be done, so no text is included in the returned results.
+	 * @param context the VarContext to this node in the hierarchy.
 	 * @param electrical true to get the "electrical" layers
 	 * Like the list returned by "getLayers", the results describe this PrimitiveNode,
 	 * but each layer is tied to a specific port on the node.
@@ -1635,7 +1638,8 @@ public class Technology implements Comparable
 	 * @return an array of Poly objects that describes this NodeInst graphically.
 	 * This array includes displayable variables on the NodeInst (if wnd != null).
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, VarContext context, boolean electrical, boolean reasonable,
+		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		int specialType = np.getSpecialType();

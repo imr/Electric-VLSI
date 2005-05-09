@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02n: *********************************
 
+BUG: (05/09/05, SMR) Screen redraws too much (Bug #307).
+FIX: VarContext information must be passed down the hierarchy by the redisplay code, and
+     not stored in the EditWindow.  In addition, the Technology method "getShapeOfNode()"
+     must take a VarContext as a parameter, and not obtain it from the EditWindow.
+
 BUG: (05/09/05, SMR) Screen is shifted after PostScript output (Bug #301).
 FIX: In EditWindow.getBoundsInWindow(), restore scale and offset information properly.
 
