@@ -490,18 +490,24 @@ public final class Main
         public void handleOpenFile(ApplicationEvent ae)
         {
             ae.setHandled(true);
+            String filename = ae.getFilename();
+
             // First open
             if (initJob == null || !initJob.isFinished())
             {
-                argsList.add(ae.getFilename());
+                argsList.add(filename);
             }
             else
             {
                 // Handle the rest of double-clicks on files.
                 List list = new ArrayList(1);
-                list.add(ae.getFilename());
+                list.add(filename);
                 openCommandLineLibs(list);
             }
+            URL dirUrl = TextUtils.makeURLToFile(filename);
+            String dirString = TextUtils.getFilePath(dirUrl);
+            System.out.println("Aqui " + dirString);
+            User.setWorkingDirectory(dirString);
         }
 
 		/**

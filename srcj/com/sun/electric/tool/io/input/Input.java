@@ -24,13 +24,11 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -39,7 +37,6 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.ErrorLogger;
