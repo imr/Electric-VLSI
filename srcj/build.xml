@@ -169,9 +169,13 @@
     </target>
 
     <target name="mac-app" depends="jar" description="Build Macintosh Application">
-        <!--<java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+<!--        <java classpath="." classname="com.sun.electric.Main" fork="true" outputproperty="version">-->
+<!--        	<arg value="-v"/>-->
+<!--        </java>-->
+        <java jar="electric.jar" fork="true" outputproperty="version">
         	<arg value="-v"/>
-        </java>       -->
+            <jvmarg value="-Xmx1000m"/>
+        </java>
         <property name="releasedir" value="Release${version}"/>
         <property name="appdir" value="${releasedir}/Electric.app"/>
         <mkdir dir="${releasedir}"/>
@@ -214,6 +218,9 @@
         <delete quiet="false" file="electric*.jar"/>
         <delete dir="apidoc"/>
         <delete dir="bin/com"/>
+        <delete file="electric.mf"/>
+        <delete dir="bsh"/>
+        <delete dir="com/apple"/>
     </target>
 
 </project>
