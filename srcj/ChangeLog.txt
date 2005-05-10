@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02n: *********************************
 
+BUG: (05/10/05. GVG) Exception in CIF generation due to latest changes in Technology.getShapeOfNode/getShapeOfArc.
+In io.output.Geometry, EditWindow is always null.
+FIX: Using simple passing only Geometric to getShapeOfNode/getShapeOfArc function.
+
 IMP: (05/09/05, GVG) Clicking on library on Mac OS set working directory extracted from that library (Bug #308)
 
 BUG: (05/09/05, GVG) Cell attributes wrongly copied by Clipboard if a previous clipboard copied a cell attribute (Bug #306).

@@ -121,7 +121,7 @@ public abstract class Geometry extends Output
     protected boolean includeGeometric() { return false; }
     
     /** Overridable method to determine the current EditWindow to use for text scaling */
-    protected EditWindow windowBeingRendered() { return null; }
+//    protected EditWindow windowBeingRendered() { return null; }
     
     
     /**
@@ -293,7 +293,7 @@ public abstract class Geometry extends Output
 		{
 			PrimitiveNode prim = (PrimitiveNode)ni.getProto();
 			Technology tech = prim.getTechnology();
-			Poly [] polys = tech.getShapeOfNode(ni, windowBeingRendered());
+			Poly [] polys = tech.getShapeOfNode(ni); //, windowBeingRendered());
 			for (int i=0; i<polys.length; i++)
 				polys[i].transform(trans);
 			cellGeom.addPolys(polys, ni);
@@ -303,7 +303,7 @@ public abstract class Geometry extends Output
 		{
 			ArcProto ap = ai.getProto();
 			Technology tech = ap.getTechnology();
-			Poly [] polys = tech.getShapeOfArc(ai, windowBeingRendered());
+			Poly [] polys = tech.getShapeOfArc(ai); //, windowBeingRendered());
 			cellGeom.addPolys(polys, ai);
 		}
     }
