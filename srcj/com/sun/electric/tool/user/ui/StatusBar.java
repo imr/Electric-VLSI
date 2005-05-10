@@ -280,7 +280,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             }
             fieldHierCoords.setText(hierCoords);
         } else
-		    fieldHierCoords.setText("");
+		    fieldHierCoords.setText(" ");
 	}
 
     private void updateSelectedText() {
