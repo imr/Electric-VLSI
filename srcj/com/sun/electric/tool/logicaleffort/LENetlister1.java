@@ -164,7 +164,8 @@ public class LENetlister1 extends LENetlister {
             if (!inst.isLeGate()) continue;
 
             String varName = "LEDRIVE_" + inst.getName();
-            no.newVar(varName, new Float(inst.getLeX()));
+            //no.newVar(varName, new Float(inst.getLeX()));
+            topLevelCell.newVar(varName, new Float(inst.getLeX()));
 
             if (inst.getLeX() < 1.0f) {
                 String msg = "WARNING: Instance "+ni.describe()+" has size "+TextUtils.formatDouble(inst.getLeX(), 3)+" less than 1 ("+inst.getName()+")";

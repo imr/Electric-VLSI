@@ -232,6 +232,35 @@ public class LETool extends Tool {
     /**
      * Attempt to get LEDRIVE off of <CODE>no</CODE> based
      * on the VarContext <CODE>context</CODE>.
+     * @param no the nodable for which we want the size
+     * @param context the context
+     * @return a variable if found, null otherwise
+     */
+    private Variable getLEDRIVE(Nodable no, VarContext context) {
+        // try the top level cell way
+        Variable var = null;
+        var = getLEDRIVEtop(no, context);
+        // try the old way (on leaf cells) if none found
+        if (var == null)
+            var = getLEDRIVEleaf(no, context);
+        return var;
+    }
+
+    private Variable getLEDRIVEtop(Nodable no, VarContext context) {
+        String drive = context.getInstPath(".");
+        Nodable topno = no;
+        while (context != VarContext.globalContext) {
+            topno = context.getNodable();
+            context = context.pop();
+        }
+        Cell parent = topno.getParent();
+        Variable var = parent.getVar("LEDRIVE_"+drive);
+        return var;
+    }
+
+    /**
+     * Attempt to get LEDRIVE off of <CODE>no</CODE> based
+     * on the VarContext <CODE>context</CODE>.
      * Attemps to compensate for the situation when the user
      * had added extra hierarchy to the top of the hierarchy.
      * It cannot compensate for the user has less hierarchy than
@@ -240,7 +269,7 @@ public class LETool extends Tool {
      * @param context context of <CODE>no</CODE>
      * @return a variable if found, null otherwise
      */
-    private Variable getLEDRIVE(Nodable no, VarContext context) {
+    private Variable getLEDRIVEleaf(Nodable no, VarContext context) {
         String drive = context.getInstPath(".");
         Variable var = null;
         while (!drive.equals("")) {
@@ -548,6 +577,13 @@ public class LETool extends Tool {
     private static void clearStoredSizes(Cell cell) {
         for (Iterator it = cell.getNodes(); it.hasNext(); ) {
             clearStoredSizes((Nodable)it.next());
+        }
+        for (Iterator it = cell.getVariables(); it.hasNext(); ) {
+            Variable var = (Variable)it.next();
+            String name = var.getKey().getName();
+            if (name.startsWith("LEDRIVE_")) {
+                cell.delVar(var.getKey());
+            }
         }
     }
 

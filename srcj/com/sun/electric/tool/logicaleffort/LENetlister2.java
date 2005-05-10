@@ -199,7 +199,8 @@ public class LENetlister2 extends LENetlister {
             // ignore it if not a sizeable gate
             if (!leno.isLeGate()) continue;
             String varName = "LEDRIVE_" + leno.getName();
-            no.newVar(varName, new Float(leno.leX));
+            //no.newVar(varName, new Float(leno.leX));
+            topLevelCell.newVar(varName, new Float(leno.leX));
 
             if (leno.leX < 1.0f) {
                 String msg = "WARNING: Instance "+ni.describe()+" has size "+TextUtils.formatDouble(leno.leX, 3)+" less than 1 ("+leno.getName()+")";
