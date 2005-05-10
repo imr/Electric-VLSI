@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02n: *********************************
 
+IMP: (05/09/05, JKG) LE sizes now stored on top level cell instead of leaf instances.
+
+IMP: (05/09/05, JKG) Improved readability of hierarchical path in status bar. Also,
+    path shown for schematics. Also, second row remains visible because redraw of
+    window is annoying when second row disappears and reappears.
+
+IMP: (05/09/05, JKG) Added "recently visited cells" list when right-clicking on
+    back/forward cell history buttons.
+
 BUG: (05/10/05. GVG) Exception in CIF generation due to latest changes in Technology.getShapeOfNode/getShapeOfArc.
 In io.output.Geometry, EditWindow is always null.
 FIX: Using simple passing only Geometric to getShapeOfNode/getShapeOfArc function.
