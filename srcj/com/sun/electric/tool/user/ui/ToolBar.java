@@ -51,10 +51,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.prefs.Preferences;
@@ -65,6 +67,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JInternalFrame;
 import javax.swing.JToolBar;
+import javax.swing.JPopupMenu;
+import javax.swing.JMenuItem;
 import javax.swing.event.InternalFrameEvent;
 import javax.swing.event.InternalFrameListener;
 
@@ -367,9 +371,8 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
                 public void mousePressed(MouseEvent e) {}
                 public void mouseReleased(MouseEvent e) {
                     AbstractButton b = (AbstractButton) e.getSource();
-
-                    //if(b.contains(e.getX(), e.getY()))
-                    //    System.out.println("Mouse released");
+                    if(ClickZoomWireListener.isRightMouse(e) && b.contains(e.getX(), e.getY()))
+                        showHistoryPopup(e);
                 }
             }
         );
@@ -380,6 +383,19 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             new ActionListener() { public void actionPerformed(ActionEvent e) { goForwardButtonCommand(); } });
         toolbar.goForwardButton.setToolTipText("Go Forward a Cell");
         toolbar.goForwardButton.setEnabled(false);
+        toolbar.goForwardButton.addMouseListener(
+            new MouseListener() {
+                public void mouseClicked(MouseEvent e) {}
+                public void mouseEntered(MouseEvent e) {}
+                public void mouseExited(MouseEvent e) {}
+                public void mousePressed(MouseEvent e) {}
+                public void mouseReleased(MouseEvent e) {
+                    AbstractButton b = (AbstractButton) e.getSource();
+                    if(ClickZoomWireListener.isRightMouse(e) && b.contains(e.getX(), e.getY()))
+                        showHistoryPopup(e);
+                }
+            }
+        );
         toolbar.add(toolbar.goForwardButton);
 
 		// a separator
@@ -667,6 +683,50 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
     public static void goForwardButtonCommand() {
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
 		if (wf != null) wf.getContent().cellHistoryGoForward();
+    }
+
+    public static void showHistoryPopup(MouseEvent e) {
+        EditWindow wnd = EditWindow.getCurrent();
+        if (wnd == null) return;
+        EditWindow.CellHistoryState history = wnd.getCellHistory();
+
+        JPopupMenu popup = new JPopupMenu();
+        JMenuItem m;
+
+        HashMap listed = new HashMap();
+        //for (int i=0; i<history.getHistory().size(); i++) {
+        for (int i=history.getHistory().size()-1; i > -1; i--) {
+            EditWindow.CellHistory entry = (EditWindow.CellHistory)history.getHistory().get(i);
+            Cell cell = entry.getCell();
+            // skip if already shown such a cell
+            if (listed.get(cell) != null) continue;
+            listed.put(cell, cell);
+
+            boolean shown = (i == history.getLocation());
+            m = new JMenuItem(cell.noLibDescribe() + (shown? "  (shown)" : ""));
+            m.addActionListener(new HistoryPopupAction(wnd, i));
+            popup.add(m);
+        }
+        Component invoker = e.getComponent();
+        if (invoker != null) {
+            popup.setInvoker(invoker);
+            Point2D loc = invoker.getLocationOnScreen();
+            popup.setLocation((int)loc.getX() + invoker.getWidth()/2, (int)loc.getY() + invoker.getHeight()/2);
+        }
+        popup.setVisible(true);
+
+    }
+
+    private static class HistoryPopupAction implements ActionListener {
+        private final EditWindow wnd;
+        private final int historyLocation;
+        private HistoryPopupAction(EditWindow wnd, int loc) {
+            this.wnd = wnd;
+            this.historyLocation = loc;
+        }
+        public void actionPerformed(ActionEvent e) {
+            wnd.setCellByHistory(historyLocation);
+        }
     }
 
 	public void setSaveLibraryButton(boolean value)

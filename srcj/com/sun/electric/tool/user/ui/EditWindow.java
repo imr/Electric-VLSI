@@ -393,30 +393,14 @@ public class EditWindow extends JPanel
 							break;
 						}
 						ni = (NodeInst)no;
-						if (((Cell)ni.getProto()).getView() == View.ICON)
-						{
-							validPath = false;
-							break;
-						}
-						if (first) first = false; else
-							path += " / ";
-						path = ni.describe() + path;
 //						if (((Cell)ni.getProto()).getView() == View.ICON)
 //						{
 //							validPath = false;
 //							break;
 //						}
+						//path = ni.describe() + path;
                         path = ni.getParent().getName() + "[" + ni.getName() + "]" + (first? "" : " / ") + path;
                         if (first) first = false;
-                        //path = ni.getName() + path;
-//						if (((Cell)ni.getProto()).getView() == View.ICON)
-//						{
-//							validPath = false;
-//							break;
-//						}
-                        path = ni.getParent().getName() + "[" + ni.getName() + "]" + (first? "" : " / ") + path;
-                        if (first) first = false;
-                        //path = ni.getName() + path;
 //						AffineTransform trans = ni.rotateOut(ni.translateOut());
 						AffineTransform trans = ni.translateOut(ni.rotateOut());
 						trans.transform(ptPath, ptPath);
@@ -2989,14 +2973,29 @@ public class EditWindow extends JPanel
     /**
      * Used to track CellHistory and associated values.
      */
-    private static class CellHistory
+    public static class CellHistory
     {
-        /** cell */                     public Cell cell;
-        /** context */                  public VarContext context;
-        /** offset */                   public Point2D offset;
-        /** scale */                    public double scale;
-        /** highlights */               public List highlights;
-        /** highlight offset*/          public Point2D highlightOffset;
+        /** cell */                     private Cell cell;
+        /** context */                  private VarContext context;
+        /** offset */                   private Point2D offset;
+        /** scale */                    private double scale;
+        /** highlights */               private List highlights;
+        /** highlight offset*/          private Point2D highlightOffset;
+        public Cell getCell() { return cell; }
+        public VarContext getContext() { return context; }
+    }
+
+    public static class CellHistoryState
+    {
+        /** the cell history list */    private List cellHistory;
+        /** the current cell's location in list */ private int cellHistoryLocation;
+        public CellHistoryState(List cellHistory, int cellHistoryLocation) {
+            this.cellHistory = new ArrayList(cellHistory);
+            this.cellHistoryLocation = cellHistoryLocation;
+        }
+        public int getLocation() { return cellHistoryLocation; }
+        public void setLocation(int loc) { cellHistoryLocation = loc; }
+        public List getHistory() { return cellHistory; }
     }
 
     /**
@@ -3037,6 +3036,10 @@ public class EditWindow extends JPanel
             getPanel().firePropertyChange(propGoBackEnabled, false, true);
         if (cellHistoryLocation < (cellHistory.size() - 1))
             getPanel().firePropertyChange(propGoForwardEnabled, false, true);
+    }
+
+    public CellHistoryState getCellHistory() {
+        return new CellHistoryState(cellHistory, cellHistoryLocation);
     }
 
     /** Adds to cellHistory record list
@@ -3104,7 +3107,7 @@ public class EditWindow extends JPanel
     }
 
     /** Restores cell state from history record */
-    private void setCellByHistory(int location) {
+    public void setCellByHistory(int location) {
 
         // fire property changes if back/forward buttons should change state
         if (cellHistoryLocation == (cellHistory.size()-1)) {
