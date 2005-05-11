@@ -370,6 +370,7 @@ public class Schematics extends Technology
 			});
 		busPinNode.setFunction(PrimitiveNode.Function.PIN);
 		busPinNode.setSquare();
+		busPinNode.setWipeOn1or2();
 		busPinNode.setCanBeZeroSize();
 
 		/** wire con */
@@ -1397,7 +1398,8 @@ public class Schematics extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, VarContext context, boolean electrical, boolean reasonable, Technology.NodeLayer [] primLayers, Layer layerOverride)
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, VarContext context, boolean electrical, boolean reasonable,
+		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		NodeProto prototype = ni.getProto();
 		if (!(prototype instanceof PrimitiveNode)) return null;
@@ -1718,7 +1720,7 @@ public class Schematics extends Technology
 				primLayers = blobLayers;
 			}
 		}
-		return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
+		return computeShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
 	}
 
 	/**

@@ -282,105 +282,8 @@ public class ViewChanges
 				return false;
 			}
 
-			HashMap newPortMap = new HashMap();
-			ArcProto univ = Generic.tech.universal_arc;
-
-			// place all exports in the new cell
-			for(Iterator it = curCell.getPorts(); it.hasNext(); )
-			{
-				Export pp = (Export)it.next();
-
-				// traverse to the bottom of the hierarchy for this Export
-				PortOriginal fp = new PortOriginal(pp.getOriginalPort());
-				PortInst bottomPort = fp.getBottomPort();
-				NodeInst bottomNi = bottomPort.getNodeInst();
-				PortProto bottomPp = bottomPort.getPortProto();
-				AffineTransform subRot = fp.getTransformToTop();
-				int newAng = fp.getAngleToTop();
-
-				// create this node
-				Point2D center = new Point2D.Double(bottomNi.getAnchorCenterX(), bottomNi.getAnchorCenterY());
-				subRot.transform(center, center);
-				NodeInst newNi = NodeInst.makeInstance(bottomNi.getProto(), center, bottomNi.getXSize(), bottomNi.getYSize(),
-					skeletonCell, newAng, null, 0);
-				if (newNi == null)
-				{
-					System.out.println("Cannot create node in this cell");
-					return false;
-				}
-
-				// export the port from the node
-				PortInst newPi = newNi.findPortInstFromProto(bottomPp);
-				Export npp = Export.newInstance(skeletonCell, newPi, pp.getName());
-				if (npp == null)
-				{
-					System.out.println("Could not create port " + pp.getName());
-					return false;
-				}
-				npp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME_TD);
-				npp.copyVarsFrom(pp);
-				npp.setCharacteristic(pp.getCharacteristic());
-				newPortMap.put(pp, npp);
-			}
-
-			// connect electrically-equivalent ports
-//			Netlist netlist = curCell.getUserNetlist();
-			Netlist netlist = curCell.acquireUserNetlist();
-			if (netlist == null)
-			{
-				System.out.println("Sorry, a deadlock aborted conversion (network information unavailable).  Please try again");
-				return false;
-			}
-			int numPorts = curCell.getNumPorts();
-			for(int i=0; i<numPorts; i++)
-			{
-				Export pp = (Export)curCell.getPort(i);
-				for(int j=i+1; j<numPorts; j++)
-				{
-					Export oPp = (Export)curCell.getPort(j);
-					if (!netlist.sameNetwork(pp.getOriginalPort().getNodeInst(), pp.getOriginalPort().getPortProto(),
-						oPp.getOriginalPort().getNodeInst(), oPp.getOriginalPort().getPortProto())) continue;
-
-					Export newPp = (Export)newPortMap.get(pp);
-					Export newOPp = (Export)newPortMap.get(oPp);
-					if (newPp == null || newOPp == null) continue;
-					ArcInst newAI = ArcInst.makeInstance(univ, univ.getDefaultWidth(), newPp.getOriginalPort(), newOPp.getOriginalPort());
-					if (newAI == null)
-					{
-						System.out.println("Could not create connecting arc");
-						return false;
-					}
-					newAI.setFixedAngle(false);
-				}
-			}
-
-			// copy the essential-bounds nodes if they exist
-			for(Iterator it = curCell.getNodes(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				NodeProto np = ni.getProto();
-				if (np != Generic.tech.essentialBoundsNode) continue;
-				NodeInst newNi = NodeInst.makeInstance(np, ni.getAnchorCenter(),
-					ni.getXSizeWithMirror(), ni.getYSizeWithMirror(), skeletonCell, ni.getAngle(), null, 0);
-				if (newNi == null)
-				{
-					System.out.println("Cannot create node in this cell");
-					return false;
-				}
-				newNi.setHardSelect();
-				if (np == Generic.tech.cellCenterNode) newNi.setVisInside();
-			}
-
-			// place an outline around the skeleton
-			Rectangle2D bounds = curCell.getBounds();
-			NodeInst boundNi = NodeInst.makeInstance(Generic.tech.invisiblePinNode,
-				new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()), bounds.getWidth(), bounds.getHeight(), skeletonCell);
-			if (boundNi == null)
-			{
-				System.out.println("Cannot create boundary node");
-				return false;
-			}
-			boundNi.setHardSelect();
+			boolean error = skeletonizeCell(curCell, skeletonCell);
+			if (error) return false;
 
 			System.out.println("Cell " + skeletonCell.describe() + " created with a skeletal representation of " +
 				curCell.describe());
@@ -388,6 +291,114 @@ public class ViewChanges
 
 			return true;
 		}
+	}
+
+	/**
+	 * Method to copy the skeletonized version of one Cell into another.
+	 * @param curCell the original Cell to be skeletonized.
+	 * @param skeletonCell the destination Cell that gets the skeletonized representation.
+	 * @return true on error.
+	 */
+	public static boolean skeletonizeCell(Cell curCell, Cell skeletonCell)
+	{
+		// place all exports in the new cell
+		HashMap newPortMap = new HashMap();
+		for(Iterator it = curCell.getPorts(); it.hasNext(); )
+		{
+			Export pp = (Export)it.next();
+
+			// traverse to the bottom of the hierarchy for this Export
+			PortOriginal fp = new PortOriginal(pp.getOriginalPort());
+			PortInst bottomPort = fp.getBottomPort();
+			NodeInst bottomNi = bottomPort.getNodeInst();
+			PortProto bottomPp = bottomPort.getPortProto();
+			AffineTransform subRot = fp.getTransformToTop();
+			int newAng = fp.getAngleToTop();
+
+			// create this node
+			Point2D center = new Point2D.Double(bottomNi.getAnchorCenterX(), bottomNi.getAnchorCenterY());
+			subRot.transform(center, center);
+			NodeInst newNi = NodeInst.makeInstance(bottomNi.getProto(), center, bottomNi.getXSize(), bottomNi.getYSize(),
+				skeletonCell, newAng, null, 0);
+			if (newNi == null)
+			{
+				System.out.println("Cannot create node in this cell");
+				return true;
+			}
+
+			// export the port from the node
+			PortInst newPi = newNi.findPortInstFromProto(bottomPp);
+			Export npp = Export.newInstance(skeletonCell, newPi, pp.getName());
+			if (npp == null)
+			{
+				System.out.println("Could not create port " + pp.getName());
+				return true;
+			}
+			npp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME_TD);
+			npp.copyVarsFrom(pp);
+			npp.setCharacteristic(pp.getCharacteristic());
+			newPortMap.put(pp, npp);
+		}
+
+		// connect electrically-equivalent ports
+		Netlist netlist = curCell.acquireUserNetlist();
+		if (netlist == null)
+		{
+			System.out.println("Sorry, a deadlock aborted skeletonization (network information unavailable).  Please try again");
+			return true;
+		}
+		int numPorts = curCell.getNumPorts();
+		for(int i=0; i<numPorts; i++)
+		{
+			Export pp = (Export)curCell.getPort(i);
+			for(int j=i+1; j<numPorts; j++)
+			{
+				Export oPp = (Export)curCell.getPort(j);
+				if (!netlist.sameNetwork(pp.getOriginalPort().getNodeInst(), pp.getOriginalPort().getPortProto(),
+					oPp.getOriginalPort().getNodeInst(), oPp.getOriginalPort().getPortProto())) continue;
+
+				Export newPp = (Export)newPortMap.get(pp);
+				Export newOPp = (Export)newPortMap.get(oPp);
+				if (newPp == null || newOPp == null) continue;
+				ArcProto univ = Generic.tech.universal_arc;
+				ArcInst newAI = ArcInst.makeInstance(univ, univ.getDefaultWidth(), newPp.getOriginalPort(), newOPp.getOriginalPort());
+				if (newAI == null)
+				{
+					System.out.println("Could not create connecting arc");
+					return true;
+				}
+				newAI.setFixedAngle(false);
+			}
+		}
+
+		// copy the essential-bounds nodes if they exist
+		for(Iterator it = curCell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			NodeProto np = ni.getProto();
+			if (np != Generic.tech.essentialBoundsNode) continue;
+			NodeInst newNi = NodeInst.makeInstance(np, ni.getAnchorCenter(),
+				ni.getXSizeWithMirror(), ni.getYSizeWithMirror(), skeletonCell, ni.getAngle(), null, 0);
+			if (newNi == null)
+			{
+				System.out.println("Cannot create node in this cell");
+				return true;
+			}
+			newNi.setHardSelect();
+			if (np == Generic.tech.cellCenterNode) newNi.setVisInside();
+		}
+
+		// place an outline around the skeleton
+		Rectangle2D bounds = curCell.getBounds();
+		NodeInst boundNi = NodeInst.makeInstance(Generic.tech.invisiblePinNode,
+			new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()), bounds.getWidth(), bounds.getHeight(), skeletonCell);
+		if (boundNi == null)
+		{
+			System.out.println("Cannot create boundary node");
+			return true;
+		}
+		boundNi.setHardSelect();
+		return false;
 	}
 
 	/****************************** MAKE AN ICON FOR A CELL ******************************/

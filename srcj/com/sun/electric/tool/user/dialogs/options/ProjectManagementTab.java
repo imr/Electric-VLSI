@@ -84,7 +84,7 @@ public class ProjectManagementTab extends PreferencePanel
 		initialRepository = Project.getRepositoryLocation();
 		repositoryTextArea.setText(initialRepository);
 		initialUserName = Project.getCurrentUserName();
-		currentUserLabel.setText("Current user: " + initialUserName);
+		currentUserLabel.setText("Logged-in user: " + initialUserName);
 
 		userModel = new DefaultListModel();
 		userList = new JList(userModel);
@@ -460,6 +460,15 @@ public class ProjectManagementTab extends PreferencePanel
         java.awt.GridBagConstraints gridBagConstraints;
 
         projectManagement = new javax.swing.JPanel();
+        repositoryPanel = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        jLabel7 = new javax.swing.JLabel();
+        browseButton = new javax.swing.JButton();
+        repositoryTextArea = new javax.swing.JTextArea();
+        jLabel2 = new javax.swing.JLabel();
+        usersPanel = new javax.swing.JPanel();
         currentUserLabel = new javax.swing.JLabel();
         userListPane = new javax.swing.JScrollPane();
         jLabel5 = new javax.swing.JLabel();
@@ -468,14 +477,6 @@ public class ProjectManagementTab extends PreferencePanel
         addButton = new javax.swing.JButton();
         authorizeButton = new javax.swing.JButton();
         jSeparator1 = new javax.swing.JSeparator();
-        repositoryPanel = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
-        jSeparator2 = new javax.swing.JSeparator();
-        browseButton = new javax.swing.JButton();
-        repositoryTextArea = new javax.swing.JTextArea();
         loginButton = new javax.swing.JButton();
         passwordButton = new javax.swing.JButton();
 
@@ -493,14 +494,96 @@ public class ProjectManagementTab extends PreferencePanel
 
         projectManagement.setLayout(new java.awt.GridBagLayout());
 
-        currentUserLabel.setText("Current User:");
+        repositoryPanel.setLayout(new java.awt.GridBagLayout());
+
+        repositoryPanel.setBorder(new javax.swing.border.TitledBorder("Repository"));
+        jLabel1.setText("The repository contains the latest version of your circuit,");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
+        repositoryPanel.add(jLabel1, gridBagConstraints);
+
+        jLabel4.setText("Currently:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        repositoryPanel.add(jLabel4, gridBagConstraints);
+
+        jLabel6.setText("a history of changes to each cell, and the user database.");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
+        repositoryPanel.add(jLabel6, gridBagConstraints);
+
+        jLabel7.setText("It must be a directory that everyone can access (on a network).");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
+        repositoryPanel.add(jLabel7, gridBagConstraints);
+
+        browseButton.setText("Browse");
+        browseButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                browseButtonActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        repositoryPanel.add(browseButton, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        repositoryPanel.add(repositoryTextArea, gridBagConstraints);
+
+        jLabel2.setText("When changing the repository location, restart the dialog to see users.");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        repositoryPanel.add(jLabel2, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 0.25;
+        projectManagement.add(repositoryPanel, gridBagConstraints);
+
+        usersPanel.setLayout(new java.awt.GridBagLayout());
+
+        currentUserLabel.setText("Logged-in user:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        projectManagement.add(currentUserLabel, gridBagConstraints);
+        usersPanel.add(currentUserLabel, gridBagConstraints);
 
         userListPane.setPreferredSize(new java.awt.Dimension(100, 150));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -511,14 +594,14 @@ public class ProjectManagementTab extends PreferencePanel
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        projectManagement.add(userListPane, gridBagConstraints);
+        usersPanel.add(userListPane, gridBagConstraints);
 
         jLabel5.setText("Users:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        projectManagement.add(jLabel5, gridBagConstraints);
+        usersPanel.add(jLabel5, gridBagConstraints);
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
@@ -569,92 +652,14 @@ public class ProjectManagementTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
-        projectManagement.add(jPanel1, gridBagConstraints);
+        usersPanel.add(jPanel1, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        projectManagement.add(jSeparator1, gridBagConstraints);
-
-        repositoryPanel.setLayout(new java.awt.GridBagLayout());
-
-        repositoryPanel.setBorder(new javax.swing.border.TitledBorder("Repository"));
-        jLabel1.setText("The repository contains a the latest version of your circuit,");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 1, 4);
-        repositoryPanel.add(jLabel1, gridBagConstraints);
-
-        jLabel4.setText("Currently:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        repositoryPanel.add(jLabel4, gridBagConstraints);
-
-        jLabel6.setText("and also contains a history of changes to each cell.");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        repositoryPanel.add(jLabel6, gridBagConstraints);
-
-        jLabel7.setText("It must be in a location that all users can access (on a network).");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(1, 4, 4, 4);
-        repositoryPanel.add(jLabel7, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        repositoryPanel.add(jSeparator2, gridBagConstraints);
-
-        browseButton.setText("Browse");
-        browseButton.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                browseButtonActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        repositoryPanel.add(browseButton, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridheight = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        repositoryPanel.add(repositoryTextArea, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        projectManagement.add(repositoryPanel, gridBagConstraints);
+        usersPanel.add(jSeparator1, gridBagConstraints);
 
         loginButton.setText("Login");
         loginButton.addActionListener(new java.awt.event.ActionListener()
@@ -669,7 +674,7 @@ public class ProjectManagementTab extends PreferencePanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        projectManagement.add(loginButton, gridBagConstraints);
+        usersPanel.add(loginButton, gridBagConstraints);
 
         passwordButton.setText("Change Password");
         passwordButton.addActionListener(new java.awt.event.ActionListener()
@@ -684,7 +689,15 @@ public class ProjectManagementTab extends PreferencePanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        projectManagement.add(passwordButton, gridBagConstraints);
+        usersPanel.add(passwordButton, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 0.75;
+        projectManagement.add(usersPanel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -716,7 +729,6 @@ public class ProjectManagementTab extends PreferencePanel
 		// delete the user and redisplay
 		Project.deleteUser(user);
 		reloadUsers();
-		// TODO add your handling code here:
 	}//GEN-LAST:event_deleteButtonActionPerformed
 
 	private void authorizeButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_authorizeButtonActionPerformed
@@ -791,7 +803,7 @@ public class ProjectManagementTab extends PreferencePanel
 
 		// save this user as the one logged-in
 		Project.setCurrentUserName(userName);
-		currentUserLabel.setText("Current user: " + userName);
+		currentUserLabel.setText("Logged-in user: " + userName);
 	}//GEN-LAST:event_loginButtonActionPerformed
 
 	/** Closes the dialog */
@@ -808,19 +820,20 @@ public class ProjectManagementTab extends PreferencePanel
     private javax.swing.JLabel currentUserLabel;
     private javax.swing.JButton deleteButton;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JSeparator jSeparator2;
     private javax.swing.JButton loginButton;
     private javax.swing.JButton passwordButton;
     private javax.swing.JPanel projectManagement;
     private javax.swing.JPanel repositoryPanel;
     private javax.swing.JTextArea repositoryTextArea;
     private javax.swing.JScrollPane userListPane;
+    private javax.swing.JPanel usersPanel;
     // End of variables declaration//GEN-END:variables
 
 }

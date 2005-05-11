@@ -197,14 +197,25 @@ public class FileMenu {
 
         fileMenu.addSeparator();
 
-        // mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+        // mnemonic keys available:  BCDEFGH JK MN PQ ST  WXYZ
 		MenuBar.Menu projectSubMenu = MenuBar.makeMenu("Project Management");
 		fileMenu.add(projectSubMenu);
-		projectSubMenu.addMenuItem("Check In-and-Out...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkInAndOut(); } });
+		projectSubMenu.addMenuItem("_Update", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.updateProject(); } });
+		projectSubMenu.addMenuItem("Check _Out This Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkOutThisCell(); } });
+		projectSubMenu.addMenuItem("Check _In This Cell...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkInThisCell(); } });
 		projectSubMenu.addSeparator();
-		projectSubMenu.addMenuItem("Build Repository...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.buildRepository(); } });
+		projectSubMenu.addMenuItem("_Add This Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addThisCell(); } });
+		projectSubMenu.addMenuItem("_Remove This Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.removeThisCell(); } });
+		projectSubMenu.addMenuItem("Get Old _Version of This Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.getOldVersions(); } });
+		projectSubMenu.addSeparator();
+		projectSubMenu.addMenuItem("Add Current _Library To Repository", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addThisLibrary(); } });
 
         fileMenu.addSeparator();
 

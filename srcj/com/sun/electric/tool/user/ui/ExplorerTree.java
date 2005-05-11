@@ -929,6 +929,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			{
 				Cell cell = (Cell)currentSelectedObject;
 				JPopupMenu menu = new JPopupMenu("Cell");
+				int projStatus = Project.getCellStatus(cell);
+//				{
+//					case Project.NOTMANAGED:         setIcon(ig.regular);     break;
+//					case Project.CHECKEDIN:          setIcon(ig.available);   break;
+//					case Project.CHECKEDOUTTOOTHERS: setIcon(ig.locked);      break;
+//					case Project.CHECKEDOUTTOYOU:    setIcon(ig.unlocked);    break;
+//				}
 
 				JMenuItem menuItem = new JMenuItem("Edit");
 				menu.add(menuItem);
@@ -937,6 +944,23 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menuItem = new JMenuItem("Edit in New Window");
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { editCellAction(true); } });
+
+				if (projStatus == Project.CHECKEDIN || projStatus == Project.CHECKEDOUTTOYOU)
+				{
+					menu.addSeparator();
+
+					if (projStatus == Project.CHECKEDIN)
+					{
+						menuItem = new JMenuItem("Check Out");
+						menu.add(menuItem);
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkOut((Cell)currentSelectedObject); } });
+					} else
+					{
+						menuItem = new JMenuItem("Check In...");
+						menu.add(menuItem);
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkIn((Cell)currentSelectedObject); } });
+					}
+				}
 
 				menu.addSeparator();
 

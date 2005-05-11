@@ -476,7 +476,7 @@ public class FPGA extends Technology
 			return polys;
 		}
 
-		return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
+		return computeShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
 	}
 
 	/**

@@ -25,11 +25,12 @@
  */
 package com.sun.electric.tool.project;
 
+import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -37,48 +38,44 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.io.output.Output;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.border.TitledBorder;
+import javax.swing.SwingUtilities;
 
 
 /**
@@ -106,25 +103,283 @@ public class Project extends Listener
 	
 	private static class ProjectCell
 	{
-		/** name of the library */							String libname;
-		/** name of the cell */								String cellname;
-		/** cell view */									View   cellview;
-		/** cell version */									int    cellversion;
-		/** the actual cell (if known) */					Cell   cell;
-		/** current owner of this cell (if checked out) */	String owner;
-		/** previous owner of this cell (if checked in) */	String lastowner;
-		/** comments for this cell */						String comment;
+		/** name of the library */							String   libname;
+		/** name of the cell */								String   cellname;
+		/** cell view */									View     cellview;
+		/** cell version */									int      cellversion;
+		/** the type of the library file with this cell */	FileType libType;
+		/** the actual cell (if known) */					Cell     cell;
+		/** current owner of this cell (if checked out) */	String   owner;
+		/** previous owner of this cell (if checked in) */	String   lastowner;
+		/** comments for this cell */						String   comment;
 	}
 
 	private static class ProjectLibrary
 	{
-		List    allCells;
-		HashMap byCell;
+		/** name of the project file */				String           fileName;
+		/** Library associated with project file */	Library          lib;
+		/** all cell records in the project */		List             allCells;
+		/** cell records by Cell in the project */	HashMap          byCell;
+		/** I/O channel for project file */			RandomAccessFile raf;
+		/** Lock on file when updating it */		FileLock         lock;
 
 		ProjectLibrary()
 		{
 			allCells = new ArrayList();
 			byCell = new HashMap();
+		}
+
+		/**
+		 * Method to ensure that there is project information for a given library.
+		 * @param lib the Library to check.
+		 * @param lock true to lock the project file.
+		 * @return a ProjectLibrary object for the Library.  If the library is marked
+		 * as being part of a project, that project file is read in.  If the library is
+		 * not in a project, the returned object has nothing in it.
+		 */
+		public static ProjectLibrary findProject(Library lib)
+		{
+			// see if this library has a known project database
+			ProjectLibrary pl = (ProjectLibrary)libraryProjectInfo.get(lib);
+			if (pl != null) return pl;
+
+			pl = createProject(lib);
+			libraryProjectInfo.put(lib, pl);
+			return pl;
+		}
+
+		private static ProjectLibrary createProject(Library lib)
+		{
+			// create a new project database
+			ProjectLibrary pl = new ProjectLibrary();
+			pl.lib = lib;
+
+			// figure out the location of the project file
+			Variable var = lib.getVar(proj_pathkey);
+			if (var == null) return pl;
+			String userFile = (String)var.getObject();
+	        if (!TextUtils.URLExists(TextUtils.makeURLToFile(userFile)))
+	        {
+	    		int sepPos = userFile.lastIndexOf(File.separatorChar);
+	    		if (sepPos < 0) userFile = null; else
+	    		{
+	    			userFile = getRepositoryLocation() + File.separator + userFile.substring(sepPos+1);
+	    			if (!TextUtils.URLExists(TextUtils.makeURLToFile(userFile))) userFile = null;
+	    		}
+	    		if (userFile == null)
+	    		{
+	    			userFile = OpenFile.chooseInputFile(FileType.PROJECT, "Select Project File");
+	    			if (userFile == null) return pl;
+	    		}
+	        }
+
+			// prepare to read the project file
+			try
+			{
+				pl.raf = new RandomAccessFile(userFile, "r");
+			} catch (FileNotFoundException e)
+			{
+				System.out.println("Cannot read file " + userFile);
+				return pl;
+			}
+
+			pl.fileName = userFile;
+			pl.loadProjectFile();
+
+			try
+			{
+				pl.raf.close();
+			} catch (IOException e)
+			{
+				System.out.println("Error closing project file");
+			}
+			pl.raf = null;
+			return pl;
+		}
+
+		/**
+		 * Method to lock this project file.
+		 * @return true on error (no project file, cannot lock it).
+		 */
+		public boolean lockProjectFile()
+		{
+			// prepare to read the project file
+			try
+			{
+				raf = new RandomAccessFile(fileName, "rw");
+			} catch (FileNotFoundException e)
+			{
+				System.out.println("Cannot read file " + fileName);
+				return true;
+			}
+
+			FileChannel fc = raf.getChannel();
+			try
+			{
+				lock = fc.lock();
+			} catch (IOException e)
+			{
+				System.out.println("Unable to lock project file");
+				raf = null;
+				return true;
+			}
+			if (loadProjectFile()) return true;
+			return false;
+		}
+
+		/**
+		 * Method to release the lock on this project file.
+		 * @param save true to rewrite it first.
+		 */
+		public void releaseProjectFileLock(boolean save)
+		{
+			if (save)
+			{
+				FileChannel fc = raf.getChannel();
+				try
+				{
+					fc.position(0);
+					fc.truncate(0);
+					for(Iterator it = allCells.iterator(); it.hasNext(); )
+					{
+						ProjectCell pc = (ProjectCell)it.next();
+						String line = ":" + pc.libname + ":" + pc.cellname + ":" + pc.cellversion + "-" +
+							pc.cellview.getFullName() + "." + pc.libType.getExtensions()[0] + ":" +
+							pc.owner + ":" + pc.lastowner + ":" + pc.comment + "\n";
+						ByteBuffer bb = ByteBuffer.wrap(line.getBytes());
+						fc.write(bb);
+					}
+				} catch (IOException e)
+				{
+					System.out.println("Error saving project file");
+				}
+			}
+			try
+			{
+				lock.release();
+				raf.close();
+			} catch (IOException e)
+			{
+				System.out.println("Unable to unlock and close project file");
+				lock = null;
+			}
+		}
+
+		/**
+		 * Method to read the project file into memory.
+		 * @return true on error.
+		 */
+		private boolean loadProjectFile()
+		{
+			allCells.clear();
+			byCell.clear();
+
+			// read the project file
+			for(;;)
+			{
+				String userLine = null;
+				try
+				{
+					userLine = raf.readLine();
+				} catch (IOException e)
+				{
+					userLine = null;
+				}
+				if (userLine == null) break;
+
+				ProjectCell pf = new ProjectCell();
+				String [] sections = userLine.split("\\:");
+				if (sections.length < 7)
+				{
+					System.out.println("Too few keywords in project file: " + userLine);
+					return true;
+				}
+				if (sections[0].length() > 0)
+				{
+					System.out.println("Missing initial ':' in project file: " + userLine);
+					return true;
+				}
+		
+				// get library name
+				pf.libname = sections[1];
+		
+				// get cell name
+				pf.cellname = sections[2];
+		
+				// get version
+				int dashPos = sections[3].indexOf('-');
+				if (dashPos < 0)
+				{
+					System.out.println("Missing '-' after version number in project file: " + userLine);
+					return true;
+				}
+				int dotPos = sections[3].indexOf('.');
+				if (dotPos < 0)
+				{
+					System.out.println("Missing '.' after view type in project file: " + userLine);
+					return true;
+				}
+				pf.cellversion = TextUtils.atoi(sections[3].substring(0, dashPos));
+		
+				// get view
+				String viewPart = sections[3].substring(dashPos+1, dotPos);
+				pf.cellview = View.findView(viewPart);
+
+				// get file type
+				String fileType = sections[3].substring(dotPos+1);
+				if (fileType.equals("elib")) pf.libType = FileType.ELIB; else
+					if (fileType.equals("jelib")) pf.libType = FileType.JELIB; else
+						if (fileType.equals("txt")) pf.libType = FileType.READABLEDUMP; else
+				{
+					System.out.println("Unknown library type in project file: " + userLine);
+					return true;
+				}
+		
+				// get owner
+				pf.owner = sections[4];
+		
+				// get last owner
+				pf.lastowner = sections[5];
+		
+				// get comments
+				pf.comment = sections[6];
+		
+				// check for duplication
+				for(Iterator it = allCells.iterator(); it.hasNext(); )
+				{
+					ProjectCell opf = (ProjectCell)it.next();
+					if (!opf.cellname.equalsIgnoreCase(pf.cellname)) continue;
+					if (opf.cellview != pf.cellview) continue;
+					System.out.println("Error in project file: view '" + pf.cellview.getFullName() + "' of cell '" +
+						pf.cellname + "' exists twice (versions " + pf.cellversion + " and " + opf.cellversion + ")");
+				}
+
+				// find the cell associated with this entry
+				String cellName = pf.cellname;
+				if (pf.cellview != View.UNKNOWN) cellName += "{" + pf.cellview.getAbbreviation() + "}";
+				Cell cell = lib.findNodeProto(cellName);
+				if (cell != null)
+				{
+					if (cell.getVersion() != pf.cellversion)
+					{
+						if (!pf.owner.equals(getCurrentUserName()))
+						{
+							if (pf.owner.length() == 0)
+							{
+								System.out.println("WARNING: cell " + cell.describe() + " is being edited, but it is not checked-out");
+							} else
+							{
+								System.out.println("WARNING: cell " + cell.describe() + " is being edited, but it is checked-out to " + pf.owner);
+							}
+						}
+					}
+					byCell.put(cell, pf);
+				}
+
+				// link it in
+				allCells.add(pf);
+			}
+			return false;
 		}
 	}
 
@@ -148,7 +403,6 @@ public class Project extends Listener
 	static Tool         proj_source;				/* source of changes */
 //	static PUSER        *proj_userpos;				/* current user for dialog display */
 //	static FILE         *proj_io;					/* channel to project file */
-//	static INTBIG       *proj_savetoolstate = 0;	/* saved tool state information */
 //	static INTBIG        proj_filetypeproj;			/* Project disk file descriptor */
 //	static ProjectCell proj_firstprojectcell = null;
 //	static ProjectCell proj_projectcellfree = null;
@@ -173,15 +427,43 @@ public class Project extends Listener
 		proj_ignorechanges = false;
 	}
 
-	public static void checkInAndOut()
+	public static void updateProject()
 	{
-//		String editedValue = JOptionPane.showInputDialog("The Value:", "initial");
-//		if (editedValue == null) return;
+		System.out.println("CANNOT UPDATE YET");
 	}
-	public static void buildRepository()
+
+	public static void checkInThisCell()
 	{
-//		String editedValue = JOptionPane.showInputDialog("The Value:", "initial");
-//		if (editedValue == null) return;
+		Cell cell = WindowFrame.needCurCell();;
+        if (cell == null) return;
+		checkIn(cell);
+	}
+
+	public static void checkOutThisCell()
+	{
+		Cell cell = WindowFrame.needCurCell();;
+        if (cell == null) return;
+		checkOut(cell);
+	}
+
+	public static void addThisCell()
+	{
+		System.out.println("CANNOT ADD YET");
+	}
+
+	public static void removeThisCell()
+	{
+		System.out.println("CANNOT REMOVE YET");
+	}
+
+	public static void getOldVersions()
+	{
+		System.out.println("CANNOT GET OLD VERSIONS YET");
+	}
+
+	public static void addThisLibrary()
+	{
+		System.out.println("CANNOT ADD LIBRARIES YET");
 	}
 
 	/****************************** LISTENER INTERFACE ******************************/
@@ -509,152 +791,435 @@ public class Project extends Listener
 
 	public static int getCellStatus(Cell cell)
 	{
-		ProjectLibrary pl = ensureProjectFile(cell.getLibrary());
-		if (pl.allCells.size() == 0) return NOTMANAGED;
-		ProjectCell pc = (ProjectCell)pl.byCell.get(cell);
+		ProjectCell pc = getProjectCell(cell);
 		if (pc == null) return NOTMANAGED;
-		if (pc.owner == null) return CHECKEDIN;
+		if (pc.owner.length() == 0) return CHECKEDIN;
 		if (pc.owner.equals(getCurrentUserName())) return CHECKEDOUTTOYOU;
 		return CHECKEDOUTTOOTHERS;
 	}
 
-	public static boolean checkOut(Cell cell)
+	public static String getCellOwner(Cell cell)
 	{
-		return false;
+		ProjectCell pc = getProjectCell(cell);
+		if (pc == null) return null;
+		return pc.owner;
 	}
 
-	public static boolean checkIn(Cell cell)
+	private static ProjectCell getProjectCell(Cell cell)
 	{
-		return false;
+		ProjectLibrary pl = ProjectLibrary.findProject(cell.getLibrary());
+		ProjectCell pc = (ProjectCell)pl.byCell.get(cell);
+		return pc;
+	}
+
+	public static void checkOut(Cell oldvers)
+	{
+		new CheckOutJob(oldvers);
+	}
+
+	/**
+	 * This class checks out a cell from Project Management.
+	 * It involves updating the project database and making a new version of the cell.
+	 */
+	private static class CheckOutJob extends Job
+	{
+		private Cell oldvers;
+
+		protected CheckOutJob(Cell oldvers)
+		{
+			super("Check out cell " + oldvers.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.oldvers = oldvers;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			Library lib = oldvers.getLibrary();
+			ProjectLibrary pl = ProjectLibrary.findProject(lib);
+		
+			// make sure there is a valid user name
+			if (getCurrentUserName().length() == 0)
+			{
+				System.out.println("No valid user");
+				return false;
+			}
+
+			if (pl.lockProjectFile())
+			{
+				System.out.println("Couldn't lock project file");
+				return false;
+			}
+
+			// find this in the project file
+			Cell newvers = null;
+			boolean worked = false;
+			ProjectCell pf = (ProjectCell)pl.byCell.get(oldvers);
+			if (pf == null) System.out.println("This cell is not in the project"); else
+			{
+				// see if it is available
+				if (pf.owner.length() != 0)
+				{
+					if (pf.owner.equals(getCurrentUserName()))
+					{
+						System.out.println("This cell is already checked out to you");
+						proj_marklocked(oldvers, false);
+					} else
+					{
+						System.out.println("This cell is already checked out to '" + pf.owner + "'");
+					}
+				} else
+				{
+					// make sure we have the latest version
+					if (pf.cellversion > oldvers.getVersion())
+					{
+						System.out.println("Cannot check out " + oldvers.describe() +
+							" because you don't have the latest version (yours is " + oldvers.getVersion() + ", project has " +
+							pf.cellversion + ").  Do an 'update' first");
+					} else
+					{
+						// prevent tools (including this one) from seeing the change
+						Undo.changesQuiet(true);
+
+						// make new version
+						newvers = Cell.copyNodeProto(oldvers, lib, oldvers.getName(), true);
+
+						if (newvers == null)
+						{
+							System.out.println("Error making new version of cell");
+						} else
+						{
+							// replace former usage with new version
+							if (proj_usenewestversion(oldvers, newvers))
+								System.out.println("Error replacing instances of new " + oldvers.describe()); else
+							{
+								// update record for the cell
+								pf.owner = getCurrentUserName();
+								pf.lastowner = "";
+								pl.byCell.remove(oldvers);
+								pl.byCell.put(newvers, pf);
+								proj_marklocked(newvers, false);
+								worked = true;
+							}
+						}
+
+						// restore tool state
+						lib.setChangedMajor();
+						lib.setChangedMinor();
+						Undo.changesQuiet(false);
+					}
+				}
+			}
+		
+			// relase project file lock
+			pl.releaseProjectFileLock(true);
+		
+			// if it worked, print dependencies and display
+			if (worked)
+			{
+				System.out.println("Cell " + newvers.describe() + " checked out for your use");
+		
+				// advise of possible problems with other checkouts higher up in the hierarchy
+				HashMap cellsMarked = new HashMap();
+				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				{
+					Library oLib = (Library)it.next();
+					for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+					{
+						Cell np = (Cell)cIt.next();
+						cellsMarked.put(np, new MutableInteger(0));
+					}
+				}
+				MutableInteger mi = (MutableInteger)cellsMarked.get(newvers);
+				mi.setValue(1);
+				boolean propagated = true;
+				while (propagated)
+				{
+					propagated = false;
+					for(Iterator it = Library.getLibraries(); it.hasNext(); )
+					{
+						Library oLib = (Library)it.next();
+						for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+						{
+							Cell np = (Cell)cIt.next();
+							MutableInteger val = (MutableInteger)cellsMarked.get(np);
+							if (val.intValue() == 1)
+							{
+								propagated = true;
+								val.setValue(2);
+								for(Iterator nIt = np.getInstancesOf(); nIt.hasNext(); )
+								{
+									NodeInst ni = (NodeInst)nIt.next();
+									MutableInteger pVal = (MutableInteger)cellsMarked.get(ni.getParent());
+									if (pVal.intValue() == 0) pVal.setValue(1);
+								}
+							}
+						}
+					}
+				}
+				mi.setValue(0);
+				int total = 0;
+				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				{
+					Library oLib = (Library)it.next();
+					for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+					{
+						Cell np = (Cell)cIt.next();
+						MutableInteger val = (MutableInteger)cellsMarked.get(np);
+						if (val.intValue() == 0) continue;
+						if (getCellStatus(np) == CHECKEDOUTTOOTHERS)
+						{
+							val.setValue(3);
+							total++;
+						}
+					}
+				}
+				if (total != 0)
+				{
+					System.out.println("*** Warning: the following cells are above this in the hierarchy");
+					System.out.println("*** and are checked out to others.  This may cause problems");
+					for(Iterator it = Library.getLibraries(); it.hasNext(); )
+					{
+						Library oLib = (Library)it.next();
+						for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+						{
+							Cell np = (Cell)cIt.next();
+							MutableInteger val = (MutableInteger)cellsMarked.get(np);
+							if (val.intValue() != 3) continue;
+							System.out.println("    " + np.describe() + " is checked out to " + getCellOwner(np));
+						}
+					}
+				}
+		
+//				// advise of possible problems with other checkouts lower down in the hierarchy
+//				for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
+//					for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
+//						np.temp1 = 0;
+//				newvers.temp1 = 1;
+//				propagated = TRUE;
+//				while(propagated)
+//				{
+//					propagated = FALSE;
+//					for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
+//						for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
+//					{
+//						if (np.temp1 == 1)
+//						{
+//							propagated = TRUE;
+//							np.temp1 = 2;
+//							for(ni = np.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
+//							{
+//								if (ni.proto.primindex != 0) continue;
+//								if (ni.proto.temp1 == 0) ni.proto.temp1 = 1;
+//							}
+//						}
+//					}
+//				}
+//				newvers.temp1 = 0;
+//				total = 0;
+//				for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
+//					for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
+//				{
+//					if (np.temp1 == 0) continue;
+//					pf = proj_findcell(np);
+//					if (pf == NOPROJECTCELL) continue;
+//					if (pf.owner != null && namesame(pf.owner, proj_username) != 0)
+//					{
+//						np.temp1 = 3;
+//						np.temp2 = (INTBIG)pf;
+//						total++;
+//					}
+//				}
+//				if (total != 0)
+//				{
+//					ttyputmsg(_("*** Warning: the following cells are below this in the hierarchy"));
+//					ttyputmsg(_("*** and are checked out to others.  This may cause problems"));
+//					for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
+//						for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
+//					{
+//						if (np.temp1 != 3) continue;
+//						pf = (PROJECTCELL)np.temp2;
+//						ttyputmsg(_("    %s is checked out to %s"), describenodeproto(np), pf.owner);
+//					}
+//				}
+			}
+			return true;
+		}
+	}
+
+	public static void checkIn(Cell np)
+	{
+		// mark the cell to be checked-in
+		HashMap cellsMarked1 = new HashMap();
+		HashMap cellsMarked2 = new HashMap();
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library oLib = (Library)it.next();
+			for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+			{
+				Cell onp = (Cell)cIt.next();
+				cellsMarked1.put(onp, new MutableInteger(0));
+				cellsMarked2.put(onp, new MutableInteger(0));
+			}
+		}
+		MutableInteger mi = (MutableInteger)cellsMarked1.get(np);
+		mi.setValue(1);
+	
+		// look for cells above this one that must also be checked in
+		mi = (MutableInteger)cellsMarked2.get(np);
+		mi.setValue(1);
+		boolean propagated = true;
+		while (propagated)
+		{
+			propagated = false;
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library oLib = (Library)it.next();
+				for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+				{
+					Cell onp = (Cell)cIt.next();
+					mi = (MutableInteger)cellsMarked2.get(onp);
+					if (mi.intValue() == 1)
+					{
+						propagated = true;
+						mi.setValue(2);
+						for(Iterator nIt = onp.getInstancesOf(); nIt.hasNext(); )
+						{
+							NodeInst ni = (NodeInst)nIt.next();
+							mi = (MutableInteger)cellsMarked2.get(ni.getParent());
+							if (mi.intValue() == 0) mi.setValue(1);
+						}
+					}
+				}
+			}
+		}
+		mi = (MutableInteger)cellsMarked2.get(np);
+		mi.setValue(0);
+		int total = 0;
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library oLib = (Library)it.next();
+			for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+			{
+				Cell onp = (Cell)cIt.next();
+				mi = (MutableInteger)cellsMarked2.get(onp);
+				if (mi.intValue() == 0) continue;
+				String owner = getCellOwner(onp);
+				if (owner.length() == 0) continue;
+				if (owner.equals(Project.getCurrentUserName()))
+				{
+					mi = (MutableInteger)cellsMarked1.get(onp);
+					mi.setValue(1);
+					total++;
+				}
+			}
+		}
+	
+		// look for cells below this one that must also be checked in
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library oLib = (Library)it.next();
+			for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+			{
+				Cell onp = (Cell)cIt.next();
+				mi = (MutableInteger)cellsMarked2.get(onp);
+				mi.setValue(0);
+			}
+		}
+		mi = (MutableInteger)cellsMarked2.get(np);
+		mi.setValue(1);
+		propagated = true;
+		while (propagated)
+		{
+			propagated = false;
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library oLib = (Library)it.next();
+				for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+				{
+					Cell onp = (Cell)cIt.next();
+					mi = (MutableInteger)cellsMarked2.get(onp);
+					if (mi.intValue() == 1)
+					{
+						propagated = true;
+						mi.setValue(2);
+						for(Iterator nIt = onp.getNodes(); nIt.hasNext(); )
+						{
+							NodeInst ni = (NodeInst)nIt.next();
+							if (!(ni.getProto() instanceof Cell)) continue;
+							mi = (MutableInteger)cellsMarked2.get(ni.getProto());
+							if (mi.intValue() == 0) mi.setValue(1);
+						}
+					}
+				}
+			}
+		}
+		mi = (MutableInteger)cellsMarked2.get(np);
+		mi.setValue(0);
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library oLib = (Library)it.next();
+			for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+			{
+				Cell onp = (Cell)cIt.next();
+				mi = (MutableInteger)cellsMarked2.get(onp);
+				if (mi.intValue() == 0) continue;
+				String owner = getCellOwner(onp);
+				if (owner.length() == 0) continue;
+				if (owner.equals(Project.getCurrentUserName()))
+				{
+					mi = (MutableInteger)cellsMarked1.get(onp);
+					mi.setValue(1);
+					total++;
+				}
+			}
+		}
+	
+		// advise of additional cells that must be checked-in
+		if (total > 0)
+		{
+			total = 0;
+			StringBuffer infstr = new StringBuffer();
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library oLib = (Library)it.next();
+				for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+				{
+					Cell onp = (Cell)cIt.next();
+					mi = (MutableInteger)cellsMarked1.get(onp);
+					if (onp == np || mi.intValue() == 0) continue;
+					if (total > 0) infstr.append(", ");
+					infstr.append(onp.describe());
+					total++;
+				}
+			}
+			System.out.println("Also checking in related cell(s): " + infstr.toString());
+		}
+	
+		// check it in
+		new CheckInJob(np.getLibrary(), cellsMarked1);
 	}
 
 	/************************ SUPPORT ***********************/
-
-	/**
-	 * Method to ensure that there is project information for a given library.
-	 * @param lib the Library to check.
-	 * @return a ProjectLibrary object for the Library.  If the library is marked
-	 * as being part of a project, that project file is read in.  If the library is
-	 * not in a project, the returned object has nothing in it.
-	 */
-	private static ProjectLibrary ensureProjectFile(Library lib)
-	{
-		// see if this library has a known project database
-		ProjectLibrary pl = (ProjectLibrary)libraryProjectInfo.get(lib);
-		if (pl != null) return pl;
-
-		// not known: create a new project database for this library
-		pl = new ProjectLibrary();
-		libraryProjectInfo.put(lib, pl);
-
-		// if the library isn't marked with a project file, stop now
-		Variable var = lib.getVar(proj_pathkey);
-		if (var == null) return pl;
-
-		// read the project file
-		String userFile = (String)var.getObject();
-		URL url = TextUtils.makeURLToFile(userFile);
-        if (!TextUtils.URLExists(url))
-        {
-        	url = null;
-    		int sepPos = userFile.lastIndexOf(File.separatorChar);
-    		if (sepPos >= 0)
-    		{
-    			userFile = getRepositoryLocation() + File.separator + userFile.substring(sepPos+1);
-    			url = TextUtils.makeURLToFile(userFile);
-    			if (!TextUtils.URLExists(url)) url = null;
-    		}
-    		if (url == null)
-    		{
-    			userFile = OpenFile.chooseInputFile(FileType.PROJECT, "Select Project File");
-    			if (userFile == null) return pl;
-    			url = TextUtils.makeURLToFile(userFile);
-    		}
-        }
-		try
-		{
-			URLConnection urlCon = url.openConnection();
-			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
-			LineNumberReader lnr = new LineNumberReader(is);
-
-			for(;;)
-			{
-				String userLine = lnr.readLine();
-				if (userLine == null) break;
-
-				ProjectCell pf = new ProjectCell();
-				String [] sections = userLine.split("\\:");
-				if (sections.length < 7)
-				{
-					System.out.println("Too few keywords in project file: " + userLine);
-					return null;
-				}
-				if (sections[0].length() > 0)
-				{
-					System.out.println("Missing initial ':' in project file: " + userLine);
-					return null;
-				}
-		
-				// get library name
-				pf.libname = sections[1];
-		
-				// get cell name
-				pf.cellname = sections[2];
-		
-				// get version
-				int dashPos = sections[3].indexOf('-');
-				if (dashPos < 0)
-				{
-					System.out.println("Missing '-' after version number in project file: " + userLine);
-					return null;
-				}
-				pf.cellversion = TextUtils.atoi(sections[3].substring(0, dashPos));
-		
-				// get view
-				String viewPart = sections[3].substring(dashPos+1);
-				if (!viewPart.endsWith(".elib") && !viewPart.endsWith(".jelib"))
-				{
-					System.out.println("Missing '.elib' after view name in project file: " + userLine);
-					return null;
-				}
-				if (viewPart.endsWith(".elib")) viewPart = viewPart.substring(0, viewPart.length()-5); else
-					if (viewPart.endsWith(".jelib")) viewPart = viewPart.substring(0, viewPart.length()-6);
-				pf.cellview = View.findView(viewPart);
-		
-				// get owner
-				pf.owner = (sections[4].length() > 0 ? sections[4] : null);
-		
-				// get last owner
-				pf.lastowner = (sections[5].length() > 0 ? sections[5] : null);
-		
-				// get comments
-				pf.comment = sections[6];
-		
-				// check for duplication
-				for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
-				{
-					ProjectCell opf = (ProjectCell)it.next();
-					if (!opf.cellname.equalsIgnoreCase(pf.cellname)) continue;
-					if (opf.cellview != pf.cellview) continue;
-					System.out.println("Error in project file: view '" + pf.cellview.getFullName() + "' of cell '" +
-						pf.cellname + "' exists twice (versions " + pf.cellversion + " and " + opf.cellversion + ")");
-				}
-
-				CellName cn = CellName.newName(pf.cellname, pf.cellview, pf.cellversion);
-				Cell cell = lib.findNodeProto(cn.getName());
-				if (cell != null) pl.byCell.put(cell, pf);
-		
-				// link it in
-				pl.allCells.add(pf);
-			}
-
-			lnr.close();
-		} catch (IOException e)
-		{
-			System.out.println("Error reading project file");
-		}
-		return pl;
-	}
+	
+//	private static final int MAXTRIES = 10;
+//	private static final int NAPTIME  =  5;
+//	
+//	private static boolean proj_lockprojfile()
+//	{
+//		String lockfilename = projectpath + projectfile + "LOCK";
+//		for(int i=0; i<MAXTRIES; i++)
+//		{
+//			if (lockfile(lockfilename)) return false;
+//			if (i == 0) System.out.println("Project file locked.  Waiting..."); else
+//				System.out.println("Still waiting (will try " + (MAXTRIES-i) + " more times)...");
+//			for(int j=0; j<NAPTIME; j++)
+//			{
+//				gotosleep(60);
+//				if (stopping(STOPREASONLOCK)) return true;
+//			}
+//		}
+//		return true;
+//	}
 
 	private static void ensureUserList()
 	{
@@ -743,7 +1308,12 @@ public class Project extends Listener
 	 * Method to set the location of the project management repository.
 	 * @param r the location of the project management repository.
 	 */
-	public static void setRepositoryLocation(String r) { cacheRepositoryLocation.setString(r); }
+	public static void setRepositoryLocation(String r)
+	{
+		cacheRepositoryLocation.setString(r);
+		proj_users = null;
+		libraryProjectInfo.clear();
+	}
 
 	/************************ USER DATABASE ***********************/
 	
@@ -949,11 +1519,6 @@ public class Project extends Listener
 //			proj_active = TRUE;
 //			return;
 //		}
-//		if (namesamen(pp, x_("list-cells"), l) == 0)
-//		{
-//			proj_showlistdialog(el_curlib);
-//			return;
-//		}
 //		if (namesamen(pp, x_("update"), l) == 0)
 //		{
 //			if (el_curlib == NOLIBRARY)
@@ -968,357 +1533,6 @@ public class Project extends Listener
 //	}
 //	
 //	/************************ PROJECT MANAGEMENT ***********************/
-//	
-//	void proj_checkin(CHAR *cellname)
-//	{
-//		REGISTER NODEPROTO *np, *onp;
-//		REGISTER NODEINST *ni;
-//		REGISTER INTBIG total;
-//		REGISTER BOOLEAN propagated;
-//		REGISTER LIBRARY *olib;
-//		REGISTER PROJECTCELL *pf;
-//		REGISTER void *infstr;
-//	
-//		// find out which cell is being checked in
-//		np = getnodeproto(cellname);
-//		if (np == NONODEPROTO)
-//		{
-//			ttyputerr(_("Cannot identify cell '%s'"), cellname);
-//			return;
-//		}
-//	
-//		// mark the cell to be checked-in
-//		for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//			for(onp = olib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
-//				onp.temp1 = 0;
-//		np.temp1 = 1;
-//	
-//		// look for cells above this one that must also be checked in
-//		for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//			for(onp = olib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
-//				onp.temp2 = 0;
-//		np.temp2 = 1;
-//		propagated = TRUE;
-//		while (propagated)
-//		{
-//			propagated = FALSE;
-//			for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//				for(onp = olib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
-//			{
-//				if (onp.temp2 == 1)
-//				{
-//					propagated = TRUE;
-//					onp.temp2 = 2;
-//					for(ni = onp.firstinst; ni != NONODEINST; ni = ni.nextinst)
-//					{
-//						if (ni.parent.temp2 == 0) ni.parent.temp2 = 1;
-//					}
-//				}
-//			}
-//		}
-//		np.temp2 = 0;
-//		total = 0;
-//		for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//			for(onp = olib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
-//		{
-//			if (onp.temp2 == 0) continue;
-//			pf = proj_findcell(onp);
-//			if (pf == NOPROJECTCELL) continue;
-//			if (namesame(pf.owner, proj_username) == 0)
-//			{
-//				onp.temp1 = 1;
-//				total++;
-//			}
-//		}
-//	
-//		// look for cells below this one that must also be checked in
-//		for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//			for(onp = olib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
-//				onp.temp2 = 0;
-//		np.temp2 = 1;
-//		propagated = TRUE;
-//		while (propagated)
-//		{
-//			propagated = FALSE;
-//			for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//				for(onp = olib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
-//			{
-//				if (onp.temp2 == 1)
-//				{
-//					propagated = TRUE;
-//					onp.temp2 = 2;
-//					for(ni = onp.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
-//					{
-//						if (ni.proto.primindex != 0) continue;
-//						if (ni.proto.temp2 == 0) ni.proto.temp2 = 1;
-//					}
-//				}
-//			}
-//		}
-//		np.temp2 = 0;
-//		for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//			for(onp = olib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
-//		{
-//			if (onp.temp2 == 0) continue;
-//			pf = proj_findcell(onp);
-//			if (pf == NOPROJECTCELL) continue;
-//			if (namesame(pf.owner, proj_username) == 0)
-//			{
-//				onp.temp1 = 1;
-//				total++;
-//			}
-//		}
-//	
-//		// advise of additional cells that must be checked-in
-//		if (total > 0)
-//		{
-//			total = 0;
-//			infstr = initinfstr();
-//			for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//				for(onp = olib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
-//			{
-//				if (onp == np || onp.temp1 == 0) continue;
-//				if (total > 0) addstringtoinfstr(infstr, x_(", "));
-//				addstringtoinfstr(infstr, describenodeproto(onp));
-//				total++;
-//			}
-//			ttyputmsg(_("Also checking in related cell(s): %s"), returninfstr(infstr));
-//		}
-//	
-//		// check it in
-//		proj_checkinmany(np.lib);
-//	}
-//	
-//	void proj_checkout(CHAR *cellname, BOOLEAN showcell)
-//	{
-//		REGISTER NODEPROTO *np, *newvers, *oldvers;
-//		REGISTER NODEINST *ni;
-//		REGISTER BOOLEAN worked, propagated;
-//		REGISTER INTBIG total;
-//		REGISTER LIBRARY *lib, *olib;
-//		CHAR projectpath[256], projectfile[256], *argv[3];
-//		PROJECTCELL *pf;
-//	
-//		// find out which cell is being checked out
-//		oldvers = getnodeproto(cellname);
-//		if (oldvers == NONODEPROTO)
-//		{
-//			ttyputerr(_("Cannot identify cell '%s'"), cellname);
-//			return;
-//		}
-//		lib = oldvers.lib;
-//	
-//		// make sure there is a valid user name
-//		if (proj_getusername(lib))
-//		{
-//			ttyputerr(_("No valid user"));
-//			return;
-//		}
-//	
-//		// get location of project file
-//		if (proj_getprojinfo(lib, projectpath, projectfile))
-//		{
-//			ttyputerr(_("Cannot find project file"));
-//			return;
-//		}
-//	
-//		// lock the project file
-//		if (proj_lockprojfile(projectpath, projectfile))
-//		{
-//			ttyputerr(_("Couldn't lock project file"));
-//			return;
-//		}
-//	
-//		// read the project file
-//		worked = FALSE;
-//		if (proj_readprojectfile(projectpath, projectfile))
-//			ttyputerr(_("Cannot read project file")); else
-//		{
-//			// find this in the project file
-//			pf = proj_findcell(oldvers);
-//			if (pf == NOPROJECTCELL) ttyputerr(_("This cell is not in the project")); else
-//			{
-//				// see if it is available
-//				if (*pf.owner != 0)
-//				{
-//					if (namesame(pf.owner, proj_username) == 0)
-//					{
-//						ttyputerr(_("This cell is already checked out to you"));
-//						proj_marklocked(oldvers, FALSE);
-//					} else
-//					{
-//						ttyputerr(_("This cell is already checked out to '%s'"), pf.owner);
-//					}
-//				} else
-//				{
-//					// make sure we have the latest version
-//					if (pf.cellversion > oldvers.version)
-//					{
-//						ttyputerr(_("Cannot check out %s because you don't have the latest version (yours is %ld, project has %ld)"),
-//							describenodeproto(oldvers), oldvers.version, pf.cellversion);
-//						ttyputmsg(_("Do an 'update' first"));
-//					} else
-//					{
-//						if (!proj_getcomments(pf, x_("out")))
-//						{
-//							if (proj_startwritingprojectfile(projectpath, projectfile))
-//								ttyputerr(_("Cannot write project file")); else
-//							{
-//								// prevent tools (including this one) from seeing the change
-//								(void)proj_turnofftools();
-//	
-//								// remove highlighting
-//								us_clearhighlightcount();
-//	
-//								// make new version
-//								newvers = copynodeproto(oldvers, lib, oldvers.protoname, TRUE);
-//	
-//								// restore tool state
-//								proj_restoretoolstate();
-//	
-//								if (newvers == NONODEPROTO)
-//									ttyputerr(_("Error making new version of cell")); else
-//								{
-//									(*el_curconstraint.solve)(newvers);
-//	
-//									// replace former usage with new version
-//									if (proj_usenewestversion(oldvers, newvers))
-//										ttyputerr(_("Error replacing instances of new %s"),
-//											describenodeproto(oldvers)); else
-//									{
-//										// update record for the cell
-//										(void)reallocstring(&pf.owner, proj_username, proj_tool.cluster);
-//										(void)reallocstring(&pf.lastowner, x_(""), proj_tool.cluster);
-//										proj_marklocked(newvers, FALSE);
-//										worked = TRUE;
-//									}
-//								}
-//							}
-//							proj_endwritingprojectfile();
-//						}
-//					}
-//				}
-//			}
-//		}
-//	
-//		// relase project file lock
-//		proj_unlockprojfile(projectpath, projectfile);
-//	
-//		// if it worked, print dependencies and display
-//		if (worked)
-//		{
-//			ttyputmsg(_("Cell %s checked out for your use"), describenodeproto(newvers));
-//	
-//			// advise of possible problems with other checkouts higher up in the hierarchy
-//			for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//				for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//					np.temp1 = 0;
-//			newvers.temp1 = 1;
-//			propagated = TRUE;
-//			while (propagated)
-//			{
-//				propagated = FALSE;
-//				for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//					for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//				{
-//					if (np.temp1 == 1)
-//					{
-//						propagated = TRUE;
-//						np.temp1 = 2;
-//						for(ni = np.firstinst; ni != NONODEINST; ni = ni.nextinst)
-//							if (ni.parent.temp1 == 0) ni.parent.temp1 = 1;
-//					}
-//				}
-//			}
-//			newvers.temp1 = 0;
-//			total = 0;
-//			for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//				for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//			{
-//				if (np.temp1 == 0) continue;
-//				pf = proj_findcell(np);
-//				if (pf == NOPROJECTCELL) continue;
-//				if (*pf.owner != 0 && namesame(pf.owner, proj_username) != 0)
-//				{
-//					np.temp1 = 3;
-//					np.temp2 = (INTBIG)pf;
-//					total++;
-//				}
-//			}
-//			if (total != 0)
-//			{
-//				ttyputmsg(_("*** Warning: the following cells are above this in the hierarchy"));
-//				ttyputmsg(_("*** and are checked out to others.  This may cause problems"));
-//				for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//					for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//				{
-//					if (np.temp1 != 3) continue;
-//					pf = (PROJECTCELL *)np.temp2;
-//					ttyputmsg(_("    %s is checked out to %s"), describenodeproto(np), pf.owner);
-//				}
-//			}
-//	
-//			// advise of possible problems with other checkouts lower down in the hierarchy
-//			for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//				for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//					np.temp1 = 0;
-//			newvers.temp1 = 1;
-//			propagated = TRUE;
-//			while(propagated)
-//			{
-//				propagated = FALSE;
-//				for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//					for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//				{
-//					if (np.temp1 == 1)
-//					{
-//						propagated = TRUE;
-//						np.temp1 = 2;
-//						for(ni = np.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
-//						{
-//							if (ni.proto.primindex != 0) continue;
-//							if (ni.proto.temp1 == 0) ni.proto.temp1 = 1;
-//						}
-//					}
-//				}
-//			}
-//			newvers.temp1 = 0;
-//			total = 0;
-//			for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//				for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//			{
-//				if (np.temp1 == 0) continue;
-//				pf = proj_findcell(np);
-//				if (pf == NOPROJECTCELL) continue;
-//				if (*pf.owner != 0 && namesame(pf.owner, proj_username) != 0)
-//				{
-//					np.temp1 = 3;
-//					np.temp2 = (INTBIG)pf;
-//					total++;
-//				}
-//			}
-//			if (total != 0)
-//			{
-//				ttyputmsg(_("*** Warning: the following cells are below this in the hierarchy"));
-//				ttyputmsg(_("*** and are checked out to others.  This may cause problems"));
-//				for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//					for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//				{
-//					if (np.temp1 != 3) continue;
-//					pf = (PROJECTCELL *)np.temp2;
-//					ttyputmsg(_("    %s is checked out to %s"), describenodeproto(np), pf.owner);
-//				}
-//			}
-//	
-//			// display the checked-out cell
-//			if (showcell)
-//			{
-//				argv[0] = describenodeproto(newvers);
-//				us_editcell(1, argv);
-//				us_endchanges(NOWINDOWPART);
-//			}
-//		}
-//	}
 //	
 //	/* Project Old Version */
 //	static DIALOGITEM proj_oldversdialogitems[] =
@@ -1583,11 +1797,7 @@ public class Project extends Listener
 //		}
 //	
 //		// turn off all tools
-//		if (proj_turnofftools())
-//		{
-//			ttyputerr(_("Could not save tool state"));
-//			return;
-//		}
+//		Undo.changesQuiet(true);
 //	
 //		// make libraries for every cell
 //		setvalkey((INTBIG)lib, VLIBRARY, proj_pathkey, (INTBIG)projfile, VSTRING);
@@ -1613,7 +1823,7 @@ public class Project extends Listener
 //		}
 //	
 //		// restore tool state
-//		proj_restoretoolstate();
+//		Undo.changesQuiet(false);
 //	
 //		// close project file
 //		xclose(io);
@@ -1850,105 +2060,119 @@ public class Project extends Listener
 //		// relase project file lock
 //		proj_unlockprojfile(projectpath, projectfile);
 //	}
-//	
-//	/************************ PROJECT DATABASE ***********************/
-//	
-//	void proj_checkinmany(LIBRARY *lib)
-//	{
-//		REGISTER NODEPROTO *np;
-//		CHAR projectpath[256], projectfile[256];
-//		PROJECTCELL *pf;
-//		REGISTER LIBRARY *olib;
-//	
-//		// make sure there is a valid user name
-//		if (proj_getusername(lib))
-//		{
-//			ttyputerr(_("No valid user"));
-//			return;
-//		}
-//	
-//		// get location of project file
-//		if (proj_getprojinfo(lib, projectpath, projectfile))
-//		{
-//			ttyputerr(_("Cannot find project file"));
-//			return;
-//		}
-//	
-//		// lock the project file
-//		if (proj_lockprojfile(projectpath, projectfile))
-//		{
-//			ttyputerr(_("Couldn't lock project file"));
-//			return;
-//		}
-//	
-//		// read the project file
-//		if (proj_readprojectfile(projectpath, projectfile))
-//			ttyputerr(_("Cannot read project file")); else
-//		{
-//			for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//				for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//			{
-//				if (np.temp1 == 0) continue;
-//				if (stopping(STOPREASONCHECKIN)) break;
-//	
-//				// find this in the project file
-//				pf = proj_findcell(np);
-//				if (pf == NOPROJECTCELL)
-//					ttyputerr(_("Cell %s is not in the project"), describenodeproto(np)); else
-//				{
-//					// see if it is available
-//					if (estrcmp(pf.owner, proj_username) != 0)
-//						ttyputerr(_("Cell %s is not checked out to you"), describenodeproto(np)); else
-//					{
-//						if (!proj_getcomments(pf, x_("in")))
-//						{
-//							// prepare to write it back
-//							if (proj_startwritingprojectfile(projectpath, projectfile))
-//								ttyputerr(_("Cannot write project file")); else
-//							{
-//								// write the cell out there
-//								if (proj_writecell(np))
-//									ttyputerr(_("Error writing cell %s"), describenodeproto(np)); else
-//								{
-//									(void)reallocstring(&pf.owner, x_(""), proj_tool.cluster);
-//									(void)reallocstring(&pf.lastowner, proj_username, proj_tool.cluster);
-//									pf.cellversion = np.version;
-//									proj_marklocked(np, TRUE);
-//									ttyputmsg(_("Cell %s checked in"), describenodeproto(np));
-//								}
-//								proj_endwritingprojectfile();
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
-//	
-//		// relase project file lock
-//		proj_unlockprojfile(projectpath, projectfile);
-//	}
 	
-	/*
-	 * Routine to obtain information about the project associated with library "lib".
-	 * The path to the project is placed in "path" and the name of the project file
-	 * in that directory is placed in "projfile".  Returns true on error.
+	/************************ PROJECT DATABASE ***********************/
+
+	/**
+	 * This class checks in cells to Project Management.
+	 * It involves updating the project database and saving the current cells to disk.
 	 */
-	static String [] proj_getprojinfo(Library lib) // CHAR *path, CHAR *projfile)
+	private static class CheckInJob extends Job
 	{
-		// see if there is a variable in the current library with the project path
-		String path = null;
-		Variable var = lib.getVar(proj_pathkey);
-		if (var != null)
+		private Library lib;
+		private HashMap cellsMarked1;
+
+		protected CheckInJob(Library lib, HashMap cellsMarked1)
 		{
-			path = (String)var.getObject();
-			// make sure the path is valid
+			super("Check in cells", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.lib = lib;
+			this.cellsMarked1 = cellsMarked1;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			// make sure there is a valid user name
+			if (proj_getusername(lib))
+			{
+				System.out.println("No valid user");
+				return false;
+			}
+			
+			// make sure there is a valid user name
+			if (getCurrentUserName().length() == 0)
+			{
+				System.out.println("No valid user");
+				return false;
+			}
+
+			ProjectLibrary pl = ProjectLibrary.findProject(lib);
+			if (pl.lockProjectFile())
+			{
+				System.out.println("Couldn't lock project file");
+				return false;
+			}
+
+			// prevent tools (including this one) from seeing the change
+			Undo.changesQuiet(true);
+
+			// check in the requested cells
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library oLib = (Library)it.next();
+				for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+				{
+					Cell np = (Cell)cIt.next();
+					MutableInteger mi = (MutableInteger)cellsMarked1.get(np);
+					if (mi.intValue() == 0) continue;
+		
+					// find this in the project file
+					ProjectCell pf = getProjectCell(np);
+					if (pf == null)
+						System.out.println("Cell " + np.describe() + " is not in the project"); else
+					{
+						// see if it is available
+						if (!pf.owner.equals(Project.getCurrentUserName()))
+							System.out.println("Cell " + np.describe() + " is not checked out to you"); else
+						{
+//							if (!proj_getcomments(pf, "in"))
+							{
+								// write the cell out there
+								if (proj_writecell(np, pl, pf))
+									System.out.println("Error writing cell " + np.describe()); else
+								{
+									pf.owner = "";
+									pf.lastowner = proj_username;
+									pf.cellversion = np.getVersion();
+									proj_marklocked(np, true);
+									System.out.println("Cell " + np.describe() + " checked in");
+								}
+							}
+						}
+					}
+				}
+			}
+
+			// restore change broadcast
+			Undo.changesQuiet(false);
+
+			// relase project file lock
+			pl.releaseProjectFileLock(true);
+			return true;
+		}
+	}
+	
+//	/*
+//	 * Routine to obtain information about the project associated with library "lib".
+//	 * The path to the project is placed in "path" and the name of the project file
+//	 * in that directory is placed in "projfile".  Returns true on error.
+//	 */
+//	static String [] proj_getprojinfo(Library lib) // CHAR *path, CHAR *projfile)
+//	{
+//		// see if there is a variable in the current library with the project path
+//		String path = null;
+//		Variable var = lib.getVar(proj_pathkey);
+//		if (var != null)
+//		{
+//			path = (String)var.getObject();
+//			// make sure the path is valid
 //			io = xopen(path, proj_filetypeproj, x_(""), &truename);
 //			if (io != 0) xclose(io); else
 //				var = NOVARIABLE;
-		}
-		if (var == null)
-		{
-			// prompt for project file
+//		}
+//		if (var == null)
+//		{
+//			// prompt for project file
 //			infstr = initinfstr();
 //			addstringtoinfstr(infstr, x_("proj/"));
 //			addstringtoinfstr(infstr, _("Project File"));
@@ -1956,252 +2180,25 @@ public class Project extends Listener
 //			if (i == 0) return(TRUE);
 //			estrcpy(path, params[0]);
 //			setvalkey((INTBIG)lib, VLIBRARY, proj_pathkey, (INTBIG)path, VSTRING);
-		}
-	
-		int sepPos = path.lastIndexOf(File.separatorChar);
-		String projFile;
-		if (sepPos >= 0)
-		{
-			projFile = path.substring(sepPos+1);
-			path = path.substring(0, sepPos);
-		} else
-		{
-			projFile = path;
-			path = "";
-		}
-		String [] ret = new String[2];
-		ret[0] = projFile;
-		ret[1] = path;
-		return ret;
-	}
-	
-//	/* Project List */
-//	static DIALOGITEM proj_listdialogitems[] =
-//	{
-//	 /*  1 */ {0, {204,312,228,376}, BUTTON, N_("Done")},
-//	 /*  2 */ {0, {4,4,196,376}, SCROLL, x_("")},
-//	 /*  3 */ {0, {260,4,324,376}, MESSAGE, x_("")},
-//	 /*  4 */ {0, {240,4,256,86}, MESSAGE, N_("Comments:")},
-//	 /*  5 */ {0, {204,120,228,220}, BUTTON, N_("Check It Out")},
-//	 /*  6 */ {0, {236,4,237,376}, DIVIDELINE, x_("")},
-//	 /*  7 */ {0, {204,8,228,108}, BUTTON, N_("Check It In")},
-//	 /*  8 */ {0, {204,232,228,296}, BUTTON, N_("Update")}
-//	};
-//	static DIALOG proj_listdialog = {{50,75,383,462}, N_("Project Management"), 0, 8, proj_listdialogitems, 0, 0};
-//	
-//	/* special items for the "Project list" dialog: */
-//	#define DPRL_PROJLIST  2		/* Project list (scroll) */
-//	#define DPRL_COMMENTS  3		/* Comments (stat text) */
-//	#define DPRL_CHECKOUT  5		/* Check out (button) */
-//	#define DPRL_CHECKIN   7		/* Check in (button) */
-//	#define DPRL_UPDATE    8		/* Update (button) */
-//	
-//	void proj_showlistdialog(LIBRARY *lib)
-//	{
-//		REGISTER INTBIG itemHit, i, j;
-//		REGISTER PROJECTCELL *pf;
-//		REGISTER void *infstr, *dia;
-//	
-//		if (proj_getusername(lib))
-//		{
-//			ttyputerr(_("No valid user"));
-//			return;
-//		}
-//		proj_active = TRUE;
-//	
-//		// show the dialog
-//		dia = DiaInitDialog(&proj_listdialog);
-//		if (dia == 0) return;
-//		DiaInitTextDialog(dia, DPRL_PROJLIST, DiaNullDlogList, DiaNullDlogItem, DiaNullDlogDone,
-//			-1, SCSELMOUSE | SCREPORT);
-//	
-//		// load project information into the scroll area
-//		if (proj_loadlist(lib, dia))
-//		{
-//			DiaDoneDialog(dia);
-//			return;
 //		}
 //	
-//		for(;;)
+//		int sepPos = path.lastIndexOf(File.separatorChar);
+//		String projFile;
+//		if (sepPos >= 0)
 //		{
-//			itemHit = DiaNextHit(dia);
-//			if (itemHit == OK) break;
-//			if (itemHit == DPRL_UPDATE)
-//			{
-//				// update project
-//				proj_update(lib);
-//				(void)proj_loadlist(lib, dia);
-//				us_endbatch();
-//				continue;
-//			}
-//			if (itemHit == DPRL_CHECKOUT || itemHit == DPRL_CHECKIN ||
-//				itemHit == DPRL_PROJLIST)
-//			{
-//				// figure out which cell is selected
-//				i = DiaGetCurLine(dia, DPRL_PROJLIST);
-//				if (i < 0) continue;
-//				for(j=0, pf = proj_firstprojectcell; pf != NOPROJECTCELL; pf = pf.nextprojectcell, j++)
-//					if (i == j) break;
-//				if (pf == NOPROJECTCELL) continue;
-//	
-//				if (itemHit == DPRL_CHECKOUT)
-//				{
-//					// check it out
-//					infstr = initinfstr();
-//					addstringtoinfstr(infstr, pf.cellname);
-//					if (pf.cellview != el_unknownview)
-//					{
-//						addtoinfstr(infstr, '{');
-//						addstringtoinfstr(infstr, pf.cellview.sviewname);
-//						addtoinfstr(infstr, '}');
-//					}
-//					proj_checkout(returninfstr(infstr), FALSE);
-//					(void)proj_loadlist(lib, dia);
-//					us_endbatch();
-//					continue;
-//				}
-//				if (itemHit == DPRL_CHECKIN)
-//				{
-//					// check it in
-//					infstr = initinfstr();
-//					addstringtoinfstr(infstr, pf.cellname);
-//					if (pf.cellview != el_unknownview)
-//					{
-//						addtoinfstr(infstr, '{');
-//						addstringtoinfstr(infstr, pf.cellview.sviewname);
-//						addtoinfstr(infstr, '}');
-//					}
-//					proj_checkin(returninfstr(infstr));
-//					(void)proj_loadlist(lib, dia);
-//					continue;
-//				}
-//				if (itemHit == DPRL_PROJLIST)
-//				{
-//					if (*pf.comment != 0) DiaSetText(dia, DPRL_COMMENTS, pf.comment);
-//					if (*pf.owner == 0) DiaUnDimItem(dia, DPRL_CHECKOUT); else
-//						DiaDimItem(dia, DPRL_CHECKOUT);
-//					if (estrcmp(pf.owner, proj_username) == 0) DiaUnDimItem(dia, DPRL_CHECKIN); else
-//						DiaDimItem(dia, DPRL_CHECKIN);
-//					continue;
-//				}
-//			}
+//			projFile = path.substring(sepPos+1);
+//			path = path.substring(0, sepPos);
+//		} else
+//		{
+//			projFile = path;
+//			path = "";
 //		}
-//		DiaDoneDialog(dia);
+//		String [] ret = new String[2];
+//		ret[0] = projFile;
+//		ret[1] = path;
+//		return ret;
 //	}
-//	
-//	/*
-//	 * Routine to display the current project information in the list dialog.
-//	 * Returns true on error.
-//	 */
-//	BOOLEAN proj_loadlist(LIBRARY *lib, void *dia)
-//	{
-//		REGISTER BOOLEAN failed, uptodate;
-//		REGISTER INTBIG whichline, thisline;
-//		REGISTER PROJECTCELL *pf, *curpf;
-//		CHAR line[256], projectpath[256], projectfile[256];
-//		REGISTER NODEPROTO *np, *curcell;
-//	
-//		// get location of project file
-//		if (proj_getprojinfo(lib, projectpath, projectfile))
-//		{
-//			ttyputerr(_("Cannot find project file"));
-//			return(TRUE);
-//		}
-//	
-//		// lock the project file
-//		if (proj_lockprojfile(projectpath, projectfile))
-//		{
-//			ttyputerr(_("Couldn't lock project file"));
-//			return(TRUE);
-//		}
-//	
-//		// read the project file
-//		failed = FALSE;
-//		if (proj_readprojectfile(projectpath, projectfile))
-//		{
-//			ttyputerr(_("Cannot read project file"));
-//			failed = TRUE;
-//		}
-//	
-//		// relase project file lock
-//		proj_unlockprojfile(projectpath, projectfile);
-//		if (failed) return(TRUE);
-//	
-//		// find current cell
-//		curcell = getcurcell();
-//	
-//		// show what is in the project file
-//		DiaLoadTextDialog(dia, DPRL_PROJLIST, DiaNullDlogList, DiaNullDlogItem, DiaNullDlogDone, -1);
-//		whichline = -1;
-//		thisline = 0;
-//		uptodate = TRUE;
-//		for(pf = proj_firstprojectcell; pf != NOPROJECTCELL; pf = pf.nextprojectcell)
-//		{
-//			// see if project is up-to-date
-//			np = db_findnodeprotoname(pf.cellname, pf.cellview, el_curlib);
-//			if (np == NONODEPROTO || np.version < pf.cellversion) uptodate = FALSE;
-//	
-//			// remember this line if it describes the current cell
-//			if (curcell != NONODEPROTO && namesame(curcell.protoname, pf.cellname) == 0 &&
-//				curcell.cellview == pf.cellview)
-//			{
-//				whichline = thisline;
-//				curpf = pf;
-//			}
-//	
-//			// describe this project cell
-//			if (pf.cellview == el_unknownview)
-//			{
-//				esnprintf(line, 256, x_("%s;%ld"), pf.cellname, pf.cellversion);
-//			} else
-//			{
-//				esnprintf(line, 256, x_("%s{%s};%ld"), pf.cellname, pf.cellview.sviewname,
-//					pf.cellversion);
-//			}
-//			if (*pf.owner == 0)
-//			{
-//				estrcat(line, _(" AVAILABLE"));
-//				if (*pf.lastowner != 0)
-//				{
-//					estrcat(line, _(", last mod by "));
-//					estrcat(line, pf.lastowner);
-//				}
-//			} else
-//			{
-//				if (estrcmp(pf.owner, proj_username) == 0)
-//				{
-//					estrcat(line, _(" EDITABLE, checked out to you"));
-//				} else
-//				{
-//					estrcat(line, _(" UNAVAILABLE, checked out to "));
-//					estrcat(line, pf.owner);
-//				}
-//			}
-//			DiaStuffLine(dia, DPRL_PROJLIST, line);
-//			thisline++;
-//		}
-//		DiaSelectLine(dia, DPRL_PROJLIST, whichline);
-//	
-//		DiaDimItem(dia, DPRL_CHECKOUT);
-//		DiaDimItem(dia, DPRL_CHECKIN);
-//		if (whichline >= 0)
-//		{
-//			if (*curpf.comment != 0) DiaSetText(dia, DPRL_COMMENTS, curpf.comment);
-//			if (*curpf.owner == 0) DiaUnDimItem(dia, DPRL_CHECKOUT); else
-//				DiaDimItem(dia, DPRL_CHECKOUT);
-//			if (estrcmp(curpf.owner, proj_username) == 0) DiaUnDimItem(dia, DPRL_CHECKIN); else
-//				DiaDimItem(dia, DPRL_CHECKIN);
-//		}
-//	
-//		if (uptodate) DiaDimItem(dia, DPRL_UPDATE); else
-//		{
-//			ttyputmsg(_("Your library does not contain the most recent additions to the project."));
-//			ttyputmsg(_("You should do an 'Update' to make it current."));
-//			DiaUnDimItem(dia, DPRL_UPDATE);
-//		}
-//		return(FALSE);
-//	}
-//	
+	
 //	/* Project Comments */
 //	static DIALOGITEM proj_commentsdialogitems[] =
 //	{
@@ -2303,31 +2300,8 @@ public class Project extends Listener
 //		return(NOPROJECTCELL);
 //	}
 //	
-//	/************************ LOCKING ***********************/
-//	
-//	#define MAXTRIES 10
-//	#define NAPTIME  5
-//	
-//	BOOLEAN proj_lockprojfile(CHAR *projectpath, CHAR *projectfile)
-//	{
-//		CHAR lockfilename[256];
-//		REGISTER INTBIG i, j;
-//	
-//		esnprintf(lockfilename, 256, x_("%s%sLOCK"), projectpath, projectfile);
-//		for(i=0; i<MAXTRIES; i++)
-//		{
-//			if (lockfile(lockfilename)) return(FALSE);
-//			if (i == 0) ttyputmsg(_("Project file locked.  Waiting...")); else
-//				ttyputmsg(_("Still waiting (will try %d more times)..."), MAXTRIES-i);
-//			for(j=0; j<NAPTIME; j++)
-//			{
-//				gotosleep(60);
-//				if (stopping(STOPREASONLOCK)) return(TRUE);
-//			}
-//		}
-//		return(TRUE);
-//	}
-//	
+	/************************ LOCKING ***********************/
+	
 //	void proj_unlockprojfile(CHAR *projectpath, CHAR *projectfile)
 //	{
 //		CHAR lockfilename[256];
@@ -2369,37 +2343,37 @@ public class Project extends Listener
 //			}
 //		}
 //	}
-//	
-//	void proj_marklocked(NODEPROTO *np, BOOLEAN locked)
-//	{
-//		REGISTER NODEPROTO *onp;
-//	
-//		if (!locked)
-//		{
-//			FOR_CELLGROUP(onp, np)
-//			{
-//				if (onp.cellview != np.cellview) continue;
-//				if (getvalkey((INTBIG)onp, VNODEPROTO, VINTEGER, proj_lockedkey) != NOVARIABLE)
-//					(void)delvalkey((INTBIG)onp, VNODEPROTO, proj_lockedkey);
-//			}
-//		} else
-//		{
-//			FOR_CELLGROUP(onp, np)
-//			{
-//				if (onp.cellview != np.cellview) continue;
-//				if (onp.newestversion == onp)
-//				{
-//					if (getvalkey((INTBIG)onp, VNODEPROTO, VINTEGER, proj_lockedkey) == NOVARIABLE)
-//						setvalkey((INTBIG)onp, VNODEPROTO, proj_lockedkey, 1, VINTEGER);
-//				} else
-//				{
-//					if (getvalkey((INTBIG)onp, VNODEPROTO, VINTEGER, proj_lockedkey) != NOVARIABLE)
-//						(void)delvalkey((INTBIG)onp, VNODEPROTO, proj_lockedkey);
-//				}
-//			}
-//		}
-//	}
-//
+	
+	private static void proj_marklocked(Cell np, boolean locked)
+	{
+		if (!locked)
+		{
+			for(Iterator it = np.getCellGroup().getCells(); it.hasNext(); )
+			{
+				Cell onp = (Cell)it.next();
+				if (onp.getView() != np.getView()) continue;
+				if (onp.getVar(proj_lockedkey) != null)
+					onp.delVar(proj_lockedkey);
+			}
+		} else
+		{
+			for(Iterator it = np.getCellGroup().getCells(); it.hasNext(); )
+			{
+				Cell onp = (Cell)it.next();
+				if (onp.getView() != np.getView()) continue;
+				if (onp.getNewestVersion() == onp)
+				{
+					if (onp.getVar(proj_lockedkey) == null)
+						onp.newVar(proj_lockedkey, new Integer(1));
+				} else
+				{
+					if (onp.getVar(proj_lockedkey) != null)
+						onp.delVar(proj_lockedkey);
+				}
+			}
+		}
+	}
+
 //	/************************ COPYING CELLS IN AND OUT OF DATABASE ***********************/
 //	
 //	/*
@@ -2429,14 +2403,14 @@ public class Project extends Listener
 //		estrcat(celllibpath, celllibname);
 //	
 //		// prevent tools (including this one) from seeing the change
-//		(void)proj_turnofftools();
+//		Undo.changesQuiet(true);
 //	
 //		templibname = proj_templibraryname();
 //		flib = newlibrary(templibname, celllibpath);
 //		if (flib == NOLIBRARY)
 //		{
 //			ttyputerr(_("Cannot create library %s"), celllibpath);
-//			proj_restoretoolstate();
+//			Undo.changesQuiet(false);
 //			return(NONODEPROTO);
 //		}
 //		oldverbose = asktool(io_tool, x_("verbose"), 0);
@@ -2446,14 +2420,14 @@ public class Project extends Listener
 //		{
 //			ttyputerr(_("Cannot read library %s"), celllibpath);
 //			killlibrary(flib);
-//			proj_restoretoolstate();
+//			Undo.changesQuiet(false);
 //			return(NONODEPROTO);
 //		}
 //		if (flib.curnodeproto == NONODEPROTO)
 //		{
 //			ttyputerr(_("Cannot find cell in library %s"), celllibpath);
 //			killlibrary(flib);
-//			proj_restoretoolstate();
+//			Undo.changesQuiet(false);
 //			return(NONODEPROTO);
 //		}
 //		esnprintf(cellname, 256, x_("%s;%ld"), flib.curnodeproto.protoname, flib.curnodeproto.version);
@@ -2468,7 +2442,7 @@ public class Project extends Listener
 //		{
 //			ttyputerr(_("Cannot copy cell %s from new library"), describenodeproto(flib.curnodeproto));
 //			killlibrary(flib);
-//			proj_restoretoolstate();
+//			Undo.changesQuiet(false);
 //			return(NONODEPROTO);
 //		}
 //		(*el_curconstraint.solve)(newnp);
@@ -2480,343 +2454,157 @@ public class Project extends Listener
 //		killlibrary(flib);
 //	
 //		// restore tool state
-//		proj_restoretoolstate();
+//		Undo.changesQuiet(false);
 //	
 //		// return the new cell
 //		return(newnp);
 //	}
-//	
-//	BOOLEAN proj_usenewestversion(NODEPROTO *oldnp, NODEPROTO *newnp)
-//	{
-//		INTBIG lx, hx, ly, hy;
-//		REGISTER WINDOWPART *w;
-//		REGISTER LIBRARY *lib;
-//		REGISTER NODEINST *ni, *newni, *nextni;
-//	
-//		// prevent tools (including this one) from seeing the change
-//		(void)proj_turnofftools();
-//	
-//		// replace them all
-//		for(ni = oldnp.firstinst; ni != NONODEINST; ni = nextni)
-//		{
-//			nextni = ni.nextinst;
-//			newni = replacenodeinst(ni, newnp, FALSE, FALSE);
-//			if (newni == NONODEINST)
-//			{
-//				ttyputerr(_("Failed to update instance of %s in %s"), describenodeproto(newnp),
-//					describenodeproto(ni.parent));
-//				proj_restoretoolstate();
-//				return(TRUE);
-//			}
-//		}
-//	
-//		// redraw windows that updated
-//		for(w = el_topwindowpart; w != NOWINDOWPART; w = w.nextwindowpart)
-//		{
-//			if (w.curnodeproto == NONODEPROTO) continue;
-//			if (w.curnodeproto != newnp) continue;
-//			w.curnodeproto = newnp;
-//	
-//			// redisplay the window with the new cell
-//			us_fullview(newnp, &lx, &hx, &ly, &hy);
-//			us_squarescreen(w, NOWINDOWPART, FALSE, &lx, &hx, &ly, &hy, 0);
-//			startobjectchange((INTBIG)w, VWINDOWPART);
-//			(void)setval((INTBIG)w, VWINDOWPART, x_("screenlx"), lx, VINTEGER);
-//			(void)setval((INTBIG)w, VWINDOWPART, x_("screenhx"), hx, VINTEGER);
-//			(void)setval((INTBIG)w, VWINDOWPART, x_("screenly"), ly, VINTEGER);
-//			(void)setval((INTBIG)w, VWINDOWPART, x_("screenhy"), hy, VINTEGER);
-//			us_gridset(w, w.state);
-//			endobjectchange((INTBIG)w, VWINDOWPART);
-//		}
-//	
-//		// update status display if necessary
-//		if (us_curnodeproto == oldnp) us_setnodeproto(newnp);
-//	
-//		// replace library references
-//		for(lib = el_curlib; lib != NOLIBRARY; lib = lib.nextlibrary)
-//			if (lib.curnodeproto == oldnp)
-//				(void)setval((INTBIG)lib, VLIBRARY, x_("curnodeproto"), (INTBIG)newnp, VNODEPROTO);
-//	
-//		if (killnodeproto(oldnp))
-//			ttyputerr(_("Could not delete old version"));
-//	
-//		// restore tool state
-//		proj_restoretoolstate();
-//		return(FALSE);
-//	}
-//	
-//	BOOLEAN proj_writecell(NODEPROTO *np)
-//	{
-//		REGISTER LIBRARY *flib;
-//		REGISTER INTBIG retval;
-//		CHAR libname[256], libfile[256], projname[256], *templibname;
-//		REGISTER NODEPROTO *npcopy;
-//		INTBIG filestatus;
-//	
-//		if (proj_getprojinfo(np.lib, libfile, projname))
-//		{
-//			ttyputerr(_("Cannot find project info on library %s"), np.lib.libname);
-//			return(TRUE);
-//		}
-//		projname[estrlen(projname)-5] = 0;
-//		estrcat(libfile, projname);
-//		estrcat(libfile, DIRSEPSTR);
-//		estrcat(libfile, np.protoname);
-//	
-//		// make the directory if necessary
-//		filestatus = fileexistence(libfile);
-//		if (filestatus == 1 || filestatus == 3)
-//		{
-//			ttyputerr(_("Could not create cell directory '%s'"), libfile);
-//			return(TRUE);
-//		}
-//		if (filestatus == 0)
-//		{
-//			if (createdirectory(libfile))
-//			{
-//				ttyputerr(_("Could not create cell directory '%s'"), libfile);
-//				return(TRUE);
-//			}
-//		}
-//	
-//		estrcat(libfile, DIRSEPSTR);
-//		esnprintf(libname, 256, x_("%ld-%s.elib"), np.version, np.cellview.viewname);
-//		estrcat(libfile, libname);
-//	
-//		// prevent tools (including this one) from seeing the change
-//		(void)proj_turnofftools();
-//	
-//		templibname = proj_templibraryname();
-//		flib = newlibrary(templibname, libfile);
-//		if (flib == NOLIBRARY)
-//		{
-//			ttyputerr(_("Cannot create library %s"), libfile);
-//			proj_restoretoolstate();
-//			return(TRUE);
-//		}
-//		npcopy = copyrecursively(np, flib);
-//		if (npcopy == NONODEPROTO)
-//		{
-//			ttyputerr(_("Could not place %s in a library"), describenodeproto(np));
-//			killlibrary(flib);
-//			proj_restoretoolstate();
-//			return(TRUE);
-//		}
-//	
-//		flib.curnodeproto = npcopy;
-//		flib.userbits |= READFROMDISK;
-//		makeoptionstemporary(flib);
-//		retval = asktool(io_tool, x_("write"), (INTBIG)flib, (INTBIG)x_("binary"));
-//		restoreoptionstate(flib);
-//		if (retval != 0)
-//		{
-//			ttyputerr(_("Could not save library with %s in it"), describenodeproto(np));
-//			killlibrary(flib);
-//			proj_restoretoolstate();
-//			return(TRUE);
-//		}
-//		killlibrary(flib);
-//	
-//		// restore tool state
-//		proj_restoretoolstate();
-//	
-//		return(FALSE);
-//	}
-//	
-//	CHAR *proj_templibraryname(void)
-//	{
-//		static CHAR libname[256];
-//		REGISTER LIBRARY *lib;
-//		REGISTER INTBIG i;
-//	
-//		for(i=1; ; i++)
-//		{
-//			esnprintf(libname, 256, x_("projecttemp%ld"), i);
-//			for(lib = el_curlib; lib != NOLIBRARY; lib = lib.nextlibrary)
-//				if (namesame(libname, lib.libname) == 0) break;
-//			if (lib == NOLIBRARY) break;
-//		}
-//		return(libname);
-//	}
-//	
-//	/*
-//	 * Routine to save the state of all tools and turn them off.
-//	 */
-//	BOOLEAN proj_turnofftools(void)
-//	{
-//		REGISTER INTBIG i;
-//		REGISTER TOOL *tool;
-//	
-//		// turn off all tools for this operation
-//		if (proj_savetoolstate == 0)
-//		{
-//			proj_savetoolstate = (INTBIG *)emalloc(el_maxtools * SIZEOFINTBIG, el_tempcluster);
-//			if (proj_savetoolstate == 0) return(TRUE);
-//		}
-//		for(i=0; i<el_maxtools; i++)
-//		{
-//			tool = &el_tools[i];
-//			proj_savetoolstate[i] = tool.toolstate;
-//			if (tool == us_tool || tool == proj_tool || tool == net_tool) continue;
-//			tool.toolstate &= ~TOOLON;
-//		}
-//		proj_ignorechanges = TRUE;
-//		return(FALSE);
-//	}
-//	
-//	/*
-//	 * Routine to restore the state of all tools that were reset by "proj_turnofftools()".
-//	 */
-//	void proj_restoretoolstate(void)
-//	{
-//		REGISTER INTBIG i;
-//	
-//		if (proj_savetoolstate == 0) return;
-//		for(i=0; i<el_maxtools; i++)
-//			el_tools[i].toolstate = proj_savetoolstate[i];
-//		proj_ignorechanges = FALSE;
-//	}
-//	
-//	/************************ DATABASE OPERATIONS ***********************/
-//	
-//	NODEPROTO *copyrecursively(NODEPROTO *fromnp, LIBRARY *tolib)
-//	{
-//		REGISTER NODEPROTO *np, *onp, *newfromnp;
-//		REGISTER NODEINST *ni;
-//		REGISTER CHAR *newname;
-//		CHAR versnum[20];
-//		REGISTER void *infstr;
-//	
-//		// must copy subcells
-//		for(ni = fromnp.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
-//		{
-//			np = ni.proto;
-//			if (np.primindex != 0) continue;
-//	
-//			// see if there is already a cell with this name and view
-//			for(onp = tolib.firstnodeproto; onp != NONODEPROTO; onp = onp.nextnodeproto)
-//				if (namesame(onp.protoname, np.protoname) == 0 &&
-//					onp.cellview == np.cellview) break;
-//			if (onp != NONODEPROTO) continue;
-//	
-//			onp = copyskeleton(np, tolib);
-//			if (onp == NONODEPROTO)
-//			{
-//				ttyputerr(_("Copy of subcell %s failed"), describenodeproto(np));
-//				return(NONODEPROTO);
-//			}
-//		}
-//	
-//		// copy the cell if it is not already done
-//		for(newfromnp = tolib.firstnodeproto; newfromnp != NONODEPROTO; newfromnp = newfromnp.nextnodeproto)
-//			if (namesame(newfromnp.protoname, fromnp.protoname) == 0 &&
-//				newfromnp.cellview == fromnp.cellview && newfromnp.version == fromnp.version) break;
-//		if (newfromnp == NONODEPROTO)
-//		{
-//			infstr = initinfstr();
-//			addstringtoinfstr(infstr, fromnp.protoname);
-//			addtoinfstr(infstr, ';');
-//			esnprintf(versnum, 20, x_("%ld"), fromnp.version);
-//			addstringtoinfstr(infstr, versnum);
-//			if (fromnp.cellview != el_unknownview)
-//			{
-//				addtoinfstr(infstr, '{');
-//				addstringtoinfstr(infstr, fromnp.cellview.sviewname);
-//				addtoinfstr(infstr, '}');
-//			}
-//			newname = returninfstr(infstr);
-//			newfromnp = copynodeproto(fromnp, tolib, newname, TRUE);
-//			if (newfromnp == NONODEPROTO) return(NONODEPROTO);
-//	
-//			// ensure that the copied cell is the right size
-//			(*el_curconstraint.solve)(newfromnp);
-//		}
-//	
-//		return(newfromnp);
-//	}
-//	
-//	NODEPROTO *copyskeleton(NODEPROTO *fromnp, LIBRARY *tolib)
-//	{
-//		CHAR *newname;
-//		REGISTER INTBIG newang, newtran;
-//		REGISTER INTBIG i, xc, yc;
-//		INTBIG newx, newy;
-//		XARRAY trans, localtrans, ntrans;
-//		REGISTER NODEPROTO *np;
-//		REGISTER PORTPROTO *pp, *rpp;
-//		REGISTER NODEINST *ni, *newni;
-//		REGISTER void *infstr;
-//	
-//		// cannot skeletonize text-only views
-//		if ((fromnp.cellview.viewstate&TEXTVIEW) != 0) return(NONODEPROTO);
-//	
-//		infstr = initinfstr();
-//		addstringtoinfstr(infstr, fromnp.protoname);
-//		if (fromnp.cellview != el_unknownview)
-//		{
-//			addtoinfstr(infstr, '{');
-//			addstringtoinfstr(infstr, fromnp.cellview.sviewname);
-//			addtoinfstr(infstr, '}');
-//		}
-//		newname = returninfstr(infstr);
-//		np = newnodeproto(newname, tolib);
-//		if (np == NONODEPROTO) return(NONODEPROTO);
-//	
-//		// place all exports in the new cell
-//		for(pp = fromnp.firstportproto; pp != NOPORTPROTO; pp = pp.nextportproto)
-//		{
-//			// make a transformation matrix for the node that has exports
-//			ni = pp.subnodeinst;
-//			rpp = pp.subportproto;
-//			newang = ni.rotation;
-//			newtran = ni.transpose;
-//			makerot(ni, trans);
-//			while (ni.proto.primindex == 0)
-//			{
-//				maketrans(ni, localtrans);
-//				transmult(localtrans, trans, ntrans);
-//				ni = rpp.subnodeinst;
-//				rpp = rpp.subportproto;
-//				if (ni.transpose == 0) newang = ni.rotation + newang; else
-//					newang = ni.rotation + 3600 - newang;
-//				newtran = (newtran + ni.transpose) & 1;
-//				makerot(ni, localtrans);
-//				transmult(localtrans, ntrans, trans);
-//			}
-//	
-//			// create this node
-//			xc = (ni.lowx + ni.highx) / 2;   yc = (ni.lowy + ni.highy) / 2;
-//			xform(xc, yc, &newx, &newy, trans);
-//			newx -= (ni.highx - ni.lowx) / 2;
-//			newy -= (ni.highy - ni.lowy) / 2;
-//			newang = newang % 3600;   if (newang < 0) newang += 3600;
-//			newni = newnodeinst(ni.proto, newx, newx+ni.highx-ni.lowx,
-//				newy, newy+ni.highy-ni.lowy, newtran, newang, np);
-//			if (newni == NONODEINST) return(NONODEPROTO);
-//			endobjectchange((INTBIG)newni, VNODEINST);
-//	
-//			// export the port from the node
-//			(void)newportproto(np, newni, rpp, pp.protoname);
-//		}
-//	
-//		// make sure cell is the same size
-//		i = (fromnp.highy+fromnp.lowy)/2 - (gen_invispinprim.highy-gen_invispinprim.lowy)/2;
-//		(void)newnodeinst(gen_invispinprim, fromnp.lowx, fromnp.lowx+gen_invispinprim.highx-gen_invispinprim.lowx,
-//			i, i+gen_invispinprim.highy-gen_invispinprim.lowy, 0, 0, np);
-//	
-//		i = (fromnp.highy+fromnp.lowy)/2 - (gen_invispinprim.highy-gen_invispinprim.lowy)/2;
-//		(void)newnodeinst(gen_invispinprim, fromnp.highx-(gen_invispinprim.highx-gen_invispinprim.lowx), fromnp.highx,
-//			i, i+gen_invispinprim.highy-gen_invispinprim.lowy, 0, 0, np);
-//	
-//		i = (fromnp.highx+fromnp.lowx)/2 - (gen_invispinprim.highx-gen_invispinprim.lowx)/2;
-//		(void)newnodeinst(gen_invispinprim, i, i+gen_invispinprim.highx-gen_invispinprim.lowx,
-//			fromnp.lowy, fromnp.lowy+gen_invispinprim.highy-gen_invispinprim.lowy, 0, 0, np);
-//	
-//		i = (fromnp.highx+fromnp.lowx)/2 - (gen_invispinprim.highx-gen_invispinprim.lowx)/2;
-//		(void)newnodeinst(gen_invispinprim, i, i+gen_invispinprim.highx-gen_invispinprim.lowx,
-//			fromnp.highy-(gen_invispinprim.highy-gen_invispinprim.lowy), fromnp.highy, 0, 0,np);
-//	
-//		(*el_curconstraint.solve)(np);
-//		return(np);
-//	}
+	
+	private static boolean proj_usenewestversion(Cell oldnp, Cell newnp)
+	{
+		// replace all instances
+		List instances = new ArrayList();
+		for(Iterator it = oldnp.getInstancesOf(); it.hasNext(); )
+			instances.add(it.next());
+		for(Iterator it = instances.iterator(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			NodeInst newni = ni.replace(newnp, false, false);
+			if (newni == null)
+			{
+				System.out.println("Failed to update instance of " + newnp.describe() + " in " + ni.getParent().describe());
+				return true;
+			}
+		}
+	
+		// redraw windows that showed the old cell
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.getContent().getCell() != oldnp) continue;
+			wf.getContent().setCell(newnp, VarContext.globalContext);
+		}
+
+		// update explorer tree
+		SwingUtilities.invokeLater(new Runnable()
+		{
+			public void run() { WindowFrame.wantToRedoLibraryTree(); }
+		});
+	
+		// replace library references
+		for(Iterator it = Library.getLibraries(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			if (lib.getCurCell() == oldnp) lib.setCurCell(newnp);
+		}
+
+		// finally delete the former cell
+		oldnp.kill();
+
+		return false;
+	}
+	
+	private static boolean proj_writecell(Cell np, ProjectLibrary pl, ProjectCell pc)
+	{
+		String dirName = pl.fileName;
+		if (dirName.endsWith(".proj")) dirName = dirName.substring(0, dirName.length()-5);
+		dirName += File.separator + np.getName();
+		File dir = new File(dirName);
+		if (!dir.exists())
+		{
+			if (!dir.mkdir())
+			{
+				System.out.println("Unable to create directory " + dirName);
+				return true;
+			}
+		}
+
+		String libName = dirName + File.separator + np.getVersion() + "-" + np.getName() + ".elib";
+	
+		String templibname = proj_templibraryname();
+		Library flib = Library.newInstance(templibname, TextUtils.makeURLToFile(libName));
+		if (flib == null)
+		{
+			System.out.println("Cannot create library " + libName);
+			return true;
+		}
+
+		Cell npcopy = copyrecursively(np, flib);
+		if (npcopy == null)
+		{
+			System.out.println("Could not place " + np.describe() + " in a library");
+			flib.kill("");
+			return true;
+		}
+	
+		flib.setCurCell(npcopy);
+		flib.setFromDisk();
+        boolean error = Output.writeLibrary(flib, pc.libType, false);
+		if (error)
+		{
+			System.out.println("Could not save library with " + np.describe() + " in it");
+			flib.kill("");
+			return true;
+		}
+		flib.kill("");
+
+		return false;
+	}
+	
+	private static String proj_templibraryname()
+	{
+		for(int i=1; ; i++)
+		{
+			String libName = "projecttemp" + i;
+			if (Library.findLibrary(libName) == null) return libName;
+		}
+	}
+	
+	/************************ DATABASE OPERATIONS ***********************/
+	
+	private static Cell copyrecursively(Cell fromnp, Library tolib)
+	{
+		// must copy subcells
+		for(Iterator it = fromnp.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			if (!(ni.getProto() instanceof Cell)) continue;
+			Cell np = (Cell)ni.getProto();
+	
+			// see if there is already a cell with this name and view
+			Cell onp = tolib.findNodeProto(np.noLibDescribe());
+			if (onp != null) continue;
+
+			if (np.getView().isTextView()) continue;
+			String newname = np.getName();
+			if (np.getView() != View.UNKNOWN)
+				newname += "{" + np.getView().getAbbreviation() + "}";
+			onp = Cell.makeInstance(tolib, newname);
+			if (onp == null)
+			{
+				System.out.println("Could not create subcell " + newname);
+				continue;
+			}
+
+			if (ViewChanges.skeletonizeCell(np, onp))
+			{
+				System.out.println("Copy of subcell " + np.describe() + " failed");
+				return null;
+			}
+		}
+
+		// copy the cell if it is not already done
+		Cell newfromnp = tolib.findNodeProto(fromnp.noLibDescribe());
+		if (newfromnp == null)
+		{
+			String newname = fromnp.getName() + ";" + fromnp.getVersion();
+			if (fromnp.getView() != View.UNKNOWN)
+				newname += "{" + fromnp.getView().getAbbreviation() + "}";
+			newfromnp = Cell.copyNodeProto(fromnp, tolib, newname, true);
+			if (newfromnp == null) return null;
+		}
+	
+		return newfromnp;
+	}
+	
 }

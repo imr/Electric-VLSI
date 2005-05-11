@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02n: *********************************
 
+BUG: (05/11/05, SMR) Cells with bus pins are the wrong size.
+FIX: Restore the "wipeon1or2" flag to Schematics bus pins, then rework the sequence of calling
+     "Technology.getShapeOfNode()" so that Schematics overrides are not affected by that flag.
+
 IMP: (05/09/05, JKG) LE sizes now stored on top level cell instead of leaf instances.
 
 IMP: (05/09/05, JKG) Improved readability of hierarchical path in status bar. Also,
