@@ -63,7 +63,7 @@ public class Input
 	/** key of Varible holding true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = ElectricObject.newKey("IO_true_library");
 	/** key of Variable to denote a dummy cell or library */        public static final Variable.Key IO_DUMMY_OBJECT = ElectricObject.newKey("IO_dummy_object");
 
-    /** Log errors. Static because shared between many readers */   protected static ErrorLogger errorLogger;
+    /** Log errors. Static because shared between many readers */   public static ErrorLogger errorLogger;
 
 	/** Name of the file being input. */					protected String filePath;
 	/** The Library being input. */							protected Library lib;
