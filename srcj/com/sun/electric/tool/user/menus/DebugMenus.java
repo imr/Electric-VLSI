@@ -49,6 +49,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -60,6 +61,7 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
 import com.sun.electric.tool.simulation.Simulation;
@@ -760,79 +762,80 @@ public class DebugMenus {
      */
     public static void testBash()
     {
-        String regressionname = "sportTop";
-String testname = "sportTop";
-String testpath = "sport/correctedData/";
-String testlib = "sport";
-String logname = "output/"+regressionname+"IO-"+Version.getVersion()+".log";
-
-try {
-  TopLevel.getMessagesWindow().save(logname);
-
-
-            // Running diff
-            File dir = new File("./");
-            FileOutputStream outputStream = new FileOutputStream("tmpSport.log");
-            FileOutputStream errStream = new FileOutputStream("errSport.log");
-
-        for(Iterator it = Library.getLibraries(); it.hasNext(); )
-        {
-            Library lib = (Library)it.next();
-            String libName = lib.getName();
-            if (lib.getLibFile() == null) continue; // Clipboard
-            String oldName = "../../data/"+testpath+"/"+libName+".jelib";
-            String newName = "tmp/sport/"+libName+".jelib";
-            FileMenu.SaveLibrary job = new FileMenu.SaveLibrary(lib, "tmp/sport/"+libName, FileType.JELIB, false, true);
-    job.performTask();
-
-            LineNumberReader oldReader = new LineNumberReader(new FileReader(oldName));
-            LineNumberReader newReader = new LineNumberReader(new FileReader(newName));
-            int oldLineNum = 0;
-            int newLineNum = -1;
-            boolean diff = false;
-            String oldLine = null, newLine = null;
-
-            for(;;)
-            {
-                oldLine = oldReader.readLine();
-                oldLineNum = oldReader.getLineNumber();
-                if (oldLine == null) break;
-                newLine = newReader.readLine();
-                newLineNum = newReader.getLineNumber();
-                if (newLine == null) break;
-                // skipping the headers
-                if (oldLine.startsWith("H") &&
-                        newLine.startsWith("H")) continue;
-                // skipping
-                if (oldLine.startsWith("L") &&
-                        newLine.startsWith("L"))
-                {
-                    int index = oldLine.indexOf("|");
-                    oldLine = oldLine.substring(1, index);
-                    index = newLine.indexOf("|");
-                    newLine = newLine.substring(1, index);
-                }
-                diff = !oldLine.equals(newLine);
-                if (diff) break;
-            }
-            System.out.println("Library " + oldName + " and " + newName + " at line " + oldLineNum);
-            System.out.println(oldLine);
-             System.out.println(newLine);
-
-//            Exec e = new Exec("/usr/bin/diff " + oldName + " " + newName, null, dir, outputStream, errStream);
-//            e.start();
-//    outputStream.flush();
-//            errStream.flush();
-            //Runtime.getRuntime().exec("cmd /c /usr/bin/diff " + oldName + " " + newName + " >> gilda.log" );
-        }
-            outputStream.close();
-    errStream.close();
-
-} catch (Exception e) {
-  System.out.println("exception: "+e);
-  e.printStackTrace();
-  System.exit(1);
-}
+        System.out.println("Num Log" + Input.errorLogger.getNumLogs() + NetworkTool.errorLogger.getNumLogs());
+//        String regressionname = "sportTop";
+//String testname = "sportTop";
+//String testpath = "sport/correctedData/";
+//String testlib = "sport";
+//String logname = "output/"+regressionname+"IO-"+Version.getVersion()+".log";
+//
+//try {
+//  TopLevel.getMessagesWindow().save(logname);
+//
+//
+//            // Running diff
+//            File dir = new File("./");
+//            FileOutputStream outputStream = new FileOutputStream("tmpSport.log");
+//            FileOutputStream errStream = new FileOutputStream("errSport.log");
+//
+//        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+//        {
+//            Library lib = (Library)it.next();
+//            String libName = lib.getName();
+//            if (lib.getLibFile() == null) continue; // Clipboard
+//            String oldName = "../../data/"+testpath+"/"+libName+".jelib";
+//            String newName = "tmp/sport/"+libName+".jelib";
+//            FileMenu.SaveLibrary job = new FileMenu.SaveLibrary(lib, "tmp/sport/"+libName, FileType.JELIB, false, true);
+//    job.performTask();
+//
+//            LineNumberReader oldReader = new LineNumberReader(new FileReader(oldName));
+//            LineNumberReader newReader = new LineNumberReader(new FileReader(newName));
+//            int oldLineNum = 0;
+//            int newLineNum = -1;
+//            boolean diff = false;
+//            String oldLine = null, newLine = null;
+//
+//            for(;;)
+//            {
+//                oldLine = oldReader.readLine();
+//                oldLineNum = oldReader.getLineNumber();
+//                if (oldLine == null) break;
+//                newLine = newReader.readLine();
+//                newLineNum = newReader.getLineNumber();
+//                if (newLine == null) break;
+//                // skipping the headers
+//                if (oldLine.startsWith("H") &&
+//                        newLine.startsWith("H")) continue;
+//                // skipping
+//                if (oldLine.startsWith("L") &&
+//                        newLine.startsWith("L"))
+//                {
+//                    int index = oldLine.indexOf("|");
+//                    oldLine = oldLine.substring(1, index);
+//                    index = newLine.indexOf("|");
+//                    newLine = newLine.substring(1, index);
+//                }
+//                diff = !oldLine.equals(newLine);
+//                if (diff) break;
+//            }
+//            System.out.println("Library " + oldName + " and " + newName + " at line " + oldLineNum);
+//            System.out.println(oldLine);
+//             System.out.println(newLine);
+//
+////            Exec e = new Exec("/usr/bin/diff " + oldName + " " + newName, null, dir, outputStream, errStream);
+////            e.start();
+////    outputStream.flush();
+////            errStream.flush();
+//            //Runtime.getRuntime().exec("cmd /c /usr/bin/diff " + oldName + " " + newName + " >> gilda.log" );
+//        }
+//            outputStream.close();
+//    errStream.close();
+//
+//} catch (Exception e) {
+//  System.out.println("exception: "+e);
+//  e.printStackTrace();
+//  System.exit(1);
+//}
     }
 
     public static void threeViewCommand()
