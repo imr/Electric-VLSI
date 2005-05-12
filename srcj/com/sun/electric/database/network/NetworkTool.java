@@ -40,7 +40,6 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.Main;
 
@@ -55,8 +54,7 @@ import javax.swing.SwingUtilities;
  */
 public class NetworkTool extends Listener
 {
-
-	/**
+    /**
 	 * Signals that a method has been invoked at an illegal or
 	 * inappropriate time.  In other words, the Java environment or
 	 * Java application is not in an appropriate state for the requested
@@ -107,7 +105,7 @@ public class NetworkTool extends Listener
 	/** All cells have networks up-to-date */ 		private static boolean networksValid = false;
 	/** Mutex object */								private static Object mutex = new Object();
 
-    /** The logger for logging Network errors */    static ErrorLogger errorLogger = ErrorLogger.newInstance("Network Errors", true);
+    /** The logger for logging Network errors */    public static ErrorLogger errorLogger = ErrorLogger.newInstance("Network Errors", true);
     /** sort keys for sorting network errors */     static final int errorSortNetworks = 0;
                                                     static final int errorSortNodes = 1;
                                                     static final int errorSortPorts = 2;
@@ -332,6 +330,27 @@ public class NetworkTool extends Listener
         {
             Network net = netlist.getNetwork(pi);
             if (net != null) nets.add(net);
+        }
+        return nets;
+    }
+
+    public static Set getNetworks(Geometric geom, Netlist netlist, Set nets)
+    {
+        if (nets == null) nets = new HashSet();
+        else nets.clear();
+
+        if (geom instanceof ArcInst)
+            nets.add(netlist.getNetwork((ArcInst)geom, 0));
+        else
+        {
+            NodeInst ni = (NodeInst)geom;
+            for (Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+            {
+                PortInst pi = (PortInst)pIt.next();
+                nets = getNetworksOnPort(pi, netlist, nets);
+                //nets.add(netlist.getNetwork(ni, pi.getPortProto(), 0));
+                //nets.add(netlist.getNetwork(pi));
+            }
         }
         return nets;
     }
