@@ -106,30 +106,9 @@ public class GeometryConnection
             this.geomB = geomB;
             this.geomBBnd = cellABnds;
             this.found = false;
-            this.netsB = getNetworks(geomB, netlistB, null);
+            this.netsB = NetworkTool.getNetworks(geomB, netlistB, null);
             this.topNetlist = topNetlist;
             this.topCell = geomA.getParent();
-        }
-
-        private Set getNetworks(Geometric geom, Netlist netlist, Set nets)
-        {
-            if (nets == null) nets = new HashSet();
-            else nets.clear();
-
-            if (geom instanceof ArcInst)
-                nets.add(netlist.getNetwork((ArcInst)geom, 0));
-            else
-            {
-                NodeInst ni = (NodeInst)geom;
-                for (Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
-                {
-                    PortInst pi = (PortInst)pIt.next();
-                    nets = NetworkTool.getNetworksOnPort(pi, netlist, nets);
-                    //nets.add(netlist.getNetwork(ni, pi.getPortProto(), 0));
-                    //nets.add(netlist.getNetwork(pi));
-                }
-            }
-            return nets;
         }
 
         /**
@@ -154,7 +133,7 @@ public class GeometryConnection
                     return false;
                 }
                 // Checking if they already belong to same net
-                nets = getNetworks(nGeom, info.getNetlist(), nets);
+                nets = NetworkTool.getNetworks(nGeom, info.getNetlist(), nets);
                 if (nets.containsAll(netsB))
                          System.out.println("Found net");
                 else if (nets.size() == 1 && netsB.size() == 1)
