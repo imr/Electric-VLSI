@@ -190,9 +190,11 @@
         <copy file="packaging/PkgInfo" todir="${appdir}/Contents"/>
         <copy file="packaging/electric.icns" todir="${appdir}/Contents/Resources"/>
         <copy file="electric.jar" todir="${appdir}/Contents/Resources/Java"/>
-        <!--<exec command="/Developer/Tools/SetFile -a B ${appdir}"/> -->
         <exec executable="/Developer/Tools/SetFile">
             <arg value="-a"/> <arg value="B" /> <arg value="${appdir}" />
+        </exec>
+        <exec executable="packaging/mkdmg.sh">
+            <arg value="${releasedir}"/> <arg value="${releasedir}" />
         </exec>
     </target>
 
