@@ -460,7 +460,7 @@ public class EditMenu {
 
 		public boolean doIt()
 		{
-			if (!Undo.undoABatch())
+			if (Undo.undoABatch() == null)
 				System.out.println("Undo failed!");
 			return true;
 		}

@@ -848,6 +848,13 @@ public class Undo
 		public Iterator getChanges() { return changes.iterator(); }
 
 		/**
+		 * Method to return the number of this ChangeBatch.
+		 * Each batch has a unique number, and their order increases with time.
+		 * @return the unique number of this ChangeBatch.
+		 */
+		public int getBatchNumber() { return batchNumber; }
+
+		/**
 		 * Method to return the number of changes in this ChangeBatch.
 		 * @return the number of changes in this ChangeBatch.
 		 */
@@ -1022,7 +1029,6 @@ public class Undo
 		{
 			// remove from doneList
 			doneList.remove(currentBatch);
-			overallBatchNumber--;
 			if (doneList.size() == 0) setUndoEnabled(false);
 		}
 
@@ -1353,8 +1359,9 @@ public class Undo
 	 */
 	public static void newObject(ElectricObject obj)
 	{
-		// always broadcast library changes
-		if (!recordChange() && !(obj instanceof Library)) return;
+//		// always broadcast library changes
+//		if (!recordChange() && !(obj instanceof Library)) return;
+		if (!recordChange()) return;
 		Cell cell = obj.whichCell();
 		if (cell != null) cell.checkInvariants();
 		Type type = Type.OBJECTNEW;
@@ -1380,8 +1387,9 @@ public class Undo
 	 */
 	public static void killObject(ElectricObject obj)
 	{
-		// always broadcast library changes
-		if (!recordChange() && !(obj instanceof Library)) return;
+//		// always broadcast library changes
+//		if (!recordChange() && !(obj instanceof Library)) return;
+		if (!recordChange()) return;
 		Type type = Type.OBJECTKILL;
 		if (obj instanceof Cell) type = Type.CELLKILL;
 		else if (obj instanceof NodeInst) type = Type.NODEINSTKILL;
@@ -1585,11 +1593,14 @@ public class Undo
 	/**
 	 * Method to set the subsequent changes to be "quiet".
 	 * Quiet changes are not passed to constraint satisfaction, not recorded for Undo and are not broadcast.
+	 * @return the previous value of the "quiet" state.
 	 */
-	public static void changesQuiet(boolean quiet) {
+	public static boolean changesQuiet(boolean quiet) {
 		Library.checkInvariants();
 		NetworkTool.changesQuiet(quiet);
+		boolean formerQuiet = doChangesQuietly;
         doChangesQuietly = quiet;
+		return formerQuiet;
     }
 
 	/**
@@ -1606,9 +1617,10 @@ public class Undo
 
 	/**
 	 * Method to undo the last batch of changes.
-	 * @return true if a batch was undone.
+	 * @return the batch number that was undone.
+	 * Returns null if nothing was undone.
 	 */
-	public static boolean undoABatch()
+	public static ChangeBatch undoABatch()
 	{
 		// save highlights for redo
 		List savedHighlights = new ArrayList();
@@ -1633,7 +1645,7 @@ public class Undo
 
 		// get the most recent batch of changes
 		int listSize = doneList.size();
-		if (listSize == 0) return false;
+		if (listSize == 0) return null;
 		ChangeBatch batch = (ChangeBatch)doneList.get(listSize-1);
 		doneList.remove(listSize-1);
 		undoneList.add(batch);
@@ -1658,8 +1670,8 @@ public class Undo
 			ch.broadcast(firstChange, true);
 			firstChange = false;
 		}
-        // Put message in Message Window
-        batch.describe("Undo");
+//        // Put message in Message Window
+//        batch.describe("Undo");
 
 		// broadcast the end-batch
 		for(Iterator it = Tool.getListeners(); it.hasNext(); )
@@ -1687,7 +1699,7 @@ public class Undo
 
 		// mark that this batch is undone
 //		batch.done = false;
-		return true;
+		return batch;
 	}
 
 	/**
@@ -1732,8 +1744,8 @@ public class Undo
 			ch.broadcast(firstChange, true);
 			firstChange = false;
 		}
-        // Put message in Message Window
-        batch.describe("Redo");
+//        // Put message in Message Window
+//        batch.describe("Redo");
 
 		// broadcast the end-batch
 		for(Iterator it = Tool.getListeners(); it.hasNext(); )

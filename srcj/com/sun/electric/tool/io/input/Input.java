@@ -110,11 +110,11 @@ public class Input
 		LibraryFiles.initializeLibraryInput();
 
 		Library lib = null;
+		boolean formerQuiet = Undo.changesQuiet(true);
 		try {
 			// show progress
 			startProgressDialog("library", fileURL.getFile());
 
-			Undo.changesQuiet(true);
 			Cell.setAllowCircularLibraryDependences(true);
 			Pref.initMeaningVariableGathering();
 
@@ -145,8 +145,8 @@ public class Input
 		} finally {
 			stopProgressDialog();
 			Cell.setAllowCircularLibraryDependences(false);
-			Undo.changesQuiet(false);
 		}
+		Undo.changesQuiet(formerQuiet);
 
 		if (lib != null)
 		{
@@ -191,8 +191,8 @@ public class Input
         errorLogger = ErrorLogger.newInstance("File Import");
 		LibDirs.readLibDirs();
 
+		boolean formerQuiet = Undo.changesQuiet(true);
 		try {
-			Undo.changesQuiet(true);
 
 			// initialize progress
 			startProgressDialog("import", fileURL.getFile());
@@ -239,9 +239,9 @@ public class Input
 		} finally {
 			// clean up
 			stopProgressDialog();
-			Undo.changesQuiet(false);
 			errorLogger.termLogging(true);
 		}
+		Undo.changesQuiet(formerQuiet);
 
 		if (lib == null)
 		{

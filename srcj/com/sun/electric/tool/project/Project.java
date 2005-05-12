@@ -232,13 +232,31 @@ public class Project extends Listener
 			try
 			{
 				lock = fc.lock();
-			} catch (IOException e)
+			} catch (IOException e1)
 			{
 				System.out.println("Unable to lock project file");
 				raf = null;
+				try
+				{
+					raf.close();
+				} catch (IOException e2)
+				{
+					System.out.println("Unable to close project file");
+				}
 				return true;
 			}
-			if (loadProjectFile()) return true;
+			if (loadProjectFile())
+			{
+				try
+				{
+					lock.release();
+					raf.close();
+				} catch (IOException e)
+				{
+					System.out.println("Unable to release project file lock");
+				}
+				return true;
+			}
 			return false;
 		}
 
@@ -402,6 +420,7 @@ public class Project extends Listener
 	private static class FCheck
 	{
 		Cell   entry;
+		int    batchNumber;
 		FCheck nextfcheck;
 	};
 	
@@ -527,6 +546,9 @@ public class Project extends Listener
 	public void endBatch()
 	{
 		detectIllegalChanges();
+
+		// always reset change ignorance at the end of a batch
+		proj_ignorechanges = false;
 	}
 
 	/**
@@ -770,6 +792,7 @@ public class Project extends Listener
 		if (proj_firstfcheck == null) return;
 	
 		int undonecells = 0;
+		int lowBatch = Integer.MAX_VALUE;
 		String errorMsg = "";
 		for(FCheck f = proj_firstfcheck; f != null; f = f.nextfcheck)
 		{
@@ -781,17 +804,47 @@ public class Project extends Listener
 				if (undonecells != 0) errorMsg += ", ";
 				errorMsg += np.describe();
 				undonecells++;
+				if (f.batchNumber < lowBatch) lowBatch = f.batchNumber;
 			}
 		}
 		proj_firstfcheck = null;
 
 		if (undonecells > 0)
 		{
+			new UndoBatchesJob(lowBatch, errorMsg);
+		}
+	}
+
+	/**
+	 * This class checks out a cell from Project Management.
+	 * It involves updating the project database and making a new version of the cell.
+	 */
+	private static class UndoBatchesJob extends Job
+	{
+		private int lowestBatch;
+		private String errorMsg;
+
+		protected UndoBatchesJob(int lowestBatch, String errorMsg)
+		{
+			super("Undo changes to locked cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.lowestBatch = lowestBatch;
+			this.errorMsg = errorMsg;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
 			System.out.println("Cannot change unchecked-out cells: " + errorMsg);
 			proj_ignorechanges = true;
-			Undo.undoABatch();
+			for(;;)
+			{
+				Undo.ChangeBatch batch = Undo.undoABatch();
+				if (batch == null) break;
+				if (batch.getBatchNumber() == lowestBatch) break;
+			}
 			Undo.noRedoAllowed();
 			proj_ignorechanges = false;
+			return true;
 		}
 	}
 
@@ -816,13 +869,21 @@ public class Project extends Listener
 	}
 	
 	private static void proj_queuecheck(Cell cell)
-	{	
+	{
+		// get the current batch number
+		Undo.ChangeBatch batch = Undo.getCurrentBatch();
+		if (batch == null) return;
+		int batchNumber = batch.getBatchNumber();
+
 		// see if the cell is already queued
 		for(FCheck f = proj_firstfcheck; f != null; f = f.nextfcheck)
-			if (f.entry == cell) return;
+		{
+			if (f.entry == cell && f.batchNumber == batchNumber) return;
+		}
 
 		FCheck f = new FCheck();
 		f.entry = cell;
+		f.batchNumber = batchNumber;
 		f.nextfcheck = proj_firstfcheck;
 		proj_firstfcheck = f;
 	}
@@ -962,7 +1023,7 @@ public class Project extends Listener
 					} else
 					{
 						// prevent tools (including this one) from seeing the change
-						Undo.changesQuiet(true);
+						setChangeStatus(true);
 
 						// make new version
 						newvers = Cell.copyNodeProto(oldvers, lib, oldvers.getName(), true);
@@ -989,7 +1050,8 @@ public class Project extends Listener
 						// restore tool state
 						lib.setChangedMajor();
 						lib.setChangedMinor();
-						Undo.changesQuiet(false);
+
+						setChangeStatus(false);
 					}
 				}
 			}
@@ -1013,8 +1075,8 @@ public class Project extends Listener
 						cellsMarked.put(np, new MutableInteger(0));
 					}
 				}
-				MutableInteger mi = (MutableInteger)cellsMarked.get(newvers);
-				mi.setValue(1);
+				MutableInteger miNewVers = (MutableInteger)cellsMarked.get(newvers);
+				miNewVers.setValue(1);
 				boolean propagated = true;
 				while (propagated)
 				{
@@ -1040,7 +1102,7 @@ public class Project extends Listener
 						}
 					}
 				}
-				mi.setValue(0);
+				miNewVers.setValue(0);
 				int total = 0;
 				for(Iterator it = Library.getLibraries(); it.hasNext(); )
 				{
@@ -1074,60 +1136,89 @@ public class Project extends Listener
 					}
 				}
 		
-//				// advise of possible problems with other checkouts lower down in the hierarchy
-//				for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//					for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//						np.temp1 = 0;
-//				newvers.temp1 = 1;
-//				propagated = TRUE;
-//				while(propagated)
-//				{
-//					propagated = FALSE;
-//					for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//						for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//					{
-//						if (np.temp1 == 1)
-//						{
-//							propagated = TRUE;
-//							np.temp1 = 2;
-//							for(ni = np.firstnodeinst; ni != NONODEINST; ni = ni.nextnodeinst)
-//							{
-//								if (ni.proto.primindex != 0) continue;
-//								if (ni.proto.temp1 == 0) ni.proto.temp1 = 1;
-//							}
-//						}
-//					}
-//				}
-//				newvers.temp1 = 0;
-//				total = 0;
-//				for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//					for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//				{
-//					if (np.temp1 == 0) continue;
-//					pf = proj_findcell(np);
-//					if (pf == NOPROJECTCELL) continue;
-//					if (pf.owner != null && namesame(pf.owner, proj_username) != 0)
-//					{
-//						np.temp1 = 3;
-//						np.temp2 = (INTBIG)pf;
-//						total++;
-//					}
-//				}
-//				if (total != 0)
-//				{
-//					System.out.println("*** Warning: the following cells are below this in the hierarchy");
-//					System.out.println("*** and are checked out to others.  This may cause problems");
-//					for(olib = el_curlib; olib != NOLIBRARY; olib = olib.nextlibrary)
-//						for(np = olib.firstnodeproto; np != NONODEPROTO; np = np.nextnodeproto)
-//					{
-//						if (np.temp1 != 3) continue;
-//						pf = (PROJECTCELL)np.temp2;
-//						System.out.println("    " + np.describe() + " is checked out to " + pf.owner);
-//					}
-//				}
+				// advise of possible problems with other checkouts lower down in the hierarchy
+				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				{
+					Library oLib = (Library)it.next();
+					for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+					{
+						Cell np = (Cell)cIt.next();
+						MutableInteger val = (MutableInteger)cellsMarked.get(np);
+						val.setValue(0);
+					}
+				}
+				miNewVers.setValue(1);
+				propagated = true;
+				while(propagated)
+				{
+					propagated = false;
+					for(Iterator it = Library.getLibraries(); it.hasNext(); )
+					{
+						Library oLib = (Library)it.next();
+						for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+						{
+							Cell np = (Cell)cIt.next();
+							MutableInteger val = (MutableInteger)cellsMarked.get(np);
+							if (val.intValue() == 1)
+							{
+								propagated = true;
+								val.setValue(2);
+								for(Iterator nIt = np.getNodes(); nIt.hasNext(); )
+								{
+									NodeInst ni = (NodeInst)nIt.next();
+									if (!(ni.getProto() instanceof Cell)) continue;
+									MutableInteger subVal = (MutableInteger)cellsMarked.get(ni.getProto());
+									if (subVal.intValue() == 0) subVal.setValue(1);
+								}
+							}
+						}
+					}
+				}
+				miNewVers.setValue(0);
+				total = 0;
+				for(Iterator it = Library.getLibraries(); it.hasNext(); )
+				{
+					Library oLib = (Library)it.next();
+					for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+					{
+						Cell np = (Cell)cIt.next();
+						MutableInteger val = (MutableInteger)cellsMarked.get(np);
+						if (val.intValue() == 0) continue;
+						String owner = Project.getCellOwner(np);
+						if (owner == null) continue;
+						if (!pf.owner.equals(owner))
+						{
+							val.setValue(3);
+							total++;
+						}
+					}
+				}
+				if (total != 0)
+				{
+					System.out.println("*** Warning: the following cells are below this in the hierarchy");
+					System.out.println("*** and are checked out to others.  This may cause problems");
+					for(Iterator it = Library.getLibraries(); it.hasNext(); )
+					{
+						Library oLib = (Library)it.next();
+						for(Iterator cIt = oLib.getCells(); cIt.hasNext(); )
+						{
+							Cell np = (Cell)cIt.next();
+							MutableInteger val = (MutableInteger)cellsMarked.get(np);
+							if (val.intValue() != 3) continue;
+							String owner = Project.getCellOwner(np);
+							System.out.println("    " + np.describe() + " is checked out to " + owner);
+						}
+					}
+				}
 			}
 			return true;
 		}
+	}
+
+	private static void setChangeStatus(boolean quiet)
+	{
+//		Undo.changesQuiet(quiet);
+		if (quiet) proj_ignorechanges = quiet;
 	}
 
 	public static void checkIn(Cell np)
@@ -1423,11 +1514,18 @@ public class Project extends Listener
 			oldOne.owner = pf.owner;
 			oldOne.lastowner = pf.lastowner;
 			oldOne.comment = pf.comment;
-	
+
+			// prevent tools (including this one) from seeing the change
+			setChangeStatus(true);
+
 			np = proj_getcell(pl, oldOne, lib);
 			if (np == null)
 				System.out.println("Error retrieving old version of cell");
 			proj_marklocked(np, false);
+
+			// allow changes
+			setChangeStatus(false);
+
 			System.out.println("Cell " + np.describe() + " is now in this library");
 			return true;
 		}
@@ -1464,7 +1562,7 @@ public class Project extends Listener
 			}
 
 			// prevent tools (including this one) from seeing the change
-			Undo.changesQuiet(true);
+			setChangeStatus(true);
 
 			// check to see which cells are changed/added
 			int total = 0;
@@ -1503,7 +1601,7 @@ public class Project extends Listener
 			}
 
 			// restore change broadcast
-			Undo.changesQuiet(false);
+			setChangeStatus(false);
 
 			// relase project file lock
 			pl.releaseProjectFileLock(false);
@@ -1564,7 +1662,7 @@ public class Project extends Listener
 			System.out.println("Making project directory '" + newname + "'...");
 
 			// turn off all tools
-			Undo.changesQuiet(true);
+			setChangeStatus(true);
 		
 			// make libraries for every cell
 			for(Iterator it = lib.getCells(); it.hasNext(); )
@@ -1616,7 +1714,7 @@ public class Project extends Listener
 			}
 
 			// restore tool state
-			Undo.changesQuiet(false);
+			setChangeStatus(false);
 
 			// advise the user of this library
 			System.out.println("The current library should be saved and used by new users");
@@ -1662,7 +1760,7 @@ public class Project extends Listener
 			}
 
 			// prevent tools (including this one) from seeing the change
-			Undo.changesQuiet(true);
+			setChangeStatus(true);
 
 			// find this in the project file
 			ProjectCell foundPC = null;
@@ -1696,7 +1794,7 @@ public class Project extends Listener
 			}
 
 			// restore change broadcast
-			Undo.changesQuiet(false);
+			setChangeStatus(false);
 
 			// relase project file lock
 			pl.releaseProjectFileLock(false);
@@ -1797,15 +1895,19 @@ public class Project extends Listener
 					pl.allCells.remove(foundPC);
 					pl.byCell.remove(foundPC);
 
+					// disable change broadcast
+					setChangeStatus(true);
+
 					// mark this cell unlocked
 					proj_marklocked(np, false);
+
+					// restore change broadcast
+					setChangeStatus(false);
 
 					System.out.println("Cell " + np.describe() + " deleted from the project");
 				}
 			}
 
-			// restore change broadcast
-			Undo.changesQuiet(false);
 
 			// relase project file lock
 			pl.releaseProjectFileLock(false);
@@ -1848,7 +1950,7 @@ public class Project extends Listener
 			}
 
 			// prevent tools (including this one) from seeing the change
-			Undo.changesQuiet(true);
+			setChangeStatus(true);
 
 			// check in the requested cells
 			for(Iterator it = Library.getLibraries(); it.hasNext(); )
@@ -1890,7 +1992,7 @@ public class Project extends Listener
 			}
 
 			// restore change broadcast
-			Undo.changesQuiet(false);
+			setChangeStatus(false);
 
 			// relase project file lock
 			pl.releaseProjectFileLock(true);
@@ -2029,9 +2131,6 @@ public class Project extends Listener
 	 */
 	private static Cell proj_getcell(ProjectLibrary pl, ProjectCell pf, Library lib)
 	{
-		// prevent tools (including this one) from seeing the change
-		Undo.changesQuiet(true);
-
 		// figure out the library name
 		String libName = pl.fileName;
 		if (libName.endsWith(".proj")) libName = libName.substring(0, libName.length()-5);
@@ -2058,9 +2157,6 @@ public class Project extends Listener
 			flib.kill("");
 		}
 
-		// restore tool state
-		Undo.changesQuiet(false);
-	
 		// return the new cell
 		return newCell;
 	}
@@ -2242,17 +2338,4 @@ public class Project extends Listener
 		proj_users = null;
 		libraryProjectInfo.clear();
 	}
-
-	
-//	
-//	PROJECTCELL *proj_findcell(NODEPROTO *np)
-//	{
-//		PROJECTCELL *pf;
-//	
-//		for(pf = proj_firstprojectcell; pf != NOPROJECTCELL; pf = pf.nextprojectcell)
-//			if (estrcmp(pf.cellname, np.protoname) == 0 && pf.cellview == np.cellview)
-//				return(pf);
-//		return(NOPROJECTCELL);
-//	}
-//	
 }
