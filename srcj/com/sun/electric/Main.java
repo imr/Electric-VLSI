@@ -155,7 +155,7 @@ public final class Main
 
         ActivityLogger.initialize(true, true, false);
         //runThreadStatusTimer();
-        EventProcessor ep = new EventProcessor();
+        new EventProcessor();
 
 		SplashWindow sw = null;
 
@@ -166,7 +166,7 @@ public final class Main
         if (hasCommandLineOption(argsList, "-NOTHREADING")) NOTHREADING = true;
 		if (hasCommandLineOption(argsList, "-batch")) BATCHMODE = true;
 
-		if (!Main.BATCHMODE) sw = new SplashWindow();
+		if (!Main.BATCHMODE && !Main.LOCALDEBUGFLAG) sw = new SplashWindow();
 
         boolean mdiMode = hasCommandLineOption(argsList, "-mdi");
         boolean sdiMode = hasCommandLineOption(argsList, "-sdi");
@@ -299,7 +299,7 @@ public final class Main
         }
 
         // open any libraries but only when there is at least one
-        FileMenu.ReadInitialELIBs job = new FileMenu.ReadInitialELIBs(fileURLs);
+        new FileMenu.ReadInitialELIBs(fileURLs);
     }
 
     /**
