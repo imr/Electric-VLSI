@@ -398,7 +398,7 @@ public class LayerCoverageJob extends Job
 	public LayerCoverageJob(Type jobType, Cell cell, int func, int mode, Highlighter highlighter,
                             GeometryOnNetwork geoms, Rectangle2D bBox)
 	{
-		super("Layer Coverage", User.tool, jobType, null, null, Priority.USER);
+		super("Layer Coverage", User.getUserTool(), jobType, null, null, Priority.USER);
 		this.curCell = cell;
         this.mode = mode;
         this.tree = GeometryHandler.createGeometryHandler(mode, curCell.getTechnology().getNumLayers(),

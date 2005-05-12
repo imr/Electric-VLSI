@@ -229,7 +229,7 @@ public abstract class Router {
 
         /** Constructor */
         protected CreateRouteJob(Router router, Route route, Cell cell, boolean verbose) {
-            super(router.toString(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super(router.toString(), Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.route = route;
             this.verbose = verbose;
             this.cell = cell;
@@ -261,7 +261,7 @@ public abstract class Router {
      */
     public static ArcProto getArcToUse(PortProto port1, PortProto port2) {
         // current user selected arc
-        ArcProto curAp = User.tool.getCurrentArcProto();
+        ArcProto curAp = User.getUserTool().getCurrentArcProto();
         ArcProto uni = Generic.tech.universal_arc;
         ArcProto invis = Generic.tech.invisible_arc;
         ArcProto unr = Generic.tech.unrouted_arc;

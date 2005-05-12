@@ -289,7 +289,7 @@ public class River
 
 		protected RiverRouteJob(Cell cell)
 		{
-			super("River Route", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("River Route", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			startJob();
 		}

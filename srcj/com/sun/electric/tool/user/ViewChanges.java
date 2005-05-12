@@ -114,7 +114,7 @@ public class ViewChanges
 
 		protected FixOldMultiPageSchematics(List multiPageCells)
 		{
-			super("Repair old-style Multi-Page Schematics", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Repair old-style Multi-Page Schematics", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.multiPageCells = multiPageCells;
 			startJob();
 		}
@@ -211,7 +211,7 @@ public class ViewChanges
 		protected ChangeCellView(Cell cell, View newView)
 		{
 			super("Change View of Cell" + cell.describe() + " to " + newView.getFullName(),
-				User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+					User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newView = newView;
 			startJob();
@@ -264,7 +264,7 @@ public class ViewChanges
 
 		protected MakeSkeletonView(Cell curCell)
 		{
-			super("Make Skeleton View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Make Skeleton View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = curCell;
 			startJob();
 		}
@@ -416,7 +416,7 @@ public class ViewChanges
 
 		protected MakeIconView(Cell cell)
 		{
-			super("Make Icon View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Make Icon View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;
 			startJob();
 		}
@@ -780,7 +780,7 @@ public class ViewChanges
 
 		protected MakeSchematicView(Cell cell)
 		{
-			super("Make Schematic View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Make Schematic View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.oldCell = cell;
 			startJob();
 		}
@@ -1085,7 +1085,7 @@ public class ViewChanges
 
 		protected MakeLayoutView(Cell oldCell)
 		{
-			super("Make Alternate Layout", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Make Alternate Layout", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.oldCell = oldCell;
 			startJob();
 		}

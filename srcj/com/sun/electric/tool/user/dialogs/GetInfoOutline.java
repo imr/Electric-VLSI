@@ -468,7 +468,7 @@ public class GetInfoOutline extends EDialog implements HighlightListener, Databa
 
 		protected AdjustOutline(GetInfoOutline dialog)
 		{
-			super("Adjust Outline", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Adjust Outline", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			startJob();
 		}

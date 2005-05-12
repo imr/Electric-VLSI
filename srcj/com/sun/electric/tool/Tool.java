@@ -27,13 +27,17 @@ import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.logicaleffort.LETool;
+import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.routing.Routing;
+import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.extract.Extract;
 import com.sun.electric.tool.extract.ParasiticTool;
 
 import java.util.ArrayList;
@@ -103,16 +107,19 @@ public class Tool implements Comparable
 	 */
 	public static void initAllTools()
 	{
-		// Because of lazy evaluation, tools aren't initialized unless they're referenced here
-		User.tool.init();
-		NetworkTool.tool.init();
-        LETool.tool.init();
-        Simulation.tool.init();
-        Routing.tool.init();
-        IOTool.tool.init();
+		User.getUserTool().init();
+		Compaction.getCompactionTool().init();
         DRC.getDRCTool().init();
         ERC.getERCTool().init();
+        Extract.getExtractTool().init();
+        IOTool.getIOTool().init();
+        LETool.getLETool().init();
+		NetworkTool.getNetworkTool().init();
         ParasiticTool.getParasiticTool().init();
+        Project.getProjectTool().init();
+        Routing.getRoutingTool().init();
+        SilComp.getSilCompTool().init();
+        Simulation.getSimulationTool().init();
 	}
 
 	/**

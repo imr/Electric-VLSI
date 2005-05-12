@@ -244,7 +244,7 @@ public class OptionReconcile extends EDialog
 
 		protected DoReconciliation(HashMap changedOptions)
 		{
-			super("Reconcile Options", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Reconcile Options", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.changedOptions = changedOptions;
 			startJob();
 		}

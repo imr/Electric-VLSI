@@ -640,7 +640,7 @@ public abstract class Job implements ActionListener, Runnable {
         protected final Object mutex = new Object();
 
         private InthreadExamineJob() {
-            super("Inthread Examine", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            super("Inthread Examine", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             waiting = false;
             lockCount = 0;
         }
@@ -792,7 +792,7 @@ public abstract class Job implements ActionListener, Runnable {
         /** the singular key */                         private Object singularKey;
 
         private SwingExamineJob(Runnable task, Object singularKey) {
-            super("ReserveExamineSlot", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            super("ReserveExamineSlot", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.task = task;
             this.singularKey = singularKey;
             synchronized(waitingJobs) {

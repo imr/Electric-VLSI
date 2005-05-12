@@ -216,7 +216,7 @@ public class Clipboard
 
 		protected CopyObjects(List highlights)
 		{
-			super("Copy", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlights = highlights;
 			startJob();
 		}
@@ -264,7 +264,7 @@ public class Clipboard
 
 		protected CutObjects(List highlights)
 		{
-			super("Cut", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Cut", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlights = highlights;
 			startJob();
 		}
@@ -333,7 +333,7 @@ public class Clipboard
 
         protected DuplicateObjects(List highlights)
         {
-            super("Duplicate", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Duplicate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlights = highlights;
             startJob();
         }
@@ -480,7 +480,7 @@ public class Clipboard
 
 		protected PasteArcToArc(ArcInst dst, ArcInst src, Highlighter highlighter)
 		{
-			super("Paste Arc to Arc", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Paste Arc to Arc", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.src = src;
 			this.dst = dst;
             this.highlighter = highlighter;
@@ -510,7 +510,7 @@ public class Clipboard
 
 		protected PasteNodeToNode(NodeInst dst, NodeInst src, Highlighter highlighter)
 		{
-			super("Paste Node to Node", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Paste Node to Node", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.src = src;
 			this.dst = dst;
             this.highlighter = highlighter;
@@ -540,7 +540,7 @@ public class Clipboard
 
 		protected PasteObjects(List pasteList, double dX, double dY)
 		{
-			super("Paste", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Paste", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.pasteList = pasteList;
 			this.dX = dX;
 			this.dY = dY;

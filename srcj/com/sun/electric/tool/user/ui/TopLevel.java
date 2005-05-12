@@ -186,7 +186,7 @@ public class TopLevel extends JFrame
         WindowFrame.createEditWindow(null);
     }
 
-	private static Pref cacheWindowLoc = Pref.makeStringPref("WindowLocation", User.tool.prefs, "");
+	private static Pref cacheWindowLoc = Pref.makeStringPref("WindowLocation", User.getUserTool().prefs, "");
 
 	/**
 	 * Method to initialize the window system.

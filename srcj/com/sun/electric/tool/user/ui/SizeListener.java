@@ -279,7 +279,7 @@ public class SizeListener
 
 		protected ResizeStuff(SizeObjects dialog)
 		{
-			super("Resize Objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Resize Objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			startJob();
 		}
@@ -629,7 +629,7 @@ public class SizeListener
 
 		protected ScaleNode(NodeInst stretchNode, Point2D newCenter, double newWidth, double newHeight)
 		{
-			super("Scale node", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Scale node", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.stretchNode = stretchNode;
 			this.newCenter = newCenter;
 			this.newWidth = newWidth;
@@ -661,7 +661,7 @@ public class SizeListener
 
 		protected ScaleArc(ArcInst stretchArc, double newWidth)
 		{
-			super("Scale arc", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Scale arc", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.stretchArc = stretchArc;
 			this.newWidth = newWidth;
 			startJob();

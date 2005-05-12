@@ -26,24 +26,21 @@ package com.sun.electric.tool.io;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.TextUtils.UnitScale;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.compaction.Compaction;
 
 import java.lang.reflect.Method;
 import java.util.Date;
-
-import javax.print.PrintServiceLookup;
-import javax.print.PrintService;
 
 /**
  * This class manages reading files in different formats.
  * The class is subclassed by the different file readers.
  */
-public class IOTool extends Tool
+public class IOTool extends Listener
 {
-	/** the IO tool. */										public static IOTool tool = new IOTool();
+	/** the IO tool. */										private static IOTool tool = new IOTool();
 
 	/** Varible key for true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = ElectricObject.newKey("IO_true_library");
 
@@ -56,6 +53,12 @@ public class IOTool extends Tool
 	{
 		super("io");
 	}
+
+    /**
+     * Method to retrieve the singleton associated with the IOTool tool.
+     * @return the IOTool tool.
+     */
+    public static IOTool getIOTool() { return tool; }
 
 	private static boolean skillChecked = false;
 	private static Class skillClass = null;

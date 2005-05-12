@@ -455,7 +455,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
             private List varEntriesToDelete;
 
             private ApplyChanges(List varEntries, List varEntriesToDelete) {
-                super("Apply Attribute Changes", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+                super("Apply Attribute Changes", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
                 this.varEntries = varEntries;
                 this.varEntriesToDelete = varEntriesToDelete;
                 startJob();

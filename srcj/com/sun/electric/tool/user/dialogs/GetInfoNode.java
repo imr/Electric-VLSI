@@ -803,7 +803,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 		protected ChangeNode(NodeInst ni, GetInfoNode dialog)
 		{
-			super("Modify Node", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Modify Node", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
 			this.dialog = dialog;
 			startJob();

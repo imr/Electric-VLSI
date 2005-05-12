@@ -212,7 +212,7 @@ public class TextWindow
 
 		private SaveCellText(TextWindow tw)
 		{
-			super("Save Cell Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Save Cell Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.tw = tw;
 			startJob();
 		}

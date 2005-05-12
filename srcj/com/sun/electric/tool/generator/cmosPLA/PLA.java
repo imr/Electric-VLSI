@@ -134,7 +134,7 @@ public class PLA
 
 		protected GeneratePLAJob(SetupPLAGen dialog, int step, PLA pla)
 		{
-			super("Generate MOSIS CMOS PLA, Step " + (step+1), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Generate MOSIS CMOS PLA, Step " + (step+1), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			this.step = step;
 			this.pla = pla;

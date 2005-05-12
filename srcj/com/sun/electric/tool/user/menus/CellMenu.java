@@ -290,7 +290,7 @@ public class CellMenu {
 
 		public SetMultiPageJob(Cell cell, int numPages)
 		{
-			super("Make Cell be Multi-Page", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Make Cell be Multi-Page", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.numPages = numPages;
 			startJob();
@@ -322,7 +322,7 @@ public class CellMenu {
 
 		public DeleteMultiPageJob(Cell cell, int page)
 		{
-			super("Delete Page from Multi-Page Schematic", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Delete Page from Multi-Page Schematic", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.page = page;
 			startJob();

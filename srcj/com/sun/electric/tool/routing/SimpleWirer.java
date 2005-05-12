@@ -109,7 +109,7 @@ public class SimpleWirer extends InteractiveRouter {
         // never use universal arcs unless the user has selected them
         if (useArc == null) {
             // use universal if selected
-            if (User.tool.getCurrentArcProto() == Generic.tech.universal_arc)
+            if (User.getUserTool().getCurrentArcProto() == Generic.tech.universal_arc)
                 useArc = Generic.tech.universal_arc;
             else {
                 route.add(endRE);

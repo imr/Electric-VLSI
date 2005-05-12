@@ -126,7 +126,7 @@ public class PadGenerator {
         List orderedCommands;                   // list of orderedCommands to do
 
         protected PadFrame(String file) {
-            super("Pad Frame Generator", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Pad Frame Generator", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.filename = file;
             alignments = new HashMap();
             exports = new HashMap();

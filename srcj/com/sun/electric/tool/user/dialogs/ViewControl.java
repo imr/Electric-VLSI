@@ -104,7 +104,7 @@ public class ViewControl extends EDialog
 
 		protected DeleteView(View view, ViewControl dialog)
 		{
-			super("Delete View " + view.getFullName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Delete View " + view.getFullName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.view = view;
 			this.dialog = dialog;
 			startJob();
@@ -130,7 +130,7 @@ public class ViewControl extends EDialog
 
 		protected CreateView(String viewName, String viewAbbr, boolean isText, ViewControl dialog)
 		{
-			super("Create View " + viewName, User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Create View " + viewName, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.viewName = viewName;
 			this.viewAbbr = viewAbbr;
 			this.isText = isText;

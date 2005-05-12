@@ -326,7 +326,7 @@ public class SpecialProperties
 
 		private ModifyNodeProperties(NodeInst ni, Variable.Key key, String newValue)
 		{
-			super("Change Node Value", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Change Node Value", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
 			this.key = key;
 			this.newValue = newValue;
@@ -336,7 +336,7 @@ public class SpecialProperties
 
 		private ModifyNodeProperties(NodeInst ni, Variable.Key key, String newValue, int newBits)
 		{
-			super("Change Node Value", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Change Node Value", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
 			this.key = key;
 			this.newValue = newValue;
@@ -346,7 +346,7 @@ public class SpecialProperties
 
 		private ModifyNodeProperties(NodeInst ni, String newWid, Variable.Code newWidCode, String newLen, Variable.Code newLenCode)
 		{
-			super("Change Node Value", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Change Node Value", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
 			this.key = null;
 			this.newValue = newWid;

@@ -1066,7 +1066,7 @@ public class CellProperties extends EDialog
 	
 		protected SetCellOptions(CellProperties dialog)
 		{
-			super("Change Cell Options", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Change Cell Options", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			startJob();
 		}

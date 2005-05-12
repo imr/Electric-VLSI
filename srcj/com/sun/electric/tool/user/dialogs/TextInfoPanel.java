@@ -577,7 +577,7 @@ public class TextInfoPanel extends javax.swing.JPanel
                 boolean italic, boolean bold, boolean underline, boolean invis, int newColorIndex
                 )
         {
-            super("Modify Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Modify Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.owner = owner;
             this.unTransformNi = unTransformNi;
             this.varName = varName;

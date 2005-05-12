@@ -527,7 +527,7 @@ public final class ExportChanges
          */
         public ReExportNodes(Cell cell, List nodeInsts, boolean includeWiredPorts, boolean onlyPowerGround,
                              boolean ignorePrimitives) {
-            super("Re-export nodes", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Re-export nodes", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
             this.nodeInsts = nodeInsts;
             this.includeWiredPorts = includeWiredPorts;
@@ -559,7 +559,7 @@ public final class ExportChanges
          */
         public ReExportPorts(Cell cell, List portInsts, boolean sort, boolean includeWiredPorts,
                              boolean onlyPowerGround, HashMap originalExports) {
-            super("Re-export ports", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Re-export ports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
             this.portInsts = portInsts;
             this.includeWiredPorts = includeWiredPorts;
@@ -910,7 +910,7 @@ public final class ExportChanges
 
 		protected DeleteExports(Cell cell, List exportsToDelete)
 		{
-			super("Delete exports", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Delete exports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
 			this.exportsToDelete = exportsToDelete;
 			startJob();
@@ -942,7 +942,7 @@ public final class ExportChanges
 
 		protected MoveExport(Export source, PortInst dest)
 		{
-			super("Move export", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Move export", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.source = source;
 			this.dest = dest;
 			startJob();
@@ -965,7 +965,7 @@ public final class ExportChanges
 
 		protected RenameExport(Export pp, String newName)
 		{
-			super("Rename Export" + pp.getName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Rename Export" + pp.getName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.pp = pp;
 			this.newName = newName;
 			startJob();
@@ -1245,7 +1245,7 @@ public final class ExportChanges
 
 		private SynchronizeExports(Library oLib)
 		{
-			super("Synchronize exports", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Synchronize exports", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.oLib = oLib;
 			startJob();
 		}

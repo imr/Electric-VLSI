@@ -378,7 +378,7 @@ public class ToolMenu {
 		routingSubMenu.addMenuItem("Mimic-Stitch _Now", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { MimicStitch.mimicStitch(true); }});
 		routingSubMenu.addMenuItem("Mimic S_elected", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.tool.mimicSelected(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Routing.getRoutingTool().mimicSelected(); }});
 
 		routingSubMenu.addSeparator();
 
@@ -517,7 +517,7 @@ public class ToolMenu {
     public static class BackAnnotateJob extends Job {
         private Cell cell;
         public BackAnnotateJob(Cell cell) {
-            super("BackAnnotate", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("BackAnnotate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
         }
 
@@ -977,7 +977,7 @@ public class ToolMenu {
     public static class ListGeomsAllNetworksJob extends Job {
         private Cell cell;
         public ListGeomsAllNetworksJob(Cell cell) {
-            super("ListGeomsAllNetworks", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            super("ListGeomsAllNetworks", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.cell = cell;
             startJob();
         }
@@ -1138,7 +1138,7 @@ public class ToolMenu {
 
         protected AddMultiplier(NodeInst ni)
         {
-            super("Add Spice Multiplier", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Add Spice Multiplier", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.ni = ni;
             startJob();
         }
@@ -1171,7 +1171,7 @@ public class ToolMenu {
 
         protected MakeTemplate(Variable.Key templateKey)
         {
-            super("Make template", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Make template", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.templateKey = templateKey;
             startJob();
         }
@@ -1200,7 +1200,7 @@ public class ToolMenu {
 
     public static void getUnroutedArcCommand()
     {
-        User.tool.setCurrentArcProto(Generic.tech.unrouted_arc);
+		User.getUserTool().setCurrentArcProto(Generic.tech.unrouted_arc);
     }
 
     public static void padFrameGeneratorCommand()
@@ -1332,7 +1332,7 @@ public class ToolMenu {
 
 		private DoNextActivity(Cell cell, int activities)
 		{
-			super("Silicon-Compiler activity", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Silicon-Compiler activity", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.activities = activities;
 			startJob();

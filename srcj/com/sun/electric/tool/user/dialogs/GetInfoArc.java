@@ -1069,7 +1069,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 
 		protected ChangeArc(ArcInst ai, GetInfoArc dialog)
 		{
-			super("Modify Arc", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Modify Arc", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ai = ai;
 			this.dialog = dialog;
 			startJob();

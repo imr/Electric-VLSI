@@ -888,7 +888,7 @@ public class Output
          */
         public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type, boolean startJob)
         {
-            super("Export "+cell.describe()+" ("+type+")", User.tool, Type.EXAMINE, null, null, Priority.USER);
+            super("Export "+cell.describe()+" ("+type+")", IOTool.getIOTool(), Type.EXAMINE, null, null, Priority.USER);
             this.cell = cell;
             this.context = context;
             this.filePath = filePath;

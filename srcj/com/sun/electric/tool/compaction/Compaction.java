@@ -43,6 +43,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
@@ -63,7 +64,7 @@ import java.util.Iterator;
  */
 public class Compaction extends Listener
 {
-	/** the Compaction tool. */		public static Compaction tool = new Compaction();
+	/** the Compaction tool. */		private static Compaction tool = new Compaction();
 
 	/****************************** TOOL INTERFACE ******************************/
 
@@ -81,6 +82,12 @@ public class Compaction extends Listener
 	public void init()
 	{
 	}
+
+    /**
+     * Method to retrieve the singleton associated with the Compaction tool.
+     * @return the Compaction tool.
+     */
+    public static Compaction getCompactionTool() { return tool; }
 
 	/****************************** COMPACTION CONTROL ******************************/
 

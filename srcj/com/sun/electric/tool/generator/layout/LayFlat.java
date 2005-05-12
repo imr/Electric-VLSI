@@ -278,7 +278,7 @@ public class LayFlat extends Job {
 		return true;
 	}
 	public LayFlat() {
-		super("Run Layout Flattener", User.tool, Job.Type.CHANGE, 
+		super("Run Layout Flattener", User.getUserTool(), Job.Type.CHANGE, 
 			  null, null, Job.Priority.ANALYSIS);
 		startJob();
 

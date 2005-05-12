@@ -28,14 +28,14 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
-import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -48,9 +48,9 @@ import java.util.List;
 /**
  * This is the Simulation Interface tool.
  */
-public class Simulation extends Tool
+public class Simulation extends Listener
 {
-	/** the Simulation tool. */		public static Simulation tool = new Simulation();
+	/** the Simulation tool. */		private static Simulation tool = new Simulation();
 
 	/** key of Variable holding rise time. */				public static final Variable.Key RISE_DELAY_KEY = ElectricObject.newKey("SIM_rise_delay");
 	/** key of Variable holding fall time. */				public static final Variable.Key FALL_DELAY_KEY = ElectricObject.newKey("SIM_fall_delay");
@@ -161,6 +161,12 @@ public class Simulation extends Tool
 	public void init()
 	{
 	}
+
+    /**
+     * Method to retrieve the singleton associated with the Simulation tool.
+     * @return the Simulation tool.
+     */
+    public static Simulation getSimulationTool() { return tool; }
 
 	/**
 	 * Method to set a Spice model on the selected node.

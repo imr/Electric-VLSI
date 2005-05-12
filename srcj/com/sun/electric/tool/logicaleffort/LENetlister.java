@@ -230,7 +230,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
         private Cell settings;
         private NetlisterConstants constants;
         public SaveSettings(Cell cell, Cell settings, NetlisterConstants constants) {
-            super("Clear LE Sizes", LETool.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Clear LE Sizes", LETool.getLETool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
             this.settings = settings;
             this.constants = constants;

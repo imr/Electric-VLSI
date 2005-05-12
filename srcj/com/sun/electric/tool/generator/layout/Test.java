@@ -65,7 +65,7 @@ public class Test extends Job {
 	}
 	
 	public Test() {
-		super("Generate Fill Cell Library", User.tool, Job.Type.CHANGE, 
+		super("Generate Fill Cell Library", User.getUserTool(), Job.Type.CHANGE, 
 			  null, null, Job.Priority.ANALYSIS);
 		startJob();
 	}

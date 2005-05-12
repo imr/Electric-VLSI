@@ -107,7 +107,7 @@ public class Connectivity
 
 		private ExtractJob(Cell cell, boolean recursive)
 		{
-			super("Extract Connectivity", Extract.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Extract Connectivity", Extract.getExtractTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.recursive = recursive;
 			startJob();

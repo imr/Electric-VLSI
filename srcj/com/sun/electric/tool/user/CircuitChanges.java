@@ -158,7 +158,7 @@ public class CircuitChanges
          */
 		protected RotateSelected(Cell cell, List highs, int amount, boolean mirror, boolean mirrorH)
 		{
-			super("Rotate selected objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Rotate selected objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.amount = amount;
 			this.mirror = mirror;
@@ -358,7 +358,7 @@ public class CircuitChanges
 
 		protected AlignObjects(List highs)
 		{
-			super("Align Objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Align Objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.list = highs;
 			startJob();
 		}
@@ -669,7 +669,7 @@ public class CircuitChanges
 
 		protected AlignNodes(NodeInst [] nis, double [] dCX, double [] dCY, double [] dSX, double [] dSY, int [] dRot)
 		{
-			super("Align objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Align objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.nis = nis;
 			this.dCX = dCX;
 			this.dCY = dCY;
@@ -793,7 +793,7 @@ public class CircuitChanges
 
 		protected ChangeArcProperties(int how, List highlighted)
 		{
-			super("Align objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Align objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.how = how;
             this.highlighted = highlighted;
 			startJob();
@@ -922,7 +922,7 @@ public class CircuitChanges
 
 		protected ToggleNegationJob(List highlighted)
 		{
-			super("Toggle negation", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Toggle negation", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlighted = highlighted;
 			startJob();
 		}
@@ -1008,7 +1008,7 @@ public class CircuitChanges
 
 		protected RipTheBus(List list)
 		{
-			super("Rip Bus", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Rip Bus", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.list = list;
 			startJob();
 		}
@@ -1206,7 +1206,7 @@ public class CircuitChanges
 
 		protected DeleteSelected(List highlightedText, List highlighted)
 		{
-			super("Delete selected objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Delete selected objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlightedText = highlightedText;
             this.highlighted = highlighted;
 			startJob();
@@ -1340,7 +1340,7 @@ public class CircuitChanges
 
 		protected DeleteSelectedGeometry(Cell cell, Rectangle2D bounds)
 		{
-			super("Delete selected geometry", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Delete selected geometry", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cell = cell;
             this.bounds = bounds;
 			startJob();
@@ -1719,7 +1719,7 @@ public class CircuitChanges
 
 		protected DeleteCell(Cell cell)
 		{
-			super("Delete Cell" + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Delete Cell" + cell.describe(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			startJob();
 		}
@@ -1818,7 +1818,7 @@ public class CircuitChanges
 
 		protected RenameCell(Cell cell, String newName, Cell.CellGroup newGroup)
 		{
-			super("Rename Cell " + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Rename Cell " + cell.describe(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newName = newName;
 			this.newGroup = newGroup;
@@ -1851,7 +1851,7 @@ public class CircuitChanges
 
 		protected RenameCellGroup(Cell.CellGroup cellGroup, String newName)
 		{
-			super("Rename Cell Group", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Rename Cell Group", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cellGroup = cellGroup;
 			this.newName = newName;
 			startJob();
@@ -1886,7 +1886,7 @@ public class CircuitChanges
 	{
 		protected DeleteUnusedOldCells()
 		{
-			super("Delete Unused Old Cells", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Delete Unused Old Cells", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			startJob();
 		}
 
@@ -1958,7 +1958,7 @@ public class CircuitChanges
 
 		protected GraphCells(Cell top)
 		{
-			super("Graph Cells", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Graph Cells", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			startJob();
 		}
 
@@ -2371,7 +2371,7 @@ public class CircuitChanges
 
 		protected PackageCell(Cell curCell, Rectangle2D bounds, String newCellName)
 		{
-			super("Package Cell", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Package Cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = curCell;
 			this.bounds = bounds;
 			this.newCellName = newCellName;
@@ -2464,7 +2464,7 @@ public class CircuitChanges
 
 		protected ExtractCellInstances(List highlighted)
 		{
-			super("Extract Cell Instances", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Extract Cell Instances", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.nodes = highlighted;
 			startJob();
 		}
@@ -2962,7 +2962,7 @@ public class CircuitChanges
 		public CleanupChanges(Cell cell, boolean justThis, List pinsToRemove, List pinsToPassThrough, HashMap pinsToScale, List textToMove, HashMap arcsToKill,
 			int zeroSize, int negSize, int overSizePins)
 		{
-			super("Cleanup cell " + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Cleanup cell " + cell.describe(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.justThis = justThis;
 			this.pinsToRemove = pinsToRemove;
@@ -3255,7 +3255,7 @@ public class CircuitChanges
 
 		private ShortenArcs(List selected)
 		{
-			super("Shorten selected arcs", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Shorten selected arcs", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.selected = selected;
             startJob();
 		}
@@ -3309,7 +3309,7 @@ public class CircuitChanges
 
 		protected NewCellVersion(Cell cell)
 		{
-			super("Create new Version of cell " + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Create new Version of cell " + cell.describe(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			startJob();
 		}
@@ -3351,7 +3351,7 @@ public class CircuitChanges
 
 		protected DuplicateCell(Cell cell, String newName)
 		{
-			super("Duplicate cell " + cell.describe(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Duplicate cell " + cell.describe(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newName = newName;
 			startJob();
@@ -3479,7 +3479,7 @@ public class CircuitChanges
 
 		protected ManyMove(List highlighted, List highlightedText, double dX, double dY)
 		{
-			super("Move", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Move", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dX = dX;   this.dY = dY;
             this.highlighted = highlighted;
             this.highlightedText = highlightedText;
@@ -4696,7 +4696,7 @@ public class CircuitChanges
 		
 		protected ExpandUnExpand(List list, boolean unExpand, int amount)
 		{
-			super("Change Cell Expansion", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Change Cell Expansion", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.list = list;
 			this.unExpand = unExpand;
 			this.amount = amount;
@@ -5360,7 +5360,7 @@ public class CircuitChanges
 
 		protected RenameLibrary(Library lib, String newName)
 		{
-			super("Renaming library " + lib.getName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Renaming library " + lib.getName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lib = lib;
 			this.newName = newName;
 			startJob();
@@ -5444,7 +5444,7 @@ public class CircuitChanges
 
 		protected CheckAndRepairJob(boolean repair)
 		{
-			super((repair ? "Repair Libraries" : "Check Libraries"), User.tool, (repair ? Job.Type.CHANGE : Job.Type.EXAMINE), null, null, Job.Priority.USER);
+			super((repair ? "Repair Libraries" : "Check Libraries"), User.getUserTool(), (repair ? Job.Type.CHANGE : Job.Type.EXAMINE), null, null, Job.Priority.USER);
 			this.repair = repair;
 			startJob();
 		}

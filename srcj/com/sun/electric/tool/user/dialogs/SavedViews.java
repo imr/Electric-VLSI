@@ -279,7 +279,7 @@ public class SavedViews extends EDialog implements HighlightListener
 
 		protected SaveViewJob(SavedViews dialog, Cell cell, String name, double scale, Point2D off)
 		{
-			super("Save Window View", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Save Window View", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			this.cell = cell;
 			this.name = name;

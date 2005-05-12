@@ -346,7 +346,7 @@ public final class Main
 
 		protected InitDatabase(List argsList, SplashWindow sw)
 		{
-			super("Init database", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Init database", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.argsList = argsList;
 			this.sw = sw;
 			//startJob();

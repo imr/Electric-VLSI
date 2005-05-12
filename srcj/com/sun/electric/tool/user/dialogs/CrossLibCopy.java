@@ -322,7 +322,7 @@ public class CrossLibCopy extends EDialog
 
 		protected CrossLibraryExamineJob(Cell left, Cell right, boolean report)
 		{
-			super("Cross-Library examine", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			super("Cross-Library examine", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.leftC = left;
 			this.rightC = right;
 			this.reportResults = report;
@@ -354,7 +354,7 @@ public class CrossLibCopy extends EDialog
 
 		protected CrossLibraryCopyJob(Cell fromCell, Library toLibrary, CrossLibCopy dialog)
 		{
-			super("Cross-Library copy", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Cross-Library copy", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fromCell = fromCell;
 			this.toLibrary = toLibrary;
 			this.dialog = dialog;

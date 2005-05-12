@@ -112,7 +112,7 @@ public class VerticalRoute {
             endPort.getBasePort().getParent() == Generic.tech.universalPinNode) ||
             (startPort.getBasePort().getParent() == Generic.tech.invisiblePinNode &&
             endPort.getBasePort().getParent() == Generic.tech.invisiblePinNode)) {
-            startArc = endArc = User.tool.getCurrentArcProto();
+            startArc = endArc = User.getUserTool().getCurrentArcProto();
             startArcs = endArcs = new ArcProto [] { startArc };
         }
         this.startArc = startArc;
@@ -174,9 +174,9 @@ public class VerticalRoute {
         for (int i=0; i<arcs.length; i++) {
             ArcProto arc = arcs[i];
             // get rid of arcs we won't route with
-            if (arc == Generic.tech.universal_arc && User.tool.getCurrentArcProto() != Generic.tech.universal_arc) arc = null;
-            if (arc == Generic.tech.invisible_arc && User.tool.getCurrentArcProto() != Generic.tech.invisible_arc) arc = null;
-            if (arc == Generic.tech.unrouted_arc && User.tool.getCurrentArcProto() != Generic.tech.unrouted_arc) arc = null;
+            if (arc == Generic.tech.universal_arc && User.getUserTool().getCurrentArcProto() != Generic.tech.universal_arc) arc = null;
+            if (arc == Generic.tech.invisible_arc && User.getUserTool().getCurrentArcProto() != Generic.tech.invisible_arc) arc = null;
+            if (arc == Generic.tech.unrouted_arc && User.getUserTool().getCurrentArcProto() != Generic.tech.unrouted_arc) arc = null;
             if ((arc != null) && (arc.isNotUsed())) arc = null;
             copy[i] = arc;
         }
@@ -374,7 +374,7 @@ public class VerticalRoute {
         if (zeroLengthRoutes.size() > 0) {
             for (Iterator it = zeroLengthRoutes.iterator(); it.hasNext(); ) {
                 SpecifiedRoute r = (SpecifiedRoute)it.next();
-                if (r.startArc == User.tool.getCurrentArcProto())
+                if (r.startArc == User.getUserTool().getCurrentArcProto())
                     specifiedRoute = r;
             }
         }

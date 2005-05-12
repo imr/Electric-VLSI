@@ -224,7 +224,7 @@ public class Spread extends EDialog
 
 		protected SpreadJob(Spread dialog)
 		{
-			super("Spread Circuitry", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Spread Circuitry", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			startJob();
 		}

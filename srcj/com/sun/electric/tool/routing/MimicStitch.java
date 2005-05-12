@@ -131,7 +131,7 @@ public class MimicStitch
 		if (wnd == null) return;
 		Highlighter highlighter = wnd.getHighlighter();
 
-		Routing.Activity lastActivity = Routing.tool.getLastActivity();
+		Routing.Activity lastActivity = Routing.getRoutingTool().getLastActivity();
 		if (lastActivity == null)
 		{
 			System.out.println("No wiring activity to mimic");
@@ -294,7 +294,7 @@ public class MimicStitch
 
 		private MimicUnstitchJob(List arcKills)
 		{
-			super("Mimic-Unstitch", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Mimic-Unstitch", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.arcKills = arcKills;
 			setReportExecutionFlag(true);
 			startJob();
@@ -332,7 +332,7 @@ public class MimicStitch
 		private MimicStitchJob(Connection conn1, Connection conn2, double oWidth, ArcProto oProto,
 								double prefX, double prefY, boolean forced, Highlighter highlighter)
 		{
-			super("Mimic-Stitch", Routing.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			super("Mimic-Stitch", Routing.getRoutingTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.conn1 = conn1;
 			this.conn2 = conn2;
 			this.oWidth = oWidth;
@@ -784,7 +784,7 @@ public class MimicStitch
 
 		private MimicWireJob(List allRoutes, Highlighter highlighter, boolean redisplay)
 		{
-			super("Mimic-Stitch", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Mimic-Stitch", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.allRoutes = allRoutes;
 			this.highlighter = highlighter;
 			this.redisplay = redisplay;

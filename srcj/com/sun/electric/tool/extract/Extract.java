@@ -41,6 +41,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.routing.Routing;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
@@ -59,7 +60,7 @@ import java.util.prefs.Preferences;
  */
 public class Extract extends Listener
 {
-	/** the Extraction tool. */								protected static Extract tool = new Extract();
+	/** the Extraction tool. */								private static Extract tool = new Extract();
 
 	/****************************** TOOL CONTROL ******************************/
 
@@ -78,7 +79,13 @@ public class Extract extends Listener
 	{
 	}
 
-    /****************************** OPTIONS ******************************/
+    /**
+     * Method to retrieve the singleton associated with the Extract tool.
+     * @return the Extract tool.
+     */
+    public static Extract getExtractTool() { return tool; }
+
+	/****************************** OPTIONS ******************************/
 
 	private static Pref cacheExactCutExtraction = Pref.makeBooleanPref("ExactCutExtraction", Extract.tool.prefs, false);
 	/**

@@ -24,8 +24,8 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
@@ -37,6 +37,8 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -45,10 +47,10 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.io.File;
 import java.net.URL;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 
@@ -496,6 +498,18 @@ public abstract class LibraryFiles extends Input
 
 		// adjust for old library conversion
 //		convertOldLibraries();
+
+		// broadcast the library-read to all listeners
+		for(Iterator it = Tool.getListeners(); it.hasNext(); )
+		{
+			Listener listener = (Listener)it.next();
+			for(Iterator lIt = libsBeingRead.iterator(); lIt.hasNext(); )
+			{
+				LibraryFiles reader = (LibraryFiles)lIt.next();
+				listener.readLibrary(reader.lib);
+			}
+		}
+
         // clean up init (free LibraryFiles for garbage collection)
         libsBeingRead.clear();
 	}

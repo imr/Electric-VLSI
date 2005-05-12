@@ -137,7 +137,7 @@ public class ArtworkLook extends EDialog
 
 		protected ApplyChanges(ArtworkLook dialog)
 		{
-			super("Update Edit Options", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Update Edit Options", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			startJob();
 		}

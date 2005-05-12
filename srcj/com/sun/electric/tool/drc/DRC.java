@@ -111,7 +111,7 @@ public class DRC extends Listener
 	}
 
     /**
-     * Method to retrieve singleton associated to DRC tool
+     * Method to retrieve the singleton associated with the DRC tool.
      * @return the DRC tool.
      */
     public static DRC getDRCTool() { return tool; }
@@ -851,8 +851,8 @@ public class DRC extends Listener
 	 */
 	public static void setIgnorePolySelectChecking(boolean on) { cacheIgnorePolySelectChecking.setBoolean(on); }
 
-    private static Pref cacheFoundry = Pref.makeStringPref("Foundry", User.tool.prefs, "TSMC");
-	static { cacheFoundry.attachToObject(User.tool, "Tools/DRC tab", "Foundry for DRC rules"); }
+    private static Pref cacheFoundry = Pref.makeStringPref("Foundry", tool.prefs, "TSMC");
+	static { cacheFoundry.attachToObject(tool, "Tools/DRC tab", "Foundry for DRC rules"); }
 	/**
 	 * Method to get foundry in Tech Palette. Different foundry can define different DRC rules.
 	 * The default is "Generic".

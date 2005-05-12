@@ -4801,7 +4801,7 @@ if (wp.signalButtons != null)
 
 		private SaveSignalOrder(Cell cell, List list)
 		{
-			super("Save Signal Order", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Save Signal Order", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.list = list;
 			startJob();

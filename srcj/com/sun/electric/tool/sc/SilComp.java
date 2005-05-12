@@ -36,6 +36,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.compaction.Compaction;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ import java.util.List;
  */
 public class SilComp extends Listener
 {
-	/** the Silicon Compiler tool. */		public static SilComp tool = new SilComp();
+	/** the Silicon Compiler tool. */		private static SilComp tool = new SilComp();
 	private static Library cellLibrary;
 
 	/****************************** TOOL INTERFACE ******************************/
@@ -67,6 +68,12 @@ public class SilComp extends Listener
 	public void init()
 	{
 	}
+
+    /**
+     * Method to retrieve the singleton associated with the Silicon Compiler tool.
+     * @return the SilComp tool.
+     */
+    public static SilComp getSilCompTool() { return tool; }
 
 	/**
 	 * Method to return the cell library that will be used for silicon compilation.

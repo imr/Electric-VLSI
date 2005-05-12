@@ -371,7 +371,7 @@ public abstract class ArcProto
 		Pref pref = (Pref)map.get(this);
 		if (pref == null)
 		{
-			pref = Pref.makeBooleanPref("Default" + what + "For" + protoName + "IN" + tech.getTechName(), User.tool.prefs, factory);
+			pref = Pref.makeBooleanPref("Default" + what + "For" + protoName + "IN" + tech.getTechName(), User.getUserTool().prefs, factory);
 			map.put(this, pref);
 		}
 		return pref;
@@ -640,7 +640,7 @@ public abstract class ArcProto
 	 */
 	public void setFactoryAngleIncrement(int angle)
 	{
-		Pref pref = Pref.makeIntPref("DefaultAngleFor" + protoName + "IN" + tech.getTechName(), User.tool.prefs, angle);
+		Pref pref = Pref.makeIntPref("DefaultAngleFor" + protoName + "IN" + tech.getTechName(), User.getUserTool().prefs, angle);
 		defaultAnglePrefs.put(this, pref);
 	}
 

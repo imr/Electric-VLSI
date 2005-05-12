@@ -86,7 +86,7 @@ public class LogicalEffortTab extends PreferencePanel
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
 		{
 			ArcProto arc = (ArcProto)it.next();
-			leArcOptions.put(arc, Pref.makeDoublePref(null, null, LETool.tool.prefs.getDouble(arc.toString(), 0.0)));
+			leArcOptions.put(arc, Pref.makeDoublePref(null, null, LETool.getLETool().prefs.getDouble(arc.toString(), 0.0)));
 		}
 		leArcListModel = new DefaultListModel();
 		leArcList = new JList(leArcListModel);
@@ -152,7 +152,7 @@ public class LogicalEffortTab extends PreferencePanel
 			ArcProto arc = (ArcProto)it.next();
 			Pref pref = (Pref)leArcOptions.get(arc);
 			if (pref != null && pref.getDoubleFactoryValue() != pref.getDouble())
-                LETool.tool.prefs.putDouble(arc.toString(), pref.getDouble());
+                LETool.getLETool().prefs.putDouble(arc.toString(), pref.getDouble());
 		}
 	}
 

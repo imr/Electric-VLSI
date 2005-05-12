@@ -368,7 +368,7 @@ public class NewCell extends EDialog
 
 		protected CreateCell(Library lib, String cellName, Technology tech, boolean newWindow)
 		{
-			super("Create Cell " + cellName, User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Create Cell " + cellName, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lib = lib;
 			this.cellName = cellName;
 			this.newWindow = newWindow;

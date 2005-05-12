@@ -41,6 +41,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -91,7 +92,7 @@ public class Routing extends Listener
 	private Activity current, past = null;
 	private boolean checkAutoStitch = false;
 
-	/** the Routing tool. */		public static Routing tool = new Routing();
+	/** the Routing tool. */		private static Routing tool = new Routing();
 
 	/****************************** TOOL INTERFACE ******************************/
 
@@ -110,6 +111,12 @@ public class Routing extends Listener
 	{
 		setOn();
 	}
+
+    /**
+     * Method to retrieve the singleton associated with the Routing tool.
+     * @return the Routing tool.
+     */
+    public static Routing getRoutingTool() { return tool; }
 
 	/**
 	 * Method to announce the start of a batch of changes.

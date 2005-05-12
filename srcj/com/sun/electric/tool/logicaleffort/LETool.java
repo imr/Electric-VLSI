@@ -26,36 +26,29 @@
 
 package com.sun.electric.tool.logicaleffort;
 
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.EvalJavaBsh;
-import com.sun.electric.database.network.Netlist;
-//import com.sun.electric.database.network.Network;
-import com.sun.electric.tool.Tool;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.io.OutputStream;
-import java.lang.InterruptedException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Stack;
-import java.util.ArrayList;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
-import java.awt.geom.Rectangle2D;
-import java.awt.geom.Point2D;
+import java.util.regex.Pattern;
 
 /**
  * This is the Logical Effort Tool.  It doesn't actually do
@@ -64,9 +57,9 @@ import java.awt.geom.Point2D;
  *
  * @author  gainsley
  */
-public class LETool extends Tool {
+public class LETool extends Listener {
     
-    /** The Logical Effort tool */              public static LETool tool = new LETool();
+    /** The Logical Effort tool */              private static LETool tool = new LETool();
 
     private static final boolean DEBUG = false;
 
@@ -75,11 +68,14 @@ public class LETool extends Tool {
         super("logeffort");
     }
 
-    /** get LETool */
+    /**
+     * Method to retrieve the singleton associated with the LETool tool.
+     * @return the LETool tool.
+     */
     public static LETool getLETool() {
         return tool;
     }
-    
+
     /** Initialize tool - add calls to Bean Shell Evaluator */
     public void init() {
 		EvalJavaBsh.evalJavaBsh.setVariable("LE", tool);

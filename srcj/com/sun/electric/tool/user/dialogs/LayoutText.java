@@ -417,7 +417,7 @@ public class LayoutText extends EDialog
 
 		protected CreateLayoutText(LayoutText dialog)
 		{
-			super("Create Layout Text", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Create Layout Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			startJob();
 		}

@@ -389,7 +389,7 @@ public class Highlighter implements DatabaseChangeListener {
 			}
 		}
         if (type == SELECT_HIGHLIGHTER)
-		    if (foundArcProto != null && !mixedArc) User.tool.setCurrentArcProto(foundArcProto);
+		    if (foundArcProto != null && !mixedArc) User.getUserTool().setCurrentArcProto(foundArcProto);
 
         // notify all listeners that highlights have changed (changes committed).
         if (!SwingUtilities.isEventDispatchThread()) {

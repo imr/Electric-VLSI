@@ -343,7 +343,7 @@ public class Array extends EDialog
 
 		protected ArrayStuff(Array dialog)
 		{
-			super("Make Array", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Make Array", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			startJob();
 		}

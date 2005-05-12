@@ -454,7 +454,7 @@ public class EditMenu {
 	{
 		private UndoCommand()
 		{
-			super("Undo", User.tool, Job.Type.UNDO, Undo.upCell(false), null, Job.Priority.USER);
+			super("Undo", User.getUserTool(), Job.Type.UNDO, Undo.upCell(false), null, Job.Priority.USER);
 			startJob();
 		}
 
@@ -475,7 +475,7 @@ public class EditMenu {
 	{
 		private RedoCommand()
 		{
-			super("Redo", User.tool, Job.Type.UNDO, Undo.upCell(true), null, Job.Priority.USER);
+			super("Redo", User.getUserTool(), Job.Type.UNDO, Undo.upCell(true), null, Job.Priority.USER);
 			startJob();
 		}
 
@@ -652,7 +652,7 @@ public class EditMenu {
 
 		protected ParameterVisibility(int how, List selected)
 		{
-			super("Change Parameter Visibility", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Change Parameter Visibility", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.how = how;
             this.selected = selected;
 			startJob();
@@ -752,7 +752,7 @@ public class EditMenu {
          * @param whatToUpdate if 0, update inheritance. If 1, update attributes locations.
          */
         UpdateAttributes(List highlighted, boolean allLibraries, int whatToUpdate) {
-            super("Update Inheritance", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Update Inheritance", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.highlighted = highlighted;
             this.allLibraries = allLibraries;
             this.whatToUpdate = whatToUpdate;
@@ -1223,7 +1223,7 @@ public class EditMenu {
 
             protected InsertJogPoint(ArcInst ai, Point2D insert, Highlighter highlighter)
             {
-                super("Insert Jog in Arc", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+                super("Insert Jog in Arc", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
                 this.ai = ai;
                 this.insert = insert;
                 this.highlighter = highlighter;

@@ -770,7 +770,7 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 
 		public PlaceNewNode(String description, Object toDraw, Point2D where, Cell cell, String varName, boolean export)
 		{
-			super(description, User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super(description, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.toDraw = toDraw;
 			this.where = where;
 			this.cell = cell;

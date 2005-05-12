@@ -307,7 +307,7 @@ public class ClickZoomWireListener
 	                        wiringTarget = null;
 	                        startObj = h1.getElectricObject();
 	                        endObj = h2.getElectricObject();
-                            currentArcWhenWiringPressed = User.tool.getCurrentArcProto();
+                            currentArcWhenWiringPressed = User.getUserTool().getCurrentArcProto();
 	                        EditWindow.gridAlign(dbClick);
 	                        router.highlightRoute(wnd, cell, h1.getElectricObject(), h2.getElectricObject(), dbClick);
 	                        return;
@@ -334,7 +334,7 @@ public class ClickZoomWireListener
                                 Highlight h2 = (Highlight)highlighter.getHighlights().iterator().next();
                                 endObj = h2.getElectricObject();
                             }
-                            currentArcWhenWiringPressed = User.tool.getCurrentArcProto();
+                            currentArcWhenWiringPressed = User.getUserTool().getCurrentArcProto();
 	                        EditWindow.gridAlign(dbClick);
 	                        router.highlightRoute(wnd, cell, h1.getElectricObject(), endObj, dbClick);
 	                        return;
@@ -544,7 +544,7 @@ public class ClickZoomWireListener
 	                    }
 	                    EditWindow.gridAlign(dbMouse);
 	                }
-                    User.tool.setCurrentArcProto(currentArcWhenWiringPressed);
+					User.getUserTool().setCurrentArcProto(currentArcWhenWiringPressed);
 	                router.highlightRoute(wnd, cell, startObj, endObj, dbMouse);
 	                // clear any previous popup cloud
 	                /*
@@ -584,13 +584,13 @@ public class ClickZoomWireListener
 	            }
 	            if (modeRight == Mode.wiringConnect) {
 	                EditWindow.gridAlign(dbMouse);
-                    User.tool.setCurrentArcProto(currentArcWhenWiringPressed);
+					User.getUserTool().setCurrentArcProto(currentArcWhenWiringPressed);
 	                router.highlightRoute(wnd, cell, startObj, endObj, dbMouse);
 	            }
                 if (modeRight == Mode.wiringToSpace) {
                     // wire only to point in space
                     EditWindow.gridAlign(dbMouse);
-                    User.tool.setCurrentArcProto(currentArcWhenWiringPressed);
+					User.getUserTool().setCurrentArcProto(currentArcWhenWiringPressed);
                     router.highlightRoute(wnd, cell, startObj, null, dbMouse);
                 }
 	        }
@@ -729,7 +729,7 @@ public class ClickZoomWireListener
 	                    endObj = h2.getElectricObject();
 	                }*/
 	                EditWindow.gridAlign(dbMouse);
-                    User.tool.setCurrentArcProto(currentArcWhenWiringPressed);
+					User.getUserTool().setCurrentArcProto(currentArcWhenWiringPressed);
 	                router.makeRoute(wnd, cell, startObj, endObj, dbMouse);
 	                // clear any popup cloud we had
 	                //wnd.clearShowPopupCloud();
@@ -738,13 +738,13 @@ public class ClickZoomWireListener
 	            }
 	            if (modeRight == Mode.wiringConnect) {
 	                EditWindow.gridAlign(dbMouse);
-                    User.tool.setCurrentArcProto(currentArcWhenWiringPressed);
+					User.getUserTool().setCurrentArcProto(currentArcWhenWiringPressed);
 	                router.makeRoute(wnd, cell, startObj, endObj, dbMouse);
                     wiringTarget = null;
 	            }
                 if (modeRight == Mode.wiringToSpace) {
                     EditWindow.gridAlign(dbMouse);
-                    User.tool.setCurrentArcProto(currentArcWhenWiringPressed);
+					User.getUserTool().setCurrentArcProto(currentArcWhenWiringPressed);
                     router.makeRoute(wnd, cell, startObj, null, dbMouse);
                     wiringTarget = null;
                 }
@@ -1200,7 +1200,7 @@ public class ClickZoomWireListener
         }
         if (!found) return;
 
-        //if (ap == User.tool.getCurrentArcProto()) return;
+        //if (ap == User.getUserTool().getCurrentArcProto()) return;
 
         // if a single portinst highlighted, route from that to node that can connect to arc
         if (highlighter.getNumHighlights() == 1 && cell != null) {
@@ -1211,7 +1211,7 @@ public class ClickZoomWireListener
             }
         }
         // switch palette to arc
-        User.tool.setCurrentArcProto(ap);
+		User.getUserTool().setCurrentArcProto(ap);
     }
 
 

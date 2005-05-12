@@ -164,7 +164,7 @@ public class GateRegression extends Job {
         return numCifErrs;
 	}
 	public GateRegression(Technology tech) {
-		super("Run Gate regression", User.tool, Job.Type.CHANGE, 
+		super("Run Gate regression", User.getUserTool(), Job.Type.CHANGE, 
 			  null, null, Job.Priority.ANALYSIS);
         this.technology = tech;
 		startJob();

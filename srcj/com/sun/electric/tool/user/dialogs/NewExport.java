@@ -319,7 +319,7 @@ public class NewExport extends EDialog
 		protected MakeExport(Cell cell, PortInst pi, String name,
 			boolean body, boolean drawn, PortCharacteristic ch, String referenceName)
 		{
-			super("Make Export", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Make Export", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.pi = pi;
 			this.name = name;

@@ -38,6 +38,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.TextWindow;
@@ -61,7 +62,7 @@ public class User extends Listener
 {
 	// ---------------------- private and protected methods -----------------
 
-	/** the User Interface tool. */		public static User tool = new User();
+	/** the User Interface tool. */		private static User tool = new User();
 	/** key of Variable holding cell frame information. */				public static final Variable.Key FRAME_SIZE = ElectricObject.newKey("FACET_schematic_page_size");
 	/** key of Variable holding cell company name. */					public static final Variable.Key FRAME_COMPANY_NAME = ElectricObject.newKey("USER_drawing_company_name");
 	/** key of Variable holding cell designer name. */					public static final Variable.Key FRAME_DESIGNER_NAME = ElectricObject.newKey("USER_drawing_designer_name");
@@ -89,6 +90,12 @@ public class User extends Listener
 
 		Clipboard.clear(); // To initialize Clibpoard Cell
 	}
+
+    /**
+     * Method to retrieve the singleton associated with the User tool.
+     * @return the User tool.
+     */
+    public static User getUserTool() { return tool; }
 
 	/**
 	 * Method to return the "current" NodeProto, as maintained by the user interface.

@@ -477,7 +477,7 @@ public class Change extends EDialog implements HighlightListener
 
 		protected ChangeObject(Change dialog)
 		{
-			super("Change type", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Change type", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			startJob();
 		}

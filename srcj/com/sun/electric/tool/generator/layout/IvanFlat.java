@@ -352,7 +352,7 @@ public class IvanFlat extends Job {
 		return true;
 	}
 	public IvanFlat() {
-		super("Flatten Netlists for Ivan", User.tool, Job.Type.CHANGE, 
+		super("Flatten Netlists for Ivan", User.getUserTool(), Job.Type.CHANGE, 
 		      null, null, Job.Priority.ANALYSIS);
 		startJob();		      
 	}

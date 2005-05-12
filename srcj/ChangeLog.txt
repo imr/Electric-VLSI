@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02n: *********************************
 
+IMP: (05/12/05, SMR) Tool cleanup for project management: made all Tools be Listeners;
+     made access to singletons use accessor methods; invoke "readLibrary()" listener method properly.
+
 BUG: (05/11/05, GVG) Electric loads non-local library when local library is present (Bug #309)
 FIX: Adding WorkingDirectory as valid path and try it first before the external path stored.
 

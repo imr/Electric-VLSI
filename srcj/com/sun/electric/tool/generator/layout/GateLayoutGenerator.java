@@ -142,7 +142,7 @@ public class GateLayoutGenerator extends Job {
 		return true;
 	}
 	public GateLayoutGenerator(Technology technology) {
-		super("Generate gate layouts", User.tool, Job.Type.CHANGE, 
+		super("Generate gate layouts", User.getUserTool(), Job.Type.CHANGE, 
 			  null, null, Job.Priority.ANALYSIS);
         this.technology = technology;
 		startJob();

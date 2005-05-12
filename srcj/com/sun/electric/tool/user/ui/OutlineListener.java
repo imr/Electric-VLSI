@@ -91,7 +91,7 @@ public class OutlineListener
 
 		protected InitializePoints(OutlineListener listener, NodeInst ni)
 		{
-			super("Initialize Outline Points", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Initialize Outline Points", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.listener = listener;
 			this.ni = ni;
 			startJob();
@@ -395,7 +395,7 @@ public class OutlineListener
 
 		protected SetPoints(OutlineListener listener, Point2D [] newPoints, int newPoint, Cell cell)
 		{
-			super("Change Outline Points", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Change Outline Points", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.listener = listener;
 			this.newPoints = newPoints;
 			this.newPoint = newPoint;

@@ -454,7 +454,7 @@ public class PreferencesFrame extends EDialog
 
 		protected OKUpdate(PreferencesFrame dialog)
 		{
-			super("Update Preferences", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Update Preferences", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			startJob();
 		}

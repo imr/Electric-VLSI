@@ -211,7 +211,7 @@ public class Maze
 
 		protected MazeRouteJob(Cell cell)
 		{
-			super("Maze Route", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Maze Route", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			startJob();
 		}
@@ -389,7 +389,7 @@ public class Maze
 	{
 		// presume routing with the current arc
 		boolean ret = false;
-		ArcProto routingArc = User.tool.getCurrentArcProto();
+		ArcProto routingArc = User.getUserTool().getCurrentArcProto();
 		if (routingArc == Generic.tech.unrouted_arc) routingArc = null;
 		if (routingArc != null)
 		{

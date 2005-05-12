@@ -440,7 +440,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         int ysize = (int)(size.getHeight()*0.9) / menuY;
         if (ysize < entrySize) entrySize = ysize;
         size.setSize(entrySize*menuX+1, entrySize*menuY+1);
-        User.tool.setCurrentArcProto((ArcProto)tech.getArcs().next());
+		User.getUserTool().setCurrentArcProto((ArcProto)tech.getArcs().next());
         //repaint();
         synchronized(this) { paletteImageStale = true; }
 
@@ -529,7 +529,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 				}
             }
             if (obj instanceof PrimitiveArc)
-                User.tool.setCurrentArcProto((PrimitiveArc)obj);
+				User.getUserTool().setCurrentArcProto((PrimitiveArc)obj);
             else
                 PaletteFrame.placeInstance(obj, panel, false);
         } else if (obj instanceof String)
@@ -731,7 +731,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         int x, y;
         protected ReadSpiceLibrary(URL fileURL, JPopupMenu cellMenu, TechPalette panel, int x, int y)
         {
-            super("Read Spice Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Read Spice Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.fileURL = fileURL;
             this.cellMenu = cellMenu;
             this.panel = panel;
@@ -786,7 +786,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         public void actionPerformed(ActionEvent evt)
         {
             if (obj instanceof PrimitiveArc)
-                User.tool.setCurrentArcProto((PrimitiveArc)obj);
+				User.getUserTool().setCurrentArcProto((PrimitiveArc)obj);
             else
                 PaletteFrame.placeInstance(obj, panel, false);
             // No first element -> make it default
@@ -927,7 +927,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         }
 
         // highlight current arc
-        Object arcObj = User.tool.getCurrentArcProto();
+        Object arcObj = User.getUserTool().getCurrentArcProto();
         int index = -1;
         for (int i = 0; i < inPalette.size(); i++)
         {
@@ -940,7 +940,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 break;
             }
         }
-        //int index = inPalette.indexOf(User.tool.getCurrentArcProto());
+        //int index = inPalette.indexOf(User.getUserTool().getCurrentArcProto());
 
         if (index >= 0) {
             int x = (int)(index/menuY);

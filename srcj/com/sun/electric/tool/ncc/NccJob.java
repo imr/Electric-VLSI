@@ -27,6 +27,7 @@ import java.util.List;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
@@ -148,7 +149,7 @@ public class NccJob extends Job {
 	 * views of the current window. 2 means compare the 2 Cells open in 2 Windows.
 	 */
 	public NccJob(int numWindows) {
-		super("Run NCC", User.tool, Job.Type.EXAMINE, null, null, 
+		super("Run NCC", NetworkTool.getNetworkTool(), Job.Type.EXAMINE, null, null, 
 		      Job.Priority.ANALYSIS);
 		this.numWindows = numWindows;
 		startJob();

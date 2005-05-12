@@ -96,7 +96,7 @@ public class AutoStitch
  
 		protected AutoStitchJob(boolean highlighted, boolean forced)
 		{
-			super("Auto-Stitch", Routing.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Auto-Stitch", Routing.getRoutingTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.highlighted = highlighted;
 			this.forced = forced;
             setReportExecutionFlag(true);
@@ -214,7 +214,7 @@ public class AutoStitch
 		if (preferredArc == null)
 		{
 			// see if there is a default user arc
-			ArcProto curAp = User.tool.getCurrentArcProto();
+			ArcProto curAp = User.getUserTool().getCurrentArcProto();
 			if (curAp != null) preferredArc = curAp;
 		}
 

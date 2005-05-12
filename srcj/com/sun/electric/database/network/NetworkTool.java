@@ -40,6 +40,7 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.Main;
 
@@ -99,7 +100,7 @@ public class NetworkTool extends Listener
 
 	// ---------------------- private and protected methods -----------------
 
-	/** the Network tool. */						public static final NetworkTool tool = new NetworkTool();
+	/** the Network tool. */						private static final NetworkTool tool = new NetworkTool();
 	/** flag for debug print. */					static boolean debug = false;
 
 	/** NetCells. */								private static NetCell[] cells;
@@ -119,6 +120,12 @@ public class NetworkTool extends Listener
 		super("network");
 		reload();
 	}
+
+    /**
+     * Method to retrieve the singleton associated with the Network tool.
+     * @return the Network tool.
+     */
+    public static NetworkTool getNetworkTool() { return tool; }
 
 	/**
 	 * Reloads cell information after major changes such as librairy read.

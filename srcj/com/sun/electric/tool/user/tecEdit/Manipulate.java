@@ -353,7 +353,7 @@ public class Manipulate
 
 		private MakeOneCellJob(Library lib, String name, int type)
 		{
-			super("Make Cell in Technology-Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Make Cell in Technology-Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lib = lib;
 			this.name = name;
 			this.type = type;
@@ -487,7 +487,7 @@ public class Manipulate
 
 			private ModifyDependenciesJob(DefaultListModel depLibsModel)
 			{
-				super("Modify Library Dependencies", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+				super("Modify Library Dependencies", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 				this.depLibsModel = depLibsModel;
 				startJob();
 			}
@@ -1447,7 +1447,7 @@ public class Manipulate
 
 		private SetLayerPatternJob(NodeInst ni, int color)
 		{
-			super("Change Pattern In Layer", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Change Pattern In Layer", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
 			this.color = color;
 			startJob();
@@ -1569,7 +1569,7 @@ public class Manipulate
 
 		private ModifyLayerJob(NodeInst ni, String choice, Cell [] layerCells)
 		{
-			super("Change Layer Information", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Change Layer Information", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
 			this.choice = choice;
 			this.layerCells = layerCells;
@@ -1676,7 +1676,7 @@ public class Manipulate
 
 		private ModifyPortJob(NodeInst ni, List allArcs, PromptAt.Field [] fields)
 		{
-			super("Change Port Information", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Change Port Information", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
 			this.allArcs = allArcs;
 			this.fields = fields;
@@ -1858,7 +1858,7 @@ public class Manipulate
 
 		private SetTextJob(NodeInst ni, String chr)
 		{
-			super("Make Technology Library from Technology", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Make Technology Library from Technology", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
 			this.chr = chr;
 			startJob();
@@ -1883,7 +1883,7 @@ public class Manipulate
 
 		private SetTransparentColorJob(NodeInst ni, String chr)
 		{
-			super("Set Transparent Colors", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Set Transparent Colors", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
 			this.chr = chr;
 			startJob();
@@ -1905,7 +1905,7 @@ public class Manipulate
 
 		private RedoLayerGraphicsJob(Cell cell)
 		{
-			super("Redo Layer Graphics", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Redo Layer Graphics", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			startJob();
 		}
@@ -2114,7 +2114,7 @@ public class Manipulate
 
 			private UpdateOrderingJob(Library lib, String [] newList, int type)
 			{
-				super("Update Ordering", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+				super("Update Ordering", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 				this.lib = lib;
 				this.newList = newList;
 				this.type = type;

@@ -112,7 +112,7 @@ public class ChangeCellGroup extends EDialog {
         private Cell.CellGroup newGroup;
 
         ChangeCellGroupJob(Cell cell, Cell.CellGroup newGroup) {
-            super("Change Cell Group", User.tool, Job.Type.CHANGE, cell, cell, Job.Priority.USER);
+            super("Change Cell Group", User.getUserTool(), Job.Type.CHANGE, cell, cell, Job.Priority.USER);
             this.cell = cell;
             this.newGroup = newGroup;
             startJob();

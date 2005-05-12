@@ -470,7 +470,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
 		protected MultiChange(GetInfoMulti dialog)
 		{
-			super("Modify Objects", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Modify Objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.dialog = dialog;
 			startJob();
 		}

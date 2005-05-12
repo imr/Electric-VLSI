@@ -99,7 +99,7 @@ public class TechToLib
 
 		private LibFromTechJob(Technology tech)
 		{
-			super("Make Technology Library from Technology", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Make Technology Library from Technology", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.tech = tech;
 			startJob();
 		}

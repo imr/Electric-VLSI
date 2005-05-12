@@ -123,7 +123,7 @@ public class ROMGenerator
 
 		private DoROM(String romfile, String romcell)
 		{
-			super("ROM Generator", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("ROM Generator", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.romfile = romfile;
 			this.romcell = romcell;
 			startJob();

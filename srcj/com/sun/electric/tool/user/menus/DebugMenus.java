@@ -230,7 +230,7 @@ public class DebugMenus {
 
         public SetCellJob(String cellName)
         {
-            super("Set current cell", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Set current cell", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.cellName = cellName;
             startJob();
         }
@@ -249,7 +249,7 @@ public class DebugMenus {
 
     	public SaveLibraryJob(String fileName)
         {
-            super("Save Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Save Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.fileName = fileName;
             startJob();
         }
@@ -289,7 +289,7 @@ public class DebugMenus {
 
 		protected MakeFakeCircuitry(String tech)
 		{
-			super("Make fake circuitry", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Make fake circuitry", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			theTechnology = tech;
 			startJob();
 		}
@@ -576,7 +576,7 @@ public class DebugMenus {
 
         protected FakeCoverageCircuitry(String tech)
         {
-            super("Make fake circuitry for coverage tests", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Make fake circuitry for coverage tests", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             theTechnology = tech;
             startJob();
         }
@@ -878,7 +878,7 @@ try {
 
 		protected CoverImplantOld(Cell cell, Highlighter highlighter)
 		{
-			super("Coverage Implant Old", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Coverage Implant Old", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.curCell = cell;
             this.highlighter = highlighter;
 			setReportExecutionFlag(true);
@@ -1126,7 +1126,7 @@ try {
         private ElectricObject eobj;
 
         private AddStringVar(ElectricObject eobj) {
-            super("AddStringVar", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("AddStringVar", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.eobj = eobj;
             startJob();
         }
@@ -1150,7 +1150,7 @@ try {
 
     public static class StackOverflowJob extends Job {
         private StackOverflowJob() {
-            super("overflow", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            super("overflow", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             startJob();
         }
         public boolean doIt() {
@@ -1188,7 +1188,7 @@ try {
     private static class RedrawTest extends Job {
 
         private RedrawTest() {
-            super("RedrawTest", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            super("RedrawTest", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             startJob();
         }
 
@@ -1231,7 +1231,7 @@ try {
         private long delayTimeMS;
 
         private RedisplayTest(long delayTimeMS) {
-            super("RedisplayTest", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            super("RedisplayTest", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             this.delayTimeMS = delayTimeMS;
             startJob();
         }
@@ -1283,7 +1283,7 @@ try {
     private static class DefunctJob extends Job {
 
         public DefunctJob() {
-            super("Defunct Job", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Defunct Job", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             startJob();
         }
 
@@ -1330,7 +1330,7 @@ try {
         private static class CountJob extends Job {
             private final Object mutex;
             private CountJob(Object mutex) {
-                super("CountJob", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+                super("CountJob", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
                 this.mutex = mutex;
             }
 

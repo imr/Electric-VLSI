@@ -196,7 +196,7 @@ public class Analyzer extends Engine
 
 		public StartIRSIM(Analyzer analyzer)
 		{
-			super("Simulate cell", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			super("Simulate cell", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.analyzer = analyzer;
 			startJob();
 		}

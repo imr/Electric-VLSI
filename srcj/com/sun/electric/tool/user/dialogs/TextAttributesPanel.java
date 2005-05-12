@@ -247,7 +247,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
                 Object dispPos
                 )
         {
-            super("Modify Text Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Modify Text Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.owner = owner;
             this.varName = varName;
             this.code = code;

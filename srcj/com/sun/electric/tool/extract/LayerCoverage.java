@@ -129,7 +129,7 @@ public class LayerCoverage extends Listener
 
         public AreaCoverage(Cell cell, Highlighter highlighter, int mode, double width, double height, double deltaX, double deltaY)
         {
-            super("Layer Coverage", User.tool, Type.EXAMINE, null, null, Priority.USER);
+            super("Layer Coverage", User.getUserTool(), Type.EXAMINE, null, null, Priority.USER);
             this.curCell = cell;
             this.highlighter = highlighter;
             this.mode = mode;

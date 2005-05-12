@@ -594,7 +594,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         private DeleteAttribute(Variable var, ElectricObject owner)
         {
-            super("Delete Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Delete Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.var = var;
             this.owner = owner;
             startJob();
@@ -615,7 +615,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         private ElectricObject owner;
 
         private CreateAttribute(String newName, Object newValue, ElectricObject owner) {
-            super("Create Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Create Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.newName = newName;
             this.newValue = newValue;
             this.owner = owner;
@@ -650,7 +650,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         protected RenameAttribute(String varName, String newVarName, ElectricObject owner)
         {
-            super("Rename Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Rename Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.varName = varName;
             this.newVarName = newVarName;
             this.owner = owner;
@@ -680,7 +680,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         protected ChangeAttribute(String varName, ElectricObject owner, Object newValue)
         {
-            super("Change Attribute", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Change Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.varName = varName;
             this.owner = owner;
             this.newValue = newValue;

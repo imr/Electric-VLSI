@@ -25,6 +25,7 @@ package com.sun.electric.tool.erc;
 
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 
 import java.util.HashMap;
@@ -32,7 +33,7 @@ import java.util.HashMap;
 /**
  * This is the Electrical Rule Checker tool.
  */
-public class ERC extends Tool
+public class ERC extends Listener
 {
 
 	/** the ERC tool. */		protected static ERC tool = new ERC();

@@ -251,7 +251,7 @@ public class FileMenu {
         private String newLibName;
 
         public NewLibrary(String newLibName) {
-            super("New Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("New Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.newLibName = newLibName;
             startJob();
         }
@@ -315,7 +315,7 @@ public class FileMenu {
 
 		public ReadLibrary(URL fileURL, FileType type, Library deleteLib)
 		{
-			super("Read External Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Read External Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.fileURL = fileURL;
 			this.type = type;
 			this.deleteLib = deleteLib;
@@ -350,7 +350,7 @@ public class FileMenu {
         java.util.List fileURLs;
 
         public ReadInitialELIBs(java.util.List fileURLs) {
-            super("Read Initial Libraries", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Read Initial Libraries", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.fileURLs = fileURLs;
             startJob();
         }
@@ -498,7 +498,7 @@ public class FileMenu {
         Library lib;
 
         public CloseLibrary(Library lib) {
-            super("Close Library", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Close Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.lib = lib;
             startJob();
         }
@@ -591,7 +591,7 @@ public class FileMenu {
 
         public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6, boolean batchJob)
         {
-            super("Write Library "+lib.getName(), User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Write Library "+lib.getName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.lib = lib;
             this.newName = newName;
             this.type = type;
@@ -797,7 +797,7 @@ public class FileMenu {
 
 		public ExportImage(String description, WindowContent wnd, String filePath)
 		{
-			super("Export "+description+" ("+FileType.PNG+")", User.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			super("Export "+description+" ("+FileType.PNG+")", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.wnd = wnd;
 			this.filePath = filePath;
 			startJob();
@@ -974,7 +974,7 @@ public class FileMenu {
     {
         public QuitJob()
         {
-            super("Quitting", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Quitting", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             startJob();
         }
 

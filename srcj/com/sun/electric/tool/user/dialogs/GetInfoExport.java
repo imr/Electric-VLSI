@@ -279,7 +279,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
                 boolean newBodyOnly, boolean newAlwaysDrawn,
                 PortCharacteristic newChar, String newRefName)
 		{
-			super("Modify Export", User.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Modify Export", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.pp = pp;
             this.oldName = oldName;
 			this.newName = newName;
