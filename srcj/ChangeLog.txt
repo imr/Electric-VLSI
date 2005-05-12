@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02n: *********************************
 
+BUG: (05/11/05, GVG) Electric loads non-local library when local library is present (Bug #309)
+FIX: Adding WorkingDirectory as valid path and try it first before the external path stored.
+
 BUG: (05/11/05, SMR) Cells with bus pins are the wrong size.
 FIX: Restore the "wipeon1or2" flag to Schematics bus pins, then rework the sequence of calling
      "Technology.getShapeOfNode()" so that Schematics overrides are not affected by that flag.
