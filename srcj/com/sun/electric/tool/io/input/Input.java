@@ -233,7 +233,7 @@ public class Input
 			}
 
 			// import the library
-			boolean error = in.importALibrary(lib);
+			in.importALibrary(lib);
 			in.closeInput();
 
 		} finally {
@@ -277,7 +277,7 @@ public class Input
 	{
 		// get the library file name and path
 		String libName = TextUtils.getFileNameWithoutExtension(fileURL);
-		String extension = TextUtils.getExtension(fileURL);
+//		String extension = TextUtils.getExtension(fileURL);
 
 		// handle different file types
 		LibraryFiles in;
