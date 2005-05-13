@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02n: *********************************
 
+IMP: (05/12/05, GVG) GetInfo (menu item) for ErrorLogger: printing number of errors and warnings.
+
 IMP: (05/12/05, SMR) Tool cleanup for project management: made all Tools be Listeners;
      made access to singletons use accessor methods; invoke "readLibrary()" listener method properly.
 

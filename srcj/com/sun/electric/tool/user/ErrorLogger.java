@@ -707,7 +707,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 						String extraMsg = "errors/warnings";
 						if (getNumErrors() == 0) extraMsg = "warnings";
 						else  if (getNumWarnings() == 0) extraMsg = "errors";
-						String msg = errorSystem + " found "+getNumErrors()+" errors, "+getNumWarnings()+" warnings!";
+						String msg = getInfo(); //errorSystem + " found "+getNumErrors()+" errors, "+getNumWarnings()+" warnings!";
 						System.out.println(msg);
 						if (getNumLogs() > 0)
 						{
@@ -729,6 +729,14 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         terminated = true;
     }
 
+    /**
+     * Method to retrieve general information about the errorLogger
+     * @return
+     */
+    private String getInfo()
+    {
+        return (errorSystem + " found "+getNumErrors()+" errors, "+getNumWarnings()+" warnings!");
+    }
 
     /**
      * Method to sort the errors by their "key" (a value provided to "logerror()").
@@ -912,6 +920,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         JPopupMenu p = new JPopupMenu();
         JMenuItem m;
         m = new JMenuItem("Delete"); m.addActionListener(this); p.add(m);
+        m = new JMenuItem("Get Info"); m.addActionListener(this); p.add(m);
 	    m = new JMenuItem("Save"); m.addActionListener(this); p.add(m);
         m = new JMenuItem("Set Current"); m.addActionListener(this); p.add(m);
         return p;
@@ -922,6 +931,9 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             JMenuItem m = (JMenuItem)e.getSource();
             if (m.getText().equals("Delete")) delete();
             else if (m.getText().equals("Save")) save();
+            else if (m.getText().equals("Get Info")) {
+                System.out.println("ErrorLogger Information: " +  getInfo());
+            }
             else if (m.getText().equals("Set Current")) {
                 synchronized(allLoggers) { currentLogger = this; }
                 WindowFrame.wantToRedoErrorTree();
