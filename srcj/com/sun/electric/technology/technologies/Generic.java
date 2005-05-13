@@ -297,7 +297,7 @@ public class Generic extends Technology
 			if (ni.isInvisiblePinWithText())
 				primLayers = NULLNODELAYER;
 		}
-		return computeShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
+		return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
 	}
 	
 	/**

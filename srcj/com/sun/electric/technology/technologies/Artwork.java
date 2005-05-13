@@ -539,7 +539,7 @@ public class Artwork extends Technology
 					});
 			}
 		}
-		return computeShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
+		return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
 	}
 
 	/**
