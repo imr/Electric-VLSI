@@ -8,7 +8,7 @@ IMP: (05/13/05, JKG) Display LIBDIRS file in Open library dialog as if they
     were part of the current directory.
 
 BUG: (05/13/05, JKG) LIBDIRS did not look for LIBDIRS file in directory
-    user was opening libraries from.  Fixed.
+    user was opening libraries from.  Fixed. (Bug #313)
 
 ************************* Version 8.02n: *********************************
 
