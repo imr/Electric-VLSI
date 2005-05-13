@@ -168,7 +168,7 @@
         </delete>
     </target>
 
-    <target name="mac-app" depends="jar" description="Build Macintosh Application">
+    <target name="mac-app" description="Build Macintosh Application">
 <!--        <java classpath="." classname="com.sun.electric.Main" fork="true" outputproperty="version">-->
 <!--        	<arg value="-v"/>-->
 <!--        </java>-->
@@ -194,7 +194,7 @@
             <arg value="-a"/> <arg value="B" /> <arg value="${appdir}" />
         </exec>
         <exec executable="packaging/mkdmg.sh">
-            <arg value="${releasedir}"/> <arg value="${releasedir}" />
+            <arg value="Electric${version}"/> <arg value="${releasedir}" />
         </exec>
     </target>
 
