@@ -23,13 +23,17 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.tool.user.User;
+
+import javax.swing.filechooser.FileSystemView;
+import javax.swing.filechooser.FileView;
+import javax.swing.*;
 import java.io.File;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.FileNotFoundException;
-import java.util.Iterator;
-import java.util.ArrayList;
+import java.util.*;
 
 /**
  * Class for reading a text file that specifies
@@ -60,22 +64,33 @@ public class LibDirs {
     /** return list of Lib Dirs 
      * @return ArrayList of lib dirs
      */
-    public static Iterator getLibDirs() { return dirs.iterator(); }
-    
-    /** 
+    public static synchronized Iterator getLibDirs() {
+        ArrayList list = new ArrayList(dirs);
+        return list.iterator();
+    }
+
+    /**
      * Read in LibDirs file.
      * @return true on error.
      */
-    public static boolean readLibDirs()
+    public static boolean readLibDirs() {
+        String file = User.getWorkingDirectory() + File.separator + libDirsFile;
+        return readLibDirs(file);
+    }
+
+    /**
+     * Read in LibDirs file.
+     * @param libDirFile the lib dir file
+     * @return true on error.
+     */
+    public static synchronized boolean readLibDirs(String libDirFile)
     {
         // read current working dir first, if set to do so
         boolean error = false;
         dirs.clear();
         libDirsFiles.clear();
 
-        // if libDirsFile is not an absolute path, Java assumes
-        // it resides in the current working dir
-        if (parseFile(libDirsFile)) error = true;
+        if (parseFile(libDirFile)) error = true;
         return error;
     }
         
@@ -139,4 +154,119 @@ public class LibDirs {
         return false;
     }
 
+    // --------------------------------------------------------------
+
+    /**
+     * Allow JFileChooser to see libdir references as files. This should only
+     * be used when trying to open JELIB/ELIB libraries through a JFileChooser.
+     * We can't extend UnixFileSystemView or WindowsFileSystemView because they
+     * are private classes, so instead we must wrap them.
+     */
+    public static class LibDirFileSystemView extends FileSystemView {
+
+        private final FileSystemView osView;        // at run time java determines an OS-specific view
+        private final HashMap libFiles;             // key: absolute path; value: File
+
+        public LibDirFileSystemView(FileSystemView osView) {
+            this.osView = osView;
+            libFiles = new HashMap();
+        }
+
+        public File createFileObject(File dir, String filename) { return osView.createFileObject(dir, filename); }
+        public File createFileObject(String path) { return osView.createFileObject(path); }
+        protected File createFileSystemRoot(File f) {
+            throw new Error("Unsupported operation"); // can't access protected method of osView
+        }
+        public File createNewFolder(File containingDir) throws IOException {
+            return osView.createNewFolder(containingDir);
+        }
+        public File getChild(File parent, String fileName) { return osView.getChild(parent, fileName); }
+        public File getDefaultDirectory() { return osView.getDefaultDirectory(); }
+
+        public synchronized File [] getFiles(File dir, boolean useFileHiding) {
+            File [] usual = osView.getFiles(dir, useFileHiding);
+            libFiles.clear();
+
+            //System.out.println("Getting files for dir "+dir.getAbsolutePath());
+            File [] allFiles = dir.listFiles();
+            File libfile = null;
+            for (int i=0; i<allFiles.length; i++) {
+                File f = allFiles[i];
+                if (f.getName().equals(LibDirs.libDirsFile)) {
+                    libfile = f;
+                    break;
+                }
+            }
+            if (libfile == null) {
+                //System.out.println("No lib file, returning the usual: "+usual.length+" files");
+                return usual;
+            }
+
+            if (LibDirs.readLibDirs(libfile.getAbsolutePath())) {
+                System.out.println("Error reading libfile "+libfile.getAbsolutePath());
+                return osView.getFiles(dir, useFileHiding);
+            }
+            // amalgamate all of the files
+            ArrayList alllibfiles = new ArrayList();
+            if (usual.length != 0) alllibfiles.addAll(Arrays.asList(usual));
+
+            for (Iterator it = LibDirs.getLibDirs(); it.hasNext(); ) {
+                String str = (String)it.next();
+                File libdir = new File(str);
+                if (!libdir.exists()) continue;
+                if (!libdir.isDirectory()) continue;
+                File [] files = osView.getFiles(libdir, useFileHiding);
+                //System.out.println("Reading files from dir "+str+", found "+files.length+" files.");
+                if (files.length == 0) continue;
+                alllibfiles.addAll(Arrays.asList(files));
+                for (int i=0; i<files.length; i++) {
+                    libFiles.put(files[i].getAbsolutePath(), files[i]);
+                }
+            }
+            File [] all = new File[alllibfiles.size()];
+            for (int i=0; i<alllibfiles.size(); i++) {
+                File f = (File)alllibfiles.get(i);
+                all[i] = f;
+            }
+            return all;
+        }
+        public synchronized boolean isLibFile(File f) {
+            if (f == null) return false;
+            if (libFiles.containsKey(f.getAbsolutePath())) return true;
+            return false;
+        }
+
+        public File getHomeDirectory() { return osView.getHomeDirectory(); }
+        public File getParentDirectory(File dir) { return osView.getParentDirectory(dir); }
+        public File [] getRoots() { return osView.getRoots(); }
+        public String getSystemDisplayName(File f) { return osView.getSystemDisplayName(f); }
+        public Icon getSystemIcon(File f) { return osView.getSystemIcon(f); }
+        public String getSystemTypeDescription(File f) { return osView.getSystemTypeDescription(f); }
+        public boolean isComputerNode(File dir) { return osView.isComputerNode(dir); }
+        public boolean isDrive(File dir) { return osView.isDrive(dir); }
+        public boolean isFileSystem(File f) { return osView.isFileSystem(f); }
+        public boolean isFileSystemRoot(File dir) { return osView.isFileSystemRoot(dir); }
+        public boolean isFloppyDrive(File dir) { return osView.isFloppyDrive(dir); }
+        public boolean isHiddenFile(File f) { return osView.isHiddenFile(f); }
+        public boolean isParent(File folder, File file) {
+            // all lib files should look like they are in the current dir
+            if (isLibFile(file)) { return true; }
+            return osView.isParent(folder, file);
+        }
+        public boolean isRoot(File f) { return osView.isRoot(f); }
+        public Boolean isTraversable(File f) { return osView.isTraversable(f); }
+    }
+
+    public static class LibDirFileView extends FileView {
+        private LibDirFileSystemView view;
+        public LibDirFileView(LibDirFileSystemView view) {
+            this.view = view;
+        }
+
+        public String getName(File f) {
+            if (f == null) return null;
+            if (view.isLibFile(f)) return f.getName() + " [REF]";
+            return null;
+        }
+    }
 }

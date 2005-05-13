@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (05/13/05, JKG) Display LIBDIRS file in Open library dialog as if they
+    were part of the current directory.
+
+BUG: (05/13/05, JKG) LIBDIRS did not look for LIBDIRS file in directory
+    user was opening libraries from.  Fixed.
+
 ************************* Version 8.02n: *********************************
 
 IMP: (05/12/05, GVG) GetInfo (menu item) for ErrorLogger: printing number of errors and warnings.

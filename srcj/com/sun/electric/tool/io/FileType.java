@@ -112,7 +112,7 @@ public class FileType {
 		libraryTypesExtReadable = buf.toString();
 	}
 
-	/** Valid library formats as a Type */  public static final FileType LIBRARYFORMATS = makeFileType("LibraryFormtas", libraryTypesExt, "Library Formats "+libraryTypesExtReadable);
+	/** Valid library formats as a Type */  public static final FileType LIBRARYFORMATS = makeFileType("LibraryFormats", libraryTypesExt, "Library Formats "+libraryTypesExtReadable);
 
 	private String name;
 	private String [] extensions;

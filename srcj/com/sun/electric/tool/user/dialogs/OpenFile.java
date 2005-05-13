@@ -27,11 +27,14 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.LibDirs;
 
 import java.awt.FileDialog;
 import java.io.File;
+import java.util.Iterator;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileSystemView;
 
 public class OpenFile
 {
@@ -60,7 +63,29 @@ public class OpenFile
 						"Overwrite?", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 					if (result != JOptionPane.OK_OPTION) return;
 				}
-			}
+			} else {
+            // IF: Opening file found in LIBDIR redirect, then
+            // if user clicks on file and hits ok, it acts as if file
+            // is in current directory, which it is not.  We need to check
+            // libdir directories in this case.
+                FileSystemView view = getFileSystemView();
+                if ((view instanceof LibDirs.LibDirFileSystemView) && !f.exists()) {
+                    //LibDirs.LibDirFileSystemView lview = (LibDirs.LibDirFileSystemView)view;
+                    for (Iterator it = LibDirs.getLibDirs(); it.hasNext(); ) {
+                        String dirName = (String)it.next();
+                        File dir = new File(dirName);
+                        if (!dir.exists()) continue;
+                        if (!dir.isDirectory()) continue;
+                        File newFile = new File(dir, f.getName());
+                        if (newFile.exists()) {
+                            // assume it's this one
+                            f = newFile;
+                            break;
+                        }
+                    }
+                }
+            }
+
 			setSelectedFile(f);
 			User.setWorkingDirectory(getCurrentDirectory().getPath());
 			super.approveSelection();
@@ -114,8 +139,16 @@ public class OpenFile
 			OpenFileSwing dialog = new OpenFileSwing();
 			dialog.saveDialog = false;
 			dialog.setDialogTitle(title);
-			if (type != null) dialog.setFileFilter(type.getFileFilterSwing());
-			dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
+            dialog.setCurrentDirectory(new File(User.getWorkingDirectory()));
+			if (type != null) {
+                if (type == FileType.ELIB || type == FileType.JELIB ||
+                    type == FileType.LIBFILE || type == FileType.LIBRARYFORMATS) {
+                    LibDirs.LibDirFileSystemView view = new LibDirs.LibDirFileSystemView(dialog.getFileSystemView());
+                    dialog.setFileSystemView(view);
+                    dialog.setFileView(new LibDirs.LibDirFileView(view));
+                }
+                dialog.setFileFilter(type.getFileFilterSwing());
+            }
 			if (wantDirectory) dialog.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 //			dialog.setLocation(location.x, location.y);
 //			dialog.addComponentListener(new MoveComponentListener());
