@@ -368,6 +368,7 @@ public class FileMenu {
                 FileType defType = FileType.DEFAULTLIB;
                 String fileName = file.getFile();
                 defType = getLibraryFormat(fileName, defType);
+                User.setWorkingDirectory(TextUtils.getFilePath(file));
                 if (openALibrary(file, defType)) success = true;
             }
             if (success) {

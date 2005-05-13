@@ -71,20 +71,13 @@ public class LibDirs {
 
     /**
      * Read in LibDirs file.
-     * @return true on error.
+     * @param dir the directory that may contain a LIBDIRS file
+     * @return true on error, or no LIBDIRS file found.
      */
-    public static boolean readLibDirs() {
-        String file = User.getWorkingDirectory() + File.separator + libDirsFile;
-        return readLibDirs(file);
-    }
-
-    /**
-     * Read in LibDirs file.
-     * @param libDirFile the lib dir file
-     * @return true on error.
-     */
-    public static synchronized boolean readLibDirs(String libDirFile)
+    public static synchronized boolean readLibDirs(String dir)
     {
+        if (dir == null) return true;
+        String libDirFile = dir + File.separator + libDirsFile;
         // read current working dir first, if set to do so
         boolean error = false;
         dirs.clear();
@@ -187,24 +180,8 @@ public class LibDirs {
             File [] usual = osView.getFiles(dir, useFileHiding);
             libFiles.clear();
 
-            //System.out.println("Getting files for dir "+dir.getAbsolutePath());
-            File [] allFiles = dir.listFiles();
-            File libfile = null;
-            for (int i=0; i<allFiles.length; i++) {
-                File f = allFiles[i];
-                if (f.getName().equals(LibDirs.libDirsFile)) {
-                    libfile = f;
-                    break;
-                }
-            }
-            if (libfile == null) {
-                //System.out.println("No lib file, returning the usual: "+usual.length+" files");
+            if (LibDirs.readLibDirs(dir.getPath())) {
                 return usual;
-            }
-
-            if (LibDirs.readLibDirs(libfile.getAbsolutePath())) {
-                System.out.println("Error reading libfile "+libfile.getAbsolutePath());
-                return osView.getFiles(dir, useFileHiding);
             }
             // amalgamate all of the files
             ArrayList alllibfiles = new ArrayList();

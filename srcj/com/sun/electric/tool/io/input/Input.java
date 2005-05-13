@@ -46,6 +46,7 @@ import java.io.InputStream;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.net.URL;
@@ -106,7 +107,10 @@ public class Input
 		long startTime = System.currentTimeMillis();
         errorLogger = ErrorLogger.newInstance("Library Read");
 
-		LibDirs.readLibDirs();
+        File f = new File(fileURL.getPath());
+        if (f != null && f.exists()) {
+            LibDirs.readLibDirs(f.getParent());
+        }
 		LibraryFiles.initializeLibraryInput();
 
 		Library lib = null;
@@ -189,7 +193,11 @@ public class Input
 		// initialize timer, error log, etc
 		long startTime = System.currentTimeMillis();
         errorLogger = ErrorLogger.newInstance("File Import");
-		LibDirs.readLibDirs();
+
+        File f = new File(fileURL.getPath());
+        if (f != null && f.exists()) {
+            LibDirs.readLibDirs(f.getParent());
+        }
 
 		boolean formerQuiet = Undo.changesQuiet(true);
 		try {
