@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.02o: *********************************
+
 ************************* Version 8.02n: *********************************
 
 IMP: (05/12/05, GVG) GetInfo (menu item) for ErrorLogger: printing number of errors and warnings.
