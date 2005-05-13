@@ -198,7 +198,7 @@ public abstract class LibraryFiles extends Input
 		String legalLibName = TextUtils.getFileNameWithoutExtension(url);
 		String fileName = url.getFile();
 		File libFile = new File(fileName);
-System.out.println("Want: "+theFileName);
+//System.out.println("Want: "+theFileName);
 		// see if this library is already read in
 		String libFileName = libFile.getName();
 		
