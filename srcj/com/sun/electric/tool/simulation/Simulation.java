@@ -756,20 +756,6 @@ public class Simulation extends Listener
 	 */
 	public static void setIRSIMShowsCommands(boolean r) { cacheIRSIMShowsCommands.setBoolean(r); }
 
-	private static Pref cacheIRSIMParasiticLevel = Pref.makeIntPref("IRSIMParasiticLevel", Simulation.tool.prefs, 0);
-	/**
-	 * Method to tell the parasitic level for IRSIM extraction.
-	 * Values are 0: quick, 1: local, 2: full (hierarchical).
-	 * @return the parasitic level for IRSIM extraction.
-	 */
-	public static int getIRSIMParasiticLevel() { return cacheIRSIMParasiticLevel.getInt(); }
-	/**
-	 * Method to set the parasitic level for IRSIM extraction.
-	 * Values are 0: quick, 1: local, 2: full (hierarchical).
-	 * @param p the parasitic level for IRSIM extraction.
-	 */
-	public static void setIRSIMParasiticLevel(int p) { cacheIRSIMParasiticLevel.setInt(p); }
-
 	private static Pref cacheIRSIMDebugging = Pref.makeIntPref("IRSIMDebugging", Simulation.tool.prefs, 0);
 	/**
 	 * Method to tell the debugging level for IRSIM simulation.

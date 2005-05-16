@@ -65,7 +65,7 @@ public class ParasiticTool extends Listener{
 
     private static ErrorLogger errorLogger = ErrorLogger.newInstance("Parasitics Extraction");;
 
-    private ParasiticTool() { super("Parasitic");}
+    private ParasiticTool() { super("parasitic");}
 
 
     /**

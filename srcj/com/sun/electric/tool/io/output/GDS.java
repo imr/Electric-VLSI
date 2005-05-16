@@ -27,6 +27,7 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -193,7 +194,7 @@ public class GDS extends Geometry
 			List polyList = (List)cellGeom.polyMap.get(layer);
 			for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )
 			{
-				Poly poly = (Poly)polyIt.next();
+				PolyBase poly = (PolyBase)polyIt.next();
 				writePoly(poly, currentLayerNumbers.normal);
 			}
 		}
@@ -319,7 +320,7 @@ public class GDS extends Geometry
 		return validLayer;
 	}
 
-	protected void writePoly(Poly poly, int layerNumber)
+	protected void writePoly(PolyBase poly, int layerNumber)
 	{
 		// ignore negative layer numbers
 		if (layerNumber < 0) return;
@@ -707,7 +708,7 @@ public class GDS extends Geometry
 	}
 
 	// Output the pairs of XY points to the file 
-	private void outputBoundary(Poly poly, int layerNumber)
+	private void outputBoundary(PolyBase poly, int layerNumber)
 	{
 		Point2D [] points = poly.getPoints();
 
@@ -766,7 +767,7 @@ public class GDS extends Geometry
 		}
 	}
 
-	private void outputPath(Poly poly, int layerNumber)
+	private void outputPath(PolyBase poly, int layerNumber)
 	{
 		outputHeader(HDR_PATH, 0);
 		outputHeader(HDR_LAYER, layerNumber);

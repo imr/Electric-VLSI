@@ -167,6 +167,20 @@ public class Project extends Listener
 			ProjectCell pc = (ProjectCell)pl.byCell.get(cell);
 			return pc;
 		}
+
+		private String describe()
+		{
+			String cn = cellName;
+			if (cellView != View.UNKNOWN) cn += "{" + cellView.getAbbreviation() + "}";
+			return cn;
+		}
+
+		private String describeWithVersion()
+		{
+			String cn = cellName + ";" + cellVersion;
+			if (cellView != View.UNKNOWN) cn += "{" + cellView.getAbbreviation() + "}";
+			return cn;
+		}
 	}
 
 	private static class ProjectLibrary
@@ -478,8 +492,7 @@ public class Project extends Listener
 
 				// find the cell associated with this entry
 				pc.latestVersion = false;
-				String cellName = pc.cellName + ";" + pc.cellVersion;
-				if (pc.cellView != View.UNKNOWN) cellName += "{" + pc.cellView.getAbbreviation() + "}";
+				String cellName = pc.describeWithVersion();
 				pc.cell = lib.findNodeProto(cellName);
 				if (pc.cell != null)
 				{
@@ -508,7 +521,7 @@ public class Project extends Listener
 			for(Iterator it = allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
-				String cellEntry = pc.cellName + "{" + pc.cellView.getAbbreviation() + "}";
+				String cellEntry = pc.describe();
 				ProjectCell recent = (ProjectCell)mostRecent.get(cellEntry);
 				if (recent != null && recent.cellVersion > pc.cellVersion) continue;
 				mostRecent.put(cellEntry, pc);
@@ -516,7 +529,7 @@ public class Project extends Listener
 			for(Iterator it = allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
-				String cellEntry = pc.cellName + "{" + pc.cellView.getAbbreviation() + "}";
+				String cellEntry = pc.describe();
 				ProjectCell recent = (ProjectCell)mostRecent.get(cellEntry);
 				pc.latestVersion = (recent == pc);
 			}
@@ -1308,11 +1321,6 @@ public class Project extends Listener
 			// relase project file lock
 			pl.releaseProjectFileLock(true);
 
-for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
-{
-	ProjectCell xx = (ProjectCell)it.next();
-	System.out.println(xx.cellName+";"+xx.cellVersion+"{"+xx.cellView.getAbbreviation()+"} is cell: "+xx.cell);
-}
 			// if it worked, print dependencies and display
 			if (worked)
 			{
@@ -1550,7 +1558,7 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 			}
 
 			// replace former usage with new version
-			Cell formerCell = getCellFromRepository(pl, former, lib, false);
+			Cell formerCell = getCellFromRepository(pl, former, lib, false, null);
 			if (formerCell == null)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -1574,7 +1582,7 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 			pl.allCells.remove(cancelled);
 			if (cancelled.cell != null)
 			{
-				markLocked(cancelled.cell, false);
+				markLocked(cancelled.cell, true);
 				pl.byCell.remove(cancelled.cell);
 				cancelled.cell.kill();
 			}
@@ -1737,13 +1745,22 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 			// gather versions found in the project file
 			ProjectLibrary pl = ProjectLibrary.findProjectLibrary(cell.getLibrary());
 			List versions = new ArrayList();
-			ProjectCell foundPC = findProjectCellByNameView(pl, cell.getName(), cell.getView());
-			if (foundPC != null)
+			for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 			{
-				foundPC.checkInDate = "Not In Repository Yet";
-				versions.add(foundPC);
+				ProjectCell pc = (ProjectCell)it.next();
+				if (pc.cellName.equals(cell.getName()) && pc.cellView == cell.getView())
+				{
+					pc.checkInDate = "Not In Repository Yet";
+					versions.add(pc);
+				}
 			}
 
+//for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
+//{
+//	ProjectCell xx = (ProjectCell)it.next();
+//	System.out.println(xx.cellName+";"+xx.cellVersion+"{"+xx.cellView.getAbbreviation()+"} is cell: "+xx.cell+
+//		" owner="+xx.owner+" lastOwner="+xx.lastOwner);
+//}
 			// consider the files in the repository, too
 			String dirName = pl.projDirectory + File.separator + cell.getName();
 			File dir = new File(dirName);
@@ -2004,7 +2021,7 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 			// prevent tools (including this one) from seeing the change
 			setChangeStatus(true);
 
-			cell = getCellFromRepository(pl, foundPC, lib, false);
+			cell = getCellFromRepository(pl, foundPC, lib, false, null);
 			if (cell == null)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -2061,13 +2078,14 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 			setChangeStatus(true);
 
 			// get all recent cells
+			String userName = getCurrentUserName();
 			for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				if (!pc.latestVersion) continue;
 				if (pc.cell == null)
 				{
-					Cell cell = getCellFromRepository(pl, pc, lib, true);
+					Cell cell = getCellFromRepository(pl, pc, lib, true, null);
 					if (cell == null)
 					{
 						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -2076,7 +2094,10 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 					}
 				}
 				if (pc.cell != null)
-					markLocked(pc.cell, false);
+				{
+					boolean youOwn = userName.length() > 0 && pc.owner.equals(userName);
+					markLocked(pc.cell, !youOwn);
+				}
 			}
 
 			// allow changes
@@ -2114,38 +2135,24 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 
 			// check to see which cells are changed/added
 			int total = 0;
+			List updatedProjectCells = new ArrayList();
 			for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 			{
 				ProjectCell pc = (ProjectCell)it.next();
 				if (!pc.latestVersion) continue;
-				String cellName = pc.cellName;
-				if (pc.cellView != View.UNKNOWN) cellName += "{" + pc.cellView.getAbbreviation() + "}";
-				Cell oldCell = lib.findNodeProto(cellName);
+				Cell oldCell = lib.findNodeProto(pc.describe());
 				if (oldCell != null && oldCell.getVersion() >= pc.cellVersion) continue;
+				updatedProjectCells.add(pc);
+			}
+			for(;;)
+			{
+				Iterator it = updatedProjectCells.iterator();
+				if (!it.hasNext()) break;
+				ProjectCell pc = (ProjectCell)it.next();
+				Cell oldCell = lib.findNodeProto(pc.describe());
 
 				// this is a new one
-				Cell newCell = getCellFromRepository(pl, pc, lib, false);
-				if (newCell == null)
-				{
-					System.out.println("Error bringing in " + cellName);
-				} else
-				{
-					if (oldCell != null)
-					{
-						if (useNewestVersion(oldCell, newCell))
-						{
-							System.out.println("Error replacing instances of new " + oldCell.describe());
-						} else
-						{
-							System.out.println("Updated cell " + newCell.describe());
-						}
-						pl.byCell.remove(oldCell);
-					} else
-					{
-						System.out.println("Added new cell " + newCell.describe());
-					}
-					total++;
-				}
+				total += updateCellFromRepository(pl, pc, lib, oldCell, updatedProjectCells);
 			}
 
 			// restore change broadcast
@@ -2444,8 +2451,7 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 					ProjectCell pc = (ProjectCell)it.next();
 					if (!pc.owner.equals(getCurrentUserName())) continue;
 					if (infstr.length() > 0) infstr.append(", ");
-					infstr.append(pc.cellName);
-					if (pc.cellView != View.UNKNOWN) infstr.append("{" + pc.cellView.getAbbreviation() + "}");
+					infstr.append(pc.describe());
 				}
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 					"Before deleting a cell from the repository, you must check-in all of your work. " +
@@ -2789,7 +2795,7 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 	 * Method to get the latest version of the cell described by "pc" and return
 	 * the newly created cell.  Returns null on error.
 	 */
-	private static Cell getCellFromRepository(ProjectLibrary pl, ProjectCell pc, Library lib, boolean recursively)
+	private static Cell getCellFromRepository(ProjectLibrary pl, ProjectCell pc, Library lib, boolean recursively, List updatedProjectCells)
 	{
 		// figure out the library name
 		String libName = pl.projDirectory + File.separator + pc.cellName + File.separator + pc.cellVersion + "-" +
@@ -2801,8 +2807,7 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 		Library fLib = Input.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.libType, true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{
-			String cellNameInRepository = pc.cellName;
-			if (pc.cellView != View.UNKNOWN) cellNameInRepository += "{" + pc.cellView.getAbbreviation() + "}";
+			String cellNameInRepository = pc.describe();
 			Cell cur = fLib.findNodeProto(cellNameInRepository);
 			if (cur == null) System.out.println("Cannot find cell " + cellNameInRepository + " in library " + libName); else
 			{
@@ -2816,8 +2821,7 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 						Cell subCell = (Cell)ni.getProto();
 						if (subCell.getLibrary() != fLib) continue;
 
-						String subCellName = subCell.getName() + ";" + subCell.getVersion();
-						if (subCell.getView() != View.UNKNOWN) subCellName += "{" + subCell.getView().getAbbreviation() + "}";
+						String subCellName = describeFullCellName(subCell);
 						Cell foundSubCell = lib.findNodeProto(subCellName);
 						if (foundSubCell == null)
 						{
@@ -2829,14 +2833,13 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 									System.out.println("ERROR: cell " + subCellName + " does not exist, but it appears as cell " +
 										subCellPC.cell.describe());
 								}
-								getCellFromRepository(pl, subCellPC, lib, recursively);
+								getCellFromRepository(pl, subCellPC, lib, recursively, updatedProjectCells);
 							}
 						}
 					}
 				}
 
-				String cellName = cur.getName() + ";" + cur.getVersion();
-				if (cur.getView() != View.UNKNOWN) cellName += "{" + cur.getView().getAbbreviation() + "}";
+				String cellName = describeFullCellName(cur);
 				newCell = Cell.copyNodeProto(cur, lib, cellName, true);
 				if (newCell == null) System.out.println("Cannot copy cell " + cur.describe() + " from new library");
 			}
@@ -2852,6 +2855,91 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 			pl.byCell.put(newCell, pc);
 		}
 		return newCell;
+	}
+
+	/**
+	 * Method to get the latest version of the cell described by "pc" and return
+	 * the newly created cell.  Returns null on error.
+	 */
+	private static int updateCellFromRepository(ProjectLibrary pl, ProjectCell pc, Library lib, Cell oldCell, List updatedProjectCells)
+	{
+		// figure out the library name
+		String libName = pl.projDirectory + File.separator + pc.cellName + File.separator + pc.cellVersion + "-" +
+			pc.cellView.getFullName() + "." + pc.libType.getExtensions()[0];
+
+		// read the library
+		int total = 0;
+		Cell newCell = null;
+		String tempLibName = getTempLibraryName();
+		Library fLib = Input.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.libType, true);
+		if (fLib == null) System.out.println("Cannot read library " + libName); else
+		{
+			String cellNameInRepository = pc.describe();
+			Cell cur = fLib.findNodeProto(cellNameInRepository);
+			if (cur == null) System.out.println("Cannot find cell " + cellNameInRepository + " in library " + libName); else
+			{
+				// if doing a recursive cell copy, see if others should be copied first
+				for(Iterator it = cur.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)it.next();
+					if (!(ni.getProto() instanceof Cell)) continue;
+					Cell subCell = (Cell)ni.getProto();
+					if (subCell.getLibrary() != fLib) continue;
+
+					String subCellName = describeFullCellName(subCell);
+					Cell foundSubCell = lib.findNodeProto(subCellName);
+					if (foundSubCell == null)
+					{
+						foundSubCell = lib.findNodeProto(subCell.noLibDescribe());
+						ProjectCell subCellPC = findProjectCellByNameViewVersion(pl, subCell.getName(), subCell.getView(), subCell.getVersion());
+						if (subCellPC != null)
+						{
+							if (subCellPC.cell != null)
+							{
+								System.out.println("ERROR: cell " + subCellName + " does not exist, but it appears as cell " +
+									subCellPC.cell.describe());
+							}
+							if (!updatedProjectCells.contains(subCellPC))
+							{
+								System.out.println("ERROR: cell " + subCellName + " needs to be updated but isn't in the list");
+							}
+							total += updateCellFromRepository(pl, subCellPC, lib, foundSubCell, updatedProjectCells);
+						}
+					}
+				}
+
+				String cellName = describeFullCellName(cur);
+				newCell = Cell.copyNodeProto(cur, lib, cellName, true);
+				if (newCell == null) System.out.println("Cannot copy cell " + cur.describe() + " from new library");
+			}
+
+			// kill the library
+			fLib.kill("");
+		}
+
+		// return the new cell
+		if (newCell != null)
+		{
+			pc.cell = newCell;
+			pl.byCell.put(newCell, pc);
+			if (oldCell != null)
+			{
+				if (useNewestVersion(oldCell, newCell))
+				{
+					System.out.println("Error replacing instances of new " + oldCell.describe());
+				} else
+				{
+					System.out.println("Updated cell " + newCell.describe());
+				}
+				pl.byCell.remove(oldCell);
+			} else
+			{
+				System.out.println("Added new cell " + newCell.describe());
+			}
+			total++;
+		}
+		updatedProjectCells.remove(pc);
+		return total;
 	}
 
 	private static boolean useNewestVersion(Cell oldCell, Cell newCell)
@@ -2969,9 +3057,7 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 			if (oCell != null) continue;
 
 			if (cell.getView().isTextView()) continue;
-			String newName = cell.getName() + ";" + cell.getVersion();
-			if (cell.getView() != View.UNKNOWN)
-				newName += "{" + cell.getView().getAbbreviation() + "}";
+			String newName = describeFullCellName(cell);
 			oCell = Cell.makeInstance(toLib, newName);
 			if (oCell == null)
 			{
@@ -2990,14 +3076,19 @@ for(Iterator it = pl.allCells.iterator(); it.hasNext(); )
 		Cell newFromCell = toLib.findNodeProto(fromCell.noLibDescribe());
 		if (newFromCell == null)
 		{
-			String newName = fromCell.getName() + ";" + fromCell.getVersion();
-			if (fromCell.getView() != View.UNKNOWN)
-				newName += "{" + fromCell.getView().getAbbreviation() + "}";
+			String newName = describeFullCellName(fromCell);
 			newFromCell = Cell.copyNodeProto(fromCell, toLib, newName, true);
 			if (newFromCell == null) return null;
 		}
 
 		return newFromCell;
+	}
+
+	private static String describeFullCellName(Cell cell)
+	{
+		String cellName = cell.getName() + ";" + cell.getVersion();
+		if (cell.getView() != View.UNKNOWN) cellName += "{" + cell.getView().getAbbreviation() + "}";
+		return cellName;
 	}
 
 	private static ProjectCell findProjectCellByNameView(ProjectLibrary pl, String name, View view)

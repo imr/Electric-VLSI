@@ -65,7 +65,6 @@ import com.sun.electric.tool.user.dialogs.MoveBy;
 import com.sun.electric.tool.user.dialogs.SelectObject;
 import com.sun.electric.tool.user.dialogs.SpecialProperties;
 import com.sun.electric.tool.user.dialogs.Spread;
-import com.sun.electric.tool.user.tecEdit.Calibre;
 import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
@@ -347,7 +346,7 @@ public class EditMenu {
 		cleanupSubMenu.addMenuItem("_Shorten Selected Arcs", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
 
-		// mnemonic keys available:     E GH JK M O QRS UVWXYZ
+		// mnemonic keys available:  B  E GH JK M O QRS UVWXYZ
 		MenuBar.Menu specialSubMenu = MenuBar.makeMenu("Technolo_gy Specific");
 		editMenu.add(specialSubMenu);
 		specialSubMenu.addMenuItem("Toggle Port _Negation", KeyStroke.getKeyStroke('T', buckyBit),
@@ -357,34 +356,32 @@ public class EditMenu {
 
 		specialSubMenu.addSeparator();
 
-		// mnemonic keys available:  BCDEFGHIJKLMNO QRSTUVWXYZ
+		// mnemonic keys available:  B DEFG IJKLM O Q  TUV XYZ
 		MenuBar.Menu fpgaSubMenu = MenuBar.makeMenu("_FPGA");
 		specialSubMenu.add(fpgaSubMenu);
 		fpgaSubMenu.addMenuItem("Read _Architecture And Primitives...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.readArchitectureFile(true); }});
-		fpgaSubMenu.addMenuItem("Read _Primitives...", null,
+		fpgaSubMenu.addMenuItem("Read P_rimitives...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.readArchitectureFile(false); }});
 		fpgaSubMenu.addSeparator();
-		fpgaSubMenu.addMenuItem("Edit Pips...", null,
+		fpgaSubMenu.addMenuItem("Edit _Pips...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.programPips(); }});
 		fpgaSubMenu.addSeparator();
-		fpgaSubMenu.addMenuItem("Show No Wires", null,
+		fpgaSubMenu.addMenuItem("Show _No Wires", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.setWireDisplay(0); }});
-		fpgaSubMenu.addMenuItem("Show Active Wires", null,
+		fpgaSubMenu.addMenuItem("Show A_ctive Wires", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.setWireDisplay(1); }});
-		fpgaSubMenu.addMenuItem("Show All Wires", null,
+		fpgaSubMenu.addMenuItem("Show All _Wires", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.setWireDisplay(2); }});
 		fpgaSubMenu.addSeparator();
-		fpgaSubMenu.addMenuItem("Show Text", null,
+		fpgaSubMenu.addMenuItem("_Show Text", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.setTextDisplay(true); }});
-		fpgaSubMenu.addMenuItem("Hide Text", null,
+		fpgaSubMenu.addMenuItem("_Hide Text", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FPGA.setTextDisplay(false); }});
 
 		specialSubMenu.addSeparator();
 		specialSubMenu.addMenuItem("Convert Technology to _Library for Editing...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { TechToLib.makeLibFromTech(); }});
-		specialSubMenu.addMenuItem("Import Cali_bre File...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Calibre.readCalibre(); }});
 		specialSubMenu.addMenuItem("Convert Library to _Technology...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { LibToTech.makeTechFromLib(); }});
 		specialSubMenu.addSeparator();

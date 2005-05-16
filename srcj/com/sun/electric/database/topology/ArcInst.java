@@ -1678,7 +1678,12 @@ public class ArcInst extends Geometric implements Comparable
 	 * This should not normally be called by any other part of the system.
 	 * @param userBits the new "user bits".
 	 */
-	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+	public void lowLevelSetUserbits(int userBits)
+	{
+		boolean extensionChanged = (this.userBits&(TAILNOEXTEND|HEADNOEXTEND)) != (userBits&(TAILNOEXTEND|HEADNOEXTEND));
+		this.userBits = userBits;
+		if (isLinked() && extensionChanged) updateGeometric(getAngle());
+	}
 
 	/**
 	 * Method to copy the various state bits from another ArcInst to this ArcInst.

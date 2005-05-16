@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.NodeUsage;
@@ -37,6 +38,7 @@ import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
@@ -46,6 +48,8 @@ import java.awt.geom.AffineTransform;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Base class for writing geometry to a file
@@ -200,8 +204,6 @@ public abstract class Geometry extends Output
 
     //------------------HierarchyEnumerator.Visitor Implementation----------------------
 
-	private static boolean mergeWarning = false;
-
     public class Visitor extends HierarchyEnumerator.Visitor
     {
         /** Geometry object this Visitor is enumerating for */	private Geometry outGeom;
@@ -248,20 +250,34 @@ public abstract class Geometry extends Output
         public void exitCell(HierarchyEnumerator.CellInfo info) 
         {
             // add arcs to cellGeom
-    		for (Iterator it = info.getCell().getArcs(); it.hasNext();) {
+    		for (Iterator it = info.getCell().getArcs(); it.hasNext();)
+			{
         		ArcInst ai = (ArcInst) it.next();
 				addArcInst(ai);
             }
             
-            if (outGeom.mergeGeom(maxHierDepth - curHierDepth))
+            boolean merge = outGeom.mergeGeom(maxHierDepth - curHierDepth);
+			if (merge)
 			{
-                // merging takes place here
-				if (!mergeWarning)
+				PolyMerge pMerge = new PolyMerge();
+				Set layers = cellGeom.polyMap.keySet();
+				for (Iterator it = layers.iterator(); it.hasNext();)
 				{
-					mergeWarning = true;
-					System.out.println("Cannot merge geometry yet");
+					Layer layer = (Layer)it.next();
+					List polyList = (List)cellGeom.polyMap.get(layer);
+					for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )
+					{
+						Poly poly = (Poly)polyIt.next();
+						pMerge.addPolygon(layer, poly);
+					}
 				}
-            }           
+				for (Iterator it = layers.iterator(); it.hasNext();)
+				{
+					Layer layer = (Layer)it.next();
+					List polys = pMerge.getMergedPoints(layer, true);
+					cellGeom.polyMap.put(layer, polys);
+				}
+			}
 
             // write cell
             outGeom.writeCellGeom(cellGeom);
@@ -280,7 +296,6 @@ public abstract class Geometry extends Output
     			if (ni.getProto() == Generic.tech.cellCenterNode) return false;
                 AffineTransform trans = ni.rotateOut();
 				addNodeInst(ni, trans);
-               
                 return false;
     		}
 

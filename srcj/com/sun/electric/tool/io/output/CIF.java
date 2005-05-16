@@ -29,6 +29,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -210,11 +211,19 @@ public class CIF extends Geometry
 			List polyList = (List)cellGeom.polyMap.get(layer);
 			for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )
 			{
-				PolyWithGeom pg = (PolyWithGeom)polyIt.next();
-				Poly poly = pg.poly;
-				writePoly(poly, cellGeom.cell, pg.geom);
+				if (includeGeometric())
+				{
+					PolyWithGeom pg = (PolyWithGeom)polyIt.next();
+					Poly poly = pg.poly;
+					writePoly(poly, cellGeom.cell, pg.geom);
+				} else
+				{
+					PolyBase poly = (PolyBase)polyIt.next();
+					writePoly(poly, cellGeom.cell, null);
+				}
 			}
 		}
+
 		// write all instances
 		for (Iterator noIt = cellGeom.cell.getNodes(); noIt.hasNext(); )
 		{
@@ -234,9 +243,14 @@ public class CIF extends Geometry
 	}
 	   
     /**
-     * Method to determine whether or not to include the original Geometric with a Poly
+     * Method to determine whether or not to include the original Geometric with a Poly.
+     * Only includes Geometric information if NOT merging boxes, because if merging
+     * boxes, then the original Geometric information is lost.
      */
-    protected boolean includeGeometric() { return true; }
+    protected boolean includeGeometric()
+	{
+		return !IOTool.isCIFOutMergesBoxes();
+	}
     
     /** Overridable method to determine the current EditWindow to use for text scaling */
     protected EditWindow windowBeingRendered() { return null; }
@@ -253,7 +267,7 @@ public class CIF extends Geometry
 		return false;
 	}
 
-	protected void writePoly(Poly poly, Cell cell, Geometric geom)
+	protected void writePoly(PolyBase poly, Cell cell, Geometric geom)
 	{
 		Point2D [] points = poly.getPoints();
 
@@ -381,7 +395,7 @@ public class CIF extends Geometry
 	/**
 	 * Check Poly for CIF Resolution Errors
 	 */
-	protected void checkResolution(Poly poly, Cell cell, Geometric geom)
+	protected void checkResolution(PolyBase poly, Cell cell, Geometric geom)
 	{
 		if (minAllowedResolution == 0) return;
 		ArrayList badpoints = new ArrayList();

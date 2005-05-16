@@ -4,6 +4,17 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (05/15/05, SMR) CIF and GDS output merging now works.
+
+IMP/MAN: (05/16/05, SMR) Removed multithreaded DRC and Dracula interface from DRC preferences.
+
+BUG: (05/16/05, SMR) Cross-library copy may get cell sizes wrong (Bug #314).
+FIX: In ArcInst.lowLevelSetUserbits(), must update arc extent if end extension changes.
+
+BUG: (05/16/05, SMR) Changing an arc (with its nodes) from one layer to another doesn't work
+     if there are exports on the pin nodes (Bug #317).
+FIX: In Change.replaceAllArcs(), allow exported pins, and move the exports to the new pins.
+
 IMP: (05/16/05, SMR) Further changes for Project Management.
 
 IMP: (05/13/05, JKG) Display LIBDIRS file in Open library dialog as if they

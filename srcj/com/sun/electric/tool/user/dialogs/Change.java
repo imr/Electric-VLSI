@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.ArcProto;
@@ -868,8 +869,7 @@ public class Change extends EDialog implements HighlightListener
 		}
 
 		/**
-		 * Method to replace arcs in "list" (that match the first arc there) with another of type
-		 * "ap", adding layer-change contacts
+		 * Method to replace arc "oldAi" with another of type "ap", adding layer-change contacts
 		 * as needed to keep the connections.  If "connected" is true, replace all such arcs
 		 * connected to this.  If "thiscell" is true, replace all such arcs in the cell.
 		 */
@@ -912,7 +912,7 @@ public class Change extends EDialog implements HighlightListener
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getProto() instanceof Cell) continue;
-				if (ni.getNumExports() != 0) continue;
+//				if (ni.getNumExports() != 0) continue;
 				if (ni.getFunction() != PrimitiveNode.Function.PIN) continue;
 				boolean allArcs = true;
 				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
@@ -942,8 +942,18 @@ public class Change extends EDialog implements HighlightListener
 				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell, 0, ni.getName(), 0);
 				if (newNi == null) return;
 				geomMarked.remove(newNi);
-//				newNi.clearBit(marked);
 				newNodes.put(ni, newNi);
+
+				// move exports
+				for(Iterator eIt = ni.getExports(); eIt.hasNext(); )
+				{
+					Export oldExport = (Export)eIt.next();
+					if (oldExport.move(newNi.getOnlyPortInst()))
+					{
+						System.out.println("Unable to move export " + oldExport.getName() + " from old pin " + ni.describe() +
+							" to new pin " + newNi);
+					}
+				}
 			}
 
 			// now create new arcs to replace the old ones
@@ -1015,7 +1025,8 @@ public class Change extends EDialog implements HighlightListener
 			for(Iterator it = killNodes.iterator(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				ni.kill();
+				if (ni.getNumExports() == 0)
+					ni.kill();
 			}
 		}
 
