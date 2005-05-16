@@ -198,7 +198,7 @@ public abstract class LibraryFiles extends Input
 		String legalLibName = TextUtils.getFileNameWithoutExtension(url);
 		String fileName = url.getFile();
 		File libFile = new File(fileName);
-//System.out.println("Want: "+theFileName);
+
 		// see if this library is already read in
 		String libFileName = libFile.getName();
 		
@@ -309,7 +309,9 @@ public abstract class LibraryFiles extends Input
                 progress.setNote("Reading referenced library " + legalLibName + "...");
             }
 
-            elib = readALibrary(externalURL, elib, importType);
+			// get the library name
+			String eLibName = TextUtils.getFileNameWithoutExtension(externalURL);
+            elib = readALibrary(externalURL, elib, eLibName, importType);
             progress.setProgress((int)(byteCount * 100 / fileLength));
             progress.setNote(oldNote);
         }

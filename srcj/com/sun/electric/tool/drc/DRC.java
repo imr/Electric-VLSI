@@ -532,6 +532,7 @@ public class DRC extends Listener
 	public static double getMaxSurround(Layer layer, double maxSize)
 	{
 		Technology tech = layer.getTechnology();
+		if (tech == null) return -1;
 		DRCRules rules = getRules(tech);
 		if (rules == null) return -1;
 
@@ -599,6 +600,7 @@ public class DRC extends Listener
 	public static DRCRules.DRCRule getMinValue(Layer layer, int type, int techmode)
 	{
 		Technology tech = layer.getTechnology();
+		if (tech == null) return null;
 		DRCRules rules = getRules(tech);
 		if (rules == null) return null;
         return (rules.getMinValue(layer, type, techmode));

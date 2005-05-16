@@ -247,7 +247,7 @@ public class PLA
 		if (cellLib == null)
 		{
 			URL url = LibFile.getLibFile(libName + ".jelib");
-			cellLib = Input.readLibrary(url, FileType.JELIB);
+			cellLib = Input.readLibrary(url, null, FileType.JELIB, false);
 	        Undo.noUndoAllowed();
 		}
 

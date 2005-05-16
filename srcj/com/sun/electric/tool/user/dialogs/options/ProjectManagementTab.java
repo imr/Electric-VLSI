@@ -84,6 +84,7 @@ public class ProjectManagementTab extends PreferencePanel
 		initialRepository = Project.getRepositoryLocation();
 		repositoryTextArea.setText(initialRepository);
 		initialUserName = Project.getCurrentUserName();
+		if (initialUserName.length() == 0) initialUserName = "NOBODY LOGGED IN";
 		currentUserLabel.setText("Logged-in user: " + initialUserName);
 
 		userModel = new DefaultListModel();
@@ -183,8 +184,9 @@ public class ProjectManagementTab extends PreferencePanel
 					case CHANGEPASSWORD:
 						// validate the dialog
 						String givenPassword = new String(oldPassword.getPassword()).trim();
-						String realPassword = Project.getPassword(userName);
-						if (!givenPassword.equals(realPassword))
+						String encryptedPassword = Project.getEncryptedPassword(userName);
+						String encryptedGivenPassword = Project.encryptPassword(givenPassword);
+						if (!encryptedGivenPassword.equals(encryptedPassword))
 						{
 							JOptionPane.showMessageDialog(this, "Incorrect password given for user " + userName,
 								"Invalid Password", JOptionPane.ERROR_MESSAGE);
@@ -205,8 +207,9 @@ public class ProjectManagementTab extends PreferencePanel
 					case LOGINUSER:
 						// validate the dialog
 						givenPassword = new String(password.getPassword()).trim();
-						realPassword = Project.getPassword(userName);
-						if (!givenPassword.equals(realPassword))
+						encryptedPassword = Project.getEncryptedPassword(userName);
+						encryptedGivenPassword = Project.encryptPassword(givenPassword);
+						if (!encryptedGivenPassword.equals(encryptedPassword))
 						{
 							JOptionPane.showMessageDialog(this, "Incorrect password given for user " + userName,
 								"Invalid Password", JOptionPane.ERROR_MESSAGE);
@@ -218,8 +221,8 @@ public class ProjectManagementTab extends PreferencePanel
 					case AUTHORIZE:
 						// validate the dialog
 						givenPassword = new String(password.getPassword()).trim();
-						realPassword = "e";
-						if (!givenPassword.equals(realPassword))
+						encryptedPassword = Project.getAuthorizationPassword();
+						if (!givenPassword.equals(encryptedPassword))
 						{
 							JOptionPane.showMessageDialog(this, "Incorrect administrator password",
 								"Invalid Password", JOptionPane.ERROR_MESSAGE);
@@ -256,7 +259,7 @@ public class ProjectManagementTab extends PreferencePanel
 					getContentPane().add(lab1, gbc);
 
 					userNameField = new JTextField("");
-					userNameField.setColumns(10);
+					userNameField.setColumns(20);
 					gbc = new GridBagConstraints();
 					gbc.gridx = 1;   gbc.gridy = 0;
 					gbc.anchor = GridBagConstraints.CENTER;
@@ -308,7 +311,7 @@ public class ProjectManagementTab extends PreferencePanel
 					getContentPane().add(lab1, gbc);
 
 					oldPassword = new JPasswordField("");
-					oldPassword.setColumns(10);
+					oldPassword.setColumns(20);
 					gbc = new GridBagConstraints();
 					gbc.gridx = 1;   gbc.gridy = 0;
 					gbc.anchor = GridBagConstraints.CENTER;
@@ -761,8 +764,8 @@ public class ProjectManagementTab extends PreferencePanel
 
 		// create the user and redisplay
 		String userName = pwd.getUserName();
-		String password = pwd.getPassword();
-		Project.addUser(userName, password);
+		String encryptedPassword = Project.encryptPassword(pwd.getPassword());
+		Project.addUser(userName, encryptedPassword);
 		reloadUsers();
 	}//GEN-LAST:event_addButtonActionPerformed
 
@@ -782,8 +785,8 @@ public class ProjectManagementTab extends PreferencePanel
 		if (pwd.cancelled()) return;
 
 		// make the change
-		String password = pwd.getPassword();
-		Project.changePassword(userName, password);
+		String encryptedPassword = Project.encryptPassword(pwd.getPassword());
+		Project.changeEncryptedPassword(userName, encryptedPassword);
 	}//GEN-LAST:event_passwordButtonActionPerformed
 
 	private void loginButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_loginButtonActionPerformed

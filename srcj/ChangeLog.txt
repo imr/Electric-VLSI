@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (05/16/05, SMR) Further changes for Project Management.
+
 IMP: (05/13/05, JKG) Display LIBDIRS file in Open library dialog as if they
     were part of the current directory.
 
@@ -11,6 +13,9 @@ BUG: (05/13/05, JKG) LIBDIRS did not look for LIBDIRS file in directory
     user was opening libraries from.  Fixed. (Bug #313)
 
 ************************* Version 8.02n: *********************************
+
+BUG: (05/13/05, SMR) Invisible Pins are drawn too large.
+FIX: In Artwork.getShapeOfNode(), change the method on the last linee from "computeShapeOfNode" to "super.getShapeOfNode"
 
 IMP: (05/12/05, GVG) GetInfo (menu item) for ErrorLogger: printing number of errors and warnings.
 

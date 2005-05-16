@@ -929,13 +929,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			{
 				Cell cell = (Cell)currentSelectedObject;
 				JPopupMenu menu = new JPopupMenu("Cell");
-				int projStatus = Project.getCellStatus(cell);
-//				{
-//					case Project.NOTMANAGED:         setIcon(ig.regular);     break;
-//					case Project.CHECKEDIN:          setIcon(ig.available);   break;
-//					case Project.CHECKEDOUTTOOTHERS: setIcon(ig.locked);      break;
-//					case Project.CHECKEDOUTTOYOU:    setIcon(ig.unlocked);    break;
-//				}
 
 				JMenuItem menuItem = new JMenuItem("Edit");
 				menu.add(menuItem);
@@ -945,7 +938,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.add(menuItem);
 				menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { editCellAction(true); } });
 
-				if (projStatus == Project.CHECKEDIN || projStatus == Project.CHECKEDOUTTOYOU)
+				int projStatus = Project.getCellStatus(cell);
+				if (projStatus != Project.OLDVERSION &&
+					(projStatus != Project.NOTMANAGED || Project.isLibraryManaged(cell.getLibrary())))
 				{
 					menu.addSeparator();
 
@@ -954,11 +949,33 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 						menuItem = new JMenuItem("Check Out");
 						menu.add(menuItem);
 						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkOut((Cell)currentSelectedObject); } });
-					} else
+					}
+					if (projStatus == Project.CHECKEDOUTTOYOU)
 					{
 						menuItem = new JMenuItem("Check In...");
 						menu.add(menuItem);
 						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkIn((Cell)currentSelectedObject); } });
+
+						menuItem = new JMenuItem("Cancel Check-Out");
+						menu.add(menuItem);
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.cancelCheckOut((Cell)currentSelectedObject); } });
+					}
+					if (projStatus == Project.NOTMANAGED)
+					{
+						menuItem = new JMenuItem("Add To Repository");
+						menu.add(menuItem);
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addCell((Cell)currentSelectedObject); } });
+					} else
+					{
+						menuItem = new JMenuItem("Show History of This Cell...");
+						menu.add(menuItem);
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.examineHistory((Cell)currentSelectedObject); } });
+					}
+					if (projStatus == Project.CHECKEDIN || projStatus == Project.CHECKEDOUTTOYOU)
+					{
+						menuItem = new JMenuItem("Remove From Repository");
+						menu.add(menuItem);
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.removeCell((Cell)currentSelectedObject); } });
 					}
 				}
 
@@ -1071,6 +1088,20 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					menuItem = new JMenuItem("Make This the Current Library");
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { setCurLibAction(); } });
+				}
+
+				menu.addSeparator();
+
+				if (Project.isLibraryManaged(lib))
+				{
+					menuItem = new JMenuItem("Update from Repository");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.updateProject(); } });
+				} else
+				{
+					menuItem = new JMenuItem("Add to Project Management Repository");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addALibrary((Library)currentSelectedObject); } });
 				}
 
 				menu.addSeparator();

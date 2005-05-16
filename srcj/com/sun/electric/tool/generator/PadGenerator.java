@@ -531,7 +531,7 @@ public class PadGenerator {
                     if (TextUtils.getExtension(fileURL).equals("elib")) style = FileType.ELIB;
                     Library saveLib = Library.getCurrent();
                     cellLib = Library.newInstance(TextUtils.getFileNameWithoutExtension(fileURL), fileURL);
-                    cellLib = Input.readLibrary(fileURL, style);
+                    cellLib = Input.readLibrary(fileURL, null, style, false);
                     if (cellLib == null) {
                         err("cannot read library " + keyWord);
                         return false;

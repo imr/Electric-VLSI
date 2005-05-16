@@ -1345,7 +1345,7 @@ public class ToolMenu {
 				// read standard cell library
 				System.out.println("Reading Standard Cell Library '" + SCLIBNAME + "' ...");
 				URL fileURL = LibFile.getLibFile(SCLIBNAME + ".jelib");
-				Library lib = Input.readLibrary(fileURL, FileType.JELIB);
+				Library lib = Input.readLibrary(fileURL, null, FileType.JELIB, false);
 		        Undo.noUndoAllowed();
 				if (lib != null) SilComp.setCellLib(lib);
 				System.out.println(" Done");

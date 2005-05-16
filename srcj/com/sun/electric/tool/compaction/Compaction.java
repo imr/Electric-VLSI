@@ -114,7 +114,7 @@ public class Compaction extends Listener
 
 		private CompactCellJob(Cell cell, boolean lastTime, CompactCell.Axis curAxis)
 		{
-			super("Compact Cell", Compaction.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Compact Cell", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.lastTime = lastTime;
 			this.curAxis = curAxis;
@@ -142,7 +142,7 @@ public class Compaction extends Listener
 
 	/****************************** OPTIONS ******************************/
 
-	private static Pref cacheAllowSpreading = Pref.makeBooleanPref("AllowSpreading", Compaction.tool.prefs, false);
+	private static Pref cacheAllowSpreading = Pref.makeBooleanPref("AllowSpreading", tool.prefs, false);
 	/**
 	 * Method to tell whether the compactor can spread circuitry apart, or just compact it.
 	 * The default is "false".

@@ -197,7 +197,7 @@ public class FileMenu {
 
         fileMenu.addSeparator();
 
-        // mnemonic keys available:  BCDEFGH JK MN PQ ST  WXYZ
+        // mnemonic keys available:  B DEFG  JK MN PQ ST VWXYZ
 		MenuBar.Menu projectSubMenu = MenuBar.makeMenu("Project Management");
 		fileMenu.add(projectSubMenu);
 		projectSubMenu.addMenuItem("_Update", null,
@@ -207,13 +207,17 @@ public class FileMenu {
 		projectSubMenu.addMenuItem("Check _In This Cell...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkInThisCell(); } });
 		projectSubMenu.addSeparator();
+		projectSubMenu.addMenuItem("_Cancel Check-Out", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.cancelCheckOutThisCell(); } });
 		projectSubMenu.addMenuItem("_Add This Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addThisCell(); } });
 		projectSubMenu.addMenuItem("_Remove This Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.removeThisCell(); } });
-		projectSubMenu.addMenuItem("Get Old _Version of This Cell", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.getOldVersions(); } });
+		projectSubMenu.addMenuItem("Examine _History of This Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.examineThisHistory(); } });
 		projectSubMenu.addSeparator();
+		projectSubMenu.addMenuItem("Get Library From Repository...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.getALibrary(); } });
 		projectSubMenu.addMenuItem("Add Current _Library To Repository", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addThisLibrary(); } });
 
@@ -389,7 +393,7 @@ public class FileMenu {
     	Library lib = null;
     	if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.READABLEDUMP)
         {
-    		lib = Input.readLibrary(fileURL, type);
+    		lib = Input.readLibrary(fileURL, null, type, false);
         } else
         {
     		lib = Input.importLibrary(fileURL, type);

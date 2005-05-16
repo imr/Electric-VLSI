@@ -360,7 +360,7 @@ public class TextUtils
 		return numberFormatSpecific.format(v);
 	}
 
-	private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMMM dd, yyyy HH:mm:ss");
+	private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd, yyyy HH:mm:ss");
 
 	/**
 	 * Method to convert a Date to a String using local TimeZone.

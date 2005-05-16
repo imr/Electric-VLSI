@@ -98,10 +98,13 @@ public class Input
 	 * Method to read a Library from disk.
 	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
 	 * @param fileURL the URL to the disk file.
+	 * @param libName the name to give the library (null to derive it from the file path)
 	 * @param type the type of library file (ELIB, JELIB, etc.)
+	 * @param quick true to read the library without verbosity or "meaning variable" reconciliation
+	 * (used when reading a library internally).
 	 * @return the read Library, or null if an error occurred.
 	 */
-	public static synchronized Library readLibrary(URL fileURL, FileType type)
+	public static synchronized Library readLibrary(URL fileURL, String libName, FileType type, boolean quick)
 	{
 		if (fileURL == null) return null;
 		long startTime = System.currentTimeMillis();
@@ -139,7 +142,11 @@ public class Input
 				}
 			}
 			if (exists)
-				lib = readALibrary(fileURL, null, type);
+			{
+				// get the library name
+				if (libName == null) libName = TextUtils.getFileNameWithoutExtension(fileURL);
+				lib = readALibrary(fileURL, null, libName, type);
+			}
 			if (LibraryFiles.VERBOSE)
 				System.out.println("Done reading data for all libraries");
 
@@ -152,7 +159,7 @@ public class Input
 		}
 		Undo.changesQuiet(formerQuiet);
 
-		if (lib != null)
+		if (lib != null && !quick)
 		{
 			long endTime = System.currentTimeMillis();
 			float finalTime = (endTime - startTime) / 1000F;
@@ -281,12 +288,8 @@ public class Input
 	 * @param type the type of library file (ELIB, CIF, GDS, etc.)
 	 * @return the read Library, or null if an error occurred.
 	 */
-	protected static Library readALibrary(URL fileURL, Library lib, FileType type)
+	protected static Library readALibrary(URL fileURL, Library lib, String libName, FileType type)
 	{
-		// get the library file name and path
-		String libName = TextUtils.getFileNameWithoutExtension(fileURL);
-//		String extension = TextUtils.getExtension(fileURL);
-
 		// handle different file types
 		LibraryFiles in;
 		if (type == FileType.ELIB)

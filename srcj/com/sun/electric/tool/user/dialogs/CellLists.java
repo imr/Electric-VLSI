@@ -536,7 +536,7 @@ public class CellLists extends EDialog
 		String header = "Cell";
 		for(int i=4; i<maxLen; i++) header += "-";
 		header += "Version--------Creation date";
-		header += "---------------Revision Date----------------Size-------Usage--L-I-C-D";
+		header += "---------------Revision Date--------------Size-------Usage--L-I-C-D";
 		System.out.println(header);
 	}
 

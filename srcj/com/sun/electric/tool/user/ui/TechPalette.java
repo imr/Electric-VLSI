@@ -742,7 +742,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         public boolean doIt()
         {
-            Library lib = Input.readLibrary(fileURL, FileType.READABLEDUMP);
+            Library lib = Input.readLibrary(fileURL, null, FileType.READABLEDUMP, false);
             Undo.noUndoAllowed();
             if (lib == null) return false;
             for(Iterator it = lib.getCells(); it.hasNext(); )

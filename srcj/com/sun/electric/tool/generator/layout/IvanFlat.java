@@ -232,7 +232,7 @@ public class IvanFlat extends Job {
 		Library lib = Library.findLibrary(libNm);
 		if (lib==null) {
 			URL libFileURL = TextUtils.makeURLToFile(libFileNm);
-			Input.readLibrary(libFileURL, FileType.ELIB);
+			Input.readLibrary(libFileURL, null, FileType.ELIB, false);
 			lib = Library.findLibrary(libNm);
 		}
 		error(lib==null, "can't open Library for reading: "+libFileNm);
