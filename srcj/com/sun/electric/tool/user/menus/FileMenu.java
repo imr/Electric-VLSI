@@ -425,7 +425,12 @@ public class FileMenu {
             }
         }
 		SwingUtilities.invokeLater(new Runnable() {
-			public void run() { WindowFrame.wantToOpenCurrentLibrary(true); }});
+			public void run()
+            {
+                // Redo explorer trees to add new library
+                WindowFrame.wantToRedoLibraryTree();
+                WindowFrame.wantToOpenCurrentLibrary(true);
+            }});
         return true;
     }
 
