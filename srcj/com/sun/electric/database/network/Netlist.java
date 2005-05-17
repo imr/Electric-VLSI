@@ -162,15 +162,15 @@ public class Netlist
 	/**
 	 * Obtain canonical representation of equivalence map.
 	 */
-	private static boolean equalMaps(int[] map1, int[] map2)
-	{
-		if (map1.length != map2.length) return false;
-		for (int i = 0; i < map1.length; i++)
-		{
-			if (map1[i] != map2[i]) return false;
-		}
-		return true;
-	}
+//	private static boolean equalMaps(int[] map1, int[] map2)
+//	{
+//		if (map1.length != map2.length) return false;
+//		for (int i = 0; i < map1.length; i++)
+//		{
+//			if (map1[i] != map2[i]) return false;
+//		}
+//		return true;
+//	}
 
 	Network getNetworkByMap(int mapOffset) { return networks[nm_net[mapOffset]]; }
 
