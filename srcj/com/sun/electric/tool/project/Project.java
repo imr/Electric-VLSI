@@ -1723,8 +1723,8 @@ public class Project extends Listener
 			if (retrieve)
 			{
 				int index = table.getSelectedRow();
-				Integer version = TextUtils.atoi((String)dataModel.getValueAt(index, 0));
-				new GetOldVersionJob(cell, version.intValue());
+				int version = TextUtils.atoi((String)dataModel.getValueAt(index, 0));
+				new GetOldVersionJob(cell, version);
 			} else
 			{
 				dispose();
