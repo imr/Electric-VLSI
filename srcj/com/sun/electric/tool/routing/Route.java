@@ -24,6 +24,13 @@
 
 package com.sun.electric.tool.routing;
 
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.technology.PrimitiveNode;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -112,6 +119,19 @@ public class Route extends ArrayList {
     public boolean isRouteReversed() { return routeReversed; }
 
     /**
+     * Attempts to replace pin with replacement. See replaceBisectPin and
+     * replaceExistingRedundantPin for details.
+     * @param pin the pin to replace
+     * @param replacement the replacement
+     * @return true if any replacement done, false otherwise.
+     */
+    public boolean replacePin(RouteElementPort pin, RouteElementPort replacement) {
+        if (replaceBisectPin(pin, replacement)) return true;
+        if (replaceExistingRedundantPin(pin, replacement)) return true;
+        return false;
+    }
+
+    /**
      * Attempts to replace the bisectPin by replacement. Returns true
      * if any replacements done, and bisect pin is no longer used.
      * otherwise returns false. This method currently requires both
@@ -137,5 +157,83 @@ public class Route extends ArrayList {
         }
         return success;
     }
+
+    /**
+     * Attempts to replace an existing pin that has been made redundant by
+     * some node in the route, such as a contact cut.  If replacable, all
+     * arcs that used to connect to the pin will connect to the replacement node.
+     * Note that this does not remove pinRE from the route, nor does it add
+     * replacementRE.
+     * @param pinRE the pin to replace
+     * @param replacementRE the replacement
+     * @return true if replacement done, false otherwise.
+     */
+    public boolean replaceExistingRedundantPin(RouteElementPort pinRE, RouteElementPort replacementRE) {
+        // only replace existing pins
+        if (pinRE.getAction() != RouteElement.RouteElementAction.existingPortInst) return false;
+
+        PortInst pi = pinRE.getPortInst();
+        NodeInst ni = pi.getNodeInst();
+
+        // only replace pins
+        if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) return false;
+
+        // if the pins is exported, do not replace
+        if (pi.getExports().hasNext()) return false;
+
+        ArrayList newElements = new ArrayList();
+        Cell cell = replacementRE.getCell();
+        boolean replace = true;
+
+        Iterator it2 = pi.getConnections();
+        // if there are no connections, check if it's at the same location
+        if (!it2.hasNext()) {
+            if (!ni.getTrueCenter().equals(replacementRE.getLocation()))
+                return false;
+        }
+
+        // if any connection cannot be remade to replacement, abort
+        for (Iterator it = pi.getConnections(); it.hasNext(); ) {
+            Connection conn = (Connection)it.next();
+            if (replacementRE.getPortProto().connectsTo(conn.getArc().getProto())) {
+                // possible to connect, check location
+                if (conn.getLocation().equals(replacementRE.getLocation())) {
+                    // can reconnect
+                    // get other end point connection
+                    ArcInst ai = conn.getArc();
+                    Connection otherConn = ai.getHead();
+                    if (otherConn == conn) otherConn = ai.getTail();
+                    RouteElementPort otherPort = RouteElementPort.existingPortInst(otherConn.getPortInst(),
+                            otherConn.getPortInst().getPoly());
+                    // build new arc
+                    RouteElementArc newArc = RouteElementArc.newArc(cell, ai.getProto(),
+                            ai.getWidth(), otherPort, replacementRE,
+                            otherConn.getLocation(), conn.getLocation(), ai.getName(),
+                            ai.getTextDescriptor(ArcInst.ARC_NAME_TD), ai);
+                    RouteElementArc delArc = RouteElementArc.deleteArc(ai);
+                    newElements.add(newArc);
+                    newElements.add(delArc);
+                } else {
+                    replace = false;
+                    break;
+                }
+            } else {
+                replace = false;
+                break;
+            }
+        }
+
+        if (replace) {
+            //System.out.println("Replacing "+pinRE+" with "+replacementRE);
+            RouteElementPort delPort = RouteElementPort.deleteNode(ni);
+            add(delPort);
+            for (Iterator it = newElements.iterator(); it.hasNext(); ) {
+                RouteElement e = (RouteElement)it.next();
+                add(e);
+            }
+        }
+        return replace;
+    }
+
 
 }

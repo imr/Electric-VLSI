@@ -237,7 +237,7 @@ public class VerticalRoute {
         // otherwise, connect them to start and end of vertical route
         double width;
         if (startRE != null) {
-            if (route.replaceBisectPin(startRE, vertRoute.getStart())) {
+            if (route.replacePin(startRE, vertRoute.getStart())) {
                 route.remove(startRE);
                 if (route.getStart() == startRE) route.setStart(vertRoute.getStart());
             } else {
@@ -248,7 +248,7 @@ public class VerticalRoute {
             }
         }
         if (endRE != null) {
-            if (route.replaceBisectPin(endRE, vertRoute.getEnd())) {
+            if (route.replacePin(endRE, vertRoute.getEnd())) {
                 route.remove(endRE);
                 if (route.getEnd() == endRE) route.setEnd(vertRoute.getEnd());
             } else {
