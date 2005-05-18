@@ -53,7 +53,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlight;
@@ -61,8 +60,6 @@ import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
-import com.sun.electric.tool.user.ui.PaletteFrame.PlaceNewNode;
-import com.sun.electric.tool.user.ui.WaveformWindow;
 
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -74,7 +71,6 @@ import java.awt.dnd.DropTargetListener;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -87,7 +83,6 @@ import java.awt.Polygon;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.dnd.DnDConstants;
-import java.awt.dnd.DropTarget;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.AdjustmentEvent;
@@ -107,7 +102,6 @@ import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -116,7 +110,6 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -319,7 +312,7 @@ public class EditWindow extends JPanel
         requestFocus();
 		MessagesWindow.userCommandIssued();
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
-		EditWindow wnd = (EditWindow)evt.getSource();
+//		EditWindow wnd = (EditWindow)evt.getSource();
 
 		WindowFrame.curMouseListener.mousePressed(evt);
 	}
@@ -500,7 +493,7 @@ public class EditWindow extends JPanel
 			{
 				Cell placeCell = (Cell)np;
 				Rectangle2D cellBounds = placeCell.getBounds();
-				SizeOffset so = np.getProtoSizeOffset();
+//				SizeOffset so = np.getProtoSizeOffset();
 				poly = new Poly(cellBounds);
 				AffineTransform rotate = NodeInst.pureRotate(defAngle%3600,
 					(defAngle >= 3600 ? true : false), false);
@@ -2063,7 +2056,7 @@ public class EditWindow extends JPanel
 				ElectricObject base = (ElectricObject)sic.object;
 				Variable var = base.getVar(sic.key);
 				Object obj = var.getObject();
-				Variable newVar = null;
+//				Variable newVar = null;
 				if (obj instanceof String)
 				{
 					base.updateVar(sic.key, newString);
@@ -2426,7 +2419,8 @@ public class EditWindow extends JPanel
 
 		Point2D dbPt = new Point2D.Double(offx, offy);
 		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
-		double oX = dbPt.getX();   double oY = dbPt.getY();
+		//double oX = dbPt.getX();
+        double oY = dbPt.getY();
 
 		double val = (double)value/(double)scrollRangeMult;
         Rectangle2D cellBounds = cell.getBounds();
@@ -2451,7 +2445,8 @@ public class EditWindow extends JPanel
 
 		Point2D dbPt = new Point2D.Double(offx, offy);
 		if (inPlaceDisplay) intoCell.transform(dbPt, dbPt);
-		double oX = dbPt.getX();   double oY = dbPt.getY();
+		double oX = dbPt.getX();
+        //double oY = dbPt.getY();
 
         double val = (double)value/(double)scrollRangeMult;
         Rectangle2D cellBounds = cell.getBounds();
@@ -2925,7 +2920,7 @@ public class EditWindow extends JPanel
 				Cell parent = (Cell)found.iterator().next();
 				setCell(parent, VarContext.globalContext);
                 // highlight instance
-                NodeInst highlightNi = null;
+//                NodeInst highlightNi = null;
                 for (Iterator it = parent.getNodes(); it.hasNext(); )
                 {
                     NodeInst ni = (NodeInst)it.next();

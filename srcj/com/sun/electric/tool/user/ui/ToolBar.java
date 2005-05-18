@@ -28,7 +28,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.CircuitChanges;
@@ -57,9 +56,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Iterator;
 import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.prefs.Preferences;
 
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -98,7 +94,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
     /** Go forward button */        private JButton goForwardButton;
     /** Undo button */              private JButton undoButton;
     /** Redo button */              private JButton redoButton;
-    /** bookmark button */          private JButton bookmarkButton;
+//    /** bookmark button */          private JButton bookmarkButton;
 	/** Save button */              private ToolBarButton saveLibraryButton;
 
     /**
@@ -186,7 +182,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		toolbar.setFloatable(true);
 		toolbar.setRollover(true);
 
-        ToolBarButton clickZoomWireButton, selectButton, wireButton, panButton, zoomButton, outlineButton, measureButton;
+        ToolBarButton clickZoomWireButton, panButton, zoomButton, outlineButton, measureButton;
         ToolBarButton fullButton, halfButton, quarterButton;
         ToolBarButton objectsButton, areaButton;
         ToolBarButton selectSpecialButton;
@@ -526,7 +522,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             return;
         }
 
-        Cell cell = WindowFrame.needCurCell();
+//        Cell cell = WindowFrame.needCurCell();
         EditWindow wnd = EditWindow.needCurrent();
         if (wnd == null) return;
         Highlighter highlighter = wnd.getHighlighter();
