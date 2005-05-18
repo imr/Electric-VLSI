@@ -2519,7 +2519,9 @@ public class EditWindow extends JPanel
 
             // make sure text fits
     		if (wf != null && runningNow != null)
-    			System.out.println("Warning: screen extent computation is inaccurate"); else
+    		{
+//    			System.out.println("Warning: screen extent computation is inaccurate");
+    		} else
     		{
 	            double oldScale = getScale();
 	            Point2D oldOffset = getOffset();

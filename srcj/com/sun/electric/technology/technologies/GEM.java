@@ -380,6 +380,6 @@ public class GEM extends Technology
 
 			primLayers = eventLayers;
 		}
-		return computeShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
+		return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
 	}
 }

@@ -3027,7 +3027,7 @@ public class MoCMOS extends Technology
 		NodeProto prototype = ni.getProto();
 		if (prototype != scalablePTransistor_node && prototype != scalableNTransistor_node)
 		{
-			return computeShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
+			return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
 		}
 
 		// determine special configurations (number of active contacts, inset of active contacts)
@@ -3184,7 +3184,7 @@ public class MoCMOS extends Technology
 		}
 
 		// now let the superclass convert it to Polys
-		return computeShapeOfNode(ni, wnd, context, false, reasonable, newNodeLayers, null);
+		return super.getShapeOfNode(ni, wnd, context, false, reasonable, newNodeLayers, null);
 	}
 
 	/******************** PARAMETERIZABLE DESIGN RULES ********************/

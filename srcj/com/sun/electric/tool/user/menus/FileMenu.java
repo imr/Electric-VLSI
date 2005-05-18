@@ -213,7 +213,7 @@ public class FileMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addThisCell(); } });
 		projectSubMenu.addMenuItem("_Remove This Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.removeThisCell(); } });
-		projectSubMenu.addMenuItem("Examine _History of This Cell", null,
+		projectSubMenu.addMenuItem("Show _History of This Cell...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Project.examineThisHistory(); } });
 		projectSubMenu.addSeparator();
 		projectSubMenu.addMenuItem("Get Library From Repository...", null,

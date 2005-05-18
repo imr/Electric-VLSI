@@ -340,7 +340,7 @@ public class Undo
 		/**
 		 * Method to undo the effects of this change.
 		 */
-		private void reverse()
+		private void reverse(boolean backwards)
 		{
 			// determine what needs to be marked as changed
 			setDirty(type, obj, o1);
@@ -371,6 +371,35 @@ public class Undo
 
 				// change the node information
 				ni.lowLevelModify(a1 - oldCX, a2 - oldCY, a3 - oldSX, a4 - oldSY, i1 - oldRot);
+
+				/*
+				 * Hack here because of the nature of changes in Java Electric
+				 * (was not necessary in C Electric and will not be necessary in the transactional database).
+				 * 
+				 * The problem is that when a change is made to a node or arc inside of a cell, it may
+				 * affect the size of the cell, which will affect the size of instances of that cell,
+				 * farther up the hierarchy.
+				 * The layout constraint system detects this and issues changes for the instance sizes.
+				 * But these changes are issued AFTER the cell contents have changed.
+				 * That order is fine for the original change, but not for an undo of the change.
+				 * When undoing the change, the changes are issued in the reverse order, and so
+				 * the cell instances are resized first, followed by the nodes and arcs inside of the cell.
+				 * This was not a problem in C Electric, where all size information was defined on the instance
+				 * of the cell.  But in Java Electric, the cell bounds and cell center are used to determine
+				 * the instance location.  This information is inconsistent at the time that the instances
+				 * are resized (before the cell contents are corrected).  Therefore, the instances become inconsistent.
+				 * 
+				 * The solution (really, hack) is to re-evaluate all instance sizes whenever any contents change.
+				 * This is inefficient (and so is only done during an "undo"...it is not necessary during "redo").
+				 */
+				if (backwards)
+				{
+					for(Iterator it = ni.getParent().getInstancesOf(); it.hasNext(); )
+					{
+						NodeInst superNi = (NodeInst)it.next();
+						superNi.lowLevelModify(0, 0, 0, 0, 0);
+					}
+				}
 
 				// update the change to its reversed state
 				a1 = oldCX;   a2 = oldCY;
@@ -406,6 +435,16 @@ public class Undo
 
 				// change the arc information
 				ai.lowLevelModify(a5 - oldWid, a1-oldHeadPt.getX(), a2-oldHeadPt.getY(), a3-oldTailPt.getX(), a4-oldTailPt.getY());
+
+				// Hack...see the comment in the NODEINSTMOD case above
+				if (backwards)
+				{
+					for(Iterator it = ai.getParent().getInstancesOf(); it.hasNext(); )
+					{
+						NodeInst superNi = (NodeInst)it.next();
+						superNi.lowLevelModify(0, 0, 0, 0, 0);
+					}
+				}
 
 				// update the change to its reversed state
 				a1 = oldHeadPt.getX();   a2 = oldHeadPt.getY();
@@ -717,7 +756,9 @@ public class Undo
 			{
 				NodeInst ni = (NodeInst)obj;
 				return "Node " + ni.describe() + " modified in cell " + ni.getParent().describe() +
-					"[was " + getA3() + "x" + getA4() + " at (" + getA1() + "," + getA2() + ") rotated " + getI1()/10.0 + "]";
+					"[was " + getA3() + "x" + getA4() + " at (" + getA1() + "," + getA2() + ") rotated " + getI1()/10.0 + ", is " +
+					ni.getXSizeWithMirror() + "x" + ni.getYSizeWithMirror() + " at (" + ni.getAnchorCenterX() + "," +
+					ni.getAnchorCenterY() + ") rotated " + ni.getAngle()/10.0 + "]";
 			}
 			if (type == Type.ARCINSTNEW)
 			{
@@ -1664,7 +1705,7 @@ public class Undo
 			Change ch = (Change)batch.changes.get(i);
 
 			// reverse the change
-			ch.reverse();
+			ch.reverse(true);
 
 			// now broadcast this change
 			ch.broadcast(firstChange, true);
@@ -1738,7 +1779,7 @@ public class Undo
 			Change ch = (Change)batch.changes.get(i);
 
 			// reverse the change
-			ch.reverse();
+			ch.reverse(false);
 
 			// now broadcast this change
 			ch.broadcast(firstChange, true);

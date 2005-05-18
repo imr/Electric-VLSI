@@ -4,6 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+BUG: (05/18/05, SMR) Deleting a node that has internal arcs (arcs connected from one port of the
+     node to another of the same node) causes errors (Bug #315).
+FIX: In CircuitChanges.eraseNodeInst(), use a HashSet to ensure no duplication of arcs to delete.
+
+BUG: (05/17/05, SMR) Undoing a change that affects cell bounds leaves instances of the cell wrong.
+FIX: In Undo.Change.reverse(), reevaluate instances of cells whenever undoing changes to contents.
+     A detailled explanation is given in the NODEINSTMOD case.
+
+BUG: (05/13/05, SMR) MOSIS CMOS pins drawn incorrectly (Bug #322).
+FIX: In MoCMOS.getShapeOfNode(), change the method on the last line from "computeShapeOfNode"
+     to "super.getShapeOfNode"
+
 BUG: (05/18/05, DN) NetworkTool doesn't work with NOTHREADING=true (Bug #310)
 FIX: Add check on NOTHREADING in NetworkTool.getNetlist.
 
@@ -32,7 +44,8 @@ BUG: (05/13/05, JKG) LIBDIRS did not look for LIBDIRS file in directory
 ************************* Version 8.02n: *********************************
 
 BUG: (05/13/05, SMR) Invisible Pins are drawn too large.
-FIX: In Artwork.getShapeOfNode(), change the method on the last linee from "computeShapeOfNode" to "super.getShapeOfNode"
+FIX: In Artwork.getShapeOfNode(), and in Generic.getShapeOfNode(), change the method on
+     the last line from "computeShapeOfNode" to "super.getShapeOfNode"
 
 IMP: (05/12/05, GVG) GetInfo (menu item) for ErrorLogger: printing number of errors and warnings.
 

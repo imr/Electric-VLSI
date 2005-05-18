@@ -724,7 +724,6 @@ public class Layout extends Constraints
 			// if nodeinst motion stays within port area, ignore the arcinst
 			if (ai.isSlidable() && ai.stillInPort(thisEndIndex, thisEnd.getLocation(), true))
 				continue;
-
 			Undo.Change change = ni.getChange();
 			double ox = 0, oy = 0;
 			if (change != null && change.getType() == Undo.Type.NODEINSTMOD)
@@ -1402,7 +1401,6 @@ public class Layout extends Constraints
 	{
 		// first look recursively to the bottom to see if this cell changed
 		HashSet markNode = new HashSet();
-		HashSet touchNode = new HashSet();
 		for(Iterator it = start.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -1440,12 +1438,12 @@ public class Layout extends Constraints
 		}
 
 		// mark those nodes that must change
+		HashSet touchNode = new HashSet();
 		for(Iterator it = start.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto np = ni.getProto();
 			markNode.remove(ni);
-			touchNode.remove(ni);
 			if (!(np instanceof Cell)) continue;
 			Cell subCell = (Cell)np;
 			if (!cellModFlag.contains(subCell)) continue;

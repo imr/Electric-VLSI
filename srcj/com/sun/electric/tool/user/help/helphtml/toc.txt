@@ -138,7 +138,8 @@ Advanced Editing
   Manipulating Outlines              =chap06-10-02
   Special Outline Generation         =chap06-10-03
  Interpretive Languages              =chap06-11
- Emergencies                         =chap06-12
+ Project Management                  =chap06-12
+ Emergencies                         =chap06-13
 
 Technologies
  Introduction to Technologies

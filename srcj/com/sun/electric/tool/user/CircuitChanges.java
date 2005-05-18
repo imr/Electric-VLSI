@@ -59,6 +59,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.menus.MenuCommands;
 import com.sun.electric.tool.user.ui.EditWindow;
@@ -1633,19 +1634,17 @@ public class CircuitChanges
 	private static void eraseNodeInst(NodeInst ni)
 	{
 		// erase all connecting ArcInsts on this NodeInst
-		int numConnectedArcs = ni.getNumConnections();
-		if (numConnectedArcs > 0)
+		if (ni.getNumConnections() > 0)
 		{
-			ArcInst [] arcsToDelete = new ArcInst[numConnectedArcs];
-			int i = 0;
+			HashSet arcsToDelete = new HashSet();
 			for(Iterator it = ni.getConnections(); it.hasNext(); )
 			{
 				Connection con = (Connection)it.next();
-				arcsToDelete[i++] = con.getArc();
+				arcsToDelete.add(con.getArc());
 			}
-			for(int j=0; j<numConnectedArcs; j++)
+			for(Iterator it = arcsToDelete.iterator(); it.hasNext(); )
 			{
-				ArcInst ai = arcsToDelete[j];
+				ArcInst ai = (ArcInst)it.next();
 
 				// delete the ArcInst
 				ai.kill();
@@ -3297,6 +3296,15 @@ public class CircuitChanges
 
 	public static void newVersionOfCell(Cell cell)
 	{
+		// disallow if in Project Management
+		int status = Project.getCellStatus(cell);
+		if (status != Project.NOTMANAGED)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"This cell is part of a project.  To get a new version of it, check it out.", "Cannot Make New Version",
+				JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		NewCellVersion job = new NewCellVersion(cell);
 	}
 

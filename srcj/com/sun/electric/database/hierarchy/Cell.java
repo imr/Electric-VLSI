@@ -520,9 +520,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				if (ni.getProto() instanceof PrimitiveNode) continue;
 				Cell niProto = (Cell)ni.getProto();
 
-				// keep cross-library references
-//				if (niProto.getLibrary() != fromCell.getLibrary()) continue;
-
 				boolean maySubstitute = useExisting;
 				if (!maySubstitute)
 				{
@@ -571,7 +568,20 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				nodePrototypes.put(ni, lnt);
 			}
 		}
+		return copyNodeProtoUsingMapping(fromCell, toLib, toName, nodePrototypes);
+	}
 
+	/**
+	 * Method to copy a Cell to any Library, using a preset mapping of node prototypes.
+	 * @param fromCell the Cell to copy.
+	 * @param toLib the Library to copy it to.
+	 * If the destination library is the same as the original Cell's library, a new version is made.
+	 * @param toName the name of the Cell in the destination Library.
+	 * @param nodePrototypes a HashMap from NodeInsts in the source Cell to proper NodeProtos to use in the new Cell.
+	 * @return the new Cell in the destination Library.
+	 */
+	public static Cell copyNodeProtoUsingMapping(Cell fromCell, Library toLib, String toName, HashMap nodePrototypes)
+	{
 		// create the nodeproto
 		String cellName = toName;
 		if (toName.indexOf('{') < 0 && fromCell.getView() != View.UNKNOWN)

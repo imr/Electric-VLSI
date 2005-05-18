@@ -695,6 +695,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             EditWindow.CellHistory entry = (EditWindow.CellHistory)history.getHistory().get(i);
             Cell cell = entry.getCell();
             // skip if already shown such a cell
+			if (cell == null) continue;
             if (listed.get(cell) != null) continue;
             listed.put(cell, cell);
 

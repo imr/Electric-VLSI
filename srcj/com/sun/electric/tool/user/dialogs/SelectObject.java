@@ -23,6 +23,9 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.change.DatabaseChangeEvent;
+import com.sun.electric.database.change.DatabaseChangeListener;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Network;
@@ -31,6 +34,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.user.Highlight;
+import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -53,7 +57,7 @@ import javax.swing.ListSelectionModel;
 /**
  * Class to handle the "Search and Replace" dialog.
  */
-public class SelectObject extends EDialog
+public class SelectObject extends EDialog implements DatabaseChangeListener
 {
 	private static final int NODES   = 1;
 	private static final int ARCS    = 2;
@@ -77,6 +81,7 @@ public class SelectObject extends EDialog
 		super(parent, modal);
 		initComponents();
 		getRootPane().setDefaultButton(done);
+		Undo.addDatabaseChangeListener(this);
 
 		switch (what)
 		{
@@ -121,6 +126,16 @@ public class SelectObject extends EDialog
 	}
 
 	protected void escapePressed() { closeDialog(null); }
+
+	/**
+	 * Respond to database changes and reload the list.
+	 * @param e database change event
+	 */
+	public void databaseChanged(DatabaseChangeEvent e)
+	{
+		if (!isVisible()) return;
+		buttonClicked();
+	}
 
 	private void listClicked()
 	{
