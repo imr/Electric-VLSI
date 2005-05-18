@@ -165,7 +165,7 @@ public class Netlist
 //	private static boolean equalMaps(int[] map1, int[] map2)
 //	{
 //		if (map1.length != map2.length) return false;
-//		for (int i = 0; i < map1.length; i++)
+//		for (int i = 0; i < map1.length; i++) //
 //		{
 //			if (map1[i] != map2[i]) return false;
 //		}
