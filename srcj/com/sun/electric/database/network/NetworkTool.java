@@ -286,7 +286,7 @@ public class NetworkTool extends Listener
 	 * @return the Netlist structure for Cell.
      */
 	public static Netlist getNetlist(Cell cell, boolean shortResistors) {
-		if (Thread.currentThread() == Job.databaseChangesThread) {
+		if (Thread.currentThread() == Job.databaseChangesThread || Main.NOTHREADING) {
 			NetCell netCell = getNetCell(cell);
 			return netCell.getNetlist(shortResistors);
 		}

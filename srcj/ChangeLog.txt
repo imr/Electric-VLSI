@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+BUG: (05/18/05, DN) NetworkTool doesn't work with NOTHREADING=true (Bug #310)
+FIX: Add check on NOTHREADING in NetworkTool.getNetlist.
+
 BUG: (05/17/05, GVG) Explorer not updated when open new library (Bug #319)
 FIX: Add WindowFrame.wantToRedoLibraryTree() in FileMenu.openALibrary.
 
