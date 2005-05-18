@@ -492,6 +492,7 @@ public abstract class Router {
                 if (d.getWidth() > dim.getWidth()) dim.setSize(d.getWidth(), dim.getHeight());
                 if (d.getHeight() > dim.getHeight()) dim.setSize(dim.getWidth(), d.getHeight());
             }
+            if (dim == null) dim = new Dimension2D.Double(-1, -1);
             return dim;
         }
 
