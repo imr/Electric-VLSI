@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP/MAN: (05/19/05, SMR) Mirroring (in the commands and in the Node Properties dialog) is now described
+     in terms of "left <-> right" and "up <-> down" (Bug #327).
+
 IMP: (05/19/05, SMR) Intelligent placement of duplicate copies when "move after duplicate" is not checked.
 
 BUG: (05/19/05, SMR) Highlighting an export on the example icon doesn't show all of the equivalent nodes.

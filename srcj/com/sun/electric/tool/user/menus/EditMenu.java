@@ -155,12 +155,12 @@ public class EditMenu {
 		rotateSubMenu.addMenuItem("_Other...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.rotateObjects(0); }});
 
-		// mnemonic keys available: ABCDEFG IJKLMNOPQRSTU WXYZ
+		// mnemonic keys available: ABCDEFGHIJK MNOPQRST VWXYZ
 		MenuBar.Menu mirrorSubMenu = MenuBar.makeMenu("_Mirror");
 		editMenu.add(mirrorSubMenu);
-		mirrorSubMenu.addMenuItem("_Horizontally (flip over X-axis)", null,
+		mirrorSubMenu.addMenuItem("_Up <-> Down", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(true); }});
-		mirrorSubMenu.addMenuItem("_Vertically (flip over Y-axis)", null,
+		mirrorSubMenu.addMenuItem("_Left <-> Right", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.mirrorObjects(false); }});
 
 		// mnemonic keys available:  BCDEFGH JKLM OPQRSTUVWXYZ

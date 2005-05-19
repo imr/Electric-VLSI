@@ -1346,11 +1346,11 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(rotation, gridBagConstraints);
 
-        mirrorX.setText("Mirror X");
+        mirrorX.setText("Mirror L-R");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
@@ -1388,7 +1388,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(apply, gridBagConstraints);
 
-        mirrorY.setText("Mirror Y");
+        mirrorY.setText("Mirror U-D");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 4;
@@ -1398,16 +1398,16 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
         moreStuffTop.setLayout(new java.awt.GridBagLayout());
 
-        expanded.setText("Expanded");
         expansion.add(expanded);
+        expanded.setText("Expanded");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         moreStuffTop.add(expanded, gridBagConstraints);
 
-        unexpanded.setText("Unexpanded");
         expansion.add(unexpanded);
+        unexpanded.setText("Unexpanded");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -1462,8 +1462,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         moreStuffTop.add(popup, gridBagConstraints);
 
-        ports.setText("Ports:");
         selection.add(ports);
+        ports.setText("Ports:");
         ports.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -1478,8 +1478,8 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         moreStuffTop.add(ports, gridBagConstraints);
 
-        attributes.setText("Attributes:");
         selection.add(attributes);
+        attributes.setText("Attributes:");
         attributes.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)

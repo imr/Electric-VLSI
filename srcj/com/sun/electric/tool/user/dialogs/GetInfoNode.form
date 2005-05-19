@@ -181,7 +181,7 @@
     </Component>
     <Component class="javax.swing.JCheckBox" name="mirrorX">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Mirror X"/>
+        <Property name="text" type="java.lang.String" value="Mirror L-R"/>
       </Properties>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -217,7 +217,7 @@
     </Component>
     <Component class="javax.swing.JCheckBox" name="mirrorY">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Mirror Y"/>
+        <Property name="text" type="java.lang.String" value="Mirror U-D"/>
       </Properties>
       <Constraints>
         <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -236,10 +236,10 @@
       <SubComponents>
         <Component class="javax.swing.JRadioButton" name="expanded">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Expanded"/>
             <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
               <ComponentRef name="expansion"/>
             </Property>
+            <Property name="text" type="java.lang.String" value="Expanded"/>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -249,10 +249,10 @@
         </Component>
         <Component class="javax.swing.JRadioButton" name="unexpanded">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Unexpanded"/>
             <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
               <ComponentRef name="expansion"/>
             </Property>
+            <Property name="text" type="java.lang.String" value="Unexpanded"/>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -316,10 +316,10 @@
         </Component>
         <Component class="javax.swing.JRadioButton" name="ports">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Ports:"/>
             <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
               <ComponentRef name="selection"/>
             </Property>
+            <Property name="text" type="java.lang.String" value="Ports:"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="portsActionPerformed"/>
@@ -332,10 +332,10 @@
         </Component>
         <Component class="javax.swing.JRadioButton" name="attributes">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Attributes:"/>
             <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
               <ComponentRef name="selection"/>
             </Property>
+            <Property name="text" type="java.lang.String" value="Attributes:"/>
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="attributesActionPerformed"/>
