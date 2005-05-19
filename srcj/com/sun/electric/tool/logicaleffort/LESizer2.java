@@ -205,7 +205,11 @@ public class LESizer2 {
                     }
 
                     // For now, split effort equally amongst all drivers
-                    newX = smallestX * netlist.getKeeperRatio() / drivers.size();
+                    if (leno.parallelGroup <= 0)
+                        newX = smallestX * netlist.getKeeperRatio() / arrayedDrivers.size();
+                    else {
+                        newX = smallestX * netlist.getKeeperRatio() / drivers.size();
+                    }
                 }
 
                 // If this is an LEGATE, simply sum all capacitances on the Net

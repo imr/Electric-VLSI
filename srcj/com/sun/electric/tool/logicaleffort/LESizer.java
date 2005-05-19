@@ -153,7 +153,7 @@ public class LESizer {
                                 drivers.add(inst);
                                 // error check
                                 if (inst.getParallelGroup() > 0 && loopcount == 0 && inst.getLeSU() != instance.getLeSU()) {
-                                    String msg = "\nError: LEKEEPER \""+inst.getName()+"\" drives in parallel with \""+instance.getName()+
+                                    String msg = "\nError: LEGATE \""+inst.getName()+"\" drives in parallel with \""+instance.getName()+
                                             "\" but has a different step-up";
                                     System.out.println(msg);
                                     NodeInst ni = inst.getNodable().getNodeInst();
@@ -236,7 +236,12 @@ public class LESizer {
                         }
 
                         // For now, split effort equally amongst all drivers
-                        newX = smallestX * netlist.getKeeperRatio() / drivers.size();
+                        if (instance.getParallelGroup() <= 0) {
+                            newX = smallestX * netlist.getKeeperRatio() / arrayedDrivers.size();
+                        }
+                        else {
+                            newX = smallestX * netlist.getKeeperRatio() / drivers.size();
+                        }
                     }
 
                     // If this is an LEGATE, simply sum all capacitances on the Net
