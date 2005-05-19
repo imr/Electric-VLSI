@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+BUG: (05/18/05, JKG) LEPARALLGRP problem with keepers (Bug #320)
+
 BUG: (05/18/05, SMR) Deleting a node that has internal arcs (arcs connected from one port of the
      node to another of the same node) causes errors (Bug #315).
 FIX: In CircuitChanges.eraseNodeInst(), use a HashSet to ensure no duplication of arcs to delete.
