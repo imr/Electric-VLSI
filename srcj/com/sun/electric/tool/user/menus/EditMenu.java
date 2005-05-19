@@ -121,7 +121,7 @@ public class EditMenu {
 		editMenu.addMenuItem("Cop_y", KeyStroke.getKeyStroke('C', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.copy(); } });
 		editMenu.addMenuItem("_Paste", KeyStroke.getKeyStroke('V', buckyBit),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.paste(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.paste(false); } });
         editMenu.addMenuItem("Dup_licate", KeyStroke.getKeyStroke('M', buckyBit),
             new ActionListener() { public void actionPerformed(ActionEvent e) { Clipboard.duplicate(); } });
 
@@ -419,11 +419,11 @@ public class EditMenu {
 		selListSubMenu.addMenuItem("Make Selected Har_d", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { selectMakeHardCommand(); }});
 		selListSubMenu.addSeparator();
-		selListSubMenu.addMenuItem("P_ush Selection", KeyStroke.getKeyStroke('1', buckyBit),
+		selListSubMenu.addMenuItem("P_ush Selection", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) {
                 EditWindow wnd = EditWindow.getCurrent(); if (wnd == null) return;
                 wnd.getHighlighter().pushHighlight(); }});
-		selListSubMenu.addMenuItem("P_op Selection", KeyStroke.getKeyStroke('3', buckyBit),
+		selListSubMenu.addMenuItem("P_op Selection", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) {
                 EditWindow wnd = EditWindow.getCurrent(); if (wnd ==null) return;
                 wnd.getHighlighter().popHighlight(); }});

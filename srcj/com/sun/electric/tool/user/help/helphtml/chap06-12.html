@@ -1,28 +1,142 @@
-<!-- HEADER 6-12: Emergencies -->
+<!-- HEADER 6-12: Project Management -->
 
-<!-- COMMAND File/Check Libraries/Check -->
-<!-- COMMAND File/Check Libraries/Repair -->
-<!-- COMMAND File/Force Quit (and Save) -->
-<!-- COMMAND Tool/Network/Redo Network Numbering -->
+<!-- COMMAND File/Project Management/Update -->
+<!-- COMMAND File/Project Management/Check Out This Cell -->
+<!-- COMMAND File/Project Management/Check In This Cell... -->
+<!-- COMMAND File/Project Management/Cancel Check-Out -->
+<!-- COMMAND File/Project Management/Add This Cell -->
+<!-- COMMAND File/Project Management/Remove This Cell -->
+<!-- COMMAND File/Project Management/Show History of This Cell... -->
+<!-- COMMAND File/Project Management/Get Library From Repository... -->
+<!-- COMMAND File/Project Management/Add Current Library To Repository -->
 
-Electric uses separate Java threads for all activities.
-Because of this, if the system encounters an error, it aborts the thread but
-the main program continues to run.
+The project management system in Electric allows multiple users to work together on
+the design of a circuit.
+This is accomplished by having a <I>repository</I> in a shared location,
+and local libraries in each user's disk area.
+Users work on cells by checking them out of the repository,
+making changes, and then checking them back in.
+The project management system ensures that only one user can access a cell at a time.
+In addition, it also applies its understanding of the circuit hierarchy
+to inform users of potential inconsistencies that may arise.
 <P>
-If a thread crashes and leaves a Job running, then you will not be able to
-issue other commands, because their Jobs will be queued behind the stuck one
-(see <A HREF="chap04-08.html#chap04-08">Section 4-8</A> for more viewing Jobs).
-Even the <B>Quit</B> command is a job, and so it cannot run.
-To solve this problem, use the <B>Force Quit (and Save)</B> command
-(in menu <B>File</B>).
+The project management system uses the full power of cells to accomplish its task.
+It handles design history by creating a new version of
+a cell each time it is checked out of the repository.
+The user's library contains only the most recent version of each cell,
+taken from the repository.
+When a user updates their library from the repository,
+newer versions are brought in and substituted for older versions.
+Unless the user specifically asks for an older version,
+it is removed from their library.
 <P>
-If you suspect that the database is corrupt, use the
- subcommands of the
-<B>Check Libraries</B> command (in menu <B>File</B>).
-The <B>Check</B> command examines the database but does not fix errors.
-The <B>Repair</B> command checks and repairs the database (if it can).
+Because the project management system uses versions to manage design progress,
+users are discouraged from managing versions explicitly.
+Thus, the command <B>New Version of Current Cell</B> (in menu <B>Cell</B>) is not allowed.
+Also, it is not appropriate for a user to use two different versions
+of a cell explicitly, because they are considered to be part of a single cell's history.
 <P>
-The networks may also need to be renumbered.
-Do this with <B>Redo Network Numbering</B> command (in menu <B>Tool / Network</B>).
+All commands to the project management system can be found under the
+<B>Project Management</B> command (in menu <B>File</B>).
+Subcommands exist there for checking cells in and out,
+updating local libraries from the repository, and more.
+Many project management functions are also available in context menus in the Cell Explorer.
+<P>
+<H3>Setting Up Project Management</H3>
+<P>
+<TABLE><TR><TD>
+The first step needed to use the project management system is to choose a location
+for the repository.
+This must be a shared location that each user can access (read and write).
+Use the "Project Management" preferences, in menu <B>File / Preferences...</B>,
+"General" section, "Project Management" tab.
+Each user must do this and set the same location so that they can share the repository.
+</TD><TD><CENTER><IMG SRC="fig06-10.png" ALT="Figure 6.10"></CENTER></TD></TR></TABLE>
+<P>
+After the repository has been set, libraries can be entered into it.
+Use the <B>Add Current Library To Repository</B> command to place your library in the repository.
+Note that a library that has been entered into the repository is also tagged with information
+about the repository location, as well as the state of the cells (checked-in or checked-out).
+Therefore, you should save your library after entering it into the repository.
+<P>
+Other users can obtain a copy of your library directly from the repository by using
+the <B>Get Library From Repository...</B> command.
+<P>
+Individual users can now begin to work on the library.
+Before checking cells out of a library, it is necessary to create a "user" account
+in the project management system.
+The "Project Management" preferences shows a list of users.
+Although each user must "login" to the project management system with their own password,
+Electric remembers the logged-in user between sessions, so it is not necessary to do this more than once.
+Adding new users can be done in the "Administration" section of the dialog.
+Note that to add or delete users, the administrator must first click "Authorize..." and provide
+the appropriate password.  This password is provided elsewhere in the manual.
+<P>
+<H3>Checking Cells In and Out</H3>
+<P>
+When a cell is not checked out, you cannot make changes to it.
+Any change is immediately undone by the project management system.
+This means that a change which affects unchecked-out cells, higher up the hierarchy, will also be disallowed.
+<P>
+To check-out the current cell, use the <B>Check Out This Cell</B> command.
+If there are related cells (hierarchically above or below this)
+that are already checked-out to other users, you will be given warnings about potential conflicts that may arise.
+<P>
+To check the current cell back in, use the <B>Check In This Cell...</B> command.
+You will be prompted for a documentation message about the change.
+No further changes will be allowed to the cell.
+Note that when checking-in a cell, other cells above and below this in the hierarchy will
+also be checked-in.
+This is because changes affect other cells in the hierarchy, and so consistent pieces of
+the hierarchy must be updated at the same time.
+<P>
+<TABLE><TR><TD>
+The cell explorer shows the state of cells that are under project management control
+(see <A HREF="chap04-08.html#chap04-08">Section 4-8</A>).
+Locks are drawn over cells to indicate their state (checked-in, checked-out to you, or
+checked-out to others).
+You can also access many of the project management commands by selecting cells in the
+explorer and using context menu commands.
+</TD><TD><CENTER><IMG SRC="fig06-19.png" ALT="Figure 6.19"></CENTER></TD></TR></TABLE>
+<P>
+To update your library so that it contains the most recent version of every cell,
+use the <B>Update</B> command.
+This will retrieve the newest version of every cell in every library that is
+being managed.
+You will be given a list of cells that were replaced.
+<P>
+<H3>Advanced Commands</H3>
+<P>
+If, after a cell has been checked-out, you change your mind and do not wish to make changes,
+use the <B>Cancel Check-Out</B> command (or
+use the "Cancel Check-Out" context menu when clicking on a cell name in the Cell Explorer).
+This will destroy any changes made to the cell since it was checked-out and revert the cell to its
+state when it was checked-in.
+<P>
+If, in the course of design, a new cell is created, it must be added to the repository
+so that others can share it.
+Use the <B>Add This Cell</B> command to include the cell in the repository.
+Conversely, if a cell is to be deleted, use the <B>Remove This Cell</B> command to delete it from the repository.
+<P>
+To examine the history of changes to a cell, use the <B>Show History of This Cell...</B>
+command (or
+use the "Show History of This Cell..." context menu when clicking on a cell name in the Cell Explorer).
+Besides showing the history of changes, you can use this dialog to retrieve an earlier version of the cell.
+<P>
+<CENTER><IMG SRC="fig06-11.png" ALT="Figure 6.11"></CENTER>
+<P>
+<H3>Under the Hood</H3>
+<P>
+The project management system makes use of version information on all cells to control cell changes.
+When a cell is checked-out, a new version is made in your local library, and the old version is deleted.
+All instances of the old version are switched to the new version. The old version remains in the repository.
+When the cell is checked-in, that new version also goes into the repository.
+When updates are done, newer versions are obtained from the repository, and appropriate substitutions are performed.
+<P>
+It is assumed that anyone who has read all the way to the end of this manual page must be quite serious about the
+project management system.  Such a person is probably an administrator, and therefore deserves to know what
+the administration password is for adding and deleting users.
+The password is just the letter "e".
+For increased security, edit the code and change this to something more secure.
 
 <!-- TRAILER -->

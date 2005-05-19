@@ -63,7 +63,7 @@ public class WindowMenu {
 
         /****************************** THE WINDOW MENU ******************************/
 
-		// mnemonic keys available: AB      I K  N PQ      XY 
+		// mnemonic keys available: A       I K  N PQ      XY 
         MenuBar.Menu windowMenu = MenuBar.makeMenu("_Window");
         menuBar.add(windowMenu);
 
@@ -170,6 +170,14 @@ public class WindowMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().clear(); }});
         messagesSubMenu.addMenuItem("Set F_ont...", null,
              new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().selectFont(); }});
+
+		// mnemonic keys available: ABCDEFGHIJK MNOPQ STUVWXYZ
+        MenuBar.Menu sideBarSubMenu = MenuBar.makeMenu("Side _Bar");
+        windowMenu.add(sideBarSubMenu);
+		sideBarSubMenu.addMenuItem("On _Left", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { WindowFrame.setSideBarLocation(true); }});
+		sideBarSubMenu.addMenuItem("On _Right", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { WindowFrame.setSideBarLocation(false); }});
     }
 
     public static void fullDisplay()

@@ -77,9 +77,11 @@ import javax.swing.KeyStroke;
  */
 public class Clipboard
 {
-	/** The only Clipboard object. */					private static Clipboard    theClipboard = new Clipboard();
-	/** The Clipboard Library. */						private static Library clipLib = null;
-	/** The Clipboard Cell. */							private static Cell clipCell;
+	/** The only Clipboard object. */					private static Clipboard theClipboard = new Clipboard();
+	/** The Clipboard Library. */						private static Library   clipLib = null;
+	/** The Clipboard Cell. */							private static Cell      clipCell;
+	/** the last node that was duplicated */			private static NodeInst  lastDup = null;
+	/** the amount that the last node moved */			private static double    lastDupX = 10, lastDupY = 10;
 
 	/**
 	 * The constructor gets called only once.
@@ -238,11 +240,6 @@ public class Clipboard
 			// remove contents of clipboard
 			clear();
 
-            // get offset of highlighted objects from mouse
-            Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
-            Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
-            EditWindow.gridAlign(mouseDB);
-
 			// copy objects to clipboard
 			copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(0,0),
 				User.isDupCopiesExports(), User.isArcsAutoIncremented());
@@ -286,11 +283,6 @@ public class Clipboard
 			// remove contents of clipboard
 			clear();
 
-            // get offset of highlighted objects from mouse
-            Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
-            Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
-            EditWindow.gridAlign(mouseDB);
-
 			// make sure deletion is allowed
 			if (CircuitChanges.cantEdit(parent, null, true) != 0) return false;
 			List deleteList = new ArrayList();
@@ -313,7 +305,7 @@ public class Clipboard
 			highlights = deleteList;
 
 			// copy objects to clipboard
-			copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(mouseDB.getX(), mouseDB.getY()),
+			copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(0, 0),
 				User.isDupCopiesExports(), User.isArcsAutoIncremented());
 
 			// and delete the original objects
@@ -326,6 +318,20 @@ public class Clipboard
     {
         DuplicateObjects job = new DuplicateObjects(MenuCommands.getHighlighted());
     }
+
+	/**
+	 * Method to track movement of the object that was just duplicated.
+	 * By following subsequent changes to that node, future duplications know where to place their copies.
+	 * @param ni the NodeInst that has just moved.
+	 * @param lastX the previous center X of the NodeInst.
+	 * @param lastY the previous center Y of the NodeInst.
+	 */
+	public static void nodeMoved(NodeInst ni, double lastX, double lastY)
+	{
+		if (ni != lastDup) return;
+		lastDupX += ni.getAnchorCenterX() - lastX;
+		lastDupY += ni.getAnchorCenterY() - lastY;
+	}
 
 	private static class DuplicateObjects extends Job
     {
@@ -355,11 +361,6 @@ public class Clipboard
             // remove contents of clipboard
             clear();
 
-            // get offset of highlighted objects from mouse
-            Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
-            Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
-            EditWindow.gridAlign(mouseDB);
-
             // copy objects to clipboard
             copyListToCell(null, highlights, parent, clipCell, new Point2D.Double(0, 0),
             	User.isDupCopiesExports(), User.isArcsAutoIncremented());
@@ -367,12 +368,12 @@ public class Clipboard
             Highlighter highlighter = wnd.getHighlighter();
             if (highlighter != null) highlighter.clear();
 
-            paste();
+            paste(true);
 			return true;
         }
     }
 
-	public static void paste()
+	public static void paste(boolean duplicate)
 	{
 		// get objects to paste
 		Clipboard.init();
@@ -449,26 +450,13 @@ public class Clipboard
 
         if (pasteList.size() == 0) return;
 
-        if (User.isMoveAfterDuplicate())
+        if (!duplicate || User.isMoveAfterDuplicate())
 		{
 			EventListener currentListener = WindowFrame.getListener();
 			WindowFrame.setListener(new PasteListener(wnd, pasteList, currentListener));
 		} else
 		{
-            // get offset of highlighted objects from mouse
-            Point2D mouse = ClickZoomWireListener.theOne.getLastMouse();
-            Point2D mouseDB = wnd.screenToDatabase((int)mouse.getX(), (int)mouse.getY());
-            EditWindow.gridAlign(mouseDB);
-            Rectangle2D pasteBounds = getPasteBounds(pasteList);
-            // this is the point on the clipboard cell that will be pasted at the mouse location
-            Point2D refPastePoint = new Point2D.Double(pasteBounds.getCenterX(), pasteBounds.getCenterY());
-
-            double deltaX = mouseDB.getX() - refPastePoint.getX();
-            double deltaY = mouseDB.getY() - refPastePoint.getY();
-            // this is now a delta, not a point
-            refPastePoint.setLocation(deltaX, deltaY);
-            EditWindow.gridAlign(refPastePoint);
-
+			Point2D refPastePoint = new Point2D.Double(lastDupX, lastDupY);
 		    PasteObjects job = new PasteObjects(pasteList, refPastePoint.getX(), refPastePoint.getY());
 		}
 	}
@@ -704,7 +692,7 @@ public class Clipboard
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
 			newNi.copyVarsFrom(ni);
 			newNodes.put(ni, newNi);
-//			us_dupnode = newNi;
+			lastDup = newNi;
 
 			// copy the ports, too
             List portInstsToExport = new ArrayList();
@@ -773,16 +761,8 @@ public class Clipboard
 
 		// copy variables on cells
         for(Iterator it = theTextVariables.iterator(); it.hasNext(); )
-		//for(Iterator it = list.iterator(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-//			if (!(obj instanceof Highlight)) continue;
-//			Highlight h = (Highlight)obj;
-//			if (h.getType() != Highlight.Type.TEXT) continue;
-//			Variable var = h.getVar();
-//			if (var == null) continue;
-//			if (!(h.getElectricObject() instanceof Cell)) continue;
-
 			Variable cellVar = toCell.newVar(var.getKey().getName(), var.getObject());
 			if (cellVar != null)
 			{
@@ -1032,8 +1012,6 @@ public class Clipboard
 		private EditWindow wnd;
 		private List pasteList;
 		private EventListener currentListener;
-		//private int origX, origY;                   // database units
-		//private double oX, oY;                      // database units
         private Rectangle2D pasteBounds;
         private double translateX;
         private double translateY;

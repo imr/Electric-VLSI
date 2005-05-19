@@ -4,6 +4,23 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (05/19/05, SMR) Intelligent placement of duplicate copies when "move after duplicate" is not checked.
+
+BUG: (05/19/05, SMR) Highlighting an export on the example icon doesn't show all of the equivalent nodes.
+FIX: In Highlight.showHighlight(), include the node with the real export.
+
+BUG: (05/19/05, SMR) HSpice waveform plotting doesn't handle amperage right (signals that start with "I(") (Bug #303).
+FIX: In HSpiceOut.readTR0File(), expand numbers when they start after the "("; move the "(" to the last symbol.
+
+IMP: (05/19/05, SMR) Automatic icon generation now makes thick black icons, not thin red ones.
+
+IMP: (05/19/05, SMR) Technology editor can now create octagonal shapes.
+
+IMP: (05/18/05, SMR) Changing one node to another will adjust arcs in simple
+     situations instead of adding jogs (Bug #321).
+
+IMP/MAN: (05/18/05, SMR) Can now switch the side bar to the right side (in General Preferences, too).
+
 BUG: (05/18/05, JKG) LEPARALLGRP problem with keepers (Bug #320)
 
 BUG: (05/18/05, SMR) Deleting a node that has internal arcs (arcs connected from one port of the

@@ -905,6 +905,7 @@ public class Highlight
                 if (highlightConnected) {
                     Netlist netlist = cell.acquireUserNetlist();
 					if (netlist == null) return;
+					NodeInst originalNI = ni;
 		            if (ni.isIconOfParent())
 		            {
 	                	// find export in parent
@@ -952,7 +953,7 @@ public class Highlight
                     for(Iterator it = cell.getNodes(); it.hasNext(); )
                     {
                         NodeInst oNi = (NodeInst)it.next();
-                        if (oNi == ni) continue;
+                        if (oNi == originalNI) continue;
                         if (!markObj.contains(oNi))
                         {
                     		boolean connected = false;

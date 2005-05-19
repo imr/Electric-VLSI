@@ -170,6 +170,20 @@ public class User extends Listener
 	}
 
 	/**
+	 * Method to announce a change to a NodeInst.
+	 * @param ni the NodeInst that was changed.
+	 * @param oCX the old X center of the NodeInst.
+	 * @param oCY the old Y center of the NodeInst.
+	 * @param oSX the old X size of the NodeInst.
+	 * @param oSY the old Y size of the NodeInst.
+	 * @param oRot the old rotation of the NodeInst.
+	 */
+	public void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot)
+	{
+		Clipboard.nodeMoved(ni, oCX, oCY);
+	}
+
+	/**
 	 * Method to handle the deletion of an ElectricObject.
 	 * @param obj the ElectricObject that was just deleted.
 	 */
@@ -1134,7 +1148,8 @@ public class User extends Listener
 	}
 
 	/****************************** MISCELLANEOUS PREFERENCES ******************************/
-    private static Pref cacheDefaultTechnology = Pref.makeStringPref("DefaultTechnology", tool.prefs, "mocmos");
+
+	private static Pref cacheDefaultTechnology = Pref.makeStringPref("DefaultTechnology", tool.prefs, "mocmos");
 	static { cacheDefaultTechnology.attachToObject(tool, "Technology/Technology tab", "Default Technology for editing"); }
 	/**
 	 * Method to get default technique in Tech Palette.
@@ -1244,6 +1259,21 @@ public class User extends Listener
 	 * @param on true if the system should beep after long jobs.
 	 */
 	public static void setBeepAfterLongJobs(boolean on) { cacheBeepAfterLongJobs.setBoolean(on); }
+
+	private static Pref cacheSideBarOnRight = Pref.makeBooleanPref("SideBarOnRight", tool.prefs, false);
+	/**
+	 * Method to tell whether to place the side bar on the right by default.
+	 * The side bar (with the cell explorer, component menu, and layers) is usually on the left side.
+	 * The default is "false" (place on left).
+	 * @return true to place the side bar on the right by default.
+	 */
+	public static boolean isSideBarOnRight() { return cacheSideBarOnRight.getBoolean(); }
+	/**
+	 * Method to set whether to place the side bar on the right by default.
+	 * The side bar (with the cell explorer, component menu, and layers) is usually on the left side.
+	 * @param on true to place the side bar on the right by default.
+	 */
+	public static void setSideBarOnRight(boolean on) { cacheSideBarOnRight.setBoolean(on); }
 
 	private static Pref cacheDefaultWindowTab = Pref.makeIntPref("DefaultWindowTab", tool.prefs, 0);
 	/**

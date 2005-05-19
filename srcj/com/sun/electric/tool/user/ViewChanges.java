@@ -543,16 +543,20 @@ public class ViewChanges
 		NodeInst bbNi = null;
 		if (User.isIconGenDrawBody())
 		{
-			bbNi = NodeInst.newInstance(Artwork.tech.boxNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
+			bbNi = NodeInst.newInstance(Artwork.tech.openedThickerPolygonNode, new Point2D.Double(0,0), xSize, ySize, iconCell);
 			if (bbNi == null) return null;
-			bbNi.newVar(Artwork.ART_COLOR, new Integer(EGraphics.RED));
+			Point2D [] boxOutline = new Point2D[5];
+			boxOutline[0] = new Point2D.Double(-xSize/2, -ySize/2);
+			boxOutline[1] = new Point2D.Double(-xSize/2,  ySize/2);
+			boxOutline[2] = new Point2D.Double( xSize/2,  ySize/2);
+			boxOutline[3] = new Point2D.Double( xSize/2, -ySize/2);
+			boxOutline[4] = new Point2D.Double(-xSize/2, -ySize/2);
+			bbNi.newVar(NodeInst.TRACE, boxOutline);
 
 			// put the original cell name on it
 			Variable var = bbNi.newVar(Schematics.SCHEM_FUNCTION, curCell.getName());
 			if (var != null)
-			{
 				var.setDisplay(true);
-			}
 		}
 
 		// place pins around the Black Box

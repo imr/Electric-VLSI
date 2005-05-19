@@ -462,8 +462,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		// check for recursion
 		if (np instanceof Cell)
 		{
-            if (Cell.isInstantiationRecursive((Cell)np, getParent())) {
-			//if (getParent().isAChildOf((Cell)np)) {
+            if (Cell.isInstantiationRecursive((Cell)np, getParent()))
+            {
                 System.out.println("Cannot replace because it would be recursive");
                 return null;
             }
@@ -489,7 +489,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
             if (getXSize() == getProto().getDefWidth()) newXS = np.getDefWidth();
             if (getYSize() == getProto().getDefHeight()) newYS = np.getDefHeight();
 		}
-        // see if nodeinst is mirrored
+
+		// see if nodeinst is mirrored
         if (getXSizeWithMirror() < 0) newXS *= -1;
         if (getYSizeWithMirror() < 0) newYS *= -1;
 		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getAngle(), null, 0);
@@ -520,8 +521,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		for(Iterator it = getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
-			// make sure there is an association for this port
 
+			// make sure there is an association for this port
 			int index = 0;
 			for( ; index<oldAssoc.length; index++)
 				if (oldAssoc[index].portInst == con.getPortInst()) break;
@@ -587,9 +588,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		// now replace all of the arcs
 		List arcList = new ArrayList();
 		for(Iterator it = getConnections(); it.hasNext(); )
-		{
 			arcList.add(it.next());
-		}
 		for(Iterator it = arcList.iterator(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
@@ -649,6 +648,62 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 					if ((ii%1800) != (ang%1800)) zigzag = true;
 				}
 			}
+
+			// see if a bend can be a straight by some simple manipulations
+			if (zigzag && !ai.isRigid() && (ai.getAngle() % 900) == 0)
+			{
+				// find the node at the other end
+				int otherEnd = 0;
+				if (ai.getConnection(0) == con) otherEnd = 1;
+				NodeInst adjustThisNode = ai.getConnection(otherEnd).getPortInst().getNodeInst();
+				if (adjustThisNode.getNumExports() == 0)
+				{
+					// other end not exported, see if all arcs can be adjusted
+					boolean adjustable = true;
+					for(Iterator oIt = adjustThisNode.getConnections(); oIt.hasNext(); )
+					{
+						Connection otherCon = (Connection)oIt.next();
+						ArcInst otherArc = otherCon.getArc();
+						if (otherArc == ai) continue;
+						if (otherArc.isRigid()) { adjustable = false;   break; }
+						if (otherArc.getAngle() % 900 != 0) { adjustable = false;   break; }
+						if (((ai.getAngle() / 900) & 1) == ((otherArc.getAngle() / 900) & 1)) { adjustable = false;   break; }
+					}
+					if (adjustable)
+					{
+						double dX = 0, dY = 0;
+						if ((ai.getAngle() % 1800) == 0)
+						{
+							// horizontal arc: move the other node vertically
+							dY = newPoint[1-otherEnd].getY() - newPoint[otherEnd].getY();
+							newPoint[otherEnd] = new Point2D.Double(newPoint[otherEnd].getX(), newPoint[1-otherEnd].getY());
+						} else
+						{
+							// vertical arc: move the other node horizontaly
+							dX = newPoint[1-otherEnd].getX() - newPoint[otherEnd].getX();
+							newPoint[otherEnd] = new Point2D.Double(newPoint[1-otherEnd].getX(), newPoint[otherEnd].getY());
+						}
+
+						// special case where the old arc must be deleted first so that the other node can move
+						ai.kill();
+						adjustThisNode.modifyInstance(dX, dY, 0, 0, 0);
+						ArcInst newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPortInst[1],
+							newPoint[0], newPoint[1], ai.getName(), 0);
+						if (newAi == null)
+						{
+							newNi.kill();
+							return null;
+						}
+						newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
+						newAi.setHeadNegated(ai.isHeadNegated());
+						newAi.setTailNegated(ai.isTailNegated());
+						newAi.copyVarsFrom(ai);
+						newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
+						continue;
+					}
+				}
+			}
+
 			ArcInst newAi;
 			if (zigzag)
 			{
@@ -661,7 +716,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, getParent());
 				PortInst pinPi = pinNi.getOnlyPortInst();
 				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], pinPi, newPoint[0],
-				        new Point2D.Double(cX, cY), null, 0);
+				    new Point2D.Double(cX, cY), null, 0);
 				if (newAi == null) return null;
 				newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
 				newAi.setHeadNegated(ai.isHeadNegated());

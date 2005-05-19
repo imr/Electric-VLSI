@@ -267,11 +267,11 @@ public class LibToTech
 				TechPoint [] points = nd[j].values;
 				if (nList[i].specialType == PrimitiveNode.SERPTRANS)
 				{
-					nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, Technology.NodeLayer.BOX, points,
+					nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, nd[j].representation, points,
 						nd[j].lWidth, nd[j].rWidth, nd[j].extendB, nd[j].extendT);
 				} else
 				{
-					nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, Technology.NodeLayer.BOX, points);
+					nodeLayers[j] = new Technology.NodeLayer(lay, nd[j].portIndex, nd[j].style, nd[j].representation, points);
 				}
 			}
 			PrimitiveNode prim = PrimitiveNode.newInstance(nList[i].name, tech, nList[i].xSize, nList[i].ySize, nList[i].so, nodeLayers);
@@ -1774,7 +1774,7 @@ public class LibToTech
 					pointList[i] = new Point2D.Double(nodeBounds.getCenterX() + points[i].getX(),
 						nodeBounds.getCenterY() + points[i].getY());
 					trans.transform(pointList[i], pointList[i]);
-					pointFactor[i] = FROMCENTX|FROMCENTY;
+					pointFactor[i] = RATIOCENTX|RATIOCENTY;
 				}
 			} else
 			{
@@ -1855,13 +1855,16 @@ public class LibToTech
 			nodeLayers[count].ns = ns;
 			nodeLayers[count].style = getStyle(ns.node);
 			nodeLayers[count].representation = Technology.NodeLayer.POINTS;
-			if (nodeLayers[count].style == Poly.Type.CROSSED ||
-				nodeLayers[count].style == Poly.Type.FILLED ||
-				nodeLayers[count].style == Poly.Type.CLOSED)
+			if (ns.values.length == 2)
 			{
-				nodeLayers[count].representation = Technology.NodeLayer.BOX;
-				Variable var2 = ns.node.getVar(Info.MINSIZEBOX_KEY);
-				if (var2 != null) nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
+				if (nodeLayers[count].style == Poly.Type.CROSSED ||
+					nodeLayers[count].style == Poly.Type.FILLED ||
+					nodeLayers[count].style == Poly.Type.CLOSED)
+				{
+					nodeLayers[count].representation = Technology.NodeLayer.BOX;
+					Variable var2 = ns.node.getVar(Info.MINSIZEBOX_KEY);
+					if (var2 != null) nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
+				}
 			}
 			nodeLayers[count].values = ns.values;
 			count++;
@@ -1981,7 +1984,6 @@ public class LibToTech
 				// make sure the arrays hold "count" points
 				pointList = new Point2D[points.length];
 				pointFactor = new int[points.length];
-
 				for(int i=0; i<points.length; i++)
 				{
 					pointList[i] = new Point2D.Double(nodeBounds.getCenterX() + points[i].getX(),
@@ -2087,10 +2089,29 @@ public class LibToTech
 				if (oPoints != null)
 				{
 					newCount = oPoints.length;
-					for(int i=0; i<Math.min(trueCount, newCount); i++)
+					int numPoints = Math.min(trueCount, newCount);
+					int bestOffset = 0;
+					double bestDist = Double.MAX_VALUE;
+					for(int offset = 0; offset < numPoints; offset++)
 					{
-						pointCoords[i] = new Point2D.Double(oNodeBounds.getCenterX() + oPoints[i].getX(),
-							oNodeBounds.getCenterY() + oPoints[i].getY());
+						// determine total distance between points
+						double dist = 0;
+						for(int i=0; i<numPoints; i++)
+						{
+							double dX = points[i].getX() - oPoints[(i+offset)%numPoints].getX();
+							double dY = points[i].getY() - oPoints[(i+offset)%numPoints].getY();
+							dist += Math.sqrt(dX*dX + dY*dY);
+						}
+						if (dist < bestDist)
+						{
+							bestDist = dist;
+							bestOffset = offset;
+						}
+					}
+					for(int i=0; i<numPoints; i++)
+					{
+						pointCoords[i] = new Point2D.Double(oNodeBounds.getCenterX() + oPoints[(i+bestOffset)%numPoints].getX(),
+							oNodeBounds.getCenterY() + oPoints[(i+bestOffset)%numPoints].getY());
 						oTrans.transform(pointCoords[i], pointCoords[i]);
 					}
 				} else
@@ -2190,7 +2211,7 @@ public class LibToTech
 					if ((pointFactor[i]&(TOEDGELEFT|TOEDGERIGHT)) == 0 ||
 						(pointFactor[i]&(TOEDGETOP|TOEDGEBOT)) == 0)
 				{
-						pointOutError(ns.node, ns.node.getParent());
+					pointOutError(ns.node, ns.node.getParent());
 					System.out.println("Highlight must be constant distance from edge in " + np.describe());
 					return null;
 				}
@@ -2213,13 +2234,16 @@ public class LibToTech
 			nodeLayers[count].ns = ns;
 			nodeLayers[count].style = getStyle(ns.node);
 			nodeLayers[count].representation = Technology.NodeLayer.POINTS;
-			if (nodeLayers[count].style == Poly.Type.CROSSED ||
-				nodeLayers[count].style == Poly.Type.FILLED ||
-				nodeLayers[count].style == Poly.Type.CLOSED)
+			if (ns.values.length == 2)
 			{
-				nodeLayers[count].representation = Technology.NodeLayer.BOX;
-				if (minFactor != 0)
-					nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
+				if (nodeLayers[count].style == Poly.Type.CROSSED ||
+					nodeLayers[count].style == Poly.Type.FILLED ||
+					nodeLayers[count].style == Poly.Type.CLOSED)
+				{
+					nodeLayers[count].representation = Technology.NodeLayer.BOX;
+					if (minFactor != 0)
+						nodeLayers[count].representation = Technology.NodeLayer.MINBOX;
+				}
 			}
 			nodeLayers[count].values = ns.values;
 			count++;
@@ -3123,9 +3147,15 @@ public class LibToTech
 		for(int i=0; i<string.length(); i++)
 		{
 			char chr = string.charAt(i);
-			if (i == 0) chr = Character.toLowerCase(chr);
-			if (chr == '-') infstr.append('_'); else
-				infstr.append(chr);
+			if (i == 0)
+			{
+				if (!Character.isJavaIdentifierStart(chr)) chr = '_'; else
+					chr = Character.toLowerCase(chr);
+			} else
+			{
+				if (!Character.isJavaIdentifierPart(chr)) chr = '_';
+			}
+			infstr.append(chr);
 		}
 		return infstr.toString();
 	}

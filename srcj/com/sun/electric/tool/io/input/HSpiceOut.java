@@ -252,14 +252,17 @@ public class HSpiceOut extends Simulate
 			if (k == 0) continue;
 
 			// convert name if there is a colon in it
-			for(j=0; j<line.length(); j++)
+			int startPos = 0;
+			int openPos = line.indexOf("(");
+			if (openPos >= 0) startPos = openPos+1;
+			for(j=startPos; j<line.length(); j++)
 			{
 				if (line.charAt(j) == ':') break;
 				if (!TextUtils.isDigit(line.charAt(j))) break;
 			}
 			if (j < line.length() && line.charAt(j) == ':')
 			{
-				l = TextUtils.atoi(line.toString(), 0, 10);
+				l = TextUtils.atoi(line.toString().substring(startPos), 0, 10);
 				PA0Line foundPA0Line = null;
 				if (pa0List == null)
 				{
@@ -277,10 +280,10 @@ public class HSpiceOut extends Simulate
 				if (foundPA0Line != null)
 				{
 					StringBuffer newSB = new StringBuffer();
+					newSB.append(line.substring(0, startPos));
 					newSB.append(foundPA0Line.string);
 					newSB.append(line.substring(j+1));
-					line = new StringBuffer();
-					line.append(newSB.toString());
+					line = newSB;
 				}
 			} else
 			{
@@ -289,6 +292,21 @@ public class HSpiceOut extends Simulate
 					String fixedLine = removeLeadingX(line.toString());
 					line = new StringBuffer();
 					line.append(fixedLine);
+				}
+			}
+
+			// move parenthesis from the start to the last name
+			openPos = line.indexOf("(");
+			if (openPos >= 0)
+			{
+				int lastDot = line.lastIndexOf(".");
+				if (lastDot >= 0)
+				{
+					StringBuffer newSB = new StringBuffer();
+					newSB.append(line.substring(openPos+1, lastDot+1));
+					newSB.append(line.substring(0, openPos+1));
+					newSB.append(line.substring(lastDot+1));
+					line = newSB;
 				}
 			}
 

@@ -74,6 +74,8 @@ public class WindowFrame extends Observable
     /** the top-level frame (if SDI). */				private TopLevel jf = null;
     /** the internalframe listener */                   private InternalWindowsEvents internalWindowsEvents;
     /** the window event listener */                    private WindowsEvents windowsEvents;
+	/** the side bar (explorer, components, etc) */		private JTabbedPane sideBar;
+	/** true if sidebar is on the left */				private boolean sideBarOnLeft;
 	/** the explorer tab */								private ExplorerTree explorerTab;
 	/** the component tab */							private PaletteFrame paletteTab;
 	/** the layers tab */								private LayerTab layersTab;
@@ -257,21 +259,21 @@ public class WindowFrame extends Observable
 		JScrollPane scrolledTree = new JScrollPane(explorerTab);
 
 		// make a tabbed list of panes on the left
-		JTabbedPane tp = new JTabbedPane();
+		sideBar = new JTabbedPane();
         // Only Mac version will align tabs on the left. The text orientation is vertical
         // by default on Mac
         if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
-            tp.setTabPlacement(JTabbedPane.LEFT);
+			sideBar.setTabPlacement(JTabbedPane.LEFT);
 		paletteTab = PaletteFrame.newInstance(this);
 		loadComponentMenuForTechnology();
-		tp.add("Components", paletteTab.getTechPalette());
+		sideBar.add("Components", paletteTab.getTechPalette());
 
-		tp.add("Explorer", scrolledTree);
+		sideBar.add("Explorer", scrolledTree);
 		layersTab = new LayerTab();
-		tp.add("Layers", layersTab.getContentPane());
+		sideBar.add("Layers", layersTab.getContentPane());
 
-		tp.setSelectedIndex(User.getDefaultWindowTab());
-		tp.addChangeListener(new javax.swing.event.ChangeListener()
+		sideBar.setSelectedIndex(User.getDefaultWindowTab());
+		sideBar.addChangeListener(new javax.swing.event.ChangeListener()
         {
             public void stateChanged(javax.swing.event.ChangeEvent evt)
             {
@@ -280,18 +282,26 @@ public class WindowFrame extends Observable
             }
         });
 
-		// put them together into the split pane
-		js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-		js.setRightComponent(content.getPanel());
-		js.setLeftComponent(tp);
-//		js.setDividerLocation(0.2);
-		js.setDividerLocation(200);
-
 		// initialize the frame
 		String cellDescription = (cell == null) ? "no cell" : cell.describe();
-		createJFrame(cellDescription, gc);
+		Dimension sz = createJFrame(cellDescription, gc);
 		windowOffset += 70;
 		if (windowOffset > 300) windowOffset = 0;
+
+		// put them together into the split pane
+		js = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		sideBarOnLeft = !User.isSideBarOnRight();
+		if (sideBarOnLeft)
+		{
+			js.setLeftComponent(sideBar);
+			js.setRightComponent(content.getPanel());
+			js.setDividerLocation(200);
+		} else
+		{
+			js.setLeftComponent(content.getPanel());
+			js.setRightComponent(sideBar);
+			js.setDividerLocation(sz.width - 200);
+		}
 
 		// accumulate a list of current windows
 		synchronized(windowList) {
@@ -304,8 +314,9 @@ public class WindowFrame extends Observable
 	/**
 	 * Create the JFrame that will hold all the Components in 
 	 * this WindowFrame.
+	 * @return the size of the frame.
 	 */
-	private void createJFrame(String title, GraphicsConfiguration gc)
+	private Dimension createJFrame(String title, GraphicsConfiguration gc)
 	{
 		Dimension scrnSize = TopLevel.getScreenSize();
 		Dimension frameSize = new Dimension(scrnSize.width * 4 / 5, scrnSize.height * 6 / 8);
@@ -322,6 +333,7 @@ public class WindowFrame extends Observable
 			jf.setSize(frameSize);
 			jf.setLocation(windowOffset+WINDOW_OFFSET, windowOffset);
 		}
+		return frameSize;
 	}        
 
     /**
@@ -339,39 +351,39 @@ public class WindowFrame extends Observable
 		paletteTab.loadForTechnology(tech, this);
 	}
 
-	public void addJS(JComponent js, int width, int height, int lowX, int lowY)
-	{
-		if (TopLevel.isMDIMode())
-		{
-//			JInternalFrame newJIF = new JInternalFrame();
-//			newJIF.setBorder(new javax.swing.border.EmptyBorder(0,0,0,0));
-//			newJIF.setSize(new Dimension(width, height));
-//			newJIF.setLocation(300, 300);
-//			newJIF.getContentPane().add(js);
-//			newJIF.show();
-//			TopLevel.addToDesktop(newJIF);
-//			try
-//			{
-//				newJIF.setSelected(true);
-//			} catch (java.beans.PropertyVetoException e) {}
-
-			js.setSize(new Dimension(width, height));
-			js.setBorder(new javax.swing.border.EmptyBorder(0,0,0,0));
-			js.setLocation(lowX, lowY);
-			js.setVisible(true);
-			js.requestFocus();
-			js.requestFocusInWindow();
-			TopLevel.getDesktop().add(js, 0);
-//			try
-//			{
-//				js.setSelected(true);
-//			} catch (java.beans.PropertyVetoException e) {}
-		} else
-		{
-			jf.getContentPane().add(js);
-			if (!Main.BATCHMODE) jf.setVisible(true);
-		}
-	}
+//	public void addJS(JComponent js, int width, int height, int lowX, int lowY)
+//	{
+//		if (TopLevel.isMDIMode())
+//		{
+////			JInternalFrame newJIF = new JInternalFrame();
+////			newJIF.setBorder(new javax.swing.border.EmptyBorder(0,0,0,0));
+////			newJIF.setSize(new Dimension(width, height));
+////			newJIF.setLocation(300, 300);
+////			newJIF.getContentPane().add(js);
+////			newJIF.show();
+////			TopLevel.addToDesktop(newJIF);
+////			try
+////			{
+////				newJIF.setSelected(true);
+////			} catch (java.beans.PropertyVetoException e) {}
+//
+//			js.setSize(new Dimension(width, height));
+//			js.setBorder(new javax.swing.border.EmptyBorder(0,0,0,0));
+//			js.setLocation(lowX, lowY);
+//			js.setVisible(true);
+//			js.requestFocus();
+//			js.requestFocusInWindow();
+//			TopLevel.getDesktop().add(js, 0);
+////			try
+////			{
+////				js.setSelected(true);
+////			} catch (java.beans.PropertyVetoException e) {}
+//		} else
+//		{
+//			jf.getContentPane().add(js);
+//			if (!Main.BATCHMODE) jf.setVisible(true);
+//		}
+//	}
 
 	/**
 	 * Populate the JFrame with the Components
@@ -446,7 +458,8 @@ public class WindowFrame extends Observable
 				getContent().finished();
 				content = new TextWindow(cell, this);
 				int i = js.getDividerLocation();
-				js.setRightComponent(content.getPanel());
+				if (sideBarOnLeft) js.setRightComponent(content.getPanel()); else
+					js.setLeftComponent(content.getPanel());
 				js.setDividerLocation(i);
 				content.fillScreen();
 				return;
@@ -459,7 +472,8 @@ public class WindowFrame extends Observable
 				getContent().finished();
 				content = EditWindow.CreateElectricDoc(cell, this);
 				int i = js.getDividerLocation();
-				js.setRightComponent(content.getPanel());
+				if (sideBarOnLeft) js.setRightComponent(content.getPanel()); else
+					js.setLeftComponent(content.getPanel());
 				js.setDividerLocation(i);
 				content.fillScreen();
 				return;
@@ -687,6 +701,29 @@ public class WindowFrame extends Observable
 		}
 		return obj;
 	}
+
+	public static void setSideBarLocation(boolean onLeft)
+	{
+		WindowFrame wf = getCurrentWindowFrame();
+		if (wf.sideBarOnLeft == onLeft) return;
+		wf.sideBarOnLeft = onLeft;
+
+		wf.js.setLeftComponent(null);
+		wf.js.setRightComponent(null);
+		Dimension sz = wf.js.getSize();
+		int loc = sz.width - wf.js.getDividerLocation();
+		wf.js.setDividerLocation(loc);
+		if (onLeft)
+		{
+			wf.js.setLeftComponent(wf.sideBar);
+			wf.js.setRightComponent(wf.content.getPanel());
+		} else
+		{
+			wf.js.setLeftComponent(wf.content.getPanel());
+			wf.js.setRightComponent(wf.sideBar);
+		}
+	}
+
 	//******************************** INTERFACE ********************************
 
 	/**
