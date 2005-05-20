@@ -124,7 +124,7 @@ public class LESizer2 {
                             drivers.add(loopLeno);
                             // error check
                             if (leno.parallelGroup > 0 && loopcount == 0 && leno.su != loopLeno.su) {
-                                String msg = "\nError: LEKEEPER \""+leno.getName()+"\" drives in parallel with \""+loopLeno.getName()+
+                                String msg = "\nError: LEGATE \""+leno.getName()+"\" drives in parallel with \""+loopLeno.getName()+
                                         "\" but has a different step-up";
                                 System.out.println(msg);
                                 NodeInst ni = leno.getNodable().getNodeInst();
@@ -205,9 +205,9 @@ public class LESizer2 {
                     }
 
                     // For now, split effort equally amongst all drivers
-                    if (leno.parallelGroup <= 0)
+                    if (leno.parallelGroup <= 0) {
                         newX = smallestX * netlist.getKeeperRatio() / arrayedDrivers.size();
-                    else {
+                    } else {
                         newX = smallestX * netlist.getKeeperRatio() / drivers.size();
                     }
                 }

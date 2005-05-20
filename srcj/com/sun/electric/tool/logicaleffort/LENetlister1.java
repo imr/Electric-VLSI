@@ -420,7 +420,7 @@ public class LENetlister1 extends LENetlister {
         inst.setContext(info.getContext());
 
         // set instance parameters for sizeable gates
-        if (type == Instance.Type.LEGATE) {
+        if (type == Instance.Type.LEGATE || type == Instance.Type.LEKEEPER) {
             var = ni.getVar("ATTR_LEPARALLGRP");
             if (var != null) {
                 // set parallel group number
