@@ -1549,7 +1549,8 @@ public class Technology implements Comparable
 	 */
 	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd)
 	{
-		return getShapeOfNode(ni, wnd, wnd.getVarContext(), false, false, null);
+		VarContext var = (wnd != null) ? wnd.getVarContext() : null;
+		return getShapeOfNode(ni, wnd, var, false, false, null);
 	}
 
 	/**
