@@ -104,6 +104,18 @@ import javax.swing.KeyStroke;
  * Class to handle the commands in the "Edit" pulldown menu.
  */
 public class EditMenu {
+    private static JMenuItem moveFull, moveHalf, moveQuarter;
+
+    /**
+     * Method to select proper buttom in EditMenu depending on gridAlignment value
+     * @param ad
+     */
+    public static void setGridAligment(double ad)
+    {
+		if (ad == 1.0) moveFull.setSelected(true); else
+		if (ad == 0.5) moveHalf.setSelected(true); else
+		if (ad == 0.25) moveQuarter.setSelected(true);
+    }
 
 	protected static void addEditMenu(MenuBar menuBar) {
         MenuBar.MenuItem m;
@@ -270,7 +282,7 @@ public class EditMenu {
 		MenuBar.Menu modeSubMenuEdit = MenuBar.makeMenu("_Edit");
 		modeSubMenu.add(modeSubMenuEdit);
 		ButtonGroup editGroup = new ButtonGroup();
-        JMenuItem cursorClickZoomWire, cursorSelect, cursorWiring, cursorPan, cursorZoom, cursorOutline, cursorMeasure;
+        JMenuItem cursorClickZoomWire, cursorPan, cursorZoom, cursorOutline, cursorMeasure;
 		cursorClickZoomWire = modeSubMenuEdit.addRadioButton(ToolBar.cursorClickZoomWireName, true, editGroup, KeyStroke.getKeyStroke('S', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.clickZoomWireCommand(); } });
         ToolBar.CursorMode cm = ToolBar.getCursorMode();
@@ -293,17 +305,13 @@ public class EditMenu {
 		MenuBar.Menu modeSubMenuMovement = MenuBar.makeMenu("_Movement");
 		modeSubMenu.add(modeSubMenuMovement);
 		ButtonGroup movementGroup = new ButtonGroup();
-        JMenuItem moveFull, moveHalf, moveQuarter;
 		moveFull = modeSubMenuMovement.addRadioButton(ToolBar.moveFullName, true, movementGroup, KeyStroke.getKeyStroke('F', 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.fullArrowDistanceCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.arrowDistanceCommand(ToolBar.ArrowDistance.FULL); } });
 		moveHalf = modeSubMenuMovement.addRadioButton(ToolBar.moveHalfName, false, movementGroup, KeyStroke.getKeyStroke('H', 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.halfArrowDistanceCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.arrowDistanceCommand(ToolBar.ArrowDistance.HALF); } });
 		moveQuarter = modeSubMenuMovement.addRadioButton(ToolBar.moveQuarterName, false, movementGroup, null, // do not put shortcut in here! Too dangerous!!
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.quarterArrowDistanceCommand(); } });
-		double ad = User.getAlignmentToGrid();
-		if (ad == 1.0) moveFull.setSelected(true); else
-		if (ad == 0.5) moveHalf.setSelected(true); else
-			moveQuarter.setSelected(true);
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolBar.arrowDistanceCommand(ToolBar.ArrowDistance.QUARTER); } });
+        setGridAligment(User.getAlignmentToGrid());
 
 		// mnemonic keys available: ABCDEFGHIJKLMNOPQRSTUVWXYZ
 		MenuBar.Menu modeSubMenuSelect = MenuBar.makeMenu("_Select");

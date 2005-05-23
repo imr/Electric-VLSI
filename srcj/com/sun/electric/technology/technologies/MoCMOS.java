@@ -48,7 +48,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
@@ -161,7 +160,8 @@ public class MoCMOS extends Technology
 		new DRCTemplate("1.3",  DRCTemplate.ALL, DRCTemplate.CONSPA,   "P-Well",         "P-Well",         6,  null),
 		new DRCTemplate("1.3",  DRCTemplate.ALL, DRCTemplate.CONSPA,   "N-Well",         "N-Well",         6,  null),
 
-		new DRCTemplate("1.4",  DRCTemplate.ALL, DRCTemplate.UCONSPA,  "P-Well",         "N-Well",         0,  null),
+		// Valid in case of unconnected node or connected node UCONSPA -> SPACING May 21, 05
+		new DRCTemplate("1.4",  DRCTemplate.ALL, DRCTemplate.SPACING,  "P-Well",         "N-Well",         0,  null),
 
 		new DRCTemplate("2.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "P-Active",        null,            3,  null),
 		new DRCTemplate("2.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "N-Active",        null,            3,  null),

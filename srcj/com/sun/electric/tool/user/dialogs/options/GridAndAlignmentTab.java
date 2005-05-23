@@ -25,7 +25,9 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.menus.EditMenu;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.ToolBar;
 
 import javax.swing.JPanel;
 
@@ -112,7 +114,11 @@ public class GridAndAlignmentTab extends PreferencePanel
 
 		currDouble = TextUtils.atof(gridAlignCursor.getText());
 		if (currDouble != User.getAlignmentToGrid())
+        {
+            EditMenu.setGridAligment(currDouble);
+            ToolBar.setGridAligment(currDouble);
 			User.setAlignmentToGrid(currDouble);
+        }
 	}
 
 	/** This method is called from within the constructor to

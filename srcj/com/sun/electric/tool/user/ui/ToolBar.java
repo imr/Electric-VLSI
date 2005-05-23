@@ -167,9 +167,22 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
     public static final ImageIcon selectSpecialIconOn = Resources.getResource(ToolBar.class, "ButtonSelectSpecialOn.gif");
     public static final ImageIcon selectSpecialIconOff = Resources.getResource(ToolBar.class, "ButtonSelectSpecialOff.gif");
-    
+    private static ToolBarButton fullButton, halfButton, quarterButton;    // Access from outside to change selection if
+    //  setGridAligment is changed in GridAndAlignmentTab
+
 	private ToolBar() {
         Undo.addPropertyChangeListener(this);
+    }
+
+    /**
+     * Method to select proper buttom in ToolBar depending on gridAlignment value
+     * @param ad
+     */
+    public static void setGridAligment(double ad)
+    {
+		if (ad == 1.0) fullButton.setSelected(true); else
+		if (ad == 0.5) halfButton.setSelected(true); else
+		if (ad == 0.25) quarterButton.setSelected(true);
     }
 
 	/**
@@ -183,7 +196,6 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		toolbar.setRollover(true);
 
         ToolBarButton clickZoomWireButton, panButton, zoomButton, outlineButton, measureButton;
-        ToolBarButton fullButton, halfButton, quarterButton;
         ToolBarButton objectsButton, areaButton;
         ToolBarButton selectSpecialButton;
         ButtonGroup modeGroup, arrowGroup, selectGroup;
@@ -264,7 +276,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		fullButton = ToolBarButton.newInstance(moveFullName,
             Resources.getResource(toolbar.getClass(), "ButtonFull.gif"));
 		fullButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { fullArrowDistanceCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { arrowDistanceCommand(ArrowDistance.FULL); } });
 		fullButton.setToolTipText("Full motion");
 		fullButton.setSelected(true);
 		toolbar.add(fullButton);
@@ -274,7 +286,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
         halfButton = ToolBarButton.newInstance(moveHalfName,
             Resources.getResource(toolbar.getClass(), "ButtonHalf.gif"));
 		halfButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { halfArrowDistanceCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { arrowDistanceCommand(ArrowDistance.HALF); } });
 		halfButton.setToolTipText("Half motion");
 		toolbar.add(halfButton);
 		arrowGroup.add(halfButton);
@@ -283,10 +295,12 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		quarterButton = ToolBarButton.newInstance(moveQuarterName,
             Resources.getResource(toolbar.getClass(), "ButtonQuarter.gif"));
 		quarterButton.addActionListener(
-			new ActionListener() { public void actionPerformed(ActionEvent e) { quarterArrowDistanceCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { arrowDistanceCommand(ArrowDistance.QUARTER); } });
 		quarterButton.setToolTipText("Quarter motion");
 		toolbar.add(quarterButton);
 		arrowGroup.add(quarterButton);
+
+        setGridAligment(User.getAlignmentToGrid());
 
 		// a separator
 		toolbar.addSeparator();
@@ -612,29 +626,21 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 
 	/**
 	 * Method called when the "full arrow distance" button is pressed.
+     * Method called when the "half arrow distance" button is pressed.
+     * Method called when the "quarter arrow distance" button is pressed.
 	 */
-	public static void fullArrowDistanceCommand()
+	public static void arrowDistanceCommand(ArrowDistance arrow)
 	{
-		curArrowDistance = ArrowDistance.FULL;
-        User.setAlignmentToGrid(1.0);
-	}
-
-	/**
-	 * Method called when the "half arrow distance" button is pressed.
-	 */
-	public static void halfArrowDistanceCommand()
-	{
-		curArrowDistance = ArrowDistance.HALF;
-        User.setAlignmentToGrid(0.5);
-	}
-
-	/**
-	 * Method called when the "quarter arrow distance" button is pressed.
-	 */
-	public static void quarterArrowDistanceCommand()
-	{
-		curArrowDistance = ArrowDistance.QUARTER;
-        User.setAlignmentToGrid(0.25);
+        curArrowDistance = arrow;
+        double dist = -1; // no valid value as default
+        if (arrow == ArrowDistance.FULL)
+            dist = 1;
+        else if (arrow == ArrowDistance.HALF)
+            dist = 0.5;
+        else if (arrow == ArrowDistance.QUARTER)
+            dist = 0.25;
+        EditMenu.setGridAligment(dist);
+        User.setAlignmentToGrid(dist);
 	}
 
 	/**

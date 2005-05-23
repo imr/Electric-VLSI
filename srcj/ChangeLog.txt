@@ -4,6 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+BUG: (05/23/05, GVG) Motion indicator in tool bar set wrongly on startup (Bug #337)
+FIX: There was no setup in ToolBar, changes in EditMenu didn't change ToolBar values and changes in
+GridAndAligment didn't change ToolBar/EditMenu buttons.
+
+BUG: (05/23/05, GVG) TSMC90 layers not in the correct order (Bug #336)
+FIX: Error in TSMC90.getContactFunction().
+
+BUG: (05/20/05, GVG) DRC doesn't detect overlap between PWell/NWell when nodes are connected (Bug #333)
+FIX: Transform UCONSPA into SPACING rule (TSMC90: NW.S.0, MoCMOS: 1.4
+
 IMP/MAN: (05/19/05, SMR) Mirroring (in the commands and in the Node Properties dialog) is now described
      in terms of "left <-> right" and "up <-> down" (Bug #327).
 
