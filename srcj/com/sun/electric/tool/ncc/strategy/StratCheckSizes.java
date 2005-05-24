@@ -58,7 +58,7 @@ public class StratCheckSizes extends Strategy {
 		public abstract String widLen();
 		public abstract String wl();
 		public String toString() {
-			// don't round if error rounds to zero
+			// don't round if error will round to zero
 			double relErr, absErr, minSz, maxSz;
 			if (relErr()*100<.1 || absErr()<.1) {
 				relErr = relErr()*100;
