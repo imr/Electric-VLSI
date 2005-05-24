@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+BUG: (05/23/05, GVG) Fix for DRC bug #312 (didn't detect small feature)
+FIX: Check small feature even if polygons are connected.
+
+IMP: (05/23/05, GVG) New size for native transistors
+
 BUG: (05/23/05, GVG) Motion indicator in tool bar set wrongly on startup (Bug #337)
 FIX: There was no setup in ToolBar, changes in EditMenu didn't change ToolBar values and changes in
 GridAndAligment didn't change ToolBar/EditMenu buttons.
