@@ -446,7 +446,7 @@ public class Compaction extends Listener
 
 					// see how close they can get
 					double dist = -1;
-					DRCRules.DRCRule rule = DRC.getSpacingRule(nLayer, layer, con, false, 0, DRCTemplate.ALL);
+					DRCRules.DRCRule rule = DRC.getSpacingRule(nLayer, layer, con, false, 0, 0, DRCTemplate.ALL);
 					if (rule != null) dist = rule.value;
 					if (dist < 0) continue;
 

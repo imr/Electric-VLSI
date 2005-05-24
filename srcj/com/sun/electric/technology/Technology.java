@@ -1549,8 +1549,7 @@ public class Technology implements Comparable
 	 */
 	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd)
 	{
-		VarContext var = (wnd != null) ? wnd.getVarContext() : null;
-		return getShapeOfNode(ni, wnd, var, false, false, null);
+		return getShapeOfNode(ni, wnd, wnd.getVarContext(), false, false, null);
 	}
 
 	/**
@@ -3329,94 +3328,6 @@ public class Technology implements Comparable
 	}
 
 	///////////////////// Generic methods //////////////////////////////////////////////////////////////
-	/**
-	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
-	 * in node "nty" to "surround".  The array "minsize" is the minimum size of each layer.
-	 */
-	protected void setLayerSurroundLayer(PrimitiveNode nty, Layer outerLayer, Layer innerLayer,
-	                                     double surround, double minSizeValue)
-	{
-		// find the inner layer
-		Technology.NodeLayer inLayer = nty.findNodeLayer(innerLayer);
-		if (inLayer == null)
-		{
-			System.out.println("Internal error in " + getTechDesc() + " surround computation. Layer '" +
-                    innerLayer.getName() + "' is not valid in '" + nty.getName() + "'");
-			return;
-		}
-
-		// find the outer layer
-		Technology.NodeLayer outLayer = nty.findNodeLayer(outerLayer);
-		if (outLayer == null)
-		{
-            System.out.println("Internal error in " + getTechDesc() + " surround computation. Layer '" +
-                    outerLayer.getName() + "' is not valid in '" + nty.getName() + "'");
-			return;
-		}
-
-		// determine if minimum size design rules are met
-		TechPoint [] inPoints = inLayer.getPoints();
-		EdgeH inLeft = inPoints[0].getX();
-		EdgeH inRight = inPoints[1].getX();
-		EdgeV inBottom = inPoints[0].getY();
-		EdgeV inTop = inPoints[1].getY();
-		double leftIndent = inLeft.getAdder() - surround;
-		double rightIndent = inRight.getAdder() + surround;
-		double bottomIndent = inBottom.getAdder() - surround;
-		double topIndent = inTop.getAdder() + surround;
-		double xSize = nty.getDefWidth() - leftIndent - rightIndent;
-		double ySize = nty.getDefHeight() - bottomIndent - topIndent;
-		//int outerLayerIndex = outerLayer.getIndex();
-		//double minSizeValue = minSize[outerLayerIndex].doubleValue();
-        //double minSizeValue = minSize[outerLayerIndex].doubleValue();
-		if (xSize < minSizeValue || ySize < minSizeValue)
-		{
-			// make it irregular to force the proper minimum size
-			if (xSize < minSizeValue) rightIndent -= minSizeValue - xSize;
-			if (ySize < minSizeValue) topIndent -= minSizeValue - ySize;
-		}
-
-		TechPoint [] outPoints = outLayer.getPoints();
-		EdgeH outLeft = outPoints[0].getX();
-		EdgeH outRight = outPoints[1].getX();
-		EdgeV outBottom = outPoints[0].getY();
-		EdgeV outTop = outPoints[1].getY();
-		boolean hasChanged = false;
-		// describe the error
-		String errorMessage = "Layer surround error of outer layer '" + outerLayer.getName()
-		        + "' and inner layer '" + innerLayer.getName() + "'in '" + getTechDesc() + "':";
-
-        leftIndent = DBMath.round(leftIndent);
-        rightIndent = DBMath.round(rightIndent);
-        topIndent = DBMath.round(topIndent);
-        bottomIndent = DBMath.round(bottomIndent);
-		if (!DBMath.areEquals(outLeft.getAdder(), leftIndent))
-		{
-			outLeft.setAdder(leftIndent);
-			hasChanged = true;
-			errorMessage += " left=" + leftIndent;
-		}
-		if (!DBMath.areEquals(outRight.getAdder(), rightIndent))
-		{
-			outRight.setAdder(rightIndent);
-			hasChanged = true;
-			errorMessage += " right=" + rightIndent;
-		}
-		if (!DBMath.areEquals(outTop.getAdder(), topIndent))
-		{
-			outTop.setAdder(topIndent);
-			hasChanged = true;
-			errorMessage += " top=" + topIndent;
-		}
-		if (!DBMath.areEquals(outBottom.getAdder(), bottomIndent))
-		{
-			outBottom.setAdder(bottomIndent);
-			hasChanged = true;
-			errorMessage += " bottom=" + bottomIndent;
-		}
-        // Message printed only if developer turns local flag on
-		if (hasChanged && Main.LOCALDEBUGFLAG) System.out.println(errorMessage);
-	}
 
 	/**
 	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
@@ -3537,7 +3448,7 @@ public class Technology implements Comparable
 		double layersize = viasize + surround*2;
 		double indent = (nty.getDefWidth() - layersize) / 2;
 
-		Technology.NodeLayer oneLayer = nty.findNodeLayer(layer);
+		Technology.NodeLayer oneLayer = nty.findNodeLayer(layer, false);
 		if (oneLayer != null)
 		{
 			TechPoint [] points = oneLayer.getPoints();
@@ -3635,5 +3546,24 @@ public class Technology implements Comparable
 	    }
 
         return ni;
+    }
+
+    /**
+     * This is the most basic function to determine the widest wire and the parallel distance
+     * that run along them. Done because MOSRules doesn't consider the parallel distance as input.
+     * @param poly1
+     * @param poly2
+     * @return
+     */
+    public double[] getSpacingDistances(Poly poly1, Poly poly2)
+    {
+        double size1 = poly1.getMinSize();
+        double size2 = poly1.getMinSize();
+        double length = 0;
+        double wideS = (size1 > size2) ? size1 : size2;
+        double [] results = new double[2];
+        results[0] = wideS;
+        results[1] = length;
+        return results;
     }
 }

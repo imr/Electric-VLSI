@@ -40,7 +40,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -532,7 +531,7 @@ public class DRC extends Listener
 	public static double getMaxSurround(Layer layer, double maxSize)
 	{
 		Technology tech = layer.getTechnology();
-		if (tech == null) return -1;
+        if (tech == null) return -1; // case when layer is a Graphics
 		DRCRules rules = getRules(tech);
 		if (rules == null) return -1;
 
@@ -561,17 +560,36 @@ public class DRC extends Listener
 	 * @param layer2 the second layer.
 	 * @param connected true to find the distance when the layers are connected.
 	 * @param multiCut true to find the distance when this is part of a multicut contact.
+     * @param wideS widest polygon
+     * @param length length of the intersection
      * @param techMode to choose betweeb ST or TSMC foundry
 	 * @return the spacing rule between the layers.
 	 * Returns null if there is no spacing rule.
 	 */
 	public static DRCRules.DRCRule getSpacingRule(Layer layer1, Layer layer2, boolean connected,
-                                                  boolean multiCut, double wideS, int techMode)
+                                                  boolean multiCut, double wideS, double length, int techMode)
 	{
 		Technology tech = layer1.getTechnology();
 		DRCRules rules = getRules(tech);
 		if (rules == null) return null;
-        return (rules.getSpacingRule(tech, layer1, layer2, connected, multiCut, wideS, techMode));
+        return (rules.getSpacingRule(tech, layer1, layer2, connected, multiCut, wideS, length, techMode));
+	}
+
+	/**
+	 * Method to find the extension rule between two layer.
+	 * @param layer1 the first layer.
+	 * @param layer2 the second layer.
+     * @param techMode to choose betweeb ST or TSMC foundry
+     * @param isGateExtension to decide between the rule EXTENSIONGATE or EXTENSION
+	 * @return the extension rule between the layers.
+	 * Returns null if there is no extension rule.
+	 */
+	public static DRCRules.DRCRule getExtensionRule(Layer layer1, Layer layer2, int techMode, boolean isGateExtension)
+	{
+		Technology tech = layer1.getTechnology();
+		DRCRules rules = getRules(tech);
+		if (rules == null) return null;
+        return (rules.getExtensionRule(tech, layer1, layer2, techMode, isGateExtension));
 	}
 
 	/**
@@ -745,7 +763,7 @@ public class DRC extends Listener
     {
         int bits = 0;
         if (!isIgnoreAreaChecking()) bits |= DRC_BIT_AREA;
-        if (!isIgnorePolySelectChecking()) bits |= DRC_BIT_COVERAGE;
+        if (!isIgnoreExtensionRuleChecking()) bits |= DRC_BIT_COVERAGE;
         // Adding foundry to bits set
         int foundry = getFoundry();
         if (foundry != DRCTemplate.ALL)
@@ -839,19 +857,19 @@ public class DRC extends Listener
 	 */
 	public static void setIgnoreAreaChecking(boolean on) { cacheIgnoreAreaChecking.setBoolean(on); }
 
-    private static Pref cacheIgnorePolySelectChecking = Pref.makeBooleanPref("IgnorePolySelectCheck", tool.prefs, false);
-    static { cacheIgnorePolySelectChecking.attachToObject(tool, "Tools/DRC tab", "DRC ignores polysilicon select rule checking"); }
+    private static Pref cacheIgnoreExtensionRuleChecking = Pref.makeBooleanPref("IgnoreExtensionRuleCheck", tool.prefs, false);
+    static { cacheIgnoreExtensionRuleChecking.attachToObject(tool, "Tools/DRC tab", "DRC extension rule checking"); }
 	/**
-	 * Method to tell whether DRC should polysilicon select rule.
+	 * Method to tell whether DRC should check extension rules.
 	 * The default is "false".
-	 * @return true if DRC should performance hierarchical area checking.
+	 * @return true if DRC should check extension rules.
 	 */
-	public static boolean isIgnorePolySelectChecking() { return cacheIgnorePolySelectChecking.getBoolean(); }
+	public static boolean isIgnoreExtensionRuleChecking() { return cacheIgnoreExtensionRuleChecking.getBoolean(); }
 	/**
-	 * Method to set whether DRC should performance hierarchical area checking.
-	 * @param on true if DRC should performance hierarchical area checking.
+	 * Method to set whether DRC should check extension rules.
+	 * @param on true if DRC should check extension rules.
 	 */
-	public static void setIgnorePolySelectChecking(boolean on) { cacheIgnorePolySelectChecking.setBoolean(on); }
+	public static void setIgnoreExtensionRuleChecking(boolean on) { cacheIgnoreExtensionRuleChecking.setBoolean(on); }
 
     private static Pref cacheFoundry = Pref.makeStringPref("Foundry", tool.prefs, "TSMC");
 	static { cacheFoundry.attachToObject(tool, "Tools/DRC tab", "Foundry for DRC rules"); }

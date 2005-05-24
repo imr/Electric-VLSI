@@ -26,6 +26,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.Main;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -332,8 +333,8 @@ public class MoCMOS extends Technology
 		new DRCTemplate("7.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        3,  null),
 		new DRCTemplate("7.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        2,  null),
 
-		new DRCTemplate("7.4",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-1",        "Metal-1",        6, false),
-		new DRCTemplate("7.4",  DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-1",        "Metal-1",        4, false),
+		new DRCTemplate("7.4",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-1",        "Metal-1",        6, false),
+		new DRCTemplate("7.4",  DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-1",        "Metal-1",        4, false),
 
 		new DRCTemplate("8.1",  DRCTemplate.DE, DRCTemplate.CUTSIZE,   null,             null,            3, "Metal-1-Metal-2-Con"),
 		new DRCTemplate("8.1",  DRCTemplate.DE, DRCTemplate.NODSIZ,    null,             null,            5, "Metal-1-Metal-2-Con"),
@@ -360,8 +361,8 @@ public class MoCMOS extends Technology
 
 		new DRCTemplate("9.3",  DRCTemplate.ALL,               DRCTemplate.VIASUR,   "Metal-2",         null,            1, "Metal-1-Metal-2-Con"),
 
-		new DRCTemplate("9.4",  DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-2",        "Metal-2",        8, false),
-		new DRCTemplate("9.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-2",        "Metal-2",        6, false),
+		new DRCTemplate("9.4",  DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-2",        "Metal-2",        8, false),
+		new DRCTemplate("9.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-2",        "Metal-2",        6, false),
 
 		new DRCTemplate("11.1", DRCTemplate.SU, DRCTemplate.MINWID,   "Polysilicon-2",   null,            7,  null),
 		new DRCTemplate("11.1", DRCTemplate.SC, DRCTemplate.MINWID,   "Polysilicon-2",   null,            3,  null),
@@ -404,10 +405,10 @@ public class MoCMOS extends Technology
 		new DRCTemplate("15.3", DRCTemplate.SU|DRCTemplate.SC|    DRCTemplate.M3,    DRCTemplate.VIASUR,   "Metal-3",         null,            2, "Metal-2-Metal-3-Con"),
 		new DRCTemplate("15.3", DRCTemplate.SU|DRCTemplate.SC|    DRCTemplate.M456,  DRCTemplate.VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"),
 
-		new DRCTemplate("15.4", DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        8, false),
-		new DRCTemplate("15.4", DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        6, false),
-		new DRCTemplate("15.4", DRCTemplate.SC|DRCTemplate.M3,    DRCTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        8, false),
-		new DRCTemplate("15.4", DRCTemplate.SC|DRCTemplate.M456,  DRCTemplate.SPACINGW, WIDELIMIT, "Metal-3",        "Metal-3",        6, false),
+		new DRCTemplate("15.4", DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        8, false),
+		new DRCTemplate("15.4", DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        6, false),
+		new DRCTemplate("15.4", DRCTemplate.SC|DRCTemplate.M3,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        8, false),
+		new DRCTemplate("15.4", DRCTemplate.SC|DRCTemplate.M456,  DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        6, false),
 
 		new DRCTemplate("21.1", DRCTemplate.DE, DRCTemplate.CUTSIZE,   null,             null,            3, "Metal-3-Metal-4-Con"),
 		new DRCTemplate("21.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Via3",            null,            3,  null),
@@ -432,9 +433,9 @@ public class MoCMOS extends Technology
 		new DRCTemplate("22.3", DRCTemplate.M4,    DRCTemplate.VIASUR,   "Metal-4",         null,            2, "Metal-3-Metal-4-Con"),
 		new DRCTemplate("22.3", DRCTemplate.M56,   DRCTemplate.VIASUR,   "Metal-4",         null,            1, "Metal-3-Metal-4-Con"),
 
-		new DRCTemplate("22.4", DRCTemplate.M4,    DRCTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        12, false),
-		new DRCTemplate("22.4", DRCTemplate.DE|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        8, false),
-		new DRCTemplate("22.4", DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, "Metal-4",        "Metal-4",        6, false),
+		new DRCTemplate("22.4", DRCTemplate.M4,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        12, false),
+		new DRCTemplate("22.4", DRCTemplate.DE|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        8, false),
+		new DRCTemplate("22.4", DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        6, false),
 
 		new DRCTemplate("24.1", DRCTemplate.ALL, DRCTemplate.MINWID,  "Thick-Active",    null,            4,  null),
 		new DRCTemplate("24.2", DRCTemplate.ALL, DRCTemplate.SPACING, "Thick-Active",   "Thick-Active",   4, null),
@@ -463,9 +464,9 @@ public class MoCMOS extends Technology
 		new DRCTemplate("26.3", DRCTemplate.SU|DRCTemplate.M5,    DRCTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
 		new DRCTemplate("26.3", DRCTemplate.M6, DRCTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
 
-		new DRCTemplate("26.4", DRCTemplate.M5, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        8, false),
-		new DRCTemplate("26.4", DRCTemplate.DE|DRCTemplate.M6,    DRCTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        8, false),
-		new DRCTemplate("26.4", DRCTemplate.SU|DRCTemplate.M6,    DRCTemplate.SPACINGW, WIDELIMIT, "Metal-5",        "Metal-5",        6, false),
+		new DRCTemplate("26.4", DRCTemplate.M5, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        8, false),
+		new DRCTemplate("26.4", DRCTemplate.DE|DRCTemplate.M6,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        8, false),
+		new DRCTemplate("26.4", DRCTemplate.SU|DRCTemplate.M6,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        6, false),
 
 		new DRCTemplate("29.1", DRCTemplate.DE, DRCTemplate.CUTSIZE,   null,             null,            4, "Metal-5-Metal-6-Con"),
 		new DRCTemplate("29.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Via5",            null,            4,  null),
@@ -485,7 +486,7 @@ public class MoCMOS extends Technology
 		new DRCTemplate("30.3", DRCTemplate.DE, DRCTemplate.VIASUR,   "Metal-6",         null,            2, "Metal-5-Metal-6-Con"),
 		new DRCTemplate("30.3", DRCTemplate.SU, DRCTemplate.VIASUR,   "Metal-6",         null,            1, "Metal-5-Metal-6-Con"),
 
-		new DRCTemplate("30.4", DRCTemplate.ALL, DRCTemplate.SPACINGW, WIDELIMIT, "Metal-6",        "Metal-6",        8, false)
+		new DRCTemplate("30.4", DRCTemplate.ALL, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-6",        "Metal-6",        8, false)
 	};
 
 	// -------------------- private and protected methods ------------------------
@@ -3336,11 +3337,11 @@ public class MoCMOS extends Technology
 					}
 					if (!goodrule) continue;
 				}
-				String rule = theRules[i].rule;
+				String rule = theRules[i].ruleName;
 				String extraString = metal + proc;
 				if (extraString.length() > 0 && rule.indexOf(extraString) == -1)
 					rule += ", " +  extraString;
-				theRules[i].rule = new String(rule);
+				theRules[i].ruleName = new String(rule);
 
 				// set the rule
 				double [] specValues;
@@ -3351,13 +3352,13 @@ public class MoCMOS extends Technology
 							System.out.println("Error in swap old tech");
 						rules.minWidth[layert1] = new Double(distance);
 						rules.minWidthRules[layert1] = rule;
-						setLayerMinWidth(theRules[i].name1, theRules[i].rule, distance);
+						setLayerMinWidth(theRules[i].name1, theRules[i].ruleName, distance);
 						break;
 					case DRCTemplate.NODSIZ:
 						setDefNodeSize(nty, distance, distance, rules);
 						break;
 					case DRCTemplate.SURROUND:
-						setLayerSurroundLayer(nty, lay1, lay2, distance,
+						setLayerSurroundLayer(theRules[i].ruleName, nty, lay1, lay2, distance,
 						        rules.minWidth[lay1.getIndex()].doubleValue());
 						break;
 					case DRCTemplate.ASURROUND:
@@ -4070,4 +4071,93 @@ public class MoCMOS extends Technology
 //			break;
 //	}
 //}
+    /**
+	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
+	 * in node "nty" to "surround".  The array "minsize" is the minimum size of each layer.
+	 */
+	private void setLayerSurroundLayer(String ruleName, PrimitiveNode nty, Layer outerLayer, Layer innerLayer,
+	                                   double surround, double minSizeValue)
+	{
+		// find the inner layer
+		Technology.NodeLayer inLayer = nty.findNodeLayer(innerLayer, false);
+		if (inLayer == null)
+		{
+			System.out.println("Internal error in " + getTechDesc() + " surround computation. Layer '" +
+                    innerLayer.getName() + "' is not valid in '" + nty.getName() + "'");
+			return;
+		}
+
+		// find the outer layer
+		Technology.NodeLayer outLayer = nty.findNodeLayer(outerLayer, false);
+		if (outLayer == null)
+		{
+            System.out.println("Internal error in " + getTechDesc() + " surround computation. Layer '" +
+                    outerLayer.getName() + "' is not valid in '" + nty.getName() + "'");
+			return;
+		}
+
+		// determine if minimum size design rules are met
+		TechPoint [] inPoints = inLayer.getPoints();
+		EdgeH inLeft = inPoints[0].getX();
+		EdgeH inRight = inPoints[1].getX();
+		EdgeV inBottom = inPoints[0].getY();
+		EdgeV inTop = inPoints[1].getY();
+		double leftIndent = inLeft.getAdder() - surround;
+		double rightIndent = inRight.getAdder() + surround;
+		double bottomIndent = inBottom.getAdder() - surround;
+		double topIndent = inTop.getAdder() + surround;
+		double xSize = nty.getDefWidth() - leftIndent - rightIndent;
+		double ySize = nty.getDefHeight() - bottomIndent - topIndent;
+		//int outerLayerIndex = outerLayer.getIndex();
+		//double minSizeValue = minSize[outerLayerIndex].doubleValue();
+        //double minSizeValue = minSize[outerLayerIndex].doubleValue();
+		if (xSize < minSizeValue || ySize < minSizeValue)
+		{
+			// make it irregular to force the proper minimum size
+			if (xSize < minSizeValue) rightIndent -= minSizeValue - xSize;
+			if (ySize < minSizeValue) topIndent -= minSizeValue - ySize;
+		}
+
+		TechPoint [] outPoints = outLayer.getPoints();
+		EdgeH outLeft = outPoints[0].getX();
+		EdgeH outRight = outPoints[1].getX();
+		EdgeV outBottom = outPoints[0].getY();
+		EdgeV outTop = outPoints[1].getY();
+		boolean hasChanged = false;
+		// describe the error
+		String errorMessage = "Layer surround error of outer layer '" + outerLayer.getName()
+		        + "' and inner layer '" + innerLayer.getName() + "'in '" + getTechDesc() + "':";
+
+        leftIndent = DBMath.round(leftIndent);
+        rightIndent = DBMath.round(rightIndent);
+        topIndent = DBMath.round(topIndent);
+        bottomIndent = DBMath.round(bottomIndent);
+		if (!DBMath.areEquals(outLeft.getAdder(), leftIndent))
+		{
+			outLeft.setAdder(leftIndent);
+			hasChanged = true;
+			errorMessage += " left=" + leftIndent;
+		}
+		if (!DBMath.areEquals(outRight.getAdder(), rightIndent))
+		{
+			outRight.setAdder(rightIndent);
+			hasChanged = true;
+			errorMessage += " right=" + rightIndent;
+		}
+		if (!DBMath.areEquals(outTop.getAdder(), topIndent))
+		{
+			outTop.setAdder(topIndent);
+			hasChanged = true;
+			errorMessage += " top=" + topIndent;
+		}
+		if (!DBMath.areEquals(outBottom.getAdder(), bottomIndent))
+		{
+			outBottom.setAdder(bottomIndent);
+			hasChanged = true;
+			errorMessage += " bottom=" + bottomIndent;
+		}
+        errorMessage += "(rule " + ruleName + ")";
+        // Message printed only if developer turns local flag on
+		if (hasChanged && Main.LOCALDEBUGFLAG) System.out.println(errorMessage);
+	}
 }

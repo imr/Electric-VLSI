@@ -68,7 +68,7 @@ public class DRCTab extends PreferencePanel
 		drcIgnoreArea.setSelected(DRC.isIgnoreAreaChecking());
 
         // PolySelec rule
-		drcIgnorePolySelect.setSelected(DRC.isIgnorePolySelectChecking());
+		drcIgnoreExtensionRule.setSelected(DRC.isIgnoreExtensionRuleChecking());
 
 		requestedDRCClearDates = false;
 		drcClearValidDates.addActionListener(new ActionListener()
@@ -116,9 +116,9 @@ public class DRCTab extends PreferencePanel
 			DRC.setIgnoreAreaChecking(currentValue);
 
         // Poly Select rule
-        currentValue = drcIgnorePolySelect.isSelected();
-		if (currentValue != DRC.isIgnorePolySelectChecking())
-			DRC.setIgnorePolySelectChecking(currentValue);
+        currentValue = drcIgnoreExtensionRule.isSelected();
+		if (currentValue != DRC.isIgnoreExtensionRuleChecking())
+			DRC.setIgnoreExtensionRuleChecking(currentValue);
 
 		if (requestedDRCClearDates) DRC.resetDRCDates();
 
@@ -147,7 +147,7 @@ public class DRCTab extends PreferencePanel
         drcErrorExaustive = new javax.swing.JRadioButton();
         jPanel5 = new javax.swing.JPanel();
         drcIgnoreCenterCuts = new javax.swing.JCheckBox();
-        drcIgnorePolySelect = new javax.swing.JCheckBox();
+        drcIgnoreExtensionRule = new javax.swing.JCheckBox();
         drcIgnoreArea = new javax.swing.JCheckBox();
         defaultFoundryLabel = new javax.swing.JLabel();
         defaultFoundryPulldown = new javax.swing.JComboBox();
@@ -245,14 +245,14 @@ public class DRCTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel5.add(drcIgnoreCenterCuts, gridBagConstraints);
 
-        drcIgnorePolySelect.setText("Ignore polysilicon select rule");
+        drcIgnoreExtensionRule.setText("Ignore extension rules");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        jPanel5.add(drcIgnorePolySelect, gridBagConstraints);
+        jPanel5.add(drcIgnoreExtensionRule, gridBagConstraints);
 
         drcIgnoreArea.setText("Ignore area checking");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -306,7 +306,7 @@ public class DRCTab extends PreferencePanel
     private javax.swing.JRadioButton drcErrorExaustive;
     private javax.swing.JCheckBox drcIgnoreArea;
     private javax.swing.JCheckBox drcIgnoreCenterCuts;
-    private javax.swing.JCheckBox drcIgnorePolySelect;
+    private javax.swing.JCheckBox drcIgnoreExtensionRule;
     private javax.swing.JCheckBox drcIncrementalOn;
     private javax.swing.ButtonGroup errorTypeGroup;
     private javax.swing.JPanel jPanel3;

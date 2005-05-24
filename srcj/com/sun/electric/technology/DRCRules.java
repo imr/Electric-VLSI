@@ -23,14 +23,17 @@
  */
 package com.sun.electric.technology;
 
+import java.util.List;
+
 public interface DRCRules {
 	public void setMinNodeSize(int index, double value);
 	public double getWorstSpacingDistance();
     public double getMaxSurround(Technology tech, Layer layer, double maxSize);
     public DRCRule getEdgeRule(Technology tech, Layer layer1, Layer layer2);
     public DRCRules.DRCRule getSpacingRule(Technology tech, Layer layer1, Layer layer2, boolean connected,
-                                           boolean multiCut, double wideS, int techMode);
+                                           boolean multiCut, double wideS, double length, int techMode);
     public boolean isAnyRule(Technology tech, Layer layer1, Layer layer2);
+    public DRCRules.DRCRule getExtensionRule(Technology tech, Layer layer1, Layer layer2, int techMode, boolean isGateExtension);
 	public int getNumberOfRules();
     public DRCRules.DRCRule getMinValue(Layer layer, int type, int techMode);
     public void applyDRCOverrides(String override, Technology tech);
@@ -47,5 +50,6 @@ public interface DRCRules {
 			this.ruleName = rule;
             this.type = type;
 		}
+        public List getNodesInRule() { return null; }
 	}
 }

@@ -61,7 +61,10 @@ public abstract class GeometryHandler {
             case GeometryHandler.ALGO_QTREE:
                 return new PolyQTree(root);
             case GeometryHandler.ALGO_SWEEP:
-                return new PolySweepMerge(initialSize);
+                if (initialSize > 0)
+                    return new PolySweepMerge(initialSize);
+                else
+                    return new PolySweepMerge();
         }
         return null;
     }

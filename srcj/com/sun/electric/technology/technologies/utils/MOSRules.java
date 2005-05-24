@@ -247,6 +247,21 @@ public class MOSRules implements DRCRules {
 	}
 
     /**
+	 * Method to find the extension rule between two layer.
+	 * @param layer1 the first layer.
+	 * @param layer2 the second layer.
+     * @param techMode either ST, TSMC or both
+     * @param isGateExtension to decide between the rule EXTENSIONGATE or EXTENSION
+	 * @return the extension rule between the layers.
+	 * Returns null if there is no extension rule.
+	 */
+	public DRCRules.DRCRule getExtensionRule(Technology tech, Layer layer1, Layer layer2, int techMode,
+                                             boolean isGateExtension)
+	{
+		return null; //  not available for CMOS
+	}
+
+    /**
 	 * Method to find the edge spacing rule between two layer.
 	 * @param layer1 the first layer.
 	 * @param layer2 the second layer.
@@ -267,11 +282,13 @@ public class MOSRules implements DRCRules {
 	 * @param layer2 the second layer.
 	 * @param connected true to find the distance when the layers are connected.
 	 * @param multiCut true to find the distance when this is part of a multicut contact.
+     * @param wideS widest polygon
+     * @param length length of the intersection
 	 * @return the spacing rule between the layers.
 	 * Returns null if there is no spacing rule.
 	 */
 	public DRCRules.DRCRule getSpacingRule(Technology tech, Layer layer1, Layer layer2, boolean connected,
-                                           boolean multiCut, double wideS, int techMode)
+                                           boolean multiCut, double wideS, double length, int techMode)
 	{
 		int pIndex = tech.getRuleIndex(layer1.getIndex(), layer2.getIndex());
 

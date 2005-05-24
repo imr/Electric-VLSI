@@ -30,20 +30,14 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 
-import java.awt.Dimension;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
-import java.util.TreeMap;
 
 /**
  * A PrimitiveNode represents information about a NodeProto that lives in a
@@ -692,13 +686,19 @@ public class PrimitiveNode implements NodeProto, Comparable
 	 * @param layer the Layer to find.
 	 * @return the NodeLayer that has this Layer.
 	 */
-	public Technology.NodeLayer findNodeLayer(Layer layer)
+	public Technology.NodeLayer findNodeLayer(Layer layer, boolean electrical)
 	{
-		for(int j=0; j<layers.length; j++)
-		{
-			Technology.NodeLayer oneLayer = layers[j];
-			if (oneLayer.getLayer() == layer) return oneLayer;
-		}
+        // Give higher priority to electrical layers
+        Technology.NodeLayer[] nodes = (electrical) ? electricalLayers : layers;
+
+        if (nodes != null)
+        {
+            for(int j=0; j<nodes.length; j++)
+            {
+                Technology.NodeLayer oneLayer = nodes[j];
+                if (oneLayer.getLayer() == layer) return oneLayer;
+            }
+        }
 		return null;
 	}
 
