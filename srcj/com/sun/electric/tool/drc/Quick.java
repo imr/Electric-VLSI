@@ -1433,9 +1433,8 @@ public class Quick
         if (actual != 0 && DBMath.isGreaterThan(minWidth, actual) &&
             foundSmallSizeDefect(cell, geom1, poly1, layer1, geom2, poly2, pd, lxb, lyb, hxb, hyb))
         {
-            reportError(MINWIDTHERROR, null, cell, minWidth, actual, wRule.ruleName, null,
+            reportError(MINWIDTHERROR, null, cell, minWidth, actual, wRule.ruleName, new Poly(bounds),
                             geom1, layer1, null, geom2, layer2);
-//            foundSmallSizeDefect(cell, geom1, poly1, layer1, geom2, poly2, pd, lxb, lyb, hxb, hyb);
             foundError = true;
         }
         return foundError; // nothing found
@@ -1510,16 +1509,12 @@ public class Quick
         }
         // looking if points around the overlapping area are inside another region
         // to avoid the error
-        lookForLayerNew(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
-                pt1, pt2, null, pointsFound, false, true);
         if (Main.LOCALDEBUGFLAG)
-        {
-            boolean [] pointsNewFound = new boolean[2];
             lookForLayerNew(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
-                pt1d, pt2d, null, pointsNewFound, false, true);
-            if (pointsFound[0] != pointsNewFound[0] || pointsFound[1] != pointsNewFound[1])
-                System.out.println("HHH");
-        }
+                pt1d, pt2d, null, pointsFound, false);
+        else
+            lookForLayerNew(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
+                pt1, pt2, null, pointsFound, false);
         // Nothing found
         if (!pointsFound[0] && !pointsFound[1])
         {
@@ -2835,7 +2830,7 @@ public class Quick
 		boolean [] pointsFound = new boolean[2];
 		pointsFound[0] = pointsFound[1] = false;
 		boolean allFound = lookForLayerNew(geo1, poly1, geo2, poly2, cell, layer, DBMath.MATID, bounds,
-		        pt1, pt2, null, pointsFound, overlap, false);
+		        pt1, pt2, null, pointsFound, overlap);
 
 		return allFound;
 	}
@@ -2946,7 +2941,7 @@ public class Quick
 	private boolean lookForLayerNew(Geometric geo1, Poly poly1, Geometric geo2, Poly poly2, Cell cell,
 	                                Layer layer, AffineTransform moreTrans, Rectangle2D bounds,
 	                                Point2D pt1, Point2D pt2, Point2D pt3, boolean[] pointsFound,
-                                    boolean overlap, boolean ignoreSameGeometry)
+                                    boolean overlap)
 	{
 		int j;
         Rectangle2D newBounds = new Rectangle2D.Double();  // Sept 30
@@ -2976,7 +2971,7 @@ public class Quick
 					AffineTransform trans = ni.translateOut(ni.rotateOut());
 					trans.preConcatenate(moreTrans);
 					if (lookForLayerNew(geo1, poly1, geo2, poly2, (Cell)ni.getProto(), layer, trans, newBounds,
-						pt1, pt2, pt3, pointsFound, overlap, ignoreSameGeometry))
+						pt1, pt2, pt3, pointsFound, overlap))
 							return true;
 					continue;
 				}
