@@ -1505,7 +1505,7 @@ public class Quick
         }
         if (DBMath.areEquals(pt1.getX(), pt2.getX()) || DBMath.areEquals(pt1.getY(), pt2.getY()))
         {
-            if (Main.LOCALDEBUGFLAG) System.out.println("Escaping this case as the points are not at opposite corners");
+//            if (Main.LOCALDEBUGFLAG) System.out.println("Escaping this case as the points are not at opposite corners");
             return false;
         }
         // looking if points around the overlapping area are inside another region
