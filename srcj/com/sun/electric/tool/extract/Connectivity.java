@@ -4,6 +4,7 @@
  *
  * File: Connectivity.java
  * Module to do node extraction (extract connectivity from a pure-layout cell)
+ * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -72,7 +73,7 @@ import java.util.List;
  *
  * Still to do:
  *    Nonmanhattan contacts
- *    Explicit connection where two cells overlap?
+ *    Explicit connection where two cells overlap
  */
 public class Connectivity
 {

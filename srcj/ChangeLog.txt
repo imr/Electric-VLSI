@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+BUG: (05/19/05, SMR) New windows appear with their contents too small.
+FIX: In WindowFrame.createEditWindow(), get proper window size.
+
 BUG: (05/23/05, GVG) Fix for DRC bug #312 (didn't detect small feature)
 FIX: Check small feature even if polygons are connected.
 

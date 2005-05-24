@@ -820,6 +820,22 @@ public class Simulation extends Listener
      */
     public static void setIRSIMDelayedX(boolean b) { cacheIRSIMDelayedX.setBoolean(b); }
 
+	/****************************** ALS OPTIONS ******************************/
+
+	private static Pref cacheALSResimulateEach = Pref.makeBooleanPref("ALSResimulateEach", Simulation.tool.prefs, false);
+	/**
+	 * Method to tell whether ALS resimulates after each change to the display.
+	 * When false, the user must request resimulation after a set of changes is done.
+	 * @return true if ALS resimulates after each change to the display.
+	 */
+	public static boolean isALSResimulateEach() { return cacheALSResimulateEach.getBoolean(); }
+	/**
+	 * Method to set if ALS resimulates after each change to the display.
+	 * When false, the user must request resimulation after a set of changes is done.
+	 * @param r true if ALS resimulates after each change to the display.
+	 */
+	public static void setALSResimulateEach(boolean r) { cacheALSResimulateEach.setBoolean(r); }
+
 	/****************************** SPICE OPTIONS ******************************/
 
 	/** Spice 2 engine. */		public static final int SPICE_ENGINE_2 = 0;
