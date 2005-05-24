@@ -217,10 +217,10 @@ public class Quick
 	private HashMap layersInterNodes = null;
 	private HashMap layersInterArcs = null;
 
-    public static int checkDesignRules(Cell cell, int count, Geometric[] geomsToCheck, boolean[] validity,
+    public static int checkDesignRules(Cell cell, Geometric[] geomsToCheck, boolean[] validity,
                                        Rectangle2D bounds, DRC.CheckDRCLayoutJob drcJob)
     {
-        return checkDesignRules(cell, count, geomsToCheck, validity, bounds, drcJob, GeometryHandler.ALGO_QTREE);
+        return checkDesignRules(cell, geomsToCheck, validity, bounds, drcJob, GeometryHandler.ALGO_QTREE);
     }
 
 	/**
@@ -234,16 +234,16 @@ public class Quick
      * @param drcJob
 	 * @return the number of errors found
 	 */
-	public static int checkDesignRules(Cell cell, int count, Geometric[] geomsToCheck, boolean[] validity,
+	public static int checkDesignRules(Cell cell, Geometric[] geomsToCheck, boolean[] validity,
                                        Rectangle2D bounds, DRC.CheckDRCLayoutJob drcJob, int mode)
 	{
 		Quick q = new Quick(drcJob, mode);
-		return q.doCheck(cell, count, geomsToCheck, validity, bounds);
+		return q.doCheck(cell, geomsToCheck, validity, bounds);
 	}
 
 
     // returns the number of errors found
-	private int doCheck(Cell cell, int count, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
+	private int doCheck(Cell cell, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
 	{
 		// Check if there are DRC rules for particular tech
 		DRCRules rules = DRC.getRules(cell.getTechnology());
@@ -261,6 +261,7 @@ public class Quick
 	    topCell = cell; /* Especially important for minArea checking */
 
 		// if checking specific instances, adjust options and processor count
+        int count = (geomsToCheck != null) ? geomsToCheck.length : 0;
 		if (count > 0)
 		{
 			errorTypeSearch = DRC.ERROR_CHECK_CELL;

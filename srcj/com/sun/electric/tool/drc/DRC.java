@@ -363,7 +363,7 @@ public class DRC extends Listener
 		{
 			long startTime = System.currentTimeMillis();
             int errorCount = 0, warnCount = 0;
-            if (Quick.checkDesignRules(cell, 0, null, null, bounds, this, mergeMode) > 0)
+            if (Quick.checkDesignRules(cell, null, null, bounds, this, mergeMode) > 0)
             {
                 errorCount = ErrorLogger.getCurrent().getNumErrors();
                 warnCount = ErrorLogger.getCurrent().getNumWarnings();
@@ -389,7 +389,7 @@ public class DRC extends Listener
 		public boolean doIt()
 		{
 			incrementalRunning = true;
-			int errorsFound = Quick.checkDesignRules(cell, objectsToCheck.length, objectsToCheck, null, null, this);
+			int errorsFound = Quick.checkDesignRules(cell, objectsToCheck, null, null, this);
 			if (errorsFound > 0)
 			{
 				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in cell "+ cell.describe());
