@@ -563,7 +563,7 @@ public class Schematic
 					}
 					if (!connected)
 					{
-						if (checkPoly(geom, poly, oGeom, oGeom, DBMath.MATID, true))
+						if (checkPoly(geom, poly, oGeom, oGeom, DBMath.MATID, false))		// last argument was "true"
 						{
 							return true;
 						}
@@ -584,6 +584,7 @@ public class Schematic
 	{
 		if (oGeom instanceof NodeInst)
 		{
+if (geom instanceof ArcInst) return false;
 			NodeInst ni = (NodeInst)oGeom;
 			NodeProto np = ni.getProto();
 			AffineTransform thisTrans = ni.rotateOut();
@@ -620,10 +621,12 @@ public class Schematic
 			}
 		} else
 		{
+if (geom instanceof NodeInst) return false;
 			ArcInst ai = (ArcInst)oGeom;
 			Technology tech = ai.getProto().getTechnology();
 			Poly [] polyList = tech.getShapeOfArc(ai);
 			int total = polyList.length;
+System.out.println("Comparing arcs "+ai.describe()+" and "+((ArcInst)geom).describe()+" CANCROSS="+canCross);
 			for(int i=0; i<total; i++)
 			{
 				Poly oPoly = polyList[i];
