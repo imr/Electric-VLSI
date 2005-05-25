@@ -36,6 +36,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
@@ -117,7 +118,7 @@ public class ArcInst extends Geometric implements Comparable
 
 	/** name of this ArcInst. */						private Name name;
 	/** duplicate index of this ArcInst in the Cell */  private int duplicate = -1;
-	/** The text descriptor of name of ArcInst. */		private TextDescriptor nameDescriptor;
+	/** The text descriptor of name of ArcInst. */		private ImmutableTextDescriptor nameDescriptor;
 	/** bounds after transformation. */					private Rectangle2D visBounds;
 	/** Flag bits for this ArcInst. */					private int userBits;
 	/** The timestamp for changes. */					private int changeClock;
@@ -145,7 +146,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	private ArcInst()
 	{
-		nameDescriptor = TextDescriptor.getArcTextDescriptor(this);
+		nameDescriptor = ImmutableTextDescriptor.getArcTextDescriptor();
 		this.visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 	}
 
@@ -1055,7 +1056,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * @param varName name of variable or special name.
 	 * @return the TextDescriptor on this ArcInst.
 	 */
-	public TextDescriptor getTextDescriptor(String varName)
+	public ImmutableTextDescriptor getTextDescriptor(String varName)
 	{
 		if (varName == ARC_NAME_TD) return nameDescriptor;
 		return super.getTextDescriptor(varName);
@@ -1072,13 +1073,18 @@ public class ArcInst extends Geometric implements Comparable
 	 * The TextDescriptor gives information for displaying the Variable.
 	 * @param varName name of variable or special name.
 	 * @param td new value TextDescriptor
+     * @return old text descriptor
+     * @throws IllegalArgumentException if TextDescriptor with specified name not found on this ArcInst.
 	 */
-	public void setTextDescriptor(String varName, TextDescriptor td)
+	public ImmutableTextDescriptor lowLevelSetTextDescriptor(String varName, ImmutableTextDescriptor td)
 	{
 		if (varName == ARC_NAME_TD)
-			nameDescriptor.copy(td);
-		else
-			super.setTextDescriptor(varName, td);
+        {
+            ImmutableTextDescriptor oldDescriptor = nameDescriptor;
+			nameDescriptor = td.withDisplayWithoutParamAndCode();
+            return oldDescriptor;
+        }
+		return super.lowLevelSetTextDescriptor(varName, td);
 	}
 
 	/**

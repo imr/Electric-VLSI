@@ -2176,10 +2176,10 @@ public class CircuitChanges
 			{
 				infstr.append("Structure of library " + Library.getCurrent().getName());
 			}
-			Variable var = titleNi.newVar(Artwork.ART_MESSAGE, infstr.toString());
+			Variable var = titleNi.newDisplayVar(Artwork.ART_MESSAGE, infstr.toString());
 			if (var != null)
 			{
-				var.setDisplay(true);
+//				var.setDisplay(true);
 				var.setRelSize(6);
 			}
 
@@ -2201,10 +2201,10 @@ public class CircuitChanges
 					cgn.pin = ni;
 
 					// write the cell name in the node
-					var = ni.newVar(Artwork.ART_MESSAGE, cell.describe());
+					var = ni.newDisplayVar(Artwork.ART_MESSAGE, cell.describe());
 					if (var != null)
 					{
-						var.setDisplay(true);
+//						var.setDisplay(true);
 						var.setRelSize(1);
 					}
 				}
@@ -5056,6 +5056,8 @@ public class CircuitChanges
 			{
 				double lambda = 1;
 				MutableTextDescriptor descript = new MutableTextDescriptor();
+                // setTextDescriptor will set display and code bits also. Is it necessary here ???
+                descript.setDisplay(false);
 				var.setTextDescriptor(descript);
 				double dX = descript.getXOff();
 				double dY = descript.getYOff();

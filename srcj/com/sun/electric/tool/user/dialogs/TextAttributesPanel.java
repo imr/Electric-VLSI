@@ -50,7 +50,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
     private TextDescriptor.Unit initialUnit;
     private Object initialDispPos;      // this needs to be an object because one choice, "none" is a string
                                         // instead of a TextDescriptor.DispPos
-    private Variable.Code initialCode;
+    private TextDescriptor.Code initialCode;
 
     /**
      * Create a Panel for editing attribute specific
@@ -62,7 +62,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
         initComponents();
 
         // add variable code types
-        for (Iterator it = Variable.Code.getCodes(); it.hasNext(); ) {
+        for (Iterator it = TextDescriptor.Code.getCodes(); it.hasNext(); ) {
             code.addItem(it.next());
         }
 
@@ -77,8 +77,8 @@ public class TextAttributesPanel extends javax.swing.JPanel
         // default settings
 
         // set code
-        initialCode = Variable.Code.NONE;
-        code.setSelectedItem(Variable.Code.NONE);
+        initialCode = TextDescriptor.Code.NONE;
+        code.setSelectedItem(TextDescriptor.Code.NONE);
         // set units
         initialUnit = TextDescriptor.Unit.NONE;
         units.setSelectedItem(initialUnit);
@@ -150,7 +150,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
         // otherwise, use td
 
         // set code
-        initialCode = Variable.Code.NONE;
+        initialCode = TextDescriptor.Code.NONE;
         if (var != null) {
             initialCode = var.getCode();
             code.setSelectedItem(initialCode);
@@ -190,7 +190,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
         boolean changed = false;
 
         // see if code changed
-        Variable.Code newCode = (Variable.Code)code.getSelectedItem();
+        TextDescriptor.Code newCode = (TextDescriptor.Code)code.getSelectedItem();
         if (newCode != initialCode) changed = true;
         // see if units changed
         TextDescriptor.Unit newUnit = (TextDescriptor.Unit)units.getSelectedItem();
@@ -235,14 +235,14 @@ public class TextAttributesPanel extends javax.swing.JPanel
 
         private ElectricObject owner;
         private String varName;
-        private Variable.Code code;
+        private TextDescriptor.Code code;
         private TextDescriptor.Unit unit;
         private Object dispPos;
 
         private ChangeText(
                 ElectricObject owner,
                 String varName,
-                Variable.Code code,
+                TextDescriptor.Code code,
                 TextDescriptor.Unit unit,
                 Object dispPos
                 )

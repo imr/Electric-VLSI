@@ -405,8 +405,8 @@ public class Manipulate
 			// a port layer
 			String portName = JOptionPane.showInputDialog("Port name:", "");
 			if (portName == null) return;
-			Variable var = newNi.newVar(Info.PORTNAME_KEY, portName);
-			if (var != null) var.setDisplay(true);
+			Variable var = newNi.newDisplayVar(Info.PORTNAME_KEY, portName);
+//			if (var != null) var.setDisplay(true);
 			return;
 		}
 		if (newNi.getProto() == Artwork.tech.boxNode)
@@ -1585,8 +1585,8 @@ public class Manipulate
 					System.out.println("Can only set minimum size in node descriptions");
 					return true;
 				}
-				Variable var = ni.newVar(Info.MINSIZEBOX_KEY, "MIN");
-				if (var != null) var.setDisplay(true);
+				Variable var = ni.newDisplayVar(Info.MINSIZEBOX_KEY, "MIN");
+//				if (var != null) var.setDisplay(true);
 				return true;
 			}
 
@@ -1866,9 +1866,9 @@ public class Manipulate
 
 		public boolean doIt()
 		{
-			Variable var = ni.newVar(Artwork.ART_MESSAGE, chr);
-			if (var != null)
-				var.setDisplay(true);
+			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, chr);
+//			if (var != null)
+//				var.setDisplay(true);
 			return true;
 		}
 	}

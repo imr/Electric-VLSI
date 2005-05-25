@@ -159,14 +159,13 @@ public class ViewChanges
 				{
 					Variable var = (Variable)vIt.next();
 					if (!var.isDisplay()) continue;
-					Variable cellVar = destCell.newVar(var.getKey().getName(), var.getObject());
+					Variable cellVar = destCell.newVar(var.getKey(), var.getObject());
 					if (cellVar != null)
 					{
 						cellVar.setTextDescriptor(var.getTextDescriptor());
 						cellVar.setOff(cellVar.getXOff(), cellVar.getYOff() + dY);
-						cellVar.setCode(var.getCode());
-						cellVar.setDisplay(true);
-//						if (var.isDontSave()) cellVar.setDontSave();
+//						cellVar.setCode(var.getCode());
+//						cellVar.setDisplay(true);
 					}
 				}
 	
@@ -554,9 +553,9 @@ public class ViewChanges
 			bbNi.newVar(NodeInst.TRACE, boxOutline);
 
 			// put the original cell name on it
-			Variable var = bbNi.newVar(Schematics.SCHEM_FUNCTION, curCell.getName());
-			if (var != null)
-				var.setDisplay(true);
+			Variable var = bbNi.newDisplayVar(Schematics.SCHEM_FUNCTION, curCell.getName());
+//			if (var != null)
+//				var.setDisplay(true);
 		}
 
 		// place pins around the Black Box
@@ -885,24 +884,24 @@ public class ViewChanges
 					if (mosNI.isFET())
 					{
 						// set length/width
-						Variable lenVar = schemNI.newVar("ATTR_length", new Double(ts.getDoubleLength()));
+						Variable lenVar = schemNI.newDisplayVar(Schematics.ATTR_LENGTH, new Double(ts.getDoubleLength()));
 						if (lenVar != null)
 						{
-							lenVar.setDisplay(true);
+//							lenVar.setDisplay(true);
 							lenVar.setRelSize(0.5);
 							lenVar.setOff(-0.5, -1);
 						}
-						Variable widVar = schemNI.newVar("ATTR_width", new Double(ts.getDoubleWidth()));
+						Variable widVar = schemNI.newDisplayVar(Schematics.ATTR_WIDTH, new Double(ts.getDoubleWidth()));
 						if (widVar != null)
 						{
-							widVar.setDisplay(true);
+//							widVar.setDisplay(true);
 							widVar.setRelSize(1);
 							widVar.setOff(0.5, -1);
 						}
 					} else
 					{
 						// set area
-						schemNI.newVar("ATTR_area", new Double(ts.getDoubleLength()));
+						schemNI.newVar(Schematics.ATTR_AREA, new Double(ts.getDoubleLength()));
 					}
 				}
 			}

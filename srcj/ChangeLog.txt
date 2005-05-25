@@ -4,6 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (05/25/05, DN) "regression/tools/gateLayGen/scripts/mocmosDrc.bsh" and
+  "regression/tools/IO/scripts/*.bsh" are refreshed.
+
+IMP: (05/25/05, DN) TextDescriptor now keeps "isDisplay" and "Code" fields also.
+  "Variable.flags" field removed.ImmutableTextDescriptor is used in database.
+  Additional versions of "ElectricObject.newVar" added:
+  "newVar(key,value,td)" creates variable with specified descriptor.
+  "newVar(key,value,boolean)" creates either displayable or non-displayable variable.
+  "newDisplayVar(key,value)" creates displayable variable.
+  "newVar(key,value)" creates non-displayable variable (as earlier)
+  Warning: "Variable.setTextDescriptor(td)" now changes "isDisplay" and "getCode".
+
 IMP: (05/24/05, GVG) Extra M5M8 contact in TSMC90 for CMP foundry
 
 IMP: (05/24/05, RK) NCC, Bug# 339: Add I/O 25, 33 transistors. Modify regressions to test. Wait to add Native 18, 25, 33 NMOS to regressions until Lexau adds these to Orange library.

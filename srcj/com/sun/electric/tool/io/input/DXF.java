@@ -1232,10 +1232,10 @@ public class DXF extends Input
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double((lX+hX)/2, (lY+hY)/2), hX-lX, hY-lY, curCell);
 			if (ni == null) return true;
-			Variable var = ni.newVar(Artwork.ART_MESSAGE, msg);
+			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, msg);
 			if (var != null)
 			{
-				var.setDisplay(true);
+//				var.setDisplay(true);
 				var.setPos(TextDescriptor.Position.BOXED);
 				var.setAbsSize(TextDescriptor.Size.TXTMAXPOINTS);
 			}
@@ -1379,12 +1379,7 @@ public class DXF extends Input
 				Variable var = ni.getVar(Artwork.ART_MESSAGE);
 				if (var != null)
 				{
-					Variable newVar = nNi.newVar(Artwork.ART_MESSAGE, var.getObject());
-					if (newVar != null)
-					{
-						newVar.setTextDescriptor(var.getTextDescriptor());
-						newVar.setDisplay(var.isDisplay());
-					}
+					Variable newVar = nNi.newVar(Artwork.ART_MESSAGE, var.getObject(), var.getTextDescriptor());
 				}
 			} else if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode)
 			{
@@ -1452,12 +1447,7 @@ public class DXF extends Input
 				Variable var = ni.getVar(Artwork.ART_MESSAGE);
 				if (var != null)
 				{
-					Variable newVar = nNi.newVar(Artwork.ART_MESSAGE, var.getObject());
-					if (newVar != null)
-					{
-						newVar.setTextDescriptor(var.getTextDescriptor());
-						newVar.setDisplay(var.isDisplay());
-					}
+					Variable newVar = nNi.newVar(Artwork.ART_MESSAGE, var.getObject(), var.getTextDescriptor());
 				}
 			} else if (ni.getProto() == Artwork.tech.circleNode || ni.getProto() == Artwork.tech.thickCircleNode)
 			{

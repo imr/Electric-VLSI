@@ -198,8 +198,8 @@ public class Simulation extends Listener
 
 		public boolean doIt()
 		{
-			Variable var = ni.newVar(Spice.SPICE_MODEL_KEY, "SPICE-Model");
-			var.setDisplay(true);
+			Variable var = ni.newDisplayVar(Spice.SPICE_MODEL_KEY, "SPICE-Model");
+//			var.setDisplay(true);
 			return true;
 		}
 	}
@@ -248,12 +248,12 @@ public class Simulation extends Listener
 				switch (type)
 				{
 					case 0:		// set to "wire"
-						Variable var = ai.newVar(Verilog.WIRE_TYPE_KEY, "wire");
-						var.setDisplay(true);
+						Variable var = ai.newDisplayVar(Verilog.WIRE_TYPE_KEY, "wire");
+//						var.setDisplay(true);
 						break;
 					case 1:		// set to "trireg"
-						var = ai.newVar(Verilog.WIRE_TYPE_KEY, "trireg");
-						var.setDisplay(true);
+						var = ai.newDisplayVar(Verilog.WIRE_TYPE_KEY, "trireg");
+//						var.setDisplay(true);
 						break;
 					case 2:		// set to default
 						if (ai.getVar(Verilog.WIRE_TYPE_KEY) != null)
@@ -302,8 +302,8 @@ public class Simulation extends Listener
 		{
 			if (weak)
 			{
-				Variable var = ni.newVar(WEAK_NODE_KEY, "Weak");
-				var.setDisplay(true);
+				Variable var = ni.newDisplayVar(WEAK_NODE_KEY, "Weak");
+//				var.setDisplay(true);
 			} else
 			{
 				if (ni.getVar(WEAK_NODE_KEY) != null)

@@ -417,8 +417,8 @@ public class TechToLib
 					{
 						if (nodeLayers[i].getRepresentation() == Technology.NodeLayer.MINBOX)
 						{
-							Variable var = ni.newVar(Info.MINSIZEBOX_KEY, "MIN");
-							if (var != null) var.setDisplay(true);
+							Variable var = ni.newDisplayVar(Info.MINSIZEBOX_KEY, "MIN");
+//							if (var != null) var.setDisplay(true);
 						}
 					}
 				}
@@ -463,9 +463,9 @@ public class TechToLib
 					if (pNi == null) return null;
 					portNodes.put(pp, pNi);
 					pNi.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
-					Variable var = pNi.newVar(Info.PORTNAME_KEY, pp.getName());
-					if (var != null)
-						var.setDisplay(true);
+					Variable var = pNi.newDisplayVar(Info.PORTNAME_KEY, pp.getName());
+//					if (var != null)
+//						var.setDisplay(true);
 
 					// on the first sample, also show angle and connection
 					if (e != 0) continue;
@@ -749,10 +749,10 @@ public class TechToLib
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
 				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
-			Variable var = ni.newVar(Artwork.ART_MESSAGE, poly.getString());
+			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
 			if (var != null)
 			{
-				var.setDisplay(true);
+//				var.setDisplay(true);
 				var.setPos(TextDescriptor.Position.CENT);
 			}
 			return ni;
@@ -762,10 +762,10 @@ public class TechToLib
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
 				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
-			Variable var = ni.newVar(Artwork.ART_MESSAGE, poly.getString());
+			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
 			if (var != null)
 			{
-				var.setDisplay(true);
+//				var.setDisplay(true);
 				var.setPos(TextDescriptor.Position.UPRIGHT);
 			}
 			return ni;
@@ -775,10 +775,10 @@ public class TechToLib
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
 				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
-			Variable var = ni.newVar(Artwork.ART_MESSAGE, poly.getString());
+			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
 			if (var != null)
 			{
-				var.setDisplay(true);
+//				var.setDisplay(true);
 				var.setPos(TextDescriptor.Position.UPLEFT);
 			}
 			return ni;
@@ -788,10 +788,10 @@ public class TechToLib
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
 				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
-			Variable var = ni.newVar(Artwork.ART_MESSAGE, poly.getString());
+			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
 			if (var != null)
 			{
-				var.setDisplay(true);
+//				var.setDisplay(true);
 				var.setPos(TextDescriptor.Position.BOXED);
 			}
 			return ni;

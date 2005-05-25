@@ -659,7 +659,7 @@ public class TextInfoPanel extends javax.swing.JPanel
             if (font.equals("DEFAULT FONT")) td.setFace(0);
             else {
                 TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(font);
-                int newFontIndex = newFont.getIndex();
+                int newFontIndex = newFont != null ? newFont.getIndex() : 0;
                 td.setFace(newFontIndex);
             }
 

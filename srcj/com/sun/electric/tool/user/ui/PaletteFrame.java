@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -823,54 +824,31 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 			if (varName != null)
 			{
 				// text object: add initial text
-				Variable var = newNi.newVar(varName, "text");
-				if (var != null)
-				{
-					var.setDisplay(true);
-					MutableTextDescriptor td = MutableTextDescriptor.getAnnotationTextDescriptor();
-//					if (!varName.equals("ART_message")) td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-					var.setTextDescriptor(td);
-					Highlight h = highlighter.addText(newNi, cell, var, null);
-				}
+				Variable var = newNi.newVar(ElectricObject.newKey(varName), "text", ImmutableTextDescriptor.getAnnotationTextDescriptor());
+				Highlight h = highlighter.addText(newNi, cell, var, null);
 			} else
 			{
 				//if (ni != null) newNi.setTechSpecific(ni.getTechSpecific());
 				if (np == Schematics.tech.resistorNode)
 				{
-					Variable var = newNi.newVar(Schematics.SCHEM_RESISTANCE, "100");
-					var.setDisplay(true);
-					MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
-					var.setTextDescriptor(td);
+					Variable var = newNi.newDisplayVar(Schematics.SCHEM_RESISTANCE, "100");
 				} else if (np == Schematics.tech.capacitorNode)
 				{
-					Variable var = newNi.newVar(Schematics.SCHEM_CAPACITANCE, "100M");
-					var.setDisplay(true);
-					MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
-					var.setTextDescriptor(td);
+					Variable var = newNi.newDisplayVar(Schematics.SCHEM_CAPACITANCE, "100M");
 				} else if (np == Schematics.tech.inductorNode)
 				{
-					Variable var = newNi.newVar(Schematics.SCHEM_INDUCTANCE, "100");
-					var.setDisplay(true);
-					MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
-					var.setTextDescriptor(td);
+					Variable var = newNi.newDisplayVar(Schematics.SCHEM_INDUCTANCE, "100");
 				} else if (np == Schematics.tech.diodeNode)
 				{
-					Variable var = newNi.newVar(Schematics.SCHEM_DIODE, "10");
-					var.setDisplay(true);
-					MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
-					var.setTextDescriptor(td);
+					Variable var = newNi.newDisplayVar(Schematics.SCHEM_DIODE, "10");
 				} else if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
 				{
 					if (newNi.isFET())
 					{
-						Variable var = newNi.newVar(Schematics.ATTR_WIDTH, "2");
-						var.setDisplay(true);
 						MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
 						td.setOff(0.5, -1);
-						var.setTextDescriptor(td);
+						Variable var = newNi.newVar(Schematics.ATTR_WIDTH, "2", td);
 
-						var = newNi.newVar(Schematics.ATTR_LENGTH, "2");
-						var.setDisplay(true);
 
 						td = MutableTextDescriptor.getNodeTextDescriptor();
 						td.setOff(-0.5, -1);
@@ -878,13 +856,10 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 							td.setAbsSize((int)(td.getSize().getSize() - 2));
 						else
 							td.setRelSize(td.getSize().getSize() - 0.5);
-						var.setTextDescriptor(td);
+						var = newNi.newVar(Schematics.ATTR_LENGTH, "2", td);
 					} else
 					{
-						Variable var = newNi.newVar(Schematics.ATTR_AREA, "10");
-						var.setDisplay(true);
-						MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
-						var.setTextDescriptor(td);
+						Variable var = newNi.newDisplayVar(Schematics.ATTR_AREA, "10");
 					}
 				} else if (np == Artwork.tech.circleNode)
 				{

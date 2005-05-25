@@ -405,10 +405,10 @@ public class VarContext
      * @throws EvalException an exception whose message contains the reason evaluation failed
      */
     public Object evalVarRecurse(Variable var, Object info) throws EvalException {
-        Variable.Code code = var.getCode();
+        TextDescriptor.Code code = var.getCode();
         Object value = var.getObject();
 
-        if (code == Variable.Code.JAVA) {
+        if (code == TextDescriptor.Code.JAVA) {
         	value = fastJavaVarEval(var, info);
 
         	// testing code

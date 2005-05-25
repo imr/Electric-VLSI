@@ -40,6 +40,7 @@ import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -138,7 +139,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	// ---------------------- private data ----------------------------------
 	/** name of this NodeInst. */							private Name name;
 	/** duplicate index of this ArcInst in the Cell */  private int duplicate = -1;
-	/** The text descriptor of name of NodeInst. */			private TextDescriptor nameDescriptor;
+	/** The text descriptor of name of NodeInst. */			private ImmutableTextDescriptor nameDescriptor;
 	/** bounds after transformation. */						private Rectangle2D visBounds;
 	/** Flag bits for this NodeInst. */						private int userBits;
 	/** The timestamp for changes. */						private int changeClock;
@@ -150,7 +151,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
 	/** List of connections belonging to this NodeInst. */	private List connections = new ArrayList(2);
 	/** Array of Exports belonging to this NodeInst. */		private Export[] exports = NULL_EXPORT_ARRAY;
-	/** Text descriptor of prototype name. */				private TextDescriptor protoDescriptor;
+	/** Text descriptor of prototype name. */				private ImmutableTextDescriptor protoDescriptor;
 
 	// The internal representation of position and orientation is the 2D transformation matrix:
 	// -----------------------------------------
@@ -170,9 +171,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	private NodeInst()
 	{
 		// initialize this object
-		this.nameDescriptor = TextDescriptor.getNodeTextDescriptor(this);
+		this.nameDescriptor = ImmutableTextDescriptor.getNodeTextDescriptor();
 		this.visBounds = new Rectangle2D.Double(0, 0, 0, 0);
-		this.protoDescriptor = TextDescriptor.getInstanceTextDescriptor(this);
+		this.protoDescriptor = ImmutableTextDescriptor.getInstanceTextDescriptor();
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -2454,14 +2455,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param varName name of variable or special name.
 	 * @return the TextDescriptor on this NodeInst.
 	 */
-	public TextDescriptor getTextDescriptor(String varName)
+	public ImmutableTextDescriptor getTextDescriptor(String varName)
 	{
 		if (varName == NODE_NAME_TD) return nameDescriptor;
 		if (varName == NODE_PROTO_TD) return protoDescriptor;
 		return super.getTextDescriptor(varName);
 	}
 
-	/**
+    /**
 	 * Updates the TextDescriptor on this NodeInst selected by varName.
 	 * The varName may be a name of variable on this NodeInst or one of
 	 * the special names <code>NodeInst.NODE_NAME_TD</code> or <code>NodeInst.NODE_PROTO_ID</code>.
@@ -2472,15 +2473,24 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * The TextDescriptor gives information for displaying the Variable.
 	 * @param varName name of variable or special name.
 	 * @param td new value TextDescriptor
+     * @return old text descriptor or null
+     * @throws IllegalArgumentException if TextDescriptor with specified name not found on this NodeInst.
 	 */
-	public void setTextDescriptor(String varName, TextDescriptor td)
+	public ImmutableTextDescriptor lowLevelSetTextDescriptor(String varName, ImmutableTextDescriptor td)
 	{
 		if (varName == NODE_NAME_TD)
-			nameDescriptor.copy(td);
-		else if (varName == NODE_PROTO_TD)
-			protoDescriptor.copy(td);
-		else
-			super.setTextDescriptor(varName, td);
+        {
+            ImmutableTextDescriptor oldDescriptor = nameDescriptor;
+			nameDescriptor = td.withDisplayWithoutParamAndCode();
+            return oldDescriptor;
+        }
+		if (varName == NODE_PROTO_TD)
+        {
+            ImmutableTextDescriptor oldDescriptor = protoDescriptor;
+			protoDescriptor = td.withDisplayWithoutParamAndCode();
+            return oldDescriptor;
+        }
+		return super.lowLevelSetTextDescriptor(varName, td);
 	}
 
 	/**

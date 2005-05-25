@@ -34,7 +34,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
@@ -452,10 +452,10 @@ public class NetworkTool extends Listener
 		System.out.println("NetworkTool.modifyCellGroup(" + cell + ",_)");
 	}
 
-	public void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1)
+	public void modifyTextDescript(ElectricObject obj, String varName, ImmutableTextDescriptor oldDescriptor)
 	{
 		if (!debug) return;
-		System.out.println("NetworkTool.modifyTextDescript("+obj+",...)");
+		System.out.println("NetworkTool.modifyTextDescript(" + obj + "," + varName + ",...)");
 	}
 
 	public void newObject(ElectricObject obj)
@@ -534,12 +534,6 @@ public class NetworkTool extends Listener
 		}
 		if (!debug) return;
 		System.out.println("NetworkTool.killVariable("+obj+","+var+")");
-	}
-
-	public void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags)
-	{
-		if (!debug) return;
-		System.out.println("NetworkTool.modifyVariableFlags("+obj+","+var+"."+oldFlags+")");
 	}
 
 	public void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue)

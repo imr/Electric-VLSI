@@ -96,8 +96,6 @@ public class ELIBConstants
 	/** Defines whether the variable is interpreted code (with VCODE1). */		public static final int VCODE2 =          04000000000;
 
 	// some bits of TextDescriptor of a Variable:
-	/** Semantic bits in descriptor 0 (VTISPARAMETER|VTINTERIOR|VTINHERIT). */	public static final int VTSEMANTIC0 =           07000;
-	/** Semantic bits in descriptor 1 (VTUNITS). */								public static final int VTSEMANTIC1 =    034000000000;
 	/** Face of text bits in descriptor 1. */									public static final int VTFACE =            017700000;
 	/** Right shift of VTFACE. */												public static final int VTFACESH =                 15;
 

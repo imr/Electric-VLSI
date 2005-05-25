@@ -83,7 +83,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	private String initialXSize, initialYSize;
 	private boolean initialMirrorX, initialMirrorY;
 	private int initialRotation, initialPopupIndex;
-    private Variable.Code initialListPopupEntry;
+    private TextDescriptor.Code initialListPopupEntry;
 	private boolean initialEasyToSelect, initialInvisibleOutsideCell, initialLocked, initialExpansion;
 	private String initialName, initialTextField;
 	private String initialPopupEntry, initialListTextField;
@@ -220,7 +220,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         attributesTable = new AttributesTable(null, true, false, false);
 
         // add variable code types
-        for (Iterator it = Variable.Code.getCodes(); it.hasNext(); ) {
+        for (Iterator it = TextDescriptor.Code.getCodes(); it.hasNext(); ) {
             listPopup.addItem(it.next());
         }
 
@@ -782,13 +782,13 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			listEdit.setText(initialListTextField);
 			if (avp.code)
 			{
-				initialListPopupEntry = Variable.Code.JAVA;
+				initialListPopupEntry = TextDescriptor.Code.JAVA;
 				listEvalLabel.setText("Evaluation:");
 				Variable var = shownNode.getVar(avp.key);
 				listEval.setText(var.describe(-1, VarContext.globalContext, shownNode));
 			} else
 			{
-				initialListPopupEntry = Variable.Code.NONE;
+				initialListPopupEntry = TextDescriptor.Code.NONE;
 				listEvalLabel.setText("");
 				listEval.setText("");
 			}

@@ -37,6 +37,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
@@ -268,7 +269,7 @@ public class Technology implements Comparable
 		private int representation;
 		private TechPoint [] points;
 		private String message;
-		private MutableTextDescriptor descriptor;
+		private ImmutableTextDescriptor descriptor;
 		private double lWidth, rWidth, extentT, extendB;
 
 		// the meaning of "representation"
@@ -308,7 +309,7 @@ public class Technology implements Comparable
 			this.style = style;
 			this.representation = representation;
 			this.points = points;
-			descriptor = new MutableTextDescriptor();
+			descriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(new MutableTextDescriptor());
 			layer.getTechnology().addNodeLayer(this);
 			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
 		}
@@ -334,7 +335,7 @@ public class Technology implements Comparable
 			this.style = style;
 			this.representation = representation;
 			this.points = points;
-			descriptor = new MutableTextDescriptor();
+			descriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(new MutableTextDescriptor());
 			layer.getTechnology().addNodeLayer(this);
 			this.lWidth = lWidth;
 			this.rWidth = rWidth;
@@ -425,7 +426,7 @@ public class Technology implements Comparable
 		 * @return the text descriptor associated with this list NodeLayer.
 		 * This only makes sense if the style is one of the TEXT types.
 		 */
-		public TextDescriptor getDescriptor() { return descriptor; }
+		public ImmutableTextDescriptor getDescriptor() { return descriptor; }
 
 		/**
 		 * Sets the text descriptor to be drawn by this NodeLayer.
@@ -434,7 +435,7 @@ public class Technology implements Comparable
 		 */
 		public void setDescriptor(TextDescriptor descriptor)
 		{
-			this.descriptor = new MutableTextDescriptor(descriptor);
+			this.descriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(descriptor);
 		}
 
 		/**
@@ -3533,16 +3534,18 @@ public class Technology implements Comparable
 
 	    if (varName != null)
 	    {
-		    Variable var = ni.newVar(TECH_TMPVAR, varName);
-			if (display)
-			{
-				var.setDisplay(true);
-				MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
-				td.setOff(0, -6);
+		    Variable var = ni.newVar(TECH_TMPVAR, varName, display);
+            var.setOff(0, -6);
+            var.setRelSize(fontSize);
+//			if (display)
+//			{
+//				var.setDisplay(true);
+//				MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
+//				td.setOff(0, -6);
 				//td.setAbsSize(12);
-                td.setRelSize(fontSize);
-				var.setTextDescriptor(td);
-			}
+//              td.setRelSize(fontSize);
+//				var.setTextDescriptor(td);
+//			}
 	    }
 
         return ni;

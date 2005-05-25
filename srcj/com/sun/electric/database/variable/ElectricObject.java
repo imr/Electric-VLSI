@@ -146,14 +146,14 @@ public abstract class ElectricObject
 	 * @param varName name of variable or special name.
 	 * @return the TextDescriptor on this ElectricObject.
 	 */
-	public TextDescriptor getTextDescriptor(String varName)
+	public ImmutableTextDescriptor getTextDescriptor(String varName)
 	{
 		Variable var = getVar(varName);
 		if (var == null) return null;
 		return var.getTextDescriptor();
 	}
-
-	/**
+    
+ 	/**
 	 * Returns the TextDescriptor on this ElectricObject selected by name.
 	 * This name may be a name of variable on this ElectricObject or one of the
 	 * special names:
@@ -173,6 +173,30 @@ public abstract class ElectricObject
 		TextDescriptor td = getTextDescriptor(varName);
 		if (td == null) return null;
 		return new MutableTextDescriptor(td);
+	}
+
+  	/**
+	 * Low level routine to set TextDescriptor on this ElectricObject selected by name.
+	 * This name may be a name of variable on this ElectricObject or one of the
+	 * special names:
+	 * <code>NodeInst.NODE_NAME_TD</code>
+	 * <code>NodeInst.NODE_PROTO_TD</code>
+	 * <code>ArcInst.ARC_NAME_TD</code>
+	 * <code>Export.EXPORT_NAME_TD</code>
+	 * Other strings are not considered special, even they are equal to one of the
+	 * special name. In other words, special names are compared by "==" other than
+	 * by "equals".
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param varName name of variable or special name.
+	 * @param td new value of TextDescriptor the TextDescriptor.
+     * @return old text descriptor.
+     * @throws IllegalArgumentException if TextDescriptor with specified name not found on this ElectricalObject.
+	 */
+	public ImmutableTextDescriptor lowLevelSetTextDescriptor(String varName, ImmutableTextDescriptor td)
+	{
+		Variable var = getVar(varName);
+		if (var == null) throw new IllegalArgumentException("TextDescriptor with name " + varName + " not found on " + this);
+		return var.lowLevelSetTextDescriptor(td);
 	}
 
     private static int debugGetParameterRecurse = 0;
@@ -583,7 +607,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	}
 
 	/**
-	 * Method to create a Variable on this ElectricObject with the specified values.
+	 * Method to create a non-displayable Variable on this ElectricObject with the specified values.
 	 * @param name the name of the Variable.
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been created.
@@ -591,14 +615,48 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	public Variable newVar(String name, Object value) { return newVar(newKey(name), value); }
 
 	/**
-	 * Method to create a Variable on this ElectricObject with the specified values.
+	 * Method to create a displayable Variable on this ElectricObject with the specified values.
 	 * @param key the key of the Variable.
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been created.
 	 */
-	public Variable newVar(Variable.Key key, Object value)
-	{
-		if (isDeprecatedVariable(key))
+    public Variable newDisplayVar(Variable.Key key, Object value) { return newVar(key, value, true); }
+    
+	/**
+	 * Method to create a non-displayable Variable on this ElectricObject with the specified values.
+	 * @param key the key of the Variable.
+	 * @param value the object to store in the Variable.
+	 * @return the Variable that has been created.
+	 */
+    public Variable newVar(Variable.Key key, Object value) { return newVar(key, value, false); }
+    
+ 	/**
+	 * Method to create a Variable on this ElectricObject with the specified values.
+	 * @param key the key of the Variable.
+	 * @param value the object to store in the Variable.
+     * @param display true if the Variale is displayable.
+	 * @return the Variable that has been created.
+	 */
+    public Variable newVar(Variable.Key key, Object value, boolean display) {
+        TextDescriptor td = null;
+        if (this instanceof Cell) td = TextDescriptor.cacheCellDescriptor.newTextDescriptor(display);
+        else if (this instanceof Export) td = TextDescriptor.cacheExportDescriptor.newTextDescriptor(display);
+        else if (this instanceof NodeInst) td = TextDescriptor.cacheNodeDescriptor.newTextDescriptor(display);
+        else if (this instanceof ArcInst) td = TextDescriptor.cacheArcDescriptor.newTextDescriptor(display);
+        else td = TextDescriptor.cacheAnnotationDescriptor.newTextDescriptor(display);
+        return newVar(key, value, td);
+    }
+    
+ 	/**
+	 * Method to create a Variable on this ElectricObject with the specified values.
+	 * @param key the key of the Variable.
+	 * @param value the object to store in the Variable.
+     * @param td text descriptor of the Variable
+	 * @return the Variable that has been created.
+	 */
+    public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
+    {
+ 		if (isDeprecatedVariable(key))
 		{
 			System.out.println("Deprecated variable " + key.getName() + " on " + this);
 		}
@@ -615,19 +673,13 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 			if (isDatabaseObject())
 				Undo.killVariable(this, oldVar);
 		}
-		TextDescriptor td = null;
-		if (this instanceof Cell) td = TextDescriptor.getCellTextDescriptor(this); else
-			if (this instanceof Export) td = TextDescriptor.getExportTextDescriptor(this); else
-				if (this instanceof NodeInst) td = TextDescriptor.getNodeTextDescriptor(this); else
-					if (this instanceof ArcInst) td = TextDescriptor.getArcTextDescriptor(this); else
-						td = TextDescriptor.getAnnotationTextDescriptor(this);
 		Variable v = new Variable(this, value, td, key);
 		lowLevelLinkVar(v);
 		if (isDatabaseObject())
 			Undo.newVariable(this, v);
 		return v;
-	}
-
+    }
+    
 	/**
 	 * Method to update a Variable on this ElectricObject with the specified values.
 	 * If the Variable already exists, only the value is changed; the displayable attributes are preserved.
@@ -653,12 +705,12 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 		}
 
 		// set the variable
-		Variable newVar = newVar(key, value);
+		Variable newVar = newVar(key, value, var.getTextDescriptor());
 		if (newVar == null) return null;
 
 		// restore values
-		newVar.setTextDescriptor(var.getTextDescriptor());
-        newVar.copyFlags(var);
+//		newVar.setTextDescriptor();
+//        newVar.copyFlags(var);
 		lowLevelModVar(var);
 		return newVar;
 	}
@@ -682,9 +734,11 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	public void setTextDescriptor(String varName, TextDescriptor td)
 	{
 		checkChanging();
-		Variable var = getVar(varName);
-		if (var == null) return;
-		var.setTextDescriptor(td);
+        
+        ImmutableTextDescriptor oldDescriptor = lowLevelSetTextDescriptor(varName, ImmutableTextDescriptor.newImmutableTextDescriptor(td));
+       
+		// handle change control, constraint, and broadcast
+        Undo.modifyTextDescript(this, varName, oldDescriptor);
 	}
 
 	/**
@@ -747,11 +801,11 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
         if (oldvar == null) return null;
 
         // create new var
-        Variable newVar = newVar(newName, oldvar.getObject());
+        Variable newVar = newVar(newKey(newName), oldvar.getObject(), oldvar.getTextDescriptor());
         if (newVar == null) return null;
         // copy settings from old var to new var
-        newVar.setTextDescriptor(oldvar.getTextDescriptor());
-        newVar.copyFlags(oldvar);
+//        newVar.setTextDescriptor();
+//        newVar.copyFlags(oldvar);
         // delete old var
         delVar(oldvar.getKey());
 
@@ -889,11 +943,11 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
             while(it.hasNext())
             {
                 Variable var = (Variable)it.next();
-                Variable newVar = this.newVar(var.getKey(), var.getObject());
+                Variable newVar = this.newVar(var.getKey(), var.getObject(), var.getTextDescriptor());
                 if (newVar != null)
                 {
-                    newVar.copyFlags(var);
-                    newVar.setTextDescriptor(var.getTextDescriptor());
+ //                   newVar.copyFlags(var);
+ //                   newVar.setTextDescriptor();
                 }
             }
         }

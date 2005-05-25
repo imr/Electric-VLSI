@@ -869,7 +869,7 @@ public class ELIB extends Output
 
 		// create the "type" field
 		Object varObj = var.getObject();
-		int type = var.lowLevelGetFlags() & ~(ELIBConstants.VTYPE|ELIBConstants.VISARRAY|ELIBConstants.VLENGTH);
+		int type = var.getTextDescriptor().getCFlags();
 		if (varObj instanceof Object[])
 		{
 			Object [] objList = (Object [])varObj;
@@ -893,7 +893,7 @@ public class ELIB extends Output
 		if (var.getOwner() instanceof NodeInst && var.getKey() == NodeInst.TRACE && varObj instanceof Point2D[])
 		{
 			Point2D [] points = (Point2D [])varObj;
-			type = var.lowLevelGetFlags() & ~(ELIBConstants.VTYPE|ELIBConstants.VISARRAY|ELIBConstants.VLENGTH);
+			type = var.getTextDescriptor().getCFlags();
 			int len = points.length * 2;
 			type |= ELIBConstants.VFLOAT | ELIBConstants.VISARRAY | (len << ELIBConstants.VLENGTHSH);
 			Float [] newPoints = new Float[len];
@@ -1067,19 +1067,11 @@ public class ELIB extends Output
 		{
 			td0 = td.lowLevelGet0();
 			td1 = td.lowLevelGet1();
-			if (isDisplay)
-			{
-				// Convert font face
-				if ((td1 & ELIBConstants.VTFACE) != 0)
-				{
-					int face = (td1 & ELIBConstants.VTFACE) >> ELIBConstants.VTFACESH;
-					td1 = (td1 & ~ELIBConstants.VTFACE) | (faceMap[face] << ELIBConstants.VTFACESH);
-				}
-			} else
-			{
-				td0 &= ELIBConstants.VTSEMANTIC0;
-				td1 &= ELIBConstants.VTSEMANTIC1;
-			}
+            // Convert font face
+            if ((td1 & ELIBConstants.VTFACE) != 0) {
+                int face = (td1 & ELIBConstants.VTFACE) >> ELIBConstants.VTFACESH;
+                td1 = (td1 & ~ELIBConstants.VTFACE) | (faceMap[face] << ELIBConstants.VTFACESH);
+            }
 		} else
 		{
 			td0 = 0;

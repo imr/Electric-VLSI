@@ -41,7 +41,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.database.variable.MutableTextDescriptor;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
@@ -94,6 +94,7 @@ public class JELIB extends LibraryFiles
 	private LinkedHashMap allCells = new LinkedHashMap();
 	private HashMap externalCells;
 	private HashMap externalExports;
+    private HashMap/*<String,ImmutableTextDescriptor>*/ parsedDescriptors = new HashMap/*<ImmutableTextDescriptor>*/();
 	private Version version;
 	private int revision;
 	private char escapeChar = '\\';
@@ -860,7 +861,7 @@ public class JELIB extends LibraryFiles
 			}
 
 			// get the node name text descriptor
-			ni.setTextDescriptor(NodeInst.NODE_NAME_TD, loadTextDescriptor(null, nameTextDescriptorInfo, cc.fileName, cc.lineNumber + line));
+			ni.setTextDescriptor(NodeInst.NODE_NAME_TD, loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line));
 
 			// insert into map of disk names
 			diskName.put(diskNodeName, ni);
@@ -875,7 +876,7 @@ public class JELIB extends LibraryFiles
 
 			// get text descriptor for cell instance names
 			if (textDescriptorInfo != null)
-				ni.setTextDescriptor(NodeInst.NODE_PROTO_TD, loadTextDescriptor(null, textDescriptorInfo, cc.fileName, cc.lineNumber + line));
+				ni.setTextDescriptor(NodeInst.NODE_PROTO_TD, loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line));
 
 			// add variables in fields 10 and up
 			addVariables(ni, pieces, numPieces, cc.fileName, cc.lineNumber + line);
@@ -923,7 +924,7 @@ public class JELIB extends LibraryFiles
 
 			// get text descriptor in field 1
 			String textDescriptorInfo = (String)pieces.get(1);
-			pp.setTextDescriptor(Export.EXPORT_NAME_TD, loadTextDescriptor(null, textDescriptorInfo, cc.fileName, cc.lineNumber + line));
+			pp.setTextDescriptor(Export.EXPORT_NAME_TD, loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line));
 
 			// parse state information in field 6
 			String stateInfo = (String)pieces.get(numPieces - 1);
@@ -1050,7 +1051,7 @@ public class JELIB extends LibraryFiles
 
 			// get the ard name text descriptor
 			String nameTextDescriptorInfo = (String)pieces.get(2);
-			ai.setTextDescriptor(ArcInst.ARC_NAME_TD, loadTextDescriptor(null, nameTextDescriptorInfo, cc.fileName, cc.lineNumber + line));
+			ai.setTextDescriptor(ArcInst.ARC_NAME_TD, loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line));
 
 			// if old bits were used, convert them
 			if (!extended || directional)
@@ -1432,7 +1433,7 @@ public class JELIB extends LibraryFiles
 			}
 
 			// create the variable
-			Variable newVar = eObj.newVar(varKey, obj);
+			Variable newVar = eObj.newVar(varKey, obj, loadTextDescriptor(varBits, true, fileName, lineNumber));
 			if (newVar == null)
 			{
 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
@@ -1447,8 +1448,6 @@ public class JELIB extends LibraryFiles
 // 				if (meaning != null) Pref.changedMeaningVariable(meaning);
 // 			}
 
-			// add in extra information
-			newVar.setTextDescriptor(loadTextDescriptor(newVar, varBits, fileName, lineNumber));
 		}
 	}
 
@@ -1547,9 +1546,14 @@ public class JELIB extends LibraryFiles
 	 * @param lineNumber the line number in the file that this came from (for error reporting).
 	 * @return loaded TextDescriptor
 	 */
-	private MutableTextDescriptor loadTextDescriptor(Variable var, String varBits, String fileName, int lineNumber)
+	private ImmutableTextDescriptor loadTextDescriptor(String varBits, boolean onVar, String fileName, int lineNumber)
 	{
-		MutableTextDescriptor td = new MutableTextDescriptor();
+        ImmutableTextDescriptor td = (ImmutableTextDescriptor)parsedDescriptors.get(varBits);
+        if (td != null) return td;
+        
+        boolean error = false;
+        mtd.setCBits(0, 0, 0);
+        if (!onVar) mtd.setDisplay(true);
 		double xoff = 0, yoff = 0;
 		for(int j=0; j<varBits.length(); j++)
 		{
@@ -1557,30 +1561,31 @@ public class JELIB extends LibraryFiles
 			switch (varBit)
 			{
 				case 'D':		// display position
-					if (var != null) var.setDisplay(true);
+					mtd.setDisplay(true);
 					j++;
 					if (j >= varBits.length())
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Incorrect display specification: " + varBits, null, -1);
+                        error = true;
 						break;
 					}
 					switch (varBits.charAt(j))
 					{
-						case '5': td.setPos(TextDescriptor.Position.CENT);       break;
-						case '8': td.setPos(TextDescriptor.Position.UP);         break;
-						case '2': td.setPos(TextDescriptor.Position.DOWN);       break;
-						case '4': td.setPos(TextDescriptor.Position.LEFT);       break;
-						case '6': td.setPos(TextDescriptor.Position.RIGHT);      break;
-						case '7': td.setPos(TextDescriptor.Position.UPLEFT);     break;
-						case '9': td.setPos(TextDescriptor.Position.UPRIGHT);    break;
-						case '1': td.setPos(TextDescriptor.Position.DOWNLEFT);   break;
-						case '3': td.setPos(TextDescriptor.Position.DOWNRIGHT);  break;
-						case '0': td.setPos(TextDescriptor.Position.BOXED);      break;
+						case '5': mtd.setPos(TextDescriptor.Position.CENT);       break;
+						case '8': mtd.setPos(TextDescriptor.Position.UP);         break;
+						case '2': mtd.setPos(TextDescriptor.Position.DOWN);       break;
+						case '4': mtd.setPos(TextDescriptor.Position.LEFT);       break;
+						case '6': mtd.setPos(TextDescriptor.Position.RIGHT);      break;
+						case '7': mtd.setPos(TextDescriptor.Position.UPLEFT);     break;
+						case '9': mtd.setPos(TextDescriptor.Position.UPRIGHT);    break;
+						case '1': mtd.setPos(TextDescriptor.Position.DOWNLEFT);   break;
+						case '3': mtd.setPos(TextDescriptor.Position.DOWNRIGHT);  break;
+						case '0': mtd.setPos(TextDescriptor.Position.BOXED);      break;
 					}
 					break;
 				case 'N':		// display type
-					td.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
+					mtd.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
 					break;
 				case 'A':		// absolute text size
 					int semiPos = varBits.indexOf(';', j);
@@ -1588,9 +1593,10 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad absolute size (semicolon missing): " + varBits, null, -1);
+                        error = true;
 						break;
 					}
-					td.setAbsSize(TextUtils.atoi(varBits.substring(j+1, semiPos)));
+					mtd.setAbsSize(TextUtils.atoi(varBits.substring(j+1, semiPos)));
 					j = semiPos;
 					break;
 				case 'G':		// relative text size
@@ -1599,9 +1605,10 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad relative size (semicolon missing): " + varBits, null, -1);
+                        error = true;
 						break;
 					}
-					td.setRelSize(TextUtils.atof(varBits.substring(j+1, semiPos)));
+					mtd.setRelSize(TextUtils.atof(varBits.substring(j+1, semiPos)));
 					j = semiPos;
 					break;
 				case 'X':		// X offset
@@ -1610,10 +1617,10 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad X offset (semicolon missing): " + varBits, null, -1);
+                        error = true;
 						break;
 					}
 					xoff = TextUtils.atof(varBits.substring(j+1, semiPos));
-					//td.setOff(TextUtils.atof(varBits.substring(j+1, semiPos)), td.getYOff());
 					j = semiPos;
 					break;
 				case 'Y':		// Y offset
@@ -1622,20 +1629,20 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad Y offset (semicolon missing): " + varBits, null, -1);
+                        error = true;
 						break;
 					}
 					yoff = TextUtils.atof(varBits.substring(j+1, semiPos));
-					//td.setOff(td.getXOff(), TextUtils.atof(varBits.substring(j+1, semiPos)));
 					j = semiPos;
 					break;
 				case 'B':		// bold
-					td.setBold(true);
+					mtd.setBold(true);
 					break;
 				case 'I':		// italic
-					td.setItalic(true);
+					mtd.setItalic(true);
 					break;
 				case 'L':		// underlined
-					td.setUnderline(true);
+					mtd.setUnderline(true);
 					break;
 				case 'F':		// font
 					semiPos = varBits.indexOf(';', j);
@@ -1643,10 +1650,12 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad font (semicolon missing): " + varBits, null, -1);
+                        error = true;
 						break;
 					}
 					TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(varBits.substring(j+1, semiPos));
-					td.setFace(af.getIndex());
+                    if (af != null)
+                        mtd.setFace(af.getIndex());
 					j = semiPos;
 					break;
 				case 'C':		// color
@@ -1655,9 +1664,10 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad color (semicolon missing): " + varBits, null, -1);
+                        error = true;
 						break;
 					}
-					td.setColorIndex(TextUtils.atoi(varBits.substring(j+1, semiPos)));
+					mtd.setColorIndex(TextUtils.atoi(varBits.substring(j+1, semiPos)));
 					j = semiPos;
 					break;
 				case 'R':		// rotation
@@ -1672,16 +1682,16 @@ public class JELIB extends LibraryFiles
 						rot = TextDescriptor.Rotation.ROT270;
 						j++;
 					}
-					td.setRotation(rot);
+					mtd.setRotation(rot);
 					break;
 				case 'H':		// inheritable
-					td.setInherit(true);
+					mtd.setInherit(true);
 					break;
 				case 'T':		// interior
-					td.setInterior(true);
+					mtd.setInterior(true);
 					break;
 				case 'P':		// parameter
-					td.setParam(true);
+					mtd.setParam(true);
 					break;
 				case 'O':		// code
 					j++;
@@ -1689,21 +1699,24 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad language specification: " + varBits, null, -1);
+                        error = true;
 						break;
 					}
 					char codeLetter = varBits.charAt(j);
-					if (var == null)
+					if (!onVar)
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Illegal use of language specification: " + varBits, null, -1);
+						error = true;
 						break;
 					}
-					if (codeLetter == 'J') var.setCode(Variable.Code.JAVA); else
-					if (codeLetter == 'L') var.setCode(Variable.Code.LISP); else
-					if (codeLetter == 'T') var.setCode(Variable.Code.TCL); else
+					if (codeLetter == 'J') mtd.setCode(TextDescriptor.Code.JAVA); else
+					if (codeLetter == 'L') mtd.setCode(TextDescriptor.Code.LISP); else
+					if (codeLetter == 'T') mtd.setCode(TextDescriptor.Code.TCL); else
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Unknown language specification: " + varBits, null, -1);
+                        error = true;
 					}
 					break;
 				case 'U':		// units
@@ -1712,25 +1725,29 @@ public class JELIB extends LibraryFiles
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Bad units specification: " + varBits, null, -1);
+                        error = true;
 						break;
 					}
 					char unitsLetter = varBits.charAt(j);
-					if (unitsLetter == 'R') td.setUnit(TextDescriptor.Unit.RESISTANCE); else
-					if (unitsLetter == 'C') td.setUnit(TextDescriptor.Unit.CAPACITANCE); else
-					if (unitsLetter == 'I') td.setUnit(TextDescriptor.Unit.INDUCTANCE); else
-					if (unitsLetter == 'A') td.setUnit(TextDescriptor.Unit.CURRENT); else
-					if (unitsLetter == 'V') td.setUnit(TextDescriptor.Unit.VOLTAGE); else
-					if (unitsLetter == 'D') td.setUnit(TextDescriptor.Unit.DISTANCE); else
-					if (unitsLetter == 'T') td.setUnit(TextDescriptor.Unit.TIME); else
+					if (unitsLetter == 'R') mtd.setUnit(TextDescriptor.Unit.RESISTANCE); else
+					if (unitsLetter == 'C') mtd.setUnit(TextDescriptor.Unit.CAPACITANCE); else
+					if (unitsLetter == 'I') mtd.setUnit(TextDescriptor.Unit.INDUCTANCE); else
+					if (unitsLetter == 'A') mtd.setUnit(TextDescriptor.Unit.CURRENT); else
+					if (unitsLetter == 'V') mtd.setUnit(TextDescriptor.Unit.VOLTAGE); else
+					if (unitsLetter == 'D') mtd.setUnit(TextDescriptor.Unit.DISTANCE); else
+					if (unitsLetter == 'T') mtd.setUnit(TextDescriptor.Unit.TIME); else
 					{
 						Input.errorLogger.logError(fileName + ", line " + lineNumber +
 							", Unknown units specification: " + varBits, null, -1);
+                        error = true;
 					}
 					break;
 			}
 		}
-		td.setOff(xoff, yoff);
-		return td;
+		mtd.setOff(xoff, yoff);
+		td = ImmutableTextDescriptor.newImmutableTextDescriptor(mtd);
+        if (!error) parsedDescriptors.put(varBits, td);
+        return td;
 	}
 
 	/**

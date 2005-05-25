@@ -32,7 +32,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
 
@@ -134,11 +134,10 @@ public class Constraints implements Changes
 	/**
 	 * Method to handle a change to a TextDescriptor.
 	 * @param obj the ElectricObject on which the TextDescriptor resides.
-	 * @param descript the TextDescriptor that changed.
-	 * @param oldDescript0 the former word-0 bits in the TextDescriptor.
-	 * @param oldDescript1 the former word-1 bits in the TextDescriptor.
+     * @paran varName name of variable or special name.
+     * @param oldDescriptor old text descriptor.
 	 */
-	public void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1, int oldColorIndex) {}
+	public void modifyTextDescript(ElectricObject obj, String varName, ImmutableTextDescriptor oldDescriptor) {}
 
 	/**
 	 * Method to handle the creation of a new ElectricObject.
@@ -179,13 +178,6 @@ public class Constraints implements Changes
 	 * @param var the deleted Variable.
 	 */
 	public void killVariable(ElectricObject obj, Variable var) {}
-	/**
-	 * Method to handle a change to the flag bits of a Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable that was changed.
-	 * @param oldFlags the former flag bits on the Variable.
-	 */
-	public void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags) {}
 	/**
 	 * Method to handle a change to a single entry of an arrayed Variable.
 	 * @param obj the ElectricObject on which the Variable resides.

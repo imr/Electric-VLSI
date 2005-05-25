@@ -553,14 +553,13 @@ public class Clipboard
 			{
 				Variable var = (Variable)it.next();
 				if (!var.isDisplay()) continue;
-				Variable cellVar = parent.newVar(var.getKey().getName(), var.getObject());
+				Variable cellVar = parent.newVar(var.getKey(), var.getObject());
 				if (cellVar != null)
 				{
 					cellVar.setTextDescriptor(var.getTextDescriptor());
 					cellVar.setOff(cellVar.getXOff() + dX, cellVar.getYOff() + dY);
-					cellVar.setCode(var.getCode());
-					cellVar.setDisplay(true);
-//					if (var.isDontSave()) cellVar.setDontSave();
+//					cellVar.setCode(var.getCode());
+//					cellVar.setDisplay(true);
 				}
 			}
 			return true;
@@ -763,14 +762,13 @@ public class Clipboard
         for(Iterator it = theTextVariables.iterator(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
-			Variable cellVar = toCell.newVar(var.getKey().getName(), var.getObject());
-			if (cellVar != null)
-			{
-				cellVar.setDisplay(var.isDisplay());
-//				if (var.isDontSave()) cellVar.setDontSave();
-				cellVar.setCode(var.getCode());
-				cellVar.setTextDescriptor(var.getTextDescriptor());
-			}
+			Variable cellVar = toCell.newVar(var.getKey(), var.getObject(), var.getTextDescriptor());
+//			if (cellVar != null)
+//			{
+//				cellVar.setDisplay(var.isDisplay());
+//				cellVar.setCode(var.getCode());
+//				cellVar.setTextDescriptor(var.getTextDescriptor());
+//			}
 		}
 
 		// highlight the copy
@@ -993,9 +991,7 @@ public class Clipboard
 		{
 			Variable srcVar = (Variable)it.next();
 			Variable.Key key = srcVar.getKey();
-			Variable destVar = destArc.newVar(key, srcVar.getObject());
-			if (destVar != null)
-				destVar.setTextDescriptor(srcVar.getTextDescriptor());
+			Variable destVar = destArc.newVar(key, srcVar.getObject(), srcVar.getTextDescriptor());
 		}
 
 		// make sure the constraints and other userbits are the same

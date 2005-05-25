@@ -1081,11 +1081,11 @@ public class PadGenerator {
                     bbNi.newVar(NodeInst.TRACE, points);
 
                     // put the original cell name on it
-                    Variable var = bbNi.newVar(Schematics.SCHEM_FUNCTION, framecell.getName());
-                    if (var != null) {
-                        var.setDisplay(true);
-                    }
-                }
+                    Variable var = bbNi.newDisplayVar(Schematics.SCHEM_FUNCTION, framecell.getName());
+//                    if (var != null) {
+//                        var.setDisplay(true);
+//                    }
+               }
 
                 // place pins around the Black Box
                 int total = 0;

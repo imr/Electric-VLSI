@@ -25,13 +25,20 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.MutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -72,6 +79,8 @@ public abstract class LibraryFiles extends Input
 	/** true if old MOSIS CMOS technologies appear in the library */		protected boolean convertMosisCmosTechnologies;
 	/** true to scale lambda by 20 */										protected boolean scaleLambdaBy20;
 	/** true if rotation mirror bits are used */							protected boolean rotationMirrorBits;
+	/** font names obtained from FONT_ASSOCIATIONS */                       private String [] fontNames;
+    /** buffer for reading text descriptors and variable flags. */          MutableTextDescriptor mtd = new MutableTextDescriptor();
 
 	protected static class NodeInstList
 	{
@@ -89,6 +98,79 @@ public abstract class LibraryFiles extends Input
 		protected int []       userBits;
 	};
 
+    static class DiskVariable {
+        String name;
+        private int flags;
+        private int td0;
+        private int td1;
+        Object value;
+        
+        DiskVariable(String name, int flags, int td0, int td1, Object value)
+        {
+            this.name = name;
+            this.flags = flags;
+            this.td0 = td0;
+            this.td1 = td1;
+            this.value = value;
+        }
+        
+        void makeVariable(ElectricObject eObj, LibraryFiles libFiles, String[] nameArray, int nameIndex)
+        {
+            if (eObj instanceof Library && name.equals(Library.FONT_ASSOCIATIONS.toString()) && value instanceof String[])
+            {
+                libFiles.setFontNames((String[])value);
+                return;
+            }
+            
+            MutableTextDescriptor mtd = libFiles.mtd;
+            mtd.setCBits(td0, libFiles.fixTextDescriptorFont(td1), flags);
+
+			// Geometric names are saved as variables.
+            if (eObj instanceof NodeInst && name.equals(NodeInst.NODE_NAME_TD) && value instanceof String) {
+                NodeInst ni = (NodeInst)eObj;
+                ni.setTextDescriptor(NodeInst.NODE_NAME_TD, mtd);
+                nameArray[nameIndex] = convertGeomName(value, flags);
+                return;
+            }
+            if (eObj instanceof ArcInst && name.equals(ArcInst.ARC_NAME_TD) && value instanceof String) {
+                ArcInst ai = (ArcInst)eObj;
+                ai.setTextDescriptor(ArcInst.ARC_NAME_TD, mtd);
+                nameArray[nameIndex] = convertGeomName(value, flags);
+                return;
+            }
+
+			// see if the variable is deprecated
+			Variable.Key varKey = ElectricObject.newKey(name);
+			if (eObj.isDeprecatedVariable(varKey)) return;
+
+			// set the variable
+			Variable var = eObj.newVar(varKey, value, mtd);
+			if (var == null)
+			{
+				System.out.println("Error reading variable");
+				return;
+			}
+        }
+        
+        void makeMeaningPref(Object obj)
+        {
+			if (!(value instanceof Integer ||
+				  value instanceof Float ||
+				  value instanceof Double ||
+				  value instanceof String))
+				return;
+
+			// change "meaning option"
+			Pref.Meaning meaning = Pref.getMeaningVariable(obj, name);
+			if (meaning != null)
+				Pref.changedMeaningVariable(meaning, value);
+			else if (obj instanceof Technology)
+				((Technology)obj).convertOldVariable(name, value);
+        }
+    }
+    static final DiskVariable[] NULL_DISK_VARIABLE_ARRAY = {};
+    
+    
 	/** collection of libraries and their input objects. */					private static List libsBeingRead;
 	protected static final boolean VERBOSE = false;
 	protected static final double TINYDISTANCE = DBMath.getEpsilon()*2;
@@ -566,7 +648,7 @@ public abstract class LibraryFiles extends Input
 	 * @param value name of object
 	 * @param type type mask.
 	 */
-	protected String convertGeomName(Object value, int type)
+	protected static String convertGeomName(Object value, int type)
 	{
 		if (value == null || !(value instanceof String)) return null;
 		String str = (String)value;
@@ -588,6 +670,59 @@ public abstract class LibraryFiles extends Input
 		return str;
 	}
 
+	/**
+	 * Method to grab font associations that were stored on a Library.
+	 * The font associations are used later to convert indices to true font names and numbers.
+	 * @param associationArray array from FONT_ASSOCIATIONS variable.
+	 */
+	private void setFontNames(String[] associationArray)
+	{
+		int maxAssociation = 0;
+		for(int i=0; i<associationArray.length; i++)
+		{
+            if (associationArray[i] == null) continue;
+			int fontNumber = TextUtils.atoi(associationArray[i]);
+			if (fontNumber > maxAssociation) maxAssociation = fontNumber;
+		}
+		if (maxAssociation <= 0) return;
+
+		fontNames = new String[maxAssociation];
+		for(int i=0; i<maxAssociation; i++) fontNames[i] = null;
+		for(int i=0; i<associationArray.length; i++)
+		{
+            if (associationArray[i] == null) continue;
+			int fontNumber = TextUtils.atoi(associationArray[i]);
+			if (fontNumber <= 0) continue;
+			int slashPos = associationArray[i].indexOf('/');
+			if (slashPos < 0) continue;
+			fontNames[fontNumber-1] = associationArray[i].substring(slashPos+1);
+		}
+	}
+ 
+	/**
+	 * Method to convert the font number in a TextDescriptor to the proper value as
+	 * cached in the Library.  The caching is examined by "getFontAssociationVariable()".
+	 * @param descriptor1 value of descriptor1 from disk.
+	 * @return patched value of descriptor1.
+	 */
+	private int fixTextDescriptorFont(int descriptor1)
+	{
+		int fontNumber = (int)((descriptor1 & ELIBConstants.VTFACE) >> ELIBConstants.VTFACESH);
+        if (fontNumber == 0) return descriptor1;
+        descriptor1 &= ~ELIBConstants.VTFACE;
+		if (fontNames != null && fontNumber <= fontNames.length)
+        {
+			String fontName = fontNames[fontNumber-1];
+			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont(fontName);
+            if (af != null) {
+                fontNumber = af.getIndex();
+                if (fontNumber <= (ELIBConstants.VTFACE >> ELIBConstants.VTFACESH))
+                    descriptor1 |= fontNumber << ELIBConstants.VTFACESH;
+            }
+		}
+        return descriptor1;
+	}
+    
 	/**
 	 * Set line number for following errors and warnings.
 	 * @param lineNumber line numnber for following erros and warnings.

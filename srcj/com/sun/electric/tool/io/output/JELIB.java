@@ -507,10 +507,10 @@ public class JELIB extends Output
 		// write language
 		if (var != null && var.isCode() && (var.getObject() instanceof String || var.getObject() instanceof String[]))
 		{
-			Variable.Code codeType = var.getCode();
-			if (codeType == Variable.Code.JAVA) ret.append("OJ"); else
-			if (codeType == Variable.Code.LISP) ret.append("OL"); else
-			if (codeType == Variable.Code.TCL) ret.append("OT");
+			TextDescriptor.Code codeType = var.getCode();
+			if (codeType == TextDescriptor.Code.JAVA) ret.append("OJ"); else
+			if (codeType == TextDescriptor.Code.LISP) ret.append("OL"); else
+			if (codeType == TextDescriptor.Code.TCL) ret.append("OT");
 		}
 
 		// write parameter

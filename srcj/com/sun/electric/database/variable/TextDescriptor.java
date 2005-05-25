@@ -48,62 +48,74 @@ import java.util.prefs.Preferences;
  * <P>
  * This class should be thread-safe
  */
-public class TextDescriptor implements Serializable
+public abstract class TextDescriptor implements Serializable
 {
-	/*private*/ static final int VTPOSITION =               017;		/* 0: position of text relative to point */
-	/*private*/ static final int VTPOSCENT =                  0;		/* 0:   text centered about point */
-	/*private*/ static final int VTPOSUP =                    1;		/* 0:   text centered above point */
-	/*private*/ static final int VTPOSDOWN =                  2;		/* 0:   text centered below point */
-	/*private*/ static final int VTPOSLEFT =                  3;		/* 0:   text centered to left of point */
-	/*private*/ static final int VTPOSRIGHT =                 4;		/* 0:   text centered to right of point */
-	/*private*/ static final int VTPOSUPLEFT =                5;		/* 0:   text centered to upper-left of point */
-	/*private*/ static final int VTPOSUPRIGHT =               6;		/* 0:   text centered to upper-right of point */
-	/*private*/ static final int VTPOSDOWNLEFT =              7;		/* 0:   text centered to lower-left of point */
-	/*private*/ static final int VTPOSDOWNRIGHT =             8;		/* 0:   text centered to lower-right of point */
-	/*private*/ static final int VTPOSBOXED =                 9;		/* 0:   text centered and limited to object size */
-	/*private*/ static final int VTDISPLAYPART =            060;		/* 0: bits telling what to display */
-	/*private*/ static final int VTDISPLAYPARTSH =            4;		/* 0: right shift of VTDISPLAYPART */
-	/*private*/ static final int VTDISPLAYVALUE =             0;		/* 0:   display value */
-	/*private*/ static final int VTDISPLAYNAMEVALUE =         2;		/* 0:   display name and value */
-	/*private*/ static final int VTDISPLAYNAMEVALINH =        1;		/* 0:   display name, value, 1-level inherit */
-	/*private*/ static final int VTDISPLAYNAMEVALINHALL =     3;		/* 0:   display name, value, any inherit */
-	/*private*/ static final int VTITALIC =                0100;		/* 0: set for italic text */
-	/*private*/ static final int VTBOLD =                  0200;		/* 0: set for bold text */
-	/*private*/ static final int VTUNDERLINE =             0400;		/* 0: set for underline text */
-	/*private*/ static final int VTISPARAMETER =          01000;		/* 0: attribute is parameter (nodeinst only) */
-	/*private*/ static final int VTINTERIOR =             02000;		/* 0: text only appears inside cell */
-	/*private*/ static final int VTINHERIT =              04000;		/* 0: set to inherit value from proto to inst */
-	/*private*/ static final int VTXOFF =              07770000;		/* 0: X offset of text */
-	/*private*/ static final int VTXOFFSH =                  12;		/* 0: right shift of VTXOFF */
-	/*private*/ static final int VTXOFFNEG =          010000000;		/* 0: set if X offset is negative */
-	/*private*/ static final int VTYOFF =          017760000000;		/* 0: Y offset of text */
-	/*private*/ static final int VTYOFFSH =                  22;		/* 0: right shift of VTYOFF */
-	/*private*/ static final int VTYOFFNEG =       020000000000;		/* 0: set if Y offset is negative */
-	/*private*/ static final int VTOFFMASKWID =               9;		/* 0: Width of VTXOFF and VTYOFF */
-	/*private*/ static final int VTSIZE =                077777;		/* 1: size of text */
-	/*private*/ static final int VTSIZESH =                   0;		/* 1: right shift of VTSIZE */
-	/*private*/ static final int VTFACE =             017700000;		/* 1: face of text */
-	/*private*/ static final int VTFACESH =                  15;		/* 1: right shift of VTFACE */
-	/*private*/ static final int VTROTATION =         060000000;		/* 1: rotation of text */
-	/*private*/ static final int VTROTATIONSH =              22;		/* 1: right shift of VTROTATION */
-	/*private*/ static final int VTMAXFACE =                128;		/* 1: maximum value of VTFACE field */
-	/*private*/ static final int VTOFFSCALE =       03700000000;		/* 1: scale of text offset */
-	/*private*/ static final int VTOFFSCALESH =              24;		/* 1: right shift of VTOFFSCALE */
-	/*private*/ static final int VTUNITS =         034000000000;		/* 1: units of text */
-	/*private*/ static final int VTUNITSHMASK =              07;		/* 1: mask of this value after being shifted down */
-	/*private*/ static final int VTUNITSSH =                 29;		/* 1: right shift of VTUNITS */
-	/*private*/ static final int VTUNITSNONE =                0;		/* 1:   units: none */
-	/*private*/ static final int VTUNITSRES =                 1;		/* 1:   units: resistance */
-	/*private*/ static final int VTUNITSCAP =                 2;		/* 1:   units: capacitance */
-	/*private*/ static final int VTUNITSIND =                 3;		/* 1:   units: inductance */
-	/*private*/ static final int VTUNITSCUR =                 4;		/* 1:   units: current */
-	/*private*/ static final int VTUNITSVOLT =                5;		/* 1:   units: voltage */
-	/*private*/ static final int VTUNITSDIST =                6;		/* 1:   units: distance */
-	/*private*/ static final int VTUNITSTIME =                7;		/* 1:   units: time */
+	/*private*/ static final long VTPOSITION =                 017L;		/* 0: position of text relative to point */
+	/*private*/ static final int VTPOSITIONSH =                   0;		/* 0: right shift of VTPOSITION */
+	/*private*/ static final int VTPOSCENT =                      0;		/* 0:   text centered about point */
+	/*private*/ static final int VTPOSUP =                        1;		/* 0:   text centered above point */
+	/*private*/ static final int VTPOSDOWN =                      2;		/* 0:   text centered below point */
+	/*private*/ static final int VTPOSLEFT =                      3;		/* 0:   text centered to left of point */
+	/*private*/ static final int VTPOSRIGHT =                     4;		/* 0:   text centered to right of point */
+	/*private*/ static final int VTPOSUPLEFT =                    5;		/* 0:   text centered to upper-left of point */
+	/*private*/ static final int VTPOSUPRIGHT =                   6;		/* 0:   text centered to upper-right of point */
+	/*private*/ static final int VTPOSDOWNLEFT =                  7;		/* 0:   text centered to lower-left of point */
+	/*private*/ static final int VTPOSDOWNRIGHT =                 8;		/* 0:   text centered to lower-right of point */
+	/*private*/ static final int VTPOSBOXED =                     9;		/* 0:   text centered and limited to object size */
+	/*private*/ static final long VTDISPLAYPART =              060L;		/* 0: bits telling what to display */
+	/*private*/ static final int VTDISPLAYPARTSH =                4;		/* 0: right shift of VTDISPLAYPART */
+	/*private*/ static final int VTDISPLAYVALUE =                 0;		/* 0:   display value */
+	/*private*/ static final int VTDISPLAYNAMEVALUE =             2;		/* 0:   display name and value */
+	/*private*/ static final int VTDISPLAYNAMEVALINH =            1;		/* 0:   display name, value, 1-level inherit */
+	/*private*/ static final int VTDISPLAYNAMEVALINHALL =         3;		/* 0:   display name, value, any inherit */
+	/*private*/ static final long VTITALIC =                  0100L;		/* 0: set for italic text */
+	/*private*/ static final long VTBOLD =                    0200L;		/* 0: set for bold text */
+	/*private*/ static final long VTUNDERLINE =               0400L;		/* 0: set for underline text */
+	/*private*/ static final long VTISPARAMETER =            01000L;		/* 0: attribute is parameter (nodeinst only) */
+	/*private*/ static final long VTINTERIOR =               02000L;		/* 0: text only appears inside cell */
+	/*private*/ static final long VTINHERIT =                04000L;		/* 0: set to inherit value from proto to inst */
+	/*private*/ static final long VTXOFF =                07770000L;		/* 0: X offset of text */
+	/*private*/ static final int VTXOFFSH =                      12;		/* 0: right shift of VTXOFF */
+	/*private*/ static final long VTXOFFNEG =            010000000L;		/* 0: set if X offset is negative */
+	/*private*/ static final long VTYOFF =            017760000000L;		/* 0: Y offset of text */
+	/*private*/ static final int VTYOFFSH =                      22;		/* 0: right shift of VTYOFF */
+	/*private*/ static final long VTYOFFNEG =         020000000000L;		/* 0: set if Y offset is negative */
+	/*private*/ static final int VTOFFMASKWID =                   9;		/* 0: Width of VTXOFF and VTYOFF */
+	/*private*/ static final long VTSIZE =            077777L << 32;		/* 1: size of text */
+	/*private*/ static final int VTSIZESH =                  0 + 32;		/* 1: right shift of VTSIZE */
+	/*private*/ static final long VTFACE =         017700000L << 32;		/* 1: face of text */
+	/*private*/ static final int VTFACESH =                 15 + 32;		/* 1: right shift of VTFACE */
+	/*private*/ static final int VTMAXFACE =                    127;		/* 1: maximum value of VTFACE field */
+	/*private*/ static final long VTROTATION =     060000000L << 32;		/* 1: rotation of text */
+	/*private*/ static final int VTROTATIONSH =             22 + 32;		/* 1: right shift of VTROTATION */
+	/*private*/ static final long VTOFFSCALE =   03700000000L << 32;		/* 1: scale of text offset */
+	/*private*/ static final int VTOFFSCALESH =             24 + 32;		/* 1: right shift of VTOFFSCALE */
+	/*private*/ static final long VTUNITS =     034000000000L << 32;		/* 1: units of text */
+	/*private*/ static final int VTUNITSHMASK =                  07;		/* 1: mask of this value after being shifted down */
+	/*private*/ static final int VTUNITSSH =                29 + 32;		/* 1: right shift of VTUNITS */
+	/*private*/ static final int VTUNITSNONE =                    0;		/* 1:   units: none */
+	/*private*/ static final int VTUNITSRES =                     1;		/* 1:   units: resistance */
+	/*private*/ static final int VTUNITSCAP =                     2;		/* 1:   units: capacitance */
+	/*private*/ static final int VTUNITSIND =                     3;		/* 1:   units: inductance */
+	/*private*/ static final int VTUNITSCUR =                     4;		/* 1:   units: current */
+	/*private*/ static final int VTUNITSVOLT =                    5;		/* 1:   units: voltage */
+	/*private*/ static final int VTUNITSDIST =                    6;		/* 1:   units: distance */
+	/*private*/ static final int VTUNITSTIME =                    7;		/* 1:   units: time */
 
 	/*private*/ static final int VTOFFMAX = (1 << VTOFFMASKWID) - 1;	/* 0: Maximal value of unshifted VTXOFF and VTYOFF */
+    
+	/** Semantic bits - those bits which are meaningful in non-displayable text descriptors. */
+    static long VTSEMANTIC = VTISPARAMETER | VTINTERIOR | VTINHERIT | VTUNITS;
 
-	/**
+    // Variable flags in C Electric
+	/** variable is interpreted code (with VCODE2) */	private static final int VCODE1 =                040;
+	/** display variable (uses textdescript field) */	/*private*/ static final int VDISPLAY =         0100;
+	/** variable is interpreted code (with VCODE1) */	private static final int VCODE2 =        04000000000;
+	/** variable is LISP */								private static final int VLISP =              VCODE1;
+	/** variable is TCL */								private static final int VTCL =               VCODE2;
+	/** variable is Java */								private static final int VJAVA =      (VCODE1|VCODE2);
+
+    /**
 	 * Position is a typesafe enum class that describes the text position of a Variable.
 	 * The Position describes the "anchor point" of the text,
 	 * which is the point on the text that is attached to the object and does not move.
@@ -363,7 +375,7 @@ public class TextDescriptor implements Serializable
 		// text size information
 		public static final int TXTMAXPOINTS =       63;
 		public static final double TXTMAXQGRID =    127.75;
-		private static final int TXTQGRIDSH =          6;		
+		/*private*/ static final int TXTQGRIDSH =          6;		
 
 		private final boolean absolute;
 		private final double size;
@@ -643,9 +655,13 @@ public class TextDescriptor implements Serializable
 		public static ActiveFont findActiveFont(String fontName)
 		{
 			ActiveFont af = (ActiveFont)fontMap.get(fontName);
-			if (af == null)
-				af = new ActiveFont(fontName);
-			return af;
+            if (af != null) return af;
+            if (indexCount >= VTMAXFACE)
+            {
+                System.out.println("Too many fonts. Using default instead of " + fontName);
+                return null;
+            }
+            return new ActiveFont(fontName);
 		}
 
 		/**
@@ -668,14 +684,57 @@ public class TextDescriptor implements Serializable
 		public String toString() { return fontName; }
 	}
 
+    /**
+     * The type of Code that determines how this Variable's
+     * value should be evaluated. If NONE, no evaluation is done.
+     */
+    public static class Code {
+        private final String name;
+        private final int cFlags;
+        private static final ArrayList allCodes = new ArrayList();
+
+        private Code(String name, int cFlags) {
+            this.name = name;
+            this.cFlags = cFlags;
+            allCodes.add(this);
+        }
+
+        public int getCFlags() { return cFlags; }
+        
+        public String toString() { return name; }
+
+        /** Get an iterator over all Code types */
+        public static Iterator getCodes() { return Collections.unmodifiableList(allCodes).iterator(); }
+
+        public static Code getByCBits(int cBits)
+        {
+            switch (cBits & (VCODE1|VCODE2))
+            {
+                case VJAVA: return JAVA;
+                case VLISP: return LISP;
+                case VTCL: return TCL;
+                default: return NONE;
+            }
+        }
+        
+        public static final Code JAVA = new Code("Java", VJAVA);
+        public static final Code LISP = new Code("Lisp (not avail.)", VLISP);
+        public static final Code TCL = new Code("TCL (not avail.)", VTCL);
+        public static final Code NONE = new Code("Not Code", 0);
+    }
+
 	/**
 	 * DescriptorPref is a factory for creating text descriptors for a definite purpose.
 	 */
 	static class DescriptorPref
 	{
-		final Pref cacheDescriptor;
+		final Pref cacheBits;
 		final Pref cacheColor;
 		final Pref cacheFont;
+        long oldBits;
+        int oldColor;
+        String oldFontName;
+        ImmutableTextDescriptor tdF, tdT;
 
 		/**
 		 * Constructs DescriptorPref for a definite purpose.
@@ -684,115 +743,72 @@ public class TextDescriptor implements Serializable
 		 */
 		DescriptorPref(String purpose, int initialSize)
 		{
-			cacheDescriptor = Pref.makeLongPref("TextDescriptorFor" + purpose, prefs, (initialSize << Size.TXTQGRIDSH) << VTSIZESH);
+			cacheBits = Pref.makeLongPref("TextDescriptorFor" + purpose, prefs, (initialSize << Size.TXTQGRIDSH) << VTSIZESH);
 			cacheColor = Pref.makeIntPref("TextDescriptorColorFor" + purpose, prefs, 0);
 			cacheFont = Pref.makeStringPref("TextDescriptorFontFor" + purpose, prefs, "");
 		}
 
 		/**
-		 * Creates new TextDescriptor for this purpose attached to specified ElectricObject.
-		 * @param owner ElectricObject for which new text descriptor will be attached.
+		 * Creates new TextDescriptor for this purpose.
 		 * @return new TextDescripor.
 		 */
-		TextDescriptor newTextDescriptor(ElectricObject owner)
+		synchronized ImmutableTextDescriptor newTextDescriptor(boolean display)
 		{
-			return new TextDescriptor(owner, cacheDescriptor.getLong(), cacheColor.getInt(), cacheFont.getString());
+            long bits = cacheBits.getLong();
+            int color = cacheColor.getInt();
+            String fontName = cacheFont.getString();
+            if (oldFontName != null && bits == oldBits && color == oldColor && fontName.equals(oldFontName))
+                return display ? tdT : tdF;
+            
+            oldBits = bits;
+            oldColor = color;
+            oldFontName = fontName;
+            
+            int face = 0;
+            if (fontName.length() > 0)
+            {
+                ActiveFont af = ActiveFont.findActiveFont(fontName);
+                if (af != null)
+                    face = af.getIndex();
+            }
+            bits = (bits & ~VTFACE) | (face << VTFACESH);
+            tdF = ImmutableTextDescriptor.newImmutableTextDescriptor(new MutableTextDescriptor(bits, color, false, Code.NONE));
+            tdT = ImmutableTextDescriptor.newImmutableTextDescriptor(new MutableTextDescriptor(bits, color, true, Code.NONE));
+			return display ? tdT : tdF;
 		}
 
 		/**
-		 * Creates new MutableTextDescriptor for this purpose.
+		 * Creates new displayable MutableTextDescriptor for this purpose.
 		 * @return new MutableTextDescripor.
 		 */
 		MutableTextDescriptor newMutableTextDescriptor()
 		{
-			return new MutableTextDescriptor(cacheDescriptor.getLong(), cacheColor.getInt(), cacheFont.getString());
+			return new MutableTextDescriptor(newTextDescriptor(true));
 		}
 
 		/**
 		 * Changed default TextDescriptor for this purpose.
 		 * @param td default TextDescriptor
 		 */
-		void setTextDescriptor(TextDescriptor td)
+		synchronized void setTextDescriptor(TextDescriptor td)
 		{
 			MutableTextDescriptor mtd = new MutableTextDescriptor(td);
 			mtd.setFace(0);
-			cacheDescriptor.setLong(mtd.lowLevelGet());
+			cacheBits.setLong(mtd.lowLevelGet());
 			cacheColor.setInt(mtd.getColorIndex());
 			ActiveFont af = ActiveFont.findActiveFont(td.getFace());
 			cacheFont.setString(af != null ? af.getName() : "");
 		}
 	}
 
-	/** the words of the text descriptor */		/*package*/ int descriptor0, descriptor1;
-	/** the color of the text descriptor */		/*package*/ int colorIndex;
-	/** the owner of the text descriptor */		/*package*/ final ElectricObject owner;
-
 	/** preferences for all descriptors */	private static final Preferences prefs = Preferences.userNodeForPackage(TextDescriptor.class);
 
-	/**
-	 * This constructor is called only from MutableTextDescriptor constructor.
-	 * @param owner owner of this TextDescriptor.
-	 * @param descriptor another descriptor.
-	 */
-	TextDescriptor() { owner = null; }
-
-	/**
-	 * The constructor creates copy of anotherTextDescriptor.
-	 * @param owner owner of this TextDescriptor.
-	 * @param descriptor another descriptor.
-	 */
-	/*package*/ TextDescriptor(ElectricObject owner, TextDescriptor descriptor)
-	{
-		if (owner == null) ActivityLogger.logException(new AssertionError("owner == null"));
-		this.owner = owner;
-		this.descriptor0 = descriptor.descriptor0;
-		this.descriptor1 = descriptor.descriptor1;
-		this.colorIndex = descriptor.colorIndex;
-
-		// Convert VTDISPLAYNAMEVALINH and VTDISPLAYNAMEVALINHALL to VTDISPLAYNAMEVALUE
-		if ((descriptor0 & VTDISPLAYPART) != 0) descriptor0 = (descriptor0 & ~VTDISPLAYPART) | (VTDISPLAYNAMEVALUE << VTDISPLAYPARTSH);
-		// Convert zero VTSIZE to RelSize(1)
-		if ((descriptor1 & VTSIZE) == 0) descriptor1 |= 4 << Size.TXTQGRIDSH;
-	}
-
-	/**
-	 * The constructor simply creates a TextDescriptor with specified values.
-	 * @param owner owner of this TextDescriptor.
-	 * @param descriptor the bits of the text descriptor.
-	 * @param colorIndex color index of the text descriptor.
-	 * @param fontName font name of the text descriptor or empty string.
-	 */
-	private TextDescriptor(ElectricObject owner, long descriptor, int colorIndex, String fontName)
-	{
-		if (owner == null) ActivityLogger.logException(new AssertionError("owner == null"));
-		this.owner = owner;
-		this.descriptor0 = (int)(descriptor >> 32);
-		this.descriptor1 = (int)(descriptor & 0xFFFFFFFF);
-		this.colorIndex = colorIndex;
-
-		// Convert VTDISPLAYNAMEVALINH and VTDISPLAYNAMEVALINHALL to VTDISPLAYNAMEVALUE
-		if ((descriptor0 & VTDISPLAYPART) != 0) descriptor0 = (descriptor0 & ~VTDISPLAYPART) | (VTDISPLAYNAMEVALUE << VTDISPLAYPARTSH);
-		// Convert zero VTSIZE to RelSize(1)
-		if ((descriptor1 & VTSIZE) == 0) descriptor1 |= 4 << Size.TXTQGRIDSH;
-
-		if (fontName.length() > 0)
-			descriptor1 = (descriptor1 & ~VTFACE) | (ActiveFont.findActiveFont(fontName).getIndex() << VTFACESH);
-	}
-
+    TextDescriptor() {}
+    
 	/**
 	 * Default TextDescriptor for NodeInsts is 1 unit tall.
 	 */
 	/*package*/ static final DescriptorPref cacheNodeDescriptor = new DescriptorPref("Node", 4);
-
-	/**
-	 * Method to return a TextDescriptor that is a default for Variables on NodeInsts.
-	 * @param owner owner of this TextDescriptor.
-	 * @return a new TextDescriptor that can be stored in a Variable on a NodeInsts.
-	 */
-	public static TextDescriptor getNodeTextDescriptor(ElectricObject owner)
-	{
-		return cacheNodeDescriptor.newTextDescriptor(owner);
-	}
 	/**
 	 * Method to set a TextDescriptor that is a default for Variables on NodeInsts.
 	 * @param td the default TextDescriptor for Variables on NodeInsts.
@@ -804,15 +820,6 @@ public class TextDescriptor implements Serializable
 	 */
 	/*package*/ static final DescriptorPref cacheArcDescriptor = new DescriptorPref("Arc", 4);
 	/**
-	 * Method to return a TextDescriptor that is a default for Variables on ArcInsts.
-	 * @param owner owner of this TextDescriptor.
-	 * @return a new TextDescriptor that can be stored in a Variable on a ArcInsts.
-	 */
-	public static TextDescriptor getArcTextDescriptor(ElectricObject owner)
-	{
-		return cacheArcDescriptor.newTextDescriptor(owner);
-	}
-	/**
 	 * Method to set a TextDescriptor that is a default for Variables on ArcInsts.
 	 * @param td the default TextDescriptor for Variables on ArcInsts.
 	 */
@@ -822,15 +829,6 @@ public class TextDescriptor implements Serializable
 	 * Default TextDescriptor for Exports and Ports is 2 units tall.
 	 */
 	/*package*/ static final DescriptorPref cacheExportDescriptor = new DescriptorPref("Export", 8);
-	/**
-	 * Method to return a TextDescriptor that is a default for Variables on Exports.
-	 * @param owner owner of this TextDescriptor.
-	 * @return a new TextDescriptor that can be stored in a Variable on a Exports.
-	 */
-	public static TextDescriptor getExportTextDescriptor(ElectricObject owner)
-	{
-		return cacheExportDescriptor.newTextDescriptor(owner);
-	}
 	/**
 	 * Method to set a TextDescriptor that is a default for Variables on Exports.
 	 * @param td the default TextDescriptor for Variables on Exports.
@@ -842,15 +840,6 @@ public class TextDescriptor implements Serializable
 	 */
 	/*package*/ static final DescriptorPref cacheAnnotationDescriptor = new DescriptorPref("Annotation", 4);
 	/**
-	 * Method to return a TextDescriptor that is a default for Variables on Annotations.
-	 * @param owner owner of this TextDescriptor.
-	 * @return a new TextDescriptor that can be stored in a Variable on a Annotations.
-	 */
-	public static TextDescriptor getAnnotationTextDescriptor(ElectricObject owner)
-	{
-		return cacheAnnotationDescriptor.newTextDescriptor(owner);
-	}
-	/**
 	 * Method to set a TextDescriptor that is a default for Variables on Annotations.
 	 * @param td the default TextDescriptor for Variables on Annotations.
 	 */
@@ -860,15 +849,6 @@ public class TextDescriptor implements Serializable
 	 * Default TextDescriptor for Cell Instance Names is 4 units tall.
 	 */
 	/*package*/ static final DescriptorPref cacheInstanceDescriptor = new DescriptorPref("Instance", 16);
-	/**
-	 * Method to return a TextDescriptor that is a default for Variables on Cell Instance Names.
-	 * @param owner owner of this TextDescriptor.
-	 * @return a new TextDescriptor that can be stored in a Variable on a Cell Instance Names.
-	 */
-	public static TextDescriptor getInstanceTextDescriptor(ElectricObject owner)
-	{
-		return cacheInstanceDescriptor.newTextDescriptor(owner);
-	}
 	/**
 	 * Method to set a TextDescriptor that is a default for Variables on Cell Instance Names.
 	 * @param td the default TextDescriptor for Variables on Cell Instance Names.
@@ -880,15 +860,6 @@ public class TextDescriptor implements Serializable
 	 */
 	/*package*/ static final DescriptorPref cacheCellDescriptor = new DescriptorPref("Cell", 4);
 	/**
-	 * Method to return a TextDescriptor that is a default for Variables on Cell Variables.
-	 * @param owner owner of this TextDescriptor.
-	 * @return a new TextDescriptor that can be stored in a Variable on a Cell Variables.
-	 */
-	public static TextDescriptor getCellTextDescriptor(ElectricObject owner)
-	{
-		return cacheCellDescriptor.newTextDescriptor(owner);
-	}
-	/**
 	 * Method to set a TextDescriptor that is a default for Variables on Cell Variables.
 	 * @param td the default TextDescriptor for Variables on Cell Variables.
 	 */
@@ -899,7 +870,9 @@ public class TextDescriptor implements Serializable
      * @return  a hash code value for this TextDescriptor.
 	 */
     public int hashCode() {
-		return descriptor0^descriptor1^colorIndex;
+		int hash = lowLevelGet0()^lowLevelGet1()^getColorIndex()^getCode().hashCode();
+        if (isDisplay()) hash ^= 123456789;
+        return hash;
     }
 
     /**
@@ -918,127 +891,23 @@ public class TextDescriptor implements Serializable
 			return true;
 		}
 		if (anObject instanceof TextDescriptor) {
-            int d0, d1, ci;
+            long bits;
+            int ci;
+            Code code;
+            boolean display;
             synchronized(anObject) {
     			TextDescriptor td = (TextDescriptor)anObject;
-                d0 = td.descriptor0;
-                d1 = td.descriptor1;
-                ci = td.colorIndex;
+                bits = td.lowLevelGet();
+                ci = td.getColorIndex();
+                code = td.getCode();
+                display = isDisplay();
             }
             synchronized(this) {
-			    return descriptor0 == d0 && descriptor1 == d1 &&
-			        colorIndex == ci;
+			    return lowLevelGet() == bits && getColorIndex() == ci && getCode() == code && isDisplay() == display;
             }
 		}
 		return false;
     }
-
-	/**
-	 * Method checks if text descriptor can be changed.
-	 */
-	private void checkChanging()
-	{
-		if (!owner.isDatabaseObject()) return;
-		owner.checkChanging();
-
-		// handle change control, constraint, and broadcast
-        int d0, d1, ci;
-        synchronized(this) {
-            d0 = descriptor0;
-            d1 = descriptor1;
-            ci = colorIndex;
-        }
-		Undo.modifyTextDescript(owner, this, d0, d1, ci);
-	}
-
-    /**
-     * Returns true if this TextDescriptor is completely linked into database.
-	 * This means that its owner ElectricObject is completely linked into database
-	 * and this TextDescriptor is linked to its owner or to some of its variables.
-     */
-	public boolean isActuallyLinked()
-	{
-		if (owner == null || !owner.isLinked()) return false;
-		for (Iterator it = owner.getVariables(); it.hasNext();) {
-			Variable var = (Variable)it;
-			if (var.getTextDescriptor() == this) return true;
-		}
-		if (owner instanceof NodeInst && ((NodeInst)owner).getTextDescriptor(NodeInst.NODE_NAME_TD) == this) return true;
-		if (owner instanceof NodeInst && ((NodeInst)owner).getTextDescriptor(NodeInst.NODE_PROTO_TD) == this) return true;
-		if (owner instanceof ArcInst && ((ArcInst)owner).getTextDescriptor(ArcInst.ARC_NAME_TD) == this) return true;
-		if (owner instanceof Export && ((Export)owner).getTextDescriptor(Export.EXPORT_NAME_TD) == this) return true;
-		return false;
-	}
-
-	/**
-	 * Low-level method to set the bits in the TextDescriptor.
-	 * These bits are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @param descriptor0 the first word of the new TextDescriptor.
-	 * @param descriptor1 the second word of the new TextDescriptor.
-	 * @param colorIndex the colotIndex of the new TextDescriptor.
-	 */
-	public synchronized void lowLevelSet(int descriptor0, int descriptor1, int colorIndex)
-	{
-		this.descriptor0 = descriptor0;
-		this.descriptor1 = descriptor1;
-		this.colorIndex = colorIndex;
-	}
-
-	/**
-	 * Method to copy another TextDescriptor to this TextDescriptor.
-	 * These bits are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @param descriptor other TextDescriptor.
-	 */
-	public void copy(TextDescriptor descriptor)
-	{
-		checkChanging();
-        int d0, d1, ci;
-        synchronized(descriptor) {
-            d0 = descriptor.descriptor0;
-            d1 = descriptor.descriptor1;
-            ci = descriptor.colorIndex;
-        }
-        synchronized(this) {
-            this.descriptor0 = d0;
-            this.descriptor1 = d1;
-            this.colorIndex = ci;
-
-			// Convert VTDISPLAYNAMEVALINH and VTDISPLAYNAMEVALINHALL to VTDISPLAYNAMEVALUE
-			if ((descriptor0 & VTDISPLAYPART) != 0) descriptor0 = (descriptor0 & ~VTDISPLAYPART) | (VTDISPLAYNAMEVALUE << VTDISPLAYPARTSH);
-			// Convert zero VTSIZE to RelSize(1)
-			if ((descriptor1 & VTSIZE) == 0) descriptor1 |= 4 << Size.TXTQGRIDSH;
-        }
-	}
-
-	/**
-	 * Low-level method to get the first word of the bits in the TextDescriptor.
-	 * These bits are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @return the first word of the bits in the TextDescriptor.
-	 */
-	public int lowLevelGet0() { return descriptor0; }
-
-	/**
-	 * Low-level method to get the second word of the bits in the TextDescriptor.
-	 * These bits are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @return the second word of the bits in the TextDescriptor.
-	 */
-	public int lowLevelGet1() { return descriptor1; }
 
 	/**
 	 * Low-level method to get the bits in the TextDescriptor.
@@ -1049,17 +918,41 @@ public class TextDescriptor implements Serializable
 	 * This should not normally be called by any other part of the system.
 	 * @return the bits in the TextDescriptor.
 	 */
-	public synchronized long lowLevelGet() { return ((long)descriptor0 << 32) | descriptor1; }
+	public abstract long lowLevelGet();
 
 	/**
-	 * Method to return the color index of the TextDescriptor.
-	 * Color indices are more general than colors, because they can handle
-	 * transparent layers, C-Electric-style opaque layers, and full color values.
-	 * Methods in "EGraphics" manipulate color indices.
-	 * @return the color index of the TextDescriptor.
+	 * Low-level method to get the first word of the bits in the TextDescriptor.
+	 * These bits are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the ELIB
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the first word of the bits in the TextDescriptor.
 	 */
-	public int getColorIndex() { return colorIndex; }
+	public int lowLevelGet0() { return (int)lowLevelGet(); }
 
+	/**
+	 * Low-level method to get the second word of the bits in the TextDescriptor.
+	 * These bits are a collection of flags that are more sensibly accessed
+	 * through special methods.
+	 * This general access to the bits is required because the ELIB
+	 * file format stores it as a full integer.
+	 * This should not normally be called by any other part of the system.
+	 * @return the second word of the bits in the TextDescriptor.
+	 */
+	public int lowLevelGet1() { return (int)(lowLevelGet() >> 32); }
+    
+    private int getField(long mask, int shift) { return (int)((lowLevelGet() & mask) >> shift); }
+    
+    private boolean isFlag(long mask) { return (lowLevelGet() & mask) != 0; }
+    
+  
+	/**
+	 * Method to return true if this TextDescriptor is displayable.
+	 * @return true if this TextDescriptor is displayable.
+	 */
+	public abstract boolean isDisplay();
+    
 	/**
 	 * Method to return the text position of the TextDescriptor.
 	 * The text position describes the "anchor point" of the text,
@@ -1068,7 +961,7 @@ public class TextDescriptor implements Serializable
 	 */
 	public Position getPos()
 	{
-		int pos = descriptor0 & VTPOSITION;
+		int pos = getField(VTPOSITION, VTPOSITIONSH);
 		if (pos >= Position.getNumPositions()) pos = 0;
 		return Position.getPositionAt(pos);
 	}
@@ -1081,7 +974,7 @@ public class TextDescriptor implements Serializable
 	 */
 	public synchronized Size getSize()
 	{
-		int textSize = (descriptor1 & VTSIZE) >> VTSIZESH;
+		int textSize = getField(VTSIZE, VTSIZESH);
 		if (textSize == 0) return Size.newRelSize(1);
 		if (textSize <= Size.TXTMAXPOINTS) return Size.newAbsSize(textSize);
 		int sizeValue = textSize>>Size.TXTQGRIDSH;
@@ -1123,45 +1016,45 @@ public class TextDescriptor implements Serializable
 	 * Method to return the text font of the TextDescriptor.
 	 * @return the text font of the TextDescriptor.
 	 */
-	public int getFace() { return (descriptor1 & VTFACE) >> VTFACESH; }
+	public int getFace() { return getField(VTFACE, VTFACESH); }
 
 	/**
 	 * Method to return the text rotation of the TextDescriptor.
 	 * There are only 4 rotations: 0, 90 degrees, 180 degrees, and 270 degrees.
 	 * @return the text rotation of the TextDescriptor.
 	 */
-	public Rotation getRotation() { return Rotation.getRotationAt((descriptor1 & VTROTATION) >> VTROTATIONSH); }
+	public Rotation getRotation() { return Rotation.getRotationAt(getField(VTROTATION, VTROTATIONSH)); }
 
 	/**
 	 * Method to return the text display part of the TextDescriptor.
 	 * @return the text display part of the TextDescriptor.
 	 */
-	public DispPos getDispPart() { return DispPos.getShowStylesAt((descriptor0 & VTDISPLAYPART) >> VTDISPLAYPARTSH); }
+	public DispPos getDispPart() { return DispPos.getShowStylesAt(getField(VTDISPLAYPART, VTDISPLAYPARTSH)); }
 
 	/**
 	 * Method to return true if the text in the TextDescriptor is italic.
 	 * @return true if the text in the TextDescriptor is italic.
 	 */
-	public boolean isItalic() { return (descriptor0 & VTITALIC) != 0; }
+	public boolean isItalic() { return isFlag(VTITALIC); }
 
 	/**
 	 * Method to return true if the text in the TextDescriptor is bold.
 	 * @return true if the text in the TextDescriptor is bold.
 	 */
-	public boolean isBold() { return (descriptor0 & VTBOLD) != 0; }
+	public boolean isBold() { return isFlag(VTBOLD); }
 
 	/**
 	 * Method to return true if the text in the TextDescriptor is underlined.
 	 * @return true if the text in the TextDescriptor is underlined.
 	 */
-	public boolean isUnderline() { return (descriptor0 & VTUNDERLINE) != 0; }
+	public boolean isUnderline() { return isFlag(VTUNDERLINE); }
 
 	/**
 	 * Method to return true if the text in the TextDescriptor is interior.
 	 * Interior text is not seen at higher levels of the hierarchy.
 	 * @return true if the text in the TextDescriptor is interior.
 	 */
-	public boolean isInterior() { return (descriptor0 & VTINTERIOR) != 0; }
+	public boolean isInterior() { return isFlag(VTINTERIOR); }
 
 	/**
 	 * Method to return true if the text in the TextDescriptor is inheritable.
@@ -1171,7 +1064,7 @@ public class TextDescriptor implements Serializable
 	 * created on that NodeInst.
 	 * @return true if the text in the TextDescriptor is inheritable.
 	 */
-	public boolean isInherit() { return (descriptor0 & VTINHERIT) != 0; }
+	public boolean isInherit() { return isFlag(VTINHERIT); }
 
 	/**
 	 * Method to return true if the text in the TextDescriptor is a parameter.
@@ -1180,7 +1073,7 @@ public class TextDescriptor implements Serializable
 	 * Parameters can only exist on NodeInst objects.
 	 * @return true if the text in the TextDescriptor is a parameter.
 	 */
-	protected boolean isParam() { return (descriptor0 & VTISPARAMETER) != 0; }
+	protected boolean isParam() { return isFlag(VTISPARAMETER); }
 
 	/**
 	 * Method to return the X offset of the text in the TextDescriptor.
@@ -1188,8 +1081,8 @@ public class TextDescriptor implements Serializable
 	 */
 	public synchronized double getXOff()
 	{
-		int offset = (descriptor0 & VTXOFF) >> VTXOFFSH;
-		if ((descriptor0&VTXOFFNEG) != 0) offset = -offset;
+		int offset = getField(VTXOFF, VTXOFFSH);
+		if (isFlag(VTXOFFNEG)) offset = -offset;
 		int scale = getOffScale() + 1;
 		return((double)offset * scale / 4);
 	}
@@ -1200,14 +1093,14 @@ public class TextDescriptor implements Serializable
 	 */
 	public synchronized double getYOff()
 	{
-		int offset = (descriptor0 & VTYOFF) >> VTYOFFSH;
-		if ((descriptor0&VTYOFFNEG) != 0) offset = -offset;
+		int offset = getField(VTYOFF, VTYOFFSH);
+		if (isFlag(VTYOFFNEG)) offset = -offset;
 		int scale = getOffScale() + 1;
 		return((double)offset * scale / 4);
 	}
 
 	/** Method to return the offset scale of the text in the text descriptor. */
-	private int getOffScale() { return (descriptor1 & VTOFFSCALE) >> VTOFFSCALESH; }
+	private int getOffScale() { return getField(VTOFFSCALE, VTOFFSCALESH); }
 
 	/**
 	 * Method to return the Unit of the TextDescriptor.
@@ -1216,5 +1109,44 @@ public class TextDescriptor implements Serializable
 	 * is volts, millivolts, microvolts, etc.
 	 * @return the Unit of the TextDescriptor.
 	 */
-	public Unit getUnit() { return Unit.getUnitAt(((descriptor1 & VTUNITS) >> VTUNITSSH) & VTUNITSHMASK); }
+	public Unit getUnit() { return Unit.getUnitAt(getField(VTUNITS, VTUNITSSH) & VTUNITSHMASK); }
+
+	/**
+	 * Method to return the color index of the TextDescriptor.
+	 * Color indices are more general than colors, because they can handle
+	 * transparent layers, C-Electric-style opaque layers, and full color values.
+	 * Methods in "EGraphics" manipulate color indices.
+	 * @return the color index of the TextDescriptor.
+	 */
+	public abstract int getColorIndex();
+    
+    /**
+     * Return code type of the TextDescriptor.
+     * @return code tyoe
+     */
+    public abstract TextDescriptor.Code getCode();
+
+	/**
+	 * Method to return true if this TextDescriptor is Java.
+	 * Variables with Java TexDescriptor contain Java code that is evaluated in order to produce a value.
+	 * @return true if this TextDescriptor is Java.
+	 */
+	public boolean isJava() { return getCode() == Code.JAVA; }
+
+	/**
+	 * Method to tell whether this TextDescriptor is any code.
+	 * @return true if this TextDescriptor is any code.
+	 */
+	public boolean isCode() { return getCode() != Code.NONE; }
+
+    /**
+     * Return variable flags in C Electric
+     * @return variable flags in C Electric
+     */
+    public int getCFlags()
+    {
+        int flags = getCode().getCFlags();
+        if (isDisplay()) flags |= VDISPLAY;
+        return flags;
+    }
 }

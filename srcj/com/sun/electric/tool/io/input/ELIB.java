@@ -760,22 +760,13 @@ public class ELIB extends LibraryFiles
 		}
 
 		// read the library variables
-		if (readVariables(lib, -1) < 0) return true;
-
-		// grab font associations from the library
-		Input.getFontAssociationVariable(lib);
-		Input.fixVariableFont(lib);
+		readVariables(lib, null, 0);
 
 		// read the tool variables
 		for(int i=0; i<toolCount; i++)
 		{
 			Tool tool = toolList[i];
-			if (tool == null) ignoreVariables(); else
-			{
-				if (readMeaningPrefs(tool) < 0) return true;
-// 				if (readVariables(tool, -1) < 0) return true;
-// 				Input.fixVariableFont(tool);
-			}
+			if (tool == null) ignoreVariables(); else readMeaningPrefs(tool);
 		}
 
 		// read the technology variables
@@ -784,45 +775,22 @@ public class ELIB extends LibraryFiles
 			Technology tech = techList[i];
 			if (tech == null) ignoreVariables(); else
 			{
-				int j = readMeaningPrefs(tech);
-// 				int j = readVariables(tech, -1);
-				if (j < 0) return true;
-				if (j > 0) getTechList(i);
-// 				Input.fixVariableFont(tech);
+				readMeaningPrefs(tech);
+//				getTechList(i);
 			}
 		}
 
 		// read the arcproto variables
 		for(int i=0; i<arcProtoCount; i++)
-		{
 			ignoreVariables();
-// 			PrimitiveArc ap = arcProtoList[i];
-// 			int j = readVariables(ap, -1);
-// 			if (j < 0) return true;
-// 			if (j > 0) getArcProtoList(i);
-// 			Input.fixVariableFont(ap);
-		}
 
 		// read the primitive nodeproto variables
 		for(int i=0; i<primNodeProtoCount; i++)
-		{
 			ignoreVariables();
-// 			PrimitiveNode np = primNodeProtoList[i];
-// 			int j = readVariables(np, -1);
-// 			if (j < 0) return true;
-// 			if (j > 0) getPrimNodeProtoList(i);
-// 			Input.fixVariableFont(np);
-		}
 
 		// read the primitive portproto variables
 		for(int i=0; i<primPortProtoCount; i++)
-		{
 			ignoreVariables();
-// 			PortProto pp = primPortProtoList[i];
-// 			int j = readVariables(pp, -1);
-// 			if (j < 0) return true;
-// 			if (j > 0) getPrimPortProtoList(i);
-		}
 
 		// read the view variables (version 9 and later)
 		if (magic <= ELIBConstants.MAGIC9)
@@ -832,16 +800,9 @@ public class ELIB extends LibraryFiles
 			{
 				int j = readBigInteger();
 				View v = getView(j);
-				if (v != null)
-				{
-					ignoreVariables();
-// 					if (readVariables(v, -1) < 0) return true;
-// 					Input.fixVariableFont(v);
-				} else
-				{
+				if (v == null)
 					System.out.println("View index " + j + " not found");
-					ignoreVariables();
-				}
+				ignoreVariables();
 			}
 		}
 
@@ -929,36 +890,6 @@ public class ELIB extends LibraryFiles
 
 		// now that external cells are resolved, fix all variables that may have used them
 		fixExternalVariables(lib);
-// 		for(int i=0; i<toolCount; i++)
-// 		{
-// 			Tool tool = toolList[i];
-// 			fixExternalVariables(tool);
-// 		}
-// 		for(int i=0; i<techCount; i++)
-// 		{
-// 			Technology tech = techList[i];
-// 			fixExternalVariables(tech);
-// 		}
-// 		for(int i=0; i<arcProtoCount; i++)
-// 		{
-// 			PrimitiveArc ap = arcProtoList[i];
-// 			fixExternalVariables(ap);
-// 		}
-// 		for(int i=0; i<primNodeProtoCount; i++)
-// 		{
-// 			PrimitiveNode np = primNodeProtoList[i];
-// 			fixExternalVariables(np);
-// 		}
-// 		for(int i=0; i<primPortProtoCount; i++)
-// 		{
-// 			PrimitivePort pp = primPortProtoList[i];
-// 			fixExternalVariables(pp);
-// 		}
-// 		for(Iterator it = View.getViews(); it.hasNext(); )
-// 		{
-// 			View view = (View) it.next();
-// 			fixExternalVariables(view);
-// 		}
 		for(int i=0; i<nodeProtoCount; i++)
 		{
 			Cell cell = nodeProtoList[i];
@@ -1395,13 +1326,13 @@ public class ELIB extends LibraryFiles
 							PortInst pi = ni.findPortInst(thePortName);
 							if (pi != null)
 							{
-								Variable var = pi.newVar(varName, origVar.getObject());
-								if (var != null)
-								{
-									if (origVar.isDisplay()) var.setDisplay(true);
-									var.setCode(origVar.getCode());
-									var.setTextDescriptor(origVar.getTextDescriptor());									
-								}
+								Variable var = pi.newVar(ElectricObject.newKey(varName), origVar.getObject(), origVar.getTextDescriptor());
+//								if (var != null)
+//								{
+//    								if (origVar.isDisplay()) var.setDisplay(true);
+//									var.setCode(origVar.getCode());
+//									var.setTextDescriptor(origVar.getTextDescriptor());									
+//								}
 								ni.delVar(origVarKey);
 								found = true;
 								break;
@@ -1987,7 +1918,8 @@ public class ELIB extends LibraryFiles
 					descript1 = readBigInteger();
 				}
 			}
-			pp.setTextDescriptor(Export.EXPORT_NAME_TD, new MutableTextDescriptor(descript0, descript1, 0));
+            mtd.setCBits(descript0, descript1);
+			pp.setTextDescriptor(Export.EXPORT_NAME_TD, mtd);
 
 			// ignore the "seen" bits (versions 8 and older)
 			if (magic > ELIBConstants.MAGIC9) readBigInteger();
@@ -2009,8 +1941,7 @@ public class ELIB extends LibraryFiles
 			}
 
 			// read the export variables
-			if (readVariables(pp, -1) < 0) return true;
-			Input.fixVariableFont(pp);
+			readVariables(pp, null, 0);
 
 			portProtoIndex++;
 		}
@@ -2047,8 +1978,7 @@ public class ELIB extends LibraryFiles
 		cell.lowLevelSetUserbits(userBits);
 
 		// read variable information
-		if (readVariables(cell, -1) < 0) return true;
-		Input.fixVariableFont(cell);
+		readVariables(cell, null, 0);
 
 		// cell read successfully
 		return false;
@@ -2286,7 +2216,8 @@ public class ELIB extends LibraryFiles
 				descript1 = readBigInteger();
 			}
 		}
-		ni.setTextDescriptor(NodeInst.NODE_PROTO_TD, new MutableTextDescriptor(descript0, descript1, 0));
+        mtd.setCBits(descript0, descript1);
+		ni.setTextDescriptor(NodeInst.NODE_PROTO_TD, mtd);
 
 		// read the nodeinst name (versions 1, 2, or 3 only)
 		if (magic >= ELIBConstants.MAGIC3)
@@ -2349,8 +2280,7 @@ public class ELIB extends LibraryFiles
 		nodeInstList.userBits[nodeIndex] = userBits;
 
 		// read variable information
-		if (readVariables(ni, nodeIndex) < 0) return true;
-		Input.fixVariableFont(ni);
+        readVariables(ni, nodeInstList.name, nodeIndex);
 
 		// node read successfully
 		return false;
@@ -2425,8 +2355,7 @@ public class ELIB extends LibraryFiles
 		arcUserBits[arcIndex] = userBits;
 
 		// read variable information
-		if (readVariables(ai, arcIndex) < 0) return true;
-		Input.fixVariableFont(ai);
+        readVariables(ai, arcNameList, arcIndex);
 
 		// arc read successfully
 		return false;
@@ -2485,17 +2414,71 @@ public class ELIB extends LibraryFiles
 	 * and applied later.
 	 * @return the number of variables read (negative on error).
 	 */
-	private int readVariables(ElectricObject obj, int index)
+	private void readVariables(ElectricObject obj, String[] nameArray, int nameIndex)
+		throws IOException
+	{
+        DiskVariable[] vars = readVariables();
+		for(int i=0; i<vars.length; i++)
+		{
+            DiskVariable v = vars[i];
+            if (v != null) v.makeVariable(obj, this, nameArray, nameIndex);
+		}
+	}
+
+	/**
+	 * Method to ignore one set of object variables on readin
+	 */
+	private void ignoreVariables()
+		throws IOException
+	{
+		readVariables();
+	}
+
+	/**
+	 * Method to read a set of meaning preferences onto a given object.
+	 * @param obj the object onto which the meaning preferences will be stored.
+	 */
+	private void readMeaningPrefs(Object obj)
+		throws IOException
+	{
+        DiskVariable[] vars = readVariables();
+        if (!topLevelLibrary) return;
+		for(int i=0; i<vars.length; i++)
+		{
+            DiskVariable v = vars[i];
+            if (v != null) v.makeMeaningPref(obj);
+		}
+	}
+
+	/**
+	 * Method to fix variables that make reference to external cells.
+	 */
+	private void fixExternalVariables(ElectricObject obj)
+	{
+	}
+
+	/**
+	 * Method to read a set of variables onto a given object.
+	 * @return the array of variables read.
+	 */
+	private DiskVariable[] readVariables()
 		throws IOException
 	{
 		int count = readBigInteger();
+        if (count == 0) return NULL_DISK_VARIABLE_ARRAY;
+        DiskVariable[] vars = new DiskVariable[count];
 		for(int i=0; i<count; i++)
 		{
 			short key = readSmallInteger();
+			if (key < 0 || key >= nameCount)
+			{
+                String msg = "Bad variable index (" + key + ", limit is " + nameCount + ")";
+				System.out.println(msg);
+				throw new IOException(msg);
+			}
 			int newtype = readBigInteger();
 
 			// version 9 and later reads text description on displayable variables
-			boolean definedDescript = false;
 			int descript0 = 0;
 			int descript1 = 0;
 			if (magic <= ELIBConstants.MAGIC9)
@@ -2504,7 +2487,6 @@ public class ELIB extends LibraryFiles
 				{
 					descript0 = readBigInteger();
 					descript1 = readBigInteger();
-					definedDescript = true;
 				} else
 				{
 					if ((newtype&ELIBConstants.VDISPLAY) != 0)
@@ -2518,25 +2500,19 @@ public class ELIB extends LibraryFiles
 							descript0 = readBigInteger();
 							descript1 = readBigInteger();
 						}
-						definedDescript = true;
 					}
 				}
 			}
 
-            if ((obj instanceof Library) && (Library.FONT_ASSOCIATIONS == varKeys.getKey(key))) {
+//            if ((obj instanceof Library) && (Library.FONT_ASSOCIATIONS == varKeys.getKey(key))) {
+//
+//                Library lib = (Library)obj;
+//                if (version.compareTo(Version.parseVersion("8.02c")) == 0) {
+//                    System.out.println("Library "+lib.getName()+" is being patched for bad Font Association var");
+//                    continue;
+//                }
+//            }
 
-                Library lib = (Library)obj;
-                if (version.compareTo(Version.parseVersion("8.02c")) == 0) {
-                    System.out.println("Library "+lib.getName()+" is being patched for bad Font Association var");
-                    continue;
-                }
-            }
-
-			if (!definedDescript)
-			{
-//				defaulttextdescript(newDescript, NOGEOM);
-			}
-			MutableTextDescriptor td = new MutableTextDescriptor(descript0, descript1, 0);
 			Object newAddr;
 			if ((newtype&ELIBConstants.VISARRAY) != 0)
 			{
@@ -2566,8 +2542,10 @@ public class ELIB extends LibraryFiles
 				}
 				if (newAddrArray == null)
 				{
-					System.out.println("Cannot figure out the type for code "+(newtype&ELIBConstants.VTYPE));
-		            if (Library.FONT_ASSOCIATIONS == varKeys.getKey(key)) newtype = ELIBConstants.VSTRING;
+                    String msg = "Cannot figure out the type for code "+(newtype&ELIBConstants.VTYPE);
+					System.out.println(msg);
+                    throw new IOException(msg);
+//		            if (Library.FONT_ASSOCIATIONS == varKeys.getKey(key)) newtype = ELIBConstants.VSTRING;
 				}
 				newAddr = newAddrArray;
 				if ((newtype&ELIBConstants.VTYPE) == ELIBConstants.VGENERAL)
@@ -2585,8 +2563,9 @@ public class ELIB extends LibraryFiles
 						Object ret = getInVar(newtype);
 						if (ret == null)
 						{
-							System.out.println("Error reading array variable type");
-							return -1;
+                            String msg = "Error reading array variable type";
+							System.out.println(msg);
+							throw new IOException(msg);
 						}
 						if (newAddrArray != null) newAddrArray[j] = ret;
 					}
@@ -2594,176 +2573,21 @@ public class ELIB extends LibraryFiles
 				}
 			} else
 			{
-                if (Library.FONT_ASSOCIATIONS == varKeys.getKey(key)) newtype = ELIBConstants.VSTRING;
+//                if (Library.FONT_ASSOCIATIONS == varKeys.getKey(key)) newtype = ELIBConstants.VSTRING;
 				newAddr = getInVar(newtype);
 				if (newAddr == null)
 				{
-					System.out.println("Error reading variable type " + newtype);
-					return -1;
+                    String msg = "Error reading variable type " + newtype;
+					System.out.println(msg);
+					throw new IOException(msg);
 				}
 			}
 
-			// copy this variable into database
-			if (key < 0 || key >= nameCount)
-			{
-				System.out.println("Bad variable index (" + key + ", limit is " + nameCount + ") on " + obj + " object");
-				return -1;
-			}
-
-			// Geometric names are saved as variables.
-			if (newAddr instanceof String)
-			{
-				if (obj instanceof NodeInst && varKeys.getKey(key) == NodeInst.NODE_NAME)
-				{
-					NodeInst ni = (NodeInst)obj;
-					ni.setTextDescriptor(NodeInst.NODE_NAME_TD, td);
-					nodeInstList.name[index] = convertGeomName(newAddr, newtype);
-					continue;
-				}
-				if (obj instanceof ArcInst && varKeys.getKey(key) == ArcInst.ARC_NAME)
-				{
-					ArcInst ai = (ArcInst)obj;
-					ai.setTextDescriptor(ArcInst.ARC_NAME_TD, td);
-					arcNameList[index] = convertGeomName(newAddr, newtype);
-					continue;
-				}
-			}
-
-			// see if the variable is deprecated
-			Variable.Key varKey = varKeys.getKey(key);
-			if (obj.isDeprecatedVariable(varKey)) continue;
-
-			// see if the variable is a "meaning option"
-// 			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varKey.getName());
-// 			if (meaning != null)
-// 			{
-// 				// ignore these when not from top library
-// 				if (!topLevelLibrary) continue;
-
-// 				// accumulate this for later
-// 				Pref.changedMeaningVariable(meaning);
-// 			}
-
-			// set the variable
-			Variable var = obj.newVar(varKey, newAddr);
-			if (var == null)
-			{
-				System.out.println("Error reading variable");
-				return -1;
-			}
-			var.setTextDescriptor(td);
-			var.lowLevelSetFlags(newtype);
-
-			// handle updating of technology caches
-//			if (type == VTECHNOLOGY)
-//				changedtechnologyvariable(keyval);
+            vars[i] = new DiskVariable(varKeys.keys[key], newtype, descript0, descript1, newAddr);
 		}
-		return count;
+		return vars;
 	}
-
-	/**
-	 * Method to ignore one set of object variables on readin
-	 */
-	private void ignoreVariables()
-		throws IOException
-	{
-		NodeInst ni = NodeInst.lowLevelAllocate();
-		readVariables(ni, -1);
-	}
-
-	/**
-	 * Method to read a set of meaning preferences onto a given object.
-	 * @param obj the object onto which the meaning preferences will be stored.
-	 */
-	private int readMeaningPrefs(Object obj)
-		throws IOException
-	{
-		int count = readBigInteger();
-		for(int i=0; i<count; i++)
-		{
-			short key = readSmallInteger();
-			int newtype = readBigInteger();
-
-			// version 9 and later reads text description on displayable variables
-			if (magic <= ELIBConstants.MAGIC9)
-			{
-				if (alwaysTextDescriptors)
-				{
-					readBigInteger();
-					readBigInteger();
-				} else
-				{
-					if ((newtype&ELIBConstants.VDISPLAY) != 0)
-					{
-						if (convertTextDescriptors)
-						{
-							readBigInteger();
-						} else
-						{
-							readBigInteger();
-							readBigInteger();
-						}
-					}
-				}
-			}
-			if ((newtype&ELIBConstants.VISARRAY) != 0)
-			{
-				int len = readBigInteger();
-				if ((newtype&ELIBConstants.VTYPE) == ELIBConstants.VGENERAL)
-				{
-					for(int j=0; j<len; j += 2)
-					{
-						readBigInteger();
-						readBigInteger();
-					}
-				} else
-				{
-					for(int j=0; j<len; j++)
-					{
-						getInVar(newtype);
-					}
-					
-				}
-				continue;
-			}
-			Object value = getInVar(newtype);
-			if (value == null)
-			{
-				System.out.println("Error reading variable type " + newtype);
-				return -1;
-			}
-			// copy this variable into database
-			if (key < 0 || key >= nameCount)
-			{
-				System.out.println("Bad variable index (" + key + ", limit is " + nameCount + ") on " + obj + " object");
-				return -1;
-			}
-
-			if (!(value instanceof Integer ||
-				  value instanceof Float ||
-				  value instanceof Double ||
-				  value instanceof String))
-				continue;
-			if (!topLevelLibrary) continue;
-
-			// change "meaning option"
-			String varName = varKeys.getKey(key).getName();
-			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varName);
-			if (meaning != null)
-				Pref.changedMeaningVariable(meaning, value);
-			else if (obj instanceof Technology)
-				((Technology)obj).convertOldVariable(varName, value);
-		}
-		return count;
-	}
-
-	/**
-	 * Method to fix variables that make reference to external cells.
-	 */
-	private void fixExternalVariables(ElectricObject obj)
-	{
-	}
-
+    
 	/**
 	 * Helper method to read a variable at address "addr" of type "ty".
 	 * Returns zero if OK, negative on memory error, positive if there were

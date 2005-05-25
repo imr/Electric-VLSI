@@ -219,7 +219,8 @@ public class TextTab extends PreferencePanel
 		if (textFace.getSelectedIndex() != 0)
 		{
 			TextDescriptor.ActiveFont af = TextDescriptor.ActiveFont.findActiveFont((String)textFace.getSelectedItem());
-			face = af.getIndex();
+            if (af != null)
+                face = af.getIndex();
 		}
 		currentTextDescriptor.setFace(face);
 	}

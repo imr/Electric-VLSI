@@ -31,6 +31,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -87,47 +88,13 @@ public class Variable
 		}
 	}
 
-    /**
-     * The type of Code that determines how this Variable's
-     * value should be evaluated. If NONE, no evaluation is done.
-     */
-    public static class Code {
-        private final String name;
-        private static final ArrayList allCodes = new ArrayList();
 
-        private Code(String name) {
-            this.name = name;
-            allCodes.add(this);
-        }
-
-        public String toString() { return name; }
-
-        /** Get an iterator over all Code types */
-        public static Iterator getCodes() { return Collections.unmodifiableList(allCodes).iterator(); }
-
-        public static final Code JAVA = new Code("Java");
-        public static final Code LISP = new Code("Lisp (not avail.)");
-        public static final Code TCL = new Code("TCL (not avail.)");
-        public static final Code NONE = new Code("Not Code");
-    }
-
-
-	private Object addr;
-	private int flags;
+    private final ElectricObject owner;
     private final Key key;
-	private final TextDescriptor descriptor;
+	private Object addr;
+	private ImmutableTextDescriptor descriptor;
 
     /** true if var is attached to valid electric object */ private boolean linked;
-
-	/** variable is interpreted code (with VCODE2) */	private static final int VCODE1 =                040;
-	/** display variable (uses textdescript field) */	private static final int VDISPLAY =             0100;
-//	/** variable points into C structure */				private static final int VCREF =                0400;
-	/** variable is interpreted code (with VCODE1) */	private static final int VCODE2 =        04000000000;
-	/** variable is LISP */								private static final int VLISP =              VCODE1;
-	/** variable is TCL */								private static final int VTCL =               VCODE2;
-	/** variable is Java */								private static final int VJAVA =      (VCODE1|VCODE2);
-//	/** set to prevent saving on disk */				private static final int VDONTSAVE =    010000000000;
-//	/** set to prevent changing value */				private static final int VCANTSET =     020000000000;
 
 	/**
 	 * The constructor builds a Variable from the given parameters.
@@ -154,8 +121,9 @@ public class Variable
             } catch (java.lang.NumberFormatException e) {}
         }
 */
+        this.owner = owner;
 		this.addr = addr;
-		this.descriptor = new TextDescriptor(owner, descriptor);
+		this.descriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(descriptor);
 		this.key = key;
 	}
 
@@ -180,19 +148,6 @@ public class Variable
 			buffer.append("No same variables detected in " + var + " and " + this + "\n");
         return (check);
     }
-
-	/**
-	 * Method to check if this Variable can be changed.
-	 */
-	public final void checkChanging()
-	{
-		ElectricObject owner = descriptor.owner;
-		if (!owner.isDatabaseObject()) return;
-		owner.checkChanging();
-
-		// handle change control, constraint, and broadcast
-		Undo.modifyVariableFlags(owner, this, flags);
-	}
 
     /**
      * Get the number of entries stored in this Variable.
@@ -271,14 +226,14 @@ public class Variable
      * @return true if variable is linked to a linked database object, false otherwise.
      */
     public boolean isLinked() {
-        return (linked && descriptor.owner.isLinked());
+        return (linked && owner.isLinked());
     }
 
     /**
      * Get the Electric object that stores this Variable
      * @return the Owner of this Variable
      */
-    public ElectricObject getOwner() { return descriptor.owner; }
+    public ElectricObject getOwner() { return owner; }
 
     /**
      * Returns true if this Variable is completely linked into database.
@@ -546,47 +501,36 @@ public class Variable
 	 * The TextDescriptor gives information for displaying the Variable.
 	 * @return the TextDescriptor on this Variable.
 	 */
-	public TextDescriptor getTextDescriptor() { return descriptor; }
+	public ImmutableTextDescriptor getTextDescriptor() { return descriptor; }
 
 	/**
 	 * Method to set the TextDescriptor on this Variable.
 	 * The TextDescriptor gives information for displaying the Variable.
 	 * @param descriptor the new TextDescriptor on this Variable.
 	 */
-	public void setTextDescriptor(TextDescriptor descriptor) { this.descriptor.copy(descriptor); }
+	public void setTextDescriptor(TextDescriptor descriptor)
+    {
+        owner.checkChanging();
+
+        ImmutableTextDescriptor oldDescriptor = lowLevelSetTextDescriptor(ImmutableTextDescriptor.newImmutableTextDescriptor(descriptor));
+       
+		// handle change control, constraint, and broadcast
+        Undo.modifyTextDescript(owner, key.getName(), oldDescriptor);
+     }
 
 	/**
-	 * Low-level method to get the type bits.
-	 * The "type bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @return the "type bits".
+	 * Method to set the TextDescriptor on this Variable.
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param descriptor the new TextDescriptor on this Variable.
+     * @return old text descriptor
 	 */
-	public int lowLevelGetFlags() { return flags; }
-
-	/**
-	 * Low-level method to set the type bits.
-	 * The "type bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @param flags the new "type bits".
-	 */
-	public synchronized void lowLevelSetFlags(int flags)
-	{
-		this.flags = flags & (VCODE1|VCODE2|VDISPLAY);
-	}
-
-	/**
-	 * Method to copy flags from another variable.
-	 * @param var another variable.
-	 */
-	public void copyFlags(Variable var) {
-        checkChanging();
-        lowLevelSetFlags(var.lowLevelGetFlags());
+	ImmutableTextDescriptor lowLevelSetTextDescriptor(ImmutableTextDescriptor descriptor)
+    {
+        ImmutableTextDescriptor oldDescriptor = this.descriptor;
+        if (!(owner instanceof Cell))
+            descriptor = descriptor.withoutParam();
+        this.descriptor = descriptor;
+        return oldDescriptor;
     }
 
 	/**
@@ -595,136 +539,45 @@ public class Variable
 	 */
 	public synchronized void setDisplay(boolean state)
     {
-        checkChanging();
-        if (state)
-            flags |= VDISPLAY;
-        else
-            flags &= ~VDISPLAY;
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setDisplay(state);
+		setTextDescriptor(td);
     }
 
 	/**
 	 * Method to return true if this Variable is displayable.
 	 * @return true if this Variable is displayable.
 	 */
-	public boolean isDisplay() { return (flags & VDISPLAY) != 0; }
+	public boolean isDisplay() { return descriptor.isDisplay(); }
 
     /**
      * Determine what code type this variable has, if any
      * @return the code type
      */
-    public synchronized Code getCode() {
-        if (isJava()) return Code.JAVA;
-        if (isTCL()) return Code.TCL;
-        if (isLisp()) return Code.LISP;
-        return Code.NONE;
-    }
+    public TextDescriptor.Code getCode() { return descriptor.getCode(); }
 
     /**
      * Sets the code type of this Variable
      * @param code the code to set to
      */
-    public synchronized void setCode(Code code) {
-        if (code == Code.JAVA) setJava();
-        if (code == Code.LISP) setLisp();
-        if (code == Code.TCL) setTCL();
-        if (code == Code.NONE) clearCode();
+    public void setCode(TextDescriptor.Code code) {
+		MutableTextDescriptor td = new MutableTextDescriptor(descriptor);
+		td.setCode(code);
+		setTextDescriptor(td);
     }
-
-	/**
-	 * Method to set this Variable to be Java.
-	 * Java Variables contain Java code that is evaluated in order to produce a value.
-	 */
-	private void setJava() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VJAVA; }
 
 	/**
 	 * Method to return true if this Variable is Java.
 	 * Java Variables contain Java code that is evaluated in order to produce a value.
 	 * @return true if this Variable is Java.
 	 */
-	private boolean isJava() { return (flags & (VCODE1|VCODE2)) == VJAVA; }
-
-	/**
-	 * Method to set this Variable to be Lisp.
-	 * Lisp Variables contain Lisp code that is evaluated in order to produce a value.
-	 * Although the C version of Electric had a Lisp interpreter in it, the Java version
-	 * does not, so this facility is not implemented.
-	 */
-	private void setLisp() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VLISP; }
-
-	/**
-	 * Method to return true if this Variable is Lisp.
-	 * Lisp Variables contain Lisp code that is evaluated in order to produce a value.
-	 * Although the C version of Electric had a Lisp interpreter in it, the Java version
-	 * does not, so this facility is not implemented.
-	 * @return true if this Variable is Lisp.
-	 */
-	private boolean isLisp() { return (flags & (VCODE1|VCODE2)) == VLISP; }
-
-	/**
-	 * Method to set this Variable to be TCL.
-	 * TCL Variables contain TCL code that is evaluated in order to produce a value.
-	 * Although the C version of Electric had a TCL interpreter in it, the Java version
-	 * does not, so this facility is not implemented.
-	 */
-	private void setTCL() { checkChanging(); flags = (flags & ~(VCODE1|VCODE2)) | VTCL; }
-
-	/**
-	 * Method to return true if this Variable is TCL.
-	 * TCL Variables contain TCL code that is evaluated in order to produce a value.
-	 * Although the C version of Electric had a TCL interpreter in it, the Java version
-	 * does not, so this facility is not implemented.
-	 * @return true if this Variable is TCL.
-	 */
-	private boolean isTCL() { return (flags & (VCODE1|VCODE2)) == VTCL; }
+	public boolean isJava() { return descriptor.isJava(); }
 
 	/**
 	 * Method to tell whether this Variable is any code.
 	 * @return true if this Variable is any code.
 	 */
-	public boolean isCode() { return (flags & (VCODE1|VCODE2)) != 0; }
-
-	/**
-	 * Method to set this Variable to be not-code.
-	 */
-	private void clearCode() { checkChanging(); flags &= ~(VCODE1|VCODE2); }
-
-	/**
-	 * Method to set this Variable to be not-saved.
-	 * Variables that are saved are written to disk when libraries are saved.
-	 */
-//	public synchronized void setDontSave() { checkChanging(); flags |= VDONTSAVE; }
-
-	/**
-	 * Method to set this Variable to be saved.
-	 * Variables that are saved are written to disk when libraries are saved.
-	 */
-//	public synchronized void clearDontSave() { checkChanging(); flags &= ~VDONTSAVE; }
-
-	/**
-	 * Method to return true if this Variable is to be saved.
-	 * Variables that are saved are written to disk when libraries are saved.
-	 * @return true if this Variable is to be saved.
-	 */
-//	public boolean isDontSave() { return (flags & VDONTSAVE) != 0; }
-
-	/**
-	 * Method to set this Variable to be not-settable.
-	 * Only Variables that are settable can have their value changed.
-	 */
-//	public synchronized void setCantSet() { checkChanging(); flags |= VCANTSET; }
-
-	/**
-	 * Method to set this Variable to be settable.
-	 * Only Variables that are settable can have their value changed.
-	 */
-//	public synchronized void clearCantSet() { checkChanging(); flags &= ~VCANTSET; }
-
-	/**
-	 * Method to return true if this Variable is settable.
-	 * Only Variables that are settable can have their value changed.
-	 * @return true if this Variable is settable.
-	 */
-//	public boolean isCantSet() { return (flags & VCANTSET) != 0; }
+	public boolean isCode() { return descriptor.isCode(); }
 
     /**
      * Method to return if this is Variable is a User Attribute.

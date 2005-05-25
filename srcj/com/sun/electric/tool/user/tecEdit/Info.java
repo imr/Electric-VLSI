@@ -274,9 +274,9 @@ public class Info
 					str = "Lockable: " + (((Boolean)table[i].value).booleanValue() ? "Yes" : "No");
 					break;
 			}
-			Variable var = table[i].ni.newVar(Artwork.ART_MESSAGE, str);
-			if (var != null)
-				var.setDisplay(true);
+			Variable var = table[i].ni.newDisplayVar(Artwork.ART_MESSAGE, str);
+//			if (var != null)
+//				var.setDisplay(true);
 			var = table[i].ni.newVar(OPTION_KEY, new Integer(table[i].funct));
 		}
 	}

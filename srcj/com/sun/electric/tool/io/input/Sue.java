@@ -41,6 +41,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -690,11 +691,11 @@ public class Sue extends Input
 						if (((String)newObject).indexOf('@') >= 0 ||
 							((String)newObject).indexOf("p(") >= 0) makeJava = true;
 					}
-					Variable var = ni.newVar(sueVarName, newObject);
+					Variable var = ni.newDisplayVar(ElectricObject.newKey(sueVarName), newObject);
 					if (var != null)
 					{
-						var.setDisplay(true);
-						if (makeJava) var.setCode(Variable.Code.JAVA);
+//						var.setDisplay(true);
+						if (makeJava) var.setCode(TextDescriptor.Code.JAVA);
 						varIndex++;
 						var.setOff(xpos, ypos);
 						if (halveSize)
@@ -949,8 +950,8 @@ public class Sue extends Input
 
 				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
 				if (ni == null) continue;
-				Variable var = ni.newVar(Artwork.ART_MESSAGE, parP.theLabel);
-				if (var != null) var.setDisplay(true);
+				Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theLabel);
+//				if (var != null) var.setDisplay(true);
 				continue;
 			}
 
@@ -963,8 +964,8 @@ public class Sue extends Input
 
 				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
 				if (ni == null) continue;
-				Variable var = ni.newVar(Artwork.ART_MESSAGE, parP.theText);
-				if (var != null) var.setDisplay(true);
+				Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theText);
+//				if (var != null) var.setDisplay(true);
 				continue;
 			}
 

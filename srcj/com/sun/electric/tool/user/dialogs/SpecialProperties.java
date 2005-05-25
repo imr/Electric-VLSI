@@ -27,6 +27,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Schematics;
@@ -321,7 +322,7 @@ public class SpecialProperties
 		private NodeInst ni;
 		private Variable.Key key;
 		private String newValue, newValueLen;
-		private Variable.Code newCode, newCodeLen;
+		private TextDescriptor.Code newCode, newCodeLen;
 		private int newBits;
 
 		private ModifyNodeProperties(NodeInst ni, Variable.Key key, String newValue)
@@ -344,7 +345,7 @@ public class SpecialProperties
 			startJob();
 		}
 
-		private ModifyNodeProperties(NodeInst ni, String newWid, Variable.Code newWidCode, String newLen, Variable.Code newLenCode)
+		private ModifyNodeProperties(NodeInst ni, String newWid, TextDescriptor.Code newWidCode, String newLen, TextDescriptor.Code newLenCode)
 		{
 			super("Change Node Value", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.ni = ni;
@@ -362,19 +363,19 @@ public class SpecialProperties
 			{
 				// update length/width on transistor
 				Variable oldWid = ni.getVar(Schematics.ATTR_WIDTH);
-				Variable var = ni.newVar(Schematics.ATTR_WIDTH, newValue);
+				Variable var = ni.newDisplayVar(Schematics.ATTR_WIDTH, newValue);
 				if (var != null)
 				{
-					var.setDisplay(true);
+//					var.setDisplay(true);
 					if (oldWid != null) var.setTextDescriptor(oldWid.getTextDescriptor());
 					var.setCode(newCode);
 				}
 
 				Variable oldLen = ni.getVar(Schematics.ATTR_LENGTH);
-				var = ni.newVar(Schematics.ATTR_LENGTH, newValueLen);
+				var = ni.newDisplayVar(Schematics.ATTR_LENGTH, newValueLen);
 				if (var != null)
 				{
-					var.setDisplay(true);
+//					var.setDisplay(true);
 					if (oldLen != null) var.setTextDescriptor(oldLen.getTextDescriptor());
 					var.setCode(newCodeLen);
 				}
@@ -382,10 +383,10 @@ public class SpecialProperties
 			{
 				// update single value on a node
 				Variable oldVar = ni.getVar(key);
-				Variable var = ni.newVar(key, newValue);
+				Variable var = ni.newDisplayVar(key, newValue);
 				if (var != null)
 				{
-					var.setDisplay(true);
+//					var.setDisplay(true);
 					if (oldVar != null) var.setTextDescriptor(oldVar.getTextDescriptor());
 				}
 
@@ -567,7 +568,7 @@ public class SpecialProperties
 			super(null, true);
 
 			String tWid = "";
-			Variable.Code cWid = Variable.Code.NONE;
+			TextDescriptor.Code cWid = TextDescriptor.Code.NONE;
 			Variable varWid = ni.getVar(Schematics.ATTR_WIDTH);
 			if (varWid != null)
 			{
@@ -576,7 +577,7 @@ public class SpecialProperties
 			}
 
 			String tLen = "";
-			Variable.Code cLen = Variable.Code.NONE;
+			TextDescriptor.Code cLen = TextDescriptor.Code.NONE;
 			Variable varLen = ni.getVar(Schematics.ATTR_LENGTH);
 			if (varLen != null)
 			{
@@ -593,8 +594,8 @@ public class SpecialProperties
 			{
 				String newWid = valueWid.getText();
 				String newLen = valueLen.getText();
-		        Variable.Code newWidCode = (Variable.Code)comboWid.getSelectedItem();
-		        Variable.Code newLenCode = (Variable.Code)comboLen.getSelectedItem();
+		        TextDescriptor.Code newWidCode = (TextDescriptor.Code)comboWid.getSelectedItem();
+		        TextDescriptor.Code newLenCode = (TextDescriptor.Code)comboLen.getSelectedItem();
 
 				new ModifyNodeProperties(ni, newWid, newWidCode, newLen, newLenCode);
 			}
@@ -617,8 +618,8 @@ public class SpecialProperties
 			exit(true);
 		}
 
-		private void initComponents(EditWindow wnd, NodeInst ni, String title, String initialWid, Variable.Code codeWid,
-			String initialLen, Variable.Code codeLen)
+		private void initComponents(EditWindow wnd, NodeInst ni, String title, String initialWid, TextDescriptor.Code codeWid,
+			String initialLen, TextDescriptor.Code codeLen)
 		{
 			getContentPane().setLayout(new GridBagLayout());
 
@@ -648,7 +649,7 @@ public class SpecialProperties
 			valueWid.selectAll();
 
 			comboWid = new JComboBox();
-			for(Iterator it = Variable.Code.getCodes(); it.hasNext(); )
+			for(Iterator it = TextDescriptor.Code.getCodes(); it.hasNext(); )
 				comboWid.addItem(it.next());
 			comboWid.setSelectedItem(codeWid);
 			gbc = new GridBagConstraints();
@@ -677,7 +678,7 @@ public class SpecialProperties
 			getContentPane().add(valueLen, gbc);
 
 			comboLen = new JComboBox();
-			for(Iterator it = Variable.Code.getCodes(); it.hasNext(); )
+			for(Iterator it = TextDescriptor.Code.getCodes(); it.hasNext(); )
 				comboLen.addItem(it.next());
 			comboLen.setSelectedItem(codeLen);
 			gbc = new GridBagConstraints();

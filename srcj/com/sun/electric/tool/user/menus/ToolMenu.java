@@ -1145,10 +1145,10 @@ public class ToolMenu {
 
         public boolean doIt()
         {
-            Variable var = ni.newVar(Simulation.M_FACTOR_KEY, new Double(1.0));
+            Variable var = ni.newDisplayVar(Simulation.M_FACTOR_KEY, new Double(1.0));
             if (var != null)
             {
-                var.setDisplay(true);
+//                var.setDisplay(true);
                 var.setOff(-1.5, -1);
                 var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
             }
@@ -1186,10 +1186,10 @@ public class ToolMenu {
                 System.out.println("This cell already has a template");
                 return false;
             }
-            templateVar = cell.newVar(templateKey, "*Undefined");
+            templateVar = cell.newDisplayVar(templateKey, "*Undefined");
             if (templateVar != null)
             {
-                templateVar.setDisplay(true);
+//                templateVar.setDisplay(true);
                 templateVar.setInterior(true);
                 templateVar.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
                 System.out.println("Set "+templateKey.getName().replaceFirst("ATTR_", "")+" for cell "+cell.describe());

@@ -588,8 +588,8 @@ public class ReadableDump extends Output
 	 */
 	private void writeVar(Variable var, Cell curCell)
 	{
-//		if (var.isDontSave()) return;
-		int type = var.lowLevelGetFlags() & ~(ELIBConstants.VTYPE|ELIBConstants.VISARRAY|ELIBConstants.VLENGTH);
+		int type = var.getTextDescriptor().getCFlags();
+        
 		Object varObj = var.getObject();
 
 		// special case for "trace" information on NodeInsts
@@ -808,18 +808,11 @@ public class ReadableDump extends Output
 		{
 			td0 = td.lowLevelGet0();
 			td1 = td.lowLevelGet1();
-			if ((varBits & ELIBConstants.VDISPLAY) != 0)
+            //Convert font face
+			if ((td1 & ELIBConstants.VTFACE) != 0)
 			{
-				// Convert font face
-				if ((td1 & ELIBConstants.VTFACE) != 0)
-				{
-					int face = (td1 & ELIBConstants.VTFACE) >> ELIBConstants.VTFACESH;
-					td1 = (td1 & ~ELIBConstants.VTFACE) | (faceMap[face] << ELIBConstants.VTFACESH);
-				}
-			} else
-			{
-				td0 &= ELIBConstants.VTSEMANTIC0;
-				td1 &= ELIBConstants.VTSEMANTIC1;
+				int face = (td1 & ELIBConstants.VTFACE) >> ELIBConstants.VTFACESH;
+				td1 = (td1 & ~ELIBConstants.VTFACE) | (faceMap[face] << ELIBConstants.VTFACESH);
 			}
 		} else
 		{

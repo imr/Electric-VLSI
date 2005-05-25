@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -80,7 +81,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	/** Internal flag bits of this Export. */				private int userBits;
 	/** The parent Cell of this Export. */					private Cell parent;
 	/** Index of this Export in Cell ports. */				private int portIndex;
-	/** The text descriptor of this Export. */				private TextDescriptor descriptor;
+	/** The text descriptor of this Export. */				private ImmutableTextDescriptor descriptor;
 	/** the PortInst that the exported port belongs to */	private PortInst originalPort;
 	/** The Change object. */								private Undo.Change change;
 
@@ -92,7 +93,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	protected Export()
 	{
 		super();
-		this.descriptor = TextDescriptor.getExportTextDescriptor(this);
+		this.descriptor = ImmutableTextDescriptor.getExportTextDescriptor();
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -549,7 +550,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 * @param varName name of variable or special name.
 	 * @return the TextDescriptor on this Export.
 	 */
-	public TextDescriptor getTextDescriptor(String varName)
+	public ImmutableTextDescriptor getTextDescriptor(String varName)
 	{
 		if (varName == EXPORT_NAME_TD) return descriptor;
 		return super.getTextDescriptor(varName);
@@ -566,14 +567,18 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 * The TextDescriptor gives information for displaying the Variable.
 	 * @param varName name of variable or special name.
 	 * @param td new value TextDescriptor
+     * @return old text descriptor
+     * @throws IllegalArgumentException if TextDescriptor with specified name not found on this Export.
 	 */
-	public void setTextDescriptor(String varName, TextDescriptor td)
+	public ImmutableTextDescriptor lowLevelSetTextDescriptor(String varName, ImmutableTextDescriptor td)
 	{
-		checkChanging();
 		if (varName == EXPORT_NAME_TD)
-			this.descriptor.copy(td);
-		else
-			super.setTextDescriptor(varName, td);
+        {
+            ImmutableTextDescriptor oldDescriptor = descriptor;
+			descriptor = td.withDisplayWithoutParamAndCode();
+            return oldDescriptor;
+        }
+		return super.lowLevelSetTextDescriptor(varName, td);
 	}
 
 	/**

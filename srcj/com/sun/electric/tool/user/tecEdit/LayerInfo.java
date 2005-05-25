@@ -156,10 +156,10 @@ public class LayerInfo extends Info
 			}
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, 3.5), 0, 0, np);
 			if (ni == null) return;
-			Variable var = ni.newVar(Artwork.ART_MESSAGE, "Stipple Pattern");
+			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Stipple Pattern");
 			if (var != null)
 			{
-				var.setDisplay(true);
+//				var.setDisplay(true);
 				var.setRelSize(0.5);
 			}
 		}
@@ -169,32 +169,32 @@ public class LayerInfo extends Info
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -14), 0, 0, np);
 			if (ni == null) return;
-			Variable var = ni.newVar(Artwork.ART_MESSAGE, "Clear Pattern");
-			if (var != null) var.setDisplay(true);
+			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Clear Pattern");
+//			if (var != null) var.setDisplay(true);
 			ni.newVar(OPTION_KEY, new Integer(LAYERPATCLEAR));
 		}
 		if (patInvertNode == null)
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -16), 0, 0, np);
 			if (ni == null) return;
-			Variable var = ni.newVar(Artwork.ART_MESSAGE, "Invert Pattern");
-			if (var != null) var.setDisplay(true);
+			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Invert Pattern");
+//			if (var != null) var.setDisplay(true);
 			ni.newVar(OPTION_KEY, new Integer(LAYERPATINVERT));
 		}
 		if (patCopyNode == null)
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -18), 0, 0, np);
 			if (ni == null) return;
-			Variable var = ni.newVar(Artwork.ART_MESSAGE, "Copy Pattern");
-			if (var != null) var.setDisplay(true);
+			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Copy Pattern");
+//			if (var != null) var.setDisplay(true);
 			ni.newVar(OPTION_KEY, new Integer(LAYERPATCOPY));
 		}
 		if (patPasteNode == null)
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -20), 0, 0, np);
 			if (ni == null) return;
-			Variable var = ni.newVar(Artwork.ART_MESSAGE, "Paste Pattern");
-			if (var != null) var.setDisplay(true);
+			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Paste Pattern");
+//			if (var != null) var.setDisplay(true);
 			ni.newVar(OPTION_KEY, new Integer(LAYERPATPASTE));
 		}
 

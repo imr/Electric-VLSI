@@ -1345,8 +1345,8 @@ public class ReadableDump extends LibraryFiles
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0)
 			td1 = TextUtils.atoi(keyWord.substring(slashPos+1));
-		MutableTextDescriptor td = new MutableTextDescriptor(td0, td1, 0);
-		nodeInstList[curCellNumber].theNode[curNodeInstIndex].setTextDescriptor(NodeInst.NODE_PROTO_TD, td);
+		mtd.setCBits(td0, td1);
+		nodeInstList[curCellNumber].theNode[curNodeInstIndex].setTextDescriptor(NodeInst.NODE_PROTO_TD, mtd);
 	}
 
 	/**
@@ -1578,8 +1578,8 @@ public class ReadableDump extends LibraryFiles
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0)
 			td1 = TextUtils.atoi(keyWord, slashPos+1);
-		MutableTextDescriptor td = new MutableTextDescriptor(td0, td1, 0);
-		exportList[curCellNumber].exportList[curExportIndex].setTextDescriptor(Export.EXPORT_NAME_TD, td);
+		mtd.setCBits(td0, td1);
+		exportList[curCellNumber].exportList[curExportIndex].setTextDescriptor(Export.EXPORT_NAME_TD, mtd);
 	}
 
 	/**
@@ -1632,42 +1632,57 @@ public class ReadableDump extends LibraryFiles
 	private void keywordGetVar()
 		throws IOException
 	{
-		ElectricObject naddr = null;
-		Object obj = null;
-		switch (varPos)
-		{
-			case INVTOOL:				// keyword applies to tools
-				obj = curTool;
-				break;
-			case INVTECHNOLOGY:			// keyword applies to technologies
-				obj = curTech;
-				break;
-			case INVLIBRARY:			// keyword applies to library
-				naddr = lib;
-				break;
-			case INVNODEPROTO:			// keyword applies to nodeproto
-				naddr = curCell;
-				break;
-			case INVNODEINST:			// keyword applies to nodeinst
-				naddr = nodeInstList[curCellNumber].theNode[curNodeInstIndex];
-				break;
-			case INVPORTPROTO:			// keyword applies to portproto
-				naddr = exportList[curCellNumber].exportList[curExportIndex];
-				break;
-			case INVARCINST:			// keyword applies to arcinst
-				naddr = arcInstList[curCellNumber].arcList[curArcInstIndex];
-				break;
-		}
+        DiskVariable[] vars = parseVars();
+        for (int i = 0; i < vars.length; i++)
+        {
+            DiskVariable v = vars[i];
+            if (v == null) continue;
+    		switch (varPos)
+        	{
+            	case INVTOOL:				// keyword applies to tools
+                	if (topLevelLibrary) v.makeMeaningPref(curTool);
+                    break;
+    			case INVTECHNOLOGY:			// keyword applies to technologies
+                    if (topLevelLibrary) v.makeMeaningPref(curTech);
+            		break;
+    			case INVLIBRARY:			// keyword applies to library
+                    v.makeVariable(lib, this, null, 0);
+            		break;
+    			case INVNODEPROTO:			// keyword applies to nodeproto
+                    v.makeVariable(curCell, this, null, 0);
+            		break;
+    			case INVNODEINST:			// keyword applies to nodeinst
+                    v.makeVariable(nodeInstList[curCellNumber].theNode[curNodeInstIndex], this,
+                                   nodeInstList[curCellNumber].name, curNodeInstIndex);
+            		break;
+    			case INVPORTPROTO:			// keyword applies to portproto
+        			v.makeVariable(exportList[curCellNumber].exportList[curExportIndex], this, null, 0);
+            		break;
+    			case INVARCINST:			// keyword applies to arcinst
+                    v.makeVariable(arcInstList[curCellNumber].arcList[curArcInstIndex], this,
+                                   arcInstList[curCellNumber].arcInstName, curArcInstIndex);
+            		break;
+            }
+        }
+	}
 
+	/**
+	 * get variables on current object (keyword "variables")
+	 */
+	private DiskVariable[] parseVars()
+		throws IOException
+	{
 		// find out how many variables to read
 		int count = Integer.parseInt(keyWord);
+        if (count <= 0) return NULL_DISK_VARIABLE_ARRAY;
+        DiskVariable[] vars = new DiskVariable[count];
 		for(int i=0; i<count; i++)
 		{
 			// read the first keyword with the name, type, and descriptor
 			if (getKeyword())
 			{
 				System.out.println("EOF too soon");
-				return;
+				return vars;
 			}
 
 			// get the variable name
@@ -1676,7 +1691,7 @@ public class ReadableDump extends LibraryFiles
 			if (keyWord.charAt(len-1) != ':')
 			{
 				System.out.println("Error on line "+lineReader.getLineNumber()+": missing colon in variable specification: "+keyWord);
-				return;
+				return vars;
 			}
 			for(int j=0; j<len; j++)
 			{
@@ -1690,19 +1705,15 @@ public class ReadableDump extends LibraryFiles
 				if (cat == '(' || cat == '[' || cat == ':') break;
 				varName += cat;
 			}
-			Variable.Key varKey = ElectricObject.newKey(varName);
+//			Variable.Key varKey = ElectricObject.newKey(varName);
 
 			// see if the variable is valid
-			boolean invalid = false;
-			if (naddr == null) invalid = true; else
-				invalid = naddr.isDeprecatedVariable(varKey);
-
 			// get type
 			int openSquarePos = keyWord.lastIndexOf('['); // lastIndex, because LE variables may contain '['
 			if (openSquarePos < 0)
 			{
 				System.out.println("Error on line "+lineReader.getLineNumber()+": missing type information in variable: " + keyWord);
-				return;
+				return vars;
 			}
 			int type = TextUtils.atoi(keyWord, openSquarePos+1);
 
@@ -1718,13 +1729,13 @@ public class ReadableDump extends LibraryFiles
 				if (slashPos >= 0)
 					td1 = TextUtils.atoi(keyWord, slashPos+1);
 			}
-			MutableTextDescriptor td = new MutableTextDescriptor(td0, td1, 0);
+//			MutableTextDescriptor td = new MutableTextDescriptor(td0, td1, 0);
 
 			// get value
 			if (getKeyword())
 			{
 				System.out.println("EOF too soon");
-				return;
+				return vars;
 			}
 			Object value = null;
 			if ((type&ELIBConstants.VISARRAY) == 0)
@@ -1735,7 +1746,7 @@ public class ReadableDump extends LibraryFiles
 				if (keyWord.charAt(0) != '[')
 				{
 					System.out.println("Error on line "+lineReader.getLineNumber()+": missing '[' in list of variable values: " + keyWord);
-					return;
+					return vars;
 				}
 				ArrayList al = new ArrayList();
 				int pos = 1;
@@ -1770,7 +1781,7 @@ public class ReadableDump extends LibraryFiles
 					if (pos >= len)
 					{
 						System.out.println("Error on line "+lineReader.getLineNumber()+": array too short in variable values: " + keyWord);
-						return;
+						return vars;
 					}
 					String entry = keyWord.substring(start, pos);
 					al.add(variableDecode(entry, type));
@@ -1778,7 +1789,7 @@ public class ReadableDump extends LibraryFiles
 					if (keyWord.charAt(pos) != ',')
 					{
 						System.out.println("Error on line "+lineReader.getLineNumber()+": missing comma between array entries: " + keyWord);
-						return;
+						return vars;
 					}
 					pos++;
 				}
@@ -1812,59 +1823,9 @@ public class ReadableDump extends LibraryFiles
 				}
 			}
 
-			// Geometric names are saved as variables.
-			if (value instanceof String)
-			{
-				if (naddr instanceof NodeInst && varKey == NodeInst.NODE_NAME)
-				{
-					NodeInst ni = (NodeInst)naddr;
-					ni.setTextDescriptor(NodeInst.NODE_NAME_TD, td);
-					nodeInstList[curCellNumber].name[curNodeInstIndex] = convertGeomName(value, type);
-					continue;
-				}
-				if (naddr instanceof ArcInst && varKey == ArcInst.ARC_NAME)
-				{
-					ArcInst ai = (ArcInst)naddr;
-					ai.setTextDescriptor(ArcInst.ARC_NAME_TD, td);
-					arcInstList[curCellNumber].arcInstName[curArcInstIndex] = convertGeomName(value, type);
-					continue;
-				}
-			}
-			if (!invalid)
-			{
-				Variable var = naddr.newVar(varKey, value);
-				if (var == null)
-				{
-					System.out.println("Error on line "+lineReader.getLineNumber()+": cannot store array variable: " + keyWord);
-					return;
-				}
-				var.setTextDescriptor(td);
-				var.lowLevelSetFlags(type);
-
-				// handle updating of technology caches
-//				if (naddr instanceof Technology)
-//					changedtechnologyvariable(key);
-			} else if (obj != null && topLevelLibrary) {
-				if (value instanceof Integer ||
-					value instanceof Double ||
-					value instanceof Float ||
-					value instanceof String)
-				{
-					// change "meaning option"
-					Pref.Meaning meaning = Pref.getMeaningVariable(obj, varName);
-					if (meaning != null)
-						Pref.changedMeaningVariable(meaning, value);
-					else if (obj instanceof Technology)
-						((Technology)obj).convertOldVariable(varName, value);
-				}
-			}
+            vars[i] = new DiskVariable(varName, type, td0, td1, value);
 		}
-		if (varPos == INVLIBRARY)
-		{
-			// cache the font associations
-			Input.getFontAssociationVariable(lib);
-		}
-		Input.fixVariableFont(naddr);
+        return vars;
 	}
 
 	private Object variableDecode(String name, int type)

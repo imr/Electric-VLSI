@@ -473,7 +473,8 @@ public class ChangeText extends EDialog
 			{
 				String nameOfFont = (String)font.getSelectedItem();
 				TextDescriptor.ActiveFont newFont = TextDescriptor.ActiveFont.findActiveFont(nameOfFont);
-				fontIndex = newFont.getIndex();
+                if (newFont != null)
+                    fontIndex = newFont.getIndex();
 			}
 			if (fontIndex != td.getFace())
 			{

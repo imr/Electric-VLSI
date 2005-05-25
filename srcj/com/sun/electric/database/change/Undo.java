@@ -36,7 +36,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
@@ -95,7 +95,6 @@ public class Undo
 		/** Describes the redrawing of an arbitrary object. */				public static final Type OBJECTREDRAW = new Type("ObjectRedraw");
 		/** Describes the creation of a Variable on an object. */			public static final Type VARIABLENEW = new Type("VariableNew");
 		/** Describes the deletion of a Variable on an object. */			public static final Type VARIABLEKILL = new Type("VariableKill");
-		/** Describes the modification of a Variable on an object. */		public static final Type VARIABLEMODFLAGS = new Type("VariableModFlags");
 		/** Describes the modification of a Variable on an object. */		public static final Type VARIABLEMOD = new Type("VariableMod");
 		/** Describes the insertion of an entry in an arrayed Variable. */	public static final Type VARIABLEINSERT = new Type("VariableInsert");
 		/** Describes the deletion of an entry in an arrayed Variable. */	public static final Type VARIABLEDELETE = new Type("VariableDelete");
@@ -298,13 +297,6 @@ public class Undo
 					Listener listener = (Listener)it.next();
 					listener.killVariable(obj, (Variable)o1);
 				}
-			} else if (type == Type.VARIABLEMODFLAGS)
-			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
-				{
-					Listener listener = (Listener)it.next();
-					listener.modifyVariableFlags(obj, (Variable)o1, i1);
-				}
 			} else if (type == Type.VARIABLEMOD)
 			{
 				for(Iterator it = Tool.getListeners(); it.hasNext(); )
@@ -331,7 +323,7 @@ public class Undo
 				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
-					listener.modifyTextDescript(obj, (TextDescriptor)o1, i1, i2, i3);
+					listener.modifyTextDescript(obj, (String)o1, (ImmutableTextDescriptor)o2);
 				}
 			}
 			broadcasting = null;
@@ -599,14 +591,6 @@ public class Undo
 				type = Type.VARIABLENEW;
 				return;
 			}
-			if (type == Type.VARIABLEMODFLAGS)
-			{
-				Variable var = (Variable)o1;
-				int oldFlags = var.lowLevelGetFlags();
-				var.lowLevelSetFlags(i1);
-				i1 = oldFlags;
-				return;
-			}
 			if (type == Type.VARIABLEMOD)
 			{
 				Variable var = (Variable)o1;
@@ -635,15 +619,9 @@ public class Undo
 			}
 			if (type == Type.DESCRIPTORMOD)
 			{
-				TextDescriptor descript = (TextDescriptor)o1;
-				int oldDescript0 = descript.lowLevelGet0();
-				int oldDescript1 = descript.lowLevelGet1();
-				int oldColorIndex = descript.getColorIndex();
-				descript.lowLevelSet(i1, i2, i3);
-				i1 = oldDescript0;
-				i2 = oldDescript1;
-				i3 = oldColorIndex;
-				return;
+                String varName = (String)o1;
+                o2 = obj.lowLevelSetTextDescriptor(varName, (ImmutableTextDescriptor)o2);
+                return;
 			}
 		}
 
@@ -709,7 +687,7 @@ public class Undo
 				if (cell != null) lib = cell.getLibrary();
 				Variable var = (Variable)o1;
 				major = isMajorVariable(obj, var.getKey());
-			} else if (type == Type.VARIABLEMODFLAGS || type == Type.DESCRIPTORMOD)
+			} else if (type == Type.DESCRIPTORMOD)
 			{
 				cell = obj.whichCell();
 				if (cell != null) lib = cell.getLibrary();
@@ -838,10 +816,6 @@ public class Undo
 			{
 				return "Deleted variable "+o1+" on "+obj+" [was "+((Variable)o1).getObject()+"]";
 			}
-			if (type == Type.VARIABLEMODFLAGS)
-			{
-				return "Modified variable flags "+obj+" "+o1+" [was 0"+Integer.toOctalString(i1)+"]";
-			}
 			if (type == Type.VARIABLEMOD)
 			{
 				return "Modified variable "+o1+"["+i1+"] on "+obj;
@@ -856,7 +830,7 @@ public class Undo
 			}
 			if (type == Type.DESCRIPTORMOD)
 			{
-				return "Modified Text Descriptor in "+obj+" [was 0"+Integer.toOctalString(i1)+"/0"+Integer.toOctalString(i2)+"]";
+				return "Modified Text Descriptor in "+obj+"."+o1+" [was "+o2+"]";
 			}
 			return "?";
 		}
@@ -926,32 +900,32 @@ public class Undo
 				} else if (ch.getType() == Type.OBJECTNEW || ch.getType() == Type.OBJECTKILL || ch.getType() == Type.OBJECTREDRAW)
 				{
 					object++;
-				} else if (ch.getType() == Type.VARIABLENEW || ch.getType() == Type.VARIABLEKILL || ch.getType() == Type.VARIABLEMODFLAGS ||
+				} else if (ch.getType() == Type.VARIABLENEW || ch.getType() == Type.VARIABLEKILL ||
 					ch.getType() == Type.VARIABLEMOD || ch.getType() == Type.VARIABLEINSERT ||
 					ch.getType() == Type.VARIABLEDELETE)
 				{
 					variable++;
 				} else if (ch.getType() == Type.DESCRIPTORMOD)
 				{
-					TextDescriptor td = (TextDescriptor)ch.o1;
+                    String varName = (String)ch.o1;
 					if (ch.obj instanceof NodeInst)
 					{
 						NodeInst ni = (NodeInst)ch.obj;
-						if (ni.getTextDescriptor(NodeInst.NODE_NAME_TD) == td || ni.getTextDescriptor(NodeInst.NODE_PROTO_TD) == td)
+						if (varName == NodeInst.NODE_NAME_TD || varName == NodeInst.NODE_PROTO_TD)
 							nodeInst++;
 						else
 							variable++;
 					} else if (ch.obj instanceof ArcInst)
 					{
 						ArcInst ai = (ArcInst)ch.obj;
-						if (ai.getTextDescriptor(ArcInst.ARC_NAME_TD) == td)
+						if (varName == ArcInst.ARC_NAME_TD)
 							arcInst++;
 						else
 							variable++;
 					} else if (ch.obj instanceof Export)
 					{
 						Export e = (Export)ch.obj;
-						if (e.getTextDescriptor(Export.EXPORT_NAME_TD) == td)
+						if (varName == Export.EXPORT_NAME_TD)
 							export++;
 						else
 							variable++;
@@ -1233,10 +1207,9 @@ public class Undo
 	 * <LI>VARIABLENEW takes o1=var.
 	 * <LI>VARIABLEKILL takes o1=var.
 	 * <LI>VARIABLEMOD takes o1=var i1=index o2=oldValue.
-	 * <LI>VARIABLEMODFLAGS takes o1=var i1=flags.
 	 * <LI>VARIABLEINSERT takes o1=var i1=index.
 	 * <LI>VARIABLEDELETE takes a1=var i1=index o2=oldValue.
-	 * <LI>DESCRIPTORMOD takes o1=descript i1=oldDescript0 i2=oldDescript1.
+	 * <LI>DESCRIPTORMOD takes o1=varName o2=oldDescriptor.
 	 * <LI>CELLGROUPMOD takes o1=oldCellGroup
 	 * </UL>
 	 * @param obj the object to which the change applies.
@@ -1374,24 +1347,20 @@ public class Undo
 	/**
 	 * Method to store a change to a TextDescriptor in the change-control system.
 	 * @param obj the ElectricObject on which the TextDescriptor resides.
-	 * @param descript the TextDescriptor that changed.
-	 * @param oldDescript0 the former word-0 value of the TextDescriptor.
-	 * @param oldDescript1 the former word-1 value of the TextDescriptor.
-	 * @param oldColorIndex the former color index of the TextDescriptor.
+     * @param varName name of variable or special name.
+	 * @param oldDescriptor the former TextDescriptor.
 	 */
-	public static void modifyTextDescript(ElectricObject obj, TextDescriptor descript, int oldDescript0, int oldDescript1, int oldColorIndex)
+	public static void modifyTextDescript(ElectricObject obj, String varName, ImmutableTextDescriptor oldDescriptor)
 	{
 		if (!recordChange()) return;
-		Change ch = newChange(obj, Type.DESCRIPTORMOD, descript);
+		Change ch = newChange(obj, Type.DESCRIPTORMOD, varName);
 		if (ch == null) return;
-		ch.i1 = oldDescript0;
-		ch.i2 = oldDescript1;
-		ch.i3 = oldColorIndex;
+		ch.o2 = oldDescriptor;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 //		fireChangeEvent(ch);
 		// tell constraint system about this TextDescriptor
-		Constraints.getCurrent().modifyTextDescript(obj, descript, oldDescript0, oldDescript1, oldColorIndex);
+		Constraints.getCurrent().modifyTextDescript(obj, varName, oldDescriptor);
 	}
 
 	/**
@@ -1546,25 +1515,6 @@ public class Undo
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 //		fireChangeEvent(ch);
 		Constraints.getCurrent().killVariable(obj, var);
-	}
-
-	/**
-	 * Method to store the modification of a Variable's flags in the change-control system.
-	 * The flag bits of a Variable control whether it is displayed, treated as code, etc.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable that was modified.
-	 * @param oldFlags the former flag bits on the Variable.
-	 */
-	public static void modifyVariableFlags(ElectricObject obj, Variable var, int oldFlags)
-	{
-		if (!recordChange()) return;
-		Change ch = Undo.newChange(obj, Type.VARIABLEMODFLAGS, var);
-		if (ch == null) return;
-		ch.i1 = oldFlags;
-
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
-		Constraints.getCurrent().modifyVariableFlags(obj, var, oldFlags);
 	}
 
 	/**
