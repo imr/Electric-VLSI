@@ -586,8 +586,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	private class MyRenderer extends DefaultTreeCellRenderer
 	{
+		private Font plainFont, boldFont;
+
 		public MyRenderer()
 		{
+			plainFont = new Font("arial", Font.PLAIN, 11);
+			boldFont = new Font("arial", Font.BOLD, 11);
 		}
 
 		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
@@ -596,12 +600,15 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 			// setIcon(icon)
 			//setToolTipText(value.toString());
+			setFont(plainFont);
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
 			Object nodeInfo = node.getUserObject();
 			if (nodeInfo instanceof Library)
 			{
+				Library lib = (Library)nodeInfo;
 				if (iconLibrary == null)
 					iconLibrary = Resources.getResource(getClass(), "IconLibrary.gif");
+				if (lib.isChangedMajor()) setFont(boldFont);
 				setIcon(iconLibrary);
 			}
 			if (nodeInfo instanceof CellAndCount)

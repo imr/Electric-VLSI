@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (05/24/05, SMR) Improved component menu colors when nonstandard colors are used.
+
+IMP: (05/24/05, SMR) Library names in the explorer tree are shown in bold when the
+     library has changed (Bug #326).
+
+BUG: (05/24/05, SMR) Verilog deck generation writes names that start with digits (Bug #338).
+FIX: Prepend a "_" to symbols that start with a digit.
+
 IMP: (05/25/05, DN) "regression/tools/gateLayGen/scripts/mocmosDrc.bsh" and
   "regression/tools/IO/scripts/*.bsh" are refreshed.
 

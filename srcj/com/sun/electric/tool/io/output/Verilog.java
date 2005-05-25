@@ -1135,6 +1135,7 @@ public class Verilog extends Topology
 			char chr = name.charAt(i);
 			if (chr == '[') { openSquareCount++;   openSquarePos = i; }
 			if (!TextUtils.isLetterOrDigit(chr)) allAlnum = false;
+			if (i == 0 && TextUtils.isDigit(chr)) allAlnum = false;
 		}
 		if (!allAlnum || !Character.isLetter(name.charAt(0)))
 		{
@@ -1159,6 +1160,7 @@ public class Verilog extends Topology
 					}
 				} else
 				{
+					if (t == 0 && TextUtils.isDigit(chr)) sb.append('_');
 					if (TextUtils.isLetterOrDigit(chr) || chr == '$')
 						sb.append(chr); else
 							sb.append('_');
