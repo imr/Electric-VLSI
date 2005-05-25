@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+BUG: (05/25/05, DN) Text options are incompatible after changes.
+FIX: Method "TextDescriptor.DescriptorPref.swap" as a temporary fix.
+
+BUG: (05/25/05, DN) Font is not properly read after last changes.
+FIX: In "Library.DiskVariable.makeVariable" use "getName" instead of "toString".
+
 IMP: (05/24/05, SMR) Improved component menu colors when nonstandard colors are used.
 
 IMP: (05/24/05, SMR) Library names in the explorer tree are shown in bold when the

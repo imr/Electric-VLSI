@@ -743,18 +743,24 @@ public abstract class TextDescriptor implements Serializable
 		 */
 		DescriptorPref(String purpose, int initialSize)
 		{
-			cacheBits = Pref.makeLongPref("TextDescriptorFor" + purpose, prefs, (initialSize << Size.TXTQGRIDSH) << VTSIZESH);
+			cacheBits = Pref.makeLongPref("TextDescriptorFor" + purpose, prefs, swap((initialSize << Size.TXTQGRIDSH) << VTSIZESH));
 			cacheColor = Pref.makeIntPref("TextDescriptorColorFor" + purpose, prefs, 0);
 			cacheFont = Pref.makeStringPref("TextDescriptorFontFor" + purpose, prefs, "");
 		}
-
+        
+        private long swap(long value)
+        {
+            int v0 = (int)value;
+            return (value >>> 32) | ((long)v0 << 32);
+        }
+        
 		/**
 		 * Creates new TextDescriptor for this purpose.
 		 * @return new TextDescripor.
 		 */
 		synchronized ImmutableTextDescriptor newTextDescriptor(boolean display)
 		{
-            long bits = cacheBits.getLong();
+            long bits = swap(cacheBits.getLong());
             int color = cacheColor.getInt();
             String fontName = cacheFont.getString();
             if (oldFontName != null && bits == oldBits && color == oldColor && fontName.equals(oldFontName))
@@ -794,7 +800,7 @@ public abstract class TextDescriptor implements Serializable
 		{
 			MutableTextDescriptor mtd = new MutableTextDescriptor(td);
 			mtd.setFace(0);
-			cacheBits.setLong(mtd.lowLevelGet());
+			cacheBits.setLong(swap(mtd.lowLevelGet()));
 			cacheColor.setInt(mtd.getColorIndex());
 			ActiveFont af = ActiveFont.findActiveFont(td.getFace());
 			cacheFont.setString(af != null ? af.getName() : "");

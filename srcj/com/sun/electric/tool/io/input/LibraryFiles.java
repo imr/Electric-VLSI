@@ -116,7 +116,7 @@ public abstract class LibraryFiles extends Input
         
         void makeVariable(ElectricObject eObj, LibraryFiles libFiles, String[] nameArray, int nameIndex)
         {
-            if (eObj instanceof Library && name.equals(Library.FONT_ASSOCIATIONS.toString()) && value instanceof String[])
+            if (eObj instanceof Library && name.equals(Library.FONT_ASSOCIATIONS.getName()) && value instanceof String[])
             {
                 libFiles.setFontNames((String[])value);
                 return;
