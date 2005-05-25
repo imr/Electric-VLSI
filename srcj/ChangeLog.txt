@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (05/24/05, GVG) Extra M5M8 contact in TSMC90 for CMP foundry
+
 IMP: (05/24/05, RK) NCC, Bug# 339: Add I/O 25, 33 transistors. Modify regressions to test. Wait to add Native 18, 25, 33 NMOS to regressions until Lexau adds these to Orange library.
 
 BUG: (05/19/05, SMR) New windows appear with their contents too small.
