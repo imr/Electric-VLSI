@@ -53,7 +53,9 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.MoCMOS;
@@ -89,12 +91,81 @@ import java.util.*;
  * Class to handle the commands in the debugging pulldown menus.
  */
 public class DebugMenus {
+	private static class FrankJob extends Job
+	{
+		protected FrankJob()
+		{
+			super("Make fake circuitry", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
+		}
 
-    protected static void addDebugMenus(MenuBar menuBar, MenuBar.Menu helpMenu) {
+		public boolean doIt()
+		{
+			// read library with test setup
+			Cell lay = WindowFrame.getCurrentCell();
+
+			// find all exports
+			List aList = new ArrayList();
+			List bList = new ArrayList();
+			for(Iterator it = lay.getPorts(); it.hasNext(); )
+			{
+				Export e = (Export)it.next();
+				if (e.getName().startsWith("a")) aList.add(e);
+				if (e.getName().startsWith("b")) bList.add(e);
+			}
+
+			for(Iterator it = aList.iterator(); it.hasNext(); )
+			{
+				Export e = (Export)it.next();
+				PortInst pi = e.getOriginalPort();
+				Poly poly = pi.getPoly();
+				double x = poly.getCenterX();
+				double y = poly.getCenterY();
+
+				// figure out the layer
+				ArcProto [] possibilities = pi.getPortProto().getBasePort().getConnections();
+				PrimitiveArc desired = (PrimitiveArc)possibilities[0];
+				ArcProto.Function fun = desired.getFunction();
+				if (!fun.isMetal()) System.out.println("HEY, not metal");
+				int level = fun.getLevel();
+				ArcProto.Function nextFun = ArcProto.Function.getMetal(level+1);
+				PrimitiveArc nextLevel = null;
+				for(Iterator tIt = desired.getTechnology().getArcs(); tIt.hasNext(); )
+				{
+					ArcProto other = (ArcProto)tIt.next();
+					if (other.getFunction() == nextFun) { nextLevel = (PrimitiveArc)other;   break; }
+				}
+				PrimitiveNode pinType = desired.findPinProto();
+
+				// find contact between desired and nextLevel
+				PrimitiveNode contact = null;
+				for(Iterator cIt = desired.getTechnology().getNodes(); cIt.hasNext(); )
+				{
+					PrimitiveNode np = (PrimitiveNode)cIt.next();
+					if (np.getFunction() != PrimitiveNode.Function.CONTACT) continue;
+					PrimitivePort pp = (PrimitivePort)np.getPort(0);
+					if (pp.connectsTo(desired) && pp.connectsTo(nextLevel)) { contact = np;   break; }
+				}
+
+				// make pin 10 lower
+				NodeInst pin = NodeInst.makeInstance(contact, new Point2D.Double(x, y-10), contact.getDefWidth(), contact.getDefHeight(), lay);
+
+				// run arc to it
+				ArcInst arc = ArcInst.makeInstance(desired, desired.getDefaultWidth(), pi, pin.getOnlyPortInst());
+
+				System.out.println("'A' export: " + e.getName()+" at ("+x+","+y+")");
+			}
+            return true;
+        }
+	}
+
+	protected static void addDebugMenus(MenuBar menuBar, MenuBar.Menu helpMenu) {
         MenuBar.MenuItem m;
 
 		/****************************** ADDITIONS TO THE HELP MENU ******************************/
 
+//		helpMenu.addMenuItem("Frank's code", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { new FrankJob(); } });
 		helpMenu.addSeparator();
 
 		helpMenu.addMenuItem("Make fake circuitry MoCMOS", null,
