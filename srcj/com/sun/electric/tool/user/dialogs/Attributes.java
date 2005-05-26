@@ -575,7 +575,10 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         }
 
         // set the text info panel
-        textPanel.setTextDescriptor(var.getKey().getName(), selectedObject);
+		if (var.isDisplay())
+			textPanel.setTextDescriptor(var.getKey().getName(), selectedObject);
+		else
+			textPanel.setTextDescriptor(null, null);
         attrPanel.setVariable(var.getKey().getName(), selectedObject);
 
         // disable create button because var name already exists, enable selected: buttons

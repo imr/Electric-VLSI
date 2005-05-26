@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+BUG: (05/26/05, DN) Can't change attribute text size (Bug #346)
+FIX: In TextAttributesPanel.java use td.seyDisplay instead of var.setDisplay.
+
 IMP: (05/26/05, SMR) Fixed multi-cut code.
 
 IMP: (05/25/05, RK) NCC: add regression tests for native thick oxide NMOS

@@ -162,7 +162,10 @@ public class TextAttributesPanel extends javax.swing.JPanel
         initialUnit = td.getUnit();
         units.setSelectedItem(td.getUnit());
         // set show style
-        initialDispPos = td.getDispPart();
+		if (td.isDisplay())
+			initialDispPos = td.getDispPart();
+		else
+			initialDispPos = displaynone;
         // show style is none if var non-null and isDisplay is false
         if (var != null) {
             // make sure "none" is a choice
@@ -263,16 +266,16 @@ public class TextAttributesPanel extends javax.swing.JPanel
 
             // change the code type
             if (var != null) {
-                var.setCode(code);
+                td.setCode(code);
             }
             // change the units
             td.setUnit(unit);
             // change the show style
             if (dispPos == displaynone) {
                 // var should not be null
-                if (var != null) var.setDisplay(false);
+                if (var != null) td.setDisplay(false);
             } else {
-                if (var != null) var.setDisplay(true);
+                if (var != null) td.setDisplay(true);
                 td.setDispPart((TextDescriptor.DispPos)dispPos);
             }
 			owner.setTextDescriptor(varName, td);
