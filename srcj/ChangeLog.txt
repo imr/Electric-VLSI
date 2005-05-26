@@ -4,9 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (05/26/05, SMR) Fixed multi-cut code.
+
 IMP: (05/25/05, RK) NCC: add regression tests for native thick oxide NMOS
 
-IMP: (05/25/05, SMR) Added Gilda's multi-cut code.
+IMP: (05/25/05, SMR) Added multi-cut code.
 
 IMP: (05/25/05, SMR) Schematic DRC now allows arcs to cross over icons.
 
