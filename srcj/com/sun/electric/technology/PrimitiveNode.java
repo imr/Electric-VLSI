@@ -968,8 +968,8 @@ public class PrimitiveNode implements NodeProto, Comparable
 	 *   <UL>
 	 *   <LI>cut size is [0] x [1]
 	 *   <LI>cut indented [2] x [3] from highlighting
-	 *   <LI>cuts spaced [4] apart for 2-neighboring CO
-	 *   <LI>cuts spaced [5] apart for 3-neighboring CO or more
+	 *   <LI>cuts spaced [4] apart for 1-dimensional contact
+	 *   <LI>cuts spaced [5] apart for 2-dimensional contact
 	 *   </UL>
 	 * <LI>for SERPTRANS:
 	 *   <UL>

@@ -28,7 +28,9 @@ package com.sun.electric.tool.user;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.sc.SilComp;
 
 import java.util.ArrayList;
@@ -920,6 +922,7 @@ public class CompileVHDL
 		new VKeyword("xor",				KEY_XOR)
 	};
 
+	private Cell vhdlCell;
 	private HashSet identTable;
 	private TokenList  tListStart;
 	private TokenList  tListEnd;
@@ -933,6 +936,7 @@ public class CompileVHDL
 	 */
 	public CompileVHDL(Cell vhdlCell)
 	{
+		this.vhdlCell = vhdlCell;
 		hasErrors = true;
 		String [] strings = vhdlCell.getTextViewContents();
 		if (strings == null)
@@ -960,11 +964,28 @@ public class CompileVHDL
 	 */
 	public boolean hasErrors() { return hasErrors; };
 
+	/**
+	 * Method to generate a QUISC (silicon compiler) netlist.
+	 * @return a List of strings with the netlist.
+	 */
 	public List getQUISCNetlist()
 	{
 		// now produce the netlist
 		if (hasErrors) return null;
 		List netlistStrings = genQuisc();
+		return netlistStrings;
+	}
+
+	/**
+	 * Method to generate an ALS (simulation) netlist.
+	 * @return a List of strings with the netlist.
+	 */
+	public List getALSNetlist()
+	{
+		// now produce the netlist
+		if (hasErrors) return null;
+		Library behaveLib = null;
+		List netlistStrings = genALS(behaveLib);
 		return netlistStrings;
 	}
 
@@ -5162,6 +5183,616 @@ public class CompileVHDL
 		return newSymList;
 	}
 
+	/******************************** THE ALS NETLIST GENERATOR ********************************/
+	static String [] power =
+	{
+		"gate power(p)",
+		"set p=H@3",
+		"t: delta=0"
+	};
+	static String [] ground =
+	{
+		"gate ground(g)",
+		"set g=L@3",
+		"t: delta=0"
+	};
+	static String [] pMOStran =
+	{
+		"function PMOStran(g, a1, a2)",
+		"i: g, a1, a2",
+		"o: a1, a2",
+		"t: delta=1e-8"
+	};
+	static String [] pMOStranWeak =
+	{
+		"function pMOStranWeak(g, a1, a2)",
+		"i: g, a1, a2",
+		"o: a1, a2",
+		"t: delta=1e-8"
+	};
+	static String [] nMOStran =
+	{
+		"function nMOStran(g, a1, a2)",
+		"i: g, a1, a2",
+		"o: a1, a2",
+		"t: delta=1e-8"
+	};
+	static String [] nMOStranWeak =
+	{
+		"function nMOStranWeak(g, a1, a2)",
+		"i: g, a1, a2",
+		"o: a1, a2",
+		"t: delta=1e-8"
+	};
+	static String [] inverter =
+	{
+		"gate inverter(a,z)",
+		"t: delta=1.33e-9",		/* T3=1.33 */
+		"i: a=L o: z=H",
+		"t: delta=1.07e-9",		/* T1=1.07 */
+		"i: a=H o: z=L",
+		"t: delta=0",
+		"i: a=X o: z=X",
+		"load: a=1.0"
+	};
+	static String [] buffer =
+	{
+		"gate buffer(in,out)",
+		"t: delta=0.56e-9",		/* T4*Cin=0.56 */
+		"i: in=H o: out=H",
+		"t: delta=0.41e-9",		/* T2*Cin=0.41 */
+		"i: in=L o: out=L",
+		"t: delta=0",
+		"i: in=X o: out=X"
+	};
+	static String [] xor2 =
+	{
+		/* input a,b cap = 0.xx pF, Tphl = T1 + T2*Cin, Tplh = T3 + T4*Cin */
+		"model xor2(a,b,z)",
+		"g1: xor2fun(a,b,out)",
+		"g2: xor2buf(out,z)",
+
+		"gate xor2fun(a,b,out)",
+		"t: delta=1.33e-9",		/* T3=1.33 */
+		"i: a=L b=H o: out=H",
+		"i: a=H b=L o: out=H",
+		"t: delta=1.07e-9",		/* T1=1.07 */
+		"i: a=L b=L o: out=L",
+		"i: a=H b=H o: out=L",
+		"t: delta=0",
+		"i:         o: out=X",
+		"load: a=1.0 b=1.0",
+
+		"gate xor2buf(in,out)",
+		"t: delta=0.56e-9",		/* T4*Cin=0.56 */
+		"i: in=H    o: out=H",
+		"t: delta=0.41e-9",		/* T2*Cin=0.41 */
+		"i: in=L    o: out=L",
+		"t: delta=0",
+		"i: in=X    o: out=X"
+	};
+	static String [] JKFF =
+	{
+		"model jkff(j, k, clk, pr, clr, q, qbar)",
+		"n: JKFFLOP(clk, j, k, q, qbar)",
+		"function JKFFLOP(clk, j, k, q, qbar)",
+		"i: clk, j, k",
+		"o: q, qbar",
+		"t: delta=1e-8"
+	};
+	static String [] DFF =
+	{
+		"model dsff(d, clk, pr, q)",
+		"n: DFFLOP(d, clk, q)",
+		"function DFFLOP(d, clk, q)",
+		"i: d, clk",
+		"o: q",
+		"t: delta=1e-8"
+	};
+
+	/**
+	 * Method to generate ALS target output for the created parse tree.
+	 * Assume parse tree is semantically correct.
+	 * @return a list of strings that has the netlist.
+	 */
+	private List genALS(Library behaveLib)
+	{
+		List netlist = new ArrayList();
+
+//		vhdl_ident_ground = vhdl_findidentkey(x_("ground"));
+//		vhdl_ident_power = vhdl_findidentkey(x_("power"));
+		SymbolTree symbol = searchSymbol("power", globalSymbols);
+
+		Cell basenp = vhdlCell;
+
+		// print file header
+		netlist.add("#*************************************************");
+		netlist.add("#  ALS Netlist file");
+		netlist.add("#");
+		if (User.isIncludeDateAndVersionInOutput())
+			netlist.add("#  File Creation:    " + TextUtils.formatDate(new Date()));
+		netlist.add("#-------------------------------------------------");
+		netlist.add("");
+
+		// determine top level cell
+		DBInterface topInterface = findTopInterface(theUnits);
+		if (topInterface == null)
+			System.out.println("ERROR - Cannot find interface to rename main."); else
+		{
+			// clear written flag on all entities
+			for (DBInterface interfacef = theUnits.interfaces; interfacef != null;
+				interfacef = interfacef.next) interfacef.flags &= ~ENTITY_WRITTEN;
+			genALSInterface(topInterface, basenp.getName(), netlist);
+		}
+
+		// print closing line of output file
+		netlist.add("#********* End of netlist *******************");
+
+		// scan unresolved references for reality inside of Electric
+		int total = 0;
+		for (UnResList uList = unResolvedList; uList != null; uList = uList.next)
+		{
+			total++;
+			String gate = uList.interfacef;
+
+			// first see if this is a reference to a cell in the current library
+			if (addNetlist(Library.getCurrent(), gate, netlist))
+			{
+				uList.numRef = 0;
+				total--;
+				continue;
+			}
+
+			// next see if this is a reference to the behavior library
+			if (behaveLib != null && behaveLib != Library.getCurrent())
+			{
+				if (addNetlist(behaveLib, gate, netlist))
+				{
+					uList.numRef = 0;
+					total--;
+					continue;
+				}
+			}
+
+			// now see if this is a reference to a function primitive
+			if (gate.equals("PMOStran"))
+			{
+				dumpFunction(gate, pMOStran, netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.equals("pMOStranWeak"))
+			{
+				dumpFunction(gate, pMOStranWeak, netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.equals("nMOStran"))
+			{
+				dumpFunction(gate, nMOStran, netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.equals("nMOStranWeak"))
+			{
+				dumpFunction(gate, nMOStranWeak, netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.equals("inverter"))
+			{
+				dumpFunction(gate, inverter, netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.equals("buffer"))
+			{
+				dumpFunction(gate, buffer, netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.startsWith("and") && TextUtils.isDigit(gate.charAt(3)))
+			{
+				genFunction("and", true, false, TextUtils.atoi(gate.substring(3)), netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.startsWith("nand") && TextUtils.isDigit(gate.charAt(4)))
+			{
+				genFunction("and", true, true, TextUtils.atoi(gate.substring(4)), netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.startsWith("or") && TextUtils.isDigit(gate.charAt(2)))
+			{
+				genFunction("or", false, false, TextUtils.atoi(gate.substring(2)), netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.startsWith("nor") && TextUtils.isDigit(gate.charAt(3)))
+			{
+				genFunction("or", false, true, TextUtils.atoi(gate.substring(3)), netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.equals("xor2"))
+			{
+				dumpFunction(gate, xor2, netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.equals("power"))
+			{
+				dumpFunction(gate, power, netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.equals("ground"))
+			{
+				dumpFunction(gate, ground, netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.equals("jkff"))
+			{
+				dumpFunction(gate, JKFF, netlist);
+				uList.numRef = 0;
+				total--;
+			} else if (gate.equals("dsff"))
+			{
+				dumpFunction(gate, DFF, netlist);
+				uList.numRef = 0;
+				total--;
+			}
+		}
+
+		// print unresolved reference list if not empty
+		if (total > 0)
+		{
+			System.out.println("*****  UNRESOLVED REFERENCES *****");
+			for (UnResList uList = unResolvedList; uList != null; uList = uList.next)
+				if (uList.numRef > 0)
+					System.out.println(uList.interfacef + ", " + uList.numRef + " time(s)");
+		}
+		return netlist;
+	}
+
+	/**
+	 * Method to search library "lib" for a netlist that matches "name".  If found,
+	 * add it to the current output netlist and return nonzero.  If not found, return false.
+	 */
+	private boolean addNetlist(Library lib, String name, List netlist)
+	{
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell np = (Cell)it.next();
+			if (np.getView() != View.NETLISTALS) continue;
+			StringBuffer infstr = new StringBuffer();
+			String cellName = np.getName();
+			for(int i=0; i<cellName.length(); i++)
+			{
+				char chr = cellName.charAt(i);
+				if (TextUtils.isLetterOrDigit(chr)) infstr.append(chr); else
+					infstr.append("_");
+			}
+			String key = infstr.toString();
+			if (!name.equalsIgnoreCase(key)) continue;
+
+			// add it to the netlist
+			Variable var = np.getVar(Cell.CELL_TEXT_KEY);
+			if (var == null) continue;
+			String [] strings = (String [])var.getObject();
+			netlist.add("");
+			for(int i=0; i<strings.length; i++) netlist.add(strings[i]);
+			return true;
+		}
+		return false;
+	}
+
+	/*
+	 * inputs cap = 0.xx pF, Tphl = T1 + T2*Cin, Tplh = T3 + T4*Cin
+	 */
+	private void genFunction(String name, boolean isand, boolean isneg, int inputs, List netlist)
+	{
+		// generate model name
+		String modelName = "";
+		if (isneg) modelName = "n";
+		if (isand) modelName += "and"; else modelName += "or";
+		modelName += inputs;
+
+		netlist.add("");
+		netlist.add("# Built-in model for " + modelName);
+
+		// write header line
+		StringBuffer infstr = new StringBuffer();
+		infstr.append("model " + modelName + "(");
+		for(int i=1; i<=inputs; i++)
+		{
+			if (i > 1) infstr.append(",");
+			infstr.append("a" + i);
+		}
+		infstr.append(",z)");
+		netlist.add(infstr.toString());
+
+		// write function line
+		infstr = new StringBuffer();
+		infstr.append("g1: " + modelName + "fun(");
+		for(int i=1; i<=inputs; i++)
+		{
+			if (i > 1) infstr.append(",");
+			infstr.append("a" + i);
+		}
+		if (!isneg) infstr.append(",out)"); else
+			infstr.append(",z)");
+		netlist.add(infstr.toString());
+
+		// write buffer line if not negated
+		if (!isneg)
+			netlist.add("g2: " + modelName + "buf(out,z)");
+
+		// write function header
+		infstr = new StringBuffer();
+		infstr.append("gate " + modelName + "fun(");
+		for(int i=1; i<=inputs; i++)
+		{
+			if (i > 1) infstr.append(",");
+			infstr.append("a" + i);
+		}
+		infstr.append(",z)");
+		netlist.add(infstr.toString());
+		netlist.add("t: delta=1.33e-9");		/* T3=1.33 */
+		for(int i=1; i<=inputs; i++)
+		{
+			infstr = new StringBuffer();
+			infstr.append("i: a" + i);
+			if (isand) infstr.append("=L o: z=H"); else
+				infstr.append("=H o: z=L");
+			netlist.add(infstr.toString());
+		}
+		netlist.add("t: delta=1.07e-9");		/* T1=1.07 */
+		infstr = new StringBuffer();
+		infstr.append("i:");
+		for(int i=1; i<=inputs; i++)
+		{
+			if (isand) infstr.append(" a" + i + "=H"); else
+				infstr.append(" a" + i + "=L");
+		}
+		if (isand) infstr.append(" o: z=L"); else
+			infstr.append(" o: z=H");
+		netlist.add(infstr.toString());
+		netlist.add("t: delta=0");
+		netlist.add("i: o: z=X");
+
+		infstr = new StringBuffer();
+		infstr.append("load:");
+		for(int i=1; i<=inputs; i++)
+		{
+			infstr.append(" a" + i + "=1.0");
+		}
+		netlist.add(infstr.toString());
+
+		// write buffer gate if not negated
+		if (!isneg)
+		{
+			netlist.add("gate " + modelName + "buf(in,out)");
+			netlist.add("t: delta=0.56e-9");		/* T4*Cin=0.56 */
+			netlist.add("i: in=H    o: out=L");
+			netlist.add("t: delta=0.41e-9");		/* T2*Cin=0.41 */
+			netlist.add("i: in=L    o: out=H");
+			netlist.add("t: delta=0");
+			netlist.add("i: in=X    o: out=X");
+		}
+	}
+
+	private void dumpFunction(String name, String [] model, List netlist)
+	{
+		netlist.add("");
+		netlist.add("# Built-in model for " + name);
+		for(int i=0; i < model.length; i++) netlist.add(model[i]);
+	}
+
+	/**
+	 * Method to recursively generate the ALS description for the specified model.
+	 * Works by first generating the lowest interface instantiation and working back to the top (i.e. bottom up).
+	 * @param interfacef pointer to interface.
+	 * @param netlist the List of strings to create.
+	 */
+	private void genALSInterface(DBInterface interfacef, String name, List netlist)
+	{
+		// go through interface's architectural body and call generate interfaces
+		// for any interface called by an instance which has not been already
+		// generated
+
+		// check written flag
+		if ((interfacef.flags & ENTITY_WRITTEN) != 0) return;
+
+		// set written flag
+		interfacef.flags |= ENTITY_WRITTEN;
+
+		// check all instants of corresponding architectural body
+		// and write if non-primitive instances
+		if (interfacef.bodies != null && interfacef.bodies.statements != null)
+		{
+			for (DBInstance inst = interfacef.bodies.statements.instances; inst != null; inst = inst.next)
+			{
+				SymbolTree symbol = searchSymbol(inst.compo.name, globalSymbols);
+				if (symbol == null)
+				{
+					if (EXTERNALENTITIES)
+					{
+						if (WARNFLAG)
+							System.out.println("WARNING - interface " + inst.compo.name + " not found, assumed external.");
+						addToUnresolved(inst.compo.name);
+					} else
+					{
+						System.out.println("ERROR - interface " + inst.compo.name + " not found.");
+					}
+					continue;
+				} else if (symbol.pointer == null)
+				{
+					// Should have gate entity
+					// should be automatically added at end of .net file
+				} else
+				{
+					genALSInterface((DBInterface)symbol.pointer, inst.compo.name, netlist);
+				}
+			}
+		}
+
+		// write this interface
+		int generic = 0;
+		boolean power_flag = false, ground_flag = false;
+		StringBuffer infstr = new StringBuffer("model ");
+		for(int i=0; i<name.length(); i++)
+		{
+			char chr = name.charAt(i);
+			if (TextUtils.isLetterOrDigit(chr)) infstr.append(chr); else
+				infstr.append('_');
+		}
+		infstr.append("(");
+
+		// write port list of interface
+		boolean first = true;
+		for (DBPortList port = interfacef.ports; port != null; port = port.next)
+		{
+			if (port.type == null || port.type.type == DBTYPE_SINGLE)
+			{
+				if (!first) infstr.append(", ");
+				infstr.append(port.name);
+				first = false;
+			} else
+			{
+				DBIndexRange iRange = (DBIndexRange)port.type.pointer;
+				DBDiscreteRange dRange = iRange.dRange;
+				if (dRange.start > dRange.end)
+				{
+					for (int i = dRange.start; i >= dRange.end; i--)
+					{
+						if (!first) infstr.append(", ");
+						infstr.append(port.name + "[" + i + "]");
+						first = false;
+					}
+				} else
+				{
+					for (int i = dRange.start; i <= dRange.end; i++)
+					{
+						if (!first) infstr.append(", ");
+						infstr.append(port.name + "[" + i + "]");
+						first = false;
+					}
+				}
+			}
+		}
+		infstr.append(")");
+		netlist.add(infstr.toString());
+
+		// write all instances
+		if (interfacef.bodies != null && interfacef.bodies.statements != null)
+		{
+			for (DBInstance inst = interfacef.bodies.statements.instances; inst != null; inst = inst.next)
+			{
+				infstr = new StringBuffer();
+				infstr.append(inst.name);
+				infstr.append(": ");
+				infstr.append(inst.compo.name);
+				infstr.append("(");
+
+				// print instance port list
+				first = true;
+				for (DBAPortList aPort = inst.ports; aPort != null; aPort = aPort.next)
+				{
+					if (aPort.name != null)
+					{
+						if (aPort.name.type == DBNAME_CONCATENATED)
+						{
+							// concatenated name
+							for (DBNameList cat = (DBNameList)aPort.name.pointer; cat != null; cat = cat.next)
+							{
+								String ident = cat.name.name;
+//								if (ident == vhdl_ident_power) power_flag = true; else
+//									if (ident == vhdl_ident_ground) ground_flag = true;
+								first = genAPort(infstr, first, cat.name);
+							}
+						} else
+						{
+							String ident = aPort.name.name;
+//							if (ident == vhdl_ident_power) power_flag = true; else
+//								if (ident == vhdl_ident_ground) ground_flag = true;
+							first = genAPort(infstr, first, aPort.name);
+						}
+					} else
+					{
+						// check if formal port is of array type
+						if (aPort.port.type != null && aPort.port.type.type == DBTYPE_ARRAY)
+						{
+							DBIndexRange iRange = (DBIndexRange)aPort.port.type.pointer;
+							DBDiscreteRange dRange = iRange.dRange;
+							if (dRange.start > dRange.end)
+							{
+								for (int i = dRange.start; i >= dRange.end; i--)
+								{
+									if (!first) infstr.append(", ");
+									infstr.append("n" + (generic++));
+									first = false;
+								}
+							} else
+							{
+								for (int i = dRange.start; i <= dRange.end; i++)
+								{
+									if (!first) infstr.append(", ");
+									infstr.append("n" + (generic++));
+									first = false;
+								}
+							}
+						} else
+						{
+							if (!first) infstr.append(", ");
+							infstr.append("n" + (generic++));
+							first = false;
+						}
+					}
+				}
+				infstr.append(")");
+				netlist.add(infstr.toString());
+			}
+		}
+
+		// check for power and ground flags
+		if (power_flag) netlist.add("set power = H@3");
+			else if (ground_flag) netlist.add("set ground = L@3");
+		netlist.add("");
+	}
+
+	/**
+	 * Method to add the actual port for a single name to the infinite string.
+	 */
+	private boolean genAPort(StringBuffer infstr, boolean first, DBName name)
+	{
+		if (name.type == DBNAME_INDEXED)
+		{
+			if (!first) infstr.append(", ");
+			infstr.append(name.name + ((DBExprList)(name.pointer)).value);
+			first = false;
+		} else
+		{
+			if (name.dbType != null && name.dbType.type == DBTYPE_ARRAY)
+			{
+				DBIndexRange iRange = (DBIndexRange)name.dbType.pointer;
+				DBDiscreteRange dRange = iRange.dRange;
+				if (dRange.start > dRange.end)
+				{
+					for (int i = dRange.start; i >= dRange.end; i--)
+					{
+						if (!first) infstr.append(", ");
+						infstr.append(name.name + "[" + i + "]");
+						first = false;
+					}
+				} else
+				{
+					for (int i = dRange.start; i <= dRange.end; i++)
+					{
+						if (!first) infstr.append(", ");
+						infstr.append(name.name + "[" + i + "]");
+						first = false;
+					}
+				}
+			} else
+			{
+				if (!first) infstr.append(", ");
+				infstr.append(name.name);
+				first = false;
+			}
+		}
+		return first;
+	}
+
 	/******************************** THE QUISC NETLIST GENERATOR ********************************/
 
 	private static final int QNODE_SNAME	= 0;
@@ -5346,19 +5977,7 @@ public class CompileVHDL
 							System.out.println("WARNING - interface " + inst.compo.name + " not found, assumed external.");
 
 						// add to unresolved list
-						UnResList uList;
-						for (uList = unResolvedList; uList != null; uList = uList.next)
-						{
-							if (uList.interfacef == inst.compo.name) break;
-						}
-						if (uList != null) uList.numRef++; else
-						{
-							uList = new UnResList();
-							uList.interfacef = inst.compo.name;
-							uList.numRef = 1;
-							uList.next = unResolvedList;
-							unResolvedList = uList;
-						}
+						addToUnresolved(inst.compo.name);
 					} else
 						System.out.println("ERROR - interface " + inst.compo.name + "not found.");
 					continue;
@@ -5853,5 +6472,19 @@ public class CompileVHDL
 			}
 		}
 		System.out.println("WARNING node " + ident + " not found");
+	}
+
+	private void addToUnresolved(String name)
+	{
+		for (UnResList uList = unResolvedList; uList != null; uList = uList.next)
+		{
+			if (uList.interfacef.equals(name)) { uList.numRef++;   return; }
+		}
+
+		UnResList uList = new UnResList();
+		uList.interfacef = name;
+		uList.numRef = 1;
+		uList.next = unResolvedList;
+		unResolvedList = uList;
 	}
 }

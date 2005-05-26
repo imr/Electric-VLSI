@@ -124,7 +124,7 @@ public class ToolMenu {
 
 		/****************************** THE TOOL MENU ******************************/
 
-		// mnemonic keys available: AB   F H JK    PQ      XYZ
+		// mnemonic keys available:  B   F H JK    PQ      XYZ
 		MenuBar.Menu toolMenu = MenuBar.makeMenu("_Tool");
 		menuBar.add(toolMenu);
 
@@ -176,6 +176,12 @@ public class ToolMenu {
 			irsimSimulationSubMenu.addMenuItem("_Restore Vectors from Disk...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("restore"); } });
         }
+
+//		// mnemonic keys available: ABCDEFGH JKLMNOPQRSTUVWXYZ
+//		MenuBar.Menu alsSimulationSubMenu = MenuBar.makeMenu("Simulation (_ALS)");
+//		toolMenu.add(alsSimulationSubMenu);
+//		alsSimulationSubMenu.addMenuItem("Si_mulate Current Cell", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(false); } });
 
 		//------------------- Simulation (SPICE)
 
