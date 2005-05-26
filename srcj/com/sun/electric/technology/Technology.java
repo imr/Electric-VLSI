@@ -1962,29 +1962,13 @@ public class Technology implements Comparable
 			int oneDcutsY = (int)((cutAreaHeight-cutIndentY*2+cutSep1D) / (cutSizeY+cutSep1D));
 
 			cutSep = cutSep1D;
-
-			// *************** THE NEW WAY ***************
+			if (cutSep1D != cutSep2D && (oneDcutsX > 1 && oneDcutsY > 1))
+			{
+				// 2D cutspace active
+				cutSep = cutSep2D;
+			}
 			cutsX = (int)((cutAreaWidth-cutIndentX*2+cutSep) / (cutSizeX+cutSep));
 			cutsY = (int)((cutAreaHeight-cutIndentY*2+cutSep) / (cutSizeY+cutSep));
-			if (cutSep1D != cutSep2D && ((oneDcutsY > 1) || (oneDcutsX > 1)))
-			{
-				// Detect 2D cuts
-				// 2D cutspace active
-				int twoDcutsX = (int)((cutAreaWidth-cutIndentX*2+cutSep2D) / (cutSizeX+cutSep2D));
-				int twoDcutsY = (int)((cutAreaHeight-cutIndentY*2+cutSep2D) / (cutSizeY+cutSep2D));
-				
-				// only if 2D configuration provides more cuts
-				if (twoDcutsX > 1 || twoDcutsY > 1)
-				{
-					cutSep = cutSep2D;
-					cutsX = (int)((cutAreaWidth-cutIndentX*2+cutSep) / (cutSizeX+cutSep));
-					cutsY = (int)((cutAreaHeight-cutIndentY*2+cutSep) / (cutSizeY+cutSep));
-				} else
-				{
-					if (twoDcutsY > twoDcutsX) cutsX = 1; else
-						cutsY = 1;
-				}
-			}
 			if (cutsX <= 0) cutsX = 1;
 			if (cutsY <= 0) cutsY = 1;
 			cutsReasonable = cutsTotal = cutsX * cutsY;
@@ -1992,11 +1976,9 @@ public class Technology implements Comparable
 			{
 				// prepare for the multiple contact cut locations
 				cutBaseX = (cutAreaWidth-cutIndentX*2 - cutSizeX*cutsX -
-				cutSep*(cutsX-1)) / 2 + (cutLX + cutIndentX + cutSizeX/2) +
-				ni.getAnchorCenterX() - ni.getXSize() / 2;
+					cutSep*(cutsX-1)) / 2 + (cutLX + cutIndentX + cutSizeX/2) + ni.getAnchorCenterX() - ni.getXSize() / 2;
 				cutBaseY = (cutAreaHeight-cutIndentY*2 - cutSizeY*cutsY -
-				cutSep*(cutsY-1)) / 2 + (cutLY + cutIndentY + cutSizeY/2) +
-				ni.getAnchorCenterY() - ni.getYSize() / 2;
+					cutSep*(cutsY-1)) / 2 + (cutLY + cutIndentY + cutSizeY/2) + ni.getAnchorCenterY() - ni.getYSize() / 2;
 				if (cutsX > 2 && cutsY > 2)
 				{
 					cutsReasonable = cutsX * 2 + (cutsY-2) * 2;
@@ -2005,33 +1987,6 @@ public class Technology implements Comparable
 					cutRightEdge = cutsX*2 + (cutsY-2)*2;
 				}
 			}
-
-			// *************** THE OLD WAY ***************
-//			if (cutSep1D != cutSep2D && ((oneDcutsX > 2 && oneDcutsY > 1) || (oneDcutsY > 2 && oneDcutsX > 1)))
-//			{
-//				// 2D cutspace active
-//				cutSep = cutSep2D;
-//			}
-//			cutsX = (int)((cutAreaWidth-cutIndentX*2+cutSep) / (cutSizeX+cutSep));
-//			cutsY = (int)((cutAreaHeight-cutIndentY*2+cutSep) / (cutSizeY+cutSep));
-//			if (cutsX <= 0) cutsX = 1;
-//			if (cutsY <= 0) cutsY = 1;
-//			cutsReasonable = cutsTotal = cutsX * cutsY;
-//			if (cutsTotal != 1)
-//			{
-//				// prepare for the multiple contact cut locations
-//				cutBaseX = (cutAreaWidth-cutIndentX*2 - cutSizeX*cutsX -
-//					cutSep*(cutsX-1)) / 2 + (cutLX + cutIndentX + cutSizeX/2) + ni.getAnchorCenterX() - ni.getXSize() / 2;
-//				cutBaseY = (cutAreaHeight-cutIndentY*2 - cutSizeY*cutsY -
-//					cutSep*(cutsY-1)) / 2 + (cutLY + cutIndentY + cutSizeY/2) + ni.getAnchorCenterY() - ni.getYSize() / 2;
-//				if (cutsX > 2 && cutsY > 2)
-//				{
-//					cutsReasonable = cutsX * 2 + (cutsY-2) * 2;
-//					cutTopEdge = cutsX*2;
-//					cutLeftEdge = cutsX*2 + cutsY-2;
-//					cutRightEdge = cutsX*2 + (cutsY-2)*2;
-//				}
-//			}
 		}
 
 		/**
