@@ -57,6 +57,7 @@ public class GeneralTab extends PreferencePanel
 		generalShowCursorCoordinates.setSelected(User.isShowHierarchicalCursorCoordinates());
 		generalIncludeDateAndVersion.setSelected(User.isIncludeDateAndVersionInOutput());
 		sideBarOnRight.setSelected(User.isSideBarOnRight());
+		generalPromptForIndex.setSelected(User.isPromptForIndexWhenDescending());
 
         for (Iterator it = User.getInitialWorkingDirectorySettings(); it.hasNext(); )
             workingDirComboBox.addItem(it.next());
@@ -103,7 +104,11 @@ public class GeneralTab extends PreferencePanel
 		if (currBoolean != User.isSideBarOnRight())
 			User.setSideBarOnRight(currBoolean);
 
-        String currentInitialWorkingDirSetting = (String)workingDirComboBox.getSelectedItem();
+		currBoolean = generalPromptForIndex.isSelected();
+		if (currBoolean != User.isPromptForIndexWhenDescending())
+			User.setPromptForIndexWhenDescending(currBoolean);
+
+		String currentInitialWorkingDirSetting = (String)workingDirComboBox.getSelectedItem();
         if (!currentInitialWorkingDirSetting.equals(User.getInitialWorkingDirectorySetting()))
             User.setInitialWorkingDirectorySetting(currentInitialWorkingDirSetting);
 
@@ -136,26 +141,30 @@ public class GeneralTab extends PreferencePanel
         java.awt.GridBagConstraints gridBagConstraints;
 
         general = new javax.swing.JPanel();
-        generalBeepAfterLongJobs = new javax.swing.JCheckBox();
-        generalIncludeDateAndVersion = new javax.swing.JCheckBox();
-        generalShowFileDialog = new javax.swing.JCheckBox();
-        jLabel46 = new javax.swing.JLabel();
-        generalErrorLimit = new javax.swing.JTextField();
-        jLabel53 = new javax.swing.JLabel();
-        jPanel11 = new javax.swing.JPanel();
+        memory = new javax.swing.JPanel();
         jLabel60 = new javax.swing.JLabel();
         generalMaxMem = new javax.swing.JTextField();
         jLabel61 = new javax.swing.JLabel();
         generalMemoryUsage = new javax.swing.JLabel();
         jLabel62 = new javax.swing.JLabel();
+        display = new javax.swing.JPanel();
         generalShowCursorCoordinates = new javax.swing.JCheckBox();
-        generalPanningDistance = new javax.swing.JComboBox();
+        sideBarOnRight = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        maxUndoHistory = new javax.swing.JTextField();
+        generalPanningDistance = new javax.swing.JComboBox();
+        generalPromptForIndex = new javax.swing.JCheckBox();
+        IO = new javax.swing.JPanel();
+        generalIncludeDateAndVersion = new javax.swing.JCheckBox();
+        generalShowFileDialog = new javax.swing.JCheckBox();
         jLabel3 = new javax.swing.JLabel();
         workingDirComboBox = new javax.swing.JComboBox();
-        sideBarOnRight = new javax.swing.JCheckBox();
+        jobs = new javax.swing.JPanel();
+        generalBeepAfterLongJobs = new javax.swing.JCheckBox();
+        jLabel46 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        generalErrorLimit = new javax.swing.JTextField();
+        maxUndoHistory = new javax.swing.JTextField();
+        jLabel53 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -171,67 +180,16 @@ public class GeneralTab extends PreferencePanel
 
         general.setLayout(new java.awt.GridBagLayout());
 
-        generalBeepAfterLongJobs.setText("Beep after long jobs");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(generalBeepAfterLongJobs, gridBagConstraints);
+        memory.setLayout(new java.awt.GridBagLayout());
 
-        generalIncludeDateAndVersion.setText("Include date and version in output files");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(generalIncludeDateAndVersion, gridBagConstraints);
-
-        generalShowFileDialog.setText("Show file-selection dialog before writing netlists");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(generalShowFileDialog, gridBagConstraints);
-
-        jLabel46.setText("Maximum errors to report:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(jLabel46, gridBagConstraints);
-
-        generalErrorLimit.setColumns(6);
-        generalErrorLimit.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(generalErrorLimit, gridBagConstraints);
-
-        jLabel53.setText("(0 for infinite)");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        general.add(jLabel53, gridBagConstraints);
-
-        jPanel11.setLayout(new java.awt.GridBagLayout());
-
-        jPanel11.setBorder(new javax.swing.border.TitledBorder("Memory"));
+        memory.setBorder(new javax.swing.border.TitledBorder("Memory"));
         jLabel60.setText("Maximum memory:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel11.add(jLabel60, gridBagConstraints);
+        memory.add(jLabel60, gridBagConstraints);
 
         generalMaxMem.setColumns(6);
         generalMaxMem.setText(" ");
@@ -240,14 +198,14 @@ public class GeneralTab extends PreferencePanel
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel11.add(generalMaxMem, gridBagConstraints);
+        memory.add(generalMaxMem, gridBagConstraints);
 
         jLabel61.setText("megabytes");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel11.add(jLabel61, gridBagConstraints);
+        memory.add(jLabel61, gridBagConstraints);
 
         generalMemoryUsage.setText("Current memory usage:");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -256,7 +214,7 @@ public class GeneralTab extends PreferencePanel
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel11.add(generalMemoryUsage, gridBagConstraints);
+        memory.add(generalMemoryUsage, gridBagConstraints);
 
         jLabel62.setText("Changes to memory take effect when Electric is next run");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -265,80 +223,163 @@ public class GeneralTab extends PreferencePanel
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel11.add(jLabel62, gridBagConstraints);
+        memory.add(jLabel62, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        general.add(jPanel11, gridBagConstraints);
+        general.add(memory, gridBagConstraints);
 
+        display.setLayout(new java.awt.GridBagLayout());
+
+        display.setBorder(new javax.swing.border.TitledBorder("Display"));
         generalShowCursorCoordinates.setText("Show hierarchical cursor coordinates in status bar");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(generalShowCursorCoordinates, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(generalPanningDistance, gridBagConstraints);
-
-        jLabel1.setText("Panning distance:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(jLabel1, gridBagConstraints);
-
-        jLabel2.setText("Maximum undo history");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(jLabel2, gridBagConstraints);
-
-        maxUndoHistory.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(maxUndoHistory, gridBagConstraints);
-
-        jLabel3.setText("Working directory:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(jLabel3, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(workingDirComboBox, gridBagConstraints);
+        display.add(generalShowCursorCoordinates, gridBagConstraints);
 
         sideBarOnRight.setText("Side Bar defaults to the right side");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        display.add(sideBarOnRight, gridBagConstraints);
+
+        jLabel1.setText("Panning distance:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        display.add(jLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        display.add(generalPanningDistance, gridBagConstraints);
+
+        generalPromptForIndex.setText("Always prompt for index when descending into array nodes");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        display.add(generalPromptForIndex, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        general.add(display, gridBagConstraints);
+
+        IO.setLayout(new java.awt.GridBagLayout());
+
+        IO.setBorder(new javax.swing.border.TitledBorder("I/O"));
+        generalIncludeDateAndVersion.setText("Include date and version in output files");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        IO.add(generalIncludeDateAndVersion, gridBagConstraints);
+
+        generalShowFileDialog.setText("Show file-selection dialog before writing netlists");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        IO.add(generalShowFileDialog, gridBagConstraints);
+
+        jLabel3.setText("Working directory:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        IO.add(jLabel3, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        IO.add(workingDirComboBox, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        general.add(IO, gridBagConstraints);
+
+        jobs.setLayout(new java.awt.GridBagLayout());
+
+        jobs.setBorder(new javax.swing.border.TitledBorder("Jobs"));
+        generalBeepAfterLongJobs.setText("Beep after long jobs");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        general.add(sideBarOnRight, gridBagConstraints);
+        jobs.add(generalBeepAfterLongJobs, gridBagConstraints);
+
+        jLabel46.setText("Maximum errors to report:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jobs.add(jLabel46, gridBagConstraints);
+
+        jLabel2.setText("Maximum undo history");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jobs.add(jLabel2, gridBagConstraints);
+
+        generalErrorLimit.setColumns(6);
+        generalErrorLimit.setText(" ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jobs.add(generalErrorLimit, gridBagConstraints);
+
+        maxUndoHistory.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jobs.add(maxUndoHistory, gridBagConstraints);
+
+        jLabel53.setText("(0 for infinite)");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        jobs.add(jLabel53, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        general.add(jobs, gridBagConstraints);
 
         getContentPane().add(general, new java.awt.GridBagConstraints());
 
@@ -353,6 +394,8 @@ public class GeneralTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel IO;
+    private javax.swing.JPanel display;
     private javax.swing.JPanel general;
     private javax.swing.JCheckBox generalBeepAfterLongJobs;
     private javax.swing.JTextField generalErrorLimit;
@@ -360,6 +403,7 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JTextField generalMaxMem;
     private javax.swing.JLabel generalMemoryUsage;
     private javax.swing.JComboBox generalPanningDistance;
+    private javax.swing.JCheckBox generalPromptForIndex;
     private javax.swing.JCheckBox generalShowCursorCoordinates;
     private javax.swing.JCheckBox generalShowFileDialog;
     private javax.swing.JLabel jLabel1;
@@ -370,8 +414,9 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JLabel jLabel60;
     private javax.swing.JLabel jLabel61;
     private javax.swing.JLabel jLabel62;
-    private javax.swing.JPanel jPanel11;
+    private javax.swing.JPanel jobs;
     private javax.swing.JTextField maxUndoHistory;
+    private javax.swing.JPanel memory;
     private javax.swing.JCheckBox sideBarOnRight;
     private javax.swing.JComboBox workingDirComboBox;
     // End of variables declaration//GEN-END:variables

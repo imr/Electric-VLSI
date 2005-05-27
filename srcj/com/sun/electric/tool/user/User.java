@@ -1245,6 +1245,25 @@ public class User extends Listener
 	 */
 	public static void setWorkingDirectory(String dir) { cacheWorkingDirectory.setString(dir); }
 
+	private static Pref cachePromptForIndexWhenDescending = Pref.makeBooleanPref("PromptForIndexWhenDescending", tool.prefs, false);
+	/**
+	 * Method to tell whether to prompt the user for an array index when descending into arrayed nodes.
+	 * When descending into arrayed nodes, the context doesn't know which index is being traversed.
+	 * If a simulation window is present, the user is prompted, because the specific index is important.
+	 * When Logical Effort information is available, prompting is also necessary.
+	 * The default is "false" (do not prompt if other indicators are not present).
+	 * @return true to prompt the user for an array index when descending into arrayed nodes.
+	 */
+	public static boolean isPromptForIndexWhenDescending() { return cachePromptForIndexWhenDescending.getBoolean(); }
+	/**
+	 * Method to set whether to prompt the user for an array index when descending into arrayed nodes.
+	 * When descending into arrayed nodes, the context doesn't know which index is being traversed.
+	 * If a simulation window is present, the user is prompted, because the specific index is important.
+	 * When Logical Effort information is available, prompting is also necessary.
+	 * @param on true to prompt the user for an array index when descending into arrayed nodes.
+	 */
+	public static void setPromptForIndexWhenDescending(boolean on) { cachePromptForIndexWhenDescending.setBoolean(on); }
+
 	private static Pref cacheBeepAfterLongJobs = Pref.makeBooleanPref("BeepAfterLongJobs", tool.prefs, false);
 	/**
 	 * Method to tell whether to beep after long jobs.

@@ -24,24 +24,22 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.CircuitChanges;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Class to handle the "Artwork Look" dialog.
@@ -52,48 +50,46 @@ public class ArtworkLook extends EDialog
 	{
 		// see if there is a piece of artwork selected]
         EditWindow wnd = EditWindow.getCurrent();
-		Highlight h = wnd.getHighlighter().getOneHighlight();
-		if (h == null) return;
-		if (h.getType() != Highlight.Type.EOBJ)
+		List objects = wnd.getHighlighter().getHighlightedEObjs(true, true);
+		List artworkObjects = new ArrayList();
+		for(Iterator it = objects.iterator(); it.hasNext(); )
 		{
-			System.out.println("Must select a single artwork node or arc");
-			return;
+			ElectricObject eObj = (ElectricObject)it.next();
+			if (eObj instanceof PortInst)
+			{
+				eObj = ((PortInst)eObj).getNodeInst();
+			}
+			if (eObj instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)eObj;
+				if (ni.getProto() instanceof PrimitiveNode &&
+					ni.getProto().getTechnology() == Artwork.tech)
+						artworkObjects.add(ni);
+			} else if (eObj instanceof ArcInst)
+			{
+				ArcInst ai = (ArcInst)eObj;
+				if (ai.getProto().getTechnology() == Artwork.tech) artworkObjects.add(ai);
+			}
 		}
-		ElectricObject eObj = h.getElectricObject();
-		if (eObj instanceof PortInst)
-		{
-			eObj = ((PortInst)eObj).getNodeInst();
-		}
-		boolean foundArt = false;
-		if (eObj instanceof NodeInst)
-		{
-			NodeInst ni = (NodeInst)eObj;
-			if (ni.getProto() instanceof PrimitiveNode &&
-				ni.getProto().getTechnology() == Artwork.tech)
-					foundArt = true;
-		} else if (eObj instanceof ArcInst)
-		{
-			ArcInst ai = (ArcInst)eObj;
-			if (ai.getProto().getTechnology() == Artwork.tech) foundArt = true;
-		}
-		if (!foundArt)
+		if (artworkObjects.size() == 0)
 		{
 			System.out.println("Selected object must be from the Artwork technology");
 			return;
 		}
-		ArtworkLook dialog = new ArtworkLook(TopLevel.getCurrentJFrame(), true, eObj);
-		dialog.setVisible(true);
+
+		// show the dialog
+		ArtworkLook dialog = new ArtworkLook(TopLevel.getCurrentJFrame(), artworkObjects);
 	}
 
-	ColorPatternPanel.Info li;
-	ElectricObject eObj;
+	private ColorPatternPanel.Info li;
+	private List artworkObjects;
 
 	/** Creates new form ArtworkLook */
-	public ArtworkLook(java.awt.Frame parent, boolean modal, ElectricObject eObj)
+	public ArtworkLook(Frame parent, List artworkObjects)
 	{
-		super(parent, modal);
+		super(parent, true);
 		initComponents();
-		this.eObj = eObj;
+		this.artworkObjects = artworkObjects;
         getRootPane().setDefaultButton(ok);
 
 		// make the color/pattern panel
@@ -106,7 +102,7 @@ public class ArtworkLook extends EDialog
 		getContentPane().add(colorPatternPanel, gbc);
 		pack();
 
-		EGraphics graphics = Artwork.makeGraphics(eObj);
+		EGraphics graphics = Artwork.makeGraphics((ElectricObject)artworkObjects.get(0));
 		if (graphics == null)
 		{
 			graphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 0.8,true,
@@ -116,6 +112,7 @@ public class ArtworkLook extends EDialog
 		li = new ColorPatternPanel.Info(graphics);
 		colorPatternPanel.setColorPattern(li);
 		finishInitialization();
+		setVisible(true);
 	}
 
 	protected void escapePressed() { cancel(null); }
@@ -124,7 +121,7 @@ public class ArtworkLook extends EDialog
 	{
 		if (li.updateGraphics())
 		{
-			ApplyChanges job = new ApplyChanges(this);
+			new ApplyChanges(this);
 		}
 	}
 
@@ -133,7 +130,7 @@ public class ArtworkLook extends EDialog
 	 */
 	private static class ApplyChanges extends Job
 	{
-		ArtworkLook dialog;
+		private ArtworkLook dialog;
 
 		protected ApplyChanges(ArtworkLook dialog)
 		{
@@ -144,7 +141,11 @@ public class ArtworkLook extends EDialog
 
 		public boolean doIt()
 		{
-			Artwork.setGraphics(dialog.li.graphics, dialog.eObj);
+			for(Iterator it = dialog.artworkObjects.iterator(); it.hasNext(); )
+			{
+				ElectricObject eObj = (ElectricObject)it.next();
+				Artwork.setGraphics(dialog.li.graphics, eObj);
+			}
 			return true;
 		}
 	}

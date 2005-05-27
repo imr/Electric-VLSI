@@ -36,6 +36,7 @@ public class FileType {
 	/** all types */                        private static final ArrayList allTypes = new ArrayList();
 
 	/** Describes any file.*/				public static final FileType ANY          = makeFileType("All", new String[] {}, "All Files");
+	/** Describes ArcSim decks.*/			public static final FileType ARCSIM       = makeFileType("ArcSim", new String[] {"xml"}, "ArcSim Deck (xml)");
 	/** Describes CDL decks.*/				public static final FileType CDL          = makeFileType("CDL", new String[] {"cdl"}, "CDL Deck (cdl)");
 	/** Describes CIF files. */				public static final FileType CIF          = makeFileType("CIF", new String[] {"cif"}, "CIF File (cif)");
 	/** Describes COSMOS output. */			public static final FileType COSMOS       = makeFileType("COSMOS", new String[] {"sim"}, "COSMOS File (sim)");
@@ -72,7 +73,7 @@ public class FileType {
 	/** Describes PostScript files. */		public static final FileType PNG          = makeFileType("PNG", new String[] {"png"}, "PNG (png)");
 	/** Describes Preferences files. */		public static final FileType PREFS        = makeFileType("Preferences", new String[] {"xml"}, "Preferences (xml)");
 	/** Describes Project files. */			public static final FileType PROJECT      = makeFileType("Project Management", new String[] {"proj"}, "Project Management (proj)");
-	/** Describes PSpice standard output.*/	public static final FileType PSPICEOUT    = makeFileType("PSpiceOutput", new String[] {"spo"}, "PSpice/Spice3 Output File (spo)");
+	/** Describes PSpice standard output.*/	public static final FileType PSPICEOUT    = makeFileType("PSpiceOutput", new String[] {"txt"}, "PSpice/Spice3 Text Output File (txt)");
 	/** Describes Raw Spice output. */		public static final FileType RAWSPICEOUT  = makeFileType("RawSpiceOutput", new String[] {"raw"}, "Spice Raw Output File (raw)");
 	/** Describes Raw SmartSpice output. */	public static final FileType RAWSSPICEOUT = makeFileType("RawSmartSpiceOutput", new String[] {"raw"}, "SmartSPICE Raw Output File (raw)");
 	/** Describes Readable Dump files. */	public static final FileType READABLEDUMP = makeFileType("ReadableDump", new String[] {"txt"}, "Readable Dump Library File (txt)");

@@ -2741,14 +2741,19 @@ public class EditWindow extends JPanel
      * @return true if we need to ask the user which index to descent into,
      * false otherwise.
      */
-    public static boolean isArrayedContextMatter(Nodable no) {
-        // matters if there is a waveform window open
+    public static boolean isArrayedContextMatter(Nodable no)
+	{
+		// matters if the user requested it
+		if (User.isPromptForIndexWhenDescending()) return true;
+
+		// matters if there is a waveform window open
         for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
         {
             WindowFrame wf = (WindowFrame)it.next();
-            if (wf.getContent() instanceof WaveformWindow) { return true; }
+            if (wf.getContent() instanceof WaveformWindow) return true;
         }
-        // if getdrive is called
+
+		// if getdrive is called
         for (Iterator it = no.getVariables(); it.hasNext(); ) {
             Variable var = (Variable)it.next();
             Object obj = var.getObject();
@@ -2757,7 +2762,9 @@ public class EditWindow extends JPanel
                 if (str.matches(".*LE\\.getdrive.*")) return true;
             }
         }
-        return false;
+
+		// does not matter
+		return false;
     }
 
     /**

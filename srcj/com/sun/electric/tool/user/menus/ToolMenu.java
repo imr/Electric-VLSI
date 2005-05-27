@@ -89,6 +89,7 @@ import com.sun.electric.tool.sc.Place;
 import com.sun.electric.tool.sc.Route;
 import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.als.Graph;
 import com.sun.electric.tool.user.CompileVHDL;
 import com.sun.electric.tool.user.GenerateVHDL;
 import com.sun.electric.tool.user.Highlight;
@@ -177,11 +178,11 @@ public class ToolMenu {
 				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("restore"); } });
         }
 
-//		// mnemonic keys available: ABCDEFGH JKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: ABCDEFGH JKLMNOPQRSTUVWXYZ
 //		MenuBar.Menu alsSimulationSubMenu = MenuBar.makeMenu("Simulation (_ALS)");
 //		toolMenu.add(alsSimulationSubMenu);
 //		alsSimulationSubMenu.addMenuItem("Si_mulate Current Cell", null,
-//			new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(false); } });
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithALS(); } });
 
 		//------------------- Simulation (SPICE)
 
@@ -255,7 +256,7 @@ public class ToolMenu {
 
 		//------------------- Simulation (others)
 
-		// mnemonic keys available:  B D  GH JKL N  Q   UVWXYZ
+		// mnemonic keys available:  B D  G  JKL N  Q   UVWXYZ
 		MenuBar.Menu netlisters = MenuBar.makeMenu("Simulation (_Others)");
 		toolMenu.add(netlisters);
 		netlisters.addMenuItem("Write _Maxwell Deck...", null,
@@ -283,8 +284,11 @@ public class ToolMenu {
 		netlisters.addSeparator();
 		netlisters.addMenuItem("Write _FastHenry Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.FASTHENRY, true); }});
-		netlisters.addMenuItem("FastHenry _Arc Properties...", null,
+		netlisters.addMenuItem("Fast_Henry Arc Properties...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FastHenryArc.showFastHenryArcDialog(); }});
+		netlisters.addSeparator();
+		netlisters.addMenuItem("Write _ArcSim Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.ARCSIM, true); } });
 
 		//------------------- ERC
 
@@ -1101,6 +1105,39 @@ public class ToolMenu {
     }
 
     /**
+     * Method to simulate the current cell with ALS.
+     */
+    public static void simulateCellWithALS()
+    {
+        Cell cell = WindowFrame.needCurCell();
+        if (cell == null) return;
+        EditWindow wnd = EditWindow.getCurrent();
+        VarContext context = null;
+        if (wnd != null) context = wnd.getVarContext();
+		new SimulateWithALS(cell, context);
+    }
+
+    private static class SimulateWithALS extends Job
+    {
+        private Cell cell;
+		private VarContext context;
+
+        protected SimulateWithALS(Cell cell, VarContext context)
+        {
+            super("Simulate Cell with ALS", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.cell = cell;
+            this.context = context;
+            startJob();
+        }
+
+        public boolean doIt()
+        {
+	    	Graph.simals_startsimulation(cell, context);
+            return true;
+        }
+    }
+
+    /**
      * Method to simulate the current cell with IRSIM.
      */
     public static void simulateCellWithIRSIM(boolean forceDeck)
@@ -1161,7 +1198,8 @@ public class ToolMenu {
             return true;
         }
     }
-    /**
+
+	/**
      * Method to create a new template in the current cell.
      * Templates can be for SPICE or Verilog, depending on the Variable name.
      * @param templateKey the name of the variable to create.

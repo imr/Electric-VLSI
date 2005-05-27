@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (05/27/05, SMR) The "Artwork Appearance" dialog now affects all selected artwork objects.
+
+IMP: (05/27/05, SMR) PSpice output can now be read.
+
+IMP: (05/27/05, SMR) Added ArcSim simulation deck generation.
+
 BUG: (05/26/05, DN) Can't change attribute text size (Bug #346)
 FIX: In TextAttributesPanel.java use td.seyDisplay instead of var.setDisplay.
 

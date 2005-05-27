@@ -191,6 +191,7 @@ public class TextUtils
 	 * <UL>
 	 * <LI>This method can handle any radix.
 	 *     If the number begins with "0", presume base 8.
+	 *     If the number begins with "0b", presume base 2.
 	 *     If the number begins with "0x", presume base 16.
 	 *     Otherwise presume base 10.
 	 * <LI>This method can handle numbers that affect the sign bit.
@@ -249,6 +250,10 @@ public class TextUtils
 				{
 					pos++;
 					base = 16;
+				} else if (pos < len && (s.charAt(pos) == 'b' || s.charAt(pos) == 'B'))
+				{
+					pos++;
+					base = 2;
 				}
 			}
 		}

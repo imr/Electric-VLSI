@@ -5184,47 +5184,48 @@ public class CompileVHDL
 	}
 
 	/******************************** THE ALS NETLIST GENERATOR ********************************/
-	static String [] power =
+
+	private static String [] power =
 	{
 		"gate power(p)",
 		"set p=H@3",
 		"t: delta=0"
 	};
-	static String [] ground =
+	private static String [] ground =
 	{
 		"gate ground(g)",
 		"set g=L@3",
 		"t: delta=0"
 	};
-	static String [] pMOStran =
+	private static String [] pMOStran =
 	{
 		"function PMOStran(g, a1, a2)",
 		"i: g, a1, a2",
 		"o: a1, a2",
 		"t: delta=1e-8"
 	};
-	static String [] pMOStranWeak =
+	private static String [] pMOStranWeak =
 	{
 		"function pMOStranWeak(g, a1, a2)",
 		"i: g, a1, a2",
 		"o: a1, a2",
 		"t: delta=1e-8"
 	};
-	static String [] nMOStran =
+	private static String [] nMOStran =
 	{
 		"function nMOStran(g, a1, a2)",
 		"i: g, a1, a2",
 		"o: a1, a2",
 		"t: delta=1e-8"
 	};
-	static String [] nMOStranWeak =
+	private static String [] nMOStranWeak =
 	{
 		"function nMOStranWeak(g, a1, a2)",
 		"i: g, a1, a2",
 		"o: a1, a2",
 		"t: delta=1e-8"
 	};
-	static String [] inverter =
+	private static String [] inverter =
 	{
 		"gate inverter(a,z)",
 		"t: delta=1.33e-9",		/* T3=1.33 */
@@ -5235,7 +5236,7 @@ public class CompileVHDL
 		"i: a=X o: z=X",
 		"load: a=1.0"
 	};
-	static String [] buffer =
+	private static String [] buffer =
 	{
 		"gate buffer(in,out)",
 		"t: delta=0.56e-9",		/* T4*Cin=0.56 */
@@ -5245,7 +5246,7 @@ public class CompileVHDL
 		"t: delta=0",
 		"i: in=X o: out=X"
 	};
-	static String [] xor2 =
+	private static String [] xor2 =
 	{
 		/* input a,b cap = 0.xx pF, Tphl = T1 + T2*Cin, Tplh = T3 + T4*Cin */
 		"model xor2(a,b,z)",
@@ -5271,7 +5272,7 @@ public class CompileVHDL
 		"t: delta=0",
 		"i: in=X    o: out=X"
 	};
-	static String [] JKFF =
+	private static String [] JKFF =
 	{
 		"model jkff(j, k, clk, pr, clr, q, qbar)",
 		"n: JKFFLOP(clk, j, k, q, qbar)",
@@ -5280,7 +5281,7 @@ public class CompileVHDL
 		"o: q, qbar",
 		"t: delta=1e-8"
 	};
-	static String [] DFF =
+	private static String [] DFF =
 	{
 		"model dsff(d, clk, pr, q)",
 		"n: DFFLOP(d, clk, q)",
@@ -5297,15 +5298,10 @@ public class CompileVHDL
 	 */
 	private List genALS(Library behaveLib)
 	{
-		List netlist = new ArrayList();
-
-//		vhdl_ident_ground = vhdl_findidentkey(x_("ground"));
-//		vhdl_ident_power = vhdl_findidentkey(x_("power"));
-		SymbolTree symbol = searchSymbol("power", globalSymbols);
-
 		Cell basenp = vhdlCell;
 
 		// print file header
+		List netlist = new ArrayList();
 		netlist.add("#*************************************************");
 		netlist.add("#  ALS Netlist file");
 		netlist.add("#");
@@ -5587,8 +5583,7 @@ public class CompileVHDL
 	private void genALSInterface(DBInterface interfacef, String name, List netlist)
 	{
 		// go through interface's architectural body and call generate interfaces
-		// for any interface called by an instance which has not been already
-		// generated
+		// for any interface called by an instance which has not been already generated
 
 		// check written flag
 		if ((interfacef.flags & ENTITY_WRITTEN) != 0) return;
@@ -5696,15 +5691,15 @@ public class CompileVHDL
 							for (DBNameList cat = (DBNameList)aPort.name.pointer; cat != null; cat = cat.next)
 							{
 								String ident = cat.name.name;
-//								if (ident == vhdl_ident_power) power_flag = true; else
-//									if (ident == vhdl_ident_ground) ground_flag = true;
+								if (ident.equalsIgnoreCase("power")) power_flag = true; else
+									if (ident.equalsIgnoreCase("ground")) ground_flag = true;
 								first = genAPort(infstr, first, cat.name);
 							}
 						} else
 						{
 							String ident = aPort.name.name;
-//							if (ident == vhdl_ident_power) power_flag = true; else
-//								if (ident == vhdl_ident_ground) ground_flag = true;
+							if (ident.equalsIgnoreCase("power")) power_flag = true; else
+								if (ident.equalsIgnoreCase("ground")) ground_flag = true;
 							first = genAPort(infstr, first, aPort.name);
 						}
 					} else

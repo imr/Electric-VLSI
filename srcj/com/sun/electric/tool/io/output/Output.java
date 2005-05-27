@@ -322,7 +322,10 @@ public class Output
      */
     private static void writeCell(OutputCellInfo cellJob) //Cell cell, VarContext context, String filePath, FileType type, Job job)
     {
-		if (cellJob.type == FileType.CDL)
+		if (cellJob.type == FileType.ARCSIM)
+		{
+			ArcSim.writeArcSimFile(cellJob);
+		} else if (cellJob.type == FileType.CDL)
 		{
 			Spice.writeSpiceFile(cellJob, true);
 		} else if (cellJob.type == FileType.CIF)

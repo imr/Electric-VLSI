@@ -3,10 +3,10 @@
  * Electric(tm) VLSI Design System
  *
  * File: PSpiceOut.java
- * Input/output tool: reader for PSpice output (.spo)
+ * Input/output tool: reader for PSpice text output (.txt)
  * Written by Steven M. Rubin, Sun Microsystems.
  *
- * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,15 +26,23 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.Stimuli;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class for reading and displaying waveforms from PSpice and Spice3 output.
- * Thease are contained in .spo files.
+ * These are contained in .txt files.
+ * 
+ * Here is an example file:
+ *  Time                  I(Q2:e)               I(C1)                 IB(Q1)                IC(Q1)
+ *  0.000000000000e+000  -1.326552010141e-003  0.000000000000e+000  7.693014595134e-006  1.152132987045e-003
+ *  2.000000000000e-010  -1.327024307102e-003  -6.724173662320e-009  7.738638487353e-006  1.152158598416e-003
  */
 public class PSpiceOut extends Simulate
 {
@@ -49,7 +57,7 @@ public class PSpiceOut extends Simulate
 		throws IOException
 	{
 		// open the file
-		if (openBinaryInput(fileURL)) return null;
+		if (openTextInput(fileURL)) return null;
 
 		// show progress reading .spo file
 		startProgressDialog("PSpice output", fileURL.getFile());
@@ -68,109 +76,95 @@ public class PSpiceOut extends Simulate
 	private Stimuli readPSpiceFile(Cell cell)
 		throws IOException
 	{
-//		numend = NONUMBERS;
-//		first = TRUE;
-//		knows = FALSE;
-//		for(;;)
-//		{
-//			if (stopping(STOPREASONSPICE)) break;
-//			if (sim_spice_getlinefromsimulator(line)) break;
-//			if (sim_spice_filelen > 0)
-//				DiaSetProgress(dia, sim_spice_filepos, sim_spice_filelen);
-//
-//			if (first)
-//			{
-//				// check the first line for HSPICE format possibility
-//				first = FALSE;
-//				if (estrlen(line) >= 20 && line[16] == '9' && line[17] == '0' &&
-//					line[18] == '0' && line[19] == '7')
-//				{
-//					ttyputerr(_("This is an HSPICE file, not a SPICE3/PSPICE file"));
-//					ttyputerr(_("Change the SPICE format and reread"));
-//					return(-1);
-//				}
-//			}
-//
-//			// skip first word if there is an "=" in the line
-//			for(ptr = line; *ptr != 0; ptr++) if (*ptr == '=') break;
-//			if (*ptr == 0) ptr = line; else ptr += 3;
-//
-//			// read the data values
-//			lastt = 0.0;
-//			for(;;)
-//			{
-//				while (*ptr == ' ' || *ptr == '\t') ptr++;
-//				if (*ptr == 0 || *ptr == ')') break;
-//				if (sim_spice_signals == 0)
-//				{
-//					num = sim_spice_allocnumbers(MAXTRACES);
-//					num->time = eatof(ptr);
-//					if (numend == NONUMBERS) sim_spice_numbers = num; else
-//					{
-//						numend->nextnumbers = num;
-//						if (num->time <= lastt && !knows)
-//						{
-//							ttyputerr(_("First trace (should be 'time') is not increasing in value"));
-//							knows = TRUE;
-//						}
-//					}
-//					lastt = num->time;
-//					num->nextnumbers = NONUMBERS;
-//					numend = num;
-//				} else
-//				{
-//					if (num == NONUMBERS) ttyputmsg(_("Line %ld of data has too many values"),
-//						sim_spice_signals); else
-//					{
-//						if (sim_spice_signals <= MAXTRACES)
-//							num->list[sim_spice_signals-1] = (float)eatof(ptr);
-//						num = num->nextnumbers;
-//					}
-//				}
-//				while (*ptr != ' ' && *ptr != '\t' && *ptr != 0) ptr++;
-//			}
-//
-//			// see if there is an ")" at the end of the line
-//			if (line[estrlen(line)-1] == ')')
-//			{
-//				// advance to the next value for subsequent reads
-//				if (sim_spice_signals != 0 && num != NONUMBERS)
-//					ttyputmsg(_("Line %ld of data has too few values"), sim_spice_signals);
-//				sim_spice_signals++;
-//				num = sim_spice_numbers;
-//			}
-//
-//			if (running != 0)
-//			{
-//				if (outputfile == NULL)
-//				{
-//					if (parsemode == SIMRUNYESPARSE)
-//						ttyputmsg(x_("%s"), (isprint(*line) ? line : &line[1]));
-//				} else sim_spice_xprintf(outputfile, FALSE, x_("%s\n"), line);
-//			}
-//		}
-//
-//		// generate dummy names
-//		sim_spice_signames = (CHAR **)emalloc(sim_spice_signals * (sizeof (CHAR *)), sim_tool->cluster);
-//		sim_spice_sigtypes = (INTSML *)emalloc(sim_spice_signals * SIZEOFINTSML, sim_tool->cluster);
-//		if (sim_spice_signames == 0 || sim_spice_sigtypes == 0)
-//		{
-//			// terminate execution so we can restart simulator
-//			return(-1);
-//		}
-//		for(i=0; i<sim_spice_signals; i++)
-//		{
-//			(void)esnprintf(line, MAXLINE+5, x_("Signal %ld"), i+1);
-//			(void)allocstring(&sim_spice_signames[i], line, sim_tool->cluster);
-//		}
-//		return(sim_spice_signals);
+		boolean first = true;
+		boolean knows = false;
+		Stimuli sd = new Stimuli();
+		sd.setCell(cell);
+		AnalogSignal [] signals = null;
+		List [] values = null;
+		int numSignals = 0;
+		for(;;)
+		{
+			String line = getLine();
+			if (line == null) break;
 
-//		SimData sd = new SimData();
-//		sd.setCell(cell);
-//		sd.signalNames = sim_spice_signames;
-//		sd.events = sim_spice_numbers;
-		System.out.println("CANNOT READ PSPICE OUTPUT YET");
-		return null;
+			if (first)
+			{
+				// check the first line for HSPICE format possibility
+				first = false;
+				if (line.length() >= 20 && line.substring(16, 20).equals("9007"))
+				{
+					System.out.println("This is an HSPICE file, not a SPICE3/PSPICE file");
+					System.out.println("Change the SPICE format and reread");
+					return null;
+				}
+
+				// parse the signal names on the first line
+				int ptr = 0;
+				List signalNames = new ArrayList();
+				for(;;)
+				{
+					while (ptr < line.length() && Character.isWhitespace(line.charAt(ptr))) ptr++;
+					if (ptr >= line.length()) break;
+					int start = ptr;
+					while (ptr < line.length() && !Character.isWhitespace(line.charAt(ptr))) ptr++;
+					signalNames.add(line.substring(start, ptr));
+				}
+				numSignals = signalNames.size();
+				signals = new AnalogSignal[numSignals-1];
+				values = new List[numSignals];
+				for(int i=0; i<numSignals; i++)
+				{
+					if (i != 0)
+					{
+						signals[i-1] = new AnalogSignal(sd);
+						signals[i-1].setSignalName((String)signalNames.get(i));
+					}
+					values[i] = new ArrayList();
+				}
+				continue;
+			}
+
+			// skip first word if there is an "=" in the line
+			int equalPos = line.indexOf("=");
+			if (equalPos >= 0) line = line.substring(equalPos+3);
+
+			// read the data values
+			int ptr = 0;
+			int position = 0;
+			for(;;)
+			{
+				while (ptr < line.length() && Character.isWhitespace(line.charAt(ptr))) ptr++;
+				if (ptr >= line.length() || line.charAt(ptr) == ')') break;
+				int start = ptr;
+				while (ptr < line.length() && !Character.isWhitespace(line.charAt(ptr))) ptr++;
+				double value = TextUtils.atof(line.substring(start, ptr));
+				values[position++].add(new Double(value));
+			}
+			if (position != numSignals)
+			{
+				System.out.println("Line of data has " + position + " values, but expect " + numSignals);
+			}
+		}
+
+		// convert lists to arrays
+		if (numSignals == 0) return null;
+		int numEvents = values[0].size(); 
+		sd.buildCommonTime(numEvents);
+		for(int i=0; i<numEvents; i++)
+		{
+			sd.setCommonTime(i, ((Double)values[0].get(i)).doubleValue());
+		}
+		for(int j=1; j<numSignals; j++)
+		{
+			AnalogSignal as = signals[j-1];
+			as.buildValues(numEvents);
+			for(int i=0; i<numEvents; i++)
+			{
+				as.setValue(i, ((Double)values[j].get(i)).doubleValue());
+			}
+		}
+		return sd;
 	}
 
 }
