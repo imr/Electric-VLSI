@@ -94,7 +94,8 @@ public class JELIB extends LibraryFiles
 	private LinkedHashMap allCells = new LinkedHashMap();
 	private HashMap externalCells;
 	private HashMap externalExports;
-    private HashMap/*<String,ImmutableTextDescriptor>*/ parsedDescriptors = new HashMap/*<ImmutableTextDescriptor>*/();
+    private HashMap/*<String,ImmutableTextDescriptor>*/ parsedDescriptorsF = new HashMap/*<ImmutableTextDescriptor>*/();
+    private HashMap/*<String,ImmutableTextDescriptor>*/ parsedDescriptorsT = new HashMap/*<ImmutableTextDescriptor>*/();
 	private Version version;
 	private int revision;
 	private char escapeChar = '\\';
@@ -1548,6 +1549,7 @@ public class JELIB extends LibraryFiles
 	 */
 	private ImmutableTextDescriptor loadTextDescriptor(String varBits, boolean onVar, String fileName, int lineNumber)
 	{
+        HashMap/*<String,ImmutableTextDescriptor>*/ parsedDescriptors = onVar ? parsedDescriptorsT : parsedDescriptorsF;
         ImmutableTextDescriptor td = (ImmutableTextDescriptor)parsedDescriptors.get(varBits);
         if (td != null) return td;
         

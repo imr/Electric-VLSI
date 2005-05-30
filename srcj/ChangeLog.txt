@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+BUG: (05/30/05, DN) TextDescriptor sometimes get wrong "isDisplay" bit in JELIB reader.
+FIX: Make separate "parsedDescriptor" caches for onVar and non-onVar descriptors.
+
 IMP: (05/27/05, SMR) The "Artwork Appearance" dialog now affects all selected artwork objects.
 
 IMP: (05/27/05, SMR) PSpice output can now be read.
