@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -48,7 +49,6 @@ import com.sun.electric.database.variable.EvalJavaBsh;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -63,6 +63,7 @@ import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.extract.Connectivity;
 import com.sun.electric.tool.extract.LayerCoverageJob;
+import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.generator.cmosPLA.PLA;
@@ -72,7 +73,6 @@ import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.logicaleffort.LETool;
-import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.tool.ncc.NccOptions;
 import com.sun.electric.tool.ncc.NccResult;
@@ -89,7 +89,6 @@ import com.sun.electric.tool.sc.Place;
 import com.sun.electric.tool.sc.Route;
 import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.simulation.als.Graph;
 import com.sun.electric.tool.user.CompileVHDL;
 import com.sun.electric.tool.user.GenerateVHDL;
 import com.sun.electric.tool.user.Highlight;
@@ -139,50 +138,56 @@ public class ToolMenu {
 		drcSubMenu.addMenuItem("Check _Selection Area Hierarchically", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true, GeometryHandler.ALGO_QTREE); }});
 
-		//------------------- Simulation (IRSIM)
+		//------------------- Simulation (Built-in)
 
+		// mnemonic keys available:  B  EF   JK  N PQ  T   XYZ
+		MenuBar.Menu builtInSimulationSubMenu = MenuBar.makeMenu("Simulation (Built-in)");
+		toolMenu.add(builtInSimulationSubMenu);
 		if (Simulation.hasIRSIM())
 		{
-			// mnemonic keys available:  B  EF   JK  N PQ  T V XYZ
-			MenuBar.Menu irsimSimulationSubMenu = MenuBar.makeMenu("Simulation (_IRSIM)");
-			toolMenu.add(irsimSimulationSubMenu);
-			irsimSimulationSubMenu.addMenuItem("Si_mulate Current Cell", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(false); } });
-			irsimSimulationSubMenu.addMenuItem("_Update Simulation Window", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("update"); } });
-			irsimSimulationSubMenu.addSeparator();
-			irsimSimulationSubMenu.addMenuItem("Set Signal _High at Main Time", KeyStroke.getKeyStroke('V', 0),
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("h"); } });
-			irsimSimulationSubMenu.addMenuItem("Set Signal _Low at Main Time", KeyStroke.getKeyStroke('G', 0),
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("l"); } });
-			irsimSimulationSubMenu.addMenuItem("Set Signal Un_defined at Main Time", KeyStroke.getKeyStroke('X', 0),
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("x"); } });
-			irsimSimulationSubMenu.addMenuItem("_Get Information about Selected Signals", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("info"); } });
-			irsimSimulationSubMenu.addSeparator();
-			irsimSimulationSubMenu.addMenuItem("_Clear Selected Vectors", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("clearSelected"); } });
-			irsimSimulationSubMenu.addMenuItem("Clear All Vectors _on Selected Signals", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("clear"); } });
-			irsimSimulationSubMenu.addMenuItem("Clear _All Vectors", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("clearAll"); } });
-			irsimSimulationSubMenu.addSeparator();
-			irsimSimulationSubMenu.addMenuItem("_Write IRSIM Deck...", null,
+			builtInSimulationSubMenu.addMenuItem("IRSI_M: Simulate Current Cell", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.startSimulation(Simulation.IRSIM_ENGINE, false); } });
+			builtInSimulationSubMenu.addMenuItem("IRSIM: _Write Deck...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.IRSIM, true); }});
-			irsimSimulationSubMenu.addMenuItem("Simulate _IRSIM Deck...", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithIRSIM(true); }});
-			irsimSimulationSubMenu.addSeparator();
-			irsimSimulationSubMenu.addMenuItem("_Save Vectors to Disk...", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("save"); } });
-			irsimSimulationSubMenu.addMenuItem("_Restore Vectors from Disk...", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.doIRSIMCommand("restore"); } });
-        }
+			builtInSimulationSubMenu.addMenuItem("_IRSIM: Simulate Deck...", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.startSimulation(Simulation.IRSIM_ENGINE, true); }});
 
-		// mnemonic keys available: ABCDEFGH JKLMNOPQRSTUVWXYZ
-//		MenuBar.Menu alsSimulationSubMenu = MenuBar.makeMenu("Simulation (_ALS)");
-//		toolMenu.add(alsSimulationSubMenu);
-//		alsSimulationSubMenu.addMenuItem("Si_mulate Current Cell", null,
-//			new ActionListener() { public void actionPerformed(ActionEvent e) { simulateCellWithALS(); } });
+			builtInSimulationSubMenu.addSeparator();
+		}
+		builtInSimulationSubMenu.addMenuItem("_ALS: Simulate Current Cell", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.startSimulation(Simulation.ALS_ENGINE, false); } });
+
+		builtInSimulationSubMenu.addSeparator();
+
+		builtInSimulationSubMenu.addMenuItem("Set Signal _High at Main Time", KeyStroke.getKeyStroke('V', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setSignalHigh(); } });
+		builtInSimulationSubMenu.addMenuItem("Set Signal _Low at Main Time", KeyStroke.getKeyStroke('G', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setSignalLow(); } });
+		builtInSimulationSubMenu.addMenuItem("Set Signal Un_defined at Main Time", KeyStroke.getKeyStroke('X', 0),
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setSignalX(); } });
+
+		builtInSimulationSubMenu.addSeparator();
+
+		builtInSimulationSubMenu.addMenuItem("_Update Simulation Window", null,
+				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.update(); } });
+		builtInSimulationSubMenu.addMenuItem("_Get Information about Selected Signals", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.showSignalInfo(); } });
+
+		builtInSimulationSubMenu.addSeparator();
+
+		builtInSimulationSubMenu.addMenuItem("_Clear Selected Vectors", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.removeSelectedStimuli(); } });
+		builtInSimulationSubMenu.addMenuItem("Clear All Vectors _on Selected Signals", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.removeStimuliFromSignal(); } });
+		builtInSimulationSubMenu.addMenuItem("Clear All _Vectors", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.removeAllStimuli(); } });
+
+		builtInSimulationSubMenu.addSeparator();
+
+		builtInSimulationSubMenu.addMenuItem("_Save Vectors to Disk...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.saveStimuli(); } });
+		builtInSimulationSubMenu.addMenuItem("_Restore Vectors from Disk...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.restoreStimuli(); } });
 
 		//------------------- Simulation (SPICE)
 
@@ -1102,62 +1107,6 @@ public class ToolMenu {
         }
         if (total == 0) System.out.println("No problems found"); else
             System.out.println("Found " + total + " export problems");
-    }
-
-    /**
-     * Method to simulate the current cell with ALS.
-     */
-    public static void simulateCellWithALS()
-    {
-        Cell cell = WindowFrame.needCurCell();
-        if (cell == null) return;
-        EditWindow wnd = EditWindow.getCurrent();
-        VarContext context = null;
-        if (wnd != null) context = wnd.getVarContext();
-		new SimulateWithALS(cell, context);
-    }
-
-    private static class SimulateWithALS extends Job
-    {
-        private Cell cell;
-		private VarContext context;
-
-        protected SimulateWithALS(Cell cell, VarContext context)
-        {
-            super("Simulate Cell with ALS", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.context = context;
-            startJob();
-        }
-
-        public boolean doIt()
-        {
-	    	Graph.simals_startsimulation(cell, context);
-            return true;
-        }
-    }
-
-    /**
-     * Method to simulate the current cell with IRSIM.
-     */
-    public static void simulateCellWithIRSIM(boolean forceDeck)
-    {
-    	Cell cell = null;
-        VarContext context = null;
-    	String fileName = null;
-    	if (forceDeck)
-    	{
-    		fileName = OpenFile.chooseInputFile(FileType.IRSIM, "IRSIM deck to simulate");
-    		if (fileName == null) return;
-    		cell = WindowFrame.getCurrentCell();
-    	} else
-    	{
-	        cell = WindowFrame.needCurCell();
-	        if (cell == null) return;
-            EditWindow wnd = EditWindow.getCurrent();
-            if (wnd != null) context = wnd.getVarContext();
-    	}
-    	Simulation.simulateIRSIM(cell, context, fileName);
     }
 
     /**

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.text;
 
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -390,6 +391,117 @@ public class TextUtils
 //	{
 //		return simpleDateFormatGMT.format(date);
 //	}
+
+	/**
+	 * Method to converts a floating point number into engineering units such as pico, micro, milli, etc.
+	 * @param value floating point value to be converted to engineering notation.
+	 */
+	public static String convertToEngineeringNotation(double value)
+	{
+		return convertToEngineeringNotation(value, "", 9999);
+	}
+
+	/**
+	 * Method to converts a floating point number into engineering units such as pico, micro, milli, etc.
+	 * @param value floating point value to be converted to engineering notation.
+	 * @param unit a unit string to append to the result.
+	 */
+	public static String convertToEngineeringNotation(double value, String unit)
+	{
+		return convertToEngineeringNotation(value, unit, 9999);
+	}
+
+	/**
+	 * Method to converts a floating point number into engineering units such as pico, micro, milli, etc.
+	 * @param time floating point value to be converted to engineering notation.
+	 * @param unit a unit string to append to the result.
+	 * @param precpower decimal power of necessary time precision.
+	 * Use a very large number to ignore this factor (9999).
+	 */
+	public static String convertToEngineeringNotation(double time, String unit, int precpower)
+	{
+		String negative = "";
+		if (time < 0.0)
+		{
+			negative = "-";
+			time = -time;
+		}
+		if (GenMath.doublesEqual(time, 0.0)) return "0" + unit;
+		if (time < 1.0E-15 || time >= 1000.0) return negative + TextUtils.formatDouble(time) + unit;
+
+		// get proper time unit to use
+		double scaled = time * 1.0E17;
+		long intTime = Math.round(scaled);
+		String secType = null;
+		int scalePower = 0;
+		if (scaled < 200000.0 && intTime < 100000)
+		{
+			secType = "f" + unit;
+			scalePower = -15;
+		} else
+		{
+			scaled = time * 1.0E14;   intTime = Math.round(scaled);
+			if (scaled < 200000.0 && intTime < 100000)
+			{
+				secType = "p" + unit;
+				scalePower = -12;
+			} else
+			{
+				scaled = time * 1.0E11;   intTime = Math.round(scaled);
+				if (scaled < 200000.0 && intTime < 100000)
+				{
+					secType = "n" + unit;
+					scalePower = -9;
+				} else
+				{
+					scaled = time * 1.0E8;   intTime = Math.round(scaled);
+					if (scaled < 200000.0 && intTime < 100000)
+					{
+						secType = "u" + unit;
+						scalePower = -6;
+					} else
+					{
+						scaled = time * 1.0E5;   intTime = Math.round(scaled);
+						if (scaled < 200000.0 && intTime < 100000)
+						{
+							secType = "m" + unit;
+							scalePower = -3;
+						} else
+						{
+							scaled = time * 1.0E2;  intTime = Math.round(scaled);
+							secType = unit;
+							scalePower = 0;
+						}
+					}
+				}
+			}
+		}
+		if (precpower >= scalePower)
+		{
+			long timeleft = intTime / 100;
+			long timeright = intTime % 100;
+			if (timeright == 0)
+			{
+				return negative + timeleft + secType;
+			} else
+			{
+				if ((timeright%10) == 0)
+				{
+					return negative + timeleft + "." + timeright/10 + secType;
+				} else
+				{
+					String tensDigit = "";
+					if (timeright < 10) tensDigit = "0";
+					return negative + timeleft + "." + tensDigit + timeright + secType;
+				}
+			}
+		}
+		scaled /= 1.0E2;
+		String numPart = TextUtils.formatDouble(scaled, scalePower - precpower);
+		while (numPart.endsWith("0")) numPart = numPart.substring(0, numPart.length()-1);
+		if (numPart.endsWith(".")) numPart = numPart.substring(0, numPart.length()-1);
+		return negative + numPart + secType;
+	}
 
 	/**
 	 * Method to convert an integer to a string that is left-padded with spaces

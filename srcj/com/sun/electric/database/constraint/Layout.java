@@ -73,8 +73,9 @@ public class Layout extends Constraints
 	 * ai.getChangeClock() == changeClock-1  unmodified unrigid arcs
 	 * ai.getChangeClock() == changeClock      modified rigid   arcs
 	 * ai.getChangeClock() == changeClock+1    modified unrigid arcs
-	 * ni.getChangeClock() <  changeClock    unmodified         nodes
-	 * ni.getChangeClock() == changeClock    modified           nodes
+	 * ni.getChangeClock() <  changeClock-1  unmodified         nodes
+	 * ni.getChangeClock() == changeClock-1  size-changed       nodes
+	 * ni.getChangeClock() == changeClock    position-changed   nodes
 	 */
 	private static int changeClock = 10;
 
@@ -345,15 +346,15 @@ public class Layout extends Constraints
 	private static boolean alterNodeInst(NodeInst ni, double deltaCX, double deltaCY, double deltaSX,
 		double deltaSY, int dAngle, boolean announce)
 	{
-//		// determine whether this is a position or size change
-//		int change = -1;
-//		if (deltaSX == 0 && deltaSY == 0)
-//		{
-//			if (deltaCX != 0 || deltaCY != 0 || dAngle != 0) change = 0;
-//		}
+		// determine whether this is a position or size change
+		int change = -1;
+		if (deltaSX == 0 && deltaSY == 0)
+		{
+			if (deltaCX != 0 || deltaCY != 0 || dAngle != 0) change = 0;
+		}
 
 		// reject if this change has already been done
-		if (ni.getChangeClock() >= changeClock) return false;
+		if (ni.getChangeClock() >= changeClock+change) return false;
 
 		// if simple rotation on transposed nodeinst, reverse rotation
 		boolean flipX = ni.isXMirrored();
@@ -373,12 +374,12 @@ public class Layout extends Constraints
 		ni.lowLevelModify(deltaCX, deltaCY, deltaSX, deltaSY, dAngle);
 
 		// mark that this nodeinst has changed
-		if (ni.getChangeClock() != changeClock)
+		if (ni.getChangeClock() < changeClock-1)
 		{
 			Undo.modifyNodeInst(ni, oldCX, oldCY, oldSX, oldSY, oldang);
 		}
 
-		ni.setChangeClock(changeClock);
+		ni.setChangeClock(changeClock+change);
 
 		// see if this nodeinst is a port of the current cell
 		if (ni.getNumExports() == 0) return false;
@@ -821,7 +822,7 @@ public class Layout extends Constraints
 							dx = odx = 0;
 
 						// if other node already moved, don't move it any more
-						if (ono.getChangeClock() == changeClock) dx = odx = 0;
+						if (ono.getChangeClock() >= changeClock) dx = odx = 0;
 
 						if (dx != odx)
 						{
@@ -852,7 +853,7 @@ public class Layout extends Constraints
 							dy = ody = 0;
 
 					// if other node already moved, don't move it any more
-					if (ono.getChangeClock() == changeClock) dx = odx = 0;
+					if (ono.getChangeClock() >= changeClock) dx = odx = 0;
 
 					if (!DBMath.doublesEqual(dy, ody))
 					{
@@ -879,7 +880,7 @@ public class Layout extends Constraints
 				updateArc(ai, newPts[0], newPts[1], 1);
 
 				// if other node already moved, don't move it any more
-				if (ono.getChangeClock() == changeClock) dx = dy = 0;
+				if (ono.getChangeClock() >= changeClock) dx = dy = 0;
 
 				if (dx != 0 || dy != 0)
 				{

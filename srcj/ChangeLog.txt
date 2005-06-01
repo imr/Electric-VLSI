@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP/MAN: (06/01/05, SMR) First implementation of ALS simulator.
+
+BUG: (05/30/05, SMR) Rigid arcs don't propagate hierarchically.
+FIX: In Layout.java, use two change values on nodes: size-changed and position-changed.
+
 BUG: (05/30/05, DN) TextDescriptor sometimes get wrong "isDisplay" bit in JELIB reader.
 FIX: Make separate "parsedDescriptor" caches for onVar and non-onVar descriptors.
 

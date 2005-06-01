@@ -30,10 +30,57 @@ package com.sun.electric.tool.simulation;
 public class Engine
 {
 	/**
-	 * Method to send a command to the simulation engine.
-	 * @param command the command to send (engine-specific).
+	 * Method to reload the circuit data.
 	 */
-	public void doCommand(String command) {}
-
 	public void refresh() {}
+
+	/**
+	 * Method to update the simulation (because some stimuli have changed).
+	 */
+	public void update() {}
+
+	/**
+	 * Method to set the currently-selected signal high at the current time.
+	 */
+	public void setSignalHigh() {}
+
+	/**
+	 * Method to set the currently-selected signal low at the current time.
+	 */
+	public void setSignalLow() {}
+
+	/**
+	 * Method to set the currently-selected signal undefined at the current time.
+	 */
+	public void setSignalX() {}
+
+	/**
+	 * Method to show information about the currently-selected signal.
+	 */
+	public void showSignalInfo() {}
+
+	/**
+	 * Method to remove all stimuli from the currently-selected signal.
+	 */
+	public void removeStimuliFromSignal() {}
+
+	/**
+	 * Method to remove the selected stimuli.
+	 */
+	public void removeSelectedStimuli() {}
+
+	/**
+	 * Method to remove all stimuli from the simulation.
+	 */
+	public void removeAllStimuli() {}
+
+	/**
+	 * Method to save the current stimuli information to disk.
+	 */
+	public void saveStimuli() {}
+
+	/**
+	 * Method to restore the current stimuli information from disk.
+	 */
+	public void restoreStimuli() {}
 }

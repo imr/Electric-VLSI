@@ -34,16 +34,25 @@ import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.compaction.Compaction;
+import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
+import com.sun.electric.tool.simulation.als.ALS;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.menus.FileMenu;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.swing.KeyStroke;
 
 /**
  * This is the Simulation Interface tool.
@@ -57,9 +66,35 @@ public class Simulation extends Listener
 	/** key of Variable holding flag for weak nodes. */		public static final Variable.Key WEAK_NODE_KEY = ElectricObject.newKey("SIM_weak_node");
 	/** key of Variable holding "M" factors. */				public static final Variable.Key M_FACTOR_KEY = ElectricObject.newKey("ATTR_M");
 
+	/** constant for ALS simulation */						public static final int ALS_ENGINE = 0;
+	/** constant for IRSIM simulation */					public static final int IRSIM_ENGINE = 1;
+
 	private static boolean irsimChecked = false;
 	private static Class irsimClass = null;
 	private static Method irsimSimulateMethod;
+
+	/**
+	 * The constructor sets up the Simulation tool.
+	 */
+	private Simulation()
+	{
+		super("simulation");
+	}
+
+	/**
+	 * Method to initialize the Simulation tool.
+	 */
+	public void init()
+	{
+	}
+
+    /**
+     * Method to retrieve the singleton associated with the Simulation tool.
+     * @return the Simulation tool.
+     */
+    public static Simulation getSimulationTool() { return tool; }
+
+	/****************************** CONTROL OF SIMULATION ENGINES ******************************/
 
 	/**
 	 * Method to tell whether the IRSIM simulator is available.
@@ -100,31 +135,155 @@ public class Simulation extends Listener
 	}
 
 	/**
-	 * Method to invoke the IRSIM on a Cell via reflection.
-	 * @param cell the Cell to simulate.
+	 * Method to invoke a simulation engine.
+	 * @param engine the simulation engine to run.
+	 * @param forceDeck true to force simulation from a user-specified netlist file.
 	 */
-	public static void simulateIRSIM(Cell cell, VarContext context, String fileName)
+	public static void startSimulation(int engine, boolean forceDeck)
 	{
-		if (!hasIRSIM()) return;
-		try
+    	Cell cell = null;
+        VarContext context = null;
+    	String fileName = null;
+    	if (forceDeck)
+    	{
+    		fileName = OpenFile.chooseInputFile(FileType.IRSIM, "IRSIM deck to simulate");
+    		if (fileName == null) return;
+    		cell = WindowFrame.getCurrentCell();
+    	} else
+    	{
+	        cell = WindowFrame.needCurCell();
+	        if (cell == null) return;
+            EditWindow wnd = EditWindow.getCurrent();
+            if (wnd != null) context = wnd.getVarContext();
+    	}
+		switch (engine)
 		{
-			irsimSimulateMethod.invoke(irsimClass, new Object[] {cell, context, fileName});
-			return;
-		} catch (Exception e)
-		{
-			System.out.println("Unable to run the IRSIM simulator");
-            e.printStackTrace(System.out);
+			case ALS_ENGINE:
+				ALS.startSimulation(cell, context);
+				break;
+			case IRSIM_ENGINE:
+				if (!hasIRSIM()) return;
+				try
+				{
+					irsimSimulateMethod.invoke(irsimClass, new Object[] {cell, context, fileName});
+					return;
+				} catch (Exception e)
+				{
+					System.out.println("Unable to run the IRSIM simulator");
+		            e.printStackTrace(System.out);
+				}
+				break;
 		}
 	}
 
 	/**
-	 * Method to send a command to the IRSIM simulator.
+	 * Method to update the simulation (because some stimuli have changed).
 	 */
-	public static void doIRSIMCommand(String command)
+	public static void update()
 	{
-		if (!hasIRSIM()) return;
+		Engine engine = findEngine();
+		if (engine == null) return;
+		engine.update();
+	}
 
-		// find an IRSIM simulation engine to control
+	/**
+	 * Method to set the currently-selected signal high at the current time.
+	 */
+	public static void setSignalHigh()
+	{
+		Engine engine = findEngine();
+		if (engine == null) return;
+		engine.setSignalHigh();
+	}
+
+	/**
+	 * Method to set the currently-selected signal low at the current time.
+	 */
+	public static void setSignalLow()
+	{
+		Engine engine = findEngine();
+		if (engine == null) return;
+		engine.setSignalLow();
+	}
+
+	/**
+	 * Method to set the currently-selected signal undefined at the current time.
+	 */
+	public static void setSignalX()
+	{
+		Engine engine = findEngine();
+		if (engine == null) return;
+		engine.setSignalX();
+	}
+
+	/**
+	 * Method to show information about the currently-selected signal.
+	 */
+	public static void showSignalInfo()
+	{
+		Engine engine = findEngine();
+		if (engine == null) return;
+		engine.showSignalInfo();
+	}
+
+	/**
+	 * Method to remove all stimuli from the currently-selected signal.
+	 */
+	public static void removeStimuliFromSignal()
+	{
+		Engine engine = findEngine();
+		if (engine == null) return;
+		engine.removeStimuliFromSignal();
+	}
+
+	/**
+	 * Method to remove the selected stimuli.
+	 */
+	public static void removeSelectedStimuli()
+	{
+		Engine engine = findEngine();
+		if (engine == null) return;
+		engine.removeSelectedStimuli();
+	}
+
+	/**
+	 * Method to remove all stimuli from the simulation.
+	 */
+	public static void removeAllStimuli()
+	{
+		Engine engine = findEngine();
+		if (engine == null) return;
+		engine.removeAllStimuli();
+	}
+
+	/**
+	 * Method to save the current stimuli information to disk.
+	 */
+	public static void saveStimuli()
+	{
+		Engine engine = findEngine();
+		if (engine == null) return;
+		engine.saveStimuli();
+	}
+
+	/**
+	 * Method to restore the current stimuli information from disk.
+	 */
+	public static void restoreStimuli()
+	{
+		Engine engine = findEngine();
+		if (engine == null) return;
+		engine.restoreStimuli();
+	}
+
+	/**
+	 * Method to locate the running simulation engine.
+	 * @return the Engine that is running.
+	 * Prints an error and returns null if there is none.
+	 */
+	private static Engine findEngine()
+	{
+		// find a simulation engine to control
 		Engine engine = null;
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
 		{
@@ -134,39 +293,16 @@ public class Simulation extends Listener
 				WaveformWindow ww = (WaveformWindow)wf.getContent();
 				Engine e = ww.getSimEngine();
 				if (e == null) continue;
-				if (!irsimClass.isInstance(e)) continue;
+				if (wf == WindowFrame.getCurrentWindowFrame()) return e;
 				engine = e;
-				if (wf == WindowFrame.getCurrentWindowFrame()) break;
 			}
 		}
 		if (engine == null)
-		{
 			System.out.println("No simulator is ready to handle the command");
-			return;
-		}
-		engine.doCommand(command);
+		return engine;
 	}
 
-	/**
-	 * The constructor sets up the Simulation tool.
-	 */
-	private Simulation()
-	{
-		super("simulation");
-	}
-
-	/**
-	 * Method to initialize the Simulation tool.
-	 */
-	public void init()
-	{
-	}
-
-    /**
-     * Method to retrieve the singleton associated with the Simulation tool.
-     * @return the Simulation tool.
-     */
-    public static Simulation getSimulationTool() { return tool; }
+	/****************************** MISCELLANEOUS CONTROLS ******************************/
 
 	/**
 	 * Method to set a Spice model on the selected node.

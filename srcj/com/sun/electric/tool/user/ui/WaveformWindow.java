@@ -965,7 +965,7 @@ public class WaveformWindow implements WindowContent
 					g.setFont(waveWindowFont);
 
 					// show the low time value and arrow
-					String lowTimeString = convertToEngineeringNotation(lowTime, "s", 9999);
+					String lowTimeString = TextUtils.convertToEngineeringNotation(lowTime, "s");
 					GlyphVector gv = waveWindowFont.createGlyphVector(waveWindowFRC, lowTimeString);
 					Rectangle2D glyphBounds = gv.getLogicalBounds();
 					int textWid = (int)glyphBounds.getWidth();
@@ -977,7 +977,7 @@ public class WaveformWindow implements WindowContent
 					g.drawLine(lowX-1, textY, lowX-6, textY-4);
 
 					// show the high time value and arrow
-					String highTimeString = convertToEngineeringNotation(highTime, "s", 9999);
+					String highTimeString = TextUtils.convertToEngineeringNotation(highTime, "s");
 					gv = waveWindowFont.createGlyphVector(waveWindowFRC, highTimeString);
 					glyphBounds = gv.getLogicalBounds();
 					textWid = (int)glyphBounds.getWidth();
@@ -989,7 +989,7 @@ public class WaveformWindow implements WindowContent
 					g.drawLine(highX+1, textY, highX+6, textY-4);
 
 					// show the difference time value
-					String timeDiffString = convertToEngineeringNotation(highTime-lowTime, "s", 9999);
+					String timeDiffString = TextUtils.convertToEngineeringNotation(highTime-lowTime, "s");
 					gv = waveWindowFont.createGlyphVector(waveWindowFRC, timeDiffString);
 					glyphBounds = gv.getLogicalBounds();
 					textWid = (int)glyphBounds.getWidth();
@@ -2414,7 +2414,7 @@ public class WaveformWindow implements WindowContent
 							g.drawLine(intX, hei/2, intX, hei);
 						}
 					}
-					String timeVal = convertToEngineeringNotation(time, "s", ss.stepScale);
+					String timeVal = TextUtils.convertToEngineeringNotation(time, "s", ss.stepScale);
 					g.drawString(timeVal, x+2, hei-2);
 					lastX = x;
 				}
@@ -4125,19 +4125,21 @@ if (wp.signalButtons != null)
 	public void setMainTimeCursor(double time)
 	{
 		mainTime = time;
-		String amount = convertToEngineeringNotation(mainTime, "s", 9999);
+		String amount = TextUtils.convertToEngineeringNotation(mainTime, "s");
 		mainPos.setText("Main: " + amount);
-		String diff = convertToEngineeringNotation(Math.abs(mainTime - extTime), "s", 9999);
+		String diff = TextUtils.convertToEngineeringNotation(Math.abs(mainTime - extTime), "s");
 		delta.setText("Delta: " + diff);
 		updateAssociatedLayoutWindow();
 	}
 
+	public double getExtensionTimeCursor() { return extTime; }
+
 	public void setExtensionTimeCursor(double time)
 	{
 		extTime = time;
-		String amount = convertToEngineeringNotation(extTime, "s", 9999);
+		String amount = TextUtils.convertToEngineeringNotation(extTime, "s");
 		extPos.setText("Ext: " + amount);
-		String diff = convertToEngineeringNotation(Math.abs(mainTime - extTime), "s", 9999);
+		String diff = TextUtils.convertToEngineeringNotation(Math.abs(mainTime - extTime), "s");
 		delta.setText("Delta: " + diff);
 	}
 
@@ -4307,97 +4309,6 @@ if (wp.signalButtons != null)
 		if (p <= 0) p = 1;
 		String s = TextUtils.formatDouble(v/d, p);
 		return s + "e" + i2;
-	}
-
-	/**
-	 * Method to converts a floating point number into engineering units such as pico, micro, milli, etc.
-	 * @param time floating point value to be converted to engineering notation.
-	 * @param precpower decimal power of necessary time precision.
-	 * Use a very large number to ignore this factor (9999).
-	 */
-	private static String convertToEngineeringNotation(double time, String unit, int precpower)
-	{
-		String negative = "";
-		if (time < 0.0)
-		{
-			negative = "-";
-			time = -time;
-		}
-		if (GenMath.doublesEqual(time, 0.0)) return "0" + unit;
-		if (time < 1.0E-15 || time >= 1000.0) return negative + TextUtils.formatDouble(time) + unit;
-
-		// get proper time unit to use
-		double scaled = time * 1.0E17;
-		long intTime = Math.round(scaled);
-		String secType = null;
-		int scalePower = 0;
-		if (scaled < 200000.0 && intTime < 100000)
-		{
-			secType = "f" + unit;
-			scalePower = -15;
-		} else
-		{
-			scaled = time * 1.0E14;   intTime = Math.round(scaled);
-			if (scaled < 200000.0 && intTime < 100000)
-			{
-				secType = "p" + unit;
-				scalePower = -12;
-			} else
-			{
-				scaled = time * 1.0E11;   intTime = Math.round(scaled);
-				if (scaled < 200000.0 && intTime < 100000)
-				{
-					secType = "n" + unit;
-					scalePower = -9;
-				} else
-				{
-					scaled = time * 1.0E8;   intTime = Math.round(scaled);
-					if (scaled < 200000.0 && intTime < 100000)
-					{
-						secType = "u" + unit;
-						scalePower = -6;
-					} else
-					{
-						scaled = time * 1.0E5;   intTime = Math.round(scaled);
-						if (scaled < 200000.0 && intTime < 100000)
-						{
-							secType = "m" + unit;
-							scalePower = -3;
-						} else
-						{
-							scaled = time * 1.0E2;  intTime = Math.round(scaled);
-							secType = unit;
-							scalePower = 0;
-						}
-					}
-				}
-			}
-		}
-		if (precpower >= scalePower)
-		{
-			long timeleft = intTime / 100;
-			long timeright = intTime % 100;
-			if (timeright == 0)
-			{
-				return negative + timeleft + secType;
-			} else
-			{
-				if ((timeright%10) == 0)
-				{
-					return negative + timeleft + "." + timeright/10 + secType;
-				} else
-				{
-					String tensDigit = "";
-					if (timeright < 10) tensDigit = "0";
-					return negative + timeleft + "." + tensDigit + timeright + secType;
-				}
-			}
-		}
-		scaled /= 1.0E2;
-		String numPart = TextUtils.formatDouble(scaled, scalePower - precpower);
-		while (numPart.endsWith("0")) numPart = numPart.substring(0, numPart.length()-1);
-		if (numPart.endsWith(".")) numPart = numPart.substring(0, numPart.length()-1);
-		return negative + numPart + secType;
 	}
 
 	// ************************************ SHOWING CROSS-PROBED LEVELS IN EDITWINDOW ************************************
