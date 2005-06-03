@@ -45,7 +45,6 @@ import com.sun.electric.tool.user.dialogs.options.GDSTab;
 import com.sun.electric.tool.user.dialogs.options.GeneralTab;
 import com.sun.electric.tool.user.dialogs.options.GridAndAlignmentTab;
 import com.sun.electric.tool.user.dialogs.options.IconTab;
-import com.sun.electric.tool.user.dialogs.options.IRSIMTab;
 import com.sun.electric.tool.user.dialogs.options.LayersTab;
 import com.sun.electric.tool.user.dialogs.options.LibraryTab;
 import com.sun.electric.tool.user.dialogs.options.LogicalEffortTab;
@@ -63,6 +62,7 @@ import com.sun.electric.tool.user.dialogs.options.SUETab;
 import com.sun.electric.tool.user.dialogs.options.ScaleTab;
 import com.sun.electric.tool.user.dialogs.options.SelectionTab;
 import com.sun.electric.tool.user.dialogs.options.SiliconCompilerTab;
+import com.sun.electric.tool.user.dialogs.options.SimulatorsTab;
 import com.sun.electric.tool.user.dialogs.options.SkillTab;
 import com.sun.electric.tool.user.dialogs.options.SpiceTab;
 import com.sun.electric.tool.user.dialogs.options.TechnologyTab;
@@ -280,13 +280,6 @@ public class PreferencesFrame extends EDialog
 		optionPanes.add(fht);
 		toolSet.add(new DefaultMutableTreeNode(fht.getName()));
 
-		if (Simulation.hasIRSIM())
-		{
-			IRSIMTab irt = new IRSIMTab(parent, modal);
-			optionPanes.add(irt);
-			toolSet.add(new DefaultMutableTreeNode(irt.getName()));
-		}
-
 		LogicalEffortTab let = new LogicalEffortTab(parent, modal);
 		optionPanes.add(let);
 		toolSet.add(new DefaultMutableTreeNode(let.getName()));
@@ -310,6 +303,10 @@ public class PreferencesFrame extends EDialog
 		SiliconCompilerTab sct = new SiliconCompilerTab(parent, modal);
 		optionPanes.add(sct);
 		toolSet.add(new DefaultMutableTreeNode(sct.getName()));
+
+		SimulatorsTab smt = new SimulatorsTab(parent, modal);
+		optionPanes.add(smt);
+		toolSet.add(new DefaultMutableTreeNode(smt.getName()));
 
 		SpiceTab spt = new SpiceTab(parent, modal);
 		optionPanes.add(spt);

@@ -100,14 +100,19 @@ public class GenerateVHDL
 	private static class Visitor extends HierarchyEnumerator.Visitor
 	{
 		private Cell cell;
+		private static HashSet seenCells;
 
 		private Visitor(Cell cell)
 		{
 			this.cell = cell;
+			seenCells = new HashSet();
 		}
 
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
+			Cell cell = info.getCell();
+			if (seenCells.contains(cell)) return true;
+			seenCells.add(cell);
 			generateVHDL(info);
 			return true;
 		}
@@ -122,6 +127,11 @@ public class GenerateVHDL
 		Cell cell = info.getCell();
 
 		// write the header
+		if (vhdlStrings.size() > 0)
+		{
+			vhdlStrings.add("");
+			vhdlStrings.add("");
+		}
 		vhdlStrings.add("-- VHDL automatically generated from cell " + cell.describe());
 		Netlist nl = info.getNetlist();
 
@@ -916,7 +926,8 @@ public class GenerateVHDL
 				if (pp instanceof Export)
 				{
 					Network net = nl.getNetwork((Export)pp, i);
-					portName = net.describe();
+					if (net != null) portName = net.describe(); else
+						System.out.println("Cannot find network for export '" + pp.getName() + "' on cell " + np.describe());
 				}
 				if (pp.getBasePort().isIsolated())
 				{

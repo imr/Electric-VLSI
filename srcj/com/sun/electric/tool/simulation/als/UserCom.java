@@ -52,13 +52,13 @@ public class UserCom
 			ALS.ALSExport [] side = new ALS.ALSExport[2];
 			side[0] = ctl.next;
 			side[1] = side[0].next;
-		
+
 			if (ctl.nodeptr.sum_state == Stimuli.LOGIC_HIGH)
 			{
 				simals_schedule_node_update(primhead, side[0], '=',
-					Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 				simals_schedule_node_update(primhead, side[1], '=',
-					Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 				return;
 			}
 			simals_calculate_bidir_outputs(primhead, side, Stimuli.GATE_STRENGTH);
@@ -75,19 +75,19 @@ public class UserCom
 			ALS.ALSExport [] side = new ALS.ALSExport[2];
 			side[0] = ctl.next;
 			side[1] = side[0].next;
-		
+
 			if (ctl.nodeptr.sum_state == Stimuli.LOGIC_HIGH)
 			{
 				simals_schedule_node_update(primhead, side[0], '=',
-					Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 				simals_schedule_node_update(primhead, side[1], '=',
-					Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 				return;
 			}
 			simals_calculate_bidir_outputs(primhead, side, Stimuli.NODE_STRENGTH);
 		}
 	}
-		
+
 	/**
 	 * Class to model a bidirectional n-channel transistor.  If the
 	 * routine is called, a new node summing calculation is performed and the effects
@@ -109,13 +109,13 @@ public class UserCom
 			ALS.ALSExport [] side = new ALS.ALSExport[2];
 			side[0] = ctl.next;
 			side[1] = side[0].next;
-		
+
 			if (ctl.nodeptr.sum_state == Stimuli.LOGIC_LOW)
 			{
 				simals_schedule_node_update(primhead, side[0], '=',
-					Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 				simals_schedule_node_update(primhead, side[1], '=',
-					Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 				return;
 			}
 			simals_calculate_bidir_outputs(primhead, side, Stimuli.GATE_STRENGTH);
@@ -132,13 +132,13 @@ public class UserCom
 			ALS.ALSExport [] side = new ALS.ALSExport[2];
 			side[0] = ctl.next;
 			side[1] = side[0].next;
-		
+
 			if (ctl.nodeptr.sum_state == Stimuli.LOGIC_LOW)
 			{
 				simals_schedule_node_update(primhead, side[0], '=',
-					Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 				simals_schedule_node_update(primhead, side[1], '=',
-					Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 				return;
 			}
 			simals_calculate_bidir_outputs(primhead, side, Stimuli.NODE_STRENGTH);
@@ -162,45 +162,45 @@ public class UserCom
 			ALS.ALSExport argptr = primhead.exptr;
 			int ck = argptr.nodeptr.sum_state;
 			if (ck != Stimuli.LOGIC_LOW) return;
-		
+
 			argptr = argptr.next;
 			int j = argptr.nodeptr.sum_state;
 			argptr = argptr.next;
 			int k = argptr.nodeptr.sum_state;
 			argptr = argptr.next;
 			ALS.ALSExport argptrbar = argptr.next;
-		
+
 			if (j == Stimuli.LOGIC_LOW)
 			{
 				if (k == Stimuli.LOGIC_LOW) return;
 				simals_schedule_node_update(primhead, argptr, '=',
-					Stimuli.LOGIC_LOW, Stimuli.GATE_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_LOW), Stimuli.GATE_STRENGTH, als.simals_time_abs);
 				simals_schedule_node_update(primhead, argptrbar, '=',
-					Stimuli.LOGIC_HIGH, Stimuli.GATE_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_HIGH), Stimuli.GATE_STRENGTH, als.simals_time_abs);
 				return;
 			}
 			if (k == Stimuli.LOGIC_LOW)
 			{
 				simals_schedule_node_update(primhead, argptr, '=',
-					Stimuli.LOGIC_HIGH, Stimuli.GATE_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_HIGH), Stimuli.GATE_STRENGTH, als.simals_time_abs);
 				simals_schedule_node_update(primhead, argptrbar, '=',
-					Stimuli.LOGIC_LOW, Stimuli.GATE_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_LOW), Stimuli.GATE_STRENGTH, als.simals_time_abs);
 				return;
 			}
-		
+
 			int out = argptr.nodeptr.sum_state;
 			if (out == Stimuli.LOGIC_HIGH)
 			{
 				simals_schedule_node_update(primhead, argptr, '=',
-					Stimuli.LOGIC_LOW, Stimuli.GATE_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_LOW), Stimuli.GATE_STRENGTH, als.simals_time_abs);
 				simals_schedule_node_update(primhead, argptrbar, '=',
-					Stimuli.LOGIC_HIGH, Stimuli.GATE_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_HIGH), Stimuli.GATE_STRENGTH, als.simals_time_abs);
 			} else
 			{
 				simals_schedule_node_update(primhead, argptr, '=',
-					Stimuli.LOGIC_HIGH, Stimuli.GATE_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_HIGH), Stimuli.GATE_STRENGTH, als.simals_time_abs);
 				simals_schedule_node_update(primhead, argptrbar, '=',
-				Stimuli.LOGIC_LOW, Stimuli.GATE_STRENGTH, als.simals_time_abs);
+					new Integer(Stimuli.LOGIC_LOW), Stimuli.GATE_STRENGTH, als.simals_time_abs);
 			}
 		}
 	}
@@ -223,28 +223,28 @@ public class UserCom
 		void simulate(ALS.Model primhead)
 		{
 			ALS.ALSExport argptr = primhead.exptr;
-		
+
 			// data_in signal now selected
 			int d_in = argptr.nodeptr.sum_state;
 			argptr = argptr.next;
-		
+
 			// clk signal now selected
 			int clk = argptr.nodeptr.sum_state;
-		
+
 			// do nothing if not a +ve clock edge
 			if (clk != Stimuli.LOGIC_LOW) return;
-		
+
 			/* If this part of the procedure has been reached, the
 				data_out signal should be updated since clk is high.
 				Therefore, the value of data_out should be set to
 				the value of d_in (one of LOGIC_LOW, LOGIC_HIGH,
 				or LOGIC_X). */
-		
+
 			// select data_out signal
 			argptr = argptr.next;
 			int q = d_in;
 			simals_schedule_node_update(primhead, argptr, '=',
-				q, Stimuli.GATE_STRENGTH, als.simals_time_abs);
+				new Integer(q), Stimuli.GATE_STRENGTH, als.simals_time_abs);
 		}
 	}
 
@@ -274,7 +274,7 @@ public class UserCom
 				argptr = argptr.next;
 			}
 			simals_schedule_node_update(primhead, argptr, '=',
-				state, Stimuli.VDD_STRENGTH, als.simals_time_abs);
+				new Integer(state), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 		}
 	}
 
@@ -296,27 +296,27 @@ public class UserCom
 		{
 			ALS.ALSExport argptr = primhead.exptr;
 			int input = argptr.nodeptr.sum_state;
-		
+
 			for (int i = 7; i > -1; --i)
 			{
 				argptr = argptr.next;
-		
+
 				int mask = (0x01 << i);
 				if ((input & mask) != 0)
 				{
 					simals_schedule_node_update(primhead, argptr, '=',
-						Stimuli.LOGIC_HIGH, Stimuli.VDD_STRENGTH, als.simals_time_abs);
+						new Integer(Stimuli.LOGIC_HIGH), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 				} else
 				{
 					simals_schedule_node_update(primhead, argptr, '=',
-						Stimuli.LOGIC_LOW, Stimuli.VDD_STRENGTH, als.simals_time_abs);
+						new Integer(Stimuli.LOGIC_LOW), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 				}
 			}
 		}
 	}
 
 	/************************** UNUSED USER FUNCTION ROUTINES **************************/
-	
+
 //	/**
 //	 * Class is an event driven function which is called to calculate
 //	 * statistics for nodes which are defined as queues.  Statistics are calculated
@@ -345,7 +345,7 @@ public class UserCom
 //				funchead.userint = 0;
 //				funchead.userfloat = 0;
 //			}
-//		
+//
 //			nodehead.tk_sec += (nodehead.t_last - funchead.userfloat) * funchead.userint;
 //			if (nodehead.sum_state > funchead.userint)
 //			{
@@ -356,12 +356,12 @@ public class UserCom
 //			{
 //				nodehead.depart += funchead.userint - nodehead.sum_state;
 //			}
-//		
+//
 //			funchead.userint = nodehead.sum_state;
 //			funchead.userfloat = (float)nodehead.t_last;
 //		}
 //	}
-	
+
 //	/**
 //	 * Class is an event driven function which is called to summarize
 //	 * the number of characters arriving into a station.
@@ -379,7 +379,7 @@ public class UserCom
 //		{
 //			ALS.ALSExport argptr = primhead.exptr;
 //			if ((argptr.nodeptr.sum_state % 100) != 0) return;
-//		
+//
 //			System.out.println("Characters arriving into Station (N" + argptr.nodeptr.num +
 //				") = " + argptr.nodeptr.sum_state + ", Time = " + als.simals_time_abs);
 //		}
@@ -402,7 +402,7 @@ public class UserCom
 //			ALS.ALSExport argptr = primhead.exptr;
 //			int ck = argptr.nodeptr.sum_state;
 //			if (ck != Stimuli.LOGIC_HIGH) return;
-//		
+//
 //			argptr = argptr.next;
 //			int reset = argptr.nodeptr.sum_state;
 //			argptr = argptr.next;
@@ -410,32 +410,32 @@ public class UserCom
 //			ALS.ALSExport countptr = argptr;
 //			argptr = argptr.next;
 //			int out = argptr.nodeptr.sum_state;
-//		
+//
 //			if (reset == Stimuli.LOGIC_LOW)
 //			{
 //				simals_schedule_node_update(primhead, countptr, '=',
-//					0, Stimuli.GATE_STRENGTH, als.simals_time_abs + 30e-9);
+//					new Integer(0), Stimuli.GATE_STRENGTH, als.simals_time_abs + 30e-9);
 //				simals_schedule_node_update(primhead, argptr, '=',
-//						Stimuli.LOGIC_LOW, Stimuli.GATE_STRENGTH, als.simals_time_abs + 30e-9);
+//					new Integer(Stimuli.LOGIC_LOW), Stimuli.GATE_STRENGTH, als.simals_time_abs + 30e-9);
 //				return;
 //			}
-//		
+//
 //			count = (count + 1) % 16;
 //			simals_schedule_node_update(primhead, countptr, '=',
-//				count, Stimuli.GATE_STRENGTH, als.simals_time_abs + 20e-9);
-//		
+//				new Integer(count), Stimuli.GATE_STRENGTH, als.simals_time_abs + 20e-9);
+//
 //			if (count == 15)
 //			{
 //				simals_schedule_node_update(primhead, argptr, '=',
-//					Stimuli.LOGIC_HIGH, Stimuli.GATE_STRENGTH, als.simals_time_abs + 18e-9);
+//					new Integer(Stimuli.LOGIC_HIGH), Stimuli.GATE_STRENGTH, als.simals_time_abs + 18e-9);
 //			} else
 //			{
 //				simals_schedule_node_update(primhead, argptr, '=',
-//					Stimuli.LOGIC_LOW, Stimuli.GATE_STRENGTH, als.simals_time_abs + 22e-9);
+//					new Integer(Stimuli.LOGIC_LOW), Stimuli.GATE_STRENGTH, als.simals_time_abs + 22e-9);
 //			}
 //		}
 //	}
-	
+
 //	/**
 //	 * Class is an event driven function which is called to calculate
 //	 * the binary exponential backoff time delay for an Ethernet system.
@@ -452,21 +452,21 @@ public class UserCom
 //		void simulate(ALS.Model primhead)
 //		{
 //			double base_delay = 10e-6;
-//		
+//
 //			ALS.ALSExport retx = primhead.exptr;
 //			ALS.ALSExport server = retx.next;
-//		
+//
 //			if (retx.nodeptr.sum_state == 0) return;
-//		
+//
 //			double delay = 2.0 * Math.random() * base_delay *
 //				(1 << (retx.nodeptr.sum_state - 1)) + als.simals_time_abs;
 //			simals_schedule_node_update(primhead, server, '=',
-//				1, Stimuli.VDD_STRENGTH, delay);
+//				new Integer(1), Stimuli.VDD_STRENGTH, delay);
 //			simals_schedule_node_update(primhead, server, '=',
-//					Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, delay);
+//				new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, delay);
 //		}
 //	}
-	
+
 //	/**
 //	 * Class simulates the operation of a FIFO element in a data
 //	 * communication system.  Data is stored in a block of memory of fixed
@@ -500,7 +500,7 @@ public class UserCom
 //			ALS.ALSExport output_ptr = argptr;
 //			argptr = argptr.next;
 //			ALS.ALSExport size_ptr = argptr;
-//		
+//
 //			ALS.Func funchead = (ALS.Func) primhead.ptr;
 //			FIFOMem fifohead = (FIFOMem) funchead.userptr;
 //			if (fifohead == null)
@@ -511,13 +511,13 @@ public class UserCom
 //				fifohead.state = new int[FIFO_SIZE];
 //				funchead.userptr = fifohead;
 //			}
-//		
+//
 //			if (input_ptr.nodeptr.sum_state > 0)
 //			{
 //				simals_schedule_node_update(primhead, input_ptr, '=',
-//					0, Stimuli.VDD_STRENGTH, als.simals_time_abs);
+//					new Integer(0), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 //				simals_schedule_node_update(primhead, input_ptr, '=',
-//					Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+//					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 //				if (size_ptr.nodeptr.sum_state >= FIFO_SIZE)
 //				{
 //					System.out.println("Data loss has occured: Value = " + input_ptr.nodeptr.sum_state + ", Time = " + als.simals_time_abs);
@@ -525,29 +525,29 @@ public class UserCom
 //				}
 //				int new_size = size_ptr.nodeptr.sum_state + 1;
 //				simals_schedule_node_update(primhead, size_ptr, '=',
-//					new_size, Stimuli.VDD_STRENGTH, als.simals_time_abs);
+//					new Integer(new_size), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 //				simals_schedule_node_update(primhead, size_ptr, '=',
-//					Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+//					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 //				fifohead.state[fifohead.w_ptr] = input_ptr.nodeptr.sum_state;
 //				fifohead.w_ptr = ((fifohead.w_ptr) + 1) % FIFO_SIZE;
 //			}
-//		
+//
 //			if (output_ptr.nodeptr.sum_state == 0 && size_ptr.nodeptr.sum_state != 0)
 //			{
 //				simals_schedule_node_update(primhead, output_ptr, '=',
-//					fifohead.state[fifohead.r_ptr], Stimuli.VDD_STRENGTH, als.simals_time_abs);
+//					new Integer(fifohead.state[fifohead.r_ptr]), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 //				simals_schedule_node_update(primhead, output_ptr, '=',
-//					Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+//					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 //				int new_size = size_ptr.nodeptr.sum_state - 1;
 //				simals_schedule_node_update(primhead, size_ptr, '=',
-//					new_size, Stimuli.VDD_STRENGTH, als.simals_time_abs);
+//					new Integer(new_size), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 //				simals_schedule_node_update(primhead, size_ptr, '=',
-//						Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+//					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 //				fifohead.r_ptr = ((fifohead.r_ptr) + 1) % FIFO_SIZE;
 //			}
 //		}
 //	}
-	
+
 //	/**
 //	 * Class examines the bus to see if a message is destined for it.
 //	 * If so, the data value is examined to determine if the link that the data byte
@@ -567,7 +567,7 @@ public class UserCom
 //		RXData(ALS als) { nameMe(als, "RX_DATA"); }
 //
 //		void simulate(ALS.Model primhead)
-//		{		
+//		{
 //			ALS.ALSExport address = primhead.exptr;
 //			ALS.ALSExport add_in = address.next;
 //			if (address.nodeptr.sum_state != add_in.nodeptr.sum_state) return;
@@ -576,61 +576,61 @@ public class UserCom
 //			ALS.ALSExport rem_xoff = data_type.next;
 //			ALS.ALSExport add_out = rem_xoff.next;
 //			ALS.ALSExport data_out = add_out.next;
-//		
+//
 //			simals_schedule_node_update(primhead, add_in, '=',
-//				0, Stimuli.VDD_STRENGTH, als.simals_time_abs);
+//				new Integer(0), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 //			simals_schedule_node_update(primhead, add_in, '=',
-//				Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+//				new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 //			simals_schedule_node_update(primhead, data_in, '=',
-//				0, Stimuli.VDD_STRENGTH, als.simals_time_abs);
+//				new Integer(0), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 //			simals_schedule_node_update(primhead, data_in, '=',
-//				Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+//				new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 //			if (((data_in.nodeptr.sum_state) % 2) != 0)
 //			{
 //				simals_schedule_node_update(primhead, data_type, '=',
-//					data_in.nodeptr.sum_state, Stimuli.VDD_STRENGTH, als.simals_time_abs);
+//					new Integer(data_in.nodeptr.sum_state), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 //				simals_schedule_node_update(primhead, data_type, '=',
-//					Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+//					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 //				if (rem_xoff.nodeptr.sum_state != 0)
 //				{
 //					simals_schedule_node_update(primhead, rem_xoff, '=',
-//						0, Stimuli.VDD_STRENGTH, als.simals_time_abs);
+//						new Integer(0), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 //					simals_schedule_node_update(primhead, rem_xoff, '=',
-//						Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+//						new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 //					simals_schedule_node_update(primhead, add_out, '=',
-//						address.nodeptr.sum_state, Stimuli.VDD_STRENGTH, als.simals_time_abs + 50e-6);
+//						new Integer(address.nodeptr.sum_state), Stimuli.VDD_STRENGTH, als.simals_time_abs + 50e-6);
 //					simals_schedule_node_update(primhead, add_out, '=',
-//						Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs + 50e-6);
+//						new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs + 50e-6);
 //					simals_schedule_node_update(primhead, data_out, '=',
-//						5, Stimuli.VDD_STRENGTH, als.simals_time_abs + 50e-6);
+//						new Integer(5), Stimuli.VDD_STRENGTH, als.simals_time_abs + 50e-6);
 //					simals_schedule_node_update(primhead, data_out, '=',
-//						Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs + 50e-6);
+//						new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs + 50e-6);
 //				}
 //			} else
 //			{
 //				simals_schedule_node_update(primhead, data_type, '=',
-//					((data_in.nodeptr.sum_state) - 1), Stimuli.VDD_STRENGTH, als.simals_time_abs);
+//					new Integer(((data_in.nodeptr.sum_state) - 1)), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 //				simals_schedule_node_update(primhead, data_type, '=',
-//						Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+//					new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 //				if (rem_xoff.nodeptr.sum_state == 0)
 //				{
 //					simals_schedule_node_update(primhead, rem_xoff, '=',
-//						1, Stimuli.VDD_STRENGTH, als.simals_time_abs);
+//						new Integer(1), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 //					simals_schedule_node_update(primhead, rem_xoff, '=',
-//						Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs);
+//						new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs);
 //					simals_schedule_node_update(primhead, add_out, '=',
-//						address.nodeptr.sum_state, Stimuli.VDD_STRENGTH, als.simals_time_abs + 50e-6);
+//						new Integer(address.nodeptr.sum_state), Stimuli.VDD_STRENGTH, als.simals_time_abs + 50e-6);
 //					simals_schedule_node_update(primhead, add_out, '=',
-//						Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs + 50e-6);
+//						new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs + 50e-6);
 //					simals_schedule_node_update(primhead, data_out, '=',
-//						7, Stimuli.VDD_STRENGTH, als.simals_time_abs + 50e-6);
+//						new Integer(7), Stimuli.VDD_STRENGTH, als.simals_time_abs + 50e-6);
 //					simals_schedule_node_update(primhead, data_out, '=',
-//							Stimuli.LOGIC_X, Stimuli.OFF_STRENGTH, als.simals_time_abs + 50e-6);
+//						new Integer(Stimuli.LOGIC_X), Stimuli.OFF_STRENGTH, als.simals_time_abs + 50e-6);
 //				}
 //			}
 //		}
 //	}
-	
+
 //	static class AFRegisters extends ALS.UserProc
 //	{
 //		AFRegisters(ALS als) { nameMe(als, "A_F_REGISTERS"); }
@@ -646,48 +646,48 @@ public class UserCom
 //			ALS.ALSExport aout = amid.next;
 //			ALS.ALSExport fmid = aout.next;
 //			ALS.ALSExport fout = fmid.next;
-//		
+//
 //			if (ck.nodeptr.sum_state == Stimuli.LOGIC_HIGH)
 //			{
 //				if (aload.nodeptr.sum_state == Stimuli.LOGIC_HIGH)
 //				{
 //					simals_schedule_node_update(primhead, amid, '=',
-//						ain.nodeptr.sum_state, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(ain.nodeptr.sum_state), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //				}
 //				if (fload.nodeptr.sum_state == Stimuli.LOGIC_HIGH)
 //				{
 //					simals_schedule_node_update(primhead, fmid, '=',
-//						fin.nodeptr.sum_state, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(fin.nodeptr.sum_state), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //				}
 //				return;
 //			}
-//		
+//
 //			if (ck.nodeptr.sum_state == Stimuli.LOGIC_LOW)
 //			{
 //				if (aload.nodeptr.sum_state == Stimuli.LOGIC_HIGH)
 //				{
 //					simals_schedule_node_update(primhead, aout, '=',
-//						amid.nodeptr.sum_state, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(amid.nodeptr.sum_state), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //				}
 //				if (fload.nodeptr.sum_state == Stimuli.LOGIC_HIGH)
 //				{
 //					simals_schedule_node_update(primhead, fout, '=',
-//						fmid.nodeptr.sum_state, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(fmid.nodeptr.sum_state), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //				}
 //				return;
 //			}
-//		
+//
 //			simals_schedule_node_update(primhead, amid, '=',
-//				Stimuli.LOGIC_X, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//				new Integer(Stimuli.LOGIC_X), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //			simals_schedule_node_update(primhead, aout, '=',
-//				Stimuli.LOGIC_X, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//				new Integer(Stimuli.LOGIC_X), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //			simals_schedule_node_update(primhead, fmid, '=',
-//				Stimuli.LOGIC_X, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//				new Integer(Stimuli.LOGIC_X), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //			simals_schedule_node_update(primhead, aout, '=',
-//				Stimuli.LOGIC_X, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//				new Integer(Stimuli.LOGIC_X), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //		}
 //	}
-	
+
 //	static class ControlLogic extends ALS.UserProc
 //	{
 //		ControlLogic(ALS als) { nameMe(als, "CONTROL_LOGIC"); }
@@ -700,38 +700,38 @@ public class UserCom
 //			ALS.ALSExport msb = b.next;
 //			ALS.ALSExport aout = msb.next;
 //			ALS.ALSExport fout = aout.next;
-//		
+//
 //			if (b.nodeptr.sum_state == Stimuli.LOGIC_HIGH)
 //			{
 //				simals_schedule_node_update(primhead, aout, '=',
-//					ain.nodeptr.sum_state, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//					new Integer(ain.nodeptr.sum_state), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //			} else
 //			{
 //				 if (b.nodeptr.sum_state == Stimuli.LOGIC_LOW)
 //				 {
 //					simals_schedule_node_update(primhead, aout, '=',
-//						Stimuli.LOGIC_LOW, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(Stimuli.LOGIC_LOW), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //				 } else
 //				 {
 //					simals_schedule_node_update(primhead, aout, '=',
-//						Stimuli.LOGIC_X, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(Stimuli.LOGIC_X), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //				 }
 //			}
-//		
+//
 //			if (msb.nodeptr.sum_state == Stimuli.LOGIC_HIGH)
 //			{
 //				simals_schedule_node_update(primhead, fout, '=',
-//					fin.nodeptr.sum_state, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//					new Integer(fin.nodeptr.sum_state), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //			} else
 //			{
 //				if (msb.nodeptr.sum_state == Stimuli.LOGIC_LOW)
 //				{
 //					simals_schedule_node_update(primhead, fout, '=',
-//						Stimuli.LOGIC_LOW, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(Stimuli.LOGIC_LOW), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //				} else
 //				{
 //					simals_schedule_node_update(primhead, fout, '=',
-//						Stimuli.LOGIC_X, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(Stimuli.LOGIC_X), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //				}
 //			}
 //		}
@@ -748,11 +748,11 @@ public class UserCom
 //			ALS.ALSExport pin = fin.next;
 //			ALS.ALSExport ck = pin.next;
 //			ALS.ALSExport out = ck.next;
-//		
+//
 //			if (ck.nodeptr.sum_state == Stimuli.LOGIC_LOW)
 //			{
 //				simals_schedule_node_update(primhead, out, '=',
-//					Stimuli.LOGIC_LOW, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//					new Integer(Stimuli.LOGIC_LOW), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //				return;
 //			}
 //
@@ -762,22 +762,22 @@ public class UserCom
 //				if (ain.nodeptr.sum_state == Stimuli.LOGIC_HIGH) ++sum;
 //				if (fin.nodeptr.sum_state == Stimuli.LOGIC_HIGH) ++sum;
 //				if (pin.nodeptr.sum_state == Stimuli.LOGIC_HIGH) ++sum;
-//		
+//
 //				sum %= 2;
 //				if (sum != 0)
 //				{
 //					simals_schedule_node_update(primhead, out, '=',
-//						Stimuli.LOGIC_HIGH, Stimuli.GATE_STRENGTH, als.simals_time_abs + 5.0e-9);
+//						new Integer(Stimuli.LOGIC_HIGH), Stimuli.GATE_STRENGTH, als.simals_time_abs + 5.0e-9);
 //				} else
 //				{
 //					simals_schedule_node_update(primhead, out, '=',
-//						Stimuli.LOGIC_LOW, Stimuli.GATE_STRENGTH, als.simals_time_abs + 5.0e-9);
+//						new Integer(Stimuli.LOGIC_LOW), Stimuli.GATE_STRENGTH, als.simals_time_abs + 5.0e-9);
 //				}
 //				return;
 //			}
-//		
+//
 //			simals_schedule_node_update(primhead, out, '=',
-//				Stimuli.LOGIC_X, Stimuli.GATE_STRENGTH, als.simals_time_abs + 5.0e-9);
+//				new Integer(Stimuli.LOGIC_X), Stimuli.GATE_STRENGTH, als.simals_time_abs + 5.0e-9);
 //		}
 //	}
 
@@ -796,49 +796,49 @@ public class UserCom
 //			ALS.ALSExport osr_out = osr_mid.next;
 //			ALS.ALSExport pmid = osr_out.next;
 //			ALS.ALSExport pout = pmid.next;
-//		
+//
 //			if (ck.nodeptr.sum_state == Stimuli.LOGIC_HIGH)
 //			{
 //				if (load_osr.nodeptr.sum_state == Stimuli.LOGIC_LOW)
 //				{
 //					simals_schedule_node_update(primhead, pmid, '=',
-//						sum_in.nodeptr.sum_state, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(sum_in.nodeptr.sum_state), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //					simals_schedule_node_update(primhead, osr_mid, '=',
-//						osr_in.nodeptr.sum_state, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(osr_in.nodeptr.sum_state), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //				}
 //				if (load_osr.nodeptr.sum_state == Stimuli.LOGIC_HIGH)
 //				{
 //					simals_schedule_node_update(primhead, osr_mid, '=',
-//						sum_in.nodeptr.sum_state, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(sum_in.nodeptr.sum_state), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //				}
 //				if (sync.nodeptr.sum_state == Stimuli.LOGIC_HIGH)
 //				{
 //					simals_schedule_node_update(primhead, pmid, '=',
-//							Stimuli.LOGIC_LOW, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(Stimuli.LOGIC_LOW), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //				}
 //				return;
 //			}
-//		
+//
 //			if (ck.nodeptr.sum_state == Stimuli.LOGIC_LOW)
 //			{
 //				if (load_osr.nodeptr.sum_state == Stimuli.LOGIC_LOW)
 //				{
 //					simals_schedule_node_update(primhead, osr_out, '=',
-//						osr_mid.nodeptr.sum_state, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(osr_mid.nodeptr.sum_state), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //					simals_schedule_node_update(primhead, pout, '=',
-//						pmid.nodeptr.sum_state, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//						new Integer(pmid.nodeptr.sum_state), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //				}
 //				return;
 //			}
-//		
+//
 //			simals_schedule_node_update(primhead, osr_mid, '=',
-//					Stimuli.LOGIC_X, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//				new Integer(Stimuli.LOGIC_X), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //			simals_schedule_node_update(primhead, osr_out, '=',
-//					Stimuli.LOGIC_X, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//				new Integer(Stimuli.LOGIC_X), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //			simals_schedule_node_update(primhead, pmid, '=',
-//					Stimuli.LOGIC_X, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//				new Integer(Stimuli.LOGIC_X), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //			simals_schedule_node_update(primhead, pout, '=',
-//					Stimuli.LOGIC_X, Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
+//				new Integer(Stimuli.LOGIC_X), Stimuli.GATE_STRENGTH, als.simals_time_abs + 3.0e-9);
 //		}
 //	}
 
@@ -867,9 +867,9 @@ public class UserCom
 //				if (bit == Stimuli.LOGIC_HIGH) state += (0x01 << i);
 //				argptr = argptr.next;
 //			}
-//		
+//
 //			simals_schedule_node_update(primhead, argptr, '=',
-//				state, Stimuli.VDD_STRENGTH, als.simals_time_abs);
+//				new Integer(state), Stimuli.VDD_STRENGTH, als.simals_time_abs);
 //		}
 //	}
 }

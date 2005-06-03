@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP/MAN: (06/03/05, SMR) Added generic versions of the purple/red/orange libraries.
+
 IMP/MAN: (06/01/05, SMR) First implementation of ALS simulator.
 
 BUG: (05/30/05, SMR) Rigid arcs don't propagate hierarchically.

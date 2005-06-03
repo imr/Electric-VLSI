@@ -94,12 +94,23 @@ public class Simulate extends Input
 	}
 
 	/**
+	 * Method called from the pulldown menus to read ArcSim output and plot it.
+	 */
+	public static void plotArcSimResults()
+	{
+		plotSimulationResults(FileType.ARCSIMOUT, null, null, null);
+	}
+
+	/**
 	 * Method to read simulation output of a given type.
 	 */
 	public static void plotSimulationResults(FileType type, Cell cell, URL fileURL, WaveformWindow ww)
 	{
 		Simulate is = null;
-		if (type == FileType.HSPICEOUT)
+		if (type == FileType.ARCSIMOUT)
+		{
+			is = (Simulate)new ArcSimOut();
+		} else if (type == FileType.HSPICEOUT)
 		{
 			is = (Simulate)new HSpiceOut();
 		} else if (type == FileType.PSPICEOUT)

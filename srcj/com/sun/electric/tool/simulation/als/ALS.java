@@ -42,6 +42,14 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -53,14 +61,12 @@ public class ALS extends Engine
 {
 	Sim theSim;
 	Flat theFlat;
-	Command theCommand;
 	WaveformWindow ww;
 
 	ALS()
 	{
 		theSim = new Sim(this);
 		theFlat = new Flat(this);
-		theCommand = new Command(this);
 	}
 
 	Sim getSim() { return theSim; }
@@ -78,50 +84,15 @@ public class ALS extends Engine
 	 */
 	public void update()
 	{
-//		playVectors();
+		theSim.simals_initialize_simulator(true);
 	}
 
 	/**
 	 * Method to set the currently-selected signal high at the current time.
 	 */
 	public void setSignalHigh()
-	{	
-		List signals = ww.getHighlightedNetworkNames();
-		String [] parameters = new String[1];
-		for(Iterator it = signals.iterator(); it.hasNext(); )
-		{
-			Signal sig = (Signal)it.next();
-			String sigName = sig.getFullName();
-			ALS.Node nodehead = simals_find_node(sigName);
-			if (nodehead == null)
-			{
-				System.out.println("ERROR: Unable to find node " + sigName);
-				return;
-			}
-
-			String level = "h";
-			int state = simals_trans_state_to_number(level);
-			int strength = Stimuli.NODE_STRENGTH;
-			double time = ww.getMainTimeCursor();
-		
-			ALS.Link sethead = new ALS.Link();
-			sethead.type = 'N';
-			sethead.ptr = nodehead;
-			sethead.state = state;
-			sethead.strength = strength;
-			sethead.priority = 2;
-			sethead.time = time;
-			sethead.right = null;
-			theSim.simals_insert_set_list(sethead);
-		
-			System.out.println("Node '" + sigName + "' scheduled, state = " + level +
-				", strength = " + Command.simals_strengthstring(strength) + ", time = " + time);
-			theSim.simals_initialize_simulator(false);
-//			if ((sim_window_state&ADVANCETIME) != 0) sim_window_setmaincursor(endtime);
-		}
-
-//		if (Simulation.isIRSIMResimulateEach())
-//			playVectors();
+	{
+		makeThemThus(Stimuli.LOGIC_HIGH);
 	}
 
 	/**
@@ -129,16 +100,15 @@ public class ALS extends Engine
 	 */
 	public void setSignalLow()
 	{
-//		List signals = ww.getHighlightedNetworkNames();
-//		String [] parameters = new String[1];
-//		for(Iterator it = signals.iterator(); it.hasNext(); )
-//		{
-//			Signal sig = (Signal)it.next();
-//			parameters[0] = sig.getFullName().replace('.', '/');
-//			newVector(VECTORL, parameters, ww.getMainTimeCursor(), false);
-//		}
-//		if (Simulation.isIRSIMResimulateEach())
-//			playVectors();
+		makeThemThus(Stimuli.LOGIC_LOW);
+	}
+
+	/**
+	 * Method to set the currently-selected signal to have a clock with a given period.
+	 */
+	public void setClock(double period)
+	{
+		System.out.println("ALS CANNOT HANDLE CLOCKS YET");
 	}
 
 	/**
@@ -146,16 +116,46 @@ public class ALS extends Engine
 	 */
 	public void setSignalX()
 	{
-//		List signals = ww.getHighlightedNetworkNames();
-//		String [] parameters = new String[1];
-//		for(Iterator it = signals.iterator(); it.hasNext(); )
-//		{
-//			Signal sig = (Signal)it.next();
-//			parameters[0] = sig.getFullName().replace('.', '/');
-//			newVector(VECTORX, parameters, ww.getMainTimeCursor(), false);
-//		}
-//		if (Simulation.isIRSIMResimulateEach())
-//			playVectors();
+		makeThemThus(Stimuli.LOGIC_X);
+	}
+
+	private void makeThemThus(int state)
+	{
+		List signals = ww.getHighlightedNetworkNames();
+		String [] parameters = new String[1];
+		for(Iterator it = signals.iterator(); it.hasNext(); )
+		{
+			Signal sig = (Signal)it.next();
+			String sigName = sig.getFullName();
+			Node nodehead = simals_find_node(sigName);
+			if (nodehead == null)
+			{
+				System.out.println("ERROR: Unable to find node " + sigName);
+				return;
+			}
+
+			int strength = Stimuli.NODE_STRENGTH;
+			double time = ww.getMainTimeCursor();
+
+			Link sethead = new Link();
+			sethead.type = 'N';
+			sethead.ptr = nodehead;
+			sethead.state = new Integer(state);
+			sethead.strength = strength;
+			sethead.priority = 2;
+			sethead.time = time;
+			sethead.right = null;
+			theSim.simals_insert_set_list(sethead);
+
+//			System.out.println("Node '" + sigName + "' scheduled, state = " + state +
+//				", strength = " + Command.simals_strengthstring(strength) + ", time = " + time);
+		}
+
+		if (Simulation.isIRSIMResimulateEach())
+		{
+			theSim.simals_initialize_simulator(true);
+//			if ((sim_window_state&ADVANCETIME) != 0) sim_window_setmaincursor(endtime);
+		}
 	}
 
 	/**
@@ -183,35 +183,42 @@ public class ALS extends Engine
 	 */
 	public void removeStimuliFromSignal()
 	{
-//		List signals = ww.getHighlightedNetworkNames();
-//		if (signals.size() != 1)
-//		{
-//			System.out.println("Must select a single signal on which to clear stimuli");
-//			return;
-//		}
-//		Signal sig = (Signal)signals.get(0);
-//		String highsigname = sig.getFullName();
-//		sig.clearControlPoints();
-//
-//		SimVector lastSV = null;
-//		for(SimVector sv = firstVector; sv != null; sv = sv.next)
-//		{
-//			if (sv.command == VECTORL || sv.command == VECTORH || sv.command == VECTORX ||
-//				sv.command == VECTORASSERT || sv.command == VECTORSET)
-//			{
-//				if (sv.sigs.contains(sig))
-//				{
-//					if (lastSV == null)
-//						firstVector = sv.next; else
-//							lastSV.next = sv.next;
-//					continue;
-//				}
-//			}
-//			lastSV = sv;
-//		}
-//		lastVector = lastSV;
-//		if (Simulation.isIRSIMResimulateEach())
-//			playVectors();
+System.out.println("DOESN'T WORK YET");
+
+		List signals = ww.getHighlightedNetworkNames();
+		if (signals.size() != 1)
+		{
+			System.out.println("Must select a single signal on which to clear stimuli");
+			return;
+		}
+		Signal sig = (Signal)signals.get(0);
+		String highsigname = sig.getFullName();
+		sig.clearControlPoints();
+
+		Link lastset = null;
+		Link nextset = null;
+		for(Link thisset = simals_setroot; thisset != null; thisset = nextset)
+		{
+			nextset = thisset.right;
+			boolean delete = false;
+			if (thisset.ptr instanceof Node)
+			{
+				Node node = (Node)thisset.ptr;
+				if (node.sig == sig) delete = true;
+			}
+			if (delete)
+			{
+				if (lastset == null) simals_setroot = nextset; else
+					lastset.right= nextset;
+			} else
+			{
+				lastset = thisset;
+			}
+		}
+		if (Simulation.isIRSIMResimulateEach())
+		{
+			theSim.simals_initialize_simulator(true);
+		}
 	}
 
 	/**
@@ -219,32 +226,55 @@ public class ALS extends Engine
 	 */
 	public void removeSelectedStimuli()
 	{
-//		boolean found = false;
-//		for(Iterator it = ww.getPanels(); it.hasNext(); )
-//		{
-//			WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-//			for(Iterator sIt = wp.getSignals().iterator(); sIt.hasNext(); )
-//			{
-//				WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
-//				if (!ws.isSelected()) continue;
-//				double [] selectedCPs = ws.getSelectedControlPoints();
-//				if (selectedCPs == null) continue;
-//				for(int i=0; i<selectedCPs.length; i++)
-//				{
-//					if (clearControlPoint(ws.getSignal(), selectedCPs[i]))
-//						found = true;
-//				}
-//			}
-//		}
-//		if (!found)
-//		{
-//			System.out.println("There are no selected control points to remove");
-//			return;
-//		}
-//
-//		// resimulate if requested
-//		if (Simulation.isIRSIMResimulateEach())
-//			playVectors();
+System.out.println("DOESN'T WORK YET");
+
+		boolean found = false;
+		for(Iterator it = ww.getPanels(); it.hasNext(); )
+		{
+			WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
+			for(Iterator sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			{
+				WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
+				if (!ws.isSelected()) continue;
+				double [] selectedCPs = ws.getSelectedControlPoints();
+				if (selectedCPs == null) continue;
+				for(int i=0; i<selectedCPs.length; i++)
+				{
+					Signal sig = ws.getSignal();
+					Link lastset = null;
+					Link nextset = null;
+					for(Link thisset = simals_setroot; thisset != null; thisset = nextset)
+					{
+						nextset = thisset.right;
+						boolean delete = false;
+						if (thisset.ptr instanceof Node)
+						{
+							Node node = (Node)thisset.ptr;
+							if (node.sig == sig && thisset.time == selectedCPs[i]) delete = true;
+						}
+						if (delete)
+						{
+							if (lastset == null) simals_setroot = nextset; else
+								lastset.right= nextset;
+							found = true;
+							break;
+						} else
+						{
+							lastset = thisset;
+						}
+					}
+				}
+			}
+		}
+		if (!found)
+		{
+			System.out.println("There are no selected control points to remove");
+			return;
+		}
+		if (Simulation.isIRSIMResimulateEach())
+		{
+			theSim.simals_initialize_simulator(true);
+		}
 	}
 
 	/**
@@ -252,18 +282,11 @@ public class ALS extends Engine
 	 */
 	public void removeAllStimuli()
 	{
-//		for(Iterator it = ww.getPanels(); it.hasNext(); )
-//		{
-//			WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-//			for(Iterator sIt = wp.getSignals().iterator(); sIt.hasNext(); )
-//			{
-//				WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
-//				ws.getSignal().clearControlPoints();
-//			}
-//		}
-//
-//		if (Simulation.isIRSIMResimulateEach())
-//			clearAllVectors();
+		simals_clearallvectors(false);
+		if (Simulation.isIRSIMResimulateEach())
+		{
+			theSim.simals_initialize_simulator(true);
+		}
 	}
 
 	/**
@@ -271,8 +294,41 @@ public class ALS extends Engine
 	 */
 	public void saveStimuli()
 	{
-		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-			"The ALS Simulator cannot save stimuli information to disk", "ALS Simulation Error", JOptionPane.ERROR_MESSAGE);
+		String stimuliFileName = OpenFile.chooseOutputFile(FileType.ALSVECTOR, "ALS Vector file", simals_mainproto.getName() + ".vec");
+		if (stimuliFileName ==  null) return;
+		try
+		{
+			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(stimuliFileName)));
+
+			for (Link sethead = simals_setroot; sethead != null; sethead = sethead.right)
+			{
+				switch (sethead.type)
+				{
+//					case 'C':
+//						Row clokhead = (Row)sethead.ptr;
+//						Link vecthead = (Link)clokhead.inptr;
+//						String s1 = simals_compute_node_name((Node)vecthead.ptr);
+//						printWriter.println("CLOCK " + s1 + " D=" + clokhead.delta + " L=" + clokhead.linear +
+//							" E=" + clokhead.exp + " STRENGTH=" + (vecthead.strength/2) + " TIME=" + sethead.time + " CYCLES=" + sethead.state);
+//						for (; vecthead != null; vecthead = vecthead.right)
+//						{
+//							String s2 = simals_trans_number_to_state(vecthead.state);
+//							printWriter.println("  " + s2 + " " + vecthead.time);
+//						}
+//						break;
+					case 'N':
+						String s1 = simals_compute_node_name((Node)sethead.ptr);
+						String s2 = simals_trans_number_to_state(((Integer)sethead.state).intValue());
+						printWriter.println("SET " + s1 + "=" + s2 + "@" + (sethead.strength/2) + " TIME=" + sethead.time);
+				}
+			}
+			printWriter.close();
+		} catch (IOException e)
+		{
+			System.out.println("Error writing results");
+			return;
+		}
+		System.out.println("Wrote " + stimuliFileName);
 	}
 
 	/**
@@ -280,74 +336,152 @@ public class ALS extends Engine
 	 */
 	public void restoreStimuli()
 	{
-		JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-			"The ALS Simulator cannot restore stimuli information from disk", "ALS Simulation Error", JOptionPane.ERROR_MESSAGE);
+		String stimuliFileName = OpenFile.chooseInputFile(FileType.ALSVECTOR, "ALS Vector file");
+		if (stimuliFileName == null) return;
+		URL url = TextUtils.makeURLToFile(stimuliFileName);
+		try
+		{
+			URLConnection urlCon = url.openConnection();
+			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
+			LineNumberReader lineReader = new LineNumberReader(is);
+
+			// clear all vectors
+			while (simals_setroot != null)
+			{
+				simals_setroot = simals_setroot.right;
+			}
+
+			boolean flag = true;
+			for(;;)
+			{
+				if (flag)
+				{
+					String s1 = lineReader.readLine();
+					if (s1 == null)
+					{
+						theSim.simals_initialize_simulator(false);
+						break;
+					}
+					s1 = s1.toUpperCase();
+					if (simals_fragment_command(s1)) break;
+				}
+
+				if (simals_instbuf.equals("CLOCK"))
+				{
+//					simals_convert_to_upper(&(simals_instbuf[simals_instptr[1]]));
+//					nodehead = ALS.simals_find_node(&(simals_instbuf[simals_instptr[1]]));
+//					if (! nodehead)
+//					{
+//						System.out.println("ERROR: Unable to find node %s"),
+//							&(simals_instbuf[simals_instptr[1]]));
+//						flag = true;
+//						continue;
+//					}
+//					strength = eatoi(&(simals_instbuf[simals_instptr[9]]))*2;
+//
+//					sethead = new ALS.Link();
+//					if (sethead == 0) return;
+//					sethead.type = 'C';
+//					sethead.ptr = (CHAR*)(clokhead = new ALS.Row());
+//					sethead.state = eatoi(&(simals_instbuf[simals_instptr[13]]));
+//					sethead.priority = 1;
+//					sethead.time = eatof(&(simals_instbuf[simals_instptr[11]]));
+//					sethead.right = 0;
+//					Sim.simals_insert_set_list(sethead);
+//
+//					clokhead.delta = (float)eatof(&(simals_instbuf[simals_instptr[3]]));
+//					clokhead.linear = (float)eatof(&(simals_instbuf[simals_instptr[5]]));
+//					clokhead.exp = (float)eatof(&(simals_instbuf[simals_instptr[7]]));
+//					clokhead.abs = 0.0;
+//					clokhead.random = 0.0;
+//					clokhead.next = 0;
+//					clokhead.delay = 0;
+//
+//					vectptr1 = (CHAR**) &(clokhead.inptr);
+//					for(;;)
+//					{
+//						if (xfgets(s1, 255, vin))
+//						{
+//							xclose(vin);
+//							Sim.simals_initialize_simulator(false);
+//							return;
+//						}
+//						simals_convert_to_upper(s1);
+//						if (simals_fragment_command(s1)) return;
+//						if (!estrcmp(simals_instbuf, x_("CLOCK")) || !estrcmp(simals_instbuf, x_("SET")))
+//						{
+//							flag = false;
+//							break;
+//						}
+//						vectptr2 = new ALS.Link();
+//						if (vectptr2 == 0) return;
+//						vectptr2.type = 'N';
+//						vectptr2.ptr = (CHAR *)nodehead;
+//						vectptr2.state = ALS.simals_trans_state_to_number(simals_instbuf);
+//						vectptr2.strength = strength;
+//						vectptr2.priority = 1;
+//						vectptr2.time = eatof(&(simals_instbuf[simals_instptr[1]]));
+//						vectptr2.right = 0;
+//						*vectptr1 = (CHAR*) vectptr2;
+//						vectptr1 = (CHAR**) &(vectptr2.right);
+//					}
+				}
+
+				if (simals_instbuf.equals("SET"))
+				{
+//					simals_convert_to_upper(&(simals_instbuf[simals_instptr[1]]));
+//					nodehead = ALS.simals_find_node(&(simals_instbuf[simals_instptr[1]]));
+//					if (! nodehead)
+//					{
+//						System.out.println("ERROR: Unable to find node %s"),
+//							&(simals_instbuf[simals_instptr[1]]));
+//						flag = true;
+//						continue;
+//					}
+//
+//					sethead = new ALS.Link();
+//					if (sethead == 0) return;
+//					sethead.type = 'N';
+//					sethead.ptr = (CHAR *) nodehead;
+//					sethead.state = ALS.simals_trans_state_to_number(&(simals_instbuf[simals_instptr[2]]));
+//					sethead.strength = eatoi(&(simals_instbuf[simals_instptr[3]]))*2;
+//					sethead.priority = 2;
+//					sethead.time = eatof(&(simals_instbuf[simals_instptr[5]]));
+//					sethead.right = 0;
+//					Sim.simals_insert_set_list(sethead);
+//					flag = true;
+				}
+			}
+			lineReader.close();
+		} catch (IOException e)
+		{
+			System.out.println("Error reading " + stimuliFileName);
+			return;
+		}
 	}
 
 	/**
-	 * Method to start ALS simulation of cell "cell".
+	 * Method to simulate the a Cell, given its context and the Cell with the real netlist.
+	 * @param netlistCell the Cell with the real ALS netlist.
+	 * @param np the original Cell being simulated.
+	 * @param context the context to the Cell being simulated.
 	 */
-	public static void startSimulation(Cell cell, VarContext context)
+	public static void simulateNetlist(Cell netlistCell, Cell np, VarContext context)
 	{
-		new SimulateWithALS(cell, context);
+		ALS theALS = new ALS();
+		theALS.doSimulation(netlistCell, np, context);
 	}
 
-    private static class SimulateWithALS extends Job
-    {
-        private Cell cell;
-		private VarContext context;
-
-        protected SimulateWithALS(Cell cell, VarContext context)
-        {
-            super("Simulate Cell with ALS", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.cell = cell;
-            this.context = context;
-            startJob();
-        }
-
-        public boolean doIt()
-        {
-			ALS theALS = new ALS();
-			theALS.doSimulation(cell, context);
-            return true;
-        }
-    }
-
-	private void doSimulation(Cell np, VarContext context)
+	private void doSimulation(Cell netlistCell, Cell cell, VarContext context)
 	{
 		// initialize memory
 		simals_init();
 
-		// compile the VHDL to an ALS netlist
-		System.out.print("Compiling VHDL in '" + np.describe() + "' ...");
-		CompileVHDL c = new CompileVHDL(np);
-		if (c.hasErrors())
-		{
-			System.out.println("ERRORS during compilation, no netlist produced");
-			return;
-		}
-		List netlistStrings = c.getALSNetlist();
-		if (netlistStrings == null)
-		{
-			System.out.println("No netlist produced");
-			return;
-		}
-
-		// store the ALS netlist
-		Cell netlistCell = Cell.makeInstance(np.getLibrary(), np.getName() + "{net.als}");
-		if (netlistCell == null) return;
-		String [] array = new String[netlistStrings.size()];
-		for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
-		netlistCell.setTextViewContents(array);
-		System.out.println(" Done, created '" + netlistCell.describe() + "'");
-
 		// read netlist
-		theCommand.simals_erase_model();
-		if (simals_read_net_desc(netlistCell)) return;
+		simals_erase_model();
+		if (simals_read_net_desc(netlistCell, cell)) return;
 		if (theFlat.simals_flatten_network()) return;
-	
-		simals_title = null;
-	
+
 		// initialize display
 		Stimuli sd = getCircuit();
 		Simulation.showSimulationData(sd, null);
@@ -362,7 +496,52 @@ public class ALS extends Engine
 		simals_init_display();
 	}
 
-	/** initial size of simulation window: 10ns */		private static final double DEFIRSIMTIMERANGE = 10.0E-9f;
+	void simals_erase_model()
+	{
+		// reset miscellaneous simulation variables
+		simals_linkfront = null;
+		simals_linkback = null;
+
+		// delete all test vectors
+		simals_clearallvectors(true);
+
+		// delete all cells in flattened network
+		simals_cellroot = null;
+		simals_levelptr = null;
+
+		// delete all nodes in flattened network
+		simals_noderoot = null;
+
+		// delete all primitives in flattened network
+		simals_primroot = null;
+
+		// delete each model/gate/function in hierarchical description
+		simals_modroot = null;
+	}
+
+	/**
+	 * Method to clear all test vectors (even the power and ground vectors if "pwrgnd"
+	 * is true).
+	 */
+	void simals_clearallvectors(boolean pwrgnd)
+	{
+		Link lastset = null;
+		Link nextset = null;
+		for(Link thisset = simals_setroot; thisset != null; thisset = nextset)
+		{
+			nextset = thisset.right;
+			if (pwrgnd || thisset.strength != Stimuli.VDD_STRENGTH)
+			{
+				if (lastset == null) simals_setroot = nextset; else
+					lastset.right= nextset;
+			} else
+			{
+				lastset = thisset;
+			}
+		}
+	}
+
+	/** initial size of simulation window: 10ns */		private static final double DEFIRSIMTIMERANGE = 10.0E-9f;		// should be 0.0000005f
 
 	private Stimuli getCircuit()
 	{
@@ -370,22 +549,49 @@ public class ALS extends Engine
 		Stimuli sd = new Stimuli();
 		sd.setSeparatorChar('.');
 		sd.setCell(simals_mainproto);
-		for(ALS.Connect cr = simals_cellroot; cr != null; cr = cr.next)
+		String topLevelName = simals_mainproto.getName().toUpperCase();
+		for(Connect cr = simals_cellroot; cr != null; cr = cr.next)
 		{
-			for(ALS.ALSExport e = cr.exptr; e != null; e = e.next)
+			if (cr.model_name.equals(topLevelName))
 			{
-				DigitalSignal sig = new DigitalSignal(sd);
-				sig.setSignalContext(cr.model_name);
-				sig.setSignalName((String)e.node_name);
-				sig.buildTime(2);
-				sig.buildState(2);
-				sig.setTime(0, 0);
-				sig.setTime(1, 0.00000001);
-				sig.setState(0, 0);
-				sig.setState(1, 0);
+				addExports(cr, sd, null);
+				break;
 			}
 		}
 		return sd;
+	}
+
+	private void addExports(Connect cr, Stimuli sd, String context)
+	{
+		// determine type of model
+		for(Model modptr1 = simals_modroot; modptr1 != null; modptr1 = modptr1.next)
+		{
+			if (modptr1.name.equals(cr.model_name))
+			{
+				if (modptr1.type != 'M') return;
+				break;
+			}
+		}
+		for(ALSExport e = cr.exptr; e != null; e = e.next)
+		{
+			if (e.nodeptr.sig != null) continue;
+			DigitalSignal sig = new DigitalSignal(sd);
+			e.nodeptr.sig = sig;
+			sig.setSignalContext(context);
+			sig.setSignalName((String)e.node_name);
+			sig.buildTime(2);
+			sig.buildState(2);
+			sig.setTime(0, 0);
+			sig.setTime(1, 0.00000001);
+			sig.setState(0, 0);
+			sig.setState(1, 0);
+		}
+		String subContext = context;
+		if (subContext == null) subContext = ""; else subContext += ".";
+		for(Connect child = cr.child; child != null; child = child.next)
+		{
+			addExports(child, sd, subContext + child.inst_name);
+		}
 	}
 
 	/********************************* THE HEADER FILE *********************************/
@@ -407,13 +613,7 @@ public class ALS extends Engine
 		/** Describes a typical delay. */		public static final DelayTypes DELAY_TYP    = new DelayTypes();
 		/** Describes a maximum delay. */		public static final DelayTypes DELAY_MAX    = new DelayTypes();
 	}
-	
-	/* The trace buffer in ALS can currently hold 10000 events.
-	 * More events can be accommodated in the trace buffer by
-	 * increasing its size.
-	 */
-	private static final int DEFAULT_TRACE_SIZE = 10000;
-	
+
 	static class Model
 	{
 		int       num;
@@ -421,18 +621,18 @@ public class ALS extends Engine
 		char      type;
 		Object    ptr;	/* may be Connect, Row, or Func */
 		ALSExport exptr;
-		List      setList;		// IO        setptr;
+		List      setList;
 		Load      loadptr;
 		char      fanout;
 		int       priority;
 		Model     next;
 		String    level;  /* hierarchical level */
 	};
-	
+
 	static class Row
 	{
-		List   inList;		// IO     inptr;
-		List   outList;     // IO     outptr;
+		List   inList;
+		List   outList;
 		float  delta;
 		float  linear;
 		float  exp;
@@ -441,7 +641,7 @@ public class ALS extends Engine
 		Row    next;
 		String delay;  /* delay transition name (01, 10, etc) */
 	};
-	
+
 	static class IO
 	{
 		Object  nodeptr;
@@ -449,7 +649,7 @@ public class ALS extends Engine
 		Object  operand;
 		int     strength;
 	};
-	
+
 	static class Connect
 	{
 		String    inst_name;
@@ -458,10 +658,10 @@ public class ALS extends Engine
 		Connect   parent;
 		Connect   child;
 		Connect   next;
-		Channel   display_page;  /* pointer to the display page */
+//		Channel   display_page;  /* pointer to the display page */
 		int       num_chn;       /* number of exported channels in this level */
 	};
-	
+
 	static class ALSExport
 	{
 		Object    node_name;
@@ -469,7 +669,7 @@ public class ALS extends Engine
 		ALSExport next;
 		int []    td = new int[12];  /* transition delays */
 	};
-	
+
 	static class Load
 	{
 		Object ptr;
@@ -492,7 +692,7 @@ public class ALS extends Engine
 		}
 
 		void simulate(Model primhead) {}
-		
+
 		/**
 		 * Method to return the address of the function specified by
 		 * the calling argument character string.  Each time a routine is added to the
@@ -533,10 +733,10 @@ public class ALS extends Engine
 		 *	strength = integer value representing the logic stregth of the signal
 		 *	time     = double value representing the time the change is to take place
 		 */
-		protected boolean simals_schedule_node_update(ALS.Model primhead, ALS.ALSExport exhead, int operatr,
+		protected boolean simals_schedule_node_update(Model primhead, ALSExport exhead, int operatr,
 			Object state, int strength, double time)
 		{
-			ALS.Stat stathead = (ALS.Stat)exhead.node_name;
+			Stat stathead = (Stat)exhead.node_name;
 			if (stathead.sched_op == operatr && stathead.sched_state == state &&
 				stathead.sched_strength == strength)
 			{
@@ -548,7 +748,7 @@ public class ALS extends Engine
 				System.out.println("      Schedule(F) gate " + stathead.primptr.name + stathead.primptr.level +
 					", net " + s2 + "  at " + TextUtils.convertToEngineeringNotation(time));
 			}
-			ALS.Link linkptr2 = new ALS.Link();
+			Link linkptr2 = new Link();
 			linkptr2.type = 'G';
 			linkptr2.ptr = stathead;
 			linkptr2.operatr = stathead.sched_op = (char)operatr;
@@ -560,7 +760,7 @@ public class ALS extends Engine
 			als.getSim().simals_insert_link_list(linkptr2);
 			return false;
 		}
-		
+
 		/**
 		 * Method to examine all the elements feeding into a node that is
 		 * connected to the current bidirectional element and insures that there are no
@@ -572,50 +772,50 @@ public class ALS extends Engine
 		 *	side[]      = pointers to nodes on each side of the bidir element
 		 *  outstrength = output strength
 		 */
-		ALS.Node  simals_target_node;
-		int   simals_bidirclock = 0;
-		
-		protected void simals_calculate_bidir_outputs(ALS.Model primhead, ALS.ALSExport [] side, int outstrength)
+		private Node  simals_target_node;
+		private int   simals_bidirclock = 0;
+
+		protected void simals_calculate_bidir_outputs(Model primhead, ALSExport [] side, int outstrength)
 		{
 			for(int i=0; i<2; i++)
 			{
-				ALS.ALSExport thisside = side[i];
-				ALS.ALSExport otherside = side[(i+1)%2];
-				ALS.Node sum_node = thisside.nodeptr;
+				ALSExport thisside = side[i];
+				ALSExport otherside = side[(i+1)%2];
+				Node sum_node = thisside.nodeptr;
 				simals_target_node = otherside.nodeptr;
 				if (simals_target_node == als.simals_drive_node) continue;
 				int state = ((Integer)sum_node.new_state).intValue();
 				int strength = sum_node.new_strength;
-		
+
 				simals_bidirclock++;
-				for(ALS.Stat stathead = sum_node.statptr; stathead != null; stathead = stathead.next)
+				for(Stat stathead = sum_node.statptr; stathead != null; stathead = stathead.next)
 				{
 					if (stathead.primptr == primhead) continue;
-		
+
 					sum_node.visit = simals_bidirclock;
-		
+
 					int thisstrength = stathead.new_strength;
 					int thisstate = stathead.new_state;
-		
+
 					if (thisstrength > strength)
 					{
 						state = thisstate;
 						strength = thisstrength;
 						continue;
 					}
-		
+
 					if (thisstrength == strength)
 					{
 						if (thisstate != state) state = Stimuli.LOGIC_X;
 					}
 				}
-		
+
 				// make strength no more than maximum output strength
 				if (strength > outstrength) strength = outstrength;
-		
-				ALS.Func funchead = (ALS.Func)primhead.ptr;
+
+				Func funchead = (Func)primhead.ptr;
 				double time = als.simals_time_abs + (funchead.delta * simals_target_node.load);
-				simals_schedule_node_update(primhead, otherside, '=', state, strength, time);
+				simals_schedule_node_update(primhead, otherside, '=', new Integer(state), strength, time);
 			}
 		}
 	}
@@ -633,17 +833,17 @@ public class ALS extends Engine
 		int        userint;
 		float      userfloat;
 	};
-	
+
 	static class Node
 	{
 		Connect  cellptr;
+		DigitalSignal sig;
 		int      num;
 		int      sum_state;
 		int      sum_strength;
 		Object   new_state;
 		int      new_strength;
 		boolean  tracenode;
-		int      plot_node;
 		Stat     statptr;
 		Load     pinptr;
 		float    load;
@@ -655,7 +855,7 @@ public class ALS extends Engine
 		double   t_last;
 		Node     next;
 	};
-	
+
 	static class Stat
 	{
 		Model   primptr;
@@ -683,24 +883,15 @@ public class ALS extends Engine
 		double  time;
 		Model   primhead;
 	};
-	
+
 	static class Trak
 	{
-		Node     ptr;
 		int      state;
-		int      strength;
 		double   time;
-	};
-	
-	static class Channel
-	{
-		String  name;
-		Node    nodeptr;
-		int     displayptr;
 	};
 
 	/********************************* GLOBALS *********************************/
-	
+
 	Model      simals_modroot = null;
 	Model      simals_modptr2;
 	Model      simals_primroot = null;
@@ -713,7 +904,6 @@ public class ALS extends Engine
 	Link       simals_linkfront = null;
 	Link       simals_linkback = null;
 	Link       simals_setroot = null;
-	Trak    [] simals_trakroot = null;
 	Load       simals_chekroot;
 	List       simals_ioptr1;
 	char    [] simals_instbuf = null;
@@ -724,9 +914,6 @@ public class ALS extends Engine
 	int        netlistStringPoint;
 	int        simals_ibufsize;
 	int        simals_iptrsize;
-	int        simals_trakfull;
-	int        simals_trakptr;
-	boolean    simals_seed_flag = true;
 	boolean    simals_trace_all_nodes = false;
 	double     simals_time_abs;
 	float      simals_delta_def;
@@ -735,16 +922,14 @@ public class ALS extends Engine
 	float      simals_random_def;
 	float      simals_abs_def;
 	Cell       simals_mainproto = null;
-	int        simals_trace_size = 0;
-	String     simals_title = null;
-	
+
 	/********************************* LOCALS *********************************/
-	
+
 	int     i_ptr;
 	String  delay;
-	
+
 	/******************************************************************************/
-	
+
 	void simals_init()
 	{
 		// allocate memory
@@ -755,17 +940,6 @@ public class ALS extends Engine
 		if (simals_instptr == null)
 		{
 			simals_instptr = new int[simals_iptrsize=100];
-		}
-		if (simals_trace_size == 0)
-		{
-			simals_trace_size = DEFAULT_TRACE_SIZE;
-//			Variable var = getval((INTBIG)sim_tool, VTOOL, VINTEGER, x_("SIM_als_num_events"));
-//			if (var != null) simals_trace_size = var.addr;
-		}
-		if (simals_trakroot == null)
-		{
-			simals_trakroot = new Trak[simals_trace_size];
-			if (simals_trakroot == null) return;
 		}
 
 		// create the user-defined functions
@@ -791,12 +965,7 @@ public class ALS extends Engine
 //		new UserCom.AboveAdder();
 //		new UserCom.Bus12ToState();
 	}
-	
-//	void simals_term(void)
-//	{
-//		simals_erase_model();
-//	}
-	
+
 	/*
 	 * routine to create a new window with simulation of cell "simals_mainproto"
 	 */
@@ -807,23 +976,15 @@ public class ALS extends Engine
 			System.out.println("No cell to simulate");
 			return;
 		}
-	
+
 		// set top level
 		simals_levelptr = simals_cellroot;
 		String pt = simals_mainproto.getName().toUpperCase();
-//		Connect cellptr = simals_find_level(pt);
-//		if (cellptr != null) simals_levelptr = cellptr;
-//		if (simals_levelptr == null)
-//		{
-//			System.out.println("No simulation to resume");
-//			return;
-//		}
-//		if (Graph.simals_set_current_level()) return;
-	
+
 		// run simulation
 		theSim.simals_initialize_simulator(true);
 	}
-	
+
 	/**
 	 * Method to get one string from the instruction buffer.
 	 * The procedure returns a null value if End Of File is encountered.
@@ -838,7 +999,7 @@ public class ALS extends Engine
 				return null;
 			}
 			String line = netlistStrings[netlistStringPoint++];
-	
+
 			simals_fragment_line(line);
 			i_ptr = 0;
 		}
@@ -859,17 +1020,17 @@ public class ALS extends Engine
 	{
 		String s1 = simals_get_string();
 		if (s1 == null) return null;
-	
+
 		if (s1.startsWith("+") || s1.startsWith("-"))
 		{
 			String s2 = simals_get_string();
 			if (s2 == null) return null;
 			s1 += s2;
 		}
-	
+
 		return new Integer(TextUtils.atoi(s1));
 	}
-	
+
 	/**
 	 * Method to reads in the required number of strings to compose a
 	 * float value.  It is possible to have a leading +/- sign before the actual
@@ -880,33 +1041,33 @@ public class ALS extends Engine
 	{
 		String s1 = simals_get_string();
 		if (s1 == null) return null;
-	
+
 		if (s1.startsWith("+") || s1.startsWith("-"))
 		{
 			String s2 = simals_get_string();
 			if (s2 == null) return null;
 			s1 += s2;
 		}
-	
+
 		if (!s1.endsWith("E"))
 		{
 			return new Float(TextUtils.atof(s1));
 		}
-	
+
 		String s2 = simals_get_string();
 		if (s2 == null) return null;
 		s1 += s2;
-	
+
 		if (s2.startsWith("+") || s2.startsWith("-"))
 		{
 			String s3 = simals_get_string();
 			if (s3 == null) return null;
 			s1 += s3;
 		}
-	
+
 		return new Float(TextUtils.atof(s1));
 	}
-	
+
 	/**
 	 * Method to read in the required number of strings to compose a
 	 * model/node name for the element. If array subscripting is used, the
@@ -916,14 +1077,14 @@ public class ALS extends Engine
 	{
 		String s1 = simals_get_string();
 		if (s1 == null) return null;
-	
+
 		String s2 = simals_get_string();
 		if (s2 == null || !s2.startsWith("["))
 		{
 			--i_ptr;
 			return s1;
 		}
-	
+
 		s1 = s2;
 		for(;;)
 		{
@@ -934,7 +1095,7 @@ public class ALS extends Engine
 		}
 		return s1;
 	}
-	
+
 	/**
 	 * Method to process the string specified by the calling argument
 	 * and fragments it into a series of smaller character strings, each of which
@@ -945,7 +1106,7 @@ public class ALS extends Engine
 		int j = 0, count = 0;
 		simals_instptr[0] = 0;
 		int k = 1;
-	
+
 		for (int i = 0; ; ++i)
 		{
 			if (j > simals_ibufsize - 3)
@@ -964,7 +1125,7 @@ public class ALS extends Engine
 				simals_instptr = newBuf;
 				simals_iptrsize = newSize;
 			}
-	
+
 			if (i >= line.length())
 			{
 				if (count != 0)
@@ -977,7 +1138,7 @@ public class ALS extends Engine
 				}
 				break;
 			}
-	
+
 			char chr = line.charAt(i);
 			switch (chr)
 			{
@@ -994,7 +1155,7 @@ public class ALS extends Engine
 						count = 0;
 					}
 					break;
-	
+
 				case '(':
 				case ')':
 				case '{':
@@ -1032,7 +1193,7 @@ public class ALS extends Engine
 						++k;
 					}
 					break;
-	
+
 				default:
 					simals_instbuf[j] = Character.toUpperCase(chr);
 					++j;
@@ -1040,38 +1201,38 @@ public class ALS extends Engine
 			}
 		}
 	}
-	
+
 	/**
 	 * Method to read a netlist description of the logic network
 	 * to be analysed in other procedures.  Returns true on error.
 	 */
-	boolean simals_read_net_desc(Cell np)
+	boolean simals_read_net_desc(Cell cell, Cell realCell)
 	{
-		simals_mainproto = np;
-		netlistStrings = np.getTextViewContents();
+		simals_mainproto = realCell;
+		netlistStrings = cell.getTextViewContents();
 		netlistStringPoint = 0;
-		System.out.println("Simulating netlist in " + np.describe());
-	
+		System.out.println("Simulating netlist in " + cell.describe());
+
 		simals_instptr[0] = -1;
 		i_ptr = 0;
-	
+
 		for(;;)
 		{
 			String s1 = simals_get_string();
 			if (s1 == null) break;
-	
+
 			if (s1.equals("GATE") || s1.equals("FUNCTION") || s1.equals("MODEL"))
 			{
 				if (simals_parse_struct_header(s1.charAt(0))) return true;
 				continue;
 			}
-	
+
 			System.out.println("ERROR: String '" + s1 + "' invalid (expecting gate, function, or model)");
 			return true;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to parse the input text used to describe the header for
 	 * a top level structure (gate, function, model).  The structure name and
@@ -1106,7 +1267,7 @@ public class ALS extends Engine
 		simals_modptr2.priority = 1;
 		simals_modptr2.next = simals_modroot;
 		simals_modroot = simals_modptr2;
-	
+
 		s1 = simals_get_string();
 		if (s1 == null)
 		{
@@ -1118,7 +1279,7 @@ public class ALS extends Engine
 			System.out.println("Structure declaration: Expecting to find '(' in place of string '" + s1 + "'");
 			return true;
 		}
-	
+
 		for(;;)
 		{
 			s1 = simals_get_name();
@@ -1143,7 +1304,7 @@ public class ALS extends Engine
 			simals_exptr2.next = simals_modptr2.exptr;
 			simals_modptr2.exptr = simals_exptr2;
 		}
-	
+
 		switch (flag)
 		{
 			case 'G':
@@ -1159,7 +1320,7 @@ public class ALS extends Engine
 		System.out.println("Error in parser: invalid structure type");
 		return true;
 	}
-	
+
 	/**
 	 * Method to parse the text used to describe a gate entity.
 	 * The user specifies truth table entries, loading factors, and timing parameters
@@ -1169,7 +1330,7 @@ public class ALS extends Engine
 	{
 		// init delay transition name
 		delay = "XX";
-	
+
 		simals_delta_def = simals_linear_def = simals_exp_def = simals_random_def = simals_abs_def = 0;
 		Object last = simals_modptr2;
 		Row simals_rowptr2 = null;
@@ -1181,7 +1342,7 @@ public class ALS extends Engine
 				--i_ptr;
 				break;
 			}
-	
+
 			if (s1.equals("I"))
 			{
 				simals_rowptr2 = new Row();
@@ -1192,7 +1353,8 @@ public class ALS extends Engine
 				simals_rowptr2.exp = simals_exp_def;
 				simals_rowptr2.random = simals_random_def;
 				simals_rowptr2.abs = simals_abs_def;
-				simals_rowptr2.delay = delay = "XX";
+				simals_rowptr2.delay = delay;
+				delay = "XX";
 				simals_rowptr2.next = null;
 				if (last instanceof Row) ((Row)last).next = simals_rowptr2; else
 					((Model)last).ptr = simals_rowptr2;
@@ -1201,38 +1363,38 @@ public class ALS extends Engine
 				if (simals_parse_node()) return true;
 				continue;
 			}
-	
+
 			if (s1.equals("O"))
 			{
 				simals_ioptr1 = simals_rowptr2.outList;
 				if (simals_parse_node()) return true;
 				continue;
 			}
-	
+
 			if (s1.equals("T"))
 			{
 				if (simals_parse_timing()) return true;
 				continue;
 			}
-	
+
 			if (s1.equals("D"))
 			{
 				if (simals_parse_delay()) return true;
 				continue;
 			}
-	
+
 			if (s1.equals("FANOUT"))
 			{
 				if (simals_parse_fanout()) return true;
 				continue;
 			}
-	
+
 			if (s1.equals("LOAD"))
 			{
 				if (simals_parse_load()) return true;
 				continue;
 			}
-	
+
 			if (s1.equals("PRIORITY"))
 			{
 				Integer jj = simals_get_int();
@@ -1244,20 +1406,20 @@ public class ALS extends Engine
 				simals_modptr2.priority = jj.intValue();
 				continue;
 			}
-	
+
 			if (s1.equals("SET"))
 			{
 				simals_ioptr1 = simals_modptr2.setList;
 				if (simals_parse_node()) return true;
 				continue;
 			}
-	
+
 			System.out.println("ERROR: String '" + s1 + "' invalid gate syntax");
 			return true;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to create an entry in the database for one of the nodes
 	 * that belong to a row entry or set state entry.  Returns true on error.
@@ -1275,12 +1437,12 @@ public class ALS extends Engine
 				--i_ptr;
 				break;
 			}
-	
+
 			simals_ioptr2 = new IO();
 			simals_ioptr2.nodeptr = s1;
 			simals_ioptr2.strength = Stimuli.GATE_STRENGTH;
 			simals_ioptr1.add(simals_ioptr2);
-	
+
 			s1 = simals_get_string();
 			if (s1 == null)
 			{
@@ -1304,7 +1466,7 @@ public class ALS extends Engine
 					return true;
 			}
 			simals_ioptr2.operatr = s1.charAt(0);
-	
+
 			s1 = simals_get_string();
 			if (s1 == null)
 			{
@@ -1338,7 +1500,7 @@ public class ALS extends Engine
 					simals_ioptr2.operatr += 128;
 				}
 			}
-	
+
 			s1 = simals_get_string();
 			if (s1 == null || !s1.startsWith("@"))
 			{
@@ -1355,7 +1517,7 @@ public class ALS extends Engine
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to translate a state representation (L, H, X) that is
 	 * stored in a char to an integer value.
@@ -1371,7 +1533,7 @@ public class ALS extends Engine
 			default:            return TextUtils.atoi(s1);
 		}
 	}
-	
+
 	/**
 	 * Method to insert timing values into the appropriate places in
 	 * the database.  Returns true on error.
@@ -1379,7 +1541,7 @@ public class ALS extends Engine
 	private boolean simals_parse_timing()
 	{
 		simals_delta_def = simals_linear_def = simals_exp_def = simals_random_def = simals_abs_def = 0;
-	
+
 		for(;;)
 		{
 			String s1 = simals_get_string();
@@ -1388,7 +1550,7 @@ public class ALS extends Engine
 				System.out.println("Timing declaration: EOF unexpectedly found");
 				return true;
 			}
-	
+
 			String s2 = simals_get_string();
 			if (s2 == null)
 			{
@@ -1400,14 +1562,14 @@ public class ALS extends Engine
 				System.out.println("Timing declaration: Invalid Operator '" + s2 + "' (expecting '=')");
 				return true;
 			}
-	
+
 			Float value = simals_get_float();
 			if (value == null)
 			{
 				System.out.println("Timing declaration: EOF unexpectedly found");
 				return true;
 			}
-	
+
 			switch (s1.charAt(0))
 			{
 				case 'A':
@@ -1430,7 +1592,7 @@ public class ALS extends Engine
 					System.out.println("Invalid timing mode '" + s1 + "'");
 					return true;
 			}
-	
+
 			s1 = simals_get_string();
 			if (s1 == null || !s1.startsWith("+"))
 			{
@@ -1440,7 +1602,7 @@ public class ALS extends Engine
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to set the delay transition type for the current input state.
 	 */
@@ -1452,7 +1614,7 @@ public class ALS extends Engine
 			System.out.println("Timing declaration: EOF unexpectedly found");
 			return true;
 		}
-	
+
 		if (!s1.equals("01") && !s1.equals("10") && !s1.equals("OZ") && !s1.equals("Z1")
 			&& !s1.equals("1Z") && !s1.equals("Z0") && !s1.equals("0X") && !s1.equals("X1")
 			&& !s1.equals("1X") && !s1.equals("X0") && !s1.equals("XZ") && !s1.equals("ZX"))
@@ -1464,7 +1626,7 @@ public class ALS extends Engine
 		delay = s1;
 		return false;
 	}
-	
+
 	/**
 	 * Method to set a flag in the model data structure regarding
 	 * if fanout calculations are to be performed for this models output.
@@ -1484,30 +1646,30 @@ public class ALS extends Engine
 			System.out.println("Fanout declaration: Invalid Operator '" + s1 + "' (expecting '=')");
 			return true;
 		}
-	
+
 		s1 = simals_get_string();
 		if (s1 == null)
 		{
 			System.out.println("Fanout declaration: EOF unexpectedly found");
 			return true;
 		}
-	
+
 		if (s1.equals("ON"))
 		{
 			simals_modptr2.fanout = 1;
 			return false;
 		}
-	
+
 		if (s1.equals("OFF"))
 		{
 			simals_modptr2.fanout = 0;
 			return false;
 		}
-	
+
 		System.out.println("Fanout declaration: Invalid option '" + s1 + "'");
 		return true;
 	}
-	
+
 	/**
 	 * Method to enter the capacitive load rating (on per unit basis)
 	 * into the database for the specified node.  Returns true on error.
@@ -1524,7 +1686,7 @@ public class ALS extends Engine
 				--i_ptr;
 				break;
 			}
-	
+
 			String s2 = simals_get_string();
 			if (s2 == null)
 			{
@@ -1536,14 +1698,14 @@ public class ALS extends Engine
 				System.out.println("Load declaration: Invalid Operator '" + s2 + "' (expecting '=')");
 				return true;
 			}
-	
+
 			Float load = simals_get_float();
 			if (load == null)
 			{
 				System.out.println("Load declaration: EOF unexpectedly found");
 				return true;
 			}
-	
+
 			Load loadptr2 = new Load();
 			loadptr2.ptr = s1;
 			loadptr2.load = load.floatValue();
@@ -1552,7 +1714,7 @@ public class ALS extends Engine
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to parse the text used to describe a model entity.
 	 * The user specifies the interconnection of lower level primitives (gates and
@@ -1568,9 +1730,9 @@ public class ALS extends Engine
 				--i_ptr;
 				break;
 			}
-	
+
 			if (s1.charAt(0) == '}') continue;
-	
+
 			if (s1.equals("SET"))
 			{
 				simals_ioptr1 = simals_modptr2.setList;
@@ -1592,9 +1754,8 @@ public class ALS extends Engine
 			simals_conptr2.model_name = null;
 			simals_conptr2.exptr = null;
 			simals_conptr2.next = (Connect)simals_modptr2.ptr;
-			simals_conptr2.display_page = null;
 			simals_modptr2.ptr = simals_conptr2;
-	
+
 			s1 = simals_get_name();
 			if (s1 == null)
 			{
@@ -1614,7 +1775,7 @@ public class ALS extends Engine
 				System.out.println("Model declaration: Expecting to find '(' in place of string '" + s1 + "'");
 				return true;
 			}
-	
+
 			for(;;)
 			{
 				s1 = simals_get_name();
@@ -1633,7 +1794,7 @@ public class ALS extends Engine
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to parse the text used to describe a function entity.
 	 * The user specifies input entries, loading factors, and timing parameters
@@ -1654,7 +1815,7 @@ public class ALS extends Engine
 		funchead.userptr = null;
 		funchead.userint = 0;
 		funchead.userfloat = 0;
-	
+
 		for(;;)
 		{
 			String s1 = simals_get_string();
@@ -1663,19 +1824,19 @@ public class ALS extends Engine
 				--i_ptr;
 				break;
 			}
-	
+
 			if (s1.equals("I"))
 			{
 				if (simals_parse_func_input(funchead)) return true;
 				continue;
 			}
-	
+
 			if (s1.equals("O"))
 			{
 				if (simals_parse_func_output()) return true;
 				continue;
 			}
-	
+
 			if (s1.equals("T"))
 			{
 				if (simals_parse_timing()) return true;
@@ -1686,13 +1847,13 @@ public class ALS extends Engine
 				funchead.random = simals_random_def;
 				continue;
 			}
-	
+
 			if (s1.equals("LOAD"))
 			{
 				if (simals_parse_load()) return true;
 				continue;
 			}
-	
+
 			if (s1.equals("PRIORITY"))
 			{
 				Integer jj = simals_get_int();
@@ -1704,20 +1865,20 @@ public class ALS extends Engine
 				simals_modptr2.priority = jj.intValue();
 				continue;
 			}
-	
+
 			if (s1.equals("SET"))
 			{
 				simals_ioptr1 = simals_modptr2.setList;
 				simals_parse_node();
 				continue;
 			}
-	
+
 			System.out.println("ERROR: String '" + s1 + "' invalid function syntax");
 			return true;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to create a list of input nodes which are used for event
 	 * driving the function.
@@ -1734,7 +1895,7 @@ public class ALS extends Engine
 				--i_ptr;
 				break;
 			}
-	
+
 			simals_exptr2 = new ALSExport();
 			simals_exptr2.nodeptr = null;
 			simals_exptr2.node_name = s1;
@@ -1743,7 +1904,7 @@ public class ALS extends Engine
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to create a list of output nodes for the function.
 	 */
@@ -1759,7 +1920,7 @@ public class ALS extends Engine
 				--i_ptr;
 				break;
 			}
-	
+
 			for (simals_exptr2 = simals_modptr2.exptr; ; simals_exptr2 = simals_exptr2.next)
 			{
 				if (simals_exptr2 == null)
@@ -1776,7 +1937,7 @@ public class ALS extends Engine
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to processe the string specified by the calling argument
 	 * and fragments it into a series of smaller character strings, each of which
@@ -1790,7 +1951,7 @@ public class ALS extends Engine
 		int j = 0, count = 0;
 		simals_instptr[0] = simals_instbuf[0] = 0;
 		int k = 1;
-	
+
 		for (int i = 0; ; ++i)
 		{
 			if (j > (simals_ibufsize - 3))
@@ -1805,7 +1966,7 @@ public class ALS extends Engine
 				for(int x=0; x<simals_iptrsize; x++) newBuf[x] = simals_instptr[x];
 				simals_instptr = newBuf;
 			}
-	
+
 			char chr = line.charAt(i);
 			if (chr == 0 || chr == '\n')
 			{
@@ -1835,7 +1996,7 @@ public class ALS extends Engine
 						count = 0;
 					}
 					break;
-	
+
 				default:
 					simals_instbuf[j] = chr;
 					++j;
@@ -1844,7 +2005,7 @@ public class ALS extends Engine
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to return a pointer to a structure in the cross reference
 	 * table. The calling argument string contains information detailing the path
@@ -1881,7 +2042,7 @@ public class ALS extends Engine
 		}
 		return cellptr;
 	}
-	
+
 	/**
 	 * Method to translate an integer value that represents a state
 	 * and returns a single character corresponding to the state.
@@ -1891,8 +2052,8 @@ public class ALS extends Engine
 	{
 		switch (stateNum)
 		{
-			case Stimuli.LOGIC_LOW: return "L";
-			case Stimuli.LOGIC_X: return "X";
+			case Stimuli.LOGIC_LOW:  return "L";
+			case Stimuli.LOGIC_X:    return "X";
 			case Stimuli.LOGIC_HIGH: return "H";
 		}
 		return "0x" + Integer.toHexString(stateNum);
@@ -1910,7 +2071,7 @@ public class ALS extends Engine
 	{
 		Connect cellhead = nodehead.cellptr;
 		String sp = simals_compute_path_name(cellhead);
-	
+
 		for (ALSExport exhead = cellhead.exptr; ; exhead = exhead.next)
 		{
 			if (nodehead == exhead.nodeptr)
@@ -1920,7 +2081,7 @@ public class ALS extends Engine
 			}
 		}
 	}
-	
+
 	/**
 	 * Method to compose a character string which indicates the path name
 	 * to the level of hierarchy specified in the calling argument.
@@ -1936,7 +2097,7 @@ public class ALS extends Engine
 			infstr.append("." + cellhead.inst_name);
 		return infstr.toString();
 	}
-	
+
 	/**
 	 * Method to return a pointer to the calling routine which indicates
 	 * the address of the node entry in the database.  The calling argument string
@@ -1959,18 +2120,211 @@ public class ALS extends Engine
 
 		int dotPos = sp.lastIndexOf('.');
 		String s2 = sp;
-		Connect cellptr = simals_cellroot;
+		Connect cellptr = simals_find_level(simals_mainproto.getName().toUpperCase());
+		if (cellptr == null) cellptr = simals_cellroot;
 		if (dotPos >= 0)
 		{
 			s2 = sp.substring(dotPos+1);
 			cellptr = simals_find_level(sp.substring(0, dotPos));
 		}
-	
+
 		for (ALSExport exhead = cellptr.exptr; exhead != null; exhead = exhead.next)
 		{
 			if (exhead.node_name.equals(s2)) return exhead.nodeptr;
 		}
-	
+
 		return null;
 	}
+
+//	public static void doForJohn()
+//	{
+//		String addressFileName = OpenFile.chooseInputFile(FileType.TEXT, "address file");
+//		if (addressFileName == null) return;
+//		URL url = TextUtils.makeURLToFile(addressFileName);
+//		List results = new ArrayList();
+//		try
+//		{
+//			URLConnection urlCon = url.openConnection();
+//			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
+//			LineNumberReader lineReader = new LineNumberReader(is);
+//			String buf = lineReader.readLine();
+//			if (buf == null) return;
+//			String [] titles = buf.split("\t");
+//			for(int i=0; i<titles.length; i++)
+//				System.out.println("Title "+i+" is "+titles[i]);
+//			StringBuffer sb = new StringBuffer();
+//			sb.append("\"First Name\", ");
+//			sb.append("\"Last Name\", ");
+//			sb.append("\"Prefix\", ");
+//			sb.append("\"Suffix\", ");
+//			sb.append("\"EMail\", ");
+//			sb.append("\"Home Street 1\", ");
+//			sb.append("\"Home Street 2\", ");
+//			sb.append("\"Home City\", ");
+//			sb.append("\"Home Zip\", ");
+//			sb.append("\"Home State\", ");
+//			sb.append("\"Home Country\", ");
+//			sb.append("\"Home Phone\", ");
+//			sb.append("\"Home Fax\", ");
+//			sb.append("\"Cell Phone\", ");
+//			sb.append("\"Website\", ");
+//			sb.append("\"Work Street 1\", ");
+//			sb.append("\"Work Street 2\", ");
+//			sb.append("\"Work City\", ");
+//			sb.append("\"Work Zip\", ");
+//			sb.append("\"Work State\", ");
+//			sb.append("\"Work Country\", ");
+//			sb.append("\"Work Phone\", ");
+//			sb.append("\"Pager\", ");
+//			sb.append("\"Company\", ");
+//			sb.append("\"Job Title\", ");
+//			sb.append("\"Notes\"");
+//			results.add(sb.toString());
+//			for(;;)
+//			{
+//				buf = lineReader.readLine();
+//				if (buf == null) break;
+//				String [] fields = buf.split("\t");
+//				if (fields.length < titles.length)
+//				{
+//					String [] newfields = new String[titles.length];
+//					for(int i=0; i<fields.length; i++) newfields[i] = fields[i];
+//					for(int i=fields.length; i<titles.length; i++) newfields[i] = "";
+//					fields = newfields;
+//				}
+//				String firstName = fields[0];
+//				String lastName = fields[1];
+//				String prefix = fields[3];
+//				String suffix = fields[4];
+//				String title = fields[5];
+//				String company = fields[6];
+//				String department = fields[7];
+//				String homeStreet2 = fields[9];
+//				String homeStreet1 = fields[10];
+//				String homeCity = fields[11];
+//				String homeState = fields[12];
+//				String homeZip = fields[13];
+//				String homeCountry = fields[14];
+//				String workStreet2 = fields[16];
+//				String workStreet1 = fields[17];
+//				String workCity = fields[18];
+//				String workState = fields[19];
+//				String workZip = fields[20];
+//				String workCountry = fields[21];
+//				String notes = fields[34];
+//
+//				// add "nickname", "birthday" and "division" to notes
+//				String nickname = fields[2];
+//				if (nickname.length() > 0)
+//				{
+//					if (notes.length() > 0) notes += ", ";
+//					notes += "nickname: " + nickname;
+//				}
+//				String birthday = fields[35];
+//				if (birthday.length() > 0)
+//				{
+//					if (notes.length() > 0) notes += ", ";
+//					notes += "birthday: "+birthday;
+//				}
+//				String division = fields[7];
+//				if (division.length() > 0)
+//				{
+//					if (notes.length() > 0) notes += ", ";
+//					notes += "division: " + division;
+//				}
+//
+//				// pick up phone numbers
+//				String homePhone = "", workPhone = "", fax = "", cellPhone = "", pager = "";
+//				for(int i=22; i<33; i += 3)
+//				{
+//					String type = fields[i];
+//					String value = fields[i+1];
+//					if (type.equals("Home")) homePhone = value; else
+//						if (type.equals("Work")) workPhone = value; else
+//							if (type.equals("Cellular")) cellPhone = value; else
+//								if (type.equals("Pager")) pager = value; else
+//									if (type.equals("Business")) workPhone = value; else
+//										if (type.equals("Fax")) fax = value; else
+//											if (type.equals("School")) workPhone = value; else
+//											{
+//												if (notes.length() > 0) notes += ", ";
+//												if (type.length() == 0) type = "phone";
+//												notes += type + ": " + value;
+//											}
+//				}
+//				if (fields[49].length() > 0)
+//				{
+//					if (notes.length() > 0) notes += ", ";
+//					notes += fields[49];
+//				}
+//				if (fields[50].length() > 0)
+//				{
+//					if (notes.length() > 0) notes += ", ";
+//					notes += fields[50];
+//				}
+//				String eMail = fields[36];
+//				if (fields[38].length() > 0)
+//				{
+//					if (eMail.length() > 0) eMail += ", ";
+//					eMail += fields[38];
+//				}
+//				if (fields[39].length() > 0)
+//				{
+//					if (eMail.length() > 0) eMail += ", ";
+//					eMail += fields[39];
+//				}
+//				String webPage = fields[37];
+//				sb = new StringBuffer();
+//				sb.append("\"" + firstName + "\", ");
+//				sb.append("\"" + lastName + "\", ");
+//				sb.append("\"" + prefix + "\", ");
+//				sb.append("\"" + suffix + "\", ");
+//				sb.append("\"" + eMail + "\", ");
+//				sb.append("\"" + homeStreet1 + "\", ");
+//				sb.append("\"" + homeStreet2 + "\", ");
+//				sb.append("\"" + homeCity + "\", ");
+//				sb.append("\"" + homeZip + "\", ");
+//				sb.append("\"" + homeState + "\", ");
+//				sb.append("\"" + homeCountry + "\", ");
+//				sb.append("\"" + homePhone + "\", ");
+//				sb.append("\"" + fax + "\", ");
+//				sb.append("\"" + cellPhone + "\", ");
+//				sb.append("\"" + webPage + "\", ");
+//				sb.append("\"" + workStreet1 + "\", ");
+//				sb.append("\"" + workStreet2 + "\", ");
+//				sb.append("\"" + workCity + "\", ");
+//				sb.append("\"" + workZip + "\", ");
+//				sb.append("\"" + workState + "\", ");
+//				sb.append("\"" + workCountry + "\", ");
+//				sb.append("\"" + workPhone + "\", ");
+//				sb.append("\"" + pager + "\", ");
+//				sb.append("\"" + company + "\", ");
+//				sb.append("\"" + title + "\", ");
+//				sb.append("\"" + notes + "\"");
+//				results.add(sb.toString());
+//			}
+//			lineReader.close();
+//		} catch (IOException e)
+//		{
+//			System.out.println("Error reading " + addressFileName);
+//			return;
+//		}
+//
+//		try
+//		{
+//			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter("C:\\temp\\result.txt")));
+//
+//			for(Iterator it = results.iterator(); it.hasNext(); )
+//			{
+//				String buf = (String)it.next();
+//				printWriter.println(buf);
+//			}
+//
+//			printWriter.close();
+//		} catch (IOException e)
+//		{
+//			System.out.println("Error writing results");
+//			return;
+//		}
+//	}
 }

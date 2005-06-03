@@ -89,6 +89,7 @@ import com.sun.electric.tool.sc.Place;
 import com.sun.electric.tool.sc.Route;
 import com.sun.electric.tool.sc.SilComp;
 import com.sun.electric.tool.simulation.Simulation;
+import com.sun.electric.tool.simulation.als.ALS;
 import com.sun.electric.tool.user.CompileVHDL;
 import com.sun.electric.tool.user.GenerateVHDL;
 import com.sun.electric.tool.user.Highlight;
@@ -96,6 +97,7 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.help.ManualViewer;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -146,16 +148,16 @@ public class ToolMenu {
 		if (Simulation.hasIRSIM())
 		{
 			builtInSimulationSubMenu.addMenuItem("IRSI_M: Simulate Current Cell", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.startSimulation(Simulation.IRSIM_ENGINE, false); } });
+				new ActionListener() { public void actionPerformed(ActionEvent e) { startSimulation(Simulation.IRSIM_ENGINE, false); } });
 			builtInSimulationSubMenu.addMenuItem("IRSIM: _Write Deck...", null,
 				new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.IRSIM, true); }});
 			builtInSimulationSubMenu.addMenuItem("_IRSIM: Simulate Deck...", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.startSimulation(Simulation.IRSIM_ENGINE, true); }});
+				new ActionListener() { public void actionPerformed(ActionEvent e) { startSimulation(Simulation.IRSIM_ENGINE, true); }});
 
 			builtInSimulationSubMenu.addSeparator();
 		}
 		builtInSimulationSubMenu.addMenuItem("_ALS: Simulate Current Cell", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.startSimulation(Simulation.ALS_ENGINE, false); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { startSimulation(Simulation.ALS_ENGINE, false); } });
 
 		builtInSimulationSubMenu.addSeparator();
 
@@ -165,6 +167,8 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setSignalLow(); } });
 		builtInSimulationSubMenu.addMenuItem("Set Signal Un_defined at Main Time", KeyStroke.getKeyStroke('X', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setSignalX(); } });
+		builtInSimulationSubMenu.addMenuItem("Set Clock on Selected Signal...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.setClock(); } });
 
 		builtInSimulationSubMenu.addSeparator();
 
@@ -261,7 +265,7 @@ public class ToolMenu {
 
 		//------------------- Simulation (others)
 
-		// mnemonic keys available:  B D  G  JKL N  Q   UVWXYZ
+		// mnemonic keys available:  B D  G   KL N  Q   UVWXYZ
 		MenuBar.Menu netlisters = MenuBar.makeMenu("Simulation (_Others)");
 		toolMenu.add(netlisters);
 		netlisters.addMenuItem("Write _Maxwell Deck...", null,
@@ -294,6 +298,8 @@ public class ToolMenu {
 		netlisters.addSeparator();
 		netlisters.addMenuItem("Write _ArcSim Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.ARCSIM, true); } });
+		netlisters.addMenuItem("Display ArcSim _Journal...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotArcSimResults(); } });
 
 		//------------------- ERC
 
@@ -358,7 +364,7 @@ public class ToolMenu {
 
 		//------------------- Logical Effort
 
-		// mnemonic keys available:    DEFGHIJKLM   QRSTUVWXYZ
+		// mnemonic keys available:    DEFGHIJK M   QRSTUVWXYZ
 		MenuBar.Menu logEffortSubMenu = MenuBar.makeMenu("_Logical Effort");
         toolMenu.add(logEffortSubMenu);
 		logEffortSubMenu.addMenuItem("_Optimize for Equal Gate Delays", null,
@@ -373,6 +379,9 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesNodableCommand(); }});
 		logEffortSubMenu.addMenuItem("Clear Sizes in _all Libraries", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { clearSizesCommand(); }});
+		logEffortSubMenu.addSeparator();
+		logEffortSubMenu.addMenuItem("_Load Logical Effort Libraries (Purple, Red, and Orange)", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { loadLogicalEffortLibraries(); }});
 
 		//------------------- Routing
 
@@ -644,6 +653,13 @@ public class ToolMenu {
 			LETool.clearStoredSizesJob(lib);
 		}
 		System.out.println("Sizes cleared");
+	}
+
+	public static void loadLogicalEffortLibraries()
+	{
+		if (Library.findLibrary("purpleGeneric180") != null) return;
+		URL url = LibFile.getLibFile("purpleGeneric180.jelib");
+		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, FileType.JELIB, null);
 	}
 
 	/**
@@ -1234,11 +1250,68 @@ public class ToolMenu {
     }
 
 	private static final String SCLIBNAME = "sclib";
-	private static final int READ_LIBRARY    =  1;
-	private static final int CONVERT_TO_VHDL =  2;
-	private static final int COMPILE_VHDL    =  4;
-	private static final int PLACE_AND_ROUTE =  8;
-	private static final int SHOW_CELL       = 16;
+	private static final int READ_LIBRARY         =  1;
+	private static final int CONVERT_TO_VHDL      =  2;
+	private static final int COMPILE_VHDL_FOR_SC  =  4;
+	private static final int PLACE_AND_ROUTE      =  8;
+	private static final int SHOW_CELL            = 16;
+	private static final int SIMULATENETLIST      = 32;
+	private static final int COMPILE_VHDL_FOR_SIM = 64;
+
+	/**
+	 * Method to invoke a simulation engine.
+	 * @param engine the simulation engine to run.
+	 * @param forceDeck true to force simulation from a user-specified netlist file.
+	 */
+	public static void startSimulation(int engine, boolean forceDeck)
+	{
+    	Cell cell = null;
+        VarContext context = null;
+    	String fileName = null;
+    	if (forceDeck)
+    	{
+    		fileName = OpenFile.chooseInputFile(FileType.IRSIM, "IRSIM deck to simulate");
+    		if (fileName == null) return;
+    		cell = WindowFrame.getCurrentCell();
+    	} else
+    	{
+	        cell = WindowFrame.needCurCell();
+	        if (cell == null) return;
+            EditWindow wnd = EditWindow.getCurrent();
+            if (wnd != null) context = wnd.getVarContext();
+    	}
+		switch (engine)
+		{
+			case Simulation.ALS_ENGINE:
+				int activities = SIMULATENETLIST;
+
+				// see if the current cell needs to be compiled
+				if (cell.getView() != View.NETLISTALS)
+				{
+					if (cell.getView() == View.SCHEMATIC)
+					{
+						// current cell is Schematic.  See if there is a more recent netlist or VHDL
+						Cell vhdlCell = cell.otherView(View.VHDL);
+						if (vhdlCell != null && vhdlCell.getRevisionDate().after(cell.getRevisionDate())) cell = vhdlCell; else
+							activities |= CONVERT_TO_VHDL | COMPILE_VHDL_FOR_SIM;
+					}
+					if (cell.getView() == View.VHDL)
+					{
+						// current cell is VHDL.  See if there is a more recent netlist
+						Cell netListCell = cell.otherView(View.NETLISTQUISC);
+						if (netListCell != null && netListCell.getRevisionDate().after(cell.getRevisionDate())) cell = netListCell; else
+							activities |= COMPILE_VHDL_FOR_SIM;
+					}
+				}
+			    DoNextActivity sJob = new DoNextActivity(cell, activities, cell, context);
+				break;
+
+			case Simulation.IRSIM_ENGINE:
+				if (!Simulation.hasIRSIM()) return;
+				Simulation.runIRSIM(cell, context, fileName);
+				break;
+		}
+	}
 
 	/**
 	 * Method to handle the menu command to convert the current cell to layout.
@@ -1264,14 +1337,14 @@ public class ToolMenu {
 				// current cell is Schematic.  See if there is a more recent netlist or VHDL
 				Cell vhdlCell = cell.otherView(View.VHDL);
 				if (vhdlCell != null && vhdlCell.getRevisionDate().after(cell.getRevisionDate())) cell = vhdlCell; else
-					activities |= CONVERT_TO_VHDL | COMPILE_VHDL;
+					activities |= CONVERT_TO_VHDL | COMPILE_VHDL_FOR_SC;
 			}
 			if (cell.getView() == View.VHDL)
 			{
 				// current cell is VHDL.  See if there is a more recent netlist
 				Cell netListCell = cell.otherView(View.NETLISTQUISC);
 				if (netListCell != null && netListCell.getRevisionDate().after(cell.getRevisionDate())) cell = netListCell; else
-					activities |= COMPILE_VHDL;
+					activities |= COMPILE_VHDL_FOR_SC;
 			}
 		}
 		if (SilComp.getCellLib() == null)
@@ -1280,7 +1353,7 @@ public class ToolMenu {
 			if (lib != null) SilComp.setCellLib(lib); else
 				activities |= READ_LIBRARY;
 		}
-	    DoNextActivity sJob = new DoNextActivity(cell, activities);
+	    DoNextActivity sJob = new DoNextActivity(cell, activities, cell, null);
 	}
 
 	/**
@@ -1296,7 +1369,7 @@ public class ToolMenu {
 			System.out.println("Must be editing a VHDL cell before compiling it");
 			return;
 		}
-	    DoNextActivity sJob = new DoNextActivity(cell, COMPILE_VHDL | SHOW_CELL);
+	    DoNextActivity sJob = new DoNextActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, cell, null);
 	}
 
 	/**
@@ -1312,7 +1385,7 @@ public class ToolMenu {
 			System.out.println("Must be editing a Schematic cell before converting it to VHDL");
 			return;
 		}
-	    DoNextActivity sJob = new DoNextActivity(cell, CONVERT_TO_VHDL | SHOW_CELL);
+	    DoNextActivity sJob = new DoNextActivity(cell, CONVERT_TO_VHDL | SHOW_CELL, cell, null);
 	}
 
 	/**
@@ -1320,14 +1393,17 @@ public class ToolMenu {
 	 */
 	private static class DoNextActivity extends Job
 	{
-		private Cell cell;
+		private Cell cell, originalCell;
+		private VarContext originalContext;
 		private int activities;
 
-		private DoNextActivity(Cell cell, int activities)
+		private DoNextActivity(Cell cell, int activities, Cell originalCell, VarContext originalContext)
 		{
 			super("Silicon-Compiler activity", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.activities = activities;
+			this.originalCell = originalCell;
+			this.originalContext = originalContext;
 			startJob();
 		}
 
@@ -1342,7 +1418,7 @@ public class ToolMenu {
 		        Undo.noUndoAllowed();
 				if (lib != null) SilComp.setCellLib(lib);
 				System.out.println(" Done");
-			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~READ_LIBRARY);
+			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~READ_LIBRARY, originalCell, originalContext);
 			    return true;
 			}
 
@@ -1363,11 +1439,11 @@ public class ToolMenu {
 				for(int i=0; i<vhdlStrings.size(); i++) array[i] = (String)vhdlStrings.get(i);
 				vhdlCell.setTextViewContents(array);
 				System.out.println(" Done, created '" + vhdlCell.describe() + "'");
-			    DoNextActivity sJob = new DoNextActivity(vhdlCell, activities & ~CONVERT_TO_VHDL);
+			    DoNextActivity sJob = new DoNextActivity(vhdlCell, activities & ~CONVERT_TO_VHDL, originalCell, originalContext);
 			    return true;
 			}
 
-			if ((activities&COMPILE_VHDL) != 0)
+			if ((activities&COMPILE_VHDL_FOR_SC) != 0)
 			{
 				// compile the VHDL to a netlist
 				System.out.print("Compiling VHDL in '" + cell.describe() + "' ...");
@@ -1391,7 +1467,42 @@ public class ToolMenu {
 				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
 				netlistCell.setTextViewContents(array);
 				System.out.println(" Done, created '" + netlistCell.describe() + "'");
-			    DoNextActivity sJob = new DoNextActivity(netlistCell, activities & ~COMPILE_VHDL);
+			    DoNextActivity sJob = new DoNextActivity(netlistCell, activities & ~COMPILE_VHDL_FOR_SC, originalCell, originalContext);
+			    return true;
+			}
+
+			if ((activities&COMPILE_VHDL_FOR_SIM) != 0)
+			{
+				// compile the VHDL to a netlist
+				System.out.print("Compiling VHDL in '" + cell.describe() + "' ...");
+				CompileVHDL c = new CompileVHDL(cell);
+				if (c.hasErrors())
+				{
+					System.out.println("ERRORS during compilation, no netlist produced");
+					return false;
+				}
+				List netlistStrings = c.getALSNetlist();
+				if (netlistStrings == null)
+				{
+					System.out.println("No netlist produced");
+					return false;
+				}
+
+				// store the ALS netlist
+				Cell netlistCell = Cell.makeInstance(cell.getLibrary(), cell.getName() + "{net.als}");
+				if (netlistCell == null) return false;
+				String [] array = new String[netlistStrings.size()];
+				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
+				netlistCell.setTextViewContents(array);
+				System.out.println(" Done, created '" + netlistCell.describe() + "'");
+			    DoNextActivity sJob = new DoNextActivity(netlistCell, activities & ~COMPILE_VHDL_FOR_SIM, originalCell, originalContext);
+			    return true;
+			}
+
+			if ((activities&SIMULATENETLIST) != 0)
+			{
+				ALS.simulateNetlist(cell, originalCell, originalContext);
+			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~SIMULATENETLIST, originalCell, originalContext);
 			    return true;
 			}
 
@@ -1438,7 +1549,7 @@ public class ToolMenu {
 				{
 					Cell newCell = (Cell)result;
 					System.out.println(" Done, created '" + newCell.describe() + "'");
-				    DoNextActivity sJob = new DoNextActivity(newCell, activities & ~PLACE_AND_ROUTE);
+				    DoNextActivity sJob = new DoNextActivity(newCell, activities & ~PLACE_AND_ROUTE, originalCell, originalContext);
 				}
 				System.out.println();
 			    return true;
@@ -1448,7 +1559,7 @@ public class ToolMenu {
 			{
 				// show the cell
 				WindowFrame.createEditWindow(cell);
-			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~SHOW_CELL);
+			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~SHOW_CELL, originalCell, originalContext);
 			}
 			return false;
 		}

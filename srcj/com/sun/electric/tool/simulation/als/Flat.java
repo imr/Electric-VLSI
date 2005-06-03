@@ -51,7 +51,7 @@ public class Flat
 	boolean simals_flatten_network()
 	{
 		als.simals_nseq = als.simals_pseq = 0;
-	
+
 		/*
 		 * create a "dummy" level to use as a mixed signal destination for plotting and
 		 * screen display.  This level should be bypassed for structure checking and general
@@ -66,13 +66,12 @@ public class Flat
 		als.simals_cellroot.parent = null;
 		als.simals_cellroot.child = null;
 		als.simals_cellroot.next = null;
-		als.simals_cellroot.display_page = null;
 		als.simals_cellroot.num_chn = 0;
 		ALS.Connect temproot = als.simals_cellroot;
-	
+
 		// get upper-case version of main proto
 		simals_mainname = als.simals_mainproto.getName().toUpperCase();
-	
+
 		als.simals_cellroot = new ALS.Connect();
 		als.simals_cellroot.inst_name = simals_mainname;
 		als.simals_cellroot.model_name = als.simals_cellroot.inst_name;
@@ -80,14 +79,13 @@ public class Flat
 		als.simals_cellroot.parent = null;
 		als.simals_cellroot.child = null;
 		als.simals_cellroot.next = null;
-		als.simals_cellroot.display_page = null;
 		als.simals_cellroot.num_chn = 0;
-	
+
 		// these lines link the mixed level as the head followed by simals_mainproto PJG
 		temproot.next = als.simals_cellroot;		// shouldn't this be null? ... smr
 		temproot.child = als.simals_cellroot;
 		als.simals_cellroot = temproot;
-	
+
 		// this code checks to see if model simals_mainproto is present in the netlist PJG
 		ALS.Model modhead = simals_find_model(simals_mainname);
 		if (modhead == null) return true;
@@ -96,17 +94,16 @@ public class Flat
 			if (simals_find_xref_entry(als.simals_cellroot.next, (String)exhead.node_name) == null)
 				return true;
 		}
-	
+
 		if (simals_flatten_model(als.simals_cellroot.next)) return true;
-	
+
 		for (ALS.Node nodehead = als.simals_noderoot; nodehead != null; nodehead = nodehead.next)
 		{
 			if (nodehead.load < 1) nodehead.load = 1;
-			nodehead.plot_node = 0;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to flatten a single model.  If other models are referenced
 	 * in connection statements in the netlist, this routine is called recursively
@@ -125,11 +122,11 @@ public class Flat
 			case 'F':
 				if (simals_process_function(cellhead, modhead)) return true;
 				break;
-	
+
 			case 'G':
 				if (simals_process_gate(cellhead, modhead)) return true;
 				break;
-	
+
 			case 'M':
 				if (simals_process_connect_list(cellhead, (ALS.Connect)modhead.ptr)) return true;
 				for (ALS.Connect subcell = cellhead.child; subcell != null; subcell = subcell.next)
@@ -138,14 +135,14 @@ public class Flat
 				}
 				break;
 		}
-	
+
 		if (modhead.setList.size() != 0)
 		{
 			if (simals_process_set_entry(cellhead, modhead.setList)) return true;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to step through the connection list specified by the
 	 * connection list pointer (conhead).  Values are entered into the cross
@@ -169,10 +166,9 @@ public class Flat
 			cellptr2.exptr = null;
 			cellptr2.parent = cellhead;
 			cellptr2.child = null;
-			cellptr2.display_page = null;
 			cellptr2.next = cellhead.child;
 			cellhead.child = cellptr2;
-	
+
 			ALS.Model modhead = simals_find_model(conhead.model_name);
 			if (modhead == null) return true;
 			als.simals_exptr2 = modhead.exptr;
@@ -180,13 +176,13 @@ public class Flat
 			{
 				ALS.ALSExport xrefhead = simals_find_xref_entry(cellhead, (String)exhead.node_name);
 				if (xrefhead == null) return true;
-	
+
 				if (als.simals_exptr2 == null)
 				{
 					System.out.println("Insufficient parameters declared for model '" + conhead.model_name + "' in netlist");
 					return true;
 				}
-	
+
 				for(ALS.ALSExport xrefptr1 = cellptr2.exptr; xrefptr1 != null; xrefptr1 = xrefptr1.next)
 				{
 					if (xrefptr1.node_name.equals(als.simals_exptr2.node_name))
@@ -201,15 +197,15 @@ public class Flat
 				xrefptr2.nodeptr = xrefhead.nodeptr;
 				xrefptr2.next = cellptr2.exptr;
 				cellptr2.exptr = xrefptr2;
-	
+
 				als.simals_exptr2 = als.simals_exptr2.next;
 			}
-	
+
 			conhead = conhead.next;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to return a pointer to the model referenced by the
 	 * calling argument character string.  Returns zero on error.
@@ -229,7 +225,7 @@ public class Flat
 			sb.append(chr);
 		}
 		String propername = sb.toString();
-	
+
 		ALS.Model modhead = als.simals_modroot;
 		for(;;)
 		{
@@ -243,7 +239,7 @@ public class Flat
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Method to return the flattened database node number for the
 	 * specified model and node name.  Returns zero on error.
@@ -262,12 +258,11 @@ public class Flat
 		xrefptr2.node_name = name;
 		xrefptr2.next = cellhead.exptr;
 		cellhead.exptr = xrefptr2;
-	
+
 		ALS.Node nodeptr2 = new ALS.Node();
 		nodeptr2.cellptr = cellhead;
 		nodeptr2.num = als.simals_nseq;
 		++als.simals_nseq;
-		nodeptr2.plot_node = 0;
 		nodeptr2.statptr = null;
 		nodeptr2.pinptr = null;
 		nodeptr2.load = -1;
@@ -277,7 +272,7 @@ public class Flat
 		xrefptr2.nodeptr = als.simals_noderoot = nodeptr2;
 		return xrefptr2;
 	}
-	
+
 	/**
 	 * Method to step through the gate truth tables and examines all
 	 * node references to insure that they have been included in the cross
@@ -305,8 +300,9 @@ public class Flat
 		simals_primptr2.level = als.simals_compute_path_name(cellhead);
 		simals_primptr2.next = als.simals_primroot;
 		als.simals_primroot = simals_primptr2;
-	
+
 		ALS.Row rowhead = (ALS.Row)modhead.ptr;
+		ALS.Row last = null;
 		while (rowhead != null)
 		{
 			ALS.Row simals_rowptr2 = new ALS.Row();
@@ -320,20 +316,28 @@ public class Flat
 			simals_rowptr2.delay = rowhead.delay;
 			if (rowhead.delay == null) simals_rowptr2.delay = null; else
 				simals_rowptr2.delay = rowhead.delay;
-			simals_rowptr2.next = (ALS.Row)simals_primptr2.ptr;
-			simals_primptr2.ptr = simals_rowptr2;
-	
+
+			simals_rowptr2.next = null;
+			if (last == null)
+			{
+				simals_primptr2.ptr = simals_rowptr2;
+			} else
+			{
+				last.next = simals_rowptr2;
+			}
+			last = simals_rowptr2;
+
 			als.simals_ioptr1 = simals_rowptr2.inList;
 			if (simals_process_io_entry(modhead, cellhead, rowhead.inList, 'I')) return true;
-	
+
 			als.simals_ioptr1 = simals_rowptr2.outList;
 			if (simals_process_io_entry(modhead, cellhead, rowhead.outList, 'O')) return true;
-	
+
 			rowhead = rowhead.next;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to step through the node references contained within a
 	 * row of a transition table and insures that they are included in the cross
@@ -358,7 +362,7 @@ public class Flat
 			als.simals_ioptr2 = new ALS.IO();
 			als.simals_ioptr2.nodeptr = xrefhead.nodeptr;
 			als.simals_ioptr2.operatr = iohead.operatr;
-	
+
 			if (als.simals_ioptr2.operatr > 127)
 			{
 				xrefhead = simals_find_xref_entry(cellhead, (String)iohead.operand);
@@ -368,10 +372,10 @@ public class Flat
 			{
 				als.simals_ioptr2.operand = iohead.operand;
 			}
-	
+
 			als.simals_ioptr2.strength = iohead.strength;
 			als.simals_ioptr1.add(als.simals_ioptr2);
-	
+
 			switch (flag)
 			{
 				case 'I':
@@ -383,7 +387,7 @@ public class Flat
 						(String)iohead.nodeptr, (ALS.Node)als.simals_ioptr2.nodeptr);
 					if (als.simals_ioptr2.nodeptr == null) return true;
 			}
-	
+
 			if (als.simals_ioptr2.operatr > 127)
 			{
 				if (simals_create_pin_entry(modhead, (String)iohead.operand,
@@ -392,7 +396,7 @@ public class Flat
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to make an entry into the primitive input table for the
 	 * specified node.  This table keeps track of the primitives which use
@@ -418,7 +422,7 @@ public class Flat
 		nodehead.load += simals_find_load_value(modhead, node_name);
 		return false;
 	}
-	
+
 	/**
 	 * Method to make an entry into the database for an output which
 	 * is connected to the specified node.  Statistics are maintained for each output
@@ -445,7 +449,7 @@ public class Flat
 		nodehead.load += simals_find_load_value(modhead, node_name);
 		return statptr2;
 	}
-	
+
 	/**
 	 * Method to return the loading factor for the specified node.  If
 	 * the node can't be found in the load list it is assumed it has a default value
@@ -463,11 +467,11 @@ public class Flat
 		{
 			if (loadhead.ptr.equals(node_name)) return loadhead.load;
 		}
-	
+
 		if (modhead.type == 'F') return 0;
 		return 1;
 	}
-	
+
 	/**
 	 * Method to go through the set node list for the specified cell
 	 * and generates vectors for the node.  These vectors are executed at t=0 by
@@ -485,7 +489,7 @@ public class Flat
 			ALS.IO iohead = (ALS.IO)it.next();
 			ALS.ALSExport xrefhead = simals_find_xref_entry(cellhead, (String)iohead.nodeptr);
 			if (xrefhead == null) return true;
-	
+
 			ALS.Link sethead = new ALS.Link();
 			sethead.type = 'N';
 			sethead.ptr = xrefhead.nodeptr;
@@ -498,7 +502,7 @@ public class Flat
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Method to step through the event driving input list for a function
 	 * and enters the function into the primitive input list for the particular node.
@@ -527,7 +531,7 @@ public class Flat
 		simals_primptr2.level = als.simals_compute_path_name(cellhead);
 		simals_primptr2.next = als.simals_primroot;
 		als.simals_primroot = simals_primptr2;
-	
+
 		ALS.Func funchead = (ALS.Func)modhead.ptr;
 		ALS.Func funcptr2 = (ALS.Func)simals_primptr2.ptr;
 		funcptr2.procptr = ALS.UserProc.simals_get_function_address(modhead.name);
@@ -541,7 +545,7 @@ public class Flat
 		funcptr2.userptr = null;
 		funcptr2.userint = 0;
 		funcptr2.userfloat = 0;
-	
+
 		for (ALS.ALSExport exhead = modhead.exptr; exhead != null; exhead = exhead.next)
 		{
 			ALS.ALSExport xrefhead = simals_find_xref_entry(cellhead, (String)exhead.node_name);
@@ -559,7 +563,7 @@ public class Flat
 			als.simals_exptr2.next = simals_primptr2.exptr;
 			simals_primptr2.exptr = als.simals_exptr2;
 		}
-	
+
 		for (ALS.ALSExport exhead = funchead.inptr; exhead != null; exhead = exhead.next)
 		{
 			ALS.ALSExport xrefhead = simals_find_xref_entry(cellhead, (String)exhead.node_name);

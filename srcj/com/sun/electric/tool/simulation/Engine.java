@@ -55,6 +55,11 @@ public class Engine
 	public void setSignalX() {}
 
 	/**
+	 * Method to set the currently-selected signal to have a clock with a given period.
+	 */
+	public void setClock(double period) {}
+
+	/**
 	 * Method to show information about the currently-selected signal.
 	 */
 	public void showSignalInfo() {}

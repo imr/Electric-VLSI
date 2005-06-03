@@ -25,6 +25,7 @@ package com.sun.electric.tool.simulation;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Pref;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -38,20 +39,36 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.simulation.als.ALS;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.dialogs.EDialog;
+import com.sun.electric.tool.user.dialogs.MoveBy;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
+import java.util.prefs.Preferences;
 
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JRadioButton;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
 /**
@@ -121,7 +138,7 @@ public class Simulation extends Listener
 			// find the necessary methods on the IRSIM class
 			try
 			{
-				irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class, VarContext.class, String.class});			
+				irsimSimulateMethod = irsimClass.getMethod("simulateCell", new Class[] {Cell.class, VarContext.class, String.class});
 			} catch (NoSuchMethodException e)
 			{
 				irsimClass = null;
@@ -135,44 +152,23 @@ public class Simulation extends Listener
 	}
 
 	/**
-	 * Method to invoke a simulation engine.
-	 * @param engine the simulation engine to run.
-	 * @param forceDeck true to force simulation from a user-specified netlist file.
+	 * Method to run the IRSIM simulator on a given cell, context or file.
+	 * Uses reflection to find the IRSIM simulator (if it exists).
+	 * @param cell the Cell to simulate.
+	 * @param context the context to the cell to simulate.
+	 * @param fileName the name of the file with the netlist.  If this is null, simulate the cell.
+	 * If this is not null, ignore the cell and simulate the file.
 	 */
-	public static void startSimulation(int engine, boolean forceDeck)
+	public static void runIRSIM(Cell cell, VarContext context, String fileName)
 	{
-    	Cell cell = null;
-        VarContext context = null;
-    	String fileName = null;
-    	if (forceDeck)
-    	{
-    		fileName = OpenFile.chooseInputFile(FileType.IRSIM, "IRSIM deck to simulate");
-    		if (fileName == null) return;
-    		cell = WindowFrame.getCurrentCell();
-    	} else
-    	{
-	        cell = WindowFrame.needCurCell();
-	        if (cell == null) return;
-            EditWindow wnd = EditWindow.getCurrent();
-            if (wnd != null) context = wnd.getVarContext();
-    	}
-		switch (engine)
+		try
 		{
-			case ALS_ENGINE:
-				ALS.startSimulation(cell, context);
-				break;
-			case IRSIM_ENGINE:
-				if (!hasIRSIM()) return;
-				try
-				{
-					irsimSimulateMethod.invoke(irsimClass, new Object[] {cell, context, fileName});
-					return;
-				} catch (Exception e)
-				{
-					System.out.println("Unable to run the IRSIM simulator");
-		            e.printStackTrace(System.out);
-				}
-				break;
+			irsimSimulateMethod.invoke(irsimClass, new Object[] {cell, context, fileName});
+			return;
+		} catch (Exception e)
+		{
+			System.out.println("Unable to run the IRSIM simulator");
+	        e.printStackTrace(System.out);
 		}
 	}
 
@@ -214,6 +210,17 @@ public class Simulation extends Listener
 		Engine engine = findEngine();
 		if (engine == null) return;
 		engine.setSignalX();
+	}
+
+	public static void setClock()
+	{
+		Engine engine = findEngine();
+		if (engine == null) return;
+
+		// prompt for clock information
+		double period = ClockSpec.getClockSpec();
+		if (period <= 0) return;
+		engine.setClock(period);
 	}
 
 	/**
@@ -463,7 +470,7 @@ public class Simulation extends Listener
 			ww.setSimData(sd);
 			return;
 		}
-		
+
 		// create a waveform window
 		WindowFrame wf = WindowFrame.createWaveformWindow(sd);
 		ww = (WaveformWindow)wf.getContent();
@@ -589,7 +596,7 @@ public class Simulation extends Listener
 			int thisBracketPos = sSig.getSignalName().indexOf('[');
 			if (thisBracketPos < 0) continue;
 			String prefix = sSig.getSignalName().substring(0, thisBracketPos);
-			
+
 			// see how many of the following signals are part of the bus
 			int j = i+1;
 			for( ; j<signals.size(); j++)
@@ -625,6 +632,126 @@ public class Simulation extends Listener
 				busSig.addToBussedSignalList(subSig);
 			}
 			i = j - 1;
+		}
+	}
+
+	/**
+	 * Class to handle the "Clock specification" dialog.
+	 */
+	public static class ClockSpec extends EDialog
+	{
+		private double period = -1;
+		private JRadioButton freqBut, periodBut;
+		private JTextField freqField, periodField;
+
+		public static double getClockSpec()
+		{
+			ClockSpec dialog = new ClockSpec(TopLevel.getCurrentJFrame(), true);
+			dialog.setVisible(true);
+			return dialog.period;
+		}
+
+		/** Creates new form Clock specification */
+		public ClockSpec(Frame parent, boolean modal)
+		{
+			super(parent, modal);
+
+	        getContentPane().setLayout(new GridBagLayout());
+	        setTitle("Clock Specification");
+	        setName("");
+	        addWindowListener(new WindowAdapter()
+	        {
+	            public void windowClosing(WindowEvent evt) { closeDialog(evt); }
+	        });
+			ButtonGroup fp = new ButtonGroup();
+
+			// the frequency and period section
+			freqBut = new JRadioButton("Frequency:");
+			GridBagConstraints gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 0;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			gbc.anchor = GridBagConstraints.WEST;
+	        getContentPane().add(freqBut, gbc);
+			fp.add(freqBut);
+
+			freqField = new JTextField();
+			freqField.setColumns(12);
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = 0;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(freqField, gbc);
+
+			periodBut = new JRadioButton("Period:");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 1;
+			gbc.insets = new Insets(4, 4, 4, 4);
+			gbc.anchor = GridBagConstraints.WEST;
+	        getContentPane().add(periodBut, gbc);
+			fp.add(periodBut);
+			periodBut.setSelected(true);
+
+			periodField = new JTextField();
+			periodField.setColumns(12);
+			periodField.setText("0.00000001");
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = 1;
+			gbc.fill = GridBagConstraints.HORIZONTAL;
+			gbc.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(periodField, gbc);
+
+			// the OK and Cancel buttons
+			JButton cancel = new JButton("Cancel");
+	        cancel.addActionListener(new ActionListener()
+	        {
+	            public void actionPerformed(ActionEvent evt) { cancel(evt); }
+	        });
+			gbc = new GridBagConstraints();
+			gbc.gridx = 0;   gbc.gridy = 2;
+			gbc.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(cancel, gbc);
+
+			JButton ok = new JButton("OK");
+	        ok.addActionListener(new ActionListener()
+	        {
+	            public void actionPerformed(ActionEvent evt) { ok(evt); }
+	        });
+			gbc = new GridBagConstraints();
+			gbc.gridx = 1;   gbc.gridy = 2;
+			gbc.insets = new Insets(4, 4, 4, 4);
+	        getContentPane().add(ok, gbc);
+
+	        pack();
+
+			getRootPane().setDefaultButton(ok);
+			finishInitialization();
+		}
+
+		protected void escapePressed() { cancel(null); }
+
+		private void cancel(ActionEvent evt)
+		{
+			closeDialog(null);
+		}
+
+		private void ok(ActionEvent evt)
+		{
+			if (freqBut.isSelected())
+			{
+				double freq = TextUtils.atof(freqField.getText());
+				if (freq != 0) period = 1.0 / freq;
+			} else
+			{
+				period = TextUtils.atof(freqField.getText());
+			}
+			closeDialog(null);
+		}
+
+		/** Closes the dialog */
+		private void closeDialog(WindowEvent evt)
+		{
+			setVisible(false);
+			dispose();
 		}
 	}
 
@@ -681,7 +808,7 @@ public class Simulation extends Listener
 	 * @param r the number of runs per decade for FastHenry deck generation.
 	 */
 	public static void setFastHenryRunsPerDecade(int r) { cacheFastHenryRunsPerDecade.setInt(r); }
-	
+
 	private static Pref cacheFastHenryMultiPole = Pref.makeBooleanPref("FastHenryMultiPole", Simulation.tool.prefs, false);
 	/**
 	 * Method to tell whether FastHenry deck generation should make a multipole subcircuit.

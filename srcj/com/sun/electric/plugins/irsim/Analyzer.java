@@ -344,6 +344,14 @@ public class Analyzer extends Engine
 	}
 
 	/**
+	 * Method to set the currently-selected signal to have a clock with a given period.
+	 */
+	public void setClock(double period)
+	{
+		System.out.println("IRSIM CANNOT HANDLE CLOCKS YET");
+	}
+
+	/**
 	 * Method to set the currently-selected signal undefined at the current time.
 	 */
 	public void setSignalX()
