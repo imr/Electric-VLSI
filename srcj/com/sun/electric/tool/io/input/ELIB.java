@@ -43,9 +43,9 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.FlagSet;
-import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.MutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
@@ -68,6 +68,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -148,6 +149,7 @@ public class ELIB extends LibraryFiles
 	/** list of the tail node of the ArcInsts in the library */				private int [] arcTailNodeList;
 	/** list of the tail port of the ArcInsts in the library */				private Object [] arcTailPortList;
 	/** list of the user flags on the ArcInsts in the library */			private int [] arcUserBits;
+	/** list of the variables on the ArcInsts in the library */             private DiskVariable [][] arcVariables;
 
 	// the Exports in the library
 	/** the number of Exports in the library */								private int portProtoCount;
@@ -360,11 +362,15 @@ public class ELIB extends LibraryFiles
 		nodeInstList.highX = new int[nodeCount];
 		nodeInstList.lowY = new int[nodeCount];
 		nodeInstList.highY = new int[nodeCount];
-		nodeInstList.anchorX = new int[nodeCount];
-		nodeInstList.anchorY = new int[nodeCount];
+        if (magic <= ELIBConstants.MAGIC13) {
+            nodeInstList.anchorX = new int[nodeCount];
+            nodeInstList.anchorY = new int[nodeCount];
+        }
 		nodeInstList.rotation = new short[nodeCount];
 		nodeInstList.transpose = new int[nodeCount];
+		nodeInstList.protoTextDescriptor = new ImmutableTextDescriptor[nodeCount];
 		nodeInstList.userBits = new int[nodeCount];
+        nodeInstList.vars = new DiskVariable[nodeCount][];
 
 		// allocate pointers for the ArcInsts
 		arcList = new ArcInst[arcCount];
@@ -380,6 +386,7 @@ public class ELIB extends LibraryFiles
 		arcTailNodeList = new int[arcCount];
 		arcTailPortList = new Object[arcCount];
 		arcUserBits = new int[arcCount];
+        arcVariables = new DiskVariable[arcCount][];
 		for(int i = 0; i < arcCount; i++)
 		{
 			arcHeadNodeList[i] = -1;
@@ -489,12 +496,12 @@ public class ELIB extends LibraryFiles
 			}
 
 			// allocate node instances in this cell
-			for(int i=0; i<nodeCounts[cellIndex]; i++)
-			{
-				int thisone = i + nodeinstpos;
-				nodeInstList.theNode[thisone] = NodeInst.lowLevelAllocate();
-				if (nodeInstList.theNode[thisone] == null) return true;
-			}
+//			for(int i=0; i<nodeCounts[cellIndex]; i++)
+//			{
+//				int thisone = i + nodeinstpos;
+//				nodeInstList.theNode[thisone] = NodeInst.lowLevelAllocate();
+//				if (nodeInstList.theNode[thisone] == null) return true;
+//			}
 			nodeinstpos += nodeCounts[cellIndex];
 
 			// allocate port prototypes in this cell
@@ -760,7 +767,7 @@ public class ELIB extends LibraryFiles
 		}
 
 		// read the library variables
-		readVariables(lib, null, 0);
+		realizeVariables(lib, readVariables());
 
 		// read the tool variables
 		for(int i=0; i<toolCount; i++)
@@ -990,7 +997,7 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag, String scaledCellName, double scaleX, double scaleY)
+	protected void realizeCellsRecursively(Cell cell, HashSet/*<Cell>*/ recursiveSetupFlag, String scaledCellName, double scale)
 	{
 		// do not realize cross-library references
 		if (cell.getLibrary() != lib) return;
@@ -1020,11 +1027,11 @@ public class ELIB extends LibraryFiles
 				if (xLibRefSatisfied[cI]) break;
 
 				// make sure that cell is properly built
-				if (!subCell.isBit(recursiveSetupFlag))
+				if (!recursiveSetupFlag.contains(subCell))
 				{
 					LibraryFiles reader = getReaderForLib(subCell.getLibrary());
 					if (reader != null)
-						reader.realizeCellsRecursively(subCell, recursiveSetupFlag, null, 0, 0);
+						reader.realizeCellsRecursively(subCell, recursiveSetupFlag, null, 0);
 				}
 
 				int startPort = firstPortIndex[cI];
@@ -1060,15 +1067,13 @@ public class ELIB extends LibraryFiles
 				System.out.println("Binary: Doing contents of cell " + cell.describe() + " in library " + lib.getName());
 			} else
 			{
-				System.out.println("Binary: Scaling (by " + scaleX + "x" + scaleY + ") contents of cell " + cell.describe() + " in library " + lib.getName());
+				System.out.println("Binary: Scaling (by " + scale + ") contents of cell " + cell.describe() + " in library " + lib.getName());
 			}
 		}
 		cellsConstructed++;
 		progress.setProgress(cellsConstructed * 100 / totalCells);
 
-		double lambdaX = cellLambda[cellIndex];
-		assert lambdaX > 0;
-		double lambdaY = lambdaX;
+		double lambda = cellLambda[cellIndex];
 		NodeInst [] oldNodes = null;
 
 		// if scaling, actually construct the cell
@@ -1079,30 +1084,29 @@ public class ELIB extends LibraryFiles
 			cell.lowLevelPopulate(scaledCellName);
 			cell.lowLevelLink();
 			cell.setTempInt(cellIndex);
-			cell.setBit(recursiveSetupFlag);
+			recursiveSetupFlag.add(cell);
 			cell.joinGroup(oldCell);
-			if (scaleX != scaleY) skewedCells.add(cell); else
-				scaledCells.add(cell);
+            scaledCells.add(cell);
 
-			lambdaX /= scaleX;
-			lambdaY /= scaleY;
-			oldNodes = new NodeInst[endNode - startNode];
-			int j = 0;
-			for(int i=startNode; i<endNode; i++)
-			{
-				oldNodes[j] = nodeInstList.theNode[i];
-				nodeInstList.theNode[i] = NodeInst.lowLevelAllocate();
-				j++;
-			}
-		} else scaleX = scaleY = 1;
+			lambda /= scale;
+//			oldNodes = new NodeInst[endNode - startNode];
+//			int j = 0;
+//			for(int i=startNode; i<endNode; i++)
+//			{
+//				oldNodes[j] = nodeInstList.theNode[i];
+//				nodeInstList.theNode[i] = NodeInst.lowLevelAllocate();
+//				j++;
+//			}
+		} else scale = 1;
 
 		// finish initializing the NodeInsts in the cell: start with the cell-center
 		int xoff = 0, yoff = 0;
 		for(int i=startNode; i<endNode; i++)
 		{
-			if (nodeInstList.protoType[i] == Generic.tech.cellCenterNode)
+            NodeProto np = nodeInstList.protoType[i];
+			if (np == Generic.tech.cellCenterNode)
 			{
-				realizeNode(i, xoff, yoff, lambdaX, lambdaY, cell, recursiveSetupFlag);
+                realizeNode(nodeInstList, i, xoff, yoff, lambda, cell, np);
 				xoff = (nodeInstList.lowX[i] + nodeInstList.highX[i]) / 2;
 				yoff = (nodeInstList.lowY[i] + nodeInstList.highY[i]) / 2;
 				break;
@@ -1114,25 +1118,26 @@ public class ELIB extends LibraryFiles
 		// finish creating the rest of the NodeInsts
 		for(int i=startNode; i<endNode; i++)
 		{
-			if (nodeInstList.protoType[i] != Generic.tech.cellCenterNode)
-			{
-				realizeNode(i, xoff, yoff, lambdaX, lambdaY, cell, recursiveSetupFlag);
-			}
+            NodeProto np = nodeInstList.protoType[i];
+			if (np == Generic.tech.cellCenterNode) continue;
+			if (np instanceof Cell)
+				np = scaleCell(i, lambda, cell, recursiveSetupFlag);
+			realizeNode(nodeInstList, i, xoff, yoff, lambda, cell, np);
 		}
 
 		// do the exports now
 		realizeExports(cell, cellIndex, scaledCellName);
 
 		// do the arcs now
-		realizeArcs(cell, cellIndex, scaledCellName, scaleX, scaleY);
+		realizeArcs(cell, cellIndex, scaledCellName, scale);
 
-		// restore the node pointers if this was a scaled cell construction
-		if (scaledCellName != null)
-		{
-			int j = 0;
-			for(int i=startNode; i<endNode; i++)
-				nodeInstList.theNode[i] = oldNodes[j++];
-		}
+//		// restore the node pointers if this was a scaled cell construction
+//		if (scaledCellName != null)
+//		{
+//			int j = 0;
+//			for(int i=startNode; i<endNode; i++)
+//				nodeInstList.theNode[i] = oldNodes[j++];
+//		}
 	}
 
 	protected boolean spreadLambda(Cell cell, int cellIndex)
@@ -1347,10 +1352,9 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to create the ArcInsts in a given cell and it's index in the global lists.
 	 */
-	private void realizeArcs(Cell cell, int cellIndex, String scaledCellName, double scaleX, double scaleY)
+	private void realizeArcs(Cell cell, int cellIndex, String scaledCellName, double scale)
 	{
-		double lambdaX = cellLambda[cellIndex] / scaleX;
-		double lambdaY = cellLambda[cellIndex] / scaleY;
+		double lambda = cellLambda[cellIndex] / scale;
 		int xoff = cellXOff[cellIndex];
 		int yoff = cellYOff[cellIndex];
 		boolean arcInfoError = false;
@@ -1364,11 +1368,11 @@ public class ELIB extends LibraryFiles
 
 			ArcProto ap = arcTypeList[i];
 			String name = arcNameList[i];
-			double width = arcWidthList[i] / lambdaX;
-			double headX = (arcHeadXPosList[i] - xoff) / lambdaX;
-			double headY = (arcHeadYPosList[i] - yoff) / lambdaY;
-			double tailX = (arcTailXPosList[i] - xoff) / lambdaX;
-			double tailY = (arcTailYPosList[i] - yoff) / lambdaY;
+			double width = arcWidthList[i] / lambda;
+			double headX = (arcHeadXPosList[i] - xoff) / lambda;
+			double headY = (arcHeadYPosList[i] - yoff) / lambda;
+			double tailX = (arcTailXPosList[i] - xoff) / lambda;
+			double tailY = (arcTailYPosList[i] - yoff) / lambda;
 			if (arcHeadNodeList[i] < 0)
 			{
 				System.out.println("ERROR: head of arc " + ap.describe() + " not known");
@@ -1447,6 +1451,7 @@ public class ELIB extends LibraryFiles
 			}
 			ELIBConstants.applyELIBArcBits(ai, arcUserBits[i]);
 			int defAngle = ai.lowLevelGetArcAngle() * 10;
+            realizeVariables(ai, arcVariables[i]);
 			ai.lowLevelLink(defAngle);
 		}
 	}
@@ -1454,193 +1459,37 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to build a NodeInst.
 	 */
-	private void realizeNode(int i, int xoff, int yoff, double lambdaX, double lambdaY, Cell cell, FlagSet recursiveSetupFlag)
-	{
-		NodeInst ni = nodeInstList.theNode[i];
-		NodeProto np = nodeInstList.protoType[i];
-		String name = nodeInstList.name[i];
-		double lowX = nodeInstList.lowX[i]-xoff;
-		double lowY = nodeInstList.lowY[i]-yoff;
-		double highX = nodeInstList.highX[i]-xoff;
-		double highY = nodeInstList.highY[i]-yoff;
-		Point2D center = new Point2D.Double(((lowX + highX) / 2) / lambdaX, ((lowY + highY) / 2) / lambdaY);
-		double width = (highX - lowX) / lambdaX;
-		double height = (highY - lowY) / lambdaY;
-        double anchorX = (nodeInstList.anchorX[i]-xoff) / lambdaX;
-        double anchorY = (nodeInstList.anchorY[i]-yoff) / lambdaY;
-		if (np instanceof Cell)
-		{
-			Cell subCell = (Cell)np;
-			LibraryFiles reader = this;
-			if (subCell.getLibrary() != lib)
-			{
-				reader = getReaderForLib(subCell.getLibrary());
-			}
-			Rectangle2D bounds = subCell.getBounds();
-            //if (false)
-			if ((bounds.getWidth() != width || bounds.getHeight() != height)
-				&& reader != null && reader.canScale())
-			{
-				// System.out.println(cell + " has " + subCell + " " + name + " " + bounds.getWidth() + "x" + bounds.getHeight() + " " + width + "x" + height);
-				if (cell.isSchematic() && subCell.isIcon() &&
-					(Math.abs(bounds.getWidth() - width) > 0.5 ||
-					 Math.abs(bounds.getHeight() - height) > 0.5))
-				{
-					// see if uniform scaling can be done
-					double scaleX = width / bounds.getWidth();
-					double scaleY = height / bounds.getHeight();
-					String scaledCellName = subCell.getName() + "-SCALED-BY-" + scaleX +
-						"{" + subCell.getView().getAbbreviation() + "}";
-					if (!GenMath.doublesClose(scaleX, scaleY))
-					{
-                        // don't scale, most likely the size changed, and this is not a lambda problem
-                        //scaledCellName = null;
-						// nonuniform scaling: library inconsistency detected
-						scaledCellName = subCell.getName() + "-SCALED-BY-" + scaleX + "-AND-" + scaleY +
-							"{" + subCell.getView().getAbbreviation() + "}";
-					} else {
-					Cell scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
-					if (scaledCell == null)
-					{
-						// create a scaled version of the cell
-						if (reader != null)
-							reader.realizeCellsRecursively(subCell, recursiveSetupFlag, scaledCellName, scaleX, scaleY);
-						scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
-						if (scaledCell == null)
-						{
-							System.out.println("Error scaling cell " + subCell.describe() + " by " + scaleX);
-						}
-					}
-					if (scaledCell != null)
-					{
-						bounds = scaledCell.getBounds();
-						np = scaledCell;
-					}
-
-					if (Math.abs(bounds.getWidth() - width) > 0.5 ||
-						Math.abs(bounds.getHeight() - height) > 0.5)
-					{
-						// see if there is already a dummy cell that is the right size
-						Cell dummyCell = null;
-//						String theProtoName = np.getName();
-//						String startString = theProtoName + "FROM" + lib.getName();
-//						View v = subCell.getView();
-//						for(Iterator it = lib.getCells(); it.hasNext(); )
-//						{
-//							Cell oC = (Cell)it.next();
-//							if (!oC.getName().startsWith(startString)) continue;
-//							if (oC.getView() != v) continue;
-//							Rectangle2D oCBounds = oC.getBounds();
-//							if (Math.abs(oCBounds.getWidth() - width) <= 0.5 ||
-//								Math.abs(oCBounds.getHeight() - height) <= 0.5)
-//							{
-//								dummyCell = oC;
-//								break;
-//							}
-//						}
-//						if (dummyCell == null)
-//						{
-//							String dummyCellName = null;
-//							for(int index=0; ; index++)
-//							{
-//								dummyCellName = new String(startString);
-//								if (index > 0) dummyCellName += "." + index;
-//								dummyCellName += "{" + v.getAbbreviation() + "}";
-//								if (lib.findNodeProto(dummyCellName) == null) break;
-//							}
-//							dummyCell = Cell.newInstance(lib, dummyCellName);
-//							if (dummyCell != null)
-//							{
-//								// create an artwork "Crossed box" to define the cell size
-//								Technology tech = MoCMOS.tech;
-//								if (v == View.ICON) tech = Artwork.tech; else
-//									if (v == View.SCHEMATIC) tech = Schematics.tech;
-//								Point2D ctr = new Point2D.Double(0, 0);
-//								NodeInst.newInstance(Generic.tech.drcNode, ctr, width, height, 0, dummyCell, null);
-//								NodeInst.newInstance(Generic.tech.universalPinNode, ctr, width, height, 0, dummyCell, null);
-//		
-//								System.out.println("...Creating dummy version of cell in library " + lib.getName());
-////								oC.newVar(IO_TRUE_LIBRARY, elib.getName());
-//							}
-//						}
-
-						if (dummyCell == null)
-						{
-							System.out.println("Cell " + cell.describe() + ": adjusting size of instance of " + subCell.describe() +
-								" (cell is " + bounds.getWidth() + "x" + bounds.getHeight() +
-								" but instance is " + width + "x" + height + ")");
-						} else
-						{
-							np = dummyCell;
-							bounds = dummyCell.getBounds();
-						}
-					}
-                    }
-				}
-				width = bounds.getWidth();
-				height = bounds.getHeight();
-			}
-		}
-
-		int rotation = nodeInstList.rotation[i];
-		if (rotationMirrorBits)
-// 		if (emajor > 7 || (emajor == 7 && eminor >= 1))
-		{
-			// new version: allow mirror bits
-			if ((nodeInstList.transpose[i]&1) != 0)
-			{
-				height = -height;
-				rotation = (rotation + 900) % 3600;
-			}
-			if ((nodeInstList.transpose[i]&2) != 0)
-			{
-				// mirror in X
-				width = -width;
-			}
-			if ((nodeInstList.transpose[i]&4) != 0)
-			{
-				// mirror in Y
-				height = -height;
-			}
-		} else
-		{
-			// old version: just use transpose information
-			if (nodeInstList.transpose[i] != 0)
-			{
-				height = -height;
-				rotation = (rotation + 900) % 3600;
-			}
-		}
-
-		// figure out the grab center if this is a cell instance
-		if (np instanceof Cell)
-		{
-			Cell subCell = (Cell)np;
-			Rectangle2D bounds = subCell.getBounds();
-			Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
-			AffineTransform trans = NodeInst.pureRotate(rotation, width < 0, height < 0);
-			trans.transform(shift, shift);
-            if (magic <= ELIBConstants.MAGIC13)
-            {
-                // version 13 and later stores and uses anchor location
-                center.setLocation(anchorX, anchorY);
-            } else
-            {
-                center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
-            }
-		}
-		// convert outline information, if present
-		scaleOutlineInformation(ni, np, lambdaX, lambdaY);
-		ni.lowLevelSetUserbits(nodeInstList.userBits[i]);
-		ni.lowLevelPopulate(np, center, width, height, rotation, cell, name, -1);
-		ni.lowLevelLink();
-
-        // if this was a dummy cell, log instance as an error so the user can find easily
-        if (np instanceof Cell && ((Cell)np).getVar(IO_DUMMY_OBJECT) != null) {
-            ErrorLogger.MessageLog error = Input.errorLogger.logError("Instance of dummy cell "+np.getName(), cell, 1);
-            error.addGeom(ni, true, cell, null);
+    private Cell scaleCell(int i, double lambda, Cell cell, HashSet/*<Cell>*/ recursiveSetupFlag) {
+        Cell subCell = (Cell)nodeInstList.protoType[i];
+        Rectangle2D bounds = subCell.getBounds();
+        double width = (nodeInstList.highX[i] - nodeInstList.lowX[i]) / lambda;
+        double height = (nodeInstList.highY[i] - nodeInstList.lowY[i]) / lambda;
+        if (Math.abs(bounds.getWidth() - width) <= 0.5 && Math.abs(bounds.getHeight() - height) <= 0.5) return subCell;
+        LibraryFiles reader = this;
+        if (subCell.getLibrary() != lib) {
+            reader = getReaderForLib(subCell.getLibrary());
         }
-	}
+        if (reader == null || !reader.canScale() || !cell.isSchematic() || !subCell.isIcon()) return subCell;
+        // see if uniform scaling can be done
+        double scaleX = width / bounds.getWidth();
+        double scaleY = height / bounds.getHeight();
+        // don't scale, most likely the size changed, and this is not a lambda problem
+        if (!GenMath.doublesClose(scaleX, scaleY)) return subCell;
+        double scale = Math.sqrt(scaleX * scaleY);
+        String scaledCellName = subCell.getName() + "-SCALED-BY-" + scale +
+                "{" + subCell.getView().getAbbreviation() + "}";
+        Cell scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
+        if (scaledCell == null) {
+            // create a scaled version of the cell
+            if (reader != null)
+                reader.realizeCellsRecursively(subCell, recursiveSetupFlag, scaledCellName, scale);
+            scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
+            if (scaledCell == null) {
+                System.out.println("Error scaling cell " + subCell.describe() + " by " + scale);
+            }
+        }
+        return scaledCell != null ? scaledCell : subCell;
+    }
 
 	protected boolean readerHasExport(Cell c, String portName)
 	{
@@ -1941,7 +1790,7 @@ public class ELIB extends LibraryFiles
 			}
 
 			// read the export variables
-			readVariables(pp, null, 0);
+			realizeVariables(pp, readVariables());
 
 			portProtoIndex++;
 		}
@@ -1978,7 +1827,7 @@ public class ELIB extends LibraryFiles
 		cell.lowLevelSetUserbits(userBits);
 
 		// read variable information
-		readVariables(cell, null, 0);
+		realizeVariables(cell, readVariables());
 
 		// cell read successfully
 		return false;
@@ -2177,7 +2026,7 @@ public class ELIB extends LibraryFiles
 	{
 		// read the nodeproto index
 		Cell parent = nodeProtoList[cellIndex];
-		NodeInst ni = nodeInstList.theNode[nodeIndex];
+//		NodeInst ni = nodeInstList.theNode[nodeIndex];
 		int protoIndex = readBigInteger();
 		NodeProto np = convertNodeProto(protoIndex);
 		if (np == null) return true;
@@ -2216,8 +2065,11 @@ public class ELIB extends LibraryFiles
 				descript1 = readBigInteger();
 			}
 		}
-        mtd.setCBits(descript0, descript1);
-		ni.setTextDescriptor(NodeInst.NODE_PROTO_TD, mtd);
+        nodeInstList.protoTextDescriptor[nodeIndex] = makeDescriptor(descript0, descript1);
+//      mtd.setCBits(descript0, descript1);
+//		ni.setTextDescriptor(NodeInst.NODE_PROTO_TD, mtd);
+//        mtd.setCBits(descript0, descript1);
+//		ni.setTextDescriptor(NodeInst.NODE_PROTO_TD, mtd);
 
 		// read the nodeinst name (versions 1, 2, or 3 only)
 		if (magic >= ELIBConstants.MAGIC3)
@@ -2280,7 +2132,8 @@ public class ELIB extends LibraryFiles
 		nodeInstList.userBits[nodeIndex] = userBits;
 
 		// read variable information
-        readVariables(ni, nodeInstList.name, nodeIndex);
+        DiskVariable[] vars = readVariables();
+        nodeInstList.vars[nodeIndex] = vars;
 
 		// node read successfully
 		return false;
@@ -2355,7 +2208,18 @@ public class ELIB extends LibraryFiles
 		arcUserBits[arcIndex] = userBits;
 
 		// read variable information
-        readVariables(ai, arcNameList, arcIndex);
+        DiskVariable[] vars = readVariables();
+        arcVariables[arcIndex] = vars;
+        for (int i = 0; i < vars.length; i++) {
+            DiskVariable v = vars[i];
+            if (v == null || !v.name.equals(ArcInst.ARC_NAME_TD)) continue;
+            if (v.value instanceof String) {
+                arcNameList[arcIndex] = convertGeomName((String)v.value, v.flags);
+                fillDescriptor(v);
+                ai.setTextDescriptor(ArcInst.ARC_NAME_TD, mtd);
+            }
+            vars[i] = null;
+        }
 
 		// arc read successfully
 		return false;
@@ -2403,26 +2267,6 @@ public class ELIB extends LibraryFiles
             varKeys.addKey(i, readString());
         }
 		return false;
-	}
-
-	/**
-	 * Method to read a set of variables onto a given object.
-	 * @param obj the object onto which the variables will be stored.
-	 * @param index the index (in global arrays) of the arc or node being read (-1 if not a NodeInst or ArcInst).
-	 * These special indices must be used because node and arc names are checked for uniqueness within the
-	 * cell, but the cell has not been constructed yet.  So the names must be stored in a separate place
-	 * and applied later.
-	 * @return the number of variables read (negative on error).
-	 */
-	private void readVariables(ElectricObject obj, String[] nameArray, int nameIndex)
-		throws IOException
-	{
-        DiskVariable[] vars = readVariables();
-		for(int i=0; i<vars.length; i++)
-		{
-            DiskVariable v = vars[i];
-            if (v != null) v.makeVariable(obj, this, nameArray, nameIndex);
-		}
 	}
 
 	/**
@@ -2561,12 +2405,12 @@ public class ELIB extends LibraryFiles
 					for(int j=0; j<len; j++)
 					{
 						Object ret = getInVar(newtype);
-						if (ret == null)
-						{
-                            String msg = "Error reading array variable type";
-							System.out.println(msg);
-							throw new IOException(msg);
-						}
+//						if (ret == null)
+//						{
+//                            String msg = "Error reading array variable type";
+//							System.out.println(msg);
+//							throw new IOException(msg);
+//						}
 						if (newAddrArray != null) newAddrArray[j] = ret;
 					}
 
@@ -2577,9 +2421,8 @@ public class ELIB extends LibraryFiles
 				newAddr = getInVar(newtype);
 				if (newAddr == null)
 				{
-                    String msg = "Error reading variable type " + newtype;
-					System.out.println(msg);
-					throw new IOException(msg);
+					System.out.println("Error reading variable " + varKeys.keys[key] + " type " + newtype);
+					continue;
 				}
 			}
 
@@ -2695,7 +2538,7 @@ public class ELIB extends LibraryFiles
 	 */
 	private NodeProto convertNodeProto(int i)
 	{
-		int error = 0;
+        if (i == -1) return null;
 		if (i < 0)
 		{
 			// negative values are primitives
@@ -2703,8 +2546,7 @@ public class ELIB extends LibraryFiles
 			if (nindex >= primNodeProtoCount)
 			{
 				System.out.println("Error: want primitive node index " + nindex + " when limit is " + primNodeProtoCount);
-				nindex = 0;
-				error = 1;
+				return null;
 			}
 			return getPrimNodeProtoList(nindex);
 		}

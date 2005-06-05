@@ -24,6 +24,7 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.text.Name;
 
 public class NodeInst_
 {
@@ -49,10 +50,10 @@ public class NodeInst_
 		parent.nodes[id] = null;
 	}
 
-	public String getName() { checkAlive(); return d.name; }
+	public Name getName() { checkAlive(); return d.name; }
 	public EPoint getAnchor() { checkAlive(); return d.anchor; }
 
-	public void rename(String name) {
+	public void rename(Name name) {
 		DatabaseChangeThread thread = parent.cell.thread.checkChanging();
 		if (name == null)
 			throw new IllegalArgumentException("Node name is null");
@@ -60,7 +61,7 @@ public class NodeInst_
 			throw new IllegalArgumentException("Node " + name + " exists");
 		parent.orderedNodes.remove(d.name);
 		parent.orderedNodes.put(name, this);
-		parent.cell.nodes[id] = d = d.withName(name);
+		parent.cell.nodes[id] = d = d.withName(name, 0);
 		thread.endChanging();
 	}
 

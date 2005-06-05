@@ -164,7 +164,7 @@ public abstract class Geometric extends ElectricObject
 			if (!isUsernamed()) return false;
 			key = parent.getAutoname(getBasename());
 		}
-		if (checkNameKey(key)) return true;
+		if (checkNameKey(key, parent, this instanceof NodeInst)) return true;
 		if (parent.hasTempName(key) && !name.equalsIgnoreCase(getName()))
 		{
 			System.out.println(parent + " already has Geometric with temporary name \""+name+"\"");
@@ -178,16 +178,18 @@ public abstract class Geometric extends ElectricObject
 	}
 
 	/**
-	 * Method to check the new name key of this Geometric.
+	 * Method to check the new name key of an Geometric.
 	 * @param name new name key of this geometric.
+     * @param parent parent Cell used for error message
+     * @paran isNode true if the Geometric is NodeInst
 	 * @return true on error.
 	 */
-	protected boolean checkNameKey(Name name)
+	protected static boolean checkNameKey(Name name, Cell parent, boolean isNode)
 	{
 		if (!name.isValid())
 		{
 			System.out.println(parent + ": Invalid name \""+name+"\" wasn't assigned to " +
-				(this instanceof NodeInst ? "node" : "arc") + " :" + Name.checkName(name.toString()));
+				(isNode ? "node" : "arc") + " :" + Name.checkName(name.toString()));
 			return true;
 		}
 		if (name.isTempname() && name.isBus())
@@ -199,10 +201,10 @@ public abstract class Geometric extends ElectricObject
 		{
 			if (name.isBus())
 				System.out.println(parent + ": Name \""+name+"\" with empty subnames wasn't assigned to " +
-					(this instanceof NodeInst ? "node" : "arc"));
+					(isNode ? "node" : "arc"));
 			else
 				System.out.println(parent + ": Cannot assign empty name \""+name+"\" to " +
-					(this instanceof NodeInst ? "node" : "arc"));
+					(isNode ? "node" : "arc"));
 			return true;
 		}
 		return false;

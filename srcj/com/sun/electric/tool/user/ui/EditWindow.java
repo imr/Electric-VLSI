@@ -3277,10 +3277,7 @@ public class EditWindow extends JPanel
 	 */
 	public static void gridAlign(Point2D pt)
 	{
-		double alignment = User.getAlignmentToGrid();
-		long x = Math.round(pt.getX() / alignment);
-		long y = Math.round(pt.getY() / alignment);
-		pt.setLocation(x * alignment, y * alignment);
+		gridAlign(pt, User.getAlignmentToGrid());
 	}
 
 	/**
@@ -3290,6 +3287,7 @@ public class EditWindow extends JPanel
 	 */
 	public static void gridAlign(Point2D pt, double alignment)
 	{
+        if (alignment <= 0) return;
 		long x = Math.round(pt.getX() / alignment);
 		long y = Math.round(pt.getY() / alignment);
 		pt.setLocation(x * alignment, y * alignment);

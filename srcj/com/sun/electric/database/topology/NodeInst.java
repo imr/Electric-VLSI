@@ -23,10 +23,13 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -137,43 +140,67 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	}
 
 	// ---------------------- private data ----------------------------------
-	/** name of this NodeInst. */							private Name name;
-	/** duplicate index of this ArcInst in the Cell */  private int duplicate = -1;
-	/** The text descriptor of name of NodeInst. */			private ImmutableTextDescriptor nameDescriptor;
-	/** bounds after transformation. */						private Rectangle2D visBounds;
-	/** Flag bits for this NodeInst. */						private int userBits;
-	/** The timestamp for changes. */						private int changeClock;
-	/** The Change object. */								private Undo.Change change;
-
+    /** persistent data of this NodeInst. */                private ImmutableNodeInst d;
 	/** prototype of this NodeInst. */						private NodeProto protoType;
 	/** node usage of this NodeInst. */						private NodeUsage nodeUsage;
 	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
 	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
 	/** List of connections belonging to this NodeInst. */	private List connections = new ArrayList(2);
 	/** Array of Exports belonging to this NodeInst. */		private Export[] exports = NULL_EXPORT_ARRAY;
-	/** Text descriptor of prototype name. */				private ImmutableTextDescriptor protoDescriptor;
+    
+	/** bounds after transformation. */						private Rectangle2D visBounds = new Rectangle2D.Double(0, 0, 0, 0);
+	/** The timestamp for changes. */						private int changeClock;
+	/** The Change object. */								private Undo.Change change;
 
-	// The internal representation of position and orientation is the 2D transformation matrix:
-	// -----------------------------------------
-	// |   sX cos(angle)    sY sin(angle)   0  |
-	// |  -sX sin(angle)    sY cos(angle)   0  |
-	// |    center.x         center.y       1  |
-	// -----------------------------------------
-	/** center coordinate of this NodeInst. */				private Point2D center = new Point2D.Double();
-	/** size of this NodeInst (negative to mirror). */		private double sX, sY;
-	/** angle of this NodeInst (in tenth-degrees). */		private int angle;
-
-	// --------------------- private and protected methods ---------------------
+    
+    	// --------------------- private and protected methods ---------------------
 
 	/**
-	 * The constructor is never called.  Use the factory "newInstance" instead.
+	 * The private constructor of NodeInst. Use the factory "newInstance" instead.
+	 * @param parent the Cell in which this NodeInst will reside.
+	 * @param protoType the NodeProto of which this is an instance.
+	 * @param name name of new NodeInst
+	 * @param duplicate duplicate index of this NodeInst
+     * @param nameDescriptor TextDescriptor of name of this NodeInst
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst.
+	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
+	 * @param height the height of this NodeInst.
+	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
+	 * @param angle the angle of this NodeInst (in tenth-degrees).
+	 * @param userBits flag bits of this NodeInst.
+     * @param protoDescriptor TextDescriptor of prototype name of this NodeInst
 	 */
-	private NodeInst()
+    private NodeInst(Cell parent, NodeProto protoType,
+            Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+            Point2D center, double width, double height, int angle,
+            int userBits, ImmutableTextDescriptor protoDescriptor)
 	{
 		// initialize this object
-		this.nameDescriptor = ImmutableTextDescriptor.getNodeTextDescriptor();
-		this.visBounds = new Rectangle2D.Double(0, 0, 0, 0);
-		this.protoDescriptor = ImmutableTextDescriptor.getInstanceTextDescriptor();
+		this.parent = parent;
+		this.protoType = protoType;
+        
+		// create all of the portInsts on this node inst
+		portInsts = new PortInst[protoType.getNumPorts()];
+		for (int i = 0; i < portInsts.length; i++)
+		{
+			PortProto pp = protoType.getPort(i);
+			portInsts[i] = PortInst.newInstance(pp, this);
+		}
+
+        if (nameDescriptor == null) nameDescriptor = ImmutableTextDescriptor.getNodeTextDescriptor();
+		EPoint anchor = EPoint.snap(center);
+        width = DBMath.round(width);
+        boolean flipX = width < 0 || width == 0 && 1/width < 0;
+        height = DBMath.round(height);
+        boolean flipY = height < 0 || height == 0 && 1/height < 0;
+        Orientation orient = Orientation.fromJava(angle, flipX, flipY);
+        if (protoDescriptor == null) protoDescriptor = ImmutableTextDescriptor.getInstanceTextDescriptor();
+        
+        this.d = ImmutableNodeInst.newInstance(0, name, duplicate, nameDescriptor, orient, anchor, Math.abs(width), Math.abs(height), userBits, protoDescriptor);
+        
+		// fill in the geometry
+		redoGeometric();
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -239,9 +266,23 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public static NodeInst makeDummyInstance(NodeProto np)
 	{
-		NodeInst ni = NodeInst.lowLevelAllocate();
-		ni.lowLevelPopulate(np, new Point2D.Double(0,0), np.getDefWidth(), np.getDefHeight(), 0, null, null, -1);
-		return ni;
+		return makeDummyInstance(np, EPoint.ORIGIN, np.getDefWidth(), np.getDefHeight(), 0);
+	}
+
+	/**
+	 * Method to create a "dummy" NodeInst for use outside of the database.
+	 * @param np the prototype of the NodeInst.
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst.
+	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
+	 * @param height the height of this NodeInst.
+	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
+	 * @param angle the angle of this NodeInst (in tenth-degrees).
+	 * @return the dummy NodeInst.
+	 */
+	public static NodeInst makeDummyInstance(NodeProto np, Point2D center, double width, double height, int angle)
+	{
+        return new NodeInst(null, np, Name.findName(""), 0, null, center, width, height, angle, 0, null);
 	}
 
 	/**
@@ -278,6 +319,31 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
 	                                   Cell parent, int angle, String name, int techBits)
 	{
+        return newInstance(parent, protoType, name, -1, null, center, width, height, angle, (techBits << NTECHBITSSH)&NTECHBITS, null);
+	}
+
+	/**
+	 * Long form method to create a NodeInst.
+	 * @param parent the Cell in which this NodeInst will reside.
+	 * @param protoType the NodeProto of which this is an instance.
+	 * @param name name of new NodeInst
+	 * @param duplicate duplicate index of this NodeInst
+     * @param nameDescriptor TextDescriptor of name of this NodeInst
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst.
+	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
+	 * @param height the height of this NodeInst.
+	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
+	 * @param angle the angle of this NodeInst (in tenth-degrees).
+	 * @param userBits bits associated to different technologies
+     * @param protoDescriptor TextDescriptor of name of this NodeInst
+     * @return the newly created NodeInst, or null on error.
+	 */
+    public static NodeInst newInstance(Cell parent, NodeProto protoType,
+            String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+            Point2D center, double width, double height, int angle,
+            int userBits, ImmutableTextDescriptor protoDescriptor)
+	{
         if (protoType == null) return null;
         if (parent == null) return null;
         
@@ -305,11 +371,22 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			}
 		}
 
-		NodeInst ni = lowLevelAllocate();
-		if (ni.lowLevelPopulate(protoType, center, width, height, angle, parent, name, -1)) return null;
-
-		// before lowLevelLink, place where the name is assigned if original is null
-		ni.setTechSpecific(techBits);
+        Name nameKey = name != null ? Name.findName(name) : null;
+		if (nameKey == null || nameKey.isTempname() && (!parent.isUniqueName(nameKey, NodeInst.class, null)) || checkNameKey(nameKey, parent, true))
+		{
+            Name baseName;
+            if (protoType instanceof Cell) {
+                baseName = ((Cell)protoType).getBasename();
+            } else {
+                PrimitiveNode np = (PrimitiveNode)protoType;
+                baseName = np.getTechnology().getPrimitiveFunction(np, (userBits&NTECHBITS) >> NTECHBITSSH).getBasename();
+            }
+            nameKey = parent.getAutoname(baseName);
+			duplicate = 0;
+		}
+        duplicate = parent.fixupNodeDuplicate(nameKey, duplicate);
+		NodeInst ni = new NodeInst(parent, protoType, nameKey, duplicate, nameDescriptor, center, width, height, angle, userBits, protoDescriptor);
+		if (ni.checkAndRepair(true, null) > 0) return null;
 		if (ni.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
@@ -317,6 +394,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		return ni;
 	}
 
+    
 	/**
 	 * Method to delete this NodeInst.
 	 */
@@ -782,62 +860,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
 	/**
-	 * Low-level access method to create a NodeInst.
-	 * @return the newly created NodeInst.
-	 */
-	public static NodeInst lowLevelAllocate()
-	{
-		NodeInst ni = new NodeInst();
-		ni.parent = null;
-		return ni;
-	}
-
-	/**
-	 * Low-level method to fill-in the NodeInst information.
-	 * @param protoType the NodeProto of which this is an instance.
-	 * @param center the center location of this NodeInst.
-	 * @param width the width of this NodeInst.
-	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
-	 * @param height the height of this NodeInst.
-	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
-	 * @param angle the angle of this NodeInst (in tenth-degrees).
-	 * @param parent the Cell in which this NodeInst will reside.
-	 * @param name the name of this NodeInst
-	 * @param duplicate duplicate index of this NodeInst
-	 * @return true on error.
-	 */
-	public boolean lowLevelPopulate(NodeProto protoType, Point2D center, double width, double height, int angle,
-		Cell parent, String name, int duplicate)
-	{
-		if (getParent() != null && this.protoType != null)
-			System.out.println("NodeInst " + this + " of type " + this.protoType + " is populated again in " + getParent());
-		setParent(parent);
-		this.protoType = protoType;
-
-		// create all of the portInsts on this node inst
-		portInsts = new PortInst[protoType.getNumPorts()];
-		for (int i = 0; i < portInsts.length; i++)
-		{
-			PortProto pp = protoType.getPort(i);
-			portInsts[i] = PortInst.newInstance(pp, this);
-		}
-		double centerX = DBMath.round(center.getX());
-		if (centerX == 0) centerX = +0.0;
-		double centerY = DBMath.round(center.getY());
-		if (centerY == 0) centerY = +0.0;
-		this.center.setLocation(centerX, centerY);
-		this.sX = DBMath.round(width);
-		this.sY = DBMath.round(height);
-		this.angle = angle % 3600;
-		this.name = Name.findName(name);
-		this.duplicate = duplicate;
-
-		// fill in the geometry
-		redoGeometric();
-		return false;
-	}
-
-	/**
 	 * Low-level access method to link the NodeInst into its Cell.
 	 * @return true on error.
 	 */
@@ -847,19 +869,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			System.out.println("NodeInst can't be linked because it is a dummy object");
 			return true;
 		}
-		if (!isUsernamed() && (name == null || !parent.isUniqueName(name, getClass(), this)) || checkNameKey(name))
-		{
-			name = parent.getAutoname(getBasename());
-			duplicate = 0;
-		}
-		if (checkAndRepair(true, null) > 0) return true;
 
 		// add to linked lists
 		nodeUsage = parent.addUsage(getProto());
         if (nodeUsage == null) return true;
-		int duplicate = parent.addNode(this);
-		if (duplicate < 0) return true;
-		this.duplicate = duplicate;
+		if (parent.addNode(this)) return true;
 		parent.linkNode(this);
 		return false;
 	}
@@ -891,11 +905,32 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			parent.unLinkNode(this);
 
 		// make the change
-		center.setLocation(DBMath.round(getAnchorCenterX() + dX), DBMath.round(getAnchorCenterY() + dY));
-		if (dXSize != 0) sX = DBMath.round(sX + dXSize);
-		if (dYSize != 0) sY = DBMath.round(sY + dYSize);
-		angle = (angle + dRot) % 3600;
-
+        if (dX != 0 || dY != 0)
+            d = d.withAnchor(new EPoint(getAnchorCenterX() + dX, getAnchorCenterY() + dY));
+        if (dXSize != 0 || dYSize != 0 || dRot != 0) {
+            double width, height;
+            boolean flipX, flipY;
+    		if (dXSize != 0) {
+                double newSX = DBMath.round(getXSizeWithMirror() + dXSize);
+                flipX = newSX < 0;
+                width = Math.abs(newSX);
+            } else {
+                flipX = isXMirrored();
+                width = getXSize();
+            }
+    		if (dYSize != 0) {
+                double newSY = DBMath.round(getYSizeWithMirror() + dYSize);
+                flipY = newSY < 0;
+                height = Math.abs(newSY);
+            } else {
+                flipY = isYMirrored();
+                height = getYSize();
+            }
+            if (flipX != d.orient.isXMirrored() || flipY != d.orient.isYMirrored() || dRot != 0)
+                d = d.withOrient(Orientation.fromJava(d.orient.getAngle() + dRot, flipX, flipY));
+            d = d.withSize(width, height);
+        }
+            
 		// fill in the Geometric fields
 		redoGeometric();
 
@@ -978,51 +1013,51 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Method to return the rotation angle of this NodeInst.
 	 * @return the rotation angle of this NodeInst (in tenth-degrees).
 	 */
-	public int getAngle() { return angle; }
+	public int getAngle() { return d.orient.getAngle(); }
 
 	/**
 	 * Method to return the center point of this NodeInst object.
 	 * @return the center point of this NodeInst object.
 	 */
-	public Point2D getAnchorCenter() { return center; }
+	public EPoint getAnchorCenter() { return d.anchor; }
 
 	/**
 	 * Method to return the center X coordinate of this NodeInst.
 	 * @return the center X coordinate of this NodeInst.
 	 */
-	public double getAnchorCenterX() { return center.getX(); }
+	public double getAnchorCenterX() { return d.anchor.getX(); }
 
 	/**
 	 * Method to return the center Y coordinate of this NodeInst.
 	 * @return the center Y coordinate of this NodeInst.
 	 */
-	public double getAnchorCenterY() { return center.getY(); }
+	public double getAnchorCenterY() { return d.anchor.getY(); }
 
 	/**
 	 * Method to return the X size of this NodeInst.
 	 * @return the X size of this NodeInst.
 	 */
-	public double getXSize() { return Math.abs(sX); }
+	public double getXSize() { return d.width; }
 
 	/**
 	 * Method to return the Y size of this NodeInst.
 	 * @return the Y size of this NodeInst.
 	 */
-	public double getYSize() { return Math.abs(sY); }
+	public double getYSize() { return d.height; }
 
 	/**
 	 * Method to return the X size of this NodeInst, including the mirroring factor.
 	 * When mirrored about Y, the X size is negated.
 	 * @return the X size of this NodeInst, including the mirroring factor.
 	 */
-	public double getXSizeWithMirror() { return sX; }
+	public double getXSizeWithMirror() { return d.orient.isXMirrored() ? -d.width : d.width; }
 
 	/**
 	 * Method to return the Y size of this NodeInst, including the mirroring factor.
 	 * When mirrored about X, the Y size is negated.
 	 * @return the Y size of this NodeInst, including the mirroring factor.
 	 */
-	public double getYSizeWithMirror() { return sY; }
+	public double getYSizeWithMirror() { return d.orient.isYMirrored() ? -d.height : d.height; }
 	
 	/**
 	 * Method to return whether NodeInst is mirrored about a 
@@ -1044,7 +1079,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Thus, it is equivalent to mirroring ABOUT the Y axis.
 	 * @return true if this NodeInst is mirrored in the X coordinate.
 	 */
-	public boolean isXMirrored() { return sX < 0 || sX == 0 && 1/sX < 0; }
+	public boolean isXMirrored() { return d.orient.isXMirrored(); }
 
 	/**
 	 * Method to tell whether this NodeInst is mirrored in the Y coordinate.
@@ -1052,7 +1087,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Thus, it is equivalent to mirroring ABOUT the X axis.
 	 * @return true if this NodeInst is mirrored in the Y coordinate.
 	 */
-	public boolean isYMirrored() { return sY < 0 || sY == 0 && 1/sY < 0; }
+	public boolean isYMirrored() { return d.orient.isYMirrored(); }
 
 	/**
 	 * Class to convert between Java transformations and C transformations.
@@ -1252,7 +1287,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	private void redoGeometric()
 	{
 		// if zero size, set the bounds directly
-		if (sX == 0 && sY == 0)
+		if (getXSize() == 0 && getYSize() == 0)
 		{
 			visBounds.setRect(getAnchorCenterX(), getAnchorCenterY(), 0, 0);
 			return;
@@ -1265,13 +1300,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			Cell subCell = (Cell)protoType;
 			Rectangle2D bounds = subCell.getBounds();
 			Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
-			AffineTransform trans = pureRotate(angle, isXMirrored(), isYMirrored());
+			AffineTransform trans = pureRotate(d.orient.getAngle(), isXMirrored(), isYMirrored());
 			trans.transform(shift, shift);
-			double cX = center.getX(), cY = center.getY();
+			double cX = getAnchorCenterX(), cY = getAnchorCenterY();
 			cX -= shift.getX();
 			cY -= shift.getY();
-			Poly poly = new Poly(cX, cY, Math.abs(sX), Math.abs(sY));
-			trans = rotateAbout(angle, cX, cY, sX, sY);
+			Poly poly = new Poly(cX, cY, getXSize(), getYSize());
+			trans = rotateAbout(d.orient.getAngle(), cX, cY, getXSizeWithMirror(), getYSizeWithMirror());
 			poly.transform(trans);
 			visBounds.setRect(poly.getBounds2D());
 			return;
@@ -1286,7 +1321,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			double [] angles = getArcDegrees();
 			if (angles[0] != 0.0 || angles[1] != 0.0)
 			{
-				Point2D [] pointList = Artwork.fillEllipse(getAnchorCenter(), Math.abs(sX), Math.abs(sY), angles[0], angles[1]);
+				Point2D [] pointList = Artwork.fillEllipse(getAnchorCenter(), getXSize(), getYSize(), angles[0], angles[1]);
 				Poly poly = new Poly(pointList);
 				poly.setStyle(Poly.Type.OPENED);
 				poly.transform(rotateOut());
@@ -1326,15 +1361,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			}
 
 			// recompute actual bounds
-			double width = DBMath.round(bounds.getWidth());
-			double height = DBMath.round(bounds.getHeight());
-			sX = isXMirrored() ? -width : width;
-			sY = isYMirrored() ? -height : height;
+			d = d.withSize(bounds.getWidth(), bounds.getHeight());
 			return;
 		}
 
 		// normal bounds computation
-		Poly poly = new Poly(center.getX(), center.getY(), Math.abs(sX), Math.abs(sY));
+		Poly poly = new Poly(getAnchorCenterX(), getAnchorCenterY(), getXSize(), getYSize());
 		AffineTransform trans = rotateOut();
 		poly.transform(trans);
 		visBounds.setRect(poly.getBounds2D());
@@ -1675,7 +1707,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public AffineTransform pureRotateOut()
 	{
-		return pureRotate(angle, isXMirrored(), isYMirrored());
+		return pureRotate(d.orient.getAngle(), isXMirrored(), isYMirrored());
 	}
 
 	/**
@@ -1690,7 +1722,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		int numFlips = 0;
 		if (isXMirrored()) numFlips++;
 		if (isYMirrored()) numFlips++;
-		int rotAngle = angle;
+		int rotAngle = d.orient.getAngle();
 		if (numFlips != 1) rotAngle = -rotAngle;
 		return pureRotate(rotAngle, isXMirrored(), isYMirrored());
 	}
@@ -1708,9 +1740,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		int numFlips = 0;
 		if (isXMirrored()) numFlips++;
 		if (isYMirrored()) numFlips++;
-		int rotAngle = angle;
+		int rotAngle = d.orient.getAngle();
 		if (numFlips != 1) rotAngle = -rotAngle;
-		return rotateAbout(rotAngle, getAnchorCenterX(), getAnchorCenterY(), sX, sY);
+		return rotateAbout(rotAngle, getAnchorCenterX(), getAnchorCenterY(), getXSizeWithMirror(), getYSizeWithMirror());
 	}
 
 	/**
@@ -1727,7 +1759,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public AffineTransform rotateIn(AffineTransform prevTransform)
 	{
 		// if there is no transformation, stop now
-		if (angle == 0 && !isXMirrored() && !isYMirrored()) return prevTransform;
+		if (d.orient == Orientation.IDENT) return prevTransform;
 
 		AffineTransform transform = rotateIn();
 		AffineTransform returnTransform = new AffineTransform(prevTransform);
@@ -1744,7 +1776,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public AffineTransform rotateOut()
 	{
-		return rotateAbout(angle, getAnchorCenterX(), getAnchorCenterY(), sX, sY);
+		return rotateAbout(d.orient.getAngle(), getAnchorCenterX(), getAnchorCenterY(), getXSizeWithMirror(), getYSizeWithMirror());
 	}
 
 	/**
@@ -1756,7 +1788,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public AffineTransform rotateOutAboutTrueCenter()
 	{
-		return rotateAbout(angle, getTrueCenterX(), getTrueCenterY(), sX, sY);
+		return rotateAbout(d.orient.getAngle(), getTrueCenterX(), getTrueCenterY(), getXSizeWithMirror(), getYSizeWithMirror());
 	}
 
 	/**
@@ -1772,7 +1804,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public AffineTransform rotateOut(AffineTransform prevTransform)
 	{
 		// if there is no transformation, stop now
-		if (angle == 0 && !isXMirrored() && !isYMirrored()) return prevTransform;
+		if (d.orient == Orientation.IDENT) return prevTransform;
 
 		AffineTransform transform = rotateOut();
 		AffineTransform returnTransform = new AffineTransform(prevTransform);
@@ -1793,7 +1825,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public AffineTransform rotateOutAboutTrueCenter(AffineTransform prevTransform)
 	{
 		// if there is no transformation, stop now
-		if (angle == 0 && !isXMirrored() && !isYMirrored()) return prevTransform;
+		if (d.orient == Orientation.IDENT) return prevTransform;
 
 		AffineTransform transform = rotateOutAboutTrueCenter();
 		AffineTransform returnTransform = new AffineTransform(prevTransform);
@@ -2421,7 +2453,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public Name getNameKey()
 	{
-		return name;
+		return d.name;
 	}
 
 	/**
@@ -2432,9 +2464,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public void lowLevelRename(Name name, int duplicate)
 	{
 		parent.removeNodeName(this);
-		this.name = name;
-		this.duplicate = duplicate;
-		this.duplicate = parent.addNodeName(this);
+        d = d.withName(name, parent.fixupNodeDuplicate(name, duplicate));
+		parent.addNodeName(this);
 		parent.checkInvariants();
 	}
 
@@ -2442,7 +2473,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Method to return the duplicate index of this NodeInst.
 	 * @return the duplicate index of this NodeInst.
 	 */
-	public int getDuplicate() { return duplicate; }
+	public int getDuplicate() { return d.duplicate; }
 
 	/**
 	 * Returns the TextDescriptor on this NodeInst selected by name.
@@ -2457,8 +2488,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public ImmutableTextDescriptor getTextDescriptor(String varName)
 	{
-		if (varName == NODE_NAME_TD) return nameDescriptor;
-		if (varName == NODE_PROTO_TD) return protoDescriptor;
+		if (varName == NODE_NAME_TD) return d.nameDescriptor;
+		if (varName == NODE_PROTO_TD) return d.protoDescriptor;
 		return super.getTextDescriptor(varName);
 	}
 
@@ -2480,14 +2511,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	{
 		if (varName == NODE_NAME_TD)
         {
-            ImmutableTextDescriptor oldDescriptor = nameDescriptor;
-			nameDescriptor = td.withDisplayWithoutParamAndCode();
+            ImmutableTextDescriptor oldDescriptor = d.nameDescriptor;
+			d = d.withNameDescriptor(td.withDisplayWithoutParamAndCode());
             return oldDescriptor;
         }
 		if (varName == NODE_PROTO_TD)
         {
-            ImmutableTextDescriptor oldDescriptor = protoDescriptor;
-			protoDescriptor = td.withDisplayWithoutParamAndCode();
+            ImmutableTextDescriptor oldDescriptor = d.protoDescriptor;
+			d = d.withProtoDescriptor(td.withDisplayWithoutParamAndCode());
             return oldDescriptor;
         }
 		return super.lowLevelSetTextDescriptor(varName, td);
@@ -2612,7 +2643,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		}
 		cmp = this.getName().compareTo(that.getName());
 		if (cmp != 0) return cmp;
-		return this.duplicate - that.duplicate;
+		return this.d.duplicate - that.d.duplicate;
 	}
 
 	/**
@@ -2675,7 +2706,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		if (protoType instanceof Cell) return PrimitiveNode.Function.UNKNOWN;
 
 		PrimitiveNode np = (PrimitiveNode)protoType;
-		return np.getTechnology().getPrimitiveFunction(this);
+		return np.getTechnology().getPrimitiveFunction(np, getTechSpecific());
 	}
 
     /** 
@@ -2946,8 +2977,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			}
 			if (repair)
 			{
-				sX = isXMirrored() ? -width : width;
-				sY = isYMirrored() ? -height : height;
+                d = d.withSize(width, height);
 				redoGeometric();
 			}
 			warningCount++;
@@ -2961,8 +2991,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void check()
 	{
-		assert name != null;
-		assert duplicate >= 0;
+		assert d.name != null;
+		assert d.duplicate >= 0;
 
 		assert nodeUsage != null;
 		assert nodeUsage.getParent() == parent;
@@ -3015,7 +3045,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * This should not normally be called by any other part of the system.
 	 * @return the "user bits".
 	 */
-	public int lowLevelGetUserbits() { return userBits; }
+	public int lowLevelGetUserbits() { return d.userBits; }
 
 	/**
 	 * Low-level method to set the user bits.
@@ -3026,21 +3056,24 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * This should not normally be called by any other part of the system.
 	 * @param userBits the new "user bits".
 	 */
-	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+	public void lowLevelSetUserbits(int userBits) { checkChanging(); d = d.withUserBits(userBits); }
 
 	/**
 	 * Method to copy the various state bits from another NodeInst to this NodeInst.
 	 * @param ni the other NodeInst to copy.
 	 */
-	public void copyStateBits(NodeInst ni) { this.userBits = ni.userBits; }
+	public void copyStateBits(NodeInst ni) { checkChanging(); d = d.withUserBits(ni.d.userBits); }
 
+    private void setFlag(int flag) { checkChanging(); d = d.withUserBits(d.userBits | flag); }
+    private void clearFlag(int flag) { checkChanging(); d = d.withUserBits(d.userBits & ~flag); }
+   
 	/**
 	 * Method to set this NodeInst to be expanded.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
 	 * The state has no meaning for instances of primitive node prototypes.
 	 */
-	public void setExpanded() { userBits |= NEXPAND; }
+	public void setExpanded() { setFlag(NEXPAND); }
 
 	/**
 	 * Method to set this NodeInst to be unexpanded.
@@ -3048,7 +3081,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
 	 * The state has no meaning for instances of primitive node prototypes.
 	 */
-	public void clearExpanded() { userBits &= ~NEXPAND; }
+	public void clearExpanded() { clearFlag(NEXPAND); }
 
 	/**
 	 * Method to tell whether this NodeInst is expanded.
@@ -3057,7 +3090,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * The state has no meaning for instances of primitive node prototypes.
 	 * @return true if this NodeInst is expanded.
 	 */
-	public boolean isExpanded() { return (userBits & NEXPAND) != 0; }
+	public boolean isExpanded() { return (d.userBits & NEXPAND) != 0; }
 
 	/**
 	 * Method to set this NodeInst to be wiped.
@@ -3066,7 +3099,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
 	 * and the arcs connected to it must have "setWipable" in their prototype.
 	 */
-	public void setWiped() { userBits |= WIPED; }
+	public void setWiped() { setFlag(WIPED); }
 
 	/**
 	 * Method to set this NodeInst to be not wiped.
@@ -3075,7 +3108,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
 	 * and the arcs connected to it must have "setWipable" in their prototype.
 	 */
-	public void clearWiped() { userBits &= ~WIPED; }
+	public void clearWiped() { clearFlag(WIPED); }
 
 	/**
 	 * Method to tell whether this NodeInst is wiped.
@@ -3085,7 +3118,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * and the arcs connected to it must have "setWipable" in their prototype.
 	 * @return true if this NodeInst is wiped.
 	 */
-	public boolean isWiped() { return (userBits & WIPED) != 0; }
+	public boolean isWiped() { return (d.userBits & WIPED) != 0; }
 
 	/**
 	 * Method to set this NodeInst to be shortened.
@@ -3093,7 +3126,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * they are connected at nonManhattan angles and must connect smoothly.
 	 * This state can only get set if the node's prototype has the "setCanShrink" state.
 	 */
-	public void setShortened() { userBits |= NSHORT; }
+	public void setShortened() { setFlag(NSHORT); }
 
 	/**
 	 * Method to set this NodeInst to be not shortened.
@@ -3101,7 +3134,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * they are connected at nonManhattan angles and must connect smoothly.
 	 * This state can only get set if the node's prototype has the "setCanShrink" state.
 	 */
-	public void clearShortened() { userBits &= ~NSHORT; }
+	public void clearShortened() { clearFlag(NSHORT); }
 
 	/**
 	 * Method to tell whether this NodeInst is shortened.
@@ -3110,21 +3143,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * This state can only get set if the node's prototype has the "setCanShrink" state.
 	 * @return true if this NodeInst is shortened.
 	 */
-	public boolean isShortened() { return (userBits & NSHORT) != 0; }
+	public boolean isShortened() { return (d.userBits & NSHORT) != 0; }
 
 	/**
 	 * Method to set this NodeInst to be hard-to-select.
 	 * Hard-to-select NodeInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
 	 */
-	public void setHardSelect() { userBits |= HARDSELECTN; }
+	public void setHardSelect() { setFlag(HARDSELECTN); }
 
 	/**
 	 * Method to set this NodeInst to be easy-to-select.
 	 * Hard-to-select NodeInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
 	 */
-	public void clearHardSelect() { userBits &= ~HARDSELECTN; }
+	public void clearHardSelect() { clearFlag(HARDSELECTN); }
 
 	/**
 	 * Method to tell whether this NodeInst is hard-to-select.
@@ -3132,21 +3165,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Instead, the "special select" command must be given.
 	 * @return true if this NodeInst is hard-to-select.
 	 */
-	public boolean isHardSelect() { return (userBits & HARDSELECTN) != 0; }
+	public boolean isHardSelect() { return (d.userBits & HARDSELECTN) != 0; }
 
 	/**
 	 * Method to set this NodeInst to be visible-inside.
 	 * A NodeInst that is "visible inside" is only drawn when viewing inside of the Cell.
 	 * It is not visible from outside (meaning from higher-up the hierarchy).
 	 */
-	public void setVisInside() { userBits |= NVISIBLEINSIDE; }
+	public void setVisInside() { setFlag(NVISIBLEINSIDE); }
 
 	/**
 	 * Method to set this NodeInst to be not visible-inside.
 	 * A NodeInst that is "visible inside" is only drawn when viewing inside of the Cell.
 	 * It is not visible from outside (meaning from higher-up the hierarchy).
 	 */
-	public void clearVisInside() { userBits &= ~NVISIBLEINSIDE; }
+	public void clearVisInside() { clearFlag(NVISIBLEINSIDE); }
 
 	/**
 	 * Method to tell whether this NodeInst is visible-inside.
@@ -3154,26 +3187,26 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * It is not visible from outside (meaning from higher-up the hierarchy).
 	 * @return true if this NodeInst is visible-inside.
 	 */
-	public boolean isVisInside() { return (userBits & NVISIBLEINSIDE) != 0; }
+	public boolean isVisInside() { return (d.userBits & NVISIBLEINSIDE) != 0; }
 
 	/**
 	 * Method to set this NodeInst to be locked.
 	 * Locked NodeInsts cannot be modified or deleted.
 	 */
-	public void setLocked() { userBits |= NILOCKED; }
+	public void setLocked() { setFlag(NILOCKED); }
 
 	/**
 	 * Method to set this NodeInst to be unlocked.
 	 * Locked NodeInsts cannot be modified or deleted.
 	 */
-	public void clearLocked() { userBits &= ~NILOCKED; }
+	public void clearLocked() { clearFlag(NILOCKED); }
 
 	/**
 	 * Method to tell whether this NodeInst is locked.
 	 * Locked NodeInsts cannot be modified or deleted.
 	 * @return true if this NodeInst is locked.
 	 */
-	public boolean isLocked() { return (userBits & NILOCKED) != 0; }
+	public boolean isLocked() { return (d.userBits & NILOCKED) != 0; }
 
 	/**
 	 * Method to set a Technology-specific value on this NodeInst.
@@ -3182,7 +3215,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * For example, the Transistor primitive uses these bits to distinguish nMOS, pMOS, etc.
 	 * @param value the Technology-specific value to store on this NodeInst.
 	 */
-	public void setTechSpecific(int value) { userBits = (userBits & ~NTECHBITS) | (value << NTECHBITSSH); }
+	public void setTechSpecific(int value) { checkChanging(); d = d.withUserBits((d.userBits & ~NTECHBITS) | (value << NTECHBITSSH) & NTECHBITS); }
 
 	/**
 	 * Method to return the Technology-specific value on this NodeInst.
@@ -3191,7 +3224,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * For example, the Transistor primitive uses these bits to distinguish nMOS, pMOS, etc.
 	 * @return the Technology-specific value on this NodeInst.
 	 */
-	public int getTechSpecific() { return (userBits & NTECHBITS) >> NTECHBITSSH; }
+	public int getTechSpecific() { return (d.userBits & NTECHBITS) >> NTECHBITSSH; }
 
 	/**
 	 * Return the Essential Bounds of this NodeInst.
@@ -3300,8 +3333,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
         // Technology only valid for PrimitiveNodes?
         PrimitiveNode np = (PrimitiveNode)protoType;
         PrimitiveNode noNp = (PrimitiveNode)noProtoType;
-	    PrimitiveNode.Function function = np.getTechnology().getPrimitiveFunction(this);
-	    PrimitiveNode.Function noFunc = noNp.getTechnology().getPrimitiveFunction(no);
+	    PrimitiveNode.Function function = getFunction();
+	    PrimitiveNode.Function noFunc = no.getFunction();
         if (function != noFunc)
         {
 	        if (buffer != null)

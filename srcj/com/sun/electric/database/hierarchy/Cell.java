@@ -42,7 +42,6 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -348,8 +347,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 	/** counter for enumerating cells */							private static int cellNumber = 0;
 
-	/** The object used to request flag bits. */					private static final FlagSet.Generator flagGenerator = new FlagSet.Generator("Cell");
-
 	/** The CellName of the Cell. */								private CellName cellName;
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
 	/** The library this Cell belongs to. */						private Library lib;
@@ -373,7 +370,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/** 0-based index of this Cell. */								private int cellIndex;
 	/** This Cell's Technology. */									private Technology tech;
 	/** The temporary integer value. */								private int tempInt;
-	/** The temporary flag bits. */									private int flagBits;
 
 
 	// ------------------ protected and private methods -----------------------
@@ -1645,19 +1641,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/**
 	 * Method to add a new NodeInst to the cell.
 	 * @param ni the NodeInst to be included in the cell.
-	 * @return unique diplicate index for this node or -1 on failure
+	 * @return true on failure
 	 */
-	public int addNode(NodeInst ni)
+	public boolean addNode(NodeInst ni)
 	{
 		checkChanging();
 		String name = ni.getName();
-		int duplicate = ni.getDuplicate();
-		// error check
+
+        // error check
 		NodeUsage nu = ni.getNodeUsage();
 		if (nu.contains(ni))
 		{
 			System.out.println("Cell " + this +" already contains node inst " + ni);
-			return -1;
+			return true;
 		}
 
 		// check to see if this instantiation would create a circular library dependency
@@ -1673,7 +1669,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 						System.out.println("ERROR: "+ libDescribe() + " cannot instantiate " +
 							instProto.libDescribe() + " because it would create a circular library dependence: ");
 						System.out.println(libDep.toString());
-						return -1;
+						return true;
 					} else {
 						System.out.println("WARNING: "+ libDescribe() + " instantiates " +
 							instProto.libDescribe() + " which causes a circular library dependence: ");
@@ -1683,53 +1679,18 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			}
 		}
 
-		duplicate = addNodeName(ni);
+		addNodeName(ni);
 		nu.addInst(ni);
-		return duplicate;
+		return false;
 	}
 
 	/**
 	 * Method to add a new NodeInst to the name index of this cell.
 	 * @param ni the NodeInst to be included tp the name index in the cell.
-	 * @return unique diplicate index for this node.
 	 */
-	public int addNodeName(NodeInst ni)
+	public void addNodeName(NodeInst ni)
 	{
-		String name = ni.getName();
-		int duplicate = ni.getDuplicate();
-		int nodeIndex = 0;
-		if (duplicate >= 0)
-		{
-			nodeIndex = searchNode(name, duplicate);
-			if (nodeIndex >= 0)
-			{
-				if (nodes.get(nodeIndex) == ni)
-				{
-					System.out.println("Cell " + this +" already contains node " + ni);
-					return duplicate;
-				}
-				duplicate = -1;
-			}
-		}
-		if (duplicate < 0)
-		{
-			nodeIndex = searchNode(name, Integer.MAX_VALUE);
-			if (nodeIndex < 0)
-			{
-				duplicate = 0;
-				if (nodeIndex != -1)
-				{
-					NodeInst n = (NodeInst)nodes.get(- nodeIndex - 2);
-					if (n.getName().equals(name))
-						duplicate = n.getDuplicate() + 1;
-				}
-			} else
-			{
-				// This may happen if n.getDuplicate() == Integer.MAX_VALUE.
-				// Scan all possible duplicates starting from zero.
-				for (duplicate = 0; (nodeIndex = searchNode(name, duplicate)) >= 0; duplicate++) ;
-			}
-		}
+		int nodeIndex = searchNode(ni.getName(), ni.getDuplicate());
 		assert nodeIndex < 0;
 		nodeIndex = - nodeIndex - 1;
 		nodes.add(nodeIndex, ni);
@@ -1739,6 +1700,52 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			n.setNodeIndex(nodeIndex);
 		}
 		addTempName(ni);
+	}
+
+	/**
+	 * Method to find duplicate index for name, so that (name,duplicate) paiir is unique a Cell.
+	 * @param name the name of NodeInst.
+	 * @duplicate recommended duplicate index, or -1
+	 * @return unique diplicate index for this node.
+	 */
+	public int fixupNodeDuplicate(Name name, int duplicate)
+	{
+        String nameString = name.toString();
+		int nodeIndex = 0;
+		if (duplicate >= 0)
+		{
+			nodeIndex = searchNode(nameString, duplicate);
+			if (nodeIndex >= 0)
+			{
+//				if (nodes.get(nodeIndex) == ni)
+//				{
+//					System.out.println("Cell " + this +" already contains node " + ni);
+//					return duplicate;
+//				}
+				duplicate = -1;
+			}
+		}
+		if (duplicate < 0)
+		{
+			nodeIndex = searchNode(nameString, Integer.MAX_VALUE);
+			if (nodeIndex < 0)
+			{
+				duplicate = 0;
+				if (nodeIndex != -1)
+				{
+					NodeInst n = (NodeInst)nodes.get(- nodeIndex - 2);
+					if (n.getName().equals(nameString))
+						duplicate = n.getDuplicate() + 1;
+				}
+			} else
+			{
+				// This may happen if n.getDuplicate() == Integer.MAX_VALUE.
+				// Scan all possible duplicates starting from zero.
+				for (duplicate = 0; (nodeIndex = searchNode(nameString, duplicate)) >= 0; duplicate++) ;
+			}
+		}
+		assert nodeIndex < 0;
+		nodeIndex = - nodeIndex - 1;
 		return duplicate;
 	}
 
@@ -3703,37 +3710,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * @return the temporary integer on this Cell.
 	 */
 	public int getTempInt() { return tempInt; }
-
-	/**
-	 * Method to get access to flag bits on this Cell.
-	 * Flag bits allow Cells to be marked and examined more conveniently.
-	 * However, multiple competing activities may want to mark the nodes at
-	 * the same time.  To solve this, each activity that wants to mark nodes
-	 * must create a FlagSet that allocates bits in the node.  When done,
-	 * the FlagSet must be released.
-	 * @param numBits the number of flag bits desired.
-	 * @return a FlagSet object that can be used to mark and test the Cell.
-	 */
-	public static FlagSet getFlagSet(int numBits) { return FlagSet.getFlagSet(flagGenerator, numBits); }
-
-	/**
-	 * Method to set the specified flag bits on this Cell.
-	 * @param set the flag bits that are to be set on this Cell.
-	 */
-	public void setBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits | set.getMask(); }
-
-	/**
-	 * Method to set the specified flag bits on this Cell.
-	 * @param set the flag bits that are to be cleared on this Cell.
-	 */
-	public void clearBit(FlagSet set) { /*checkChanging();*/ flagBits = flagBits & set.getUnmask(); }
-
-	/**
-	 * Method to test the specified flag bits on this Cell.
-	 * @param set the flag bits that are to be tested on this Cell.
-	 * @return true if the flag bits are set.
-	 */
-	public boolean isBit(FlagSet set) { return (flagBits & set.getMask()) != 0; }
 
 	/**
 	 * Method to set a Change object on this Cell.

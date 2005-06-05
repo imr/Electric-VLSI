@@ -39,6 +39,7 @@ import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
@@ -1725,7 +1726,7 @@ P 704883 0 0 0
 			show();
 			cell.setName("c2");
 			show();
-			cell.newNode(cell1, "n0", EPoint.ORIGIN);
+			cell.newNode(cell1, Name.findName("n0"), EPoint.ORIGIN);
 			show();
 //			NodeInst_ node = cell.addNode("n0");
 //			ImmutableCell[] icells = new ImmutableCell[3];

@@ -25,6 +25,7 @@ package com.sun.electric.database.constraint;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -1242,9 +1243,10 @@ public class Layout extends Constraints
 			int angle = change.getI1();
 
 			// create a fake node with these values
-			NodeInst oldNi = NodeInst.lowLevelAllocate();
-			oldNi.lowLevelPopulate(bottomNi.getProto(), new Point2D.Double(cX, cY), sX, sY, angle, bottomNi.getParent(), null, -1);
-			bottomNi = oldNi;
+			bottomNi = NodeInst.makeDummyInstance(bottomNi.getProto(), new EPoint(cX, cY), sX, sY, angle);
+//			NodeInst oldNi = NodeInst.lowLevelAllocate();
+//			oldNi.lowLevelPopulate(bottomNi.getProto(), new Point2D.Double(cX, cY), sX, sY, angle, bottomNi.getParent(), null, -1);
+//			bottomNi = oldNi;
 		}
 		PrimitiveNode np = (PrimitiveNode)bottomNi.getProto();
 		Technology tech = np.getTechnology();
@@ -1268,8 +1270,9 @@ public class Layout extends Constraints
 		int angle = change.getI1();
 
 		// create a fake node with these values
-		NodeInst oldNi = NodeInst.lowLevelAllocate();
-		oldNi.lowLevelPopulate(ni.getProto(), new Point2D.Double(cX, cY), sX, sY, angle, ni.getParent(), null, -1);
+		NodeInst oldNi = NodeInst.makeDummyInstance(ni.getProto(), new EPoint(cX, cY), sX, sY, angle);
+//		NodeInst oldNi = NodeInst.lowLevelAllocate();
+//		oldNi.lowLevelPopulate(ni.getProto(), new Point2D.Double(cX, cY), sX, sY, angle, ni.getParent(), null, -1);
 
 		// use the fake node to determine the former transformation matrix
 		return oldNi.rotateOut();

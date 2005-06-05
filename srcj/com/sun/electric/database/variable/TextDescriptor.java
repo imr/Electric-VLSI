@@ -1079,7 +1079,7 @@ public abstract class TextDescriptor implements Serializable
 	 * Parameters can only exist on NodeInst objects.
 	 * @return true if the text in the TextDescriptor is a parameter.
 	 */
-	protected boolean isParam() { return isFlag(VTISPARAMETER); }
+	public boolean isParam() { return isFlag(VTISPARAMETER); }
 
 	/**
 	 * Method to return the X offset of the text in the TextDescriptor.

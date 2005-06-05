@@ -1323,12 +1323,13 @@ public class Technology implements Comparable
 	}
 
 	/**
-	 * Method to return the pure "NodeProto Function" a primitive NodeInst in this Technology.
+	 * Method to return the pure "NodeProto Function" a PrimitiveNode in this Technology.
 	 * This method is overridden by technologies (such as Schematics) that know the node's function.
-	 * @param ni the NodeInst to check.
-	 * @return the PrimitiveNode.Function that describes the NodeInst.
+	 * @param pn PrimitiveNode to check.
+     * @param techBits tech bits
+	 * @return the PrimitiveNode.Function that describes the PrinitiveNode with specific tech bits.
 	 */
-	public PrimitiveNode.Function getPrimitiveFunction(NodeInst ni) { return ni.getProto().getFunction(); }
+	public PrimitiveNode.Function getPrimitiveFunction(PrimitiveNode pn, int techBits) { return pn.getFunction(); }
 
     private static final List diffLayers = new ArrayList(2);
 
@@ -3565,13 +3566,14 @@ public class Technology implements Comparable
     public static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int angle, boolean display,
                                         String varName, double fontSize)
     {
-        NodeInst ni = NodeInst.lowLevelAllocate();
+//        NodeInst ni = NodeInst.lowLevelAllocate();
         SizeOffset so = np.getProtoSizeOffset();
         Point2D pt = new Point2D.Double((so.getHighXOffset() - so.getLowXOffset()) / 2,
             (so.getHighYOffset() - so.getLowYOffset()) / 2);
         AffineTransform trans = NodeInst.pureRotate(angle, false, false);
         trans.transform(pt, pt);
-        ni.lowLevelPopulate(np, pt, np.getDefWidth(), np.getDefHeight(), angle, null, null, -1);
+        NodeInst ni = NodeInst.makeDummyInstance(np, pt, np.getDefWidth(), np.getDefHeight(), angle);
+//        ni.lowLevelPopulate(np, pt, np.getDefWidth(), np.getDefHeight(), angle, null, null, -1);
         np.getTechnology().setPrimitiveFunction(ni, func);
         np.getTechnology().setDefaultOutline(ni);
 

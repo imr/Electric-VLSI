@@ -338,62 +338,6 @@ public class Input
 		return in.lib;
 	}
 	
-	/**
-	 * Method to handle conversion of nodes read from disk that have outline information.
-	 * @param ni the NodeInst being converted.
-	 * @param np the prototype of the NodeInst being converted.
-	 * @param lambdaX the X conversion factor.
-	 * @param lambdaY the Y conversion factor.
-	 */
-	protected void scaleOutlineInformation(NodeInst ni, NodeProto np, double lambdaX, double lambdaY)
-	{
-		// ignore if not a primitive
-		if (!(np instanceof PrimitiveNode)) return;
-
-		// ignore if it doesn't hold outline information
-		if (!((PrimitiveNode)np).isHoldsOutline()) return;
-
-		// see if there really is outline information
-		Variable var = ni.getVar(NodeInst.TRACE, Integer[].class);
-		if (var != null)
-		{
-			// scale the outline information
-			Integer [] outline = (Integer [])var.getObject();
-			int newLength = outline.length / 2;
-			Point2D [] newOutline = new Point2D[newLength];
-			for(int j=0; j<newLength; j++)
-			{
-				double oldX = outline[j*2].intValue();
-				double oldY = outline[j*2+1].intValue();
-				newOutline[j] = new Point2D.Double(oldX / lambdaX, oldY / lambdaY);
-			}
-			Variable newVar = ni.newVar(NodeInst.TRACE, newOutline);
-			if (newVar == null)
-				System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
-			return;
-		}
-
-		// see if there really is outline information
-		var = ni.getVar(NodeInst.TRACE, Float[].class);
-		if (var != null)
-		{
-			// scale the outline information
-			Float [] outline = (Float [])var.getObject();
-			int newLength = outline.length / 2;
-			Point2D [] newOutline = new Point2D[newLength];
-			for(int j=0; j<newLength; j++)
-			{
-				double oldX = outline[j*2].floatValue();
-				double oldY = outline[j*2+1].floatValue();
-				newOutline[j] = new Point2D.Double(oldX, oldY);
-			}
-			Variable newVar = ni.newVar(NodeInst.TRACE, newOutline);
-			if (newVar == null)
-				System.out.println("Could not preserve outline information on node in cell "+ni.getParent().describe());
-			return;
-		}
-	}
-	
 	protected boolean openBinaryInput(URL fileURL)
 	{
 		filePath = fileURL.getFile();

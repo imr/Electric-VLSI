@@ -74,7 +74,7 @@ public class ImmutableTextDescriptor extends TextDescriptor
        
         this.display = display;
         this.bits = bits;
-		this.colorIndex = descriptor.getColorIndex();
+		this.colorIndex = display ? descriptor.getColorIndex() : 0;
         this.code = descriptor.getCode();
 	}
     

@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -35,7 +36,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.FlagSet;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -52,6 +53,9 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
@@ -73,7 +77,6 @@ public abstract class LibraryFiles extends Input
 	/** total number of cells in all read libraries */						protected static int totalCells;
 	/** number of cells constructed so far. */								protected static int cellsConstructed;
 	/** a List of scaled Cells that got created */							protected List scaledCells;
-	/** a List of wrong-size Cells that got created */						protected List skewedCells;
 	/** Number of errors in this LibraryFile */								protected int errorCount;
 	/** the Electric version in the library file. */						protected Version version;
 	/** true if old MOSIS CMOS technologies appear in the library */		protected boolean convertMosisCmosTechnologies;
@@ -82,27 +85,29 @@ public abstract class LibraryFiles extends Input
 	/** font names obtained from FONT_ASSOCIATIONS */                       private String [] fontNames;
     /** buffer for reading text descriptors and variable flags. */          MutableTextDescriptor mtd = new MutableTextDescriptor();
 
-	protected static class NodeInstList
+	static class NodeInstList
 	{
-		protected NodeInst []  theNode;
-		protected NodeProto [] protoType;
-		protected String []    name;
-		protected int []       lowX;
-		protected int []       highX;
-		protected int []       lowY;
-		protected int []       highY;
-		protected int []       anchorX;
-		protected int []       anchorY;
-		protected short []     rotation;
-		protected int []       transpose;
-		protected int []       userBits;
+		NodeInst []  theNode;
+		NodeProto [] protoType;
+		String []    name;
+		int []       lowX;
+		int []       highX;
+		int []       lowY;
+		int []       highY;
+		int []       anchorX;
+		int []       anchorY;
+		short []     rotation;
+		int []       transpose;
+        ImmutableTextDescriptor [] protoTextDescriptor;
+		int []       userBits;
+        DiskVariable[][] vars;
 	};
 
     static class DiskVariable {
         String name;
-        private int flags;
-        private int td0;
-        private int td1;
+        int flags;
+        int td0;
+        int td1;
         Object value;
         
         DiskVariable(String name, int flags, int td0, int td1, Object value)
@@ -114,37 +119,21 @@ public abstract class LibraryFiles extends Input
             this.value = value;
         }
         
-        void makeVariable(ElectricObject eObj, LibraryFiles libFiles, String[] nameArray, int nameIndex)
+        void makeVariable(ElectricObject eObj, LibraryFiles libFiles)
         {
             if (eObj instanceof Library && name.equals(Library.FONT_ASSOCIATIONS.getName()) && value instanceof String[])
             {
                 libFiles.setFontNames((String[])value);
                 return;
             }
-            
-            MutableTextDescriptor mtd = libFiles.mtd;
-            mtd.setCBits(td0, libFiles.fixTextDescriptorFont(td1), flags);
-
-			// Geometric names are saved as variables.
-            if (eObj instanceof NodeInst && name.equals(NodeInst.NODE_NAME_TD) && value instanceof String) {
-                NodeInst ni = (NodeInst)eObj;
-                ni.setTextDescriptor(NodeInst.NODE_NAME_TD, mtd);
-                nameArray[nameIndex] = convertGeomName(value, flags);
-                return;
-            }
-            if (eObj instanceof ArcInst && name.equals(ArcInst.ARC_NAME_TD) && value instanceof String) {
-                ArcInst ai = (ArcInst)eObj;
-                ai.setTextDescriptor(ArcInst.ARC_NAME_TD, mtd);
-                nameArray[nameIndex] = convertGeomName(value, flags);
-                return;
-            }
+            libFiles.fillDescriptor(this);
 
 			// see if the variable is deprecated
 			Variable.Key varKey = ElectricObject.newKey(name);
 			if (eObj.isDeprecatedVariable(varKey)) return;
 
 			// set the variable
-			Variable var = eObj.newVar(varKey, value, mtd);
+			Variable var = eObj.newVar(varKey, value, libFiles.mtd);
 			if (var == null)
 			{
 				System.out.println("Error reading variable");
@@ -192,12 +181,11 @@ public abstract class LibraryFiles extends Input
         libsBeingRead.add(this);
 		//libsBeingRead.put(lib, this);
 		scaledCells = new ArrayList();
-		skewedCells = new ArrayList();
 
 		return readLib();
 	}
 
-	protected void scanNodesForRecursion(Cell cell, FlagSet markCellForNodes, NodeProto [] nil, int start, int end)
+	protected void scanNodesForRecursion(Cell cell, HashSet/*<Cell>*/ markCellForNodes, NodeProto [] nil, int start, int end)
 	{
 		// scan the nodes in this cell and recurse
 		for(int j=start; j<end; j++)
@@ -208,7 +196,7 @@ public abstract class LibraryFiles extends Input
 			if (otherCell == null) continue;
 
 			// subcell: make sure that cell is setup
-			if (otherCell.isBit(markCellForNodes)) continue;
+			if (markCellForNodes.contains(otherCell)) continue;
 
 			LibraryFiles reader = this;
 			if (otherCell.getLibrary() != cell.getLibrary())
@@ -216,9 +204,9 @@ public abstract class LibraryFiles extends Input
 
 			// subcell: make sure that cell is setup
 			if (reader != null)
-				reader.realizeCellsRecursively(otherCell, markCellForNodes, null, 0, 0);
+				reader.realizeCellsRecursively(otherCell, markCellForNodes, null, 0);
 		}
-		cell.setBit(markCellForNodes);
+		markCellForNodes.add(cell);
 	}
 
 	/**
@@ -487,7 +475,7 @@ public abstract class LibraryFiles extends Input
 
 		// clear flag bits for scanning the library hierarchically
 		totalCells = 0;
-		FlagSet markCellForNodes = Cell.getFlagSet(1);
+		HashSet/*<Cell>*/ markCellForNodes = new HashSet/*<Cell>*/();
 		for(Iterator it = libsBeingRead.iterator(); it.hasNext(); )
 		{
 			LibraryFiles reader = (LibraryFiles)it.next();
@@ -499,7 +487,6 @@ public abstract class LibraryFiles extends Input
 				if (cell.getLibrary() != reader.lib) continue;
 				reader.cellLambda[cellIndex] = reader.computeLambda(cell, cellIndex);
 				cell.setTempInt(cellIndex);
-				cell.clearBit(markCellForNodes);
 			}
 		}
 		cellsConstructed = 0;
@@ -537,11 +524,10 @@ public abstract class LibraryFiles extends Input
 			{
 				Cell cell = reader.nodeProtoList[cellIndex];
 				if (cell == null) continue;
-				if (cell.isBit(markCellForNodes)) continue;
-				reader.realizeCellsRecursively(cell, markCellForNodes, null, 0, 0);
+				if (markCellForNodes.contains(cell)) continue;
+				reader.realizeCellsRecursively(cell, markCellForNodes, null, 0);
 			}
 		}
-		markCellForNodes.freeFlagSet();
 
 		// tell which libraries had extra "scaled" cells added
 		boolean first = true;
@@ -558,22 +544,6 @@ public abstract class LibraryFiles extends Input
 				StringBuffer sb = new StringBuffer();
 				sb.append("   Library " + reader.lib.getName() + ":");
 				for(Iterator sIt = reader.scaledCells.iterator(); sIt.hasNext(); )
-				{
-					Cell cell = (Cell)sIt.next();
-					sb.append(" " + cell.noLibDescribe());
-				}
-				System.out.println(sb.toString());
-			}
-			if (reader.skewedCells != null && reader.skewedCells.size() != 0)
-			{
-				if (first)
-				{
-					System.out.println("ERROR: because of library inconsistencies, these stretched cells were created:");
-					first = false;
-				}
-				StringBuffer sb = new StringBuffer();
-				sb.append("   Library " + reader.lib.getName() + ":");
-				for(Iterator sIt = reader.skewedCells.iterator(); sIt.hasNext(); )
 				{
 					Cell cell = (Cell)sIt.next();
 					sb.append(" " + cell.noLibDescribe());
@@ -669,7 +639,145 @@ public abstract class LibraryFiles extends Input
 		} else if (indexOfAt < 0) return null;
 		return str;
 	}
+    
+	/**
+	 * Method to build a NodeInst.
+     * @param nil arrays with data of new NodeInst
+     * @param nodeIndex index in nik array
+     * @param xoff x-offset of NodeInst in integer coordinates
+     * @param yoff y-offset of NodeInst in integer coordinates
+	 */
+    void realizeNode(NodeInstList nil, int nodeIndex, int xoff, int yoff, double lambda, Cell parent, NodeProto proto)
+    {
+		double lowX = nil.lowX[nodeIndex]-xoff;
+		double lowY = nil.lowY[nodeIndex]-yoff;
+		double highX = nil.highX[nodeIndex]-xoff;
+		double highY = nil.highY[nodeIndex]-yoff;
+		Point2D center = new Point2D.Double(((lowX + highX) / 2) / lambda, ((lowY + highY) / 2) / lambda);
+		double width = (highX - lowX) / lambda;
+		double height = (highY - lowY) / lambda;
+        if (proto instanceof Cell) {
+            Cell subCell = (Cell)proto;
+			Rectangle2D bounds = subCell.getBounds();
+            width = bounds.getWidth();
+            height = bounds.getHeight();
+        }
+            
+        
+		int rotation = nil.rotation[nodeIndex];
+		if (rotationMirrorBits)
+		{
+			// new version: allow mirror bits
+			if ((nil.transpose[nodeIndex]&1) != 0)
+			{
+				height = -height;
+				rotation = (rotation + 900) % 3600;
+			}
+			if ((nil.transpose[nodeIndex]&2) != 0)
+			{
+				// mirror in X
+				width = -width;
+			}
+			if ((nil.transpose[nodeIndex]&4) != 0)
+			{
+				// mirror in Y
+				height = -height;
+			}
+		} else
+		{
+			// old version: just use transpose information
+			if (nil.transpose[nodeIndex] != 0)
+			{
+				height = -height;
+				rotation = (rotation + 900) % 3600;
+			}
+		}
 
+		// figure out the grab center if this is a cell instance
+		if (proto instanceof Cell)
+		{
+            if (nil.anchorX != null)
+//            if (magic <= ELIBConstants.MAGIC13)
+            {
+                // version 13 and later stores and uses anchor location
+                double anchorX = (nil.anchorX[nodeIndex]-xoff) / lambda;
+                double anchorY = (nil.anchorY[nodeIndex]-yoff) / lambda;
+                center.setLocation(anchorX, anchorY);
+            } else
+            {
+                Cell subCell = (Cell)proto;
+                Rectangle2D bounds = subCell.getBounds();
+                Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
+                AffineTransform trans = NodeInst.pureRotate(rotation, width < 0, height < 0);
+                trans.transform(shift, shift);
+                center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
+            }
+		}
+        
+		String name = nil.name[nodeIndex];
+        ImmutableTextDescriptor nameTextDescriptor = null;
+        DiskVariable[] vars = nil.vars[nodeIndex];
+        if (vars != null) {
+            // Preprocess variables
+            for (int j = 0; j < vars.length; j++) {
+                DiskVariable v = vars[j];
+                if (v == null) continue;
+                if (v.name.equals(NodeInst.NODE_NAME_TD)) {
+                    if (v.value instanceof String) {
+                        name = convertGeomName((String)v.value, v.flags);
+                        nameTextDescriptor = makeDescriptor(v.td0, v.td1);
+                    }
+                    vars[j] = null;
+                } else if (v.name.equals(NodeInst.TRACE.getName()) &&
+                        proto instanceof PrimitiveNode && ((PrimitiveNode)proto).isHoldsOutline() &&
+                        (v.value instanceof Integer[] || v.value instanceof Float[])) {
+                    // convert outline information, if present
+                    Number[] outline = (Number[])v.value;
+                    int newLength = ((Object[])v.value).length / 2;
+                    Point2D [] newOutline = new Point2D[newLength];
+                    double lam = v.value instanceof Integer[] ? lambda : 1.0;
+                    for(int k=0; k<newLength; k++) {
+                        double oldX = outline[k*2].doubleValue()/lam;
+                        double oldY = outline[k*2+1].doubleValue()/lam;
+                        newOutline[k] = new Point2D.Double(oldX, oldY);
+//                        newOutline[k] = new EPoint(oldX, oldY);
+                    }
+                    v.value = newOutline;
+                }
+            }
+        }
+        
+		NodeInst ni = NodeInst.newInstance(parent, proto, name, -1, nameTextDescriptor,
+                center, width, height, rotation,
+                nil.userBits[nodeIndex], nil.protoTextDescriptor[nodeIndex]);
+        realizeVariables(ni, nil.vars[nodeIndex]);
+        nil.theNode[nodeIndex] = ni;
+
+        // if this was a dummy cell, log instance as an error so the user can find easily
+        if (proto instanceof Cell && ((Cell)proto).getVar(IO_DUMMY_OBJECT) != null) {
+            ErrorLogger.MessageLog error = Input.errorLogger.logError("Instance of dummy cell "+proto.getName(), parent, 1);
+            error.addGeom(ni, true, parent, null);
+        }
+    }
+
+    void realizeVariables(ElectricObject eObj, DiskVariable[] vars) {
+        if (vars == null) return;
+        for (int i = 0; i < vars.length; i++) {
+            DiskVariable v = vars[i];
+            if (v == null) continue;
+            v.makeVariable(eObj, this);
+        }
+    }
+    
+	void fillDescriptor(DiskVariable v) {
+        mtd.setCBits(v.td0, fixTextDescriptorFont(v.td1), v.flags);
+    }
+        
+    ImmutableTextDescriptor makeDescriptor(int td0, int td1) {
+        mtd.setCBits(td0, fixTextDescriptorFont(td1));
+        return ImmutableTextDescriptor.newImmutableTextDescriptor(mtd);
+    }
+        
 	/**
 	 * Method to grab font associations that were stored on a Library.
 	 * The font associations are used later to convert indices to true font names and numbers.
@@ -768,9 +876,7 @@ public abstract class LibraryFiles extends Input
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag, String scaledCellName, double scaleX, double scaleY)
-	{
-	}
+	abstract void realizeCellsRecursively(Cell cell, HashSet/*<Cell>*/ recursiveSetupFlag, String scaledCellName, double scale);
 
 	protected boolean readerHasExport(Cell c, String portName)
 	{

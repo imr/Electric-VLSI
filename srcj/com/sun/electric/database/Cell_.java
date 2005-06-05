@@ -24,6 +24,8 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.text.Name;
 
 import java.lang.ref.SoftReference;
 import java.util.Collections;
@@ -127,7 +129,7 @@ public class Cell_
 		thread.endChanging();
 	}
 	
-	public NodeInst_ newNode(Cell_ proto, String name, EPoint anchor) {
+	public NodeInst_ newNode(Cell_ proto, Name name, EPoint anchor) {
 		DatabaseChangeThread thread = this.thread.checkChanging();
 		if (name == null)
 			throw new NullPointerException("node name");
@@ -137,7 +139,7 @@ public class Cell_
 			throw new NullPointerException("anchor");
 		if (proto.thread != thread || proto.nodes == null)
 			throw new IllegalArgumentException("proto not alive");
-		ImmutableNodeInst inode = new ImmutableNodeInst(proto.id, name, anchor);
+		ImmutableNodeInst inode = new ImmutableNodeInst(proto.id, name, 0, null, Orientation.IDENT, anchor, 0, 0, 0, null);
 		int nodeId = thread.allocNodeId(id);
 		CellContents contents = getContents();
 		assert nodes.length == contents.nodes.length;

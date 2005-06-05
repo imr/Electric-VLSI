@@ -54,9 +54,9 @@ final public class EPoint extends Point2D {
      */
     public EPoint(double x, double y) {
 		x = DBMath.round(x);
-		if (x == 0) x = +0.0;
+		if (x == -0.0) x = +0.0;
 		y = DBMath.round(y);
-		if (y == 0) y = +0.0;
+		if (y == -0.0) y = +0.0;
 		this.x = x;
 		this.y = y;
     }

@@ -1930,24 +1930,23 @@ public class Schematics extends Technology
 	/**
 	 * Method to return the pure "PrimitiveNode Function" a primitive NodeInst in this Technology.
 	 * The Schematics technology allows primitives to have parameterized functions.
-	 * @param ni the NodeInst to check.
-	 * @return the PrimitiveNode.Function that describes the NodeInst.
+	 * @param pn PrimitiveNode to check.
+     * @param techBits tech bits
+	 * @return the PrimitiveNode.Function that describes the PrinitiveNode with specific tech bits.
 	 */
-	public PrimitiveNode.Function getPrimitiveFunction(NodeInst ni)
+	public PrimitiveNode.Function getPrimitiveFunction(PrimitiveNode pn, int techBits)
 	{
-		PrimitiveNode np = (PrimitiveNode)ni.getProto();
-		int techBits = ni.getTechSpecific();
-		if (np == capacitorNode)
+		if (pn == capacitorNode)
 		{
 			if (techBits == CAPACELEC) return PrimitiveNode.Function.ECAPAC;
 			return PrimitiveNode.Function.CAPAC;
 		}
-		if (np == diodeNode)
+		if (pn == diodeNode)
 		{
 			if (techBits == DIODEZENER) return PrimitiveNode.Function.DIODEZ;
 			return PrimitiveNode.Function.DIODE;
 		}
-		if (np == transistorNode)
+		if (pn == transistorNode)
 		{
 			switch (techBits)
 			{
@@ -1963,7 +1962,7 @@ public class Schematics extends Technology
 			}
 			return PrimitiveNode.Function.TRANMOS;
 		}
-		if (np == transistor4Node)
+		if (pn == transistor4Node)
 		{
 			switch (techBits)
 			{
@@ -1979,7 +1978,7 @@ public class Schematics extends Technology
 			}
 			return PrimitiveNode.Function.TRA4NMOS;
 		}
-		if (np == flipflopNode)
+		if (pn == flipflopNode)
 		{
 			switch (techBits)
 			{
@@ -2001,7 +2000,7 @@ public class Schematics extends Technology
 			}
 			return PrimitiveNode.Function.FLIPFLOPRSMS;
 		}
-		if (np == twoportNode)
+		if (pn == twoportNode)
 		{
 			switch (techBits)
 			{
@@ -2012,7 +2011,7 @@ public class Schematics extends Technology
 			}
 			return PrimitiveNode.Function.TLINE;
 		}
-		return ni.getProto().getFunction();
+		return pn.getFunction();
 	}
 
 	/**

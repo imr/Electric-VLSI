@@ -210,16 +210,18 @@ public class ArcInst extends Geometric implements Comparable
 		}
 
 		// create the head node
-		NodeInst niH = NodeInst.lowLevelAllocate();
-		niH.lowLevelPopulate(npEnd, new Point2D.Double(-arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null, null, -1);
+		NodeInst niH = NodeInst.makeDummyInstance(npEnd, new EPoint(-arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0);
+//		NodeInst niH = NodeInst.lowLevelAllocate();
+//		niH.lowLevelPopulate(npEnd, new Point2D.Double(-arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null, null, -1);
 		PortInst piH = niH.getOnlyPortInst();
 		Rectangle2D boundsH = piH.getBounds();
 		double xH = boundsH.getCenterX();
 		double yH = boundsH.getCenterY();
 
 		// create the tail node
-		NodeInst niT = NodeInst.lowLevelAllocate();
-		niT.lowLevelPopulate(npEnd, new Point2D.Double(arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null, null, -1);
+		NodeInst niT = NodeInst.makeDummyInstance(npEnd, new EPoint(arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0);
+//		NodeInst niT = NodeInst.lowLevelAllocate();
+//		niT.lowLevelPopulate(npEnd, new Point2D.Double(arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null, null, -1);
 		PortInst piT = niT.getOnlyPortInst();
 		Rectangle2D boundsT = piT.getBounds();
 		double xT = boundsT.getCenterX();
@@ -474,7 +476,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public boolean lowLevelLink(int defAngle)
 	{
-		if (!isUsernamed() && (name == null || !parent.isUniqueName(name, getClass(), this)) || checkNameKey(name))
+		if (!isUsernamed() && (name == null || !parent.isUniqueName(name, getClass(), this)) || checkNameKey(name, parent, false))
 		{
 			name = parent.getAutoname(BASENAME);
 			duplicate = 0;

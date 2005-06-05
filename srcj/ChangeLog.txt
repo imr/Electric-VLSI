@@ -4,6 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (06/05/05, DN) Persistent data of NodeInst is moved to ImmutableNodeInst class.
+
+BUG: (06/05/05, DN) Sometimes EPoint has coordiante -0 (HotSpot optimezer).
+FIX: Compare coordiante with "-0.0" instead of "0" in EPoint.
+
+IMP: (06/05/05, DN) FlagSet class is no longer used and it is removed.
+
+BUG: (06/05/05, DN) Grid alignement option "0" should disable alignemnt.
+FIX: In EditWindow fix "gridAlign" methods.
+
+IMP: (06/05/05, DN) JELIB output writes now "P" bit ("isParam")from database
+
 IMP/MAN: (06/03/05, SMR) Added generic versions of the purple/red/orange libraries.
 
 IMP/MAN: (06/01/05, SMR) First implementation of ALS simulator.

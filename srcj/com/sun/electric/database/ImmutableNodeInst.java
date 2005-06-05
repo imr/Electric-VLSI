@@ -23,7 +23,11 @@
  */
 package com.sun.electric.database;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.text.Name;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 
 /**
  * Immutable class ImmutableNodeInst represents a node instance.
@@ -34,32 +38,98 @@ import com.sun.electric.database.geometry.EPoint;
  */
 public class ImmutableNodeInst
 {
-	/** Prototype cell id. */		public final int protoId;
-	/** Node name. */				public final String name;
-	/** Node anchor point. */		public final EPoint anchor;
+	/** Prototype cell id. */                                       public final int protoId;
+	/** name of this ImmutableNodeInst. */							public final Name name;
+    /** duplicate index of this ImmutableNodeInst in the Cell */    public final int duplicate;
+	/** The text descriptor of name of ImmutableNodeInst. */		public final ImmutableTextDescriptor nameDescriptor;
+	/** Orientation of this ImmutableNodeInst. */                   public final Orientation orient;
+	/** anchor coordinate of this ImmutableNodeInst. */				public final EPoint anchor;
+	/** size of this ImmutableNodeInst . */                         public final double width, height;
+	/** Flag bits for this ImmutableNodeInst. */                    public final int userBits;
+	/** Text descriptor of prototype name. */                       public final ImmutableTextDescriptor protoDescriptor;
+ 
+	/**
+	 * The private constructor of ImmutableNodeInst. Use the factory "newInstance" instead.
+	 * @param protoId the NodeProto of which this is an instance.
+	 * @param name name of new ImmutableNodeInst
+	 * @param duplicate duplicate index of this ImmutableNodeInst
+     * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst
+     * @param orient Orientation of this ImmutableNodeInst.
+	 * @param anchor the anchor location of this ImmutableNodeInst.
+	 * @param width the width of this ImmutableNodeInst.
+	 * @param height the height of this ImmutableNodeInst.
+	 * @param userBits flag bits of this ImmutableNodeInst.
+     * @param protoDescriptor TextDescriptor of prototype name of this ImmutableNodeInst
+	 */
+    ImmutableNodeInst(int protoId, Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+            Orientation orient, EPoint anchor, double width, double height,
+            int userBits, ImmutableTextDescriptor protoDescriptor) {
+        this.protoId = protoId;
+        this.name = name;
+        this.duplicate = duplicate;
+        this.nameDescriptor = nameDescriptor;
+        this.orient = orient;
+        this.anchor = anchor;
+        this.width = width;
+        this.height = height;
+        this.userBits = userBits;
+        this.protoDescriptor = protoDescriptor;
+        check();
+    }
 
-	ImmutableNodeInst(int protoId, String name, EPoint anchor) {
-		this.protoId = protoId;
-		this.name = name;
-		this.anchor = anchor;
-		check();
+	/**
+	 * Returns new ImmutableNodeInst object.
+	 * @param protoId the NodeProto of which this is an instance.
+	 * @param name name of new ImmutableNodeInst
+	 * @param duplicate duplicate index of this ImmutableNodeInst
+     * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst
+     * @param orient Orientation of this ImmutableNodeInst.
+	 * @param anchor the anchor location of this ImmutableNodeInst.
+	 * @param width the width of this ImmutableNodeInst.
+	 * @param height the height of this ImmutableNodeInst.
+	 * @param userBits flag bits of this ImmutableNodeInst.
+     * @param protoDescriptor TextDescriptor of prototype name of this ImmutableNodeInst
+	 * @return new ImmutableNodeInst object.
+	 * @throws ArrayIndexOutOfBoundsException if protoId is negative.
+	 * @throws NullPointerException if name, orient or anchor is null.
+	 */
+	public static ImmutableNodeInst newInstance(int protoId, Name name, EPoint anchor) {
+        return newInstance(protoId, name, 0, null, Orientation.IDENT, anchor, 0, 0, 0, null);
 	}
 
 	/**
 	 * Returns new ImmutableNodeInst object.
 	 * @param protoId Prototype cell id.
-	 * @param name node name.
-	 * @param anchor node anchor point.
+	 * @param name name of new ImmutableNodeInst
+	 * @param duplicate duplicate index of this ImmutableNodeInst
+     * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst
+     * @param orient Orientation of this ImmutableNodeInst.
+	 * @param anchor the anchor location of this ImmutableNodeInst.
+	 * @param width the width of this ImmutableNodeInst.
+	 * @param height the height of this ImmutableNodeInst.
+	 * @param userBits bits associated to different technologies
+     * @param protoDescriptor TextDescriptor of name of this ImmutableNodeInst
 	 * @return new ImmutableNodeInst object.
 	 * @throws ArrayIndexOutOfBoundsException if protoId is negative.
-	 * @throws NullPointerException if name or anchor is null.
+	 * @throws NullPointerException if name, orient or anchor is null.
+     * @throws IllegalArgumentException if duplicate, or size is bad.
 	 */
-	public static ImmutableNodeInst newInstance(int protoId, String name, EPoint anchor) {
+    public static ImmutableNodeInst newInstance(int protoId, Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+            Orientation orient, EPoint anchor, double width, double height,
+            int userBits, ImmutableTextDescriptor protoDescriptor) {
 		if (protoId < 0) throw new ArrayIndexOutOfBoundsException(protoId);
 		if (name == null) throw new NullPointerException("name");
+        if (duplicate < 0) throw new IllegalArgumentException("duplicate");
+        if (orient == null) throw new NullPointerException("orient");
 		if (anchor == null) throw new NullPointerException("anchor");
-		return new ImmutableNodeInst(protoId, name, anchor);
-	}
+        if (!(width >= 0)) throw new IllegalArgumentException("width");
+        if (!(height >= 0)) throw new IllegalArgumentException("height");
+        width = DBMath.round(width);
+        height = DBMath.round(height);
+        if (width == -0.0) width = +0.0;
+        if (height == -0.0) height = +0.0;
+		return new ImmutableNodeInst(protoId, name, duplicate, nameDescriptor, orient, anchor, width, height, userBits, protoDescriptor);
+    }
 
 	/**
 	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by protoId.
@@ -70,19 +140,48 @@ public class ImmutableNodeInst
 	public ImmutableNodeInst withProto(int protoId) {
 		if (this.protoId == protoId) return this;
 		if (protoId < 0) throw new ArrayIndexOutOfBoundsException(protoId);
-		return new ImmutableNodeInst(protoId, this.name, this.anchor);
+		return new ImmutableNodeInst(protoId, this.name, this.duplicate, this.nameDescriptor,
+                this.orient, this.anchor, this.width, this.height, this.userBits, this.protoDescriptor);
 	}
 
 	/**
-	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by name.
-	 * @param name node name.
-	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by name.
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by name and duplicate.
+	 * @param name node name key.
+     * @param duplicate duplicate of the name
+	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by name and duplicate.
 	 * @throws NullPointerException if name is null
+     * @throws IllegalArgumentException if duplicate is negative.
 	 */
-	public ImmutableNodeInst withName(String name) {
-		if (this.name == name) return this;
+	public ImmutableNodeInst withName(Name name, int duplicate) {
+		if (this.name == name && this.duplicate == duplicate) return this;
 		if (name == null) throw new NullPointerException("name");
-		return new ImmutableNodeInst(this.protoId, name, this.anchor);
+        if (duplicate < 0) throw new IllegalArgumentException("duplicate");
+		return new ImmutableNodeInst(this.protoId, name, duplicate, this.nameDescriptor,
+                this.orient, this.anchor, this.width, this.height, this.userBits, this.protoDescriptor);
+	}
+
+	/**
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by name descriptor.
+     * @param nameDescriptor TextDescriptor of name
+	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by name descriptor.
+	 */
+	public ImmutableNodeInst withNameDescriptor(ImmutableTextDescriptor nameDescriptor) {
+        if (this.nameDescriptor == nameDescriptor) return this;
+		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, nameDescriptor,
+                this.orient, this.anchor, this.width, this.height, this.userBits, this.protoDescriptor);
+	}
+
+	/**
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by orientation.
+     * @param orient Orientation.
+	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by orientation.
+	 * @throws NullPointerException if orient is null.
+	 */
+	public ImmutableNodeInst withOrient(Orientation orient) {
+        if (this.orient == orient) return this;
+        if (orient == null) throw new NullPointerException("orient");
+		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,
+                orient, this.anchor, this.width, this.height, this.userBits, this.protoDescriptor);
 	}
 
 	/**
@@ -94,7 +193,48 @@ public class ImmutableNodeInst
 	public ImmutableNodeInst withAnchor(EPoint anchor) {
 		if (this.anchor == anchor) return this;
 		if (anchor == null) throw new NullPointerException("anchor");
-		return new ImmutableNodeInst(this.protoId, this.name, anchor);
+		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,
+                this.orient, anchor, this.width, this.height, this.userBits, this.protoDescriptor);
+	}
+
+	/**
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by width and height.
+	 * @param width node width.
+     * @param hight node height.
+	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by width and height.
+     * @throws IllegalArgumentException if width or height is negative.
+	 */
+	public ImmutableNodeInst withSize(double width, double height) {
+		if (this.width == width && this.height == height) return this;
+        width = DBMath.round(width);
+        height = DBMath.round(height);
+ 		if (this.width == width && this.height == height) return this;
+        if (width == -0.0) width = +0.0;
+        if (height == -0.0) height = +0.0;
+		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,
+                this.orient, this.anchor, width, height, this.userBits, this.protoDescriptor);
+	}
+
+	/**
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by user bits.
+	 * @param userBits flag bits of this ImmutableNodeInst.
+	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by user bits.
+	 */
+	public ImmutableNodeInst withUserBits(int userBits) {
+		if (this.userBits == userBits) return this;
+		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,
+                this.orient, this.anchor, this.width, this.height, userBits, this.protoDescriptor);
+	}
+
+	/**
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by proto descriptor.
+     * @param protoDescriptor TextDescriptor of proto
+	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by proto descriptor.
+	 */
+	public ImmutableNodeInst withProtoDescriptor(ImmutableTextDescriptor protoDescriptor) {
+        if (this.protoDescriptor == protoDescriptor) return this;
+		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,
+                this.orient, this.anchor, this.width, this.height, this.userBits, protoDescriptor);
 	}
 
 	/**
@@ -105,6 +245,13 @@ public class ImmutableNodeInst
 		assert protoId >= 0;
 		assert name != null;
 		assert anchor != null;
+        assert duplicate >= 0;
+        assert orient != null;
+        assert anchor != null;
+        assert width > 0 || width == 0 && 1/width > 0;
+        assert height > 0 || height == 0 && 1/height > 0;
+        assert DBMath.round(width) == width;
+        assert DBMath.round(height) == height;
 	}
 
 	/**

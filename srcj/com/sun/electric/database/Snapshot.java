@@ -24,6 +24,7 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.text.Name;
 
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
@@ -236,13 +237,13 @@ public class Snapshot
 	 * of node with specified cellId and nodeId.
 	 * @param cellId cell id.
 	 * @param nodeId node id.
-	 * @param name new node name.
+	 * @param name new node name key.
 	 * @return Snapshot which differs from this Snapshot by name of node.
 	 * @throws ArrayIndexOutOfBoundsException if there is no node with this cellId and nodeId.
 	 * @throws NullPointerException if name is null.
 	 * @throws IllegalArgumentException if cell with such name exists in database.
 	 */
-	public Snapshot withNodeName(int cellId, int nodeId, String name) {
+	public Snapshot withNodeName(int cellId, int nodeId, Name name) {
 		return withCell(cellId, getCellByIdSurely(cellId).withNodeName(nodeId, name));
 	}
 

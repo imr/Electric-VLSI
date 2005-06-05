@@ -24,6 +24,7 @@
 package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.text.Name;
 
 import java.util.ConcurrentModificationException;
 import java.util.HashSet;
@@ -177,7 +178,7 @@ public class ImmutableCell
 			// updated
 			if (!node.name.equals(oldNode.name)) checkName = true;
 		}
-		if (checkName && findNodeId(node.name) >= 0)
+		if (checkName && findNodeId(node.name.toString()) >= 0)
 			throw new IllegalArgumentException("node " + node.name + " exists");
 		ImmutableNodeInst[] newNodes = new ImmutableNodeInst[length];
 		System.arraycopy(nodes, 0, newNodes, 0, Math.min(nodes.length, length));
@@ -202,21 +203,21 @@ public class ImmutableCell
 	 * Returns ImmutableCell which differs from this ImmutableCell by name
 	 * of node with specified nodeId.
 	 * @param nodeId node id.
-	 * @param name new node name.
+	 * @param name new node name key.
 	 * @return ImmutableCell which differs from this ImmutableCell by name of node.
 	 * @throws ArrayIndexOutOfBoundsException if there is no node with such nodeId.
 	 * @throws NullPointerException if name is null.
 	 * @throws IllegalArgumentException if node with such name exists in a cell.
 	 */
-	public ImmutableCell withNodeName(int nodeId, String name) {
-		return withNode(nodeId, getNodeByIdSurely(nodeId).withName(name));
+	public ImmutableCell withNodeName(int nodeId, Name name) {
+		return withNode(nodeId, getNodeByIdSurely(nodeId).withName(name, 0));
 	}
 
 	/**
 	 * Returns ImmutableCell which differs from this ImmutableCell by anchor point
 	 * of node with specified nodeId.
 	 * @param nodeId node id.
-	 * @param anchor new anchor point
+	 * @param anchor point
 	 * @return ImmutableCell which differs from this ImmutableCell by anchor of node.
 	 * @throws ArrayIndexOutOfBoundsException if there is no node with such nodeId.
 	 * @throws NullPointerException if anchr is null.

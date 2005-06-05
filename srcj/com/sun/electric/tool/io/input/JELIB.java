@@ -40,7 +40,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.FlagSet;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -61,6 +60,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Iterator;
@@ -633,7 +633,7 @@ public class JELIB extends LibraryFiles
 	/**
 	 * Method to recursively create the contents of each cell in the library.
 	 */
-	protected void realizeCellsRecursively(Cell cell, FlagSet recursiveSetupFlag, String scaledCellName, double scaleX, double scaleY)
+	protected void realizeCellsRecursively(Cell cell, HashSet/*<Cell>*/ recursiveSetupFlag, String scaledCellName, double scale)
 	{
 		if (scaledCellName != null) return;
 		CellContents cc = (CellContents)allCells.get(cell);
@@ -641,8 +641,7 @@ public class JELIB extends LibraryFiles
 		instantiateCellContent(cell, cc, recursiveSetupFlag);
 		cellsConstructed++;
 		progress.setProgress(cellsConstructed * 100 / totalCells);
-//		libraryContents.instantiateCellContent(cc);
-		cell.setBit(recursiveSetupFlag);
+		recursiveSetupFlag.add(cell);
 	}
 
 	/**
@@ -650,7 +649,7 @@ public class JELIB extends LibraryFiles
 	 * @param cell the Cell to instantiate.
 	 * @param cc the contents of that cell (the strings from the file).
 	 */
-	private void instantiateCellContent(Cell cell, CellContents cc, FlagSet recursiveSetupFlag)
+	private void instantiateCellContent(Cell cell, CellContents cc, HashSet/*<Cell>*/ recursiveSetupFlag)
 	{
 		int numStrings = cc.cellStrings.size();
 
@@ -729,7 +728,7 @@ public class JELIB extends LibraryFiles
 			{
 				Cell subCell = (Cell)np;
 				// subcell: make sure that cell is setup
-				if (!subCell.isBit(recursiveSetupFlag))
+				if (!recursiveSetupFlag.contains(subCell))
 				{
 					LibraryFiles reader = this;
 					if (subCell.getLibrary() != cell.getLibrary())
@@ -737,7 +736,7 @@ public class JELIB extends LibraryFiles
 
 					// subcell: make sure that cell is setup
 					if (reader != null)
-						reader.realizeCellsRecursively(subCell, recursiveSetupFlag, null, 0, 0);
+						reader.realizeCellsRecursively(subCell, recursiveSetupFlag, null, 0);
 				}
 			}
 
