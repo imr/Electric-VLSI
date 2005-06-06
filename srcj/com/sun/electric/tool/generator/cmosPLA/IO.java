@@ -65,7 +65,7 @@ public class IO
 			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
 			lnr = new LineNumberReader(is);
 
-			// make a Calibre object and read the file
+			// read a line from the file
 			String line = lnr.readLine();
 			if (line == null) return false;
 			line = line.trim();

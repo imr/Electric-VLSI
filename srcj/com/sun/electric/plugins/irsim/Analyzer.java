@@ -322,7 +322,7 @@ public class Analyzer extends Engine
 			parameters[0] = sig.getFullName().replace('.', '/');
 			newVector(VECTORH, parameters, ww.getMainTimeCursor(), false);
 		}
-		if (Simulation.isIRSIMResimulateEach())
+		if (Simulation.isBuiltInResimulateEach())
 			playVectors();
 	}
 
@@ -339,7 +339,7 @@ public class Analyzer extends Engine
 			parameters[0] = sig.getFullName().replace('.', '/');
 			newVector(VECTORL, parameters, ww.getMainTimeCursor(), false);
 		}
-		if (Simulation.isIRSIMResimulateEach())
+		if (Simulation.isBuiltInResimulateEach())
 			playVectors();
 	}
 
@@ -364,7 +364,7 @@ public class Analyzer extends Engine
 			parameters[0] = sig.getFullName().replace('.', '/');
 			newVector(VECTORX, parameters, ww.getMainTimeCursor(), false);
 		}
-		if (Simulation.isIRSIMResimulateEach())
+		if (Simulation.isBuiltInResimulateEach())
 			playVectors();
 	}
 
@@ -420,7 +420,7 @@ public class Analyzer extends Engine
 			lastSV = sv;
 		}
 		lastVector = lastSV;
-		if (Simulation.isIRSIMResimulateEach())
+		if (Simulation.isBuiltInResimulateEach())
 			playVectors();
 	}
 
@@ -453,7 +453,7 @@ public class Analyzer extends Engine
 		}
 
 		// resimulate if requested
-		if (Simulation.isIRSIMResimulateEach())
+		if (Simulation.isBuiltInResimulateEach())
 			playVectors();
 	}
 
@@ -472,7 +472,7 @@ public class Analyzer extends Engine
 			}
 		}
 
-		if (Simulation.isIRSIMResimulateEach())
+		if (Simulation.isBuiltInResimulateEach())
 			clearAllVectors();
 	}
 
@@ -543,7 +543,7 @@ public class Analyzer extends Engine
 		updateWindow(theSim.curDelta);
 
 		// update main cursor location if requested
-		if (Simulation.isIRSIMAutoAdvance())
+		if (Simulation.isBuiltInAutoAdvance())
 			ww.setMainTimeCursor(curTime + 10.0/1000000000.0);
 	}
 

@@ -60,8 +60,8 @@ public class SimulatorsTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		resimulateEachChange.setSelected(Simulation.isIRSIMResimulateEach());
-		autoAdvanceTime.setSelected(Simulation.isIRSIMAutoAdvance());
+		resimulateEachChange.setSelected(Simulation.isBuiltInResimulateEach());
+		autoAdvanceTime.setSelected(Simulation.isBuiltInAutoAdvance());
 		showCommands.setSelected(Simulation.isIRSIMShowsCommands());
         delayedX.setSelected(Simulation.isIRSIMDelayedX());
 
@@ -103,12 +103,12 @@ public class SimulatorsTab extends PreferencePanel
 	public void term()
 	{
 		boolean currBoolean = resimulateEachChange.isSelected();
-		if (currBoolean != Simulation.isIRSIMResimulateEach())
-			Simulation.setIRSIMResimulateEach(currBoolean);
+		if (currBoolean != Simulation.isBuiltInResimulateEach())
+			Simulation.setBuiltInResimulateEach(currBoolean);
 
 		currBoolean = autoAdvanceTime.isSelected();
-		if (currBoolean != Simulation.isIRSIMAutoAdvance())
-			Simulation.setIRSIMAutoAdvance(currBoolean);
+		if (currBoolean != Simulation.isBuiltInAutoAdvance())
+			Simulation.setBuiltInAutoAdvance(currBoolean);
 
 		currBoolean = showCommands.isSelected();
 		if (currBoolean != Simulation.isIRSIMShowsCommands())

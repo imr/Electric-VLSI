@@ -30,8 +30,10 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.simulation.als.ALS.Load;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -42,6 +44,7 @@ public class Sim
 	private ALS als;
 
 	boolean simals_tracing = false;
+	private Load       simals_chekroot;
 
 	private static String [] simals_statedesc = {"High", "Undefined", "Low"};
 	private static String [] simals_strengthdesc = {"Off-", "Weak-", "Weak-", "", "", "Strong-", "Strong-"};
@@ -119,10 +122,21 @@ public class Sim
 		{
 			// fire events until end of time or quiesced
 			System.out.print("Simulating...");
-			while (als.simals_linkfront != null)
+
+			// determine highest time to simulate
+			Rectangle2D bounds = als.sd.getBounds();
+			double tMax = bounds.getMaxX();
+			for(Iterator it = als.ww.getPanels(); it.hasNext(); )
+			{
+				WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
+				double panelMax = wp.getMaxTimeRange();
+				if (panelMax > tMax) tMax = panelMax;
+			}
+
+			while (als.simals_linkfront != null && als.simals_linkfront.time <= tMax)
 			{
 				if (simals_fire_event()) break;
-				if (als.simals_chekroot != null)
+				if (simals_chekroot != null)
 				{
 					if (simals_schedule_new_events()) break;
 				}
@@ -207,7 +221,7 @@ public class Sim
 		{
 			case 'G':
 				ALS.Stat stathead = (ALS.Stat)linkhead.ptr;
-				if (als.simals_trace_all_nodes || stathead.nodeptr.tracenode)
+				if (stathead.nodeptr.tracenode)
 				{
 					String s2 = als.simals_compute_node_name(stathead.nodeptr);
 					System.out.println(TextUtils.convertToEngineeringNotation(als.simals_time_abs) +
@@ -272,7 +286,7 @@ public class Sim
 
 			case 'N':
 				ALS.Node nodehead = (ALS.Node)linkhead.ptr;
-				if (als.simals_trace_all_nodes || nodehead.tracenode)
+				if (nodehead.tracenode)
 				{
 					String s2 = als.simals_compute_node_name(nodehead);
 					System.out.println(TextUtils.convertToEngineeringNotation(als.simals_time_abs) + ": Changed state of net " + s2);
@@ -402,7 +416,7 @@ public class Sim
 		nodehead.t_last = als.simals_time_abs;
 
 		als.simals_drive_node = nodehead;
-		als.simals_chekroot = nodehead.pinptr;
+		simals_chekroot = nodehead.pinptr;
 	}
 
 	/**
@@ -413,7 +427,7 @@ public class Sim
 	 */
 	boolean simals_schedule_new_events()
 	{
-		for (ALS.Load chekhead = als.simals_chekroot; chekhead != null; chekhead = chekhead.next)
+		for (ALS.Load chekhead = simals_chekroot; chekhead != null; chekhead = chekhead.next)
 		{
 			ALS.Model primhead = (ALS.Model)chekhead.ptr;
 
@@ -471,7 +485,7 @@ public class Sim
 				}
 			}
 		}
-		als.simals_chekroot = null;
+		simals_chekroot = null;
 		return false;
 	}
 

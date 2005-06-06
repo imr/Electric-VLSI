@@ -34,9 +34,10 @@ import java.util.List;
 
 public class Flat
 {
-	private ALS als;
+	private ALS       als;
 	private ALS.Model simals_primptr2;
-	private String simals_mainname = null;
+	private int       simals_pseq;
+	private int       simals_nseq;
 
 	Flat(ALS als)
 	{
@@ -50,7 +51,7 @@ public class Flat
 	 */
 	boolean simals_flatten_network()
 	{
-		als.simals_nseq = als.simals_pseq = 0;
+		simals_nseq = simals_pseq = 0;
 
 		/*
 		 * create a "dummy" level to use as a mixed signal destination for plotting and
@@ -70,10 +71,10 @@ public class Flat
 		ALS.Connect temproot = als.simals_cellroot;
 
 		// get upper-case version of main proto
-		simals_mainname = als.simals_mainproto.getName().toUpperCase();
+		String mainName = als.simals_mainproto.getName().toUpperCase();
 
 		als.simals_cellroot = new ALS.Connect();
-		als.simals_cellroot.inst_name = simals_mainname;
+		als.simals_cellroot.inst_name = mainName;
 		als.simals_cellroot.model_name = als.simals_cellroot.inst_name;
 		als.simals_cellroot.exptr = null;
 		als.simals_cellroot.parent = null;
@@ -87,7 +88,7 @@ public class Flat
 		als.simals_cellroot = temproot;
 
 		// this code checks to see if model simals_mainproto is present in the netlist PJG
-		ALS.Model modhead = simals_find_model(simals_mainname);
+		ALS.Model modhead = simals_find_model(mainName);
 		if (modhead == null) return true;
 		for (ALS.ALSExport exhead = modhead.exptr; exhead != null; exhead = exhead.next)
 		{
@@ -261,8 +262,8 @@ public class Flat
 
 		ALS.Node nodeptr2 = new ALS.Node();
 		nodeptr2.cellptr = cellhead;
-		nodeptr2.num = als.simals_nseq;
-		++als.simals_nseq;
+		nodeptr2.num = simals_nseq;
+		++simals_nseq;
 		nodeptr2.statptr = null;
 		nodeptr2.pinptr = null;
 		nodeptr2.load = -1;
@@ -287,8 +288,8 @@ public class Flat
 	boolean simals_process_gate(ALS.Connect cellhead, ALS.Model modhead)
 	{
 		simals_primptr2 = new ALS.Model();
-		simals_primptr2.num = als.simals_pseq;
-		++als.simals_pseq;
+		simals_primptr2.num = simals_pseq;
+		++simals_pseq;
 		simals_primptr2.name = modhead.name;
 		simals_primptr2.type = 'G';
 		simals_primptr2.ptr = null;
@@ -518,8 +519,8 @@ public class Flat
 	boolean simals_process_function(ALS.Connect cellhead, ALS.Model modhead)
 	{
 		simals_primptr2 = new ALS.Model();
-		simals_primptr2.num = als.simals_pseq;
-		++als.simals_pseq;
+		simals_primptr2.num = simals_pseq;
+		++simals_pseq;
 		simals_primptr2.name = modhead.name;
 		simals_primptr2.type = 'F';
 		simals_primptr2.ptr = new ALS.Func();

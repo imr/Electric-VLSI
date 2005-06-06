@@ -321,4 +321,16 @@ public class Stimuli
 		}
 		return null;
 	}
+
+	public static String describeStrength(int strength)
+	{
+		switch (strength)
+		{
+			case Stimuli.OFF_STRENGTH: return "off";
+			case Stimuli.NODE_STRENGTH: return "node";
+			case Stimuli.GATE_STRENGTH: return "gate";
+			case Stimuli.VDD_STRENGTH: return "power";
+		}
+		return "?";
+	}
 }

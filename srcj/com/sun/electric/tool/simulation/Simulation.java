@@ -742,7 +742,7 @@ public class Simulation extends Listener
 				if (freq != 0) period = 1.0 / freq;
 			} else
 			{
-				period = TextUtils.atof(freqField.getText());
+				period = TextUtils.atof(periodField.getText());
 			}
 			closeDialog(null);
 		}
@@ -979,33 +979,35 @@ public class Simulation extends Listener
      */
     public static void setCDLIgnoreResistors(boolean b) { cacheCDLIgnoreResistors.setBoolean(b); }
 
+	/****************************** BUILT-IN SIMULATION OPTIONS ******************************/
+
+	private static Pref cacheBuiltInResimulateEach = Pref.makeBooleanPref("BuiltInResimulateEach", Simulation.tool.prefs, true);
+	/**
+	 * Method to tell whether built-in simulators resimulate after each change to the display.
+	 * When false, the user must request resimulation after a set of changes is done.
+	 * @return true if built-in simulators resimulate after each change to the display.
+	 */
+	public static boolean isBuiltInResimulateEach() { return cacheBuiltInResimulateEach.getBoolean(); }
+	/**
+	 * Method to set if built-in simulators resimulate after each change to the display.
+	 * When false, the user must request resimulation after a set of changes is done.
+	 * @param r true if built-in simulators resimulate after each change to the display.
+	 */
+	public static void setBuiltInResimulateEach(boolean r) { cacheBuiltInResimulateEach.setBoolean(r); }
+
+	private static Pref cacheBuiltInAutoAdvance = Pref.makeBooleanPref("BuiltInAutoAdvance", Simulation.tool.prefs, false);
+	/**
+	 * Method to tell whether built-in simulators automatically advance the time cursor when stimuli are added.
+	 * @return true if built-in simulators automatically advance the time cursor when stimuli are added.
+	 */
+	public static boolean isBuiltInAutoAdvance() { return cacheBuiltInAutoAdvance.getBoolean(); }
+	/**
+	 * Method to set if built-in simulators automatically advance the time cursor when stimuli are added.
+	 * @param r true if built-in simulators automatically advance the time cursor when stimuli are added.
+	 */
+	public static void setBuiltInAutoAdvance(boolean r) { cacheBuiltInAutoAdvance.setBoolean(r); }
+
 	/****************************** IRSIM OPTIONS ******************************/
-
-	private static Pref cacheIRSIMResimulateEach = Pref.makeBooleanPref("IRSIMResimulateEach", Simulation.tool.prefs, false);
-	/**
-	 * Method to tell whether IRSIM resimulates after each change to the display.
-	 * When false, the user must request resimulation after a set of changes is done.
-	 * @return true if IRSIM resimulates after each change to the display.
-	 */
-	public static boolean isIRSIMResimulateEach() { return cacheIRSIMResimulateEach.getBoolean(); }
-	/**
-	 * Method to set if IRSIM resimulates after each change to the display.
-	 * When false, the user must request resimulation after a set of changes is done.
-	 * @param r true if IRSIM resimulates after each change to the display.
-	 */
-	public static void setIRSIMResimulateEach(boolean r) { cacheIRSIMResimulateEach.setBoolean(r); }
-
-	private static Pref cacheIRSIMAutoAdvance = Pref.makeBooleanPref("IRSIMAutoAdvance", Simulation.tool.prefs, false);
-	/**
-	 * Method to tell whether IRSIM automatically advances the time cursor when stimuli are added.
-	 * @return true if IRSIM automatically advances the time cursor when stimuli are added.
-	 */
-	public static boolean isIRSIMAutoAdvance() { return cacheIRSIMAutoAdvance.getBoolean(); }
-	/**
-	 * Method to set if IRSIM automatically advances the time cursor when stimuli are added.
-	 * @param r true if IRSIM automatically advances the time cursor when stimuli are added.
-	 */
-	public static void setIRSIMAutoAdvance(boolean r) { cacheIRSIMAutoAdvance.setBoolean(r); }
 
 	private static Pref cacheIRSIMShowsCommands = Pref.makeBooleanPref("IRSIMShowsCommands", Simulation.tool.prefs, false);
 	/**

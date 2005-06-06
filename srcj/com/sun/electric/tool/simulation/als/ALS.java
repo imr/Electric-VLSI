@@ -59,9 +59,40 @@ import javax.swing.JOptionPane;
 
 public class ALS extends Engine
 {
-	Sim theSim;
-	Flat theFlat;
-	WaveformWindow ww;
+	/** initial size of simulation window */		private static final double DEFIRSIMTIMERANGE = 0.0000002;
+
+	Sim               theSim;
+	Flat              theFlat;
+	WaveformWindow    ww;
+	Stimuli           sd;
+	Model             simals_modroot = null;
+	Model             simals_primroot = null;
+	IO                simals_ioptr2;
+	Connect           simals_cellroot = null;
+	ALSExport         simals_exptr2;
+	Node              simals_noderoot = null;
+	Node              simals_drive_node;
+	Link              simals_linkfront = null;
+	Link              simals_linkback = null;
+	Link              simals_setroot = null;
+	List              simals_ioptr1;
+	char           [] simals_instbuf = null;
+	int            [] simals_instptr = null;
+	double            simals_time_abs;
+	Cell              simals_mainproto = null;
+
+	private int       i_ptr;
+	private String    delay;
+	private Model     simals_modptr2;
+	private String [] netlistStrings;
+	private int       netlistStringPoint;
+	private int       simals_ibufsize;
+	private int       simals_iptrsize;
+	private float     simals_delta_def;
+	private float     simals_linear_def;
+	private float     simals_exp_def;
+	private float     simals_random_def;
+	private float     simals_abs_def;
 
 	ALS()
 	{
@@ -106,9 +137,63 @@ public class ALS extends Engine
 	/**
 	 * Method to set the currently-selected signal to have a clock with a given period.
 	 */
-	public void setClock(double period)
+	public void setClock(double time)
 	{
-		System.out.println("ALS CANNOT HANDLE CLOCKS YET");
+		List signals = ww.getHighlightedNetworkNames();
+		String [] parameters = new String[1];
+		for(Iterator it = signals.iterator(); it.hasNext(); )
+		{
+			Signal sig = (Signal)it.next();
+			String sigName = sig.getFullName();
+			Node nodehead = simals_find_node(sigName);
+			if (nodehead == null)
+			{
+				System.out.println("ERROR: Unable to find node " + sigName);
+				continue;
+			}
+
+			Link vectptr2 = new Link();
+			vectptr2.type = 'N';
+			vectptr2.ptr = nodehead;
+			vectptr2.state = new Integer(Stimuli.LOGIC_HIGH);
+			vectptr2.strength = Stimuli.VDD_STRENGTH;
+			vectptr2.priority = 1;
+			vectptr2.time = 0.0;
+			vectptr2.right = null;
+
+			Link vectptr1 = new Link();
+			vectptr1.type = 'N';
+			vectptr1.ptr = nodehead;
+			vectptr1.state = new Integer(Stimuli.LOGIC_LOW);
+			vectptr1.strength = Stimuli.VDD_STRENGTH;
+			vectptr1.priority = 1;
+			vectptr1.time = time / 2.0;
+			vectptr1.right = vectptr2;
+
+			Row clokhead = new Row();
+			clokhead.inList = new ArrayList();
+			clokhead.inList.add(vectptr1);
+			clokhead.inList.add(vectptr2);
+			clokhead.outList = new ArrayList();
+			clokhead.delta = (float)time;
+			clokhead.linear = 0;
+			clokhead.exp = 0;
+			clokhead.abs = 0;
+			clokhead.random = 0;
+			clokhead.next = null;
+			clokhead.delay = null;
+
+			Link sethead = new Link();
+			sethead.type = 'C';
+			sethead.ptr = clokhead;
+			sethead.state = new Integer(0);
+			sethead.priority = 1;
+			sethead.time = 0.0;
+			sethead.right = null;
+			theSim.simals_insert_set_list(sethead);
+		}
+
+		theSim.simals_initialize_simulator(true);
 	}
 
 	/**
@@ -148,13 +233,13 @@ public class ALS extends Engine
 			theSim.simals_insert_set_list(sethead);
 
 //			System.out.println("Node '" + sigName + "' scheduled, state = " + state +
-//				", strength = " + Command.simals_strengthstring(strength) + ", time = " + time);
+//				", strength = " + Stimuli.describeStrength(strength) + ", time = " + time);
 		}
 
-		if (Simulation.isIRSIMResimulateEach())
+		if (Simulation.isBuiltInResimulateEach())
 		{
-			theSim.simals_initialize_simulator(true);
-//			if ((sim_window_state&ADVANCETIME) != 0) sim_window_setmaincursor(endtime);
+			double endTime = theSim.simals_initialize_simulator(true);
+			if (Simulation.isBuiltInAutoAdvance()) ww.setMainTimeCursor(endTime);
 		}
 	}
 
@@ -163,19 +248,30 @@ public class ALS extends Engine
 	 */
 	public void showSignalInfo()
 	{
-//		List signals = ww.getHighlightedNetworkNames();
-//		for(Iterator it = signals.iterator(); it.hasNext(); )
-//		{
-//			Signal sig = (Signal)it.next();
-//			SimVector excl = new SimVector();
-//			excl.command = VECTOREXCL;
-//			excl.sigs = new ArrayList();
-//			excl.sigs.add(sig);
-//			issueCommand(excl);
-//
-//			excl.command = VECTORQUESTION;
-//			issueCommand(excl);
-//		}
+		List signals = ww.getHighlightedNetworkNames();
+		for(Iterator it = signals.iterator(); it.hasNext(); )
+		{
+			Signal sig = (Signal)it.next();
+
+			ALS.Node nodehead = simals_find_node(sig.getFullName());
+			if (nodehead == null)
+			{
+				System.out.println("ERROR: Unable to find node " + sig.getFullName());
+				continue;
+			}
+
+			String s1 = simals_trans_number_to_state(((Integer)nodehead.new_state).intValue());
+			System.out.println("Node " + sig.getFullName() + ": State = " + s1 +
+				", Strength = " + Stimuli.describeStrength(nodehead.new_strength));
+			ALS.Stat stathead = nodehead.statptr;
+			while (stathead != null)
+			{
+				s1 = simals_trans_number_to_state(stathead.new_state);
+				System.out.println("Primitive " + stathead.primptr.num + ":    State = " + s1 +
+					", Strength = " + Stimuli.describeStrength(stathead.new_strength));
+				stathead = stathead.next;
+			}
+		}
 	}
 
 	/**
@@ -215,7 +311,7 @@ System.out.println("DOESN'T WORK YET");
 				lastset = thisset;
 			}
 		}
-		if (Simulation.isIRSIMResimulateEach())
+		if (Simulation.isBuiltInResimulateEach())
 		{
 			theSim.simals_initialize_simulator(true);
 		}
@@ -271,7 +367,7 @@ System.out.println("DOESN'T WORK YET");
 			System.out.println("There are no selected control points to remove");
 			return;
 		}
-		if (Simulation.isIRSIMResimulateEach())
+		if (Simulation.isBuiltInResimulateEach())
 		{
 			theSim.simals_initialize_simulator(true);
 		}
@@ -283,7 +379,7 @@ System.out.println("DOESN'T WORK YET");
 	public void removeAllStimuli()
 	{
 		simals_clearallvectors(false);
-		if (Simulation.isIRSIMResimulateEach())
+		if (Simulation.isBuiltInResimulateEach())
 		{
 			theSim.simals_initialize_simulator(true);
 		}
@@ -304,22 +400,28 @@ System.out.println("DOESN'T WORK YET");
 			{
 				switch (sethead.type)
 				{
-//					case 'C':
-//						Row clokhead = (Row)sethead.ptr;
-//						Link vecthead = (Link)clokhead.inptr;
-//						String s1 = simals_compute_node_name((Node)vecthead.ptr);
-//						printWriter.println("CLOCK " + s1 + " D=" + clokhead.delta + " L=" + clokhead.linear +
-//							" E=" + clokhead.exp + " STRENGTH=" + (vecthead.strength/2) + " TIME=" + sethead.time + " CYCLES=" + sethead.state);
-//						for (; vecthead != null; vecthead = vecthead.right)
-//						{
-//							String s2 = simals_trans_number_to_state(vecthead.state);
-//							printWriter.println("  " + s2 + " " + vecthead.time);
-//						}
-//						break;
+					case 'C':
+						Row clokhead = (Row)sethead.ptr;
+						List vectList = clokhead.inList;
+						boolean first = true;
+						for(Iterator it = vectList.iterator(); it.hasNext(); )
+						{
+							Link vecthead = (Link)it.next();
+							if (first)
+							{
+								String s1 = simals_compute_node_name((Node)vecthead.ptr);
+								printWriter.println("CLOCK " + s1 + " D=" + clokhead.delta + " L=" + clokhead.linear +
+									" E=" + clokhead.exp + " STRENGTH=" + (vecthead.strength/4) + " TIME=" + sethead.time + " CYCLES=" + sethead.state);
+								first = false;
+							}
+							String s2 = simals_trans_number_to_state(((Integer)vecthead.state).intValue());
+							printWriter.println("  " + s2 + " " + vecthead.time);
+						}
+						break;
 					case 'N':
 						String s1 = simals_compute_node_name((Node)sethead.ptr);
 						String s2 = simals_trans_number_to_state(((Integer)sethead.state).intValue());
-						printWriter.println("SET " + s1 + "=" + s2 + "@" + (sethead.strength/2) + " TIME=" + sethead.time);
+						printWriter.println("SET " + s1 + "=" + s2 + "@" + (sethead.strength/4) + " TIME=" + sethead.time);
 				}
 			}
 			printWriter.close();
@@ -377,7 +479,7 @@ System.out.println("DOESN'T WORK YET");
 //						flag = true;
 //						continue;
 //					}
-//					strength = eatoi(&(simals_instbuf[simals_instptr[9]]))*2;
+//					strength = eatoi(&(simals_instbuf[simals_instptr[9]]))*4;
 //
 //					sethead = new ALS.Link();
 //					if (sethead == 0) return;
@@ -429,27 +531,26 @@ System.out.println("DOESN'T WORK YET");
 
 				if (simals_instbuf.equals("SET"))
 				{
-//					simals_convert_to_upper(&(simals_instbuf[simals_instptr[1]]));
-//					nodehead = ALS.simals_find_node(&(simals_instbuf[simals_instptr[1]]));
-//					if (! nodehead)
-//					{
-//						System.out.println("ERROR: Unable to find node %s"),
-//							&(simals_instbuf[simals_instptr[1]]));
-//						flag = true;
-//						continue;
-//					}
-//
-//					sethead = new ALS.Link();
-//					if (sethead == 0) return;
-//					sethead.type = 'N';
-//					sethead.ptr = (CHAR *) nodehead;
-//					sethead.state = ALS.simals_trans_state_to_number(&(simals_instbuf[simals_instptr[2]]));
-//					sethead.strength = eatoi(&(simals_instbuf[simals_instptr[3]]))*2;
-//					sethead.priority = 2;
-//					sethead.time = eatof(&(simals_instbuf[simals_instptr[5]]));
-//					sethead.right = 0;
-//					Sim.simals_insert_set_list(sethead);
-//					flag = true;
+					String nodeName = getFragment(1);
+					Node nodehead = simals_find_node(nodeName);
+					if (nodehead == null)
+					{
+						System.out.println("ERROR: Unable to find node " + nodeName);
+						flag = true;
+						continue;
+					}
+
+					Link sethead = new Link();
+					if (sethead == null) return;
+					sethead.type = 'N';
+					sethead.ptr = nodehead;
+					sethead.state = simals_trans_state_to_number(getFragment(2));
+					sethead.strength = TextUtils.atoi(getFragment(3)) * 4;
+					sethead.priority = 2;
+					sethead.time = TextUtils.atof(getFragment(5));
+					sethead.right = null;
+					theSim.simals_insert_set_list(sethead);
+					flag = true;
 				}
 			}
 			lineReader.close();
@@ -483,17 +584,15 @@ System.out.println("DOESN'T WORK YET");
 		if (theFlat.simals_flatten_network()) return;
 
 		// initialize display
-		Stimuli sd = getCircuit();
+		sd = getCircuit();
 		Simulation.showSimulationData(sd, null);
 
 		// make a waveform window
 		ww = sd.getWaveformWindow();
 		ww.setSimEngine(this);
-		ww.setDefaultTimeRange(0.0, DEFIRSIMTIMERANGE);
-		ww.setMainTimeCursor(DEFIRSIMTIMERANGE/5.0*2.0);
-		ww.setExtensionTimeCursor(DEFIRSIMTIMERANGE/5.0*3.0);
 
-		simals_init_display();
+		// run simulation
+		theSim.simals_initialize_simulator(true);
 	}
 
 	void simals_erase_model()
@@ -507,7 +606,6 @@ System.out.println("DOESN'T WORK YET");
 
 		// delete all cells in flattened network
 		simals_cellroot = null;
-		simals_levelptr = null;
 
 		// delete all nodes in flattened network
 		simals_noderoot = null;
@@ -540,8 +638,6 @@ System.out.println("DOESN'T WORK YET");
 			}
 		}
 	}
-
-	/** initial size of simulation window: 10ns */		private static final double DEFIRSIMTIMERANGE = 10.0E-9f;		// should be 0.0000005f
 
 	private Stimuli getCircuit()
 	{
@@ -582,7 +678,7 @@ System.out.println("DOESN'T WORK YET");
 			sig.buildTime(2);
 			sig.buildState(2);
 			sig.setTime(0, 0);
-			sig.setTime(1, 0.00000001);
+			sig.setTime(1, DEFIRSIMTIMERANGE);
 			sig.setState(0, 0);
 			sig.setState(1, 0);
 		}
@@ -890,44 +986,6 @@ System.out.println("DOESN'T WORK YET");
 		double   time;
 	};
 
-	/********************************* GLOBALS *********************************/
-
-	Model      simals_modroot = null;
-	Model      simals_modptr2;
-	Model      simals_primroot = null;
-	IO         simals_ioptr2;
-	Connect    simals_levelptr = null;
-	Connect    simals_cellroot = null;
-	ALSExport  simals_exptr2;
-	Node       simals_noderoot = null;
-	Node       simals_drive_node;
-	Link       simals_linkfront = null;
-	Link       simals_linkback = null;
-	Link       simals_setroot = null;
-	Load       simals_chekroot;
-	List       simals_ioptr1;
-	char    [] simals_instbuf = null;
-	int        simals_pseq;
-	int        simals_nseq;
-	int     [] simals_instptr = null;
-	String  [] netlistStrings;
-	int        netlistStringPoint;
-	int        simals_ibufsize;
-	int        simals_iptrsize;
-	boolean    simals_trace_all_nodes = false;
-	double     simals_time_abs;
-	float      simals_delta_def;
-	float      simals_linear_def;
-	float      simals_exp_def;
-	float      simals_random_def;
-	float      simals_abs_def;
-	Cell       simals_mainproto = null;
-
-	/********************************* LOCALS *********************************/
-
-	int     i_ptr;
-	String  delay;
-
 	/******************************************************************************/
 
 	void simals_init()
@@ -964,25 +1022,6 @@ System.out.println("DOESN'T WORK YET");
 //		new UserCom.Mod2Adder();
 //		new UserCom.AboveAdder();
 //		new UserCom.Bus12ToState();
-	}
-
-	/*
-	 * routine to create a new window with simulation of cell "simals_mainproto"
-	 */
-	void simals_init_display()
-	{
-		if (simals_mainproto == null)
-		{
-			System.out.println("No cell to simulate");
-			return;
-		}
-
-		// set top level
-		simals_levelptr = simals_cellroot;
-		String pt = simals_mainproto.getName().toUpperCase();
-
-		// run simulation
-		theSim.simals_initialize_simulator(true);
 	}
 
 	/**
@@ -1936,6 +1975,14 @@ System.out.println("DOESN'T WORK YET");
 			}
 		}
 		return false;
+	}
+
+	private String getFragment(int index)
+	{
+		StringBuffer sb = new StringBuffer();
+		for(int i=simals_instptr[index]; simals_instbuf[i] != 0; i++)
+			sb.append(Character.toUpperCase(simals_instbuf[i]));
+		return sb.toString();
 	}
 
 	/**

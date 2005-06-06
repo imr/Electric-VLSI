@@ -78,77 +78,6 @@ public class Command
 			return;
 		}
 
-		if (par.length < 2)
-		{
-//			count = sim_alsclockdlog(&par[1]) + 1;
-			if (par.length < 2) return;
-		}
-
-		// see if there are frequency/period parameters
-		if (par[1].startsWith("frequency") || par[1].startsWith("period"))
-		{
-			if (par.length < 3)
-			{
-				System.out.println("telltool simulation als clock NODENAME frequency/period PERIOD");
-				return;
-			}
-			double time = TextUtils.atof(par[2]);
-			if (time <= 0.0)
-			{
-				System.out.println("Clock timing parameter must be greater than 0");
-				return;
-			}
-
-			if (par[1].startsWith("frequency")) time = 1.0f / time;
-
-			ALS.Link vectptr2 = new ALS.Link();
-			vectptr2.type = 'N';
-			vectptr2.ptr = nodehead;
-			vectptr2.state = new Integer(Stimuli.LOGIC_HIGH);
-			vectptr2.strength = Stimuli.VDD_STRENGTH;
-			vectptr2.priority = 1;
-			vectptr2.time = 0.0;
-			vectptr2.right = null;
-
-			ALS.Link vectptr1 = new ALS.Link();
-			vectptr1.type = 'N';
-			vectptr1.ptr = nodehead;
-			vectptr1.state = new Integer(Stimuli.LOGIC_LOW);
-			vectptr1.strength = Stimuli.VDD_STRENGTH;
-			vectptr1.priority = 1;
-			vectptr1.time = time / 2.0f;
-			vectptr1.right = vectptr2;
-
-			ALS.Row clokhead = new ALS.Row();
-//			clokhead.inptr = (ALS.IO)vectptr1;
-			clokhead.outList = new ArrayList();
-			clokhead.delta = (float)time;
-			clokhead.linear = 0;
-			clokhead.exp = 0;
-			clokhead.abs = 0;
-			clokhead.random = 0;
-			clokhead.next = null;
-			clokhead.delay = null;
-
-			ALS.Link sethead = new ALS.Link();
-			sethead.type = 'C';
-			sethead.ptr = clokhead;
-			sethead.state = new Integer(0);
-			sethead.priority = 1;
-			sethead.time = 0.0;
-			sethead.right = null;
-			als.getSim().simals_insert_set_list(sethead);
-
-			als.getSim().simals_initialize_simulator(false);
-			return;
-		}
-
-		if (par[1].startsWith("custom"))
-		{
-			System.out.println("telltool simulation als clock");
-			return;
-		}
-
 		// handle custom clock specification
 		if (par.length < 7)
 		{
@@ -215,13 +144,6 @@ public class Command
 			return;
 		}
 
-		if (par[0].equals("size"))
-		{
-			System.out.println("Number of Primitive Elements in Database = " + als.simals_pseq);
-			System.out.println("Number of Nodes in Database = " + als.simals_nseq);
-			return;
-		}
-
 		if (par[0].equals("vector"))
 		{
 			ALS.Link linkhead = als.simals_setroot;
@@ -234,7 +156,7 @@ public class Command
 						ALS.Node nodehead = (ALS.Node)linkhead.ptr;
 						String s1 = als.simals_trans_number_to_state(((Integer)linkhead.state).intValue());
 						System.out.println("***** vector: $N" + nodehead.num + ", state = " + s1 +
-								", strength = " + simals_strengthstring(linkhead.strength) + ", time = " + linkhead.time +
+								", strength = " + Stimuli.describeStrength(linkhead.strength) + ", time = " + linkhead.time +
 								", priority = " + linkhead.priority);
 						break;
 					case 'F':
@@ -242,7 +164,7 @@ public class Command
 						nodehead = stathead.nodeptr;
 						s1 = als.simals_trans_number_to_state(((Integer)linkhead.state).intValue());
 						System.out.println("***** function: $N" + nodehead.num + ", state = " + s1 +
-							", strength = " + simals_strengthstring(linkhead.strength) + ", time = " + linkhead.time +
+							", strength = " + Stimuli.describeStrength(linkhead.strength) + ", time = " + linkhead.time +
 							", priority = " + linkhead.priority);
 						break;
 					case 'R':
@@ -314,60 +236,7 @@ public class Command
 			}
 			return;
 		}
-
-		if (par[0].equals("xref"))
-		{
-			System.out.println("** CROSS REFERENCE TABLE **");
-			simals_print_xref_entry(als.simals_levelptr, 0);
-			return;
-		}
-
-		if (par[0].equals("state"))
-		{
-			if (par.length < 2)
-			{
-				System.out.println("telltool simulation als print state NODENAME");
-				return;
-			}
-			par[1] = par[1].toUpperCase();
-			ALS.Node nodehead = als.simals_find_node(par[1]);
-			if (nodehead == null)
-			{
-				System.out.println("ERROR: Unable to find node " + par[1]);
-				return;
-			}
-
-			String s1 = als.simals_trans_number_to_state(((Integer)nodehead.new_state).intValue());
-			System.out.println("Node " + par[1] + ": State = " + s1 + ", Strength = " + simals_strengthstring(nodehead.new_strength));
-			ALS.Stat stathead = nodehead.statptr;
-			while (stathead != null)
-			{
-				s1 = als.simals_trans_number_to_state(stathead.new_state);
-				System.out.println("Primitive " + stathead.primptr.num + ":    State = " + s1 +
-					", Strength = " + simals_strengthstring(stathead.new_strength));
-				stathead = stathead.next;
-			}
-			return;
-		}
-
-		if (par[0].equals("instances"))
-		{
-			System.out.println("Instances at level: " + als.simals_compute_path_name(als.simals_levelptr));
-			for (ALS.Connect cellhead = als.simals_levelptr.child; cellhead != null; cellhead = cellhead.next)
-			{
-				System.out.println("Name: " + cellhead.inst_name + ", Model: " + cellhead.model_name);
-			}
-			return;
-		}
 		System.out.println("telltool simulation als print");
-	}
-
-	static String simals_strengthstring(int strength)
-	{
-		if (strength == Stimuli.OFF_STRENGTH) return "off";
-		if (strength <= Stimuli.NODE_STRENGTH) return "node";
-		if (strength <= Stimuli.GATE_STRENGTH) return "gate";
-		return "power";
 	}
 
 	/**
@@ -449,45 +318,6 @@ public class Command
 			infstr.append(s2 + "@" + ((iohead.strength+1)/2) + " ");
 		}
 		System.out.println(infstr.toString());
-	}
-
-	/**
-	 * Method to print entries from the cross reference table that was
-	 * generated to transform the hierarchical network description into a totally flat
-	 * network description.  The calling arguments define the root of the reference
-	 * table column and the level of indentation for the column.
-	 *
-	 * Calling Arguments:
-	 *	cellhead = pointer to cross reference table
-	 *	tab	= integer value indicating level of output indentation
-	 */
-	private void simals_print_xref_entry(ALS.Connect cellhead, int tab)
-	{
-		StringBuffer tabsp = new StringBuffer();
-		for (int i = 0; i < tab; ++i) tabsp.append(' ');
-		System.out.println(tabsp.toString() + "Level: " + als.simals_compute_path_name(cellhead) +
-			", Model: " + cellhead.model_name);
-
-		for (ALS.ALSExport exhead = cellhead.exptr; exhead != null; exhead = exhead.next)
-		{
-			StringBuffer infstr = null;
-			for (int i=0; i<12; i++)
-			{
-				int delay = exhead.td[i];
-				if (delay != 0)
-				{
-					if (infstr == null) infstr = new StringBuffer();
-					infstr.append(simals_tnames[i] + "=" + delay + " ");
-				}
-			}
-			if (infstr == null) System.out.println(tabsp.toString() + exhead.node_name + " -. N" + exhead.nodeptr.num); else
-				System.out.println(tabsp.toString() + exhead.node_name + " -. N" + exhead.nodeptr.num + " (" + infstr.toString() + ")");
-		}
-
-		if (als.simals_instbuf[als.simals_instptr[1]] == 'X') return;
-
-		for (ALS.Connect subcell = cellhead.child; subcell != null; subcell = subcell.next)
-			simals_print_xref_entry(subcell, tab + 10);
 	}
 
 	/****************************** VECTOR ******************************/
@@ -624,12 +454,6 @@ public class Command
 			return;
 		}
 
-		if (als.simals_levelptr == null)
-		{
-			System.out.println("Must start simulator before annotating delay information");
-			return;
-		}
-
 		if (par[0].equals("min")) simals_sdfdelaytype = ALS.DelayTypes.DELAY_MIN;
 			else if (par[0].equals("typ")) simals_sdfdelaytype = ALS.DelayTypes.DELAY_TYP;
 				else if (par[0].equals("max")) simals_sdfdelaytype = ALS.DelayTypes.DELAY_MAX;
@@ -639,7 +463,7 @@ public class Command
 			return;
 		}
 
-		simals_sdfannotate(als.simals_levelptr);
+		simals_sdfannotate(als.simals_cellroot);
 		simals_update_netlist();
 		System.out.println("Completed annotation of SDF " + par[0] + " delay values");
 	}
