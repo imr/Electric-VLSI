@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+BUG: (06/06/05, SMR) Selecting a variable in the "Attribute Properties" dialog may change it.
+FIX: In Attributes.showSelectedAttribute(), set "loading" before changing the "value" field.
+
 IMP: (06/05/05, DN) Persistent data of NodeInst is moved to ImmutableNodeInst class.
 
 BUG: (06/05/05, DN) Sometimes EPoint has coordiante -0 (HotSpot optimezer).

@@ -556,12 +556,15 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         initialValue = var.getPureValue(-1);
 
         // set the Value field
+		boolean oldLoading = loading;
+		loading = true;
         value.setText(initialValue);
         if (var.getObject() instanceof Object []) {
             value.setEditable(false);
         } else {
             value.setEditable(true);
         }
+		loading = oldLoading;
 
         // set the evaluation field
         if (var.isCode()) {
