@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -52,8 +53,6 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 import com.sun.electric.tool.user.ErrorLogger;
-
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -679,6 +678,7 @@ public class JELIB extends LibraryFiles
 			String protoName = unQuote((String)pieces.get(0));
 			// figure out the name for this node.  Handle the form: "Sig"12
 			String diskNodeName = revision >= 1 ? (String)pieces.get(1) : unQuote((String)pieces.get(1));
+            int duplicate = 0;
 			String nodeName = diskNodeName;
 			if (nodeName.charAt(0) == '"')
 			{
@@ -687,6 +687,7 @@ public class JELIB extends LibraryFiles
 				{
 					nodeName = nodeName.substring(1, lastQuote);
 					if (revision >= 1) nodeName = unQuote(nodeName);
+                    duplicate = TextUtils.atoi(nodeName, lastQuote + 1);
 				}
 			}
 			String nameTextDescriptorInfo = (String)pieces.get(2);
@@ -743,7 +744,7 @@ public class JELIB extends LibraryFiles
 			double wid = 0, hei = 0;
 			String orientString;
 			String stateInfo;
-			String textDescriptorInfo = null;
+			String textDescriptorInfo = "";
 			if (firstChar == 'N' || revision < 1)
 			{
 				wid = TextUtils.atof((String)pieces.get(5));
@@ -831,28 +832,14 @@ public class JELIB extends LibraryFiles
 // 				}
 // 			}
 
-			// parse state information in stateInfo field 
-			boolean expanded = false, locked = false, shortened = false,
-				visInside = false, wiped = false, hardSelect = false;
-			int techSpecific = 0;
-			for(int i=0; i<stateInfo.length(); i++)
-			{
-				char chr = stateInfo.charAt(i);
-				if (chr == 'E') expanded = true; else
-				if (chr == 'L') locked = true; else
-				if (chr == 'S') shortened = true; else
-				if (chr == 'V') visInside = true; else
-				if (chr == 'W') wiped = true; else
-				if (chr == 'A') hardSelect = true; else
-				if (TextUtils.isDigit(chr))
-				{
-					techSpecific = TextUtils.atoi(stateInfo.substring(i));
-					break;
-				}
-			}
+			// parse state information in stateInfo field
+            ImmutableTextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
+            int userBits = NodeInst.parseJelibUserBits(stateInfo);
+            ImmutableTextDescriptor protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line); 
 
 			// create the node
-			NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), wid, hei, cell, angle, nodeName, techSpecific);
+			NodeInst ni = NodeInst.newInstance(cell, np, nodeName, duplicate, nameTextDescriptor,
+                    new EPoint(x, y), wid, hei, angle, userBits, protoTextDescriptor);
 			if (ni == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -860,23 +847,8 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 
-			// get the node name text descriptor
-			ni.setTextDescriptor(NodeInst.NODE_NAME_TD, loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line));
-
 			// insert into map of disk names
 			diskName.put(diskNodeName, ni);
-
-			// add state bits
-			if (expanded) ni.setExpanded(); else ni.clearExpanded();
-			if (locked) ni.setLocked(); else ni.clearLocked();
-			if (shortened) ni.setShortened(); else ni.clearShortened();
-			if (visInside) ni.setVisInside(); else ni.clearVisInside();
-			if (wiped) ni.setWiped(); else ni.clearWiped();
-			if (hardSelect) ni.setHardSelect(); else ni.clearHardSelect();
-
-			// get text descriptor for cell instance names
-			if (textDescriptorInfo != null)
-				ni.setTextDescriptor(NodeInst.NODE_PROTO_TD, loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line));
 
 			// add variables in fields 10 and up
 			addVariables(ni, pieces, numPieces, cc.fileName, cc.lineNumber + line);

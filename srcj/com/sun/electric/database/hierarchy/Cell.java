@@ -1842,21 +1842,21 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
      */
 	private int searchNode(String name, int duplicate)
 	{
-		int low = 0;
-		int high = nodes.size()-1;
-
+        int low = 0;
+        int high = nodes.size()-1;
+        int pick = high; // initially try the last postition
 		while (low <= high) {
-			int mid = (low + high) >> 1;
-			NodeInst ni = (NodeInst)nodes.get(mid);
+			NodeInst ni = (NodeInst)nodes.get(pick);
 			int cmp = TextUtils.nameSameNumeric(ni.getName(), name);
 			if (cmp == 0) cmp = ni.getDuplicate() - duplicate;
 
 			if (cmp < 0)
-				low = mid + 1;
+				low = pick + 1;
 			else if (cmp > 0)
-				high = mid - 1;
+				high = pick - 1;
 			else
-				return mid; // NodeInst found
+				return pick; // NodeInst found
+			pick = (low + high) >> 1; // try in a middle
 		}
 		return -(low + 1);  // NodeInst not found.
     }

@@ -2627,6 +2627,31 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		return description;
 	}
 
+	/**
+	 * Parses JELIB string with node user bits.
+     * @param jelibUserBits JELIB string.
+	 * @return node user bust.
+	 */
+    public static int parseJelibUserBits(String jelibUserBits) {
+        int userBits = 0;
+        // parse state information in nodeUserBits field 
+        for(int i=0; i<jelibUserBits.length(); i++) {
+            char chr = jelibUserBits.charAt(i);
+            switch (chr) {
+                case 'E': userBits |= NEXPAND; break;
+                case 'L': userBits |= NILOCKED; break;
+                case 'S': userBits |= NSHORT; break;
+                case 'V': userBits |= NVISIBLEINSIDE; break;
+                case 'W': userBits |= WIPED; break;
+                case 'A': userBits |= HARDSELECTN; break;
+                default:
+                    if (TextUtils.isDigit(chr))
+                        return userBits | (TextUtils.atoi(jelibUserBits) << NTECHBITSSH) & NTECHBITS;
+            }
+        }
+        return userBits;
+     }
+            
     /**
      * Compares NodeInsts by their Cells and names.
      * @param obj the other NodeInst.
