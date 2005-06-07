@@ -29,38 +29,21 @@ package com.sun.electric.tool.routing;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.Network;
-import com.sun.electric.database.network.NetworkTool;
-import com.sun.electric.database.network.Global;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.menus.MenuCommands;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
-
-import java.awt.geom.Rectangle2D;
 import java.awt.geom.Point2D;
 import java.util.HashMap;
 import java.util.List;
@@ -315,12 +298,12 @@ public class River
 			for(Iterator it = rightP.iterator(); it.hasNext(); )
 			{
 				RDESC q = (RDESC)it.next();
-				checkTheCell(q.unroutedWire2.getConnection(q.unroutedEnd2).getPortInst().getNodeInst());
+				checkTheCell(q.unroutedWire2.getPortInst(q.unroutedEnd2).getNodeInst());
 			}
 			for(Iterator it = leftP.iterator(); it.hasNext(); )
 			{
 				RDESC q = (RDESC)it.next();
-				checkTheCell(q.unroutedWire2.getConnection(q.unroutedEnd2).getPortInst().getNodeInst());
+				checkTheCell(q.unroutedWire2.getPortInst(q.unroutedEnd2).getNodeInst());
 			}
 
 			// if there is motion to be done, do it
@@ -403,8 +386,8 @@ public class River
 		for(Iterator it = theList.iterator(); it.hasNext(); )
 		{
 			RDESC rd = (RDESC)it.next();
-			sumUp(rd.unroutedWire1.getConnection(rd.unroutedEnd1), arcProtoUsage);
-			sumUp(rd.unroutedWire2.getConnection(rd.unroutedEnd2), arcProtoUsage);
+			sumUp(rd.unroutedWire1.getPortInst(rd.unroutedEnd1), arcProtoUsage);
+			sumUp(rd.unroutedWire2.getPortInst(rd.unroutedEnd2), arcProtoUsage);
 		}
 
 		// find the most popular ArcProto
@@ -434,7 +417,7 @@ public class River
 		setWiresToRails(theList);
 
 		// figure out the worst design rule spacing for this type of arc
-		Technology.ArcLayer [] arcLayers = ((PrimitiveArc)wantAp).getLayers();
+		Technology.ArcLayer [] arcLayers = wantAp.getLayers();
 		Layer layer = arcLayers[0].getLayer();
 		double amt = DRC.getMaxSurround(layer, Double.MAX_VALUE);
 		if (amt < 0) amt = 1;
@@ -1124,9 +1107,9 @@ public class River
 	 * increment the flag bits (temp1) IN the prototype thus indicating that
 	 * this river route point is allowed to connect to it
 	 */
-	private void sumUp(Connection con, HashMap arcProtoUsage)
+	private void sumUp(PortInst pi, HashMap arcProtoUsage)
 	{
-		ArcProto [] possibleArcs = con.getPortInst().getPortProto().getBasePort().getConnections();
+		ArcProto [] possibleArcs = pi.getPortProto().getBasePort().getConnections();
 		for(int i=0; i<possibleArcs.length; i++)
 		{
 			ArcProto ap = possibleArcs[i];
@@ -1169,7 +1152,7 @@ public class River
 		ArcInst ae1 = ai;   int e1 = 0;
 		for(;;)
 		{
-			NodeInst ni = ae1.getConnection(e1).getPortInst().getNodeInst();
+			NodeInst ni = ae1.getPortInst(e1).getNodeInst();
 			if (!isUnroutedPin(ni)) break;
 			ArcInst oAi = null;
 			for(Iterator it = ni.getConnections(); it.hasNext(); )
@@ -1181,13 +1164,13 @@ public class River
 			}
 			if (oAi == null) break;
 			arcsSeen.add(oAi);
-			if (oAi.getConnection(0).getPortInst().getNodeInst() == ni) e1 = 1; else e1 = 0;
+			if (oAi.getPortInst(0).getNodeInst() == ni) e1 = 1; else e1 = 0;
 			ae1 = oAi;
 		}
 		ArcInst ae2 = ai;   int e2 = 1;
 		for(;;)
 		{
-			NodeInst ni = ae2.getConnection(e2).getPortInst().getNodeInst();
+			NodeInst ni = ae2.getPortInst(e2).getNodeInst();
 			if (!isUnroutedPin(ni)) break;
 			ArcInst oAi = null;
 			for(Iterator it = ni.getConnections(); it.hasNext(); )
@@ -1199,15 +1182,15 @@ public class River
 			}
 			if (oAi == null) break;
 			arcsSeen.add(oAi);
-			if (oAi.getConnection(0).getPortInst().getNodeInst() == ni) e2 = 1; else e2 = 0;
+			if (oAi.getPortInst(0).getNodeInst() == ni) e2 = 1; else e2 = 0;
 			ae2 = oAi;
 		}
 
-		PortInst pi1 = ae1.getConnection(e1).getPortInst();
+		PortInst pi1 = ae1.getPortInst(e1);
 		Poly poly1 = pi1.getPoly();
 		double bx = poly1.getCenterX();
 		double by = poly1.getCenterY();
-		PortInst pi2 = ae2.getConnection(e2).getPortInst();
+		PortInst pi2 = ae2.getPortInst(e2);
 		Poly poly2 = pi2.getPoly();
 		double ex = poly2.getCenterX();
 		double ey = poly2.getCenterY();
@@ -1323,7 +1306,7 @@ public class River
 		ArcInst ae = ai;  int e = 0;
 		for(;;)
 		{
-			NodeInst ni = ae.getConnection(e).getPortInst().getNodeInst();
+			NodeInst ni = ae.getPortInst(e).getNodeInst();
 			if (!isUnroutedPin(ni)) break;
 			ArcInst oAi = null;
 			for(Iterator it = ni.getConnections(); it.hasNext(); )
@@ -1335,13 +1318,13 @@ public class River
 			}
 			if (oAi == null) break;
 			setFlags(oAi, arcsToDelete, nodesToDelete);
-			if (oAi.getConnection(0).getPortInst().getNodeInst() == ae.getConnection(e).getPortInst().getNodeInst()) e = 1; else e = 0;
+			if (oAi.getPortInst(0).getNodeInst() == ae.getPortInst(e).getNodeInst()) e = 1; else e = 0;
 			ae = oAi;
 		}
 		ae = ai;  e = 1;
 		for(;;)
 		{
-			NodeInst ni = ae.getConnection(e).getPortInst().getNodeInst();
+			NodeInst ni = ae.getPortInst(e).getNodeInst();
 			if (!isUnroutedPin(ni)) break;
 			ArcInst oAi = null;
 			for(Iterator it = ni.getConnections(); it.hasNext(); )
@@ -1353,7 +1336,7 @@ public class River
 			}
 			if (oAi == null) break;
 			setFlags(oAi, arcsToDelete, nodesToDelete);
-			if (oAi.getConnection(0).getPortInst().getNodeInst() == ae.getConnection(e).getPortInst().getNodeInst()) e = 1; else e = 0;
+			if (oAi.getPortInst(0).getNodeInst() == ae.getPortInst(e).getNodeInst()) e = 1; else e = 0;
 			ae = oAi;
 		}
 	}
@@ -1361,9 +1344,9 @@ public class River
 	private void setFlags(ArcInst ai, HashSet arcsToDelete, HashSet nodesToDelete)
 	{
 		arcsToDelete.add(ai);
-		NodeInst niH = ai.getHead().getPortInst().getNodeInst();
+		NodeInst niH = ai.getHeadPortInst().getNodeInst();
 		if (isUnroutedPin(niH)) nodesToDelete.add(niH);
-		NodeInst niT = ai.getTail().getPortInst().getNodeInst();
+		NodeInst niT = ai.getTailPortInst().getNodeInst();
 		if (isUnroutedPin(niT)) nodesToDelete.add(niT);
 	}
 
@@ -1401,14 +1384,14 @@ public class River
 	{
 		RPATH path = rd.path;
 
-		Poly poly1 = rd.unroutedWire1.getConnection(rd.unroutedEnd1).getPortInst().getPoly();
+		Poly poly1 = rd.unroutedWire1.getPortInst(rd.unroutedEnd1).getPoly();
 		wireBoundLX = poly1.getCenterX();
 		wireBoundLY = poly1.getCenterY();
-		Poly poly2 = rd.unroutedWire2.getConnection(rd.unroutedEnd2).getPortInst().getPoly();
+		Poly poly2 = rd.unroutedWire2.getPortInst(rd.unroutedEnd2).getPoly();
 		wireBoundHX = poly2.getCenterX();
 		wireBoundHY = poly2.getCenterY();
 
-		NodeProto defNode = ((PrimitiveArc)path.pathType).findPinProto();
+		NodeProto defNode = path.pathType.findPinProto();
 		PortProto defPort = defNode.getPort(0); // there is always only one
 
 		RPOINT prev = path.pathDesc;
@@ -1435,10 +1418,10 @@ public class River
 	private NodeInst theNode(RDESC rd, NodeProto dn, RPOINT p, Cell cell)
 	{
 		if (p.x == wireBoundLX && p.y == wireBoundLY)
-			return rd.unroutedWire1.getConnection(rd.unroutedEnd1).getPortInst().getNodeInst();
+			return rd.unroutedWire1.getPortInst(rd.unroutedEnd1).getNodeInst();
 
 		if (p.x == wireBoundHX && p.y == wireBoundHY)
-			return rd.unroutedWire2.getConnection(rd.unroutedEnd2).getPortInst().getNodeInst();
+			return rd.unroutedWire2.getPortInst(rd.unroutedEnd2).getNodeInst();
 
 		double wid = dn.getDefWidth();
 		double hei = dn.getDefHeight();
@@ -1449,10 +1432,10 @@ public class River
 	private PortProto thePort(PortProto dp, RDESC rd, RPOINT p)
 	{
 		if (p.x == wireBoundLX && p.y == wireBoundLY)
-			return rd.unroutedWire1.getConnection(rd.unroutedEnd1).getPortInst().getPortProto();
+			return rd.unroutedWire1.getPortInst(rd.unroutedEnd1).getPortProto();
 
 		if (p.x == wireBoundHX && p.y == wireBoundHY)
-			return rd.unroutedWire2.getConnection(rd.unroutedEnd2).getPortInst().getPortProto();
+			return rd.unroutedWire2.getPortInst(rd.unroutedEnd2).getPortProto();
 
 		return dp;
 	}

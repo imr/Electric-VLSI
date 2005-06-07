@@ -28,13 +28,12 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
@@ -168,7 +167,7 @@ public abstract class InteractiveRouter extends Router {
         route.add(startRE); route.setStart(startRE);
         //route.setEnd(startRE);
 
-        PrimitiveNode pn = ((PrimitiveArc)arc).findOverridablePinProto();
+        PrimitiveNode pn = arc.findOverridablePinProto();
         PortProto pp = pn.getPort(0);
         VerticalRoute vroute = VerticalRoute.newRoute(startPort.getPortProto(), arc);
         if (!vroute.isSpecificationSucceeded()) {
@@ -275,7 +274,7 @@ public abstract class InteractiveRouter extends Router {
             // end object is null, we are routing to a pin. Figure out what arc to use
             ArcProto useArc = getArcToUse(startPort, null);
             if (useArc == null) return route;
-            PrimitiveNode pn = ((PrimitiveArc)useArc).findOverridablePinProto();
+            PrimitiveNode pn = useArc.findOverridablePinProto();
             endPort = pn.getPort(0);
         } else {
             endPort = getRoutePort(endObj);
@@ -366,12 +365,8 @@ public abstract class InteractiveRouter extends Router {
                 ArcInst startAi = (ArcInst)startObj;
                 useArc = startAi.getProto();
             }
-            if (!(useArc instanceof PrimitiveArc)) {
-                System.out.println("  Don't know how to determine pin for arc "+useArc);
-                return new Route();
-            }
             // make new pin to route to
-            PrimitiveNode pn = ((PrimitiveArc)useArc).findOverridablePinProto();
+            PrimitiveNode pn = useArc.findOverridablePinProto();
             SizeOffset so = pn.getProtoSizeOffset();
             endRE = RouteElementPort.newNode(cell, pn, pn.getPort(0), endPoint,
                     pn.getDefWidth()-so.getHighXOffset()-so.getLowXOffset(),
@@ -425,7 +420,7 @@ public abstract class InteractiveRouter extends Router {
         assert(!(routeObj instanceof NodeInst));
         if (routeObj instanceof ArcInst) {
             ArcInst ai = (ArcInst)routeObj;
-            PrimitiveNode pn = ((PrimitiveArc)ai.getProto()).findOverridablePinProto();
+            PrimitiveNode pn = ai.getProto().findOverridablePinProto();
             return (PortProto)pn.getPort(0);
         }
         if (routeObj instanceof PortInst) {
@@ -600,8 +595,8 @@ public abstract class InteractiveRouter extends Router {
             // make poly out of possible connecting points on arc
             ArcInst arc = (ArcInst)obj;
             Point2D [] points = new Point2D[2];
-            points[0] = arc.getHead().getLocation();
-            points[1] = arc.getTail().getLocation();
+            points[0] = arc.getHeadLocation();
+            points[1] = arc.getTailLocation();
             Poly poly = new Poly(points);
             return poly;
         }
@@ -628,10 +623,10 @@ public abstract class InteractiveRouter extends Router {
      */
     protected RouteElementPort findArcConnectingPoint(Route route, ArcInst arc, Point2D point) {
 
-        Point2D head = arc.getHead().getLocation();
-        Point2D tail = arc.getTail().getLocation();
-        RouteElementPort headRE = RouteElementPort.existingPortInst(arc.getHead().getPortInst(), head);
-        RouteElementPort tailRE = RouteElementPort.existingPortInst(arc.getTail().getPortInst(), tail);
+        Point2D head = arc.getHeadLocation();
+        Point2D tail = arc.getTailLocation();
+        RouteElementPort headRE = RouteElementPort.existingPortInst(arc.getHeadPortInst(), head);
+        RouteElementPort tailRE = RouteElementPort.existingPortInst(arc.getTailPortInst(), tail);
         RouteElementPort startRE = null;
         // find extents of wire
         double minX, minY, maxX, maxY;
@@ -700,11 +695,11 @@ public abstract class InteractiveRouter extends Router {
     protected RouteElementPort bisectArc(Route route, ArcInst arc, Point2D bisectPoint) {
 
         Cell cell = arc.getParent();
-        Point2D head = arc.getHead().getLocation();
-        Point2D tail = arc.getTail().getLocation();
+        Point2D head = arc.getHeadLocation();
+        Point2D tail = arc.getTailLocation();
 
         // determine pin type to use if bisecting arc
-        PrimitiveNode pn = ((PrimitiveArc)arc.getProto()).findOverridablePinProto();
+        PrimitiveNode pn = arc.getProto().findOverridablePinProto();
         SizeOffset so = pn.getProtoSizeOffset();
         double width = pn.getDefWidth()-so.getHighXOffset()-so.getLowXOffset();
         double height = pn.getDefHeight()-so.getHighYOffset()-so.getLowYOffset();
@@ -715,8 +710,8 @@ public abstract class InteractiveRouter extends Router {
         newPinRE.setBisectArcPin(true);
 
         // make dummy end pins
-        RouteElementPort headRE = RouteElementPort.existingPortInst(arc.getHead().getPortInst(), head);
-        RouteElementPort tailRE = RouteElementPort.existingPortInst(arc.getTail().getPortInst(), tail);
+        RouteElementPort headRE = RouteElementPort.existingPortInst(arc.getHeadPortInst(), head);
+        RouteElementPort tailRE = RouteElementPort.existingPortInst(arc.getTailPortInst(), tail);
         headRE.setShowHighlight(false);
         tailRE.setShowHighlight(false);
         // put name on longer arc

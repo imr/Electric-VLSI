@@ -28,7 +28,7 @@ package com.sun.electric.tool.user.tecEdit;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;

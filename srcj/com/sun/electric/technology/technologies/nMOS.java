@@ -27,13 +27,12 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
@@ -499,31 +498,31 @@ public class nMOS extends Technology
 		//******************** ARCS ********************
 
 		/** Metal arc */
-		PrimitiveArc Metal_arc = PrimitiveArc.newInstance(this, "Metal", 3, new Technology.ArcLayer []
+		ArcProto Metal_arc = ArcProto.newInstance(this, "Metal", 3, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(M_lay, 0, Poly.Type.FILLED)
 		});
-		Metal_arc.setFunction(PrimitiveArc.Function.METAL1);
+		Metal_arc.setFunction(ArcProto.Function.METAL1);
 		Metal_arc.setFactoryFixedAngle(true);
 		Metal_arc.setWipable();
 		Metal_arc.setFactoryAngleIncrement(90);
 
 		/** Polysilicon arc */
-		PrimitiveArc Polysilicon_arc = PrimitiveArc.newInstance(this, "Polysilicon", 2, new Technology.ArcLayer []
+		ArcProto Polysilicon_arc = ArcProto.newInstance(this, "Polysilicon", 2, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(P_lay, 0, Poly.Type.FILLED)
 		});
-		Polysilicon_arc.setFunction(PrimitiveArc.Function.POLY1);
+		Polysilicon_arc.setFunction(ArcProto.Function.POLY1);
 		Polysilicon_arc.setFactoryFixedAngle(true);
 		Polysilicon_arc.setWipable();
 		Polysilicon_arc.setFactoryAngleIncrement(90);
 
 		/** Diffusion arc */
-		PrimitiveArc Diffusion_arc = PrimitiveArc.newInstance(this, "Diffusion", 2, new Technology.ArcLayer []
+		ArcProto Diffusion_arc = ArcProto.newInstance(this, "Diffusion", 2, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(D_lay, 0, Poly.Type.FILLED)
 		});
-		Diffusion_arc.setFunction(PrimitiveArc.Function.DIFF);
+		Diffusion_arc.setFunction(ArcProto.Function.DIFF);
 		Diffusion_arc.setFactoryFixedAngle(true);
 		Diffusion_arc.setWipable();
 		Diffusion_arc.setFactoryAngleIncrement(90);

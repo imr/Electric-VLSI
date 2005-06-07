@@ -932,8 +932,8 @@ public class Highlight
                         if (!netlist.sameNetwork(no, epp, ai)) continue;
 
                         markObj.add(ai);
-                        markObj.add(ai.getHead().getPortInst().getNodeInst());
-                        markObj.add(ai.getTail().getPortInst().getNodeInst());
+                        markObj.add(ai.getHeadPortInst().getNodeInst());
+                        markObj.add(ai.getTailPortInst().getNodeInst());
                     }
 
                     // draw lines along all of the arcs on the network
@@ -943,8 +943,8 @@ public class Highlight
                     {
                         ArcInst ai = (ArcInst)it.next();
                         if (!markObj.contains(ai)) continue;
-                        Point c1 = wnd.databaseToScreen(ai.getHead().getLocation());
-                        Point c2 = wnd.databaseToScreen(ai.getTail().getLocation());
+                        Point c1 = wnd.databaseToScreen(ai.getHeadLocation());
+                        Point c2 = wnd.databaseToScreen(ai.getTailLocation());
                         drawLine(g, wnd, c1.x, c1.y, c2.x, c2.y);
                     }
 

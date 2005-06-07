@@ -212,10 +212,10 @@ public class Routing extends Listener
 			ArcInst ai = (ArcInst)obj;
 			if (current.numDeletedArcs < 3)
 				current.deletedArcs[current.numDeletedArcs++] = ai;
-			current.deletedNodes[0] = ai.getHead().getPortInst().getNodeInst();
-			current.deletedPorts[0] = ai.getHead().getPortInst().getPortProto();
-			current.deletedNodes[1] = ai.getTail().getPortInst().getNodeInst();
-			current.deletedPorts[1] = ai.getTail().getPortInst().getPortProto();
+			current.deletedNodes[0] = ai.getHeadPortInst().getNodeInst();
+			current.deletedPorts[0] = ai.getHeadPortInst().getPortProto();
+			current.deletedNodes[1] = ai.getTailPortInst().getNodeInst();
+			current.deletedPorts[1] = ai.getTailPortInst().getPortProto();
 			current.numDeletedNodes = 2;
 		}
 	}
@@ -403,7 +403,7 @@ public class Routing extends Listener
 				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
-					if (con != thisCon && netList.getNetwork(con.getArc(), 0) == net) { term = false;   break; }
+					if (!con.equals(thisCon) && netList.getNetwork(con.getArc(), 0) == net) { term = false;   break; }
 				}
 				if (ni.getNumExports() > 0) term = true;
 				if (ni.getProto() instanceof Cell) term = true;

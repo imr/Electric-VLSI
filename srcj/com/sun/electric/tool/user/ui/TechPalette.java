@@ -27,14 +27,12 @@ import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
@@ -73,13 +71,10 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -304,7 +299,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
             for(Iterator it = tech.getArcs(); it.hasNext(); )
             {
-                PrimitiveArc ap = (PrimitiveArc)it.next();
+                ArcProto ap = (ArcProto)it.next();
                 if (ap.isNotUsed()) continue;
                 PrimitiveNode np = ap.findPinProto();
                 if (np != null && np.isNotUsed()) continue;
@@ -470,9 +465,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                return (ni.getProto().getName());
             }
         }
-        else if (item instanceof PrimitiveArc)
+        else if (item instanceof ArcProto)
         {
-            PrimitiveArc ap = (PrimitiveArc)item;
+            ArcProto ap = (ArcProto)item;
             return (ap.getName());
         }
         return ("");
@@ -490,7 +485,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         Object obj = getObjectUnderCursor(e.getX(), e.getY());
         JMenuItem menuItem;
 
-        if (obj instanceof NodeProto || obj instanceof NodeInst || obj instanceof PrimitiveArc || obj instanceof List)
+        if (obj instanceof NodeProto || obj instanceof NodeInst || obj instanceof ArcProto || obj instanceof List)
         {
             if (obj instanceof List)
             {
@@ -528,8 +523,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 					return;
 				}
             }
-            if (obj instanceof PrimitiveArc)
-				User.getUserTool().setCurrentArcProto((PrimitiveArc)obj);
+            if (obj instanceof ArcProto)
+				User.getUserTool().setCurrentArcProto((ArcProto)obj);
             else
                 PaletteFrame.placeInstance(obj, panel, false);
         } else if (obj instanceof String)
@@ -785,8 +780,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
         public void actionPerformed(ActionEvent evt)
         {
-            if (obj instanceof PrimitiveArc)
-				User.getUserTool().setCurrentArcProto((PrimitiveArc)obj);
+            if (obj instanceof ArcProto)
+				User.getUserTool().setCurrentArcProto((ArcProto)obj);
             else
                 PaletteFrame.placeInstance(obj, panel, false);
             // No first element -> make it default
@@ -861,9 +856,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         else if (obj instanceof NodeProto)
         {
             StatusBar.setSelectionOverride("CREATE NODE: " + ((NodeProto)obj).describe());
-        } else if (obj instanceof PrimitiveArc)
+        } else if (obj instanceof ArcProto)
         {
-            PrimitiveArc ap = (PrimitiveArc)obj;
+            ArcProto ap = (ArcProto)obj;
             StatusBar.setSelectionOverride("USE ARC: " + ap.describe());
         } else if (obj instanceof String)
         {
@@ -1019,7 +1014,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     }
 
                     // highlight if an arc or node
-                    if (toDraw instanceof PrimitiveArc)
+                    if (toDraw instanceof ArcProto)
                     {
                         g.setColor(Color.RED);
                         g.drawRect(imgX, imgY, entrySize-1, entrySize-1);
@@ -1109,7 +1104,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 largest = 0;
                 for(Iterator it = np.getTechnology().getArcs(); it.hasNext(); )
                 {
-                    PrimitiveArc otherAp = (PrimitiveArc)it.next();
+                    ArcProto otherAp = (ArcProto)it.next();
                     if (otherAp.isSpecialArc()) continue; // ignore arc for sizing
                     double wid = otherAp.getDefaultWidth();
                     if (wid+8 > largest) largest = wid+8;
@@ -1140,17 +1135,17 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 NodeInst ni = NodeInst.makeDummyInstance(np);
                 return drawNodeInMenu(wnd, ni);
             }
-            if (entry instanceof PrimitiveArc)
+            if (entry instanceof ArcProto)
             {
                 // rendering an arc: create the temporary arc
-                PrimitiveArc ap = (PrimitiveArc)entry;
+                ArcProto ap = (ArcProto)entry;
                 ArcInst ai = ArcInst.makeDummyInstance(ap, menuArcLength);
 
                 // determine scale for rendering
                 double largest = 0;
                 for(Iterator it = ap.getTechnology().getArcs(); it.hasNext(); )
                 {
-                    PrimitiveArc otherAp = (PrimitiveArc)it.next();
+                    ArcProto otherAp = (ArcProto)it.next();
                     if (otherAp.isSpecialArc()) continue;  // these are not drawn in palette
                     double wid = otherAp.getDefaultWidth();
                     if (wid+menuArcLength > largest) largest = wid+menuArcLength;

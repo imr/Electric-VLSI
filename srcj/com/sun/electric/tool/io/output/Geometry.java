@@ -34,7 +34,7 @@ import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.VarContext;

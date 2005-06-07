@@ -27,20 +27,16 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -200,7 +196,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * @param arcLength the length of the ArcInst.
 	 * @return the dummy ArcInst.
 	 */
-	public static ArcInst makeDummyInstance(PrimitiveArc ap, double arcLength)
+	public static ArcInst makeDummyInstance(ArcProto ap, double arcLength)
 	{
 		PrimitiveNode npEnd = ap.findPinProto();
 		if (npEnd == null)
@@ -293,19 +289,19 @@ public class ArcInst extends Geometric implements Comparable
 		if (!ai.headStillInPort(headP, false))
 		{
 			Cell parent = head.getNodeInst().getParent();
-			Poly poly = ai.getHead().getPortInst().getPoly();
+			Poly poly = ai.getHeadPortInst().getPoly();
 			System.out.println("Error in cell " + parent.describe() + ": head of " + type.getName() +
 				" arc at (" + headP.getX() + "," + headP.getY() + ") does not fit in port " +
-				ai.getHead().getPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
+				ai.getHeadPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
 			return null;
 		}
 		if (!ai.tailStillInPort(tailP, false))
 		{
 			Cell parent = tail.getNodeInst().getParent();
-			Poly poly = ai.getTail().getPortInst().getPoly();
+			Poly poly = ai.getTailPortInst().getPoly();
 			System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getName() +
 				" arc at (" + tailP.getX() + "," + tailP.getY() + ") does not fit in port " +
-				ai.getTail().getPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
+				ai.getTailPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
 			return null;
 		}
 		if (ai.lowLevelLink(defAngle)) return null;
@@ -828,7 +824,7 @@ public class ArcInst extends Geometric implements Comparable
 
 			// compute the angle
 			int ang = ai.getAngle() / 10;
-			if (ai.getHead() == con) ang += 180;
+			if (con.getEndIndex() == ArcInst.HEADEND) ang += 180;
 			ang %= 360;
 			if ((ang%90) != 0) off90++;
 			if (total < MAXANGLES) shortAngles[total++] = ang; else
@@ -998,8 +994,7 @@ public class ArcInst extends Geometric implements Comparable
 	public boolean stillInPort(int connIndex, Point2D pt, boolean reduceForArc)
 	{
 		// determine the area of the nodeinst
-		Connection con = getConnection(connIndex);
-		PortInst pi = con.getPortInst();
+		PortInst pi = getPortInst(connIndex);
 		Poly poly = pi.getPoly();
 		if (reduceForArc)
 		{
@@ -1865,8 +1860,7 @@ public class ArcInst extends Geometric implements Comparable
 		// search for adjoining transistor in the cell
 		for(int i=0; i<2; i++)
 		{
-			Connection con = getConnection(i);
-			PortInst pi = con.getPortInst();
+			PortInst pi = getPortInst(i);
 			NodeInst ni = pi.getNodeInst();
 			//if (!ni.isFET()) continue;
 

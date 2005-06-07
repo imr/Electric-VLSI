@@ -35,7 +35,7 @@ import java.lang.reflect.Method;
 
 /**
  * The Layer class defines a single layer of material, out of which NodeInst and ArcInst objects are created.
- * The Layers are defined by the PrimitiveNode and PrimitiveArc classes, and are used in the generation of geometry.
+ * The Layers are defined by the PrimitiveNode and ArcProto classes, and are used in the generation of geometry.
  * In addition, layers have extra information that is used for output and behavior.
  */
 public class Layer

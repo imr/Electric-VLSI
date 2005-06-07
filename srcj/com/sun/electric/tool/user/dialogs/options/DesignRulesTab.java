@@ -24,9 +24,9 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.utils.MOSRules;
@@ -189,7 +189,7 @@ public class DesignRulesTab extends PreferencePanel
 		}
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
 		{
-			PrimitiveArc ap = (PrimitiveArc)it.next();
+			ArcProto ap = (ArcProto)it.next();
 			if (ap.isNotUsed()) continue;
 			Technology.ArcLayer [] layers = ap.getLayers();
 			for(int i=0; i<layers.length; i++)

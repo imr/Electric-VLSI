@@ -27,27 +27,22 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
-import com.sun.electric.database.variable.MutableTextDescriptor;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -58,6 +53,8 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.Input.FakeCell;
+import com.sun.electric.tool.io.input.LibraryFiles.DiskVariable;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -103,7 +100,7 @@ public class ELIB extends LibraryFiles
 	/** list of all technology-related errors in the library */				private String [] techError;
 	/** scale factors for each technology in the library */					private double [] techScale;
 	/** the number of ArcProtos in the file */								private int arcProtoCount;
-	/** list of all ArcProtos in the library */								private PrimitiveArc [] arcProtoList;
+	/** list of all ArcProtos in the library */								private ArcProto [] arcProtoList;
 	/** list of all ArcProto-related errors in the library */				private String [] arcProtoError;
 	/** the number of primitive NodeProtos in the file */					private int primNodeProtoCount;
 	/** list of all Primitive NodeProtos in the library */					private PrimitiveNode [] primNodeProtoList;
@@ -327,7 +324,7 @@ public class ELIB extends LibraryFiles
 		techList = new Technology[techCount];
 		techError = new String[techCount];
 		techScale = new double[Technology.getNumTechnologies()];
-		arcProtoList = new PrimitiveArc[arcProtoCount];
+		arcProtoList = new ArcProto[arcProtoCount];
 		arcProtoError = new String[arcProtoCount];
 		primNodeProtoList = new PrimitiveNode[primNodeProtoCount];
 		primNodeProtoError = new boolean[primNodeProtoCount];
@@ -666,7 +663,7 @@ public class ELIB extends LibraryFiles
 				arcProtoError[arcProtoCount] = null;
 				name = readString();
 				if (imosconv) name = name.substring(6);
-				PrimitiveArc ap = tech.findArcProto(name);
+				ArcProto ap = tech.findArcProto(name);
 				if (ap == null)
 				{
 					ap = tech.convertOldArcName(name);
@@ -674,7 +671,7 @@ public class ELIB extends LibraryFiles
 				if (ap == null)
 				{
 					Iterator it = tech.getArcs();
-					ap = (PrimitiveArc) it.next();
+					ap = (ArcProto) it.next();
 					String errorMessage;
 					if (techError[techIndex] != null)
 						errorMessage = techError[techIndex]; else
@@ -1588,7 +1585,7 @@ public class ELIB extends LibraryFiles
         ErrorLogger.MessageLog error = Input.errorLogger.logError(msg, cell, 0);
         error.addGeom(ai, true, cell, null);
 
-        PrimitiveNode pn = ((PrimitiveArc)ap).findOverridablePinProto();
+        PrimitiveNode pn = ap.findOverridablePinProto();
         node = NodeInst.newInstance(pn, new Point2D.Double(x, y), pn.getDefWidth(), pn.getDefHeight(), cell);
         error.addGeom(node, true, cell, null);
         return node.getOnlyPortInst();
@@ -2149,7 +2146,7 @@ public class ELIB extends LibraryFiles
 
 		// read the arcproto pointer
 		int protoIndex = readBigInteger();
-		PrimitiveArc ap = convertArcProto(protoIndex);
+		ArcProto ap = convertArcProto(protoIndex);
 		arcTypeList[arcIndex] = ap;
 
 		// read the arc length (versions 5 or older)
@@ -2563,7 +2560,7 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to convert the arcproto index "i" to a true arcproto pointer.
 	 */
-	private PrimitiveArc convertArcProto(int i)
+	private ArcProto convertArcProto(int i)
 	{
 		int aindex = -i - 2;
 		if (aindex >= arcProtoCount || aindex < 0)
@@ -2611,7 +2608,7 @@ public class ELIB extends LibraryFiles
 		return(primNodeProtoList[i]);
 	}
 
-	private PrimitiveArc getArcProtoList(int i)
+	private ArcProto getArcProtoList(int i)
 	{
 		if (arcProtoError[i] != null)
 		{

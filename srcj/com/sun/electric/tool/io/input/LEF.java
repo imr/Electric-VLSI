@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -38,11 +37,13 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.io.input.LEFDEF.GetLayerInformation;
+import com.sun.electric.tool.io.input.LEFDEF.ViaDef;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -779,7 +780,7 @@ public class LEF extends LEFDEF
 			for(int i=0; i<2; i++)
 			{
 				if (lp.ni[i] != null) continue;
-				NodeProto pin = ((PrimitiveArc)lp.arc).findPinProto();
+				NodeProto pin = lp.arc.findPinProto();
 				if (pin == null) continue;
 				double sX = pin.getDefWidth();
 				double sY = pin.getDefHeight();

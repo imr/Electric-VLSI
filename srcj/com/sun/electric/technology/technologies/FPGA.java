@@ -35,7 +35,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -48,10 +47,10 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
@@ -84,7 +83,7 @@ public class FPGA extends Technology
 	/** the FPGA Technology object. */	public static final FPGA tech = new FPGA();
 
 	private Layer wireLayer, componentLayer, pipLayer, repeaterLayer;
-	private PrimitiveArc wireArc;
+	private ArcProto wireArc;
 	private PrimitiveNode wirePinNode, pipNode, repeaterNode;
 
 	private FPGA()
@@ -128,11 +127,11 @@ public class FPGA extends Technology
 		//**************************************** ARC ****************************************
 
 		/** wire arc */
-		wireArc = PrimitiveArc.newInstance(this, "wire", 0.0, new Technology.ArcLayer []
+		wireArc = ArcProto.newInstance(this, "wire", 0.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(wireLayer, 0, Poly.Type.FILLED)
 		});
-		wireArc.setFunction(PrimitiveArc.Function.METAL1);
+		wireArc.setFunction(ArcProto.Function.METAL1);
 		wireArc.setFactoryFixedAngle(true);
 		wireArc.setFactorySlidable(false);
 		wireArc.setFactoryAngleIncrement(45);
@@ -376,8 +375,9 @@ public class FPGA extends Technology
 									Connection con = (Connection)it.next();
 									if (con.getPortInst().getPortProto() != fn.portList[j].pp) continue;
 									ArcInst ai = con.getArc();
-									int otherEnd = 0;
-									if (ai.getConnection(0) == con) otherEnd = 1;
+                                    int otherEnd = 1 - con.getEndIndex();
+//									int otherEnd = 0;
+//									if (ai.getConnection(0) == con) otherEnd = 1;
 									if (arcEndActive(ai, otherEnd, higher)) { found = true;   break; }
 								}
 								if (found) break;
@@ -525,7 +525,7 @@ public class FPGA extends Technology
 	private boolean arcEndActive(ArcInst ai, int j, VarContext curContext)
 	{
 		// examine end
-		PortInst pi = ai.getConnection(j).getPortInst();
+		PortInst pi = ai.getPortInst(j);
 		NodeInst ni = pi.getNodeInst();
 		PortProto pp = pi.getPortProto();
 		NodeProto np = ni.getProto();
@@ -539,7 +539,7 @@ public class FPGA extends Technology
 				Connection nextCon = (Connection)it.next();
 				ArcInst oAi = nextCon.getArc();
 				int newEnd = 0;
-				if (oAi.getConnection(0).getPortInst().getNodeInst() == subni) newEnd = 1;
+				if (oAi.getPortInst(0).getNodeInst() == subni) newEnd = 1;
 				if (arcEndActive(oAi, newEnd, down)) return true;
 			}
 			return false;
@@ -579,8 +579,9 @@ public class FPGA extends Technology
 					if (oAi == ai) continue;
 					Network oNet = nl.getNetwork(oAi, 0);
 					if (oNet != net) continue;
-					int newEnd = 0;
-					if (oAi.getConnection(0) == nextCon) newEnd = 1;
+                    int newEnd = 1 - nextCon.getEndIndex();
+//					int newEnd = 0;
+//					if (oAi.getConnection(0) == nextCon) newEnd = 1;
 					if (arcEndActive(oAi, newEnd, curContext)) return true;
 				}
 
@@ -599,8 +600,9 @@ public class FPGA extends Technology
 							Connection nextCon = (Connection)uIt.next();
 							ArcInst oAi = nextCon.getArc();
 							if (nextCon.getPortInst().getPortProto() != opp) continue;
-							int newEnd = 0;
-							if (oAi.getConnection(0) == nextCon) newEnd = 1;
+                            int newEnd = 1 - nextCon.getEndIndex();
+//							int newEnd = 0;
+//							if (oAi.getConnection(0) == nextCon) newEnd = 1;
 							if (arcEndActive(oAi, newEnd, higher)) return true;
 						}
 					}

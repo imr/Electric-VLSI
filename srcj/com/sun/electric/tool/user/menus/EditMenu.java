@@ -30,14 +30,13 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.FPGA;
@@ -1208,7 +1207,7 @@ public class EditMenu {
         {
             Point2D mouseDB = wnd.screenToDatabase((int)evt.getX(), (int)evt.getY());
 			EditWindow.gridAlign(mouseDB);
-            Point2D insert = DBMath.closestPointToSegment(ai.getHead().getLocation(), ai.getTail().getLocation(), mouseDB);
+            Point2D insert = DBMath.closestPointToSegment(ai.getHeadLocation(), ai.getTailLocation(), mouseDB);
             return insert;
         }
 
@@ -1241,7 +1240,7 @@ public class EditMenu {
 
                 // create the break pins
                 ArcProto ap = ai.getProto();
-                NodeProto np = ((PrimitiveArc)ap).findPinProto();
+                NodeProto np = ap.findPinProto();
                 if (np == null) return false;
                 NodeInst ni = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(), ai.getParent());
                 if (ni == null)
@@ -1282,10 +1281,10 @@ public class EditMenu {
 //				}
 
                 // now save the arc information and delete it
-                PortInst headPort = ai.getHead().getPortInst();
-                PortInst tailPort = ai.getTail().getPortInst();
-                Point2D headPt = ai.getHead().getLocation();
-                Point2D tailPt = ai.getTail().getLocation();
+                PortInst headPort = ai.getHeadPortInst();
+                PortInst tailPort = ai.getTailPortInst();
+                Point2D headPt = ai.getHeadLocation();
+                Point2D tailPt = ai.getTailLocation();
                 double width = ai.getWidth();
                 boolean headNegated = ai.isHeadNegated();
                 boolean tailNegated = ai.isTailNegated();
@@ -1345,14 +1344,14 @@ public class EditMenu {
         int arcCount = 0;
         for(Iterator it = tech.getArcs(); it.hasNext(); )
         {
-            PrimitiveArc ap = (PrimitiveArc)it.next();
+            ArcProto ap = (ArcProto)it.next();
             if (!ap.isNotUsed()) arcCount++;
         }
         StringBuffer sb = new StringBuffer();
         sb.append("    Has " + arcCount + " arcs (wires):");
         for(Iterator it = tech.getArcs(); it.hasNext(); )
         {
-            PrimitiveArc ap = (PrimitiveArc)it.next();
+            ArcProto ap = (ArcProto)it.next();
             if (ap.isNotUsed()) continue;
             sb.append(" " + ap.getName());
         }

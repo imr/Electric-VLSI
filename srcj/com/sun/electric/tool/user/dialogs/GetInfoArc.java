@@ -360,11 +360,11 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			busSize.setText(Integer.toString(busWidth));
 			angle.setText("Angle: " + TextUtils.formatDouble(ai.getAngle() / 10.0));
 			easyToSelect.setSelected(initialEasyToSelect);
-			headNode.setText(ai.getHead().getPortInst().getNodeInst().describe());
-			Point2D headPt = ai.getHead().getLocation();
+			headNode.setText(ai.getHeadPortInst().getNodeInst().describe());
+			Point2D headPt = ai.getHeadLocation();
 			headLoc.setText("(" + headPt.getX() + "," + headPt.getY() + ")");
-			tailNode.setText(ai.getTail().getPortInst().getNodeInst().describe());
-			Point2D tailPt = ai.getTail().getLocation();
+			tailNode.setText(ai.getTailPortInst().getNodeInst().describe());
+			Point2D tailPt = ai.getTailLocation();
 			tailLoc.setText("(" + tailPt.getX() + "," + tailPt.getY() + ")");
 			rigid.setSelected(initialRigid);
 			fixedAngle.setSelected(initialFixedAngle);
@@ -1010,7 +1010,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	{//GEN-HEADEREND:event_tailSeeActionPerformed
 		if (shownArc == null) return;
 		ArcInst ai = shownArc;
-		NodeInst ni = shownArc.getTail().getPortInst().getNodeInst();
+		NodeInst ni = shownArc.getTailPortInst().getNodeInst();
         if (wnd != null) {
             Highlighter highlighter = wnd.getHighlighter();
             highlighter.clear();
@@ -1024,7 +1024,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 	{//GEN-HEADEREND:event_headSeeActionPerformed
 		if (shownArc == null) return;
 		ArcInst ai = shownArc;
-		NodeInst ni = shownArc.getHead().getPortInst().getNodeInst();
+		NodeInst ni = shownArc.getHeadPortInst().getNodeInst();
         if (wnd != null) {
             Highlighter highlighter = wnd.getHighlighter();
             highlighter.clear();

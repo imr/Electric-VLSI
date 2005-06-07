@@ -22,8 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user;
-
-import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -31,7 +29,6 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
@@ -45,11 +42,11 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.TransistorSize;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -64,7 +61,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -636,7 +632,7 @@ public class ViewChanges
 		}
 
 		// determine the type of wires used for leads
-		PrimitiveArc wireType = Schematics.tech.wire_arc;
+		ArcProto wireType = Schematics.tech.wire_arc;
 		if (pp.getBasePort().connectsTo(Schematics.tech.bus_arc) && pp.getNameKey().isBus())
 		{
 			wireType = Schematics.tech.bus_arc;
@@ -815,8 +811,8 @@ public class ViewChanges
 		for(Iterator it = newCell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-			Point2D headPt = ai.getHead().getLocation();
-			Point2D tailPt = ai.getTail().getLocation();
+			Point2D headPt = ai.getHeadLocation();
+			Point2D tailPt = ai.getTailLocation();
 			if (headPt.getX() == tailPt.getX() && headPt.getY() == tailPt.getY()) continue;
 			if ((GenMath.figureAngle(headPt, tailPt)%450) == 0) ai.setFixedAngle(true);
 		}
@@ -946,13 +942,13 @@ public class ViewChanges
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst mosAI = (ArcInst)it.next();
-			NodeInst mosHeadNI = mosAI.getHead().getPortInst().getNodeInst();
-			NodeInst mosTailNI = mosAI.getTail().getPortInst().getNodeInst();
+			NodeInst mosHeadNI = mosAI.getHeadPortInst().getNodeInst();
+			NodeInst mosTailNI = mosAI.getTailPortInst().getNodeInst();
 			NodeInst schemHeadNI = (NodeInst)newNodes.get(mosHeadNI);
 			NodeInst schemTailNI = (NodeInst)newNodes.get(mosTailNI);
 			if (schemHeadNI == null || schemTailNI == null) continue;
-			PortInst schemHeadPI = convertPort(mosHeadNI, mosAI.getHead().getPortInst().getPortProto(), schemHeadNI);
-			PortInst schemTailPI = convertPort(mosTailNI, mosAI.getTail().getPortInst().getPortProto(), schemTailNI);
+			PortInst schemHeadPI = convertPort(mosHeadNI, mosAI.getHeadPortInst().getPortProto(), schemHeadNI);
+			PortInst schemTailPI = convertPort(mosTailNI, mosAI.getTailPortInst().getPortProto(), schemTailNI);
 			if (schemHeadPI == null || schemTailPI == null) continue;
 
 			// create the new arc
@@ -1021,11 +1017,12 @@ public class ViewChanges
 			{
 				Connection con = (Connection)aIt.next();
 				ArcInst ai = con.getArc();
-				Connection other = ai.getHead();
-				if (ai.getHead() == con) other = ai.getTail();
-				if (con.getPortInst().getNodeInst() == other.getPortInst().getNodeInst()) continue;
-				x[count] = other.getLocation().getX();
-				y[count] = other.getLocation().getY();
+                int otherEnd = 1 - con.getEndIndex();
+//				Connection other = ai.getHead();
+//				if (ai.getHead() == con) other = ai.getTail();
+				if (con.getPortInst().getNodeInst() == ai.getPortInst(otherEnd).getNodeInst()) continue;
+				x[count] = ai.getLocation(otherEnd).getX();
+				y[count] = ai.getLocation(otherEnd).getY();
 				count++;
 				if (count >= MAXADJUST) break;
 			}
@@ -1220,14 +1217,14 @@ public class ViewChanges
 			{
 				ArcInst ai = (ArcInst)it.next();
 				// get the nodes and ports on the two ends of the arc
-				NodeInst oldHeadNi = ai.getHead().getPortInst().getNodeInst();
-				NodeInst oldTailNi = ai.getTail().getPortInst().getNodeInst();
+				NodeInst oldHeadNi = ai.getHeadPortInst().getNodeInst();
+				NodeInst oldTailNi = ai.getTailPortInst().getNodeInst();
 
 				NodeInst newHeadNi = (NodeInst)convertedNodes.get(oldHeadNi);
 				NodeInst newTailNi = (NodeInst)convertedNodes.get(oldTailNi);
 				if (newHeadNi == null || newTailNi == null) continue;
-				PortProto oldHeadPp = ai.getHead().getPortInst().getPortProto();
-				PortProto oldTailPp = ai.getTail().getPortInst().getPortProto();
+				PortProto oldHeadPp = ai.getHeadPortInst().getPortProto();
+				PortProto oldTailPp = ai.getTailPortInst().getPortProto();
 				PortProto newHeadPp = convertPortProto(oldHeadNi, newHeadNi, oldHeadPp);
 				PortProto newTailPp = convertPortProto(oldTailNi, newTailNi, oldTailPp);
 				if (newHeadPp == null || newTailPp == null) continue;
@@ -1247,8 +1244,8 @@ public class ViewChanges
 				}
 
 				// find the endpoints of the arc
-				Point2D pHead = ai.getHead().getLocation();
-				Point2D pTail = ai.getTail().getLocation();
+				Point2D pHead = ai.getHeadLocation();
+				Point2D pTail = ai.getTailLocation();
 				PortInst newHeadPi = newHeadNi.findPortInstFromProto(newHeadPp);
 				PortInst newTailPi = newTailNi.findPortInstFromProto(newTailPp);
 				Poly newHeadPoly = newHeadPi.getPoly();

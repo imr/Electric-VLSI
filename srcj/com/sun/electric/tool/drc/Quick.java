@@ -24,14 +24,18 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.Main;
-import com.sun.electric.database.geometry.*;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.GeometryHandler;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
+import com.sun.electric.database.geometry.PolyQTree;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
@@ -43,10 +47,10 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
@@ -58,7 +62,15 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Area;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * This is the "quick" DRC which does full hierarchical examination of the circuit.
@@ -3155,15 +3167,8 @@ public class Quick
 //			if ((g instanceof ArcInst))
 //            {
 //                ArcProto ap = ((ArcInst)g).getProto();
-//                if (ap instanceof PrimitiveArc)
-//                {
-//                    PrimitiveArc pa = (PrimitiveArc)ap;
-//
-//                    for (int i = 0; i < pa.getLayers().length; i++)
-//                        layerSet.add(pa.getLayers()[i].getLayer());
-//                }
-//                else
-//                    System.out.println("When do we have this case");
+//                for (int i = 0; i < ap.getLayers().length; i++)
+//                    layerSet.add(pa.getLayers()[i].getLayer());
 //            }
 //            else
 //            {
@@ -3706,8 +3711,7 @@ public class Quick
 		for(int i=0; i<2; i++)
 		{
 			// find the primitive nodeinst at the true end of the portinst
-			Connection con = ai.getConnection(i);
-			PortInst pi = con.getPortInst();
+			PortInst pi = ai.getPortInst(i);
 
 			PortOriginal fp = new PortOriginal(pi, inTrans);
 			NodeInst ni = fp.getBottomNodeInst();
@@ -3768,8 +3772,7 @@ public class Quick
 		boolean halved = false;
 		for(int i=0; i<2; i++)
 		{
-			Connection con = ai.getConnection(i);
-			PortInst pi = con.getPortInst();
+			PortInst pi = ai.getPortInst(i);
 			NodeInst ni = pi.getNodeInst();
 			if (!ni.isFET()) continue;
 
@@ -3863,7 +3866,7 @@ public class Quick
 		}
 		for(Iterator it = tech.getArcs(); it.hasNext(); )
 		{
-			PrimitiveArc ap = (PrimitiveArc)it.next();
+			ArcProto ap = (ArcProto)it.next();
 			if (ap.isNotUsed()) continue;
 			Technology.ArcLayer [] layers = ap.getLayers();
 			for(int i=0; i<layers.length; i++)
@@ -4001,7 +4004,7 @@ public class Quick
 		layersInterArcs = new HashMap();
 		for(Iterator it = tech.getArcs(); it.hasNext(); )
 		{
-			PrimitiveArc ap = (PrimitiveArc)it.next();
+			ArcProto ap = (ArcProto)it.next();
 			boolean [] layersInArc = new boolean[numLayers];
 			for(int i=0; i<numLayers; i++) layersInArc[i] = false;
 

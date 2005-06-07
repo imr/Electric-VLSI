@@ -22,17 +22,16 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.generator.layout;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.NodeInst;
 
 import java.util.HashMap;
 import java.util.Iterator;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 
@@ -94,7 +93,7 @@ public class Tech {
 		"Metal-2", "Metal-3", "Metal-4", "Metal-5", "Metal-6", "Metal-7", "Metal-8", "Metal-9"};
 	private static String[] layerNms;
 	private static int nbLay;
-	private static PrimitiveArc[] layers;
+	private static ArcProto[] layers;
 	private static PrimitiveNode[] vias;
 	private static HashMap viaMap = new HashMap();
 	private static Technology tech;
@@ -114,7 +113,7 @@ public class Tech {
 	 * at adjacent heights can connect using vias.
 	 *
 	 * For now, well and diffusion don't have heights. */
-	public static PrimitiveArc pdiff, ndiff, p1, m1, m2, m3, m4, m5, m6, m7, m8, m9;
+	public static ArcProto pdiff, ndiff, p1, m1, m2, m3, m4, m5, m6, m7, m8, m9;
 	/** layer pins */
 	public static PrimitiveNode ndpin,
 		pdpin,
@@ -200,7 +199,7 @@ public class Tech {
 		tech = Technology.findTechnology(techNm);
 		layerNms = isTsmc90 ? TSMC90_LAYER_NAMES : MOCMOS_LAYER_NAMES;
 		nbLay = layerNms.length;
-		layers = new PrimitiveArc[nbLay];
+		layers = new ArcProto[nbLay];
 		vias = new PrimitiveNode[nbLay - 1];
 
 		// initialize layers
@@ -319,7 +318,7 @@ public class Tech {
 
     public static boolean isTSMC90() { return isTsmc90; }
 
-	public static PrimitiveNode getViaFor(PrimitiveArc a1, PrimitiveArc a2) {
+	public static PrimitiveNode getViaFor(ArcProto a1, ArcProto a2) {
 		int code = a1.hashCode() * a2.hashCode();
 		return (PrimitiveNode) viaMap.get(new Integer(code));		
 	}

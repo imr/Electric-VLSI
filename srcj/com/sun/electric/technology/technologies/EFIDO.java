@@ -27,13 +27,11 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -89,20 +87,20 @@ public class EFIDO extends Technology
 		//******************** ARCS ********************
 
 		/** wire arc */
-		PrimitiveArc wire_arc = PrimitiveArc.newInstance(this, "wire", 0, new Technology.ArcLayer []
+		ArcProto wire_arc = ArcProto.newInstance(this, "wire", 0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(A_lay, 0, Poly.Type.CLOSED)
 		});
-		wire_arc.setFunction(PrimitiveArc.Function.METAL1);
+		wire_arc.setFunction(ArcProto.Function.METAL1);
 		wire_arc.setFactoryFixedAngle(true);
 		wire_arc.setFactoryAngleIncrement(45);
 
 		/** bus arc */
-		PrimitiveArc bus_arc = PrimitiveArc.newInstance(this, "bus", 2, new Technology.ArcLayer []
+		ArcProto bus_arc = ArcProto.newInstance(this, "bus", 2, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(A_lay, 0, Poly.Type.CLOSED)
 		});
-		bus_arc.setFunction(PrimitiveArc.Function.BUS);
+		bus_arc.setFunction(ArcProto.Function.BUS);
 		bus_arc.setFactoryFixedAngle(true);
 		bus_arc.setFactoryAngleIncrement(45);
 

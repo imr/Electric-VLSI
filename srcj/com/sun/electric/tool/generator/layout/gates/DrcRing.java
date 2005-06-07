@@ -24,11 +24,10 @@
 package com.sun.electric.tool.generator.layout.gates;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.generator.layout.StdCellParams;
 import com.sun.electric.tool.generator.layout.Tech;
@@ -51,7 +50,7 @@ public class DrcRing {
     // metal-5 minimum width is 6 lambda
     double arcW = 6;
 
-    NodeProto pin = ((PrimitiveArc)arc).findOverridablePinProto();
+    NodeProto pin = arc.findOverridablePinProto();
     double pinLoX = - arcW/2;
     double pinHiX = w + arcW/2;
     double pinLoY = - arcW/2;

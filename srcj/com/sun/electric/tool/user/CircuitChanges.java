@@ -35,7 +35,6 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -49,7 +48,7 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
@@ -76,7 +75,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -331,9 +329,10 @@ public class CircuitChanges
 			Connection con = (Connection)it.next();
 			ArcInst ai = con.getArc();
 			if (!markObj.contains(ai)) continue;
-			Connection other = ai.getTail();
-			if (other == con) other = ai.getHead();
-			NodeInst ni = other.getPortInst().getNodeInst();
+            int otherEnd = 1 - con.getEndIndex();
+//			Connection other = ai.getTail();
+//			if (other == con) other = ai.getHead();
+			NodeInst ni = ai.getPortInst(otherEnd).getNodeInst();
 			if (markObj.contains(ni)) continue;
 			markObj.add(ni);
 			spreadRotateConnection(ni, markObj);
@@ -486,8 +485,8 @@ public class CircuitChanges
 				if (!(geom instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)geom;
 	
-				Point2D origHead = ai.getHead().getLocation();
-				Point2D origTail = ai.getTail().getLocation();
+				Point2D origHead = ai.getHeadLocation();
+				Point2D origTail = ai.getTailLocation();
 				Point2D arcHead = new Point2D.Double(origHead.getX(), origHead.getY());
 				Point2D arcTail = new Point2D.Double(origTail.getX(), origTail.getY());
 				EditWindow.gridAlign(arcHead);
@@ -966,7 +965,7 @@ public class CircuitChanges
 					ArcInst ai = (ArcInst)eobj;
 					for(int i=0; i<2; i++)
 					{
-						PortInst pi = ai.getConnection(i).getPortInst();
+						PortInst pi = ai.getPortInst(i);
 						if (pi.getNodeInst().getProto() instanceof PrimitiveNode)
 						{
 							PrimitivePort pp = (PrimitivePort)pi.getPortProto();
@@ -1047,15 +1046,15 @@ public class CircuitChanges
 				double lowX = 0, lowY = 0;
 
 				// determine location of individual signals
-				if (ai.getHead().getLocation().getX() == ai.getTail().getLocation().getX())
+				if (ai.getHeadLocation().getX() == ai.getTailLocation().getX())
 				{
-					lowX = ai.getHead().getLocation().getX();
+					lowX = ai.getHeadLocation().getX();
 					if (lowX < ai.getParent().getBounds().getCenterX()) lowX += stublen; else
 						lowX -= stublen;
 
-					if (ai.getConnection(0).getLocation().getY() < ai.getConnection(1).getLocation().getY()) lowEnd = 0;
-					lowY = (int)(ai.getConnection(lowEnd).getLocation().getY());
-					double highy = (int)(ai.getConnection(1-lowEnd).getLocation().getY());
+					if (ai.getLocation(0).getY() < ai.getLocation(1).getY()) lowEnd = 0;
+					lowY = (int)(ai.getLocation(lowEnd).getY());
+					double highy = (int)(ai.getLocation(1-lowEnd).getY());
 					if (highy-lowY >= busWidth-1)
 					{
 						// signals fit on grid
@@ -1064,20 +1063,20 @@ public class CircuitChanges
 					} else
 					{
 						// signals don't fit: just make them even
-						lowY = ai.getConnection(lowEnd).getLocation().getY();
-						highy = ai.getConnection(1-lowEnd).getLocation().getY();
+						lowY = ai.getLocation(lowEnd).getY();
+						highy = ai.getLocation(1-lowEnd).getY();
 						sepY = (highy-lowY) / (busWidth-1);
 					}
-					lowXBus = ai.getTail().getLocation().getX();   lowYBus = lowY;
-				} else if (ai.getTail().getLocation().getY() == ai.getHead().getLocation().getY())
+					lowXBus = ai.getTailLocation().getX();   lowYBus = lowY;
+				} else if (ai.getTailLocation().getY() == ai.getHeadLocation().getY())
 				{
-					lowY = ai.getTail().getLocation().getY();
+					lowY = ai.getTailLocation().getY();
 					if (lowY < ai.getParent().getBounds().getCenterY()) lowY += stublen; else
 						lowY -= stublen;
 
-					if (ai.getConnection(0).getLocation().getX() < ai.getConnection(1).getLocation().getX()) lowEnd = 0;
-					lowX = (int)(ai.getConnection(lowEnd).getLocation().getX());
-					double highx = (int)(ai.getConnection(1-lowEnd).getLocation().getX());
+					if (ai.getLocation(0).getX() < ai.getLocation(1).getX()) lowEnd = 0;
+					lowX = (int)(ai.getLocation(lowEnd).getX());
+					double highx = (int)(ai.getLocation(1-lowEnd).getX());
 					if (highx-lowX >= busWidth-1)
 					{
 						// signals fit on grid
@@ -1086,11 +1085,11 @@ public class CircuitChanges
 					} else
 					{
 						// signals don't fit: just make them even
-						lowX = ai.getConnection(lowEnd).getLocation().getX();
-						highx = ai.getConnection(1-lowEnd).getLocation().getX();
+						lowX = ai.getLocation(lowEnd).getX();
+						highx = ai.getLocation(1-lowEnd).getX();
 						sepX = (highx-lowX) / (busWidth-1);
 					}
-					lowXBus = lowX;   lowYBus = ai.getTail().getLocation().getY();
+					lowXBus = lowX;   lowYBus = ai.getTailLocation().getY();
 				} else
 				{
 					System.out.println("Bus " + ai.describe() + " must be horizontal or vertical to be ripped out");
@@ -1133,7 +1132,7 @@ public class CircuitChanges
 					// wire to the bus pin
 					if (i == 0)
 					{
-						PortInst first = ai.getConnection(lowEnd).getPortInst();
+						PortInst first = ai.getPortInst(lowEnd);
 						aiw = ArcInst.makeInstance(apB, apB.getDefaultWidth(), first, tail);
 					} else
 					{
@@ -1150,7 +1149,7 @@ public class CircuitChanges
 
 				// wire up the last segment
 				PortInst head = niBLast.getOnlyPortInst();
-				PortInst tail = ai.getConnection(1-lowEnd).getPortInst();
+				PortInst tail = ai.getPortInst(1-lowEnd);
 				ArcInst aiw = ArcInst.makeInstance(apB, apB.getDefaultWidth(), head, tail);
 				if (aiw == null) return false;
 				aiw.setName(netName);
@@ -1384,8 +1383,8 @@ public class CircuitChanges
 				ArcInst ai = (ArcInst)aIt.next();
 
 				// if an end is inside, ignore
-				Point2D headPt = ai.getHead().getLocation();
-				Point2D tailPt = ai.getTail().getLocation();
+				Point2D headPt = ai.getHeadLocation();
+				Point2D tailPt = ai.getTailLocation();
 
 				// if length is zero, ignore
 				if (tailPt.getX() == headPt.getX() &&
@@ -1413,7 +1412,7 @@ public class CircuitChanges
 				if (!tailPt.equals(tailPtAdj))
 				{
 					// create a pin at this point
-					PrimitiveNode pin = ((PrimitiveArc)ai.getProto()).findPinProto();
+					PrimitiveNode pin = ai.getProto().findPinProto();
 					NodeInst ni = NodeInst.makeInstance(pin, tailPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell);
 					if (ni == null)
 					{
@@ -1422,7 +1421,7 @@ public class CircuitChanges
 					}
 
 					ArcInst ai1 = ArcInst.makeInstance(ai.getProto(), ai.getWidth(),
-						ai.getTail().getPortInst(), ni.getOnlyPortInst(), ai.getTail().getLocation(),
+						ai.getTailPortInst(), ni.getOnlyPortInst(), ai.getTailLocation(),
 					        tailPtAdj, newName);
 					if (ai1 == null)
 					{
@@ -1435,7 +1434,7 @@ public class CircuitChanges
 				if (!headPt.equals(headPtAdj))
 				{
 					// create a pin at this point
-					PrimitiveNode pin = ((PrimitiveArc)ai.getProto()).findPinProto();
+					PrimitiveNode pin = ai.getProto().findPinProto();
 					NodeInst ni = NodeInst.makeInstance(pin, headPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell);
 					if (ni == null)
 					{
@@ -1443,8 +1442,8 @@ public class CircuitChanges
 						continue;
 					}
 
-					ArcInst ai1 = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), ni.getOnlyPortInst(), ai.getHead().getPortInst(), headPtAdj,
-					        ai.getHead().getLocation(), newName);
+					ArcInst ai1 = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), ni.getOnlyPortInst(), ai.getHeadPortInst(), headPtAdj,
+					        ai.getHeadLocation(), newName);
 					if (ai1 == null)
 					{
 						System.out.println("Error shortening arc "+ai.describe());
@@ -1504,8 +1503,8 @@ public class CircuitChanges
 			if (geom instanceof ArcInst)
 			{
 				ArcInst ai = (ArcInst)geom;
-				deleteFlag.put(ai.getHead().getPortInst().getNodeInst(), new Integer(1));
-				deleteFlag.put(ai.getTail().getPortInst().getNodeInst(), new Integer(1));
+				deleteFlag.put(ai.getHeadPortInst().getNodeInst(), new Integer(1));
+				deleteFlag.put(ai.getTailPortInst().getNodeInst(), new Integer(1));
 			}
 		}
 
@@ -1534,10 +1533,11 @@ public class CircuitChanges
 			{
 				Connection con = (Connection)sit.next();
 				ArcInst ai = con.getArc();
-				Connection otherEnd = ai.getHead();
-				if (ai.getHead() == con) otherEnd = ai.getTail();
+                int otherEnd = 1 - con.getEndIndex();
+//				Connection otherEnd = ai.getHead();
+//				if (ai.getHead() == con) otherEnd = ai.getTail();
 
-				NodeInst oNi = otherEnd.getPortInst().getNodeInst();
+				NodeInst oNi = ai.getPortInst(otherEnd).getNodeInst();
 				if (deleteFlag.get(oNi) == null) deleteFlag.put(oNi, new Integer(1));
 			}
 		}
@@ -2423,17 +2423,17 @@ public class CircuitChanges
 				Geometric look = (Geometric)sIt.next();
 				if (!(look instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)look;
-				NodeInst niTail = (NodeInst)newNodes.get(ai.getTail().getPortInst().getNodeInst());
-				NodeInst niHead = (NodeInst)newNodes.get(ai.getHead().getPortInst().getNodeInst());
+				NodeInst niTail = (NodeInst)newNodes.get(ai.getTailPortInst().getNodeInst());
+				NodeInst niHead = (NodeInst)newNodes.get(ai.getHeadPortInst().getNodeInst());
 				if (niTail == null || niHead == null) continue;
-				PortInst piTail = niTail.findPortInstFromProto(ai.getTail().getPortInst().getPortProto());
-				PortInst piHead = niHead.findPortInstFromProto(ai.getHead().getPortInst().getPortProto());
+				PortInst piTail = niTail.findPortInstFromProto(ai.getTailPortInst().getPortProto());
+				PortInst piHead = niHead.findPortInstFromProto(ai.getHeadPortInst().getPortProto());
 
 				String name = null;
 				Name oldName = ai.getNameKey();
 				if (!oldName.isTempname()) name = oldName.toString();
-				ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, piTail, ai.getHead().getLocation(),
-				        ai.getTail().getLocation(), name);
+				ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), piHead, piTail, ai.getHeadLocation(),
+				        ai.getTailLocation(), name);
 				if (newAi == null) return false;
 				newAi.copyPropertiesFrom(ai);
 			}
@@ -2548,16 +2548,16 @@ public class CircuitChanges
 			ArcInst ai = (ArcInst)it.next();
 
 			// ignore arcs connected to nodes that didn't get yanked
-			NodeInst niTail = (NodeInst)newNodes.get(ai.getTail().getPortInst().getNodeInst());
-			NodeInst niHead = (NodeInst)newNodes.get(ai.getHead().getPortInst().getNodeInst());
+			NodeInst niTail = (NodeInst)newNodes.get(ai.getTailPortInst().getNodeInst());
+			NodeInst niHead = (NodeInst)newNodes.get(ai.getHeadPortInst().getNodeInst());
 			if (niTail == null || niHead == null) continue;
-			PortInst piTail = niTail.findPortInstFromProto(ai.getTail().getPortInst().getPortProto());
-			PortInst piHead = niHead.findPortInstFromProto(ai.getHead().getPortInst().getPortProto());
+			PortInst piTail = niTail.findPortInstFromProto(ai.getTailPortInst().getPortProto());
+			PortInst piHead = niHead.findPortInstFromProto(ai.getHeadPortInst().getPortProto());
 
 			Point2D ptTail = new Point2D.Double();
-			localTrans.transform(ai.getTail().getLocation(), ptTail);
+			localTrans.transform(ai.getTailLocation(), ptTail);
 			Point2D ptHead = new Point2D.Double();
-			localTrans.transform(ai.getHead().getLocation(), ptHead);
+			localTrans.transform(ai.getHeadLocation(), ptHead);
 
 			// make sure the head end fits in the port
 			Poly polyHead = piHead.getPoly();
@@ -2601,8 +2601,8 @@ public class CircuitChanges
 			Point2D [] pts = new Point2D[2];
 			for(int i=0; i<2; i++)
 			{
-				pis[i] = ai.getConnection(i).getPortInst();
-				pts[i] = ai.getConnection(i).getLocation();
+				pis[i] = ai.getPortInst(i);
+				pts[i] = ai.getLocation(i);
 				if (pis[i].getNodeInst() != topno) continue;
 				Export pp = (Export)pis[i].getPortProto();
 				NodeInst subNi = pp.getOriginalPort().getNodeInst();
@@ -2763,15 +2763,15 @@ public class CircuitChanges
 			{
 				Connection con = (Connection)cIt.next();
 				ArcInst ai = con.getArc();
-				if (ai.getHead().getPortInst().getNodeInst() == ni)
+				if (ai.getHeadPortInst().getNodeInst() == ni)
 				{
-					if (ai.getHead().getLocation().getX() != ni.getAnchorCenterX()) { arcsInCenter = false;   break; }
-					if (ai.getHead().getLocation().getY() != ni.getAnchorCenterY()) { arcsInCenter = false;   break; }
+					if (ai.getHeadLocation().getX() != ni.getAnchorCenterX()) { arcsInCenter = false;   break; }
+					if (ai.getHeadLocation().getY() != ni.getAnchorCenterY()) { arcsInCenter = false;   break; }
 				}
-				if (ai.getTail().getPortInst().getNodeInst() == ni)
+				if (ai.getTailPortInst().getNodeInst() == ni)
 				{
-					if (ai.getTail().getLocation().getX() != ni.getAnchorCenterX()) { arcsInCenter = false;   break; }
-					if (ai.getTail().getLocation().getY() != ni.getAnchorCenterY()) { arcsInCenter = false;   break; }
+					if (ai.getTailLocation().getX() != ni.getAnchorCenterX()) { arcsInCenter = false;   break; }
+					if (ai.getTailLocation().getY() != ni.getAnchorCenterY()) { arcsInCenter = false;   break; }
 				}
 			}
 			if (!arcsInCenter) continue;
@@ -2854,8 +2854,9 @@ public class CircuitChanges
 			{
 				Connection con = (Connection)cIt.next();
 				ArcInst ai = con.getArc();
-				int otherEnd = 0;
-				if (ai.getConnection(0) == con) otherEnd = 1;
+                int otherEnd = 1 - con.getEndIndex();
+//				int otherEnd = 0;
+//				if (ai.getConnection(0) == con) otherEnd = 1;
 				boolean foundAnother = false;
 				for(Iterator oCIt = ni.getConnections(); oCIt.hasNext(); )
 				{
@@ -2864,12 +2865,13 @@ public class CircuitChanges
 					if (ai.getArcIndex() <= oAi.getArcIndex()) continue;
 					if (con.getPortInst().getPortProto() != oCon.getPortInst().getPortProto()) continue;
 					if (ai.getProto() != oAi.getProto()) continue;
-					int oOtherEnd = 0;
-					if (oAi.getConnection(0) == oCon) oOtherEnd = 1;
-					if (ai.getConnection(otherEnd).getPortInst().getNodeInst() !=
-						oAi.getConnection(oOtherEnd).getPortInst().getNodeInst()) continue;
-					if (ai.getConnection(otherEnd).getPortInst().getPortProto() !=
-						oAi.getConnection(oOtherEnd).getPortInst().getPortProto()) continue;
+                    int oOtherEnd = 1 - oCon.getEndIndex();
+//					int oOtherEnd = 0;
+//					if (oAi.getConnection(0) == oCon) oOtherEnd = 1;
+					if (ai.getPortInst(otherEnd).getNodeInst() !=
+						oAi.getPortInst(oOtherEnd).getNodeInst()) continue;
+					if (ai.getPortInst(otherEnd).getPortProto() !=
+						oAi.getPortInst(oOtherEnd).getPortProto()) continue;
 
 					// this arc is a duplicate
 					arcsToKill.put(oAi, oAi);
@@ -3119,8 +3121,8 @@ public class CircuitChanges
 						ap.getTechnology() == Schematics.tech) continue;
 					Variable var = ai.getVar(ArcInst.ARC_RADIUS);
 					if (var != null) cellsSeen.add(cell);
-					if (ai.getHead().getLocation().getX() != ai.getTail().getLocation().getX() &&
-						ai.getHead().getLocation().getY() != ai.getTail().getLocation().getY())
+					if (ai.getHeadLocation().getX() != ai.getTailLocation().getX() &&
+						ai.getHeadLocation().getY() != ai.getTailLocation().getY())
 							cellsSeen.add(cell);
 				}
 				for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
@@ -3142,8 +3144,8 @@ public class CircuitChanges
 			boolean nonMan = false;
 			Variable var = ai.getVar(ArcInst.ARC_RADIUS);
 			if (var != null) nonMan = true;
-			if (ai.getHead().getLocation().getX() != ai.getTail().getLocation().getX() &&
-				ai.getHead().getLocation().getY() != ai.getTail().getLocation().getY())
+			if (ai.getHeadLocation().getX() != ai.getTailLocation().getX() &&
+				ai.getHeadLocation().getY() != ai.getTailLocation().getY())
 					nonMan = true;
 			if (nonMan)
 			{
@@ -3274,12 +3276,12 @@ public class CircuitChanges
 				ArcInst ai = (ArcInst)it.next();
 				for(int j=0; j<2; j++)
 				{
-					Poly portPoly = ai.getConnection(j).getPortInst().getPoly();
+					Poly portPoly = ai.getPortInst(j).getPoly();
 					double wid = ai.getWidth() - ai.getProto().getWidthOffset();
-					portPoly.reducePortPoly(ai.getConnection(j).getPortInst(), wid, ai.getAngle());
-					Point2D closest = portPoly.closestPoint(ai.getConnection(1-j).getLocation());
-					dX[j] = closest.getX() - ai.getConnection(j).getLocation().getX();
-					dY[j] = closest.getY() - ai.getConnection(j).getLocation().getY();
+					portPoly.reducePortPoly(ai.getPortInst(j), wid, ai.getAngle());
+					Point2D closest = portPoly.closestPoint(ai.getLocation(1-j));
+					dX[j] = closest.getX() - ai.getLocation(j).getX();
+					dY[j] = closest.getY() - ai.getLocation(j).getY();
 				}
 				if (dX[0] != 0 || dY[0] != 0 || dX[1] != 0 || dY[1] != 0)
 				{
@@ -3537,15 +3539,15 @@ public class CircuitChanges
 				if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
-					if (ai.getHead().getLocation().getX() != ai.getTail().getLocation().getX() &&
-						ai.getHead().getLocation().getY() != ai.getTail().getLocation().getY())
+					if (ai.getHeadLocation().getX() != ai.getTailLocation().getX() &&
+						ai.getHeadLocation().getY() != ai.getTailLocation().getY())
 					{
 						if (ai.isFixedAngle() && !ai.isRigid())
 						{
 							int j;
 							for(j=0; j<2; j++)
 							{
-								NodeInst ni = ai.getConnection(j).getPortInst().getNodeInst();
+								NodeInst ni = ai.getPortInst(j).getNodeInst();
 								ArcInst oai = null;
 								for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
 								{
@@ -3558,8 +3560,8 @@ public class CircuitChanges
 									}
 								}
 								if (oai == null) break;
-								if (oai.getHead().getLocation().getX() != oai.getTail().getLocation().getX() &&
-									oai.getHead().getLocation().getY() != oai.getTail().getLocation().getY()) break;
+								if (oai.getHeadLocation().getX() != oai.getTailLocation().getX() &&
+									oai.getHeadLocation().getY() != oai.getTailLocation().getY()) break;
 							}
 							if (j >= 2) { found = true;   break; }
 						}
@@ -3588,7 +3590,7 @@ public class CircuitChanges
 					int j;
 					for(j=0; j<2; j++)
 					{
-						NodeInst ni = ai.getConnection(j).getPortInst().getNodeInst();
+						NodeInst ni = ai.getPortInst(j).getNodeInst();
 						niList[j] = ni;
 						ArcInst oai = null;
 						for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
@@ -3597,18 +3599,18 @@ public class CircuitChanges
 							if (con.getArc() != ai) { oai = con.getArc();   break; }
 						}
 						if (oai == null) break;
-						if (DBMath.doublesEqual(oai.getHead().getLocation().getX(), oai.getTail().getLocation().getX()))
+						if (DBMath.doublesEqual(oai.getHeadLocation().getX(), oai.getTailLocation().getX()))
 						{
-							Point2D iPt = DBMath.intersect(oai.getHead().getLocation(), 900,
-								new Point2D.Double(ai.getHead().getLocation().getX()+dX, ai.getHead().getLocation().getY()+dY), arcangle);
-							deltaXs[j] = iPt.getX() - ai.getConnection(j).getLocation().getX();
-							deltaYs[j] = iPt.getY() - ai.getConnection(j).getLocation().getY();
-						} else if (DBMath.doublesEqual(oai.getHead().getLocation().getY(), oai.getTail().getLocation().getY()))
+							Point2D iPt = DBMath.intersect(oai.getHeadLocation(), 900,
+								new Point2D.Double(ai.getHeadLocation().getX()+dX, ai.getHeadLocation().getY()+dY), arcangle);
+							deltaXs[j] = iPt.getX() - ai.getLocation(j).getX();
+							deltaYs[j] = iPt.getY() - ai.getLocation(j).getY();
+						} else if (DBMath.doublesEqual(oai.getHeadLocation().getY(), oai.getTailLocation().getY()))
 						{
-							Point2D iPt = DBMath.intersect(oai.getHead().getLocation(), 0,
-								new Point2D.Double(ai.getHead().getLocation().getX()+dX, ai.getHead().getLocation().getY()+dY), arcangle);
-							deltaXs[j] = iPt.getX() - ai.getConnection(j).getLocation().getX();
-							deltaYs[j] = iPt.getY() - ai.getConnection(j).getLocation().getY();
+							Point2D iPt = DBMath.intersect(oai.getHeadLocation(), 0,
+								new Point2D.Double(ai.getHeadLocation().getX()+dX, ai.getHeadLocation().getY()+dY), arcangle);
+							deltaXs[j] = iPt.getX() - ai.getLocation(j).getX();
+							deltaYs[j] = iPt.getY() - ai.getLocation(j).getY();
 						}
 					}
 					if (j < 2) continue;
@@ -3634,10 +3636,8 @@ public class CircuitChanges
 					// see if the arc moves in its ports
 					if (ai.isSlidable())
 					{
-						Connection head = ai.getHead();
-						Connection tail = ai.getTail();
-						Point2D newHead = new Point2D.Double(head.getLocation().getX()+dX, head.getLocation().getY()+dY);
-						Point2D newTail = new Point2D.Double(tail.getLocation().getX()+dX, tail.getLocation().getY()+dY);
+						Point2D newHead = new Point2D.Double(ai.getHeadLocation().getX()+dX, ai.getHeadLocation().getY()+dY);
+						Point2D newTail = new Point2D.Double(ai.getTailLocation().getX()+dX, ai.getTailLocation().getY()+dY);
 						if (ai.headStillInPort(newHead, true) && ai.tailStillInPort(newTail, true)) continue;
 					}
 				}
@@ -3692,8 +3692,8 @@ public class CircuitChanges
 				} else if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
-					NodeInst ni1 = ai.getHead().getPortInst().getNodeInst();
-					NodeInst ni2 = ai.getTail().getPortInst().getNodeInst();
+					NodeInst ni1 = ai.getHeadPortInst().getNodeInst();
+					NodeInst ni2 = ai.getTailPortInst().getNodeInst();
 					flag.add(ni1);
 					flag.add(ni2);
 					Layout.setTempRigid(ai, true);
@@ -3761,9 +3761,9 @@ public class CircuitChanges
 				if (!ai.isRigid() && ai.isSlidable())
 				{
 					headInPort = ai.headStillInPort(
-						new Point2D.Double(ai.getHead().getLocation().getX()+dX, ai.getHead().getLocation().getY()+dY), true);
+						new Point2D.Double(ai.getHeadLocation().getX()+dX, ai.getHeadLocation().getY()+dY), true);
 					tailInPort = ai.tailStillInPort(
-						new Point2D.Double(ai.getTail().getLocation().getX()+dX, ai.getTail().getLocation().getY()+dY), true);
+						new Point2D.Double(ai.getTailLocation().getX()+dX, ai.getTailLocation().getY()+dY), true);
 				}
 
 				// if both ends slide in their port, move the arc
@@ -3779,8 +3779,8 @@ public class CircuitChanges
 					for(int k=0; k<2; k++)
 					{
 						NodeInst ni;
-						if (k == 0) ni = ai.getHead().getPortInst().getNodeInst(); else
-							ni = ai.getTail().getPortInst().getNodeInst();
+						if (k == 0) ni = ai.getHeadPortInst().getNodeInst(); else
+							ni = ai.getTailPortInst().getNodeInst();
 						Point2D nPt = (Point2D)nodeLocation.get(ni);
 						if (ni.getAnchorCenterX() != nPt.getX() || ni.getAnchorCenterY() != nPt.getY()) continue;
 
@@ -3797,9 +3797,9 @@ public class CircuitChanges
 								if (aPt.getX() != oai.getTrueCenterX() ||
 									aPt.getY() != oai.getTrueCenterY()) continue;
 								if (oai.headStillInPort(
-										new Point2D.Double(ai.getHead().getLocation().getX()+dX, ai.getHead().getLocation().getY()+dY), true) ||
+										new Point2D.Double(ai.getHeadLocation().getX()+dX, ai.getHeadLocation().getY()+dY), true) ||
 									oai.tailStillInPort(
-										new Point2D.Double(ai.getTail().getLocation().getX()+dX, ai.getTail().getLocation().getY()+dY), true))
+										new Point2D.Double(ai.getTailLocation().getX()+dX, ai.getTailLocation().getY()+dY), true))
 											continue;
 								Layout.setTempRigid(oai, true);
 							}
@@ -4010,7 +4010,7 @@ public class CircuitChanges
                     Connection conn = (Connection)it2.next();
                     ArcInst ai = conn.getArc();
                     // ignore arcs that connect from the node to itself
-                    if (ai.getHead().getPortInst().getNodeInst() == ai.getTail().getPortInst().getNodeInst())
+                    if (ai.getHeadPortInst().getNodeInst() == ai.getTailPortInst().getNodeInst())
                         continue;
                     arcs.add(ai);
                 }
@@ -4050,17 +4050,17 @@ public class CircuitChanges
 
             // get end points of arcs
             for (int i=0; i<2; i++) {
-                if (ai1.getConnection(i).getPortInst() != pi) {
-                    ra.reconPi[0] = ai1.getConnection(i).getPortInst();
-                    ra.recon[0] = ai1.getConnection(i).getLocation();
+                if (ai1.getPortInst(i) != pi) {
+                    ra.reconPi[0] = ai1.getPortInst(i);
+                    ra.recon[0] = ai1.getLocation(i);
                 } else {
-                    orig[0] = ai1.getConnection(i).getLocation();
+                    orig[0] = ai1.getLocation(i);
                 }
-                if (ai2.getConnection(i).getPortInst() != pi) {
-                    ra.reconPi[1] = ai2.getConnection(i).getPortInst();
-                    ra.recon[1] = ai2.getConnection(i).getLocation();
+                if (ai2.getPortInst(i) != pi) {
+                    ra.reconPi[1] = ai2.getPortInst(i);
+                    ra.recon[1] = ai2.getLocation(i);
                 } else {
-                    orig[1] = ai2.getConnection(i).getLocation();
+                    orig[1] = ai2.getLocation(i);
                 }
             }
             delta[0] = new Point2D.Double(ra.recon[0].getX() - orig[0].getX(),
@@ -4205,8 +4205,8 @@ public class CircuitChanges
 		for(Iterator it = cell.getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-			NodeInst no1 = ai.getTail().getPortInst().getNodeInst();
-			NodeInst no2 = ai.getHead().getPortInst().getNodeInst();
+			NodeInst no1 = ai.getTailPortInst().getNodeInst();
+			NodeInst no2 = ai.getHeadPortInst().getNodeInst();
 			double xC1 = no1.getTrueCenterX();
 			double yC1 = no1.getTrueCenterY();
 			double xC2 = no2.getTrueCenterX();
@@ -4339,8 +4339,8 @@ public class CircuitChanges
 			Connection con = (Connection)it.next();
 			ArcInst ai = con.getArc();
 			if (geomSeen.contains(ai)) continue;
-			netTravel(ai.getHead().getPortInst().getNodeInst(), geomSeen);
-			netTravel(ai.getTail().getPortInst().getNodeInst(), geomSeen);
+			netTravel(ai.getHeadPortInst().getNodeInst(), geomSeen);
+			netTravel(ai.getTailPortInst().getNodeInst(), geomSeen);
 		}
 	}
 
@@ -4369,9 +4369,8 @@ public class CircuitChanges
 				// only want vertical arcs
 				if (angle != 900 && angle != 2700) continue;
 			}
-			NodeInst other = null;
-			if (ai.getHead() == con) other = ai.getTail().getPortInst().getNodeInst(); else
-				other = ai.getHead().getPortInst().getNodeInst();
+            int otherEnd = 1 - con.getEndIndex();
+			NodeInst other = ai.getPortInst(otherEnd).getNodeInst();
 			if (geomSeen.contains(other)) continue;
 			manhattanTravel(other, hor, geomSeen);
 		}

@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
@@ -39,7 +38,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -434,7 +433,7 @@ public class Layout extends Constraints
 			ArcInst ai = con.getArc();
 
 			// ignore if arcinst is not within the node
-			if (ai.getHead().getPortInst().getNodeInst() != ai.getTail().getPortInst().getNodeInst()) continue;
+			if (ai.getHeadPortInst().getNodeInst() != ai.getTailPortInst().getNodeInst()) continue;
 			if (ai.getChangeClock() == changeClock) continue;
 
 			// include in the list to be considered here
@@ -463,14 +462,14 @@ public class Layout extends Constraints
 			double oy = change.getA2();
 
 			// determine the new ends of the arcinst
-			adjustMatrix(ni, ai.getHead().getPortInst().getPortProto(), trans);
+			adjustMatrix(ni, ai.getHeadPortInst().getPortProto(), trans);
 			Point2D newHead = new Point2D.Double();
-			Point2D src = new Point2D.Double(ai.getHead().getLocation().getX()-ox, ai.getHead().getLocation().getY()-oy);
+			Point2D src = new Point2D.Double(ai.getHeadLocation().getX()-ox, ai.getHeadLocation().getY()-oy);
 			trans.transform(src, newHead);
 
-			adjustMatrix(ni, ai.getTail().getPortInst().getPortProto(), trans);
+			adjustMatrix(ni, ai.getTailPortInst().getPortProto(), trans);
 			Point2D newTail = new Point2D.Double();
-			src.setLocation(ai.getTail().getLocation().getX()-ox, ai.getTail().getLocation().getY()-oy);
+			src.setLocation(ai.getTailLocation().getX()-ox, ai.getTailLocation().getY()-oy);
 			trans.transform(src, newTail);
 
 			// move the arcinst
@@ -492,7 +491,7 @@ public class Layout extends Constraints
 	private static boolean modRigid(NodeInst ni, int dAngle, double dSX, double dSY, boolean flipX, boolean flipY)
 	{
 		// build a list of the rigid arcs on this nodeinst
-		List rigidArcs = new ArrayList();
+		List/*<Connection>*/ rigidArcs = new ArrayList/*<Connection>*/();
 		for(Iterator it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
@@ -503,10 +502,11 @@ public class Layout extends Constraints
 			if (ai.getChangeClock() != changeClock-2 && !ai.isRigid()) continue;
 
 			// ignore arcs that connect two ports on the same node
-			if (ai.getHead().getPortInst().getNodeInst() == ai.getTail().getPortInst().getNodeInst()) continue;
+			if (ai.getHeadPortInst().getNodeInst() == ai.getTailPortInst().getNodeInst()) continue;
 
 			// include in the list to be considered here
-			rigidArcs.add(ai);
+            rigidArcs.add(con);
+//			rigidArcs.add(ai);
 		}
 		if (rigidArcs.size() == 0) return false;
 
@@ -517,7 +517,9 @@ public class Layout extends Constraints
 		boolean examineCell = false;
 		for(Iterator it = rigidArcs.iterator(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+            Connection thisEnd = (Connection)it.next();
+            ArcInst ai = thisEnd.getArc();
+//            ArcInst ai = (ArcInst)it.next();
 			if (deletedArcs.contains(ai)) continue;
 			ai.clearRigidModified();
 			if (DEBUG) System.out.println("  From node " + ni.describe() + " Modifying Rigid arc "+ai.describe());
@@ -531,16 +533,20 @@ public class Layout extends Constraints
 			}
 
 			// find out which end of the arcinst is where, ignore internal arcs
-			Connection thisEnd = ai.getHead();   int thisEndIndex = ArcInst.HEADEND;
-			Connection thatEnd = ai.getTail();   int thatEndIndex = ArcInst.TAILEND;
-			if (thatEnd.getPortInst().getNodeInst() == ni)
-			{
-				thisEnd = ai.getTail();   thisEndIndex = ArcInst.TAILEND;
-				thatEnd = ai.getHead();   thatEndIndex = ArcInst.HEADEND;
-			}
+            int thisEndIndex = thisEnd.getEndIndex();
+            int otherEndIndex = 1 - thisEndIndex;
+//			Connection thisEnd = ai.getHead();   int thisEndIndex = ArcInst.HEADEND;
+//			Connection thatEnd = ai.getTail();   int thatEndIndex = ArcInst.TAILEND;
+//			if (thatEnd.getPortInst().getNodeInst() == ni)
+//			{
+//				thisEnd = ai.getTail();   thisEndIndex = ArcInst.TAILEND;
+//				thatEnd = ai.getHead();   thatEndIndex = ArcInst.HEADEND;
+//			}
 
-			NodeInst ono = thatEnd.getPortInst().getNodeInst();
-			PortProto opt = thatEnd.getPortInst().getPortProto();
+			PortInst opi = ai.getPortInst(otherEndIndex);
+			NodeInst ono = opi.getNodeInst();
+			PortProto opt = opi.getPortProto();
+			EPoint otherLocation = ai.getLocation(otherEndIndex);
 
 			Undo.Change change = ni.getChange();
 			double ox = 0, oy = 0;
@@ -562,8 +568,8 @@ public class Layout extends Constraints
 			trans.transform(src, newPts[thisEndIndex]);
 
 			// figure out the new location of that arcinst connection
-			src.setLocation(thatEnd.getLocation().getX()-ox, thatEnd.getLocation().getY()-oy);
-			trans.transform(src, newPts[thatEndIndex]);
+			src.setLocation(otherLocation.getX()-ox, otherLocation.getY()-oy);
+			trans.transform(src, newPts[otherEndIndex]);
 
 			// see if other nodeinst has changed
 			boolean locked = false;
@@ -587,7 +593,7 @@ public class Layout extends Constraints
 				Poly oldPoly = oldPortPosition(ono, opt);
 				double oldX = oldPoly.getCenterX();
 				double oldY = oldPoly.getCenterY();
-				Poly oPoly = thatEnd.getPortInst().getPoly();
+				Poly oPoly = opi.getPoly();
 				double dx = oPoly.getCenterX();   double dy = oPoly.getCenterY();
 				double othX = dx - oldX;
 				double othY = dy - oldY;
@@ -638,18 +644,16 @@ public class Layout extends Constraints
 		// re-scan rigid arcs and recursively modify arcs on other nodes
 		for(Iterator it = rigidArcs.iterator(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+            Connection thisEnd = (Connection)it.next();
+            ArcInst ai = thisEnd.getArc();
+			//			ArcInst ai = (ArcInst)it.next();
 			if (deletedArcs.contains(ai)) continue;
 
 			// only want arcinst that was just explored
 			if (!ai.isRigidModified()) continue;
 
 			// get the other nodeinst
-			Connection thisEnd = ai.getHead();
-			Connection thatEnd = ai.getTail();
-			NodeInst ono;
-			if (ai.getTail().getPortInst().getNodeInst() == ni) ono = ai.getHead().getPortInst().getNodeInst(); else
-				ono = ai.getTail().getPortInst().getNodeInst();
+			NodeInst ono = ai.getPortInst(1 - thisEnd.getEndIndex()).getNodeInst();
 
 			int nextAngle = dAngle;
 			if (ono.isXMirrored() ^ ono.isYMirrored()) nextAngle = (3600 - nextAngle) % 3600;
@@ -673,7 +677,7 @@ public class Layout extends Constraints
 	private static boolean modFlex(NodeInst ni, int dAngle, double dSX, double dSY, boolean flipX, boolean flipY)
 	{
 		// build a list of the flexible arcs on this nodeinst
-		List flexArcs = new ArrayList();
+		List/*<Connection>*/ flexArcs = new ArrayList/*<Connection>*/();
 		for(Iterator it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
@@ -684,10 +688,11 @@ public class Layout extends Constraints
 			if (ai.getChangeClock() != changeClock-1 && ai.isRigid()) continue;
 
 			// ignore arcs that connect two ports on the same node
-			if (ai.getHead().getPortInst().getNodeInst() == ai.getTail().getPortInst().getNodeInst()) continue;
+			if (ai.getHeadPortInst().getNodeInst() == ai.getTailPortInst().getNodeInst()) continue;
 
 			// include in the list to be considered here
-			flexArcs.add(ai);
+            flexArcs.add(con);
+//			flexArcs.add(ai);
 		}
 		if (flexArcs.size() == 0) return false;
 
@@ -702,7 +707,9 @@ public class Layout extends Constraints
 		boolean examineCell = false;
 		for(Iterator it = flexArcs.iterator(); it.hasNext(); )
 		{
-			ArcInst ai = (ArcInst)it.next();
+            Connection thisEnd = (Connection)it.next();
+            ArcInst ai = thisEnd.getArc();
+//			ArcInst ai = (ArcInst)it.next();
 			if (deletedArcs.contains(ai)) continue;
 			if (DEBUG) System.out.println("  Modifying fixed-angle arc "+ai.describe());
 
@@ -715,16 +722,20 @@ public class Layout extends Constraints
 			}
 
 			// figure where each end of the arcinst is
-			Connection thisEnd = ai.getHead();   int thisEndIndex = ArcInst.HEADEND;
-			Connection thatEnd = ai.getTail();   int thatEndIndex = ArcInst.TAILEND;
-			if (thatEnd.getPortInst().getNodeInst() == ni)
-			{
-				thisEnd = ai.getTail();   thisEndIndex = ArcInst.TAILEND;
-				thatEnd = ai.getHead();   thatEndIndex = ArcInst.HEADEND;
-			}
+            int thisEndIndex = thisEnd.getEndIndex();
+            int thatEndIndex = 1 - thisEndIndex;
+            EPoint thisLocation = thisEnd.getLocation();
+            EPoint thatLocation = ai.getLocation(thatEndIndex);
+//			Connection thisEnd = ai.getHead();   int thisEndIndex = ArcInst.HEADEND;
+//			Connection thatEnd = ai.getTail();   int thatEndIndex = ArcInst.TAILEND;
+//			if (thatEnd.getPortInst().getNodeInst() == ni)
+//			{
+//				thisEnd = ai.getTail();   thisEndIndex = ArcInst.TAILEND;
+//				thatEnd = ai.getHead();   thatEndIndex = ArcInst.HEADEND;
+//			}
 
 			// if nodeinst motion stays within port area, ignore the arcinst
-			if (ai.isSlidable() && ai.stillInPort(thisEndIndex, thisEnd.getLocation(), true))
+			if (ai.isSlidable() && ai.stillInPort(thisEndIndex, thisLocation, true))
 				continue;
 			Undo.Change change = ni.getChange();
 			double ox = 0, oy = 0;
@@ -741,7 +752,7 @@ public class Layout extends Constraints
 			newPts[thatEndIndex] = new Point2D.Double();
 
 			// figure out the new location of this arcinst connection
-			Point2D src = new Point2D.Double(thisEnd.getLocation().getX()-ox, thisEnd.getLocation().getY()-oy);
+			Point2D src = new Point2D.Double(thisLocation.getX()-ox, thisLocation.getY()-oy);
 			trans.transform(src, newPts[thisEndIndex]);
 			newPts[thisEndIndex].setLocation(DBMath.round(newPts[thisEndIndex].getX()),
 				DBMath.round(newPts[thisEndIndex].getY()));
@@ -780,8 +791,8 @@ public class Layout extends Constraints
 			}
 
 			// get other end of arcinst and its position
-			NodeInst ono = thatEnd.getPortInst().getNodeInst();
-			newPts[thatEndIndex].setLocation(thatEnd.getLocation());
+			NodeInst ono = ai.getPortInst(thatEndIndex).getNodeInst();
+			newPts[thatEndIndex].setLocation(thatLocation);
 
 			// see if other nodeinst has changed
 			boolean mangle = true;
@@ -798,18 +809,18 @@ public class Layout extends Constraints
 							((PrimitiveNode)ono.getProto()).isLockedPrim()) mangle = false;
 					}
 				}
-			}
+            }
 			if (mangle)
 			{
 				// other nodeinst untouched, mangle it
-				double dx = newPts[thisEndIndex].getX() - thisEnd.getLocation().getX();
-				double dy = newPts[thisEndIndex].getY() - thisEnd.getLocation().getY();
-				double odx = newPts[thatEndIndex].getX() - thatEnd.getLocation().getX();
-				double ody = newPts[thatEndIndex].getY() - thatEnd.getLocation().getY();
-				if (DBMath.doublesEqual(thisEnd.getLocation().getX(), thatEnd.getLocation().getX()))
+				double dx = newPts[thisEndIndex].getX() - thisLocation.getX();
+				double dy = newPts[thisEndIndex].getY() - thisLocation.getY();
+				double odx = newPts[thatEndIndex].getX() - thatLocation.getX();
+				double ody = newPts[thatEndIndex].getY() - thatLocation.getY();
+				if (DBMath.doublesEqual(thisLocation.getX(), thatLocation.getX()))
 				{
 					// null arcinst must not be explicitly horizontal
-					if (!DBMath.doublesEqual(thisEnd.getLocation().getY(), thatEnd.getLocation().getY()) ||
+					if (!DBMath.doublesEqual(thisLocation.getY(), thatLocation.getY()) ||
 						ai.getAngle() == 900 || ai.getAngle() == 2700)
 					{
 						// vertical arcinst: see if it really moved in X
@@ -840,7 +851,7 @@ public class Layout extends Constraints
 						continue;
 					}
 				}
-				if (DBMath.doublesEqual(thisEnd.getLocation().getY(), thatEnd.getLocation().getY()))
+				if (DBMath.doublesEqual(thisLocation.getY(), thatLocation.getY()))
 				{
 					// horizontal arcinst: see if it really moved in Y
 					if (DBMath.doublesEqual(dy, ody)) dy = ody = 0;
@@ -873,9 +884,9 @@ public class Layout extends Constraints
 				/***** THIS CODE HANDLES ALL-ANGLE RIGIDITY WITH THE FIXED-ANGLE CONSTRAINT *****/
 
 				// special code to handle nonorthogonal fixed-angles
-				nonOrthogFixAng(ai, thisEnd, thisEndIndex, thatEnd, thatEndIndex, ono, newPts);
-				dx = newPts[thatEndIndex].getX() - thatEnd.getLocation().getX();
-				dy = newPts[thatEndIndex].getY() - thatEnd.getLocation().getY();
+				nonOrthogFixAng(ai, thisEnd, thisEndIndex, thatEndIndex, ono, newPts);
+				dx = newPts[thatEndIndex].getX() - thatLocation.getX();
+				dy = newPts[thatEndIndex].getY() - thatLocation.getY();
 
 				// change the arc
 				updateArc(ai, newPts[0], newPts[1], 1);
@@ -898,7 +909,6 @@ public class Layout extends Constraints
 				") and tail=("+newPts[1].getX()+","+newPts[1].getY()+")");
 			doMoveArcInst(ai, newPts[ArcInst.HEADEND], newPts[ArcInst.TAILEND], 1);
 		}
-
 		return examineCell;
 	}
 
@@ -914,7 +924,7 @@ public class Layout extends Constraints
 	 * @param ono the node at the other end ("thatEnd").
 	 * @param newPts an array of 2 points that defines the coordinates of the two ends (0: head, 1: tail).
 	 */
-	private static void nonOrthogFixAng(ArcInst ai, Connection thisEnd, int thisEndIndex, Connection thatEnd, int thatEndIndex,
+	private static void nonOrthogFixAng(ArcInst ai, Connection thisEnd, int thisEndIndex, int thatEndIndex,
 		NodeInst ono, Point2D [] newPts)
 	{
 		// look for longest other arc on "ono" to determine proper end position
@@ -941,7 +951,7 @@ public class Layout extends Constraints
 
 		// compute intersection of arc "bestai" with new moved arc "ai"
 		Point2D inter = DBMath.intersect(newPts[thisEndIndex], ai.getAngle(),
-			bestAI.getHead().getLocation(), bestAI.getAngle());
+			bestAI.getHeadLocation(), bestAI.getAngle());
 		if (inter == null)
 		{
 			newPts[thatEndIndex].setLocation(
@@ -961,17 +971,15 @@ public class Layout extends Constraints
 	private static void ensureArcInst(ArcInst ai, int arctyp)
 	{
 		// if nothing is outside port, quit
-		Connection head = ai.getHead();
-		Point2D headPoint = head.getLocation();
+		Point2D headPoint = ai.getHeadLocation();
 		boolean inside0 = ai.headStillInPort(headPoint, true);
-		Connection tail = ai.getTail();
-		Point2D tailPoint = tail.getLocation();
+		Point2D tailPoint = ai.getTailLocation();
 		boolean inside1 = ai.tailStillInPort(tailPoint, true);
 		if (inside0 && inside1) return;
 
 		// get area of the ports
-		Poly headPoly = head.getPortInst().getPoly();
-		Poly tailPoly = tail.getPortInst().getPoly();
+		Poly headPoly = ai.getHeadPortInst().getPoly();
+		Poly tailPoly = ai.getTailPortInst().getPoly();
 
 		// if arcinst is not fixed-angle, run it directly to the port centers
 		if (!ai.isFixedAngle())
@@ -1030,14 +1038,14 @@ public class Layout extends Constraints
 	private static void updateArc(ArcInst ai, Point2D headPt, Point2D tailPt, int arctyp)
 	{
 		// set the proper arcinst position
-		Point2D oldHeadPt = ai.getHead().getLocation();
-		Point2D oldTailPt = ai.getTail().getLocation();
+		Point2D oldHeadPt = ai.getHeadLocation();
+		Point2D oldTailPt = ai.getTailLocation();
 		double oldHeadX = oldHeadPt.getX();   double oldHeadY = oldHeadPt.getY();
 		double oldTailX = oldTailPt.getX();   double oldTailY = oldTailPt.getY();
 		ai.lowLevelModify(0, headPt.getX() - oldHeadX, headPt.getY() - oldHeadY, tailPt.getX() - oldTailX, tailPt.getY() - oldTailY);
 		if (DEBUG) System.out.println("Arc " + ai.describe() + " now runs from ("+
-			ai.getTail().getLocation().getX()+","+ai.getTail().getLocation().getY()+") to ("+
-			ai.getHead().getLocation().getX()+","+ai.getHead().getLocation().getY()+")");
+			ai.getTailLocation().getX()+","+ai.getTailLocation().getY()+") to ("+
+			ai.getHeadLocation().getX()+","+ai.getHeadLocation().getY()+")");
 
 		// if the arc hasn't changed yet, record this change
 		if (ai.getChange() == null)
@@ -1058,9 +1066,7 @@ public class Layout extends Constraints
 	private static void doMoveArcInst(ArcInst ai, Point2D headPt, Point2D tailPt, int arctyp)
 	{
 		// check for null arcinst motion
-		Connection head = ai.getHead();
-		Connection tail = ai.getTail();
-		if (headPt.equals(head.getLocation()) && tailPt.equals(tail.getLocation()))
+		if (headPt.equals(ai.getHeadLocation()) && tailPt.equals(ai.getTailLocation()))
 		{
 			// only ignore null motion on fixed-angle requests
 			if (arctyp != 0) return;
@@ -1079,21 +1085,21 @@ public class Layout extends Constraints
 
 		// manhattan arcinst becomes nonmanhattan: remember facts about it
 		if (DEBUG) System.out.println("Jogging arc");
-		PortInst fpi = head.getPortInst();
+		PortInst fpi = ai.getHeadPortInst();
 		NodeInst fno = fpi.getNodeInst();   PortProto fpt = fpi.getPortProto();
-		PortInst tpi = tail.getPortInst();
+		PortInst tpi = ai.getTailPortInst();
 		NodeInst tno = tpi.getNodeInst();   PortProto tpt = tpi.getPortProto();
 
 		ArcProto ap = ai.getProto();   Cell pnt = ai.getParent();   double wid = ai.getWidth();
 
 		// figure out what nodeinst proto connects these arcs
-		PrimitiveNode np = ((PrimitiveArc)ap).findOverridablePinProto();
+		PrimitiveNode np = ap.findOverridablePinProto();
 		double psx = np.getDefWidth();
 		double psy = np.getDefHeight();
 
 		// replace it with three arcs and two nodes
 		NodeInst no1 = null, no2 = null;
-		if (DBMath.doublesEqual(head.getLocation().getX(), tail.getLocation().getX()))
+		if (DBMath.doublesEqual(ai.getHeadLocation().getX(), ai.getTailLocation().getX()))
 		{
 			// arcinst was vertical
 			double oldyA = (tailPt.getY()+headPt.getY()) / 2;

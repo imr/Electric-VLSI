@@ -28,7 +28,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
@@ -614,7 +614,7 @@ public class SizeListener
 		double offset = ap.getWidthOffset();
 
 		// determine point on arc that is closest to the cursor
-		Point2D ptOnLine = DBMath.closestPointToLine(ai.getHead().getLocation(), ai.getTail().getLocation(), pt);
+		Point2D ptOnLine = DBMath.closestPointToLine(ai.getHeadLocation(), ai.getTailLocation(), pt);
 		double newWidth = ptOnLine.distance(pt)*2 + offset;
 		Point2D newSize = new Point2D.Double(newWidth, newWidth);
 		EditWindow.gridAlign(newSize);

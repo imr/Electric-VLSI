@@ -153,7 +153,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
                         arcs.add(ai);
                         if (ports != null) {
                             // also highlight end nodes of arc, if they are primitive nodes
-                            PortInst pi = ai.getHead().getPortInst();
+                            PortInst pi = ai.getHeadPortInst();
                             if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
                                 // ignore pins
                                 if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN &&
@@ -163,7 +163,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
                                     nodesAdded.add(pi);
                                 }
                             }
-                            pi = ai.getTail().getPortInst();
+                            pi = ai.getTailPortInst();
                             if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
                                 if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN &&
                                     !nodesAdded.contains(pi)) {

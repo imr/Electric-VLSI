@@ -338,8 +338,7 @@ public abstract class Geometric extends ElectricObject
         ArcInst ai = (ArcInst)geom1;
         for(int i=0; i<2; i++)
         {
-            Connection con = ai.getConnection(i);
-            if (con.getPortInst().getNodeInst() == ni) return true;
+            if (ai.getPortInst(i).getNodeInst() == ni) return true;
         }
         return false;
     }

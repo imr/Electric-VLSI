@@ -24,11 +24,11 @@
 package com.sun.electric.tool.generator.layout;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
+
 
 public class TrackRouterV extends TrackRouter {
 	// ---------------------------- public methods ------------------------------
@@ -84,7 +84,7 @@ public class TrackRouterV extends TrackRouter {
 
 		// Connect to new port.
 		if (wireOffset != 0) {
-			NodeProto pin = ((PrimitiveArc)portLyr).findOverridablePinProto();
+			NodeProto pin = portLyr.findOverridablePinProto();
 			double defSz = LayoutLib.DEF_SIZE;
 			NodeInst pinInst = 
 			  LayoutLib.newNodeInst(pin, center.doubleValue()+wireOffset, 

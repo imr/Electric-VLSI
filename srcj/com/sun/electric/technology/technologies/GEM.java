@@ -27,32 +27,20 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.DRCRules;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.tool.user.ui.EditWindow;
 
-import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * This is the Temporal Specification Facility (from Lansky) Technology.
@@ -130,56 +118,56 @@ public class GEM extends Technology
 		//******************** ARCS ********************
 
 		/** General arc */
-		PrimitiveArc General_arc = PrimitiveArc.newInstance(this, "General", 0, new Technology.ArcLayer []
+		ArcProto General_arc = ArcProto.newInstance(this, "General", 0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(GA_lay, 0, Poly.Type.FILLED)
 		});
-		General_arc.setFunction(PrimitiveArc.Function.NONELEC);
+		General_arc.setFunction(ArcProto.Function.NONELEC);
 		General_arc.setWipable();
 		General_arc.setFactoryAngleIncrement(0);
 
 		/** Temporal arc */
-		PrimitiveArc Temporal_arc = PrimitiveArc.newInstance(this, "Temporal", 0, new Technology.ArcLayer []
+		ArcProto Temporal_arc = ArcProto.newInstance(this, "Temporal", 0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(TA_lay, 0, Poly.Type.FILLED)
 		});
-		Temporal_arc.setFunction(PrimitiveArc.Function.NONELEC);
+		Temporal_arc.setFunction(ArcProto.Function.NONELEC);
 		Temporal_arc.setWipable();
 		Temporal_arc.setFactoryAngleIncrement(0);
 
 		/** Causal arc */
-		PrimitiveArc Causal_arc = PrimitiveArc.newInstance(this, "Causal", 0, new Technology.ArcLayer []
+		ArcProto Causal_arc = ArcProto.newInstance(this, "Causal", 0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(CA_lay, 0, Poly.Type.FILLED)
 		});
-		Causal_arc.setFunction(PrimitiveArc.Function.NONELEC);
+		Causal_arc.setFunction(ArcProto.Function.NONELEC);
 		Causal_arc.setWipable();
 		Causal_arc.setFactoryAngleIncrement(0);
 
 		/** Prerequisite arc */
-		PrimitiveArc Prerequisite_arc = PrimitiveArc.newInstance(this, "Prerequisite", 0, new Technology.ArcLayer []
+		ArcProto Prerequisite_arc = ArcProto.newInstance(this, "Prerequisite", 0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(PA_lay, 0, Poly.Type.FILLED)
 		});
-		Prerequisite_arc.setFunction(PrimitiveArc.Function.NONELEC);
+		Prerequisite_arc.setFunction(ArcProto.Function.NONELEC);
 		Prerequisite_arc.setWipable();
 		Prerequisite_arc.setFactoryAngleIncrement(0);
 
 		/** Nondeterministic arc */
-		PrimitiveArc Nondeterministic_arc = PrimitiveArc.newInstance(this, "Nondeterministic", 0, new Technology.ArcLayer []
+		ArcProto Nondeterministic_arc = ArcProto.newInstance(this, "Nondeterministic", 0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(NA_lay, 0, Poly.Type.FILLED)
 		});
-		Nondeterministic_arc.setFunction(PrimitiveArc.Function.NONELEC);
+		Nondeterministic_arc.setFunction(ArcProto.Function.NONELEC);
 		Nondeterministic_arc.setWipable();
 		Nondeterministic_arc.setFactoryAngleIncrement(0);
 
 		/** Nondeterministic-fork arc */
-		PrimitiveArc Nondeterministic_fork_arc = PrimitiveArc.newInstance(this, "Nondeterministic-fork", 0, new Technology.ArcLayer []
+		ArcProto Nondeterministic_fork_arc = ArcProto.newInstance(this, "Nondeterministic-fork", 0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(FA_lay, 0, Poly.Type.FILLED)
 		});
-		Nondeterministic_fork_arc.setFunction(PrimitiveArc.Function.NONELEC);
+		Nondeterministic_fork_arc.setFunction(ArcProto.Function.NONELEC);
 		Nondeterministic_fork_arc.setWipable();
 		Nondeterministic_fork_arc.setFactoryAngleIncrement(0);
 

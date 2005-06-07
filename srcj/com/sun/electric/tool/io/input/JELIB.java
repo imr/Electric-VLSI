@@ -31,7 +31,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
@@ -44,7 +43,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -469,7 +468,7 @@ public class JELIB extends LibraryFiles
 						", Primitive arc " + arcName + " has no technology before it", null, -1);
 					continue;
 				}
-				PrimitiveArc ap = curTech.findArcProto(arcName);
+				ArcProto ap = curTech.findArcProto(arcName);
 				if (ap == null)
 				{
 					Input.errorLogger.logError(filePath + ", line " + lineReader.getLineNumber() +

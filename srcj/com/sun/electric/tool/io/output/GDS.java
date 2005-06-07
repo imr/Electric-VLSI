@@ -33,7 +33,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;

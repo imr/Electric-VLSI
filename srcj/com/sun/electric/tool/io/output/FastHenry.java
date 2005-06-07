@@ -235,8 +235,8 @@ public class FastHenry extends Output
 				FastHenryArcInfo fhai = new FastHenryArcInfo(ai);
 				if (fhai.getGroupName() == null) continue;
 				double zVal = fhai.getZDefault();
-				if (ai.getHead() == con && fhai.getZHead() >= 0) zVal = fhai.getZHead();
-				if (ai.getTail() == con && fhai.getZTail() >= 0) zVal = fhai.getZTail();
+				if (con.getEndIndex() == ArcInst.HEADEND && fhai.getZHead() >= 0) zVal = fhai.getZHead();
+				if (con.getEndIndex() == ArcInst.TAILEND && fhai.getZTail() >= 0) zVal = fhai.getZTail();
 				if (found)
 				{
 					// "nodeZVal" used in proper order
@@ -276,11 +276,11 @@ public class FastHenry extends Output
 			double wid = ai.getWidth() - ai.getProto().getWidthOffset();
 	
 			// get the name of the nodes on each end
-			NodeInst n1 = ai.getHead().getPortInst().getNodeInst();
+			NodeInst n1 = ai.getHeadPortInst().getNodeInst();
 			String n1Name = n1.getName();
 			if (n1.getNumExports() > 0)
 				n1Name = ((Export)n1.getExports().next()).getName();
-			NodeInst n2 = ai.getTail().getPortInst().getNodeInst();
+			NodeInst n2 = ai.getTailPortInst().getNodeInst();
 			String n2Name = n2.getName();
 			if (n2.getNumExports() > 0)
 				n2Name = ((Export)n2.getExports().next()).getName();
@@ -322,8 +322,9 @@ public class FastHenry extends Output
 			if (con == null) continue;
 	
 			// port "pp" is one end, now find the other
-			int thatEnd = 0;
-			if (con.getArc().getConnection(0) == con) thatEnd = 1;
+            int thatEnd = 1 - con.getEndIndex();
+//			int thatEnd = 0;
+//			if (con.getArc().getConnection(0) == con) thatEnd = 1;
 			Export oE = sim_fasthenryfindotherport(con.getArc(), thatEnd, arcsSeen);
 			if (oE == null)
 			{
@@ -349,7 +350,7 @@ public class FastHenry extends Output
 	private Export sim_fasthenryfindotherport(ArcInst ai, int end, Set arcsSeen)
 	{
 		arcsSeen.add(ai);
-		NodeInst ni = ai.getConnection(end).getPortInst().getNodeInst();
+		NodeInst ni = ai.getPortInst(end).getNodeInst();
 		if (ni.getNumExports() > 0) return (Export)ni.getExports().next();
 
 		for(Iterator it = ni.getConnections(); it.hasNext(); )
@@ -359,8 +360,9 @@ public class FastHenry extends Output
 			if (oAi == ai) continue;
 			Variable var = ai.getVar(GROUP_NAME_KEY);
 			if (var == null) continue;
-			int thatEnd = 0;
-			if (oAi.getConnection(0) == con) thatEnd = 1;
+            int thatEnd = 1 - con.getEndIndex();
+//			int thatEnd = 0;
+//			if (oAi.getConnection(0) == con) thatEnd = 1;
 			Export oE = sim_fasthenryfindotherport(oAi, thatEnd, arcsSeen);
 			if (oE != null) return oE;
 		}

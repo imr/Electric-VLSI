@@ -35,17 +35,16 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
@@ -308,13 +307,13 @@ public class Connectivity
 		for(Iterator aIt = oldCell.getArcs(); aIt.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)aIt.next();
-			NodeInst end1 = (NodeInst)newNodes.get(ai.getHead().getPortInst().getNodeInst());
-			NodeInst end2 = (NodeInst)newNodes.get(ai.getTail().getPortInst().getNodeInst());
+			NodeInst end1 = (NodeInst)newNodes.get(ai.getHeadPortInst().getNodeInst());
+			NodeInst end2 = (NodeInst)newNodes.get(ai.getTailPortInst().getNodeInst());
 			if (end1 == null || end2 == null) continue;
-			PortInst pi1 = end1.findPortInstFromProto(ai.getHead().getPortInst().getPortProto());
-			PortInst pi2 = end2.findPortInstFromProto(ai.getTail().getPortInst().getPortProto());
+			PortInst pi1 = end1.findPortInstFromProto(ai.getHeadPortInst().getPortProto());
+			PortInst pi2 = end2.findPortInstFromProto(ai.getTailPortInst().getPortProto());
 			ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), pi1, pi2,
-				ai.getHead().getLocation(), ai.getTail().getLocation(), ai.getName());
+				ai.getHeadLocation(), ai.getTailLocation(), ai.getName());
 		}
 
 		// now remember the original merge
@@ -691,7 +690,7 @@ public class Connectivity
 		if (piRet == null)
 		{
 			// shrink the end inward by half-width
-			PrimitiveNode pin = ((PrimitiveArc)ap).findPinProto();
+			PrimitiveNode pin = ap.findPinProto();
 			int ang = GenMath.figureAngle(cl.start, cl.end);
 			double xOff = GenMath.cos(ang) * cl.width/2;
 			double yOff = GenMath.sin(ang) * cl.width/2;
@@ -1501,7 +1500,7 @@ public class Connectivity
 					Point2D corner2 = new Point2D.Double(polyBounds2.getCenterX(), polyBounds1.getCenterY());
 					if (poly.contains(corner1))
 					{
-						PrimitiveNode np = ((PrimitiveArc)ap).findPinProto();
+						PrimitiveNode np = ap.findPinProto();
 						NodeInst ni = NodeInst.makeInstance(np, corner1, np.getDefWidth(), np.getDefHeight(), newCell);
 						PortInst pi = ni.getOnlyPortInst();
 						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, corner1, ap.getDefaultWidth(), false, merge);
@@ -1509,7 +1508,7 @@ public class Connectivity
 					}
 					if (poly.contains(corner2))
 					{
-						PrimitiveNode np = ((PrimitiveArc)ap).findPinProto();
+						PrimitiveNode np = ap.findPinProto();
 						NodeInst ni = NodeInst.makeInstance(np, corner2, np.getDefWidth(), np.getDefHeight(), newCell);
 						PortInst pi = ni.getOnlyPortInst();
 						ArcInst ai1 = realizeArc(ap, pi1, pi, pt1, corner2, ap.getDefaultWidth(), false, merge);
@@ -1535,14 +1534,14 @@ public class Connectivity
 		}
 		if (polyBounds == null) return;
 		Point2D polyCtr = new Point2D.Double(polyBounds.getCenterX(), polyBounds.getCenterY());
-		PrimitiveNode np = ((PrimitiveArc)ap).findPinProto();
+		PrimitiveNode np = ap.findPinProto();
 		if (obj instanceof ArcInst)
 		{
 			ArcInst ai = (ArcInst)obj;
-			double headDist = polyCtr.distance(ai.getHead().getLocation());
-			double tailDist = polyCtr.distance(ai.getTail().getLocation());
-			if (headDist < tailDist) obj = ai.getHead().getPortInst(); else
-				obj = ai.getTail().getPortInst();
+			double headDist = polyCtr.distance(ai.getHeadLocation());
+			double tailDist = polyCtr.distance(ai.getTailLocation());
+			if (headDist < tailDist) obj = ai.getHeadPortInst(); else
+				obj = ai.getTailPortInst();
 		}
 		PortInst pi = (PortInst)obj;
 		Poly portPoly = pi.getPoly();
@@ -1611,8 +1610,8 @@ public class Connectivity
 	private PortInst findArcEnd(ArcInst ai, PolyBase poly)
 	{
 		// see if one end of the arc touches the poly
-		Point2D head = ai.getHead().getLocation();
-		Point2D tail = ai.getTail().getLocation();
+		Point2D head = ai.getHeadLocation();
+		Point2D tail = ai.getTailLocation();
 		int ang = GenMath.figureAngle(tail, head);
 		int angPlus = (ang + 900) % 3600;
 		int angMinus = (ang + 2700) % 3600;
@@ -1620,19 +1619,19 @@ public class Connectivity
 
 		// see if the head end touches
 		Point2D headButFarther = new Point2D.Double(head.getX() + width * GenMath.cos(ang), head.getY() + width * GenMath.sin(ang));
-		if (poly.contains(headButFarther)) return ai.getHead().getPortInst();
+		if (poly.contains(headButFarther)) return ai.getHeadPortInst();
 		Point2D headOneSide = new Point2D.Double(head.getX() + width * GenMath.cos(angPlus), head.getY() + width * GenMath.sin(angPlus));
-		if (poly.contains(headOneSide)) return ai.getHead().getPortInst();
+		if (poly.contains(headOneSide)) return ai.getHeadPortInst();
 		Point2D headOtherSide = new Point2D.Double(head.getX() + width * GenMath.cos(angPlus), head.getY() + width * GenMath.sin(angPlus));
-		if (poly.contains(headOtherSide)) return ai.getHead().getPortInst();
+		if (poly.contains(headOtherSide)) return ai.getHeadPortInst();
 
 		// see if the tail end touches
 		Point2D tailButFarther = new Point2D.Double(tail.getX() - width * GenMath.cos(ang), tail.getY() - width * GenMath.sin(ang));
-		if (poly.contains(tailButFarther)) return ai.getTail().getPortInst();
+		if (poly.contains(tailButFarther)) return ai.getTailPortInst();
 		Point2D tailOneSide = new Point2D.Double(tail.getX() - width * GenMath.cos(angPlus), tail.getY() - width * GenMath.sin(angPlus));
-		if (poly.contains(tailOneSide)) return ai.getTail().getPortInst();
+		if (poly.contains(tailOneSide)) return ai.getTailPortInst();
 		Point2D tailOtherSide = new Point2D.Double(tail.getX() - width * GenMath.cos(angPlus), tail.getY() - width * GenMath.sin(angPlus));
-		if (poly.contains(tailOtherSide)) return ai.getTail().getPortInst();
+		if (poly.contains(tailOtherSide)) return ai.getTailPortInst();
 		
 		return null;
 	}
@@ -2166,7 +2165,7 @@ public class Connectivity
 						double actualWidth = ap.getDefaultWidth() - ap.getWidthOffset();
 						if (width >= actualWidth && height >= actualWidth)
 						{
-							PrimitiveNode np = ((PrimitiveArc)ap).findPinProto();
+							PrimitiveNode np = ap.findPinProto();
 							if (width > height)
 							{
 								// make a horizontal arc

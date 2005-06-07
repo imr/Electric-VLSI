@@ -28,7 +28,6 @@ import com.sun.electric.database.Cell_;
 import com.sun.electric.database.DatabaseChangeThread;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.NodeInst_;
 import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
@@ -36,12 +35,10 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -50,11 +47,9 @@ import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkTool;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -62,14 +57,12 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.logicaleffort.LENetlister1;
-import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.interval.Diode;
@@ -84,7 +77,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.*;
 import java.lang.reflect.Method;
-import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.util.*;
 
@@ -125,16 +117,16 @@ public class DebugMenus {
 
 				// figure out the layer
 				ArcProto [] possibilities = pi.getPortProto().getBasePort().getConnections();
-				PrimitiveArc desired = (PrimitiveArc)possibilities[0];
+				ArcProto desired = possibilities[0];
 				ArcProto.Function fun = desired.getFunction();
 				if (!fun.isMetal()) System.out.println("HEY, not metal");
 				int level = fun.getLevel();
 				ArcProto.Function nextFun = ArcProto.Function.getMetal(level+1);
-				PrimitiveArc nextLevel = null;
+				ArcProto nextLevel = null;
 				for(Iterator tIt = desired.getTechnology().getArcs(); tIt.hasNext(); )
 				{
 					ArcProto other = (ArcProto)tIt.next();
-					if (other.getFunction() == nextFun) { nextLevel = (PrimitiveArc)other;   break; }
+					if (other.getFunction() == nextFun) { nextLevel = other;   break; }
 				}
 				PrimitiveNode pinType = desired.findPinProto();
 

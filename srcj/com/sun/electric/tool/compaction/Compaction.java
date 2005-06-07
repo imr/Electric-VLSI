@@ -866,8 +866,8 @@ public class Compaction extends Listener
 			{
 				Connection con = (Connection)it.next();
 				ArcInst ai = con.getArc();
-				NodeInst otherEnd = ai.getTail().getPortInst().getNodeInst();
-				if (otherEnd == ni) otherEnd = ai.getHead().getPortInst().getNodeInst();
+				NodeInst otherEnd = ai.getTailPortInst().getNodeInst();
+				if (otherEnd == ni) otherEnd = ai.getHeadPortInst().getNodeInst();
 
 				// stop if other end has already been examined
 				if (nodesSeen.contains(otherEnd)) continue;

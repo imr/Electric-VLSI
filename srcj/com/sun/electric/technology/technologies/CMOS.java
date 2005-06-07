@@ -27,13 +27,12 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
@@ -399,32 +398,32 @@ public class CMOS extends Technology
 		//******************** ARCS ********************
 
 		/** Metal arc */
-		PrimitiveArc Metal_arc = PrimitiveArc.newInstance(this, "Metal", 3, new Technology.ArcLayer []
+		ArcProto Metal_arc = ArcProto.newInstance(this, "Metal", 3, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(M_lay, 0, Poly.Type.FILLED)
 		});
-		Metal_arc.setFunction(PrimitiveArc.Function.METAL1);
+		Metal_arc.setFunction(ArcProto.Function.METAL1);
 		Metal_arc.setFactoryFixedAngle(true);
 		Metal_arc.setWipable();
 		Metal_arc.setFactoryAngleIncrement(90);
 
 		/** Polysilicon arc */
-		PrimitiveArc Polysilicon_arc = PrimitiveArc.newInstance(this, "Polysilicon", 2, new Technology.ArcLayer []
+		ArcProto Polysilicon_arc = ArcProto.newInstance(this, "Polysilicon", 2, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(P_lay, 0, Poly.Type.FILLED)
 		});
-		Polysilicon_arc.setFunction(PrimitiveArc.Function.POLY1);
+		Polysilicon_arc.setFunction(ArcProto.Function.POLY1);
 		Polysilicon_arc.setFactoryFixedAngle(true);
 		Polysilicon_arc.setWipable();
 		Polysilicon_arc.setFactoryAngleIncrement(90);
 
 		/** Diffusion-p arc */
-		PrimitiveArc Diffusion_p_arc = PrimitiveArc.newInstance(this, "Diffusion-p", 6, new Technology.ArcLayer []
+		ArcProto Diffusion_p_arc = ArcProto.newInstance(this, "Diffusion-p", 6, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(D_lay, 4, Poly.Type.FILLED),
 			new Technology.ArcLayer(P0_lay, 0, Poly.Type.FILLED)
 		});
-		Diffusion_p_arc.setFunction(PrimitiveArc.Function.DIFFP);
+		Diffusion_p_arc.setFunction(ArcProto.Function.DIFFP);
 		Diffusion_p_arc.setFactoryFixedAngle(true);
 		Diffusion_p_arc.setWipable();
 		Diffusion_p_arc.setFactoryAngleIncrement(90);
@@ -432,12 +431,12 @@ public class CMOS extends Technology
 		Diffusion_p_arc.setWidthOffset(4);
 
 		/** Diffusion-well arc */
-		PrimitiveArc Diffusion_well_arc = PrimitiveArc.newInstance(this, "Diffusion-well", 8, new Technology.ArcLayer []
+		ArcProto Diffusion_well_arc = ArcProto.newInstance(this, "Diffusion-well", 8, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(D_lay, 6, Poly.Type.FILLED),
 			new Technology.ArcLayer(PW_lay, 0, Poly.Type.FILLED)
 		});
-		Diffusion_well_arc.setFunction(PrimitiveArc.Function.DIFFN);
+		Diffusion_well_arc.setFunction(ArcProto.Function.DIFFN);
 		Diffusion_well_arc.setFactoryFixedAngle(true);
 		Diffusion_well_arc.setWipable();
 		Diffusion_well_arc.setFactoryAngleIncrement(90);

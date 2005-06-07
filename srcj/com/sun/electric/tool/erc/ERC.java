@@ -24,7 +24,7 @@
 package com.sun.electric.tool.erc;
 
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 

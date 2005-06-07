@@ -306,8 +306,7 @@ public class Schematic
 				// check to see if this arc is floating
 				for(int i=0; i<2; i++)
 				{
-					Connection con = ai.getConnection(i);
-					NodeInst ni = con.getPortInst().getNodeInst();
+					NodeInst ni = ai.getPortInst(i).getNodeInst();
 
 					// OK if not a pin
 					if (ni.getProto().getFunction() != PrimitiveNode.Function.PIN) continue;
@@ -330,8 +329,7 @@ public class Schematic
 			if (signals < 1) signals = 1;
 			for(int i=0; i<2; i++)
 			{
-				Connection con = ai.getConnection(i);
-				PortInst pi = con.getPortInst();
+				PortInst pi = ai.getPortInst(i);
 				NodeInst ni = pi.getNodeInst();
 				if (!(ni.getProto() instanceof Cell)) continue;
 				Cell subNp = (Cell)ni.getProto();
@@ -553,12 +551,12 @@ public class Schematic
 					if (!connected)
 					{
 						// if the arcs connect at a WireCon, they are connected
-						NodeInst headNi = ai.getHead().getPortInst().getNodeInst();
-						NodeInst tailNi = ai.getTail().getPortInst().getNodeInst();
+						NodeInst headNi = ai.getHeadPortInst().getNodeInst();
+						NodeInst tailNi = ai.getTailPortInst().getNodeInst();
 						if (headNi.getProto() != Schematics.tech.wireConNode) headNi = null;
 						if (tailNi.getProto() != Schematics.tech.wireConNode) tailNi = null;
-						NodeInst oHeadNi = oAi.getHead().getPortInst().getNodeInst();
-						NodeInst oTailNi = oAi.getTail().getPortInst().getNodeInst();
+						NodeInst oHeadNi = oAi.getHeadPortInst().getNodeInst();
+						NodeInst oTailNi = oAi.getTailPortInst().getNodeInst();
 						if (headNi == oHeadNi || headNi == oTailNi || tailNi == oHeadNi || tailNi == oTailNi) connected = true;
 					}
 					if (!connected)
@@ -687,14 +685,14 @@ System.out.println("Comparing arcs "+ai.describe()+" and "+((ArcInst)geom).descr
 	private static boolean checkColinear(ArcInst ai, ArcInst oAi)
 	{
 		// get information about the other line
-		double fx = ai.getHead().getLocation().getX();
-		double fy = ai.getHead().getLocation().getY();
-		double tx = ai.getTail().getLocation().getX();
-		double ty = ai.getTail().getLocation().getY();
-		double oFx = oAi.getHead().getLocation().getX();
-		double oFy = oAi.getHead().getLocation().getY();
-		double oTx = oAi.getTail().getLocation().getX();
-		double oTy = oAi.getTail().getLocation().getY();
+		double fx = ai.getHeadLocation().getX();
+		double fy = ai.getHeadLocation().getY();
+		double tx = ai.getTailLocation().getX();
+		double ty = ai.getTailLocation().getY();
+		double oFx = oAi.getHeadLocation().getX();
+		double oFy = oAi.getHeadLocation().getY();
+		double oTx = oAi.getTailLocation().getX();
+		double oTy = oAi.getTailLocation().getY();
 		if (oFx == oTx && oFy == oTy) return false;
 
 		// see if they are colinear

@@ -27,26 +27,18 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.database.prototype.ArcProto;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
-import java.awt.geom.Point2D;
-import java.util.List;
-import java.util.ArrayList;
+
 
 /**
  * This is the Complementary MOS (old, N-Well, from Griswold) Technology.
@@ -439,45 +431,45 @@ public class RCMOS extends Technology
 		//******************** ARCS ********************
 
 		/** Metal-1 arc */
-		PrimitiveArc metal1_arc = PrimitiveArc.newInstance(this, "Metal-1", 3, new Technology.ArcLayer []
+		ArcProto metal1_arc = ArcProto.newInstance(this, "Metal-1", 3, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal1_lay, 0, Poly.Type.FILLED)
 		});
-		metal1_arc.setFunction(PrimitiveArc.Function.METAL1);
+		metal1_arc.setFunction(ArcProto.Function.METAL1);
 		metal1_arc.setFactoryFixedAngle(false);
 		metal1_arc.setCurvable();
 		metal1_arc.setExtended(false);
 		metal1_arc.setFactoryAngleIncrement(0);
 
 		/** Metal-2 arc */
-		PrimitiveArc metal2_arc = PrimitiveArc.newInstance(this, "Metal-2", 3, new Technology.ArcLayer []
+		ArcProto metal2_arc = ArcProto.newInstance(this, "Metal-2", 3, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(metal2_lay, 0, Poly.Type.FILLED)
 		});
-		metal2_arc.setFunction(PrimitiveArc.Function.METAL1);
+		metal2_arc.setFunction(ArcProto.Function.METAL1);
 		metal2_arc.setFactoryFixedAngle(false);
 		metal2_arc.setCurvable();
 		metal2_arc.setExtended(false);
 		metal2_arc.setFactoryAngleIncrement(0);
 
 		/** Polysilicon arc */
-		PrimitiveArc polysilicon_arc = PrimitiveArc.newInstance(this, "Polysilicon", 2, new Technology.ArcLayer []
+		ArcProto polysilicon_arc = ArcProto.newInstance(this, "Polysilicon", 2, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(polysilicon_lay, 0, Poly.Type.FILLED)
 		});
-		polysilicon_arc.setFunction(PrimitiveArc.Function.METAL1);
+		polysilicon_arc.setFunction(ArcProto.Function.METAL1);
 		polysilicon_arc.setFactoryFixedAngle(false);
 		polysilicon_arc.setCurvable();
 		polysilicon_arc.setExtended(false);
 		polysilicon_arc.setFactoryAngleIncrement(0);
 
 		/** S-Active arc */
-		PrimitiveArc sActive_arc = PrimitiveArc.newInstance(this, "S-Active", 6, new Technology.ArcLayer []
+		ArcProto sActive_arc = ArcProto.newInstance(this, "S-Active", 6, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(sActive_lay, 4, Poly.Type.FILLED),
 			new Technology.ArcLayer(select_lay, 0, Poly.Type.FILLED)
 		});
-		sActive_arc.setFunction(PrimitiveArc.Function.DIFFN);
+		sActive_arc.setFunction(ArcProto.Function.DIFFN);
 		sActive_arc.setFactoryFixedAngle(false);
 		sActive_arc.setCurvable();
 		sActive_arc.setExtended(false);
@@ -485,12 +477,12 @@ public class RCMOS extends Technology
 		sActive_arc.setWidthOffset(4);
 
 		/** D-Active arc */
-		PrimitiveArc dActive_arc = PrimitiveArc.newInstance(this, "D-Active", 10, new Technology.ArcLayer []
+		ArcProto dActive_arc = ArcProto.newInstance(this, "D-Active", 10, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(dActive_lay, 8, Poly.Type.FILLED),
 			new Technology.ArcLayer(well_lay, 0, Poly.Type.FILLED)
 		});
-		dActive_arc.setFunction(PrimitiveArc.Function.DIFFP);
+		dActive_arc.setFunction(ArcProto.Function.DIFFP);
 		dActive_arc.setFactoryFixedAngle(false);
 		dActive_arc.setCurvable();
 		dActive_arc.setExtended(false);
@@ -498,26 +490,26 @@ public class RCMOS extends Technology
 		dActive_arc.setWidthOffset(8);
 
 		/** Substrate-Active arc */
-		PrimitiveArc substrateActive_arc = PrimitiveArc.newInstance(this, "Substrate-Active", 2, new Technology.ArcLayer []
+		ArcProto substrateActive_arc = ArcProto.newInstance(this, "Substrate-Active", 2, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(dActive_lay, 0, Poly.Type.FILLED),
 			new Technology.ArcLayer(sActive_lay, 0, Poly.Type.FILLED)
 		});
-		substrateActive_arc.setFunction(PrimitiveArc.Function.DIFFS);
+		substrateActive_arc.setFunction(ArcProto.Function.DIFFS);
 		substrateActive_arc.setFactoryFixedAngle(false);
 		substrateActive_arc.setCurvable();
 		substrateActive_arc.setExtended(false);
 		substrateActive_arc.setFactoryAngleIncrement(0);
 
 		/** Well arc */
-		PrimitiveArc wellActive_arc = PrimitiveArc.newInstance(this, "Well-Active", 6, new Technology.ArcLayer []
+		ArcProto wellActive_arc = ArcProto.newInstance(this, "Well-Active", 6, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(dActive_lay, 4, Poly.Type.FILLED),
 			new Technology.ArcLayer(sActive_lay, 4, Poly.Type.FILLED),
 			new Technology.ArcLayer(well_lay, 0, Poly.Type.FILLED),
 			new Technology.ArcLayer(select_lay, 0, Poly.Type.FILLED)
 		});
-		wellActive_arc.setFunction(PrimitiveArc.Function.DIFFW);
+		wellActive_arc.setFunction(ArcProto.Function.DIFFW);
 		wellActive_arc.setFactoryFixedAngle(false);
 		wellActive_arc.setCurvable();
 		wellActive_arc.setExtended(false);
@@ -525,13 +517,13 @@ public class RCMOS extends Technology
 		wellActive_arc.setWidthOffset(4);
 
 		/** S-Transistor arc */
-		PrimitiveArc sTransistor_arc = PrimitiveArc.newInstance(this, "S-Transistor", 6, new Technology.ArcLayer []
+		ArcProto sTransistor_arc = ArcProto.newInstance(this, "S-Transistor", 6, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(dActive_lay, 4, Poly.Type.FILLED),
 			new Technology.ArcLayer(polysilicon_lay, 4, Poly.Type.FILLED),
 			new Technology.ArcLayer(select_lay, 0, Poly.Type.FILLED)
 		});
-		sTransistor_arc.setFunction(PrimitiveArc.Function.DIFFN);
+		sTransistor_arc.setFunction(ArcProto.Function.DIFFN);
 		sTransistor_arc.setFactoryFixedAngle(false);
 		sTransistor_arc.setCurvable();
 		sTransistor_arc.setExtended(false);
@@ -539,13 +531,13 @@ public class RCMOS extends Technology
 		sTransistor_arc.setWidthOffset(4);
 
 		/** D-Transistor arc */
-		PrimitiveArc dTransistor_arc = PrimitiveArc.newInstance(this, "D-Transistor", 10, new Technology.ArcLayer []
+		ArcProto dTransistor_arc = ArcProto.newInstance(this, "D-Transistor", 10, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(dActive_lay, 8, Poly.Type.FILLED),
 			new Technology.ArcLayer(polysilicon_lay, 8, Poly.Type.FILLED),
 			new Technology.ArcLayer(well_lay, 0, Poly.Type.FILLED)
 		});
-		dTransistor_arc.setFunction(PrimitiveArc.Function.DIFFP);
+		dTransistor_arc.setFunction(ArcProto.Function.DIFFP);
 		dTransistor_arc.setFactoryFixedAngle(false);
 		dTransistor_arc.setCurvable();
 		dTransistor_arc.setExtended(false);

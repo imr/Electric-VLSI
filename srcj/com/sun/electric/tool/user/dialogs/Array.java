@@ -228,9 +228,9 @@ public class Array extends EDialog
 			} else if (eObj instanceof ArcInst)
 			{
 				ArcInst ai = (ArcInst)eObj;
-				NodeInst niHead = ai.getHead().getPortInst().getNodeInst();
+				NodeInst niHead = ai.getHeadPortInst().getNodeInst();
 				selected.put(niHead,  niHead);
-				NodeInst niTail = ai.getTail().getPortInst().getNodeInst();
+				NodeInst niTail = ai.getTailPortInst().getNodeInst();
 				selected.put(niTail,  niTail);
 				selected.put(ai, ai);
 			}
@@ -517,15 +517,15 @@ public class Array extends EDialog
 				for(Iterator it = arcList.iterator(); it.hasNext(); )
 				{
 					ArcInst ai = (ArcInst)it.next();
-					double cX0 = ai.getHead().getPortInst().getNodeInst().getAnchorCenterX();
-					double cY0 = ai.getHead().getPortInst().getNodeInst().getAnchorCenterY();
-					double xOff0 = ai.getHead().getLocation().getX() - cX0;
-					double yOff0 = ai.getHead().getLocation().getY() - cY0;
+					double cX0 = ai.getHeadPortInst().getNodeInst().getAnchorCenterX();
+					double cY0 = ai.getHeadPortInst().getNodeInst().getAnchorCenterY();
+					double xOff0 = ai.getHeadLocation().getX() - cX0;
+					double yOff0 = ai.getHeadLocation().getY() - cY0;
 
-					double cX1 = ai.getTail().getPortInst().getNodeInst().getAnchorCenterX();
-					double cY1 = ai.getTail().getPortInst().getNodeInst().getAnchorCenterY();
-					double xOff1 = ai.getTail().getLocation().getX() - cX1;
-					double yOff1 = ai.getTail().getLocation().getY() - cY1;
+					double cX1 = ai.getTailPortInst().getNodeInst().getAnchorCenterX();
+					double cY1 = ai.getTailPortInst().getNodeInst().getAnchorCenterY();
+					double xOff1 = ai.getTailLocation().getX() - cX1;
+					double yOff1 = ai.getTailLocation().getY() - cY1;
 
 					if ((xIndex&1) != 0 && lastXFlip)
 					{
@@ -538,16 +538,16 @@ public class Array extends EDialog
 						yOff1 = -yOff1;
 					}
 
-					NodeInst ni0 = (NodeInst)nodeMap.get(ai.getHead().getPortInst().getNodeInst());
+					NodeInst ni0 = (NodeInst)nodeMap.get(ai.getHeadPortInst().getNodeInst());
 					if (ni0 == null) continue;
-					NodeInst ni1 = (NodeInst)nodeMap.get(ai.getTail().getPortInst().getNodeInst());
+					NodeInst ni1 = (NodeInst)nodeMap.get(ai.getTailPortInst().getNodeInst());
 					if (ni1 == null) continue;
 					cX0 = ni0.getAnchorCenterX();
 					cY0 = ni0.getAnchorCenterY();
 					cX1 = ni1.getAnchorCenterX();
 					cY1 = ni1.getAnchorCenterY();
-					PortInst pi0 = ni0.findPortInstFromProto(ai.getHead().getPortInst().getPortProto());
-					PortInst pi1 = ni1.findPortInstFromProto(ai.getTail().getPortInst().getPortProto());
+					PortInst pi0 = ni0.findPortInstFromProto(ai.getHeadPortInst().getPortProto());
+					PortInst pi1 = ni1.findPortInstFromProto(ai.getTailPortInst().getPortProto());
 					ArcInst newAi = ArcInst.makeInstance(ai.getProto(), ai.getWidth(), pi0,
 					    pi1, new Point2D.Double(cX0+xOff0, cY0+yOff0), new Point2D.Double(cX1+xOff1, cY1+yOff1), null);
 					if (newAi == null) continue;

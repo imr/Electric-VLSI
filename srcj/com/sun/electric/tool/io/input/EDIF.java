@@ -33,7 +33,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -46,8 +45,8 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.Layer;import com.sun.electric.technology.ArcProto;
+
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
@@ -1098,7 +1097,7 @@ public class EDIF extends Input
 		if (ports.size() == 0 && bestPi != null)
 		{
 			// create a new node in the proper position
-			PrimitiveNode np = ((PrimitiveArc)ap).findPinProto();
+			PrimitiveNode np = ap.findPinProto();
 			NodeInst ni = placePin(np, x, y, np.getDefWidth(), np.getDefHeight(), 0, cell);
 			PortInst head = ni.getOnlyPortInst();
 			ArcInst.makeInstance(ap, ap.getDefaultWidth(), head, bestPi);
@@ -1109,17 +1108,17 @@ public class EDIF extends Input
 		{
 			// direct hit on an arc, verify connection
 			ArcProto nAp = ai.getProto();
-			PrimitiveNode np = ((PrimitiveArc)nAp).findPinProto();
+			PrimitiveNode np = nAp.findPinProto();
 			if (np == null) return ports;
 			PortProto pp = np.getPort(0);
 			if (!pp.getBasePort().connectsTo(ap)) return ports;
 
 			// try to split arc (from us_getnodeonarcinst)*/
 			// break is at (prefx, prefy): save information about the arcinst
-			PortInst fPi = ai.getHead().getPortInst();
-			Point2D fPt = ai.getHead().getLocation();
-			PortInst tPi = ai.getTail().getPortInst();
-			Point2D tPt = ai.getTail().getLocation();
+			PortInst fPi = ai.getHeadPortInst();
+			Point2D fPt = ai.getHeadLocation();
+			PortInst tPi = ai.getTailPortInst();
+			Point2D tPt = ai.getTailLocation();
 
 			// create the splitting pin
 			NodeInst ni = placePin(np, x, y, np.getDefWidth(), np.getDefHeight(), 0, cell);
@@ -1172,8 +1171,7 @@ public class EDIF extends Input
 		seenArcs.add(ai);
 		for (int i = 0; i < 2; i++)
 		{
-			Connection con = ai.getConnection(i);
-			NodeInst ni = con.getPortInst().getNodeInst();
+			NodeInst ni = ai.getPortInst(i).getNodeInst();
 			if (ni.getFunction() == PrimitiveNode.Function.PIN)
 			{
 				// scan through this nodes portarcinst's
@@ -3314,8 +3312,8 @@ public class EDIF extends Input
 					else if (propertyReference.length() > 0 && curArc != null)
 					{
 						ai = curArc;
-						xOff = p0.getX() - (ai.getHead().getLocation().getX() + ai.getTail().getLocation().getX()) / 2;
-						yOff = p0.getY() - (ai.getHead().getLocation().getY() + ai.getTail().getLocation().getY()) / 2;
+						xOff = p0.getX() - (ai.getHeadLocation().getX() + ai.getTailLocation().getX()) / 2;
+						yOff = p0.getY() - (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
 					} else
 					{
 						// create the node instance
@@ -3342,8 +3340,8 @@ public class EDIF extends Input
 //							if (var != null && textVisible) var.setDisplay(true);
 
 							// now set the position, relative to the center of the current object
-							xOff = p0.getX() - (ai.getHead().getLocation().getX() + ai.getTail().getLocation().getX()) / 2;
-							yOff = p0.getY() - (ai.getHead().getLocation().getY() + ai.getTail().getLocation().getY()) / 2;
+							xOff = p0.getX() - (ai.getHeadLocation().getX() + ai.getTailLocation().getX()) / 2;
+							yOff = p0.getY() - (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
 						}
 
 						// determine the size of text, 0.0278 in == 2 points or 36 (2xpixels) == 1 in fonts range from 4 to 31

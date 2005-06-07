@@ -25,19 +25,17 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -59,9 +57,9 @@ public class Generic extends Technology
 	/** the DRC exclusion node. */			public PrimitiveNode drcNode;
 	/** the Essential-bounds node. */		public PrimitiveNode essentialBoundsNode;
 	/** the Simulation-Probe node. */		public PrimitiveNode simProbeNode;
-	/** the Universal arc. */				public PrimitiveArc universal_arc;
-	/** the Invisible arc. */				public PrimitiveArc invisible_arc;
-	/** the Unrouted arc. */				public PrimitiveArc unrouted_arc;
+	/** the Universal arc. */				public ArcProto universal_arc;
+	/** the Invisible arc. */				public ArcProto invisible_arc;
+	/** the Unrouted arc. */				public ArcProto unrouted_arc;
 
 	private PrimitivePort univPinPort;
 	private PrimitivePort invisPinPort;
@@ -118,30 +116,30 @@ public class Generic extends Technology
 		//**************************************** ARCS ****************************************
 
 		/** Universal arc */
-		universal_arc = PrimitiveArc.newInstance(this, "Universal", 0.0, new Technology.ArcLayer []
+		universal_arc = ArcProto.newInstance(this, "Universal", 0.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(universal_lay, 0, Poly.Type.FILLED)
 		});
-		universal_arc.setFunction(PrimitiveArc.Function.UNKNOWN);
+		universal_arc.setFunction(ArcProto.Function.UNKNOWN);
 		universal_arc.setFactoryFixedAngle(true);
 		universal_arc.setFactoryAngleIncrement(45);
 
 		/** Invisible arc */
-		invisible_arc = PrimitiveArc.newInstance(this, "Invisible", 0.0, new Technology.ArcLayer []
+		invisible_arc = ArcProto.newInstance(this, "Invisible", 0.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(invisible_lay, 0, Poly.Type.FILLED)
 		});
-		invisible_arc.setFunction(PrimitiveArc.Function.NONELEC);
+		invisible_arc.setFunction(ArcProto.Function.NONELEC);
 		invisible_arc.setFactoryFixedAngle(true);
 		invisible_arc.setFactoryAngleIncrement(45);
 
 		/** Unrouted arc */
-		unrouted_arc = PrimitiveArc.newInstance(this, "Unrouted", 0.0, new Technology.ArcLayer []
+		unrouted_arc = ArcProto.newInstance(this, "Unrouted", 0.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(unrouted_lay, 0, Poly.Type.FILLED)
 		});
 		unrouted_arc.setFactoryFixedAngle(false);
-		unrouted_arc.setFunction(PrimitiveArc.Function.UNROUTED);
+		unrouted_arc.setFunction(ArcProto.Function.UNROUTED);
 		unrouted_arc.setFactoryAngleIncrement(0);
 
 		//**************************************** NODES ****************************************

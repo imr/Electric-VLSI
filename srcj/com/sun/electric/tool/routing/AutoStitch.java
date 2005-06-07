@@ -35,7 +35,6 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
@@ -43,8 +42,8 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
@@ -327,7 +326,7 @@ public class AutoStitch
 	
 		                    // insist that minimum size arcs be used
 		                    ArcProto ap = reArc.getArcProto();
-			            	Layer arcLayer = ((PrimitiveArc)ap).getLayers()[0].getLayer();
+			            	Layer arcLayer = ap.getLayers()[0].getLayer();
 		                    double width = ap.getDefaultWidth();
 
 		                    if (!arcInMerge(head, tail, reArc.getArcWidth(), stayInside, arcLayer))
@@ -384,12 +383,12 @@ public class AutoStitch
 	private static boolean arcTooWide(ArcInst ai)
 	{
 		boolean headTooWide = true;
-		NodeInst hNi = ai.getHead().getPortInst().getNodeInst();
+		NodeInst hNi = ai.getHeadPortInst().getNodeInst();
 		if (hNi.getProto() instanceof Cell) headTooWide = false; else
 			if (ai.getWidth() <= hNi.getXSize() && ai.getWidth() <= hNi.getYSize()) headTooWide = false;
 
 		boolean tailTooWide = true;
-		NodeInst tNi = ai.getTail().getPortInst().getNodeInst();
+		NodeInst tNi = ai.getTailPortInst().getNodeInst();
 		if (tNi.getProto() instanceof Cell) tailTooWide = false; else
 			if (ai.getWidth() <= tNi.getXSize() && ai.getWidth() <= tNi.getYSize()) tailTooWide = false;
 
@@ -517,8 +516,8 @@ public class AutoStitch
 					Connection con = (Connection)cIt.next();
 					PortInst pi = con.getPortInst();
 					if (pi.getPortProto() != pp) continue;
-					if (con.getArc().getHead().getPortInst().getNodeInst() == oNi ||
-						con.getArc().getTail().getPortInst().getNodeInst() == oNi) { found = true;   break; }
+					if (con.getArc().getHeadPortInst().getNodeInst() == oNi ||
+						con.getArc().getTailPortInst().getNodeInst() == oNi) { found = true;   break; }
 				}
 				if (found) continue;
                 */
@@ -711,8 +710,8 @@ public class AutoStitch
 					Connection con = (Connection)cIt.next();
 					PortInst pi = con.getPortInst();
 					if (!netlist.portsConnected(ni, rPp, pi.getPortProto())) continue;
-					if (con.getArc().getHead().getPortInst().getNodeInst() == oNi ||
-						con.getArc().getTail().getPortInst().getNodeInst() == oNi) { found = true;   break; }
+					if (con.getArc().getHeadPortInst().getNodeInst() == oNi ||
+						con.getArc().getTailPortInst().getNodeInst() == oNi) { found = true;   break; }
 				}
 				if (found) continue;
 
@@ -947,8 +946,8 @@ public class AutoStitch
                 for (Iterator piit = oPi.getConnections(); piit.hasNext(); ) {
                     Connection conn = (Connection)piit.next();
                     ArcInst ai = conn.getArc();
-                    if (ai.getHead().getPortInst() == pi) ignore = true;
-                    if (ai.getTail().getPortInst() == pi) ignore = true;
+                    if (ai.getHeadPortInst() == pi) ignore = true;
+                    if (ai.getTailPortInst() == pi) ignore = true;
                 }
                 if (ignore) continue;
 
@@ -1270,7 +1269,7 @@ public class AutoStitch
 		if (arcLayers.get(ap) != null) return;
 
 		// get a dummy arc to analyze
-		ArcInst ai = ArcInst.makeDummyInstance((PrimitiveArc)ap, 100);
+		ArcInst ai = ArcInst.makeDummyInstance(ap, 100);
 
 		// find the smallest layer
 		boolean bestFound = false;

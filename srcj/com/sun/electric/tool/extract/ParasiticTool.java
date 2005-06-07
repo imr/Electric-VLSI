@@ -33,7 +33,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
@@ -181,8 +181,8 @@ public class ParasiticTool extends Listener{
                 if (net == null)
                     continue;
 
-                PortInst tailP = ai.getTail().getPortInst();
-                PortInst headP = ai.getHead().getPortInst();
+                PortInst tailP = ai.getTailPortInst();
+                PortInst headP = ai.getHeadPortInst();
 //                Network net1 = netList.getNetwork(tailP);
 //                Network net2 = netList.getNetwork(headP);
 //                if (net1 != net) net2 = net1;

@@ -24,12 +24,11 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.routing.InteractiveRouter;
 import com.sun.electric.tool.routing.SimpleWirer;
@@ -1176,25 +1175,25 @@ public class ClickZoomWireListener
             if (ap.isNotUsed()) continue;               // ignore arcs that aren't used
             switch(layerNumber) {
                 case 0: {
-                    if (ap.getFunction() == PrimitiveArc.Function.POLY1) { found = true; } break; }
+                    if (ap.getFunction() == ArcProto.Function.POLY1) { found = true; } break; }
                 case 1: {
-                    if (ap.getFunction() == PrimitiveArc.Function.METAL1) { found = true; } break; }
+                    if (ap.getFunction() == ArcProto.Function.METAL1) { found = true; } break; }
                 case 2: {
-                    if (ap.getFunction() == PrimitiveArc.Function.METAL2) { found = true; } break; }
+                    if (ap.getFunction() == ArcProto.Function.METAL2) { found = true; } break; }
                 case 3: {
-                    if (ap.getFunction() == PrimitiveArc.Function.METAL3) { found = true; } break; }
+                    if (ap.getFunction() == ArcProto.Function.METAL3) { found = true; } break; }
                 case 4: {
-                    if (ap.getFunction() == PrimitiveArc.Function.METAL4) { found = true; } break; }
+                    if (ap.getFunction() == ArcProto.Function.METAL4) { found = true; } break; }
                 case 5: {
-                    if (ap.getFunction() == PrimitiveArc.Function.METAL5) { found = true; } break; }
+                    if (ap.getFunction() == ArcProto.Function.METAL5) { found = true; } break; }
                 case 6: {
-                    if (ap.getFunction() == PrimitiveArc.Function.METAL6) { found = true; } break; }
+                    if (ap.getFunction() == ArcProto.Function.METAL6) { found = true; } break; }
                 case 7: {
-                    if (ap.getFunction() == PrimitiveArc.Function.METAL7) { found = true; } break; }
+                    if (ap.getFunction() == ArcProto.Function.METAL7) { found = true; } break; }
                 case 8: {
-                    if (ap.getFunction() == PrimitiveArc.Function.METAL8) { found = true; } break; }
+                    if (ap.getFunction() == ArcProto.Function.METAL8) { found = true; } break; }
                 case 9: {
-                    if (ap.getFunction() == PrimitiveArc.Function.METAL9) { found = true; } break; }
+                    if (ap.getFunction() == ArcProto.Function.METAL9) { found = true; } break; }
             }
             if (found) break;
         }

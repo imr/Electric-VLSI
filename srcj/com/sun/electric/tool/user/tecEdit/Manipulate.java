@@ -30,14 +30,13 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
@@ -70,7 +69,6 @@ import java.util.StringTokenizer;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -78,8 +76,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
+
 
 /**
  * This class manipulates technology libraries.
@@ -874,11 +871,11 @@ public class Manipulate
 			ArcInst ai = (ArcInst)geom;
 			if (ai.getProto() != Generic.tech.universal_arc)
 				return "This is an unimportant " + ai.getProto().describe() + " arc";
-			if (ai.getHead().getPortInst().getNodeInst().getProto() != Generic.tech.portNode ||
-				ai.getTail().getPortInst().getNodeInst().getProto() != Generic.tech.portNode)
+			if (ai.getHeadPortInst().getNodeInst().getProto() != Generic.tech.portNode ||
+				ai.getTailPortInst().getNodeInst().getProto() != Generic.tech.portNode)
 					return "This arc makes an unimportant connection";
-			String pt1 = Info.getPortName(ai.getHead().getPortInst().getNodeInst());
-			String pt2 = Info.getPortName(ai.getTail().getPortInst().getNodeInst());
+			String pt1 = Info.getPortName(ai.getHeadPortInst().getNodeInst());
+			String pt2 = Info.getPortName(ai.getTailPortInst().getNodeInst());
 			if (pt1 == null || pt2 == null)
 				return "This arc connects two port objects";
 			return "This arc connects ports '" + pt1 + "' and '" + pt2 + "'";
@@ -2347,7 +2344,7 @@ public class Manipulate
 		int tot = 1;
 		for(Iterator it = tech.getArcs(); it.hasNext(); )
 		{
-			PrimitiveArc ap = (PrimitiveArc)it.next();
+			ArcProto ap = (ArcProto)it.next();
 			ArcInst ai = ArcInst.makeDummyInstance(ap, 4000);
 			Poly [] polys = tech.getShapeOfArc(ai);
 			tot += polys.length;
@@ -2374,7 +2371,7 @@ public class Manipulate
 		tot = 1;
 		for(Iterator it = tech.getArcs(); it.hasNext(); )
 		{
-			PrimitiveArc ap = (PrimitiveArc)it.next();
+			ArcProto ap = (ArcProto)it.next();
 			arcNames[tot] = ap.getName();
 			arcExtensions[tot] = (ap.isExtended() ? "yes" : "no");
 			arcAngles[tot] = "" + ap.getAngleIncrement();

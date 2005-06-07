@@ -40,20 +40,20 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 
 // ---------------------------- Fill Cell Globals -----------------------------
 class G {
 	public static final double DEF_SIZE = LayoutLib.DEF_SIZE;
-	public static ArcInst noExtendArc(PrimitiveArc pa, double w, 
+	public static ArcInst noExtendArc(ArcProto pa, double w, 
 									   PortInst p1, PortInst p2) {
 		ArcInst ai = LayoutLib.newArcInst(pa, w, p1, p2);
 		ai.setHeadExtended(false);
 		ai.setTailExtended(false);
 		return ai;		
 	}
-	public static ArcInst newArc(PrimitiveArc pa, double w, 
+	public static ArcInst newArc(ArcProto pa, double w, 
 								  PortInst p1, PortInst p2) {
 		return LayoutLib.newArcInst(pa, w, p1, p2);
 	}
@@ -177,14 +177,14 @@ interface VddGndStraps {
 	/** how wide is nth Gnd strap? */ 		double getGndWidth(int n);
 	
 	PrimitiveNode getPinType();
-	PrimitiveArc getMetalType();
+	ArcProto getMetalType();
 	double getCellWidth();
 	double getCellHeight();
 }
 
 // ------------------------------- FillLayerMetal -----------------------------
 class MetalLayer implements VddGndStraps {
-	private static final PrimitiveArc[] METALS = 
+	private static final ArcProto[] METALS = 
 		{null, Tech.m1, Tech.m2, Tech.m3, Tech.m4, Tech.m5, Tech.m6};
 	private static final PrimitiveNode[] PINS = 
 		{null, Tech.m1pin, Tech.m2pin, Tech.m3pin, Tech.m4pin, Tech.m5pin, 
@@ -192,7 +192,7 @@ class MetalLayer implements VddGndStraps {
 	private final MetalFloorplan plan;
 	private final int layerNum;
 	private final PrimitiveNode pin;
-	private final PrimitiveArc metal;
+	private final ArcProto metal;
 	private ArrayList vddPorts = new ArrayList();
 	private ArrayList gndPorts = new ArrayList();
 	private ArrayList vddCenters = new ArrayList();
@@ -302,7 +302,7 @@ class MetalLayer implements VddGndStraps {
 	public double getGndWidth(int n) {return plan.gndWidth;}
 
 	public PrimitiveNode getPinType() {return pin;}
-	public PrimitiveArc getMetalType() {return metal;}
+	public ArcProto getMetalType() {return metal;}
 	public double getCellWidth() {return plan.cellWidth;}
 	public double getCellHeight() {return plan.cellHeight;}
 	public int getLayerNumber() {return layerNum;}
@@ -557,7 +557,7 @@ class CapLayer implements VddGndStraps {
 	public double getGndWidth(int n) {return capCell.getGndWidth();}
 
 	public PrimitiveNode getPinType() {return Tech.m1pin;}
-	public PrimitiveArc getMetalType() {return Tech.m1;}
+	public ArcProto getMetalType() {return Tech.m1;}
 	public double getCellWidth() {return plan.cellWidth;}
 	public double getCellHeight() {return plan.cellHeight;}
 	public int getLayerNumber() {return 1;}
@@ -589,7 +589,7 @@ class FillCell {
 	private void exportStripeEnds(int n, VddGndStraps lay, boolean gnd, Cell cell,
 	StdCellParams stdCell) {
 		PrimitiveNode pin = lay.getPinType();
-		PrimitiveArc metal = lay.getMetalType();
+		ArcProto metal = lay.getMetalType();
 		double edge = (lay.isHorizontal() ? lay.getCellWidth() : lay.getCellHeight())/2;
 		double center = gnd ? lay.getGndCenter(n) : lay.getVddCenter(n);
 		double width = gnd ? lay.getGndWidth(n) : lay.getVddWidth(n);
@@ -607,7 +607,7 @@ class FillCell {
 		}
 	}
 	private void export(double x, double y, PrimitiveNode pin, 
-						PrimitiveArc metal, PortInst conn, double w, 
+						ArcProto metal, PortInst conn, double w, 
 						String name, boolean gnd, Cell cell,
 						StdCellParams stdCell) {
 		PortInst pi = LayoutLib.newNodeInst(pin, x, y, G.DEF_SIZE, G.DEF_SIZE, 
@@ -628,7 +628,7 @@ class FillCell {
 	private void exportStripeCenter(int n, VddGndStraps lay, boolean gnd, Cell cell,
 	StdCellParams stdCell) {
 		PrimitiveNode pin = lay.getPinType();
-		PrimitiveArc metal = lay.getMetalType();
+		ArcProto metal = lay.getMetalType();
 		double center = gnd ? lay.getGndCenter(n) : lay.getVddCenter(n);
 		double width = gnd ? lay.getGndWidth(n) : lay.getVddWidth(n);
 		PortInst pi = gnd ? lay.getGnd(n) : lay.getVdd(n);
@@ -694,11 +694,11 @@ class FillCell {
 								  VddGndStraps verLay, int verNdx, Cell cell) {
 		double w = verLay.getVddWidth(verNdx);
 		double x = verLay.getVddCenter(verNdx);
-		PrimitiveArc verMetal = verLay.getMetalType();
+		ArcProto verMetal = verLay.getMetalType();
 		PortInst verPort = verLay.getVdd(verNdx);
 		double h = horLay.getVddWidth(horNdx);
 		double y = horLay.getVddCenter(horNdx);
-		PrimitiveArc horMetal = horLay.getMetalType();
+		ArcProto horMetal = horLay.getMetalType();
 		PrimitiveNode viaType = Tech.getViaFor(verMetal, horMetal);
 		PortInst horPort = horLay.getVdd(horNdx);
 		LayoutLib.error(viaType==null, "can't find via for metal layers");
@@ -716,11 +716,11 @@ class FillCell {
 								  VddGndStraps verLay, int verNdx, Cell cell) {
 		double w = verLay.getGndWidth(verNdx);
 		double x = verLay.getGndCenter(verNdx);
-		PrimitiveArc verMetal = verLay.getMetalType();
+		ArcProto verMetal = verLay.getMetalType();
 		PortInst verPort = verLay.getGnd(verNdx);
 		double h = horLay.getGndWidth(horNdx);
 		double y = horLay.getGndCenter(horNdx);
-		PrimitiveArc horMetal = horLay.getMetalType();
+		ArcProto horMetal = horLay.getMetalType();
 		PrimitiveNode viaType = Tech.getViaFor(verMetal, horMetal);
 		PortInst horPort = horLay.getGnd(horNdx);
 		LayoutLib.error(viaType==null, "can't find via for metal layers");
@@ -804,11 +804,11 @@ class Router {
 		String y = ""+LayoutLib.roundCenterY(pi);
 		return x+"x"+y;
 	}
-	private boolean bothConnect(PrimitiveArc a, PortProto pp1, PortProto pp2) {
+	private boolean bothConnect(ArcProto a, PortProto pp1, PortProto pp2) {
 		return pp1.connectsTo(a) && pp2.connectsTo(a);
 	}
-	private PrimitiveArc findCommonArc(PortInst p1, PortInst p2) {
-		PrimitiveArc[] metals = {Tech.m6, Tech.m5, Tech.m4, Tech.m3, Tech.m2, Tech.m1};
+	private ArcProto findCommonArc(PortInst p1, PortInst p2) {
+		ArcProto[] metals = {Tech.m6, Tech.m5, Tech.m4, Tech.m3, Tech.m2, Tech.m1};
 		PortProto pp1 = p1.getPortProto();
 		PortProto pp2 = p2.getPortProto();
 		for (int i=0; i<metals.length; i++) {
@@ -825,7 +825,7 @@ class Router {
 			it.remove();
 			for (Iterator it2=ports.iterator(); it2.hasNext();) {
 				PortInst pi = (PortInst) it2.next();
-				PrimitiveArc a = findCommonArc(first, pi);
+				ArcProto a = findCommonArc(first, pi);
 				if (a!=null)  LayoutLib.newArcInst(a, width, first, pi);
 			}
 		}

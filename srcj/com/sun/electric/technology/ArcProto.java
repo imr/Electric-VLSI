@@ -21,31 +21,29 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database.prototype;
+package com.sun.electric.technology;
 
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * The ArcProto class defines a type of ArcInst.
- * It is an abstract class that is implemented as PrimitiveArc (basic arcs from Technologies).
  * <P>
  * Every arc in the database appears as one <I>prototypical</I> object and many <I>instantiative</I> objects.
- * Thus, for a PrimitiveArc such as the CMOS Metal-1 there is one object (called a PrimitiveArc, which is a ArcProto)
+ * Thus, for a ArcProto such as the CMOS Metal-1 there is one object (called a ArcProto)
  * that describes the wire prototype and there are many objects (called ArcInsts),
  * one for every instance of a Metal-1 wire that appears in a circuit.
- * PrimitiveArcs are statically created and placed in the Technology objects.
+ * ArcProtos are statically created and placed in the Technology objects.
  * <P>
- * The basic ArcProto has a name, default width, function, and more.
+ * The basic ArcProto has a name, default width, function, Layers that describes it graphically and more.
  */
-public abstract class ArcProto
+public class ArcProto implements Comparable
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of an ArcProto.
@@ -216,8 +214,10 @@ public abstract class ArcProto
 	/** The offset from width to reported/displayed width. */	protected double widthOffset;
 	/** Flags bits for this ArcProto. */						private int userBits;
 	/** The function of this ArcProto. */						private Function function;
+	/** Layers in this arc */                                   /*private*/ Technology.ArcLayer [] layers;
+	/** Full name */                                            /*private*/ String fullName;
+	/** Index of this ArcProto. */                          int primArcIndex;
 	/** A temporary integer for this ArcProto. */				private int tempInt;
-	/** The temporary flag bits. */								private int flagBits;
 
 	// the meaning of the "userBits" field:
 //	/** these arcs are fixed-length */							private static final int WANTFIX  =            01;
@@ -240,22 +240,64 @@ public abstract class ArcProto
 	// ----------------- protected and private methods -------------------------
 
 	/**
-	 * This constructor should not be called.
-	 * Use the subclass factory methods to create a PrimitiveArc object.
+	 * The constructor is never called.  Use the factory "newInstance" instead.
 	 */
-	protected ArcProto()
+	private ArcProto(Technology tech, String protoName, double defaultWidth, Technology.ArcLayer [] layers)
 	{
+		if (!Technology.jelibSafeName(protoName))
+			System.out.println("ArcProto name " + protoName + " is not safe to write into JELIB");
+		this.protoName = protoName;
+		this.fullName = tech.getTechName() + ":" + protoName;
+		this.widthOffset = 0;
+		this.tech = tech;
 		this.userBits = 0;
 		this.function = Function.UNKNOWN;
+		this.layers = layers;
+		setFactoryDefaultWidth(defaultWidth);
 	}
 
 	// ------------------------ public methods -------------------------------
+
+	/**
+	 * Method to create a new ArcProto from the parameters.
+	 * @param tech the Technology in which to place this ArcProto.
+	 * @param protoName the name of this ArcProto.
+	 * It may not have unprintable characters, spaces, or tabs in it.
+	 * @param defaultWidth the default width of this ArcProto.
+	 * @param layers the Layers that make up this ArcProto.
+	 * @return the newly created ArcProto.
+	 */
+	public static ArcProto newInstance(Technology tech, String protoName, double defaultWidth, Technology.ArcLayer [] layers)
+	{
+		// check the arguments
+		if (tech.findArcProto(protoName) != null)
+		{
+			System.out.println("Error: technology " + tech.getTechName() + " has multiple arcs named " + protoName);
+			return null;
+		}
+		if (defaultWidth < 0.0)
+		{
+			System.out.println("ArcProto " + tech.getTechName() + ":" + protoName + " has negative width");
+			return null;
+		}
+
+		ArcProto ap = new ArcProto(tech, protoName, defaultWidth, layers);
+		tech.addArcProto(ap);
+		return ap;
+	}
 
 	/**
 	 * Method to return the name of this ArcProto.
 	 * @return the name of this ArcProto.
 	 */
 	public String getName() { return protoName; }
+
+	/**
+	 * Method to return the full name of this ArcProto.
+	 * Full name has format "techName:primName"
+	 * @return the full name of this ArcProto.
+	 */
+	public String getFullName() { return fullName; }
 
 	/**
 	 * Method to return the Technology of this ArcProto.
@@ -276,7 +318,7 @@ public abstract class ArcProto
 
 	/**
 	 * Method to set the factory-default width of this ArcProto.
-	 * This is only called from PrimitiveArc during construction.
+	 * This is only called from ArcProto during construction.
 	 * @param defaultWidth the factory-default width of this ArcProto.
 	 */
 	protected void setFactoryDefaultWidth(double defaultWidth) { getArcProtoWidthPref(defaultWidth); }
@@ -635,7 +677,7 @@ public abstract class ArcProto
 
 	/**
 	 * Method to set the factory-default angle of this ArcProto.
-	 * This is only called from PrimitiveArc during construction.
+	 * This is only called from ArcProto during construction.
 	 * @param angle the factory-default angle of this ArcProto.
 	 */
 	public void setFactoryAngleIncrement(int angle)
@@ -674,17 +716,72 @@ public abstract class ArcProto
 		return pref.getInt();
 	}
 
-	/**
-	 * Method to set an arbitrary integer in a temporary location on this ArcProto.
-	 * @param tempInt the integer to be set on this ArcProto.
-	 */
-	public void setTempInt(int tempInt) { this.tempInt = tempInt; }
+	HashMap arcPinPrefs = new HashMap();
+
+	private Pref getArcPinPref()
+	{
+		Pref pref = (Pref)arcPinPrefs.get(this);
+		if (pref == null)
+		{
+			pref = Pref.makeStringPref("PinFor" + protoName + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), "");
+			arcPinPrefs.put(this, pref);
+		}
+		return pref;
+	}
 
 	/**
-	 * Method to get the temporary integer on this ArcProto.
-	 * @return the temporary integer on this ArcProto.
+	 * Method to set the default pin node to use for this ArcProto.
+	 * The pin node is used for making bends in wires.
+	 * It must have just 1 port in the center, and be able to connect
+	 * to this type of arc.
+	 * @param np the default pin node to use for this ArcProto.
 	 */
-	public int getTempInt() { return tempInt; }
+	public void setPinProto(PrimitiveNode np)
+	{
+		Pref pref = getArcPinPref();
+		pref.setString(np.getName());
+	}
+
+	/**
+	 * Method to find the PrimitiveNode pin corresponding to this ArcProto type.
+	 * Users can override the pin to use, and this method returns the user setting.
+	 * For example, if this ArcProto is metal-1 then return the Metal-1-pin,
+	 * but the user could set it to Metal-1-Metal-2-Contact.
+	 * @return the PrimitiveNode pin to use for arc bends.
+	 */
+	public PrimitiveNode findOverridablePinProto()
+	{
+		// see if there is a default on this arc proto
+		Pref pref = getArcPinPref();
+		String primName = pref.getString();
+		if (primName != null && primName.length() > 0)
+		{
+			PrimitiveNode np = tech.findNodeProto(primName);
+			if (np != null) return np;
+		}
+		return findPinProto();
+	}
+
+	/**
+	 * Method to find the PrimitiveNode pin corresponding to this ArcProto type.
+	 * For example, if this ArcProto is metal-1 then return the Metal-1-pin.
+	 * @return the PrimitiveNode pin to use for arc bends.
+	 */
+	public PrimitiveNode findPinProto()
+	{
+		// search for an appropriate pin
+		Iterator it = tech.getNodes();
+		while (it.hasNext())
+		{
+			PrimitiveNode pn = (PrimitiveNode) it.next();
+			if (pn.isPin())
+			{
+				PrimitivePort pp = (PrimitivePort) pn.getPorts().next();
+				if (pp.connectsTo(this)) return pn;
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Method to find the ArcProto with the given name.
@@ -705,10 +802,93 @@ public abstract class ArcProto
 			withoutPrefix = line.substring(colon+1);
 		}
 
-		PrimitiveArc ap = tech.findArcProto(withoutPrefix);
+		ArcProto ap = tech.findArcProto(withoutPrefix);
 		if (ap != null) return ap;
 		return null;
 	}
+
+	/**
+	 * Method to return the array of layers that comprise this ArcProto.
+	 * @return the array of layers that comprise this ArcProto.
+	 */
+	public Technology.ArcLayer [] getLayers() { return layers; }
+
+	/**
+	 * Method to return an iterator over the layers in this ArcProto.
+	 * @return an iterator over the layers in this ArcProto.
+	 */
+	public Iterator layerIterator()
+	{
+		return new LayerIterator(layers);
+	}
+
+	/** 
+	 * Iterator for Layers on this ArcProto
+	 */ 
+	public static class LayerIterator implements Iterator 
+	{ 
+		Technology.ArcLayer [] array; 
+		int pos; 
+
+		public LayerIterator(Technology.ArcLayer [] a) 
+		{ 
+			array = a; 
+			pos = 0; 
+		} 
+
+		public boolean hasNext() 
+		{ 
+			return pos < array.length; 
+		} 
+
+		public Object next() throws NoSuchElementException 
+		{ 
+			if (pos >= array.length) 
+				throw new NoSuchElementException(); 
+			return array[pos++].getLayer(); 
+		} 
+
+		public void remove() throws UnsupportedOperationException, IllegalStateException 
+		{ 
+			throw new UnsupportedOperationException(); 
+		}
+	}
+
+	/**
+	 * Method to find the ArcLayer on this ArcProto with a given Layer.
+	 * If there are more than 1 with the given Layer, the first is returned.
+	 * @param layer the Layer to find.
+	 * @return the ArcLayer that has this Layer.
+	 */
+	public Technology.ArcLayer findArcLayer(Layer layer)
+	{
+		for(int j=0; j<layers.length; j++)
+		{
+			Technology.ArcLayer oneLayer = layers[j];
+			if (oneLayer.getLayer() == layer) return oneLayer;
+		}
+		return null;
+	}
+    
+    /**
+	 * Method to get MinZ and MaxZ of this ArcProto
+	 * @param array array[0] is minZ and array[1] is max
+	 */
+	public void getZValues(double [] array)
+	{
+		for(int j=0; j<layers.length; j++)
+		{
+			Layer layer = layers[j].getLayer();
+
+			double distance = layer.getDistance();
+			double thickness = layer.getThickness();
+			double z = distance + thickness;
+
+			array[0] = (array[0] > distance) ? distance : array[0];
+			array[1] = (array[1] < z) ? z : array[1];
+		}
+	}
+
 
 	/**
 	 * Method to describe this ArcProto as a string.
@@ -718,15 +898,28 @@ public abstract class ArcProto
 	 */
 	public String describe()
 	{
-		String description = "";
-		if (this instanceof PrimitiveArc)
+        String description = "";
+        Technology tech = getTechnology();
+        if (Technology.getCurrent() != tech)
+            description += tech.getTechName() + ":";
+        description += protoName;
+        return description;
+	}
+
+    /**
+     * Compares ArcProtos by their Technologies and definition order.
+     * @param obj the other ArcProto.
+     * @return a comparison between the ArcProto.
+     */
+	public int compareTo(Object obj)
+	{
+		ArcProto that = (ArcProto)obj;
+		if (this.tech != that.tech)
 		{
-			Technology tech = ((PrimitiveArc)this).getTechnology();
-			if (Technology.getCurrent() != tech)
-				description += tech.getTechName() + ":";
+			int cmp = this.tech.compareTo(that.tech);
+			if (cmp != 0) return cmp;
 		}
-		description += protoName;
-		return description;
+		return this.primArcIndex - that.primArcIndex;
 	}
 
 	/**

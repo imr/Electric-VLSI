@@ -24,14 +24,10 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.io.output;
-
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
@@ -44,7 +40,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -64,7 +60,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import javax.swing.JOptionPane;
 
@@ -363,7 +358,7 @@ public class ELIB extends Output
 			writeBigInteger(primArcCounts[techCount]);
 			for(Iterator ait = tech.getArcs(); ait.hasNext(); )
 			{
-				PrimitiveArc ap = (PrimitiveArc)ait.next();
+				ArcProto ap = (ArcProto)ait.next();
 				if (!objInfo.containsKey(ap)) continue;
 				writeString(ap.getName());
 			}
@@ -655,7 +650,7 @@ public class ELIB extends Output
 				Connection con = (Connection)it.next();
 				ArcInst ai = con.getArc();
 				int i = ((Integer)objInfo.get(ai)).intValue() << 1;
-				if (ai.getHead() == con) i++;
+				if (con.getEndIndex() == ArcInst.HEADEND) i++;
 				writeBigInteger(i);
 
 				// write the portinst prototype
@@ -709,16 +704,16 @@ public class ELIB extends Output
 		writeBigInteger((int)Math.round(ai.getWidth() * tech.getScale()*2));
 
 		// write the arcinst tail information
-		Point2D location = ai.getTail().getLocation();
+		Point2D location = ai.getTailLocation();
 		writeBigInteger((int)Math.round(location.getX() * tech.getScale()*2));
 		writeBigInteger((int)Math.round(location.getY() * tech.getScale()*2));
-		writeObj(ai.getTail().getPortInst().getNodeInst());
+		writeObj(ai.getTailPortInst().getNodeInst());
 
 		// write the arcinst head information
-		location = ai.getHead().getLocation();
+		location = ai.getHeadLocation();
 		writeBigInteger((int)Math.round(location.getX() * tech.getScale()*2));
 		writeBigInteger((int)Math.round(location.getY() * tech.getScale()*2));
-		writeObj(ai.getHead().getPortInst().getNodeInst());
+		writeObj(ai.getHeadPortInst().getNodeInst());
 
 		// write the arcinst's tool information
 		int arcAngle = ai.getAngle() / 10;

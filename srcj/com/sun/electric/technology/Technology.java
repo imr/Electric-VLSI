@@ -27,7 +27,6 @@ import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
@@ -82,8 +81,8 @@ import java.util.prefs.Preferences;
  * Both nodes and arcs are composed of Layers.
  *<P>
  * Subclasses of Technology usually start by defining the Layers (such as Metal-1, Metal-2, etc.)
- * Then the PrimitiveArc objects are created, built entirely from Layers.
- * Next PrimitiveNode objects are created, and they have Layers as well as connectivity to the PrimitiveArcs.
+ * Then the ArcProto objects are created, built entirely from Layers.
+ * Next PrimitiveNode objects are created, and they have Layers as well as connectivity to the ArcProtos.
  * The Technology concludes with miscellaneous data assignments of technology-wide information.
  * <P>
  * Here are the nodes in a sample CMOS technology.
@@ -111,10 +110,10 @@ import java.util.prefs.Preferences;
 public class Technology implements Comparable
 {
     /**
-	 * Defines a single layer of a PrimitiveArc.
-	 * A PrimitiveArc has a list of these ArcLayer objects, one for
+	 * Defines a single layer of a ArcProto.
+	 * A ArcProto has a list of these ArcLayer objects, one for
 	 * each layer in a typical ArcInst.
-	 * Each PrimitiveArc is composed of a number of ArcLayer descriptors.
+	 * Each ArcProto is composed of a number of ArcLayer descriptors.
 	 * A descriptor converts a specific ArcInst into a polygon that describe this particular layer.
 	 */
 	public static class ArcLayer
@@ -678,7 +677,7 @@ public class Technology implements Comparable
 		HashMap arcWidths = new HashMap();
 		for(Iterator it = getArcs(); it.hasNext(); )
 		{
-			PrimitiveArc ap = (PrimitiveArc)it.next();
+			ArcProto ap = (ArcProto)it.next();
 			double width = ap.getDefaultWidth();
 			arcWidths.put(ap, new Double(width));
 		}
@@ -699,7 +698,7 @@ public class Technology implements Comparable
 		// now restore arc width defaults if they are wider than what is set
 		for(Iterator it = getArcs(); it.hasNext(); )
 		{
-			PrimitiveArc ap = (PrimitiveArc)it.next();
+			ArcProto ap = (ArcProto)it.next();
 			Double origWidth = (Double)arcWidths.get(ap);
 			if (origWidth == null) continue;
 			double width = ap.getDefaultWidth();
@@ -947,19 +946,19 @@ public class Technology implements Comparable
 	/****************************** ARCS ******************************/
 
 	/**
-	 * Returns the PrimitiveArc in this technology with a particular name.
-	 * @param name the name of the PrimitiveArc.
-	 * @return the PrimitiveArc in this technology with that name.
+	 * Returns the ArcProto in this technology with a particular name.
+	 * @param name the name of the ArcProto.
+	 * @return the ArcProto in this technology with that name.
 	 */
-	public PrimitiveArc findArcProto(String name)
+	public ArcProto findArcProto(String name)
 	{
 		if (name == null) return null;
-		PrimitiveArc primArc = (PrimitiveArc)arcs.get(name);
+		ArcProto primArc = (ArcProto)arcs.get(name);
 		if (primArc != null) return primArc;
 
 		for (Iterator it = getArcs(); it.hasNext(); )
 		{
-			PrimitiveArc ap = (PrimitiveArc) it.next();
+			ArcProto ap = (ArcProto) it.next();
 			if (ap.getName().equalsIgnoreCase(name))
 				return ap;
 		}
@@ -967,8 +966,8 @@ public class Technology implements Comparable
 	}
 
 	/**
-	 * Returns an Iterator on the PrimitiveArc objects in this technology.
-	 * @return an Iterator on the PrimitiveArc objects in this technology.
+	 * Returns an Iterator on the ArcProto objects in this technology.
+	 * @return an Iterator on the ArcProto objects in this technology.
 	 */
 	public Iterator getArcs()
 	{
@@ -976,8 +975,8 @@ public class Technology implements Comparable
 	}
 
 	/**
-	 * Returns the number of PrimitiveArc objects in this technology.
-	 * @return the number of PrimitiveArc objects in this technology.
+	 * Returns the number of ArcProto objects in this technology.
+	 * @return the number of ArcProto objects in this technology.
 	 */
 	public int getNumArcs()
 	{
@@ -985,11 +984,11 @@ public class Technology implements Comparable
 	}
 
 	/**
-	 * Method to add a new PrimitiveArc to this Technology.
+	 * Method to add a new ArcProto to this Technology.
 	 * This is usually done during initialization.
-	 * @param ap the PrimitiveArc to be added to this Technology.
+	 * @param ap the ArcProto to be added to this Technology.
 	 */
-	public void addArcProto(PrimitiveArc ap)
+	public void addArcProto(ArcProto ap)
 	{
 		assert findArcProto(ap.getName()) == null;
 		ap.primArcIndex = arcs.size();
@@ -1067,7 +1066,7 @@ public class Technology implements Comparable
 	public Poly [] getShapeOfArc(ArcInst ai, EditWindow wnd, Layer layerOverride, List onlyTheseLayers)
 	{
 		// get information about the arc
-		PrimitiveArc ap = (PrimitiveArc)ai.getProto();
+		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
 		ArcLayer [] primLayers = ap.getLayers();
 
@@ -1237,9 +1236,9 @@ public class Technology implements Comparable
 	 * By default, there is nothing to be done, because by the time this
 	 * method is called, normal searches have failed.
 	 * @param name the unknown arc name, read from an old Library.
-	 * @return the proper PrimitiveArc to use for this name.
+	 * @return the proper ArcProto to use for this name.
 	 */
-	public PrimitiveArc convertOldArcName(String name) { return null; }
+	public ArcProto convertOldArcName(String name) { return null; }
 
 	/****************************** NODES ******************************/
 
@@ -3378,7 +3377,7 @@ public class Technology implements Comparable
 	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
 	 * in arc "aty" to "surround".
 	 */
-	protected void setArcLayerSurroundLayer(PrimitiveArc aty, Layer outerLayer, Layer innerLayer,
+	protected void setArcLayerSurroundLayer(ArcProto aty, Layer outerLayer, Layer innerLayer,
 	                                        double surround)
 	{
 		// find the inner layer
@@ -3412,7 +3411,7 @@ public class Technology implements Comparable
 	protected void setLayerMinWidth(String layername, String rulename, double width)
 	{
 		// find the arc and set its default width
-		PrimitiveArc ap = findArcProto(layername);
+		ArcProto ap = findArcProto(layername);
 		if (ap == null) return;
 
 		boolean hasChanged = false;
@@ -3528,9 +3527,9 @@ public class Technology implements Comparable
             {
                 Object obj = objs[0];
                 boolean valid = true;
-                if (obj instanceof PrimitiveArc)
+                if (obj instanceof ArcProto)
                 {
-                    PrimitiveArc ap = (PrimitiveArc)obj;
+                    ArcProto ap = (ArcProto)obj;
                     valid = !ap.isNotUsed();
                 }
                 if (valid)

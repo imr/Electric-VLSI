@@ -30,7 +30,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
@@ -39,10 +38,10 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
@@ -244,7 +243,7 @@ public class LibToTech
 			Technology.ArcLayer [] arcLayers = new Technology.ArcLayer[ad.length];
 			for(int j=0; j<ad.length; j++)
 				arcLayers[j] = new Technology.ArcLayer(ad[j].layer.generated, ad[j].width, ad[j].style);
-			PrimitiveArc newArc = PrimitiveArc.newInstance(tech, aList[i].name, aList[i].maxWidth, arcLayers);
+			ArcProto newArc = ArcProto.newInstance(tech, aList[i].name, aList[i].maxWidth, arcLayers);
 			newArc.setFunction(aList[i].func);
 			newArc.setFactoryFixedAngle(aList[i].fixAng);
 			if (aList[i].wipes) newArc.setWipable(); else newArc.clearWipable();
@@ -2558,15 +2557,14 @@ public class LibToTech
 		// write imports
 		buffWriter.println("import com.sun.electric.database.geometry.EGraphics;");
 		buffWriter.println("import com.sun.electric.database.geometry.Poly;");
-		buffWriter.println("import com.sun.electric.database.prototype.ArcProto;");
 		buffWriter.println("import com.sun.electric.database.prototype.PortCharacteristic;");
 		buffWriter.println("import com.sun.electric.database.prototype.PortProto;");
 		buffWriter.println("import com.sun.electric.database.prototype.NodeProto;");
+		buffWriter.println("import com.sun.electric.technology.ArcProto;");
 		buffWriter.println("import com.sun.electric.technology.DRCRules;");
 		buffWriter.println("import com.sun.electric.technology.EdgeH;");
 		buffWriter.println("import com.sun.electric.technology.EdgeV;");
 		buffWriter.println("import com.sun.electric.technology.Layer;");
-		buffWriter.println("import com.sun.electric.technology.PrimitiveArc;");
 		buffWriter.println("import com.sun.electric.technology.PrimitiveNode;");
 		buffWriter.println("import com.sun.electric.technology.PrimitivePort;");
 		buffWriter.println("import com.sun.electric.technology.SizeOffset;");
@@ -2877,7 +2875,7 @@ public class LibToTech
 		{
 			aList[i].javaName = makeJavaName(aList[i].name);
 			buffWriter.println("\n\t\t/** " + aList[i].name + " arc */");
-			buffWriter.println("\t\tPrimitiveArc " + aList[i].javaName + "_arc = PrimitiveArc.newInstance(this, \"" +
+			buffWriter.println("\t\tArcProto " + aList[i].javaName + "_arc = ArcProto.newInstance(this, \"" +
 				aList[i].name + "\", " + TextUtils.formatDouble(aList[i].maxWidth) + ", new Technology.ArcLayer []");
 			buffWriter.println("\t\t{");
 			for(int k=0; k<aList[i].arcDetails.length; k++)

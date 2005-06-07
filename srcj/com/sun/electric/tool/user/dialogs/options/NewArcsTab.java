@@ -25,7 +25,7 @@ package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -84,11 +84,11 @@ public class NewArcsTab extends PreferencePanel
 			arcPin.addItem(np.getName());
 		}
 
-		// gather information about the PrimitiveArcs in the current Technology
+		// gather information about the ArcProtos in the current Technology
 		initialNewArcsPrimInfo = new HashMap();
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
 		{
-			PrimitiveArc ap = (PrimitiveArc)it.next();
+			ArcProto ap = (ArcProto)it.next();
 			PrimArcInfo pai = new PrimArcInfo();
 
 			pai.initialRigid = pai.rigid = ap.isRigid();
@@ -150,7 +150,7 @@ public class NewArcsTab extends PreferencePanel
 	private void newArcsPrimPopupChanged()
 	{
 		String primName = (String)arcProtoList.getSelectedItem();
-		PrimitiveArc ap = curTech.findArcProto(primName);
+		ArcProto ap = curTech.findArcProto(primName);
 		PrimArcInfo pai = (PrimArcInfo)initialNewArcsPrimInfo.get(ap);
 		if (pai == null) return;
 
@@ -189,7 +189,7 @@ public class NewArcsTab extends PreferencePanel
 	{
 		if (newArcsDataChanging) return;
 		String primName = (String)arcProtoList.getSelectedItem();
-		PrimitiveArc ap = curTech.findArcProto(primName);
+		ArcProto ap = curTech.findArcProto(primName);
 		PrimArcInfo pai = (PrimArcInfo)initialNewArcsPrimInfo.get(ap);
 		if (pai == null) return;
 
@@ -220,7 +220,7 @@ public class NewArcsTab extends PreferencePanel
 	{
 		for(Iterator it = curTech.getArcs(); it.hasNext(); )
 		{
-			PrimitiveArc ap = (PrimitiveArc)it.next();
+			ArcProto ap = (ArcProto)it.next();
 			PrimArcInfo pai = (PrimArcInfo)initialNewArcsPrimInfo.get(ap);
 			if (pai.rigid != pai.initialRigid)
 				ap.setRigid(pai.rigid);

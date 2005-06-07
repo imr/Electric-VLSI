@@ -23,19 +23,11 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.geometry.GenMath;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.extract.LayerCoverage;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;

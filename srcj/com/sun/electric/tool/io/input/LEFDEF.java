@@ -25,12 +25,11 @@
  */
 package com.sun.electric.tool.io.input;
 
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 
@@ -214,7 +213,7 @@ public class LEFDEF extends Input
 					if (ap.getFunction() == arcFun)
 					{
 						arc = ap;
-						pin = ((PrimitiveArc)ap).findPinProto();
+						pin = ap.findPinProto();
 						break;
 					}
 				}

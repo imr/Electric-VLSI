@@ -24,11 +24,10 @@
 package com.sun.electric.tool.generator.layout;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 
 class ViaStack {
@@ -82,7 +81,7 @@ class ViaStack {
 		int h2 = Tech.layerHeight(arc2);
 		int deltaZ = h2 - h1;
 		if (arc1==arc2) {
-			NodeProto pin = ((PrimitiveArc)arc1).findOverridablePinProto(); 
+			NodeProto pin = arc1.findOverridablePinProto(); 
 			double defSz = LayoutLib.DEF_SIZE;
 			NodeInst pinInst = LayoutLib.newNodeInst(pin,x,y,defSz,defSz,0,f); 
 			port1 =	port2 = pinInst.getOnlyPortInst();

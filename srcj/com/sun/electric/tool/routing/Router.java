@@ -26,7 +26,6 @@ package com.sun.electric.tool.routing;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
@@ -34,7 +33,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
@@ -290,7 +289,7 @@ public abstract class Router {
                 Technology anyTech = (Technology)it.next();
                 for(Iterator aIt = anyTech.getArcs(); aIt.hasNext(); )
                 {
-                    PrimitiveArc ap = (PrimitiveArc)aIt.next();
+                    ArcProto ap = (ArcProto)aIt.next();
                     if (pp1.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
                 }
             }
@@ -312,7 +311,7 @@ public abstract class Router {
                 Technology anyTech = (Technology)it.next();
                 for(Iterator aIt = anyTech.getArcs(); aIt.hasNext(); )
                 {
-                    PrimitiveArc ap = (PrimitiveArc)aIt.next();
+                    ArcProto ap = (ArcProto)aIt.next();
                     if (pp1.connectsTo(ap) && pp2.connectsTo(ap) && ap != uni && ap != invis && ap != unr) return ap;
                 }
             }
@@ -465,8 +464,8 @@ public abstract class Router {
                 Connection conn = (Connection)it.next();
                 ArcInst arc = conn.getArc();
 
-                Point2D head = arc.getHead().getLocation();
-                Point2D tail = arc.getTail().getLocation();
+                Point2D head = arc.getHeadLocation();
+                Point2D tail = arc.getTailLocation();
 
                 // use width of widest arc
                 double newWidth = arc.getWidth() - arc.getProto().getWidthOffset();

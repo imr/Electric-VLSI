@@ -32,14 +32,13 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -448,7 +447,7 @@ public class Maze
 		}
 		mazeVertWire = routingArc;
 		mazeHorizWire = routingArc;
-		mazeSteinerNode = ((PrimitiveArc)routingArc).findPinProto();
+		mazeSteinerNode = routingArc.findPinProto();
 
 		// initialize all layers and ports for this route
 		for (int index = 0; index < SRMAXLAYERS; index++)

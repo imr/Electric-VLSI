@@ -29,7 +29,7 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -169,7 +169,7 @@ public class MimicStitch
 				ArcInst ai = lastActivity.createdArcs[i];
 				for(int e=0; e<2; e++)
 				{
-					NodeInst ni = ai.getConnection(e).getPortInst().getNodeInst();
+					NodeInst ni = ai.getPortInst(e).getNodeInst();
 					if (!gotMany.contains(ni))
 					{
 						if (!gotOne.contains(ni)) gotOne.add(ni); else
@@ -188,7 +188,7 @@ public class MimicStitch
 				ArcInst ai = lastActivity.createdArcs[i];
 				for(int e=0; e<2; e++)
 				{
-					NodeInst ni = ai.getConnection(e).getPortInst().getNodeInst();
+					NodeInst ni = ai.getPortInst(e).getNodeInst();
 					if (!gotOne.contains(ni)) continue;
 					if (foundEnds < 2)
 					{
@@ -241,8 +241,8 @@ public class MimicStitch
 	private static void ro_mimicdelete(ArcProto typ, Routing.Activity activity)
 	{
 		// determine length of deleted arc
-		Point2D pt0 = activity.deletedArcs[0].getHead().getLocation();
-		Point2D pt1 = activity.deletedArcs[0].getTail().getLocation();
+		Point2D pt0 = activity.deletedArcs[0].getHeadLocation();
+		Point2D pt1 = activity.deletedArcs[0].getTailLocation();
 		double dist = pt0.distance(pt1);
 		int angle = 0;
 		if (dist != 0) angle = DBMath.figureAngle(pt0, pt1);
@@ -258,19 +258,19 @@ public class MimicStitch
 
 			// arc must connect to the same type of node/port
 			int match = 0;
-			if (ai.getHead().getPortInst().getNodeInst().getProto() == activity.deletedNodes[0].getProto() &&
-				ai.getTail().getPortInst().getNodeInst().getProto() == activity.deletedNodes[1].getProto() &&
-				ai.getHead().getPortInst().getPortProto() == activity.deletedPorts[0] &&
-				ai.getTail().getPortInst().getPortProto() == activity.deletedPorts[1]) match = 1;
-			if (ai.getHead().getPortInst().getNodeInst().getProto() == activity.deletedNodes[1].getProto() &&
-				ai.getTail().getPortInst().getNodeInst().getProto() == activity.deletedNodes[0].getProto() &&
-				ai.getHead().getPortInst().getPortProto() == activity.deletedPorts[1] &&
-				ai.getTail().getPortInst().getPortProto() == activity.deletedPorts[0]) match = -1;
+			if (ai.getHeadPortInst().getNodeInst().getProto() == activity.deletedNodes[0].getProto() &&
+				ai.getTailPortInst().getNodeInst().getProto() == activity.deletedNodes[1].getProto() &&
+				ai.getHeadPortInst().getPortProto() == activity.deletedPorts[0] &&
+				ai.getTailPortInst().getPortProto() == activity.deletedPorts[1]) match = 1;
+			if (ai.getHeadPortInst().getNodeInst().getProto() == activity.deletedNodes[1].getProto() &&
+				ai.getTailPortInst().getNodeInst().getProto() == activity.deletedNodes[0].getProto() &&
+				ai.getHeadPortInst().getPortProto() == activity.deletedPorts[1] &&
+				ai.getTailPortInst().getPortProto() == activity.deletedPorts[0]) match = -1;
 			if (match == 0) continue;
 
 			// must be the same length and angle
-			Point2D end0 = ai.getHead().getLocation();
-			Point2D end1 = ai.getTail().getLocation();
+			Point2D end0 = ai.getHeadLocation();
+			Point2D end1 = ai.getTailLocation();
 			double thisDist = end0.distance(end1);
 			if (dist != thisDist) continue;
 			if (dist != 0)
@@ -559,21 +559,21 @@ public class MimicStitch
 								piNet0 = aPi;
 								if (desiredAngle < 0)
 								{
-									if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
-										oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
+									if (oAi.getHeadLocation().getX() == oAi.getTailLocation().getX() &&
+										oAi.getHeadLocation().getY() == oAi.getTailLocation().getY())
 									{
 										situation |= LIKELYARCSSAMEDIR;
 										break;
 									}
 								} else
 								{
-									if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
-										oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
+									if (oAi.getHeadLocation().getX() == oAi.getTailLocation().getX() &&
+										oAi.getHeadLocation().getY() == oAi.getTailLocation().getY())
 											continue;
 									int thisend = 0;
-									if (oAi.getTail().getPortInst() == aPi) thisend = 1;
-									int existingAngle = DBMath.figureAngle(oAi.getConnection(thisend).getLocation(),
-										oAi.getConnection(1-thisend).getLocation());
+									if (oAi.getTailPortInst() == aPi) thisend = 1;
+									int existingAngle = DBMath.figureAngle(oAi.getLocation(thisend),
+										oAi.getLocation(1-thisend));
 									if (existingAngle == desiredAngle)
 									{
 										situation |= LIKELYARCSSAMEDIR;
@@ -595,21 +595,21 @@ public class MimicStitch
 								piNet1 = aPi;
 								if (desiredAngle < 0)
 								{
-									if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
-										oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
+									if (oAi.getHeadLocation().getX() == oAi.getTailLocation().getX() &&
+										oAi.getHeadLocation().getY() == oAi.getTailLocation().getY())
 									{
 										situation |= LIKELYARCSSAMEDIR;
 										break;
 									}
 								} else
 								{
-									if (oAi.getHead().getLocation().getX() == oAi.getTail().getLocation().getX() &&
-										oAi.getHead().getLocation().getY() == oAi.getTail().getLocation().getY())
+									if (oAi.getHeadLocation().getX() == oAi.getTailLocation().getX() &&
+										oAi.getHeadLocation().getY() == oAi.getTailLocation().getY())
 											continue;
 									int thisend = 0;
-									if (oAi.getTail().getPortInst() == aPi) thisend = 1;
-									int existingAngle = DBMath.figureAngle(oAi.getConnection(thisend).getLocation(),
-											oAi.getConnection(1-thisend).getLocation());
+									if (oAi.getTailPortInst() == aPi) thisend = 1;
+									int existingAngle = DBMath.figureAngle(oAi.getLocation(thisend),
+											oAi.getLocation(1-thisend));
 									if (existingAngle == desiredAngle)
 									{
 										situation |= LIKELYARCSSAMEDIR;

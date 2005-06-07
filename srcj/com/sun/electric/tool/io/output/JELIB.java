@@ -32,9 +32,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -46,9 +44,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 
@@ -56,16 +53,10 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.TreeMap;
-import java.util.TreeSet;
+
 
 /**
  * Class to write a library to disk in new Electric-Library format.
@@ -313,7 +304,7 @@ public class JELIB extends Output
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
-				PrimitiveArc ap = (PrimitiveArc)ai.getProto();
+				ArcProto ap = ai.getProto();
 				if (cell.getTechnology() == ap.getTechnology())
 					printWriter.print("A" + convertString(ap.getName()));
 				else
@@ -340,14 +331,13 @@ public class JELIB extends Output
 				for(int e=1; e >= 0; e--)
 //				for(int e=0; e<2; e++)
 				{
-					Connection con = ai.getConnection(e);
-					NodeInst ni = con.getPortInst().getNodeInst();
+					NodeInst ni = ai.getPortInst(e).getNodeInst();
 					printWriter.print("|" + objInfo.get(ni) + "|");
-					PortProto pp = con.getPortInst().getPortProto();
+					PortProto pp = ai.getPortInst(e).getPortProto();
 					if (ni.getProto().getNumPorts() > 1)
 						printWriter.print(convertString(pp.getName()));
-					printWriter.print("|" + TextUtils.formatDouble(con.getLocation().getX(), 0));
-					printWriter.print("|" + TextUtils.formatDouble(con.getLocation().getY(), 0));
+					printWriter.print("|" + TextUtils.formatDouble(ai.getLocation(e).getX(), 0));
+					printWriter.print("|" + TextUtils.formatDouble(ai.getLocation(e).getY(), 0));
 				}
 				printlnVars(ai, cell);
 			}
@@ -739,9 +729,9 @@ public class JELIB extends Output
 			infstr.append(convertString(np.getFullName(), inArray));
 			return;
 		}
-		if (obj instanceof PrimitiveArc)
+		if (obj instanceof ArcProto)
 		{
-			PrimitiveArc ap = (PrimitiveArc)obj;
+			ArcProto ap = (ArcProto)obj;
 			infstr.append(convertString(ap.getFullName(), inArray));
 			return;
 		}

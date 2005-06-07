@@ -25,7 +25,7 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -199,17 +199,25 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		PortInst pi = getOriginalPort();
 		NodeInst ni = pi.getNodeInst();
 		Rectangle2D nodeBounds = ni.getBounds();
-		for(Iterator it = ni.getConnections(); it.hasNext(); )
+		for(Iterator it = pi.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
-			if (con.getPortInst() == pi)
-			{
-				ArcInst ai = con.getArc();
-				Rectangle2D arcBounds = ai.getBounds();
-				dx = arcBounds.getCenterX() - nodeBounds.getCenterX();
-				dy = arcBounds.getCenterY() - nodeBounds.getCenterY();
-			}
+			ArcInst ai = con.getArc();
+			Rectangle2D arcBounds = ai.getBounds();
+			dx = arcBounds.getCenterX() - nodeBounds.getCenterX();
+			dy = arcBounds.getCenterY() - nodeBounds.getCenterY();
 		}
+//		for(Iterator it = ni.getConnections(); it.hasNext(); )
+//		{
+//			Connection con = (Connection)it.next();
+//			if (con.getPortInst() == pi)
+//			{
+//				ArcInst ai = con.getArc();
+//				Rectangle2D arcBounds = ai.getBounds();
+//				dx = arcBounds.getCenterX() - nodeBounds.getCenterX();
+//				dy = arcBounds.getCenterY() - nodeBounds.getCenterY();
+//			}
+//		}
 
 		// first move placement horizontally
 		if (smartHorizontal == 2)
@@ -913,10 +921,14 @@ public class Export extends ElectricObject implements PortProto, Comparable
 			NodeInst ni = (NodeInst)it.next();
 
 			// make sure all arcs on this port can connect
-			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+            PortInst pi = ni.findPortInstFromProto(this);
+			for(Iterator cIt = pi.getConnections(); cIt.hasNext(); )
 			{
 				Connection con = (Connection)cIt.next();
-				if (con.getPortInst().getPortProto() != this) continue;
+//			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+//			{
+//				Connection con = (Connection)cIt.next();
+//				if (con.getPortInst().getPortProto() != this) continue;
 				if (!newPP.connectsTo(con.getArc().getProto()))
 				{
 					System.out.println(con.getArc().describe() + " arc in cell " + ni.getParent().describe() +

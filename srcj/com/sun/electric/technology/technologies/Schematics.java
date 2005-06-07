@@ -30,7 +30,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
@@ -41,10 +40,10 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
@@ -112,8 +111,8 @@ public class Schematics extends Technology
 
 	/** the node layer */				public Layer node_lay;
 
-	/** wire arc */						public PrimitiveArc wire_arc;
-	/** bus arc */						public PrimitiveArc bus_arc;
+	/** wire arc */						public ArcProto wire_arc;
+	/** bus arc */						public ArcProto bus_arc;
 
 	/** wire-pin */						public PrimitiveNode wirePinNode;
 	/** bus-pin */						public PrimitiveNode busPinNode;
@@ -305,21 +304,21 @@ public class Schematics extends Technology
 		//**************************************** ARCS ****************************************
 
 		/** wire arc */
-		wire_arc = PrimitiveArc.newInstance(this, "wire", 0.0, new Technology.ArcLayer []
+		wire_arc = ArcProto.newInstance(this, "wire", 0.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(arc_lay, 0, Poly.Type.FILLED)
 		});
-		wire_arc.setFunction(PrimitiveArc.Function.METAL1);
+		wire_arc.setFunction(ArcProto.Function.METAL1);
 		wire_arc.setFactoryFixedAngle(true);
 		wire_arc.setFactorySlidable(false);
 		wire_arc.setFactoryAngleIncrement(45);
 
 		/** bus arc */
-		bus_arc = PrimitiveArc.newInstance(this, "bus", 1.0, new Technology.ArcLayer []
+		bus_arc = ArcProto.newInstance(this, "bus", 1.0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(bus_lay, 0, Poly.Type.FILLED)
 		});
-		bus_arc.setFunction(PrimitiveArc.Function.BUS);
+		bus_arc.setFunction(ArcProto.Function.BUS);
 		bus_arc.setFactoryFixedAngle(true);
 		bus_arc.setFactorySlidable(false);
 		bus_arc.setFactoryExtended(false);

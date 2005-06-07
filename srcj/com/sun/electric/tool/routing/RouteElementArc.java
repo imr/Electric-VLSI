@@ -28,16 +28,16 @@ package com.sun.electric.tool.routing;
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.routing.RouteElement.RouteElementAction;
 import com.sun.electric.tool.user.Highlighter;
 
 import java.awt.geom.Point2D;
@@ -109,12 +109,12 @@ public class RouteElementArc extends RouteElement {
         RouteElementArc e = new RouteElementArc(RouteElementAction.deleteArc, arcInstToDelete.getParent());
         e.arcProto = arcInstToDelete.getProto();
         e.arcWidth = arcInstToDelete.getWidth();
-        e.headRE = RouteElementPort.existingPortInst(arcInstToDelete.getHead().getPortInst(), arcInstToDelete.getHead().getLocation());
-        e.tailRE = RouteElementPort.existingPortInst(arcInstToDelete.getTail().getPortInst(), arcInstToDelete.getTail().getLocation());
+        e.headRE = RouteElementPort.existingPortInst(arcInstToDelete.getHeadPortInst(), arcInstToDelete.getHeadLocation());
+        e.tailRE = RouteElementPort.existingPortInst(arcInstToDelete.getTailPortInst(), arcInstToDelete.getTailLocation());
         e.arcName = arcInstToDelete.getName();
         e.arcNameDescriptor = arcInstToDelete.getTextDescriptor(ArcInst.ARC_NAME_TD);
-        e.headConnPoint = arcInstToDelete.getHead().getLocation();
-        e.tailConnPoint = arcInstToDelete.getTail().getLocation();
+        e.headConnPoint = arcInstToDelete.getHeadLocation();
+        e.tailConnPoint = arcInstToDelete.getTailLocation();
         e.arcAngle = 0;
         e.arcInst = arcInstToDelete;
         e.inheritFrom = null;
@@ -336,7 +336,7 @@ public class RouteElementArc extends RouteElement {
             // figure out highlight area based on arc width and start and end locations
             Point2D headPoint = headConnPoint;
             Point2D tailPoint = tailConnPoint;
-            boolean endsExtend = ((PrimitiveArc)arcProto).isExtended();
+            boolean endsExtend = arcProto.isExtended();
             double offset = 0.5*getOffsetArcWidth();
             double offsetX, offsetY;
             double offsetEnds = endsExtend ? offset : 0;

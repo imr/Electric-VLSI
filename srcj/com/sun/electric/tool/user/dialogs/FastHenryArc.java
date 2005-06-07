@@ -152,14 +152,14 @@ public class FastHenryArc extends EDialog
 		fhaHeightSubdivs.setText(heightSubdivisions);
 	    fhaDefaultHeightSubdivs.setText("default=" + Integer.toString(Simulation.getFastHenryHeightSubdivisions()));
 
-		fhaHeadXY.setText("Head at:   X=" + TextUtils.formatDouble(ai.getHead().getLocation().getX()) +
-			"   Y=" + TextUtils.formatDouble(ai.getHead().getLocation().getY()) + "   Z=");
+		fhaHeadXY.setText("Head at:   X=" + TextUtils.formatDouble(ai.getHeadLocation().getX()) +
+			"   Y=" + TextUtils.formatDouble(ai.getHeadLocation().getY()) + "   Z=");
 		String headZ = "";
 		if (fhai.getZHead() >= 0) headZ = TextUtils.formatDouble(initialZHead = fhai.getZHead());
 		fhaHeadZ.setText(headZ);
 
-		fhaTailXY.setText("Tail at:   X=" + TextUtils.formatDouble(ai.getTail().getLocation().getX()) +
-			"   Y=" + TextUtils.formatDouble(ai.getTail().getLocation().getY()) + "   Z=");
+		fhaTailXY.setText("Tail at:   X=" + TextUtils.formatDouble(ai.getTailLocation().getX()) +
+			"   Y=" + TextUtils.formatDouble(ai.getTailLocation().getY()) + "   Z=");
 		String tailZ = "";
 		if (fhai.getZTail() >= 0) tailZ = TextUtils.formatDouble(initialZTail = fhai.getZTail());
 		fhaTailZ.setText(tailZ);

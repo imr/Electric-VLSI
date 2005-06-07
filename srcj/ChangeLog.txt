@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (06/07/05, DN) Refactoring: joined together ArcProto and PrimitiveArc classes.
+
 BUG: (06/06/05, SMR) Selecting a variable in the "Attribute Properties" dialog may change it.
 FIX: In Attributes.showSelectedAttribute(), set "loading" before changing the "value" field.
 

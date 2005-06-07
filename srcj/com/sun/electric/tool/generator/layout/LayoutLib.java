@@ -31,10 +31,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
 
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -43,17 +44,15 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Poly;
 /*
  * The LayoutLib class provides an assortment of methods that I
  * found to be useful for programatic layout generation.
@@ -234,10 +233,14 @@ public class LayoutLib {
 	public static Iterator getArcInstsOnPortInst(PortInst pi) {
 		ArrayList arcs = new ArrayList();
 		NodeInst ni = pi.getNodeInst();
-		for (Iterator it=ni.getConnections(); it.hasNext();) {
+		for (Iterator it=pi.getConnections(); it.hasNext();) {
 			Connection c = (Connection) it.next();
-			if (c.getPortInst()==pi)  arcs.add(c.getArc());
+			arcs.add(c.getArc());
 		}
+//		for (Iterator it=ni.getConnections(); it.hasNext();) {
+//			Connection c = (Connection) it.next();
+//			if (c.getPortInst()==pi)  arcs.add(c.getArc());
+//		}
 		return arcs.iterator();
 	}
 	/** The center returned by bounds might have a slight amount of rounding
@@ -502,7 +505,7 @@ public class LayoutLib {
 			ai = newArcInst(ap, width, head, hX, hY, tail, tX, tY);
 		} else {
 			Cell parent = head.getNodeInst().getParent();
-			NodeProto pinProto = ((PrimitiveArc)ap).findOverridablePinProto();
+			NodeProto pinProto = ap.findOverridablePinProto();
 			PortInst pin = newNodeInst(pinProto, tX, hY, DEF_SIZE, DEF_SIZE, 0, 
 			                           parent).getOnlyPortInst(); 
 
@@ -554,7 +557,7 @@ public class LayoutLib {
 	public static Export newExport(Cell cell, String name, 
 	                               PortCharacteristic role,
 	                               ArcProto ap, double w, double x, double y) {
-		NodeProto np = ((PrimitiveArc)ap).findOverridablePinProto();
+		NodeProto np = ap.findOverridablePinProto();
 		error(np==null, "LayoutLib.newExport: This layer has no layer-pin");
 		
 		double defSz = LayoutLib.DEF_SIZE;

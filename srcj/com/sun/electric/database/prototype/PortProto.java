@@ -30,6 +30,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.PrimitivePort;
 
 import java.awt.Color;
+import com.sun.electric.technology.ArcProto;
 
 /**
  * The PortProto interface defines a type of PortInst.

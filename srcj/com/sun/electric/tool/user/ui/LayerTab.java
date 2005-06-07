@@ -23,9 +23,8 @@
  */
 package com.sun.electric.tool.user.ui;
 
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
@@ -405,8 +404,7 @@ public class LayerTab extends JFrame
 			for(Iterator aIt = tech.getArcs(); aIt.hasNext(); )
 			{
 				ArcProto ap = (ArcProto)aIt.next();
-				PrimitiveArc pAp = (PrimitiveArc)ap;
-				Technology.ArcLayer [] layers = pAp.getLayers();
+				Technology.ArcLayer [] layers = ap.getLayers();
 				boolean invisible = true;
 				for(int i=0; i<layers.length; i++)
 				{

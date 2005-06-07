@@ -35,7 +35,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.NodeUsage;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
@@ -47,7 +47,6 @@ import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
@@ -684,28 +683,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 
 			// make sure the arc can connect to this type of port
 			PortInst opi = oldAssoc[index].assn;
-			PortInst [] newPortInst = new PortInst[2];
-			Point2D [] newPoint = new Point2D[2];
 			ArcInst ai = con.getArc();
-			for(int i=0; i<2; i++)
-			{
-				Connection oneCon = ai.getConnection(i);
-				if (oneCon == con)
-				{
-					newPortInst[i] = opi;
-					if (newPortInst[i] == null) break;
-					newPoint[i] = new Point2D.Double(con.getLocation().getX(), con.getLocation().getY());
-					Poly poly = opi.getPoly();
-					if (!poly.isInside(newPoint[i]))
-						newPoint[i].setLocation(poly.getCenterX(), poly.getCenterY());
-				} else
-				{
-					newPortInst[i] = oneCon.getPortInst();
-					newPoint[i] = oneCon.getLocation();
-				}
-			}
-			if (newPortInst[0] == null || newPortInst[1] == null)
-			{
+            if (opi == null) {
 				if (!allowMissingPorts)
 				{
 					System.out.println("Cannot re-connect " + ai.describe() + " arc");
@@ -714,7 +693,44 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 					ai.kill();
 				}
 				continue;
-			}
+            }
+			PortInst [] newPortInst = new PortInst[2];
+			Point2D [] newPoint = new Point2D[2];
+            int thisEnd = con.getEndIndex();
+    		newPortInst[thisEnd] = opi;
+    		Poly poly = opi.getPoly();
+            newPoint[thisEnd] = poly.isInside(con.getLocation()) ? con.getLocation() : new EPoint(poly.getCenterX(), poly.getCenterY());
+            int otherEnd = 1 - thisEnd;
+			newPortInst[otherEnd] = ai.getPortInst(otherEnd);
+            newPoint[otherEnd] = ai.getLocation(otherEnd);
+//			for(int i=0; i<2; i++)
+//			{
+//				Connection oneCon = ai.getConnection(i);
+//				if (oneCon == con)
+//				{
+//					newPortInst[i] = opi;
+//					if (newPortInst[i] == null) break;
+//					newPoint[i] = new Point2D.Double(con.getLocation().getX(), con.getLocation().getY());
+//					Poly poly = opi.getPoly();
+//					if (!poly.isInside(newPoint[i]))
+//						newPoint[i].setLocation(poly.getCenterX(), poly.getCenterY());
+//				} else
+//				{
+//					newPortInst[i] = oneCon.getPortInst();
+//					newPoint[i] = oneCon.getLocation();
+//				}
+//			}
+//			if (newPortInst[0] == null || newPortInst[1] == null)
+//			{
+//				if (!allowMissingPorts)
+//				{
+//					System.out.println("Cannot re-connect " + ai.describe() + " arc");
+//				} else
+//				{
+//					ai.kill();
+//				}
+//				continue;
+//			}
 
 			// see if a bend must be made in the wire
 			boolean zigzag = false;
@@ -732,9 +748,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			if (zigzag && !ai.isRigid() && (ai.getAngle() % 900) == 0)
 			{
 				// find the node at the other end
-				int otherEnd = 0;
-				if (ai.getConnection(0) == con) otherEnd = 1;
-				NodeInst adjustThisNode = ai.getConnection(otherEnd).getPortInst().getNodeInst();
+//				int otherEnd = 0;
+//				if (ai.getConnection(0) == con) otherEnd = 1;
+				NodeInst adjustThisNode = ai.getPortInst(otherEnd).getNodeInst();
 				if (adjustThisNode.getNumExports() == 0)
 				{
 					// other end not exported, see if all arcs can be adjusted
@@ -789,7 +805,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 				// make that two wires
 				double cX = newPoint[0].getX();
 				double cY = newPoint[1].getY();
-				NodeProto pinNp = ((PrimitiveArc)ai.getProto()).findOverridablePinProto();
+				NodeProto pinNp = ai.getProto().findOverridablePinProto();
 				double psx = pinNp.getDefWidth();
 				double psy = pinNp.getDefHeight();
 				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, getParent());
@@ -2351,15 +2367,17 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			if (j >= 2) { j = 0;   break; }
 			ArcInst ai = con.getArc();
 			reconAr[j] = ai;
-			Connection thisCon = ai.getHead();
-			Connection thatCon = ai.getTail();
-			if (thatCon == con)
-			{
-				thisCon = ai.getTail();
-				thatCon = ai.getHead();
-			}
-			delta[j] = new Point2D.Double(thatCon.getLocation().getX() - thisCon.getLocation().getX(),
-				thatCon.getLocation().getY() - thisCon.getLocation().getY());
+			EPoint thisLocation = con.getLocation();
+            EPoint thatLocation = ai.getLocation(1 - con.getEndIndex());
+//			Connection thisCon = ai.getHead();
+//			Connection thatCon = ai.getTail();
+//			if (thatCon == con)
+//			{
+//				thisCon = ai.getTail();
+//				thatCon = ai.getHead();
+//			}
+        	delta[j] = new Point2D.Double(thatLocation.getX() - thisLocation.getX(),
+				thatLocation.getY() - thisLocation.getY());
 			j++;
 		}
 		if (j != 2) return false;

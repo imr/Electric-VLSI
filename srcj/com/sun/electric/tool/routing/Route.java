@@ -201,14 +201,15 @@ public class Route extends ArrayList {
                     // can reconnect
                     // get other end point connection
                     ArcInst ai = conn.getArc();
-                    Connection otherConn = ai.getHead();
-                    if (otherConn == conn) otherConn = ai.getTail();
-                    RouteElementPort otherPort = RouteElementPort.existingPortInst(otherConn.getPortInst(),
-                            otherConn.getPortInst().getPoly());
+                    int otherEnd = 1 - conn.getEndIndex();
+//                    Connection otherConn = ai.getHead();
+//                    if (otherConn == conn) otherConn = ai.getTail();
+                    RouteElementPort otherPort = RouteElementPort.existingPortInst(ai.getPortInst(otherEnd),
+                            ai.getPortInst(otherEnd).getPoly());
                     // build new arc
                     RouteElementArc newArc = RouteElementArc.newArc(cell, ai.getProto(),
                             ai.getWidth(), otherPort, replacementRE,
-                            otherConn.getLocation(), conn.getLocation(), ai.getName(),
+                            ai.getLocation(otherEnd), conn.getLocation(), ai.getName(),
                             ai.getTextDescriptor(ArcInst.ARC_NAME_TD), ai);
                     RouteElementArc delArc = RouteElementArc.deleteArc(ai);
                     newElements.add(newArc);

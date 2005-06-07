@@ -30,14 +30,13 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -1227,10 +1226,10 @@ public class Maker
 		if (viaProto == null) return "Unable to get VIA for MAKER";
 
 		// find the pin nodes on the connecting layers
-		layer1Proto = ((PrimitiveArc)layer1Arc).findPinProto();
+		layer1Proto = layer1Arc.findPinProto();
 		if (layer1Proto == null)
 			return "Unable to get LAYER1-NODE for MAKER";
-		layer2Proto = ((PrimitiveArc)layer2Arc).findPinProto();
+		layer2Proto = layer2Arc.findPinProto();
 		if (layer2Proto == null)
 			return "Unable to get LAYER2-NODE for MAKER";
 

@@ -26,9 +26,8 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
@@ -98,7 +97,7 @@ public class SimpleWirer extends InteractiveRouter {
             {
             	// make sure the bend stays inside of the merge area
             	double pinSize = useArc.getDefaultWidth() - useArc.getWidthOffset();
-            	Layer pinLayer = ((PrimitiveArc)useArc).getLayers()[0].getLayer();
+            	Layer pinLayer = useArc.getLayers()[0].getLayer();
             	Rectangle2D pin1Rect = new Rectangle2D.Double(pin1.getX()-pinSize/2, pin1.getY()-pinSize/2, pinSize, pinSize);
             	Rectangle2D pin2Rect = new Rectangle2D.Double(pin2.getX()-pinSize/2, pin2.getY()-pinSize/2, pinSize, pinSize);
             	if (stayInside.contains(pinLayer, pin1Rect)) cornerLoc = pin1; else
@@ -154,7 +153,7 @@ public class SimpleWirer extends InteractiveRouter {
         } else {
             // otherwise, create new pin and two arcs for corner
             // make new pin of arc type
-            PrimitiveNode pn = ((PrimitiveArc)useArc).findOverridablePinProto();
+            PrimitiveNode pn = useArc.findOverridablePinProto();
             SizeOffset so = pn.getProtoSizeOffset();
             double defwidth = pn.getDefWidth()-so.getHighXOffset()-so.getLowXOffset();
             double defheight = pn.getDefHeight()-so.getHighYOffset()-so.getLowYOffset();

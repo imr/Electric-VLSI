@@ -400,8 +400,8 @@ public class Clipboard
 			if (nTotal == 2 && aTotal == 1)
 			{
 				ArcInst ai = (ArcInst)clipCell.getArcs().next();
-				NodeInst niHead = ai.getHead().getPortInst().getNodeInst();
-				NodeInst niTail = ai.getTail().getPortInst().getNodeInst();
+				NodeInst niHead = ai.getHeadPortInst().getNodeInst();
+				NodeInst niTail = ai.getTailPortInst().getNodeInst();
 				Iterator nIt = clipCell.getNodes();
 				NodeInst ni1 = (NodeInst)nIt.next();
 				NodeInst ni2 = (NodeInst)nIt.next();
@@ -625,8 +625,8 @@ public class Clipboard
                 {
                     ArcInst ai = (ArcInst)geom;
                     theArcs.add(ai);
-                    NodeInst head = ai.getHead().getPortInst().getNodeInst();
-                    NodeInst tail = ai.getTail().getPortInst().getNodeInst();
+                    NodeInst head = ai.getHeadPortInst().getNodeInst();
+                    NodeInst tail = ai.getTailPortInst().getNodeInst();
                     if (!theNodes.contains(head)) theNodes.add(head);
                     if (!theNodes.contains(tail)) theNodes.add(tail);
                 }
@@ -722,11 +722,11 @@ public class Clipboard
 			for(Iterator it = theArcs.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
-				PortInst oldHeadPi = ai.getHead().getPortInst();
+				PortInst oldHeadPi = ai.getHeadPortInst();
 				NodeInst headNi = (NodeInst)newNodes.get(oldHeadPi.getNodeInst());
 				PortInst headPi = headNi.findPortInstFromProto(oldHeadPi.getPortProto());
 
-				PortInst oldTailPi = ai.getTail().getPortInst();
+				PortInst oldTailPi = ai.getTailPortInst();
 				NodeInst tailNi = (NodeInst)newNodes.get(oldTailPi.getNodeInst());
 				PortInst tailPi = tailNi.findPortInstFromProto(oldTailPi.getPortProto());
 
@@ -746,8 +746,8 @@ public class Clipboard
 					}
 				}
 				ArcInst newAr = ArcInst.newInstance(ai.getProto(), ai.getWidth(),
-					headPi, tailPi, new Point2D.Double(ai.getHead().getLocation().getX() + dX, ai.getHead().getLocation().getY() + dY),
-				        new Point2D.Double(ai.getTail().getLocation().getX() + dX, ai.getTail().getLocation().getY() + dY), name, ai.getAngle());
+					headPi, tailPi, new Point2D.Double(ai.getHeadLocation().getX() + dX, ai.getHeadLocation().getY() + dY),
+				        new Point2D.Double(ai.getTailLocation().getX() + dX, ai.getTailLocation().getY() + dY), name, ai.getAngle());
 				if (newAr == null)
 				{
 					System.out.println("Cannot create arc");

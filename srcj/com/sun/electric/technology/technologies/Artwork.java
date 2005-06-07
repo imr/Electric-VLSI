@@ -25,27 +25,24 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitiveArc;
-import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
-import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -86,10 +83,10 @@ public class Artwork extends Technology
 	/** Defines a Filled-Polygon node. */			public PrimitiveNode filledPolygonNode;
 	/** Defines a Thick-Circle node. */				public PrimitiveNode thickCircleNode;
 
-	/** Defines a Solid arc. */						public PrimitiveArc solidArc;
-	/** Defines a Dotted arc. */					public PrimitiveArc dottedArc;
-	/** Defines a Dashed arc. */					public PrimitiveArc dashedArc;
-	/** Defines a Thick arc. */						public PrimitiveArc thickerArc;
+	/** Defines a Solid arc. */						public ArcProto solidArc;
+	/** Defines a Dotted arc. */					public ArcProto dottedArc;
+	/** Defines a Dashed arc. */					public ArcProto dashedArc;
+	/** Defines a Thick arc. */						public ArcProto thickerArc;
 	/** the layer */								private Layer G_lay;
 
 	// -------------------- private and protected methods ------------------------
@@ -124,44 +121,44 @@ public class Artwork extends Technology
 		//******************** ARCS ********************
 
 		/** Solid arc */
-		solidArc = PrimitiveArc.newInstance(this, "Solid", 0, new Technology.ArcLayer []
+		solidArc = ArcProto.newInstance(this, "Solid", 0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(G_lay, 0, Poly.Type.FILLED)
 		});
-		solidArc.setFunction(PrimitiveArc.Function.NONELEC);
+		solidArc.setFunction(ArcProto.Function.NONELEC);
 		solidArc.setFactoryFixedAngle(false);
 		solidArc.setCurvable();
 		solidArc.setWipable();
 		solidArc.setFactoryAngleIncrement(0);
 
 		/** Dotted arc */
-		dottedArc = PrimitiveArc.newInstance(this, "Dotted", 0, new Technology.ArcLayer []
+		dottedArc = ArcProto.newInstance(this, "Dotted", 0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENEDT1)
 		});
-		dottedArc.setFunction(PrimitiveArc.Function.NONELEC);
+		dottedArc.setFunction(ArcProto.Function.NONELEC);
 		dottedArc.setFactoryFixedAngle(false);
 		dottedArc.setCurvable();
 		dottedArc.setWipable();
 		dottedArc.setFactoryAngleIncrement(0);
 
 		/** Dashed arc */
-		dashedArc = PrimitiveArc.newInstance(this, "Dashed", 0, new Technology.ArcLayer []
+		dashedArc = ArcProto.newInstance(this, "Dashed", 0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENEDT2)
 		});
-		dashedArc.setFunction(PrimitiveArc.Function.NONELEC);
+		dashedArc.setFunction(ArcProto.Function.NONELEC);
 		dashedArc.setFactoryFixedAngle(false);
 		dashedArc.setCurvable();
 		dashedArc.setWipable();
 		dashedArc.setFactoryAngleIncrement(0);
 
 		/** Thicker arc */
-		thickerArc = PrimitiveArc.newInstance(this, "Thicker", 0, new Technology.ArcLayer []
+		thickerArc = ArcProto.newInstance(this, "Thicker", 0, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(G_lay, 0, Poly.Type.OPENEDT3)
 		});
-		thickerArc.setFunction(PrimitiveArc.Function.NONELEC);
+		thickerArc.setFunction(ArcProto.Function.NONELEC);
 		thickerArc.setFactoryFixedAngle(false);
 		thickerArc.setCurvable();
 		thickerArc.setWipable();
@@ -889,9 +886,9 @@ public class Artwork extends Technology
 	/**
 	 * Method to convert old primitive names to their proper ArcProtos.
 	 * @param name the name of the old primitive.
-	 * @return the proper PrimitiveArc to use (or null if none can be determined).
+	 * @return the proper ArcProto to use (or null if none can be determined).
 	 */
-	public PrimitiveArc convertOldArcName(String name)
+	public ArcProto convertOldArcName(String name)
 	{
 		if (name.equals("Dash-1")) return dottedArc;
 		if (name.equals("Dash-2")) return dashedArc;

@@ -30,7 +30,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
@@ -1600,8 +1600,8 @@ public class Sue extends Input
 					{
 						if (ai.getProto() == Schematics.tech.bus_arc) continue;
 					}
-					double cx = (ai.getHead().getLocation().getX() + ai.getTail().getLocation().getX()) / 2;
-					double cy = (ai.getHead().getLocation().getY() + ai.getTail().getLocation().getY()) / 2;
+					double cx = (ai.getHeadLocation().getX() + ai.getTailLocation().getX()) / 2;
+					double cy = (ai.getHeadLocation().getY() + ai.getTailLocation().getY()) / 2;
 					Point2D ctr = new Point2D.Double(cx, cy);
 					double dist = ctr.distance(sn.pt);
 
@@ -1679,7 +1679,7 @@ public class Sue extends Input
 		}
 		for(int i=0; i<2; i++)
 		{
-			NodeInst ni = ai.getConnection(i).getPortInst().getNodeInst();
+			NodeInst ni = ai.getPortInst(i).getNodeInst();
 			if (ni.getProto() != Schematics.tech.wirePinNode && ni.getProto() != Schematics.tech.busPinNode &&
 				ni.getProto() != Schematics.tech.offpageNode) continue;
 			if (ni.getProto() == Schematics.tech.busPinNode || ni.getProto() == Schematics.tech.offpageNode)

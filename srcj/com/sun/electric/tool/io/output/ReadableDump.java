@@ -33,7 +33,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
@@ -441,14 +441,13 @@ public class ReadableDump extends Output
 				printWriter.println("userbits: " + userBits);
 				for(int e=0; e<2; e++)
 				{
-					Connection con = ai.getConnection(e);
-					NodeInst conNi = con.getPortInst().getNodeInst();
+					NodeInst conNi = ai.getPortInst(e).getNodeInst();
 					Integer conNodeIndex = (Integer)nodeMap.get(conNi);
 					printWriter.println("*end: " + e);
 					printWriter.println("node: " + conNodeIndex.intValue());
-					printWriter.println("nodeport: " + con.getPortInst().getPortProto().getName());
-					int endX = (int)(con.getLocation().getX() * scale);
-					int endY = (int)(con.getLocation().getY() * scale);
+					printWriter.println("nodeport: " + ai.getPortInst(e).getPortProto().getName());
+					int endX = (int)(ai.getLocation(e).getX() * scale);
+					int endY = (int)(ai.getLocation(e).getY() * scale);
 					printWriter.println("xpos: " + endX + " ypos: " + endY);
 				}
 				writeVars(ai, cell);

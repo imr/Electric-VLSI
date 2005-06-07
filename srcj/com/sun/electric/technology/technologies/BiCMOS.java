@@ -27,15 +27,12 @@ package com.sun.electric.technology.technologies;
 
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.EdgeH;
 import com.sun.electric.technology.EdgeV;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.SizeOffset;
@@ -670,75 +667,75 @@ public class BiCMOS extends Technology
 		//******************** ARCS ********************
 
 		/** Metal_1 arc */
-		PrimitiveArc Metal_1_arc = PrimitiveArc.newInstance(this, "Metal_1", 3, new Technology.ArcLayer []
+		ArcProto Metal_1_arc = ArcProto.newInstance(this, "Metal_1", 3, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(M_lay, 0, Poly.Type.FILLED)
 		});
-		Metal_1_arc.setFunction(PrimitiveArc.Function.METAL1);
+		Metal_1_arc.setFunction(ArcProto.Function.METAL1);
 		Metal_1_arc.setWipable();
 		Metal_1_arc.setFactoryFixedAngle(true);
 		Metal_1_arc.setFactoryAngleIncrement(90);
 
 		/** Metal_2 arc */
-		PrimitiveArc Metal_2_arc = PrimitiveArc.newInstance(this, "Metal_2", 3, new Technology.ArcLayer []
+		ArcProto Metal_2_arc = ArcProto.newInstance(this, "Metal_2", 3, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(M0_lay, 0, Poly.Type.FILLED)
 		});
-		Metal_2_arc.setFunction(PrimitiveArc.Function.METAL2);
+		Metal_2_arc.setFunction(ArcProto.Function.METAL2);
 		Metal_2_arc.setWipable();
 		Metal_2_arc.setFactoryFixedAngle(true);
 		Metal_2_arc.setFactoryAngleIncrement(90);
 
 		/** Polysilicon arc */
-		PrimitiveArc Polysilicon_arc = PrimitiveArc.newInstance(this, "Polysilicon", 2, new Technology.ArcLayer []
+		ArcProto Polysilicon_arc = ArcProto.newInstance(this, "Polysilicon", 2, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(P0_lay, 0, Poly.Type.FILLED)
 		});
-		Polysilicon_arc.setFunction(PrimitiveArc.Function.POLY1);
+		Polysilicon_arc.setFunction(ArcProto.Function.POLY1);
 		Polysilicon_arc.setWipable();
 		Polysilicon_arc.setFactoryFixedAngle(true);
 		Polysilicon_arc.setFactoryAngleIncrement(90);
 
 		/** Polysilicon_2 arc */
-		PrimitiveArc Polysilicon_2_arc = PrimitiveArc.newInstance(this, "Polysilicon_2", 2, new Technology.ArcLayer []
+		ArcProto Polysilicon_2_arc = ArcProto.newInstance(this, "Polysilicon_2", 2, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(P1_lay, 0, Poly.Type.FILLED)
 		});
-		Polysilicon_2_arc.setFunction(PrimitiveArc.Function.POLY2);
+		Polysilicon_2_arc.setFunction(ArcProto.Function.POLY2);
 		Polysilicon_2_arc.setWipable();
 		Polysilicon_2_arc.setFactoryFixedAngle(true);
 		Polysilicon_2_arc.setFactoryAngleIncrement(90);
 
 		/** Active arc */
-		PrimitiveArc Active_arc = PrimitiveArc.newInstance(this, "Active", 2, new Technology.ArcLayer []
+		ArcProto Active_arc = ArcProto.newInstance(this, "Active", 2, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(A_lay, 0, Poly.Type.FILLED)
 		});
-		Active_arc.setFunction(PrimitiveArc.Function.METAL5);
+		Active_arc.setFunction(ArcProto.Function.METAL5);
 		Active_arc.setWipable();
 		Active_arc.setFactoryFixedAngle(true);
 		Active_arc.setFactoryAngleIncrement(90);
 
 		/** Pdiff arc */
-		PrimitiveArc Pdiff_arc = PrimitiveArc.newInstance(this, "Pdiff", 12, new Technology.ArcLayer []
+		ArcProto Pdiff_arc = ArcProto.newInstance(this, "Pdiff", 12, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(NW_lay, 0, Poly.Type.FILLED),
 			new Technology.ArcLayer(A_lay, 10, Poly.Type.FILLED),
 			new Technology.ArcLayer(PS_lay, 6, Poly.Type.CLOSED)
 		});
-		Pdiff_arc.setFunction(PrimitiveArc.Function.DIFFP);
+		Pdiff_arc.setFunction(ArcProto.Function.DIFFP);
 		Pdiff_arc.setWipable();
 		Pdiff_arc.setWidthOffset(0);
 		Pdiff_arc.setFactoryFixedAngle(true);
 		Pdiff_arc.setFactoryAngleIncrement(90);
 
 		/** Ndiff arc */
-		PrimitiveArc Ndiff_arc = PrimitiveArc.newInstance(this, "Ndiff", 6, new Technology.ArcLayer []
+		ArcProto Ndiff_arc = ArcProto.newInstance(this, "Ndiff", 6, new Technology.ArcLayer []
 		{
 			new Technology.ArcLayer(A_lay, 4, Poly.Type.FILLED),
 			new Technology.ArcLayer(NS_lay, 0, Poly.Type.FILLED)
 		});
-		Ndiff_arc.setFunction(PrimitiveArc.Function.DIFFN);
+		Ndiff_arc.setFunction(ArcProto.Function.DIFFN);
 		Ndiff_arc.setWipable();
 		Ndiff_arc.setWidthOffset(0);
 		Ndiff_arc.setFactoryFixedAngle(true);

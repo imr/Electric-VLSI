@@ -29,7 +29,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
@@ -317,8 +317,9 @@ public class L extends Output
 					printWriter.print("." + getLegalName(pi.getPortProto().getName()));
 
 				// prepare to run along the wire to a terminating node
-				int thatEnd = 0;
-				if (ai.getConnection(0) == con) thatEnd = 1;
+                int thatEnd = 1 - con.getEndIndex();
+//				int thatEnd = 0;
+//				if (ai.getConnection(0) == con) thatEnd = 1;
 				String lastDir = "";
 				double segDist = -1;
 				int segCount = 0;
@@ -330,14 +331,14 @@ public class L extends Output
 					arcsSeen.add(ai);
 					int thisEnd = 1 - thatEnd;
 					String dir = lastDir;
-					if (ai.getConnection(thatEnd).getLocation().getX() == ai.getConnection(thisEnd).getLocation().getX())
+					if (ai.getLocation(thatEnd).getX() == ai.getLocation(thisEnd).getX())
 					{
-						if (ai.getConnection(thatEnd).getLocation().getY() > ai.getConnection(thisEnd).getLocation().getY()) dir = "UP"; else
-							if (ai.getConnection(thatEnd).getLocation().getY() < ai.getConnection(thisEnd).getLocation().getY()) dir = "DOWN";
-					} else if (ai.getConnection(thatEnd).getLocation().getY() == ai.getConnection(thisEnd).getLocation().getY())
+						if (ai.getLocation(thatEnd).getY() > ai.getLocation(thisEnd).getY()) dir = "UP"; else
+							if (ai.getLocation(thatEnd).getY() < ai.getLocation(thisEnd).getY()) dir = "DOWN";
+					} else if (ai.getLocation(thatEnd).getY() == ai.getLocation(thisEnd).getY())
 					{
-						if (ai.getConnection(thatEnd).getLocation().getX() > ai.getConnection(thisEnd).getLocation().getX()) dir = "RIGHT"; else
-							if (ai.getConnection(thatEnd).getLocation().getX() < ai.getConnection(thisEnd).getLocation().getX()) dir = "LEFT";
+						if (ai.getLocation(thatEnd).getX() > ai.getLocation(thisEnd).getX()) dir = "RIGHT"; else
+							if (ai.getLocation(thatEnd).getX() < ai.getLocation(thisEnd).getX()) dir = "LEFT";
 					}
 
 					// if segment is different from last, write out last one
@@ -351,7 +352,7 @@ public class L extends Output
 
 					// remember this segment's direction and length
 					lastDir = dir;
-					oNi = ai.getConnection(thatEnd).getPortInst().getNodeInst();
+					oNi = ai.getPortInst(thatEnd).getNodeInst();
 					eNature = getNodeType(oNi);
 					if ((nature != TRANSISTOR || segCount > 0) && eNature != TRANSISTOR)
 					{
@@ -364,7 +365,7 @@ public class L extends Output
 
 					// end the loop if more than 1 wire out of next node "oNi"
 					int tot = 0;
-					int ot = 0;
+    				int ot = 0;
 					ArcInst oAi = null;
 					for(Iterator oCIt = oNi.getConnections(); oCIt.hasNext(); )
 					{
@@ -372,11 +373,12 @@ public class L extends Output
 						if (arcsSeen.contains(oCon.getArc())) continue;
 						oAi = oCon.getArc();
 						tot++;
-						if (oAi.getConnection(0) == oCon) ot = 1; else ot = 0;
+                        ot = 1 - oCon.getEndIndex();
+//						if (oAi.getConnection(0) == oCon) ot = 1; else ot = 0;
 					}
 					if (tot != 1) break;
 					ai = oAi;
-					thatEnd = ot;
+       				thatEnd = ot;
 				}
 				if (lastDir.length() > 0)
 				{
@@ -395,7 +397,7 @@ public class L extends Output
 				}
 
 				// qualify node name with port name if a transistor or an instance
-				PortInst oPi = ai.getConnection(thatEnd).getPortInst();
+				PortInst oPi = ai.getPortInst(thatEnd);
 				if (eNature == TRANSISTOR)
 				{
 					transistorPorts(oNi);

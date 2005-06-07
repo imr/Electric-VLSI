@@ -993,8 +993,8 @@ public class EDIF extends Topology
 
 		// get the endpoints of the arcinst
 		Point2D [] points = new Point2D[2];
-		points[0] = ai.getTail().getLocation();
-		points[1] = ai.getHead().getLocation();
+		points[0] = ai.getTailLocation();
+		points[1] = ai.getHeadLocation();
 		Poly poly = new Poly(points);
 		poly.setStyle(Poly.Type.OPENED);
 		poly.transform(trans);

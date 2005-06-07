@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -38,11 +37,13 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.input.LEFDEF.GetLayerInformation;
+import com.sun.electric.tool.io.input.LEFDEF.ViaDef;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -394,7 +395,7 @@ public class DEF extends LEFDEF
 		if (pi != null) return pi;
 
 		// nothing found at this location: create a pin
-		NodeProto pin = ((PrimitiveArc)ap).findPinProto();
+		NodeProto pin = ap.findPinProto();
 		double sX = pin.getDefWidth();
 		double sY = pin.getDefHeight();
 		NodeInst ni = NodeInst.makeInstance(pin, new Point2D.Double(x, y), sX, sY, cell);
@@ -986,7 +987,7 @@ public class DEF extends LEFDEF
 				// make sure that this arc can connect to the current pin
 				if (!pi.getPortProto().connectsTo(li.arc))
 				{
-					NodeProto np = ((PrimitiveArc)li.arc).findPinProto();
+					NodeProto np = li.arc.findPinProto();
 					double sX = np.getDefWidth();
 					double sY = np.getDefHeight();
 					NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(curX, curY), sX, sY, cell);
@@ -1027,7 +1028,7 @@ public class DEF extends LEFDEF
 				{
 					li.arc = vd.lay1;
 				}
-				li.pin = ((PrimitiveArc)li.arc).findPinProto();
+				li.pin = li.arc.findPinProto();
 			}
 
 			// if the path ends here, connect it

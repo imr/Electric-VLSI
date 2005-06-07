@@ -28,14 +28,13 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
@@ -418,11 +417,11 @@ public class Change extends EDialog implements HighlightListener
 		{
 			// load arcs in current technology, arc's technology, and generic technology
 			ArcInst ai = (ArcInst)geomToChange;
-			PortProto pp1 = ai.getHead().getPortInst().getPortProto();
-			PortProto pp2 = ai.getTail().getPortInst().getPortProto();
+			PortProto pp1 = ai.getHeadPortInst().getPortProto();
+			PortProto pp2 = ai.getTailPortInst().getPortProto();
 			for(Iterator it = curTech.getArcs(); it.hasNext(); )
 			{
-				PrimitiveArc ap = (PrimitiveArc)it.next();
+				ArcProto ap = (ArcProto)it.next();
 				if (!changeNodesWithArcs.isSelected())
 				{
 					if (!pp1.connectsTo(ap)) continue;
@@ -434,7 +433,7 @@ public class Change extends EDialog implements HighlightListener
 			{
 				for(Iterator it = Generic.tech.getArcs(); it.hasNext(); )
 				{
-					PrimitiveArc ap = (PrimitiveArc)it.next();
+					ArcProto ap = (ArcProto)it.next();
 					if (!changeNodesWithArcs.isSelected())
 					{
 						if (!pp1.connectsTo(ap)) continue;
@@ -448,7 +447,7 @@ public class Change extends EDialog implements HighlightListener
 			{
 				for(Iterator it = arcTech.getArcs(); it.hasNext(); )
 				{
-					PrimitiveArc ap = (PrimitiveArc)it.next();
+					ArcProto ap = (ArcProto)it.next();
 					if (!changeNodesWithArcs.isSelected())
 					{
 						if (!pp1.connectsTo(ap)) continue;
@@ -924,7 +923,7 @@ public class Change extends EDialog implements HighlightListener
 			}
 
 			// now create new pins where they belong
-			PrimitiveNode pin = ((PrimitiveArc)ap).findOverridablePinProto();
+			PrimitiveNode pin = ap.findOverridablePinProto();
 			double xS = pin.getDefWidth();
 			double yS = pin.getDefHeight();
 			List dupPins = new ArrayList();
@@ -967,7 +966,7 @@ public class Change extends EDialog implements HighlightListener
 			{
 				ArcInst ai = (ArcInst)it.next();
 
-				NodeInst ni0 = ai.getHead().getPortInst().getNodeInst();
+				NodeInst ni0 = ai.getHeadPortInst().getNodeInst();
 				PortInst pi0 = null;
 				NodeInst newNi0 = (NodeInst)newNodes.get(ni0);
 				if (newNi0 != null)
@@ -980,7 +979,7 @@ public class Change extends EDialog implements HighlightListener
 					pi0 = makeContactStack(ai, 0, ap);
 					if (pi0 == null) return;
 				}
-				NodeInst ni1 = ai.getTail().getPortInst().getNodeInst();
+				NodeInst ni1 = ai.getTailPortInst().getNodeInst();
 				PortInst pi1 = null;
 				NodeInst newNi1 = (NodeInst)newNodes.get(ni1);
 				if (newNi1 != null)
@@ -996,8 +995,8 @@ public class Change extends EDialog implements HighlightListener
 
 				double wid = ap.getDefaultWidth();
 				if (ai.getWidth() > wid) wid = ai.getWidth();
-				ArcInst newAi = ArcInst.makeInstance(ap, wid, pi0, pi1, ai.getHead().getLocation(),
-				    ai.getTail().getLocation(), ai.getName());
+				ArcInst newAi = ArcInst.makeInstance(ap, wid, pi0, pi1, ai.getHeadLocation(),
+				    ai.getTailLocation(), ai.getName());
 				if (newAi == null) return;
 				newAi.copyPropertiesFrom(ai);
 				geomMarked.remove(newAi);
@@ -1040,8 +1039,8 @@ public class Change extends EDialog implements HighlightListener
 		 */
 		private PortInst makeContactStack(ArcInst ai, int end, ArcProto ap)
 		{
-			NodeInst lastNi = ai.getConnection(end).getPortInst().getNodeInst();
-			PortProto lastPp = ai.getConnection(end).getPortInst().getPortProto();
+			NodeInst lastNi = ai.getPortInst(end).getNodeInst();
+			PortProto lastPp = ai.getPortInst(end).getPortProto();
 			Set marked = new HashSet();
 			int depth = findPathToArc(lastPp, ap, 0, marked);
 			if (depth < 0) return null;
@@ -1049,7 +1048,7 @@ public class Change extends EDialog implements HighlightListener
 			// create the contacts
 			Cell cell = ai.getParent();
 			PortInst retPi = lastNi.findPortInstFromProto(lastPp);
-			Point2D center = ai.getConnection(end).getLocation();
+			Point2D center = ai.getLocation(end);
 			for(int i=0; i<depth; i++)
 			{
 				double xS = contactStack[i].getDefWidth();

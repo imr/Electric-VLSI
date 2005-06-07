@@ -27,10 +27,7 @@ import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.ArcProto;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.Color;
@@ -341,7 +338,7 @@ public class PrimitivePort implements PortProto, Comparable
 		int r=0, g=0, b=0;
 		for (int i = 0; i < portArcs.length; i++)
 		{
-			PrimitiveArc ap = (PrimitiveArc)portArcs[i];
+			ArcProto ap = portArcs[i];
 
 			// ignore the generic arcs
 			if (ap.getTechnology() != tech) continue;

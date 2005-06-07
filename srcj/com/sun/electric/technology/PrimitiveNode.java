@@ -24,7 +24,7 @@
 package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.Dimension2D;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;

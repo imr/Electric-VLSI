@@ -4402,7 +4402,7 @@ if (wp.signalButtons != null)
 				Integer state = (Integer)netValues.get(net);
 				if (state == null) continue;
 				Color col = getHighlightColor(state.intValue());
-				schemWnd.addCrossProbeLine(ai.getHead().getLocation(), ai.getTail().getLocation(), col);
+				schemWnd.addCrossProbeLine(ai.getHeadLocation(), ai.getTailLocation(), col);
 				crossProbeChanged = true;
 			}
 		}

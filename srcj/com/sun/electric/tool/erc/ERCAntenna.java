@@ -30,7 +30,7 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -244,12 +244,18 @@ public class ERCAntenna
 
 				// ignore if an arc on this port is already seen
 				boolean seen = false;
-				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				for(Iterator cIt = pi.getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
 					ArcInst ai = con.getArc();
-					if (con.getPortInst() == pi && fsGeom.contains(ai)) { seen = true;   break; }
+					if (fsGeom.contains(ai)) { seen = true;   break; }
 				}
+//				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+//				{
+//					Connection con = (Connection)cIt.next();
+//					ArcInst ai = con.getArc();
+//					if (con.getPortInst() == pi && fsGeom.contains(ai)) { seen = true;   break; }
+//				}
 				if (seen) continue;
 
 				totalGateArea = 0.0;
@@ -460,8 +466,8 @@ public class ERCAntenna
 			firstSpreadAntennaObj.remove(0);
 	
 			ArcInst ai = (ArcInst)ao.geom;
-			ni = ai.getConnection(ao.otherend).getPortInst().getNodeInst();
-			pp = ai.getConnection(ao.otherend).getPortInst().getPortProto();
+			ni = ai.getPortInst(ao.otherend).getNodeInst();
+			pp = ai.getPortInst(ao.otherend).getPortProto();
 			depth = ao.hierstack.length;
 			for(int i=0; i<depth; i++)
 				antstack[i] = ao.hierstack[i];
@@ -493,11 +499,15 @@ public class ERCAntenna
 
 	private int findArcs(NodeInst ni, PortProto pp, Layer lay, int depth, NodeInst [] antstack)
 	{
-		for(Iterator it = ni.getConnections(); it.hasNext(); )
+        PortInst pi = ni.findPortInstFromProto(pp);
+		for(Iterator it = pi.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
-			PortInst pi = con.getPortInst();
-			if (pi.getPortProto() != pp) continue;
+//		for(Iterator it = ni.getConnections(); it.hasNext(); )
+//		{
+//			Connection con = (Connection)it.next();
+//			PortInst pi = con.getPortInst();
+//			if (pi.getPortProto() != pp) continue;
 			ArcInst ai = con.getArc();
 
 			// see if it is the desired layer
@@ -516,7 +526,7 @@ public class ERCAntenna
 			ao.loadAntennaObject(antstack, depth);
 
 			int other = 0;
-			if (ai.getConnection(0).getPortInst() == pi) other = 1;
+			if (ai.getPortInst(0) == pi) other = 1;
 			ao.otherend = other;
 			addAntennaObject(ao);
 

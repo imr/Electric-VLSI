@@ -28,7 +28,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.NodeUsage;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
@@ -325,10 +325,10 @@ class NetCell
 		for (int i = 0; i < cell.getNumArcs(); i++) {
 			ArcInst ai = cell.getArc(i);
 			int arcOffset = arcsOffset + i;
-			int head = getPortInstOffset(ai.getHead().getPortInst());
+			int head = getPortInstOffset(ai.getHeadPortInst());
 			headConn[arcOffset] = headConn[head];
 			headConn[head] = arcOffset;
-			int tail = getPortInstOffset(ai.getTail().getPortInst());
+			int tail = getPortInstOffset(ai.getTailPortInst());
 			tailConn[arcOffset] = tailConn[tail];
 			tailConn[tail] = arcOffset;
 		}
@@ -382,7 +382,7 @@ class NetCell
 			if (pp == busPinPort && ap != busArc) continue;
 			drawns[k] = numDrawns;
 			if (NetworkTool.debug) System.out.println(numDrawns + ": " + ai.describe());
-			PortInst tpi = ai.getTail().getPortInst();
+			PortInst tpi = ai.getTailPortInst();
 			if (tpi.getPortProto() == busPinPort && ap != busArc) continue;
 			addToDrawn(tpi);
 		}
@@ -395,7 +395,7 @@ class NetCell
 			if (pp == busPinPort && ap != busArc) continue;
 			drawns[k] = numDrawns;
 			if (NetworkTool.debug) System.out.println(numDrawns + ": " + ai.describe());
-			PortInst hpi = ai.getHead().getPortInst();
+			PortInst hpi = ai.getHeadPortInst();
 			if (hpi.getPortProto() == busPinPort && ap != busArc) continue;
 			addToDrawn(hpi);
 		}
@@ -444,10 +444,10 @@ class NetCell
 			if (ap.getFunction() == ArcProto.Function.NONELEC) continue;
 			drawns[arcsOffset + i] = numDrawns;
 			if (NetworkTool.debug) System.out.println(numDrawns + ": " + ai.describe());
-			PortInst hpi = ai.getHead().getPortInst();
+			PortInst hpi = ai.getHeadPortInst();
 			if (hpi.getPortProto() != busPinPort || ap == busArc)
 				addToDrawn(hpi);
-			PortInst tpi = ai.getTail().getPortInst();
+			PortInst tpi = ai.getTailPortInst();
 			if (tpi.getPortProto() != busPinPort || ap == busArc)
 				addToDrawn(tpi);
 			numDrawns++;

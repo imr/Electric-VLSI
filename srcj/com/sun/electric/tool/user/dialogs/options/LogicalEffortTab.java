@@ -23,7 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Technology;

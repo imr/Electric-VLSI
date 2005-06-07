@@ -37,7 +37,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
-import com.sun.electric.technology.PrimitiveArc;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -476,7 +476,7 @@ public class PadGenerator {
 
                         PortInst pi1 = ni.findPortInstFromProto(pa.corepp);
                         PortInst pi2 = pa.ni.findPortInstFromProto(pa.pp);
-                        PrimitiveArc ap = Generic.tech.unrouted_arc;
+                        ArcProto ap = Generic.tech.unrouted_arc;
                         ArcInst ai = ArcInst.newInstance(ap, ap.getDefaultWidth(), pi1, pi2, null);
                     }
                 }
@@ -1027,7 +1027,7 @@ public class PadGenerator {
                                 PortInst pi2 = pad.ni.findPortInst(pa.portname);
                                 PortInst pi1 = ni.findPortInstFromProto(corepp);
                                 //PortInst pi2 = pad.ni.findPortInstFromProto(pa.pp);
-                                PrimitiveArc ap = Generic.tech.unrouted_arc;
+                                ArcProto ap = Generic.tech.unrouted_arc;
                                 ArcInst ai = ArcInst.newInstance(ap, ap.getDefaultWidth(), pi1, pi2);
                             }
                         }

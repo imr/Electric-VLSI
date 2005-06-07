@@ -420,9 +420,9 @@ public class Undo
 				// get information about the arc as it is now
 				ArcInst ai = (ArcInst)obj;
 				Point2D oldHeadPt = new Point2D.Double();
-				oldHeadPt.setLocation(ai.getHead().getLocation());
+				oldHeadPt.setLocation(ai.getHeadLocation());
 				Point2D oldTailPt = new Point2D.Double();
-				oldTailPt.setLocation(ai.getTail().getLocation());
+				oldTailPt.setLocation(ai.getTailLocation());
 				double oldWid = ai.getWidth();
 
 				// change the arc information

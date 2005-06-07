@@ -32,7 +32,7 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.prototype.ArcProto;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
@@ -47,7 +47,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.PrimitiveArc;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
@@ -641,9 +640,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			for(int i=0; i<2; i++)
 			{
 				opi[i] = null;
-				Connection con = ai.getConnection(i);
-				NodeInst ono = (NodeInst)newNodes.get(con.getPortInst().getNodeInst());
-				PortProto pp = con.getPortInst().getPortProto();
+				NodeInst ono = (NodeInst)newNodes.get(ai.getPortInst(i).getNodeInst());
+				PortProto pp = ai.getPortInst(i).getPortProto();
 				if (ono.getProto() instanceof PrimitiveNode)
 				{
 					// primitives associate ports directly
@@ -662,7 +660,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 			// create the arcinst
 			ArcInst toAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), opi[0], opi[1],
-				ai.getTail().getLocation(), ai.getHead().getLocation(), ai.getName(), ai.getAngle());
+				ai.getTailLocation(), ai.getHeadLocation(), ai.getName(), ai.getAngle());
 			if (toAi == null) return null;
 
 			// copy arcinst information
@@ -4019,7 +4017,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
         for (int i = 0; i < arcs.size(); i++)
         {
             ArcInst ai = (ArcInst)arcs.get(i);
-            PrimitiveArc ap = (PrimitiveArc)ai.getProto();
+            ArcProto ap = ai.getProto();
             ap.getZValues(array);
         }
 	}
