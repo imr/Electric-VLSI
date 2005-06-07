@@ -59,7 +59,7 @@ public abstract class Part extends NetObject {
     }
 
     // ---------- public methods ----------
-    public String getName() {return nameProxy.toString();}
+    public String getName() {return nameProxy.getName();}
 	public Iterator getConnected() {return Arrays.asList(pins).iterator();}
 	public PartNameProxy getNameProxy() {return nameProxy;}
     public Type getNetObjType() {return Type.PART;}
