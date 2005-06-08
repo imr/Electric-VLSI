@@ -1304,12 +1304,12 @@ public class MoCMOS extends Technology
 		padFrame_lay.setFactoryCIFLayer("XP");				// Pad-Frame
 
 		// The GDS names
-		metal1_lay.setFactoryGDSLayer("49");				// Metal-1
-		metal2_lay.setFactoryGDSLayer("51");				// Metal-2
-		metal3_lay.setFactoryGDSLayer("62");				// Metal-3
-		metal4_lay.setFactoryGDSLayer("31");				// Metal-4
-		metal5_lay.setFactoryGDSLayer("33");				// Metal-5
-		metal6_lay.setFactoryGDSLayer("37");				// Metal-6
+		metal1_lay.setFactoryGDSLayer("49, 80p, 80t");				// Metal-1
+		metal2_lay.setFactoryGDSLayer("51, 82p, 82t");				// Metal-2
+		metal3_lay.setFactoryGDSLayer("62, 93p, 93t");				// Metal-3
+		metal4_lay.setFactoryGDSLayer("31, 63p, 63t");				// Metal-4
+		metal5_lay.setFactoryGDSLayer("33, 64p, 64t");				// Metal-5
+		metal6_lay.setFactoryGDSLayer("37, 68p, 68t");				// Metal-6
 		poly1_lay.setFactoryGDSLayer("46");					// Polysilicon-1
 		poly2_lay.setFactoryGDSLayer("56");					// Polysilicon-2
 		pActive_lay.setFactoryGDSLayer("43");				// P-Active
@@ -1318,8 +1318,8 @@ public class MoCMOS extends Technology
 		nSelect_lay.setFactoryGDSLayer("45");				// N-Select
 		pWell_lay.setFactoryGDSLayer("41");					// P-Well
 		nWell_lay.setFactoryGDSLayer("42");					// N-Well
-		polyCut_lay.setFactoryGDSLayer("47");				// Poly-Cut
-		activeCut_lay.setFactoryGDSLayer("48");				// Active-Cut
+		polyCut_lay.setFactoryGDSLayer("25");				// Poly-Cut
+		activeCut_lay.setFactoryGDSLayer("25");				// Active-Cut
 		via1_lay.setFactoryGDSLayer("50");					// Via-1
 		via2_lay.setFactoryGDSLayer("61");					// Via-2
 		via3_lay.setFactoryGDSLayer("30");					// Via-3
