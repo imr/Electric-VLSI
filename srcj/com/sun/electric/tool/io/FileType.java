@@ -91,6 +91,7 @@ public class FileType {
 	/** Describes Verilog decks. */			public static final FileType VERILOG      = makeFileType("Verilog", new String[] {"v"}, "Verilog Deck (v)");
 	/** Describes Verilog output. */		public static final FileType VERILOGOUT   = makeFileType("VerilogOutput", new String[] {"dump"}, "Verilog VCD Dump (vcd)");
 	/** Describes Xml files. */				public static final FileType XML          = makeFileType("XML", new String[] {"xml"}, "XML File (xml)");
+	/** Describes Assura DRC Error files. */public static final FileType ERR          = makeFileType("XML", new String[] {"err"}, "Assura DRC Error File (err)");
 
 	/** Describes default file format.*/	public static final FileType DEFAULTLIB   = JELIB;
 
