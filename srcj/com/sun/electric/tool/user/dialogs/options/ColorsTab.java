@@ -175,6 +175,61 @@ public class ColorsTab extends PreferencePanel
 		colorLayerModel.addElement(name);
 		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
 
+		color = User.getColorWaveformBackground();
+		name = "Special: WAVEFORM BACKGROUND";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+		color = User.getColorWaveformForeground();
+		name = "Special: WAVEFORM FOREGROUND";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+		color = User.getColorWaveformStimuli();
+		name = "Special: WAVEFORM STIMULI";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+		color = User.getColorWaveformStrengthOff();
+		name = "Special: WAVEFORM OFF STRENGTH";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+		color = User.getColorWaveformStrengthNode();
+		name = "Special: WAVEFORM NODE (WEAK) STRENGTH";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+		color = User.getColorWaveformStrengthGate();
+		name = "Special: WAVEFORM GATE STRENGTH";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+		color = User.getColorWaveformStrengthPower();
+		name = "Special: WAVEFORM POWER STRENGTH";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+		color = User.getColorWaveformCrossProbeLow();
+		name = "Special: WAVEFORM CROSSPROBE LOW";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+		color = User.getColorWaveformCrossProbeHigh();
+		name = "Special: WAVEFORM CROSSPROBE HIGH";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+		color = User.getColorWaveformCrossProbeX();
+		name = "Special: WAVEFORM CROSSPROBE UNDEFINED";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
+		color = User.getColorWaveformCrossProbeZ();
+		name = "Special: WAVEFORM CROSSPROBE FLOATING";
+		colorLayerModel.addElement(name);
+		transAndSpecialMap.put(name, new GenMath.MutableInteger(color));
+
         // 3D Stuff
         try
         {
@@ -332,7 +387,85 @@ public class ColorsTab extends PreferencePanel
 						User.setColorInstanceOutline(color.intValue());
 						colorChanged = true;
 					}
+				} else if (layerName.equals("Special: WAVEFORM BACKGROUND"))
+				{
+					if (color.intValue() != User.getColorWaveformBackground())
+					{
+						User.setColorWaveformBackground(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: WAVEFORM FOREGROUND"))
+				{
+					if (color.intValue() != User.getColorWaveformForeground())
+					{
+						User.setColorWaveformForeground(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: WAVEFORM STIMULI"))
+				{
+					if (color.intValue() != User.getColorWaveformStimuli())
+					{
+						User.setColorWaveformStimuli(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: WAVEFORM OFF STRENGTH"))
+				{
+					if (color.intValue() != User.getColorWaveformStrengthOff())
+					{
+						User.setColorWaveformStrengthOff(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: WAVEFORM NODE (WEAK) STRENGTH"))
+				{
+					if (color.intValue() != User.getColorWaveformStrengthNode())
+					{
+						User.setColorWaveformStrengthNode(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: WAVEFORM GATE STRENGTH"))
+				{
+					if (color.intValue() != User.getColorWaveformStrengthGate())
+					{
+						User.setColorWaveformStrengthGate(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: WAVEFORM POWER STRENGTH"))
+				{
+					if (color.intValue() != User.getColorWaveformStrengthPower())
+					{
+						User.setColorWaveformStrengthPower(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: WAVEFORM CROSSPROBE LOW"))
+				{
+					if (color.intValue() != User.getColorWaveformCrossProbeLow())
+					{
+						User.setColorWaveformCrossProbeLow(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: WAVEFORM CROSSPROBE HIGH"))
+				{
+					if (color.intValue() != User.getColorWaveformCrossProbeHigh())
+					{
+						User.setColorWaveformCrossProbeHigh(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: WAVEFORM CROSSPROBE UNDEFINED"))
+				{
+					if (color.intValue() != User.getColorWaveformCrossProbeX())
+					{
+						User.setColorWaveformCrossProbeX(color.intValue());
+						colorChanged = true;
+					}
+				} else if (layerName.equals("Special: WAVEFORM CROSSPROBE FLOATING"))
+				{
+					if (color.intValue() != User.getColorWaveformCrossProbeZ())
+					{
+						User.setColorWaveformCrossProbeZ(color.intValue());
+						colorChanged = true;
+					}
                 }
+
 //			} else
 //			{
 //				Layer layer = curTech.findLayer(layerName);

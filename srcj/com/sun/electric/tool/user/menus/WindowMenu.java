@@ -540,6 +540,9 @@ public class WindowMenu {
         User.setColorPortHighlight(Color.YELLOW.getRGB());
         User.setColorText(Color.BLACK.getRGB());
         User.setColorInstanceOutline(Color.BLACK.getRGB());
+		User.setColorWaveformBackground(Color.BLACK.getRGB());
+		User.setColorWaveformForeground(Color.WHITE.getRGB());
+		User.setColorWaveformStimuli(Color.RED.getRGB());
         EditWindow.repaintAllContents();
         for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
         {
@@ -559,7 +562,11 @@ public class WindowMenu {
         User.setColorPortHighlight(Color.YELLOW.getRGB());
         User.setColorText(Color.WHITE.getRGB());
         User.setColorInstanceOutline(Color.WHITE.getRGB());
-        EditWindow.repaintAllContents();
+		User.setColorWaveformBackground(Color.BLACK.getRGB());
+		User.setColorWaveformForeground(Color.WHITE.getRGB());
+		User.setColorWaveformStimuli(Color.RED.getRGB());
+
+		EditWindow.repaintAllContents();
         for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
         {
         	WindowFrame wf = (WindowFrame)it.next();
@@ -578,6 +585,9 @@ public class WindowMenu {
         User.setColorPortHighlight(Color.DARK_GRAY.getRGB());
         User.setColorText(Color.BLACK.getRGB());
         User.setColorInstanceOutline(Color.BLACK.getRGB());
+		User.setColorWaveformBackground(Color.WHITE.getRGB());
+		User.setColorWaveformForeground(Color.BLACK.getRGB());
+		User.setColorWaveformStimuli(Color.RED.getRGB());
         EditWindow.repaintAllContents();
         for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
         {

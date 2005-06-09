@@ -31,25 +31,27 @@ import com.sun.electric.tool.simulation.DigitalSignal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.als.ALS.Load;
+import com.sun.electric.tool.simulation.als.ALS.Stat;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
 public class Sim
 {
 	private ALS als;
-
-	boolean simals_tracing = false;
-	private Load       simals_chekroot;
-
-	private static String [] simals_statedesc = {"High", "Undefined", "Low"};
-	private static String [] simals_strengthdesc = {"Off-", "Weak-", "Weak-", "", "", "Strong-", "Strong-"};
-
+	private List       chekList = new ArrayList();
+//	private Load       chekRoot;
 	private HashMap tracking;
+
+	private static String [] stateDesc = {"High", "Undefined", "Low"};
+	private static String [] strengthDesc = {"Off-", "Weak-", "Weak-", "", "", "Strong-", "Strong-"};
+
+	boolean tracing = false;
 
 	Sim(ALS als)
 	{
@@ -63,60 +65,61 @@ public class Sim
 	 * tasks are completed the simulator is ready to start the actual simulation.
 	 * Returns the time where the simulation quiesces.
 	 */
-	double simals_initialize_simulator(boolean force)
+	double initializeSimulator(boolean force)
 	{
-		als.simals_time_abs = 0.0;
+		als.timeAbs = 0.0;
 		tracking = new HashMap();
 
-		while (als.simals_linkfront != null)
+		while (als.linkFront != null)
 		{
-			ALS.Link link = als.simals_linkfront;
-			if (als.simals_linkfront.down != null)
+			ALS.Link link = als.linkFront;
+			if (als.linkFront.down != null)
 			{
-				als.simals_linkfront.down.right = als.simals_linkfront.right;
-				als.simals_linkfront = als.simals_linkfront.down;
+				als.linkFront.down.right = als.linkFront.right;
+				als.linkFront = als.linkFront.down;
 			} else
 			{
-				als.simals_linkfront = als.simals_linkfront.right;
+				als.linkFront = als.linkFront.right;
 			}
 		}
-		als.simals_linkback = null;
+		als.linkBack = null;
 
-		for (ALS.Link linkhead = als.simals_setroot; linkhead != null; linkhead = linkhead.right)
+		for (ALS.Link linkHead = als.setRoot; linkHead != null; linkHead = linkHead.right)
 		{
-			ALS.Link linkptr2 = new ALS.Link();
-			if (linkptr2 == null) return(als.simals_time_abs);
-			linkptr2.type = linkhead.type;
-			linkptr2.ptr = linkhead.ptr;
-			linkptr2.state = linkhead.state;
-			linkptr2.strength = linkhead.strength;
-			linkptr2.priority = linkhead.priority;
-			linkptr2.time = linkhead.time;
-			linkptr2.primhead = null;
-			simals_insert_link_list(linkptr2);
+			ALS.Link linkPtr2 = new ALS.Link();
+			if (linkPtr2 == null) return(als.timeAbs);
+			linkPtr2.type = linkHead.type;
+			linkPtr2.ptr = linkHead.ptr;
+			linkPtr2.state = linkHead.state;
+			linkPtr2.strength = linkHead.strength;
+			linkPtr2.priority = linkHead.priority;
+			linkPtr2.time = linkHead.time;
+			linkPtr2.primHead = null;
+			insertLinkList(linkPtr2);
 		}
 
-		for (ALS.Node nodehead = als.simals_noderoot; nodehead != null; nodehead = nodehead.next)
+
+		for(Iterator it = als.nodeList.iterator(); it.hasNext(); )
 		{
-			nodehead.sum_state = Stimuli.LOGIC_LOW;
-			nodehead.sum_strength = Stimuli.OFF_STRENGTH;
-			nodehead.new_state = new Integer(Stimuli.LOGIC_LOW);
-			nodehead.new_strength = Stimuli.OFF_STRENGTH;
-			nodehead.maxsize = 0;
-			nodehead.arrive = 0;
-			nodehead.depart = 0;
-			nodehead.tk_sec = 0;
-			nodehead.t_last = 0.0;
-			for (ALS.Stat stathead = nodehead.statptr; stathead != null; stathead = stathead.next)
+			ALS.Node nodeHead = (ALS.Node)it.next();
+			nodeHead.sumState = Stimuli.LOGIC_LOW;
+			nodeHead.sumStrength = Stimuli.OFF_STRENGTH;
+			nodeHead.newState = new Integer(Stimuli.LOGIC_LOW);
+			nodeHead.newStrength = Stimuli.OFF_STRENGTH;
+			nodeHead.arrive = 0;
+			nodeHead.depart = 0;
+			nodeHead.tLast = 0.0;
+			for(Iterator sIt = nodeHead.statList.iterator(); sIt.hasNext(); )
 			{
-				stathead.new_state = Stimuli.LOGIC_LOW;
-				stathead.new_strength = Stimuli.OFF_STRENGTH;
-				stathead.sched_op = 0;
+				Stat statHead = (Stat)sIt.next();
+				statHead.newState = Stimuli.LOGIC_LOW;
+				statHead.newStrength = Stimuli.OFF_STRENGTH;
+				statHead.schedOp = 0;
 			}
 		}
 
 		// now run the simulation
-		boolean update = Simulation.isALSResimulateEach();
+		boolean update = Simulation.isBuiltInResimulateEach();
 		if (force) update = true;
 		if (update)
 		{
@@ -133,35 +136,35 @@ public class Sim
 				if (panelMax > tMax) tMax = panelMax;
 			}
 
-			while (als.simals_linkfront != null && als.simals_linkfront.time <= tMax)
+			while (als.linkFront != null && als.linkFront.time <= tMax)
 			{
-				if (simals_fire_event()) break;
-				if (simals_chekroot != null)
+				if (fireEvent()) break;
+				if (chekList.size() != 0)
 				{
-					if (simals_schedule_new_events()) break;
+					if (scheduleNewEvents()) break;
 				}
 			}
 
 			// redisplay results
-			simals_fill_display_arrays();
-			System.out.println("Done.  Ran to time " + TextUtils.convertToEngineeringNotation(als.simals_time_abs));
+			fillDisplayArrays();
+			System.out.println("Done.  Ran to time " + TextUtils.convertToEngineeringNotation(als.timeAbs));
 		}
 
-		return als.simals_time_abs;
+		return als.timeAbs;
 	}
 
 	/**
 	 * Method to extract the ALS simulation data and update the Stimuli database
 	 */
-	private void simals_fill_display_arrays()
+	private void fillDisplayArrays()
 	{
+		HashSet sigsChanged = new HashSet();
 		for(Iterator it = tracking.keySet().iterator(); it.hasNext(); )
 		{
 			ALS.Node node = (ALS.Node)it.next();
 			DigitalSignal sig = node.sig;
 			List trakHeads = (List)tracking.get(node);
 			int count = trakHeads.size();
-
 			double [] timeVector = new double[count+1];
 			int [] stateVector = new int[count+1];
 			timeVector[0] = 0;
@@ -169,14 +172,29 @@ public class Sim
 			int j=1;
 			for(Iterator dIt = trakHeads.iterator(); dIt.hasNext(); )
 			{
-				ALS.Trak trakhead = (ALS.Trak)dIt.next();
-				timeVector[j] = trakhead.time;
-				stateVector[j] = trakhead.state;
+				ALS.Trak trakHead = (ALS.Trak)dIt.next();
+				timeVector[j] = trakHead.time;
+				stateVector[j] = trakHead.state;
 				j++;
 			}
 			sig.setTimeVector(timeVector);
 			sig.setStateVector(stateVector);
+			sigsChanged.add(sig);
 		}
+
+		// set all other signals to "empty"
+		int [] stateVector = new int[1];
+		stateVector[0] = 0;
+		double [] timeVector = new double[1];
+		timeVector[0] = 0;
+		for(Iterator it = als.sd.getSignals().iterator(); it.hasNext(); )
+		{
+			DigitalSignal sig = (DigitalSignal)it.next();
+			if (sigsChanged.contains(sig)) continue;
+			sig.setTimeVector(timeVector);
+			sig.setStateVector(stateVector);
+		}
+		
 		als.ww.repaint();
 	}
 
@@ -187,65 +205,65 @@ public class Sim
 	 * entry.  If a transition fired, all the output nodes are updated as specified
 	 * in the truth table for the transtion.  Returns true on error.
 	 */
-	boolean simals_fire_event()
+	private boolean fireEvent()
 	{
-		als.simals_time_abs = als.simals_linkfront.time;
-		ALS.Link linkhead = als.simals_linkfront;
-		if (als.simals_linkfront.down != null)
+		als.timeAbs = als.linkFront.time;
+		ALS.Link linkHead = als.linkFront;
+		if (als.linkFront.down != null)
 		{
-			als.simals_linkfront = als.simals_linkfront.down;
-			als.simals_linkfront.left = null;
-			als.simals_linkfront.right = linkhead.right;
-			als.simals_linkfront.up = linkhead.up;
-			if (als.simals_linkfront.right != null)
+			als.linkFront = als.linkFront.down;
+			als.linkFront.left = null;
+			als.linkFront.right = linkHead.right;
+			als.linkFront.up = linkHead.up;
+			if (als.linkFront.right != null)
 			{
-				als.simals_linkfront.right.left = als.simals_linkfront;
+				als.linkFront.right.left = als.linkFront;
 			} else
 			{
-				als.simals_linkback = als.simals_linkfront;
+				als.linkBack = als.linkFront;
 			}
 		} else
 		{
-			als.simals_linkfront = als.simals_linkfront.right;
-			if (als.simals_linkfront != null)
+			als.linkFront = als.linkFront.right;
+			if (als.linkFront != null)
 			{
-				als.simals_linkfront.left = null;
+				als.linkFront.left = null;
 			} else
 			{
-				als.simals_linkback = null;
+				als.linkBack = null;
 			}
 		}
 
-		simals_tracing = false;
-		switch (linkhead.type)
+		tracing = false;
+		switch (linkHead.type)
 		{
 			case 'G':
-				ALS.Stat stathead = (ALS.Stat)linkhead.ptr;
-				if (stathead.nodeptr.tracenode)
+				ALS.Stat statHead = (ALS.Stat)linkHead.ptr;
+				if (statHead.nodePtr.traceNode)
 				{
-					String s2 = als.simals_compute_node_name(stathead.nodeptr);
-					System.out.println(TextUtils.convertToEngineeringNotation(als.simals_time_abs) +
-						": Firing gate " + stathead.primptr.name + stathead.primptr.level + ", net " + s2);
-					simals_tracing = true;
+					String s2 = als.computeNodeName(statHead.nodePtr);
+					System.out.println(TextUtils.convertToEngineeringNotation(als.timeAbs) +
+						": Firing gate " + statHead.primPtr.name + statHead.primPtr.level + ", net " + s2);
+					tracing = true;
 				}
-				if (stathead.sched_state != linkhead.state ||
-					stathead.sched_op != linkhead.operatr ||
-					stathead.sched_strength != linkhead.strength)
+				if (statHead.schedState != linkHead.state ||
+					statHead.schedOp != linkHead.operatr ||
+					statHead.schedStrength != linkHead.strength)
 				{
 					break;
 				}
-				stathead.sched_op = 0;
+				statHead.schedOp = 0;
 
-				char operatr = linkhead.operatr;
+				char operatr = linkHead.operatr;
 				int operand = 0;
 				if (operatr < 128)
 				{
-					operand = ((Integer)linkhead.state).intValue();
+					operand = ((Integer)linkHead.state).intValue();
 				} else
 				{
 					operatr -= 128;
-//					ALS.Node nodehead = (ALS.Node)linkhead.state;
-//					operand = nodehead.sum_state;
+//					ALS.Node nodeHead = (ALS.Node)linkHead.state;
+//					operand = nodeHead.sumState;
 				}
 
 				int state = 0;
@@ -255,78 +273,78 @@ public class Sim
 						state = operand;
 						break;
 					case '+':
-						state = stathead.nodeptr.sum_state + operand;
+						state = statHead.nodePtr.sumState + operand;
 						break;
 					case '-':
-						state = stathead.nodeptr.sum_state - operand;
+						state = statHead.nodePtr.sumState - operand;
 						break;
 					case '*':
-						state = stathead.nodeptr.sum_state * operand;
+						state = statHead.nodePtr.sumState * operand;
 						break;
 					case '/':
-						state = stathead.nodeptr.sum_state / operand;
+						state = statHead.nodePtr.sumState / operand;
 						break;
 					case '%':
-						state = stathead.nodeptr.sum_state % operand;
+						state = statHead.nodePtr.sumState % operand;
 						break;
 					default:
 						System.out.println("Invalid arithmetic operator: " + operatr);
 						return true;
 				}
 
-				if (state == stathead.new_state &&
-					linkhead.strength == stathead.new_strength)
+				if (state == statHead.newState &&
+					linkHead.strength == statHead.newStrength)
 				{
 					break;
 				}
-				stathead.new_state = state;
-				stathead.new_strength = linkhead.strength;
-				simals_create_check_list(stathead.nodeptr, linkhead);
+				statHead.newState = state;
+				statHead.newStrength = linkHead.strength;
+				createCheckList(statHead.nodePtr, linkHead);
 				break;
 
 			case 'N':
-				ALS.Node nodehead = (ALS.Node)linkhead.ptr;
-				if (nodehead.tracenode)
+				ALS.Node nodeHead = (ALS.Node)linkHead.ptr;
+				if (nodeHead.traceNode)
 				{
-					String s2 = als.simals_compute_node_name(nodehead);
-					System.out.println(TextUtils.convertToEngineeringNotation(als.simals_time_abs) + ": Changed state of net " + s2);
-					simals_tracing = true;
+					String s2 = als.computeNodeName(nodeHead);
+					System.out.println(TextUtils.convertToEngineeringNotation(als.timeAbs) + ": Changed state of net " + s2);
+					tracing = true;
 				}
-				if (linkhead.state == nodehead.new_state &&
-					linkhead.strength == nodehead.new_strength)
+				if (linkHead.state == nodeHead.newState &&
+					linkHead.strength == nodeHead.newStrength)
 						break;
 
-				nodehead.new_state = linkhead.state;
-				nodehead.new_strength = linkhead.strength;
-				simals_create_check_list(nodehead, linkhead);
+				nodeHead.newState = linkHead.state;
+				nodeHead.newStrength = linkHead.strength;
+				createCheckList(nodeHead, linkHead);
 				break;
 
 			case 'C':
-				double time = als.simals_time_abs;
-				ALS.Row rowhead = (ALS.Row)linkhead.ptr;
-				for(Iterator it = rowhead.inList.iterator(); it.hasNext(); )
+				double time = als.timeAbs;
+				ALS.Row rowHead = (ALS.Row)linkHead.ptr;
+				for(Iterator it = rowHead.inList.iterator(); it.hasNext(); )
 				{
-					ALS.Link vecthead = (ALS.Link)it.next();
-					ALS.Link linkptr2 = new ALS.Link();
-					linkptr2.type = 'N';
-					linkptr2.ptr = vecthead.ptr;
-					linkptr2.state = vecthead.state;
-					linkptr2.strength = vecthead.strength;
-					linkptr2.priority = vecthead.priority;
-					linkptr2.time = time;
-					linkptr2.primhead = null;
-					simals_insert_link_list(linkptr2);
-					time += vecthead.time;
+					ALS.Link vectHead = (ALS.Link)it.next();
+					ALS.Link linkPtr2 = new ALS.Link();
+					linkPtr2.type = 'N';
+					linkPtr2.ptr = vectHead.ptr;
+					linkPtr2.state = vectHead.state;
+					linkPtr2.strength = vectHead.strength;
+					linkPtr2.priority = vectHead.priority;
+					linkPtr2.time = time;
+					linkPtr2.primHead = null;
+					insertLinkList(linkPtr2);
+					time += vectHead.time;
 				}
-				if (((Integer)linkhead.state).intValue() == 0)
+				if (((Integer)linkHead.state).intValue() == 0)
 				{
-					simals_calculate_clock_time(linkhead, rowhead);
+					calculateClockTime(linkHead, rowHead);
 					return false;
 				}
-				linkhead.state = new Integer(((Integer)linkhead.state).intValue() - 1);
-				if (((Integer)linkhead.state).intValue() != 0)
+				linkHead.state = new Integer(((Integer)linkHead.state).intValue() - 1);
+				if (((Integer)linkHead.state).intValue() != 0)
 				{
-					simals_calculate_clock_time(linkhead, rowhead);
+					calculateClockTime(linkHead, rowHead);
 					return false;
 				}
 		}
@@ -342,40 +360,41 @@ public class Sim
 	 * state for a node because it is possible to have nodes that have more than
 	 * one transition driving it.
 	 */
-	void simals_create_check_list(ALS.Node nodehead, ALS.Link linkhead)
+	private void createCheckList(ALS.Node nodeHead, ALS.Link linkHead)
 	{
 		// get initial state of the node
-		int state = ((Integer)nodehead.new_state).intValue();
-		int strength = nodehead.new_strength;
+		int state = ((Integer)nodeHead.newState).intValue();
+		int strength = nodeHead.newStrength;
 
 		// print state of signal if this signal is being traced
-		if (simals_tracing)
+		if (tracing)
 		{
-			System.out.println("  Formerly " + simals_strengthdesc[nodehead.sum_strength] + simals_statedesc[nodehead.sum_state+3] +
-				", starts at " + simals_strengthdesc[strength] + simals_statedesc[state+3]);
+			System.out.println("  Formerly " + strengthDesc[nodeHead.sumStrength] + stateDesc[nodeHead.sumState+3] +
+				", starts at " + strengthDesc[strength] + stateDesc[state+3]);
 		}
 
 		// look at all factors affecting the node
-		for (ALS.Stat stathead = nodehead.statptr; stathead != null; stathead = stathead.next)
+		for(Iterator sIt = nodeHead.statList.iterator(); sIt.hasNext(); )
 		{
-			int thisstate = stathead.new_state;
-			int thisstrength = stathead.new_strength;
-			if (simals_tracing)
-				System.out.println("    " + simals_strengthdesc[thisstrength] + simals_statedesc[thisstate+3] +
-					" from " + stathead.primptr.name + stathead.primptr.level);
+			Stat statHead = (Stat)sIt.next();
+			int thisState = statHead.newState;
+			int thisStrength = statHead.newStrength;
+			if (tracing)
+				System.out.println("    " + strengthDesc[thisStrength] + stateDesc[thisState+3] +
+					" from " + statHead.primPtr.name + statHead.primPtr.level);
 
 			// higher strength overrides previous node state
-			if (thisstrength > strength)
+			if (thisStrength > strength)
 			{
-				state = thisstate;
-				strength = thisstrength;
+				state = thisState;
+				strength = thisStrength;
 				continue;
 			}
 
 			// same strength: must arbitrate
-			if (thisstrength == strength)
+			if (thisStrength == strength)
 			{
-				if (thisstate != state)
+				if (thisState != state)
 					state = Stimuli.LOGIC_X;
 			}
 		}
@@ -383,40 +402,41 @@ public class Sim
 		// if the node has nothing driving it, set it to the old value
 		if (strength == Stimuli.OFF_STRENGTH)
 		{
-			state = nodehead.sum_state;
+			state = nodeHead.sumState;
 			strength = Stimuli.NODE_STRENGTH;
 		}
 
 		// stop now if node state did not change
-		if (nodehead.sum_state == state && nodehead.sum_strength == strength)
+		if (nodeHead.sumState == state && nodeHead.sumStrength == strength)
 		{
-			if (simals_tracing) System.out.println("    NO CHANGE");
+			if (tracing) System.out.println("    NO CHANGE");
 			return;
 		}
 
-		if (nodehead.sig != null)
+		if (nodeHead.sig != null)
 		{
-			List nodeData = (List)tracking.get(nodehead);
+			List nodeData = (List)tracking.get(nodeHead);
 			if (nodeData == null)
 			{
 				nodeData = new ArrayList();
-				tracking.put(nodehead, nodeData);
+				tracking.put(nodeHead, nodeData);
 			}
 
-			ALS.Trak trakhead = new ALS.Trak();
-			trakhead.state = state | strength;
-			trakhead.time = als.simals_time_abs;
-			nodeData.add(trakhead);
+			ALS.Trak trakHead = new ALS.Trak();
+			trakHead.state = state | strength;
+			trakHead.time = als.timeAbs;
+			nodeData.add(trakHead);
 		}
-		if (simals_tracing)
-			System.out.println("    BECOMES " + simals_strengthdesc[strength] + simals_statedesc[state+3]);
+		if (tracing)
+			System.out.println("    BECOMES " + strengthDesc[strength] + stateDesc[state+3]);
 
-		nodehead.sum_state = state;
-		nodehead.sum_strength = strength;
-		nodehead.t_last = als.simals_time_abs;
+		nodeHead.sumState = state;
+		nodeHead.sumStrength = strength;
+		nodeHead.tLast = als.timeAbs;
 
-		als.simals_drive_node = nodehead;
-		simals_chekroot = nodehead.pinptr;
+		als.driveNode = nodeHead;
+		for(Iterator it = nodeHead.pinList.iterator(); it.hasNext(); )
+			chekList.add(it.next());
 	}
 
 	/**
@@ -425,50 +445,56 @@ public class Sim
 	 * entry and the state of the logic network the transition is scheduled
 	 * for firing.  Returns true on error.
 	 */
-	boolean simals_schedule_new_events()
+	private boolean scheduleNewEvents()
 	{
-		for (ALS.Load chekhead = simals_chekroot; chekhead != null; chekhead = chekhead.next)
-		{
-			ALS.Model primhead = (ALS.Model)chekhead.ptr;
+		// make a copy of the event list, and clear the main list
+		List chekListCopy =  new ArrayList();
+		for(Iterator cIt = chekList.iterator(); cIt.hasNext(); )
+			chekListCopy.add(cIt.next());
+		chekList.clear();
 
-			if (primhead.type == 'F')
+		for(Iterator cIt = chekListCopy.iterator(); cIt.hasNext(); )
+		{
+			ALS.Load chekHead = (ALS.Load)cIt.next();
+			ALS.Model primHead = (ALS.Model)chekHead.ptr;
+			if (primHead.type == 'F')
 			{
-				ALS.Func funchead = (ALS.Func)primhead.ptr;
-				funchead.procptr.simulate(primhead);
+				ALS.Func funcHead = (ALS.Func)primHead.ptr;
+				funcHead.procPtr.simulate(primHead);
 				continue;
 			}
 
-			for (ALS.Row rowhead = (ALS.Row)primhead.ptr; rowhead != null; rowhead = rowhead.next)
+			for (ALS.Row rowHead = (ALS.Row)primHead.ptr; rowHead != null; rowHead = rowHead.next)
 			{
 				int flag = 1;
-				for(Iterator it = rowhead.inList.iterator(); it.hasNext(); )
+				for(Iterator it = rowHead.inList.iterator(); it.hasNext(); )
 				{
-					ALS.IO iohead = (ALS.IO)it.next();
-					int operatr = iohead.operatr;
+					ALS.IO ioHead = (ALS.IO)it.next();
+					int operatr = ioHead.operatr;
 					int operand;
 					if (operatr < 128)
 					{
-						operand = ((Integer)iohead.operand).intValue();
+						operand = ((Integer)ioHead.operand).intValue();
 					} else
 					{
 						operatr -= 128;
-						ALS.Node nodehead = (ALS.Node)iohead.operand;
-						operand = nodehead.sum_state;
+						ALS.Node nodeHead = (ALS.Node)ioHead.operand;
+						operand = nodeHead.sumState;
 					}
 
 					switch (operatr)
 					{
 						case '=':
-							if (((ALS.Node)iohead.nodeptr).sum_state != operand) flag = 0;
+							if (((ALS.Node)ioHead.nodePtr).sumState != operand) flag = 0;
 							break;
 						case '!':
-							if (((ALS.Node)iohead.nodeptr).sum_state == operand) flag = 0;
+							if (((ALS.Node)ioHead.nodePtr).sumState == operand) flag = 0;
 							break;
 						case '<':
-							if (((ALS.Node)iohead.nodeptr).sum_state >= operand) flag = 0;
+							if (((ALS.Node)ioHead.nodePtr).sumState >= operand) flag = 0;
 							break;
 						case '>':
-							if (((ALS.Node)iohead.nodeptr).sum_state <= operand) flag = 0;
+							if (((ALS.Node)ioHead.nodePtr).sumState <= operand) flag = 0;
 							break;
 						default:
 							System.out.println("Invalid logical operator: " + operatr);
@@ -480,12 +506,11 @@ public class Sim
 
 				if (flag != 0)
 				{
-					if (simals_calculate_event_time(primhead, rowhead)) return true;
+					calculateEventTime(primHead, rowHead);
 					break;
 				}
 			}
 		}
-		simals_chekroot = null;
 		return false;
 	}
 
@@ -494,30 +519,30 @@ public class Sim
 	 * clock vectors is to be added to the event scheduling linklist.
 	 *
 	 * Calling Arguments:
-	 *	linkhead = pointer to the link element to be reinserted into the list
-	 *  rowhead  = pointer to a row element containing timing information
+	 *	linkHead = pointer to the link element to be reinserted into the list
+	 *  rowHead  = pointer to a row element containing timing information
 	 */
-	void simals_calculate_clock_time(ALS.Link linkhead, ALS.Row rowhead)
+	private void calculateClockTime(ALS.Link linkHead, ALS.Row rowHead)
 	{
-		double time = als.simals_time_abs;
+		double time = als.timeAbs;
 
-		if (rowhead.delta != 0) time += rowhead.delta;
-		if (rowhead.linear != 0)
+		if (rowHead.delta != 0) time += rowHead.delta;
+		if (rowHead.linear != 0)
 		{
 			double prob = Math.random();
-			time += 2.0 * prob * rowhead.linear;
+			time += 2.0 * prob * rowHead.linear;
 		}
 
 		/*
-		 * if (rowhead.exp)
+		 * if (rowHead.exp)
 		 * {
 		 * 	prob = rand() / MAXINTBIG;
-		 * 	time += (-log(prob) * (rowhead.exp));
+		 * 	time += (-log(prob) * (rowHead.exp));
 		 * }
 		 */
 
-		linkhead.time = time;
-		simals_insert_link_list(linkhead);
+		linkHead.time = time;
+		insertLinkList(linkHead);
 	}
 
 	/**
@@ -526,112 +551,74 @@ public class Sim
 	 * Returns true on error.
 	 *
 	 * Calling Arguments:
-	 *	primhead  = pointer to the primitive to be scheduled for firing
-	 *	rowhead  = pointer to the row containing the event to be scheduled
+	 *	primHead  = pointer to the primitive to be scheduled for firing
+	 *	rowHead  = pointer to the row containing the event to be scheduled
 	 */
-	boolean simals_calculate_event_time(ALS.Model primhead, ALS.Row rowhead)
+	private void calculateEventTime(ALS.Model primHead, ALS.Row rowHead)
 	{
 		double time = 0.0;
-		int priority = primhead.priority;
+		int priority = primHead.priority;
 
-		if (rowhead.delta != 0) time += rowhead.delta;
-		if (rowhead.abs != 0) time += rowhead.abs;
-		if (rowhead.linear != 0)
+		if (rowHead.delta != 0) time += rowHead.delta;
+		if (rowHead.abs != 0) time += rowHead.abs;
+		if (rowHead.linear != 0)
 		{
 			double prob = Math.random();
-			time += 2.0 * prob * rowhead.linear;
+			time += 2.0 * prob * rowHead.linear;
 		}
 
 		/*
-		 * if (rowhead.exp)
+		 * if (rowHead.exp)
 		 * {
 		 * 	prob = rand() / MAXINTBIG;
-		 * 	time += (-log(prob) * (rowhead.exp));
+		 * 	time += (-log(prob) * (rowHead.exp));
 		 * }
 		 */
 
-		if (rowhead.random != 0)
+		if (rowHead.random != 0)
 		{
 			double prob = Math.random();
-			if (prob <= rowhead.random)
+			if (prob <= rowHead.random)
 			{
 				priority = -1;
 			}
 		}
 
-		if (primhead.fanout != 0)
+		if (primHead.fanOut != 0)
 		{
-			Iterator it = rowhead.outList.iterator();
+			Iterator it = rowHead.outList.iterator();
 			ALS.IO ioPtr = (ALS.IO)it.next();
-			ALS.Stat stathead = (ALS.Stat)ioPtr.nodeptr;
-			time *= stathead.nodeptr.load;
+			ALS.Stat statHead = (ALS.Stat)ioPtr.nodePtr;
+			time *= statHead.nodePtr.load;
 		}
-		time += als.simals_time_abs;
+		time += als.timeAbs;
 
-		for(Iterator it = rowhead.outList.iterator(); it.hasNext(); )
+		for(Iterator it = rowHead.outList.iterator(); it.hasNext(); )
 		{
-			ALS.IO iohead = (ALS.IO)it.next();
-			ALS.Stat stathead = (ALS.Stat)iohead.nodeptr;
-			if (stathead.sched_op == iohead.operatr &&
-				stathead.sched_state.equals(iohead.operand) &&
-					stathead.sched_strength == iohead.strength)
+			ALS.IO ioHead = (ALS.IO)it.next();
+			ALS.Stat statHead = (ALS.Stat)ioHead.nodePtr;
+			if (statHead.schedOp == ioHead.operatr &&
+				statHead.schedState.equals(ioHead.operand) &&
+				statHead.schedStrength == ioHead.strength)
 			{
 				continue;
 			}
 
-			ALS.Link linkptr2 = new ALS.Link();
-			linkptr2.type = 'G';
-			linkptr2.ptr = stathead;
-			linkptr2.operatr = stathead.sched_op = iohead.operatr;
-			linkptr2.state = stathead.sched_state = iohead.operand;
-			linkptr2.strength = stathead.sched_strength = iohead.strength;
-			linkptr2.time = time;
-			linkptr2.priority = priority;
-			linkptr2.primhead = primhead;
-			if (simals_tracing)
+			ALS.Link linkPtr2 = new ALS.Link();
+			linkPtr2.type = 'G';
+			linkPtr2.ptr = statHead;
+			linkPtr2.operatr = statHead.schedOp = ioHead.operatr;
+			linkPtr2.state = statHead.schedState = ioHead.operand;
+			linkPtr2.strength = statHead.schedStrength = ioHead.strength;
+			linkPtr2.time = time;
+			linkPtr2.priority = priority;
+			linkPtr2.primHead = primHead;
+			if (tracing)
 			{
-				System.out.println("      Schedule(G): " + stathead.primptr.name + stathead.primptr.level +
+				System.out.println("      Schedule(G): " + statHead.primPtr.name + statHead.primPtr.level +
 					" at " + TextUtils.convertToEngineeringNotation(time));
 			}
-			simals_insert_link_list(linkptr2);
-		}
-		return false;
-	}
-
-	/**
-	 * Method to insert a data element into a linklist that is sorted
-	 * by time and then priority.  This link list is used to schedule events
-	 * for the simulation.
-	 *
-	 * Calling Arguments:
-	 *	linkhead = pointer to the data element that is going to be inserted
-	 */
-	void simals_insert_set_list(ALS.Link linkhead)
-	{
-		// linkPtr1Is: 0: ALS.simals_setroot  1: linkptr1.right
-		int linkPtr1Is = 0;
-		ALS.Link linkptr1 = null;
-
-		for(;;)
-		{
-			ALS.Link linkptr2 = als.simals_setroot;
-			if (linkPtr1Is == 1) linkptr2 = linkptr1.right;
-			if (linkptr2 == null)
-			{
-				if (linkPtr1Is == 0) als.simals_setroot = linkhead; else
-					linkptr1.right = linkhead;
-				break;
-			}
-			if (linkptr2.time > linkhead.time || (linkptr2.time == linkhead.time &&
-				linkptr2.priority > linkhead.priority))
-			{
-				linkhead.right = linkptr2;
-				if (linkPtr1Is == 0) als.simals_setroot = linkhead; else
-					linkptr1.right = linkhead;
-				break;
-			}
-			linkptr1 = linkptr2;
-			linkPtr1Is = 1;
+			insertLinkList(linkPtr2);
 		}
 	}
 
@@ -641,105 +628,105 @@ public class Sim
 	 * used to schedule events for the simulation.
 	 *
 	 * Calling Arguments:
-	 *	linkhead = pointer to the data element that is going to be inserted
+	 *	linkHead = pointer to the data element that is going to be inserted
 	 */
-	void simals_insert_link_list(ALS.Link linkhead)
+	void insertLinkList(ALS.Link linkHead)
 	{
-		// linkPtr1Is: 0: ALS.simals_linkback  1: linkptr2.up  2: linkptr2.left
+		// linkPtr1Is: 0: ALS.linkBack  1: linkPtr2.up  2: linkPtr2.left
 		int linkPtr1Is = 0;
-		ALS.Link linkptr2 = als.simals_linkback;
-		ALS.Link linkPtr2Val = linkptr2;
-		ALS.Link linkptr3 = null;
+		ALS.Link linkPtr2 = als.linkBack;
+		ALS.Link linkPtr2Val = linkPtr2;
+		ALS.Link linkPtr3 = null;
 		for(;;)
 		{
-			if (linkptr2 == null)
+			if (linkPtr2 == null)
 			{
-				als.simals_linkfront = linkhead;
+				als.linkFront = linkHead;
 				switch (linkPtr1Is)
 				{
-					case 0: als.simals_linkback = linkhead;   break;
-					case 1: linkPtr2Val.up = linkhead;        break;
-					case 2: linkPtr2Val.left = linkhead;      break;
+					case 0: als.linkBack = linkHead;      break;
+					case 1: linkPtr2Val.up = linkHead;    break;
+					case 2: linkPtr2Val.left = linkHead;  break;
 				}
-				linkhead.left = null;
-				linkhead.right = linkptr3;
-				linkhead.up = linkhead;
-				linkhead.down = null;
+				linkHead.left = null;
+				linkHead.right = linkPtr3;
+				linkHead.up = linkHead;
+				linkHead.down = null;
 				return;
 			}
 
-			if (linkptr2.time < linkhead.time)
+			if (linkPtr2.time < linkHead.time)
 			{
-				linkptr2.right = linkhead;
+				linkPtr2.right = linkHead;
 				switch (linkPtr1Is)
 				{
-					case 0: als.simals_linkback = linkhead;   break;
-					case 1: linkPtr2Val.up = linkhead;        break;
-					case 2: linkPtr2Val.left = linkhead;      break;
+					case 0: als.linkBack = linkHead;      break;
+					case 1: linkPtr2Val.up = linkHead;    break;
+					case 2: linkPtr2Val.left = linkHead;  break;
 				}
-				linkhead.left = linkptr2;
-				linkhead.right = linkptr3;
-				linkhead.up = linkhead;
-				linkhead.down = null;
+				linkHead.left = linkPtr2;
+				linkHead.right = linkPtr3;
+				linkHead.up = linkHead;
+				linkHead.down = null;
 				return;
 			}
 
-			if (linkptr2.time == linkhead.time)
+			if (linkPtr2.time == linkHead.time)
 			{
-				if (linkptr2.priority > linkhead.priority)
+				if (linkPtr2.priority > linkHead.priority)
 				{
-					linkhead.left = linkptr2.left;
-					linkhead.right = linkptr2.right;
-					linkhead.down = linkptr2;
-					linkhead.up = linkptr2.up;
-					linkptr2.up = linkhead;
+					linkHead.left = linkPtr2.left;
+					linkHead.right = linkPtr2.right;
+					linkHead.down = linkPtr2;
+					linkHead.up = linkPtr2.up;
+					linkPtr2.up = linkHead;
 					switch (linkPtr1Is)
 					{
-						case 0: als.simals_linkback = linkhead;   break;
-						case 1: linkPtr2Val.up = linkhead;        break;
-						case 2: linkPtr2Val.left = linkhead;      break;
+						case 0: als.linkBack = linkHead;      break;
+						case 1: linkPtr2Val.up = linkHead;    break;
+						case 2: linkPtr2Val.left = linkHead;  break;
 					}
-					if (linkhead.left != null)
+					if (linkHead.left != null)
 					{
-						linkhead.left.right = linkhead;
+						linkHead.left.right = linkHead;
 					} else
 					{
-						als.simals_linkfront = linkhead;
+						als.linkFront = linkHead;
 					}
 					return;
 				}
 
 				linkPtr1Is = 1;
-				linkPtr2Val = linkptr2;
-				linkptr2 = linkptr2.up;
-				linkptr3 = null;
+				linkPtr2Val = linkPtr2;
+				linkPtr2 = linkPtr2.up;
+				linkPtr3 = null;
 				for(;;)
 				{
-					if (linkptr2.priority <= linkhead.priority)
+					if (linkPtr2.priority <= linkHead.priority)
 					{
-						linkptr2.down = linkhead;
+						linkPtr2.down = linkHead;
 						switch (linkPtr1Is)
 						{
-							case 0: als.simals_linkback = linkhead;   break;
-							case 1: linkPtr2Val.up = linkhead;        break;
-							case 2: linkPtr2Val.left = linkhead;      break;
+							case 0: als.linkBack = linkHead;      break;
+							case 1: linkPtr2Val.up = linkHead;    break;
+							case 2: linkPtr2Val.left = linkHead;  break;
 						}
-						linkhead.up = linkptr2;
-						linkhead.down = linkptr3;
+						linkHead.up = linkPtr2;
+						linkHead.down = linkPtr3;
 						return;
 					}
 
-					linkptr3 = linkptr2;
+					linkPtr3 = linkPtr2;
 					linkPtr1Is = 1;
-					linkPtr2Val = linkptr2;
-					linkptr2 = linkptr2.up;
+					linkPtr2Val = linkPtr2;
+					linkPtr2 = linkPtr2.up;
 				}
 			}
 
-			linkptr3 = linkptr2;
+			linkPtr3 = linkPtr2;
 			linkPtr1Is = 2;
-			linkPtr2Val = linkptr2;
-			linkptr2 = linkptr2.left;
+			linkPtr2Val = linkPtr2;
+			linkPtr2 = linkPtr2.left;
 		}
 	}
 }

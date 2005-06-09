@@ -1007,6 +1007,25 @@ public class Simulation extends Listener
 	 */
 	public static void setBuiltInAutoAdvance(boolean r) { cacheBuiltInAutoAdvance.setBoolean(r); }
 
+	private static Pref cacheWaveformDisplayMultiState = Pref.makeBooleanPref("WaveformDisplayMultiState", tool.prefs, false);
+	/**
+	 * Method to tell whether the waveform uses a multi-state display.
+	 * Multi-state displays distinguish different strengths with different colors in the waveform window,
+	 * and use different colors to distinguish different levels when drawing the cross-probing of the waveform
+	 * in the schematics and layout window.
+	 * The default is false.
+	 * @return true if the waveform uses a multi-state display.
+	 */
+	public static boolean isWaveformDisplayMultiState() { return cacheWaveformDisplayMultiState.getBoolean(); }
+	/**
+	 * Method to set whether the waveform uses a multi-state display.
+	 * Multi-state displays distinguish different strengths with different colors in the waveform window,
+	 * and use different colors to distinguish different levels when drawing the cross-probing of the waveform
+	 * in the schematics and layout window.
+	 * @param m true if the waveform uses a multi-state display.
+	 */
+	public static void setWaveformDisplayMultiState(boolean m) { cacheWaveformDisplayMultiState.setBoolean(m); }
+
 	/****************************** IRSIM OPTIONS ******************************/
 
 	private static Pref cacheIRSIMShowsCommands = Pref.makeBooleanPref("IRSIMShowsCommands", Simulation.tool.prefs, false);
@@ -1084,22 +1103,6 @@ public class Simulation extends Listener
      * @param b true to use the delayed X model, false to use the old fast-propogating X model
      */
     public static void setIRSIMDelayedX(boolean b) { cacheIRSIMDelayedX.setBoolean(b); }
-
-	/****************************** ALS OPTIONS ******************************/
-
-	private static Pref cacheALSResimulateEach = Pref.makeBooleanPref("ALSResimulateEach", Simulation.tool.prefs, false);
-	/**
-	 * Method to tell whether ALS resimulates after each change to the display.
-	 * When false, the user must request resimulation after a set of changes is done.
-	 * @return true if ALS resimulates after each change to the display.
-	 */
-	public static boolean isALSResimulateEach() { return cacheALSResimulateEach.getBoolean(); }
-	/**
-	 * Method to set if ALS resimulates after each change to the display.
-	 * When false, the user must request resimulation after a set of changes is done.
-	 * @param r true if ALS resimulates after each change to the display.
-	 */
-	public static void setALSResimulateEach(boolean r) { cacheALSResimulateEach.setBoolean(r); }
 
 	/****************************** SPICE OPTIONS ******************************/
 

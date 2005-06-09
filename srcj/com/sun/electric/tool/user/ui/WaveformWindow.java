@@ -56,6 +56,7 @@ import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.WaveformZoom;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -188,6 +189,7 @@ public class WaveformWindow implements WindowContent
 	private static boolean freezeWaveformHighlighting = false;
 	/** The global listener for all waveform windows. */	private static WaveformWindowHighlightListener waveHighlighter = new WaveformWindowHighlightListener();
 	/** The color of the grid (a gray) */					private static Color gridColor = new Color(0x808080);
+    /** for drawing far-dotted lines */						private static final BasicStroke farDottedLine = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[] {4,12}, 0);
 
 	private static WaveFormDropTarget waveformDropTarget = new WaveFormDropTarget();
 
@@ -314,6 +316,7 @@ public class WaveformWindow implements WindowContent
 			{
 				digitalSignalButton = new DragButton(Integer.toString(panelNumber), panelNumber);
 				digitalSignalButton.setBorderPainted(false);
+				digitalSignalButton.setForeground(Color.BLACK);
 				digitalSignalButton.setToolTipText("Name of this waveform panel");
 				gbc.gridx = 0;       gbc.gridy = 1;
 				gbc.gridwidth = 1;   gbc.gridheight = 1;
@@ -770,6 +773,8 @@ public class WaveformWindow implements WindowContent
 		private Font waveWindowFont;
 		private FontRenderContext waveWindowFRC = new FontRenderContext(null, false, false);
 
+		private Color offStrengthColor, nodeStrengthColor, gateStrengthColor, powerStrengthColor;
+
 		/**
 		 * Method to repaint this Panel.
 		 */
@@ -791,7 +796,7 @@ public class WaveformWindow implements WindowContent
 			waveWindow.screenHighX = waveWindow.screenLowX + wid;
 
 			// show the image
-			g.setColor(Color.BLACK);
+			g.setColor(new Color(User.getColorWaveformBackground()));
 			g.fillRect(0, 0, wid, hei);
 			waveWindowFont = new Font(User.getDefaultFont(), Font.PLAIN, 12);
 
@@ -868,11 +873,16 @@ public class WaveformWindow implements WindowContent
 			}
 
 			// look at all traces in this panel
+			offStrengthColor = new Color(User.getColorWaveformStrengthOff());
+			nodeStrengthColor = new Color(User.getColorWaveformStrengthNode());
+			gateStrengthColor = new Color(User.getColorWaveformStrengthGate());
+			powerStrengthColor = new Color(User.getColorWaveformStrengthPower());
+
 			processSignals(g, null);
 			processControlPoints(g, null);
 
 			// draw the vertical label
-			g.setColor(Color.WHITE);
+			g.setColor(new Color(User.getColorWaveformForeground()));
 			g.drawLine(vertAxisPos, 0, vertAxisPos, hei);
 			if (selected)
 			{
@@ -937,7 +947,7 @@ public class WaveformWindow implements WindowContent
 			int x = scaleTimeToX(waveWindow.mainTime);
 			if (x >= vertAxisPos)
 				g.drawLine(x, 0, x, hei);
-			g.setColor(Color.YELLOW);
+			g2.setStroke(farDottedLine);
 			x = scaleTimeToX(waveWindow.extTime);
 			if (x >= vertAxisPos)
 				g.drawLine(x, 0, x, hei);
@@ -946,7 +956,7 @@ public class WaveformWindow implements WindowContent
 			// show dragged area if there
 			if (draggingArea)
 			{
-				g.setColor(Color.WHITE);
+				g.setColor(new Color(User.getColorWaveformForeground()));
 				int lowX = Math.min(dragStartX, dragEndX);
 				int highX = Math.max(dragStartX, dragEndX);
 				int lowY = Math.min(dragStartY, dragEndY);
@@ -1275,14 +1285,32 @@ public class WaveformWindow implements WindowContent
 					{
 						double time = ds.getTime(i);
 						int x = scaleTimeToX(time);
+						if (Simulation.isWaveformDisplayMultiState() && g != null)
+						{
+							switch (ds.getState(i) & Stimuli.STRENGTH)
+							{
+								case Stimuli.OFF_STRENGTH:  g.setColor(offStrengthColor);    break;
+								case Stimuli.NODE_STRENGTH: g.setColor(nodeStrengthColor);   break;
+								case Stimuli.GATE_STRENGTH: g.setColor(gateStrengthColor);   break;
+								case Stimuli.VDD_STRENGTH:  g.setColor(powerStrengthColor);  break;
+							}
+						}
 						int state = ds.getState(i) & Stimuli.LOGIC;
 						int lowy = 0, highy = 0;
 						switch (state)
 						{
-							case Stimuli.LOGIC_HIGH: lowy = highy = 5;            break;
-							case Stimuli.LOGIC_LOW:  lowy = highy = hei-5;        break;
-							case Stimuli.LOGIC_X:    lowy = 5;   highy = hei-5;   break;
-							case Stimuli.LOGIC_Z:    lowy = 5;   highy = hei-5;   break;
+							case Stimuli.LOGIC_HIGH:
+								lowy = highy = 5;
+								break;
+							case Stimuli.LOGIC_LOW:
+								lowy = highy = hei-5;
+								break;
+							case Stimuli.LOGIC_X:
+								lowy = 5;   highy = hei-5;
+								break;
+							case Stimuli.LOGIC_Z:
+								lowy = 5;   highy = hei-5;
+								break;
 						}
 						if (i != 0)
 						{
@@ -1561,7 +1589,7 @@ public class WaveformWindow implements WindowContent
 			if (ws.sigButton != null)
 			{
 				if (background == null) background = ws.sigButton.getBackground();
-				ws.sigButton.setBackground(Color.BLACK);
+				ws.sigButton.setBackground(new Color(User.getColorWaveformBackground()));
 			}
 			ws.highlighted = true;
 			waveWindow.highlightedSweep = -1;
@@ -2376,12 +2404,12 @@ public class WaveformWindow implements WindowContent
 				g.setClip(offX, 0, wid, hei);
 			}
 
-			// draw the black background
-			g.setColor(Color.BLACK);
+			// draw the background
+			g.setColor(new Color(User.getColorWaveformBackground()));
 			g.fillRect(offX, 0, wid, hei);
 
 			// draw the time ticks
-			g.setColor(Color.WHITE);
+			g.setColor(new Color(User.getColorWaveformForeground()));
 			if (wavePanel != null)
 				g.drawLine(drawHere.vertAxisPos + offX, hei-1, wid+offX, hei-1);
 			double displayedLow = drawHere.scaleXToTime(drawHere.vertAxisPos);
@@ -2518,7 +2546,7 @@ public class WaveformWindow implements WindowContent
 				sigButton.addMouseListener(new SignalButton(this));
 			} else
 			{
-				this.color = Color.RED;
+				this.color = new Color(User.getColorWaveformStimuli());
 				wavePanel.digitalSignalButton.setText(sigName);
 				wavePanel.waveSignals.put(wavePanel.digitalSignalButton, this);
 				sigButton = wavePanel.digitalSignalButton;
@@ -3029,7 +3057,7 @@ public class WaveformWindow implements WindowContent
 		overall.add(timeLabelPanel, gbc);
 
 		mainPos = new JLabel("Main:", JLabel.RIGHT);
-		mainPos.setToolTipText("The main (white) time cursor");
+		mainPos.setToolTipText("The main (dashed) time cursor");
 		gbc.gridx = 0;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
@@ -3039,7 +3067,7 @@ public class WaveformWindow implements WindowContent
 		timeLabelPanel.add(mainPos, gbc);
 
 		centerMain = new JButton("Center");
-		centerMain.setToolTipText("Center the main (white) time cursor");
+		centerMain.setToolTipText("Center the main (dashed) time cursor");
 		gbc.gridx = 1;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
@@ -3053,7 +3081,7 @@ public class WaveformWindow implements WindowContent
 		});
 
 		extPos = new JLabel("Ext:", JLabel.RIGHT);
-		extPos.setToolTipText("The extension (yellow) time cursor");
+		extPos.setToolTipText("The extension (dotted) time cursor");
 		gbc.gridx = 2;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0.3;   gbc.weighty = 0;
@@ -3063,7 +3091,7 @@ public class WaveformWindow implements WindowContent
 		timeLabelPanel.add(extPos, gbc);
 
 		centerExt = new JButton("Center");
-		centerExt.setToolTipText("Center the extension (yellow) time cursor");
+		centerExt.setToolTipText("Center the extension (dotted) time cursor");
 		gbc.gridx = 3;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
 		gbc.weightx = 0;     gbc.weighty = 0;
@@ -4421,24 +4449,24 @@ if (wp.signalButtons != null)
 	 */
 	private Color getHighlightColor(int state)
 	{
-//		if ((sim_window_state&FULLSTATE) != 0)
-//		{
-//			/* 12-state display: determine trace texture */
+		if (Simulation.isWaveformDisplayMultiState())
+		{
+//			// 12-state display: determine trace texture
 //			strength = state & 0377;
 //			if (strength == 0) *texture = -1; else
 //				if (strength <= NODE_STRENGTH) *texture = 1; else
 //					if (strength <= GATE_STRENGTH) *texture = 0; else
 //						*texture = 2;
-//
-//			/* determine trace color */
-//			switch (state >> 8)
-//			{
-//				case LOGIC_LOW:  *color = sim_colorlevellow;	 break;
-//				case LOGIC_X:    *color = sim_colorlevelundef;   break;
-//				case LOGIC_HIGH: *color = sim_colorlevelhigh;    break;
-//				case LOGIC_Z:    *color = sim_colorlevelzdef;    break;
-//			}
-//		} else
+
+			// determine trace color
+			switch (state & Stimuli.LOGIC)
+			{
+				case Stimuli.LOGIC_LOW:  return new Color(User.getColorWaveformCrossProbeLow());
+				case Stimuli.LOGIC_HIGH: return new Color(User.getColorWaveformCrossProbeHigh());
+				case Stimuli.LOGIC_X:    return new Color(User.getColorWaveformCrossProbeX());
+				case Stimuli.LOGIC_Z:    return new Color(User.getColorWaveformCrossProbeZ());
+			}
+		} else
 		{
 			/* only level display, no strength indications */
 			switch (state & Stimuli.LOGIC)
@@ -4448,8 +4476,8 @@ if (wp.signalButtons != null)
 				case Stimuli.LOGIC_HIGH:
 					return Color.GREEN;
 			}
-			return Color.RED;
 		}
+		return Color.RED;
 	}
 
 	private void putValueOnTrace(DigitalSignal ds, Cell cell, HashMap netValues, Netlist netlist)
@@ -4823,7 +4851,9 @@ if (wp.signalButtons != null)
 	}
 
 	/**
-	 * Method to delete the selected signals.
+	 * Method called when "delete" command (or key) is given.
+	 * If a control point is selected, delete it.
+	 * If a single signal of an analog window is selected, remove it.
 	 */
 	public void deleteSelectedSignals()
 	{
@@ -4831,10 +4861,21 @@ if (wp.signalButtons != null)
 		{
 			Panel wp = (Panel)it.next();
 			if (!wp.selected) continue;
+
+			for(Iterator sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			{
+				WaveSignal ws = (WaveSignal)sIt.next();
+				if (ws.controlPointsSelected != null)
+				{
+					if (se != null)
+						se.removeSelectedStimuli();
+				}
+			}
 			if (wp.isAnalog) deleteSignalFromPanel(wp); else
 			{
-				saveSignalOrder();
-				wp.closePanel();
+				// do not delete the panel: make them use the "X" button
+//				saveSignalOrder();
+//				wp.closePanel();
 			}
 			break;
 		}

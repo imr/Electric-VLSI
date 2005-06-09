@@ -87,6 +87,7 @@ public class Spice extends Topology
 	/** maximum subcircuit name length */						private static final int SPICEMAXLENSUBCKTNAME     = 70;
     /** maximum subcircuit name length */						private static final int CDLMAXLENSUBCKTNAME     = 40;
 	/** legal characters in a spice deck */						private static final String SPICELEGALCHARS        = "!#$%*+-/<>[]_@";
+	/** legal characters in a spice deck */						private static final String PSPICELEGALCHARS        = "!#$%*+-/<>[]_";
 	/** legal characters in a CDL deck */						private static final String CDLNOBRACKETLEGALCHARS = "!#$%*+-/<>_";
     /** if CDL writes out empty subckt definitions */           private static final boolean CDLWRITESEMPTYSUBCKTS = false;
     /** if use spice globals */                                 private static final boolean USE_GLOBALS = true;
@@ -284,6 +285,7 @@ public class Spice extends Topology
 
 		// setup the legal characters
 		legalSpiceChars = SPICELEGALCHARS;
+		if (spiceEngine == Simulation.SPICE_ENGINE_P) legalSpiceChars = PSPICELEGALCHARS;
 
 		// start writing the spice deck
 		if (useCDL)
@@ -298,7 +300,7 @@ public class Spice extends Topology
 			writeHeader(topCell);
 		}
 
-		// gather all global signal names (HSPICE and PSPICE only)
+		// gather all global signal names
 		if (USE_GLOBALS)
 		{
 			Netlist netList = getNetlistForCell(topCell);
@@ -368,8 +370,12 @@ public class Spice extends Topology
 		Variable var = cell.getVar(SPICE_MODEL_FILE_KEY);
 		if (var != null)
 		{
-			multiLinePrint(true, "* Cell " + cell.describe() + " is described in this file:\n");
-			addIncludeFile(var.getObject().toString());
+			String fileName = var.getObject().toString();
+			if (!fileName.startsWith("-----"))
+			{
+				multiLinePrint(true, "* Cell " + cell.describe() + " is described in this file:\n");
+				addIncludeFile(fileName);
+			}
 			return;
 		}
 
@@ -1250,6 +1256,8 @@ public class Spice extends Topology
 	/** Method to return the proper name of Ground */
 	protected String getGroundName(Network net)
 	{
+		if (spiceEngine == Simulation.SPICE_ENGINE_P) return "0";
+
 		if (net != null)
 		{
 			// favor "gnd" if it is present

@@ -1288,7 +1288,7 @@ public class ToolMenu {
 				// see if the current cell needs to be compiled
 				if (cell.getView() != View.NETLISTALS)
 				{
-					if (cell.getView() == View.SCHEMATIC)
+					if (cell.getView() == View.SCHEMATIC || cell.getView() == View.LAYOUT)
 					{
 						// current cell is Schematic.  See if there is a more recent netlist or VHDL
 						Cell vhdlCell = cell.otherView(View.VHDL);

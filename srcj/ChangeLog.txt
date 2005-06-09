@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP/MAN: (06/07/05, SMR) Added controls to "Color preferences" to control the waveform window colors.
+
+BUG: (06/06/05, SMR) PSpice output cannot handle "gnd" signal or "@" in names.
+FIX: Use "0" for ground, convert "@" characters.
+
 IMP: (06/07/05, DN) Refactoring: joined together ArcProto and PrimitiveArc classes.
 
 BUG: (06/06/05, SMR) Selecting a variable in the "Attribute Properties" dialog may change it.

@@ -785,7 +785,7 @@ public class Analyzer extends Engine
 			case VECTORBACK:       doBack(sv);         break;
 			case VECTORC:          doClock(sv);        break;
 			case VECTORCHANGES:    doChanges(sv);      break;
-			case VECTORCLOCK:      setClock(sv);       break;
+			case VECTORCLOCK:      setAClock(sv);      break;
 			case VECTORDEBUG:      doDebug(sv);        break;
 			case VECTORDECAY:      doDecay(sv);        break;
 			case VECTORH:          doSetValue(sv);     break;
@@ -1408,7 +1408,7 @@ public class Analyzer extends Engine
 	/**
 	 * define clock sequences(s)
 	 */
-	private void setClock(SimVector sv)
+	private void setAClock(SimVector sv)
 	{
 		// process sequence and add to clock list
 		defSequence(sv.parameters, xClock);
@@ -2817,7 +2817,8 @@ public class Analyzer extends Engine
 		list.remove(sig);
 
 		// insert result onto list
-		xClock.add(s);
+		list.add(s);
+//		xClock.add(s);
 	}
 
 	private int whichPhase = 0;

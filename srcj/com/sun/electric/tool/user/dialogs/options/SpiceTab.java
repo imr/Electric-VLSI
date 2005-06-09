@@ -24,11 +24,13 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
+import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
@@ -66,6 +68,7 @@ public class SpiceTab extends PreferencePanel
 	private JList spiceCellList;
 	private DefaultListModel spiceCellListModel;
 	private HashMap spiceCellModelOptions;
+	private HashMap initialSpiceModelFiles;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -156,20 +159,47 @@ public class SpiceTab extends PreferencePanel
 		});
 
 		// the last section has cell overrides
+		// gather all existing behave file information
+		initialSpiceModelFiles = new HashMap();
+		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		{
+			Library lib = (Library)lIt.next();
+			if (lib.isHidden()) continue;
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				String behaveFile = "";
+				Variable var = cell.getVar(Spice.SPICE_MODEL_FILE_KEY);
+				if (var != null) behaveFile = var.getObject().toString();
+				initialSpiceModelFiles.put(cell, Pref.makeStringPref(null, null, behaveFile));
+			}
+		}
+
+		// make list of libraries
 		spiceCellModelOptions = new HashMap();
+		for(Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			spiceModelLibrary.addItem(lib.getName());
+
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				String modelFile = "";
+				Variable var = cell.getVar(Spice.SPICE_MODEL_FILE_KEY, String.class);
+				if (var != null) modelFile = (String)var.getObject();
+				spiceCellModelOptions.put(cell, Pref.makeStringPref(null, null, modelFile));
+			}
+		}
+		spiceModelLibrary.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { spiceLoadCellList(); }
+		});
+
 		spiceCellListModel = new DefaultListModel();
 		spiceCellList = new JList(spiceCellListModel);
 		spiceCellList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		spiceCell.setViewportView(spiceCellList);
-		for(Iterator it = curLib.getCells(); it.hasNext(); )
-		{
-			Cell cell = (Cell)it.next();
-			spiceCellListModel.addElement(cell.noLibDescribe());
-			String modelFile = "";
-			Variable var = cell.getVar(Spice.SPICE_MODEL_FILE_KEY, String.class);
-			if (var != null) modelFile = (String)var.getObject();
-			spiceCellModelOptions.put(cell, Pref.makeStringPref(null, null, modelFile));
-		}
 		spiceCellList.setSelectedIndex(0);
 		spiceCellList.addMouseListener(new MouseAdapter()
 		{
@@ -188,7 +218,30 @@ public class SpiceTab extends PreferencePanel
 			public void actionPerformed(ActionEvent evt) { spiceCellModelButtonClick(); }
 		});
 		spiceModelCell.getDocument().addDocumentListener(new SpiceModelDocumentListener(this));
-		spiceCellListClick();
+		spiceLoadCellList();
+	}
+
+	/**
+	 * Method called when the library selection changes in the bottom (for cell models).
+	 */
+	private void spiceLoadCellList()
+	{
+		String libName = (String)spiceModelLibrary.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		if (lib == null) return;
+		spiceCellListModel.clear();
+		boolean notEmpty = false;
+		for(Iterator it = lib.getCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			spiceCellListModel.addElement(cell.noLibDescribe());
+			notEmpty = true;
+		}
+		if (notEmpty)
+		{
+			spiceCellList.setSelectedIndex(0);
+			spiceCellListClick();
+		}
 	}
 
 	private boolean spiceModelFileChanging = false;
@@ -198,7 +251,9 @@ public class SpiceTab extends PreferencePanel
 	 */
 	private void spiceCellModelButtonClick()
 	{
-		if (spiceDeriveModelFromCircuit.isSelected()) spiceModelCell.setText("");
+		spiceModelCell.setEditable(spiceUseModelFromFile.isSelected());
+		spiceModelFileChanged();
+//		if (spiceDeriveModelFromCircuit.isSelected()) spiceModelCell.setText("");
 	}
 
 	/**
@@ -207,18 +262,32 @@ public class SpiceTab extends PreferencePanel
 	private void spiceCellListClick()
 	{
 		if (spiceCellListModel.size() == 0) return;
+
+		String libName = (String)spiceModelLibrary.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		if (lib == null) return;
+
 		String cellName = (String)spiceCellList.getSelectedValue();
-		Cell cell = curLib.findNodeProto(cellName);
-		if (cell != null)
+		Cell cell = lib.findNodeProto(cellName);
+		if (cell == null) return;
+
+		Pref pref = (Pref)spiceCellModelOptions.get(cell);
+		String modelFile = pref.getString();
+		spiceModelFileChanging = true;
+		boolean hasModelFile = false;
+		if (modelFile.length() > 0 && !modelFile.startsWith("-----"))
 		{
-			Pref pref = (Pref)spiceCellModelOptions.get(cell);
-			String modelFile = pref.getString();
-			spiceModelFileChanging = true;
+			hasModelFile = true;
 			spiceModelCell.setText(modelFile);
-			if (modelFile.length() == 0) spiceDeriveModelFromCircuit.setSelected(true); else
-				spiceUseModelFromFile.setSelected(true);
-			spiceModelFileChanging = false;
 		}
+		if (modelFile.startsWith("-----"))
+		{
+			spiceModelCell.setText(modelFile.substring(5));
+		}
+		if (hasModelFile) spiceUseModelFromFile.setSelected(true); else
+			spiceDeriveModelFromCircuit.setSelected(true);
+		spiceModelCell.setEditable(hasModelFile);
+		spiceModelFileChanging = false;
 	}
 
 	/**
@@ -230,6 +299,8 @@ public class SpiceTab extends PreferencePanel
 		if (fileName == null) return;
 		spiceUseModelFromFile.setSelected(true);
 		spiceModelCell.setText(fileName);
+		spiceModelCell.setEditable(true);
+		spiceModelFileChanged();
 	}
 
 	/**
@@ -238,15 +309,19 @@ public class SpiceTab extends PreferencePanel
 	private void spiceModelFileChanged()
 	{
 		if (spiceModelFileChanging) return;
+
+		String libName = (String)spiceModelLibrary.getSelectedItem();
+		Library lib = Library.findLibrary(libName);
+		if (lib == null) return;
+
 		String cellName = (String)spiceCellList.getSelectedValue();
-		Cell cell = curLib.findNodeProto(cellName);
-		if (cell != null)
-		{
-			Pref pref = (Pref)spiceCellModelOptions.get(cell);
-			String typedString = spiceModelCell.getText();
-			if (spiceDeriveModelFromCircuit.isSelected()) typedString = "";
-			pref.setString(typedString);
-		}
+		Cell cell = lib.findNodeProto(cellName);
+		if (cell == null) return;
+
+		Pref pref = (Pref)spiceCellModelOptions.get(cell);
+		String typedString = spiceModelCell.getText();
+		if (spiceDeriveModelFromCircuit.isSelected()) typedString = "-----" + typedString;
+		pref.setString(typedString);
 	}
 
 	/**
@@ -360,16 +435,20 @@ public class SpiceTab extends PreferencePanel
 		if (!Simulation.getSpiceHeaderCardInfo().equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
 
 		// bottom section: model file overrides for cells
-		for(Iterator it = curLib.getCells(); it.hasNext(); )
+		for(Iterator lIt = Library.getVisibleLibraries().iterator(); lIt.hasNext(); )
 		{
-			Cell cell = (Cell)it.next();
-			Pref pref = (Pref)spiceCellModelOptions.get(cell);
-			if (pref == null) continue;
-			if (!pref.getStringFactoryValue().equals(pref.getString()))
+			Library lib = (Library)lIt.next();
+			for(Iterator it = lib.getCells(); it.hasNext(); )
 			{
-				String fileName = pref.getString().trim();
-				if (fileName.length() == 0) cell.delVar(Spice.SPICE_MODEL_FILE_KEY); else
-					cell.newVar(Spice.SPICE_MODEL_FILE_KEY, fileName);
+				Cell cell = (Cell)it.next();
+				Pref pref = (Pref)spiceCellModelOptions.get(cell);
+				if (pref == null) continue;
+				if (!pref.getStringFactoryValue().equals(pref.getString()))
+				{
+					String fileName = pref.getString().trim();
+					if (fileName.length() == 0) cell.delVar(Spice.SPICE_MODEL_FILE_KEY); else
+						cell.newVar(Spice.SPICE_MODEL_FILE_KEY, fileName);
+				}
 			}
 		}
 	}
@@ -460,6 +539,8 @@ public class SpiceTab extends PreferencePanel
         spiceUseModelFromFile = new javax.swing.JRadioButton();
         spiceModelFileBrowse = new javax.swing.JButton();
         spiceModelCell = new javax.swing.JTextField();
+        spiceModelLibrary = new javax.swing.JComboBox();
+        jLabel2 = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -509,7 +590,7 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         spice1.add(spiceRunPopup, gridBagConstraints);
 
@@ -835,27 +916,27 @@ public class SpiceTab extends PreferencePanel
 
         spice6.setLayout(new java.awt.GridBagLayout());
 
-        spiceCell.setMinimumSize(new java.awt.Dimension(200, 100));
-        spiceCell.setPreferredSize(new java.awt.Dimension(200, 100));
+        spiceCell.setMinimumSize(new java.awt.Dimension(150, 100));
+        spiceCell.setPreferredSize(new java.awt.Dimension(150, 100));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weightx = 0.5;
         gridBagConstraints.weighty = 1.0;
         spice6.add(spiceCell, gridBagConstraints);
 
-        jLabel8.setText("For Cell");
+        jLabel8.setText("Cell:");
         jLabel8.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         spice6.add(jLabel8, gridBagConstraints);
 
         spiceModel.add(spiceDeriveModelFromCircuit);
-        spiceDeriveModelFromCircuit.setText("Derive Model from Circuitry");
+        spiceDeriveModelFromCircuit.setText("Derive Cell Model from Circuitry");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
@@ -864,7 +945,7 @@ public class SpiceTab extends PreferencePanel
         spice6.add(spiceDeriveModelFromCircuit, gridBagConstraints);
 
         spiceModel.add(spiceUseModelFromFile);
-        spiceUseModelFromFile.setText("Use Model from File:");
+        spiceUseModelFromFile.setText("Use Cell Model from File:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -883,8 +964,20 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weightx = 0.5;
         spice6.add(spiceModelCell, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        spice6.add(spiceModelLibrary, gridBagConstraints);
+
+        jLabel2.setText("Library:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        spice6.add(jLabel2, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -942,6 +1035,7 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
@@ -970,6 +1064,7 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.ButtonGroup spiceModel;
     private javax.swing.JTextField spiceModelCell;
     private javax.swing.JButton spiceModelFileBrowse;
+    private javax.swing.JComboBox spiceModelLibrary;
     private javax.swing.JRadioButton spiceNoHeaderCards;
     private javax.swing.JRadioButton spiceNoTrailerCards;
     private javax.swing.JComboBox spiceOutputFormatPopup;

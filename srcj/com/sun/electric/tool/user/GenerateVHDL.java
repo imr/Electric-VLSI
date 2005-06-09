@@ -43,6 +43,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.simulation.Simulation;
 
@@ -406,9 +407,14 @@ public class GenerateVHDL
 				if (special == BLOCKMOSTRAN)
 				{
 					// ignore electrically connected ports
-//					for(opp = np.firstportproto; opp != pp; opp = opp.nextportproto)
-//						if (opp.network == pp.network) break;
-//					if (opp != pp) continue;
+					boolean connected = false;
+					for(Iterator oIt = np.getPorts(); oIt.hasNext(); )
+					{
+						PrimitivePort oPp = (PrimitivePort)oIt.next();
+						if (oPp == pp) break;
+						if (oPp.getTopology() == ((PrimitivePort)pp).getTopology()) { connected = true;   break; }
+					}
+					if (connected) continue;
 				}
 				if (special == BLOCKPOSLOGIC || special == BLOCKBUFFER || special == BLOCKINVERTER ||
 					special == BLOCKNAND || special == BLOCKNOR || special == BLOCKXNOR)
@@ -497,7 +503,9 @@ public class GenerateVHDL
 							{
 								if (i != 0) infstr.append(", ");
 								Network subNet = nl.getNetwork(ai, i);
-								String sigName = addString(subNet.describe(), no.getParent());
+								String subNetName = getOneNetworkName(subNet);
+//								String subNetName = subNet.describe();
+								String sigName = addString(subNetName, no.getParent());
 								infstr.append(sigName);
 								signalNames.add(sigName);
 							}
@@ -747,7 +755,7 @@ public class GenerateVHDL
 			{
 				primName = "ground";
 			}
-			if (primName != null)
+			if (primName == null)
 			{
 				// if the node has an export with power/ground, make it that
 				for(Iterator it = ni.getExports(); it.hasNext(); )
@@ -794,14 +802,14 @@ public class GenerateVHDL
 			// check for VHDL keyword clashes
 			if (CompileVHDL.isKeyword(orig) != null)
 			{
-				sb.append("NV");
+				sb.insert(0, "_");
 				return sb.toString();
 			}
 
 			// "bit" isn't a keyword, but the compiler can't handle it
 			if (orig.equalsIgnoreCase("bit"))
 			{
-				sb.append("NV");
+				sb.insert(0, "_");
 				return sb.toString();
 			}
 		}
@@ -815,7 +823,7 @@ public class GenerateVHDL
 				if (!(ni.getProto() instanceof Cell)) continue;
 				if (orig.equals(ni.getProto().getName()))
 				{
-					sb.append("NV");
+					sb.insert(0, "_");
 					break;
 				}
 			}
@@ -866,7 +874,7 @@ public class GenerateVHDL
 				{
 					PortProto oPp = (PortProto)oIt.next();
 					if (oPp == pp) break;
-//					if (opp.network == pp.network) { connected = true;   break; }
+					if (((PrimitivePort)oPp).getTopology() == ((PrimitivePort)pp).getTopology()) { connected = true;   break; }
 				}
 				if (connected) { flaggedPorts.add(pp);   continue; }
 			}
@@ -895,6 +903,7 @@ public class GenerateVHDL
 		PortCharacteristic bits, HashSet flaggedPorts, HashSet exportNames, String before)
 	{
 		boolean didsome = false;
+		HashSet networksFound = new HashSet();
 		for(Iterator it = np.getPorts(); it.hasNext(); )
 		{
 			PortProto pp = (PortProto)it.next();
@@ -914,10 +923,10 @@ public class GenerateVHDL
 			{
 				if (ch != bits) continue;
 			}
+
 			Cell cell = null;
 			if (ni != null) cell = ni.getParent(); else
 				cell = (Cell)np;
-//			Netlist nl = cell.getUserNetlist();
 			int wid = 1;
 			if (pp instanceof Export) wid = nl.getBusWidth((Export)pp);
 			for(int i=0; i<wid; i++)
@@ -926,7 +935,12 @@ public class GenerateVHDL
 				if (pp instanceof Export)
 				{
 					Network net = nl.getNetwork((Export)pp, i);
-					if (net != null) portName = net.describe(); else
+					if (net != null)
+					{
+						if (networksFound.contains(net)) continue;
+						networksFound.add(net);
+						portName = getOneNetworkName(net);
+					} else
 						System.out.println("Cannot find network for export '" + pp.getName() + "' on cell " + np.describe());
 				}
 				if (pp.getBasePort().isIsolated())
@@ -966,5 +980,12 @@ public class GenerateVHDL
 			before = "; ";
 		}
 		return before;
+	}
+
+	private static String getOneNetworkName(Network net)
+	{
+		Iterator nIt = net.getNames();
+		if (nIt.hasNext()) return (String)nIt.next();
+		return net.describe();
 	}
 }

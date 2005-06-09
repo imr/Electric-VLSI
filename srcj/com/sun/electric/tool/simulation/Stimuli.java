@@ -322,9 +322,92 @@ public class Stimuli
 		return null;
 	}
 
+	/**
+	 * Method to convert a strength to an index value.
+	 * The strengths are OFF_STRENGTH, NODE_STRENGTH, GATE_STRENGTH, and VDD_STRENGTH.
+	 * The indices are integers that can be saved to disk.
+	 * @param a strength level.
+	 * @return the index for that strength (0-based).
+	 */
+	public static int strengthToIndex(int strength) { return strength / 4; }
+
+	/**
+	 * Method to convert a strength index to a strength value.
+	 * The strengths are OFF_STRENGTH, NODE_STRENGTH, GATE_STRENGTH, and VDD_STRENGTH.
+	 * The indices of the strengths are integers that can be saved to disk.
+	 * @param index a strength index (0-based).
+	 * @return the equivalent strength.
+	 */
+	public static int indexToStrength(int index) { return index * 4; }
+
+	/**
+	 * Method to describe the level in a given state.
+	 * A 'state' is a combination of a level and a strength.
+	 * The levels are LOGIC_LOW, LOGIC_HIGH, LOGIC_X, and LOGIC_Z.
+	 * @param state the given state.
+	 * @return a description of the logic level in that state.
+	 */
+	public static String describeLevel(int state)
+	{
+		switch (state&Stimuli.LOGIC)
+		{
+			case Stimuli.LOGIC_LOW: return "low";
+			case Stimuli.LOGIC_HIGH: return "high";
+			case Stimuli.LOGIC_X: return "undefined";
+			case Stimuli.LOGIC_Z: return "floating";
+		}
+		return "?";
+	}
+
+	/**
+	 * Method to describe the level in a given state, with only 1 character.
+	 * A 'state' is a combination of a level and a strength.
+	 * The levels are LOGIC_LOW, LOGIC_HIGH, LOGIC_X, and LOGIC_Z.
+	 * @param state the given state.
+	 * @return a description of the logic level in that state.
+	 */
+	public static String describeLevelBriefly(int state)
+	{
+		switch (state&Stimuli.LOGIC)
+		{
+			case Stimuli.LOGIC_LOW: return "L";
+			case Stimuli.LOGIC_HIGH: return "H";
+			case Stimuli.LOGIC_X: return "X";
+			case Stimuli.LOGIC_Z: return "Z";
+		}
+		return "?";
+	}
+
+	/**
+	 * Method to convert a state representation (L, H, X, Z) to a state
+	 * @param s1 character string that contains state value.
+	 * @return the state value.
+	 */
+	public static int parseLevel(String s1)
+	{
+		if (s1.length() > 0)
+		{
+			switch (s1.charAt(0))
+			{
+				case 'L': case 'l': return Stimuli.LOGIC_LOW;
+				case 'X': case 'x': return Stimuli.LOGIC_X;
+				case 'H': case 'h': return Stimuli.LOGIC_HIGH;
+				case 'Z': case 'z': return Stimuli.LOGIC_Z;
+			}
+		}
+		return Stimuli.LOGIC_X;
+	}
+
+	/**
+	 * Method to describe the strength in a given state.
+	 * A 'state' is a combination of a level and a strength.
+	 * The strengths are OFF_STRENGTH, NODE_STRENGTH, GATE_STRENGTH, and VDD_STRENGTH.
+	 * @param state the given state.
+	 * @return a description of the strength in that state.
+	 */
 	public static String describeStrength(int strength)
 	{
-		switch (strength)
+		switch (strength&Stimuli.STRENGTH)
 		{
 			case Stimuli.OFF_STRENGTH: return "off";
 			case Stimuli.NODE_STRENGTH: return "node";

@@ -62,6 +62,7 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.io.File;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -664,6 +665,7 @@ public class FileMenu {
 
     public static void saveAllLibrariesCommand(FileType type, boolean compatibleWith6, boolean forceToType)
     {
+		HashMap libsToSave = new HashMap();
         for(Iterator it = Library.getLibraries(); it.hasNext(); )
         {
             Library lib = (Library)it.next();
@@ -671,8 +673,27 @@ public class FileMenu {
             if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
             if (lib.getLibFile() != null)
                 type = getLibraryFormat(lib.getLibFile().getFile(), type);
-            if (!saveLibraryCommand(lib, type, compatibleWith6, forceToType)) break;
+			libsToSave.put(lib, type);
         }
+		boolean justSkip = false;
+		for(Iterator it = libsToSave.keySet().iterator(); it.hasNext(); )
+		{
+			Library lib = (Library)it.next();
+			type = (FileType)libsToSave.get(lib);
+            if (!saveLibraryCommand(lib, type, compatibleWith6, forceToType))
+			{
+				if (justSkip) continue;
+				if (it.hasNext())
+				{
+					String [] options = {"Cancel", "Skip this Library"};
+					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+						"Cancel all library saving, or just skip saving this library?", "Save Cancelled",
+						JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, "Cancel");
+					if (ret == 1) { justSkip = true;   continue; }
+				}
+				break;
+			}
+		}
     }
 
     public static void saveAllLibrariesInFormatCommand() {

@@ -39,6 +39,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.TextWindow;
@@ -1011,6 +1012,161 @@ public class User extends Listener
 	 * @param c the color of the instance outlines on the display.
 	 */
 	public static void setColorInstanceOutline(int c) { cacheColorInstanceOutline.setInt(c); }
+
+	private static Pref cacheColorWaveformBackground = Pref.makeIntPref("ColorWaveformBackground", tool.prefs, Color.BLACK.getRGB());
+	/**
+	 * Method to get the color of the waveform window background.
+	 * The default is "black".
+	 * @return the color of the waveform window background.
+	 */
+	public static int getColorWaveformBackground() { return cacheColorWaveformBackground.getInt(); }
+	/**
+	 * Method to set the color of the waveform window background.
+	 * @param c the color of the waveform window background.
+	 */
+	public static void setColorWaveformBackground(int c) { cacheColorWaveformBackground.setInt(c); }
+
+	private static Pref cacheColorWaveformForeground = Pref.makeIntPref("ColorWaveformForeground", tool.prefs, Color.WHITE.getRGB());
+	/**
+	 * Method to get the color of the waveform window foreground.
+	 * This includes lines and text.
+	 * The default is "white".
+	 * @return the color of the traces in waveform windows.
+	 */
+	public static int getColorWaveformForeground() { return cacheColorWaveformForeground.getInt(); }
+	/**
+	 * Method to set the color of the waveform window foreground.
+	 * This includes lines and text.
+	 * @param c the color of the waveform window foreground.
+	 */
+	public static void setColorWaveformForeground(int c) { cacheColorWaveformForeground.setInt(c); }
+
+	private static Pref cacheColorWaveformStimuli = Pref.makeIntPref("ColorWaveformStimuli", tool.prefs, Color.RED.getRGB());
+	/**
+	 * Method to get the color of the traces in waveform windows.
+	 * Applies only when not a "multistate" display, which uses many colors.
+	 * The default is "red".
+	 * @return the color of the traces in waveform windows.
+	 */
+	public static int getColorWaveformStimuli() { return cacheColorWaveformStimuli.getInt(); }
+	/**
+	 * Method to set the color of the traces in waveform windows.
+	 * Applies only when not a "multistate" display, which uses many colors.
+	 * @param c the color of the traces in waveform windows.
+	 */
+	public static void setColorWaveformStimuli(int c) { cacheColorWaveformStimuli.setInt(c); }
+
+	private static Pref cacheColorWaveformStrengthOff = Pref.makeIntPref("ColorWaveformStrengthOff", tool.prefs, Color.BLUE.getRGB());
+	/**
+	 * Method to get the color of waveform window traces that have "off" strength.
+	 * The default is "blue".
+	 * @return the color of waveform window traces that have "off" strength.
+	 */
+	public static int getColorWaveformStrengthOff() { return cacheColorWaveformStrengthOff.getInt(); }
+	/**
+	 * Method to set the color of waveform window traces that have "off" strength.
+	 * @param c the color of waveform window traces that have "off" strength.
+	 */
+	public static void setColorWaveformStrengthOff(int c) { cacheColorWaveformStrengthOff.setInt(c); }
+
+	private static Pref cacheColorWaveformStrengthNode = Pref.makeIntPref("ColorWaveformStrengthNode", tool.prefs, Color.GREEN.getRGB());
+	/**
+	 * Method to get the color of waveform window traces that have "node" strength.
+	 * The default is "green".
+	 * @return the color of waveform window traces that have "node" strength.
+	 */
+	public static int getColorWaveformStrengthNode() { return cacheColorWaveformStrengthNode.getInt(); }
+	/**
+	 * Method to set the color of waveform window traces that have "node" strength.
+	 * @param c the color of waveform window traces that have "node" strength.
+	 */
+	public static void setColorWaveformStrengthNode(int c) { cacheColorWaveformStrengthNode.setInt(c); }
+
+	private static Pref cacheColorWaveformStrengthGate = Pref.makeIntPref("ColorWaveformStrengthGate", tool.prefs, Color.MAGENTA.getRGB());
+	/**
+	 * Method to get the color of waveform window traces that have "gate" strength.
+	 * The default is "magenta".
+	 * @return the color of waveform window traces that have "gate" strength.
+	 */
+	public static int getColorWaveformStrengthGate() { return cacheColorWaveformStrengthGate.getInt(); }
+	/**
+	 * Method to set the color of waveform window traces that have "gate" strength.
+	 * @param c the color of waveform window traces that have "gate" strength.
+	 */
+	public static void setColorWaveformStrengthGate(int c) { cacheColorWaveformStrengthGate.setInt(c); }
+
+	private static Pref cacheColorWaveformStrengthPower = Pref.makeIntPref("ColorWaveformStrengthPower", tool.prefs, Color.LIGHT_GRAY.getRGB());
+	/**
+	 * Method to get the color of waveform window traces that have "power" strength.
+	 * The default is "light gray".
+	 * @return the color of waveform window traces that have "power" strength.
+	 */
+	public static int getColorWaveformStrengthPower() { return cacheColorWaveformStrengthPower.getInt(); }
+	/**
+	 * Method to set the color of waveform window traces that have "power" strength.
+	 * @param c the color of waveform window traces that have "power" strength.
+	 */
+	public static void setColorWaveformStrengthPower(int c) { cacheColorWaveformStrengthPower.setInt(c); }
+
+	private static Pref cacheColorWaveformCrossProbeLow = Pref.makeIntPref("ColorWaveformCrossProbeLow", tool.prefs, Color.BLUE.getRGB());
+	/**
+	 * Method to get the color of cross-probe traces from the waveform window that are "low".
+	 * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
+	 * The default is "blue".
+	 * @return the color of cross-probe traces from the waveform window that are "low".
+	 */
+	public static int getColorWaveformCrossProbeLow() { return cacheColorWaveformCrossProbeLow.getInt(); }
+	/**
+	 * Method to set the color of cross-probe traces from the waveform window that are "low".
+	 * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
+	 * @param c the color of cross-probe traces from the waveform window that are "low".
+	 */
+	public static void setColorWaveformCrossProbeLow(int c) { cacheColorWaveformCrossProbeLow.setInt(c); }
+
+	private static Pref cacheColorWaveformCrossProbeHigh = Pref.makeIntPref("ColorWaveformCrossProbeHigh", tool.prefs, Color.MAGENTA.getRGB());
+	/**
+	 * Method to get the color of cross-probe traces from the waveform window that are "high".
+	 * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
+	 * The default is "magenta".
+	 * @return the color of cross-probe traces from the waveform window that are "high".
+	 */
+	public static int getColorWaveformCrossProbeHigh() { return cacheColorWaveformCrossProbeHigh.getInt(); }
+	/**
+	 * Method to set the color of cross-probe traces from the waveform window that are "high".
+	 * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
+	 * @param c the color of cross-probe traces from the waveform window that are "high".
+	 */
+	public static void setColorWaveformCrossProbeHigh(int c) { cacheColorWaveformCrossProbeHigh.setInt(c); }
+
+	private static Pref cacheColorWaveformCrossProbeX = Pref.makeIntPref("ColorWaveformCrossProbeX", tool.prefs, Color.BLACK.getRGB());
+	/**
+	 * Method to get the color of cross-probe traces from the waveform window that are "undefined".
+	 * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
+	 * The default is "black".
+	 * @return the color of cross-probe traces from the waveform window that are "undefined".
+	 */
+	public static int getColorWaveformCrossProbeX() { return cacheColorWaveformCrossProbeX.getInt(); }
+	/**
+	 * Method to set the color of cross-probe traces from the waveform window that are "undefined".
+	 * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
+	 * @param c the color of cross-probe traces from the waveform window that are "undefined".
+	 */
+	public static void setColorWaveformCrossProbeX(int c) { cacheColorWaveformCrossProbeX.setInt(c); }
+
+	private static Pref cacheColorWaveformCrossProbeZ = Pref.makeIntPref("ColorWaveformCrossProbeZ", tool.prefs, Color.LIGHT_GRAY.getRGB());
+	/**
+	 * Method to get the color of cross-probe traces from the waveform window that are "floating".
+	 * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
+	 * The default is "light gray".
+	 * @return the color of cross-probe traces from the waveform window that are "floating".
+	 */
+	public static int getColorWaveformCrossProbeZ() { return cacheColorWaveformCrossProbeZ.getInt(); }
+	/**
+	 * Method to set the color of cross-probe traces from the waveform window that are "floating".
+	 * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
+	 * @param c the color of cross-probe traces from the waveform window that are "floating".
+	 */
+	public static void setColorWaveformCrossProbeZ(int c) { cacheColorWaveformCrossProbeZ.setInt(c); }
 
 	/****************************** UNITS PREFERENCES ******************************/
 

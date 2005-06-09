@@ -69,6 +69,8 @@ public class ProjectManagementTab extends PreferencePanel
 	{
 		super(parent, modal);
 		initComponents();
+		deleteButton.setEnabled(false);
+		addButton.setEnabled(false);
 	}
 
 	public JPanel getPanel() { return projectManagement; }
@@ -122,6 +124,7 @@ public class ProjectManagementTab extends PreferencePanel
 		private static final int LOGINUSER      = 3;
 		private static final int DELETEUSER     = 4;
 		private static final int AUTHORIZE      = 5;
+		private static final int RENAMEAUTHPASS = 6;
 
 		private int operation;
 		private String userName;
@@ -231,6 +234,27 @@ public class ProjectManagementTab extends PreferencePanel
 						}
 						break;
 
+					case RENAMEAUTHPASS:
+						// validate the dialog
+						givenPassword = new String(oldPassword.getPassword()).trim();
+						encryptedPassword = Project.getAuthorizationPassword();
+						if (!givenPassword.equals(encryptedPassword))
+						{
+							JOptionPane.showMessageDialog(this, "Incorrect administrator password",
+								"Invalid Password", JOptionPane.ERROR_MESSAGE);
+							oldPassword.selectAll();
+							return;
+						}
+						pass = new String(password.getPassword());
+						conf = new String(confirm.getPassword());
+						if (!pass.equals(conf))
+						{
+							JOptionPane.showMessageDialog(this, "Confirmed password does not match new password",
+								"Confirmation Error", JOptionPane.ERROR_MESSAGE);
+							confirm.selectAll();
+							return;
+						}
+						break;
 				}
 			}
 			setVisible(false);
@@ -414,6 +438,58 @@ public class ProjectManagementTab extends PreferencePanel
 					gbc.weightx = 1;
 					gbc.insets = new Insets(4, 4, 4, 4);
 					getContentPane().add(password, gbc);
+					break;
+
+				case RENAMEAUTHPASS:
+					setTitle("Change Authorization Password");
+					lab1 = new JLabel("Old Authorization Password:");
+					gbc = new GridBagConstraints();
+					gbc.gridx = 0;   gbc.gridy = 0;
+					gbc.anchor = GridBagConstraints.WEST;
+					gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+					getContentPane().add(lab1, gbc);
+
+					oldPassword = new JPasswordField("");
+					oldPassword.setColumns(20);
+					gbc = new GridBagConstraints();
+					gbc.gridx = 1;   gbc.gridy = 0;
+					gbc.anchor = GridBagConstraints.CENTER;
+					gbc.fill = GridBagConstraints.HORIZONTAL;
+					gbc.weightx = 1;
+					gbc.insets = new Insets(4, 4, 4, 4);
+					getContentPane().add(oldPassword, gbc);
+
+					lab2 = new JLabel("New Authorization Password:");
+					gbc = new GridBagConstraints();
+					gbc.gridx = 0;   gbc.gridy = 1;
+					gbc.anchor = GridBagConstraints.WEST;
+					gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+					getContentPane().add(lab2, gbc);
+
+					password = new JPasswordField("");
+					gbc = new GridBagConstraints();
+					gbc.gridx = 1;   gbc.gridy = 1;
+					gbc.anchor = GridBagConstraints.CENTER;
+					gbc.fill = GridBagConstraints.HORIZONTAL;
+					gbc.weightx = 1;
+					gbc.insets = new Insets(4, 4, 4, 4);
+					getContentPane().add(password, gbc);
+
+					lab3 = new JLabel("Confirm new password:");
+					gbc = new GridBagConstraints();
+					gbc.gridx = 0;   gbc.gridy = 2;
+					gbc.anchor = GridBagConstraints.WEST;
+					gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+					getContentPane().add(lab3, gbc);
+
+					confirm = new JPasswordField("");
+					gbc = new GridBagConstraints();
+					gbc.gridx = 1;   gbc.gridy = 2;
+					gbc.anchor = GridBagConstraints.CENTER;
+					gbc.fill = GridBagConstraints.HORIZONTAL;
+					gbc.weightx = 1;
+					gbc.insets = new Insets(4, 4, 4, 4);
+					getContentPane().add(confirm, gbc);
 					break;
 			}
 
@@ -736,11 +812,29 @@ public class ProjectManagementTab extends PreferencePanel
 
 	private void authorizeButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_authorizeButtonActionPerformed
 	{//GEN-HEADEREND:event_authorizeButtonActionPerformed
-		PasswordDialog pwd = new PasswordDialog(PasswordDialog.AUTHORIZE, null);
-		if (pwd.cancelled()) return;
+		if (authorized)
+		{
+			// already authorized, change auth password
+			PasswordDialog pwd = new PasswordDialog(PasswordDialog.RENAMEAUTHPASS, null);
+			if (pwd.cancelled()) return;
 
-		// allow authorized actions
-		authorized = true;
+			// make the change
+			String pass = pwd.getPassword();
+			Project.setAuthorizationPassword(pass);
+		} else
+		{
+			// not authorized: do it
+			PasswordDialog pwd = new PasswordDialog(PasswordDialog.AUTHORIZE, null);
+			if (pwd.cancelled()) return;
+
+			// allow authorized actions
+			authorized = true;
+
+			// change button names
+			deleteButton.setEnabled(true);
+			addButton.setEnabled(true);
+			authorizeButton.setText("Change Authorization...");
+		}
 	}//GEN-LAST:event_authorizeButtonActionPerformed
 
 	private void browseButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_browseButtonActionPerformed

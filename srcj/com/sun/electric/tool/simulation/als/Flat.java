@@ -26,7 +26,9 @@
  */
 package com.sun.electric.tool.simulation.als;
 
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.tool.simulation.als.ALS.Stat;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -35,9 +37,7 @@ import java.util.List;
 public class Flat
 {
 	private ALS       als;
-	private ALS.Model simals_primptr2;
-	private int       simals_pseq;
-	private int       simals_nseq;
+	private ALS.Model primPtr2;
 
 	Flat(ALS als)
 	{
@@ -49,58 +49,55 @@ public class Flat
 	 * network description into a flattened database representation.  The actual
 	 * simulation must take place on the flattened network.  Returns true on error.
 	 */
-	boolean simals_flatten_network()
+	boolean flattenNetwork(Cell cell)
 	{
-		simals_nseq = simals_pseq = 0;
-
 		/*
 		 * create a "dummy" level to use as a mixed signal destination for plotting and
 		 * screen display.  This level should be bypassed for structure checking and general
-		 * simulation, however, so in the following code, references to "als.simals_cellroot"
-		 * have been changed to als.simals_cellroot.next (pointing to simals_mainproto).
+		 * simulation, however, so in the following code, references to "als.cellRoot"
+		 * have been changed to als.cellRoot.next (pointing to mainCell).
 		 * Peter Gallant July 16, 1990
 		 */
-		als.simals_cellroot = new ALS.Connect();
-		als.simals_cellroot.inst_name = "[MIXED_SIGNAL_LEVEL]";
-		als.simals_cellroot.model_name = als.simals_cellroot.inst_name;
-		als.simals_cellroot.exptr = null;
-		als.simals_cellroot.parent = null;
-		als.simals_cellroot.child = null;
-		als.simals_cellroot.next = null;
-		als.simals_cellroot.num_chn = 0;
-		ALS.Connect temproot = als.simals_cellroot;
+		als.cellRoot = new ALS.Connect();
+		als.cellRoot.instName = "[MIXED_SIGNAL_LEVEL]";
+		als.cellRoot.modelName = als.cellRoot.instName;
+		als.cellRoot.exList = new ArrayList();
+		als.cellRoot.parent = null;
+		als.cellRoot.child = null;
+		als.cellRoot.next = null;
+		ALS.Connect tempRoot = als.cellRoot;
 
 		// get upper-case version of main proto
-		String mainName = als.simals_mainproto.getName().toUpperCase();
+		String mainName = cell.getName().toUpperCase();
 
-		als.simals_cellroot = new ALS.Connect();
-		als.simals_cellroot.inst_name = mainName;
-		als.simals_cellroot.model_name = als.simals_cellroot.inst_name;
-		als.simals_cellroot.exptr = null;
-		als.simals_cellroot.parent = null;
-		als.simals_cellroot.child = null;
-		als.simals_cellroot.next = null;
-		als.simals_cellroot.num_chn = 0;
+		als.cellRoot = new ALS.Connect();
+		als.cellRoot.instName = mainName;
+		als.cellRoot.modelName = als.cellRoot.instName;
+		als.cellRoot.exList = new ArrayList();
+		als.cellRoot.parent = null;
+		als.cellRoot.child = null;
+		als.cellRoot.next = null;
 
-		// these lines link the mixed level as the head followed by simals_mainproto PJG
-		temproot.next = als.simals_cellroot;		// shouldn't this be null? ... smr
-		temproot.child = als.simals_cellroot;
-		als.simals_cellroot = temproot;
+		// these lines link the mixed level as the head followed by mainCell PJG
+		tempRoot.next = als.cellRoot;		// shouldn't this be null? ... smr
+		tempRoot.child = als.cellRoot;
+		als.cellRoot = tempRoot;
 
-		// this code checks to see if model simals_mainproto is present in the netlist PJG
-		ALS.Model modhead = simals_find_model(mainName);
-		if (modhead == null) return true;
-		for (ALS.ALSExport exhead = modhead.exptr; exhead != null; exhead = exhead.next)
+		// this code checks to see if model mainCell is present in the netlist PJG
+		ALS.Model modHead = findModel(mainName);
+		if (modHead == null) return true;
+		for(Iterator it = modHead.exList.iterator(); it.hasNext(); )
 		{
-			if (simals_find_xref_entry(als.simals_cellroot.next, (String)exhead.node_name) == null)
-				return true;
+			ALS.ALSExport exHead = (ALS.ALSExport)it.next();
+			findXRefEntry(als.cellRoot.next, (String)exHead.nodeName);
 		}
 
-		if (simals_flatten_model(als.simals_cellroot.next)) return true;
+		if (flattenModel(als.cellRoot.next)) return true;
 
-		for (ALS.Node nodehead = als.simals_noderoot; nodehead != null; nodehead = nodehead.next)
+		for(Iterator it = als.nodeList.iterator(); it.hasNext(); )
 		{
-			if (nodehead.load < 1) nodehead.load = 1;
+			ALS.Node nodeHead = (ALS.Node)it.next();
+			if (nodeHead.load < 1) nodeHead.load = 1;
 		}
 		return false;
 	}
@@ -111,98 +108,98 @@ public class Flat
 	 * until a totally flat model is obtained.  Returns true on error.
 	 *
 	 * Calling Arguments:
-	 *	cellhead = pointer to a data structure containing information about
+	 *	cellHead = pointer to a data structure containing information about
 	 *		  the model that is going to be flattened
 	 */
-	boolean simals_flatten_model(ALS.Connect cellhead)
+	private boolean flattenModel(ALS.Connect cellHead)
 	{
-		ALS.Model modhead = simals_find_model(cellhead.model_name);
-		if (modhead == null) return true;
-		switch (modhead.type)
+		ALS.Model modHead = findModel(cellHead.modelName);
+		if (modHead == null) return true;
+		switch (modHead.type)
 		{
 			case 'F':
-				if (simals_process_function(cellhead, modhead)) return true;
+				if (processFunction(cellHead, modHead)) return true;
 				break;
 
 			case 'G':
-				if (simals_process_gate(cellhead, modhead)) return true;
+				processGate(cellHead, modHead);
 				break;
 
 			case 'M':
-				if (simals_process_connect_list(cellhead, (ALS.Connect)modhead.ptr)) return true;
-				for (ALS.Connect subcell = cellhead.child; subcell != null; subcell = subcell.next)
+				if (processConnectList(cellHead, (ALS.Connect)modHead.ptr)) return true;
+				for (ALS.Connect subCell = cellHead.child; subCell != null; subCell = subCell.next)
 				{
-					if (simals_flatten_model(subcell)) return true;
+					if (flattenModel(subCell)) return true;
 				}
 				break;
 		}
 
-		if (modhead.setList.size() != 0)
+		if (modHead.setList.size() != 0)
 		{
-			if (simals_process_set_entry(cellhead, modhead.setList)) return true;
+			processSetEntry(cellHead, modHead.setList);
 		}
 		return false;
 	}
 
 	/**
 	 * Method to step through the connection list specified by the
-	 * connection list pointer (conhead).  Values are entered into the cross
+	 * connection list pointer (conHead).  Values are entered into the cross
 	 * reference table for the present level of hierarchy and new data structures
 	 * are created for the lower level of hierarchy to store their cross
 	 * reference tables.  Returns true on error.
 	 *
 	 * Calling Arguments:
-	 *	cellhead = pointer to the cross reference data structure for the model
+	 *	cellHead = pointer to the cross reference data structure for the model
 	 *		  that is going to be flattened
-	 *	conhead  = pointer to a list of connection statements for the model
+	 *	conHead  = pointer to a list of connection statements for the model
 	 *		  that is being flattened by this procedure
 	 */
-	boolean simals_process_connect_list(ALS.Connect cellhead, ALS.Connect conhead)
+	private boolean processConnectList(ALS.Connect cellHead, ALS.Connect conHead)
 	{
-		while (conhead != null)
+		while (conHead != null)
 		{
-			ALS.Connect cellptr2 = new ALS.Connect();
-			cellptr2.inst_name = conhead.inst_name;
-			cellptr2.model_name = conhead.model_name;
-			cellptr2.exptr = null;
-			cellptr2.parent = cellhead;
-			cellptr2.child = null;
-			cellptr2.next = cellhead.child;
-			cellhead.child = cellptr2;
+			ALS.Connect cellPtr2 = new ALS.Connect();
+			cellPtr2.instName = conHead.instName;
+			cellPtr2.modelName = conHead.modelName;
+			cellPtr2.exList = new ArrayList();
+			cellPtr2.parent = cellHead;
+			cellPtr2.child = null;
+			cellPtr2.next = cellHead.child;
+			cellHead.child = cellPtr2;
 
-			ALS.Model modhead = simals_find_model(conhead.model_name);
-			if (modhead == null) return true;
-			als.simals_exptr2 = modhead.exptr;
-			for (ALS.ALSExport exhead = conhead.exptr; exhead != null; exhead = exhead.next)
+			ALS.Model modHead = findModel(conHead.modelName);
+			if (modHead == null) return true;
+			Iterator it = modHead.exList.iterator();
+			for(Iterator cIt = conHead.exList.iterator(); cIt.hasNext(); )
 			{
-				ALS.ALSExport xrefhead = simals_find_xref_entry(cellhead, (String)exhead.node_name);
-				if (xrefhead == null) return true;
+				ALS.ALSExport exHead = (ALS.ALSExport)cIt.next();
+				if (!it.hasNext()) break;
+				als.exPtr2 = (ALS.ALSExport)it.next();
+				ALS.ALSExport xRefHead = findXRefEntry(cellHead, (String)exHead.nodeName);
 
-				if (als.simals_exptr2 == null)
+				if (als.exPtr2 == null)
 				{
-					System.out.println("Insufficient parameters declared for model '" + conhead.model_name + "' in netlist");
+					System.out.println("Insufficient parameters declared for model '" + conHead.modelName + "' in netlist");
 					return true;
 				}
 
-				for(ALS.ALSExport xrefptr1 = cellptr2.exptr; xrefptr1 != null; xrefptr1 = xrefptr1.next)
+				for(Iterator xIt = cellPtr2.exList.iterator(); xIt.hasNext(); )
 				{
-					if (xrefptr1.node_name.equals(als.simals_exptr2.node_name))
+					ALS.ALSExport xRefPtr1 = (ALS.ALSExport)xIt.next();
+					if (xRefPtr1.nodeName.equals(als.exPtr2.nodeName))
 					{
-						System.out.println("Node '" + als.simals_exptr2.node_name + "' in model '" +
-							conhead.model_name + "' connected more than once");
+						System.out.println("Node '" + als.exPtr2.nodeName + "' in model '" +
+							conHead.modelName + "' connected more than once");
 						return true;
 					}
 				}
-				ALS.ALSExport xrefptr2 = new ALS.ALSExport();
-				xrefptr2.node_name = als.simals_exptr2.node_name;
-				xrefptr2.nodeptr = xrefhead.nodeptr;
-				xrefptr2.next = cellptr2.exptr;
-				cellptr2.exptr = xrefptr2;
-
-				als.simals_exptr2 = als.simals_exptr2.next;
+				ALS.ALSExport xRefPtr2 = new ALS.ALSExport();
+				xRefPtr2.nodeName = als.exPtr2.nodeName;
+				xRefPtr2.nodePtr = xRefHead.nodePtr;
+				cellPtr2.exList.add(xRefPtr2);
 			}
 
-			conhead = conhead.next;
+			conHead = conHead.next;
 		}
 		return false;
 	}
@@ -212,66 +209,58 @@ public class Flat
 	 * calling argument character string.  Returns zero on error.
 	 *
 	 * Calling Arguments:
-	 *	model_name = pointer to a string which contains the name of the model
+	 *	modelName = pointer to a string which contains the name of the model
 	 *		    to be located by the search procedure
 	 */
-	ALS.Model simals_find_model(String model_name)
+	private ALS.Model findModel(String modelName)
 	{
 		// convert to proper name
 		StringBuffer sb = new StringBuffer();
-		for(int i=0; i<model_name.length(); i++)
+		for(int i=0; i<modelName.length(); i++)
 		{
-			char chr = model_name.charAt(i);
+			char chr = modelName.charAt(i);
 			if (!TextUtils.isLetterOrDigit(chr)) chr = '_';
 			sb.append(chr);
 		}
-		String propername = sb.toString();
-
-		ALS.Model modhead = als.simals_modroot;
-		for(;;)
+		String properName = sb.toString();
+		for(Iterator it = als.modelList.iterator(); it.hasNext(); )
 		{
-			if (modhead == null)
-			{
-				System.out.println("ERROR: Model '" + propername + "' not found, simulation aborted");
-				break;
-			}
-			if (modhead.name.equals(propername)) return modhead;
-			modhead = modhead.next;
+			ALS.Model modHead = (ALS.Model)it.next();
+			if (modHead.name.equals(properName)) return modHead;
 		}
+		System.out.println("ERROR: Model '" + properName + "' not found, simulation aborted");
 		return null;
 	}
 
 	/**
 	 * Method to return the flattened database node number for the
-	 * specified model and node name.  Returns zero on error.
+	 * specified model and node name.
 	 *
 	 * Calling Arguments:
-	 *	cellhead = pointer to the xref table for the model being processed
+	 *	cellHead = pointer to the xref table for the model being processed
 	 *	name    = pointer to a char string containing the node name
 	 */
-	ALS.ALSExport simals_find_xref_entry(ALS.Connect cellhead, String name)
+	private ALS.ALSExport findXRefEntry(ALS.Connect cellHead, String name)
 	{
-		for(ALS.ALSExport xrefptr1 = cellhead.exptr; xrefptr1 != null; xrefptr1 = xrefptr1.next)
+		for(Iterator it = cellHead.exList.iterator(); it.hasNext(); )
 		{
-			if (xrefptr1.node_name.equals(name)) return xrefptr1;
+			ALS.ALSExport xRefPtr1 = (ALS.ALSExport)it.next();
+			if (xRefPtr1.nodeName.equals(name)) return xRefPtr1;
 		}
-		ALS.ALSExport xrefptr2 = new ALS.ALSExport();
-		xrefptr2.node_name = name;
-		xrefptr2.next = cellhead.exptr;
-		cellhead.exptr = xrefptr2;
+		ALS.ALSExport xRefPtr2 = new ALS.ALSExport();
+		xRefPtr2.nodeName = name;
+		cellHead.exList.add(xRefPtr2);
 
-		ALS.Node nodeptr2 = new ALS.Node();
-		nodeptr2.cellptr = cellhead;
-		nodeptr2.num = simals_nseq;
-		++simals_nseq;
-		nodeptr2.statptr = null;
-		nodeptr2.pinptr = null;
-		nodeptr2.load = -1;
-		nodeptr2.visit = 0;
-		nodeptr2.tracenode = false;
-		nodeptr2.next = als.simals_noderoot;
-		xrefptr2.nodeptr = als.simals_noderoot = nodeptr2;
-		return xrefptr2;
+		ALS.Node nodePtr2 = new ALS.Node();
+		nodePtr2.cellPtr = cellHead;
+		nodePtr2.statList = new ArrayList();
+		nodePtr2.pinList = new ArrayList();
+		nodePtr2.load = -1;
+		nodePtr2.visit = 0;
+		nodePtr2.traceNode = false;
+		als.nodeList.add(nodePtr2);
+		xRefPtr2.nodePtr = nodePtr2;
+		return xRefPtr2;
 	}
 
 	/**
@@ -280,63 +269,53 @@ public class Flat
 	 * reference table for the model.  Returns true on error.
 	 *
 	 * Calling Arguments:
-	 *	cellhead = pointer to the cross reference data structure for the model
+	 *	cellHead = pointer to the cross reference data structure for the model
 	 *		  that is going to be flattened
-	 *	modhead  = pointer to the dtat structure containing the hierarchical
+	 *	modHead  = pointer to the dtat structure containing the hierarchical
 	 *		  node references
 	 */
-	boolean simals_process_gate(ALS.Connect cellhead, ALS.Model modhead)
+	private void processGate(ALS.Connect cellHead, ALS.Model modHead)
 	{
-		simals_primptr2 = new ALS.Model();
-		simals_primptr2.num = simals_pseq;
-		++simals_pseq;
-		simals_primptr2.name = modhead.name;
-		simals_primptr2.type = 'G';
-		simals_primptr2.ptr = null;
-		simals_primptr2.exptr = null;
-		simals_primptr2.setList = new ArrayList();
-		simals_primptr2.loadptr = null;
-		simals_primptr2.fanout = modhead.fanout;
-		simals_primptr2.priority = modhead.priority;
-		simals_primptr2.level = als.simals_compute_path_name(cellhead);
-		simals_primptr2.next = als.simals_primroot;
-		als.simals_primroot = simals_primptr2;
+		primPtr2 = new ALS.Model(modHead.name, 'G');
+		primPtr2.fanOut = modHead.fanOut;
+		primPtr2.priority = modHead.priority;
+		primPtr2.level = als.computePathName(cellHead);
+		als.primList.add(primPtr2);
 
-		ALS.Row rowhead = (ALS.Row)modhead.ptr;
+		ALS.Row rowHead = (ALS.Row)modHead.ptr;
 		ALS.Row last = null;
-		while (rowhead != null)
+		while (rowHead != null)
 		{
-			ALS.Row simals_rowptr2 = new ALS.Row();
-			simals_rowptr2.inList = new ArrayList();
-			simals_rowptr2.outList = new ArrayList();
-			simals_rowptr2.delta = rowhead.delta;
-			simals_rowptr2.linear = rowhead.linear;
-			simals_rowptr2.exp = rowhead.exp;
-			simals_rowptr2.abs = rowhead.abs;
-			simals_rowptr2.random = rowhead.random;
-			simals_rowptr2.delay = rowhead.delay;
-			if (rowhead.delay == null) simals_rowptr2.delay = null; else
-				simals_rowptr2.delay = rowhead.delay;
+			ALS.Row rowPtr2 = new ALS.Row();
+			rowPtr2.inList = new ArrayList();
+			rowPtr2.outList = new ArrayList();
+			rowPtr2.delta = rowHead.delta;
+			rowPtr2.linear = rowHead.linear;
+			rowPtr2.exp = rowHead.exp;
+			rowPtr2.abs = rowHead.abs;
+			rowPtr2.random = rowHead.random;
+			rowPtr2.delay = rowHead.delay;
+			if (rowHead.delay == null) rowPtr2.delay = null; else
+				rowPtr2.delay = rowHead.delay;
 
-			simals_rowptr2.next = null;
+			rowPtr2.next = null;
 			if (last == null)
 			{
-				simals_primptr2.ptr = simals_rowptr2;
+				primPtr2.ptr = rowPtr2;
 			} else
 			{
-				last.next = simals_rowptr2;
+				last.next = rowPtr2;
 			}
-			last = simals_rowptr2;
+			last = rowPtr2;
 
-			als.simals_ioptr1 = simals_rowptr2.inList;
-			if (simals_process_io_entry(modhead, cellhead, rowhead.inList, 'I')) return true;
+			als.ioPtr1 = rowPtr2.inList;
+			processIOEntry(modHead, cellHead, rowHead.inList, 'I');
 
-			als.simals_ioptr1 = simals_rowptr2.outList;
-			if (simals_process_io_entry(modhead, cellhead, rowhead.outList, 'O')) return true;
+			als.ioPtr1 = rowPtr2.outList;
+			processIOEntry(modHead, cellHead, rowHead.outList, 'O');
 
-			rowhead = rowhead.next;
+			rowHead = rowHead.next;
 		}
-		return false;
 	}
 
 	/**
@@ -346,56 +325,50 @@ public class Flat
 	 * connection statement.  Returns true on error.
 	 *
 	 * Calling Arguments:
-	 *	modhead  = pointer to model that is being flattened
-	 *	cellhead = pointer to the cross reference data structure for the model
+	 *	modHead  = pointer to model that is being flattened
+	 *	cellHead = pointer to the cross reference data structure for the model
 	 *		  that is going to be flattened
-	 *	iohead   = pointer to a row of node references to be checked for
+	 *	ioHead   = pointer to a row of node references to be checked for
 	 *		  entry into the cross reference table
 	 *	flag    = character indicating if the node is an input or output
 	 */
-	boolean simals_process_io_entry(ALS.Model modhead, ALS.Connect cellhead, List ioList, char flag)
+	private void processIOEntry(ALS.Model modHead, ALS.Connect cellHead, List ioList, char flag)
 	{
 		for(Iterator it = ioList.iterator(); it.hasNext(); )
 		{
-			ALS.IO iohead = (ALS.IO)it.next();
-			ALS.ALSExport xrefhead = simals_find_xref_entry(cellhead, (String)iohead.nodeptr);
-			if (xrefhead == null) return true;
-			als.simals_ioptr2 = new ALS.IO();
-			als.simals_ioptr2.nodeptr = xrefhead.nodeptr;
-			als.simals_ioptr2.operatr = iohead.operatr;
+			ALS.IO ioHead = (ALS.IO)it.next();
+			ALS.ALSExport xRefHead = findXRefEntry(cellHead, (String)ioHead.nodePtr);
+			als.ioPtr2 = new ALS.IO();
+			als.ioPtr2.nodePtr = xRefHead.nodePtr;
+			als.ioPtr2.operatr = ioHead.operatr;
 
-			if (als.simals_ioptr2.operatr > 127)
+			if (als.ioPtr2.operatr > 127)
 			{
-				xrefhead = simals_find_xref_entry(cellhead, (String)iohead.operand);
-				if (xrefhead == null) return true;
-				als.simals_ioptr2.operand = xrefhead.nodeptr;
+				xRefHead = findXRefEntry(cellHead, (String)ioHead.operand);
+				als.ioPtr2.operand = xRefHead.nodePtr;
 			} else
 			{
-				als.simals_ioptr2.operand = iohead.operand;
+				als.ioPtr2.operand = ioHead.operand;
 			}
 
-			als.simals_ioptr2.strength = iohead.strength;
-			als.simals_ioptr1.add(als.simals_ioptr2);
+			als.ioPtr2.strength = ioHead.strength;
+			als.ioPtr1.add(als.ioPtr2);
 
 			switch (flag)
 			{
 				case 'I':
-					if (simals_create_pin_entry(modhead, (String)iohead.nodeptr,
-						(ALS.Node)als.simals_ioptr2.nodeptr)) return true;
+					createPinEntry(modHead, (String)ioHead.nodePtr, (ALS.Node)als.ioPtr2.nodePtr);
 					break;
 				case 'O':
-					als.simals_ioptr2.nodeptr = simals_create_stat_entry(modhead,
-						(String)iohead.nodeptr, (ALS.Node)als.simals_ioptr2.nodeptr);
-					if (als.simals_ioptr2.nodeptr == null) return true;
+					als.ioPtr2.nodePtr = createStatEntry(modHead,
+						(String)ioHead.nodePtr, (ALS.Node)als.ioPtr2.nodePtr);
 			}
 
-			if (als.simals_ioptr2.operatr > 127)
+			if (als.ioPtr2.operatr > 127)
 			{
-				if (simals_create_pin_entry(modhead, (String)iohead.operand,
-					(ALS.Node)als.simals_ioptr2.operand)) return true;
+				createPinEntry(modHead, (String)ioHead.operand, (ALS.Node)als.ioPtr2.operand);
 			}
 		}
-		return false;
 	}
 
 	/**
@@ -404,24 +377,23 @@ public class Flat
 	 * this node as an input for event driven simulation.  Returns true on error.
 	 *
 	 * Calling Arguments:
-	 *	modhead   = pointer to the model structure from which the primitive
+	 *	modHead   = pointer to the model structure from which the primitive
 	 *		   is being created
-	 *	node_name = pointer to a char string containing the name of the node
+	 *	nodeName = pointer to a char string containing the name of the node
 	 *		   whose input list is being updated
-	 *	nodehead  = pointer to the node data structure allocated for this node
+	 *	nodeHead  = pointer to the node data structure allocated for this node
 	 */
-	boolean simals_create_pin_entry(ALS.Model modhead, String node_name, ALS.Node nodehead)
+	private void createPinEntry(ALS.Model modHead, String nodeName, ALS.Node nodeHead)
 	{
-		for(ALS.Load pinptr1 = nodehead.pinptr; pinptr1 != null; pinptr1 = pinptr1.next)
+		for(Iterator it = nodeHead.pinList.iterator(); it.hasNext(); )
 		{
-			if (pinptr1.ptr == simals_primptr2) return false;
+			ALS.Load pinPtr1 = (ALS.Load)it.next();
+			if (pinPtr1.ptr == primPtr2) return;
 		}
-		ALS.Load pinptr2 = new ALS.Load();
-		pinptr2.ptr = simals_primptr2;
-		pinptr2.next = nodehead.pinptr;
-		nodehead.pinptr = pinptr2;
-		nodehead.load += simals_find_load_value(modhead, node_name);
-		return false;
+		ALS.Load pinPtr2 = new ALS.Load();
+		pinPtr2.ptr = primPtr2;
+		nodeHead.pinList.add(pinPtr2);
+		nodeHead.load += findLoadValue(modHead, nodeName);
 	}
 
 	/**
@@ -430,25 +402,25 @@ public class Flat
 	 * that is connected to a node.  Returns zero on error.
 	 *
 	 * Calling Arguments:
-	 *	modhead   = pointer to the model structure from which the primitive
+	 *	modHead   = pointer to the model structure from which the primitive
 	 *		   is being created
-	 *	node_name = pointer to a char string containing the name of the node
+	 *	nodeName = pointer to a char string containing the name of the node
 	 *		   whose output list is being updated
-	 *	nodehead  = pointer to the node data structure allocated for this node
+	 *	nodeHead  = pointer to the node data structure allocated for this node
 	 */
-	ALS.Stat simals_create_stat_entry(ALS.Model modhead, String node_name, ALS.Node nodehead)
+	private ALS.Stat createStatEntry(ALS.Model modHead, String nodeName, ALS.Node nodeHead)
 	{
-		for(ALS.Stat statptr1 = nodehead.statptr; statptr1 != null; statptr1 = statptr1.next)
+		for(Iterator sIt = nodeHead.statList.iterator(); sIt.hasNext(); )
 		{
-			if (statptr1.primptr == simals_primptr2) return statptr1;
+			Stat statPtr1 = (Stat)sIt.next();
+			if (statPtr1.primPtr == primPtr2) return statPtr1;
 		}
-		ALS.Stat statptr2 = new ALS.Stat();
-		statptr2.primptr = simals_primptr2;
-		statptr2.nodeptr = nodehead;
-		statptr2.next = nodehead.statptr;
-		nodehead.statptr = statptr2;
-		nodehead.load += simals_find_load_value(modhead, node_name);
-		return statptr2;
+		ALS.Stat statPtr2 = new ALS.Stat();
+		statPtr2.primPtr = primPtr2;
+		statPtr2.nodePtr = nodeHead;
+		nodeHead.statList.add(statPtr2);
+		nodeHead.load += findLoadValue(modHead, nodeName);
+		return statPtr2;
 	}
 
 	/**
@@ -457,19 +429,20 @@ public class Flat
 	 * of 1.0.
 	 *
 	 * Calling Arguments:
-	 *	modhead   = pointer to the model structure from which the primitive
+	 *	modHead   = pointer to the model structure from which the primitive
 	 *		   is being created
-	 *	node_name = pointer to a char string containing the name of the node
+	 *	nodeName = pointer to a char string containing the name of the node
 	 *		   whose load value is to be determined
 	 */
-	float simals_find_load_value(ALS.Model modhead, String node_name)
+	private double findLoadValue(ALS.Model modHead, String nodeName)
 	{
-		for (ALS.Load loadhead = modhead.loadptr; loadhead != null; loadhead = loadhead.next)
+		for(Iterator it = modHead.loadList.iterator(); it.hasNext(); )
 		{
-			if (loadhead.ptr.equals(node_name)) return loadhead.load;
+			ALS.Load loadHead = (ALS.Load)it.next();
+			if (loadHead.ptr.equals(nodeName)) return loadHead.load;
 		}
 
-		if (modhead.type == 'F') return 0;
+		if (modHead.type == 'F') return 0;
 		return 1;
 	}
 
@@ -479,29 +452,27 @@ public class Flat
 	 * the simulator to initialize the node correctly.  Returns true on error.
 	 *
 	 * Calling Arguments:
-	 *	cellhead = pointer to the cross reference table where the node locations
+	 *	cellHead = pointer to the cross reference table where the node locations
 	 *		  are to be found
-	 *	iohead   = pointer to the set list containing node names and state info
+	 *	ioHead   = pointer to the set list containing node names and state info
 	 */
-	boolean simals_process_set_entry(ALS.Connect cellhead, List ioList)
+	private void processSetEntry(ALS.Connect cellHead, List ioList)
 	{
 		for(Iterator it = ioList.iterator(); it.hasNext(); )
 		{
-			ALS.IO iohead = (ALS.IO)it.next();
-			ALS.ALSExport xrefhead = simals_find_xref_entry(cellhead, (String)iohead.nodeptr);
-			if (xrefhead == null) return true;
+			ALS.IO ioHead = (ALS.IO)it.next();
+			ALS.ALSExport xRefHead = findXRefEntry(cellHead, (String)ioHead.nodePtr);
 
-			ALS.Link sethead = new ALS.Link();
-			sethead.type = 'N';
-			sethead.ptr = xrefhead.nodeptr;
-			sethead.state = iohead.operand;
-			sethead.strength = iohead.strength;
-			sethead.priority = 2;
-			sethead.time = 0.0;
-			sethead.right = null;
-			als.getSim().simals_insert_set_list(sethead);
+			ALS.Link setHead = new ALS.Link();
+			setHead.type = 'N';
+			setHead.ptr = xRefHead.nodePtr;
+			setHead.state = ioHead.operand;
+			setHead.strength = ioHead.strength;
+			setHead.priority = 2;
+			setHead.time = 0.0;
+			setHead.right = null;
+			als.insertSetList(setHead);
 		}
-		return false;
 	}
 
 	/**
@@ -511,70 +482,53 @@ public class Flat
 	 * for the function when it is called.  Returns true on error.
 	 *
 	 * Calling Arguments:
-	 *	cellhead = pointer to the cross reference data structure for the model
+	 *	cellHead = pointer to the cross reference data structure for the model
 	 *		  that is going to be flattened
-	 *	modhead  = pointer to the data structure containing the hierarchical
+	 *	modHead  = pointer to the data structure containing the hierarchical
 	 *		  node references
 	 */
-	boolean simals_process_function(ALS.Connect cellhead, ALS.Model modhead)
+	private boolean processFunction(ALS.Connect cellHead, ALS.Model modHead)
 	{
-		simals_primptr2 = new ALS.Model();
-		simals_primptr2.num = simals_pseq;
-		++simals_pseq;
-		simals_primptr2.name = modhead.name;
-		simals_primptr2.type = 'F';
-		simals_primptr2.ptr = new ALS.Func();
-		simals_primptr2.exptr = null;
-		simals_primptr2.setList = new ArrayList();
-		simals_primptr2.loadptr = null;
-		simals_primptr2.fanout = 0;
-		simals_primptr2.priority = modhead.priority;
-		simals_primptr2.level = als.simals_compute_path_name(cellhead);
-		simals_primptr2.next = als.simals_primroot;
-		als.simals_primroot = simals_primptr2;
+		primPtr2 = new ALS.Model(modHead.name, 'F');	
+		primPtr2.priority = modHead.priority;
+		primPtr2.level = als.computePathName(cellHead);
+		als.primList.add(primPtr2);
 
-		ALS.Func funchead = (ALS.Func)modhead.ptr;
-		ALS.Func funcptr2 = (ALS.Func)simals_primptr2.ptr;
-		funcptr2.procptr = ALS.UserProc.simals_get_function_address(modhead.name);
-		if (funcptr2.procptr == null) return true;
-		funcptr2.inptr = null;
-		funcptr2.delta = funchead.delta;
-		funcptr2.linear = funchead.linear;
-		funcptr2.exp = funchead.exp;
-		funcptr2.abs = funchead.abs;
-		funcptr2.random = funchead.random;
-		funcptr2.userptr = null;
-		funcptr2.userint = 0;
-		funcptr2.userfloat = 0;
-
-		for (ALS.ALSExport exhead = modhead.exptr; exhead != null; exhead = exhead.next)
+		ALS.Func funcHead = (ALS.Func)modHead.ptr;
+		ALS.Func funcPtr2 = (ALS.Func)primPtr2.ptr;
+		funcPtr2.procPtr = ALS.UserProc.getFunctionAddress(modHead.name);
+		if (funcPtr2.procPtr == null) return true;
+		funcPtr2.inList = new ArrayList();
+		funcPtr2.delta = funcHead.delta;
+		funcPtr2.linear = funcHead.linear;
+		funcPtr2.exp = funcHead.exp;
+		funcPtr2.abs = funcHead.abs;
+		funcPtr2.random = funcHead.random;
+		funcPtr2.userPtr = null;
+		for(Iterator it = modHead.exList.iterator(); it.hasNext(); )
 		{
-			ALS.ALSExport xrefhead = simals_find_xref_entry(cellhead, (String)exhead.node_name);
-			if (xrefhead == null) return true;
-			als.simals_exptr2 = new ALS.ALSExport();
-			if (exhead.nodeptr != null)
+			ALS.ALSExport exHead = (ALS.ALSExport)it.next();
+			ALS.ALSExport xRefHead = findXRefEntry(cellHead, (String)exHead.nodeName);
+			als.exPtr2 = new ALS.ALSExport();
+			if (exHead.nodePtr != null)
 			{
-				als.simals_exptr2.node_name = simals_create_stat_entry(modhead, (String)exhead.node_name, xrefhead.nodeptr);
-				if (als.simals_exptr2.node_name == null) return true;
+				als.exPtr2.nodeName = createStatEntry(modHead, (String)exHead.nodeName, xRefHead.nodePtr);
 			} else
 			{
-				als.simals_exptr2.node_name = null;
+				als.exPtr2.nodeName = null;
 			}
-			als.simals_exptr2.nodeptr = xrefhead.nodeptr;
-			als.simals_exptr2.next = simals_primptr2.exptr;
-			simals_primptr2.exptr = als.simals_exptr2;
+			als.exPtr2.nodePtr = xRefHead.nodePtr;
+			primPtr2.exList.add(als.exPtr2);
 		}
 
-		for (ALS.ALSExport exhead = funchead.inptr; exhead != null; exhead = exhead.next)
+		for(Iterator it = funcHead.inList.iterator(); it.hasNext(); )
 		{
-			ALS.ALSExport xrefhead = simals_find_xref_entry(cellhead, (String)exhead.node_name);
-			if (xrefhead == null) return true;
-			als.simals_exptr2 = new ALS.ALSExport();
-			als.simals_exptr2.nodeptr = xrefhead.nodeptr;
-			als.simals_exptr2.next = simals_primptr2.exptr;
-			simals_primptr2.exptr = als.simals_exptr2;
-			if (simals_create_pin_entry(modhead, (String)exhead.node_name, xrefhead.nodeptr))
-				return true;
+			ALS.ALSExport exHead = (ALS.ALSExport)it.next();
+			ALS.ALSExport xRefHead = findXRefEntry(cellHead, (String)exHead.nodeName);
+			als.exPtr2 = new ALS.ALSExport();
+			als.exPtr2.nodePtr = xRefHead.nodePtr;
+			primPtr2.exList.add(als.exPtr2);
+			createPinEntry(modHead, (String)exHead.nodeName, xRefHead.nodePtr);
 		}
 		return false;
 	}
