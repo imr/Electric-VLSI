@@ -51,6 +51,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.HashMap;
 
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -438,6 +439,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     private String errorSystem;
     private boolean terminated;
     private boolean persistent; // cannot be deleted
+    private HashMap sortKeysToGroupNames; // association of sortKeys to GroupNames
 
     private ErrorLogger() {}
 
@@ -471,6 +473,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         logger.terminated = false;
         logger.persistent = persistent;
         logger.alreadyExplained = false;
+        logger.sortKeysToGroupNames = null;
         synchronized(allLoggers) {
             if (currentLogger == null) currentLogger = logger;
             allLoggers.add(logger);
@@ -664,6 +667,20 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             if (currentLogger == this) return errorSystem + " [Current]";
         }
         return errorSystem;
+    }
+
+    /**
+     * Set a group name for a sortKey.  Doing so causes all errors with
+     * this sort key to be put in a sub-tree of the error tree with
+     * the groupName as the title of the sub-tree.
+     * @param sortKey the error log sortKey
+     * @param groupName the group name
+     */
+    public void setGroupName(int sortKey, String groupName) {
+        if (sortKeysToGroupNames == null) {
+            sortKeysToGroupNames = new HashMap();
+        }
+        sortKeysToGroupNames.put(new Integer(sortKey), groupName);
     }
 
     /**
@@ -905,11 +922,29 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             ErrorLogger logger = (ErrorLogger)eit.next();
             if (logger.getNumErrors() == 0 && logger.getNumWarnings() == 0) continue;
             DefaultMutableTreeNode loggerNode = new DefaultMutableTreeNode(logger);
+            DefaultMutableTreeNode groupNode = loggerNode;
+            int currentSortKey = -1;
             for (Iterator it = logger.getLogs(); it.hasNext();)
             {
                 MessageLog el = (MessageLog)it.next();
+                // by default, groupNode is entire loggerNode
+                // but, groupNode could be sub-node:
+                if (logger.sortKeysToGroupNames != null) {
+                    if (currentSortKey != el.sortKey) {
+                        // create new sub-tree node
+                        currentSortKey = el.sortKey;
+                        String groupName = (String)logger.sortKeysToGroupNames.get(new Integer(el.sortKey));
+                        if (groupName != null) {
+                            groupNode = new DefaultMutableTreeNode(groupName);
+                            loggerNode.add(groupNode);
+                        } else {
+                            // not found, put in loggerNode
+                            groupNode = loggerNode;
+                        }
+                    }
+                }
                 DefaultMutableTreeNode node = new DefaultMutableTreeNode(el);
-                loggerNode.add(node);
+                groupNode.add(node);
             }
             explorerTree.add(loggerNode);
         }
