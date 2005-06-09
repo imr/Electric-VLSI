@@ -57,6 +57,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
+import com.sun.electric.tool.assura.AssuraDrcErrors;
 import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCAntenna;
@@ -459,6 +460,12 @@ public class ToolMenu {
 		toolMenu.add(compactionSubMenu);
 		compactionSubMenu.addMenuItem("Do _Compaction", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Compaction.compactNow();}});
+
+        //------------------- Cadence
+        MenuBar.Menu cadenceSubMenu = MenuBar.makeMenu("Cadence");
+        toolMenu.add(cadenceSubMenu);
+        cadenceSubMenu.addMenuItem("Import Assura DRC Errors", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { importAssuraDrcErrors();}});
 
         //------------------- Others
 
@@ -1580,4 +1587,10 @@ public class ToolMenu {
             ParasiticTool.getParasiticTool().netwokParasitic(net, cell);
         }
     }
+
+    public static void importAssuraDrcErrors() {
+        String fileName = OpenFile.chooseInputFile(FileType.ERR, null);
+        if (fileName == null) return;
+        AssuraDrcErrors.importErrors(fileName);
+    }    
 }

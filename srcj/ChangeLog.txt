@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP/MAN (06/09/05, JKG) Added command Tools->Cadence->Import Assura DRC Errors.
+
 BUG: (06/10/05, GVG) Overlap not checked correctly when node was in a subcell (Bug #352)
 FIX: TSMCRules.getRule() was not getting the correct min size for default case. This was probably introduced
 while introducing length to wide condition for TSMC90.
