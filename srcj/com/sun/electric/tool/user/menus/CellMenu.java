@@ -31,7 +31,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.extract.LayerCoverageJob;
-import com.sun.electric.tool.extract.LayerCoverage;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
@@ -47,7 +46,6 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
-import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -63,7 +61,7 @@ import javax.swing.KeyStroke;
 public class CellMenu {
 
     protected static void addCellMenu(MenuBar menuBar) {
-        MenuBar.MenuItem m;
+//        MenuBar.MenuItem m;
 		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
         /****************************** THE CELL MENU ******************************/
@@ -141,8 +139,6 @@ public class CellMenu {
         cellInfoSubMenu.addSeparator();
         cellInfoSubMenu.addMenuItem("List Layer Co_verage on Cell", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
-        cellInfoSubMenu.addMenuItem("_Area Coverage Tool", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(null, GeometryHandler.ALGO_SWEEP, true);} });
         cellInfoSubMenu.addSeparator();
         cellInfoSubMenu.addMenuItem("Graphically, _Entire Library", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.graphCellsInLibrary(); }});
@@ -211,7 +207,7 @@ public class CellMenu {
     /**
      * This method implements the command to make the current cell a multi-page schematic.
      */
-    public static void makeMultiPageCell()
+    private static void makeMultiPageCell()
     {
     	Cell cell = WindowFrame.needCurCell();
     	if (cell == null) return;
@@ -240,44 +236,6 @@ public class CellMenu {
 
         Job job = new LayerCoverageJob(jobType, curCell, func, mode, highlighter, null, null);
         job.startJob();
-    }
-
-    /**
-     * Method to kick area coverage per layer in a cell
-     * @param cell
-     * @param mode
-     * @param startJob to determine if job has to run in a separate thread
-     * @return true if job runs without errors. Only valid if startJob is false (regression purpose)
-     */
-    public static boolean layerCoverageCommand(Cell cell, int mode, boolean startJob)
-    {
-        Cell curCell = cell;
-
-        if (curCell == null ) curCell = WindowFrame.needCurCell();
-        if (curCell == null) return false;
-	    EditWindow wnd = EditWindow.needCurrent();
-	    Highlighter highlighter = null;
-	    if ((wnd != null) && (wnd.getCell() == curCell))
-		    highlighter = wnd.getHighlighter();
-
-        double width = LayerCoverage.getWidth(curCell.getTechnology());
-        double height = LayerCoverage.getHeight(curCell.getTechnology());
-        double deltaX = LayerCoverage.getDeltaX(curCell.getTechnology());
-        double deltaY = LayerCoverage.getDeltaY(curCell.getTechnology());
-
-        // Reset values to cell bounding box if area is bigger than the actual cell
-        Rectangle2D bbox = curCell.getBounds();
-        if (width > bbox.getWidth()) width = bbox.getWidth();
-        if (height > bbox.getHeight()) height = bbox.getHeight();
-        LayerCoverage.AreaCoverage job = new LayerCoverage.AreaCoverage(curCell, highlighter, mode, width, height,
-                deltaX, deltaY);
-
-        // No regression
-        if (startJob)
-            job.startJob();
-        else
-            job.doIt();
-        return (job.isOK());
     }
 
     /**
@@ -375,7 +333,7 @@ public class CellMenu {
     /**
      * This method implements the command to create a new page in a multi-page schematic.
      */
-    public static void createNewMultiPage()
+    private static void createNewMultiPage()
     {
     	EditWindow wnd = EditWindow.needCurrent();
     	if (wnd == null) return;
@@ -394,7 +352,7 @@ public class CellMenu {
     /**
      * This method implements the command to delete the current page in a multi-page schematic.
      */
-    public static void deleteThisMultiPage()
+    private static void deleteThisMultiPage()
     {
     	EditWindow wnd = EditWindow.needCurrent();
     	if (wnd == null) return;
@@ -414,7 +372,7 @@ public class CellMenu {
     /**
      * This method implements the command to edit the next page in a multi-page schematic.
      */
-    public static void editNextMultiPage()
+    private static void editNextMultiPage()
     {
     	EditWindow wnd = EditWindow.needCurrent();
     	if (wnd == null) return;
@@ -433,7 +391,7 @@ public class CellMenu {
     /**
      * This method implements the command to do cross-library copies.
      */
-    public static void crossLibraryCopyCommand()
+    private static void crossLibraryCopyCommand()
     {
 		CrossLibCopy dialog = new CrossLibCopy(TopLevel.getCurrentJFrame(), true);
         dialog.setVisible(true);
@@ -442,7 +400,7 @@ public class CellMenu {
     /**
      * This command pushes down the hierarchy
      */
-    public static void downHierCommand() {
+    private static void downHierCommand() {
         EditWindow curEdit = EditWindow.needCurrent();
         if (curEdit == null) return;
         curEdit.downHierarchy(false);
@@ -451,7 +409,7 @@ public class CellMenu {
     /**
      * This command pushes down the hierarchy "in place".
      */
-    public static void downHierInPlaceCommand()
+    private static void downHierInPlaceCommand()
     {
         EditWindow curEdit = EditWindow.needCurrent();
         if (curEdit == null) return;
@@ -461,7 +419,7 @@ public class CellMenu {
     /**
      * This command goes up the hierarchy
      */
-    public static void upHierCommand() {
+    private static void upHierCommand() {
         EditWindow curEdit = EditWindow.needCurrent();
 		if (curEdit == null) return;
         curEdit.upHierarchy();
@@ -470,7 +428,7 @@ public class CellMenu {
     /**
      * This method implements the command to make a new version of the current Cell.
      */
-    public static void newCellVersionCommand()
+    private static void newCellVersionCommand()
     {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
@@ -480,7 +438,7 @@ public class CellMenu {
     /**
      * This method implements the command to make a copy of the current Cell.
      */
-    public static void duplicateCellCommand()
+    private static void duplicateCellCommand()
     {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
@@ -494,7 +452,7 @@ public class CellMenu {
     /**
      * This method implements the command to delete old, unused versions of cells.
      */
-    public static void deleteOldCellVersionsCommand()
+    private static void deleteOldCellVersionsCommand()
     {
         CircuitChanges.deleteUnusedOldVersions();
     }

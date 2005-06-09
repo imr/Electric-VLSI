@@ -65,6 +65,7 @@ import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.extract.Connectivity;
 import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.extract.ParasiticTool;
+import com.sun.electric.tool.extract.LayerCoverage;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.generator.cmosPLA.PLA;
@@ -98,11 +99,11 @@ import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.FastHenryArc;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.help.ManualViewer;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Toolkit;
+import java.awt.geom.Rectangle2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -140,6 +141,8 @@ public class ToolMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false, GeometryHandler.ALGO_QTREE); }});
 		drcSubMenu.addMenuItem("Check _Selection Area Hierarchically", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true, GeometryHandler.ALGO_QTREE); }});
+        drcSubMenu.addMenuItem("Check _Area Coverage", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(null, GeometryHandler.ALGO_SWEEP, true);} });
 
 		//------------------- Simulation (Built-in)
 
@@ -543,6 +546,44 @@ public class ToolMenu {
 
         BackAnnotateJob job = new BackAnnotateJob(cell);
         job.startJob();
+    }
+
+    /**
+     * Method to kick area coverage per layer in a cell
+     * @param cell
+     * @param mode
+     * @param startJob to determine if job has to run in a separate thread
+     * @return true if job runs without errors. Only valid if startJob is false (regression purpose)
+     */
+    private static boolean layerCoverageCommand(Cell cell, int mode, boolean startJob)
+    {
+        Cell curCell = cell;
+
+        if (curCell == null ) curCell = WindowFrame.needCurCell();
+        if (curCell == null) return false;
+	    EditWindow wnd = EditWindow.needCurrent();
+	    Highlighter highlighter = null;
+	    if ((wnd != null) && (wnd.getCell() == curCell))
+		    highlighter = wnd.getHighlighter();
+
+        double width = LayerCoverage.getWidth(curCell.getTechnology());
+        double height = LayerCoverage.getHeight(curCell.getTechnology());
+        double deltaX = LayerCoverage.getDeltaX(curCell.getTechnology());
+        double deltaY = LayerCoverage.getDeltaY(curCell.getTechnology());
+
+        // Reset values to cell bounding box if area is bigger than the actual cell
+        Rectangle2D bbox = curCell.getBounds();
+        if (width > bbox.getWidth()) width = bbox.getWidth();
+        if (height > bbox.getHeight()) height = bbox.getHeight();
+        LayerCoverage.AreaCoverage job = new LayerCoverage.AreaCoverage(curCell, highlighter, mode, width, height,
+                deltaX, deltaY);
+
+        // No regression
+        if (startJob)
+            job.startJob();
+        else
+            job.doIt();
+        return (job.isOK());
     }
 
     public static class BackAnnotateJob extends Job {
