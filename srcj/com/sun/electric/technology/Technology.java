@@ -3418,7 +3418,6 @@ public class Technology implements Comparable
 
         if (ap.getDefaultWidth() != width + ap.getWidthOffset())
             hasChanged = true;
-		//hasChanged = (!ap.setDefaultWidth(width + ap.getWidthOffset())) ? hasChanged : true;
 
 		// find the arc's pin and set its size and port offset
 		PrimitiveNode np = ap.findPinProto();
@@ -3429,7 +3428,6 @@ public class Technology implements Comparable
 
         if (np.getDefHeight() != newHeight || np.getDefWidth() != newWidth)
             hasChanged = true;
-		//hasChanged = (!np.setDefSize(newWidth, newHeight)) ? hasChanged : true;
 
 		PrimitivePort pp = (PrimitivePort)np.getPorts().next();
 		EdgeH left = pp.getLeft();
@@ -3441,15 +3439,9 @@ public class Technology implements Comparable
         if (left.getAdder() != indent || right.getAdder() != -indent ||
             top.getAdder() != -indent || bottom.getAdder() != indent)
             hasChanged = true;
-//		hasChanged = (!left.setAdder(indent)) ? hasChanged : true;
-//		hasChanged = (!right.setAdder(-indent)) ? hasChanged : true;
-//		hasChanged = (!top.setAdder(-indent)) ? hasChanged : true;
-//		hasChanged = (!bottom.setAdder(indent)) ? hasChanged : true;
 		if (hasChanged)
 		{
 			// describe the error
-//			String errorMessage = "Layer Minimum Size correction of " + indent + " done in '"
-//					+ layername + ":" + getTechDesc() + "' by rule " + rulename;
             String errorMessage = "User preference of " + width + " overwrites original layer minimum size in layer '"
 					+ layername + "', primitive '" + np.getName() + ":" + getTechShortName() + "' by rule " + rulename;
 			if (Main.LOCALDEBUGFLAG) System.out.println(errorMessage);

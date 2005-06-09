@@ -26,7 +26,6 @@ package com.sun.electric.database.hierarchy;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.CellName;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
@@ -39,7 +38,6 @@ import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -213,8 +211,8 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 						if (subCell.getLibrary() == this)
 						{
 							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-								"Cannot " + reason + " library " + getName() + " because one of its cells (" +
-								subCell.describe() + ") is being used (by " + cell.libDescribe() + ")",
+								"Reopening " + toString() + " failed. Cannot " + reason + " " + toString() + " because one of its cells (" +
+								subCell.describe() + "') is being used (by " + cell.libDescribe() + ")",
 								"Close library", JOptionPane.ERROR_MESSAGE);
 							 referenced = true;
 							 break;
@@ -861,7 +859,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 */
 	public String toString()
 	{
-		return "Library " + libName;
+		return "Library '" + libName + "'";
 	}
 
 	// ----------------- cells --------------------
