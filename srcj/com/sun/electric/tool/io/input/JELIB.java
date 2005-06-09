@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -52,6 +53,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 import com.sun.electric.tool.user.ErrorLogger;
+
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -833,7 +835,13 @@ public class JELIB extends LibraryFiles
 
 			// parse state information in stateInfo field
             ImmutableTextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
-            int userBits = NodeInst.parseJelibUserBits(stateInfo);
+            int userBits = 0;
+            try {
+                userBits = ImmutableNodeInst.parseJelibUserBits(stateInfo);
+            } catch (NumberFormatException e) {
+				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+					" (cell " + cell.describe() + ") bad node bits" + stateInfo, cell, -1);
+            }
             ImmutableTextDescriptor protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line); 
 
 			// create the node

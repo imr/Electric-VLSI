@@ -189,8 +189,12 @@ public class Network
 		for (Iterator it = getParent().getPorts(); it.hasNext();)
 		{
 			Export e = (Export) it.next();
-			if (netlist.getNetwork(e, 0) == this)
-				exports.add(e);
+            int busWidth = netlist.getBusWidth(e);
+            for (int i = 0; i < busWidth; i++)
+            {
+                if (netlist.getNetwork(e, i) == this)
+                    exports.add(e);
+            }
 		}
 		return exports.iterator();
 	}

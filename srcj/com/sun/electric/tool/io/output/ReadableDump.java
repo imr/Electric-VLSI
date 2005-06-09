@@ -360,8 +360,7 @@ public class ReadableDump extends Output
 				printWriter.println("rotation: " + angle + " transpose: " + transpose);
 				if (np instanceof Cell)
 					writeTextDescriptor(-1, ni.getTextDescriptor(NodeInst.NODE_PROTO_TD));
-				printWriter.println("userbits: " + (ni.lowLevelGetUserbits() & ELIBConstants.NODE_BITS));
-//				printWriter.println("userbits: " + ni.lowLevelGetUserbits());
+				printWriter.println("userbits: " + ni.lowLevelGetUserbits());
 				writeVars(ni, cell);
 
 				for(Iterator pIt = np.getPorts(); pIt.hasNext(); )

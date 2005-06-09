@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -75,14 +76,13 @@ public class ReadableDump extends LibraryFiles
 		private ArcInst []   arcList;
 		private ArcProto []  arcProto;
 		private String []    arcInstName;
+        private ImmutableTextDescriptor [] arcNameDescriptor;
 		private int []       arcWidth;
 		private int []       arcHeadNode;
-//		private NodeInst []  arcHeadNode;
 		private String []    arcHeadPort;
 		private int []       arcHeadX;
 		private int []       arcHeadY;
 		private int []       arcTailNode;
-//		private NodeInst []  arcTailNode;
 		private String []    arcTailPort;
 		private int []       arcTailX;
 		private int []       arcTailY;
@@ -94,7 +94,6 @@ public class ReadableDump extends LibraryFiles
 		private Export []   exportList;
 		private String []   exportName;
 		private int []      exportSubNode;
-//		private NodeInst [] exportSubNode;
 		private String []   exportSubPort;
         private DiskVariable[][] exportVars;
 	};
@@ -588,31 +587,14 @@ public class ReadableDump extends LibraryFiles
 		// create the arcs
 		for(int j=0; j<numArcs; j++)
 		{
-			ArcInst ai = ail.arcList[j];
 			ArcProto ap = ail.arcProto[j];
 			String name = ail.arcInstName[j];
-            DiskVariable[] vars = ail.arcVars[j];
-            if (vars != null) {
-                for (int i = 0; i < vars.length; i++) {
-                    DiskVariable v = vars[i];
-                    if (v == null || !v.name.equals(ArcInst.ARC_NAME_TD)) continue;
-                    if (v.value instanceof String) {
-                        name = convertGeomName((String)v.value, v.flags);
-                        fillDescriptor(v);
-                        ai.setTextDescriptor(ArcInst.ARC_NAME_TD, mtd);
-                    }
-                    vars[i] = null;
-                }
-            }
 			double width = ail.arcWidth[j] / lambda;
             NodeInst arcHeadNode = nodeInstList[cellIndex].theNode[ail.arcHeadNode[j]];
             NodeInst arcTailNode = nodeInstList[cellIndex].theNode[ail.arcTailNode[j]];
 			if (!arcHeadNode.isLinked() || !arcTailNode.isLinked()) continue;
 			PortInst headPortInst = findProperPortInst(arcHeadNode, ail.arcHeadPort[j]);
 			PortInst tailPortInst = findProperPortInst(arcTailNode, ail.arcTailPort[j]);
-//			if (!ail.arcHeadNode[j].isLinked() || !ail.arcTailNode[j].isLinked()) continue;
-//			PortInst headPortInst = findProperPortInst(ail.arcHeadNode[j], ail.arcHeadPort[j]);
-//			PortInst tailPortInst = findProperPortInst(ail.arcTailNode[j], ail.arcTailPort[j]);
 			if (ap == null || headPortInst == null || tailPortInst == null) continue;
 			double headX = (ail.arcHeadX[j]-xoff) / lambda;
 			double headY = (ail.arcHeadY[j]-yoff) / lambda;
@@ -622,17 +604,19 @@ public class ReadableDump extends LibraryFiles
 			EPoint tailPt = new EPoint(tailX, tailY);
 			int userBits = ail.arcUserBits[j];
 
-//			// make checks
-//			Poly poly = headPortInst.getPoly();
-//			if (!poly.isInside(headPt))
-//				System.out.println("Cell " + cell.describe() + ", arc " + ap.describe() + " head at (" +
-//					ail.arcHeadX[j] + "," + ail.arcHeadY[j] + ") not in port");
-//			poly = tailPortInst.getPoly();
-//			if (!poly.isInside(tailPt))
-//				System.out.println("Cell " + cell.describe() + ", arc " + ap.describe() + " tail at (" +
-//					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
+			// make checks
+			Poly poly = headPortInst.getPoly();
+			if (!poly.isInside(headPt))
+				System.out.println("Cell " + cell.describe() + ", arc " + ap.describe() + " head at (" +
+					ail.arcHeadX[j] + "," + ail.arcHeadY[j] + ") not in port");
+			poly = tailPortInst.getPoly();
+			if (!poly.isInside(tailPt))
+				System.out.println("Cell " + cell.describe() + ", arc " + ap.describe() + " tail at (" +
+					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
-			ELIBConstants.applyELIBArcBits(ai, userBits);
+            ArcInst ai = ArcInst.lowLevelAllocate();
+			ail.arcList[j] = ai;
+            ELIBConstants.applyELIBArcBits(ai, userBits);
 			if (ai.lowLevelPopulate(ap, width, headPortInst, headPt, tailPortInst, tailPt, name, -1))
 			{
 				String msg = "ERROR: Cell "+cell.describe() + ": arc " + name + " could not be created";
@@ -640,8 +624,11 @@ public class ReadableDump extends LibraryFiles
 				Input.errorLogger.logError(msg, cell, 1);
 				continue;
 			}
+            if (ail.arcNameDescriptor[j] != null)
+                ai.setTextDescriptor(ArcInst.ARC_NAME_TD, ail.arcNameDescriptor[j]);
 			int defAngle = ai.lowLevelGetArcAngle() * 10;
 			ai.lowLevelLink(defAngle);
+            DiskVariable[] vars = ail.arcVars[j];
             realizeVariables(ai, vars);
  		}
 	}
@@ -1084,21 +1071,10 @@ public class ReadableDump extends LibraryFiles
 			finishCellInitialization();
 
 			// schedule the cell to have two nodes (cell center and big "X")
-			LibraryFiles.NodeInstList nil = new LibraryFiles.NodeInstList();
+			LibraryFiles.NodeInstList nil = new LibraryFiles.NodeInstList(2, false);
 			nodeInstList[curCellNumber] = nil;
-			nil.theNode = new NodeInst[2];
-			nil.protoType = new NodeProto[2];
-			nil.name = new String[2];
-			nil.lowX = new int[2];
-			nil.highX = new int[2];
-			nil.lowY = new int[2];
-			nil.highY = new int[2];
-			nil.rotation = new short[2];
-			nil.transpose = new int[2];
-            nil.protoTextDescriptor = new ImmutableTextDescriptor[2];
 
 			// create a cell-center node
-//			nil.theNode[0] = NodeInst.lowLevelAllocate();
 			nil.protoType[0] = Generic.tech.cellCenterNode;
 			nil.name[0] = null;
 			nil.lowX[0] = 0;
@@ -1109,7 +1085,6 @@ public class ReadableDump extends LibraryFiles
 			nil.transpose[0] = 0;
 
 			// create an artwork "Crossed box" to define the cell size
-//			nil.theNode[1] = NodeInst.lowLevelAllocate();
 			nil.protoType[1] = Artwork.tech.crossedBoxNode;
 			nil.name[1] = null;
 			nil.lowX[1] = curCellLowX;
@@ -1151,24 +1126,7 @@ public class ReadableDump extends LibraryFiles
 		// handle the NodeInst count in the cell
 		int nodeInstCount = Integer.parseInt(keyWord);
 		if (nodeInstCount == 0) return;
-		LibraryFiles.NodeInstList nil = new LibraryFiles.NodeInstList();
-		nodeInstList[curCellNumber] = nil;
-		nil.theNode = new NodeInst[nodeInstCount];
-		nil.protoType = new NodeProto[nodeInstCount];
-		nil.name = new String[nodeInstCount];
-		nil.lowX = new int[nodeInstCount];
-		nil.highX = new int[nodeInstCount];
-		nil.lowY = new int[nodeInstCount];
-		nil.highY = new int[nodeInstCount];
-		nil.rotation = new short[nodeInstCount];
-		nil.transpose = new int[nodeInstCount];
-        nil.protoTextDescriptor = new ImmutableTextDescriptor[nodeInstCount];
-        nil.userBits = new int[nodeInstCount];
-        nil.vars = new DiskVariable[nodeInstCount][];
-//		for(int i=0; i<nodeInstCount; i++)
-//		{
-//			nil.theNode[i] = NodeInst.lowLevelAllocate();
-//		}
+		nodeInstList[curCellNumber] = new LibraryFiles.NodeInstList(nodeInstCount, false);
 	}
 
 	/**
@@ -1185,21 +1143,15 @@ public class ReadableDump extends LibraryFiles
 		ail.arcInstName = new String[arcInstCount];
 		ail.arcWidth = new int[arcInstCount];
 		ail.arcHeadNode = new int[arcInstCount];
-//		ail.arcHeadNode = new NodeInst[arcInstCount];
 		ail.arcHeadPort = new String[arcInstCount];
 		ail.arcHeadX = new int[arcInstCount];
 		ail.arcHeadY = new int[arcInstCount];
 		ail.arcTailNode = new int[arcInstCount];
-//		ail.arcTailNode = new NodeInst[arcInstCount];
 		ail.arcTailPort = new String[arcInstCount];
 		ail.arcTailX = new int[arcInstCount];
 		ail.arcTailY = new int[arcInstCount];
 		ail.arcUserBits = new int[arcInstCount];
         ail.arcVars = new DiskVariable[arcInstCount][];
-		for(int i=0; i<arcInstCount; i++)
-		{
-			ail.arcList[i] = ArcInst.lowLevelAllocate();
-		}
 	}
 
 	/**
@@ -1215,7 +1167,6 @@ public class ReadableDump extends LibraryFiles
 		el.exportList = new Export[exportCount];
 		el.exportName = new String[exportCount];
 		el.exportSubNode = new int[exportCount];
-//		el.exportSubNode = new NodeInst[exportCount];
 		el.exportSubPort = new String[exportCount];
         el.exportVars = new DiskVariable[exportCount][];
 		for(int i=0; i<exportCount; i++)
@@ -1615,7 +1566,7 @@ public class ReadableDump extends LibraryFiles
         {
             case INVNODEINST:			// keyword applies to nodeinst
                 nodeInstList[curCellNumber].vars[curNodeInstIndex] = vars;
-                return;
+                break;
             case INVPORTPROTO:			// keyword applies to portproto
                 exportList[curCellNumber].exportVars[curExportIndex] = vars;
                 break;
@@ -1641,6 +1592,26 @@ public class ReadableDump extends LibraryFiles
     			case INVNODEPROTO:			// keyword applies to nodeproto
                     v.makeVariable(curCell, this);
             		break;
+                case INVNODEINST:			// keyword applies to nodeinst
+                    if (v.name.equals(NodeInst.NODE_NAME_TD)) {
+                        if (v.value instanceof String) {
+                            nodeInstList[curCellNumber].name[curNodeInstIndex] = convertGeomName((String)v.value, v.flags);
+                            nodeInstList[curCellNumber].nameTextDescriptor[curNodeInstIndex] = makeDescriptor(v.td0, v.td1);
+                        }
+                        vars[i] = null;
+                    }
+                    break;
+                case INVPORTPROTO:			// keyword applies to portproto
+                    break;
+                case INVARCINST:			// keyword applies to arcinst
+                    if (v.name.equals(ArcInst.ARC_NAME_TD)) {
+                        if (v.value instanceof String) {
+                            arcInstList[curCellNumber].arcInstName[curArcInstIndex] = convertGeomName((String)v.value, v.flags);
+                            arcInstList[curCellNumber].arcNameDescriptor[curArcInstIndex] = makeDescriptor(v.td0, v.td1);
+                        }
+                        vars[i] = null;
+                    }
+                    break;
             }
         }
 	}

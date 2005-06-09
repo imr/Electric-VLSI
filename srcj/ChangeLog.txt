@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+BUG: (06/09/05, DN) Network.getExports() returns no Exports for a Network (Bug #351)
+FIX: Add loop for busses.
+
 IMP: (06/07/05, SMR) Added controls to "Color preferences" to control the
      waveform window colors.
 

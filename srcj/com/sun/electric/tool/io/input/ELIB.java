@@ -136,6 +136,7 @@ public class ELIB extends LibraryFiles
 	/** list of all ArcInsts in the library */								private ArcInst [] arcList;
 	/** list of the prototype of the ArcInsts in the library */				private ArcProto [] arcTypeList;
 	/** list of the Names of the ArcInsts in the library */					private String [] arcNameList;
+	/** list of the name descriptors of the ArcInsts in the library */		private ImmutableTextDescriptor [] arcNameDescriptorList;
 	/** list of the width of the ArcInsts in the library */					private int [] arcWidthList;
 	/** list of the head X of the ArcInsts in the library */				private int [] arcHeadXPosList;
 	/** list of the head Y of the ArcInsts in the library */				private int [] arcHeadYPosList;
@@ -351,28 +352,14 @@ public class ELIB extends LibraryFiles
 		xLibRefSatisfied = new boolean[nodeProtoCount];
 
 		// allocate pointers for the NodeInsts
-		nodeInstList = new LibraryFiles.NodeInstList();
-		nodeInstList.theNode = new NodeInst[nodeCount];
-		nodeInstList.protoType = new NodeProto[nodeCount];
-		nodeInstList.name = new String[nodeCount];
-		nodeInstList.lowX = new int[nodeCount];
-		nodeInstList.highX = new int[nodeCount];
-		nodeInstList.lowY = new int[nodeCount];
-		nodeInstList.highY = new int[nodeCount];
-        if (magic <= ELIBConstants.MAGIC13) {
-            nodeInstList.anchorX = new int[nodeCount];
-            nodeInstList.anchorY = new int[nodeCount];
-        }
-		nodeInstList.rotation = new short[nodeCount];
-		nodeInstList.transpose = new int[nodeCount];
-		nodeInstList.protoTextDescriptor = new ImmutableTextDescriptor[nodeCount];
-		nodeInstList.userBits = new int[nodeCount];
-        nodeInstList.vars = new DiskVariable[nodeCount][];
+        boolean hasAnchor = magic <= ELIBConstants.MAGIC13;
+		nodeInstList = new LibraryFiles.NodeInstList(nodeCount, hasAnchor);
 
 		// allocate pointers for the ArcInsts
 		arcList = new ArcInst[arcCount];
 		arcTypeList = new ArcProto[arcCount];
 		arcNameList = new String[arcCount];
+        arcNameDescriptorList = new ImmutableTextDescriptor[arcCount];
 		arcWidthList = new int[arcCount];
 		arcHeadXPosList = new int[arcCount];
 		arcHeadYPosList = new int[arcCount];
@@ -479,7 +466,7 @@ public class ELIB extends LibraryFiles
 		}
 
 		// allocate the nodes, arcs, and exports in each cell
-		int nodeinstpos = 0, arcinstpos = 0, portprotopos = 0;
+		int portprotopos = 0;
 		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
 		{
 			Cell cell = nodeProtoList[cellIndex];
@@ -492,15 +479,6 @@ public class ELIB extends LibraryFiles
 				continue;
 			}
 
-			// allocate node instances in this cell
-//			for(int i=0; i<nodeCounts[cellIndex]; i++)
-//			{
-//				int thisone = i + nodeinstpos;
-//				nodeInstList.theNode[thisone] = NodeInst.lowLevelAllocate();
-//				if (nodeInstList.theNode[thisone] == null) return true;
-//			}
-			nodeinstpos += nodeCounts[cellIndex];
-
 			// allocate port prototypes in this cell
 			for(int i=0; i<portCounts[cellIndex]; i++)
 			{
@@ -509,15 +487,6 @@ public class ELIB extends LibraryFiles
 				if (portProtoList[thisone] == null) return true;
 			}
 			portprotopos += portCounts[cellIndex];
-
-			// allocate arc instances in this cell
-			for(int i=0; i<arcCounts[cellIndex]; i++)
-			{
-				int thisone = i + arcinstpos;
-				arcList[thisone] = ArcInst.lowLevelAllocate();
-				if (arcList[thisone] == null) return true;
-			}
-			arcinstpos += arcCounts[cellIndex];
 		}
 
 		// setup pointers for technologies and primitives
@@ -1359,10 +1328,6 @@ public class ELIB extends LibraryFiles
 		int endArc = firstArcIndex[cellIndex+1];
 		for(int i=startArc; i<endArc; i++)
 		{
-			ArcInst ai = arcList[i];
-			if (scaledCellName != null)
-				ai = ArcInst.lowLevelAllocate();
-
 			ArcProto ap = arcTypeList[i];
 			String name = arcNameList[i];
 			double width = arcWidthList[i] / lambda;
@@ -1431,6 +1396,8 @@ public class ELIB extends LibraryFiles
 			}*/
             //PortInst headPortInst = headNode.findPortInst(((PortProto)headPort).getName());
             //PortInst tailPortInst = tailNode.findPortInst(((PortProto)tailPort).getName());
+            ArcInst ai = ArcInst.lowLevelAllocate();
+            arcList[i] = ai;
             PortInst headPortInst = getArcEnd(ai, ap, headNode, headname, headX, headY, cell);
             PortInst tailPortInst = getArcEnd(ai, ap, tailNode, tailname, tailX, tailY, cell);
 			if (headPortInst == null || tailPortInst == null)
@@ -1447,7 +1414,9 @@ public class ELIB extends LibraryFiles
 				continue;
 			}
 			ELIBConstants.applyELIBArcBits(ai, arcUserBits[i]);
-			int defAngle = ai.lowLevelGetArcAngle() * 10;
+            if (arcNameDescriptorList[i] != null)
+                ai.setTextDescriptor(ArcInst.ARC_NAME_TD, arcNameDescriptorList[i]);
+            int defAngle = ai.lowLevelGetArcAngle() * 10;
             realizeVariables(ai, arcVariables[i]);
 			ai.lowLevelLink(defAngle);
 		}
@@ -2130,6 +2099,17 @@ public class ELIB extends LibraryFiles
 
 		// read variable information
         DiskVariable[] vars = readVariables();
+        for (int j = 0; j < vars.length; j++) {
+            DiskVariable v = vars[j];
+            if (v == null) continue;
+            if (v.name.equals(NodeInst.NODE_NAME_TD)) {
+                if (v.value instanceof String) {
+                    nodeInstList.name[nodeIndex] = convertGeomName((String)v.value, v.flags);
+                    nodeInstList.nameTextDescriptor[nodeIndex] = makeDescriptor(v.td0, v.td1);
+                }
+                vars[j] = null;
+            }
+        }
         nodeInstList.vars[nodeIndex] = vars;
 
 		// node read successfully
@@ -2142,8 +2122,6 @@ public class ELIB extends LibraryFiles
 	private boolean readArcInst(int arcIndex)
 		throws IOException
 	{
-		ArcInst ai = arcList[arcIndex];
-
 		// read the arcproto pointer
 		int protoIndex = readBigInteger();
 		ArcProto ap = convertArcProto(protoIndex);
@@ -2206,17 +2184,16 @@ public class ELIB extends LibraryFiles
 
 		// read variable information
         DiskVariable[] vars = readVariables();
-        arcVariables[arcIndex] = vars;
         for (int i = 0; i < vars.length; i++) {
             DiskVariable v = vars[i];
             if (v == null || !v.name.equals(ArcInst.ARC_NAME_TD)) continue;
             if (v.value instanceof String) {
                 arcNameList[arcIndex] = convertGeomName((String)v.value, v.flags);
-                fillDescriptor(v);
-                ai.setTextDescriptor(ArcInst.ARC_NAME_TD, mtd);
+                arcNameDescriptorList[arcIndex] = makeDescriptor(v.td0, v.td1);
             }
             vars[i] = null;
         }
+        arcVariables[arcIndex] = vars;
 
 		// arc read successfully
 		return false;

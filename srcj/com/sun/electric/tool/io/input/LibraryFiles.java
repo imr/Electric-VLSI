@@ -24,9 +24,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
@@ -59,6 +57,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -90,6 +89,7 @@ public abstract class LibraryFiles extends Input
 		NodeInst []  theNode;
 		NodeProto [] protoType;
 		String []    name;
+        ImmutableTextDescriptor [] nameTextDescriptor;
 		int []       lowX;
 		int []       highX;
 		int []       lowY;
@@ -101,6 +101,27 @@ public abstract class LibraryFiles extends Input
         ImmutableTextDescriptor [] protoTextDescriptor;
 		int []       userBits;
         DiskVariable[][] vars;
+        
+        NodeInstList(int nodeCount, boolean hasAnchor)
+        {
+            theNode = new NodeInst[nodeCount];
+            protoType = new NodeProto[nodeCount];
+            name = new String[nodeCount];
+            nameTextDescriptor = new ImmutableTextDescriptor[nodeCount];
+            lowX = new int[nodeCount];
+            highX = new int[nodeCount];
+            lowY = new int[nodeCount];
+            highY = new int[nodeCount];
+            if (hasAnchor) {
+                anchorX = new int[nodeCount];
+                anchorY = new int[nodeCount];
+            }
+            rotation = new short[nodeCount];
+            transpose = new int[nodeCount];
+            protoTextDescriptor = new ImmutableTextDescriptor[nodeCount];
+            userBits = new int[nodeCount];
+            vars = new DiskVariable[nodeCount][];
+        }
 	};
 
     static class DiskVariable {
@@ -126,7 +147,7 @@ public abstract class LibraryFiles extends Input
                 libFiles.setFontNames((String[])value);
                 return;
             }
-            libFiles.fillDescriptor(this);
+            libFiles.mtd.setCBits(td0, libFiles.fixTextDescriptorFont(td1), flags);
 
 			// see if the variable is deprecated
 			Variable.Key varKey = ElectricObject.newKey(name);
@@ -646,6 +667,9 @@ public abstract class LibraryFiles extends Input
      * @param nodeIndex index in nik array
      * @param xoff x-offset of NodeInst in integer coordinates
      * @param yoff y-offset of NodeInst in integer coordinates
+     * @param lambda scale factor
+     * @param parent parent Cell
+     * @param proto actual node proto (may be different for instance of scaled Cells)
 	 */
     void realizeNode(NodeInstList nil, int nodeIndex, int xoff, int yoff, double lambda, Cell parent, NodeProto proto)
     {
@@ -714,21 +738,13 @@ public abstract class LibraryFiles extends Input
             }
 		}
         
-		String name = nil.name[nodeIndex];
-        ImmutableTextDescriptor nameTextDescriptor = null;
         DiskVariable[] vars = nil.vars[nodeIndex];
         if (vars != null) {
-            // Preprocess variables
+            // Preprocess TRACE variables
             for (int j = 0; j < vars.length; j++) {
                 DiskVariable v = vars[j];
                 if (v == null) continue;
-                if (v.name.equals(NodeInst.NODE_NAME_TD)) {
-                    if (v.value instanceof String) {
-                        name = convertGeomName((String)v.value, v.flags);
-                        nameTextDescriptor = makeDescriptor(v.td0, v.td1);
-                    }
-                    vars[j] = null;
-                } else if (v.name.equals(NodeInst.TRACE.getName()) &&
+                if (v.name.equals(NodeInst.TRACE.getName()) &&
                         proto instanceof PrimitiveNode && ((PrimitiveNode)proto).isHoldsOutline() &&
                         (v.value instanceof Integer[] || v.value instanceof Float[])) {
                     // convert outline information, if present
@@ -747,11 +763,12 @@ public abstract class LibraryFiles extends Input
             }
         }
         
-		NodeInst ni = NodeInst.newInstance(parent, proto, name, -1, nameTextDescriptor,
+		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], -1, nil.nameTextDescriptor[nodeIndex],
                 center, width, height, rotation,
                 nil.userBits[nodeIndex], nil.protoTextDescriptor[nodeIndex]);
-        realizeVariables(ni, nil.vars[nodeIndex]);
         nil.theNode[nodeIndex] = ni;
+        if (ni == null) return;
+        realizeVariables(ni, vars);
 
         // if this was a dummy cell, log instance as an error so the user can find easily
         if (proto instanceof Cell && ((Cell)proto).getVar(IO_DUMMY_OBJECT) != null) {
@@ -769,10 +786,6 @@ public abstract class LibraryFiles extends Input
         }
     }
     
-	void fillDescriptor(DiskVariable v) {
-        mtd.setCBits(v.td0, fixTextDescriptorFont(v.td1), v.flags);
-    }
-        
     ImmutableTextDescriptor makeDescriptor(int td0, int td1) {
         mtd.setCBits(td0, fixTextDescriptorFont(td1));
         return ImmutableTextDescriptor.newImmutableTextDescriptor(mtd);

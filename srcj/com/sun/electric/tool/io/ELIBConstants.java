@@ -132,17 +132,6 @@ public class ELIBConstants
 
 	public static final int ARC_BITS = FIXED | FIXANG | AANGLE | CANTSLIDE /* | FIXEDMOD*/ | HARDSELECTA;
 
-	/** if on, draw node expanded */						private static final int NEXPAND =                   04;
-	/** set if node not drawn due to wiping arcs */			private static final int WIPED =                    010;
-	/** set if node is to be drawn shortened */				private static final int NSHORT =                   020;
-	/** set if hard to select */							private static final int HARDSELECTN =          0100000;
-	/** set if node only visible inside cell */				private static final int NVISIBLEINSIDE =     040000000;
-	/** technology-specific bits for primitives */			private static final int NTECHBITS =          037400000;
-	/** right-shift of NTECHBITS */							private static final int NTECHBITSSH =               17;
-	/** set if node is locked (can't be changed) */			private static final int NILOCKED =          0100000000;
-
-	public static final int NODE_BITS = NEXPAND | WIPED | NSHORT | HARDSELECTN | NVISIBLEINSIDE | NTECHBITS | NILOCKED;
-
 	// bits found in the "userbits" field of an ArcInst:
 // 	/** set if head end of ArcInst is negated */								public static final int ISHEADNEGATED =       0200000;
 // 	/** set if tail end of ArcInst is negated */								public static final int ISNEGATED =          01000000;

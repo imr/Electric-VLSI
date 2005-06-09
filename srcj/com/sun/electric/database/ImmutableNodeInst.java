@@ -38,6 +38,29 @@ import com.sun.electric.database.variable.ImmutableTextDescriptor;
  */
 public class ImmutableNodeInst
 {
+	// -------------------------- constants --------------------------------
+//	/** node is not in use */								public static final int DEADN =                     01;
+//	/** node has text that is far away */					public static final int NHASFARTEXT =               02;
+	/** if on, draw node expanded */						public static final int NEXPAND =                   04;
+	/** set if node not drawn due to wiping arcs */			public static final int WIPED =                    010;
+	/** set if node is to be drawn shortened */				public static final int NSHORT =                   020;
+	//  used by database:                                                                                      0140
+//	/** if on, this nodeinst is marked for death */			public static final int KILLN =                   0200;
+//	/** nodeinst re-drawing is scheduled */					public static final int REWANTN =                 0400;
+//	/** only local nodeinst re-drawing desired */			public static final int RELOCLN =                01000;
+//	/** transparent nodeinst re-draw is done */				public static final int RETDONN =                02000;
+//	/** opaque nodeinst re-draw is done */					public static final int REODONN =                04000;
+//	/** general flag used in spreading and highlighting */	public static final int NODEFLAGBIT =           010000;
+//	/** if on, nodeinst wants to be (un)expanded */			public static final int WANTEXP =               020000;
+//	/** temporary flag for nodeinst display */				public static final int TEMPFLG =               040000;
+	/** set if hard to select */							public static final int HARDSELECTN =          0100000;
+	/** set if node only visible inside cell */				public static final int NVISIBLEINSIDE =     040000000;
+	/** technology-specific bits for primitives */			public static final int NTECHBITS =          037400000;
+	/** right-shift of NTECHBITS */							public static final int NTECHBITSSH =               17;
+	/** set if node is locked (can't be changed) */			public static final int NILOCKED =          0100000000;
+    
+	public static final int NODE_BITS = NEXPAND | WIPED | NSHORT | HARDSELECTN | NVISIBLEINSIDE | NTECHBITS | NILOCKED;
+
 	/** Prototype cell id. */                                       public final int protoId;
 	/** name of this ImmutableNodeInst. */							public final Name name;
     /** duplicate index of this ImmutableNodeInst in the Cell */    public final int duplicate;
@@ -128,6 +151,7 @@ public class ImmutableNodeInst
         height = DBMath.round(height);
         if (width == -0.0) width = +0.0;
         if (height == -0.0) height = +0.0;
+        userBits &= NODE_BITS;
 		return new ImmutableNodeInst(protoId, name, duplicate, nameDescriptor, orient, anchor, width, height, userBits, protoDescriptor);
     }
 
@@ -221,6 +245,7 @@ public class ImmutableNodeInst
 	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by user bits.
 	 */
 	public ImmutableNodeInst withUserBits(int userBits) {
+        userBits &= NODE_BITS;
 		if (this.userBits == userBits) return this;
 		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, userBits, this.protoDescriptor);
@@ -252,6 +277,7 @@ public class ImmutableNodeInst
         assert height > 0 || height == 0 && 1/height > 0;
         assert DBMath.round(width) == width;
         assert DBMath.round(height) == height;
+        assert (userBits & ~NODE_BITS) == 0;
 	}
 
 	/**
@@ -263,4 +289,33 @@ public class ImmutableNodeInst
 		if (cells[protoId] == null)
 			throw new ArrayIndexOutOfBoundsException(protoId);
 	}
+
+	/**
+	 * Parses JELIB string with node user bits.
+     * @param jelibUserBits JELIB string.
+	 * @return node user bust.
+     * @throws NumberFormatException
+	 */
+    public static int parseJelibUserBits(String jelibUserBits) {
+        int userBits = 0;
+        // parse state information in nodeUserBits field 
+        for(int i=0; i<jelibUserBits.length(); i++) {
+            char chr = jelibUserBits.charAt(i);
+            switch (chr) {
+                case 'E': userBits |= NEXPAND; break;
+                case 'L': userBits |= NILOCKED; break;
+                case 'S': userBits |= NSHORT; break;
+                case 'V': userBits |= NVISIBLEINSIDE; break;
+                case 'W': userBits |= WIPED; break;
+                case 'A': userBits |= HARDSELECTN; break;
+                default:
+                    if (Character.isDigit(chr)) {
+                        jelibUserBits = jelibUserBits.substring(i);
+                        int techBits = Integer.parseInt(jelibUserBits);
+                        return userBits | (techBits << NTECHBITSSH) & NTECHBITS;
+                    }
+            }
+        }
+        return userBits;
+     }
 }
