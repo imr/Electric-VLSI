@@ -2877,7 +2877,7 @@ public class MoCMOS extends Technology
 	public void setState()
 	{
 		// set rules
-		DRCRules rules = getFactoryDesignRules();
+        getFactoryDesignRules();
 
 		// handle special transistors
 		if (isSpecialTransistors())
@@ -3939,7 +3939,7 @@ public class MoCMOS extends Technology
 	public static void setAlternateActivePolyRules(boolean on) { cacheAlternateActivePolyRules.setBoolean(on); }
 
 	/** set if no stacked vias allowed */			private static final int MOCMOSNOSTACKEDVIAS =   01;
-	/** set for stick-figure display */				private static final int MOCMOSSTICKFIGURE =     02;
+//	/** set for stick-figure display */				private static final int MOCMOSSTICKFIGURE =     02;
 	/** number of metal layers */					private static final int MOCMOSMETALS =         034;
 	/**   2-metal rules */							private static final int MOCMOS2METAL =           0;
 	/**   3-metal rules */							private static final int MOCMOS3METAL =          04;
@@ -3952,7 +3952,7 @@ public class MoCMOS extends Technology
 	/**   set if standard SCMOS rules in use */		private static final int MOCMOSSCMOSRULES =    0100;
 	/** set to use alternate active/poly rules */	private static final int MOCMOSALTAPRULES =    0200;
 	/** set to use second polysilicon layer */		private static final int MOCMOSTWOPOLY =       0400;
-	/** set to show special transistors */			private static final int MOCMOSSPECIALTRAN =  01000;
+//	/** set to show special transistors */			private static final int MOCMOSSPECIALTRAN =  01000;
 
 	/**
 	 * Method to convert any old-style state information to the new options.
