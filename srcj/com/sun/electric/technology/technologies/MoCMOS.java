@@ -479,14 +479,14 @@ public class MoCMOS extends Technology
 
 		new DRCTemplate("29.3", DRCTemplate.ALL, DRCTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-5-Metal-6-Con"),
 
-		new DRCTemplate("30.1", DRCTemplate.ALL, DRCTemplate.MINWID,   "Metal-6",         null,            4,  null),
+		new DRCTemplate("30.1", DRCTemplate.ALL, DRCTemplate.MINWID,   "Metal-6",         null,            5,  null),
 
-		new DRCTemplate("30.2", DRCTemplate.ALL, DRCTemplate.SPACING,  "Metal-6",        "Metal-6",        4,  null),
+		new DRCTemplate("30.2", DRCTemplate.ALL, DRCTemplate.SPACING,  "Metal-6",        "Metal-6",        5,  null),
 
 		new DRCTemplate("30.3", DRCTemplate.DE, DRCTemplate.VIASUR,   "Metal-6",         null,            2, "Metal-5-Metal-6-Con"),
 		new DRCTemplate("30.3", DRCTemplate.SU, DRCTemplate.VIASUR,   "Metal-6",         null,            1, "Metal-5-Metal-6-Con"),
 
-		new DRCTemplate("30.4", DRCTemplate.ALL, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-6",        "Metal-6",        8, false)
+		new DRCTemplate("30.4", DRCTemplate.ALL, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-6",        "Metal-6",        10, false)
 	};
 
 	// -------------------- private and protected methods ------------------------
