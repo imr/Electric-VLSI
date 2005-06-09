@@ -42,7 +42,6 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
@@ -1161,8 +1160,14 @@ public class Quick
 		for(Iterator it = cell.searchIterator(bounds); it.hasNext(); )
 		{
 			Geometric nGeom = (Geometric)it.next();
-			if (sameInstance && (nGeom == geom)) continue;
+            // I have to check if they are the same instance otherwise I check geometry against itself
+            if (nGeom == geom && (sameInstance || nGeom.getParent() == cell))
+            {
+                if (!sameInstance)
+                    System.out.println("DRC: this is a new case, bug 352");
 
+                continue;
+            }
 			if (nGeom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)nGeom;
