@@ -1,0 +1,74 @@
+<!-- HEADER 10-1: JELIB File Format -->
+
+This chapter describes Electric's native file format, which ends in "jelib".
+The earlier file format, which ends in "elib", remains undocumented and is no longer recommended.
+<P>
+JELIB files are text-readable files.
+Each line of a JELIB file starts with an identifying character that distinguishes the line.
+Blank lines, and those that start with the comment identifying character (#) are ignored.
+There is no limit to the length of a line of text.
+<P>
+After the identifying character at the start of a line, there are a set of fields.
+All of the fields are separated by the separator character (|) except for the first field,
+which begins immediately after the identifying character.
+No blank spaces are allowed on a line (that is, any blank spaces are treated as valid characters).
+Control characters (such as the identifying characters) must be upper case.
+In order to insert a '|' or '\n' or '\r' into a field, it must be enclosed in the quotation mark characters (").
+Backslash character can be used inside enclosed strings to denote special characters: 
+<P>
+<CENTER><TABLE BORDER=1>
+<TR><TH>Characters</TH><TH>Meaning</TH></TR>
+<TR><TD ALIGN=CENTER>\n</TD><TD>line feed character (\n)</TD></TR>
+<TR><TD ALIGN=CENTER>\r</TD><TD>carriage return character (\r)</TD></TR>
+<TR><TD ALIGN=CENTER>\"</TD><TD>quotation mark character (")</TD></TR>
+<TR><TD ALIGN=CENTER>\\</TD><TD>backslash character (\)</TD></TR>
+</TABLE></CENTER>
+<P>
+Each of the different types of lines in the file has a fixed set of fields that must appear.
+Some line types also allow additional fields at the end to add variables
+(attribute/value pairs, see <A HREF="chap10-04-01.html#chap10-04-01">Section 10-4-1</A>). 
+<P>
+The JELIB file has 3 parts: the header, cells, and trailer.
+<P>
+The header has these elements:
+<P>
+<CENTER><TABLE BORDER=1>
+<TR><TD>H</TD><TD>Header information; variable fields are allowed</TD></TR>
+<TR><TD>V</TD><TD>View information</TD></TR>
+<TR><TD>L</TD><TD>External library information</TD></TR>
+<TR><TD>R</TD><TD>External cell in the above external library</TD></TR>
+<TR><TD>F</TD><TD>External export in the above external cell</TD></TR>
+<TR><TD>T</TD><TD>Technology information; variable fields are allowed</TD></TR>
+<TR><TD>D</TD><TD>Primitive Node information in the above technology</TD></TR>
+<TR><TD>P</TD><TD>Primitive Port information in the above primitive node</TD></TR>
+<TR><TD>W</TD><TD>Primitive Arc information in the above technology</TD></TR>
+<TR><TD>O</TD><TD>Tool information</TD></TR>
+</TABLE></CENTER>
+<P>
+The cells have these elements:
+<P>
+<CENTER><TABLE BORDER=1>
+<TR><TD>C</TD><TD>Cell header; variable fields are allowed</TD></TR>
+<TR><TD>N</TD><TD>Primitive node information in the current cell; variable fields are allowed</TD></TR>
+<TR><TD>I</TD><TD>Cell instance information in the current cell; variable fields are allowed</TD></TR>
+<TR><TD>A</TD><TD>Arc information in the current cell; variable fields are allowed</TD></TR>
+<TR><TD>E</TD><TD>Export information in the current cell; variable fields are allowed</TD></TR>
+<TR><TD>X</TD><TD>Cell termination</TD></TR>
+</TABLE></CENTER>
+<P>
+The trailer has this element:
+<P>
+<CENTER><TABLE BORDER=1>
+<TR><TD>G</TD><TD>Group information</TD></TR>
+</TABLE></CENTER>
+<P>
+Everything in the file is completely ordered.
+There is an ordering to the external libraries, cells in those libraries, technologies, tools, cells,
+nodes/arcs/exports in a cell, etc.
+Even the extra variables on a line are ordered.
+The ordering is usually a name sort.
+By ordering everything in the file, the exact same file is generated every time,
+and source-code comparison operations will accurately find differences between two files.
+Note, however, that the JELIB reader does not require any sorting, and can handle the data in any order. 
+
+<!-- TRAILER -->

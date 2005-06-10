@@ -1,0 +1,34 @@
+<!-- HEADER 9-2-2: Hierarchical DRC -->
+
+<!-- COMMAND Tool/DRC/Check Hierarchically -->
+<!-- COMMAND Tool/DRC/Check Selection Area Hierarchically -->
+
+The hierarchical design-rule checker uses the same rules and techniques as the incremental checker,
+but it checks all levels of hierarchy below the current cell.
+To run it, use the <B>Check Hierarchically</B> command (in menu <B>Tool / DRC</B>).
+To check only a selected subset of the current cell, use <B>Check Selection Area Hierarchically</B>.
+<P>
+After analysis of the circuit,
+you can review the errors by typing "&gt;" and "&lt;" to step to the next and previous error that was found.
+You can also see a list of errors in the Cell Explorer (see <A HREF="chap04-08.html#chap04-08">Section 4-8</A>).
+<P>
+After a cell has passed Hierarchical DRC with no errors, it is tagged with the current date.
+In subsequent runs of the Hierarchical DRC, if the cell has not been modified since that date,
+it is not rechecked.
+(However, if you change the DRC rules or the technology options, all date information is cleared.)
+If you wish to force all cells to be rechecked,
+use the "Clear valid DRC dates" button in the
+"DRC" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "DRC" tab).
+To see which cells have passed Hierarchical DRC,
+use the <B>General Cell Lists...</B> command (in menu <B>Cell / Cell Info</B>)
+A "D" is shown in on the right for cells that are DRC current
+(see <A HREF="chap03-07-01.html#chap03-07-01">Section 3-7-1</A>).
+<P>
+Another way to speed up Hierarchical DRC is to check the "Just 1 error per cell" entry in the
+"DRC" preferences.
+This tells the system to stop checking a cell after the first error has been found.
+By using this option, you can more quickly determine <I>which</I> cells in the design are correct,
+without knowing exactly where the errors lie.
+Then, you can go to the cells with errors and do a more complete check.
+
+<!-- TRAILER -->

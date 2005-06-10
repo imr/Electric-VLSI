@@ -1,0 +1,147 @@
+<!-- HEADER 9-4-5: Spice Plotting -->
+
+<!-- COMMAND Tool/Simulation (Spice)/Plot Spice Listing... -->
+<!-- COMMAND Tool/Simulation (Spice)/Plot Spice for This Cell -->
+<!-- COMMAND Edit/Selection/Add to Waveform in New Panel -->
+<!-- COMMAND Edit/Selection/Add to Waveform in Current Panel -->
+
+Once Spice has been run,
+you can see a plot of the simulation by reading the Spice output file back into Electric.
+Since there are may formats of Spice output, you must first set the "Spice Engine" and the "Output format" fields of the
+"Spice" Preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Spice" tab).
+The "Output format" field is "Standard" for the default output of the Spice engine; "Raw" for rawfile dumps;
+and "Raw/Smart" for the rawfile dumps from SmartSpice.
+<P>
+<!-- NEED 4in -->
+When Electric knows what type of Spice output file to expect, use the <B>Plot Spice Listing...</B>
+command (in menu <B>Tool / Simulation (Spice)</B>) to read the file
+.
+If the file has the same name as the current cell, you can more simply use <B>Plot Spice for This Cell</B>,
+which does not need to prompt for a file name.
+The waveforms will appear in a window:
+<P>
+<CENTER><IMG SRC="fig09-04.png" ALT="Figure 9.4"></CENTER>
+<P>
+<H3>Wave Panels</H3>
+<P>
+The waveform window contains a list of <I>panels</I>, each with one or more signals and waveforms.
+In the waveform window, signal names are shown on the left, and their waveform on the right.
+Above the signal names in each panel are 5 names and controls:
+<UL>
+<LI><B>Panel number</B> each panel is numbered so that it can be hidden and retrieved.</LI>
+<LI><B>Close</B> (an "X") to remove the panel from the waveform window.</LI>
+<LI><B>Hide</B> to stop displaying the panel, but keep it available (it can be restored by selecting its name from the popup at the top
+of the waveform window).</LI>
+<LI><B>Remove Signal</B> remove the selected signal from the panel (the DELETE key works for this, too).</LI>
+<LI><B>Remove All Signals</B> remove all signals from the panel.</LI>
+</UL>
+You can select a signal by selecting either its name or the actual waveform.
+Note that when you click on a signal,
+the equivalent network in the associated schematic or layout window is also highlighted.
+<P>
+You can rearrange the order of the signals by dragging their names to their desired location.
+You can change the color of a signal by right-clicking on its name.
+<P>
+You can add a signal to the list by double-clicking on its name in the "SIGNALS" area
+(or by dragging that name to the waveform part on the right).
+The signal will be added to the highlighted panel (the one with the bold vertical axis).
+You can create a new panel, with no signals in it, by clicking on the button in the upper-left of the waveform window
+(looks like: <IMG SRC="fig09-29.png" ALT="Figure 9.29"> a panel-with-waveform icon being dropped down).
+<P>
+If the simulation had sweeps, those values are shown in the explorer tree in the "SWEEPS" area.
+You can right-click on a sweep and choose to include or exclude it from the display.
+You can also request that a sweep signal be highlighted.
+Right-clicking on the "SWEEPS" icon lets you include or exclude all of them.
+<P>
+If the layout or schematics cell that produced the Spice is being displayed in another window,
+and the currently selected network in that window is found in the Spice output,
+then that output can be added to the waveform window with
+the <B>Add to Waveform in New Panel</B> command (in menu <B>Edit / Selection</B>).
+The command <B>Add to Waveform in Current Panel</B> overlays the signal on top of others in the currently selected waveform panel.
+<P>
+The order of signals in the waveform window is saved in the original cell
+so that subsequent simulations will show the same signals.
+
+<BR>
+<H3>Time Control</H3>
+<P>
+Two vertical cursors appear in the window, called "main" and "extension"
+(the extension cursor is yellow).
+Their time values and their difference are shown at the top of the window.
+You can click over the cursors and drag them to different time locations.
+<P>
+The time axis of the simulation window can be controlled with the appropriate <B>Window</B> menu commands.
+Use <B>Zoom Out</B> and <B>Zoom In</B> to scale the time axis by a factor of two.
+Use <B>Focus on Highlighted</B> to display the range between the main and extension cursors.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig04-09.png" ALT="Figure 4.9"></CENTER></TD><TD>
+Besides controlling time with menu commands, you can also use the Pan and Zoom tools of the toolbar
+to change the view.
+</TD><TD><CENTER><IMG SRC="fig04-08.png" ALT="Figure 4.8"></CENTER></TD></TR></TABLE>
+<P>
+The pan tool lets you smoothly shift time when you click and drag.
+In the zoom tool, you zoom into an area by clicking and dragout out that area.
+To zoom out, hold the shift key and click in the center of the desired area.
+<P>
+<TABLE><TR><TD>
+You can control the horizontal and vertical range precisely by double-clicking in the vertical scale area.
+The dialog lets you type exact values into the ranges.
+</TD><TD><CENTER><IMG SRC="fig09-13.png" ALT="Figure 9.13"></CENTER></TD></TR></TABLE>
+<P>
+The different panels in the waveform window are locked in time: they all show the same range of time,
+as shown at the top of the waveform window.
+If you click on the "time lock" button at the top of the waveform window
+(looks like:&nbsp;&nbsp;<IMG SRC="fig09-18.png" ALT="Figure 9.18">&nbsp;&nbsp;a lock with the time on it)
+then time is unlocked, and each panel has its own time scale.
+Now individual panels can be show a different range of time than the rest.
+<P>
+A set of VCR buttons is available to animation the main time cursor.
+The Play rate can be controlled by the "F" and "S" buttons which make it go faster or slower.
+As the time cursor sweeps across the waveform window, the original circuit can be seen to change levels.
+<P>
+These window functions apply to the digital simulation windows:
+<UL>
+<LI><B>Window / Fill Window</B> make all data fit in window.</LI>
+<LI><B>Window / Zoom Out</B> show twice as much time.</LI>
+<LI><B>Window / Zoom In</B> show half as much time.</LI>
+<LI><B>Window / Special Zoom / Focus on Highlighted</B> show from main to extension cursors.</LI>
+<LI><B>Window / Pan Left</B> show earlier time.</LI>
+<LI><B>Window / Pan Right</B> show later time.</LI>
+<LI><B>"Pan" tool in tool bar</B> freehand drag of time.</LI>
+<LI><B>"Zoom" tool in tool bar</B> drag area to zoom in, hold shift to zoom out.</LI>
+<LI><B>"Measure" tool in tool bar</B> for measuring time.</LI>
+</UL>
+
+<BR>
+<H3>Other Controls</H3>
+<P>
+At the top of the waveform window, above the signal names, are many useful controls.
+Those relating to time have already been discussed.
+Here are the remaining buttons:
+<UL>
+<LI><B>"Refresh"</B>&nbsp;<IMG SRC="fig09-28.png" ALT="Figure 9.28">&nbsp;&nbsp;
+Rereads the simultion output file and updates the display.
+If the simulation has been re-run, and the output file is different, then this button shows the new data.
+</LI>
+
+<LI><B>"Show Vertices"</B>&nbsp;<IMG SRC="fig09-19.png" ALT="Figure 9.19">&nbsp;&nbsp;
+Displays dots on the vertices of the waveforms.
+The button toggles between showing and not-showing the vertex dots.
+</LI>
+
+<LI><B>"Show Grid"</B>&nbsp;<IMG SRC="fig09-27.png" ALT="Figure 9.27">&nbsp;&nbsp;
+Displays a grid in the waveform panels.
+The button toggles between showing and not-showing the grid.
+</LI>
+
+<LI><B>The Panel popup</B> This is a list of all panels, including the hidden ones.
+Selecting a panel from this list toggles its "hidden" state, making a visible one disappear,
+and making a hidden one reappear.</LI>
+
+<LI><B>"Grow" and "Shrink"</B>&nbsp;<IMG SRC="fig09-31.png" ALT="Figure 9.31">&nbsp;&nbsp;
+These buttons, which show a waveform being stretched or squeezed,
+cause the minimum panel size to change.
+By shrinking the panel size, more of them can fit in the window without having to use a slider to access them.</LI>
+</UL>
+
+<!-- TRAILER -->

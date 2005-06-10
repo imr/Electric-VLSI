@@ -53,6 +53,7 @@ public class FileType {
 	/** Describes FastHenry files.*/		public static final FileType FASTHENRY    = makeFileType("FastHenry", new String[] {"inp"}, "FastHenry File (inp)");
 	/** Describes FPGA files.*/				public static final FileType FPGA         = makeFileType("FPGA", new String[] {"fpga"}, "FPGA Architecture File (fpga)");
 	/** Describes GDS files. */				public static final FileType GDS          = makeFileType("GDS", new String[] {"gds"}, "GDS File (gds)");
+	/** Describes GDS layer Map files. */	public static final FileType GDSMAP       = makeFileType("GDS Map", new String[] {"map"}, "GDS Layer Map File (map)");
 	/** Describes HSpice output. */			public static final FileType HSPICEOUT    = makeFileTypeNumeric("HSpiceOutput", new String[] {"tr"}, "HSpice Output File (tr0,1,2...)");
 	/** Describes HPGL files. */			public static final FileType HPGL         = makeFileType("HPGL", new String[] {"hpgl2"}, "HPGL File (hpgl2)");
 	/** Describes HTML files. */			public static final FileType HTML         = makeFileType("HTML", new String[] {"html"}, "HTML File (html)");

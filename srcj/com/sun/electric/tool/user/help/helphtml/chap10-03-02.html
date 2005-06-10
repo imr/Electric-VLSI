@@ -1,0 +1,67 @@
+<!-- HEADER 10-3-2: Node Instances -->
+
+Inside of a cell definition, node instances are declared with the "N" and "I" lines.
+"N" is for primitive nodes and "I" is for cell instances.
+All nodes are sorted by the node name.
+The syntax is:
+<P>
+<TABLE BORDER=1>
+<TR><TD COLSPAN=2><B>N&lt;type&gt; | &lt;name&gt; | &lt;nameTD&gt; | &lt;x&gt; | &lt;y&gt; | &lt;width&gt; |
+&lt;height&gt; | &lt;orientation&gt; | &lt;flags&gt; [ | &lt;variable&gt;> ]*</B></TD></TR>
+<TR><TD COLSPAN=2><B>I&lt;type&gt; | &lt;name&gt; | &lt;nameTD&gt; | &lt;x&gt; | &lt;y&gt; | &lt;orientation&gt; |
+&lt;flags&gt; | &lt;TD&gt;> [ | &lt;variable&gt; ]*</B></TD></TR>
+<TR><TD>&lt;type&gt;</TD><TD>the type of the node instance.
+For primitive node instances, this has the form: [&lt;technology&gt;:]&lt;primitive-node&gt;.
+If &lt;technology&gt; is omitted, the technology of the cell is assumed.
+For cell instances, it has the form: [&lt;library&gt;:]&lt;cell&gt;;&lt;version&gt;{&lt;view&gt;}.
+If &lt;library&gt; is omitted, the library defined by this JELIB file is assumed.</TD></TR>
+<TR><TD>&lt;name&gt;</TD><TD>the name of the node instance.
+If there are multiple nodes with the same name, then the name is quoted, and a unique integer follows the close quote.</TD></TR>
+<TR><TD>&lt;nameTD&gt;</TD><TD>a text descriptor for the name (when displayed).</TD></TR>
+<TR><TD>&lt;x&gt;</TD><TD>the X coordinate of the anchor point of the node instance.</TD></TR>
+<TR><TD>&lt;y&gt;</TD><TD>the Y coordinate of the anchor point of the node instance.</TD></TR>
+<TR><TD>&lt;width&gt;</TD><TD>the width of the primitive node (must be non-negative).</TD></TR>
+<TR><TD>&lt;height&gt;</TD><TD>the height of the primitive node (must be non-negative).</TD></TR>
+<TR><TD>&lt;orientation&gt;</TD><TD>the orientation of the node (see below).</TD></TR>
+<TR><TD>&lt;flags&gt;</TD><TD>flags for the node instance (see below).</TD></TR>
+<TR><TD>&lt;TD&gt;</TD><TD>a text descriptor for the cell instance name (does not apply to primitives).</TD></TR>
+<TR><TD>&lt;variable&gt;</TD><TD>a list of variables on the node instance
+(see <A HREF="chap10-04-01.html#chap10-04-01">Section 10-4-1</A>).</TD></TR>
+</TABLE>
+<P>
+The &lt;orientation&gt; field consists of any of the following letters, with an optional numeric part at the end:
+<P>
+"X"	if the node instance is X-mirrored (mirrored about Y axis).<BR>
+"Y"	if the node instance is Y-mirrored (mirrored about X axis).<BR>
+"R"	each letter rotates the node instance at 90 degrees counter-clockwise.<BR>
+Num	Any digits at the end are additional rotation in tenths of a degree.	
+<P>
+The &lt;flags&gt; field consists of any of the following letters, sorted alphabetically, with the numeric part at the end:
+<P>
+"A"	if the node instance is hard-to-select.<BR>
+"E"	if the node instance is "expanded".<BR>
+"L"	if the node instance is locked.<BR>
+"S"	if the node instance is shortened.<BR>
+"V"	if the node instance is visible only inside the cell.<BR>
+"W"	if the node instance is wiped (covered by an arc, so no need to draw).<BR>
+Num	Any digits at the end are the technology-specific bits.
+<P>
+Examples:
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Nschematic:Transistor|mos@0||2|0|4|4|R|2|ATTR_length(D5G0.5;X-0.5;Y-1;)S2</CODE>
+<P>
+Places a schematic Transistor called "mos@0" at (2,0), size 4x4, rotated 90 degrees.
+The flag field "2" is numeric, and therefore is technology-specific information
+(in this case, it makes the transistor be pMOS).
+There is one attribute on the node, called "length", with the value "2" (a string).
+This attribute is displayed, anchored at its center ("D5"),
+is 1 half grid unit in size ("G0.5;"), and is offset (-0.5, -1) from the node center ("“X-0.5;Y-1;").
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Ilow;1{lay}|"HAPPY"1||14|12|Y|E|D5G4;</CODE>
+<P>
+Places an instance of cell "low{lay}" from the library defined in this JELIB file.
+The instance is named "HAPPY" (the name field is "HAPPY"1 which means this is the first instance with this name).
+It is at (14,12),mirrored in Y, and is rotated 0.
+The "E" means that the node is expanded, but when it is unexpanded, its name is described by D5G4;
+(D5 means a centered anchor point, G4; means size 4 units).
+<!-- TRAILER -->

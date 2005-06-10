@@ -1,0 +1,39 @@
+<!-- HEADER 9-1: Introduction to Tools -->
+
+<!-- COMMAND Tool/List Tools -->
+<!-- COMMAND Edit/Selection/Show Next Error -->
+<!-- COMMAND Edit/Selection/Show Previous Error -->
+
+There are many different tools available in Electric for doing both synthesis and analysis of circuitry.
+Synthesis tools include routers, compactors, circuit generators, and so on.
+Analysis tools include design-rule checkers, network comparison, and many simulators.
+To see a list of tools, including which ones are active,
+use the <B>List Tools</B> command (in menu <B>Tool</B>).
+This chapter covers many of the tools available in Electric.
+<P>
+When a tool is running, it may take a long time.
+You can see it under the "JOBS" entry of the Cell Explorer.
+<P>
+After a tool has run, it may reports errors in the ERRORS section of the Cell Explorer.
+To browse these errors, use the <B>Show Next Error</B> and <B>Show Previous Error</B> commands
+(in menu <B>Edit / Selection</B>) or type the ">" an "<" keys.
+You can set the maximum number of errors that will be reported at once.
+By default, there is no limit to the number of errors.
+<P>
+A number of common tool controls are available from the
+"General" preferences (in menu <B>File / Preferences...</B>, "General" section, "General" tab).
+<P>
+<TABLE><TR><TD>
+"Beep after long jobs" requests that any job which runs longer than a minute make a beep sound when done.
+<P>
+Most netlisters insert date and version information in the comments at the head of the generated file.
+You can request that this information be omitted by unclicking "Include date and version in output files".
+</TD><TD><CENTER><IMG SRC="fig09-21.png" ALT="Figure 9.21"></CENTER></TD></TR></TABLE>
+<P>
+Most of the commands to generate an input deck for a simulator (a netlist) prompt the user for the desired file.
+If "Show file-selection dialog before writing netlists" is unchecked, however, the file is written (or overwritten)
+without prompt.
+This is useful in repetitive iterations of design/simulate, and saves the cumbersome file-selection dialog.
+However, it can be dangerous because it overwrites files without asking.
+
+<!-- TRAILER -->

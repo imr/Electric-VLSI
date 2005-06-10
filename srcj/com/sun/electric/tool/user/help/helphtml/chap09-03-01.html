@@ -1,0 +1,37 @@
+<!-- HEADER 9-3-1: Well and Substrate Checking -->
+
+<!-- COMMAND Tool/ERC/Check Wells -->
+
+To check the well and substrate layers, use the <B>Check Wells</B> command (in menu <B>Tool / ERC</B>
+).
+This does a more thorough job of checking the layers than the design-rule checker.
+<P>
+After analysis is done, you can review the errors by typing "&gt;" to see the next error and "&lt;" to see the previous error.
+You can also see the list of errors in the Cell Explorer
+(see <A HREF="chap04-08.html#chap04-08">Section 4-8</A>).
+<P>
+<TABLE><TR><TD VALIGN=TOP>
+You can control the Well Checker with the "Well Check"
+preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Well Check" tab).
+<P>
+The Well Checker makes sure that there are well contacts in every area of well.
+The dialog allows you to relax that restriction and demand only 1 well contact in each cell,
+or not to check for contacts at all.
+</TD><TD><CENTER><IMG SRC="fig09-15.png" ALT="Figure 9.15"></CENTER></TD></TR></TABLE>
+<P>
+The Well Checker also checks spacing rules between well areas.
+Although this is generally the domain of the Design Rule Checker (DRC), it could be done here by checking
+"Check DRC Spacing Rules for Wells".
+Since the well checker has not been designed for DRC purposes,
+the algorithm is not efficient and therefore the option is off by default.
+<P>
+The Well Checker also checks that there is a connection to power and ground in the appropriate places.
+You can disable these checks in the "Well Check" dialog.
+<P>
+An additional well check is to find the farthest distance from a substrate contact to the edge of that area.
+This check takes more time to do, and so it can be disabled.
+<P>
+Finally, the Well Checker reports the maximum distance from a well contact to any point on the well.
+This is useful when making sure that there are sufficient contacts for each area.
+
+<!-- TRAILER -->

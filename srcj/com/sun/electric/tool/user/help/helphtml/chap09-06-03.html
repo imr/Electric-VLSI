@@ -1,0 +1,103 @@
+<!-- HEADER 9-6-3: NCC Preferences -->
+
+NCC options are available in the "NCC" preferences
+(in menu <B>File
+ / Preferences... </B>, "Tools" section, "NCC" tab).
+<p>
+<CENTER><IMG SRC="fig09-22.png" ALT="Figure 9.22"></CENTER>
+<P>
+
+<h3> Operation Section </h3>
+
+The "Operation" section allows you to select what kind of NCC operation
+to perform.  You can either compare hierarchically, compare flat, or
+list all the NCC annotations in the design.  
+<p>
+We recommend hierarchical over flat comparison because hierarchical
+comparisons are faster and the mismatch diagnostics are much more
+precise and intelligible. However, transistor size checking of
+schematics with automatically sized transistors does not work with
+hierarchical comparisons. If you select "Check transistor sizes" and
+your schematics include automatically sized transistors you must also
+select "Flat Comparison".
+</p>
+<p>
+The best way to use NCC is to initially perform all your comparisons
+hierarchically. This will typically require many iterations.  Once you
+have gotten your designs to pass hierarchical comparison, turn on size
+checking and flat comparison.  This will report transistor size
+mismatches.
+
+<h3> Size Checking Section </h3>
+
+The "Size Checking" section controls the checking of transistor widths
+and lengths.
+<p>
+NCC does the following when size checking is enabled. After each
+topological comparison, NCC checks if it found any topological
+mismatches. If NCC found no mismatches then NCC checks, for each pair
+of matching transistors, that the widths and lengths are approximately
+equal.
+</p>
+<p>
+The two tolerance boxes allow the user to specify how much more the
+larger of the two matched transistors may be than the smaller before
+NCC reports a size mismatch. The "Relative size tolerance" box
+specifies the difference in percentage. The "Absolute size tolerance"
+box specifies the difference in units.  NCC reports a size mismatch
+when both tolerances are exceeded.
+<p>
+If you enable "Size Checking" and "Hierarchical Comparison"
+simultaneously then NCC restricts which Cells it treats
+hierarchically to ensure a correct answer in the presence of
+automatically sized transistors. For this case it compares a pair of Cells
+hierarchically if and only if each Cell is instantiated exactly once.
+</p>
+
+<h3> Checking All Cells Section </h3>
+
+In hierarchical mode NCC attempts to compare all cells in the design
+starting with those at the leaves and working it's way toward the root.
+For that mode it is often best if NCC stops as soon as it finds a
+mismatch. To get this behavior the user should check the box: "Halt
+after finding the first mismatched cell".
+<p>
+However, it is occasionally useful to continue checking even after
+mismatches have been detected.  For example, the designer might find
+that although cell ABC mismatches, she is unable to fix ABC because
+someone else designed it.  When asked to continue, NCC will do the
+following when comparing cells that use ABC: 
+<ul>
+<li>
+If NCC found no export mismatches when comparing ABC then NCC will use
+the export names to identify corresponding ports in the layout and
+schematic. 
+</li>
+<li> If NCC found export mismatches when comparing ABC then NCC will
+flatten the one level of hierarchy: ABC, before performing the
+comparison.
+</li>
+</ul>
+<p>
+The check box "Don't recheck cells that have passed in this Electric
+run" skips the checking of a pair of cells if they have ever passed in
+this run of Electric.  Because this command <i>is not</i> smart enough
+to recheck the cells after either have changed, this command is of
+very limited utility.  At the moment NCC has run sufficiently fast
+that it doesn't seem worth the effort to implement anything more
+sophisticated.
+
+<h3> Reporting Progress Section</h3>
+
+This panel controls how verbose NCC is in reporting its progress. Most
+users should leave this at 0.
+
+<h3> Error Reporting Section</h3>
+
+The error reporting section controls how many error messages are printed
+when the Local Partitioning algorithm has failed to find a mismatch
+but the Gemini algorithm has.  Most users will want to leave these at
+the default setting of 10.
+
+<!-- TRAILER -->
+

@@ -1,0 +1,51 @@
+<!-- HEADER 10-4-2: Text Descriptors -->
+
+Text descriptors appear in every Variable, and also in other places (cell instances and exports).
+It consists of these fields:
+<P>
+<TABLE>
+<TR><TD>A &lt;size&gt; ;</TD><TD>Text is absolute size (in points).</TD></TR>
+<TR><TD>B</TD><TD>Text is bold.</TD></TR>
+<TR><TD>C &lt;color&gt; ;</TD><TD>Text is drawn in the color index given.</TD></TR>
+<TR><TD>D0</TD><TD>Text is anchored at its center, limited to the size of its owner.</TD></TR>
+<TR><TD>D1</TD><TD>Text is anchored at its lower-left.</TD></TR>
+<TR><TD>D2</TD><TD>Text is anchored at its bottom.</TD></TR>
+<TR><TD>D3</TD><TD>Text is anchored at its lower-right.</TD></TR>
+<TR><TD>D4</TD><TD>Text is anchored at its left.</TD></TR>
+<TR><TD>D5</TD><TD>Text is anchored at its center.</TD></TR>
+<TR><TD>D6</TD><TD>Text is anchored at its right.</TD></TR>
+<TR><TD>D7</TD><TD>Text is anchored at its upper-left.</TD></TR>
+<TR><TD>D8</TD><TD>Text is anchored at its top.</TD></TR>
+<TR><TD>D9</TD><TD>Text is anchored at its upper-right.</TD></TR>
+<TR><TD>F &lt;font&gt; ;</TD><TD>Text is shown in the named font.</TD></TR>
+<TR><TD>G &lt;size&gt; ;</TD><TD>Text has relative size (in grid units).</TD></TR>
+<TR><TD>H</TD><TD>Variable is inheritable (only for variables on Cells or Exports).</TD></TR>
+<TR><TD>I</TD><TD>Text is italic.</TD></TR>
+<TR><TD>L</TD><TD>Text is underlined.</TD></TR>
+<TR><TD>N</TD><TD>Variable is written in the form "NAME=VALUE".</TD></TR>
+<TR><TD>OJ</TD><TD>Text is Java code.</TD></TR>
+<TR><TD>OL</TD><TD>Text is Lisp code.</TD></TR>
+<TR><TD>OT</TD><TD>Text is TCL code.</TD></TR>
+<TR><TD>P</TD><TD>Variable is a parameter.</TD></TR>
+<TR><TD>R</TD><TD>Text is rotated 90 degrees.</TD></TR>
+<TR><TD>RR</TD><TD>Text is rotated 180 degrees.</TD></TR>
+<TR><TD>RRR</TD><TD>Text is rotated 270 degrees.</TD></TR>
+<TR><TD>T</TD><TD>Text is interior (seen only when inside the cell).</TD></TR>
+<TR><TD>UR</TD><TD>Value is in Resistance units.</TD></TR>
+<TR><TD>UC</TD><TD>Value is in Capacitance units.</TD></TR>
+<TR><TD>UI</TD><TD>Value is in Inductance units.</TD></TRBR>
+<TR><TD>UA</TD><TD>Value is in Current units.</TD></TR>
+<TR><TD>UV</TD><TD>Value is in Voltage units.</TD></TR>
+<TR><TD>UD</TD><TD>Value is in Distance units.</TD></TR>
+<TR><TD>UT</TD><TD> Value is in Time units.</TD></TR>
+<TR><TD>X &lt;xoff&gt; ;</TD><TD>Text is offset in X from object center.</TD></TR>
+<TR><TD>Y &lt;yoff&gt; ;</TD><TD>Text is offset in Y from object center.</TD></TR>
+</TABLE>
+<P>
+Example:
+<P>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>D4G8;</CODE>
+<P>
+The text is anchored on the left ("D4") and is 8 units tall ("G8;").
+
+<!-- TRAILER -->

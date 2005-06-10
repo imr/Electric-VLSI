@@ -1,0 +1,51 @@
+<!-- HEADER 9-4-6: Spice and Verilog Primitives -->
+
+<!-- COMMAND Tool/Simulation (Spice)/Set Generic Spice Template -->
+<!-- COMMAND Tool/Simulation (Spice)/Set Spice 2 Template -->
+<!-- COMMAND Tool/Simulation (Spice)/Set Spice 3 Template -->
+<!-- COMMAND Tool/Simulation (Spice)/Set HSpice Template -->
+<!-- COMMAND Tool/Simulation (Spice)/Set PSpice Template -->
+<!-- COMMAND Tool/Simulation (Spice)/Set GnuCap Template -->
+<!-- COMMAND Tool/Simulation (Spice)/Set SmartSpice Template -->
+<!-- COMMAND Tool/Simulation (Verilog)/Set Verilog Template -->
+
+For both Spice and Verilog, you can create special nodes that augment the genetated deck.
+Spice even has a predefined set of primitives, available from the "Spice" entry in the component palette.
+<P>
+Users can define their own Spice or Verilog elements by creating new icons in this or a new library.
+The icon should have graphics, exports, optional parameters, and a template.
+Parameters are created with the <B>Attribute Properties...</B> command (in menu <B>Edit / Attributes</B>
+).
+See <A HREF="chap06-08-06.html#chap06-08-06">Section 6-8-6</A> for more on parameters.
+The Spice template is created with the <B>Set Generic Spice Template</B> command (in menu <B>Tool / Simulation (Spice)</B>).
+If the template is specific to a particular version of Spice, use the appropriate template command
+(<B>Set Spice 2 Template</B>, <B>Set Spice 3 Template</B>, <B>Set HSpice Template</B>, <B>Set PSpice Template</B>,
+<B>Set GnuCap Template</B>, or <B>Set SmartSpice Template</B>).
+<P>
+You can also create Verilog elements by using the <B>Set Verilog Template</B> command (in menu <B>Tool / Simulation (Verilog)</B>).
+Note that a single cell can contain both Verilog and multiple Spice templates.
+<P>
+
+<TABLE><TR><TD>
+To explain the format of a template, a DC Voltage Source primitive is used as an example.
+Graphics is placed to describe the look of the symbol (a "battery" look).
+Exports are created at the top and bottom of the battery with the names "plus" and "minus".
+A single parameter is defined called "Voltage" with a default value of "0V".
+Finally, a Spice template is created that has the string
+<BR><CENTER><CODE>V$(node_name) $(plus) $(minus) DC $(Voltage)</CODE></CENTER><BR>
+</TD><TD><CENTER><IMG SRC="fig09-23.png" ALT="Figure 9.23"></CENTER></TD></TR></TABLE>
+<P>
+This string contains substitution expressions of the form <CODE>$(SOMETHING)</CODE>
+where <CODE>SOMETHING</CODE> can be an export name, a variable, or "node_name".
+So, in this example, <CODE>$(node_name)</CODE> will be replaced with the name of the voltage node;
+<CODE>$(plus)</CODE> will be replaced with the net name attached to the positive terminal;
+<CODE>$(minus)</CODE> will be replaced with the net name attached to the negative terminal;
+and <CODE>$(Voltage)</CODE> will be replaced with the voltage value specified by the user.
+<P>
+The set of Spice primitives in Electric is useful, but far from complete.
+A second set, called "SpicePartsS3", is tailored towards special Spice3 primitives.
+There are no Verilog primitives in the current release of Electric.
+Users who define new primitives are encouraged to share these with the entire community by contacting
+<A HREF="mailto:info@staticfreesoft.com">Static Free Software</A>.
+
+<!-- TRAILER -->
