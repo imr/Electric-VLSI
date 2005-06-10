@@ -23,28 +23,53 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.GDSLayers;
 import com.sun.electric.tool.io.output.GDS;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.TopLevel;
 
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
+import javax.swing.AbstractButton;
+import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -55,7 +80,7 @@ import javax.swing.event.DocumentListener;
 public class GDSTab extends PreferencePanel
 {
 	/** Creates new form GDSTab */
-	public GDSTab(java.awt.Frame parent, boolean modal)
+	public GDSTab(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -107,10 +132,6 @@ public class GDSTab extends PreferencePanel
 		}
 		gdsLayersList.setSelectedIndex(0);
 		gdsClickLayer();
-		gdsImportMapFile.addActionListener(new ActionListener()
-		{
-            public void actionPerformed(ActionEvent evt) { importMapFile(); }
-		});
 
 		GDSDocumentListener myDocumentListener = new GDSDocumentListener(this);
 		gdsLayerNumber.getDocument().addDocumentListener(myDocumentListener);
@@ -243,56 +264,6 @@ public class GDSTab extends PreferencePanel
 		public void removeUpdate(DocumentEvent e) { dialog.gdsNumbersChanged(); }
 	}
 
-	private void importMapFile()
-	{
-		System.out.println("CANNOT YET");
-//		String fileName = OpenFile.chooseInputFile(FileType.GDSMAP, "GDS Layer Map File");
-//		if (fileName == null) return;
-//		URL url = TextUtils.makeURLToFile(fileName);
-//		try
-//		{
-//			URLConnection urlCon = url.openConnection();
-//			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
-//			LineNumberReader lineReader = new LineNumberReader(is);
-//			for(;;)
-//			{
-//				String buf = lineReader.readLine();
-//				if (buf == null) break;
-//				buf = buf.trim();
-//				if (buf.length() == 0) continue;
-//				if (buf.charAt(0) == '#') continue;
-//
-//				// get the layer name
-//				int spaPos = buf.indexOf(' ');
-//				if (spaPos < 0) continue;
-//				String layerName = buf.substring(0, spaPos);
-//				buf = buf.substring(spaPos+1).trim();
-//
-//				// get the layer purpose
-//				spaPos = buf.indexOf(' ');
-//				if (spaPos < 0) continue;
-//				String layerPurpose = buf.substring(0, spaPos);
-//				buf = buf.substring(spaPos+1).trim();
-//
-//				// get the GDS number and type
-//				spaPos = buf.indexOf(' ');
-//				if (spaPos < 0) continue;
-//				int gdsNumber = TextUtils.atoi(buf.substring(0, spaPos));
-//				buf = buf.substring(spaPos+1).trim();
-//				int gdsType = TextUtils.atoi(buf);
-//
-//				// only want layers whose purpose is "drawing" or "pin"
-//				if (!layerPurpose.equalsIgnoreCase("drawing") &&
-//					!layerPurpose.equalsIgnoreCase("pin")) continue;
-//			}
-//			lineReader.close();
-//		} catch (IOException e)
-//		{
-//			System.out.println("Error reading " + fileName);
-//			return;
-//		}
-	}
-
 	/**
 	 * Method called when the "OK" panel is hit.
 	 * Updates any changed fields in the GDS tab.
@@ -398,7 +369,6 @@ public class GDSTab extends PreferencePanel
         gdsLayerType = new javax.swing.JTextField();
         gdsPinType = new javax.swing.JTextField();
         gdsTextType = new javax.swing.JTextField();
-        gdsImportMapFile = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -420,7 +390,7 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridheight = 14;
+        gridBagConstraints.gridheight = 13;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
@@ -623,14 +593,6 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gds.add(gdsTextType, gridBagConstraints);
 
-        gdsImportMapFile.setText("Import GDS Map File...");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 14;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gds.add(gdsImportMapFile, gridBagConstraints);
-
         getContentPane().add(gds, new java.awt.GridBagConstraints());
 
         pack();
@@ -650,7 +612,6 @@ public class GDSTab extends PreferencePanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel gds;
     private javax.swing.JTextField gdsDefaultTextLayer;
-    private javax.swing.JButton gdsImportMapFile;
     private javax.swing.JCheckBox gdsInputExpandsCells;
     private javax.swing.JCheckBox gdsInputIgnoresUnknownLayers;
     private javax.swing.JCheckBox gdsInputIncludesText;
@@ -675,5 +636,4 @@ public class GDSTab extends PreferencePanel
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     // End of variables declaration//GEN-END:variables
-
 }

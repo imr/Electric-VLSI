@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (06/10/05, SMR) Can now import "GDS map" files to set layer associations (Bug #355).
+
 IMP: (06/10/05, SMR) GDS now uses a "type" with each layer number (Bug #356).
 
 BUG: (06/10/05, SMR) Spice output writes lower-level cells when upper-level ones

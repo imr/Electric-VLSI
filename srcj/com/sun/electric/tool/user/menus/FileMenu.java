@@ -34,6 +34,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.input.GDSMap;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.output.PostScript;
@@ -94,13 +95,15 @@ public class FileMenu {
 		fileMenu.addMenuItem("_Open Library...", KeyStroke.getKeyStroke('O', buckyBit),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { openLibraryCommand(); } });
 
-		// mnemonic keys available: A    F HIJK MNO QRS  VW YZ
+		// mnemonic keys available: A    F HIJK  NO QRS  VW YZ
 		MenuBar.Menu importSubMenu = MenuBar.makeMenu("_Import");
 		fileMenu.add(importSubMenu);
 		importSubMenu.addMenuItem("_CIF (Caltech Intermediate Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.CIF); } });
 		importSubMenu.addMenuItem("_GDS II (Stream)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.GDS); } });
+		importSubMenu.addMenuItem("GDS _Map File...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { GDSMap.importMapFile(); } });
 		importSubMenu.addMenuItem("_EDIF (Electronic Design Interchange Format)...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { importLibraryCommand(FileType.EDIF); } });
 		importSubMenu.addMenuItem("_LEF (Library Exchange Format)...", null,
