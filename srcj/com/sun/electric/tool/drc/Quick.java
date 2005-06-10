@@ -1163,9 +1163,8 @@ public class Quick
             // I have to check if they are the same instance otherwise I check geometry against itself
             if (nGeom == geom && (sameInstance || nGeom.getParent() == cell))
             {
-                if (!sameInstance)
-                    System.out.println("DRC: this is a new case, bug 352");
-
+//                if (!sameInstance)
+//                    System.out.println("DRC: this is a new case, bug 352");
                 continue;
             }
 			if (nGeom instanceof NodeInst)
