@@ -394,7 +394,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		}
 		NodeInst ni = originalPort.getNodeInst();
 		PortProto subpp = originalPort.getPortProto();
-		if (ni.getParent() != parent || subpp.getParent() != ni.getProto() || doesntConnect(subpp.getBasePort()))
+		if (ni.getParent() != parent || subpp.getParent() != ni.getProto()/* || doesntConnect(subpp.getBasePort())*/)
 		{
 			System.out.println("Bad port on Export " + getName() + " in cell " + parent.describe());
 			return true;
