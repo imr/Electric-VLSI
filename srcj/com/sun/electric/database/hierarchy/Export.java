@@ -922,6 +922,11 @@ public class Export extends ElectricObject implements PortProto, Comparable
 
 			// make sure all arcs on this port can connect
             PortInst pi = ni.findPortInstFromProto(this);
+            if (pi == null)
+            {
+                System.out.println("Port instance in " + ni.getName() + " not found for port " + getName());
+                return true;
+            }
 			for(Iterator cIt = pi.getConnections(); cIt.hasNext(); )
 			{
 				Connection con = (Connection)cIt.next();

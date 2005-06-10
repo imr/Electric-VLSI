@@ -2062,7 +2062,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public PortInst findPortInstFromProto(PortProto pp)
 	{
-		return portInsts[pp.getPortIndex()];
+        int index = pp.getPortIndex();
+        if (index >= portInsts.length)
+            return null;
+		return portInsts[index];
 	}
 
 	/**

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+BUG: (06/10/05, GVG) Expection in NodeInst.findPortInstFromProto if index is invalid (Bug #359)
+FIX: Make sure index is in the valid range and returns null otherwise.
+Side effect: extra code in Export.java to prevent exception if pi == null.
+
 BUG: (06/09/05, GVG) Exception while generating eps from waveform (Bug #361)
 FIX: After refactoring of Technology.getShapeOfNode, wnd can be null and then direct access of wnd.getVarContext()
 will generate the exception.
