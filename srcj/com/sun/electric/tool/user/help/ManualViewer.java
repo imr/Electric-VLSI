@@ -896,16 +896,17 @@ public class ManualViewer extends EDialog
 			int binPos = fileName.indexOf("/bin/");
 			if (binPos >= 0)
 			{
-				fileName = fileName.substring(0, binPos) + fileName.substring(binPos+4);
+				String otherFileName = fileName.substring(0, binPos) + "/srcj" + fileName.substring(binPos+4);
 				try
 				{
-					PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(fileName)));
+					PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(otherFileName)));
 					printWriter.print(textArea.getText());
 					printWriter.close();
-					System.out.println("Also saved to "+fileName);
+					System.out.println("Also saved to "+otherFileName);
 				} catch (IOException e)
 				{
-					System.out.println("Could not also save file: " + fileName);
+					System.out.println("Could not also save file: " + otherFileName);
+					System.out.println("  but did save: " + fileName);
 					return;
 				}
 			}

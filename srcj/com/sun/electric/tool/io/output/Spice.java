@@ -96,8 +96,9 @@ public class Spice extends Topology
 	/** Mask shrink factor (default =1) */			private double  maskScale;
 	/** True to write CDL format */					private boolean useCDL;
 	/** Legal characters */							private String legalSpiceChars;
-	/** Template Key for current spice engine */	private Variable.Key preferedEgnineTemplateKey;
+	/** Template Key for current spice engine */	private Variable.Key preferedEngineTemplateKey;
 	/** Spice type: 2, 3, H, P, etc */				private int spiceEngine;
+	/** those cells that have overridden models */	private HashSet modelOverrides = new HashSet();
 
     /** map of "parameterized" cells that are not covered by Topology */    private Map uniquifyCells;
     /** uniqueID */                                                         private int uniqueID;
@@ -261,15 +262,15 @@ public class Spice extends Topology
 
 		// make sure key is cached
 		spiceEngine = Simulation.getSpiceEngine();
-		preferedEgnineTemplateKey = SPICE_TEMPLATE_KEY;
+		preferedEngineTemplateKey = SPICE_TEMPLATE_KEY;
 		switch (spiceEngine)
 		{
-			case Simulation.SPICE_ENGINE_2: preferedEgnineTemplateKey = SPICE_2_TEMPLATE_KEY;   break;
-			case Simulation.SPICE_ENGINE_3: preferedEgnineTemplateKey = SPICE_3_TEMPLATE_KEY;   break;
-			case Simulation.SPICE_ENGINE_H: preferedEgnineTemplateKey = SPICE_H_TEMPLATE_KEY;   break;
-			case Simulation.SPICE_ENGINE_P: preferedEgnineTemplateKey = SPICE_P_TEMPLATE_KEY;   break;
-			case Simulation.SPICE_ENGINE_G: preferedEgnineTemplateKey = SPICE_GC_TEMPLATE_KEY;   break;
-			case Simulation.SPICE_ENGINE_S: preferedEgnineTemplateKey = SPICE_SM_TEMPLATE_KEY;   break;
+			case Simulation.SPICE_ENGINE_2: preferedEngineTemplateKey = SPICE_2_TEMPLATE_KEY;   break;
+			case Simulation.SPICE_ENGINE_3: preferedEngineTemplateKey = SPICE_3_TEMPLATE_KEY;   break;
+			case Simulation.SPICE_ENGINE_H: preferedEngineTemplateKey = SPICE_H_TEMPLATE_KEY;   break;
+			case Simulation.SPICE_ENGINE_P: preferedEngineTemplateKey = SPICE_P_TEMPLATE_KEY;   break;
+			case Simulation.SPICE_ENGINE_G: preferedEngineTemplateKey = SPICE_GC_TEMPLATE_KEY;   break;
+			case Simulation.SPICE_ENGINE_S: preferedEngineTemplateKey = SPICE_SM_TEMPLATE_KEY;   break;
 		}
 
 		// get the mask scale
@@ -366,19 +367,6 @@ public class Spice extends Topology
 	 */
 	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context)
 	{
-		// look for a model file on the current cell
-		Variable var = cell.getVar(SPICE_MODEL_FILE_KEY);
-		if (var != null)
-		{
-			String fileName = var.getObject().toString();
-			if (!fileName.startsWith("-----"))
-			{
-				multiLinePrint(true, "* Cell " + cell.describe() + " is described in this file:\n");
-				addIncludeFile(fileName);
-			}
-			return;
-		}
-
 		// gather networks in the cell
 		Netlist netList = cni.getNetList();
 
@@ -615,7 +603,7 @@ public class Spice extends Topology
 			{
 				Cell subCell = (Cell)niProto;
 				// look for a SPICE template on the prototype
-				Variable varTemplate = subCell.getVar(preferedEgnineTemplateKey);
+				Variable varTemplate = subCell.getVar(preferedEngineTemplateKey);
 				if (varTemplate == null)
 					varTemplate = subCell.getVar(SPICE_TEMPLATE_KEY);
 
@@ -1290,12 +1278,32 @@ public class Spice extends Topology
      * subcells, override this method.
      * If this cell has a spice template, skip it
      */
-    protected boolean skipCellAndSubcells(Cell cell) {
-        Variable varTemplate = cell.getVar(preferedEgnineTemplateKey);
+    protected boolean skipCellAndSubcells(Cell cell)
+	{
+		// skip if there is a template
+        Variable varTemplate = cell.getVar(preferedEngineTemplateKey);
         if (varTemplate == null)
             varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
         if (varTemplate != null && !useCDL) return true;
-        return false;
+
+		// look for a model file on the current cell
+		Variable var = cell.getVar(SPICE_MODEL_FILE_KEY);
+		if (var != null)
+		{
+			String fileName = var.getObject().toString();
+			if (!fileName.startsWith("-----"))
+			{
+				if (!modelOverrides.contains(cell))
+				{
+					multiLinePrint(true, "\n* Cell " + cell.describe() + " is described in this file:\n");
+					addIncludeFile(fileName);
+					modelOverrides.add(cell);
+				}
+				return true;
+			}
+		}
+
+		return false;
     }
 
 	/**

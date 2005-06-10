@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (06/10/05, SMR) GDS now uses a "type" with each layer number (Bug #356).
+
 BUG: (06/10/05, SMR) Spice output writes lower-level cells when upper-level ones
      have model file overrides (Bug #358).
 FIX: Added model file overrides to the things checked by "skipCellAndSubcells()".

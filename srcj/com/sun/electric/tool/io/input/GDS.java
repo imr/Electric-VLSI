@@ -42,6 +42,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.GDSLayers;
 
 import java.awt.Point;
 import java.awt.geom.AffineTransform;
@@ -337,17 +338,14 @@ public class GDS extends Input
 			String gdsName = layer.getGDSLayer();
 			if (gdsName != null && gdsName.length() > 0)
 			{
-				String [] numberStrings = gdsName.split(",");
-				for(int i=0; i<numberStrings.length; i++)
+				GDSLayers gdsl = GDSLayers.parseLayerString(gdsName);
+				for(Iterator lIt = gdsl.getLayers(); lIt.hasNext(); )
 				{
-					String numberString = numberStrings[i].trim();
-					if (numberString.length() == 0) continue;
-					int layNum = TextUtils.atoi(numberString);
-					if (layNum == 0 && !numberString.equals("0")) continue;
-					Integer lay = new Integer(layNum);
+					Integer lVal = (Integer)lIt.next();
+					Integer lay = new Integer(lVal.intValue());
 					if (layerNames.get(lay) == null) layerNames.put(lay, layer);
-					if (numberString.endsWith("p")) pinLayers.add(lay);
 				}
+				if (gdsl.getPinLayer() != -1) pinLayers.add(new Integer(gdsl.getPinLayer()));
 				valid = true;
 			}
 		}
@@ -929,18 +927,20 @@ public class GDS extends Input
 		readUnsupported(unsupportedSet);
 		if (theToken != GDS_LAYER) handleError("Boundary has no points");
 		getToken();
+		int layerNum = tokenValue16;
 		if (theToken == GDS_SHORT_NUMBER)
 		{
-			setLayer(tokenValue16);
 			getToken();
 		}
 
-		// should do something with node type???
+		// also get node type
+		int layerType = tokenValue16;
 		if (theToken == GDS_NODETYPE)
 		{
 			getToken();
 			getToken();
 		}
+		setLayer(layerNum, layerType);
 
 		// make a dot
 		if (theToken != GDS_XY) handleError("Boundary has no points");
@@ -1122,20 +1122,20 @@ public class GDS extends Input
 		}
 	}
 
-	private void setLayer(int layerNum)
+	private void setLayer(int layerNum, int layerType)
 	{
 		layerUsed = true;
 		layerIsPin = false;
-		Integer layerInt = new Integer(layerNum);
+		Integer layerInt = new Integer(layerNum + (layerType<<16));
 		Layer layer = (Layer)layerNames.get(layerInt);
 		if (layer == null)
 		{
 			if (IOTool.isGDSInIgnoresUnknownLayers())
 			{
-				System.out.println("GDS layer " + layerNum + " unknown, ignoring it");
+				System.out.println("GDS layer " + layerNum + ", type " + layerType + " unknown, ignoring it");
 			} else
 			{
-				System.out.println("GDS layer " + layerNum + " unknown, using Generic:DRC");
+				System.out.println("GDS layer " + layerNum + ", type " + layerType + " unknown, using Generic:DRC");
 			}
 			layerNames.put(layerInt, Generic.tech.drc_lay);
 			layerUsed = false;
@@ -1163,16 +1163,12 @@ public class GDS extends Input
 		getToken();
 		if (theToken != GDS_SHORT_NUMBER) handleError("Invalid layer number");
 
-		setLayer(tokenValue16);
+		int layerNum = tokenValue16;
 		getToken();
 		if (!isMember(theToken, maskSet)) handleError("No datatype field");
 
 		getToken();
-		if (tokenValue16 != 0)
-		{
-			// ignored value
-			int sublayer = tokenValue16;
-		}
+		setLayer(layerNum, tokenValue16);
 	}
 
 	/**

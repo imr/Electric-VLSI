@@ -43,6 +43,7 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.GDSLayers;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.AffineTransform;
@@ -51,6 +52,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -120,13 +122,6 @@ public class GDS extends Geometry
 	private static final double BESTTHRESH     =   0.001;		/* 1/1000 of a millimeter */
 	private static final double WORSTTHRESH    =   0.1;			/* 1/10 of a millimeter */
 
-	public static class GDSLayers
-	{
-		public int normal;
-		public int pin;
-		public int text;
-	}
-
 	/** for buffering output data */			private static byte [] dataBufferGDS = new byte[DSIZE];
 	/** for buffering output data */			private static byte [] emptyBuffer = new byte[DSIZE];
 	/** Current layer for gds output */			private static GDSLayers currentLayerNumbers;
@@ -195,7 +190,10 @@ public class GDS extends Geometry
 			for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )
 			{
 				PolyBase poly = (PolyBase)polyIt.next();
-				writePoly(poly, currentLayerNumbers.normal);
+				Integer firstLayer = (Integer)currentLayerNumbers.getFirstLayer();
+				int layerNum = firstLayer.intValue() & 0xFFFF;
+				int layerType = (firstLayer.intValue() >> 16) & 0xFFFF;
+				writePoly(poly, layerNum, layerType);
 			}
 		}
 
@@ -220,38 +218,42 @@ public class GDS extends Geometry
 				AffineTransform trans = fp.getTransformToTop();
 
 				// find the layer associated with this node
-				boolean wasWiped = bottomNi.isWiped();
-				bottomNi.clearWiped();
-				Technology tech = bottomNi.getProto().getTechnology();
-				Poly [] polys = tech.getShapeOfNode(bottomNi);
-				Poly poly = polys[0];
-				if (wasWiped) bottomNi.setWiped();
-				Layer layer = poly.getLayer().getNonPseudoLayer();
+				PrimitiveNode pNp = (PrimitiveNode)bottomNi.getProto();
+				Technology.NodeLayer [] nLay = pNp.getLayers();
+				Layer layer = nLay[0].getLayer().getNonPseudoLayer();
 				selectLayer(layer);
 
-				int textLayer, pinLayer;
+				int textLayer, pinLayer, textType = 0, pinType = 0;
 				textLayer = pinLayer = IOTool.getGDSOutDefaultTextLayer();
-				if (currentLayerNumbers.text >= 0) textLayer = currentLayerNumbers.text;
-				if (currentLayerNumbers.pin >= 0) pinLayer = currentLayerNumbers.pin;
+				if (currentLayerNumbers.getTextLayer() != -1)
+				{
+					textLayer = currentLayerNumbers.getTextLayer() & 0xFFFF;
+					textType = (currentLayerNumbers.getTextLayer() >> 16) & 0xFFFF;
+				}
+				if (currentLayerNumbers.getPinLayer() != -1)
+				{
+					pinLayer = currentLayerNumbers.getPinLayer() & 0xFFFF;
+					pinType = (currentLayerNumbers.getPinLayer() >> 16) & 0xFFFF;
+				}
 
 				// put out a pin if requested
 				if (IOTool.isGDSOutWritesExportPins())
                 {
-					writeExportOnLayer(pp, pinLayer);
+					writeExportOnLayer(pp, pinLayer, pinType);
 
                     // write the text
-                    writeExportOnLayer(pp, textLayer);
+                    writeExportOnLayer(pp, textLayer, textType);
                 }
 			}
 		}
 		outputHeader(HDR_ENDSTR, 0);
 	}
 
-	private void writeExportOnLayer(Export pp, int layer)
+	private void writeExportOnLayer(Export pp, int layer, int type)
 	{
 		outputHeader(HDR_TEXT, 0);
 		outputHeader(HDR_LAYER, layer);
-		outputHeader(HDR_TEXTTYPE, 0);
+		outputHeader(HDR_TEXTTYPE, type);
 		outputHeader(HDR_PRESENTATION, EXPORTPRESENTATION);
 
 		// now the orientation
@@ -308,11 +310,10 @@ public class GDS extends Geometry
 			if (layerName == null)
 			{
 				numbers = new GDSLayers();
-				numbers.normal = numbers.pin = numbers.text = -1;
 				validLayer = false;
 			} else
 			{
-				numbers = parseLayerString(layerName);
+				numbers = GDSLayers.parseLayerString(layerName);
 			}
 			layerNumbers.put(layer, numbers);
 		}
@@ -320,7 +321,7 @@ public class GDS extends Geometry
 		return validLayer;
 	}
 
-	protected void writePoly(PolyBase poly, int layerNumber)
+	protected void writePoly(PolyBase poly, int layerNumber, int layerType)
 	{
 		// ignore negative layer numbers
 		if (layerNumber < 0) return;
@@ -332,7 +333,7 @@ public class GDS extends Geometry
 			double r = points[0].distance(points[1]);
 			if (r <= 0) return;
 			Poly newPoly = new Poly(points[0].getX(), points[0].getY(), r*2, r*2);
-			outputBoundary(newPoly, layerNumber);
+			outputBoundary(newPoly, layerNumber, layerType);
 			return;
 		}
 
@@ -342,7 +343,7 @@ public class GDS extends Geometry
 			// rectangular manhattan shape: make sure it has positive area
 			if (polyBounds.getWidth() == 0 || polyBounds.getHeight() == 0) return;
 
-			outputBoundary(poly, layerNumber);
+			outputBoundary(poly, layerNumber, layerType);
 			return;
 		}
 
@@ -357,8 +358,8 @@ public class GDS extends Geometry
 			System.out.println("WARNING: GDS-II Polygons may not have more than 200 points (this has " + points.length + ")");
 			return;
 		}
-		if (points.length == 2) outputPath(poly, layerNumber); else
-		outputBoundary(poly, layerNumber);
+		if (points.length == 2) outputPath(poly, layerNumber, layerType); else
+		outputBoundary(poly, layerNumber, layerType);
 	}
 
 	protected void writeNodable(Nodable no)
@@ -421,8 +422,11 @@ public class GDS extends Geometry
 					// dump this text field
 					outputHeader(HDR_TEXT, 0);
 					if (firstLayer != null) selectLayer(firstLayer);
-					outputHeader(HDR_LAYER, currentLayerNumbers.normal);
-					outputHeader(HDR_TEXTTYPE, 0);
+					Integer firstLayerVal = (Integer)currentLayerNumbers.getFirstLayer();
+					int layerNum = firstLayerVal.intValue() & 0xFFFF;
+					int layerType = (firstLayerVal.intValue() >> 16) & 0xFFFF;
+					outputHeader(HDR_LAYER, layerNum);
+					outputHeader(HDR_TEXTTYPE, layerType);
 					outputHeader(HDR_PRESENTATION, EXPORTPRESENTATION);
 
 					// figure out transformation
@@ -708,7 +712,7 @@ public class GDS extends Geometry
 	}
 
 	// Output the pairs of XY points to the file 
-	private void outputBoundary(PolyBase poly, int layerNumber)
+	private void outputBoundary(PolyBase poly, int layerNumber, int layerType)
 	{
 		Point2D [] points = poly.getPoints();
 
@@ -750,7 +754,7 @@ public class GDS extends Geometry
 			if (sofar < count) sofar++;
 			outputHeader(HDR_BOUNDARY, 0);
 			outputHeader(HDR_LAYER, layerNumber);
-			outputHeader(HDR_DATATYPE, 0);
+			outputHeader(HDR_DATATYPE, layerType);
 			outputShort((short)(8 * (sofar+1) + 4));
 			outputShort(HDR_XY);
 			for (int i = start; i <= sofar; i++)
@@ -767,11 +771,11 @@ public class GDS extends Geometry
 		}
 	}
 
-	private void outputPath(PolyBase poly, int layerNumber)
+	private void outputPath(PolyBase poly, int layerNumber, int layerType)
 	{
 		outputHeader(HDR_PATH, 0);
 		outputHeader(HDR_LAYER, layerNumber);
-		outputHeader(HDR_DATATYPE, 0);
+		outputHeader(HDR_DATATYPE, layerType);
 		Point2D [] points = poly.getPoints();
 		int count = 8 * points.length + 4;
 		outputShort((short)count);
@@ -969,40 +973,4 @@ public class GDS extends Geometry
 //		ret[1] = (int)frac;
 //		outputIntArray(ret, 2);
 //	}
-
-	/**
-	 * Method to parse the GDS layer string and get the 3 layer numbers (plain, text, and pin).
-	 * @param string the GDS layer string, of the form NUM[,NUMt][,NUMp]
-	 * @return an array of 3 integers:
-	 * [0] is the regular layer number;
-	 * [1] is the pin layer number;
-	 * [2] is the text layer number.
-	 */
-	public static GDSLayers parseLayerString(String string)
-	{
-		GDSLayers answers = new GDSLayers();
-		answers.normal = answers.pin = answers.text = -1;
-		for(;;)
-		{
-			String trimmed = string.trim();
-			if (trimmed.length() == 0) break;
-			int number = TextUtils.atoi(trimmed);
-			int endPos = trimmed.indexOf(',');
-			if (endPos < 0) endPos = trimmed.length();
-			char lastch = trimmed.charAt(endPos-1);
-			if (lastch == 't')
-			{
-				answers.text = number;
-			} else if (lastch == 'p')
-			{
-				answers.pin = number;
-			} else
-			{
-				answers.normal = number;
-			}
-			if (endPos == trimmed.length()) break;
-			string = trimmed.substring(endPos+1);
-		}
-		return answers;
-	}
 }
