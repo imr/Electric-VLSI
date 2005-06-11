@@ -460,9 +460,10 @@ public class DesignRulesTab extends PreferencePanel
 					if (!designRulesValidLayers[i]) continue;
 					int layer1 = j;
 					int layer2 = i;
-					if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
-					int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
-					dindex = layer2 + drRules.numLayers * layer1 - dindex;
+                    int dindex = curTech.getRuleIndex(layer1, layer2);
+//					if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
+//					int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
+//					dindex = layer2 + drRules.numLayers * layer1 - dindex;
 
 					String line = drMakeToListLine(dindex, i, onlyvalid);
 					if (line.length() == 0) continue;
@@ -540,9 +541,10 @@ public class DesignRulesTab extends PreferencePanel
 		int layer2 = designRulesGetSelectedLayer(designRulesToList);
 		if (layer1 >= 0 && layer2 >= 0)
 		{
-			if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
-			int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
-			dindex = layer2 + drRules.numLayers * layer1 - dindex;
+            int dindex = curTech.getRuleIndex(layer1, layer2);
+//			if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
+//			int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
+//			dindex = layer2 + drRules.numLayers * layer1 - dindex;
 
 			if (drRules.conList[dindex].doubleValue() >= 0)
 				drNormalConnected.setText(drRules.conList[dindex].toString());
