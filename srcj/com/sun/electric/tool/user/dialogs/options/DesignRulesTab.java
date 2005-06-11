@@ -274,12 +274,6 @@ public class DesignRulesTab extends PreferencePanel
 			if (layer1 < 0) return;
 			int layer2 = designRulesGetSelectedLayer(designRulesToList);
 			if (layer2 < 0) return;
-            /*
-			int lowLayer = layer1, highLayer = layer2;
-			if (lowLayer > highLayer) { int temp = lowLayer; lowLayer = highLayer;  highLayer = temp; }
-			int dindex = (lowLayer+1) * (lowLayer/2) + (lowLayer&1) * ((lowLayer+1)/2);
-			dindex = highLayer + drRules.numLayers * lowLayer - dindex;
-            */
             int dindex = curTech.getRuleIndex(layer1, layer2);
 
 			// get new normal spacing values
@@ -320,7 +314,6 @@ public class DesignRulesTab extends PreferencePanel
 
 			// get new width limit
 			a = drWideLimit.getText();
-			double value = TextUtils.atof(a);
             drRules.wideLimit = new Double(TextUtils.atof(a));
 
 			// redraw the entry in the "to" list
@@ -461,11 +454,8 @@ public class DesignRulesTab extends PreferencePanel
 					int layer1 = j;
 					int layer2 = i;
                     int dindex = curTech.getRuleIndex(layer1, layer2);
-//					if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
-//					int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
-//					dindex = layer2 + drRules.numLayers * layer1 - dindex;
-
 					String line = drMakeToListLine(dindex, i, onlyvalid);
+
 					if (line.length() == 0) continue;
 					designRulesToModel.addElement(line);
 					count++;
@@ -542,9 +532,6 @@ public class DesignRulesTab extends PreferencePanel
 		if (layer1 >= 0 && layer2 >= 0)
 		{
             int dindex = curTech.getRuleIndex(layer1, layer2);
-//			if (layer1 > layer2) { int temp = layer1; layer1 = layer2;  layer2 = temp; }
-//			int dindex = (layer1+1) * (layer1/2) + (layer1&1) * ((layer1+1)/2);
-//			dindex = layer2 + drRules.numLayers * layer1 - dindex;
 
 			if (drRules.conList[dindex].doubleValue() >= 0)
 				drNormalConnected.setText(drRules.conList[dindex].toString());
