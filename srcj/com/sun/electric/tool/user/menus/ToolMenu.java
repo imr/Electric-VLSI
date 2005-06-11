@@ -549,13 +549,13 @@ public class ToolMenu {
     }
 
     /**
-     * Method to kick area coverage per layer in a cell
+     * Method to kick area coverage per layer in a cell. It has to be public due to regressions.
      * @param cell
      * @param mode
      * @param startJob to determine if job has to run in a separate thread
      * @return true if job runs without errors. Only valid if startJob is false (regression purpose)
      */
-    private static boolean layerCoverageCommand(Cell cell, int mode, boolean startJob)
+    public static boolean layerCoverageCommand(Cell cell, int mode, boolean startJob)
     {
         Cell curCell = cell;
 
