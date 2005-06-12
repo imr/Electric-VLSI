@@ -140,7 +140,9 @@ public abstract class LibraryFiles extends Input
             this.value = value;
         }
         
-        void makeVariable(ElectricObject eObj, LibraryFiles libFiles)
+        void makeVariable(ElectricObject eObj, LibraryFiles libFiles) { makeVariable(eObj, libFiles, value); }
+        
+        void makeVariable(ElectricObject eObj, LibraryFiles libFiles, Object value)
         {
             if (eObj instanceof Library && name.equals(Library.FONT_ASSOCIATIONS.getName()) && value instanceof String[])
             {
@@ -737,38 +739,39 @@ public abstract class LibraryFiles extends Input
                 center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
             }
 		}
-        
-        DiskVariable[] vars = nil.vars[nodeIndex];
+            
+		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], -1, nil.nameTextDescriptor[nodeIndex],
+                center, width, height, rotation,
+                nil.userBits[nodeIndex], nil.protoTextDescriptor[nodeIndex]);
+        nil.theNode[nodeIndex] = ni;
+        if (ni == null) return;
+       DiskVariable[] vars = nil.vars[nodeIndex];
         if (vars != null) {
             // Preprocess TRACE variables
             for (int j = 0; j < vars.length; j++) {
                 DiskVariable v = vars[j];
                 if (v == null) continue;
+                Object value = v.value;
                 if (v.name.equals(NodeInst.TRACE.getName()) &&
                         proto instanceof PrimitiveNode && ((PrimitiveNode)proto).isHoldsOutline() &&
-                        (v.value instanceof Integer[] || v.value instanceof Float[])) {
+                        (value instanceof Integer[] || value instanceof Float[])) {
                     // convert outline information, if present
-                    Number[] outline = (Number[])v.value;
-                    int newLength = ((Object[])v.value).length / 2;
+                    Number[] outline = (Number[])value;
+                    int newLength = outline.length / 2;
                     Point2D [] newOutline = new Point2D[newLength];
-                    double lam = v.value instanceof Integer[] ? lambda : 1.0;
+                    double lam = outline instanceof Integer[] ? lambda : 1.0;
                     for(int k=0; k<newLength; k++) {
                         double oldX = outline[k*2].doubleValue()/lam;
                         double oldY = outline[k*2+1].doubleValue()/lam;
                         newOutline[k] = new Point2D.Double(oldX, oldY);
 //                        newOutline[k] = new EPoint(oldX, oldY);
                     }
-                    v.value = newOutline;
+                    value = newOutline;
                 }
+                v.makeVariable(ni, this, value);
             }
         }
-        
-		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], -1, nil.nameTextDescriptor[nodeIndex],
-                center, width, height, rotation,
-                nil.userBits[nodeIndex], nil.protoTextDescriptor[nodeIndex]);
-        nil.theNode[nodeIndex] = ni;
-        if (ni == null) return;
-        realizeVariables(ni, vars);
+//        realizeVariables(ni, vars);
 
         // if this was a dummy cell, log instance as an error so the user can find easily
         if (proto instanceof Cell && ((Cell)proto).getVar(IO_DUMMY_OBJECT) != null) {
@@ -890,10 +893,4 @@ public abstract class LibraryFiles extends Input
 	 * Method to recursively create the contents of each cell in the library.
 	 */
 	abstract void realizeCellsRecursively(Cell cell, HashSet/*<Cell>*/ recursiveSetupFlag, String scaledCellName, double scale);
-
-	protected boolean readerHasExport(Cell c, String portName)
-	{
-		return false;
-	}
-
 }

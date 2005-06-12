@@ -555,8 +555,7 @@ public class ELIB extends Output
 				writeTextDescriptor(pp.getTextDescriptor(Export.EXPORT_NAME_TD), true);
 
 				// write the portproto tool information
-				writeBigInteger(pp.lowLevelGetUserbits() & ELIBConstants.EXPORT_BITS);
-//				writeBigInteger(pp.lowLevelGetUserbits());
+				writeBigInteger(pp.lowLevelGetUserbits());
 
 				// write variable information
 				writeVariables(pp, 0);
@@ -715,9 +714,7 @@ public class ELIB extends Output
 		writeObj(ai.getHeadPortInst().getNodeInst());
 
 		// write the arcinst's tool information
-		int arcAngle = ai.getAngle() / 10;
-		ai.lowLevelSetArcAngle(arcAngle);
-		int userBits = ELIBConstants.makeELIBArcBits(ai);
+		int userBits = ai.makeELIBArcBits();
 		writeBigInteger(userBits);
 
 		// write variable information and arc name

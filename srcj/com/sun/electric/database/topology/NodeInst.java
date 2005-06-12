@@ -770,11 +770,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 							newNi.kill();
 							return null;
 						}
-						newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
-						newAi.setHeadNegated(ai.isHeadNegated());
-						newAi.setTailNegated(ai.isTailNegated());
-						newAi.copyVarsFrom(ai);
-						newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
+                        newAi.copyPropertiesFrom(ai);
+//						newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
+//						newAi.setHeadNegated(ai.isHeadNegated());
+//						newAi.setTailNegated(ai.isTailNegated());
+//						newAi.copyVarsFrom(ai);
+//						newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 						continue;
 					}
 				}
@@ -794,14 +795,18 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], pinPi, newPoint[0],
 				    new Point2D.Double(cX, cY), null, 0);
 				if (newAi == null) return null;
-				newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
-				newAi.setHeadNegated(ai.isHeadNegated());
+                newAi.copyPropertiesFrom(ai);
+//				newAi.copyStateBits(ai);
+//				newAi.setHeadNegated(ai.isHeadNegated());
+//                newAi.copyVarsFrom(ai);
+//                newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 
 				ArcInst newAi2 = ArcInst.newInstance(ai.getProto(), ai.getWidth(), pinPi, newPortInst[1], new Point2D.Double(cX, cY),
 				        newPoint[1], null, 0);
 				if (newAi2 == null) return null;
-				newAi2.lowLevelSetUserbits(ai.lowLevelGetUserbits());
-				newAi2.setTailNegated(ai.isTailNegated());
+                newAi2.copyConstraintsFrom(ai);
+//				newAi2.copyStateBits(ai);
+//				newAi2.setTailNegated(ai.isTailNegated());
 				if (newPortInst[1].getNodeInst() == this)
 				{
 					ArcInst aiSwap = newAi;   newAi = newAi2;   newAi2 = aiSwap;
@@ -815,12 +820,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 					newNi.kill();
 					return null;
 				}
-				newAi.lowLevelSetUserbits(ai.lowLevelGetUserbits());
-				newAi.setHeadNegated(ai.isHeadNegated());
-				newAi.setTailNegated(ai.isTailNegated());
+				newAi.copyPropertiesFrom(ai);
+//				newAi.setHeadNegated(ai.isHeadNegated());
+//				newAi.setTailNegated(ai.isTailNegated());
 			}
-			newAi.copyVarsFrom(ai);
-			newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 			ai.kill();
 			newAi.setName(ai.getName());
 		}
@@ -2062,10 +2065,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public PortInst findPortInstFromProto(PortProto pp)
 	{
-        int index = pp.getPortIndex();
-        if (index >= portInsts.length)
-            return null;
-		return portInsts[index];
+		return portInsts[pp.getPortIndex()];
 	}
 
 	/**

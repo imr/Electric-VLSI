@@ -141,22 +141,24 @@ public class ELIB extends LibraryFiles
 	/** list of the head X of the ArcInsts in the library */				private int [] arcHeadXPosList;
 	/** list of the head Y of the ArcInsts in the library */				private int [] arcHeadYPosList;
 	/** list of the head node of the ArcInsts in the library */				private int [] arcHeadNodeList;
-	/** list of the head port of the ArcInsts in the library */				private Object [] arcHeadPortList;
+	/** list of the head port of the ArcInsts in the library */				private int [] arcHeadPortList;
 	/** list of the tail X of the ArcInsts in the library */				private int [] arcTailXPosList;
 	/** list of the tail Y of the ArcInsts in the library */				private int [] arcTailYPosList;
 	/** list of the tail node of the ArcInsts in the library */				private int [] arcTailNodeList;
-	/** list of the tail port of the ArcInsts in the library */				private Object [] arcTailPortList;
+	/** list of the tail port of the ArcInsts in the library */				private int [] arcTailPortList;
 	/** list of the user flags on the ArcInsts in the library */			private int [] arcUserBits;
 	/** list of the variables on the ArcInsts in the library */             private DiskVariable [][] arcVariables;
 
 	// the Exports in the library
-	/** the number of Exports in the library */								private int portProtoCount;
-	/** counter for Exports in the library */								private int portProtoIndex;
-	/** list of all Exports in the library */								private Object [] portProtoList;
-	/** list of NodeInsts that are origins of Exports in the library */		private int [] portProtoSubNodeList;
-	/** list of PortProtos that are origins of Exports in the library */	private Object [] portProtoSubPortList;
-	/** list of Export names in the library */								private String [] portProtoNameList;
-	/** list of Export userbits in the library */							private int [] portProtoUserbits;
+	/** the number of Exports in the library */								private int exportCount;
+	/** counter for Exports in the library */								private int exportIndex;
+	/** list of all Exports in the library */								private Object [] exportList;
+	/** list of NodeInsts that are origins of Exports in the library */		private int [] exportSubNodeList;
+	/** list of PortProtos that are origins of Exports in the library */	private int [] exportSubPortList;
+	/** list of Export names in the library */								private String [] exportNameList;
+    /** list of Export name descriptors in the library */                   private ImmutableTextDescriptor [] exportNameDescriptors;
+	/** list of Export userbits in the library */							private int [] exportUserbits;
+    /** list of variables on Exports in the library */                      private DiskVariable [][] exportVariables;
 
 	// the geometric information (only used for old format files)
 	/** the number of Geometrics in the file */								private int geomCount;
@@ -233,7 +235,7 @@ public class ELIB extends LibraryFiles
 		arcProtoCount = readBigInteger();
 		nodeProtoCount = readBigInteger();
 		nodeCount = readBigInteger();
-		portProtoCount = readBigInteger();
+		exportCount = readBigInteger();
 		arcCount = readBigInteger();
 		geomCount = readBigInteger();
 		if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11)
@@ -364,29 +366,31 @@ public class ELIB extends LibraryFiles
 		arcHeadXPosList = new int[arcCount];
 		arcHeadYPosList = new int[arcCount];
 		arcHeadNodeList = new int[arcCount];
-		arcHeadPortList = new Object[arcCount];
+		arcHeadPortList = new int[arcCount];
 		arcTailXPosList = new int[arcCount];
 		arcTailYPosList = new int[arcCount];
 		arcTailNodeList = new int[arcCount];
-		arcTailPortList = new Object[arcCount];
+		arcTailPortList = new int[arcCount];
 		arcUserBits = new int[arcCount];
         arcVariables = new DiskVariable[arcCount][];
 		for(int i = 0; i < arcCount; i++)
 		{
 			arcHeadNodeList[i] = -1;
-			arcHeadPortList[i] = null;
+			arcHeadPortList[i] = -1;
 			arcTailNodeList[i] = -1;
-			arcTailPortList[i] = null;
+			arcTailPortList[i] = -1;
 			arcNameList[i] = null;
 			arcUserBits[i] = 0;
 		}
 
 		// allocate pointers for the Exports
-		portProtoList = new Object[portProtoCount];
-		portProtoSubNodeList = new int[portProtoCount];
-		portProtoSubPortList = new Object[portProtoCount];
-		portProtoNameList = new String[portProtoCount];
-		portProtoUserbits = new int[portProtoCount];
+		exportList = new Object[exportCount];
+		exportSubNodeList = new int[exportCount];
+		exportSubPortList = new int[exportCount];
+		exportNameList = new String[exportCount];
+        exportNameDescriptors = new ImmutableTextDescriptor[exportCount];
+		exportUserbits = new int[exportCount];
+        exportVariables = new DiskVariable[exportCount][];
 
 		// versions 9 to 11 allocate fake-cell pointers
 		if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11)
@@ -434,9 +438,9 @@ public class ELIB extends LibraryFiles
 				System.out.println("Error: cells have " + arcInstPos + " arcs but library has " + arcCount);
 				return true;
 			}
-			if (portProtoPos != portProtoCount)
+			if (portProtoPos != exportCount)
 			{
-				System.out.println("Error: cells have " + portProtoPos + " ports but library has " + portProtoCount);
+				System.out.println("Error: cells have " + portProtoPos + " ports but library has " + exportCount);
 				return true;
 			}
 		} else
@@ -444,7 +448,7 @@ public class ELIB extends LibraryFiles
 			// version 1 computes this information
 			arcCounts[0] = arcCount;
 			nodeCounts[0] = nodeCount;
-			portCounts[0] = portProtoCount;
+			portCounts[0] = exportCount;
 			for(int i=1; i<nodeProtoCount; i++)
 				arcCounts[i] = nodeCounts[i] = portCounts[i] = 0;
 		}
@@ -463,30 +467,6 @@ public class ELIB extends LibraryFiles
 				if (nodeProtoList[i] == null) return true;
 				xLibRefSatisfied[i] = true;
 			}
-		}
-
-		// allocate the nodes, arcs, and exports in each cell
-		int portprotopos = 0;
-		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
-		{
-			Cell cell = nodeProtoList[cellIndex];
-			if (cell == null)
-			{
-				// for external references, clear the port proto list
-				for(int i=0; i<portCounts[cellIndex]; i++)
-					portProtoList[portprotopos+i] = null;
-				portprotopos += portCounts[cellIndex];
-				continue;
-			}
-
-			// allocate port prototypes in this cell
-			for(int i=0; i<portCounts[cellIndex]; i++)
-			{
-				int thisone = i + portprotopos;
-				portProtoList[thisone] = Export.lowLevelAllocate();
-				if (portProtoList[thisone] == null) return true;
-			}
-			portprotopos += portCounts[cellIndex];
 		}
 
 		// setup pointers for technologies and primitives
@@ -792,7 +772,7 @@ public class ELIB extends LibraryFiles
 		}
 
 		// read the cells
-		portProtoIndex = 0;
+		exportIndex = 0;
 		HashMap nextInCellGroup = new HashMap();
 		for(int i=0; i<nodeProtoCount; i++)
 		{
@@ -1004,16 +984,16 @@ public class ELIB extends LibraryFiles
 				int endPort = startPort + portCounts[cI];
 				for(int j=startPort; j<endPort; j++)
 				{
-					Object obj = portProtoList[j];
+					Object obj = exportList[j];
 					Export pp = null;
 					Cell otherCell = null;
 					if (obj instanceof Cell)
 					{
 						otherCell = (Cell)obj;
-						pp = otherCell.findExport(portProtoNameList[j]);
+						pp = otherCell.findExport(exportNameList[j]);
 						if (pp != null)
 						{
-							portProtoList[j] = pp;
+							exportList[j] = pp;
 						}
 					}
 				}
@@ -1193,65 +1173,65 @@ public class ELIB extends LibraryFiles
 		int endPort = startPort + portCounts[cellIndex];
 		for(int i=startPort; i<endPort; i++)
 		{
-//			if (portProtoList[i] instanceof Cell)
+//			if (exportList[i] instanceof Cell)
 //			{
-//				Cell otherCell = (Cell)portProtoList[i];
-//				Export pp = otherCell.findExport(portProtoNameList[i]);
-//				if (pp != null) portProtoList[i] = pp;
+//				Cell otherCell = (Cell)exportList[i];
+//				Export pp = otherCell.findExport(exportNameList[i]);
+//				if (pp != null) exportList[i] = pp;
 //			}
-			if (!(portProtoList[i] instanceof Export))
-            {
-                // could be missing because this is a dummy cell
-                if (cell.getVar(IO_DUMMY_OBJECT) != null)
-                    continue;               // don't issue error message
-                // not on a dummy cell, issue error message
-                System.out.println("ERROR: Cell "+cell.describe() + ": export " + portProtoNameList[i] + " is unresolved");
-                continue;
-			}
-			Export pp = (Export)portProtoList[i];
-			if (scaledCellName != null)
-			{
-				String oldName = pp.getName();
-				pp = Export.lowLevelAllocate();
-				pp.lowLevelName(cell, oldName);
-			}
-			int nodeIndex = portProtoSubNodeList[i];
+//			if (!(exportList[i] instanceof Export))
+//            {
+//                // could be missing because this is a dummy cell
+//                if (cell.getVar(IO_DUMMY_OBJECT) != null)
+//                    continue;               // don't issue error message
+//                // not on a dummy cell, issue error message
+//                System.out.println("ERROR: Cell "+cell.describe() + ": export " + exportNameList[i] + " is unresolved");
+//                continue;
+//			}
+			String exportName = exportNameList[i];
+			int nodeIndex = exportSubNodeList[i];
 			if (nodeIndex < 0)
 			{
-				System.out.println("ERROR: Cell " + cell.describe() + ": cannot find the node on which export " + pp.getName() + " resides");
+				System.out.println("ERROR: Cell " + cell.describe() + ": cannot find the node on which export " + exportName + " resides");
 				continue;
 			}
 			NodeInst subNodeInst = nodeInstList.theNode[nodeIndex];
-			Object o = portProtoSubPortList[i];
-			if (portProtoSubPortList[i] instanceof Integer)
-			{
-				// this was an external reference that couldn't be resolved yet.  Do it now
-				int index = ((Integer)portProtoSubPortList[i]).intValue();
-				portProtoSubPortList[i] = convertPortProto(index);
-			}
-			PortProto subPortProto = (PortProto)portProtoSubPortList[i];
+            PortProto subPortProto = convertPortProto(exportSubPortList[i]);
+//			Object o = exportSubPortList[i];
+//			if (exportSubPortList[i] instanceof Integer)
+//			{
+//				// this was an external reference that couldn't be resolved yet.  Do it now
+//				int index = ((Integer)exportSubPortList[i]).intValue();
+//				exportSubPortList[i] = convertPortProto(index);
+//			}
+//			PortProto subPortProto = (PortProto)exportSubPortList[i];
 
 			// null entries happen when there are external cell references
 			if (subNodeInst == null || subPortProto == null || subNodeInst.getParent() != cell || subNodeInst.getProto() != subPortProto.getParent()) {
-				String msg = "ERROR: Cell "+cell.describe() + ": export " + portProtoNameList[i] + " could not be created";
+				String msg = "ERROR: Cell "+cell.describe() + ": export " + exportNameList[i] + " could not be created";
                 System.out.println(msg);
 				Input.errorLogger.logError(msg, cell, 1);
                 continue;
             }
 			if (subNodeInst.getProto() == null)
 			{
-				String msg = "ERROR: Cell "+cell.describe() + ": export " + portProtoNameList[i] + " could not be created...proto bad!";
+				String msg = "ERROR: Cell "+cell.describe() + ": export " + exportNameList[i] + " could not be created...proto bad!";
                 System.out.println(msg);
 				Input.errorLogger.logError(msg, cell, 1);
 				continue;
 			}
 
 			// convert portproto to portinst
-			String exportName = portProtoNameList[i];
 			PortInst pi = subNodeInst.findPortInst(subPortProto.getName());
-			if (pp.lowLevelPopulate(pi)) return;
-			if (pp.lowLevelLink(null)) return;
-			pp.lowLevelSetUserbits(portProtoUserbits[i]);
+            Export pp = Export.newInstance(cell, exportName, exportNameDescriptors[i], pi, exportUserbits[i]);
+//			Export pp = new Export(cell, exportName);
+//			pp.setTextDescriptor(Export.EXPORT_NAME_TD, exportNameDescriptors[i]);
+//			if (pp.lowLevelPopulate(pi)) return;
+//			if (pp.lowLevelLink(null)) return;
+//			pp.lowLevelSetUserbits(exportUserbits[i]);
+            exportList[i] = pp;
+            if (pp == null) continue;
+			realizeVariables(pp, exportVariables[i]);
 		}
 
 		// convert "ATTRP_" variables on NodeInsts to be on PortInsts
@@ -1341,20 +1321,22 @@ public class ELIB extends LibraryFiles
 				continue;
 			}
 			NodeInst headNode = nodeInstList.theNode[arcHeadNodeList[i]];
-			Object headPort = arcHeadPortList[i];
-			int headPortIntValue = -1;
+            int headPortIntValue = arcHeadPortList[i];
+            PortProto headPort = convertPortProto(headPortIntValue);
+//			Object headPort = arcHeadPortList[i];
+//			int headPortIntValue = -1;
             String headname = "Port name not found";
-			if (headPort instanceof Integer)
-			{
-				// this was an external reference that couldn't be resolved yet.  Do it now
-				headPortIntValue = ((Integer)headPort).intValue();
-				headPort = convertPortProto(headPortIntValue);
-			}
+//			if (headPort instanceof Integer)
+//			{
+//				// this was an external reference that couldn't be resolved yet.  Do it now
+//				headPortIntValue = ((Integer)headPort).intValue();
+//				headPort = convertPortProto(headPortIntValue);
+//			}
             if (headPort != null) {
                 headname = ((PortProto)headPort).getName();
             } else {
-                if (headPortIntValue >= 0 && headPortIntValue < portProtoNameList.length)
-                    headname = portProtoNameList[headPortIntValue];
+                if (headPortIntValue >= 0 && headPortIntValue < exportNameList.length)
+                    headname = exportNameList[headPortIntValue];
             }
 
 			if (arcTailNodeList[i] < 0)
@@ -1363,22 +1345,24 @@ public class ELIB extends LibraryFiles
 				continue;
 			}
 			NodeInst tailNode = nodeInstList.theNode[arcTailNodeList[i]];
-			Object tailPort = arcTailPortList[i];
-			int tailPortIntValue = -1;
+			int tailPortIntValue = arcTailPortList[i];
+            PortProto tailPort = convertPortProto(tailPortIntValue);
+//			Object tailPort = arcTailPortList[i];
+//			int tailPortIntValue = -1;
             String tailname = "Port name not found";
-			if (tailPort instanceof Integer)
-			{
-				// this was an external reference that couldn't be resolved yet.  Do it now
-				tailPortIntValue = ((Integer)tailPort).intValue();
-				tailPort = convertPortProto(tailPortIntValue);
-                if (tailPortIntValue > 0 && tailPortIntValue < portProtoNameList.length)
-                    tailname = portProtoNameList[tailPortIntValue];
-			}
+//			if (tailPort instanceof Integer)
+//			{
+//				// this was an external reference that couldn't be resolved yet.  Do it now
+//				tailPortIntValue = ((Integer)tailPort).intValue();
+//				tailPort = convertPortProto(tailPortIntValue);
+//                if (tailPortIntValue > 0 && tailPortIntValue < exportNameList.length)
+//                    tailname = exportNameList[tailPortIntValue];
+//			}
             if (tailPort != null) {
                 tailname = ((PortProto)tailPort).getName();
             } else {
-                if (tailPortIntValue >= 0 && tailPortIntValue < portProtoNameList.length)
-                    tailname = portProtoNameList[tailPortIntValue];
+                if (tailPortIntValue >= 0 && tailPortIntValue < exportNameList.length)
+                    tailname = exportNameList[tailPortIntValue];
             }
             /*			if (headNode == null || headPort == null || tailNode == null || tailPort == null)
 			{
@@ -1396,29 +1380,25 @@ public class ELIB extends LibraryFiles
 			}*/
             //PortInst headPortInst = headNode.findPortInst(((PortProto)headPort).getName());
             //PortInst tailPortInst = tailNode.findPortInst(((PortProto)tailPort).getName());
-            ArcInst ai = ArcInst.lowLevelAllocate();
-            arcList[i] = ai;
-            PortInst headPortInst = getArcEnd(ai, ap, headNode, headname, headX, headY, cell);
-            PortInst tailPortInst = getArcEnd(ai, ap, tailNode, tailname, tailX, tailY, cell);
+           PortInst headPortInst = getArcEnd(null/*ai*/, ap, headNode, headname, headX, headY, cell);
+            PortInst tailPortInst = getArcEnd(null/*ai*/, ap, tailNode, tailname, tailX, tailY, cell);
 			if (headPortInst == null || tailPortInst == null)
 			{
 				System.out.println("Cannot create arc of type " + ap.getName() + " in cell " + cell.getName() +
 					" because ends are unknown");
 				continue;
 			}
-			if (ai.lowLevelPopulate(ap, width, headPortInst, new EPoint(headX, headY), tailPortInst, new EPoint(tailX, tailY), name, -1))
+            ArcInst ai = ArcInst.newInstance(cell, ap, name, -1, arcNameDescriptorList[i], headPortInst, tailPortInst,
+                    new EPoint(headX, headY), new EPoint(tailX, tailY), width, ArcInst.fromElibBits(arcUserBits[i]));
+            arcList[i] = ai;
+ 			if (ai == null)
 			{
 				String msg = "ERROR: Cell "+cell.describe() + ": arc " + name + " could not be created";
                 System.out.println(msg);
 				Input.errorLogger.logError(msg, cell, 1);
 				continue;
 			}
-			ELIBConstants.applyELIBArcBits(ai, arcUserBits[i]);
-            if (arcNameDescriptorList[i] != null)
-                ai.setTextDescriptor(ArcInst.ARC_NAME_TD, arcNameDescriptorList[i]);
-            int defAngle = ai.lowLevelGetArcAngle() * 10;
             realizeVariables(ai, arcVariables[i]);
-			ai.lowLevelLink(defAngle);
 		}
 	}
 
@@ -1456,24 +1436,6 @@ public class ELIB extends LibraryFiles
         }
         return scaledCell != null ? scaledCell : subCell;
     }
-
-	protected boolean readerHasExport(Cell c, String portName)
-	{
-		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
-		{
-			Cell cell = nodeProtoList[cellIndex];
-			if (cell != c) continue;
-			int startPort = firstPortIndex[cellIndex];
-			int endPort = startPort + portCounts[cellIndex];
-			for(int i=startPort; i<endPort; i++)
-			{
-				String exportName = portProtoNameList[i];
-				if (exportName.equalsIgnoreCase(portName)) return true;
-			}
-			break;
-		}
-		return false;
-	}
 
     // node is node we expect to have port 'portname' at location x,y.
     protected PortInst getArcEnd(ArcInst ai, ArcProto ap, NodeInst node, String portname, double x, double y, Cell cell)
@@ -1682,37 +1644,34 @@ public class ELIB extends LibraryFiles
 		}
 
 		// read the exports on this nodeproto
-		firstPortIndex[cellIndex] = portProtoIndex;
+		firstPortIndex[cellIndex] = exportIndex;
 		int portCount = readBigInteger();
 		if (portCount != portCounts[cellIndex])
 			System.out.println("Error! Cell header lists " + portCounts[cellIndex] + " exports, but body lists " + portCount);
 		for(int j=0; j<portCount; j++)
 		{
-			// set pointers to portproto
-			Export pp = (Export)portProtoList[portProtoIndex];
-
 			// read the sub-NodeInst for this Export
-			portProtoSubNodeList[portProtoIndex] = -1;
+			exportSubNodeList[exportIndex] = -1;
 			int whichNode = readBigInteger();
 			if (whichNode >= 0 && whichNode < nodeCount)
-				portProtoSubNodeList[portProtoIndex] = whichNode;
+				exportSubNodeList[exportIndex] = whichNode;
 
 			// read the sub-PortProto on the sub-NodeInst
-			portProtoSubPortList[portProtoIndex] = null;
-			int whichPort = readBigInteger();
-			if (whichPort < 0 || portProtoList[whichPort] != null)
-				portProtoSubPortList[portProtoIndex] = convertPortProto(whichPort);
-			if (portProtoSubPortList[portProtoIndex] == null)
-			{
-				portProtoSubPortList[portProtoIndex] = new Integer(whichPort);
-			}
+            exportSubPortList[exportIndex] = readBigInteger();
+//			exportSubPortList[exportIndex] = null;
+//			int whichPort = readBigInteger();
+//			if (whichPort < 0 || exportList[whichPort] != null)
+//				exportSubPortList[exportIndex] = convertPortProto(whichPort);
+//			if (exportSubPortList[exportIndex] == null)
+//			{
+//				exportSubPortList[exportIndex] = new Integer(whichPort);
+//			}
 
 			// read the Export name
 			String exportName = readString();
-			portProtoNameList[portProtoIndex] = exportName;
-			if (pp.lowLevelName(cell, exportName)) return true;
+			exportNameList[exportIndex] = exportName;
 
-			if (portProtoSubNodeList[portProtoIndex] == -1)
+			if (exportSubNodeList[exportIndex] == -1)
 			{
 				System.out.println("Error: Export '" + exportName + "' of cell " + theProtoName +
 					" cannot be read properly");
@@ -1733,32 +1692,31 @@ public class ELIB extends LibraryFiles
 					descript1 = readBigInteger();
 				}
 			}
-            mtd.setCBits(descript0, descript1);
-			pp.setTextDescriptor(Export.EXPORT_NAME_TD, mtd);
+            exportNameDescriptors[exportIndex] = makeDescriptor(descript0, descript1);
 
 			// ignore the "seen" bits (versions 8 and older)
 			if (magic > ELIBConstants.MAGIC9) readBigInteger();
 
 			// read the portproto's "user bits"
-			portProtoUserbits[portProtoIndex] = 0;
+			exportUserbits[exportIndex] = 0;
 			if (magic <= ELIBConstants.MAGIC7)
 			{
 				// version 7 and later simply read the relevant data
-				portProtoUserbits[portProtoIndex] = readBigInteger();
+				exportUserbits[exportIndex] = readBigInteger();
 
 				// versions 7 and 8 ignore net number
 				if (magic >= ELIBConstants.MAGIC8) readBigInteger();
 			} else
 			{
 				// version 6 and earlier must sift through the information
-				if (toolBCount >= 1) portProtoUserbits[portProtoIndex] = readBigInteger();
+				if (toolBCount >= 1) exportUserbits[exportIndex] = readBigInteger();
 				for(int i=1; i<toolBCount; i++) readBigInteger();
 			}
 
 			// read the export variables
-			realizeVariables(pp, readVariables());
+            exportVariables[exportIndex] = readVariables();
 
-			portProtoIndex++;
+			exportIndex++;
 		}
 
 		// ignore the cell's geometry information
@@ -1970,16 +1928,16 @@ public class ELIB extends LibraryFiles
 		nodeProtoList[cellIndex] = c;
 
 		// read the portprotos on this Cell
-		firstPortIndex[cellIndex] = portProtoIndex;
+		firstPortIndex[cellIndex] = exportIndex;
 		if (portCount != portCounts[cellIndex])
 			System.out.println("Error! Cell header lists " + portCounts[cellIndex] + " exports, but body lists " + portCount);
 		for(int j=0; j<portCount; j++)
 		{
 			// read the portproto name
 			String protoName = localPortNames[j];
-			portProtoList[portProtoIndex] = c;
-			portProtoNameList[portProtoIndex] = protoName;
-			portProtoIndex++;
+			exportList[exportIndex] = c;
+			exportNameList[exportIndex] = protoName;
+			exportIndex++;
 		}
 		return false;
 	}
@@ -2059,13 +2017,8 @@ public class ELIB extends LibraryFiles
 
 			// read the port information
 			int portIndex = readBigInteger();
-			Object pp = convertPortProto(portIndex);
-			if (pp == null)
-				pp = new Integer(portIndex);
-			if ((k&1) == 0) arcTailPortList[arcIndex] = pp; else
-				arcHeadPortList[arcIndex] = pp;
-// 			if ((k&1) == 0) arcHeadPortList[arcIndex] = pp; else
-// 				arcTailPortList[arcIndex] = pp;
+			if ((k&1) == 0) arcTailPortList[arcIndex] = portIndex; else
+				arcHeadPortList[arcIndex] = portIndex;
 
 			// ignore variables on port instance
 			ignoreVariables();
@@ -2564,13 +2517,13 @@ public class ELIB extends LibraryFiles
 			return getPrimPortProtoList(pindex);
 		}
 
-		if (i >= portProtoCount)
+		if (i >= exportCount)
 		{
-			System.out.println("Error: want port index " + i + " when limit is " + portProtoCount);
+			System.out.println("Error: want port index " + i + " when limit is " + exportCount);
 			i = 0;
 		}
-		if (portProtoList[i] instanceof Cell) return null;
-		return (Export)portProtoList[i];
+		if (exportList[i] instanceof Cell) return null;
+		return (Export)exportList[i];
 	}
 
 	private NodeProto getPrimNodeProtoList(int i)

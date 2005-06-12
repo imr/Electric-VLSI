@@ -891,8 +891,14 @@ public class JELIB extends LibraryFiles
 			PortInst pi = figureOutPortInst(cell, portName, nodeName, pos, diskName, cc.fileName, cc.lineNumber + line);
 			if (pi == null) continue;
 
+			// get text descriptor in field 1
+			String textDescriptorInfo = (String)pieces.get(1);
+            ImmutableTextDescriptor nameTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
+			// parse state information in field 6
+            int userBits = Export.parseJelibUserBits((String)pieces.get(numPieces - 1));
+            
 			// create the export
-			Export pp = Export.newInstance(cell, pi, exportName, false);
+			Export pp = Export.newInstance(cell, exportName, nameTextDescriptor, pi, userBits);
 			if (pp == null)
 			{
 				ErrorLogger.MessageLog log = Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
@@ -901,28 +907,7 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 
-			// get text descriptor in field 1
-			String textDescriptorInfo = (String)pieces.get(1);
-			pp.setTextDescriptor(Export.EXPORT_NAME_TD, loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line));
-
-			// parse state information in field 6
-			String stateInfo = (String)pieces.get(numPieces - 1);
-			int slashPos = stateInfo.indexOf('/');
-			if (slashPos >= 0)
-			{
-				String extras = stateInfo.substring(slashPos);
-				stateInfo = stateInfo.substring(0, slashPos);
-				while (extras.length() > 0)
-				{
-					if (extras.charAt(1) == 'A') pp.setAlwaysDrawn(); else
-					if (extras.charAt(1) == 'B') pp.setBodyOnly();
-					extras = extras.substring(2);
-				}
-			}
-			PortCharacteristic ch = PortCharacteristic.findCharacteristicShort(stateInfo);
-			pp.setCharacteristic(ch);
-
-			// add variables in fields 7 and up
+            // add variables in fields 7 and up
 			addVariables(pp, pieces, numPieces, cc.fileName, cc.lineNumber + line);
 		}
 

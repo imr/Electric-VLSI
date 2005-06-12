@@ -409,8 +409,7 @@ public class Undo
 			if (type == Type.ARCINSTKILL)
 			{
 				ArcInst ai = (ArcInst)obj;
-				int angle = ai.lowLevelGetArcAngle() * 10;
-				ai.lowLevelLink(angle);
+				ai.lowLevelLink();
 				type = Type.ARCINSTNEW;
 				ai.getParent().checkInvariants();
 				return;

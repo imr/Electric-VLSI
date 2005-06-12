@@ -515,13 +515,14 @@ public class Layout extends Constraints
 
 		// look for rigid arcs on this nodeinst
 		boolean examineCell = false;
+        HashSet/*<ArcInst>*/ rigidModified = new HashSet/*<ArcInst>*/();
 		for(Iterator it = rigidArcs.iterator(); it.hasNext(); )
 		{
             Connection thisEnd = (Connection)it.next();
             ArcInst ai = thisEnd.getArc();
 //            ArcInst ai = (ArcInst)it.next();
 			if (deletedArcs.contains(ai)) continue;
-			ai.clearRigidModified();
+//			ai.clearRigidModified();
 			if (DEBUG) System.out.println("  From node " + ni.describe() + " Modifying Rigid arc "+ai.describe());
 
 			// if rigid arcinst has already been changed check its connectivity
@@ -626,7 +627,8 @@ public class Layout extends Constraints
 				// ignore null motion on nodes that have already been examined
 				if (dx != 0 || dy != 0 || nextAngle != 0 || ono.getChangeClock() != changeClock)
 				{
-					ai.setRigidModified();
+                    rigidModified.add(ai);
+//					ai.setRigidModified();
 					if (DEBUG) System.out.println("    Moving node "+ono.describe()+" at other end by ("+dx+","+dy+")");
 					double changeSX = 0, changeSY = 0;
 					if (oFlipX != ono.isXMirrored()) changeSX = -ono.getXSizeWithMirror() * 2;
@@ -650,7 +652,8 @@ public class Layout extends Constraints
 			if (deletedArcs.contains(ai)) continue;
 
 			// only want arcinst that was just explored
-			if (!ai.isRigidModified()) continue;
+            if (!rigidModified.contains(ai)) continue;
+//			if (!ai.isRigidModified()) continue;
 
 			// get the other nodeinst
 			NodeInst ono = ai.getPortInst(1 - thisEnd.getEndIndex()).getNodeInst();
@@ -1132,22 +1135,25 @@ public class Layout extends Constraints
 
 		ArcInst ar1 = ArcInst.newInstance(ap, wid, fpi, no2pi, headPt, no2Pt, null, 0);
 		if (ar1 == null) return;
-		ar1.copyStateBits(ai);
-		if (ai.isHeadNegated()) ar1.setHeadNegated(true);
+        ar1.copyConstraintsFrom(ai);
+//		ar1.copyStateBits(ai);
+//		if (ai.isHeadNegated()) ar1.setHeadNegated(true);
 		ArcInst ar2 = ArcInst.newInstance(ap, wid, no2pi, no1pi, no2Pt, no1Pt, null, 0);
 		if (ar2 == null) return;
-		ar2.copyStateBits(ai);
+        ar2.copyPropertiesFrom(ai);
+//		ar2.copyStateBits(ai);
 		ArcInst ar3 = ArcInst.newInstance(ap, wid, no1pi, tpi, no1Pt, tailPt, null, 0);
 		if (ar3 == null) return;
-		ar3.copyStateBits(ai);
+        ar3.copyConstraintsFrom(ai);
+//		ar3.copyStateBits(ai);
 		if (ai.isTailNegated()) ar3.setTailNegated(true);
 		if (ar1 == null || ar2 == null || ar3 == null)
 		{
 			System.out.println("Problem creating jog arcs");
 			return;
 		}
-		ar2.copyVarsFrom(ai);
-		ar2.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
+//		ar2.copyVarsFrom(ai);
+//		ar2.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 		ar1.setChangeClock(changeClock + arctyp);
 		ar2.setChangeClock(changeClock + arctyp);
 		ar3.setChangeClock(changeClock + arctyp);

@@ -75,6 +75,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	/** input/output/power/ground/clock state */			private static final int STATEBITS =       036000000000;
 	/** input/output/power/ground/clock state */			private static final int STATEBITSSHIFTED =         036;
 	/** input/output/power/ground/clock state */			private static final int STATEBITSSH =               27;
+	public static final int EXPORT_BITS = PORTDRAWN | BODYONLY | STATEBITS;
 
 	// -------------------------- private data ---------------------------
 	/** The name of this Export. */							private Name name;
@@ -88,12 +89,25 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	// -------------------- protected and private methods --------------
 
 	/**
-	 * The constructor is only called by subclassed constructors.
+	 * The private constructor of Export
+	 * @param parent the Cell in which this Export resides.
+	 * @param protoName the name of this Export.
+	 * It may not have unprintable characters, spaces, or tabs in it.
+     * @param nameTextDescriptor text descriptor of this Export
+	 * @param originalPort the PortInst that is being exported.
+     * @param userBits flag bits of this Export.
+	 * @return true on error.
 	 */
-	protected Export()
+	private Export(Cell parent, String protoName, ImmutableTextDescriptor nameTextDescriptor, PortInst originalPort, int userBits)
 	{
-		super();
-		this.descriptor = ImmutableTextDescriptor.getExportTextDescriptor();
+		// initialize the parent object
+		assert parent == originalPort.getNodeInst().getParent();
+		this.parent = parent;
+		this.name = Name.findName(protoName);
+        if (nameTextDescriptor == null) nameTextDescriptor = ImmutableTextDescriptor.getExportTextDescriptor();
+		this.descriptor = nameTextDescriptor;
+		this.originalPort = originalPort;
+        this.userBits = userBits & EXPORT_BITS;
 	}
 
 	/****************************** CREATE, DELETE, MODIFY ******************************/
@@ -130,11 +144,13 @@ public class Export extends ElectricObject implements PortProto, Comparable
                     ", making new export named "+protoName);
             assert(parent.findExport(protoName) == null);
 		}
-		Export pp = lowLevelAllocate();
-		if (pp.lowLevelName(parent, protoName)) return null;
-		if (pp.lowLevelPopulate(portInst)) return null;
-		if (pp.lowLevelLink(null)) return null;
-		pp.setSmartPlacement();
+        PortProto originalProto = portInst.getPortProto();
+        int userBits;
+		if (originalProto instanceof Export)
+			userBits = ((Export)originalProto).userBits;
+		else
+			userBits = originalProto.getCharacteristic().getBits() << STATEBITSSH;
+		Export pp = newInstance(parent, protoName, smartPlacement(portInst), portInst, userBits);
 
 		if (createOnIcon)
 		{
@@ -179,66 +195,43 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	        }
 		}
 
-		// handle change control, constraint, and broadcast
-		Undo.newObject(pp);
 		return pp;
 	}	
 
 	/**
-	 * Method to set "smart text placement" on the TextDescriptor of this Export.
+	 * Factory method to create an Export
+	 * @param parent the Cell in which this Export resides.
+	 * @param protoName the name of this Export.
+	 * It may not have unprintable characters, spaces, or tabs in it.
+     * @param nameTextDescriptor text descriptor of this Export
+	 * @param originalPort the PortInst that is being exported.
+     * @param userBits flag bits of this Export.
+	 * @return created Export or null on error.
 	 */
-	public void setSmartPlacement()
-	{
-		// handle smart text placement relative to attached object
-		int smartVertical = User.getSmartVerticalPlacement();
-		int smartHorizontal = User.getSmartHorizontalPlacement();
-		if (smartVertical == 0 && smartHorizontal == 0) return;
-
-		// figure out location of object relative to environment
-		double dx = 0, dy = 0;
-		PortInst pi = getOriginalPort();
-		NodeInst ni = pi.getNodeInst();
-		Rectangle2D nodeBounds = ni.getBounds();
-		for(Iterator it = pi.getConnections(); it.hasNext(); )
+    public static Export newInstance(Cell parent, String name, ImmutableTextDescriptor nameTextDescriptor, PortInst originalPort, int userBits)
+    {
+		// initialize this object
+		if (originalPort == null)
 		{
-			Connection con = (Connection)it.next();
-			ArcInst ai = con.getArc();
-			Rectangle2D arcBounds = ai.getBounds();
-			dx = arcBounds.getCenterX() - nodeBounds.getCenterX();
-			dy = arcBounds.getCenterY() - nodeBounds.getCenterY();
+			System.out.println("Null port on Export " + name + " in cell " + parent.describe());
+			return null;
 		}
-//		for(Iterator it = ni.getConnections(); it.hasNext(); )
-//		{
-//			Connection con = (Connection)it.next();
-//			if (con.getPortInst() == pi)
-//			{
-//				ArcInst ai = con.getArc();
-//				Rectangle2D arcBounds = ai.getBounds();
-//				dx = arcBounds.getCenterX() - nodeBounds.getCenterX();
-//				dy = arcBounds.getCenterY() - nodeBounds.getCenterY();
-//			}
-//		}
-
-		// first move placement horizontally
-		if (smartHorizontal == 2)
-			// place label outside (away from center)
-			dx = -dx;
-		else if (smartHorizontal != 1)
-			// place label inside (towards center)
-			dx = 0;
-
-		// next move placement vertically
-		if (smartVertical == 2)
-			// place label outside (away from center)
-			dy = -dy;
-		else if (smartVertical != 1)
-			// place label inside (towards center)
-			dy = 0;
-
-		MutableTextDescriptor td = getMutableTextDescriptor(EXPORT_NAME_TD);
-		td.setPos(td.getPos().align(Double.compare(dx, 0), Double.compare(dy, 0)));
-		setTextDescriptor(EXPORT_NAME_TD, td);
-	}
+		NodeInst ni = originalPort.getNodeInst();
+		PortProto subpp = originalPort.getPortProto();
+		if (ni.getParent() != parent || subpp.getParent() != ni.getProto()/* || doesntConnect(subpp.getBasePort())*/)
+		{
+			System.out.println("Bad port on Export " + name + " in cell " + parent.describe());
+			return null;
+		}
+        
+        Export e = new Export(parent, name, nameTextDescriptor, originalPort, userBits);
+		if (e.lowLevelLink(null)) return null;
+        
+		// handle change control, constraint, and broadcast
+		Undo.newObject(e);
+        return e;
+    }
+    
 
 	/**
 	 * Method to unlink this Export from its Cell.
@@ -343,31 +336,6 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
 	/**
-	 * Low-level access method to create an Export.
-	 * @return a newly allocated Export.
-	 */
-	public static Export lowLevelAllocate()
-	{
-		Export pp = new Export();
-		return pp;
-	}
-
-	/**
-	 * Low-level access method to fill-in the Cell parent and the name of this Export.
-	 * @param parent the Cell in which this Export resides.
-	 * @param protoName the name of this Export.
-	 * It may not have unprintable characters, spaces, or tabs in it.
-	 * @return true on error.
-	 */
-	public boolean lowLevelName(Cell parent, String protoName)
-	{
-		// initialize the parent object
-		this.parent = parent;
-		this.name = Name.findName(protoName);
-		return false;
-	}
-
-	/**
 	 * Low-level access method to rename this Export.
 	 * Unless you know what you are doing, do not use this method...use "rename()" instead.
 	 * @param newName the new name of this Export.
@@ -377,34 +345,6 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		assert isLinked();
 		parent.moveExport(portIndex, newName.toString());
 		this.name = newName;
-	}
-
-	/**
-	 * Low-level access method to fill-in the subnode and subport of this Export.
-	 * @param originalPort the PortInst that is being exported.
-	 * @return true on error.
-	 */
-	public boolean lowLevelPopulate(PortInst originalPort)
-	{
-		// initialize this object
-		if (originalPort == null)
-		{
-			System.out.println("Null port on Export " + getName() + " in cell " + parent.describe());
-			return true;
-		}
-		NodeInst ni = originalPort.getNodeInst();
-		PortProto subpp = originalPort.getPortProto();
-		if (ni.getParent() != parent || subpp.getParent() != ni.getProto()/* || doesntConnect(subpp.getBasePort())*/)
-		{
-			System.out.println("Bad port on Export " + getName() + " in cell " + parent.describe());
-			return true;
-		}
-		this.originalPort = originalPort;
-
-		if (originalPort.getPortProto() instanceof Export)
-			this.userBits = ((Export)originalPort.getPortProto()).lowLevelGetUserbits();
-		setCharacteristic(originalPort.getPortProto().getCharacteristic());
-		return false;
 	}
 
 	/**
@@ -482,7 +422,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 * This should not normally be called by any other part of the system.
 	 * @param userBits the new "user bits".
 	 */
-	public void lowLevelSetUserbits(int userBits) { this.userBits = userBits; }
+	public void lowLevelSetUserbits(int userBits) { checkChanging(); this.userBits = userBits & EXPORT_BITS; }
 
 	/****************************** GRAPHICS ******************************/
 
@@ -589,6 +529,53 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		return super.lowLevelSetTextDescriptor(varName, td);
 	}
 
+    /**
+	 * Method chooses TextDescriptor with "smart text placement"
+     * of Export on specified origianl port.
+     * @param originalPort original port for the Export
+     * @return Immutable text descriptor with smart text placement
+	 */
+	private static ImmutableTextDescriptor smartPlacement(PortInst originalPort)
+	{
+		// handle smart text placement relative to attached object
+		int smartVertical = User.getSmartVerticalPlacement();
+		int smartHorizontal = User.getSmartHorizontalPlacement();
+		if (smartVertical == 0 && smartHorizontal == 0) return ImmutableTextDescriptor.getExportTextDescriptor();
+
+		// figure out location of object relative to environment
+		double dx = 0, dy = 0;
+		NodeInst ni = originalPort.getNodeInst();
+		Rectangle2D nodeBounds = ni.getBounds();
+		for(Iterator it = originalPort.getConnections(); it.hasNext(); )
+		{
+			Connection con = (Connection)it.next();
+			ArcInst ai = con.getArc();
+			Rectangle2D arcBounds = ai.getBounds();
+			dx = arcBounds.getCenterX() - nodeBounds.getCenterX();
+			dy = arcBounds.getCenterY() - nodeBounds.getCenterY();
+		}
+
+		// first move placement horizontally
+		if (smartHorizontal == 2)
+			// place label outside (away from center)
+			dx = -dx;
+		else if (smartHorizontal != 1)
+			// place label inside (towards center)
+			dx = 0;
+
+		// next move placement vertically
+		if (smartVertical == 2)
+			// place label outside (away from center)
+			dy = -dy;
+		else if (smartVertical != 1)
+			// place label inside (towards center)
+			dy = 0;
+
+		MutableTextDescriptor td = MutableTextDescriptor.getExportTextDescriptor();
+		td.setPos(td.getPos().align(Double.compare(dx, 0), Double.compare(dy, 0)));
+		return ImmutableTextDescriptor.newImmutableTextDescriptor(td);
+	}
+    
 	/**
 	 * Method to return the name key of this Export.
 	 * @return the Name key of this Export.
@@ -691,6 +678,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	public void setCharacteristic(PortCharacteristic characteristic)
 	{
 		checkChanging();
+        if (characteristic == null) characteristic = PortCharacteristic.UNKNOWN;
 		userBits = (userBits & ~STATEBITS) | (characteristic.getBits() << STATEBITSSH);
 	}
 
@@ -802,6 +790,32 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 * @return true if this PortProto exists only in the body of a cell.
 	 */
 	public boolean isBodyOnly() { return (userBits & BODYONLY) != 0; }
+
+	/**
+	 * Parses JELIB string with Export user bits.
+     * @param jelibUserBits JELIB string.
+	 * @return Export user bust.
+     * @throws NumberFormatException
+	 */
+    public static int parseJelibUserBits(String jelibUserBits) {
+        int userBits = 0;
+    			// parse state information in field 6
+		int slashPos = jelibUserBits.indexOf('/');
+        if (slashPos >= 0) {
+            String extras = jelibUserBits.substring(slashPos);
+            jelibUserBits = jelibUserBits.substring(0, slashPos);
+            while (extras.length() > 0) {
+                switch (extras.charAt(1)) {
+                    case 'A': userBits |= PORTDRAWN; break;
+                    case 'B': userBits |= BODYONLY; break;
+                }
+                extras = extras.substring(2);
+            }
+        }
+        PortCharacteristic ch = PortCharacteristic.findCharacteristicShort(jelibUserBits);
+        if (ch != null) userBits |= ch.getBits() << STATEBITSSH;
+        return userBits;
+    }
 
     /**
      * Returns true if this Export is linked into database.
@@ -922,11 +936,6 @@ public class Export extends ElectricObject implements PortProto, Comparable
 
 			// make sure all arcs on this port can connect
             PortInst pi = ni.findPortInstFromProto(this);
-            if (pi == null)
-            {
-                System.out.println("Port instance in " + ni.getName() + " not found for port " + getName());
-                return true;
-            }
 			for(Iterator cIt = pi.getConnections(); cIt.hasNext(); )
 			{
 				Connection con = (Connection)cIt.next();

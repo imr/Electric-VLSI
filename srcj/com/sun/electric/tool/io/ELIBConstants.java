@@ -108,35 +108,6 @@ public class ELIBConstants
 	/** set if cell is a multi-page schematic */					private static final int MULTIPAGE     = 017600000000;
 	public static final int CELL_BITS = WANTNEXPAND | NPLOCKED | NPILOCKED | INCELLLIBRARY | TECEDITCELL /* | MULTIPAGE*/;
 
-	/** set if this port should always be drawn */			private static final int PORTDRAWN =         0400000000;
-	/** set to exclude this port from the icon */			private static final int BODYONLY =         01000000000;
-	/** input/output/power/ground/clock state */			private static final int STATEBITS =       036000000000;
-	/** input/output/power/ground/clock state */			private static final int STATEBITSSHIFTED =         036;
-	/** input/output/power/ground/clock state */			private static final int STATEBITSSH =               27;
-	public static final int EXPORT_BITS = PORTDRAWN | BODYONLY | STATEBITS;
-
-	/** fixed-length arc */								private static final int FIXED =                     01;
-	/** fixed-angle arc */								private static final int FIXANG =                    02;
-	/** angle of arc from end 0 to end 1 */				private static final int AANGLE =                037740;
-	/** bits of right shift for AANGLE field */			private static final int AANGLESH =                   5;
-	/** set if head end of ArcInst is negated */		private static final int ISHEADNEGATED =        0200000;
-	/** set if ends do not extend by half width */		private static final int NOEXTEND =             0400000;
-	/** set if tail end of ArcInst is negated */		private static final int ISNEGATED =           01000000;
-	/** set if arc aims from end 0 to end 1 */			private static final int ISDIRECTIONAL =       02000000;
-	/** no extension/negation/arrows on end 0 */		private static final int NOTEND0 =             04000000;
-	/** no extension/negation/arrows on end 1 */		private static final int NOTEND1 =            010000000;
-	/** reverse extension/negation/arrow ends */		private static final int REVERSEEND =         020000000;
-	/** set if arc can't slide around in ports */		private static final int CANTSLIDE =          040000000;
-	/** set if afixed arc was changed */				private static final int FIXEDMOD =          0100000000;
-	/** set if hard to select */						private static final int HARDSELECTA =     020000000000;
-
-	public static final int ARC_BITS = FIXED | FIXANG | AANGLE | CANTSLIDE /* | FIXEDMOD*/ | HARDSELECTA;
-
-	// bits found in the "userbits" field of an ArcInst:
-// 	/** set if head end of ArcInst is negated */								public static final int ISHEADNEGATED =       0200000;
-// 	/** set if tail end of ArcInst is negated */								public static final int ISNEGATED =          01000000;
-// 	/** reverse extension/negation/arrow ends */								public static final int REVERSEEND =        020000000;
-
 	/**
 	 * Method to convert an integer date read from disk to a Java Date object.
 	 * The Electric library disk format for dates is in seconds since the epoch.
@@ -164,94 +135,6 @@ public class ELIBConstants
 		GregorianCalendar creation = new GregorianCalendar();
 		creation.setTime(date);
 		return creation.getTimeInMillis() / 1000;
-	}
-
-	/**
-	 * Method to compute the "userbits" to use for a given ArcInst.
-	 * The "userbits" are a set of bits that describes constraints and other properties,
-	 * and are stored in ELIB files.
-	 * The negation, directionality, and end-extension must be converted.
-	 * @param ai the ArcInst to analyze.
-	 * @return the "userbits" for that ArcInst.
-	 */
-	public static int makeELIBArcBits(ArcInst ai)
-	{
-		int userBits = ai.lowLevelGetUserbits() & ARC_BITS;
-	
-		// adjust bits for negation
-		userBits &= ~(ISNEGATED | ISHEADNEGATED);
-		if (ai.isTailNegated()) userBits |= ISNEGATED;
-		if (ai.isHeadNegated()) userBits |= ISHEADNEGATED;
-	
-		// adjust bits for extension
-		if (!ai.isHeadExtended() || !ai.isTailExtended())
-		{
-			userBits |= NOEXTEND;
-			if (ai.isHeadExtended() != ai.isTailExtended())
-			{
-				if (ai.isTailExtended()) userBits |= NOTEND0;
-				if (ai.isHeadExtended()) userBits |= NOTEND1;
-			}
-		}
-	
-		// adjust bits for directionality
-		if (ai.isHeadArrowed() || ai.isTailArrowed() || ai.isBodyArrowed())
-		{
-			userBits |= ISDIRECTIONAL;
-			if (ai.isTailArrowed()) userBits |= REVERSEEND;
-			if (!ai.isHeadArrowed() && !ai.isTailArrowed()) userBits |= NOTEND1;
-		}
-		return userBits;
-	}
-
-	/**
-	 * Method to apply a set of "userbits" to an arc.
-	 * The "userbits" are a set of bits that describes constraints and other properties,
-	 * and are stored in ELIB files.
-	 * The negation, directionality, and end-extension must be converted.
-	 * @param ai the ArcInst to modify.
-	 * @param bits the userbits to apply to the arc.
-	 */
-	public static void applyELIBArcBits(ArcInst ai, int bits)
-	{
-		ai.lowLevelSetUserbits(bits & ARC_BITS);
-		if ((bits&ELIBConstants.ISNEGATED) != 0)
-		{
-			if ((bits&ELIBConstants.REVERSEEND) != 0) ai.setHeadNegated(true); else
-				ai.setTailNegated(true);
-		}
-		if ((bits&ELIBConstants.ISHEADNEGATED) != 0)
-		{
-			if ((bits&ELIBConstants.REVERSEEND) != 0) ai.setTailNegated(true); else
-				ai.setHeadNegated(true);
-		}
-
-		if ((bits&ELIBConstants.NOEXTEND) != 0)
-		{
-			ai.setHeadExtended(false);
-			ai.setTailExtended(false);
-			if ((bits&ELIBConstants.NOTEND0) != 0) ai.setTailExtended(true);
-			if ((bits&ELIBConstants.NOTEND1) != 0) ai.setHeadExtended(true);
-		} else
-		{
-			ai.setHeadExtended(true);
-			ai.setTailExtended(true);
-		}
-
-		ai.setBodyArrowed(false);
-		ai.setTailArrowed(false);
-		ai.setHeadArrowed(false);
-		if ((bits&ELIBConstants.ISDIRECTIONAL) != 0)
-		{
-			ai.setBodyArrowed(true);
-			if ((bits&ELIBConstants.REVERSEEND) != 0)
-			{
-				if ((bits&ELIBConstants.NOTEND0) == 0) ai.setTailArrowed(true);
-			} else
-			{
-				if ((bits&ELIBConstants.NOTEND1) == 0) ai.setHeadArrowed(true);
-			}
-		}
 	}
 
 	/**

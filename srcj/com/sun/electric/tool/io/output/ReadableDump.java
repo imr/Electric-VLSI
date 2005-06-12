@@ -417,8 +417,7 @@ public class ReadableDump extends Output
 
 				// need to write both words
 				writeTextDescriptor(-1, pp.getTextDescriptor(Export.EXPORT_NAME_TD));
-				printWriter.println("userbits: " + (pp.lowLevelGetUserbits() & ELIBConstants.EXPORT_BITS));
-//				printWriter.println("userbits: " + pp.lowLevelGetUserbits());
+				printWriter.println("userbits: " + pp.lowLevelGetUserbits());
 				writeVars(pp, cell);
 			}
 
@@ -434,9 +433,7 @@ public class ReadableDump extends Output
 				int length = (int)(ai.getLength() * scale);
 				printWriter.println("width: " + width + " length: " + length);
 
-				int arcAngle = ai.getAngle() / 10;
-				ai.lowLevelSetArcAngle(arcAngle);
-				int userBits = ELIBConstants.makeELIBArcBits(ai);
+				int userBits = ai.makeELIBArcBits();
 				printWriter.println("userbits: " + userBits);
 				for(int e=0; e<2; e++)
 				{

@@ -93,8 +93,10 @@ public class ReadableDump extends LibraryFiles
 	{
 		private Export []   exportList;
 		private String []   exportName;
+        private ImmutableTextDescriptor [] exportNameDescriptor;
 		private int []      exportSubNode;
 		private String []   exportSubPort;
+        private int []      exportUserBits;
         private DiskVariable[][] exportVars;
 	};
 
@@ -540,15 +542,19 @@ public class ReadableDump extends LibraryFiles
 		if (el != null) numExports = el.exportList.length;
 		for(int j=0; j<numExports; j++)
 		{
-			Export pp = el.exportList[j];
-			if (pp.lowLevelName(cell, el.exportName[j])) return;
             NodeInst subNi = nodeInstList[cellIndex].theNode[el.exportSubNode[j]];
 			PortInst pi = findProperPortInst(subNi, el.exportSubPort[j]);
-//			PortInst pi = findProperPortInst(el.exportSubNode[j], el.exportSubPort[j]);
-			int userBits = pp.lowLevelGetUserbits();
-			if (pp.lowLevelPopulate(pi)) return;
-			pp.lowLevelSetUserbits(userBits);
-			if (pp.lowLevelLink(null)) return;
+//			int userBits = pp.lowLevelGetUserbits();
+			int userBits = exportList[curCellNumber].exportUserBits[curExportIndex];
+            Export pp = Export.newInstance(cell, el.exportName[j], exportList[curCellNumber].exportNameDescriptor[curExportIndex], pi, userBits);
+//            Export pp = new Export(cell, el.exportName[j]);
+//			if (pp.lowLevelPopulate(pi)) return;
+//            if (exportList[curCellNumber].exportNameDescriptor[curExportIndex] != null)
+//                pp.setTextDescriptor(Export.EXPORT_NAME_TD, exportList[curCellNumber].exportNameDescriptor[curExportIndex]);
+//			pp.lowLevelSetUserbits(userBits);
+//			if (pp.lowLevelLink(null)) return;
+			el.exportList[j] = pp;
+            if (pp == null) continue;
             realizeVariables(pp, el.exportVars[j]);
 		}
 	}
@@ -614,43 +620,20 @@ public class ReadableDump extends LibraryFiles
 				System.out.println("Cell " + cell.describe() + ", arc " + ap.describe() + " tail at (" +
 					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
-            ArcInst ai = ArcInst.lowLevelAllocate();
+            ArcInst ai = ArcInst.newInstance(cell, ap, name, -1, ail.arcNameDescriptor[j],
+                    headPortInst, tailPortInst, headPt, tailPt, width, ArcInst.fromElibBits(userBits));
 			ail.arcList[j] = ai;
-            ELIBConstants.applyELIBArcBits(ai, userBits);
-			if (ai.lowLevelPopulate(ap, width, headPortInst, headPt, tailPortInst, tailPt, name, -1))
+//            ELIBConstants.applyELIBArcBits(ai, userBits);
+			if (ai == null)
 			{
 				String msg = "ERROR: Cell "+cell.describe() + ": arc " + name + " could not be created";
                 System.out.println(msg);
 				Input.errorLogger.logError(msg, cell, 1);
 				continue;
 			}
-            if (ail.arcNameDescriptor[j] != null)
-                ai.setTextDescriptor(ArcInst.ARC_NAME_TD, ail.arcNameDescriptor[j]);
-			int defAngle = ai.lowLevelGetArcAngle() * 10;
-			ai.lowLevelLink(defAngle);
             DiskVariable[] vars = ail.arcVars[j];
             realizeVariables(ai, vars);
  		}
-	}
-
-	protected boolean readerHasExport(Cell c, String portName)
-	{
-		for(int cellIndex=0; cellIndex<nodeProtoCount; cellIndex++)
-		{
-			Cell cell = nodeProtoList[cellIndex];
-			if (cell != c) continue;
-			ExportList el = exportList[cellIndex];
-			int numExports = 0;
-			if (el != null) numExports = el.exportList.length;
-			for(int j=0; j<numExports; j++)
-			{
-				String exportName = el.exportName[j];
-				if (exportName.equalsIgnoreCase(portName)) return true;
-			}
-			break;
-		}
-		System.out.println("readHasExport could not find port!!!!");
-		return false;
 	}
 
 	private boolean getKeyword()
@@ -1166,13 +1149,11 @@ public class ReadableDump extends LibraryFiles
 		exportList[curCellNumber] = el;
 		el.exportList = new Export[exportCount];
 		el.exportName = new String[exportCount];
+        el.exportNameDescriptor = new ImmutableTextDescriptor[exportCount];
 		el.exportSubNode = new int[exportCount];
 		el.exportSubPort = new String[exportCount];
+        el.exportUserBits = new int[exportCount];
         el.exportVars = new DiskVariable[exportCount][];
-		for(int i=0; i<exportCount; i++)
-		{
-			el.exportList[i] = Export.lowLevelAllocate();
-		}
 	}
 
 	// --------------------------------- NODE INSTANCE PARSING METHODS ---------------------------------
@@ -1506,8 +1487,7 @@ public class ReadableDump extends LibraryFiles
 		int slashPos = keyWord.indexOf('/');
 		if (slashPos >= 0)
 			td1 = TextUtils.atoi(keyWord, slashPos+1);
-		mtd.setCBits(td0, td1);
-		exportList[curCellNumber].exportList[curExportIndex].setTextDescriptor(Export.EXPORT_NAME_TD, mtd);
+		exportList[curCellNumber].exportNameDescriptor[curExportIndex] = makeDescriptor(td0, td1);
 	}
 
 	/**
@@ -1541,7 +1521,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordPtBit()
 	{
-		if (bitCount == 0) exportList[curCellNumber].exportList[curExportIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
+		if (bitCount == 0) exportList[curCellNumber].exportUserBits[curExportIndex] = TextUtils.atoi(keyWord);
 		bitCount++;
 	}
 
@@ -1550,7 +1530,7 @@ public class ReadableDump extends LibraryFiles
 	 */
 	private void keywordPtUsb()
 	{
-		exportList[curCellNumber].exportList[curExportIndex].lowLevelSetUserbits(TextUtils.atoi(keyWord));
+		exportList[curCellNumber].exportUserBits[curExportIndex] = TextUtils.atoi(keyWord);
 	}
 
 	// --------------------------------- VARIABLE PARSING METHODS ---------------------------------

@@ -234,6 +234,8 @@ public class LibDirs {
         public Boolean isTraversable(File f) { return osView.isTraversable(f); }
     }
 
+    public static LibDirFileSystemView newLibDirFileSystemView(FileSystemView osView) { return new LibDirFileSystemView(osView); }
+    
     public static class LibDirFileView extends FileView {
         private LibDirFileSystemView view;
         public LibDirFileView(LibDirFileSystemView view) {

@@ -298,7 +298,7 @@ public class ImmutableNodeInst
 	 */
     public static int parseJelibUserBits(String jelibUserBits) {
         int userBits = 0;
-        // parse state information in nodeUserBits field 
+        // parse state information in jelibUserBits 
         for(int i=0; i<jelibUserBits.length(); i++) {
             char chr = jelibUserBits.charAt(i);
             switch (chr) {

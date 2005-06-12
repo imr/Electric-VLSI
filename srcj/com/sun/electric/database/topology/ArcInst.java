@@ -85,30 +85,39 @@ public class ArcInst extends Geometric implements Comparable
 
 	// -------------------------- private data ----------------------------------
 
-	/** fixed-length arc */								private static final int FIXED =                     01;
-	/** fixed-angle arc */								private static final int FIXANG =                    02;
-//	/** arc has text that is far away */				private static final int AHASFARTEXT =               04;
-//	/** arc is not in use */							private static final int DEADA =                    020;
-	/** angle of arc from end 0 to end 1 */				private static final int AANGLE =                037740;
-	/** bits of right shift for AANGLE field */			private static final int AANGLESH =                   5;
-//	/** set if arc is to be drawn shortened */			private static final int ASHORT =                040000;
-	/** set if head end of ArcInst is negated */		private static final int ISHEADNEGATED =        0200000;
-//	/** set if ends do not extend by half width */		private static final int NOEXTEND =             0400000;
-	/** set if tail end of ArcInst is negated */		private static final int ISTAILNEGATED =       01000000;
-//	/** set if ends are negated */						private static final int ISNEGATED =           01000000;
-	/** set if arc has arrow on head end */				private static final int HEADARROW =           02000000;
-	/** no extension on tail */							private static final int TAILNOEXTEND =        04000000;
-	/** no extension on head */							private static final int HEADNOEXTEND =       010000000;
-	/** reverse extension/negation/arrow ends */		private static final int REVERSEEND =         020000000;
-	/** set if arc can't slide around in ports */		private static final int CANTSLIDE =          040000000;
-	/** set if afixed arc was changed */				private static final int FIXEDMOD =          0100000000;
-	/** set if arc has arrow on tail end */				private static final int TAILARROW =         0200000000;
-	/** set if arc has arrow line along body */			private static final int BODYARROW =         0400000000;
-//	/** only local arcinst re-drawing desired */		private static final int RELOCLA =          01000000000;
-//	/**transparent arcinst re-draw is done */			private static final int RETDONA =          02000000000;
-//	/** opaque arcinst re-draw is done */				private static final int REODONA =          04000000000;
-//	/** general flag for spreading and highlighting */	private static final int ARCFLAGBIT =      010000000000;
-	/** set if hard to select */						private static final int HARDSELECTA =     020000000000;
+	/** fixed-length arc */                                 private static final int FIXED =                     01;
+	/** fixed-angle arc */                                  private static final int FIXANG =                    02;
+//	/** arc has text that is far away */                    private static final int AHASFARTEXT =               04;
+//	/** arc is not in use */                                private static final int DEADA =                    020;
+    /** angle of arc from end 0 to end 1 in 10th degrees */ private static final int AANGLE =                037774;
+    /** bits of right shift for AANGLE shift */             private static final int AANGLESH =                   2;
+	/** DISK: angle of arc from end 0 to end 1 */           private static final int DISK_AANGLE =           037740;
+	/** DISK: bits of right shift for DISK_AANGLE field */  private static final int DISK_AANGLESH =              5;
+//	/** set if arc is to be drawn shortened */              private static final int ASHORT =                040000;
+	/** set if head end of ArcInst is negated */            private static final int ISHEADNEGATED =        0200000;
+	/** DISK: set if ends do not extend by half width */    private static final int DISK_NOEXTEND =        0400000;
+	/** set if tail end of ArcInst is negated */            private static final int ISTAILNEGATED =       01000000;
+//	/** set if ends are negated */                          private static final int ISNEGATED =           01000000;
+	/** set if arc has arrow on head end */                 private static final int HEADARROW =           02000000;
+    /** DISK: set if arc aims from end 0 to end 1 */        private static final int DISK_ISDIRECTIONAL =  02000000; 
+	/** no extension on tail */                             private static final int TAILNOEXTEND =        04000000;
+    /** DISK: no extension/negation/arrows on end 0 */      private static final int DISK_NOTEND0 =        04000000;
+	/** no extension on head */                             private static final int HEADNOEXTEND =       010000000;
+    /** DISK: no extension/negation/arrows on end 1 */      private static final int DISK_NOTEND1 =       010000000;
+	/** DISK: reverse extension/negation/arrow ends */      private static final int DISK_REVERSEEND =    020000000;
+	/** set if arc can't slide around in ports */           private static final int CANTSLIDE =          040000000;
+//	/** set if afixed arc was changed */                    private static final int FIXEDMOD =          0100000000;
+	/** set if arc has arrow on tail end */                 private static final int TAILARROW =         0200000000;
+	/** set if arc has arrow line along body */             private static final int BODYARROW =         0400000000;
+//	/** only local arcinst re-drawing desired */            private static final int RELOCLA =          01000000000;
+//	/**transparent arcinst re-draw is done */               private static final int RETDONA =          02000000000;
+//	/** opaque arcinst re-draw is done */                   private static final int REODONA =          04000000000;
+//	/** general flag for spreading and highlighting */      private static final int ARCFLAGBIT =      010000000000;
+	/** set if hard to select */                            private static final int HARDSELECTA =     020000000000;
+    
+    /** bits with common meaniong in disk and database */   private static int COMMON_BITS = FIXED | FIXANG | CANTSLIDE | HARDSELECTA;  
+    /** bits used in database */                            private static final int DATABASE_BITS = COMMON_BITS | AANGLE | BODYARROW |
+            ISTAILNEGATED | TAILNOEXTEND | TAILARROW | ISHEADNEGATED | HEADNOEXTEND | HEADARROW; 
 
 	/** prefix for autonameing. */						private static final Name BASENAME = Name.findName("net@");
 
@@ -135,14 +144,52 @@ public class ArcInst extends Geometric implements Comparable
 	/** head connection of this arc instance */			private HeadConnection headEnd;
 
 	/** 0-based index of this ArcInst in cell. */		private int arcIndex = -1;
-	/** angle of this ArcInst (in tenth-degrees). */	private int angle;
 
 	/**
-	 * The constructor is never called.  Use the factory "newInstance" instead.
+	 * Private constructor of ArcInst.
+     * @param parent the parent Cell of this ArcInst
+	 * @param protoType the ArcProto of this ArcInst.
+	 * @param name the name of this ArcInst
+	 * @param duplicate duplicate index of this ArcInst
+     * @param nameDescriptor text descriptor of name of this ArcInst
+	 * @param headPort the head end PortInst.
+	 * @param tailPort the tail end PortInst.
+	 * @param headPt the coordinate of the head end PortInst.
+	 * @param tailPt the coordinate of the tail end PortInst.
+	 * @param width the width of this ArcInst.
+     * @param userBits flag bits
 	 */
-	private ArcInst()
+	private ArcInst(Cell parent, ArcProto protoType, String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+        PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, double width, int userBits)
 	{
-		nameDescriptor = ImmutableTextDescriptor.getArcTextDescriptor();
+		// initialize this object
+		assert parent == headPort.getNodeInst().getParent();
+        assert parent == tailPort.getNodeInst().getParent();
+		this.parent = parent;
+		this.protoType = protoType;
+
+		if (width < 0)
+			width = protoType.getWidth();
+		this.width = DBMath.round(width);
+
+		this.name = Name.findName(name);
+		this.duplicate = duplicate;
+        if (nameDescriptor == null) nameDescriptor = ImmutableTextDescriptor.getArcTextDescriptor();
+        this.nameDescriptor = nameDescriptor;
+
+		// create node/arc connections and place them properly
+		tailPortInst = tailPort;
+		tailLocation = tailPt;
+		tailEnd = new TailConnection(this);
+
+		headPortInst = headPort;
+		headLocation = headPt;
+		headEnd = new HeadConnection(this);
+		
+        this.userBits = userBits & DATABASE_BITS;
+//		// fill in the geometry
+//		updateGeometric(defAngle);
+        
 		this.visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 	}
 
@@ -207,8 +254,6 @@ public class ArcInst extends Geometric implements Comparable
 
 		// create the head node
 		NodeInst niH = NodeInst.makeDummyInstance(npEnd, new EPoint(-arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0);
-//		NodeInst niH = NodeInst.lowLevelAllocate();
-//		niH.lowLevelPopulate(npEnd, new Point2D.Double(-arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null, null, -1);
 		PortInst piH = niH.getOnlyPortInst();
 		Rectangle2D boundsH = piH.getBounds();
 		double xH = boundsH.getCenterX();
@@ -216,18 +261,15 @@ public class ArcInst extends Geometric implements Comparable
 
 		// create the tail node
 		NodeInst niT = NodeInst.makeDummyInstance(npEnd, new EPoint(arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0);
-//		NodeInst niT = NodeInst.lowLevelAllocate();
-//		niT.lowLevelPopulate(npEnd, new Point2D.Double(arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0, null, null, -1);
 		PortInst piT = niT.getOnlyPortInst();
 		Rectangle2D boundsT = piT.getBounds();
 		double xT = boundsT.getCenterX();
 		double yT = boundsT.getCenterY();
 
 		// create the arc that connects them
-		ArcInst ai = ArcInst.lowLevelAllocate();
-		ai.lowLevelPopulate(ap, ap.getDefaultWidth(), piH, new EPoint(xH, yH), piT, new EPoint(xT, yT), null, -1);
+		ArcInst ai = new ArcInst(null, ap, "", 0, null, piH, piT, new EPoint(xH, yH), new EPoint(xT, yT), ap.getDefaultWidth(), 0);
 
-        ai.updateGeometric(0);
+        ai.updateGeometric();
 		return ai;
 	}
 
@@ -281,30 +323,80 @@ public class ArcInst extends Geometric implements Comparable
 			tailP = EPoint.snap(tailPt);
 		}
 
-		// make sure fields are valid
-		if (type == null || head == null || tail == null || !head.isLinked() || !tail.isLinked()) return null;
-
-		ArcInst ai = lowLevelAllocate();
-		if (ai.lowLevelPopulate(type, width, head, headP, tail, tailP, name, -1)) return null;
-		if (!ai.headStillInPort(headP, false))
-		{
-			Cell parent = head.getNodeInst().getParent();
-			Poly poly = ai.getHeadPortInst().getPoly();
+		// make sure points are valid
+        Cell parent = head.getNodeInst().getParent();
+        Poly headPoly = head.getPoly();
+        if (!stillInPoly(headP, headPoly)) {
 			System.out.println("Error in cell " + parent.describe() + ": head of " + type.getName() +
 				" arc at (" + headP.getX() + "," + headP.getY() + ") does not fit in port " +
-				ai.getHeadPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
+				head.describe() + " which is centered at (" + headPoly.getCenterX() + "," + headPoly.getCenterY() + ")");
 			return null;
 		}
-		if (!ai.tailStillInPort(tailP, false))
+        Poly tailPoly = tail.getPoly();
+		if (!stillInPoly(tailP, tailPoly))
 		{
-			Cell parent = tail.getNodeInst().getParent();
-			Poly poly = ai.getTailPortInst().getPoly();
 			System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getName() +
 				" arc at (" + tailP.getX() + "," + tailP.getY() + ") does not fit in port " +
-				ai.getTailPortInst().describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
+				tail.describe() + " which is centered at (" + tailPoly.getCenterX() + "," + tailPoly.getCenterY() + ")");
 			return null;
 		}
-		if (ai.lowLevelLink(defAngle)) return null;
+        
+        defAngle = defAngle % 3600;
+        if (defAngle < 0) defAngle += 3600;
+        
+        return newInstance(parent, type, name, -1, null, head, tail, headP, tailP, width, defAngle << AANGLESH);
+	}
+
+	/**
+	 * Method to create a new ArcInst connecting two PortInsts at specified locations.
+	 * This is more general than the version that does not take coordinates.
+     * @param parent the parent Cell of this ArcInst
+	 * @param protoType the ArcProto of this ArcInst.
+	 * @param name the name of this ArcInst
+	 * @param duplicate duplicate index of this ArcInst
+     * @param nameDescriptor text descriptor of name of this ArcInst
+	 * @param headPort the head end PortInst.
+	 * @param tailPort the tail end PortInst.
+	 * @param headPt the coordinate of the head end PortInst.
+	 * @param tailPt the coordinate of the tail end PortInst.
+	 * @param width the width of this ArcInst.
+     * @param userBits flag bits.
+     * @return the newly created ArcInst, or null if there is an error.
+	 */
+	public static ArcInst newInstance(Cell parent, ArcProto protoType, String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+        PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, double width, int userBits)
+	{
+		// make sure fields are valid
+		if (protoType == null || headPort == null || tailPort == null || !headPort.isLinked() || !tailPort.isLinked()) return null;
+        if (headPt == null || tailPt == null) return null;
+
+        if (parent != headPort.getNodeInst().getParent() || parent != tailPort.getNodeInst().getParent())
+		{
+			System.out.println("ArcProto.newInst: the 2 PortInsts are in different Cells!");
+			return null;
+		}
+
+        // make sure the arc can connect to these ports
+        PortProto headProto = headPort.getPortProto();
+		PrimitivePort headPrimPort = headProto.getBasePort();
+		if (!headPrimPort.connectsTo(protoType))
+		{
+			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
+				" because it cannot connect to port " + headProto.getName());
+			return null;
+		}
+		PortProto tailProto = tailPort.getPortProto();
+		PrimitivePort tailPrimPort = tailProto.getBasePort();
+		if (!tailPrimPort.connectsTo(protoType))
+		{
+			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
+				" because it cannot connect to port " + tailProto.getName());
+			return null;
+		}
+        
+        ArcInst ai = new ArcInst(parent, protoType, name, duplicate, nameDescriptor, headPort, tailPort, headPt, tailPt, width, userBits);
+        if (ai == null) return null;
+		ai.lowLevelLink();
 
 		// handle change control, constraint, and broadcast
 		Undo.newObject(ai);
@@ -391,86 +483,9 @@ public class ArcInst extends Geometric implements Comparable
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
 	/**
-	 * Low-level access method to create a ArcInst.
-	 * @return the newly created ArcInst.
-	 */
-	public static ArcInst lowLevelAllocate()
-	{
-		ArcInst ai = new ArcInst();
-		return ai;
-	}
-
-	/**
-	 * Low-level method to fill-in the ArcInst information.
-	 * @param protoType the ArcProto of this ArcInst.
-	 * @param width the width of this ArcInst.
-	 * @param headPort the head end PortInst.
-	 * @param headPt the coordinate of the head end PortInst.
-	 * @param tailPort the tail end PortInst.
-	 * @param tailPt the coordinate of the tail end PortInst.
-	 * @param name the name of this ArcInst
-	 * @param duplicate duplicate index of this ArcInst
-	 * @return true on error.
-	 */
-	public boolean lowLevelPopulate(ArcProto protoType, double width,
-		PortInst headPort, EPoint headPt, PortInst tailPort, EPoint tailPt, String name, int duplicate)
-	{
-		// initialize this object
-		this.protoType = protoType;
-
-		if (width < 0)
-			width = protoType.getWidth();
-		this.width = DBMath.round(width);
-
-		Cell parent = headPort.getNodeInst().getParent();
-		if (parent != tailPort.getNodeInst().getParent())
-		{
-			System.out.println("ArcProto.newInst: the 2 PortInsts are in different Cells!");
-			return true;
-		}
-		this.parent = parent;
-		this.name = Name.findName(name);
-		this.duplicate = duplicate;
-
-		// make sure the arc can connect to these ports
-		PortProto headProto = headPort.getPortProto();
-		PrimitivePort headPrimPort = headProto.getBasePort();
-		if (!headPrimPort.connectsTo(protoType))
-		{
-			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
-				" because it cannot connect to port " + headProto.getName());
-			return true;
-		}
-		PortProto tailProto = tailPort.getPortProto();
-		PrimitivePort tailPrimPort = tailProto.getBasePort();
-		if (!tailPrimPort.connectsTo(protoType))
-		{
-			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
-				" because it cannot connect to port " + tailProto.getName());
-			return true;
-		}
-
-		// create node/arc connections and place them properly
-		tailPortInst = tailPort;
-		tailLocation = tailPt;
-		tailEnd = new TailConnection(this);
-
-		headPortInst = headPort;
-		headLocation = headPt;
-		headEnd = new HeadConnection(this);
-		
-//		// fill in the geometry
-//		updateGeometric(defAngle);
-
-		return false;
-	}
-
-	/**
 	 * Low-level method to link the ArcInst into its Cell.
-	 * @param defAngle the default angle of this arc (if the endpoints are coincident).
-	 * @return true on error.
 	 */
-	public boolean lowLevelLink(int defAngle)
+	public void lowLevelLink()
 	{
 		if (!isUsernamed() && (name == null || !parent.isUniqueName(name, getClass(), this)) || checkNameKey(name, parent, false))
 		{
@@ -491,13 +506,11 @@ public class ArcInst extends Geometric implements Comparable
 		updateShrinkage(tailPortInst.getNodeInst());		
 		
 		// fill in the geometry
-		updateGeometric(defAngle);
+		updateGeometric();
 
 		// add this arc to the cell
 		this.duplicate = parent.addArc(this);
 		parent.linkArc(this);
-
-		return false;
 	}
 
 	/**
@@ -539,7 +552,7 @@ public class ArcInst extends Geometric implements Comparable
 			headLocation = new EPoint(headLocation.getX() + dHeadX, headLocation.getY() + dHeadY);
 		if (dTailX != 0 || dTailY != 0)
 			tailLocation = new EPoint(tailLocation.getX() + dTailX, tailLocation.getY() + dTailY);
-		updateGeometric(getAngle());
+		updateGeometric();
 
 		// update end shrinkage information
 		updateShrinkage(headPortInst.getNodeInst());
@@ -567,7 +580,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Method to return the rotation angle of this ArcInst.
 	 * @return the rotation angle of this ArcInst (in tenth-degrees).
 	 */
-	public int getAngle() { return angle; }
+	public int getAngle() { return (userBits & AANGLE) >> AANGLESH; }
 
 	/**
 	 * Method to set the rotation angle of this ArcInst.
@@ -577,8 +590,19 @@ public class ArcInst extends Geometric implements Comparable
 	 * If, however, you have a zero-length arc and want to explicitly set
 	 * its angle, then use this method.
 	 */
-	public void setAngle(int angle) { this.angle = angle; }
+	public void setAngle(int angle) {
+        checkChanging();
+        if (!tailLocation.equals(headLocation)) return;
+        lowLevelSetAngle(angle);
+    }
 
+    private void lowLevelSetAngle(int angle) {
+        angle = angle % 3600;
+        if (angle < 0) angle += 3600;
+        assert 0 <= angle && angle < 3600;
+        userBits = (userBits & ~AANGLE) | (angle << AANGLESH);
+    }
+    
 	/**
 	 * Method to return the bounds of this ArcInst.
 	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
@@ -859,17 +883,16 @@ public class ArcInst extends Geometric implements Comparable
 	/**
 	 * Method to recompute the Geometric information on this ArcInst.
 	 */
-	private void updateGeometric(int defAngle)
+	private void updateGeometric()
 	{
 		checkChanging();
 		if (tailLocation.equals(headLocation))
 		{
 			length = 0;
-			angle = defAngle;
 		} else
 		{
 			length = tailLocation.distance(headLocation);
-			angle = DBMath.figureAngle(tailLocation, headLocation);
+			lowLevelSetAngle(DBMath.figureAngle(tailLocation, headLocation));
 		}
 
 		// compute the bounds
@@ -1001,14 +1024,17 @@ public class ArcInst extends Geometric implements Comparable
 			double wid = getWidth() - getProto().getWidthOffset();
 			poly.reducePortPoly(pi, wid, getAngle());
 		}
-		if (poly.isInside(pt)) return true;
-		if (poly.polyDistance(pt.getX(), pt.getY()) < MINPORTDISTANCE) return true;
-
-		// no good
-		return false;
+        return stillInPoly(pt, poly);
+//		if (poly.isInside(pt)) return true;
+//		if (poly.polyDistance(pt.getX(), pt.getY()) < MINPORTDISTANCE) return true;
+//
+//		// no good
+//		return false;
 	}
-
-	/****************************** TEXT ******************************/
+    
+    static private boolean stillInPoly(Point2D pt, Poly poly) { return poly.isInside(pt) || poly.polyDistance(pt.getX(), pt.getY()) < MINPORTDISTANCE; }
+    
+    /****************************** TEXT ******************************/
 
 	/**
 	 * Method to return the name key of this ArcInst.
@@ -1203,25 +1229,6 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public boolean isSlidable() { return (userBits & CANTSLIDE) == 0; }
 
-	/**
-	 * Method to set that this rigid ArcInst was modified.
-	 * This is used during constraint processing only and should not be used elsewhere.
-	 */
-	public void setRigidModified() { userBits &= ~FIXEDMOD; }
-
-	/**
-	 * Method to set that this rigid ArcInst was not modified.
-	 * This is used during constraint processing only and should not be used elsewhere.
-	 */
-	public void clearRigidModified() { userBits |= FIXEDMOD; }
-
-	/**
-	 * Method to tell whether this rigid ArcInst was modified.
-	 * This is used during constraint processing only and should not be used elsewhere.
-	 * @return true if this rigid ArcInst was modified.
-	 */
-	public boolean isRigidModified() { return (userBits & FIXEDMOD) == 0; }
-
 	/****************************** PROPERTIES ******************************/
 
 	/**
@@ -1397,7 +1404,7 @@ public class ArcInst extends Geometric implements Comparable
 	{
 		if (e) userBits &= ~TAILNOEXTEND; else
 			userBits |= TAILNOEXTEND;
-		if (isLinked()) updateGeometric(getAngle());
+		if (isLinked()) updateGeometric();
 	}
 
 	/**
@@ -1410,7 +1417,7 @@ public class ArcInst extends Geometric implements Comparable
 	{
 		if (e) userBits &= ~HEADNOEXTEND; else
 			userBits |= HEADNOEXTEND;
-		if (isLinked()) updateGeometric(getAngle());
+		if (isLinked()) updateGeometric();
 	}
 
 	/**
@@ -1509,6 +1516,144 @@ public class ArcInst extends Geometric implements Comparable
 		}
 	}
 
+	/**
+	 * Method to convert ELIB userbits to database "userbits".
+	 * The "userbits" are a set of bits that describes constraints and other properties,
+	 * and are stored in ELIB files.
+	 * The negation, directionality, and end-extension must be converted.
+	 * @param bits the disk userbits.
+     * @return the database userbits
+	 */
+	public static int fromElibBits(int bits)
+	{
+        int newBits = bits & COMMON_BITS;
+		if ((bits&ISTAILNEGATED) != 0)
+		{
+			newBits |= (bits&DISK_REVERSEEND) == 0 ? ISTAILNEGATED : ISHEADNEGATED;
+		}
+		if ((bits&ISHEADNEGATED) != 0)
+		{
+            newBits |= (bits&DISK_REVERSEEND) == 0 ? ISHEADNEGATED : ISTAILNEGATED;
+		}
+
+		if ((bits&DISK_NOEXTEND) != 0)
+		{
+			if ((bits&DISK_NOTEND0) == 0) newBits |= TAILNOEXTEND;
+			if ((bits&DISK_NOTEND1) == 0) newBits |= HEADNOEXTEND;
+		}
+
+		if ((bits&DISK_ISDIRECTIONAL) != 0)
+		{
+            newBits |= BODYARROW;
+			if ((bits&DISK_REVERSEEND) == 0)
+			{
+				if ((bits&DISK_NOTEND1) == 0) newBits |= HEADARROW;
+			} else
+			{
+				if ((bits&DISK_NOTEND0) == 0) newBits |= TAILARROW;
+			}
+		}
+        int angle = (bits & DISK_AANGLE) >> DISK_AANGLESH;
+        angle = (angle % 360)*10;
+        newBits |= angle << AANGLESH;
+        
+        return newBits;
+	}
+
+	/**
+	 * Method to apply a set of "userbits" to an arc.
+	 * The "userbits" are a set of bits that describes constraints and other properties,
+	 * and are stored in ELIB files.
+	 * The negation, directionality, and end-extension must be converted.
+	 * @param ai the ArcInst to modify.
+	 * @param bits the userbits to apply to the arc.
+	 */
+//	public static void applyELIBArcBits(ArcInst ai, int bits)
+//	{
+//		ai.lowLevelSetUserbits(bits & ARC_BITS);
+//		if ((bits&ELIBConstants.ISNEGATED) != 0)
+//		{
+//			if ((bits&ELIBConstants.REVERSEEND) != 0) ai.setHeadNegated(true); else
+//				ai.setTailNegated(true);
+//		}
+//		if ((bits&ELIBConstants.ISHEADNEGATED) != 0)
+//		{
+//			if ((bits&ELIBConstants.REVERSEEND) != 0) ai.setTailNegated(true); else
+//				ai.setHeadNegated(true);
+//		}
+//
+//		if ((bits&ELIBConstants.NOEXTEND) != 0)
+//		{
+//			ai.setHeadExtended(false);
+//			ai.setTailExtended(false);
+//			if ((bits&ELIBConstants.NOTEND0) != 0) ai.setTailExtended(true);
+//			if ((bits&ELIBConstants.NOTEND1) != 0) ai.setHeadExtended(true);
+//		} else
+//		{
+//			ai.setHeadExtended(true);
+//			ai.setTailExtended(true);
+//		}
+//
+//		ai.setBodyArrowed(false);
+//		ai.setTailArrowed(false);
+//		ai.setHeadArrowed(false);
+//		if ((bits&ELIBConstants.ISDIRECTIONAL) != 0)
+//		{
+//			ai.setBodyArrowed(true);
+//			if ((bits&ELIBConstants.REVERSEEND) != 0)
+//			{
+//				if ((bits&ELIBConstants.NOTEND0) == 0) ai.setTailArrowed(true);
+//			} else
+//			{
+//				if ((bits&ELIBConstants.NOTEND1) == 0) ai.setHeadArrowed(true);
+//			}
+//		}
+//	}
+    
+	/**
+	 * Method to compute the "userbits" to use for a given ArcInst.
+	 * The "userbits" are a set of bits that describes constraints and other properties,
+	 * and are stored in ELIB files.
+	 * The negation, directionality, and end-extension must be converted.
+	 * @param ai the ArcInst to analyze.
+	 * @return the "userbits" for that ArcInst.
+	 */
+	public int makeELIBArcBits()
+	{
+		int diskBits = userBits & COMMON_BITS;
+	
+		// adjust bits for extension
+		if (!isHeadExtended() || !isTailExtended())
+		{
+			diskBits |= DISK_NOEXTEND;
+			if (isHeadExtended() != isTailExtended())
+			{
+				if (isTailExtended()) diskBits |= DISK_NOTEND0;
+				if (isHeadExtended()) diskBits |= DISK_NOTEND1;
+			}
+		}
+	
+		// adjust bits for directionality
+		if (isHeadArrowed() || isTailArrowed() || isBodyArrowed())
+		{
+			diskBits |= DISK_ISDIRECTIONAL;
+			if (isTailArrowed()) diskBits |= DISK_REVERSEEND;
+			if (!isHeadArrowed() && !isTailArrowed()) diskBits |= DISK_NOTEND1;
+		}
+
+		// adjust bits for negation
+        boolean normalEnd = (diskBits & DISK_REVERSEEND) == 0;
+		if (isTailNegated()) diskBits |= (normalEnd ? ISTAILNEGATED : ISHEADNEGATED);
+		if (isHeadNegated()) diskBits |= (normalEnd ? ISHEADNEGATED : ISTAILNEGATED);
+        
+        int angle = getAngle() / 10;
+//        int angle = (int)(getAngle()/10.0 + 0.5);
+//        if (angle >= 360) angle -= 360;
+        diskBits |= angle << DISK_AANGLESH;
+        
+        return diskBits;
+	}
+
 	/****************************** MISCELLANEOUS ******************************/
 
 	/**
@@ -1536,7 +1681,7 @@ public class ArcInst extends Geometric implements Comparable
 			if (repair)
 			{
 				headLocation = new EPoint(poly.getCenterX(), poly.getCenterY());
-				updateGeometric(getAngle());
+				updateGeometric();
 			}
 			errorCount++;
 		}
@@ -1557,7 +1702,7 @@ public class ArcInst extends Geometric implements Comparable
 			if (repair)
 			{
 				tailLocation = new EPoint(poly.getCenterX(), poly.getCenterY());
-				updateGeometric(getAngle());
+				updateGeometric();
 			}
 			errorCount++;
 		}
@@ -1652,41 +1797,45 @@ public class ArcInst extends Geometric implements Comparable
 
     /**
      * Copies constraints (Rigid, Ends Extended, etc) from another arcinst to this arcinst
+     * It copies also attributes of Connections (arrow/negated/extended)
      * @param fromAi the arcinst from which to copy constraints
      */
     public void copyConstraintsFrom(ArcInst fromAi) {
         if (fromAi == null) return;
-        lowLevelSetUserbits(fromAi.lowLevelGetUserbits());
-		setHeadNegated(fromAi.isHeadNegated());
-		setTailNegated(fromAi.isTailNegated());
+        int newBits = tailLocation.equals(headLocation) ? fromAi.userBits : (fromAi.userBits & ~AANGLE) | (this.userBits & AANGLE);
+        newBits &= DATABASE_BITS;
+		boolean extensionChanged = (this.userBits&(TAILNOEXTEND|HEADNOEXTEND)) != (userBits&(TAILNOEXTEND|HEADNOEXTEND));
+		if (isLinked() && extensionChanged) updateGeometric();
+//		setHeadNegated(fromAi.isHeadNegated());
+//		setTailNegated(fromAi.isTailNegated());
     }
 
-	/**
-	 * Low-level method to get the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @return the "user bits".
-	 */
-	public int lowLevelGetUserbits() { return userBits; }
-
-	/**
-	 * Low-level method to set the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @param userBits the new "user bits".
-	 */
-	public void lowLevelSetUserbits(int userBits)
-	{
-		boolean extensionChanged = (this.userBits&(TAILNOEXTEND|HEADNOEXTEND)) != (userBits&(TAILNOEXTEND|HEADNOEXTEND));
-		this.userBits = userBits;
-		if (isLinked() && extensionChanged) updateGeometric(getAngle());
-	}
+//	/**
+//	 * Low-level method to get the user bits.
+//	 * The "user bits" are a collection of flags that are more sensibly accessed
+//	 * through special methods.
+//	 * This general access to the bits is required because the ELIB
+//	 * file format stores it as a full integer.
+//	 * This should not normally be called by any other part of the system.
+//	 * @return the "user bits".
+//	 */
+//    public int lowLevelGetUserbits() { return userBits; }
+//
+//	/**
+//	 * Low-level method to set the user bits.
+//	 * The "user bits" are a collection of flags that are more sensibly accessed
+//	 * through special methods.
+//	 * This general access to the bits is required because the ELIB
+//	 * file format stores it as a full integer.
+//	 * This should not normally be called by any other part of the system.
+//	 * @param diskBits the new "user bits".
+//	 */
+// 	public void lowLevelSetUserbits(int userBits)
+// 	{
+// 		boolean extensionChanged = (this.userBits&(TAILNOEXTEND|HEADNOEXTEND)) != (userBits&(TAILNOEXTEND|HEADNOEXTEND));
+// 		this.userBits = userBits & DATABASE_BITS;
+// 		if (isLinked() && extensionChanged) updateGeometric();
+// 	}
 
 	/**
 	 * Method to copy the various state bits from another ArcInst to this ArcInst.
@@ -1707,25 +1856,6 @@ public class ArcInst extends Geometric implements Comparable
         setHeadArrowed(protoType.isDirectional());
         setBodyArrowed(protoType.isDirectional());
 	}
-
-	/**
-	 * Low-level method to set the ArcInst angle in the "user bits".
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it this way.
-	 * This should not normally be called by any other part of the system.
-	 * If you need to set the angle of an arc, use "setAngle".
-	 * @param angle the angle of the ArcInst (in degrees).
-	 */
-	public void lowLevelSetArcAngle(int angle) { userBits = (userBits & ~AANGLE) | (angle << AANGLESH); }
-
-	/**
-	 * Low-level method to get the ArcInst angle from the "user bits".
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it this way.
-	 * This should not normally be called by any other part of the system.
-	 * @return the arc angle (in degrees).
-	 */
-	public int lowLevelGetArcAngle() { return (userBits & AANGLE) >> AANGLESH; }
 
 	/**
 	 * Method to set this ArcInst to be hard-to-select.

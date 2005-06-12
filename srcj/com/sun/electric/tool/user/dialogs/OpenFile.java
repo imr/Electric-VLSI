@@ -143,7 +143,7 @@ public class OpenFile
 			if (type != null) {
                 if (type == FileType.ELIB || type == FileType.JELIB ||
                     type == FileType.LIBFILE || type == FileType.LIBRARYFORMATS) {
-                    LibDirs.LibDirFileSystemView view = new LibDirs.LibDirFileSystemView(dialog.getFileSystemView());
+                    LibDirs.LibDirFileSystemView view = LibDirs.newLibDirFileSystemView(dialog.getFileSystemView());
                     dialog.setFileSystemView(view);
                     dialog.setFileView(new LibDirs.LibDirFileView(view));
                 }

@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+IMP: (06/12/05, DN) lowLevelAllocate/lowLevelPopulate methods removed from "ArcInst" and "Export".
+
+BUG: (06/12/05, DN) Sometimes "LibDirs.LibDirFileSystemView.getFiles" causes
+     "ClassNotFoundException".
+FIX: Create factory method "LibDirs.newLibDirsFileSystemView".
+
 IMP: (06/10/05, SMR) Can now import "GDS map" files to set layer associations (Bug #355).
 
 IMP: (06/10/05, SMR) GDS now uses a "type" with each layer number (Bug #356).
