@@ -1703,7 +1703,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/**
 	 * Method to find duplicate index for name, so that (name,duplicate) paiir is unique a Cell.
 	 * @param name the name of NodeInst.
-	 * @duplicate recommended duplicate index, or -1
+	 * @param duplicate recommended duplicate index, or -1
 	 * @return unique diplicate index for this node.
 	 */
 	public int fixupNodeDuplicate(Name name, int duplicate)
@@ -1877,8 +1877,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	}
 
 	/**
-	 * Method to unlink a Geometric object from the R-tree of this Cell.
-	 * @param geom a Geometric object.
+	 * Method to unlink a NodeInst from the R-tree of this Cell.
+	 * @param ni a NodeInst object.
 	 */
 	public void unLinkNode(NodeInst ni)
 	{

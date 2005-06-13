@@ -49,7 +49,9 @@ final public class EPoint extends Point2D {
     /**
      * Constructs and initializes a <code>EPoint</code> with the
      * specified coordinates snapped to the grid.
-     * @param x,&nbsp;y the coordinates to which to set the newly
+     * @param x the x-coordinate to which to set the newly
+     * constructed <code>EPoint</code>
+     * @param y the y-coordinate to which to set the newly
      * constructed <code>EPoint</code>
      */
     public EPoint(double x, double y) {
@@ -92,8 +94,8 @@ final public class EPoint extends Point2D {
     /**
      * This method overrides <code>Point2D.setLocation</code> method.
      * It throws UnsupportedOperationException.
-     * @param x,&nbsp;y the coordinates to which to set this
-     * <code>EPoint</code>
+     * @param x the x-coordinate to which to set this <code>EPoint</code>
+     * @param y the y-coordinate to which to set this <code>EPoint</code>
      * @throws UnsupportedOperationException
      */
     public void setLocation(double x, double y) {

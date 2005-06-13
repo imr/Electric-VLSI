@@ -104,14 +104,7 @@ public class ImmutableNodeInst
 	 * Returns new ImmutableNodeInst object.
 	 * @param protoId the NodeProto of which this is an instance.
 	 * @param name name of new ImmutableNodeInst
-	 * @param duplicate duplicate index of this ImmutableNodeInst
-     * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst
-     * @param orient Orientation of this ImmutableNodeInst.
 	 * @param anchor the anchor location of this ImmutableNodeInst.
-	 * @param width the width of this ImmutableNodeInst.
-	 * @param height the height of this ImmutableNodeInst.
-	 * @param userBits flag bits of this ImmutableNodeInst.
-     * @param protoDescriptor TextDescriptor of prototype name of this ImmutableNodeInst
 	 * @return new ImmutableNodeInst object.
 	 * @throws ArrayIndexOutOfBoundsException if protoId is negative.
 	 * @throws NullPointerException if name, orient or anchor is null.
@@ -224,7 +217,7 @@ public class ImmutableNodeInst
 	/**
 	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by width and height.
 	 * @param width node width.
-     * @param hight node height.
+     * @param height node height.
 	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by width and height.
      * @throws IllegalArgumentException if width or height is negative.
 	 */

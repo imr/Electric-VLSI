@@ -181,7 +181,7 @@ public abstract class Geometric extends ElectricObject
 	 * Method to check the new name key of an Geometric.
 	 * @param name new name key of this geometric.
      * @param parent parent Cell used for error message
-     * @paran isNode true if the Geometric is NodeInst
+     * @param isNode true if the Geometric is NodeInst
 	 * @return true on error.
 	 */
 	protected static boolean checkNameKey(Name name, Cell parent, boolean isNode)

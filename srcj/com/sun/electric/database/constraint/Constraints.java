@@ -134,7 +134,7 @@ public class Constraints implements Changes
 	/**
 	 * Method to handle a change to a TextDescriptor.
 	 * @param obj the ElectricObject on which the TextDescriptor resides.
-     * @paran varName name of variable or special name.
+     * @param varName name of variable or special name.
      * @param oldDescriptor old text descriptor.
 	 */
 	public void modifyTextDescript(ElectricObject obj, String varName, ImmutableTextDescriptor oldDescriptor) {}

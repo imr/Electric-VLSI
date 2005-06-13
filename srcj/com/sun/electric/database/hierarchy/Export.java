@@ -201,7 +201,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	/**
 	 * Factory method to create an Export
 	 * @param parent the Cell in which this Export resides.
-	 * @param protoName the name of this Export.
+	 * @param name the name of this Export.
 	 * It may not have unprintable characters, spaces, or tabs in it.
      * @param nameTextDescriptor text descriptor of this Export
 	 * @param originalPort the PortInst that is being exported.

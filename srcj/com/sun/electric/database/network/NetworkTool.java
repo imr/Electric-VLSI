@@ -304,7 +304,7 @@ public class NetworkTool extends Listener
      * @param pi
      * @param netlist
      * @param nets
-     * @return
+     * @return set of networks
      */
     public static Set getNetworksOnPort(PortInst pi, Netlist netlist, Set nets)
     {

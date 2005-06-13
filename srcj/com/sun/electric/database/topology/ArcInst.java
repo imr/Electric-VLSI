@@ -1633,7 +1633,6 @@ public class ArcInst extends Geometric implements Comparable
 	 * The "userbits" are a set of bits that describes constraints and other properties,
 	 * and are stored in ELIB files.
 	 * The negation, directionality, and end-extension must be converted.
-	 * @param ai the ArcInst to analyze.
 	 * @return the "userbits" for that ArcInst.
 	 */
 	public int makeELIBArcBits()
