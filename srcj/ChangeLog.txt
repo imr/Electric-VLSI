@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02o: *********************************
 
+BUG: (06/13/05, DN) Some changes are not undoable yet. They don't cause saving library.
+FIX: Undo.otherChange() method to mark library for save.
+
+IMP: (06/13/05, DN) When writing ELIB/ReadableDump, round arc angle to nearest. 
+
 IMP: (06/12/05, DN) lowLevelAllocate/lowLevelPopulate methods removed from "ArcInst" and "Export".
 
 BUG: (06/12/05, DN) Sometimes "LibDirs.LibDirFileSystemView.getFiles" causes

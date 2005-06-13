@@ -286,7 +286,7 @@ public class JELIB extends Output
 				if (ni.isHardSelect()) nodeBits.append("A");
 				if (ni.isExpanded()) nodeBits.append("E");
 				if (ni.isLocked()) nodeBits.append("L");
-				if (ni.isShortened()) nodeBits.append("S");
+//				if (ni.isShortened()) nodeBits.append("S");
 				if (ni.isVisInside()) nodeBits.append("V");
 				if (ni.isWiped()) nodeBits.append("W");
 				int ts = ni.getTechSpecific();

@@ -43,7 +43,7 @@ public class ImmutableNodeInst
 //	/** node has text that is far away */					public static final int NHASFARTEXT =               02;
 	/** if on, draw node expanded */						public static final int NEXPAND =                   04;
 	/** set if node not drawn due to wiping arcs */			public static final int WIPED =                    010;
-	/** set if node is to be drawn shortened */				public static final int NSHORT =                   020;
+//	/** set if node is to be drawn shortened */				public static final int NSHORT =                   020;
 	//  used by database:                                                                                      0140
 //	/** if on, this nodeinst is marked for death */			public static final int KILLN =                   0200;
 //	/** nodeinst re-drawing is scheduled */					public static final int REWANTN =                 0400;
@@ -59,7 +59,7 @@ public class ImmutableNodeInst
 	/** right-shift of NTECHBITS */							public static final int NTECHBITSSH =               17;
 	/** set if node is locked (can't be changed) */			public static final int NILOCKED =          0100000000;
     
-	public static final int NODE_BITS = NEXPAND | WIPED | NSHORT | HARDSELECTN | NVISIBLEINSIDE | NTECHBITS | NILOCKED;
+	public static final int NODE_BITS = NEXPAND | WIPED | /*NSHORT |*/ HARDSELECTN | NVISIBLEINSIDE | NTECHBITS | NILOCKED;
 
 	/** Prototype cell id. */                                       public final int protoId;
 	/** name of this ImmutableNodeInst. */							public final Name name;
@@ -304,7 +304,7 @@ public class ImmutableNodeInst
             switch (chr) {
                 case 'E': userBits |= NEXPAND; break;
                 case 'L': userBits |= NILOCKED; break;
-                case 'S': userBits |= NSHORT; break;
+                case 'S': /*userBits |= NSHORT;*/ break; // deprecated
                 case 'V': userBits |= NVISIBLEINSIDE; break;
                 case 'W': userBits |= WIPED; break;
                 case 'A': userBits |= HARDSELECTN; break;

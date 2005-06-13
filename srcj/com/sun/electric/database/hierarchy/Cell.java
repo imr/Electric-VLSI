@@ -921,7 +921,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * This should not normally be called by any other part of the system.
 	 * @param userBits the new "user bits".
 	 */
-	public void lowLevelSetUserbits(int userBits) { checkChanging(); this.userBits = userBits; }
+	public void lowLevelSetUserbits(int userBits) { checkChanging(); this.userBits = userBits; Undo.otherChange(this); }
 
 	/****************************** GRAPHICS ******************************/
 
@@ -3397,13 +3397,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Method to set this Cell so that instances of it are "expanded" by when created.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 */
-	public void setWantExpanded() { checkChanging(); userBits |= WANTNEXPAND; }
+	public void setWantExpanded() { checkChanging(); userBits |= WANTNEXPAND;  Undo.otherChange(this); }
 
 	/**
 	 * Method to set this Cell so that instances of it are "not expanded" by when created.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 */
-	public void clearWantExpanded() { checkChanging(); userBits &= ~WANTNEXPAND; }
+	public void clearWantExpanded() { checkChanging(); userBits &= ~WANTNEXPAND; Undo.otherChange(this); }
 
 	/**
 	 * Method to tell if instances of it are "not expanded" by when created.
@@ -3423,13 +3423,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Method to set this Cell so that everything inside of it is locked.
 	 * Locked instances cannot be moved or deleted.
 	 */
-	public void setAllLocked() { checkChanging(); userBits |= NPLOCKED; }
+	public void setAllLocked() { checkChanging(); userBits |= NPLOCKED; Undo.otherChange(this); }
 
 	/**
 	 * Method to set this Cell so that everything inside of it is not locked.
 	 * Locked instances cannot be moved or deleted.
 	 */
-	public void clearAllLocked() { checkChanging(); userBits &= ~NPLOCKED; }
+	public void clearAllLocked() { checkChanging(); userBits &= ~NPLOCKED; Undo.otherChange(this); }
 
 	/**
 	 * Method to tell if the contents of this Cell are locked.
@@ -3442,13 +3442,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Method to set this Cell so that all instances inside of it are locked.
 	 * Locked instances cannot be moved or deleted.
 	 */
-	public void setInstancesLocked() { checkChanging(); userBits |= NPILOCKED; }
+	public void setInstancesLocked() { checkChanging(); userBits |= NPILOCKED; Undo.otherChange(this); }
 
 	/**
 	 * Method to set this Cell so that all instances inside of it are not locked.
 	 * Locked instances cannot be moved or deleted.
 	 */
-	public void clearInstancesLocked() { checkChanging(); userBits &= ~NPILOCKED; }
+	public void clearInstancesLocked() { checkChanging(); userBits &= ~NPILOCKED; Undo.otherChange(this); }
 
 	/**
 	 * Method to tell if the sub-instances in this Cell are locked.
@@ -3463,7 +3463,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * (as opposed to libraries that define a complete circuit).
 	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
 	 */
-	public void setInCellLibrary() { checkChanging(); userBits |= INCELLLIBRARY; }
+	public void setInCellLibrary() { checkChanging(); userBits |= INCELLLIBRARY; Undo.otherChange(this); }
 
 	/**
 	 * Method to set this Cell so that it is not part of a cell library.
@@ -3471,7 +3471,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * (as opposed to libraries that define a complete circuit).
 	 * Certain commands exclude facets from cell libraries, so that the actual circuit hierarchy can be more clearly seen.
 	 */
-	public void clearInCellLibrary() { checkChanging(); userBits &= ~INCELLLIBRARY; }
+	public void clearInCellLibrary() { checkChanging(); userBits &= ~INCELLLIBRARY; Undo.otherChange(this); }
 
 	/**
 	 * Method to tell if this Cell is part of a cell library.
@@ -3487,14 +3487,14 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Technology libraries are those libraries that contain Cells with
 	 * graphical descriptions of the nodes, arcs, and layers of a technology.
 	 */
-	public void setInTechnologyLibrary() { checkChanging(); userBits |= TECEDITCELL; }
+	public void setInTechnologyLibrary() { checkChanging(); userBits |= TECEDITCELL; Undo.otherChange(this); }
 
 	/**
 	 * Method to set this Cell so that it is not part of a technology library.
 	 * Technology libraries are those libraries that contain Cells with
 	 * graphical descriptions of the nodes, arcs, and layers of a technology.
 	 */
-	public void clearInTechnologyLibrary() { checkChanging(); userBits &= ~TECEDITCELL; }
+	public void clearInTechnologyLibrary() { checkChanging(); userBits &= ~TECEDITCELL; Undo.otherChange(this); }
 
 	/**
 	 * Method to tell if this Cell is part of a Technology Library.
@@ -3757,8 +3757,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public void setTechnology(Technology tech)
 	{
+        checkChanging();
         this.tech = tech;
-	}
+        Undo.otherChange(this);
+    }
 
 	/**
 	 * Finds the Schematic Cell associated with this Icon Cell.

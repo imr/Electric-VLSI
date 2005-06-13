@@ -594,6 +594,7 @@ public class ArcInst extends Geometric implements Comparable
         checkChanging();
         if (!tailLocation.equals(headLocation)) return;
         lowLevelSetAngle(angle);
+        Undo.otherChange(this);        
     }
 
     private void lowLevelSetAngle(int angle) {
@@ -802,12 +803,12 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	private static void updateShrinkage(NodeInst ni)
 	{
-		ni.clearShortened();
+		//		ni.clearShortened();
 		for(Iterator it = ni.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();
 			byte shrink = checkShortening(ni, con.getPortInst().getPortProto());
-			if (shrink != 0) ni.setShortened();
+			//			if (shrink != 0) ni.setShortened();
 			con.setEndShrink(shrink);
 		}
 	}
@@ -1176,7 +1177,8 @@ public class ArcInst extends Geometric implements Comparable
             userBits |= FIXED;
         else
             userBits &= ~FIXED;
-   }
+        Undo.otherChange(this);
+    }
 
 	/**
 	 * Method to tell whether this ArcInst is rigid.
@@ -1196,6 +1198,7 @@ public class ArcInst extends Geometric implements Comparable
             userBits |= FIXANG;
         else
             userBits &= ~FIXANG;
+        Undo.otherChange(this);
     }
 
 	/**
@@ -1218,6 +1221,7 @@ public class ArcInst extends Geometric implements Comparable
             userBits &= ~CANTSLIDE;
         else
             userBits |= CANTSLIDE;
+        Undo.otherChange(this);
     }
 
 	/**
@@ -1308,9 +1312,11 @@ public class ArcInst extends Geometric implements Comparable
      */
 	public void setTailArrowed(boolean state)
 	{
+        checkChanging();
         if (state) userBits |= TAILARROW; else
             userBits &= ~TAILARROW;
-	}
+        Undo.otherChange(this);
+    }
 
 	/**
 	 * Method to set this ArcInst to be directional, with an arrow on the head.
@@ -1320,8 +1326,10 @@ public class ArcInst extends Geometric implements Comparable
      */
 	public void setHeadArrowed(boolean state)
 	{
+        checkChanging();
         if (state) userBits |= HEADARROW; else
             userBits &= ~HEADARROW;
+        Undo.otherChange(this);
 	}
 
 	/**
@@ -1334,8 +1342,10 @@ public class ArcInst extends Geometric implements Comparable
      */
 	public void setBodyArrowed(boolean state)
 	{
+        checkChanging();
         if (state) userBits |= BODYARROW; else
             userBits &= ~BODYARROW;
+        Undo.otherChange(this);
 	}
 
 	/**
@@ -1402,9 +1412,11 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void setTailExtended(boolean e)
 	{
+        checkChanging();
 		if (e) userBits &= ~TAILNOEXTEND; else
 			userBits |= TAILNOEXTEND;
 		if (isLinked()) updateGeometric();
+        Undo.otherChange(this);         
 	}
 
 	/**
@@ -1415,9 +1427,11 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void setHeadExtended(boolean e)
 	{
+        checkChanging();
 		if (e) userBits &= ~HEADNOEXTEND; else
 			userBits |= HEADNOEXTEND;
 		if (isLinked()) updateGeometric();
+        Undo.otherChange(this);
 	}
 
 	/**
@@ -1484,16 +1498,18 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void setTailNegated(boolean n)
 	{
+        checkChanging();
 		if (n)
 		{
 			// only allow if negation is supported on this port
-			PortProto pp = tailPortInst.getPortProto();
-			if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isNegatable())
+//			PortProto pp = tailPortInst.getPortProto();
+//			if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isNegatable())
 				userBits |= ISTAILNEGATED;
 		} else
 		{
 			userBits &= ~ISTAILNEGATED;
 		}
+        Undo.otherChange(this);
 	}
 
 	/**
@@ -1504,6 +1520,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void setHeadNegated(boolean n)
 	{
+        checkChanging();
 		if (n)
 		{
 			// only allow if negation is supported on this port
@@ -1514,6 +1531,7 @@ public class ArcInst extends Geometric implements Comparable
 		{
 			userBits &= ~ISHEADNEGATED;
 		}
+        Undo.otherChange(this);
 	}
 
 	/**
@@ -1646,9 +1664,9 @@ public class ArcInst extends Geometric implements Comparable
 		if (isTailNegated()) diskBits |= (normalEnd ? ISTAILNEGATED : ISHEADNEGATED);
 		if (isHeadNegated()) diskBits |= (normalEnd ? ISHEADNEGATED : ISTAILNEGATED);
         
-        int angle = getAngle() / 10;
-//        int angle = (int)(getAngle()/10.0 + 0.5);
-//        if (angle >= 360) angle -= 360;
+		//        int angle = getAngle() / 10;
+		int angle = (int)(getAngle()/10.0 + 0.5);
+		if (angle >= 360) angle -= 360;
         diskBits |= angle << DISK_AANGLESH;
         
         return diskBits;
@@ -1801,11 +1819,13 @@ public class ArcInst extends Geometric implements Comparable
      * @param fromAi the arcinst from which to copy constraints
      */
     public void copyConstraintsFrom(ArcInst fromAi) {
+        checkChanging();
         if (fromAi == null) return;
         int newBits = tailLocation.equals(headLocation) ? fromAi.userBits : (fromAi.userBits & ~AANGLE) | (this.userBits & AANGLE);
         newBits &= DATABASE_BITS;
 		boolean extensionChanged = (this.userBits&(TAILNOEXTEND|HEADNOEXTEND)) != (userBits&(TAILNOEXTEND|HEADNOEXTEND));
 		if (isLinked() && extensionChanged) updateGeometric();
+        Undo.otherChange(this);
 //		setHeadNegated(fromAi.isHeadNegated());
 //		setTailNegated(fromAi.isTailNegated());
     }
@@ -1837,11 +1857,11 @@ public class ArcInst extends Geometric implements Comparable
 // 		if (isLinked() && extensionChanged) updateGeometric();
 // 	}
 
-	/**
-	 * Method to copy the various state bits from another ArcInst to this ArcInst.
-	 * @param ai the other ArcInst to copy.
-	 */
-	public void copyStateBits(ArcInst ai) { this.userBits = ai.userBits; }
+//	/**
+//	 * Method to copy the various state bits from another ArcInst to this ArcInst.
+//	 * @param ai the other ArcInst to copy.
+//	 */
+//	public void copyStateBits(ArcInst ai) { checkChanging(); this.userBits = ai.userBits; Undo.otherChange(this); }
 
 	/**
 	 * Method to set default constraint information on this ArcInst.
@@ -1864,10 +1884,12 @@ public class ArcInst extends Geometric implements Comparable
      * @param state
      */
 	public void setHardSelect(boolean state) {
+        checkChanging();
         if (state)
             userBits |= HARDSELECTA;
         else
             userBits &= ~HARDSELECTA;
+        Undo.otherChange(this);
     }
 
 	/**

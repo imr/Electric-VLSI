@@ -102,6 +102,7 @@ public class Undo
 		/** Describes a new library change */								public static final Type LIBRARYNEW = new Type("LibraryNew");
 		/** Describes a delete library change */							public static final Type LIBRARYKILL = new Type("LibraryKill");
 		/** Describes a Cell-group change */								public static final Type CELLGROUPMOD = new Type("CellGroupMod");
+		/** Describes an other (non-undoable) change */						public static final Type OTHERCHANGE = new Type("OtherChange");
 	}
 
 	/**
@@ -325,7 +326,9 @@ public class Undo
 					Listener listener = (Listener)it.next();
 					listener.modifyTextDescript(obj, (String)o1, (ImmutableTextDescriptor)o2);
 				}
-			}
+			} else if (type == Type.OTHERCHANGE)
+            {
+            }
 			broadcasting = null;
 		}
 
@@ -622,6 +625,10 @@ public class Undo
                 o2 = obj.lowLevelSetTextDescriptor(varName, (ImmutableTextDescriptor)o2);
                 return;
 			}
+            if (type == Type.OTHERCHANGE)
+            {
+                return;
+            }
 		}
 
 		/**
@@ -690,7 +697,11 @@ public class Undo
 			{
 				cell = obj.whichCell();
 				if (cell != null) lib = cell.getLibrary();
-			}
+			} else if (type == Type.OTHERCHANGE)
+            {
+                cell = obj.whichCell();
+                if (cell != null) lib = cell.getLibrary();
+            }
 
 			// set "changed" and "dirty" bits
 			if (cell != null)
@@ -831,6 +842,10 @@ public class Undo
 			{
 				return "Modified Text Descriptor in "+obj+"."+o1+" [was "+o2+"]";
 			}
+            if (type == Type.OTHERCHANGE)
+            {
+                return "Other (non-undoable) change in " + obj;
+            }
 			return "?";
 		}
 	}
@@ -945,7 +960,10 @@ public class Undo
 					{
 						variable++;
 					}
-				}
+				} else if (ch.getType() == Type.OTHERCHANGE)
+                {
+                        object++;
+                }
 			}
 
 			String message = "*** Batch '" + title + "', " + batchNumber + " (" + activity + ") has " + batchSize + " changes and affects";
@@ -1210,6 +1228,7 @@ public class Undo
 	 * <LI>VARIABLEDELETE takes a1=var i1=index o2=oldValue.
 	 * <LI>DESCRIPTORMOD takes o1=varName o2=oldDescriptor.
 	 * <LI>CELLGROUPMOD takes o1=oldCellGroup
+     * <LI?OTHERCHANGE takes nothing
 	 * </UL>
 	 * @param obj the object to which the change applies.
 	 * @param change the change being recorded.
@@ -1574,7 +1593,16 @@ public class Undo
 		Constraints.getCurrent().deleteVariable(obj, var, index, oldValue);
 	}
 
-	/**
+    public static void otherChange(ElectricObject obj)
+    {
+        if (!recordChange()) return;
+        Change ch = Undo.newChange(obj, Type.OTHERCHANGE, null);
+        if (ch == null) return;
+        
+//        ch.broadcast(currentBatch.getNumChanges() <= 1, false);
+    }
+    
+    /**
 	 * Method to return the current change batch.
 	 * @return the current change batch (null if no changes are being done).
 	 */

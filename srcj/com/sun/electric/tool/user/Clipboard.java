@@ -686,7 +686,7 @@ public class Clipboard
 			}
 			newNi.copyStateBits(ni);
 			newNi.clearWiped();
-			newNi.clearShortened();
+//			newNi.clearShortened();
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO_TD);
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
 			newNi.copyVarsFrom(ni);
@@ -942,7 +942,7 @@ public class Clipboard
 		destNode.lowLevelSetUserbits(srcNode.lowLevelGetUserbits());
 		destNode.clearExpanded();
         if (srcNode.isExpanded()) destNode.setExpanded();
-		destNode.clearShortened();
+//		destNode.clearShortened();
 		destNode.clearWiped();
 		destNode.clearLocked();
 

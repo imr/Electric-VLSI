@@ -422,7 +422,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 * This should not normally be called by any other part of the system.
 	 * @param userBits the new "user bits".
 	 */
-	public void lowLevelSetUserbits(int userBits) { checkChanging(); this.userBits = userBits & EXPORT_BITS; }
+	public void lowLevelSetUserbits(int userBits) { checkChanging(); this.userBits = userBits & EXPORT_BITS;  Undo.otherChange(this); }
 
 	/****************************** GRAPHICS ******************************/
 
@@ -680,6 +680,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		checkChanging();
         if (characteristic == null) characteristic = PortCharacteristic.UNKNOWN;
 		userBits = (userBits & ~STATEBITS) | (characteristic.getBits() << STATEBITSSH);
+        Undo.otherChange(this); 
 	}
 
 	/**
@@ -754,13 +755,13 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 * Method to set this PortProto to be always drawn.
 	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
 	 */
-	public void setAlwaysDrawn() { checkChanging(); userBits |= PORTDRAWN; }
+	public void setAlwaysDrawn() { checkChanging(); userBits |= PORTDRAWN; Undo.otherChange(this); }
 
 	/**
 	 * Method to set this PortProto to be not always drawn.
 	 * Ports that are always drawn have their name displayed at all times, even when an arc is connected to them.
 	 */
-	public void clearAlwaysDrawn() { checkChanging(); userBits &= ~PORTDRAWN; }
+	public void clearAlwaysDrawn() { checkChanging(); userBits &= ~PORTDRAWN; Undo.otherChange(this); }
 
 	/**
 	 * Method to tell whether this PortProto is always drawn.
@@ -774,14 +775,14 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 * Ports that exist only in the body do not have an equivalent in the icon.
 	 * This is used by simulators and icon generators to recognize less significant ports.
 	 */
-	public void setBodyOnly() { checkChanging(); userBits |= BODYONLY; }
+	public void setBodyOnly() { checkChanging(); userBits |= BODYONLY; Undo.otherChange(this); }
 
 	/**
 	 * Method to set this PortProto to exist in the body and icon of a cell.
 	 * Ports that exist only in the body do not have an equivalent in the icon.
 	 * This is used by simulators and icon generators to recognize less significant ports.
 	 */
-	public void clearBodyOnly() { checkChanging(); userBits &= ~BODYONLY; }
+	public void clearBodyOnly() { checkChanging(); userBits &= ~BODYONLY; Undo.otherChange(this); }
 
 	/**
 	 * Method to tell whether this PortProto exists only in the body of a cell.

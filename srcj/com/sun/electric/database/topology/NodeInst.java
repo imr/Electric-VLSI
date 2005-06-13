@@ -3058,16 +3058,16 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * This should not normally be called by any other part of the system.
 	 * @param userBits the new "user bits".
 	 */
-	public void lowLevelSetUserbits(int userBits) { checkChanging(); d = d.withUserBits(userBits); }
+	public void lowLevelSetUserbits(int userBits) { checkChanging(); d = d.withUserBits(userBits); Undo.otherChange(this); }
 
 	/**
 	 * Method to copy the various state bits from another NodeInst to this NodeInst.
 	 * @param ni the other NodeInst to copy.
 	 */
-	public void copyStateBits(NodeInst ni) { checkChanging(); d = d.withUserBits(ni.d.userBits); }
+	public void copyStateBits(NodeInst ni) { checkChanging(); d = d.withUserBits(ni.d.userBits); Undo.otherChange(this); }
 
-    private void setFlag(int flag) { checkChanging(); d = d.withUserBits(d.userBits | flag); }
-    private void clearFlag(int flag) { checkChanging(); d = d.withUserBits(d.userBits & ~flag); }
+    private void setFlag(int flag) { checkChanging(); d = d.withUserBits(d.userBits | flag); Undo.otherChange(this); }
+    private void clearFlag(int flag) { checkChanging(); d = d.withUserBits(d.userBits & ~flag); Undo.otherChange(this); }
    
 	/**
 	 * Method to set this NodeInst to be expanded.
@@ -3122,30 +3122,30 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public boolean isWiped() { return (d.userBits & ImmutableNodeInst.WIPED) != 0; }
 
-	/**
-	 * Method to set this NodeInst to be shortened.
-	 * Shortened NodeInst have been reduced in size to account for the fact that
-	 * they are connected at nonManhattan angles and must connect smoothly.
-	 * This state can only get set if the node's prototype has the "setCanShrink" state.
-	 */
-	public void setShortened() { setFlag(ImmutableNodeInst.NSHORT); }
+// 	/**
+// 	 * Method to set this NodeInst to be shortened.
+// 	 * Shortened NodeInst have been reduced in size to account for the fact that
+// 	 * they are connected at nonManhattan angles and must connect smoothly.
+// 	 * This state can only get set if the node's prototype has the "setCanShrink" state.
+// 	 */
+// 	public void setShortened() { setFlag(ImmutableNodeInst.NSHORT); }
 
-	/**
-	 * Method to set this NodeInst to be not shortened.
-	 * Shortened NodeInst have been reduced in size to account for the fact that
-	 * they are connected at nonManhattan angles and must connect smoothly.
-	 * This state can only get set if the node's prototype has the "setCanShrink" state.
-	 */
-	public void clearShortened() { clearFlag(ImmutableNodeInst.NSHORT); }
+// 	/**
+// 	 * Method to set this NodeInst to be not shortened.
+// 	 * Shortened NodeInst have been reduced in size to account for the fact that
+// 	 * they are connected at nonManhattan angles and must connect smoothly.
+// 	 * This state can only get set if the node's prototype has the "setCanShrink" state.
+// 	 */
+// 	public void clearShortened() { clearFlag(ImmutableNodeInst.NSHORT); }
 
-	/**
-	 * Method to tell whether this NodeInst is shortened.
-	 * Shortened NodeInst have been reduced in size to account for the fact that
-	 * they are connected at nonManhattan angles and must connect smoothly.
-	 * This state can only get set if the node's prototype has the "setCanShrink" state.
-	 * @return true if this NodeInst is shortened.
-	 */
-	public boolean isShortened() { return (d.userBits & ImmutableNodeInst.NSHORT) != 0; }
+// 	/**
+// 	 * Method to tell whether this NodeInst is shortened.
+// 	 * Shortened NodeInst have been reduced in size to account for the fact that
+// 	 * they are connected at nonManhattan angles and must connect smoothly.
+// 	 * This state can only get set if the node's prototype has the "setCanShrink" state.
+// 	 * @return true if this NodeInst is shortened.
+// 	 */
+// 	public boolean isShortened() { return (d.userBits & ImmutableNodeInst.NSHORT) != 0; }
 
 	/**
 	 * Method to set this NodeInst to be hard-to-select.
@@ -3217,7 +3217,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * For example, the Transistor primitive uses these bits to distinguish nMOS, pMOS, etc.
 	 * @param value the Technology-specific value to store on this NodeInst.
 	 */
-	public void setTechSpecific(int value) { checkChanging(); d = d.withUserBits((d.userBits & ~ImmutableNodeInst.NTECHBITS) | (value << ImmutableNodeInst.NTECHBITSSH) & ImmutableNodeInst.NTECHBITS); }
+	public void setTechSpecific(int value) {
+        checkChanging();
+        d = d.withUserBits((d.userBits & ~ImmutableNodeInst.NTECHBITS) | (value << ImmutableNodeInst.NTECHBITSSH) & ImmutableNodeInst.NTECHBITS);
+        Undo.otherChange(this); 
+    }
 
 	/**
 	 * Method to return the Technology-specific value on this NodeInst.
