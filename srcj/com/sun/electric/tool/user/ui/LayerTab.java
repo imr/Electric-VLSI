@@ -110,6 +110,12 @@ public class LayerTab extends JFrame
 		reload();
 	}
 
+    /**
+     * Public function to set technology in pull down menu
+     * @param anObject
+     */
+    public void setSelectedItem(Object anObject) { technology.setSelectedItem(anObject); }
+
 	public void reload()
 	{
 		// initialize text visibility checkboxes

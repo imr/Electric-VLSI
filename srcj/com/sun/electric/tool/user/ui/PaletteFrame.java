@@ -160,8 +160,14 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
             if (tech == Generic.tech) continue;
             techSelector.addItem(tech.getTechName());
         }
-        techSelector.setSelectedItem(cur.getTechName());
+        setSelectedItem(cur.getTechName());
 	}
+
+    /**
+     * Public function to set selected item in techSelector
+     * @param anObject
+     */
+    public void setSelectedItem(Object anObject) { techSelector.setSelectedItem(anObject); }
 
     private void initComponents(WindowFrame ww) {
 //        Container content = ((RootPaneContainer)container).getContentPane();
@@ -288,26 +294,6 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 	public void arcProtoChanged()
 	{
 		techPalette.repaint();
-	}
-
-	/**
-	 * Method to automatically switch to the proper technology for a Cell.
-	 * @param cell the cell being displayed.
-	 * If technology auto-switching is on, make sure the right technology is displayed
-	 * for the Cell.
-	 */
-	public static void autoTechnologySwitch(Cell cell, WindowFrame wf)
-	{
-		if (cell.getView().isTextView()) return;
-		Technology tech = cell.getTechnology();
-		if (tech != null && tech != Technology.getCurrent())
-		{
-			if (User.isAutoTechnologySwitch())
-			{
-				tech.setCurrent();
-				wf.getPaletteTab().techSelector.setSelectedItem(tech.getTechName());
-			}
-		}
 	}
 
 //    /**

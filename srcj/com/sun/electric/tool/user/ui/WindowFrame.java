@@ -27,9 +27,6 @@ import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.database.change.DatabaseChangeEvent;
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Stimuli;
@@ -97,7 +94,7 @@ public class WindowFrame extends Observable
     /** current mouse wheel listener */					public static MouseWheelListener curMouseWheelListener = ClickZoomWireListener.theOne;
     /** current key listener */							public static KeyListener curKeyListener = ClickZoomWireListener.theOne;
 
-    /** library tree updater */                         private static LibraryTreeUpdater libTreeUpdater = new LibraryTreeUpdater();
+//    /** library tree updater */                         private static LibraryTreeUpdater libTreeUpdater = new LibraryTreeUpdater();
 
 
 	/** Main class for 3D plugin */	                    private static final Class view3DClass = Resources.get3DMainClass();
@@ -908,7 +905,7 @@ public class WindowFrame extends Observable
             cell.getLibrary().setCurCell(cell);
 
             // if auto-switching technology, do it
-            PaletteFrame.autoTechnologySwitch(cell, this);
+            autoTechnologySwitch(cell, this);
         }
     }
 
@@ -1123,6 +1120,27 @@ public class WindowFrame extends Observable
         removeUIBinding(map.getParent(), key);
     }
 
+    /**
+	 * Method to automatically switch to the proper technology for a Cell.
+	 * @param cell the cell being displayed.
+	 * If technology auto-switching is on, make sure the right technology is displayed
+	 * for the Cell.
+	 */
+	public static void autoTechnologySwitch(Cell cell, WindowFrame wf)
+	{
+		if (cell.getView().isTextView()) return;
+		Technology tech = cell.getTechnology();
+		if (tech != null && tech != Technology.getCurrent())
+		{
+			if (User.isAutoTechnologySwitch())
+			{
+				tech.setCurrent();
+				wf.getPaletteTab().setSelectedItem(tech.getTechName());
+                wf.getLayersTab().setSelectedItem(tech.getTechName());
+			}
+		}
+	}
+
     //******************************** HANDLERS FOR WINDOW EVENTS ********************************
 
 	/**
@@ -1178,48 +1196,48 @@ public class WindowFrame extends Observable
     /**
      * Database change listener that updates library trees when needed
      */
-    private static class LibraryTreeUpdater implements DatabaseChangeListener {
-
-        private LibraryTreeUpdater() { Undo.addDatabaseChangeListener(this); }
-
-        private void updateLibraryTrees() {
-            for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
-                WindowFrame frame = (WindowFrame)it.next();
-                frame.wantToRedoLibraryTree = true;
-                frame.redoExplorerTreeIfRequested();
-            }
-        }
-
-        public void databaseChanged(DatabaseChangeEvent e)
-        {
-            if (e.cellTreeChanged())
-                updateLibraryTrees();
-        }
-
-//         public void databaseEndChangeBatch(Undo.ChangeBatch batch)
-//         {
-//             boolean changed = false;
-//             for (Iterator it = batch.getChanges(); it.hasNext(); )
-//             {
-//                 Undo.Change change = (Undo.Change)it.next();
-//                 if (change.getType() == Undo.Type.LIBRARYKILL ||
-//                     change.getType() == Undo.Type.LIBRARYNEW ||
-//                     change.getType() == Undo.Type.CELLKILL ||
-//                     change.getType() == Undo.Type.CELLNEW ||
-//                     change.getType() == Undo.Type.CELLGROUPMOD ||
-//                     (change.getType() == Undo.Type.OBJECTRENAME && change.getObject() instanceof Cell) ||
-// 					(change.getType() == Undo.Type.VARIABLENEW && change.getObject() instanceof Cell && ((Variable)change.getO1()).getKey() == Cell.MULTIPAGE_COUNT_KEY))
-//                 {
-//                     changed = true;
-//                     break;
-//                 }
-//             }
-//             if (changed)
-//                 updateLibraryTrees();
-//         }
-
-//         public void databaseChanged(Undo.Change evt) {}
-//         public boolean isGUIListener() { return true; }
-    }
+//    private static class LibraryTreeUpdater implements DatabaseChangeListener {
+//
+//        private LibraryTreeUpdater() { Undo.addDatabaseChangeListener(this); }
+//
+//        private void updateLibraryTrees() {
+//            for (Iterator it = WindowFrame.getWindows(); it.hasNext(); ) {
+//                WindowFrame frame = (WindowFrame)it.next();
+//                frame.wantToRedoLibraryTree = true;
+//                frame.redoExplorerTreeIfRequested();
+//            }
+//        }
+//
+//        public void databaseChanged(DatabaseChangeEvent e)
+//        {
+//            if (e.cellTreeChanged())
+//                updateLibraryTrees();
+//        }
+//
+////         public void databaseEndChangeBatch(Undo.ChangeBatch batch)
+////         {
+////             boolean changed = false;
+////             for (Iterator it = batch.getChanges(); it.hasNext(); )
+////             {
+////                 Undo.Change change = (Undo.Change)it.next();
+////                 if (change.getType() == Undo.Type.LIBRARYKILL ||
+////                     change.getType() == Undo.Type.LIBRARYNEW ||
+////                     change.getType() == Undo.Type.CELLKILL ||
+////                     change.getType() == Undo.Type.CELLNEW ||
+////                     change.getType() == Undo.Type.CELLGROUPMOD ||
+////                     (change.getType() == Undo.Type.OBJECTRENAME && change.getObject() instanceof Cell) ||
+//// 					(change.getType() == Undo.Type.VARIABLENEW && change.getObject() instanceof Cell && ((Variable)change.getO1()).getKey() == Cell.MULTIPAGE_COUNT_KEY))
+////                 {
+////                     changed = true;
+////                     break;
+////                 }
+////             }
+////             if (changed)
+////                 updateLibraryTrees();
+////         }
+//
+////         public void databaseChanged(Undo.Change evt) {}
+////         public boolean isGUIListener() { return true; }
+//    }
 
 }

@@ -867,7 +867,7 @@ public class EditWindow extends JPanel
 				if (wf == WindowFrame.getCurrentWindowFrame(false))
 				{
 					// if auto-switching technology, do it
-					PaletteFrame.autoTechnologySwitch(cell, wf);
+					WindowFrame.autoTechnologySwitch(cell, wf);
 				}
 			}
 		}

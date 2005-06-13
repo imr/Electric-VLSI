@@ -4,7 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
-************************* Version 8.02o: *********************************
+BUG: (06/13/05, GVG) Layers dialog should come up in current technology (Bug #367).
+FIX: Extended PaletteFrame.autoTechnologySwitch for LayerTab and moved to WindowFrame class
 
 BUG: (06/13/05, DN) Some changes are not undoable yet. They don't cause saving library.
 FIX: Undo.otherChange() method to mark library for save.
@@ -17,6 +18,7 @@ BUG: (06/12/05, DN) Sometimes "LibDirs.LibDirFileSystemView.getFiles" causes
      "ClassNotFoundException".
 FIX: Create factory method "LibDirs.newLibDirsFileSystemView".
 
+************************* Version 8.02o: *********************************
 IMP: (06/10/05, SMR) Can now import "GDS map" files to set layer associations (Bug #355).
 
 IMP: (06/10/05, SMR) GDS now uses a "type" with each layer number (Bug #356).
