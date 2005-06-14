@@ -122,7 +122,7 @@ public class DBMath extends GenMath {
      * @param b the second point.
      * @return true if the points are approximately equal.
      */
-    public static boolean pointsClose(Point2D a, Point2D b)
+    public static boolean areEquals(Point2D a, Point2D b)
     {
         if (areEquals(a.getX(), b.getX()) &&
                 areEquals(a.getY(), b.getY())) return true;
@@ -139,7 +139,7 @@ public class DBMath extends GenMath {
     public static boolean isOnLine(Point2D end1, Point2D end2, Point2D pt)
     {
         Point2D closestPointOnSegment = closestPointToSegment(end1, end2, pt);
-        return pointsClose(closestPointOnSegment, pt);
+        return areEquals(closestPointOnSegment, pt);
     }
 
 }

@@ -755,7 +755,7 @@ public class LEF extends LEFDEF
 					Geometric geom = (Geometric)sea.next();
 					if (!(geom instanceof NodeInst)) continue;
 					NodeInst ni = (NodeInst)geom;
-					if (!DBMath.pointsClose(ni.getTrueCenter(), lp.pt[i])) continue;
+					if (!DBMath.areEquals(ni.getTrueCenter(), lp.pt[i])) continue;
 					lp.ni[i] = ni;
 					break;
 				}
@@ -767,7 +767,7 @@ public class LEF extends LEFDEF
 					for(int j=0; j<2; j++)
 					{
 						if (oLp.ni[j] != null) continue;
-						if (!DBMath.pointsClose(oLp.pt[j], lp.pt[i])) continue;
+						if (!DBMath.areEquals(oLp.pt[j], lp.pt[i])) continue;
 						oLp.ni[j] = lp.ni[i];
 					}
 				}
@@ -797,7 +797,7 @@ public class LEF extends LEFDEF
 					for(int j=0; j<2; j++)
 					{
 						if (oLp.ni[j] != null) continue;
-						if (!DBMath.pointsClose(oLp.pt[j], lp.pt[i])) continue;
+						if (!DBMath.areEquals(oLp.pt[j], lp.pt[i])) continue;
 						oLp.ni[j] = lp.ni[i];
 					}
 				}

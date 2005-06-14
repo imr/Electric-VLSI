@@ -326,13 +326,13 @@ public class PolyBase implements Shape, PolyNodeMerge
 			double ang = 0, angd = 0;
 			Point2D lastPoint = points[points.length-1];
             //if (pt.equals(lastPoint)) return true;
-            if (DBMath.pointsClose(pt, lastPoint)) return true;
+            if (DBMath.areEquals(pt, lastPoint)) return true;
 			int lastp = DBMath.figureAngle(pt, lastPoint);
 			for(int i=0; i<points.length; i++)
 			{
 				Point2D thisPoint = points[i];
 				//if (pt.equals(thisPoint)) return true;
-                if (DBMath.pointsClose(pt, thisPoint)) return true;
+                if (DBMath.areEquals(pt, thisPoint)) return true;
                 // Checking if point is along polygon edge
                 if (DBMath.isOnLine(thisPoint, lastPoint, pt))
                     return true;
@@ -368,7 +368,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 			//for(int i=0; i<points.length; i++)
 			//	if (pt.equals(points[i])) return true;
             for(int i=0; i<points.length; i++)
-                if (DBMath.pointsClose(pt, points[i])) return true;
+                if (DBMath.areEquals(pt, points[i])) return true;
 
 			// see if the point is on one of the edges
 			if (style == Poly.Type.VECTORS)
@@ -472,7 +472,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 	{
 		for (int i = 0; i < points.length; i++)
 		{
-			if (point.equals(points[i]))
+			if (DBMath.areEquals(point,points[i]))
 				return (true);
 		}
 		return (false);

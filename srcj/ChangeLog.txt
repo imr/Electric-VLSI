@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
-IMP/MAN: (06/14/, GVG) New tileNot layers (1 for each metal, OD and poly) in TSMC90 technology (Bug #354)
+BUG: (06/14/05, GVG) Select surround not working properly in hierarchy (Bug #353).
+FIX: Precision problem while checking if point is at the corner of a rectangle.
+
+IMP/MAN: (06/14/05, GVG) New tileNot layers (1 for each metal, OD and poly) in TSMC90 technology (Bug #354)
 Stipple patterns in such way they won't completely cover other tileNot nodes. The rest of the graphics
 is inherited from corresponding metal/active/poly layer.
 

@@ -254,7 +254,7 @@ public class PolyMerge
 					if (last < 0) last = points.length-1;
 					Point2D lastPt = points[last];
 					Point2D thisPt = points[i];
-					if (DBMath.pointsClose(lastPt, thisPt)) continue;
+					if (DBMath.areEquals(lastPt, thisPt)) continue;
 					int angle = DBMath.figureAngle(lastPt, thisPt);
 					int perpAngle = (angle + 2700) % 3600;
 					double offsetX = DBMath.cos(perpAngle) * amount;
