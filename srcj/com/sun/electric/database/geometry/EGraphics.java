@@ -403,6 +403,10 @@ public class EGraphics extends Observable
 	 */
 	public void setTransparentLayer(int transparentLayer)
 	{
+        if (transparentLayer < 0 || transparentLayer >= TRANSPARENT_12)
+		{
+			System.out.println("Graphics transparent color bad: " + transparentLayer);
+		}
 		this.transparentLayer = transparentLayer;
 
 		if (layer != null)
