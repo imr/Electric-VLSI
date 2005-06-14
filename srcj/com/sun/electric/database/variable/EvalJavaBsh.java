@@ -422,7 +422,13 @@ public class EvalJavaBsh
                         if (DEBUGSTACKTRACE) e.printStackTrace(System.out);
                     }
                 } else {
-                    System.out.println(description+": "+t.getMessage());
+                    if (t.getMessage() != null)
+                        System.out.println(description+": "+t.getMessage());
+                    else if (t.getStackTrace() != null) {
+                        System.out.println(description+": ");
+                        t.printStackTrace(System.out);
+                    } else
+                        System.out.println(description+": "+t);
                     if (DEBUGSTACKTRACE) e.printStackTrace(System.out);
                 }
             }
