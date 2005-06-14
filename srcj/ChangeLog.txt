@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP/MAN: (06/14/, GVG) New tileNot layers (1 for each metal, OD and poly) in TSMC90 technology (Bug #354)
+Stipple patterns in such way they won't completely cover other tileNot nodes. The rest of the graphics
+is inherited from corresponding metal/active/poly layer.
+
 BUG: (06/13/05, GVG) Layers dialog should come up in current technology (Bug #367).
 FIX: Extended PaletteFrame.autoTechnologySwitch for LayerTab and moved to WindowFrame class
 

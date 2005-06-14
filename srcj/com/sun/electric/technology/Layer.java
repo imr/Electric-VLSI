@@ -246,6 +246,7 @@ public class Layer
 		/** Describes a bus layer. */							public static final Function BUS        = new Function("bus",        "BUS",        0, 0, 42, 0);
 		/** Describes an artwork layer. */						public static final Function ART        = new Function("art",        "ART",        0, 0, 43, 0);
 		/** Describes a control layer. */						public static final Function CONTROL    = new Function("control",    "CONTROL",    0, 0, 44, 0);
+        /** Describes a tileNot layer. */						public static final Function TILENOT    = new Function("tileNot",    "TILENOT",    0, 0, 45, 0);
 
 		/**
 		 * Method to get the level of this Layer.
