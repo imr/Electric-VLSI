@@ -41,6 +41,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -544,6 +545,19 @@ public class LENetlister2 extends LENetlister {
                 // primitive Electric Transistors have their source and drain set to BIDIR, we
                 // want them set to OUTPUT so that they count as diffusion capacitance
                 if (pp.getCharacteristic() == PortCharacteristic.BIDIR) dir = LEPin.Dir.OUTPUT;
+                if (dir == LEPin.Dir.INPUT) {
+                    // gate load: check if length > 2, if so, increase LE to account for added capacitance
+                    var = ni.getVar(Schematics.ATTR_LENGTH);
+                    if (var == null) {
+                        System.out.println("Error: transistor "+ni.getName()+" has no length in Cell "+ni.getParent());
+                        //ErrorLogger.ErrorLog log = errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(), info.getCell(), 0);
+                        //log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
+                    }
+                    float length = VarContext.objectToFloat(info.getContext().evalVar(var), (float)2.0);
+                    // not exactly correct because assumes all cap is area cap, which it isn't
+                    if (length != 2.0f)
+                        le = le * length / 2.0f;                    
+                }
             }
             lenodable.addPort(pp.getName(), dir, le, jnet);
             if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getName()+", le: "+le+", Network: "+jnet);

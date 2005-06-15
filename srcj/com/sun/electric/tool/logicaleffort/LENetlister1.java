@@ -345,17 +345,9 @@ public class LENetlister1 extends LENetlister {
                 return false;
             }
             float width = VarContext.objectToFloat(info.getContext().evalVar(var), (float)3.0);
-            var = ni.getVar("ATTR_length");
-            if (var == null) {
-                System.out.println("Error: transistor "+ni+" has no length in Cell "+info.getCell());
-                ErrorLogger.MessageLog log = errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(), info.getCell(), 0);
-                log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
-                return false;
-            }
-            float length = VarContext.objectToFloat(info.getContext().evalVar(var), (float)2.0);
-            // not exactly correct because assumes all cap is area cap, which it isn't
-            leX = (float)(width*length/2.0f);
-            leX = leX/9.0f;
+
+            // note that LE will handle any gate load bloat due to increased gate length
+            leX = (float)(width/9.0f);
             primitiveTransistor = true;
         }
         else if ((ni.getProto() != null) && (ni.getProto().getFunction() == PrimitiveNode.Function.CAPAC)) {
@@ -396,6 +388,19 @@ public class LENetlister1 extends LENetlister {
                 // primitive Electric Transistors have their source and drain set to BIDIR, we
                 // want them set to OUTPUT so that they count as diffusion capacitance
                 if (pp.getCharacteristic() == PortCharacteristic.BIDIR) dir = Pin.Dir.OUTPUT;
+            }
+            if (dir == Pin.Dir.INPUT && type == Instance.Type.STATICGATE) {
+                // gate load: check if length > 2, if so, increase LE to account for added capacitance
+                var = ni.getVar("ATTR_length");
+                if (var == null) {
+                    System.out.println("Error: transistor "+ni+" has no length in Cell "+info.getCell());
+                    ErrorLogger.MessageLog log = errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(), info.getCell(), 0);
+                    log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
+                }
+                float length = VarContext.objectToFloat(info.getContext().evalVar(var), (float)2.0);
+                // not exactly correct because assumes all cap is area cap, which it isn't
+                if (length != 2.0f)
+                    le = le * length / 2.0f;
             }
             pins.add(new Pin(pp.getName(), dir, le, netName));
             if (DEBUG) System.out.println("    Added "+dir+" pin "+pp.getName()+", le: "+le+", netName: "+netName+", Network: "+netlist.getNetwork(ni,pp,0));

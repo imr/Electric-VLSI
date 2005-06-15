@@ -262,22 +262,21 @@ public class LENodable {
                 return -1f;
             }
             retVal = context.evalVar(var);
-            //System.out.println("retVal: "+retVal);
+            if (retVal == null) return -1f;
             float width = VarContext.objectToFloat(retVal, (float)3.0);
 
-            var = no.getVar(Schematics.ATTR_LENGTH);
-            if (var == null) {
-                System.out.println("Error: transistor "+no.getName()+" has no length in Cell "+no.getParent());
-                //ErrorLogger.ErrorLog log = errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(), info.getCell(), 0);
-                //log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
-                return -1f;
-            }
-            retVal = context.evalVar(var);
-            if (retVal == null) return -1f;
-            float length = VarContext.objectToFloat(retVal, (float)2.0);
+//            var = no.getVar(Schematics.ATTR_LENGTH);
+//            if (var == null) {
+//                System.out.println("Error: transistor "+no.getName()+" has no length in Cell "+no.getParent());
+//                //ErrorLogger.ErrorLog log = errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(), info.getCell(), 0);
+//                //log.addGeom(ni.getNodeInst(), true, info.getCell(), info.getContext());
+//                return -1f;
+//            }
+//            retVal = context.evalVar(var);
+//            if (retVal == null) return -1f;
+//            float length = VarContext.objectToFloat(retVal, (float)2.0);
             // not exactly correct because assumes all cap is area cap, which it isn't
-            leX = (float)(width*length/2.0f);
-            leX = leX/9.0f;
+            leX = (float)(width/9.0f);
         }
         else if (type == Type.CAPACITOR) {
             var = no.getVar(Schematics.SCHEM_CAPACITANCE);
