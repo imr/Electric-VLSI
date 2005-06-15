@@ -718,7 +718,6 @@ public class DRC extends Listener
             thisByte = ((Integer)varBits.getObject()).intValue();
         boolean area = (thisByte & DRC_BIT_AREA) == (activeBits & DRC_BIT_AREA);
         boolean coverage = (thisByte & DRC_BIT_COVERAGE) == (activeBits & DRC_BIT_COVERAGE);
-        int techMode = getFoundry();
         // DRC date is invalid if conditions were checked for another foundry
         boolean sameManufacturer = (thisByte & DRC_BIT_TSMC_FOUNDRY) == (activeBits & DRC_BIT_TSMC_FOUNDRY) &&
                 (thisByte & DRC_BIT_ST_FOUNDRY) == (activeBits & DRC_BIT_ST_FOUNDRY);
