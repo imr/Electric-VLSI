@@ -93,7 +93,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 
 		model = new DefaultListModel();
 		list = new JList(model);
-		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 		objectPane.setViewportView(list);
 		list.addMouseListener(new java.awt.event.MouseAdapter()
 		{
@@ -139,73 +139,71 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 
 	private void listClicked()
 	{
-		String s = (String)list.getSelectedValue();
-		if (nodes.isSelected())
+		int [] si = list.getSelectedIndices();
+		if (si.length > 0) highlighter.clear();
+		Netlist netlist = cell.acquireUserNetlist();
+		if (netlist == null)
 		{
-			// find nodes
-			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			System.out.println("Sorry, a deadlock aborted selection (network information unavailable).  Please try again");
+			return;
+		}
+		for(int i=0; i<si.length; i++)
+		{
+			int index = si[i];
+			String s = (String)model.get(index);
+			if (nodes.isSelected())
 			{
-				NodeInst ni = (NodeInst)it.next();
-				if (s.equals(ni.getName()))
+				// find nodes
+				for(Iterator it = cell.getNodes(); it.hasNext(); )
 				{
-					highlighter.clear();
-					highlighter.addElectricObject(ni, cell);
-					highlighter.finished();
-					return;
+					NodeInst ni = (NodeInst)it.next();
+					if (s.equals(ni.getName()))
+					{
+						highlighter.addElectricObject(ni, cell);
+						break;
+					}
 				}
-			}
-		} else if (arcs.isSelected())
-		{
-			// find arcs
-			for(Iterator it = cell.getArcs(); it.hasNext(); )
+			} else if (arcs.isSelected())
 			{
-				ArcInst ai = (ArcInst)it.next();
-				if (s.equals(ai.getName()))
+				// find arcs
+				for(Iterator it = cell.getArcs(); it.hasNext(); )
 				{
-					highlighter.clear();
-					highlighter.addElectricObject(ai, cell);
-					highlighter.finished();
-					return;
+					ArcInst ai = (ArcInst)it.next();
+					if (s.equals(ai.getName()))
+					{
+						highlighter.addElectricObject(ai, cell);
+						break;
+					}
 				}
-			}
-		} else if (exports.isSelected())
-		{
-			// find exports
-			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			} else if (exports.isSelected())
 			{
-				Export pp = (Export)it.next();
-				if (s.equals(pp.getName()))
+				// find exports
+				for(Iterator it = cell.getPorts(); it.hasNext(); )
 				{
-					highlighter.clear();
-					highlighter.addText(pp, cell, null, null);
-					highlighter.finished();
-					return;
+					Export pp = (Export)it.next();
+					if (s.equals(pp.getName()))
+					{
+						highlighter.addText(pp, cell, null, null);
+						break;
+					}
 				}
-			}
-		} else
-		{
-			// find networks
-//			Netlist netlist = cell.getUserNetlist();
-			Netlist netlist = cell.acquireUserNetlist();
-			if (netlist == null)
+			} else
 			{
-				System.out.println("Sorry, a deadlock aborted mimic-routing (network information unavailable).  Please try again");
-				return;
-			}
-			for(Iterator it = netlist.getNetworks(); it.hasNext(); )
-			{
-				Network net = (Network)it.next();
-				String netName = net.describe();
-				if (netName.length() == 0) continue;
-				if (s.equals(netName))
+				// find networks
+				for(Iterator it = netlist.getNetworks(); it.hasNext(); )
 				{
-					highlighter.clear();
-					highlighter.addNetwork(net, cell);
-					highlighter.finished();
-					return;
+					Network net = (Network)it.next();
+					String netName = net.describe();
+					if (netName.length() == 0) continue;
+					if (s.equals(netName))
+					{
+						highlighter.addNetwork(net, cell);
+						break;
+					}
 				}
 			}
 		}
+		if (si.length > 0) highlighter.finished();
 	}
 
 	private void buttonClicked()

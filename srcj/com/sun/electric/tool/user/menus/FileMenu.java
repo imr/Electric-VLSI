@@ -758,10 +758,10 @@ public class FileMenu {
      */
     public static void exportCommand(FileType type, boolean isNetlist)
     {
+		// synchronization of PostScript is done first because no window is needed
         if (type == FileType.POSTSCRIPT)
         {
             if (PostScript.syncAll()) return;
-            if (IOTool.isPrintEncapsulated()) type = FileType.EPS;
         }
 
 	    WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
@@ -780,7 +780,19 @@ public class FileMenu {
         }
         VarContext context = (wnd instanceof EditWindow) ? ((EditWindow)wnd).getVarContext() : null;
 
-        String [] extensions = type.getExtensions();
+        if (type == FileType.POSTSCRIPT)
+        {
+            if (IOTool.isPrintEncapsulated()) type = FileType.EPS;
+			if (wnd instanceof WaveformWindow)
+			{
+				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+					"Cannot write PostScript for a Waveform window.  Try printing it instead",
+					"Cannot Write PostScript", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+        }
+
+		String [] extensions = type.getExtensions();
         String filePath = ((cell != null) ? cell.getName() : "") + "." + extensions[0];
 
         // special case for spice
@@ -886,16 +898,6 @@ public class FileMenu {
 
         PrinterJob pj = PrinterJob.getPrinterJob();
         pj.setJobName(wf.getTitle());
-//	    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
-// 		if (pageFormat == null)
-//		 {
-//			pageFormat = pj.defaultPage();
-//			pageFormat.setOrientation(PageFormat.LANDSCAPE);
-//            pageFormat = pj.validatePage(pageFormat);
-//		 }
-//
-// 		ElectricPrinter ep = new ElectricPrinter(wf.getContent());
-//        pj.setPrintable(ep, pageFormat);
 
         // see if a default printer should be mentioned
         String pName = IOTool.getPrinterName();
@@ -931,6 +933,13 @@ public class FileMenu {
 			Dimension oldSize = null;
 			if (wf.getContent() instanceof WaveformWindow)
 			{
+			    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
+		 		if (pageFormat == null)
+				{
+					pageFormat = pj.defaultPage();
+					pageFormat.setOrientation(PageFormat.LANDSCAPE);
+		            pageFormat = pj.validatePage(pageFormat);
+				}
 				int iw = (int)pageFormat.getImageableWidth();
 				int ih = (int)pageFormat.getImageableHeight();
 				oldSize = overall.getSize();

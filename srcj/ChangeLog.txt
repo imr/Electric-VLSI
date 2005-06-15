@@ -33,6 +33,17 @@ IMP: (06/12/05, SMR) Displaying transparent layers for a technology other than t
 
 ************************* Version 8.02o: *********************************
 
+BUG: (06/15/05, SMR) Technology editor fails to determine rules (Bug #374)
+FIX: Round values so that numeric instability doesn't happen.
+
+IMP: (06/15/05, SMR) "Select Object" now allows multiple selections (Bug #370).
+
+IMP: (06/15/05, SMR) CIF output always checks for minimum resolution of CIF format (Bug #365).
+     CIF Preferences now use resolution value to decide whether to check (nonzero to check).
+
+BUG: (06/15/05, SMR) Converting a technology to a library twice crashes (Bug #373).
+FIX: Disallow second conversion.
+
 IMP: (06/10/05, SMR) Can now import "GDS map" files to set layer associations (Bug #355).
 
 IMP: (06/10/05, SMR) GDS now uses a "type" with each layer number (Bug #356).

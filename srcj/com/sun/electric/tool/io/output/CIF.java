@@ -25,35 +25,33 @@
  */
 package com.sun.electric.tool.io.output;
 
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
-import com.sun.electric.database.text.Version;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.awt.geom.AffineTransform;
 import java.util.Date;
-import java.util.Set;
 import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /** 
  * Class to write CIF output to disk.
@@ -61,7 +59,7 @@ import java.util.Iterator;
 public class CIF extends Geometry
 {
 	// preferences
-	/** minimum output grid resolution */				private double minAllowedResolution;
+	/** minimum output grid resolution (0 to ignore) */	private double minAllowedResolution;
 
 	// crc checksum stuff
 	/** checksum */										private int crcChecksum;
@@ -77,34 +75,32 @@ public class CIF extends Geometry
 	/** cell to cell number map */						private HashMap cellNumbers;
 	/** scale factor from internal units. */			private double scaleFactor;
 
-    /** for storing generated errors */                 private ErrorLogger errorLogger;
+	/** for storing generated errors */					private ErrorLogger errorLogger;
 
-    /** illegal characters in names (not really illegal but can cause problems) */
-    private static final String badNameChars = ":{}/\\";
-    
-    /**
+	/** illegal characters in names (not really illegal but can cause problems) */
+	private static final String badNameChars = ":{}/\\";
+
+	/**
 	 * Main entry point for CIF output.
 	 * @param cellJob contains following information
-     * cell: the top-level cell to write.
+	 * cell: the top-level cell to write.
 	 * filePath: the name of the file to create.
 	 * @return the number of errors detected
 	 */
 	public static int writeCIFFile(OutputCellInfo cellJob)
 	{
 		// initialize preferences
-		double minAllowedResolution = 0;
-		if (IOTool.isCIFOutCheckResolution())
-			minAllowedResolution = IOTool.getCIFOutResolution();
+		double minAllowedResolution = IOTool.getCIFOutResolution();
 		return writeCIFFile(cellJob.cell, cellJob.context, cellJob.filePath, minAllowedResolution);
 	}
-    /**
+
+	/**
 	 * User Interface independent entry point for CIF output.
 	 * @param cell the top-level cell to write.
 	 * @param filePath the name of the file to create.
 	 * @return the number of errors detected
 	 */
-	public static int writeCIFFile(Cell cell, VarContext context, String filePath,
-			                       double minAllowedResolution)
+	public static int writeCIFFile(Cell cell, VarContext context, String filePath, double minAllowedResolution)
 	{
 		CIF out = new CIF(minAllowedResolution);
 		if (out.openTextOutputStream(filePath)) return 1;
@@ -129,7 +125,7 @@ public class CIF extends Geometry
 		// scale is in centimicrons, technology scale is in nanometers
 		scaleFactor = Technology.getCurrent().getScale() / 10;
 
-        errorLogger = ErrorLogger.newInstance("CIF resolution");
+		errorLogger = ErrorLogger.newInstance("CIF resolution");
 	}
 
 	protected void start()
@@ -190,15 +186,16 @@ public class CIF extends Geometry
 	{
 		cellNumber++;
 		writeLine("DS " + cellNumber + " 1 1;");
-        String cellName = (cellGeom.nonUniqueName ? (cellGeom.cell.getLibrary().getName() + ":") : "") +
+		String cellName = (cellGeom.nonUniqueName ? (cellGeom.cell.getLibrary().getName() + ":") : "") +
 			cellGeom.cell.getName() + ";";
-        // remove bad chars from cell name
-        StringBuffer sb = new StringBuffer();
-        for (int i=0; i<cellName.length(); i++) {
-            char ch = cellName.charAt(i);
-            if (badNameChars.indexOf(ch) != -1) ch = '_';
-            sb.append(ch);
-        }
+		// remove bad chars from cell name
+		StringBuffer sb = new StringBuffer();
+		for (int i=0; i<cellName.length(); i++)
+		{
+			char ch = cellName.charAt(i);
+			if (badNameChars.indexOf(ch) != -1) ch = '_';
+			sb.append(ch);
+		}
 		writeLine("9 " + sb.toString());
 		cellNumbers.put(cellGeom.cell, new Integer(cellNumber));
 
@@ -242,24 +239,24 @@ public class CIF extends Geometry
 		return IOTool.isCIFOutMergesBoxes();
 	}
 	   
-    /**
-     * Method to determine whether or not to include the original Geometric with a Poly.
-     * Only includes Geometric information if NOT merging boxes, because if merging
-     * boxes, then the original Geometric information is lost.
-     */
-    protected boolean includeGeometric()
+	/**
+	 * Method to determine whether or not to include the original Geometric with a Poly.
+	 * Only includes Geometric information if NOT merging boxes, because if merging
+	 * boxes, then the original Geometric information is lost.
+	 */
+	protected boolean includeGeometric()
 	{
 		return !IOTool.isCIFOutMergesBoxes();
 	}
-    
-    /** Overridable method to determine the current EditWindow to use for text scaling */
-    protected EditWindow windowBeingRendered() { return null; }
+
+//	/** Overridable method to determine the current EditWindow to use for text scaling */
+//	protected EditWindow windowBeingRendered() { return null; }
 
 	/**
 	 * Method to emit the current layer number.
 	 * @return true if the layer is invalid.
 	 */
-	protected boolean writeLayer(Layer layer)
+	private boolean writeLayer(Layer layer)
 	{
 		String layName = layer.getCIFLayer();
 		if (layName == null || layName.equals("")) return true;
@@ -267,14 +264,13 @@ public class CIF extends Geometry
 		return false;
 	}
 
-	protected void writePoly(PolyBase poly, Cell cell, Geometric geom)
+	private void writePoly(PolyBase poly, Cell cell, Geometric geom)
 	{
 		Point2D [] points = poly.getPoints();
 
-		checkResolution(poly, cell, geom);
-
 		if (poly.getStyle() == Poly.Type.DISC)
 		{
+			checkResolution(poly, cell, geom);
 			double r = points[0].distance(points[1]);
 			if (r <= 0) return;			// ignore zero size geometry
 			int radius = scale(r);
@@ -284,30 +280,27 @@ public class CIF extends Geometry
 			writeLine(line);
 		} else
 		{
-			Rectangle2D bounds = poly.getBounds2D();
 			// ignore zero size geometry
+			Rectangle2D bounds = poly.getBounds2D();
 			if (bounds.getHeight() <= 0 || bounds.getWidth() <= 0) return;
-			Rectangle2D box = poly.getBox();
+
 			// simple case if poly is a box
+			Rectangle2D box = poly.getBox();
 			if (box != null)
 			{
+				checkPointResolution(box.getWidth(), box.getHeight(), cell, geom, poly.getLayer(), poly);
+				checkPointResolution(box.getCenterX(), box.getCenterY(), cell, geom, poly.getLayer(), poly);
 				int width = scale(box.getWidth());
 				int height = scale(box.getHeight());
 				int x = scale(box.getCenterX());
 				int y = scale(box.getCenterY());
-                // make sure center coordinates are not below min resolution
-                double x2 = unscale(x);
-                double y2 = unscale(y);
-                if (GenMath.doublesEqual(box.getCenterX(), x2) && GenMath.doublesEqual(box.getCenterY(), y2)) {
-                    String line = " B " + width + " " + height + " " +
-                        x + " " + y + ";";
-                    writeLine(line);
-			    	return;
-                }
-                //System.out.println(box.getCenterX()+" != "+x2+" or "+box.getCenterY()+" != "+y2);
+				String line = " B " + width + " " + height + " " + x + " " + y + ";";
+				writeLine(line);
+				return;
 			}
 
 			// not a box
+			checkResolution(poly, cell, geom);
 			StringBuffer line = new StringBuffer(" P");
 			for (int i=0; i<points.length; i++)
 			{
@@ -320,7 +313,7 @@ public class CIF extends Geometry
 		}
 	}
 
-	protected void writeNodable(NodeInst ni)
+	private void writeNodable(NodeInst ni)
 	{
 		Cell cell = (Cell)ni.getProto();
 
@@ -357,7 +350,7 @@ public class CIF extends Geometry
 	 * Write a line to the CIF file, and accumlate 
 	 * checksum information.
 	 */
-	protected void writeLine(String line)
+	private void writeLine(String line)
 	{
 		line = line + '\n';
 		printWriter.print(line);
@@ -382,45 +375,74 @@ public class CIF extends Geometry
 	/**
 	 * Method to scale Electric units to CIF units
 	 */
-	protected int scale(double n)
+	private int scale(double n)
 	{
 		return (int)(scaleFactor * n);
 	}
 
-    protected double unscale(int n)
-    {
-        return (double)(n / scaleFactor);
-    }
+	private double unscale(int n)
+	{
+		return (double)(n / scaleFactor);
+	}
 
 	/**
 	 * Check Poly for CIF Resolution Errors
 	 */
-	protected void checkResolution(PolyBase poly, Cell cell, Geometric geom)
+	private void checkResolution(PolyBase poly, Cell cell, Geometric geom)
 	{
-		if (minAllowedResolution == 0) return;
-		ArrayList badpoints = new ArrayList();
 		Point2D [] points = poly.getPoints();
 		for (int i=0; i<points.length; i++)
 		{
-			if ((points[i].getX() % minAllowedResolution) != 0 ||
-				(points[i].getY() % minAllowedResolution) != 0)
-					badpoints.add(points[i]);
+			double x = points[i].getX();
+			double y = points[i].getY();
+			if (checkPointResolution(x, y, cell, geom, poly.getLayer(), poly)) return;
 		}
-		if (badpoints.size() > 0)
+	}
+
+	private boolean checkPointResolution(double x, double y, Cell cell, Geometric geom, Layer layer, PolyBase poly)
+	{
+		// first check for CIF resolution
+		boolean badPoints = false;
+		x *= scaleFactor;
+		y *= scaleFactor;
+		if (Math.round(x) != x || Math.round(y) != y)
+		{
+			badPoints = true;
+		}
+
+		boolean badResolution = false;
+		if (minAllowedResolution != 0)
+		{
+			if ((x % minAllowedResolution) != 0 || (y % minAllowedResolution) != 0)
+			{
+				badResolution = true;
+			}
+		}
+
+		boolean error = badPoints || badResolution;
+		if (error)
 		{
 			// there was an error, for now print error
-			Layer layer = poly.getLayer();
 			ErrorLogger.MessageLog err = null;
+			String layerName;
 			if (layer == null)
 			{
-				err = errorLogger.logError("Unknown layer", cell, layer.getIndex());
+				layerName = "**UNKNOWN**";
 			} else
 			{
-				err = errorLogger.logError("Resolution < " + minAllowedResolution + " on layer " + layer.getName(), cell, layer.getIndex());
+				layerName = layer.getName();
+			}
+			if (badPoints)
+			{
+				err = errorLogger.logError("Resolution less than CIF allows on layer " + layerName, cell, layer.getIndex());
+			} else
+			{
+				err = errorLogger.logError("Resolution < " + minAllowedResolution + " on layer " + layerName, cell, layer.getIndex());
 			}
 			if (geom != null) err.addGeom(geom, true, cell, VarContext.globalContext); else
 				err.addPoly(poly, false, cell);
 		}
+		return error;
 	}
 
 	/****************************** VISITOR SUBCLASS ******************************/

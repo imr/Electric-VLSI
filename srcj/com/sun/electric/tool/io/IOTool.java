@@ -282,24 +282,11 @@ public class IOTool extends Listener
 	 */
 	public static void setCIFOutInstantiatesTopLevel(boolean on) { cacheCIFOutInstantiatesTopLevel.setBoolean(on); }
 
-	private static Pref cacheCIFOutCheckResolution = Pref.makeBooleanPref("CIFCheckResolution", IOTool.tool.prefs, false);
-	/**
-	 * Method to tell whether to report CIF resolution errors.
-	 * The default is "false".
-	 * @return true to report CIF resolution errors.
-	 */
-	public static boolean isCIFOutCheckResolution() { return cacheCIFOutCheckResolution.getBoolean(); }
-	/**
-	 * Method to set whether to report CIF resolution errors.
-	 * @param c whether to report CIF resolution errors.
-	 */
-	public static void setCIFOutCheckResolution(boolean c) { cacheCIFOutCheckResolution.setBoolean(c); }
-
 	private static Pref cacheCIFOutResolution = Pref.makeDoublePref("CIFResolution", IOTool.tool.prefs, 0);
 	/**
 	 * Method to tell the minimum CIF Output resolution.
 	 * This is the smallest feature size that can be safely generated.
-	 * The default is "0".
+	 * The default is "0" (no resolution check).
 	 * @return the minimum CIF Output resolution.
 	 */
 	public static double getCIFOutResolution() { return cacheCIFOutResolution.getDouble(); }

@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.user.tecEdit;
 
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -1992,7 +1993,6 @@ public class LibToTech
 				trueCount = points.length;
 			} else
 			{
-				// make sure the arrays hold enough points
 				double [] angles = null;
 				if (ns.node.getProto() == Artwork.tech.circleNode || ns.node.getProto() == Artwork.tech.thickCircleNode)
 				{
@@ -2150,23 +2150,23 @@ public class LibToTech
 				for(int i=0; i<trueCount; i++)
 				{
 					// see if edges are fixed distance from example edge
-					if (pointLeftDist[i] != pointCoords[i].getX() - ne.lx) pointFactor[i] &= ~TOEDGELEFT;
-					if (pointRightDist[i] != ne.hx - pointCoords[i].getX()) pointFactor[i] &= ~TOEDGERIGHT;
-					if (pointBottomDist[i] != pointCoords[i].getY() - ne.ly) pointFactor[i] &= ~TOEDGEBOT;
-					if (pointTopDist[i] != ne.hy - pointCoords[i].getY()) pointFactor[i] &= ~TOEDGETOP;
+					if (!DBMath.areEquals(pointLeftDist[i], pointCoords[i].getX() - ne.lx)) pointFactor[i] &= ~TOEDGELEFT;
+					if (!DBMath.areEquals(pointRightDist[i], ne.hx - pointCoords[i].getX())) pointFactor[i] &= ~TOEDGERIGHT;
+					if (!DBMath.areEquals(pointBottomDist[i], pointCoords[i].getY() - ne.ly)) pointFactor[i] &= ~TOEDGEBOT;
+					if (!DBMath.areEquals(pointTopDist[i], ne.hy - pointCoords[i].getY())) pointFactor[i] &= ~TOEDGETOP;
 
 					// see if edges are fixed distance from example center
-					if (centerXDist[i] != pointCoords[i].getX() - (ne.lx+ne.hx)/2) pointFactor[i] &= ~FROMCENTX;
-					if (centerYDist[i] != pointCoords[i].getY() - (ne.ly+ne.hy)/2) pointFactor[i] &= ~FROMCENTY;
+					if (!DBMath.areEquals(centerXDist[i], pointCoords[i].getX() - (ne.lx+ne.hx)/2)) pointFactor[i] &= ~FROMCENTX;
+					if (!DBMath.areEquals(centerYDist[i], pointCoords[i].getY() - (ne.ly+ne.hy)/2)) pointFactor[i] &= ~FROMCENTY;
 
 					// see if edges are fixed ratio from example center
 					double r = 0;
 					if (ne.hx != ne.lx)
 						r = (pointCoords[i].getX() - (ne.lx+ne.hx)/2) / (ne.hx-ne.lx);
-					if (r != pointXRatio[i]) pointFactor[i] &= ~RATIOCENTX;
+					if (!DBMath.areEquals(r, pointXRatio[i])) pointFactor[i] &= ~RATIOCENTX;
 					if (ne.hy == ne.ly) r = 0; else
 						r = (pointCoords[i].getY() - (ne.ly+ne.hy)/2) / (ne.hy-ne.ly);
-					if (r != pointYRatio[i]) pointFactor[i] &= ~RATIOCENTY;
+					if (!DBMath.areEquals(r, pointYRatio[i])) pointFactor[i] &= ~RATIOCENTY;
 				}
 
 				// make sure port information is on the primary example
@@ -2265,6 +2265,8 @@ public class LibToTech
 			bounds.setRect(bounds.getMinX() + portShrink, bounds.getMinY() + portShrink,
 				bounds.getWidth()-portShrink*2, bounds.getHeight()-portShrink*2);
 		}
+		bounds.setRect(DBMath.round(bounds.getMinX()), DBMath.round(bounds.getMinY()),
+			DBMath.round(bounds.getWidth()), DBMath.round(bounds.getHeight()));
 		return bounds;
 	}
 

@@ -86,6 +86,15 @@ public class TechToLib
 			"Choose a technology to edit", JOptionPane.QUESTION_MESSAGE, null, techChoices, Technology.getCurrent().getTechName());
 		if (chosen == null) return;
 		Technology tech = Technology.findTechnology(chosen);
+		Library already = Library.findLibrary(tech.getTechName());
+		if (already != null)
+		{
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
+				"There is already a library called '" + tech.getTechName() + "'.  Delete it first.",
+				"Cannot Convert Technology", JOptionPane.ERROR_MESSAGE);
+			System.out.println();
+			return;
+		}
 		LibFromTechJob job = new LibFromTechJob(tech);
 	}
 
@@ -327,8 +336,8 @@ public class TechToLib
 			if (pnp.getSpecialType() == PrimitiveNode.MULTICUT)
 			{
 				double [] values = pnp.getSpecialValues();
-				double min2X = values[0]*2 + values[2]*2 + values[4];
-				double min2Y = values[1]*2 + values[3]*2 + values[4];
+				double min2X = values[0]*2 + values[2]*2 + values[5];
+				double min2Y = values[1]*2 + values[3]*2 + values[5];
 				xsc[1] = min2X;
 				xsc[3] = min2X;
 				ysc[2] = min2Y;

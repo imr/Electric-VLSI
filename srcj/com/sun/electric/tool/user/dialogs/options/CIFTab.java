@@ -67,7 +67,6 @@ public class CIFTab extends PreferencePanel
 		cifOutputMimicsDisplay.setSelected(IOTool.isCIFOutMimicsDisplay());
 		cifOutputMergesBoxes.setSelected(IOTool.isCIFOutMergesBoxes());
 		cifOutputInstantiatesTopLevel.setSelected(IOTool.isCIFOutInstantiatesTopLevel());
-		cifCheckResolution.setSelected(IOTool.isCIFOutCheckResolution());
 		cifResolutionValue.setText(TextUtils.formatDouble(IOTool.getCIFOutResolution()));
 		cifInputSquaresWires.setSelected(IOTool.isCIFInSquaresWires());
 
@@ -192,10 +191,6 @@ public class CIFTab extends PreferencePanel
 		if (currentValue != IOTool.isCIFOutInstantiatesTopLevel())
 			IOTool.setCIFOutInstantiatesTopLevel(currentValue);
 
-		currentValue = cifCheckResolution.isSelected();
-		if (currentValue != IOTool.isCIFOutCheckResolution())
-			IOTool.setCIFOutCheckResolution(currentValue);
-
 		double currentResolution = TextUtils.atof(cifResolutionValue.getText());
 		if (currentResolution != IOTool.getCIFOutResolution())
 			IOTool.setCIFOutResolution(currentResolution);
@@ -226,7 +221,7 @@ public class CIFTab extends PreferencePanel
         jPanel1 = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         cifResolutionValue = new javax.swing.JTextField();
-        cifCheckResolution = new javax.swing.JCheckBox();
+        jLabel4 = new javax.swing.JLabel();
         cifTechnology = new javax.swing.JLabel();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -319,27 +314,26 @@ public class CIFTab extends PreferencePanel
         jLabel3.setText("Output resolution:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         jPanel1.add(jLabel3, gridBagConstraints);
 
         cifResolutionValue.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         jPanel1.add(cifResolutionValue, gridBagConstraints);
 
-        cifCheckResolution.setText("Find resolution errors");
+        jLabel4.setText("(No resolution check done if zero)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel1.add(cifCheckResolution, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
+        jPanel1.add(jLabel4, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
@@ -371,7 +365,6 @@ public class CIFTab extends PreferencePanel
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel cif;
-    private javax.swing.JCheckBox cifCheckResolution;
     private javax.swing.JCheckBox cifInputSquaresWires;
     private javax.swing.JTextField cifLayer;
     private javax.swing.JScrollPane cifLayers;
@@ -383,6 +376,7 @@ public class CIFTab extends PreferencePanel
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     // End of variables declaration//GEN-END:variables
 
