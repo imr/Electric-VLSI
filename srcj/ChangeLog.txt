@@ -11,8 +11,8 @@ BUG: (06/14/05, GVG) Select surround not working properly in hierarchy (Bug #353
 FIX: Precision problem while checking if point is at the corner of a rectangle.
 
 IMP/MAN: (06/14/05, GVG) New tileNot layers (1 for each metal, OD and poly) in TSMC90 technology (Bug #354)
-Stipple patterns in such way they won't completely cover other tileNot nodes. The rest of the graphics
-is inherited from corresponding metal/active/poly layer.
+     Stipple patterns in such way they won't completely cover other tileNot nodes. The rest of the graphics
+     is inherited from corresponding metal/active/poly layer.
 
 BUG: (06/13/05, GVG) Layers dialog should come up in current technology (Bug #367).
 FIX: Extended PaletteFrame.autoTechnologySwitch for LayerTab and moved to WindowFrame class
@@ -28,7 +28,11 @@ BUG: (06/12/05, DN) Sometimes "LibDirs.LibDirFileSystemView.getFiles" causes
      "ClassNotFoundException".
 FIX: Create factory method "LibDirs.newLibDirsFileSystemView".
 
+IMP: (06/12/05, SMR) Displaying transparent layers for a technology other than the
+     current one displays a warning that the layers may not have been drawn.
+
 ************************* Version 8.02o: *********************************
+
 IMP: (06/10/05, SMR) Can now import "GDS map" files to set layer associations (Bug #355).
 
 IMP: (06/10/05, SMR) GDS now uses a "type" with each layer number (Bug #356).
@@ -45,9 +49,9 @@ BUG: (06/09/05, GVG) Exception while generating eps from waveform (Bug #361)
 FIX: After refactoring of Technology.getShapeOfNode, wnd can be null and then direct access
      of wnd.getVarContext() will generate the exception.
 
-IMP/MAN (06/09/05, GVG) Move area coverage tool under DRC menu
+IMP: (06/09/05, GVG) Move area coverage tool under DRC menu
 
-IMP/MAN (06/09/05, JKG) Added command Tools->Cadence->Import Assura DRC Errors.
+IMP: (06/09/05, JKG) Added command Tools->Cadence->Import Assura DRC Errors.
 
 BUG: (06/9/05, GVG) Overlap not checked correctly when node was in a subcell (Bug #352)
 FIX: TSMCRules.getRule() was not getting the correct min size for default case.

@@ -36,6 +36,7 @@ import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.menus.ToolMenu;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 
 import java.io.BufferedWriter;
@@ -60,6 +61,8 @@ public class ALS extends Engine
 	/** the waveform window showing this simulator */	WaveformWindow    ww;
 	/** the stimuli set currently being displayed */	Stimuli           sd;
 	/** current time in the simulator */				double            timeAbs;
+	/** saved list of stimuli when refreshing */		List              stimuliList;
+
 	List              modelList;
 	List              primList = new ArrayList();
 	IO                ioPtr2;
@@ -407,7 +410,15 @@ public class ALS extends Engine
 	public static void simulateNetlist(Cell netlistCell, Cell np, VarContext context)
 	{
 		ALS theALS = new ALS();
-		theALS.doSimulation(netlistCell, np, context);
+		theALS.doSimulation(netlistCell, np, context, null, null);
+	}
+
+	public static void restartSimulation(Cell netlistCell, Cell np, VarContext context, ALS prevALS)
+	{
+		WaveformWindow ww = prevALS.ww;
+		List stimuliList = prevALS.stimuliList;
+		ALS theALS = new ALS();
+		theALS.doSimulation(netlistCell, np, context, ww, stimuliList);
 	}
 
 	/**
@@ -415,7 +426,11 @@ public class ALS extends Engine
 	 */
 	public void refresh()
 	{
-		System.out.println("CANNOT REFRESH CIRCUIT DATA YET");
+		// save existing stimuli in this simulator object
+		stimuliList = getStimuliToSave();
+
+		// restart everything
+		Simulation.startSimulation(Simulation.ALS_ENGINE, false, sd.getCell(), this);
 	}
 
 	/**
@@ -695,35 +710,9 @@ public class ALS extends Engine
 		try
 		{
 			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(stimuliFileName)));
-
-			for (Link setHead = setRoot; setHead != null; setHead = setHead.right)
-			{
-				switch (setHead.type)
-				{
-					case 'C':
-						Row clokHead = (Row)setHead.ptr;
-						List vectList = clokHead.inList;
-						boolean first = true;
-						for(Iterator it = vectList.iterator(); it.hasNext(); )
-						{
-							Link vectHead = (Link)it.next();
-							if (first)
-							{
-								String s1 = computeNodeName((Node)vectHead.ptr);
-								printWriter.println("CLOCK " + s1 + " D=" + clokHead.delta + " L=" + clokHead.linear +
-									" E=" + clokHead.exp + " STRENGTH=" + Stimuli.strengthToIndex(vectHead.strength) + " TIME=" + setHead.time + " CYCLES=" + setHead.state);
-								first = false;
-							}
-							String s2 = Stimuli.describeLevelBriefly(((Integer)vectHead.state).intValue());
-							printWriter.println("  " + s2 + " " + vectHead.time);
-						}
-						break;
-					case 'N':
-						String s1 = computeNodeName((Node)setHead.ptr);
-						String s2 = Stimuli.describeLevelBriefly(((Integer)setHead.state).intValue());
-						printWriter.println("SET " + s1 + "=" + s2 + "@" + Stimuli.strengthToIndex(setHead.strength) + " TIME=" + setHead.time);
-				}
-			}
+			List stimuliList = getStimuliToSave();
+			for(Iterator it = stimuliList.iterator(); it.hasNext(); )
+				printWriter.println((String)it.next());
 			printWriter.close();
 		} catch (IOException e)
 		{
@@ -740,138 +729,18 @@ public class ALS extends Engine
 	{
 		String stimuliFileName = OpenFile.chooseInputFile(FileType.ALSVECTOR, "ALS Vector file");
 		if (stimuliFileName == null) return;
+		List stimuliList = new ArrayList();
 		URL url = TextUtils.makeURLToFile(stimuliFileName);
 		try
 		{
 			URLConnection urlCon = url.openConnection();
 			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
 			LineNumberReader lineReader = new LineNumberReader(is);
-
-			// clear all vectors
-			while (setRoot != null)
-			{
-				setRoot = setRoot.right;
-			}
-			for(Iterator it = ww.getPanels(); it.hasNext(); )
-			{
-				WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
-				for(Iterator sIt = wp.getSignals().iterator(); sIt.hasNext(); )
-				{
-					WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
-					ws.getSignal().clearControlPoints();
-				}
-			}
-
-			boolean flag = true;
-			String [] parts = null;
 			for(;;)
 			{
-				String s1 = null;
-				if (flag)
-				{
-					s1 = lineReader.readLine();
-					if (s1 == null)
-					{
-						theSim.initializeSimulator(true);
-						break;
-					}
-					s1 = s1.toUpperCase();
-					parts = fragmentCommand(s1);
-				}
-				flag = true;
-				if (parts == null || parts.length < 1) continue;
-
-				String command = parts[0];
-				if (command.equals("CLOCK"))
-				{
-					if (parts.length < 14)
-					{
-						System.out.println("Error: CLOCK stimuli line has only " + parts.length + " fields: " + s1);
-						continue;
-					}
-					String nodeName = parts[1];
-					Node nodeHead = findNode(nodeName);
-					if (nodeHead == null)
-					{
-						System.out.println("ERROR: Unable to find node " + nodeName);
-						continue;
-					}
-					int strength = Stimuli.indexToStrength(TextUtils.atoi(parts[9]));
-
-					Link setHead = new Link();
-					setHead.type = 'C';
-					Row clokHead = new Row();
-					setHead.ptr = clokHead;
-					setHead.state = new Integer(TextUtils.atoi(parts[13]));
-					setHead.priority = 1;
-					setHead.time = TextUtils.atof(parts[11]);
-					setHead.right = null;
-					insertSetList(setHead);
-					if (nodeHead.sig != null)
-						nodeHead.sig.addControlPoint(setHead.time);
-
-					clokHead.delta = TextUtils.atof(parts[3]);
-					clokHead.linear = TextUtils.atof(parts[5]);
-					clokHead.exp = TextUtils.atof(parts[7]);
-					clokHead.abs = 0;
-					clokHead.random = 0;
-					clokHead.next = null;
-					clokHead.delay = null;
-
-					clokHead.inList = new ArrayList();
-					for(;;)
-					{
-						s1 = lineReader.readLine();
-						if (s1 == null)
-						{
-							theSim.initializeSimulator(false);
-							return;
-						}
-						parts = fragmentCommand(s1.toUpperCase());
-						String com = parts[0];
-						if (com.equals("CLOCK") || com.equals("SET"))
-						{
-							flag = false;
-							break;
-						}
-						Link vectPtr2 = new Link();
-						vectPtr2.type = 'N';
-						vectPtr2.ptr = nodeHead;
-						vectPtr2.state = new Integer(Stimuli.parseLevel(com));
-						vectPtr2.strength = strength;
-						vectPtr2.priority = 1;
-						vectPtr2.time = TextUtils.atof(parts[1]);
-						vectPtr2.right = null;
-						clokHead.inList.add(vectPtr2);
-					}
-				}
-
-				if (command.equals("SET"))
-				{
-					if (parts.length < 6)
-					{
-						System.out.println("Error: SET stimuli line has only " + parts.length + " fields: " + s1);
-						continue;
-					}
-					String nodeName = parts[1];
-					Node nodeHead = findNode(nodeName);
-					if (nodeHead == null)
-					{
-						System.out.println("ERROR: Unable to find node " + nodeName);
-						continue;
-					}
-					Link setHead = new Link();
-					setHead.type = 'N';
-					setHead.ptr = nodeHead;
-					setHead.state = new Integer(Stimuli.parseLevel(parts[2]));
-					setHead.strength = Stimuli.indexToStrength(TextUtils.atoi(parts[3]));
-					setHead.priority = 2;
-					setHead.time = TextUtils.atof(parts[5]);
-					setHead.right = null;
-					insertSetList(setHead);
-					if (nodeHead.sig != null)
-						nodeHead.sig.addControlPoint(setHead.time);
-				}
+				String s1 = lineReader.readLine();
+				if (s1 == null) break;
+				stimuliList.add(s1);
 			}
 			lineReader.close();
 		} catch (IOException e)
@@ -879,8 +748,9 @@ public class ALS extends Engine
 			System.out.println("Error reading " + stimuliFileName);
 			return;
 		}
-	}
 
+		processStimuliList(stimuliList);
+	}
 
 	/********************************** INTERFACE SUPPORT **********************************/
 
@@ -914,7 +784,7 @@ public class ALS extends Engine
 			instPtr = new int[iPtrSize=100];
 	}
 
-	private void doSimulation(Cell netlistCell, Cell cell, VarContext context)
+	private void doSimulation(Cell netlistCell, Cell cell, VarContext context, WaveformWindow oldWW, List stimuliList)
 	{
 		// initialize memory
 		init();
@@ -926,11 +796,15 @@ public class ALS extends Engine
 
 		// initialize display
 		sd = getCircuit(cell);
-		Simulation.showSimulationData(sd, null);
+		ww = oldWW;
+		Simulation.showSimulationData(sd, ww);
 
 		// make a waveform window
-		ww = sd.getWaveformWindow();
+		if (ww == null)
+			ww = sd.getWaveformWindow();
 		ww.setSimEngine(this);
+
+		if (stimuliList != null) processStimuliList(stimuliList);
 
 		// run simulation
 		theSim.initializeSimulator(true);
@@ -1107,6 +981,171 @@ public class ALS extends Engine
 		for(Connect child = cr.child; child != null; child = child.next)
 		{
 			addExports(child, sd, subContext + child.instName);
+		}
+	}
+
+	private List getStimuliToSave()
+	{
+		List stimuliList = new ArrayList();
+		for (Link setHead = setRoot; setHead != null; setHead = setHead.right)
+		{
+			switch (setHead.type)
+			{
+				case 'C':
+					Row clokHead = (Row)setHead.ptr;
+					List vectList = clokHead.inList;
+					boolean first = true;
+					for(Iterator it = vectList.iterator(); it.hasNext(); )
+					{
+						Link vectHead = (Link)it.next();
+						if (first)
+						{
+							String s1 = computeNodeName((Node)vectHead.ptr);
+							stimuliList.add("CLOCK " + s1 + " D=" + clokHead.delta + " L=" + clokHead.linear +
+								" E=" + clokHead.exp + " STRENGTH=" + Stimuli.strengthToIndex(vectHead.strength) + " TIME=" + setHead.time + " CYCLES=" + setHead.state);
+							first = false;
+						}
+						String s2 = Stimuli.describeLevelBriefly(((Integer)vectHead.state).intValue());
+						stimuliList.add("  " + s2 + " " + vectHead.time);
+					}
+					break;
+				case 'N':
+					String s1 = computeNodeName((Node)setHead.ptr);
+					String s2 = Stimuli.describeLevelBriefly(((Integer)setHead.state).intValue());
+					stimuliList.add("SET " + s1 + "=" + s2 + "@" + Stimuli.strengthToIndex(setHead.strength) + " TIME=" + setHead.time);
+			}
+		}
+		return stimuliList;
+	}
+
+	private void processStimuliList(List stimuliList)
+	{
+		// clear all vectors
+		while (setRoot != null)
+		{
+			setRoot = setRoot.right;
+		}
+		for(Iterator it = ww.getPanels(); it.hasNext(); )
+		{
+			WaveformWindow.Panel wp = (WaveformWindow.Panel)it.next();
+			for(Iterator sIt = wp.getSignals().iterator(); sIt.hasNext(); )
+			{
+				WaveformWindow.WaveSignal ws = (WaveformWindow.WaveSignal)sIt.next();
+				ws.getSignal().clearControlPoints();
+			}
+		}
+
+		boolean flag = true;
+		String [] parts = null;
+		Iterator sIt = stimuliList.iterator();
+		for(;;)
+		{
+			String s1 = null;
+			if (flag)
+			{
+				if (!sIt.hasNext())
+				{
+					theSim.initializeSimulator(true);
+					break;
+				}
+				s1 = (String)sIt.next();
+				s1 = s1.toUpperCase();
+				parts = fragmentCommand(s1);
+			}
+			flag = true;
+			if (parts == null || parts.length < 1) continue;
+
+			String command = parts[0];
+			if (command.equals("CLOCK"))
+			{
+				if (parts.length < 14)
+				{
+					System.out.println("Error: CLOCK stimuli line has only " + parts.length + " fields: " + s1);
+					continue;
+				}
+				String nodeName = parts[1];
+				Node nodeHead = findNode(nodeName);
+				if (nodeHead == null)
+				{
+					System.out.println("ERROR: Unable to find node " + nodeName);
+					continue;
+				}
+				int strength = Stimuli.indexToStrength(TextUtils.atoi(parts[9]));
+
+				Link setHead = new Link();
+				setHead.type = 'C';
+				Row clokHead = new Row();
+				setHead.ptr = clokHead;
+				setHead.state = new Integer(TextUtils.atoi(parts[13]));
+				setHead.priority = 1;
+				setHead.time = TextUtils.atof(parts[11]);
+				setHead.right = null;
+				insertSetList(setHead);
+				if (nodeHead.sig != null)
+					nodeHead.sig.addControlPoint(setHead.time);
+
+				clokHead.delta = TextUtils.atof(parts[3]);
+				clokHead.linear = TextUtils.atof(parts[5]);
+				clokHead.exp = TextUtils.atof(parts[7]);
+				clokHead.abs = 0;
+				clokHead.random = 0;
+				clokHead.next = null;
+				clokHead.delay = null;
+
+				clokHead.inList = new ArrayList();
+				for(;;)
+				{
+					if (!sIt.hasNext())
+					{
+						theSim.initializeSimulator(false);
+						return;
+					}
+					s1 = (String)sIt.next();
+					parts = fragmentCommand(s1.toUpperCase());
+					String com = parts[0];
+					if (com.equals("CLOCK") || com.equals("SET"))
+					{
+						flag = false;
+						break;
+					}
+					Link vectPtr2 = new Link();
+					vectPtr2.type = 'N';
+					vectPtr2.ptr = nodeHead;
+					vectPtr2.state = new Integer(Stimuli.parseLevel(com));
+					vectPtr2.strength = strength;
+					vectPtr2.priority = 1;
+					vectPtr2.time = TextUtils.atof(parts[1]);
+					vectPtr2.right = null;
+					clokHead.inList.add(vectPtr2);
+				}
+			}
+
+			if (command.equals("SET"))
+			{
+				if (parts.length < 6)
+				{
+					System.out.println("Error: SET stimuli line has only " + parts.length + " fields: " + s1);
+					continue;
+				}
+				String nodeName = parts[1];
+				Node nodeHead = findNode(nodeName);
+				if (nodeHead == null)
+				{
+					System.out.println("ERROR: Unable to find node " + nodeName);
+					continue;
+				}
+				Link setHead = new Link();
+				setHead.type = 'N';
+				setHead.ptr = nodeHead;
+				setHead.state = new Integer(Stimuli.parseLevel(parts[2]));
+				setHead.strength = Stimuli.indexToStrength(TextUtils.atoi(parts[3]));
+				setHead.priority = 2;
+				setHead.time = TextUtils.atof(parts[5]);
+				setHead.right = null;
+				insertSetList(setHead);
+				if (nodeHead.sig != null)
+					nodeHead.sig.addControlPoint(setHead.time);
+			}
 		}
 	}
 
@@ -2196,196 +2235,4 @@ public class ALS extends Engine
 			}
 		}
 	}
-
-//	public static void doForJohn()
-//	{
-//		String addressFileName = OpenFile.chooseInputFile(FileType.TEXT, "address file");
-//		if (addressFileName == null) return;
-//		URL url = TextUtils.makeURLToFile(addressFileName);
-//		List results = new ArrayList();
-//		try
-//		{
-//			URLConnection urlCon = url.openConnection();
-//			InputStreamReader is = new InputStreamReader(urlCon.getInputStream());
-//			LineNumberReader lineReader = new LineNumberReader(is);
-//			String buf = lineReader.readLine();
-//			if (buf == null) return;
-//			String [] titles = buf.split("\t");
-//			for(int i=0; i<titles.length; i++)
-//				System.out.println("Title "+i+" is "+titles[i]);
-//			StringBuffer sb = new StringBuffer();
-//			sb.append("\"First Name\", ");
-//			sb.append("\"Last Name\", ");
-//			sb.append("\"Prefix\", ");
-//			sb.append("\"Suffix\", ");
-//			sb.append("\"EMail\", ");
-//			sb.append("\"Home Street 1\", ");
-//			sb.append("\"Home Street 2\", ");
-//			sb.append("\"Home City\", ");
-//			sb.append("\"Home Zip\", ");
-//			sb.append("\"Home State\", ");
-//			sb.append("\"Home Country\", ");
-//			sb.append("\"Home Phone\", ");
-//			sb.append("\"Home Fax\", ");
-//			sb.append("\"Cell Phone\", ");
-//			sb.append("\"Website\", ");
-//			sb.append("\"Work Street 1\", ");
-//			sb.append("\"Work Street 2\", ");
-//			sb.append("\"Work City\", ");
-//			sb.append("\"Work Zip\", ");
-//			sb.append("\"Work State\", ");
-//			sb.append("\"Work Country\", ");
-//			sb.append("\"Work Phone\", ");
-//			sb.append("\"Pager\", ");
-//			sb.append("\"Company\", ");
-//			sb.append("\"Job Title\", ");
-//			sb.append("\"Notes\"");
-//			results.add(sb.toString());
-//			for(;;)
-//			{
-//				buf = lineReader.readLine();
-//				if (buf == null) break;
-//				String [] fields = buf.split("\t");
-//				if (fields.length < titles.length)
-//				{
-//					String [] newfields = new String[titles.length];
-//					for(int i=0; i<fields.length; i++) newfields[i] = fields[i];
-//					for(int i=fields.length; i<titles.length; i++) newfields[i] = "";
-//					fields = newfields;
-//				}
-//				String firstName = fields[0];
-//				String lastName = fields[1];
-//				String prefix = fields[3];
-//				String suffix = fields[4];
-//				String title = fields[5];
-//				String company = fields[6];
-//				String department = fields[7];
-//				String homeStreet2 = fields[9];
-//				String homeStreet1 = fields[10];
-//				String homeCity = fields[11];
-//				String homeState = fields[12];
-//				String homeZip = fields[13];
-//				String homeCountry = fields[14];
-//				String workStreet2 = fields[16];
-//				String workStreet1 = fields[17];
-//				String workCity = fields[18];
-//				String workState = fields[19];
-//				String workZip = fields[20];
-//				String workCountry = fields[21];
-//				String notes = fields[34];
-//
-//				// add "nickname", "birthday" and "division" to notes
-//				String nickname = fields[2];
-//				if (nickname.length() > 0)
-//				{
-//					if (notes.length() > 0) notes += ", ";
-//					notes += "nickname: " + nickname;
-//				}
-//				String birthday = fields[35];
-//				if (birthday.length() > 0)
-//				{
-//					if (notes.length() > 0) notes += ", ";
-//					notes += "birthday: "+birthday;
-//				}
-//				String division = fields[7];
-//				if (division.length() > 0)
-//				{
-//					if (notes.length() > 0) notes += ", ";
-//					notes += "division: " + division;
-//				}
-//
-//				// pick up phone numbers
-//				String homePhone = "", workPhone = "", fax = "", cellPhone = "", pager = "";
-//				for(int i=22; i<33; i += 3)
-//				{
-//					String type = fields[i];
-//					String value = fields[i+1];
-//					if (type.equals("Home")) homePhone = value; else
-//						if (type.equals("Work")) workPhone = value; else
-//							if (type.equals("Cellular")) cellPhone = value; else
-//								if (type.equals("Pager")) pager = value; else
-//									if (type.equals("Business")) workPhone = value; else
-//										if (type.equals("Fax")) fax = value; else
-//											if (type.equals("School")) workPhone = value; else
-//											{
-//												if (notes.length() > 0) notes += ", ";
-//												if (type.length() == 0) type = "phone";
-//												notes += type + ": " + value;
-//											}
-//				}
-//				if (fields[49].length() > 0)
-//				{
-//					if (notes.length() > 0) notes += ", ";
-//					notes += fields[49];
-//				}
-//				if (fields[50].length() > 0)
-//				{
-//					if (notes.length() > 0) notes += ", ";
-//					notes += fields[50];
-//				}
-//				String eMail = fields[36];
-//				if (fields[38].length() > 0)
-//				{
-//					if (eMail.length() > 0) eMail += ", ";
-//					eMail += fields[38];
-//				}
-//				if (fields[39].length() > 0)
-//				{
-//					if (eMail.length() > 0) eMail += ", ";
-//					eMail += fields[39];
-//				}
-//				String webPage = fields[37];
-//				sb = new StringBuffer();
-//				sb.append("\"" + firstName + "\", ");
-//				sb.append("\"" + lastName + "\", ");
-//				sb.append("\"" + prefix + "\", ");
-//				sb.append("\"" + suffix + "\", ");
-//				sb.append("\"" + eMail + "\", ");
-//				sb.append("\"" + homeStreet1 + "\", ");
-//				sb.append("\"" + homeStreet2 + "\", ");
-//				sb.append("\"" + homeCity + "\", ");
-//				sb.append("\"" + homeZip + "\", ");
-//				sb.append("\"" + homeState + "\", ");
-//				sb.append("\"" + homeCountry + "\", ");
-//				sb.append("\"" + homePhone + "\", ");
-//				sb.append("\"" + fax + "\", ");
-//				sb.append("\"" + cellPhone + "\", ");
-//				sb.append("\"" + webPage + "\", ");
-//				sb.append("\"" + workStreet1 + "\", ");
-//				sb.append("\"" + workStreet2 + "\", ");
-//				sb.append("\"" + workCity + "\", ");
-//				sb.append("\"" + workZip + "\", ");
-//				sb.append("\"" + workState + "\", ");
-//				sb.append("\"" + workCountry + "\", ");
-//				sb.append("\"" + workPhone + "\", ");
-//				sb.append("\"" + pager + "\", ");
-//				sb.append("\"" + company + "\", ");
-//				sb.append("\"" + title + "\", ");
-//				sb.append("\"" + notes + "\"");
-//				results.add(sb.toString());
-//			}
-//			lineReader.close();
-//		} catch (IOException e)
-//		{
-//			System.out.println("Error reading " + addressFileName);
-//			return;
-//		}
-//
-//		try
-//		{
-//			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter("C:\\temp\\result.txt")));
-//
-//			for(Iterator it = results.iterator(); it.hasNext(); )
-//			{
-//				String buf = (String)it.next();
-//				printWriter.println(buf);
-//			}
-//
-//			printWriter.close();
-//		} catch (IOException e)
-//		{
-//			System.out.println("Error writing results");
-//			return;
-//		}
-//	}
 }

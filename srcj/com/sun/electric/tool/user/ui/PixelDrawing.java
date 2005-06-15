@@ -227,6 +227,7 @@ public class PixelDrawing
 	/** whether to occasionally update the display. */		private boolean periodicRefresh;
 	/** keeps track of when to update the display. */		private int objectCount;
 	/** keeps track of when to update the display. */		private long lastRefreshTime;
+	/** Technology of transparent layers not drawn */		private Technology transparentLayersMissed;
 
 	/** the size of the top-level EditWindow */				private static Dimension topSz;
 	/** the last Technology that had transparent layers */	private static Technology techWithLayers = null;
@@ -347,6 +348,7 @@ public class PixelDrawing
 
 		// initialize rendering into the offscreen image
 		clearImage(true);
+		transparentLayersMissed = null;
 
 		if (cell == null)
 		{
@@ -370,6 +372,9 @@ public class PixelDrawing
 
 		// merge transparent image into opaque one
 		synchronized(img) { composite(); };
+		if (transparentLayersMissed != null)
+			System.out.println("WARNING: Did not draw some transparent layers from the '" + transparentLayersMissed.getTechName() +
+				"' technology because it is not the current technology");
 
 //		if (TAKE_STATS)
 //		{
@@ -987,7 +992,11 @@ public class PixelDrawing
 				layerNum = graphics.getTransparentLayer() - 1;
 				col = graphics.getColor().getRGB() & 0xFFFFFF;
 			}
-			if (layerNum >= numLayerBitMaps) continue;
+			if (layerNum >= numLayerBitMaps)
+			{
+				transparentLayersMissed = layer.getTechnology();
+				continue;
+			}
 			byte [][] layerBitMap = getLayerBitMap(layerNum);
 
 			// set the bit
@@ -1399,7 +1408,13 @@ public class PixelDrawing
 	{
 		int layerNum = -1;
 		if (graphics != null) layerNum = graphics.getTransparentLayer() - 1;
-		if (layerNum >= numLayerBitMaps) return;
+		if (layerNum >= numLayerBitMaps)
+		{
+			Layer layer = poly.getLayer();
+			if (layer != null)
+				transparentLayersMissed = layer.getTechnology();
+			return;
+		}
 		byte [][] layerBitMap = getLayerBitMap(layerNum);
 		Poly.Type style = poly.getStyle();
 

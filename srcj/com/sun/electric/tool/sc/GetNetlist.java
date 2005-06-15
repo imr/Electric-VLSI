@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
@@ -856,7 +857,9 @@ public class GetNetlist
 	 */
 	private Cell findLeafCell(String name)
 	{
-		Cell cell = (Cell)Cell.findNodeProto(name);
+		NodeProto np = Cell.findNodeProto(name);
+		if (!(np instanceof Cell)) np = null;
+		Cell cell = (Cell)np;
 		Library lib = SilComp.getCellLib();
 		if (cell == null && lib != null)
 		{

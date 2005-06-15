@@ -24,6 +24,7 @@
 package com.sun.electric.tool.simulation;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -34,17 +35,15 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.simulation.als.ALS;
-import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.CompileVHDL;
+import com.sun.electric.tool.user.GenerateVHDL;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.dialogs.MoveBy;
 import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
@@ -62,14 +61,11 @@ import java.awt.geom.Rectangle2D;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
-import java.util.prefs.Preferences;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
-import javax.swing.KeyStroke;
 
 /**
  * This is the Simulation Interface tool.
@@ -112,6 +108,170 @@ public class Simulation extends Listener
     public static Simulation getSimulationTool() { return tool; }
 
 	/****************************** CONTROL OF SIMULATION ENGINES ******************************/
+
+	private static final int CONVERT_TO_VHDL      =  1;
+	private static final int SIMULATENETLIST      =  2;
+	private static final int COMPILE_VHDL_FOR_SIM =  4;
+
+	/**
+	 * Method to invoke a simulation engine.
+	 * @param engine the simulation engine to run.
+	 * @param forceDeck true to force simulation from a user-specified netlist file.
+	 * @param prevCell the previous cell being simulated (null for a new simulation).
+	 * @param prevEngine the previous simulation engine running (null for a new simulation).
+	 */
+	public static void startSimulation(int engine, boolean forceDeck, Cell prevCell, Engine prevEngine)
+	{
+    	Cell cell = null;
+        VarContext context = null;
+    	String fileName = null;
+		if (prevCell != null) cell = prevCell; else
+		{
+	    	if (forceDeck)
+	    	{
+	    		fileName = OpenFile.chooseInputFile(FileType.IRSIM, "IRSIM deck to simulate");
+	    		if (fileName == null) return;
+	    		cell = WindowFrame.getCurrentCell();
+	    	} else
+	    	{
+		        cell = WindowFrame.needCurCell();
+		        if (cell == null) return;
+	            EditWindow wnd = EditWindow.getCurrent();
+	            if (wnd != null) context = wnd.getVarContext();
+	    	}
+		}
+		switch (engine)
+		{
+			case ALS_ENGINE:
+				int activities = SIMULATENETLIST;
+
+				// see if the current cell needs to be compiled
+				Cell originalCell = cell;
+				if (cell.getView() != View.NETLISTALS)
+				{
+					if (cell.getView() == View.SCHEMATIC || cell.getView() == View.LAYOUT)
+					{
+						// current cell is Schematic.  See if there is a more recent netlist or VHDL
+						Cell vhdlCell = cell.otherView(View.VHDL);
+						if (vhdlCell != null && vhdlCell.getRevisionDate().after(cell.getRevisionDate())) cell = vhdlCell; else
+							activities |= CONVERT_TO_VHDL | COMPILE_VHDL_FOR_SIM;
+					}
+					if (cell.getView() == View.VHDL)
+					{
+						// current cell is VHDL.  See if there is a more recent netlist
+						Cell netListCell = cell.otherView(View.NETLISTQUISC);
+						if (netListCell != null && netListCell.getRevisionDate().after(cell.getRevisionDate())) cell = netListCell; else
+							activities |= COMPILE_VHDL_FOR_SIM;
+					}
+				}
+			    DoNextActivity sJob = new DoNextActivity(cell, activities, originalCell, context, prevEngine);
+				break;
+
+			case IRSIM_ENGINE:
+				if (!hasIRSIM()) return;
+				runIRSIM(cell, context, fileName);
+				break;
+		}
+	}
+
+	/**
+	 * Class to do the next silicon-compilation activity in a new thread.
+	 */
+	private static class DoNextActivity extends Job
+	{
+		private Cell cell, originalCell;
+		private VarContext originalContext;
+		private int activities;
+		private Engine prevEngine;
+
+		private DoNextActivity(Cell cell, int activities, Cell originalCell, VarContext originalContext, Engine prevEngine)
+		{
+			super("Simulation activity", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.cell = cell;
+			this.activities = activities;
+			this.originalCell = originalCell;
+			this.originalContext = originalContext;
+			this.prevEngine = prevEngine;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			if ((activities&CONVERT_TO_VHDL) != 0)
+			{
+				// convert Schematic to VHDL
+				System.out.print("Generating VHDL from '" + cell.describe() + "' ...");
+				List vhdlStrings = GenerateVHDL.convertCell(cell);
+				if (vhdlStrings == null)
+				{
+					System.out.println("No VHDL produced");
+					return false;
+				}
+
+				String cellName = cell.getName() + "{vhdl}";
+				Cell vhdlCell = cell.getLibrary().findNodeProto(cellName);
+				if (vhdlCell == null)
+				{
+					vhdlCell = Cell.makeInstance(cell.getLibrary(), cellName);
+					if (vhdlCell == null) return false;
+				}
+				String [] array = new String[vhdlStrings.size()];
+				for(int i=0; i<vhdlStrings.size(); i++) array[i] = (String)vhdlStrings.get(i);
+				vhdlCell.setTextViewContents(array);
+				System.out.println(" Done, created '" + vhdlCell.describe() + "'");
+			    DoNextActivity sJob = new DoNextActivity(vhdlCell, activities & ~CONVERT_TO_VHDL, originalCell, originalContext, prevEngine);
+			    return true;
+			}
+
+			if ((activities&COMPILE_VHDL_FOR_SIM) != 0)
+			{
+				// compile the VHDL to a netlist
+				System.out.print("Compiling VHDL in '" + cell.describe() + "' ...");
+				CompileVHDL c = new CompileVHDL(cell);
+				if (c.hasErrors())
+				{
+					System.out.println("ERRORS during compilation, no netlist produced");
+					return false;
+				}
+				List netlistStrings = c.getALSNetlist();
+				if (netlistStrings == null)
+				{
+					System.out.println("No netlist produced");
+					return false;
+				}
+
+				// store the ALS netlist
+				String cellName = cell.getName() + "{net.als}";
+				Cell netlistCell = cell.getLibrary().findNodeProto(cellName);
+				if (netlistCell == null)
+				{
+					netlistCell = Cell.makeInstance(cell.getLibrary(), cellName);
+					if (netlistCell == null) return false;
+				}
+				String [] array = new String[netlistStrings.size()];
+				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
+				netlistCell.setTextViewContents(array);
+				System.out.println(" Done, created '" + netlistCell.describe() + "'");
+			    DoNextActivity sJob = new DoNextActivity(netlistCell, activities & ~COMPILE_VHDL_FOR_SIM, originalCell, originalContext, prevEngine);
+			    return true;
+			}
+
+			if ((activities&SIMULATENETLIST) != 0)
+			{
+				if (prevEngine != null)
+				{
+					ALS.restartSimulation(cell, originalCell, originalContext, (ALS)prevEngine);
+				} else
+				{
+					ALS.simulateNetlist(cell, originalCell, originalContext);
+				}
+			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~SIMULATENETLIST, originalCell, originalContext, prevEngine);
+			    return true;
+			}
+
+			return false;
+		}
+	}
 
 	/**
 	 * Method to tell whether the IRSIM simulator is available.
@@ -757,7 +917,7 @@ public class Simulation extends Listener
 
 	/****************************** FAST HENRY OPTIONS ******************************/
 
-	private static Pref cacheFastHenryUseSingleFrequency = Pref.makeBooleanPref("FastHenryUseSingleFrequency", Simulation.tool.prefs, false);
+	private static Pref cacheFastHenryUseSingleFrequency = Pref.makeBooleanPref("FastHenryUseSingleFrequency", tool.prefs, false);
 	/**
 	 * Method to tell whether FastHenry deck generation should use a single frequency.
 	 * The default is false.
@@ -770,7 +930,7 @@ public class Simulation extends Listener
 	 */
 	public static void setFastHenryUseSingleFrequency(boolean s) { cacheFastHenryUseSingleFrequency.setBoolean(s); }
 
-	private static Pref cacheFastHenryStartFrequency = Pref.makeDoublePref("FastHenryStartFrequency", Simulation.tool.prefs, 0);
+	private static Pref cacheFastHenryStartFrequency = Pref.makeDoublePref("FastHenryStartFrequency", tool.prefs, 0);
 	/**
 	 * Method to return the FastHenry starting frequency (or only if using a single frequency).
 	 * The default is 0.
@@ -783,7 +943,7 @@ public class Simulation extends Listener
 	 */
 	public static void setFastHenryStartFrequency(double s) { cacheFastHenryStartFrequency.setDouble(s); }
 
-	private static Pref cacheFastHenryEndFrequency = Pref.makeDoublePref("FastHenryEndFrequency", Simulation.tool.prefs, 0);
+	private static Pref cacheFastHenryEndFrequency = Pref.makeDoublePref("FastHenryEndFrequency", tool.prefs, 0);
 	/**
 	 * Method to return the FastHenry ending frequency.
 	 * The default is 0.
@@ -796,7 +956,7 @@ public class Simulation extends Listener
 	 */
 	public static void setFastHenryEndFrequency(double e) { cacheFastHenryEndFrequency.setDouble(e); }
 
-	private static Pref cacheFastHenryRunsPerDecade = Pref.makeIntPref("FastHenryRunsPerDecade", Simulation.tool.prefs, 1);
+	private static Pref cacheFastHenryRunsPerDecade = Pref.makeIntPref("FastHenryRunsPerDecade", tool.prefs, 1);
 	/**
 	 * Method to return the number of runs per decade for FastHenry deck generation.
 	 * The default is 1.
@@ -809,7 +969,7 @@ public class Simulation extends Listener
 	 */
 	public static void setFastHenryRunsPerDecade(int r) { cacheFastHenryRunsPerDecade.setInt(r); }
 
-	private static Pref cacheFastHenryMultiPole = Pref.makeBooleanPref("FastHenryMultiPole", Simulation.tool.prefs, false);
+	private static Pref cacheFastHenryMultiPole = Pref.makeBooleanPref("FastHenryMultiPole", tool.prefs, false);
 	/**
 	 * Method to tell whether FastHenry deck generation should make a multipole subcircuit.
 	 * The default is false.
@@ -822,7 +982,7 @@ public class Simulation extends Listener
 	 */
 	public static void setFastHenryMultiPole(boolean mp) { cacheFastHenryMultiPole.setBoolean(mp); }
 
-	private static Pref cacheFastHenryNumPoles = Pref.makeIntPref("FastHenryNumPoles", Simulation.tool.prefs, 20);
+	private static Pref cacheFastHenryNumPoles = Pref.makeIntPref("FastHenryNumPoles", tool.prefs, 20);
 	/**
 	 * Method to return the number of poles for FastHenry deck generation.
 	 * The default is 20.
@@ -835,7 +995,7 @@ public class Simulation extends Listener
 	 */
 	public static void setFastHenryNumPoles(int p) { cacheFastHenryNumPoles.setInt(p); }
 
-	private static Pref cacheFastHenryDefThickness = Pref.makeDoublePref("FastHenryDefThickness", Simulation.tool.prefs, 2);
+	private static Pref cacheFastHenryDefThickness = Pref.makeDoublePref("FastHenryDefThickness", tool.prefs, 2);
 	/**
 	 * Method to return the FastHenry default wire thickness.
 	 * The default is 2.
@@ -848,7 +1008,7 @@ public class Simulation extends Listener
 	 */
 	public static void setFastHenryDefThickness(double t) { cacheFastHenryDefThickness.setDouble(t); }
 
-	private static Pref cacheFastHenryWidthSubdivisions = Pref.makeIntPref("FastHenryWidthSubdivisions", Simulation.tool.prefs, 1);
+	private static Pref cacheFastHenryWidthSubdivisions = Pref.makeIntPref("FastHenryWidthSubdivisions", tool.prefs, 1);
 	/**
 	 * Method to return the default number of width subdivisions for FastHenry deck generation.
 	 * The default is 1.
@@ -861,7 +1021,7 @@ public class Simulation extends Listener
 	 */
 	public static void setFastHenryWidthSubdivisions(int w) { cacheFastHenryWidthSubdivisions.setInt(w); }
 
-	private static Pref cacheFastHenryHeightSubdivisions = Pref.makeIntPref("FastHenryHeightSubdivisions", Simulation.tool.prefs, 1);
+	private static Pref cacheFastHenryHeightSubdivisions = Pref.makeIntPref("FastHenryHeightSubdivisions", tool.prefs, 1);
 	/**
 	 * Method to return the default number of height subdivisions for FastHenry deck generation.
 	 * The default is 1.
@@ -874,7 +1034,7 @@ public class Simulation extends Listener
 	 */
 	public static void setFastHenryHeightSubdivisions(int h) { cacheFastHenryHeightSubdivisions.setInt(h); }
 
-	private static Pref cacheFastHenryMaxSegLength = Pref.makeDoublePref("FastHenryMaxSegLength", Simulation.tool.prefs, 0);
+	private static Pref cacheFastHenryMaxSegLength = Pref.makeDoublePref("FastHenryMaxSegLength", tool.prefs, 0);
 	/**
 	 * Method to return the maximum segment length for FastHenry deck generation.
 	 * The default is 0.
@@ -889,8 +1049,8 @@ public class Simulation extends Listener
 
 	/****************************** VERILOG OPTIONS ******************************/
 
-	private static Pref cacheVerilogUseAssign = Pref.makeBooleanPref("VerilogUseAssign", Simulation.tool.prefs, false);
-    static { cacheVerilogUseAssign.attachToObject(Simulation.tool, "Tools/Verilog tab", "Verilog uses Assign construct"); }
+	private static Pref cacheVerilogUseAssign = Pref.makeBooleanPref("VerilogUseAssign", tool.prefs, false);
+    static { cacheVerilogUseAssign.attachToObject(tool, "Tools/Verilog tab", "Verilog uses Assign construct"); }
 	/**
 	 * Method to tell whether Verilog deck generation should use the Assign statement.
 	 * The default is false.
@@ -903,8 +1063,8 @@ public class Simulation extends Listener
 	 */
 	public static void setVerilogUseAssign(boolean use) { cacheVerilogUseAssign.setBoolean(use); }
 
-	private static Pref cacheVerilogUseTrireg = Pref.makeBooleanPref("VerilogUseTrireg", Simulation.tool.prefs, false);
-    static { cacheVerilogUseTrireg.attachToObject(Simulation.tool, "Tools/Verilog tab", "Verilog presumes wire is Trireg"); }
+	private static Pref cacheVerilogUseTrireg = Pref.makeBooleanPref("VerilogUseTrireg", tool.prefs, false);
+    static { cacheVerilogUseTrireg.attachToObject(tool, "Tools/Verilog tab", "Verilog presumes wire is Trireg"); }
 	/**
 	 * Method to tell whether Verilog deck generation should use Trireg by default.
 	 * The alternative is to use the "wire" statement.
@@ -921,8 +1081,8 @@ public class Simulation extends Listener
 
 	/****************************** CDL OPTIONS ******************************/
 
-	private static Pref cacheCDLLibName = Pref.makeStringPref("CDLLibName", Simulation.tool.prefs, "");
-//    static { cacheCDLLibName.attachToObject(Simulation.tool, "IO/CDL tab", "Cadence library name"); }
+	private static Pref cacheCDLLibName = Pref.makeStringPref("CDLLibName", tool.prefs, "");
+//    static { cacheCDLLibName.attachToObject(tool, "IO/CDL tab", "Cadence library name"); }
 	/**
 	 * Method to return the CDL library name.
 	 * CDL is a weak form of a Spice deck, and it includes a Cadence library name.
@@ -936,8 +1096,8 @@ public class Simulation extends Listener
 	 */
 	public static void setCDLLibName(String libName) { cacheCDLLibName.setString(libName); }
 
-	private static Pref cacheCDLLibPath = Pref.makeStringPref("CDLLibPath", Simulation.tool.prefs, "");
-//    static { cacheCDLLibPath.attachToObject(Simulation.tool, "IO/CDL tab", "Cadence library path"); }
+	private static Pref cacheCDLLibPath = Pref.makeStringPref("CDLLibPath", tool.prefs, "");
+//    static { cacheCDLLibPath.attachToObject(tool, "IO/CDL tab", "Cadence library path"); }
 	/**
 	 * Method to return the CDL library path.
 	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
@@ -951,8 +1111,8 @@ public class Simulation extends Listener
 	 */
 	public static void setCDLLibPath(String libName) { cacheCDLLibPath.setString(libName); }
 
-	private static Pref cacheCDLConvertBrackets = Pref.makeBooleanPref("CDLConvertBrackets", Simulation.tool.prefs, false);
-//    static { cacheCDLConvertBrackets.attachToObject(Simulation.tool, "IO/CDL tab", "CDL converts brackets"); }
+	private static Pref cacheCDLConvertBrackets = Pref.makeBooleanPref("CDLConvertBrackets", tool.prefs, false);
+//    static { cacheCDLConvertBrackets.attachToObject(tool, "IO/CDL tab", "CDL converts brackets"); }
 	/**
 	 * Method to tell whether CDL converts square bracket characters.
 	 * CDL is a weak form of a Spice deck, and it includes a Cadence library.
@@ -966,8 +1126,8 @@ public class Simulation extends Listener
 	 */
 	public static void setCDLConvertBrackets(boolean c) { cacheCDLConvertBrackets.setBoolean(c); }
 
-    private static Pref cacheCDLIgnoreResistors = Pref.makeBooleanPref("CDLLIgnoreResistors", Simulation.tool.prefs, true);
-//    static { cacheCDLLibName.attachToObject(Simulation.tool, "IO/CDL tab", "Cadence library name"); }
+    private static Pref cacheCDLIgnoreResistors = Pref.makeBooleanPref("CDLLIgnoreResistors", tool.prefs, true);
+//    static { cacheCDLLibName.attachToObject(tool, "IO/CDL tab", "Cadence library name"); }
     /**
      * Method to get the state of "ignore resistors" for netlisting
      * @return the state of "ignore resistors"
@@ -981,7 +1141,7 @@ public class Simulation extends Listener
 
 	/****************************** BUILT-IN SIMULATION OPTIONS ******************************/
 
-	private static Pref cacheBuiltInResimulateEach = Pref.makeBooleanPref("BuiltInResimulateEach", Simulation.tool.prefs, true);
+	private static Pref cacheBuiltInResimulateEach = Pref.makeBooleanPref("BuiltInResimulateEach", tool.prefs, true);
 	/**
 	 * Method to tell whether built-in simulators resimulate after each change to the display.
 	 * When false, the user must request resimulation after a set of changes is done.
@@ -995,7 +1155,7 @@ public class Simulation extends Listener
 	 */
 	public static void setBuiltInResimulateEach(boolean r) { cacheBuiltInResimulateEach.setBoolean(r); }
 
-	private static Pref cacheBuiltInAutoAdvance = Pref.makeBooleanPref("BuiltInAutoAdvance", Simulation.tool.prefs, false);
+	private static Pref cacheBuiltInAutoAdvance = Pref.makeBooleanPref("BuiltInAutoAdvance", tool.prefs, false);
 	/**
 	 * Method to tell whether built-in simulators automatically advance the time cursor when stimuli are added.
 	 * @return true if built-in simulators automatically advance the time cursor when stimuli are added.
@@ -1028,7 +1188,7 @@ public class Simulation extends Listener
 
 	/****************************** IRSIM OPTIONS ******************************/
 
-	private static Pref cacheIRSIMShowsCommands = Pref.makeBooleanPref("IRSIMShowsCommands", Simulation.tool.prefs, false);
+	private static Pref cacheIRSIMShowsCommands = Pref.makeBooleanPref("IRSIMShowsCommands", tool.prefs, false);
 	/**
 	 * Method to tell whether IRSIM shows commands that are issued (for debugging).
 	 * @return true if IRSIM shows commands that are issued (for debugging).
@@ -1040,7 +1200,7 @@ public class Simulation extends Listener
 	 */
 	public static void setIRSIMShowsCommands(boolean r) { cacheIRSIMShowsCommands.setBoolean(r); }
 
-	private static Pref cacheIRSIMDebugging = Pref.makeIntPref("IRSIMDebugging", Simulation.tool.prefs, 0);
+	private static Pref cacheIRSIMDebugging = Pref.makeIntPref("IRSIMDebugging", tool.prefs, 0);
 	/**
 	 * Method to tell the debugging level for IRSIM simulation.
 	 * This is a combination of bits, where:
@@ -1066,7 +1226,7 @@ public class Simulation extends Listener
 	 */
 	public static void setIRSIMDebugging(int p) { cacheIRSIMDebugging.setInt(p); }
 
-	private static Pref cacheIRSIMParameterFile = Pref.makeStringPref("IRSIMParameterFile", Simulation.tool.prefs, "scmos0.3.prm");
+	private static Pref cacheIRSIMParameterFile = Pref.makeStringPref("IRSIMParameterFile", tool.prefs, "scmos0.3.prm");
 	/**
 	 * Method to tell the parameter file to use for IRSIM.
 	 * @return the parameter file to use for IRSIM.
@@ -1078,7 +1238,7 @@ public class Simulation extends Listener
 	 */
 	public static void setIRSIMParameterFile(String p) { cacheIRSIMParameterFile.setString(p); }
 
-	private static Pref cacheIRSIMStepModel = Pref.makeStringPref("IRSIMStepModel", Simulation.tool.prefs, "RC");
+	private static Pref cacheIRSIMStepModel = Pref.makeStringPref("IRSIMStepModel", tool.prefs, "RC");
 	/**
 	 * Method to tell the stepping model to use for IRSIM.
 	 * Possible choices are "RC" (the default) and "Linear".
@@ -1092,7 +1252,7 @@ public class Simulation extends Listener
 	 */
 	public static void setIRSIMStepModel(String m) { cacheIRSIMStepModel.setString(m); }
 
-    private static Pref cacheIRSIMDelayedX = Pref.makeBooleanPref("IRSIMDelayedX", Simulation.tool.prefs, true);
+    private static Pref cacheIRSIMDelayedX = Pref.makeBooleanPref("IRSIMDelayedX", tool.prefs, true);
     /**
      * Get whether or not IRSIM uses a delayed X model, versus the old fast-propogating X model
      * @return true if using the delayed X model, false if using the old fast-propogating X model
@@ -1113,10 +1273,10 @@ public class Simulation extends Listener
 	/** GNUCap engine. */		public static final int SPICE_ENGINE_G = 4;
 	/** SmartSpice engine. */	public static final int SPICE_ENGINE_S = 5;
 
-	private static Pref cacheSpiceEngine = Pref.makeIntPref("SpiceEngine", Simulation.tool.prefs, 1);
+	private static Pref cacheSpiceEngine = Pref.makeIntPref("SpiceEngine", tool.prefs, 1);
 //	static
 //	{
-//		Pref.Meaning m = cacheSpiceEngine.attachToObject(Simulation.tool, "Tools/Spice tab", "Spice engine");
+//		Pref.Meaning m = cacheSpiceEngine.attachToObject(tool, "Tools/Spice tab", "Spice engine");
 //		m.setTrueMeaning(new String[] {"Spice 2", "Spice 3", "HSpice", "PSpice", "GNUCap", "SmartSpice"});
 //	}
 	/**
@@ -1148,8 +1308,8 @@ public class Simulation extends Listener
 	 */
 	public static void setSpiceEngine(int engine) { cacheSpiceEngine.setInt(engine); }
 
-	private static Pref cacheSpiceLevel = Pref.makeStringPref("SpiceLevel", Simulation.tool.prefs, "1");
-//    static { cacheSpiceLevel.attachToObject(Simulation.tool, "Tools/Spice tab", "Spice level"); }
+	private static Pref cacheSpiceLevel = Pref.makeStringPref("SpiceLevel", tool.prefs, "1");
+//    static { cacheSpiceLevel.attachToObject(tool, "Tools/Spice tab", "Spice level"); }
 	/**
 	 * Method to tell which SPICE level is being used.
 	 * SPICE can use 3 different levels of simulation.
@@ -1163,8 +1323,8 @@ public class Simulation extends Listener
 	 */
 	public static void setSpiceLevel(String level) { cacheSpiceLevel.setString(level); }
 
-	private static Pref cacheSpiceOutputFormat = Pref.makeStringPref("SpiceOutputFormat", Simulation.tool.prefs, "Standard");
-//    static { cacheSpiceOutputFormat.attachToObject(Simulation.tool, "Tools/Spice tab", "Spice output format"); }
+	private static Pref cacheSpiceOutputFormat = Pref.makeStringPref("SpiceOutputFormat", tool.prefs, "Standard");
+//    static { cacheSpiceOutputFormat.attachToObject(tool, "Tools/Spice tab", "Spice output format"); }
 	/**
 	 * Method to tell the type of output files expected from Spice.
 	 * @return the type of output files expected from Spice.
@@ -1189,9 +1349,9 @@ public class Simulation extends Listener
     public static final String spiceRunChoiceRunReportOutput = "Run, Report Output";
     private static final String [] spiceRunChoices = {spiceRunChoiceDontRun, spiceRunChoiceRunIgnoreOutput, spiceRunChoiceRunReportOutput};
 
-    private static Pref cacheSpiceRunChoice = Pref.makeIntPref("SpiceRunChoice", Simulation.tool.prefs, 0);
+    private static Pref cacheSpiceRunChoice = Pref.makeIntPref("SpiceRunChoice", tool.prefs, 0);
 //    static {
-//        Pref.Meaning m = cacheSpiceRunChoice.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Run Choice");
+//        Pref.Meaning m = cacheSpiceRunChoice.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Choice");
 //        m.setTrueMeaning(new String[] {spiceRunChoiceDontRun, spiceRunChoiceRunIgnoreOutput, spiceRunChoiceRunReportOutput});
 //    }
     /** Determines possible settings for the Spice Run Choice */
@@ -1206,42 +1366,42 @@ public class Simulation extends Listener
         }
     }
 
-    private static Pref cacheSpiceRunDir = Pref.makeStringPref("SpiceRunDir", Simulation.tool.prefs, "");
-//    static { cacheSpiceRunDir.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Run Dir"); }
+    private static Pref cacheSpiceRunDir = Pref.makeStringPref("SpiceRunDir", tool.prefs, "");
+//    static { cacheSpiceRunDir.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Dir"); }
     /** Get the spice run directory */
     public static String getSpiceRunDir() { return cacheSpiceRunDir.getString(); }
     /** Set the spice run directory */
     public static void setSpiceRunDir(String dir) { cacheSpiceRunDir.setString(dir); }
 
-    private static Pref cacheSpiceUseRunDir = Pref.makeBooleanPref("SpiceUseRunDir", Simulation.tool.prefs, false);
-//    static { cacheSpiceUseRunDir.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Use Run Dir"); }
+    private static Pref cacheSpiceUseRunDir = Pref.makeBooleanPref("SpiceUseRunDir", tool.prefs, false);
+//    static { cacheSpiceUseRunDir.attachToObject(tool, "Tool Options, Spice tab", "Use Run Dir"); }
     /** Get whether or not to use the user-specified spice run dir */
     public static boolean getSpiceUseRunDir() { return cacheSpiceUseRunDir.getBoolean(); }
     /** Set whether or not to use the user-specified spice run dir */
     public static void setSpiceUseRunDir(boolean b) { cacheSpiceUseRunDir.setBoolean(b); }
 
-    private static Pref cacheSpiceOutputOverwrite = Pref.makeBooleanPref("SpiceOverwriteOutputFile", Simulation.tool.prefs, false);
-//    static { cacheSpiceOutputOverwrite.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Overwrite Output Spice File"); }
+    private static Pref cacheSpiceOutputOverwrite = Pref.makeBooleanPref("SpiceOverwriteOutputFile", tool.prefs, false);
+//    static { cacheSpiceOutputOverwrite.attachToObject(tool, "Tool Options, Spice tab", "Overwrite Output Spice File"); }
     /** Get whether or not we automatically overwrite the spice output file */
     public static boolean getSpiceOutputOverwrite() { return cacheSpiceOutputOverwrite.getBoolean(); }
     /** Set whether or not we automatically overwrite the spice output file */
     public static void setSpiceOutputOverwrite(boolean b) { cacheSpiceOutputOverwrite.setBoolean(b); }
 
-    private static Pref cacheSpiceRunProbe = Pref.makeBooleanPref("SpiceRunProbe", Simulation.tool.prefs, false);
+    private static Pref cacheSpiceRunProbe = Pref.makeBooleanPref("SpiceRunProbe", tool.prefs, false);
     /** Get whether or not to run the spice probe after running spice */
     public static boolean getSpiceRunProbe() { return cacheSpiceRunProbe.getBoolean(); }
     /** Set whether or not to run the spice probe after running spice */
     public static void setSpiceRunProbe(boolean b) { cacheSpiceRunProbe.setBoolean(b); }
 
-    private static Pref cacheSpiceRunProgram = Pref.makeStringPref("SpiceRunProgram", Simulation.tool.prefs, "");
-//    static { cacheSpiceRunProgram.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Run Program"); }
+    private static Pref cacheSpiceRunProgram = Pref.makeStringPref("SpiceRunProgram", tool.prefs, "");
+//    static { cacheSpiceRunProgram.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Program"); }
     /** Get the spice run program */
     public static String getSpiceRunProgram() { return cacheSpiceRunProgram.getString(); }
     /** Set the spice run program */
     public static void setSpiceRunProgram(String c) { cacheSpiceRunProgram.setString(c); }
 
-    private static Pref cacheSpiceRunProgramArgs = Pref.makeStringPref("SpiceRunProgramArgs", Simulation.tool.prefs, "");
-//    static { cacheSpiceRunProgramArgs.attachToObject(Simulation.tool, "Tool Options, Spice tab", "Spice Run Program Args"); }
+    private static Pref cacheSpiceRunProgramArgs = Pref.makeStringPref("SpiceRunProgramArgs", tool.prefs, "");
+//    static { cacheSpiceRunProgramArgs.attachToObject(tool, "Tool Options, Spice tab", "Spice Run Program Args"); }
     /** Get the spice run program args */
     public static String getSpiceRunProgramArgs() { return cacheSpiceRunProgramArgs.getString(); }
     /** Set the spice run program args */
@@ -1258,7 +1418,7 @@ public class Simulation extends Listener
 		if (cacheSpicePartsLibrary == null)
 		{
 			String [] libNames = LibFile.getSpicePartsLibraries();
-			cacheSpicePartsLibrary = Pref.makeStringPref("SpicePartsLibrary", Simulation.tool.prefs, libNames[0]);
+			cacheSpicePartsLibrary = Pref.makeStringPref("SpicePartsLibrary", tool.prefs, libNames[0]);
 		}
 		return cacheSpicePartsLibrary.getString();
 	}
@@ -1272,13 +1432,13 @@ public class Simulation extends Listener
 		if (cacheSpicePartsLibrary == null)
 		{
 			String [] libNames = LibFile.getSpicePartsLibraries();
-			cacheSpicePartsLibrary = Pref.makeStringPref("SpicePartsLibrary", Simulation.tool.prefs, libNames[0]);
+			cacheSpicePartsLibrary = Pref.makeStringPref("SpicePartsLibrary", tool.prefs, libNames[0]);
 		}
 		cacheSpicePartsLibrary.setString(parts);
 	}
 
-	private static Pref cacheSpiceHeaderCardInfo = Pref.makeStringPref("SpiceHeaderCardInfo", Simulation.tool.prefs, "");
-//    static { cacheSpiceHeaderCardInfo.attachToObject(Simulation.tool, "Tools/Spice tab", "Spice header card information"); }
+	private static Pref cacheSpiceHeaderCardInfo = Pref.makeStringPref("SpiceHeaderCardInfo", tool.prefs, "");
+//    static { cacheSpiceHeaderCardInfo.attachToObject(tool, "Tools/Spice tab", "Spice header card information"); }
 	/**
 	 * Method to get the Spice header card specification.
 	 * Header cards can come from one of three places, depending on the specification:<BR>
@@ -1300,8 +1460,8 @@ public class Simulation extends Listener
 	 */
 	public static void setSpiceHeaderCardInfo(String spec) { cacheSpiceHeaderCardInfo.setString(spec); }
 
-	private static Pref cacheSpiceTrailerCardInfo = Pref.makeStringPref("SpiceTrailerCardInfo", Simulation.tool.prefs, "");
-//    static { cacheSpiceTrailerCardInfo.attachToObject(Simulation.tool, "Tools/Spice tab", "Spice trailer card information"); }
+	private static Pref cacheSpiceTrailerCardInfo = Pref.makeStringPref("SpiceTrailerCardInfo", tool.prefs, "");
+//    static { cacheSpiceTrailerCardInfo.attachToObject(tool, "Tools/Spice tab", "Spice trailer card information"); }
 	/**
 	 * Method to get the Spice trailer card specification.
 	 * Trailer cards can come from one of three places, depending on the specification:<BR>
@@ -1323,8 +1483,8 @@ public class Simulation extends Listener
 	 */
 	public static void setSpiceTrailerCardInfo(String spec) { cacheSpiceTrailerCardInfo.setString(spec); }
 
-	private static Pref cacheSpiceUseParasitics = Pref.makeBooleanPref("SpiceUseParasitics", Simulation.tool.prefs, true);
-//    static { cacheSpiceUseParasitics.attachToObject(Simulation.tool, "Tools/Spice tab", "Spice uses parasitics"); }
+	private static Pref cacheSpiceUseParasitics = Pref.makeBooleanPref("SpiceUseParasitics", tool.prefs, true);
+//    static { cacheSpiceUseParasitics.attachToObject(tool, "Tools/Spice tab", "Spice uses parasitics"); }
 	/**
 	 * Method to tell whether or not to use parasitics in Spice output.
 	 * The default is true.
@@ -1337,8 +1497,8 @@ public class Simulation extends Listener
 	 */
 	public static void setSpiceUseParasitics(boolean p) { cacheSpiceUseParasitics.setBoolean(p); }
 
-	private static Pref cacheSpiceUseNodeNames = Pref.makeBooleanPref("SpiceUseNodeNames", Simulation.tool.prefs, true);
-//    static { cacheSpiceUseNodeNames.attachToObject(Simulation.tool, "Tools/Spice tab", "Spice uses node names"); }
+	private static Pref cacheSpiceUseNodeNames = Pref.makeBooleanPref("SpiceUseNodeNames", tool.prefs, true);
+//    static { cacheSpiceUseNodeNames.attachToObject(tool, "Tools/Spice tab", "Spice uses node names"); }
 	/**
 	 * Method to tell whether or not to use node names in Spice output.
 	 * If node names are off, then numbers are used.
@@ -1353,8 +1513,8 @@ public class Simulation extends Listener
 	 */
 	public static void setSpiceUseNodeNames(boolean u) { cacheSpiceUseNodeNames.setBoolean(u); }
 
-	private static Pref cacheSpiceForceGlobalPwrGnd = Pref.makeBooleanPref("SpiceForceGlobalPwrGnd", Simulation.tool.prefs, false);
-//    static { cacheSpiceForceGlobalPwrGnd.attachToObject(Simulation.tool, "Tools/Spice tab", "Spice forces global VDD/GND"); }
+	private static Pref cacheSpiceForceGlobalPwrGnd = Pref.makeBooleanPref("SpiceForceGlobalPwrGnd", tool.prefs, false);
+//    static { cacheSpiceForceGlobalPwrGnd.attachToObject(tool, "Tools/Spice tab", "Spice forces global VDD/GND"); }
 	/**
 	 * Method to tell whether or not to write global power and ground in Spice output.
 	 * If this is off, then individual power and ground references are made.
@@ -1369,8 +1529,8 @@ public class Simulation extends Listener
 	 */
 	public static void setSpiceForceGlobalPwrGnd(boolean g) { cacheSpiceForceGlobalPwrGnd.setBoolean(g); }
 
-	private static Pref cacheSpiceUseCellParameters = Pref.makeBooleanPref("SpiceUseCellParameters", Simulation.tool.prefs, false);
-//    static { cacheSpiceForceGlobalPwrGnd.attachToObject(Simulation.tool, "Tools/Spice tab", "Spice uses cell parameters"); }
+	private static Pref cacheSpiceUseCellParameters = Pref.makeBooleanPref("SpiceUseCellParameters", tool.prefs, false);
+//    static { cacheSpiceForceGlobalPwrGnd.attachToObject(tool, "Tools/Spice tab", "Spice uses cell parameters"); }
 	/**
 	 * Method to tell whether or not to use cell parameters in Spice output.
 	 * When cell parameters are used, any parameterized cell is written many times,
@@ -1387,8 +1547,8 @@ public class Simulation extends Listener
 	 */
 	public static void setSpiceUseCellParameters(boolean p) { cacheSpiceUseCellParameters.setBoolean(p); }
 
-	private static Pref cacheSpiceWriteTransSizeInLambda = Pref.makeBooleanPref("SpiceWriteTransSizeInLambda", Simulation.tool.prefs, false);
-//    static { cacheSpiceWriteTransSizeInLambda.attachToObject(Simulation.tool, "Tools/Spice tab", "Spice writes transistor sizes in lambda"); }
+	private static Pref cacheSpiceWriteTransSizeInLambda = Pref.makeBooleanPref("SpiceWriteTransSizeInLambda", tool.prefs, false);
+//    static { cacheSpiceWriteTransSizeInLambda.attachToObject(tool, "Tools/Spice tab", "Spice writes transistor sizes in lambda"); }
 	/**
 	 * Method to tell whether or not to write transistor sizes in "lambda" grid units in Spice output.
 	 * Lambda grid units are the basic units of design.
