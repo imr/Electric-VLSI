@@ -311,7 +311,7 @@ public class NetworkTool extends Listener
         boolean added = false;
         if (nets == null) nets = new HashSet();
 
-        for(Iterator aIt = pi.getNodeInst().getConnections(); aIt.hasNext(); )
+        for(Iterator aIt = pi.getConnections(); aIt.hasNext(); )
         {
             Connection con = (Connection)aIt.next();
             ArcInst ai = con.getArc();

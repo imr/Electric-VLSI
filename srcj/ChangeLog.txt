@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/15/05, DN) Show network problems (Bug #371)
+FIX: In "NetworkTool.getNetworksOnPort" use "pi.getConnections".
+
 BUG: (06/14/05, GVG) Select surround not working properly in hierarchy (Bug #353).
 FIX: Precision problem while checking if point is at the corner of a rectangle.
 
