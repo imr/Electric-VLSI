@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/16/05, DN) Factory preferences for text attributes are incorrect.
+FIX: In TextDescriptor.DescriptorPref constructor cast "initialSize" to long.
+
 BUG: (06/15/05, DN) Show network problems (Bug #371)
 FIX: In "NetworkTool.getNetworksOnPort" use "pi.getConnections".
 
