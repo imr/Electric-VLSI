@@ -282,20 +282,20 @@ public class IOTool extends Listener
 	 */
 	public static void setCIFOutInstantiatesTopLevel(boolean on) { cacheCIFOutInstantiatesTopLevel.setBoolean(on); }
 
-	private static Pref cacheCIFOutResolution = Pref.makeDoublePref("CIFResolution", IOTool.tool.prefs, 0);
-	/**
-	 * Method to tell the minimum CIF Output resolution.
-	 * This is the smallest feature size that can be safely generated.
-	 * The default is "0" (no resolution check).
-	 * @return the minimum CIF Output resolution.
-	 */
-	public static double getCIFOutResolution() { return cacheCIFOutResolution.getDouble(); }
-	/**
-	 * Method to set the minimum CIF Output resolution.
-	 * This is the smallest feature size that can be safely generated.
-	 * @param r the minimum CIF Output resolution.
-	 */
-	public static void setCIFOutResolution(double r) { cacheCIFOutResolution.setDouble(r); }
+//	private static Pref cacheCIFOutResolution = Pref.makeDoublePref("CIFResolution", IOTool.tool.prefs, 0);
+//	/**
+//	 * Method to tell the minimum CIF Output resolution.
+//	 * This is the smallest feature size that can be safely generated.
+//	 * The default is "0" (no resolution check).
+//	 * @return the minimum CIF Output resolution.
+//	 */
+//	public static double getCIFOutResolution() { return cacheCIFOutResolution.getDouble(); }
+//	/**
+//	 * Method to set the minimum CIF Output resolution.
+//	 * This is the smallest feature size that can be safely generated.
+//	 * @param r the minimum CIF Output resolution.
+//	 */
+//	public static void setCIFOutResolution(double r) { cacheCIFOutResolution.setDouble(r); }
 
 	private static Pref cacheCIFInSquaresWires = Pref.makeBooleanPref("CIFInSquaresWires", IOTool.tool.prefs, true);
 	/**

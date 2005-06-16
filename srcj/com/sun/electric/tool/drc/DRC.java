@@ -889,5 +889,33 @@ public class DRC extends Listener
         currentRules = null;
     }
 
+    private static Pref cacheOutResolution = Pref.makeBooleanPref("ResolutionCheck", tool.prefs, false);
+	/**
+	 * Method to tell whether to report resolution errors.
+	 * The default is "false".
+	 * @return true to report resolution errors.
+	 */
+	public static boolean isCheckOutResolution() { return cacheOutResolution.getBoolean(); }
+	/**
+	 * Method to set whether to report resolution errors.
+	 * @param c whether to report resolution errors.
+	 */
+	public static void setCheckOutResolution(boolean c) { cacheOutResolution.setBoolean(c); }
+
+	private static Pref cacheOutResolutionValue = Pref.makeDoublePref("ResolutionValue", tool.prefs, 0);
+	/**
+	 * Method to tell the minimum Output resolution.
+	 * This is the smallest feature size that can be safely generated.
+	 * The default is "0".
+	 * @return the minimum Output resolution.
+	 */
+	public static double getOutResolutionValue() { return cacheOutResolutionValue.getDouble(); }
+	/**
+	 * Method to set the minimum Output resolution.
+	 * This is the smallest feature size that can be safely generated.
+	 * @param r the minimum Output resolution.
+	 */
+	public static void setCIFOutResolutionValue(double r) { cacheOutResolutionValue.setDouble(r); }
+
 //	public static final Variable.Key POSTSCRIPT_FILEDATE = ElectricObject.newKey("IO_postscript_filedate");
 }

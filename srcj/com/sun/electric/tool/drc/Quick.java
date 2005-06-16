@@ -117,10 +117,11 @@ public class Quick
 	private static final int MINAREAERROR       = 7;
 	private static final int ENCLOSEDAREAERROR  = 8;
     private static final int SURROUNDERROR      = 10;
-    private static final int FORBIDDEN = 11;
+    private static final int FORBIDDEN          = 11;
+    private static final int RESOLUTION         = 12;
 	// Different types of warnings
-	private static final int ZEROLENGTHARCWARN  = 12;
-	private static final int TECHMIXWARN  = 13;
+	private static final int ZEROLENGTHARCWARN  = 13;
+	private static final int TECHMIXWARN  = 14;
 
 	/**
 	 * The CheckInst object is associated with every cell instance in the library.
@@ -206,6 +207,7 @@ public class Quick
 
 	/** number of processes for doing DRC */					private int numberOfThreads;
 	/** error type search */				                    private int errorTypeSearch;
+    /** minimum output grid resolution */				        private double minAllowedResolution;
 	/** true to ignore center cuts in large contacts. */		private boolean ignoreCenterCuts;
 	/** maximum area to examine (the worst spacing rule). */	private double worstInteractionDistance;
 	/** time stamp for numbering networks. */					private int checkTimeStamp;
@@ -261,6 +263,10 @@ public class Quick
 
         // caching bits
         activeBits = DRC.getActiveBits();
+
+        // minimim resolution different from zero if flag is on otherwise stays at zero (default)
+        if (DRC.isCheckOutResolution())
+            minAllowedResolution = DRC.getOutResolutionValue();
 
 		// Nothing to check for this particular technology
 		if (rules == null || rules.getNumberOfRules() == 0) return 0;
@@ -655,10 +661,40 @@ public class Quick
 		return totalMsgFound;
 	}
 
-	/**
-	 * Method to check the design rules about nodeinst "ni".
-	 * Returns true if an error was found.
-	 */
+    /**
+     * Check Poly for CIF Resolution Errors
+     * @param poly
+     * @param cell
+     * @param geom
+     * @return true if an error was found.
+     */
+    private boolean checkResolution(PolyBase poly, Cell cell, Geometric geom)
+	{
+		if (minAllowedResolution == 0) return false;
+		ArrayList badpoints = new ArrayList();
+		Point2D [] points = poly.getPoints();
+		for (int i=0; i<points.length; i++)
+		{
+//			if ((points[i].getX() % minAllowedResolution) != 0 ||
+//				(points[i].getY() % minAllowedResolution) != 0)
+            if (DBMath.hasRemainder(points[i].getX(), minAllowedResolution) ||
+                DBMath.hasRemainder(points[i].getY(), minAllowedResolution))
+                badpoints.add(points[i]);
+		}
+		if (badpoints.size() == 0) return false; // no error
+
+        // there was an error, for now print error
+        Layer layer = poly.getLayer();
+        reportError(RESOLUTION, "less than " + minAllowedResolution + " on layer " + layer.getName(), cell, 0, 0, null, poly, geom, null, null, null, null);
+        return true;
+	}
+
+    /**
+     * Method to check the design rules about nodeinst "ni".
+     * @param ni
+     * @param globalIndex
+     * @return true if an error was found.
+     */
 	private boolean checkNodeInst(NodeInst ni, int globalIndex)
 	{
 		Cell cell = ni.getParent();
@@ -697,7 +733,16 @@ public class Quick
 			Layer layer = poly.getLayer();
 			if (layer == null) continue;
 
-            boolean ret = checkOD2Combination(tech, ni, layer);
+            // Checking resolution
+            boolean ret = checkResolution(poly, cell, ni);
+            if (ret)
+			{
+				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
+				errorsFound = true;
+			}
+
+            // Checking combination
+            ret = checkOD2Combination(tech, ni, layer);
             if (ret)
             {
                 // panic errors -> return regarless errorTypeSearch
@@ -4210,6 +4255,10 @@ public class Quick
 			StringBuffer errorMessagePart2 = null;
 			switch (errorType)
 			{
+                case RESOLUTION:
+                    errorMessage.append("Resolution error:");
+					errorMessagePart2 = new StringBuffer(msg);
+                    break;
                 case FORBIDDEN:
                     errorMessage.append("Forbidden error:");
 					errorMessagePart2 = new StringBuffer(msg);

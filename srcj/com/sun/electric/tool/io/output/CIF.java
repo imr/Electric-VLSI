@@ -42,7 +42,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -90,7 +89,7 @@ public class CIF extends Geometry
 	public static int writeCIFFile(OutputCellInfo cellJob)
 	{
 		// initialize preferences
-		double minAllowedResolution = IOTool.getCIFOutResolution();
+		double minAllowedResolution = 0; // IOTool.getCIFOutResolution();   decommissioned
 		return writeCIFFile(cellJob.cell, cellJob.context, cellJob.filePath, minAllowedResolution);
 	}
 
@@ -380,10 +379,10 @@ public class CIF extends Geometry
 		return (int)(scaleFactor * n);
 	}
 
-	private double unscale(int n)
-	{
-		return (double)(n / scaleFactor);
-	}
+//	private double unscale(int n)
+//	{
+//		return (double)(n / scaleFactor);
+//	}
 
 	/**
 	 * Check Poly for CIF Resolution Errors
@@ -411,13 +410,14 @@ public class CIF extends Geometry
 		}
 
 		boolean badResolution = false;
-		if (minAllowedResolution != 0)
-		{
-			if ((x % minAllowedResolution) != 0 || (y % minAllowedResolution) != 0)
-			{
-				badResolution = true;
-			}
-		}
+//		if (minAllowedResolution != 0)
+//		{
+////			if ((x % minAllowedResolution) != 0 || (y % minAllowedResolution) != 0)
+//            if (DBMath.hasRemainder(x, minAllowedResolution) || DBMath.hasRemainder(y, minAllowedResolution))
+//			{
+//				badResolution = true;
+//			}
+//		}
 
 		boolean error = badPoints || badResolution;
 		if (error)

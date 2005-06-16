@@ -38,8 +38,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.drc.DRC;
-import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.TextWindow;
