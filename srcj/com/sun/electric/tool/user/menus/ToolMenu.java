@@ -58,8 +58,8 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.assura.AssuraDrcErrors;
 import com.sun.electric.tool.compaction.Compaction;
+import com.sun.electric.tool.drc.AssuraDrcErrors;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.erc.ERCWellCheck;
@@ -134,15 +134,18 @@ public class ToolMenu {
 
 		//------------------- DRC
 
-		// mnemonic keys available: ABCDEFG IJKLMNOPQR TUVWXYZ
+		// mnemonic keys available:  B DEFG IJKLMNOPQR TUVWXYZ
 		MenuBar.Menu drcSubMenu = MenuBar.makeMenu("_DRC");
 		toolMenu.add(drcSubMenu);
 		drcSubMenu.addMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false, GeometryHandler.ALGO_QTREE); }});
 		drcSubMenu.addMenuItem("Check _Selection Area Hierarchically", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true, GeometryHandler.ALGO_QTREE); }});
-        drcSubMenu.addMenuItem("Check _Area Coverage", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(null, GeometryHandler.ALGO_SWEEP, true);} });
+        drcSubMenu.addMenuItem("Check Area _Coverage", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(null, GeometryHandler.ALGO_SWEEP, true);} });
+		drcSubMenu.addSeparator();
+		drcSubMenu.addMenuItem("Import _Assura DRC Errors", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { importAssuraDrcErrors();}});
 
 		//------------------- Simulation (Built-in)
 
@@ -463,12 +466,6 @@ public class ToolMenu {
 		toolMenu.add(compactionSubMenu);
 		compactionSubMenu.addMenuItem("Do _Compaction", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Compaction.compactNow();}});
-
-        //------------------- Cadence
-        MenuBar.Menu cadenceSubMenu = MenuBar.makeMenu("Cadence");
-        toolMenu.add(cadenceSubMenu);
-        cadenceSubMenu.addMenuItem("Import Assura DRC Errors", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { importAssuraDrcErrors();}});
 
         //------------------- Others
 
