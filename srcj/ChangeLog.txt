@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/16/05, SMR) When GDS changes the library name, a warning is issued.
+
 IMP: (06/16/05, SMR) Cleanup for Javadoc.
 
 IMP: (06/16/05, GVG) Out check resolution moved from CIF I/O to DRC (Bug #362)

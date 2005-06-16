@@ -130,7 +130,6 @@ public class GDS extends Geometry
 	/** constant for GDS units */				private static double scaleFactor;				
 	/** cell naming map */						private HashMap cellNames;
 	/** layer number map */						private HashMap layerNumbers;
-//    /** property number */                      private int propNumber;
 
 	/**
 	 * Main entry point for GDS output.
@@ -152,6 +151,13 @@ public class GDS extends Geometry
 		if (out.writeCell(cellJob.cell, cellJob.context, visitor)) return;
 		if (out.closeBinaryOutputStream()) return;
 		System.out.println(cellJob.filePath + " written");
+
+		// warn if library name was changed
+		String topCellName = cellJob.cell.getName();
+		String mangledTopCellName = makeGDSName(topCellName, HDR_M_ASCII);
+		if (!topCellName.equals(mangledTopCellName))
+			System.out.println("Warning: library name in this file is " + mangledTopCellName +
+				" (special characters were changed)");
 	}
 
 	/** Creates a new instance of GDS */
