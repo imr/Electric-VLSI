@@ -230,7 +230,7 @@ public class DRCTab extends PreferencePanel
         jPanel4.add(drcErrorDefault, gridBagConstraints);
 
         errorTypeGroup.add(drcErrorExaustive);
-        drcErrorExaustive.setText("Exaustive checking");
+        drcErrorExaustive.setText("Exhaustive checking");
         drcErrorExaustive.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;

@@ -6,8 +6,8 @@ NOTE: Please place changes under the version that will be released next.
 
 IMP: (06/16/05, SMR) Cleanup for Javadoc.
 
-IMP/MAN: (06/16/05, GVG) Out check resolution moved from CIF I/O to DRC (Bug #362)
-Side effect: code in CIF.java commented out, left only CIF format resolution (Bug #365)
+IMP: (06/16/05, GVG) Out check resolution moved from CIF I/O to DRC (Bug #362)
+     Side effect: code in CIF.java commented out, left only CIF format resolution (Bug #365)
 
 BUG: (06/16/05, DN) Bit "isParam" on NodeInst variables remains set even there
      is no more corresponing parameter on the parent Cell.
@@ -22,17 +22,19 @@ FIX: In tool.drc.Schematic.checkPoly(), allow this combination to cross.
 BUG: (06/15/05, DN) Show network problems (Bug #371)
 FIX: In "NetworkTool.getNetworksOnPort" use "pi.getConnections".
 
-IMP/MAN: (06/15/05, SM) CIF output has no check for user resolution check, and always checks for minimum
-CIF format resolution (Bug #365).
+IMP: (06/15/05, SMR) CIF output has no check for user resolution check, and always checks for
+     minimum CIF format resolution (Bug #365).
 
-BUG: (06/15/05, SM) "Select Object" now allows multiple selections (for Frankie)(Bug #370)
-BUG: (06/15/05, SM) Conversion of a technology to a library twice now disallowed (for Gilda)(Bug #373)
-BUG: (06/15/05, SM) Technology editor handles stretching rules properly (for Gilda)(Bug #374)
+IMP: (06/15/05, SMR) "Select Object" now allows multiple selections (for Frankie)(Bug #370)
+
+IMP: (06/15/05, SMR) Conversion of a technology to a library twice now disallowed (for Gilda)(Bug #373)
+
+IMP: (06/15/05, SMR) Technology editor handles stretching rules properly (for Gilda)(Bug #374)
 
 BUG: (06/14/05, GVG) Select surround not working properly in hierarchy (Bug #353).
 FIX: Precision problem while checking if point is at the corner of a rectangle.
 
-IMP/MAN: (06/14/05, GVG) New tileNot layers (1 for each metal, OD and poly) in TSMC90 technology (Bug #354)
+IMP: (06/14/05, GVG) New tileNot layers (1 for each metal, OD and poly) in TSMC90 technology (Bug #354)
      Stipple patterns in such way they won't completely cover other tileNot nodes. The rest of the graphics
      is inherited from corresponding metal/active/poly layer.
 

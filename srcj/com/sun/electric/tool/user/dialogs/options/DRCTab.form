@@ -118,7 +118,7 @@
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="errorTypeGroup"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Exaustive checking"/>
+                <Property name="text" type="java.lang.String" value="Exhaustive checking"/>
                 <Property name="horizontalAlignment" type="int" value="2"/>
               </Properties>
               <Constraints>
