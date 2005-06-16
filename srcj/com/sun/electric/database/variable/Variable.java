@@ -124,6 +124,8 @@ public class Variable
         this.owner = owner;
 		this.addr = addr;
 		this.descriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(descriptor);
+        if (!(owner instanceof Cell))
+            this.descriptor = this.descriptor.withoutParam();
 		this.key = key;
 	}
 
@@ -838,10 +840,10 @@ public class Variable
         // It is possible for the user to create a case where an attributee
         // is not marked as a param even though it should be,
         // so we check it here
-        if (getOwner() instanceof Nodable) {
-            Nodable no = (Nodable)getOwner();
-            if (no.getProto() instanceof Cell) {
-                Cell icon = (Cell)no.getProto();
+        if (getOwner() instanceof NodeInst) {
+            NodeInst ni = (NodeInst)getOwner();
+            if (ni.getProto() instanceof Cell) {
+                Cell icon = (Cell)ni.getProto();
                 Cell sch = icon.contentsView();
                 if (sch == null) sch = icon;
                 Variable var = sch.getVar(key);

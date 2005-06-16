@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/16/05, DN) Bit "isParam" on NodeInst variables remains set even there
+     is no more corresponing parameter on the parent Cell.
+FIX: Don't store "isParam" bit on instance variables. Variable.isParam is claculated.
+
 BUG: (06/16/05, DN) Factory preferences for text attributes are incorrect.
 FIX: In TextDescriptor.DescriptorPref constructor cast "initialSize" to long.
 
