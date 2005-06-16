@@ -326,7 +326,7 @@ public class Stimuli
 	 * Method to convert a strength to an index value.
 	 * The strengths are OFF_STRENGTH, NODE_STRENGTH, GATE_STRENGTH, and VDD_STRENGTH.
 	 * The indices are integers that can be saved to disk.
-	 * @param a strength level.
+	 * @param strength strength level.
 	 * @return the index for that strength (0-based).
 	 */
 	public static int strengthToIndex(int strength) { return strength / 4; }
@@ -402,7 +402,7 @@ public class Stimuli
 	 * Method to describe the strength in a given state.
 	 * A 'state' is a combination of a level and a strength.
 	 * The strengths are OFF_STRENGTH, NODE_STRENGTH, GATE_STRENGTH, and VDD_STRENGTH.
-	 * @param state the given state.
+	 * @param strength the given strength.
 	 * @return a description of the strength in that state.
 	 */
 	public static String describeStrength(int strength)

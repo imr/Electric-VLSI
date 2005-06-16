@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/16/05, SMR) Cleanup for Javadoc.
+
 IMP/MAN: (06/16/05, GVG) Out check resolution moved from CIF I/O to DRC (Bug #362)
 Side effect: code in CIF.java commented out, left only CIF format resolution (Bug #365)
 
@@ -13,6 +15,9 @@ FIX: Don't store "isParam" bit on instance variables. Variable.isParam is clacul
 
 BUG: (06/16/05, DN) Factory preferences for text attributes are incorrect.
 FIX: In TextDescriptor.DescriptorPref constructor cast "initialSize" to long.
+
+BUG: (06/15/05, SMR) Busses and wires cause Schematic DRC when they cross (Bug #376).
+FIX: In tool.drc.Schematic.checkPoly(), allow this combination to cross.
 
 BUG: (06/15/05, DN) Show network problems (Bug #371)
 FIX: In "NetworkTool.getNetworksOnPort" use "pi.getConnections".

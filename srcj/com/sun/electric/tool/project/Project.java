@@ -626,14 +626,12 @@ public class Project extends Listener
 	/**
 	 * Method to return the status of a Cell in Project Management.
 	 * @param cell the Cell in question.
-	 * @return:<UL>
-	 * <LI>NOTMANAGED: this cell is not in any repository
-	 * <LI>CHECKEDIN: the cell is checked into the repository and is available for checkout.
-	 * <LI>CHECKEDOUTTOYOU: the cell is checked out to the currently-logged in user.
-	 * <LI>CHECKEDOUTTOOTHERS: the cell is checked out to someone else
-	 * (use "getCellOwner" to find out who).
-	 * <LI>OLDVERSION: this is an old version of a cell in the repository.
-	 * </UL>
+	 * @return NOTMANAGED: this cell is not in any repository<BR>
+	 * CHECKEDIN: the cell is checked into the repository and is available for checkout.<BR>
+	 * CHECKEDOUTTOYOU: the cell is checked out to the currently-logged in user.<BR>
+	 * CHECKEDOUTTOOTHERS: the cell is checked out to someone else
+	 * (use "getCellOwner" to find out who).<BR>
+	 * OLDVERSION: this is an old version of a cell in the repository.<BR>
 	 */
 	public static int getCellStatus(Cell cell)
 	{
@@ -846,7 +844,7 @@ public class Project extends Listener
 	 * @param tool the tool that generated the changes.
 	 * @param undoRedo true if these changes are from an undo or redo command.
 	 */
-	public void startBatch(Tool source, boolean undoRedo) {}
+	public void startBatch(Tool tool, boolean undoRedo) {}
 
 	/**
 	 * Method to announce the end of a batch of changes.

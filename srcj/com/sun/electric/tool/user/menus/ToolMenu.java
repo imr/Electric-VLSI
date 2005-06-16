@@ -300,10 +300,10 @@ public class ToolMenu {
 		netlisters.addMenuItem("Fast_Henry Arc Properties...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FastHenryArc.showFastHenryArcDialog(); }});
 		netlisters.addSeparator();
-		netlisters.addMenuItem("Write _ArcSim Deck...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.ARCSIM, true); } });
+		netlisters.addMenuItem("Write _ArchSim Deck...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.ARCHSIM, true); } });
 		netlisters.addMenuItem("Display ArcSim _Journal...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotArcSimResults(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotArchSimResults(); } });
 
 		//------------------- ERC
 

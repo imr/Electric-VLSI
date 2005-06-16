@@ -79,10 +79,10 @@ public class Resistor extends Part {
 
     public float resistance(){return resistance;}
 
-	/** A method to test if this Part touches a Wire with a gate connection.
-	 * @param w the Wire to test
-	 * @return false because Resistors don't have gates.
-	 */
+//	/** A method to test if this Part touches a Wire with a gate connection.
+//	 * @param w the Wire to test
+//	 * @return false because Resistors don't have gates.
+//	 */
 //    public boolean touchesAtGate(Wire w){return false;}
 	
     public void connect(Wire ss, Wire ee){

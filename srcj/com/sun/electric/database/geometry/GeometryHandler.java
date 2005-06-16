@@ -47,10 +47,7 @@ public abstract class GeometryHandler {
     public static final AreaSort areaSort = new AreaSort();
 
     /**
-     * Method to create appropiate GeometryHandler depending on the mode
-     * @param mode
-     * @param root
-     * @return
+     * Method to create appropiate GeometryHandler depending on the mode.
      */
     public static GeometryHandler createGeometryHandler(int mode, int initialSize, Rectangle2D root)
     {

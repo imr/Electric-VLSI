@@ -187,6 +187,14 @@ Tools
   Spice Plotting                     =chap09-04-05
   Spice and Verilog Primitives       =chap09-04-06
   FastHenry                          =chap09-04-07
+  IRSIM                              =chap09-04-08
+  IRSIM Interaction                  =chap09-04-09
+  ALS                                =chap09-04-10
+  ALS Interaction                    =chap09-04-11
+  ALS Concepts                       =chap09-04-12
+  ALS Gates                          =chap09-04-13
+  ALS Functions                      =chap09-04-14
+  ALS Models                         =chap09-04-15
  Routing
   Introduction to Routing            =chap09-05-01
   Auto Stitching                     =chap09-05-02

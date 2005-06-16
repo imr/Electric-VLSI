@@ -626,12 +626,7 @@ public class DRC extends Listener
 
     /**
      * Determine if node represented by index in DRC mapping table is forbidden under
-     * this foundry
-     * @param elemIndex
-     * @param type
-     * @param tech
-     * @param techmode
-     * @return
+     * this foundry.
      */
     public static boolean isForbiddenNode(int elemIndex, int type, Technology tech, int techmode)
     {

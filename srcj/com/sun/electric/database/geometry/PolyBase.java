@@ -1507,9 +1507,9 @@ public class PolyBase implements Shape, PolyNodeMerge
 	}
 
     /**
-     * Method to retrieve all loops that are part of this PolyBase
-     * sorted by area
-     * @return
+     * Method to retrieve all loops that are part of this PolyBase,
+     * sorted by area.
+     * @return the List of loops.
      */
     public List getSortedLoops()
     {
@@ -1520,12 +1520,12 @@ public class PolyBase implements Shape, PolyNodeMerge
     }
 
     /**
-     * Static method to get PolyBase elements associated to an Area
-     * @param area  Java2D structure containing the geometrical information
-     * @param layer
+     * Static method to get PolyBase elements associated with an Area.
+     * @param area Java2D structure containing the geometrical information
+     * @param layer the Layer to examine.
      * @param simple if true, polygons with inner loops will return in sample Poly.
-     * @param includeLastPoint
-     * @return List of PolyBase elements
+     * @param includeLastPoint true to include the last point.
+     * @return List of PolyBase elements.
      */
 	public static List getPointsInArea(Area area, Layer layer, boolean simple, boolean includeLastPoint, List polyList)
 	{

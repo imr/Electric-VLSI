@@ -37,8 +37,8 @@ public class FileType {
 
 	/** Describes any file.*/				public static final FileType ANY          = makeFileType("All", new String[] {}, "All Files");
 	/** Describes ALS vector decks. */		public static final FileType ALSVECTOR    = makeFileType("ALS Vectors", new String[] {"vec"}, "ALS Vector Deck (vec)");
-	/** Describes ArcSim decks.*/			public static final FileType ARCSIM       = makeFileType("ArcSim", new String[] {"xml"}, "ArcSim Deck (xml)");
-	/** Describes ArcSim output.*/			public static final FileType ARCSIMOUT    = makeFileType("ArcSimOutput", new String[] {"asj"}, "ArcSim Journal (asj)");
+	/** Describes ArchSim decks.*/			public static final FileType ARCHSIM      = makeFileType("ArchSim", new String[] {"xml"}, "ArchSim Deck (xml)");
+	/** Describes ArchSim output.*/			public static final FileType ARCHSIMOUT   = makeFileType("ArchSimOutput", new String[] {"asj"}, "ArchSim Journal (asj)");
 	/** Describes CDL decks.*/				public static final FileType CDL          = makeFileType("CDL", new String[] {"cdl"}, "CDL Deck (cdl)");
 	/** Describes CIF files. */				public static final FileType CIF          = makeFileType("CIF", new String[] {"cif"}, "CIF File (cif)");
 	/** Describes COSMOS output. */			public static final FileType COSMOS       = makeFileType("COSMOS", new String[] {"sim"}, "COSMOS File (sim)");

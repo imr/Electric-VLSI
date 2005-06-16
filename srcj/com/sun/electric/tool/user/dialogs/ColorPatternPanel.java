@@ -221,8 +221,7 @@ public class ColorPatternPanel extends JPanel
    }
 
     /**
-     * Method to return current Info instance
-     * @return
+     * Method to return current Info instance.
      */
     public Info getInfo() {return currentLI;}
 	/**

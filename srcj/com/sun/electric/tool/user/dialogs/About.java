@@ -116,7 +116,7 @@ public class About extends EDialog
 		};
 	}
 
-	/** Creates new form About */
+	/** Creates the About dialog. */
 	public About(java.awt.Frame parent, boolean modal)
 	{
 		super(parent, modal);

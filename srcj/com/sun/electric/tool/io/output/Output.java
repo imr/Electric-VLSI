@@ -322,9 +322,9 @@ public class Output
      */
     private static void writeCell(OutputCellInfo cellJob) //Cell cell, VarContext context, String filePath, FileType type, Job job)
     {
-		if (cellJob.type == FileType.ARCSIM)
+		if (cellJob.type == FileType.ARCHSIM)
 		{
-			ArcSim.writeArcSimFile(cellJob);
+			ArchSim.writeArchSimFile(cellJob);
 		} else if (cellJob.type == FileType.CDL)
 		{
 			Spice.writeSpiceFile(cellJob, true);

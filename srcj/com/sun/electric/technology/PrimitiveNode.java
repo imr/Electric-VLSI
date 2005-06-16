@@ -1328,13 +1328,13 @@ public class PrimitiveNode implements NodeProto, Comparable
 
     /**
      * Method to retrieve index of the node in the given technology
-     * @return
+     * @return the index of this node in its Technology.
      */
     public final int getPrimNodeIndexInTech() { return techPrimNodeIndex;}
 
     /**
-     * Method to set properly the index of the node in the particular technology
-     * @param index
+     * Method to set the index of this node in its Technology.
+     * @param index the index to use for this node in its Technology.
      */
     public void setPrimNodeIndexInTech(int index) { techPrimNodeIndex = index; }
 

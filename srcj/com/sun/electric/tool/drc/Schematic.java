@@ -124,7 +124,7 @@ public class Schematic
 		if (justThis) errorLogger.termLogging(true);
 	}
 
-	/*
+	/**
 	 * Method to check schematic object "geom".
 	 */
 	private static void schematicDoCheck(Netlist netlist, Geometric geom)
@@ -369,7 +369,7 @@ public class Schematic
 		checkObjectVicinity(netlist, geom, geom, DBMath.MATID);
 	}
 
-	/*
+	/**
 	 * Method to check whether object "geom" has a DRC violation with a neighboring object.
 	 */
 	private static void checkObjectVicinity(Netlist netlist, Geometric topGeom, Geometric geom, AffineTransform trans)
@@ -582,7 +582,7 @@ public class Schematic
 	{
 		if (oGeom instanceof NodeInst)
 		{
-if (geom instanceof ArcInst) return false;
+			if (geom instanceof ArcInst) return false;
 			NodeInst ni = (NodeInst)oGeom;
 			NodeProto np = ni.getProto();
 			AffineTransform thisTrans = ni.rotateOut();
@@ -619,12 +619,14 @@ if (geom instanceof ArcInst) return false;
 			}
 		} else
 		{
-if (geom instanceof NodeInst) return false;
-			ArcInst ai = (ArcInst)oGeom;
-			Technology tech = ai.getProto().getTechnology();
-			Poly [] polyList = tech.getShapeOfArc(ai);
+			if (geom instanceof NodeInst) return false;
+			ArcInst ai = (ArcInst)geom;
+			ArcInst oAi = (ArcInst)oGeom;
+			Technology tech = oAi.getProto().getTechnology();
+			Poly [] polyList = tech.getShapeOfArc(oAi);
 			int total = polyList.length;
-System.out.println("Comparing arcs "+ai.describe()+" and "+((ArcInst)geom).describe()+" CANCROSS="+canCross);
+			if ((oAi.getProto() == Schematics.tech.bus_arc && ai.getProto() == Schematics.tech.wire_arc) ||
+				(oAi.getProto() == Schematics.tech.wire_arc && ai.getProto() == Schematics.tech.bus_arc)) canCross = true;
 			for(int i=0; i<total; i++)
 			{
 				Poly oPoly = polyList[i];

@@ -904,10 +904,7 @@ public final class HierarchyEnumerator {
 
     /**
      * Method to search if child network is connected to visitor network (visitorNet).
-     * Used in Quick.java and Connection.java
-     * @param net
-     * @param info
-     * @return
+     * Used in Quick.java and Connection.java.
      */
     public static boolean searchNetworkInParent(Network net, CellInfo info,
                                                 Network visitorNet)

@@ -2,8 +2,8 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ArcSim.java
- * Input/output tool: ArcSim Netlist output
+ * File: ArchSim.java
+ * Input/output tool: ArchSim Netlist output
  * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
@@ -42,20 +42,20 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * This is the ArcSim writer tool.
+ * This is the ArchSim writer tool.
  */
-public class ArcSim extends Output
+public class ArchSim extends Output
 {
 	/**
-	 * The main entry point for ArcSim deck writing.
+	 * The main entry point for ArchSim deck writing.
 	 * @param cellJob contains following information
      * cell: the top-level cell to write.
 	 * context: the hierarchical context to the cell.
-	 * filePath: the disk file to create with ArcSim.
+	 * filePath: the disk file to create with ArchSim.
 	 */
-	public static void writeArcSimFile(OutputCellInfo cellJob)
+	public static void writeArchSimFile(OutputCellInfo cellJob)
 	{
-		ArcSim out = new ArcSim();
+		ArchSim out = new ArchSim();
 		if (out.openTextOutputStream(cellJob.filePath)) return;
 		out.writeFlatCell(cellJob.cell);
 		if (out.closeTextOutputStream()) return;
@@ -63,9 +63,9 @@ public class ArcSim extends Output
 	}
 
 	/**
-	 * Creates a new instance of ArcSim.
+	 * Creates a new instance of ArchSim.
 	 */
-	ArcSim()
+	ArchSim()
 	{
 	}
 

@@ -4,6 +4,7 @@
 
 <!-- COMMAND Tool/Generation/Coverage Implants Generator -->
 <!-- COMMAND Tool/Generation/ROM Generator... -->
+<!-- COMMAND Tool/Generation/MOSIS CMOS PLA Generator... -->
 <!-- COMMAND Tool/Generation/Generate gate layouts (MoCMOS) -->
 
 There are other generators built into Electric.
@@ -50,6 +51,30 @@ Here is a sample ROM file:
 <BR>
 &nbsp;&nbsp;&nbsp;11000000
 </CODE>
+</LI>
+
+<LI><B>MOSIS CMOS PLA Generator...</B>
+The MOSIS CMOS PLA generator reads two personality files (AND and OR) and
+generates a PLA array.
+Each file has only two numbers on the first line to define the size of the array,
+and the values of the array on subsequent lines.
+Both the AND file and the OR file are similar.
+Example files can be found in the <B>PLA-ROM</B> subdirectory of the <B>examples</B> directory.
+Here is some sample PLA logic:
+<CENTER><TABLE><TR><TD>
+<I>f</I> = (<I>a</I> <B>and</B> <I>b</I> <B>and</B> (<B>not</B> <I>c</I>)) <B>or</B> ((<B>not</B> <I>b</I>) <B>and</B> (<B>not</B> <I>a</I>))
+</TD></TR>
+<TR><TD>
+<I>g</I> = (<I>a</I> <B>and</B> <I>c</I>) <B>or</B> ((<B>not</B> <I>a</I>) <B>and</B> (<B>not</B> <I>c</I>))
+</TD></TR></TABLE></CENTER>
+Here is the AND file for the above logic:
+<PRE>
+    4  3
+    1  1  0
+    0  0  X
+    1  X  1
+    0  X  0
+</PRE>
 </LI>
 
 <LI><B>Generate gate layouts (MoCMOS)</B>

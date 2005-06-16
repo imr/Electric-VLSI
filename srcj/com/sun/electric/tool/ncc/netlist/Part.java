@@ -142,7 +142,7 @@ public abstract class Part extends NetObject {
 	
 	/** check that this Part is in proper form
 	 * complain if it's wrong
-	 * @return true if all OK, false if there's a problem */
+	 */
 	public void checkMe(Circuit parent){
 		error(parent!=getParent(), "wrong parent");
 		for(int i=0; i<pins.length; i++){

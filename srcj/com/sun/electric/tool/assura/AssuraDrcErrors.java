@@ -2,9 +2,9 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: DrcErrors.java
+ * File: AssuraDrcErrors.java
  *
- * Copyright (c) 2004 Sun Microsystems and Static Free Software
+ * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
  * Electric(tm) is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,11 +43,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 /**
- * Created by IntelliJ IDEA.
- * User: gainsley
- * Date: Jun 9, 2005
- * Time: 12:47:18 PM
- * To change this template use File | Settings | File Templates.
+ * Class to represent DRC errors read from Assura.
  */
 public class AssuraDrcErrors {
 

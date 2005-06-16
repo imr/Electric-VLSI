@@ -102,7 +102,10 @@ public class EDialog extends JDialog
 		}
 	}
 
-	/** used to cancel the dialog */
+	/**
+	 * Method called when the ESCAPE key is pressed.
+	 * Override it to cancel the dialog.
+	 */
 	protected void escapePressed() {}
 
     protected void focusClearOnTextField(JTextComponent textComponent) {

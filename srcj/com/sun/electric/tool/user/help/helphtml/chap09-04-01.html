@@ -1,9 +1,10 @@
 <!-- HEADER 9-4-1: Introduction to Simulation -->
 
+<!-- COMMAND Tool/Simulation (Others)/Write ArchSim Deck... -->
 <!-- COMMAND Tool/Simulation (Spice)/Write CDL Deck... -->
 <!-- COMMAND Tool/Simulation (Others)/Write COSMOS Deck... -->
 <!-- COMMAND Tool/Simulation (Others)/Write ESIM/RNL Deck... -->
-<!-- COMMAND Tool/Simulation (Others)/Write IRSIM Deck... -->
+<!-- COMMAND Tool/Simulation (Built-In)/IRSIM: Write Deck... -->
 <!-- COMMAND Tool/Simulation (Others)/Write Maxwell Deck... -->
 <!-- COMMAND Tool/Simulation (Others)/Write MOSSIM Deck... -->
 <!-- COMMAND Tool/Simulation (Others)/Write PAL Deck... -->
@@ -11,16 +12,17 @@
 <!-- COMMAND Tool/Simulation (Others)/Write SILOS Deck... -->
 <!-- COMMAND Tool/Simulation (Others)/Write Tegas Deck... -->
 
-The <B>Simulation (Spice)</B>, <B>Simulation (Verilog)</B>, and
+Electric has two built-in simulators and can generate decks for many others.
+These facilities are controlled with the <B>Simulation (Built-In)</B>,
+<B>Simulation (Spice)</B>, <B>Simulation (Verilog)</B>, and
 <B>Simulation (Others)</B> commands of the <B>Tool</B>
-menu are able to produce input decks for a number of different simulators.
-All these commands work on the current cell and require that all named points be exports.
-It is also necessary to have power and ground exports.
+menu.
 <P>
 Electric can write netlists for these simulators:
 <P>
 <CENTER><TABLE BORDER=1 WIDTH="80%">
 <TR><TD><B>Simulator</B></TD><TD><B>Level</B></TD><TD><B>Netlist Command</B></TD></TR>
+<TR><TD>ArchSim</TD><TD>functional</TD><TD><B>Tool / Simulation (Others) / Write ArchSim Deck...</B></TD></TR>
 <TR><TD>CDL</TD><TD>circuit</TD><TD><B>Tool / Simulation (Spice) / Write CDL Deck...</B></TD></TR>
 <TR><TD>COSMOS</TD><TD>switch</TD><TD><B>Tool / Simulation (Others) / Write COSMOS Deck...</B></TD></TR>
 <TR><TD>ESIM/RNL</TD><TD>switch</TD><TD><B>Tool / Simulation (Others) / Write ESIM/RNL Deck...</B></TD></TR>
@@ -37,5 +39,5 @@ Electric can write netlists for these simulators:
 </TABLE></CENTER>
 
 <P>
-For more information on Spice, Verilog, and FastHenry, see the following pages.
+For more information on Spice, Verilog, ALS, IRSIM, and FastHenry, see the following pages.
 <!-- TRAILER -->

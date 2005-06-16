@@ -365,11 +365,11 @@ public class PolyMerge
 
     /**
      * Access to keySet to create a collection for example.
-     * @return
+     * @return a Collection of Layers found in this Merge.
      */
 	public Collection getKeySet()
 	{
-		return (layers.keySet());
+		return layers.keySet();
 	}
 
 	public Collection getObjects(Object layer, boolean modified, boolean simple)

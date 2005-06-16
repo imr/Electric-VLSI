@@ -2,8 +2,8 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ArcSimOut.java
- * Input/output tool: reader for ArcSim output (.asj)
+ * File: ArchSimOut.java
+ * Input/output tool: reader for ArchSim output (.asj)
  * Written by Steven M. Rubin, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
@@ -39,15 +39,15 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Class for reading and displaying waveforms from ArcSim output.
+ * Class for reading and displaying waveforms from ArchSim output.
  * Thease are contained in .asj files.
  */
-public class ArcSimOut extends Simulate
+public class ArchSimOut extends Simulate
 {
-	ArcSimOut() {}
+	ArchSimOut() {}
 
 	/**
-	 * Method to read an ArcSim output file.
+	 * Method to read an ArchSim output file.
 	 */
 	protected Stimuli readSimulationOutput(URL fileURL, Cell cell)
 		throws IOException
@@ -56,10 +56,10 @@ public class ArcSimOut extends Simulate
 		if (openTextInput(fileURL)) return null;
 
 		// show progress reading .dump file
-		startProgressDialog("ArcSim output", fileURL.getFile());
+		startProgressDialog("ArchSim output", fileURL.getFile());
 
 		// read the actual signal data from the .dump file
-		Stimuli sd = readArcSimFile(cell);
+		Stimuli sd = readArchSimFile(cell);
 
 		// stop progress dialog, close the file
 		stopProgressDialog();
@@ -69,7 +69,7 @@ public class ArcSimOut extends Simulate
 		return sd;
 	}
 
-	private Stimuli readArcSimFile(Cell cell)
+	private Stimuli readArchSimFile(Cell cell)
 		throws IOException
 	{
 		// read all of the stimuli

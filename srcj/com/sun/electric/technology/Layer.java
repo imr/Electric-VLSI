@@ -532,7 +532,7 @@ public class Layer
     /**
      * Method to determine if the layer function corresponds to a diffusion layer.
      * Used in parasitic calculation
-     * @return
+     * @return true if this Layer is diffusion.
      */
     public boolean isDiffusionLayer()
     {

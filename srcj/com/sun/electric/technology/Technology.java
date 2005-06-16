@@ -850,7 +850,7 @@ public class Technology implements Comparable
     /**
      * Method to determine index of layer or node involved in the rule
      * @param name name of the layer or node
-     * @return
+     * @return the index of the rule.
      */
     public int getRuleNodeIndex(String name)
     {
@@ -1000,8 +1000,6 @@ public class Technology implements Comparable
 	 * Users should never call this method.
 	 * It is set once by the technology during initialization.
 	 * Directional arcs are those with arrows on them, indicating (only graphically) the direction of flow through the arc.
-	 * @see ArcInst#setDirectional
-	 * @see ArcProto#setDirectional
 	 */
 	protected void setNoDirectionalArcs() { userBits |= NODIRECTIONALARCS; }
 
@@ -1009,8 +1007,6 @@ public class Technology implements Comparable
 	 * Returns true if this technology does not have directional arcs.
 	 * @return true if this technology does not have directional arcs.
 	 * Directional arcs are those with arrows on them, indicating (only graphically) the direction of flow through the arc.
-	 * @see ArcInst#setDirectional
-	 * @see ArcProto#setDirectional
 	 */
 	public boolean isNoDirectionalArcs() { return (userBits & NODIRECTIONALARCS) != 0; }
 
@@ -3505,8 +3501,7 @@ public class Technology implements Comparable
     /** Temporary variable for holding names */         public static final Variable.Key TECH_TMPVAR= ElectricObject.newKey("TECH_TMPVAR");
 
     /**
-     * Method to retrieve correct group of elements for the palette
-     * @return
+     * Method to retrieve correct group of elements for the palette.
      */
     public Object[][] getNodesGrouped()
     {
@@ -3550,10 +3545,6 @@ public class Technology implements Comparable
      * @param np prototype of the node to place in the palette.
      * @param func function of the node (helps parameterize the node).
      * @param angle initial placement angle of the node.
-     * @param display
-     * @param varName
-     * @param fontSize
-     * @return
      */
     public static NodeInst makeNodeInst(NodeProto np, PrimitiveNode.Function func, int angle, boolean display,
                                         String varName, double fontSize)
@@ -3591,9 +3582,6 @@ public class Technology implements Comparable
     /**
      * This is the most basic function to determine the widest wire and the parallel distance
      * that run along them. Done because MOSRules doesn't consider the parallel distance as input.
-     * @param poly1
-     * @param poly2
-     * @return
      */
     public double[] getSpacingDistances(Poly poly1, Poly poly2)
     {

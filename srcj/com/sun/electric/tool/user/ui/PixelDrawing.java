@@ -651,7 +651,7 @@ public class PixelDrawing
 	 * Method to draw a NodeInst into the offscreen image.
 	 * @param ni the NodeInst to draw.
      * @param trans the transformation of the NodeInst to the display.
-     * @param topLevel true if this is the top-level of display (not in a subcell).
+     * @param topWnd the EditWindow at the top-level of display.
      * @param expandBounds bounds in which to draw nodes fully expanded
      * @param forceVisible true if layer visibility information should be ignored and force the drawing
 	 * @param context the VarContext to this node in the hierarchy.

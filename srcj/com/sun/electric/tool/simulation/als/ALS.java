@@ -93,7 +93,7 @@ public class ALS extends Engine
 	/**
 	 * DelayTypes is a typesafe enum class that describes types of delay.
 	 */
-	public static class DelayTypes
+	private static class DelayTypes
 	{
 		private DelayTypes() {}
 
@@ -404,21 +404,28 @@ public class ALS extends Engine
 	/**
 	 * Method to simulate the a Cell, given its context and the Cell with the real netlist.
 	 * @param netlistCell the Cell with the real ALS netlist.
-	 * @param np the original Cell being simulated.
+	 * @param cell the original Cell being simulated.
 	 * @param context the context to the Cell being simulated.
 	 */
-	public static void simulateNetlist(Cell netlistCell, Cell np, VarContext context)
+	public static void simulateNetlist(Cell netlistCell, Cell cell, VarContext context)
 	{
 		ALS theALS = new ALS();
-		theALS.doSimulation(netlistCell, np, context, null, null);
+		theALS.doSimulation(netlistCell, cell, context, null, null);
 	}
 
-	public static void restartSimulation(Cell netlistCell, Cell np, VarContext context, ALS prevALS)
+	/**
+	 * Method to restart a simulation and reload the circuit.
+	 * @param netlistCell the cell with the netlist.
+	 * @param cell the cell being simulated.
+	 * @param context the VarContext of the cell being simulated.
+	 * @param prevALS the simulation that is being reloaded.
+	 */
+	public static void restartSimulation(Cell netlistCell, Cell cell, VarContext context, ALS prevALS)
 	{
 		WaveformWindow ww = prevALS.ww;
 		List stimuliList = prevALS.stimuliList;
 		ALS theALS = new ALS();
-		theALS.doSimulation(netlistCell, np, context, ww, stimuliList);
+		theALS.doSimulation(netlistCell, cell, context, ww, stimuliList);
 	}
 
 	/**
