@@ -94,7 +94,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         fieldCoords.setHorizontalAlignment(JLabel.RIGHT);
 		addField(fieldCoords, 3, 0, 1);
 
-		fieldHierCoords = new JLabel();
+		fieldHierCoords = new JLabel(" ");
 		fieldHierCoords.setHorizontalAlignment(JLabel.RIGHT);
 		addField(fieldHierCoords, 0, 1, 4);
 

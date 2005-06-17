@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/17/05, SMR) Status bar clips bottom of component menu (Bug #381).
+FIX: In StatusBar constructor, set "fieldHierCoords" to be a non-null string.
+
 IMP: (06/17/05, SMR) Removed "Show Special Transistors" from "mocmos" part of "Technology" preferences.
 
 IMP: (06/17/05, SMR) "Align to Grid" now moves pins and grid-aligns arcs better (Bug #360).
