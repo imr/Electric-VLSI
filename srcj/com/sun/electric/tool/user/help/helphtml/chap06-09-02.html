@@ -6,7 +6,8 @@
 Network names are derived from export names and arcs that are named in a cell.
 The name given to an export becomes the network name for all arcs connected to that export.
 Similarly, the name given to an arc
-(by setting the name field in the <B>Object Properties...</B> dialog) becomes the name of the network for all connected arcs.
+(by setting the name field in the <B>Object Properties...</B> dialog)
+becomes the name of the network for all connected arcs.
 You can rename a network by changing name of a connected export or arc.
 <P>
 Two phenomena can occur in network naming: a network can be <I>multiply named</I>,
@@ -32,9 +33,14 @@ You can also use this dialog to request that all networks that start with a part
 For example, if the "Unify Networks that start with" field is set to "clk",
 then the networks "clk01" and "clkExtra" will be merged into a single network.
 Multiple merges can be specified, separated by spaces.
-For example, if the field is "pwr gnd" then all nets starting with "pwr" will be merged, and all nets starting with "gnd" will be merged.
+For example, if the field is "pwr gnd" then all nets starting with "pwr" will be merged,
+and all nets starting with "gnd" will be merged.
 <P>
 When busses must be automatically generated (during netlisting, for example)
 the bus indices can be set to start at 0 or 1, and they can ascend or descend.
+<P>
+The "Network" Preferences dialog has many other controls that are discussed elsewhere.
+For an explanation of the "Unify Power and Ground" checkbox,
+see <A HREF="chap06-09-04.html#chap06-09-04">Section 6-9-4</A>).
 
 <!-- TRAILER -->
