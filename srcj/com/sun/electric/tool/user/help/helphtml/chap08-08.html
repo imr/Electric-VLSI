@@ -1,0 +1,156 @@
+<!-- HEADER 8-8: How Technology Changes Affect Existing Libraries -->
+
+Once a technology is created, the components are available for design.
+Soon there will be many libraries of circuitry that makes use of this new technology.
+What happens to these libraries when the technology description changes?
+In most cases, the change correctly affects the existing libraries.
+However, some changes are more difficult and might invalidate the existing libraries.
+This section discusses the possible changes and shows workarounds for the difficult situations.
+<P>
+Technology information appears in four different places:
+the layers, the arcs, the nodes, and general information on the technology
+(the Miscellaneous Info cell,
+design-rules, color maps, and variables).
+Information in these areas can be added, deleted, or modified.
+The rest of this section outlines all of these situations.
+<P>
+<H3>Adding layers, adding arcs, adding nodes, adding general information</H3>
+<P>
+Adding information has no effect on the existing circuitry.
+All subsequent circuit design may make use of the new technology elements.
+<P>
+When adding layers, it is possible that existing layer tables will no longer be valid.
+Layer tables are those tables that are associated with layers,
+for example the CIF or GDS layer associations.
+Because these layer tables are part of the saved options,
+they override the specifications in the technologies.
+Therefore,
+individual users who have customized these tables may have incorrect information when the technology is modified.
+<P>
+If layers are added to the end,
+then the tables will simply have empty entries for the new layers.
+If, however,
+layers are added in the middle, the entries in the layer tables will now be associated with the wrong layer.
+You will have to edit the layer tables and fix the entries.
+<P>
+<H3>Deleting layers</H3>
+<P>
+All references to a deleted layer, in any nodes or arcs of the technology,
+will become meaningless.
+This does not invalidate libraries that use the layers,
+but it does invalidate the node and arc descriptions in the technology.
+The geometry in these nodes and arcs will have to be moved to another layer.
+<P>
+Layer deletion can cause the same problem that layer addition presents:
+inconsistent layer tables.
+When deleting layers, the entries in the layer tables will now be associated incorrectly.
+You will have to edit the layer tables and fix the entries.
+<P>
+<H3>Deleting nodes, deleting arcs</H3>
+<P>
+This will cause error
+messages when libraries are read that make use of the deleted elements.
+When the library is read,
+you can substitute another node or arc to use in place of the now-unknown components.
+<P>
+<H3>Deleting general information</H3>
+<P>
+This depends entirely on where that information is used.
+For example, an analysis tool may fail to find the information that it requires.
+<P>
+<H3>Modifying layers</H3>
+<P>
+This is a totally transparent operation.
+Any change to the color, style, or stipple information (including changes to the color map)
+will appear in all libraries that use the technology.
+Changes to I/O equivalences or SPICE parasitics will be available to all existing libraries.
+A change of the layer function may affect the technology editor's ability to decode the nodes and arcs that use this layer
+(for example,
+if you change the function of the "polysilicon" or "diffusion" layers that form a transistor,
+the editor will be unable to identify this transistor).
+Renaming a layer has no effect.
+<P>
+<H3>Modifying arcs, modifying nodes</H3>
+<P>
+This is not as simple as layer modification because the arcs and nodes appear in the circuit libraries,
+whereas the layers do not.
+If you rename a node or arc,
+it will cause errors when libraries are read that make use of nodes with the old name.
+Therefore, you must create a new node or arc first, convert all existing ones to the new type,
+and then delete the old node or arc.
+<P>
+Many of the pieces of information on the right side of the node and arc cells apply to newly created circuitry only,
+and do NOT affect existing components already in libraries.
+The arc factors "Fixed-angle", "Wipes pins", "Extend arcs",
+and "Angle increment" have no effect on existing libraries.
+The node factor "Square node" also has no effect on existing circuitry and gets applied only in subsequent designs.
+<P>
+Other factors do affect existing circuitry.
+Changes to the "Function" field, in both arcs and nodes,
+passes to all existing components, thus affecting how analysis tools treat the old circuits.
+If the "Serpentine Transistor" field in nodes is turned off,
+any existing transistors that have serpentine descriptions will turn into large rectangular nodes with incorrect connections (i.e. get trashed).
+Unfortunately, it may become impossible to keep the "Serpentine Transistor"
+field on if the geometry does not conform to standards set by the technology editor for recognizing the parts.
+If a node is not serpentine, turning the factor on has no effect.
+Finally, the node factors "Invisible with 1 or 2 arcs" and "Lockable" correctly affect all existing circuitry.
+<P>
+A more common modification of arcs and nodes is to change their graphical descriptions.
+A simple rule applies to all such changes: if you change the size of the bounding box,
+it causes possibly unwanted proportion changes in all existing circuitry.
+This is because the bounding box information is all that is stored in the library,
+and layer sizes are defined in terms of that box.
+<P>
+<TABLE><TR><TD>
+For example, assume that there is an active arc defined with two layers:
+diffusion (2 wide) and well (8 wide).
+The arcs in the libraries are therefore recorded as being 8 wide (the largest size).
+The system knows that the diffusion is narrower than the overall arc by 3 on each side.
+</TD><TD><CENTER><IMG SRC="fig08-15.png" ALT="Figure 8.15"></CENTER></TD></TR></TABLE>
+<P>
+Now, if you change the well so that it is 10 wide,
+the system will define the diffusion to be narrower than the overall arc by 4 on each side,
+and for the existing 8-wide arcs,
+the diffusion will shrink to zero and disappear.
+These arcs must be resized individually, which can be tedious.
+<P>
+Here is an example of how node geometry changes can also make trouble.
+Assume that there is a transistor that has an active piece (2 wide)
+and a gate piece (2 wide).
+Each piece extends beyond the transistor area by 2,
+thus making the entire node 6x6 in size.
+The size of each cross piece will be defined to be 2 narrower than the bounding box on each side.
+If the pieces are changed so that they extend by only 1,
+then the definition of each strip will change to being 1 less than the box size on each side.
+All existing 6x6 transistors will suddenly have 4-wide strips where they used to be 2-wide.
+<P>
+In both of these examples,
+it may be preferable to keep the old technology and give the new technology a different name.
+Then the old libraries can be read into the old technology,
+and the <B>Make Layout View...</B> command of the <B>View</B>
+menu can be used to translate into the new technology.
+This command uses node and arc functionality to associate components,
+scaling them appropriately relative to their default sizes.
+The change is completed by deleting the old technology,
+renaming the new technology to the old name, and then saving the library.
+<P>
+<H3>Modifying general information</H3>
+<P>
+This last situation is typically transparent:
+changed information appears in all existing libraries,
+and affects those subsystems that make use of the information.
+For example, a change to the SPICE headers will be seen when a SPICE deck is next generated.
+A change to the design rules will be used even on the old libraries.
+<P>
+There is one exceptional piece of information that does NOT change in existing libraries:
+the value of Lambda in the Miscellaneous Information cell.
+A change to this value does cause the technology to change,
+and therefore all subsequently created libraries will have this new value.
+However, if you read any old libraries, the former value of lambda will be used for that library.
+Also, because the value of lambda in the technology is stored in the libraries,
+any new circuitry created in this library will also have the old value of lambda.
+Only by switching libraries to one with the current value of lambda
+(or changing the value of lambda with the <B>Change Units...</B> command of the <B>Technology</B> menu)
+can the new value be established.
+
+<!-- TRAILER -->

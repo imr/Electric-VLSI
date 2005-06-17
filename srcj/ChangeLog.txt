@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/16/05, SMR) Fixed the color/pattern panel of the "Artwork Appearance" command
+     and "Layers" Preferences to automatically set Displayed "Use Stipple Pattern".
+
 IMP: (06/16/05, SMR) Refactored the Assura DRC error reader to be in the DRC tool.
 
 IMP: (06/16/05, SMR) When GDS changes the library name, a warning is issued.

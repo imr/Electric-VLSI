@@ -1,0 +1,154 @@
+<!-- HEADER 8-6: The Node Cells -->
+
+<H3>Creating and Deleting Node Cells</H3>
+<P>
+Nodes are the components in a technology,
+and they are constructed from pieces of geometry on the layers.
+<P>
+To edit an existing node, use the <B>Edit Primitive Node...</B>
+command of the <B>Technology</B> menu, and to create a new node use the <B>New Primitive Node...</B>
+subcommand of the <B>New Primitive</B> command.
+Once a node is being edited, the next one in sequence can be edited with the <B>Edit Next Primitive</B> command.
+The current node can be deleted with <B>Delete this Primitive</B>.
+Also, you can rename a node with the <B>Edit Cell...</B>
+command of the <B>Cells</B> menu, but remember to use the name "node-" in front
+(i.e. the old name is "node-metal1-metal2-contact" and the new name is "node-via").
+Finally, you can rearrange the order in which the nodes will be listed by using the <B>Reorder Primitive Nodes</B>
+subcommand of the <B>Reorder Primitives</B> command.
+<P>
+<H3>Editing Special Node Information</H3>
+<P>
+The node cell contains four pictures of the node on the left and textual information on the right.
+You can update the textual information entries by highlighting them and using the
+<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">technology edit</A></I> button.
+<P>
+<CENTER><IMG SRC="fig08-11.png" ALT="Figure 8.11"></CENTER>
+<P>
+The "Function" entry describes the node's function,
+which is a different set than the arc and layer functions.
+The menu of possible node functions is shown here.
+<P>
+The "Serpentine transistor"
+entry indicates that this is a MOS transistor and it can take arbitrary outline information to describe its geometry.
+<P>
+<TABLE><TR>
+<TD><CENTER><IMG SRC="fig08-12.png" ALT="Figure 8.12"></CENTER></TD><TD>
+The "Square" entry forces the node to always have the same X and Y dimension when scaled.
+<P>
+The "Invisible with 1 or 2 arcs"
+entry indicates that the node will not be drawn if it is connected to exactly one or two arcs.
+This is useful in schematic pins,
+which are visible only when unconnected or forming a junction of 3 or more wires.
+<P>
+The "Lockable" entry indicates that this node can be made unchangeable along with other lockable primitives,
+when the lock is turned on during editing
+(see <A HREF="chap06-02.html#chap06-02">Section 6-2</A> for more on locking these primitives).
+This is typically used in array technologies such as FPGA.
+<P>
+The "Multicut separation" is the distance between multiple contact cuts when the node grows large.
+Although this distance can be automatically determined from the different examples,
+it can also be give explicitly here, and this allows you to draw only one example.
+</TD></TR></TABLE>
+<P>
+<H3>Editing Node Geometry</H3>
+<P>
+For nodes, it is common to sketch four different <I>examples</I> of the node in varying scales,
+so that X and Y scaling rules can be derived (square nodes need only two examples).
+If only one example is specified, default scaling rules will be presumed.
+<P>
+The smallest example, called the <I>main example</I>,
+is used as the default size and also contains all of the special port information.
+Needless to say,
+it is important to keep the geometry of each example well apart from the others so that the technology editor can distinguish them.
+<P>
+Each example must contain the same geometric layers (only stretched).
+As in the Arc cells, pieces of geometry can be created by selecting from the component menu on the left,
+creating the geometry, and then using the
+<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">technology edit</A></I>
+button to assign a layer to the geometry.
+If any polygonal geometry is used (for example,
+the Filled polygon entry, sixth from the top),
+they require outline information to be assigned with the <B>Outline Edit</B>
+subcommand of the <B>Special Function</B> command of the <B>Edit</B> menu.
+If the Opened circle arc entry is selected
+(second from the bottom),
+you can specify the number of degrees of the circle with the <B>Get Info</B> command of the <B>Info</B> menu.
+<P>
+Each example must also contain a highlight layer to indicate the correct highlighting on the display.
+Select the "HIGH" entry in the menu on the left to create this special type of layer.
+<P>
+Each example must also contain port information.
+Select the "PORT" entry in the component menu to create this special type of layer.
+You will have to provide a name for each port,
+and the name must be the same on each example.
+<P>
+<TABLE><TR><TD>
+Ports on the main example must also have connectivity information (which arcs can connect to them)
+and range information (the permissible angle of connected arcs).
+Use the
+<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">technology edit</A></I> button to set this
+(see the sample menu on the right).
+Each possible arc listed can have its connectivity set by typing "y" or "n" when pointing to its name in the menu.
+</TD><TD><CENTER><IMG SRC="fig08-13.png" ALT="Figure 8.13"></CENTER></TD></TR></TABLE>
+<P>
+The range consists of two numbers: a main angle (in degrees counterclockwise from 3 O'clock)
+and a range about that angle.
+For example,
+a port angle of 90 with a port angle range of 45 describes a port that points upward and can connect at angles up to 45 degrees off from this direction.
+The range will be graphically depicted.
+<P>
+The ports on the main example must also indicate any internal electrical connectivity by actually connecting them together.
+For example, the two polysilicon ports on a MOS transistor should be connected in the main example.
+Use the <I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:left  Windows:left  Mac:click">selection</A></I> and
+<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:shift-left  Windows:shift-left  Mac:shift-click">toggle select</A></I>
+buttons on the two ports,
+then use the <I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">technology edit</A></I>
+button to join the ports with a universal arc.
+Do not put this internal connection on any example other than the main one.
+To see the location of all ports on the main example,
+use the <B>Identify Ports</B> command.
+<P>
+Although the "grab point" is usually defined to be the center of the highlight area
+(unless the user unchecks "Center-based primitives" in the <B>Selection Options</B> dialog),
+this can be overridden by placing a Cell-Center node (named "Facet-Center" for historical reasons) at the appropriate location in the main example.
+Placing this mark on the left side will cause instances of the node to be placed by their left side rather than the center of the highlight area.
+To get this node, use the <B>Cell Center</B> subcommand of the <B>New Special Object</B>
+command of the <B>Edit</B> menu.
+<P>
+As with arcs, use the <B>Identify Primitive Layers</B> command to label each piece of geometry in the main example.
+<P>
+<H3>Special Node Considerations</H3>
+<P>
+There are some special cases available in node descriptions.
+A piece of geometry in the main example may be changed
+(with the <I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">technology edit</A></I>
+button) to SET-MINIMUM-SIZE.
+This indicates that the current size is the smallest possible, and it cannot scale any smaller
+(this is used by the "mocmos" technology for the metal layer in contacts).
+The restriction can be removed with the CLEAR-MINIMUM-SIZE description.
+This option cannot be used in serpentine transistors.
+<P>
+Another special case in node description is the ability to specify multiple cut layers.
+If the larger examples have more cut layers,
+rules are derived for cut size and spacing so that an arbitrary numbers of cuts can be inserted as the contact scales.
+<P>
+Although serpentine MOS transistors are a special case,
+they cannot be automatically identified, but must be explicitly indicated with a textual field on the right.
+Besides this explicit indication, the transistor node must contain four ports: two on the gate layer (polysilicon)
+and two on the gated layer (active).
+A standard geometry must be used that shows polysilicon and diffusion crossing in a central transistor area.
+Any deviation from this format may cause the technology editor to be unable to derive serpentine rules for the node.
+<P>
+Besides the standard nodes for transistors,
+contacts, and other circuit elements, it is necessary to build pin and pure-layer nodes.
+There should be one pin for every arc, so that the arc can connect to others of its type.
+The pin should be constructed of pseudo-layers (i.e. it has no real geometry), should have the "pin" function,
+and should have one port in the center that connects to one arc.
+The technology editor will issue a warning if there is no pin node associated with an arc.
+<P>
+The pure-layer nodes should also be built, one for each layer.
+They should have only one piece of geometry and have the "pure-layer" function.
+The technology editor will issue a warning if there is no pure-layer node associated with a layer.
+
+
+<!-- TRAILER -->

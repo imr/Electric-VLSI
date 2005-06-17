@@ -124,7 +124,6 @@ public class ColorPatternPanel extends JPanel
             Color colorObj = null;
 			if (color != (graphics.getColor().getRGB() & 0xFFFFFF))
 			{
-//System.out.println("Color changed to 0x"+Integer.toHexString(color)+" on "+graphics);
 				colorObj = new Color(color);
 				graphics.setColor(colorObj);
 				changed = true;
@@ -183,7 +182,7 @@ public class ColorPatternPanel extends JPanel
 		layerGreen.getDocument().addDocumentListener(new LayerColorDocumentListener());
 		layerBlue.getDocument().addDocumentListener(new LayerColorDocumentListener());
 
-		patternView = new PatternView();
+		patternView = new PatternView(this);
 		patternView.setMaximumSize(new java.awt.Dimension(257, 257));
 		patternView.setMinimumSize(new java.awt.Dimension(257, 257));
 		patternView.setPreferredSize(new java.awt.Dimension(257, 257));
@@ -321,10 +320,12 @@ public class ColorPatternPanel extends JPanel
 	private class PatternView extends JPanel
 		implements MouseMotionListener, MouseListener
 	{
-		boolean newState;
+		private boolean newState;
+		private ColorPatternPanel cpp;
 
-		PatternView()
+		PatternView(ColorPatternPanel cpp)
 		{
+			this.cpp = cpp;
 			addMouseListener(this);
 			addMouseMotionListener(this);
 		}
@@ -389,6 +390,10 @@ public class ColorPatternPanel extends JPanel
 				curWord |= 1<<(15-xIndex);
 			}
 			currentLI.pattern[yIndex] = curWord;
+
+			// fake a check in the stipple use
+			cpp.useStipplePatternDisplay.setSelected(true);
+			cpp.currentLI.useStippleDisplay = true;
 			repaint();
 		}
 	}
@@ -795,6 +800,11 @@ public class ColorPatternPanel extends JPanel
 			{
 				currentLI.pattern[i] = preDefinedPatterns[iconIndex*16+i];
 			}
+
+			// fake a check in the stipple use
+			useStipplePatternDisplay.setSelected(true);
+			currentLI.useStippleDisplay = true;
+
 			patternView.repaint();
 		}
 		public void mouseReleased(MouseEvent evt) {}
