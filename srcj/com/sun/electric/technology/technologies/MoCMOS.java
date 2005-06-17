@@ -2128,7 +2128,6 @@ public class MoCMOS extends Technology
 			});
 		scalablePTransistor_node.setFunction(PrimitiveNode.Function.TRAPMOS);
 		scalablePTransistor_node.setCanShrink();
-		scalablePTransistor_node.setNotUsed();
 		scalablePTransistor_node.setMinSize(17, 26, "2.1, 3.1");
 
 		/** Scalable-N-Transistor */
@@ -2175,7 +2174,6 @@ public class MoCMOS extends Technology
 			});
 		scalableNTransistor_node.setFunction(PrimitiveNode.Function.TRANMOS);
 		scalableNTransistor_node.setCanShrink();
-		scalableNTransistor_node.setNotUsed();
 		scalableNTransistor_node.setMinSize(17, 26, "2.1, 3.1");
 
 		/** metal-1-metal-2-contact */
@@ -2879,19 +2877,6 @@ public class MoCMOS extends Technology
 		// set rules
         getFactoryDesignRules();
 
-		// handle special transistors
-		if (isSpecialTransistors())
-		{
-			// show special transistors
-			scalablePTransistor_node.clearNotUsed();
-			scalableNTransistor_node.clearNotUsed();
-		} else
-		{
-			// hide special transistors
-			scalablePTransistor_node.setNotUsed();
-			scalableNTransistor_node.setNotUsed();
-		}
-
 		// disable Metal-3/4/5/6-Pin, Metal-2/3/4/5-Metal-3/4/5/6-Con, Metal-3/4/5/6-Node, Via-2/3/4/5-Node
 		metalPinNodes[2].setNotUsed();
 		metalPinNodes[3].setNotUsed();
@@ -2991,7 +2976,6 @@ public class MoCMOS extends Technology
 			numPolys + "], flex rules [" + rules + "]";
 		if (isDisallowStackedVias()) description += ", stacked vias disallowed";
 		if (isAlternateActivePolyRules()) description += ", alternate contact rules";
-		if (isSpecialTransistors()) description += ", shows special transistors";
 		return description + ")";
 	}
 
@@ -3842,21 +3826,6 @@ public class MoCMOS extends Technology
 			return pref;
 		}
 	}
-
-	private static Pref cacheUseSpecialTransistors = Pref.makeBooleanPref("MoCMOSUseSpecialTransistors", getTechnologyPreferences(), false);
-	/**
-	 * Method to determine whether this Technology includes special transistors.
-	 * The default is "false"
-	 * The special transistors include the scalable transistors with built-in contacts.
-	 * @return true if the MOCMOS technology includes special transistors.
-	 */
-	public static boolean isSpecialTransistors() { return cacheUseSpecialTransistors.getBoolean(); }
-	/**
-	 * Method to set whether this Technology includes special transistors.
-	 * The special transistors include the scalable transistors with built-in contacts.
-	 * @param on true if the MOCMOS technology will include special transistors.
-	 */
-	public static void setSpecialTransistors(boolean on) { cacheUseSpecialTransistors.setBoolean(on); }
 
 	private static Pref cacheNumberOfMetalLayers = MoCMOSPref.makeIntPref("MoCMOSNumberOfMetalLayers", getTechnologyPreferences(), 4);
     static { cacheNumberOfMetalLayers.attachToObject(tech, "Technology/Technology tab", "MOSIS CMOS: Number of Metal Layers"); }
