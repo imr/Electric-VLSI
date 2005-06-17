@@ -887,9 +887,16 @@ public class Quick
 			Layer layer = poly.getLayer();
 			if (layer == null) continue;
 			if (layer.isNonElectrical()) continue;
+            // Checking resolution
+            boolean ret = checkResolution(poly, ai.getParent(), ai);
+            if (ret)
+			{
+				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
+				errorsFound = true;
+			}
 			int layerNum = layer.getIndex();
 			int netNumber = netNumbers[globalIndex].intValue();
-			boolean ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex);
+			ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex);
 			if (ret)
 			{
 				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
