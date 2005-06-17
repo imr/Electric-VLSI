@@ -25,6 +25,7 @@
 package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.technology.ArcProto;
@@ -137,8 +138,14 @@ public class SimpleWirer extends InteractiveRouter {
         double width2 = getArcWidthToUse(endRE, useArc);
         if (width2 > width) width = width2;
 
-        if (useArc.getAngleIncrement() == 0) {
-            // draw arbitrary angle arcs
+        // see if we should only draw a single arc
+        double angleD = Math.atan2(endLoc.getY()-startLoc.getY(), endLoc.getX()-startLoc.getX());
+        //System.out.println("angleD is "+angleD);
+        int angle = (int)Math.round(angleD * 180 / Math.PI);
+        //if (angle < 0) angle = angle + 360;
+        //System.out.println("angle is "+angle+", incr is "+useArc.getAngleIncrement());
+        if ((angle % useArc.getAngleIncrement()) == 0 || useArc.getAngleIncrement() == 0) {
+            // draw single
             RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null, null);
             route.add(arcRE);
             return true;

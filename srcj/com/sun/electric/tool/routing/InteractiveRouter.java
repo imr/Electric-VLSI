@@ -26,6 +26,7 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortProto;
@@ -501,7 +502,9 @@ public abstract class InteractiveRouter extends Router {
 
         if (endPoly == null) {
             // if arc, find place to connect to. Otherwise use the center point (default)
-            endPoint.setLocation(getClosestOrthogonalPoint(startPoint, clicked));
+            int angleIncrement = endArc.getAngleIncrement();
+            endPoint.setLocation(getClosestAngledPoint(startPoint, clicked, angleIncrement));
+            //endPoint.setLocation(getClosestOrthogonalPoint(startPoint, clicked));
             // however, if this is an Artwork technology, just put end point at mouse
             if (startArc.getTechnology() == Artwork.tech)
                 endPoint.setLocation(clicked);
@@ -773,6 +776,73 @@ public abstract class InteractiveRouter extends Router {
             newPoint = new Point2D.Double(clicked.getX(), startPoint.getY());
         }
         return newPoint;
+    }
+
+    /**
+     * Use to find the closest point to clicked to route a wire from startPoint.
+     * This point will be at an angel from startPoint which is a multiple of
+     * angleIncrement.  If stayInside and useArc are not null, then the two possible
+     * closest points will be determined by if they reside inside stayInside,
+     * rather than the closest point.
+     * @param startPoint
+     * @param clicked
+     * @param angleIncrement
+     * @return
+     */
+    protected static Point2D getClosestAngledPoint(Point2D startPoint, Point2D clicked,
+                                                   int angleIncrement) {
+        angleIncrement = Math.abs(angleIncrement);
+        // don't really have to call this for angleIncr of 90 as general purpose
+        // code below does right thing, but it's a lot faster
+        if (angleIncrement == 90) return getClosestOrthogonalPoint(startPoint, clicked);
+        double angleInc = angleIncrement * Math.PI / 180;
+
+        // calculate angle
+        double x = clicked.getX()-startPoint.getX();
+        double y = clicked.getY()-startPoint.getY();
+        double angle = Math.atan2(y,x);
+        //System.out.println("angle is "+angle);
+
+        // find closest two angle increments
+        double nearest1 = (int)(angle / angleInc) * angleInc;
+        double nearest2 = (angle<0) ? nearest1 - angleInc : nearest1 + angleInc;
+        //System.out.println("nearest1, nearest2 are "+nearest1+" and "+ nearest2);
+        Point2D n1, n2;
+        // two points on line are candidates: one uses clicked X, other uses clickedY
+        double tan1 = Math.tan(nearest1);
+        if (tan1 == 0) tan1 = 0.000001;
+        //System.out.println("tan1 is "+tan1);
+        Point2D n1_1 = new Point2D.Double(x, x*tan1);
+        Point2D n1_2 = new Point2D.Double(y/tan1, y);
+        //System.out.println("Point1's: "+n1_1+", "+n1_2);
+        // take whichever is shorter
+        if (n1_1.distance(x,y) < n1_2.distance(x,y))
+            n1 = n1_1;
+        else
+            n1 = n1_2;
+        // same for second angle
+        double tan2 = Math.tan(nearest2);
+        if (tan2 == 0) tan2 = 0.000001;
+        //System.out.println("tan2 is "+tan2);
+        Point2D n2_1 = new Point2D.Double(x, x*tan2);
+        Point2D n2_2 = new Point2D.Double(y/tan2, y);
+        //System.out.println("Point2's: "+n2_1+", "+n2_2);
+        if (n2_1.distance(x,y) < n2_2.distance(x,y))
+            n2 = n2_1;
+        else
+            n2 = n2_2;
+        //System.out.println("Point1: "+n1);
+        //System.out.println("Point2: "+n2);
+        double xfinal, yfinal;
+        // of the points on the two angles, take closest to clicked
+        if (n2.distance(x,y) < n1.distance(x,y)) {
+            xfinal = DBMath.round(n2.getX() + startPoint.getX());
+            yfinal = DBMath.round(n2.getY() + startPoint.getY());
+        } else {
+            xfinal = DBMath.round(n1.getX() + startPoint.getX());
+            yfinal = DBMath.round(n1.getY() + startPoint.getY());
+        }
+        return new Point2D.Double(xfinal, yfinal);
     }
 
     protected boolean withinBounds(double point, double bound1, double bound2) {
