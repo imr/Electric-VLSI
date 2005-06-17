@@ -62,7 +62,7 @@ public class HelpMenu {
         }
 
 		helpMenu.addMenuItem("_User's Manual...", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { userManualCommand(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.userManualCommand(); } });
 		helpMenu.addMenuItem("Load _Samples Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.loadSamplesLibrary(); } });
 
@@ -81,12 +81,6 @@ public class HelpMenu {
 		About dialog = new About(TopLevel.getCurrentJFrame(), true);
         dialog.setVisible(true);
     }
-
-	private static void userManualCommand()
-	{
-		ManualViewer dialog = new ManualViewer(TopLevel.getCurrentJFrame());
-		dialog.setVisible(true);
-	}
 
 	private static void loadBuiltInLibraryCommand(String libName)
 	{

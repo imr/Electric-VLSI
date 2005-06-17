@@ -111,10 +111,44 @@ public class ManualViewer extends EDialog
 	private boolean menubarShown = false;
 	private static int lastPageVisited = 0;
 	private static HashMap menuMap = null;
-	private HashMap menuMapCheck;
+	private static HashMap preferenceMap = null;
 	private List history = new ArrayList();
+	private static ManualViewer theManual = null;
 
-    /**
+	public static void userManualCommand()
+	{
+		if (theManual == null)
+		{
+			theManual = new ManualViewer(TopLevel.getCurrentJFrame());
+			theManual.loadPointers();
+		}
+		theManual.setVisible(true);
+	}
+
+	public static void showPreferenceHelp(String preference)
+	{
+		if (theManual == null)
+		{
+			theManual = new ManualViewer(TopLevel.getCurrentJFrame());
+			theManual.loadPointers();
+		}
+		theManual.setVisible(true);
+		String fileName = (String)preferenceMap.get(preference);
+		if (fileName == null) System.out.println("No help for preference " + preference); else
+		{
+			for(int i=0; i<theManual.pageSequence.size(); i++)
+			{
+				PageInfo pi = (PageInfo)theManual.pageSequence.get(i);
+				if (pi.fileName.equals(fileName))
+				{
+					theManual.loadPage(i);
+					break;
+				}
+			}
+		}
+	}
+
+	/**
      * Create a new user's manual dialog.
      * @param parent
      */
@@ -216,76 +250,13 @@ public class ManualViewer extends EDialog
 		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, FileType.JELIB, null);
 	}
 
+	/**
+	 * Method to show the menu bar in the manual dialog.
+	 */
 	private void loadMenuBar()
 	{
 		if (menubarShown) return;
 		menubarShown = true;
-
-		if (menuMap == null)
-		{
-			menuMap = new HashMap();
-			if (Main.getDebug()) menuMapCheck = new HashMap();
-
-			// scan all manual entries for menu associations
-			URL url = ManualViewer.class.getResource("helphtml/toc.txt");
-			InputStream stream = TextUtils.getURLStream(url, null);
-			InputStreamReader is = new InputStreamReader(stream);
-			for(;;)
-			{
-				String line = getLine(is);
-				if (line == null) break;
-				if (line.length() == 0) continue;
-				int indent = 0;
-				for(;;)
-				{
-					if (indent >= line.length() || line.charAt(indent) != ' ') break;
-					indent++;
-				}
-				int titleStart = indent;
-				int titleEnd = line.indexOf('=', titleStart);
-				if (titleEnd < 0) continue;
-				String fileName = line.substring(titleEnd+1);
-
-				URL pageURL = ManualViewer.class.getResource("helphtml/" + fileName + ".html");
-				if (pageURL == null)
-				{
-					System.out.println("NULL URL to "+fileName);
-					continue;
-				}
-				InputStream pageStream = TextUtils.getURLStream(pageURL, null);
-				InputStreamReader pageIS = new InputStreamReader(pageStream);
-				for(;;)
-				{
-					String pageLine = getLine(pageIS);
-					if (pageLine == null) break;
-					if (pageLine.startsWith("<!-- COMMAND "))
-					{
-						int endPt = pageLine.indexOf("-->");
-						if (endPt < 0)
-						{
-							System.out.println("No end comment on line: "+pageLine);
-							continue;
-						}
-						String commandName = pageLine.substring(13, endPt).trim();
-						String already = (String)menuMap.get(commandName);
-						if (already != null && Main.getDebug())
-						{
-							System.out.println("ERROR: command " + commandName + " is keyed to both " + already + " and " + fileName);
-						}
-						menuMap.put(commandName, fileName);
-						if (menuMapCheck != null) menuMapCheck.put(commandName, fileName);
-						continue;
-					}
-				}
-				try
-				{
-					pageStream.close();
-				} catch (IOException e)
-				{
-					System.out.println("Error closing file");
-				}
-			}
-		}
 
 		JMenuBar helpMenuBar = new JMenuBar();
 
@@ -302,8 +273,117 @@ public class ManualViewer extends EDialog
 		setJMenuBar(helpMenuBar);
 		pack();
 
+		StringBuffer sb = new StringBuffer();
+		sb.append("<CENTER><H1>HELP MENU ENABLED</H1></CENTER>\n");
+		sb.append("The menu bar at the top of <I>this</I> window looks the same as the main menu bar in Electric.<BR><BR>\n");
+		sb.append("Use any entry in this menu bar to see the manual page that explains that menu entry.\n");
+		editorPane.setText(sb.toString());
+		editorPane.setCaretPosition(0);
+	}
+
+	/**
+	 * Method to examine the online manual and extract pointers to commands and preferences.
+	 */
+	private void loadPointers()
+	{
+		// stop if already done
+		if (preferenceMap != null) return;
+
+		menuMap = new HashMap();
+		HashMap menuMapCheck = null;
+		preferenceMap = new HashMap();
+		if (Main.getDebug())
+		{
+			menuMapCheck = new HashMap();
+		}
+
+		// scan all manual entries for menu associations
+		URL url = ManualViewer.class.getResource("helphtml/toc.txt");
+		InputStream stream = TextUtils.getURLStream(url, null);
+		InputStreamReader is = new InputStreamReader(stream);
+		for(;;)
+		{
+			String line = getLine(is);
+			if (line == null) break;
+			if (line.length() == 0) continue;
+			int indent = 0;
+			for(;;)
+			{
+				if (indent >= line.length() || line.charAt(indent) != ' ') break;
+				indent++;
+			}
+			int titleStart = indent;
+			int titleEnd = line.indexOf('=', titleStart);
+			if (titleEnd < 0) continue;
+			String fileName = line.substring(titleEnd+1);
+
+			URL pageURL = ManualViewer.class.getResource("helphtml/" + fileName + ".html");
+			if (pageURL == null)
+			{
+				System.out.println("NULL URL to "+fileName);
+				continue;
+			}
+			InputStream pageStream = TextUtils.getURLStream(pageURL, null);
+			InputStreamReader pageIS = new InputStreamReader(pageStream);
+			for(;;)
+			{
+				String pageLine = getLine(pageIS);
+				if (pageLine == null) break;
+				if (pageLine.startsWith("<!-- COMMAND "))
+				{
+					int endPt = pageLine.indexOf("-->");
+					if (endPt < 0)
+					{
+						System.out.println("No end comment on line: "+pageLine);
+						continue;
+					}
+					String commandName = pageLine.substring(13, endPt).trim();
+					String already = (String)menuMap.get(commandName);
+					if (already != null && Main.getDebug())
+					{
+						System.out.println("ERROR: command " + commandName + " is keyed to both " + already + " and " + fileName);
+					}
+					menuMap.put(commandName, fileName);
+					if (menuMapCheck != null) menuMapCheck.put(commandName, fileName);
+					continue;
+				}
+				if (pageLine.startsWith("<!-- PREFERENCE "))
+				{
+					int endPt = pageLine.indexOf("-->");
+					if (endPt < 0)
+					{
+						System.out.println("No end comment on line: "+pageLine);
+						continue;
+					}
+					String preferenceName = pageLine.substring(16, endPt).trim();
+					String already = (String)preferenceMap.get(preferenceName);
+					if (already != null && Main.getDebug())
+					{
+						System.out.println("ERROR: command " + preferenceName + " is keyed to both " + already + " and " + fileName);
+					}
+					preferenceMap.put(preferenceName, fileName);
+					continue;
+				}
+			}
+			try
+			{
+				pageStream.close();
+			} catch (IOException e)
+			{
+				System.out.println("Error closing file");
+			}
+		}
 		if (menuMapCheck != null)
 		{
+			TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+			MenuBar menuBar = top.getTheMenuBar();
+			for (int i=0; i<menuBar.getMenuCount(); i++)
+			{
+				Menu menu = (Menu)menuBar.getMenu(i);
+				JMenu helpMenu = new JMenu(menu.getText());
+				checkMenu(menu, menu.getText() + "/", menuMapCheck);
+			}
+
 			for(Iterator it = menuMapCheck.keySet().iterator(); it.hasNext(); )
 			{
 				String commandName = (String)it.next();
@@ -312,13 +392,33 @@ public class ManualViewer extends EDialog
 			}
 			menuMapCheck = null;
 		}
-		StringBuffer sb = new StringBuffer();
-		sb.append("<CENTER><H1>HELP MENU ENABLED</H1></CENTER>\n");
-		sb.append("The menu bar at the top of <I>this</I> window looks the same as the main menu bar in Electric.<BR><BR>\n");
-		sb.append("Use any entry in this menu bar to see the manual page that explains that menu entry.\n");
-		editorPane.setText(sb.toString());
-		editorPane.setCaretPosition(0);
+	}
 
+	private void checkMenu(Menu menu, String cumulative, HashMap menuMapCheck)
+	{
+		for (int i=0; i<menu.getItemCount(); i++)
+		{
+			JMenuItem menuItem = menu.getItem(i);
+			if (menuItem == null) continue;
+			if (menuItem instanceof JMenu)
+			{
+				Menu subMenu = (Menu)menuItem;
+				checkMenu((Menu)menuItem, cumulative + subMenu.getText() + "/", menuMapCheck);
+			} else
+			{
+				String commandName = cumulative + menuItem.getText();
+				String fileName = (String)menuMap.get(commandName);
+				if (fileName == null && Main.getDebug())
+				{
+					if (!commandName.startsWith("Russell/") && !commandName.startsWith("JonG/") &&
+						!commandName.startsWith("Gilda/") && !commandName.startsWith("Dima/"))
+							System.out.println("No help for " + commandName);
+				} else
+				{
+					if (menuMapCheck != null) menuMapCheck.remove(commandName);
+				}
+			}
+		}
 	}
 
 	private void addMenu(Menu menu, JMenu helpMenu, String cumulative)
@@ -343,15 +443,6 @@ public class ManualViewer extends EDialog
 				helpMenu.add(helpMenuItem);
 				String commandName = cumulative + menuItem.getText();
 				String fileName = (String)menuMap.get(commandName);
-				if (fileName == null && Main.getDebug())
-				{
-					if (!commandName.startsWith("Russell/") && !commandName.startsWith("JonG/") &&
-						!commandName.startsWith("Gilda/") && !commandName.startsWith("Dima/"))
-					System.out.println("No help for " + commandName);
-				} else
-				{
-					if (menuMapCheck != null) menuMapCheck.remove(commandName);
-				}
 				helpMenuItem.addActionListener(new HelpMenuActionListener(this, fileName));
 			}
 		}
@@ -1203,6 +1294,7 @@ public class ManualViewer extends EDialog
     {
         setVisible(false);
         dispose();
+		theManual = null;
     }
 
 }

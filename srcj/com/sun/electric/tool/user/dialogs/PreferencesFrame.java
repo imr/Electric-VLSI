@@ -25,7 +25,6 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.options.AntennaRulesTab;
 import com.sun.electric.tool.user.dialogs.options.CDLTab;
@@ -71,12 +70,19 @@ import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
 import com.sun.electric.tool.user.dialogs.options.UnitsTab;
 import com.sun.electric.tool.user.dialogs.options.VerilogTab;
 import com.sun.electric.tool.user.dialogs.options.WellCheckTab;
+import com.sun.electric.tool.user.help.ManualViewer;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
 
+import java.awt.Frame;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -117,15 +123,15 @@ public class PreferencesFrame extends EDialog
 	}
 
 	/** Creates new form PreferencesFrame */
-	public PreferencesFrame(java.awt.Frame parent, boolean modal)
+	public PreferencesFrame(Frame parent, boolean modal)
 	{
 		super(parent, modal);
-		getContentPane().setLayout(new java.awt.GridBagLayout());
+		getContentPane().setLayout(new GridBagLayout());
 		setTitle("Preferences");
 		setName("");
-		addWindowListener(new java.awt.event.WindowAdapter()
+		addWindowListener(new WindowAdapter()
 		{
-			public void windowClosing(java.awt.event.WindowEvent evt)
+			public void windowClosing(WindowEvent evt)
 			{
 				closeDialog(evt);
 			}
@@ -137,7 +143,6 @@ public class PreferencesFrame extends EDialog
 		TreeHandler handler = new TreeHandler(this);
 		optionTree.addMouseListener(handler);
 		optionTree.addTreeExpansionListener(handler);
-
 
 		// the "General" section of the Preferences
 		DefaultMutableTreeNode generalSet = new DefaultMutableTreeNode("General ");
@@ -355,71 +360,80 @@ public class PreferencesFrame extends EDialog
 
 		// the left side of the options dialog: a tree
 		JPanel leftPanel = new JPanel();
-		leftPanel.setLayout(new java.awt.GridBagLayout());
+		leftPanel.setLayout(new GridBagLayout());
 
 		JScrollPane scrolledTree = new JScrollPane(optionTree);
 
-		java.awt.GridBagConstraints gbc = new java.awt.GridBagConstraints();
-		gbc.gridx = 0;
-		gbc.gridy = 0;
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 0;
 		gbc.gridwidth = 2;
-		gbc.fill = java.awt.GridBagConstraints.BOTH;
-		gbc.weightx = 1.0;
-		gbc.weighty = 1.0;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.weightx = 1.0;   gbc.weighty = 1.0;
 		leftPanel.add(scrolledTree, gbc);
 
-		cancel = new javax.swing.JButton();
-		cancel.setText("Cancel");
-		cancel.addActionListener(new java.awt.event.ActionListener()
+		cancel = new JButton("Cancel");
+		cancel.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(java.awt.event.ActionEvent evt) { cancelActionPerformed(evt); }
+			public void actionPerformed(ActionEvent evt) { cancelActionPerformed(); }
 		});
-		gbc = new java.awt.GridBagConstraints();
-		gbc.gridx = 0;
-		gbc.gridy = 1;
-		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 1;
+		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(cancel, gbc);
 
-		ok = new javax.swing.JButton();
-		ok.setText("OK");
-		ok.addActionListener(new java.awt.event.ActionListener()
+		ok = new JButton("OK");
+		ok.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(java.awt.event.ActionEvent evt) { okActionPerformed(evt); }
+			public void actionPerformed(ActionEvent evt) { okActionPerformed(); }
 		});
-		gbc = new java.awt.GridBagConstraints();
-		gbc.gridx = 1;
-		gbc.gridy = 1;
-		gbc.insets = new java.awt.Insets(4, 4, 4, 4);
+		gbc = new GridBagConstraints();
+		gbc.gridx = 1;   gbc.gridy = 1;
+		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(ok, gbc);
 		getRootPane().setDefaultButton(ok);
 
+		JButton help = new JButton("Help");
+		help.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { helpActionPerformed(); }
+		});
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 2;
+		gbc.gridwidth = 2;
+		gbc.insets = new Insets(4, 4, 4, 4);
+		leftPanel.add(help, gbc);
+
+		getRootPane().setDefaultButton(ok);
 		// build options framework
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
 		loadOptionPanel();
 		splitPane.setLeftComponent(leftPanel);
 
-		gbc = new java.awt.GridBagConstraints();
-		gbc.gridx = 0;
-		gbc.gridy = 0;
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 0;
 		gbc.gridwidth = 1;
-		gbc.fill = java.awt.GridBagConstraints.BOTH;
-		gbc.weightx = 1.0;
-		gbc.weighty = 1.0;
+		gbc.fill = GridBagConstraints.BOTH;
+		gbc.weightx = 1.0;   gbc.weighty = 1.0;
 		getContentPane().add(splitPane, gbc);
 
 		pack();
 		finishInitialization();
 	}
 
-	private void cancelActionPerformed(ActionEvent evt)
+	private void cancelActionPerformed()
 	{
 		closeDialog(null);
 	}
 
-	private void okActionPerformed(ActionEvent evt)
+	private void okActionPerformed()
 	{
 		OKUpdate job = new OKUpdate(this);
+	}
+
+	private void helpActionPerformed()
+	{
+		ManualViewer.showPreferenceHelp(currentSectionName.trim() + "/" + currentTabName);
 	}
 
 	private void loadOptionPanel()
@@ -440,7 +454,7 @@ public class PreferencesFrame extends EDialog
 		}
 	}
 
-	protected void escapePressed() { cancelActionPerformed(null); }
+	protected void escapePressed() { cancelActionPerformed(); }
 
 	/**
 	 * Class to update primitive node information.

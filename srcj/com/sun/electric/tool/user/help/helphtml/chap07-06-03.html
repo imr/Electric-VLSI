@@ -1,0 +1,64 @@
+<!-- NEED 2in -->
+
+<!-- HEADER 7-6-3: The Generic Technology -->
+
+One particularly interesting technology is the Generic technology,
+which is a grab bag of miscellaneous facilities.
+It is not necessary to actually switch into this technology,
+for all of its nodes and arcs are available through other means.
+<P>
+<H3>Special Arcs</H3>
+<P>
+The <I>Universal arc</I> in the Generic technology is able to make a connection between any two components,
+even if they are in different technologies.
+This is useful when mixing technologies while still maintaining proper connectivity,
+for example when simulating.
+The <I>Invisible arc</I> attaches any two components, but makes no electrical connection.
+It is useful for constraining otherwise unrelated components.
+The <I>Unrouted arc</I> makes arbitrary electrical connections,
+like the universal arc, but routers know to replace them with real geometry.
+None of these arcs produce any actual geometry in IC descriptions,
+but they make important conceptual connections.
+<P>
+Any existing arc in a normal technology can be converted to one of these three special arcs by using the <B>Change...</B>
+command (in menu <B>Edit</B>).
+<P>
+<H3>Special Nodes</H3>
+<P>
+There are also special nodes in the Generic technology.
+They are all available from the "Misc." entry of the component palette.
+<P>
+The <I>Universal-Pin</I> is a node that can connect to any arc.
+This is useful as an intermediate component when replacing
+(first you replace the unwanted node with a Universal-Pin to allow it to fit with the existing arcs;
+then you replace the arcs; finally you put the desired new node in place).
+<P>
+<TABLE><TR><TD>
+The <I>Invisible-Pin</I> is used for holding text,
+and it does not appear in hardcopy output
+(this is what is created when you use place Annotation Text).
+This pin can also connect to any arc.
+<P>
+A special primitive, called <I>Cell-Center</I>, defines the origin of any cell.
+Once the node is placed, instances of the current cell use this node's location,
+rather than the lower-left corner, as the <I>anchor point</I> for cursor-based references.
+For example, if you place this node in the upper-right corner of a cell,
+then creation commands place instances such that their upper-right corner is at the cursor.
+See <A HREF="chap03-03.html#chap03-03">Section 3-3</A> for more information on cell centers.
+</TD><TD><CENTER><IMG SRC="fig07-23.png" ALT="Figure 7.23"></CENTER></TD></TR></TABLE>
+<P>
+A special primitive, called <I>Essential-Bounds</I>, defines an alternate boundary of any cell.
+At least two of them must be placed in opposite corners, although 4 can be place to make it look better.
+<P>
+Note that the Cell-Center and Essential-Bounds nodes are made "hard-to-select" by default,
+which means that they can be selected only by using "Special Select" mode
+(see <A HREF="chap02-01-05.html#chap02-01-05">Section 2-1-5</A> for more).
+<P>
+A special primitive, called <I>Simulation-Probe</I> is recognized by simulators and visually modified to reflect
+whatever it is connected to.
+The simulators that reflect the state of the circuit by drawing lines along arcs also fill-in these probe nodes.
+It provides a visual display of simulation activity, and works especially well when the VCR controls in the waveform window are used.
+
+See <A HREF="chap09-04-03.html#chap09-04-03">Section 9-4-3</A> for more.
+
+<!-- TRAILER -->

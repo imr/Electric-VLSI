@@ -5,7 +5,7 @@
 <!-- COMMAND Cell/Cell Info/List Nodes in this Cell -->
 <!-- COMMAND Cell/Cell Info/List Cell Usage -->
 <!-- COMMAND Cell/Cell Info/List Cell Instances -->
-<!-- COMMAND Edit/Info/List Layer Coverage -->
+<!-- COMMAND Cell/Cell Info/List Layer Coverage on Cell -->
 
 <TABLE><TR><TD>
 To get some basic information about the current cell
@@ -32,17 +32,15 @@ formatted for spreadsheets (tab-separated).
 </TD><TD><CENTER><IMG SRC="fig03-21.png" ALT="Figure 3.21"></CENTER></TD></TR></TABLE>
 <P>
 The result of cell information listing looks like this:<BR>
-<PRE>
--Cell------------Version----Creation date----------Revision Date---------Size----Usage--L-I-C-D
-tech-Artwork{}       1  Dec 31, 1969 16:00:00  Dec 15, 2004 11:34:15  131.0x83.0   0    L
-tech-Bipolar{ic}     1  Dec 15, 2004 11:34:25  Dec 15, 2004 11:34:25   10.0x12.0   1
-tech-Bipolar{lay}    1  Jul 23, 1990 23:25:49  Dec 15, 2004 12:38:11   37.0x73.5   0
-tech-Bipolar{sch}    1  Jul 26, 1990 23:58:58  Dec 15, 2004 11:34:27  58.75x59.5   0    L I
-tech-DigitalFilter{} 1  Dec 31, 1969 16:00:00  Dec 01, 2000 13:56:47   48.0x45.5   0
-tech-MOSISCMOS{lay}  1  Jul 24, 1998 16:10:55  Dec 09, 2001 12:35:29   85.5x83.0   0          D
-tech-PCB7404{}       1  Dec 31, 1969 16:00:00  Dec 15, 2004 11:45:03   12.5x28.5   1
-tool_NCC{sch}        1  Mar 27, 2001 06:35:49  Jan 25, 2002 15:57:57   44.0x41.5   0    L I
-</PRE>
+<PRE>-Cell------------Version----Creation date----------Revision Date---------Size----Usage--L-I-C-D</PRE>
+<PRE>tech-Artwork{}       1  Dec 31, 1969 16:00:00  Dec 15, 2004 11:34:15  131.0x83.0   0    L</PRE>
+<PRE>tech-Bipolar{ic}     1  Dec 15, 2004 11:34:25  Dec 15, 2004 11:34:25   10.0x12.0   1</PRE>
+<PRE>tech-Bipolar{lay}    1  Jul 23, 1990 23:25:49  Dec 15, 2004 12:38:11   37.0x73.5   0</PRE>
+<PRE>tech-Bipolar{sch}    1  Jul 26, 1990 23:58:58  Dec 15, 2004 11:34:27  58.75x59.5   0    L I</PRE>
+<PRE>tech-DigitalFilter{} 1  Dec 31, 1969 16:00:00  Dec 01, 2000 13:56:47   48.0x45.5   0</PRE>
+<PRE>tech-MOSISCMOS{lay}  1  Jul 24, 1998 16:10:55  Dec 09, 2001 12:35:29   85.5x83.0   0          D</PRE>
+<PRE>tech-PCB7404{}       1  Dec 31, 1969 16:00:00  Dec 15, 2004 11:45:03   12.5x28.5   1</PRE>
+<PRE>tool_NCC{sch}        1  Mar 27, 2001 06:35:49  Jan 25, 2002 15:57:57   44.0x41.5   0    L I</PRE>
 <P>
 The last five columns show the usage and four state bits.
 The usage is the number of times that this cell appears as an instance in other cells.
@@ -65,7 +63,7 @@ The <B>Edit Documentation View</B> command (of menu <B>View</B>) allows you to s
 The text editing window that appears can contain any information.
 See <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text editing.
 <P>
-The <B>List Layer Coverage</B> command (in menu <B>Edit / Info</B>) computes the percentage of the cell that is covered by each layer.
+The <B>List Layer Coverage on Cell</B> command (in menu <B>Cell / Cell Info</B>) computes the percentage of the cell that is covered by each layer.
 This is useful information for certain fabrication processes which insist on a minimum amount of each layer in the die.
 
 <!-- TRAILER -->

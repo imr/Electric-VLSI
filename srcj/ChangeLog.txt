@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/17/05, SMR) Manual being updated (Bug #379).
+
+IMP: (06/17/05, SMR) Preferences dialog now has "Help" button to take you to proper manual page (Bug #378).
+
 IMP: (06/16/05, SMR) Fixed the color/pattern panel of the "Artwork Appearance" command
      and "Layers" Preferences to automatically set Displayed "Use Stipple Pattern".
 

@@ -165,7 +165,8 @@ Technologies
   Multipage Schematics and Frames    =chap07-05-02
  Special Technologies
   The Artwork Technology             =chap07-06-01
-  The Generic Technology             =chap07-06-02
+  The FPGA Technology                =chap07-06-02
+  The Generic Technology             =chap07-06-03
 
 Creating New Technologies
  Introduction to Technologies        =chap08-01
@@ -220,6 +221,7 @@ Tools
  Logical Effort                      =chap09-08
  Parasitic Extraction                =chap09-09
  Compaction                          =chap09-10
+ Silicon Compiler                    =chap09-11
 
 The JELIB File Format
  Introduction                        =chap10-01
