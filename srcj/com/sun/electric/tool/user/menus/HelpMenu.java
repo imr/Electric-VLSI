@@ -76,6 +76,9 @@ public class HelpMenu {
 
     // ---------------------- THE HELP MENU -----------------
 
+	/**
+	 * Method to invoke the "About" dialog.
+	 */
 	public static void aboutCommand()
     {
 		About dialog = new About(TopLevel.getCurrentJFrame(), true);

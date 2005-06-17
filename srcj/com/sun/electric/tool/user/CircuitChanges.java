@@ -346,11 +346,46 @@ public class CircuitChanges
 	 */
 	public static void alignToGrid()
 	{
-		AlignObjects job = new AlignObjects(MenuCommands.getSelectedObjects(true, true));
+		// get a list of all selected nodes and arcs
+		List selected = MenuCommands.getSelectedObjects(true, true);
+
+		// make a set of selected nodes
+		HashSet selectedNodes = new HashSet();
+		for(Iterator it = selected.iterator(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (geom instanceof NodeInst) selectedNodes.add(geom);
+		}
+
+		// make a list of nodes at the ends of arcs that should be added to the list
+		List addedNodes = new ArrayList();
+		for(Iterator it = selected.iterator(); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (!(geom instanceof ArcInst)) continue;
+			ArcInst ai = (ArcInst)geom;
+			NodeInst head = ai.getHead().getPortInst().getNodeInst();
+			if (!selectedNodes.contains(head))
+			{
+				addedNodes.add(head);
+				selectedNodes.add(head);
+			}
+			NodeInst tail = ai.getTail().getPortInst().getNodeInst();
+			if (!selectedNodes.contains(tail))
+			{
+				addedNodes.add(tail);
+				selectedNodes.add(tail);
+			}
+		}
+		for(Iterator it = addedNodes.iterator(); it.hasNext(); )
+			selected.add(it.next());
+
+		// now align them
+		AlignObjects job = new AlignObjects(selected);
 	}
 
 	/**
-	 * This class implement the command to delete unused old versions of cells.
+	 * This class implement the command to align objects to the grid.
 	 */
 	private static class AlignObjects extends Job
 	{
@@ -370,8 +405,7 @@ public class CircuitChanges
 				System.out.println("Must select something before aligning it to the grid");
 				return false;
 			}
-			double alignment_ratio = User.getAlignmentToGrid();
-			if (alignment_ratio <= 0)
+			if (User.getAlignmentToGrid() <= 0)
 			{
 				System.out.println("No alignment given: set Alignment Options first");
 				return false;
@@ -384,9 +418,9 @@ public class CircuitChanges
 				Geometric geom = (Geometric)it.next();
 				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
-	
+
 				// ignore pins
-				if (ni.getFunction() == PrimitiveNode.Function.PIN) continue;
+//				if (ni.getFunction() == PrimitiveNode.Function.PIN) continue;
 				Point2D center = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 				EditWindow.gridAlign(center);
 				double bodyXOffset = center.getX() - ni.getAnchorCenterX();
@@ -458,8 +492,8 @@ public class CircuitChanges
 						if (ai.isRigid()) constr |= 1;
 						if (ai.isFixedAngle()) constr |= 2;
 						constraints.put(ai, new Integer(constr));
-						ai.setRigid(false);
-						ai.setFixedAngle(false);
+//						ai.setRigid(false);
+//						ai.setFixedAngle(false);
 					}
 					ni.modifyInstance(bodyXOffset, bodyYOffset, 0, 0, 0);
 					adjustedNodes++;
@@ -484,6 +518,7 @@ public class CircuitChanges
 				Geometric geom = (Geometric)it.next();
 				if (!(geom instanceof ArcInst)) continue;
 				ArcInst ai = (ArcInst)geom;
+				if (!ai.isLinked()) continue;
 	
 				Point2D origHead = ai.getHeadLocation();
 				Point2D origTail = ai.getTailLocation();

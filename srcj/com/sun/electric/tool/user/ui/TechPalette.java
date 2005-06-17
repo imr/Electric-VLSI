@@ -368,7 +368,8 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                         list.add(toAdd);
                         found = true;
                     }
-	                // Leaving standard transistors or contact
+
+					// Leaving standard transistors or contact
 	                if (!np.isSpecialNode())
 	                {
                         compTotal++;
@@ -376,12 +377,14 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 	                }
                 }
             }
-            // Sorting list elements and leaving !isSpecialNode() as default
+
+			// Sorting list elements and leaving !isSpecialNode() as default
             for (Iterator it = elementsMap.keySet().iterator(); it.hasNext(); )
             {
                 Object map = it.next();
                 List list = (List)elementsMap.get(map);
-                // Only for more than 1
+
+				// Only for more than 1
                 if (list.size() > 1)
                 {
                     Object obj = list.get(0);
@@ -417,17 +420,17 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
 
             if (paletteMatrix != null)
             {
-            menuX = paletteMatrix[0].length;
-            menuY = paletteMatrix.length;
-            inPalette.clear();
-            for (int i = 0; i < menuX; i++)
-            {
-                for (int j = 0; j < menuY; j++)
-                {
-                    Object item = (paletteMatrix[j] == null) ? null : paletteMatrix[j][i];
-                    inPalette.add(item);
-                }
-            }
+	            menuX = paletteMatrix[0].length;
+	            menuY = paletteMatrix.length;
+	            inPalette.clear();
+	            for (int i = 0; i < menuX; i++)
+	            {
+	                for (int j = 0; j < menuY; j++)
+	                {
+	                    Object item = (paletteMatrix[j] == null) ? null : paletteMatrix[j][i];
+	                    inPalette.add(item);
+	                }
+	            }
             }
         }
         Dimension size = TopLevel.getScreenSize();
@@ -526,7 +529,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
             if (obj instanceof ArcProto)
 				User.getUserTool().setCurrentArcProto((ArcProto)obj);
             else
+			{
                 PaletteFrame.placeInstance(obj, panel, false);
+			}
         } else if (obj instanceof String)
         {
             String msg = (String)obj;
