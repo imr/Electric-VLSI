@@ -168,7 +168,7 @@ public class EGraphics extends Observable
 		{
 			System.out.println("Graphics bad: has " + pattern.length + " pattern entries instead of 16");
 		}
-		if (transparentLayer < 0 || transparentLayer >= TRANSPARENT_12)
+		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
 		{
 			System.out.println("Graphics transparent color bad: " + transparentLayer);
 		}
@@ -201,7 +201,7 @@ public class EGraphics extends Observable
 		{
 			System.out.println("Graphics bad: has " + pattern.length + " pattern entries instead of 16");
 		}
-		if (transparentLayer < 0 || transparentLayer >= TRANSPARENT_12)
+		if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
 		{
 			System.out.println("Graphics transparent color bad: " + transparentLayer);
 		}
@@ -403,7 +403,7 @@ public class EGraphics extends Observable
 	 */
 	public void setTransparentLayer(int transparentLayer)
 	{
-        if (transparentLayer < 0 || transparentLayer >= TRANSPARENT_12)
+        if (transparentLayer < 0 || transparentLayer > TRANSPARENT_12)
 		{
 			System.out.println("Graphics transparent color bad: " + transparentLayer);
 		}
