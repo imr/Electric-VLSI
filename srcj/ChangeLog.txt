@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP/MAN: (06/17/05, GVG) 3D View back under WindowMenu.
+
+IMP/MAN: (06/17/05, GVG) Methods to extract DRC rules for preferences tab.
+
 BUG: (06/17/05, SMR) Status bar clips bottom of component menu (Bug #381).
 FIX: In StatusBar constructor, set "fieldHierCoords" to be a non-null string.
 

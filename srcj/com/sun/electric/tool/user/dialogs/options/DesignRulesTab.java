@@ -23,21 +23,19 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.DRCRules;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.database.text.TextUtils;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -65,7 +63,7 @@ public class DesignRulesTab extends PreferencePanel
 
 	private JList designRulesFromList, designRulesToList;
 	private DefaultListModel designRulesFromModel, designRulesToModel;
-	private MOSRules drRules;
+	private DRCRules drRules;
 	private boolean designRulesUpdating = false;
 	private boolean designRulesFactoryReset = false;
 	private boolean [] designRulesValidLayers;
@@ -78,7 +76,7 @@ public class DesignRulesTab extends PreferencePanel
 	{
 		// get the design rules for the current technology
 		DRCRules rules = DRC.getRules(curTech);
-		if (rules == null || !(rules instanceof MOSRules))
+		if (rules == null) //|| !(rules instanceof MOSRules))
 		{
 			if (rules == null)
 				drTechName.setText(curTech.getTechName() + " HAS NO DESIGN RULES");
@@ -109,7 +107,7 @@ public class DesignRulesTab extends PreferencePanel
 			return;
 		}
 
-        drRules = (MOSRules)rules;
+        drRules = rules;
 		drLayers.setSelected(true);
 
 		// build the "from" layer/node list
@@ -254,19 +252,10 @@ public class DesignRulesTab extends PreferencePanel
 			// show node information
 			int lineNo = designRulesFromList.getSelectedIndex();
 			if (lineNo < 0) return;
-			String nName = (String)designRulesFromList.getSelectedValue();
-			for(int node=0; node<drRules.numNodes; node++)
-			{
-				if (!nName.equals(drRules.nodeNames[node])) continue;
-				String a = drMinWidth.getText();
-				if (a.length() == 0) drRules.minNodeSize[node*2] = new Double(-1);
-                else drRules.minNodeSize[node*2] = new Double(TextUtils.atof(a));
-				a = drMinHeight.getText();
-				if (a.length() == 0) drRules.minNodeSize[node*2+1] = new Double(-1);
-                else drRules.minNodeSize[node*2+1] = new Double(TextUtils.atof(a));
-				drRules.minNodeSizeRules[node] = drMinWidthRule.getText();
-				break;
-			}
+
+			double w = TextUtils.atof(drMinWidth.getText());
+            double h = TextUtils.atof(drMinHeight.getText());
+            drRules.setMinNodeSize(lineNo, drMinWidthRule.getText(), w, h);
 		} else
 		{
 			// get layer information
@@ -276,45 +265,46 @@ public class DesignRulesTab extends PreferencePanel
 			if (layer2 < 0) return;
             int dindex = curTech.getRuleIndex(layer1, layer2);
 
+			// get new width limit
+			double wideLimit = TextUtils.atof(drWideLimit.getText());
+            List list = new ArrayList(7);
+            int techMode = DRC.getFoundry();
+
 			// get new normal spacing values
-			String a = drNormalConnected.getText();
-			if (a.length() == 0) drRules.conList[dindex] = new Double(-1); else
-				drRules.conList[dindex] = new Double(TextUtils.atof(a));
-			drRules.conListRules[dindex] = drNormalConnectedRule.getText();
-			a = drNormalUnconnected.getText();
-			if (a.length() == 0) drRules.unConList[dindex] = new Double(-1); else
-				drRules.unConList[dindex] = new Double(TextUtils.atof(a));
-			drRules.unConListRules[dindex] = drNormalUnconnectedRule.getText();
+			double value = TextUtils.atof(drNormalConnected.getText());
+            list.add(new DRCTemplate(drNormalConnectedRule.getText(), techMode, DRCTemplate.CONSPA,
+                    wideLimit, 0, null, null, value, false));
+			value = TextUtils.atof(drNormalUnconnected.getText());
+            list.add(new DRCTemplate(drNormalUnconnectedRule.getText(), techMode, DRCTemplate.UCONSPA,
+                    0, 0, null, null, value, false));
+            drRules.setSpacingRules(dindex, list, DRCTemplate.SPACING);
 
-			// get new wide values
-			a = drWideConnected.getText();
-			if (a.length() == 0) drRules.conListWide[dindex] = new Double(-1); else
-				drRules.conListWide[dindex] = new Double(TextUtils.atof(a));
-			drRules.conListWideRules[dindex] = drWideConnectedRule.getText();
-			a = drWideUnconnected.getText();
-			if (a.length() == 0) drRules.unConListWide[dindex] = new Double(-1); else
-				drRules.unConListWide[dindex] = new Double(TextUtils.atof(a));
-			drRules.unConListWideRules[dindex] = drWideUnconnectedRule.getText();
+            // get new wide spacing values
+            list.clear();
+            value = TextUtils.atof(drWideConnected.getText());
+            list.add(new DRCTemplate(drWideConnectedRule.getText(), techMode, DRCTemplate.CONSPA,
+                    0, 0, null, null, value, false));
+			value = TextUtils.atof(drWideUnconnected.getText());
+            list.add(new DRCTemplate(drWideUnconnectedRule.getText(), techMode, DRCTemplate.UCONSPA,
+                    0, 0, null, null, value, false));
+            drRules.setSpacingRules(dindex, list, DRCTemplate.SPACINGW);
 
-			// get new multicut values
-			a = drMultiConnected.getText();
-			if (a.length() == 0) drRules.conListMulti[dindex] = new Double(-1); else
-				drRules.conListMulti[dindex] = new Double(TextUtils.atof(a));
-			drRules.conListMultiRules[dindex] = drMultiConnectedRule.getText();
-			a = drMultiUnconnected.getText();
-			if (a.length() == 0) drRules.unConListMulti[dindex] = new Double(-1); else
-				drRules.unConListMulti[dindex] = new Double(TextUtils.atof(a));
-			drRules.unConListMultiRules[dindex] = drMultiUnconnectedRule.getText();
+			// get new multicut spacing values
+            list.clear();
+            value = TextUtils.atof(drMultiConnected.getText());
+            list.add(new DRCTemplate(drMultiConnectedRule.getText(), techMode, DRCTemplate.CONSPA,
+                    0, 0, null, null, value, true));
+			value = TextUtils.atof(drMultiUnconnected.getText());
+            list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), techMode, DRCTemplate.UCONSPA,
+                    0, 0, null, null, value, true));
+            drRules.setSpacingRules(dindex, list, DRCTemplate.CUTSPA);
 
 			// get new edge values
-			a = drNormalEdge.getText();
-			if (a.length() == 0) drRules.edgeList[dindex] = new Double(-1); else
-				drRules.edgeList[dindex] = new Double(TextUtils.atof(a));
-			drRules.edgeListRules[dindex] = drNormalEdgeRule.getText();
-
-			// get new width limit
-			a = drWideLimit.getText();
-            drRules.wideLimit = new Double(TextUtils.atof(a));
+            list.clear();
+            value = TextUtils.atof(drNormalEdge.getText());
+            list.add(new DRCTemplate(drNormalEdgeRule.getText(), techMode, DRCTemplate.CONSPA,
+                    0, 0, null, null, value, false));
+            drRules.setSpacingRules(dindex, list, DRCTemplate.SPACINGE);
 
 			// redraw the entry in the "to" list
 			int lineNo = designRulesToList.getSelectedIndex();
@@ -322,10 +312,8 @@ public class DesignRulesTab extends PreferencePanel
 			designRulesToModel.setElementAt(line, lineNo);
 
 			// update layer width rules
-			a = drMinWidth.getText();
-			if (a.length() == 0) drRules.minWidth[layer1] = new Double(-1); else
-				drRules.minWidth[layer1] = new Double(TextUtils.atof(a));
-			drRules.minWidthRules[layer1] = drMinWidthRule.getText();
+			value = TextUtils.atof(drMinWidth.getText());
+            drRules.setMinValue(curTech.getLayer(layer1), drMinWidthRule.getText(), value, DRCTemplate.MINWID, DRCTemplate.ALL);
 		}
 	}
 
@@ -336,8 +324,9 @@ public class DesignRulesTab extends PreferencePanel
 		if (drNodes.isSelected())
 		{
 			// list the nodes
-			for(int i=0; i<drRules.numNodes; i++)
-				designRulesFromModel.addElement(drRules.nodeNames[i]);
+            String[] nodesWithRules = drRules.getNodesWithRules();
+			for(int i=0; i<nodesWithRules.length; i++)
+				designRulesFromModel.addElement(nodesWithRules[i]);
 			drMinHeight.setEditable(true);
 
 			drNormalConnected.setText("");
@@ -375,14 +364,14 @@ public class DesignRulesTab extends PreferencePanel
 			drMultiUnconnectedRule.setEditable(false);
 
 			drShowOnlyLinesWithRules.setEnabled(false);
-			drToList.setEnabled(false);
+            drToList.setEnabled(false);
 		} else
 		{
 			// list the layers
-			for(int i=0; i<drRules.numLayers; i++)
+            for(int i=0; i<designRulesValidLayers.length; i++)
 			{
 				if (!designRulesValidLayers[i]) continue;
-				designRulesFromModel.addElement(drRules.layerNames[i]);
+                designRulesFromModel.addElement(curTech.getLayer(i).getName());
 			}
 			drMinHeight.setText("");
 			drMinHeight.setEditable(false);
@@ -394,15 +383,7 @@ public class DesignRulesTab extends PreferencePanel
 			drNormalEdge.setEditable(true);
 			drNormalEdgeRule.setEditable(true);
 			drWideLimit.setEditable(true);
-            drWideLimit.setText(drRules.wideLimit.toString());
-            /*
-			Object[] set = drRules.getWideLimits().toArray();
-			if (set.length > 0)
-			{
-				Double wideLimit = ((Double)set[0]);
-				drWideLimit.setText(TextUtils.formatDouble(wideLimit.doubleValue()));
-			}
-            */
+            drWideLimit.setText("");
 			drWideConnected.setEditable(true);
 			drWideConnectedRule.setEditable(true);
 			drWideUnconnected.setEditable(true);
@@ -429,13 +410,16 @@ public class DesignRulesTab extends PreferencePanel
 		{
 			// show node information
 			int j = designRulesFromList.getSelectedIndex();
-			double wid = drRules.minNodeSize[j*2].doubleValue();
-			if (wid < 0) drMinWidth.setText(""); else
-				drMinWidth.setText(TextUtils.formatDouble(wid));
-			double hei = drRules.minNodeSize[j*2+1].doubleValue();
-			if (hei < 0) drMinHeight.setText(""); else
-				drMinHeight.setText(Double.toString(hei));
-			drMinWidthRule.setText(drRules.minNodeSizeRules[j]);
+            drMinWidth.setText("");
+            drMinHeight.setText("");
+            drMinWidthRule.setText("");
+            DRCRules.DRCNodeRule rule = drRules.getMinNodeSize(j);
+            if (rule != null)
+            {
+                if (rule.getWidth() >= 0) drMinWidth.setText(Double.toString(rule.getWidth()));
+                if (rule.getHeight() >= 0) drMinHeight.setText(Double.toString(rule.getHeight()));
+                drMinWidthRule.setText(rule.ruleName);
+            }
 		} else
 		{
 			// show layer information
@@ -443,12 +427,17 @@ public class DesignRulesTab extends PreferencePanel
 			int j = designRulesGetSelectedLayer(designRulesFromList);
 			if (j >= 0)
 			{
-				if (drRules.minWidth[j].doubleValue() < 0) drMinWidth.setText(""); else
-					drMinWidth.setText(drRules.minWidth[j].toString());
-				drMinWidthRule.setText(drRules.minWidthRules[j]);
+                drMinWidth.setText("");
+                // @TODO ALL is not OK
+                DRCRules.DRCRule rule = drRules.getMinValue(curTech.getLayer(j), DRCTemplate.MINWID, DRCTemplate.ALL);
+                if (rule != null)
+                {
+                    drMinWidth.setText(Double.toString(rule.value));
+                    drMinWidthRule.setText(rule.ruleName);
+                }
 				designRulesToModel.clear();
 				int count = 0;
-				for(int i=0; i<drRules.numLayers; i++)
+                for(int i=0; i<designRulesValidLayers.length; i++)
 				{
 					if (!designRulesValidLayers[i]) continue;
 					int layer1 = j;
@@ -470,26 +459,48 @@ public class DesignRulesTab extends PreferencePanel
 	private String drMakeToListLine(int dindex, int lindex, boolean onlyValid)
 	{
 		String conDist = "";
-		if (drRules.conList[dindex].doubleValue() >= 0) conDist = drRules.conList[dindex].toString();
 		String unConDist = "";
-		if (drRules.unConList[dindex].doubleValue() >= 0) unConDist = drRules.unConList[dindex].toString();
+        int techMode = DRC.getFoundry();
+        List spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, techMode);
+        for (int i = 0; i < spacingRules.size(); i++)
+        {
+            DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
+            if (tmp.type == DRCTemplate.CONSPA) conDist = Double.toString(tmp.value);
+            else if (tmp.type == DRCTemplate.UCONSPA) unConDist = Double.toString(tmp.value);
+        }
 		String conDistWide = "";
-		if (drRules.conListWide[dindex].doubleValue() >= 0) conDistWide = drRules.conListWide[dindex].toString();
 		String unConDistWide = "";
-		if (drRules.unConListWide[dindex].doubleValue() >= 0) unConDistWide = drRules.unConListWide[dindex].toString();
+        spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGW, techMode);
+        for (int i = 0; i < spacingRules.size(); i++)
+        {
+            DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
+            if (tmp.type == DRCTemplate.CONSPA) conDistWide = Double.toString(tmp.value);
+            else if (tmp.type == DRCTemplate.UCONSPA) unConDistWide = Double.toString(tmp.value);
+        }
 		String conDistMulti = "";
-		if (drRules.conListMulti[dindex].doubleValue() >= 0) conDistMulti = drRules.conListMulti[dindex].toString();
 		String unConDistMulti = "";
-		if (drRules.unConListMulti[dindex].doubleValue() >= 0) unConDistMulti = drRules.unConListMulti[dindex].toString();
+        spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.CUTSPA, techMode);
+        for (int i = 0; i < spacingRules.size(); i++)
+        {
+            DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
+            if (tmp.type == DRCTemplate.CONSPA) conDistMulti = Double.toString(tmp.value);
+            else if (tmp.type == DRCTemplate.UCONSPA) unConDistMulti = Double.toString(tmp.value);
+        }
 		String edgeDist = "";
-		if (drRules.edgeList[dindex].doubleValue() >= 0) edgeDist = drRules.edgeList[dindex].toString();
+        spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGE, techMode);
+        for (int i = 0; i < spacingRules.size(); i++)
+        {
+            DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
+            // Any is fine
+            edgeDist = Double.toString(tmp.value);
+        }
 		if (onlyValid)
 		{
 			if (conDist.length() == 0 && unConDist.length() == 0 && conDistWide.length() == 0 &&
 				unConDistWide.length() == 0 && conDistMulti.length() == 0 && unConDistMulti.length() == 0 &&
 				edgeDist.length() == 0) return "";
 		}
-		String ret = drRules.layerNames[lindex] + " (" +
+        String ret = curTech.getLayer(lindex).getName() + " (" +
 			conDist + "/" + unConDist + "/" + conDistWide + "/" +  unConDistWide + "/" + conDistMulti + "/" +
 			unConDistMulti + "/" + edgeDist + ")";
 		return ret;
@@ -502,8 +513,10 @@ public class DesignRulesTab extends PreferencePanel
 		String lName = (String)theList.getSelectedValue();
 		int termPos = lName.indexOf(" (");
 		if (termPos >= 0) lName = lName.substring(0, termPos);
-		for(int layer=0; layer<drRules.numLayers; layer++)
-			if (lName.equals(drRules.layerNames[layer])) return layer;
+
+//        for(int layer=0; layer<drRules.numLayers; layer++)
+		for(int layer=0; layer<designRulesValidLayers.length; layer++)
+			if (lName.equals(curTech.getLayer(layer).getName())) return layer;
 		return -1;
 	}
 
@@ -529,32 +542,70 @@ public class DesignRulesTab extends PreferencePanel
 
 		int layer1 = designRulesGetSelectedLayer(designRulesFromList);
 		int layer2 = designRulesGetSelectedLayer(designRulesToList);
+        int techMode = DRC.getFoundry();
+
 		if (layer1 >= 0 && layer2 >= 0)
 		{
             int dindex = curTech.getRuleIndex(layer1, layer2);
+            double wideLimit = 0;
+            List spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, techMode);
+            for (int i = 0; i < spacingRules.size(); i++)
+            {
+                DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
+                if (tmp.type == DRCTemplate.CONSPA)
+                {
+                    drNormalConnected.setText(Double.toString(tmp.value));
+                    drNormalConnectedRule.setText(tmp.ruleName);
+                }
+                else if (tmp.type == DRCTemplate.UCONSPA)
+                {
+                    drNormalUnconnected.setText(Double.toString(tmp.value));
+                    drNormalUnconnectedRule.setText(tmp.ruleName);
+                }
+                if (tmp.maxWidth > 0) wideLimit = tmp.maxWidth;
+            }
+            if (wideLimit > 0) drWideLimit.setText(Double.toString(wideLimit)); // for now
 
-			if (drRules.conList[dindex].doubleValue() >= 0)
-				drNormalConnected.setText(drRules.conList[dindex].toString());
-			if (drRules.unConList[dindex].doubleValue() >= 0)
-				drNormalUnconnected.setText(drRules.unConList[dindex].toString());
-			if (drRules.conListWide[dindex].doubleValue() >= 0)
-				drWideConnected.setText(drRules.conListWide[dindex].toString());
-			if (drRules.unConListWide[dindex].doubleValue() >= 0)
-				drWideUnconnected.setText(drRules.unConListWide[dindex].toString());
-			if (drRules.conListMulti[dindex].doubleValue() >= 0)
-				drMultiConnected.setText(drRules.conListMulti[dindex].toString());
-			if (drRules.unConListMulti[dindex].doubleValue() >= 0)
-				drMultiUnconnected.setText(drRules.unConListMulti[dindex].toString());
-			if (drRules.edgeList[dindex].doubleValue() >= 0)
-				drNormalEdge.setText(drRules.edgeList[dindex].toString());
+            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGW, techMode);
+            for (int i = 0; i < spacingRules.size(); i++)
+            {
+                DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
+                if (tmp.type == DRCTemplate.CONSPA)
+                {
+                    drWideConnected.setText(Double.toString(tmp.value));
+                    drWideConnectedRule.setText(tmp.ruleName);
+                }
+                else if (tmp.type == DRCTemplate.UCONSPA)
+                {
+                    drWideUnconnected.setText(Double.toString(tmp.value));
+                    drWideUnconnectedRule.setText(tmp.ruleName);
+                }
+            }
 
-			drNormalConnectedRule.setText(drRules.conListRules[dindex]);
-			drNormalUnconnectedRule.setText(drRules.unConListRules[dindex]);
-			drWideConnectedRule.setText(drRules.conListWideRules[dindex]);
-			drWideUnconnectedRule.setText(drRules.unConListWideRules[dindex]);
-			drMultiConnectedRule.setText(drRules.conListMultiRules[dindex]);
-			drMultiUnconnectedRule.setText(drRules.unConListMultiRules[dindex]);
-			drNormalEdgeRule.setText(drRules.edgeListRules[dindex]);
+            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.CUTSPA, techMode);
+            for (int i = 0; i < spacingRules.size(); i++)
+            {
+                DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
+                if (tmp.type == DRCTemplate.CONSPA)
+                {
+                    drMultiConnected.setText( Double.toString(tmp.value));
+                    drMultiConnectedRule.setText(tmp.ruleName);
+                }
+                else if (tmp.type == DRCTemplate.UCONSPA)
+                {
+                    drMultiUnconnected.setText(Double.toString(tmp.value));
+                    drMultiUnconnectedRule.setText(tmp.ruleName);
+                }
+            }
+
+            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGE, techMode);
+            for (int i = 0; i < spacingRules.size(); i++)
+            {
+                DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
+                // Any is fine
+                drNormalEdge.setText(Double.toString(tmp.value));
+                drNormalEdgeRule.setText(tmp.ruleName);
+            }
 		}
 		designRulesUpdating = false;
 	}

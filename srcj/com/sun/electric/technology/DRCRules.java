@@ -25,31 +25,64 @@ package com.sun.electric.technology;
 
 import java.util.List;
 
-public interface DRCRules {
-	public void setMinNodeSize(int index, double value);
+public interface DRCRules
+{
+	public void setMinNodeSize(int index, String name, double width, double height);
+    public DRCNodeRule getMinNodeSize(int index);
 	public double getWorstSpacingDistance();
     public double getMaxSurround(Technology tech, Layer layer, double maxSize);
     public DRCRule getEdgeRule(Technology tech, Layer layer1, Layer layer2);
-    public DRCRules.DRCRule getSpacingRule(Technology tech, Layer layer1, Layer layer2, boolean connected,
-                                           boolean multiCut, double wideS, double length, int techMode);
+    public DRCRule getSpacingRule(Technology tech, Layer layer1, Layer layer2, boolean connected,
+                                  boolean multiCut, double wideS, double length, int techMode);
     public boolean isAnyRule(Technology tech, Layer layer1, Layer layer2);
-    public DRCRules.DRCRule getExtensionRule(Technology tech, Layer layer1, Layer layer2, int techMode, boolean isGateExtension);
+    public DRCRules.DRCRule getExtensionRule(Technology tech, Layer layer1, Layer layer2,
+                                             int techMode, boolean isGateExtension);
 	public int getNumberOfRules();
-    public DRCRules.DRCRule getMinValue(Layer layer, int type, int techMode);
+    public DRCRule getMinValue(Layer layer, int type, int techMode);
+    public void setMinValue(Layer layer, String name, double value, int type, int techMode);
     public void applyDRCOverrides(String override, Technology tech);
     public boolean isForbiddenNode(int nodeIndex, int type, int techMode);
+    /********************* For UI ***********************************/
+    String[] getNodesWithRules();
+    List getSpacingRules(int index, int type, int techMode);
+    void setSpacingRules(int index, List newRules, int spacingCase);
+    /********************* For information with DRC tool ******************/
     public static class DRCRule
 	{
 		public double value;
+        public double maxWidth;   // for spacing wire rules
+        public double minLength; // for spacing wire rules
 		public String ruleName;
 		public int type;
 
+        // For interface with DRC tool
 		public DRCRule(double distance, String rule, int type)
 		{
 			this.value = distance;
 			this.ruleName = rule;
             this.type = type;
 		}
-        public List getNodesInRule() { return null; }
+
+        public DRCRule(String rule, double distance, double maxW, double maxL, int type)
+        {
+			this.value = distance;
+            this.maxWidth = maxW;
+            this.minLength = maxL;
+			this.ruleName = rule;
+            this.type = type;
+        }
 	}
+    public static class DRCNodeRule extends DRCRule
+    {
+        public double height; // distance in DRCRule class will store width
+        public DRCNodeRule(double width, double height, String rule, int type)
+        {
+            super(width, rule, type);
+            this.height = height;
+        }
+        public double getWidth() {return value;}
+        public void setWidth(double w) {value = w;}
+        public double getHeight() {return height;}
+        public void setHeight(double h) {height = h;}
+    }
 }

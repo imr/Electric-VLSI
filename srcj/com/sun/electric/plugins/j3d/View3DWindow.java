@@ -154,9 +154,9 @@ public class View3DWindow extends JPanel
         }
     }
 
-    public static void create3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, Boolean transPerNode)
+    public static void create3DWindow(Cell cell, WindowFrame wf, WindowContent view2D, boolean transPerNode)
     {
-        new View3DWindowJob(cell, wf, view2D, transPerNode.booleanValue());
+        new View3DWindowJob(cell, wf, view2D, transPerNode);
     }
 
     public void getObjTransform(Transform3D trans)

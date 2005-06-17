@@ -37,12 +37,14 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Rectangle2D;
 import java.util.EventListener;
 import java.util.Iterator;
+import java.lang.reflect.Method;
 
 import javax.swing.KeyStroke;
 
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.SavedViews;
-import com.sun.electric.tool.user.ui.LayerTab;
 import com.sun.electric.tool.user.ui.ClickZoomWireListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.MessagesWindow;
@@ -171,6 +173,19 @@ public class WindowMenu {
         messagesSubMenu.addMenuItem("Set F_ont...", null,
              new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().selectFont(); }});
 
+        Class plugin3D = Resources.get3DClass("ui.J3DMenu");
+        if (plugin3D != null)
+        {
+            // Adding 3D/Demo menu
+            try {
+                Method createMethod = plugin3D.getDeclaredMethod("add3DMenus", new Class[] {MenuBar.Menu.class});
+                createMethod.invoke(plugin3D, new Object[] {windowMenu});
+            } catch (Exception e)
+            {
+                System.out.println("Can't load 3D sub menu class: " + e.getMessage());
+                ActivityLogger.logException(e);
+            }
+        }
 		// mnemonic keys available: ABCDEFGHIJK MNOPQ STUVWXYZ
         MenuBar.Menu sideBarSubMenu = MenuBar.makeMenu("Side _Bar");
         windowMenu.add(sideBarSubMenu);

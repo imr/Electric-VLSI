@@ -3448,7 +3448,7 @@ public class Technology implements Comparable
 	/**
 	* Method to set the true node size (the highlighted area) of node "nodename" to "wid" x "hei".
 	*/
-	protected void setDefNodeSize(PrimitiveNode nty, double wid, double hei, DRCRules rules)
+	protected void setDefNodeSize(PrimitiveNode nty, String ruleName, double wid, double hei, DRCRules rules)
 	{
 		//SizeOffset so = nty.getProtoSizeOffset();
 		double xindent = (nty.getDefWidth() - wid) / 2;
@@ -3462,8 +3462,8 @@ public class Technology implements Comparable
 			if (np == nty) break;
 			index++;
 		}
-		rules.setMinNodeSize(index*2, wid);
-		rules.setMinNodeSize(index*2+1, hei);
+		rules.setMinNodeSize(index, ruleName, wid, hei);
+//		rules.setMinNodeSize(index*2+1, hei);
 		/*
 		rules.minNodeSize[index*2] = new Double(wid);
 		rules.minNodeSize[index*2+1] = new Double(hei);

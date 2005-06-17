@@ -34,10 +34,8 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.menus.FileMenu;
 
 import java.awt.Cursor;
@@ -52,7 +50,6 @@ import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
 import java.util.*;
 
 import javax.swing.*;
@@ -100,16 +97,12 @@ public class WindowFrame extends Observable
     /** library tree updater */                         private static LibraryTreeUpdater libTreeUpdater = new LibraryTreeUpdater();
 
 
-	/** Main class for 3D plugin */	                    private static final Class view3DClass = Resources.get3DMainClass();
-    /** Create 3D view method */                        private static Method create3DMethod = null;
-
-
 	//******************************** CONSTRUCTION ********************************
 
 	// constructor
-	private WindowFrame()
-	{
-	}
+//	private WindowFrame()
+//	{
+//	}
 
 	/**
 	 * Method to create a new circuit-editing window on the screen that displays a Cell.
@@ -164,38 +157,6 @@ public class WindowFrame extends Observable
     /*****************************************************************************
      *          3D Stuff                                                         *
      *****************************************************************************/
-
-	/**
-	 * Method to create a new 3D view window on the screen for the given cell
-	 * @param cell the cell to display.
-	 * @param transPerNode
-     * @return the WindowFrame that shows the Cell.
-	 */
-	public static WindowFrame create3DViewtWindow(Cell cell, WindowContent view2D, boolean transPerNode)
-	{
-        // 3D view can only be triggered by EditWindow instances
-        if (!(view2D instanceof EditWindow)) return null;
-
-		if (view3DClass == null)
-		{
-			System.out.println("3D View plugin not available");
-			return null; // error in class initialization or no plugin available
-		}
-
-		WindowFrame frame = new WindowFrame();
-
-		try
-		{
-            if (create3DMethod == null) create3DMethod = view3DClass.getDeclaredMethod("create3DWindow", new Class[] {Cell.class, WindowFrame.class,
-                                                                                    WindowContent.class, Boolean.class}) ;
-            create3DMethod.invoke(view3DClass, new Object[] {cell, frame, view2D, new Boolean(transPerNode)});
-		} catch (Exception e) {
-            System.out.println("Can't open 3D View window: " + e.getMessage());
-            ActivityLogger.logException(e);
-        }
-
-		return frame;
-	}
 
 	/**
 	 * Method to access 3D view and highligh elements if view is available

@@ -42,16 +42,13 @@ import java.awt.event.MouseMotionListener;
 import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.font.LineMetrics;
-import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.swing.DefaultListModel;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -85,8 +82,8 @@ public class ThreeDTab extends PreferencePanel
         return tab;
     }
 
-	/** Main class for 3D plugin */	                    private static final Class view3DClass = Resources.get3DMainClass();
-    /** Set Antialiasing method */                       private static Method set3DClass = null;
+//	/** Main class for 3D plugin */	                    private static final Class view3DClass = Resources.get3DMainClass();
+//    /** Set Antialiasing method */                       private static Method set3DClass = null;
 
 	/** Creates new form ThreeDTab */
 	public ThreeDTab(java.awt.Frame parent, boolean modal)

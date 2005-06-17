@@ -26,18 +26,16 @@ package com.sun.electric.plugins.j3d.ui;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.WindowContent;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.plugins.j3d.View3DWindow;
-import com.sun.electric.plugins.j3d.utils.J3DClientApp;
-import com.sun.electric.plugins.j3d.utils.J3DUtils;
 import com.sun.electric.plugins.j3d.utils.J3DQueryProperties;
+import com.sun.electric.plugins.j3d.View3DWindow;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.*;
 
 /**
  * Class to handle the commands in the "3D" pulldown menu.
@@ -47,32 +45,33 @@ import javax.swing.*;
 public class J3DMenu {
 
     // It can't be protected static -> reflection doesn't like it
-    public static MenuBar.Menu add3DMenus(MenuBar menuBar) {
+    public static MenuBar.Menu add3DMenus(MenuBar.Menu menu) {
 
         /****************************** THE 3D MENU ******************************/
 
-        MenuBar.Menu j3DMenu = MenuBar.makeMenu("_3D");
-        menuBar.add(j3DMenu);
+        MenuBar.Menu j3DMenu = MenuBar.makeMenu("_3D View");
+        menu.add(j3DMenu);
 
+        // mnemonic keys available: AB  EFGHIJKLMNOPQ S U WXYZ
         /** 3D view */
-	    j3DMenu.addMenuItem("_3D View", null,
+	    j3DMenu.addMenuItem("_3D Window", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(false); } });
-        j3DMenu.addMenuItem("Capture Frame/Animate", null,
+        j3DMenu.addMenuItem("_Capture Frame/Animate", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame());} });
 //		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
 
-        MenuBar.Menu demoSubMenu = MenuBar.makeMenu("Capacitance Demo");
+        MenuBar.Menu demoSubMenu = MenuBar.makeMenu("Capacitance _Demo");
 		j3DMenu.add(demoSubMenu);
-        demoSubMenu.addMenuItem("3D View for Demo", null,
+        demoSubMenu.addMenuItem("3D _View for Demo", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(true); } });
 //        demoSubMenu.addMenuItem("Read Data From File", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { readDemoDataFromFile(); } });
-        demoSubMenu.addMenuItem("Read Data", null,
+        demoSubMenu.addMenuItem("_Read Data", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DViewDialog.create3DViewDialog(TopLevel.getCurrentJFrame()); } });
 
         j3DMenu.addSeparator();
-        j3DMenu.addMenuItem("Test Hardware", null,
+        j3DMenu.addMenuItem("_Test Hardware", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DQueryProperties.queryHardwareAcceleration(); ;} });
 		return j3DMenu;
     }
@@ -100,6 +99,28 @@ public class J3DMenu {
     {
 	    Cell curCell = WindowFrame.needCurCell();
 	    if (curCell == null) return;
-	    WindowFrame.create3DViewtWindow(curCell, WindowFrame.getCurrentWindowFrame(false).getContent(), transPerNode);
+	    //WindowFrame.create3DViewWindow(curCell, WindowFrame.getCurrentWindowFrame(false).getContent(), transPerNode);
+
+        WindowContent view2D = WindowFrame.getCurrentWindowFrame(false).getContent();
+
+        // 3D view can only be triggered by EditWindow instances
+        if (!(view2D instanceof EditWindow)) return;
+        WindowFrame frame = new WindowFrame();
+
+        View3DWindow.create3DWindow(curCell, frame, view2D, transPerNode);
+
+//            try
+//            {
+//                if (create3DMethod == null) create3DMethod = view3DClass.getDeclaredMethod("create3DWindow", new Class[] {Cell.class, WindowFrame.class,
+//                                                                                        WindowContent.class, Boolean.class}) ;
+//                create3DMethod.invoke(view3DClass, new Object[] {cell, frame, view2D, new Boolean(transPerNode)});
+//            } catch (Exception e) {
+//                System.out.println("Can't open 3D View window: " + e.getMessage());
+//                ActivityLogger.logException(e);
+//            }
+//
+//            return frame;
+//        }
+
     }
 }

@@ -89,20 +89,6 @@ public final class MenuCommands
         ViewMenu.addViewMenu(menuBar);
         WindowMenu.addWindowMenu(menuBar);
         ToolMenu.addToolMenu(menuBar);
-
-        Class plugin3D = Resources.get3DClass("ui.J3DMenu");
-        if (plugin3D != null)
-        {
-            // Adding 3D/Demo menu
-            try {
-                Method createMethod = plugin3D.getDeclaredMethod("add3DMenus", new Class[] {MenuBar.class});
-                createMethod.invoke(plugin3D, new Object[] {menuBar});
-            } catch (Exception e)
-            {
-                System.out.println("Can't open 3D Menu class: " + e.getMessage());
-                ActivityLogger.logException(e);
-            }
-        }
         
         MenuBar.Menu helpMenu = HelpMenu.addHelpMenu(menuBar);
 

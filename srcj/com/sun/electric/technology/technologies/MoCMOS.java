@@ -2819,55 +2819,6 @@ public class MoCMOS extends Technology
 
 	/******************** SUPPORT METHODS ********************/
 
-	/**
-	 * Method for initializing this technology.
-	 */
-	public void initOld()
-	{
-		// remember the arc widths as specified by previous defaults
-		HashMap arcWidths = new HashMap();
-		for(Iterator it = getArcs(); it.hasNext(); )
-		{
-			ArcProto ap = (ArcProto)it.next();
-			double width = ap.getDefaultWidth();
-			arcWidths.put(ap, new Double(width));
-		}
-
-		// remember the node sizes as specified by previous defaults
-		HashMap nodeSizes = new HashMap();
-		for(Iterator it = getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
-			double width = np.getDefWidth();
-			double height = np.getDefHeight();
-			nodeSizes.put(np, new Point2D.Double(width, height));
-		}
-
-		// initialize all design rules in the technology (overwrites arc widths)
-		setState();
-
-		// now restore arc width defaults if they are wider than what is set
-		for(Iterator it = getArcs(); it.hasNext(); )
-		{
-			ArcProto ap = (ArcProto)it.next();
-			Double origWidth = (Double)arcWidths.get(ap);
-			if (origWidth == null) continue;
-			double width = ap.getDefaultWidth();
-			if (origWidth.doubleValue() > width) ap.setDefaultWidth(origWidth.doubleValue());
-		}
-
-		// now restore node size defaults if they are larger than what is set
-		for(Iterator it = getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
-			Point2D size = (Point2D)nodeSizes.get(np);
-			if (size == null) continue;
-			double width = np.getDefWidth();
-			double height = np.getDefHeight();
-			if (size.getX() > width || size.getY() > height) np.setDefSize(size.getX(), size.getY());
-		}		
-	}
-
     /**
 	 * Method to set the technology to state "newstate", which encodes the number of metal
 	 * layers, whether it is a deep process, and other rules.
@@ -3339,7 +3290,7 @@ public class MoCMOS extends Technology
 						setLayerMinWidth(theRules[i].name1, theRules[i].ruleName, distance);
 						break;
 					case DRCTemplate.NODSIZ:
-						setDefNodeSize(nty, distance, distance, rules);
+						setDefNodeSize(nty, theRules[i].ruleName, distance, distance, rules);
 						break;
 					case DRCTemplate.SURROUND:
 						setLayerSurroundLayer(theRules[i].ruleName, nty, lay1, lay2, distance,
