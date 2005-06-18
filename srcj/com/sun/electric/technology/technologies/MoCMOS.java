@@ -96,8 +96,7 @@ public class MoCMOS extends Technology
 	/** metal-1-polysilicon-1-2-contact */		private PrimitiveNode metal1Poly12Contact_node;
     /** P/N-Transistors */                      private PrimitiveNode[] transistorNodes = new PrimitiveNode[2];
 	/** ThickOxide Transistors */				private PrimitiveNode[] thickTransistorNodes = new PrimitiveNode[2];
-	/** Scalable-P-Transistor */				private PrimitiveNode scalablePTransistor_node;
-	/** Scalable-N-Transistor */				private PrimitiveNode scalableNTransistor_node;
+    /** Scalable Transistors */			        private PrimitiveNode[] scalableTransistorNodes = new PrimitiveNode[2];
     /** M1M2 -> M5M6 contacts */				private PrimitiveNode[] metalContactNodes = new PrimitiveNode[5];
     /** metal-1-P/N-Well-contacts */            private PrimitiveNode[] metalWellContactNodes = new PrimitiveNode[2];
 	/** Metal-1-Node */							private PrimitiveNode metal1Node_node;
@@ -2085,7 +2084,7 @@ public class MoCMOS extends Technology
 		}
 
 		/** Scalable-P-Transistor */
-		scalablePTransistor_node = PrimitiveNode.newInstance("P-Transistor-Scalable", this, 17.0, 26.0, new SizeOffset(7, 7, 12, 12),
+		scalableTransistorNodes[P_TYPE] = PrimitiveNode.newInstance("P-Transistor-Scalable", this, 17.0, 26.0, new SizeOffset(7, 7, 12, 12),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(pActive_lay, 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -2115,23 +2114,23 @@ public class MoCMOS extends Technology
 					new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5)),
 					new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromTop(9.5))})
 			});
-		scalablePTransistor_node.addPrimitivePorts(new PrimitivePort []
+		scalableTransistorNodes[P_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {poly1_arc}, "p-trans-sca-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalableTransistorNodes[P_TYPE], new ArcProto[] {poly1_arc}, "p-trans-sca-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromCenter(-3.5), EdgeV.makeCenter(), EdgeH.fromCenter(-3.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {activeArcs[P_TYPE], metalArcs[0]}, "p-trans-sca-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalableTransistorNodes[P_TYPE], new ArcProto[] {activeArcs[P_TYPE], metalArcs[0]}, "p-trans-sca-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.fromCenter(4.5), EdgeH.makeCenter(), EdgeV.fromCenter(4.5)),
-				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {poly1_arc}, "p-trans-sca-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalableTransistorNodes[P_TYPE], new ArcProto[] {poly1_arc}, "p-trans-sca-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromCenter(3.5), EdgeV.makeCenter(), EdgeH.fromCenter(3.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, scalablePTransistor_node, new ArcProto[] {activeArcs[P_TYPE], metalArcs[0]}, "p-trans-sca-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalableTransistorNodes[P_TYPE], new ArcProto[] {activeArcs[P_TYPE], metalArcs[0]}, "p-trans-sca-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.fromCenter(-4.5), EdgeH.makeCenter(), EdgeV.fromCenter(-4.5))
 			});
-		scalablePTransistor_node.setFunction(PrimitiveNode.Function.TRAPMOS);
-		scalablePTransistor_node.setCanShrink();
-		scalablePTransistor_node.setMinSize(17, 26, "2.1, 3.1");
+		scalableTransistorNodes[P_TYPE].setFunction(PrimitiveNode.Function.TRAPMOS);
+		scalableTransistorNodes[P_TYPE].setCanShrink();
+		scalableTransistorNodes[P_TYPE].setMinSize(17, 26, "2.1, 3.1");
 
 		/** Scalable-N-Transistor */
-		scalableNTransistor_node = PrimitiveNode.newInstance("N-Transistor-Scalable", this, 17.0, 26.0, new SizeOffset(7, 7, 12, 12),
+		scalableTransistorNodes[N_TYPE] = PrimitiveNode.newInstance("N-Transistor-Scalable", this, 17.0, 26.0, new SizeOffset(7, 7, 12, 12),
 			new Technology.NodeLayer []
 			{
 				new Technology.NodeLayer(nActive_lay, 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -2161,20 +2160,20 @@ public class MoCMOS extends Technology
 					new Technology.TechPoint(EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5)),
 					new Technology.TechPoint(EdgeH.fromLeft(9.5), EdgeV.fromTop(9.5))})
 			});
-		scalableNTransistor_node.addPrimitivePorts(new PrimitivePort []
+		scalableTransistorNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {poly1_arc}, "n-trans-sca-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {poly1_arc}, "n-trans-sca-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromCenter(-3.5), EdgeV.makeCenter(), EdgeH.fromCenter(-3.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {activeArcs[N_TYPE], metalArcs[0]}, "n-trans-sca-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE], metalArcs[0]}, "n-trans-sca-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.fromCenter(4.5), EdgeH.makeCenter(), EdgeV.fromCenter(4.5)),
-				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {poly1_arc}, "n-trans-sca-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {poly1_arc}, "n-trans-sca-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
 					EdgeH.fromCenter(3.5), EdgeV.makeCenter(), EdgeH.fromCenter(3.5), EdgeV.makeCenter()),
-				PrimitivePort.newInstance(this, scalableNTransistor_node, new ArcProto[] {activeArcs[N_TYPE], metalArcs[0]}, "n-trans-sca-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
+				PrimitivePort.newInstance(this, scalableTransistorNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE], metalArcs[0]}, "n-trans-sca-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
 					EdgeH.makeCenter(), EdgeV.fromCenter(-4.5), EdgeH.makeCenter(), EdgeV.fromCenter(-4.5))
 			});
-		scalableNTransistor_node.setFunction(PrimitiveNode.Function.TRANMOS);
-		scalableNTransistor_node.setCanShrink();
-		scalableNTransistor_node.setMinSize(17, 26, "2.1, 3.1");
+		scalableTransistorNodes[N_TYPE].setFunction(PrimitiveNode.Function.TRANMOS);
+		scalableTransistorNodes[N_TYPE].setCanShrink();
+		scalableTransistorNodes[N_TYPE].setMinSize(17, 26, "2.1, 3.1");
 
 		/** metal-1-metal-2-contact */
 		metalContactNodes[0] = PrimitiveNode.newInstance("Metal-1-Metal-2-Con", this, 5.0, 5.0, new SizeOffset(0.5, 0.5, 0.5, 0.5),
@@ -2776,6 +2775,7 @@ public class MoCMOS extends Technology
             String tmpVar = shortNames[i]+"Mos";
             tmp.add(makeNodeInst(transistorNodes[i], transistorNodes[i].getFunction(), 0, true, tmpVar, 9));
             tmp.add(makeNodeInst(thickTransistorNodes[i], thickTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
+            tmp.add(makeNodeInst(scalableTransistorNodes[i], scalableTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));            
             nodeGroups[count][i+1] = tmp;
         }
 
@@ -2961,7 +2961,7 @@ public class MoCMOS extends Technology
 		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		NodeProto prototype = ni.getProto();
-		if (prototype != scalablePTransistor_node && prototype != scalableNTransistor_node)
+		if (prototype != scalableTransistorNodes[P_TYPE] && prototype != scalableTransistorNodes[N_TYPE])
 		{
 			return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
 		}

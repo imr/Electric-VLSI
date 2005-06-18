@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/17/05, GVG) Ability to select "scalable" transistors again.
+
 IMP/MAN: (06/17/05, GVG) 3D View back under WindowMenu.
 
 IMP/MAN: (06/17/05, GVG) Methods to extract DRC rules for preferences tab.
