@@ -1138,7 +1138,8 @@ public class DebugMenus {
 				NodeInst ni = (NodeInst)eobj;
 				if (useproto) {
 					System.out.println("using prototype");
-					((ElectricObject)ni.getProto()).getInfo();
+					if (ni.getProto() instanceof Cell)
+						((Cell)ni.getProto()).getInfo();
 				} else {
 					ni.getInfo();
 				}

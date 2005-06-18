@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/18/05, DN) JELIB reader doesn't connect mismatched arc to dummy pin.
+FIX: In io.input.JELIB.figureOutPortInst assign dummy node to "portNI".
+
+BUG: (06/18/05, DN) DebugMenus|JonG|DescribeProtoVars causes exception on PrimitiveNodes.
+FIX: Add "if (ni.getProto() instanceof Cell)".
+
 IMP: (06/17/05, GVG) Ability to select "scalable" transistors again.
 
 IMP/MAN: (06/17/05, GVG) 3D View back under WindowMenu.

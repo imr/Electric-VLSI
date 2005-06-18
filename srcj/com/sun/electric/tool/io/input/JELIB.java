@@ -1115,7 +1115,7 @@ public class JELIB extends LibraryFiles
 		{
 			// not a dummy cell: create a pin at the top level
 			NodeInst portNI = null;
-			if (pos != null) NodeInst.newInstance(Generic.tech.universalPinNode, pos, 0, 0, cell);
+			if (pos != null) portNI = NodeInst.newInstance(Generic.tech.universalPinNode, pos, 0, 0, cell);
 			if (portNI == null)
 			{
 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
