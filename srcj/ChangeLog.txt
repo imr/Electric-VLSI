@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/19/05, DN) Warning in ElectricObject.findKey about possible change to CaseSensitive
+    search in future versions.
+
 IMP: (06/18/05, GVG) Refactoring describe() functions and using toString() in more places.
 
 BUG: (06/18/05, GVG) Exception in parasitic tool for AND gate if network is null in port (Bug#377)

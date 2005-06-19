@@ -1304,6 +1304,11 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 			String lowCaseName = name.toLowerCase();
 			if (!lowCaseName.equals(name))
 				key = (Variable.Key)varLowCaseKeys.get(lowCaseName);
+            if (key != null)
+            {
+                System.out.println("WARNING: Variable search may become case-sensitive in future versions. Search: " + name + " found: " + key.getName());
+                varKeys.put(name, key);
+            }
 		}
 		return key;
 	}
