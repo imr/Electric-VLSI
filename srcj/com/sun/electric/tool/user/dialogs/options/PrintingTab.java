@@ -96,7 +96,7 @@ public class PrintingTab extends PreferencePanel
 		initialEPSSyncFile = "";
 		if (initialCell != null)
 		{
-			printCellName.setText("For cell: " + initialCell.describe());
+			printCellName.setText("For: " + initialCell);
 			initialEPSScale = IOTool.getPrintEPSScale(initialCell);
 			initialEPSSyncFile = IOTool.getPrintEPSSynchronizeFile(initialCell);
 			printSyncFileName.setText(initialEPSSyncFile);

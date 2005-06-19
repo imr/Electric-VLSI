@@ -260,7 +260,7 @@ public class Input
 
 		if (lib == null)
 		{
-			System.out.println("Error importing library " + lib.getName());
+			System.out.println("Error importing " + lib);
 		} else
 		{
 			long endTime = System.currentTimeMillis();
@@ -331,7 +331,7 @@ public class Input
 		in.closeInput();
 		if (error)
 		{
-			System.out.println("Error reading library " + lib.getName());
+			System.out.println("Error reading " + lib);
 			if (in.topLevelLibrary) mainLibDirectory = null;
 			return null;
 		}

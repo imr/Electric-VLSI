@@ -772,7 +772,7 @@ public class LibToTech
 			if (neList.nextExample != null)
 			{
 				pointOutError(null, np);
-				System.out.println("Can only be one example of " + np.describe() + " but more were found");
+				System.out.println("Can only be one example of " + np + " but more were found");
 				return null;
 			}
 
@@ -793,7 +793,7 @@ public class LibToTech
 			if (hWid < 0)
 			{
 				pointOutError(null, np);
-				System.out.println("No highlight layer found in " + np.describe());
+				System.out.println("No highlight layer found in " + np);
 				return null;
 			}
 			allArcs[i].arcDetails = new ArcInfo.LayerDetails[count];
@@ -816,7 +816,7 @@ public class LibToTech
 					}
 					if (li == null)
 					{
-						System.out.println("Cannot find layer " + sampleLayer + ", used in " + np.describe());
+						System.out.println("Cannot find layer " + sampleLayer + ", used in " + np);
 						return null;
 					}
 
@@ -900,7 +900,7 @@ public class LibToTech
 			Example neList = Example.getExamples(np, true);
 			if (neList == null)
 			{
-				System.out.println("Cannot analyze cell " + np.describe());
+				System.out.println("Cannot analyze " + np);
 				return null;
 			}
 			nIn.xSize = neList.hx - neList.lx;
@@ -909,7 +909,7 @@ public class LibToTech
 			// associate the samples in each example
 			if (associateExamples(neList, np))
 			{
-				System.out.println("Cannot match different examples in " + np.describe());
+				System.out.println("Cannot match different examples in " + np);
 				return null;
 			}
 
@@ -917,7 +917,7 @@ public class LibToTech
 			nIn.nodeLayers = makePrimitiveNodeLayers(neList, np, lList);
 			if (nIn.nodeLayers == null)
 			{
-				System.out.println("Cannot derive stretching rules for " + np.describe());
+				System.out.println("Cannot derive stretching rules for " + np);
 				return null;
 			}
 
@@ -955,7 +955,7 @@ public class LibToTech
 			if (portCount == 0)
 			{
 				pointOutError(null, np);
-				System.out.println("No ports found in " + np.describe());
+				System.out.println("No ports found in " + np);
 				return null;
 			}
 
@@ -1001,7 +1001,7 @@ public class LibToTech
 						if (connections[j] == null)
 						{
 							pointOutError(ns.node, ns.node.getParent());
-							System.out.println("Invalid connection list on port in " + np.describe());
+							System.out.println("Invalid connection list on port in " + np);
 							return null;
 						}
 
@@ -1041,7 +1041,7 @@ public class LibToTech
 				if (portName == null)
 				{
 					pointOutError(ns.node, np);
-					System.out.println("Cell " + np.describe() + ": port does not have a name");
+					System.out.println("Cell " + np.describe(true) + ": port does not have a name");
 					return null;
 				}
 				for(int c=0; c<portName.length(); c++)
@@ -1050,7 +1050,7 @@ public class LibToTech
 					if (str <= ' ' || str >= 0177)
 					{
 						pointOutError(ns.node, np);
-						System.out.println("Invalid port name '" + portName + "' in " + np.describe());
+						System.out.println("Invalid port name '" + portName + "' in " + np);
 						return null;
 					}
 				}
@@ -1105,7 +1105,7 @@ public class LibToTech
 				if (pol1Port < 0 || pol2Port < 0 || dif1Port < 0 || dif2Port < 0)
 				{
 					pointOutError(null, np);
-					System.out.println("Need 2 gate and 2 active ports on field-effect transistor " + np.describe());
+					System.out.println("Need 2 gate and 2 active ports on field-effect transistor " + np.describe(true));
 					return null;
 				}
 				if (pol1Port != 0)
@@ -1275,7 +1275,7 @@ public class LibToTech
 				if (difIndex < 0 || polIndex < 0)
 				{
 					pointOutError(null, np);
-					System.out.println("No diffusion and polysilicon layers in transistor " + np.describe());
+					System.out.println("No diffusion and polysilicon layers in transistor " + np);
 					return null;
 				}
 
@@ -1408,20 +1408,20 @@ public class LibToTech
 					if (err)
 					{
 						pointOutError(ns.node, ns.node.getParent());
-						System.out.println("Highlighting cannot scale from center in " + np.describe());
+						System.out.println("Highlighting cannot scale from center in " + np);
 						return null;
 					}
 				} else
 				{
 					pointOutError(ns.node, ns.node.getParent());
-					System.out.println("No rule found for highlight in " + np.describe());
+					System.out.println("No rule found for highlight in " + np);
 					return null;
 				}
 			}
 			if (!found)
 			{
 				pointOutError(null, np);
-				System.out.println("No highlight found in " + np.describe());
+				System.out.println("No highlight found in " + np);
 				return null;
 			}
 			if (lX != 0 || hX != 0 || lY != 0 || hY != 0)
@@ -1479,7 +1479,7 @@ public class LibToTech
 				if (ns.layer == Generic.tech.cellCenterNode)
 				{
 					pointOutError(ns.node, ns.node.getParent());
-					System.out.println("Grab point should only be in main example of " + np.describe());
+					System.out.println("Grab point should only be in main example of " + np);
 					return true;
 				}
 
@@ -1498,7 +1498,7 @@ public class LibToTech
 				if (total == 0)
 				{
 					pointOutError(ns.node, ns.node.getParent());
-					System.out.println("Layer " + getSampleName(ns.layer) + " not found in main example of " + np.describe());
+					System.out.println("Layer " + getSampleName(ns.layer) + " not found in main example of " + np);
 					return true;
 				}
 
@@ -1516,7 +1516,7 @@ public class LibToTech
 					if (name == null)
 					{
 						pointOutError(ns.node, ns.node.getParent());
-						System.out.println("Cell " + np.describe() + ": port does not have a name");
+						System.out.println("Cell " + np.describe(true) + ": port does not have a name");
 						return true;
 					}
 
@@ -1531,7 +1531,7 @@ public class LibToTech
 							if (otherName == null)
 							{
 								pointOutError(nsList.node, nsList.node.getParent());
-								System.out.println("Cell " + np.describe() + ": port does not have a name");
+								System.out.println("Cell " + np.describe(true) + ": port does not have a name");
 								return true;
 							}
 							if (!name.equalsIgnoreCase(otherName)) continue;
@@ -1543,7 +1543,7 @@ public class LibToTech
 					if (!found)
 					{
 						pointOutError(null, np);
-						System.out.println("Could not find port " + name + " in all examples of " + np.describe());
+						System.out.println("Could not find port " + name + " in all examples of " + np);
 						return true;
 					}
 					continue;
@@ -1616,7 +1616,7 @@ public class LibToTech
 				// don't know how to associate this sample
 				Sample thisSample = (Sample)thisList.get(i);
 				pointOutError(thisSample.node, thisSample.node.getParent());
-				System.out.println("Sample " + getSampleName(thisSample.layer) + " is unassociated in " + np.describe());
+				System.out.println("Sample " + getSampleName(thisSample.layer) + " is unassociated in " + np);
 				return true;
 			}
 
@@ -1638,7 +1638,7 @@ public class LibToTech
 				{
 					if (nsList.layer == Generic.tech.cellCenterNode) continue;
 					pointOutError(nsList.node, nsList.node.getParent());
-					System.out.println("Layer " + getSampleName(nsList.layer) + " found in main example, but not others in " + np.describe());
+					System.out.println("Layer " + getSampleName(nsList.layer) + " found in main example, but not others in " + np);
 					return true;
 				}
 			}
@@ -1727,8 +1727,8 @@ public class LibToTech
 			}
 		}
 		if (sty == null)
-			System.out.println("Cannot determine style to use for " + ni.getProto().describe() +
-				" node in " + ni.getParent().describe());
+			System.out.println("Cannot determine style to use for " + ni.getProto() +
+				" node in " + ni.getParent());
 		return sty;
 	}
 
@@ -1828,7 +1828,7 @@ public class LibToTech
 			Technology.TechPoint [] newRule = stretchPoints(pointList, pointFactor, ns, np, neList);
 			if (newRule == null)
 			{
-				System.out.println("Error creating stretch point in " + np.describe());
+				System.out.println("Error creating stretch point in " + np);
 				return null;
 			}
 			ns.msg = Info.getValueOnNode(ns.node);
@@ -1936,7 +1936,7 @@ public class LibToTech
 				if (total == 0)
 				{
 					pointOutError(ns.node, ns.node.getParent());
-					System.out.println("Still unassociated sample in " + np.describe() + " (shouldn't happen)");
+					System.out.println("Still unassociated sample in " + np + " (shouldn't happen)");
 					return null;
 				}
 
@@ -1947,7 +1947,7 @@ public class LibToTech
 					if (ns.layer == null || ns.layer == Generic.tech.portNode)
 					{
 						pointOutError(ns.node, ns.node.getParent());
-						System.out.println("Only contact layers may be iterated in examples of " + np.describe());
+						System.out.println("Only contact layers may be iterated in examples of " + np);
 						return null;
 					}
 
@@ -2143,7 +2143,7 @@ public class LibToTech
 				{
 					pointOutError(ni, ni.getParent());
 					System.out.println("Main example of " + getSampleName(ne.studySample.layer) +
-						" has " + trueCount + " points but this has " + newCount + " in " + np.describe());
+						" has " + trueCount + " points but this has " + newCount + " in " + np);
 					return null;
 				}
 
@@ -2178,7 +2178,7 @@ public class LibToTech
 				if (var == null && var2 != null)
 				{
 					pointOutError(null, np);
-					System.out.println("Warning: moving port angle to main example of " + np.describe());
+					System.out.println("Warning: moving port angle to main example of " + np);
 					ns.node.newVar(Info.PORTANGLE_KEY, var2.getObject());
 				}
 
@@ -2188,7 +2188,7 @@ public class LibToTech
 				if (var == null && var2 != null)
 				{
 					pointOutError(null, np);
-					System.out.println("Warning: moving port range to main example of " + np.describe());
+					System.out.println("Warning: moving port range to main example of " + np);
 					ns.node.newVar(Info.PORTRANGE_KEY, var2.getObject());
 				}
 
@@ -2198,7 +2198,7 @@ public class LibToTech
 				if (var == null && var2 != null)
 				{
 					pointOutError(null, np);
-					System.out.println("Warning: moving port connections to main example of " + np.describe());
+					System.out.println("Warning: moving port connections to main example of " + np);
 					ns.node.newVar(Info.CONNECTION_KEY, var2.getObject());
 				}
 			}
@@ -2211,7 +2211,7 @@ public class LibToTech
 						(pointFactor[i]&(TOEDGETOP|TOEDGEBOT)) == 0)
 				{
 					pointOutError(ns.node, ns.node.getParent());
-					System.out.println("Highlight must be constant distance from edge in " + np.describe());
+					System.out.println("Highlight must be constant distance from edge in " + np);
 					return null;
 				}
 			}
@@ -2248,7 +2248,7 @@ public class LibToTech
 			count++;
 		}
 		if (count != nodeLayers.length)
-			System.out.println("Generated only " + count + " of " + nodeLayers.length + " layers for " + np.describe());
+			System.out.println("Generated only " + count + " of " + nodeLayers.length + " layers for " + np);
 		return nodeLayers;
 	}
 
@@ -2310,7 +2310,7 @@ public class LibToTech
 			{
 				pointOutError(ns.node, ns.node.getParent());
 				System.out.println("Cannot determine X stretching rule for layer " + getSampleName(ns.layer) +
-					" in " + np.describe());
+					" in " + np);
 				return null;
 			}
 
@@ -2342,7 +2342,7 @@ public class LibToTech
 			{
 				pointOutError(ns.node, ns.node.getParent());
 				System.out.println("Cannot determine Y stretching rule for layer " + getSampleName(ns.layer) +
-					" in " + np.describe());
+					" in " + np);
 				return null;
 			}
 			newRule[i] = new Technology.TechPoint(horiz, vert);
@@ -2360,7 +2360,7 @@ public class LibToTech
 		}
 
 		pointOutError(null, np);
-		System.out.println("No highlight layer on contact " + np.describe());
+		System.out.println("No highlight layer on contact " + np.describe(true));
 		return null;
 	}
 
@@ -2387,7 +2387,7 @@ public class LibToTech
 			highlightBounds.getMaxY() - nodeBounds.getMaxY() != multiIndent)
 		{
 			pointOutError(ns.node, ns.node.getParent());
-			System.out.println("Multiple contact cuts must be indented uniformly in " + np.describe());
+			System.out.println("Multiple contact cuts must be indented uniformly in " + np);
 			return null;
 		}
 
@@ -2407,7 +2407,7 @@ public class LibToTech
 					if (multiXS != oNodeBounds.getWidth() || multiYS != oNodeBounds.getHeight())
 					{
 						pointOutError(nso.node, nso.node.getParent());
-						System.out.println("Multiple contact cuts must not differ in size in " + np.describe());
+						System.out.println("Multiple contact cuts must not differ in size in " + np);
 						return null;
 					}
 					total++;
@@ -2438,7 +2438,7 @@ public class LibToTech
 				if (sepX < multiXS && sepY < multiYS)
 				{
 					pointOutError(nsList[i].node, nsList[i].node.getParent());
-					System.out.println("Multiple contact cuts must not overlap in " + np.describe());
+					System.out.println("Multiple contact cuts must not overlap in " + np);
 					return null;
 				}
 
@@ -2470,7 +2470,7 @@ public class LibToTech
 				if (sepX / xSep * xSep != sepX)
 				{
 					pointOutError(nsList[i].node, nsList[i].node.getParent());
-					System.out.println("Multiple contact cut X spacing must be uniform in " + np.describe());
+					System.out.println("Multiple contact cut X spacing must be uniform in " + np);
 					return null;
 				}
 
@@ -2478,7 +2478,7 @@ public class LibToTech
 				if (sepY / ySep * ySep != sepY)
 				{
 					pointOutError(nsList[i].node, nsList[i].node.getParent());
-					System.out.println("Multiple contact cut Y spacing must be uniform in " + np.describe());
+					System.out.println("Multiple contact cut Y spacing must be uniform in " + np);
 					return null;
 				}
 			}
@@ -2487,7 +2487,7 @@ public class LibToTech
 		if (multiSep != ySep - multiYS)
 		{
 			pointOutError(null, np);
-			System.out.println("Multiple contact cut X and Y spacing must be the same in " + np.describe());
+			System.out.println("Multiple contact cut X and Y spacing must be the same in " + np);
 			return null;
 		}
 		ns.values = new Technology.TechPoint[2];

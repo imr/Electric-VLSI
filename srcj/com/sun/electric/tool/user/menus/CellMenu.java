@@ -265,7 +265,7 @@ public class CellMenu {
 			boolean wasMulti = cell.isMultiPage();
 	    	cell.setMultiPage(true);
 	    	cell.newVar(Cell.MULTIPAGE_COUNT_KEY, new Integer(numPages));
-	    	if (!wasMulti) System.out.println("Cell " + cell.describe() + " is now a multi-page schematic");
+	    	if (!wasMulti) System.out.println("Cell " + cell.describe(true) + " is now a multi-page schematic");
 			return true;
 		}
 	}

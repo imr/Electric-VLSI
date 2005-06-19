@@ -102,8 +102,8 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         public String describe()
         {
             String msg;
-            if (geom instanceof NodeInst) msg = "Node " + geom.describe(); else
-                msg = "Arc " + geom.describe();
+            if (geom instanceof NodeInst) msg = "Node " + geom.describe(true); else
+                msg = "Arc " + geom.describe(true);
             msg += " in " + context.getInstPath(".");
             return msg;
         }

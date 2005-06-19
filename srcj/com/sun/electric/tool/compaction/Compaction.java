@@ -114,7 +114,7 @@ public class Compaction extends Listener
 
 		private CompactCellJob(Cell cell, boolean lastTime, CompactCell.Axis curAxis)
 		{
-			super("Compact Cell", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Compact " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.lastTime = lastTime;
 			this.curAxis = curAxis;

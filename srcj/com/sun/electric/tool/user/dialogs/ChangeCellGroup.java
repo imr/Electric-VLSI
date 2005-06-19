@@ -58,7 +58,7 @@ public class ChangeCellGroup extends EDialog {
 
         initComponents();
 
-        cellNameLabel.setText("Change Cell Group for Cell: "+cell.describe());
+        cellNameLabel.setText("Change Cell Group for: "+cell);
 
         // populate cell group combo box
         populateCellGroupsComboBox(cell, initialLibrary);

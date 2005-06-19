@@ -96,7 +96,6 @@ public class Export extends ElectricObject implements PortProto, Comparable
      * @param nameTextDescriptor text descriptor of this Export
 	 * @param originalPort the PortInst that is being exported.
      * @param userBits flag bits of this Export.
-	 * @return true on error.
 	 */
 	private Export(Cell parent, String protoName, ImmutableTextDescriptor nameTextDescriptor, PortInst originalPort, int userBits)
 	{
@@ -140,7 +139,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		{
             String oldName = protoName;
             protoName = ElectricObject.uniqueObjectName(protoName, parent, PortProto.class);
-			System.out.println("Cell " + parent.describe() + " already has an export named " + oldName +
+			System.out.println(parent + " already has an export named " + oldName +
                     ", making new export named "+protoName);
             assert(parent.findExport(protoName) == null);
 		}
@@ -190,7 +189,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	            // create export in icon
 	            if (!ViewChanges.makeIconExport(pp, 0, newlocX, newlocY, newlocX+bodyDX, newlocY+bodyDY, icon))
 	            {
-	                System.out.println("Warning: Failed to create associated export in icon "+icon.describe());
+	                System.out.println("Warning: Failed to create associated export in icon "+icon.describe(true));
 	            }
 	        }
 		}
@@ -213,14 +212,14 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		// initialize this object
 		if (originalPort == null)
 		{
-			System.out.println("Null port on Export " + name + " in cell " + parent.describe());
+			System.out.println("Null port on Export " + name + " in " + parent);
 			return null;
 		}
 		NodeInst ni = originalPort.getNodeInst();
 		PortProto subpp = originalPort.getPortProto();
 		if (ni.getParent() != parent || subpp.getParent() != ni.getProto()/* || doesntConnect(subpp.getBasePort())*/)
 		{
-			System.out.println("Bad port on Export " + name + " in cell " + parent.describe());
+			System.out.println("Bad port on Export " + name + " in " + parent);
 			return null;
 		}
         
@@ -277,7 +276,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	        String dupName = ElectricObject.uniqueObjectName(newName, cell, PortProto.class);
 	        if (!dupName.equals(newName))
 	        {
-	            System.out.println("Cell " + cell.describe() + " already has an export named " + newName +
+	            System.out.println(cell + " already has an export named " + newName +
 	                    ", making new export named "+dupName);
 	            newName = dupName;
 	        }
@@ -628,7 +627,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public String toString()
 	{
-		return "Export " + getName();
+		return "export '" + getName() + "'";
 	}
 
 	/****************************** MISCELLANEOUS ******************************/
@@ -946,7 +945,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 //				if (con.getPortInst().getPortProto() != this) continue;
 				if (!newPP.connectsTo(con.getArc().getProto()))
 				{
-					System.out.println(con.getArc().describe() + " arc in cell " + ni.getParent().describe() +
+					System.out.println(con.getArc() + " in " + ni.getParent() +
 						" cannot connect to port " + getName());
 					return true;
 				}

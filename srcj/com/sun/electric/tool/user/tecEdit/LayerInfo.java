@@ -369,7 +369,7 @@ public class LayerInfo extends Info
 
 		if (patternCount != 16*16 && patternCount != 16*8)
 		{
-			System.out.println("Incorrect number of pattern boxes in " + np.describe() +
+			System.out.println("Incorrect number of pattern boxes in " + np +
 				" (has " + patternCount + ", not " + (16*16) + ")");
 			return null;
 		}

@@ -44,7 +44,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.GDSLayers;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -52,7 +51,6 @@ import java.awt.geom.Rectangle2D;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -624,7 +622,7 @@ public class GDS extends Geometry
 
 		String name = (String)cellNames.get(cell);
         if (name == null) {
-            System.out.println("Warning, subcell "+cell.describe()+" in hierarchy is not the same view" +
+            System.out.println("Warning, sub"+cell+" in hierarchy is not the same view" +
                     " as top level cell");
             name = makeUniqueName(cell, cellNames);
             cellNames.put(cell, name);

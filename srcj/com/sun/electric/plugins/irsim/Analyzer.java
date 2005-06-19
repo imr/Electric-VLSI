@@ -212,7 +212,7 @@ public class Analyzer extends Engine
 				analyzer.initRSim();
 
 				// Load network
-				if (analyzer.cell != null) System.out.println("Loading netlist for cell " + analyzer.cell.describe() + "..."); else
+				if (analyzer.cell != null) System.out.println("Loading netlist for " + analyzer.cell + "..."); else
 					System.out.println("Loading netlist for file " + analyzer.fileName + "...");
 				Stimuli sd = analyzer.getCircuit();
 	 			Simulation.showSimulationData(sd, null);

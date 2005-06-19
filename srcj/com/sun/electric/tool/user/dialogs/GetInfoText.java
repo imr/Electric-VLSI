@@ -33,7 +33,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.Variable.Key;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
@@ -49,21 +48,14 @@ import com.sun.electric.tool.user.menus.MenuBar;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Frame;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.font.FontRenderContext;
 import java.awt.font.GlyphVector;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.event.WindowStateListener;
-import java.awt.event.WindowEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.Graphics;
 import java.awt.event.MouseMotionListener;
@@ -75,7 +67,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 import javax.swing.BorderFactory;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.text.JTextComponent;
@@ -155,21 +146,21 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 						if (geom instanceof NodeInst)
 						{
 							NodeInst ni1 = (NodeInst)geom;
-							description = "Name of node " + ni1.getProto().describe();
+							description = "Name of " + ni1.getProto();
 							varName = NodeInst.NODE_NAME_TD;
 						} else
 						{
 							ArcInst ai = (ArcInst)geom;
-							description = "Name of arc " + ai.getProto().describe();
+							description = "Name of " + ai.getProto();
 							varName = ArcInst.ARC_NAME_TD;
 						}
 						initialText = geom.getName();
 					}
 				} else if (owner instanceof NodeInst)
 				{
-					description = "Name of cell instance " + ni.describe();
+					description = "Name of cell instance " + ni.describe(true);
 					varName = NodeInst.NODE_PROTO_TD;
-					initialText = ni.getProto().describe();
+					initialText = ni.getProto().describe(true);
 					instanceName = true;
 				} else if (owner instanceof Export)
 				{

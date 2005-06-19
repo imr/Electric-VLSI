@@ -34,10 +34,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.dialogs.EDialog;
@@ -101,7 +99,7 @@ public class SizeListener
 			EventListener oldListener = WindowFrame.getListener();
 			Cursor oldCursor = TopLevel.getCurrentCursor();
 
-			System.out.println("Click to stretch " + geom.describe());
+			System.out.println("Click to stretch " + geom);
 			newListener = oldListener;
 			if (newListener == null || !(newListener instanceof SizeListener))
 			{

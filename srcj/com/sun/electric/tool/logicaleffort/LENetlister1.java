@@ -168,7 +168,7 @@ public class LENetlister1 extends LENetlister {
             topLevelCell.newVar(varName, new Float(inst.getLeX()));
 
             if (inst.getLeX() < 1.0f) {
-                String msg = "WARNING: Instance "+ni.describe()+" has size "+TextUtils.formatDouble(inst.getLeX(), 3)+" less than 1 ("+inst.getName()+")";
+                String msg = "WARNING: Instance "+ni+" has size "+TextUtils.formatDouble(inst.getLeX(), 3)+" less than 1 ("+inst.getName()+")";
                 System.out.println(msg);
                 if (ni != null) {
                     ErrorLogger.MessageLog log = errorLogger.logWarning(msg, ni.getParent(), 2);
@@ -482,7 +482,7 @@ public class LENetlister1 extends LENetlister {
             Cell cell = (Cell)ni.getProto();
             Export exp = cell.findExport(pp.getName());
             if (exp != null && lePortError.get(exp) == null) {
-                String msg = "Warning: Sizeable gate has no logical effort specified for port "+pp.getName()+" in cell "+cell.describe();
+                String msg = "Warning: Sizeable gate has no logical effort specified for port "+pp.getName()+" in "+cell;
                 System.out.println(msg);
                 ErrorLogger.MessageLog log = errorLogger.logWarning(msg, cell, 0);
                 log.addExport(exp, true, cell, info.getContext().push(ni));

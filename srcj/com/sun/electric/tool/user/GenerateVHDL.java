@@ -86,7 +86,7 @@ public class GenerateVHDL
 		// cannot make VHDL for cell with no ports
 		if (cell.getNumPorts() == 0)
 		{
-			System.out.println("Cannot convert cell " + cell.describe() + " to VHDL: it has no ports");
+			System.out.println("Cannot convert " + cell + " to VHDL: it has no ports");
 			return null;
 		}
 
@@ -133,7 +133,7 @@ public class GenerateVHDL
 			vhdlStrings.add("");
 			vhdlStrings.add("");
 		}
-		vhdlStrings.add("-- VHDL automatically generated from cell " + cell.describe());
+		vhdlStrings.add("-- VHDL automatically generated from " + cell);
 		Netlist nl = info.getNetlist();
 
 		// write the entity section
@@ -308,10 +308,10 @@ public class GenerateVHDL
 			Network net = nl.getNetwork(con.getArc(), 0);
 			if (con.getPortInst().getPortProto().getBasePort().getCharacteristic() == PortCharacteristic.OUT)
 			{
-				invertStr.append("PINV" + index.intValue() + ", " + addString(net.describe(), cell));
+				invertStr.append("PINV" + index.intValue() + ", " + addString(net.describe(false), cell));
 			} else
 			{
-				invertStr.append(addString(net.describe(), cell) + ", PINV" + index.intValue());
+				invertStr.append(addString(net.describe(false), cell) + ", PINV" + index.intValue());
 			}
 			invertStr.append(");");
 			bodyStrings.add(invertStr.toString());
@@ -460,7 +460,7 @@ public class GenerateVHDL
 						String sigName = "open";
 						Network net = nl.getNetwork(ai, 0);
 						if (net != null)
-							sigName = addString(net.describe(), no.getParent());
+							sigName = addString(net.describe(false), no.getParent());
 						if (con.isNegated())
 						{
 							Integer index = (Integer)negatedConnections.get(con);
@@ -941,7 +941,7 @@ public class GenerateVHDL
 						networksFound.add(net);
 						portName = getOneNetworkName(net);
 					} else
-						System.out.println("Cannot find network for export '" + pp.getName() + "' on cell " + np.describe());
+						System.out.println("Cannot find network for export '" + pp.getName() + "' on " + np);
 				}
 				if (pp.getBasePort().isIsolated())
 				{
@@ -986,6 +986,6 @@ public class GenerateVHDL
 	{
 		Iterator nIt = net.getNames();
 		if (nIt.hasNext()) return (String)nIt.next();
-		return net.describe();
+		return net.describe(false);
 	}
 }

@@ -27,7 +27,6 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
@@ -36,7 +35,6 @@ import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.Iterator;
 
 /**
  * This class is the superclass for the Electric classes that have visual
@@ -64,9 +62,10 @@ public abstract class Geometric extends ElectricObject
 	/**
 	 * Method to describe this Geometric as a string.
 	 * This method is overridden by NodeInst and ArcInst.
+     * @param withQuotes to wrap description between quotes
 	 * @return a description of this Geometric as a string.
 	 */
-	public String describe() { return "?"; }
+	public String describe(boolean withQuotes) { return "?"; }
 
 	/**
 	 * Routing to check whether changing of this cell allowed or not.
@@ -111,7 +110,7 @@ public abstract class Geometric extends ElectricObject
 		Rectangle2D visBounds = getBounds();
 		System.out.println(" Bounds: (" + visBounds.getCenterX() + "," + visBounds.getCenterY() + "), size: " +
 			visBounds.getWidth() + "x" + visBounds.getHeight());
-		System.out.println(" Parent cell: " + parent.describe());
+		System.out.println(" Parent: " + parent);
         super.getInfo();
 	}
 

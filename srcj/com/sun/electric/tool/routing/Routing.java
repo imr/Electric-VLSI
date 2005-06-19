@@ -30,7 +30,6 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
@@ -41,9 +40,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
-import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.event.ActionEvent;
@@ -478,7 +475,7 @@ public class Routing extends Listener
 		Cell np = WindowFrame.needCurCell();
 		if (np == null) return;
 		copiedTopologyCell = np;
-		System.out.println("Cell " + np.describe() + " will have its connectivity remembered");
+		System.out.println("Cell " + np.describe(true) + " will have its connectivity remembered");
 	}
 
 	/**
@@ -544,7 +541,7 @@ public class Routing extends Listener
 	 */
 	public static boolean copyTopology(Cell fromCell, Cell toCell)
 	{
-		System.out.println("Copying topology of cell " + fromCell.describe() + " to cell " + toCell.describe());
+		System.out.println("Copying topology of " + fromCell + " to " + toCell);
 		int wiresMade = 0;
 
 		// reset association pointers in the destination cell
@@ -615,8 +612,8 @@ public class Routing extends Listener
 			if (toList.size() != fromList.size())
 			{
 				if (fromList.size() == 0) continue;
-				System.out.println("Warning: " + fromCell.describe() + " has " + fromList.size() + " of " + ni.getProto().describe() +
-					" but cell " + toCell.describe() + " has " + toList.size());
+				System.out.println("Warning: " + fromCell + " has " + fromList.size() + " of " + ni.getProto() +
+					" but " + toCell + " has " + toList.size());
 				return false;
 			}
 
@@ -645,7 +642,7 @@ public class Routing extends Listener
 			if (toList.size() != fromList.size())
 			{
 				System.out.println("Error: after name match, there are " + fromList.size() +
-					" instances of " + ni.getProto().describe() + " in source and " + toList.size() + " in destination");
+					" instances of " + ni.getProto() + " in source and " + toList.size() + " in destination");
 				return false;
 			}
 

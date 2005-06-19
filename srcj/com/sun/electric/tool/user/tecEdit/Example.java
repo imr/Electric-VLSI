@@ -117,7 +117,7 @@ public class Example
 						if (otherAssn instanceof Integer) continue;
 						if ((Example)otherAssn == ne) continue;
 						LibToTech.pointOutError(otherNi, np);
-						System.out.println("Examples are too close in " + np.describe());
+						System.out.println("Examples are too close in " + np);
 						return null;
 					}
 					nodeExamples.put(otherNi, ne);
@@ -139,7 +139,7 @@ public class Example
 							if (!isNode)
 							{
 								LibToTech.pointOutError(otherNi, np);
-								System.out.println(np.describe() + " cannot have ports.  Delete this");
+								System.out.println(np + " cannot have ports.  Delete this");
 								return null;
 							}
 							ns.layer = Generic.tech.portNode;
@@ -148,7 +148,7 @@ public class Example
 							if (!isNode)
 							{
 								LibToTech.pointOutError(otherNi, np);
-								System.out.println(np.describe() + " cannot have a grab point.  Delete this");
+								System.out.println(np + " cannot have a grab point.  Delete this");
 								return null;
 							}
 							ns.layer = Generic.tech.cellCenterNode;
@@ -161,7 +161,7 @@ public class Example
 							if (ns.layer == null)
 							{
 								LibToTech.pointOutError(otherNi, np);
-								System.out.println("No layer information on node " + otherNi.describe() + " in " + np.describe());
+								System.out.println("No layer information on " + otherNi + " in " + np);
 								return null;
 							}
 							break;
@@ -190,20 +190,20 @@ public class Example
 			if (hCount == 0)
 			{
 				LibToTech.pointOutError(null, np);
-				System.out.println("No highlight layer in " + np.describe() + " example");
+				System.out.println("No highlight layer in " + np + " example");
 				return null;
 			}
 			if (hCount != 1)
 			{
 				LibToTech.pointOutError(null, np);
-				System.out.println("Too many highlight layers in " + np.describe() + " example.  Delete some");
+				System.out.println("Too many highlight layers in " + np + " example.  Delete some");
 				return null;
 			}
 		}
 		if (neList == null)
 		{
 			LibToTech.pointOutError(null, np);
-			System.out.println("No examples found in " + np.describe());
+			System.out.println("No examples found in " + np);
 			return neList;
 		}
 

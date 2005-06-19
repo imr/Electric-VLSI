@@ -546,7 +546,7 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 				if (iconCell != null && iconCell != cell)
 				{
 					int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-						"Don't you really want to place the icon " + iconCell.describe() + "?");
+						"Don't you really want to place the icon " + iconCell.describe(true) + "?");
 					if (response == JOptionPane.CANCEL_OPTION) return null;
 					if (response == JOptionPane.YES_OPTION) obj = np = iconCell;
 				}
@@ -566,8 +566,8 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 			if (whatToCreate != null) System.out.println("Click to create " + whatToCreate); else
 			{
 				if (np instanceof Cell)
-					System.out.println("Click to create an instance of cell " + np.describe()); else
-						System.out.println("Click to create node " + np.describe());
+					System.out.println("Click to create an instance of " + np); else
+						System.out.println("Click to create " + np);
 			}
 			EventListener newListener = oldListener;
 			if (newListener != null && newListener instanceof PlaceNodeListener)

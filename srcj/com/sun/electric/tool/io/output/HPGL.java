@@ -270,7 +270,7 @@ public class HPGL extends Output
 						MutableTextDescriptor td = MutableTextDescriptor.getInstanceTextDescriptor();
 						td.setAbsSize(24);
 						poly.setTextDescriptor(td);
-						poly.setString(ni.getProto().describe());
+						poly.setString(ni.getProto().describe(false));
 						layerList.add(poly);
 					}
 				}

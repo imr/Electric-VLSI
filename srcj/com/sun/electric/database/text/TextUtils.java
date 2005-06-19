@@ -1392,8 +1392,8 @@ public class TextUtils
         {
             Network n1 = (Network)o1;
             Network n2 = (Network)o2;
-            String s1 = n1.describe();
-            String s2 = n2.describe();
+            String s1 = n1.describe(false);
+            String s2 = n2.describe(false);
             return s1.compareToIgnoreCase(s2);
         }
     }

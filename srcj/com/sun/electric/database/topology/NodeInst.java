@@ -330,7 +330,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		{
             if (Cell.isInstantiationRecursive((Cell)protoType, parent))
 			{
-				System.out.println("Cannot create instance of " + protoType.describe() + " in cell " + parent.describe() +
+				System.out.println("Cannot create instance of " + protoType + " in " + parent +
 					" because it is recursive");
 				return null;
 			}
@@ -344,7 +344,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 				NodeInst oNi = (NodeInst)it.next();
 				if (oNi.getProto() == Generic.tech.cellCenterNode)
 				{
-					System.out.println("Can only be one cell-center in cell " + parent.describe() + ": new one ignored");
+					System.out.println("Can only be one cell-center in " + parent + ": new one ignored");
 					return null;
 				}
 			}
@@ -599,7 +599,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			if (!opi.getPortProto().connectsTo(ai.getProto()))
 			{
 				if (allowMissingPorts) continue;
-				System.out.println(ai.describe() + " arc on old port " + con.getPortInst().getPortProto().getName() +
+				System.out.println(ai + " on old port " + con.getPortInst().getPortProto().getName() +
 					" cannot connect to new port " + opi.getPortProto().getName());
 				newNi.kill();
 				return null;
@@ -668,7 +668,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
             if (opi == null) {
 				if (!allowMissingPorts)
 				{
-					System.out.println("Cannot re-connect " + ai.describe() + " arc");
+					System.out.println("Cannot re-connect " + ai);
 				} else
 				{
 					ai.kill();
@@ -1423,7 +1423,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			pointList[0] = new Point2D.Double(cX+offX, cY+offY);
 			polys[start] = new Poly(pointList);
 			polys[start].setStyle(style);
-			polys[start].setString(getProto().describe());
+			polys[start].setString(getProto().describe(false));
 			polys[start].setTextDescriptor(td);
 			start++;
 		}
@@ -2014,8 +2014,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		int sz = portInsts.length;
 		if (sz != 1)
 		{
-			System.out.println("NodeInst.getOnlyPortInst: Cell " + parent.describe() +
-				", node " + describe() + " doesn't have just one port, it has " + sz);
+			System.out.println("NodeInst.getOnlyPortInst: " + parent +
+				", " + this + " doesn't have just one port, it has " + sz);
 			return null;
 		}
 		return portInsts[0];
@@ -2619,12 +2619,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 
 	/**
 	 * Method to describe this NodeInst as a string.
+     * @param withQuotes to wrap description between quotes
 	 * @return a description of this NodeInst as a string.
 	 */
-	public String describe()
+	public String describe(boolean withQuotes)
 	{
-		String description = protoType.describe();
-		String name = getName();
+		String description = protoType.describe(false);
+		String name = (withQuotes) ? "'"+getName()+"'" : getName();
 		if (name != null) description += "[" + name + "]";
 		return description;
 	}
@@ -2655,7 +2656,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public String toString()
 	{
         if (protoType == null) return "NodeInst no protoType";
-		return "NodeInst " + protoType.getName();
+//		return "NodeInst '" + protoType.getName() + "'";
+        return "node " + describe(true);
 	}
 
 	/****************************** MISCELLANEOUS ******************************/
@@ -2950,7 +2952,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 						sizeMsg = " but has outline of size ";
 				} else
 				{
-					String msg = "Cell " + parent.describe() + ", node " + describe() + " has unexpected outline";
+					String msg = parent + ", " + this + " has unexpected outline";
 					System.out.println(msg);
 					if (errorLogger != null)
 					{
@@ -2964,7 +2966,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		}
 		if (sizeMsg != null)
 		{
-			sizeMsg = "Cell " + parent.describe() + ", node " + describe() +
+			sizeMsg = parent + ", " + this +
 				" is " + getXSize() + "x" + getYSize() + sizeMsg + width + "x" + height;
 			if (repair)
 			{

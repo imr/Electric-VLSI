@@ -205,7 +205,7 @@ public class ViewChanges
 
 		protected ChangeCellView(Cell cell, View newView)
 		{
-			super("Change View of Cell" + cell.describe() + " to " + newView.getFullName(),
+			super("Change View of " + cell + " to " + newView.getFullName(),
 					User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newView = newView;
@@ -280,8 +280,8 @@ public class ViewChanges
 			boolean error = skeletonizeCell(curCell, skeletonCell);
 			if (error) return false;
 
-			System.out.println("Cell " + skeletonCell.describe() + " created with a skeletal representation of " +
-				curCell.describe());
+			System.out.println("Cell " + skeletonCell.describe(true) + " created with a skeletal representation of " +
+				curCell);
 			WindowFrame.createEditWindow(skeletonCell);
 
 			return true;
@@ -433,7 +433,7 @@ public class ViewChanges
 			if (iconCell != null)
 			{
 				int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-					"Warning: Icon " + iconCell.describe() + " already exists.  Create a new version?");
+					"Warning: Icon " + iconCell.describe(true) + " already exists.  Create a new version?");
 				if (response != JOptionPane.YES_OPTION) return false;
 			}
 
@@ -817,8 +817,7 @@ public class ViewChanges
 			if ((GenMath.figureAngle(headPt, tailPt)%450) == 0) ai.setFixedAngle(true);
 		}
 
-		System.out.println("Cell " + newCell.describe() + " created with a schematic representation of " +
-			oldCell.describe());
+		System.out.println("Cell " + newCell.describe(true) + " created with a schematic representation of " + oldCell);
 		return newCell;
 	}
 
@@ -1115,15 +1114,15 @@ public class ViewChanges
 			if (newTech == null) return false;
 			if (newTech == oldTech)
 			{
-				System.out.println("Cell " + oldCell.describe() + " is already in the " + newTech.getTechName() + " technology");
+				System.out.println("Cell " + oldCell.describe(true) + " is already in the " + newTech.getTechName() + " technology");
 				return false;
 			}
 
 			// convert the cell and all subcells
 			HashMap convertedCells = new HashMap();
 			Cell newCell = makeLayoutCells(oldCell, oldCell.getName(), oldTech, newTech, oldCell.getView(), convertedCells);
-			System.out.println("Cell " + newCell.describe() + " created with a " + newTech.getTechName() + " layout equivalent of " +
-				oldCell.describe());
+			System.out.println("Cell " + newCell.describe(true) + " created with a " + newTech.getTechName() + " layout equivalent of " +
+				oldCell);
 			WindowFrame.createEditWindow(newCell);
 			return true;
 		}
@@ -1194,7 +1193,7 @@ public class ViewChanges
 					Cell newCellType = (Cell)convertedCells.get(ni.getProto());
 					if (newCellType == null)
 					{
-						System.out.println("No equivalent cell for " + ni.getProto().describe());
+						System.out.println("No equivalent cell for " + ni.getProto());
 						continue;
 					}
 					placeLayoutNode(ni, newCellType, newCell);
@@ -1274,9 +1273,9 @@ public class ViewChanges
 				ArcInst newAi = ArcInst.makeInstance(newAp, newWid, newHeadPi, newTailPi, pHead, pTail, ai.getName());
 				if (newAi == null)
 				{
-					System.out.println("Cell " + newCell.describe() + ": can't run " + newAp.getName() + " arc from node " +
-						newHeadNi.describe() + " port " + newHeadPp.getName() + " at (" + pHead.getX() + "," + pHead.getY() + ") to node " +
-						newTailNi.describe() + " port " + newTailPp.getName() + " at (" + pTail.getX() + "," + pTail.getY() + ")");
+					System.out.println("Cell " + newCell.describe(true) + ": can't run " + newAp + " from " +
+						newHeadNi + " " + newHeadPp + " at (" + pHead.getX() + "," + pHead.getY() + ") to " +
+						newTailNi + " " + newTailPp + " at (" + pTail.getX() + "," + pTail.getY() + ")");
 					continue;
 				}
 				newAi.copyPropertiesFrom(ai);
@@ -1396,7 +1395,7 @@ public class ViewChanges
 			NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getAngle(), ni.getName(), ni.getTechSpecific());
 			if (newNi == null)
 			{
-				System.out.println("Could not create node " + newNp.describe() + " in cell " + newCell.describe());
+				System.out.println("Could not create " + newNp + " in " + newCell);
 				return;
 			}
 			convertedNodes.put(ni, newNi);
@@ -1455,7 +1454,7 @@ public class ViewChanges
 				ArcProto ap = (ArcProto)it.next();
 				if (possibleArcs.contains(ap)) return ap;
 			}
-			System.out.println("No equivalent arc for " + oldAp.describe());
+			System.out.println("No equivalent arc for " + oldAp);
 			return Generic.tech.universal_arc;
 		}
 
@@ -1470,7 +1469,7 @@ public class ViewChanges
 				// cells can associate by comparing names
 				PortProto pp = newNi.getProto().findPortProto(oldPp.getName());
 				if (pp != null) return pp;
-				System.out.println("Cannot find export " + oldPp.getName() + " in cell " + newNi.getProto().describe());
+				System.out.println("Cannot find export " + oldPp.getName() + " in " + newNi.getProto());
 				return newNi.getProto().getPort(0);
 			}
 
@@ -1498,8 +1497,8 @@ public class ViewChanges
 			if (oldFun == PrimitiveNode.Function.CAPAC && newFun == PrimitiveNode.Function.ECAPAC) return newNi.getProto().getPort(0);
 
 			// association has failed: assume the first port
-			System.out.println("No port association between " + ni.getProto().describe() + ", port "
-				+ oldPp.getName() + " and " + newNi.getProto().describe());
+			System.out.println("No port association between " + ni.getProto() + ", "
+				+ oldPp + " and " + newNi.getProto());
 			return newNi.getProto().getPort(0);
 		}
 	}

@@ -43,7 +43,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
@@ -474,12 +473,12 @@ public class Spice extends Topology
 		Network powerNet = cni.getPowerNet();
 		if (pmosTrans != 0 && powerNet == null)
 		{
-			String message = "WARNING: no power connection for P-transistor wells in cell " + cell.describe();
+			String message = "WARNING: no power connection for P-transistor wells in " + cell;
 			dumpErrorMessage(message);
 		}
 		if (nmosTrans != 0 && groundNet == null)
 		{
-			String message = "WARNING: no ground connection for N-transistor wells in cell " + cell.describe();
+			String message = "WARNING: no ground connection for N-transistor wells in " + cell;
 			dumpErrorMessage(message);
 		}
 
@@ -502,7 +501,7 @@ public class Spice extends Topology
 		// generate header for subckt or top-level cell
 		if (cell == topCell && !useCDL)
 		{
-			multiLinePrint(true, "\n*** TOP LEVEL CELL: " + cell.describe() + "\n");
+			multiLinePrint(true, "\n*** TOP LEVEL CELL: " + cell.describe(false) + "\n");
 		} else
 		{
             if (useCDL && !CDLWRITESEMPTYSUBCKTS) {
@@ -511,7 +510,7 @@ public class Spice extends Topology
             }
 
 			String cellName = cni.getParameterizedName();
-			multiLinePrint(false, "\n*** CELL: " + cell.describe() + "\n");
+			multiLinePrint(false, "\n*** CELL: " + cell.describe(false) + "\n");
 			StringBuffer infstr = new StringBuffer();
 			infstr.append(".SUBCKT " + cellName);
 			for(Iterator sIt = cni.getCellSignals(); sIt.hasNext(); )
@@ -783,7 +782,7 @@ public class Spice extends Topology
 			// make sure transistor is connected to nets
 			if (gateCs == null || sourceCs == null || drainCs == null)
 			{
-				String message = "WARNING: " + ni.describe() + " not fully connected in cell " + cell.describe();
+				String message = "WARNING: " + ni + " not fully connected in " + cell;
 				dumpErrorMessage(message);
 			}
 
@@ -1295,7 +1294,7 @@ public class Spice extends Topology
 			{
 				if (!modelOverrides.contains(cell))
 				{
-					multiLinePrint(true, "\n* Cell " + cell.describe() + " is described in this file:\n");
+					multiLinePrint(true, "\n* " + cell + " is described in this file:\n");
 					addIncludeFile(fileName);
 					modelOverrides.add(cell);
 				}
@@ -1515,13 +1514,13 @@ public class Spice extends Topology
 		// make sure the component is connected to nets
 		if (cs0 == null || cs1 == null)
 		{
-			String message = "WARNING: " + ni.describe() + " component not fully connected in cell " + ni.getParent().describe();
+			String message = "WARNING: " + ni + " component not fully connected in " + ni.getParent();
 			dumpErrorMessage(message);
 		}
 		if (cs0 != null && cs1 != null && cs0 == cs1)
 		{
-			String message = "WARNING: " + ni.describe() + " component appears to be shorted on net " + net0.toString() +
-				" in cell " + ni.getParent().describe();
+			String message = "WARNING: " + ni + " component appears to be shorted on net " + net0.toString() +
+				" in " + ni.getParent();
 			dumpErrorMessage(message);
 			return;
 		}
@@ -1729,10 +1728,10 @@ public class Spice extends Topology
         }
         // empty
         if (CELLISEMPTYDEBUG && empty) {
-            System.out.println("Cell "+cell.describe()+" is empty and contains the following empty cells:");
+            System.out.println(cell+" is empty and contains the following empty cells:");
             for (Iterator it = emptyCells.iterator(); it.hasNext(); ) {
                 Cell c = (Cell)it.next();
-                System.out.println("   "+c.describe());
+                System.out.println("   "+c.describe(true));
             }
         }
         checkedCells.put(cell, new Boolean(empty));

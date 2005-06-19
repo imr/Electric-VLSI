@@ -25,7 +25,6 @@
  */
 package com.sun.electric.tool.project;
 
-import com.sun.electric.Main;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
@@ -42,7 +41,6 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
@@ -55,9 +53,6 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -93,22 +88,15 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.AbstractCellEditor;
-import javax.swing.DefaultCellEditor;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellEditor;
-import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
@@ -283,7 +271,7 @@ public class Project extends Listener
 				}
 				if (url == null)
 				{
-					String userFile = OpenFile.chooseInputFile(FileType.PROJECT, "Find Project File for Library '" + lib.getName() + "'");
+					String userFile = OpenFile.chooseInputFile(FileType.PROJECT, "Find Project File for " + lib);
 					if (userFile == null) return pl;
 					url = TextUtils.makeURLToFile(userFile);
 				}
@@ -549,10 +537,10 @@ public class Project extends Listener
 						{
 							if (pc.owner.length() == 0)
 							{
-								System.out.println("WARNING: cell " + pc.cell.describe() + " is being edited, but it is not checked-out");
+								System.out.println("WARNING: " + pc.cell + " is being edited, but it is not checked-out");
 							} else
 							{
-								System.out.println("WARNING: cell " + pc.cell.describe() + " is being edited, but it is checked-out to " + pc.owner);
+								System.out.println("WARNING: " + pc.cell + " is being edited, but it is checked-out to " + pc.owner);
 							}
 						}
 					}
@@ -714,7 +702,7 @@ public class Project extends Listener
 		pmActive = true;
 
 		int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-			"Cancel all changes to the checked-out cell " + oldVers.describe() + " and revert to the checked-in version?");
+			"Cancel all changes to the checked-out " + oldVers + " and revert to the checked-in version?");
 		if (response != JOptionPane.YES_OPTION) return;
 		new CancelCheckOutJob(oldVers);
 	}
@@ -841,7 +829,7 @@ public class Project extends Listener
 
 	/**
 	 * Method to handle the start of a batch of changes.
-	 * @param tool the tool that generated the changes.
+	 * @param source the tool that generated the changes.
 	 * @param undoRedo true if these changes are from an undo or redo command.
 	 */
 	public void startBatch(Tool tool, boolean undoRedo) {}
@@ -1103,7 +1091,7 @@ public class Project extends Listener
 			if (cell.getVar(PROJLOCKEDKEY) != null)
 			{
 				if (undoneCells != 0) errorMsg += ", ";
-				errorMsg += cell.describe();
+				errorMsg += cell.describe(true);
 				undoneCells++;
 				if (f.batchNumber < lowBatch) lowBatch = f.batchNumber;
 			}
@@ -1202,7 +1190,7 @@ public class Project extends Listener
 
 		protected CheckOutJob(Cell oldVers)
 		{
-			super("Check out cell " + oldVers.describe(), tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Check out " + oldVers, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.oldVers = oldVers;
 			startJob();
 		}
@@ -1293,7 +1281,7 @@ public class Project extends Listener
 					if (pc.cellVersion > oldVers.getVersion())
 					{
 						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"Cannot check out " + oldVers.describe() +
+							"Cannot check out " + oldVers +
 							" because you don't have the latest version (yours is " + oldVers.getVersion() + ", project has " +
 							pc.cellVersion + ").  Do an 'update' first",
 							"Check Out Error", JOptionPane.ERROR_MESSAGE);
@@ -1316,7 +1304,7 @@ public class Project extends Listener
 							if (useNewestVersion(oldVers, newVers))
 							{
 								JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-									"Error replacing instances of new " + oldVers.describe(),
+									"Error replacing instances of new " + oldVers,
 									"Check Out Error", JOptionPane.ERROR_MESSAGE);
 							} else
 							{
@@ -1358,7 +1346,7 @@ public class Project extends Listener
 			// if it worked, print dependencies and display
 			if (worked)
 			{
-				System.out.println("Cell " + newVers.describe() + " checked out for your use");
+				System.out.println("Cell " + newVers.describe(true) + " checked out for your use");
 
 				// advise of possible problems with other checkouts higher up in the hierarchy
 				HashMap cellsMarked = new HashMap();
@@ -1427,7 +1415,7 @@ public class Project extends Listener
 							Cell cell = (Cell)cIt.next();
 							MutableInteger val = (MutableInteger)cellsMarked.get(cell);
 							if (val.intValue() != 3) continue;
-							System.out.println("    " + cell.describe() + " is checked out to " + getCellOwner(cell));
+							System.out.println("    " + cell + " is checked out to " + getCellOwner(cell));
 						}
 					}
 				}
@@ -1502,7 +1490,7 @@ public class Project extends Listener
 							MutableInteger val = (MutableInteger)cellsMarked.get(cell);
 							if (val.intValue() != 3) continue;
 							String owner = getCellOwner(cell);
-							System.out.println("    " + cell.describe() + " is checked out to " + owner);
+							System.out.println("    " + cell + " is checked out to " + owner);
 						}
 					}
 				}
@@ -1521,7 +1509,7 @@ public class Project extends Listener
 
 		protected CancelCheckOutJob(Cell cell)
 		{
-			super("Cancel cell check-out", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Cancel Check-out " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			startJob();
 		}
@@ -1606,7 +1594,7 @@ public class Project extends Listener
 			if (useNewestVersion(cell, former.cell))
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"Error replacing instances of former " + cell.describe(),
+					"Error replacing instances of former " + cell,
 					"Error Cancelling Check-out", JOptionPane.ERROR_MESSAGE);
 				setChangeStatus(false);
 				pl.releaseProjectFileLock(true);
@@ -1673,7 +1661,7 @@ public class Project extends Listener
 				MutableInteger mi = (MutableInteger)cellsMarked.get(cell);
 				if (mi.intValue() == 0) continue;
 				if (cellNames.length() > 0) cellNames += ", ";
-				cellNames += cell.describe();
+				cellNames += cell.describe(false);
 			}
 
 			String comment = null;
@@ -1688,7 +1676,7 @@ public class Project extends Listener
 				if (pc == null)
 				{
 					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-						"Cell " + cell.describe() + " is not in the project.  Add it before checking it in or out.",
+						"Cell " + cell.describe(true) + " is not in the project.  Add it before checking it in or out.",
 						"Check In Error", JOptionPane.ERROR_MESSAGE);
 				} else
 				{
@@ -1696,7 +1684,7 @@ public class Project extends Listener
 					if (!pc.owner.equals(getCurrentUserName()))
 					{
 						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							"You cannot check-in cell " + cell.describe() + " because it is checked out to '" + pc.owner + "', not you.",
+							"You cannot check-in " + cell + " because it is checked out to '" + pc.owner + "', not you.",
 							"Check In Error", JOptionPane.ERROR_MESSAGE);
 					} else
 					{
@@ -1708,7 +1696,7 @@ public class Project extends Listener
 						if (writeCell(cell, pc))
 						{
 							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-								"Error writing cell " + cell.describe(),
+								"Error writing " + cell,
 								"Check In Error", JOptionPane.ERROR_MESSAGE);
 						} else
 						{
@@ -1717,7 +1705,7 @@ public class Project extends Listener
 							pc.cellVersion = cell.getVersion();
 							pc.comment = comment;
 							markLocked(cell, true);
-							System.out.println("Cell " + cell.describe() + " checked in");
+							System.out.println("Cell " + cell.describe(true) + " checked in");
 						}
 					}
 				}
@@ -1768,7 +1756,7 @@ public class Project extends Listener
 		{
 			getContentPane().setLayout(new GridBagLayout());
 
-			setTitle("Examine the History of Cell " + cell.describe());
+			setTitle("Examine the History of " + cell);
 			setName("");
 			addWindowListener(new WindowAdapter()
 			{
@@ -2023,7 +2011,7 @@ public class Project extends Listener
 
 		protected GetOldVersionJob(Cell cell, int version)
 		{
-			super("Update cells", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Update " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.version = version;
 			startJob();
@@ -2067,7 +2055,7 @@ public class Project extends Listener
 			// allow changes
 			setChangeStatus(false);
 
-			System.out.println("Cell " + foundPC.cell.describe() + " is now in this library");
+			System.out.println("Cell " + foundPC.cell.describe(true) + " is now in this library");
 			return true;
 		}
 	}
@@ -2092,7 +2080,7 @@ public class Project extends Listener
 			if (lib != null)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"Library " + lib.getName() + " already exists",
+					"Library '" + lib.getName() + "' already exists",
 					"Cannot Retrieve Library", JOptionPane.ERROR_MESSAGE);
 				return false;
 			}
@@ -2149,7 +2137,7 @@ public class Project extends Listener
 	{
 		protected UpdateJob()
 		{
-			super("Update all cells from repository", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Update all Cells from Repository", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			startJob();
 		}
 
@@ -2299,7 +2287,7 @@ public class Project extends Listener
 				if (cell.getNewestVersion() != cell)
 				{
 					if (cell.getNumUsagesIn() == 0) continue;
-					System.out.println("Warning: including old version of cell " + cell.describe());
+					System.out.println("Warning: including old version of " + cell);
 					pc.latestVersion = false;
 				}
 
@@ -2310,7 +2298,7 @@ public class Project extends Listener
 				if (writeCell(cell, pc)) System.out.println("Error writing cell file"); else
 				{
 					// write the cell to disk in its own library
-					System.out.println("Entering cell " + cell.describe());
+					System.out.println("Entering " + cell);
 
 					// mark this cell "checked in" and locked
 					markLocked(cell, true);
@@ -2356,7 +2344,7 @@ public class Project extends Listener
 
 		protected AddCellJob(Cell cell)
 		{
-			super("Add cell", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Add " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			startJob();
 		}
@@ -2417,7 +2405,7 @@ public class Project extends Listener
 					// mark this cell "checked in" and locked
 					markLocked(cell, true);
 
-					System.out.println("Cell " + cell.describe() + " added to the project");
+					System.out.println("Cell " + cell.describe(true) + " added to the project");
 				}
 			}
 
@@ -2467,14 +2455,14 @@ public class Project extends Listener
 					if (markedCells.contains(oCell))
 					{
 						if (err.length() > 0) err.append(", ");
-						err.append(oCell.describe());
+						err.append(oCell.describe(true));
 					}
 				}
 			}
 			if (markedCells.size() > 0)
 			{
 				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-					"Cannot delete cell " + cell.describe() + " because it is still being used by: " + err.toString(),
+					"Cannot delete " + cell + " because it is still being used by: " + err.toString(),
 					"Error Deleting Cell", JOptionPane.ERROR_MESSAGE);
 				return false;
 			}
@@ -2536,7 +2524,7 @@ public class Project extends Listener
 				}
 				if (found)
 				{
-					System.out.println("Cell " + cell.describe() + " deleted from the repository");
+					System.out.println("Cell " + cell.describe(true) + " deleted from the repository");
 				} else
 				{
 					JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
@@ -2836,7 +2824,7 @@ public class Project extends Listener
 					mi = (MutableInteger)cellsMarked1.get(oCell);
 					if (oCell == cell || mi.intValue() == 0) continue;
 					if (total > 0) infstr.append(", ");
-					infstr.append(oCell.describe());
+					infstr.append(oCell.describe(true));
 					total++;
 				}
 			}
@@ -2932,8 +2920,8 @@ public class Project extends Listener
 							{
 								if (subPC.cell != null)
 								{
-									System.out.println("ERROR: cell " + cellName + " does not exist, but it appears as cell " +
-										subPC.cell.describe());
+									System.out.println("ERROR: cell " + cellName + " does not exist, but it appears as " +
+										subPC.cell);
 								}
 								getCellFromRepository(subPC, subLib, recursively);
 								realSubCell = subPC.cell;
@@ -2950,7 +2938,7 @@ public class Project extends Listener
 
 				String cellName = describeFullCellName(cur);
 				newCell = Cell.copyNodeProtoUsingMapping(cur, lib, cellName, nodePrototypes);
-				if (newCell == null) System.out.println("Cannot copy cell " + cur.describe() + " from new library");
+				if (newCell == null) System.out.println("Cannot copy " + cur + " from new library");
 			}
 
 			// kill the library
@@ -2986,7 +2974,7 @@ public class Project extends Listener
 							versionToGet.remove(cellName);
 						} else
 						{
-							System.out.println("WARNING: Cell " + oldCell.describe() + " is checked-out to " + pc.owner);
+							System.out.println("WARNING: " + oldCell + " is checked-out to " + pc.owner);
 						}
 					} else
 					{
@@ -3009,7 +2997,7 @@ public class Project extends Listener
 			Cell oldCellAny = pl.lib.findNodeProto(pc.describe());
 			Cell oldCell = pl.lib.findNodeProto(pc.describeWithVersion());
 			if (oldCellAny != null && oldCellAny.getVersion() > pc.cellVersion)
-				System.out.println("WARNING: Cell " + oldCellAny.describe() + " is newer than what is in the repository.  Updating it from the repository version");
+				System.out.println("WARNING: " + oldCellAny + " is newer than what is in the repository.  Updating it from the repository version");
 			if (oldCell == null) updatedProjectCells.add(pc);
 		}
 	}
@@ -3088,8 +3076,8 @@ public class Project extends Listener
 						{
 							if (subCellPC.cell != null)
 							{
-								System.out.println("ERROR: cell " + subCellName + " does not exist, but it appears as cell " +
-									subCellPC.cell.describe());
+								System.out.println("ERROR: cell " + subCellName + " does not exist, but it appears as " +
+									subCellPC.cell);
 							}
 							if (!updatedProjectCells.contains(subCellPC))
 							{
@@ -3104,7 +3092,7 @@ public class Project extends Listener
 
 				String cellName = describeFullCellName(cur);
 				newCell = Cell.copyNodeProtoUsingMapping(cur, lib, cellName, nodePrototypes);
-				if (newCell == null) System.out.println("Cannot copy cell " + cur.describe() + " from new library");
+				if (newCell == null) System.out.println("Cannot copy " + cur + " from new library");
 			}
 
 			// kill the library
@@ -3120,15 +3108,15 @@ public class Project extends Listener
 			{
 				if (useNewestVersion(oldCell, newCell))
 				{
-					System.out.println("Error replacing instances of new " + oldCell.describe());
+					System.out.println("Error replacing instances of new " + oldCell);
 				} else
 				{
-					System.out.println("Updated cell " + newCell.describe());
+					System.out.println("Updated " + newCell);
 				}
 				pl.byCell.remove(oldCell);
 			} else
 			{
-				System.out.println("Added new cell " + newCell.describe());
+				System.out.println("Added new " + newCell);
 			}
 			total++;
 		}
@@ -3148,7 +3136,7 @@ public class Project extends Listener
 			NodeInst newNi = ni.replace(newCell, false, false);
 			if (newNi == null)
 			{
-				System.out.println("Failed to update instance of " + newCell.describe() + " in " + ni.getParent().describe());
+				System.out.println("Failed to update instance of " + newCell + " in " + ni.getParent());
 				return true;
 			}
 		}
@@ -3211,7 +3199,7 @@ public class Project extends Listener
 		Cell cellCopy = copyrecursively(cell, fLib);
 		if (cellCopy == null)
 		{
-			System.out.println("Could not place " + cell.describe() + " in a library");
+			System.out.println("Could not place " + cell + " in a library");
 			fLib.kill("delete");
 			return true;
 		}
@@ -3221,7 +3209,7 @@ public class Project extends Listener
 		boolean error = Output.writeLibrary(fLib, pc.libType, false);
 		if (error)
 		{
-			System.out.println("Could not save library with " + cell.describe() + " in it");
+			System.out.println("Could not save library with " + cell + " in it");
 			fLib.kill("delete");
 			return true;
 		}
@@ -3280,7 +3268,7 @@ public class Project extends Listener
 
 				if (ViewChanges.skeletonizeCell(cell, oCell))
 				{
-					System.out.println("Copy of subcell " + cell.describe() + " failed");
+					System.out.println("Copy of sub" + cell + " failed");
 					return null;
 				}
 			}
@@ -3329,15 +3317,14 @@ public class Project extends Listener
         }
     }
 
+	private static final int ROTORSZ = 256;		/* a power of two */
+	private static final int MASK =   (ROTORSZ-1);
 	/**
 	 * Method to encrypt a string in the most simple of ways.
 	 * A one-rotor machine designed along the lines of Enigma but considerably trivialized.
 	 * @param text the text to encrypt.
 	 * @return an encrypted version of the text.
 	 */
-	private static final int ROTORSZ = 256;		/* a power of two */
-	private static final int MASK =   (ROTORSZ-1);
-
 	public static String encryptPassword(String text)
 	{
 		// first setup the machine

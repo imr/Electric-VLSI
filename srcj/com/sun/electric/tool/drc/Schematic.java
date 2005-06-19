@@ -94,7 +94,7 @@ public class Schematic
 		}
 
 		// now check this cell
-		System.out.println("Checking schematic cell " + cell.describe());
+		System.out.println("Checking schematic " + cell);
 		checkSchematicCell(cell, false);
 	}
 
@@ -239,7 +239,7 @@ public class Schematic
 					{
 						// this node's parameter is no longer on the cell: delete from instance
 						String trueVarName = var.getTrueName();
-						ErrorLogger.MessageLog err = errorLogger.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
+						ErrorLogger.MessageLog err = errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 //							" is invalid and has been deleted", cell, 0);
 							" is invalid", cell, 0);
 						err.addGeom(geom, true, cell, null);
@@ -253,7 +253,7 @@ public class Schematic
 						if (var.getUnit() != foundVar.getUnit())
 						{
 							String trueVarName = var.getTrueName();
-							ErrorLogger.MessageLog err = errorLogger.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
+							ErrorLogger.MessageLog err = errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 								" had incorrect units (now fixed)", cell, 0);
 							err.addGeom(geom, true, cell, null);
 							var.setUnit(foundVar.getUnit());
@@ -265,7 +265,7 @@ public class Schematic
 							if (var.isDisplay())
 							{
 								String trueVarName = var.getTrueName();
-								ErrorLogger.MessageLog err = errorLogger.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
+								ErrorLogger.MessageLog err = errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 									" should not be visible (now fixed)", cell, 0);
 								err.addGeom(geom, true, cell, null);
 								var.setDisplay(false);
@@ -275,7 +275,7 @@ public class Schematic
 							if (!var.isDisplay())
 							{
 								String trueVarName = var.getTrueName();
-								ErrorLogger.MessageLog err = errorLogger.logError("Parameter '" + trueVarName + "' on node " + ni.describe() +
+								ErrorLogger.MessageLog err = errorLogger.logError("Parameter '" + trueVarName + "' on " + ni +
 									" should be visible (now fixed)", cell, 0);
 								err.addGeom(geom, true, cell, null);
 								var.setDisplay(true);
@@ -341,9 +341,8 @@ public class Schematic
 					pp = ((Export)pi.getPortProto()).getEquivalent();
 					if (pp == null || pp == pi.getPortProto())
 					{
-						ErrorLogger.MessageLog err = errorLogger.logError("Arc " + ai.describe() + " connects to port " +
-							pi.getPortProto().getName() + " of node " + ni.describe() +
-							", but there is no equivalent port in cell " + np.describe(), cell, 0);
+						ErrorLogger.MessageLog err = errorLogger.logError("Arc " + ai.describe(true) + " connects to " +
+							pi.getPortProto() + " of " + ni + ", but there is no equivalent port in " + np, cell, 0);
 						err.addGeom(geom, true, cell, null);
 						err.addGeom(ni, true, cell, null);
 						continue;
@@ -356,9 +355,8 @@ public class Schematic
 				if (nodeSize <= 0) nodeSize = 1;
 				if (signals != portWidth && signals != portWidth*nodeSize)
 				{
-					ErrorLogger.MessageLog err = errorLogger.logError("Arc " + ai.describe() + " (" + signals + " wide) connects to port " +
-						pp.getName() + " of node " + ni.describe() +
-						" (" + portWidth + " wide)", cell, 0);
+					ErrorLogger.MessageLog err = errorLogger.logError("Arc " + ai.describe(true) + " (" + signals + " wide) connects to " +
+						pp + " of " + ni + " (" + portWidth + " wide)", cell, 0);
 					err.addGeom(geom, true, cell, null);
 					err.addGeom(ni, true, cell, null);
 				}

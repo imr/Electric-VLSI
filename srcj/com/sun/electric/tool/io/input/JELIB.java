@@ -33,7 +33,6 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.text.Pref;
@@ -798,11 +797,11 @@ public class JELIB extends LibraryFiles
 				if (dummyCell == null)
 				{
 					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-						", Unable to create dummy cell " + protoName + " in library " + cellLib.getName(), cell, -1);
+						", Unable to create dummy cell " + protoName + " in " + cellLib, cell, -1);
 					continue;
 				}
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					", Creating dummy cell " + protoName + " in library " + cellLib.getName(), cell, -1);
+					", Creating dummy cell " + protoName + " in " + cellLib, cell, -1);
 				Rectangle2D bounds = (Rectangle2D)externalCells.get(pieces.get(0));
 				if (bounds == null)
 				{
@@ -840,7 +839,7 @@ public class JELIB extends LibraryFiles
                 userBits = ImmutableNodeInst.parseJelibUserBits(stateInfo);
             } catch (NumberFormatException e) {
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (cell " + cell.describe() + ") bad node bits" + stateInfo, cell, -1);
+					" (" + cell + ") bad node bits" + stateInfo, cell, -1);
             }
             ImmutableTextDescriptor protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line); 
 
@@ -850,7 +849,7 @@ public class JELIB extends LibraryFiles
 			if (ni == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (cell " + cell.describe() + ") cannot create node " + protoName, cell, -1);
+					" (" + cell + ") cannot create node " + protoName, cell, -1);
 				continue;
 			}
 
@@ -902,7 +901,7 @@ public class JELIB extends LibraryFiles
 			if (pp == null)
 			{
 				ErrorLogger.MessageLog log = Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (cell " + cell.describe() + ") cannot create export " + exportName, cell, -1);
+					" (" + cell + ") cannot create export " + exportName, cell, -1);
 				log.addGeom(pi.getNodeInst(), true, cell, null);
 				continue;
 			}
@@ -936,7 +935,7 @@ public class JELIB extends LibraryFiles
 			if (ap == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (cell " + cell.describe() + ") cannot find arc " + protoName, cell, -1);
+					" (" + cell + ") cannot find arc " + protoName, cell, -1);
 				continue;
 			}
 			String diskArcName = revision >= 1 ? (String)pieces.get(1) : unQuote((String)pieces.get(1));
@@ -1007,7 +1006,7 @@ public class JELIB extends LibraryFiles
 			if (ai == null)
 			{
 				ErrorLogger.MessageLog log = Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (cell " + cell.describe() + ") cannot create arc " + protoName, cell, -1);
+					" (" + cell + ") cannot create arc " + protoName, cell, -1);
                 log.addGeom(headPI.getNodeInst(), true, cell, null);
                 log.addGeom(tailPI.getNodeInst(), true, cell, null);
 				continue;
@@ -1067,7 +1066,7 @@ public class JELIB extends LibraryFiles
 		if (ni == null)
 		{
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +
-				" (cell " + cell.describe() + ") cannot find node " + nodeName, cell, -1);
+				" (" + cell + ") cannot find node " + nodeName, cell, -1);
 			return null;
 		}
 
@@ -1099,8 +1098,8 @@ public class JELIB extends LibraryFiles
 			{
 				NodeProto np = ni.getProto();
 				ErrorLogger.MessageLog log = Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					" (cell " + cell.describe() + ") point (" + pos.getX() + "," + pos.getY() + ") does not fit in port " +
-					pi.describe() + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")", cell, -1);
+					" (" + cell + ") point (" + pos.getX() + "," + pos.getY() + ") does not fit in " +
+					pi + " which is centered at (" + poly.getCenterX() + "," + poly.getCenterY() + ")", cell, -1);
 				log.addPoint(pos.getX(), pos.getY(), cell);
 				if (np instanceof Cell)
 					pi = null;
@@ -1119,11 +1118,11 @@ public class JELIB extends LibraryFiles
 			if (portNI == null)
 			{
 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					", Unable to create dummy node in cell " + cell.describe() + " (cannot create source node)", cell, -1);
+					", Unable to create dummy node in " + cell + " (cannot create source node)", cell, -1);
 				return null;
 			}
 			ErrorLogger.MessageLog log = Input.errorLogger.logError(fileName + ", line " + lineNumber +
-				", Arc end and port discrepancy at ("+pos.getX()+","+pos.getY()+"), port "+portName+" on node "+nodeName+" in cell " + cell.describe(), cell, -1);
+				", Arc end and port discrepancy at ("+pos.getX()+","+pos.getY()+"), port "+portName+" on node "+nodeName+" in " + cell, cell, -1);
             log.addGeom(portNI, true, cell, null);
 			return portNI.getOnlyPortInst();
 		}
@@ -1144,7 +1143,7 @@ public class JELIB extends LibraryFiles
 		if (portNI == null)
 		{
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +
-				", Unable to create export " + name + " on dummy cell " + subCell.describe() + " (cannot create source node)", cell, -1);
+				", Unable to create export " + name + " on dummy " + subCell + " (cannot create source node)", cell, -1);
 			return null;
 		}
 		PortInst portPI = portNI.getOnlyPortInst();
@@ -1152,12 +1151,12 @@ public class JELIB extends LibraryFiles
 		if (pp == null)
 		{
 			Input.errorLogger.logError(fileName + ", line " + lineNumber +
-				", Unable to create export " + name + " on dummy cell " + subCell.describe(), cell, -1);
+				", Unable to create export " + name + " on dummy " + subCell, cell, -1);
 			return null;
 		}
 		pi = ni.findPortInstFromProto(pp);
 		Input.errorLogger.logError(fileName + ", line " + lineNumber +
-			", Creating export " + name + " on dummy cell " + subCell.describe(), cell, -1);
+			", Creating export " + name + " on dummy " + subCell, cell, -1);
 
 		return pi;
 	}

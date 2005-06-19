@@ -23,18 +23,15 @@
  */
 package com.sun.electric.tool.generator.layout;
 import java.lang.reflect.Method;
-import java.util.HashSet;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.logicaleffort.LEInst;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
@@ -56,15 +53,15 @@ public class GateLayoutGenerator extends Job {
 		}
 	};
 
-	private static void error(boolean pred, String msg) {
-		LayoutLib.error(pred, msg);
-	}
+//	private static void error(boolean pred, String msg) {
+//		LayoutLib.error(pred, msg);
+//	}
 
-	private Cell findCell(Library lib, String cellName) {
-		Cell c = lib.findNodeProto(cellName);
-		LayoutLib.error(c==null, "can't find: "+lib.getName()+":"+cellName);
-		return c;
-	}
+//	private Cell findCell(Library lib, String cellName) {
+//		Cell c = lib.findNodeProto(cellName);
+//		LayoutLib.error(c==null, "can't find: "+lib+":"+cellName);
+//		return c;
+//	}
 	
 	private Library generateLayout(Library outLib, Cell cell, 
 			                       VarContext context, Technology technology) {

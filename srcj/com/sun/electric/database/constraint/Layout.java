@@ -369,7 +369,7 @@ public class Layout extends Constraints
 		double oldCY = ni.getAnchorCenterY();
 		double oldSX = ni.getXSizeWithMirror();
 		double oldSY = ni.getYSizeWithMirror();
-		if (DEBUG) System.out.println("Moving node "+ni.describe()+" [is "+oldSX+"x"+oldSY+" at ("+oldCX+","+oldCY+") rot "+oldang+
+		if (DEBUG) System.out.println("Moving "+ni+" [is "+oldSX+"x"+oldSY+" at ("+oldCX+","+oldCY+") rot "+oldang+
 			"] change is dx="+deltaCX+" dy="+deltaCY+" dwid="+deltaSX+" dhei="+deltaSY+") drot="+dAngle);
 		ni.lowLevelModify(deltaCX, deltaCY, deltaSX, deltaSY, dAngle);
 
@@ -399,7 +399,7 @@ public class Layout extends Constraints
 	 */
 	private static boolean modNodeArcs(NodeInst ni, int dangle, double dSX, double dSY, boolean flipX, boolean flipY)
 	{
-		if (DEBUG) System.out.println("Updating arcs on node "+ni.describe());
+		if (DEBUG) System.out.println("Updating arcs on "+ni);
 
 		// assume cell needs no further looks
 		boolean examineCell = false;
@@ -523,7 +523,7 @@ public class Layout extends Constraints
 //            ArcInst ai = (ArcInst)it.next();
 			if (deletedArcs.contains(ai)) continue;
 //			ai.clearRigidModified();
-			if (DEBUG) System.out.println("  From node " + ni.describe() + " Modifying Rigid arc "+ai.describe());
+			if (DEBUG) System.out.println("  From " + ni + " Modifying Rigid "+ai);
 
 			// if rigid arcinst has already been changed check its connectivity
 			if (ai.getChangeClock() == changeClock)
@@ -629,7 +629,7 @@ public class Layout extends Constraints
 				{
                     rigidModified.add(ai);
 //					ai.setRigidModified();
-					if (DEBUG) System.out.println("    Moving node "+ono.describe()+" at other end by ("+dx+","+dy+")");
+					if (DEBUG) System.out.println("    Moving "+ono+" at other end by ("+dx+","+dy+")");
 					double changeSX = 0, changeSY = 0;
 					if (oFlipX != ono.isXMirrored()) changeSX = -ono.getXSizeWithMirror() * 2;
 					if (oFlipY != ono.isYMirrored()) changeSY = -ono.getYSizeWithMirror() * 2;
@@ -660,7 +660,7 @@ public class Layout extends Constraints
 
 			int nextAngle = dAngle;
 			if (ono.isXMirrored() ^ ono.isYMirrored()) nextAngle = (3600 - nextAngle) % 3600;
-			if (DEBUG) System.out.println("  Node " + ni.describe() + " re-examining arc " + ai.describe() + " to other node "+ono.describe());
+			if (DEBUG) System.out.println("  " + ni + " re-examining " + ai + " to other "+ono);
 			if (modNodeArcs(ono, nextAngle, 0, 0, flipX, flipY)) examineCell = true;
 		}
 		return examineCell;
@@ -714,7 +714,7 @@ public class Layout extends Constraints
             ArcInst ai = thisEnd.getArc();
 //			ArcInst ai = (ArcInst)it.next();
 			if (deletedArcs.contains(ai)) continue;
-			if (DEBUG) System.out.println("  Modifying fixed-angle arc "+ai.describe());
+			if (DEBUG) System.out.println("  Modifying fixed-angle "+ai);
 
 			// if flexible arcinst has been changed, verify its connectivity
 			if (ai.getChangeClock() >= changeClock+1)
@@ -842,7 +842,7 @@ public class Layout extends Constraints
 						if (dx != odx)
 						{
 							double xAmount = DBMath.round(dx-odx);
-							if (DEBUG) System.out.println("  Moving node "+ono.describe()+" by ("+xAmount+",0)");
+							if (DEBUG) System.out.println("  Moving "+ono+" by ("+xAmount+",0)");
 							if (alterNodeInst(ono, xAmount, 0, 0, 0, 0, true))
 								examineCell = true;
 						}
@@ -872,7 +872,7 @@ public class Layout extends Constraints
 
 					if (!DBMath.doublesEqual(dy, ody))
 					{
-						if (DEBUG) System.out.println("  Moving node "+ono.describe()+" by (0,"+(dy-ody)+")");
+						if (DEBUG) System.out.println("  Moving "+ono+" by (0,"+(dy-ody)+")");
 						if (alterNodeInst(ono, 0, dy-ody, 0, 0, 0, true))
 							examineCell = true;
 					}
@@ -899,7 +899,7 @@ public class Layout extends Constraints
 
 				if (dx != 0 || dy != 0)
 				{
-					if (DEBUG) System.out.println("  Moving node "+ono.describe()+" by ("+dx+","+dy+")");
+					if (DEBUG) System.out.println("  Moving "+ono+" by ("+dx+","+dy+")");
 					if (alterNodeInst(ono, dx, dy, 0, 0, 0, true))
 						examineCell = true;
 					if (modNodeArcs(ono, 0, 0, 0, false, false)) examineCell = true;
@@ -1046,7 +1046,7 @@ public class Layout extends Constraints
 		double oldHeadX = oldHeadPt.getX();   double oldHeadY = oldHeadPt.getY();
 		double oldTailX = oldTailPt.getX();   double oldTailY = oldTailPt.getY();
 		ai.lowLevelModify(0, headPt.getX() - oldHeadX, headPt.getY() - oldHeadY, tailPt.getX() - oldTailX, tailPt.getY() - oldTailY);
-		if (DEBUG) System.out.println("Arc " + ai.describe() + " now runs from ("+
+		if (DEBUG) System.out.println(ai + " now runs from ("+
 			ai.getTailLocation().getX()+","+ai.getTailLocation().getY()+") to ("+
 			ai.getHeadLocation().getX()+","+ai.getHeadLocation().getY()+")");
 

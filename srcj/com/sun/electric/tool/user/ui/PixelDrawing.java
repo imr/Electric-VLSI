@@ -965,7 +965,7 @@ public class PixelDrawing
 			Rectangle rect = wnd.databaseToScreen(bounds);
 			TextDescriptor descript = ni.getTextDescriptor(NodeInst.NODE_PROTO_TD);
 			blackGraphics.setColor(new Color(User.getColorText()));
-			drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(), null, blackGraphics, false);
+			drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(false), null, blackGraphics, false);
 		}
 	}
 
@@ -1192,7 +1192,7 @@ public class PixelDrawing
 		List keys = new ArrayList();
 		for(Iterator it = expandedCells.keySet().iterator(); it.hasNext(); )
 			keys.add(it.next());
-		String description = cell.describe();
+		String description = cell.describe(false);
 		for(Iterator it = keys.iterator(); it.hasNext(); )
 		{
 			String expandedName = (String)it.next();
@@ -1218,7 +1218,7 @@ public class PixelDrawing
 		int t01 = (int)(subTrans.getShearX() * 100);
 		int t10 = (int)(subTrans.getShearY() * 100);
 		int t11 = (int)(subTrans.getScaleY() * 100);
-		String expandedName = subCell.describe() + " " + t00 + " " + t01 + " " + t10 + " " + t11;
+		String expandedName = subCell.describe(false) + " " + t00 + " " + t01 + " " + t10 + " " + t11;
 		return expandedName;
 	}
 

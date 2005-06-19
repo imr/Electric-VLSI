@@ -39,7 +39,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -712,7 +711,7 @@ public class JELIB extends Output
 			String arcName = ai.getName();
 			if (arcName == null)
 			{
-				System.out.println("Cannot save pointer to unnamed ArcInst: " + ai.getParent().describe() + ":" + ai.describe());
+				System.out.println("Cannot save pointer to unnamed ArcInst: " + ai.getParent().describe(true) + ":" + ai.describe(true));
 			}
 			infstr.append(convertString(getFullCellName(ai.getParent()) + ":" + arcName, inArray));
 			return;

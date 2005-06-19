@@ -40,7 +40,6 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.net.URL;
 
 import javax.swing.JOptionPane;
@@ -153,12 +152,12 @@ public class Simulate extends Input
 				for(Iterator it = curLib.getCells(); it.hasNext(); )
 				{
 					Cell aCell = (Cell)it.next();
-					cellNames.add(aCell.describe());
+					cellNames.add(aCell.describe(false));
 				}
 				String defaultCell = (String)cellNames.get(0);
-				if (cell != null) defaultCell = cell.describe();
+				if (cell != null) defaultCell = cell.describe(false);
 				String selectedCell = (String)JOptionPane.showInputDialog(null, "Which cell is associated with this data",
-					"Cells in library " + curLib.getName(), JOptionPane.INFORMATION_MESSAGE, null, cellNames.toArray(), defaultCell);
+					"Cells in " + curLib, JOptionPane.INFORMATION_MESSAGE, null, cellNames.toArray(), defaultCell);
 				if (selectedCell != null)
 					cell = curLib.findNodeProto(selectedCell);
 			}
@@ -188,7 +187,7 @@ public class Simulate extends Input
 
 		protected ReadSimulationOutput(FileType type, Simulate is, URL fileURL, Cell cell, WaveformWindow ww)
 		{
-			super("Read Simulation Output", IOTool.getIOTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			super("Read Simulation Output for " + cell, IOTool.getIOTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.type = type;
 			this.is = is;
 			this.fileURL = fileURL;

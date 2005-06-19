@@ -171,7 +171,7 @@ public abstract class Router {
                 NodeProto np = (NodeProto)nodeEntries.iterator().next();
                 Integer i = (Integer)arcsCreatedMap.get(ap);
                 Integer i2 = (Integer)nodesCreatedMap.get(np);
-                System.out.println("Wiring added: "+i+" "+ap.describe()+" arcs, "+i2+" "+np.describe()+" nodes");
+                System.out.println("Wiring added: "+i+" "+ap.describe()+" arcs, "+i2+" "+np.describe(true)+" nodes");
             } else {
                 System.out.println("Wiring added:");
                 Collections.sort(arcEntries, new TextUtils.ObjectsByToString());
@@ -184,7 +184,7 @@ public abstract class Router {
                 for (Iterator it = nodeEntries.iterator(); it.hasNext();) {
                     NodeProto np = (NodeProto)it.next();
                     Integer i = (Integer)nodesCreatedMap.get(np);
-                    System.out.println("    "+i+" "+np.describe()+" nodes");
+                    System.out.println("    "+i+" "+np.describe(true)+" nodes");
                 }
             }
 /*

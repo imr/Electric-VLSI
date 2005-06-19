@@ -243,7 +243,7 @@ public class WindowFrame extends Observable
         });
 
 		// initialize the frame
-		String cellDescription = (cell == null) ? "no cell" : cell.describe();
+		String cellDescription = (cell == null) ? "no cell" : cell.describe(false);
 		Dimension sz = createJFrame(cellDescription, gc);
 		windowOffset += 70;
 		if (windowOffset > 300) windowOffset = 0;
@@ -454,7 +454,7 @@ public class WindowFrame extends Observable
 		TopLevel oldFrame = jf;
 		oldFrame.finished();                        // clear and garbage collect old Frame
 		Cell cell = content.getCell();                  // get current cell
-		String cellDescription = (cell == null) ? "no cell" : cell.describe();  // new title
+		String cellDescription = (cell == null) ? "no cell" : cell.describe(false);  // new title
 		createJFrame(cellDescription, gc);          // create new Frame
 		populateJFrame();                           // populate new Frame
 		content.fireCellHistoryStatus();                // update tool bar history buttons

@@ -34,7 +34,6 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
@@ -46,16 +45,12 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.geom.Point2D;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.prefs.Preferences;
 
-import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 
 
@@ -360,10 +355,10 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			busSize.setText(Integer.toString(busWidth));
 			angle.setText("Angle: " + TextUtils.formatDouble(ai.getAngle() / 10.0));
 			easyToSelect.setSelected(initialEasyToSelect);
-			headNode.setText(ai.getHeadPortInst().getNodeInst().describe());
+			headNode.setText(ai.getHeadPortInst().getNodeInst().describe(true));
 			Point2D headPt = ai.getHeadLocation();
 			headLoc.setText("(" + headPt.getX() + "," + headPt.getY() + ")");
-			tailNode.setText(ai.getTailPortInst().getNodeInst().describe());
+			tailNode.setText(ai.getTailPortInst().getNodeInst().describe(true));
 			Point2D tailPt = ai.getTailLocation();
 			tailLoc.setText("(" + tailPt.getX() + "," + tailPt.getY() + ")");
 			rigid.setSelected(initialRigid);

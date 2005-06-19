@@ -1319,11 +1319,11 @@ public class ALS extends Engine
 		netlistStrings = cell.getTextViewContents();
 		if (netlistStrings == null)
 		{
-			System.out.println("No netlist information found in cell " + cell.describe());
+			System.out.println("No netlist information found in " + cell);
 			return true;
 		}
 		netlistStringPoint = 0;
-		System.out.println("Simulating netlist in " + cell.describe());
+		System.out.println("Simulating netlist in " + cell);
 
 		instPtr[0] = -1;
 		iPtr = 0;

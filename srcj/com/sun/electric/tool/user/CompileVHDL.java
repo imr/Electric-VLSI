@@ -941,7 +941,7 @@ public class CompileVHDL
 		String [] strings = vhdlCell.getTextViewContents();
 		if (strings == null)
 		{
-			System.out.println("Cell " + vhdlCell.describe() + " has no text in it");
+			System.out.println("Cell " + vhdlCell.describe(true) + " has no text in it");
 			return;
 		}
 

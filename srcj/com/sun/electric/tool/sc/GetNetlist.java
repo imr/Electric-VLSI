@@ -130,7 +130,6 @@ public class GetNetlist
 		 * Method to create a new instance with a given name and type.
 		 * @param name name of the instance.
 		 * @param type type of the instance.
-		 * @return new instance.
 		 */
 		SCNiTree(String name, int type)
 		{
@@ -220,7 +219,7 @@ public class GetNetlist
 		String [] strings = cell.getTextViewContents();
 		if (strings == null)
 		{
-			System.out.println("Cell " + cell.describe() + " has no text in it");
+			System.out.println("Cell " + cell.describe(true) + " has no text in it");
 			return true;
 		}
 

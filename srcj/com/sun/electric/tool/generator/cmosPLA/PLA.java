@@ -593,25 +593,25 @@ public class PLA
 		Export pullUpsPwrW = pullUps.findExport("PWR.m-2w");
 		if (pullUpsPwrW == null)
 		{
-			System.out.println("Cannot find port PWR.m-2w in cell "+pullUps.describe());
+			System.out.println("Cannot find port PWR.m-2w in "+pullUps);
 			return null;
 		}
 		Export pullUpsPwrE = pullUps.findExport("PWR.m-2e");
 		if (pullUpsPwrE == null)
 		{
-			System.out.println("Cannot find port PWR.m-2e in cell "+pullUps.describe());
+			System.out.println("Cannot find port PWR.m-2e in "+pullUps);
 			return null;
 		}
 		Export pullUpsGnd1W = pullUps.findExport("GND.m-1.sw");
 		if (pullUpsGnd1W == null)
 		{
-			System.out.println("Cannot find port GND.m-1.sw in cell "+pullUps.describe());
+			System.out.println("Cannot find port GND.m-1.sw in "+pullUps);
 			return null;
 		}
 		Export pullUpsGnd1E = pullUps.findExport("GND.m-1.se");
 		if (pullUpsGnd1E == null)
 		{
-			System.out.println("Cannot find port GND.m-1.se in cell "+pullUps.describe());
+			System.out.println("Cannot find port GND.m-1.se in "+pullUps);
 			return null;
 		}
 		for (int i = 0; i < limit; i++)
@@ -727,7 +727,7 @@ public class PLA
 		if (size < yS) size = yS;
 		NodeInst ni = NodeInst.makeInstance(node, new Point2D.Double(x, y), size, size, cell);
 		if (ni == null)
-			System.out.println("Unable to create " + node.describe() + " in cell " + cell.describe());
+			System.out.println("Unable to create " + node + " in " + cell);
 		return ni;
 	}
 
@@ -752,9 +752,9 @@ public class PLA
 		ArcInst ai = ArcInst.makeInstance(typ, wid, fromPi, toPi);
 		if (ai == null)
 		{
-			System.out.println("Unable to run " + typ.describe() + " arc from node " + fromNodeInst.describe() +
-				", port " + fromPortProto.getName() + " to node " + toNodeInst.describe() + ", port " +
-				toPortProto.getName() + " in cell " + cell.describe());
+			System.out.println("Unable to run " + typ + " from " + fromNodeInst +
+				", " + fromPortProto + " to " + toNodeInst + ", " +
+				toPortProto + " in " + cell);
 		}
 	}
 

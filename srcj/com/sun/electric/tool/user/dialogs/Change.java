@@ -363,7 +363,7 @@ public class Change extends EDialog implements HighlightListener
 				for(Iterator it = curTech.getNodesSortedByName().iterator(); it.hasNext(); )
 				{
 					PrimitiveNode np = (PrimitiveNode)it.next();
-					changeListModel.addElement(np.describe());
+					changeListModel.addElement(np.describe(false));
 					changeNodeProtoList.add(np);
 				}
 				if (curTech != Generic.tech)
@@ -390,7 +390,7 @@ public class Change extends EDialog implements HighlightListener
             } else {
                 for (int i=0; i<changeListModel.getSize(); i++) {
                     String str = (String)changeListModel.get(i);
-                    if (str.equals(ni.getProto().describe())) {
+                    if (str.equals(ni.getProto().describe(false))) {
                         changeList.setSelectedIndex(i);
                         break;
                     }
@@ -398,7 +398,7 @@ public class Change extends EDialog implements HighlightListener
             }
 			if (showCells.isSelected())
 			{
-				String geomName = ((NodeInst)geomToChange).getProto().describe();
+				String geomName = ((NodeInst)geomToChange).getProto().describe(false);
 
 				// if replacing dummy facet, name will be [cellname]FROM[libname][{view}]
 				Matcher mat = dummyName.matcher(geomName);
@@ -510,7 +510,7 @@ public class Change extends EDialog implements HighlightListener
 					NodeProto oldNType = ni.getProto();
 					if (oldNType == np)
 					{
-						System.out.println("Node already of type " + np.describe());
+						System.out.println("Node already of type " + np.describe(true));
 						return false;
 					}
 
@@ -523,7 +523,7 @@ public class Change extends EDialog implements HighlightListener
 					if (onlyNewNi == null)
 					{
 						JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
-							np.describe() + " does not fit in the place of " + oldNType.describe(),
+							np + " does not fit in the place of " + oldNType,
 							"Change failed", JOptionPane.ERROR_MESSAGE);
 						return false;
 					}
@@ -553,7 +553,7 @@ public class Change extends EDialog implements HighlightListener
 										// do not replace the example icon
 										if (lNi.isIconOfParent())
 										{
-											System.out.println("Example icon in cell " + cell.describe() + " not replaced");
+											System.out.println("Example icon in " + cell + " not replaced");
 											continue;
 										}
 
@@ -573,8 +573,8 @@ public class Change extends EDialog implements HighlightListener
 								}
 							}
 						}
-						System.out.println("All " + total + " " + oldNType.describe() +
-							" nodes in all libraries replaced with " + np.describe());
+						System.out.println("All " + total + " " + oldNType.describe(true) +
+							" nodes in all libraries replaced with " + np);
 					} else if (dialog.changeInLibrary.isSelected())
 					{
 						// replace throughout this library if requested
@@ -606,8 +606,8 @@ public class Change extends EDialog implements HighlightListener
 								}
 							}
 						}
-						System.out.println("All " + total + " " + oldNType.describe() +
-							" nodes in library " + lib.getName() + " replaced with " + np.describe());
+						System.out.println("All " + total + " " + oldNType.describe(true) +
+							" nodes in " + lib + " replaced with " + np);
 					} else if (dialog.changeInCell.isSelected())
 					{
 						// replace throughout this cell if "requested
@@ -635,8 +635,8 @@ public class Change extends EDialog implements HighlightListener
 								}
 							}
 						}
-						System.out.println("All " + total + " " + oldNType.describe() + " nodes in cell " +
-							cell.describe() + " replaced with " + np.describe());
+						System.out.println("All " + total + " " + oldNType.describe(true) + " nodes in " +
+							cell + " replaced with " + np);
 					} else if (dialog.changeConnected.isSelected())
 					{
 						// replace all connected to this in the cell if requested
@@ -683,9 +683,9 @@ public class Change extends EDialog implements HighlightListener
 								total++;
 							}
 						}
-						System.out.println("All " + total + " " + oldNType.describe() +
-							" nodes connected to this replaced with " + np.describe());
-					} else System.out.println("Node " + oldNType.describe() + " replaced with " + np.describe());
+						System.out.println("All " + total + " " + oldNType.describe(true) +
+							" nodes connected to this replaced with " + np);
+					} else System.out.println(oldNType + " replaced with " + np);
 				} else
 				{
 					// get arc to be replaced
@@ -732,7 +732,7 @@ public class Change extends EDialog implements HighlightListener
 					ArcInst onlyNewAi = ai.replace(ap);
 					if (onlyNewAi == null)
 					{
-						System.out.println(ap.describe() + " does not fit in the place of " + oldAType.describe());
+						System.out.println(ap + " does not fit in the place of " + oldAType);
 						return false;
 					}
 					dialog.wnd.getHighlighter().addElectricObject(onlyNewAi, onlyNewAi.getParent());
@@ -774,7 +774,7 @@ public class Change extends EDialog implements HighlightListener
 							}
 						}
 						System.out.println("All " + total + " " + oldAType.describe() +
-							" arcs in the library replaced with " + ap.describe());
+							" arcs in the library replaced with " + ap);
 					} else if (dialog.changeInLibrary.isSelected())
 					{
 						// replace throughout this library if requested
@@ -807,7 +807,7 @@ public class Change extends EDialog implements HighlightListener
 							}
 						}
 						System.out.println("All " + total + " " + oldAType.describe() +
-							" arcs in library " + lib.getName() + " replaced with " + ap.describe());
+							" arcs in " + lib + " replaced with " + ap);
 					} else if (dialog.changeInCell.isSelected())
 					{
 						// replace throughout this cell if requested
@@ -836,7 +836,7 @@ public class Change extends EDialog implements HighlightListener
 							}
 						}
 						System.out.println("All " + total + " " + oldAType.describe() +
-							" arcs in cell " + cell.describe() + " replaced with " + ap.describe());
+							" arcs in " + cell + " replaced with " + ap);
 					} else if (dialog.changeConnected.isSelected())
 					{
 						// replace all connected to this if requested
@@ -860,8 +860,8 @@ public class Change extends EDialog implements HighlightListener
 							}
 						}
 						System.out.println("All " + total + " " + oldAType.describe() +
-							" arcs connected to this replaced with " + ap.describe());
-					} else System.out.println("Arc " + oldAType.describe() + " replaced with " +ap.describe());
+							" arcs connected to this replaced with " + ap);
+					} else System.out.println(oldAType + " replaced with " +ap);
 				}
             }
 			return true;
@@ -949,7 +949,7 @@ public class Change extends EDialog implements HighlightListener
 					Export oldExport = (Export)eIt.next();
 					if (oldExport.move(newNi.getOnlyPortInst()))
 					{
-						System.out.println("Unable to move export " + oldExport.getName() + " from old pin " + ni.describe() +
+						System.out.println("Unable to move export " + oldExport.getName() + " from old pin " + ni.describe(true) +
 							" to new pin " + newNi);
 					}
 				}

@@ -135,7 +135,7 @@ public class ViewMenu {
         if (schematicView != null)
             WindowFrame.createEditWindow(schematicView);
         else
-            System.out.println("No schematic view for cell "+curCell.describe());
+            System.out.println("No schematic view for "+curCell);
     }
 
     public static void editIconViewCommand()

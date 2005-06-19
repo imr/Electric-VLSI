@@ -416,7 +416,7 @@ public class L extends Output
 		{
 			ArcInst ai = (ArcInst)it.next();
 			if (arcsSeen.contains(ai)) continue;
-			printWriter.println("# WIRE " + ai.describe() + " not described!!");
+			printWriter.println("# WIRE " + ai.describe(true) + " not described!!");
 		}
 		printWriter.println("}");
 	}

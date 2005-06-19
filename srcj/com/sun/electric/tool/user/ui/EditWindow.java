@@ -402,9 +402,9 @@ public class EditWindow extends JPanel
 					if (validPath)
 					{
                         if (ni.getParent().getView() == View.SCHEMATIC) {
-                            path = "Location is " + ni.getParent().describe() + " / " + path;
+                            path = "Location is " + ni.getParent() + " / " + path;
                         } else {
-                            path = "Location in " + ni.getParent().describe() + " / " + path + " is (" +
+                            path = "Location in " + ni.getParent() + " / " + path + " is (" +
                                 TextUtils.formatDouble(ptPath.getX(), 2) + ", " + TextUtils.formatDouble(ptPath.getY(), 2) + ")";
                         }
 					} else path = null;
@@ -2953,7 +2953,7 @@ public class EditWindow extends JPanel
 				for(Iterator it = found.iterator(); it.hasNext(); )
 				{
                     Cell parent = (Cell)it.next();
-                    String cellName = parent.describe();
+                    String cellName = parent.describe(false);
 					JMenuItem menuItem = new JMenuItem(cellName);
 					menuItem.addActionListener(this);
 					parents.add(menuItem);

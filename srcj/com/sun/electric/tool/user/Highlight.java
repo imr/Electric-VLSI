@@ -1011,8 +1011,8 @@ public class Highlight
         desc.append(type);
         if (cell != null)
         {
-	        desc.append(" in cell ");
-	        desc.append(cell.describe());
+	        desc.append(" in ");
+	        desc.append(cell);
         }
         desc.append(": ");
         if (type == Type.MESSAGE){
@@ -1022,13 +1022,13 @@ public class Highlight
         else if (type == Type.EOBJ) {
             desc.append(", ");
             if (eobj instanceof PortInst) {
-                desc.append(((PortInst)eobj).describe());
+                desc.append(((PortInst)eobj).describe(true));
             }
             if (eobj instanceof NodeInst) {
-                desc.append(((NodeInst)eobj).describe());
+                desc.append(((NodeInst)eobj).describe(true));
             }
             if (eobj instanceof ArcInst) {
-                desc.append(((ArcInst)eobj).describe());
+                desc.append(((ArcInst)eobj).describe(true));
             }
         }
         else if (type == Type.TEXT) {

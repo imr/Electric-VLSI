@@ -26,7 +26,6 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Network;
@@ -36,7 +35,6 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -99,7 +97,7 @@ public class Silos extends Topology
 		setContinuationString("+");
 
 		// write header information
-		writeWidthLimited("\n$ CELL " + topCell.describe() +
+		writeWidthLimited("\n$ CELL " + topCell.describe(false) +
 			" FROM LIBRARY " + topCell.getLibrary().getName() + "\n");
 		emitCopyright("$ ", "");
 		if (User.isIncludeDateAndVersionInOutput())
@@ -188,7 +186,7 @@ public class Silos extends Topology
 				File test = new File(fileName);
 				if (!test.exists())
 				{
-					System.out.println("Cannot find SILOS behavior file " + fileName + " on cell " + cell.describe());
+					System.out.println("Cannot find SILOS behavior file " + fileName + " on " + cell);
 				} else
 				{
 					try
@@ -410,7 +408,7 @@ public class Silos extends Topology
 							writeWidthLimited(" " + TextUtils.formatDouble(j, 0));
 						} else
 						{
-							System.out.println("Warning: capacitor with no value on node " + ni.describe());
+							System.out.println("Warning: capacitor with no value on " + ni);
 						}
 						writeWidthLimited("\n");
 						break;

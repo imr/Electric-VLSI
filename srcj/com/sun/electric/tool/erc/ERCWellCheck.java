@@ -510,7 +510,7 @@ public class ERCWellCheck
 
 		protected WellCheckJob(Cell cell, int newAlgorithm, Highlighter highlighter)
 		{
-			super("ERC Well Check", ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
+			super("ERC Well Check on " + cell, ERC.tool, Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newAlgorithm = newAlgorithm;
 			this.highlighter = highlighter;

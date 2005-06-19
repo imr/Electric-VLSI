@@ -200,7 +200,7 @@ public class Simulation extends Listener
 			if ((activities&CONVERT_TO_VHDL) != 0)
 			{
 				// convert Schematic to VHDL
-				System.out.print("Generating VHDL from '" + cell.describe() + "' ...");
+				System.out.print("Generating VHDL from '" + cell + "' ...");
 				List vhdlStrings = GenerateVHDL.convertCell(cell);
 				if (vhdlStrings == null)
 				{
@@ -218,7 +218,7 @@ public class Simulation extends Listener
 				String [] array = new String[vhdlStrings.size()];
 				for(int i=0; i<vhdlStrings.size(); i++) array[i] = (String)vhdlStrings.get(i);
 				vhdlCell.setTextViewContents(array);
-				System.out.println(" Done, created '" + vhdlCell.describe() + "'");
+				System.out.println(" Done, created " + vhdlCell);
 			    DoNextActivity sJob = new DoNextActivity(vhdlCell, activities & ~CONVERT_TO_VHDL, originalCell, originalContext, prevEngine);
 			    return true;
 			}
@@ -226,7 +226,7 @@ public class Simulation extends Listener
 			if ((activities&COMPILE_VHDL_FOR_SIM) != 0)
 			{
 				// compile the VHDL to a netlist
-				System.out.print("Compiling VHDL in '" + cell.describe() + "' ...");
+				System.out.print("Compiling VHDL in " + cell + " ...");
 				CompileVHDL c = new CompileVHDL(cell);
 				if (c.hasErrors())
 				{
@@ -251,7 +251,7 @@ public class Simulation extends Listener
 				String [] array = new String[netlistStrings.size()];
 				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
 				netlistCell.setTextViewContents(array);
-				System.out.println(" Done, created '" + netlistCell.describe() + "'");
+				System.out.println(" Done, created " + netlistCell);
 			    DoNextActivity sJob = new DoNextActivity(netlistCell, activities & ~COMPILE_VHDL_FOR_SIM, originalCell, originalContext, prevEngine);
 			    return true;
 			}

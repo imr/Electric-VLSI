@@ -907,8 +907,8 @@ public class ELIB extends LibraryFiles
 				{
 					if (readNodeInst(nodeIndex, cellIndex))
 					{
-						System.out.println("Error reading node index " + nodeIndex + " in cell " + cell.describe() + " of library " + lib.getName());
-						ErrorLogger.MessageLog error = Input.errorLogger.logError("Error reading node index " + nodeIndex + " in cell " + cell.describe() + " of library " + lib.getName(), cell, 1);
+						System.out.println("Error reading node index " + nodeIndex + " in " + cell + " of " + lib);
+					    Input.errorLogger.logError("Error reading node index " + nodeIndex + " in " + cell + " of " + lib, cell, 1);
 						return true;
 					}
 					nodeIndex++;
@@ -928,13 +928,13 @@ public class ELIB extends LibraryFiles
         for (Iterator it = lib.getCells(); it.hasNext(); ) {
             Cell c = (Cell)it.next();
             if (c.getVar(IO_DUMMY_OBJECT) != null) {
-                System.out.println("WARNING: Library "+lib.getName()+" contains DUMMY cell "+c.noLibDescribe());
+                System.out.println("WARNING: "+lib+" contains DUMMY cell "+c.noLibDescribe());
             }
         }
 
 		// library read successfully
 		if (LibraryFiles.VERBOSE)
-			System.out.println("Binary: finished reading data for library " + lib.getName());
+			System.out.println("Binary: finished reading data for " + lib);
 		return false;
 	}
 
@@ -1010,10 +1010,10 @@ public class ELIB extends LibraryFiles
 		{
 			if (scaledCellName == null)
 			{
-				System.out.println("Binary: Doing contents of cell " + cell.describe() + " in library " + lib.getName());
+				System.out.println("Binary: Doing contents of " + cell + " in " + lib);
 			} else
 			{
-				System.out.println("Binary: Scaling (by " + scale + ") contents of cell " + cell.describe() + " in library " + lib.getName());
+				System.out.println("Binary: Scaling (by " + scale + ") contents of " + cell + " in " + lib);
 			}
 		}
 		cellsConstructed++;
@@ -1192,7 +1192,7 @@ public class ELIB extends LibraryFiles
 			int nodeIndex = exportSubNodeList[i];
 			if (nodeIndex < 0)
 			{
-				System.out.println("ERROR: Cell " + cell.describe() + ": cannot find the node on which export " + exportName + " resides");
+				System.out.println("ERROR: " + cell + ": cannot find the node on which export " + exportName + " resides");
 				continue;
 			}
 			NodeInst subNodeInst = nodeInstList.theNode[nodeIndex];
@@ -1208,14 +1208,14 @@ public class ELIB extends LibraryFiles
 
 			// null entries happen when there are external cell references
 			if (subNodeInst == null || subPortProto == null || subNodeInst.getParent() != cell || subNodeInst.getProto() != subPortProto.getParent()) {
-				String msg = "ERROR: Cell "+cell.describe() + ": export " + exportNameList[i] + " could not be created";
+				String msg = "ERROR: " + cell + ": export " + exportNameList[i] + " could not be created";
                 System.out.println(msg);
 				Input.errorLogger.logError(msg, cell, 1);
                 continue;
             }
 			if (subNodeInst.getProto() == null)
 			{
-				String msg = "ERROR: Cell "+cell.describe() + ": export " + exportNameList[i] + " could not be created...proto bad!";
+				String msg = "ERROR: "+cell + ": export " + exportNameList[i] + " could not be created...proto bad!";
                 System.out.println(msg);
 				Input.errorLogger.logError(msg, cell, 1);
 				continue;
@@ -1317,7 +1317,7 @@ public class ELIB extends LibraryFiles
 			double tailY = (arcTailYPosList[i] - yoff) / lambda;
 			if (arcHeadNodeList[i] < 0)
 			{
-				System.out.println("ERROR: head of arc " + ap.describe() + " not known");
+				System.out.println("ERROR: head of " + ap+ " not known");
 				continue;
 			}
 			NodeInst headNode = nodeInstList.theNode[arcHeadNodeList[i]];
@@ -1341,7 +1341,7 @@ public class ELIB extends LibraryFiles
 
 			if (arcTailNodeList[i] < 0)
 			{
-				System.out.println("ERROR: tail of arc " + ap.describe() + " not known");
+				System.out.println("ERROR: tail of " + ap + " not known");
 				continue;
 			}
 			NodeInst tailNode = nodeInstList.theNode[arcTailNodeList[i]];
@@ -1393,7 +1393,7 @@ public class ELIB extends LibraryFiles
             arcList[i] = ai;
  			if (ai == null)
 			{
-				String msg = "ERROR: Cell "+cell.describe() + ": arc " + name + " could not be created";
+				String msg = "ERROR: "+cell + ": arc " + name + " could not be created";
                 System.out.println(msg);
 				Input.errorLogger.logError(msg, cell, 1);
 				continue;
@@ -1431,7 +1431,7 @@ public class ELIB extends LibraryFiles
                 reader.realizeCellsRecursively(subCell, recursiveSetupFlag, scaledCellName, scale);
             scaledCell = subCell.getLibrary().findNodeProto(scaledCellName);
             if (scaledCell == null) {
-                System.out.println("Error scaling cell " + subCell.describe() + " by " + scale);
+                System.out.println("Error scaling " + subCell + " by " + scale);
             }
         }
         return scaledCell != null ? scaledCell : subCell;
@@ -1476,7 +1476,7 @@ public class ELIB extends LibraryFiles
                     if (portLocation.contains(x, y)) {
                         if (pi.getPortProto().connectsTo(ap)) {
                             // connect to this port
-                            String msg = "Cell "+cell.describe()+": Port '"+portname+"' on '"+nodeName+"' not found, connecting to port '"+
+                            String msg = cell+": Port '"+portname+"' on '"+nodeName+"' not found, connecting to port '"+
                                     pi.getPortProto().getName()+"' at the same location";
                             System.out.println("ERROR: "+msg);
                             ErrorLogger.MessageLog error = Input.errorLogger.logError(msg, cell, 0);
@@ -1511,7 +1511,7 @@ public class ELIB extends LibraryFiles
 
 
         // create pin as new end point of arc
-        String msg = "Cell "+cell.describe()+": Port '"+portname+"' on '"+nodeName+"' "+whatHappenedToPort+": leaving arc disconnected";
+        String msg = cell+": Port '"+portname+"' on '"+nodeName+"' "+whatHappenedToPort+": leaving arc disconnected";
         System.out.println("ERROR: "+msg);
         ErrorLogger.MessageLog error = Input.errorLogger.logError(msg, cell, 0);
         error.addGeom(ai, true, cell, null);
@@ -1813,7 +1813,7 @@ public class ELIB extends LibraryFiles
 		if (c == null)
 		{
 			// cell not found in library: issue warning
-			System.out.println("ERROR: Cannot find cell " + fullCellName + " in library " + elib.getName());
+			System.out.println("ERROR: Cannot find cell " + fullCellName + " in " + elib);
 		}
 
 		// if cell found, check that size is unchanged (size is unknown at this point)
@@ -1873,8 +1873,8 @@ public class ELIB extends LibraryFiles
 		{
 			if (revisionDate.compareTo(c.getRevisionDate()) != 0)
 			{
-				System.out.println("Warning: cell " + c.noLibDescribe() + " in library " + elib.getName() +
-					" has changed since its use in library " + lib.getName());
+				System.out.println("Warning: cell " + c.noLibDescribe() + " in " + elib +
+					" has changed since its use in " + lib);
 			}
 		}
 
@@ -1920,7 +1920,7 @@ public class ELIB extends LibraryFiles
             // on a dummy cell, it creates the export site.
 
             newCell = true;
-            System.out.println("...Creating dummy cell '"+dummyName+"' in library " + elib.getName() +
+            System.out.println("...Creating dummy cell '"+dummyName+"' in " + elib +
                     ". Instances will be logged as Errors.");
             c.newVar(IO_TRUE_LIBRARY, elib.getName());
             c.newVar(IO_DUMMY_OBJECT, fullCellName);

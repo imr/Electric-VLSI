@@ -733,17 +733,17 @@ public class Undo
 			if (type == Type.NODEINSTNEW)
 			{
 				NodeInst ni = (NodeInst)obj;
-				return "Node " + ni.describe() + " created in cell " + ni.getParent().describe();
+				return ni + " created in " + ni.getParent();
 			}
 			if (type == Type.NODEINSTKILL)
 			{
 				NodeInst ni = (NodeInst)obj;
-				return "Node " + ni.describe() + " deleted from cell " + ni.getParent().describe();
+				return ni + " deleted from " + ni.getParent();
 			}
 			if (type == Type.NODEINSTMOD)
 			{
 				NodeInst ni = (NodeInst)obj;
-				return "Node " + ni.describe() + " modified in cell " + ni.getParent().describe() +
+				return ni + " modified in " + ni.getParent() +
 					"[was " + getA3() + "x" + getA4() + " at (" + getA1() + "," + getA2() + ") rotated " + getI1()/10.0 + ", is " +
 					ni.getXSizeWithMirror() + "x" + ni.getYSizeWithMirror() + " at (" + ni.getAnchorCenterX() + "," +
 					ni.getAnchorCenterY() + ") rotated " + ni.getAngle()/10.0 + "]";
@@ -751,56 +751,56 @@ public class Undo
 			if (type == Type.ARCINSTNEW)
 			{
 				ArcInst ai = (ArcInst)obj;
-				return "Arc " + ai.describe() + " created in cell " + ai.getParent().describe();
+				return ai + " created in " + ai.getParent();
 			}
 			if (type == Type.ARCINSTKILL)
 			{
 				ArcInst ai = (ArcInst)obj;
-				return "Arc " + ai.describe() + " deleted from cell " + ai.getParent().describe();
+				return ai + " deleted from " + ai.getParent();
 			}
 			if (type == Type.ARCINSTMOD)
 			{
 				ArcInst ai = (ArcInst)obj;
-				return "Arc " + ai.describe() + " modified in cell " + ai.getParent().describe() +
+				return ai + " modified in " + ai.getParent() +
 					"[was " + getA5() + " wide from (" + getA1() + "," + getA2() + ") to (" + getA3() + "," + getA4() + ")]";
 			}
 			if (type == Type.EXPORTNEW)
 			{
 				Export pp = (Export)obj;
-				return "Export " + pp.getName() + " created in cell " + pp.getParent().describe();
+				return "Export " + pp.getName() + " created in " + pp.getParent();
 			}
 			if (type == Type.EXPORTKILL)
 			{
 				Export pp = (Export)obj;
-				return "Export " + pp.getName() + " deleted from cell " + pp.getParent().describe();
+				return "Export " + pp.getName() + " deleted from " + pp.getParent();
 			}
 			if (type == Type.EXPORTMOD)
 			{
 				Export pp = (Export)obj;
 				PortInst pi = (PortInst)o1;
-				return "Export " + pp.getName() + " moved in cell " + pp.getParent().describe() +
-					"[was on node " + pi.getNodeInst().describe() + " port " + pi.getPortProto().getName() + "]";
+				return "Export " + pp.getName() + " moved in " + pp.getParent() +
+					"[was on " + pi.getNodeInst() + " port " + pi.getPortProto().getName() + "]";
 			}
 			if (type == Type.CELLNEW)
 			{
 				Cell cell = (Cell)obj;
-				return "Cell " + cell.describe() + " created";
+				return cell + " created";
 			}
 			if (type == Type.CELLKILL)
 			{
 				Cell cell = (Cell)obj;
-				return "Cell " + cell.describe() + " deleted";
+				return cell + " deleted";
 			}
 			if (type == Type.CELLMOD)
 			{
 				Cell cell = (Cell)obj;
-				return "Cell " + cell.describe() + " modified (was from " + a1 + "<=X<=" + a2 + " " + a3 + "<=Y<=" + a4 + ")";
+				return cell + " modified (was from " + a1 + "<=X<=" + a2 + " " + a3 + "<=Y<=" + a4 + ")";
 			}
 			if (type == Type.CELLGROUPMOD)
 			{
 				Cell cell = (Cell)obj;
 //				Cell.CellGroup group = (Cell.CellGroup)o1;
-				return "Cell " + cell.describe() + " moved to group";
+				return cell + " moved to group";
 			}
 			if (type == Type.OBJECTNEW)
 			{

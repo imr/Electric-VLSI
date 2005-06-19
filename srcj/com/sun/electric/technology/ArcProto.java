@@ -928,7 +928,7 @@ public class ArcProto implements Comparable
 	 */
 	public String toString()
 	{
-		return "ArcProto " + describe();
+		return "arc " + describe();
 	}
 
 }

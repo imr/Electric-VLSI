@@ -36,7 +36,6 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -48,8 +47,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.Main;
 
 import java.awt.geom.AffineTransform;
@@ -397,25 +394,11 @@ public class LayerCoverageJob extends Job
 	public LayerCoverageJob(Type jobType, Cell cell, int func, int mode, Highlighter highlighter,
                             GeometryOnNetwork geoms, Rectangle2D bBox)
 	{
-		super("Layer Coverage", User.getUserTool(), jobType, null, null, Priority.USER);
+		super("Layer Coverage on " + cell, User.getUserTool(), jobType, null, null, Priority.USER);
 		this.curCell = cell;
         this.mode = mode;
         this.tree = GeometryHandler.createGeometryHandler(mode, curCell.getTechnology().getNumLayers(),
                 curCell.getBounds());
-//        switch (mode)
-//        {
-//            case GeometryHandler.ALGO_MERGE:
-//                this.tree = new PolyMerge();
-//                break;
-//            case GeometryHandler.ALGO_QTREE:
-//                this.tree = new PolyQTree(curCell.getBounds());
-//                break;
-//            case GeometryHandler.ALGO_SWEEP:
-//                this.tree = new PolySweepMerge();
-//                break;
-//        }
-//        if (mode == GeometryHandler.ALGO_MERGE)
-//		this.tree = new PolyQTree(curCell.getBounds());
 		this.function = func;
 		this.deleteList = new ArrayList(); // should only be used by IMPLANT
 		this.highlighter = highlighter;
@@ -649,7 +632,7 @@ public class LayerCoverageJob extends Job
                 for(Iterator it = nets.iterator(); it.hasNext(); )
                 {
                     Network net = (Network)it.next();
-                    System.out.println("For network '" + net.describe() + "' in cell '" + cell.describe() + "':");
+                    System.out.println("For " + net + " in " + cell + ":");
                 }
             }
 	        for (int i=0; i<layers.size(); i++) {

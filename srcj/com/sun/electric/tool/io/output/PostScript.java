@@ -41,7 +41,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
@@ -263,7 +262,7 @@ public class PostScript extends Output
 		// write PostScript header
 		if (epsFormat) printWriter.println("%!PS-Adobe-2.0 EPSF-2.0"); else
 			printWriter.println("%!PS-Adobe-1.0");
-		printWriter.println("%%Title: " + cell.describe());
+		printWriter.println("%%Title: " + cell.describe(false));
 		if (User.isIncludeDateAndVersionInOutput())
 		{
 			printWriter.println("%%Creator: Electric VLSI Design System version " + Version.getVersion());
@@ -433,7 +432,7 @@ public class PostScript extends Output
 		{
 			putPSHeader(HEADERSTRING);
 			printWriter.print("0 " + (int)(2 * CORNERDATESIZE * PSSCALE) + " ");
-			writePSString("Cell: " + cell.describe());
+			writePSString("Cell: " + cell.describe(false));
 			printWriter.println(" " + (int)(CORNERDATESIZE * PSSCALE) + " Botleftstring");
 
 			printWriter.print("0 " + (int)(CORNERDATESIZE * PSSCALE) + " ");
@@ -580,7 +579,7 @@ public class PostScript extends Output
 					MutableTextDescriptor td = MutableTextDescriptor.getInstanceTextDescriptor();
 					td.setAbsSize(24);
 					poly.setTextDescriptor(td);
-					poly.setString(ni.getProto().describe());
+					poly.setString(ni.getProto().describe(false));
 					psPoly(poly);
 					showCellPorts(ni, trans, null);
 				} else

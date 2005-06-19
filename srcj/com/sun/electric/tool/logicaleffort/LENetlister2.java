@@ -37,7 +37,6 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -141,7 +140,7 @@ public class LENetlister2 extends LENetlister {
                 Map.Entry entry = (Map.Entry)it.next();
                 Cell acell = (Cell)entry.getKey();
                 CachedCell cc = (CachedCell)entry.getValue();
-                System.out.println("Cached cell "+acell.describe());
+                System.out.println("Cached "+acell);
             }
         }
         if (DEBUG_PRINTCACHEDCELLS) {
@@ -204,7 +203,7 @@ public class LENetlister2 extends LENetlister {
             topLevelCell.newVar(varName, new Float(leno.leX));
 
             if (leno.leX < 1.0f) {
-                String msg = "WARNING: Instance "+ni.describe()+" has size "+TextUtils.formatDouble(leno.leX, 3)+" less than 1 ("+leno.getName()+")";
+                String msg = "WARNING: Instance "+ni+" has size "+TextUtils.formatDouble(leno.leX, 3)+" less than 1 ("+leno.getName()+")";
                 System.out.println(msg);
                 if (ni != null) {
                     ErrorLogger.MessageLog log = errorLogger.logWarning(msg, ni.getParent(), 2);
@@ -277,14 +276,14 @@ public class LENetlister2 extends LENetlister {
             if (cachedCell == null) {
                 cachedCell = new CachedCell(info.getCell(), info.getNetlist());
                 netlister.cellMap.put(info.getCell(), cachedCell);
-                if (DEBUG_FIRSTPASS) System.out.println(" === entering cell "+info.getCell().describe());
+                if (DEBUG_FIRSTPASS) System.out.println(" === entering "+info.getCell());
                 return true;
             } else {
                 // because this cell is already cached, we will not be visiting nodeinsts,
                 // and we will not be calling exit cell. So link into parent here, because
                 // we won't be linking into parent from exit cell.
                 // add this to parent cached cell if any
-                if (DEBUG_FIRSTPASS) System.out.println(" === not entering, using cached version for cell "+info.getCell().describe());
+                if (DEBUG_FIRSTPASS) System.out.println(" === not entering, using cached version for "+info.getCell());
                 HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo();
                 if (parentInfo != null) {
                     Cell parent = info.getParentInfo().getCell();
@@ -316,7 +315,7 @@ public class LENetlister2 extends LENetlister {
         public void exitCell(HierarchyEnumerator.CellInfo info) {
             CachedCell cachedCell = (CachedCell)netlister.cellMap.get(info.getCell());
 
-            if (DEBUG_FIRSTPASS) System.out.println(" === exiting cell "+info.getCell().describe());
+            if (DEBUG_FIRSTPASS) System.out.println(" === exiting "+info.getCell());
             // add this to parent cached cell if any
             HierarchyEnumerator.CellInfo parentInfo = info.getParentInfo();
             if (parentInfo != null) {
@@ -535,7 +534,7 @@ public class LENetlister2 extends LENetlister {
                 dir = LEPin.Dir.OUTPUT;
                 // set output net
                 if ((type == LENodable.Type.LEGATE || type == LENodable.Type.LEKEEPER) && outputNet != null) {
-                    System.out.println("Error: Sizable gate "+ni.getNodeInst().describe()+" has more than one output port!! Ignoring Gate");
+                    System.out.println("Error: Sizable gate "+ni.getNodeInst()+" has more than one output port!! Ignoring Gate");
                     return null;
                 }
                 outputNet = jnet;
@@ -597,7 +596,7 @@ public class LENetlister2 extends LENetlister {
             Cell cell = (Cell)ni.getProto();
             Export exp = cell.findExport(pp.getName());
             if (exp != null && lePortError.get(exp) == null) {
-                String msg = "Warning: Sizeable gate has no logical effort specified for port "+pp.getName()+" in cell "+cell.describe();
+                String msg = "Warning: Sizeable gate has no logical effort specified for port "+pp.getName()+" in "+cell;
                 System.out.println(msg);
                 ErrorLogger.MessageLog log = errorLogger.logWarning(msg, cell, 0);
                 log.addExport(exp, true, cell, info.getContext().push(ni));

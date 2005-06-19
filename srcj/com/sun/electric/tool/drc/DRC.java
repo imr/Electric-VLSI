@@ -381,7 +381,7 @@ public class DRC extends Listener
 
 		protected CheckLayoutIncrementally(Cell cell, Geometric [] objectsToCheck)
 		{
-			super("DRC in cell " + cell.describe(), cell, tool, Job.Priority.ANALYSIS);
+			super("DRC in " + cell, cell, tool, Job.Priority.ANALYSIS);
 			this.objectsToCheck = objectsToCheck;
 			startJob();
 		}
@@ -392,7 +392,7 @@ public class DRC extends Listener
 			int errorsFound = Quick.checkDesignRules(cell, objectsToCheck, null, null, this);
 			if (errorsFound > 0)
 			{
-				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in cell "+ cell.describe());
+				System.out.println("Incremental DRC found " + errorsFound + " errors/warnings in "+ cell);
 			}
 			incrementalRunning = false;
 			doIncrementalDRCTask();
@@ -412,7 +412,7 @@ public class DRC extends Listener
          */
 		protected CheckSchematicHierarchically(Cell cell, Rectangle2D bounds)
 		{
-			super("Design-Rule Check", tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Design-Rule Check " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 //			this.bounds = bounds;
 			startJob();

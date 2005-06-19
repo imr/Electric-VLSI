@@ -581,7 +581,7 @@ public class Quick
 
 		// announce progress
         long startTime = System.currentTimeMillis();
-		System.out.println("Checking cell " + cell.describe());
+		System.out.println("Checking " + cell);
 
 		// now look at every node and arc here
 		totalMsgFound = 0;
@@ -1887,7 +1887,7 @@ public class Quick
 			if ((tinyNodeInst == geom1 || tinyNodeInst == geom2) &&
 				(tinyGeometric == geom1 || tinyGeometric == geom2))
 			{
-				msg = tinyNodeInst.describe() + " is too small for the " + tinyGeometric.describe();
+				msg = tinyNodeInst + " is too small for the " + tinyGeometric;
 			}
 		}
 
@@ -4029,8 +4029,8 @@ public class Quick
         if (layersInterNodes != null && old != null && job != null)
         {
 	        errorLogger.logWarning("Switching from '" + old.getTechName() +
-	                "' to '" +  tech.getTechName() + "' in DRC process. Check for non desired nodes in cell '" +
-	                job.cell.describe() + "'", null, -1);
+	                "' to '" +  tech.getTechName() + "' in DRC process. Check for non desired nodes in " +
+	                job.cell, null, -1);
         }
 
 		layersInterNodes = new HashMap();
@@ -4194,8 +4194,8 @@ public class Quick
 					boolean found = poly.contains(thisPoly.getBounds2D());
 
 					if (found) count++;
-					else DRCexclusionMsg.append("\n\t(DRC Exclusion '" + dex.ni.getName() + "' does not completely contain '" +
-						        ((Geometric)geomList.get(i)).describe() + "')");
+					else DRCexclusionMsg.append("\n\t(DRC Exclusion '" + dex.ni.getName() + "' does not completely contain " +
+						        ((Geometric)geomList.get(i)) + ")");
 				}
 				// At least one DRC exclusion that contains both
 				if (count == polyList.size())
@@ -4230,15 +4230,13 @@ public class Quick
 
 			if (np1 != np2)
 			{
-				errorMessage.append("cell '" + np1.describe() + "', ");
+				errorMessage.append(np1 + ", ");
 			} else if (np1 != cell)
 			{
-				errorMessage.append("[in cell '" + np1.describe() + "'] ");
+				errorMessage.append("[in " + np1 + "] ");
 			}
-			if (geom1 instanceof NodeInst)
-				errorMessage.append("node '" + geom1.describe() + "'");
-			else
-				errorMessage.append("arc '" + geom1.describe() + "'");
+
+            errorMessage.append(geom1);
 			if (layer1 != layer2)
 				errorMessage.append(", layer '" + layer1.getName() + "'");
 
@@ -4247,11 +4245,9 @@ public class Quick
 			else errorMessage.append(" LESS (BY " + TextUtils.formatDouble(limit-actual) + ") THAN " + TextUtils.formatDouble(limit) + " TO ");
 
 			if (np1 != np2)
-				errorMessage.append("cell '" + np2.describe() + "', ");
-			if (geom2 instanceof NodeInst)
-				errorMessage.append("node '" + geom2.describe() + "'");
-			else
-				errorMessage.append("arc '" + geom2.describe() + "'");
+				errorMessage.append(np2 + ", ");
+
+			errorMessage.append(geom2);
 			if (layer1 != layer2)
 				errorMessage.append(", layer '" + layer2.getName() + "'");
 			if (msg != null)
@@ -4308,12 +4304,10 @@ public class Quick
                     break;
 			}
 
-			errorMessage.append(" cell '" + cell.describe() + "'");
+			errorMessage.append(" " + cell);
 			if (geom1 != null)
 			{
-				errorMessage.append((geom1 instanceof NodeInst) ?
-				        ", node '" + geom1.describe() + "'" :
-				        ", arc '" + geom1.describe() + "'");
+				errorMessage.append(geom1);
 			}
 			if (layer1 != null) sortLayer = layer1.getIndex();
 			errorMessage.append(errorMessagePart2);

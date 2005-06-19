@@ -26,18 +26,12 @@ package com.sun.electric.database.variable;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.ui.EditWindow;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Collections;
 
 /**
  * The Variable class defines a single attribute-value pair that can be attached to any ElectricObject.
@@ -285,19 +279,19 @@ public class Variable
 		String description = null;
 		if (eobj instanceof Export)
 		{
-			description = trueName + " on export '" + ((Export)eobj).getName() + "'";
+			description = trueName + " on " + eobj;
 		} else if (eobj instanceof PortInst)
 		{
 			PortInst pi = (PortInst)eobj;
-			description = trueName + " on port " + pi.getPortProto().getName() +
-				" of " + pi.getNodeInst().describe();
+			description = trueName + " on " + pi.getPortProto() +
+				" of " + pi.getNodeInst().describe(true);
 		} else if (eobj instanceof ArcInst)
 		{
-			description = trueName + " on " + ((ArcInst)eobj).describe();
+			description = trueName + " on " + eobj;
 		} else if (eobj instanceof NodeInst)
 		{
 			NodeInst ni = (NodeInst)eobj;
-			description = trueName + " on " + ni.describe();
+			description = trueName + " on " + ni;
 			if (ni.getProto() == Generic.tech.invisiblePinNode)
 			{
 				String varName = getKey().getName();
@@ -306,7 +300,7 @@ public class Variable
 			}
 		} else if (eobj instanceof Cell)
 		{
-			description = trueName + " of cell " + ((Cell)eobj).describe();
+			description = trueName + " of " + eobj;
 		}
 		return description;
 	}
@@ -481,9 +475,9 @@ public class Variable
 		if (addr instanceof String)
 			return (String)addr;
 		if (addr instanceof NodeInst)
-			return ((NodeInst)addr).describe();
+			return ((NodeInst)addr).describe(false);
 		if (addr instanceof ArcInst)
-			return ((ArcInst)addr).describe();
+			return ((ArcInst)addr).describe(false);
         if (addr instanceof Object[]) {
             StringBuffer buf = new StringBuffer();
             buf.append("[");

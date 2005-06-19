@@ -1069,7 +1069,7 @@ public class CircuitChanges
 				String netName = netList.getNetworkName(ai);
 				if (netName.length() == 0)
 				{
-					System.out.println("Bus " + ai.describe() + " has no name");
+					System.out.println("Bus " + ai.describe(true) + " has no name");
 					continue;
 				}
 
@@ -1127,7 +1127,7 @@ public class CircuitChanges
 					lowXBus = lowX;   lowYBus = ai.getTailLocation().getY();
 				} else
 				{
-					System.out.println("Bus " + ai.describe() + " must be horizontal or vertical to be ripped out");
+					System.out.println("Bus " + ai.describe(true) + " must be horizontal or vertical to be ripped out");
 					continue;
 				}
 
@@ -1137,7 +1137,7 @@ public class CircuitChanges
 				{
 					Network subNet = netList.getNetwork(ai, i);
 					if (subNet.hasNames()) localStrings[i] = (String)subNet.getNames().next(); else
-						localStrings[i] = subNet.describe();
+						localStrings[i] = subNet.describe(false);
 				}
 
 				double sxw = Schematics.tech.wirePinNode.getDefWidth();
@@ -1451,7 +1451,7 @@ public class CircuitChanges
 					NodeInst ni = NodeInst.makeInstance(pin, tailPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell);
 					if (ni == null)
 					{
-						System.out.println("Error creating pin for shortening of arc "+ai.describe());
+						System.out.println("Error creating pin for shortening of "+ai);
 						continue;
 					}
 
@@ -1460,7 +1460,7 @@ public class CircuitChanges
 					        tailPtAdj, newName);
 					if (ai1 == null)
 					{
-						System.out.println("Error shortening arc "+ai.describe());
+						System.out.println("Error shortening "+ai);
 						continue;
 					}
 					newName = null;
@@ -1473,7 +1473,7 @@ public class CircuitChanges
 					NodeInst ni = NodeInst.makeInstance(pin, headPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell);
 					if (ni == null)
 					{
-						System.out.println("Error creating pin for shortening of arc "+ai.describe());
+						System.out.println("Error creating pin for shortening of "+ai);
 						continue;
 					}
 
@@ -1481,7 +1481,7 @@ public class CircuitChanges
 					        ai.getHeadLocation(), newName);
 					if (ai1 == null)
 					{
-						System.out.println("Error shortening arc "+ai.describe());
+						System.out.println("Error shortening "+ai);
 						continue;
 					}
 					ai1.copyPropertiesFrom(ai);
@@ -1735,7 +1735,7 @@ public class CircuitChanges
 		if (confirm)
 		{
 			int response = JOptionPane.showConfirmDialog(TopLevel.getCurrentJFrame(),
-				"Are you sure you want to delete cell '" + cell.describe() + "'?", "Delete Cell Dialog", JOptionPane.YES_NO_OPTION);
+				"Are you sure you want to delete " + cell + "?", "Delete Cell Dialog", JOptionPane.YES_NO_OPTION);
 			if (response != JOptionPane.YES_OPTION) return false;
 		}
 
@@ -1753,7 +1753,7 @@ public class CircuitChanges
 
 		protected DeleteCell(Cell cell)
 		{
-			super("Delete Cell" + cell.describe(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Delete " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			startJob();
 		}
@@ -1852,7 +1852,7 @@ public class CircuitChanges
 
 		protected RenameCell(Cell cell, String newName, Cell.CellGroup newGroup)
 		{
-			super("Rename Cell " + cell.describe(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Rename " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newName = newName;
 			this.newGroup = newGroup;
@@ -1936,7 +1936,7 @@ public class CircuitChanges
 					Cell cell = (Cell)it.next();
 					if (cell.getNewestVersion() == cell) continue;
 					if (cell.getInstancesOf().hasNext()) continue;
-					System.out.println("Deleting cell " + cell.describe());
+					System.out.println("Deleting " + cell);
 					doKillCell(cell);
 					found = true;
 					totalDeleted++;
@@ -2125,7 +2125,7 @@ public class CircuitChanges
 					}
 
 					cgn.x = xval[cgn.depth];
-					xval[cgn.depth] += cell.describe().length();
+					xval[cgn.depth] += cell.describe(false).length();
 					if (xval[cgn.depth] > maxWidth) maxWidth = xval[cgn.depth];
 					cgn.y = cgn.depth;
 					cgn.yoff = 0;
@@ -2206,7 +2206,7 @@ public class CircuitChanges
 			StringBuffer infstr = new StringBuffer();
 			if (top != null)
 			{
-				infstr.append("Structure below cell " + top.describe());
+				infstr.append("Structure below " + top);
 			} else
 			{
 				infstr.append("Structure of library " + Library.getCurrent().getName());
@@ -2236,7 +2236,7 @@ public class CircuitChanges
 					cgn.pin = ni;
 
 					// write the cell name in the node
-					var = ni.newDisplayVar(Artwork.ART_MESSAGE, cell.describe());
+					var = ni.newDisplayVar(Artwork.ART_MESSAGE, cell.describe(false));
 					if (var != null)
 					{
 //						var.setDisplay(true);
@@ -2472,7 +2472,7 @@ public class CircuitChanges
 				if (newAi == null) return false;
 				newAi.copyPropertiesFrom(ai);
 			}
-			System.out.println("Cell " + cell.describe() + " created");
+			System.out.println("Cell " + cell.describe(true) + " created");
 			return true;
 		}
 	}
@@ -2998,7 +2998,7 @@ public class CircuitChanges
 		public CleanupChanges(Cell cell, boolean justThis, List pinsToRemove, List pinsToPassThrough, HashMap pinsToScale, List textToMove, HashMap arcsToKill,
 			int zeroSize, int negSize, int overSizePins)
 		{
-			super("Cleanup cell " + cell.describe(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Cleanup " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.justThis = justThis;
 			this.pinsToRemove = pinsToRemove;
@@ -3061,7 +3061,7 @@ public class CircuitChanges
 
 			// report what was cleaned
 			StringBuffer infstr = new StringBuffer();
-			if (!justThis) infstr.append("Cell " + cell.describe() + ":");
+			if (!justThis) infstr.append("Cell " + cell.describe(true) + ":");
 			boolean spoke = false;
 			if ((pinsToRemove.size()+pinsPassedThrough) != 0)
 			{
@@ -3224,7 +3224,7 @@ public class CircuitChanges
 					Cell cell = (Cell)cIt.next();
 					if (cell == curCell || !cellsSeen.contains(cell)) continue;
 					if (cellsFound > 0) infstr += " ";;
-					infstr += cell.describe();
+					infstr += cell.describe(true);
 					cellsFound++;
 				}
 				if (cellsFound == 1)
@@ -3236,7 +3236,7 @@ public class CircuitChanges
 				}
 			} else
 			{
-				System.out.println("Found nonmanhattan geometry in library " + lib.getName());
+				System.out.println("Found nonmanhattan geometry in " + lib);
 			}
 		}
 	}
@@ -3354,7 +3354,7 @@ public class CircuitChanges
 
 		protected NewCellVersion(Cell cell)
 		{
-			super("Create new Version of cell " + cell.describe(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Create new Version of " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			startJob();
 		}
@@ -3374,7 +3374,7 @@ public class CircuitChanges
 					content.setCell(newVersion, VarContext.globalContext);
 			}
 			EditWindow.repaintAll();
-            System.out.println("Created new version: \""+newVersion.describe()+"\", old version renamed to \""+cell.describe()+"\"");
+            System.out.println("Created new version: "+newVersion+", old version renamed to "+cell);
 			return true;
 		}
 	}
@@ -3396,7 +3396,7 @@ public class CircuitChanges
 
 		protected DuplicateCell(Cell cell, String newName)
 		{
-			super("Duplicate cell " + cell.describe(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Duplicate " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.newName = newName;
 			startJob();
@@ -3414,7 +3414,7 @@ public class CircuitChanges
 			}
 			Cell dupCell = Cell.copyNodeProto(cell, cell.getLibrary(), newCellName, false);
 			if (dupCell == null) {
-                System.out.println("Could not duplicate cell "+cell.describe());
+                System.out.println("Could not duplicate "+cell);
                 return false;
             }
 
@@ -3428,7 +3428,7 @@ public class CircuitChanges
                     Cell icon = (Cell)ni.getProto();
                     Cell dupIcon = Cell.copyNodeProto(icon, icon.getLibrary(), newName + "{" + icon.getView().getAbbreviation() + "}", false);
                     if (dupIcon == null) {
-                        System.out.println("Could not duplicate icon cell "+icon.describe());
+                        System.out.println("Could not duplicate icon "+icon);
                         break;
                     }
                     System.out.println("  Also duplicated icon view, cell "+icon+". New cell is "+dupIcon+".");
@@ -3559,7 +3559,7 @@ public class CircuitChanges
 				if (CircuitChanges.cantEdit(cell, ni, true) != 0) return false;
 
 				ni.modifyInstance(dX, dY, 0, 0, 0);
-                if (verbose) System.out.println("Moved "+ni.describe()+": delta(X,Y) = ("+dX+","+dY+")");
+                if (verbose) System.out.println("Moved "+ni+": delta(X,Y) = ("+dX+","+dY+")");
                 StatusBar.updateStatusBar();
 				return true;
 			}
@@ -3689,7 +3689,7 @@ public class CircuitChanges
 					{
 						ArcInst ai = (ArcInst)eobj;
 						ai.modify(0, dX, dY, dX, dY);
-                        if (verbose) System.out.println("Moved "+ai.describe()+": delta(X,Y) = ("+dX+","+dY+")");
+                        if (verbose) System.out.println("Moved "+ai+": delta(X,Y) = ("+dX+","+dY+")");
 					}
 				}
                 StatusBar.updateStatusBar();
@@ -4473,8 +4473,8 @@ public class CircuitChanges
 						verbose, move, "subcell ", noRelatedViews, noRelatedViews, noSubCells, useExisting);
 					if (oNp == null)
 					{
-						if (move) System.out.println("Move of subcell " + cell.describe() + " failed"); else
-							System.out.println("Copy of subcell " + cell.describe() + " failed");
+						if (move) System.out.println("Move of sub" + cell + " failed"); else
+							System.out.println("Copy of sub" + cell + " failed");
 						return null;
 					}
 					found = true;
@@ -4505,8 +4505,8 @@ public class CircuitChanges
 						verbose, move, "alternate view ", noRelatedViews, true, noSubCells, useExisting);
 					if (oNp == null)
 					{
-						if (move) System.out.println("Move of alternate view " + np.describe() + " failed"); else
-							System.out.println("Copy of alternate view " + np.describe() + " failed");
+						if (move) System.out.println("Move of alternate view " + np + " failed"); else
+							System.out.println("Copy of alternate view " + np + " failed");
 						return null;
 					}
 					found = true;
@@ -4532,8 +4532,8 @@ public class CircuitChanges
 						verbose, move, "alternate view ", noRelatedViews, true, noSubCells, useExisting);
 					if (oNp == null)
 					{
-						if (move) System.out.println("Move of alternate view " + np.describe() + " failed"); else
-							System.out.println("Copy of alternate view " + np.describe() + " failed");
+						if (move) System.out.println("Move of alternate view " + np + " failed"); else
+							System.out.println("Copy of alternate view " + np + " failed");
 						return null;
 					}
 					found = true;
@@ -4561,10 +4561,10 @@ public class CircuitChanges
 		{
 			if (move)
 			{
-				System.out.println("Move of " + subDescript + fromCell.describe() + " failed");
+				System.out.println("Move of " + subDescript + fromCell + " failed");
 			} else
 			{
-				System.out.println("Copy of " + subDescript + fromCell.describe() + " failed");
+				System.out.println("Copy of " + subDescript + fromCell + " failed");
 			}
 			return null;
 		}
@@ -4580,11 +4580,11 @@ public class CircuitChanges
 				String msg = "";
 				if (move) msg += "Moved "; else
 					 msg += "Copied ";
-				msg += subDescript + fromCell.libDescribe() + " to library " + toLib.getName();
+				msg += subDescript + fromCell.libDescribe() + " to " + toLib;
 				System.out.println(msg);
 			} else
 			{
-				System.out.println("Copied " + subDescript + newFromCell.describe());
+				System.out.println("Copied " + subDescript + newFromCell);
 			}
 		}
 
@@ -4619,7 +4619,7 @@ public class CircuitChanges
 							{
 								NodeInst replacedNi = ni.replace(newFromCell, false, false);
 								if (replacedNi == null)
-									System.out.println("Error moving node " + ni.describe() + " in cell " + np.describe());
+									System.out.println("Error moving " + ni + " in " + np);
 								found = true;
 								break;
 							}
@@ -5339,7 +5339,7 @@ public class CircuitChanges
 				Library oLib = (Library)lIt.next();
 				if (oLib == lib) continue;
 				if (!markedLibs.contains(oLib)) continue;
-				System.out.println("   Makes use of cells in library " + oLib.getName());
+				System.out.println("   Makes use of cells in " + oLib);
 				infstr = new StringBuffer();
 				infstr.append("      These cells make reference to that library:");
 				for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
@@ -5404,7 +5404,7 @@ public class CircuitChanges
 
 		protected RenameLibrary(Library lib, String newName)
 		{
-			super("Renaming library " + lib.getName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Renaming " + lib, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.lib = lib;
 			this.newName = newName;
 			startJob();
@@ -5414,7 +5414,7 @@ public class CircuitChanges
 		{
 			String oldName = lib.getName();
 			if (lib.setName(newName)) return false;
-			System.out.println("Library " + oldName + " renamed to " + newName);
+			System.out.println("Library '" + oldName + "' renamed to '" + newName + "'");
 
             // mark this library for saving
             lib.setChangedMajor();
@@ -5535,7 +5535,7 @@ public class CircuitChanges
 			{
 				if (!giveError) return 1;
 				int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-					"Changes to locked node " + item.describe() + " are disallowed.  Change anyway?",
+					"Changes to locked " + item + " are disallowed.  Change anyway?",
 					"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 					null, options, options[1]);
 				if (ret == 1) return 1;
@@ -5550,7 +5550,7 @@ public class CircuitChanges
 				{
 					if (!giveError) return 1;
 					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-						"Changes to locked primitives (such as " + item.describe() + ") are disallowed.  Change anyway?",
+						"Changes to locked primitives (such as " + item + ") are disallowed.  Change anyway?",
 						"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 						null, options, options[1]);
 					if (ret == 1) return 1;
@@ -5564,7 +5564,7 @@ public class CircuitChanges
 				{
 					if (!giveError) return 1;
 					int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-						"Modification of instances in cell " + cell.describe() + " is disallowed.  You cannot move " + item.describe() +
+						"Modification of instances in " + cell + " is disallowed.  You cannot move " + item +
 						".  Change anyway?",
 						"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 						null, options, options[1]);
@@ -5580,7 +5580,7 @@ public class CircuitChanges
 		{
 			if (!giveError) return 1;
 			int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-				"Modification of cell " + cell.describe() + " is disallowed.  Change "+((item == null)? "" : item.describe())+" anyway?",
+				"Modification of " + cell + " is disallowed.  Change "+((item == null)? "" : item.toString())+" anyway?",
 				"Allow changes", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
 				null, options, options[1]);
 			if (ret == 1) return 1;

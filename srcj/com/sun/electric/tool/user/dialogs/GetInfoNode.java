@@ -355,7 +355,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         swapXY = false;
         if (initialRotation == 900 || initialRotation == 2700) swapXY = true;
 
-        type.setText(np.describe());
+        type.setText(np.describe(true));
         name.setText(initialName);
         xPos.setText(TextUtils.formatDouble(initialXPos));
         yPos.setText(TextUtils.formatDouble(initialYPos));
@@ -738,7 +738,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					if (con.getPortInst() != pi) continue;
 					ArcInst ai = con.getArc();
 					description = "  Connected at (" + con.getLocation().getX() + "," + con.getLocation().getY() +
-						") to " + ai.describe() + " arc";
+						") to " + ai;
 					listModel.addElement(description);
 					portObjects.add(ai);
 				}

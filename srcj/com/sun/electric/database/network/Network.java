@@ -218,9 +218,10 @@ public class Network
 
 	/**
 	 * Method to describe this Network as a string.
+     * @param withQuotes to wrap description between quotes
 	 * @return a String describing this Network.
 	 */
-	public String describe()
+	public String describe(boolean withQuotes)
 	{
 		if (hasNames())
 		{
@@ -228,6 +229,7 @@ public class Network
 			String name = (String)it.next();
 			while (it.hasNext())
 				name += "/" + (String)it.next();
+            if (withQuotes) name = "'"+name+"'";
 			return name;
 		}
 		/* Unnamed net */
@@ -236,7 +238,7 @@ public class Network
 			ArcInst ai = (ArcInst) it.next();
 			if (netlist.getNetwork(ai, 0) == this)
 			{
-				return ai.getName();
+				return (withQuotes)?"'"+ai.getName()+"'":ai.getName();
 			}
 		}
 		return "";
@@ -248,6 +250,6 @@ public class Network
 	 */
 	public String toString()
 	{
-		return "Network "+describe();
+		return "network "+describe(true);
 	}
 }

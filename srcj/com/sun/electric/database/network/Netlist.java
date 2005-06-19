@@ -545,7 +545,7 @@ public class Netlist
 		}
 		Network network = getNetwork(ai, 0);
 		if (network == null) return null;
-		return network.describe();
+		return network.describe(false);
 	}
 
 	/**

@@ -212,7 +212,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 						{
 							JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
 								"Reopening " + toString() + " failed. Cannot " + reason + " " + toString() + " because one of its cells (" +
-								subCell.describe() + "') is being used (by " + cell.libDescribe() + ")",
+								subCell.describe(true) + ") is being used (by " + cell.libDescribe() + ")",
 								"Close library", JOptionPane.ERROR_MESSAGE);
 							 referenced = true;
 							 break;
@@ -443,7 +443,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 
         public String toString() {
             StringBuffer buf = new StringBuffer();
-            buf.append("Library " + startLib.getName() + " depends on Library " + finalRefLib.getName() + " through the following references:\n");
+            buf.append(startLib + " depends on " + finalRefLib + " through the following references:\n");
             for (Iterator it = dependencies.iterator(); it.hasNext(); ) {
                 Cell libCell = (Cell)it.next();
                 Cell instance = (Cell)it.next();
@@ -859,7 +859,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 */
 	public String toString()
 	{
-		return "Library '" + libName + "'";
+		return "library '" + libName + "'";
 	}
 
 	// ----------------- cells --------------------

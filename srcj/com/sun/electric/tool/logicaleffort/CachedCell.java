@@ -67,7 +67,7 @@ public class CachedCell {
             // populate local networks
             for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
                 Network jnet = (Network)it.next();
-                LENetwork net = new LENetwork(jnet.describe());
+                LENetwork net = new LENetwork(jnet.describe(false));
                 localNetworks.put(jnet, net);
             }
         }
@@ -148,7 +148,7 @@ public class CachedCell {
             if (localJNet == null) continue;
             LENetwork net = (LENetwork)localNetworks.get(localJNet);
             if (net == null) {
-                net = new LENetwork(localJNet.describe());
+                net = new LENetwork(localJNet.describe(false));
                 localNetworks.put(localJNet, net);
             }
             net.add(subLENet);
@@ -162,11 +162,11 @@ public class CachedCell {
             if (isContainsSizableGates()) {
                 contextFree = new Boolean(false);
             } else {
-                if (DEBUG) System.out.println("**** Checking if "+cell.describe()+" is context free");
+                if (DEBUG) System.out.println("**** Checking if "+cell+" is context free");
                 boolean cf = isContextFreeRecurse(VarContext.globalContext, 1f, constants);
                 contextFree = new Boolean(cf);
             }
-            if (DEBUG) System.out.println(">>>> Cell "+cell.describe()+" set context free="+contextFree);
+            if (DEBUG) System.out.println(">>>> "+cell+" set context free="+contextFree);
         }
         return contextFree.booleanValue();
     }
@@ -268,7 +268,7 @@ public class CachedCell {
      * @param indent
      */
     protected void printContents(String indent, PrintStream out) {
-        out.println(indent+"CachedCell "+cell.describe()+" contents:");
+        out.println(indent+"CachedCell "+cell.describe(true)+" contents:");
         for (Iterator it = lenodables.values().iterator(); it.hasNext(); ) {
             LENodable leno = (LENodable)it.next();
             out.println(leno.printOneLine(indent+"  "));
@@ -285,7 +285,7 @@ public class CachedCell {
             CellNodable ceno = (CellNodable)entry.getValue();
             //ceno.subCell.printContents(indent+"  ", out);
             boolean subCachable = ceno.subCell.isContextFree(null);
-            System.out.println(indent+indent+"contains subCachedCell for "+ceno.subCell.cell.describe()+" ("+
+            System.out.println(indent+indent+"contains subCachedCell for "+ceno.subCell.cell+" ("+
                     (subCachable?"cachable":"not cachable")+")");
         }
     }

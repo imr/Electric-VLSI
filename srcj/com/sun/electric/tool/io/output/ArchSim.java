@@ -76,7 +76,7 @@ public class ArchSim extends Output
 		printWriter.println();
 		printWriter.println("<!DOCTYPE model SYSTEM \"ArchSimModel.dtd\">");
 		printWriter.println();
-		printWriter.println("<!-- Cell: " + cell.describe() + " -->");
+		printWriter.println("<!-- Cell: " + cell.describe(true) + " -->");
 		emitCopyright("<!-- ", " -->");
 		if (User.isIncludeDateAndVersionInOutput())
 		{
@@ -130,7 +130,7 @@ public class ArchSim extends Output
 					if (pc == PortCharacteristic.IN) inputs.add(pi); else
 						if (pc == PortCharacteristic.OUT) outputs.add(pi); else
 					{
-						System.out.println("Export " + pi.getPortProto().getName() + " of cell " + ni.getProto().describe() +
+						System.out.println("Export " + pi.getPortProto().getName() + " of " + ni.getProto() +
 							" is neither input or output (it is " + pc.getFullName() + ")");
 					}
 				}
@@ -143,7 +143,7 @@ public class ArchSim extends Output
 			String netName = null;
 			Iterator nIt = net.getNames();
 			if (nIt.hasNext()) netName = (String)nIt.next(); else
-				netName = net.describe();
+				netName = net.describe(true);
 			printWriter.println();
 			printWriter.println("<connection name= \"" + netName + "\">");
 

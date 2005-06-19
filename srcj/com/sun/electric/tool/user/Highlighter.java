@@ -297,7 +297,7 @@ public class Highlighter implements DatabaseChangeListener {
         int count = 0;
         for (Iterator netIt = nets.iterator(); netIt.hasNext(); ) {
             Network net = (Network)netIt.next();
-            if (showNetworkLevel == 0) System.out.println("Highlighting network "+net.describe());
+            if (showNetworkLevel == 0) System.out.println("Highlighting "+net);
             List highlights = NetworkHighlighter.getHighlights(cell, netlist, net,
                     showNetworkLevel, showNetworkLevel);
             for (Iterator it = highlights.iterator(); it.hasNext(); ) {

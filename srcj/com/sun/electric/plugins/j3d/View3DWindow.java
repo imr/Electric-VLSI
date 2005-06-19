@@ -184,8 +184,8 @@ public class View3DWindow extends JPanel
                 Object[] possibleValues = { "Full", "Limit", "Cancel" };
                 int response = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
                 "Number of nodes in graph scene reached limit of " + maxNumNodes +
-                        " (loaded " + number + " nodes so far).\nClick 'Full' to include all nodes in '" +cell.describe() +
-                        "', 'Limit' to show " + number + " nodes or 'Cancel' to abort process.\nUnexpand cells to reduce the number).",
+                        " (loaded " + number + " nodes so far).\nClick 'Full' to include all nodes in " +cell +
+                        ", 'Limit' to show " + number + " nodes or 'Cancel' to abort process.\nUnexpand cells to reduce the number).",
                     "Warning", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, possibleValues, possibleValues[2]);
                 alreadyChecked = true;
                 if (response > 0) // Cancel or limit

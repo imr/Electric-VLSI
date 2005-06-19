@@ -1402,9 +1402,8 @@ public class Sue extends Input
 			ArcInst ai = ArcInst.makeInstance(sw.proto, wid, sw.pi[0], sw.pi[1], sw.pt[0], sw.pt[1], null);
 			if (ai == null)
 			{
-				System.out.println("Cell " + cell.describe() +
-					": Could not run a wire from " + sw.pi[0].getNodeInst().describe() + " to " +
-					sw.pi[1].getNodeInst().describe());
+				System.out.println(cell + ": Could not run a wire from " + sw.pi[0].getNodeInst().describe(true) + " to " +
+					sw.pi[1].getNodeInst().describe(true));
 				continue;
 			}
 

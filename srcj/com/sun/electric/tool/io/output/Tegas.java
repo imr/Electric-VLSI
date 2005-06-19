@@ -31,7 +31,6 @@ import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
@@ -136,7 +135,7 @@ public class Tegas extends Topology
 	{
 		// MODULE
 		writeWidthLimited("MODULE:  ");
-		writeWidthLimited(convertName(cell.describe()));
+		writeWidthLimited(convertName(cell.describe(false)));
 		writeWidthLimited(";\n\n");
 
 		netList = cni.getNetList();
@@ -211,7 +210,7 @@ public class Tegas extends Topology
 			if (fun == PrimitiveNode.Function.SOURCE || fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.CAPAC ||
 				fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.INDUCT || fun == PrimitiveNode.Function.METER)
 			{
-				System.out.println("CANNOT HANDLE " + ni.getProto().describe() + " NODES");
+				System.out.println("CANNOT HANDLE " + ni.getProto().describe(true) + " NODES");
 				continue;
 			}
 		}
@@ -304,7 +303,7 @@ public class Tegas extends Topology
 				writeWidthLimited(str1);
 				continue;
 			}
-			System.out.println("NODETYPE " + no.getProto().describe() + " NOT SUPPORTED");
+			System.out.println("NODETYPE " + no.getProto() + " NOT SUPPORTED");
 		}
 	
 		// end module
@@ -566,7 +565,7 @@ public class Tegas extends Topology
 			if (con.getPortInst().getPortProto().getCharacteristic() == PortCharacteristic.IN) inputs++;
 		}
 		if (inputs < 2)
-			System.out.println("MUST HAVE AT LEAST TWO INPUTS ON " + ni.describe());
+			System.out.println("MUST HAVE AT LEAST TWO INPUTS ON " + ni);
 		return inputs;
 	}
 
@@ -632,7 +631,7 @@ public class Tegas extends Topology
 			{
 				Connection con = (Connection)ni.getConnections().next();
 				Network net = netList.getNetwork(con.getArc(), 0);
-				String decl = net.describe() + " = ";
+				String decl = net.describe(false) + " = ";
 				if (fun == PrimitiveNode.Function.CONPOWER) decl += "PWR"; else
 					decl += "GRND";
 				return decl + ";\n";
@@ -650,7 +649,7 @@ public class Tegas extends Topology
 	private String getConnectionName(Connection con)
 	{
 		Network net = netList.getNetwork(con.getArc(), 0);
-		if (net != null) return convertName(net.describe());
+		if (net != null) return convertName(net.describe(false));
 		return "???";
 	}
 
@@ -698,7 +697,7 @@ public class Tegas extends Topology
 	{
 		if (no.getProto() instanceof Cell)
 		{
-			return convertName(no.getProto().describe());
+			return convertName(no.getProto().describe(false));
 		}
 		NodeInst ni = (NodeInst)no;
 		PrimitiveNode.Function fun = ni.getFunction();

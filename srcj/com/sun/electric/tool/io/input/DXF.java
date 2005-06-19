@@ -38,7 +38,6 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -1346,7 +1345,7 @@ public class DXF extends Input
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell)
 			{
-				System.out.println("Cannot insert block '" + onp.describe() + "'...it has inserts in it");
+				System.out.println("Cannot insert block '" + onp + "'...it has inserts in it");
 				return true;
 			}
 			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
@@ -1422,7 +1421,7 @@ public class DXF extends Input
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() instanceof Cell)
 			{
-				System.out.println("Cannot insert block '" + onp.describe() + "'...it has inserts in it");
+				System.out.println("Cannot insert block '" + onp + "'...it has inserts in it");
 				return null;
 			}
 			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), ni.getAnchorCenter(),

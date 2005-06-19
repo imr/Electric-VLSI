@@ -870,7 +870,7 @@ public class Manipulate
 			// describe currently highlighted arc
 			ArcInst ai = (ArcInst)geom;
 			if (ai.getProto() != Generic.tech.universal_arc)
-				return "This is an unimportant " + ai.getProto().describe() + " arc";
+				return "This is an unimportant " + ai.getProto();
 			if (ai.getHeadPortInst().getNodeInst().getProto() != Generic.tech.portNode ||
 				ai.getTailPortInst().getNodeInst().getProto() != Generic.tech.portNode)
 					return "This arc makes an unimportant connection";
@@ -905,68 +905,68 @@ public class Manipulate
 				return "The transparent colors";
 
 			case Info.LAYER3DHEIGHT:
-				return "The 3D height of " + cell.describe();
+				return "The 3D height of " + cell;
 			case Info.LAYER3DTHICK:
-				return "The 3D thickness of " + cell.describe();
+				return "The 3D thickness of " + cell;
 			case Info.LAYERTRANSPARENCY:
-				return "The transparency layer of " + cell.describe();
+				return "The transparency layer of " + cell;
 			case Info.LAYERCIF:
-				return "The CIF name of " + cell.describe();
+				return "The CIF name of " + cell;
 			case Info.LAYERCOLOR:
-				return "The color of " + cell.describe();
+				return "The color of " + cell;
 			case Info.LAYERLETTERS:
-				return "The unique letter for " + cell.describe() + " (obsolete)";
+				return "The unique letter for " + cell + " (obsolete)";
 			case Info.LAYERDXF:
-				return "The DXF name(s) of " + cell.describe() + " (obsolete)";
+				return "The DXF name(s) of " + cell + " (obsolete)";
 			case Info.LAYERDRCMINWID:
-				return "DRC minimum width " + cell.describe() + " (obsolete)";
+				return "DRC minimum width " + cell + " (obsolete)";
 			case Info.LAYERFUNCTION:
-				return "The function of " + cell.describe();
+				return "The function of " + cell;
 			case Info.LAYERGDS:
-				return "The Calma GDS-II number of " + cell.describe();
+				return "The Calma GDS-II number of " + cell;
 			case Info.LAYERPATCONT:
 				return "A stipple-pattern controller";
 			case Info.LAYERPATTERN:
-				return "One of the bitmap squares in " + cell.describe();
+				return "One of the bitmap squares in " + cell;
 			case Info.LAYERSPICAP:
-				return "The SPICE capacitance of " + cell.describe();
+				return "The SPICE capacitance of " + cell;
 			case Info.LAYERSPIECAP:
-				return "The SPICE edge capacitance of " + cell.describe();
+				return "The SPICE edge capacitance of " + cell;
 			case Info.LAYERSPIRES:
-				return "The SPICE resistance of " + cell.describe();
+				return "The SPICE resistance of " + cell;
 			case Info.LAYERSTYLE:
-				return "The style of " + cell.describe();
+				return "The style of " + cell;
 			case Info.LAYERCOVERAGE:
-				return "The desired coverage percentage for " + cell.describe();
+				return "The desired coverage percentage for " + cell;
 
 			case Info.ARCFIXANG:
-				return "Whether " + cell.describe() + " is fixed-angle";
+				return "Whether " + cell + " is fixed-angle";
 			case Info.ARCFUNCTION:
-				return "The function of " + cell.describe();
+				return "The function of " + cell;
 			case Info.ARCINC:
-				return "The prefered angle increment of " + cell.describe();
+				return "The prefered angle increment of " + cell;
 			case Info.ARCNOEXTEND:
-				return "The arc extension of " + cell.describe();
+				return "The arc extension of " + cell;
 			case Info.ARCWIPESPINS:
-				return "Thie arc coverage of " + cell.describe();
+				return "Thie arc coverage of " + cell;
 			case Info.ARCANTENNARATIO:
-				return "The maximum antenna ratio for " + cell.describe();
+				return "The maximum antenna ratio for " + cell;
 
 			case Info.NODEFUNCTION:
-				return "The function of " + cell.describe();
+				return "The function of " + cell;
 			case Info.NODELOCKABLE:
-				return "Whether " + cell.describe() + " can be locked (used in array technologies)";
+				return "Whether " + cell + " can be locked (used in array technologies)";
 			case Info.NODEMULTICUT:
-				return "The separation between multiple contact cuts in " + cell.describe() + " (obsolete)";
+				return "The separation between multiple contact cuts in " + cell + " (obsolete)";
 			case Info.NODESERPENTINE:
-				return "Whether " + cell.describe() + " is a serpentine transistor";
+				return "Whether " + cell + " is a serpentine transistor";
 			case Info.NODESQUARE:
-				return "Whether " + cell.describe() + " is square";
+				return "Whether " + cell + " is square";
 			case Info.NODEWIPES:
-				return "Whether " + cell.describe() + " disappears when conencted to one or two arcs";
+				return "Whether " + cell + " disappears when conencted to one or two arcs";
 
 			case Info.CENTEROBJ:
-				return "The grab point of " + cell.describe();
+				return "The grab point of " + cell;
 			case Info.LAYERPATCH:
 			case Info.HIGHLIGHTOBJ:
 				Cell np = getLayerCell(ni);
@@ -2007,7 +2007,7 @@ public class Manipulate
 
 		if (patternCount != 16*16 && patternCount != 16*8)
 		{
-			System.out.println("Incorrect number of pattern boxes in " + np.describe() +
+			System.out.println("Incorrect number of pattern boxes in " + np +
 				" (has " + patternCount + ", not " + (16*16) + ")");
 			return;
 		}

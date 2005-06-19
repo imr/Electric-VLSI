@@ -99,7 +99,7 @@ public final class ExportChanges
 		// count the number of exports
 		if (cell.getNumPorts() == 0)
 		{
-			System.out.println("There are no exports on cell " + cell.describe());
+			System.out.println("There are no exports on " + cell);
 			return;
 		}
 
@@ -173,7 +173,7 @@ public final class ExportChanges
 		}
 
 		// describe each export
-		System.out.println("----- Exports on cell " + cell.describe() + " -----");
+		System.out.println("----- Exports on " + cell + " -----");
 		HashSet arcsSeen = new HashSet();
 		for(int j=0; j<num_found; j++)
 		{
@@ -309,7 +309,7 @@ public final class ExportChanges
 					if (wnp != null)
 					{
 						if (pp.getEquivalentPort(wnp) == null)
-							infstr += " *** no equivalent in " + wnp.describe();
+							infstr += " *** no equivalent in " + wnp;
 					}
 				}
 			}
@@ -322,7 +322,7 @@ public final class ExportChanges
 			{
 				Export pp = (Export)it.next();
 				if (pp.getEquivalentPort(cell) == null)
-					System.out.println("*** Export " + pp.getName() + ", found in cell " + wnp.describe() + ", is missing here");
+					System.out.println("*** Export " + pp.getName() + ", found in " + wnp + ", is missing here");
 			}
 		}
 	}
@@ -1281,7 +1281,7 @@ public final class ExportChanges
 	    				{
 	    					if (!noCells)
 	    						System.out.println("Cannot yet make exports that come from other cell instances (i.e. export " +
-	    							oPp.getName() + " in cell " + oNp.describe() + ")");
+	    							oPp.getName() + " in " + oNp + ")");
 	    					noCells = true;
 	    					continue;
 	    				}
@@ -1300,7 +1300,7 @@ public final class ExportChanges
 	    			}
 	    		}
 	    	}
-	    	System.out.println("Created " + newPorts + " new exports in current library " + curLib.getName());
+	    	System.out.println("Created " + newPorts + " new exports in current " + curLib);
 			return true;
 		}
 	}

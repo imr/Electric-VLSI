@@ -1009,15 +1009,16 @@ public class PrimitiveNode implements NodeProto, Comparable
 	/**
 	 * Method to describe this PrimitiveNode as a string.
 	 * If the primitive is not from the current technology, prepend the technology name.
+     * @param withQuotes to wrap description between quotes
 	 * @return a description of this PrimitiveNode.
 	 */
-	public String describe()
+	public String describe(boolean withQuotes)
 	{
 		String name = "";
 		if (tech != Technology.getCurrent())
 			name += tech.getTechName() + ":";
 		name += protoName;
-		return name;
+        return (withQuotes) ? "'"+name+"'" : name;
 	}
 
 	/**
@@ -1359,7 +1360,7 @@ public class PrimitiveNode implements NodeProto, Comparable
 	 */
 	public String toString()
 	{
-		return "PrimitiveNode " + describe();
+		return "node " + describe(true);
 	}
 
 	/**

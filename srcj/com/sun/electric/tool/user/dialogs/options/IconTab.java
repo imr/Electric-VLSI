@@ -70,7 +70,7 @@ public class IconTab extends PreferencePanel
 			iconMakeIcon.setEnabled(false);
 		} else
 		{
-			iconCurrentCell.setText(curCell.describe());
+			iconCurrentCell.setText(curCell.describe(true));
 			iconMakeIcon.setEnabled(true);
 		}
 

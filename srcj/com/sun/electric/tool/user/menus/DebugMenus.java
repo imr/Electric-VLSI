@@ -454,7 +454,7 @@ public class DebugMenus {
 			m1Export.setCharacteristic(PortCharacteristic.IN);
 			Export p1Export = Export.newInstance(myCell, p1PortA, "out");
 			p1Export.setCharacteristic(PortCharacteristic.OUT);
-			System.out.println("Created cell " + myCell.describe());
+			System.out.println("Created " + myCell);
 
 
 			// now up the hierarchy
@@ -498,7 +498,7 @@ public class DebugMenus {
 			PortInst instance1Port = instance1Node.findPortInst("in");
 			PortInst instance2Port = instance1UNode.findPortInst("in");
 			ArcInst instanceArc = ArcInst.makeInstance(m1Proto, m1Proto.getWidth(), instance1Port, instance2Port);
-			System.out.println("Created cell " + higherCell.describe());
+			System.out.println("Created " + higherCell);
 
 
 			// now a rotation test
@@ -602,7 +602,7 @@ public class DebugMenus {
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 270 MXY");
 			var.setRelSize(10);
 
-			System.out.println("Created cell " + rotTestCell.describe());
+			System.out.println("Created " + rotTestCell);
 
 
 			// now up the hierarchy even farther
@@ -619,7 +619,7 @@ public class DebugMenus {
 					if ((x%2) == (y%2)) instanceNode.setExpanded();
 				}
 			}
-			System.out.println("Created cell " + bigCell.describe());
+			System.out.println("Created " + bigCell);
 
 			// display a cell
 			WindowFrame.createEditWindow(myCell);
@@ -727,7 +727,7 @@ public class DebugMenus {
 			NodeInst instance8Node = NodeInst.newInstance(myCell, new Point2D.Double(3*myWidth, myHeight), -myWidth, myHeight, higherCell, 2700, null, 0);
 			instance8Node.setExpanded();
 
-			System.out.println("Created cell " + higherCell.describe());
+			System.out.println("Created " + higherCell);
 
 			// display a cell
 			WindowFrame.createEditWindow(myCell);

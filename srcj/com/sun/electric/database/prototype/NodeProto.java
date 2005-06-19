@@ -126,9 +126,10 @@ public interface NodeProto
 	 * Cells may prepend their Library if it is not the current library,
 	 * and they will include view and version information
 	 * (for example: "Wires:wire100{ic}").
+     * @param withQuotes to wrap description between quotes
 	 * @return a String describing this NodeProto.
 	 */
-	String describe();
+	String describe(boolean withQuotes);
 
 	/**
 	 * Method to return the name of this NodeProto.

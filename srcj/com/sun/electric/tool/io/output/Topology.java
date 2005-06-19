@@ -405,7 +405,7 @@ public abstract class Topology extends Output
                     }
                 } else
 				{
-					cs.name = net.describe();
+					cs.name = net.describe(false);
 					if (cs.name.equals(""))
 						cs.name = "UNCONNECTED" + (nullNameCount++);
 				}
@@ -506,7 +506,7 @@ public abstract class Topology extends Output
 				if (cni.pwrNet != null && cni.pwrNet != subNet && !multiPwr)
 				{
 					if (!quiet)
-						System.out.println("Warning: multiple power networks in cell " + cell.describe());
+						System.out.println("Warning: multiple power networks in " + cell);
 					multiPwr = true;
 				}
 				cni.pwrNet = subNet;
@@ -516,7 +516,7 @@ public abstract class Topology extends Output
 				if (cni.gndNet != null && cni.gndNet != subNet && !multiGnd)
 				{
 					if (!quiet)
-						System.out.println("Warning: multiple ground networks in cell " + cell.describe());
+						System.out.println("Warning: multiple ground networks in " + cell);
 					multiGnd = true;
 				}
 				cni.gndNet = subNet;
@@ -533,7 +533,7 @@ public abstract class Topology extends Output
 					if (cni.pwrNet != null && cni.pwrNet != net && !multiPwr)
 					{
 						if (!quiet)
-							System.out.println("Warning: multiple power networks in cell " + cell.describe());
+							System.out.println("Warning: multiple power networks in " + cell);
 						multiPwr = true;
 					}
 					cni.pwrNet = net;
@@ -543,7 +543,7 @@ public abstract class Topology extends Output
 					if (cni.gndNet != null && cni.gndNet != net && !multiGnd)
 					{
 						if (!quiet)
-							System.out.println("Warning: multiple ground networks in cell " + cell.describe());
+							System.out.println("Warning: multiple ground networks in " + cell);
 						multiGnd = true;
 					}
 					cni.gndNet = net;
@@ -566,7 +566,7 @@ public abstract class Topology extends Output
 						if (cni.pwrNet != null && cni.pwrNet != subNet && !multiPwr)
 						{
 							if (!quiet)
-								System.out.println("Warning: multiple power networks in cell " + cell.describe());
+								System.out.println("Warning: multiple power networks in " + cell);
 							multiPwr = true;
 						}
 						cni.pwrNet = subNet;
@@ -575,7 +575,7 @@ public abstract class Topology extends Output
 						if (cni.gndNet != null && cni.gndNet != subNet && !multiGnd)
 						{
 							if (!quiet)
-								System.out.println("Warning: multiple ground networks in cell " + cell.describe());
+								System.out.println("Warning: multiple ground networks in " + cell);
 							multiGnd = true;
 						}
 						cni.gndNet = subNet;

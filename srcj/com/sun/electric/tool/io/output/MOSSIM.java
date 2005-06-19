@@ -100,13 +100,13 @@ public class MOSSIM extends Topology
 		if (cell == topCell)
 		{
 			// declare power and ground nodes if this is top cell
-			printWriter.println("| Top-level cell " + cell.describe() + " ;");
+			printWriter.println("| Top-level cell " + cell.describe(false) + " ;");
 			printWriter.println("i VDD ;");
 			printWriter.println("i GND ;");
 		} else
 		{
 			// write ports if this cell is sub-cell
-			printWriter.println("| Cell " + cell.describe() + " ;");
+			printWriter.println("| Cell " + cell.describe(false) + " ;");
 			printWriter.print("c " + cell.getName());
 			for(Iterator it = cni.getCellSignals(); it.hasNext(); )
 			{
@@ -222,13 +222,13 @@ public class MOSSIM extends Topology
 
 				// write the gate/source/drain nodes
 				CellSignal cs = cni.getCellSignal(netList.getNetwork(gate));
-				if (cs == null) System.out.println("CELL " + ni.getParent().describe() + " CANNOT DETERMINE GATE NETWORK ON NODE " + ni.describe());
+				if (cs == null) System.out.println(ni.getParent() + " CANNOT DETERMINE GATE NETWORK ON " + ni);
 				infstr.append(" " + cs.getName());
 				cs = cni.getCellSignal(netList.getNetwork(source));
-				if (cs == null) System.out.println("CELL " + ni.getParent().describe() + " CANNOT DETERMINE SOURCE NETWORK ON NODE " + ni.describe());
+				if (cs == null) System.out.println(ni.getParent() + " CANNOT DETERMINE SOURCE NETWORK ON " + ni);
 				infstr.append(" " + cs.getName());
 				cs = cni.getCellSignal(netList.getNetwork(drain));
-				if (cs == null) System.out.println("CELL " + ni.getParent().describe() + " CANNOT DETERMINE DRAIN NETWORK ON NODE " + ni.describe());
+				if (cs == null) System.out.println(ni.getParent() + " CANNOT DETERMINE DRAIN NETWORK ON " + ni);
 				infstr.append(" " + cs.getName());
 				infstr.append(" ;   | " + ni.getName() + ";");
 				printWriter.println(infstr.toString());

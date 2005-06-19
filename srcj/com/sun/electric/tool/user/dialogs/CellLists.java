@@ -347,7 +347,7 @@ public class CellLists extends EDialog
 		addObjects(curCell, nodeCount);
 
 		// print the totals
-		System.out.println("Contents of cell " + curCell.describe() + ":");
+		System.out.println("Contents of " + curCell + ":");
 		Technology printtech = null;
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
@@ -362,7 +362,7 @@ public class CellLists extends EDialog
 					System.out.println(curtech.getTechName() + " technology:");
 					printtech = curtech;
 				}
-				System.out.println(TextUtils.toBlankPaddedString(count.getCount(), 6) + " " + np.describe() + " nodes");
+				System.out.println(TextUtils.toBlankPaddedString(count.getCount(), 6) + " " + np.describe(true) + " nodes");
 			}
 		}
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
@@ -376,10 +376,10 @@ public class CellLists extends EDialog
 				if (count.getCount() == 0) continue;
 				if (lib != printlib)
 				{
-					System.out.println(lib.getName() + " library:");
+					System.out.println(lib + ":");
 					printlib = lib;
 				}
-				System.out.println(TextUtils.toBlankPaddedString(count.getCount(), 6) + " " + cell.describe() + " nodes");
+				System.out.println(TextUtils.toBlankPaddedString(count.getCount(), 6) + " " + cell.describe(true) + " nodes");
 			}
 		}
 	}
@@ -450,9 +450,9 @@ public class CellLists extends EDialog
 				InstanceCount count = (InstanceCount)nodeCount.get(cell);
 				if (count == null || count.getCount() == 0) continue;
 				if (first)
-					System.out.println("Cell instances appearing in " + curCell.describe());
+					System.out.println("Instances appearing in " + curCell);
 				first = false;
-				String line = "   " + count.getCount() + " instances of " + cell.describe() + " at";
+				String line = "   " + count.getCount() + " instances of " + cell + " at";
 				for(Iterator nIt = curCell.getNodes(); nIt.hasNext(); )
 				{
 					NodeInst ni = (NodeInst)nIt.next();
@@ -463,7 +463,7 @@ public class CellLists extends EDialog
 			}
 		}
 		if (first)
-			System.out.println("There are no cell instances in " + curCell.describe());
+			System.out.println("There are no instances in " + curCell);
 	}
 
 	/**
@@ -479,7 +479,7 @@ public class CellLists extends EDialog
 		// stop now if this cell has no instances
 		if (!curCell.getInstancesOf().hasNext())
 		{
-			System.out.println("Cell " + curCell.describe() + " is not used anywhere");
+			System.out.println("Cell " + curCell.describe(true) + " is not used anywhere");
 			return;
 		}
 
@@ -504,7 +504,7 @@ public class CellLists extends EDialog
 		}
 
 		// show the results
-		System.out.println("Cell " + curCell.describe() + " is used in these locations:");
+		System.out.println("Cell " + curCell.describe(true) + " is used in these locations:");
 		for(Iterator it = Library.getLibraries(); it.hasNext(); )
 		{
 			Library lib = (Library)it.next();
@@ -513,7 +513,7 @@ public class CellLists extends EDialog
 				Cell cell = (Cell)cIt.next();
 				InstanceCount count = (InstanceCount)nodeCount.get(cell);
 				if (count == null || count.getCount() == 0) continue;
-				System.out.println("  " + count.getCount() + " instances in cell " + cell.describe());
+				System.out.println("  " + count.getCount() + " instances in " + cell);
 			}
 		}
 	}
@@ -525,7 +525,7 @@ public class CellLists extends EDialog
 	{
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
-		int maxLen = curCell.describe().length();
+		int maxLen = curCell.describe(false).length();
 		printHeaderLine(maxLen);
 		String line = makeCellLine(curCell, maxLen);
 		System.out.println(line);

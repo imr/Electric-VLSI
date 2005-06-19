@@ -2027,7 +2027,7 @@ public class EDIF extends Input
 				Cell nnp = ViewChanges.makeIconForCell(curCell);
 				if (nnp == null)
 				{
-					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create icon <" + curCell.describe() + ">");
+					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create icon <" + curCell.describe(true) + ">");
 					errorCount++;
 				}
 			}
@@ -2737,7 +2737,7 @@ public class EDIF extends Input
 						if (ni == null)
 						{
 							System.out.println("error, line " + lineReader.getLineNumber() + ": could not locate schematic node '" +
-								nodeName + "' in cell " + curCell.describe());
+								nodeName + "' in " + curCell);
 							return;
 						}
 						if (!isArray) ap = Schematics.tech.wire_arc; else
@@ -2878,8 +2878,8 @@ public class EDIF extends Input
 				{
 					if (fNi.getParent() != ni.getParent())
 					{
-						System.out.println("error, line " + lineReader.getLineNumber() + ": could not create path (arc) between cells " +
-							fNi.getParent().describe() + " and " + ni.getParent().describe());
+						System.out.println("error, line " + lineReader.getLineNumber() + ": could not create path (arc) between " +
+							fNi.getParent() + " and " + ni.getParent());
 					} else
 					{
 						// locate the position of the new ports

@@ -673,7 +673,7 @@ public class Maze
 					}
 					if (!onEdge)
 					{
-						System.out.println("Node %s is blocked" + ni.describe());
+						System.out.println("Node %s is blocked" + ni);
 						return;
 					}
 				}

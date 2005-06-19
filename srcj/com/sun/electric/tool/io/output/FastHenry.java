@@ -161,7 +161,7 @@ public class FastHenry extends Output
 
 	protected void writeFH(Cell cell, VarContext context)
 	{
-		printWriter.println("* FastHenry for cell " + cell.describe());
+		printWriter.println("* FastHenry for " + cell);
 		emitCopyright("* ", "");
 		if (User.isIncludeDateAndVersionInOutput())
 		{
@@ -241,7 +241,7 @@ public class FastHenry extends Output
 				{
 					// "nodeZVal" used in proper order
 					if (zVal != nodeZVal)
-						System.out.println("Warning: inconsistent z value at node " + ni.describe());
+						System.out.println("Warning: inconsistent z value at " + ni);
 				}
 				nodeZVal = zVal;
 				found = true;
@@ -343,7 +343,7 @@ public class FastHenry extends Output
 			ArcInst ai = (ArcInst)it.next();
 			if (arcsSeen.contains(ai)) continue;
 			if (ai.getVar(GROUP_NAME_KEY) == null) continue;
-			System.out.println("Warning: arc " + ai.describe() + " is not connected to an export");
+			System.out.println("Warning: " + ai + " is not connected to an export");
 		}
 	}
 	

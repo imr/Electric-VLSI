@@ -328,7 +328,7 @@ public class Info
 				}
 				if (dLib == lib)
 				{
-					System.out.println("Library " + lib.getName() + " cannot depend on itself, ignoring dependency");
+					System.out.println("Library '" + lib.getName() + "' cannot depend on itself, ignoring dependency");
 					continue;
 				}
 				dependentLibs.add(dLib);
@@ -373,8 +373,8 @@ public class Info
 
 						// got older and later version of same cell: check dates
 						if (lNp.getRevisionDate().before(np.getRevisionDate()))
-							System.out.println("Warning: library " + olderlib.getName() + " has newer " + np.getName() +
-								" than library " + laterLib.getName());
+							System.out.println("Warning: " + olderlib + " has newer " + np.getName() +
+								" than " + laterLib);
 						break;
 					}
 					if (foundInLater) break;

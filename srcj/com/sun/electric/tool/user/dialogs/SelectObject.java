@@ -33,8 +33,6 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -46,7 +44,6 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Comparator;
 import java.util.Collections;
 
 import javax.swing.DefaultListModel;
@@ -193,7 +190,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 				for(Iterator it = netlist.getNetworks(); it.hasNext(); )
 				{
 					Network net = (Network)it.next();
-					String netName = net.describe();
+					String netName = net.describe(false);
 					if (netName.length() == 0) continue;
 					if (s.equals(netName))
 					{
@@ -255,7 +252,7 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 			for(Iterator it = netlist.getNetworks(); it.hasNext(); )
 			{
 				Network net = (Network)it.next();
-				String netName = net.describe();
+				String netName = net.describe(false);
 				if (netName.length() == 0) continue;
 				allNames.add(netName);
 			}

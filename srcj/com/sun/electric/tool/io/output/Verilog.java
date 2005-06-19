@@ -210,8 +210,7 @@ public class Verilog extends Topology
 		setContinuationString("      ");
 
 		// write header information
-		printWriter.print("/* Verilog for cell " + topCell.describe() +
-			" from Library " + topCell.getLibrary().getName() + " */\n");
+		printWriter.print("/* Verilog for " + topCell + " from " + topCell.getLibrary() + " */\n");
 		emitCopyright("/* ", " */");
 		if (User.isIncludeDateAndVersionInOutput())
 		{

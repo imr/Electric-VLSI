@@ -106,7 +106,7 @@ public class HeadConnection extends Connection
 	 */
 	public String toString()
 	{
-		return "HeadConnection " + arc.describe();
+		return "HeadConnection " + arc.describe(true);
 	}
 
 	/**

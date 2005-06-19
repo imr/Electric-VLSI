@@ -172,7 +172,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
         NetlisterConstants local = getSettings(localCell);
         if (local == null) return false;
         if (!current.equals(local)) {
-            System.out.println("Error: Global settings from \""+topLevelCell.describe()+"\" do not match global settings from \""+context.getInstPath("/")+": "+localCell.noLibDescribe()+"\"");
+            System.out.println("Error: Global settings from "+topLevelCell+" do not match global settings from \""+context.getInstPath("/")+": "+localCell.noLibDescribe()+"\"");
             System.out.println("       Global settings are by definition global, and differences may indicate an inconsistency in your design.");
             System.out.println("       Note that step-up, \"su\", can be made local by defining a \"su\" parameter on an instance.");
             System.out.println("\tglobal/parent vs local:");
@@ -217,10 +217,10 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             if (settings != null) break;
         }
         if (settings == null) {
-            System.out.println("Could not find LESETTINGS cell in order to save settings to cell "+cell.describe());
+            System.out.println("Could not find LESETTINGS cell in order to save settings to "+cell);
             return false;
         }
-        System.out.println("Creating new LESETTINGS box on \""+cell.describe()+"\" from User Preferences because none found. Logical effort requires this box");
+        System.out.println("Creating new LESETTINGS box on "+cell+" from User Preferences because none found. Logical effort requires this box");
         SaveSettings job = new SaveSettings(cell, settings, constants);
         return true;
     }
@@ -246,7 +246,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             NodeInst ni = NodeInst.makeInstance(settings, new Point2D.Double(x, y), settings.getDefWidth(),
                     settings.getDefHeight(), cell);
             if (ni == null) {
-                System.out.println("Could not make instance of LESETTINGS in cell "+cell.describe()+" to save settings.");
+                System.out.println("Could not make instance of LESETTINGS in "+cell+" to save settings.");
                 return false;
             }
             ni.updateVar(ATTR_su, new Float(constants.su));

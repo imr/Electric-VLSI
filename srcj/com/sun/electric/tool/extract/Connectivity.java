@@ -107,7 +107,7 @@ public class Connectivity
 
 		private ExtractJob(Cell cell, boolean recursive)
 		{
-			super("Extract Connectivity", Extract.getExtractTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			super("Extract Connectivity from " + cell, Extract.getExtractTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.recursive = recursive;
 			startJob();
@@ -208,7 +208,7 @@ public class Connectivity
 		}
 
 		// create the new version of the cell
-		System.out.print("Extracting cell " + oldCell.describe() + ": ");
+		System.out.print("Extracting " + oldCell + ": ");
 		String newCellName = oldCell.getName() + "{" + oldCell.getView().getAbbreviation() + "}";
 		Cell newCell = Cell.makeInstance(oldCell.getLibrary(), newCellName);
 		if (newCell == null)
@@ -258,7 +258,7 @@ public class Connectivity
 					newCell, ni.getAngle(), ni.getName(), ni.getTechSpecific());
 				if (newNi == null)
 				{
-					System.out.println("Problem creating new cell instance of " + ni.getProto().describe());
+					System.out.println("Problem creating new instance of " + ni.getProto());
 					return;
 				}
 				newNodes.put(ni, newNi);
@@ -495,7 +495,7 @@ public class Connectivity
 					PortInst touchingPi = findPortInstClosestToPoly(ni, (PrimitivePort)oPoly.getPort(), pt);
 					if (touchingPi == null)
 					{
-						System.out.println("Can't find port for node "+ni.describe()+" and port "+oPoly.getPort());
+						System.out.println("Can't find port for "+ni+" and "+oPoly.getPort());
 						continue;
 					}
 					touchingNodes.add(touchingPi);
@@ -1165,7 +1165,7 @@ public class Connectivity
 						nLay.getBottomEdge().getMultiplier() != -0.5 || nLay.getTopEdge().getMultiplier() != 0.5)
 					{
 						System.out.println("Cannot decipher the sizing rules for layer " +
-							nLay.getLayer().getName() + " of node " + pNp.describe() +
+							nLay.getLayer().getName() + " of " + pNp +
 							" LEFT="+nLay.getLeftEdge().getMultiplier() + " RIGHT="+nLay.getRightEdge().getMultiplier()+
 							" BOTTOM="+nLay.getBottomEdge().getMultiplier() + " TOP="+nLay.getTopEdge().getMultiplier());
 						break;
@@ -1174,7 +1174,7 @@ public class Connectivity
 						nLay.getBottomEdge().getAdder() != -nLay.getTopEdge().getAdder())
 					{
 						System.out.println("Cannot decipher the sizing rules for layer " +
-							nLay.getLayer().getName() + " of node " + pNp.describe() +
+							nLay.getLayer().getName() + " of " + pNp +
 							" LEFT="+nLay.getLeftEdge().getAdder() + " RIGHT="+nLay.getRightEdge().getAdder()+
 							" BOTTOM="+nLay.getBottomEdge().getAdder() + " TOP="+nLay.getTopEdge().getAdder());
 						break;
@@ -1192,7 +1192,7 @@ public class Connectivity
 			// got the right cut layer, did we get all rules filled?
 			if (fill != nLayers.length-1)
 			{
-				System.out.println("Errors found, not scanning for " + pNp.describe());
+				System.out.println("Errors found, not scanning for " + pNp);
 				continue;
 			}
 			

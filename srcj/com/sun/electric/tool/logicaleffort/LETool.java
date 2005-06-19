@@ -40,7 +40,6 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
-import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -383,7 +382,7 @@ public class LETool extends Listener {
         private boolean newAlg;
 
         public AnalyzeCell(LESizer.Alg algorithm, Cell cell, VarContext context, EditWindow wnd, boolean newAlg) {
-            super("Analyze Cell "+cell.describe(), tool, Job.Type.EXAMINE, null, cell, Job.Priority.USER);
+            super("Analyze "+cell, tool, Job.Type.EXAMINE, null, cell, Job.Priority.USER);
             progress = null;
             this.algorithm = algorithm;
             this.cell = cell;

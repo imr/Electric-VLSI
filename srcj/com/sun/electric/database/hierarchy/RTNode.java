@@ -167,7 +167,7 @@ class RTNode
 			result = (cell.getRTree()).findGeomAnywhere(geom);
 			if (result == null)
 			{
-				System.out.println("Internal error: Cell " + cell.describe() + " cannot find " + geom.describe() + " in R-Tree...Rebuilding R-Tree");
+				System.out.println("Internal error: " + cell + " cannot find " + geom + " in R-Tree...Rebuilding R-Tree");
 				cell.setRTree(makeTopLevel());
 				for(Iterator it = cell.getArcs(); it.hasNext(); )
 					linkGeom(cell, (Geometric)it.next());
@@ -177,7 +177,7 @@ class RTNode
 			}
 			whichRTN = (RTNode)result[0];
 			whichInd = ((Integer)result[1]).intValue();
-			System.out.println("Internal warning: " + geom.describe() + " not in proper R-Tree location in cell " + cell.describe());
+			System.out.println("Internal warning: " + geom + " not in proper R-Tree location in " + cell);
 		}
 
 		// delete geom from this R-tree node
@@ -216,7 +216,7 @@ class RTNode
 //					child.setTempInt(branchCount);
 				Rectangle2D childBounds = child.getBounds();
 				line.append("Child X(" + childBounds.getMinX() + "-" + childBounds.getMaxX() + ") Y(" +
-					childBounds.getMinY() + "-" + childBounds.getMaxY() + ") is " + child.describe());
+					childBounds.getMinY() + "-" + childBounds.getMaxY() + ") is " + child.describe(true));
 				System.out.println(line);
 			} else
 			{
@@ -249,7 +249,7 @@ class RTNode
 				Math.abs(localBounds.getWidth() - bounds.getWidth()) >= 0.0001 ||
 				Math.abs(localBounds.getHeight() - bounds.getHeight()) >= 0.0001)
 			{
-				System.out.println("Tree of "+cell.describe()+" at level "+level+" has bounds "+localBounds+" but stored bounds are "+bounds);
+				System.out.println("Tree of "+cell.describe(true)+" at level "+level+" has bounds "+localBounds+" but stored bounds are "+bounds);
 				for(int i=0; i<total; i++)
 					System.out.println("  ---Child "+i+" is "+ getBBox(i));
 			}

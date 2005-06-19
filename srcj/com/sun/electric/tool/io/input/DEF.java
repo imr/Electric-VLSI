@@ -801,7 +801,7 @@ public class DEF extends LEFDEF
 					PortProto pp = found.getProto().findPortProto(key);
 					if (pp == null)
 					{
-						reportError("Unknown port '" + key + "' on component '" + found.describe() + "'");
+						reportError("Unknown port '" + key + "' on component " + found);
 						return true;
 					}
 					pi = found.findPortInstFromProto(pp);

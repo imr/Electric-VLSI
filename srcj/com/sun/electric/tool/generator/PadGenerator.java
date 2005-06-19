@@ -881,7 +881,7 @@ public class PadGenerator {
                     // get previous node's outport - use it to place this nodeinst
                     PortProto pp = (lastni.getProto()).findPortProto(lastaa.outport);
                     if (pp == null) {
-                        err("no port called '" + lastaa.outport + "' on cell" + lastni.describe());
+                        err("no port called '" + lastaa.outport + "' on " + lastni);
                         continue;
                     }
 
@@ -894,7 +894,7 @@ public class PadGenerator {
                 Point2D pointCenter = new Point2D.Double(centerX, centerY);
                 NodeInst ni = NodeInst.makeInstance(cell, pointCenter, cell.getDefWidth(), cell.getDefHeight(), framecell, angle, null, 0);
                 if (ni == null) {
-                    err("problem creating" + cell.describe() + " instance");
+                    err("problem creating" + cell + " instance");
                     continue;
                 }
 
@@ -920,7 +920,7 @@ public class PadGenerator {
                     PortProto inport = cell.findPortProto(aa.inport);
 
                     if (inport == null) {
-                        err("no port called '" + aa.inport + "' on cell " + cell.describe());
+                        err("no port called '" + aa.inport + "' on " + cell);
                         continue;
                     }
                     Poly poly = ni.findPortInstFromProto(inport).getPoly();

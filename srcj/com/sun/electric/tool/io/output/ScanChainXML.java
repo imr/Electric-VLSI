@@ -287,7 +287,7 @@ public class ScanChainXML {
         for (Iterator it = netlist.getNodables(); it.hasNext(); ) {
             Nodable no = (Nodable)it.next();
             if (no.getProto().getName().equals(jtagCell.getName())) {
-                System.out.println("*** Generating chains starting from jtag controller "+no.getName()+" in cell "+no.getParent().describe());
+                System.out.println("*** Generating chains starting from jtag controller "+no.getName()+" in "+no.getParent());
                 start(no);
                 usages++;
             }
@@ -736,7 +736,7 @@ public class ScanChainXML {
             // otherwise, descend into cell and get subchain (entity) for it
             Cell sch = ((Cell)np).contentsView();
             if (sch == null) sch = (Cell)np;
-            if (DEBUG) System.out.println("  ...descending into cell "+sch.describe());
+            if (DEBUG) System.out.println("  ...descending into "+sch);
             inst = getSubChain(sch, inport);
             return inst;
         }
@@ -758,7 +758,7 @@ public class ScanChainXML {
         ExPort schInPort = new ExPort(inport.name, inputEx, inport.index);
 
         // look up entity
-        String key = cell.describe() + schInPort.name.toString();
+        String key = cell.describe(false) + schInPort.name.toString();
         Entity ent = (Entity)entities.get(key);
         Port outport = null;
 
@@ -766,7 +766,7 @@ public class ScanChainXML {
         if (ent == null) {
             // verify that sinport is part of cell
             if (inputEx == null) {
-                System.out.println("Error! In cell "+cell.describe()+", scan data input Export "+inport.name+" not found.");
+                System.out.println("Error! In "+cell+", scan data input Export "+inport.name+" not found.");
                 return null;
             }
             ent = new Entity(cell);
@@ -781,7 +781,7 @@ public class ScanChainXML {
                 if (lastOutport != null) {
                     ExPort outEx = getExportedPort(lastOutport);
                     if (outEx == null) {
-                        System.out.println("Error! In cell "+cell.describe()+", last element \""+lastOutport.no.getName()+"\", output port \""+lastOutport+"\""+
+                        System.out.println("Error! In "+cell+", last element \""+lastOutport.no.getName()+"\", output port \""+lastOutport+"\""+
                                 " does not connect to another scan element, is not exported from cell, and does not terminate at the JTAG Controller");
                     } else {
                         ent.setOutExPort(outEx);

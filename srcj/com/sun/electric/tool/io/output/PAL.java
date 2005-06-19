@@ -35,7 +35,6 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 
 import java.util.ArrayList;
@@ -120,7 +119,7 @@ public class PAL extends Output
 
 		// end of deck
 		printWriter.println("");
-		printWriter.println("end " + cell.describe());
+		printWriter.println("end " + cell.describe(false));
 	}
 
 	/** PAL Netlister */
@@ -167,7 +166,7 @@ public class PAL extends Output
 			}
 			if (outputCon == null)
 			{
-				System.out.println("ERROR: output port is not connected on " + ni.describe() + " in cell " + ni.getParent().describe());
+				System.out.println("ERROR: output port is not connected on " + ni + " in " + ni.getParent());
 				return false;
 			}
 
@@ -208,7 +207,7 @@ public class PAL extends Output
 			}
 			if (net.isExported() && info.getCell() == pal.topCell)
 			{
-				String exportName = net.describe();
+				String exportName = net.describe(false);
 				pal.externalSymbols.add(exportName);
 				return exportName;
 			}

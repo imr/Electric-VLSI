@@ -271,7 +271,7 @@ public class FileMenu {
             lib.setCurrent();
             EditWindow.repaintAll();
             TopLevel.getCurrentJFrame().getToolBar().setEnabled(ToolBar.SaveLibraryName, Library.getCurrent() != null);
-            System.out.println("New Library '"+lib.getName()+"' created");
+            System.out.println("New "+lib+" created");
             return true;
         }
     }
@@ -491,7 +491,7 @@ public class FileMenu {
 	    // You can't close it because there are open cells that refer to library elements
 	    if (found.size() != 0)
 	    {
-		    System.out.println("Cannot close library '" + lib.getName() + "':");
+		    System.out.println("Cannot close " + lib + ":");
 		    System.out.print("\t Cells ");
 
 		    for (Iterator i = found.iterator(); i.hasNext();)
@@ -512,7 +512,7 @@ public class FileMenu {
         Library lib;
 
         public CloseLibrary(Library lib) {
-            super("Close Library", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Close "+lib, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.lib = lib;
             startJob();
         }
@@ -520,7 +520,7 @@ public class FileMenu {
         public boolean doIt() {
             if (lib.kill("delete"))
             {
-                System.out.println("Library " + lib.getName() + " closed");
+                System.out.println("Library '" + lib.getName() + "' closed");
 	            WindowFrame.wantToRedoTitleNames();
 	            EditWindow.repaintAll();
 
@@ -605,7 +605,7 @@ public class FileMenu {
 
         public SaveLibrary(Library lib, String newName, FileType type, boolean compatibleWith6, boolean batchJob)
         {
-            super("Write Library "+lib.getName(), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            super("Write "+lib, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.lib = lib;
             this.newName = newName;
             this.type = type;
@@ -828,7 +828,7 @@ public class FileMenu {
 	    // Special case for PNG format
 	    if (type == FileType.PNG)
 	    {
-		    String name = (cell != null) ? cell.describe() : filePath;
+		    String name = (cell != null) ? cell.toString() : filePath;
 		    ExportImage job = new ExportImage(name, wnd, filePath);
 			return;
 	    }
@@ -1067,7 +1067,7 @@ public class FileMenu {
                 if (action == 2) theAction = "Save before replacing?";
             String [] options = {"Yes", "No", "Cancel", "No to All"};
             int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-                "Library " + lib.getName() + " has changed " + how + ".  " + theAction,
+                "Library '" + lib.getName() + "' has changed " + how + ".  " + theAction,
                 "Save Library?", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
                 null, options, options[0]);
             if (ret == 0)
@@ -1186,7 +1186,7 @@ public class FileMenu {
             lib.setLibFile(newLibURL);
             boolean error = Output.writeLibrary(lib, type, false);
             if (error) {
-                System.out.println("Error saving library "+lib.getName());
+                System.out.println("Error saving "+lib);
                 retValue = false;
             }
         }

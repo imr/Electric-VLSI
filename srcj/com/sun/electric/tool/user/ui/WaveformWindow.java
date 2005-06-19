@@ -3959,7 +3959,7 @@ if (wp.signalButtons != null)
 			}
 		} else
 		{
-			name = net.describe();
+			name = net.describe(false);
 			if (name.equals(""))
 				name = "UNCONNECTED";
 		}

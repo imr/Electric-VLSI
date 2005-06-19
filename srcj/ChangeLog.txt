@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/18/05, GVG) Refactoring describe() functions and using toString() in more places.
+
+BUG: (06/18/05, GVG) Exception in parasitic tool for AND gate if network is null in port (Bug#377)
+FIX: Skipping the layer if is diffusion.
+
 BUG: (06/18/05, DN) JELIB reader doesn't connect mismatched arc to dummy pin.
 FIX: In io.input.JELIB.figureOutPortInst assign dummy node to "portNI".
 

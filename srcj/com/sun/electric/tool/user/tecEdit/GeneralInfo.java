@@ -130,7 +130,7 @@ public class GeneralInfo extends Info
 					break;
 				default:
 					LibToTech.pointOutError(ni, np);
-					System.out.println("Unknown object in miscellaneous-information cell (node " + ni.describe() + ")");
+					System.out.println("Unknown object in miscellaneous-information cell (" + ni + ")");
 					break;
 			}
 		}

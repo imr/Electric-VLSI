@@ -560,7 +560,7 @@ public class CIF extends Input
 		NodeInst ni = NodeInst.makeInstance(cell.addr, new Point2D.Double(x, y), sX, sY, currentBackCell.addr, rot, null, 0);
 		if (ni == null)
 		{
-			System.out.println("Problems creating an instance of cell " + cell.addr.describe() + " in cell " + currentBackCell.addr.describe());
+			System.out.println("Problems creating an instance of " + cell.addr + " in " + currentBackCell.addr);
 			return true;
 		}
 		return false;
@@ -597,7 +597,7 @@ public class CIF extends Input
 		NodeInst newni = NodeInst.makeInstance(np, new Point2D.Double(x, y), sX, sY, currentBackCell.addr);
 		if (newni == null)
 		{
-			System.out.println("Problems creating a polygon on layer " + cp.lay + " in cell " + currentBackCell.addr.describe());
+			System.out.println("Problems creating a polygon on layer " + cp.lay + " in " + currentBackCell.addr);
 			return true;
 		}
 
@@ -690,7 +690,7 @@ public class CIF extends Input
 		if (ni == null)
 		{
 			String layname = cb.lay.getName();
-			System.out.println("Problems creating a box on layer " + layname + " in cell " + currentBackCell.addr.describe());
+			System.out.println("Problems creating a box on layer " + layname + " in " + currentBackCell.addr);
 			return true;
 		}
 		return false;

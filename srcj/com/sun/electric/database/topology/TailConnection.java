@@ -106,7 +106,7 @@ public class TailConnection extends Connection
 	 */
 	public String toString()
 	{
-		return "TailConnection " + arc.describe();
+		return "TailConnection " + arc.describe(true);
 	}
 
 	/**

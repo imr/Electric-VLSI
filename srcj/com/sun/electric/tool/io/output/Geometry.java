@@ -42,7 +42,6 @@ import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.AffineTransform;
 import java.util.HashMap;
@@ -156,8 +155,8 @@ public abstract class Geometry extends Output
 				NodeUsage nu = (NodeUsage)it.next();
 				NodeProto np = nu.getProto();
 				if (np == universalPin) {
-					System.out.println("Geometry: Layout cell " + cell.describe() + " has " + nu.getNumInsts() +
-						" " + np.describe() + " nodes");
+					System.out.println("Geometry: Layout " + cell + " has " + nu.getNumInsts() +
+						" " + np.describe(true) + " nodes");
 				}
 			}
 
@@ -174,9 +173,9 @@ public abstract class Geometry extends Output
 				if (ap == unroutedArc) numUnroutedArcs++;
 			}
 			if (numUniversalArcs > 0)
-				System.out.println("Geometry: Layout cell " + cell.describe() + " has " + numUniversalArcs + " " + universalArc.describe() + " arcs");
+				System.out.println("Geometry: Layout " + cell + " has " + numUniversalArcs + " " + universalArc.describe() + " arcs");
 			if (numUnroutedArcs > 0)
-				System.out.println("Geometry: Layout cell " + cell.describe() + " has " + numUnroutedArcs + " " + unroutedArc.describe() + " arcs");
+				System.out.println("Geometry: Layout " + cell + " has " + numUnroutedArcs + " " + unroutedArc.describe() + " arcs");
 		}
         
         /** add polys to cell geometry */

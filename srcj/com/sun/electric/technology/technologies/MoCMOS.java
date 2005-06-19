@@ -2995,8 +2995,8 @@ public class MoCMOS extends Technology
 			double requestedWid = TextUtils.atof(var.getPureValue(-1));
 			if (requestedWid > activeWid)
 			{
-				System.out.println("Warning: cell " + ni.getParent().describe() + ", node " +
-					ni.describe() + " requests width of " + requestedWid + " but is only " + activeWid + " wide");
+				System.out.println("Warning: " + ni.getParent() + ", " +
+					ni + " requests width of " + requestedWid + " but is only " + activeWid + " wide");
 			}
 			if (requestedWid < activeWid && requestedWid > 0)
 			{

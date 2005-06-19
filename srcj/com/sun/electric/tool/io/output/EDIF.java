@@ -399,7 +399,7 @@ public class EDIF extends Topology
 			CellSignal cs = (CellSignal)it.next();
 
 			// ignore unconnected (unnamed) nets
-			String netName = cs.getNetwork().describe();
+			String netName = cs.getNetwork().describe(false);
 			if (netName.length() == 0) continue;
 
 			// establish if this is a global net

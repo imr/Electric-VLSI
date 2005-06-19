@@ -251,7 +251,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					ySizeLow = Math.min(ySizeLow, yVal);
 					ySizeHigh = Math.max(ySizeHigh, yVal);
 					numNodes++;
-					description = "Node " + ni.describe();
+					description = "Node " + ni.describe(true);
 				} else if (eobj instanceof ArcInst)
 				{
 					ArcInst ai = (ArcInst)eobj;
@@ -265,7 +265,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 						widthLow = widthHigh = trueWidth;
 					}
 					numArcs++;
-					description = "Arc " + ai.describe();
+					description = "Arc " + ai.describe(true);
 				}
 				listModel.addElement(description);
 			} else if (h.getType() == Highlight.Type.TEXT)
@@ -278,15 +278,15 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				{
 					if (h.getName() != null)
 					{
-						if (eobj instanceof NodeInst) description = "Node name for " + ((NodeInst)eobj).describe(); else
-							if (eobj instanceof ArcInst) description = "Arc name for " + ((ArcInst)eobj).describe();
+						if (eobj instanceof NodeInst) description = "Node name for " + ((NodeInst)eobj).describe(true); else
+							if (eobj instanceof ArcInst) description = "Arc name for " + ((ArcInst)eobj).describe(true);
 					} else if (eobj instanceof Export)
 					{
 						description = "Text: Export '" + ((Export)eobj).getName() + "'";
 						numExports++;
 					} else if (eobj instanceof NodeInst)
 					{
-						description = "Text: Cell instance name " + ((NodeInst)eobj).describe();
+						description = "Text: Cell instance name " + ((NodeInst)eobj).describe(true);
 					}
 				}
 				listModel.addElement(description);
@@ -454,9 +454,9 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
 			// sort on the object name
 			String s1 = e1.toString();
-			if (e1 instanceof Geometric) s1 = ((Geometric)e1).describe();
+			if (e1 instanceof Geometric) s1 = ((Geometric)e1).describe(false);
 			String s2 = e2.toString();
-			if (e2 instanceof Geometric) s2 = ((Geometric)e2).describe();
+			if (e2 instanceof Geometric) s2 = ((Geometric)e2).describe(false);
 			return s1.compareToIgnoreCase(s2);
 		}
 	}

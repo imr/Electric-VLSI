@@ -254,10 +254,10 @@ public class ParasiticTool extends Listener{
                 PortProto pp = poly.getPort();
                 if (pp == null) continue;
                 Network net = info.getNetlist().getNetwork(ni, pp, 0); // netList.getNetwork(ni, pp, 0);
-
                 // don't bother with layers without capacity
                 Layer layer = poly.getLayer();
                 if (layer.getTechnology() != Technology.getCurrent()) continue;
+                if (!layer.isDiffusionLayer() && net == null) continue;  // only this case skipping for now, schematic case
 //                if (!layer.isDiffusionLayer() &&
 //                        layer.getCapacitance() == 0.0 && layer.getResistance() == 0.0) continue;
 
@@ -417,7 +417,7 @@ public class ParasiticTool extends Listener{
 
         protected AnalyzeParasitic(Network network, Cell cell)
         {
-            super ("Analyze Network "+ network.describe(), tool, Job.Type.EXAMINE, null, cell, Job.Priority.USER);
+            super ("Analyze "+ network, tool, Job.Type.EXAMINE, null, cell, Job.Priority.USER);
             this.net = network;
             this.cell = cell;
             this.startJob();
@@ -495,8 +495,7 @@ public class ParasiticTool extends Listener{
         public boolean doIt()
         {
             long startTime = System.currentTimeMillis();
-            System.out.println("Extracting Parasitic for '" + cell.libDescribe() +
-                    "' network '" + net.describe() + "'");
+            System.out.println("Extracting Parasitic for " + cell + " " + net);
             Rectangle2D bounds = new Rectangle2D.Double();
             double maxDistance = getMaxDistance();
             List polyToCheckList = new ArrayList();

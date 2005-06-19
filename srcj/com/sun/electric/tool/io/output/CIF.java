@@ -329,7 +329,7 @@ public class CIF extends Geometry
 				line += " " + scale(points[i].getX()) + " " + scale(points[i].getY());
 			line += " " + scale(points[0].getX()) + " " + scale(points[0].getY());
 			writeLine(line + ";");
-			writeLine("2C \"" + cell.describe() + "\" T " + scale(bounds.getCenterX()) + " " +
+			writeLine("2C \"" + cell.describe(false) + "\" T " + scale(bounds.getCenterX()) + " " +
 				scale(bounds.getCenterY()) + ";");
 			return;
 		}

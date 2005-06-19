@@ -26,7 +26,6 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -36,19 +35,13 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
-import com.sun.electric.database.variable.MutableTextDescriptor;
-import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -56,9 +49,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
 
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -380,7 +371,7 @@ public class ReadableDump extends LibraryFiles
 
 		// report progress
 		if (LibraryFiles.VERBOSE)
-			System.out.println("Text: Doing contents of cell " + cell.describe() + " in library " + lib.getName());
+			System.out.println("Text: Doing contents of " + cell + " in " + lib);
 		cellsConstructed++;
 		progress.setProgress(cellsConstructed * 100 / totalCells);
 
@@ -613,11 +604,11 @@ public class ReadableDump extends LibraryFiles
 			// make checks
 			Poly poly = headPortInst.getPoly();
 			if (!poly.isInside(headPt))
-				System.out.println("Cell " + cell.describe() + ", arc " + ap.describe() + " head at (" +
+				System.out.println("Cell " + cell.describe(true) + ", " + ap + " head at (" +
 					ail.arcHeadX[j] + "," + ail.arcHeadY[j] + ") not in port");
 			poly = tailPortInst.getPoly();
 			if (!poly.isInside(tailPt))
-				System.out.println("Cell " + cell.describe() + ", arc " + ap.describe() + " tail at (" +
+				System.out.println("Cell " + cell.describe(true) + ", " + ap + " tail at (" +
 					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
             ArcInst ai = ArcInst.newInstance(cell, ap, name, -1, ail.arcNameDescriptor[j],
@@ -626,7 +617,7 @@ public class ReadableDump extends LibraryFiles
 //            ELIBConstants.applyELIBArcBits(ai, userBits);
 			if (ai == null)
 			{
-				String msg = "ERROR: Cell "+cell.describe() + ": arc " + name + " could not be created";
+				String msg = "ERROR: "+cell + ": arc " + name + " could not be created";
                 System.out.println(msg);
 				Input.errorLogger.logError(msg, cell, 1);
 				continue;
@@ -1014,8 +1005,8 @@ public class ReadableDump extends LibraryFiles
 				// cell found: make sure it is valid
 				if (cell.getRevisionDate().compareTo(ELIBConstants.secondsToDate(curCellRevisionDate)) != 0)
 				{
-					System.out.println("Warning: cell " + cell.describe() + " in library " + elib.getName() +
-						" has been modified since its use in library " + lib.getName());
+					System.out.println("Warning: " + cell + " in " + elib +
+						" has been modified since its use in " + lib);
 				}
 			}
 		}

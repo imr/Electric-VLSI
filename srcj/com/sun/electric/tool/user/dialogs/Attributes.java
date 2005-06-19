@@ -430,7 +430,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         currentExport.setEnabled(selectedExport != null);
         currentPort.setEnabled(selectedPort != null);
         currentButton.setSelected(true);
-        cellName.setText(selectedCell.describe());
+        cellName.setText(selectedCell.describe(false));
 
         name.setEditable(true);
         value.setEditable(true);

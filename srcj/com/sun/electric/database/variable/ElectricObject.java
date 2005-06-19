@@ -475,7 +475,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 					poly = new Poly(pointList);
 					poly.setStyle(style);
 					poly.setTextDescriptor(td);
-					poly.setString(ni.getProto().describe());
+					poly.setString(ni.getProto().describe(false));
 				}
 			}
 		}

@@ -248,7 +248,7 @@ public class ArcInst extends Geometric implements Comparable
 		PrimitiveNode npEnd = ap.findPinProto();
 		if (npEnd == null)
 		{
-			System.out.println("Cannot find pin for arc " + ap.describe());
+			System.out.println("Cannot find pin for " + ap);
 			return null;
 		}
 
@@ -327,17 +327,17 @@ public class ArcInst extends Geometric implements Comparable
         Cell parent = head.getNodeInst().getParent();
         Poly headPoly = head.getPoly();
         if (!stillInPoly(headP, headPoly)) {
-			System.out.println("Error in cell " + parent.describe() + ": head of " + type.getName() +
-				" arc at (" + headP.getX() + "," + headP.getY() + ") does not fit in port " +
-				head.describe() + " which is centered at (" + headPoly.getCenterX() + "," + headPoly.getCenterY() + ")");
+			System.out.println("Error in " + parent + ": head of " + type.getName() +
+				" arc at (" + headP.getX() + "," + headP.getY() + ") does not fit in " +
+				head + " which is centered at (" + headPoly.getCenterX() + "," + headPoly.getCenterY() + ")");
 			return null;
 		}
         Poly tailPoly = tail.getPoly();
 		if (!stillInPoly(tailP, tailPoly))
 		{
-			System.out.println("Error in cell " + parent.describe() + ": tail of " + type.getName() +
-				" arc at (" + tailP.getX() + "," + tailP.getY() + ") does not fit in port " +
-				tail.describe() + " which is centered at (" + tailPoly.getCenterX() + "," + tailPoly.getCenterY() + ")");
+			System.out.println("Error in " + parent + ": tail of " + type.getName() +
+				" arc at (" + tailP.getX() + "," + tailP.getY() + ") does not fit in " +
+				tail + " which is centered at (" + tailPoly.getCenterX() + "," + tailPoly.getCenterY() + ")");
 			return null;
 		}
         
@@ -381,7 +381,7 @@ public class ArcInst extends Geometric implements Comparable
 		PrimitivePort headPrimPort = headProto.getBasePort();
 		if (!headPrimPort.connectsTo(protoType))
 		{
-			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
+			System.out.println("Cannot create " + protoType + " in " + parent +
 				" because it cannot connect to port " + headProto.getName());
 			return null;
 		}
@@ -389,7 +389,7 @@ public class ArcInst extends Geometric implements Comparable
 		PrimitivePort tailPrimPort = tailProto.getBasePort();
 		if (!tailPrimPort.connectsTo(protoType))
 		{
-			System.out.println("Cannot create " + protoType.describe() + " arc in cell " + parent.describe() +
+			System.out.println("Cannot create " + protoType + " in " + parent +
 				" because it cannot connect to port " + tailProto.getName());
 			return null;
 		}
@@ -454,7 +454,7 @@ public class ArcInst extends Geometric implements Comparable
 		// check for connection allowance
 		if (!headPortInst.getPortProto().connectsTo(ap) || !tailPortInst.getPortProto().connectsTo(ap))
 		{
-			System.out.println("Cannot replace arc " + describe() + " with one of type " + ap.getName() +
+			System.out.println("Cannot replace " + this + " with one of type " + ap.getName() +
 				" because the nodes cannot connect to it");
 			return null;
 		}
@@ -466,7 +466,7 @@ public class ArcInst extends Geometric implements Comparable
 		ArcInst newar = ArcInst.newInstance(ap, newwid, headPortInst, tailPortInst, headLocation, tailLocation, null, 0);
 		if (newar == null)
 		{
-			System.out.println("Cannot replace arc " + describe() + " with one of type " + ap.getName() +
+			System.out.println("Cannot replace " + this + " with one of type " + ap.getName() +
 				" because the new arc failed to create");
 			return null;
 		}
@@ -1126,12 +1126,13 @@ public class ArcInst extends Geometric implements Comparable
 
 	/**
 	 * Method to describe this ArcInst as a string.
+     * @param withQuotes to wrap description between quotes
 	 * @return a description of this ArcInst.
 	 */
-	public String describe()
+	public String describe(boolean withQuotes)
 	{
 		String description = protoType.describe();
-		String name = getName();
+		String name = (withQuotes) ? "'"+getName()+"'" : getName();
 		if (name != null) description += "[" + name + "]";
 		return description;
 	}
@@ -1162,7 +1163,8 @@ public class ArcInst extends Geometric implements Comparable
 	public String toString()
 	{
         if (protoType == null) return "ArcInst null protoType";
-		return "ArcInst " + protoType.getName();
+//		return "ArcInst " + protoType.getName();
+        return "arc " + describe(true);
 	}
 
 	/****************************** CONSTRAINTS ******************************/
@@ -1684,7 +1686,7 @@ public class ArcInst extends Geometric implements Comparable
 		if (!headStillInPort(headLocation, false))
 		{
 			Poly poly = headPortInst.getPoly();
-			String msg = "Cell " + parent.describe() + ", arc " + describe() +
+			String msg = parent + ", " + this +
 				": head not in port, is at (" + headLocation.getX() + "," + headLocation.getY() +
 				") distance to port is " + poly.polyDistance(headLocation.getX(), headLocation.getY()) +
 				" port center is (" + poly.getCenterX() + "," + poly.getCenterY() + ")";
@@ -1705,7 +1707,7 @@ public class ArcInst extends Geometric implements Comparable
 		if (!tailStillInPort(tailLocation, false))
 		{
 			Poly poly = tailPortInst.getPoly();
-			String msg = "Cell " + parent.describe() + ", arc " + describe() +
+			String msg = parent + ", " + this +
 				": tail not in port, is at (" + tailLocation.getX() + "," + tailLocation.getY() +
 				") distance to port is " + poly.polyDistance(tailLocation.getX(), tailLocation.getY()) +
 				" port center is (" + poly.getCenterX() + "," + poly.getCenterY() + ")";
@@ -1727,8 +1729,7 @@ public class ArcInst extends Geometric implements Comparable
 		// make sure width is not negative
 		if (getWidth() < 0)
 		{
-			String msg = "Cell " + parent.describe() + ", arc " + describe() +
-				": has negative width (" + getWidth() + ")";
+			String msg = parent + ", " + this + ": has negative width (" + getWidth() + ")";
 			System.out.println(msg);
 			if (errorLogger != null)
 			{

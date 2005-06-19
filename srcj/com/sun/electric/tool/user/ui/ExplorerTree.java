@@ -28,24 +28,19 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.project.Project;
-import com.sun.electric.tool.simulation.Simulation;
-import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.Signal;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.Resources;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.ChangeCellGroup;
 import com.sun.electric.tool.user.dialogs.NewCell;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.CellMenu;
-import com.sun.electric.tool.user.tecEdit.Info;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.ArcInfo;
 import com.sun.electric.tool.user.tecEdit.LayerInfo;
@@ -55,7 +50,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.PixelGrabber;
 import java.awt.datatransfer.StringSelection;
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DragGestureEvent;
@@ -74,7 +68,6 @@ import java.awt.event.MouseMotionListener;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.ImageIcon;
@@ -1471,7 +1464,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		private void renameCellAction()
 		{
 			Cell cell = (Cell)currentSelectedObject;
-			String response = JOptionPane.showInputDialog(tree, "New name for cell " + cell.describe(), cell.getName());
+			String response = JOptionPane.showInputDialog(tree, "New name for " + cell, cell.getName());
 			if (response == null) return;
 			CircuitChanges.renameCellInJob(cell, response);
 		}

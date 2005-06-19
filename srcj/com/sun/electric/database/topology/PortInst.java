@@ -207,11 +207,13 @@ public class PortInst extends ElectricObject
 
 	/**
 	 * Method to describe this NodeInst as a string.
+     * @param withQuotes to wrap description between quotes
 	 * @return a description of this NodeInst as a string.
 	 */
-	public String describe()
+	public String describe(boolean withQuotes)
 	{
-		return nodeInst.describe() + "." + portProto.getName();
+        String info = nodeInst.describe(false) + "." + portProto.getName();
+        return (withQuotes) ? "'"+info+"'" : info;
 	}
 
 	/**
@@ -220,7 +222,7 @@ public class PortInst extends ElectricObject
 	 */
 	public String toString()
 	{
-		return "PortInst " + describe();
+		return "port " + describe(true);
 	}
 
 	/**

@@ -50,7 +50,6 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.User;
 
 import java.awt.geom.Rectangle2D;
 import java.io.BufferedOutputStream;
@@ -170,7 +169,7 @@ public class Output
 
         // scan for Dummy Cells, warn user that they still exist
         List dummyCells = new ArrayList();
-        dummyCells.add("WARNING: Library "+lib.getName()+" contains the following Dummy cells:");
+        dummyCells.add("WARNING: "+lib+" contains the following Dummy cells:");
         for (Iterator it = lib.getCells(); it.hasNext(); ) {
             Cell c = (Cell)it.next();
             if (c.getVar(Input.IO_DUMMY_OBJECT) != null) {
@@ -181,7 +180,7 @@ public class Output
             dummyCells.add("Do you really want to write this library?");
             Object [] options = {"Continue Writing", "Cancel" };
             int val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), dummyCells.toArray(),
-                    "Dummy Cells Found in "+lib.getName(), JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
+                    "Dummy Cells Found in "+lib, JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null,
                     options, options[1]);
             if (val == 1) return true;
         }
@@ -421,7 +420,7 @@ public class Output
 			{
 				NodeInst ni = (NodeInst)it.next();
 				if (ni.getName() == null)
-					System.out.println("ERROR: Cell " + cell.describe() + " has node " + ni.describe() + " with no name");
+					System.out.println("ERROR: " + cell + " has " + ni + " with no name");
 				NodeProto np = ni.getProto();
 				if (np instanceof Cell)
 				{
@@ -891,7 +890,7 @@ public class Output
          */
         public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type, boolean startJob)
         {
-            super("Export "+cell.describe()+" ("+type+")", IOTool.getIOTool(), Type.EXAMINE, null, null, Priority.USER);
+            super("Export "+cell+" ("+type+")", IOTool.getIOTool(), Type.EXAMINE, null, null, Priority.USER);
             this.cell = cell;
             this.context = context;
             this.filePath = filePath;

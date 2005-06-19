@@ -368,12 +368,12 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             {
                 thePort = (PortInst)eObj;
                 theNode = thePort.getNodeInst();
-                return("NODE: " + theNode.describe() +
-                        " PORT: \"" + thePort.getPortProto().getName() + "\"");
+                return("NODE: " + theNode.describe(true) +
+                        " PORT: \'" + thePort.getPortProto().getName() + "\'");
             } else if (eObj instanceof NodeInst)
             {
                 theNode = (NodeInst)eObj;
-                return("NODE: " + theNode.describe());
+                return("NODE: " + theNode.describe(true));
             } else if (eObj instanceof ArcInst)
             {
                 theArc = (ArcInst)eObj;
@@ -383,8 +383,8 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 	            if (theArc.getArcIndex() == -1)
 	                return("netlist exception! try again. ArcIndex = -1");
 				Network net = netlist.getNetwork(theArc, 0);
-				String netMsg = (net != null) ? "NETWORK: "+net.describe()+ ", " : "";
-				return(netMsg + "ARC: " + theArc.describe());
+				String netMsg = (net != null) ? "NETWORK: "+net.describe(true)+ ", " : "";
+				return(netMsg + "ARC: " + theArc.describe(true));
             }
         } else if (h.getType() == Highlight.Type.TEXT)
         {

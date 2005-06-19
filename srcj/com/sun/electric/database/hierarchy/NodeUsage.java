@@ -180,7 +180,7 @@ public class NodeUsage
 	 */
 	public String toString()
 	{
-		return "NodeUsage of " + protoType + " in " + parent.describe();
+		return "NodeUsage of " + protoType + " in " + parent;
 	}
 
 }

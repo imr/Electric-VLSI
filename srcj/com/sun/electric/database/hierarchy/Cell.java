@@ -257,7 +257,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 					}
 				}
 			}
-			if (onlyCell != null) return groupName = onlyCell.describe();
+			if (onlyCell != null) return groupName = onlyCell.describe(false);
 
 			// name the group according to all of the different base names
 			Set groupNames = new TreeSet();
@@ -551,7 +551,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 					}
 					if (ppt == null)
 					{
-						System.out.println("Cannot use subcell " + lnt.noLibDescribe() + " in library " + destLib.getName() +
+						System.out.println("Cannot use subcell " + lnt.noLibDescribe() + " in " + destLib +
 							": exports don't match");
 						validPorts = false;
 						break;
@@ -653,8 +653,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 					if (ppt != null) opi[i] = ono.findPortInstFromProto(ppt);
 				}
 				if (opi[i] == null)
-					System.out.println("Error: no port for " + ai.getProto().describe() +
-						" arc on " + ono.getProto().describe() + " node");
+					System.out.println("Error: no port for " + ai.getProto() +
+						" arc on " + ono.getProto());
 			}
 			if (opi[0] == null || opi[1] == null) return null;
 
@@ -677,7 +677,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			PortInst pi = ni.findPortInst(pp.getOriginalPort().getPortProto().getName());
 			if (pi == null)
 			{
-				System.out.println("Error: no port on " + pp.getOriginalPort().getNodeInst().getProto().describe() + " cell");
+				System.out.println("Error: no port on " + pp.getOriginalPort().getNodeInst().getProto());
 				return null;
 			}
 
@@ -888,7 +888,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/**
 	 * Method to change CellName of this Cell.
 	 * @param cellName new cell name.
-	 * @param newVersion new version
 	 */
 	private void setCellName(CellName cellName)
 	{
@@ -1510,7 +1509,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				addLine(point0, point1);
 
 				point0 = new Point2D.Double(schXSize/2 - frameWid - xLogoBox/2, -schYSize/2 + frameWid + yLogoBox*13.5/15);
-				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*3/15, "Name: " + cell.describe() + (cell.isMultiPage() ? " Page " + (pageNo+1) : ""));
+				addText(point0, yLogoBox*2/15, xLogoBox, yLogoBox*3/15, "Name: " + cell.describe(false) + (cell.isMultiPage() ? " Page " + (pageNo+1) : ""));
 
 				String projectName = User.getFrameProjectName();
 				Variable pVar = cell.getLibrary().getVar(User.FRAME_PROJECT_NAME, String.class);
@@ -2325,15 +2324,16 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Method to describe this cell.
 	 * The description has the form: cell;version{view}
 	 * If the cell is not from the current library, prepend the library name.
+     * @param withQuotes to wrap description between quotes
 	 * @return a String that describes this cell.
 	 */
-	public String describe()
+	public String describe(boolean withQuotes)
 	{
 		String name = "";
 		if (lib != Library.getCurrent())
 			name += lib.getName() + ":";
 		name += noLibDescribe();
-		return name;
+		return (withQuotes) ? "'"+name+"'" : name;
 	}
 
     /**
@@ -2768,7 +2768,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public String toString()
 	{
-		return "Cell " + describe();
+		return "cell " + describe(true);
 	}
 
 	/****************************** HIERARCHY ******************************/
@@ -2966,12 +2966,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		{
 			NodeUsage nu = (NodeUsage)it.next();
 			Cell parent = nu.getParent();
-			if (parents == null) parents = parent.describe(); else
-				parents += ", " + parent.describe();
+			if (parents == null) parents = parent.describe(true); else
+				parents += ", " + parent.describe(true);
 		}
 		if (parents != null)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot " + action + " cell " + describe() +
+			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot " + action + " " + this +
 				" because it is used in " + parents,
 					action + " failed", JOptionPane.ERROR_MESSAGE);
 			return true;
@@ -3387,7 +3387,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		if (!getRevisionDate().after(rev_time)) return;
 
 		// possible error in hierarchy
-		System.out.println("WARNING: sub-cell " + describe() +
+		System.out.println("WARNING: sub-cell " + this +
 			" has been edited since the last revision to the current cell");
 	}
 
@@ -3651,7 +3651,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		{
 			if (!invariantsFailed)
 			{
-				System.out.println("Exception checking invariants of Cell " + describe());
+				System.out.println("Exception checking invariants of " + this);
 				e.printStackTrace();
 				ActivityLogger.logException(e);
 				invariantsFailed = true;

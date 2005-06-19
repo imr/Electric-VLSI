@@ -593,7 +593,7 @@ public class ToolMenu {
         public boolean doIt() {
             Cell[] schLayCells = NccUtils.findSchematicAndLayout(cell);
             if (schLayCells == null) {
-                System.out.println("Could not find schematic and layout cells for "+cell.describe());
+                System.out.println("Could not find schematic and layout cells for "+cell.describe(true));
                 return false;
             }
             if (cell.getView() == View.LAYOUT) {
@@ -619,7 +619,7 @@ public class ToolMenu {
                 if (var == null) continue;
                 var = ni.getVar("ATTR_L");
                 if (var == null) {
-                    System.out.println("No attribute L on wire model "+ni.describe()+", ignoring it.");
+                    System.out.println("No attribute L on wire model "+ni.describe(true)+", ignoring it.");
                     continue;
                 }
                 // grab network wire model is on
@@ -658,7 +658,7 @@ public class ToolMenu {
                 wiresUpdated++;
                 System.out.println("Updated wire model "+ni.getName()+" on network "+proxy.toString()+" to: "+length+" lambda");
             }
-            System.out.println("Updated "+wiresUpdated+" wire models in "+schLayCells[0].describe()+" from layout "+schLayCells[1].describe());
+            System.out.println("Updated "+wiresUpdated+" wire models in "+schLayCells[0]+" from layout "+schLayCells[1]);
             return true;
         }
     }
@@ -749,7 +749,7 @@ public class ToolMenu {
 		for(Iterator it = netlist.getNetworks(); it.hasNext(); )
 		{
 			Network net = (Network)it.next();
-			String netName = net.describe();
+			String netName = net.describe(false);
 			if (netName.length() == 0) continue;
 			StringBuffer infstr = new StringBuffer();
 			infstr.append("'" + netName + "'");
@@ -766,7 +766,7 @@ public class ToolMenu {
 					connected = true;
 					infstr.append(", on arcs:");
 				}
-				infstr.append(" " + ai.describe());
+				infstr.append(" " + ai.describe(true));
 			}
 
 			boolean exported = false;
@@ -808,7 +808,7 @@ public class ToolMenu {
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
             Network net = (Network)it.next();
-            System.out.println("Network '" + net.describe() + "':");
+            System.out.println("Network " + net.describe(true) + ":");
 
             int total = 0;
             for(Iterator nIt = netlist.getNodables(); nIt.hasNext(); )
@@ -853,7 +853,7 @@ public class ToolMenu {
 
                 if (total == 0) System.out.println("  Connects to:");
                 String name = null;
-                if (no instanceof NodeInst) name = ((NodeInst)no).describe(); else
+                if (no instanceof NodeInst) name = ((NodeInst)no).describe(false); else
                 {
                     name = no.getName();
                 }
@@ -886,13 +886,13 @@ public class ToolMenu {
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
             Network net = (Network)it.next();
-            System.out.println("Network '" + net.describe() + "':");
+            System.out.println("Network '" + net.describe(true) + "':");
 
             // find all exports on network "net"
             HashSet/*<Export>*/ listedExports = new HashSet/*<Export>*/();
-            System.out.println("  Going up the hierarchy from cell " + cell.describe() + ":");
+            System.out.println("  Going up the hierarchy from " + cell + ":");
             if (findPortsUp(netlist, net, cell, listedExports)) break;
-            System.out.println("  Going down the hierarchy from cell " + cell.describe() + ":");
+            System.out.println("  Going down the hierarchy from " + cell + ":");
             if (findPortsDown(netlist, net, cell, listedExports)) break;
         }
     }
@@ -919,7 +919,7 @@ public class ToolMenu {
         for(Iterator it = nets.iterator(); it.hasNext(); )
         {
             Network net = (Network)it.next();
-            System.out.println("Network '" + net.describe() + "':");
+            System.out.println("Network " + net.describe(true) + ":");
 
             // find all exports on network "net"
             if (findPortsDown(netlist, net, cell, new HashSet())) break;
@@ -945,7 +945,7 @@ public class ToolMenu {
                 if (listedExports.contains(pp)) continue;
                 listedExports.add(pp);
 //                listedExports.add(listedExports);
-                System.out.println("    Export " + pp.getName() + " in cell " + cell.describe());
+                System.out.println("    Export " + pp.getName() + " in " + cell);
 
                 // code to find the proper instance
                 Cell instanceCell = cell.iconView();
@@ -1006,7 +1006,7 @@ public class ToolMenu {
                     // found the net here: report it
                     if (listedExports.contains(pp)) continue;
                     listedExports.add(pp);
-                    System.out.println("    Export " + pp.getName() + " in cell " + subCell.describe());
+                    System.out.println("    Export " + pp.getName() + " in " + subCell);
 //                    Netlist subNetlist = subCell.getUserNetlist();
             		Netlist subNetlist = subCell.acquireUserNetlist();
             		if (subNetlist == null)
@@ -1035,7 +1035,7 @@ public class ToolMenu {
         HashSet nets = (HashSet)wnd.getHighlighter().getHighlightedNetworks();
         if (nets.isEmpty())
         {
-            System.out.println("No network in cell '" + cell.describe() + "' selected");
+            System.out.println("No network in " + cell + " selected");
             return;
         }
 	    else
@@ -1153,13 +1153,13 @@ public class ToolMenu {
                     Export pp = (Export)pIt.next();
                     if (pp.isNamedGround() && pp.getCharacteristic() != PortCharacteristic.GND)
                     {
-                        System.out.println("Cell " + cell.describe() + ", export " + pp.getName() +
+                        System.out.println("Cell " + cell.describe(true) + ", export " + pp.getName() +
                             ": does not have 'GROUND' characteristic");
                         total++;
                     }
                     if (pp.isNamedPower() && pp.getCharacteristic() != PortCharacteristic.PWR)
                     {
-                        System.out.println("Cell " + cell.describe() + ", export " + pp.getName() +
+                        System.out.println("Cell " + cell.describe(true) + ", export " + pp.getName() +
                             ": does not have 'POWER' characteristic");
                         total++;
                     }
@@ -1246,7 +1246,7 @@ public class ToolMenu {
 //                templateVar.setDisplay(true);
                 templateVar.setInterior(true);
                 templateVar.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
-                System.out.println("Set "+templateKey.getName().replaceFirst("ATTR_", "")+" for cell "+cell.describe());
+                System.out.println("Set "+templateKey.getName().replaceFirst("ATTR_", "")+" for "+cell);
             }
             return true;
         }
@@ -1414,7 +1414,7 @@ public class ToolMenu {
 			if ((activities&CONVERT_TO_VHDL) != 0)
 			{
 				// convert Schematic to VHDL
-				System.out.print("Generating VHDL from '" + cell.describe() + "' ...");
+				System.out.print("Generating VHDL from " + cell + " ...");
 				List vhdlStrings = GenerateVHDL.convertCell(cell);
 				if (vhdlStrings == null)
 				{
@@ -1432,7 +1432,7 @@ public class ToolMenu {
 				String [] array = new String[vhdlStrings.size()];
 				for(int i=0; i<vhdlStrings.size(); i++) array[i] = (String)vhdlStrings.get(i);
 				vhdlCell.setTextViewContents(array);
-				System.out.println(" Done, created '" + vhdlCell.describe() + "'");
+				System.out.println(" Done, created " + vhdlCell);
 			    DoNextActivity sJob = new DoNextActivity(vhdlCell, activities & ~CONVERT_TO_VHDL, originalCell, originalContext);
 			    return true;
 			}
@@ -1440,7 +1440,7 @@ public class ToolMenu {
 			if ((activities&COMPILE_VHDL_FOR_SC) != 0)
 			{
 				// compile the VHDL to a netlist
-				System.out.print("Compiling VHDL in '" + cell.describe() + "' ...");
+				System.out.print("Compiling VHDL in " + cell + " ...");
 				CompileVHDL c = new CompileVHDL(cell);
 				if (c.hasErrors())
 				{
@@ -1465,7 +1465,7 @@ public class ToolMenu {
 				String [] array = new String[netlistStrings.size()];
 				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
 				netlistCell.setTextViewContents(array);
-				System.out.println(" Done, created '" + netlistCell.describe() + "'");
+				System.out.println(" Done, created " + netlistCell);
 			    DoNextActivity sJob = new DoNextActivity(netlistCell, activities & ~COMPILE_VHDL_FOR_SC, originalCell, originalContext);
 			    return true;
 			}
@@ -1473,7 +1473,7 @@ public class ToolMenu {
 			if ((activities&PLACE_AND_ROUTE) != 0)
 			{
 				// first grab the information in the netlist
-				System.out.print("Reading netlist in '" + cell.describe() + "' ...");
+				System.out.print("Reading netlist in " + cell + " ...");
 				GetNetlist gnl = new GetNetlist();
 				if (gnl.readNetCurCell(cell)) { System.out.println();   return false; }
 				System.out.println(" Done");
@@ -1514,7 +1514,7 @@ public class ToolMenu {
 				if (result instanceof Cell)
 				{
 					Cell newCell = (Cell)result;
-					System.out.println(" Done, created '" + newCell.describe() + "'");
+					System.out.println(" Done, created " + newCell);
 				    DoNextActivity sJob = new DoNextActivity(newCell, activities & ~PLACE_AND_ROUTE, originalCell, originalContext);
 				}
 				System.out.println();

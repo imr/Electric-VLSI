@@ -160,7 +160,7 @@ public class Maxwell extends Output
 		double lY = box.getMinY() * scale / 1000;
 		double wid = box.getWidth() * scale / 1000;
 		double hei = box.getHeight() * scale / 1000;
-		String netName = net.describe() + "-" + boxNumber;
+		String netName = net.describe(false) + "-" + boxNumber;
 		printWriter.print("Box pos3 " + lX + " " + lY + " " + layer.getName() + "-Bot   " +
 			wid + " " + hei + " " + layer.getName() + "-Hei \"" + netName + "\"\n");
 		Integer boxNum = new Integer(boxNumber);

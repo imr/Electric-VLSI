@@ -199,7 +199,7 @@ public class Clipboard
 					selected = ((Export)eObj).getName();
 				} else if (eObj instanceof NodeInst)
 				{
-					selected = ((NodeInst)eObj).getProto().describe();
+					selected = ((NodeInst)eObj).getProto().describe(false);
 				}
 				if (selected != null)
 				{
@@ -650,8 +650,8 @@ public class Clipboard
 			Cell niCell = (Cell)ni.getProto();
             if (Cell.isInstantiationRecursive(niCell, toCell))
 			{
-				System.out.println("Cannot: that would be recursive (cell " +
-					toCell.describe() + " is beneath cell " + ni.getProto().describe() + ")");
+				System.out.println("Cannot: that would be recursive (" +
+					toCell + " is beneath " + ni.getProto() + ")");
 				return;
 			}
 		}

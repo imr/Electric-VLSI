@@ -175,7 +175,7 @@ class NetSchem extends NetCell {
 				if (var == null) {
 					var = v;
 				} else if (!v.getObject().equals(var.getObject())) {
-					String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
+					String msg = "Network: " + cell + " has multipart icon <" + getName() +
 						"> with ambigouos definition of variable " + name;
                     System.out.println(msg);
                     ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
@@ -200,7 +200,7 @@ class NetSchem extends NetCell {
 				if (var == null) {
 					var = v;
 				} else if (!v.getObject().equals(var.getObject())) {
-					String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
+					String msg = "Network: " + cell + " has multipart icon <" + getName() +
 						"> with ambigouos definition of variable " + key.getName();
                     System.out.println(msg);
                     ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
@@ -228,7 +228,7 @@ class NetSchem extends NetCell {
                 if (var == null) {
                     var = v;
                 } else if (!v.getObject().equals(var.getObject())) {
-                    String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
+                    String msg = "Network: " + cell + " has multipart icon <" + getName() +
                         "> with ambigouos definition of parameter " + name;
                     System.out.println(msg);
                     ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
@@ -357,7 +357,7 @@ class NetSchem extends NetCell {
                     // if same value, just ignore second param
                     if (var.getObject().equals(v.getObject())) continue;
                     // print error, conflicting values
-                    String msg = "Network: Cell " + cell.describe() + " has multipart icon <" + getName() +
+                    String msg = "Network: " + cell + " has multipart icon <" + getName() +
                         "> with ambigouos definition of variable " + v.getKey().getName();
                     System.out.println(msg);
                     ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
@@ -452,7 +452,7 @@ class NetSchem extends NetCell {
 			for (int i = 0; i < c.getNumPorts(); i++) {
 				Export e = (Export)c.getPort(i);
 				if (e.getEquivalentPort(cell) == null) {
-					String msg = c + ": Schematic port <"+e.getNameKey()+"> has no equivalent port in " + cell.describe();
+					String msg = c + ": Schematic port <"+e.getNameKey()+"> has no equivalent port in " + cell;
 					System.out.println(msg);
 					ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, c, NetworkTool.errorSortPorts);
 					log.addExport(e, true, c, null);
@@ -706,7 +706,7 @@ class NetSchem extends NetCell {
 
 					String errorMsg = globalBuf.addToBuf(gs);
 					if (errorMsg != null) {
-						String msg = "Network: Cell " + cell.describe() + " has globals with conflicting characteristic " + errorMsg;
+						String msg = "Network: " + cell + " has globals with conflicting characteristic " + errorMsg;
                         System.out.println(msg);
                         ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
                         // TODO: what to highlight?
@@ -724,7 +724,7 @@ class NetSchem extends NetCell {
 					else {
 						characteristic = PortCharacteristic.findCharacteristic(ni.getTechSpecific());
 						if (characteristic == null) {
-							String msg = "Network: Cell " + cell.describe() + " has global " + g.getName() +
+							String msg = "Network: " + cell + " has global " + g.getName() +
 								" with unknown characteristic bits";
                             System.out.println(msg);
                             ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
@@ -734,7 +734,7 @@ class NetSchem extends NetCell {
 					}
 					String errorMsg = globalBuf.addToBuf(g, characteristic);
 					if (errorMsg != null) {
-						String msg = "Network: Cell " + cell.describe() + " has global with conflicting characteristic " + errorMsg;
+						String msg = "Network: " + cell + " has global with conflicting characteristic " + errorMsg;
                         System.out.println(msg);
                         ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
                         //log.addGeom(shared[i].nodeInst, true, 0, null);
@@ -794,15 +794,15 @@ class NetSchem extends NetCell {
 						if (namedProxy != null) {
 							Cell namedIconCell = (Cell)namedProxy.nodeInst.getProto();
 							if (namedProxy.hasMulti(iconCell)) {
-								String msg = "Network: Cell " + cell.describe() + " has instances of " + iconCell.describe() +
+								String msg = "Network: " + cell + " has instances of " + iconCell +
 									" with same name <" + name + ">";
                                 System.out.println(msg);
                                 ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                                 log.addGeom(ni, true, cell, null);
 							} else if (!iconCell.isMultiPartIcon() || !namedIconCell.isMultiPartIcon() ||
 								NetworkTool.getNetCell(namedIconCell).getSchem() != netSchem) {
-								String msg = "Network: Cell " + cell.describe() + " has instances of " + iconCell.describe() + " and " +
-									namedIconCell.describe() + " with same name <" + name + ">";
+								String msg = "Network: " + cell + " has instances of " + iconCell + " and " +
+									namedIconCell + " with same name <" + name + ">";
                                 System.out.println(msg);
                                 ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                                 log.addGeom(ni, true, cell, null);
@@ -810,7 +810,7 @@ class NetSchem extends NetCell {
 							} else {
 								proxy = namedProxy;
 								proxy.addMulti(ni, i);
-								System.out.println("Info: Cell " + cell.describe() + " has instances of multipart icon " + name);
+								System.out.println("Info: " + cell + " has instances of multipart icon " + name);
 							}
 						}
 					}
@@ -940,8 +940,8 @@ class NetSchem extends NetCell {
 					continue;
 				}
 				if (oldWidth != newWidth)  {
-					String msg = "Network: Schematic cell " + cell.describe() + " has net <" +
-						drawnNames[drawn] + "> with width conflict in connection " + pi.describe();
+					String msg = "Network: Schematic " + cell + " has net <" +
+						drawnNames[drawn] + "> with width conflict in connection " + pi.describe(true);
                     System.out.println(msg);
                     ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
                     log.addPoly(pi.getPoly(), true, cell);
@@ -962,7 +962,7 @@ class NetSchem extends NetCell {
         int numPorts = cell.getNumPorts();
         int numArcs = cell.getNumArcs();
 
-        String msg = "Network: Schematic cell " + cell.describe() + " has net with conflict width of names <" +
+        String msg = "Network: Schematic " + cell + " has net with conflict width of names <" +
                            firstname + "> and <" + badname + ">";
         System.out.println(msg);
         ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);
@@ -1111,7 +1111,7 @@ class NetSchem extends NetCell {
 			} else if (ai2 == null) {
 				ai2 = ai;
 			} else {
-				String msg = "Network: Schematic cell " + cell.describe() + " has connector " + ni.describe() +
+				String msg = "Network: Schematic " + cell + " has connector " + ni +
 					" which merges more than two arcs";
                 System.out.println(msg);
                 ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNetworks);

@@ -541,7 +541,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
                 {
                     Cell cell = (Cell)it.next();
-                    menuItem = new JMenuItem(cell.describe());
+                    menuItem = new JMenuItem(cell.describe(false));
                     menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, cell));
                     cellMenu.add(menuItem);
                 }
@@ -616,7 +616,7 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                     if (np.getFunction() != PrimitiveNode.Function.NODE) continue;
                     Technology.NodeLayer layer = np.getLayers()[0];
                     if (layer.getLayer().getFunction().isContact()) continue;
-                    menuItem = new JMenuItem(np.describe());
+                    menuItem = new JMenuItem(np.describe(false));
                     menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, np));
                     pureMenu.add(menuItem);
                 }
@@ -852,15 +852,15 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
         }
         if (obj instanceof PrimitiveNode)
         {
-           StatusBar.setSelectionOverride("CREATE NODE: " + ((PrimitiveNode)obj).describe());
+           StatusBar.setSelectionOverride("CREATE NODE: " + ((PrimitiveNode)obj).describe(false));
         }
         else if (obj instanceof NodeInst)
         {
-           StatusBar.setSelectionOverride("CREATE NODE: " + ((NodeInst)obj).describe());
+           StatusBar.setSelectionOverride("CREATE NODE: " + ((NodeInst)obj).describe(false));
         }
         else if (obj instanceof NodeProto)
         {
-            StatusBar.setSelectionOverride("CREATE NODE: " + ((NodeProto)obj).describe());
+            StatusBar.setSelectionOverride("CREATE NODE: " + ((NodeProto)obj).describe(false));
         } else if (obj instanceof ArcProto)
         {
             ArcProto ap = (ArcProto)obj;

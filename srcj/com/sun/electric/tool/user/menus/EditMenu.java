@@ -1245,13 +1245,13 @@ public class EditMenu {
                 NodeInst ni = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(), ai.getParent());
                 if (ni == null)
                 {
-                    System.out.println("Cannot create pin " + np.describe());
+                    System.out.println("Cannot create pin " + np.describe(true));
                     return false;
                 }
                 NodeInst ni2 = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(), ai.getParent());
                 if (ni2 == null)
                 {
-                    System.out.println("Cannot create pin " + np.describe());
+                    System.out.println("Cannot create pin " + np.describe(true));
                     return false;
                 }
 
