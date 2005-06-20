@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/20/05, SMR) Changed "Design Rules" preferences to handle multiple wide rules.
+
+BUG: (06/20/05, SMR) "Make Selected Easy" and "Make Selected Hard" commands crash.
+FIX: Put them in a job.
+
 IMP: (06/20/05, GVG) Moving foundry pulldown menu and output resolution text field to DesignRule tab
 
 BUG: (06/18/05, SMR) Compaction spreads circuits apart.

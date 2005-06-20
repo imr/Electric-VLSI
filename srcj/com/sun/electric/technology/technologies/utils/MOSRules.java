@@ -469,37 +469,41 @@ public class MOSRules implements DRCRules {
 
     /**
      * Method to retrieve different spacing rules depending on type.
-     * Type can be SPACING (normal values), SPACINGW (wide values),
-     * SPACINGE (edge values) and CUTSPA (multi cuts)
-     * @param index
-     * @param type
-     * @param techMode to choose betweeb ST or TSMC (ignore here)
+     * @param index the index of the layer being queried.
+     * @param type SPACING (normal values), SPACINGW (wide values),
+     * SPACINGE (edge values) and CUTSPA (multi cuts).
+     * @param techMode to choose a foundry (ignore here).
      * @return list of rules subdivided in UCONSPA and CONSPA
      */
     public List getSpacingRules(int index, int type, int techMode)
     {
         List list = new ArrayList(2);
 
+		// SMR changed the four lines listed below...widelimit should appear in the SPACINGW rule, not the SPACING rule
         switch (type)
         {
             case DRCTemplate.SPACING: // normal rules
             {
                 double dist = conList[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCRule(conListRules[index], dist, wideLimit.doubleValue(), 0, DRCTemplate.CONSPA));
+//                  list.add(new DRCRule(conListRules[index], dist, wideLimit.doubleValue(), 0, DRCTemplate.CONSPA));
+					list.add(new DRCRule(conListRules[index], dist, 0, 0, DRCTemplate.CONSPA));
                 dist = unConList[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCRule(unConListRules[index], dist, wideLimit.doubleValue(), 0, DRCTemplate.UCONSPA));
+//                  list.add(new DRCRule(unConListRules[index], dist, wideLimit.doubleValue(), 0, DRCTemplate.UCONSPA));
+					list.add(new DRCRule(unConListRules[index], dist, 0, 0, DRCTemplate.UCONSPA));
            }
            break;
            case DRCTemplate.SPACINGW: // wide rules
            {
                 double dist = conListWide[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCRule(conListWideRules[index], dist, 0, 0, DRCTemplate.CONSPA));
+//                  list.add(new DRCRule(conListWideRules[index], dist, 0, 0, DRCTemplate.CONSPA));
+                	list.add(new DRCRule(conListWideRules[index], dist, wideLimit.doubleValue(), 0, DRCTemplate.CONSPA));
                 dist = unConListWide[index].doubleValue();
                 if (dist >= 0)
-                    list.add(new DRCRule(conListWideRules[index], dist, 0, 0, DRCTemplate.UCONSPA));
+//                  list.add(new DRCRule(conListWideRules[index], dist, 0, 0, DRCTemplate.UCONSPA));
+                	list.add(new DRCRule(conListWideRules[index], dist, wideLimit.doubleValue(), 0, DRCTemplate.UCONSPA));
            }
            break;
            case DRCTemplate.CUTSPA: // multi contact rules

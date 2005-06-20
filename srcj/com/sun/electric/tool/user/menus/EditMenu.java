@@ -1014,20 +1014,8 @@ public class EditMenu {
 	{
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
-		java.util.List highlighted = wnd.getHighlighter().getHighlightedEObjs(true, true);
-		for(Iterator it = highlighted.iterator(); it.hasNext(); )
-		{
-			Geometric geom = (Geometric)it.next();
-			if (geom instanceof NodeInst)
-			{
-				NodeInst ni = (NodeInst)geom;
-				ni.clearHardSelect();
-			} else
-			{
-				ArcInst ai = (ArcInst)geom;
-				ai.setHardSelect(false);
-			}
-		}
+		List highlighted = wnd.getHighlighter().getHighlightedEObjs(true, true);
+		new SetEasyHardSelect(true, highlighted);
 	}
 
 	/**
@@ -1038,18 +1026,53 @@ public class EditMenu {
         EditWindow wnd = EditWindow.getCurrent();
         if (wnd == null) return;
 		java.util.List highlighted = wnd.getHighlighter().getHighlightedEObjs(true, true);
-		for(Iterator it = highlighted.iterator(); it.hasNext(); )
+		new SetEasyHardSelect(false, highlighted);
+	}
+
+	/**
+	 * Class to set selected objects "easy to select" or "hard to select".
+	 */
+	private static class SetEasyHardSelect extends Job
+	{
+	    private boolean easy;
+		private List highlighted;
+	
+		private SetEasyHardSelect(boolean easy, List highlighted)
 		{
-			Geometric geom = (Geometric)it.next();
-			if (geom instanceof NodeInst)
+	        super("Make Selected Objects Easy/Hard To Select", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+	        this.easy = easy;
+	        this.highlighted = highlighted;
+	        startJob();
+	    }
+	
+	    public boolean doIt()
+		{
+			for(Iterator it = highlighted.iterator(); it.hasNext(); )
 			{
-				NodeInst ni = (NodeInst)geom;
-				ni.setHardSelect();
-			} else
-			{
-				ArcInst ai = (ArcInst)geom;
-				ai.setHardSelect(true);
+				Geometric geom = (Geometric)it.next();
+				if (geom instanceof NodeInst)
+				{
+					NodeInst ni = (NodeInst)geom;
+					if (easy)
+					{
+						ni.clearHardSelect();
+					} else
+					{
+						ni.setHardSelect();
+					}
+				} else
+				{
+					ArcInst ai = (ArcInst)geom;
+					if (easy)
+					{
+						ai.setHardSelect(false);
+					} else
+					{
+						ai.setHardSelect(true);
+					}
+				}
 			}
+			return true;
 		}
 	}
 
