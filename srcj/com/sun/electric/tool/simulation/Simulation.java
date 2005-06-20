@@ -730,7 +730,8 @@ public class Simulation extends Listener
 			wp.makeSelectedPanel();
 		} else
 		{
-			// put all top-level signals in
+			// put all top-level signals in, up to a limit
+			int numSignals = 0;
 			makeBussedSignals(sd);
 			List allSignals = sd.getSignals();
 			for(int i=0; i<allSignals.size(); i++)
@@ -742,6 +743,8 @@ public class Simulation extends Listener
 				WaveformWindow.Panel wp = new WaveformWindow.Panel(ww, false);
 				wp.makeSelectedPanel();
 				new WaveformWindow.WaveSignal(wp, sDSig);
+				numSignals++;
+				if (numSignals > 15) break;
 			}
 		}
 		ww.getPanel().validate();

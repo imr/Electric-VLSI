@@ -137,7 +137,7 @@ public class PreferencesFrame extends EDialog
 			}
 		});
 
-		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Options");
+		DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Preferences");
 		DefaultTreeModel treeModel = new DefaultTreeModel(rootNode);
 		optionTree = new JTree(treeModel);
 		TreeHandler handler = new TreeHandler(this);
@@ -358,7 +358,7 @@ public class PreferencesFrame extends EDialog
 		topPath = optionTree.getNextMatch(currentSectionName, 0, null);
 		optionTree.expandPath(topPath);
 
-		// the left side of the options dialog: a tree
+		// the left side of the preferences dialog: a tree
 		JPanel leftPanel = new JPanel();
 		leftPanel.setLayout(new GridBagLayout());
 
@@ -404,7 +404,8 @@ public class PreferencesFrame extends EDialog
 		leftPanel.add(help, gbc);
 
 		getRootPane().setDefaultButton(ok);
-		// build options framework
+
+		// build preferences framework
 		splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
 
 		loadOptionPanel();
