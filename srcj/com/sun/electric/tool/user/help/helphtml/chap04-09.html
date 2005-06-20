@@ -12,7 +12,7 @@ As an alternative to printing, you can request the system to write a PostScript 
 To do this,
 use the <B>PostScript...</B> and <B>PNG (Portable Network Graphics)...</B> commands (in menu <B>File / Export</B>).
 <P>
-For specific printing settings, use the
+For specific printing and PostScript settings, use the
 "Printing" preferences (in menu <B>File / Preferences...</B>, "General" section, "Printing" tab).
 <P>
 <TABLE><TR><TD>
@@ -30,11 +30,10 @@ The "Print resolution" is the number of dots-per-inch (DPI) that the printer exp
 Higher resolutions use more memory for the print image.
 <P>
 <!-- NEED 2in -->
-There are many PostScript options, available in the middle section.
+There are many PostScript options, available in the lower section.
 <UL>
 <LI>
 The "Encapsulated" checkbox causes the PostScript output to be insertable in other documents.
-For encapsulated PostScript, it is also possible to specify, for each cell, a scale to use.
 </LI>
 <LI>
 There are four color choices: "Black&amp;White",
@@ -52,6 +51,10 @@ The "Margin" field is the amount of white space to leave on the sides.
 All distances in the "Height", "Width", and "Margin" fields are in inches.
 </LI>
 <LI>
+You can control the width of PostScript lines.  Although they default to 1, this may be too thin
+on some printers.
+</LI>
+<LI>
 You can choose to rotate the image by 90 degrees so that it fits better on the page.
 The default is "No Rotation", but the popup can switch to "Rotate plot 90 degrees" or
 "Auto-rotate plot to fit".
@@ -67,7 +70,5 @@ Thus, you can specify PostScript files for many different cells in a library,
 and when PostScript is generated, all of the files will be properly updated to reflect the state of the design.
 </LI>
 </UL>
-<P>
-The bottom section of the dialog applies to HPGL, which is not yet available.
 
 <!-- TRAILER -->

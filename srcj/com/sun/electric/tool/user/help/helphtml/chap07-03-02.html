@@ -10,7 +10,7 @@ CIF options are controlled with the "CIF" preferences
 <CENTER><IMG SRC="fig07-10.png" ALT="Figure 7.10"></CENTER>
 <P>
 This dialog controls the conversion between layers in Electric and layers in the CIF file.
-By clicking on an Electric layer, you can type a new CIF layer into the dialog.
+By clicking on an Electric layer, you can type a new CIF layer name into the dialog.
 <P>
 By default, CIF output writes the entire hierarchy below the current cell.
 If you check the "Output Mimics Display" item,
@@ -37,12 +37,8 @@ then uncheck the "Output Instantiates Top Level" checkbox, and there will be no 
 When reading CIF files, the CIF "wire" statements are assumed to have rounded geometry at the ends and corners.
 If you check the "Input Squares Wires" item, CIF input assumes that wire ends are square and extend by half of their width.
 <P>
-You can request that resolution errors be checked during CIF output
-by checking "Find resolution errors".
-The "Output resolution" field is the minimum coordinate value that can be safely written in CIF
-(due to CIF's use of the centimicron as the smallest unit).
-All geometry of that size or less will be flagged during CIF output.
-For example, current MOSIS rules require that no boundaries be quarter-lambda or less,
-so a value of .25 in this field will detect such violations.
+Be advised that the CIF format has a minimum resolution of 10 nanometers.
+Since nothing smaller can be accurately represented in the file, the CIF output of smaller geometries will
+generate errors.
 
 <!-- TRAILER -->

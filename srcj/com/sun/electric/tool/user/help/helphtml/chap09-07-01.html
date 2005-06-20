@@ -1,104 +1,70 @@
-<!-- HEADER 9-7-1: Pad Frame Generation -->
+<!-- HEADER 9-7-1: NCC Overview -->
 
-<!-- COMMAND Tool/Generation/Pad Frame Generator -->
+<h3> Improvements </h3>
 
-The Pad Frame generator reads a disk file and places a ring of pads around your chip.
-The pads are contained in a separate library, and are copied into the current library to construct the pad frame.
-<P>
-The format of the pad frame disk file is as follows:
+Electric can compare two different cells and determine whether their
+networks have the same topology.  This operation is sometimes called
+Layout vs. Schematic (LVS), but because Electric can compare any two
+circuits (including two layouts or two schematics) we use the term Network
+Consistency Checking (NCC).
+<p>
+The Java Electric NCC differs from the C Electric NCC in two
+signficant ways.
+<UL>
+<LI>
+  The Java Electric NCC firsts attempts to discover circuit mismatches
+  using a new algorithm called "Local Paritioning".  We do this
+  because Local Partitioning provides much more precise and
+  intelligible mismatch diagnostics.  We fall back upon the <A
+  HREF="http://www.cs.washington.edu/research/projects/lis/www/gemini/gemini.html">
+  Gemini algorithm</A> (Ebeling, Carl, "GeminiII: A Second Generation
+  Layout Validation Program", <I>Proceedings of ICCAD</I> 1988,
+  p322-325.) only as a last resort. In practice upwards of 95% of all
+  errors are found by Local Partitioning.
+</li>
+<li>
+  The Java Electric NCC has a "hierarchical" mode. When comparing a
+  cell hierarchically, NCC first tries to compare the cell's
+  descendents.  We <i>strongly</i> recommend this mode to the user
+  because it allows the Local Partitioning algorithm to provide even
+  more precise and intelligible mismatch diagnostics.
+</li>
+</ul>
+The Java Electric NCC is also significantly faster than the C Electric
+NCC.  For example, for one of our chips, C-NCC flat took 48 minutes,
+Java-NCC flat took 3.5 minutes, and Java-NCC hierarchical took 15
+seconds.
+<p>
 
-<CENTER><TABLE>
-<TR><TD><CODE>celllibrary LIBRARYFILE [copy]</CODE></TD><TD>; Identifies the file with the pads</TD></TR>
-<TR><TD><CODE>facet PADFRAMECELL</CODE></TD><TD>; Creates a cell to hold the pad frame</TD></TR>
-<TR><TD><CODE>core CORECELL</CODE></TD><TD>; Places your circuit in the center of the pad frame</TD></TR>
-<TR><TD><CODE>align PADCELL INPUTPORT OUTPUTPORT</CODE></TD><TD>; Defines input and output ports on pads</TD></TR>
-<TR><TD><CODE>place PADCELL [GAP] [PORTASSOCIATION]</CODE></TD><TD>; Places a pad into the pad frame</TD></TR>
-<TR><TD><CODE>rotate DIRECTION</CODE></TD><TD>; Turns the corner in pad placement</TD></TR>
-</TABLE></CENTER>
-<P>
-The file must have exactly one <CODE>celllibrary</CODE> and <CODE>cell</CODE> statement,
-as they identify the pad library and the pad frame cell.
-If the <CODE>celllibrary</CODE> line ends with the keyword <CODE>copy</CODE>,
-then cells from that library are copied into the library with the pad ring (by default, they are merely instantiated,
-creating a cross-library reference to the pads library).
-The file may have only one <CODE>core</CODE> statement to place your top-level circuit inside of the pad frame.
-If there is no <CODE>core</CODE> statement,
-then pads are placed without any circuit in the middle.
-<P>
-The <CODE>align</CODE> statement is used to identify connection points on the pads that will be used for placement.
-Each pad should have an input and an output port that define the edges of the pad.
-These ports are typically the on the power or ground rails that run through the pad.
-When placing pads, the output port of one pad is aligned with the input port of the next pad.
-<P>
-Each pad that is placed with a <CODE>place</CODE>
-statement is aligned with the previous pad according to the alignment factor.
-A <I>gap</I> can be given in the placement that spreads the two pads by the specified distance.
-For example, the statement:
-<CENTER><CODE>place padIn gap=100</CODE></CENTER>
-requests that the "padIn" pad be placed so that its input port is 100 units away from the previous pad's output port.
-<P>
-If a core cell has been given, you can also indicate wiring between the pads and the core ports.
-This is done by having one or more <I>port associations</I> in the <CODE>place</CODE> statements.
-The format of a port association is simply <CODE>PADPORT = COREPORT</CODE>.
-For example, the statement:
-<CENTER><CODE>place padOut tap=y</CODE></CENTER>
-indicates that the "tap" port on the placed pad will connect to the "y" port on the core cell.
-<P>
-The port association can also create an export on the pad.
-The statement:
-<CENTER><CODE>place padOut export tap=o7</CODE></CENTER>
-creates an export on the pad from its "tap" port and names it "o7".
-<P>
-The <CODE>rotate</CODE> statement rotates subsequent pads by the specified amount.
-The statement has only two forms: <CODE>rotate c</CODE> to rotate clockwise,
-and <CODE>rotate cc</CODE> to rotate counterclockwise.
-<P>
-Here is an example of a pad frame disk file, with the finished layout.
-There is a cell in the Samples library called "tool-PadFrame"
-(get it with the <B>Load Samples Library</B> command, in menu <B>Help</B>).
-Suppose a text file is created with with this content,
-and read with the <B>Pad Frame Generator</B> command (in menu <B>Tool / Generation</B>).
-<P>
-<CENTER><TABLE>
-<TR><TD><CODE>; specify the library with the pads&nbsp;&nbsp;&nbsp;&nbsp;</CODE></TD> <TD><CODE>; place the top edge of pads</CODE></TD></TR>
-<TR><TD><CODE>celllibrary pads4u.txt</CODE></TD>                   <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE>place PAD_gnd{lay} gnd_in=gnd</CODE></TD></TR>
-<TR><TD><CODE>; create a cell called "padframe"</CODE></TD>        <TD><CODE>place PAD_vdd{lay} m1m2=vdd</CODE></TD></TR>
-<TR><TD><CODE>facet padframe</CODE></TD>                           <TD></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE>; place the right edge of pads</CODE></TD></TR>
-<TR><TD><CODE>; place this cell as the "core"</CODE></TD>	       <TD><CODE>rotate c</CODE></TD></TR>
-<TR><TD><CODE>core tool-PadFrame</CODE></TD>                       <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE>place PAD_in{lay} out=pulse</CODE></TD></TR>
-<TR><TD><CODE>; set the alignment of the pads</CODE></TD>          <TD><CODE>place PAD_spacer{lay}</CODE></TD></TR>
-<TR><TD><CODE>;  (with input and output export)</CODE></TD>        <TD></TD></TR>
-<TR><TD><CODE>align PAD_in{lay}     dvddL dvddR</CODE></TD>        <TD><CODE>; place the bottom edge of pads</CODE></TD></TR>
-<TR><TD><CODE>align PAD_out{lay}    dvddL dvddR</CODE></TD>        <TD><CODE>rotate c</CODE></TD></TR>
-<TR><TD><CODE>align PAD_vdd{lay}    dvddL dvddR</CODE></TD>        <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
-<TR><TD><CODE>align PAD_gnd{lay}    dvddL dvddR</CODE></TD>        <TD><CODE>place PAD_out{lay} in=out1</CODE></TD></TR>
-<TR><TD><CODE>align PAD_corner{lay} dvddL dvddR</CODE></TD>        <TD><CODE>place PAD_out{lay} in=out2</CODE></TD></TR>
-<TR><TD><CODE>align PAD_spacer{lay} dvddL dvddR</CODE></TD>        <TD></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE>; place the left edge of pads</CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE>rotate c</CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE>place PAD_in{lay} out=in1</CODE></TD></TR>
-<TR><TD></TD>                                                      <TD><CODE>place PAD_in{lay} out=in2</CODE></TD></TR>
-</TABLE></CENTER>
-<P>
-<TABLE><TR><TD><IMG SRC="fig09-16.png" ALT="Figure 9.16" BORDER=0></TD><TD>
-This file places 8 pads in a ring (2 on each side) and also places corner "pads" for making bends.
-The input pads connect to the 2 input ports "a1" and "a2".
-The output pads connect to the 3 output ports "out1", "out2", and "out3"
-The power and ground pads connect to the "vdd" and "gnd" ports.
-<P>
-Note that the generator places pad instances, but does not wire them to each other.
-In order to create a uniform ring of power and ground between the pads,
-you can use the Auto-router or the Mimic-router (see <A HREF="chap09-05-01.html#chap09-05-01">Section 9-5-1</A>).
-</TD></TR></TABLE>
-<P>
-<TABLE><TR><TD>
-Connections between pads and ports of the core cell use Unrouted arcs
-(from the Generic technology, see <A HREF="chap07-06-03.html#chap07-06-03">Section 7-6-3</A>).
-After these connections are routed with real geometry, the finished layout is shown here, fully instantiated.
-</TD><TD><IMG SRC="fig09-17.png" ALT="Figure 9.17" BORDER=0></TD></TR></TABLE>
+<h3> Limitations </h3>
+NCC has a number of limitations
+<ul>
+<li>
+  NCC does not check the substrate connection of transistors. This is
+  because neither C- nor Java- Electric keep track of the connectivity
+  of the substrate connection of layout transistors. In fact, layout
+  transistors don't have substrate ports. We plan to remedy this.
+</li>
+<li>
+  NCC treats all resistors as short circuits. This is the desired
+  behavior for most of the resistors produced by the Asynchronous
+  Design Group at Sun. However, it would be nice if certain resistors
+  in schematics could be matched up against layout resistors. However,
+  neither C- nor Java- Electric support explicit layout resistors. We
+  plan to remedy this.
+</li>
+<li>
+  NCC's error messages are completely text based. There is no
+  integration into the GUI.  We plan to remedy this.
+</li>
+</ul>
+
+<h3> Example </h3>
+
+For an example of network consistency checking, open the Samples
+library (in menu <B>Help / Load Samples Library</B>) and compare the
+cells "tool-NCC{lay}" and "tool-NCC{sch}".  These two cells are
+equivalent and the checker will find them to be so.
 
 <!-- TRAILER -->
+

@@ -1,0 +1,62 @@
+<!-- HEADER 9-10-2: Node Extraction -->
+
+<!-- COMMAND Tool/Network/Extract Current Cell -->
+<!-- COMMAND Tool/Network/Extract Current Hierarchy -->
+
+<P>
+Because Electric captures connectivity information during design,
+there is no need for "node extraction", the process of extracting connectivity from layout.
+However, there are situations where a circuit has only layout and no connectivity,
+specifically when a circuit has been read into Electric from CIF, GDS, or other formats
+that have no connectivity information in them.
+<P>
+When CIF, GDS, and other foreign file formats are read into Electric, the cells they create
+are composed entirely of pure-layer nodes
+(see <A HREF="chap06-10-01.html#chap06-10-01">Section 6-10-1</A>).
+These nodes appear to represent the circuit correctly, and can even be written back out
+to CIF or GDS correctly.
+But the missing connectivity information means that Electric cannot properly analyze these
+circuits (cannot do DRC, simulation, etc.)
+<P>
+The solution is to convert this geometry into properly connected components.
+To convert the current cell into connected geometry, use the <B>Extract Current Cell</B>
+command (from menu <B>Tool / Network</B>).
+To convert the current cell and all subcells, use the <B>Extract Current Hierarchy</B> command.
+Electric creates new versions of the layout cells that have higher-level nodes and arcs in them.
+<P>
+Although the process of converting layout into connectivity information is difficult,
+it can usually be done correctly.
+In Electric, this process is complicated by the fact that the resulting connectivity information must
+be expressed as a set of "high-level" primitives (transistors and contacts) which have their own
+ways of appearing in the layout.
+Therefore, it is not always possible to extract layout precisely.
+For example, if the design rules for a transistor require that polysilicon extend beyond
+the gate area by 2 units, the transistor primitive for that technology will have this
+extra geometry built into it.
+But what would happen if the geometry to be extracted extends by 3 units?
+Electric adds an extra 1-unit arc to fill-out the extra geometry that it finds.
+Worse yet, what would happen if the geometry extends by only 1 unit?
+Electric simply cannot represent this with its primitives.
+It will create the transistor, but it will no longer match the original geometry.
+In general, the system attempts to create high-level primitives that mimic the original geometry.
+It often leaves small pure-layer nodes behind to complete the extraction.
+As an aid in debugging the extraction process, these extra pure-layer nodes are highlighted
+in the resulting cell.
+<P>
+Two "Network" preferences are available to control the extraction process
+(in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab).
+The first is "Force exact cut placement", which requires that the cut (or via) locations
+appear exactly in the same place once extracted.
+Without this preference, Electric will find contact areas and replace them with contact nodes
+regardless of where the contact nodes place the cuts.
+With this preference selected, Electric will place contact nodes in such a way that the cut
+layers land in the correct original locations.
+The disadvantage of forcing exact cut placement is that Electric will create many contact
+nodes, one for each cut layer.
+In multi-cut situations, this may be many more nodes than are necessary.
+<P>
+The other preference is "Grid-align geometry before extraction".
+Doing this makes the extraction process run more smoothly, but may cost slightly in accuracy.
+
+
+<!-- TRAILER -->

@@ -9,8 +9,7 @@ Editing changes can be made only to that cell, and not to any subcells that appe
 Thus, you may be able to see the contents of a cell instance,
 but you cannot edit it.
 <P>
-To edit a cell instance, use the <B>Down Hierarchy</B> command (in menu <B>Cell</B>
-).
+To edit a cell instance, use the <B>Down Hierarchy</B> command (in menu <B>Cell</B>).
 This command will descend into the definition of the currently selected cell instance.
 The contents will appear at the same size and location as the instance,
 and you will now be able to edit the contents.
@@ -23,6 +22,20 @@ then the <B>Down Hierarchy</B> command takes you to the actual icon so that you 
 If a layout cell is selected, you can use the <B>Down Hierarchy In Place</B> command to
 edit the cell while showing the upper level of the hierarchy.
 The surrounding geometry at the upper level is not editable, and is grayed-out.
+<P>
+Schematic nodes can be arrayed by giving them array names
+(see <A HREF="chap06-09-03.html#chap06-09-03">Section 6-9-3</A>).
+When you descend into an arrayed node, the system does not know which element of the array
+you are entering.
+Most of the time, the specific element is irrelevant, but if the circuit is being simulated,
+the specific instance may be necessary for cross-probing.
+Therefore, if the cell is being simulated and you descend into an arrayed node, you will be
+prompted for the specific element that you wish to visit.
+There are other situations that cannot be detected, where the specific element needs to be known.
+To solve this problem, you can request that Electric prompt for the specific element
+in all situations where an arrayed node is visited.
+To do this, check "Always prompt for index when descending into array nodes"
+in the "General" preferences (in menu <B>File / Preferences...</B>, "General" section, "General" tab)
 <P>
 The <B>Up Hierarchy</B> command pops you to the next higher cell in the hierarchy.
 If there was an associated <B>Down Hierarchy</B> command,

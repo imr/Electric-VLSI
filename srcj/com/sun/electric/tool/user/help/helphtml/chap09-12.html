@@ -1,0 +1,103 @@
+<!-- HEADER 9-12: Silicon Compiler -->
+
+<!-- COMMAND Tool/Silicon Compiler/Convert Current Cell to Layout -->
+
+<!-- PREFERENCE Tools/Silicon Compiler -->
+
+Electric has a silicon compiler called QUISC
+(the Queen's University Interactive Silicon Compiler).
+It is a powerful tool that can do placement and routing of standard cells from a structural VHDL description.
+The VHDL is compiled into a netlist which is then used to drive placement and routing.
+Also, because Electric is able to generate VHDL from a schematic,
+the silicon compiler can hide the VHDL and produce layout directly from schematics.
+<P>
+Be warned that the silicon compiler is rather old,
+and so it produces layout that alternates standard cell rows and routing rows.
+Modern silicon compilers use 3 and 4 metal processes to route over the standard cells,
+but this system does not.
+<P>
+The VHDL description is normally placed in the "vhdl" view of a cell.
+It can be created and edited entirely inside of Electric,
+or it can be read from disk by using the <B>Read Text Cell...</B> command of the <B>Cells</B> menu.
+See <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text editing.
+Automatic generation of VHDL from layout is done with the <B>Make VHDL View</B> command of the <B>View</B> menu.
+<P>
+Once the VHDL is created, it is compiled into a netlist and read into the silicon compiler.
+The netlist is normally placed in the "netlist-quisc-format" view of a cell.
+If the netlist is too cumbersome to retain in memory,
+it may be kept on disk by using the <B>VHDL Options...</B> subcommand of the <B>VHDL Compiler</B>
+command of the <B>Tools</B> menu and unchecking the "Netlist stored in cell" item.
+The "VHDL stored in cell" check controls the placement of VHDL text in a similar way.
+<P>
+When generating a schematic or VHDL description,
+it is important to know what primitives are available in the standard cell library.
+Electric comes with a CMOS cell library in the MOSIS CMOS ("mocmos") technology.
+This library is not correct, and exists only to illustrate the Silicon Compiler.
+These component declarations are available:
+<P>
+component and2 port(a1, a2 : in bit; y : out bit);  end component;<BR>
+component and3 port(a1, a2, a3 : in bit; y : out bit);  end component;<BR>
+component and4 port(a1, a2, a3, a4 : in bit; y : out bit);  end component;<BR>
+component inverter port(a : in bit; y : out bit);  end component;<BR>
+component nand2 port(a1, a2 : in bit;  y : out bit);  end component;<BR>
+component nand3 port(a1, a2, a3 : in bit;  y : out bit);  end component;<BR>
+component nand4 port(a1, a2, a3, a4 : in bit; y : out bit);  end component;<BR>
+component nor2 port(a1, a2 : in bit; y : out bit);  end component;<BR>
+component nor3 port(a1, a2, a3 : in bit;  y : out bit);  end component;<BR>
+component nor4 port(a1, a2, a3, a4 : in bit;  y : out bit);  end component;<BR>
+component or2 port(a1, a2 : in bit; y : out bit);  end component;<BR>
+component or3 port(a1, a2, a3 : in bit;  y : out bit);  end component;<BR>
+component or4 port(a1, a2, a3, a4 : in bit;  y : out bit);  end component;<BR>
+component rdff port(d, ck, cb, reset : in bit; q, qb : out bit);  end component;<BR>
+component xor2 port(a1, a2 : in bit;  y : out bit);  end component;
+<P>
+To use the silicon compiler,
+simply run the subcommands in the <B>Silicon Compiler</B> command of the <B>Tools</B> menu.
+The commands are organized in the menu so that,
+when run sequentially downward, they perform the compilation process.
+The steps are as follows:
+<P>
+<UL>
+<LI>Create a circuit to be compiled
+(there is a VHDL example in cell "tool-SiliconCompiler" of the "samples.txt" library,
+and you can read the library with the <B>Readable Dump</B> subcommand of the <B>Import</B> command of the <B>File</B> menu).
+<LI>Use the <B>Read MOSIS CMOS Library</B> subcommand to read the cell library.
+<LI>
+Use the <B>Silicon Compiler Options...</B> subcommand to set parameters.
+<TABLE><TR><TD VALIGN=TOP>
+Because cells are laid out in rows that run horizontally,
+the Vertical routing arc runs in and out of cells,
+while the Horizontal routing arc runs between the cells in the routing channel.
+The Power arcs run horizontally between the cells to connect both power and ground.
+The Main Power arcs run vertically along the sides of the circuit to connect the horizontal power and ground rails
+(you can choose which layer to use for the main power arcs).
+A block of P-well will be placed along the bottom of each cell and extend up to the P-Well height (if nonzero).
+A block of N-well will be placed along the top of each cell and extend down to the N-Well height (if nonzero).
+The offset of these blocks from the bottom or top can also be given.
+The Via size, Minimum metal spacing, Routing feed-through size,
+Minimum port distance, and Minimum active distance are rules that are used to place wires in the routing channel.
+</TD><TD><CENTER><IMG SRC="fig09-36.png" ALT="Figure 9.36"></CENTER></TD></TR></TABLE>
+Finally, the Number of rows of cells specifies how many rows to use when creating layout.
+A one-row circuit may be exceedingly wide and short, so you may wish to experiment with this value.
+For a square circuit, the number of rows should be the square root of the number of instances in the circuit
+(the number of instances appears as the sum of the unresolved references,
+listed by the VHDL Compiler).
+<LI>Use the <B>Get Network for Current Cell</B>
+subcommand to get the netlist associated with the current cell.
+This command will compile VHDL if the netlist is unavailable or out of date
+(note, however, that if the current cell is a netlist, it will be used without consideration of more recent VHDL or layout cells).
+This command will also generate VHDL from a layout if the VHDL is missing or out of date
+(note also that if the current cell is VHDL, it will be used without consideration of more recent layout cells).
+<LI>Use the <B>Do Placement</B> subcommand to place the library cells.
+<LI>Use the <B>Do Routing</B> subcommand to wire them together.
+<LI>Use the <B>Make Electric Layout</B> subcommand to actually create the placed-and-routed circuit in the current library.
+The incremental design-rule checker is turned off at this point because the new cell will be vast and may be troublesome.
+The new cell is given the "layout" view.
+</UL><P>
+The last subcommand in the <B>Silicon Compiler</B> command is <B>Issue Special Instructions...</B>,
+which does not normally need to be used.
+However, the silicon compiler system is so extensive that advanced users may wish to use it.
+After issuing this command, any sequence of silicon compiler instructions may be typed.
+Use the "Cancel" button to return to Electric.
+
+<!-- TRAILER -->

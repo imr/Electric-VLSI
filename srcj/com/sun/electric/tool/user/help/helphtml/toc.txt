@@ -83,6 +83,7 @@ Display
  Scaling and Panning
   Scaling                            =chap04-04-01
   Panning                            =chap04-04-02
+  Saving Views                       =chap04-04-03
  Layer Visibility                    =chap04-05
  Color
   Electric's Color Model             =chap04-06-01
@@ -184,11 +185,12 @@ Tools
  Design Rule Checking
   Incremental DRC                    =chap09-02-01
   Hierarchical DRC                   =chap09-02-02
-  Design Rules                       =chap09-02-03
+  Assura DRC                         =chap09-02-03
+  Design Rules                       =chap09-02-04
  Electrical Rule Checking
   Well and Substrate Checking        =chap09-03-01
   Antenna Rule Checking              =chap09-03-02
- Simulation
+ Simulation Interface
   Introduction to Simulation         =chap09-04-01
   Verilog                            =chap09-04-02
   Verilog Plotting                   =chap09-04-03
@@ -196,32 +198,35 @@ Tools
   Spice Plotting                     =chap09-04-05
   Spice and Verilog Primitives       =chap09-04-06
   FastHenry                          =chap09-04-07
-  IRSIM                              =chap09-04-08
-  IRSIM Interaction                  =chap09-04-09
-  ALS                                =chap09-04-10
-  ALS Interaction                    =chap09-04-11
-  ALS Concepts                       =chap09-04-12
-  ALS Gates                          =chap09-04-13
-  ALS Functions                      =chap09-04-14
-  ALS Models                         =chap09-04-15
+ Simulation (built-in)
+  IRSIM                              =chap09-05-01
+  IRSIM Interaction                  =chap09-05-02
+  ALS                                =chap09-05-03
+  ALS Interaction                    =chap09-05-04
+  ALS Concepts                       =chap09-05-05
+  ALS Gates                          =chap09-05-06
+  ALS Functions                      =chap09-05-07
+  ALS Models                         =chap09-05-08
  Routing
-  Introduction to Routing            =chap09-05-01
-  Auto Stitching                     =chap09-05-02
-  Mimic Stitching                    =chap09-05-03
-  Maze Routing                       =chap09-05-04
-  River Routing                      =chap09-05-05
+  Introduction to Routing            =chap09-06-01
+  Auto Stitching                     =chap09-06-02
+  Mimic Stitching                    =chap09-06-03
+  Maze Routing                       =chap09-06-04
+  River Routing                      =chap09-06-05
  Network Consistency Checking (NCC)
-  NCC Overview                       =chap09-06-01
-  NCC Commands                       =chap09-06-02
-  NCC Preferences                    =chap09-06-03
-  NCC Annotations                    =chap09-06-04
+  NCC Overview                       =chap09-07-01
+  NCC Commands                       =chap09-07-02
+  NCC Preferences                    =chap09-07-03
+  NCC Annotations                    =chap09-07-04
  Generation
-  Pad Frame Generation               =chap09-07-01
-  Other Generators                   =chap09-07-02
- Logical Effort                      =chap09-08
- Parasitic Extraction                =chap09-09
- Compaction                          =chap09-10
- Silicon Compiler                    =chap09-11
+  Pad Frame Generation               =chap09-08-01
+  Other Generators                   =chap09-08-02
+ Logical Effort                      =chap09-09
+ Extraction
+  Parasitic Extraction               =chap09-10-01
+  Node Extraction                    =chap09-10-02
+ Compaction                          =chap09-11
+ Silicon Compiler                    =chap09-12
 
 The JELIB File Format
  Introduction                        =chap10-01

@@ -8,29 +8,43 @@ The image below shows a typical display with some essential features.
 The <I>editing window</I> is the largest window that initially says "No cell in this window"
 (this indicates that no circuit is being displayed in that window).
 You can create multiple editing windows to see different parts of the design.
-The left side of the edit window is the <I>explorer</I> area that lets you examine
+The left side of the edit window is the <I>side bar</I> that has 3 tabbed sections,
+the <I>components menu</I>, the <I>cell explorer</I>, and the <I>layers</I>.
+<P>
+The cell explorer lets you examine
 the hierarchy ("LIBRARIES"), examine activity in the system ("JOBS"), and browse error messages
 ("ERRORS").
 <P>
-The <I>messages window</I> is a text window (typically at the bottom of the screen)
-which is used for all textual communication.
+<TABLE><TR><TD>
+The <I>components menu</I> shows a list of nodes (blue border) and arcs (red border)
+that can be used in design.
+The arrangement of the entries in the components menu varies with the different technologies.
+For MOS technologies, see <A HREF="chap07-04-02.html#chap07-04-02">Section 7-4-2</A>,
+for schematics, see <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>, and
+for artwork, see <A HREF="chap07-06-01.html#chap07-06-01">Section 7-6-1</A>.
 <P>
-There is a <I>pulldown menu</I> along the top with command options.
+The top three entries in the components menu let you place pure-layer nodes
+(see <A HREF="chap06-10-01.html#chap06-10-01">Section 6-10-1</A>),
+miscellaneous objects (see <A HREF="chap07-06-03.html#chap07-06-03">Section 7-6-3</A>)
+and instances of cells (see <A HREF="chap03-03.html#chap03-03">Section 3-3</A>).
+<P>
+The layers tab lets you control which parts of the display are visible.
+See <A HREF="chap04-05.html#chap04-05">Section 4-5</A> for more on layer visibility.
+</TD><TD><CENTER><IMG SRC="fig01-33.png" ALT="Figure 1.33"></CENTER></TD></TR></TABLE>
+<P>
+Below the edit window is the <I>messages window</I>, which is used for all textual communication.
+<P>
+Above the edit windows is a <I>pulldown menu</I> along the top with command options.
 On some operating systems, the pulldown menu is part of the edit window, and on others it is separate.
 Below the pulldown menu is a <I>tool bar</I> which has buttons for common functions.
-<P>
-The <I>components menu</I> is a palette that typically runs down the left side of the screen.
-It shows a list of nodes (blue outline) and arcs (red outline) that can be used in design.
-The current arc is highlighted with a bolder red outline.
-The two popups at the top let you change the current techology, and show cells from libraries
-(instead of nodes and arcs from technologies).
 <P>
 Finally, the <I>status area</I> gives useful information about the design state.
 It appears along the bottom of the editing window or (in this example)
 at the bottom of the screen.
-The status area can show cursor coordinates.
-To control this, use the
+The status area shows cursor coordinates, and can show global coordinates when traversing
+the hierarchy.
+To control the display of global coordinate values, use the
 "General" preferences (in menu <B>File / Preferences...</B>, "General" section, "General" tab),
-and change the "Show cursor coordinates in status bar" checkbox.
+and change the "Show hierarchical cursor coordinates in status bar" checkbox.
 
 <!-- TRAILER -->

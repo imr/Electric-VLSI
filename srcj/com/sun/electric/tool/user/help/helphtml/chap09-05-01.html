@@ -1,30 +1,132 @@
-<!-- HEADER 9-5-1: Introduction to Routing -->
+<!-- NEED 4in -->
 
+<!-- HEADER 9-5-1: IRSIM -->
 
+<!-- COMMAND Tool/Simulation (Built-in)/IRSIM: Simulate Current Cell -->
+<!-- COMMAND Tool/Simulation (Built-in)/IRSIM: Write Deck... -->
+<!-- COMMAND Tool/Simulation (Built-in)/IRSIM: Simulate Deck... -->
 
-<!-- COMMAND Tool/Routing/Unroute -->
-<!-- COMMAND Tool/Routing/Get Unrouted Wire -->
-<!-- COMMAND Tool/Routing/Copy Routing Topology -->
-<!-- COMMAND Tool/Routing/Paste Routing Topology -->
-
-The routing tool contains a number of different subsystems for creating wires.
-Two <I>stitching</I> routers can be used in array-based design to connect adjoining cells.
-A maze-router runs individual wires.
-A river-router is also available for running multiple parallel wires.
+Electric has a built-in simulator, Stanford's IRSIM, which uses RC models
+to accurately simulate transistors at a gate-level.
+IRSIM is not packaged with the standard Electric distribution.
+To obtain it, you must get the additional "plugin" JAR file from
+<A HREF="http://www.staticfreesoft.com">Static Free Software</A>
+(see <A HREF="chap01-05.html#chap01-05">Section 1-5</A> for instructions on installing plugins).
 <P>
-Some of these routers make use of the "Unrouted Arc",
-a thin-line arc that can connect any two components.
-Creating "rats nests" of these arcs forms a graphical specification that the router can use.
-The unrouted arc is from the Generic Technology
-(see <A HREF="chap07-06-03.html#chap07-06-03">Section 7-6-3</A>).
-To create one, use the <B>Get Unrouted Wire</B> command (in menu <B>Tool / Routing</B>).
-Then use standard wiring commands to run the unrouted arc.
-Another way to get unrouted wires is to select all or part of an existing route
-(made with any arc) and use the <B>Unroute</B> command.
+To simulate the current cell with IRSIM, use the <B>IRSIM: Simulate Current Cell</B>
+command (of menu <B>Tool / Simulation (Built-in)</B>).
+To generate an input deck for IRSIM without running the simulator, use the
+<B>IRSIM: Write Deck...</B> command.
+To simulate an IRSIM deck (that is, simulate the file, not the circuit), use the
+<B>IRSIM: Simulate Deck...</B> command.
+Note: if these commands do not appear in the menu, then IRSIM has not been installed.
 <P>
-Finally, the <B>Copy Routing Topology</B> and <B>Paste Routing Topology</B>
-commands can be used to create unrouted arcs in one cell (the "pasted" cell)
-where there are connections of any kind on another cell (the "copied" cell).
-The <B>Paste Routing Topology</B> command uses node and arc names to associate the two cells.
+After issuing this command, a waveform window appears, as shown below.
+Note also that there is a side bar with a cell explorer in the window, just like in all windows,
+but the explorer has a "SIGNALS" section that lists the signals found in the IRSIM circuit.
+<P>
+<CENTER><IMG SRC="fig09-37.png" ALT="Figure 9.37"></CENTER>
+
+<H3>Wave Panels</H3>
+<P>
+The waveform window contains a list of <I>panels</I>, each with a signal name and signal waveform.
+In the waveform window, signal names are shown on the left, and their waveform on the right.
+Between the name and the waveform are two control buttons:
+<UL>
+<LI><B>Close</B> (an "X") to remove that panel from the waveform window.</LI>
+<LI><B>Hide</B> to stop displaying the panel, but keep it available (it can be restored by selecting its name from the popup at the top
+of the waveform window).</LI>
+</UL>
+You can select a signal by selecting either its name or the actual waveform.
+Note that when you click on a signal,
+the equivalent network in the associated schematic or layout window is also highlighted.
+<P>
+You can rearrange the order of the signals by dragging their names to their desired location.
+<P>
+You can add a signal to the list by double-clicking on its name in the "SIGNALS" area
+(or by dragging that name to the waveform part on the right).
+If the layout or schematics cell being simulated is displayed in another window,
+and the currently selected network in that window is found in the IRSIM circuit,
+then that output can be added to the waveform window with
+the <B>Add to Waveform in New Panel</B> command (in menu <B>Edit / Selection</B>).
+<P>
+The order of signals in the waveform window is saved in the original cell
+so that subsequent simulations will show the same signals.
+
+<BR>
+<H3>Time Control</H3>
+<P>
+Two vertical cursors appear in the window, called "main" and "extension"
+(the extension cursor is dotted).
+Their time values and their difference are shown at the top of the window.
+You can click over the cursors and drag them to different time locations.
+You can also use the "Center" buttons to bring these cursors to the center of the display.
+<P>
+The time axis of the simulation window can be controlled with the appropriate <B>Window</B> menu commands.
+Use <B>Zoom Out</B> and <B>Zoom In</B> to scale the time axis by a factor of two.
+Use <B>Focus on Highlighted</B> to display the range between the main and extension cursors.
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig04-09.png" ALT="Figure 4.9"></CENTER></TD><TD>
+Besides controlling time with menu commands, you can also use the Pan and Zoom tools of the toolbar
+to change the view.
+</TD><TD><CENTER><IMG SRC="fig04-08.png" ALT="Figure 4.8"></CENTER></TD></TR></TABLE>
+<P>
+The pan tool lets you smoothly shift time when you click and drag.
+In the zoom tool, you zoom into an area by clicking and dragout out that area.
+To zoom out, hold the shift key and click in the center of the desired area.
+<P>
+The different panels in the waveform window are locked in time: they all show the same range of time,
+as shown at the top of the waveform window.
+If you click on the "time lock" button at the top of the waveform window
+(looks like a lock with the time on it:&nbsp;<IMG SRC="fig09-18.png" ALT="Figure 9.18">&nbsp;)
+then time is unlocked, and each panel has its own time scale.
+Now individual panels can be show a different range of time than the rest.
+<P>
+Electric does powerful crossprobing between the waveform window and an editing window with the original circuit.
+If the original cell is being displayed, selection in the waveform window is mirrored in that cell.
+Also, whenever the main time cursor changes, the electrical state of the circuit is drawn in over it.
+The color red is high, and black is low.
+If you connect <I>Simulation Probe</I> nodes to any part of the circuit, these nodes light up red/black instead,
+which allows better visualization of activity patterns (see <A HREF="chap07-06-03.html#chap07-06-03">Section 7-6-3</A>).
+<P>
+For best visualization of the simulation activity, there is a set of VCR buttons to control an animation of the main time cursor.
+The Play rate can be controlled by the "F" and "S" buttons which make it go faster or slower.
+As the time cursor sweeps across the waveform window, the original circuit can be seen to change levels.
+<P>
+These window functions apply to the digital simulation windows:
+<UL>
+<LI><B>Window / Fill Window</B> make all data fit in window.</LI>
+<LI><B>Window / Zoom Out</B> show twice as much time.</LI>
+<LI><B>Window / Zoom In</B> show half as much time.
+</LI>
+<LI><B>Window / Special Zoom / Focus on Highlighted</B> show from main to extension cursors.
+</LI>
+<LI><B>Window / Pan Left</B> show earlier time.
+</LI>
+<LI><B>Window / Pan Right</B> show later time.
+</LI>
+<LI><B>"Pan" tool in tool bar</B> freehand drag of time.</LI>
+<LI><B>"Zoom" tool in tool bar</B> drag area to zoom in, hold shift to zoom out.</LI>
+<LI><B>"Measure" tool in tool bar</B> for measuring time.</LI>
+</UL>
+
+<H3>Other Controls</H3>
+<P>
+At the top of the waveform window, above the signal names, are many useful controls.
+Those relating to time have already been discussed.
+Here are the remaining buttons:
+<UL>
+<LI><B>"Refresh"</B>&nbsp;<IMG SRC="fig09-28.png" ALT="Figure 9.28">&nbsp;&nbsp;
+Refreshes the simulation from the original circuit.
+If the circuit has changed, use this button to reload the simulator with the new information.</LI>
+<LI><B>The Panel popup</B> This is a list of all panels, including the hidden ones.
+Selecting a panel from this list toggles its "hidden" state, making a visible one disappear,
+and making a hidden one reappear.</LI>
+<LI><B>"Grow" and "Shrink"</B>&nbsp;<IMG SRC="fig09-31.png" ALT="Figure 9.31">&nbsp;&nbsp;
+These buttons, which show a waveform being stretched or squeezed,
+cause the minimum panel size to change.
+By shrinking the panel size, more of them can fit in the window without having to use a slider to access them.</LI>
+</UL>
+
 
 <!-- TRAILER -->

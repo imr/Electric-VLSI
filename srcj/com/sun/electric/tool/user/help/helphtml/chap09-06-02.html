@@ -1,34 +1,47 @@
-<!-- HEADER 9-6-2: NCC Commands -->
+<!-- HEADER 9-6-2: Auto Stitching -->
 
-<!-- COMMAND Tool/NCC/Schematic and Layout Views of Cell in Current Window -->
-<!-- COMMAND Tool/NCC/Cells from Two Windows -->
+<!-- COMMAND Tool/Routing/Enable Auto-Stitching -->
+<!-- COMMAND Tool/Routing/Auto-Stitch Now -->
+<!-- COMMAND Tool/Routing/Auto-Stitch Highlighted Now -->
+<!-- PREFERENCE Tools/Routing -->
 
+The auto-stitching router looks for adjoining nodes that make implicit connections,
+and places wires at those connections to make them explicit.
+For example, if a cell has power and ground rails at the top and bottom,
+and there are ports on the left and right of each rail,
+then the auto-stitching router can be used to connect all of these rails in a horizontal string of these cells.
 <P>
-To compare two cells, use these commands (in menu <B>Tool / NCC</B>):
+The auto-stitcher places a wire when all of these conditions are met:
 <UL>
-<LI>
-   <B>Schematic and Layout Views of Cell in Current Window</B>
-
-   Use a heuristic to figure out what to compare against the cell in
-   the current window.  If the current cell is a schematic then
-   compare it against some layout cell in the same cell group.  If the
-   current cell is a layout then compare it against some schematic
-   cell in the same cell group.  Since most cell groups have one
-   layout cell and one schematic cell, this form of the NCC command is
-   usually the most convenient.
-</LI>
-<LI>
-   <B>Cells from two Windows</B>
-
-   Compare the two cells that are displayed in the two opened windows
-   (there must be exactly two windows). This is useful when the
-   schematic and layout are not in the same cell group. The command
-   can also be used to compare schematics with schematics or layout
-   with layout. However, the command refuses to compare icon cells
-   since icons cells don't have defined connectivity.
-
-</LI>
+<LI>The design is layout (auto stitching does not work in schematics).
+<LI>Ports exist on both nodes.
+Because wires must run between two ports, you must make exports at every location where wiring may occur.
+<LI>The nodes inside of the cells
+(the ones with the exports)
+must touch or overlap, thus creating an implicit connection.
+When a pin node has an export, it should be the same size as any wires connected to it inside of the cell.
+This is because a small pin connected to a wide arc will not make an implicit connection when the arc touches something,
+because the pin is inside of the arc.
+<LI>The ports must not already be connected to each other.
 </UL>
+<P>
+To run the auto-stitcher, use the <B>Enable Auto-Stitching</B> command (in menu <B>Tool / Routing</B>
+).
+The router will make all necessary connections, and incrementally add wires as further changes are made to the circuit.
+To stop stitching, select the menu entry again to uncheck it.
+To run the auto-stitcher only once for the current cell, use <B>Auto-Stitch Now</B>
+To run it once, and in the highlighted area only,
+use the <B>Auto-Stitch Highlighted Now</B> command.
+Note that this auto-stitches all cell instances that intersect the highlighted area,
+so even if only a portion of a cell falls into the highlighted area,
+the entire cell is stitched.
+<P>
+<TABLE><TR>
+<TD><CENTER><IMG SRC="fig09-05.png" ALT="Figure 9.5"></CENTER></TD><TD>
+The auto-stitcher allows you to specify a particular type of wire to use in routing.
+By default, the router figures out which wire to use.
+However, in the "Routing" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Routing" tab)
+a specified wire can be given (or automatic selection can be resumed by selecting the "DEFAULT ARC" entry).
+</TD></TR></TABLE>
 
 <!-- TRAILER -->
-

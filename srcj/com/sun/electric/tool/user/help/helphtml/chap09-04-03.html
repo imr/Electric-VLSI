@@ -10,8 +10,8 @@ This is done with the <B>Plot Verilog VCD Dump...</B> command (in menu <B>Tool /
 You can also use the <B>Plot Verilog for This Cell</B> command if the cell name and file name are the same.
 <P>
 When the Verilog output is read, a waveform window appears, as shown below.
-Note also that there is a Cell Explorer in the window, just like in all windows,
-but it has a "SIGNALS" section that lists the signals found in the Verilog output.
+Note also that there is a side bar with a cell explorer in the window, just like in all windows,
+but the explorer has a "SIGNALS" section that lists the signals found in the Verilog output.
 <P>
 <CENTER><IMG SRC="fig09-01.png" ALT="Figure 9.1"></CENTER>
 
@@ -36,7 +36,7 @@ You can rearrange the order of the signals by dragging their names to their desi
 <P>
 You can add a signal to the list by double-clicking on its name in the "SIGNALS" area
 (or by dragging that name to the waveform part on the right).
-If the layout or schematics cell that produced the verilog is being displayed in another window,
+If the layout or schematics cell that produced the Verilog is being displayed in another window,
 and the currently selected network in that window is found in the Verilog output,
 then that output can be added to the waveform window with
 the <B>Add to Waveform in New Panel</B> command (in menu <B>Edit / Selection</B>).
@@ -48,9 +48,10 @@ so that subsequent simulations will show the same signals.
 <H3>Time Control</H3>
 <P>
 Two vertical cursors appear in the window, called "main" and "extension"
-(the extension cursor is yellow).
+(the extension cursor is dotted).
 Their time values and their difference are shown at the top of the window.
 You can click over the cursors and drag them to different time locations.
+You can also use the "Center" buttons to bring these cursors to the center of the display.
 <P>
 The time axis of the simulation window can be controlled with the appropriate <B>Window</B> menu commands.
 Use <B>Zoom Out</B> and <B>Zoom In</B> to scale the time axis by a factor of two.
@@ -68,7 +69,7 @@ To zoom out, hold the shift key and click in the center of the desired area.
 The different panels in the waveform window are locked in time: they all show the same range of time,
 as shown at the top of the waveform window.
 If you click on the "time lock" button at the top of the waveform window
-(looks like:&nbsp;&nbsp;<IMG SRC="fig09-18.png" ALT="Figure 9.18">&nbsp;&nbsp;a lock with the time on it)
+(looks like a lock with the time on it:&nbsp;<IMG SRC="fig09-18.png" ALT="Figure 9.18">&nbsp;)
 then time is unlocked, and each panel has its own time scale.
 Now individual panels can be show a different range of time than the rest.
 <P>

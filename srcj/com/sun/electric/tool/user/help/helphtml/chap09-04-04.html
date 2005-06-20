@@ -92,33 +92,20 @@ command line command.
 <P>
 There are several options for the process:
 <UL>
-<LI><B>Use Dir</B> if specified, this is the working directory of the process
-.</LI>
-<LI><B>Overwrite existing file</B> this will overwrite the existing netlist without prompting the user
-.</LI>
-<LI><B>Run probe</B> this will run the waveform viewer on the output of the spice run
-.</LI>
-<LI><B>Help</B> tells which environment variables are exported to be used by the process
-.</LI>
-<LI><B>Run program</B> the name of the executable to run
-.</LI>
-<LI><B>with arg</B> the arguments passed to the executable
-.</LI>
+<LI><B>Use Dir</B> if specified, this is the working directory of the process.</LI>
+<LI><B>Overwrite existing file</B> this will overwrite the existing netlist without prompting the user.</LI>
+<LI><B>Run probe</B> this will run the waveform viewer on the output of the spice run.</LI>
+<LI><B>Help</B> tells which environment variables are exported to be used by the process.</LI>
+<LI><B>Run program</B> the name of the executable to run.</LI>
+<LI><B>with arg</B> the arguments passed to the executable.</LI>
 </UL>
 <P>
-The middle section of the Spice Options dialog controls technology-specific information.
-Each layer of the technology can have a different resistance, capacitance, and edge-capacitance.
-You can also set the minimum resistance and capacitance for the entire technology.
-The "Gate Length Shrink" is a compensation factor for gate lengths.
-Some process technologies shrink the gate length by a fixed amount.
-To let Spice know the true gate length, this shrinkage can be entered here.
-<P>
-The lower-middle section controls header and trailer cards
+The lower section controls header and trailer cards
 (placed at the start and end of the Spice deck).
 This dialog allows you to specify a disk file with cards to be used instead of the built-in set.
 You can specify a particular file or request that the system search for files with the cell's name and a given extension.
 <P>
-Note that the header, trailer, and parasitic information is specific to a particular technology.
+Note that the header and trailer information is specific to a particular technology.
 If you set this information for one technology, but then use another technology when generating the Spice deck,
 the information that you set will not be used.
 Note also that schematics, although a technology in Electric, are not considered to be Spice technology.
@@ -128,6 +115,6 @@ This popup can be found in the
 "Technology" preferences (in menu <B>File / Preferences...</B>, "Technology" section, "Technology" tab).
 <P>
 The bottom section of the dialog allows you to specify a disk file of Spice cards that will be used to describe any cell.
-This disk file replaces the any Spice description that may be derived from the circuitry.
+Instead of the cell subcircuit, the specified disk file is "included" in the deck.
 
 <!-- TRAILER -->

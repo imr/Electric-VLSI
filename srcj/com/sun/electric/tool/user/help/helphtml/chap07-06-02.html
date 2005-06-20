@@ -12,8 +12,8 @@
 <!-- COMMAND Edit/Technology Specific/FPGA/Hide Text -->
 
 The FPGA technology is a "soft" technology that creates primitives according to an FPGA Architecture file.
-Once you switch to the FPGA technology,
-the component menu lists a set of commands for configuring the technology and for programming FPGA circuits.
+Special commands in the <B>Edit / Technology Specific / FPGA</B> menu let you create the
+FPGA primitives, build FPGA structures, and program them.
 <P>
 The FPGA Architecture file contains all of the information needed to define a specific FPGA chip.
 It has three sections:
@@ -69,6 +69,7 @@ A primitive definition looks like this:
   )
 )
 </PRE>
+<P>
 The <B>attributes</B> section defines general information about the block.
 The <B>ports</B> section defines external connections.
 The <B>components</B> section defines logic in the block (currently only PIPs).
@@ -159,6 +160,7 @@ They looks like this:
     )
   )
 )
+<P>
 </PRE>
 The only difference between the Architecture section and the Block Definition section is that the
 Architecture section has the keyword <B>architecture</B> instead of <B>blockdef</B>.
@@ -256,23 +258,27 @@ Here is an example of block definition code and its layout.
 <P>
 <!-- NEED 3in -->
 <H3>Commands</H3>
-To read an architecture file, click on the "Read Arch." entry in the component menu.
+To read an architecture file, use the <B>Read Architecture And Primitives...</B> command
+(in menu <B>Edit / Technology Specific / FPGA</B>).
 You will be prompted for an architecture file.
-To read only the primitives from an architecture file, use the "Read Prims." entry.
+To read only the primitives from an architecture file, use the
+<B>Read Primitives...</B> command.
 <P>
-The display-level can be controlled by clicking on the "Wires:" entry.
-Its state can be set to "Full" (to see all wires), "Empty" (to show no wires),
-or "Active" (to show the active wires inside of primitives).
-Active wires are those connected to PIPs that have been programmed.
-The "Text:" entry sets the display of text on primitives and can be either "On" or "Off".
-If you highlight an area of the FPGA chip and click "See Active",
-then the area will be redisplayed, showing only the active segments.
+Once an FPGA is on the screen, two aspects of its display can be controlled: the wires
+and the text.
+Three commands control the display of wires:
+<B>Show All Wires</B> displays every wire,
+<B>Show No Wires</B> hides every wire, and
+<B>Show Active Wires</B> shows only the wires that have been
+connected to PIPs that have been programmed.
+Two commands control the display of text:
+<B>Show Text</B> displays text and <B>Hide Text</B> turns text display off.
 <P>
 Once an FPGA has been created,
-you can program the PIPs by selecting a component and clicking on the "Edit Pips" entry.
+you can program the PIPs by selecting a component and using the
+<B>Edit Pips...</B> command.
 This will display a list of active PIPs on the component.
 For example, after clicking on one of the "SampleBlock" instances,
 you can type the string "pip1 pip4" to program two of the pips in that instance.
-
 
 <!-- TRAILER -->

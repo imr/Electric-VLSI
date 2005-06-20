@@ -3,6 +3,7 @@
 <!-- COMMAND Tool/List Tools -->
 <!-- COMMAND Edit/Selection/Show Next Error -->
 <!-- COMMAND Edit/Selection/Show Previous Error -->
+<!-- PREFERENCE General/General -->
 
 There are many different tools available in Electric for doing both synthesis and analysis of circuitry.
 Synthesis tools include routers, compactors, circuit generators, and so on.
@@ -12,28 +13,43 @@ use the <B>List Tools</B> command (in menu <B>Tool</B>).
 This chapter covers many of the tools available in Electric.
 <P>
 When a tool is running, it may take a long time.
-You can see it under the "JOBS" entry of the Cell Explorer.
+You can see it under the "JOBS" entry of the cell explorer
+(see <A HREF="chap04-08.html#chap04-08">Section 4-8</A>).
 <P>
-After a tool has run, it may reports errors in the ERRORS section of the Cell Explorer.
+After a tool has run, it may reports errors in the ERRORS section of the cell explorer.
 To browse these errors, use the <B>Show Next Error</B> and <B>Show Previous Error</B> commands
 (in menu <B>Edit / Selection</B>) or type the ">" an "<" keys.
-You can set the maximum number of errors that will be reported at once.
-By default, there is no limit to the number of errors.
 <P>
 A number of common tool controls are available from the
-"General" preferences (in menu <B>File / Preferences...</B>, "General" section, "General" tab).
-<P>
-<TABLE><TR><TD>
-"Beep after long jobs" requests that any job which runs longer than a minute make a beep sound when done.
+"General" preferences (in menu <B>File / Preferences...</B>, "General" section, "General" tab),
+especially in the "I/O" and "Jobs" section.
 <P>
 Most netlisters insert date and version information in the comments at the head of the generated file.
-You can request that this information be omitted by unclicking "Include date and version in output files".
-</TD><TD><CENTER><IMG SRC="fig09-21.png" ALT="Figure 9.21"></CENTER></TD></TR></TABLE>
+You can request that this information be omitted by unchecking "Include date and version in output files".
 <P>
 Most of the commands to generate an input deck for a simulator (a netlist) prompt the user for the desired file.
 If "Show file-selection dialog before writing netlists" is unchecked, however, the file is written (or overwritten)
 without prompt.
 This is useful in repetitive iterations of design/simulate, and saves the cumbersome file-selection dialog.
 However, it can be dangerous because it overwrites files without asking.
+<P>
+For more information about "Working directory", see <A HREF="chap03-09-01.html#chap03-09-01">Section 3-9-1</A>.
+<P>
+<TABLE><TR><TD>
+In the "Jobs" section,
+"Beep after long jobs" requests that any job which runs longer than a minute make a beep sound when done.
+<P>
+You can set the maximum number of errors that will be reported at once.
+By default, there is no limit to the number of errors.
+<P>
+For more information about "Maximum undo history", see <A HREF="chap06-07.html#chap06-07">Section 6-7</A>.
+</TD><TD><CENTER><IMG SRC="fig09-21.png" ALT="Figure 9.21"></CENTER></TD></TR></TABLE>
+<P>
+For more information about the "Display" section,
+see <A HREF="chap01-07.html#chap01-07">Section 1-7</A> ("Show hierarchical cursor coordinates in status bar"),
+<A HREF="chap04-08.html#chap04-08">Section 4-8</A> ("Side Bar defaults to the right side"),
+<A HREF="chap03-05.html#chap03-05">Section 3-5</A> ("Always prompt for index when descending into array nodes"),
+and <A HREF="chap04-04-02.html#chap04-04-02">Section 4-4-2</A> ("Panning distance").
+For more information about the "Memory" section, see <A HREF="chap01-03.html#chap01-03">Section 1-3</A>.
 
 <!-- TRAILER -->

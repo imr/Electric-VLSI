@@ -7,20 +7,14 @@ Arcs in the Schematic technology may be <I>negated</I>,
 which causes them to have a bubble drawn where they attach to schematic elements.
 This property can be changed with the <B>Toggle Port Negation</B> command
 (in menu <B>Edit / Technology Specific</B>).
-It may also be controlled by checking the appropriate box in the <B>Object Properties...</B> dialog.
+It may also be controlled by the <B>Object Properties...</B> dialog
+(in menu <B>Edit / Properties</B>).
 Note that you can select an arc to toggle negation (which leaves the system to guess which end you want to negate)
 or you can select a node and port (in which case, the arc attached to that port is negated).
 </TD></TR></TABLE>
 <P>
-Although Electric attempts to place the bubble on the correct end of the arc,
-it can be reversed with the <B>Reverse</B> command (in menu <B>Edit / Arc</B>
-)
-or by checking the appropriate box in the <B>Object Properties...</B> dialog.
-<P>
-If the tail of the arc is "skipped" (with the <B>Toggle Tail-Skip</B> command
-in menu <B>Edit / Arc</B>, or by checking the appropriate box
-in the <B>Object Properties...</B> dialog), then the negating bubble is not drawn.
-Beware of doing this, because the negation is still part of the arc, even though it is not visible.
+Note that the <B>Object Properties...</B> dialog offers precise control of the negating bubbles,
+allowing you to specify which ends have the bubbles on them.
 Negated arcs make no sense in layout technologies and are ignored.
 
 <!-- TRAILER -->

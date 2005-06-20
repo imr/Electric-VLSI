@@ -2,22 +2,27 @@
 
 <!-- HEADER 7-3-3: GDS Control -->
 
+<!-- COMMAND File/Import/GDS Map File... -->
 <!-- PREFERENCE I/O/GDS -->
 
-GDS (Calma's Stream format) is used as an interchange between design systems and fabrication facilities.
-GDS options are controlled with the "GDS" preferences
-(in menu <B>File / Preferences...</B>, "I/O" section, "GDS" tab).
+<TABLE><TR><TD>
+GDS (also called "Stream" format) is used as an interchange between design systems and fabrication facilities.
+In GDS files, there are no names for each layer, just a pair of numbers (the layer number and type).
+It is important that Electric know how these values correspond with layers so that it can properly
+read and write GDS files.
+You can set the correspondences by using the <B>GDS Map File...</B> command (of menu <B>File / Import</B>)
+to read a GDS map file.
+You can also use the "GDS" preferences dialog
+(in menu <B>File / Preferences...</B>, "I/O" section, "GDS" tab) to edit the GDS numbers and
+control other aspects of GDS input and output.
+</TD><TD><CENTER><IMG SRC="fig07-17.png" ALT="Figure 7.17"></CENTER></TD></TR></TABLE>
+<P>
+In the "GDS" preferences dialog, the list on the left shows all of the Electric layers in the current technology.
+By clicking on a layer name, its GDS numbers are shown in the top-right and can be edited.
+In addition to GDS numbers to use for layout, there are also two other types of GDS numbers:
+<I>pin</I> (for exports) and <I>text</I> (for export names).
 <P>
 <CENTER><IMG SRC="fig07-12.png" ALT="Figure 7.12"></CENTER>
-<P>
-In GDS files, there are no names for each layer, just numbers.
-It is important that Electric know the meaning of each number so that it can properly read and write GDS files.
-This dialog lets you edit those GDS layer numbers and assign them to different Electric layers.
-<P>
-The list on the left shows all of the Electric layers.
-By clicking on a layer name, its GDS layer numbers are shown in the top-right and can be edited.
-In addition to GDS layer numbers to use for layout, there are also two other types of GDS layer numbers:
-a <I>pin</I> layer (for exports) and a <I>text</I> layer (for export names).
 <P>
 These dialog elements apply to reading GDS:
 <UL>
@@ -62,6 +67,11 @@ If checked, and there is a valid pin layer, then it is written.
 "Output all upper case".
 This controls whether the GDS file uses all upper case.
 The default is to mix upper and lower case, but some systems insist on upper-case GDS.
+</LI>
+<LI>
+"Output converts brackets in exports".
+This controls whether the square brackets used in array specifications should be converted (to underscores).
+Some GDS readers cannot handle the square bracket characters.
 </LI>
 <LI>
 "Output default text layer".
