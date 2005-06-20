@@ -101,6 +101,7 @@ public class ERCAntenna
 	/** nothing found on the path */						private static final int ERCANTPATHNULL   = 0;
 	/** found a gate on the path */							private static final int ERCANTPATHGATE   = 1;
 	/** found active on the path */							private static final int ERCANTPATHACTIVE = 2;
+	/** search was aborted */								private static final int ERCABORTED       = 3;
 
 	/** head of linked list of antenna objects to spread */	private List       firstSpreadAntennaObj;
 	/** current technology being considered */				private Technology curTech;	
@@ -144,7 +145,7 @@ public class ERCAntenna
 
 		public boolean doIt()
 		{
-			handler.doCheck();
+			handler.doCheck(this);
 			return true;
 		}
 	}
@@ -152,7 +153,7 @@ public class ERCAntenna
 	/**
 	 * Method to do the Antenna check.
 	 */
-	private void doCheck()
+	private void doCheck(Job job)
 	{
 		curTech = topCell.getTechnology();
 
@@ -198,7 +199,7 @@ public class ERCAntenna
 			fsCell.clear();
 
 			// do the check for this level
-			checkThisCell(topCell, lay);
+			if (checkThisCell(topCell, lay, job)) break;
 			int i = errorLogger.getNumErrors();
 			if (i != lasterrorcount)
 			{
@@ -225,14 +226,17 @@ public class ERCAntenna
 	 * Method to check the contents of a cell.
 	 * @param cell the Cell to check.
 	 * @param lay the Layer to check in the Cell.
+	 * @return true if aborted
 	 */
-	private void checkThisCell(Cell cell, Layer lay)
+	private boolean checkThisCell(Cell cell, Layer lay, Job job)
 	{
 		// examine every node and follow all relevant arcs
 		fsGeom.clear();
 
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
+			if (job.checkAbort()) return true;
+
 			NodeInst ni = (NodeInst)it.next();
 			if (fsGeom.contains(ni)) continue;
 			fsGeom.add(ni);
@@ -261,7 +265,8 @@ public class ERCAntenna
 				totalGateArea = 0.0;
 				pathList = new ArrayList();
 
-				int found = followNode(ni, pi.getPortProto(), lay, DBMath.MATID);
+				int found = followNode(ni, pi.getPortProto(), lay, DBMath.MATID, job);
+				if (found == ERCABORTED) return true;
 				if (found == ERCANTPATHGATE)
 				{
 					// gather the geometry here
@@ -377,8 +382,9 @@ public class ERCAntenna
 			Cell subCell = (Cell)ni.getProto();
 			if (fsCell.contains(subCell)) continue;
 	
-			checkThisCell(subCell, lay);
+			if (checkThisCell(subCell, lay, job)) return true;
 		}
+		return false;
 	}
 	
 	/**
@@ -391,7 +397,7 @@ public class ERCAntenna
 	 * Returns ERCANTPATHGATE if it found gates on the path.
 	 * Returns ERCANTPATHACTIVE if it found active on the path.
 	 */
-	private int followNode(NodeInst ni, PortProto pp, Layer lay, AffineTransform trans)
+	private int followNode(NodeInst ni, PortProto pp, Layer lay, AffineTransform trans, Job job)
 	{
 		// presume that nothing was found
 		int ret = ERCANTPATHNULL;
@@ -402,6 +408,8 @@ public class ERCAntenna
 		// keep walking along the nodes and arcs
 		for(;;)
 		{
+			if (job.checkAbort()) return ERCABORTED;
+
 			// if this is a subcell, recurse on it
 			fsGeom.add(ni);
 			NodeInst thisni = ni;

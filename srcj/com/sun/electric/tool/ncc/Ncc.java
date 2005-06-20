@@ -57,7 +57,7 @@ public class Ncc {
 			  default:
 				LayoutLib.error(true, "bad operation: "+options.operation);
 			}
-			prln(cc1.cell.describe()+"  "+cc2.cell.describe());
+			prln(cc1.cell+"  "+cc2.cell);
 			NccResult result = NccBottomUp.compare(cc1, cc2, options); 
 
 			prln("Summary for all cells: "+result.summary(options.checkSizes));

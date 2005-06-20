@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/18/05, SMR) Compaction spreads circuits apart.
+FIX: Better algorithm for moving lines.
+
+IMP: (06/17/05, SMR) Antenna check now aborts cleanly (Bug #382).
+
 BUG: (06/20/05, RK) NCC hierarchical with size checking fails to compare top level cells (Bug #384)
 
 IMP: (06/20/05, RK) NCC confuses the user for an unusual situation (Bug #385)
@@ -38,6 +43,7 @@ IMP: (06/17/05, SMR) "Align to Grid" now moves pins and grid-aligns arcs better 
 IMP: (06/17/05, SMR) Manual being updated (Bug #379).
 
 IMP: (06/17/05, SMR) Preferences dialog now has "Help" button to take you to proper manual page (Bug #378).
+     Removed "help" button in Logical Effort tab.
 
 IMP: (06/16/05, SMR) Fixed the color/pattern panel of the "Artwork Appearance" command
      and "Layers" Preferences to automatically set Displayed "Use Stipple Pattern".

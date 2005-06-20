@@ -1292,12 +1292,12 @@ public class ALS extends Engine
 		int dotPos = sp.lastIndexOf('.');
 		String s2 = sp;
 		Connect cellPtr = findLevel(sd.getCell().getName().toUpperCase());
-		if (cellPtr == null) cellPtr = cellRoot;
 		if (dotPos >= 0)
 		{
 			s2 = sp.substring(dotPos+1);
 			cellPtr = findLevel(sp.substring(0, dotPos));
 		}
+		if (cellPtr == null) cellPtr = cellRoot;
 
 		for(Iterator it = cellPtr.exList.iterator(); it.hasNext(); )
 		{

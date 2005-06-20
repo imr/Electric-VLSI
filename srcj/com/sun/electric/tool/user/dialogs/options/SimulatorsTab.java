@@ -345,7 +345,7 @@ public class SimulatorsTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel4.add(showCommands, gridBagConstraints);
 
-        delayedX.setText("Use Delayed X Propogation");
+        delayedX.setText("Use Delayed X Propagation");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;

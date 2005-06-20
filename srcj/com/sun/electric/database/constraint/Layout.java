@@ -695,7 +695,6 @@ public class Layout extends Constraints
 
 			// include in the list to be considered here
             flexArcs.add(con);
-//			flexArcs.add(ai);
 		}
 		if (flexArcs.size() == 0) return false;
 
@@ -712,8 +711,8 @@ public class Layout extends Constraints
 		{
             Connection thisEnd = (Connection)it.next();
             ArcInst ai = thisEnd.getArc();
-//			ArcInst ai = (ArcInst)it.next();
 			if (deletedArcs.contains(ai)) continue;
+			if (!ai.isLinked()) continue;
 			if (DEBUG) System.out.println("  Modifying fixed-angle "+ai);
 
 			// if flexible arcinst has been changed, verify its connectivity
@@ -880,7 +879,10 @@ public class Layout extends Constraints
 						") and tail=("+newPts[1].getX()+","+newPts[1].getY()+")");
 					doMoveArcInst(ai, newPts[ArcInst.HEADEND], newPts[ArcInst.TAILEND], 1);
 					if (!DBMath.doublesEqual(dy, ody))
+					{
+//System.out.println("Flex modified "+ono);
 						if (modNodeArcs(ono, 0, 0, 0, false, false)) examineCell = true;
+					}
 					continue;
 				}
 

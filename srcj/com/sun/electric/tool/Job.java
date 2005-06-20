@@ -924,7 +924,7 @@ public abstract class Job implements ActionListener, Runnable {
             abort();
         if (source.getText().equals("Delete")) {
             if (!finished && !aborted) {
-                System.out.println("Cannot delete running jobs.  Wait till finished or abort");
+                System.out.println("Cannot delete running jobs.  Wait till it is finished, or abort it");
                 return;
             }
             databaseChangesThread.removeJob(this);
@@ -945,7 +945,7 @@ public abstract class Job implements ActionListener, Runnable {
             buf.append(" (started at "+start+")");
         } else if (getProgress() == null) {
             long time = System.currentTimeMillis()-startTime;
-	        buf.append(" does not have finished. Current running time: " + TextUtils.getElapsedTime(time));
+	        buf.append(" has not finished. Current running time: " + TextUtils.getElapsedTime(time));
         } else {
             buf.append(" did not successfully finish.");
         }

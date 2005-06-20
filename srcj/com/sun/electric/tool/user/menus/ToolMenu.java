@@ -144,12 +144,12 @@ public class ToolMenu {
         drcSubMenu.addMenuItem("Check Area _Coverage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(null, GeometryHandler.ALGO_SWEEP, true);} });
 		drcSubMenu.addSeparator();
-		drcSubMenu.addMenuItem("Import _Assura DRC Errors", null,
+		drcSubMenu.addMenuItem("Import _Assura DRC Errors...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { importAssuraDrcErrors();}});
 
 		//------------------- Simulation (Built-in)
 
-		// mnemonic keys available:  B  EF   JK  N PQ  T   XYZ
+		// mnemonic keys available:  B  EF   JK  N PQ    V XYZ
 		MenuBar.Menu builtInSimulationSubMenu = MenuBar.makeMenu("Simulation (Built-in)");
 		toolMenu.add(builtInSimulationSubMenu);
 		if (Simulation.hasIRSIM())
@@ -186,18 +186,18 @@ public class ToolMenu {
 
 		builtInSimulationSubMenu.addSeparator();
 
-		builtInSimulationSubMenu.addMenuItem("_Clear Selected Vectors", null,
+		builtInSimulationSubMenu.addMenuItem("_Clear Selected Stimuli", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.removeSelectedStimuli(); } });
-		builtInSimulationSubMenu.addMenuItem("Clear All Vectors _on Selected Signals", null,
+		builtInSimulationSubMenu.addMenuItem("Clear All Stimuli _on Selected Signals", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.removeStimuliFromSignal(); } });
-		builtInSimulationSubMenu.addMenuItem("Clear All _Vectors", null,
+		builtInSimulationSubMenu.addMenuItem("Clear All S_timuli", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.removeAllStimuli(); } });
 
 		builtInSimulationSubMenu.addSeparator();
 
-		builtInSimulationSubMenu.addMenuItem("_Save Vectors to Disk...", null,
+		builtInSimulationSubMenu.addMenuItem("_Save Stimuli to Disk...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.saveStimuli(); } });
-		builtInSimulationSubMenu.addMenuItem("_Restore Vectors from Disk...", null,
+		builtInSimulationSubMenu.addMenuItem("_Restore Stimuli from Disk...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulation.restoreStimuli(); } });
 
 		//------------------- Simulation (SPICE)

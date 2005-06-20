@@ -26,6 +26,7 @@
 package com.sun.electric.tool.compaction;
 
 import com.sun.electric.database.constraint.Layout;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -49,9 +50,11 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * This is the Compaction tool.
@@ -261,40 +264,40 @@ public class Compaction extends Listener
 
 			// clear object information
 			Line lineComp = null;
-			GeomObj [] otherObject = new GeomObj[1];
-			otherObject[0] = null;
+			List otherObjectList = new ArrayList();
 
 			// now check every object
 			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
 				NodeInst ni = (NodeInst)it.next();
-				if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+				if (ni.getProto() == Generic.tech.cellCenterNode ||
+					ni.getProto() == Generic.tech.essentialBoundsNode) continue;
 
 				// clear "thisObject" before calling createobject
-				GeomObj [] thisObject = new GeomObj[1];
-				thisObject[0] = null;
-				createObjects(ni, thisObject, otherObject, nodesSeen, arcIndices, portIndices);
+				List thisObjectList = new ArrayList();
+				createObjects(ni, thisObjectList, otherObjectList, nodesSeen, arcIndices, portIndices);
 
 				// create object of layout
-				if (thisObject[0] != null)
-					lineComp = makeObjectLine(lineComp, thisObject[0]);
+				if (thisObjectList.size() != 0)
+					lineComp = makeObjectLine(lineComp, thisObjectList);
 			}
 
 			// create list of perpendicular line which need to be set stretchable
 			Line lineStretch = null;
-			if (otherObject[0] != null)
-				lineStretch = makeObjectLine(null, otherObject[0]);
-
-			// sort the compacting line of objects
-			lineComp = sortLines(lineComp);
+			if (otherObjectList.size() != 0)
+				lineStretch = makeObjectLine(null, otherObjectList);
 
 			// compute bounds for each line
 			for(Line curLine = lineComp; curLine != null; curLine = curLine.nextLine)
 				computeLineHiAndLow(curLine);
 
+			// sort the compacting line of objects
+			lineComp = sortLines(lineComp);
+
 			// do the compaction
 			lowBound = findLeastLow(lineComp);
-			boolean change = lineupFirstRow(lineComp, lineStretch, lowBound);
+//			boolean change = lineupFirstRow(lineComp, lineStretch, lowBound);
+			boolean change = false;
 			change = compactLine(lineComp, lineStretch, change, cell);
 
 			return change;
@@ -308,6 +311,7 @@ public class Compaction extends Listener
 			for(Line curLine = line.nextLine; curLine != null; curLine = curLine.nextLine)
 			{
 				// look at every object in the line that may compact
+				if (curLine.low <= line.low) continue;
 				double bestMotion = DEFAULT_VAL;
 				for(GeomObj curObject = curLine.firstObject; curObject != null; curObject = curObject.nextObject)
 				{
@@ -780,8 +784,9 @@ public class Compaction extends Listener
 						ctr = (curObject.lowy+curObject.highy) / 2;
 					}
 
-					ctr *= len;
-					totalLen += len;
+//					ctr *= len;
+//					totalLen += len;
+					totalLen++;
 					ave += ctr;
 				}
 				if (totalLen != 0) ave /= totalLen;
@@ -829,18 +834,26 @@ public class Compaction extends Listener
 		 * create a new line with the element object and add it to the beginning of
 		 * the given line
 		 */
-		private Line makeObjectLine(Line line, GeomObj object)
+		private Line makeObjectLine(Line line, List objectList)
 		{
 			Line newLine = new Line();
 			newLine.index = lineIndex++;
 			newLine.nextLine = line;
 			newLine.prevLine = null;
-			newLine.firstObject = object;
+			newLine.firstObject = null;
+			GeomObj lastObject = null;
+			for(Iterator it = objectList.iterator(); it.hasNext(); )
+			{
+				GeomObj gO = (GeomObj)it.next();
+				if (lastObject == null) newLine.firstObject = gO; else
+					lastObject.nextObject = gO;
+				lastObject = gO;
+			}
 			if (line != null) line.prevLine = newLine;
 			return newLine;
 		}
 
-		private void createObjects(NodeInst ni, GeomObj [] thisObject, GeomObj [] otherObject, HashSet nodesSeen,
+		private void createObjects(NodeInst ni, List thisObject, List otherObject, HashSet nodesSeen,
 			HashMap arcIndices, HashMap portIndices)
 		{
 			// if node has already been examined, quit now
@@ -848,17 +861,18 @@ public class Compaction extends Listener
 			nodesSeen.add(ni);
 
 			// if this is the first object, add it
-			if (thisObject[0] == null)
-				thisObject[0] = makeNodeInstObject(ni, null, GenMath.MATID, 0,0,0,0, arcIndices, portIndices);
-			double stLow = 0, stHigh = 0;
+			if (thisObject.size() == 0)
+				thisObject.add(makeNodeInstObject(ni, null, GenMath.MATID, 0,0,0,0, arcIndices, portIndices));
+			GeomObj firstObject = (GeomObj)thisObject.get(0);
+			double stLow, stHigh;
 			if (curAxis == HORIZONTAL)
 			{
-				stLow = thisObject[0].lowx;
-				stHigh = thisObject[0].highx;
+				stLow = firstObject.lowx;
+				stHigh = firstObject.highx;
 			} else
 			{
-				stLow = thisObject[0].lowy;
-				stHigh = thisObject[0].highy;
+				stLow = firstObject.lowy;
+				stHigh = firstObject.highy;
 			}
 
 			// for each arc on node, find node at other end and add to object
@@ -875,36 +889,33 @@ public class Compaction extends Listener
 
 				GeomObj secondObject = makeNodeInstObject(otherEnd, null, GenMath.MATID, 0,0,0,0, arcIndices, portIndices);
 
-				double bdLow = 0, bdHigh = 0;
+				double bdLow, bdHigh;
+				boolean partOfLine = false;
 				if (curAxis == HORIZONTAL)
 				{
 					bdLow = secondObject.lowx;
 					bdHigh = secondObject.highx;
+					if (ai.getHeadLocation().getX() == ai.getTailLocation().getX()) partOfLine = true;
+					if (DBMath.doublesEqual(ni.getAnchorCenterX(), otherEnd.getAnchorCenterX())) partOfLine = true;
 				} else
 				{
 					bdLow = secondObject.lowy;
 					bdHigh = secondObject.highy;
+					if (ai.getHeadLocation().getY() == ai.getTailLocation().getY()) partOfLine = true;
+					if (DBMath.doublesEqual(ni.getAnchorCenterY(), otherEnd.getAnchorCenterY())) partOfLine = true;
 				}
-				if (bdHigh > stLow && bdLow < stHigh)
+				if (bdHigh > stLow && bdLow < stHigh) partOfLine = true;
+				if (partOfLine)
 				{
-					addObjectToObject(thisObject, newObject);
-					addObjectToObject(thisObject, secondObject);
+					thisObject.add(newObject);
+					thisObject.add(secondObject);
 					createObjects(otherEnd, thisObject, otherObject, nodesSeen, arcIndices, portIndices);
 				} else
 				{
 					// arcs in object to be used later in fixed_non_fixed
-					addObjectToObject(otherObject, newObject);
+					otherObject.add(newObject);
 				}
 			}
-		}
-
-		/**
-		 * add object add_object to the beginning of list "*object"
-		 */
-		private void addObjectToObject(GeomObj [] object, GeomObj addObject)
-		{
-			addObject.nextObject = object[0];
-			object[0] = addObject;
 		}
 
 		/**
@@ -919,7 +930,7 @@ public class Compaction extends Listener
 			double low1, double high1, double low2, double high2, HashMap arcIndices, HashMap portIndices)
 		{
 			GeomObj newObject = object;
-			if (object == null)
+			if (newObject == null)
 			{
 				newObject = new GeomObj();
 				newObject.inst = ni;
@@ -944,9 +955,9 @@ public class Compaction extends Listener
 					double sY = ni.getYSize();
 					SizeOffset so = ni.getSizeOffset();
 					double lX = cX - sX/2 + so.getLowXOffset();
-					double hX = cX + sX/2 - so.getLowXOffset();
+					double hX = cX + sX/2 - so.getHighXOffset();
 					double lY = cY - sY/2 + so.getLowYOffset();
-					double hY = cY + sY/2 - so.getLowYOffset();
+					double hY = cY + sY/2 - so.getHighYOffset();
 					Rectangle2D bound = new Rectangle2D.Double(lX, lY, hX-lX, hY-lY);
 					GenMath.transformRect(bound, ni.rotateOut());
 					newObject.lowx = bound.getMinX();
@@ -1024,10 +1035,12 @@ public class Compaction extends Listener
 						Rectangle2D bounds = poly.getBounds2D();
 						if (curAxis == HORIZONTAL)
 						{
-							if ((bounds.getMaxX() < low1 || bounds.getMinX() > high1) && (bounds.getMaxX() < low2 || bounds.getMinX() > high2)) continue;
+							if ((bounds.getMaxX() < low1 || bounds.getMinX() > high1) &&
+								(bounds.getMaxX() < low2 || bounds.getMinX() > high2)) continue;
 						} else
 						{
-							if ((bounds.getMaxY() < low1 || bounds.getMinY() > high1) && (bounds.getMaxY() < low2 || bounds.getMinY() > high2)) continue;
+							if ((bounds.getMaxY() < low1 || bounds.getMinY() > high1) &&
+								(bounds.getMaxY() < low2 || bounds.getMinY() > high2)) continue;
 						}
 					}
 
@@ -1147,10 +1160,12 @@ public class Compaction extends Listener
 					Rectangle2D bounds = poly.getBounds2D();
 					if (curAxis == HORIZONTAL)
 					{
-						if ((bounds.getMaxX() < low1 || bounds.getMinX() > high1) && (bounds.getMaxX() < low2 || bounds.getMinX() > high2)) continue;
+						if ((bounds.getMaxX() < low1 || bounds.getMinX() > high1) &&
+							(bounds.getMaxX() < low2 || bounds.getMinX() > high2)) continue;
 					} else
 					{
-						if ((bounds.getMaxY() < low1 || bounds.getMinY() > high1) && (bounds.getMaxY() < low2 || bounds.getMinY() > high2)) continue;
+						if ((bounds.getMaxY() < low1 || bounds.getMinY() > high1) &&
+							(bounds.getMaxY() < low2 || bounds.getMinY() > high2)) continue;
 					}
 				}
 
