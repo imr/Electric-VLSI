@@ -56,7 +56,7 @@ public class LibDirs {
     /** Default LibDirs file name */                        private static String libDirsFile = "LIBDIRS";
     /** List of library directories from LibDirs file*/     private static ArrayList dirs = new ArrayList();
     /** List of libDirsFiles read (prevent recursion) */    private static ArrayList libDirsFiles = new ArrayList();
-    
+
     /** Creates a new instance of LibDirs */
     LibDirs() {
     }
@@ -112,7 +112,7 @@ public class LibDirs {
         try {
             String line;
             while ( (line = in.readLine()) != null) {
-                if (parseLine(line)) {
+                if (parseLine(line, file)) {
                     System.out.println("Parse error: "+fileName+":"+lineNumber);
                     error = true;
                     lineNumber++;
@@ -128,7 +128,7 @@ public class LibDirs {
      * Parse one line of LIF file.
      * @return true on error.
      */
-    private static boolean parseLine(String line)
+    private static boolean parseLine(String line, File libdirFile)
     {
         line = line.trim();                             // remove leading/trailing whitespace
         String[] words = line.split("\\s+");            // split by whitespace
@@ -142,8 +142,12 @@ public class LibDirs {
             // read included LibDir file
             return parseFile(words[1]);
         }
-        // add dir to list
-        dirs.add(words[0]);
+        // add dir to list, prepend current dir if relative path
+        String dir = words[0];
+        if (dir.startsWith(".")) {
+            dir = libdirFile.getParentFile().getAbsolutePath() + File.separator + dir;
+        }
+        dirs.add(dir);
         return false;
     }
 
