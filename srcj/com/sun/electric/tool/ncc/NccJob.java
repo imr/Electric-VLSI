@@ -135,7 +135,7 @@ public class NccJob extends Job {
 		if (cellCtxts==null) return false;
 
 		NccOptions options = getOptionsFromNccConfigDialog();
-
+		
 		NccResult result = Ncc.compare(cellCtxts[0].cell, cellCtxts[0].context,
 									   cellCtxts[1].cell, cellCtxts[1].context, 
 									   options);

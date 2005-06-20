@@ -124,8 +124,14 @@ public class NccBottomUp {
 							   			        NccOptions options) {
 		// build our own list because we need to modify it
 		List cellCntxts = new ArrayList();
-		for (Iterator it=compareList.iterator(); it.hasNext();) 
-		    cellCntxts.add(it.next());
+		// build Set of Cells because we need to exclude them from subcircuit 
+		// detection
+		Set compareListCells = new HashSet();
+		for (Iterator it=compareList.iterator(); it.hasNext();) { 
+			CellContext cc = (CellContext) it.next();
+		    cellCntxts.add(cc);
+		    compareListCells.add(cc.cell);
+		}
 
 		Cell cell = ((CellContext)cellCntxts.iterator().next()).cell;
 		String grpNm = cell.getLibrary().getName()+":"+cell.getName();
@@ -147,7 +153,7 @@ public class NccBottomUp {
 				  NccUtils.buildBlackBoxes(refCC, thisCC, hierInfo, options);
 				if (!ok) return null;
 			} else {
-				hierInfo.restrictSubcktDetection(refCC, thisCC);
+				hierInfo.restrictSubcktDetection(refCC, thisCC, compareListCells);
 
 				// release storage from a previous comparison
 				result.abandonNccGlobals();

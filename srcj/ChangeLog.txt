@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/20/05, RK) NCC hierarchical with size checking fails to compare top level cells (Bug #384)
+
+IMP: (06/20/05, RK) NCC confuses the user for an unusual situation (Bug #385)
+
 IMP: (06/19/05, DN) Warning in ElectricObject.findKey about possible change to CaseSensitive
     search in future versions.
 

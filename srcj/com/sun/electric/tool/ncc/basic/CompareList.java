@@ -1,27 +1,26 @@
 /* -*- tab-width: 4 -*-
- *
- * Electric(tm) VLSI Design System
- *
- * File: CompareList.java
- *
- * Copyright (c) 2003 Sun Microsystems and Free Software
- *
- * Electric(tm) is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * Electric(tm) is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Electric(tm); see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
- * Boston, Mass 02111-1307, USA.
- */
-
+*
+* Electric(tm) VLSI Design System
+*
+* File: CompareList.java
+*
+* Copyright (c) 2003 Sun Microsystems and Free Software
+*
+* Electric(tm) is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 2 of the License, or
+* (at your option) any later version.
+*
+* Electric(tm) is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with Electric(tm); see the file COPYING.  If not, write to
+* the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+* Boston, Mass 02111-1307, USA.
+*/
 package com.sun.electric.tool.ncc.basic;
 
 import java.util.ArrayList;
@@ -80,11 +79,14 @@ public class CompareList {
 	}
 
 	private boolean safeToCompareSizes(List cellContexts, CellUsage use1, CellUsage use2) {
-		if (cellContexts.size()!=2) return false;
-		Cell c1 = ((CellContext)cellContexts.get(0)).cell;
-		Cell c2 = ((CellContext)cellContexts.get(1)).cell;
-		return use1.cellIsUsedOnce(c1) && use2.cellIsUsedOnce(c2) ||
-		       use1.cellIsUsedOnce(c2) && use2.cellIsUsedOnce(c1);
+		for (Iterator it=cellContexts.iterator(); it.hasNext();) {
+			Cell c = ((CellContext)it.next()).cell;
+			if (c.isSchematic()) {
+				if (use1.cellIsUsed(c) && !use1.cellIsUsedOnce(c)) return false;
+				if (use2.cellIsUsed(c) && !use2.cellIsUsedOnce(c)) return false;
+			}
+		}
+		return true;
 	}
 
 	/** Collect all Cells in cell's CellGroup that are used by our designs.
@@ -96,7 +98,7 @@ public class CompareList {
 	 * <p>Tricky: If a Cell is used in two layouts or two schematics then 
 	 * that Cell will occur twice in returned List, each with a 
 	 * different VarContext. This has advantages and pitfalls.
-	 */
+	 * @return a list of CellContexts to compare */
 	public CompareList(Cell cell, CellUsage use1, CellUsage use2) {
 		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(cell);
 		Cell.CellGroup group = cell.getCellGroup();

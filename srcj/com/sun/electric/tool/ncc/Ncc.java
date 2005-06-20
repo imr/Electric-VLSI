@@ -36,6 +36,7 @@ import com.sun.electric.tool.ncc.basic.NccUtils;
  * netlist comparison. */
 public class Ncc {
 	private void prln(String s) {System.out.println(s);}
+	private void pr(String s) {System.out.print(s);}
 
 	private Ncc() {}
 	
@@ -48,14 +49,15 @@ public class Ncc {
 	    	Date before = new Date();
 			switch (options.operation) {
 			  case NccOptions.FLAT_TOP_CELL:
-				prln("Flat NCC top cell"); break;
+				pr("Flat NCC top cells: "); break;
 			  case NccOptions.FLAT_EACH_CELL:
-				prln("Flat NCC every cell in the design"); break;
+				pr("Flat NCC every cell in the design: "); break;
 			  case NccOptions.HIER_EACH_CELL:
-				prln("Hierarchical NCC every cell in the design"); break;
+				pr("Hierarchical NCC every cell in the design: "); break;
 			  default:
 				LayoutLib.error(true, "bad operation: "+options.operation);
 			}
+			prln(cc1.cell.describe()+"  "+cc2.cell.describe());
 			NccResult result = NccBottomUp.compare(cc1, cc2, options); 
 
 			prln("Summary for all cells: "+result.summary(options.checkSizes));

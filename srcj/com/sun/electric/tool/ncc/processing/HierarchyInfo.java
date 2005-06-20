@@ -68,15 +68,32 @@ public class HierarchyInfo {
 	/** Restrict subcircuit detection. We only want to detect a subcircuit if
 	 * its corresponding CellGroup is instantiated by both Cells begin compared.
 	 * When we perform a hierarchical comparison we need to rescan the 
-	 * sub-hierarchies for each pair of Cells being compared. */
-	public void restrictSubcktDetection(CellContext cc1, CellContext cc2) {
+	 * sub-hierarchies for each pair of Cells being compared. 
+	 * <p> 
+	 * Also, we should not detect a subcircuit if the Cell is in the current
+	 * compare list. Here's the weird case that motivates this.  Suppose B{lay}
+	 * instantiates A{lay}. Suppose the designer compares A{sch} with B{lay}. 
+	 * NCC builds a compare list with A{sch}, A{lay}, and B{lay}. NCC might 
+	 * first compare A{sch} with A{lay}. Then when NCC compares A{sch} with
+	 * B{lay} it will fail because A gets treated as a subcircuit. However,
+	 * if NCC first compares A{sch} with B{lay} then the second comparison:
+	 * A{sch} with A{lay} will pass. Unfortunately, NCC's choice is random.
+	 * Successive runs produce different results.
+	 * <p>  
+	 * In general the compare list might have n schematics and m layouts and 
+	 * the schematics may instantiate one-another and the layouts might 
+	 * instantiate one another. If we prevent all the schematics and layouts
+	 * from being treated as subcells then any order of comparison should 
+	 * pass. */
+	public void restrictSubcktDetection(CellContext cc1, CellContext cc2,
+			                            Set compareListCells) {
 		List compareLists = CompareLists.getCompareLists(cc1, cc2);
 		cellsInSharedCellGroups = new HashSet();
 		for (Iterator it=compareLists.iterator(); it.hasNext();) {
 			CompareList compareList = (CompareList) it.next();
 			for (Iterator it2=compareList.iterator(); it2.hasNext();) {
 				Cell c = ((CellContext)it2.next()).cell;
-				cellsInSharedCellGroups.add(c);
+				if (!compareListCells.contains(c)) cellsInSharedCellGroups.add(c);
 			}
 		}
 	}
