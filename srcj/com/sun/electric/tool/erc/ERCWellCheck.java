@@ -328,7 +328,7 @@ public class ERCWellCheck
 		{
 			HashMap rulesCon = new HashMap();
 			HashMap rulesNonCon = new HashMap();
-            int techMode = DRC.getFoundry();
+            int techMode = cell.getTechnology().getFoundry();
 			for(Iterator it = wellAreas.iterator(); it.hasNext(); )
 			{
 				WellArea wa = (WellArea)it.next();

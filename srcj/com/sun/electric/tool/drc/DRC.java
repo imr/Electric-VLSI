@@ -55,7 +55,6 @@ public class DRC extends Listener
 	/** the DRC tool. */								protected static DRC tool = new DRC();
 	/** overrides of rules for each technology. */		private static HashMap prefDRCOverride = new HashMap();
 	/** map of cells and their objects to DRC */		private static HashMap cellsToCheck = new HashMap();
-    /** static list of all Manufacturers in Electric */     private static List foundries;
 	private static boolean incrementalRunning = false;
     /** key of Variable for last valid DRC date on a Cell. */
     private static final Variable.Key DRC_LAST_GOOD_DATE = ElectricObject.newKey("DRC_last_good_drc_date");
@@ -93,12 +92,6 @@ public class DRC extends Listener
 	private DRC()
 	{
 		super("drc");
-
-        // Initialize foundries
-        foundries = new ArrayList();
-        foundries.add(new Foundry("Combined", DRCTemplate.ALL));
-        foundries.add(new Foundry("TSMC", DRCTemplate.TSMC));
-        foundries.add(new Foundry("ST", DRCTemplate.ST));
 	}
 
     /**
@@ -114,41 +107,6 @@ public class DRC extends Listener
      * @return the DRC tool.
      */
     public static DRC getDRCTool() { return tool; }
-
-
-    /********************* Foundry **********************/
-    public static class Foundry
-    {
-        public String name;
-        public int techMode; // this value goes according to DRCTemplate.mode
-
-        Foundry(String name, int mode)
-        {
-            this.name = name;
-            this.techMode = mode;
-        }
-    }
-
-    /**
-	 * Get an iterator over all of the Manufacturers.
-	 * @return an iterator over all of the Manufacturers.
-	 */
-	public static Iterator getFactories()
-	{
-		return foundries.iterator();
-	}
-
-    public static int getFoundry()
-    {
-        String foundryName = getUserFoundry();
-        for (int i = 0; i < foundries.size(); i++)
-        {
-            Foundry man = (Foundry)foundries.get(i);
-            if (man.name.equals(foundryName))
-                return man.techMode;
-        }
-        return DRCTemplate.NONE;
-    }
 
 	private static void includeGeometric(Geometric geom)
 	{
@@ -319,7 +277,7 @@ public class DRC extends Listener
 			curCell.isIcon() || curCell.getTechnology() == Artwork.tech)
 		{
 			// hierarchical check of schematics
-			new CheckSchematicHierarchically(curCell, bounds);
+			new CheckSchematicHierarchically(curCell);
 		} else
 		{
 			// hierarchical check of layout
@@ -408,9 +366,8 @@ public class DRC extends Listener
         /**
          * Check bounds within Cell.  If bounds is null, check entire cell.
          * @param cell
-         * @param bounds
          */
-		protected CheckSchematicHierarchically(Cell cell, Rectangle2D bounds)
+		protected CheckSchematicHierarchically(Cell cell)
 		{
 			super("Design-Rule Check " + cell, tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
@@ -759,7 +716,7 @@ public class DRC extends Listener
         if (!isIgnoreAreaChecking()) bits |= DRC_BIT_AREA;
         if (!isIgnoreExtensionRuleChecking()) bits |= DRC_BIT_COVERAGE;
         // Adding foundry to bits set
-        int foundry = getFoundry();
+        int foundry = currentTechnology.getFoundry();
         if (foundry != DRCTemplate.ALL)
             bits |= (foundry == DRCTemplate.ST) ? DRC_BIT_ST_FOUNDRY : DRC_BIT_TSMC_FOUNDRY;
 //        bits |= getFoundry();
@@ -864,53 +821,5 @@ public class DRC extends Listener
 	 * @param on true if DRC should check extension rules.
 	 */
 	public static void setIgnoreExtensionRuleChecking(boolean on) { cacheIgnoreExtensionRuleChecking.setBoolean(on); }
-
-    private static Pref cacheFoundry = Pref.makeStringPref("Foundry", tool.prefs, "TSMC");
-	static { cacheFoundry.attachToObject(tool, "Tools/DRC tab", "Foundry for DRC rules"); }
-	/**
-	 * Method to get foundry in Tech Palette. Different foundry can define different DRC rules.
-	 * The default is "Generic".
-	 * @return the foundry to use in Tech Palette
-	 */
-	public static String getUserFoundry() { return cacheFoundry.getString(); }
-	/**
-	 * Method to set foundry for DRC rules.
-	 * @param t the foundry for DRC rules.
-	 */
-	public static void setUserFoundry(String t)
-    {
-        cacheFoundry.setString(t);
-        // It also resets the current set of rules cached.
-        currentRules = null;
-    }
-
-    private static Pref cacheOutResolution = Pref.makeBooleanPref("ResolutionCheck", tool.prefs, false);
-	/**
-	 * Method to tell whether to report resolution errors.
-	 * The default is "false".
-	 * @return true to report resolution errors.
-	 */
-	public static boolean isCheckOutResolution() { return cacheOutResolution.getBoolean(); }
-	/**
-	 * Method to set whether to report resolution errors.
-	 * @param c whether to report resolution errors.
-	 */
-	public static void setCheckOutResolution(boolean c) { cacheOutResolution.setBoolean(c); }
-
-	private static Pref cacheOutResolutionValue = Pref.makeDoublePref("ResolutionValue", tool.prefs, 0);
-	/**
-	 * Method to tell the minimum Output resolution.
-	 * This is the smallest feature size that can be safely generated.
-	 * The default is "0".
-	 * @return the minimum Output resolution.
-	 */
-	public static double getOutResolutionValue() { return cacheOutResolutionValue.getDouble(); }
-	/**
-	 * Method to set the minimum Output resolution.
-	 * This is the smallest feature size that can be safely generated.
-	 * @param r the minimum Output resolution.
-	 */
-	public static void setCIFOutResolutionValue(double r) { cacheOutResolutionValue.setDouble(r); }
-
 //	public static final Variable.Key POSTSCRIPT_FILEDATE = ElectricObject.newKey("IO_postscript_filedate");
 }

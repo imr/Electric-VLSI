@@ -1439,7 +1439,6 @@ public class GenMath
     public static boolean hasRemainder(double a, double divisor)
     {
         double val = a / divisor;
-        boolean hasRe = val % 1 != 0;
-        return hasRe;
+        return val % 1 != 0;
     }
 }

@@ -523,6 +523,9 @@ public class Technology implements Comparable
 	/** Spice header cards, level 2. */						private String [] spiceHeaderLevel2;
 	/** Spice header cards, level 3. */						private String [] spiceHeaderLevel3;
 	/** scale for this Technology. */						private Pref prefScale;
+    /** resolution for this Technology */                   private Pref prefResolution;
+    /** default foundry for this Technology */              private Pref prefFoundry;
+    /** static list of all Manufacturers in Electric */     protected List foundries;
 	/** Minimum resistance for this Technology. */			private Pref prefMinResistance;
 	/** Minimum capacitance for this Technology. */			private Pref prefMinCapacitance;
     /** Gate Length subtraction (in microns) for this Tech*/private Pref prefGateLengthSubtraction;
@@ -553,6 +556,10 @@ public class Technology implements Comparable
 		// add the technology to the global list
 		assert findTechnology(techName) == null;
 		technologies.put(techName, this);
+
+        // Initialize foundries
+        foundries = new ArrayList();
+        foundries.add(new Foundry("Mosis", DRCTemplate.ALL));
 	}
 
 	private static final String [] extraTechnologies = {"tsmc90.TSMC90"};
@@ -2941,6 +2948,89 @@ public class Technology implements Comparable
 	 */
 	public boolean isScaleRelevant() { return scaleRelevant; }
 
+    /**
+     * Method to set Technology resolution in IO/DRC tools.
+     * This has to be stored per technology.
+     * @param factory factory value
+     */
+    protected void setFactoryResolution(double factory)
+    {
+        prefResolution = Pref.makeDoublePref("ResolutionValue", prefs, factory);
+    }
+
+    /**
+     * Method to set the technology resolution
+     * @param resolution new value
+     */
+	public void setResolution(double resolution)
+	{
+		if (resolution == 0) return;
+		prefResolution.setDouble(resolution);
+	}
+
+    /**
+     * Method to retrieve the resolution associated to the technology
+     * @return
+     */
+    public double getResolution()
+	{
+        if (prefResolution == null) setFactoryResolution(0);
+		return prefResolution.getDouble();
+	}
+
+	/**
+	 * Method to get foundry in Tech Palette. Different foundry can define different DRC rules.
+	 * The default is "Generic".
+	 * @return the foundry to use in Tech Palette
+	 */
+	public String getSelectedFoundry()
+    {
+        if (prefFoundry == null) setFactorySelecedFound();
+        return prefFoundry.getString();
+    }
+
+	/**
+	 * Method to set foundry for DRC rules.
+	 * @param t the foundry for DRC rules.
+	 */
+	public void setSelectedFoundry(String t)
+    {
+        if (prefFoundry == null) setFactorySelecedFound();
+        prefFoundry.setString(t);
+    }
+
+    /**
+     * Method to set default preference for foundry.
+     * It takes the first elemenet on the foundries list
+     */
+    private void setFactorySelecedFound()
+    {
+        String factoryName = "";
+        if (foundries.size() > 0) factoryName = ((Foundry)foundries.get(0)).name;
+        prefFoundry = Pref.makeStringPref("SelectedFoundry", prefs, factoryName);
+    }
+
+    /**
+	 * Get an iterator over all of the Manufacturers.
+	 * @return an iterator over all of the Manufacturers.
+	 */
+	public Iterator getFactories()
+	{
+		return foundries.iterator();
+	}
+
+    public int getFoundry()
+    {
+        String foundryName = getSelectedFoundry();
+        for (int i = 0; i < foundries.size(); i++)
+        {
+            Technology.Foundry man = (Technology.Foundry)foundries.get(i);
+            if (man.name.equals(foundryName))
+                return man.techMode;
+        }
+        return DRCTemplate.NONE;
+    }
+
 	/**
 	 * Sets the color map for transparent layers in this technology.
 	 * Users should never call this method.
@@ -3593,5 +3683,18 @@ public class Technology implements Comparable
         results[0] = wideS;
         results[1] = length;
         return results;
+    }
+
+    /********************* Foundry **********************/
+    public static class Foundry
+    {
+        public String name;
+        public int techMode; // this value goes according to DRCTemplate.mode
+
+        public Foundry(String name, int mode)
+        {
+            this.name = name;
+            this.techMode = mode;
+        }
     }
 }

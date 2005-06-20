@@ -23,12 +23,10 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.drc.DRC;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Iterator;
 
 import javax.swing.JPanel;
 
@@ -79,18 +77,6 @@ public class DRCTab extends PreferencePanel
 				requestedDRCClearDates = true;
 			}
 		});
-
-        // Foundry
-        for (Iterator it = DRC.getFactories(); it.hasNext(); )
-        {
-            DRC.Foundry factory = (DRC.Foundry)it.next();
-            defaultFoundryPulldown.addItem(factory.name);
-        }
-        defaultFoundryPulldown.setSelectedItem(DRC.getUserFoundry());
-
-        // Resolution
-        drcCheckResolution.setSelected(DRC.isCheckOutResolution());
-		drcResolutionValue.setText(TextUtils.formatDouble(DRC.getOutResolutionValue()));
 	}
 
 	/**
@@ -125,18 +111,6 @@ public class DRCTab extends PreferencePanel
 			DRC.setIgnoreExtensionRuleChecking(currentValue);
 
 		if (requestedDRCClearDates) DRC.resetDRCDates();
-
-        String foundryName = (String)defaultFoundryPulldown.getSelectedItem();
-        if (!foundryName.equals(DRC.getUserFoundry()))
-            DRC.setUserFoundry(foundryName);
-
-        currentValue = drcCheckResolution.isSelected();
-		if (currentValue != DRC.isCheckOutResolution())
-			DRC.setCheckOutResolution(currentValue);
-
-		double currentResolution = TextUtils.atof(drcResolutionValue.getText());
-		if (currentResolution != DRC.getOutResolutionValue())
-			DRC.setCIFOutResolutionValue(currentResolution);
 	}
 
 	/** This method is called from within the constructor to
@@ -161,11 +135,6 @@ public class DRCTab extends PreferencePanel
         drcIgnoreCenterCuts = new javax.swing.JCheckBox();
         drcIgnoreExtensionRules = new javax.swing.JCheckBox();
         drcIgnoreArea = new javax.swing.JCheckBox();
-        defaultFoundryLabel = new javax.swing.JLabel();
-        defaultFoundryPulldown = new javax.swing.JComboBox();
-        drcResolutionLabel = new javax.swing.JLabel();
-        drcResolutionValue = new javax.swing.JTextField();
-        drcCheckResolution = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -277,56 +246,6 @@ public class DRCTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
         jPanel5.add(drcIgnoreArea, gridBagConstraints);
 
-        defaultFoundryLabel.setText("Foundry:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        jPanel5.add(defaultFoundryLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 4);
-        jPanel5.add(defaultFoundryPulldown, gridBagConstraints);
-
-        drcResolutionLabel.setText("Output resolution:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 0);
-        jPanel5.add(drcResolutionLabel, gridBagConstraints);
-
-        drcResolutionValue.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        jPanel5.add(drcResolutionValue, gridBagConstraints);
-
-        drcCheckResolution.setText("Find resolution errors");
-        drcCheckResolution.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                drcCheckResolutionActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 20, 4, 4);
-        jPanel5.add(drcCheckResolution, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
@@ -338,10 +257,6 @@ public class DRCTab extends PreferencePanel
         pack();
     }//GEN-END:initComponents
 
-    private void drcCheckResolutionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_drcCheckResolutionActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_drcCheckResolutionActionPerformed
-
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
 	{
@@ -350,10 +265,7 @@ public class DRCTab extends PreferencePanel
 	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel defaultFoundryLabel;
-    private javax.swing.JComboBox defaultFoundryPulldown;
     private javax.swing.JPanel drc;
-    private javax.swing.JCheckBox drcCheckResolution;
     private javax.swing.JButton drcClearValidDates;
     private javax.swing.JRadioButton drcErrorCell;
     private javax.swing.JRadioButton drcErrorDefault;
@@ -362,8 +274,6 @@ public class DRCTab extends PreferencePanel
     private javax.swing.JCheckBox drcIgnoreCenterCuts;
     private javax.swing.JCheckBox drcIgnoreExtensionRules;
     private javax.swing.JCheckBox drcIncrementalOn;
-    private javax.swing.JLabel drcResolutionLabel;
-    private javax.swing.JTextField drcResolutionValue;
     private javax.swing.ButtonGroup errorTypeGroup;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;

@@ -173,7 +173,6 @@ public class Quick
 	{
 		this.job = job;
         this.mergeMode = mode;
-        this.techMode = DRC.getFoundry();
 	}
 
 	/**
@@ -259,14 +258,17 @@ public class Quick
 	private int doCheck(Cell cell, Geometric [] geomsToCheck, boolean [] validity, Rectangle2D bounds)
 	{
 		// Check if there are DRC rules for particular tech
-		DRCRules rules = DRC.getRules(cell.getTechnology());
+        Technology tech = cell.getTechnology();
+		DRCRules rules = DRC.getRules(tech);
 
         // caching bits
         activeBits = DRC.getActiveBits();
 
+        // caching technology mode
+        techMode = tech.getFoundry();
+
         // minimim resolution different from zero if flag is on otherwise stays at zero (default)
-        if (DRC.isCheckOutResolution())
-            minAllowedResolution = DRC.getOutResolutionValue();
+        minAllowedResolution = tech.getResolution();
 
 		// Nothing to check for this particular technology
 		if (rules == null || rules.getNumberOfRules() == 0) return 0;
@@ -284,9 +286,6 @@ public class Quick
 			errorTypeSearch = DRC.ERROR_CHECK_CELL;
 			numberOfThreads = 1;
 		}
-
-		// get the proper technology
-		Technology tech = cell.getTechnology();
 
 		// cache valid layers for this technology
 		cacheValidLayers(tech);
@@ -671,21 +670,29 @@ public class Quick
     private boolean checkResolution(PolyBase poly, Cell cell, Geometric geom)
 	{
 		if (minAllowedResolution == 0) return false;
-		ArrayList badpoints = new ArrayList();
+        int count = 0;
+        double resolutionError = 0;
 		Point2D [] points = poly.getPoints();
 		for (int i=0; i<points.length; i++)
 		{
 //			if ((points[i].getX() % minAllowedResolution) != 0 ||
 //				(points[i].getY() % minAllowedResolution) != 0)
-            if (DBMath.hasRemainder(points[i].getX(), minAllowedResolution) ||
-                DBMath.hasRemainder(points[i].getY(), minAllowedResolution))
-                badpoints.add(points[i]);
+            if (DBMath.hasRemainder(points[i].getX(), minAllowedResolution))
+            {
+                count++;
+                resolutionError = (points[i].getX()/minAllowedResolution) % 1;
+            }
+            else if (DBMath.hasRemainder(points[i].getY(), minAllowedResolution))
+            {
+                count++;
+                resolutionError = (points[i].getY()/minAllowedResolution) % 1;
+            }
 		}
-		if (badpoints.size() == 0) return false; // no error
+		if (count == 0) return false; // no error
 
         // there was an error, for now print error
         Layer layer = poly.getLayer();
-        reportError(RESOLUTION, "less than " + minAllowedResolution + " on layer " + layer.getName(), cell, 0, 0, null, poly, geom, null, null, null, null);
+        reportError(RESOLUTION, "resolution of " + resolutionError + " less than " + minAllowedResolution + " on layer " + layer.getName(), cell, 0, 0, null, poly, geom, null, null, null, null);
         return true;
 	}
 

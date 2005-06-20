@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/20/05, GVG) Moving foundry pulldown menu and output resolution text field to DesignRule tab
+
 BUG: (06/18/05, SMR) Compaction spreads circuits apart.
 FIX: Better algorithm for moving lines.
 

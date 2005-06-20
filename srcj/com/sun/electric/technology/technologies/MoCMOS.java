@@ -51,8 +51,6 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
-import java.awt.geom.Point2D;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -507,6 +505,7 @@ public class MoCMOS extends Technology
 			new Color(247,251, 20)  // Metal-3
 		});
 
+        setFactoryResolution(0.5); // value in lambdas
 		//**************************************** LAYERS ****************************************
 
 		/** metal-1 layer */
