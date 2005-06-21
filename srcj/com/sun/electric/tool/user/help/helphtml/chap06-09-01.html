@@ -5,6 +5,7 @@
 <!-- COMMAND Tool/Network/List Connections on Network -->
 <!-- COMMAND Tool/Network/List Geometry on Network -->
 <!-- COMMAND Tool/Network/List Total Wire Lengths on All Networks -->
+<!-- PREFERENCE Tools/Network -->
 
 A collection of electrically connected components defines a <I>network</I>.
 Networks may span many arcs,
@@ -23,6 +24,7 @@ If the design is very dense,
 you can select one or more networks by name with the <B>Select Object...</B>
 command (in menu <B>Edit / Selection</B>).
 <P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig09-12.png" ALT="Figure 9.12"></CENTER></TD><TD>
 The Resistor can be treated as a connecting or nonconnecting node.
 By default, it does not connect the networks on its two ends,
 so identification of the extent of a network ends at the resistor.
@@ -31,6 +33,13 @@ use the "Network" preferences (in menu <B>File / Preferences...</B>, "Tools" sec
 and check "Ignore Resistors".
 Then highlighted networks will pass through them.
 See section <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A> for more on resistors.
+<P>
+The other controls in the "Network" Preferences are discussed elsewhere.
+For an explanation of "Default bus order",
+see <A HREF="chap06-09-03.html#chap06-09-03">Section 6-9-3</A>).
+For an explanation of the entries in the "Node Extraction" section,
+see <A HREF="chap09-10-02.html#chap09-10-02">Section 9-10-2</A>).
+</TD></TR></TABLE>
 <P>
 There are many commands in menu <B>Tool / Network</B> that can be used to get information about the networks in a cell:
 <UL>
@@ -41,7 +50,8 @@ There are many commands in menu <B>Tool / Network</B> that can be used to get in
 This list contains the names of exports at all levels of the hierarchy,
 above and below the current cell.
 The facility is useful if, for example,
-you have propagated clock lines throughout the circuit and wish to make sure that all of the export names on this network have some variant of the name "phi".
+you have propagated clock lines throughout the circuit and wish to make sure that all of the export
+names on this network have some variant of the name "phi".
 By quickly examining this list,
 you can see all of the names that have been used on the network, throughout the hierarchy.
 </LI>

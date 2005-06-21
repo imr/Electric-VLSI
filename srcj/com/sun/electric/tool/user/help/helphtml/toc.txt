@@ -98,6 +98,9 @@ Display
  Printing                            =chap04-09
  Text Windows                        =chap04-10
  3D Windows                          =chap04-11
+ Waveform Windows
+  Digital Waveform Windows           =chap04-12-01
+  Analog Waveform Windows            =chap04-12-02
 
 Arcs
  Introduction to Arcs                =chap05-01
@@ -185,28 +188,25 @@ Tools
  Design Rule Checking
   Incremental DRC                    =chap09-02-01
   Hierarchical DRC                   =chap09-02-02
-  Assura DRC                         =chap09-02-03
-  Design Rules                       =chap09-02-04
+  Coverage Rules                     =chap09-02-03
+  Assura DRC                         =chap09-02-04
+  Design Rules                       =chap09-02-05
  Electrical Rule Checking
   Well and Substrate Checking        =chap09-03-01
   Antenna Rule Checking              =chap09-03-02
  Simulation Interface
   Introduction to Simulation         =chap09-04-01
   Verilog                            =chap09-04-02
-  Verilog Plotting                   =chap09-04-03
-  Spice                              =chap09-04-04
-  Spice Plotting                     =chap09-04-05
-  Spice and Verilog Primitives       =chap09-04-06
-  FastHenry                          =chap09-04-07
+  Spice                              =chap09-04-03
+  Spice and Verilog Primitives       =chap09-04-04
+  FastHenry                          =chap09-04-05
  Simulation (built-in)
   IRSIM                              =chap09-05-01
-  IRSIM Interaction                  =chap09-05-02
-  ALS                                =chap09-05-03
-  ALS Interaction                    =chap09-05-04
-  ALS Concepts                       =chap09-05-05
-  ALS Gates                          =chap09-05-06
-  ALS Functions                      =chap09-05-07
-  ALS Models                         =chap09-05-08
+  ALS                                =chap09-05-02
+  ALS Concepts                       =chap09-05-03
+  ALS Gates                          =chap09-05-04
+  ALS Functions                      =chap09-05-05
+  ALS Models                         =chap09-05-06
  Routing
   Introduction to Routing            =chap09-06-01
   Auto Stitching                     =chap09-06-02

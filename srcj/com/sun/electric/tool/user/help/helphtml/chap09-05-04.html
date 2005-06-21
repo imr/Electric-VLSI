@@ -1,209 +1,316 @@
 <!-- NEED 4in -->
 
-<!-- HEADER 9-5-4: ALS Interaction -->
+<!-- HEADER 9-5-4: ALS Gates -->
 
-When simulation begins, a waveform appears in a new window.
-Here is a sample waveform window when attached to the built-in ALS simulator:
+The gate entity is the primary method of specifying behavior.
+It uses a truth-table to define the operational characteristics of a logic gate.
+Many behavioral descriptions need contain only a gate entity to be complete.
 <P>
-<CENTER><IMG SRC="fig09-39.png" ALT="Figure 9.39"></CENTER>
+The gate entity is headed by the <B>gate</B> declaration statement and is followed by a body of information.
+The gate declaration contains a name and a list of exported simulation nodes
+(which are referenced in a higher level model description).
+The format of this statement is shown below:
 <P>
-Note also that the cell explorer shows signals hierarchically.
-<P>In the main waveform window, Exports and other network names are listed on the left.
-The dividing line between signal names and signal values can be grabbed and moved to make room for wider signal names.
-You can click over a signal name or the actual waveform to select it for appropriate operations.
-Note that when you click on a signal,
-the equivalent network in the associated schematic or layout window is also highlighted.
-<P>
-You can rearrange the order of the signals by dragging their names to their desired location.
-You can remove a signal by selecting it and typing the DELETE key.
-You can add a signal to the list by typing the letter "a" (you will then be prompted for the signal to add).
-If you are in the associated layout or schematics window and type "a", then that network is added.
-To aggregate a number of signals into a single "bus" signal, select them and type "b"
-(to select multiple signals, start in the blank space between signal names and drag vertically over multiple names).
-Once a bus signal has been created, its individual signals can be shown or hidden by double-clicking on its name.
-All of these rearrangements are remembered with the cell for subsequent simulations.
-With the ALS simulator, you can use the <B>Restore Signal Display Order (ALS)</B>
-subcommand to reset the waveform display to its original set of signals.
-With all simulators, you can use the <B>Remove Signals Saved with Cells</B> subcommand to clear the saved list of rearrangements.
-<P>
-Two vertical cursors appear in the window, called "main" and "extension"
-(the extension cursor has an "x" at the top).
-You can click over the cursors and drag them to different time locations.
-If one signal is selected, its value is shown at the main and extension times.
-<P>
-The time axis of the simulation window can be controlled with the appropriate <B>Window</B> menu commands.
-Use <B>Zoom Out</B> and <B>Zoom In</B> to scale the time axis by a factor of two.
-Use <B>Focus on Highlighted</B> to display the range between the main and extension cursors.
-Use the <B>Cursor</B> subcommand of the <B>Center</B> command to shift the time to the location of the cursors.
-<P>
-The bottom of the waveform window has a set of VCR buttons that control an animation of the time.
-The Play rate can be controlled by the "F" and "S" buttons which make it go faster or slower.
-In addition, since the waveform window can light-up special "simulation probe" nodes,
-the VCR can be used to animate activity on a chip (see the section on "Simulator Control" below for more on this).
-<P>
-<H3>Test Vectors</H3>
-<P>
-When a signal name is selected, a test vector can be placed on that signal at the time specified by the main cursor.
-Type "l", "h" or "x" to set the signal to low, high,
-or undefined (using normal strength, shown in magenta).
-For bus signals, type "v" (you will then be prompted for the value to set on that bus).
-Prefix the letter with a "w" ("wl", "wh", "wx", and "wv") to set a weaker strength signal (shown in green).
-Prefix the letter with an "s" ("sl", "sh", "sx", and "sv") for stronger strength signals (shown in black).
-<P>
-Another way to control the strength of signals is by setting a transistor's strength.
-You can use the <B>Transistor Strength</B> subcommands of the <B>Simulation (Built-in)</B>
-command of the <B>Tools</B> window to control a selected transistor.
-Note that this must be done before simulation begins.
-<P>
-To remove the test vectors on the selected signal, type the "e" key.
-Use the <B>Clear All Vectors</B> subcommand of the <B>Simulation (Built-in)</B>
-command of the <B>Tools</B> menu to erase all test vectors.
-Note that these commands do not remove "strong" vectors
-(those set with the "sl", "sh", "sx", or "sv" commands).
-<P>
-Once vectors are established, the <B>Save Vectors to Disk</B> subcommand of the <B>Simulation (Built-in)</B>
-command of the <B>Tools</B> menu will write this information to disk.
-Use the <B>Restore Vectors from Disk</B> subcommand to read it back.
-You can even use the <B>Save Vectors as SPICE commands</B> subcommand to dump this information as a SPICE deck.
-<P>
-In the ALS simulator, you can also obtain simulation data from an SDF file
-(with the <B>SDF</B> subcommand of the <B>Import</B> command of the <B>File</B> menu).
-Once this data has been read, one of three sets of values
-(<B>Typical</B>, <B>Minimum</B>, or <B>Maximum</B>)
-must be selected from the <B>Annotate Delay Data (ALS)</B> subcommand of the <B>Simulate</B> command of the <B>Tools</B> menu.
-<P>
-<H3>Clocks</H3>
-<P>
-Besides simple test vectors, the ALS simulator can also set clock patterns on the currently selected signal by typing the letter "c".
-The user is then given a dialog for clock specification.
-Note that the clock may cycle infinitely,
-but Electric generates simulation events to fill only the current waveform window.
-If you want more clock events generated,
-zoom-out the waveform window before issuing the clock command.
-<P>
-There are three ways to specify a clock: by frequency, period, or with custom phases.
-If the frequency or period method is selected, the only option is the frequency
-(in cycles per second) or period (in seconds).
-<!-- NEED 3in -->
-<TABLE><TR>
-<TD><CENTER><IMG SRC="fig09-40.png" ALT="Figure 9.40"></CENTER></TD><TD>
-If, however, custom clock specifications are requested,
-the entire lower part of the dialog is enabled (as shown on the left) and many options are available.
-You can choose the strength of the clock (node, gate, or VDD),
-the random distribution of the clock,
-and a list of phases that will be repeated a specified number of times
-(use 0 repetitions for an infinite clock).
-For each phase, select its level (low, high, or undefined) and its duration.
-Then use the "Add Phase" button to add it to the list.
-Use the "Delete Phase" button to remove a phase.
-</TD></TR></TABLE>
-<P>
-<H3>Simulator Control</H3>
-<P>
-The simulators uses the hierarchy in the original circuit during simulation.
-Therefore, the signals shown are those from the current hierarchical level.
-If you use the <B>Down Hierarchy</B> and <B>Up Hierarchy</B> commands of the <B>Cells</B> menu to move through
-the hierarchy of the circuit,
-the waveform window will change to reflect the displayed circuitry.
-<P>
-The <B>Simulation Options...</B> subcommand of the <B>Simulation (Built-in)</B> command of the <B>Tools</B>
-menu offers control over the simulation process.
-Each change that is made to the simulator causes it to resimulate and display the results.
-If multiple changes are to be made and the simulation time is long, uncheck the "Resimulate each change" item.
-Then you must type "u" when you want to resimulate.
-<P>
-<TABLE><TR>
-<TD><CENTER><IMG SRC="../images/chap09-11.png" ALT="Figure 9.11"></CENTER></TD><TD>
-The "Auto advance time"
-check tells the simulator to move the time cursor automatically when a new signal is added to the simulation.
-</TD></TR></TABLE>
-<P>
-When simulating, the state of the circuit is displayed both in the waveform window and also on top of arcs
-in associated layout or schematics windows.
-The colors used can be controlled with choices in the upper-right part of the dialog.
-<P>
-The "Multistate display"
-check tells the simulator to show signals in the layout or schematics window with texturing and color to indicate strength.
-Without this, a simple on/off indication is drawn in the layout or schematics window.
-Keep in mind that the "Simulation Probe" node of the Generic technology also changes appearance to show simulation activity.
-You must connect it (with Universal arcs) to the part of the circuit that you want it to reflect.
-The Simulation Probe node is obtained by the <B>Simulation Probe</B> subcommand of the <B>New Special Object</B> command of the <B>Edit</B> menu.
-<P>
-The "Show waveform window"
-check tells the simulator to create a separate window with waveform plots when simulation starts.
-When this is unchecked, simulation still runs, but only displays signal information on the schematic or layout.
-<P>
-You can choose where you want the waveform window to be displayed.
-The default, "Cascade", requests that it appears in a new overlapping window.
-You can also request that the waveform window "Tile Horizontally" or "Tile Vertically",
-which causes the simulated circuit's window to split, showing the waveform in the other half.
-<P>
-For signals that are aggregated into busses, you can choose the number base for display of values.
-<P>
-The ALS simulator handles only a fixed number of events before it stops simulating (initially 10,000).
-If your circuit or analysis is too long, you will have to increase the number of events.
-<P>
-The IRSIM simulator only simulates for the range of time that is displayed.
-If you zoom out, you may have to modify the test vectors to force it to resimulate for the extra displayed time.
-<P>
-The IRSIM simulator can handle three levels of parasitic information: "Quick" makes quick estimates of area and perimeter;
-"Local" analyzes each level of hierarchy fully but separately;
-"Full" analyzes the entire hierarchy, and can take a long time.
-In addition, you can specify the ".prm" parameter file that you want IRSIM to use.
-<P>
-Besides the options offered by the dialog,
-there are some additional commands that can be typed to the waveform window.
-Use "t" (ALS only) to trace the simulation for the selected signal (and "ft" to dump a full trace of all signals).
-Use "i" to display information about the selected signal.
-Use "p" to preserve a snapshot of the simulation window in the database
-(a cell with the "simulation-snapshot" view is created with artwork components).
-To stop simulation, close the simulation window.
-<P>
-
-Here is a summary of the single-key commands available in digital simulation windows:
-<P>
-<CENTER><TABLE BORDER=1>
-<TR><TD WIDTH=10%><CENTER><B>Key</B></CENTER></TD><TD WIDTH=90%><CENTER><B>Meaning</B></CENTER></TD></TR>
-<TR><TD ALIGN=CENTER>l<BR>wl<BR>sl</TD>
-<TD>Set selected signal low at main cursor (gate strength)<BR>
-Set selected signal low at main cursor (node strength, weak)<BR>
-Set selected signal low at main cursor (VDD/GND strength, strong)</TD></TR>
-<TR><TD ALIGN=CENTER>h<BR>wh<BR>sh</TD>
-<TD>Set selected signal high at main cursor (gate strength)<BR>
-Set selected signal high at main cursor (node strength, weak)<BR>
-Set selected signal high at main cursor (VDD/GND strength, strong)</TD></TR>
-<TR><TD ALIGN=CENTER>x<BR>wx<BR>sx</TD>
-<TD>Set selected signal undefined at main cursor (gate strength)<BR>
-Set selected signal undefined at main cursor (node strength, weak)<BR>
-Set selected signal undefined at main cursor (VDD/GND strength, strong)</TD></TR>
-<TR><TD ALIGN=CENTER>v<BR>wv<BR>sv</TD>
-<TD>Set a value on the selected bus signal at main cursor (gate strength)<BR>
-Set a value on the selected bus signal at main cursor (node strength, weak)<BR>
-Set a value on the selected bus signal at main cursor (VDD/GND strength, strong)</TD></TR>
-<TR><TD ALIGN=CENTER>c</TD><TD>Specify a clock on selected signal</TD></TR>
-<TR><TD ALIGN=CENTER>e</TD><TD>Delete all vectors on selected signal</TD></TR>
-<TR><TD ALIGN=CENTER>i<BR>t<BR>ft</TD>
-<TD>Print information about selected signal<BR>
-Trace simulation for selected signal (ALS only)<BR>
-Trace simulation for all signals (ALS only)</TD></TR>
-<TR><TD ALIGN=CENTER>b</TD><TD>Aggregate selected signals into a bus signal</TD></TR>
-<TR><TD ALIGN=CENTER>a</TD><TD>Add signal to simulation window</TD></TR>
-<TR><TD ALIGN=CENTER>r<BR>DEL</TD><TD>Remove selected signal from simulation window</TD></TR>
-<TR><TD ALIGN=CENTER>p</TD><TD>Preserve snapshot of simulation window in database</TD></TR>
-<TR><TD ALIGN=CENTER>u</TD><TD>Resimulate and redisplay the waveform information</TD></TR>
-<TR><TD ALIGN=CENTER>?</TD><TD>Print this help message</TD></TR>
+<CENTER><TABLE>
+<TR><TD><B>Format:</B></TD><TD>gate <I>name</I>(<I>signal1</I>, <I>signal2</I>,
+<I>signal3</I>, ... <I>signalN</I>)</TD></TR>
+<TR><TD><B>Example:</B></TD><TD>gate nor2(in1, in2, out) </TD></TR>
+<TR><TD></TD><TD>gate and3(a, b, c, output) </TD></TR>
 </TABLE></CENTER>
 <P>
-
-These window menu functions apply to the digital simulation windows:
+There is no limit on the number of signal names that can be placed in the list.
+If there is not enough room on a single line to accommodate all the names,
+simply continue the list on the next line.
 <P>
-<UL>
-<LI><B>Zoom out</B> (show twice as much time)
-<LI><B>Zoom in</B> (show half as much time)
-<LI><B>Special Zoom / Focus on Highlighted</B> (show from main to extension cursors)
-<LI><B>Left</B> (show earlier time)
-<LI><B>Right</B> (show later time)
-<LI><B>Center</B>, subcommand <B>Cursor</B> (shift the time to the locations of the time cursors)
-</UL>
+
+<H3>The i: and o: Statements (Input and Output)</H3>
+<P>
+The <B>i:</B> and <B>o:</B> statements are used to construct a logical truth table for a gate primitive.
+The signal names and logical assertions which follow the <B>i:</B>
+statement represent one of many possible input conditions.
+If the logic states of all the input signals match the conditions specified in the <B>i:</B> statement,
+the simulator will schedule the outputs for updating (as specified in the corresponding <B>o:</B> statement).
+The logical truth table for a two input AND gate is shown below:
+<PRE>	
+   gate and2(in1, in2, output)  
+   i: in1=H in2=H  o: output=H 
+   i: in1=L        o: output=L 
+   i: in2=L        o: output=L 
+   i:              o: output=X
+</PRE>
+The last line of the truth table represents a default condition in the event that none
+of the previous conditions are valid
+(e.g. in1=H and in2=X).
+It should be noted that the simulator examines the input conditions in the order that they appear in the truth table.
+If a valid input condition is found,
+the simulator schedules the corresponding output assignments and terminates the truth table search immediately.
+<P>
+
+<H3>Signal References in the i: Statement</H3>
+<P>
+Besides testing the logical values of a signal, the <B>i:</B> statement can also compare them numerically.
+The format of a signal references, which follow the <B>i:</B> statement, is show below:
+<P>
+<CENTER><TABLE>
+<TR><TD><B>Format:</B></TD><TD><I>signal</I> &lt;operator&gt; <I>state_value</I></TD></TR>
+<TR><TD><B>or:</B></TD><TD><I>signal</I> &lt;operator&gt; <I>other_signal</I></TD></TR>
+<TR><TD><B>Operators:</B></TD><TD>=  Test if equal</TD></TR>
+<TR><TD></TD><TD>!  Test if not equal</TD></TR>
+<TR><TD></TD><TD>&lt;  Test if less than</TD></TR>
+<TR><TD></TD><TD>&gt;  Test if greater than</TD></TR>
+<TR><TD><B>Example:</B></TD><TD>node1 = H</TD></TR>
+<TR><TD></TD><TD>input1 ! input2</TD></TR>
+<TR><TD></TD><TD>node3 &lt; 16</TD></TR>
+</TABLE></CENTER>
+<P>
+There is no limit on the number of signal tests that can follow an <B>i:</B> statement.
+If there is not enough room on a single line to accommodate all the test conditions,
+the user can continue the list on the next line of the netlist.
+<P>
+
+<H3>Signal References in the o: Statement</H3>
+<P>
+The signal references which follow the <B>o:</B> statement are used as registers for mathematical operations.
+It is possible to set a signal to a logic state and it is possible to perform mathematical operations on its contents.
+The format for signal references which follow the <B>o:</B> statement is shown below:
+<P>
+<CENTER><TABLE>
+<TR><TD><B>Format:</B></TD><TD><I>signal</I> [ &lt;operator&gt; <I>operand</I> [ @ &lt;strength&gt; ] ]</TD></TR>
+<TR><TD><B>Operators:</B></TD><TD>-  decrement signal by value of operand</TD></TR>
+<TR><TD></TD><TD>=  equate signal to value of operand</TD></TR>
+<TR><TD></TD><TD>+  increment signal by value of operand</TD></TR>
+<TR><TD></TD><TD>-  decrement signal by value of operand</TD></TR>
+<TR><TD></TD><TD>*  multiply signal by value of operand</TD></TR>
+<TR><TD></TD><TD>/  divide signal by value of operand</TD></TR>
+<TR><TD></TD><TD>%  modulo signal by value of operand</TD></TR>
+<TR><TD><B>Strengths:</B></TD><TD>0  off</TD></TR>
+<TR><TD></TD><TD>1  node</TD></TR>
+<TR><TD></TD><TD>2  gate</TD></TR>
+<TR><TD></TD><TD>3  VDD</TD></TR>
+<TR><TD><B>Example:</B></TD><TD>qbar = H@3</TD></TR>
+<TR><TD></TD><TD>out1 + 3</TD></TR>
+<TR><TD></TD><TD>out + out1@4</TD></TR>
+<TR><TD></TD><TD>node1 % modulus_node</TD></TR>
+</TABLE></CENTER>
+<P>
+It should be noted that the logic state of the operand can be directly specified
+(such as H, 3) or it can be indirectly addressed through a signal name (such as out1, modulus_node).
+In the indirect addressing case,
+the value of the signal specified as the operand is used in the mathematical calculations.
+The strength declaration is optional and if it is omitted,
+a default strength of 2 (gate) is assigned to the output signal.
+<P>
+
+<H3>The t: Statement (Time Delay)</H3>
+<P>
+The propagation delay time (switching speed) of a gate can be set with the <B>t:</B> statement.
+The format of this statement is shown below:
+<P>
+<CENTER><TABLE>
+<TR><TD><B>Format:</B></TD><TD>t: &lt;mode&gt; = <I>value</I> { + &lt;mode&gt; = <I>value</I> ... }</TD></TR>
+<TR><TD><B>Mode:</B></TD><TD>delta: fixed time delay in seconds</TD></TR>
+<TR><TD></TD><TD>linear: random time delay with uniform distribution</TD></TR>
+<TR><TD></TD><TD>random: probability function with values between 0 and 1.0</TD></TR>
+<TR><TD><B>Example:</B></TD><TD>t: delta=5.0e-9</TD></TR>
+<TR><TD></TD><TD>t: delta=1.0e-9 + random=0.2</TD></TR>
+</TABLE></CENTER>
+<P>
+It is possible to combine multiple timing distributions by using the + operator between timing mode declarations.
+The timing values quoted in the statement should represent the situation where the gate is driving a single unit load
+(e.g. a minimum size inverter input).
+<P>
+The <B>t:</B> statement sets the timing parameters for each row in the truth table
+(<B>i:</B> and <B>o:</B> statement pair) that follows in the gate description.
+It is possible to set different rise and fall times for a gate by using more than one <B>t:</B>
+statement in the gate description.
+Assuming that a 2 input NAND gate had timing characteristics of <I>t(lh)</I> = 1.0 nanoseconds and
+<I>t(hl)</I> = 3.0 nanoseconds,
+the gate description for the device would be as follows:
+<PRE>
+   gate nand2(in1, in2, output)  
+   t: delta=3.0e-9  
+   i: in1=H in2=H   o: output=L  
+   t: delta=1.0e-9  
+   i: in1=L         o: output=H  
+   i: in2=L         o: output=H
+</PRE>
+This example shows that when both inputs are high,
+the output will go low after a delay of 3.0 nanoseconds and that if either input is low,
+the output will go high after a delay of 1.0 nanosecond.
+<P>
+<H3>The Delta Timing Distribution of the t: Statement</H3>
+<P>
+The Delta timing distribution is used to specify a fixed, non-random delay.
+The format of a delta timing declaration is shown below:
+<P>
+<CENTER><TABLE>
+<TR><TD><B>Format:</B></TD><TD>delta = <I>value</I></TD></TR>
+<TR><TD><B>Example:</B></TD><TD>delta = 1.0</TD></TR>
+<TR><TD></TD><TD>delta = 2.5e-9</TD></TR>
+</TABLE></CENTER>
+<P>
+The value associated with the delta declaration represents the fixed time delay in seconds
+(1.0 = 1 second, 2.5e-9 = 2.5 nanoseconds, etc.)
+<P>
+
+<H3>The Linear Timing Distribution of the t: Statement</H3>
+<P>
+The Linear timing distribution is used to specify a random delay period that has a uniform probability distribution.
+The format of a linear timing declaration is shown below:
+<P>
+<CENTER><TABLE>
+<TR><TD><B>Format:</B></TD><TD>linear = <I>value</I></TD></TR>
+<TR><TD><B>Example:</B></TD><TD>linear = 1.0</TD></TR>
+<TR><TD></TD><TD>linear = 2.0e-9</TD></TR>
+</TABLE></CENTER>
+<P>
+The value associated with the linear declaration represents the average delay time
+(in seconds) for the uniform distribution.
+This means that there is an equally likely chance that the delay time will lie anywhere
+between the bounds of 0 and 2 times the value specified.
+<P>
+
+<H3>The Random Probability Function of the t: Statement</H3>
+<P>
+The random probability function enables the user to model things which occur on a percentage basis
+(e.g. bit error rate, packet routing).
+The format for random probability declaration is shown below:
+<P>
+<CENTER><TABLE>
+<TR><TD><B>Format:</B></TD><TD>random = <I>value</I></TD></TR>
+<TR><TD><B>Example:</B></TD><TD>random = 0.75</TD></TR>
+<TR><TD></TD><TD>random = 0.25</TD></TR>
+</TABLE></CENTER>
+<P>
+The value associated with random declaration must be in the range 0.0 &lt;= <I>value</I> &lt;= 1.0.
+This value represents the percentage of the time that the event is intended to occur.
+<P>
+A gate which uses the random probability feature must be operated in parallel with
+another gate which has a common event driving input.
+Both these gates should have the same timing distributions associated with them.
+When the common input changes state, a probability trial is performed.
+If the probability value is less than or equal to the value specified in the random declaration,
+the gate containing the random declaration will have its priority temporarily
+upgraded and its outputs will change state before the outputs of the other gate.
+This feature gives the user some level of control (on a percentage basis)
+over which gate will process the input data first.
+<P>
+As an example, a system which models a communication channel that corrupts 1%
+of the data bytes that pass through it is shown below:
+<P>
+<CENTER><TABLE><TR><TD><CENTER><IMG SRC="fig09-35.png" ALT="Figure 9.35"></CENTER></TD><TD>
+<PRE>
+   model main(in, out)
+   trans1: good(in, out)
+   trans2: bad(in, out)
+
+   gate good(in, out)
+   t: delta=1.0e-6
+   i: in>0x00    o: out=in  in=0x00
+
+   gate bad(in, out)
+   t: delta=1.0e-6 + random=0.01
+   i: in>0x00    o: out=0xFF in=0x00
+</PRE>
+</TD></TR></TABLE></CENTER>
+<P>
+The netlist describes a system where ASCII characters are represented by 0x01-0x7F.
+The value 0x00 indicates there is no data in the channel and the value 0xFF indicates a corrupted character.
+It is assumed that there is an external data source which supplies characters to the channel input.
+It should be noted that the random declaration is placed on only one of the two gate
+descriptions rather than both of them.
+Unpredictable events occur if the random declaration is placed on both gate descriptions.
+<P>
+
+<H3>The Fanout Statement</H3>
+<P>
+The <B>fanout</B> statement is used to selectively enable/disable fanout calculations
+for a gate when the database is being compiled.
+The format for a <B>fanout</B> statement is shown below:
+<P>
+<CENTER><TABLE>
+<TR><TD><B>Format:</B></TD><TD>fanout = on</TD></TR>
+<TR><TD><B>or:</B></TD><TD>fanout = off</TD></TR>
+</TABLE></CENTER>
+<P>
+When fanout calculation is enabled (the default setting for all gates),
+the simulator scans the database and determines the total load that the gate is driving.
+It then multiplies the gate timing parameters by an amount proportional to the load.
+If an inverter gate was found to have a propagation delay time of 1 nanosecond when driving a single inverter input,
+an instance of that gate would have a propagation delay time of 3 nanoseconds
+if it was driving a load equivalent to 3 inverter inputs.
+<P>
+If fanout calculation is turned off for a gate primitive,
+fanout calculations for all instances of that gate will be ignored.
+This feature allows the user to force switching times to a particular value
+and not have them modified by the simulator at run time.
+<P>
+
+<H3>The Load Statement</H3>
+<P>
+The <B>load</B> statement is used to set the relative loading (capacitance) for an input or output signal.
+The format of a <B>load</B> statement is shown below:
+<P>
+<CENTER><TABLE>
+<TR><TD><B>Format:</B></TD><TD>load <I>signal1</I> = <I>value</I> { <I>signal2</I> = <I>value</I> ... }</TD></TR>
+<TR><TD><B>Example:</B></TD><TD>load in1=2.0  in2=1.5  in3=1.95</TD></TR>
+<TR><TD></TD><TD>load sa=2.5</TD></TR>
+</TABLE></CENTER>
+<P>
+The value associated with the signal represents the relative capacitance of the simulation node.
+When the timing parameters are specified for a gate description,
+it is assumed that they are chosen for the situation where the gate is driving a single (1.0)
+unit load such as a minimum size inverter input.
+The load command tells the simulator that some input structures are smaller or larger
+(more capacitive) than the reference standard.
+The simulator, by default, assumes that all signals associated with gate primitives have a load rating of 1.0
+(unit load) unless they are overridden by a <B>load</B> statement.
+<P>
+
+<H3>The Priority Statement</H3>
+<P>
+The <B>priority</B> statement is used to establish the scheduling priority for a gate primitive.
+The format for a <B>priority</B> statement is shown below:
+<P>
+<CENTER><TABLE>
+<TR><TD><B>Format:</B></TD><TD>priority = <I>level</I></TD></TR>
+<TR><TD><B>Example:</B></TD><TD>priority = 1</TD></TR>
+<TR><TD></TD><TD>priority = 7</TD></TR>
+</TABLE></CENTER>
+<P>
+In the event that two gates are scheduled to update their outputs at exactly the same time,
+the gate with lowest priority level will be processed first.
+All gate primitives are assigned a default priority of 1 unless they contain random timing
+declarations in the gate description.
+In this case the primitive is assigned a default priority of 2.
+This base priority can be temporarily upgraded to a value of -1 if a random trial is successful
+during the course of a simulation run.
+The user is advised to leave the priority settings at their default values unless there is a
+specific requirement which demands priority readjustment.
+<P>
+
+<H3>The Set Statement</H3>
+<P>
+The <B>set</B> statement is used to initialize signals to specific logic states before the simulation run takes place.
+The format for the <B>set</B> statement is shown below: 
+<P>
+<CENTER><TABLE>
+<TR><TD><B>Format:</B></TD><TD>set <I>signal1</I> = &lt;state&gt; @ { &lt;strength&gt; }</TD></TR>
+<TR><TD></TD><TD><I>signal2</I> = &lt;state&gt; @ { &lt;strength&gt; }</TD></TR>
+<TR><TD><B>Example:</B></TD><TD>set input1=H@2 input2=L input3=X@0</TD></TR>
+<TR><TD></TD><TD>set count=4 multiplier=5 divisor=7@2</TD></TR>
+</TABLE></CENTER>
+<P>
+If the user does not specify a strength value,
+the signal will be assigned a default logic strength of 3 (VDD).
+This default setting will override any gate output
+(because the default strength of 2 is used for gate outputs).
+<P>
+The user will find this feature useful in situations where some of the inputs to a logic gate
+need to be set to a fixed state for the entire duration of the simulation run.
+For example, the set and reset inputs of a flip flop should be tied low if these inputs are
+not being driven by any logic circuitry.
+All instances of a gate entity which contains a <B>set</B>
+statement will have their corresponding simulation nodes set to the desired state.
 
 <!-- TRAILER -->

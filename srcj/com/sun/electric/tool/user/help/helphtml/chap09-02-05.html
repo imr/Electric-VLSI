@@ -1,0 +1,68 @@
+<!-- HEADER 9-2-5: Design Rules -->
+
+<!-- PREFERENCE Technology/Design Rules -->
+
+<P>
+Four types of errors are detected by the incremental and hierarchical design-rule checkers.
+<I>Spacing</I> errors are caused by geometry that is too close, but not connected.
+<I>Notch</I> errors are caused by geometry that is too close, but connected.
+<I>Minimum size</I> errors are caused by geometry that is too small.
+<I>Resolution</I> errors are caused by geometries that are smaller than a requested resolution amount.
+<P>
+In addition to examining geometry,
+the design-rule checkers use connectivity information to help find violations.
+This use of network information helps the designer to debug circuit connectivity.
+For example, if two overlapping nodes are not joined by an arc,
+they may be considered to be in violation,
+even if their geometry looks right.
+This is because the checkers know what is connected and have a separate set of rules for such situations.
+<P>
+To help guide the design-rule checker,
+a "cloaking" layer can be placed over areas that are not to be examined.
+This cloaking layer is created by clicking the "Misc." entry of the component palette
+and selecting "DRC Exclusion".
+Any errors that fall inside of this node's area are ignored. 
+<P>
+To edit the design rules, use the "Design Rules"
+preferences (in menu <B>File / Preferences...</B>, "Technology" section, ""Design Rules" tab). 
+The dialog allows you to examine and modify the spacing limits for the current technology.
+It is divided into two parts: "Layers" and "Nodes" (the radio buttons in the upper-left).
+<P>
+When "Nodes" are selected, you may set the minimum size of each node in the current technology.
+<P>
+<TABLE><TR><TD>
+<BR><BR><BR><BR><BR>
+When "Layers" are selected, you may set the minimum size of each layer as well as inter-layer spacing
+(between that and the "To Layer").
+Use the "Show only lines with rules" to restrict the displayed rules to those with valid values.
+Each spacing rule comes in two flavors: connected and unconnected.
+<BR><BR><BR><BR><BR>
+</TD><TD><CENTER><IMG SRC="fig09-09.png" ALT="Figure 9.9"></CENTER></TD></TR></TABLE>
+<P>
+The connected rules apply to two different layers that are electrically connected;
+the unconnected rules apply to unconnected layers.
+A special Edge rule applies only to unconnected layers and ignores overlap when considering spacing distance.
+The connected and unconnected rules come in three styles: normal, wide, and multiple cut.
+The Wide rules apply when either layer is wider than a specified amount.
+The Multiple cut rules apply when either layer is part of a multi-cut contact.
+In addition to specifying a spacing distance,
+you can give a description of the rule that will be reported by the design-rule checker.
+The "Factory Reset" button restores all rules to the original set built into Electric.
+<P>
+
+You can request that resolution errors be checked during DRC
+by checking "Find resolution errors".
+The "Output resolution" field is the minimum coordinate value that may exist.
+All geometry of that size or less will be flagged as resolution errors.
+For example, current MOSIS rules require that no boundaries be quarter-lambda or less,
+so a value of .25 in this field will detect such violations.
+<P>
+Note that the MOSIS CMOS design rule 6.7b is not checked by Electric
+because it is difficult to detect properly.
+This error is never fatal,
+and the worst case of missing this error is that active and poly are closer by 1/2 lambda,
+which merely results in an increase in capacitive coupling between them.
+If this fringing capacitance is important,
+you've probably got so much polysilicon in your circuit that it has bigger problems.
+
+<!-- TRAILER -->

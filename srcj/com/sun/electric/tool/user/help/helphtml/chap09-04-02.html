@@ -1,6 +1,8 @@
 <!-- HEADER 9-4-2: Verilog -->
 
 <!-- COMMAND Tool/Simulation (Verilog)/Write Verilog Deck... -->
+<!-- COMMAND Tool/Simulation (Verilog)/Plot Verilog VCD Dump... -->
+<!-- COMMAND Tool/Simulation (Verilog)/Plot Verilog for This Cell -->
 <!-- COMMAND Tool/Simulation (Verilog)/Set Verilog Wire/Wire -->
 <!-- COMMAND Tool/Simulation (Verilog)/Set Verilog Wire/Trireg -->
 <!-- COMMAND Tool/Simulation (Verilog)/Set Verilog Wire/Default -->
@@ -8,10 +10,21 @@
 <!-- COMMAND Tool/Simulation (Verilog)/Transistor Strength/Normal -->
 <!-- PREFERENCE Tools/Verilog -->
 
+Electric can produce input decks for Verilog simulation with <B>Write Verilog Deck...</B> command
+(in menu <B>Tool / Simulation (Verilog)</B>).
+After this has been done, you must run Verilog externally to produce a ".dump" file.
+Note that the Electric distribution does not come with a Verilog simulator: you must obtain it separately.
+<P>
+After running a Verilog simulation, you can read the ".dump" file into Electric and display it in a waveform window.
+This is done with the <B>Plot Verilog VCD Dump...</B> command (in menu <B>Tool / Simulation (Verilog)</B>).
+You can also use the <B>Plot Verilog for This Cell</B> command if the cell name and file name are the same.
+The Verilog simulation information is then shown in a digital waveform window
+(see <A HREF="chap04-12-01.html#chap04-12-01">Section 4-12-1</A> for more).
+<P>
 Before generating Verilog decks,
 it is possible to annotate circuits with additional Verilog declarations and code that will be included in the deck.
-To add Verilog code, select "Verilog Code" under the "Misc." entry in the component palette.
-To add a Verilog declaration, select "Verilog Declaration" under the "Misc." entry in the component palette.
+To add Verilog code, select "Verilog Code" under the "Misc." entry in the component menu of the side bar.
+To add a Verilog declaration, select "Verilog Declaration" under the "Misc." entry in the component menu.
 These pieces of text can be manipulated like any other text object
 (see <A HREF="chap06-08-01.html#chap06-08-01">Section 6-8-1</A> on text).
 <P>
@@ -19,8 +32,7 @@ Additional control of Verilog deck generation is accomplished with the
 "Verilog" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Verilog" tab).
 A checkbox lets you choose whether or not to use the Verilog "assign" construct.
 You can control the type of Verilog declaration that will be used for wires ("wire" by default, "trireg" if checked).
-Note that this can be overridden with the <B>Set Verilog Wire</B> command (in menu <B>Tool / Simulation (Verilog)</B>
-).
+Note that this can be overridden with the <B>Set Verilog Wire</B> command (in menu <B>Tool / Simulation (Verilog)</B>).
 <P>
 Another properety that can be assigned to transistors is their strength.
 The <B>Weak</B> command (in menu <B>Tool / Simulation (Verilog) / Transistor Strength</B>)

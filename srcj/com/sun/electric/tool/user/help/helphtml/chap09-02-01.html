@@ -21,15 +21,8 @@ which will examine only the cut layers around the edges of contact nodes.
 </TD><TD><CENTER><IMG SRC="fig09-20.png" ALT="Figure 9.20"></CENTER></TD></TR></TABLE>
 <P>
 DRC rules for new technologies might require special rules, which can be time consuming.
-To ignore these errors, check "Ignore area checking" (for area checking) and
-"Ignore extension rules" (for special transistor rules).
-<P>
-You can request that resolution errors be checked during DRC
-by checking "Find resolution errors".
-The "Output resolution" field is the minimum coordinate value that may exist.
-All geometry of that size or less will be flagged as resolution errors.
-For example, current MOSIS rules require that no boundaries be quarter-lambda or less,
-so a value of .25 in this field will detect such violations.
+To ignore these errors, check "Ignore area checking" (for minimum area rules) and
+"Ignore extension rules" (for special overlap rules).
 <P>
 After analysis of the circuit,
 you can review the errors by typing "&gt;" and "&lt;" to step to the next and previous error that was found.

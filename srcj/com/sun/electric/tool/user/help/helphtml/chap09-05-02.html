@@ -1,61 +1,38 @@
 <!-- NEED 4in -->
 
-<!-- HEADER 9-5-2: IRSIM Interaction -->
+<!-- HEADER 9-5-2: ALS -->
 
-<!-- COMMAND Tool/Simulation (Built-in)/Set Signal High at Main Time -->
-<!-- PREFERENCE Tools/Simulators -->
+<!-- COMMAND Tool/Simulation (Built-in)/ALS: Simulate Current Cell -->
 
-Since the IRSIM engine is running inside of Electric, you can place stimuli on the circuit
-and see the results immediately.
+Electric has a built-in gate-level simulator called ALS that can simulate schematics,
+IC layout, or VHDL descriptions.
+The simulator already knows about MOS transistors and some digital logic gates.
+It can be augmented with functional descriptions of any circuit
+using the hardware description language described later in this section.
 <P>
-You can select either a waveform or the equivalent network in the original schematic or layout.
-Once selected, use the <B>Set Signal High at Main Time</B>
-(in menu <B>Tool / Simulation (Built-in)</B>)
-to make that signal go to "high" at the time indicated by the Main cursor.
-Use <B>Set Signal Low at Main Time</B> to set the selected signal "low", and use
-<B>Set Signal Undefined at Main Time</B> to set the selected signal "undefined" (X).
-Use the <B>Get Information about Selected Signals</B> command to show stimuli and
-other information on the selected signals.
+For an example of ALS simulation, load the "samples" library and simulate the cell "tool-SimulateALS{sch}".
+You can load the samples library with the <B>Load Samples Library</B> command (in menu <B>Help</B>).
 <P>
-Stimuli can be seen in the waveform window as large red boxes at the designated time.
-To remove a stimulus, select the red box and use the <B>Clear Selected Stimuli</B> command.
-To remove all stimuli on a the selected waveforms, use <B>Clear All Stimuli on Selected Signals</B>.
-To remove all stimuli in the simulation, use <B>Clear All Stimuli</B>.
+To begin simulation of the circuit in the current window,
+use the <B>ALS: Simulate This Cell</B> command (from menu <B>Tools / Simulation (Built-in)</B>).
+After issuing this command, a waveform window will appear to control the simulation
+(see <A HREF="chap04-12-01.html#chap04-12-01">Section 4-12-1</A> for more).
+Since the ALS engine is running inside of Electric,
+you can place stimuli on the circuit and see the results immediately.
 <P>
-Once a set of stimuli has been established, you can save it to disk with the
-<B>Save Stimuli to Disk...</B> command.
-The saved file is an IRSIM "command file" which can be edited by hand.
-These stimuli can be restored later with the <B>Restore Stimuli from Disk...</B> command.
+ALS is able to handle transistors with varying strength.
+To set a transistor to be weak, use the <B>Weak</B> command
+(in menu <B>Tool / Simulation (Verilog) / Transistor Strength</B>).
+To restore the strength to normal, use the <B>Normal</B> command.
+Note that this must be done before simulation begins.
 <P>
-Because the process of simulating a circuit can be costly, you can choose to resimulate
-each time a stimulus is added, or you can choose to resimulate only when requested.
-By default, the simulation is re-run each time any stimulus is changed.
-By unchecking "Resimulate each change" in the "Simulators" preferences
-(in menu <B>File / Preferences...</B>, "Tools" section, "Simulators" tab),
-the simulation is not re-run with each stimulus change.
-Instead, you must issue the <B>Update Simulation Window</B> command to re-run the simulation.
-
-<TABLE><TR><TD>
-Many other IRSIM options can be controlled with the "Simulators" preferences.
-"Auto advance time" requests that the main time cursor advance after each stimulus is added.
-This allows each stimulus added to occur at a new time.
-"Multistate display" requests that strength information be displayed as well.
-This strength information is not used in IRSIM, so the checkbox does not apply.
+<H3>Preferences</H3>
 <P>
-IRSIM uses a parameter file to describe timing and parasitic information.
-Some of these files come packaged with Electric, but you can create your own and set it.
-In addition to the parameter file, you can select the simulation model that IRSIM uses.
-The default is a RC model, but a Linear model is also available.
-<P>
-Advanced users who edit their own command files may enter specialized IRSIM debugging
-commands.
-These commands depend on a set of flags to determine the type of debugging to do.
-Checkboxes in the "IRSIM Debugging" section control these debugging flags.
-<P>
-The bottom section has two miscellaneous IRSIM controls.
-"Show IRSIM commands" requests that the system display the command file instructions as they
-are applied during simulation.
-"Use Delayed X propagation" does XXXXX.
-</TD><TD><CENTER><IMG SRC="fig09-38.png" ALT="Figure 9.38"></CENTER></TD></TR></TABLE>
+The "Simulators" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Simulators" tab)
+has some controls that affect ALS simulation.
+The "Multistate display" check tells the simulator to show signals in the layout or schematics window
+with texturing and color to indicate strength.
+Without this, a simple on/off indication is drawn in the layout or schematics window.
+The other general controls at the top are discussed in <A HREF="chap04-12-01.html#chap04-12-01">Section 4-12-1</A>.
 
 <!-- TRAILER -->

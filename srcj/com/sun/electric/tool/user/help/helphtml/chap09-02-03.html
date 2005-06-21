@@ -1,14 +1,22 @@
-<!-- HEADER 9-2-3: Assura DRC -->
+<!-- HEADER 9-2-3: Coverage Rules -->
 
-<!-- COMMAND Tool/DRC/Import Assura DRC Errors... -->
+<!-- COMMAND Tool/DRC/Check Area Coverage -->
+<!-- PREFERENCE Tools/Coverage -->
 
+Some foundries request that each layer occupy a minimum percentage of the chip.
+To enforce such rules, additional pieces of geometry must be placed around the chip to fill that layer.
 <P>
-Electric is able to read the output of Cadence's Assura design-rule checker.
-These error files (with the extension ".err") can be read with the
-<B>Import Assura DRC Errors...</B> command (in menu <B>Tool / DRC</B>).
-After reading the error file,
-you can review the errors by typing "&gt;" and "&lt;" to step to the next and previous error that was found.
-You can also see a list of errors in the cell explorer (see <A HREF="chap04-08.html#chap04-08">Section 4-8</A>).
+<TABLE><TR><TD>
+To check for proper minimum layer coverage, use the <B>Check Area Coverage</B> command
+(of menu <B>Tool / DRC</B>).
+To control the coverage rules, use the "Coverage" preferences
+(in menu <B>File / Preferences...</B>, "Tools" section, "Coverage" tab).
+Each layer in the technology has a minimum percentage of coverage that is needed.
 <P>
+The coverage check can proceed in a "tiled" manner, checking rectangular areas of the cell.
+For example, to check each 100x100 unit area of the cell, set "Width" and "Height" to 100,
+and set "DeltaX" and "DeltaY" to 100.
+</TD><TD><CENTER><IMG SRC="fig09-01.png" ALT="Figure 9.1"></CENTER></TD></TR></TABLE>
+
 
 <!-- TRAILER -->

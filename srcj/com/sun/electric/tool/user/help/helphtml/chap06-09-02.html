@@ -1,7 +1,6 @@
 <!-- NEED 2in -->
 
 <!-- HEADER 6-9-2: Naming Networks -->
-<!-- PREFERENCE Tools/Network -->
 
 Network names are derived from export names and arcs that are named in a cell.
 The name given to an export becomes the network name for all arcs connected to that export.
@@ -18,31 +17,10 @@ then you select an arc connected to that contact node and name it "sig",
 the circuitry will be on the network "clock/sig."
 Thus, both names now apply to the same network.
 <P>
-<TABLE><TR><TD><CENTER><IMG SRC="fig09-12.png" ALT="Figure 9.12"></CENTER></TD><TD>
 The other phenomenon of network naming is that a single network can include unconnected parts of the circuit.
 This happens when arcs in unconnected parts of the circuit are given the same name.
 This causes the two arcs to be implicitly joined into one network.
 Because this network naming phenomena is most commonly used in schematics,
 the unification of like-named networks only happens in cells with the "schematic" view.
-To cause this same effect in all views (such as "layout"),
-use the "Network" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab),
-and check "Unify all like-named nets".
-</TD></TR></TABLE>
-<P>
-You can also use this dialog to request that all networks that start with a particular set of letters be unified.
-For example, if the "Unify Networks that start with" field is set to "clk",
-then the networks "clk01" and "clkExtra" will be merged into a single network.
-Multiple merges can be specified, separated by spaces.
-For example, if the field is "pwr gnd" then all nets starting with "pwr" will be merged,
-and all nets starting with "gnd" will be merged.
-<P>
-When busses must be automatically generated (during netlisting, for example)
-the bus indices can be set to start at 0 or 1, and they can ascend or descend.
-<P>
-The "Network" Preferences dialog has many other controls that are discussed elsewhere.
-For an explanation of the "Unify Power and Ground" checkbox,
-see <A HREF="chap06-09-04.html#chap06-09-04">Section 6-9-4</A>).
-For an explanation of the entries in the "Node Extraction" section,
-see <A HREF="chap09-10-02.html#chap09-10-02">Section 9-10-2</A>).
 
 <!-- TRAILER -->

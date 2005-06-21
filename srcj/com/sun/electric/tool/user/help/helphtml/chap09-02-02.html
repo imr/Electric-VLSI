@@ -24,11 +24,18 @@ use the <B>General Cell Lists...</B> command (in menu <B>Cell / Cell Info</B>)
 A "D" is shown in on the right for cells that are DRC current
 (see <A HREF="chap03-07-01.html#chap03-07-01">Section 3-7-1</A>).
 <P>
-Another way to speed up Hierarchical DRC is to check the "Just 1 error per cell" entry in the
-"DRC" preferences.
-This tells the system to stop checking a cell after the first error has been found.
+There are three levels of checking that can be requested in the "DRC" preferences,
+each consuming more time and finding more errors.
+<UL>
+<LI>"Report just 1 error per node or arc" is the default.
+It stops checking a node or arc when it has found any design rule violation.</LI>
+<LI>"Report just 1 error per cell" tells the system to stop checking a cell
+after the first error has been found.
 By using this option, you can more quickly determine <I>which</I> cells in the design are correct,
 without knowing exactly where the errors lie.
-Then, you can go to the cells with errors and do a more complete check.
+Then, you can go to the cells with errors and do a more complete check.</LI>
+<LI>"Report all errors" tells the system to continue checking a node or arc, even if an error has been found.
+This will report all violations found, but can take more time.</LI>
+</UL>
 
 <!-- TRAILER -->
