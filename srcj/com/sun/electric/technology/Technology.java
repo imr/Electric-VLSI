@@ -2964,7 +2964,7 @@ public class Technology implements Comparable
      */
 	public void setResolution(double resolution)
 	{
-		if (resolution == 0) return;
+		if (prefResolution == null) setFactoryResolution(0);
 		prefResolution.setDouble(resolution);
 	}
 

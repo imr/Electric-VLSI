@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/20/05, GVG) Displaying DRC error in wrong window frame while checking min defects (Bug #383)
+FIX: Carrying down into the hierarchy the cell which triggered the checking.
+
 IMP: (06/20/05, SMR) Changed "Design Rules" preferences to handle multiple wide rules.
 
 BUG: (06/20/05, SMR) "Make Selected Easy" and "Make Selected Hard" commands crash.

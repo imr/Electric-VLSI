@@ -680,12 +680,12 @@ public class Quick
             if (DBMath.hasRemainder(points[i].getX(), minAllowedResolution))
             {
                 count++;
-                resolutionError = (points[i].getX()/minAllowedResolution) % 1;
+                resolutionError = Math.abs(((points[i].getX()/minAllowedResolution) % 1) * minAllowedResolution);
             }
             else if (DBMath.hasRemainder(points[i].getY(), minAllowedResolution))
             {
                 count++;
-                resolutionError = (points[i].getY()/minAllowedResolution) % 1;
+                resolutionError = Math.abs(((points[i].getY()/minAllowedResolution) % 1) * minAllowedResolution);
             }
 		}
 		if (count == 0) return false; // no error
@@ -1321,7 +1321,7 @@ public class Quick
                             Rectangle2D trueBox2 = npoly.getBox();
                             if (trueBox2 == null) trueBox1 = npoly.getBounds2D();
                             ret = checkMinDefects(cell,maytouch, geom, poly, trueBox1, layer,
-                                    nGeom, npoly, trueBox2, nLayer);
+                                    nGeom, npoly, trueBox2, nLayer, topCell);
                             if (ret)
                             {
                                 foundError = true;
@@ -1408,8 +1408,8 @@ public class Quick
                         if (trueBox1 == null) trueBox1 = poly.getBounds2D();
                         Rectangle2D trueBox2 = nPoly.getBox();
                         if (trueBox2 == null) trueBox1 = nPoly.getBounds2D();
-                        ret = checkMinDefects(cell,maytouch, geom, poly, trueBox1, layer,
-                                nGeom, nPoly, trueBox2, nLayer);
+                        ret = checkMinDefects(cell, maytouch, geom, poly, trueBox1, layer,
+                                nGeom, nPoly, trueBox2, nLayer, topCell);
                         if (ret)
                         {
                             foundError = true;
@@ -1429,10 +1429,8 @@ public class Quick
                     if (theRule == null) continue;
 
 					// check the distance
-				    ret = checkDist(tech, topCell, topGlobalIndex,
-						poly, layer, net, geom, trans, globalIndex,
-						nPoly, nLayer, nNet, nGeom, upTrans, cellGlobalIndex,
-						con, theRule, edge);
+				    ret = checkDist(tech, topCell, topGlobalIndex, poly, layer, net, geom, trans, globalIndex,
+                            nPoly, nLayer, nNet, nGeom, upTrans, cellGlobalIndex, con, theRule, edge);
 					if (ret)
                     {
                         foundError = true;
@@ -1458,7 +1456,7 @@ public class Quick
      * @return true if error was found
      */
     private boolean checkMinDefects(Cell cell, boolean maytouch, Geometric geom1, Poly poly1, Rectangle2D trueBox1, Layer layer1,
-                                    Geometric geom2, Poly poly2, Rectangle2D trueBox2, Layer layer2)
+                                    Geometric geom2, Poly poly2, Rectangle2D trueBox2, Layer layer2, Cell topCell)
     {
         if (trueBox1 == null || trueBox2 == null) return false;
         if (!maytouch) return false;
@@ -1509,7 +1507,7 @@ public class Quick
         if (actual != 0 && DBMath.isGreaterThan(minWidth, actual) &&
             foundSmallSizeDefect(cell, geom1, poly1, layer1, geom2, poly2, pd, lxb, lyb, hxb, hyb))
         {
-            reportError(MINWIDTHERROR, null, cell, minWidth, actual, wRule.ruleName, new Poly(bounds),
+            reportError(MINWIDTHERROR, null, topCell, minWidth, actual, wRule.ruleName, new Poly(bounds),
                             geom1, layer1, null, geom2, layer2);
             foundError = true;
         }
@@ -1651,9 +1649,9 @@ public class Quick
 	 * Returns TRUE if an error has been found.
 	 */
 	private boolean checkDist(Technology tech, Cell cell, int globalIndex,
-		Poly poly1, Layer layer1, int net1, Geometric geom1, AffineTransform trans1, int globalIndex1,
-		Poly poly2, Layer layer2, int net2, Geometric geom2, AffineTransform trans2, int globalIndex2,
-		boolean con, DRCRules.DRCRule theRule, boolean edge)
+                              Poly poly1, Layer layer1, int net1, Geometric geom1, AffineTransform trans1, int globalIndex1,
+                              Poly poly2, Layer layer2, int net2, Geometric geom2, AffineTransform trans2, int globalIndex2,
+                              boolean con, DRCRules.DRCRule theRule, boolean edge)
 	{
 		// turn off flag that the nodeinst may be undersized
 		tinyNodeInst = null;
@@ -1712,7 +1710,7 @@ public class Quick
 			{
 				// they are electrically connected: see if they touch
 				overlap = (pd < 0);
-                if (checkMinDefects(cell, maytouch, geom1, poly1, trueBox1, layer2, geom2, poly2, trueBox2, layer2))
+                if (checkMinDefects(cell, maytouch, geom1, poly1, trueBox1, layer2, geom2, poly2, trueBox2, layer2, cell))
                 {
                     if (errorTypeSearch != DRC.ERROR_CHECK_EXHAUSTIVE) return true;
                 }
@@ -4311,7 +4309,7 @@ public class Quick
                     break;
 			}
 
-			errorMessage.append(" " + cell);
+			errorMessage.append(" " + cell + " ");
 			if (geom1 != null)
 			{
 				errorMessage.append(geom1);
