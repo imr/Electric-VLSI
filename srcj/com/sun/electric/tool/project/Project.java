@@ -1086,6 +1086,7 @@ public class Project extends Listener
 		{
 			FCheck f = (FCheck)it.next();
 			Cell cell = f.entry;
+			if (cell == null) continue;
 
 			// make sure cell is checked-out
 			if (cell.getVar(PROJLOCKEDKEY) != null)

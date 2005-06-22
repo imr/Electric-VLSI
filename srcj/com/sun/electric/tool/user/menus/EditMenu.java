@@ -67,6 +67,7 @@ import com.sun.electric.tool.user.dialogs.Spread;
 import com.sun.electric.tool.user.tecEdit.LibToTech;
 import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.tecEdit.TechToLib;
+import com.sun.electric.tool.user.ui.CurveListener;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.OutlineListener;
 import com.sun.electric.tool.user.ui.SizeListener;
@@ -249,7 +250,7 @@ public class EditMenu {
         editPropertiesSubMenu.addMenuItem("Update Attributes Inheritance all _Libraries", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { updateInheritance(true); } });
 
-		// mnemonic keys available:   C E G I KLM OPQ S UVWXYZ
+		// mnemonic keys available:     E G I KL  OPQ S  VWXYZ
 		MenuBar.Menu arcSubMenu = MenuBar.makeMenu("Ar_c");
 		editMenu.add(arcSubMenu);
 		arcSubMenu.addMenuItem("_Rigid", null,
@@ -272,6 +273,13 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { insertJogInArcCommand(); } });
 		arcSubMenu.addMenuItem("Rip _Bus", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.ripBus(); }});
+		arcSubMenu.addSeparator();
+		arcSubMenu.addMenuItem("_Curve through Cursor", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CurveListener.setCurvature(true); } });
+		arcSubMenu.addMenuItem("Curve abo_ut Cursor", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CurveListener.setCurvature(false); }});
+		arcSubMenu.addMenuItem("Re_move Curvature", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CurveListener.removeCurvature(); }});
 
 		// mnemonic keys available: ABCD FGHIJKL NOPQR TUVWXYZ
 		MenuBar.Menu modeSubMenu = MenuBar.makeMenu("M_odes");

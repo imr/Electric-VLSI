@@ -47,7 +47,6 @@ import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -58,8 +57,6 @@ import javax.swing.event.DocumentListener;
  */
 public class DesignRulesTab extends PreferencePanel
 {
-	private static final int MAXSPACINGRULES = 3;
-
 	/** Creates new form DesignRulesTab */
 	public DesignRulesTab(Frame parent, boolean modal)
 	{
@@ -70,13 +67,14 @@ public class DesignRulesTab extends PreferencePanel
 
 	public String getName() { return "Design Rules"; }
 
-	private JList designRulesFromList, designRulesToList;
-	private DefaultListModel designRulesFromModel, designRulesToModel;
+	private JList designRulesFromList, designRulesToList, designRulesNodeList;
+	private DefaultListModel designRulesFromModel, designRulesToModel, designRulesNodeModel;
 	private DRCRules drRules;
 	private boolean designRulesUpdating = false;
 	private boolean designRulesFactoryReset = false;
 	private boolean [] designRulesValidLayers;
-	private JTextField [] widths, lengths, spacings, lSpacingRules;
+	private List wideSpacingRules;
+	private int foundry;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -96,16 +94,9 @@ public class DesignRulesTab extends PreferencePanel
 			drNormalUnconnectedRule.setEnabled(false);
 			drNormalEdge.setEnabled(false);
 			drNormalEdgeRule.setEnabled(false);
-			drWidth1.setEnabled(false);
-			drWidth2.setEnabled(false);
-			drWidth3.setEnabled(false);
-			drLength1.setEnabled(false);
-			drLength2.setEnabled(false);
-			drLength3.setEnabled(false);
-			drLayerSpacing1.setEnabled(false);
-			drLayerSpacing2.setEnabled(false);
-			drLayerSpacing3.setEnabled(false);
-			drDefSpacing.setEnabled(false);
+			drWidths.setEnabled(false);
+			drLengths.setEnabled(false);
+			drLayerSpacings.setEnabled(false);
 			drMultiConnected.setEnabled(false);
 			drMultiConnectedRule.setEnabled(false);
 			drMultiUnconnected.setEnabled(false);
@@ -114,66 +105,7 @@ public class DesignRulesTab extends PreferencePanel
 			return;
 		}
 
-		widths = new JTextField[MAXSPACINGRULES];
-		widths[0] = drWidth1;           widths[1] = drWidth2;           widths[2] = drWidth3;
-		lengths = new JTextField[MAXSPACINGRULES];
-		lengths[0] = drLength1;         lengths[1] = drLength2;         lengths[2] = drLength3;
-		spacings = new JTextField[MAXSPACINGRULES];
-		spacings[0] = drLayerSpacing1;  spacings[1] = drLayerSpacing2;  spacings[2] = drLayerSpacing3;
-		lSpacingRules = new JTextField[MAXSPACINGRULES];
-		lSpacingRules[0] = drLayerRule1; lSpacingRules[1] = drLayerRule2; lSpacingRules[2] = drLayerRule3;
-
         drRules = rules;
-
-		// build the "from" layer/node list
-		designRulesFromModel = new DefaultListModel();
-		designRulesFromList = new JList(designRulesFromModel);
-		designRulesFromList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		drFromList.setViewportView(designRulesFromList);
-		designRulesFromList.clearSelection();
-		designRulesFromList.addMouseListener(new MouseAdapter()
-		{
-			public void mouseClicked(MouseEvent evt) { designRulesGetSelectedLayerLoadDRCToList(); }
-		});
-
-		// build the "to" layer list
-		designRulesToModel = new DefaultListModel();
-		designRulesToList = new JList(designRulesToModel);
-		designRulesToList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		drToList.setViewportView(designRulesToList);
-		designRulesToList.clearSelection();
-		designRulesToList.addMouseListener(new MouseAdapter()
-		{
-			public void mouseClicked(MouseEvent evt) { designRulesShowSelectedLayerRules(); }
-		});
-
-		// catch the "show only lines with valid rules" checkbox
-		drShowOnlyLinesWithRules.addMouseListener(new MouseAdapter()
-		{
-			public void mouseClicked(MouseEvent evt) { designRulesGetSelectedLayerLoadDRCToList(); }
-		});
-
-		// have changes to edit fields get detected immediately
-		DRCDocumentListener myDocumentListener = new DRCDocumentListener(this);
-		drNormalConnected.getDocument().addDocumentListener(myDocumentListener);
-		drNormalConnectedRule.getDocument().addDocumentListener(myDocumentListener);
-		drNormalUnconnected.getDocument().addDocumentListener(myDocumentListener);
-		drNormalUnconnectedRule.getDocument().addDocumentListener(myDocumentListener);
-		drNormalEdge.getDocument().addDocumentListener(myDocumentListener);
-		drNormalEdgeRule.getDocument().addDocumentListener(myDocumentListener);
-		drWidth1.getDocument().addDocumentListener(myDocumentListener);
-		drWidth2.getDocument().addDocumentListener(myDocumentListener);
-		drWidth3.getDocument().addDocumentListener(myDocumentListener);
-		drLength1.getDocument().addDocumentListener(myDocumentListener);
-		drLength2.getDocument().addDocumentListener(myDocumentListener);
-		drLength3.getDocument().addDocumentListener(myDocumentListener);
-		drLayerSpacing1.getDocument().addDocumentListener(myDocumentListener);
-		drLayerSpacing2.getDocument().addDocumentListener(myDocumentListener);
-		drLayerSpacing3.getDocument().addDocumentListener(myDocumentListener);
-		drMultiConnected.getDocument().addDocumentListener(myDocumentListener);
-		drMultiConnectedRule.getDocument().addDocumentListener(myDocumentListener);
-		drMultiUnconnected.getDocument().addDocumentListener(myDocumentListener);
-		drMultiUnconnectedRule.getDocument().addDocumentListener(myDocumentListener);
 
 		// figure out which layers are valid
         int numLayers = curTech.getNumLayers();
@@ -204,6 +136,88 @@ public class DesignRulesTab extends PreferencePanel
 			}
 		}
 
+		// build the "node" list
+		designRulesNodeModel = new DefaultListModel();
+		designRulesNodeList = new JList(designRulesNodeModel);
+		designRulesNodeList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		drNodeList.setViewportView(designRulesNodeList);
+		designRulesNodeList.clearSelection();
+		designRulesNodeList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { designRulesGetSelectedNode(); }
+		});
+		for(Iterator it = curTech.getNodes(); it.hasNext(); )
+		{
+			PrimitiveNode np = (PrimitiveNode)it.next();
+			designRulesNodeModel.addElement(np.getName());
+		}
+		designRulesNodeList.setSelectedIndex(0);
+
+		// build the "from" layer list
+		designRulesFromModel = new DefaultListModel();
+		designRulesFromList = new JList(designRulesFromModel);
+		designRulesFromList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		drFromList.setViewportView(designRulesFromList);
+		designRulesFromList.clearSelection();
+		designRulesFromList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { designRulesGetSelectedLayerLoadDRCToList(); }
+		});
+        for(int i=0; i<designRulesValidLayers.length; i++)
+		{
+			if (!designRulesValidLayers[i]) continue;
+            designRulesFromModel.addElement(curTech.getLayer(i).getName());
+		}
+		designRulesFromList.setSelectedIndex(0);
+
+		// build the "to" layer list
+		designRulesToModel = new DefaultListModel();
+		designRulesToList = new JList(designRulesToModel);
+		designRulesToList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		drToList.setViewportView(designRulesToList);
+		designRulesToList.clearSelection();
+		designRulesToList.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { designRulesShowSelectedLayerRules(); }
+		});
+
+		// catch the "show only lines with valid rules" checkbox
+		drShowOnlyLinesWithRules.addMouseListener(new MouseAdapter()
+		{
+			public void mouseClicked(MouseEvent evt) { designRulesGetSelectedLayerLoadDRCToList(); }
+		});
+
+		// catch changes to the width rules popup
+		drWidthLabel.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { widePopupChanged(); }
+		});
+		drAddRule.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { addWideRule(); }
+		});
+
+		// have changes to edit fields get detected immediately
+		designRulesUpdating = false;
+		DRCDocumentListener myDocumentListener = new DRCDocumentListener(this);
+		drNormalConnected.getDocument().addDocumentListener(myDocumentListener);
+		drNormalConnectedRule.getDocument().addDocumentListener(myDocumentListener);
+		drNormalUnconnected.getDocument().addDocumentListener(myDocumentListener);
+		drNormalUnconnectedRule.getDocument().addDocumentListener(myDocumentListener);
+		drNormalEdge.getDocument().addDocumentListener(myDocumentListener);
+		drNormalEdgeRule.getDocument().addDocumentListener(myDocumentListener);
+		drWidths.getDocument().addDocumentListener(myDocumentListener);
+		drLengths.getDocument().addDocumentListener(myDocumentListener);
+		drLayerRules.getDocument().addDocumentListener(myDocumentListener);
+		drLayerSpacings.getDocument().addDocumentListener(myDocumentListener);
+		drMultiConnected.getDocument().addDocumentListener(myDocumentListener);
+		drMultiConnectedRule.getDocument().addDocumentListener(myDocumentListener);
+		drMultiUnconnected.getDocument().addDocumentListener(myDocumentListener);
+		drMultiUnconnectedRule.getDocument().addDocumentListener(myDocumentListener);
+		drNodeWidth.getDocument().addDocumentListener(myDocumentListener);
+		drNodeHeight.getDocument().addDocumentListener(myDocumentListener);
+		drNodeRule.getDocument().addDocumentListener(myDocumentListener);
+
 		factoryReset.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { factoryResetDRCActionPerformed(evt); }
@@ -211,19 +225,20 @@ public class DesignRulesTab extends PreferencePanel
 
 		// load the dialog
 		drTechName.setText("Design Rules for Technology '" + curTech.getTechName() + "'");
-		designRulesSetupForLayersOrNodes();
+
 		designRulesGetSelectedLayerLoadDRCToList();
 
         // Foundry
+        foundry = curTech.getFoundry();
         for (Iterator it = curTech.getFactories(); it.hasNext(); )
         {
             Technology.Foundry factory = (Technology.Foundry)it.next();
             defaultFoundryPulldown.addItem(factory.name);
         }
-        defaultFoundryPulldown.setSelectedItem(curTech.getSelectedFoundry());
+        defaultFoundryPulldown.setSelectedItem(foundry);
 
         // Resolution
-		drcResolutionValue.setText(TextUtils.formatDouble(curTech.getResolution()));
+		drResolutionValue.setText(TextUtils.formatDouble(curTech.getResolution()));
 	}
 
 	private void factoryResetDRCActionPerformed(ActionEvent evt)
@@ -240,7 +255,7 @@ public class DesignRulesTab extends PreferencePanel
 	 */
 	private static class DRCDocumentListener implements DocumentListener
 	{
-		DesignRulesTab dialog;
+		private DesignRulesTab dialog;
 
 		DRCDocumentListener(DesignRulesTab dialog) { this.dialog = dialog; }
 
@@ -263,74 +278,125 @@ public class DesignRulesTab extends PreferencePanel
 		if (layer2 < 0) return;
         int dindex = curTech.getRuleIndex(layer1, layer2);
 
-		// get new width limit
-        List list = new ArrayList(7);
-        int techMode = curTech.getFoundry();
-
 		// get new normal spacing values
+        List list = new ArrayList();
 		double value = TextUtils.atof(drNormalConnected.getText());
-        list.add(new DRCTemplate(drNormalConnectedRule.getText(), techMode, DRCTemplate.CONSPA,
+        list.add(new DRCTemplate(drNormalConnectedRule.getText(), foundry, DRCTemplate.CONSPA,
                 0, 0, null, null, value, false));
 		value = TextUtils.atof(drNormalUnconnected.getText());
-        list.add(new DRCTemplate(drNormalUnconnectedRule.getText(), techMode, DRCTemplate.UCONSPA,
+        list.add(new DRCTemplate(drNormalUnconnectedRule.getText(), foundry, DRCTemplate.UCONSPA,
                 0, 0, null, null, value, false));
         drRules.setSpacingRules(dindex, list, DRCTemplate.SPACING);
-
-        // get new wide spacing values
-        list.clear();
-		for(int i=0; i<MAXSPACINGRULES; i++)
-		{
-			value = TextUtils.atof(spacings[i].getText());
-			if (value == 0) break;
-			double width = TextUtils.atof(widths[i].getText());
-			double length = TextUtils.atof(lengths[i].getText());
-	        list.add(new DRCTemplate(lSpacingRules[i].getText(), techMode, DRCTemplate.CONSPA,
-				width, length, null, null, value, false));
-		}
-        drRules.setSpacingRules(dindex, list, DRCTemplate.SPACINGW);
 
 		// get new multicut spacing values
         list.clear();
         value = TextUtils.atof(drMultiConnected.getText());
-        list.add(new DRCTemplate(drMultiConnectedRule.getText(), techMode, DRCTemplate.CONSPA,
+        list.add(new DRCTemplate(drMultiConnectedRule.getText(), foundry, DRCTemplate.CONSPA,
                 0, 0, null, null, value, true));
 		value = TextUtils.atof(drMultiUnconnected.getText());
-        list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), techMode, DRCTemplate.UCONSPA,
+        list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), foundry, DRCTemplate.UCONSPA,
                 0, 0, null, null, value, true));
         drRules.setSpacingRules(dindex, list, DRCTemplate.CUTSPA);
 
 		// get new edge values
         list.clear();
         value = TextUtils.atof(drNormalEdge.getText());
-        list.add(new DRCTemplate(drNormalEdgeRule.getText(), techMode, DRCTemplate.CONSPA,
+        list.add(new DRCTemplate(drNormalEdgeRule.getText(), foundry, DRCTemplate.CONSPA,
                 0, 0, null, null, value, false));
         drRules.setSpacingRules(dindex, list, DRCTemplate.SPACINGE);
 
-		// redraw the entry in the "to" list
-		int lineNo = designRulesToList.getSelectedIndex();
-		String line = drMakeToListLine(dindex, lineNo, false);
-		designRulesToModel.setElementAt(line, lineNo);
-	}
-
-	private void designRulesSetupForLayersOrNodes()
-	{
-		designRulesFromModel.clear();
-		designRulesUpdating = true;
-
-		// list the layers
-        for(int i=0; i<designRulesValidLayers.length; i++)
+        // get new wide spacing values
+		int curWid = drWidthLabel.getItemCount();
+		if (curWid >= 0 && curWid < wideSpacingRules.size())
 		{
-			if (!designRulesValidLayers[i]) continue;
-            designRulesFromModel.addElement(curTech.getLayer(i).getName());
+			DRCRules.DRCRule wr = (DRCRules.DRCRule)wideSpacingRules.get(curWid);
+			String widText = drWidths.getText().trim();
+			String lenText = drLengths.getText().trim();
+			if (widText.length() > 0 || lenText.length() > 0)
+			{
+				wr.maxWidth = TextUtils.atof(widText);
+				wr.minLength = TextUtils.atof(lenText);
+				wr.value = TextUtils.atof(drLayerSpacings.getText());
+				wr.ruleName = drLayerRules.getText();
+		        drRules.setSpacingRules(dindex, wideSpacingRules, DRCTemplate.SPACINGW);
+			}
 		}
 
-		designRulesFromList.setSelectedIndex(0);
+		// pickup changes to node rules
+		int nodeIndex = designRulesNodeList.getSelectedIndex();
+		String widthText = drNodeWidth.getText().trim();
+		String heightText = drNodeHeight.getText().trim();
+		double width = -1, height = -1;
+		if (widthText.length() > 0 || heightText.length() > 0)
+		{
+			width = TextUtils.atof(widthText);
+			height = TextUtils.atof(heightText);
+		}
+		drRules.setMinNodeSize(nodeIndex, drNodeRule.getText(), width, height);
+
+		// pickup changes to layer minimum size rule
+		Layer layer = curTech.getLayer(layer1);
+		double minSize = -1;
+		String minSizeText = drLayerWidth.getText().trim();
+		if (minSizeText.length() > 0) minSize = TextUtils.atof(minSizeText);
+		// TODO: how to do this?
+//		DRC.setMinValue(layer, drLayerWidthRule.getText(), minSize, DRCTemplate.MINWID, foundry);
+	}
+
+	/**
+	 * Method to handle selection of a different node in the top scroll list.
+	 */
+	private void designRulesGetSelectedNode()
+	{
+		designRulesUpdating = true;
+		int nodeIndex = designRulesNodeList.getSelectedIndex();
+		DRCRules.DRCNodeRule nr = drRules.getMinNodeSize(nodeIndex);
+		drNodeWidth.setText("");
+	    drNodeHeight.setText("");
+		drNodeRule.setText("");
+		if (nr != null)
+		{
+			if (nr.getWidth() >= 0) drNodeWidth.setText(TextUtils.formatDouble(nr.getWidth()));
+			if (nr.getHeight() >= 0) drNodeHeight.setText(TextUtils.formatDouble(nr.getHeight()));
+			drNodeRule.setText(nr.ruleName);
+		}
 		designRulesUpdating = false;
 	}
 
 	/**
-	 * Method to show the detail on the selected layer/node in the upper scroll area.
-	 * Also called when the user clicks on the "show only lines with rules" checkbox.
+	 * Method called when the wide rules popup changes.
+	 */
+	private void widePopupChanged()
+	{
+		int index = drWidthLabel.getSelectedIndex();
+		if (index < 0 || index >= wideSpacingRules.size()) return;
+		designRulesUpdating = true;
+		DRCRules.DRCRule tmp = (DRCRules.DRCRule)wideSpacingRules.get(index);
+		drWidths.setText("");
+		drLengths.setText("");
+		drLayerRules.setText("");
+		drLayerSpacings.setText("");
+		if (tmp.maxWidth != 0) drWidths.setText(Double.toString(tmp.maxWidth));
+		if (tmp.minLength != 0) drLengths.setText(Double.toString(tmp.minLength));
+		drLayerSpacings.setText(Double.toString(tmp.value));
+		drLayerRules.setText(tmp.ruleName);
+		designRulesUpdating = false;
+	}
+
+	/**
+	 * Method called when the "add rule" button is pushed to add a new wide rule.
+	 */
+	private void addWideRule()
+	{
+		int soFar = drWidthLabel.getItemCount();
+		drWidthLabel.addItem("Rule " + (soFar+1));
+		DRCRules.DRCRule newRule = new DRCRules.DRCRule("", 0, 0, 0, DRCTemplate.SPACINGW);
+		wideSpacingRules.add(newRule);
+		drWidthLabel.setSelectedIndex(soFar);
+	}
+
+	/**
+	 * Method called when the user clicks on the "from layer" list or the "show only lines with rules" checkbox.
 	 */
 	private void designRulesGetSelectedLayerLoadDRCToList()
 	{
@@ -357,102 +423,26 @@ public class DesignRulesTab extends PreferencePanel
 			}
 			if (count > 0) designRulesToList.setSelectedIndex(0);
 		}
+
+		// show minimum layer size
+		Layer layer = curTech.getLayer(j);
+        DRCRules.DRCRule lr = DRC.getMinValue(layer, DRCTemplate.MINWID, foundry);
+        if (lr != null)
+		{
+			drLayerWidth.setText(TextUtils.formatDouble(lr.value));
+		    drLayerWidthRule.setText(lr.ruleName);
+		} else
+		{
+			drLayerWidth.setText("");
+		    drLayerWidthRule.setText("");
+		}
+
 		designRulesUpdating = false;
 		designRulesShowSelectedLayerRules();
-
-        int techMode = curTech.getFoundry();
-        int dindex = curTech.getRuleIndex(j, j);
-		List spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGW, techMode);
-		int rulesFilled = 0;
-		for (int i = 0; i < spacingRules.size(); i++)
-		{
-			DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
-            if (tmp.type != DRCTemplate.CONSPA) continue;
-			if (rulesFilled >= MAXSPACINGRULES) break;
-			if (tmp.maxWidth == 0) widths[rulesFilled].setText(""); else
-				widths[rulesFilled].setText(Double.toString(tmp.maxWidth));
-			if (tmp.minLength == 0) lengths[rulesFilled].setText(""); else
-				lengths[rulesFilled].setText(Double.toString(tmp.minLength));
-			spacings[rulesFilled].setText(Double.toString(tmp.value));
-			lSpacingRules[rulesFilled].setText(tmp.ruleName);
-			rulesFilled++;
-		}
-		for (int i = rulesFilled; i < MAXSPACINGRULES; i++)
-		{
-			widths[i].setText("");
-			lengths[i].setText("");
-			spacings[i].setText("");
-			lSpacingRules[i].setText("");
-		}
-
-		// fill in the default
-		drDefSpacing.setText("");
-		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, techMode);
-		for (int i = 0; i < spacingRules.size(); i++)
-		{
-			DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
-            if (tmp.type != DRCTemplate.CONSPA) continue;
-			drDefSpacing.setText(Double.toString(tmp.value));
-			break;
-		}
-	}
-
-	private String drMakeToListLine(int dindex, int lindex, boolean onlyValid)
-	{
-		String conDist = "";
-		String unConDist = "";
-        int techMode = curTech.getFoundry();
-        List spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, techMode);
-        for (int i = 0; i < spacingRules.size(); i++)
-        {
-            DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
-            if (tmp.type == DRCTemplate.CONSPA) conDist = Double.toString(tmp.value);
-            else if (tmp.type == DRCTemplate.UCONSPA) unConDist = Double.toString(tmp.value);
-        }
-		String conDistMulti = "";
-		String unConDistMulti = "";
-        spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.CUTSPA, techMode);
-        for (int i = 0; i < spacingRules.size(); i++)
-        {
-            DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
-            if (tmp.type == DRCTemplate.CONSPA) conDistMulti = Double.toString(tmp.value);
-            else if (tmp.type == DRCTemplate.UCONSPA) unConDistMulti = Double.toString(tmp.value);
-        }
-		String edgeDist = "";
-        spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGE, techMode);
-        for (int i = 0; i < spacingRules.size(); i++)
-        {
-            DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
-            // Any is fine
-            edgeDist = Double.toString(tmp.value);
-        }
-		if (onlyValid)
-		{
-			if (conDist.length() == 0 && unConDist.length() == 0 &&
-				conDistMulti.length() == 0 && unConDistMulti.length() == 0 && edgeDist.length() == 0)
-					return "";
-		}
-        String ret = curTech.getLayer(lindex).getName() + " (" +
-			conDist + "/" + unConDist + "/" + conDistMulti + "/" +
-			unConDistMulti + "/" + edgeDist + ")";
-		return ret;
-	}
-
-	private int designRulesGetSelectedLayer(JList theList)
-	{
-		int lineNo = theList.getSelectedIndex();
-		if (lineNo < 0) return -1;
-		String lName = (String)theList.getSelectedValue();
-		int termPos = lName.indexOf(" (");
-		if (termPos >= 0) lName = lName.substring(0, termPos);
-
-		for(int layer=0; layer<designRulesValidLayers.length; layer++)
-			if (lName.equals(curTech.getLayer(layer).getName())) return layer;
-		return -1;
 	}
 
 	/**
-	 * Method called when the user clicks in the bottom list (the "to layer" list).
+	 * Method called when the user clicks in the "to layer" list.
 	 */
 	private void designRulesShowSelectedLayerRules()
 	{
@@ -468,13 +458,12 @@ public class DesignRulesTab extends PreferencePanel
 
 		int layer1 = designRulesGetSelectedLayer(designRulesFromList);
 		int layer2 = designRulesGetSelectedLayer(designRulesToList);
-        int techMode = curTech.getFoundry();
 
 		if (layer1 >= 0 && layer2 >= 0)
 		{
             int dindex = curTech.getRuleIndex(layer1, layer2);
             double wideLimit = 0;
-            List spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, techMode);
+            List spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, foundry);
             for (int i = 0; i < spacingRules.size(); i++)
             {
                 DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
@@ -491,7 +480,27 @@ public class DesignRulesTab extends PreferencePanel
                 if (tmp.maxWidth > 0) wideLimit = tmp.maxWidth;
             }
 
-            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.CUTSPA, techMode);
+			spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGW, foundry);
+			wideSpacingRules = new ArrayList();
+			for(Iterator it = spacingRules.iterator(); it.hasNext(); )
+			{
+				DRCRules.DRCRule tmp = (DRCRules.DRCRule)it.next();
+	            if (tmp.type != DRCTemplate.UCONSPA) continue;
+				wideSpacingRules.add(tmp);
+			}
+			int rulesFilled = 0;
+			drWidthLabel.removeAllItems();
+			for (int i = 0; i < wideSpacingRules.size(); i++)
+				drWidthLabel.addItem("Rule " + (i+1));
+			drWidths.setText("");
+			drLengths.setText("");
+			drLayerRules.setText("");
+			drLayerSpacings.setText("");
+			designRulesUpdating = false;
+			if (wideSpacingRules.size() != 0)
+				drWidthLabel.setSelectedIndex(0);
+			
+            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.CUTSPA, foundry);
             for (int i = 0; i < spacingRules.size(); i++)
             {
                 DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
@@ -507,7 +516,7 @@ public class DesignRulesTab extends PreferencePanel
                 }
             }
 
-            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGE, techMode);
+            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGE, foundry);
             for (int i = 0; i < spacingRules.size(); i++)
             {
                 DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
@@ -517,6 +526,51 @@ public class DesignRulesTab extends PreferencePanel
             }
 		}
 		designRulesUpdating = false;
+	}
+
+	private int designRulesGetSelectedLayer(JList theList)
+	{
+		int lineNo = theList.getSelectedIndex();
+		if (lineNo < 0) return -1;
+		String lName = (String)theList.getSelectedValue();
+		int termPos = lName.indexOf(" (");
+		if (termPos >= 0) lName = lName.substring(0, termPos);
+
+		for(int layer=0; layer<designRulesValidLayers.length; layer++)
+			if (lName.equals(curTech.getLayer(layer).getName())) return layer;
+		return -1;
+	}
+
+	private String drMakeToListLine(int dindex, int lindex, boolean onlyValid)
+	{
+		boolean gotRule = false;
+		List spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, foundry);
+		for (int i = 0; i < spacingRules.size(); i++)
+		{
+			DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
+			if (tmp.value > 0) gotRule = true;
+		}
+		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGW, foundry);
+		for (int i = 0; i < spacingRules.size(); i++)
+		{
+			DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
+			if (tmp.value > 0) gotRule = true;
+		}
+		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.CUTSPA, foundry);
+		for (int i = 0; i < spacingRules.size(); i++)
+		{
+			DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
+			if (tmp.value > 0) gotRule = true;
+		}
+		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGE, foundry);
+		for (int i = 0; i < spacingRules.size(); i++)
+		{
+			DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
+			if (tmp.value > 0) gotRule = true;
+		}
+		if (onlyValid && !gotRule) return "";
+        String ret = curTech.getLayer(lindex).getName();
+		return ret;
 	}
 
 	/**
@@ -538,7 +592,7 @@ public class DesignRulesTab extends PreferencePanel
         if (!foundryName.equals(curTech.getSelectedFoundry()))
             curTech.setSelectedFoundry(foundryName);
 
-		double currentResolution = TextUtils.atof(drcResolutionValue.getText());
+		double currentResolution = TextUtils.atof(drResolutionValue.getText());
 		if (currentResolution != curTech.getResolution())
 			curTech.setResolution(currentResolution);
 	}
@@ -548,33 +602,20 @@ public class DesignRulesTab extends PreferencePanel
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents()//GEN-BEGIN:initComponents
-    {
+    private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
         drLayerOrNode = new javax.swing.ButtonGroup();
         designRules = new javax.swing.JPanel();
         top = new javax.swing.JPanel();
-        drLayerSpacing2 = new javax.swing.JTextField();
-        drLength2 = new javax.swing.JTextField();
-        drWidth2 = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
+        drNodeList = new javax.swing.JScrollPane();
         jLabel4 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        drLayerSpacing1 = new javax.swing.JTextField();
-        drLength1 = new javax.swing.JTextField();
-        drWidth1 = new javax.swing.JTextField();
-        drFromList = new javax.swing.JScrollPane();
-        drWidth3 = new javax.swing.JTextField();
-        drLength3 = new javax.swing.JTextField();
-        drLayerSpacing3 = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
-        drLayerRule1 = new javax.swing.JTextField();
-        drLayerRule2 = new javax.swing.JTextField();
-        drLayerRule3 = new javax.swing.JTextField();
         jLabel8 = new javax.swing.JLabel();
-        drDefSpacing = new javax.swing.JLabel();
+        drNodeWidth = new javax.swing.JTextField();
+        drNodeRule = new javax.swing.JTextField();
+        drNodeHeight = new javax.swing.JTextField();
         bottom = new javax.swing.JPanel();
         drMultiUnconnectedRule = new javax.swing.JTextField();
         drMultiUnconnected = new javax.swing.JTextField();
@@ -597,11 +638,33 @@ public class DesignRulesTab extends PreferencePanel
         jLabel42 = new javax.swing.JLabel();
         drToList = new javax.swing.JScrollPane();
         drShowOnlyLinesWithRules = new javax.swing.JCheckBox();
+        drFromList = new javax.swing.JScrollPane();
+        jLabel1 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        drWidths = new javax.swing.JTextField();
+        drLengths = new javax.swing.JTextField();
+        drLayerSpacings = new javax.swing.JTextField();
+        drLayerRules = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        drWidthLabel = new javax.swing.JComboBox();
+        jSeparator1 = new javax.swing.JSeparator();
+        jSeparator2 = new javax.swing.JSeparator();
+        jLabel10 = new javax.swing.JLabel();
+        drLayerWidth = new javax.swing.JTextField();
+        jLabel11 = new javax.swing.JLabel();
+        drLayerWidthRule = new javax.swing.JTextField();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel48 = new javax.swing.JLabel();
+        jLabel49 = new javax.swing.JLabel();
+        jLabel50 = new javax.swing.JLabel();
+        jLabel54 = new javax.swing.JLabel();
+        drAddRule = new javax.swing.JButton();
         drTechName = new javax.swing.JLabel();
         defaultFoundryLabel = new javax.swing.JLabel();
         defaultFoundryPulldown = new javax.swing.JComboBox();
-        drcResolutionLabel = new javax.swing.JLabel();
-        drcResolutionValue = new javax.swing.JTextField();
+        drResolutionLabel = new javax.swing.JLabel();
+        drResolutionValue = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
         factoryReset = new javax.swing.JButton();
 
@@ -609,10 +672,8 @@ public class DesignRulesTab extends PreferencePanel
 
         setTitle("Tool Options");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 closeDialog(evt);
             }
         });
@@ -621,347 +682,419 @@ public class DesignRulesTab extends PreferencePanel
 
         top.setLayout(new java.awt.GridBagLayout());
 
-        top.setBorder(new javax.swing.border.TitledBorder("From Layer"));
-        drLayerSpacing2.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(drLayerSpacing2, gridBagConstraints);
-
-        drLength2.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(drLength2, gridBagConstraints);
-
-        drWidth2.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(drWidth2, gridBagConstraints);
-
-        jLabel5.setText("Spacing rules for From layer:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(jLabel5, gridBagConstraints);
-
-        jLabel4.setText("Min. Spacing");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(jLabel4, gridBagConstraints);
-
-        jLabel3.setText("Length >");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(jLabel3, gridBagConstraints);
-
-        jLabel2.setText("Width >");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(jLabel2, gridBagConstraints);
-
-        drLayerSpacing1.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(drLayerSpacing1, gridBagConstraints);
-
-        drLength1.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(drLength1, gridBagConstraints);
-
-        drWidth1.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(drWidth1, gridBagConstraints);
-
-        drFromList.setPreferredSize(new java.awt.Dimension(75, 100));
+        top.setBorder(new javax.swing.border.TitledBorder("Node Rules"));
+        drNodeList.setOpaque(false);
+        drNodeList.setPreferredSize(new java.awt.Dimension(200, 100));
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridheight = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        top.add(drFromList, gridBagConstraints);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        top.add(drNodeList, gridBagConstraints);
 
-        drWidth3.setColumns(6);
+        jLabel4.setText("Width:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(drWidth3, gridBagConstraints);
+        top.add(jLabel4, gridBagConstraints);
 
-        drLength3.setColumns(6);
+        jLabel5.setText("Height:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        top.add(jLabel5, gridBagConstraints);
+
+        jLabel7.setText("Minimum Size");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(drLength3, gridBagConstraints);
-
-        drLayerSpacing3.setColumns(6);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(drLayerSpacing3, gridBagConstraints);
-
-        jLabel7.setText("Default spacing:");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         top.add(jLabel7, gridBagConstraints);
 
-        drLayerRule1.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(drLayerRule1, gridBagConstraints);
-
-        drLayerRule2.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(drLayerRule2, gridBagConstraints);
-
-        drLayerRule3.setColumns(8);
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 4;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(drLayerRule3, gridBagConstraints);
-
         jLabel8.setText("Rule");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         top.add(jLabel8, gridBagConstraints);
 
-        drDefSpacing.setText(" ");
+        drNodeWidth.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        top.add(drNodeWidth, gridBagConstraints);
+
+        drNodeRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        top.add(drDefSpacing, gridBagConstraints);
+        top.add(drNodeRule, gridBagConstraints);
+
+        drNodeHeight.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        top.add(drNodeHeight, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         designRules.add(top, gridBagConstraints);
 
         bottom.setLayout(new java.awt.GridBagLayout());
 
-        bottom.setBorder(new javax.swing.border.TitledBorder("To Layer"));
+        bottom.setBorder(new javax.swing.border.TitledBorder("Layer Rules"));
         drMultiUnconnectedRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 4);
         bottom.add(drMultiUnconnectedRule, gridBagConstraints);
 
         drMultiUnconnected.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         bottom.add(drMultiUnconnected, gridBagConstraints);
 
         drMultiConnectedRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 4);
         bottom.add(drMultiConnectedRule, gridBagConstraints);
 
         drMultiConnected.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         bottom.add(drMultiConnected, gridBagConstraints);
 
         drNormalEdgeRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 4);
         bottom.add(drNormalEdgeRule, gridBagConstraints);
 
         drNormalEdge.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         bottom.add(drNormalEdge, gridBagConstraints);
 
         drNormalUnconnectedRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 4);
         bottom.add(drNormalUnconnectedRule, gridBagConstraints);
 
         drNormalUnconnected.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         bottom.add(drNormalUnconnected, gridBagConstraints);
 
         drNormalConnectedRule.setColumns(9);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 4);
         bottom.add(drNormalConnectedRule, gridBagConstraints);
 
         drNormalConnected.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
         bottom.add(drNormalConnected, gridBagConstraints);
 
         jLabel53.setText("Not connected:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 4);
         bottom.add(jLabel53, gridBagConstraints);
 
         jLabel52.setText("When connected:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 12;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 4);
         bottom.add(jLabel52, gridBagConstraints);
 
         jLabel51.setText("Multiple cuts:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 11;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         bottom.add(jLabel51, gridBagConstraints);
 
         jLabel47.setText("Edge:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 4);
         bottom.add(jLabel47, gridBagConstraints);
 
         jLabel46.setText("Not connected:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 4);
         bottom.add(jLabel46, gridBagConstraints);
 
         jLabel45.setText("When connected:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 14, 4, 4);
         bottom.add(jLabel45, gridBagConstraints);
 
         jLabel44.setText("Rule");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         bottom.add(jLabel44, gridBagConstraints);
 
         jLabel43.setText("Distance");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         bottom.add(jLabel43, gridBagConstraints);
 
         jLabel42.setText("Normal:");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         bottom.add(jLabel42, gridBagConstraints);
 
-        drToList.setPreferredSize(new java.awt.Dimension(150, 200));
+        drToList.setOpaque(false);
+        drToList.setPreferredSize(new java.awt.Dimension(100, 200));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridheight = 7;
+        gridBagConstraints.gridheight = 13;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weightx = 0.5;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         bottom.add(drToList, gridBagConstraints);
 
-        drShowOnlyLinesWithRules.setText("Show only lines with rules");
+        drShowOnlyLinesWithRules.setText("Show only \"to\" entries with rules");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         bottom.add(drShowOnlyLinesWithRules, gridBagConstraints);
 
+        drFromList.setPreferredSize(new java.awt.Dimension(100, 200));
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridheight = 9;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.5;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        bottom.add(drFromList, gridBagConstraints);
+
+        jLabel1.setText("From:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        bottom.add(jLabel1, gridBagConstraints);
+
+        jLabel9.setText("To:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        bottom.add(jLabel9, gridBagConstraints);
+
+        drWidths.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        bottom.add(drWidths, gridBagConstraints);
+
+        drLengths.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        bottom.add(drLengths, gridBagConstraints);
+
+        drLayerSpacings.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 0);
+        bottom.add(drLayerSpacings, gridBagConstraints);
+
+        drLayerRules.setColumns(9);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.insets = new java.awt.Insets(4, 0, 4, 4);
+        bottom.add(drLayerRules, gridBagConstraints);
+
+        jLabel3.setText("and Length >");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 9;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        bottom.add(jLabel3, gridBagConstraints);
+
+        jLabel2.setText("If Width >");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        bottom.add(jLabel2, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 7;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        bottom.add(drWidthLabel, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        bottom.add(jSeparator1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        bottom.add(jSeparator2, gridBagConstraints);
+
+        jLabel10.setText("Min. Width:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 10;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
+        bottom.add(jLabel10, gridBagConstraints);
+
+        drLayerWidth.setColumns(6);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
+        bottom.add(drLayerWidth, gridBagConstraints);
+
+        jLabel11.setText("Rule:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
+        bottom.add(jLabel11, gridBagConstraints);
+
+        drLayerWidthRule.setColumns(9);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 13;
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 4, 4);
+        bottom.add(drLayerWidthRule, gridBagConstraints);
+
+        jLabel12.setText("Wide rules:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        bottom.add(jLabel12, gridBagConstraints);
+
+        jLabel48.setText("Distance");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        bottom.add(jLabel48, gridBagConstraints);
+
+        jLabel49.setText("Rule");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        bottom.add(jLabel49, gridBagConstraints);
+
+        jLabel50.setText("Distance");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        bottom.add(jLabel50, gridBagConstraints);
+
+        jLabel54.setText("Rule");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 11;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        bottom.add(jLabel54, gridBagConstraints);
+
+        drAddRule.setText("Add Rule");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.gridheight = 2;
+        bottom.add(drAddRule, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         designRules.add(bottom, gridBagConstraints);
@@ -970,7 +1103,7 @@ public class DesignRulesTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.gridwidth = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -993,21 +1126,21 @@ public class DesignRulesTab extends PreferencePanel
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(defaultFoundryPulldown, gridBagConstraints);
 
-        drcResolutionLabel.setText("Minimum resolution:");
+        drResolutionLabel.setText("Minimum resolution:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        designRules.add(drcResolutionLabel, gridBagConstraints);
+        designRules.add(drResolutionLabel, gridBagConstraints);
 
-        drcResolutionValue.setColumns(6);
+        drResolutionValue.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        designRules.add(drcResolutionValue, gridBagConstraints);
+        designRules.add(drResolutionValue, gridBagConstraints);
 
         jLabel6.setText("(use 0 to ignore resolution check)");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1019,8 +1152,9 @@ public class DesignRulesTab extends PreferencePanel
 
         factoryReset.setText("Factory Reset");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(factoryReset, gridBagConstraints);
 
@@ -1041,37 +1175,40 @@ public class DesignRulesTab extends PreferencePanel
     private javax.swing.JLabel defaultFoundryLabel;
     private javax.swing.JComboBox defaultFoundryPulldown;
     private javax.swing.JPanel designRules;
-    private javax.swing.JLabel drDefSpacing;
+    private javax.swing.JButton drAddRule;
     private javax.swing.JScrollPane drFromList;
     private javax.swing.ButtonGroup drLayerOrNode;
-    private javax.swing.JTextField drLayerRule1;
-    private javax.swing.JTextField drLayerRule2;
-    private javax.swing.JTextField drLayerRule3;
-    private javax.swing.JTextField drLayerSpacing1;
-    private javax.swing.JTextField drLayerSpacing2;
-    private javax.swing.JTextField drLayerSpacing3;
-    private javax.swing.JTextField drLength1;
-    private javax.swing.JTextField drLength2;
-    private javax.swing.JTextField drLength3;
+    private javax.swing.JTextField drLayerRules;
+    private javax.swing.JTextField drLayerSpacings;
+    private javax.swing.JTextField drLayerWidth;
+    private javax.swing.JTextField drLayerWidthRule;
+    private javax.swing.JTextField drLengths;
     private javax.swing.JTextField drMultiConnected;
     private javax.swing.JTextField drMultiConnectedRule;
     private javax.swing.JTextField drMultiUnconnected;
     private javax.swing.JTextField drMultiUnconnectedRule;
+    private javax.swing.JTextField drNodeHeight;
+    private javax.swing.JScrollPane drNodeList;
+    private javax.swing.JTextField drNodeRule;
+    private javax.swing.JTextField drNodeWidth;
     private javax.swing.JTextField drNormalConnected;
     private javax.swing.JTextField drNormalConnectedRule;
     private javax.swing.JTextField drNormalEdge;
     private javax.swing.JTextField drNormalEdgeRule;
     private javax.swing.JTextField drNormalUnconnected;
     private javax.swing.JTextField drNormalUnconnectedRule;
+    private javax.swing.JLabel drResolutionLabel;
+    private javax.swing.JTextField drResolutionValue;
     private javax.swing.JCheckBox drShowOnlyLinesWithRules;
     private javax.swing.JLabel drTechName;
     private javax.swing.JScrollPane drToList;
-    private javax.swing.JTextField drWidth1;
-    private javax.swing.JTextField drWidth2;
-    private javax.swing.JTextField drWidth3;
-    private javax.swing.JLabel drcResolutionLabel;
-    private javax.swing.JTextField drcResolutionValue;
+    private javax.swing.JComboBox drWidthLabel;
+    private javax.swing.JTextField drWidths;
     private javax.swing.JButton factoryReset;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -1081,13 +1218,20 @@ public class DesignRulesTab extends PreferencePanel
     private javax.swing.JLabel jLabel45;
     private javax.swing.JLabel jLabel46;
     private javax.swing.JLabel jLabel47;
+    private javax.swing.JLabel jLabel48;
+    private javax.swing.JLabel jLabel49;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel50;
     private javax.swing.JLabel jLabel51;
     private javax.swing.JLabel jLabel52;
     private javax.swing.JLabel jLabel53;
+    private javax.swing.JLabel jLabel54;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JSeparator jSeparator2;
     private javax.swing.JPanel top;
     // End of variables declaration//GEN-END:variables
 

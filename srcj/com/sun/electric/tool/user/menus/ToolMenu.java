@@ -305,7 +305,7 @@ public class ToolMenu {
 		netlisters.addSeparator();
 		netlisters.addMenuItem("Write _ArchSim Deck...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { FileMenu.exportCommand(FileType.ARCHSIM, true); } });
-		netlisters.addMenuItem("Display ArcSim _Journal...", null,
+		netlisters.addMenuItem("Display ArchSim _Journal...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Simulate.plotArchSimResults(); } });
 
 		//------------------- ERC

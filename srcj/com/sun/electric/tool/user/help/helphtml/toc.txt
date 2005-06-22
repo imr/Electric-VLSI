@@ -114,6 +114,7 @@ Arcs
   Negation                           =chap05-04-02
   End Extension                      =chap05-04-03
   Naming                             =chap05-04-04
+  Curvature                          =chap05-04-05
  Default Arc Properties              =chap05-05
 
 Advanced Editing

@@ -778,20 +778,20 @@ ETV|D4G1;|pin@12||U
 X
 
 # Cell tech-RoundCMOS{lay}
-Ctech-RoundCMOS;1{lay}|rcmos|902347845000|902350978000||prototype_center()I[-24000,72000]
+Ctech-RoundCMOS;1{lay}|rcmos|902347845000|1119379347000||prototype_center()I[-24000,72000]
 NMetal-1-Polysilicon-Con|contact@0||7|19|6|6||
 NMetal-1-D-Active-Con|contact@1||-23|18|14|14||
-NMetal-1-Metal-2-Con|contact@2||-7|29|4|4||
-ND-Transistor|pin@0||-5|7|10|10||
-ND-Active-Pin|pin@1||3|-1|10|10||
-NPolysilicon-Pin|pin@2||-23|-3|2|2||
+NPolysilicon-Pin|pin@0||-21|-3|2|2||
+ND-Transistor|pin@1||-5|7|10|10||
+ND-Active-Pin|pin@2||7|1|10|10||
 NMetal-2-Pin|pin@3||-27.5|27.5|3|3||
-AD-Active|net@0||10|FIJS1350|pin@0||-5|7|pin@1||3|-1|ARC_radius()I-13500
-APolysilicon|net@1||2|FIJS290|pin@0||-5|7|pin@2||-23|-3|ARC_radius()I-29000
-APolysilicon|net@2||2|FIJS450|contact@0||7|19|pin@0||-5|7|ARC_radius()I29000
-AD-Active|net@3||10|FIJS3285|pin@0||-5|7|contact@1||-23|18|ARC_radius()I-35500
-AMetal-1|net@4||3|FIJS1444|contact@2||-7|29|contact@0||7|19|ARC_radius()I28000
-AMetal-2|net@5||3|FIJS41|contact@2||-7|29|pin@3||-27.5|27.5|ARC_radius()I-34000
+NMetal-1-Metal-2-Con|well@0||-7|29|4|4||
+APolysilicon|net@0||2|FS2120|pin@0||-21|-3|pin@1||-5|7|ARC_radius()I26163
+AD-Active|net@1||10|FS1534|pin@1||-5|7|pin@2||7|1|ARC_radius()I17046
+APolysilicon|net@2||2|FS450|contact@0||7|19|pin@1||-5|7|ARC_radius()I29000
+AD-Active|net@3||10|FS3285|pin@1||-5|7|contact@1||-23|18|ARC_radius()I35500
+AMetal-1|net@4||3|FS1444|well@0||-7|29|contact@0||7|19|ARC_radius()I28000
+AMetal-2|net@5||3|FS41|well@0||-7|29|pin@3||-27.5|27.5|ARC_radius()I34000
 X
 
 # Cell tech-SchematicsAnalog{sch}
