@@ -675,24 +675,26 @@ public class Quick
 		Point2D [] points = poly.getPoints();
 		for (int i=0; i<points.length; i++)
 		{
-//			if ((points[i].getX() % minAllowedResolution) != 0 ||
-//				(points[i].getY() % minAllowedResolution) != 0)
             if (DBMath.hasRemainder(points[i].getX(), minAllowedResolution))
             {
                 count++;
-                resolutionError = Math.abs(((points[i].getX()/minAllowedResolution) % 1) * minAllowedResolution);
+                resolutionError = DBMath.round(Math.abs(((points[i].getX()/minAllowedResolution) % 1) * minAllowedResolution));
+//                DBMath.hasRemainder(points[i].getX(), minAllowedResolution);
+                break; // with one error is enough
             }
             else if (DBMath.hasRemainder(points[i].getY(), minAllowedResolution))
             {
                 count++;
-                resolutionError = Math.abs(((points[i].getY()/minAllowedResolution) % 1) * minAllowedResolution);
+                resolutionError = DBMath.round(Math.abs(((points[i].getY()/minAllowedResolution) % 1) * minAllowedResolution));
+//                DBMath.hasRemainder(points[i].getY(), minAllowedResolution);
+                break;
             }
 		}
 		if (count == 0) return false; // no error
 
         // there was an error, for now print error
         Layer layer = poly.getLayer();
-        reportError(RESOLUTION, "resolution of " + resolutionError + " less than " + minAllowedResolution + " on layer " + layer.getName(), cell, 0, 0, null, poly, geom, null, null, null, null);
+        reportError(RESOLUTION, " resolution of " + resolutionError + " less than " + minAllowedResolution + " on layer " + layer.getName(), cell, 0, 0, null, poly, geom, null, null, null, null);
         return true;
 	}
 

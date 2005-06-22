@@ -101,7 +101,7 @@ public class DBMath extends GenMath {
 	 * @return true if first number is greater.
 	 */
 	public static boolean isGreaterThan(double a, double b) {
-		double actual = DBMath.round(a - b);
+		double actual = round(a - b);
 		return (actual > 0);
 	}
 	
@@ -142,4 +142,16 @@ public class DBMath extends GenMath {
         return areEquals(closestPointOnSegment, pt);
     }
 
+    /**
+     * Method to calcular remainder for doubles and avoid rounding errors
+     * by calculating the remainder for integers instead
+     * @param a
+     * @param divisor
+     * @return
+     */
+    public static boolean hasRemainder(double a, double divisor)
+    {
+        double val = round(a / divisor);
+        return val % 1 != 0;
+    }
 }

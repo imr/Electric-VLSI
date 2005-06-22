@@ -1429,16 +1429,4 @@ public class GenMath
         return num;
     }
 
-    /**
-     * Method to calcular remainder for doubles and avoid rounding errors
-     * by calculating the remainder for integers instead
-     * @param a
-     * @param divisor
-     * @return
-     */
-    public static boolean hasRemainder(double a, double divisor)
-    {
-        double val = a / divisor;
-        return val % 1 != 0;
-    }
 }

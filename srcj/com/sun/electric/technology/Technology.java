@@ -560,6 +560,7 @@ public class Technology implements Comparable
         // Initialize foundries
         foundries = new ArrayList();
         foundries.add(new Foundry("Mosis", DRCTemplate.ALL));
+        setSelectedFoundry("Mosis");  // default
 	}
 
 	private static final String [] extraTechnologies = {"tsmc90.TSMC90"};
@@ -3655,15 +3656,6 @@ public class Technology implements Comparable
 		    Variable var = ni.newVar(TECH_TMPVAR, varName, display);
             var.setOff(0, -6);
             var.setRelSize(fontSize);
-//			if (display)
-//			{
-//				var.setDisplay(true);
-//				MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
-//				td.setOff(0, -6);
-				//td.setAbsSize(12);
-//              td.setRelSize(fontSize);
-//				var.setTextDescriptor(td);
-//			}
 	    }
 
         return ni;
