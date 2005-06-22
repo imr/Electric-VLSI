@@ -342,6 +342,24 @@ public class Technology implements Comparable
 			this.extendB = extendB;
 		}
 
+        /**
+         * Constructs a <CODE>NodeLayer</CODE> from given node
+          * @param node
+         */
+        public NodeLayer(NodeLayer node)
+        {
+            this.layer = node.getLayer();
+			this.portNum = node.getPortNum();
+			this.style = node.getStyle();
+			this.representation = node.getRepresentation();
+            this.descriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(new MutableTextDescriptor());
+			layer.getTechnology().addNodeLayer(this);
+            TechPoint [] oldPoints = node.getPoints();
+			this.points = new TechPoint[oldPoints.length];
+			for(int i=0; i<oldPoints.length; i++) points[i] = oldPoints[i].duplicate();
+			this.lWidth = this.rWidth = this.extentT = this.extendB = 0;
+        }
+
 		/**
 		 * Returns the <CODE>Layer</CODE> object associated with this NodeLayer.
 		 * @return the <CODE>Layer</CODE> object associated with this NodeLayer.
@@ -1762,17 +1780,18 @@ public class Technology implements Comparable
 		int numPolys = numBasicLayers + numExtraLayers + numNegatingBubbles;
 		if (wnd != null) numPolys += ni.numDisplayableVariables(true);
 		Poly [] polys = new Poly[numPolys];
-		
+
+        double xCenter = ni.getAnchorCenterX();
+        double yCenter = ni.getAnchorCenterY();
+// 			double xCenter = ni.getTrueCenterX();
+// 			double yCenter = ni.getTrueCenterY();
+        double xSize = ni.getXSize();
+        double ySize = ni.getYSize();
+
 		// add in the basic polygons
 		int fillPoly = 0;
 		for(int i = 0; i < numBasicLayers; i++)
 		{
-			double xCenter = ni.getAnchorCenterX();
-			double yCenter = ni.getAnchorCenterY();
-// 			double xCenter = ni.getTrueCenterX();
-// 			double yCenter = ni.getTrueCenterY();
-			double xSize = ni.getXSize();
-			double ySize = ni.getYSize();
 			Technology.NodeLayer primLayer = primLayers[i];
 			int representation = primLayer.getRepresentation();
 			if (representation == Technology.NodeLayer.BOX || representation == Technology.NodeLayer.MINBOX)
@@ -1933,19 +1952,11 @@ public class Technology implements Comparable
 		/** cut position of last left-edge cut  (for interior-cut elimination) */	private double cutLeftEdge;
 		/** cut position of last right-edge cut  (for interior-cut elimination) */	private double cutRightEdge;
 
-		/**
-		 * Constructor to initialize for multiple cuts.
-		 * @param ni the NodeInst with multiple cuts.
-		 * @param specialValues the array of special values for the NodeInst.
-		 * The values in "specialValues" are:
-		 *     cuts sized "cutSizeX" x "cutSizeY" (specialValues[0] x specialValues[1])
-		 *     cuts indented at least "cutIndentX/Y" from the node edge (specialValues[2] / specialValues[3])
-		 *     cuts separated by "cutSep1D" if a 1-dimensional contact (specialValues[4])
-		 *     cuts separated by "cutSep2D" if a 2-dimensional contact (specialValues[5])
-		 */
-		public MultiCutData(NodeInst ni, double [] specialValues)
-		{
-			cutSizeX = specialValues[0];
+
+        private void calcultateInternalData(double xSize, double ySize, double anchorCenterX, double anchorCenterY,
+                                            double cutLX, double cutHX, double cutLY, double cutHY, double [] specialValues)
+        {
+            cutSizeX = specialValues[0];
 			cutSizeY = specialValues[1];
 			cutIndentX = specialValues[2];
 			cutIndentY = specialValues[3];
@@ -1953,14 +1964,8 @@ public class Technology implements Comparable
             cutSep2D = specialValues[5];
 
 			// determine the actual node size
-			PrimitiveNode np = (PrimitiveNode)ni.getProto();
-			SizeOffset so = ni.getSizeOffset();
-			double cutLX = so.getLowXOffset();
-			double cutHX = so.getHighXOffset();
-			double cutLY = so.getLowYOffset();
-			double cutHY = so.getHighYOffset();
-			double cutAreaWidth = ni.getXSize() - cutLX - cutHX;
-			double cutAreaHeight = ni.getYSize() - cutLY - cutHY;
+			double cutAreaWidth = xSize - cutLX - cutHX;
+			double cutAreaHeight = ySize - cutLY - cutHY;
 
 			// number of cuts depends on the size
 			// Checking first if configuration gives 2D cuts
@@ -1998,10 +2003,10 @@ public class Technology implements Comparable
 				// prepare for the multiple contact cut locations
 				cutBaseX = (cutAreaWidth-cutIndentX*2 - cutSizeX*cutsX -
 					cutSep*(cutsX-1)) / 2 + (cutLX + cutIndentX + cutSizeX/2) +
-						ni.getAnchorCenterX() - ni.getXSize() / 2;
+						anchorCenterX - xSize / 2;
 				cutBaseY = (cutAreaHeight-cutIndentY*2 - cutSizeY*cutsY -
 					cutSep*(cutsY-1)) / 2 + (cutLY + cutIndentY + cutSizeY/2) +
-						ni.getAnchorCenterY() - ni.getYSize() / 2;
+						anchorCenterY - ySize / 2;
 				if (cutsX > 2 && cutsY > 2)
 				{
 					cutsReasonable = cutsX * 2 + (cutsY-2) * 2;
@@ -2010,6 +2015,29 @@ public class Technology implements Comparable
 					cutRightEdge = cutsX*2 + (cutsY-2)*2;
 				}
 			}
+        }
+
+        public MultiCutData(double xSize, double ySize, double anchorCenterX, double anchorCenterY,
+                            double cutLX, double cutHX, double cutLY, double cutHY, double [] specialValues)
+        {
+            calcultateInternalData(xSize, ySize, anchorCenterX, anchorCenterY, cutLX, cutHX, cutLY, cutHY, specialValues);
+        }
+
+		/**
+		 * Constructor to initialize for multiple cuts.
+		 * @param ni the NodeInst with multiple cuts.
+		 * @param specialValues the array of special values for the NodeInst.
+		 * The values in "specialValues" are:
+		 *     cuts sized "cutSizeX" x "cutSizeY" (specialValues[0] x specialValues[1])
+		 *     cuts indented at least "cutIndentX/Y" from the node edge (specialValues[2] / specialValues[3])
+		 *     cuts separated by "cutSep1D" if a 1-dimensional contact (specialValues[4])
+		 *     cuts separated by "cutSep2D" if a 2-dimensional contact (specialValues[5])
+		 */
+		public MultiCutData(NodeInst ni, double [] specialValues)
+		{
+			SizeOffset so = ni.getSizeOffset();
+            calcultateInternalData(ni.getXSize(), ni.getYSize(), ni.getAnchorCenterX(), ni.getAnchorCenterY(),
+                    so.getLowXOffset(), so.getHighXOffset(), so.getLowYOffset(), so.getHighYOffset(), specialValues);
 
 			// *************** THE OLD WAY ***************
 //			if (cutSep1D != cutSep2D && ((oneDcutsX > 2 && oneDcutsY > 1) || (oneDcutsY > 2 && oneDcutsX > 1)))
@@ -2057,12 +2085,30 @@ public class Technology implements Comparable
 		 */
 		public int numCutsY() { return cutsY; }
 
+        /**
+         * Method to return the size of the cut along X.
+         */
+        public double getCutSizeX() { return cutSizeX; }
+
+        /**
+         * Method to return the size of the cut along Y.
+         */
+        public double getCutSizeY() { return cutSizeY; }
+
 		/**
-		 * Method to fill in the contact cuts of a MOS contact when there are
+		 * Method to fill in the contact cuts of a contact when there are
 		 * multiple cuts.  Node is in "ni" and the contact cut number (0 based) is
 		 * in "cut".
 		 */
-		private Poly fillCutPoly(NodeInst ni, int cut)
+		protected Poly fillCutPoly(NodeInst ni, int cut)
+		{
+            return (fillCutPoly(ni.getAnchorCenterX(), ni.getAnchorCenterY(), cut));
+		}
+
+        /**
+         * Method to fill in the contact cuts based on anchor information.
+        */
+        public Poly fillCutPoly(double anchorX, double anchorY, int cut)
 		{
 			if (cutsX > 2 && cutsY > 2)
 			{
@@ -2096,7 +2142,7 @@ public class Technology implements Comparable
 			double cX;
 			if (cutsX == 1)
 			{
-				cX = ni.getAnchorCenterX();
+				cX = anchorX;
 //				cX = ni.getTrueCenterX();
 			} else
 			{
@@ -2107,7 +2153,7 @@ public class Technology implements Comparable
 			double cY;
 			if (cutsY == 1)
 			{
-				cY = ni.getAnchorCenterY();
+				cY = anchorY;
 // 				cY = ni.getTrueCenterY();
 			} else
 			{
@@ -3226,15 +3272,15 @@ public class Technology implements Comparable
 	 * @param techName the name of the new technology that will be created.
 	 * @return true if the name is valid.
 	 */
-	private static boolean validTechnology(String techName)
-	{
-		if (Technology.findTechnology(techName) != null)
-		{
-			System.out.println("ERROR: Multiple technologies named " + techName);
-			return false;
-		}
-		return true;
-	}
+//	private static boolean validTechnology(String techName)
+//	{
+//		if (Technology.findTechnology(techName) != null)
+//		{
+//			System.out.println("ERROR: Multiple technologies named " + techName);
+//			return false;
+//		}
+//		return true;
+//	}
 
 	/**
 	 * Method to determine the appropriate Technology to use for a Cell.

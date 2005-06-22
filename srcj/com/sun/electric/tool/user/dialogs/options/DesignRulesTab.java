@@ -74,7 +74,7 @@ public class DesignRulesTab extends PreferencePanel
 	private boolean designRulesFactoryReset = false;
 	private boolean [] designRulesValidLayers;
 	private List wideSpacingRules;
-	private int foundry;
+	private Technology.Foundry foundry;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -226,19 +226,20 @@ public class DesignRulesTab extends PreferencePanel
 		// load the dialog
 		drTechName.setText("Design Rules for Technology '" + curTech.getTechName() + "'");
 
-		designRulesGetSelectedLayerLoadDRCToList();
-
         // Foundry
-        foundry = curTech.getFoundry();
+        String selectedFoundry = curTech.getSelectedFoundry();
         for (Iterator it = curTech.getFactories(); it.hasNext(); )
         {
             Technology.Foundry factory = (Technology.Foundry)it.next();
             defaultFoundryPulldown.addItem(factory.name);
+            if (selectedFoundry.equals(factory.name)) foundry = factory;
         }
-        defaultFoundryPulldown.setSelectedItem(foundry);
+        defaultFoundryPulldown.setSelectedItem(foundry.name);
 
         // Resolution
 		drResolutionValue.setText(TextUtils.formatDouble(curTech.getResolution()));
+
+		designRulesGetSelectedLayerLoadDRCToList();
 	}
 
 	private void factoryResetDRCActionPerformed(ActionEvent evt)
@@ -281,27 +282,27 @@ public class DesignRulesTab extends PreferencePanel
 		// get new normal spacing values
         List list = new ArrayList();
 		double value = TextUtils.atof(drNormalConnected.getText());
-        list.add(new DRCTemplate(drNormalConnectedRule.getText(), foundry, DRCTemplate.CONSPA,
+        list.add(new DRCTemplate(drNormalConnectedRule.getText(), foundry.techMode, DRCTemplate.CONSPA,
                 0, 0, null, null, value, false));
 		value = TextUtils.atof(drNormalUnconnected.getText());
-        list.add(new DRCTemplate(drNormalUnconnectedRule.getText(), foundry, DRCTemplate.UCONSPA,
+        list.add(new DRCTemplate(drNormalUnconnectedRule.getText(), foundry.techMode, DRCTemplate.UCONSPA,
                 0, 0, null, null, value, false));
         drRules.setSpacingRules(dindex, list, DRCTemplate.SPACING);
 
 		// get new multicut spacing values
         list.clear();
         value = TextUtils.atof(drMultiConnected.getText());
-        list.add(new DRCTemplate(drMultiConnectedRule.getText(), foundry, DRCTemplate.CONSPA,
+        list.add(new DRCTemplate(drMultiConnectedRule.getText(), foundry.techMode, DRCTemplate.CONSPA,
                 0, 0, null, null, value, true));
 		value = TextUtils.atof(drMultiUnconnected.getText());
-        list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), foundry, DRCTemplate.UCONSPA,
+        list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), foundry.techMode, DRCTemplate.UCONSPA,
                 0, 0, null, null, value, true));
         drRules.setSpacingRules(dindex, list, DRCTemplate.CUTSPA);
 
 		// get new edge values
         list.clear();
         value = TextUtils.atof(drNormalEdge.getText());
-        list.add(new DRCTemplate(drNormalEdgeRule.getText(), foundry, DRCTemplate.CONSPA,
+        list.add(new DRCTemplate(drNormalEdgeRule.getText(), foundry.techMode, DRCTemplate.CONSPA,
                 0, 0, null, null, value, false));
         drRules.setSpacingRules(dindex, list, DRCTemplate.SPACINGE);
 
@@ -426,7 +427,7 @@ public class DesignRulesTab extends PreferencePanel
 
 		// show minimum layer size
 		Layer layer = curTech.getLayer(j);
-        DRCRules.DRCRule lr = DRC.getMinValue(layer, DRCTemplate.MINWID, foundry);
+        DRCRules.DRCRule lr = DRC.getMinValue(layer, DRCTemplate.MINWID, foundry.techMode);
         if (lr != null)
 		{
 			drLayerWidth.setText(TextUtils.formatDouble(lr.value));
@@ -463,7 +464,7 @@ public class DesignRulesTab extends PreferencePanel
 		{
             int dindex = curTech.getRuleIndex(layer1, layer2);
             double wideLimit = 0;
-            List spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, foundry);
+            List spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, foundry.techMode);
             for (int i = 0; i < spacingRules.size(); i++)
             {
                 DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
@@ -480,7 +481,7 @@ public class DesignRulesTab extends PreferencePanel
                 if (tmp.maxWidth > 0) wideLimit = tmp.maxWidth;
             }
 
-			spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGW, foundry);
+			spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGW, foundry.techMode);
 			wideSpacingRules = new ArrayList();
 			for(Iterator it = spacingRules.iterator(); it.hasNext(); )
 			{
@@ -500,7 +501,7 @@ public class DesignRulesTab extends PreferencePanel
 			if (wideSpacingRules.size() != 0)
 				drWidthLabel.setSelectedIndex(0);
 			
-            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.CUTSPA, foundry);
+            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.CUTSPA, foundry.techMode);
             for (int i = 0; i < spacingRules.size(); i++)
             {
                 DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
@@ -516,7 +517,7 @@ public class DesignRulesTab extends PreferencePanel
                 }
             }
 
-            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGE, foundry);
+            spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGE, foundry.techMode);
             for (int i = 0; i < spacingRules.size(); i++)
             {
                 DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
@@ -544,25 +545,25 @@ public class DesignRulesTab extends PreferencePanel
 	private String drMakeToListLine(int dindex, int lindex, boolean onlyValid)
 	{
 		boolean gotRule = false;
-		List spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, foundry);
+		List spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACING, foundry.techMode);
 		for (int i = 0; i < spacingRules.size(); i++)
 		{
 			DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
 			if (tmp.value > 0) gotRule = true;
 		}
-		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGW, foundry);
+		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGW, foundry.techMode);
 		for (int i = 0; i < spacingRules.size(); i++)
 		{
 			DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
 			if (tmp.value > 0) gotRule = true;
 		}
-		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.CUTSPA, foundry);
+		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.CUTSPA, foundry.techMode);
 		for (int i = 0; i < spacingRules.size(); i++)
 		{
 			DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
 			if (tmp.value > 0) gotRule = true;
 		}
-		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGE, foundry);
+		spacingRules = drRules.getSpacingRules(dindex, DRCTemplate.SPACINGE, foundry.techMode);
 		for (int i = 0; i < spacingRules.size(); i++)
 		{
 			DRCRules.DRCRule tmp = (DRCRules.DRCRule)spacingRules.get(i);
