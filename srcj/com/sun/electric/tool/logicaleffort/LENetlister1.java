@@ -320,18 +320,26 @@ public class LENetlister1 extends LENetlister {
             // we therefore assign pins to have default 'le' values of one.
             // This creates an instance which has Type LEWIRE, but has
             // boolean leGate set to false; it will not be sized
-            var = ni.getVar("ATTR_L");
-            if (var == null) {
-                System.out.println("Error, no L attribute found on LEWIRE "+info.getContext().push(ni).getInstPath("."));
+            // NEW: If we find ATTR_LEWIRECAP, that is the capacitance to use,
+            // and we will not calculate the cap from L and W.
+            var = ni.getVar("ATTR_LEWIRECAP");
+            float cap = 0;
+            if (var != null) {
+                cap = VarContext.objectToFloat(info.getContext().evalVar(var), 0.0f);
+            } else {
+                var = ni.getVar("ATTR_L");
+                if (var == null) {
+                    System.out.println("Error, no L attribute found on LEWIRE "+info.getContext().push(ni).getInstPath("."));
+                }
+                float len = VarContext.objectToFloat(info.getContext().evalVar(var), 0.0f);
+                var = ni.getVar("ATTR_width");
+                if (var == null) {
+                    System.out.println("Warning, no width attribute found on LEWIRE "+info.getContext().push(ni).getInstPath("."));
+                }
+                float width = VarContext.objectToFloat(info.getContext().evalVar(var), 3.0f);
+                cap = (float)(0.95f*len + 0.05f*len*(width/3.0f));      // capacitance
             }
-            float len = VarContext.objectToFloat(info.getContext().evalVar(var), 0.0f);
-            var = ni.getVar("ATTR_width");
-            if (var == null) {
-                System.out.println("Warning, no width attribute found on LEWIRE "+info.getContext().push(ni).getInstPath("."));
-            }
-            float width = VarContext.objectToFloat(info.getContext().evalVar(var), 3.0f);
-            leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*constants.wireRatio;  // equivalent lambda of gate
-            leX = leX/9.0f;                         // drive strength X=1 is 9 lambda of gate
+            leX = cap*constants.wireRatio/9.0f;     // drive strength X=1 is 9 lambda of gate
             wire = true;
         }
         else if ((ni.getProto() != null) && (ni.getProto().getFunction().isTransistor())) {

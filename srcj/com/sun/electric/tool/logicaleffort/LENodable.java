@@ -232,25 +232,35 @@ public class LENodable {
             // we therefore assign pins to have default 'le' values of one.
             // This creates an instance which has Type LEWIRE, but has
             // boolean leGate set to false; it will not be sized
-            var = no.getVar("ATTR_L");
-            if (var == null) {
-                System.out.println("Error, no L attribute found on LEWIRE "+no.getName()+" in Cell "+no.getParent());
-                if (testCachebility) return -1f;
-            }
-            retVal = context.evalVar(var);
-            if (testCachebility && (retVal == null)) return -1f;
-            float len = VarContext.objectToFloat(retVal, 0.0f);
+            // NEW: If we find ATTR_LEWIRECAP, that is the capacitance to use,
+            // and we will not calculate the cap from L and W.
+            var = no.getVar("ATTR_LEWIRECAP");
+            float cap = 0;
+            if (var != null) {
+                retVal = context.evalVar(var);
+                if (testCachebility && (retVal == null)) return -1f;
+                cap = VarContext.objectToFloat(retVal, 0.0f);
+            } else {
+                var = no.getVar("ATTR_L");
+                if (var == null) {
+                    System.out.println("Error, no L attribute found on LEWIRE "+no.getName()+" in Cell "+no.getParent());
+                    if (testCachebility) return -1f;
+                }
+                retVal = context.evalVar(var);
+                if (testCachebility && (retVal == null)) return -1f;
+                float len = VarContext.objectToFloat(retVal, 0.0f);
 
-            var = no.getVar(Schematics.ATTR_WIDTH);
-            if (var == null) {
-                System.out.println("Warning, no width attribute found on LEWIRE "+no.getName()+" in Cell "+no.getParent());
-                if (testCachebility) return -1f;
+                var = no.getVar(Schematics.ATTR_WIDTH);
+                if (var == null) {
+                    System.out.println("Warning, no width attribute found on LEWIRE "+no.getName()+" in Cell "+no.getParent());
+                    if (testCachebility) return -1f;
+                }
+                retVal = context.evalVar(var);
+                if (testCachebility && (retVal == null)) return -1f;
+                float width = VarContext.objectToFloat(retVal, 3.0f);
+                cap = (0.95f*len + 0.05f*len*(width/3.0f));
             }
-            retVal = context.evalVar(var);
-            if (testCachebility && (retVal == null)) return -1f;
-            float width = VarContext.objectToFloat(retVal, 3.0f);
-
-            leX = (float)(0.95f*len + 0.05f*len*(width/3.0f))*constants.wireRatio;  // equivalent lambda of gate
+            leX = cap*constants.wireRatio;  // equivalent lambda of gate
             leX = leX/9.0f;                         // drive strength X=1 is 9 lambda of gate
         }
         else if (type == LENodable.Type.TRANSISTOR) {
