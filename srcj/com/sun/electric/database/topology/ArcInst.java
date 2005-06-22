@@ -603,7 +603,7 @@ public class ArcInst extends Geometric implements Comparable
         assert 0 <= angle && angle < 3600;
         userBits = (userBits & ~AANGLE) | (angle << AANGLESH);
     }
-    
+
 	/**
 	 * Method to return the bounds of this ArcInst.
 	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
@@ -623,8 +623,13 @@ public class ArcInst extends Geometric implements Comparable
 	{
 		if (protoType.isCurvable())
 		{
-			Poly curvedPoly = curvedArcOutline(style, width);
-			if (curvedPoly != null) return curvedPoly;
+			// get the radius information on the arc
+			Double radiusDouble = getRadius();
+			if (radiusDouble != null)
+			{
+				Poly curvedPoly = curvedArcOutline(style, width, radiusDouble.doubleValue());
+				if (curvedPoly != null) return curvedPoly;
+			}
 		}
 
 		// zero-width polygons are simply lines
@@ -696,14 +701,9 @@ public class ArcInst extends Geometric implements Comparable
 	 * If there is no curvature information in the arc, the routine returns null,
 	 * otherwise it returns the curved polygon.
 	 */
-	public Poly curvedArcOutline(Poly.Type style, double wid)
+	public Poly curvedArcOutline(Poly.Type style, double wid, double radius)
 	{
-		// get the radius information on the arc
-		Double radiusDouble = getRadius();
-		if (radiusDouble == null) return null;
-
 		// get information about the curved arc
-		double radius = radiusDouble.doubleValue();
 		double pureRadius = Math.abs(radius);
 		double length = tailLocation.distance(headLocation);
 
@@ -711,7 +711,7 @@ public class ArcInst extends Geometric implements Comparable
 		if (pureRadius*2 < length) return null;
 
 		// determine the center of the circle
-		Point2D [] centers = DBMath.findCenters(pureRadius, tailLocation, headLocation, length);
+		Point2D [] centers = DBMath.findCenters(pureRadius, headLocation, tailLocation, length);
 		if (centers == null) return null;
 
 		Point2D centerPt = centers[1];
@@ -722,14 +722,15 @@ public class ArcInst extends Geometric implements Comparable
 		}
 
 		// determine the base and range of angles
-		int angleBase = DBMath.figureAngle(centerPt, tailLocation);
-		int angleRange = DBMath.figureAngle(centerPt, headLocation);
+		int angleBase = DBMath.figureAngle(centerPt, headLocation);
+		int angleRange = DBMath.figureAngle(centerPt, tailLocation);
 		angleRange -= angleBase;
 		if (angleRange < 0) angleRange += 3600;
 
 		// determine the number of intervals to use for the arc
 		int pieces = angleRange;
 		while (pieces > MAXARCPIECES) pieces /= 2;
+		if (pieces == 0) return null;
 
 		// initialize the polygon
 		int points = (pieces+1) * 2;
