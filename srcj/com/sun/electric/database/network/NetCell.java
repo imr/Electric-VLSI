@@ -38,6 +38,8 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.EFIDO;
+import com.sun.electric.technology.technologies.GEM;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -474,7 +476,8 @@ class NetCell
 				}
 				if (drawns[piOffset] >= 0) continue;
 				if (pi.getPortProto() instanceof PrimitivePort && ((PrimitivePort)pi.getPortProto()).isIsolated()) continue;
-				if (np.getFunction() == PrimitiveNode.Function.PIN && !cell.isIcon()) {
+				if (np.getFunction() == PrimitiveNode.Function.PIN && !cell.isIcon() &&
+                        cell.getTechnology() != GEM.tech && cell.getTechnology() != EFIDO.tech) {
 					String msg = "Network: " + cell + " has unconnected pin " + pi.describe(true);
                     System.out.println(msg);
                     ErrorLogger.MessageLog log = NetworkTool.errorLogger.logWarning(msg, cell, NetworkTool.errorSortNodes);

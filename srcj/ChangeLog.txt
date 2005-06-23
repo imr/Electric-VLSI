@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/23/05, DN) Network module complains on unconnected pin in GEM and FIDO technologies.
+FIX: Don't check in cells with these technologies (NetCell.makeDrawns).
+
 IMP: (06/22/05, GVG) DRC: Sweep as default algorithm. Capacitance demo out of 3D menu.
 List Layer Coverage on Cell moved to DRC menu. Ability to abort coverage job (Bug #389).
 Same printing for List Coverage on Cell and Check Area Coverage.
