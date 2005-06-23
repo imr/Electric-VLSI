@@ -137,9 +137,6 @@ public class CellMenu {
         cellInfoSubMenu.addMenuItem("List Cell _Usage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellUsageCommand(); }});
         cellInfoSubMenu.addSeparator();
-        cellInfoSubMenu.addMenuItem("List Layer Co_verage on Cell", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
-        cellInfoSubMenu.addSeparator();
         cellInfoSubMenu.addMenuItem("Graphically, _Entire Library", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.graphCellsInLibrary(); }});
         cellInfoSubMenu.addMenuItem("Graphically, _From Current Cell", null,
