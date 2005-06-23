@@ -55,6 +55,7 @@ public class Stimuli
 	public static final int VDD_STRENGTH  = 014;
 
 	/** the WaveformWindow associated with this Stimuli */		private WaveformWindow ww;
+	/** the simulation engine associated with this Stimuli */	private Engine engine;
 	/** the cell attached to this Stimuli information */		private Cell cell;
 	/** the type of data in this Stimuli */						private FileType type;
 	/** the disk file associated with this Stimuli */			private URL fileURL;
@@ -183,6 +184,20 @@ public class Stimuli
 	 * @return the Cell associated with this simulation data.
 	 */
 	public Cell getCell() { return cell; }
+
+	/**
+	 * Method to set the simulation Engine associated with this simulation data.
+	 * This is only for data associated with built-in simulators (ALS and IRSIM).
+	 * @param cell the simulation Engine associated with this simulation data.
+	 */
+	public void setEngine(Engine engine) { this.engine = engine; }
+
+	/**
+	 * Method to return the simulation Engine associated with this simulation data.
+	 * This is only for data associated with built-in simulators (ALS and IRSIM).
+	 * @return the simulation Engine associated with this simulation data.
+	 */
+	public Engine getEngine() { return engine; }
 
 	public void setWaveformWindow(WaveformWindow ww) { this.ww = ww; }
 	

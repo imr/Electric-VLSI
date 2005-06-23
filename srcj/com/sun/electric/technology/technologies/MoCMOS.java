@@ -2982,7 +2982,7 @@ public class MoCMOS extends Technology
 			}
 		}
 		int boxOffset = 4 - numContacts * 2;
-	
+
 		// determine width
 		PrimitiveNode np = (PrimitiveNode)ni.getProto();
 		double nodeWid = ni.getXSize();
@@ -2991,7 +2991,15 @@ public class MoCMOS extends Technology
 		var = ni.getVar(Schematics.ATTR_WIDTH);
 		if (var != null)
 		{
-			double requestedWid = TextUtils.atof(var.getPureValue(-1));
+			VarContext evalContext = context;
+			if (evalContext == null) evalContext = VarContext.globalContext;
+			String extra = var.describe(evalContext, ni);
+			try
+			{
+				Object o = evalContext.evalVarRecurse(var, ni);
+				if (o != null) extra = o.toString();
+			} catch (VarContext.EvalException e) {}
+			double requestedWid = TextUtils.atof(extra);
 			if (requestedWid > activeWid)
 			{
 				System.out.println("Warning: " + ni.getParent() + ", " +

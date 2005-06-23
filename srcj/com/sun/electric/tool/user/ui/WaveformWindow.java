@@ -4251,7 +4251,14 @@ if (wp.signalButtons != null)
 	public void setWindowTitle()
 	{
 		if (wf == null) return;
-		wf.setTitle(wf.composeTitle(sd.getCell(), "Waveform for ", 0));
+		String title = "";
+		if (sd.getEngine() != null) title = "Simulation of"; else title = "Waveforms of ";
+		if (sd != null && sd.getDataType() != null)
+		{
+			if (sd.getEngine() != null) title = sd.getDataType().getName() + " simulation of "; else
+				title = sd.getDataType().getName() + " of ";
+		}
+		wf.setTitle(wf.composeTitle(sd.getCell(), title, 0));
 	}
 
 	private static class StepSize

@@ -439,7 +439,7 @@ public class ToolMenu {
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("_Coverage Implants Generator", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
-		generationSubMenu.addMenuItem("_Pad Frame Generator", null,
+		generationSubMenu.addMenuItem("_Pad Frame Generator...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("_ROM Generator...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ROMGenerator.generateROM(); }});
@@ -453,11 +453,14 @@ public class ToolMenu {
 
 		//------------------- Silicon Compiler
 
-		// mnemonic keys available: AB DEFGHIJKLMNOPQRSTUVWXYZ
+		// mnemonic keys available: AB DEFGHIJKLM OPQRSTUVWXYZ
 		MenuBar.Menu silCompSubMenu = MenuBar.makeMenu("Silicon Co_mpiler");
 		toolMenu.add(silCompSubMenu);
 		silCompSubMenu.addMenuItem("_Convert Current Cell to Layout", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { doSiliconCompilation(); }});
+		silCompSubMenu.addSeparator();
+		silCompSubMenu.addMenuItem("Compile VHDL to _Netlist View", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { compileVHDL();}});
 
 		//------------------- Compaction
 

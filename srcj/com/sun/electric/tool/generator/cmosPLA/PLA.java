@@ -195,7 +195,7 @@ public class PLA
 
 			case 6:
 				System.out.println("STEP 6: Final assembly");
-				Cell plaCell = makePLA(Library.getCurrent(), dialog.getCellName());
+				Cell plaCell = makePLA(Library.getCurrent(), dialog.getCellName() + "{lay}");
 				if (plaCell != null)
 				{
 					System.out.println("DONE");

@@ -215,6 +215,8 @@ public class Analyzer extends Engine
 				if (analyzer.cell != null) System.out.println("Loading netlist for " + analyzer.cell + "..."); else
 					System.out.println("Loading netlist for file " + analyzer.fileName + "...");
 				Stimuli sd = analyzer.getCircuit();
+				sd.setDataType(FileType.IRSIM);
+				sd.setEngine(analyzer);
 	 			Simulation.showSimulationData(sd, null);
 
 	 			// make a waveform window

@@ -530,8 +530,14 @@ public class PreferencesFrame extends EDialog
 				{
 					DefaultMutableTreeNode child = (DefaultMutableTreeNode)node.getChildAt(i);
 					TreePath descentPath = topPath.pathByAddingChild(child);
-					if (!descentPath.getLastPathComponent().equals(tp.getLastPathComponent()))
+					if (descentPath.getLastPathComponent().equals(tp.getLastPathComponent()))
+					{
+						DefaultMutableTreeNode subNode = (DefaultMutableTreeNode)descentPath.getLastPathComponent();
+						currentSectionName = (String)subNode.getUserObject();
+					} else
+					{
 						dialog.optionTree.collapsePath(descentPath);
+					}
 				}
 			}
 			dialog.pack();

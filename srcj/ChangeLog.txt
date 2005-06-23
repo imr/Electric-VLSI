@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/21/95, SMR) Improved waveform window titles.
+
 IMP: (06/21/05, SMR) Improvements to "Design Rules" tab.
 
 IMP: (06/21/05, SMR) Added commands for curved arcs.

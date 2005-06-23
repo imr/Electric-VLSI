@@ -34,7 +34,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
 
 /**
  * Class to handle the commands in the "View" pulldown menu.
@@ -47,7 +47,7 @@ public class ViewMenu {
 
         /****************************** THE VIEW MENU ******************************/
 
-		// mnemonic keys available:  B DEF   J  M  PQR     X Z
+		// mnemonic keys available:  B DEF   J  MN PQR     X Z
         MenuBar.Menu viewMenu = MenuBar.makeMenu("_View");
         menuBar.add(viewMenu);
 
@@ -85,8 +85,6 @@ public class ViewMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ViewChanges.makeSkeletonViewCommand(); } });
 		viewMenu.addMenuItem("Make _VHDL View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.makeVHDL();}});
-		viewMenu.addMenuItem("Compile VHDL to _Netlist View", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.compileVHDL();}});
     }
 
     /**

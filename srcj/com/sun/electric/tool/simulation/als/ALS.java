@@ -804,6 +804,9 @@ public class ALS extends Engine
 		// initialize display
 		sd = getCircuit(cell);
 		ww = oldWW;
+
+		sd.setDataType(FileType.ALS);
+		sd.setEngine(this);
 		Simulation.showSimulationData(sd, ww);
 
 		// make a waveform window

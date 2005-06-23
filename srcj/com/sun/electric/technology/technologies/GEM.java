@@ -190,11 +190,9 @@ public class GEM extends Technology
 			{
 				new Technology.NodeLayer(GA_lay, 0, Poly.Type.DISC, Technology.NodeLayer.POINTS, box_7)
 			});
-		gp_node.addPrimitivePorts(new PrimitivePort[]
-			{
-				PrimitivePort.newInstance(this, gp_node, new ArcProto [] {General_arc}, "general", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
-			});
+		PrimitivePort pinPort = PrimitivePort.newInstance(this, gp_node, new ArcProto [] {General_arc}, "general", 0,180, 0, PortCharacteristic.UNKNOWN,
+			EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter());
+		gp_node.addPrimitivePorts(new PrimitivePort[] {pinPort});
 		gp_node.setFunction(PrimitiveNode.Function.PIN);
 		gp_node.setArcsWipe();
 		gp_node.setArcsShrink();

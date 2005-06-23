@@ -530,7 +530,6 @@ public class PadGenerator {
                     if (TextUtils.getExtension(fileURL).equals("txt")) style = FileType.READABLEDUMP;
                     if (TextUtils.getExtension(fileURL).equals("elib")) style = FileType.ELIB;
                     Library saveLib = Library.getCurrent();
-                    cellLib = Library.newInstance(TextUtils.getFileNameWithoutExtension(fileURL), fileURL);
                     cellLib = Input.readLibrary(fileURL, null, style, false);
                     if (cellLib == null) {
                         err("cannot read library " + keyWord);
@@ -932,53 +931,48 @@ public class PadGenerator {
                 // create exports
 
                 // get export for this cell, if any
-                if (pad.exportsname != null) {
+                if (pad.exportsname != null)
+				{
                     PadExports pe = (PadExports) exports.get(pad.cellname);
-                    if (pe != null) {
+                    if (pe != null)
+					{
                         // pad export
                         Export pppad = cell.findExport(pe.padname);
-                        if (pppad == null) {
+                        if (pppad == null)
+						{
                             err("no port called '" + pe.padname + "' on Cell " + cell.noLibDescribe());
-                        } else {
+                        } else
+						{
                             pppad = Export.newInstance(framecell, ni.findPortInstFromProto(pppad), pad.exportsname);
-                            if (pppad == null)
-                                err("Creating export " + pad.exportsname);
-                            else {
+                            if (pppad == null) err("Creating export " + pad.exportsname); else
+							{
                                 MutableTextDescriptor td = pppad.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
                                 td.setAbsSize(14);
 								pppad.setTextDescriptor(Export.EXPORT_NAME_TD, td);
-            //	/**
-//	 * Method to write a description of this Export.
-//	 * Displays the description in the Messages Window.
-//	 */
-//	public void getInfo()
-//	{
-//		System.out.println(" Original: " + originalPort);
-//		System.out.println(" Base: " + getBasePort());
-//		System.out.println(" Cell: " + parent.describe());
-//		super.getInfo();
-//	}
-
-                    padPorts.add(pppad);
+								padPorts.add(pppad);
                             }
                         }
-                        // core export
-                        if (pe.corename != null) {
+
+						// core export
+                        if (pe.corename != null)
+						{
                             Export ppcore = cell.findExport(pe.corename);
-                            if (ppcore == null) {
+                            if (ppcore == null)
+							{
                                 err("no port called '" + pe.corename + "' on Cell " + cell.noLibDescribe());
-                            } else {
+                            } else 
+							{
                                 ppcore = Export.newInstance(framecell, ni.findPortInstFromProto(ppcore), "core_" + pad.exportsname);
-                                if (ppcore == null)
-                                    err("Creating export core_" + pad.exportsname);
-                                else {
+                                if (ppcore == null) err("Creating export core_" + pad.exportsname); else
+								{
                                     MutableTextDescriptor td = ppcore.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
                                     td.setAbsSize(14);
                                     corePorts.add(ppcore);
 									ppcore.setTextDescriptor(Export.EXPORT_NAME_TD, td);
                                 }
                             }
-                        } else {
+                        } else
+						{
                             corePorts.add(null);
                         }
                     }
@@ -996,8 +990,8 @@ public class PadGenerator {
             // auto stitch everything
             AutoStitch.autoStitch(true, true);
 
-            if (corename != null) {
-
+            if (corename != null)
+			{
                 // first, try to create cell
                 String corenameview = corename;
                 if (view != null) {
@@ -1024,6 +1018,12 @@ public class PadGenerator {
                                 if (pad.ni == null) continue;
 
                                 PortProto corepp = corenp.findPortProto(pa.assocname);
+								if (corepp == null)
+								{
+	                                PortInst pi = pad.ni.findPortInst(pa.portname);
+									Export.newInstance(pad.ni.getParent(), pi, pa.assocname);
+									continue;
+								}
                                 PortInst pi2 = pad.ni.findPortInst(pa.portname);
                                 PortInst pi1 = ni.findPortInstFromProto(corepp);
                                 //PortInst pi2 = pad.ni.findPortInstFromProto(pa.pp);

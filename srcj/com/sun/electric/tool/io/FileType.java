@@ -36,9 +36,10 @@ public class FileType {
 	/** all types */                        private static final ArrayList allTypes = new ArrayList();
 
 	/** Describes any file.*/				public static final FileType ANY          = makeFileType("All", new String[] {}, "All Files");
+	/** Describes ALS decks. */				public static final FileType ALS          = makeFileType("ALS", new String[] {"als"}, "ALS Simulation Deck (als)");
 	/** Describes ALS vector decks. */		public static final FileType ALSVECTOR    = makeFileType("ALS Vectors", new String[] {"vec"}, "ALS Vector Deck (vec)");
 	/** Describes ArchSim decks.*/			public static final FileType ARCHSIM      = makeFileType("ArchSim", new String[] {"xml"}, "ArchSim Deck (xml)");
-	/** Describes ArchSim output.*/			public static final FileType ARCHSIMOUT   = makeFileType("ArchSimOutput", new String[] {"asj"}, "ArchSim Journal (asj)");
+	/** Describes ArchSim output.*/			public static final FileType ARCHSIMOUT   = makeFileType("ArchSim Output", new String[] {"asj"}, "ArchSim Journal (asj)");
 	/** Describes CDL decks.*/				public static final FileType CDL          = makeFileType("CDL", new String[] {"cdl"}, "CDL Deck (cdl)");
 	/** Describes CIF files. */				public static final FileType CIF          = makeFileType("CIF", new String[] {"cif"}, "CIF File (cif)");
 	/** Describes COSMOS output. */			public static final FileType COSMOS       = makeFileType("COSMOS", new String[] {"sim"}, "COSMOS File (sim)");
@@ -54,7 +55,7 @@ public class FileType {
 	/** Describes FPGA files.*/				public static final FileType FPGA         = makeFileType("FPGA", new String[] {"fpga"}, "FPGA Architecture File (fpga)");
 	/** Describes GDS files. */				public static final FileType GDS          = makeFileType("GDS", new String[] {"gds"}, "GDS File (gds)");
 	/** Describes GDS layer Map files. */	public static final FileType GDSMAP       = makeFileType("GDS Map", new String[] {"map"}, "GDS Layer Map File (map)");
-	/** Describes HSpice output. */			public static final FileType HSPICEOUT    = makeFileTypeNumeric("HSpiceOutput", new String[] {"tr"}, "HSpice Output File (tr0,1,2...)");
+	/** Describes HSpice output. */			public static final FileType HSPICEOUT    = makeFileTypeNumeric("HSpice Output", new String[] {"tr"}, "HSpice Output File (tr0,1,2...)");
 	/** Describes HPGL files. */			public static final FileType HPGL         = makeFileType("HPGL", new String[] {"hpgl2"}, "HPGL File (hpgl2)");
 	/** Describes HTML files. */			public static final FileType HTML         = makeFileType("HTML", new String[] {"html"}, "HTML File (html)");
 	/** Describes IRSIM decks. */			public static final FileType IRSIM        = makeFileType("IRSIM", new String[] {"sim"}, "IRSIM Deck (sim)");
@@ -69,28 +70,28 @@ public class FileType {
 	/** Describes Maxwell decks. */			public static final FileType MAXWELL      = makeFileType("Maxwell", new String[] {"mac"}, "Maxwell Deck (mac)");
 	/** Describes MOSSIM decks. */			public static final FileType MOSSIM       = makeFileType("MOSSIM", new String[] {"ntk"}, "MOSSIM Deck (ntk)");
     /** Describes Movie files. */			public static final FileType MOV          = makeFileType("Movie", new String[] {"mov"}, "Movie File (mov)");
-    /** Describes Pad Frame Array spec. */	public static final FileType PADARR       = makeFileType("PadArray", new String[] {"arr"}, "Pad Generator Array File (arr)");
+    /** Describes Pad Frame Array spec. */	public static final FileType PADARR       = makeFileType("Pad Array", new String[] {"arr"}, "Pad Generator Array File (arr)");
 	/** Describes Pads files. */			public static final FileType PADS         = makeFileType("Pads", new String[] {"asc"}, "Pads File (asc)");
 	/** Describes PAL files. */				public static final FileType PAL          = makeFileType("PAL", new String[] {"pal"}, "PAL File (pal)");
 	/** Describes PostScript files. */		public static final FileType POSTSCRIPT   = makeFileType("PostScript", new String[] {"ps"}, "PostScript (ps)");
 	/** Describes PostScript files. */		public static final FileType PNG          = makeFileType("PNG", new String[] {"png"}, "PNG (png)");
 	/** Describes Preferences files. */		public static final FileType PREFS        = makeFileType("Preferences", new String[] {"xml"}, "Preferences (xml)");
 	/** Describes Project files. */			public static final FileType PROJECT      = makeFileType("Project Management", new String[] {"proj"}, "Project Management (proj)");
-	/** Describes PSpice standard output.*/	public static final FileType PSPICEOUT    = makeFileType("PSpiceOutput", new String[] {"txt"}, "PSpice/Spice3 Text Output File (txt)");
-	/** Describes Raw Spice output. */		public static final FileType RAWSPICEOUT  = makeFileType("RawSpiceOutput", new String[] {"raw"}, "Spice Raw Output File (raw)");
-	/** Describes Raw SmartSpice output. */	public static final FileType RAWSSPICEOUT = makeFileType("RawSmartSpiceOutput", new String[] {"raw"}, "SmartSPICE Raw Output File (raw)");
+	/** Describes PSpice standard output.*/	public static final FileType PSPICEOUT    = makeFileType("PSpice Output", new String[] {"txt"}, "PSpice/Spice3 Text Output File (txt)");
+	/** Describes Raw Spice output. */		public static final FileType RAWSPICEOUT  = makeFileType("RawSpice Output", new String[] {"raw"}, "Spice Raw Output File (raw)");
+	/** Describes Raw SmartSpice output. */	public static final FileType RAWSSPICEOUT = makeFileType("Raw SmartSpice Output", new String[] {"raw"}, "SmartSPICE Raw Output File (raw)");
 	/** Describes Readable Dump files. */	public static final FileType READABLEDUMP = makeFileType("ReadableDump", new String[] {"txt"}, "Readable Dump Library File (txt)");
 	/** Describes RSIM output. */			public static final FileType RSIM         = makeFileType("RSIM", new String[] {"sim"}, "RSIM File (sim)");
 	/** Describes Silos decks.*/			public static final FileType SILOS        = makeFileType("Silos", new String[] {"sil"}, "Silos Deck (sil)");
 	/** Describes Skill decks.*/			public static final FileType SKILL        = makeFileType("Skill", new String[] {"il"}, "Skill Deck (il)");
-    /** Describes Skill decks.*/			public static final FileType SKILLEXPORTSONLY        = makeFileType("SkillExportsOnly", new String[] {"il"}, "Skill Deck (il)");
+    /** Describes Skill decks.*/			public static final FileType SKILLEXPORTSONLY = makeFileType("SkillExports Only", new String[] {"il"}, "Skill Deck (il)");
 	/** Describes Spice decks.*/			public static final FileType SPICE        = makeFileType("Spice", new String[] {"spi", "sp"}, "Spice Deck (spi, sp)");
-	/** Describes Spice standard output.*/	public static final FileType SPICEOUT     = makeFileType("SpiceOutput", new String[] {"spo"}, "Spice/GNUCap Output File (spo)");
+	/** Describes Spice standard output.*/	public static final FileType SPICEOUT     = makeFileType("Spice Output", new String[] {"spo"}, "Spice/GNUCap Output File (spo)");
 	/** Describes Sue files.*/				public static final FileType SUE          = makeFileType("Sue", new String[] {"sue"}, "Sue File (sue)");
 	/** Describes Tegas files. */			public static final FileType TEGAS        = makeFileType("Tegas", new String[] {"tdl"}, "Tegas File (tdl)");
 	/** Describes text files. */			public static final FileType TEXT         = makeFileType("Text", new String[] {"txt"}, "Text File (txt)");
 	/** Describes Verilog decks. */			public static final FileType VERILOG      = makeFileType("Verilog", new String[] {"v"}, "Verilog Deck (v)");
-	/** Describes Verilog output. */		public static final FileType VERILOGOUT   = makeFileType("VerilogOutput", new String[] {"dump"}, "Verilog VCD Dump (vcd)");
+	/** Describes Verilog output. */		public static final FileType VERILOGOUT   = makeFileType("Verilog Output", new String[] {"dump"}, "Verilog VCD Dump (vcd)");
 	/** Describes Xml files. */				public static final FileType XML          = makeFileType("XML", new String[] {"xml"}, "XML File (xml)");
 	/** Describes Assura DRC Error files. */public static final FileType ERR          = makeFileType("XML", new String[] {"err"}, "Assura DRC Error File (err)");
 
