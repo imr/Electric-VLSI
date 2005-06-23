@@ -3255,7 +3255,7 @@ public class MoCMOS extends Technology
 				}
 
 				// get more information about the rule
-				double distance = theRules[i].distance;
+				double distance = theRules[i].value1;
 				String proc = "";
 				if ((when&(DRCTemplate.DE|DRCTemplate.SU|DRCTemplate.SC)) != 0)
 				{

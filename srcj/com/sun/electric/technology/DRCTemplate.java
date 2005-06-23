@@ -25,11 +25,12 @@ package com.sun.electric.technology;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Comparator;
 
 /**
  * Class to define rules from TSCM files...
  */
-public final class DRCTemplate
+public class DRCTemplate
 {
     // design rule constants
     
@@ -87,15 +88,19 @@ public final class DRCTemplate
     /** layer combination rule */       public static final int COMBINATION = 25;
     /** OD2.R.1 rule */                 public static final int EXTENSIONGATE = 26;
 
+    // For sorting
+    public static final DRCTemplateSort templateSort = new DRCTemplateSort();
+
     public String ruleName;			/* the name of the rule */
     public int when;				/* when the rule is used */
     public int ruleType;			/* the type of the rule */
     public String name1, name2;	/* two layers/nodes that are used by the rule */
-    public double distance;		/* the spacing of the rule */
-    public double maxW;         /* max length where spacing is valid */
-    public double minLen;       /* min paralell distance for spacing rule */
+    public double value1;		/* value1 is distance for spacing rule or width for node rule */
+    public double value2;		/* value1 is height for node rule */
+    public double maxWidth;         /* max length where spacing is valid */
+    public double minLength;       /* min paralell distance for spacing rule */
     public String nodeName;		/* the node that is used by the rule */
-	public boolean multiCut;         /* multi cut rule */
+	public boolean multiCuts;         /* multi cut rule */
 
 
     public DRCTemplate(String rule, int when, int ruleType, String name1, String name2, double distance, String nodeName)
@@ -105,7 +110,7 @@ public final class DRCTemplate
         this.ruleType = ruleType;
         this.name1 = name1;
         this.name2 = name2;
-        this.distance = distance;
+        this.value1 = distance;
         this.nodeName = nodeName;
 
         switch (ruleType)
@@ -125,6 +130,20 @@ public final class DRCTemplate
 	/**
 	 * For different spacing depending on wire length and multi cuts.
 	 */
+    public DRCTemplate(String rule, int when, int ruleType, double maxW, double minLen, double distance, boolean multiCut)
+    {
+        this.ruleName = rule;
+        this.when = when;
+        this.ruleType = ruleType;
+        this.value1 = distance;
+        this.maxWidth = maxW;
+        this.minLength = minLen;
+		this.multiCuts = multiCut;
+    }
+
+	/**
+	 * For different spacing depending on wire length and multi cuts.
+	 */
     public DRCTemplate(String rule, int when, int ruleType, double maxW, double minLen, String name1, String name2, double distance, boolean multiCut)
     {
         this.ruleName = rule;
@@ -132,10 +151,10 @@ public final class DRCTemplate
         this.ruleType = ruleType;
         this.name1 = name1;
         this.name2 = name2;
-        this.distance = distance;
-        this.maxW = maxW;
-        this.minLen = minLen;
-		this.multiCut = multiCut;
+        this.value1 = distance;
+        this.maxWidth = maxW;
+        this.minLength = minLen;
+		this.multiCuts = multiCut;
 
         switch (ruleType)
         {
@@ -237,4 +256,20 @@ public final class DRCTemplate
 		}
 		return list;
 	}
+
+    /**
+     * Auxiliar class to sort areas in array
+     */
+    public static class DRCTemplateSort implements Comparator
+    {
+        public int compare(Object o1, Object o2)
+        {
+            double bb1 = ((DRCTemplate)o1).value1;
+            double bb2 = ((DRCTemplate)o2).value1;
+
+            if (bb1 < bb2) return -1;
+            else if (bb1 > bb2) return 1;
+            return (0); // identical
+        }
+    }
 }

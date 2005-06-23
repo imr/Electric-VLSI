@@ -311,12 +311,12 @@ public class Quick
 				Layer layer = (Layer)it.next();
 
 				// Storing min areas
-				DRCRules.DRCRule minAreaRule = DRC.getMinValue(layer, DRCTemplate.AREA,techMode);
+				DRCTemplate minAreaRule = DRC.getMinValue(layer, DRCTemplate.AREA,techMode);
 				if (minAreaRule != null)
 					minAreaLayerMap.put(layer, minAreaRule);
 
 				// Storing enclosed areas
-				DRCRules.DRCRule enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.ENCLOSEDAREA, techMode);
+				DRCTemplate enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.ENCLOSEDAREA, techMode);
 				if (enclosedAreaRule != null)
 					enclosedAreaLayerMap.put(layer, enclosedAreaRule);
 			}
@@ -1333,10 +1333,10 @@ public class Quick
                         }
 
 						boolean edge = false;
-						DRCRules.DRCRule theRule = getSpacingRule(layer, poly, nLayer, npoly, con, multi);
+						DRCTemplate theRule = getSpacingRule(layer, poly, nLayer, npoly, con, multi);
                         if (theRule == null)
                         {
-						    theRule = DRC.getEdgeRule(layer, nLayer);
+						    theRule = DRC.getEdgeRule(layer, nLayer, techMode);
                             edge = true;
                         }
 
@@ -1422,10 +1422,10 @@ public class Quick
 
 					// see how close they can get
                     boolean edge = false;
-                    DRCRules.DRCRule theRule = getSpacingRule(layer, poly, nLayer, nPoly, con, multi);
+                    DRCTemplate theRule = getSpacingRule(layer, poly, nLayer, nPoly, con, multi);
                     if (theRule == null)
                     {
-                        theRule = DRC.getEdgeRule(layer, nLayer);
+                        theRule = DRC.getEdgeRule(layer, nLayer, techMode);
                         edge = true;
                     }
                     if (theRule == null) continue;
@@ -1474,10 +1474,10 @@ public class Quick
 
         // they are electrically connected and they overlap: look for minimum size errors
         // of the overlapping region.
-        DRCRules.DRCRule wRule = DRC.getMinValue(layer1, DRCTemplate.MINWID, techMode);
+        DRCTemplate wRule = DRC.getMinValue(layer1, DRCTemplate.MINWID, techMode);
         if (wRule == null) return false; // no rule
 
-        double minWidth = wRule.value;
+        double minWidth = wRule.value1;
         double lxb = Math.max(trueBox1.getMinX(), trueBox2.getMinX());
         double hxb = Math.min(trueBox1.getMaxX(), trueBox2.getMaxX());
         double lyb = Math.max(trueBox1.getMinY(), trueBox2.getMinY());
@@ -1653,7 +1653,7 @@ public class Quick
 	private boolean checkDist(Technology tech, Cell cell, int globalIndex,
                               Poly poly1, Layer layer1, int net1, Geometric geom1, AffineTransform trans1, int globalIndex1,
                               Poly poly2, Layer layer2, int net2, Geometric geom2, AffineTransform trans2, int globalIndex2,
-                              boolean con, DRCRules.DRCRule theRule, boolean edge)
+                              boolean con, DRCTemplate theRule, boolean edge)
 	{
 		// turn off flag that the nodeinst may be undersized
 		tinyNodeInst = null;
@@ -1770,7 +1770,7 @@ public class Quick
 					// They are overlapping if pdx < 0 && pdy < 0
 					pd = DBMath.round(Math.max(pdx, pdy));
 
-					if (pd < theRule.value && pd > 0)
+					if (pd < theRule.value1 && pd > 0)
 					{
 						pd = poly1.separation(poly2);
 					}
@@ -1805,7 +1805,7 @@ public class Quick
 		}
 
 		int errorType = SPACINGERROR;
-        if (theRule.type == DRCTemplate.SURROUND)
+        if (theRule.ruleType == DRCTemplate.SURROUND)
         {
             if (pd > 0) // layers don't overlap -> no condition to check
                 return false;
@@ -1813,11 +1813,11 @@ public class Quick
             errorType = SURROUNDERROR;
         }
 		// see if the design rule is met
-		if (pd >= theRule.value) // default case: SPACING
+		if (pd >= theRule.value1) // default case: SPACING
 		{
 			return false;
 		}
-        if (theRule.type != DRCTemplate.SURROUND)
+        if (theRule.ruleType != DRCTemplate.SURROUND)
         {
             /*
              * special case: ignore errors between two active layers connected
@@ -1898,7 +1898,7 @@ public class Quick
 			}
 		}
 
-		reportError(errorType, msg, cell, theRule.value, pd, theRule.ruleName, origPoly1, geom1, layer1, origPoly2, geom2, layer2);
+		reportError(errorType, msg, cell, theRule.value1, pd, theRule.ruleName, origPoly1, geom1, layer1, origPoly2, geom2, layer2);
 		return true;
 	}
 
@@ -1917,10 +1917,10 @@ public class Quick
      * @param geoms
      * @return
      */
-    private boolean polyCoverByAnyVTLayer(Cell cell, DRCRules.DRCRule theRule, Technology tech, Poly[] polys, Layer[] layers, Geometric[] geoms)
+    private boolean polyCoverByAnyVTLayer(Cell cell, DRCTemplate theRule, Technology tech, Poly[] polys, Layer[] layers, Geometric[] geoms)
     {
         // Not the correct rule
-        if (theRule.type != DRCTemplate.UCONSPA || !theRule.ruleName.equalsIgnoreCase("VT{H/L}_{P/N}.S.2"))
+        if (theRule.ruleType != DRCTemplate.UCONSPA || !theRule.ruleName.equalsIgnoreCase("VT{H/L}_{P/N}.S.2"))
             return false;
         int polyIndex = -1, vtIndex = -1;
 
@@ -2404,15 +2404,15 @@ public class Quick
 	private boolean checkMinWidth(Geometric geom, Layer layer, Poly poly, boolean onlyOne)
 	{
 		Cell cell = geom.getParent();
-		DRCRules.DRCRule minWidthRule = DRC.getMinValue(layer, DRCTemplate.MINWID, techMode);
+		DRCTemplate minWidthRule = DRC.getMinValue(layer, DRCTemplate.MINWID, techMode);
 		if (minWidthRule == null) return false;
 
 		// simpler analysis if manhattan
 		Rectangle2D bounds = poly.getBox();
 		if (bounds != null)
 		{
-			boolean tooSmallWidth = DBMath.isGreaterThan(minWidthRule.value, bounds.getWidth());
-			boolean tooSmallHeight = DBMath.isGreaterThan(minWidthRule.value, bounds.getHeight());
+			boolean tooSmallWidth = DBMath.isGreaterThan(minWidthRule.value1, bounds.getWidth());
+			boolean tooSmallHeight = DBMath.isGreaterThan(minWidthRule.value1, bounds.getHeight());
 			if (!tooSmallWidth && !tooSmallHeight) return false;
 
 			double actual = 0;
@@ -2467,7 +2467,7 @@ public class Quick
 				rule = null;
 			}
 
-			reportError(errorType, extraMsg, cell, minWidthRule.value, actual, rule,
+			reportError(errorType, extraMsg, cell, minWidthRule.value1, actual, rule,
 			        (onlyOne) ? null : poly, geom, layer, null, null, null);
 			return !overlapLayer;
 		}
@@ -2481,9 +2481,9 @@ public class Quick
 		// simple check of nonmanhattan polygon for minimum width
 		bounds = poly.getBounds2D();
 		double actual = Math.min(bounds.getWidth(), bounds.getHeight());
-		if (actual < minWidthRule.value)
+		if (actual < minWidthRule.value1)
 		{
-			reportError(MINWIDTHERROR, null, cell, minWidthRule.value, actual, minWidthRule.ruleName,
+			reportError(MINWIDTHERROR, null, cell, minWidthRule.value1, actual, minWidthRule.ruleName,
 				(onlyOne) ? null : poly, geom, layer, null, null, null);
 			return true;
 		}
@@ -2532,16 +2532,16 @@ public class Quick
 				// becuase this is done in integer, accuracy may suffer
 //				actual += 2;
 
-				if (actual < minWidthRule.value)
+				if (actual < minWidthRule.value1)
 				{
 					// look between the points to see if it is minimum width or notch
 					if (poly.isInside(new Point2D.Double((center.getX()+inter.getX())/2, (center.getY()+inter.getY())/2)))
 					{
-						reportError(MINWIDTHERROR, null, cell, minWidthRule.value,
+						reportError(MINWIDTHERROR, null, cell, minWidthRule.value1,
 							actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, null, null, null);
 					} else
 					{
-						reportError(NOTCHERROR, null, cell, minWidthRule.value,
+						reportError(NOTCHERROR, null, cell, minWidthRule.value1,
 							actual, minWidthRule.ruleName, (onlyOne) ? null : poly, geom, layer, poly, geom, layer);
 					}
 					return true;
@@ -2554,8 +2554,8 @@ public class Quick
 	private int checkMinAreaLayer(GeometryHandler merge, Cell cell, Layer layer)
 	{
 		int errorFound = 0;
-		DRCRules.DRCRule minAreaRule = (DRCRules.DRCRule)minAreaLayerMap.get(layer);
-		DRCRules.DRCRule encloseAreaRule = (DRCRules.DRCRule)enclosedAreaLayerMap.get(layer);
+		DRCTemplate minAreaRule = (DRCTemplate)minAreaLayerMap.get(layer);
+		DRCTemplate encloseAreaRule = (DRCTemplate)enclosedAreaLayerMap.get(layer);
 
 		// Layer doesn't have min area
 		if (minAreaRule == null && encloseAreaRule == null) return 0;
@@ -2578,8 +2578,8 @@ public class Quick
 
 			// Order depends on area comparison done. First element is the smallest.
 			// and depending on # polygons it could be minArea or encloseArea
-			DRCRules.DRCRule evenRule = (list.size()%2==0) ? encloseAreaRule : minAreaRule;
-			DRCRules.DRCRule oddRule = (evenRule == minAreaRule) ? encloseAreaRule : minAreaRule;
+			DRCTemplate evenRule = (list.size()%2==0) ? encloseAreaRule : minAreaRule;
+			DRCTemplate oddRule = (evenRule == minAreaRule) ? encloseAreaRule : minAreaRule;
 			// Looping over simple polygons. Possible problems with disconnected elements
 			// polyArray.length = Maximum number of distintic loops
 			for (int i = 0; i < list.size(); i++)
@@ -2592,12 +2592,12 @@ public class Quick
                     area = ((PolyQTree.PolyNode)listObj).getArea();
                 else
                     area = ((PolyBase)listObj).getArea();
-				DRCRules.DRCRule minRule = (i%2 == 0) ? evenRule : oddRule;
+				DRCTemplate minRule = (i%2 == 0) ? evenRule : oddRule;
 
 				if (minRule == null) continue;
 
 				// isGreaterThan doesn't consider equals condition therefore negate condition is used
-				if (!DBMath.isGreaterThan(minRule.value, area)) continue;
+				if (!DBMath.isGreaterThan(minRule.value1, area)) continue;
                 //if (!layer.getName().equals("Metal-1")) continue;
                 
 				errorFound++;
@@ -2606,7 +2606,7 @@ public class Quick
                         ? new PolyBase(((PolyQTree.PolyNode)listObj).getPoints(true))
                         : (PolyBase)listObj;
 
-				reportError(errorType, null, cell, minRule.value, area, minRule.ruleName,
+				reportError(errorType, null, cell, minRule.value1, area, minRule.ruleName,
 						simplePn, null /*ni*/, layer, null, null, null);
 			}
 		}
@@ -3117,7 +3117,7 @@ public class Quick
         return false;
 //        if(DRC.isIgnoreExtensionRuleChecking()) return false;
 //
-//        DRCRules.DRCRule extensionRule = DRC.getExtensionRule(layer, nLayer, techMode, true);
+//        DRCTemplate extensionRule = DRC.getExtensionRule(layer, nLayer, techMode, true);
 //        // Checking extension, it could be slow
 //        if (extensionRule == null) return false;
 //
@@ -3261,7 +3261,7 @@ public class Quick
 //        for (int i = 0; i < layerArray.length; i++)
 //        {
 //            Layer nLayer = (Layer)layerArray[i];
-//            DRCRules.DRCRule extensionRule = DRC.getExtensionRule(layer, nLayer, techMode, false);
+//            DRCTemplate extensionRule = DRC.getExtensionRule(layer, nLayer, techMode, false);
 //            // Checking extension, it could be slow
 //            if (extensionRule == null) continue;
 //
@@ -3391,7 +3391,7 @@ public class Quick
 		if (!layer.getFunction().isPoly()) return false;
 		// One layer must be select and other polysilicon. They are not connected
 
-		DRCRules.DRCRule minOverlapRule = DRC.getMinValue(layer, DRCTemplate.EXTENSION, techMode);
+		DRCTemplate minOverlapRule = DRC.getMinValue(layer, DRCTemplate.EXTENSION, techMode);
 		if (minOverlapRule == null) return false;
 
 		Rectangle2D polyBnd = poly.getBounds2D();
@@ -3410,7 +3410,7 @@ public class Quick
             for (Iterator it = polyList.iterator(); it.hasNext(); )
             {
                 PolyBase nPoly = (PolyBase)it.next();
-                reportError(LAYERSURROUNDERROR, "Polysilicon not covered, ", cell, minOverlapRule.value, -1, minOverlapRule.ruleName,
+                reportError(LAYERSURROUNDERROR, "Polysilicon not covered, ", cell, minOverlapRule.value1, -1, minOverlapRule.ruleName,
                             nPoly, geom, layer, null, null, null);
             }
 		}
@@ -3421,21 +3421,21 @@ public class Quick
 			checkExtraPoints.toArray(extraPoints);
 			boolean[] founds = new boolean[checkExtraPoints.size()];
 			Arrays.fill(founds, false);
-			Rectangle2D ruleBnd = new Rectangle2D.Double(polyBnd.getMinX()-minOverlapRule.value,
-								polyBnd.getMinY()-minOverlapRule.value,
-								polyBnd.getWidth() + minOverlapRule.value*2,
-								polyBnd.getHeight() + minOverlapRule.value*2);
+			Rectangle2D ruleBnd = new Rectangle2D.Double(polyBnd.getMinX()-minOverlapRule.value1,
+								polyBnd.getMinY()-minOverlapRule.value1,
+								polyBnd.getWidth() + minOverlapRule.value1*2,
+								polyBnd.getHeight() + minOverlapRule.value1*2);
 			boolean foundAll = allPointsContainedInLayer(geom, cell, ruleBnd, null, extraPoints, founds);
 
 			if (!foundAll)
-				reportError(LAYERSURROUNDERROR, "No enough surround, ", geom.getParent(), minOverlapRule.value, -1, minOverlapRule.ruleName,
+				reportError(LAYERSURROUNDERROR, "No enough surround, ", geom.getParent(), minOverlapRule.value1, -1, minOverlapRule.ruleName,
 									 poly, geom, layer, null, null, null);
 		}
 		return (!found);
 	}
 
     private boolean checkThisCellExtensionRule(Geometric geom, Layer layer, Poly poly, List drcLayers, Cell cell, Area polyArea,
-                                               Rectangle2D polyBnd, DRCRules.DRCRule minOverlapRule, boolean found,
+                                               Rectangle2D polyBnd, DRCTemplate minOverlapRule, boolean found,
                                                List checkExtraPoints)
     {
         boolean[] founds = new boolean[4];
@@ -3493,10 +3493,10 @@ public class Quick
 					if (distPolyArea.isEmpty())
 						continue;  // no intersection
                     Rectangle2D interRect = distPolyArea.getBounds2D();
-                    Rectangle2D ruleBnd = new Rectangle2D.Double(interRect.getMinX()-minOverlapRule.value,
-                            interRect.getMinY()-minOverlapRule.value,
-                            interRect.getWidth() + minOverlapRule.value*2,
-                            interRect.getHeight() + minOverlapRule.value*2);
+                    Rectangle2D ruleBnd = new Rectangle2D.Double(interRect.getMinX()-minOverlapRule.value1,
+                            interRect.getMinY()-minOverlapRule.value1,
+                            interRect.getWidth() + minOverlapRule.value1*2,
+                            interRect.getHeight() + minOverlapRule.value1*2);
                     PolyBase extPoly = new PolyBase(ruleBnd);
 					PolyBase distPoly = new PolyBase(interRect);
                     Arrays.fill(founds, false);
@@ -3945,7 +3945,7 @@ public class Quick
 	 * "tech" and library "lib".  If "con" is true, the layers are connected.  Also forces
 	 * connectivity for same-implant layers.
 	 */
-	private DRCRules.DRCRule getSpacingRule(Layer layer1, Poly poly1, Layer layer2, Poly poly2,
+	private DRCTemplate getSpacingRule(Layer layer1, Poly poly1, Layer layer2, Poly poly2,
                                             boolean con, boolean multi)
 	{
 		// if they are implant on the same layer, they connect
@@ -3957,26 +3957,6 @@ public class Quick
 		}
 
         double[] values = layer1.getTechnology().getSpacingDistances(poly1, poly2);
-//		// see how close they can get.
-//        boolean alongX = false;
-//        boolean alongY = false;
-//        if (poly1.getMaxX() < poly2.getMinX() || poly1.getMinX() > poly2.getMaxX())
-//            alongY = true;
-//        if (poly1.getMaxY() < poly2.getMinY() || poly1.getMinY() > poly2.getMaxY())
-//            alongX = true;
-//
-//        // if (alongX && alongY), they don't have parallel run distance
-//        double length = 0;
-//        double wideS = (size1 > size2) ? size1 : size2;
-//        if (alongY && !alongX)
-//        {
-//            length = Math.abs(Math.min(poly1.getMaxY(), poly2.getMaxY())-Math.max(poly1.getMinY(), poly2.getMinY()));
-//            wideS = Math.max(poly1.getWidth(), poly2.getWidth());
-//        } else if (alongX && !alongY)
-//        {
-//            length = Math.abs(Math.min(poly1.getMaxX(), poly2.getMaxX())-Math.max(poly1.getMinX(), poly2.getMinX()));
-//            wideS = Math.max(poly1.getHeight(), poly2.getHeight());
-//        }
 
 		return (DRC.getSpacingRule(layer1, layer2, con, multi, values[0], values[1], techMode));
 	}

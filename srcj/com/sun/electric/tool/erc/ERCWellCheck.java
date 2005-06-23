@@ -37,10 +37,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.DRCRules;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.*;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -344,9 +341,9 @@ public class ERCWellCheck
 					//if (wa.layer != oWa.layer) continue;
 					boolean con = false;
 					if (wa.netNum == oWa.netNum && wa.netNum >= 0) con = true;
-					DRCRules.DRCRule rule = (con)?
-							(DRCRules.DRCRule)rulesCon.get(waLayer):
-							(DRCRules.DRCRule)rulesNonCon.get(waLayer);
+					DRCTemplate rule = (con)?
+							(DRCTemplate)rulesCon.get(waLayer):
+							(DRCTemplate)rulesNonCon.get(waLayer);
 					// @TODO Might still return NULL the first time!!. Need another array or aux class?
 					if (rule == null)
 					{
@@ -358,21 +355,21 @@ public class ERCWellCheck
 						else
 							rulesNonCon.put(waLayer, rule);
 					}
-					//DRCRules.DRCRule rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
-					if (rule == null || rule.value < 0) continue;
-					if (wa.poly.getBounds2D().getMinX() > oWa.poly.getBounds2D().getMaxX()+rule.value ||
-						oWa.poly.getBounds2D().getMinX() > wa.poly.getBounds2D().getMaxX()+rule.value ||
-						wa.poly.getBounds2D().getMinY() > oWa.poly.getBounds2D().getMaxY()+rule.value ||
-						oWa.poly.getBounds2D().getMinY() > wa.poly.getBounds2D().getMaxY()+rule.value) continue;
+					//DRCTemplate rule = DRC.getSpacingRule(wa.layer, wa.layer, con, false, 0);
+					if (rule == null || rule.value1 < 0) continue;
+					if (wa.poly.getBounds2D().getMinX() > oWa.poly.getBounds2D().getMaxX()+rule.value1 ||
+						oWa.poly.getBounds2D().getMinX() > wa.poly.getBounds2D().getMaxX()+rule.value1 ||
+						wa.poly.getBounds2D().getMinY() > oWa.poly.getBounds2D().getMaxY()+rule.value1 ||
+						oWa.poly.getBounds2D().getMinY() > wa.poly.getBounds2D().getMaxY()+rule.value1) continue;
 					double dist = wa.poly.separation(oWa.poly); // dist == 0 -> intersect or inner loops
-					if (dist > 0 && dist < rule.value)
+					if (dist > 0 && dist < rule.value1)
 					{
 						int layertype = getWellLayerType(waLayer);
 						if (layertype == ERCPSEUDO) continue;
 
 						MessageLog err = errorLogger.logError(waLayer.getName() + " areas too close (are "
 								+ TextUtils.formatDouble(dist, 1) + ", should be "
-								+ TextUtils.formatDouble(rule.value, 1) + ")", cell, 0);
+								+ TextUtils.formatDouble(rule.value1, 1) + ")", cell, 0);
 						err.addPoly(wa.poly, true, cell);
 						err.addPoly(oWa.poly, true, cell);
 					}

@@ -499,16 +499,17 @@ public class DRC extends Listener
 	 * Method to find the edge spacing rule between two layer.
 	 * @param layer1 the first layer.
 	 * @param layer2 the second layer.
+     * @param techMode
 	 * @return the edge rule distance between the layers.
 	 * Returns null if there is no edge spacing rule.
 	 */
-	public static DRCRules.DRCRule getEdgeRule(Layer layer1, Layer layer2)
+	public static DRCTemplate getEdgeRule(Layer layer1, Layer layer2, int techMode)
 	{
 		Technology tech = layer1.getTechnology();
 		DRCRules rules = getRules(tech);
 		if (rules == null) return null;
 
-		return (rules.getEdgeRule(tech, layer1, layer2));
+		return (rules.getEdgeRule(tech, layer1, layer2, techMode));
 	}
 
 	/**
@@ -523,7 +524,7 @@ public class DRC extends Listener
 	 * @return the spacing rule between the layers.
 	 * Returns null if there is no spacing rule.
 	 */
-	public static DRCRules.DRCRule getSpacingRule(Layer layer1, Layer layer2, boolean connected,
+	public static DRCTemplate getSpacingRule(Layer layer1, Layer layer2, boolean connected,
                                                   boolean multiCut, double wideS, double length, int techMode)
 	{
 		Technology tech = layer1.getTechnology();
@@ -541,7 +542,7 @@ public class DRC extends Listener
 	 * @return the extension rule between the layers.
 	 * Returns null if there is no extension rule.
 	 */
-	public static DRCRules.DRCRule getExtensionRule(Layer layer1, Layer layer2, int techMode, boolean isGateExtension)
+	public static DRCTemplate getExtensionRule(Layer layer1, Layer layer2, int techMode, boolean isGateExtension)
 	{
 		Technology tech = layer1.getTechnology();
 		DRCRules rules = getRules(tech);
@@ -572,7 +573,7 @@ public class DRC extends Listener
 	 * @return the minimum width rule for the layer.
 	 * Returns null if there is no minimum width rule.
 	 */
-	public static DRCRules.DRCRule getMinValue(Layer layer, int type, int techmode)
+	public static DRCTemplate getMinValue(Layer layer, int type, int techmode)
 	{
 		Technology tech = layer.getTechnology();
 		if (tech == null) return null;

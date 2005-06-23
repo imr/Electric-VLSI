@@ -3599,12 +3599,10 @@ public class Technology implements Comparable
 			if (np == nty) break;
 			index++;
 		}
-		rules.setMinNodeSize(index, ruleName, wid, hei);
-//		rules.setMinNodeSize(index*2+1, hei);
-		/*
-		rules.minNodeSize[index*2] = new Double(wid);
-		rules.minNodeSize[index*2+1] = new Double(hei);
-		*/
+        DRCTemplate tmp = new DRCTemplate(ruleName, DRCTemplate.ALL, DRCTemplate.NODSIZ, 0, 0, null, null, wid, false);
+        tmp.value2 = hei;
+        rules.addRule(index, tmp, -1);
+//		rules.setMinNodeSize(index, ruleName, wid, hei);
 	}
 
 	/**
