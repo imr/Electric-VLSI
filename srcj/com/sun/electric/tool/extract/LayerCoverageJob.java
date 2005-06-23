@@ -71,6 +71,7 @@ import java.util.Set;
 public class LayerCoverageJob extends Job
 {
 	private Cell curCell;
+    private Job parentJob; // to stop if parent job is killed
     private int mode;
 	private GeometryHandler tree; // = new PolyQTree(curCell.getBounds());
 	public final static int AREA = 0;   // function Layer Coverage
@@ -98,7 +99,7 @@ public class LayerCoverageJob extends Job
         // startJob is identical to printable
 	    GeometryOnNetwork geoms = new GeometryOnNetwork(cell, nets, lambda, startJob);
 
-		Job job = new LayerCoverageJob(Job.Type.EXAMINE, cell, NETWORK, mode, null, geoms, null);
+		Job job = new LayerCoverageJob(null, Job.Type.EXAMINE, cell, NETWORK, mode, null, geoms, null);
         if (startJob)
             job.startJob();
         else
@@ -108,7 +109,7 @@ public class LayerCoverageJob extends Job
 
     private static class LayerVisitor extends HierarchyEnumerator.Visitor
 	{
-        private Job job;
+        private Job parentJob;
 		private GeometryHandler tree;
         private int mode;
 		private List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
@@ -140,7 +141,7 @@ public class LayerCoverageJob extends Job
 
 		public LayerVisitor(Job job, GeometryHandler t, List delList, int func, HashMap original, Set netSet, Rectangle2D bBox)
 		{
-            this.job = job;
+            this.parentJob = job;
 			this.tree = t;
 			this.deleteList = delList;
 			this.function = func;
@@ -182,7 +183,7 @@ public class LayerCoverageJob extends Job
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
             // Checking if job is scheduled for abort or already aborted
-	        if (job != null && job.checkAbort()) return (false);
+	        if (parentJob != null && parentJob.checkAbort()) return (false);
 
 			Cell curCell = info.getCell();
 			Netlist netlist = info.getNetlist();
@@ -396,10 +397,11 @@ public class LayerCoverageJob extends Job
         }
 	}
 
-	public LayerCoverageJob(Type jobType, Cell cell, int func, int mode, Highlighter highlighter,
+	public LayerCoverageJob(Job parentJob, Type jobType, Cell cell, int func, int mode, Highlighter highlighter,
                             GeometryOnNetwork geoms, Rectangle2D bBox)
 	{
 		super("Layer Coverage on " + cell, User.getUserTool(), jobType, null, null, Priority.USER);
+        this.parentJob = parentJob;
 		this.curCell = cell;
         this.mode = mode;
         this.tree = GeometryHandler.createGeometryHandler(mode, curCell.getTechnology().getNumLayers(),
@@ -410,13 +412,16 @@ public class LayerCoverageJob extends Job
 		this.geoms = geoms; // Valid only for network
         this.bBox = bBox;
 
+        if (func == AREA && this.geoms == null)
+            this.geoms = new LayerCoverageJob.GeometryOnNetwork(curCell, null, 1, true);
+
 		setReportExecutionFlag(true);
 	}
 
 	public boolean doIt()
 	{
 		// enumerate the hierarchy below here
-		LayerVisitor visitor = new LayerVisitor(this, tree, deleteList, function,
+		LayerVisitor visitor = new LayerVisitor(parentJob, tree, deleteList, function,
                 originalPolygons, (geoms != null) ? (geoms.nets) : null, bBox);
 		HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, NetworkTool.getUserNetlist(curCell), visitor);  
         tree.postProcess(true);
@@ -547,8 +552,10 @@ public class LayerCoverageJob extends Job
                         if (geoms != null)
 						    geoms.addLayer(layer, layerArea, perimeter);
                         else
-                            System.out.println("Layer " + layer.getName() + " covers " + TextUtils.formatDouble(layerArea) + " square lambda (" + TextUtils.formatDouble((layerArea/totalArea)*100, 0) + "%)");
+                            System.out.println("Layer " + layer.getName() + " covers " + TextUtils.formatDouble(layerArea)
+                                    + " square lambda (" + TextUtils.formatDouble((layerArea/totalArea)*100, 2) + "%)");
 					}
+                    geoms.setTotalArea(totalArea);
                     if (geoms != null)
 					    geoms.print();
                     else
@@ -572,6 +579,7 @@ public class LayerCoverageJob extends Job
 	    private ArrayList areas;
 	    private ArrayList halfPerimeters;
 	    private double totalWire;
+        private double totalArea;
 
 	    protected GeometryOnNetwork(Cell cell, Set nets, double lambda, boolean printable) {
 	        this.cell = cell;
@@ -582,9 +590,10 @@ public class LayerCoverageJob extends Job
 	        halfPerimeters = new ArrayList();
 		    this.printable = printable;
 	        totalWire = 0;
+            totalArea = 0;
 	    }
 	    public double getTotalWireLength() { return totalWire; }
-
+        protected void setTotalArea(double area) {totalArea = area; }
 	    private void addLayer(Layer layer, double area, double halfperimeter) {
 	        layers.add(layer);
 	        areas.add(new Double(area));
@@ -606,7 +615,7 @@ public class LayerCoverageJob extends Job
          */
         public boolean analyzeCoverage(Rectangle2D bbox, ErrorLogger errorLogger)
         {
-            double totalArea =  (bbox.getHeight()*bbox.getWidth())/lambda;
+            totalArea = (bbox.getHeight()*bbox.getWidth())/(lambda*lambda);
             boolean foundError = false;
 
             for (int i = 0; i < layers.size(); i++)
@@ -640,18 +649,22 @@ public class LayerCoverageJob extends Job
                     System.out.println("For " + net + " in " + cell + ":");
                 }
             }
+
 	        for (int i=0; i<layers.size(); i++) {
 	            Layer layer = (Layer)layers.get(i);
 	            Double area = (Double)areas.get(i);
 	            Double halfperim = (Double)halfPerimeters.get(i);
 
+                double layerArea = area.doubleValue();
 	            System.out.println("\tLayer " + layer.getName()
-	                    + ":\t area " + TextUtils.formatDouble(area.doubleValue())
+	                    + ":\t area " + TextUtils.formatDouble(layerArea) + "(" + TextUtils.formatDouble((layerArea/totalArea)*100, 2) + "%)"
 	                    + "\t half-perimeter " + TextUtils.formatDouble(halfperim.doubleValue())
 	                    + "\t ratio " + TextUtils.formatDouble(area.doubleValue()/halfperim.doubleValue()));
 	        }
 	        if (totalWire > 0)
 	            System.out.println("Total wire length = " + TextUtils.formatDouble(totalWire/lambda));
+            if (totalArea > 0)
+                System.out.println("Total cell area = " + TextUtils.formatDouble(totalArea, 2));
 	    }
 	}
 }

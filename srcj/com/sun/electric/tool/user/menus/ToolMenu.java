@@ -604,8 +604,8 @@ public class ToolMenu {
 	    Highlighter highlighter = null;
 	    if ((wnd != null) && (wnd.getCell() == curCell))
 		    highlighter = wnd.getHighlighter();
-
-        Job job = new LayerCoverageJob(jobType, curCell, func, mode, highlighter, null, null);
+                                     ;
+        Job job = new LayerCoverageJob(null, jobType, curCell, func, mode, highlighter, null, null);
         job.startJob();
     }
 

@@ -30,6 +30,7 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.technology.Technology;
 
 import java.awt.geom.Rectangle2D;
@@ -167,6 +168,13 @@ public class LayerCoverage extends Listener
             Rectangle2D bBoxOrig = curCell.getBounds();
             double maxY = bBoxOrig.getMaxY();
             double maxX = bBoxOrig.getMaxX();
+
+            // if negative or zero values -> only once
+            if (deltaX <= 0) deltaX = bBoxOrig.getWidth();
+            if (deltaY <= 0) deltaY = bBoxOrig.getHeight();
+            if (width <= 0) width = bBoxOrig.getWidth();
+            if (height <= 0) height = bBoxOrig.getHeight();
+
             for (double posY = bBoxOrig.getMinY(); posY < maxY; posY += deltaY)
             {
                 for (double posX = bBoxOrig.getMinX(); posX < maxX; posX += deltaX)
@@ -174,10 +182,11 @@ public class LayerCoverage extends Listener
                     Rectangle2D box = new Rectangle2D.Double(posX, posY, width, height);
                     LayerCoverageJob.GeometryOnNetwork geoms = new LayerCoverageJob.GeometryOnNetwork(curCell, null, 1, true);
                     System.out.println("Calculating Coverage on cell '" + curCell.getName() + "' for area (" +
-                            posX + "," + posY + ") (" + box.getMaxX() + "," + box.getMaxY() + ")");
-                    Job job = new LayerCoverageJob(Type.EXAMINE, curCell, LayerCoverageJob.AREA, mode, highlighter, geoms, box);
+                            DBMath.round(posX) + "," + DBMath.round(posY) + ") (" +
+                            DBMath.round(box.getMaxX()) + "," + DBMath.round(box.getMaxY()) + ")");
+                    Job job = new LayerCoverageJob(this, Type.EXAMINE, curCell, LayerCoverageJob.AREA, mode, highlighter, geoms, box);
                     job.doIt();
-                    if (job.getAborted()) // aborted by user
+                    if (getAborted() || job.getAborted()) // aborted by user
                     {
                         foundError = true;
                         return false; // didn't finish
