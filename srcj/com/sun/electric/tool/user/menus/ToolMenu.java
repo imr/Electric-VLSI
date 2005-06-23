@@ -134,15 +134,20 @@ public class ToolMenu {
 
 		//------------------- DRC
 
-		// mnemonic keys available:  B DEFG IJKLMNOPQR TUVWXYZ
+		// mnemonic keys available:  B DEFG IJK MNOPQR TUVWXYZ
 		MenuBar.Menu drcSubMenu = MenuBar.makeMenu("_DRC");
 		toolMenu.add(drcSubMenu);
 		drcSubMenu.addMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
-			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false, GeometryHandler.ALGO_QTREE); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(false, GeometryHandler.ALGO_SWEEP); }});
 		drcSubMenu.addMenuItem("Check _Selection Area Hierarchically", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true, GeometryHandler.ALGO_QTREE); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { DRC.checkHierarchically(true, GeometryHandler.ALGO_SWEEP); }});
         drcSubMenu.addMenuItem("Check Area _Coverage", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(null, GeometryHandler.ALGO_SWEEP, true);} });
+
+        drcSubMenu.addMenuItem("_List Layer Coverage on Cell", null,
+                new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(Job.Type.EXAMINE,
+                        LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
+
 		drcSubMenu.addSeparator();
 		drcSubMenu.addMenuItem("Import _Assura DRC Errors...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { importAssuraDrcErrors();}});
@@ -438,7 +443,8 @@ public class ToolMenu {
 		MenuBar.Menu generationSubMenu = MenuBar.makeMenu("_Generation");
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("_Coverage Implants Generator", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
+			new ActionListener() { public void actionPerformed(ActionEvent e) {layerCoverageCommand(Job.Type.CHANGE,
+                    LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
 		generationSubMenu.addMenuItem("_Pad Frame Generator...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { padFrameGeneratorCommand(); }});
 		generationSubMenu.addMenuItem("_ROM Generator...", null,
@@ -584,6 +590,23 @@ public class ToolMenu {
         else
             job.doIt();
         return (job.isOK());
+    }
+
+    /**
+     * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
+     * except "List Geometry on Network" commands.
+     */
+    public static void layerCoverageCommand(Job.Type jobType, int func, int mode)
+    {
+        Cell curCell = WindowFrame.needCurCell();
+        if (curCell == null) return;
+	    EditWindow wnd = EditWindow.needCurrent();
+	    Highlighter highlighter = null;
+	    if ((wnd != null) && (wnd.getCell() == curCell))
+		    highlighter = wnd.getHighlighter();
+
+        Job job = new LayerCoverageJob(jobType, curCell, func, mode, highlighter, null, null);
+        job.startJob();
     }
 
     public static class BackAnnotateJob extends Job {

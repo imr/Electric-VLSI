@@ -61,14 +61,14 @@ public class J3DMenu {
 //		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
 
-        MenuBar.Menu demoSubMenu = MenuBar.makeMenu("Capacitance _Demo");
-		j3DMenu.add(demoSubMenu);
-        demoSubMenu.addMenuItem("3D _View for Demo", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(true); } });
+//        MenuBar.Menu demoSubMenu = MenuBar.makeMenu("Capacitance _Demo");
+//		j3DMenu.add(demoSubMenu);
+//        demoSubMenu.addMenuItem("3D _View for Demo", null,
+//            new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(true); } });
 //        demoSubMenu.addMenuItem("Read Data From File", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { readDemoDataFromFile(); } });
-        demoSubMenu.addMenuItem("_Read Data", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DViewDialog.create3DViewDialog(TopLevel.getCurrentJFrame()); } });
+//        demoSubMenu.addMenuItem("_Read Data", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DViewDialog.create3DViewDialog(TopLevel.getCurrentJFrame()); } });
 
         j3DMenu.addSeparator();
         j3DMenu.addMenuItem("_Test Hardware", null,

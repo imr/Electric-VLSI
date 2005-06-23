@@ -259,19 +259,19 @@ public class DebugMenus {
 	    gildaMenu.addMenuItem("List Geometry on Network SWEEP", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.listGeometryOnNetworkCommand(GeometryHandler.ALGO_SWEEP); } });
         gildaMenu.addMenuItem("Merge Polyons qTree", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_QTREE);}});
+                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_QTREE);}});
         gildaMenu.addMenuItem("Merge Polyons Sweep", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_SWEEP);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.MERGE, GeometryHandler.ALGO_SWEEP);}});
         gildaMenu.addMenuItem("Covering Implants qTree", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_QTREE);}});
+                new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_QTREE);}});
         gildaMenu.addMenuItem("Covering Implants Sweep", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {CellMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {ToolMenu.layerCoverageCommand(Job.Type.CHANGE, LayerCoverageJob.IMPLANT, GeometryHandler.ALGO_SWEEP);}});
         gildaMenu.addMenuItem("Covering Implants Old", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {implantGeneratorCommand(false, false);}});
         gildaMenu.addMenuItem("Generate Fake Nodes", null,
                 new ActionListener() { public void actionPerformed(ActionEvent e) {genFakeNodes();}});
         gildaMenu.addMenuItem("List Layer Coverage", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { CellMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
 
         /****************************** Dima's TEST MENU ******************************/
 

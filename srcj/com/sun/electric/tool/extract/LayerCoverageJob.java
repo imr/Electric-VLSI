@@ -108,6 +108,7 @@ public class LayerCoverageJob extends Job
 
     private static class LayerVisitor extends HierarchyEnumerator.Visitor
 	{
+        private Job job;
 		private GeometryHandler tree;
         private int mode;
 		private List deleteList; // Only used for coverage Implants. New coverage implants are pure primitive nodes
@@ -137,8 +138,9 @@ public class LayerCoverageJob extends Job
 			}
 		}
 
-		public LayerVisitor(GeometryHandler t, List delList, int func, HashMap original, Set netSet, Rectangle2D bBox)
+		public LayerVisitor(Job job, GeometryHandler t, List delList, int func, HashMap original, Set netSet, Rectangle2D bBox)
 		{
+            this.job = job;
 			this.tree = t;
 			this.deleteList = delList;
 			this.function = func;
@@ -179,6 +181,9 @@ public class LayerCoverageJob extends Job
 
 		public boolean enterCell(HierarchyEnumerator.CellInfo info)
 		{
+            // Checking if job is scheduled for abort or already aborted
+	        if (job != null && job.checkAbort()) return (false);
+
 			Cell curCell = info.getCell();
 			Netlist netlist = info.getNetlist();
 
@@ -411,7 +416,7 @@ public class LayerCoverageJob extends Job
 	public boolean doIt()
 	{
 		// enumerate the hierarchy below here
-		LayerVisitor visitor = new LayerVisitor(tree, deleteList, function,
+		LayerVisitor visitor = new LayerVisitor(this, tree, deleteList, function,
                 originalPolygons, (geoms != null) ? (geoms.nets) : null, bBox);
 		HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, NetworkTool.getUserNetlist(curCell), visitor);  
         tree.postProcess(true);

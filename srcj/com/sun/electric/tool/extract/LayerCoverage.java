@@ -177,6 +177,11 @@ public class LayerCoverage extends Listener
                             posX + "," + posY + ") (" + box.getMaxX() + "," + box.getMaxY() + ")");
                     Job job = new LayerCoverageJob(Type.EXAMINE, curCell, LayerCoverageJob.AREA, mode, highlighter, geoms, box);
                     job.doIt();
+                    if (job.getAborted()) // aborted by user
+                    {
+                        foundError = true;
+                        return false; // didn't finish
+                    }
                     if (geoms.analyzeCoverage(box, errorLogger))
                         foundError = true;
                 }

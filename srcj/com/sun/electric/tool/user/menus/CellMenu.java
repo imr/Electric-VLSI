@@ -138,7 +138,7 @@ public class CellMenu {
             new ActionListener() { public void actionPerformed(ActionEvent e) { CellLists.listCellUsageCommand(); }});
         cellInfoSubMenu.addSeparator();
         cellInfoSubMenu.addMenuItem("List Layer Co_verage on Cell", null,
-                new ActionListener() { public void actionPerformed(ActionEvent e) { layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
+                new ActionListener() { public void actionPerformed(ActionEvent e) { ToolMenu.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
         cellInfoSubMenu.addSeparator();
         cellInfoSubMenu.addMenuItem("Graphically, _Entire Library", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.graphCellsInLibrary(); }});
@@ -219,23 +219,6 @@ public class CellMenu {
     	}
 
 		SetMultiPageJob job = new SetMultiPageJob(cell, 1);
-    }
-
-    /**
-     * Method to handle the "List Layer Coverage", "Coverage Implant Generator",  polygons merge
-     * except "List Geometry on Network" commands.
-     */
-    public static void layerCoverageCommand(Job.Type jobType, int func, int mode)
-    {
-        Cell curCell = WindowFrame.needCurCell();
-        if (curCell == null) return;
-	    EditWindow wnd = EditWindow.needCurrent();
-	    Highlighter highlighter = null;
-	    if ((wnd != null) && (wnd.getCell() == curCell))
-		    highlighter = wnd.getHighlighter();
-
-        Job job = new LayerCoverageJob(jobType, curCell, func, mode, highlighter, null, null);
-        job.startJob();
     }
 
     /**
