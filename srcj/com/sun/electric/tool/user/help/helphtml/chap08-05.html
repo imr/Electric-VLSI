@@ -5,25 +5,42 @@
 <H3>Creating and Deleting Arc Cells</H3>
 <P>
 Arcs are the wires in a technology, and they are constructed from pieces of geometry on the layers.
+To edit an existing arc,
+select it from the cell explorer or the <B>Edit Cell...</B> command (of menu <B>Edit</B>).
 <P>
-To edit an existing arc, use the <B>Edit Primitive Arc...</B>
-command of the <B>Technology</B> menu,
-and to create a new arc use the <B>New Primitive Arc...</B> subcommand of the <B>New Primitive</B> command.
-Once an arc is being edited, the next one in sequence can be edited with the <B>Edit Next Primitive</B> command.
-The current arc can be deleted with <B>Delete this Primitive</B>.
-Also, you can rename an arc with the <B>Edit Cell...</B>
-command of the <B>Cells</B> menu, but remember to use the name "arc-" in front
-(i.e. the old name is "arc-polysilicon" and the new name is "arc-gate").
-Finally, you can rearrange the order in which the arcs will be listed by using the <B>Reorder Primitive Arcs</B>
-subcommand of the <B>Reorder Primitives</B> command.
+<TABLE><TR><TD><CENTER><IMG SRC="fig08-25.png" ALT="Figure 8.25"></CENTER></TD><TD>
+To create a new arc, use the context menu on the "TECHNOLOGY ARCS" entry of the cell explorer
+and choose "Add New Arc".
+An arc can be deleted simply by deleting its cell.
+An arc can be renamed by renaming its cell,
+but remember to use the name "arc-" in front
+(i.e. the old name is "arc-metal" and the new name is "arc-metal-1").
+Finally, you can rearrange the order in which the arcs will be listed with the "Reorder Arcs" command from the
+context menu.
+</TD></TR></TABLE>
 <!-- NEED 6in -->
 <P>
 <H3>Editing Special Arc Information</H3>
 <P>
 <TABLE><TR><TD>
-Arc cells show a sample arc on the left and a few pieces of textual information on the right.
-The textual information can be updated by highlighting them and using the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">technology edit</A></I> button.
+Arc cells show a sample arc on the bottom and a few pieces of textual information above it.
+The textual information can be updated by double-clicking on it.
+<P>
+The "Fixed-angle" entry lets you choose whether or not default arcs of this type are drawn at fixed angles
+(the particular fixed angle is specified by the "Angle increment" field below).
+In many layout technologies, the correct state is "yes".
+<P>
+The "Wipes pins" entry lets you choose whether or not these arcs completely erase connecting pins
+(the sensible state is "yes" because pins are drawn in the same layer and would not be visible anyway).
+<P>
+The "Extend arcs" entry lets you choose whether or not these arcs extend beyond their endpoints by half of their width
+(the typical state is "yes").
+<P>
+The "Angle increment" entry is the preferred angle granularity of this type of arc
+(the typical state is "90" which requests Manhattan arcs).
+<P>
+The "Antenna Ratio" entry is used in antenna rules calculations
+(see <A HREF="chap09-03-02.html#chap09-03-02">Section 9-3-2</A>).
 </TD><TD><CENTER><IMG SRC="fig08-07.png" ALT="Figure 8.7"></CENTER></TD></TR></TABLE>
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig08-08.png" ALT="Figure 8.8"></CENTER></TD><TD>
@@ -44,19 +61,6 @@ or N substrate under it,
 and a p-type diffusion will end up as part of the drain or source of the P transistor to which it is connected.
 </TD></TR></TABLE>
 <P>
-The "Fixed-angle" entry lets you choose whether or not default arcs of this type are drawn at fixed angles
-(the particular fixed angle is specified by the "Angle increment" field below).
-In many layout technologies, the correct state is "yes".
-<P>
-The "Wipes pins" entry lets you choose whether or not these arcs completely erase connecting pins
-(the sensible state is "yes" because pins are drawn in the same layer and would not be visible anyway).
-<P>
-The "Extend arcs" entry lets you choose whether or not these arcs extend beyond their endpoints by half of their width
-(the typical state is "yes").
-<P>
-The "Angle increment" entry is the preferred angle granularity of this type of arc
-(the typical state is "90" which requests Manhattan arcs).
-<P>
 <!-- NEED 5in -->
 <H3>Editing Arc Geometry</H3>
 <P>
@@ -68,16 +72,16 @@ but the smaller dimension is presumed to be the width and defines the default fo
 <P>
 <TABLE><TR>
 <TD><CENTER><IMG SRC="fig08-10.png" ALT="Figure 8.10"></CENTER></TD><TD>
-Use the entries from the component menu on the left to create new layers.
+Use the entries from the component menu of the side bar to create new layers.
 The typical layer in an IC technology is a Filled box (third from the top).
 <P>
 After the geometry is created, it can be moved and resized with standard Electric commands.
-Remember to keep all arc geometry separate from the information messages in the cell so that the technology editor can distinguish them.
+Remember to keep all arc geometry separate from the information messages in the cell
+so that the technology editor can distinguish them.
 Once a piece of geometry is created,
-its layer can be set by highlighting it and using the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">technology edit</A></I> button.
-A menu is then presented with possible layers (ignore the last entry, "SET-MINIMUM-SIZE",
-which is used only for nodes).
+its layer can be set by double-clicking on it.
+A menu is then presented with possible layers (ignore the last entries, "SET-MINIMUM-SIZE",
+and "CLEAR-MINIMUM-SIZE" which are used only for nodes).
 </TD>
 <TD><CENTER><IMG SRC="fig08-09.png" ALT="Figure 8.9"></CENTER></TD></TR></TABLE>
 <P>
@@ -89,6 +93,7 @@ Select the "HIGH" entry in the component menu to create this special type of lay
 <P>
 After geometry has been created, there may be some confusion as to what is there.
 To find out,
-use the <B>Identify Primitive Layers</B> command, which temporarily labels each piece of geometry in the arc cell.
+use the <B>Identify Primitive Layers</B> command (of menu <B>Edit / Technology Specific</B>),
+which temporarily labels each piece of geometry in the arc cell.
 
 <!-- TRAILER -->

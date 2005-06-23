@@ -2,44 +2,43 @@
 
 Layers are used to construct primitive nodes and arcs in a technology.
 Because of this, the layers must be edited before the nodes and arcs.
-<P>
 To edit an existing layer,
-use the <B>Edit Layer...</B> command of the <B>Technology</B> menu,
-and to create a new layer use the <B>New Layer...</B> subcommand of the <B>New Primitive</B> command.
-Once a layer is being edited,
-the next one in sequence can be edited with the <B>Edit Next Primitive</B> command.
-The current layer can be deleted with <B>Delete this Primitive</B>.
-Also, you can rename a layer with the <B>Edit Cell...</B> command of the <B>Cells</B> menu,
+select it from the cell explorer or the <B>Edit Cell...</B> command (of menu <B>Edit</B>).
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig08-24.png" ALT="Figure 8.24"></CENTER></TD><TD>
+To create a new layer, use the context menu on the "TECHNOLOGY LAYERS" entry of the cell explorer
+and choose "Add New Layer".
+A layer can be deleted simply by deleting its cell.
+A layer can be renamed by renaming its cell,
 but remember to use the name "layer-" in front
 (i.e. the old name is "layer-metal" and the new name is "layer-metal-1").
-Finally, you can rearrange the order in which the layers will be listed by using the <B>Reorder Layers</B>
-subcommand of the <B>Reorder Primitives</B> command.
+Finally, you can rearrange the order in which the layers will be listed with the "Reorder Layers" command from the
+context menu.
+</TD></TR></TABLE>
 <P>
 <TABLE><TR><TD>
 There are many pieces of information in a layer,
-most of which can be updated by highlighting them and using the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">technology edit</A></I> button.
+most of which can be updated by double-clicking on them.
 There is a 16x16 stipple pattern, a large square of color above that,
 and a number of pieces of textual information along the right side.
 </TD><TD><CENTER><IMG SRC="fig08-03.png" ALT="Figure 8.3"></CENTER></TD></TR></TABLE>
 <P>
-The stipple pattern can be changed simply by selecting any grid squares and then using the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">technology edit</A></I> button.
-You can also do operations on the entire stipple pattern by clicking on the text "Stipple Pattern Operations"
-and using the <I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">technology edit</A></I> button.
-These operations include clearing the pattern, inverting the pattern, copying, and pasting the pattern (between layers).
+The stipple pattern can be changed by double-clicking on any grid squares.
+You can also do operations on the entire stipple pattern ("Clear Pattern", "Invert Pattern", "Copy Pattern",
+and "Paste Pattern") by double-clicking on their name below the pattern area.
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig08-04.png" ALT="Figure 8.4"></CENTER></TD><TD>
-The color of the layer can be changed by highlighting the "Color"
-entry on the right and using the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">technology edit</A></I> button.
-A menu then proposes five transparent and many named (opaque) colors.
+The color of the layer can be changed by double-clicking on the "Color".
+The dialog lets you choose a color, opacity, and foreground factor for the layer.
+Opacity ranges from 100 (fully opaque) to 0 (transparent).
+The foreground flag is "on" to indicate that the non-opaque colors can be combined with others.
+</TD></TR></TABLE>
 <P>
-Transparent colors have a unique appearance when they overlap each other,
-as defined in the technology's color map.
-The named colors are opaque, so they obscure anything under them when drawn.
-In general, the five most commonly used layers should be assigned to the five transparent colors,
-and the remaining layers should have opaque color.
+Transparency lets a layer have a unique appearance where it overlaps other layers.
+The overlap is defined in the technology's color map.
+You can double-click on the "Transparency" entry to assign this factor to a layer.
+Non-transparent layers (with "Transparency: none") are opaque, so they obscure anything under them when drawn.
+In general, the most commonly used layers should be transparent.
 See <A HREF="chap04-06.html#chap04-06">Section 4-6</A> for more information on color.
 <P>
 The "Style" entry on the right can be "solid", "patterned",
@@ -48,27 +47,35 @@ When using "solid" styles, the 16x16 stipple pattern is ignored (except for hard
 The "patterned/outline" option draws a solid line around all patterned polygons.
 Transparent layers should be solid because they distinguish themselves in the color map.
 Layers with opaque colors should probably be patterned so that their combination is visible.
-</TD></TR></TABLE>
-<P>
-The "Print colors" at the bottom are used when producing PostScript that is "Color Merged" (see the
-<B>Print Options...</B> command of the <B>File</B> menu).
-The first three numbers are the red, green, and blue.
-The next number is an opacity, from 100 (fully opaque) to 0 (transparent).
-The last factor is a "foreground" flag which, when "on" indicates that the non-opaque colors can be combined with others.
 <P>
 Many of the entries on the right side of the layer cell provide correspondences between a layer and various interchange standards.
 The "CIF Layer" entry is the string to use for CIF I/O.
-The "DXF Layer" entry is the string to use for DXF I/O.
 The "GDS-II layer" is a single number (-1 when there is no layer).
 <P>
-<!-- NEED 4in -->
-
+Another set of options on the right side of the layer cell is for SPICE parasitics.
+You may assign a resistance, capacitance,
+and edge capacitance to the layer for use in creating SPICE simulation decks.
+<P>
+The "3D Height" and "3D Thickness" are used when viewing a chip in 3-dimensions.
+The height and thickness are arbitrary values which describe the location and thickness in the third axis (out of the screen).
+For example, to show how poly and diffusion interact,
+the poly layer can be at height 21 and the diffusion layer at height 20, both with 0 thickness.
+This will appear as two ribbons, one over the other.
+See <A HREF="chap04-11.html#chap04-11">Section 4-1</A> for more information on 3D display.
+<P>
+The last option on the right side of the layer cell specifies the minimum coverage percentage
+(see <A HREF="chap09-02-03.html#chap09-02-03">Section 9-2-3</A> for more).
+<P>
+<H3>Layer Function</H3>
+<P>
 <TABLE><TR><TD>
 The "Function" entry allows a general-purpose description to be attached to the layer.
 A function can be only 1 of the values from this table.
-However, the last 12 entries are additional attributes that can combine with the layer function to further describe it:
+However, the last entries are additional attributes that can combine with the layer function to further describe it.
+</TD><TD><CENTER><IMG SRC="fig08-05.png" ALT="Figure 8.5"></CENTER></TD></TR></TABLE>
+<P>
 <UL>
-<LI>The functions "p-type," "n-type," "depletion," "enhancement," "light," and "heavy"
+<LI>The functions "p-type," "n-type," "depletion," "enhancement," "light," "heavy", and "thick"
 describe layer types that are process-specific.
 <LI>The function "pseudo" indicates that this layer is a pseudo-layer, used for pin construction.
 <LI>The function "nonelectrical" indicates that this layer is decorative and not part of a real circuit.
@@ -76,10 +83,7 @@ describe layer types that are process-specific.
 <LI>The function "inside-transistor" indicates that the polysilicon is not field-poly, but is part of a transistor.
 </UL>
 <P>
-For example,
-you can highlight the function entry and use the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">technology edit</A></I>
-button many times,
+For example, you can double-click the function entry many times,
 selecting "Diffusion",
 "p-type", and "heavy" to indicate a Diffusion layer that is heavily-doped p-type.
 To clear the layer function, set it to "unknown."
@@ -89,7 +93,6 @@ This is because every arc needs a pin, and pins are constructed with "pseudo" la
 The "pseudo" layers are "virtual" geometry that do not appear in the fabrication output.
 It is important that every "pseudo" layer have an associated real layer, with similar descriptive fields.
 The technology editor will issue a warning if pins are not constructed from pseudo-layers.
-</TD><TD><CENTER><IMG SRC="fig08-05.png" ALT="Figure 8.5"></CENTER></TD></TR></TABLE>
 <P>
 Note that the layer functions must be treated carefully as they form the basis of subsequent arc and node definitions.
 One consideration to note is the use of "Wells" and their significance to the SPICE extractor.
@@ -100,37 +103,18 @@ This will have the same doping as the well, unlike a device diffusion,
 which is of opposite type to the well in which it is located.
 <P>
 Two rules apply here:
-(1) there must be a separate diffusion layer for the p++ or n++ used as a contact in a P-well or N-well,
-respectively; it cannot be the same layer that is used for diffusions in active devices;
-and (2) a p++ or n++ layer that is used to make a contact in a well of the same semiconductor type
+<OL>
+<LI>There must be a separate diffusion layer for the p++ or n++ used as a contact in a P-well or N-well,
+respectively; it cannot be the same layer that is used for diffusions in active devices.</LI>
+<LI>A p++ or n++ layer that is used to make a contact in a well of the same semiconductor type
 (for example p++ in a P-well)
 must not be defined with the layer function Diffusion;
 it must be declared as "Well".
 In the well contact shown below,
-both the p++ layer and the P-well layer will be defined with the layer function "Well, P-type".
+both the p++ layer and the P-well layer will be defined with the layer function "Well, P-type".</LI>
+</OL>
 <P>
 <CENTER><IMG SRC="fig08-06.png" ALT="Figure 8.6"></CENTER>
-<P>
-The "Layer letters" field is one letter (or at most two) that uniquely identify this layer.
-You must not place the same letter in this field on two different layers.
-These letters are used as abbreviations for the layers in some internal commands,
-but have no meaning to the average user.
-Nevertheless, it is best to keep track of which letter has been used with each layer to prevent duplication.
-<P>
-Another set of options on the right side of the layer cell is for SPICE parasitics.
-You may assign a resistance, capacitance,
-and edge capacitance to the layer for use in creating SPICE simulation decks.
-If a layer has nonzero edge capacitance, it must also have nonzero capacitance,
-because the extractor checks the capacitance value to decide whether to include the layer in parasitic computations.
-This is true even if the layer is used in an arc that contains device diffusion;
-the extractor will correctly cancel out the capacitance, and include the edge capacitance in the extraction process.
-<P>
-The "3D Height" and "3D Thickness" are used when viewing a chip in 3-dimensions.
-The height and thickness are arbitrary values (usually a small integer).
-They indicate the location and thickness in the third axis (out of the screen).
-For example, to show how poly and diffusion interact,
-the poly layer can be at height 21 and the diffusion layer at height 20, both with 0 thickness.
-This will appear as two ribbons, one over the other.
-Use the <B>3D Display</B> commands of the <B>Windows</B> menu to see a 3-dimensional view of the circuit.
+
 
 <!-- TRAILER -->

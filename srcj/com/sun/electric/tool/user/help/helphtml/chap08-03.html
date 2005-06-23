@@ -4,7 +4,7 @@
 
 Although a technology is normally described with a single library,
 it is also possible to string together a sequence of libraries to describe a technology.
-The sequence is an "inheritance hierarchy",
+The sequence forms an "inheritance hierarchy",
 where later libraries in the sequence can override elements found in earlier libraries.
 For example, one library could be a "base" description for a family of technologies,
 and another library could be a "tailoring" description that describes a specific family member.
@@ -13,12 +13,12 @@ That information would then override or augment the base library.
 <P>
 To connect a string of libraries,
 a list is placed in the bottommost library pointing to the earlier, or "dependent" libraries.
-In the above example, the "tailoring" library would have the list in it,
-and the list would point to the "base" library.
+In the example here, the current library is "smallPads" and it is tailored with two
+other libraries: "pads" and "cmos" (the "base" library).
 Note that the list implicitly begins with the current library,
-and continues in reverse order (that is, after the current library,
-the last library in the list is considered,
-then the next-to-last, and so on up to the first library in the list).
+and continues in reverse order.
+In this example, the first library examined is "padsSmall",
+followed by "pads" and finally the base library "cmos".
 <P>
 When a piece of technology information is found in more than one library,
 the latest one is used (i.e. the current library's version is used before a dependent library's version,
@@ -26,8 +26,8 @@ and a dependent library's version is used before that of another dependent libra
 Note that the version which is used is expected to be the most recently created version,
 and a warning message will be issued if this is not the case.
 <P>
-Control of the library list is done with the <B>Edit Library Dependencies...</B> command of the <B>Technology</B> menu,
-which must be issued when editing the bottommost library.
+Control of the library list is done with the <B>Edit Library Dependencies...</B> command
+(of menu <B>Edit / Technology Specific</B>).
 <TABLE><TR><TD>
 A dialog is presented with two lists of libraries.
 The list on the left shows the dependent libraries and the list on the right shows all current libraries.

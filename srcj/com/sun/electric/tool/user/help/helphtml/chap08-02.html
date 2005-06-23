@@ -6,8 +6,8 @@
 <H3>Converting Technologies to Libraries</H3>
 <P>
 The best way to create a new technology is to change an existing one.
-Use the <B>Convert and Edit Technology...</B> command of the <B>Technology</B>
-menu and select a similar technology.
+Use the <B>Convert Technology to Library for Editing...</B> command
+(of menu <B>Edit / Technology Specific</B>) and select a similar technology.
 Note that the Schematic and Artwork technologies are too complex to edit and cannot be converted.
 <P>
 Conversion of a technology to a library creates a library with the same name as the technology.
@@ -17,32 +17,32 @@ will be converted with their current settings only, and the options will no long
 <H3>Technology-Editing Mode</H3>
 <P>
 Once a technology-library has been created,
-editing of its cells is done in a special <I>technology-editing mode</I>
-(as a reminder, the cursor changes to a "T" and a yellow border is drawn in the window).
-If the mode does not appear properly, use the <B>Cell Options...</B> command of the <B>Cells</B>
-menu to tell the system whether or not a cell should be edited in the technology editor.
+editing of its cells is done in a special <I>technology-editing mode</I>.
+The system knows to use technology-editing mode because the cells are marked
+as being "Part of a technology editor library"
+(see the <B>Cell Properties...</B> command of the <B>Cells</B> menu).
 <P>
 <H3>Converting Libraries to Technologies</H3>
 <P>
-When in technology-editing mode, the <B>Convert and Edit Technology...</B> command changes to
+To convert a technology-library into a technology, use the
+<B>Convert and Edit Technology...</B> command changes to
 the <B>Convert Library to Technology...</B> command.
 This command converts the current library back into a technology.
+<P>
 <TABLE><TR><TD>
-You are given the opportunity of naming the technology, and can also request that C or Java code be produced
+You are given the opportunity of naming the technology, and can also request that Java code be produced
 (this code can be compiled with Electric to install the technology permanently).
-If a technology already exists with the name you want, you can request that it be renamed
-(note that technologies can also be renamed with the <B>Rename Technology...</B> command).
+If a technology already exists with the name you want, you can request that it be renamed,
+or you can choose a different name for the new technology.
 </TD><TD><CENTER><IMG SRC="fig08-01.png" ALT="Figure 8.1"></CENTER></TD></TR></TABLE>
+<P>
 If there is an error in the library, conversion is aborted and you are given a chance to fix the library.
 Generally, the offending part of the library is highlighted.
-<P>
 If no errors have occurred in the translation,
 there will be a new technology in Electric and it will be the current one.
-No two technologies can have the same name,
-so the library name will be adjusted if necessary to form a unique technology name.
 <P>
 Before creating any circuitry with the new technology,
-it is advisable to create a new library (use the <B>New Library...</B> command of the <B>File</B> menu)
+it is advisable to create a new library (use the <B>New Library...</B> command of menu <B>File</B>)
 so that the test circuitry is not stored with the library that describes it.
 <P>
 <H3>Cleaning Up</H3>
@@ -52,16 +52,11 @@ You can delete the current library with the <B>Close Library</B> command of the 
 (to make another library current,
 use the <B>Change Current Library...</B> command of the <B>File</B> menu).
 <P>
-To delete a technology, use the <B>Delete Technology...</B> command of the <B>Technology</B> menu.
-These commands are not undoable.
-<P>
 <H3>Using Technology Libraries</H3>
 <P>
 Once a library has been successfully built that describes a technology,
 it can be saved to disk with the <B>Save Library</B>
 command of the <B>File</B> menu.
-Then, in another session of Electric, it can be read from disk and converted to a technology, all in one step,
-with the <B>Load Technology Library</B> command of the <B>Technology</B> menu.
-
+Then, in another session of Electric, it can be read from disk and converted to a technology.
 
 <!-- TRAILER -->

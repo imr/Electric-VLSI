@@ -1,38 +1,31 @@
 <!-- HEADER 8-7: Miscellaneous Information -->
 
-<H3>The Miscellaneous Information Cell</H3>
+<H3>The Support Cell</H3>
 <P>
 Each cell in a technology library describes a different aspect of the technology.
-The <I>miscellaneous information</I> cell contains technology-wide information.
-To see this, use the <B>Edit Miscellaneous Info</B> command of the <B>Technology</B> menu.
-Note that this cell is called "factors",
-so the same effect could be accomplished by selecting it with the <B>Edit Cell...</B> command of the <B>Cells</B> menu.
-<P>
-The miscellaneous information cell contains two items:
-the value of lambda (the basic grid unit,
-measured in internal units), and a full description of the technology.
-By highlighting any of these items and using the
-<I><A HREF="chap01-08.html#chap01-08" TITLE="UNIX:right  Windows:right  Mac:cmd-click">technology edit</A></I> button,
-the item can be appropriately modified.
+The <I>support</I> cell contains technology-wide information.
+To see this, edit the cell "factors" under the "TECHNOLOGY SUPPORT" section
+of the cell explorer.
 <P>
 <CENTER><IMG SRC="fig08-14.png" ALT="Figure 8.14"></CENTER>
 <P>
-Note that the proper way to set the value of lambda for a technology is by changing this value,
-and not by using the <B>Change Units...</B> command of the <B>Technology</B> menu.
-The <B>Change Units...</B> command is only going to scale the examples in the technology library,
-and will not correctly alter the size of components in the new technology.
+The support cell contains many items, any of which can be changed by double-clicking on it.
+<UL>
+<LI>"Scale" is the scaling factor between grid units and nanometers.</LI>
+<LI>"Description" is the full description of the technology.</LI>
+<LI>"Minimum Resistance" is the minimum resistance for the technology
+(see <A HREF="chap09-10-01.html#chap09-10-01">Section 9-10-1</A> for this and other parasitics).</LI>
+<LI>"Minimum Capacitance" is the minimum capacitance for the technology.</LI>
+<LI>"Gate Shrinkage" is the gate shrinkage for the technology.</LI>
+<LI>"Gates Included in Resistance" tells whether to include a transistor's gate in resistance computations.</LI>
+<LI>"Parasitics Includes Ground" tells whether to include ground networks in parasitics computations.</LI>
 <P>
 <H3>Transparent Colors</H3>
 <P>
-Once the layers have been defined,
-the color map can be built to describe the transparent colors and all of their combinations.
-Use the <B>Edit Colors...</B> command of the <B>Technology</B>
-menu to modify all 32 combinations of the five transparent layers.
-A color mixing palette is presented in which any of the five transparent layers can be viewed in conjunction with the other four.
-It is necessary that exactly five layers be given transparent status
-(ten if there are associated pseudo-layers).
-This editing facility is the same one that is found in the <B>Edit Colors...</B>
-command which modifies the current display (see <A HREF="chap04-06.html#chap04-06">Section 4-6</A>).
+<TABLE><TR><TD>
+The "Transparent Colors" entry shows a dialog for selecting the transparent colors.
+You must define as many colors as you have used in the layers.
+</TD><TD><CENTER><IMG SRC="fig08-27.png" ALT="Figure 8.27"></CENTER></TD></TR></TABLE>
 <P>
 <H3>Design Rules</H3>
 <P>
