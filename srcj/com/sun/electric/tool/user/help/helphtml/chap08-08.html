@@ -8,30 +8,15 @@ However, some changes are more difficult and might invalidate the existing libra
 This section discusses the possible changes and shows workarounds for the difficult situations.
 <P>
 Technology information appears in four different places:
-the layers, the arcs, the nodes, and general information on the technology
-(the Miscellaneous Info cell,
-design-rules, color maps, and variables).
+the layers, the arcs, the nodes, and miscellaneous information on the technology
+(the support cell, design-rules, and color tables).
 Information in these areas can be added, deleted, or modified.
 The rest of this section outlines all of these situations.
 <P>
-<H3>Adding layers, adding arcs, adding nodes, adding general information</H3>
+<H3>Adding layers, adding arcs, adding nodes, adding miscellaneous information</H3>
 <P>
 Adding information has no effect on the existing circuitry.
 All subsequent circuit design may make use of the new technology elements.
-<P>
-When adding layers, it is possible that existing layer tables will no longer be valid.
-Layer tables are those tables that are associated with layers,
-for example the CIF or GDS layer associations.
-Because these layer tables are part of the saved options,
-they override the specifications in the technologies.
-Therefore,
-individual users who have customized these tables may have incorrect information when the technology is modified.
-<P>
-If layers are added to the end,
-then the tables will simply have empty entries for the new layers.
-If, however,
-layers are added in the middle, the entries in the layer tables will now be associated with the wrong layer.
-You will have to edit the layer tables and fix the entries.
 <P>
 <H3>Deleting layers</H3>
 <P>
@@ -41,11 +26,6 @@ This does not invalidate libraries that use the layers,
 but it does invalidate the node and arc descriptions in the technology.
 The geometry in these nodes and arcs will have to be moved to another layer.
 <P>
-Layer deletion can cause the same problem that layer addition presents:
-inconsistent layer tables.
-When deleting layers, the entries in the layer tables will now be associated incorrectly.
-You will have to edit the layer tables and fix the entries.
-<P>
 <H3>Deleting nodes, deleting arcs</H3>
 <P>
 This will cause error
@@ -53,7 +33,7 @@ messages when libraries are read that make use of the deleted elements.
 When the library is read,
 you can substitute another node or arc to use in place of the now-unknown components.
 <P>
-<H3>Deleting general information</H3>
+<H3>Deleting miscellaneous information</H3>
 <P>
 This depends entirely on where that information is used.
 For example, an analysis tool may fail to find the information that it requires.
@@ -79,7 +59,7 @@ it will cause errors when libraries are read that make use of nodes with the old
 Therefore, you must create a new node or arc first, convert all existing ones to the new type,
 and then delete the old node or arc.
 <P>
-Many of the pieces of information on the right side of the node and arc cells apply to newly created circuitry only,
+Many of the pieces of special information on the top of the node and arc cells apply to newly created circuitry only,
 and do NOT affect existing components already in libraries.
 The arc factors "Fixed-angle", "Wipes pins", "Extend arcs",
 and "Angle increment" have no effect on existing libraries.
@@ -122,35 +102,24 @@ thus making the entire node 6x6 in size.
 The size of each cross piece will be defined to be 2 narrower than the bounding box on each side.
 If the pieces are changed so that they extend by only 1,
 then the definition of each strip will change to being 1 less than the box size on each side.
-All existing 6x6 transistors will suddenly have 4-wide strips where they used to be 2-wide.
+All existing 6x6 transistors will suddenly have 4x4 gate areas where they used to be 2x2.
 <P>
 In both of these examples,
 it may be preferable to keep the old technology and give the new technology a different name.
 Then the old libraries can be read into the old technology,
-and the <B>Make Layout View...</B> command of the <B>View</B>
-menu can be used to translate into the new technology.
+and the <B>Make Alternate Layout View...</B> command (of menu <B>View</B>)
+can be used to translate into the new technology.
 This command uses node and arc functionality to associate components,
 scaling them appropriately relative to their default sizes.
 The change is completed by deleting the old technology,
 renaming the new technology to the old name, and then saving the library.
 <P>
-<H3>Modifying general information</H3>
+<H3>Modifying miscellaneous information</H3>
 <P>
 This last situation is typically transparent:
 changed information appears in all existing libraries,
 and affects those subsystems that make use of the information.
 For example, a change to the SPICE headers will be seen when a SPICE deck is next generated.
 A change to the design rules will be used even on the old libraries.
-<P>
-There is one exceptional piece of information that does NOT change in existing libraries:
-the value of Lambda in the Miscellaneous Information cell.
-A change to this value does cause the technology to change,
-and therefore all subsequently created libraries will have this new value.
-However, if you read any old libraries, the former value of lambda will be used for that library.
-Also, because the value of lambda in the technology is stored in the libraries,
-any new circuitry created in this library will also have the old value of lambda.
-Only by switching libraries to one with the current value of lambda
-(or changing the value of lambda with the <B>Change Units...</B> command of the <B>Technology</B> menu)
-can the new value be established.
 
 <!-- TRAILER -->

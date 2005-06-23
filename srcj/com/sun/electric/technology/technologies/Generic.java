@@ -61,8 +61,7 @@ public class Generic extends Technology
 	/** the Invisible arc. */				public ArcProto invisible_arc;
 	/** the Unrouted arc. */				public ArcProto unrouted_arc;
 
-	private PrimitivePort univPinPort;
-	private PrimitivePort invisPinPort;
+	private PrimitivePort univPinPort, invisPinPort, simProbePort;
 
 	// -------------------- private and protected methods ------------------------
 	private Generic()
@@ -153,7 +152,7 @@ public class Generic extends Technology
 					new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.makeCenter())})
 			});
 		univPinPort = PrimitivePort.newInstance(this, universalPinNode, new ArcProto[] {universal_arc}, "univ", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge());
+			EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge());
 		universalPinNode.addPrimitivePorts(new PrimitivePort [] {univPinPort});
 		universalPinNode.setFunction(PrimitiveNode.Function.PIN);
 		universalPinNode.setWipeOn1or2();
@@ -167,7 +166,7 @@ public class Generic extends Technology
 				new Technology.NodeLayer(invisible_lay, 0, Poly.Type.CLOSED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
 		invisPinPort = PrimitivePort.newInstance(this, invisiblePinNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter());
+			EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter());
 		invisiblePinNode.addPrimitivePorts(new PrimitivePort [] {invisPinPort});
 		invisiblePinNode.setFunction(PrimitiveNode.Function.PIN);
 		invisiblePinNode.setWipeOn1or2();
@@ -256,11 +255,10 @@ public class Generic extends Technology
 			{
 				new Technology.NodeLayer(simprobe_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
 			});
-		simProbeNode.addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, simProbeNode, new ArcProto[] {unrouted_arc,invisible_arc,universal_arc}, "center", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
+
+		simProbePort = PrimitivePort.newInstance(this, simProbeNode, new ArcProto[] {invisible_arc,universal_arc}, "center", 0,180, 0, PortCharacteristic.UNKNOWN,
+				EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge());
+		simProbeNode.addPrimitivePorts(new PrimitivePort [] {simProbePort});
 		simProbeNode.setFunction(PrimitiveNode.Function.ART);
 		simProbeNode.setCanBeZeroSize();
 
@@ -335,6 +333,7 @@ public class Generic extends Technology
 		// store the array in this technology
 		univPinPort.setConnections(upconn);
 		invisPinPort.setConnections(upconn);
+		simProbePort.setConnections(upconn);
 	}
 
 	/**
