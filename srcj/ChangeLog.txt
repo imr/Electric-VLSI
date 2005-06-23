@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/23/05, DN) Arc properties not preserved when using Duplicate (Bug #391).
+FIX: In ArcInst.copyConstraintsFrom assign newBits ti userBits.
+
 BUG: (06/23/05, DN) Network module complains on unconnected pin in GEM and FIDO technologies.
 FIX: Don't check in cells with these technologies (NetCell.makeDrawns).
 

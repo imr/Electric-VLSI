@@ -1824,7 +1824,8 @@ public class ArcInst extends Geometric implements Comparable
         if (fromAi == null) return;
         int newBits = tailLocation.equals(headLocation) ? fromAi.userBits : (fromAi.userBits & ~AANGLE) | (this.userBits & AANGLE);
         newBits &= DATABASE_BITS;
-		boolean extensionChanged = (this.userBits&(TAILNOEXTEND|HEADNOEXTEND)) != (userBits&(TAILNOEXTEND|HEADNOEXTEND));
+		boolean extensionChanged = (this.userBits&(TAILNOEXTEND|HEADNOEXTEND)) != (newBits&(TAILNOEXTEND|HEADNOEXTEND));
+        this.userBits = newBits;
 		if (isLinked() && extensionChanged) updateGeometric();
         Undo.otherChange(this);
 //		setHeadNegated(fromAi.isHeadNegated());
