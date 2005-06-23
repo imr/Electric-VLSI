@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/23/05, SMR) CDL output writes include statements (Bug #387)
+FIX: Ignore subcircuit overrides when writing CDL.
+
 BUG: (06/23/05, SMR) Cannot connect "Simulation Probe" nodes
 FIX: Make them have universal connectivity.
 

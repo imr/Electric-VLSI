@@ -1279,11 +1279,14 @@ public class Spice extends Topology
      */
     protected boolean skipCellAndSubcells(Cell cell)
 	{
+		// CDL doesn't handle any of this: always examines subcells
+		if (useCDL) return false;
+
 		// skip if there is a template
         Variable varTemplate = cell.getVar(preferedEngineTemplateKey);
-        if (varTemplate == null)
-            varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
-        if (varTemplate != null && !useCDL) return true;
+        if (varTemplate != null) return true;
+        varTemplate = cell.getVar(SPICE_TEMPLATE_KEY);
+        if (varTemplate != null) return true;
 
 		// look for a model file on the current cell
 		Variable var = cell.getVar(SPICE_MODEL_FILE_KEY);
