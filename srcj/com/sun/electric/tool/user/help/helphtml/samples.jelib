@@ -22,12 +22,12 @@ Fplus|7|3
 Tartwork
 Tbipolar
 Tefido
-Tfpga|ScaleFORfpga()D1000.0
+Tgem
 Tgeneric
 Tmocmos
 Tnmos
 Tpcb
-Trcmos|ScaleFORrcmos()D1000.0
+Trcmos
 Tschematic
 
 # Cell tech-Artwork{}
@@ -341,6 +341,61 @@ Eb-imag|D3G2;|pin@15||I
 Eb-real|D3G2;|pin@10||I
 Eout-imag|D7G2;|pin@8||O
 Eout-real|D7G2;|pin@3||O
+X
+
+# Cell tech-GEM{}
+Ctech-GEM;1{}|gem|902530672000|1098717188000|
+NElement|node@0||49|31|8|8|||GEM_element()SPour Foundation|GEM_event1()SSteel|GEM_event2()SConcrete|GEM_event3()S |GEM_event4()S 
+NElement|node@1||22|19|8|8|||GEM_element()SBuild Skeleton|GEM_event1()SFooters|GEM_event2()SWalls|GEM_event3()SRoof|GEM_event4()S 
+NElement|node@2||31|31|8|8|||GEM_element()SPrepare Site|GEM_event1()SAccess|GEM_event2()SDemolish|GEM_event3()SLevel|GEM_event4()S 
+NElement|node@3||40|19|8|8|||GEM_element()SServices|GEM_event1()SElectricity|GEM_event2()SPlumbing|GEM_event3()SDuctwork|GEM_event4()S 
+NElement|node@4||58|19|8|8|||GEM_element()SFinishing|GEM_event1()SDrywall|GEM_event2()SRoofing|GEM_event3()SExterior Wall|GEM_event4()SPainting
+NPrereq-Pin|pin@0||24|31|2|2||W
+NPrereq-Pin|pin@1||24|30|2|2||W
+NFork-Pin|pin@2||20|12|2|2||W
+NFork-Pin|pin@3||32|12|2|2||W
+NFork-Pin|pin@4||32|18.5|2|2||W
+NFork-Pin|pin@5||38|12|2|2||W
+NFork-Pin|pin@6||50|12|2|2||W
+NFork-Pin|pin@7||50|18|2|2||W
+NPrereq-Pin|pin@8||41.8|31|2|2||W
+NPrereq-Pin|pin@9||39|28.5|2|2||W
+NPrereq-Pin|pin@10||39|32|2|2||W
+NPrereq-Pin|pin@11||47|25|2|2||W
+NPrereq-Pin|pin@12||15|25|2|2||W
+NPrereq-Pin|pin@13||15|20|2|2||W
+NPrereq-Pin|pin@14||15|19|2|2||W
+NPrereq-Pin|pin@15||15|18|2|2||W
+APrerequisite|net@0||0|FS57|node@2|port1|29|31.5|pin@0||24|31
+APrerequisite|net@1||0|FS1742|pin@0||24|31|node@2|port2|29|30.5
+APrerequisite|net@2||0|FS57|node@2|port2|29|30.5|pin@1||24|30
+APrerequisite|net@3||0|FS1742|pin@1||24|30|node@2|port3|29|29.5
+ANondeterministic-fork|net@4||0|FS1800|pin@2||20|12|pin@3||32|12
+ANondeterministic-fork|net@5||0|FS2700|pin@3||32|12|pin@4||32|18.5
+ANondeterministic-fork|net@6||0|FS1894|pin@4||32|18.5|node@3|port1|38|19.5
+ANondeterministic-fork|net@7||0|FS1800|pin@4||32|18.5|node@3|port2|38|18.5
+ANondeterministic-fork|net@8||0|FS1705|pin@4||32|18.5|node@3|port3|38|17.5
+ANondeterministic-fork|net@9||0|FS900|node@1|port4|20|16.5|pin@2||20|12
+ANondeterministic-fork|net@10||0|FS900|node@3|port4|38|16.5|pin@5||38|12
+ANondeterministic-fork|net@11||0|FS1800|pin@5||38|12|pin@6||50|12
+ANondeterministic-fork|net@12||0|FS2700|pin@6||50|12|pin@7||50|18
+ANondeterministic-fork|net@13||0|FS1940|pin@7||50|18|node@4|port1|56|19.5
+ANondeterministic-fork|net@14||0|FS1847|pin@7||50|18|node@4|port2|56|18.5
+ANondeterministic-fork|net@15||0|FS1752|pin@7||50|18|node@4|port3|56|17.5
+ANondeterministic-fork|net@16||0|FS1659|pin@7||50|18|node@4|port4|56|16.5
+APrerequisite|net@17||0|FS54|node@0|port1|47|31.5|pin@8||41.8|31
+APrerequisite|net@18||0|FS1745|pin@8||41.8|31|node@0|port2|47|30.5
+APrerequisite|net@19||0|FS1800|node@2|port4|29|28.5|pin@9||39|28.5
+APrerequisite|net@20||0|FS2700|pin@9||39|28.5|pin@10||39|32
+APrerequisite|net@21||0|FS1764|pin@10||39|32|node@0|port1|47|31.5
+APrerequisite|net@22||0|FS900|node@0|port3|47|29.5|pin@11||47|25
+APrerequisite|net@23||0|FS0|pin@11||47|25|pin@12||15|25
+APrerequisite|net@24||0|FS900|pin@12||15|25|pin@13||15|20
+APrerequisite|net@25||0|FS1742|pin@13||15|20|node@1|port1|20|19.5
+APrerequisite|net@26||0|FS57|node@1|port1|20|19.5|pin@14||15|19
+APrerequisite|net@27||0|FS1742|pin@14||15|19|node@1|port2|20|18.5
+APrerequisite|net@28||0|FS57|node@1|port2|20|18.5|pin@15||15|18
+APrerequisite|net@29||0|FS1742|pin@15||15|18|node@1|port3|20|17.5
 X
 
 # Cell tech-MOSISCMOS{lay}
@@ -1560,7 +1615,7 @@ Epoly|D5G1;|pin@0||U
 X
 
 # Cell tool-Compaction{}
-Ctool-Compaction;1{}|mocmos|902439421000|978655757000|
+Ctool-Compaction;1{}|mocmos|902439421000|1119541140468|
 NMetal-1-Polysilicon-1-Con|contact@0||-698.5|-282.5|5|5||
 NMetal-1-Polysilicon-1-Con|contact@1||-629.5|-284.5|5|5||
 NMetal-1-P-Active-Con|contact@2||-647.5|-350.5|17|17||
@@ -2282,6 +2337,7 @@ X
 G|tech-Artwork;1{}
 Gtech-Bipolar;1{sch}|tech-Bipolar;1{ic}|tech-Bipolar;1{lay}
 G|tech-DigitalFilter;1{}
+G|tech-GEM;1{}
 G|tech-MOSISCMOS;1{lay}
 Gtech-PCB;1{sch}
 Gtech-PCB7404;1{sch}

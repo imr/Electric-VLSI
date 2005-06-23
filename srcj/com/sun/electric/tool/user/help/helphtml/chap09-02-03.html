@@ -1,6 +1,7 @@
 <!-- HEADER 9-2-3: Coverage Rules -->
 
 <!-- COMMAND Tool/DRC/Check Area Coverage -->
+<!-- COMMAND Tool/DRC/List Layer Coverage on Cell -->
 <!-- PREFERENCE Tools/Coverage -->
 
 Some foundries request that each layer occupy a minimum percentage of the chip.
@@ -16,6 +17,9 @@ Each layer in the technology has a minimum percentage of coverage that is needed
 The coverage check can proceed in a "tiled" manner, checking rectangular areas of the cell.
 For example, to check each 100x100 unit area of the cell, set "Width" and "Height" to 100,
 and set "DeltaX" and "DeltaY" to 100.
+<P>
+The <B>List Layer Coverage on Cell</B> command is another way to compute the percentage of the cell that is covered by each layer.
+This command covers the entire cell without breaking it into tiled rectangles.
 </TD><TD><CENTER><IMG SRC="fig09-01.png" ALT="Figure 9.1"></CENTER></TD></TR></TABLE>
 
 
