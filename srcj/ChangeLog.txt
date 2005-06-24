@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/23/05, RK) Add NCC regression tests for Global Partition
+
+IMP: (06/23/05, RK) Add modified heater to NCC regression
+
 IMP: (06/23/05, RK) For netlist errors, save NccGlobals so IvanM can report errors
 
 BUG: (06/23/05, GVG) Problem to detect min size if elements were touching other nodes of the same layer
