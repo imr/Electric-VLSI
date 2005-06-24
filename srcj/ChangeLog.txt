@@ -4,7 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
-IMP: Refactoring of DRC supporting classes for DesignRules tab. More changes in DesignRules tab
+BUG: (06/23/05, GVG) Problem to detect min size if elements were touching other nodes of the same layer
+(wells in Bug #396). The code was checking only one direction (X or Y)
+FIX: Function to iterate along all possible directions (X, Y).
+
+IMP: (06/23/05, GVG) Refactoring of DRC supporting classes for DesignRules tab. More changes in DesignRules tab
 
 BUG: (06/23/05, SMR) CDL output writes include statements (Bug #387)
 FIX: Ignore subcircuit overrides when writing CDL.

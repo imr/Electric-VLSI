@@ -2395,6 +2395,76 @@ public class Quick
 
 	/*********************************** QUICK DRC SUPPORT ***********************************/
 
+    /**
+     * Method to determine if neighbor would help to cover the minimum conditions
+     * @return true if error was found (not warning)
+     */ 
+    private boolean checkExtensionWithNeighbors(Cell cell, Geometric geom, Poly poly, Layer layer, Rectangle2D bounds,
+                                                DRCTemplate minWidthRule, int dir, boolean onlyOne)
+    {
+        double actual = 0;
+        Point2D left1, left2, left3, right1, right2, right3;
+        //if (bounds.getWidth() < minWidthRule.value)
+        String msg = "";
+
+        // potential problem along X
+        if (dir == 0)
+        {
+            actual = bounds.getWidth();
+            msg = "(X axis)";
+            double leftW = bounds.getMinX() - TINYDELTA;
+            left1 = new Point2D.Double(leftW, bounds.getMinY());
+            left2 = new Point2D.Double(leftW, bounds.getMaxY());
+            left3 = new Point2D.Double(leftW, bounds.getCenterY());
+            double rightW = bounds.getMaxX() + TINYDELTA;
+            right1 = new Point2D.Double(rightW, bounds.getMinY());
+            right2 = new Point2D.Double(rightW, bounds.getMaxY());
+            right3 = new Point2D.Double(rightW, bounds.getCenterY());
+        } else
+        {
+            actual = bounds.getHeight();
+            msg = "(Y axis)";
+            double leftH = bounds.getMinY() - TINYDELTA;
+            left1 = new Point2D.Double(bounds.getMinX(), leftH);
+            left2 = new Point2D.Double(bounds.getMaxX(), leftH);
+            left3 = new Point2D.Double(bounds.getCenterX(), leftH);
+            double rightH = bounds.getMaxY() + TINYDELTA;
+            right1 = new Point2D.Double(bounds.getMinX(), rightH);
+            right2 = new Point2D.Double(bounds.getMaxX(), rightH);
+            right3 = new Point2D.Double(bounds.getCenterX(), rightH);
+        }
+        // see if there is more of this layer adjoining on either side
+        boolean [] pointsFound = new boolean[3];
+        pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
+        Rectangle2D newBounds = new Rectangle2D.Double(bounds.getMinX()-TINYDELTA, bounds.getMinY()-TINYDELTA,
+                bounds.getWidth()+TINYDELTA*2, bounds.getHeight()+TINYDELTA*2);
+        boolean zeroWide = (bounds.getWidth() == 0 || bounds.getHeight() == 0);
+
+        boolean overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
+                left1, left2, left3, pointsFound); //) return false;
+        if (overlapLayer && !zeroWide) return false;
+
+        // Try the other corner
+        pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
+        overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
+                right1, right2, right3, pointsFound); //) return false;
+        if (overlapLayer && !zeroWide) return false;
+
+        int errorType = MINWIDTHERROR;
+        String extraMsg = msg;
+        String rule = minWidthRule.ruleName;
+        if (zeroWide)
+        {
+            if (overlapLayer) extraMsg = " but covered by other layer";
+            errorType = ZEROLENGTHARCWARN;
+            rule = null;
+        }
+
+        reportError(errorType, extraMsg, cell, minWidthRule.value1, actual, rule,
+                (onlyOne) ? null : poly, geom, layer, null, null, null);
+        return !overlapLayer;
+    }
+    
 	/**
 	 * Method to ensure that polygon "poly" on layer "layer" from object "geom" in
 	 * technology "tech" meets minimum width rules.  If it is too narrow, other layers
@@ -2415,61 +2485,69 @@ public class Quick
 			boolean tooSmallHeight = DBMath.isGreaterThan(minWidthRule.value1, bounds.getHeight());
 			if (!tooSmallWidth && !tooSmallHeight) return false;
 
-			double actual = 0;
-			Point2D left1, left2, left3, right1, right2, right3;
-			//if (bounds.getWidth() < minWidthRule.value)
-            String msg = "(X axis)";
-            if (tooSmallWidth)
-			{
-				actual = bounds.getWidth();
-				left1 = new Point2D.Double(bounds.getMinX() - TINYDELTA, bounds.getMinY());
-				left2 = new Point2D.Double(bounds.getMinX() - TINYDELTA, bounds.getMaxY());
-				left3 = new Point2D.Double(bounds.getMinX() - TINYDELTA, bounds.getCenterY());
-				right1 = new Point2D.Double(bounds.getMaxX() + TINYDELTA, bounds.getMinY());
-				right2 = new Point2D.Double(bounds.getMaxX() + TINYDELTA, bounds.getMaxY());
-				right3 = new Point2D.Double(bounds.getMaxX() + TINYDELTA, bounds.getCenterY());
-			} else
-			{
-				actual = bounds.getHeight();
-                msg = "(Y axis)";
-				left1 = new Point2D.Double(bounds.getMinX(), bounds.getMinY() - TINYDELTA);
-				left2 = new Point2D.Double(bounds.getMaxX(), bounds.getMinY() - TINYDELTA);
-				left3 = new Point2D.Double(bounds.getCenterX(), bounds.getMinY() - TINYDELTA);
-				right1 = new Point2D.Double(bounds.getMinX(), bounds.getMaxY() + TINYDELTA);
-				right2 = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY() + TINYDELTA);
-				right3 = new Point2D.Double(bounds.getCenterX(), bounds.getMaxY() + TINYDELTA);
-			}
-
-			// see if there is more of this layer adjoining on either side
-			boolean [] pointsFound = new boolean[3];
-			pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-			Rectangle2D newBounds = new Rectangle2D.Double(bounds.getMinX()-TINYDELTA, bounds.getMinY()-TINYDELTA,
-				bounds.getWidth()+TINYDELTA*2, bounds.getHeight()+TINYDELTA*2);
-            boolean zeroWide = (bounds.getWidth() == 0 || bounds.getHeight() == 0);
-
-			boolean overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
-			        left1, left2, left3, pointsFound); //) return false;
-			if (overlapLayer && !zeroWide) return false;
-
-			// Try the other corner
-	        pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
-			overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
-				        right1, right2, right3, pointsFound); //) return false;
-			if (overlapLayer && !zeroWide) return false;
-
-            int errorType = MINWIDTHERROR;
-			String extraMsg = msg;
-			String rule = minWidthRule.ruleName;
-			if (zeroWide)
-			{
-				if (overlapLayer) extraMsg = " but covered by other layer";
-				errorType = ZEROLENGTHARCWARN;
-				rule = null;
-			}
-
-			reportError(errorType, extraMsg, cell, minWidthRule.value1, actual, rule,
-			        (onlyOne) ? null : poly, geom, layer, null, null, null);
-			return !overlapLayer;
+            boolean foundError = false;
+            if (tooSmallWidth && checkExtensionWithNeighbors(cell, geom, poly, layer, bounds, minWidthRule, 0, onlyOne))
+                foundError = true;
+            if (tooSmallHeight && checkExtensionWithNeighbors(cell, geom, poly, layer, bounds, minWidthRule, 1, onlyOne))
+                foundError = true;
+            return foundError;
+//			double actual = 0;
+//			Point2D left1, left2, left3, right1, right2, right3;
+//			//if (bounds.getWidth() < minWidthRule.value)
+//            String msg = "(X axis)";
+//            if (tooSmallWidth)
+//			{
+//				actual = bounds.getWidth();
+//                double leftW = bounds.getMinX() - TINYDELTA;
+//				left1 = new Point2D.Double(leftW, bounds.getMinY());
+//				left2 = new Point2D.Double(leftW, bounds.getMaxY());
+//				left3 = new Point2D.Double(leftW, bounds.getCenterY());
+//                double rightW = bounds.getMaxX() + TINYDELTA;
+//				right1 = new Point2D.Double(rightW, bounds.getMinY());
+//				right2 = new Point2D.Double(rightW, bounds.getMaxY());
+//				right3 = new Point2D.Double(rightW, bounds.getCenterY());
+//			} else
+//			{
+//				actual = bounds.getHeight();
+//                msg = "(Y axis)";
+//				left1 = new Point2D.Double(bounds.getMinX(), bounds.getMinY() - TINYDELTA);
+//				left2 = new Point2D.Double(bounds.getMaxX(), bounds.getMinY() - TINYDELTA);
+//				left3 = new Point2D.Double(bounds.getCenterX(), bounds.getMinY() - TINYDELTA);
+//				right1 = new Point2D.Double(bounds.getMinX(), bounds.getMaxY() + TINYDELTA);
+//				right2 = new Point2D.Double(bounds.getMaxX(), bounds.getMaxY() + TINYDELTA);
+//				right3 = new Point2D.Double(bounds.getCenterX(), bounds.getMaxY() + TINYDELTA);
+//			}
+//
+//			// see if there is more of this layer adjoining on either side
+//			boolean [] pointsFound = new boolean[3];
+//			pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
+//			Rectangle2D newBounds = new Rectangle2D.Double(bounds.getMinX()-TINYDELTA, bounds.getMinY()-TINYDELTA,
+//				bounds.getWidth()+TINYDELTA*2, bounds.getHeight()+TINYDELTA*2);
+//            boolean zeroWide = (bounds.getWidth() == 0 || bounds.getHeight() == 0);
+//
+//			boolean overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
+//			        left1, left2, left3, pointsFound); //) return false;
+//			if (overlapLayer && !zeroWide) return false;
+//
+//			// Try the other corner
+//	        pointsFound[0] = pointsFound[1] = pointsFound[2] = false;
+//			overlapLayer = lookForLayer(poly, cell, layer, DBMath.MATID, newBounds,
+//				        right1, right2, right3, pointsFound); //) return false;
+//			if (overlapLayer && !zeroWide) return false;
+//
+//            int errorType = MINWIDTHERROR;
+//			String extraMsg = msg;
+//			String rule = minWidthRule.ruleName;
+//			if (zeroWide)
+//			{
+//				if (overlapLayer) extraMsg = " but covered by other layer";
+//				errorType = ZEROLENGTHARCWARN;
+//				rule = null;
+//			}
+//
+//			reportError(errorType, extraMsg, cell, minWidthRule.value1, actual, rule,
+//			        (onlyOne) ? null : poly, geom, layer, null, null, null);
+//			return !overlapLayer;
 		}
 
 		// nonmanhattan polygon: stop now if it has no size
