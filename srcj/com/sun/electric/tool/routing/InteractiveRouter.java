@@ -270,6 +270,7 @@ public abstract class InteractiveRouter extends Router {
 
         // get the port types at each end so we can build electrical route
         PortProto startPort = getRoutePort(startObj);
+        if (startPort == null) return route;            // start cannot be null
         PortProto endPort;
         if (endObj == null) {
             // end object is null, we are routing to a pin. Figure out what arc to use
