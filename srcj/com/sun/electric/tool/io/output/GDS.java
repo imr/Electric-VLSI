@@ -191,7 +191,11 @@ public class GDS extends Geometry
             // No technology associated, case when art elements are added in layout
             // r.getTechnology() == Generic.tech for layer Glyph
             if (layer == null || layer.getTechnology() == null || layer.getTechnology() == Generic.tech) continue;
-			selectLayer(layer);
+			if (!selectLayer(layer))
+            {
+                System.out.println("Skipping " + layer + " in GDS:writeCellGeom");
+                continue;
+            }
 			List polyList = (List)cellGeom.polyMap.get(layer);
 			for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )
 			{
@@ -316,13 +320,15 @@ public class GDS extends Geometry
 			if (layerName == null)
 			{
 				numbers = new GDSLayers();
-				validLayer = false;
+//				validLayer = false;
 			} else
 			{
 				numbers = GDSLayers.parseLayerString(layerName);
 			}
 			layerNumbers.put(layer, numbers);
 		}
+        // validLayer false if layerName = "" like for pseudo metals
+        validLayer = numbers.getNumLayers() > 0;
 		currentLayerNumbers = numbers;
 		return validLayer;
 	}
