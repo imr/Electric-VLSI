@@ -52,6 +52,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Class to control the ALS Simulator.
+ */
 public class ALS extends Engine
 {
 	/** initial size of simulation window */		private static final double DEFTIMERANGE = 0.0000002;

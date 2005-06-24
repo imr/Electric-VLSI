@@ -219,11 +219,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
         attributesTable = new AttributesTable(null, true, false, false);
 
-        // add variable code types
-        for (Iterator it = TextDescriptor.Code.getCodes(); it.hasNext(); ) {
-            listPopup.addItem(it.next());
-        }
-
         if (buttonSelected == 0)
 		    ports.setSelected(true);
         if (buttonSelected == 1)
@@ -316,12 +311,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				locked.setSelected(false);
 				see.setEnabled(false);
 				attributesButton.setEnabled(false);
-				listEditLabel.setText("");
-				listEdit.setEditable(false);
-				listEdit.setText("");
-				listPopupLabel.setText("");
-				listPopup.setEnabled(false);
-				listPopup.removeAllItems();
 
 				shownNode = null;
 				shownPort = null;
@@ -754,13 +743,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				}
 			}
 			see.setEnabled(true);
-			listEdit.setEditable(false);
-			listPopup.setEnabled(false);
-			listEdit.setText("");
-			listEditLabel.setText("");
-			listPopupLabel.setText("");
-			listEvalLabel.setText("");
-			listEval.setText("");
             listPane.setViewportView(list);
             list.setSelectedIndex(0);
             listClick();
@@ -773,27 +755,27 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 
 	private void listClick()
 	{
-		int index = list.getSelectedIndex();
-		if (attributes.isSelected())
-		{
-			AttributesTable.AttValPair avp = (AttributesTable.AttValPair)allAttributes.get(index);
-			listEditLabel.setText("Attribute '" + avp.trueName + "'");
-			initialListTextField = new String(avp.value);
-			listEdit.setText(initialListTextField);
-			if (avp.code)
-			{
-				initialListPopupEntry = TextDescriptor.Code.JAVA;
-				listEvalLabel.setText("Evaluation:");
-				Variable var = shownNode.getVar(avp.key);
-				listEval.setText(var.describe(-1, VarContext.globalContext, shownNode));
-			} else
-			{
-				initialListPopupEntry = TextDescriptor.Code.NONE;
-				listEvalLabel.setText("");
-				listEval.setText("");
-			}
-			listPopup.setSelectedItem(initialListPopupEntry);
-		}
+//		int index = list.getSelectedIndex();
+//		if (attributes.isSelected())
+//		{
+//			AttributesTable.AttValPair avp = (AttributesTable.AttValPair)allAttributes.get(index);
+//			listEditLabel.setText("Attribute '" + avp.trueName + "'");
+//			initialListTextField = new String(avp.value);
+//			listEdit.setText(initialListTextField);
+//			if (avp.code)
+//			{
+//				initialListPopupEntry = TextDescriptor.Code.JAVA;
+//				listEvalLabel.setText("Evaluation:");
+//				Variable var = shownNode.getVar(avp.key);
+//				listEval.setText(var.describe(-1, VarContext.globalContext, shownNode));
+//			} else
+//			{
+//				initialListPopupEntry = TextDescriptor.Code.NONE;
+//				listEvalLabel.setText("");
+//				listEval.setText("");
+//			}
+//			listPopup.setSelectedItem(initialListPopupEntry);
+//		}
 	}
 
 	private static class ChangeNode extends Job
@@ -1180,12 +1162,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         locked = new javax.swing.JCheckBox();
         see = new javax.swing.JButton();
         attributesButton = new javax.swing.JButton();
-        listEditLabel = new javax.swing.JLabel();
-        listEdit = new javax.swing.JTextField();
-        listPopupLabel = new javax.swing.JLabel();
-        listPopup = new javax.swing.JComboBox();
-        listEvalLabel = new javax.swing.JLabel();
-        listEval = new javax.swing.JLabel();
         listPane = new javax.swing.JScrollPane();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
@@ -1542,60 +1518,6 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         moreStuffBottom.add(attributesButton, gridBagConstraints);
 
-        listEditLabel.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        moreStuffBottom.add(listEditLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        moreStuffBottom.add(listEdit, gridBagConstraints);
-
-        listPopupLabel.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        moreStuffBottom.add(listPopupLabel, gridBagConstraints);
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        moreStuffBottom.add(listPopup, gridBagConstraints);
-
-        listEvalLabel.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        moreStuffBottom.add(listEvalLabel, gridBagConstraints);
-
-        listEval.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        moreStuffBottom.add(listEval, gridBagConstraints);
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 8;
@@ -1737,13 +1659,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JTextField listEdit;
-    private javax.swing.JLabel listEditLabel;
-    private javax.swing.JLabel listEval;
-    private javax.swing.JLabel listEvalLabel;
     private javax.swing.JScrollPane listPane;
-    private javax.swing.JComboBox listPopup;
-    private javax.swing.JLabel listPopupLabel;
     private javax.swing.JCheckBox locked;
     private javax.swing.JCheckBox mirrorX;
     private javax.swing.JCheckBox mirrorY;

@@ -64,7 +64,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * This is the Auto Stitching tool.
+ * Class which implements the Auto Stitching tool.
  */
 public class AutoStitch
 {

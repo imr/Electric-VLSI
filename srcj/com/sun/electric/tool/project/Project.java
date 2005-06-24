@@ -829,7 +829,7 @@ public class Project extends Listener
 
 	/**
 	 * Method to handle the start of a batch of changes.
-	 * @param source the tool that generated the changes.
+	 * @param tool the tool that generated the changes.
 	 * @param undoRedo true if these changes are from an undo or redo command.
 	 */
 	public void startBatch(Tool tool, boolean undoRedo) {}
@@ -3291,7 +3291,7 @@ public class Project extends Listener
 	/**
 	 * Class to sort project cells.
 	 */
-    public static class OrderedProjectCells implements Comparator
+    private static class OrderedProjectCells implements Comparator
     {
         public int compare(Object o1, Object o2)
         {
@@ -3308,7 +3308,7 @@ public class Project extends Listener
 	/**
 	 * Class to sort project cells by reverse version number.
 	 */
-    public static class ProjectCellByVersion implements Comparator
+    private static class ProjectCellByVersion implements Comparator
     {
         public int compare(Object o1, Object o2)
         {

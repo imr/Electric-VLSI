@@ -44,6 +44,9 @@ public class LEFDEF extends Input
 	protected static ViaDef firstViaDefFromLEF = null;
 	protected static HashMap widthsFromLEF = new HashMap();
 
+	/**
+	 * Class to define Via information for LEF and DEF reading.
+	 */
 	protected static class ViaDef
 	{
 		protected String    viaName;
@@ -53,6 +56,9 @@ public class LEFDEF extends Input
 		protected ViaDef    nextViaDef;
 	};
 
+	/**
+	 * Class to define layer information for LEF and DEF reading.
+	 */
 	protected static class GetLayerInformation
 	{
 		NodeProto pin;

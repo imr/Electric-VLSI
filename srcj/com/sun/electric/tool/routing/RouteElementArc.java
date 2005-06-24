@@ -43,6 +43,9 @@ import com.sun.electric.tool.user.Highlighter;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+/**
+ * Class for defining RouteElements that are arcs.
+ */
 public class RouteElementArc extends RouteElement {
 
     // ---- New Arc info ----

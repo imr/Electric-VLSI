@@ -41,12 +41,15 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
 /**
- * A Panel to display Color and patterns.
+ * A Panel to display color and pattern information.
  * Used in the "Layers" tab of the "Edit Options" dialog.
  * Used in the "Artwork Look" dialog.
  */
 public class ColorPatternPanel extends JPanel
 {
+	/**
+	 * Class to define the information on a color pattern panel.
+	 */
 	public static class Info
 	{
 		public EGraphics graphics;

@@ -188,7 +188,7 @@ public class Stimuli
 	/**
 	 * Method to set the simulation Engine associated with this simulation data.
 	 * This is only for data associated with built-in simulators (ALS and IRSIM).
-	 * @param cell the simulation Engine associated with this simulation data.
+	 * @param engine the simulation Engine associated with this simulation data.
 	 */
 	public void setEngine(Engine engine) { this.engine = engine; }
 

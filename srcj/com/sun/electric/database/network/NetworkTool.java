@@ -81,9 +81,14 @@ public class NetworkTool extends Listener
 		}
 	}
 
-    public static class RenumberJob extends Job
+	public static void renumberNetlists()
+	{
+		new RenumberJob();
+	}
+
+	private static class RenumberJob extends Job
     {
-        public RenumberJob()
+		private RenumberJob()
         {
             super("Renumber All Networks", NetworkTool.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
             startJob();

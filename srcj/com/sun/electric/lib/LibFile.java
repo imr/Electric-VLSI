@@ -26,10 +26,7 @@ package com.sun.electric.lib;
 import java.net.URL;
 
 /**
- * This class represents a Tool in Electric.  It's here mostly for the name
- * of the tool and the variables attached.  The User holds
- * variables that keep track of the currently selected object, and other
- * useful information.
+ * Class to manage files in the "library area" of Electric
  */
 public class LibFile
 {

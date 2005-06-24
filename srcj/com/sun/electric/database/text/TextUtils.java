@@ -1318,9 +1318,20 @@ public class TextUtils
 // 		}
 // 	}
 
+	/**
+	 * A comparator object for sorting Strings that may have numbers in them.
+	 * Created once because it is used often.
+	 */
 	public static final Comparator STRING_NUMBER_ORDER = new StringsWithNumbers();
+
+	/**
+	 * Comparator class for sorting Strings that may have numbers in them.
+	 */
 	private static class StringsWithNumbers implements Comparator
 	{
+		/**
+		 * Method to sort Strings that may have numbers in them.
+		 */
 		public int compare(Object o1, Object o2)
 		{
 			String s1 = (String)o1;
@@ -1329,8 +1340,14 @@ public class TextUtils
 		}
 	}
 
+	/**
+	 * Comparator class for sorting Objects by their string name.
+	 */
     public static class ObjectsByToString implements Comparator
     {
+		/**
+		 * Method to sort Objects by their string name.
+		 */
         public int compare(Object o1, Object o2)
         {
             String s1 = o1.toString();
@@ -1339,8 +1356,14 @@ public class TextUtils
         }
     }
 
+	/**
+	 * Comparator class for sorting Cells by their view order.
+	 */
 	public static class CellsByView implements Comparator
 	{
+		/**
+		 * Method to sort Cells by their view order.
+		 */
 		public int compare(Object o1, Object o2)
 		{
 			Cell c1 = (Cell)o1;
@@ -1351,8 +1374,14 @@ public class TextUtils
 		}
 	}
 
+	/**
+	 * Comparator class for sorting Cells by their version number.
+	 */
 	public static class CellsByVersion implements Comparator
 	{
+		/**
+		 * Method to sort Cells by their version number.
+		 */
 		public int compare(Object o1, Object o2)
 		{
 			Cell c1 = (Cell)o1;
@@ -1361,9 +1390,14 @@ public class TextUtils
 		}
 	}
 
+	/**
+	 * Comparator class for sorting Cells by their date.
+	 */
 	public static class CellsByDate implements Comparator/*<Cell>*/
 	{
-		/*public int compare(Cell c1, Cell c2)*/
+		/**
+		 * Method to sort Cells by their date.
+		 */
 		public int compare(Object o1, Object o2)
 		{
 			Cell c1 = (Cell)o1;
@@ -1374,8 +1408,14 @@ public class TextUtils
 		}
 	}
 
+	/**
+	 * Comparator class for sorting Preferences by their name.
+	 */
 	public static class PrefsByName implements Comparator
 	{
+		/**
+		 * Method to sort Preferences by their name.
+		 */
 		public int compare(Object o1, Object o2)
 		{
 			Pref p1 = (Pref)o1;
@@ -1386,8 +1426,14 @@ public class TextUtils
 		}
 	}
 
+	/**
+	 * Comparator class for sorting Networks by their name.
+	 */
     public static class NetworksByName implements Comparator
     {
+		/**
+		 * Method to sort Networks by their name.
+		 */
         public int compare(Object o1, Object o2)
         {
             Network n1 = (Network)o1;

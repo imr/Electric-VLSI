@@ -63,6 +63,9 @@ import javax.swing.JLabel;
 import javax.swing.JButton;
 import javax.swing.JTextField;
 
+/**
+ * Class to interactively resize a node.
+ */
 public class SizeListener
 	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 {

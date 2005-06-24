@@ -52,7 +52,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
 
 /**
- * @author gainsley
+ * Class to define a pulldown menu.
  *
  * <p>A MenuManager is used to manage a set of MenuBars that share the
  * same set of menus and associated key bindings. This allows multiple
@@ -151,6 +151,9 @@ public class MenuBar extends JMenuBar
         }
     }
 
+	/**
+	 * Class to watch for commands and remember them for repeating.
+	 */
     public static class RepeatLastCommandListener implements ActionListener {
         private AbstractButton lastActivated;
         private RepeatLastCommandListener() {}
@@ -215,7 +218,10 @@ public class MenuBar extends JMenuBar
         public String getDescription() { return MenuBar.getDescription(this); }
 
     }
-
+	   
+	/**
+	 * Class to define a menu item that has a radio button in it.
+	 */
     public static class RadioButtonMenuItem extends JRadioButtonMenuItem implements MenuItemInterface
     {
         /** parent menu */                      private JComponent parentMenu = null;
@@ -227,7 +233,9 @@ public class MenuBar extends JMenuBar
         public String getDescription() { return MenuBar.getDescription(this); }
     }
     
-
+	/**
+	 * Class to define a menu item that has a check box in it.
+	 */
     public static class CheckBoxMenuItem extends JCheckBoxMenuItem implements MenuItemInterface
     {
         /** parent menu */                      private JComponent parentMenu = null;
@@ -240,6 +248,7 @@ public class MenuBar extends JMenuBar
     }
 
     /**
+     * Class to define a pulldown menu.
      * The is the class with most of the meat, because of the way MenuCommands was
      * originally set up.  I believe this is Ok tho, as we can put all the Menu
      * specific code in this file.

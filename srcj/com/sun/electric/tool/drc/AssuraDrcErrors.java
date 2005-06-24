@@ -82,6 +82,10 @@ public class AssuraDrcErrors {
         public Shape getMarker() { return marker; }
     }
 
+	/**
+	 * Method to import Assura DRC errors from a file.
+	 * @param filename the file to read.
+	 */
     public static void importErrors(String filename) {
         BufferedReader in;
         try {

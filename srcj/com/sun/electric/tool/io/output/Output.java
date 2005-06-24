@@ -868,10 +868,7 @@ public class Output
 	}
 
     /**
-     * Class to export a cell in a new thread.
-     * For a non-interactive script, use
-     * OutputCellInfo job = new OutputCellInfo(Cell cell, String filename, Output.ExportType type).
-     * Saves as an elib.
+     * Class to define cell information during output.
      */
     protected static class OutputCellInfo extends Job
     {
@@ -881,12 +878,11 @@ public class Output
         FileType type;
 
         /**
-         *
-        * @param cell the Cell to be written.
-        * @param context the VarContext of the Cell (its position in the hierarchy above it).
-        * @param filePath the path to the disk file to be written.
-        * @param type the format of the output file.
-        * @param startJob to start job immediately
+         * @param cell the Cell to be written.
+         * @param context the VarContext of the Cell (its position in the hierarchy above it).
+         * @param filePath the path to the disk file to be written.
+         * @param type the format of the output file.
+         * @param startJob to start job immediately
          */
         public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type, boolean startJob)
         {

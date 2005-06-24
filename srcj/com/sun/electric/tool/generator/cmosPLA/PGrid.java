@@ -33,6 +33,9 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 
+/**
+ * Class to generate the P grid part of MOSIS CMOS PLAs.
+ */
 public class PGrid
 {
 	private PLA pla;

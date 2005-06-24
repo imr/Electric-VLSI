@@ -46,6 +46,9 @@ import java.awt.event.KeyEvent;
 import java.awt.geom.Point2D;
 import java.awt.geom.AffineTransform;
 
+/**
+ * Class to make changes to the outline information on a node.
+ */
 public class OutlineListener
 	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 {

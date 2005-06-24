@@ -648,7 +648,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         }
     }
 
-    protected static class RenameAttribute extends Job
+    private static class RenameAttribute extends Job
     {
         String varName;
         String newVarName;
@@ -678,7 +678,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     /**
      * Class to create or modify an attribute in a new thread.
      */
-    protected static class ChangeAttribute extends Job
+    private static class ChangeAttribute extends Job
 	{
         String varName;
         ElectricObject owner;

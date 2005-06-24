@@ -94,7 +94,7 @@ public class LEF extends Output
 	{
 	}
 
-	public static class Visitor extends HierarchyEnumerator.Visitor
+	private static class Visitor extends HierarchyEnumerator.Visitor
 	{
 		private LEF generator;
 

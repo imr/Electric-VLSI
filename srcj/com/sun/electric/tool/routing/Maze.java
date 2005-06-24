@@ -57,6 +57,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Class to do maze routing (single wire at a time).
+ */
 public class Maze
 {
 	/** bit width of long word */		private static final int SRMAXLAYERS = 64;

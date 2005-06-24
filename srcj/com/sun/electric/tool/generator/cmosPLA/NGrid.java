@@ -36,6 +36,9 @@ import com.sun.electric.database.topology.PortInst;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+/**
+ * Class to generate the N grid part of MOSIS CMOS PLAs.
+ */
 public class NGrid
 {
 	private PLA pla;

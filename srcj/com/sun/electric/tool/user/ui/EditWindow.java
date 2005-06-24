@@ -561,7 +561,7 @@ public class EditWindow extends JPanel
 	/**
 	 * Class to define a custom data flavor that packages a NodeProto to create.
 	 */
-	public static class NodeProtoDataFlavor extends DataFlavor
+	private static class NodeProtoDataFlavor extends DataFlavor
 	{
 		private Object obj;
 
@@ -1406,7 +1406,7 @@ public class EditWindow extends JPanel
 	 * Class for rendering a cell frame.
 	 * Extends Cell.FrameDescription and provides hooks for drawing to a Graphics.
 	 */
-	public static class DisplayedFrame extends Cell.FrameDescription
+	private static class DisplayedFrame extends Cell.FrameDescription
 	{
 		private Graphics g;
 		private EditWindow wnd;
@@ -2975,7 +2975,7 @@ public class EditWindow extends JPanel
     /** History limit */                                    private static final int cellHistoryLimit = 20;
 
     /**
-     * Used to track CellHistory and associated values.
+     * Class to track CellHistory and associated values.
      */
     public static class CellHistory
     {
@@ -2989,6 +2989,9 @@ public class EditWindow extends JPanel
         public VarContext getContext() { return context; }
     }
 
+    /**
+     * Class to hold Cell history information.
+     */
     public static class CellHistoryState
     {
         /** the cell history list */    private List cellHistory;

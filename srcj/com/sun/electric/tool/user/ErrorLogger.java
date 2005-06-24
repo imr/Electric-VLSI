@@ -117,7 +117,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
     };
 
     /**
-     * Create a Log of a single Error
+     * Create a Log of a single message.
      */
     public static class MessageLog implements Comparable {
         private String message;
@@ -422,6 +422,10 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
         }
 
     }
+
+	/**
+     * Create a Log of a single warning.
+     */
     public static class WarningLog extends MessageLog
     {
        private WarningLog(String message, Cell cell, int sortKey) {super(message, cell, sortKey);}

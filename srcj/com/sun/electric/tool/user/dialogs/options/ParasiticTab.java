@@ -40,8 +40,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 /**
- * ParasiticTab.java
- * @author  Gilda Garreton
+ * Class to handle the "Parasitics" tab of the Preferences dialog.
  */
 public class ParasiticTab extends PreferencePanel {
 
@@ -57,8 +56,10 @@ public class ParasiticTab extends PreferencePanel {
 	private JList layerList;
     private DefaultListModel layerListModel;
 
+	/** return the panel to use for this preferences tab. */
 	public JPanel getPanel() { return topPanel; }
 
+	/** return the name of this preferences tab. */
 	public String getName() { return "Parasitic"; }
 
     /**

@@ -3016,8 +3016,9 @@ public class Technology implements Comparable
     }
 
     /**
-     * Method to set the technology resolution
-     * @param resolution new value
+     * Method to set the technology resolution.
+     * This is the minimum size unit that can be represented.
+     * @param resolution new resolution value.
      */
 	public void setResolution(double resolution)
 	{
@@ -3026,8 +3027,9 @@ public class Technology implements Comparable
 	}
 
     /**
-     * Method to retrieve the resolution associated to the technology
-     * @return
+     * Method to retrieve the resolution associated to the technology.
+     * This is the minimum size unit that can be represented.
+     * @return the technology's resolution value.
      */
     public double getResolution()
 	{

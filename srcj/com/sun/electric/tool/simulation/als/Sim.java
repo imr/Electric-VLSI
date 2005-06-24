@@ -41,6 +41,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Class to do the engine of the ALS Simulator.
+ */
 public class Sim
 {
 	private ALS als;

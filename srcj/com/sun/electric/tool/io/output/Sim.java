@@ -84,7 +84,7 @@ public class Sim extends Output
 	{
 	}
 
-	public static class Visitor extends HierarchyEnumerator.Visitor
+	private static class Visitor extends HierarchyEnumerator.Visitor
 	{
 		private Sim generator;
 		private FileType type;

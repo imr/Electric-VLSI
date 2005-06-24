@@ -34,6 +34,9 @@ import java.awt.font.GlyphVector;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+/**
+ * Class to define a polygon of points.
+ */
 public class Poly extends PolyBase {
 
 	/** the string (if of type TEXT) */						private String string;

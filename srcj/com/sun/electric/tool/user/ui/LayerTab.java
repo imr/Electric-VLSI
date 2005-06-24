@@ -27,8 +27,11 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -55,7 +58,7 @@ public class LayerTab extends JFrame
 	private boolean loading;
 
 	/** Creates new panel for Layers */
-	public LayerTab()
+	public LayerTab(WindowFrame wf)
 	{
 		initComponents();
 
@@ -68,46 +71,64 @@ public class LayerTab extends JFrame
 		{
 			public void mouseClicked(MouseEvent e) { apply(e); }
 		});
-		nodeText.addActionListener(new java.awt.event.ActionListener()
+		nodeText.addActionListener(new ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+            public void actionPerformed(ActionEvent evt) { update(); }
         });
-		arcText.addActionListener(new java.awt.event.ActionListener()
+		arcText.addActionListener(new ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+            public void actionPerformed(ActionEvent evt) { update(); }
         });
-		portText.addActionListener(new java.awt.event.ActionListener()
+		portText.addActionListener(new ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+            public void actionPerformed(ActionEvent evt) { update(); }
         });
-		exportText.addActionListener(new java.awt.event.ActionListener()
+		exportText.addActionListener(new ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+            public void actionPerformed(ActionEvent evt) { update(); }
         });
-		annotationText.addActionListener(new java.awt.event.ActionListener()
+		annotationText.addActionListener(new ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+            public void actionPerformed(ActionEvent evt) { update(); }
         });
-		instanceNames.addActionListener(new java.awt.event.ActionListener()
+		instanceNames.addActionListener(new ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+            public void actionPerformed(ActionEvent evt) { update(); }
         });
-		cellText.addActionListener(new java.awt.event.ActionListener()
+		cellText.addActionListener(new ActionListener()
         {
-            public void actionPerformed(java.awt.event.ActionEvent evt) { update(); }
+            public void actionPerformed(ActionEvent evt) { update(); }
         });
 
-		// make a popup of Technologies
-		loading = true;
-		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
-		{
-			Technology tech = (Technology)it.next();
-			technology.addItem(tech.getTechName());
-		}
-		technology.setSelectedItem(Technology.getCurrent().getTechName());
-		loading = false;
+		technology.setLightWeightPopupEnabled(false);
 
+        // Getting default tech stored
 		reload();
+        loadTechnologies(true);
+		showLayersForTechnology(Technology.getCurrent());
+		technology.addActionListener(new WindowFrame.CurTechControlListener(wf));
+	}
+
+	/**
+	 * Method to update the technology popup selector.
+	 * Called at initialization or when a new technology has been created.
+	 * @param makeCurrent true to keep the current technology selected,
+	 * false to set to the current technology.
+	 */
+	public void loadTechnologies(boolean makeCurrent)
+	{
+        Technology cur = Technology.getCurrent();
+        if (!makeCurrent) cur = Technology.findTechnology((String)technology.getSelectedItem());
+		loading = true;
+		technology.removeAllItems();
+        for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+        {
+            Technology tech = (Technology)it.next();
+            if (tech == Generic.tech) continue;
+			technology.addItem(tech.getTechName());
+        }
+        setSelectedItem(cur.getTechName());
+		loading = false;
 	}
 
     /**
@@ -154,16 +175,12 @@ public class LayerTab extends JFrame
 					highlighted.put(layer, new Boolean(!layer.isDimmed()));
 			}
 		}
-
-		showLayersForTechnology();
 	}
 
-	private void showLayersForTechnology()
+	public void showLayersForTechnology(Technology tech)
 	{
 		if (loading) return;
-		String techName = (String)technology.getSelectedItem();
-		Technology tech = Technology.findTechnology(techName);
-
+		technology.setSelectedItem(tech.getTechName());
 		layerListModel.clear();
 		layersInList = new ArrayList();
 		for(Iterator it = tech.getLayersSortedByHeight().iterator(); it.hasNext(); )
@@ -490,7 +507,8 @@ public class LayerTab extends JFrame
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents() {//GEN-BEGIN:initComponents
+    private void initComponents()//GEN-BEGIN:initComponents
+    {
         java.awt.GridBagConstraints gridBagConstraints;
 
         layerPane = new javax.swing.JScrollPane();
@@ -514,8 +532,10 @@ public class LayerTab extends JFrame
 
         setTitle("Layer Visibility");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
                 closeDialog(evt);
             }
         });
@@ -531,22 +551,18 @@ public class LayerTab extends JFrame
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(layerPane, gridBagConstraints);
 
-        technology.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                technologyActionPerformed(evt);
-            }
-        });
-
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
         getContentPane().add(technology, gridBagConstraints);
 
         selectAll.setText("Select All");
-        selectAll.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        selectAll.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 selectAllActionPerformed(evt);
             }
         });
@@ -558,8 +574,10 @@ public class LayerTab extends JFrame
         getContentPane().add(selectAll, gridBagConstraints);
 
         makeVisible.setText("Make Visible");
-        makeVisible.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        makeVisible.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 makeVisibleActionPerformed(evt);
             }
         });
@@ -571,8 +589,10 @@ public class LayerTab extends JFrame
         getContentPane().add(makeVisible, gridBagConstraints);
 
         makeInvisible.setText("Make Invisible");
-        makeInvisible.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        makeInvisible.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 makeInvisibleActionPerformed(evt);
             }
         });
@@ -587,8 +607,10 @@ public class LayerTab extends JFrame
 
         jPanel1.setBorder(new javax.swing.border.TitledBorder("Highlighting"));
         unhighlightAll.setText("Clear");
-        unhighlightAll.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        unhighlightAll.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 unhighlightAllActionPerformed(evt);
             }
         });
@@ -600,8 +622,10 @@ public class LayerTab extends JFrame
         jPanel1.add(unhighlightAll, gridBagConstraints);
 
         toggleHighlight.setText("Toggle");
-        toggleHighlight.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
+        toggleHighlight.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
                 toggleHighlightActionPerformed(evt);
             }
         });
@@ -705,11 +729,6 @@ public class LayerTab extends JFrame
 	{//GEN-HEADEREND:event_selectAllActionPerformed
 		selectAll();
 	}//GEN-LAST:event_selectAllActionPerformed
-
-	private void technologyActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_technologyActionPerformed
-	{//GEN-HEADEREND:event_technologyActionPerformed
-		showLayersForTechnology();
-	}//GEN-LAST:event_technologyActionPerformed
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog

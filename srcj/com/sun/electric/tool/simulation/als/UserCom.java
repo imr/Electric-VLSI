@@ -30,6 +30,9 @@ import com.sun.electric.tool.simulation.Stimuli;
 
 import java.util.Iterator;
 
+/**
+ * Class to hold user-defined functions for the ALS Simulator.
+ */
 public class UserCom
 {
 	/**

@@ -39,11 +39,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 /**
- * User: gainsley
- * Date: Feb 25, 2004
- * Time: 1:13:50 PM
- *
- * A Simple wiring tool for the user to draw wires
+ * A Simple wiring tool for the user to draw wires.
  */
 public class SimpleWirer extends InteractiveRouter {
 

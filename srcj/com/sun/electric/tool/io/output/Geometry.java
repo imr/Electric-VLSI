@@ -61,6 +61,9 @@ public abstract class Geometry extends Output
 
     /** HashMap of all CellGeoms */                     protected HashMap cellGeoms;
 
+	/**
+	 * Class for managing polygons that are associated with geometry.
+	 */
     protected static class PolyWithGeom
 	{
     	Poly poly;

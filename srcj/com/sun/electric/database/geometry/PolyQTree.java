@@ -171,6 +171,10 @@ public class PolyQTree extends GeometryHandler
 	}
 
 	//--------------------------PRIVATE METHODS--------------------------
+
+	/**
+	 * Class to define a node in a Quad Tree of polygons.
+	 */
 	public static class PolyNode extends Area
 	        implements Comparable, PolyNodeMerge
 	{

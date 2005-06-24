@@ -801,7 +801,7 @@ public class Simulation extends Listener
 	/**
 	 * Class to handle the "Clock specification" dialog.
 	 */
-	public static class ClockSpec extends EDialog
+	private static class ClockSpec extends EDialog
 	{
 		private double period = -1;
 		private JRadioButton freqBut, periodBut;

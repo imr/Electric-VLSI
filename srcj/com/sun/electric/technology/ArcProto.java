@@ -68,7 +68,11 @@ public class ArcProto implements Comparable
 			if (polyLevel != 0) polyLayers.put(new Integer(this.level = polyLevel), this);
 			allFunctions.add(this);
 		}
-
+	       
+		/**
+		 * Returns a printable version of this ArcProto.
+		 * @return a printable version of this ArcProto.
+		 */
 		public String toString() { return name; }
 
 		/**
@@ -825,7 +829,7 @@ public class ArcProto implements Comparable
 	/** 
 	 * Iterator for Layers on this ArcProto
 	 */ 
-	public static class LayerIterator implements Iterator 
+	private static class LayerIterator implements Iterator 
 	{ 
 		Technology.ArcLayer [] array; 
 		int pos; 

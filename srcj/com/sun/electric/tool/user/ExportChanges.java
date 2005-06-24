@@ -515,7 +515,7 @@ public final class ExportChanges
         ReExportNodes job = new ReExportNodes(cell, allNodes, false, true, true);
 	}
 
-    public static class ReExportNodes extends Job {
+    private static class ReExportNodes extends Job {
         private Cell cell;
         private List nodeInsts;
         private boolean includeWiredPorts;
@@ -546,7 +546,7 @@ public final class ExportChanges
         }
     }
 
-    public static class ReExportPorts extends Job {
+    private static class ReExportPorts extends Job {
         private Cell cell;
         private List portInsts;
         private boolean sort;

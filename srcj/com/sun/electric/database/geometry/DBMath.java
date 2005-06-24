@@ -144,10 +144,10 @@ public class DBMath extends GenMath {
 
     /**
      * Method to calcular remainder for doubles and avoid rounding errors
-     * by calculating the remainder for integers instead
-     * @param a
-     * @param divisor
-     * @return
+     * by calculating the remainder for integers instead.
+     * @param a the numerator
+     * @param divisor the denominator.
+     * @return the remainder from the division.
      */
     public static boolean hasRemainder(double a, double divisor)
     {

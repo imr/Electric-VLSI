@@ -99,7 +99,7 @@ public class MOSRules implements DRCRules {
      *
      * @param index represents node, widths are stored in index*2 and height in index*2+j
      * @param when represents the foundry being used
-     * @return
+     * @return a rule describing the minimum node size.
      */
     public DRCTemplate getMinNodeSize(int index, int when)
     {
@@ -195,11 +195,11 @@ public class MOSRules implements DRCRules {
 	}
 
     /**
-     * Method to determine if given node is not allowed by foundry
-     * @param nodeIndex index of node in DRC rules map to examine
-     * @param type rule type
-     * @param techMode foundry
-     * @return
+     * Method to determine if given node is not allowed by foundry.
+     * @param nodeIndex index of node in DRC rules map to examine.
+     * @param type rule type.
+     * @param techMode foundry.
+     * @return true if given node is not allowed by foundry.
      */
     public boolean isForbiddenNode(int nodeIndex, int type, int techMode)
     {
@@ -390,9 +390,9 @@ public class MOSRules implements DRCRules {
     }
 
     /**
-     * Method to tell UI if multiple wide rules are allowed
-     * @param index
-     * @return
+     * Method to tell UI if multiple wide rules are allowed.
+     * @param index the index in the upper-diagonal table of layers.
+     * @return true if multiple wide rules are allowed.
      */
     public boolean doesAllowMultipleWideRules(int index)
     {
@@ -408,8 +408,8 @@ public class MOSRules implements DRCRules {
 	}
 
     /**
-     * To retrieve those nodes whose have rules
-     * @return
+     * To retrieve those nodes that have rules.
+     * @return an array of nodes that have rules.
      */
     public String[] getNodesWithRules() {return nodeNames;}
 

@@ -63,6 +63,9 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
+/**
+ * Class to generate MOSIS CMOS PLAs from personality files.
+ */
 public class PLA
 {
 	/** maximum number of columns */						static final int MAX_COL_SIZE = 500;

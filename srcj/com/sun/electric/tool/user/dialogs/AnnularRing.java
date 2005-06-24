@@ -55,6 +55,9 @@ public class AnnularRing extends EDialog
 	private DefaultListModel layerModel;
 	private Cell cell;
 
+	/**
+	 * Method to display the dialog for building annular rings.
+	 */
 	public static void showAnnularRingDialog()
 	{
 		Cell cell = WindowFrame.needCurCell();

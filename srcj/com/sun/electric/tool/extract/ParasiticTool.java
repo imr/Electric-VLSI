@@ -59,6 +59,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Class to implement parasitic extraction.
+ */
 public class ParasiticTool extends Listener{
 
     /** The Parasitic Extraction tool */              private static ParasiticTool tool = new ParasiticTool();
@@ -301,7 +304,7 @@ public class ParasiticTool extends Listener{
         }
     }
 
-    public static class ParasiticValue
+    private static class ParasiticValue
     {
         private ParasiticBucket[] elements = new ParasiticBucket[2];
         /** True if faces are perpendicular */ private boolean angle;
@@ -410,7 +413,7 @@ public class ParasiticTool extends Listener{
     /****************************** OPTIONS ******************************/
 
     /****************************** Job ******************************/
-    protected static class AnalyzeParasitic extends Job
+    private static class AnalyzeParasitic extends Job
     {
         Cell cell;
         Network net;
@@ -567,7 +570,9 @@ public class ParasiticTool extends Listener{
 
     //----------------------------IRSIM Cell Info for HierarchyEnumerator--------------------
 
-    /** Parasitic Cell Info class */
+    /**
+     * Class to define cell information for Parasitic extraction
+     */
     public static class ParasiticCellInfo extends HierarchyEnumerator.CellInfo
     {
         /** M-factor to be applied to size */       private float mFactor;

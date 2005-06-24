@@ -240,6 +240,9 @@ public class LibDirs {
 
     public static LibDirFileSystemView newLibDirFileSystemView(FileSystemView osView) { return new LibDirFileSystemView(osView); }
     
+    /**
+     * Allow File Chooser to see libdir references as files.
+     */
     public static class LibDirFileView extends FileView {
         private LibDirFileSystemView view;
         public LibDirFileView(LibDirFileSystemView view) {

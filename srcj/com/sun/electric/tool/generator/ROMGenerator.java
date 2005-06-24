@@ -52,6 +52,9 @@ import java.io.IOException;
 
 import javax.swing.SwingUtilities;
 
+/**
+ * Class to build ROMs from personality tables.
+ */
 public class ROMGenerator
 {
 	private static int globalbits;

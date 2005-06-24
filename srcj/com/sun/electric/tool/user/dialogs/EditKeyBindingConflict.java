@@ -25,8 +25,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 /**
- *
- * @author  gainsley
+ * Class to manage conflicts in the bindings of keys to pulldown menus.
  */
 public class EditKeyBindingConflict extends EDialog {
     

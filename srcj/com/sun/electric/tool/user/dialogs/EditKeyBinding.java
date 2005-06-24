@@ -39,8 +39,7 @@ import javax.swing.KeyStroke;
 import javax.swing.ListModel;
 
 /**
- *
- * @author  gainsley
+ * Class to manage binding of keys to pulldown menus.
  */
 public class EditKeyBinding extends EDialog {
 

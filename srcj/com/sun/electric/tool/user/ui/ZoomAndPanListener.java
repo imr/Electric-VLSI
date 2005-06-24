@@ -41,6 +41,9 @@ import java.awt.event.MouseWheelListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+/**
+ * Class to Zoom and Pan an EditWindow.
+ */
 public class ZoomAndPanListener
 	implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
 {

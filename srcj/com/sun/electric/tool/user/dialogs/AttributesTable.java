@@ -66,6 +66,9 @@ import javax.swing.table.TableColumn;
 public class AttributesTable extends JTable implements DatabaseChangeListener {
 
 
+	/**
+	 * Class to define attributes on nodes or arcs.
+	 */
 	public static class AttValPair
 	{
 		Variable.Key key;
@@ -77,7 +80,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
 
 	/**
 	 * Model for storing Table data
-     * */
+     */
     private static class VariableTableModel extends AbstractTableModel {
 
         private List vars;                     // list of variables to display
@@ -678,6 +681,9 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         model.applyChanges();
     }
 
+	/**
+	 * Method to handle the "Cancel" button in attributes.
+	 */
     public void cancelChanges() {
         VariableTableModel model = (VariableTableModel)getModel();
         // clean up if a cell is currently being edited

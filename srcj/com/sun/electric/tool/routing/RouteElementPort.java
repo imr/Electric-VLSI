@@ -45,6 +45,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Class for defining RouteElements that are ports.
+ */
 public class RouteElementPort extends RouteElement {
 
     // ---- New Port info ----

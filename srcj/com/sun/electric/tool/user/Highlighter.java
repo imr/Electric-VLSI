@@ -68,6 +68,9 @@ import java.util.Set;
 
 import javax.swing.SwingUtilities;
 
+/**
+ * Class for per-window highlighting information.
+ */
 public class Highlighter implements DatabaseChangeListener {
 
     private static Highlighter currentHighlighter = null;

@@ -362,21 +362,36 @@ public class Layer
 		public int getHeight() { return height; }
 	}
 
+	/**
+	 * A comparator object for sorting Layers by their name.
+	 * Created once because it is used often.
+	 */
+    public static final LayerSort layerSort = new LayerSort();
 
-    public static final LayerSort layerSort = new LayerSort(); // No need to create a new one every time
-	public static class LayerSort implements Comparator
+	/**
+	 * Comparator class for sorting Layers by their name.
+	 */
+	private static class LayerSort implements Comparator
 	{
-        public static int compareStatic(Object o1, Object o2)
+		/**
+		 * Method to compare two layers by their name.
+		 * @param l1 one layer.
+		 * @param l2 another layer.
+		 * @return an integer indicating their sorting order.
+		 */
+        private static int compareStatic(Layer l1, Layer l2)
         {
-			String s1 = ((Layer)o1).getName();
-			String s2 = ((Layer)o2).getName();;
+			String s1 = l1.getName();
+			String s2 = l2.getName();;
 			return s1.compareToIgnoreCase(s2);
-
         }
 
+		/**
+		 * Method to sort Layers by their name.
+		 */
 		public int compare(Object o1, Object o2)
 		{
-			return compareStatic(o1, o2);
+			return compareStatic((Layer)o1, (Layer)o2);
 		}
 	}
 

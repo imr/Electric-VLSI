@@ -58,6 +58,9 @@ public class FastHenry extends Output
 	/** key of Variable holding the head Z value. */	public static final Variable.Key ZHEAD_KEY = ElectricObject.newKey("SIM_fasthenry_z_head");
 	/** key of Variable holding the tail Z value. */	public static final Variable.Key ZTAIL_KEY = ElectricObject.newKey("SIM_fasthenry_z_tail");
 
+	/**
+	 * Class for managing FastHenry information on arcs.
+	 */
 	public static class FastHenryArcInfo
 	{
 		private ArcInst ai;

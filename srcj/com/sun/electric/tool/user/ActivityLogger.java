@@ -46,6 +46,9 @@ import java.util.List;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
+/**
+ * Class to log job activity.
+ */
 public class ActivityLogger {
 
     /** log menu activations */         private static boolean logMenuActivations;

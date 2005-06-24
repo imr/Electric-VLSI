@@ -40,6 +40,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Class to make measurements in a window.
+ */
 public class MeasureListener
 	implements MouseListener, MouseMotionListener, MouseWheelListener, KeyListener
 {

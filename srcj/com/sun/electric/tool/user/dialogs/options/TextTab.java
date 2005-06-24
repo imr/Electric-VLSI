@@ -49,8 +49,10 @@ public class TextTab extends PreferencePanel
 		initComponents();
 	}
 
+	/** return the panel to use for this preferences tab. */
 	public JPanel getPanel() { return text; }
 
+	/** return the name of this preferences tab. */
 	public String getName() { return "Text"; }
 
 	private MutableTextDescriptor initialTextNodeDescriptor, currentTextNodeDescriptor;

@@ -70,28 +70,25 @@ import java.util.StringTokenizer;
 import javax.swing.JOptionPane;
 
 /**
- * @author Willy Chung
- *         <p/>
- *         To change the template for this generated type comment go to
- *         Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
+ * Class to generate pad frames from a specification file.
  */
 public class PadGenerator {
     
-    public static class ArrayAlign {
+    private static class ArrayAlign {
         int lineno;
         String cellname;
         String inport;
         String outport;
     }
 
-    public static class PadExports {
+	private static class PadExports {
         int lineno;
         String cellname;
         String padname;
         String corename;
     }
 
-    public static class PlacePad {
+	private static class PlacePad {
         int lineno;
         String cellname;
         String exportsname;
@@ -100,11 +97,11 @@ public class PadGenerator {
         List associations;
     }
 
-    public static class Rotation {
+	private static class Rotation {
         int angle;
     }
 
-    public static class PortAssociate {
+	private static class PortAssociate {
         boolean export;
         String portname;
         String assocname;

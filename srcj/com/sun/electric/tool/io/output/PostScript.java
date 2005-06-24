@@ -452,7 +452,7 @@ public class PostScript extends Output
 	 * Class for rendering a cell frame to the PostScript.
 	 * Extends Cell.FrameDescription and provides hooks for drawing to a Graphics.
 	 */
-	public static class PostScriptFrame extends Cell.FrameDescription
+	private static class PostScriptFrame extends Cell.FrameDescription
 	{
 		private PostScript writer;
 

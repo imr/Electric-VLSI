@@ -98,7 +98,7 @@ public class CompareList {
 	 * <p>Tricky: If a Cell is used in two layouts or two schematics then 
 	 * that Cell will occur twice in returned List, each with a 
 	 * different VarContext. This has advantages and pitfalls.
-	 * @return a list of CellContexts to compare */
+	 */
 	public CompareList(Cell cell, CellUsage use1, CellUsage use2) {
 		NccCellAnnotations ann = NccCellAnnotations.getAnnotations(cell);
 		Cell.CellGroup group = cell.getCellGroup();

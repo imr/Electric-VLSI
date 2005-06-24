@@ -65,6 +65,7 @@ import java.io.File;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.print.PrintService;
@@ -255,7 +256,7 @@ public class FileMenu {
         NewLibrary job = new NewLibrary(newLibName);
     }
 
-    public static class NewLibrary extends Job {
+	private static class NewLibrary extends Job {
         private String newLibName;
 
         public NewLibrary(String newLibName) {
@@ -312,7 +313,7 @@ public class FileMenu {
     }
 
 	/**
-	 * Class to read a text library in a new thread.
+	 * Class to read a library in a new thread.
 	 * For a non-interactive script, use ReadLibrary job = new ReadLibrary(filename, format).
 	 */
 	public static class ReadLibrary extends Job
@@ -353,11 +354,14 @@ public class FileMenu {
 		}
 	}
 
-    public static class ReadInitialELIBs extends Job
+	/**
+	 * Class to read initial libraries into Electric.
+	 */
+	public static class ReadInitialELIBs extends Job
     {
-        java.util.List fileURLs;
+        List fileURLs;
 
-        public ReadInitialELIBs(java.util.List fileURLs) {
+        public ReadInitialELIBs(List fileURLs) {
             super("Read Initial Libraries", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.fileURLs = fileURLs;
             startJob();
@@ -438,6 +442,9 @@ public class FileMenu {
         return true;
     }
 
+	/**
+	 * Class to display a new window.
+	 */
     public static class CreateCellWindow implements Runnable {
         private Cell cell;
         public CreateCellWindow(Cell cell) { this.cell = cell; }
@@ -508,7 +515,7 @@ public class FileMenu {
         CloseLibrary job = new CloseLibrary(lib);
     }
 
-    public static class CloseLibrary extends Job {
+	private static class CloseLibrary extends Job {
         Library lib;
 
         public CloseLibrary(Library lib) {
@@ -1013,7 +1020,7 @@ public class FileMenu {
     /**
      * Class to quit Electric in a new thread.
      */
-    public static class QuitJob extends Job
+	private static class QuitJob extends Job
     {
         public QuitJob()
         {

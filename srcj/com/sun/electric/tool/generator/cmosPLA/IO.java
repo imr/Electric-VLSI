@@ -34,6 +34,9 @@ import java.io.LineNumberReader;
 import java.net.URL;
 import java.net.URLConnection;
 
+/**
+ * Class to generate the I/O part of MOSIS CMOS PLAs.
+ */
 public class IO
 {
 	private int width, height;

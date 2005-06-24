@@ -40,8 +40,11 @@ public class DEFTab extends PreferencePanel
 		super(parent, modal);
 		initComponents();
 	}
+
+	/** return the panel to use for this preferences tab. */
 	public JPanel getPanel() { return def; }
 
+	/** return the name of this preferences tab. */
 	public String getName() { return "DEF"; }
 
 	/**

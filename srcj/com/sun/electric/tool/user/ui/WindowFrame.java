@@ -42,6 +42,8 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GraphicsConfiguration;
 import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
@@ -204,8 +206,36 @@ public class WindowFrame extends Observable
 		{
 			WindowFrame wf = (WindowFrame)it.next();
 			wf.paletteTab.loadTechnologies(false);
+			wf.layersTab.loadTechnologies(false);
 		}
 	}
+
+    /**
+     * Class to handle changes the "Technology" selection of either the Layer tab or the Component tab of the side bar.
+     */
+	public static class CurTechControlListener implements ActionListener
+    {
+        private WindowFrame wf;
+
+		CurTechControlListener(WindowFrame wf)
+        {
+        	this.wf = wf;
+        }
+
+        public void actionPerformed(ActionEvent evt)
+		{
+			JComboBox source = (JComboBox)evt.getSource();
+            String techName = (String)source.getSelectedItem();
+            Technology  tech = Technology.findTechnology(techName);
+            if (tech != null)
+			{
+	            // change the technology
+                tech.setCurrent();
+				wf.getPaletteTab().loadForTechnology(tech, wf);
+				wf.getLayersTab().showLayersForTechnology(tech);
+            }
+        }
+    }
 
 	private Dimension buildWindowStructure(WindowContent content, Cell cell, GraphicsConfiguration gc)
 	{
@@ -220,16 +250,16 @@ public class WindowFrame extends Observable
 
 		// make a tabbed list of panes on the left
 		sideBar = new JTabbedPane();
-        // Only Mac version will align tabs on the left. The text orientation is vertical
-        // by default on Mac
+
+		// Only Mac version will align tabs on the left. The text orientation is vertical by default on Mac
         if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
 			sideBar.setTabPlacement(JTabbedPane.LEFT);
 		paletteTab = PaletteFrame.newInstance(this);
+		layersTab = new LayerTab(this);
 		loadComponentMenuForTechnology();
-		sideBar.add("Components", paletteTab.getTechPalette());
 
+		sideBar.add("Components", paletteTab.getTechPalette());
 		sideBar.add("Explorer", scrolledTree);
-		layersTab = new LayerTab();
 		sideBar.add("Layers", layersTab.getContentPane());
 
 		sideBar.setSelectedIndex(User.getDefaultWindowTab());
@@ -298,7 +328,7 @@ public class WindowFrame extends Observable
 	}        
 
     /**
-     * Set the Technology Palette (if shown) to the current technology.
+     * Set the Technology popup in the component tab and the layers tab to the current technology.
      */
 	public void loadComponentMenuForTechnology()
 	{
@@ -310,6 +340,7 @@ public class WindowFrame extends Observable
 
 		//Technology tech = Technology.findTechnology(User.getDefaultTechnology());
 		paletteTab.loadForTechnology(tech, this);
+		layersTab.showLayersForTechnology(tech);
 	}
 
 //	public void addJS(JComponent js, int width, int height, int lowX, int lowY)

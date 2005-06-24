@@ -49,8 +49,11 @@ public class CIFTab extends PreferencePanel
 		super(parent, modal);
 		initComponents();
 	}
+
+	/** return the panel to use for this preferences tab. */
 	public JPanel getPanel() { return cif; }
 
+	/** return the name of this preferences tab. */
 	public String getName() { return "CIF"; }
 
 	private JList cifLayersList;

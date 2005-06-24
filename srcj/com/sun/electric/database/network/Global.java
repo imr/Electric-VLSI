@@ -278,7 +278,9 @@ public class Global
 		}
 	}
 
-	// Global.Set buffer for constructing sets of Global.
+	/**
+	 * Class for constructing sets of Global.
+	 */
 	public static class Buf {
 		/** Buffer for construction Global.Set. */	private PortCharacteristic[] buf = new PortCharacteristic[allGlobals.length];
 

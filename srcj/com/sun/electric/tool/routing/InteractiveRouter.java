@@ -185,7 +185,7 @@ public abstract class InteractiveRouter extends Router {
         return true;
     }
 
-    public static class MakeVerticalRouteJob extends Router.CreateRouteJob {
+    private static class MakeVerticalRouteJob extends Router.CreateRouteJob {
         protected MakeVerticalRouteJob(Router router, Route route, Cell cell, boolean verbose) {
             super(router, route, cell, false);
         }
@@ -788,7 +788,7 @@ public abstract class InteractiveRouter extends Router {
      * @param startPoint
      * @param clicked
      * @param angleIncrement
-     * @return
+     * @return the closest point to clicked to route a wire.
      */
     protected static Point2D getClosestAngledPoint(Point2D startPoint, Point2D clicked,
                                                    int angleIncrement) {

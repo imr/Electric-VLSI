@@ -808,7 +808,7 @@ public class Routing extends Listener
 		return 1;
 	}
 
-	public static class InstacesSpatially implements Comparator
+	private static class InstacesSpatially implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{

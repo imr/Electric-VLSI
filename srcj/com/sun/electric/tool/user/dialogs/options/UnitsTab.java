@@ -40,8 +40,10 @@ public class UnitsTab extends PreferencePanel
 		initComponents();
 	}
 
+	/** return the panel to use for this preferences tab. */
 	public JPanel getPanel() { return units; }
 
+	/** return the name of this preferences tab. */
 	public String getName() { return "Units"; }
 
 	private TextUtils.UnitScale initialUnitsDistance;

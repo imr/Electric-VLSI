@@ -46,6 +46,9 @@ import java.awt.geom.Point2D;
 import java.util.EventListener;
 import java.util.List;
 
+/**
+ * Class to handle changes to arc curvature.
+ */
 public class CurveListener
 	implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 {

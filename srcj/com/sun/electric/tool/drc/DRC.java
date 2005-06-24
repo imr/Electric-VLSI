@@ -71,6 +71,9 @@ public class DRC extends Listener
 
     /****************************** DESIGN RULES ******************************/
 
+	/**
+	 * Class to define a single rule on a node.
+	 */
     public static class NodeSizeRule
 	{
 		public double sizeX, sizeY;
@@ -285,6 +288,10 @@ public class DRC extends Listener
 		}
 	}
 
+	/**
+	 * Base class for checking design rules.
+	 *
+	 */
 	public static class CheckDRCLayoutJob extends Job
 	{
 		Cell cell;

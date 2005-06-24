@@ -53,7 +53,6 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.Input.FakeCell;
 import com.sun.electric.tool.io.input.LibraryFiles.DiskVariable;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -170,6 +169,15 @@ public class ELIB extends LibraryFiles
     /** variable Keys possibly in the library */                            private VarKeys varKeys;
 	/** true to convert all text descriptor values */						private boolean convertTextDescriptors;
 	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
+
+ 	/**
+	 * This class is used to convert old "facet" style Libraries to pure Cell Libraries.
+	 */
+	private static class FakeCell
+	{
+		String cellName;
+		NodeProto firstInCell;
+	}
 
     /** Holder for all variable keys read in. Keys are only created if used */
     private static class VarKeys {

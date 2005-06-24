@@ -56,7 +56,9 @@ public final class MenuCommands
     // It is never useful for anyone to create an instance of this class
 	private MenuCommands() {}
 
-    /** Used to enable/disable menus based on a property change */
+    /**
+     * Class to enable/disable menus based on a property change
+     */
     public static class MenuEnabler implements PropertyChangeListener {
         private MenuItem item;
         private String property;

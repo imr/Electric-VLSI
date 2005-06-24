@@ -72,7 +72,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
 
-/*
+/**
  * Class for managing the circuitry clipboard (for copy and paste).
  */
 public class Clipboard

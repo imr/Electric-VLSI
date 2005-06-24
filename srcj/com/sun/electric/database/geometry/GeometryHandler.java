@@ -156,7 +156,7 @@ public abstract class GeometryHandler {
     /**
      * Auxiliar class to sort shapes in array
      */
-    public static class ShapeSort implements Comparator
+	private static class ShapeSort implements Comparator
     {
         public int compare(Object o1, Object o2)
         {
@@ -172,7 +172,7 @@ public abstract class GeometryHandler {
     /**
      * Auxiliar class to sort areas in array
      */
-    public static class AreaSort implements Comparator
+    private static class AreaSort implements Comparator
     {
         public int compare(Object o1, Object o2)
         {

@@ -3758,9 +3758,9 @@ public class MoCMOS extends Technology
 	/**
 	 * Class to extend prefs so that changes to MOSIS CMOS options will update the display.
 	 */
-	public static class MoCMOSPref extends Pref
+	private static class MoCMOSPref extends Pref
 	{
-		protected MoCMOSPref() {}
+		private MoCMOSPref() {}
 
 		public void setSideEffect()
 		{

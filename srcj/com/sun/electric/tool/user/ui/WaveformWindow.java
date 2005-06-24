@@ -2638,6 +2638,9 @@ public class WaveformWindow implements WindowContent
 		}
 	}
 
+	/**
+	 * Class to define a swept signal.
+	 */
 	public static class SweepSignal
 	{
 		private Object obj;
@@ -2770,7 +2773,7 @@ public class WaveformWindow implements WindowContent
 
 	// ************************************* HIGHLIGHT LISTENER FOR ALL WAVEFORM WINDOWS *************************************
 
-	public static class WaveformWindowHighlightListener implements HighlightListener
+	private static class WaveformWindowHighlightListener implements HighlightListener
 	{
 		/**
 		 * Method to highlight waveform signals corresponding to circuit networks that are highlighted.

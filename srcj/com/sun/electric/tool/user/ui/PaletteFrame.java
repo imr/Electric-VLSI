@@ -23,8 +23,6 @@
  */
 package com.sun.electric.tool.user.ui;
 
-//import com.sun.electric.database.change.DatabaseChangeListener;
-//import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -48,8 +46,8 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
@@ -66,27 +64,13 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 /**
- * This class defines a palette window for component selection.
+ * This class defines a component window in the side bar.
  */
-public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
+public class PaletteFrame implements MouseListener
 {
-//	/** the palette window frame. */					private Container container;
 	/** the palette window panel. */					private JPanel topPanel;
-//	/** panel in which to place palettes */             private JPanel paletteSwitcher;
 	/** the technology palette */						private TechPalette techPalette;
-//    /** the library palette */                          private LibraryPalette libraryPalette;
 	/** the popup that selects technologies. */			private JComboBox techSelector;
-//    /** the popup that selects libraries */             private JComboBox librarySelector;
-//    /** the radio button for the tech selector */       private JRadioButton techRadioButton;
-//    /** the radio button for the library selector */    private JRadioButton libraryRadioButton;
-//    /** button group for the radio buttons */           private ButtonGroup radioButtonGroup;
-//    /** library Palette size */                         private Dimension libraryPaletteSize;
-//    /** library popup menu */                           private JPopupMenu libraryPopup;
-
-    /** minimum size */
-//    private static Dimension minSize;
-//    private static final String TECHPALETTE = "Tech Palette";
-//    private static final String LIBRARYPALETTE = "Library Palette";
 
 	// constructor, never called
 	private PaletteFrame() {}
@@ -98,48 +82,11 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 	public static PaletteFrame newInstance(WindowFrame ww)
 	{
 		PaletteFrame palette = new PaletteFrame();
-
-//		// initialize the frame
-//        if (TopLevel.isMDIMode())
-//		{
-//			JInternalFrame jInternalFrame = new JInternalFrame("Components", true, false, false, false);
-//			palette.container = jInternalFrame;
-//			jInternalFrame.setAutoscrolls(true);
-//			jInternalFrame.setFrameIcon(TopLevel.getFrameIcon());
-//		} else
-//		{
-//			JFrame jFrame = new JFrame("Components");
-//			palette.container = jFrame;
-//			jFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-//		}
-//
-//        // Set dimensions
-//        if (minSize == null) {
-//            Dimension screenSize = TopLevel.getScreenSize();
-//            int screenHeight = (int)screenSize.getHeight();
-//            Dimension frameSize = new Dimension(100, (int)(screenHeight*0.9)); // multiply by 0.9 to make room for taskbar
-//            minSize = frameSize;
-//        }
-//        palette.libraryPaletteSize = minSize;
-//        palette.container.setSize(minSize);
-//        palette.container.setLocation(0,0);
-
 		palette.topPanel = new JPanel();
 
 		// initialize all components
         palette.initComponents(ww);
 
-//		if (TopLevel.isMDIMode())
-//		{
-//			if (!Main.BATCHMODE) ((JInternalFrame)palette.container).show();
-//			TopLevel.addToDesktop((JInternalFrame)palette.container);
-//			//((JInternalFrame)palette.container).moveToFront();
-//		} else
-//		{
-//			if (!Main.BATCHMODE) ((JFrame)palette.container).setVisible(true);
-//		}
-
-//        Undo.addDatabaseChangeListener(palette);
 		return palette;
 	}
 
@@ -169,107 +116,43 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
      */
     public void setSelectedItem(Object anObject) { techSelector.setSelectedItem(anObject); }
 
-    private void initComponents(WindowFrame ww) {
-//        Container content = ((RootPaneContainer)container).getContentPane();
+    private void initComponents(WindowFrame wf) {
         Container content = topPanel;
 
         // layout the Buttons and Combo boxes that control the palette
-        content.setLayout(new java.awt.GridBagLayout());
+        content.setLayout(new GridBagLayout());
         GridBagConstraints gridBagConstraints;
 
-//        techRadioButton = new JRadioButton();
-//        gridBagConstraints = new java.awt.GridBagConstraints();
-//        gridBagConstraints.gridx = 0;
-//        gridBagConstraints.gridy = 0;
-//        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-//        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 0);
-//        content.add(techRadioButton, gridBagConstraints);
-//
-//        libraryRadioButton = new JRadioButton();
-//        gridBagConstraints = new java.awt.GridBagConstraints();
-//        gridBagConstraints.gridx = 0;
-//        gridBagConstraints.gridy = 1;
-//        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-//        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 0);
-//        content.add(libraryRadioButton, gridBagConstraints);
-//
-//        radioButtonGroup = new ButtonGroup();
-//        radioButtonGroup.add(techRadioButton);
-//        radioButtonGroup.add(libraryRadioButton);
-//        techRadioButton.setSelected(true);
-
         techSelector = new JComboBox();
-        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 0);
+        gridBagConstraints.insets = new Insets(0, 0, 0, 0);
         content.add(techSelector, gridBagConstraints);
 
-//        librarySelector = new JComboBox();
-//        gridBagConstraints = new java.awt.GridBagConstraints();
-//        gridBagConstraints.gridx = 1;
-//        gridBagConstraints.gridy = 1;
-//        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-//        gridBagConstraints.weightx = 1.0;
-//        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 0);
-//        content.add(librarySelector, gridBagConstraints);
-
         // this panel will switch between the different palettes
-//        paletteSwitcher = new JPanel(new CardLayout());
         techPalette = new TechPalette();
         techPalette.setFocusable(true);
-        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 2;
-        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 0);
+        gridBagConstraints.insets = new Insets(0, 0, 0, 0);
         content.add(techPalette, gridBagConstraints);
 
         techSelector.setLightWeightPopupEnabled(false);
-//        librarySelector.setLightWeightPopupEnabled(false);
-
-        // create the palettes and add them
-//        libraryPalette = new LibraryPalette(minSize);
-//        paletteSwitcher.add(techPalette, TECHPALETTE);
-//        paletteSwitcher.add(libraryPalette, LIBRARYPALETTE);
 
         // Getting default tech stored
-        //techSelector.setSelectedItem(User.getDefaultTechnology());
         loadTechnologies(true);
 
-        PaletteControlListener l = new PaletteControlListener(this, ww);
-//        techRadioButton.addActionListener(l);
-        techSelector.addActionListener(l);
-//        librarySelector.addActionListener(l);
-//        libraryRadioButton.addActionListener(l);
-//        librarySelector.addMouseListener(this);
-
-//        // Populate the library combo box
-//        updateLibrarySelector();
+        techSelector.addActionListener(new WindowFrame.CurTechControlListener(wf));
     }
-
-//    /**
-//     * Update the list of libraries in the library selector
-//     */
-//    private void updateLibrarySelector() {
-//        librarySelector.removeAllItems();
-//        /*for (Library lib: Library.getVisibleLibraries()) librarySelector.addItem(lib.getName());*/
-//        for (Iterator it = Library.getVisibleLibraries().iterator(); it.hasNext(); )
-//		{
-//			Library lib = (Library)it.next();
-//			librarySelector.addItem(lib.getName());
-//		}
-//        Library current = Library.getCurrent();
-//        if (current != null)
-//            librarySelector.setSelectedItem(current.getName());
-//        libraryPalette.setLibrary(current);
-//    }
 
 	/**
 	 * Method to set the cursor that is displayed in the PaletteFrame.
@@ -278,13 +161,7 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 	public void setCursor(Cursor cursor)
 	{
 		techPalette.setCursor(cursor);
-//        libraryPalette.setCursor(cursor);
 	}
-
-//	public Rectangle getPaletteLocation()
-//	{
-//		return container.getBounds();
-//	}
 
 	public JPanel getTechPalette()
 	{
@@ -296,122 +173,21 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 		techPalette.repaint();
 	}
 
-//    /**
-//     * Switch the currently displayed Palette
-//     * @param paletteName
-//     */
-//    public void switchToPalette(String paletteName) {
-//        if (libraryPalette.isVisible()) {
-//            // save old size
-//            libraryPaletteSize = container.getSize();
-//        }
-//
-//        CardLayout layout = (CardLayout)paletteSwitcher.getLayout();
-//        if (paletteName == TECHPALETTE) {
-//            layout.show(paletteSwitcher, TECHPALETTE);
-//        }
-//        if (paletteName == LIBRARYPALETTE) {
-//            layout.show(paletteSwitcher, LIBRARYPALETTE);
-//            setSize(libraryPaletteSize);
-//        }
-//    }
-
     /**
-     * Set the Technology Palette (if shown) to the current technology.
+     * Set the Technology Palette to the current technology.
      */
 	public void loadForTechnology(Technology tech, WindowFrame ww)
 	{
-//		Technology tech = Technology.getCurrent();
-        //Technology tech = Technology.findTechnology(User.getDefaultTechnology());
+		techSelector.setSelectedItem(tech.getTechName());
         Dimension size = techPalette.loadForTechnology(tech, ww.getContent().getCell());
         if (techPalette.isVisible()) {
             setSize(size);
         }
 	}
 
-//    /**
-//     * Set the Library Palette (if shown) to the specified library.
-//     * @param lib
-//     */
-//    public void loadForLibrary(Library lib)
-//    {
-//        libraryPalette.setLibrary(lib);
-//    }
-
     private void setSize(Dimension size) {
-//        if (size.getWidth() < minSize.getWidth()) size.setSize(minSize.getWidth(), size.getHeight());
-//        if (size.getHeight() < minSize.getHeight()) size.setSize(size.getWidth(), minSize.getHeight());
         topPanel.setSize(size);
     }
-
-    // responds to changes in the Palette control
-    private static class PaletteControlListener implements ActionListener
-    {
-        private PaletteFrame palette;
-        private WindowFrame ww;
-
-        PaletteControlListener(PaletteFrame palette, WindowFrame ww)
-        {
-        	this.palette = palette;
-        	this.ww = ww;
-        }
-
-        public void actionPerformed(ActionEvent evt) {
-            Object source = evt.getSource();
-            if (source == palette.techSelector) {
-                // change the technology
-                String techName = (String)palette.techSelector.getSelectedItem();
-                Technology  tech = Technology.findTechnology(techName);
-                if (tech != null) {
-                    tech.setCurrent();
-                    palette.loadForTechnology(tech, ww);
-                }
-            }
-//            else if (source == palette.librarySelector) {
-//                // change the library
-//                String libName = (String)palette.librarySelector.getSelectedItem();
-//                Library lib = Library.findLibrary(libName);
-//                if (lib != null) {
-//                    palette.loadForLibrary(lib);
-//                }
-//            }
-//            else if (source == palette.techRadioButton) {
-//                // switch to technology palette
-//                palette.switchToPalette(TECHPALETTE);
-//                palette.loadForTechnology();
-//            }
-//            else if (source == palette.libraryRadioButton) {
-//                // switch to the library palette
-//                palette.switchToPalette(LIBRARYPALETTE);
-//                String libName = (String)palette.librarySelector.getSelectedItem();
-//                Library lib = Library.findLibrary(libName);
-//                if (lib != null) {
-//                    palette.loadForLibrary(lib);
-//                }
-//            }
-        }
-    }
-
-//     public void databaseChanged(Undo.Change evt) {}
-//     public boolean isGUIListener() { return true; }
-//     public void databaseEndChangeBatch(Undo.ChangeBatch batch) {
-//         boolean libChanged = false;
-//         for (Iterator it = batch.getChanges(); it.hasNext(); ) {
-//             Undo.Change change = (Undo.Change)it.next();
-//             if (change.getType() == Undo.Type.LIBRARYKILL ||
-//                 change.getType() == Undo.Type.LIBRARYNEW) {
-//                 libChanged = true;
-//                 break;
-//             }
-//             if ((change.getType() == Undo.Type.OBJECTRENAME) &&
-//                 (change.getObject() instanceof Library)) {
-//                 libChanged = true;
-//                 break;
-//             }
-//         }
-// //        if (libChanged)
-// //            updateLibrarySelector();
-//     }
 
     public void mouseClicked(MouseEvent e) {}
     public void mouseEntered(MouseEvent e) {}
@@ -419,79 +195,7 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
     public void mouseReleased(MouseEvent e) {}
     public void mousePressed(MouseEvent e) {
         if (e.isShiftDown() || e.isControlDown() || e.isAltDown()) return;
-
-//        if (e.isMetaDown()) {
-//            Object source = e.getSource();
-//            if (source == librarySelector) {
-//                initLibraryPopup();
-//                libraryPopup.show(librarySelector, e.getX(), e.getY());
-//            }
-//        }
     }
-
-//    private void initLibraryPopup() {
-//        if (libraryPopup != null) return;
-//
-//        libraryPopup = new JPopupMenu();
-//        JMenuItem m;
-//        m = new JMenuItem("Set current");
-//        m.addActionListener(new ActionListener() {
-//                public void actionPerformed(ActionEvent e) { selectedLibSetCurrent(); }
-//        });
-//        libraryPopup.add(m);
-//        m = new JMenuItem("Save");
-//        m.addActionListener(new ActionListener() {
-//                public void actionPerformed(ActionEvent e) { selectedLibSave(); }
-//        });
-//        libraryPopup.add(m);
-//        m = new JMenuItem("Save as...");
-//        m.addActionListener(new ActionListener() {
-//                public void actionPerformed(ActionEvent e) { selectedLibSaveAs(); }
-//        });
-//        libraryPopup.add(m);
-//        m = new JMenuItem("Rename");
-//        m.addActionListener(new ActionListener() {
-//                public void actionPerformed(ActionEvent e) { selectedLibRename(); }
-//        });
-//        libraryPopup.add(m);
-//        m = new JMenuItem("Close");
-//        m.addActionListener(new ActionListener() {
-//                public void actionPerformed(ActionEvent e) { selectedLibClose(); }
-//        });
-//        libraryPopup.add(m);
-//    }
-
-//    private Library getSelectedLib() {
-//        String libName = (String)librarySelector.getSelectedItem();
-//        Library lib = Library.findLibrary(libName);
-//        if (lib == null) System.out.println("No such library \""+libName+"\"");
-//        return lib;
-//    }
-//    private void selectedLibSetCurrent() {
-//        Library lib = getSelectedLib();
-//        if (lib == null) return;
-//        lib.setCurrent();
-//    }
-//    private void selectedLibSave() {
-//        Library lib = getSelectedLib();
-//        if (lib == null) return;
-//        FileMenu.saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true);
-//    }
-//    private void selectedLibSaveAs() {
-//        Library lib = getSelectedLib();
-//        if (lib == null) return;
-//        FileMenu.saveAsLibraryCommand(lib);
-//    }
-//    private void selectedLibRename() {
-//        Library lib = getSelectedLib();
-//        if (lib == null) return;
-//        CircuitChanges.renameLibrary(lib);
-//    }
-//    private void selectedLibClose() {
-//        Library lib = getSelectedLib();
-//        if (lib == null) return;
-//        FileMenu.closeLibraryCommand(lib);
-//    }
 
     /**
      * Interface for a Palette object that can be added to the Palette frame
@@ -598,6 +302,9 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
         return null;
 	}
 
+	/**
+	 * Class to choose a location for new node placement.
+	 */
 	public static class PlaceNodeListener
 		implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
@@ -700,10 +407,6 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
             }
             WindowFrame.setListener(oldListener);
             TopLevel.setCurrentCursor(oldCursor);
-            //if (window != null)
-            //{
-            //    window.removeKeyListener(this);
-            //}
             if (palette != null)
                 palette.placeNodeFinished(cancelled);
         }
@@ -746,7 +449,9 @@ public class PaletteFrame implements /*DatabaseChangeListener,*/ MouseListener
 		public void keyTyped(KeyEvent evt) {}
 	}
 
-	/** class that creates the node selected from the component menu */
+	/**
+	 * Class that creates the node selected from the component menu.
+	 */
 	public static class PlaceNewNode extends Job
 	{
 		Object toDraw;

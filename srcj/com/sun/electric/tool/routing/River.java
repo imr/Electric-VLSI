@@ -441,7 +441,7 @@ public class River
 		return sortedRivRot(layerDesc, lists, width, space, cellOff1, cellOff2);
 	}
 
-	public static class SortRDESC implements Comparator
+	private static class SortRDESC implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{

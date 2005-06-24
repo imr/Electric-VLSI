@@ -45,10 +45,8 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 
-
 /**
- *
- * @author  gainsley
+ * Class to manage bindings of keystrokes to pulldown menus.
  */
 public class EditKeyBindings extends PreferencePanel implements TreeSelectionListener {
     

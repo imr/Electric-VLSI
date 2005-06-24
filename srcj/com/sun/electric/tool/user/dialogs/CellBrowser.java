@@ -49,8 +49,7 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 
 /**
- *
- * @author  gainsley
+ * Class to browse the list of cells and do specific things to them (delete, rename).
  *
  * <p>The CellBrowser is a general purpose browser that can browse
  * by Library, View, and Cell.  It can filter Cell names using a regular
@@ -83,7 +82,9 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
     private List cellList = null;                       // list of cells displayed
     private List cellListNames = null;                  // list of cells by name displayed (matches cellList)
 
-
+	/**
+	 * Class to do a cell browser action.
+	 */
     public static class DoAction {
         public String name;
 

@@ -36,6 +36,9 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.util.Iterator;
 
+/**
+ * Class to handle commands to the ALS Simulator.
+ */
 public class Command
 {
 	private ALS als;

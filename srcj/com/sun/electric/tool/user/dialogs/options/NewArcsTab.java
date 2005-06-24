@@ -52,8 +52,10 @@ public class NewArcsTab extends PreferencePanel
 		initComponents();
 	}
 
+	/** return the panel to use for this preferences tab. */
 	public JPanel getPanel() { return newArc; }
 
+	/** return the name of this preferences tab. */
 	public String getName() { return "New Arcs"; }
 
 	private static class PrimArcInfo

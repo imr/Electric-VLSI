@@ -25,6 +25,9 @@ package com.sun.electric.technology;
 
 import java.util.List;
 
+/**
+ * Interface for abstracting design rules.
+ */
 public interface DRCRules
 {
 //	public void setMinNodeSize(int index, String name, double width, double height);

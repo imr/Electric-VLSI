@@ -43,8 +43,10 @@ public class SiliconCompilerTab extends PreferencePanel
 		initComponents();
 	}
 
+	/** return the panel to use for this preferences tab. */
 	public JPanel getPanel() { return siliconCompiler; }
 
+	/** return the name of this preferences tab. */
 	public String getName() { return "Silicon Compiler"; }
 
 	/**

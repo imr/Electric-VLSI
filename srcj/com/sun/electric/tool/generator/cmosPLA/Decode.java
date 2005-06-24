@@ -36,6 +36,9 @@ import com.sun.electric.database.variable.Variable;
 
 import java.awt.geom.Rectangle2D;
 
+/**
+ * Class to generate the decoder part of MOSIS CMOS PLAs.
+ */
 public class Decode
 {
 	private PLA pla;

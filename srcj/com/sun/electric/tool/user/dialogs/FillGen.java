@@ -24,7 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 /**
- * Unused.
+ * Unused class to manage fill generators.
  * TODO: RK Decide whether to use this file or discard it.
  */
 public class FillGen extends EDialog {

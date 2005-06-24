@@ -43,8 +43,11 @@ public class CopyrightTab extends PreferencePanel
 		super(parent, modal);
 		initComponents();
 	}
+
+	/** return the panel to use for this preferences tab. */
 	public JPanel getPanel() { return copyright; }
 
+	/** return the name of this preferences tab. */
 	public String getName() { return "Copyright"; }
 
 	private JTextArea copyrightTextArea;

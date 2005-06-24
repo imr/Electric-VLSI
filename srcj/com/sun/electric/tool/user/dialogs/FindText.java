@@ -66,7 +66,9 @@ import javax.swing.JSeparator;
  */
 public class FindText extends EDialog
 {
-	/** What kind of text string to search */
+	/**
+	 * Class to define the kind of text string to search
+	 */
 	public static class WhatToSearch {
 		public static final WhatToSearch 
 		ARC_NAME = new WhatToSearch("Arc Name"),

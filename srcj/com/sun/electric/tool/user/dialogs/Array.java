@@ -79,6 +79,9 @@ public class Array extends EDialog
 	/** the selected objects to be arrayed */				private HashMap selected;
 	/** the bounds of the selected objects */				private Rectangle2D bounds;
 
+	/**
+	 * Method to display a dialog for arraying the selected circuitry.
+	 */
 	public static void showArrayDialog()
 	{
 		// first make sure something is selected

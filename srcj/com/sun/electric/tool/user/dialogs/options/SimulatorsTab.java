@@ -42,8 +42,11 @@ public class SimulatorsTab extends PreferencePanel
 		super(parent, modal);
 		initComponents();
 	}
+
+	/** return the panel to use for this preferences tab. */
 	public JPanel getPanel() { return simulators; }
 
+	/** return the name of this preferences tab. */
 	public String getName() { return "Simulators"; }
 
 	// this is a copy of what is in com.sun.electric.plugins.irsim.Sim.java

@@ -169,7 +169,7 @@ public class Maxwell extends Output
 		boxNumber++;
 	}
 
-    public static class Visitor extends HierarchyEnumerator.Visitor
+    private static class Visitor extends HierarchyEnumerator.Visitor
     {
 		Maxwell generator;
 

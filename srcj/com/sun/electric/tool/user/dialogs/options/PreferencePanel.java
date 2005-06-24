@@ -44,14 +44,26 @@ public class PreferencePanel extends EDialog
 		super(parent, modal);
 	}
 
+	/** return the panel to use for this preferences tab. */
 	public JPanel getPanel() { return null; }
 
+	/** return the name of this preferences tab. */
 	public String getName() { return ""; }
 
+	/** Method to tell whether this preferences tab has been initialized.
+	 * @return true if this preferences tab has been initialized.
+	 */
 	public boolean isInited() { return inited; }
 
+	/**
+	 * Method to mark that this preferences tab has been initialized.
+	 */
 	public void setInited() { inited = true; }
 
+	/**
+	 * Method to return the current technology for use in all preferences tabs.
+	 * @return the current technology.
+	 */
     public Technology getTech() { return curTech; }
 
 	/**

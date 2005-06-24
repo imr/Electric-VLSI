@@ -77,15 +77,6 @@ public class Input
 	/** true if the library is the main one being read. */	protected boolean topLevelLibrary;
 	/** the number of bytes of data read so far */			protected int byteCount;
 
- 	/**
-	 * This class is used to convert old "facet" style Libraries to pure Cell Libraries.
-	 */
-	protected static class FakeCell
-	{
-		String cellName;
-		NodeProto firstInCell;
-	}
-
 	// ---------------------- private and protected methods -----------------
 
 	Input()

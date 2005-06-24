@@ -154,7 +154,7 @@ public class Eagle extends Output
 		System.out.println(filePath + " written");
 	}
 
-	public static class NetNamesSort implements Comparator
+	private static class NetNamesSort implements Comparator
 	{
 		public int compare(Object o1, Object o2)
 		{

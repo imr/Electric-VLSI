@@ -372,7 +372,7 @@ public class ToolMenu {
 		networkSubMenu.addMenuItem("_Validate Power and Ground", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { validatePowerAndGround(); } });
 		networkSubMenu.addMenuItem("Redo Network N_umbering", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { new NetworkTool.RenumberJob(); } });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { NetworkTool.renumberNetlists(); } });
 
 		//------------------- Logical Effort
 
@@ -609,7 +609,7 @@ public class ToolMenu {
         job.startJob();
     }
 
-    public static class BackAnnotateJob extends Job {
+    private static class BackAnnotateJob extends Job {
         private Cell cell;
         public BackAnnotateJob(Cell cell) {
             super("BackAnnotate", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -1076,7 +1076,7 @@ public class ToolMenu {
         ListGeomsAllNetworksJob job = new ListGeomsAllNetworksJob(cell);
     }
 
-    public static class ListGeomsAllNetworksJob extends Job {
+    private static class ListGeomsAllNetworksJob extends Job {
         private Cell cell;
         public ListGeomsAllNetworksJob(Cell cell) {
             super("ListGeomsAllNetworks", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);

@@ -388,7 +388,7 @@ public class Place
         return connections;
 	}
 
-    public static class ConnectsByCount implements Comparator
+    private static class ConnectsByCount implements Comparator
     {
         public int compare(Object o1, Object o2)
         {

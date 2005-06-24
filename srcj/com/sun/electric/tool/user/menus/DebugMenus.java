@@ -292,7 +292,7 @@ public class DebugMenus {
      * By encapsulating this simple operation in a Job, it gets done
      * in the proper order when scheduled by a regression test.
      */
-    public static class SetCellJob extends Job
+	private static class SetCellJob extends Job
     {
     	private String cellName;
 
@@ -311,7 +311,7 @@ public class DebugMenus {
         }
     }
 
-    public static class SaveLibraryJob extends Job
+	private static class SaveLibraryJob extends Job
     {
     	private String fileName;
 
@@ -1218,7 +1218,7 @@ public class DebugMenus {
         StackOverflowJob job = new StackOverflowJob();
     }
 
-    public static class StackOverflowJob extends Job {
+	private static class StackOverflowJob extends Job {
         private StackOverflowJob() {
             super("overflow", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
             startJob();

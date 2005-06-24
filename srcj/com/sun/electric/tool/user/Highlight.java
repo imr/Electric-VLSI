@@ -62,7 +62,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.HashSet;
 import java.util.Iterator;
 
-/*
+/**
  * Class for highlighting of objects on the display.
  * <P>
  * These are the types of highlighting that can occur:

@@ -40,9 +40,12 @@ public class PortsAndExportsTab extends PreferencePanel
 		initComponents();
 	}
 
+	/** return the panel to use for this preferences tab. */
 	public JPanel getPanel() { return port; }
 
+	/** return the name of this preferences tab. */
 	public String getName() { return "Ports/Exports"; }
+
 	/**
 	 * Method called at the start of the dialog.
 	 * Caches current values and displays them in the Ports tab.

@@ -50,6 +50,10 @@ import java.awt.geom.Rectangle2D;
 import java.util.HashSet;
 import java.util.Iterator;
 
+/**
+ * Class to do schematic design-rule checking.
+ * Examines artwork of a schematic for sensibility.
+ */
 public class Schematic
 {
 	private static HashSet cellsChecked;

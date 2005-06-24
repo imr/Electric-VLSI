@@ -48,6 +48,9 @@ public class Route
 
 	/** global feed through number */	private int		feedNumber;
 
+	/**
+	 * Class for communicating routing information between router and netlist reader.
+	 */
 	public static class SCRoute
 	{
 		/** list of channels */				RouteChannel	channels;
@@ -75,6 +78,9 @@ public class Route
 		/** nodes in same row */			RouteNode		next;
 	};
 
+	/**
+	 * Class for communicating routing information between router and maker.
+	 */
 	public static class RoutePort
 	{
 		/** reference place */				Place.NBPlace	place;
@@ -85,6 +91,9 @@ public class Route
 		/** next port in list */			RoutePort		next;
 	};
 
+	/**
+	 * Class for communicating channel information between router and maker.
+	 */
 	public static class RouteChannel
 	{
 		/** number, 0 is bottom */			int				number;
@@ -94,6 +103,9 @@ public class Route
 		/** next in channel list */			RouteChannel	next;
 	};
 
+	/**
+	 * Class for communicating routing information between router and maker.
+	 */
 	public static class RouteChNode
 	{
 		/** extracted node */				GetNetlist.ExtNode extNode;
@@ -107,6 +119,9 @@ public class Route
 		/** nodes in same row */			RouteChNode		next;
 	};
 
+	/**
+	 * Class for communicating routing information between router and maker.
+	 */
 	public static class RouteChPort
 	{
 		/** reference port */				RoutePort		port;
@@ -144,6 +159,9 @@ public class Route
 		/** next in zone */					RouteZRGMem		next;
 	};
 
+	/**
+	 * Class for communicating routing information between router and maker.
+	 */
 	public static class RouteTrack
 	{
 		/** number of track, 0 = top */		int				number;
@@ -152,12 +170,18 @@ public class Route
 		/** next track in list */			RouteTrack		next;
 	};
 
+	/**
+	 * Class for communicating routing information between router and maker.
+	 */
 	public static class RouteTrackMem
 	{
 		/** channel node */					RouteChNode		node;
 		/** next in same track */			RouteTrackMem	next;
 	};
 
+	/**
+	 * Class for communicating routing information between router and maker.
+	 */
 	public static class RouteExport
 	{
 		/** export port */					GetNetlist.SCPort	xPort;

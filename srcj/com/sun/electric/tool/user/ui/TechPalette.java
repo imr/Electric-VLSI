@@ -84,6 +84,9 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JSeparator;
 
+/**
+ * Class to display the nodes and arcs in a technology (in the Component Menu).
+ */
 public class TechPalette extends JPanel implements MouseListener, MouseMotionListener, MouseWheelListener,
         KeyListener, PaletteFrame.PlaceNodeEventListener, ComponentListener, DragGestureListener, DragSourceListener {
 

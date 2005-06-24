@@ -34,6 +34,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * Class to flatten circuitry for the ALS Simulator.
+ */
 public class Flat
 {
 	private ALS       als;

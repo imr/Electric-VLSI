@@ -568,6 +568,9 @@ public class LayerCoverageJob extends Job
 		return true;
 	}
 
+	/**
+	 * Class to represent all geometry on a network during layer coverage analysis.
+	 */
 	public static class GeometryOnNetwork {
 	    public final Cell cell;
 	    protected Set nets;

@@ -46,6 +46,9 @@ import java.util.List;
  */
 public class ArtworkLook extends EDialog
 {
+	/**
+	 * Method to display a dialog for controlling the appearance of selected artwork primitives.
+	 */
 	public static void showArtworkLookDialog()
 	{
 		// see if there is a piece of artwork selected]

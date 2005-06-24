@@ -476,7 +476,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 	/**
 	 * Class to handle edit-in-place of text.
 	 */
-	public static class EditInPlaceListener implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
+	private static class EditInPlaceListener implements MouseMotionListener, MouseListener, MouseWheelListener, KeyListener
 	{
 		private CachedTextInfo cti;
 		private EditWindow wnd;
@@ -605,7 +605,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		public void keyTyped(KeyEvent evt) {}
 	}
 
-    protected static class ChangeText extends Job {
+    private static class ChangeText extends Job {
 		CachedTextInfo cti;
         String[] newText;
 

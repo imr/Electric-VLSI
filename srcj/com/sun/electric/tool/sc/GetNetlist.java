@@ -192,6 +192,9 @@ public class GetNetlist
 		/** next in list of common node */		ExtPort		next;
 	};
 
+	/**
+	 * Class for communicating netlist information to the placer and router.
+	 */
 	public static class ExtNode
 	{
 		/** optional name of port */			String		name;

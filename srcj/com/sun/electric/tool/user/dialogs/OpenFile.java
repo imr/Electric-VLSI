@@ -36,6 +36,9 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileSystemView;
 
+/**
+ * Class to handle file selection dialogs.
+ */
 public class OpenFile
 {
 	private static class OpenFileSwing extends JFileChooser

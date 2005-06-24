@@ -36,8 +36,7 @@ import java.util.List;
 import java.util.prefs.Preferences;
 
 /**
- *
- * @author  gainsley
+ * Class to handle the request to change a cell's group.
  */
 public class ChangeCellGroup extends EDialog {
 

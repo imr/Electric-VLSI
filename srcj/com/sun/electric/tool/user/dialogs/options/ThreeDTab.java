@@ -92,8 +92,10 @@ public class ThreeDTab extends PreferencePanel
 		initComponents();
 	}
 
+	/** return the panel to use for this preferences tab. */
 	public JPanel getPanel() { return threeD; }
 
+	/** return the name of this preferences tab. */
 	public String getName() { return "3D"; }
 
 	private boolean initial3DTextChanging = false;

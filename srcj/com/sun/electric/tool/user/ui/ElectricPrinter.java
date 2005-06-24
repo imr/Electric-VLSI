@@ -33,6 +33,9 @@ import java.awt.image.BufferedImage;
 import java.awt.Image;
 import java.awt.Graphics;
 
+/**
+ * Class to define a printer interface.
+ */
 public class ElectricPrinter implements Printable, ImageObserver
 {
 	private WindowContent context;
