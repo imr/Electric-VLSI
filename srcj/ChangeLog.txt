@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/24/05, DN) Reading a library causes an exception (Bug #398)
+FIX: "io.input.ELIB.getArcEnd" saves MessageLog in a private fiels "getArcEndError".
+
 IMP: (06/23/05, RK) Add NCC regression tests for Global Partition
 
 IMP: (06/23/05, RK) Add modified heater to NCC regression
