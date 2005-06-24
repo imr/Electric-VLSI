@@ -227,7 +227,7 @@ public class GDS extends Geometry
 				Layer layer = nLay[0].getLayer().getNonPseudoLayer();
 				selectLayer(layer);
 
-				int textLayer, pinLayer, textType = 0, pinType = 0;
+				int textLayer = -1, pinLayer = -1, textType = 0, pinType = 0;
 				textLayer = pinLayer = IOTool.getGDSOutDefaultTextLayer();
 				if (currentLayerNumbers.getTextLayer() != -1)
 				{
