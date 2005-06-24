@@ -1345,7 +1345,7 @@ public class DesignRulesTab extends PreferencePanel
         double minLen = TextUtils.atof(drLengths.getText().trim());
         double value = TextUtils.atof(drSpacings.getText());
         String ruleText = drSpacingsRule.getText();
-        if (ruleText.length() > 0 && (maxW > 0 || minLen > 0))
+        if (ruleText.length() > 0 && value > 0 && (maxW > 0 || minLen > 0))
         {
 		    drSpacingsList.addItem("Rule " + (soFar+1));
 		    DRCTemplate wr = new DRCTemplate(drSpacingsRule.getText(), foundry.techMode, DRCTemplate.CONSPA,
@@ -1358,7 +1358,7 @@ public class DesignRulesTab extends PreferencePanel
         }
         else
             soFar = 0; // reset to first element ;
-        drSpacingsList.setSelectedIndex(soFar);
+        if (wideSpacingRules.size() > 0) drSpacingsList.setSelectedIndex(soFar);
         drAddRule.setEnabled(drRules.doesAllowMultipleWideRules(getLayerFromToIndex()));
     }//GEN-LAST:event_drAddRuleActionPerformed
 

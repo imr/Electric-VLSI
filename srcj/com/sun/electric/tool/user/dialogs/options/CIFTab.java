@@ -66,7 +66,6 @@ public class CIFTab extends PreferencePanel
 		cifOutputMimicsDisplay.setSelected(IOTool.isCIFOutMimicsDisplay());
 		cifOutputMergesBoxes.setSelected(IOTool.isCIFOutMergesBoxes());
 		cifOutputInstantiatesTopLevel.setSelected(IOTool.isCIFOutInstantiatesTopLevel());
-//		cifResolutionValue.setText(TextUtils.formatDouble(IOTool.getCIFOutResolution()));
 		cifInputSquaresWires.setSelected(IOTool.isCIFInSquaresWires());
 
 		// build the layers list
@@ -189,10 +188,6 @@ public class CIFTab extends PreferencePanel
 		currentValue = cifOutputInstantiatesTopLevel.isSelected();
 		if (currentValue != IOTool.isCIFOutInstantiatesTopLevel())
 			IOTool.setCIFOutInstantiatesTopLevel(currentValue);
-
-//		double currentResolution = TextUtils.atof(cifResolutionValue.getText());
-//		if (currentResolution != IOTool.getCIFOutResolution())
-//			IOTool.setCIFOutResolution(currentResolution);
 
 		currentValue = cifInputSquaresWires.isSelected();
 		if (currentValue != IOTool.isCIFInSquaresWires())

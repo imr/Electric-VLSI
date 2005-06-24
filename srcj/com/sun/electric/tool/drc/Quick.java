@@ -1155,6 +1155,8 @@ public class Quick
 		bounds.setRect(bounds.getMinX()-bound, bounds.getMinY()-bound, bounds.getWidth()+bound*2, bounds.getHeight()+bound*2);
 		return (badBoxInArea(poly, layer, tech, net, geom, trans, globalIndex, bounds, (Cell)oNi.getProto(), localIndex,
                 oNi.getParent(), topGlobalIndex, upTrans, baseMulti, false));
+        // true in this case you don't want to check Geometric.objectsTouch(nGeom, geom) if nGeom and geom are in the
+        // same cell because they could come from different cell instances.
 	}
 
 	/**
@@ -1166,7 +1168,7 @@ public class Quick
 	 * this hierarchical level.
 	 */
 	private boolean badBox(Poly poly, Layer layer, int net, Technology tech, Geometric geom,
-		AffineTransform trans, Cell cell, int globalIndex)
+                           AffineTransform trans, Cell cell, int globalIndex)
 	{
 		// see how far around the box it is necessary to search
 		double maxSize = poly.getMaxSize();
@@ -1203,8 +1205,9 @@ public class Quick
 	 * Returns TRUE if errors are found.
 	 */
 	private boolean badBoxInArea(Poly poly, Layer layer, Technology tech, int net, Geometric geom, AffineTransform trans,
-		int globalIndex, Rectangle2D bounds, Cell cell, int cellGlobalIndex,
-		Cell topCell, int topGlobalIndex, AffineTransform upTrans, boolean baseMulti, boolean sameInstance)
+                                 int globalIndex, Rectangle2D bounds, Cell cell, int cellGlobalIndex,
+                                 Cell topCell, int topGlobalIndex, AffineTransform upTrans, boolean baseMulti,
+                                 boolean sameInstance)
 	{
 		Rectangle2D rBound = new Rectangle2D.Double();
 		rBound.setRect(bounds);
@@ -1266,8 +1269,10 @@ public class Quick
 					// see if this type of node can interact with this layer
 					if (!checkLayerWithNode(layer, np)) continue;
 
-					// see if the objects directly touch
-					boolean touch = Geometric.objectsTouch(nGeom, geom);
+					// see if the objects directly touch but they are not
+                    // coming from different NodeInst (not from checkCellInstContents
+                    // because they might below to the same cell but in different instances
+					boolean touch = sameInstance && Geometric.objectsTouch(nGeom, geom);
 
 					// prepare to examine every layer in this nodeinst
 					AffineTransform rTrans = ni.rotateOut();
@@ -1367,7 +1372,7 @@ public class Quick
 				if (!checkLayerWithArc(layer, ap)) continue;
 
 				// see if the objects directly touch
-				boolean touch = Geometric.objectsTouch(nGeom, geom);
+				boolean touch = sameInstance && Geometric.objectsTouch(nGeom, geom);
 
 				// see whether the two objects are electrically connected
                 Network jNet = netlist.getNetwork(ai, 0);
@@ -2136,7 +2141,7 @@ public class Quick
 
 			// see if this polygon has errors in the cell
 			if (badBoxInArea(poly, polyLayer, tech, net, geom, trans, globalIndex, subBounds, (Cell)np, localIndex,
-				subCell, globalIndex, subTrans, baseMulti, false)) return true;
+                    subCell, globalIndex, subTrans, baseMulti, false)) return true;
 		}
 		return false;
 	}

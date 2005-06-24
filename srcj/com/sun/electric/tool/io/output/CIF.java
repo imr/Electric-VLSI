@@ -58,7 +58,6 @@ import java.util.Set;
 public class CIF extends Geometry
 {
 	// preferences
-	/** minimum output grid resolution (0 to ignore) */	private double minAllowedResolution;
 
 	// crc checksum stuff
 	/** checksum */										private int crcChecksum;
@@ -89,8 +88,7 @@ public class CIF extends Geometry
 	public static int writeCIFFile(OutputCellInfo cellJob)
 	{
 		// initialize preferences
-		double minAllowedResolution = 0; // IOTool.getCIFOutResolution();   decommissioned
-		return writeCIFFile(cellJob.cell, cellJob.context, cellJob.filePath, minAllowedResolution);
+		return writeCIFFile(cellJob.cell, cellJob.context, cellJob.filePath);
 	}
 
 	/**
@@ -99,9 +97,9 @@ public class CIF extends Geometry
 	 * @param filePath the name of the file to create.
 	 * @return the number of errors detected
 	 */
-	public static int writeCIFFile(Cell cell, VarContext context, String filePath, double minAllowedResolution)
+	public static int writeCIFFile(Cell cell, VarContext context, String filePath)
 	{
-		CIF out = new CIF(minAllowedResolution);
+		CIF out = new CIF();
 		if (out.openTextOutputStream(filePath)) return 1;
 		CIFVisitor visitor = out.makeCIFVisitor(getMaxHierDepth(cell));
 		if (out.writeCell(cell, context, visitor)) return 1;
@@ -116,9 +114,8 @@ public class CIF extends Geometry
 	/**
 	 * Creates a new instance of CIF
 	 */
-	CIF(double minAllowedResolution)
+	CIF()
 	{
-		this.minAllowedResolution = minAllowedResolution;
 		cellNumbers = new HashMap();
 
 		// scale is in centimicrons, technology scale is in nanometers
@@ -288,7 +285,7 @@ public class CIF extends Geometry
 			if (box != null)
 			{
 				checkPointResolution(box.getWidth(), box.getHeight(), cell, geom, poly.getLayer(), poly);
-//				checkPointResolution(box.getCenterX(), box.getCenterY(), cell, geom, poly.getLayer(), poly);
+				checkPointResolution(box.getCenterX(), box.getCenterY(), cell, geom, poly.getLayer(), poly);
 				int width = scale(box.getWidth());
 				int height = scale(box.getHeight());
 				int x = scale(box.getCenterX());
@@ -435,10 +432,11 @@ public class CIF extends Geometry
 			if (badPoints)
 			{
 				err = errorLogger.logError("Resolution less than CIF allows on layer " + layerName, cell, layer.getIndex());
-			} else
-			{
-				err = errorLogger.logError("Resolution < " + minAllowedResolution + " on layer " + layerName, cell, layer.getIndex());
 			}
+//          else
+//			{
+//				err = errorLogger.logError("Resolution < " + minAllowedResolution + " on layer " + layerName, cell, layer.getIndex());
+//			}
 			if (geom != null) err.addGeom(geom, true, cell, VarContext.globalContext); else
 				err.addPoly(poly, false, cell);
 		}

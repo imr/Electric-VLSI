@@ -34,6 +34,7 @@ import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
 import com.sun.electric.tool.io.output.CIF;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
 
 /*
@@ -155,8 +156,8 @@ public class GateRegression extends Job {
         Cell gallery = Gallery.makeGallery(scratchLib);
         DrcRings.addDrcRings(gallery, FILTER, stdCell);
 
-        int numCifErrs = CIF.writeCIFFile(gallery, VarContext.globalContext, 
-        		                          "scratch.cif", 0.5);
+        IOTool.setCIFOutMergesBoxes(true);
+        int numCifErrs = CIF.writeCIFFile(gallery, VarContext.globalContext, "scratch.cif");
         LayoutLib.writeLibrary(scratchLib);
 
         System.out.println("done.");

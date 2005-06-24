@@ -4,6 +4,17 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/24/05, GVG) ESC still moves instance even if it has been looked.
+FIX: Adding -1 as valid option for in CircuitChanges.cantEdit() dialog (Bug #404)
+
+IMP: (06/24/05, GVG) Adding setCIFOutMergesBoxes(true) into GateRegression so it won't complain about min resolution
+for center points.
+
+BUG: (06/24/05, GVG) While fixing DRC bug #312, appeared new candidates for min defect cases however they have to be
+ignore because they come from different cell instances and Geometric.objectsTouch(nGeom, geom) should be skip. Noticed
+by Bug #383.
+FIX: use parameter sameInstance in Quick.badBoxInArea()
+
 BUG: (06/23/05, SMR) Silicon compiler places wells wrong.
 FIX: Fixed Maker.
 

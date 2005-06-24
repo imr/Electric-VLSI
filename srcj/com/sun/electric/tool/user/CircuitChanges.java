@@ -5595,7 +5595,7 @@ public class CircuitChanges
 					null, options, options[1]);
 				if (ret == 1) return 1;
 				if (ret == 2) item.clearLocked();
-				if (ret == 3) return -1;
+				if (ret == 3 || ret == -1) return -1;  // -1 represents ESC or cancel
 			}
 			if (item.getProto() instanceof PrimitiveNode)
 			{
