@@ -12,6 +12,7 @@ The format of the pad frame disk file is as follows:
 <TR><TD><CODE>facet PADFRAMECELL</CODE></TD><TD>; Creates a cell to hold the pad frame</TD></TR>
 <TR><TD><CODE>core CORECELL</CODE></TD><TD>; Places your circuit in the center of the pad frame</TD></TR>
 <TR><TD><CODE>align PADCELL INPUTPORT OUTPUTPORT</CODE></TD><TD>; Defines input and output ports on pads</TD></TR>
+<TR><TD><CODE>export PADCELL IOPORT [COREPORT]</CODE></TD><TD>; Defines IO and core ports on the pads for exporting with <CODE>name</CODE></TD></TR>
 <TR><TD><CODE>place PADCELL [GAP] [PORTASSOCIATION]</CODE></TD><TD>; Places a pad into the pad frame</TD></TR>
 <TR><TD><CODE>rotate DIRECTION</CODE></TD><TD>; Turns the corner in pad placement</TD></TR>
 </TABLE></CENTER>
@@ -46,8 +47,16 @@ indicates that the "tap" port on the placed pad will connect to the "y" port on 
 <P>
 The port association can also create an export on the pad.
 The statement:
-<CENTER><CODE>place padOut export tap=o7</CODE></CENTER>
-creates an export on the pad from its "tap" port and names it "o7".
+<CENTER><CODE>place padOut export io=o7 export tap=core_o7</CODE></CENTER>
+creates two exports on the pad, "o7" on its "io" port, and "core_o7" on its tap port.
+For many instances of this pad type, this notation can be condensed
+with the use of the <CODE>name</CODE> keywork in conjunction
+with exports defined for the pad at the start of the file.  For example, defining the IO ports as
+<CENTER><CODE>export padOut io tap</CODE></CENTER>
+and then changing the place statement to
+<CENTER><CODE>place padOut name=o7</CODE></CENTER>
+results in the same ports being exported with the same names.  This shorted notation always
+prepends name with "core_" on the core port export.
 <P>
 The <CODE>rotate</CODE> statement rotates subsequent pads by the specified amount.
 The statement has only two forms: <CODE>rotate c</CODE> to rotate clockwise,
