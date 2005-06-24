@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/24/05, DN) Old IO regressions have errors concerning text descriptors.
+FIX: In Export constructor and ImmutableTextDescriptor constructor canonize descriptors.
+
 BUG: (06/24/05, DN) Reading a library causes an exception (Bug #398)
 FIX: "io.input.ELIB.getArcEnd" saves MessageLog in a private fiels "getArcEndError".
 

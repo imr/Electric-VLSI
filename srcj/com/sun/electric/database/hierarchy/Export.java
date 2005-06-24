@@ -104,7 +104,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		this.parent = parent;
 		this.name = Name.findName(protoName);
         if (nameTextDescriptor == null) nameTextDescriptor = ImmutableTextDescriptor.getExportTextDescriptor();
-		this.descriptor = nameTextDescriptor;
+		this.descriptor = nameTextDescriptor.withDisplayWithoutParamAndCode();
 		this.originalPort = originalPort;
         this.userBits = userBits & EXPORT_BITS;
 	}

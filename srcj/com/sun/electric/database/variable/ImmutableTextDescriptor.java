@@ -65,6 +65,8 @@ public class ImmutableTextDescriptor extends TextDescriptor
         boolean display = descriptor.isDisplay();
         long bits = descriptor.lowLevelGet();
 
+        // Convert invalid VTPOSITION to default VTPOSCENT
+        if (((bits & VTPOSITION) >> VTPOSITIONSH) > VTPOSBOXED) bits = (bits & ~VTPOSITION) | (VTPOSCENT << VTPOSITIONSH);
 		// Convert VTDISPLAYNAMEVALINH and VTDISPLAYNAMEVALINHALL to VTDISPLAYNAMEVALUE
 		if ((bits & VTDISPLAYPART) != 0) bits = (bits & ~VTDISPLAYPART) | (VTDISPLAYNAMEVALUE << VTDISPLAYPARTSH);
 		// Convert zero VTSIZE to RelSize(1)
