@@ -42,6 +42,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.GDSLayers;
 
@@ -188,7 +189,8 @@ public class GDS extends Geometry
 		{
 			Layer layer = (Layer)it.next();
             // No technology associated, case when art elements are added in layout
-            if (layer == null || layer.getTechnology() == null) continue;
+            // r.getTechnology() == Generic.tech for layer Glyph
+            if (layer == null || layer.getTechnology() == null || layer.getTechnology() == Generic.tech) continue;
 			selectLayer(layer);
 			List polyList = (List)cellGeom.polyMap.get(layer);
 			for (Iterator polyIt = polyList.iterator(); polyIt.hasNext(); )

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/24/05, GVG) Getting rid of those WARNING (312) and WARNING (408) introduced by latest changes in output/GDS
+(when layer numbers were introduced). This causes failures in regressions (increment in number of errors).
+
 BUG: (06/24/05, GVG) ESC still moves instance even if it has been looked.
 FIX: Adding -1 as valid option for in CircuitChanges.cantEdit() dialog (Bug #404)
 
