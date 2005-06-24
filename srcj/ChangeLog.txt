@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/23/05, SMR) Silicon compiler places wells wrong.
+FIX: Fixed Maker.
+
+BUG: (06/23/05, SMR) "Peeking" doesn't always work.
+FIX: In "PixelDrawing.expandedCellCached()" must call "drawCell()" with proper bounds.
+
 BUG: (06/24/05, DN) Old IO regressions have errors concerning text descriptors.
 FIX: In Export constructor and ImmutableTextDescriptor constructor canonize descriptors.
 

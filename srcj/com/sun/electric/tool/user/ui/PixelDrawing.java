@@ -717,7 +717,7 @@ public class PixelDrawing
 			if (expanded)
 			{
 				// show the contents of the cell
-				if (!expandedCellCached(subCell, subTrans, topWnd, context))
+				if (!expandedCellCached(subCell, subTrans, topWnd, context, expandBounds))
 				{
 					// just draw it directly
 					VarContext newContext = context.push(ni);
@@ -1018,7 +1018,7 @@ public class PixelDrawing
 	 * @return true if the cell is properly handled and need no further processing.
 	 * False to render the contents recursively.
 	 */
-	private boolean expandedCellCached(Cell subCell, AffineTransform origTrans, EditWindow topWnd, VarContext context)
+	private boolean expandedCellCached(Cell subCell, AffineTransform origTrans, EditWindow topWnd, VarContext context, Rectangle2D expandBounds)
 	{
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return false;
@@ -1080,7 +1080,7 @@ public class PixelDrawing
 
 			// render the contents of the expanded cell into its own offscreen cache
 			renderedCell.getOffscreen().renderedWindow = false;
-			renderedCell.getOffscreen().drawCell(subCell, null, origTrans, topWnd, context);
+			renderedCell.getOffscreen().drawCell(subCell, expandBounds, origTrans, topWnd, context);
             expandedCellCount.offscreen = renderedCell.getOffscreen();
             offscreen = expandedCellCount.offscreen;
 

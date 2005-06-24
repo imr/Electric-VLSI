@@ -2878,8 +2878,18 @@ public class Technology implements Comparable
 	 * Sets the name of this technology.
 	 * Technology names must be unique.
 	 */
-	protected void setTechName(String techName)
+	public void setTechName(String techName)
 	{
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			if (tech == this) continue;
+			if (tech.techName.equalsIgnoreCase(techName))
+			{
+				System.out.println("Cannot rename " + this + "to '" + techName + "' because that name is used by another technology");
+				return;
+			}
+		}
 		if (!jelibSafeName(techName))
 			System.out.println("Technology name " + techName + " is not safe to write into JELIB");
 		this.techName = techName;

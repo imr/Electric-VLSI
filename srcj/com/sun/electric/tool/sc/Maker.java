@@ -1249,7 +1249,7 @@ public class Maker
 		if (SilComp.getNWellHeight() == 0) nWellProto = null; else
 		{
 			nWellProto = null;
-			Layer nWellLay = tech.findLayerFromFunction(Layer.Function.WELLP);
+			Layer nWellLay = tech.findLayerFromFunction(Layer.Function.WELLN);
 			if (nWellLay != null) nWellProto = nWellLay.getPureLayerNode();
 			if (nWellProto == null)
 				return "Unable to get LAYER P-WELL for MAKER";

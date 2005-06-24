@@ -228,8 +228,6 @@ public class EditMenu {
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { LayerCoverageJob.layerCoverageCommand(Job.Type.EXAMINE, LayerCoverageJob.AREA, GeometryHandler.ALGO_SWEEP); } });
 		editInfoSubMenu.addMenuItem("Show _Undo List", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { showUndoListCommand(); } });
-		editInfoSubMenu.addMenuItem("Describe this _Technology", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { describeTechnologyCommand(); } });
 
 		// mnemonic keys available:  BC EFG IJK M  PQR TUVWXYZ
 		MenuBar.Menu editPropertiesSubMenu = MenuBar.makeMenu("Propert_ies");
@@ -361,7 +359,7 @@ public class EditMenu {
 		cleanupSubMenu.addMenuItem("_Shorten Selected Arcs", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.shortenArcsCommand(); }});
 
-		// mnemonic keys available:  B  E GH JK M O QRS UVWXYZ
+		// mnemonic keys available:       GH JK   O QRS UVWXYZ
 		MenuBar.Menu specialSubMenu = MenuBar.makeMenu("Technolo_gy Specific");
 		editMenu.add(specialSubMenu);
 		specialSubMenu.addMenuItem("Toggle Port _Negation", KeyStroke.getKeyStroke('T', buckyBit),
@@ -407,8 +405,16 @@ public class EditMenu {
 		specialSubMenu.addSeparator();
 		specialSubMenu.addMenuItem("Edit Library _Dependencies...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.editLibraryDependencies(); }});
+		specialSubMenu.addSeparator();
+		specialSubMenu.addMenuItem("Descri_be this Technology", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { describeTechnologyCommand(); } });
 		specialSubMenu.addMenuItem("Do_cument Current Technology", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { Manipulate.describeTechnology(Technology.getCurrent()); }});
+		specialSubMenu.addSeparator();
+		specialSubMenu.addMenuItem("Rena_me Current Technology...", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.renameCurrentTechnology(); } });
+//		specialSubMenu.addMenuItem("D_elete Current Technology", null,
+//			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteCurrentTechnology(); } });
 
 		// mnemonic keys available:  B   F  I KLM  PQR       Z
 		MenuBar.Menu selListSubMenu = MenuBar.makeMenu("_Selection");

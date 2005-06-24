@@ -435,6 +435,7 @@ public class PreferencesFrame extends EDialog
 	private void helpActionPerformed()
 	{
 		ManualViewer.showPreferenceHelp(currentSectionName.trim() + "/" + currentTabName);
+		closeDialog(null);
 	}
 
 	private void loadOptionPanel()

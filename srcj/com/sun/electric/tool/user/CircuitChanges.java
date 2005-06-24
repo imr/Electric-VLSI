@@ -5387,6 +5387,59 @@ public class CircuitChanges
 	}
 
 	/**
+	 * Method to implement the "Rename Current Technology" command.
+	 */
+	public static void renameCurrentTechnology()
+	{
+		Technology tech = Technology.getCurrent();
+		String techName = tech.getTechName();
+		String val = JOptionPane.showInputDialog("New Name of Technology " + techName + ":", techName);
+		if (val == null) return;
+		if (val.equals(techName)) return;
+		RenameTechnology job = new RenameTechnology(tech, val);
+	}
+
+	/**
+	 * This class implement the command to rename a technology.
+	 */
+	private static class RenameTechnology extends Job
+	{
+		Technology tech;
+		String newName;
+
+		protected RenameTechnology(Technology tech, String newName)
+		{
+			super("Renaming " + tech, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			this.tech = tech;
+			this.newName = newName;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+			String oldName = tech.getTechName();
+			tech.setTechName(newName);
+			System.out.println("Technology '" + oldName + "' renamed to '" + newName + "'");
+
+			// mark all libraries for saving
+			for(Iterator it = Library.getLibraries(); it.hasNext(); )
+			{
+				Library oLib = (Library)it.next();
+				if (oLib.isHidden()) continue;
+	            oLib.setChangedMajor();
+			}
+			return true;
+		}
+	}
+
+//	/**
+//	 * Method to implement the "Delete Current Technology" command.
+//	 */
+//	public static void deleteCurrentTechnology()
+//	{
+//	}
+
+	/**
 	 * Method to implement the "Rename Library" command.
 	 */
 	public static void renameLibrary(Library lib)
@@ -5397,7 +5450,7 @@ public class CircuitChanges
 	}
 
 	/**
-	 * This class implement the command to make a new version of a cell.
+	 * This class implement the command to rename a library.
 	 */
 	private static class RenameLibrary extends Job
 	{
