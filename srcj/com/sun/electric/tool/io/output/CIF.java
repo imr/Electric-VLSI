@@ -288,7 +288,7 @@ public class CIF extends Geometry
 			if (box != null)
 			{
 				checkPointResolution(box.getWidth(), box.getHeight(), cell, geom, poly.getLayer(), poly);
-				checkPointResolution(box.getCenterX(), box.getCenterY(), cell, geom, poly.getLayer(), poly);
+//				checkPointResolution(box.getCenterX(), box.getCenterY(), cell, geom, poly.getLayer(), poly);
 				int width = scale(box.getWidth());
 				int height = scale(box.getHeight());
 				int x = scale(box.getCenterX());
