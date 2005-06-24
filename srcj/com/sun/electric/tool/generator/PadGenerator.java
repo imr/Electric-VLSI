@@ -95,6 +95,7 @@ public class PadGenerator {
         int gap;
         NodeInst ni;
         List associations;
+        List exportAssociations;
     }
 
 	private static class Rotation {
@@ -105,6 +106,11 @@ public class PadGenerator {
         boolean export;
         String portname;
         String assocname;
+    }
+
+    private static class ExportAssociate {
+        String padportName;
+        String exportName;
     }
 
 
@@ -691,6 +697,7 @@ public class PadGenerator {
             pad.gap = 0;
             pad.ni = null;
             pad.associations = new ArrayList();
+            pad.exportAssociations = new ArrayList();
             if (!str.hasMoreTokens()) {
                 err("Cell name missing");
                 return false;
@@ -707,19 +714,18 @@ public class PadGenerator {
                         return false;
                     }
                     keyWord = str.nextToken();
-                    PortAssociate pa = new PortAssociate();
-                    pa.export = true;
-                    pa.portname = getLHS(keyWord);
-                    if (pa.portname == null) {
+                    ExportAssociate ea = new ExportAssociate();
+                    ea.padportName = getLHS(keyWord);
+                    if (ea.padportName == null) {
                         err("Bad export assignment after 'export' keyword");
                         return false;
                     }
-                    pa.assocname = getRHS(keyWord, str);
-                    if (pa.assocname == null) {
+                    ea.exportName = getRHS(keyWord, str);
+                    if (ea.exportName == null) {
                         err("Bad export assignment after 'export' keyword");
                         return false;
                     }
-                    pad.associations.add(pa);
+                    pad.exportAssociations.add(ea);
                 } else {
                     // name=xxxx or gap=xxxx
                     String lhs = getLHS(keyWord);
@@ -974,7 +980,24 @@ public class PadGenerator {
                         }
                     }
                 }
-
+                // create exports from export pin=name command
+                for (Iterator it2 = pad.exportAssociations.iterator(); it2.hasNext(); ) {
+                    ExportAssociate ea = (ExportAssociate)it2.next();
+                    Export pp = cell.findExport(ea.padportName);
+                    if (pp == null) {
+                        err("no port called '" + ea.padportName + "' on Cell " + cell.noLibDescribe());
+                    } else {
+                        pp = Export.newInstance(framecell, ni.findPortInstFromProto(pp), ea.exportName);
+                        if (pp == null)
+                            err("Creating export "+ea.exportName);
+                        else {
+                            MutableTextDescriptor td = pp.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
+                            td.setAbsSize(14);
+                            corePorts.add(pp);
+                            pp.setTextDescriptor(Export.EXPORT_NAME_TD, td);
+                        }
+                    }
+                }
                 lastni = ni;
                 lastpadname = pad.cellname;
                 pad.ni = ni;
