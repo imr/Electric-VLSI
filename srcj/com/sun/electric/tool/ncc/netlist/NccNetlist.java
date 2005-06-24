@@ -98,6 +98,8 @@ public class NccNetlist {
 				throw e;
 			}
 		}
+		// if there are net list errors then make net list look empty
+		if (netlistErrors())  wires = parts = ports = new ArrayList();
 	}
 	public ArrayList getWireArray() {return wires;}
 	public ArrayList getPartArray() {return parts;}
@@ -408,7 +410,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		double area=0;
 		if (globals.getOptions().checkSizes) {
 			TransistorSize dim = ni.getTransistorSize(info.getContext());
-			area = dim.getDoubleArea();
+			area = dim!=null ? dim.getDoubleArea() : 0;
 		}
 		Wire e = getWireForPortInst(ni.getTransistorEmitterPort(), info);
 		Wire b = getWireForPortInst(ni.getTransistorBasePort(), info);

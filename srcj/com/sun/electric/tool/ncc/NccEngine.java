@@ -106,6 +106,9 @@ public class NccEngine {
 	private NccResult designsMatch(HierarchyInfo hierInfo, boolean hierInfoOnly) {
 		if (globals.getRoot()==null) {
 			globals.status2("empty cell");
+			// Preserve the invariant: "partLeafLists, wireLeafLists exist" 
+			// even if there are no Parts and no Wires. 
+			globals.initLeafLists();
 			return new NccResult(true, true, true, globals);
 		} else {
 			Date d0 = new Date();
@@ -187,9 +190,8 @@ public class NccEngine {
 		globals.status1("  NCC net list construction took "+NccUtils.hourMinSec(before, after)+".");
 
 		/** If some netlist is invalid then the comparison fails */
-		if (netlistErrors(nccNetlists)) {
-			return new NccResult(false, false, true, null);
-		}
+		if (netlistErrors(nccNetlists)) 
+			return new NccResult(false, false, true, globals);
 
 		globals.setInitialNetlists(nccNetlists);
 
