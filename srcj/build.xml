@@ -111,6 +111,20 @@
 	    </antcall>
 	</target>
 
+	<target name="jarForIRSIM" depends="init,compile" description="Make source Jar file for IRSIM">
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+        	<arg value="-v"/>
+        </java>
+        <jar basedir="." compress="true" jarfile="electricIRSIM-${version}.jar">
+        	<include name="com/sun/electric/plugins/irsim/*.*"/>
+        </jar>
+        <delete quiet="true">
+            <fileset dir="com">
+                <include name="**/*.class"/>
+            </fileset>
+        </delete>
+	</target>
+
 	<target name="jarWithVersion" depends="init,compile" description="Make Jar file with version">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
         	<arg value="-v"/>
@@ -132,6 +146,7 @@
             <exclude name="electric-${version}.jar"/>
             <exclude name="electric.mf"/>
             <exclude name="Hack_stack.txt"/>
+	        <exclude name="com/sun/electric/plugins/calibre/*.*" if="GNU"/>
         	<exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
         	<exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
@@ -169,6 +184,7 @@
             <exclude name="ChangeLog.txt" unless="source"/>
             <exclude name="electric*.jar"/>
             <exclude name="electric.mf"/>
+	        <exclude name="com/sun/electric/plugins/calibre/*.*" if="GNU"/>
 	        <exclude name="com/sun/electric/plugins/irsim/*.*" if="GNU"/>
 	        <exclude name="com/sun/electric/plugins/skill/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
