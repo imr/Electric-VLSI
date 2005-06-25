@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/24/05, GVG) Refactoring DesignRulesTab to re-use part of the dialog in TechEdit.
+
 IMP: (06/24/05, SMR) Added Javadoc comments.
 
 IMP: (06/24/05, SMR) Changes to the technology in the "layers" tab of the side bar changes it everywhere.
