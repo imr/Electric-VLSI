@@ -14,5 +14,38 @@ All signals with the same global name are considered to be connected when netlis
 Thus, the Global symbol can be used to route clock signals, as well as to define multiple power and ground rails.
 Note that with multiple power and ground rails, only one of them is the true "power and ground" as defined by the Power and Ground symbols.
 All others, declared with Global nodes, are not true power and ground signals, but are simply globals.
+<P>
+<H3>Global Partitioning</H3>
+<P>
+It is sometimes the case that the designer wishes to isolate a global signal and wire it differently.
+For example, a schematic cell may be defined with power and ground symbols, connecting it to the global power and ground.
+But a particular instance of the schematic may need to be wired to alternate power and ground rails, for example "dirty power".
+Another example of rewiring happens when you want to test a specific instance of a cell, and you need to connect its globals
+differently for the purposes of simulation.
+<P>
+<TABLE><TR><TD>
+The solution is to place a "Global Partition" node inside of the schematic
+(see <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>).
+This symbol acts like an "offpage" symbol: it is wired to something inside of the cell (a global signal)
+and it is also exported to the outside world.
+<P>
+In the example here, the schematic "invR" has power and ground signals in it,
+but the power signal is also connected to
+a Global Partition node, and exported (as "vddR").
+The icon has an extra connection for this power tap.
+</TD><TD><CENTER><IMG SRC="fig06-20.png" ALT="Figure 6.20"></CENTER></TD></TR></TABLE>
+<P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig06-21.png" ALT="Figure 6.21"></CENTER></TD><TD>
+In normal use, the extra connections created by the Global Partition nodes do not need to be wired up,
+because they connect to globals, and their connectivity is understood.
+If, however, the extra exports <I>are</I> wired, it means that the signal inside of the cell is disconnected from the global,
+and connected instead to that wire.
+<P>
+In the example here, two "invR" icons are placed, but one of them has its "vddR" connection wired (to a different power source).
+The subcircuit for the rightmost icon will not use the global power signal, but will instead use the attached signal, "vddInv".
+</TD></TR></TABLE>
+
+<P>
+
 
 <!-- TRAILER -->
