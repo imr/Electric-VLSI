@@ -96,8 +96,6 @@ public class AssuraDrcErrors {
             return;
         }
 
-        double scale = Schematics.getDefaultSchematicTechnology().getScale();
-
         String line;
         DrcRuleViolation rule = null;
         DrcError error = null;
@@ -144,6 +142,7 @@ public class AssuraDrcErrors {
 
                 if (cell == null) continue;
 
+                double scale = cell.getTechnology().getScale();
                 if (strings[0].equals("Shape")) {
                     // get rid of next 3 lines
                     line = in.readLine();
