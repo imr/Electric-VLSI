@@ -3234,7 +3234,7 @@ public class Quick
         double minY = Math.min(box1.getMinY(), box2.getMinY());
         double maxX = Math.max(box1.getMaxX(), box2.getMaxX());
         double maxY = Math.max(box1.getMaxY(), box2.getMaxY());
-        Rectangle2D rect = new Rectangle2D.Double(minX, minY, maxX, maxY);
+        Rectangle2D rect = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
         if (rect.getWidth() > specValues[0]) // || rect.getHeight() > rule.value1)
         {
             reportError(MINWIDTHERROR, "cut case X", topCell, specValues[0], rect.getWidth(),
