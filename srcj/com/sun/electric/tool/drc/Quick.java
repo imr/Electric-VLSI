@@ -119,6 +119,7 @@ public class Quick
     private static final int SURROUNDERROR      = 10;
     private static final int FORBIDDEN          = 11;
     private static final int RESOLUTION         = 12;
+    private static final int CUTERROR           = 15;
 	// Different types of warnings
 	private static final int ZEROLENGTHARCWARN  = 13;
 	private static final int TECHMIXWARN  = 14;
@@ -3207,7 +3208,6 @@ public class Quick
     private boolean checkCutSizes(NodeProto np, Geometric geom, Layer layer, Poly poly,
                                   Geometric nGeom, Layer nLayer, Poly nPoly, Cell topCell)
     {
-        if (!Main.LOCALDEBUGFLAG) return false; // not ready yet
         // None of them is cut
         if (!(np instanceof PrimitiveNode) || layer != nLayer ||
                 !layer.getFunction().isContact() || !nLayer.getFunction().isContact())
@@ -3220,7 +3220,6 @@ public class Quick
 
         Rectangle2D box1 = poly.getBounds2D();
         Rectangle2D box2 = nPoly.getBounds2D();
-
 
         double pdx = Math.max(box2.getMinX()-box1.getMaxX(), box1.getMinX()-box2.getMaxX());
         double pdy = Math.max(box2.getMinY()-box1.getMaxY(), box1.getMinY()-box2.getMaxY());
@@ -3235,17 +3234,19 @@ public class Quick
         double maxX = Math.max(box1.getMaxX(), box2.getMaxX());
         double maxY = Math.max(box1.getMaxY(), box2.getMaxY());
         Rectangle2D rect = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
-        if (rect.getWidth() > specValues[0]) // || rect.getHeight() > rule.value1)
+        DRCTemplate rule = DRC.getRules(nty.getTechnology()).getCutRule(nty.getPrimNodeIndexInTech(), DRCTemplate.CUTSIZE, techMode);
+        String ruleName = (rule != null) ? rule.ruleName : "for contacts";
+        if (rect.getWidth() > specValues[0])
         {
-            reportError(MINWIDTHERROR, "cut case X", topCell, specValues[0], rect.getWidth(),
-                    "<name rule>", new Poly(rect), geom, layer, null, nGeom, nLayer);
+            reportError(CUTERROR, "along X", topCell, specValues[0], rect.getWidth(),
+                    ruleName, new Poly(rect), geom, layer, null, nGeom, nLayer);
             foundError = true;
 
         }
-        if (rect.getHeight() > specValues[1]) // || rect.getHeight() > rule.value1)
+        if (rect.getHeight() > specValues[1])
         {
-            reportError(MINWIDTHERROR, "cut case Y", topCell, specValues[1], rect.getHeight(),
-                    "<rule name>", new Poly(rect), geom, layer, null, geom, layer);
+            reportError(CUTERROR, "along Y", topCell, specValues[1], rect.getHeight(),
+                    ruleName, new Poly(rect), geom, layer, null, geom, layer);
             foundError = true;
 
         }
@@ -4411,7 +4412,11 @@ public class Quick
 					break;
 				case ZEROLENGTHARCWARN:
 					errorMessage.append("Zero width warning:");
-					errorMessagePart2 = new StringBuffer(msg);
+					errorMessagePart2 = new StringBuffer(msg); break;
+				case CUTERROR:
+                    errorMessage.append("Maximum cut error" + ((msg != null) ? ("(" + msg + "):") : ""));
+                    errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
+                    errorMessagePart2.append(" BIGGER THAN " + TextUtils.formatDouble(limit) + " WIDE (IS " + TextUtils.formatDouble(actual) + ")");
 					break;
 				case MINWIDTHERROR:
                     errorMessage.append("Minimum width/heigh error" + ((msg != null) ? ("(" + msg + "):") : ""));

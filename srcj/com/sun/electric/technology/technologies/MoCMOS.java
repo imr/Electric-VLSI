@@ -3359,6 +3359,9 @@ public class MoCMOS extends Technology
 					case DRCTemplate.CUTSIZE:
 						specValues = nty.getSpecialValues();
 						specValues[0] = specValues[1] = distance;
+                        int nodeIndex = nty.getPrimNodeIndexInTech();
+                        rules.cutNodeSize[nodeIndex] = new Double(distance);
+                        rules.cutNodeSizeRules[nodeIndex] = theRules[i].ruleName;
 						break;
 					case DRCTemplate.CUTSUR:
 						specValues = nty.getSpecialValues();
@@ -3930,74 +3933,6 @@ public class MoCMOS extends Technology
 
 /******************** NODE DESCRIPTION (GRAPHICAL) ********************/
 
-//void nodesizeoffset(NODEINST *ni, INTBIG *lx, INTBIG *ly, INTBIG *hx, INTBIG *hy)
-//{
-//	REGISTER INTBIG pindex;
-//	REGISTER NODEPROTO *np;
-//	REGISTER INTBIG lambda, cx, cy;
-//	INTBIG bx, by, ux, uy;
-//	REGISTER TECH_NODES *thistn;
-//	REGISTER TECH_PORTS *portdata;
-//
-//	np = ni->proto;
-//	pindex = np->primindex;
-//	lambda = lambdaofnode(ni);
-//	switch (pindex)
-//	{
-//		case NMETAL1P:
-//		case NMETAL2P:
-//		case NMETAL3P:
-//		case NMETAL4P:
-//		case NMETAL5P:
-//		case NMETAL6P:
-//		case NPOLY1P:
-//		case NPOLY2P:
-//		case NPACTP:
-//		case NNACTP:
-//		case NACTP:
-//			cx = (ni->lowx + ni->highx) / 2;
-//			cy = (ni->lowy + ni->highy) / 2;
-//			*lx = (cx - lambda) - ni->lowx;
-//			*hx = ni->highx - (cx + lambda);
-//			*ly = (cy - lambda) - ni->lowy;
-//			*hy = ni->highy - (cy + lambda);
-//			break;
-//		case NMETPACTC:
-//		case NMETNACTC:
-//		case NMETPOLY1C:
-//		case NMETPOLY2C:
-//		case NMETPOLY12C:
-//		case NVIA1:
-//		case NVIA2:
-//		case NVIA3:
-//		case NVIA4:
-//		case NVIA5:
-//		case NPWBUT:
-//		case NNWBUT:
-//			// contacts draw a box the size of the port
-//			thistn = tech->nodeprotos[pindex-1];
-//			portdata = &thistn->portlist[0];
-//			subrange(ni->lowx, ni->highx, portdata->lowxmul, portdata->lowxsum,
-//				portdata->highxmul, portdata->highxsum, &bx, &ux, lambda);
-//			subrange(ni->lowy, ni->highy, portdata->lowymul, portdata->lowysum,
-//				portdata->highymul, portdata->highysum, &by, &uy, lambda);
-//			*lx = bx - ni->lowx;
-//			*hx = ni->highx - ux;
-//			*ly = by - ni->lowy;
-//			*hy = ni->highy - uy;
-//			break;
-//		default:
-//			nodeprotosizeoffset(np, lx, ly, hx, hy, ni->parent);
-//			if (pindex == NTRANSP || pindex == NTRANSN)
-//			{
-//				*lx += lambda + lambda/2;
-//				*hx += lambda + lambda/2;
-//				*ly += lambda;
-//				*hy += lambda;
-//			}
-//			break;
-//	}
-//}
     /**
 	 * Method to set the surround distance of layer "outerlayer" from layer "innerlayer"
 	 * in node "nty" to "surround".  The array "minsize" is the minimum size of each layer.

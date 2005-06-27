@@ -66,8 +66,10 @@ public class MOSRules implements DRCRules {
 	/** names of nodes */										public String [] nodeNames;
 	/** minimim node size in the technology */					public Double [] minNodeSize;
 	/** minimim node size rules */								public String [] minNodeSizeRules;
+    /** cut size in the technology */				            public Double [] cutNodeSize;
+	/** cut size rules */								        public String [] cutNodeSizeRules;
 	/** number of rules stored */                               private int      numberOfRules;
-		/** DEFAULT null rule */                                private final static int MOSNORULE = -1;
+	/** DEFAULT null rule */                                private final static int MOSNORULE = -1;
 
 	public MOSRules() {}
 
@@ -80,16 +82,6 @@ public class MOSRules implements DRCRules {
      */
 	private void setMinNodeSize(int index, String name, double width, double height)
 	{
-//        // only if name is not found
-//        if (minNodeSizeRules[index].indexOf(name) == -1)
-//            minNodeSizeRules[index] = (minNodeSizeRules[index].equals("")) ? name : minNodeSizeRules[index] + ", " + name;
-//        double oldWidth = minNodeSize[index*2].doubleValue();
-//        double oldHeight = minNodeSize[index*2+1].doubleValue();
-//        if ((oldWidth > MOSNORULE && oldWidth != width) || (oldHeight > MOSNORULE && oldHeight != height))
-//        {
-//            if (Main.LOCALDEBUGFLAG)
-//                System.out.println("Warning: overwriting previous values for rule '" + name + "' in " + tech);
-//        }
         minNodeSizeRules[index] = name;
         minNodeSize[index*2] = new Double(width);
         minNodeSize[index*2+1] = new Double(height);
@@ -183,6 +175,8 @@ public class MOSRules implements DRCRules {
 		// build node size tables
 		minNodeSize = new Double[numNodes*2];
 		minNodeSizeRules = new String[numNodes];
+        cutNodeSize = new Double[numNodes];
+		cutNodeSizeRules = new String[numNodes];
 		j = 0;
 		for(Iterator it = tech.getNodes(); it.hasNext(); )
 		{
@@ -190,6 +184,8 @@ public class MOSRules implements DRCRules {
 			minNodeSize[j*2] = new Double(np.getMinWidth());
 			minNodeSize[j*2+1] = new Double(np.getMinHeight());
 			minNodeSizeRules[j] = np.getMinSizeRule();
+            cutNodeSizeRules[j] = "";
+            cutNodeSize[j] = new Double(MOSNORULE);
 			j++;
 		}
 	}
@@ -610,20 +606,35 @@ public class MOSRules implements DRCRules {
 	 * where <type> is the rule type. E.g. MinWidth or Area
 	 * @param layer the Layer to examine.
 	 * @param type rule type
-     * @param techmode to choose betweeb ST or TSMC
+     * @param techMode to choose betweeb ST or TSMC
 	 * @return the minimum width rule for the layer.
 	 * Returns null if there is no minimum width rule.
 	 */
-    public DRCTemplate getMinValue(Layer layer, int type, int techmode)
+    public DRCTemplate getMinValue(Layer layer, int type, int techMode)
 	{
-	    if (type != DRCTemplate.MINWID) return (null);
+	    if (type != DRCTemplate.MINWID) return null;
 	    
         int index = layer.getIndex();
         double dist = minWidth[index].doubleValue();
 
         if (dist < 0) return null;
-		return (new DRCTemplate(minWidthRules[index], techmode, DRCTemplate.MINWID, 0, 0, null, null, dist, false));
+		return (new DRCTemplate(minWidthRules[index], techMode, DRCTemplate.MINWID, 0, 0, null, null, dist, false));
 	}
+
+    /**
+     * Method to get cut values associates to a contact node
+     * @param index
+     * @param type
+     * @param techMode
+     * @return
+     */
+    public DRCTemplate getCutRule(int index, int type, int techMode)
+    {
+        if (type != DRCTemplate.CUTSIZE) return null;
+        double cutSize = minWidth[index].doubleValue();
+        if (cutSize < 0) return null;
+        return (new DRCTemplate(cutNodeSizeRules[index], techMode, DRCTemplate.CUTSIZE, 0, 0, null, null, cutSize, false));
+    }
 
     /**
      * Method to set the minimum <type> rule for a Layer

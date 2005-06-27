@@ -3611,6 +3611,7 @@ public class Technology implements Comparable
 			if (np == nty) break;
 			index++;
 		}
+        //@TODO this index might overlap with layer indices.
         DRCTemplate tmp = new DRCTemplate(ruleName, DRCTemplate.ALL, DRCTemplate.NODSIZ, 0, 0, null, null, wid, false);
         tmp.value2 = hei;
         rules.addRule(index, tmp, -1);

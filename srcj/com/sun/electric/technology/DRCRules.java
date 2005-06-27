@@ -41,6 +41,7 @@ public interface DRCRules
                                         int techMode, boolean isGateExtension);
 	public int getNumberOfRules();
     public DRCTemplate getMinValue(Layer layer, int type, int techMode);
+    public DRCTemplate getCutRule(int index, int type, int techMode);
     public void setMinValue(Layer layer, String name, double value, int type, int techMode);
     public void applyDRCOverrides(String override, Technology tech);
     public boolean isForbiddenNode(int nodeIndex, int type, int techMode);
