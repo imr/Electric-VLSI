@@ -11,5 +11,32 @@ You must add it as a "plug in"
 <P>
 To run a script, use the <B>Run Java Bean Shell Script</B> command
 (in menu <B>Tool / Languages</B>).
+Here is an example script that searches the current cell for exports starting with "a".
+<PRE>
+   import com.sun.electric.database.hierarchy.Cell;
+   import com.sun.electric.tool.user.ui.WindowFrame;
+   import java.util.List;
+   import java.util.ArrayList;
+   import java.util.Iterator;
 
+   // read library with test setup
+   Cell lay = WindowFrame.getCurrentCell();
+
+   // find all exports
+   com.sun.electric.database.hierarchy.Export e;
+   List aList = new ArrayList();
+   for(Iterator it = lay.getPorts(); it.hasNext(); )
+   {
+       e = (com.sun.electric.database.hierarchy.Export)it.next();
+       if (e.getName().startsWith("a")) aList.add(e);
+   }
+
+   String aOut = "Exports that start with 'a':";
+   for(Iterator it = aList.iterator(); it.hasNext(); )
+   {
+       e = (com.sun.electric.database.hierarchy.Export)it.next();
+       aOut += " " + e.getName();
+   }
+   System.out.println(aOut);
+</PRE>
 <!-- TRAILER -->

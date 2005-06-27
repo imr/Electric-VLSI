@@ -15,6 +15,10 @@ The contents of a text window can be saved to disk with the <B>Text Cell Content
 command (in menu <B>File / Export</B>)
 and restored from disk with the <B>Text Cell Contents...</B> command (in menu <B>File / Import</B>).
 <P>
+Note that there is no "saving" of text windows because they are editing internal data structures.
+Therefore every change updates the information in Electric
+(but the library must be saved to truly preserve changes).
+<P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig04-13.png" ALT="Figure 4.13"></CENTER></TD><TD>
 Searching is done with the <B>Find Text...</B> command (in menu <B>Edit / Text</B>).
 You can find and/or replace text with the appropriate buttons.
@@ -28,9 +32,5 @@ If you are editing a layout or schematic, this dialog will search all of the nod
 The checkboxes in the "Objects to Search" area control which of these pieces of text will be considered.
 "Automatically Generated" names are those created for you by the system.
 They can be included in the search but normally are not.
-<P>
-Note that there is no "saving" of text windows because they are editing internal data structures.
-Therefore every change updates the information in Electric
-(but the library must be saved to truly preserve changes).
 
 <!-- TRAILER -->

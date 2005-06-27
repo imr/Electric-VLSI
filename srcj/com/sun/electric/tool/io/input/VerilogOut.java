@@ -205,10 +205,11 @@ public class VerilogOut extends Simulate
 					if (width > 1)
 					{
 						// create fake signals for the individual entries
+						sig.setSignalName(signalName + "[0:" + (width-1) + "]");
 						sig.buildBussedSignalList();
 						for(int i=0; i<width; i++)
 						{
-							DigitalSignal subSig = new DigitalSignal(null);
+							DigitalSignal subSig = new DigitalSignal(sd);
 							subSig.setSignalName(signalName + "[" + i + "]");
 							subSig.setSignalContext(currentScope);
 							subSig.tempList = new ArrayList();

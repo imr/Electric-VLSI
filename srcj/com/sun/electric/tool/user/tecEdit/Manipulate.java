@@ -36,6 +36,8 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.DRCRules;
+import com.sun.electric.technology.DRCTemplate;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -44,6 +46,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.erc.ERC;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.User;
@@ -2907,148 +2910,102 @@ public class Manipulate
 //		*rule = pt;
 //		return(FALSE);
 //	}
-//
-//	/*
-//	 * Helper routine to examine the arrays describing the design rules and create
+
+//	/**
+//	 * Method to examine the arrays describing the design rules and create
 //	 * the variable "EDTEC_DRC" on library "lib".
 //	 */
-//	void us_tecedloaddrcmessage(DRCRULES *rules, LIBRARY *lib)
+//	void us_tecedloaddrcmessage(DRCRules rules, Library lib)
 //	{
-//		REGISTER INTBIG drccount, drcindex, i, k, j;
-//		REGISTER CHAR **drclist;
-//		REGISTER void *infstr;
+//		// load the arrays
+//		List drclist = new ArrayList();
 //
-//		// determine the number of lines in the text-version of the design rules
-//		drccount = 0;
-//		for(i=0; i<rules.utsize; i++)
-//		{
-//			if (rules.conlist[i] >= 0) drccount++;
-//			if (rules.unconlist[i] >= 0) drccount++;
-//			if (rules.conlistW[i] >= 0) drccount++;
-//			if (rules.unconlistW[i] >= 0) drccount++;
-//			if (rules.conlistM[i] >= 0) drccount++;
-//			if (rules.unconlistM[i] >= 0) drccount++;
-//			if (rules.edgelist[i] >= 0) drccount++;
-//		}
+//		// write the minimum width for each layer
 //		for(i=0; i<rules.numlayers; i++)
 //		{
-//			if (rules.minwidth[i] >= 0) drccount++;
+//	        DRCTemplate lr = drRules.getMinValue(layer, DRCTemplate.MINWID, foundry.techMode);
+//	        if (lr == null) continue;
+//			String ruleMsg = "s" + lr.value1 + " " + layer.getName() + " " + lr.ruleName;
+//			drclist.add(ruleMsg);
 //		}
+//
+//		// write the minimum size for each node
 //		for(i=0; i<rules.numnodes; i++)
 //		{
-//			if (rules.minnodesize[i*2] > 0 || rules.minnodesize[i*2+1] > 0) drccount++;
+//			if (rules.minnodesize[i*2] <= 0 && rules.minnodesize[i*2+1] <= 0) continue;
+//			{
+//				String ruleMsg = "n" + rules.nodenames[i] + " " + rules.minnodesize[i*2] + " " +
+//					rules.minnodesize[i*2+1] + " " + rules.minnodesizeR[i];
+//				drclist.add(ruleMsg);
+//			}
 //		}
 //
-//		// load the arrays
-//		if (drccount != 0)
+//		// now do the distance rules
+//		k = 0;
+//		for(i=0; i<rules.numlayers; i++) for(j=i; j<rules.numlayers; j++)
 //		{
-//			drccount++;
-//			drclist = (CHAR **)emalloc((drccount * (sizeof (CHAR *))), el_tempcluster);
-//			if (drclist == 0) return;
-//			drcindex = 0;
-//
-//			// write the width limit
-//			infstr = initinfstr();
-//			formatinfstr(infstr, x_("l%s"), frtoa(rules.widelimit));
-//			(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//
-//			// write the minimum width for each layer
-//			for(i=0; i<rules.numlayers; i++)
+//			if (rules.conlist[k] >= 0)
 //			{
-//				if (rules.minwidth[i] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("s%s %s %s"), frtoa(rules.minwidth[i]),
-//						rules.layernames[i], rules.minwidthR[i]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
+//				infstr = initinfstr();
+//				formatinfstr(infstr, x_("c%s %s %s %s"), frtoa(rules.conlist[k]),
+//					rules.layernames[i], rules.layernames[j],
+//						rules.conlistR[k]);
+//				drclist.add(ruleMsg);
 //			}
-//
-//			// write the minimum size for each node
-//			for(i=0; i<rules.numnodes; i++)
+//			if (rules.unconlist[k] >= 0)
 //			{
-//				if (rules.minnodesize[i*2] <= 0 && rules.minnodesize[i*2+1] <= 0) continue;
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("n%s %s %s %s"), rules.nodenames[i],
-//						frtoa(rules.minnodesize[i*2]), frtoa(rules.minnodesize[i*2+1]),
-//						rules.minnodesizeR[i]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
+//				infstr = initinfstr();
+//				formatinfstr(infstr, x_("%s %s %s %s"), frtoa(rules.unconlist[k]),
+//					rules.layernames[i], rules.layernames[j],
+//						rules.unconlistR[k]);
+//				drclist.add(ruleMsg);
 //			}
-//
-//			// now do the distance rules
-//			k = 0;
-//			for(i=0; i<rules.numlayers; i++) for(j=i; j<rules.numlayers; j++)
+//			if (rules.conlistW[k] >= 0)
 //			{
-//				if (rules.conlist[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("c%s %s %s %s"), frtoa(rules.conlist[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.conlistR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				if (rules.unconlist[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("%s %s %s %s"), frtoa(rules.unconlist[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.unconlistR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				if (rules.conlistW[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("cw%s %s %s %s"), frtoa(rules.conlistW[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.conlistWR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				if (rules.unconlistW[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("w%s %s %s %s"), frtoa(rules.unconlistW[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.unconlistWR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				if (rules.conlistM[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("cm%s %s %s %s"), frtoa(rules.conlistM[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.conlistMR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				if (rules.unconlistM[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("m%s %s %s %s"), frtoa(rules.unconlistM[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.unconlistMR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				if (rules.edgelist[k] >= 0)
-//				{
-//					infstr = initinfstr();
-//					formatinfstr(infstr, x_("e%s %s %s %s"), frtoa(rules.edgelist[k]),
-//						rules.layernames[i], rules.layernames[j],
-//							rules.edgelistR[k]);
-//					(void)allocstring(&drclist[drcindex++], returninfstr(infstr), el_tempcluster);
-//				}
-//				k++;
+//				formatinfstr(infstr, x_("cw%s %s %s %s"), frtoa(rules.conlistW[k]),
+//					rules.layernames[i], rules.layernames[j],
+//						rules.conlistWR[k]);
+//				drclist.add(ruleMsg);
 //			}
+//			if (rules.unconlistW[k] >= 0)
+//			{
+//				formatinfstr(infstr, x_("w%s %s %s %s"), frtoa(rules.unconlistW[k]),
+//					rules.layernames[i], rules.layernames[j],
+//						rules.unconlistWR[k]);
+//				drclist.add(ruleMsg);
+//			}
+//			if (rules.conlistM[k] >= 0)
+//			{
+//				formatinfstr(infstr, x_("cm%s %s %s %s"), frtoa(rules.conlistM[k]),
+//					rules.layernames[i], rules.layernames[j],
+//						rules.conlistMR[k]);
+//				drclist.add(ruleMsg);
+//			}
+//			if (rules.unconlistM[k] >= 0)
+//			{
+//				formatinfstr(infstr, x_("m%s %s %s %s"), frtoa(rules.unconlistM[k]),
+//					rules.layernames[i], rules.layernames[j],
+//						rules.unconlistMR[k]);
+//				drclist.add(ruleMsg);
+//			}
+//			if (rules.edgelist[k] >= 0)
+//			{
+//				formatinfstr(infstr, x_("e%s %s %s %s"), frtoa(rules.edgelist[k]),
+//					rules.layernames[i], rules.layernames[j],
+//						rules.edgelistR[k]);
+//				drclist.add(ruleMsg);
+//			}
+//			k++;
+//		}
 //
-//			(void)setval((INTBIG)lib, VLIBRARY, x_("EDTEC_DRC"), (INTBIG)drclist,
-//				VSTRING|VISARRAY|(drccount<<VLENGTHSH));
-//			for(i=0; i<drccount; i++) efree(drclist[i]);
-//			efree((CHAR *)drclist);
-//		} else
+//		if (drclist.size() == 0)
 //		{
 //			// no rules: remove the variable
-//			if (getval((INTBIG)lib, VLIBRARY, VSTRING|VISARRAY, x_("EDTEC_DRC")) != NOVARIABLE)
-//				(void)delval((INTBIG)lib, VLIBRARY, x_("EDTEC_DRC"));
+//			if (lib.getVal("EDTEC_DRC") != null)
+//				lib.delVal("EDTEC_DRC");
+//		} else
+//		{
+//			lib.newVal("EDTEC_DRC", drclist);
 //		}
 //	}
 }

@@ -225,7 +225,7 @@ public class PolyBase implements Shape, PolyNodeMerge
 		if (points.length == 4)
 		{
 			// only closed polygons and text can be boxes
-			if (style != Poly.Type.FILLED && style != Poly.Type.CLOSED && style != Poly.Type.TEXTBOX) return null;
+			if (style != Poly.Type.FILLED && style != Poly.Type.CLOSED && style != Poly.Type.TEXTBOX && style != Poly.Type.CROSSED) return null;
 		} else if (points.length == 5)
 		{
 			if (style != Poly.Type.FILLED && style != Poly.Type.CLOSED &&

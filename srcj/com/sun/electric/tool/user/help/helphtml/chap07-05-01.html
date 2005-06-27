@@ -2,7 +2,7 @@
 
 The Schematic technology allows you to design using digital and analog schematic components.
 To obtain this technology,
-use the popup menu at the top of the component palette and select "schematics".
+use the popup menu at the top of the component menu and select "schematics".
 <P>
 There are two arcs in the Schematic technology: the wire (blue) and the bus (green).
 These arcs can be drawn at 45 degree angles.
@@ -44,6 +44,7 @@ The Switch node can also take an arbitrary number of poles on its left side.
 Simply stretch it along the line of the poles and their number will grow.
 <P>
 The analog nodes (Resistor, Inductor, Capacitor, and Diode) have values on them which can be selected and edited.
+Double-clicking on them brings up a special dialog for editing their value.
 <P>
 There are four transistor entries in the menu.
 The two on the right are the n and p transistors.
@@ -64,7 +65,7 @@ See <A HREF="chap06-09-05.html#chap06-09-05">Section 6-9-5</A> for more on globa
 <P>
 The Resistor can be treated as a connecting or nonconnecting node.
 By default, it does not connect the networks on its two ends,
-and this is the correct way to treat it when doing low-level simulation such as SPICE.
+and this is the correct way to treat it when doing low-level simulation such as Spice.
 However, for higher-level simulations (such as Verilog)
 the resistor should be ignored and treated as if it connects its two networks.
 To make this happen, use the

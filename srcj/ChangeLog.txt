@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/27/05, SMR) Editing alternate views doesn't warn if the view is missing.
+FIX: Fixed code in ViewMenu.java.
+
+BUG: (06/25/05, SMR) Compactor doesn't compact properly.
+FIX: In PolyBase.getBox(), allow "CROSSED" polygons to be boxes.
+
 BUG: (06/27/05, DN) ELIB reader reads incorrecly schematic cell with layout subcell (Bug #405).
 FIX: In ELIB.spreadLambda fix lambda only in icon subcells of schematic cells.
 

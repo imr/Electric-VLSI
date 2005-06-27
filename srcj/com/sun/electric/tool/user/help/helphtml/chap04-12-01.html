@@ -27,7 +27,7 @@ but the explorer has a "SIGNALS" section that lists the signals found in the sim
 
 <H3>Wave Panels</H3>
 <P>
-The waveform window contains a list of <I>panels</I>, each with a signal name and signal waveform.
+The waveform window contains a set of <I>panels</I>, each with a signal name and signal waveform.
 In each panel, signal names are shown on the left, and their waveform on the right.
 Between the name and the waveform are two control buttons:
 <UL>
@@ -36,9 +36,17 @@ Between the name and the waveform are two control buttons:
 (it can be restored by selecting its name from the popup at the top of the waveform window).</LI>
 </UL>
 The waveforms can be single signals or busses.
-Busses are collections of single signals that display integer values (see the "himb[1:10]" bus).
+Busses are collections of single signals that display integer values (for example, "himb[1:10]").
 To expand a bus, and show its individual signals in separate panels, double-click on its name.
 To contract the bus (removing its individual signals), double-click on the bus name again.
+<P>
+Although the color of the waveforms is usually the same, it can vary with the strength of the signal.
+To enable such a display, check "Multistate display" in the "Simulators" preferences
+(in menu <B>File / Preferences...</B>, "Tools" section, "Simulators" tab).
+To control the actual colors used in multistate display, use the "Colors" preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Colors" tab)
+and set the colors for "WAVEFORM: OFF STRENGTH", "WAVEFORM: NODE (WEAK) STRENGTH",
+"WAVEFORM: GATE STRENGTH", and "WAVEFORM: POWER STRENGTH".
 <P>
 You can select a signal by selecting either its name or the actual waveform.
 A selected signal is highlighted, and the selected panel is marked with a bold white line (see the "out" signal).
@@ -76,7 +84,7 @@ to change the view.
 </TD><TD><CENTER><IMG SRC="fig04-08.png" ALT="Figure 4.8"></CENTER></TD></TR></TABLE>
 <BR>
 The pan tool lets you smoothly shift time when you click and drag.
-In the zoom tool, you zoom into an area by clicking and dragout out that area.
+In the zoom tool, you zoom into an area by clicking and dragging out that area.
 To zoom out, hold the shift key and click in the center of the desired area.
 <P>
 The different panels in the waveform window are locked in time: they all show the same range of time,
@@ -84,17 +92,22 @@ as shown at the top of the waveform window.
 If you click on the "time lock" button at the top of the waveform window
 (looks like a lock with the time on it:&nbsp;<IMG SRC="fig09-18.png" ALT="Figure 9.18">&nbsp;)
 then time is unlocked, and each panel has its own time scale.
-Now individual panels can be show a different range of time than the rest.
+Now individual panels can show a different range of time than the rest.
 <P>
-Electric does powerful crossprobing between the waveform window and an editing window with the original circuit.
-If the original cell is being displayed, selection in the waveform window is mirrored in that cell.
-Also, whenever the main time cursor changes, the electrical state of the circuit is drawn in over it.
-The color red is high, and black is low.
-If you connect <I>Simulation Probe</I> nodes to any part of the circuit, these nodes light up red/black instead,
+Electric does crossprobing between the waveform window and an edit window with the original circuit.
+If the original circuit is being displayed, selection in the waveform window is mirrored in that cell.
+Also, whenever the main time cursor changes, the electrical state of the circuit is shown in that cell.
+Wires are colored differently according to their high/low/X/Z value in the simulation at that time.
+If you connect <I>Simulation Probe</I> nodes to any part of the circuit,
+those nodes light up with the appropriate color instead,
 which allows better visualization of activity patterns (see <A HREF="chap07-06-03.html#chap07-06-03">Section 7-6-3</A>).
+You can control the colors used in crossprobing by using the "Colors" preferences
+(in menu <B>File / Preferences...</B>, "Display" section, "Colors" tab)
+and setting the colors for "WAVEFORM: CROSSPROBE LOW", "WAVEFORM: CROSSPROBE HIGH",
+"WAVEFORM: CROSSPROBE UNDEFINED", and "WAVEFORM: CROSSPROBE FLOATING".
 <P>
 For best visualization of the simulation activity, there is a set of VCR buttons to control an animation of the main time cursor.
-The Play rate can be controlled by the "F" and "S" buttons which make it go faster or slower.
+The play rate can be controlled by the "F" and "S" buttons which make it go faster or slower.
 As the time cursor sweeps across the waveform window, the original circuit can be seen to change levels.
 <P>
 These window functions apply to the digital simulation windows:
@@ -115,12 +128,13 @@ These window functions apply to the digital simulation windows:
 </UL>
 
 <P>
-<H3>Stimuli (for built-in simulators only)</H3>
+<H3>Stimuli (for Built-in Simulators only)</H3>
 <P>
 When the waveform window displays the output of built-in simulators, you can set stimuli on the
 signals to affect the simulation.
 Each stimulus that you set is marked with a large red box at the time of the stimulus (see signals "cc" and "in").
-You can select the stimuli by clicking on the red box, and a selected stimulus has a green box in it
+You can select the stimuli by clicking on the red box.
+A selected stimulus has a green box in it
 (see the rightmost stimulus on signal "in").
 <P>
 To set stimuli, select either a waveform or the equivalent network in the original schematic or layout.

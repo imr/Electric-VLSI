@@ -472,8 +472,6 @@ public class TechToLib
 					portNodes.put(pp, pNi);
 					pNi.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
 					Variable var = pNi.newDisplayVar(Info.PORTNAME_KEY, pp.getName());
-//					if (var != null)
-//						var.setDisplay(true);
 
 					// on the first sample, also show angle and connection
 					if (e != 0) continue;

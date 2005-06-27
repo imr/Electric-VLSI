@@ -32,13 +32,14 @@ The resulting dialog requests an export name and some characteristics.
 All export names on a cell must be unique;
 if a nonunique name is given, it is modified to be unique.
 This modification involves adding "_1", "_2", etc. to the end of scalar export names,
-or changing the index (from [1] to [2], etc.) for indexed export names.
+or changing the index (from [1] to [2], etc.) for arrayed export names.
 Like cell names, export names may not contain spaces,
 tabs, or unprintable characters.
-Although no case distinction is made between uppercase and lowercase characters,
+Although no case distinction is made between uppercase and lowercase characters;
 the original case usage is preserved.
 <P>
-Behavioral characteristics can be associated with an export by selecting the appropriate field in the export creation dialog.
+Behavioral characteristics can be associated with an export by selecting the appropriate field
+in the export creation dialog.
 These behavior characteristics are stored with the export and used primarily by simulators.
 The characteristics include the following:
 <UL>
@@ -51,7 +52,8 @@ In addition, reference exports carry an associated export name that is used by t
 <P>
 The "Always drawn" check box requests that the export label should always appear,
 regardless of the connection or expansion of its cell.
-Typically, an export label on an instance of a cell is not displayed when that port is connected to an arc or when the instance is expanded.
+Typically, an export label on an instance of a cell is not displayed when that port is
+connected to an arc or when the instance is expanded.
 This check box overrides the suppression.
 <P>
 Another special check box, "Body only," requests that this export not appear when an icon is generated for the cell.
@@ -73,15 +75,14 @@ To do this same function, but only for Power and Ground exports, use <B>Re-Expor
 Note that ports on primitive nodes are not exported with these commands.
 See <A HREF="chap06-04.html#chap06-04">Section 6-4</A> for more about arrays,
 and see <A HREF="chap09-06-01.html#chap09-06-01">Section 9-6-1</A> for more on automatic wiring.
-
-<P>
-Another special case in export creation is the <B>Add Export from Library...</B> command,
+<P>
+Another special command for export creation is <B>Add Export from Library...</B>,
 which copies exports from another library to the current one.
 The other library is examined for cells whose names match ones in the current library.
 When a cell is found in the other library, all of its exports are copied to the cell in the current library
 (if they don't already exist) and placed in the same location.
 This command is useful in managing standard cell libraries that are imported from other file formats
-(see Section 3-9 on Standard Cell Libraries).
+(see <A HREF="chap03-09-04.html#chap03-09-04">Section 3-9-4</A> on Standard Cell Libraries).
 Because some formats contain geometry and others contain connectivity, this command is needed to put them together.
 
 <!-- TRAILER -->

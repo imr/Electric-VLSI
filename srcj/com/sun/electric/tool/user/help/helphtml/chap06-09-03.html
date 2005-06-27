@@ -4,7 +4,8 @@
 
 <!-- COMMAND Edit/Arc/Rip Bus -->
 
-The Bus arc of the Schematics technology is a special arc that can carry multiple signals.
+The Bus arc of the Schematics technology is a special arc that can carry multiple signals
+(see <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>).
 When giving a network name to Bus arcs, it is possible to specify complex bus names.
 <UL>
 <LI><B>Lists</B> Bus names can be lists (for example, "clock,in1,out" which aggregates 3 signals into a 3-wide bus)
@@ -20,7 +21,7 @@ b[0], c[3], c[5], d[1], d[2], e[8], e[7], e[6].
 </LI>
 
 <LI><B>Multidimensional array indices</B> Arrays can be multiply indexed
-(for example "b[1:2][100,103]" defines a bus with 4 entries: b[1][100], b[1][102], b[2][100], and b[2][102]).
+(for example "b[1:2][100,102]" defines a bus with 4 entries: b[1][100], b[1][102], b[2][100], and b[2][102]).
 You can have any number of dimensions in an array.</LI>
 
 <LI><B>Symbolic array indices</B> It is possible to use symbolic indices in bus naming
@@ -31,6 +32,10 @@ You can have any number of dimensions in an array.</LI>
 When a bus is unnamed, the system determines its width from the ports that it connects.
 Some tools (such as simulation netlisters) need to name everything,
 and so use automatically-generated names.
+When this happens, the system must choose whether to number the bus ascending or descending.
+To resolve this issue,
+use the "Network" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab),
+and choose "Ascending" or "Descending".
 <P>
 Individual wires that connect to a bus must be named with names from that bus.
 As an aid in obtaining individual signals from a bus,
@@ -39,11 +44,6 @@ will automatically create such wires for the selected bus arc.
 <P>
 Besides using array names on busses, you can also give array names to schematic nodes.
 Netlisters will create multiple copies of that node, named with the individual elements of the array.
-<P>
-There are some situations where bus information must be generated automatically.
-When this happens, the system must choose whether to number the bus ascending or descending.
-To resolve this issue,
-use the "Network" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab),
-and choose "Ascending" or "Descending".
+
 
 <!-- TRAILER -->

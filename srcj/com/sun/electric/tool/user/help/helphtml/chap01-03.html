@@ -8,7 +8,30 @@ all of the Java code.
 <P>
 Electric requires Java version 1.3 or later.
 It has been tested with Java version 1.5.
-
+<P>
+If you extract the source code from the ".jar" file and wish to build Electric, note that there are
+some Macintosh OS/X issues to consider.
+<UL>
+<LI><B>Build on a Macintosh</B>
+The easiest thing to do is to remove references to "AppleJavaExtensions.jar" from the Ant script
+(build.xml).
+This package is a collection of "stubs" to replace Macintosh functions that are unavailable elsewhere.</LI>
+<LI><B>Build on non-Macintosh, for non-Macintosh</B>
+If you are building Electric on and for a non-Macintosh platform,
+remove references to "AppleJavaExtensions.jar" from the Ant script
+(build.xml).
+Also, remove the module "com.sun.electric.MacOSXInterface.java".
+It is sufficient to delete this module, because Electric automatically
+detects its presence and is able to run without it.</LI>
+<LI><B>Build on non-Macintosh, for all platforms</B>
+To build Electric so that it can run on all platforms, Macintosh and other,
+you will need to keep the module "com.sun.electric.MacOSXInterface.java".
+However, in order to build it, you will need the stub package "AppleJavaExtensions.jar".
+The package can be downloaded from Apple at
+<A HREF="http://developer.apple.com/samplecode/AppleJavaExtensions/AppleJavaExtensions.html">this location</A>.</LI>
+</UL>
+<P>
+<H3>Memory Control</H3>
 <P>
 One problem with Java is that the Java Virtual Machine has a memory limit.
 This limit prevents programs from growing too large, and speeds up garbage collection.

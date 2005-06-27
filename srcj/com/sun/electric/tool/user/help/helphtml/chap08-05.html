@@ -6,7 +6,7 @@
 <P>
 Arcs are the wires in a technology, and they are constructed from pieces of geometry on the layers.
 To edit an existing arc,
-select it from the cell explorer or the <B>Edit Cell...</B> command (of menu <B>Edit</B>).
+select it from the cell explorer or the <B>Edit Cell...</B> command (in menu <B>Edit</B>).
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig08-25.png" ALT="Figure 8.25"></CENTER></TD><TD>
 To create a new arc, use the context menu on the "TECHNOLOGY ARCS" entry of the cell explorer
@@ -50,7 +50,7 @@ As with layer functions, the arc functions should be carefully considered.
 A well arc that contains a well layer and does not contain device diffusion
 (i.e. opposite doping to the well)
 must not be defined as "diffusion"; it must be defined as "well-diffusion".
-This prevents the SPICE extractor from incorrectly adding any p or n doped area found
+This prevents the Spice extractor from incorrectly adding any p or n doped area found
 in the well arc to the source or drain area of a transistor on the same network.
 This does not mean that a device arc cannot contain a well layer.
 Device arcs will be declared as "p-diffusion" or "n-diffusion",
@@ -93,7 +93,7 @@ Select the "HIGH" entry in the component menu to create this special type of lay
 <P>
 After geometry has been created, there may be some confusion as to what is there.
 To find out,
-use the <B>Identify Primitive Layers</B> command (of menu <B>Edit / Technology Specific</B>),
+use the <B>Identify Primitive Layers</B> command (in menu <B>Edit / Technology Specific</B>),
 which temporarily labels each piece of geometry in the arc cell.
 
 <!-- TRAILER -->

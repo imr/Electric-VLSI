@@ -1121,11 +1121,11 @@ public class User extends Listener
 	 */
 	public static void setColorWaveformCrossProbeLow(int c) { cacheColorWaveformCrossProbeLow.setInt(c); }
 
-	private static Pref cacheColorWaveformCrossProbeHigh = Pref.makeIntPref("ColorWaveformCrossProbeHigh", tool.prefs, Color.MAGENTA.getRGB());
+	private static Pref cacheColorWaveformCrossProbeHigh = Pref.makeIntPref("ColorWaveformCrossProbeHigh", tool.prefs, Color.GREEN.getRGB());
 	/**
 	 * Method to get the color of cross-probe traces from the waveform window that are "high".
 	 * These are lines drawn on the schematic or layout to correspond with the value in the waveform window.
-	 * The default is "magenta".
+	 * The default is "green".
 	 * @return the color of cross-probe traces from the waveform window that are "high".
 	 */
 	public static int getColorWaveformCrossProbeHigh() { return cacheColorWaveformCrossProbeHigh.getInt(); }

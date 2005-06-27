@@ -10,9 +10,11 @@ use the many preferences dialogs for the different file types
 (in menu <B>File / Preferences...</B>, "I/O" section).
 <P>
 Unfortunately, many of these formats are pure geometry with no information about the circuit connections.
-When read, the input formatter creates pure-layer nodes to describe the geometry.
+When read, they appear as pure-layer nodes.
 This means that transistors, contacts, and other multi-layer nodes are not constructed properly.
 Although the cell appears visually correct, and can be used to export the same type of file, it cannot be analyzed at a circuit level.
+The node extractor can be used to convert these pure-layer nodes to true Electric components
+(see <A HREF="chap09-10-02.html#chap09-10-02">Section 9-10-2</A>).
 <P>
 The next few sections describe control of different I/O formats.
 

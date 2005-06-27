@@ -227,7 +227,7 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
             Resources.getResource(toolbar.getClass(), "ButtonClickZoomWire.gif"));
         clickZoomWireButton.addActionListener(
             new ActionListener() { public void actionPerformed(ActionEvent e) { clickZoomWireCommand(); } });
-        clickZoomWireButton.setToolTipText("ClickZoomWire");
+        clickZoomWireButton.setToolTipText("Click/Zoom/Wire");
         clickZoomWireButton.setSelected(true);
         toolbar.add(clickZoomWireButton);
         modeGroup.add(clickZoomWireButton);

@@ -7,7 +7,7 @@ The user should be aware that the ALS simulator translates the circuit into VHDL
 then compiles the VHDL into a netlist for simulation.
 This means that when a layout or schematic is simulated, two new views of that cell are created:
 {VHDL} and {net.als}.
-Use the <B>Edit VHDL View</B> (of menu <B>View</B>) to see the VHDL code.
+Use the <B>Edit VHDL View</B> (in menu <B>View</B>) to see the VHDL code.
 </TD><TD><CENTER><IMG SRC="fig09-32.png" ALT="Figure 9.32"></CENTER></TD></TR></TABLE>
 <P>
 When simulation is requested, the cell in the current window is simulated.
@@ -22,7 +22,7 @@ Note that the presence of VHDL in the path to simulation means that it can simul
 You can type this VHDL directly into the cell
 (see <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text editing).
 Also, you can explicitly request that VHDL be produced from schematics or layout with the
-<B>Make VHDL View</B> command (of menu <B>View</B>).
+<B>Make VHDL View</B> command (in menu <B>View</B>).
 <P>
 This complete VHDL capability, combined with the Silicon Compiler which places and routes from VHDL descriptions,
 gives Electric a powerful facility for creating,
@@ -39,7 +39,7 @@ Other primitives can be defined by the user, and all of the existing primitives 
 <P>
 To create (or redefine) a primitive's behavior, simply create the {net.als}
 view of the cell with that primitive's name.
-Use the <B>New Cell...</B> command (of menu <B>Cell</B>) and select the "netlist.als" view.
+Use the <B>New Cell...</B> command (in menu <B>Cell</B>) and select the "netlist.als" view.
 For example, to define the behavior of an ALU cell, edit "alu{net.als}",
 and to redefine the behavior of a two-input And gate, edit "and2{net.als}".
 The compiler copies these textual cells into the netlist description whenever that node is referenced in the VHDL.

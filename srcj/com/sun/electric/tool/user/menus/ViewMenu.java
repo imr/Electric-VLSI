@@ -121,7 +121,7 @@ public class ViewMenu {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
         Cell layoutView = curCell.otherView(View.LAYOUT);
-        if (layoutView != null)
+        if (layoutView == null) System.out.println("There is no layout view of " + curCell); else
             WindowFrame.createEditWindow(layoutView);
     }
 
@@ -130,10 +130,8 @@ public class ViewMenu {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
         final Cell schematicView = curCell.otherView(View.SCHEMATIC);
-        if (schematicView != null)
+        if (schematicView == null) System.out.println("There is no schematic view of " + curCell); else
             WindowFrame.createEditWindow(schematicView);
-        else
-            System.out.println("No schematic view for "+curCell);
     }
 
     public static void editIconViewCommand()
@@ -141,7 +139,7 @@ public class ViewMenu {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
         Cell iconView = curCell.otherView(View.ICON);
-        if (iconView != null)
+        if (iconView == null) System.out.println("There is no icon view of " + curCell); else
             WindowFrame.createEditWindow(iconView);
     }
 
@@ -150,7 +148,7 @@ public class ViewMenu {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
         Cell vhdlView = curCell.otherView(View.VHDL);
-        if (vhdlView != null)
+        if (vhdlView == null) System.out.println("There is no VHDL view of " + curCell); else
             WindowFrame.createEditWindow(vhdlView);
     }
 
@@ -159,7 +157,7 @@ public class ViewMenu {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
         Cell docView = curCell.otherView(View.DOC);
-        if (docView != null)
+        if (docView == null) System.out.println("There is no documentation view of " + curCell); else
             WindowFrame.createEditWindow(docView);
     }
 
@@ -168,7 +166,7 @@ public class ViewMenu {
         Cell curCell = WindowFrame.needCurCell();
         if (curCell == null) return;
         Cell skelView = curCell.otherView(View.LAYOUTSKEL);
-        if (skelView != null)
+        if (skelView == null) System.out.println("There is no skeleton view of " + curCell); else
             WindowFrame.createEditWindow(skelView);
     }
 
@@ -187,7 +185,7 @@ public class ViewMenu {
         String newViewName = (String)newName;
         View newView = View.findView(newViewName);
         Cell otherView = curCell.otherView(newView);
-        if (otherView != null)
+        if (otherView == null) System.out.println("There is no " + newViewName + " view of " + curCell); else
             WindowFrame.createEditWindow(otherView);
     }
 

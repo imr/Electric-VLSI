@@ -20,7 +20,7 @@
 Writing libraries to disk is done with the <B>Save Library</B> command (in menu <B>File</B>).
 <P>
 <TABLE><TR><TD>
-The <B>Save All Libraries</B> command (in menu <B>File</B>) writes all libraries that have changed.
+The <B>Save All Libraries</B> command writes all libraries that have changed.
 You can also use the save-libraries icon from the tool bar.
 To force all libraries to be saved, use the <B>Mark All Libraries for Saving</B> command,
 or use <B>Save All Libraries in Format</B> to specify how they are to be saved.
@@ -33,7 +33,7 @@ If, however, you wish to write the library to a new file
 <TABLE><TR><TD VALIGN=TOP>
 The "Library" preferences (in menu <B>File / Preferences...</B>, "I/O" section, "Library" tab)
 offers options for writing libraries to disk.
-By default, saved libraries overwrite the previous libraries and no backup is created.
+By default, saved libraries overwrite the previous files and no backup is created.
 If you choose "Backup of last library file",
 then the former library is renamed so that it has a "~" at the end.
 If you choose "Backup history of library files",
@@ -66,15 +66,15 @@ See <A HREF="chap07-03-04.html#chap07-03-04">Section 7-3-4</A> for more on EDIF.
 <LI><B>L</B> is the GDT language, still appearing in some commercial systems.
 The output file contains only the current cell and any circuitry below that in the hierarchy.</LI>
 
-<LI><B>Eagle</B> is an interface to the Eagle schematics design system (netlist format).
+<LI><B>Eagle</B> is an interface to the Eagle schematics design system (its netlist format).
 Before writing Eagle files, you must give every node the "ref_des" attribute, and every port on these nodes the "pin" attribute.
 If you also place the "pkg_type" attribute on the node, it overrides the cell name.</LI>
 
-<LI><B>ECAD</B> is an interface to the ECAD schematics design system (netlist format).
+<LI><B>ECAD</B> is an interface to the ECAD schematics design system (its netlist format).
 Before writing ECAD files, you must give every node the "ref_des" attribute, and every port on these nodes the "pin" attribute.
 If you also place the "pkg_type" attribute on the node, it overrides the cell name.</LI>
 
-<LI><B>Pads</B> is an interface to the Pads schematics design system (netlist format).
+<LI><B>Pads</B> is an interface to the Pads schematics design system (its netlist format).
 Before writing Pads files, you must give every node the "ref_des" attribute, and every port on these nodes the "pin" attribute.
 If you also place the "pkg_type" attribute on the node, it overrides the cell name.</LI>
 
@@ -113,6 +113,6 @@ Instead, the system will insert the proper comment characters for the particular
 <P>
 The copyright information will be inserted into decks exported for CIF, LEF, and PostScript,
 as well as in simulation netlists for
-Verilog, SPICE, Silos, ESIM/RSIM/RNL/COSMOS, FastHenry, Maxwell, and IRSIM.
+Verilog, Spice, Silos, ESIM/RSIM/RNL/COSMOS, FastHenry, Maxwell, and IRSIM.
 
 <!-- TRAILER -->

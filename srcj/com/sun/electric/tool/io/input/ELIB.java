@@ -1527,7 +1527,7 @@ public class ELIB extends LibraryFiles
 
 
         // create pin as new end point of arc
-        String msg = cell+": Port '"+portname+"' on '"+nodeName+"' "+whatHappenedToPort+": leaving arc disconnected";
+        String msg = cell+": Port '"+portname+"' on "+node+" "+whatHappenedToPort+": leaving arc disconnected";
         System.out.println("ERROR: "+msg);
         getArcEndError = Input.errorLogger.logError(msg, cell, 0);
 //        ErrorLogger.MessageLog error = Input.errorLogger.logError(msg, cell, 0);

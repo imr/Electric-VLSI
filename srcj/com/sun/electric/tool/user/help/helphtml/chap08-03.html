@@ -8,12 +8,12 @@ The sequence forms an "inheritance hierarchy",
 where later libraries in the sequence can override elements found in earlier libraries.
 For example, one library could be a "base" description for a family of technologies,
 and another library could be a "tailoring" description that describes a specific family member.
-The tailoring library might be very small, consisting of a single node description and some design rules.
+The tailoring library might be very small, consisting of a single node description.
 That information would then override or augment the base library.
 <P>
-To connect a string of libraries,
+To connect a sequence of libraries,
 a list is placed in the bottommost library pointing to the earlier, or "dependent" libraries.
-In the example here, the current library is "smallPads" and it is tailored with two
+In the example below, the current library is "smallPads" and it is tailored with two
 other libraries: "pads" and "cmos" (the "base" library).
 Note that the list implicitly begins with the current library,
 and continues in reverse order.
@@ -27,7 +27,7 @@ Note that the version which is used is expected to be the most recently created 
 and a warning message will be issued if this is not the case.
 <P>
 Control of the library list is done with the <B>Edit Library Dependencies...</B> command
-(of menu <B>Edit / Technology Specific</B>).
+(in menu <B>Edit / Technology Specific</B>).
 <TABLE><TR><TD>
 A dialog is presented with two lists of libraries.
 The list on the left shows the dependent libraries and the list on the right shows all current libraries.

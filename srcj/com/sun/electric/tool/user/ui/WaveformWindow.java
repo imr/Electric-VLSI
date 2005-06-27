@@ -254,7 +254,6 @@ public class WaveformWindow implements WindowContent
 		private static final ImageIcon iconClosePanel = Resources.getResource(WaveformWindow.class, "ButtonSimClose.gif");
 		private static final ImageIcon iconDeleteSignal = Resources.getResource(WaveformWindow.class, "ButtonSimDelete.gif");
 		private static final ImageIcon iconDeleteAllSignals = Resources.getResource(WaveformWindow.class, "ButtonSimDeleteAll.gif");
-		private static final ImageIcon iconToggleBus = Resources.getResource(WaveformWindow.class, "ButtonSimToggleBus.gif");
 
 		// constructor
 		public Panel(WaveformWindow waveWindow, boolean isAnalog)
@@ -410,26 +409,6 @@ public class WaveformWindow implements WindowContent
 				{
 					public void actionPerformed(ActionEvent evt) { deleteAllSignalsFromPanel(); }
 				});
-			} else
-			{
-//				// the "toggle bus" button for this panel
-//				toggleBusSignals = new JButton(iconToggleBus);
-//				toggleBusSignals.setBorderPainted(false);
-//				toggleBusSignals.setDefaultCapable(false);
-//				toggleBusSignals.setToolTipText("View or hide the individual signals on this bus");
-//				minWid = new Dimension(iconToggleBus.getIconWidth()+4, iconToggleBus.getIconHeight()+4);
-//				toggleBusSignals.setMinimumSize(minWid);
-//				toggleBusSignals.setPreferredSize(minWid);
-//				gbc.gridx = 3;       gbc.gridy = 1;
-//				gbc.gridwidth = 1;   gbc.gridheight = 1;
-//				gbc.weightx = 0.2;  gbc.weighty = 0;
-//				gbc.anchor = GridBagConstraints.CENTER;
-//				gbc.fill = GridBagConstraints.NONE;
-//				leftHalf.add(toggleBusSignals, gbc);
-//				toggleBusSignals.addActionListener(new ActionListener()
-//				{
-//					public void actionPerformed(ActionEvent evt) { toggleBusContents(); }
-//				});
 			}
 
 			// the list of signals in this panel (analog only)
@@ -690,9 +669,9 @@ public class WaveformWindow implements WindowContent
 					waveWindow.left.remove(wsig.wavePanel.leftHalf);
 					waveWindow.right.remove(wsig.wavePanel.rightHalf);
 
-					int destIndex = 0;
 					Component [] lefts = waveWindow.left.getComponents();
-					for(destIndex=0; destIndex < lefts.length; destIndex++)
+					int destIndex = 0;
+					for( ; destIndex < lefts.length; destIndex++)
 					{
 						if (lefts[destIndex] == this.leftHalf) break;
 					}
@@ -4459,33 +4438,13 @@ if (wp.signalButtons != null)
 	 */
 	private Color getHighlightColor(int state)
 	{
-		if (Simulation.isWaveformDisplayMultiState())
+		// determine trace color
+		switch (state & Stimuli.LOGIC)
 		{
-//			// 12-state display: determine trace texture
-//			strength = state & 0377;
-//			if (strength == 0) *texture = -1; else
-//				if (strength <= NODE_STRENGTH) *texture = 1; else
-//					if (strength <= GATE_STRENGTH) *texture = 0; else
-//						*texture = 2;
-
-			// determine trace color
-			switch (state & Stimuli.LOGIC)
-			{
-				case Stimuli.LOGIC_LOW:  return new Color(User.getColorWaveformCrossProbeLow());
-				case Stimuli.LOGIC_HIGH: return new Color(User.getColorWaveformCrossProbeHigh());
-				case Stimuli.LOGIC_X:    return new Color(User.getColorWaveformCrossProbeX());
-				case Stimuli.LOGIC_Z:    return new Color(User.getColorWaveformCrossProbeZ());
-			}
-		} else
-		{
-			/* only level display, no strength indications */
-			switch (state & Stimuli.LOGIC)
-			{
-				case Stimuli.LOGIC_LOW:
-					return Color.BLACK;
-				case Stimuli.LOGIC_HIGH:
-					return Color.GREEN;
-			}
+			case Stimuli.LOGIC_LOW:  return new Color(User.getColorWaveformCrossProbeLow());
+			case Stimuli.LOGIC_HIGH: return new Color(User.getColorWaveformCrossProbeHigh());
+			case Stimuli.LOGIC_X:    return new Color(User.getColorWaveformCrossProbeX());
+			case Stimuli.LOGIC_Z:    return new Color(User.getColorWaveformCrossProbeZ());
 		}
 		return Color.RED;
 	}

@@ -9,7 +9,7 @@ This section discusses the possible changes and shows workarounds for the diffic
 <P>
 Technology information appears in four different places:
 the layers, the arcs, the nodes, and miscellaneous information on the technology
-(the support cell, design-rules, and color tables).
+(the support cell and color tables).
 Information in these areas can be added, deleted, or modified.
 The rest of this section outlines all of these situations.
 <P>
@@ -31,7 +31,7 @@ The geometry in these nodes and arcs will have to be moved to another layer.
 This will cause error
 messages when libraries are read that make use of the deleted elements.
 When the library is read,
-you can substitute another node or arc to use in place of the now-unknown components.
+you can substitute another node or arc to use in place of the now-unknown component.
 <P>
 <H3>Deleting miscellaneous information</H3>
 <P>
@@ -43,7 +43,7 @@ For example, an analysis tool may fail to find the information that it requires.
 This is a totally transparent operation.
 Any change to the color, style, or stipple information (including changes to the color map)
 will appear in all libraries that use the technology.
-Changes to I/O equivalences or SPICE parasitics will be available to all existing libraries.
+Changes to I/O equivalences or Spice parasitics will be available to all existing libraries.
 A change of the layer function may affect the technology editor's ability to decode the nodes and arcs that use this layer
 (for example,
 if you change the function of the "polysilicon" or "diffusion" layers that form a transistor,
@@ -67,7 +67,7 @@ The node factor "Square node" also has no effect on existing circuitry and gets 
 <P>
 Other factors do affect existing circuitry.
 Changes to the "Function" field, in both arcs and nodes,
-passes to all existing components, thus affecting how analysis tools treat the old circuits.
+pass to all existing components, thus affecting how analysis tools treat the old circuits.
 If the "Serpentine Transistor" field in nodes is turned off,
 any existing transistors that have serpentine descriptions will turn into large rectangular nodes with incorrect connections (i.e. get trashed).
 Unfortunately, it may become impossible to keep the "Serpentine Transistor"
@@ -107,7 +107,7 @@ All existing 6x6 transistors will suddenly have 4x4 gate areas where they used t
 In both of these examples,
 it may be preferable to keep the old technology and give the new technology a different name.
 Then the old libraries can be read into the old technology,
-and the <B>Make Alternate Layout View...</B> command (of menu <B>View</B>)
+and the <B>Make Alternate Layout View...</B> command (in menu <B>View</B>)
 can be used to translate into the new technology.
 This command uses node and arc functionality to associate components,
 scaling them appropriately relative to their default sizes.
@@ -119,7 +119,6 @@ renaming the new technology to the old name, and then saving the library.
 This last situation is typically transparent:
 changed information appears in all existing libraries,
 and affects those subsystems that make use of the information.
-For example, a change to the SPICE headers will be seen when a SPICE deck is next generated.
-A change to the design rules will be used even on the old libraries.
+For example, a change to the Spice resistance will be seen when a Spice deck is next generated.
 
 <!-- TRAILER -->

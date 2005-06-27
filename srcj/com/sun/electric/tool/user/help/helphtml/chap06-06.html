@@ -35,34 +35,12 @@ it is also possible to specify replacement of many other objects.
 This is a modeless dialog: it can remain up while other editing is being done.
 Click "Done" to dismiss it, and "Apply" to make a change.
 <P>
-<H3>Special Considerations</H3>
-<P>
-Some Schematic nodes use parameters to further describe them.
+Note that some Schematic nodes use parameters to further describe them.
 For example, an electrolytic capacitor is really just a capacitor with the "electrolytic" parameter on it.
 Therefore, you can change a node into a capacitor, but not an electrolytic capacitor,
 because it is not in the list.
 To change a capacitor into an electrolytic capacitor, paste an electrolytic capacitor onto it.
 Besides capacitors, parameters can be found on diodes, transistors,
 sources, and two-ports (the four-connection primitives such as VCCS).
-<P>
-Because arcs can connect only to certain types of nodes, it can be difficult to replace both.
-For example, if you wish to convert all Metal-1 into Metal-2,
-then you must replace all Metal-1 arcs with Metal-2 arcs,
-<I>and</I> you must replace all Metal-1-Pins with Metal-2-Pins.
-It is not possible to do this all at once,
-nor is it possible to do it in any two-step fashion
-(you cannot replace the arcs, because the pins won't connect to the new type,
-and you cannot replace the pins, because the arcs won't connect to the new type).
-<P>
-The solution is to use the Universal arc and the Universal Pin
-(from the Generic technology, see <A HREF="chap07-06-03.html#chap07-06-03">Section 7-6-3</A>).
-These components can connect to any other,
-and so they can be used as intermediate placeholders.
-The solution to converting Metal-1 into Metal-2 is as follows:
-<UL>
-<LI>Replace all Metal-1 arcs with Universal arcs.
-<LI>Replace all Metal-1-Pins with Metal-2-Pins.
-<LI>Replace all Universal arcs with Metal-2 arcs.
-</UL>
 
 <!-- TRAILER -->

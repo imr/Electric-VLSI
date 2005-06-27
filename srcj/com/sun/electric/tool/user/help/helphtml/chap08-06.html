@@ -7,7 +7,7 @@
 Nodes are the components in a technology,
 and they are constructed from pieces of geometry on the layers.
 To edit an existing node,
-select it from the cell explorer or the <B>Edit Cell...</B> command (of menu <B>Edit</B>).
+select it from the cell explorer or the <B>Edit Cell...</B> command (in menu <B>Edit</B>).
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig08-26.png" ALT="Figure 8.26"></CENTER></TD><TD>
 To create a new node, use the context menu on the "TECHNOLOGY NODES" entry of the cell explorer
@@ -46,7 +46,7 @@ This is typically used in array technologies such as FPGA
 <TABLE><TR><TD><CENTER><IMG SRC="fig08-12.png" ALT="Figure 8.12"></CENTER></TD><TD>
 The "Function" entry describes the node's function,
 which is a different set than the arc and layer functions.
-The menu of possible node functions is shown here.
+A dialog offers a list of possible node functions.
 </TD></TR></TABLE>
 <P>
 <H3>Editing Node Geometry</H3>
@@ -69,10 +69,11 @@ they require outline information to be assigned
 (see <A HREF="chap06-10-01.html#chap06-10-01">Section 6-10-1</A>).
 If the Opened circle arc entry is selected
 (second from the bottom),
-you can specify the number of degrees of the circle with the <B>Object Properties</B> command (of menu <B>Edit / Info</B>).
+you can specify the number of degrees of the circle with the <B>Object Properties...</B> command
+(in menu <B>Edit / Properties</B>).
 <P>
 Each example must also contain a highlight layer to indicate the correct highlighting on the display.
-Select the "HIGH" entry in the menu on the left to create this special type of layer.
+Select the "HIGH" entry from the component menu to create this special type of layer.
 <P>
 <TABLE><TR><TD>
 Each example must also contain port information.
@@ -97,7 +98,7 @@ For example, the two polysilicon ports on a MOS transistor should be connected i
 Join the ports with a universal arc.
 Do not put this internal connection on any example other than the main one.
 To see the location of all ports on the main example,
-use the <B>Identify Ports</B> command (of menu <B>Edit / Technology Specific</B>).
+use the <B>Identify Ports</B> command (in menu <B>Edit / Technology Specific</B>).
 <P>
 As with arcs, use the <B>Identify Primitive Layers</B> command to label each piece of geometry in the main example.
 <P>
@@ -113,7 +114,8 @@ This option cannot be used in serpentine transistors.
 <P>
 Another special case in node description is the ability to specify multiple cut layers.
 If the larger examples have more cut layers,
-rules are derived for cut size and spacing so that an arbitrary numbers of cuts can be inserted as the contact scales.
+rules are derived for cut spacing and indentation
+so that an arbitrary numbers of cuts can be inserted as the contact scales.
 <P>
 Although serpentine MOS transistors are a special case,
 they cannot be automatically identified, but must be explicitly indicated with a textual indicator.

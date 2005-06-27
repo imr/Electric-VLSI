@@ -13,6 +13,7 @@ system can be conceived before the low level circuitry is designed.
 Examples of this include arithmetic logic units, RAM, ROM,
 and other circuitry which is easier to describe in terms of a software algorithm
 than a gate level hardware description.
+To add a function to the simulator, edit the module "com.sun.electric.tool.simulation.als.UserCom.java".
 <P>
 The function entity is headed by a <B>function</B> declaration statement that
 gives a name and a list of exports
@@ -70,7 +71,7 @@ The <B>set</B> statement is used to initialize signals to specific logic states 
 the simulation run takes place.
 The format of these statement is identical to that of the gate entity.
 Note that the Java method does not have to use the values specified in these
-statements and can schedule events with values that are specified directly inside the routine.
+statements and can schedule events with values that are specified directly inside the code.
 <P>
 
 <H3>Example of Function Use</H3>

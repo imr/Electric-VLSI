@@ -3,7 +3,7 @@
 Layers are used to construct primitive nodes and arcs in a technology.
 Because of this, the layers must be edited before the nodes and arcs.
 To edit an existing layer,
-select it from the cell explorer or the <B>Edit Cell...</B> command (of menu <B>Edit</B>).
+select it from the cell explorer or the <B>Edit Cell...</B> command (in menu <B>Edit</B>).
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig08-24.png" ALT="Figure 8.24"></CENTER></TD><TD>
 To create a new layer, use the context menu on the "TECHNOLOGY LAYERS" entry of the cell explorer
@@ -28,9 +28,9 @@ You can also do operations on the entire stipple pattern ("Clear Pattern", "Inve
 and "Paste Pattern") by double-clicking on their name below the pattern area.
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig08-04.png" ALT="Figure 8.4"></CENTER></TD><TD>
-The color of the layer can be changed by double-clicking on the "Color".
+The color of the layer can be changed by double-clicking on the "Color" entry.
 The dialog lets you choose a color, opacity, and foreground factor for the layer.
-Opacity ranges from 100 (fully opaque) to 0 (transparent).
+Opacity ranges from 1.0 (fully opaque) to 0 (transparent).
 The foreground flag is "on" to indicate that the non-opaque colors can be combined with others.
 </TD></TR></TABLE>
 <P>
@@ -39,7 +39,7 @@ The overlap is defined in the technology's color map.
 You can double-click on the "Transparency" entry to assign this factor to a layer.
 Non-transparent layers (with "Transparency: none") are opaque, so they obscure anything under them when drawn.
 In general, the most commonly used layers should be transparent.
-See <A HREF="chap04-06.html#chap04-06">Section 4-6</A> for more information on color.
+See <A HREF="chap04-06-01.html#chap04-06-01">Section 4-6-1</A> for more information on transparency.
 <P>
 The "Style" entry on the right can be "solid", "patterned",
 or "patterned/outline" to indicate how that layer will be appear.
@@ -50,18 +50,20 @@ Layers with opaque colors should probably be patterned so that their combination
 <P>
 Many of the entries on the right side of the layer cell provide correspondences between a layer and various interchange standards.
 The "CIF Layer" entry is the string to use for CIF I/O.
-The "GDS-II layer" is a single number (-1 when there is no layer).
+The "GDS-II layer" entry can be as simple as a single layer number, but it can also be two numbers separated by a "/"
+(the layer number and its type).
+You can also add a comma and then another layer/type pair with the letter "t" (for text) or "p" (for pin) at the end.
 <P>
-Another set of options on the right side of the layer cell is for SPICE parasitics.
+Another set of options on the right side of the layer cell is for Spice parasitics.
 You may assign a resistance, capacitance,
-and edge capacitance to the layer for use in creating SPICE simulation decks.
+and edge capacitance to the layer for use in creating Spice simulation decks.
 <P>
 The "3D Height" and "3D Thickness" are used when viewing a chip in 3-dimensions.
 The height and thickness are arbitrary values which describe the location and thickness in the third axis (out of the screen).
 For example, to show how poly and diffusion interact,
 the poly layer can be at height 21 and the diffusion layer at height 20, both with 0 thickness.
 This will appear as two ribbons, one over the other.
-See <A HREF="chap04-11.html#chap04-11">Section 4-1</A> for more information on 3D display.
+See <A HREF="chap04-11.html#chap04-11">Section 4-11</A> for more information on 3D display.
 <P>
 The last option on the right side of the layer cell specifies the minimum coverage percentage
 (see <A HREF="chap09-02-03.html#chap09-02-03">Section 9-2-3</A> for more).
@@ -70,17 +72,18 @@ The last option on the right side of the layer cell specifies the minimum covera
 <P>
 <TABLE><TR><TD>
 The "Function" entry allows a general-purpose description to be attached to the layer.
-A function can be only 1 of the values from this table.
-However, the last entries are additional attributes that can combine with the layer function to further describe it.
+A function consists of a single base description plus optional additional modifiers.
+The additional modifiers are found in the last entries of the function list.
 </TD><TD><CENTER><IMG SRC="fig08-05.png" ALT="Figure 8.5"></CENTER></TD></TR></TABLE>
 <P>
+These additional modifiers can be added to the base function:
 <UL>
-<LI>The functions "p-type," "n-type," "depletion," "enhancement," "light," "heavy", and "thick"
+<LI>The modifiers "p-type," "n-type," "depletion," "enhancement," "light," "heavy", and "thick"
 describe layer types that are process-specific.
-<LI>The function "pseudo" indicates that this layer is a pseudo-layer, used for pin construction.
-<LI>The function "nonelectrical" indicates that this layer is decorative and not part of a real circuit.
-<LI>The functions "connects-metal," "connects-poly," and "connects-diff" indicate that this contact layer joins the specified real layers.
-<LI>The function "inside-transistor" indicates that the polysilicon is not field-poly, but is part of a transistor.
+<LI>The modifier "pseudo" indicates that this layer is a pseudo-layer, used for pin construction.
+<LI>The modifier "nonelectrical" indicates that this layer is decorative and not part of a real circuit.
+<LI>The modifiers "connects-metal," "connects-poly," and "connects-diff" indicate that this contact layer joins the specified real layers.
+<LI>The modifier "inside-transistor" indicates that the polysilicon is not field-poly, but is part of a transistor.
 </UL>
 <P>
 For example, you can double-click the function entry many times,
@@ -88,14 +91,15 @@ selecting "Diffusion",
 "p-type", and "heavy" to indicate a Diffusion layer that is heavily-doped p-type.
 To clear the layer function, set it to "unknown."
 <P>
+A number of rules apply to the selection of layer functions.
 There must be a "pseudo" layer for every layer used to build arcs.
-This is because every arc needs a pin, and pins are constructed with "pseudo" layers.
-The "pseudo" layers are "virtual" geometry that do not appear in the fabrication output.
+This is because every arc needs a pin, and pins are constructed from "pseudo" layers.
+The "pseudo" layers are virtual geometry that do not appear in the fabrication output.
 It is important that every "pseudo" layer have an associated real layer, with similar descriptive fields.
 The technology editor will issue a warning if pins are not constructed from pseudo-layers.
 <P>
 Note that the layer functions must be treated carefully as they form the basis of subsequent arc and node definitions.
-One consideration to note is the use of "Wells" and their significance to the SPICE extractor.
+One consideration to note is the use of "Wells" and their significance to the Spice extractor.
 If the technology requires a separate contact to the well,
 then it will typically contain a metal layer,
 and a piece of heavily doped material under the metal to make ohmic contact to the well; i.e. p++ in a P-well.

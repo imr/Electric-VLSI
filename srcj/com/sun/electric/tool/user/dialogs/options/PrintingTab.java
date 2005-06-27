@@ -91,7 +91,7 @@ public class PrintingTab extends PreferencePanel
 		printPostScriptStyle.addItem("Black&White");
 		printPostScriptStyle.addItem("Color");
 		printPostScriptStyle.addItem("Color Stippled");
-		printPostScriptStyle.addItem("Color Merged");
+		printPostScriptStyle.addItem("Color Merged (not working)");
 		printPostScriptStyle.setSelectedIndex(IOTool.getPrintColorMethod());
 
 		initialCell = WindowFrame.getCurrentCell();

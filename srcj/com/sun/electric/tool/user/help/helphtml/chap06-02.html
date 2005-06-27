@@ -19,10 +19,12 @@ The check box "Check cell dates during editing"
 requests that date information be used to ensure a proper circuit building sequence.
 When this box is checked, warning messages will be issued when editing a cell that has more recent subcell instances.
 Electric tracks cell creation and revision dates, and this information can be displayed with the
-<B>Describe this Cell</B> command and others in menu <B>Cell / Cell Info</B>. 
+<B>Describe this Cell</B> command and others in menu <B>Cell / Cell Info</B>
+(see <A HREF="chap03-07-01.html#chap03-07-01">Section 3-7-1</A>). 
 <P>
 The check box "Switch technology to match current cell"
-requests that the current technology automatically change whenever the current cell changes so that the two match. 
+requests that the current technology automatically change whenever the current cell changes,
+so that the two match. 
 <P>
 The check box "Place Cell-Center in new cells" requests that all newly created cells have a Cell-Center node
 placed at the origin (see <A HREF="chap03-03.html#chap03-03">Section 3-3</A> for more on Cell centers). 
@@ -33,7 +35,7 @@ The check box "Disallow modification of locked primitives" requests that all loc
 Once locked, these nodes cannot be created, deleted,
 or modified in any way.
 Typically, only primitives in "array" technologies are lockable
-(such as the FPGA technology),
+(such as the FPGA technology, see <A HREF="chap07-06-02.html#chap07-06-02">Section 7-6-2</A>),
 presuming that these components will be used to define the fixed circuitry that is then customized.
 Design of the fixed circuitry is done with this lock off,
 and then the customization phase is done with this lock on.
@@ -45,14 +47,11 @@ then the <B>Duplicate</B> command (in menu <B>Edit</B>) will place a copy automa
 without allowing the new location to be specified by the cursor.
 <P>
 The check box "Duplicate/Array/Paste copies exports" requests that these node-copying operations also copy their exports.
-This includes the <B>Duplicate</B>, <B>Array</B>, and <B>Paste</B> commands (in menu <B>Edit</B>)
-.
+This includes the <B>Duplicate</B>, <B>Array</B>, and <B>Paste</B> commands (in menu <B>Edit</B>).
 See <A HREF="chap06-04.html#chap06-04">Section 6-4</A> for more on arrays.
-By default, exports are not copied with their nodes.
 <P>
 The check box "Extract copies exports" requests that extraction of cell instances also copy the exports.
 Extraction is done with the <B>Extract Cell Instance</B> command (in menu <B>Cell</B>).
 See <A HREF="chap03-08.html#chap03-08">Section 3-8</A> for more on extraction.
-By default, exports are not copied during extraction.
 
 <!-- TRAILER -->

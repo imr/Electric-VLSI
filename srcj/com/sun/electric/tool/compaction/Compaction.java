@@ -310,13 +310,14 @@ public class Compaction extends Listener
 			// loop through all lines that may compact
 			for(Line curLine = line.nextLine; curLine != null; curLine = curLine.nextLine)
 			{
-				// look at every object in the line that may compact
 				if (curLine.low <= line.low) continue;
 				double bestMotion = DEFAULT_VAL;
-				for(GeomObj curObject = curLine.firstObject; curObject != null; curObject = curObject.nextObject)
+
+				// look at all previous lines
+				for(Line prevLine = curLine.prevLine; prevLine != null; prevLine = prevLine.prevLine)
 				{
-					// look at all previous lines
-					for(Line prevLine = curLine.prevLine; prevLine != null; prevLine = prevLine.prevLine)
+					// look at every object in the line that may compact
+					for(GeomObj curObject = curLine.firstObject; curObject != null; curObject = curObject.nextObject)
 					{
 						// no need to test this line if it is farther than best motion
 						if (bestMotion != DEFAULT_VAL &&
@@ -522,11 +523,13 @@ public class Compaction extends Listener
 			{
 				if (bound1.getMaxY()+dist > bound2.getMinY() && bound1.getMinY()-dist < bound2.getMaxY())
 				{
-					return bound2.getMinX() - bound1.getMaxX() - dist;
+					double spacing = bound2.getMinX() - bound1.getMaxX() - dist;
+					return spacing;
 				}
 			} else if (bound1.getMaxX()+dist > bound2.getMinX() && bound1.getMinX()-dist < bound2.getMaxX())
 			{
-				return bound2.getMinY() - bound1.getMaxY() - dist;
+				double spacing = bound2.getMinY() - bound1.getMaxY() - dist;
+				return spacing;
 			}
 			return DEFAULT_VAL;
 		}

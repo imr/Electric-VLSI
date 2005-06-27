@@ -13,7 +13,7 @@
 <!-- COMMAND View/Make VHDL View -->
 
 When editing one view of a cell,
-there are a set of commands in the <B>View</B> menu that will switch to an alternate view of the same cell.
+there are commands in the <B>View</B> menu that will switch to an alternate view of the same cell.
 <UL>
 <LI>Use <B>Edit Layout View</B> to switch to the layout view.
 <LI>Use <B>Edit Schematic View</B> to switch to the schematic view.
@@ -25,9 +25,9 @@ there are a set of commands in the <B>View</B> menu that will switch to an alter
 For all other view types, use <B>Edit Other View...</B> and select the desired view.
 Note that these commands are equivalent to the <B>Edit Cell...</B> command (in menu <B>Cell</B>) with an appropriate selection.
 <P>
-When editing cells with text-only views, the window becomes a text editor.
+When editing cells with text-only views (VHDL, Documentation, etc.), the window becomes a text editor.
 You may then use the <B>Text Cell Contents...</B> commands (in menu <B>File / Export</B> and <B>File / Import</B>)
-save and restore this text to disk.
+to save and restore this text to disk.
 See <A HREF="chap04-10.html#chap04-10">Section 4-10</A> for more on text editing.
 <P>
 The commands to edit another view work only when that cell exists.
@@ -51,6 +51,10 @@ You must choose a specific layout technology, and the new layout will use compon
 <LI><B>Make VHDL View</B> converts the current layout or schematic into structural VHDL.
 This VHDL is used by the Silicon Compiler (see <A HREF="chap09-12.html#chap09-12">Section 9-12</A>)
 and the ALS simulator (see <A HREF="chap09-05-02.html#chap09-05-02">Section 9-5-2</A>).
+Note that there are 5 schematic primitives which can exist in a normal and negated form ("buffer", "and",
+"or", "xor", and "mux").
+You can choose the names to use for these two forms in the "Schematics" section of the "Technology" preferences
+(in menu <B>File / Preferences...</B>, "Technology" section, "Technology" tab).
 </LI>
 
 </UL>

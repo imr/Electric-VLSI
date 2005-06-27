@@ -23,9 +23,6 @@
  */
 package com.sun.electric;
 
-import com.apple.eawt.Application;
-import com.apple.eawt.ApplicationAdapter;
-import com.apple.eawt.ApplicationEvent;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
@@ -38,9 +35,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.dialogs.PreferencesFrame;
 import com.sun.electric.tool.user.menus.FileMenu;
-import com.sun.electric.tool.user.menus.HelpMenu;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -57,6 +52,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
@@ -115,8 +111,37 @@ public final class Main
 			System.exit(0);
 		}
 
-		// initialize Mac OS 10 if applicable
-		MacOSXInterface.registerMacOSXApplication(argsList);
+		// see if there is a Mac OS/X interface
+		Class osXClass = null;
+		Method osXRegisterMethod = null, osXSetJobMethod = null;
+		if (System.getProperty("os.name").toLowerCase().startsWith("mac"))
+		{
+			try
+			{
+				osXClass = Class.forName("com.sun.electric.MacOSXInterface");
+
+				// find the necessary methods on the Mac OS/X class
+				try
+				{
+					osXRegisterMethod = osXClass.getMethod("registerMacOSXApplication", new Class[] {List.class});
+					osXSetJobMethod = osXClass.getMethod("setInitJob", new Class[] {Job.class});
+				} catch (NoSuchMethodException e)
+				{
+					osXRegisterMethod = osXSetJobMethod = null;
+				}
+				if (osXRegisterMethod != null)
+				{
+					try
+					{
+						osXRegisterMethod.invoke(osXClass, new Object[] {argsList});
+					} catch (Exception e)
+					{
+						System.out.println("Error initializing Mac OS/X interface");
+					}
+				}
+			} catch (ClassNotFoundException e) {}
+		}
+//		MacOSXInterface.registerMacOSXApplication(argsList);
 
 		// -version
 		if (hasCommandLineOption(argsList, "-version"))
@@ -179,7 +204,18 @@ public final class Main
 
 		// initialize database
 		InitDatabase job = new InitDatabase(argsList, sw);
-        MacOSXInterface.adapter.initJob = job;
+		if (osXRegisterMethod != null)
+		{
+			// tell the Mac OS/X system of the initialization job
+			try
+			{
+				osXSetJobMethod.invoke(osXClass, new Object[] {job});
+			} catch (Exception e)
+			{
+				System.out.println("Error initializing Mac OS/X interface");
+			}
+		}
+//        MacOSXInterface.setInitJob(job);
         job.startJob();
 	}
 
@@ -284,7 +320,7 @@ public final class Main
     /** open any libraries specified on the command line.  This method should be 
      * called after any valid options have been parsed out
      */
-    private static void openCommandLineLibs(List argsList)
+    public static void openCommandLineLibs(List argsList)
     {
         List fileURLs = new ArrayList();
         for (int i=0; i<argsList.size(); i++) {
@@ -444,90 +480,5 @@ public final class Main
             ActivityLogger.logThreadMessage(buf.toString());
         }
     }
-
-	/**
-	 * Class for initializing the Macintosh OS X world.
-	 */
-	static class MacOSXInterface extends ApplicationAdapter
-	{
-		private static MacOSXInterface adapter = null;
-		private static Application application = null;
-        private static List argsList; // references to args list to add the file that triggers the opening
-        protected Job initJob;
-
-		private MacOSXInterface (List list)
-        {
-            argsList = list;
-        }
-
-		/**
-		 * Method called when the "About" item is selected in the Macintosh "Electric" menu.
-		 */
-		public void handleAbout(ApplicationEvent ae)
-		{
-			ae.setHandled(true);
-			HelpMenu.aboutCommand();
-		}
-
-		/**
-		 * Method called when the "Preferences" item is selected in the Macintosh "Electric" menu.
-		 */
-		public void handlePreferences(ApplicationEvent ae)
-		{
-			ae.setHandled(true);
-			PreferencesFrame.preferencesCommand();
-		}
-
-		/**
-		 * Method called when the "Quit" item is selected in the Macintosh "Electric" menu.
-		 */
-		public void handleQuit(ApplicationEvent ae)
-		{
-			ae.setHandled(false);
-			FileMenu.quitCommand();
-		}
-
-        public void handleOpenFile(ApplicationEvent ae)
-        {
-            ae.setHandled(true);
-            String filename = ae.getFilename();
-
-            // First open
-            if (initJob == null || !initJob.isFinished())
-            {
-                argsList.add(filename);
-            }
-            else
-            {
-                // Handle the rest of double-clicks on files.
-                List list = new ArrayList(1);
-                list.add(filename);
-                openCommandLineLibs(list);
-            }
-            URL dirUrl = TextUtils.makeURLToFile(filename);
-            String dirString = TextUtils.getFilePath(dirUrl);
-            System.out.println("Aqui " + dirString);
-            User.setWorkingDirectory(dirString);
-        }
-
-		/**
-		 * Method to initialize the Macintosh OS X environment.
-		 */
-		public static void registerMacOSXApplication(List argsList)
-		{
-			// tell it to use the system menubar
-			System.setProperty("com.apple.macos.useScreenMenuBar", "true");
-			System.setProperty("apple.laf.useScreenMenuBar", "true");
-
-			// set the name of the leftmost pulldown menu (under the apple) to "Electric"
-			System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Electric");
-
-			// create Mac objects for handling the "Electric" menu
-			if (application == null) application = new com.apple.eawt.Application();
-			if (adapter == null) adapter = new MacOSXInterface(argsList);
-			application.addApplicationListener(adapter);
-			application.setEnabledPreferencesMenu(true);
-		}
-	} 
 
 }
