@@ -3236,14 +3236,14 @@ public class Quick
         Rectangle2D rect = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
         DRCTemplate rule = DRC.getRules(nty.getTechnology()).getCutRule(nty.getPrimNodeIndexInTech(), DRCTemplate.CUTSIZE, techMode);
         String ruleName = (rule != null) ? rule.ruleName : "for contacts";
-        if (rect.getWidth() > specValues[0])
+        if (DBMath.isGreaterThan(rect.getWidth(), specValues[0]))
         {
             reportError(CUTERROR, "along X", topCell, specValues[0], rect.getWidth(),
                     ruleName, new Poly(rect), geom, layer, null, nGeom, nLayer);
             foundError = true;
 
         }
-        if (rect.getHeight() > specValues[1])
+        if (DBMath.isGreaterThan(rect.getHeight(), specValues[1]))
         {
             reportError(CUTERROR, "along Y", topCell, specValues[1], rect.getHeight(),
                     ruleName, new Poly(rect), geom, layer, null, geom, layer);
