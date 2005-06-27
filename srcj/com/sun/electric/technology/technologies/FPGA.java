@@ -889,6 +889,11 @@ public class FPGA extends Technology
 
 	/******************** TECHNOLOGY CONTROL ********************/
 
+	/**
+	 * Method to read an architecture file and customize the FPGA technology.
+	 * Prompts for a file and reads it.
+	 * @param placeAndWire true to build the primitives and structures; false to simply build the primitives.
+	 */
 	public static void readArchitectureFile(boolean placeAndWire)
 	{
 		if (defined)
@@ -913,6 +918,10 @@ public class FPGA extends Technology
 		new BuildTechnology(lt, placeAndWire);
 	}
 
+	/**
+	 * Method to set the wire display level.
+	 * @param level 0 to show no wires; 1 to show active wires; 2 to show all wires.
+	 */
 	public static void setWireDisplay(int level)
 	{
 		switch (level)
@@ -930,6 +939,10 @@ public class FPGA extends Technology
 		EditWindow.repaintAllContents();
 	}
 
+	/**
+	 * Method to set the text display level.
+	 * @param show true to see text, false to hide text.
+	 */
 	public static void setTextDisplay(boolean show)
 	{
 		if (show) internalDisplay |= TEXTDISPLAY; else
@@ -937,6 +950,9 @@ public class FPGA extends Technology
 		EditWindow.repaintAllContents();
 	}
 
+	/**
+	 * Method to program the currently selected PIPs.
+	 */
 	public static void programPips()
 	{
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame();

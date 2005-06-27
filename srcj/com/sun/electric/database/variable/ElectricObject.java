@@ -1278,6 +1278,10 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 // 		}
     }
 
+	/**
+	 * Method to make sure that this object can be examined.
+	 * Ensures that an examine job is running.
+	 */
     public void checkExamine() {
         if (!isDatabaseObject()) return;
         Job.checkExamine();

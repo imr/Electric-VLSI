@@ -27,11 +27,20 @@ package com.sun.electric.database.geometry;
 import java.awt.geom.Rectangle2D;
 
 /**
- * The intension of this interface is to make transparent transistion between
- * merge structures and the rest of the database classes
+ * The intention of this interface is to make transparent transistion between
+ * merge structures and the rest of the database classes.
  */
 public interface PolyNodeMerge 
 {
+	/**
+	 * Method to get the polygon object.
+	 * @return a PolyBase object.
+	 */
     public PolyBase getPolygon();
+
+	/**
+	 * Method to get the bounds of the poly node.
+	 * @return a Rectangle2D with the bounds.
+	 */
     public Rectangle2D getBounds2D();
 }

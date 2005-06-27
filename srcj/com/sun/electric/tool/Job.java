@@ -822,7 +822,9 @@ public abstract class Job implements ActionListener, Runnable {
         }
     }
 
-
+	/**
+	 * Method to check whether examining of database is allowed.
+	 */
     public static void checkExamine() {
         if (!Main.getDebug()) return;
         if (Main.NOTHREADING) return;
@@ -857,7 +859,8 @@ public abstract class Job implements ActionListener, Runnable {
 	public static Cell getChangingCell() { return changingJob != null ? changingJob.upCell : null; }
 
 	/**
-	 * Routing to check whether changing of whole database allowed or not.
+	 * Method to check whether changing of whole database is allowed.
+	 * Issues an error if it is not.
 	 */
 	public static void checkChanging()
 	{

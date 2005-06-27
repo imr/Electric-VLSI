@@ -550,9 +550,9 @@ public class Technology implements Comparable
     /** Include gate in Resistance calculation */           private Pref prefIncludeGate;
     /** Include ground network in parasitics calculation */ private Pref prefIncludeGnd;
 
-    /** To group elements for palette */                    protected Object[][] nodeGroups;
-	public static final int N_TYPE = 1;
-	public static final int P_TYPE = 0;
+    /** To group elements for the component menu */         protected Object[][] nodeGroups;
+	/** indicates n-type objects. */						public static final int N_TYPE = 1;
+	/** indicates p-type objects. */						public static final int P_TYPE = 0;
 
 	/****************************** CONTROL ******************************/
 
@@ -3078,6 +3078,10 @@ public class Technology implements Comparable
 		return foundries.iterator();
 	}
 
+	/**
+	 * Method to get the foundry associated with this technology.
+	 * @return the foundry associated with this technology.
+	 */
     public int getFoundry()
     {
         String foundryName = getSelectedFoundry();

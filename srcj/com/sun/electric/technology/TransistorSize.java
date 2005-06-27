@@ -35,15 +35,34 @@ public class TransistorSize {
     private final Object length;
     private final Object activeLength; // extension of OD on PO for parasitic calculation
 
+	/**
+	 * Constructor creates a TransistorSize with a given size.
+	 * @param width the width of the TransistorSize.
+	 * @param length the length of the TransistorSize.
+	 * @param activeLen the length of the active area of the TransistorSize.
+	 */
     public TransistorSize(Object width, Object length, Object activeLen) {
         this.width = width;
         this.length = length;
         this.activeLength = activeLen;
     }
+
+	/**
+	 * Method to return the width of this TransistorSize.
+	 * @return the width of this TransistorSize.
+	 */
     public Object getWidth() {return width;}
 
+	/**
+	 * Method to return the length of this TransistorSize.
+	 * @return the length of this TransistorSize.
+	 */
     public Object getLength() {return length; }
 
+	/**
+	 * Method to return the length of the active area of this TransistorSize.
+	 * @return the length of the active area of this TransistorSize.
+	 */
     public Object getActiveLength() {return activeLength; }
 
     /**

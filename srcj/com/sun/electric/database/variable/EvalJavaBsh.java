@@ -213,9 +213,13 @@ public class EvalJavaBsh
 
     //------------------Methods that may be called through Interpreter--------------
 
-    /** Lookup variable for evaluation
-     * @return an evaluated object
-     */
+	/**
+	 * Method to lookup a variable for evaluation.
+	 * Finds that variable 1 level up the hierarchy.
+	 * @param name the name of the variable to find.
+	 * @return the value of the variable (null if not found).
+	 * @throws VarContext.EvalException
+	 */
     public synchronized Object P(String name) throws VarContext.EvalException {
         VarContext context = (VarContext)contextStack.peek();
         Object val = context.lookupVarEval(name);
@@ -223,6 +227,13 @@ public class EvalJavaBsh
         return val;
     }
 
+	/**
+	 * Method to lookup a variable for evaluation.
+	 * Finds that variable anywhere up the hierarchy.
+	 * @param name the name of the variable to find.
+	 * @return the value of the variable (null if not found).
+	 * @throws VarContext.EvalException
+	 */
     public synchronized Object PAR(String name) throws VarContext.EvalException {
         VarContext context = (VarContext)contextStack.peek();
         Object val = context.lookupVarFarEval(name);

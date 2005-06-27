@@ -392,6 +392,13 @@ public class PolyMerge
 		return getAreaPoints(area, layer, simple);
 	}
    
+	/**
+	 * Method to return a list of polygons in this merge for a given layer.
+	 * @param area the Area object that describes the merge.
+	 * @param layer the desired Layer.
+	 * @param simple true for simple polygons, false to allow complex ones.
+	 * @return a List of PolyBase objects that describes the layer in the merge.
+	 */
     public static List getAreaPoints(Area area, Layer layer, boolean simple)
     {
 		List polyList = new ArrayList();

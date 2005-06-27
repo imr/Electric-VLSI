@@ -2210,5 +2210,10 @@ public class PolyBase implements Shape, PolyNodeMerge
     }
 
     //------------------------------- PolyMerge Interface -------------------------------
+
+	/**
+	 * Method to satisfy the PolyMerge interface by return the polygon (this object).
+	 * @return this object.
+	 */
     public PolyBase getPolygon() {return this;}
 }

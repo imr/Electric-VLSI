@@ -4024,6 +4024,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
         }
 	}
 
+	/**
+	 * Method to fill a set with any nodes in this Cell that refer to an external library.
+	 * @param elib the external library being considered.
+	 * @param set the set being filled.
+	 * @return true if anything was added to the set.
+	 */
 	public boolean findReferenceInCell(Library elib, Set set)
 	{
 		// Stop recursive search here

@@ -210,6 +210,11 @@ public class EGraphics extends Observable
 			System.out.println("Graphics color bad: (" + red + "," + green + "," + blue + ")");
 		}
 	}
+
+	/**
+	 * Method to return the Layer associated with this EGraphics.
+	 * @return the Layer associated with this EGraphics.
+	 */
 	public Layer getLayer() { return layer; }
 
 	/**

@@ -372,9 +372,8 @@ public abstract class TextDescriptor implements Serializable
 	 */
 	public static class Size
 	{
-		// text size information
-		public static final int TXTMAXPOINTS =       63;
-		public static final double TXTMAXQGRID =    127.75;
+		/** The maximum size of text (in points). */		public static final int    TXTMAXPOINTS =  63;
+		/** The maximum size of text (in grid units). */	public static final double TXTMAXQGRID  = 127.75;
 		/*private*/ static final int TXTQGRIDSH =          6;		
 
 		private final boolean absolute;
@@ -699,13 +698,29 @@ public abstract class TextDescriptor implements Serializable
             allCodes.add(this);
         }
 
+		/**
+		 * Method to return the bits value of this code type.
+		 * This is used in I/O.
+		 * @return the bits value of this code type.
+		 */
         public int getCFlags() { return cFlags; }
-        
+
+		/**
+		 * Method to return a printable version of this Code.
+		 * @return a printable version of this Code.
+		 */
         public String toString() { return name; }
 
-        /** Get an iterator over all Code types */
+        /**
+         * Method to get an iterator over all Code types.
+         */
         public static Iterator getCodes() { return Collections.unmodifiableList(allCodes).iterator(); }
 
+		/**
+		 * Method to convert a bits value to a Code object.
+		 * @param cBits the bits value (from I/O).
+		 * @return the Code associated with those bits.
+		 */
         public static Code getByCBits(int cBits)
         {
             switch (cBits & (VCODE1|VCODE2))
@@ -717,10 +732,10 @@ public abstract class TextDescriptor implements Serializable
             }
         }
         
-        public static final Code JAVA = new Code("Java", VJAVA);
-        public static final Code LISP = new Code("Lisp (not avail.)", VLISP);
-        public static final Code TCL = new Code("TCL (not avail.)", VTCL);
-        public static final Code NONE = new Code("Not Code", 0);
+        /** Indicator that code is in Java. */	public static final Code JAVA = new Code("Java", VJAVA);
+		/** Indicator that code is in Lisp. */	public static final Code LISP = new Code("Lisp (not avail.)", VLISP);
+		/** Indicator that code is in TCL. */	public static final Code TCL = new Code("TCL (not avail.)", VTCL);
+		/** Indicator that this is not code. */	public static final Code NONE = new Code("Not Code", 0);
     }
 
 	/**

@@ -299,7 +299,13 @@ public class Tool implements Comparable
 	{
 		return "Tool '" + toolName + "'";
 	}
-    
+
+	/**
+	 * Method to set a variable on an ElectricObject in a new Job.
+	 * @param obj the ElectricObject on which to set the variable.
+	 * @param key the Variable key.
+	 * @param newVal the new value of the Variable.
+	 */
 	public void setVarInJob(ElectricObject obj, Variable.Key key, Object newVal)
 	{
 		SetVarJob job = new SetVarJob(this, obj, key, newVal);

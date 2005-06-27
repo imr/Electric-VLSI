@@ -214,6 +214,10 @@ public class Network
 		return arcs.iterator();
 	}
 
+	/**
+	 * Method to tell whether this network has any exports on it.
+	 * @return true if there are exports on this Network.
+	 */
     public boolean isExported() { return (exportedNames.size() > 0); }
 
 	/**

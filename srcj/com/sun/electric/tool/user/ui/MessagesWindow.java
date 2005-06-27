@@ -114,6 +114,7 @@ public class MessagesWindow
 			jf = jFrame;
 			jFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 			contentFrame = jFrame.getContentPane();
+			jFrame.setIconImage(TopLevel.getFrameIcon().getImage());
 		}
 		contentFrame.setLayout(new BorderLayout());
 		history = new ArrayList();

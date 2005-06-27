@@ -118,6 +118,12 @@ public class GenMath
 		count.setValue(count.intValue() + c);
 	}
 
+	/**
+	 * Method to return the a value at a location in a collection.
+	 * @param bag the collection (a Map).
+	 * @param key a key to an entry in the collection.
+	 * @return the value at that key.
+	 */
 	public static int countInBag(Map/*<Object,MutableInteger>*/ bag, Object key)
 	{
 		MutableInteger count = (MutableInteger)bag.get(key);
@@ -1063,6 +1069,15 @@ public class GenMath
 		}
 	}
 
+	/**
+	 * Method to clip a polygon against a rectangular region.
+	 * @param points an array of points that define the polygon.
+	 * @param lx the low X bound of the clipping region.
+	 * @param hx the high X bound of the clipping region.
+	 * @param ly the low Y bound of the clipping region.
+	 * @param hy the high Y bound of the clipping region.
+	 * @return an array of Points that are clipped to the region.
+	 */
 	public static Point [] clipPoly(Point [] points, int lx, int hx, int ly, int hy)
 	{
 		// see if any points are outside

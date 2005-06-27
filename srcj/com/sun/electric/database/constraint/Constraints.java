@@ -47,7 +47,16 @@ public class Constraints implements Changes
 {
 	private static Constraints curConstraint = new Constraints();
 
+	/**
+	 * Method to set a new current constraint system.
+	 * @param con the constraint system to become the current one.
+	 */
 	public static void setCurrent(Constraints con) { curConstraint = con; }
+
+	/**
+	 * Method to return the current constraint system.
+	 * return the current constraint system.
+	 */
 	public static Constraints getCurrent() { return curConstraint; }
 
 	/**

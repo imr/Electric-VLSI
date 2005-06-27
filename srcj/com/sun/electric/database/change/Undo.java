@@ -723,6 +723,10 @@ public class Undo
 			return false;
 		}
 
+		/**
+		 * Returns a printable version of this Change.
+		 * @return a printable version of this Change.
+		 */
 		public String toString() { return describe(); }
 
 		/**
@@ -1172,8 +1176,18 @@ public class Undo
 		}
 	}
 
+	/**
+	 * Method to tell whether undo can be done.
+	 * This is used by the tool bar to determine whether the undo button should be available.
+	 * @return true if undo can be done.
+	 */
 	public static synchronized boolean getUndoEnabled() { return undoEnabled; }
 
+	/**
+	 * Method to tell whether redo can be done.
+	 * This is used by the tool bar to determine whether the undo button should be available.
+	 * @return true if redo can be done.
+	 */
 	public static synchronized boolean getRedoEnabled() { return redoEnabled; }
 
 	private static class PropertyChangeThread implements Runnable
@@ -1593,6 +1607,10 @@ public class Undo
 		Constraints.getCurrent().deleteVariable(obj, var, index, oldValue);
 	}
 
+	/**
+	 * Method to schedule an 'other' change on an ElectricObject.
+	 * @param obj the ElectricObject on which the miscellaneous change is being made.
+	 */
     public static void otherChange(ElectricObject obj)
     {
         if (!recordChange()) return;

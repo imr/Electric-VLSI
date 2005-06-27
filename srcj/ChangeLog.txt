@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/27/05, SMR) SDI mode doesn't show icons on messages window.
+FIX: Added icon in SDI mode.
+
 BUG: (06/27/05, SMR) Editing alternate views doesn't warn if the view is missing.
 FIX: Fixed code in ViewMenu.java.
 

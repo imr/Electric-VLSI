@@ -81,6 +81,9 @@ public class NetworkTool extends Listener
 		}
 	}
 
+	/**
+	 * Method to renumber the netlists.
+	 */
 	public static void renumberNetlists()
 	{
 		new RenumberJob();
@@ -306,10 +309,10 @@ public class NetworkTool extends Listener
     /**
      * Method to retrieve all networks for a portInst.
      * Used by Highlighter and Connection
-     * @param pi
-     * @param netlist
-     * @param nets
-     * @return set of networks
+     * @param pi the PortInst being considered.
+     * @param netlist the netlist being searched.
+     * @param nets a set into which all found networks will be added.
+     * @return set the set of found networks.
      */
     public static Set getNetworksOnPort(PortInst pi, Netlist netlist, Set nets)
     {
@@ -339,6 +342,13 @@ public class NetworkTool extends Listener
         return nets;
     }
 
+    /**
+     * Method to retrieve all networks on a Geometric object.
+     * @param geom the Geometric being considered.
+     * @param netlist the netlist being searched.
+     * @param nets a set into which all found networks will be added.
+     * @return set the set of found networks.
+     */
     public static Set getNetworks(Geometric geom, Netlist netlist, Set nets)
     {
         if (nets == null) nets = new HashSet();

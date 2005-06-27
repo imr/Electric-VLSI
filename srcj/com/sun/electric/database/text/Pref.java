@@ -203,8 +203,8 @@ public class Pref
 	private   int         type;
 	private   Preferences prefs;
 	private   Meaning     meaning;
-	protected Object      cachedObj;
-	protected Object      factoryObj;
+	private   Object      cachedObj;
+	private   Object      factoryObj;
 
 	private static List allPrefs = new ArrayList();
 	private static Map meaningVariablesThatChanged;
@@ -214,6 +214,10 @@ public class Pref
 	 */
 	protected Pref() {}
 
+	/**
+	 * Method to import the preferences from an XML file.
+	 * Prompts the user and reads the file.
+	 */
 	public static void importPrefs()
 	{
 		// prompt for the XML file
@@ -223,7 +227,7 @@ public class Pref
         importPrefs(fileName);
     }
 
-    public static void importPrefs(String fileName)
+    private static void importPrefs(String fileName)
     {
         if (fileName == null) return;
         // import preferences
@@ -310,6 +314,10 @@ public class Pref
 		System.out.println("...preferences imported from " + fileName);
 	}
 
+	/**
+	 * Method to export the preferences to an XML file.
+	 * Prompts the user and writes the file.
+	 */
 	public static void exportPrefs()
 	{
 		// prompt for the XML file
@@ -319,7 +327,11 @@ public class Pref
         exportPrefs(fileName);
     }
 
-    public static void exportPrefs(String fileName)
+	/**
+	 * Method to export the preferences to an XML file.
+	 * @param fileName the file to write.
+	 */
+    private static void exportPrefs(String fileName)
     {
         if (fileName == null) return;
 

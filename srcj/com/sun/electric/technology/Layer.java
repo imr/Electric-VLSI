@@ -629,6 +629,13 @@ public class Layer
 		return pref;
 	}
 
+	/**
+	 * Method to get a boolean preference for this Layer and a specific purpose.
+	 * @param what the purpose of the preference.
+	 * @param map a Map of preferences for the purpose.
+	 * @param factory the factory default value for this Layer/purpose.
+	 * @return the boolean Pref object for this Layer/purpose.
+	 */
     public Pref getBooleanPref(String what, HashMap map, boolean factory)
 	{
 		Pref pref = (Pref)map.get(this);
@@ -640,6 +647,13 @@ public class Layer
 		return pref;
 	}
 
+	/**
+	 * Method to get a double-precision preference for this Layer and a specific purpose.
+	 * @param what the purpose of the preference.
+	 * @param map a Map of preferences for the purpose.
+	 * @param factory the factory default value for this Layer/purpose.
+	 * @return the double-precision Pref object for this Layer/purpose.
+	 */
 	public Pref getDoublePref(String what, HashMap map, double factory)
 	{
 		Pref pref = (Pref)map.get(this);
@@ -651,6 +665,13 @@ public class Layer
 		return pref;
 	}
 
+	/**
+	 * Method to get an integer preference for this Layer and a specific purpose.
+	 * @param what the purpose of the preference.
+	 * @param map a Map of preferences for the purpose.
+	 * @param factory the factory default value for this Layer/purpose.
+	 * @return the integer Pref object for this Layer/purpose.
+	 */
 	public Pref getIntegerPref(String what, HashMap map, int factory)
 	{
 		Pref pref = (Pref)map.get(this);

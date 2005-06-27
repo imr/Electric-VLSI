@@ -2772,6 +2772,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 				return true;
 		return false;
 	}
+
+	/**
+	 * Method to tell whether this NodeInst is a bipolar transistor.
+	 * This includes NPN and PNP transistors.
+	 * @return true if this NodeInst is a bipolar transtor.
+	 */
 	public boolean isBipolar() {
 		PrimitiveNode.Function fun = getFunction();
 		return fun==PrimitiveNode.Function.TRANPN || fun==PrimitiveNode.Function.TRA4NPN || 
@@ -2820,6 +2826,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable
         Schematics.tech.setTransistorSize(this, width, length);
     }
 
+	/**
+	 * Method to return the length of this serpentine transistor.
+	 * @return the transistor's length
+	 * Returns -1 if this is not a serpentine transistor, or if the length cannot be found.
+	 */
 	public double getSerpentineTransistorLength()
 	{
 		Variable var = getVar(TRANSISTOR_LENGTH_KEY);
@@ -2841,6 +2852,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		return -1;
 	}
 
+	/**
+	 * Method to store a length value on this serpentine transistor.
+	 * @param length the new length of the transistor.
+	 */
     public void setSerpentineTransistorLength(double length)
     {
         updateVar(TRANSISTOR_LENGTH_KEY, new Double(length));
@@ -2872,15 +2887,32 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		return np.getTechnology().getTransistorSourcePort(this);
     }
 
-    public PortInst getTransistorEmitterPort() {
+	/**
+	 * Method to return the emitter port of this transistor.
+	 * @return the PortInst of the emitter (presuming that this node is that kind of transistor).
+	 */
+    public PortInst getTransistorEmitterPort()
+	{
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getTransistorEmitterPort(this);
     }
-    public PortInst getTransistorBasePort() {
+
+	/**
+	 * Method to return the base port of this transistor.
+	 * @return the PortInst of the base (presuming that this node is that kind of transistor).
+	 */
+    public PortInst getTransistorBasePort()
+	{
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getTransistorBasePort(this);
     }
-    public PortInst getTransistorCollectorPort() {
+
+	/**
+	 * Method to return the collector port of this transistor.
+	 * @return the PortInst of the collector (presuming that this node is that kind of transistor).
+	 */
+    public PortInst getTransistorCollectorPort()
+	{
 		PrimitiveNode np = (PrimitiveNode)protoType;
 		return np.getTechnology().getTransistorCollectorPort(this);
     }

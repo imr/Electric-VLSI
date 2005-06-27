@@ -66,16 +66,17 @@ import java.util.Iterator;
  */
 public class Export extends ElectricObject implements PortProto, Comparable
 {
-	/** special name for text descriptor of export name */	public static final String EXPORT_NAME_TD = new String("EXPORT_name");
+	/** Special name for text descriptor of export name */	public static final String EXPORT_NAME_TD = new String("EXPORT_name");
 
-	/** key of Varible holding reference name. */			public static final Variable.Key EXPORT_REFERENCE_NAME = ElectricObject.newKey("EXPORT_reference_name");
+	/** Key of Varible holding reference name. */			public static final Variable.Key EXPORT_REFERENCE_NAME = ElectricObject.newKey("EXPORT_reference_name");
 
 	/** set if this port should always be drawn */			private static final int PORTDRAWN =         0400000000;
 	/** set to exclude this port from the icon */			private static final int BODYONLY =         01000000000;
 	/** input/output/power/ground/clock state */			private static final int STATEBITS =       036000000000;
 	/** input/output/power/ground/clock state */			private static final int STATEBITSSHIFTED =         036;
 	/** input/output/power/ground/clock state */			private static final int STATEBITSSH =               27;
-	public static final int EXPORT_BITS = PORTDRAWN | BODYONLY | STATEBITS;
+
+	/** a collection of state bits that are important */	private static final int EXPORT_BITS = PORTDRAWN | BODYONLY | STATEBITS;
 
 	// -------------------------- private data ---------------------------
 	/** The name of this Export. */							private Name name;
