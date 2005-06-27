@@ -604,8 +604,6 @@ public class DesignRulesPanel extends JPanel
     private void initComponents() {//GEN-BEGIN:initComponents
         java.awt.GridBagConstraints gridBagConstraints;
 
-        drNormalUnconnectedRule = new javax.swing.JTextField();
-        jPanel1 = new javax.swing.JPanel();
         bottom = new javax.swing.JPanel();
         drMultiUnconnectedRule = new javax.swing.JTextField();
         drMultiUnconnected = new javax.swing.JTextField();
@@ -658,6 +656,7 @@ public class DesignRulesPanel extends JPanel
         drLayerEALabel = new javax.swing.JLabel();
         drLayerEAreaRule = new javax.swing.JTextField();
         drLayerEnclosure = new javax.swing.JTextField();
+        drNormalUnconnectedRule = new javax.swing.JTextField();
         top = new javax.swing.JPanel();
         drNodeList = new javax.swing.JScrollPane();
         jLabel4 = new javax.swing.JLabel();
@@ -668,14 +667,13 @@ public class DesignRulesPanel extends JPanel
         drNodeRule = new javax.swing.JTextField();
         drNodeHeight = new javax.swing.JTextField();
 
-        drNormalUnconnectedRule.setColumns(9);
+        setLayout(new java.awt.GridBagLayout());
 
-        setLayout(new java.awt.BorderLayout());
-
+        setBorder(new javax.swing.border.TitledBorder(""));
+        setAlignmentX(0.0F);
+        setAlignmentY(0.0F);
         setMinimumSize(new java.awt.Dimension(600, 700));
         setPreferredSize(new java.awt.Dimension(449, 800));
-        jPanel1.setLayout(new java.awt.GridBagLayout());
-
         bottom.setLayout(new java.awt.GridBagLayout());
 
         bottom.setBorder(new javax.swing.border.TitledBorder("Layer Rules"));
@@ -1099,18 +1097,26 @@ public class DesignRulesPanel extends JPanel
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 0);
         bottom.add(drLayerEnclosure, gridBagConstraints);
 
+        drNormalUnconnectedRule.setColumns(9);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 4;
+        gridBagConstraints.gridy = 8;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        bottom.add(drNormalUnconnectedRule, gridBagConstraints);
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.gridheight = 20;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(bottom, gridBagConstraints);
+        add(bottom, gridBagConstraints);
 
         top.setLayout(new java.awt.GridBagLayout());
 
         top.setBorder(new javax.swing.border.TitledBorder("Node Rules"));
+        top.setAlignmentX(0.0F);
+        top.setAlignmentY(0.0F);
         drNodeList.setOpaque(false);
         drNodeList.setPreferredSize(new java.awt.Dimension(200, 100));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -1180,12 +1186,9 @@ public class DesignRulesPanel extends JPanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.gridheight = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        jPanel1.add(top, gridBagConstraints);
-
-        add(jPanel1, java.awt.BorderLayout.CENTER);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
+        add(top, gridBagConstraints);
 
     }//GEN-END:initComponents
 
@@ -1267,7 +1270,6 @@ public class DesignRulesPanel extends JPanel
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel multiCutNameLabel;
     private javax.swing.JLabel multiCutRuleLabel;
     private javax.swing.JLabel multiCutValueLabel;

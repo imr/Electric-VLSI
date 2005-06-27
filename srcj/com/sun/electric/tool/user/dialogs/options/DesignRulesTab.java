@@ -73,7 +73,7 @@ public class DesignRulesTab extends PreferencePanel
 		DRCRules rules = DRC.getRules(curTech);
 		if (rules == null) //|| !(rules instanceof MOSRules))
 		{
-			drTechName.setText("Technology " + curTech.getTechName() + " HAS NO DESIGN RULES");
+//			drTechName.setText("Technology " + curTech.getTechName() + " HAS NO DESIGN RULES");
 			factoryReset.setEnabled(false);
 			return;
 		}
@@ -84,13 +84,14 @@ public class DesignRulesTab extends PreferencePanel
         JPanel rulesPanel = new DesignRulesPanel(curTech, foundry, drRules);
         GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 4;
         gridBagConstraints.gridheight = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 0, 0);
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         designRules.add(rulesPanel, gridBagConstraints);
+
 
 		factoryReset.addActionListener(new ActionListener()
 		{
@@ -98,7 +99,9 @@ public class DesignRulesTab extends PreferencePanel
 		});
 
 		// load the dialog
-		drTechName.setText("Design Rules for Technology '" + curTech.getTechName() + "'");
+        String text = "Design Rules for Technology '" + curTech.getTechName() + "'";
+//		drTechName.setText(text);
+        designRules.setBorder(new javax.swing.border.TitledBorder(text));
 
         // Foundry
         String selectedFoundry = curTech.getSelectedFoundry();
@@ -157,7 +160,6 @@ public class DesignRulesTab extends PreferencePanel
         java.awt.GridBagConstraints gridBagConstraints;
 
         designRules = new javax.swing.JPanel();
-        drTechName = new javax.swing.JLabel();
         defaultFoundryLabel = new javax.swing.JLabel();
         defaultFoundryPulldown = new javax.swing.JComboBox();
         drResolutionLabel = new javax.swing.JLabel();
@@ -165,7 +167,7 @@ public class DesignRulesTab extends PreferencePanel
         jLabel6 = new javax.swing.JLabel();
         factoryReset = new javax.swing.JButton();
 
-        getContentPane().setLayout(new java.awt.GridBagLayout());
+        getContentPane().setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT));
 
         setTitle("Tool Options");
         setName("");
@@ -177,28 +179,18 @@ public class DesignRulesTab extends PreferencePanel
 
         designRules.setLayout(new java.awt.GridBagLayout());
 
-        drTechName.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 4;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.weightx = 0.5;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        designRules.add(drTechName, gridBagConstraints);
-
+        designRules.setBorder(new javax.swing.border.TitledBorder(""));
         defaultFoundryLabel.setText("Foundry:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(defaultFoundryLabel, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
@@ -208,7 +200,7 @@ public class DesignRulesTab extends PreferencePanel
         drResolutionLabel.setText("Min. resolution:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(drResolutionLabel, gridBagConstraints);
@@ -216,7 +208,7 @@ public class DesignRulesTab extends PreferencePanel
         drResolutionValue.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(drResolutionValue, gridBagConstraints);
@@ -224,7 +216,7 @@ public class DesignRulesTab extends PreferencePanel
         jLabel6.setText("(use 0 to ignore resolution check)");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(jLabel6, gridBagConstraints);
@@ -232,12 +224,12 @@ public class DesignRulesTab extends PreferencePanel
         factoryReset.setText("Factory Reset");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.gridheight = 2;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         designRules.add(factoryReset, gridBagConstraints);
 
-        getContentPane().add(designRules, new java.awt.GridBagConstraints());
+        getContentPane().add(designRules);
 
         pack();
     }//GEN-END:initComponents
@@ -255,7 +247,6 @@ public class DesignRulesTab extends PreferencePanel
     private javax.swing.JPanel designRules;
     private javax.swing.JLabel drResolutionLabel;
     private javax.swing.JTextField drResolutionValue;
-    private javax.swing.JLabel drTechName;
     private javax.swing.JButton factoryReset;
     private javax.swing.JLabel jLabel6;
     // End of variables declaration//GEN-END:variables
