@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/27/05, DN) ELIB reader reads incorrecly schematic cell with layout subcell (Bug #405).
+FIX: In ELIB.spreadLambda fix lambda only in icon subcells of schematic cells.
+
 IMP: (06/24/05, GVG) Refactoring DesignRulesTab to re-use part of the dialog in TechEdit.
 
 IMP: (06/24/05, SMR) Added Javadoc comments.

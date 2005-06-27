@@ -1122,7 +1122,7 @@ public class ELIB extends LibraryFiles
 //				continue;
 //			}
 			double subLambda = reader.cellLambda[subCellIndex];
-			if (subLambda < thisLambda)
+			if (subLambda < thisLambda && cell.isSchematic() && subCell.isIcon())
 			{
 				reader.cellLambda[subCellIndex] = thisLambda;
 				changed = true;
