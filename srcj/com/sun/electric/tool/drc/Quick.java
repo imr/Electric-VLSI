@@ -1225,7 +1225,7 @@ public class Quick
 		{
 			Geometric nGeom = (Geometric)it.next();
             // I have to check if they are the same instance otherwise I check geometry against itself
-            if (nGeom == geom && (sameInstance || nGeom.getParent() == cell))
+            if (nGeom == geom && (sameInstance))// || nGeom.getParent() == cell))
             {
 //                if (!sameInstance)
 //                    System.out.println("DRC: this is a new case, bug 352");
@@ -1312,6 +1312,15 @@ public class Quick
 
                         // Checking extension, it could be slow
                         boolean ret = checkExtensionGateRule(geom, layer, poly, nLayer, npoly, netlist);
+                        if (ret)
+                        {
+                            foundError = true;
+                            if (errorTypeSearch != DRC.ERROR_CHECK_EXHAUSTIVE) return true;
+                        }
+
+                        // check if both polys are cut and if the combine area doesn't excess cut sizes
+                        // regardless if they are connected or not
+                        ret = checkCutSizes(np, geom, layer, poly, nGeom, nLayer, npoly, topCell);
                         if (ret)
                         {
                             foundError = true;
@@ -3192,6 +3201,56 @@ public class Quick
 		}
 		return false;
 	}
+//    checkCutSizes
+
+    /****************************** Cut Rule Functions ***************************/
+    private boolean checkCutSizes(NodeProto np, Geometric geom, Layer layer, Poly poly,
+                                  Geometric nGeom, Layer nLayer, Poly nPoly, Cell topCell)
+    {
+        if (!Main.LOCALDEBUGFLAG) return false; // not ready yet
+        // None of them is cut
+        if (!(np instanceof PrimitiveNode) || layer != nLayer ||
+                !layer.getFunction().isContact() || !nLayer.getFunction().isContact())
+            return false;
+
+        PrimitiveNode nty = (PrimitiveNode)np;
+        double[] specValues = nty.getSpecialValues();
+        // 0 and 1 hold CUTSIZE
+        if (specValues == null) return false; // no values
+
+        Rectangle2D box1 = poly.getBounds2D();
+        Rectangle2D box2 = nPoly.getBounds2D();
+
+
+        double pdx = Math.max(box2.getMinX()-box1.getMaxX(), box1.getMinX()-box2.getMaxX());
+        double pdy = Math.max(box2.getMinY()-box1.getMaxY(), box1.getMinY()-box2.getMaxY());
+        double pd = Math.max(pdx, pdy);
+        if (pdx == 0 && pdy == 0) pd = 0; // touching
+
+        // They have to overlap
+		if (pd > 0) return false;
+        boolean foundError = false;
+        double minX = Math.min(box1.getMinX(), box2.getMinX());
+        double minY = Math.min(box1.getMinY(), box2.getMinY());
+        double maxX = Math.max(box1.getMaxX(), box2.getMaxX());
+        double maxY = Math.max(box1.getMaxY(), box2.getMaxY());
+        Rectangle2D rect = new Rectangle2D.Double(minX, minY, maxX, maxY);
+        if (rect.getWidth() > specValues[0]) // || rect.getHeight() > rule.value1)
+        {
+            reportError(MINWIDTHERROR, "cut case X", topCell, specValues[0], rect.getWidth(),
+                    "<name rule>", new Poly(rect), geom, layer, null, nGeom, nLayer);
+            foundError = true;
+
+        }
+        if (rect.getHeight() > specValues[1]) // || rect.getHeight() > rule.value1)
+        {
+            reportError(MINWIDTHERROR, "cut case Y", topCell, specValues[1], rect.getHeight(),
+                    "<rule name>", new Poly(rect), geom, layer, null, geom, layer);
+            foundError = true;
+
+        }
+        return foundError;
+    }
 
     /****************************** Extension Rule Functions ***************************/
     private boolean checkExtensionGateRule(Geometric geom, Layer layer, Poly poly, Layer nLayer,

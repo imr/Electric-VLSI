@@ -52,43 +52,4 @@ public interface DRCRules
     void deleteRule(int index, DRCTemplate rule);
     void setSpacingRules(int index, List newRules, int spacingCase);
     boolean doesAllowMultipleWideRules(int index);
-    /********************* For information with DRC tool ******************/
-//    public static class DRCRule1
-//	{
-//		public double value;
-//        public double maxWidth;   // for spacing wire rules
-//        public double minLength; // for spacing wire rules
-//		public String ruleName;
-//		public int type;
-//
-//        // For interface with DRC tool
-//		public DRCRule1(double distance, String rule, int type)
-//		{
-//			this.value = distance;
-//			this.ruleName = rule;
-//            this.type = type;
-//		}
-//
-//        public DRCRule1(String rule, double distance, double maxW, double maxL, int type)
-//        {
-//			this.value = distance;
-//            this.maxWidth = maxW;
-//            this.minLength = maxL;
-//			this.ruleName = rule;
-//            this.type = type;
-//        }
-//	}
-//    public static class DRCNodeRule extends DRCRule1
-//    {
-//        public double height; // distance in DRCRule class will store width
-//        public DRCNodeRule(double width, double height, String rule, int type)
-//        {
-//            super(width, rule, type);
-//            this.height = height;
-//        }
-//        public double getWidth() {return value;}
-//        public void setWidth(double w) {value = w;}
-//        public double getHeight() {return height;}
-//        public void setHeight(double h) {height = h;}
-//    }
 }
