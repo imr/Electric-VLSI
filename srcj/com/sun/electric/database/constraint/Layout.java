@@ -131,7 +131,6 @@ public class Layout extends Constraints
 // 			boolean forcedLook = cc.getForcedLook();
 // 			computeCell(cell, forcedLook);
 		}
-
 		deletedArcs = null;
 
 		// clear all change objects
@@ -506,7 +505,6 @@ public class Layout extends Constraints
 
 			// include in the list to be considered here
             rigidArcs.add(con);
-//			rigidArcs.add(ai);
 		}
 		if (rigidArcs.size() == 0) return false;
 
@@ -520,7 +518,6 @@ public class Layout extends Constraints
 		{
             Connection thisEnd = (Connection)it.next();
             ArcInst ai = thisEnd.getArc();
-//            ArcInst ai = (ArcInst)it.next();
 			if (deletedArcs.contains(ai)) continue;
 //			ai.clearRigidModified();
 			if (DEBUG) System.out.println("  From " + ni + " Modifying Rigid "+ai);
@@ -880,7 +877,6 @@ public class Layout extends Constraints
 					doMoveArcInst(ai, newPts[ArcInst.HEADEND], newPts[ArcInst.TAILEND], 1);
 					if (!DBMath.doublesEqual(dy, ody))
 					{
-//System.out.println("Flex modified "+ono);
 						if (modNodeArcs(ono, 0, 0, 0, false, false)) examineCell = true;
 					}
 					continue;

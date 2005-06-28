@@ -40,6 +40,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.FPGA;
+import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.Clipboard;
@@ -886,6 +887,9 @@ public class EditMenu {
 		for(Iterator it = curCell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
+
+			// "select all" should not include the cell-center
+			if (ni.getProto() == Generic.tech.cellCenterNode && !mustBeEasy && !mustBeHard) continue;
 			boolean hard = ni.isHardSelect();
 			if ((ni.getProto() instanceof Cell) && cellsAreHard) hard = true;
 			if (mustBeEasy && hard) continue;
@@ -914,6 +918,7 @@ public class EditMenu {
 			if (mustBeHard && !hard) continue;
 			highlighter.addElectricObject(ai, curCell);
 		}
+
 		// Selecting annotations
 		for(Iterator it = curCell.getVariables(); it.hasNext(); )
 		{

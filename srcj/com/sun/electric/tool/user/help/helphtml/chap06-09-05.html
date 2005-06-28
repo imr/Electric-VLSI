@@ -35,12 +35,12 @@ a Global Partition node, and exported (as "vddR").
 The icon has an extra connection for this power tap.
 </TD><TD><CENTER><IMG SRC="fig06-20.png" ALT="Figure 6.20"></CENTER></TD></TR></TABLE>
 <P>
-<TABLE><TR><TD><CENTER><IMG SRC="fig06-21.png" ALT="Figure 6.21"></CENTER></TD><TD>
 In normal use, the extra connections created by the Global Partition nodes do not need to be wired up,
 because they connect to globals, and their connectivity is understood.
 If, however, the extra exports <I>are</I> wired, it means that the signal inside of the cell is disconnected from the global,
 and connected instead to that wire.
 <P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig06-21.png" ALT="Figure 6.21"></CENTER></TD><TD>
 In the example here, two "invR" icons are placed, but one of them has its "vddR" connection wired (to a different power source).
 The subcircuit for the rightmost icon will not use the global power signal, but will instead use the attached signal, "vddInv".
 </TD></TR></TABLE>

@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/27/05, SMR) "Select all" should not select the cell center because
+     it is never desired, and often causes unexpected results.
+FIX: Disallow selection of cell center in "select all".
+
+BUG: (06/27/05, SMR) Grid doesn't display when editing down-in-place (Bug #411).
+FIX: Fixed grid code to handle in-place orientation.
+
 IMP: (06/28/05, GVG) Pref.exportPrefs(String fileName) public againt due to the regressions.
 Menu name change: new: Window->3D Window-> 3D View, old:Window->3D View->3D Window
 
@@ -30,51 +37,63 @@ FIX: Fixed code in ViewMenu.java.
 BUG: (06/25/05, SMR) Compactor doesn't compact properly.
 FIX: In PolyBase.getBox(), allow "CROSSED" polygons to be boxes.
 
-BUG: (06/27/05, DN) ELIB reader reads incorrecly schematic cell with layout subcell (Bug #405).
+BUG: (06/27/05, DN) ELIB reader reads incorrecly schematic cell with layout
+     subcell (Bug #405).
 FIX: In ELIB.spreadLambda fix lambda only in icon subcells of schematic cells.
 
-IMP: (06/24/05, GVG) Refactoring DesignRulesTab to re-use part of the dialog in TechEdit.
+IMP: (06/24/05, GVG) Refactoring DesignRulesTab to re-use part of the dialog in
+     TechEdit.
 
 IMP: (06/24/05, SMR) Added Javadoc comments.
 
-IMP: (06/24/05, SMR) Changes to the technology in the "layers" tab of the side bar changes it everywhere.
+IMP: (06/24/05, SMR) Changes to the technology in the "layers" tab of the side
+     bar changes it everywhere.
 
-IMP: (06/24/05, SMR) Redid "Node Properties" dialog to remove unneeded controls at bottom.
+IMP: (06/24/05, SMR) Redid "Node Properties" dialog to remove unneeded controls
+     at bottom.
 
-IMP: (06/24/05, GVG) Getting rid of those WARNING (312) and WARNING (408) introduced by latest changes in output/GDS
-(when layer numbers were introduced). This causes failures in regressions (increment in number of errors).
+IMP: (06/24/05, GVG) Getting rid of those WARNING (312) and WARNING (408)
+     introduced by latest changes in output/GDS (when layer numbers were
+     introduced). This causes failures in regressions (increment in number of
+     errors).
 
 BUG: (06/24/05, GVG) ESC still moves instance even if it has been looked.
 FIX: Adding -1 as valid option for in CircuitChanges.cantEdit() dialog (Bug #404)
 
-IMP: (06/24/05, GVG) Adding setCIFOutMergesBoxes(true) into GateRegression so it won't complain about min resolution
-for center points.
+IMP: (06/24/05, GVG) Adding setCIFOutMergesBoxes(true) into GateRegression so it
+     won't complain about min resolution for center points.
 
-BUG: (06/24/05, GVG) While fixing DRC bug #312, appeared new candidates for min defect cases however they have to be
-ignore because they come from different cell instances and Geometric.objectsTouch(nGeom, geom) should be skip. Noticed
-by Bug #383.
-FIX: use parameter sameInstance in Quick.badBoxInArea()
+BUG: (06/24/05, GVG) While fixing DRC bug #312, appeared new candidates for min
+     defect cases however they have to be ignore because they come from different
+     cell instances and Geometric.objectsTouch(nGeom, geom) should be skip.
+     Noticed by Bug #383.
+FIX: Use parameter sameInstance in Quick.badBoxInArea()
 
 BUG: (06/23/05, SMR) Silicon compiler places wells wrong.
 FIX: Fixed Maker.
 
 BUG: (06/23/05, SMR) "Peeking" doesn't always work.
-FIX: In "PixelDrawing.expandedCellCached()" must call "drawCell()" with proper bounds.
+FIX: In "PixelDrawing.expandedCellCached()" must call "drawCell()" with proper
+     bounds.
 
 BUG: (06/24/05, DN) Old IO regressions have errors concerning text descriptors.
-FIX: In Export constructor and ImmutableTextDescriptor constructor canonize descriptors.
+FIX: In Export constructor and ImmutableTextDescriptor constructor canonize
+     descriptors.
 
 BUG: (06/24/05, DN) Reading a library causes an exception (Bug #398)
-FIX: "io.input.ELIB.getArcEnd" saves MessageLog in a private fiels "getArcEndError".
+FIX: "io.input.ELIB.getArcEnd" saves MessageLog in a private fields
+     "getArcEndError".
 
 IMP: (06/23/05, RK) Add NCC regression tests for Global Partition
 
 IMP: (06/23/05, RK) Add modified heater to NCC regression
 
-IMP: (06/23/05, RK) For netlist errors, save NccGlobals so IvanM can report errors
+IMP: (06/23/05, RK) For netlist errors, save NccGlobals so IvanM can report
+     errors
 
-BUG: (06/23/05, GVG) Problem to detect min size if elements were touching other nodes of the same layer
-(wells in Bug #396). The code was checking only one direction (X or Y)
+BUG: (06/23/05, GVG) Problem to detect min size if elements were touching other
+     nodes of the same layer (wells in Bug #396). The code was checking only one
+     direction (X or Y)
 FIX: Function to iterate along all possible directions (X, Y).
 
 IMP: (06/23/05, GVG) Refactoring of DRC supporting classes for DesignRules tab. More changes in DesignRules tab
@@ -88,12 +107,14 @@ FIX: Make them have universal connectivity.
 BUG: (06/23/05, DN) Arc properties not preserved when using Duplicate (Bug #391).
 FIX: In ArcInst.copyConstraintsFrom assign newBits ti userBits.
 
-BUG: (06/23/05, DN) Network module complains on unconnected pin in GEM and FIDO technologies.
+BUG: (06/23/05, DN) Network module complains on unconnected pin in GEM and EFIDO
+     technologies.
 FIX: Don't check in cells with these technologies (NetCell.makeDrawns).
 
-IMP: (06/22/05, GVG) DRC: Sweep as default algorithm. Capacitance demo out of 3D menu.
-List Layer Coverage on Cell moved to DRC menu. Ability to abort coverage job (Bug #389).
-Same printing for List Coverage on Cell and Check Area Coverage.
+IMP: (06/22/05, GVG) DRC: Sweep as default algorithm. Capacitance demo out of 3D
+     menu.  List Layer Coverage on Cell moved to DRC menu. Ability to abort
+     coverage job (Bug #389).  Same printing for List Coverage on Cell and Check
+     Area Coverage.
 
 IMP: (06/21/05, SMR) Improved waveform window titles.
 
@@ -103,12 +124,15 @@ IMP: (06/21/05, SMR) Added commands for curved arcs.
 
 IMP: (06/21/05, GVG) RPO resistors in 90nm technology
 
-BUG: (06/20/05, GVG) Displaying DRC error in wrong window frame while checking min defects (Bug #383)
+BUG: (06/20/05, GVG) Displaying DRC error in wrong window frame while checking
+     min defects (Bug #383)
 FIX: Carrying down into the hierarchy the cell which triggered the checking.
 
-IMP: (06/20/05, SMR) Changed "Design Rules" preferences to handle multiple wide rules.
+IMP: (06/20/05, SMR) Changed "Design Rules" preferences to handle multiple wide
+     rules.
 
-BUG: (06/20/05, SMR) "Make Selected Easy" and "Make Selected Hard" commands crash.
+BUG: (06/20/05, SMR) "Make Selected Easy" and "Make Selected Hard" commands
+     crash.
 FIX: Put them in a job.
 
 IMP: (06/20/05, GVG) Moving foundry pulldown menu and output resolution text field to DesignRule tab
@@ -118,99 +142,118 @@ FIX: Better algorithm for moving lines.
 
 IMP: (06/17/05, SMR) Antenna check now aborts cleanly (Bug #382).
 
-BUG: (06/20/05, RK) NCC hierarchical with size checking fails to compare top level cells (Bug #384)
+BUG: (06/20/05, RK) NCC hierarchical with size checking fails to compare top
+     level cells (Bug #384)
 
 IMP: (06/20/05, RK) NCC confuses the user for an unusual situation (Bug #385)
 
-IMP: (06/19/05, DN) Warning in ElectricObject.findKey about possible change to CaseSensitive
-    search in future versions.
+IMP: (06/19/05, DN) Warning in ElectricObject.findKey about possible change to
+     CaseSensitive search in future versions.
 
-IMP: (06/18/05, GVG) Refactoring describe() functions and using toString() in more places.
+IMP: (06/18/05, GVG) Refactoring describe() functions and using toString() in
+     more places.
 
-BUG: (06/18/05, GVG) Exception in parasitic tool for AND gate if network is null in port (Bug#377)
+BUG: (06/18/05, GVG) Exception in parasitic tool for AND gate if network is null
+     in port (Bug#377)
 FIX: Skipping the layer if is diffusion.
 
 BUG: (06/18/05, DN) JELIB reader doesn't connect mismatched arc to dummy pin.
 FIX: In io.input.JELIB.figureOutPortInst assign dummy node to "portNI".
 
-BUG: (06/18/05, DN) DebugMenus|JonG|DescribeProtoVars causes exception on PrimitiveNodes.
+BUG: (06/18/05, DN) DebugMenus|JonG|DescribeProtoVars causes exception on
+     PrimitiveNodes.
 FIX: Add "if (ni.getProto() instanceof Cell)".
 
 IMP: (06/17/05, GVG) Ability to select "scalable" transistors again.
 
-IMP/MAN: (06/17/05, GVG) 3D View back under WindowMenu.
+IMP: (06/17/05, GVG) 3D View back under WindowMenu.
 
-IMP/MAN: (06/17/05, GVG) Methods to extract DRC rules for preferences tab.
+IMP: (06/17/05, GVG) Methods to extract DRC rules for preferences tab.
 
 BUG: (06/17/05, SMR) Status bar clips bottom of component menu (Bug #381).
 FIX: In StatusBar constructor, set "fieldHierCoords" to be a non-null string.
 
-IMP: (06/17/05, SMR) Removed "Show Special Transistors" from "mocmos" part of "Technology" preferences.
+IMP: (06/17/05, SMR) Removed "Show Special Transistors" from "mocmos" part of
+     "Technology" preferences.
 
-IMP: (06/17/05, SMR) "Align to Grid" now moves pins and grid-aligns arcs better (Bug #360).
+IMP: (06/17/05, SMR) "Align to Grid" now moves pins and grid-aligns arcs better
+     (Bug #360).
 
 IMP: (06/17/05, SMR) Manual being updated (Bug #379).
 
-IMP: (06/17/05, SMR) Preferences dialog now has "Help" button to take you to proper manual page (Bug #378).
-     Removed "help" button in Logical Effort tab.
+IMP: (06/17/05, SMR) Preferences dialog now has "Help" button to take you to
+     proper manual page (Bug #378).  Removed "help" button in Logical Effort tab.
 
-IMP: (06/16/05, SMR) Fixed the color/pattern panel of the "Artwork Appearance" command
-     and "Layers" Preferences to automatically set Displayed "Use Stipple Pattern".
+IMP: (06/16/05, SMR) Fixed the color/pattern panel of the "Artwork Appearance"
+     command and "Layers" Preferences to automatically set Displayed "Use Stipple
+     Pattern".
 
-IMP: (06/16/05, SMR) Refactored the Assura DRC error reader to be in the DRC tool.
+IMP: (06/16/05, SMR) Refactored the Assura DRC error reader to be in the DRC
+     tool.
 
 IMP: (06/16/05, SMR) When GDS changes the library name, a warning is issued.
 
 IMP: (06/16/05, SMR) Cleanup for Javadoc.
 
 IMP: (06/16/05, GVG) Out check resolution moved from CIF I/O to DRC (Bug #362)
-     Side effect: code in CIF.java commented out, left only CIF format resolution (Bug #365)
+     Side effect: code in CIF.java commented out, left only CIF format resolution
+     (Bug #365)
 
 BUG: (06/16/05, DN) Bit "isParam" on NodeInst variables remains set even there
      is no more corresponing parameter on the parent Cell.
-FIX: Don't store "isParam" bit on instance variables. Variable.isParam is claculated.
+FIX: Don't store "isParam" bit on instance variables. Variable.isParam is
+     claculated.
 
 BUG: (06/16/05, DN) Factory preferences for text attributes are incorrect.
 FIX: In TextDescriptor.DescriptorPref constructor cast "initialSize" to long.
 
-BUG: (06/15/05, SMR) Busses and wires cause Schematic DRC when they cross (Bug #376).
+BUG: (06/15/05, SMR) Busses and wires cause Schematic DRC when they cross (Bug
+     #376).
 FIX: In tool.drc.Schematic.checkPoly(), allow this combination to cross.
 
 BUG: (06/15/05, DN) Show network problems (Bug #371)
 FIX: In "NetworkTool.getNetworksOnPort" use "pi.getConnections".
 
-IMP: (06/15/05, SMR) CIF output has no check for user resolution check, and always checks for
-     minimum CIF format resolution (Bug #365).
+IMP: (06/15/05, SMR) CIF output has no check for user resolution check, and
+     always checks for minimum CIF format resolution (Bug #365).
 
-IMP: (06/15/05, SMR) "Select Object" now allows multiple selections (for Frankie)(Bug #370)
+IMP: (06/15/05, SMR) "Select Object" now allows multiple selections (Bug #370)
 
-IMP: (06/15/05, SMR) Conversion of a technology to a library twice now disallowed (for Gilda)(Bug #373)
+IMP: (06/15/05, SMR) Conversion of a technology to a library twice now disallowed
+     (Bug #373)
 
-IMP: (06/15/05, SMR) Technology editor handles stretching rules properly (for Gilda)(Bug #374)
+IMP: (06/15/05, SMR) Technology editor handles stretching rules properly (Bug
+     #374)
 
-BUG: (06/14/05, GVG) Select surround not working properly in hierarchy (Bug #353).
+BUG: (06/14/05, GVG) Select surround not working properly in hierarchy (Bug
+     #353).
 FIX: Precision problem while checking if point is at the corner of a rectangle.
 
-IMP: (06/14/05, GVG) New tileNot layers (1 for each metal, OD and poly) in TSMC90 technology (Bug #354)
-     Stipple patterns in such way they won't completely cover other tileNot nodes. The rest of the graphics
-     is inherited from corresponding metal/active/poly layer.
+IMP: (06/14/05, GVG) New tileNot layers (1 for each metal, OD and poly) in TSMC90
+     technology (Bug #354) Stipple patterns in such way they won't completely
+     cover other tileNot nodes. The rest of the graphics is inherited from
+     corresponding metal/active/poly layer.
 
-BUG: (06/13/05, GVG) Layers dialog should come up in current technology (Bug #367).
-FIX: Extended PaletteFrame.autoTechnologySwitch for LayerTab and moved to WindowFrame class
+BUG: (06/13/05, GVG) Layers dialog should come up in current technology (Bug
+     #367).
+FIX: Extended PaletteFrame.autoTechnologySwitch for LayerTab and moved to
+     WindowFrame class
 
-BUG: (06/13/05, DN) Some changes are not undoable yet. They don't cause saving library.
+BUG: (06/13/05, DN) Some changes are not undoable yet. They don't cause saving
+     library.
 FIX: Undo.otherChange() method to mark library for save.
 
 IMP: (06/13/05, DN) When writing ELIB/ReadableDump, round arc angle to nearest. 
 
-IMP: (06/12/05, DN) lowLevelAllocate/lowLevelPopulate methods removed from "ArcInst" and "Export".
+IMP: (06/12/05, DN) lowLevelAllocate/lowLevelPopulate methods removed from
+     "ArcInst" and "Export".
 
 BUG: (06/12/05, DN) Sometimes "LibDirs.LibDirFileSystemView.getFiles" causes
      "ClassNotFoundException".
 FIX: Create factory method "LibDirs.newLibDirsFileSystemView".
 
-IMP: (06/12/05, SMR) Displaying transparent layers for a technology other than the
-     current one displays a warning that the layers may not have been drawn.
+IMP: (06/12/05, SMR) Displaying transparent layers for a technology other than
+     the current one displays a warning that the layers may not have been drawn.
 
 ************************* Version 8.02o: *********************************
 
@@ -219,13 +262,16 @@ FIX: Round values so that numeric instability doesn't happen.
 
 IMP: (06/15/05, SMR) "Select Object" now allows multiple selections (Bug #370).
 
-IMP: (06/15/05, SMR) CIF output always checks for minimum resolution of CIF format (Bug #365).
-     CIF Preferences now use resolution value to decide whether to check (nonzero to check).
+IMP: (06/15/05, SMR) CIF output always checks for minimum resolution of CIF
+     format (Bug #365).  CIF Preferences now use resolution value to decide
+     whether to check (nonzero to check).
 
-BUG: (06/15/05, SMR) Converting a technology to a library twice crashes (Bug #373).
+BUG: (06/15/05, SMR) Converting a technology to a library twice crashes (Bug
+     #373).
 FIX: Disallow second conversion.
 
-IMP: (06/10/05, SMR) Can now import "GDS map" files to set layer associations (Bug #355).
+IMP: (06/10/05, SMR) Can now import "GDS map" files to set layer associations
+     (Bug #355).
 
 IMP: (06/10/05, SMR) GDS now uses a "type" with each layer number (Bug #356).
 
@@ -233,32 +279,37 @@ BUG: (06/10/05, SMR) Spice output writes lower-level cells when upper-level ones
      have model file overrides (Bug #358).
 FIX: Added model file overrides to the things checked by "skipCellAndSubcells()".
 
-BUG: (06/10/05, GVG) Expection in NodeInst.findPortInstFromProto if index is invalid (Bug #359)
+BUG: (06/10/05, GVG) Expection in NodeInst.findPortInstFromProto if index is
+     invalid (Bug #359)
 FIX: Make sure index is in the valid range and returns null otherwise.
      Side effect: extra code in Export.java to prevent exception if pi == null.
 
 BUG: (06/09/05, GVG) Exception while generating eps from waveform (Bug #361)
-FIX: After refactoring of Technology.getShapeOfNode, wnd can be null and then direct access
-     of wnd.getVarContext() will generate the exception.
+FIX: After refactoring of Technology.getShapeOfNode, wnd can be null and then
+     direct access of wnd.getVarContext() will generate the exception.
 
 IMP: (06/09/05, GVG) Move area coverage tool under DRC menu
 
 IMP: (06/09/05, JKG) Added command Tools->Cadence->Import Assura DRC Errors.
 
-BUG: (06/9/05, GVG) Overlap not checked correctly when node was in a subcell (Bug #352)
+BUG: (06/9/05, GVG) Overlap not checked correctly when node was in a subcell (Bug
+     #352)
 FIX: TSMCRules.getRule() was not getting the correct min size for default case.
-     This was probably introduced while introducing length to wide condition for TSMC90.
+     This was probably introduced while introducing length to wide condition for
+     TSMC90.
 
-BUG: (06/9/05, GVG) Checking geometries against themselves under certain condition
-     (discovered while fixing Bug #352)
+BUG: (06/9/05, GVG) Checking geometries against themselves under certain
+     condition (discovered while fixing Bug #352)
 FIX: In Quick.badBoxInArea(), skip case when they are in the same cell.
 
-IMP: (06/9/05, GVG) Improving error message when you try to reopen a library (Bug #347)
+IMP: (06/9/05, GVG) Improving error message when you try to reopen a library (Bug
+     #347)
 
 IMP: (06/9/05, GVG) New values for DRC Rules 30.1, 30.2 and 30.4 in MoCMOS.
      Old values: 4,4,8. New Values: 5,5,10  (Bug #357)
 
-BUG: (06/09/05, DN) Network.getExports() returns no Exports for a Network (Bug #351)
+BUG: (06/09/05, DN) Network.getExports() returns no Exports for a Network (Bug
+     #351)
 FIX: Add loop for busses.
 
 IMP: (06/07/05, SMR) Added controls to "Color preferences" to control the

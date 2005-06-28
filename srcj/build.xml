@@ -147,10 +147,9 @@
         	<arg value="-v"/>
         </java>
 	    <antcall target="unjarBsh"></antcall>
-		<!-- <unjar dest="." src="${AppleJava}"/> -->
         <delete dir="META-INF"/>
         <copy file="packaging/electric.mf" tofile="electric.mf"/>
-        <copy file="packaging/LicenseGNU.txt" tofile="LicenseGNU.txt"/>
+        <copy file="packaging/LicenseGNU.txt" tofile="COPYING.txt"/>
         <jar basedir="." compress="true" jarfile="electric-${version}.jar" manifest="electric.mf">
             <exclude name="apidoc/"/>
             <exclude name="bin/"/>
@@ -175,9 +174,8 @@
             <exclude name="classes/" unless="source"/>
         </jar>
         <delete file="electric.mf"/>
-        <delete file="LicenseGNU.txt"/>
+        <delete file="COPYING.txt"/>
         <delete dir="bsh"/>
-		<!-- <delete dir="com/apple"/> -->
         <delete quiet="true">
             <fileset dir="com">
                 <include name="**/*.class"/>

@@ -1541,7 +1541,11 @@ public class EditWindow extends JPanel
 	{
 		Point2D low = screenToDatabase(0, 0);
 		Point2D high = screenToDatabase(sz.width-1, sz.height-1);
-		Rectangle2D bounds = new Rectangle2D.Double(low.getX(), high.getY(), high.getX()-low.getX(), low.getY()-high.getY());
+		double lowX = Math.min(low.getX(), high.getX());
+		double lowY = Math.min(low.getY(), high.getY());
+		double sizeX = Math.abs(high.getX()-low.getX());
+		double sizeY = Math.abs(high.getY()-low.getY());
+		Rectangle2D bounds = new Rectangle2D.Double(lowX, lowY, sizeX, sizeY);
 		return bounds;
 	}
 
@@ -1590,15 +1594,17 @@ public class EditWindow extends JPanel
 		g.setColor(new Color(User.getColorGrid()));
 		for(double i = y1; i > hY; i -= spacingY)
 		{
-			int y = (int)((lY - i) * scaleY);
-			if (y < 0 || y > sz.height) continue;
 			double boldValueY = i;
 			if (i < 0) boldValueY -= boldSpacingThreshY/2; else
 				boldValueY += boldSpacingThreshY/2;
 			boolean everyTenY = Math.abs(boldValueY) % boldSpacingY < boldSpacingThreshY;
 			for(double j = x1; j < hX; j += spacingX)
 			{
-				int x = (int)((j-lX) * scaleX);
+				Point xy = databaseToScreen(j, i);
+				int x = xy.x;
+				int y = xy.y;
+				if (y < 0 || y > sz.height) continue;
+
 				double boldValueX = j;
 				if (j < 0) boldValueX -= boldSpacingThreshX/2; else
 					boldValueX += boldSpacingThreshX/2;

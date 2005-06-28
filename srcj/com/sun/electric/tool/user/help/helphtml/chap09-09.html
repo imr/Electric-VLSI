@@ -14,27 +14,17 @@ The tool is based on the book <A HREF="http://www.mkp.com/books_catalog/catalog.
 by Ivan Sutherland, Bob Sproull, and David Harris (Morgan Kaufmann, San Francisco, 1999).
 It is highly recommended that the user be familiar with the concept of this book before using the Logical Effort Tool.
 <P>
-<TABLE><TR><TD>
-<BR><BR><BR>
 To control Logical Effort, use the
 "Logical Effort" preferences (in menu <B>File / Preferences...</B>, "Tools" section, "Logical Effort" tab).
-Besides setting the maximum stage gain for whole-cell analysis,
-the dialog allows other settings.
-<BR><BR><BR>
-</TD><TD><CENTER><IMG SRC="fig09-14.png" ALT="Figure 9.14"></CENTER></TD></TR></TABLE>
+This lets you control a number of settings for Logical Effort analysis.
 <P>
-Two commands may be given to the Logical Effort tool (in menu <B>Tool / Logical Effort</B>):
-<UL>
-<LI><B>Optimize for Equal Gate Delays</B>
-<LI><B>Print Info for Selected Node</B>
-</UL>
-<BR>
+<CENTER><IMG SRC="fig09-14.png" ALT="Figure 9.14"></CENTER>
+<P>
 
-<H3>Optimize for Equal Gate Delays</H3>
+<H3>Logical Effort Gates</H3>
 <P>
-Optimizes all Logical Effort gates (cells) to have the same delay.  The delay is specified by the
-Global fan-out (step-up) option.  This is <I>NOT</I> a path optimization algorithm.
-<P>
+A design that is intended to be analyzed with Logical Effort must be composed of special
+Logical Effort gates.
 A Logical Effort gate is simply a schematic or layout cell
 that conforms to the following specifications:
 <UL>
@@ -62,11 +52,25 @@ denotes a minimum sized inverter.
 While these attributes are defined on the layout or schematic cell <I>definition</I>, they must also
 be present on the instantiated icon or instance of that definition.  By default this will be so.
 <P>
-Finally, this command should be performed on a cell containing instances of Logical Effort gates.
-There must be at least one load that is driven by the gates in order for them to be sized.  A load
+Finally, there must be at least one load that is driven by the gates in order for them to be sized.  A load
 is either a transistor or a capacitor.  Gates that do not drive loads, or that do not drive
 gates that drive loads, will not be assigned sizes.
-<BR>
+<P>
+
+<H3>Logical Effort Libraries</H3>
+<P>
+Electric comes with a set of libraries that are specially designed for Logical Effort.
+Use the <B>Load Logical Effort Libraries (Purple, Red, and Orange)</B> command
+(in menu <B>Tool / Logical Effort</B>) to read these libraries.
+<UL>
+<LI>The <B>Purple</B> library is a set of logic gates that have been tailored for Logical Effort, as described above.</LI>
+<LI>The <B>Red</B> library is a similar set of gates, but they are not setup for Logical Effort.
+The Red gates can be used in places where Logical Effort is <I>not</I> to be done.</LI>
+<LI>The <B>Orange</B> library is a low-level set of gates that is parameterized for a specific fabrication process.
+Orange gates are used in the Purple and Red libraries, but should not be used elsewhere.
+The Orange library that comes with Electric is tailored for a generic 180 nanometer process.</LI>
+</UL>
+<P>
 
 <H3>Advanced Features</H3>
 <P>
@@ -81,40 +85,39 @@ among those gates.
 <LI>Attribute "su=-1". This specifies the step-up (fanout) of the gate, and overrides the global
 fanout specified in the options.  If set to -1, this attribute is ignored, and the global value is used.
 </UL>
-
-<BR>
-
-<H3>Caching Versus Non-Caching Sizing</h3>
 <P>
+
+<H3>Commands</H3>
+<P>
+These commands may be given to the Logical Effort tool (in menu <B>Tool / Logical Effort</B>):
+<UL>
+<LI><B>Optimize for Equal Gate Delays</B>
+Optimizes all Logical Effort gates (cells) to have the same delay.  The delay is specified by the
+Global fan-out (step-up) option.  This is <I>NOT</I> a path optimization algorithm.</LI>
+
+<LI><B>Optimize for Equal Gate Delays (no caching)</B>
 It is intended that both the caching and non-caching algorithms obtain exactly the same result,
 however due to the difficulty in obtaining and maintaining correctness when it comes to caching,
-the non-caching algorithm is also available.
+the non-caching algorithm is also available.</LI>
 
-<BR>
+<LI><B>Print Info for Selected Node</B>
+After running sizing, information about a specific logical effort gate can be found by
+selecting the gate instance and running this command.</LI>
 
-<H3>Back Annotate Wire Loads for the Current Cell</H3>
-<P>
+<LI><B>Back Annotate Wire Loads for the Current Cell</B>
 The <B>Back Annotate Wire Lengths for Current Cell</B> command
 runs NCC on the current cell against it's matching layout or schematic cell.  Assuming they match, for each LEWIRE
 in the schematic cell, it finds the half-perimeter of the matching wire in the layout cell (as if the layout was flattened),
 and then changes the "L" parameter on the LEWIRE to the value.  Note, back-annotation is only performed on
-top level LEWIREs, and it takes into account the wire's length throughout the layout hierarhcy.
+top level LEWIREs, and it takes into account the wire's length throughout the layout hierarhcy.</LI>
 
-<BR>
-
-<H3>Clear LE Sizes</h3>
-<P>
+<LI><B>Clear Sizes on Selected Node(s)</B>
 LE sizes are stored as parameters on the LEGATE.  Sometimes the sheer number of sizes can
 overwhelm the allocated process memory, and can also bloat file sizes when they are no longer needed.
-The <B>Clear Sizes on Selected Node(s)</B> and <B>Clear Sizes in all Libraries</B>
-commands provide ways to delete saved sizes on a per-node basis, or globally.
+This command deletes saved sizes on a per-node basis.</LI>
 
-<BR>
-
-<H3>Print Info for Selected Node</H3>
-<P>
-After running sizing, information about a specific logical effort gate can be found by
-selecting the gate instance and running this command.
-<P>
+<LI><B>Clear Sizes in all Libraries</B>
+This command deletes saved sizes everywhere.</LI>
+</UL>
 
 <!-- TRAILER -->

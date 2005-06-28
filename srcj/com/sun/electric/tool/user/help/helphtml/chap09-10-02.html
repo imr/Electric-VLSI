@@ -46,16 +46,18 @@ in the resulting cell.
 <TABLE><TR><TD><CENTER><IMG SRC="fig09-12.png" ALT="Figure 9.12"></CENTER></TD><TD>
 Two "Network" preferences are available to control the extraction process
 (in menu <B>File / Preferences...</B>, "Tools" section, "Network" tab).
+<P>
 The first is "Force exact cut placement", which requires that the cut (or via) locations
 appear exactly in the same place once extracted.
 Without this preference, Electric will find contact areas and replace them with contact nodes
 regardless of where the contact nodes place the cuts.
 With this preference selected, Electric will place contact nodes in such a way that the cut
 layers land in the correct original locations.
+</TD></TR></TABLE>
+<P>
 The disadvantage of forcing exact cut placement is that Electric will create many contact
 nodes, one for each cut layer.
 In multi-cut situations, this may be many more nodes than are necessary.
-</TD></TR></TABLE>
 <P>
 The other preference is "Grid-align geometry before extraction".
 Doing this makes the extraction process run more smoothly, but may cost slightly in accuracy.

@@ -11,27 +11,28 @@ select it from the cell explorer or the <B>Edit Cell...</B> command (in menu <B>
 <TABLE><TR><TD><CENTER><IMG SRC="fig08-25.png" ALT="Figure 8.25"></CENTER></TD><TD>
 To create a new arc, use the context menu on the "TECHNOLOGY ARCS" entry of the cell explorer
 and choose "Add New Arc".
+</TD></TR></TABLE>
+<P>
 An arc can be deleted simply by deleting its cell.
 An arc can be renamed by renaming its cell,
 but remember to use the name "arc-" in front
 (i.e. the old name is "arc-metal" and the new name is "arc-metal-1").
 Finally, you can rearrange the order in which the arcs will be listed with the "Reorder Arcs" command from the
 context menu.
-</TD></TR></TABLE>
-<!-- NEED 6in -->
 <P>
 <H3>Editing Special Arc Information</H3>
 <P>
-<TABLE><TR><TD>
 Arc cells show a sample arc on the bottom and a few pieces of textual information above it.
 The textual information can be updated by double-clicking on it.
 <P>
+<TABLE><TR><TD>
 The "Fixed-angle" entry lets you choose whether or not default arcs of this type are drawn at fixed angles
 (the particular fixed angle is specified by the "Angle increment" field below).
 In many layout technologies, the correct state is "yes".
 <P>
 The "Wipes pins" entry lets you choose whether or not these arcs completely erase connecting pins
 (the sensible state is "yes" because pins are drawn in the same layer and would not be visible anyway).
+</TD><TD><CENTER><IMG SRC="fig08-07.png" ALT="Figure 8.7"></CENTER></TD></TR></TABLE>
 <P>
 The "Extend arcs" entry lets you choose whether or not these arcs extend beyond their endpoints by half of their width
 (the typical state is "yes").
@@ -41,12 +42,13 @@ The "Angle increment" entry is the preferred angle granularity of this type of a
 <P>
 The "Antenna Ratio" entry is used in antenna rules calculations
 (see <A HREF="chap09-03-02.html#chap09-03-02">Section 9-3-2</A>).
-</TD><TD><CENTER><IMG SRC="fig08-07.png" ALT="Figure 8.7"></CENTER></TD></TR></TABLE>
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig08-08.png" ALT="Figure 8.8"></CENTER></TD><TD>
 The "Function" entry describes the arc's function,
 which is a different set than the layer functions.
 As with layer functions, the arc functions should be carefully considered.
+</TD></TR></TABLE>
+<P>
 A well arc that contains a well layer and does not contain device diffusion
 (i.e. opposite doping to the well)
 must not be defined as "diffusion"; it must be defined as "well-diffusion".
@@ -59,9 +61,7 @@ the arc connectivity is really defined by the device diffusion layer.
 For example, a p-device arc will have an N-well,
 or N substrate under it,
 and a p-type diffusion will end up as part of the drain or source of the P transistor to which it is connected.
-</TD></TR></TABLE>
 <P>
-<!-- NEED 5in -->
 <H3>Editing Arc Geometry</H3>
 <P>
 In addition to the above information,
@@ -70,11 +70,10 @@ Thus, a prototypical arc must be drawn in this cell.
 The length of the arc is not important,
 but the smaller dimension is presumed to be the width and defines the default for this arc type.
 <P>
-<TABLE><TR>
-<TD><CENTER><IMG SRC="fig08-10.png" ALT="Figure 8.10"></CENTER></TD><TD>
 Use the entries from the component menu of the side bar to create new layers.
 The typical layer in an IC technology is a Filled box (third from the top).
 <P>
+<TABLE><TR><TD><CENTER><IMG SRC="fig08-10.png" ALT="Figure 8.10"></CENTER></TD><TD>
 After the geometry is created, it can be moved and resized with standard Electric commands.
 Remember to keep all arc geometry separate from the information messages in the cell
 so that the technology editor can distinguish them.
@@ -82,14 +81,13 @@ Once a piece of geometry is created,
 its layer can be set by double-clicking on it.
 A menu is then presented with possible layers (ignore the last entries, "SET-MINIMUM-SIZE",
 and "CLEAR-MINIMUM-SIZE" which are used only for nodes).
-</TD>
-<TD><CENTER><IMG SRC="fig08-09.png" ALT="Figure 8.9"></CENTER></TD></TR></TABLE>
 <P>
 Besides geometric layers,
 the graphical arc description must have a highlight layer to show where the arc will be outlined when used in a circuit.
 Although the highlighting is typically drawn around the outside of all geometry,
 implant layers may extend beyond the highlight (see the CMOS diffusion arcs for an example of this).
 Select the "HIGH" entry in the component menu to create this special type of layer.
+</TD><TD></TR></TABLE>
 <P>
 After geometry has been created, there may be some confusion as to what is there.
 To find out,

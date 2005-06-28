@@ -10,9 +10,9 @@ The format of the pad frame disk file is as follows:
 <CENTER><TABLE>
 <TR><TD><CODE>celllibrary LIBRARYFILE [copy]</CODE></TD><TD>; Identifies the file with the pads</TD></TR>
 <TR><TD><CODE>facet PADFRAMECELL</CODE></TD><TD>; Creates a cell to hold the pad frame</TD></TR>
-<TR><TD><CODE>core CORECELL</CODE></TD><TD>; Places your circuit in the center of the pad frame</TD></TR>
+<TR><TD><CODE>core CORECELL</CODE></TD><TD>; Places cell in center of pad frame</TD></TR>
 <TR><TD><CODE>align PADCELL INPUTPORT OUTPUTPORT</CODE></TD><TD>; Defines input and output ports on pads</TD></TR>
-<TR><TD><CODE>export PADCELL IOPORT [COREPORT]</CODE></TD><TD>; Defines IO and core ports on the pads for exporting with <CODE>name</CODE></TD></TR>
+<TR><TD><CODE>export PADCELL IOPORT [COREPORT]</CODE></TD><TD>; Defines exports on the pads</TD></TR>
 <TR><TD><CODE>place PADCELL [GAP] [PORTASSOCIATION]</CODE></TD><TD>; Places a pad into the pad frame</TD></TR>
 <TR><TD><CODE>rotate DIRECTION</CODE></TD><TD>; Turns the corner in pad placement</TD></TR>
 </TABLE></CENTER>
@@ -69,7 +69,7 @@ Suppose a text file is created with with this content,
 and read with the <B>Pad Frame Generator...</B> command (in menu <B>Tool / Generation</B>).
 <P>
 <CENTER><TABLE>
-<TR><TD><CODE>; specify the library with the pads&nbsp;&nbsp;&nbsp;&nbsp;</CODE></TD> <TD><CODE>; place the top edge of pads</CODE></TD></TR>
+<TR><TD><CODE>; specify library with pads&nbsp;&nbsp;&nbsp;&nbsp;</CODE></TD> <TD><CODE>; place the top edge of pads</CODE></TD></TR>
 <TR><TD><CODE>celllibrary pads4u.txt</CODE></TD>                   <TD><CODE>place PAD_corner{lay}</CODE></TD></TR>
 <TR><TD></TD>                                                      <TD><CODE>place PAD_gnd{lay} gnd_in=gnd</CODE></TD></TR>
 <TR><TD><CODE>; create a cell called "padframe"</CODE></TD>        <TD><CODE>place PAD_vdd{lay} m1m2=vdd</CODE></TD></TR>

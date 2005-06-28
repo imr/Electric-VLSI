@@ -26,34 +26,40 @@ Any errors that fall inside of this node's area are ignored.
 To edit the design rules, use the "Design Rules"
 preferences (in menu <B>File / Preferences...</B>, "Technology" section, ""Design Rules" tab). 
 The dialog allows you to examine and modify the spacing limits for the current technology.
-It is divided into two parts: "Layers" and "Nodes" (the radio buttons in the upper-left).
+Each rule has a numeric value (size or distance) as well as a textual description of the rule.
+The dialog is divided into two parts: "Node Rules" and "Layer Rules".
 <P>
-When "Nodes" are selected, you may set the minimum size of each node in the current technology.
+In the "Node Rules" section, you may set the minimum size of each node in the current technology.
 <P>
-When "Layers" are selected, you may set the minimum size of each layer as well as inter-layer spacing
-(between that and the "To Layer").
-Use the "Show only lines with rules" to restrict the displayed rules to those with valid values.
-Each spacing rule comes in two flavors: connected and unconnected.
+In the "Layer Rules" section, you may set the minimum size, area, and enclosure area of each layer.
+You may also set the inter-layer spacing (between the "From Layer" and the "To Layer").
+Use the "Show only 'to' entries with rules" to restrict the displayed rules to those with valid values.
 <P>
 <CENTER><IMG SRC="fig09-09.png" ALT="Figure 9.9"></CENTER>
 <P>
-The connected rules apply to two different layers that are electrically connected;
-the unconnected rules apply to unconnected layers.
-A special Edge rule applies only to unconnected layers and ignores overlap when considering spacing distance.
-The connected and unconnected rules come in three styles: normal, wide, and multiple cut.
-The Wide rules apply when either layer is wider than a specified amount.
-The Multiple cut rules apply when either layer is part of a multi-cut contact.
-In addition to specifying a spacing distance,
-you can give a description of the rule that will be reported by the design-rule checker.
-The "Factory Reset" button restores all rules to the original set built into Electric.
+The layer-to-layer spacing rules appear in 3 forms:
+<I>normal</I>, <I>wide</I>, and <I>multicut</I>.
+Normal and multicut rules come in two flavors: connected and unconnected.
+The connected rules apply to pieces of geometry that are electrically connected;
+the unconnected rules apply to unconnected geometry.
+The normal rules also have a special Edge rule applies only to unconnected layers
+and ignores overlap when considering spacing distance.
 <P>
-
-You can request that resolution errors be checked during DRC
-by checking "Find resolution errors".
-The "Output resolution" field is the minimum coordinate value that may exist.
-All geometry of that size or less will be flagged as resolution errors.
+The wide rules apply to large geometry.
+Although some technologies may have many different rules for different definitions of "large",
+the MOSIS CMOS technology has only one such rule, if the width is greater than a specified value.
+<P>
+The bottom of the dialog has some special features of design rules:
+<UL>
+<LI>The "Factory Reset" button restores all rules to the original set built into Electric.</LI>
+<LI>The "Foundry" controls which foundry is the target (these are variations on the design rules).
+Currently, this is not used.</LI>
+<LI>The "Min resolution" is the minimum resolution that can be manufactured.
+If zero, no resolution check is done.
+When checking resolution, all geometry of that size or less will be flagged as resolution errors.
 For example, current MOSIS rules require that no boundaries be quarter-lambda or less,
-so a value of .25 in this field will detect such violations.
+so a value of .25 in this field will detect such violations.</LI>
+</UL>
 <P>
 Note that the MOSIS CMOS design rule 6.7b is not checked by Electric
 because it is difficult to detect properly.
