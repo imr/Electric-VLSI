@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/28/05, SMR) Pad frame generation handles "gap" incorrectly (Bug #412).
+FIX: Cleaned-up code.  Also now use "cell" instead of "facet" in array file.
+
 BUG: (06/27/05, SMR) "Select all" should not select the cell center because
      it is never desired, and often causes unexpected results.
 FIX: Disallow selection of cell center in "select all".

@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: NewExport.java
+ * File: J3DDemoDialog.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *

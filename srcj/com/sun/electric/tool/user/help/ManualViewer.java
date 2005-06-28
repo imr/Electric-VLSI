@@ -348,7 +348,13 @@ public class ManualViewer extends EDialog
 						System.out.println("No end comment on line: "+pageLine);
 						continue;
 					}
-					String commandName = pageLine.substring(13, endPt).trim().replace("\\", "");
+					String commandName = pageLine.substring(13, endPt).trim();
+					for(;;)
+					{
+						int backslashPos = commandName.indexOf('\\');
+						if (backslashPos < 0) break;
+						commandName = commandName.substring(0, backslashPos) + commandName.substring(backslashPos+1);
+					}
 					String already = (String)menuMap.get(commandName);
 					if (already != null && Main.getDebug())
 					{

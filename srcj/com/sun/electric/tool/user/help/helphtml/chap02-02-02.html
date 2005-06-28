@@ -16,8 +16,15 @@ then moving the cursor until the intended wiring is shown,
 and finally releasing.
 This is recommended because wiring is quite complex and can follow many different paths.
 <P>
+If you type a digit key while the right button is pressed, it changes the wiring layer by inserting contacts
+to that layer of metal.
+For example, if you are running a metal-1 wire, and type "3" during the wiring, then two contacts will be
+added (metal-1-metal-2 and metal-2-metal-3) to make the wire run in metal-3.
+<P>
 If the cursor is over another object when the <I>right</I> button is released,
 the new wire attaches to that object.
+If there are multiple objects under the cursor, press the <I>space bar</I> (while the right button is pressed)
+to cycle through the possible endpoints (including the possibility of connecting to none of them).
 <P>
 The other way that the creation button can operate is <I>two-point wiring</I>,
 in which two nodes are highlighted and one or more arcs are created to connect them.

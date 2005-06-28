@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ThreeDTab.java
+ * File: JThreeDTab.java
  *
  * Copyright (c) 2004 Sun Microsystems and Static Free Software
  *
