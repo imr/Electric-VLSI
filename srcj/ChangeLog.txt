@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/28/05, SMR) Autorouting reports arcs that it does not create (Bug #413).
+FIX: In AutoStitch.runAutoStitch(), only ignore wires that are already directly connected.
+
 BUG: (06/28/05, SMR) Pad frame generation handles "gap" incorrectly (Bug #412).
 FIX: Cleaned-up code.  Also now use "cell" instead of "facet" in array file.
 

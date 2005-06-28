@@ -303,11 +303,25 @@ public class AutoStitch
             PortInst endPi = end.getPortInst();
             if (startPi != null && endPi != null)
             {
-                Netlist nl = c.acquireUserNetlist();
-                if (nl == null) continue;
-            	Network startNet = nl.getNetwork(startPi);
-            	Network endNet = nl.getNetwork(endPi);
-            	if (startNet == endNet) continue;
+				boolean already = false;
+				for(Iterator cIt = startPi.getConnections(); cIt.hasNext(); )
+				{
+					Connection con = (Connection)cIt.next();
+					ArcInst existingAI = con.getArc();
+					if (existingAI.getHead() == con)
+					{
+						if (existingAI.getTail().getPortInst() == endPi) { already = true;   break; }
+					} else
+					{
+						if (existingAI.getHead().getPortInst() == endPi) { already = true;   break; }
+					}
+				}
+				if (already) continue;
+//                Netlist nl = c.acquireUserNetlist();
+//                if (nl == null) continue;
+//            	Network startNet = nl.getNetwork(startPi);
+//            	Network endNet = nl.getNetwork(endPi);
+//            	if (startNet == endNet) continue;
             }
 
             // if requesting no new geometry, make sure all arcs are default width
@@ -912,6 +926,8 @@ public class AutoStitch
 	{
 		// get network associated with the node/port
 		PortInst pi = ni.findPortInstFromProto(pp);
+
+		// TODO: this will generate an error message if the port is a bus
 		Network net = netlist.getNetwork(pi);
 
 		// now look at every layer in this node
@@ -1164,7 +1180,7 @@ public class AutoStitch
 		// run the wire
         PortInst pi = ni.findPortInstFromProto(pp);
         PortInst opi = oNi.findPortInstFromProto(opp);
-        connectObjects(pi, opi, ni.getParent(), new Point2D.Double(x,y), stayInside);
+        return connectObjects(pi, opi, ni.getParent(), new Point2D.Double(x,y), stayInside);
 //        Route route = router.planRoute(ni.getParent(), pi, opi, new Point2D.Double(x,y), stayInside);
 //        if (route.size() == 0) return false;
 //        allRoutes.add(route);
@@ -1178,8 +1194,8 @@ public class AutoStitch
 //            if (!possibleInlinePins.contains(oNi))
 //                possibleInlinePins.add(oNi);
 //        }
-
-		return true;
+//
+//		return true;
 	}
 
 	/**
