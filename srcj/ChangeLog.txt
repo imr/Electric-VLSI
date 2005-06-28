@@ -17,6 +17,10 @@ FIX: Solution based on menu name.
 
 IMP: (06/28/05, GVG) J3DAxis using previous code with cylinders and cones.
 
+BUG: (06/27/05, GVG) Bug fix for #395 (DRC error not reported by Electric but reported by Cadence)
+FIX: Electric was not detecting violation on via/cut sizes. They must be of certain value. Refactoring of DRCRules
+to store those name rules.
+
 BUG: (06/27/05, SMR) SDI mode doesn't show icons on messages window.
 FIX: Added icon in SDI mode.
 
