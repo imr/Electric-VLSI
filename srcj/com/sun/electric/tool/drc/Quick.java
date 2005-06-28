@@ -888,12 +888,10 @@ public class Quick
 		// get all of the polygons on this arc
 		Technology tech = ai.getProto().getTechnology();
 		Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
-		cropActiveArc(ai, arcInstPolyList);
-		int tot = arcInstPolyList.length;
-
-		// examine the polygons on this arc
 		boolean errorsFound = false;
-		for(int j=0; j<tot; j++)
+
+        // Check resolution before cropping the
+        for(int j=0; j<arcInstPolyList.length; j++)
 		{
 			Poly poly = arcInstPolyList[j];
 			Layer layer = poly.getLayer();
@@ -906,9 +904,21 @@ public class Quick
 				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
+        }
+
+		cropActiveArc(ai, arcInstPolyList);
+		int tot = arcInstPolyList.length;
+		// examine the polygons on this arc
+		for(int j=0; j<tot; j++)
+		{
+			Poly poly = arcInstPolyList[j];
+			Layer layer = poly.getLayer();
+			if (layer == null) continue;
+			if (layer.isNonElectrical()) continue;
+
 			int layerNum = layer.getIndex();
 			int netNumber = netNumbers[globalIndex].intValue();
-			ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex);
+			boolean ret = badBox(poly, layer, netNumber, tech, ai, DBMath.MATID, ai.getParent(), globalIndex);
 			if (ret)
 			{
 				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+BUG: (06/28/05, GVG) DRC resolution check for active arcs must be done before they are cropped.
+FIX: Move resolution code before Quick.cropActiveArc() in checkArcInst.
+
 BUG: (06/28/05, SMR) Autorouting reports arcs that it does not create (Bug #413).
 FIX: In AutoStitch.runAutoStitch(), only ignore wires that are already directly connected.
 
