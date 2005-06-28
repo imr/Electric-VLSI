@@ -505,7 +505,7 @@ public class MoCMOS extends Technology
 			new Color(247,251, 20)  // Metal-3
 		});
 
-        setFactoryResolution(0.5); // value in lambdas
+        setFactoryResolution(0.01); // value in lambdas
 		//**************************************** LAYERS ****************************************
 
 		/** metal-1 layer */
