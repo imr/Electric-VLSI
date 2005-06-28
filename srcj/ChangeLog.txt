@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+
+BUG: (06/28/05, GVG) Previous bug fix for "Repeat Last Action" didn't work. Another solution here
+
+IMP: (06/28/05, GVG) J3DAxis using previous code with cylinders and cones.
+
 BUG: (06/27/05, SMR) SDI mode doesn't show icons on messages window.
 FIX: Added icon in SDI mode.
 

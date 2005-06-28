@@ -49,12 +49,12 @@ public class J3DMenu {
 
         /****************************** THE 3D MENU ******************************/
 
-        MenuBar.Menu j3DMenu = MenuBar.makeMenu("_3D View");
+        MenuBar.Menu j3DMenu = MenuBar.makeMenu("_3D Window");
         menu.add(j3DMenu);
 
         // mnemonic keys available: AB  EFGHIJKLMNOPQ S U WXYZ
         /** 3D view */
-	    j3DMenu.addMenuItem("_3D Window", null,
+	    j3DMenu.addMenuItem("_3D View", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(false); } });
         j3DMenu.addMenuItem("_Capture Frame/Animate", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame());} });

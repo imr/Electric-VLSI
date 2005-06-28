@@ -151,7 +151,6 @@ public class EditMenu {
         // TODO: figure out how to remove this property change listener for correct garbage collection
         MenuBar.MenuItem repeatAction = editMenu.addMenuItem("Repeat Last Action", KeyStroke.getKeyStroke(KeyEvent.VK_AMPERSAND, 0),
             new ActionListener() { public void actionPerformed(ActionEvent e) { repeatLastCommand(); } });
-        MenuBar.repeatLastCommandListener.setRepeatActionMenu(repeatAction);
 
 		editMenu.addSeparator();
 

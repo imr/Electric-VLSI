@@ -371,7 +371,8 @@ public class View3DWindow extends JPanel
         axisTranslation.addChild(axisTG);
 
         // Create the axis geometry
-        J3DAxis axis = new J3DAxis(radius/10);
+        J3DAxis axis = new J3DAxis(radius/10, J3DAppearance.axisApps[0], J3DAppearance.axisApps[1],
+                J3DAppearance.axisApps[2], User.getDefaultFont());
         axisTG.addChild(axis);
 
         // Add axis into BG

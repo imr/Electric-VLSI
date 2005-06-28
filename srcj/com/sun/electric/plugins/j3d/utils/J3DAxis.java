@@ -37,13 +37,15 @@
  * intended for use in the design, construction, operation or
  * maintenance of any nuclear facility.
  *
- * $Revision: 1.1 $
- * $Date: 2005/04/14 18:07:25 $
+ * $Revision: 1.2 $
+ * $Date: 2005/04/22 01:11:14 $
  * $State: Exp $
  */
 package com.sun.electric.plugins.j3d.utils;
 
-import com.sun.electric.tool.user.User;
+import com.sun.j3d.utils.geometry.Cone;
+import com.sun.j3d.utils.geometry.Primitive;
+import com.sun.j3d.utils.geometry.Cylinder;
 
 import java.awt.*;
 import javax.media.j3d.*;
@@ -54,100 +56,75 @@ import javax.vecmath.*;
  * Modified by Gilda Garreton to incorporate Java Electric attributes
  */
 public class J3DAxis extends Group {
-	private static final float[] axisCoords = {
-	    0.0f, 0.0f, 0.0f,  0.10f,  0.00f,  0.00f, // X-axis
-	    0.1f, 0.0f, 0.0f,  0.09f,  0.01f,  0.00f, // X-axis arrow
-	    0.1f, 0.0f, 0.0f,  0.09f, -0.01f,  0.00f, // X-axis arrow
-	    0.1f, 0.0f, 0.0f,  0.09f,  0.00f,  0.01f, // X-axis arrow
-	    0.1f, 0.0f, 0.0f,  0.09f,  0.00f, -0.01f, // X-axis arrow
-	};
+//	private static final float[] axisCoords = {
+//	    0.0f, 0.0f, 0.0f,  0.10f,  0.00f,  0.00f, // X-axis
+//	    0.1f, 0.0f, 0.0f,  0.09f,  0.01f,  0.00f, // X-axis arrow
+//	    0.1f, 0.0f, 0.0f,  0.09f, -0.01f,  0.00f, // X-axis arrow
+//	    0.1f, 0.0f, 0.0f,  0.09f,  0.00f,  0.01f, // X-axis arrow
+//	    0.1f, 0.0f, 0.0f,  0.09f,  0.00f, -0.01f, // X-axis arrow
+//	};
     /** Font for 3D axis labels */ private static Font3D font3D;
+    public static final Vector3d axisX = new Vector3d(1,0,0);
+    public static final Vector3d axisY = new Vector3d(0,1,0);
+    public static final Vector3d axisZ = new Vector3d(0,0,1);
 
-	public J3DAxis(double factor)
+    /**
+     * Method to create axis composed of a cylinder + a cone
+     * @param factor
+     */
+    private void createAxis(double factor, Vector3d dir, Appearance app, String text)
     {
-	    Transform3D t = new Transform3D();
+        Transform3D t = new Transform3D();
 
-        if (font3D == null)
-            font3D = new Font3D(new Font(User.getDefaultFont(), Font.PLAIN, 2),
-                     new FontExtrusion());
-	    //
-	    // Build X-axis (red)
-	    //
+        float length = 0.1f;
+        float diameter = (float)length*.08f;
+        Primitive axis = new Cylinder(diameter, (float)length, app);
+        Transform3D cylinderTrans = new Transform3D();
+        Transform3D coneTrans = new Transform3D();
 
-	    t = new Transform3D();
+        if (dir == axisX)
+            t.rotZ(-Math.PI/2);
+        else if (dir == axisZ)
+            t.rotX(Math.PI/2);
         t.setScale(factor);  // Axes are scaled according to sphere radius of the scene graph
-	    TransformGroup xAxisTG = new TransformGroup(t); // Identity transform
+        TransformGroup axisTG = new TransformGroup(t); // Identity transform
 
-	    // X-axis lines
-	    LineArray xAxisLineArr = new LineArray(10, GeometryArray.COORDINATES);
-	    xAxisLineArr.setCoordinates(0, axisCoords);
-	    Shape3D xAxisLines = new Shape3D(xAxisLineArr, J3DAppearance.axisApps[0]);
-	    xAxisTG.addChild(xAxisLines);
+        Vector3d cylinderLocation = new Vector3d(0, length/2, 0);
+        cylinderTrans.setTranslation(cylinderLocation);
+        TransformGroup cylinderG = new TransformGroup(cylinderTrans);
+        cylinderG.addChild(axis);
+        axisTG.addChild(cylinderG);
+        Primitive arrow = new Cone(1.5f * diameter, (float)length/3, app);
+        Vector3d coneLocation = new Vector3d(0, length, 0);
+        coneTrans.setTranslation(coneLocation);
+        TransformGroup coneG = new TransformGroup(coneTrans);
+        coneG.addChild(arrow);
+        axisTG.addChild(coneG);
+        
+        // Adding the text
+	    Text3D axisText = new Text3D(font3D, text);
+	    Shape3D axisLabel = new Shape3D(axisText, app);
+	    Transform3D textScale = new Transform3D();
+	    textScale.set(0.015);
+	    textScale.setTranslation(new Vector3d(0, 0.11, 0.0));
+	    TransformGroup axisLabelG = new TransformGroup(textScale);
+	    axisLabelG.addChild(axisLabel);
+	    axisTG.addChild(axisLabelG);
 
-	    // X-axis label
-	    Text3D xAxisText = new Text3D(font3D, "+X");
-	    Shape3D xAxisLabel = new Shape3D(xAxisText, J3DAppearance.axisApps[0]);
-	    Transform3D xTextScale = new Transform3D();
-	    xTextScale.set(0.015);
-	    xTextScale.setTranslation(new Vector3d(0.11, 0.0, 0.0));
-	    TransformGroup xAxisLabelTG = new TransformGroup(xTextScale);
-	    xAxisLabelTG.addChild(xAxisLabel);
-	    xAxisTG.addChild(xAxisLabelTG);
+        // Adding finally to the group
+        addChild(axisTG);
+    }
 
-	    this.addChild(xAxisTG);
+	public J3DAxis(double factor, Appearance xApp, Appearance yApp, Appearance zApp,
+                   String defaultFont)
+    {
+        if (font3D == null)
+            font3D = new Font3D(new Font(defaultFont, Font.PLAIN, 2),
+                     new FontExtrusion());
 
-	    //
-	    // Build Y-axis (green)
-	    //
-	    t = new Transform3D();
-	    t.rotZ(Math.PI/2.0); // rotate about Z-axis to create Y-axis
-        t.setScale(factor);
-	    TransformGroup yAxisTG = new TransformGroup(t);
-
-	    // Y-axis lines
-	    LineArray yAxisLineArr = new LineArray(10, GeometryArray.COORDINATES);
-	    yAxisLineArr.setCoordinates(0, axisCoords);
-	    Shape3D yAxisLines = new Shape3D(yAxisLineArr, J3DAppearance.axisApps[1]);
-	    yAxisTG.addChild(yAxisLines);
-
-	    // Y-axis label
-	    Text3D yAxisText = new Text3D(font3D, "+Y");
-	    Shape3D yAxisLabel = new Shape3D(yAxisText, J3DAppearance.axisApps[1]);
-	    Transform3D yTextScale = new Transform3D();
-	    yTextScale.set(0.015);
-	    yTextScale.setTranslation(new Vector3d(0.11, 0.0, 0.0));
-	    TransformGroup yAxisLabelTG = new TransformGroup(yTextScale);
-	    yAxisLabelTG.addChild(yAxisLabel);
-	    yAxisTG.addChild(yAxisLabelTG);
-
-	    this.addChild(yAxisTG);
-
-	    //
-	    // Build Z-axis (blue)
-	    //
-
-	    t = new Transform3D();
-	    t.rotY(-Math.PI/2.0); // rotate about Y-axis to create Z-axis
-        t.setScale(factor);
-	    TransformGroup zAxisTG = new TransformGroup(t);
-
-	    // Z-axis lines
-	    LineArray zAxisLineArr = new LineArray(10, GeometryArray.COORDINATES);
-	    zAxisLineArr.setCoordinates(0, axisCoords);
-	    Shape3D zAxisLines = new Shape3D(zAxisLineArr, J3DAppearance.axisApps[2]);
-	    zAxisTG.addChild(zAxisLines);
-
-	    // Z-axis label
-	    Text3D zAxisText = new Text3D(font3D, "+Z");
-	    Shape3D zAxisLabel = new Shape3D(zAxisText, J3DAppearance.axisApps[2]);
-	    Transform3D zTextScale = new Transform3D();
-	    zTextScale.set(0.015);
-	    zTextScale.setTranslation(new Vector3d(0.11, 0.0, 0.0));
-	    TransformGroup zAxisLabelTG = new TransformGroup(zTextScale);
-	    zAxisLabelTG.addChild(zAxisLabel);
-	    zAxisTG.addChild(zAxisLabelTG);
-
-	    this.addChild(zAxisTG);
+        createAxis(factor, axisX, xApp, "+X");
+        createAxis(factor, axisY, yApp, "+Y");
+        createAxis(factor, axisZ, zApp, "+Z");
 
 	}
 }

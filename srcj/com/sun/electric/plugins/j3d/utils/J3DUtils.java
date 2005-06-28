@@ -1097,10 +1097,6 @@ public final class J3DUtils
 		return new Quat4f( q );
 	}
 
-    public static final Vector3d axisX = new Vector3d(1,0,0);
-    public static final Vector3d axisY = new Vector3d(0,1,0);
-    public static final Vector3d axisZ = new Vector3d(0,0,1);
-
     /**
      * Convert three rotations about the Euler axes to a Quaternion.
      * From Selman's book
@@ -1113,9 +1109,9 @@ public final class J3DUtils
 	{
 		// simply call createQuaternionFromAxisAndAngle
 		// for each axis and multiply the results
-		Quat4f qx = createQuaternionFromAxisAndAngle(axisX, angleX);
-		Quat4f qy = createQuaternionFromAxisAndAngle(axisY, angleY);
-		Quat4f qz = createQuaternionFromAxisAndAngle(axisZ, angleZ);
+		Quat4f qx = createQuaternionFromAxisAndAngle(J3DAxis.axisX, angleX);
+		Quat4f qy = createQuaternionFromAxisAndAngle(J3DAxis.axisY, angleY);
+		Quat4f qz = createQuaternionFromAxisAndAngle(J3DAxis.axisZ, angleZ);
 
 		// qx = qx * qy
 		qx.mul( qy );

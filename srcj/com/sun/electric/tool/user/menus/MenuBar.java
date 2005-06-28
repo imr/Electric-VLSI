@@ -157,16 +157,11 @@ public class MenuBar extends JMenuBar
     public static class RepeatLastCommandListener implements ActionListener {
         private AbstractButton lastActivated;
         private RepeatLastCommandListener() {}
-        private AbstractButton repeatActionMenuItem; // To avoid the infinite loop over this item
 
         public synchronized void actionPerformed(ActionEvent e) {
             Object source = e.getSource();
-            if (source instanceof AbstractButton && repeatActionMenuItem != source)
+            if (source instanceof AbstractButton && !e.getActionCommand().startsWith("Repeat Last")) //repeatActionMenuItem != source)
                 lastActivated = (AbstractButton)source;
-        }
-        public void setRepeatActionMenu(AbstractButton item)
-        {
-            repeatActionMenuItem = item;
         }
         public synchronized AbstractButton getLastActivated() { return lastActivated; }
     }
