@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: J3DSerialization.java
+ * Written by Gilda Garreton, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -31,6 +32,8 @@ import java.util.List;
 
 /**
  * This class is @serial
+ * @author  Gilda Garreton
+ * @version 0.1
  */
 public class J3DSerialization implements Serializable
 {

@@ -328,10 +328,10 @@ public class Pref
     }
 
 	/**
-	 * Method to export the preferences to an XML file.
+	 * Method to export the preferences to an XML file. This function is public due to the regressions.
 	 * @param fileName the file to write.
 	 */
-    private static void exportPrefs(String fileName)
+    public static void exportPrefs(String fileName)
     {
         if (fileName == null) return;
 

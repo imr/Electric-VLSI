@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: J3DClientApp.java
+ * Written by Gilda Garreton, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *

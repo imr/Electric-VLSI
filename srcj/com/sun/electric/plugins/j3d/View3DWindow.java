@@ -41,11 +41,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.ui.*;
 import com.sun.electric.plugins.j3d.utils.*;
 
@@ -66,6 +62,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.util.*;
 import java.util.List;
+import java.lang.reflect.Constructor;
 
 import com.sun.j3d.utils.behaviors.interpolators.KBKeyFrame;
 import com.sun.j3d.utils.behaviors.interpolators.RotPosScaleTCBSplinePathInterpolator;
@@ -90,7 +87,7 @@ import javax.vecmath.*;
  */
 public class View3DWindow extends JPanel
         implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
-        HighlightListener, J3DCollisionDetector, Observer
+        HighlightListener, Observer
 {
 	private SimpleUniverse u;
 	private J3DCanvas3D canvas;
@@ -362,91 +359,53 @@ public class View3DWindow extends JPanel
         TransformGroup axisTranslation = new TransformGroup(t);
         axisRoot.addChild(axisTranslation);
 
-        // Create transform group to orient the axis and make it
-        // readable & writable (this will be the target of the axis
-        // behavior)
-        TransformGroup axisTG = new TransformGroup();
-        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-        axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-        axisTranslation.addChild(axisTG);
-
-        // Create the axis geometry
-        J3DAxis axis = new J3DAxis(radius/10, J3DAppearance.axisApps[0], J3DAppearance.axisApps[1],
-                J3DAppearance.axisApps[2], User.getDefaultFont());
-        axisTG.addChild(axis);
-
-        // Add axis into BG
-        pg.addChild(axisRoot);
-
         // Create the axis behavior
-        TransformGroup viewPlatformTG =
-            viewingPlatform.getViewPlatformTransform();
-        J3DAxisBehavior axisBehavior = new J3DAxisBehavior(axisTG, viewPlatformTG);
-        axisBehavior.setSchedulingBounds(J3DUtils.infiniteBounds);
-        pg.addChild(axisBehavior);
+        // Using reflection to create this behavior because JMFAndJ3D plugin
+        // might not be available. Reflection would have to  be here until Java3D team
+        // releases this new behavior
+        Class plugin = Resources.getJMFJ3DClass("J3DAxisBehavior");
+        if (plugin == null)
+        {
+            System.out.println("JMFAndJ3D plugin not available. 3D axes not created.");
+        }
+        else
+        {
+            // Create transform group to orient the axis and make it
+            // readable & writable (this will be the target of the axis
+            // behavior)
+            TransformGroup axisTG = new TransformGroup();
+            axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
+            axisTG.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
+            axisTranslation.addChild(axisTG);
+
+            // Create the axis geometry
+            J3DAxis axis = new J3DAxis(radius/10, J3DAppearance.axisApps[0], J3DAppearance.axisApps[1],
+                    J3DAppearance.axisApps[2], User.getDefaultFont());
+            axisTG.addChild(axis);
+
+            // Add axis into BG
+            pg.addChild(axisRoot);
+
+            TransformGroup viewPlatformTG = viewingPlatform.getViewPlatformTransform();
+            try {
+                Constructor instance = plugin.getDeclaredConstructor(new Class[]{TransformGroup.class, TransformGroup.class});
+                Object obj = instance.newInstance(new Object[] {axisTG, viewPlatformTG});
+                if (obj != null)
+                {
+                    Behavior axisBehavior = (Behavior)obj; //new J3DAxisBehavior(axisTG, viewPlatformTG);
+                    axisBehavior.setSchedulingBounds(J3DUtils.infiniteBounds);
+                    pg.addChild(axisBehavior);
+                }
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+        }
 
         viewingPlatform.setPlatformGeometry(pg) ;
 
 		setWindowTitle();
 	}
-
-    /**
-     * Method to create axes for reference
-     * @return
-     */
-//    private BranchGroup createAxis(BranchGroup main, Vector3d dir, Vector3d center, String label, double length)
-//    {
-//        // Create Axes;
-//        TransformGroup branch = new TransformGroup(); // This transform will control all movements
-//        branch.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-//        branch.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-//        main.addChild(branch);
-//        Transform3D axisTrans = new Transform3D();
-//
-//        if (dir == J3DUtils.axisX)
-//            axisTrans.rotZ(-Math.PI/2);
-//        else if (dir == J3DUtils.axisZ)
-//           axisTrans.rotX(Math.PI/2);
-//        //center.y += 10;
-//        axisTrans.setTranslation(center);
-//        TransformGroup axes = new TransformGroup(axisTrans);
-//        axes.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-//        axes.setCapability(TransformGroup.ALLOW_TRANSFORM_READ);
-//
-//        Transform3D cylinderTrans = new Transform3D();
-//        Vector3d cylinderLocation = new Vector3d(0, length/2, 0); // Cylinder and cone are along Y
-//        cylinderTrans.setTranslation(cylinderLocation);
-//        TransformGroup cylinderG = new TransformGroup(cylinderTrans);
-//        float diameter = (float)length*.03f;
-//        Primitive axis = new Cylinder(diameter, (float)length);
-//        axis.setAppearance(J3DAppearance.axisApps[0]);
-//        cylinderG.addChild(axis);
-//        axes.addChild(cylinderG);
-//
-//        // Text
-//        if (font3D == null)
-//            font3D = new Font3D(new Font(User.getDefaultFont(), Font.PLAIN, 8),
-//                     new FontExtrusion());
-//        Text3D txt = new Text3D(font3D, label,
-//             new Point3f( -label.length()/2.0f, (float)length, 0));
-//        Shape3D sh = new Shape3D();
-//        sh.setGeometry(txt);
-//        sh.setAppearance(J3DAppearance.axisApps[0]);
-//        axes.addChild(sh);
-//
-//        // Arrow
-//        Transform3D arrowTrans = new Transform3D();
-//        Vector3d arrowLocation = new Vector3d(0, length, 0); // Cylinder and cone are along Y
-//        arrowTrans.set(arrowLocation);
-//        TransformGroup arrowG = new TransformGroup(arrowTrans);
-//        Primitive arrow = new Cone(1.5f * diameter, (float)length/3);
-//        arrow.setAppearance(J3DAppearance.axisApps[0]);
-//        arrowG.addChild(arrow);
-//
-//        axes.addChild(arrowG);
-//        branch.addChild(axes);
-//        return main;
-//    }
 
     /**
      * Method to create main transformation group
@@ -491,24 +450,6 @@ public class View3DWindow extends JPanel
 		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
 
         if (job.checkAbort()) return null; // Job cancel
-
-        // Create Axes
-//        Rectangle2D cellBnd = cell.getBounds();
-//        double length = cellBnd.getHeight() > cellBnd.getWidth() ? cellBnd.getHeight() : cellBnd.getWidth();
-//        length *= 0.1;
-//        Vector3d center = new Vector3d(cellBnd.getMinX() - length, cellBnd.getMinY() - length, 0);
-//        axes = new BranchGroup();
-//        axes.setCapability(BranchGroup.ALLOW_CHILDREN_READ);
-//        createAxis(axes, J3DUtils.axisX, center, "X", length);
-//        createAxis(axes, J3DUtils.axisY, center, "Y", length);
-//        createAxis(axes, J3DUtils.axisZ, center, "Z", length);
-//        objRoot.addChild(axes);
-
-        // new arrow
-//        BranchGroup axesq = new BranchGroup();
-//        TransformGroup hola = J3DArrow.createArrow(1, new Vector3f(0, 10, 10), new Vector3f(0, 0, 10));
-//        axesq.addChild(hola);
-//        objRoot.addChild(axesq);
 
 		// Picking tools
 		pickCanvas = new PickCanvas(canvas, objRoot);
@@ -578,7 +519,7 @@ public class View3DWindow extends JPanel
 		int mult = (int)((double)10 * panningAmount);
 		if (mult == 0) mult = 1;
 
-        keyBehavior.moveAlong(direction, mult*ticks);
+        keyBehavior.moveAlongAxis(direction, mult*ticks);
 	}
 
 //    public void setViewAndZoom(double x, double y, double zoom)
@@ -1630,14 +1571,13 @@ public class View3DWindow extends JPanel
 		return point2d;
 	}
 
-    public boolean isCollision( Transform3D t3d, boolean bViewSide )
+    public boolean isCollision(Transform3D t3d)
 	{
 		// get the translation
-		t3d.get( tmpVec );
+		t3d.get(tmpVec);
 
 		// we need to scale up by the scale that was
 		// applied to the root TG on the view side of the scenegraph
-		if( bViewSide != false )
 			tmpVec.scale( 1.0 / getScale( ) );
 
 //        Vector3d mapSquareSize = getMapSize( );
@@ -1649,11 +1589,8 @@ public class View3DWindow extends JPanel
 //			tmpVec.y > getPanel().getHeight() - mapSquareSize.y  )
 //			return true;
 
-		if( bViewSide != false )
-			// then do a pixel based look up using the map
-			return isCollision(tmpVec);
-
-		return false;
+        // then do a pixel based look up using the map
+        return isCollision(tmpVec);
 	}
 
     /**

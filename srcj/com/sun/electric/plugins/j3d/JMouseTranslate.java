@@ -2,7 +2,8 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: ThreeDTab.java
+ * File: JMouseTranslate.java
+ * Written by Gilda Garreton, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *

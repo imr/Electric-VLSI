@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: JMouseZoom.java
+ * Written by Gilda Garreton, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -28,7 +29,6 @@ import com.sun.j3d.utils.behaviors.mouse.MouseZoom;
 
 import javax.vecmath.Matrix4d;
 import java.awt.*;
-import java.io.Serializable;
 
 /**
  * Extending original zoom class to allow zoom not from original behavior

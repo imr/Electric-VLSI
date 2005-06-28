@@ -35,7 +35,7 @@ public class Resources {
 
 	// Location of valid 3D plugin
 	private static final String plugin3D = "com.sun.electric.plugins.j3d";
-    private static final String pluginJMF = "com.sun.electric.plugins.jmf";
+    private static final String pluginJMFJ3D = "com.sun.electric.plugins.JMFAndJ3D";
 	/**
 	 * Method to load a valid icon stored in resources package under the given class.
 	 * @param theClass class path where the icon resource is stored under
@@ -57,9 +57,9 @@ public class Resources {
 		return (theClass.getResource(resourceLocation+resourceName));
 	}
 
-    public static Class getJMFClass(String name)
+    public static Class getJMFJ3DClass(String name)
     {
-		return (getClass(name, pluginJMF));
+		return (getClass(name, pluginJMFJ3D));
     }
 
     public static Class get3DClass(String name)

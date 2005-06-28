@@ -99,10 +99,6 @@ public class JThreeDSideView extends JPanel
         // Creating scene
         BranchGroup scene = createSceneGraph(canvas, J3DUtils.infiniteBounds);
 
-//        SimpleUniverse u = new SimpleUniverse(canvas);
-//        u.getViewingPlatform().setNominalViewingTransform();
-//        u.addBranchGraph(scene);
-
         ViewingPlatform viewP = new ViewingPlatform(4);
         viewP.setCapability(ViewingPlatform.ALLOW_CHILDREN_READ);
         Viewer viewer = new Viewer(canvas);
@@ -114,12 +110,6 @@ public class JThreeDSideView extends JPanel
         PlatformGeometry pg = new PlatformGeometry();
         J3DUtils.createLights(pg);
         viewP.setPlatformGeometry(pg) ;
-
-//        BranchGroup rotateBG = new BranchGroup();
-//        Billboard billboard = new Billboard( objTrans, Billboard.ROTATE_ABOUT_AXIS, new Point3f( 1.0f, 1.0f, 0.0f ) );
-//		billboard.setSchedulingBounds( infiniteBounds );
-//		rotateBG.addChild( billboard );
-//        u.getViewingPlatform().addChild(rotateBG);
 
         JMouseRotate rotate = new JMouseRotate(MouseRotate.INVERT_INPUT);
         rotate.setTransformGroup(u.getViewingPlatform().getMultiTransformGroup().getTransformGroup(0));

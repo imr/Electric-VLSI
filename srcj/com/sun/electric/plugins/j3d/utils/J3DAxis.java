@@ -1,45 +1,26 @@
-/*
- * $RCSfile: J3DAxis.java,v $
+/* -*- tab-width: 4 -*-
  *
- * Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
+ * Electric(tm) VLSI Design System
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
+ * File: J3DAxis.java
+ * Written by Gilda Garreton, Sun Microsystems.
  *
- * - Redistribution of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
+ * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
- * - Redistribution in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in
- *   the documentation and/or other materials provided with the
- *   distribution.
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
- * Neither the name of Sun Microsystems, Inc. or the names of
- * contributors may be used to endorse or promote products derived
- * from this software without specific prior written permission.
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * This software is provided "AS IS," without a warranty of any
- * kind. ALL EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND
- * WARRANTIES, INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY
- * EXCLUDED. SUN MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL
- * NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF
- * USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR
- * ANY LOST REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT, SPECIAL,
- * CONSEQUENTIAL, INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER CAUSED AND
- * REGARDLESS OF THE THEORY OF LIABILITY, ARISING OUT OF THE USE OF OR
- * INABILITY TO USE THIS SOFTWARE, EVEN IF SUN HAS BEEN ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGES.
- *
- * You acknowledge that this software is not designed, licensed or
- * intended for use in the design, construction, operation or
- * maintenance of any nuclear facility.
- *
- * $Revision: 1.2 $
- * $Date: 2005/04/22 01:11:14 $
- * $State: Exp $
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.plugins.j3d.utils;
 
@@ -52,17 +33,11 @@ import javax.media.j3d.*;
 import javax.vecmath.*;
 
 /**
- * Original class provided by Java3D team.
- * Modified by Gilda Garreton to incorporate Java Electric attributes
+ * Utility class to create 3D axes
+ * @author  Gilda Garreton
+ * @version 0.1
  */
-public class J3DAxis extends Group {
-//	private static final float[] axisCoords = {
-//	    0.0f, 0.0f, 0.0f,  0.10f,  0.00f,  0.00f, // X-axis
-//	    0.1f, 0.0f, 0.0f,  0.09f,  0.01f,  0.00f, // X-axis arrow
-//	    0.1f, 0.0f, 0.0f,  0.09f, -0.01f,  0.00f, // X-axis arrow
-//	    0.1f, 0.0f, 0.0f,  0.09f,  0.00f,  0.01f, // X-axis arrow
-//	    0.1f, 0.0f, 0.0f,  0.09f,  0.00f, -0.01f, // X-axis arrow
-//	};
+public class J3DAxis extends Group {;
     /** Font for 3D axis labels */ private static Font3D font3D;
     public static final Vector3d axisX = new Vector3d(1,0,0);
     public static final Vector3d axisY = new Vector3d(0,1,0);

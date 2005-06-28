@@ -3,6 +3,7 @@
  * Electric(tm) VLSI Design System
  *
  * File: J3DCanvas3D.java
+ * Written by Gilda Garreton, Sun Microsystems.
  *
  * Copyright (c) 2005 Sun Microsystems and Static Free Software
  *
@@ -40,22 +41,9 @@ import javax.media.j3d.*;
 import javax.vecmath.*;
 import javax.imageio.ImageIO;
 
-/** Class CapturingCanvas3D, using the instructions from the Java3D 
-    FAQ pages on how to capture a still image in jpeg format.
-    From www.j3d.org
-    A capture button would call a method that looks like
-
-
-    public static void captureImage(CapturingCanvas3D MyCanvas3D) {
-	MyCanvas3D.writePNG_ = true;
-	MyCanvas3D.repaint();
-    }
-
-
-    Peter Z. Kunszt
-    Johns Hopkins University
-    Dept of Physics and Astronomy
-    Baltimore MD
+/** Inspired in example found in www.j3d.org
+ * @author  Gilda Garreton
+ * @version 0.1
 */
 
 public class J3DCanvas3D extends Canvas3D  {
@@ -84,10 +72,10 @@ public class J3DCanvas3D extends Canvas3D  {
     List inputFiles = new ArrayList();
     public void saveMovie(String filename)
     {
-        Class movieClass = Resources.getJMFClass("ImageToMovie");
+        Class movieClass = Resources.getJMFJ3DClass("JMFImageToMovie");
         if (movieClass == null)
         {
-            System.out.println("Movie plugin not available");
+            System.out.println("JMFAndJ3D plugin not available");
             return;
         }
         try {

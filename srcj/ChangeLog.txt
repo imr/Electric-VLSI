@@ -4,8 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02p: *********************************
 
+IMP: (06/28/05, GVG) Pref.exportPrefs(String fileName) public againt due to the regressions.
+Menu name change: new: Window->3D Window-> 3D View, old:Window->3D View->3D Window
 
-BUG: (06/28/05, GVG) Previous bug fix for "Repeat Last Action" didn't work. Another solution here
+IMP: (06/28/05, GVG) Moving Sun's proprietary to JMFAndJ3D plugin (ex JMF plugin).
+3D axes are only available if JMFAndJ3D plugin is available.
+Same for J3DQueryProperties.queryHardwareAcceleration function.
+Changes in build.xml to create JMFAndJ3D jar.
+
+BUG: (06/28/05, GVG) Previous bug fix for "Repeat Last Action" didn't work (Bug #246).
+FIX: Solution based on menu name.
 
 IMP: (06/28/05, GVG) J3DAxis using previous code with cylinders and cones.
 

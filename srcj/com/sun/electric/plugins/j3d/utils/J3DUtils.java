@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: View3DWindow.java
+ * File: J3DUtils.java
  * Written by Gilda Garreton, Sun Microsystems.
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software

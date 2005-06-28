@@ -30,11 +30,12 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.menus.MenuBar;
-import com.sun.electric.plugins.j3d.utils.J3DQueryProperties;
+import com.sun.electric.tool.user.Resources;
 import com.sun.electric.plugins.j3d.View3DWindow;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.Method;
 
 
 /**
@@ -72,7 +73,7 @@ public class J3DMenu {
 
         j3DMenu.addSeparator();
         j3DMenu.addMenuItem("_Test Hardware", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DQueryProperties.queryHardwareAcceleration(); ;} });
+			new ActionListener() { public void actionPerformed(ActionEvent e) { runHardwareTest(); ;} });
 		return j3DMenu;
     }
 
@@ -95,11 +96,10 @@ public class J3DMenu {
 	 * This method creates 3D view of current cell
      * @param transPerNode
      */
-	public static void create3DViewCommand(boolean transPerNode)
+	private static void create3DViewCommand(boolean transPerNode)
     {
 	    Cell curCell = WindowFrame.needCurCell();
 	    if (curCell == null) return;
-	    //WindowFrame.create3DViewWindow(curCell, WindowFrame.getCurrentWindowFrame(false).getContent(), transPerNode);
 
         WindowContent view2D = WindowFrame.getCurrentWindowFrame(false).getContent();
 
@@ -108,19 +108,20 @@ public class J3DMenu {
         WindowFrame frame = new WindowFrame();
 
         View3DWindow.create3DWindow(curCell, frame, view2D, transPerNode);
+    }
 
-//            try
-//            {
-//                if (create3DMethod == null) create3DMethod = view3DClass.getDeclaredMethod("create3DWindow", new Class[] {Cell.class, WindowFrame.class,
-//                                                                                        WindowContent.class, Boolean.class}) ;
-//                create3DMethod.invoke(view3DClass, new Object[] {cell, frame, view2D, new Boolean(transPerNode)});
-//            } catch (Exception e) {
-//                System.out.println("Can't open 3D View window: " + e.getMessage());
-//                ActivityLogger.logException(e);
-//            }
-//
-//            return frame;
-//        }
-
+    /**
+     * Calling code available in JMFAndJ3D plugin using reflection
+     */
+    private static void runHardwareTest()
+    {
+        Class app3DClass = Resources.getJMFJ3DClass("J3DQueryProperties");
+        try
+        {
+            Method queryClass = app3DClass.getDeclaredMethod("queryHardwareAcceleration", new Class[] {});
+            queryClass.invoke(queryClass, new Object[]{});
+        } catch (Exception e) {
+            System.out.println("Cannot call 3D plugin method queryHardwareAcceleration: ");
+        }
     }
 }

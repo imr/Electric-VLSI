@@ -1,35 +1,27 @@
-/**********************************************************
-  Copyright (C) 2001 	Daniel Selman
-
-  First distributed with the book "Java 3D Programming"
-  by Daniel Selman and published by Manning Publications.
-  http://manning.com/selman
-
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation, version 2.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  The license can be found on the WWW at:
-  http://www.fsf.org/copyleft/gpl.html
-
-  Or by writing to:
-  Free Software Foundation, Inc.,
-  59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-  Authors can be contacted at:
-   Daniel Selman: daniel@selman.org
-   Andrew AJ Cain acain@it.swin.edu.au
-   Gary S. Moss moss@arl.mil
-
-  If you make changes you think others would like, please 
-  contact one of the authors or someone at the 
-  www.j3d.org web site.
-**************************************************************/
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: J3DKeyBehavior.java
+ * Written by Gilda Garreton, Sun Microsystems.
+ *
+ * Copyright (c) 2005 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 
 package com.sun.electric.plugins.j3d;
 
@@ -41,18 +33,25 @@ import java.util.Arrays;
 import javax.media.j3d.*;
 import javax.vecmath.*;
 
+/** Inspired in example found in Daniel Selman's book "Java 3D Programming"
+ * For more information about the original example, contact Daniel Selman: daniel@selman.org
+ * Free Software Foundation, Inc.,
+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * @author  Gilda Garreton
+ * @version 0.1
+*/
+
 public class J3DKeyBehavior extends Behavior
 {
-	protected static final double FAST_SPEED = 20.0;
+	protected static final double FAST_SPEED = 10.0;
 	protected static final double NORMAL_SPEED = 1.0;
-//	protected static final double SLOW_SPEED = 0.5;
 
-	protected TransformGroup transformGroup; /* Contains main scene*/
-	protected Transform3D transform3D;
+	protected TransformGroup tGroup; /* Contains main scene*/
+	protected Transform3D transform;
 	protected WakeupCondition keyCriterion;
 
-	private double rotateAmount = Math.PI / 16.0;
-	private double moveRate = 5;
+	private double delta = 5;
+	private double rotateAmount = Math.PI / 10.0;
 	private double speed = NORMAL_SPEED;
 
 	private int forwardKey = KeyEvent.VK_UP;
@@ -64,26 +63,26 @@ public class J3DKeyBehavior extends Behavior
 	{
 		super();
 
-		transformGroup = tg;
-		transform3D = new Transform3D();
+		tGroup = tg;
+		transform = new Transform3D();
 	}
 
-	public void initialize( )
+	public void initialize()
 	{
 		WakeupCriterion[] keyEvents = new WakeupCriterion[2];
-		keyEvents[0] = new WakeupOnAWTEvent( KeyEvent.KEY_PRESSED );
-		keyEvents[1] = new WakeupOnAWTEvent( KeyEvent.KEY_RELEASED );
-		keyCriterion = new WakeupOr( keyEvents );
+		keyEvents[0] = new WakeupOnAWTEvent(KeyEvent.KEY_PRESSED);
+		keyEvents[1] = new WakeupOnAWTEvent(KeyEvent.KEY_RELEASED);
+		keyCriterion = new WakeupOr(keyEvents);
 
-		wakeupOn( keyCriterion );
+		wakeupOn(keyCriterion);
 	}
 
-	public void processStimulus( Enumeration criteria )
+	public void processStimulus(Enumeration criteria)
 	{
 		WakeupCriterion wakeup;
 		AWTEvent[] event;
 
-		while( criteria.hasMoreElements( ) )
+		while(criteria.hasMoreElements( ))
 		{
 			wakeup = (WakeupCriterion) criteria.nextElement( );
 
@@ -95,75 +94,78 @@ public class J3DKeyBehavior extends Behavior
 			for( int i = 0; i < event.length; i++ )
 			{
 				if( event[i].getID( ) == KeyEvent.KEY_PRESSED )
-				{
-					processKeyEvent( (KeyEvent)event[i] );
-				}
+					processKeyEvent((KeyEvent)event[i]);
 			}
 		}
 
 		wakeupOn( keyCriterion );
 	}
 
-	protected void processKeyEvent( KeyEvent event )
+	protected void processKeyEvent(KeyEvent event)
 	{
-		int keycode = event.getKeyCode( );
+		int keycode = event.getKeyCode();
 
-		if(event.isShiftDown( )) 
+		if(event.isShiftDown())
 			speed = FAST_SPEED;
 		else 
 			speed = NORMAL_SPEED;
 
-		if( event.isAltDown( ) )
-			altMove( keycode );
-		else if( event.isControlDown( ))	
-			controlMove( keycode );
+		if( event.isAltDown())
+			altMove(keycode);
+		else if(event.isControlDown())
+			controlMove(keycode );
 		else
-			standardMove( keycode );
+			standardMove(keycode);
 	}
 
 	//moves forward backward or rotates left right
-	private void standardMove( int keycode )
+	private void standardMove(int keycode)
 	{
 		if(keycode == forwardKey)
-			moveAlong(Z, 1);
+			moveAlongAxis(Z, 1);
 		else if(keycode == backKey)
-			moveAlong(Z, -1);
+			moveAlongAxis(Z, -1);
 		else if(keycode == leftKey)
-			rotAlong(Y, 1);
+			rotateAlongAxis(Y, 1);
 		else if(keycode == rightKey)
-			rotAlong(Y, -1);
+			rotateAlongAxis(Y, -1);
 	}
 
 	//moves left right, rotate up down
-	protected void altMove( int keycode )
+	protected void altMove(int keycode)
 	{
 		if(keycode == forwardKey)
-			rotAlong(X, 1);
+			rotateAlongAxis(X, 1);
 		else if(keycode == backKey)
-			rotAlong(X, -1);
+			rotateAlongAxis(X, -1);
 		else if(keycode == leftKey)
-			moveAlong(X, -1);
+			moveAlongAxis(X, -1);
 		else if(keycode == rightKey)
-			moveAlong(X, 1);
+			moveAlongAxis(X, 1);
 	}
 
 	//move up down, rot left right
-	protected void controlMove( int keycode )
+	protected void controlMove(int keycode)
 	{
 		if(keycode == forwardKey)	
-			moveAlong(Y, 1);
+			moveAlongAxis(Y, 1);
 		else if(keycode == backKey)
-			moveAlong(Y, -1);
+			moveAlongAxis(Y, -1);
 		else if(keycode == leftKey)
-			rotAlong(Z, 1);
+			rotateAlongAxis(Z, 1);
 		else if(keycode == rightKey)
-			rotAlong(Z, -1);
+			rotateAlongAxis(Z, -1);
 	}
 
     private static double[] values = new double[3];
     private static Vector3d move = new Vector3d();
 
-	public void moveAlong(int axis, int dir)
+    /**
+     * Method to shift along axis in direction provided
+     * @param axis
+     * @param dir
+     */
+	public void moveAlongAxis(int axis, int dir)
 	{
         Arrays.fill(values, 0);
         values[axis] = dir * getMovementRate();
@@ -177,17 +179,22 @@ public class J3DKeyBehavior extends Behavior
         }
 	}
 
-	protected void rotAlong(int axis, int dir)
+    /**
+     * Method to rotate along given axis and direction provided
+     * @param axis
+     * @param dir
+     */
+	protected void rotateAlongAxis(int axis, int dir)
 	{
         double radian = rotateAmount * speed;
         // in case of collision, move the opposite direction
-		if (!doRotate(axis, dir * radian, false))
-           doRotate(axis, -dir * radian, true);
+		if (!rotate(axis, dir * radian, false))
+           rotate(axis, -dir * radian, true);
 	}
 
 	protected boolean updateTransform(boolean force)
 	{
-		transformGroup.setTransform(transform3D);
+		tGroup.setTransform(transform);
         return true;
 	}
 
@@ -202,7 +209,7 @@ public class J3DKeyBehavior extends Behavior
     public void setHomeRotation(double[] rotVals)
     {
         for (int i = 0; i < rotVals.length; i++)
-            doRotate(i, rotVals[i], true);
+            rotate(i, rotVals[i], true);
     }
 
     /**
@@ -211,9 +218,9 @@ public class J3DKeyBehavior extends Behavior
      * @param radians
      * @return True if there was no collision
      */
-	protected boolean doRotate(int axis, double radians, boolean force)
+	protected boolean rotate(int axis, double radians, boolean force)
 	{
-		transformGroup.getTransform(transform3D);
+		tGroup.getTransform(transform);
 		Transform3D toMove = new Transform3D();
         switch(axis)
         {
@@ -227,7 +234,7 @@ public class J3DKeyBehavior extends Behavior
                 toMove.rotZ(radians);
                 break;
         }
-		transform3D.mul(toMove);
+		transform.mul(toMove);
         // Need to move in opposite direction to avoid collision
         boolean noCollision = updateTransform(force);
         return (noCollision);
@@ -240,47 +247,26 @@ public class J3DKeyBehavior extends Behavior
         double factor = (out) ? (1/z_factor) : (z_factor);
 
         // Remember old matrix
-        transformGroup.getTransform(transform3D);
+        tGroup.getTransform(transform);
         Matrix4d mat = new Matrix4d();
-        transform3D.get(mat);
-        double dy = transform3D.getScale() * factor;
-        transform3D.setScale(dy);
-        transformGroup.setTransform(transform3D);
+        transform.get(mat);
+        double dy = transform.getScale() * factor;
+        transform.setScale(dy);
+        tGroup.setTransform(transform);
     }
 
 	private static Transform3D toMove = new Transform3D();
     private boolean doMove(Vector3d theMove, boolean force)
 	{
-		transformGroup.getTransform(transform3D);
+		tGroup.getTransform(transform);
         toMove.setIdentity();
 		toMove.setTranslation(theMove);
-        //positionVector.add (theMove);
-		transform3D.mul( toMove );
+		transform.mul(toMove);
 		return updateTransform(force);
 	}
 
-	protected double getMovementRate( )
+	protected double getMovementRate()
 	{
-		return moveRate * speed;
+		return delta * speed;
 	}
-
-	public void setMovementRate( double meters )
-	{
-		moveRate = meters; // Travel rate in meters/frame
-	}
-
-//	public void setForwardKey( int key )
-//	{
-//		forwardKey = key;
-//	}
-
-//	public void setBackKey( int key )
-//	{
-//		backKey = key;
-//	}
-
-//	public void setLeftKey( int key )
-//	{
-//		leftKey = key;
-//	}
 }

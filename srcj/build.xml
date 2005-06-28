@@ -33,7 +33,7 @@
 
 	<!-- Use -DGNU=true for GNU release -->
 	<!-- Use -Dsource=true to release the source  -->
-    <!-- Use -DJMF=true to include JMF plugin -->
+    <!-- Use -DJMFJ3D=true to include JMFAndJ3D plugin -->
     <target name="compile" depends="init" description="Compile">
         <javac debug="true" deprecation="true" destdir="." srcdir="."
 	    source="1.4" fork="true" memoryMaximumSize="256m">
@@ -44,7 +44,7 @@
 	        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
             <exclude name="com/sun/electric/plugins/j3d/ui/*.*" if="NO3D"/>
             <exclude name="com/sun/electric/plugins/j3d/utils/*.*" if="NO3D"/>
-            <exclude name="com/sun/electric/plugins/jmf/*.*" unless="JMF"/>
+            <exclude name="com/sun/electric/plugins/JMFAndJ3D/*.*" unless="JMFAndJ3D"/>
         </javac>
     </target>
 
@@ -125,6 +125,23 @@
         </delete>
 	</target>
 
+    <target name="jarForJMFAndJ3D" depends="init" description="Make source Jar file for JMF and J3D plugin">
+        <javac debug="true" deprecation="true" destdir="com/sun/electric/plugins/JMFAndJ3D" srcdir="com/sun/electric/plugins/JMFAndJ3D"
+	    source="1.4" fork="true" memoryMaximumSize="256m">
+        </javac>
+        <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
+        	<arg value="-v"/>
+        </java>
+        <jar basedir="." compress="true" jarfile="electricJMFAndJ3D-${version}.jar">
+        	<include name="com/sun/electric/plugins/JMFAndJ3D/*.*"/>
+        </jar>
+        <delete quiet="true">
+            <fileset dir="com">
+                <include name="**/*.class"/>
+            </fileset>
+        </delete>
+	</target>
+
 	<target name="jarWithVersion" depends="init,compile" description="Make Jar file with version">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
         	<arg value="-v"/>
@@ -152,7 +169,7 @@
             <exclude name="com/sun/electric/plugins/tsmc90/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/fill90nm/*.*" if="GNU"/>
             <exclude name="com/sun/electric/plugins/tsmc90/gates90nm/*.*" if="GNU"/>
-            <exclude name="com/sun/electric/plugins/jmf/*.*" unless="JMF"/>
+            <exclude name="com/sun/electric/plugins/JMFAndJ3D/*.*" unless="JMFAndJ3D"/>
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
             <exclude name="classes/" unless="source"/>
@@ -193,7 +210,7 @@
 	        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
             <exclude name="com/sun/electric/plugins/j3d/ui/*.*" if="NO3D"/>
             <exclude name="com/sun/electric/plugins/j3d/utils/*.*" if="NO3D"/>
-            <exclude name="com/sun/electric/plugins/jmf/*.*" unless="JMF"/>
+            <exclude name="com/sun/electric/plugins/JMFAndJ3D/*.*" unless="JMFAndJ3D"/>
             <exclude name="**/*.java" unless="source"/>
             <exclude name="**/*.form" unless="source"/>
             <exclude name="classes/" unless="source"/>

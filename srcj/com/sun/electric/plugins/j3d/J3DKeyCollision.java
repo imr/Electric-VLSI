@@ -1,49 +1,52 @@
-/**********************************************************
-  Copyright (C) 2001 	Daniel Selman
-
-  First distributed with the book "Java 3D Programming"
-  by Daniel Selman and published by Manning Publications.
-  http://manning.com/selman
-
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation, version 2.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  The license can be found on the WWW at:
-  http://www.fsf.org/copyleft/gpl.html
-
-  Or by writing to:
-  Free Software Foundation, Inc.,
-  59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-
-  Author can be contacted at:
-  Daniel Selman: daniel@selman.org
-
-  If you make changes you think others would like please
-  contact Daniel Selman.
-**************************************************************/
+/* -*- tab-width: 4 -*-
+ *
+ * Electric(tm) VLSI Design System
+ *
+ * File: J3DKeyCollision.java
+ * Written by Gilda Garreton, Sun Microsystems.
+ *
+ * Copyright (c) 2005 Sun Microsystems and Static Free Software
+ *
+ * Electric(tm) is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * Electric(tm) is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Electric(tm); see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
+ * Boston, Mass 02111-1307, USA.
+ */
 
 package com.sun.electric.plugins.j3d;
 
 import javax.media.j3d.*;
 
-public class J3DKeyCollision extends J3DKeyBehavior // KeyNavigatorBehavior
+/** Inspired in example found in Daniel Selman's book "Java 3D Programming"
+ * For more information about the original example, contact Daniel Selman: daniel@selman.org
+ * Free Software Foundation, Inc.,
+ * 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * @author  Gilda Garreton
+ * @version 0.1
+*/
+
+public class J3DKeyCollision extends J3DKeyBehavior
 {
-	private J3DCollisionChecker		m_CollisionChecker = null;
+	private View3DWindow collisionChecker;
 
 
-	public J3DKeyCollision(TransformGroup tg, J3DCollisionDetector collisionDetector)
+	public J3DKeyCollision(TransformGroup tg, View3DWindow collisionDetector)
 	{
 		super(tg);
 
-        transformGroup = tg;
-        transform3D = new Transform3D( );
-		m_CollisionChecker = new J3DCollisionChecker( tg, collisionDetector, true );
+        tGroup = tg;
+        transform = new Transform3D( );
+		collisionChecker = collisionDetector;
 	}
 
     /**
@@ -54,19 +57,9 @@ public class J3DKeyCollision extends J3DKeyBehavior // KeyNavigatorBehavior
 	{
         boolean collision = false;
         if (!force)
-            collision = m_CollisionChecker.isCollision( transform3D );
+            collision = collisionChecker.isCollision(transform);
 		if( collision == false )
-			transformGroup.setTransform( transform3D );
+			tGroup.setTransform(transform);
         return !collision;
 	}
-
-//	// dissallow rotation up or down
-//	protected void altMove( int keycode )
-//	{
-//	}
-//
-//	// dissallow moving up or down
-//	protected void controlMove( int keycode )
-//	{
-//	}
 }
