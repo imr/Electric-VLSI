@@ -41,10 +41,6 @@
             <classpath><pathelement location="${beanshell}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>
             <exclude name="intervalsimulation/"/>
-	        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
-            <exclude name="com/sun/electric/plugins/j3d/ui/*.*" if="NO3D"/>
-            <exclude name="com/sun/electric/plugins/j3d/utils/*.*" if="NO3D"/>
-            <exclude name="com/sun/electric/plugins/JMFAndJ3D/*.*" unless="JMFAndJ3D"/>
         </javac>
     </target>
 
@@ -125,10 +121,7 @@
         </delete>
 	</target>
 
-    <target name="jarForJMFAndJ3D" depends="init" description="Make source Jar file for JMF and J3D plugin">
-        <javac debug="true" deprecation="true" destdir="com/sun/electric/plugins/JMFAndJ3D" srcdir="com/sun/electric/plugins/JMFAndJ3D"
-	    source="1.4" fork="true" memoryMaximumSize="256m">
-        </javac>
+    <target name="jarForJMFAndJ3D" depends="init,compile" description="Make source Jar file for JMF and J3D plugin">
         <java classname="com.sun.electric.Main" failonerror="true" fork="true" outputproperty="version">
         	<arg value="-v"/>
         </java>
