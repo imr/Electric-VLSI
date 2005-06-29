@@ -75,7 +75,7 @@ public class J3DCanvas3D extends Canvas3D  {
         Class movieClass = Resources.getJMFJ3DClass("JMFImageToMovie");
         if (movieClass == null)
         {
-            System.out.println("JMFAndJ3D plugin not available");
+            System.out.println("Java3D plugin not available");
             return;
         }
         try {

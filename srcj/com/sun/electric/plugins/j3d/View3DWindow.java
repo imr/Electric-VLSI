@@ -360,13 +360,13 @@ public class View3DWindow extends JPanel
         axisRoot.addChild(axisTranslation);
 
         // Create the axis behavior
-        // Using reflection to create this behavior because JMFAndJ3D plugin
+        // Using reflection to create this behavior because Java3D plugin
         // might not be available. Reflection would have to  be here until Java3D team
         // releases this new behavior
         Class plugin = Resources.getJMFJ3DClass("J3DAxisBehavior");
         if (plugin == null)
         {
-            System.out.println("JMFAndJ3D plugin not available. 3D axes not created.");
+            System.out.println("Java3D plugin not available. 3D axes not created.");
         }
         else
         {

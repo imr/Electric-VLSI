@@ -111,7 +111,7 @@ public class J3DMenu {
     }
 
     /**
-     * Calling code available in JMFAndJ3D plugin using reflection
+     * Calling code available in Java3D plugin using reflection
      */
     private static void runHardwareTest()
     {

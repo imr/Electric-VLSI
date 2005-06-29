@@ -2,6 +2,10 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.02q: *********************************
+
+IMP: (06/28/05, GVG) Reorganizing again JMF and Java3D classes to create different plugins
+ 
 ************************* Version 8.02p: *********************************
 
 BUG: (06/28/05, GVG) DRC resolution check for active arcs must be done before they are cropped.
@@ -20,7 +24,7 @@ FIX: Disallow selection of cell center in "select all".
 BUG: (06/27/05, SMR) Grid doesn't display when editing down-in-place (Bug #411).
 FIX: Fixed grid code to handle in-place orientation.
 
-IMP: (06/28/05, GVG) Pref.exportPrefs(String fileName) public againt due to the regressions.
+IMP: (06/28/05, GVG) Pref.exportPrefs(String fileName) public again due to the regressions.
 Menu name change: new: Window->3D Window-> 3D View, old:Window->3D View->3D Window
 
 IMP: (06/28/05, GVG) Moving Sun's proprietary to JMFAndJ3D plugin (ex JMF plugin).
