@@ -197,9 +197,9 @@ class NccCellInfo extends CellInfo {
 			for (int i=0; i<expNetIDs.length; i++) {
 				String nm = e.getNameKey().subname(i).toString();
 				ExportGlobal eg = 
-					new ExportGlobal(nm,
-						             expNetIDs[i],
-						             e.getCharacteristic());
+					new ExportGlobal(nm, expNetIDs[i],
+						             e.getCharacteristic(), 
+									 getNetlist().getNetwork(e,i), e);
 				nameToExport.put(nm, eg);
 			}
 		}
@@ -211,23 +211,44 @@ class NccCellInfo extends CellInfo {
 		for (int i=0; i<globNets.size(); i++) {
 			Global g = globNets.get(i);
 			String nm = g.getName();
-			int netID = getNetID(getNetlist().getNetwork(g));
+			Network net = getNetlist().getNetwork(g);
+			int netID = getNetID(net);
 			PortCharacteristic type = globNets.getCharacteristic(g); 
 			ExportGlobal eg = (ExportGlobal) nameToExport.get(nm);
 			if (eg!=null) {
 				// Name collision between an export and a global signal. 
 				// Discard the global.
 				if (eg.netID!=netID || eg.type!=type) {
-					System.out.println(
-					    "  Error! Cell: "+getCell().libDescribe()+
-						" has both an Export and a global signal "+
-					    "named: "+nm+" but their networks or "+
-					    "Characteristics differ");
+					if (eg.netID!=netID) {
+						globals.pr(
+							"  Error! Cell: "+getCell().libDescribe()+
+							" has both an Export and a global signal "+
+							"named: "+nm+" but their networks differ");
+						
+						// GUI
+						Cell c = getCell();
+						VarContext context = getContext();
+						// display nm
+						// display net.getNames(), highlight net
+						// display eg.network.getNames(), highlight eg.network;
+					}
+					if (eg.type!=type) {
+						globals.pr(
+							"  Error! Cell: "+getCell().libDescribe()+
+							" has both an Export and a global signal "+
+							"named: "+nm+" but their Characteristics differ");
+						// GUI
+						Cell c = getCell();
+						VarContext context = getContext();
+						// display nm
+						// display type, nothing to highlight
+						// display eg.type, highlight eg.getExport()
+					}
+					
 					throw new ExportGlobalConflict();
-					//LayoutLib.error(true, "schematics need repair");
 				}
 			} else {
-				eg = new ExportGlobal(nm, netID, type);
+				eg = new ExportGlobal(nm, netID, type, net);
 				expGlob.add(eg);
 			}
 		}
@@ -237,11 +258,27 @@ class NccCellInfo extends CellInfo {
 
 /** Information from either an Export or a Global signal */
 class ExportGlobal {
+	private final Export export;
 	public final String name;
 	public final int netID;
 	public final PortCharacteristic type;
-	public ExportGlobal(String nm, int id, PortCharacteristic ty) {
-		name=nm;  netID=id;  type=ty;
+	public final Network network;
+	/** For Export 
+	 * @param export is needed because this ExportGlobal 
+	 * might be a piece of bussed Export; for example if this ExportGlobal
+	 * is foo[1] but is only a part of the Export foo[1:3]. */
+	public ExportGlobal(String nm, int id, PortCharacteristic ty, Network net,
+			            Export export) {
+		this.export=export;  name=nm;  netID=id;  type=ty;  network=net;
+	}
+	/** For Global */
+	public ExportGlobal(String nm, int id, PortCharacteristic ty, Network net) {
+		export=null; name=nm;  netID=id;  type=ty; network=net;
+	}
+	public boolean isExport() {return export!=null;}
+	public Export getExport() {
+		LayoutLib.error(export==null, "this is a Global, not an Export!");
+		return export;
 	}
 }
 
@@ -360,7 +397,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		return func==PrimitiveNode.Function.TRAPNP ||
                func==PrimitiveNode.Function.TRA4PNP;
 	}
-	private Mos.Type getMosType(NodeInst ni) {
+	private Mos.Type getMosType(NodeInst ni, NccCellInfo info) {
 		String typeNm;
 		if (isSchematicPrimitive(ni)) {
 			// Designer convention:
@@ -373,7 +410,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			typeNm = ann==null ? null : ann.getTransistorType();
 			if (typeNm==null) {
 				// No transistorType annotation. Use defaults.
-				LayoutLib.error(!isNmosPrimitive(ni) && !isPmosPrimitive(ni), 
+				globals.error(!isNmosPrimitive(ni) && !isPmosPrimitive(ni), 
 						        "not NMOS nor PMOS");
 				typeNm = isNmosPrimitive(ni) ? "N-Transistor" : "P-Transistor";
 			}
@@ -383,6 +420,13 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		Mos.Type t = Mos.TYPES.getTypeFromLongName(typeNm);
 		if (t==null) {
 			prln("  Unrecognized transistor type: "+typeNm);
+			
+			// GUI should display Cell and Context
+			Cell c = ni.getParent();
+			VarContext context = info.getContext();
+			// GUI display typeNm
+			// GUI highlight ni
+			
 			throw new BadTransistorType();
 		}
 		return t;
@@ -400,7 +444,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		Wire s = getWireForPortInst(ni.getTransistorSourcePort(), info);
 		Wire g = getWireForPortInst(ni.getTransistorGatePort(), info);
 		Wire d = getWireForPortInst(ni.getTransistorDrainPort(), info);
-		Mos.Type type = getMosType(ni);
+		Mos.Type type = getMosType(ni, info);
 		Part t = new Mos(type, name, width, length, s, g, d);
 		parts.add(t);								 
 	}
@@ -425,7 +469,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		} else if (isPnpPrimitive(ni) || isNpnPrimitive(ni)) {
 			buildBipolar(ni, info);
 		} else {
-			LayoutLib.error(true, "Unrecognized primitive transistor");
+			globals.error(true, "Unrecognized primitive transistor");
 		}
 	}
 	private void doPrimitiveNode(NodeInst ni, NodeProto np, NccCellInfo info) {
@@ -454,10 +498,10 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	private void printExports(HashSet exportNames) {
 		pr("{ ");
 		for (Iterator it=exportNames.iterator(); it.hasNext();)
-			pr((String) it.next()+" ");
+			pr(((ExportGlobal)it.next()).name+" ");
 		pr("}");
 	}
-	private void printExportAssertionFailure(HashMap wireToExports,
+	private void printExportAssertionFailure(HashMap wireToExportGlobals,
 	                                         NccCellInfo info) {
 		String instPath = 
 			NccNameProxy.removePrefix(pathPrefix, 
@@ -466,36 +510,53 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		prln("  Assertion: exportsConnectedByParent in cell: "+
 			 cellName+" fails. Instance path is: "+instPath);
 		prln("    The exports are connected to "+
-		     wireToExports.size()+" different networks");
-		for (Iterator it=wireToExports.keySet().iterator(); it.hasNext();) {
+		     wireToExportGlobals.size()+" different networks");
+		for (Iterator it=wireToExportGlobals.keySet().iterator(); it.hasNext();) {
 			Wire w = (Wire) it.next();
 			pr("    On network: "+w.getName()+" are exports: ");
-			printExports((HashSet) wireToExports.get(w));
+			printExports((HashSet) wireToExportGlobals.get(w));
 			prln("");
 		}
+		// The GUI should put the following into one box
+		VarContext context = info.getContext();
+		Cell cell = info.getCell();
+		for (Iterator it=wireToExportGlobals.keySet().iterator(); it.hasNext();) {
+			HashSet exportGlobals = (HashSet) wireToExportGlobals.get(it.next());
+			// The GUI should put the following on one line
+			for (Iterator it2=exportGlobals.iterator(); it2.hasNext();) {
+				ExportGlobal eg = (ExportGlobal) it2.next();
+				if (eg.isExport()) {
+					Export e = eg.getExport();
+					// highlight e
+				} else {
+					Network n = eg.network;
+					// highlight n
+				}
+			}
+		}
 	}
-	private void matchExports(HashMap wireToExports, NamePattern pattern,
+	private void matchExports(HashMap wireToExportGlobals, NamePattern pattern,
 							  NccCellInfo info) {
 		for (Iterator it=info.getExportsAndGlobals(); it.hasNext();) {
 			ExportGlobal eg = (ExportGlobal) it.next();
 			if (!pattern.matches(eg.name)) continue;
 			Wire wire = wires.get(eg.netID, info);
-			HashSet exports = (HashSet) wireToExports.get(wire);
-			if (exports==null) {
-				exports = new HashSet();
-				wireToExports.put(wire, exports);
+			HashSet exportGlobals = (HashSet) wireToExportGlobals.get(wire);
+			if (exportGlobals==null) {
+				exportGlobals = new HashSet();
+				wireToExportGlobals.put(wire, exportGlobals);
 			}
-			exports.add(eg.name);
+			exportGlobals.add(eg);
 		}
 	}
 	private boolean exportAssertionFailure(List patterns, NccCellInfo info) {
 		// map from Wire to Set of Export Names
-		HashMap wireToExports = new HashMap();
+		HashMap wireToExportGlobals = new HashMap();
 		for (Iterator it=patterns.iterator(); it.hasNext();) {
-			matchExports(wireToExports, (NamePattern) it.next(), info);
+			matchExports(wireToExportGlobals, (NamePattern) it.next(), info);
 		}
-		if (wireToExports.size()<=1) return false;
-		printExportAssertionFailure(wireToExports, info);
+		if (wireToExportGlobals.size()<=1) return false;
+		printExportAssertionFailure(wireToExportGlobals, info);
 		return true;
 	}
 	private boolean exportAssertionFailures(NccCellInfo info) {

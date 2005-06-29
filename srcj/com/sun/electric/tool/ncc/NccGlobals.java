@@ -109,7 +109,8 @@ public class NccGlobals {
 		return EquivRecord.newLeafRecord(code, ckts, this);
 	}
 	
-	private void prln(String s) {System.out.println(s); System.out.flush();}
+	public void prln(String s) {System.out.println(s); System.out.flush();}
+	public void pr(String s) {System.out.print(s); System.out.flush();}
 	// ----------------------------- public methods --------------------------
 	/**
 	 * The constructor initializes global root, parts, wires, and ports from 
