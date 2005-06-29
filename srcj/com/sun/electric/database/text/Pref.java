@@ -227,7 +227,11 @@ public class Pref
         importPrefs(fileName);
     }
 
-    private static void importPrefs(String fileName)
+    /**
+     * Method used in regressions so it has to be public.
+     * @param fileName
+     */
+    public static void importPrefs(String fileName)
     {
         if (fileName == null) return;
         // import preferences
