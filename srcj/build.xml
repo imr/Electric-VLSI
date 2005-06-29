@@ -33,7 +33,7 @@
 
 	<!-- Use -DGNU=true for GNU release -->
 	<!-- Use -Dsource=true to release the source  -->
-    <!-- Use -DJMFJ3D=true to include JMFAndJ3D plugin -->
+    <!-- Use -DJMF=true to include JMF plugin -->
     <target name="compile" depends="init" description="Compile">
         <javac debug="true" deprecation="true" destdir="." srcdir="."
 	    source="1.4" fork="true" memoryMaximumSize="256m">

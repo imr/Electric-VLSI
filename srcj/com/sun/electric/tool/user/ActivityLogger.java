@@ -51,6 +51,7 @@ import javax.swing.JOptionPane;
  */
 public class ActivityLogger {
 
+	/** true if a test version */		private static final boolean TEST_VERSION = Version.getVersion().getDetail() != 999;
     /** log menu activations */         private static boolean logMenuActivations;
     /** log jobs starting */            private static boolean logJobs;
     /** timestamp everything */         private static boolean logTimeStamps;
@@ -89,7 +90,7 @@ public class ActivityLogger {
      */
     public static synchronized void finished() {
         if (out != null) out.close();
-        if (exceptionLogged) {
+        if (exceptionLogged && TEST_VERSION) {
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String []
             { "Exception logged.  Please send ", "   \""+outputFile+"\"", "to the developers"},
                     "Exception Logged", JOptionPane.WARNING_MESSAGE);
@@ -189,9 +190,18 @@ public class ActivityLogger {
             out.flush();
         }
         e.printStackTrace(System.out);
-        String [] msg = {"Exception Caught!!!", "The exception below has been logged in '" +outputFile+"'.",
-                         "Please help us and report error to developers using 'Bugzilla'. In case of no access, send logfile to the developers.",
-                         "   " + e.toString() };
+        String msg1 = "Exception Caught!!!";
+        String msg2 = "The exception below has been logged in '" +outputFile+"'.";
+		String msg3 = "Please help us and report error to developers using 'Bugzilla'. In case of no access, send logfile to the developers.";
+		String msg4 = e.toString();
+		String [] msg;
+		if (TEST_VERSION)
+		{
+			msg = new String[] {msg1, msg2, msg3, msg4};
+		} else
+		{
+			msg = new String[] {msg1, msg2, msg4};
+		}
 	    if (!Main.BATCHMODE)
             JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), msg, "Exception Caught", JOptionPane.ERROR_MESSAGE);
 	    else
