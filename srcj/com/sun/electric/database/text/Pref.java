@@ -33,7 +33,6 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.OptionReconcile;
 import com.sun.electric.tool.user.ui.TopLevel;
 
-import java.io.FileNotFoundException;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
