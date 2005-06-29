@@ -50,6 +50,7 @@
             <classpath><pathelement location="${beanshell}"/></classpath>
             <classpath><pathelement location="${AppleJava}"/></classpath>
             <exclude name="intervalsimulation/"/>
+            <exclude name="com/sun/electric/plugins/JMFAndJ3D/*.*" unless="JMFAndJ3D"/>
         </javac>
         <copy todir="bin/com">
             <fileset dir="com">
