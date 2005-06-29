@@ -318,8 +318,8 @@ public class DEF extends LEFDEF
 			if (cell != null)
 			{
 				// must copy the cell
-//				Cell newCell = us_copyrecursively(cell, cell->protoname, curlib, cell->cellview,
-//					FALSE, FALSE, "", FALSE, FALSE, FALSE);
+//				Cell newCell = copyrecursively(cell, cell->protoname, curlib, cell->cellview,
+//					FALSE, FALSE, "", FALSE, FALSE, TRUE, new HashSet());
 //				return newCell;
 				return cell;
 			}

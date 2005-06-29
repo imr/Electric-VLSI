@@ -4424,26 +4424,34 @@ public class CircuitChanges
 	 * @param verbose true to display extra information.
 	 * @param move true to move instead of copy (delete after copying).
 	 * @param subDescript a String describing the nature of this copy (empty string initially).
-	 * @param noRelatedViews true to avoid copying related views (schematic cell with layout, etc.)
-	 * @param noRelatedViewsThisLevel true to avoid copying related views for this
-	 * level of invocation only (but further recursion will use "noRelatedViews").
-	 * @param noSubCells true to avoid copying sub-cells.
+	 * @param schematicRelatedView true to copy a schematic related view.  Typically this is true,
+	 * meaning that if copying an icon, also copy the schematic.  If already copying the example icon,
+	 * this is set to false so that we don't get into a loop.
+	 * @param allRelatedViews true to copy all related views (schematic cell with layout, etc.)
+	 * If false, only schematic/icon relations are copied.
+	 * @param allRelatedViewsThisLevel true to copy related views for this
+	 * level of invocation only (but further recursion will use "allRelatedViews").
+	 * @param copySubCells true to recursively copy sub-cells.  If true, "useExisting" must be true.
 	 * @param useExisting true to use any existing cells in the destination library
 	 * instead of creating a cross-library reference.  False to copy everything needed.
+	 * @param existing a Set of Cells that have already been copied to the desitnation library
+	 * and need not be copied again.
 	 */
-	private static HashSet cellsCopied = null;
 	public static Cell copyRecursively(Cell fromCell, String toName, Library toLib,
-		View toView, boolean verbose, boolean move, String subDescript, boolean noRelatedViews,
-		boolean noRelatedViewsThisLevel, boolean noSubCells, boolean useExisting)
+		View toView, boolean verbose, boolean move, String subDescript, boolean schematicRelatedView, boolean allRelatedViews,
+		boolean allRelatedViewsThisLevel, boolean copySubCells, boolean useExisting, HashSet existing)
 	{
+		// check for sensibility
+		if (copySubCells && !useExisting)
+			System.out.println("Cross-library copy warning: It makes no sense to copy subcells but not use them");
+
 		Date fromCellCreationDate = fromCell.getCreationDate();
 		Date fromCellRevisionDate = fromCell.getRevisionDate();
 
 		boolean topLevel = subDescript.length() == 0;
-		if (topLevel) cellsCopied = new HashSet();
 
 		// see if the cell is already there
-		for(Iterator it = cellsCopied.iterator(); it.hasNext(); )
+		for(Iterator it = existing.iterator(); it.hasNext(); )
 		{
 			Cell copiedCell = (Cell)it.next();
 			if (copiedCell.getName().equalsIgnoreCase(toName) && copiedCell.getView() == toView)
@@ -4451,7 +4459,7 @@ public class CircuitChanges
 		}
 
 		// copy subcells
-		if (!noSubCells)
+		if (copySubCells)
 		{
 			boolean found = true;
 			while (found)
@@ -4468,11 +4476,13 @@ public class CircuitChanges
 					if (cell.getLibrary() == toLib) continue;
 
 					// see if the cell is already there
-					if (inDestLib(cell)) continue;
+					if (inDestLib(cell, existing)) continue;
 
 					// copy subcell if not already there
-					Cell oNp = copyRecursively(cell, cell.getName(), toLib, cell.getView(),
-						verbose, move, "subcell ", noRelatedViews, noRelatedViews, noSubCells, useExisting);
+					boolean doCopySchematicView = true;
+					if (ni.isIconOfParent()) doCopySchematicView = false;
+					Cell oNp = copyRecursively(cell, cell.getName(), toLib, cell.getView(), verbose,
+						move, "subcell ", doCopySchematicView, allRelatedViews, allRelatedViews, copySubCells, useExisting, existing);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of sub" + cell + " failed"); else
@@ -4485,8 +4495,40 @@ public class CircuitChanges
 			}
 		}
 
-		// also copy equivalent views
-		if (!noRelatedViewsThisLevel)
+		// see if copying related views
+		if (!allRelatedViewsThisLevel)
+		{
+			// not copying related views: just copy schematic if this was icon
+			if (toView == View.ICON && schematicRelatedView)
+			{
+				// now copy the schematics
+				boolean found = true;
+				while (found)
+				{
+					found = false;
+					for(Iterator it = fromCell.getCellGroup().getCells(); it.hasNext(); )
+					{
+						Cell np = (Cell)it.next();
+						if (np.getView() != View.SCHEMATIC) continue;
+
+						// see if the cell is already there
+						if (inDestLib(np, existing)) continue;
+
+						// copy equivalent view if not already there
+						Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(), verbose,
+							move, "schematic view ", true, allRelatedViews, false, copySubCells, useExisting, existing);
+						if (oNp == null)
+						{
+							if (move) System.out.println("Move of schematic view " + np + " failed"); else
+								System.out.println("Copy of schematic view " + np + " failed");
+							return null;
+						}
+						found = true;
+						break;
+					}
+				}
+			}
+		} else
 		{
 			// first copy the icons
 			boolean found = true;
@@ -4500,11 +4542,11 @@ public class CircuitChanges
 					if (!np.isIcon()) continue;
 
 					// see if the cell is already there
-					if (inDestLib(np)) continue;
+					if (inDestLib(np, existing)) continue;
 
 					// copy equivalent view if not already there
-					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(),
-						verbose, move, "alternate view ", noRelatedViews, true, noSubCells, useExisting);
+					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(), verbose,
+						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np + " failed"); else
@@ -4527,11 +4569,11 @@ public class CircuitChanges
 					if (np.isIcon()) continue;
 
 					// see if the cell is already there
-					if (inDestLib(np)) continue;
+					if (inDestLib(np, existing)) continue;
 
 					// copy equivalent view if not already there
-					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(),
-						verbose, move, "alternate view ", noRelatedViews, true, noSubCells, useExisting);
+					Cell oNp = copyRecursively(np, np.getName(), toLib, np.getView(), verbose,
+						move, "alternate view ", true, allRelatedViews, false, copySubCells, useExisting, existing);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of alternate view " + np + " failed"); else
@@ -4545,7 +4587,7 @@ public class CircuitChanges
 		}
 
 		// see if the cell is NOW there
-		for(Iterator it = cellsCopied.iterator(); it.hasNext(); )
+		for(Iterator it = existing.iterator(); it.hasNext(); )
 		{
 			Cell copiedCell = (Cell)it.next();
 			if (copiedCell.getName().equalsIgnoreCase(toName) && copiedCell.getView() == toView)
@@ -4572,7 +4614,7 @@ public class CircuitChanges
 		}
 
 		// remember that this cell was copied
-		cellsCopied.add(newFromCell);
+		existing.add(newFromCell);
 
         // Message before the delete!!
 		if (verbose)
@@ -4638,9 +4680,9 @@ public class CircuitChanges
 	/**
 	 * Method to return true if a cell like "cell" exists in library "lib".
 	 */
-	private static boolean inDestLib(Cell cell)
+	private static boolean inDestLib(Cell cell, HashSet existing)
 	{
-		for(Iterator it = cellsCopied.iterator(); it.hasNext(); )
+		for(Iterator it = existing.iterator(); it.hasNext(); )
 		{
 			Cell copiedCell = (Cell)it.next();
 			if (copiedCell.getName().equalsIgnoreCase(cell.getName()) && copiedCell.getView() == cell.getView())

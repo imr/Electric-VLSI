@@ -63,6 +63,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -542,9 +543,11 @@ public class PadGenerator {
             NodeInst lastni = null;
 			int lastRotate = 0;
             String lastpadname = null;
-            // cycle through all orderedCommands, doing them
-            for (Iterator it = orderedCommands.iterator(); it.hasNext();) {
 
+			// cycle through all orderedCommands, doing them
+			HashSet copiedPadCells = new HashSet();
+            for (Iterator it = orderedCommands.iterator(); it.hasNext();)
+			{
                 // Rotation commands are ordered with respect to Place commands.
                 Object obj = it.next();
                 if (obj instanceof Rotation) {
@@ -566,13 +569,29 @@ public class PadGenerator {
                 }
 
                 // if copying cell, copy it into current library
-                if (copycells) {
-                    cell = CircuitChanges.copyRecursively(cell, cell.getName(), Library.getCurrent(),
-                            cell.getView(), false, false, "", false, false, false, false);
-                }
-                if (cell == null) {
-                    err("Could not copy in pad Cell " + cellname);
-                    continue;
+                if (copycells)
+				{
+					Cell existing = cell;
+					cell = null;
+					for(Iterator cIt = Library.getCurrent().getCells(); cIt.hasNext(); )
+					{
+						Cell thereCell = (Cell)cIt.next();
+						if (thereCell.getName().equals(existing.getName()) && thereCell.getView() == existing.getView())
+						{
+							cell = thereCell;
+							break;
+						}
+					}
+					if (cell == null)
+					{
+						cell = CircuitChanges.copyRecursively(existing, existing.getName(), Library.getCurrent(),
+							existing.getView(), false, false, "", true, false, false, true, true, copiedPadCells);
+		                if (cell == null)
+						{
+		                    err("Could not copy in pad Cell " + cellname);
+		                    continue;
+		                }
+					}
                 }
 
                 // get array alignment for this cell

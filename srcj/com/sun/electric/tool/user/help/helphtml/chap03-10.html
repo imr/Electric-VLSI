@@ -29,7 +29,9 @@ If "Delete after copy" is checked, the buttons change to "&lt;&lt; Move" and "Mo
 <P>
 The system can be requested to copy additional cells that relate to the selected one.
 By checking "Copy subcells", all subcells of the copied cell are also transfered.
-By checking "Copy related views", all related views (icon, schematic, layout, etc.) are also transfered.
+By checking "Copy all related views", all related views (icon, schematic, layout, etc.) are also transfered.
+Note that if "Copy all related views" is off but you want to "Copy subcells", it still copies related views
+in a limited fashion (i.e. schematics and icons are copied together).
 <P>
 When there is a reference to an instance inside of a copied cell, and that instance already exists in the destination library,
 there are many ways to handle the transfer.
@@ -44,5 +46,6 @@ and this cell is instantiated in the copied "Tom:A".
 the instance in the new "Tom:A" points to the existing cell "Tom:B".
 In order for this to work, however, the size and exports of "Tom:B" must match the original in "Frank:B".
 </UL>
+Therefore, if "Copy subcells" is checked, "Use existing subcells" is implied.
 
 <!-- TRAILER -->

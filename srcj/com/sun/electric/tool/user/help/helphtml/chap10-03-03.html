@@ -29,16 +29,16 @@ If technology is omitted, the technology of the cell is assumed.</TD></TR>
 The &lt;flags&gt; field consists of any of the following letters, sorted alphabetically, with the numeric part at the end:
 <P>
 "A"	if the arc instance is hard-to-select.<BR>
-"D"	if the arc instance is directional (show arrow from tail to head).<BR>
-"E"	if the arc instance is NOT ends-extended (most are).<BR>
+"B"	if the arc instance has an arrow line on the body (use "X" and "Y" for arrow heads).<BR>
 "F"	if the arc instance is NOT fixed-angle (fixed-angle is more common).<BR>
 "G"	if the arc instance has its head connection negated.<BR>
-"H"	if the arc instance has its head skipped (affects end extension and directional arrows).<BR>
+"I"	if the arc instance has its head NOT extended.<BR>
+"J"	if the arc instance has its tail NOT extended.<BR>
 "N"	if the arc instance has its tail connection negated.<BR>
 "R"	if the arc instance is rigid.<BR>
 "S"	if the arc instance is slidable.<BR>
-"T"”	if the arc instance has its tail skipped (affects end extension).<BR>
-"V"	if the arc instance is has its ends reversed.<BR>
+"X"	if the arc instance has an arrow on the head (use "B" for an arrow body).<BR>
+"Y"	if the arc instance has an arrow on the tail (use "B" for an arrow body).<BR>
 Num	Any digits at the end are the angle of the arc (in tenths of a degree).
 <P>
 Examples:
@@ -49,9 +49,9 @@ Places a metal-1 arc (from the technology of the cell).
 The arc is named "net@0", is 3 wide, slidable, and at a 180 degree angle.
 The arc runs from (10,10) on node "contact@0", to (20,10) on node "pin@0".
 <P>
-&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Aschematic:bus|net@161||1|E2700|busHat@4|s[1:8]|42|14|conn@15|y|42|25</CODE>
+&nbsp;&nbsp;&nbsp;&nbsp;<CODE>Aschematic:bus|net@161||1|IJ2700|busHat@4|s[1:8]|42|14|conn@15|y|42|25</CODE>
 <P>
-Places a bus arc (from schematic) named "net@161"”, width 1, not end-extended, at 270 degrees angle.
+Places a bus arc (from schematic) named "net@161"”, width 1, not end-extended on either end, at 270 degrees angle.
 The bus runs from (42,14) on node busHat@4 (port "s[1:8]") to (42,25) on node "conn@15" (port "y").
 
 

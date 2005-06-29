@@ -5,7 +5,11 @@ NOTE: Please place changes under the version that will be released next.
 ************************* Version 8.02q: *********************************
 
 IMP: (06/28/05, GVG) Reorganizing again JMF and Java3D classes to create different plugins
- 
+
+BUG: (06/29/05, SMR) Cross-library copy doesn't copy schematic when icon gets copied (Bug #408).
+FIX: Made cross-library copy more sensible: "copy subcells" always forces "copy all related views",
+     copies schematic if icon gets copied recursively.
+
 ************************* Version 8.02p: *********************************
 
 BUG: (06/28/05, GVG) DRC resolution check for active arcs must be done before they are cropped.

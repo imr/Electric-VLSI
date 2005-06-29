@@ -4,29 +4,36 @@ Electric plug-ins are additional pieces of code that can be downloaded separatel
 to enhance the system's functionality.
 Currently, these plug-ins are available:
 <UL>
+<LI><B>IRSIM</B>
+The IRSIM simulator is a gate-level simulator from Stanford University.
+Although originally written in C, it was translated to Java so that it could plug into Electric.
+The Electric version is available from <A HREF="http://www.staticfreesoft.com">Static Free Software</A> at
+<A HREF="http://www.staticfreesoft.com/electricIRSIM-8.02.jar">www.staticfreesoft.com/electricIRSIM-8.02.jar</A>.
+</LI>
 <LI><B>Bean Shell</B>
 The Bean Shell is used to do parameter evaluation in Electric.
 Advanced operations that make use of cell parameters will need this plug-in.
 The Bean Shell is available from <A HREF="http://www.beanshell.org">www.beanshell.org</A>.
 </LI>
-<LI><B>IRSIM</B>
-The IRSIM simulator is a gate-level simulator from Stanford University.
-Although originally written in C, it was translated to Java so that it could plug into Electric.
-The Electric version is available from <A HREF="http://www.staticfreesoft.com">Static Free Software</A> at
-<A HREF="http://www.staticfreesoft.com/electricIRSIM-8.02.jar">http://www.staticfreesoft.com/electricIRSIM-8.02.jar</A>.
-</LI>
 <LI><B>3D</B>
-The 3D facility lets you rotate an integrated circuit and view it as a three-dimensional
-interconnection of layers.
-Although most of the viewer is included with Electric, there are extra parts that
-can be installed (a 3D rotation control and an animation capture facility).
-Also, none of the 3D display can function unless you have installed the
-Java3D package from from <A HREF="http://www.sun.com">Sun Microsystems</A>.
-The 3D extras are available from <A HREF="http://www.staticfreesoft.com">Static Free Software</A> at
-<A HREF="http://www.staticfreesoft.com/electricJMFAndJ3D-8.02.jar">http://www.staticfreesoft.com/electricJMFAndJ3D-8.02.jar</A>
-The Java3D package is available from
-<A HREF="http://www.j3d.org">The Java 3D Community Site</A>.
+The 3D facility lets you rotate an integrated circuit and view it in three-dimensions.
+Although most of the viewer is included with Electric, there is one extra part that
+can be installed (a 3D rotation controller).
+Also, none of the 3D display can function unless you have installed the Java3D package.
+The Java3D package is available from the Java Community Site,
+<A HREF="http://www.j3d.org">www.j3d.org</A>.
+The 3D rotation controller is available from <A HREF="http://www.staticfreesoft.com">Static Free Software</A> at
+<A HREF="http://www.staticfreesoft.com/electricJ3D-8.02.jar">www.staticfreesoft.com/electricJ3D-8.02.jar</A>
 </LI>
+<LI><B>Animation capture</B>
+To capture a 3D animation to disk, you need the 3D facility (described above) as well as the
+Java Media Framework and the animation capture code.
+The Java Media Framework is available from <A HREF="http://www.sun.com">Sun Microsystems</A> at
+<A HREF="http://java.sun.com/products/java-media/jmf/">java.sun.com/products/java-media/jmf</A>
+and the animation capture code is available from <A HREF="http://www.staticfreesoft.com">Static Free Software</A> at
+<A HREF="http://www.staticfreesoft.com/electricJMF-8.02.jar">www.staticfreesoft.com/electricJMF-8.02.jar</A>.
+</LI>
+
 </UL>
 <P>
 To attach a plugin, it must be invoked from the command line by adding it to the classpath.
