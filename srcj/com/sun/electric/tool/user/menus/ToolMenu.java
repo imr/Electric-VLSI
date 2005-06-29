@@ -671,10 +671,12 @@ public class ToolMenu {
                     continue;
                 }
                 Network layNet = proxy.getNet();
+                Cell netcell = layNet.getParent();
                 // get wire length
                 HashSet nets = new HashSet();
                 nets.add(layNet);
-                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(schLayCells[1], nets,
+                //LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(schLayCells[1], nets,
+                LayerCoverageJob.GeometryOnNetwork geoms = LayerCoverageJob.listGeometryOnNetworks(netcell, nets,
                         false, GeometryHandler.ALGO_QTREE);
                 double length = geoms.getTotalWireLength();
 
@@ -682,7 +684,7 @@ public class ToolMenu {
                 NodeInst ni = (NodeInst)map.get(schNet);
                 ni.updateVar("ATTR_L", new Double(length));
                 wiresUpdated++;
-                System.out.println("Updated wire model "+ni.getName()+" on network "+proxy.toString()+" to: "+length+" lambda");
+                System.out.println("Updated wire model "+ni.getName()+" on layout network "+proxy.toString()+" to: "+length+" lambda");
             }
             System.out.println("Updated "+wiresUpdated+" wire models in "+schLayCells[0]+" from layout "+schLayCells[1]);
             return true;
