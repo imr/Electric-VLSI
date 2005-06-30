@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02q: *********************************
 
+IMP: (06/29/05, GVG) 3D submenus in HelpMenu (3D view plus demo).
+Added trim() in ManualViewer in case blanks are found after chapter name in toc.txt
+Started 3D folder in manual.
+
 BUG: (06/29/05, SMR) Cannot mention "bugzilla" in released version.
 FIX: In ActivityLogger.java, removed mention of "bugzilla" for released versions.
 

@@ -52,7 +52,12 @@ public class J3DDemoDialog extends EDialog
     private List knots = new ArrayList();
     private Map interMap;
 
-    public static void create3DDemoDialog(java.awt.Frame parent)
+    /**
+     * Method to open demo dialog. If filename is not null, it will load the demo
+     * @param parent
+     * @param fileName file containing a j3d demo
+     */
+    public static void create3DDemoDialog(java.awt.Frame parent, String fileName)
     {
         View3DWindow view3D = null;
         WindowContent content = WindowFrame.getCurrentWindowFrame().getContent();
@@ -64,7 +69,13 @@ public class J3DDemoDialog extends EDialog
             return;
         }
         J3DDemoDialog dialog = new J3DDemoDialog(parent, view3D, false);
-		dialog.setVisible(true);
+        if (dialog.readDemoFromFile(fileName))
+        {
+            // loading and starting the demo
+            if (fileName != null)
+                dialog.demoActionPerformed(null);
+		    dialog.setVisible(true);
+        }
     }
 
 	/** Creates new form ThreeView */
@@ -234,7 +245,6 @@ public class J3DDemoDialog extends EDialog
         view3D.saveMovie(fileName);
     }//GEN-LAST:event_movieActionPerformed
 
-
     private void saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveActionPerformed
         String fileName = OpenFile.chooseOutputFile(FileType.J3D, "Save 3D Demo File", "demo.j3d");
         if (fileName == null || knots == null) return;
@@ -255,10 +265,14 @@ public class J3DDemoDialog extends EDialog
         }
     }//GEN-LAST:event_saveActionPerformed
 
-    private void readActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readActionPerformed
-        String fileName = OpenFile.chooseInputFile(FileType.J3D, "Read 3D Demo Frames");
-
-        if (fileName == null) return;
+    /**
+     * Method to read demo from a file
+     * @param fileName
+     * @return false if errors were found
+     */
+    private boolean readDemoFromFile(String fileName)
+    {
+        if (fileName == null) return false;
 
         knots = null;
         try
@@ -277,8 +291,17 @@ public class J3DDemoDialog extends EDialog
         }
         catch (Exception e)
         {
+            System.out.println(e.getMessage());
             e.printStackTrace();
+            return false;
         };
+        return true;
+    }
+
+    private void readActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_readActionPerformed
+        String fileName = OpenFile.chooseInputFile(FileType.J3D, "Read 3D Demo Frames");
+
+        readDemoFromFile(fileName);
     }//GEN-LAST:event_readActionPerformed
 
     private void enterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_enterActionPerformed

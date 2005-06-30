@@ -29,7 +29,6 @@ import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.About;
 import com.sun.electric.tool.user.help.ManualViewer;
-import com.sun.electric.tool.user.ui.SizeListener;
 import com.sun.electric.tool.user.ui.TopLevel;
 
 import java.awt.Toolkit;
@@ -37,15 +36,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URL;
 
-import javax.swing.KeyStroke;
-
 /**
  * Class to handle the commands in the "Help" pulldown menu.
  */
 public class HelpMenu {
 
     protected static MenuBar.Menu addHelpMenu(MenuBar menuBar) {
-        MenuBar.MenuItem m;
+//        MenuBar.MenuItem m;
 		int buckyBit = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 
         /****************************** THE HELP MENU ******************************/
@@ -63,10 +60,18 @@ public class HelpMenu {
 
 		helpMenu.addMenuItem("_User's Manual...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.userManualCommand(); } });
-		helpMenu.addMenuItem("Load _Samples Library", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.loadSamplesLibrary(); } });
 
-		// mnemonic keys available: ABCDEFGHIJKL NOPQRSTUVWXYZ
+        // mnemonic keys available: ABCDEFGHIJKL NOPQRSTUVWXYZ
+		MenuBar.Menu samplesSubMenu = MenuBar.makeMenu("_Samples Library");
+        helpMenu.add(samplesSubMenu);
+		samplesSubMenu.addMenuItem("_Load Library", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.loadSamplesLibrary(); } });
+        samplesSubMenu.addMenuItem("_3D View for MosisCMOS{lay", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.open3DSample(); } });
+        samplesSubMenu.addMenuItem("_Animate MosisCMOS{lay}", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.animate3DSample(); } });
+
+		// mnemonic keys available:  BCDEFGHIJKL N PQRSTUVWXYZ
 		MenuBar.Menu builtInLibSubMenu = MenuBar.makeMenu("Load _Built-in Libraries");
 		helpMenu.add(builtInLibSubMenu);
 		builtInLibSubMenu.addMenuItem("_MOSIS CMOS Pads", null,
@@ -91,5 +96,4 @@ public class HelpMenu {
 		URL url = LibFile.getLibFile(libName + ".jelib");
 		FileMenu.ReadLibrary job = new FileMenu.ReadLibrary(url, FileType.JELIB, null);
 	}
-
 }

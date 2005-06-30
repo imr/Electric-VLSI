@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.help;
 
 import com.sun.electric.Main;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.EDialog;
@@ -33,6 +34,9 @@ import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.menus.MenuBar.Menu;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.Resources;
+import com.sun.electric.tool.user.ActivityLogger;
 
 import java.awt.Dimension;
 import java.awt.Frame;
@@ -60,6 +64,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.lang.reflect.Method;
 
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
@@ -156,6 +161,68 @@ public class ManualViewer extends EDialog
 		}
 	}
 
+    /**
+     * Method to open 3D view for "tech-MOSISCMOS{lay} cell"
+     */
+    public static void open3DSample()
+    {
+        Library library = Library.findLibrary("samples");
+        if (library == null)
+        {
+            System.out.println("Load first samples");
+            return;
+        }
+        Cell cell = library.findNodeProto("tech-MOSISCMOS");
+        if (cell == null)
+        {
+            System.out.println("Cell 'tech-MOSISCMOS' not found");
+            return;
+        }
+        // Open the window frame if not available
+        if (cell != WindowFrame.getCurrentCell())
+            WindowFrame.createEditWindow(cell);
+        Class plugin3D = Resources.get3DClass("ui.J3DMenu");
+        if (plugin3D != null)
+        {
+            // Adding 3D/Demo menu
+            try {
+                Method createMethod = plugin3D.getDeclaredMethod("create3DViewCommand", new Class[] {Boolean.class});
+                createMethod.invoke(plugin3D, new Object[] {new Boolean(false)});
+            } catch (Exception e)
+            {
+                System.out.println("Can't open 3D view: " + e.getMessage());
+                ActivityLogger.logException(e);
+            }
+        }
+    }
+
+    /**
+     * Method to animate 3D view for "tech-MOSISCMOS{lay} cell"
+     */
+    public static void animate3DSample()
+    {
+        URL url = ManualViewer.class.getResource("helphtml/demo.j3d");
+        if (url == null)
+        {
+            System.out.println("Can't open 3D demo file 'helphtml/demo.j3d'");
+            return;
+        }
+        Class plugin3D = Resources.get3DClass("ui.J3DDemoDialog");
+        if (plugin3D != null)
+        {
+            // Adding 3D/Demo menu
+            try {
+                Method createMethod = plugin3D.getDeclaredMethod("create3DDemoDialog",
+                        new Class[] {java.awt.Frame.class, String.class});
+                createMethod.invoke(plugin3D, new Object[] {TopLevel.getCurrentJFrame(), url.getFile()});
+            } catch (Exception e)
+            {
+                System.out.println("Can't open 3D demo dialog: " + e.getMessage());
+                ActivityLogger.logException(e);
+            }
+        }
+    }
+
 	/**
 	 * Method to load the samples library from the lib area.
 	 */
@@ -203,8 +270,9 @@ public class ManualViewer extends EDialog
 			int titleStart = indent;
 			int titleEnd = line.indexOf('=', titleStart);
 			String fileName = null;
-			if (titleEnd < 0) titleEnd = line.length(); else
-				fileName = line.substring(titleEnd+1);
+			if (titleEnd < 0) titleEnd = line.length();
+            else
+				fileName = line.substring(titleEnd+1).trim();
 			String title = line.substring(titleStart, titleEnd).trim();
 
 			if (fileName == null)
@@ -236,7 +304,8 @@ public class ManualViewer extends EDialog
 				pi.level = indent;
 				pi.newAtLevel = newAtLevel;
 				pi.url = ManualViewer.class.getResource("helphtml/" + fileName + ".html");
-				if (pi.url == null) System.out.println("NULL URL to "+fileName);
+				if (pi.url == null)
+                    System.out.println("NULL URL to "+fileName);
 				DefaultMutableTreeNode node = new DefaultMutableTreeNode(new Integer(pageSequence.size()));
 				stack[indent].add(node);
 				pageSequence.add(pi);

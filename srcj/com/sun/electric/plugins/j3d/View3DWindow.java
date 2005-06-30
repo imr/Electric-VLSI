@@ -1495,7 +1495,7 @@ public class View3DWindow extends JPanel
      */
     public Map addInterpolatorPerGroup(List knotList, TransformGroup grp, Map interMap, boolean useView)
     {
-        if (knotList.size() < 2)
+        if (knotList == null || knotList.size() < 2)
         {
             System.out.println("Needs at least 2 frams for the interpolator");
             return null;

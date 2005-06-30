@@ -56,9 +56,10 @@ public class J3DMenu {
         // mnemonic keys available: AB  EFGHIJKLMNOPQ S U WXYZ
         /** 3D view */
 	    j3DMenu.addMenuItem("_3D View", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(false); } });
+            new ActionListener() { public void actionPerformed(ActionEvent e) { create3DViewCommand(new Boolean(false)); } });
         j3DMenu.addMenuItem("_Capture Frame/Animate", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame());} });
+			new ActionListener() { public void actionPerformed(ActionEvent e)
+            { J3DDemoDialog.create3DDemoDialog(TopLevel.getCurrentJFrame(), null);} });
 //		j3DMenu.addMenuItem("Open 3D Capacitance Window", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { WindowMenu.create3DViewCommand(true); } });
 
@@ -96,7 +97,7 @@ public class J3DMenu {
 	 * This method creates 3D view of current cell
      * @param transPerNode
      */
-	private static void create3DViewCommand(boolean transPerNode)
+	public static void create3DViewCommand(Boolean transPerNode)
     {
 	    Cell curCell = WindowFrame.needCurCell();
 	    if (curCell == null) return;
@@ -107,7 +108,7 @@ public class J3DMenu {
         if (!(view2D instanceof EditWindow)) return;
         WindowFrame frame = new WindowFrame();
 
-        View3DWindow.create3DWindow(curCell, frame, view2D, transPerNode);
+        View3DWindow.create3DWindow(curCell, frame, view2D, transPerNode.booleanValue());
     }
 
     /**

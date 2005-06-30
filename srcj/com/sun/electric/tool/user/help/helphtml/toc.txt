@@ -97,7 +97,8 @@ Display
  The Cell Explorer                   =chap04-08
  Printing                            =chap04-09
  Text Windows                        =chap04-10
- 3D Windows                          =chap04-11
+ 3D Windows
+  Introduction                       =chap04-11-01 
  Waveform Windows
   Digital Waveform Windows           =chap04-12-01
   Analog Waveform Windows            =chap04-12-02
