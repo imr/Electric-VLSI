@@ -20,7 +20,7 @@
  * along with Electric(tm); see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
-*/
+ */
 //  Updated 31 October to attach to a SymmetryGroup
 //updated 25 January 2004 (and preceeding week) to remove iteration.
 //the iteration is now all in the tree structure

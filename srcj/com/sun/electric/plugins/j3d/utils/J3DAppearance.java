@@ -35,11 +35,7 @@ import java.util.Observer;
 import java.util.Observable;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Gilda
- * Date: Feb 18, 2005
- * Time: 1:59:13 PM
- * To change this template use File | Settings | File Templates.
+ * Support class for 3D viewing.
  */
 public class J3DAppearance extends Appearance
         implements Observer

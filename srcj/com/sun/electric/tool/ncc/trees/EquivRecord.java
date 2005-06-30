@@ -20,7 +20,7 @@
  * along with Electric(tm); see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
-*/
+ */
 // updated to new view of trees, 16 Jan 2004
 // Annotated by Ivan Sutherland, 30 January 2004
 

@@ -54,11 +54,7 @@ import java.util.Iterator;
 import java.util.HashMap;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Gilda
- * Date: Feb 17, 2005
- * Time: 11:14:50 PM
- * To change this template use File | Settings | File Templates.
+ * Support class for 3D viewing.
  */
 public class JThreeDSideView extends JPanel
     implements MouseMotionListener, MouseListener

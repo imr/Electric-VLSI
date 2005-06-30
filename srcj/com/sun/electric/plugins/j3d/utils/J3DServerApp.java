@@ -31,11 +31,7 @@ import java.net.InetAddress;
 import java.net.DatagramPacket;
 
 /**
- * Created by IntelliJ IDEA.
- * User: Gilda
- * Date: Feb 24, 2005
- * Time: 5:58:39 PM
- * To change this template use File | Settings | File Templates.
+ * Support class for 3D viewing.
  */
 public class J3DServerApp
 {
