@@ -466,7 +466,7 @@ public class ManualViewer extends EDialog
 			for (int i=0; i<menuBar.getMenuCount(); i++)
 			{
 				Menu menu = (Menu)menuBar.getMenu(i);
-				JMenu helpMenu = new JMenu(menu.getText());
+//				JMenu helpMenu = new JMenu(menu.getText());
 				checkMenu(menu, menu.getText() + "/", menuMapCheck);
 			}
 

@@ -1,0 +1,44 @@
+<!-- HEADER 4-11-02: 3D Windows -->
+
+<!-- PREFERENCE Display/3D -->
+
+To control the 3D view,
+use the "3D" preferences (in menu <B>File / Preferences...</B>, "Display" section, "3D" tab).
+This provides access to the majority of the parameters that control the 3D view and its rendering.
+Only colors assigned to 3D features are available in the "Colors" tab
+(see <A HREF="chap04-06-01.html">Section 4-6-2</A>).
+
+<P>
+The most important 3D characteristics are the distance of the layer from the wafer bottom and its thickness.
+These values are not only used for the 3D view; they use also for sorting algorithms in layers.
+In the 3D preferences, thickness and Z distance of each layer can be modified as well as the view mode,
+the scale along Z axis and control of antialiasing.
+<P>
+Two view modes are available: perspective (the default) and parallel.
+Unselect "Use Perspective" 
+to see a parallel display.
+If available, antialiasing can be turned on by clicking on "Use Antialiasing".
+Due to performance issues, antialiasing is not on by default.
+If the displayed layers are too thin along the Z axis (compared to their X,Y values),
+use the Z Scale field to make everything thicker.
+<P>
+<TABLE><TR><TD>
+On the left side of this dialog is a list of layers in the current technology.
+On the right side is a cross section view of the chip, showing which layers are above which others.
+You can select a layer by clicking on either side of the dialog.
+The currently selected layer is highlighted in the list on the left and shown in red in the right-hand view.
+<P>
+"3D HIGHLIGHTED INSTANCES" in the "Color" tab is the color to highlight layers in this tab
+and nodes in the 3D view can be changed.
+
+<P>
+Once selected, <!--you can drag layers to the desired height (on the right side) or -->
+you type a distance value (on the left side).
+You can also set the thickness of a layer by typing a value into the field.
+</TD><TD><CENTER><IMG SRC="fig04-11.png" ALT="Figure 4.11"></CENTER></TD></TR></TABLE>
+
+If the 3D plug-in is not available, the distance and the thickness are still available in the 3D Preferences
+tab however the drawing is done with the Java2D API instead (see figure below).
+
+INSERT 2D picture
+<!-- TRAILER -->

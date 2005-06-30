@@ -98,7 +98,9 @@ Display
  Printing                            =chap04-09
  Text Windows                        =chap04-10
  3D Windows
-  Introduction                       =chap04-11-01 
+  Introduction                       =chap04-11-01
+  3D Preferences                     =chap04-11-02
+  3D Coordinates                     =chap04-11-03
  Waveform Windows
   Digital Waveform Windows           =chap04-12-01
   Analog Waveform Windows            =chap04-12-02
