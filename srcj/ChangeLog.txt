@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02q: *********************************
 
+IMP: (06/30/05, GVG) First version of 3D manual.
+
+BUG: (6/30/05, GVG) Exception in DesigRulesTab during initialization of selectedFoundry.
+
 BUG: (06/30/05, SMR) Cell names can have spaces in them (Bug #419).
 FIX: Disallow spaces in Cell.lowLevelPopulate().
 

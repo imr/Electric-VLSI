@@ -111,7 +111,7 @@ public class DesignRulesTab extends PreferencePanel
             defaultFoundryPulldown.addItem(factory.name);
             if (selectedFoundry.equals(factory.name)) foundry = factory.techMode;
         }
-        defaultFoundryPulldown.setSelectedIndex(foundry);
+        defaultFoundryPulldown.setSelectedItem(selectedFoundry);
 
         // Resolution
 		drResolutionValue.setText(TextUtils.formatDouble(curTech.getResolution()));
