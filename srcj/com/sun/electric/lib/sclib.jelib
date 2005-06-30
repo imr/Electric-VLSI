@@ -6,47 +6,6 @@ Vlayout|lay
 
 # Technology mocmos
 Tmocmos
-DMetal-1-Metal-2-Con
-Pmetal-1-metal-2
-DMetal-1-N-Active-Con
-Pmetal-1-n-act
-DMetal-1-Node
-Pmetal-1
-DMetal-1-P-Active-Con
-Pmetal-1-p-act
-DMetal-1-Pin
-Pmetal-1
-DMetal-1-Polysilicon-1-Con
-Pmetal-1-polysilicon-1
-DMetal-2-Node
-Pmetal-2
-DMetal-2-Pin
-Pmetal-2
-DN-Active-Pin
-Pn-active
-DN-Select-Node
-DN-Transistor
-Pn-trans-diff-bottom
-Pn-trans-diff-top
-Pn-trans-poly-right
-DN-Well-Node
-DP-Active-Node
-Pactive
-DP-Active-Pin
-Pp-active
-DP-Select-Node
-DP-Transistor
-Pp-trans-diff-bottom
-Pp-trans-diff-top
-Pp-trans-poly-left
-DP-Well-Node
-DPolysilicon-1-Node
-Ppolysilicon-1
-DPolysilicon-1-Pin
-Ppolysilicon-1
-
-# Technology rcmos
-Trcmos|ScaleFORrcmos()D1000.0
 
 # Cell and2{lay}
 Cand2;2{lay}|mocmos|902609308000|979321171000|C

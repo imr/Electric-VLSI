@@ -6,7 +6,6 @@ Vlayout|lay
 
 # Technologies:
 Tmocmos
-Trcmos|ScaleFORrcmos()D1000.0
 
 # Cell decoder_inv1{lay}
 Cdecoder_inv1;2{lay}|mocmos|983826062000|985638867000||DRC_last_good_drc()I985638874

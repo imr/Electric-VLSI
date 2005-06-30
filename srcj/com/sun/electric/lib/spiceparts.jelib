@@ -4,16 +4,10 @@ Hspiceparts|8.02i|USER_electrical_units()I70464
 # Views:
 Vicon|ic
 
-# Tools:
-Ouser|DefaultTechnology()Stsmc90|SchematicTechnology()Stsmc90
-
 # Technologies:
 Tartwork
-Tcmos|ScaleFORcmos()D1000.0
 Tgeneric
-Tmocmos|CapacitanceParasiticForMetal-1INmocmos()D0.1209|CapacitanceParasiticForMetal-2INmocmos()D0.0783|EdgeCapacitanceParasiticForMetal-1INmocmos()D0.1104|GDSLayerForMetal-1INmocmos()S49,80p,80t|GDSLayerForMetal-2INmocmos()S51,82p,82t|GDSLayerForMetal-3INmocmos()S62,93p,93t|GDSLayerForMetal-4INmocmos()S31,63p,63t|GDSLayerForMetal-5INmocmos()S33,64p,64t|GDSLayerForMetal-6INmocmos()S37,68p,68t|MoCMOSNumberOfMetalLayers()I6|ScaleFORmocmos()D100.0
-Trcmos|ScaleFORrcmos()D1000.0
-Ttsmc90|CapacitanceParasiticForMetal-1INtsmc90()D0.274|CapacitanceParasiticForMetal-2INtsmc90()D0.2157|CapacitanceParasiticForPolysiliconINtsmc90()D0.096|EdgeCapacitanceParasiticForMetal-1INtsmc90()D0.1043|EdgeCapacitanceParasiticForMetal-2INtsmc90()D0.102|EdgeCapacitanceParasiticForPolysiliconINtsmc90()D0.0731|ResistanceParasiticForPolysiliconINtsmc90()D8.4
+Tmocmos
 
 # Cell spiceparts:ACCurrent{ic}
 CACCurrent;1{ic}|artwork|1006816118000|1103661154031|E|ATTR_ACCurrent(D5G0.5;HNPY0.75;)S1A|ATTR_DCCurrent(D5G0.5;HNPY0.25;)S1A|ATTR_Delay(D5G0.5;HNPY-0.75;)S1ns|ATTR_Frequency(D5G0.5;HNPY-0.25;)S800M|ATTR_SPICE_template(D5G0.5;NTY5;)SI$(node_name) $(plus) $(minus) DC=$(DCCurrent) AC=$(ACCurrent) SIN ($(DCCurrent) $(ACCurrent) $(Frequency) $(Delay))

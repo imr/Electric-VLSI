@@ -8,8 +8,7 @@ Vschematic|sch
 # Technologies:
 Tartwork
 Tgeneric
-Tmocmos|MoCMOSNumberOfMetalLayers()I6|ScaleFORmocmos()D100.0
-Trcmos|ScaleFORrcmos()D1000.0
+Tmocmos
 Tschematic
 
 # Cell NMOS4f{ic}

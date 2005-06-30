@@ -9,75 +9,12 @@ Vschematic|sch
 
 # Technology generic
 Tgeneric
-DFacet-Center
 
 # Technology mocmos
 Tmocmos
-DMetal-1-Metal-2-Con
-Pmetal-1-metal-2
-DMetal-1-N-Active-Con
-Pmetal-1-n-act
-DMetal-1-N-Well-Con
-Pmetal-1-substrate
-DMetal-1-Node
-Pmetal-1
-DMetal-1-P-Active-Con
-Pmetal-1-p-act
-DMetal-1-P-Well-Con
-Pmetal-1-well
-DMetal-1-Pin
-Pmetal-1
-DMetal-1-Polysilicon-1-Con
-Pmetal-1-polysilicon-1
-DMetal-2-Metal-3-Con
-Pmetal-2-metal-3
-DMetal-2-Node
-Pmetal-2
-DMetal-2-Pin
-Pmetal-2
-DMetal-3-Metal-4-Con
-Pmetal-3-metal-4
-DMetal-3-Node
-Pmetal-3
-DMetal-3-Pin
-Pmetal-3
-DMetal-4-Node
-Pmetal-4
-DMetal-4-Pin
-Pmetal-4
-DN-Select-Node
-DN-Transistor
-Pn-trans-diff-bottom
-Pn-trans-diff-top
-Pn-trans-poly-left
-Pn-trans-poly-right
-DN-Well-Node
-DP-Select-Node
-DP-Transistor
-Pp-trans-diff-bottom
-Pp-trans-diff-top
-Pp-trans-poly-left
-Pp-trans-poly-right
-DP-Well-Node
-DPassivation-Node
-DPolysilicon-1-Pin
-Ppolysilicon-1
-
-# Technology rcmos
-Trcmos|ScaleFORrcmos()D1000.0
 
 # Technology schematic
 Tschematic
-D4-Port-Transistor
-Pb
-Pd
-Pg
-Ps
-DOff-Page
-Pa
-Py
-DWire_Pin
-Pwire
 
 # Cell ALLPADS{}
 CALLPADS;1{}|mocmos|982175214000|985119488000|
