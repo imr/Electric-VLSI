@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02q: *********************************
 
+IMP: (06/30/05, GVG) Check first if Java3D is available in the machine before opening jd3 class.
+
 IMP: (06/29/05, GVG) 3D submenus in HelpMenu (3D view plus demo).
 Added trim() in ManualViewer in case blanks are found after chapter name in toc.txt
 Started 3D folder in manual.

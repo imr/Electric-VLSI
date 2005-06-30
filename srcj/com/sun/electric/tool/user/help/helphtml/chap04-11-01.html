@@ -11,8 +11,10 @@ However, in 3D mode, you can no longer change the circuit.
 
 <P>
 The 3D View is based on the Java3D API, the Java interface for interactive 3D graphics.
-Its dependency on Java3D, however this 3D view it will not work if this addition to Java
-is not installed.
+Its dependency on Java3D, however the 3D view it will not work if this addition to Java
+is not installed. Also, it might not work properly if
+you are using MDI mode (multiple document interface, mostly used on Windows) because the heavy widgets
+provided by Java3D interfere with the light widgets from Swing.
 
 <p>
 There are another two extensions available. They add the 3D axes shown in picture on the left
@@ -20,9 +22,7 @@ and to create QuickTime animations. Note that those plugins are incorporated int
 Java Reflection therefore no exceptions are generated if they are not available.
 See <A HREF="chap01-05.html#chap01-05">Section 1-5</A> for details about getting Java3D and the
 extensions.
-Also, it might not work properly if
-you are using MDI mode (multiple document interface, mostly used on Windows) because the heavy widgets
-provided by Java3D interfere with the light widgets from Swing.
+
 </TD></TR></TABLE>
 
 <P>
@@ -31,22 +31,22 @@ The circuit is displayed in 3D, and mouse movements will rotate, pan, or zoom th
 Use the left button to rotate, the right button for panning and the middle one for zooming.
 When zooming, drag the middle button in one direction to zoom in, and the other direction to zoom out.
 <P>
-The 2D nodes and arcs are said to have a Ò1:NÓ relation with their corresponding 3D objects:
+The 2D nodes and arcs are said to have a 1:N relation with their corresponding 3D objects:
 2D primitives are defined by a set of layers and each layer instance is represented by a 3D shape.
 Thus, all layers composing nodes and arcs will be highlighted in the 3D view by clicking in the corresponding
 2D instance, and only one layer will be highlighted in the 2D view if a 3D object is selected.
 Furthermore, the network tool will also highlight nodes if they are displayed in a 3D view.
 
-<P>
+<P>                                     {
 In case of cell instances, bounding boxes will be shown in the scene graph
 and the interior will be displayed if cells are expanded.
 
 <center>
 <table border=1>
 <tr>
-<th>Button</th><th>Action</th></tr>
+<th><IMG SRC="fig04-16.png" ALT="Figure 4.16"></th><th><IMG SRC="fig04-17.png" ALT="Figure 4.17"></th></tr>
 <tr>
-<td>(a) Not Expanded Cell</td><td>(b) Expanded Cell</td></tr>
+<td><CENTER>(a) Not Expanded Cell</td><td><CENTER>(b) Expanded Cell</CENTER></td></tr>
 </table>
 </center>
 

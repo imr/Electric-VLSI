@@ -64,6 +64,9 @@ public class Resources {
 
     public static Class get3DClass(String name)
     {
+        // Testing first if Java3D plugin exists
+        Class java3DClass = getClass("SimpleUniverse", "com.sun.j3d.utils.universe");
+        if (java3DClass == null) return null; // Java3D not available
         return (getClass(name, plugin3D));
     }
 
