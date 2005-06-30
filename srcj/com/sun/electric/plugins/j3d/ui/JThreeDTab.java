@@ -26,11 +26,9 @@ package com.sun.electric.plugins.j3d.ui;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.options.ThreeDTab;
 import com.sun.electric.plugins.j3d.utils.J3DAppearance;
 import com.sun.electric.plugins.j3d.View3DWindow;
-import com.sun.electric.plugins.j3d.utils.J3DAppearance;
 import com.sun.electric.plugins.j3d.utils.J3DUtils;
 
 import java.awt.GridBagConstraints;
