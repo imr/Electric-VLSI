@@ -759,6 +759,25 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		assert !isLinked();
 		CellName n = CellName.parseName(name);
 		if (n == null) return true;
+
+		// check name for legal characters
+		String cellName = n.getName();
+		String original = null;
+		for(int i=0; i<cellName.length(); i++)
+		{
+			char chr = cellName.charAt(i);
+			if (Character.isWhitespace(chr) || chr == ':' || chr == ';' || chr == '{' || chr == '}')
+			{
+				if (original == null) original = cellName;
+				cellName = cellName.substring(0, i) + '_' + cellName.substring(i+1);
+			}
+		}
+		if (original != null)
+		{
+			System.out.println("Cell name changed from '" + original + "' to '" + cellName + "'");
+			n = CellName.newName(cellName, n.getView(), n.getVersion());
+		}
+		
 		setCellName(n);
 		return false;
 	}

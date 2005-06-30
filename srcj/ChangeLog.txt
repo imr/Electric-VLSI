@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02q: *********************************
 
+BUG: (06/30/05, SMR) Cell names can have spaces in them (Bug #419).
+FIX: Disallow spaces in Cell.lowLevelPopulate().
+
 IMP: (06/30/05, GVG) Check first if Java3D is available in the machine before opening jd3 class.
 
 IMP: (06/29/05, GVG) 3D submenus in HelpMenu (3D view plus demo).
