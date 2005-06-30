@@ -623,10 +623,10 @@ public class MOSRules implements DRCRules {
 
     /**
      * Method to get cut values associates to a contact node
-     * @param index
-     * @param type
-     * @param techMode
-     * @return
+     * @param index the index of the node.
+     * @param type the rule type.
+     * @param techMode to choose betweeb ST or TSMC
+     * @return the requested cut rule.
      */
     public DRCTemplate getCutRule(int index, int type, int techMode)
     {
