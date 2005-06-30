@@ -395,7 +395,7 @@ public class ManualViewer extends EDialog
 			int titleStart = indent;
 			int titleEnd = line.indexOf('=', titleStart);
 			if (titleEnd < 0) continue;
-			String fileName = line.substring(titleEnd+1);
+			String fileName = line.substring(titleEnd+1).trim();
 
 			URL pageURL = ManualViewer.class.getResource("helphtml/" + fileName + ".html");
 			if (pageURL == null)
