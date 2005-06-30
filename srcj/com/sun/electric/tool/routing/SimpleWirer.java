@@ -140,7 +140,7 @@ public class SimpleWirer extends InteractiveRouter {
         int angle = (int)Math.round(angleD * 180 / Math.PI);
         //if (angle < 0) angle = angle + 360;
         //System.out.println("angle is "+angle+", incr is "+useArc.getAngleIncrement());
-        if ((angle % useArc.getAngleIncrement()) == 0 || useArc.getAngleIncrement() == 0) {
+        if (useArc.getAngleIncrement() == 0 || (angle % useArc.getAngleIncrement()) == 0) {
             // draw single
             RouteElement arcRE = RouteElementArc.newArc(cell, useArc, width, startRE, endRE, startLoc, endLoc, null, null, null);
             route.add(arcRE);
