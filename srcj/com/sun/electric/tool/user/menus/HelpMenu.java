@@ -66,7 +66,7 @@ public class HelpMenu {
         helpMenu.add(samplesSubMenu);
 		samplesSubMenu.addMenuItem("_Load Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.loadSamplesLibrary(); } });
-        samplesSubMenu.addMenuItem("_3D View for MosisCMOS{lay", null,
+        samplesSubMenu.addMenuItem("_3D View for MosisCMOS{lay}", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.open3DSample(); } });
         samplesSubMenu.addMenuItem("_Animate MosisCMOS{lay}", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.animate3DSample(); } });
