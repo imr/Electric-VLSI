@@ -1,12 +1,13 @@
-<!-- HEADER 4-11-01: 3D Windows -->
+<!-- HEADER 4-11-01: Introduction -->
 
 <!-- COMMAND Window/3D Window/3D View -->
+<!-- COMMAND Help/Samples/3D View Sample Cell -->
 <!-- PREFERENCE Display/3D -->
 
 Electric has the ability to view an integrated circuit in 3-dimensions as shown below,
 allowing a fuller understanding of the interaction between layers.
-When displaying 3D, you can rotate, zoom, and pan the image to get a better view.
-However, in 3D mode, you can no longer change the circuit.
+When displaying 3D, you can rotate, zoom, and pan the image to get a better view however
+you can no longer change the circuit.
 <TABLE><TR><TD><CENTER><IMG SRC="fig04-10.png" ALT="Figure 4.10"></CENTER></TD><TD>
 
 <P>
@@ -18,7 +19,7 @@ provided by Java3D interfere with the light widgets from Swing.
 
 <p>
 There are another two extensions available. They add the 3D axes shown in picture on the left
-and to create QuickTime animations. Note that those plugins are incorporated into Electric using
+and create QuickTime animations (Section XXX). Note that those plugins are incorporated into Electric using
 Java Reflection therefore no exceptions are generated if they are not available.
 See <A HREF="chap01-05.html#chap01-05">Section 1-5</A> for details about getting Java3D and the
 extensions.
@@ -26,31 +27,33 @@ extensions.
 </TD></TR></TABLE>
 
 <P>
-To see a circuit in 3D, use the <B>3D View</B> command (in menu <B>Window / 3D Window</B>).
-The circuit is displayed in 3D, and mouse movements will rotate, pan, or zoom the circuit.
+To see the 3D view of a layout cell, use the <B>3D View</B> command (in menu <B>Window / 3D Window</B>).
+The cell is displayed in 3D, and mouse movements will rotate, pan, or zoom the circuit.
 Use the left button to rotate, the right button for panning and the middle one for zooming.
 When zooming, drag the middle button in one direction to zoom in, and the other direction to zoom out.
 <P>
-The 2D nodes and arcs are said to have a 1:N relation with their corresponding 3D objects:
-2D primitives are defined by a set of layers and each layer instance is represented by a 3D shape.
-Thus, all layers composing nodes and arcs will be highlighted in the 3D view by clicking in the corresponding
+Nodes and arcs in the 3D view are represented by the layers composing them and it generates
+ a 1:N relation between 2D objects in the layout and objects in the 3D view. 
+Thus, all layers of nodes and arcs will be highlighted in the 3D view by clicking in the corresponding
 2D instance, and only one layer will be highlighted in the 2D view if a 3D object is selected.
 Furthermore, the network tool will also highlight nodes if they are displayed in a 3D view.
 
-<P>                                     {
-In case of cell instances, bounding boxes will be shown in the scene graph
-and the interior will be displayed if cells are expanded.
+<P> 
+In case of cell instances, bounding boxes will be shown in the scene graph as shown below in picture (a)
+and the interior will be displayed if cells are expanded (picture (b)).
 
 <center>
-<table border=1>
+<table border=0>
 <tr>
 <th><IMG SRC="fig04-16.png" ALT="Figure 4.16"></th><th><IMG SRC="fig04-17.png" ALT="Figure 4.17"></th></tr>
 <tr>
-<td><CENTER>(a) Not Expanded Cell</td><td><CENTER>(b) Expanded Cell</CENTER></td></tr>
+<td><CENTER>(a) Unexpanded Cell</td><td><CENTER>(b) Expanded Cell</CENTER></td></tr>
 </table>
 </center>
 
 <P>
-Refer to Control-9, control-0, etc
+Standard panning and zoom operations in menu <B>Window</B> are available in the 3D view 
+(see <A HREF="chap04-04-01.html#chap04-04-01">  Section 4-4-1</A> and 
+<A HREF="chap04-04-02.html#chap04-04-02"> Section 4-4-2</A>).
 
 <!-- TRAILER -->

@@ -62,13 +62,13 @@ public class HelpMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.userManualCommand(); } });
 
         // mnemonic keys available: ABCDEFGHIJKL NOPQRSTUVWXYZ
-		MenuBar.Menu samplesSubMenu = MenuBar.makeMenu("_Samples Library");
+		MenuBar.Menu samplesSubMenu = MenuBar.makeMenu("_Samples");
         helpMenu.add(samplesSubMenu);
 		samplesSubMenu.addMenuItem("_Load Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.loadSamplesLibrary(); } });
-        samplesSubMenu.addMenuItem("_3D View for MosisCMOS{lay}", null,
+        samplesSubMenu.addMenuItem("_3D View Sample Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.open3DSample(); } });
-        samplesSubMenu.addMenuItem("_Animate MosisCMOS{lay}", null,
+        samplesSubMenu.addMenuItem("_Animate Sample Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.animate3DSample(); } });
 
 		// mnemonic keys available:  BCDEFGHIJKL N PQRSTUVWXYZ

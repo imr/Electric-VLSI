@@ -591,6 +591,8 @@ public class ManualViewer extends EDialog
 		currentIndex = index;
 		lastPageVisited = index;
 		PageInfo pi = (PageInfo)pageSequence.get(index);
+        if (pi.url == null) return; // error reading the html file
+        
 		InputStream stream = TextUtils.getURLStream(pi.url, null);
 		InputStreamReader is = new InputStreamReader(stream);
 		StringBuffer sb = new StringBuffer();
