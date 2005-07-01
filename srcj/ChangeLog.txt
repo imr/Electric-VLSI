@@ -2,6 +2,12 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.03a: *********************************
+
+BUG: (07/01/05, SMR) Schematic arcs should be allowed to cross in DRC (Bug #376)
+FIX: In DRC.Schematic.checkPolygonVicinity() changed last parameter of last
+     call to "checkPoly()" from "false" to "true".
+
 ************************* END OF Version 8.02, GNU RELEASE *********************************
 ************************* Version 8.02: Released 7/1/05 *********************************
 

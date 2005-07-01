@@ -563,7 +563,8 @@ public class Schematic
 					}
 					if (!connected)
 					{
-						if (checkPoly(geom, poly, oGeom, oGeom, DBMath.MATID, false))		// last argument was "true"
+						// the last parameter was "false", changed it to "true" for bug #376
+						if (checkPoly(geom, poly, oGeom, oGeom, DBMath.MATID, true))
 						{
 							return true;
 						}
