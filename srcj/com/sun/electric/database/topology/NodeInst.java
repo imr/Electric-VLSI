@@ -763,8 +763,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 						// special case where the old arc must be deleted first so that the other node can move
 						ai.kill();
 						adjustThisNode.modifyInstance(dX, dY, 0, 0, 0);
-						ArcInst newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPortInst[1],
-							newPoint[0], newPoint[1], ai.getName(), 0);
+						ArcInst newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
+							newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], ai.getName(), 0);
 						if (newAi == null)
 						{
 							newNi.kill();
@@ -792,7 +792,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 				double psy = pinNp.getDefHeight();
 				NodeInst pinNi = NodeInst.newInstance(pinNp, new Point2D.Double(cX, cY), psx, psy, getParent());
 				PortInst pinPi = pinNi.getOnlyPortInst();
-				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], pinPi, newPoint[0],
+				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[ArcInst.HEADEND], pinPi, newPoint[ArcInst.HEADEND],
 				    new Point2D.Double(cX, cY), null, 0);
 				if (newAi == null) return null;
                 newAi.copyPropertiesFrom(ai);
@@ -801,20 +801,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 //                newAi.copyVarsFrom(ai);
 //                newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 
-				ArcInst newAi2 = ArcInst.newInstance(ai.getProto(), ai.getWidth(), pinPi, newPortInst[1], new Point2D.Double(cX, cY),
-				        newPoint[1], null, 0);
+				ArcInst newAi2 = ArcInst.newInstance(ai.getProto(), ai.getWidth(), pinPi, newPortInst[ArcInst.TAILEND], new Point2D.Double(cX, cY),
+				        newPoint[ArcInst.TAILEND], null, 0);
 				if (newAi2 == null) return null;
                 newAi2.copyConstraintsFrom(ai);
 //				newAi2.copyStateBits(ai);
 //				newAi2.setTailNegated(ai.isTailNegated());
-				if (newPortInst[1].getNodeInst() == this)
+				if (newPortInst[ArcInst.TAILEND].getNodeInst() == this)
 				{
 					ArcInst aiSwap = newAi;   newAi = newAi2;   newAi2 = aiSwap;
 				}
 			} else
 			{
 				// replace the arc with another arc
-				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[0], newPortInst[1], newPoint[0], newPoint[1], null, 0);
+				newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
+                        newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], null, 0);
 				if (newAi == null)
 				{
 					newNi.kill();

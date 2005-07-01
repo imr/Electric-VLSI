@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.02q: *********************************
 
+BUG: (07/01/05, DN) When duplicationg a cell the arc's head and tail settings are swapped (Bug #423).
+FIX: In Cell.copyNodeProtoUsingMapping and NodeInst.replace swap head and tail.
+
 IMP: (06/30/05, GVG) First version of 3D manual.
 
 BUG: (6/30/05, GVG) Exception in DesigRulesTab during initialization of selectedFoundry.
