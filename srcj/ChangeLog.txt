@@ -2,7 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.02q: *********************************
+************************* END OF Version 8.02, GNU RELEASE *********************************
+************************* Version 8.02q: Released 7/1/05 *********************************
 
 BUG: (07/01/05, DN) When duplicationg a cell the arc's head and tail settings are swapped (Bug #423).
 FIX: In Cell.copyNodeProtoUsingMapping and NodeInst.replace swap head and tail.
@@ -17,8 +18,8 @@ FIX: Disallow spaces in Cell.lowLevelPopulate().
 IMP: (06/30/05, GVG) Check first if Java3D is available in the machine before opening jd3 class.
 
 IMP: (06/29/05, GVG) 3D submenus in HelpMenu (3D view plus demo).
-Added trim() in ManualViewer in case blanks are found after chapter name in toc.txt
-Started 3D folder in manual.
+     Added trim() in ManualViewer in case blanks are found after chapter name in toc.txt
+     Started 3D folder in manual.
 
 BUG: (06/29/05, SMR) Cannot mention "bugzilla" in released version.
 FIX: In ActivityLogger.java, removed mention of "bugzilla" for released versions.
@@ -51,9 +52,9 @@ IMP: (06/28/05, GVG) Pref.exportPrefs(String fileName) public again due to the r
 Menu name change: new: Window->3D Window-> 3D View, old:Window->3D View->3D Window
 
 IMP: (06/28/05, GVG) Moving Sun's proprietary to JMFAndJ3D plugin (ex JMF plugin).
-3D axes are only available if JMFAndJ3D plugin is available.
-Same for J3DQueryProperties.queryHardwareAcceleration function.
-Changes in build.xml to create JMFAndJ3D jar.
+     3D axes are only available if JMFAndJ3D plugin is available.
+     Same for J3DQueryProperties.queryHardwareAcceleration function.
+     Changes in build.xml to create JMFAndJ3D jar.
 
 BUG: (06/28/05, GVG) Previous bug fix for "Repeat Last Action" didn't work (Bug #246).
 FIX: Solution based on menu name.
@@ -61,8 +62,8 @@ FIX: Solution based on menu name.
 IMP: (06/28/05, GVG) J3DAxis using previous code with cylinders and cones.
 
 BUG: (06/27/05, GVG) Bug fix for #395 (DRC error not reported by Electric but reported by Cadence)
-FIX: Electric was not detecting violation on via/cut sizes. They must be of certain value. Refactoring of DRCRules
-to store those name rules.
+FIX: Electric was not detecting violation on via/cut sizes. They must be of certain value.
+     Refactoring of DRCRules to store those name rules.
 
 BUG: (06/27/05, SMR) SDI mode doesn't show icons on messages window.
 FIX: Added icon in SDI mode.
@@ -1654,7 +1655,7 @@ IMP: (12/23/04, GVG): TSMC90: Adding rules OD2.W.1, OD2.S.1 and OD2.EX.3 even
 IMP: (12/23/04, GVG): 3D View: warning if scene graph will be big (Bug #28)
 
 ************************* END OF Version 8.01, GNU RELEASE *********************************
-************************* Version 8.01ax: *********************************
+************************* Version 8.01: Released 12/22/04 *********************************
 
 IMP: (12/22/04, GVG): Change should leave object(s) selected (Bug #129)
 
@@ -3212,8 +3213,7 @@ IMP: (7/25/04, JKG) Added "Re-export Selected" menu item.
 
 IMP (7/23/04, RK) If Export names don't match then suggest a possible mapping
 
-
-************************* Version 8.01a: Released 7/22/04 ************************
+************************* Version 8.01a: ************************
 
 IMP: (7/22/04, JKG) Numerical display now always formats to show postfix. Units Preferences
      disabled, as they no longer make sense. Use TextUtils.parseUserInput to read in numbers.
@@ -3240,7 +3240,8 @@ BUG: (7/18/04, JKG) New cell version command: old version had bad cell group
 
 IMP: (7/16/04, GVG) Better thickness and distances for layers in 3D: technology MoCMOS
 
-************************* Version 8.00: Released  *************************
+************************* END OF Version 8.00, GNU RELEASE *********************************
+************************* Version 8.00: Released 7/16/04 *************************
 
 BUG: (7/16/04, RK) Series merging needs to count both Pins and Parts
 
