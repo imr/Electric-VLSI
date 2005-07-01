@@ -28,13 +28,12 @@ The solution is to place a "Global Partition" node inside of the schematic
 (see <A HREF="chap07-05-01.html#chap07-05-01">Section 7-5-1</A>).
 This symbol acts like an "offpage" symbol: it is wired to something inside of the cell (a global signal)
 and it is also exported to the outside world.
-<P>
-In the example here, the schematic "invR" has power and ground signals in it,
-but the power signal is also connected to
-a Global Partition node, and exported (as "vddR").
-The icon has an extra connection for this power tap.
 </TD><TD><CENTER><IMG SRC="fig06-20.png" ALT="Figure 6.20"></CENTER></TD></TR></TABLE>
 <P>
+In this example, the schematic has power and ground signals,
+but the power signal is also connected to
+a Global Partition node and exported (as "vddR").
+The icon has an extra connection for this power tap.
 In normal use, the extra connections created by the Global Partition nodes do not need to be wired up,
 because they connect to globals, and their connectivity is understood.
 If, however, the extra exports <I>are</I> wired, it means that the signal inside of the cell is disconnected from the global,
@@ -44,8 +43,5 @@ and connected instead to that wire.
 In the example here, two "invR" icons are placed, but one of them has its "vddR" connection wired (to a different power source).
 The subcircuit for the rightmost icon will not use the global power signal, but will instead use the attached signal, "vddInv".
 </TD></TR></TABLE>
-
-<P>
-
 
 <!-- TRAILER -->

@@ -12,6 +12,7 @@ You must add it as a "plug in"
 To run a script, use the <B>Run Java Bean Shell Script</B> command
 (in menu <B>Tool / Languages</B>).
 Here is an example script that searches the current cell for exports starting with "a".
+<CENTER><TABLE BORDER=1><TR><TD>
 <PRE>
    import com.sun.electric.database.hierarchy.Cell;
    import com.sun.electric.tool.user.ui.WindowFrame;
@@ -39,4 +40,12 @@ Here is an example script that searches the current cell for exports starting wi
    }
    System.out.println(aOut);
 </PRE>
+</TD></TR></TABLE></CENTER>
+<P>
+Notice that Electric's "Export" object must be a fully-qualified name, because the
+name "Export" is used for other reasons in the Bean Shell.
+<P>
+For more information about accessing the interals of Electric, read the Javadoc
+in the source code.
+
 <!-- TRAILER -->

@@ -9,20 +9,21 @@ everything in the area is erased.
 <P>
 Note that an arc always connects two nodes, and therefore it cannot remain if one of the nodes is gone.
 This means that certain rules apply to circuit deletion:
-<OL>
+<UL>
 <LI>When a node is erased, all connecting arcs are also deleted.
 However, if a node is deleted that has exactly two arcs,
 connected as though the node were in the middle of a single arc,
 then the node and two arcs are replaced with a single arc.</LI>
-<LI>In the interest of cleanliness, if an arc is erased,
-any isolated pins are also erased.</LI>
-<LI>
+</UL>
 <TABLE><TR><TD VALIGN=TOP>
-If an erased node has an export on it (as in this example),
+<UL>
+<LI>In the interest of cleanliness, if an arc is erased,
+any isolated pins are also erased.</LI>
+<LI>If an erased node has an export on it (as in this example),
 then the export disappears and so do all arcs connected to the port on instances of the current cell
-(for more information on hierarchy, see <A HREF="chap03-01.html#chap03-01">Chapter 3</A>).
-</TD><TD><CENTER><IMG SRC="fig02-06.png" ALT="Figure 2.6"></CENTER></TD></TR></TABLE></LI>
-</OL>
+(for more information on hierarchy, see <A HREF="chap03-01.html#chap03-01">Chapter 3</A>).</LI>
+</UL>
+</TD><TD><CENTER><IMG SRC="fig02-06.png" ALT="Figure 2.6"></CENTER></TD></TR></TABLE>
 <P>
 <TABLE><TR><TD><CENTER><IMG SRC="fig03-14.png" ALT="Figure 3.14"></CENTER></TD><TD>
 <!-- NEED 3in -->

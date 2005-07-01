@@ -66,7 +66,7 @@ public class HelpMenu {
         helpMenu.add(samplesSubMenu);
 		samplesSubMenu.addMenuItem("_Load Library", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.loadSamplesLibrary(); } });
-        samplesSubMenu.addMenuItem("_3D View Sample Cell", null,
+        samplesSubMenu.addMenuItem("_3D View of Sample Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.open3DSample(); } });
         samplesSubMenu.addMenuItem("_Animate Sample Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.animate3DSample(); } });

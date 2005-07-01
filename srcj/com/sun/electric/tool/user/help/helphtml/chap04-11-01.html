@@ -1,62 +1,53 @@
-<!-- HEADER 4-11-01: Introduction -->
+<!-- HEADER 4-11-1: Introduction -->
 
 <!-- COMMAND Window/3D Window/3D View -->
-<!-- COMMAND Help/Samples/3D View Sample Cell -->
+<!-- COMMAND Help/Samples/3D View of Sample Cell -->
 <!-- COMMAND Window/3D Window/Test Hardware -->
-<!-- PREFERENCE Display/3D -->
 
 Electric has the ability to view an integrated circuit in 3-dimensions as shown below,
 allowing a fuller understanding of the interaction between layers.
-When displaying 3D, you can rotate, zoom, and pan the image to get a better view however
+When displaying 3D, you can rotate, zoom, and pan the image to get a better view, however
 you can no longer change the circuit.
-<TABLE><TR><TD><CENTER><IMG SRC="fig04-10.png" ALT="Figure 4.10"></CENTER></TD><TD>
-
 <P>
-The 3D View is based on the Java3D API, the Java interface for interactive 3D graphics.
-Java3D is one implementation whose foundation is being a set of abstraction layers above the OpenGL rendering library
-and to test the graphics hardware available for rendering go to <B>Test Hardware </B> in menu <B>Window / 3D Window</B>. 
-Its dependency on Java3D, however the 3D view it will not work if this addition to Java
-is not installed. Also, it might not work properly if
-you are using MDI mode (multiple document interface, mostly used on Windows) because the heavy widgets
-provided by Java3D interfere with the light widgets from Swing.
-
-<p>
-There are another two extensions available. They add the 3D axes shown in picture on the left
-and create QuickTime animations (Section XXX). Note that those plugins are incorporated into Electric using
-Java Reflection therefore no exceptions are generated if they are not available.
-See <A HREF="chap01-05.html#chap01-05">Section 1-5</A> for details about getting Java3D and the
-extensions.
-
+<TABLE><TR><TD><CENTER><IMG SRC="fig04-10.png" ALT="Figure 4.10"></CENTER></TD><TD>
+The 3D View is based on Java3D, the Java interface for interactive 3D graphics.
+Because not everyone has a full 3D capability on their computer, the 3D facilities are dependent on
+these extra installations:
+<UL>
+<LI><B>Java3D</B> is the core 3D package and <U>must</U> be installed.</LI>
+<LI><B>3D axes</B> is an optional extra download from Static Free Software that shows a 3D axis.</LI>
+<LI><B>JMF</B> is an optional package from Sun Microsystems that enables animation.</LI>
+<LI><B>Animation</B> is an optional extra download from Static Free Software that does animation (it needs JMF).</LI>
+</UL>
+See <A HREF="chap01-05.html#chap01-05">Section 1-5</A> for details about getting these extensions.
+</TD></TR></TABLE>
+<P>
+To see the 3D view of a layout cell, use the <B>3D View</B> command (in menu <B>Window / 3D Window</B>).
+The cell is displayed in 3D, and mouse movements will rotate, pan, or zoom the circuit.
+Use the left button to rotate, the right button for panning, and the middle one for zooming.
+When zooming, drag the middle button in one direction to zoom in, and the other direction to zoom out.
+Standard pan and zoom operations (in menu <B>Window</B>) are also available
+(see <A HREF="chap04-04-01.html#chap04-04-01">Section 4-4-1</A> and 
+<A HREF="chap04-04-02.html#chap04-04-02">Section 4-4-2</A>).
+<P>
+Each layer of a node or arc is drawn as a separate object in the 3D view.
+If you click on a node or arc in a 2D view, all of its layers will be highlighted in the 3D view.
+Conversely, clicking on any layer of a node or arc in the 3D view will show the entire component in the 2D view.
+<P> 
+<TABLE><TR><TD><CENTER><IMG SRC="fig04-16.png" ALT="Figure 4.16"><BR>
+<IMG SRC="fig04-17.png" ALT="Figure 4.17"></CENTER></TD><TD>
+Cell instances will be drawn as bounding boxes if they are unexpanded (top illustration), and will show
+their contents if expanded (bottom illustration).
 </TD></TR></TABLE>
 
 <P>
-To see the 3D view of a layout cell, use the <B>3D View</B> command (in menu <B>Window / 3D Window</B>).
-The cell is displayed in 3D, and mouse movements will rotate, pan, or zoom the circuit.
-Use the left button to rotate, the right button for panning and the middle one for zooming.
-When zooming, drag the middle button in one direction to zoom in, and the other direction to zoom out.
+<H3>Troubleshooting</H3>
 <P>
-Nodes and arcs in the 3D view are represented by the layers composing them and it generates
- a 1:N relation between 2D objects in the layout and objects in the 3D view. 
-Thus, all layers of nodes and arcs will be highlighted in the 3D view by clicking in the corresponding
-2D instance, and only one layer will be highlighted in the 2D view if a 3D object is selected.
-Furthermore, the network tool will also highlight nodes if they are displayed in a 3D view.
-
-<P> 
-In case of cell instances, bounding boxes will be shown in the scene graph as shown below in picture (a)
-and the interior will be displayed if cells are expanded (picture (b)).
-
-<center>
-<table border=0>
-<tr>
-<th><IMG SRC="fig04-16.png" ALT="Figure 4.16"></th><th><IMG SRC="fig04-17.png" ALT="Figure 4.17"></th></tr>
-<tr>
-<td><CENTER>(a) Unexpanded Cell</td><td><CENTER>(b) Expanded Cell</CENTER></td></tr>
-</table>
-</center>
-
+If you are running on Windows and are using MDI mode (multiple document interface)
+the 3D display may not work properly.
+See <A HREF="chap01-04.html#chap01-04">Section 1-4</A> for instructions on running Electric in SDI mode.
 <P>
-Standard panning and zoom operations in menu <B>Window</B> are available in the 3D view 
-(see <A HREF="chap04-04-01.html#chap04-04-01">  Section 4-4-1</A> and 
-<A HREF="chap04-04-02.html#chap04-04-02"> Section 4-4-2</A>).
+Because Java3D makes use of the graphics hardware on your computer, it may be useful to test that
+hardware with the <B>Test Hardware </B> command (in menu <B>Window / 3D Window</B>). 
 
 <!-- TRAILER -->
