@@ -3,7 +3,7 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* END OF Version 8.02, GNU RELEASE *********************************
-************************* Version 8.02q: Released 7/1/05 *********************************
+************************* Version 8.02: Released 7/1/05 *********************************
 
 BUG: (07/01/05, DN) When duplicationg a cell the arc's head and tail settings are swapped (Bug #423).
 FIX: In Cell.copyNodeProtoUsingMapping and NodeInst.replace swap head and tail.

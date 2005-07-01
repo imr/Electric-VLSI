@@ -166,7 +166,9 @@
             <exclude name="bin/"/>
         	<exclude name="intervalsimulation/"/>
             <exclude name="nbproject/"/>
-            <exclude name="packaging/"/>
+            <exclude name="packaging/*.jar"/>
+            <exclude name="packaging/*.gif"/>
+            <exclude name="packaging/MakePDF.book"/>
             <exclude name="xml/"/>
             <exclude name="build.xml" unless="source"/>
             <exclude name="ChangeLog.txt" unless="source"/>
