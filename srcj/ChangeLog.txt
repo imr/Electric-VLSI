@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
+IMP: (07/11/05, IM) Added NCC GUI
+
+BUG: (07/11/05, IM) NetworkHighlighter wasn't highlighting networks without arcs
+FIX: (07/11/05, IM) Make NetworkHighlighter highlight all the PortInsts on a Network
+
+BUG: (07/11/05, IM) comparison of two VarContexts doesn't work beacuse pointer 
+comparison of Nodables is not reliable
+FIX: (07/11/05, IM) Compare Nodable parents and names
+
 IMP: (07/11/05, GVG) LayerTab class extends JPanel instead of JFrame (suggested after Dima ran profiler).
 
 IMP/MAN: (07/11/05, GVG) Changing exports should mark library as changed (Bug #428).
