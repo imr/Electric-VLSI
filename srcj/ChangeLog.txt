@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
+IMP: (07/11/05, GVG) LayerTab class extends JPanel instead of JFrame (suggested after Dima ran profiler).
+
 IMP/MAN: (07/11/05, GVG) Changing exports should mark library as changed (Bug #428).
 Implemented by checking also if there is a minor change in the library.
 

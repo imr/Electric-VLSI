@@ -39,16 +39,13 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 
 
 /**
  * Class to handle the "Layers tab" of a window.
  */
-public class LayerTab extends JFrame
+public class LayerTab extends JPanel
 {
 	private JList layerList;
 	private DefaultListModel layerListModel;
@@ -528,17 +525,17 @@ public class LayerTab extends JFrame
         portText = new javax.swing.JCheckBox();
         nodeText = new javax.swing.JCheckBox();
 
-        getContentPane().setLayout(new java.awt.GridBagLayout());
+        setLayout(new java.awt.GridBagLayout());
 
-        setTitle("Layer Visibility");
+//        setTitle("Layer Visibility");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter()
-        {
-            public void windowClosing(java.awt.event.WindowEvent evt)
-            {
-                closeDialog(evt);
-            }
-        });
+//        addWindowListener(new java.awt.event.WindowAdapter()
+//        {
+//            public void windowClosing(java.awt.event.WindowEvent evt)
+//            {
+//                closeDialog(evt);
+//            }
+//        });
 
         layerPane.setMinimumSize(new java.awt.Dimension(100, 300));
         layerPane.setPreferredSize(new java.awt.Dimension(100, 300));
@@ -549,14 +546,14 @@ public class LayerTab extends JFrame
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(layerPane, gridBagConstraints);
+        add(layerPane, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(0, 4, 0, 4);
-        getContentPane().add(technology, gridBagConstraints);
+        add(technology, gridBagConstraints);
 
         selectAll.setText("Select All");
         selectAll.addActionListener(new java.awt.event.ActionListener()
@@ -571,7 +568,7 @@ public class LayerTab extends JFrame
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 1, 4);
-        getContentPane().add(selectAll, gridBagConstraints);
+        add(selectAll, gridBagConstraints);
 
         makeVisible.setText("Make Visible");
         makeVisible.addActionListener(new java.awt.event.ActionListener()
@@ -586,7 +583,7 @@ public class LayerTab extends JFrame
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 1, 4);
-        getContentPane().add(makeVisible, gridBagConstraints);
+        add(makeVisible, gridBagConstraints);
 
         makeInvisible.setText("Make Invisible");
         makeInvisible.addActionListener(new java.awt.event.ActionListener()
@@ -601,7 +598,7 @@ public class LayerTab extends JFrame
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.insets = new java.awt.Insets(1, 4, 2, 4);
-        getContentPane().add(makeInvisible, gridBagConstraints);
+        add(makeInvisible, gridBagConstraints);
 
         jPanel1.setLayout(new java.awt.GridBagLayout());
 
@@ -641,7 +638,7 @@ public class LayerTab extends JFrame
         gridBagConstraints.gridy = 5;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
-        getContentPane().add(jPanel1, gridBagConstraints);
+        add(jPanel1, gridBagConstraints);
 
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
@@ -700,9 +697,9 @@ public class LayerTab extends JFrame
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        getContentPane().add(jPanel2, gridBagConstraints);
+        add(jPanel2, gridBagConstraints);
 
-        pack();
+//        pack();
     }//GEN-END:initComponents
 
 	private void toggleHighlightActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_toggleHighlightActionPerformed
@@ -730,12 +727,12 @@ public class LayerTab extends JFrame
 		selectAll();
 	}//GEN-LAST:event_selectAllActionPerformed
 
-	/** Closes the dialog */
-	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
-	{
-		setVisible(false);
-		dispose();
-	}//GEN-LAST:event_closeDialog
+//	/** Closes the dialog */
+//	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
+//	{
+//		setVisible(false);
+//		dispose();
+//	}//GEN-LAST:event_closeDialog
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox annotationText;

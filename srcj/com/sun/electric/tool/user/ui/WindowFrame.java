@@ -260,7 +260,7 @@ public class WindowFrame extends Observable
 
 		sideBar.add("Components", paletteTab.getTechPalette());
 		sideBar.add("Explorer", scrolledTree);
-		sideBar.add("Layers", layersTab.getContentPane());
+		sideBar.add("Layers", layersTab);
 
 		sideBar.setSelectedIndex(User.getDefaultWindowTab());
 		sideBar.addChangeListener(new javax.swing.event.ChangeListener()
