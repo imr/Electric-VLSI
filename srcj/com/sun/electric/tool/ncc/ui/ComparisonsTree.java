@@ -43,6 +43,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
 import com.sun.electric.tool.ncc.netlist.NetObject;
+import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 class ComparisonsTree extends JTree implements ActionListener, TreeSelectionListener {
@@ -55,8 +56,8 @@ class ComparisonsTree extends JTree implements ActionListener, TreeSelectionList
     // GUI variables
     private ComparisonsPane parentPane;
     private DefaultMutableTreeNode root;
-            JPopupMenu popup;
-            String clipboard;
+    protected JPopupMenu popup;
+    protected String clipboard;
 
     // data holders
     private NccComparisonMismatches[] mismatches;
@@ -182,16 +183,17 @@ class ComparisonsTree extends JTree implements ActionListener, TreeSelectionList
 
         // add part equivalence classes
         int type = TreeNode.PART;
-        int index=1;
+        int index=0;
         boolean truncated = false;
         for (int i=0; i<mismEqRecs.length; i++) {
             // fill in array of mismatches 
             if (mismEqRecs[i].getNetObjType() != NetObject.Type.PART) continue;
+            index++;
             // limit output size
-            if (index > MAX_CLASSES) { truncated = true; index++; continue;}
+            if (index > MAX_CLASSES) { truncated = true; continue;}
             
             List reasons = mismEqRecs[i].getPartitionReasonsFromRootToMe();
-            StringBuffer nodeName = new StringBuffer("Part Class #"+ (index++) + " [");
+            StringBuffer nodeName = new StringBuffer("[");
             if (mismEqRecs[i].maxSize() > MAX_LIST_ELEMENTS)
                 nodeName.append("first " + MAX_LIST_ELEMENTS + " of ");
             nodeName.append(mismEqRecs[i].maxSize() + "]");
@@ -226,14 +228,14 @@ class ComparisonsTree extends JTree implements ActionListener, TreeSelectionList
                                         compNdx, i, TreeNode.PARTLEAF)));
             }
         }
-        if (index == 1)
+        if (index == 0)
             inode.remove(parts);
         else {
             StringBuffer buf = new StringBuffer("Parts ");
             if (isHashChecked) buf.append("(hashcode) ");
             buf.append("[");
             if (truncated) buf.append("first " + MAX_CLASSES + " of ");
-            buf.append((index-1) + "]");
+            buf.append((index) + "]");
             partsNode.setFullName(buf.toString());
         }
     }
@@ -252,17 +254,38 @@ class ComparisonsTree extends JTree implements ActionListener, TreeSelectionList
         // add wire equivalence classes
         TreeNode wireTreeNode;
         int type = TreeNode.WIRE;
-        int index = 1;
+        int index = 0;
         boolean truncated = false;        
         for (int i=0; i<mismEqRecs.length; i++) {
             if (mismEqRecs[i].getNetObjType() != NetObject.Type.WIRE) continue;
+            index++;
             // limit output size
-            if (index > MAX_CLASSES) { truncated = true; index++; continue;}            
+            if (index > MAX_CLASSES) { truncated = true; continue;}            
             
-            StringBuffer nodeName = new StringBuffer("Wire Class #"+ (index++) + " [");
+            String descr[] = new String[2];
+            int cell=0;
+            for (Iterator it=mismEqRecs[i].getCircuits(); it.hasNext(); cell++) {
+                Circuit ckt = (Circuit) it.next();
+                Iterator it2=ckt.getNetObjs();
+                if (it2.hasNext()) {
+                    descr[cell] = parentPane.cleanNetObjectName(
+                               ((NetObject) it2.next()).instanceDescription());
+                    int ind = descr[cell].indexOf(" in Cell: ");
+                    if (ind > 0) descr[cell] = descr[cell].substring(0, ind).trim();
+                    if (it2.hasNext())
+                        descr[cell] = "{" + descr[cell] + ",...}";
+                    else
+                        descr[cell] = "{" + descr[cell] + "}";
+                } else
+                    descr[cell] = "{}";
+                
+            }
+            
+            StringBuffer nodeName = new StringBuffer("[");
             if (mismEqRecs[i].maxSize() > MAX_LIST_ELEMENTS)
                 nodeName.append("first " + MAX_LIST_ELEMENTS + " of ");
-            nodeName.append(mismEqRecs[i].maxSize() + "]");
+            nodeName.append(mismEqRecs[i].maxSize() + "]: ");
+            nodeName.append(descr[0] + "   " + descr[1]);
             
             wireTreeNode = new TreeNode(compTreeNode, nodeName.toString(), 
                                         compNdx, i, type); 
@@ -298,14 +321,14 @@ class ComparisonsTree extends JTree implements ActionListener, TreeSelectionList
                                new TreeNode(wireTreeNode, reasons[j], compNdx, i, TreeNode.WIRELEAF)));
             }
         }
-        if (index == 1)
+        if (index == 0)
             inode.remove(wires);
         else {
             StringBuffer buf = new StringBuffer("Wires ");
             if (isHashChecked) buf.append("(hashcode) ");
             buf.append("[");
             if (truncated) buf.append("first " + MAX_CLASSES + " of ");
-            buf.append((index-1) + "]");
+            buf.append((index) + "]");
             wiresNode.setFullName(buf.toString());
         }
     } 

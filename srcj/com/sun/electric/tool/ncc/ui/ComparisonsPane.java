@@ -264,16 +264,8 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     
                 Iterator it3=ckt.getNetObjs();
                 for (int k=0; it3.hasNext() && k<ComparisonsTree.MAX_LIST_ELEMENTS; k++) {
-                    String descr = ((NetObject)it3.next()).instanceDescription();
-                    // drop "Part:" or "Wire:" prefices
-                    if (descr.startsWith("Wire: ") || descr.startsWith("Part: "))
-                        descr = descr.substring(6);
-                    // drop "Cell instance:" info
-                    int ind = descr.indexOf(" Cell instance:");
-                    if (ind > 0) descr = descr.substring(0, ind).trim();
-                    // drop {sch} or {lay} suffices
-                    if (descr.endsWith("{sch}") || descr.endsWith("{lay}"))
-                        descr = descr.substring(0, descr.length()-5);
+                    String descr = cleanNetObjectName(
+                               ((NetObject) it3.next()).instanceDescription());
                     
                     html.append(href + (i*100000 + cell*10000 + k) +"\">"+ descr + "</a>");
                     curCellText.append(descr);
@@ -344,6 +336,19 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
             HighlightTools.highlightWire(highlighter, cell, (Wire)partOrWire);
         
         highlighter.finished();
+    }
+    
+    public String cleanNetObjectName(String descr) {
+        // drop "Part:" or "Wire:" prefices
+        if (descr.startsWith("Wire: ") || descr.startsWith("Part: "))
+            descr = descr.substring(6);
+        // drop "Cell instance:" info
+        int ind = descr.indexOf(" Cell instance:");
+        if (ind > 0) descr = descr.substring(0, ind).trim();
+        // drop {sch} or {lay} suffices
+        if (descr.endsWith("{sch}") || descr.endsWith("{lay}"))
+            descr = descr.substring(0, descr.length()-5);
+        return descr;
     }
     
     /* (non-Javadoc)
