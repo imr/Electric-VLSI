@@ -33,14 +33,19 @@ import java.util.Set;
 import java.util.HashSet;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Port;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
+import com.sun.electric.tool.ncc.ui.ExportMultiMatch;
+import com.sun.electric.tool.ncc.ui.ExportNameMismatch;
+import com.sun.electric.tool.ncc.ui.ExportTopologyMismatch;
 
 
 public class ExportChecker {
@@ -150,6 +155,8 @@ public class ExportChecker {
 		HashMap exportName2ToPort2 = mapFromExportNameToPort(portsPerCell[ckt2]);
 		if (p1ToP2==null)  p1ToP2=new HashMap();
 		Port[] ckt1Ports = portsPerCell[ckt1];
+        VarContext rootContexts[] = globals.getRootContexts();
+        Cell rootCells[] = globals.getRootCells();        
 		for (int portNdx=0; portNdx<ckt1Ports.length; portNdx++) {
 			Port p1 = ckt1Ports[portNdx];
 			Set p2ports = new HashSet();
@@ -166,12 +173,26 @@ public class ExportChecker {
 				     designNames[ckt2]);
 				noPortNameMatches.add(p1, ckt1, ckt2);
 				match = false;
+                ExportMultiMatch em = new ExportMultiMatch();
+                em.setNames(designNames[ckt1], designNames[ckt2]);
+                em.setCells(rootCells[ckt1], rootCells[ckt2]);
+                em.setContexts(rootContexts[ckt1], rootContexts[ckt2]);
+                em.add(0, p1);
+                em.setValidOnlyWhenTopologyMismatch(true);
+                globals.getComparisonResult().addExportMismatch(em);
 			} else if (p2ports.size()==1){
 				p1ToP2.put(p1, (Port)p2ports.iterator().next());
 			} else {
 				printOneToManyError(designNames[ckt1], p1.exportNamesString(),
 						            designNames[ckt2], p2ports);
 				match = false;
+                ExportMultiMatch em = new ExportMultiMatch();
+                em.setNames(designNames[ckt1], designNames[ckt2]);
+                em.setCells(rootCells[ckt1], rootCells[ckt2]);
+                em.setContexts(rootContexts[ckt1], rootContexts[ckt2]);
+                em.add(0, p1);
+                em.add(1, p2ports);
+                globals.getComparisonResult().addExportMismatch(em);                
 			}
 		}
 		return match;
@@ -300,12 +321,22 @@ public class ExportChecker {
     private void suggestMatchForPortsThatDontMatchByName() {
 		String[] rootCellNames = globals.getRootCellNames();
 		boolean printedHeader = false;
+        VarContext rootContexts[] = globals.getRootContexts();
+        Cell rootCells[] = globals.getRootCells();
 		for (NoPortNameMatch no=noPortNameMatches.removeFirst(); no!=null; 
-		     no=noPortNameMatches.removeFirst()) {
+		    no=noPortNameMatches.removeFirst()) {
 			// skip Ports for which the user has already requested a new name
 			if (no.port.getToBeRenamed()) continue;
 			Object o = findMatchingPortOrWire(no.port, no.circuitNoMatchingPort);
-			if (o==null) continue;
+			if (o==null) {
+                ExportMultiMatch em = new ExportMultiMatch();
+                em.setNames(rootCellNames[no.circuit], rootCellNames[no.circuitNoMatchingPort]);
+                em.setCells(rootCells[no.circuit], rootCells[no.circuitNoMatchingPort]);
+                em.setContexts(rootContexts[no.circuit], rootContexts[no.circuitNoMatchingPort]);
+                em.add(0, no.port);
+                globals.getComparisonResult().addExportMismatch(em);                
+                continue;
+            }
 			if (!printedHeader) {
 				printedHeader = true;
 				prln("  The following list suggests possible matches for "+
@@ -319,7 +350,14 @@ public class ExportChecker {
 			if (o instanceof Port) {
 				noPortNameMatches.removeMismatches(no.port, no.circuit, (Port)o, 
 				                                   no.circuitNoMatchingPort);
-			}
+            }
+            ExportNameMismatch esm = new ExportNameMismatch();
+            esm.setNames(rootCellNames[no.circuit], rootCellNames[no.circuitNoMatchingPort]);
+            esm.setCells(rootCells[no.circuit], rootCells[no.circuitNoMatchingPort]);
+            esm.setContexts(rootContexts[no.circuit], rootContexts[no.circuitNoMatchingPort]);
+            esm.setFirstExport(no.port);
+            esm.setSuggestion((NetObject)o);
+            globals.getComparisonResult().addExportMismatch(esm);                
 		}
 		if (printedHeader) prln("");
     }
@@ -386,6 +424,8 @@ public class ExportChecker {
     	boolean match=true;
     	
 		String[] rootCellNames = globals.getRootCellNames();
+        VarContext rootContexts[] = globals.getRootContexts();
+        Cell rootCells[] = globals.getRootCells();        
     	for (int i=1; i<equivPortMaps.length; i++) {
     		HashMap portToPort = equivPortMaps[i];
     		for (Iterator it=portToPort.keySet().iterator(); it.hasNext();) {
@@ -410,6 +450,15 @@ public class ExportChecker {
 						     getDescription(portOrWire));
 					prln("");
 					match = false;
+                    ExportTopologyMismatch esm = new ExportTopologyMismatch();
+                    esm.setNames(rootCellNames[0], rootCellNames[i]);
+                    esm.setCells(rootCells[0], rootCells[i]);
+                    esm.setContexts(rootContexts[0], rootContexts[i]);
+                    esm.setFirstExport(p0);
+                    esm.setSecondExport(pn);
+                    if(portOrWire != null)
+                        esm.setSuggestion((NetObject)portOrWire);
+                    globals.getComparisonResult().addExportMismatch(esm);                    
 				}
     		}
     	}

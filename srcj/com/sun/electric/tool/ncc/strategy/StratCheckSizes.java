@@ -28,6 +28,7 @@ package com.sun.electric.tool.ncc.strategy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,18 +40,22 @@ import com.sun.electric.tool.ncc.netlist.Mos;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Subcircuit;
+import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class StratCheckSizes extends Strategy {
 	// ----------------------- private types ----------------------------------0
-	private static abstract class Mismatch {
+	public static abstract class Mismatch {
 		private StringBuffer sb = new StringBuffer();
 		private void aln(String s) {sb.append(s); sb.append("\n");}
 		public final double min, max;
 		public final Mos minMos, maxMos;
-		Mismatch(double min, Mos minMos, double max, Mos maxMos) {
+        public final int minNdx, maxNdx;
+		Mismatch(double min, Mos minMos, int minNdx, 
+                 double max, Mos maxMos, int maxNdx) {
 			this.min=min; this.max=max;
 			this.minMos=minMos; this.maxMos=maxMos;
+            this.minNdx = minNdx; this.maxNdx = maxNdx;
 		}
 		public double relErr() {return (max-min)/min;}
 		public double absErr() {return max-min;}
@@ -81,20 +86,20 @@ public class StratCheckSizes extends Strategy {
 			return sb.toString();
 		}
 	}
-	private static class LengthMismatch extends Mismatch {
+    public static class LengthMismatch extends Mismatch {
 		public String widLen() {return "length";}
 		public String wl() {return "L";}
-		public LengthMismatch(double min, Mos minMos, double max, 
-				              Mos maxMos) {
-			super(min, minMos, max, maxMos);
+		public LengthMismatch(double min, Mos minMos, int minNdx, 
+                              double max, Mos maxMos, int maxNdx) {
+			super(min, minMos, minNdx, max, maxMos, maxNdx);
 		}
 	}
-	private static class WidthMismatch extends Mismatch {
+    public static class WidthMismatch extends Mismatch {
 		public String widLen() {return "width";}
 		public String wl() {return "W";}
-		public WidthMismatch(double min, Mos minMos, double max, 
-				             Mos maxMos) {
-			super(min, minMos, max, maxMos);
+		public WidthMismatch(double min, Mos minMos, int minNdx, 
+                             double max, Mos maxMos, int maxNdx) {
+			super(min, minMos, minNdx, max, maxMos, maxNdx);
 		}
 	}
 	// ------------------------------ private data -----------------------------
@@ -102,6 +107,7 @@ public class StratCheckSizes extends Strategy {
 	private double minWidth, maxWidth, minLength, maxLength;
 	private Mos minWidMos, maxWidMos, minLenMos, maxLenMos;
 	private List mismatches = new ArrayList();
+    private int cktNdx, minWidNdx, maxWidNdx, minLenNdx, maxLenNdx;
 	
     private StratCheckSizes(NccGlobals globals) {
     	super(globals);
@@ -110,14 +116,14 @@ public class StratCheckSizes extends Strategy {
     
     private void checkWidthMismatch() {
 		if (!NccUtils.sizesMatch(maxWidth, minWidth, options)) {
-			mismatches.add(new WidthMismatch(minWidth, minWidMos, 
-					                         maxWidth, maxWidMos));
+			mismatches.add(new WidthMismatch(minWidth, minWidMos, minWidNdx,  
+					                         maxWidth, maxWidMos, maxWidNdx));
 		}
     }
     private void checkLengthMismatch() {
     	if (!NccUtils.sizesMatch(maxLength, minLength, options)) {
-    		mismatches.add(new LengthMismatch(minLength, minLenMos, 
-    				                          maxLength, maxLenMos));
+    		mismatches.add(new LengthMismatch(minLength, minLenMos, minLenNdx,
+    				                          maxLength, maxLenMos, maxLenNdx));
     	}
     }
     private static class MismatchComparator implements Comparator {
@@ -137,6 +143,7 @@ public class StratCheckSizes extends Strategy {
     		Mismatch m = (Mismatch) it.next();
     		System.out.print(m.toString());
     	}
+        globals.getComparisonResult().setSizeMismatches(mismatches);
     }
 
 	private boolean matches() {return mismatches.size()==0;}
@@ -146,6 +153,7 @@ public class StratCheckSizes extends Strategy {
 			if (j.isMatched()) {
 				minWidth = minLength = Double.MAX_VALUE;
 				maxWidth = maxLength = Double.MIN_VALUE;
+                cktNdx = 0;
 				super.doFor(j);
 				checkWidthMismatch();
 				checkLengthMismatch();
@@ -156,6 +164,12 @@ public class StratCheckSizes extends Strategy {
 		return new LeafList();
 	}
 	
+    public HashMap doFor(Circuit c){
+        HashMap result = super.doFor(c);
+        cktNdx++;
+        return result;
+    }    
+    
 	public Integer doFor(NetObject n) {
 		Part p = (Part) n;
 		if (p instanceof Subcircuit) {
@@ -164,11 +178,11 @@ public class StratCheckSizes extends Strategy {
 			globals.error(!(p instanceof Mos), "unimplemented part type");
 			Mos t = (Mos) p;
 			double w = t.getWidth();
-			if (w<minWidth) {minWidth=w;  minWidMos=t;}
-			if (w>maxWidth) {maxWidth=w;  maxWidMos=t;}
+			if (w<minWidth) {minWidth=w;  minWidMos=t; minWidNdx=cktNdx;}
+			if (w>maxWidth) {maxWidth=w;  maxWidMos=t; maxWidNdx=cktNdx;}
 			double l = t.getLength();
-			if (l<minLength) {minLength=l;  minLenMos=t;}
-			if (l>maxLength) {maxLength=l;  maxLenMos=t;}
+			if (l<minLength) {minLength=l;  minLenMos=t; minLenNdx=cktNdx;}
+			if (l>maxLength) {maxLength=l;  maxLenMos=t; maxLenNdx=cktNdx;}
 		}
 		return CODE_NO_CHANGE;
 	}

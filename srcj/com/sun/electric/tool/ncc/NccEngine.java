@@ -104,12 +104,13 @@ public class NccEngine {
 	}
 	
 	private NccResult designsMatch(HierarchyInfo hierInfo, boolean hierInfoOnly) {
-		if (globals.getRoot()==null) {
-			globals.status2("empty cell");
+        boolean hasError = globals.hasNetlistError();
+		if (globals.getRoot()==null || hasError) {
+			globals.status2("empty cell or netlist error");
 			// Preserve the invariant: "partLeafLists, wireLeafLists exist" 
-			// even if there are no Parts and no Wires. 
+			// even if there are no Parts and no Wires OR there is a netlist error. 
 			globals.initLeafLists();
-			return new NccResult(true, true, true, globals);
+			return new NccResult(!hasError, !hasError, true, globals);
 		} else {
 			Date d0 = new Date();
 			ExportChecker expCheck = new ExportChecker(globals);
@@ -164,6 +165,7 @@ public class NccEngine {
 			return new NccResult(exportsOK, topologyOK, sizesOK, globals);
 		}
 	}
+/*    
 	private boolean netlistErrors(List nccNets) {
 		boolean netlistErrors = false;
 		for (Iterator it=nccNets.iterator(); it.hasNext();) {
@@ -172,6 +174,7 @@ public class NccEngine {
 		}
 		return netlistErrors;
 	}
+*/    
 	private NccResult areEquivalent(List cells, List contexts, 
 					  		        List netlists, HierarchyInfo hierInfo,
 					  		        boolean blackBox, 
@@ -188,12 +191,13 @@ public class NccEngine {
 			buildNccNetlists(cells, contexts, netlists, blackBox, hierInfo);
 		Date after = new Date();
 		globals.status1("  NCC net list construction took "+NccUtils.hourMinSec(before, after)+".");
-
+        globals.setInitialNetlists(nccNetlists);
+        
 		/** If some netlist is invalid then the comparison fails */
-		if (netlistErrors(nccNetlists)) 
-			return new NccResult(false, false, true, globals);
-
-		globals.setInitialNetlists(nccNetlists);
+//		if (netlistErrors(nccNetlists)) {
+//            globals.initLeafLists();
+//            return new NccResult(false, false, true, globals);
+//        }
 
 		NccResult result = designsMatch(hierInfo, false);
 

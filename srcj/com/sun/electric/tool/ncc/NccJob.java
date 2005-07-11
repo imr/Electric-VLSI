@@ -25,6 +25,8 @@ package com.sun.electric.tool.ncc;
 
 import java.util.List;
 
+import javax.swing.SwingUtilities;
+
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.NetworkTool;
@@ -32,12 +34,15 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
+import com.sun.electric.tool.ncc.ui.NccMsgsFrame;
 import com.sun.electric.tool.user.User;
 
 /* Implements NCC's user interface */
 public class NccJob extends Job {
 	public static NccResult lastResult;
 	private final int numWindows;
+    static NccMsgsFrame nccgui = new NccMsgsFrame();
+
 	private void prln(String s) {System.out.println(s);}
 	
 	private CellContext[] getSchemLayFromCurrentWindow() {
@@ -140,6 +145,13 @@ public class NccJob extends Job {
 									   cellCtxts[1].cell, cellCtxts[1].context, 
 									   options);
 		lastResult = result;
+        nccgui.setMismatches(result.getAllComparisonMismatches(), options);
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                NccJob.nccgui.display();
+            }
+        });
+        
 		return result.match();
     }
 

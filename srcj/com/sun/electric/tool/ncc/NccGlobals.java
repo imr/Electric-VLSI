@@ -47,6 +47,7 @@ import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
+import com.sun.electric.tool.ncc.ui.NccComparisonMismatches;
 
 /**
  * Generate non-recurring random integers
@@ -84,7 +85,10 @@ public class NccGlobals {
 	/** pass number shared by strategies */   public int passNumber;
 	/** leaf nodes of parts tree */           private LeafEquivRecords partLeafRecs;
 	/** leaf nodes of wires tree */           private LeafEquivRecords wireLeafRecs;
+    /** has a netlist error? */               private boolean hasNetlistError = false;
 	
+    private NccComparisonMismatches compMismatches;
+    
 	private List getNetObjs(int code, NccNetlist nets) {
 		switch (code) {
 		  case CODE_PART:  return nets.getPartArray();
@@ -120,6 +124,7 @@ public class NccGlobals {
 	 */
 	public NccGlobals(NccOptions options) {
 		this.options = options;
+        compMismatches = new NccComparisonMismatches();
 	}
 	public void setInitialNetlists(List nccNets) {
 		parts = buildEquivRec(CODE_PART, nccNets);
@@ -139,6 +144,7 @@ public class NccGlobals {
 			NccNetlist nl = (NccNetlist) it.next();
 			rootCells[i] = nl.getRootCell();
 			rootContexts[i] = nl.getRootContext();
+            hasNetlistError |= nl.netlistErrors();
 		}
 	}
 	/** Initialization.
@@ -209,4 +215,13 @@ public class NccGlobals {
 		}
 		return equivNets;
 	}
+    
+    public NccComparisonMismatches getComparisonResult() {
+        return compMismatches;
+    }
+
+    public boolean hasNetlistError() {
+        return hasNetlistError;
+    }
+
 }

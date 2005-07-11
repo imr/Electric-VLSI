@@ -61,6 +61,7 @@ import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
+import com.sun.electric.tool.ncc.ui.NccComparisonMismatches;
 
 /**
  * NCC's representation of a netlist.
@@ -99,7 +100,8 @@ public class NccNetlist {
 			}
 		}
 		// if there are net list errors then make net list look empty
-		if (netlistErrors())  wires = parts = ports = new ArrayList();
+		if (netlistErrors())
+            wires = parts = ports = new ArrayList();
 	}
 	public ArrayList getWireArray() {return wires;}
 	public ArrayList getPartArray() {return parts;}
@@ -518,22 +520,27 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			prln("");
 		}
 		// The GUI should put the following into one box
-		VarContext context = info.getContext();
-		Cell cell = info.getCell();
-		for (Iterator it=wireToExportGlobals.keySet().iterator(); it.hasNext();) {
+        VarContext context = info.getContext();
+        Cell cell = info.getCell();
+
+        NccComparisonMismatches cm = globals.getComparisonResult();
+        Object[][] items = new Object[wireToExportGlobals.keySet().size()][];
+        int j = 0;
+		for (Iterator it=wireToExportGlobals.keySet().iterator(); it.hasNext(); j++) {
 			HashSet exportGlobals = (HashSet) wireToExportGlobals.get(it.next());
+           
+            items[j] = new Object[exportGlobals.size()];
+            int i = 0;
 			// The GUI should put the following on one line
-			for (Iterator it2=exportGlobals.iterator(); it2.hasNext();) {
+			for (Iterator it2=exportGlobals.iterator(); it2.hasNext(); i++) {
 				ExportGlobal eg = (ExportGlobal) it2.next();
-				if (eg.isExport()) {
-					Export e = eg.getExport();
-					// highlight e
-				} else {
-					Network n = eg.network;
-					// highlight n
-				}
+				if (eg.isExport())
+					items[j][i] = eg.getExport();
+				else
+                    items[j][i] = eg.network;
 			}
 		}
+        cm.addExportAssertionFailure(cell,context,items);
 	}
 	private void matchExports(HashMap wireToExportGlobals, NamePattern pattern,
 							  NccCellInfo info) {

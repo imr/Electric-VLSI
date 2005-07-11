@@ -43,6 +43,7 @@ public class StratPreanalysisReport extends Strategy {
 
 	private boolean doYourJob2(NccGlobals globals) {
 		doFor(globals.getRoot());
+        globals.getComparisonResult().setMismatchedEquivRecords(mismatched);
 		summary();
 		return mismatched.size()==0;
 	}

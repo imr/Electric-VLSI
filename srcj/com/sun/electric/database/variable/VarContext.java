@@ -295,7 +295,17 @@ public class VarContext
     public boolean equals(VarContext c)
     {
         if (this == c) return true;             // both globalContext, or the same object
-        if (ni != c.getNodable()) return false; // compare nodeinsts
+        
+        // the following line doesn't work (R KAO, IvanM)
+        //if (ni != c.getNodable()) return false; // compare nodeinsts
+        
+        if (ni == null || c.getNodable() == null) return ni == c.getNodable(); 
+        Cell c1 = ni.getParent();
+        Cell c2 = c.getNodable().getParent();
+        String name1 = ni.getName();
+        String name2 = c.getNodable().getName();
+
+        if (! ((c1 == c2) && (name1.equals(name2)))) return false;
         return prev.equals(c.pop());            // compare parents
     }
 

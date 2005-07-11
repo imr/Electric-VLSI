@@ -1010,6 +1010,18 @@ public class WindowFrame extends Observable
         }
         return jf;
     }
+    
+    /**
+     * Method to return the JInternalFrame associated with this WindowFrame.
+     * In SDI mode this returns null.
+     * @return the JInternalFrame associated with this WindowFrame.
+     */
+    public JInternalFrame getInternalFrame() {
+        if (TopLevel.isMDIMode()) {
+            return jif;
+        }
+        return null;
+    }    
 
     /**
      * Returns true if this window frame or it's components generated

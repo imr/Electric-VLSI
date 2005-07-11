@@ -137,9 +137,11 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      */
     private static void getNetworkObjects(Cell cell, Netlist netlist, Network net,
                                        List arcs, List ports, List exports) {
+        for(Iterator it = net.getPorts(); it.hasNext();)
+            ports.add(it.next());
+
         if (arcs != null) {
             List nodesAdded = new ArrayList();
-
             // all arcs on the network
             for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
             {

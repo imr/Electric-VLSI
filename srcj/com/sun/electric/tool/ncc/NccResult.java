@@ -23,7 +23,11 @@
 */
 package com.sun.electric.tool.ncc;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
+import com.sun.electric.tool.ncc.ui.NccComparisonMismatches;
 
 /** The result of running a netlist comparison */
 public class NccResult {
@@ -31,6 +35,7 @@ public class NccResult {
 	private boolean topologyMatch;
 	private boolean sizeMatch;
 	private NccGlobals globalData;
+    private List comparisonMismatches;
 
 	public NccResult(boolean exportNameMatch, boolean topologyMatch, 
 			         boolean sizeMatch, NccGlobals globalData) {
@@ -38,6 +43,7 @@ public class NccResult {
 		this.topologyMatch = topologyMatch;
 		this.sizeMatch = sizeMatch;
 		this.globalData = globalData;
+        comparisonMismatches = new LinkedList();
 	}
 	/** Use this method to avoid holding the global data for two comparisons
 	 * at the same time. */
@@ -48,6 +54,13 @@ public class NccResult {
 		topologyMatch &= result.topologyMatch;
 		sizeMatch &= result.sizeMatch;
 		globalData = result.globalData;
+        if (globalData.hasNetlistError() || !result.exportMatch 
+                || !result.topologyMatch || !result.sizeMatch) {
+            NccComparisonMismatches cr = globalData.getComparisonResult();
+            cr.setGlobalData(globalData);
+            cr.setMatchFlags(result.exportMatch, result.topologyMatch, result.sizeMatch);
+            comparisonMismatches.add(cr);
+        }
 	}
 	/** No problem was found with Exports */ 
 	public boolean exportMatch() {return exportMatch;}
@@ -96,4 +109,16 @@ public class NccResult {
 		}
 		return s;
 	}
+
+    public NccGlobals getGlobalData() {
+        return globalData;
+    }
+    
+    public void addComparisonMismatches(NccComparisonMismatches cr) {
+        comparisonMismatches.add(cr);
+    }
+
+    public List getAllComparisonMismatches() {
+        return comparisonMismatches;
+    }
 }

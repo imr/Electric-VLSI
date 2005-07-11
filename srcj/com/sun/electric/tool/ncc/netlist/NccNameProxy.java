@@ -29,6 +29,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 
@@ -68,6 +69,7 @@ public abstract class NccNameProxy {
 	}
 	public Cell leafCell() {return nameProxy().leafCell();}
 	public String leafName() {return nameProxy().leafName();}
+    public VarContext getContext() { return nameProxy().getContext(); }    
 	/** Name whose instance path starts from the Cell from which NCC was run */
 	public String getName() {
 		return removePrefix(commonPathPrefix, nameProxy().toString());
@@ -97,5 +99,9 @@ public abstract class NccNameProxy {
 		public Iterator getNetNames() {
 			return ((NetNameProxy)nameProxy).leafNames();
 		}
+        public Network getNet() {
+            return nameProxy.getNet();
+        }
+        
 	}
 }
