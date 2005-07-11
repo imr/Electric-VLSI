@@ -39,7 +39,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
@@ -1835,8 +1834,10 @@ public class Highlighter implements DatabaseChangeListener {
 		if (np instanceof PrimitiveNode)
 		{
 			// special case for MOS transistors: examine the gate/active tabs
+            // special case for RESIST in layout  (fun == PrimitiveNode.Function.RESIST and PrimitiveNode.POLYGONAL
 			PrimitiveNode.Function fun = np.getFunction();
-			if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRAPMOS || fun == PrimitiveNode.Function.TRADMOS)
+			if (fun == PrimitiveNode.Function.TRANMOS || fun == PrimitiveNode.Function.TRAPMOS || fun == PrimitiveNode.Function.TRADMOS ||
+                (np instanceof PrimitiveNode && fun == PrimitiveNode.Function.RESIST && ((PrimitiveNode)np).getSpecialType() == PrimitiveNode.POLYGONAL))
 			{
 				Technology tech = np.getTechnology();
 				Poly [] polys = tech.getShapeOfNode(ni, wnd);
