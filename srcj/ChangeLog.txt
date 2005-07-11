@@ -4,8 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
-IMP: (07/11/05, GVG) Highlighter working now for new 90nm resistors whose function is PrimitiveNode.Function.RESIST
-as of today.
+IMP: (07/11/05, GVG) Highlighter working now for new 90nm resistors. PrimitiveNode.Function.RESIST in layout
+primitive nodes and ability to select the nearest port (similar to transistors).
 
 IMP: (07/11/05, IM) Added NCC GUI
 
