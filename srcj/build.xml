@@ -42,6 +42,12 @@
             <classpath><pathelement location="${AppleJava}"/></classpath>
             <exclude name="intervalsimulation/"/>  
             <exclude name="com/sun/electric/plugins/JMF/*.*" unless="JMF"/>
+	        <exclude name="com/sun/electric/plugins/j3d/*.*" if="NO3D"/>
+            <exclude name="com/sun/electric/plugins/j3d/ui/*.*" if="NO3D"/>
+            <exclude name="com/sun/electric/plugins/j3d/utils/*.*" if="NO3D"/>
+            <!-- you don't include either Java3D plugin if 3D option is out -->
+            <!-- this is valid when Java3D is not installed -->
+            <exclude name="com/sun/electric/plugins/Java3D/*.*" if="NO3D"/>
         </javac>
     </target>
 
