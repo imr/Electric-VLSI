@@ -707,6 +707,7 @@ public class Undo
 			if (cell != null)
 			{
 				if (major) cell.madeRevision();
+                cell.setModified();
 				changedCells.add(cell);
 			}
 			if (lib != null)

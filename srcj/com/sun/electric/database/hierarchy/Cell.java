@@ -335,6 +335,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	private static final Export[] NULL_EXPORT_ARRAY = new Export[0];
 
 	/** set if instances should be expanded */						private static final int WANTNEXPAND   =           02;
+	/** set if cell is modified */						            private static final int MODIFIED      =     01000000;
 	/** set if everything in cell is locked */						private static final int NPLOCKED      =     04000000;
 	/** set if instances in cell are locked */						private static final int NPILOCKED     =    010000000;
 	/** set if cell is part of a "cell library" */					private static final int INCELLLIBRARY =    020000000;
@@ -1662,7 +1663,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public boolean addNode(NodeInst ni)
 	{
 		checkChanging();
-		String name = ni.getName();
+//		String name = ni.getName();
 
         // error check
 		NodeUsage nu = ni.getNodeUsage();
@@ -2924,53 +2925,53 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
         return false;
     }
 
-    private boolean getIsAParentOf(Cell child)
-    {
-        if (this == child) return true;
-
-		// look through every instance of the child cell
-		Cell lastParent = null;
-		for(Iterator it = child.getInstancesOf(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-
-			// if two instances in a row have same parent, skip this one
-			if (ni.getParent() == lastParent) continue;
-			lastParent = ni.getParent();
-
-			// recurse to see if the grandparent belongs to the child
-			if (getIsAParentOf(ni.getParent())) return true;
-		}
-
-		// if this has an icon, look at it's instances
-		Cell np = child.iconView();
-		if (np != null)
-		{
-			lastParent = null;
-			for(Iterator it = np.getInstancesOf(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-
-				// if two instances in a row have same parent, skip this one
-				if (ni.getParent() == lastParent) continue;
-				lastParent = ni.getParent();
-
-				// special case: allow an icon to be inside of the contents for illustration
-				NodeProto niProto = ni.getProto();
-				if (niProto instanceof Cell)
-				{
-					if (((Cell)niProto).isIconOf(child))
-					{
-						if (!child.isIcon()) continue;
-					}
-				}
-
-				// recurse to see if the grandparent belongs to the child
-				if (getIsAParentOf(ni.getParent())) return true;
-			}
-		}
-		return false;
-	}
+//    private boolean getIsAParentOf(Cell child)
+//    {
+//        if (this == child) return true;
+//
+//		// look through every instance of the child cell
+//		Cell lastParent = null;
+//		for(Iterator it = child.getInstancesOf(); it.hasNext(); )
+//		{
+//			NodeInst ni = (NodeInst)it.next();
+//
+//			// if two instances in a row have same parent, skip this one
+//			if (ni.getParent() == lastParent) continue;
+//			lastParent = ni.getParent();
+//
+//			// recurse to see if the grandparent belongs to the child
+//			if (getIsAParentOf(ni.getParent())) return true;
+//		}
+//
+//		// if this has an icon, look at it's instances
+//		Cell np = child.iconView();
+//		if (np != null)
+//		{
+//			lastParent = null;
+//			for(Iterator it = np.getInstancesOf(); it.hasNext(); )
+//			{
+//				NodeInst ni = (NodeInst)it.next();
+//
+//				// if two instances in a row have same parent, skip this one
+//				if (ni.getParent() == lastParent) continue;
+//				lastParent = ni.getParent();
+//
+//				// special case: allow an icon to be inside of the contents for illustration
+//				NodeProto niProto = ni.getProto();
+//				if (niProto instanceof Cell)
+//				{
+//					if (((Cell)niProto).isIconOf(child))
+//					{
+//						if (!child.isIcon()) continue;
+//					}
+//				}
+//
+//				// recurse to see if the grandparent belongs to the child
+//				if (getIsAParentOf(ni.getParent())) return true;
+//			}
+//		}
+//		return false;
+//	}
 
 	/**
 	 * Method to determine whether this Cell is in use anywhere.
@@ -3522,6 +3523,23 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * @return true if this Cell is part of a Technology Library.
 	 */
 	public boolean isInTechnologyLibrary() { return (userBits & TECEDITCELL) != 0; }
+
+    /**
+	 * Method to set if cell has been modified since last save to disk. No need to call checkChanging().
+	 */
+	public void setModified() { userBits |= MODIFIED;}
+
+	/**
+	 * Method to clear this Cell modified bit since last save to disk. No need to call checkChanging().
+     * This is done when the library contained this cell is saved to disk.
+	 */
+	public void clearModified() { userBits &= ~MODIFIED; }
+
+	/**
+	 * Method to tell if this Cell has been modified since last save to disk.
+	 * @return true if cell has been modified.
+	 */
+	public boolean isModified() { return (userBits & MODIFIED) != 0; }
 
 	/**
 	 * Method to set the multi-page capability of this Cell.

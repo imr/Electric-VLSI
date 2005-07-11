@@ -585,7 +585,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 * Method to indicate that this Library has not changed in a major way.
 	 * Major changes include creation, deletion, or modification of circuit elements.
 	 */
-	public void clearChangedMajor() { userBits &= ~LIBCHANGEDMAJOR; }
+	public void clearChangedMajor() { clearCellChanges(); userBits &= ~LIBCHANGEDMAJOR; }
 
 	/**
 	 * Method to return true if this Library has changed in a major way.
@@ -604,7 +604,19 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 * Method to indicate that this Library has not changed in a minor way.
 	 * Minor changes include changes to text and other things that are not essential to the circuitry.
 	 */
-	public void clearChangedMinor() { userBits &= ~LIBCHANGEDMINOR; }
+	public void clearChangedMinor() { clearCellChanges(); userBits &= ~LIBCHANGEDMINOR; }
+
+    /**
+     * Method to clear modified cells if changes are clear in library.
+     */
+    private void clearCellChanges()
+    {
+		for (Iterator it = cells.values().iterator(); it.hasNext();)
+		{
+			Cell c = (Cell) it.next();
+            c.clearModified();
+		}
+    }
 
 	/**
 	 * Method to return true if this Library has changed in a minor way.

@@ -608,10 +608,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			{
 				CellAndCount cc = (CellAndCount)nodeInfo;
 				nodeInfo = cc.getCell();
+                if (cc.getCell().isModified()) setFont(boldFont);
 			}
 			if (nodeInfo instanceof Cell)
 			{
 				Cell cell = (Cell)nodeInfo;
+                if (cell.isModified()) setFont(boldFont);
 				IconGroup ig;
 				if (cell.isIcon()) ig = findIconGroup(View.ICON); else
 					if (cell.getView() == View.LAYOUT) ig = findIconGroup(View.LAYOUT); else
