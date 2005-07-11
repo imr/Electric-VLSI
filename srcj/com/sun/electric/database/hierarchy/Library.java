@@ -606,6 +606,13 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 */
 	public void clearChangedMinor() { clearCellChanges(); userBits &= ~LIBCHANGEDMINOR; }
 
+	/**
+	 * Method to return true if this Library has changed in a minor way.
+	 * Minor changes include changes to text and other things that are not essential to the circuitry.
+	 * @return true if this Library has changed in a minor way.
+	 */
+	public boolean isChangedMinor() { return (userBits & LIBCHANGEDMINOR) != 0; }
+
     /**
      * Method to clear modified cells if changes are clear in library.
      */
@@ -617,13 +624,6 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
             c.clearModified();
 		}
     }
-
-	/**
-	 * Method to return true if this Library has changed in a minor way.
-	 * Minor changes include changes to text and other things that are not essential to the circuitry.
-	 * @return true if this Library has changed in a minor way.
-	 */
-	public boolean isChangedMinor() { return (userBits & LIBCHANGEDMINOR) != 0; }
 
 	/**
 	 * Method to indicate that this Library came from disk.
