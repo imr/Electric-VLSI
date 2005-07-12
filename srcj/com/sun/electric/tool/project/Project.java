@@ -216,7 +216,6 @@ public class Project extends Listener
 		/**
 		 * Method to ensure that there is project information for a given library.
 		 * @param lib the Library to check.
-		 * @param lock true to lock the project file.
 		 * @return a ProjectLibrary object for the Library.  If the library is marked
 		 * as being part of a project, that project file is read in.  If the library is
 		 * not in a project, the returned object has nothing in it.
@@ -2593,7 +2592,7 @@ public class Project extends Listener
 	{
 		// write the file back
 		String userFile = getRepositoryLocation() + File.separator + PUSERFILE;
-		URL url = TextUtils.makeURLToFile(userFile);
+//		URL url = TextUtils.makeURLToFile(userFile);
 		try
 		{
 			PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(userFile)));

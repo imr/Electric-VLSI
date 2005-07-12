@@ -683,9 +683,10 @@ public class Undo
 					{
 						NodeUsage nu = (NodeUsage)it.next();
 						Cell parent = nu.getParent();
-						parent.getLibrary().setChanged();
+						parent.getLibrary().setChangedMinor();
 					}
 				}
+				major = true;   // this is major change for the library (E.g.: export names)
 			} else if (type == Type.VARIABLENEW || type == Type.VARIABLEKILL || type == Type.VARIABLEMOD ||
 				type == Type.VARIABLEINSERT || type == Type.VARIABLEDELETE)
 			{
@@ -706,13 +707,17 @@ public class Undo
 			// set "changed" and "dirty" bits
 			if (cell != null)
 			{
-				if (major) cell.madeRevision();
-                cell.setModified();
+				if (major)
+                {
+                    cell.madeRevision();
+                    cell.setModified(); // this will avoid marking DRC variables.
+                }
 				changedCells.add(cell);
 			}
 			if (lib != null)
 			{
-				lib.setChanged();
+				if (major) lib.setChangedMajor(); else
+					lib.setChangedMinor();
 			}
 		}
 

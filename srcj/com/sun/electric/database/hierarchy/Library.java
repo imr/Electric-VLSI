@@ -65,12 +65,12 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 
 	// ------------------------ private data ------------------------------
 
-	/** library has changed */				                private static final int LIBCHANGED =           01;
+	/** library has changed significantly */				private static final int LIBCHANGEDMAJOR =           01;
 //	/** set to see library in explorer */					private static final int OPENINEXPLORER =            02;
 	/** set if library came from disk */					private static final int READFROMDISK =              04;
 //	/** internal units in library (see INTERNALUNITS) */	private static final int LIBUNITS =                 070;
 //	/** right shift for LIBUNITS */							private static final int LIBUNITSSH =                 3;
-//	/** library has changed insignificantly */				private static final int LIBCHANGEDMINOR =         0100;
+	/** library has changed insignificantly */				private static final int LIBCHANGEDMINOR =         0100;
 	/** library is "hidden" (clipboard library) */			private static final int HIDDENLIBRARY =           0200;
 //	/** library is unwanted (used during input) */			private static final int UNWANTEDLIB =             0400;
 
@@ -573,25 +573,63 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		return false;
 	}
 
-	/**
-	 * Method to indicate that this Library has changed regardless if they are major or minor.
+    /**
+	 * Method to indicate that this Library has changed in a major way.
 	 * Major changes include creation, deletion, or modification of circuit elements.
-     * Minor changes include changes to text and other things that are not essential to the circuitry.
 	 */
-	public void setChanged() { userBits |= LIBCHANGED; }
+	public void setChangedMajor() { userBits |= LIBCHANGEDMAJOR; }
 
 	/**
 	 * Method to indicate that this Library has not changed in a major way.
 	 * Major changes include creation, deletion, or modification of circuit elements.
 	 */
-	public void clearChanged() { clearCellChanges(); userBits &= ~LIBCHANGED; }
+	private void clearChangedMajor() { clearCellChanges(); userBits &= ~LIBCHANGEDMAJOR; }
 
 	/**
 	 * Method to return true if this Library has changed in a major way.
 	 * Major changes include creation, deletion, or modification of circuit elements.
 	 * @return true if this Library has changed in a major way.
 	 */
-	public boolean isChanged() { return (userBits & LIBCHANGED) != 0; }
+	public boolean isChangedMajor() { return (userBits & LIBCHANGEDMAJOR) != 0; }
+
+	/**
+	 * Method to indicate that this Library has changed in a minor way.
+	 * Minor changes include changes to text and other things that are not essential to the circuitry.
+	 */
+	public void setChangedMinor() { userBits |= LIBCHANGEDMINOR; }
+
+	/**
+	 * Method to indicate that this Library has not changed in a minor way.
+	 * Minor changes include changes to text and other things that are not essential to the circuitry.
+	 */
+	private void clearChangedMinor() { clearCellChanges(); userBits &= ~LIBCHANGEDMINOR; }
+
+	/**
+	 * Method to return true if this Library has changed in a minor way.
+	 * Minor changes include changes to text and other things that are not essential to the circuitry.
+	 * @return true if this Library has changed in a minor way.
+	 */
+	public boolean isChangedMinor() { return (userBits & LIBCHANGEDMINOR) != 0; }
+
+	/**
+	 * Method to indicate that this Library has changed regardless if they are major or minor.
+	 * Major changes include creation, deletion, or modification of circuit elements.
+     * Minor changes include changes to text and other things that are not essential to the circuitry.
+	 */
+	public void setChanged() { setChangedMinor(); setChangedMajor(); }
+
+	/**
+	 * Method to indicate that this Library has not changed in a major way.
+	 * Major changes include creation, deletion, or modification of circuit elements.
+	 */
+	public void clearChanged() { clearCellChanges(); clearChangedMinor(); clearChangedMajor(); }
+
+	/**
+	 * Method to return true if this Library has changed in a major way.
+	 * Major changes include creation, deletion, or modification of circuit elements.
+	 * @return true if this Library has changed in a major way.
+	 */
+	public boolean isChanged() { return isChangedMinor() || isChangedMajor(); }
 
     /**
      * Method to clear modified cells if changes are clear in library.

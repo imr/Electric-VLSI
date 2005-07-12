@@ -54,10 +54,11 @@ import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.print.PageFormat;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
@@ -70,11 +71,7 @@ import java.util.Set;
 
 import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
-import javax.swing.RepaintManager;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
 /**
  * Class to handle the commands in the "File" pulldown menu.
@@ -587,11 +584,11 @@ public class FileMenu {
                 Library oLib = (Library)it.next();
                 if (oLib.isHidden()) continue;
                 if (oLib == lib) continue;
-                if (oLib.isChanged()) continue;
+                if (oLib.isChangedMajor()) continue;
 
                 // see if any cells in this library reference the renamed one
                 if (oLib.referencesLib(lib))
-                    oLib.setChanged();
+                    oLib.setChangedMajor();
             }
         }
         SaveLibrary job = new SaveLibrary(lib, fileName, type, compatibleWith6, false);
@@ -1065,17 +1062,23 @@ public class FileMenu {
 			}
 
             // warn about this library
-//            String how = "significantly";
-//            if (!lib.isChanged()) how = "insignificantly";
+            String how = "significantly";
+            String toolTipMessage = "Major changes include creation, deletion, or modification of circuit\n" +
+                    "elements including variable and export renaming.";
+            if (!lib.isChangedMajor())
+            {
+                how = "insignificantly";
+                toolTipMessage = "Minor changes include DRC dates, expanded flag.";
+            }
 
             String theAction = "Save before quitting?";
             if (action == 1) theAction = "Save before closing?"; else
                 if (action == 2) theAction = "Save before replacing?";
             String [] options = {"Yes", "No", "Cancel", "No to All"};
-            int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-                "Library '" + lib.getName() + "' has changed.  " + theAction,
+            int ret = showFileMenuOptionDialog(TopLevel.getCurrentJFrame(),
+                "Library '" + lib.getName() + "' has changed " + how + ".  " + theAction,
                 "Save Library?", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-                null, options, options[0]);
+                null, options, options[0], toolTipMessage);
             if (ret == 0)
             {
                 // save the library
@@ -1089,6 +1092,65 @@ public class FileMenu {
         }
         if (saveCancelled) return true;
         return false;
+    }
+
+    /**
+     * Based on JOptionPane but allows ToolTip text
+     * @param parentComponent
+     * @param message
+     * @param title
+     * @param optionType
+     * @param messageType
+     * @param icon
+     * @param options
+     * @param initialValue
+     * @return
+     * @throws HeadlessException
+     */
+    public static int showFileMenuOptionDialog(Component parentComponent,
+        Object message, String title, int optionType, int messageType,
+        Icon icon, Object[] options, Object initialValue, String toolTipMessage)
+        throws HeadlessException
+    {
+        JOptionPane pane = new JOptionPane(message, messageType, optionType, icon,
+                options, initialValue);
+
+        pane.setInitialValue(initialValue);
+        pane.setComponentOrientation(((parentComponent == null) ?
+	    JOptionPane.getRootFrame() : parentComponent).getComponentOrientation());
+
+        pane.setMessageType(messageType);
+        JDialog dialog = pane.createDialog(parentComponent, title);
+
+        pane.selectInitialValue();
+        pane.setToolTipText(toolTipMessage);
+        ;
+        dialog.show();
+        dialog.dispose();
+
+        Object selectedValue = pane.getValue();
+
+        if(selectedValue == null)
+            return JOptionPane.CLOSED_OPTION;
+        if(options == null) {
+            if(selectedValue instanceof Integer)
+                return ((Integer)selectedValue).intValue();
+            return JOptionPane.CLOSED_OPTION;
+        }
+        for(int counter = 0, maxCounter = options.length;
+            counter < maxCounter; counter++) {
+            if(options[counter].equals(selectedValue))
+                return counter;
+        }
+        return JOptionPane.CLOSED_OPTION;
+    }
+
+    static class CellMouseMotionAdapter extends MouseMotionAdapter {
+        JOptionPane pane;
+        CellMouseMotionAdapter(JOptionPane p) {
+            pane = p;}
+    public void mouseMoved(MouseEvent e) {
+        System.out.println(" Point " + pane.getToolTipLocation(e));}
     }
 
     /**
