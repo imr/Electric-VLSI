@@ -745,16 +745,8 @@ public class Quick
 			Layer layer = poly.getLayer();
 			if (layer == null) continue;
 
-            // Checking resolution
-            boolean ret = checkResolution(poly, cell, ni);
-            if (ret)
-			{
-				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
-				errorsFound = true;
-			}
-
             // Checking combination
-            ret = checkOD2Combination(tech, ni, layer);
+            boolean ret = checkOD2Combination(tech, ni, layer);
             if (ret)
             {
                 // panic errors -> return regarless errorTypeSearch
@@ -762,6 +754,15 @@ public class Quick
             }
 
 			poly.transform(trans);
+
+            // Checking resolution
+            ret = checkResolution(poly, cell, ni);
+            if (ret)
+			{
+				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
+				errorsFound = true;
+			}
+
 
 			// determine network for this polygon
 			int netNumber = getDRCNetNumber(netlist, poly.getPort(), ni, globalIndex);

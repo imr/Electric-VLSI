@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
+BUG: (07/12/05, GVG) Fix for invalid DRC resolution errors with rotated nodes (Bug #432)
+FIX: resolution must be checked after transformation is applied in checkNodeInst().
+
 IMP: (07/11/05, GVG) Highlighter working now for new 90nm resistors. PrimitiveNode.Function.RESIST in layout
 primitive nodes and ability to select the nearest port (similar to transistors).
 
