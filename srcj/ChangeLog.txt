@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
+IMP: (07/12/05, GVG) Merge LIBCHANGEDMAJOR and LIBCHANGEDMINOR bits so no more minor and major changes.
+
 BUG: (07/12/05, GVG) Fix for invalid DRC resolution errors with rotated nodes (Bug #432)
 FIX: resolution must be checked after transformation is applied in checkNodeInst().
 

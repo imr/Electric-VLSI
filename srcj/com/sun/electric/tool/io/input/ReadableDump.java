@@ -337,8 +337,7 @@ public class ReadableDump extends LibraryFiles
 		if (mainCell >= 0)
 			lib.setCurCell(allCellsArray[mainCell]);
 
-		lib.clearChangedMajor();
-		lib.clearChangedMinor();
+		lib.clearChanged();
 		return false;
 	}
 

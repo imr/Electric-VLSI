@@ -1333,8 +1333,7 @@ public class Project extends Listener
 						}
 
 						// restore tool state
-						lib.setChangedMajor();
-						lib.setChangedMinor();
+						lib.setChanged();
 
 						setChangeStatus(false);
 					}

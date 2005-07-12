@@ -474,8 +474,7 @@ public class ELIB extends Output
 		{
 			System.out.println(filePath + " written (" + cellsHere + " cells)");
 		}
-		lib.clearChangedMinor();
-		lib.clearChangedMajor();
+		lib.clearChanged();
 		lib.setFromDisk();
 
 		// library written successfully

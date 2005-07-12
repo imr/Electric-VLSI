@@ -683,7 +683,7 @@ public class Undo
 					{
 						NodeUsage nu = (NodeUsage)it.next();
 						Cell parent = nu.getParent();
-						parent.getLibrary().setChangedMinor();
+						parent.getLibrary().setChanged();
 					}
 				}
 			} else if (type == Type.VARIABLENEW || type == Type.VARIABLEKILL || type == Type.VARIABLEMOD ||
@@ -712,8 +712,7 @@ public class Undo
 			}
 			if (lib != null)
 			{
-				if (major) lib.setChangedMajor(); else
-					lib.setChangedMinor();
+				lib.setChanged();
 			}
 		}
 

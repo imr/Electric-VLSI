@@ -587,11 +587,11 @@ public class FileMenu {
                 Library oLib = (Library)it.next();
                 if (oLib.isHidden()) continue;
                 if (oLib == lib) continue;
-                if (oLib.isChangedMajor()) continue;
+                if (oLib.isChanged()) continue;
 
                 // see if any cells in this library reference the renamed one
                 if (oLib.referencesLib(lib))
-                    oLib.setChangedMajor();
+                    oLib.setChanged();
             }
         }
         SaveLibrary job = new SaveLibrary(lib, fileName, type, compatibleWith6, false);
@@ -680,7 +680,7 @@ public class FileMenu {
         {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
-            if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
+            if (!lib.isChanged()) continue;
             if (lib.getLibFile() != null)
                 type = getLibraryFormat(lib.getLibFile().getFile(), type);
 			libsToSave.put(lib, type);
@@ -726,8 +726,7 @@ public class FileMenu {
                 fullName = fullName.replaceAll("\\.\\w*?$", "."+outType.getExtensions()[0]);
                 lib.setLibFile(TextUtils.makeURLToFile(fullName));
             }
-            lib.setChangedMajor();
-            lib.setChangedMinor();
+            lib.setChanged();
         }
         saveAllLibrariesCommand(outType, false, false);
     }
@@ -1056,7 +1055,7 @@ public class FileMenu {
             Library lib = (Library)it.next();
             if (desiredLib != null && desiredLib != lib) continue;
             if (lib.isHidden()) continue;
-            if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
+            if (!lib.isChanged()) continue;
 
 			// Abort if database invariants are not valid
 			if (!checkedInvariants)
@@ -1066,15 +1065,15 @@ public class FileMenu {
 			}
 
             // warn about this library
-            String how = "significantly";
-            if (!lib.isChangedMajor()) how = "insignificantly";
+//            String how = "significantly";
+//            if (!lib.isChanged()) how = "insignificantly";
 
             String theAction = "Save before quitting?";
             if (action == 1) theAction = "Save before closing?"; else
                 if (action == 2) theAction = "Save before replacing?";
             String [] options = {"Yes", "No", "Cancel", "No to All"};
             int ret = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
-                "Library '" + lib.getName() + "' has changed " + how + ".  " + theAction,
+                "Library '" + lib.getName() + "' has changed.  " + theAction,
                 "Save Library?", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
                 null, options, options[0]);
             if (ret == 0)
@@ -1103,7 +1102,7 @@ public class FileMenu {
         {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
-            if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
+            if (!lib.isChanged()) continue;
             dirty = true;
             break;
         }
@@ -1144,7 +1143,7 @@ public class FileMenu {
         {
             Library lib = (Library)it.next();
             if (lib.isHidden()) continue;
-            if (!lib.isChangedMajor() && !lib.isChangedMinor()) continue;
+            if (!lib.isChanged()) continue;
             dirty = true;
             break;
         }

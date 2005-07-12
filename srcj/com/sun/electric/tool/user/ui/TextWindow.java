@@ -143,7 +143,7 @@ public class TextWindow
 
 	private void textWindowContentChanged()
 	{
-		if (cell != null) cell.getLibrary().setChangedMajor();
+		if (cell != null) cell.getLibrary().setChanged();
 		dirty = true;
 	}
 

@@ -594,8 +594,7 @@ public class JELIB extends LibraryFiles
 			}
 		}
 
-		lib.clearChangedMajor();
-		lib.clearChangedMinor();
+		lib.clearChanged();
 		lib.setFromDisk();
 		return false;
 	}

@@ -677,8 +677,7 @@ public class ELIB extends LibraryFiles
 			for(int i=1; i<toolBCount; i++) readBigInteger();
 		}
 		lib.lowLevelSetUserBits(userBits);
-		lib.clearChangedMajor();
-		lib.clearChangedMinor();
+		lib.clearChanged();
 		lib.setFromDisk();
 		lib.setVersion(version);
 

@@ -5349,7 +5349,7 @@ public class CircuitChanges
 			if (lib.isHidden()) continue;
 			StringBuffer infstr = new StringBuffer();
 			infstr.append(lib.getName());
-			if (lib.isChangedMajor() || lib.isChangedMinor())
+			if (lib.isChanged())
 			{
 				infstr.append("*");
 				k++;
@@ -5468,7 +5468,7 @@ public class CircuitChanges
 			{
 				Library oLib = (Library)it.next();
 				if (oLib.isHidden()) continue;
-	            oLib.setChangedMajor();
+	            oLib.setChanged();
 			}
 			return true;
 		}
@@ -5514,7 +5514,7 @@ public class CircuitChanges
 			System.out.println("Library '" + oldName + "' renamed to '" + newName + "'");
 
             // mark this library for saving
-            lib.setChangedMajor();
+            lib.setChanged();
 
 			// mark for saving, all libraries that depend on this
 			for(Iterator it = Library.getLibraries(); it.hasNext(); )
@@ -5522,11 +5522,11 @@ public class CircuitChanges
 				Library oLib = (Library)it.next();
 				if (oLib.isHidden()) continue;
 				if (oLib == lib) continue;
-				if (oLib.isChangedMajor()) continue;
+				if (oLib.isChanged()) continue;
 	
 				// see if any cells in this library reference the renamed one
                 if (oLib.referencesLib(lib))
-                    oLib.setChangedMajor();
+                    oLib.setChanged();
 			}
 			return true;
 		}
@@ -5562,8 +5562,7 @@ public class CircuitChanges
 			// do not mark readable dump files for saving
 			if (ext.equals("txt")) continue;
 
-			lib.setChangedMajor();
-			lib.setChangedMinor();
+			lib.setChanged();
 		}
 		System.out.println("All libraries now need to be saved");
 	}

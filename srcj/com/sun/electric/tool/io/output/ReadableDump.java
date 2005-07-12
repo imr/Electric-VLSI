@@ -462,8 +462,7 @@ public class ReadableDump extends Output
 			System.out.println("Warning: " + typeError + " objects of unknown type could not be saved");
 		
 		// clean up and return
-		lib.clearChangedMinor();
-		lib.clearChangedMajor();
+		lib.clearChanged();
 		System.out.println(filePath + " written");
 		return false;
 	}
