@@ -581,7 +581,12 @@ public abstract class Job implements ActionListener, Runnable {
     protected synchronized void setAborted() { aborted = true; WindowFrame.wantToRedoJobTree(); }
     /** get scheduled to abort status */
     protected synchronized boolean getScheduledToAbort() { return scheduledToAbort; }
-    /** get abort status */
+    /**
+     * Method to get abort status. Please leave this function as private.
+     * To retrieve abort status from another class, use checkAbort which also
+     * checks if job is scheduled to be aborted.
+     * @return
+     */
     private synchronized boolean getAborted() { return aborted; }
     /** get display status */
     public boolean getDisplay() { return display; }
