@@ -6,6 +6,7 @@ NOTE: Please place changes under the version that will be released next.
 
 IMP/MAN: (07/12/05, GVG) Consolidating majority of minor/major change checking calls by just a global call.
 Adding tooltip to explain significant vs insignificant changes.
+Another solution for Bug #428: change type Type.OBJECTRENAME marked as major.
 
 BUG: (07/12/05, GVG) Fix for invalid DRC resolution errors with rotated nodes (Bug #432)
 FIX: resolution must be checked after transformation is applied in checkNodeInst().
