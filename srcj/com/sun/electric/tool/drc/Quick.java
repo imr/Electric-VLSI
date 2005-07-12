@@ -756,7 +756,7 @@ public class Quick
 
 			poly.transform(trans);
 
-            // Checking resolution
+            // Checking resolution only after transformation
             ret = checkResolution(poly, cell, ni);
             if (ret)
 			{
@@ -1627,9 +1627,14 @@ public class Quick
         }
         return (foundError);
     }
-    
+
     /**
-     * Method to determine if it is allowed to have both layers touching
+     * Method to determine if it is allowed to have both layers touching.
+     * special rule for allowing touching:
+     *   the layers are the same and either:
+     *     they connect and are *NOT* contact layers
+	 *   or:
+	 *     they don't connect and are implant layers (substrate/well)
      * @param tech
      * @param con
      * @param layer1
@@ -1695,37 +1700,8 @@ public class Quick
 		Rectangle2D isBox2 = poly2.getBox();
 		Rectangle2D trueBox2 = isBox2;
 		if (trueBox2 == null) trueBox2 = poly2.getBounds2D();
-
-		/*
-		 * special rule for allowing touching:
-		 *   the layers are the same and either:
-		 *     they connect and are *NOT* contact layers
-		 *   or:
-		 *     they don't connect and are implant layers (substrate/well)
-		 */
-		boolean maytouch = false;
-		if (tech.sameLayer(layer1, layer2))
-		{
-			Layer.Function fun = layer1.getFunction();
-			if (con)
-			{
-				if (!fun.isContact()) maytouch = true;
-			} else
-			{
-				if (fun.isSubstrate()) maytouch = true;
-				// Special cases for thick actives
-				else
-				{
-					// Searching for THICK bit
-					int funExtras = layer1.getFunctionExtras();
-					if (fun.isDiff() && (funExtras&Layer.Function.THICK) != 0)
-					{
-						if (Main.LOCALDEBUGFLAG) System.out.println("Thick active found in Quick.checkDist");
-						maytouch = true;
-					}
-				}
-			}
-		}
+        
+		boolean maytouch = mayTouch(tech, con, layer1, layer2);
 
 		// special code if both polygons are manhattan
 		double pd = 0;
