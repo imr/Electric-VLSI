@@ -186,7 +186,7 @@ public class LayerCoverage extends Listener
                             DBMath.round(box.getMaxX()) + "," + DBMath.round(box.getMaxY()) + ")");
                     Job job = new LayerCoverageJob(this, Type.EXAMINE, curCell, LayerCoverageJob.AREA, mode, highlighter, geoms, box);
                     job.doIt();
-                    if (getAborted() || job.getAborted()) // aborted by user
+                    if (checkAbort() || job.checkAbort()) // aborted by user
                     {
                         foundError = true;
                         return false; // didn't finish

@@ -582,7 +582,7 @@ public abstract class Job implements ActionListener, Runnable {
     /** get scheduled to abort status */
     protected synchronized boolean getScheduledToAbort() { return scheduledToAbort; }
     /** get abort status */
-    public synchronized boolean getAborted() { return aborted; }
+    private synchronized boolean getAborted() { return aborted; }
     /** get display status */
     public boolean getDisplay() { return display; }
     /** get deleteWhenDone status */

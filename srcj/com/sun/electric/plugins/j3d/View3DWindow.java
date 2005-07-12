@@ -142,7 +142,7 @@ public class View3DWindow extends JPanel
         public boolean doIt()
         {
             View3DWindow window = new View3DWindow(cell, windowFrame, view2D, transPerNode, this);
-            if (!window.job.getAborted())
+            if (!window.job.checkAbort())
             {
                 windowFrame.finishWindowFrameInformation(window, cell);
                 return true;

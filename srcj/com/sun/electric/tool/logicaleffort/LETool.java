@@ -519,7 +519,7 @@ public class LETool extends Listener {
         }
         while (!stack.isEmpty()) {
             AnalyzeCell job = (AnalyzeCell)stack.pop();
-            if (job.getAborted()) continue;             // ignore aborted jobs
+            if (job.checkAbort()) continue;             // ignore aborted jobs
             LENetlister netlister = job.getNetlister();
             if (netlister.printResults(no, context)) return;
         }
