@@ -30,8 +30,6 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -188,7 +186,11 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         // add numeric pane to the main container
         row.add(leftPanel, BorderLayout.WEST);
         // create and add the pane with clickable names 
-        String descr[] = {"Name 1", "Name 2"};
+        String titles[] = result.getNames();
+        System.out.println("sizes = " + titles[0] + "  " + titles[1]);
+        
+        String descr[] = {"Name in " + titles[0].substring(titles[0].length()-5, titles[0].length()), 
+                          "Name in " + titles[1].substring(titles[1].length()-5, titles[1].length()),};
         JEditorPane namesPane = createNamesPane(descr, -1);
         namesPane.setBackground(bkgndColor);
         row.add(namesPane, BorderLayout.CENTER);
@@ -300,25 +302,25 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         StringBuffer text = new StringBuffer(128);
         String href = "<a style=\"text-decoration: none\" href=\"";
         text.append("<html><font size=3><font face=\"Helvetica, TimesRoman\">");
-        for (int i=0; i<2; i++) {
-
-            // drop "Part:" or "Wire:" prefices
-            if (descr[i].startsWith("Wire: ") || descr[i].startsWith("Part: "))
-                descr[i] = descr[i].substring(6);
-            // drop "Cell instance:" info
-            int ind = descr[i].indexOf(" Cell instance:");
-            if (ind > 0) descr[i] = descr[i].substring(0, ind).trim();
-            // drop {sch} or {lay} suffices
-            if (descr[i].endsWith("{sch}") || descr[i].endsWith("{lay}"))
-                descr[i] = descr[i].substring(0, descr[i].length()-5);
-            
-            if (rowNdx >= 0)
+        if (rowNdx < 0) // used for header
+            text.append(descr[0] + "<br>" + descr[1]);
+        else {
+            for (int i=0; i<2; i++) {
+                // drop "Part:" or "Wire:" prefices
+                if (descr[i].startsWith("Wire: ") || descr[i].startsWith("Part: "))
+                    descr[i] = descr[i].substring(6);
+                // drop "Cell instance:" info
+                int ind = descr[i].indexOf(" Cell instance:");
+                if (ind > 0) descr[i] = descr[i].substring(0, ind).trim();
+                // drop {sch} or {lay} suffices
+                if (descr[i].endsWith("{sch}") || descr[i].endsWith("{lay}"))
+                    descr[i] = descr[i].substring(0, descr[i].length()-5);
+                
                 text.append(href + (rowNdx*10+i) +"\">"+ descr[i] +"</a>");
-            else  // used for header
-                text.append(descr[i]);
-            if (i==0) text.append("<br>");
+                if (i==0) text.append("<br>");
+            }
         }
-        text.append("</font></html>");            
+        text.append("</font></html>");
         
         JEditorPane pane = new JEditorPane();
         pane.setEditable(false);

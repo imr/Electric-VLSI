@@ -23,8 +23,13 @@
 */
 package com.sun.electric.tool.ncc.ui;
 
+import java.util.ArrayList;
+import java.util.Set;
+
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.ncc.netlist.NetObject;
+import com.sun.electric.tool.ncc.netlist.Port;
 
 public abstract class ExportMismatch {
     public final static int FIRST = 0;
@@ -115,4 +120,72 @@ public abstract class ExportMismatch {
     public void setValidOnlyWhenTopologyMismatch(boolean valid) {
         validOnlyWhenTopologyMismatch = valid;
     }
+    
+    
+    public static class MultiMatch extends ExportMismatch{
+        private ArrayList ports[] = {new ArrayList(), new ArrayList()};  // set of ports
+
+        public void add(int listIndex, Port port) {
+            ports[listIndex].add(port);
+        }
+        public void add(int listIndex, Set portSet) {
+            ports[listIndex].addAll(portSet);
+        }
+        public ArrayList getAll(int index) {
+            return ports[index];
+        }
+    }
+    
+    
+    public static class NameMismatch extends ExportMismatch {
+        public static final int EXPORTEXPORT = 0;
+        public static final int EXPORTWIRE = 1;
+        public static final int WIREEXPORT = 2;
+
+        private int type;
+        private Port exp1;
+        private NetObject exp2;  // Port or Wire
+        
+        public NameMismatch() {
+            nameMatch = false;
+            topologyMatch = true;
+        }
+        public NameMismatch(String name1, String name2) {
+            desingNames[0] = name1;
+            desingNames[1] = name2;
+            nameMatch = false;
+            topologyMatch = true;
+        }
+        public int       getType()        { return type; }
+        public Port      getFirstExport() { return exp1; }
+        public NetObject getSuggestion()  { return exp2; }
+        
+        public void setType(int type)             { this.type = type; }
+        public void setFirstExport(Port exp1)     { this.exp1 = exp1; }
+        public void setSuggestion(NetObject exp2) { this.exp2 = exp2; }
+    }
+
+    
+    public static class TopologyMismatch extends ExportMismatch{
+        private Port exp1, exp2;
+        private NetObject sug = null;  // Port or Wire
+        
+        public TopologyMismatch() {
+            nameMatch = true;
+            topologyMatch = false;
+        }
+        public TopologyMismatch(String name1, String name2) {
+            desingNames[0] = name1;
+            desingNames[1] = name2;
+            nameMatch = true;
+            topologyMatch = false;
+        }
+        public Port      getFirstExport()  { return exp1; }
+        public Port      getSecondExport() { return exp2; }
+        public NetObject getSuggestion()   { return sug;  }
+        
+        public void setFirstExport(Port exp1)    { this.exp1 = exp1; }        
+        public void setSecondExport(Port exp2)   { this.exp2 = exp2; }
+        public void setSuggestion(NetObject sug) { this.sug = sug; }
+    }    
 }

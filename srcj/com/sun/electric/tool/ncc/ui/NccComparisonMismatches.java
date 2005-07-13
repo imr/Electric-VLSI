@@ -23,12 +23,9 @@
 */
 package com.sun.electric.tool.ncc.ui;
    
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
-import javax.media.j3d.Link;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
@@ -67,10 +64,13 @@ public class NccComparisonMismatches {
     /** Some export mismatches are duplicated when suggestions are added.
      *  Suggestions are given only when topology match. 
      *  This variable holds the total number of mismatches without suggestions
-     *  which were duplicated by their coresponding suggestions */
+     *  which were duplicated by their corresponding suggestions */
                                         private int numExportsValidOnlyWhenTopologyMismatch;
                                         
-    /** Export Assertion Failures */    private List exportAssertionFailures; 
+    /** Export Assertion Failures */    private List exportAssertionFailures;
+    /** Network Export Conflicts  */    private List networkExportConflicts;
+    /** Charact Export Conflicts  */    private List charactExportConflicts;
+    /** Unrecognized MOSes        */    private List unrecognizedMOSes;    
     
     public NccComparisonMismatches() {
         exportMatch = true;
@@ -83,6 +83,9 @@ public class NccComparisonMismatches {
         exportMismatches = new LinkedList();
         sizeMismatches = new LinkedList();
         exportAssertionFailures = new LinkedList();
+        networkExportConflicts = new LinkedList();
+        charactExportConflicts = new LinkedList();
+        unrecognizedMOSes = new LinkedList();
     }
     
     /** 
@@ -242,7 +245,6 @@ public class NccComparisonMismatches {
     public List getSizeMismatches() {
         return sizeMismatches;
     }
-
     public void setSizeMismatches(List sizeMismatches) {
         this.sizeMismatches = sizeMismatches;
     }
@@ -250,8 +252,27 @@ public class NccComparisonMismatches {
     public void addExportAssertionFailure(Cell cell, VarContext context, Object[][] items) {
         exportAssertionFailures.add(new ExportAssertionFailures(cell, context, items));
     }
-    
     public List getExportAssertionFailures() {
         return exportAssertionFailures;
+    }
+    
+    public void addNetworkExportConflict(ExportConflict.NetworkConflict conf) {
+        networkExportConflicts.add(conf);
+    }
+    public List getNetworkExportConflicts() {
+        return networkExportConflicts;
+    }
+    public void addCharactExportConflict(ExportConflict.CharactConflict conf) {
+        charactExportConflicts.add(conf);
+    }
+    public List getCharactExportConflicts() {
+        return charactExportConflicts;
+    }
+    
+    public void addUnrecognizedMOS(UnrecognizedMOS mos) {
+        unrecognizedMOSes.add(mos);
+    }
+    public List getUnrecognizedMOSes() {
+        return unrecognizedMOSes;
     }    
 }

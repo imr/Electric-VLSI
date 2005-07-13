@@ -45,7 +45,7 @@ class ExportMismatchTable extends ExportTable {
     ExportMismatch[] matches;
     
     public ExportMismatchTable(NccComparisonMismatches res) {
-        super(res);
+        super(res, 2);
         height = Math.min(result.getValidExportMismatchCount(), MAXROWS);
         matches = new ExportMismatch[height];
         setup();
@@ -92,36 +92,36 @@ class MismatchTableModel extends ExportTableModel {
                 html.setLength(0);
                 html.append("<html><font size=3><font face=\"Helvetica, TimesRoman\">");
                 int lineNdx = cellNdx*10000;
-                if (matches[row] instanceof ExportMultiMatch) {
-                    List ports = ((ExportMultiMatch)matches[row]).getAll((j+swap)%2);
+                if (matches[row] instanceof ExportMismatch.MultiMatch) {
+                    List ports = ((ExportMismatch.MultiMatch)matches[row]).getAll((j+swap)%2);
                     for (Iterator it=ports.iterator(); it.hasNext();) {
                         appendNameOf((Port)it.next(), html, lineNdx, false, null);
                         if (it.hasNext()) html.append("<br>" + LSEP);
                         lineNdx++;
                         cellPrefHeights[row][j] += ExportTable.LINEHEIGHT;
                     }
-                } else if (matches[row] instanceof ExportNameMismatch) {
+                } else if (matches[row] instanceof ExportMismatch.NameMismatch) {
                     if (j == swap) {
-                        Port port = ((ExportNameMismatch)matches[row]).getFirstExport(); 
+                        Port port = ((ExportMismatch.NameMismatch)matches[row]).getFirstExport(); 
                         appendNameOf(port, html, lineNdx, false, null);
                     } else {
-                        NetObject no = ((ExportNameMismatch)matches[row]).getSuggestion();
+                        NetObject no = ((ExportMismatch.NameMismatch)matches[row]).getSuggestion();
                         appendNameOf(no, html, lineNdx, true, ExportTable.GREEN);
                     }
                     lineNdx++;
                     cellPrefHeights[row][j] += ExportTable.LINEHEIGHT;
-                } else if (matches[row] instanceof ExportTopologyMismatch) {
+                } else if (matches[row] instanceof ExportMismatch.TopologyMismatch) {
                     Port port;
                     if (j == swap) {
-                        port = ((ExportTopologyMismatch)matches[row]).getFirstExport();
+                        port = ((ExportMismatch.TopologyMismatch)matches[row]).getFirstExport();
                         appendNameOf(port, html, lineNdx, true, ExportTable.RED);
                     } else {
-                        port = ((ExportTopologyMismatch)matches[row]).getSecondExport();
+                        port = ((ExportMismatch.TopologyMismatch)matches[row]).getSecondExport();
                         appendNameOf(port, html, lineNdx, true, ExportTable.RED);
                     }
                     lineNdx++;
                     if (j != swap) {
-                        NetObject no = ((ExportTopologyMismatch)matches[row]).getSuggestion();
+                        NetObject no = ((ExportMismatch.TopologyMismatch)matches[row]).getSuggestion();
                         if (no != null) {
                             html.append("<br>");
                             appendNameOf(no, html, lineNdx, true, ExportTable.GREEN);
@@ -200,34 +200,34 @@ class MismatchTableModel extends ExportTableModel {
         if (highlighter == null) return;
             
         // find what to highlight 
-        if (em instanceof ExportMultiMatch) {
-            List ports = ((ExportMultiMatch)em).getAll(col);
+        if (em instanceof ExportMismatch.MultiMatch) {
+            List ports = ((ExportMismatch.MultiMatch)em).getAll(col);
             int i;
             Iterator it;
             for (it=ports.iterator(), i=0; it.hasNext()&&i<line; i++,it.next());
             Port port = (Port)it.next();
             HighlightTools.highlightPortExports(highlighter, cell, port);
-        } else if (em instanceof ExportNameMismatch) {
+        } else if (em instanceof ExportMismatch.NameMismatch) {
             Port port;
             NetObject portOrWire;
             if (col == 0) {
-                port = ((ExportNameMismatch)em).getFirstExport();
+                port = ((ExportMismatch.NameMismatch)em).getFirstExport();
                 HighlightTools.highlightPortExports(highlighter, cell, port);
             } else {
-                portOrWire = ((ExportNameMismatch)em).getSuggestion();
+                portOrWire = ((ExportMismatch.NameMismatch)em).getSuggestion();
                 HighlightTools.highlightPortOrWire(highlighter, cell, portOrWire);
             }
-        } else if (em instanceof ExportTopologyMismatch) {
+        } else if (em instanceof ExportMismatch.TopologyMismatch) {
             Port port1, port2;
             NetObject portOrWire;
             if (col == 0) {
-                port1 = ((ExportTopologyMismatch)em).getFirstExport();
+                port1 = ((ExportMismatch.TopologyMismatch)em).getFirstExport();
                 HighlightTools.highlightPortExports(highlighter, cell, port1);
             } else if (line == 0) {
-                port2 = ((ExportTopologyMismatch)em).getSecondExport();
+                port2 = ((ExportMismatch.TopologyMismatch)em).getSecondExport();
                 HighlightTools.highlightPortExports(highlighter, cell, port2);
             } else if (line == 1) {
-                portOrWire = ((ExportTopologyMismatch)em).getSuggestion();
+                portOrWire = ((ExportMismatch.TopologyMismatch)em).getSuggestion();
                 HighlightTools.highlightPortOrWire(highlighter, cell, portOrWire);
             }
         }

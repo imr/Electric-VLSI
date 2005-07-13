@@ -29,8 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-
-import com.sun.electric.technology.Technology;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -39,29 +37,30 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator.CellInfo;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NodableNameProxy;
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
-import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 import com.sun.electric.tool.ncc.basic.NccCellAnnotations.NamePattern;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
+import com.sun.electric.tool.ncc.ui.ExportConflict;
 import com.sun.electric.tool.ncc.ui.NccComparisonMismatches;
+import com.sun.electric.tool.ncc.ui.UnrecognizedMOS;
 
 /**
  * NCC's representation of a netlist.
@@ -222,29 +221,27 @@ class NccCellInfo extends CellInfo {
 				// Discard the global.
 				if (eg.netID!=netID || eg.type!=type) {
 					if (eg.netID!=netID) {
-						globals.pr(
+						globals.prln(
 							"  Error! Cell: "+getCell().libDescribe()+
 							" has both an Export and a global signal "+
 							"named: "+nm+" but their networks differ");
 						
 						// GUI
-						Cell c = getCell();
-						VarContext context = getContext();
-						// display nm
-						// display net.getNames(), highlight net
-						// display eg.network.getNames(), highlight eg.network;
+                        ExportConflict.NetworkConflict conf = 
+                            new ExportConflict.NetworkConflict(getCell(), getContext(),
+                                    nm, eg.network, net);
+                        globals.getComparisonResult().addNetworkExportConflict(conf);                        
 					}
 					if (eg.type!=type) {
-						globals.pr(
+						globals.prln(
 							"  Error! Cell: "+getCell().libDescribe()+
 							" has both an Export and a global signal "+
 							"named: "+nm+" but their Characteristics differ");
 						// GUI
-						Cell c = getCell();
-						VarContext context = getContext();
-						// display nm
-						// display type, nothing to highlight
-						// display eg.type, highlight eg.getExport()
+                        ExportConflict.CharactConflict conf = 
+                            new ExportConflict.CharactConflict(getCell(), getContext(),
+                                    nm, type.getFullName(), eg.type.getFullName(), eg.getExport());
+                        globals.getComparisonResult().addCharactExportConflict(conf);
 					}
 					
 					throw new ExportGlobalConflict();
@@ -423,12 +420,9 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		if (t==null) {
 			prln("  Unrecognized transistor type: "+typeNm);
 			
-			// GUI should display Cell and Context
-			Cell c = ni.getParent();
-			VarContext context = info.getContext();
-			// GUI display typeNm
-			// GUI highlight ni
-			
+			// GUI
+			globals.getComparisonResult().addUnrecognizedMOS(
+                    new UnrecognizedMOS(ni.getParent(), info.getContext(), typeNm, ni));
 			throw new BadTransistorType();
 		}
 		return t;

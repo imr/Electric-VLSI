@@ -25,12 +25,12 @@
 package com.sun.electric.tool.ncc.processing;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
@@ -43,10 +43,7 @@ import com.sun.electric.tool.ncc.netlist.Port;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.ui.ExportMultiMatch;
-import com.sun.electric.tool.ncc.ui.ExportNameMismatch;
-import com.sun.electric.tool.ncc.ui.ExportTopologyMismatch;
-
+import com.sun.electric.tool.ncc.ui.ExportMismatch;
 
 public class ExportChecker {
 	/** a Port that doesn't match by name */
@@ -173,7 +170,7 @@ public class ExportChecker {
 				     designNames[ckt2]);
 				noPortNameMatches.add(p1, ckt1, ckt2);
 				match = false;
-                ExportMultiMatch em = new ExportMultiMatch();
+                ExportMismatch.MultiMatch em = new ExportMismatch.MultiMatch();
                 em.setNames(designNames[ckt1], designNames[ckt2]);
                 em.setCells(rootCells[ckt1], rootCells[ckt2]);
                 em.setContexts(rootContexts[ckt1], rootContexts[ckt2]);
@@ -186,7 +183,7 @@ public class ExportChecker {
 				printOneToManyError(designNames[ckt1], p1.exportNamesString(),
 						            designNames[ckt2], p2ports);
 				match = false;
-                ExportMultiMatch em = new ExportMultiMatch();
+                ExportMismatch.MultiMatch em = new ExportMismatch.MultiMatch();
                 em.setNames(designNames[ckt1], designNames[ckt2]);
                 em.setCells(rootCells[ckt1], rootCells[ckt2]);
                 em.setContexts(rootContexts[ckt1], rootContexts[ckt2]);
@@ -329,7 +326,7 @@ public class ExportChecker {
 			if (no.port.getToBeRenamed()) continue;
 			Object o = findMatchingPortOrWire(no.port, no.circuitNoMatchingPort);
 			if (o==null) {
-                ExportMultiMatch em = new ExportMultiMatch();
+                ExportMismatch.MultiMatch em = new ExportMismatch.MultiMatch();
                 em.setNames(rootCellNames[no.circuit], rootCellNames[no.circuitNoMatchingPort]);
                 em.setCells(rootCells[no.circuit], rootCells[no.circuitNoMatchingPort]);
                 em.setContexts(rootContexts[no.circuit], rootContexts[no.circuitNoMatchingPort]);
@@ -351,7 +348,7 @@ public class ExportChecker {
 				noPortNameMatches.removeMismatches(no.port, no.circuit, (Port)o, 
 				                                   no.circuitNoMatchingPort);
             }
-            ExportNameMismatch esm = new ExportNameMismatch();
+            ExportMismatch.NameMismatch esm = new ExportMismatch.NameMismatch();
             esm.setNames(rootCellNames[no.circuit], rootCellNames[no.circuitNoMatchingPort]);
             esm.setCells(rootCells[no.circuit], rootCells[no.circuitNoMatchingPort]);
             esm.setContexts(rootContexts[no.circuit], rootContexts[no.circuitNoMatchingPort]);
@@ -450,7 +447,7 @@ public class ExportChecker {
 						     getDescription(portOrWire));
 					prln("");
 					match = false;
-                    ExportTopologyMismatch esm = new ExportTopologyMismatch();
+                    ExportMismatch.TopologyMismatch esm = new ExportMismatch.TopologyMismatch();
                     esm.setNames(rootCellNames[0], rootCellNames[i]);
                     esm.setCells(rootCells[0], rootCells[i]);
                     esm.setContexts(rootContexts[0], rootContexts[i]);

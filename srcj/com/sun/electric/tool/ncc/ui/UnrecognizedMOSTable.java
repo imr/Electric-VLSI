@@ -31,59 +31,53 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.Highlighter;
 
-class ExportAssertionTable extends ExportTable {
+class UnrecognizedMOSTable extends ExportTable {
     
-    ExportAssertionFailures[] failures;
+    UnrecognizedMOS[] moses;
     
-    public ExportAssertionTable(NccComparisonMismatches res) {
+    public UnrecognizedMOSTable(NccComparisonMismatches res) {
         super(res, 2);
-        failures = (ExportAssertionFailures[])result.getExportAssertionFailures()
-                                       .toArray(new ExportAssertionFailures[0]);
-        height = Math.min(failures.length, MAXROWS);
+        moses = (UnrecognizedMOS[])result.getUnrecognizedMOSes()
+                                         .toArray(new UnrecognizedMOS[0]);
+        height = Math.min(moses.length, MAXROWS);
         setup();
         
-        setModel(new AssertionTableModel(this));
+        setModel(new UnrecognizedMOSTableModel(this));
         getTableHeader().setReorderingAllowed(false);
         getColumnModel().getColumn(0).addPropertyChangeListener(this);
         getColumnModel().getColumn(1).addPropertyChangeListener(this);
     }
 }
 
-class AssertionTableModel extends ExportTableModel {
-    ExportAssertionFailures[] failures;
+class UnrecognizedMOSTableModel extends ExportTableModel {
+    UnrecognizedMOS[] moses;
     int[][] cellPrefHeights = parent.cellPrefHeights;
     int[][] cellPrefWidths  = parent.cellPrefWidths;
-    String[] colNames = {"Cell", "Networks"};
+    String[] colNames = {"Cell", "Transistor Type"};
     
-    public AssertionTableModel(ExportAssertionTable parent) {
+    public UnrecognizedMOSTableModel(UnrecognizedMOSTable parent) {
         super(parent);
-        failures = parent.failures;
+        moses = parent.moses;
         cellPrefHeights = parent.cellPrefHeights;
         cellPrefWidths  = parent.cellPrefWidths;
 
+        String href = "<a style=\"text-decoration: none\" href=\"";
         StringBuffer text = new StringBuffer(64);
         for (int col=0; col<numCols; col++)
             for (int row=0; row<height; row++) {
-                Object[][] items = null;
-                if (col == 1) {
-                    items = failures[row].getExportsGlobals();
-                    if (items == null || items.length == 0) continue;
-                }
                 text.setLength(0);
                 text.append("<html><font size=3><font face=\"Helvetica, TimesRoman\">");
                 if (col == 0) {
-                    CellName cellName = failures[row].getCell().getCellName();
+                    CellName cellName = moses[row].getCell().getCellName();
                     text.append(cellName.getName() + " {" + cellName.getView().getAbbreviation() + "}");
-                    cellPrefHeights[row][0] += ExportTable.LINEHEIGHT;
                 } else {
-                    appendLinks(items, text, row);                    
+                    text.append(href+ (row*10+col) +"\">"+ moses[row].getName() +"</a>");                    
                 }
+                cellPrefHeights[row][0] += ExportTable.LINEHEIGHT;
                 text.append("</font></html>");
                 
                 JEditorPane textPane = new JEditorPane();
@@ -105,49 +99,19 @@ class AssertionTableModel extends ExportTableModel {
             }
     }
 
-    private void appendLinks(Object[][] items, StringBuffer html, int row) {
-        if (items == null || html == null) return;
-        String href = "<a style=\"text-decoration: none\" href=\"";
-        String text = "";
-        int rowNdx = row*1000000;
-        for (int i = 0; i<items.length; i++) {
-            html.append("{ ");
-            int lineNdx = rowNdx + i*1000; 
-            for (int j = 0; j<items[i].length; j++) {
-                int itemNdx = lineNdx + j;
-                if (items[i][j] instanceof Export)
-                    text = ((Export)items[i][j]).getName();
-                else if (items[i][j] instanceof Network)
-                    text = ((Network)items[i][j]).describe(false);
-                html.append(href + itemNdx +"\">"+ text +"</a>");
-                if (j < items[i].length-1) html.append(", ");
-            }
-            html.append(" }");
-            if (i < items.length-1) html.append("<br>");
-            cellPrefHeights[row][1] += ExportTable.LINEHEIGHT;
-        }
-    }
-    
     protected void highlight(int index) {
-        int item = index%1000;
-        int line = (index/1000)%1000;
-        int row  = index/1000000;
+        int col = index%10;
+        int row  = index/10;
+        if (col != 1) return;
         
-        ExportAssertionFailures eaf = failures[row];
-        Object obj = eaf.getExportsGlobals()[line][item];
-        Cell cell = eaf.getCell();
-        VarContext context = eaf.getContext();
+        UnrecognizedMOS mos = moses[row];
+        Cell cell = mos.getCell();
+        VarContext context = mos.getContext();
         
         // find the highlighter corresponding to the cell
         Highlighter highlighter = HighlightTools.getHighlighter(cell, context);
         if (highlighter == null) return;
-            
-        // find what to highlight 
-        if (obj instanceof Export) {
-            highlighter.addText((Export)obj, cell, null, null);
-        } else if (obj instanceof Network) {
-            highlighter.addNetwork((Network)obj, cell);
-        }
+        highlighter.addElectricObject(mos.getNodeInst(), cell);
         highlighter.finished();
     }
     

@@ -68,6 +68,7 @@ implements PropertyChangeListener, ActionListener {
 
     // GUI variables
     int height;
+    int numCols;
     int[][] cellPrefHeights;
     int[][] cellPrefWidths;
     JPopupMenu cellPopup;
@@ -75,15 +76,10 @@ implements PropertyChangeListener, ActionListener {
             
     // data holders
     protected NccComparisonMismatches result;
-/*    
-    int        getRowNum()          { return height; }
-    int[][]    getCellPrefHeights() { return cellPrefHeights; }
-    int[][]    getCellPrefWidths()  { return cellPrefWidths; }
-    JPopupMenu getCellPopup()       { return cellPopup; }
-    String     getClipboard()       { return clipboard; }
-*/   
-    public ExportTable(NccComparisonMismatches res) {
+ 
+    public ExportTable(NccComparisonMismatches res, int cols) {
         result = res;
+        numCols = cols;
     }
     
     protected void setup() {
@@ -97,30 +93,32 @@ implements PropertyChangeListener, ActionListener {
         addMouseMotionListener(new CellMouseMotionAdapter());
         createCellPopup();
 
-        cellPrefHeights = new int[height][2];
-        cellPrefWidths = new int[height][2];
-        for (int row = 0; row<height; row++)
-            cellPrefHeights[row][0] = cellPrefHeights[row][1] = HEIGHTMARGIN;
+        cellPrefHeights = new int[height][numCols];
+        cellPrefWidths = new int[height][numCols];
+        for (int row = 0; row<height; row++) 
+            for (int col=0; col<numCols; col++)
+                cellPrefHeights[row][col] = HEIGHTMARGIN;
     }
     
     void adjustRowHeights() {
-        int colWidth0 = getColumnModel().getColumn(0).getWidth();
-        int colWidth1 = getColumnModel().getColumn(1).getWidth();
-        int extra = 0;
+        int colWidth[] = new int[numCols];
+        for (int col=0; col<numCols; col++)
+            colWidth[col] = getColumnModel().getColumn(col).getWidth();
+
         for (int row = 0; row < height; row++) {
             int oldHeight = getRowHeight(row);
-            int pref0 = cellPrefHeights[row][0], pref1 = cellPrefHeights[row][1];
-            // if cell requires a horizontal scrollbar
-            if (colWidth0 < cellPrefWidths[row][0])
-                pref0 += SCRLBARHEIGHT;
-
-            if (colWidth1 < cellPrefWidths[row][1] + extra)
-                pref1 += SCRLBARHEIGHT;
-                
-            int newHeight = Math.max(pref0, pref1);
+            int newHeight = 0, pref = HEIGHTMARGIN;
+            for (int col=0; col<numCols; col++) {    
+                pref = cellPrefHeights[row][col];
+                // if cell requires a horizontal scrollbar
+                if (colWidth[col] < cellPrefWidths[row][col])
+                    pref += SCRLBARHEIGHT;
+                newHeight = Math.max(newHeight, pref);                
+            }
             if (newHeight != oldHeight)
                 setRowHeight(row, newHeight);
         }
+        doLayout();
     }
     
     public void propertyChange(PropertyChangeEvent e) {
@@ -182,6 +180,7 @@ abstract class ExportTableModel extends AbstractTableModel implements HyperlinkL
     
     protected ExportTable parent;
     protected int height;
+    protected int numCols;
     protected JScrollPane[][] panes;
     protected Insets insets = new Insets(0,0,0,0);
     protected CellMouseAdapter mouseAdapter;
@@ -190,14 +189,15 @@ abstract class ExportTableModel extends AbstractTableModel implements HyperlinkL
         super();
         this.parent = parent;
         height = parent.height;
+        numCols = parent.numCols;
         mouseAdapter = new CellMouseAdapter(parent);        
-        panes = new JScrollPane[height][2];     
+        panes = new JScrollPane[height][numCols];     
     }
     
     /* (non-Javadoc)
      * @see javax.swing.table.TableModel#getColumnCount()
      */
-    public int getColumnCount() { return 2; }
+    public int getColumnCount() { return numCols; }
     public int getRowCount()    { return height; }
 
     public abstract String getColumnName(int col);
@@ -248,7 +248,5 @@ class CellEditor implements TableCellEditor {
     public void cancelCellEditing() {}
     public void addCellEditorListener(CellEditorListener el) {}
     public void removeCellEditorListener(CellEditorListener el) {}
-
 }
-
 

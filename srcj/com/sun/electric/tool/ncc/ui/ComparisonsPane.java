@@ -63,6 +63,10 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     private static final int PARTS_WIRES = 2;
     private static final int SIZES = 4;
     private static final int EXPORT_ASSERTS = 5;
+    private static final int EXPORT_NET_CONF = 6;
+    private static final int EXPORT_CHR_CONF = 7;
+    private static final int UNRECOG_MOS = 8;
+    
     private static final int MAX_CONCUR_EQ_RECS = 5;
     private static final String emptyStr = " ";
     private static final String LSEP = System.getProperty("line.separator");
@@ -78,6 +82,9 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     
     private JScrollPane exportsPanes[];    
     private JScrollPane exportAssertionsPanes[];
+    private JScrollPane exportNetConflictPanes[];
+    private JScrollPane exportChrConflictPanes[];
+    private JScrollPane unrecognizedMOSPanes[];
     private EquivClassSplitPane rightSplPanes[];
     
     private JPanel sizesPanes[];
@@ -118,10 +125,13 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     public void setMismatches(List misms) {
         mismatches = 
             (NccComparisonMismatches[])misms.toArray(new NccComparisonMismatches[0]);
-        mismEqRecs   = new EquivRecord[mismatches.length][];
+        mismEqRecs = new EquivRecord[mismatches.length][];
         exportsPanes = new JScrollPane[mismatches.length];
         exportAssertionsPanes = new JScrollPane[mismatches.length];
-        sizesPanes   = new JPanel[mismatches.length];
+        exportNetConflictPanes = new JScrollPane[mismatches.length];
+        exportChrConflictPanes = new JScrollPane[mismatches.length];
+        unrecognizedMOSPanes = new JScrollPane[mismatches.length];
+        sizesPanes = new JPanel[mismatches.length];
         
         resetRightPane();
         // update tree
@@ -151,7 +161,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     }
     
     private JScrollPane getExportsPane(int compNdx) {
-        if (compNdx >= exportsPanes.length) return null;
+        if (compNdx < 0 || compNdx >= exportsPanes.length) return null;
         if (exportsPanes[compNdx] == null) {
             ExportMismatchTable table = new ExportMismatchTable(mismatches[compNdx]);
             exportsPanes[compNdx] = new JScrollPane(table);
@@ -161,7 +171,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     }
 
     private JScrollPane getExportAssertionPane(int compNdx) {
-        if (compNdx >= exportAssertionsPanes.length) return null;
+        if (compNdx < 0 || compNdx >= exportAssertionsPanes.length) return null;
         if (exportAssertionsPanes[compNdx] == null) {
             ExportAssertionTable table = new ExportAssertionTable(mismatches[compNdx]);
             exportAssertionsPanes[compNdx] = new JScrollPane(table);
@@ -169,8 +179,41 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         }
         return exportAssertionsPanes[compNdx];
     }    
+
+    private JScrollPane getExportNetConflictPane(int compNdx) {
+        if (compNdx < 0 || compNdx >= exportNetConflictPanes.length) return null;
+        if (exportNetConflictPanes[compNdx] == null) {
+            ExportConflictTable table = 
+                new ExportConflictTable.NetworkTable(mismatches[compNdx]);
+            exportNetConflictPanes[compNdx] = new JScrollPane(table);
+            exportNetConflictPanes[compNdx].setBackground(Color.WHITE);
+        }
+        return exportNetConflictPanes[compNdx];
+    }    
+
+    private JScrollPane getExportChrConflictPane(int compNdx) {
+        if (compNdx < 0 || compNdx >= exportChrConflictPanes.length) return null;
+        if (exportChrConflictPanes[compNdx] == null) {
+            ExportConflictTable table = 
+                new ExportConflictTable.CharacteristicsTable(mismatches[compNdx]);
+            exportChrConflictPanes[compNdx] = new JScrollPane(table);
+            exportChrConflictPanes[compNdx].setBackground(Color.WHITE);
+        }
+        return exportChrConflictPanes[compNdx];
+    }    
+
+    private JScrollPane getUnrecognizedMOSPane(int compNdx) {
+        if (compNdx < 0 || compNdx >= unrecognizedMOSPanes.length) return null;
+        if (unrecognizedMOSPanes[compNdx] == null) {
+            UnrecognizedMOSTable table = new UnrecognizedMOSTable(mismatches[compNdx]);
+            unrecognizedMOSPanes[compNdx] = new JScrollPane(table);
+            unrecognizedMOSPanes[compNdx].setBackground(Color.WHITE);
+        }
+        return unrecognizedMOSPanes[compNdx];
+    }    
     
     private JPanel getSizesPane(int compNdx) {
+        if (compNdx < 0 || compNdx >= sizesPanes.length) return null;        
         if (sizesPanes[compNdx] == null)
             sizesPanes[compNdx] = new SizeMismatchPane(mismatches[compNdx]);
         return sizesPanes[compNdx];
@@ -217,7 +260,19 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
                 case TreeNode.EXPORT_ASSERTS:
                     dispOnRight = EXPORT_ASSERTS;
                     setRightComponent(getExportAssertionPane(exNode.compNdx));
-                    break;                    
+                    break;
+                case TreeNode.EXPORT_NET_CONF:
+                    dispOnRight = EXPORT_NET_CONF;
+                    setRightComponent(getExportNetConflictPane(exNode.compNdx));
+                    break;  
+                case TreeNode.EXPORT_CHR_CONF:
+                    dispOnRight = EXPORT_CHR_CONF;
+                    setRightComponent(getExportChrConflictPane(exNode.compNdx));
+                    break;
+                case TreeNode.UNRECOG_MOS:
+                    dispOnRight = UNRECOG_MOS;
+                    setRightComponent(getUnrecognizedMOSPane(exNode.compNdx));
+                    break;                                        
             }
             setDividerLocation(divPos);
             return;

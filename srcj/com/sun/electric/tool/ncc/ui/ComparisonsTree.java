@@ -89,7 +89,6 @@ class ComparisonsTree extends JTree implements ActionListener, TreeSelectionList
                            && compNdx < MAX_COMP_NODES; compNdx++) {
             NccComparisonMismatches cm = mismatches[compNdx];
             String titles[] = cm.getNames();
-            
             String title0 = titles[0].substring(0,titles[0].length()-5);
             String title1 = titles[1].substring(0,titles[1].length()-5);
             String title;
@@ -131,7 +130,7 @@ class ComparisonsTree extends JTree implements ActionListener, TreeSelectionList
             // add wires entry
             addWiresClasses(compTreeNode, compNdx, compNode, mismEqRecs, isHashChecked);     
 
-            // add sizes entry if necessary
+            // add sizes entry, if necessary
             int sizeMismCount = cm.getSizeMismatches().size();
             String sizeTitle = null;
             if (sizeMismCount > SizeMismatchPane.MAXROWS) {
@@ -146,7 +145,7 @@ class ComparisonsTree extends JTree implements ActionListener, TreeSelectionList
                              new TreeNode(compTreeNode, sizeTitle, 
                                           compNdx, -1, TreeNode.SIZES)));
             
-            // add "export assertion failures" entry if necessary
+            // add "export assertion failures" entry, if necessary
             int exportAssrtCount = cm.getExportAssertionFailures().size();
             String exportAssrtTitle = null;
             if (exportAssrtCount > ExportTable.MAXROWS) {
@@ -160,8 +159,52 @@ class ComparisonsTree extends JTree implements ActionListener, TreeSelectionList
                 compNode.add(new DefaultMutableTreeNode(
                              new TreeNode(compTreeNode, exportAssrtTitle, 
                                           compNdx, -1, TreeNode.EXPORT_ASSERTS)));
-
             
+            // add "export network conflicts", if necessary
+            int exportNetConflictCount = cm.getNetworkExportConflicts().size();
+            String exportNetConfTitle = null;
+            if (exportNetConflictCount > ExportTable.MAXROWS) {
+                exportNetConfTitle = "Export/Global Network Conflicts [first " + ExportTable.MAXROWS 
+                          + " of " + exportNetConflictCount + "]";                
+                exportNetConflictCount = ExportTable.MAXROWS;
+            } else if (exportNetConflictCount > 0) {
+                exportNetConfTitle = "Export/Global Network Conflicts [" + exportNetConflictCount + "]";                
+            }
+            if (exportNetConflictCount > 0)
+                compNode.add(new DefaultMutableTreeNode(
+                             new TreeNode(compTreeNode, exportNetConfTitle, 
+                                          compNdx, -1, TreeNode.EXPORT_NET_CONF)));
+            
+            // add "export characteristics conflicts", if necessary
+            int exportChrConflictCount = cm.getNetworkExportConflicts().size();
+            String exportChrConfTitle = null;
+            if (exportChrConflictCount > ExportTable.MAXROWS) {
+                exportChrConfTitle = "Export/Global Characteristics Conflicts [first " 
+                    + ExportTable.MAXROWS + " of " + exportChrConflictCount + "]";                
+                exportChrConflictCount = ExportTable.MAXROWS;
+            } else if (exportChrConflictCount > 0) {
+                exportChrConfTitle = "Export/Global Characteristics Conflicts [" 
+                    + exportChrConflictCount + "]";                
+            }
+            if (exportChrConflictCount > 0)
+                compNode.add(new DefaultMutableTreeNode(
+                             new TreeNode(compTreeNode, exportChrConfTitle, 
+                                          compNdx, -1, TreeNode.EXPORT_CHR_CONF)));
+            
+            // add "unrecognized MOSes", if necessary
+            int unrecMOSesCount = cm.getUnrecognizedMOSes().size();
+            String unrecMOSesTitle = null;
+            if (unrecMOSesCount > ExportTable.MAXROWS) {
+                unrecMOSesTitle = "Unrecognized MOSes [first " 
+                    + ExportTable.MAXROWS + " of " + unrecMOSesCount + "]";                
+                unrecMOSesCount = ExportTable.MAXROWS;
+            } else if (unrecMOSesCount > 0) {
+                unrecMOSesTitle = "Unrecognized MOSes [" + unrecMOSesCount + "]";                
+            }
+            if (unrecMOSesCount > 0)
+                compNode.add(new DefaultMutableTreeNode(
+                             new TreeNode(compTreeNode, unrecMOSesTitle, 
+                                          compNdx, -1, TreeNode.UNRECOG_MOS)));            
         }
         setRootVisible(true);
         updateUI();        
@@ -387,6 +430,9 @@ class ComparisonsTree extends JTree implements ActionListener, TreeSelectionList
         public static final int WIRELEAF = 5;        
         public static final int SIZES = 6;
         public static final int EXPORT_ASSERTS = 7;
+        public static final int EXPORT_NET_CONF = 8;
+        public static final int EXPORT_CHR_CONF = 9;
+        public static final int UNRECOG_MOS = 10;
         
         public final int compNdx, eclass, type;
         private String fullName;
