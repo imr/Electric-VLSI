@@ -56,9 +56,9 @@ public class StratRandomMatch extends Strategy {
 	
 	private EquivRecord findSmallestActive() {
 		EquivRecord w = 
-			findSmallestActive(globals.getWireLeafEquivRecs().getUnmatched());
+			findSmallestActive(globals.getWireLeafEquivRecs().getNotMatched());
 		EquivRecord p = 
-			findSmallestActive(globals.getPartLeafEquivRecs().getUnmatched());
+			findSmallestActive(globals.getPartLeafEquivRecs().getNotMatched());
 		if (p==null) return w;
 		if (w==null) return p;
 		return p.maxSize()<w.maxSize() ? p : w; 

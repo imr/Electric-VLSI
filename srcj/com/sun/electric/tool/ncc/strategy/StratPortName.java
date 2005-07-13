@@ -60,7 +60,7 @@ public class StratPortName extends Strategy {
 		StratPortName wn = new StratPortName(globals);
 		wn.preamble();
         //LeafList front = StratFrontier.doYourJob(globals.getWires(), globals);
-		Iterator frontier = globals.getWireLeafEquivRecs().getUnmatched();
+		Iterator frontier = globals.getWireLeafEquivRecs().getNotMatched();
 		LeafList ll = new LeafList();
 		while (frontier.hasNext()) ll.add(frontier.next());
 

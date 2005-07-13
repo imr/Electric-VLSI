@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.ncc.trees;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -43,7 +44,7 @@ import com.sun.electric.tool.ncc.strategy.Strategy;
  * has to scan the tree. 
  * <p>
  * A separate list of matched EquivRecords is kept. Most records will be 
- * matched. Most of the time we're interested in active records, not matched.
+ * matched. Most of the time we're interested in records not matched.
  * Separating out the matched records speeds up the scan for active records. */
 public class LeafEquivRecords {
     private static final LeafList EMPTY_LIST = new LeafList();
@@ -51,20 +52,20 @@ public class LeafEquivRecords {
     // ----------------------------- private data -----------------------------
 	private NccGlobals globals;
 	private List matched = new ArrayList();
-	// Contains mismatched and active EquivRecords.
+	// Contains all EquivRecords that haven't been matched
 	// This needs to be a linked list because we delete elements from the
 	// middle of the list.
-	private LinkedList unmatched = new LinkedList();
+	private LinkedList notMatched = new LinkedList();
 
 	private static class FindLeaves extends Strategy {
 		private List matched;
-		private List unmatched;
+		private List notMatched;
 		public LeafList doFor(EquivRecord j){
 			if (j.isLeaf()) {
 				EquivRecord er = (EquivRecord)j;
 				// add to the front of notMatched since it's useless to 
 				// encounter and process it again.
-				if (er.isMatched()) matched.add(er); else unmatched.add(er);
+				if (er.isMatched()) matched.add(er); else notMatched.add(er);
 			} else {
 				super.doFor(j);
 			}
@@ -72,37 +73,38 @@ public class LeafEquivRecords {
 		}
 
 		// ------------------- intended interface ------------------------
-		public FindLeaves(List newMatched, List newUnmatched, EquivRecord er, 
+		public FindLeaves(List newMatched, List newNotMatched, EquivRecord er, 
 				          NccGlobals globals) {
 			super(globals);
 			matched = newMatched;
-			unmatched = newUnmatched;
+			notMatched = newNotMatched;
 			doFor(er);
 		}
 	}
 	
-	// Normally, unmatched should contain only leaf EquivRecords. However
+	// Normally, notMatched should contain only leaf EquivRecords. However
 	// partitioning might turn a leaf into an internal node. When that happens
 	// we need to remove that internal node and find the descendents that are
 	// leaves and add them to the appropriate lists.
 	private void processInternalEquivRecords() {
 		List newMatched = new ArrayList();
-		List newUnmatched = new ArrayList();
-		for (ListIterator it=unmatched.listIterator(); it.hasNext();) {
+		List newNotMatched = new ArrayList();
+		for (ListIterator it=notMatched.listIterator(); it.hasNext();) {
 			EquivRecord er = (EquivRecord) it.next();
 			if (er.isLeaf()) {
-				LayoutLib.error(er.isMatched(), "unmatched list has matched");
+				LayoutLib.error(er.isMatched(), "notMatched list has matched");
 			} else {
 				// a leaf EquivRecord was partitioned and therefore isn't a 
 				// leaf anymore.  Find the descendents of this node that are
 				// leaves.
 				it.remove();
-				new FindLeaves(newMatched, newUnmatched, er, globals);
+				new FindLeaves(newMatched, newNotMatched, er, globals);
 			}
 		}
 		matched.addAll(newMatched);
-		unmatched.addAll(newUnmatched);
+		notMatched.addAll(newNotMatched);
 	}
+
 	// ----------------------------- public methods ---------------------------
 	public LeafEquivRecords(EquivRecord root, NccGlobals globals) {
 		this.globals = globals;
@@ -110,18 +112,18 @@ public class LeafEquivRecords {
 		if (root.isLeaf() && root.isMatched()) {
 			matched.add(root);
 		} else {
-			unmatched.add(root);
+			notMatched.add(root);
 		}
 	}
 
-	/** @return all active and mismatched leaf EquivRecords */
-	public Iterator getUnmatched() {
+	/** @return all leaf EquivRecords that haven't been matched */
+	public Iterator getNotMatched() {
 		processInternalEquivRecords();
-		return Collections.unmodifiableList(unmatched).iterator();
+		return Collections.unmodifiableList(notMatched).iterator();
 	}
-	public int numUnmatched() {
+	public int numNotMatched() {
 		processInternalEquivRecords();
-		return unmatched.size();
+		return notMatched.size();
 	}
 	/** @return all matched leaf EquivRecords */
 	public Iterator getMatched() {

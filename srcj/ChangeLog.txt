@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
+IMP: (07/13/05, RK) Add method to count Parts, Wires, and Ports for GUI
+
+BUG: (07/13/05, RK) Extensions for GUI cause NCC to throw an Exception for designs with black boxes (heater, qLite).
+
 BUG: (07/13/05, GVG) Problems with DRC dates stored (Bug #422) in exhaustive mode. Root cause: new checkMinDefect
 in checkDist.
 FIX: Remember if there ware min defect errors in exhaustive mode.

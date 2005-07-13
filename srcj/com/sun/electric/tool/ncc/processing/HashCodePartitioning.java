@@ -49,7 +49,7 @@ public class HashCodePartitioning {
 		if (globals.getParts()==null)  return new LeafList();
 		globals.status2("----- hash all Parts on frontier");
 //		LeafList frontier = StratFrontier.doYourJob(globals.getParts(), globals);
-		Iterator frontier = globals.getPartLeafEquivRecs().getUnmatched();
+		Iterator frontier = globals.getPartLeafEquivRecs().getNotMatched();
 		LeafList offspring = StratHashParts.doYourJob(frontier, globals);
 		return offspring;
 	}
@@ -58,7 +58,7 @@ public class HashCodePartitioning {
 		if (globals.getParts()==null)  return new LeafList();
 		globals.status2("----- hash all Wires on frontier");
 //		LeafList frontier = StratFrontier.doYourJob(globals.getWires(), globals);
-		Iterator frontier = globals.getWireLeafEquivRecs().getUnmatched();
+		Iterator frontier = globals.getWireLeafEquivRecs().getNotMatched();
 		LeafList offspring = StratHashWires.doYourJob(frontier, globals);
 		return offspring;
 	}
@@ -138,8 +138,8 @@ public class HashCodePartitioning {
 //		                                           globals);
 //		LeafList w = StratFrontier.doYourJob(globals.getWires(),
 //												   globals);
-		return globals.getWireLeafEquivRecs().numUnmatched()==0 &&
-			   globals.getPartLeafEquivRecs().numUnmatched()==0;
+		return globals.getWireLeafEquivRecs().numNotMatched()==0 &&
+			   globals.getPartLeafEquivRecs().numNotMatched()==0;
 	}
 	
 	private void useExportNames() {

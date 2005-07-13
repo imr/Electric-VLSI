@@ -194,7 +194,7 @@ public class StratCount extends Strategy {
 		//printLine("# InternalRecords", numInternalRecs);
 		//printLine("# Circuits", numCircuits);
 		printLine("max tree depth", maxDepth);
-		if (maxDepth>1000)  System.out.println("Tell Russell that max tree depth = "+maxDepth);
+		//if (maxDepth>1000)  System.out.println("Tell Russell that max tree depth = "+maxDepth);
 
 //        float average= (float)totalEqGrpSize/(float)numEquivRecs;
 //		printLine("average size EquivRec", average);

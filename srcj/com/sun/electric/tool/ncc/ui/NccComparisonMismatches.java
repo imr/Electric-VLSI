@@ -108,12 +108,12 @@ public class NccComparisonMismatches {
         if (mismEqvRecrds == null || mismEqvRecrds.length == 0) {
             LeafEquivRecords parts = globals.getPartLeafEquivRecs();
             LeafEquivRecords wires = globals.getWireLeafEquivRecs();
-            hashMismEqvRecrds = new EquivRecord[parts.numUnmatched() 
-                                              + wires.numUnmatched()];
+            hashMismEqvRecrds = new EquivRecord[parts.numNotMatched() 
+                                              + wires.numNotMatched()];
             int i=0;
-            for (Iterator it=parts.getUnmatched(); it.hasNext(); i++)
+            for (Iterator it=parts.getNotMatched(); it.hasNext(); i++)
                 hashMismEqvRecrds[i] = (EquivRecord)it.next();
-            for (Iterator it=wires.getUnmatched(); it.hasNext(); i++)
+            for (Iterator it=wires.getNotMatched(); it.hasNext(); i++)
                 hashMismEqvRecrds[i] = (EquivRecord)it.next();
         }
     }

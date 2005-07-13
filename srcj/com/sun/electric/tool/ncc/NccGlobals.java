@@ -28,6 +28,7 @@
  * class. This allows an Ncc run to be completely thread safe.
  */
 package com.sun.electric.tool.ncc;
+import java.util.Collection;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -85,10 +86,12 @@ public class NccGlobals {
 	/** pass number shared by strategies */   public int passNumber;
 	/** leaf nodes of parts tree */           private LeafEquivRecords partLeafRecs;
 	/** leaf nodes of wires tree */           private LeafEquivRecords wireLeafRecs;
+	/** leaf nodes of ports tree */			  private LeafEquivRecords portLeafRecs;
     /** has a netlist error? */               private boolean hasNetlistError = false;
 	
     private NccComparisonMismatches compMismatches;
     
+	// ----------------------------- private methods --------------------------
 	private List getNetObjs(int code, NccNetlist nets) {
 		switch (code) {
 		  case CODE_PART:  return nets.getPartArray();
@@ -97,9 +100,28 @@ public class NccGlobals {
 		}
 		error("invalid code");
 		return null;
+	}	
+	
+	private void countNetObjs(int[] counts, Iterator it) {
+		while (it.hasNext()) {
+			EquivRecord er = (EquivRecord) it.next();
+			error(!er.isLeaf(), "Must be leaf");
+			int numCkts = er.numCircuits();
+			error(counts.length!=numCkts, "different number of Circuits");
+			Iterator it2 = er.getCircuits();
+			for (int i=0; i<numCkts; i++) {
+				counts[i] += ((Circuit) it2.next()).numNetObjs(); 
+			}
+		}
+	}
+
+	private int[] getNetObjCounts(LeafEquivRecords leaves) {
+    	int[] counts = new int[getNumNetlistsBeingCompared()];
+    	countNetObjs(counts, leaves.getMatched());
+    	countNetObjs(counts, leaves.getNotMatched());
+    	return counts;
 	}
 	
-	// ----------------------------- private methods --------------------------
 	private EquivRecord buildEquivRec(int code, List nccNets) {
 		boolean atLeastOneNetObj = false;
 		List ckts = new ArrayList();
@@ -113,8 +135,6 @@ public class NccGlobals {
 		return EquivRecord.newLeafRecord(code, ckts, this);
 	}
 	
-	public void prln(String s) {System.out.println(s); System.out.flush();}
-	public void pr(String s) {System.out.print(s); System.out.flush();}
 	// ----------------------------- public methods --------------------------
 	/**
 	 * The constructor initializes global root, parts, wires, and ports from 
@@ -126,6 +146,9 @@ public class NccGlobals {
 		this.options = options;
         compMismatches = new NccComparisonMismatches();
 	}
+	public void prln(String s) {System.out.println(s); System.out.flush();}
+	public void pr(String s) {System.out.print(s); System.out.flush();}
+
 	public void setInitialNetlists(List nccNets) {
 		parts = buildEquivRec(CODE_PART, nccNets);
 		wires = buildEquivRec(CODE_WIRE, nccNets);
@@ -156,6 +179,7 @@ public class NccGlobals {
 	public void initLeafLists() {
 		partLeafRecs = new LeafEquivRecords(parts, this);
 		wireLeafRecs = new LeafEquivRecords(wires, this);
+		portLeafRecs = new LeafEquivRecords(ports, this);
 	}
 	
 	public EquivRecord getRoot() {return root;}
@@ -191,6 +215,7 @@ public class NccGlobals {
 	
 	public LeafEquivRecords getPartLeafEquivRecs() {return partLeafRecs;}
 	public LeafEquivRecords getWireLeafEquivRecs() {return wireLeafRecs;}
+	public LeafEquivRecords getPortLeafEquivRecs() {return portLeafRecs;}
 
 	/** @return an NetNameProxy[][]. NetNameProxy[d][n] gives the nth net of
 	 * the dth design.  NetNameProxy[a][n] is NCC equivalent to NetNameProxy[b][n]
@@ -220,8 +245,11 @@ public class NccGlobals {
         return compMismatches;
     }
 
-    public boolean hasNetlistError() {
-        return hasNetlistError;
-    }
-
+    public boolean hasNetlistError() { return hasNetlistError; }
+	/** @return array of Part counts. One array element per Circuit */
+    public int[] getPartCounts() { return getNetObjCounts(partLeafRecs); }
+	/** @return array of Wire counts. One array element per Circuit */
+    public int[] getWireCounts() { return getNetObjCounts(wireLeafRecs); }
+	/** @return array of Port counts. One array element per Circuit */
+    public int[] getPortCounts() { return getNetObjCounts(portLeafRecs); }
 }

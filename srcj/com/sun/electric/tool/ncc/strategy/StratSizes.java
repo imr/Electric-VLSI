@@ -171,7 +171,7 @@ public class StratSizes extends Strategy {
 	/** Find the OutlierRecord with the largest deviation */
 	private OutlierRecord findOutlierRecordWithLargestDeviation() {
 		OutlierRecord furthestOut = null;
-		Iterator frontier = globals.getPartLeafEquivRecs().getUnmatched();
+		Iterator frontier = globals.getPartLeafEquivRecs().getNotMatched();
 		while (frontier.hasNext()) {
 			EquivRecord r = (EquivRecord) frontier.next();
 			if (r.isMismatched())  continue;

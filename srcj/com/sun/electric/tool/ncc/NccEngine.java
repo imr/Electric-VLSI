@@ -74,29 +74,19 @@ public class NccEngine {
 		return nccLists;
 	}
 	
-	private int[] getNetObjCounts(EquivRecord rec, int numCells) {
-		int[] counts = new int[numCells];
-		// don't blow up if no parts or wires
-		if (rec==null) return counts;
-		int i=0;
-		for (Iterator it=rec.getCircuits(); it.hasNext(); i++) {
-			Circuit ckt = (Circuit) it.next();
-			counts[i] = ckt.numNetObjs();
-		}
-		return counts;
-	}
-	
 	/** Ivan wants this print out. */
 	private void printWireComponentCounts() {
 		int numCells = globals.getNumNetlistsBeingCompared();
-		int[] partCounts = getNetObjCounts(globals.getParts(), numCells);
-		int[] wireCounts = getNetObjCounts(globals.getWires(), numCells);
+		int[] partCounts = globals.getPartCounts();
+		int[] wireCounts = globals.getWireCounts();
+		int[] portCounts = globals.getPortCounts();
 		String[] cellNames = globals.getRootCellNames();
 		VarContext[] contexts = globals.getRootContexts();
 		for (int i=0; i<cellNames.length; i++) {
 			globals.status1(
-				"  Cell: "+cellNames[i]+" has "+wireCounts[i]+" wires and "+
-				partCounts[i]+" parts, after series/parallel combination. "+
+				"  Cell: "+cellNames[i]+" has "+wireCounts[i]+" wires, "+
+				partCounts[i]+" parts, and "+portCounts[i]+
+				" ports after series/parallel combination. "+
 				"Instance path: "+
 				contexts[i].getInstPath("/")
 			);
@@ -107,7 +97,7 @@ public class NccEngine {
         boolean hasError = globals.hasNetlistError();
 		if (globals.getRoot()==null || hasError) {
 			globals.status2("empty cell or netlist error");
-			// Preserve the invariant: "partLeafLists, wireLeafLists exist" 
+			// Preserve the invariant: "part, wire, and port LeafLists exist" 
 			// even if there are no Parts and no Wires OR there is a netlist error. 
 			globals.initLeafLists();
 			return new NccResult(!hasError, !hasError, true, globals);
@@ -193,12 +183,6 @@ public class NccEngine {
 		globals.status1("  NCC net list construction took "+NccUtils.hourMinSec(before, after)+".");
         globals.setInitialNetlists(nccNetlists);
         
-		/** If some netlist is invalid then the comparison fails */
-//		if (netlistErrors(nccNetlists)) {
-//            globals.initLeafLists();
-//            return new NccResult(false, false, true, globals);
-//        }
-
 		NccResult result = designsMatch(hierInfo, false);
 
 		globals.status2("****************************************"+					  		
