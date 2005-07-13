@@ -702,11 +702,12 @@ public class Spice extends Topology
 			PrimitiveNode.Function fun = ni.getFunction();
 
 			// handle resistors, inductors, capacitors, and diodes
-			if (fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.INDUCT ||
-				fun == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC ||
+			if (fun.isResistor() || // == PrimitiveNode.Function.RESIST ||
+                fun == PrimitiveNode.Function.INDUCT ||
+				fun.isCapacitor() || // == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC ||
 				fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
 			{
-				if (fun == PrimitiveNode.Function.RESIST)
+				if (fun.isResistor()) // == PrimitiveNode.Function.RESIST)
 				{
                     if (useCDL && Simulation.getCDLIgnoreResistors())
                         continue;
@@ -722,7 +723,7 @@ public class Spice extends Topology
 						}
 					}
 					writeTwoPort(ni, "R", extra, cni, netList, context);
-				} else if (fun == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
+				} else if (fun.isCapacitor()) // == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
 				{
 					Variable capacVar = ni.getVar(Schematics.SCHEM_CAPACITANCE);
 					String extra = "";
@@ -1716,8 +1717,9 @@ public class Spice extends Topology
             // otherwise, this is a primitive
             PrimitiveNode.Function fun = ni.getFunction();
             // Passive devices used by spice/CDL
-            if (fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.INDUCT ||
-                fun == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC ||
+            if (fun.isResistor() || // == PrimitiveNode.Function.RESIST || 
+                fun == PrimitiveNode.Function.INDUCT ||
+                fun.isCapacitor() || // == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC ||
                 fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
             {
                 empty = false;

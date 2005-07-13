@@ -474,6 +474,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			buildTransistor(ni, info);
 		} else if (func==PrimitiveNode.Function.RESIST) {
 //		    error(true, "can't handle Resistors yet");
+		} else if (func==PrimitiveNode.Function.PRESIST) {
+		    error(true, "can't handle Poly Resistors yet");
 		} else {	
 //		    globals.println("NccNetlist not handled: func="+
 //		    			   func+" proto="+ni.getProto().toString());

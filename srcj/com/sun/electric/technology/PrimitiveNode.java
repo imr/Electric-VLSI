@@ -98,6 +98,18 @@ public class PrimitiveNode implements NodeProto, Comparable
 		 */
 		public Name getBasename() { return basename; }
 
+        /**
+         * Method to tell whether this function describes a capacitor (normal or electrolytic).
+         * @return
+         */
+        public boolean isCapacitor() {return (this == CAPAC || this == ECAPAC);}
+
+        /**
+         * Method to tell whether this function describes a resistor (normal or poly resistor)
+         * @return
+         */
+        public boolean isResistor() {return (this == RESIST || this == PRESIST);}
+
 		/**
 		 * Method to tell whether this function describes a transistor.
 		 * @return true if this function describes a transistor.
@@ -265,6 +277,10 @@ public class PrimitiveNode implements NodeProto, Comparable
 		 * Describes a resistor.
 		 */
 		public static final Function RESIST =    new Function("resistor", "res", "RESIST");
+        /**
+		 * Describes a poly resistor.
+		 */
+		public static final Function PRESIST =    new Function("poly-resistor", "pres", "PRESIST");
 		/**
 		 * Describes a capacitor.
 		 */
@@ -582,9 +598,9 @@ public class PrimitiveNode implements NodeProto, Comparable
 			function == Function.TRAEMES || function == Function.TRA4EMES ||
 			function == Function.TRANS4)
 				return Function.TRANS;
-		if (function == Function.RESIST || function == Function.CAPAC ||
-			function == Function.ECAPAC || function == Function.DIODE ||
-			function == Function.DIODEZ || function == Function.INDUCT)
+		if (function.isResistor() || // == Function.RESIST || function == Function.PRESIST ||
+			function.isCapacitor() || // == Function.CAPAC || function == Function.ECAPAC ||
+            function == Function.DIODE || function == Function.DIODEZ || function == Function.INDUCT)
 				return Function.INDUCT;
 		if (function == Function.CCVS || function == Function.CCCS ||
 			function == Function.VCVS || function == Function.VCCS ||

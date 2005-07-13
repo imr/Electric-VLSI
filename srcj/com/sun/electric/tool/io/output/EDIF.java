@@ -778,7 +778,7 @@ public class EDIF extends Topology
 	 */
 	private String describePrimitive(NodeInst ni, PrimitiveNode.Function fun)
 	{
-		if (fun == PrimitiveNode.Function.RESIST) return "Resistor";
+		if (fun.isResistor()) /* == PrimitiveNode.Function.RESIST)*/ return "Resistor";
 		if (fun == PrimitiveNode.Function.TRANPN) return "npn";
 		if (fun == PrimitiveNode.Function.TRAPNP) return "pnp";
 		if (fun == PrimitiveNode.Function.SUBSTRATE) return "gtap";

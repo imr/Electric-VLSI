@@ -77,12 +77,12 @@ public class Schematics extends Technology
 
 	/** the Schematics Technology object. */			public static final Schematics tech = new Schematics();
 
-	/** Defines the Flip-flop type. */					private static final int FFTYPE =    07;
+//	/** Defines the Flip-flop type. */					private static final int FFTYPE =    07;
 	/** Defines an RS Flip-flop. */						private static final int FFTYPERS =   0;
 	/** Defines a JK Flip-flop. */						private static final int FFTYPEJK =   1;
 	/** Defines a D Flip-flop. */						private static final int FFTYPED =    2;
 	/** Defines a T Flip-flop. */						private static final int FFTYPET =    3;
-	/** Defines the Flip-flop clocking bits. */			private static final int FFCLOCK =  014;
+//	/** Defines the Flip-flop clocking bits. */			private static final int FFCLOCK =  014;
 	/** Defines a Master/Slave Flip-flop. */			private static final int FFCLOCKMS =  0;
 	/** Defines a Positive clock Flip-flop. */			private static final int FFCLOCKP =  04;
 	/** Defines a Negative clock Flip-flop. */			private static final int FFCLOCKN = 010;
@@ -102,6 +102,9 @@ public class Schematics extends Technology
 
 	/** Defines a normal Capacitor. */					private static final int CAPACNORM =  0;
 	/** Defines an Electrolytic Capacitor. */			private static final int CAPACELEC =  1;
+
+    /** Defines a normal Resistor. */                   private static final int RESISTNORM =  0;
+    /** Defines a poly Resistor. */                     private static final int RESISTPOLY =  1;
 
 	/** Defines a Transconductance two-port (VCCS). */	private static final int TWOPVCCS =  0;
 	/** Defines a Transresistance two-port (CCVS). */	private static final int TWOPCCVS =  1;
@@ -158,6 +161,7 @@ public class Schematics extends Technology
 	private Technology.NodeLayer [] tran4LayersDMES, tran4LayersEMES;
 	private Technology.NodeLayer [] diodeLayersNorm, diodeLayersZener;
 	private Technology.NodeLayer [] capacitorLayersNorm, capacitorLayersElectrolytic;
+    private Technology.NodeLayer [] resistorLayersNorm, resistorLayersPoly;
 
 	// this much from the center to the left edge
 	/* 0.1 */			private final EdgeH LEFTBYP1 = new EdgeH(-0.1/2,0);
@@ -176,8 +180,8 @@ public class Schematics extends Technology
 	/* 0.8 */			private final EdgeH LEFTBYP8 = new EdgeH(-0.8/2,0);
 	/* 0.875 */			private final EdgeH LEFTBYP875 = new EdgeH(-0.875/2,0);
 	/* 0.9 */			private final EdgeH LEFTBYP9 = new EdgeH(-0.9/2,0);
-	/* 1.2 */			private final EdgeH LEFTBYP12 = new EdgeH(-1.2/2,0);
-	/* 1.4 */			private final EdgeH LEFTBYP14 = new EdgeH(-1.4/2,0);
+//	/* 1.2 */			private final EdgeH LEFTBYP12 = new EdgeH(-1.2/2,0);
+//	/* 1.4 */			private final EdgeH LEFTBYP14 = new EdgeH(-1.4/2,0);
 	/* 1.6 */			private final EdgeH LEFTBY1P6 = new EdgeH(-1.6/2,0);
 
 	// this much from the center to the right edge
@@ -194,20 +198,20 @@ public class Schematics extends Technology
 	/* 0.45 */			private final EdgeH RIGHTBYP45 = new EdgeH(0.45/2,0);
 	/* 0.5 */			private final EdgeH RIGHTBYP5 = new EdgeH(0.5/2,0);
 	/* 0.5166... */		private final EdgeH RIGHTBYP5166 = new EdgeH(0.5166666666/2,0);
-	/* 0.55 */			private final EdgeH RIGHTBYP55 = new EdgeH(0.55/2,0);
+//	/* 0.55 */			private final EdgeH RIGHTBYP55 = new EdgeH(0.55/2,0);
 	/* 0.5666... */		private final EdgeH RIGHTBYP566 = new EdgeH(0.5666666666/2,0);
 	/* 0.6 */			private final EdgeH RIGHTBYP6 = new EdgeH(0.6/2,0);
 	/* 0.6166... */		private final EdgeH RIGHTBYP6166 = new EdgeH(0.6166666666/2,0);
 	/* 0.6666... */		private final EdgeH RIGHTBYP66 = new EdgeH(0.6666666666/2,0);
-	/* 0.7 */			private final EdgeH RIGHTBYP7 = new EdgeH(0.7/2,0);
+//	/* 0.7 */			private final EdgeH RIGHTBYP7 = new EdgeH(0.7/2,0);
 	/* 0.75 */			private final EdgeH RIGHTBYP75 = new EdgeH(0.75/2,0);
 	/* 0.8 */			private final EdgeH RIGHTBYP8 = new EdgeH(0.8/2,0);
 	/* 0.875 */			private final EdgeH RIGHTBYP875 = new EdgeH(0.875/2,0);
 	/* 0.9 */			private final EdgeH RIGHTBYP9 = new EdgeH(0.9/2,0);
 
 	// this much from the center to the bottom edge
-	/* 0.1 */			private final EdgeV BOTBYP1 = new EdgeV(-0.1/2,0); 
-	/* 0.125 */			private final EdgeV BOTBYP125 = new EdgeV(-0.125/2,0);   
+//	/* 0.1 */			private final EdgeV BOTBYP1 = new EdgeV(-0.1/2,0);
+//	/* 0.125 */			private final EdgeV BOTBYP125 = new EdgeV(-0.125/2,0);
 	/* 0.166...  */		private final EdgeV BOTBYP166 = new EdgeV(-0.166666666/2,0);
 	/* 0.2 */			private final EdgeV BOTBYP2 = new EdgeV(-0.2/2,0); 
 	/* 0.25 */			private final EdgeV BOTBYP25 = new EdgeV(-0.25/2,0);
@@ -218,14 +222,14 @@ public class Schematics extends Technology
 	/* 0.5 */			private final EdgeV BOTBYP5 = new EdgeV(-0.5/2,0); 
 	/* 0.6 */			private final EdgeV BOTBYP6 = new EdgeV(-0.6/2,0); 
 	/* 0.6666... */		private final EdgeV BOTBYP66 = new EdgeV(-0.6666666666/2,0);
-	/* 0.7 */			private final EdgeV BOTBYP7 = new EdgeV(-0.7/2,0); 
+//	/* 0.7 */			private final EdgeV BOTBYP7 = new EdgeV(-0.7/2,0);
 	/* 0.75 */			private final EdgeV BOTBYP75 = new EdgeV(-0.75/2,0);
 	/* 0.8 */			private final EdgeV BOTBYP8 = new EdgeV(-0.8/2,0); 
 	/* 0.875 */			private final EdgeV BOTBYP875 = new EdgeV(-0.875/2,0);        
 	/* 0.9 */			private final EdgeV BOTBYP9 = new EdgeV(-0.9/2,0);
 
 	// this much from the center to the top edge
-	/* 0.1 */			private final EdgeV TOPBYP1 = new EdgeV(0.1/2,0);
+//	/* 0.1 */			private final EdgeV TOPBYP1 = new EdgeV(0.1/2,0);
 	/* 0.2 */			private final EdgeV TOPBYP2 = new EdgeV(0.2/2,0);
 	/* 0.25 */			private final EdgeV TOPBYP25 = new EdgeV(0.25/2,0);
 	/* 0.3 */			private final EdgeV TOPBYP3 = new EdgeV(0.3/2,0);
@@ -975,10 +979,7 @@ public class Schematics extends Technology
 		transistorNode.setFunction(PrimitiveNode.Function.TRANS);
 
 		/** resistor */
-		resistorNode = PrimitiveNode.newInstance("Resistor", this, 6.0, 1.0, new SizeOffset(1, 1, 0, 0),
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+        Technology.NodeLayer resistorLayer = new Technology.NodeLayer(node_lay, 0, Poly.Type.OPENED, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
 					new Technology.TechPoint(LEFTBYP66, EdgeV.makeCenter()),
 					new Technology.TechPoint(LEFTBYP6, EdgeV.makeCenter()),
 					new Technology.TechPoint(LEFTBYP5, EdgeV.makeTopEdge()),
@@ -988,8 +989,15 @@ public class Schematics extends Technology
 					new Technology.TechPoint(RIGHTBYP3, EdgeV.makeTopEdge()),
 					new Technology.TechPoint(RIGHTBYP5, EdgeV.makeBottomEdge()),
 					new Technology.TechPoint(RIGHTBYP6, EdgeV.makeCenter()),
-					new Technology.TechPoint(RIGHTBYP66, EdgeV.makeCenter())})
-			});
+					new Technology.TechPoint(RIGHTBYP66, EdgeV.makeCenter())});
+        Technology.NodeLayer resistorLayerPoly = new Technology.NodeLayer(node_lay, 0, Poly.Type.VECTORS, Technology.NodeLayer.POINTS, new Technology.TechPoint [] {
+			new Technology.TechPoint(RIGHTBYP4, TOPBYP5),
+			new Technology.TechPoint(RIGHTBYP6, TOPBYP5),
+			new Technology.TechPoint(RIGHTBYP5, TOPBYP2),
+			new Technology.TechPoint(RIGHTBYP5, TOPBYP8)});
+        resistorLayersNorm = new Technology.NodeLayer [] {resistorLayer};
+        resistorLayersPoly = new Technology.NodeLayer [] {resistorLayer, resistorLayerPoly};
+		resistorNode = PrimitiveNode.newInstance("Resistor", this, 6.0, 1.0, new SizeOffset(1, 1, 0, 0), resistorLayersNorm);
 		resistorNode.addPrimitivePorts(new PrimitivePort []
 			{
 				PrimitivePort.newInstance(this, resistorNode, new ArcProto[] {wire_arc}, "a", 180,90, 0, PortCharacteristic.UNKNOWN,
@@ -1641,6 +1649,15 @@ public class Schematics extends Technology
 				case CAPACNORM: primLayers = capacitorLayersNorm;           break;
 				case CAPACELEC: primLayers = capacitorLayersElectrolytic;   break;
 			}
+        } else if (np == resistorNode)
+		{
+			extraBlobs = true;
+			int resistorBits = ni.getTechSpecific();
+			switch (resistorBits)
+			{
+				case RESISTNORM: primLayers = resistorLayersNorm;    break;
+				case RESISTPOLY: primLayers = resistorLayersPoly;    break;
+			}
 		} else if (np == switchNode)
 		{
 			int numLayers = 3;
@@ -1763,7 +1780,7 @@ public class Schematics extends Technology
 					double wantX = selectPt.getX();
 					double wantY = selectPt.getY();
 					double bestDist = Double.MAX_VALUE;
-					int bestIndex = 0;
+//					int bestIndex = 0;
 					double bestX = 0, bestY = 0;
 
 					// determine total number of arcs already on this port
@@ -1822,7 +1839,7 @@ public class Schematics extends Technology
 							double dist = Math.abs(wantX - x) + Math.abs(wantY - y);
 							if (dist < bestDist)
 							{
-								bestDist = dist;   bestX = x;   bestY = y;   bestIndex = i;
+								bestDist = dist;   bestX = x;   bestY = y;   //bestIndex = i;
 							}
 						}
 					}
@@ -1935,6 +1952,11 @@ public class Schematics extends Technology
 	 */
 	public PrimitiveNode.Function getPrimitiveFunction(PrimitiveNode pn, int techBits)
 	{
+        if (pn == resistorNode)
+		{
+			if (techBits == RESISTPOLY) return PrimitiveNode.Function.PRESIST;
+			return PrimitiveNode.Function.RESIST;
+		}
 		if (pn == capacitorNode)
 		{
 			if (techBits == CAPACELEC) return PrimitiveNode.Function.ECAPAC;
@@ -2022,6 +2044,9 @@ public class Schematics extends Technology
 	{
 		if (function == PrimitiveNode.Function.ECAPAC) return CAPACELEC;
 		if (function == PrimitiveNode.Function.CAPAC) return CAPACNORM;
+
+        if (function == PrimitiveNode.Function.PRESIST) return RESISTPOLY;
+		if (function == PrimitiveNode.Function.RESIST) return RESISTNORM;
 
 		if (function == PrimitiveNode.Function.DIODEZ) return DIODEZENER;
 		if (function == PrimitiveNode.Function.DIODE) return DIODENORM;

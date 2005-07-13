@@ -244,8 +244,8 @@ public class IRSIM extends Output
                 if ((rcValue < tech.getMinResistance()))
                     return null;
             }
-			else if (fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.CAPAC ||
-				fun == PrimitiveNode.Function.ECAPAC)
+			else if (fun.isResistor() || fun.isCapacitor()) //fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.PRESIST ||
+//                    fun == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
 			{
                 PortInst end1 = ni.getPortInst(0);
                 PortInst end2 = ni.getPortInst(1);
@@ -267,7 +267,7 @@ public class IRSIM extends Output
 
 				Variable.Key varKey = Schematics.SCHEM_CAPACITANCE;
 				TextDescriptor.Unit unit = TextDescriptor.Unit.CAPACITANCE;
-				if (fun == PrimitiveNode.Function.RESIST)
+				if (fun.isResistor()) //fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.PRESIST)
 				{
 					varKey = Schematics.SCHEM_RESISTANCE;
 					unit = TextDescriptor.Unit.RESISTANCE;
@@ -286,7 +286,7 @@ public class IRSIM extends Output
                 rcValue = TextUtils.parsePostFixNumber(extra).doubleValue();
                 //rcValue = TextUtils.atof(extra);
 
-                if (fun == PrimitiveNode.Function.RESIST)
+                if (fun.isResistor()) // == PrimitiveNode.Function.RESIST)
                 {
                     type = 'r';
                 }

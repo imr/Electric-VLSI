@@ -207,7 +207,9 @@ public class Tegas extends Topology
 				continue;
 			}
 	
-			if (fun == PrimitiveNode.Function.SOURCE || fun == PrimitiveNode.Function.RESIST || fun == PrimitiveNode.Function.CAPAC ||
+			if (fun == PrimitiveNode.Function.SOURCE ||
+                fun.isResistor() || // == PrimitiveNode.Function.RESIST ||
+                fun.isCapacitor() || // == PrimitiveNode.Function.CAPAC ||
 				fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.INDUCT || fun == PrimitiveNode.Function.METER)
 			{
 				System.out.println("CANNOT HANDLE " + ni.getProto().describe(true) + " NODES");

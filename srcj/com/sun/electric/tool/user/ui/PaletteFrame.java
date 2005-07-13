@@ -523,6 +523,12 @@ public class PaletteFrame implements MouseListener
 				if (np == Schematics.tech.resistorNode)
 				{
 					Variable var = newNi.newDisplayVar(Schematics.SCHEM_RESISTANCE, "100");
+                    // Adding two extra variables: length and width
+                    if (newNi.getFunction() == PrimitiveNode.Function.PRESIST)
+                    {
+                        var = newNi.newVar(Schematics.ATTR_WIDTH, "2");
+                        var = newNi.newVar(Schematics.ATTR_LENGTH, "2");
+                    }
 				} else if (np == Schematics.tech.capacitorNode)
 				{
 					Variable var = newNi.newDisplayVar(Schematics.SCHEM_CAPACITANCE, "100M");

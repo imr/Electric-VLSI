@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
+IMP: (07/13/05, GVG) Poly resistors added in Schematics. They were implemented as variant of normal resistors
+(following similar to capacitor approach).
+
 IMP: (07/13/05, IM) NCC GUI features: Export Assertion failures,
 Export conflicts, unrecognized MOSes
 

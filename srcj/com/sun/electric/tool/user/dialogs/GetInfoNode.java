@@ -41,7 +41,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
-import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
@@ -83,10 +82,10 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 	private String initialXSize, initialYSize;
 	private boolean initialMirrorX, initialMirrorY;
 	private int initialRotation, initialPopupIndex;
-    private TextDescriptor.Code initialListPopupEntry;
+//    private TextDescriptor.Code initialListPopupEntry;
 	private boolean initialEasyToSelect, initialInvisibleOutsideCell, initialLocked, initialExpansion;
 	private String initialName, initialTextField;
-	private String initialPopupEntry, initialListTextField;
+	private String initialPopupEntry; //, initialListTextField;
 	private DefaultListModel listModel;
 	private JList list;
 	private List allAttributes;
@@ -434,11 +433,11 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		popup.setEnabled(false);
 
 		// see if this node has outline information
-		boolean holdsOutline = false;
+//		boolean holdsOutline = false;
 		Point2D [] outline = ni.getTrace();
 		if (outline != null)
 		{
-			holdsOutline = true;
+//			holdsOutline = true;
             sizeEditable = false;
 		}
 
@@ -552,9 +551,11 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-		if (fun == PrimitiveNode.Function.RESIST)
+		if (fun.isResistor()) // == PrimitiveNode.Function.RESIST)
 		{
-			textFieldLabel.setText("Resistance:");
+            if (fun == PrimitiveNode.Function.PRESIST)
+				textFieldLabel.setText("Poly resistance:"); else
+					textFieldLabel.setText("Resistance:");
 //			formatinfstr(infstr, x_(" (%s):"),
 //				TRANSLATE(us_resistancenames[(us_electricalunits&INTERNALRESUNITS) >> INTERNALRESUNITSSH]));
 			Variable var = ni.getVar(Schematics.SCHEM_RESISTANCE);
@@ -563,7 +564,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 			textField.setEditable(true);
 			textField.setText(initialTextField);
 		}
-		if (fun == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
+		if (fun.isCapacitor()) // == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
 		{
 			if (fun == PrimitiveNode.Function.ECAPAC)
 				textFieldLabel.setText("Electrolytic cap:"); else
@@ -882,7 +883,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					changed = true;
 				}
 			}
-			if (fun == PrimitiveNode.Function.RESIST)
+			if (fun.isResistor()) // == PrimitiveNode.Function.RESIST)
 			{
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))
@@ -893,7 +894,7 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 					changed = true;
 				}
 			}
-			if (fun == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
+			if (fun.isCapacitor()) // == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
 			{
 				String currentTextField = dialog.textField.getText();
 				if (!currentTextField.equals(dialog.initialTextField))

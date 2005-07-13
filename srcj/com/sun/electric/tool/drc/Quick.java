@@ -1614,12 +1614,12 @@ public class Quick
         }
         // looking if points around the overlapping area are inside another region
         // to avoid the error
-        if (Main.LOCALDEBUGFLAG)
+//        if (Main.LOCALDEBUGFLAG)
             lookForLayerNew(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
                 pt1d, pt2d, null, pointsFound, false);
-        else
-            lookForLayerNew(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
-                pt1, pt2, null, pointsFound, false);
+//        else
+//            lookForLayerNew(geom1, poly1, geom2, poly2, cell, layer1, DBMath.MATID, search,
+//                pt1, pt2, null, pointsFound, false);
         // Nothing found
         if (!pointsFound[0] && !pointsFound[1])
         {

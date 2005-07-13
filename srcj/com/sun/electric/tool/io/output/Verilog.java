@@ -514,8 +514,9 @@ public class Verilog extends Topology
 				nodeType = ni.getFunction();
 
 				// special case: verilog should ignore R L C etc.
-				if (nodeType == PrimitiveNode.Function.RESIST || nodeType == PrimitiveNode.Function.CAPAC ||
-					nodeType == PrimitiveNode.Function.ECAPAC || nodeType == PrimitiveNode.Function.INDUCT ||
+				if (nodeType.isResistor() || // == PrimitiveNode.Function.RESIST || 
+                    nodeType.isCapacitor() ||  // == PrimitiveNode.Function.CAPAC || nodeType == PrimitiveNode.Function.ECAPAC ||
+                    nodeType == PrimitiveNode.Function.INDUCT ||
 					nodeType == PrimitiveNode.Function.DIODE || nodeType == PrimitiveNode.Function.DIODEZ)
 						continue;
 			}
