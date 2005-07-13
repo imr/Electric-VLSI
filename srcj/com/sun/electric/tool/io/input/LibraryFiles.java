@@ -434,6 +434,18 @@ public abstract class LibraryFiles extends Input
             if (url != null) searchedURLs.put(url.getFile(), url.getFile());
         }
 
+        // check the current working dir
+        // (Note that this is not necessarily the same as the mainLibDirectory above)
+        // Do NOT search User.getCurrentWorkingDir, as another Electric process can
+        // modify that during library read instead, search System.getProperty("user.dir");
+        URL thirdURL = TextUtils.makeURLToFile(System.getProperty("user.dir") + File.separator + libFileName);
+        if (thirdURL != null && !searchedURLs.containsKey(thirdURL.getFile()))
+        {
+            exists = TextUtils.URLExists(thirdURL, errmsg);
+            if (exists) return thirdURL;
+            if (thirdURL != null) searchedURLs.put(thirdURL.getFile(), thirdURL.getFile());
+        }
+
         // try the exact path specified in the reference
         if (originalPath != null) {
             URL secondURL = TextUtils.makeURLToFile(originalPath + File.separator + libFileName);
@@ -443,17 +455,6 @@ public abstract class LibraryFiles extends Input
                 if (exists) return secondURL;
                 if (secondURL != null) searchedURLs.put(secondURL.getFile(), secondURL.getFile());
             }
-        }
-
-        // check the current working dir
-        // Do NOT search User.getCurrentWorkingDir, as another Electric process can
-        // modify that during library read instead, search System.getProperty("user.dir");
-        URL thirdURL = TextUtils.makeURLToFile(System.getProperty("user.dir") + File.separator + libFileName);
-        if (thirdURL != null && !searchedURLs.containsKey(thirdURL.getFile()))
-        {
-            exists = TextUtils.URLExists(thirdURL, errmsg);
-            if (exists) return thirdURL;
-            if (thirdURL != null) searchedURLs.put(thirdURL.getFile(), thirdURL.getFile());
         }
 
 		if (checkElectricLib)
