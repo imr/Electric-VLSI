@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
+BUG: (07/13/05, GVG) Problems with DRC dates stored (Bug #422) in exhaustive mode. Root cause: new checkMinDefect
+in checkDist.
+FIX: Remember if there ware min defect errors in exhaustive mode.
+ 
 IMP/MAN: (07/12/05, GVG) Consolidating majority of minor/major change checking calls by just a global call.
 Adding tooltip to explain significant vs insignificant changes.
 Another solution for Bug #428: change type Type.OBJECTRENAME marked as major.
