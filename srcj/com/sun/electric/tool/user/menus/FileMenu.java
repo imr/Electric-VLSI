@@ -374,11 +374,37 @@ public class FileMenu {
             boolean success = false;
             for (Iterator it = fileURLs.iterator(); it.hasNext(); ) {
                 URL file = (URL)it.next();
-                FileType defType = FileType.DEFAULTLIB;
+                FileType defType = null;
                 String fileName = file.getFile();
                 defType = getLibraryFormat(fileName, defType);
+                if (defType == null) {
+                    // no valid extension, search for file with extension
+                    URL f = TextUtils.makeURLToFile(fileName + "." + FileType.JELIB.getExtensions()[0]);
+                    if (TextUtils.URLExists(f, null)) {
+                        defType = FileType.JELIB;
+                        file = f;
+                    }
+                }
+                if (defType == null) {
+                    // no valid extension, search for file with extension
+                    URL f = TextUtils.makeURLToFile(fileName + "." + FileType.ELIB.getExtensions()[0]);
+                    if (TextUtils.URLExists(f, null)) {
+                        defType = FileType.ELIB;
+                        file = f;
+                    }
+                }
+                if (defType == null) {
+                    // no valid extension, search for file with extension
+                    URL f = TextUtils.makeURLToFile(fileName + "." + FileType.READABLEDUMP.getExtensions()[0]);
+                    if (TextUtils.URLExists(f, null)) {
+                        defType = FileType.READABLEDUMP;
+                        file = f;
+                    }
+                }
+                if (defType == null) defType = FileType.DEFAULTLIB;
                 User.setWorkingDirectory(TextUtils.getFilePath(file));
-                if (openALibrary(file, defType)) success = true;
+                if (openALibrary(file, defType))
+                    success = true;
             }
             if (success) {
                 // close no name library
