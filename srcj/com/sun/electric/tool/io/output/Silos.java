@@ -416,7 +416,7 @@ public class Silos extends Topology
 					continue;
 				}
 
-				if (nodeType.isResistor()) // == PrimitiveNode.Function.RESIST)
+				if (nodeType == PrimitiveNode.Function.RESIST)
 				{
 					// sorry! can't handle the resistive gate yet
 					continue;
@@ -571,8 +571,8 @@ public class Silos extends Topology
 			return ".OR";
 		}
 
-		if (f.isResistor()/* == PrimitiveNode.Function.RESIST*/) return ".RES";
-		if (f.isCapacitor()/* == PrimitiveNode.Function.CAPAC*/) return ".CAP";
+		if (f == PrimitiveNode.Function.RESIST) return ".RES";
+		if (f == PrimitiveNode.Function.CAPAC) return ".CAP";
 
 		if (f == PrimitiveNode.Function.FLIPFLOPRSMS || f == PrimitiveNode.Function.FLIPFLOPRSP) return ".SRPEFF";
 		if (f == PrimitiveNode.Function.FLIPFLOPRSN) return ".SRNEFF";
@@ -602,8 +602,7 @@ public class Silos extends Topology
 			return PrimitiveNode.Function.TRANMOS;
 		if (func == PrimitiveNode.Function.GATEAND || func == PrimitiveNode.Function.GATEOR ||
 			func == PrimitiveNode.Function.GATEXOR || func == PrimitiveNode.Function.BUFFER ||
-			func.isResistor() || // == PrimitiveNode.Function.RESIST ||
-            func.isCapacitor() ||  // == PrimitiveNode.Function.CAPAC ||
+			func == PrimitiveNode.Function.RESIST || func == PrimitiveNode.Function.CAPAC ||
 			func == PrimitiveNode.Function.SOURCE || func == PrimitiveNode.Function.METER ||
 			func == PrimitiveNode.Function.FLIPFLOPRSMS || func == PrimitiveNode.Function.FLIPFLOPRSP || func == PrimitiveNode.Function.FLIPFLOPRSN ||
 			func == PrimitiveNode.Function.FLIPFLOPJKMS || func == PrimitiveNode.Function.FLIPFLOPJKP || func == PrimitiveNode.Function.FLIPFLOPJKN ||
