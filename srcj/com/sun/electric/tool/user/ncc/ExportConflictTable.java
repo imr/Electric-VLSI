@@ -1,4 +1,4 @@
-package com.sun.electric.tool.ncc.ui;
+package com.sun.electric.tool.user.ncc;
 
 import java.awt.Color;
 

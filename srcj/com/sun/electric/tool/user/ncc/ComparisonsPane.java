@@ -21,7 +21,7 @@
 * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 * Boston, Mass 02111-1307, USA.
 */
-package com.sun.electric.tool.ncc.ui;
+package com.sun.electric.tool.user.ncc;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -46,21 +46,24 @@ import javax.swing.border.Border;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.ui.ComparisonsTree.TreeNode;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.ncc.ComparisonsTree.TreeNode;
+import com.sun.electric.tool.user.ncc.NccComparisonMismatches.CellSummary;
 
 class ComparisonsPane extends JSplitPane implements ActionListener {
     
     /* --- constants --- */
     private static final int EMPTY = 0;
-    private static final int EXPORTS = 1;
-    private static final int PARTS_WIRES = 2;
+    private static final int COMP_SUMMARY = 1;
+    private static final int EXPORTS = 2;
+    private static final int PARTS_WIRES = 3;
     private static final int SIZES = 4;
     private static final int EXPORT_ASSERTS = 5;
     private static final int EXPORT_NET_CONF = 6;
@@ -117,7 +120,9 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         JPanel leftPanel = new JPanel(new BorderLayout());
         leftPanel.add(treeLabel, BorderLayout.NORTH);
         leftPanel.setBorder(border);
-        tree = new ComparisonsTree(this, new DefaultMutableTreeNode(treeTitle));
+        TreeNode rootNode = new TreeNode(null, treeTitle, 
+                                          -1, -1, TreeNode.TITLE);
+        tree = new ComparisonsTree(this, new DefaultMutableTreeNode(rootNode));
         leftPanel.add(new JScrollPane(tree), BorderLayout.CENTER);
         setLeftComponent(leftPanel);
     }
@@ -133,7 +138,16 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         unrecognizedMOSPanes = new JScrollPane[mismatches.length];
         sizesPanes = new JPanel[mismatches.length];
         
-        resetRightPane();
+        curEqRecNodes.clear();
+        curEqRecNodesToDisplay.clear();
+        curExlusiveNodes.clear();
+        
+        // display summary of the first comparison
+        int divPos = getDividerLocation();
+        dispOnRight = COMP_SUMMARY;
+        displayComparisonSummary(0);
+        setDividerLocation(divPos);
+
         // update tree
         StringBuffer buf = new StringBuffer(treeTitle + " [");
         if (mismatches.length > ComparisonsTree.MAX_COMP_NODES)
@@ -157,7 +171,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         }
         setRightComponent(rightSplPanes[0]);
         setDividerLocation(divPos);
-        dispOnRight = EMPTY;        
+        dispOnRight = EMPTY;
     }
     
     private JScrollPane getExportsPane(int compNdx) {
@@ -249,6 +263,10 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
             TreeNode exNode = (TreeNode)curExlusiveNodes.firstElement();
             int exType = exNode.type;
             switch (exType) {
+                case TreeNode.COMP_TITLE: 
+                    dispOnRight = COMP_SUMMARY;
+                    displayComparisonSummary(exNode.compNdx);
+                    break;                    
                 case TreeNode.EXPORTS:
                     dispOnRight = EXPORTS;
                     setRightComponent(getExportsPane(exNode.compNdx));
@@ -349,6 +367,36 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         rightSplPane.updateLayout();
     }
 
+    private void displayComparisonSummary(int compNdx) {
+        EquivClassSplitPane rightSplPane = rightSplPanes[0];
+        Cell cells[] = mismatches[compNdx].getCells();
+        CellSummary summary = mismatches[compNdx].getCellSummary();
+        StringBuffer html = new StringBuffer(256);
+        int swap = 0;
+        if (mismatches[compNdx].isSwapCells()) swap = 1;
+        for (int i=0; i<2; i++) {
+            int ndx = (i + swap)%2;
+            StringBuffer curCellText = rightSplPane.getCellPlainTextBuffer(0,ndx);
+            curCellText.setLength(0);
+            html.setLength(0);
+            html.append("<html><FONT SIZE=3><FONT FACE=\"Helvetica, TimesRoman\">");
+            html.append(summary.numParts[ndx] + " Parts<br>"
+                      + summary.numWires[ndx] + " Wires<br>"
+                      + summary.numPorts[ndx] + " Ports");
+            curCellText.append(summary.numParts[ndx] + " Parts" + LSEP
+                             + summary.numWires[ndx] + " Wires" + LSEP
+                             + summary.numPorts[ndx] + " Ports");
+            html.append("</font></html>");
+            rightSplPane.setCellText(0, ndx, html.toString());
+
+            CellName cellName = cells[i].getCellName();
+            String name = "  Summary of " + cellName.getName() + " {" 
+                        + cellName.getView().getAbbreviation() + "}";
+            rightSplPane.setLabelText(0, ndx, name);
+        }
+        setRightComponent(rightSplPane);
+    }
+    
     void highlight(int index) {
         int recNdx = index/100000;
         int cellNdx = (index/10000)%10;

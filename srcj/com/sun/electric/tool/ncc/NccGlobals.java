@@ -48,7 +48,7 @@ import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
-import com.sun.electric.tool.ncc.ui.NccComparisonMismatches;
+import com.sun.electric.tool.user.ncc.NccComparisonMismatches;
 
 /**
  * Generate non-recurring random integers

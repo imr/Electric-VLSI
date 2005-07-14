@@ -21,31 +21,21 @@
 * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 * Boston, Mass 02111-1307, USA.
 */
-package com.sun.electric.tool.ncc.ui;
+package com.sun.electric.tool.user.ncc;
 
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Frame;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.beans.PropertyVetoException;
 import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.KeyStroke;
 
 import com.sun.electric.Main;
 import com.sun.electric.tool.ncc.NccOptions;
-import com.sun.electric.tool.user.menus.MenuBar;
 import com.sun.electric.tool.user.ui.TopLevel;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 /**
  * This is the top-level class of NCC GUI. 
@@ -138,9 +128,9 @@ public class NccMsgsFrame {
                 try { 
                     jif.setSelected(true);
                 } catch (PropertyVetoException e) {}
-                jif.grabFocus();
             }
-            jif.toFront();      
+            jif.toFront();
+            jif.requestFocusInWindow();
         } else {
             JFrame jf = (JFrame)frame;
             jf.setState(Frame.NORMAL);
@@ -154,6 +144,7 @@ public class NccMsgsFrame {
                 if (!Main.BATCHMODE) jf.setVisible(true);
             } 
             jf.toFront();
+            jf.requestFocus();
         }
     }
 }

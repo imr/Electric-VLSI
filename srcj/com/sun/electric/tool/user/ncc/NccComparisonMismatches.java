@@ -21,7 +21,7 @@
 * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 * Boston, Mass 02111-1307, USA.
 */
-package com.sun.electric.tool.ncc.ui;
+package com.sun.electric.tool.user.ncc;
    
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -54,6 +54,7 @@ public class NccComparisonMismatches {
     /** Names of the two cells     */   private String[] cellNames;
     /** The two cells              */   private Cell[] cells;
     /** Contexts of the two cells  */   private VarContext[] contexts;
+    /** Summary of the two cells   */   private CellSummary summary;
     
     /** Export mismatches          */   private List exportMismatches;
     /** Part/Wire mismatches (local partitioning) */
@@ -119,6 +120,10 @@ public class NccComparisonMismatches {
             for (Iterator it=wires.getNotMatched(); it.hasNext(); i++)
                 hashMismEqvRecrds[i] = (EquivRecord)it.next();
         }
+        
+        summary = new CellSummary(globals.getPartCounts(),
+                                  globals.getPortCounts(),
+                                  globals.getWireCounts());
     }
     
     /**
@@ -172,6 +177,15 @@ public class NccComparisonMismatches {
         return contexts;
     }
 
+    /**
+     * This method returns a CellSummary object holding number of parts, 
+     * wires, and ports in each cell. 
+     * @return a CellSummary with summary of the compared cells
+     */    
+    public CellSummary getCellSummary() {
+        return summary;
+    }    
+    
     /**
      * This method adds the provided ExportMismatch object to the list 
      * of export mismatches
@@ -249,8 +263,10 @@ public class NccComparisonMismatches {
         this.sizeMismatches = sizeMismatches;
     }
     
-    public void addExportAssertionFailure(Cell cell, VarContext context, Object[][] items) {
-        exportAssertionFailures.add(new ExportAssertionFailures(cell, context, items));
+    public void addExportAssertionFailure(Cell cell, VarContext context, 
+                                          Object[][] items, String[][] names) {
+        exportAssertionFailures.add(
+                new ExportAssertionFailures(cell, context, items, names));
     }
     public List getExportAssertionFailures() {
         return exportAssertionFailures;
@@ -274,5 +290,15 @@ public class NccComparisonMismatches {
     }
     public List getUnrecognizedMOSes() {
         return unrecognizedMOSes;
-    }    
+    }
+    
+    static class CellSummary {
+        /* arrays of Part, Port, Wire counts. One array element per Circuit */
+        public final int[] numParts, numPorts, numWires;
+        public CellSummary(int[] parts, int[] ports, int[] wires) {
+            numParts = parts;
+            numPorts = ports;
+            numWires = wires;
+        }
+    } 
 }

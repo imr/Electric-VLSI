@@ -21,7 +21,7 @@
 * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 * Boston, Mass 02111-1307, USA.
 */
-package com.sun.electric.tool.ncc.ui;
+package com.sun.electric.tool.user.ncc;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -37,6 +37,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.HyperlinkEvent;
@@ -178,10 +179,8 @@ class EquivClassSplitPane extends JSplitPane implements HyperlinkListener {
     }
     public void setCellText(int row, int col, String text) {
         if (col < 0 || col > 1 || row < 0 || row > numRows-1) return;
-        if (text.length() > 0) {
-            cells[row][col].setText(text);
-            cells[row][col].moveCaretPosition(0);
-        }
+        cells[row][col].setText(text);        
+        SwingUtilities.invokeLater(new CaretUpdate(cells[row][col]));        
     }
     
     public void updateLayout() {
@@ -219,6 +218,12 @@ class EquivClassSplitPane extends JSplitPane implements HyperlinkListener {
             parent.showCellPopup(epane.getPlainTextBuffer().toString(),
                                  e.getComponent(), e.getX(), e.getY());
         }
+    }
+    
+    private static class CaretUpdate implements Runnable {
+        private CellEditorPane cell;
+        public CaretUpdate(CellEditorPane c) { cell = c; }
+        public void run() { cell.moveCaretPosition(0); }
     }
 }
 

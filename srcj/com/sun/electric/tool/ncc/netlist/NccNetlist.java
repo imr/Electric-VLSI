@@ -58,9 +58,9 @@ import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
-import com.sun.electric.tool.ncc.ui.ExportConflict;
-import com.sun.electric.tool.ncc.ui.NccComparisonMismatches;
-import com.sun.electric.tool.ncc.ui.UnrecognizedMOS;
+import com.sun.electric.tool.user.ncc.ExportConflict;
+import com.sun.electric.tool.user.ncc.NccComparisonMismatches;
+import com.sun.electric.tool.user.ncc.UnrecognizedMOS;
 
 /**
  * NCC's representation of a netlist.
@@ -521,22 +521,25 @@ class Visitor extends HierarchyEnumerator.Visitor {
 
         NccComparisonMismatches cm = globals.getComparisonResult();
         Object[][] items = new Object[wireToExportGlobals.keySet().size()][];
+        String[][] names = new String[wireToExportGlobals.keySet().size()][];
         int j = 0;
 		for (Iterator it=wireToExportGlobals.keySet().iterator(); it.hasNext(); j++) {
 			HashSet exportGlobals = (HashSet) wireToExportGlobals.get(it.next());
            
             items[j] = new Object[exportGlobals.size()];
+            names[j] = new String[exportGlobals.size()];
             int i = 0;
 			// The GUI should put the following on one line
 			for (Iterator it2=exportGlobals.iterator(); it2.hasNext(); i++) {
 				ExportGlobal eg = (ExportGlobal) it2.next();
+                names[j][i] = eg.name;
 				if (eg.isExport())
 					items[j][i] = eg.getExport();
 				else
                     items[j][i] = eg.network;
 			}
 		}
-        cm.addExportAssertionFailure(cell,context,items);
+        cm.addExportAssertionFailure(cell,context,items, names);
 	}
 	private void matchExports(HashMap wireToExportGlobals, NamePattern pattern,
 							  NccCellInfo info) {

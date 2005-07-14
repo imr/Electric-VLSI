@@ -34,8 +34,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
-import com.sun.electric.tool.ncc.ui.NccMsgsFrame;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.ncc.NccMsgsFrame;
 
 /* Implements NCC's user interface */
 public class NccJob extends Job {

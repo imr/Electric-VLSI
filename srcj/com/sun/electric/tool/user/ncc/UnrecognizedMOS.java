@@ -1,4 +1,4 @@
-package com.sun.electric.tool.ncc.ui;
+package com.sun.electric.tool.user.ncc;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;

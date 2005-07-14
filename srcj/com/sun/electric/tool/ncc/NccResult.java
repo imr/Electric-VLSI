@@ -27,7 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.sun.electric.database.hierarchy.HierarchyEnumerator.NetNameProxy;
-import com.sun.electric.tool.ncc.ui.NccComparisonMismatches;
+import com.sun.electric.tool.user.ncc.NccComparisonMismatches;
 
 /** The result of running a netlist comparison */
 public class NccResult {

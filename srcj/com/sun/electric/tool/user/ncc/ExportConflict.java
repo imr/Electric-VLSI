@@ -1,11 +1,10 @@
-package com.sun.electric.tool.ncc.ui;
+package com.sun.electric.tool.user.ncc;
 
 import java.util.Iterator;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 
 public abstract class ExportConflict {

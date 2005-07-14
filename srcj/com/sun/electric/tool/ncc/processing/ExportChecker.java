@@ -43,7 +43,7 @@ import com.sun.electric.tool.ncc.netlist.Port;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
-import com.sun.electric.tool.ncc.ui.ExportMismatch;
+import com.sun.electric.tool.user.ncc.ExportMismatch;
 
 public class ExportChecker {
 	/** a Port that doesn't match by name */

@@ -21,11 +21,12 @@
 * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
 * Boston, Mass 02111-1307, USA.
 */
-package com.sun.electric.tool.ncc.ui;
+package com.sun.electric.tool.user.ncc;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.AdjustmentEvent;
@@ -45,9 +46,6 @@ import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyledDocument;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
@@ -61,10 +59,12 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
     public static final int MAXROWS = 200;
     private static final Border border = BorderFactory.createEmptyBorder();
     private static final Insets insets = new Insets(0,0,0,0);
+    private static final int HALF_INF = Integer.MAX_VALUE/2;
     
     // GUI variables
     private Dimension dimErrCol, dimWidCol, dimLenCol;
     private JScrollPane headScrPane;
+    private Color bkgndColor;
     
     // data holders
     private NccComparisonMismatches result;
@@ -98,8 +98,8 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
             lenColWidth = Math.max(lenColWidth, len+1);
         }
         dimErrCol = new Dimension(errColWidth*7, 20);        
-        dimWidCol = new Dimension(widColWidth*7, 32);
-        dimLenCol = new Dimension(lenColWidth*7, 32);
+        dimWidCol = new Dimension(widColWidth*7, 16);
+        dimLenCol = new Dimension(lenColWidth*7, 16);
         
         // create scroll pane with rows 
         JSeparator sep = new JSeparator(SwingConstants.HORIZONTAL);
@@ -125,7 +125,7 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         sbar.setValue(sbar.getMinimum());
         
         // fill main container with header panel, separator, and scroll pane
-        JPanel header = createHeader();
+        JPanel header = createRow(-1);
         Dimension dim = header.getPreferredSize();
         dim.width = maxRowWid;
         header.setPreferredSize(dim);
@@ -146,179 +146,190 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         setBorder(border);
     }
 
-    private JPanel createHeader() {
-        // create the main container of this row
-        JPanel row = new JPanel(new BorderLayout());
-        Color bkgndColor = row.getBackground();
+//    private JPanel createHeader() {
+//        // create the main container of this row
+//        JPanel row = new JPanel(new BorderLayout());
+//        bkgndColor = row.getBackground();
+//        
+//        // create panel with relative error title
+//        JLabel errLabel = new JLabel("Error,%");
+//        errLabel.setHorizontalAlignment(SwingConstants.TRAILING);
+//        errLabel.setMinimumSize(dimErrCol);
+//        errLabel.setMaximumSize(dimErrCol);
+//        errLabel.setPreferredSize(dimErrCol);
+//        errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
+//        errLabel.setBorder(border);
         
-        // create panel with relative error title
-        JLabel errLabel = new JLabel("Error,%");
-        errLabel.setHorizontalAlignment(SwingConstants.TRAILING);
-        errLabel.setMinimumSize(dimErrCol);
-        errLabel.setMaximumSize(dimErrCol);
-        errLabel.setPreferredSize(dimErrCol);
-        errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
-        errLabel.setBorder(border);
-        
-        // set up the panel with numeric information (error, width, length)
-        JPanel leftPanel = new JPanel();
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.X_AXIS));
-        leftPanel.add(Box.createHorizontalStrut(4));
-        leftPanel.add(errLabel);
-        leftPanel.add(Box.createHorizontalStrut(1));
-        leftPanel.add(new JSeparator(SwingConstants.VERTICAL));
-        leftPanel.add(Box.createHorizontalStrut(5));
-        
-        // create pane with width data
-        String params = "W1 <br>W2 ";
-        JEditorPane widPane = createParamPane(params, false, dimWidCol); 
-        widPane.setBackground(bkgndColor);
-        leftPanel.add(widPane);
-        leftPanel.add(Box.createHorizontalStrut(5));
-        
-        // create pane with length data
-        params = "L1 <br>L2 ";
-        JEditorPane lenPane = createParamPane(params, false, dimLenCol); 
-        lenPane.setBackground(bkgndColor);
-        leftPanel.add(lenPane);
-        leftPanel.add(Box.createHorizontalStrut(10));
-        
-        // add numeric pane to the main container
-        row.add(leftPanel, BorderLayout.WEST);
-        // create and add the pane with clickable names 
-        String titles[] = result.getNames();
-        System.out.println("sizes = " + titles[0] + "  " + titles[1]);
-        
-        String descr[] = {"Name in " + titles[0].substring(titles[0].length()-5, titles[0].length()), 
-                          "Name in " + titles[1].substring(titles[1].length()-5, titles[1].length()),};
-        JEditorPane namesPane = createNamesPane(descr, -1);
-        namesPane.setBackground(bkgndColor);
-        row.add(namesPane, BorderLayout.CENTER);
-
-        // restrict height of the row
-        Dimension dim = new Dimension(row.getPreferredSize());
-        dim.width = Integer.MAX_VALUE;
-        row.setMaximumSize(dim);
-        row.setAlignmentX(LEFT_ALIGNMENT);
-        row.setAlignmentY(TOP_ALIGNMENT);
-        return row;
-    }
+//        // set up the panel with numeric information (error, width, length)
+//        JPanel leftPanel = new JPanel();
+//        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.X_AXIS));
+//        leftPanel.add(Box.createHorizontalStrut(4));
+//        leftPanel.add(errLabel);
+//        leftPanel.add(Box.createHorizontalStrut(1));
+//        leftPanel.add(new JSeparator(SwingConstants.VERTICAL));
+//        leftPanel.add(Box.createHorizontalStrut(5));
+//        
+//        // create pane with width data
+//        String params[] = {"W1","W2"};
+//        JPanel widBox = createParamPane(params, false, dimWidCol);
+//        leftPanel.add(widBox);
+//        leftPanel.add(Box.createHorizontalStrut(5));
+//        
+//        // create pane with length data
+//        params[0] = "L1"; params[1] = "L2";
+//        JPanel lenBox = createParamPane(params, false, dimLenCol); 
+//        leftPanel.add(lenBox);
+//        leftPanel.add(Box.createHorizontalStrut(10));
+//        
+//        // add numeric pane to the main container
+//        row.add(leftPanel, BorderLayout.WEST);
+//        // create and add the pane with clickable names 
+//        String titles[] = result.getNames();
+//        System.out.println("sizes = " + titles[0] + "  " + titles[1]);
+//        
+//        String descr[] = {"Name in " + titles[0].substring(titles[0].length()-5, titles[0].length()), 
+//                          "Name in " + titles[1].substring(titles[1].length()-5, titles[1].length()),};
+//        JEditorPane namesPane = createNamesPane(descr, -1);
+//        namesPane.setBackground(bkgndColor);
+//        row.add(namesPane, BorderLayout.CENTER);
+//
+//        // restrict height of the row
+//        Dimension dim = new Dimension(row.getPreferredSize());
+//        dim.width = Integer.MAX_VALUE;
+//        row.setMaximumSize(dim);
+//        row.setAlignmentX(LEFT_ALIGNMENT);
+//        row.setAlignmentY(TOP_ALIGNMENT);
+//        return row;
+//    return null;
+//    }
     
     private JPanel createRow(int rowNdx) {
-        if (rowNdx < 0) return createHeader();
+        //if (rowNdx < 0) return createHeader();
         
         // create the main container of this row
         JPanel row = new JPanel(new BorderLayout());
-        row.setBackground(Color.WHITE);
-        
-        int firstCellNdx = 0;
-        if (result.isSwapCells()) firstCellNdx = 1;
-        if (mismatches[rowNdx].minNdx == firstCellNdx) {
-            moses[rowNdx][0] = mismatches[rowNdx].minMos;
-            moses[rowNdx][1] = mismatches[rowNdx].maxMos;
+        String relErr;        
+        if (rowNdx < 0) {
+            bkgndColor = row.getBackground();
+            relErr = "Error,%";
         } else {
-            moses[rowNdx][1] = mismatches[rowNdx].minMos;
-            moses[rowNdx][0] = mismatches[rowNdx].maxMos;
+            bkgndColor = Color.WHITE;
+            row.setBackground(bkgndColor);
+            int firstCellNdx = 0;
+            if (result.isSwapCells()) firstCellNdx = 1;
+            if (mismatches[rowNdx].minNdx == firstCellNdx) {
+                moses[rowNdx][0] = mismatches[rowNdx].minMos;
+                moses[rowNdx][1] = mismatches[rowNdx].maxMos;
+            } else {
+                moses[rowNdx][1] = mismatches[rowNdx].minMos;
+                moses[rowNdx][0] = mismatches[rowNdx].maxMos;
+            }
+            if (mismatches[rowNdx].relErr()*100<.1)
+                relErr = "< 0.01";
+            else
+                relErr = NccUtils.round(mismatches[rowNdx].relErr()*100, 1) + "";            
         }
         
         // create panel with relative error value
-        String relErr;
-        if (mismatches[rowNdx].relErr()*100<.1)
-            relErr = "< 0.01";
-        else
-            relErr = NccUtils.round(mismatches[rowNdx].relErr()*100, 1) + "";            
         JLabel errLabel = new JLabel(relErr);
-        errLabel.setHorizontalAlignment(SwingConstants.TRAILING);
+        errLabel.setHorizontalAlignment(SwingConstants.RIGHT);
         errLabel.setMinimumSize(dimErrCol);
         errLabel.setMaximumSize(dimErrCol);
         errLabel.setPreferredSize(dimErrCol);
         errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
         errLabel.setBorder(border);
+
+        // set up the panel with error label and curcuit-specific data
+        JPanel errPanel = new JPanel();
+        errPanel.setLayout(new BoxLayout(errPanel, BoxLayout.X_AXIS));
+        errPanel.add(Box.createHorizontalStrut(4));
+        errPanel.add(errLabel);
+        errPanel.add(Box.createHorizontalStrut(4));
+        errPanel.add(new JSeparator(SwingConstants.VERTICAL));
+        errPanel.add(Box.createHorizontalStrut(2));
+        errPanel.setBackground(bkgndColor);
         
-        // set up the panel with numeric information (error, width, length)
-        JPanel leftPanel = new JPanel();
-        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.X_AXIS));
-        leftPanel.setBackground(Color.WHITE);            
-        leftPanel.add(errLabel);
-        leftPanel.add(Box.createHorizontalStrut(5));
-        leftPanel.add(new JSeparator(SwingConstants.VERTICAL));
-        leftPanel.add(Box.createHorizontalStrut(5));
-        
-        // create pane with width data
-        boolean red = mismatches[rowNdx] instanceof StratCheckSizes.WidthMismatch;
-        String params = NccUtils.round(moses[rowNdx][0].getWidth(),2) + "<br>" 
-                      + NccUtils.round(moses[rowNdx][1].getWidth(),2) + " ";
-        leftPanel.add(createParamPane(params, red, dimWidCol));
-        leftPanel.add(Box.createHorizontalStrut(5));
-        
-        // create pane with length data
-        red = mismatches[rowNdx] instanceof StratCheckSizes.LengthMismatch;
-        params = NccUtils.round(moses[rowNdx][0].getLength(),2) + " <br>" 
-               + NccUtils.round(moses[rowNdx][1].getLength(),2) + " ";
-        leftPanel.add(createParamPane(params, red, dimLenCol));
-        leftPanel.add(Box.createHorizontalStrut(10));
-        
+        // set up the panel with two rows: one per curcuit
+        Box subRowsPanel = new Box(BoxLayout.Y_AXIS);
+        Dimension paramDims[] = {dimWidCol, dimLenCol};
+        String params[] = new String[2];
+        for (int line=0; line<2; line++) {
+            String name;
+            if (rowNdx < 0) {
+                params[0] = "Wid";
+                params[1] = "Len";
+                String titles[] = result.getNames();
+                name = "Name in " + titles[line].substring(titles[line].length()-4, 
+                                                           titles[line].length()-1);
+            } else {
+                params[0] = NccUtils.round(moses[rowNdx][line].getWidth(),2) + ""; 
+                params[1] = NccUtils.round(moses[rowNdx][line].getLength(),2) + "";
+                name = moses[rowNdx][line].instanceDescription();
+            }
+            JPanel subRow = createSubRow(params, paramDims, name, rowNdx, line);
+            subRow.setBackground(bkgndColor);
+            subRowsPanel.add(subRow);
+        }
+
         // add numeric pane to the main container
-        row.add(leftPanel, BorderLayout.WEST);
-        // create and add the pane with clickable names 
-        String descr[] = {moses[rowNdx][0].instanceDescription(), 
-                          moses[rowNdx][1].instanceDescription()};
-        row.add(createNamesPane(descr, rowNdx), BorderLayout.CENTER);
+        row.add(errPanel, BorderLayout.WEST);
+        row.add(subRowsPanel, BorderLayout.CENTER);
         
         // restrict height of the row
         Dimension dim = new Dimension(row.getPreferredSize());
-        dim.width = Integer.MAX_VALUE;
+        dim.width = HALF_INF;
         row.setMaximumSize(dim);
         row.setAlignmentX(LEFT_ALIGNMENT);
         row.setAlignmentY(TOP_ALIGNMENT);
         return row;
     }
-    
-    private JEditorPane createParamPane(String params, boolean red, Dimension dimen) {
-        StringBuffer text = new StringBuffer(64);
-        text.append("<html><font size=3><font face=\"Helvetica, TimesRoman\">");            
-        if (red)
-            text.append("<font color=\"red\">");
-        text.append(params); 
-        if (red)
-            text.append("</font>");
-        text.append("</font></html>");            
-        JEditorPane pane = new JEditorPane();
-        pane.setEditable(false);
-        pane.setContentType("text/html"); 
-        pane.setText(text.toString());
-        pane.setMargin(insets);
-        pane.setMinimumSize(dimen);
-        pane.setMaximumSize(dimen);
-        pane.setPreferredSize(dimen);
-        StyledDocument doc = (StyledDocument)pane.getDocument();
-        SimpleAttributeSet attr = new SimpleAttributeSet();
-        StyleConstants.setAlignment(attr, StyleConstants.ALIGN_RIGHT);
-        doc.setParagraphAttributes(0, doc.getLength(), attr, false);
-        return pane;
+       
+    private JPanel createSubRow(String params[], Dimension paramDims[],
+                                String name, int rowNdx, int lineNdx) {
+        //StringBuffer text = new StringBuffer(64);
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        panel.setBorder(border);
+        panel.setBackground(bkgndColor);
+        for (int i=0; i<2; i++) {
+            JLabel label = new JLabel(params[i]);
+            label.setHorizontalAlignment(SwingConstants.TRAILING);
+            label.setFont(new Font("Helvetica", Font.PLAIN, 12));
+            if (rowNdx >= 0) {  // if not header
+                boolean red = 
+                    (i == 0 && mismatches[rowNdx] instanceof StratCheckSizes.WidthMismatch) ||
+                    (i == 1 && mismatches[rowNdx] instanceof StratCheckSizes.LengthMismatch); 
+                if (red)
+                    label.setForeground(Color.RED);
+            }
+            label.setBorder(border);
+            label.setMinimumSize(paramDims[i]);
+            label.setMaximumSize(paramDims[i]);
+            label.setPreferredSize(paramDims[i]);
+            panel.add(label);
+        }
+        panel.add(Box.createHorizontalStrut(10));
+        panel.add(createNamePane(name, rowNdx, lineNdx));
+        return panel;
     }
 
-    private JEditorPane createNamesPane(String[] descr, int rowNdx) {
+    private JEditorPane createNamePane(String name, int rowNdx, int lineNdx) {
         StringBuffer text = new StringBuffer(128);
         String href = "<a style=\"text-decoration: none\" href=\"";
         text.append("<html><font size=3><font face=\"Helvetica, TimesRoman\">");
         if (rowNdx < 0) // used for header
-            text.append(descr[0] + "<br>" + descr[1]);
+            text.append(name);
         else {
-            for (int i=0; i<2; i++) {
-                // drop "Part:" or "Wire:" prefices
-                if (descr[i].startsWith("Wire: ") || descr[i].startsWith("Part: "))
-                    descr[i] = descr[i].substring(6);
-                // drop "Cell instance:" info
-                int ind = descr[i].indexOf(" Cell instance:");
-                if (ind > 0) descr[i] = descr[i].substring(0, ind).trim();
-                // drop {sch} or {lay} suffices
-                if (descr[i].endsWith("{sch}") || descr[i].endsWith("{lay}"))
-                    descr[i] = descr[i].substring(0, descr[i].length()-5);
-                
-                text.append(href + (rowNdx*10+i) +"\">"+ descr[i] +"</a>");
-                if (i==0) text.append("<br>");
-            }
+            // drop "Part:" or "Wire:" prefices
+            if (name.startsWith("Wire: ") || name.startsWith("Part: "))
+                name = name.substring(6);
+            // drop "Cell instance:" info
+            int ind = name.indexOf(" Cell instance:");
+            if (ind > 0) name = name.substring(0, ind).trim();
+            // drop {sch} or {lay} suffices
+            if (name.endsWith("{sch}") || name.endsWith("{lay}"))
+                name = name.substring(0, name.length()-5);
+            
+            text.append(href + (rowNdx*10+lineNdx) +"\">"+ name +"</a>");
         }
         text.append("</font></html>");
         
@@ -347,8 +358,8 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         int row = index/10;
         int col = index%2;
         Mos mos = moses[row][col];
-        Cell cell = result.getCells()[col];
-        VarContext context = result.getContexts()[col];
+        Cell cell = mos.getNameProxy().leafCell();
+        VarContext context = mos.getNameProxy().getContext();
         
         // find the highlighter corresponding to the cell
         Highlighter highlighter = HighlightTools.getHighlighter(cell, context);
