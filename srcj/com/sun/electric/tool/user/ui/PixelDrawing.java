@@ -1230,6 +1230,9 @@ public class PixelDrawing
 		if (srcOffscreen == null) return;
 		Dimension dim = srcOffscreen.sz;
 
+        if (numLayerBitMaps != srcOffscreen.numLayerBitMaps)
+            System.out.println("Possible mixture of technologies");
+
 		// copy the opaque and transparent layers
 		for(int srcY=0; srcY<dim.height; srcY++)
 		{
@@ -1247,6 +1250,8 @@ public class PixelDrawing
 					opaqueData[destBase + destX] = srcColor;
 				for(int i=0; i<numLayerBitMaps; i++)
 				{
+                    // out of range. Possible mixture of technologies.
+                    if (i >= srcOffscreen.numLayerBitMaps) break;
 					byte [][] srcLayerBitMap = srcOffscreen.layerBitMaps[i];
 					if (srcLayerBitMap == null) continue;
 					byte [] srcRow = srcLayerBitMap[srcY];
