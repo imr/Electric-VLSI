@@ -722,7 +722,7 @@ public class IOTool extends Listener
 
 	/****************************** EDIF PREFERENCES ******************************/
 
-	private static Pref cacheEDIFUseSchematicView = Pref.makeBooleanPref("EDIFUseSchematicView", IOTool.tool.prefs, false);
+	private static Pref cacheEDIFUseSchematicView = Pref.makeBooleanPref("EDIFUseSchematicView", IOTool.tool.prefs, true);
 	/**
 	 * Method to tell whether EDIF uses the schematic view.
 	 * The default is "false".
@@ -735,7 +735,7 @@ public class IOTool extends Listener
 	 */
 	public static void setEDIFUseSchematicView(boolean f) { cacheEDIFUseSchematicView.setBoolean(f); }
 
-	private static Pref cacheEDIFInputScale = Pref.makeDoublePref("EDIFInputScale", IOTool.tool.prefs, 1);
+	private static Pref cacheEDIFInputScale = Pref.makeDoublePref("EDIFInputScale", IOTool.tool.prefs, 0.1);
 	/**
 	 * Method to return the EDIF input scale.
 	 * The default is "1".
