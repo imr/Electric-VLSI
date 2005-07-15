@@ -167,7 +167,7 @@ public class DumpHeap {
                     
                     handler(cls.getComponentType());
                     handler(cls.getSuperclass());
-                    handler(cls.getEnclosingClass());
+//                    handler(cls.getEnclosingClass());
                     for (int i = 0; i < cd.staticFields.length; i++) {
                         Field f = cd.staticFields[i];
                         handler(f.get(null));

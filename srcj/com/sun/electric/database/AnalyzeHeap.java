@@ -24,12 +24,7 @@
 
 package com.sun.electric.database;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -245,7 +240,7 @@ public class AnalyzeHeap {
     
     private void dump(String dumpName) {
         try {
-            PrintWriter out = new PrintWriter(dumpName);
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(dumpName)));
             for (int h = 0; h < objs.size(); h++) {
                 MyObject obj = (MyObject)objs.get(h);
                 if (obj == null) continue;
@@ -264,7 +259,7 @@ public class AnalyzeHeap {
                 out.println();
             }
             out.close();
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
