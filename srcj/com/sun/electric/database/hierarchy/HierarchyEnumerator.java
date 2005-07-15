@@ -32,6 +32,8 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.generator.layout.LayoutLib; 
 
 import java.awt.geom.AffineTransform;
@@ -42,7 +44,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-//import java.util.Map;
 
 /** The HierarchyEnumerator can help programs that need to "flatten"
  * the design hierarchy. Examples of such programs include the logical
@@ -119,16 +120,60 @@ public final class HierarchyEnumerator {
 		public Cell leafCell() {return nodable.getParent();}
 		public Nodable getNodable() {return nodable;}
 	}
+    /**
+     * Class describes which nets in a Cell are (recursively) shortened by
+     * resistors. The new number of nodes is "externalIds + localIds".
+     * "externalIds" are connected to exports or globals, "localIds" are not.
+     * "ne
+     */
+    private static class CellShorts {
+        /** The Cell */
+        private Cell cell;
+        /** Number of new nets connected to exports and globals. */
+        int totalIds;
+        /** Map from old net indices to new nets.
+         * Extrenal nets are negative numbers form -1 to -externalIds.
+         * Local nets are natural numbers from 0 to localIds-1.
+         */
+        int[] net2id;
+        /** Temporary array for inherited nets
+         */
+        int[] externalIds;
+        
+        private CellShorts(Cell cell, int numNets) {
+            this.cell = cell;
+            net2id = new int[numNets];
+            for (int i = 0; i < numNets; i++) net2id[i] = i;
+        }
+        private void connect(int netIndex1, int netIndex2) {
+            Netlist.connectMap(net2id, netIndex1, netIndex2);
+        }
+        private void fixup(int numExternalsInMap) {
+            int numExternals = 0;
+            for (int i = 0; i < net2id.length; i++) {
+                int id = net2id[i];
+                assert id <= i;
+                if (id < i) {
+                    net2id[i] = net2id[id];
+                    continue;
+                }
+                net2id[i] = totalIds++;
+                if (i < numExternalsInMap)
+                    numExternals++;
+            }
+            externalIds = new int[numExternals];
+        }
+    }
 	// --------------------- private data ------------------------------
 	private Visitor visitor;
+    private boolean shortResistors;
+    private boolean shortPolyResistors;
 	private boolean caching;
 	private int cellCnt = 0; // For statistics
 	private int instCnt = 0; // For statistics
 
-	private Global.Set rootGlobals;
 	private List netIdToNetDesc = new ArrayList();
-	// All netIDs between 0 and largestGlobalNetID are global nets
-	private int largestGlobalNetID = -1;
+    private HashMap/*<Cell,CellShorts>*/cellShortsMap = new HashMap/*<Cell,CellShorts>*/();
 
 	private static void error(boolean pred, String msg) {
 		LayoutLib.error(pred, msg);
@@ -137,13 +182,71 @@ public final class HierarchyEnumerator {
 	// Prevent anyone from instantiating HierarchyEnumerator.
 	private HierarchyEnumerator() {	};
 
-	private int nextNetID() { return netIdToNetDesc.size(); }
+    private CellShorts getShortened(Cell cell, Netlist netlist) {
+        CellShorts shorts = (CellShorts)cellShortsMap.get(cell);
+        if (shorts != null) return shorts;
+
+        shorts = new CellShorts(cell, netlist.getNumNetworks());
+
+        for (Iterator it = netlist.getNodables(); it.hasNext();) {
+			Nodable ni = (Nodable)it.next();
+			NodeProto np = ni.getProto();
+			if (np instanceof Cell && !((Cell)np).isIcon()) {
+                Cell subCell = (Cell)np;
+                CellShorts subShorts = getShortened(subCell, netlist.getNetlist(ni));
+                Netlist subNetlist = netlist.getNetlist(ni);
+                int[] externalIds = subShorts.externalIds;
+                Arrays.fill(externalIds, -1);
+                
+        		Global.Set gs = subNetlist.getGlobals();
+                for (int i = 0, numGlobals = gs.size(); i < numGlobals; i++) {
+                    Global g = gs.get(i);
+                    Network net = netlist.getNetwork(ni, g);
+                    Network subNet = subNetlist.getNetwork(g);
+                    int extID = subShorts.net2id[subNet.getNetIndex()];
+                    if (externalIds[extID] >= 0)
+                        shorts.connect(net.getNetIndex(), externalIds[extID]);
+                    else
+                        externalIds[extID] = net.getNetIndex();
+                }
+                
+        		for (int i=0, numPorts = subCell.getNumPorts(); i < numPorts; i++) {
+                	Export export = (Export)subCell.getPort(i);
+                    for (int j=0, busWidth = subNetlist.getBusWidth(export); j < busWidth; j++) {
+            			Network net = netlist.getNetwork(ni, export, j);
+                        Network subNet = subNetlist.getNetwork(export, j);
+                        int extID = subShorts.net2id[subNet.getNetIndex()];
+                        if (externalIds[extID] >= 0)
+                            shorts.connect(net.getNetIndex(), externalIds[extID]);
+                        else
+                            externalIds[extID] = net.getNetIndex();
+                    }
+                }
+            }
+			if (np == Schematics.tech.resistorNode) {
+                PrimitiveNode.Function fun = ((NodeInst)ni).getFunction();
+                if (fun == PrimitiveNode.Function.RESIST && shortResistors ||
+                        fun == PrimitiveNode.Function.PRESIST && shortPolyResistors) {
+                    Network net0 = netlist.getNetwork(ni, np.getPort(0), 0);
+                    Network net1 = netlist.getNetwork(ni, np.getPort(1), 0);
+                    shorts.connect(net0.getNetIndex(), net1.getNetIndex());
+                }
+			}
+		}
+        shorts.fixup(netlist.getNumExternalNetworks());
+        cellShortsMap.put(cell, shorts);
+		return shorts;
+	}
+
+    private int nextNetID() { return netIdToNetDesc.size(); }
 
 	private int[] numberNets(Cell cell, Netlist netlist, 
 							 int[][] portNdxToNetIDs, CellInfo info) {
 		int numNets = netlist.getNumNetworks();
+        CellShorts shorts = (CellShorts)cellShortsMap.get(cell);
 		int[] netNdxToNetID = new int[numNets];
-		Arrays.fill(netNdxToNetID, -1);
+        int baseId = nextNetID();
+        Arrays.fill(shorts.externalIds, -1);
 		if (portNdxToNetIDs != null) {
 			assert portNdxToNetIDs.length == cell.getNumPorts() + 1;
 			Global.Set globals = netlist.getGlobals();
@@ -151,7 +254,7 @@ public final class HierarchyEnumerator {
 			for (int i = 0; i < globals.size(); i++) {
 				Global global = globals.get(i);
 				int netIndex = netlist.getNetwork(global).getNetIndex();
-				netNdxToNetID[netIndex] = portNdxToNetIDs[0][i];
+                shorts.externalIds[shorts.net2id[netIndex]] = portNdxToNetIDs[0][i];
 			}
 			for (int i = 0, numPorts = cell.getNumPorts(); i < numPorts; i++) {
 				Export export = (Export) cell.getPort(i);
@@ -159,18 +262,25 @@ public final class HierarchyEnumerator {
 				assert ids.length == export.getNameKey().busWidth();
 				for (int j=0; j<ids.length; j++) {
 					int netIndex = netlist.getNetwork(export, j).getNetIndex();
-					netNdxToNetID[netIndex] = ids[j];
+                    shorts.externalIds[shorts.net2id[netIndex]] = ids[j];
 				}
 			}
-		}
+            for (int i = 0; i < shorts.externalIds.length; i++)
+                assert shorts.externalIds[i] >= 0;
+            baseId -= shorts.externalIds.length;
+        }
 		for (int i = 0; i < numNets; i++) {
 			Network net = netlist.getNetwork(i);
-			if (netNdxToNetID[i] >= 0) continue;
-
-			// No netID from export. Allocate a new netID.
-			int netID = nextNetID();
-			netIdToNetDesc.add(new NetDescription(net, info));
-			netNdxToNetID[i] = netID;
+            int localId = shorts.net2id[i];
+            assert baseId + localId <= nextNetID();
+            if (baseId + localId == nextNetID()) {
+                if (portNdxToNetIDs == null && localId < shorts.externalIds.length)
+                    shorts.externalIds[localId] = localId;
+                assert nextNetID() == baseId + localId;
+                netIdToNetDesc.add(new NetDescription(net, info));
+            }
+            int id = localId < shorts.externalIds.length ? shorts.externalIds[localId] : baseId + localId;
+            netNdxToNetID[i] = id;
 		}
 		return netNdxToNetID;
 	}
@@ -200,7 +310,7 @@ public final class HierarchyEnumerator {
 		return netIDs;
 	}
 
-	private int[][] buildPortMap(Netlist netlist, Nodable ni, 
+	private static int[][] buildPortMap(Netlist netlist, Nodable ni, 
 							     int[] netNdxToNetID) {
 		Cell cell = (Cell)ni.getProto();
 		int numPorts = cell.getNumPorts();
@@ -213,19 +323,6 @@ public final class HierarchyEnumerator {
 		return portNdxToNetIDs;
 	}
 
-	private void allocateGlobalNetIDs(CellInfo rootInfo, Netlist rootNetlist) {
-		error(largestGlobalNetID != -1, "already initialized?");
-		for (int i=0; i<rootGlobals.size(); i++) {	
-			Global global = rootGlobals.get(i);
-			error(rootGlobals.indexOf(global)!=i, "bad index?");
-			Network net = rootNetlist.getNetwork(global);
-			int netIndex = net.getNetIndex();
-			if (netIndex <= largestGlobalNetID) continue;
-			assert netIndex == largestGlobalNetID + 1;
-			largestGlobalNetID = netIndex;
-		}
-	}
-
 	/** portNdxToNetIDs translates an Export's index to an array of NetIDs */ 
 	private void enumerateCell(Nodable parentInst, Cell cell,
 	                           VarContext context, Netlist netlist, 
@@ -233,16 +330,12 @@ public final class HierarchyEnumerator {
 		                       AffineTransform xformToRoot, CellInfo parent) {
 		CellInfo info = visitor.newCellInfo();
 
-		// if this is root then allocate netIDs for globals
-		if (parent==null) allocateGlobalNetIDs(info, netlist);
-
 		int firstNetID = nextNetID();
 		int[] netNdxToNetID = numberNets(cell, netlist, portNdxToNetIDs, info);
 		int lastNetIDPlusOne = nextNetID();
 		cellCnt++;
-		info.init(parentInst, cell,	context, netlist, netNdxToNetID, 
-				  portNdxToNetIDs, xformToRoot, netIdToNetDesc, 
-				  largestGlobalNetID, parent);
+		info.init(parentInst, cell,	(CellShorts)cellShortsMap.get(cell), context, netlist, netNdxToNetID, 
+				  portNdxToNetIDs, xformToRoot, netIdToNetDesc, parent);
 
 		boolean enumInsts = visitor.enterCell(info);
 		if (!enumInsts) return;
@@ -283,12 +376,14 @@ public final class HierarchyEnumerator {
 	//  Set up everything for the root cell and then initiate the
 	//  hierarchical traversal.
 	private void doIt(Cell root, VarContext context, Netlist netlist, 
-	                  Visitor visitor, boolean cache) {
+	                  Visitor visitor, boolean shortResistors, boolean shortPolyResistors, boolean cache) {
 		this.visitor = visitor;
+        this.shortResistors = shortResistors;
+        this.shortPolyResistors = shortPolyResistors;
 		this.caching = cache;
 		if (context == null) context = VarContext.globalContext;
 		int[][] exportNdxToNetIDs = null;
-		rootGlobals = netlist.getGlobals();
+        getShortened(root, netlist);
 		enumerateCell(null,	root, context, netlist, exportNdxToNetIDs,
 		              new AffineTransform(), null);
 
@@ -405,30 +500,30 @@ public final class HierarchyEnumerator {
 	public static class CellInfo {
 		private Nodable parentInst;
 		private Cell cell;
+        private CellShorts shorts;
 		private VarContext context;
 		private Netlist netlist;
 		private int[] netNdxToNetID;
 		private int[][] exportNdxToNetIDs;
 		private AffineTransform xformToRoot;
 		private List netIdToNetDesc;
-		private int largestGlobalNetID;
 		private CellInfo parentInfo;
 
 		// package private
-		void init(Nodable parentInst, Cell cell, VarContext context,
+		void init(Nodable parentInst, Cell cell, CellShorts shorts, VarContext context,
 			      Netlist netlist,
 		          int[] netToNetID, int[][] exportNdxToNetIDs, 
 				  AffineTransform xformToRoot, List netIdToNetDesc,	
-				  int largestGlobalNetID, CellInfo parentInfo) {
+				  CellInfo parentInfo) {
 			this.parentInst = parentInst;
 			this.cell = cell;
+            this.shorts = shorts;
 			this.context = context;
 			this.netlist = netlist;
 			this.netNdxToNetID = netToNetID;
 			this.exportNdxToNetIDs = exportNdxToNetIDs;
 			this.xformToRoot = xformToRoot;
 			this.netIdToNetDesc = netIdToNetDesc;
-			this.largestGlobalNetID = largestGlobalNetID;
 			this.parentInfo = parentInfo;
 		}
 		/**
@@ -609,7 +704,7 @@ public final class HierarchyEnumerator {
 				int width = netlist.getBusWidth(e);
 				int[] netIDs = new int[width];
 				for (int i=0; i<width; i++) {
-					netIDs[i] = netlist.getNetwork(e, i).getNetIndex();
+					netIDs[i] = shorts.net2id[netlist.getNetwork(e, i).getNetIndex()];
 				}
 				return netIDs;
 			} else {
@@ -639,10 +734,10 @@ public final class HierarchyEnumerator {
 			return netNdxToNetID[netIndex];
 		}
 		
-		public final boolean isGlobalNet(int netID) {
-			error(netID<0, "negative netIDs are illegal");
-			return netID <= largestGlobalNetID;
-		}
+//		public final boolean isGlobalNet(int netID) {
+//			error(netID<0, "negative netIDs are illegal");
+//			return netID <= largestGlobalNetID;
+//		}
 		
 		/** 
 		 * Get the set of netIDs that are connected to the specified port of
@@ -832,14 +927,14 @@ public final class HierarchyEnumerator {
 	 * during the enumertion of the design hierarchy. */
 	public static void enumerateCell(Cell root, VarContext context, 
 	                                 Netlist netlist, Visitor visitor) {
-		enumerateCell(root, context, netlist, visitor, false);
+		if (netlist == null) netlist = NetworkTool.getUserNetlist(root);
+		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, false, false, false);
 	}
 	/** Experimental. Optionally caches results of variable evaluation. */
-	public static void enumerateCell(Cell root, VarContext context, 
-                                     Netlist netlist, Visitor visitor, 
-									 boolean caching) {
-		if (netlist == null) netlist = NetworkTool.getUserNetlist(root);
-		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, caching);
+	public static void enumerateCell(Cell root, VarContext context,  Visitor visitor,
+									 boolean shortResistors, boolean shortPolyResistors, boolean caching) {
+		Netlist netlist = NetworkTool.getUserNetlist(root);
+		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, shortResistors, shortPolyResistors, caching);
 	}
     /**
      * Method to count number of unique cells in hierarchy.  Useful

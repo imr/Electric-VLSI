@@ -1180,8 +1180,8 @@ class NetSchem extends NetCell {
 
 	private void buildNetworkLists()
 	{
-		netlistF.initNetworks();
-		netlistT.initNetworks();
+		netlistF.initNetworks(equivPortsF.length);
+		netlistT.initNetworks(equivPortsT.length);
 		for (int i = 0; i < globals.size(); i++) {
 			netlistF.getNetworkByMap(i).addName(globals.get(i).getName(), true);
 			netlistT.getNetworkByMap(i).addName(globals.get(i).getName(), true);

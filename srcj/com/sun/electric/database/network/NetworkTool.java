@@ -249,7 +249,7 @@ public class NetworkTool extends Listener
 	public static Netlist acquireUserNetlist(Cell cell) {
 		Netlist netlist = null;
 		try {
-			netlist = getNetlist(cell, isIgnoreResistors());
+			netlist = getNetlist(cell, isIgnoreResistors_());
 		} catch (NetlistNotReady e) {
 		}
 		return netlist;
@@ -263,13 +263,13 @@ public class NetworkTool extends Listener
 	public static Netlist getUserNetlist(Cell cell) {
 		if (Thread.currentThread() == Job.databaseChangesThread) {
 			NetCell netCell = getNetCell(cell);
-			return netCell.getNetlist(isIgnoreResistors());
+			return netCell.getNetlist(isIgnoreResistors_());
 		}
         if (Main.getDebug() && SwingUtilities.isEventDispatchThread())
 		{
 			System.out.println("getUserNetlist() used in GUI thread");
 		}
-		boolean shortResistors = isIgnoreResistors();
+		boolean shortResistors = isIgnoreResistors_();
 		synchronized(mutex) {
 			while (!networksValid) {
 				try {
@@ -628,6 +628,7 @@ public class NetworkTool extends Listener
 	 * @return true if resistors are ignored in the circuit.
 	 */
 	public static boolean isIgnoreResistors() { return cacheIgnoreResistors.getBoolean(); }
+	private static boolean isIgnoreResistors_() { return false; }
 	/**
 	 * Method to set whether resistors are ignored in the circuit.
 	 * When ignored, they appear as a "short", connecting the two sides.

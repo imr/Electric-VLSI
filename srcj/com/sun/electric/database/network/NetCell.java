@@ -94,6 +94,7 @@ class NetCell
 	/** */															private int[] tailConn;
 	/** */															int[] drawns;
 	/** */															int numDrawns;
+    /** */                                                          int numExportedDrawns;
 	/** */															int numConnectedDrawns;
 
 	/** A map from Name to NetName. */								Map netNames = new HashMap();
@@ -439,6 +440,7 @@ class NetCell
 			addToDrawn(export.getOriginalPort());
 			numDrawns++;
 		}
+        numExportedDrawns = numDrawns;
 		for (int i = 0; i < numArcs; i++) {
 			if (drawns[arcsOffset + i] >= 0) continue;
 			ArcInst ai = cell.getArc(i);
@@ -607,7 +609,7 @@ class NetCell
 
 	private void buildNetworkList()
 	{
-		netlist.initNetworks();
+		netlist.initNetworks(numExportedDrawns);
 		Network[] netNameToNet = new Network[netNames.size()];
 		int numPorts = cell.getNumPorts();
 		for (int i = 0; i < numPorts; i++) {
@@ -640,7 +642,7 @@ class NetCell
 				network.addName(ni.getName() + "@" + ni.getProto().getPort(j).getName(), false);
 			}
 		}
-		/*
+ 		/*
 		// debug info
 		System.out.println("BuildNetworkList "+this);
 		int i = 0;

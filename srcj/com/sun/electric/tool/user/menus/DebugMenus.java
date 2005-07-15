@@ -24,8 +24,10 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.database.AnalyzeHeap;
 import com.sun.electric.database.Cell_;
 import com.sun.electric.database.DatabaseChangeThread;
+import com.sun.electric.database.DumpHeap;
 import com.sun.electric.database.ImmutableCell;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.Snapshot;
@@ -281,6 +283,10 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { Diode.plotDiode(User.getWorkingDirectory() + File.separator + "diode.raw"); } });
 	    dimaMenu.addMenuItem("Var stat", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { varStatistics(); } });
+	    dimaMenu.addMenuItem("Dump heap", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { DumpHeap.dump("heapdump.dat"); } });
+	    dimaMenu.addMenuItem("Read dump", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { AnalyzeHeap.analyze("heapdump.dat"); } });
 	    dimaMenu.addMenuItem("Transactional", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { transactionalTest(); } });
     }

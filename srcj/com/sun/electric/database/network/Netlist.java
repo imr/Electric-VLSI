@@ -67,6 +67,7 @@ public class Netlist
 
 	/** An array of Networks in this Cell. */
 	private Network[] networks;
+    private int numExternalNets;
 
 	// ---------------------- package methods -----------------
 
@@ -90,7 +91,7 @@ public class Netlist
 		nm_net = new int[netMap.length];
 	}
 
-	void initNetworks() {
+	void initNetworks(int numExternalsInMap) {
 		closureMap(netMap);
 		int k = 0;
 		for (int i = 0; i < netMap.length; i++) {
@@ -107,6 +108,8 @@ public class Netlist
 				networks[k] = new Network(this, k);
 				nm_net[i] = k;
 				k++;
+                if (i < numExternalsInMap)
+                    numExternalNets++;
 			} else {
 				nm_net[i] = nm_net[netMap[i]];
 			}
@@ -124,7 +127,7 @@ public class Netlist
 	/**
 	 * Merge classes of equivalence map to which elements a1 and a2 belong.
 	 */
-	private static void connectMap(int[] map, int a1, int a2)
+	public static void connectMap(int[] map, int a1, int a2)
 	{
 		int m1, m2, m;
 
@@ -248,6 +251,16 @@ public class Netlist
 	public int getNumNetworks() {
 		checkForModification();
 		return networks.length;
+	}
+
+	/**
+	 * Get number of networks in this Netlist, which are
+     * connected to exports or globals.
+	 * @return number of external networks in this Netlist.
+	 */
+	public int getNumExternalNetworks() {
+		checkForModification();
+		return numExternalNets;
 	}
 
 	/**

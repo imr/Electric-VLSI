@@ -1444,4 +1444,54 @@ public class GenMath
         return num;
     }
 
+    /**
+     ** Method to return a prime number greater or equal than a give threshold.
+     * It is possible for every "int" threshold because Integer.MAX_VALUE is
+     * a prime number. Prime number is choosen from a table based on table from
+     * Knuth's book.
+     * @param x threshold
+     * @return a prime number
+     */
+    public static int primeSince(int x) {
+        int i = 0;
+        while (prime[i] < x)
+            i++;
+        return prime[i];
+    }
+
+    /**
+     * Prime numbers from Knuth's book.
+     **/
+    private static final int[] prime = {
+        (1 << 2) - 1,
+        (1 << 3) - 1,
+        (1 << 4) - 3,
+        (1 << 5) - 1,
+        (1 << 6) - 3,
+        (1 << 7) - 1,
+        (1 << 8) - 5,
+        (1 << 9) - 3,
+        (1 << 10) - 3,
+        (1 << 11) - 9,
+        (1 << 12) - 3,
+        (1 << 13) - 1,
+        (1 << 14) - 3,
+        (1 << 15) - 19,
+        (1 << 16) - 15,
+        (1 << 17) - 1,
+        (1 << 18) - 5,
+        (1 << 19) - 1,
+        (1 << 20) - 3,
+        (1 << 21) - 9,
+        (1 << 22) - 3,
+        (1 << 23) - 15,
+        (1 << 24) - 3,
+        (1 << 25) - 39,
+        (1 << 26) - 5,
+        (1 << 27) - 39,
+        (1 << 28) - 57,
+        (1 << 29) - 3,
+        (1 << 30) - 35,
+        (1 << 31) - 1
+    };    
 }
