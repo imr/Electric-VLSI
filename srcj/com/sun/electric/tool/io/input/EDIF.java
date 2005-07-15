@@ -45,7 +45,8 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.Layer;import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.ArcProto;
 
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -818,6 +819,7 @@ public class EDIF extends Input
 	private double convertTextSize(double textHeight)
 	{
 		double i = textHeight / 4;
+        if (i >= 0 && i < 2) i = 2;
 		if (i < 0) i = 4;
 		return i;
 	}
