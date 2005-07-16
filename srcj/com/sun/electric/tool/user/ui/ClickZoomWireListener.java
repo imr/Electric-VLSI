@@ -893,6 +893,9 @@ public class ClickZoomWireListener
             mouseOverHighlighter.copyState(tempHighlighter);
             mouseOverHighlighter.finished();
         }
+        // JFluid results.
+        tempHighlighter.delete();  // remove from database
+        tempHighlighter = null;
     }
     
     public void mouseClicked(MouseEvent e) {

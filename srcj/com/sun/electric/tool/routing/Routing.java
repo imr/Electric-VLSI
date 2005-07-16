@@ -146,6 +146,8 @@ public class Routing extends Listener
 		{
 			AutoStitch.autoStitch(false, false);
 		}
+        // JFluid results
+        current = null;
 	}
 
 	/**
