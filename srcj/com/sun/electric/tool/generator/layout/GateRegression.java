@@ -112,14 +112,20 @@ public class GateRegression extends Job {
             stdCell.setMaxMosWidth(1000);
         } else {
             Tech.setTechnology(Tech.MOCMOS);
-            stdCell = new StdCellParams(scratchLib, Tech.MOCMOS);
-            stdCell.enableNCC("purpleFour");
-            stdCell.setSizeQuantizationError(0.05);
-            stdCell.setMaxMosWidth(1000);
-            stdCell.setVddY(21);
-            stdCell.setGndY(-21);
-            stdCell.setNmosWellHeight(49);
-            stdCell.setPmosWellHeight(49);
+            // Test the parameters used by divider
+        	stdCell = GateLayoutGenerator.dividerParams(scratchLib);
+
+        	stdCell.setSizeQuantizationError(0.05);
+        	stdCell.setSimpleName(false);
+
+//        	stdCell = new StdCellParams(scratchLib, Tech.MOCMOS);
+//            stdCell.enableNCC("purpleFour");
+//            stdCell.setSizeQuantizationError(0.05);
+//            stdCell.setMaxMosWidth(1000);
+//            stdCell.setVddY(21);
+//            stdCell.setGndY(-21);
+//            stdCell.setNmosWellHeight(84);
+//            stdCell.setPmosWellHeight(84);
         }
 
 		// a normal run

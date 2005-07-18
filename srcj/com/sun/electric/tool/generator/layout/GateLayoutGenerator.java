@@ -72,7 +72,8 @@ public class GateLayoutGenerator extends Job {
             stdCell = sportParams(outLib);
         } else {
             Tech.setTechnology(Tech.MOCMOS);
-            stdCell = locoParams(outLib);
+            //stdCell = locoParams(outLib);
+            stdCell = dividerParams(outLib);
         }
 
 		GenerateLayoutForGatesInSchematic visitor =
@@ -85,7 +86,7 @@ public class GateLayoutGenerator extends Job {
 		return outLib;
 	}
 	
-	private static StdCellParams locoParams(Library outLib) {
+	public static StdCellParams locoParams(Library outLib) {
 		StdCellParams stdCell = new StdCellParams(outLib, Tech.MOCMOS);
 		stdCell.enableNCC("purpleFour");
 		stdCell.setSizeQuantizationError(0);
@@ -109,6 +110,19 @@ public class GateLayoutGenerator extends Job {
         stdCell.setSimpleName(true);
         return stdCell;
     }
+
+	public static StdCellParams dividerParams(Library outLib) {
+		StdCellParams stdCell = new StdCellParams(outLib, Tech.MOCMOS);
+		stdCell.enableNCC("purpleFour");
+		stdCell.setSizeQuantizationError(0);
+		stdCell.setMaxMosWidth(1000);
+		stdCell.setVddY(21);
+		stdCell.setGndY(-21);
+		stdCell.setNmosWellHeight(84);
+		stdCell.setPmosWellHeight(84);
+		stdCell.setSimpleName(true);
+		return stdCell;
+	}
 
 	public boolean doIt() {
 		String outLibNm = "autoGenLib";

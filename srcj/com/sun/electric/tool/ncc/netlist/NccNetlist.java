@@ -90,11 +90,10 @@ public class NccNetlist {
 			parts = v.getPartList();
 			ports = v.getPortList();
 			exportAssertionFailures = v.exportAssertionFailures();
+			badTransistorType = v.badTransistorType();
 		} catch (RuntimeException e) {
 			if (e instanceof ExportGlobalConflict) {
 				exportGlobalConflicts = true;
-			} else if (e instanceof BadTransistorType) {
-				badTransistorType = true;
 			} else {
 				throw e;
 			}
@@ -115,7 +114,6 @@ public class NccNetlist {
 }
 
 class ExportGlobalConflict extends RuntimeException {}
-class BadTransistorType extends RuntimeException {}
 
 /** map from netID to NCC Wire */
 class Wires {
@@ -293,6 +291,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	 * remove it whenever I build Parts or Wires. */
 	private final String pathPrefix;
 	private boolean exportAssertionFailures = false;
+	private boolean badTransistorType = false;
 	private int depth = 0;
 
 	/** map from netID to Wire */	 
@@ -419,12 +418,12 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		}
 		Mos.Type t = Mos.TYPES.getTypeFromLongName(typeNm);
 		if (t==null) {
+			badTransistorType = true;
 			prln("  Unrecognized transistor type: "+typeNm);
 			
 			// GUI
 			globals.getComparisonResult().addUnrecognizedMOS(
                     new UnrecognizedMOS(ni.getParent(), info.getContext(), typeNm, ni));
-			throw new BadTransistorType();
 		}
 		return t;
 	}
@@ -442,8 +441,11 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		Wire g = getWireForPortInst(ni.getTransistorGatePort(), info);
 		Wire d = getWireForPortInst(ni.getTransistorDrainPort(), info);
 		Mos.Type type = getMosType(ni, info);
-		Part t = new Mos(type, name, width, length, s, g, d);
-		parts.add(t);								 
+		// if unrecognized transistor type then ignore Mos
+		if (type!=null) {
+			Part t = new Mos(type, name, width, length, s, g, d);
+			parts.add(t);
+		}
 	}
 	private void buildBipolar(NodeInst ni, NccCellInfo info) {
 		NodableNameProxy np = info.getUniqueNodableNameProxy(ni, "/");
@@ -674,11 +676,10 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	public ArrayList getWireList() {return wires.getWireArray();}
 	public ArrayList getPartList() {return parts;}
 	public ArrayList getPortList() {return ports;}
-	/**
-	 * Ensure that all subcircuits we instantiate have valid exportsConnectedByParent assertions.
-	 * If not then this netlist isn't valid.
-	 */
+	/** Ensure that all subcircuits we instantiate have valid exportsConnectedByParent assertions.
+	 * If not then this netlist isn't valid. */
 	public boolean exportAssertionFailures() {return exportAssertionFailures;}
+	public boolean badTransistorType() {return badTransistorType;}
 	
 	public Visitor(NccGlobals globals, 
 	               HierarchyInfo hierarchicalCompareInfo,
