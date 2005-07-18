@@ -43,8 +43,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -296,7 +294,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             inode.remove(parts);
         else {
             StringBuffer buf = new StringBuffer("Parts ");
-            if (isHashChecked) buf.append("(hashcode) ");
+            if (isHashChecked) buf.append("(hash code) ");
             buf.append("[");
             if (truncated) buf.append("first " + MAX_CLASSES + " of ");
             buf.append((count) + "]");
@@ -366,13 +364,13 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             inode.remove(wires);
         else {
             StringBuffer buf = new StringBuffer("Wires ");
-            if (isHashChecked) buf.append("(hashcode) ");
+            if (isHashChecked) buf.append("(hash code) ");
             buf.append("[");
             if (truncated) buf.append("first " + MAX_CLASSES + " of ");
             buf.append((count) + "]");
             wiresNode.setFullName(buf.toString());
             wirePanels[compNdx] = new JPanel[count];
-            wireLabels[compNdx] = new JLabel[count][4];
+            wireLabels[compNdx] = new JLabel[count][5];
         }
     } 
     
@@ -427,17 +425,21 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             if (selected) {
                 wirePanels[compNdx][wclass].setBackground(
                         defCellRenderer.getBackgroundSelectionColor());
-                for (int i=0; i<4; i++)
+                for (int i=1; i<5; i++)
                     wireLabels[compNdx][wclass][i].setForeground(
                         defCellRenderer.getTextSelectionColor());
             } else {
                 wirePanels[compNdx][wclass].setBackground(
                         defCellRenderer.getBackgroundNonSelectionColor());
-                for (int i=0; i<4; i++)
+                for (int i=1; i<5; i++)
                     wireLabels[compNdx][wclass][i].setForeground(
                         defCellRenderer.getTextNonSelectionColor());                        
             }
-            
+            if (!node.isLeaf())
+                if (expanded)
+                    wireLabels[compNdx][wclass][0].setIcon(defCellRenderer.getDefaultOpenIcon());
+                else
+                    wireLabels[compNdx][wclass][0].setIcon(defCellRenderer.getDefaultClosedIcon());
             return wirePanels[compNdx][wclass];
         }
         if (defCellRenderer == null)
@@ -450,8 +452,8 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         int compNdx = data.compNdx;
         EquivRecord[] mismEqRecs = mismatches[compNdx].getMismatchedEquivRecords();
         int count = 0, len = wirePanels[compNdx].length;
-        int maxWidth0 = 0, maxWidth1 = 0, maxWidth2 = 0;
-        JLabel labels[] = new JLabel[4];
+        int maxWidth1 = 0, maxWidth2 = 0, maxWidth3 = 0;
+        JLabel labels[] = new JLabel[5];
 
         for (int i=0; i<mismEqRecs.length; i++) {
             if (mismEqRecs[i].getNetObjType() != NetObject.Type.WIRE) continue;
@@ -471,7 +473,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                     if (ind > 0) descr[cell] = descr[cell].substring(0, ind).trim();
                     // limit name length
                     if (descr[cell].length() > MAX_NAME_LEN)
-                        descr[cell] = descr[cell].substring(0, MAX_NAME_LEN);
+                        descr[cell] = descr[cell].substring(0, MAX_NAME_LEN) + "...";
                     if (it2.hasNext())
                         descr[cell] = "{ " + descr[cell] + ",...}";
                     else
@@ -481,49 +483,53 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                 
             }
             
-            StringBuffer lab3Name = new StringBuffer(24);
-            lab3Name.append("[");
+            StringBuffer lab4Name = new StringBuffer(24);
+            lab4Name.append("[");
             if (mismEqRecs[i].maxSize() > MAX_LIST_ELEMENTS)
-                lab3Name.append("first " + MAX_LIST_ELEMENTS + " of ");
-            lab3Name.append(mismEqRecs[i].maxSize() + "]");
+                lab4Name.append("first " + MAX_LIST_ELEMENTS + " of ");
+            lab4Name.append(mismEqRecs[i].maxSize() + "]");
 
-            labels[0] = new JLabel("#" + count + " :");
-            maxWidth0 = Math.max(labels[0].getPreferredSize().width, maxWidth0);
-            labels[0].setBorder(BorderFactory.createEmptyBorder());            
+            labels[0] = new JLabel(defCellRenderer.getDefaultLeafIcon());
+            labels[0].setBorder(BorderFactory.createEmptyBorder());
             
-            labels[1] = new JLabel(descr[0]);
+            labels[1] = new JLabel(" #" + count + " :");
             maxWidth1 = Math.max(labels[1].getPreferredSize().width, maxWidth1);
-            labels[1].setBorder(BorderFactory.createEmptyBorder());
-
-            labels[2] = new JLabel(descr[1]);
+            labels[1].setBorder(BorderFactory.createEmptyBorder());            
+            
+            labels[2] = new JLabel(descr[0]);
             maxWidth2 = Math.max(labels[2].getPreferredSize().width, maxWidth2);
             labels[2].setBorder(BorderFactory.createEmptyBorder());
 
-            labels[3] = new JLabel(lab3Name.toString());
+            labels[3] = new JLabel(descr[1]);
+            maxWidth3 = Math.max(labels[3].getPreferredSize().width, maxWidth3);
             labels[3].setBorder(BorderFactory.createEmptyBorder());
+
+            labels[4] = new JLabel(lab4Name.toString());
+            labels[4].setBorder(BorderFactory.createEmptyBorder());
             
             JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-            panel.add(labels[0]);
-            panel.add(labels[1]);
-            panel.add(labels[2]);
-            panel.add(labels[3]);
             panel.setBorder(BorderFactory.createEmptyBorder());
             panel.setBackground(Color.WHITE);
-            
-            wirePanels[compNdx][count-1] = panel;
-            for (int j=0; j<4; j++)
+            wirePanels[compNdx][count-1] = panel;            
+            for (int j=0; j<5; j++) {
+                panel.add(labels[j]);
                 wireLabels[compNdx][count-1][j] = labels[j];
+            }
+//            wireLabels[compNdx][count-1][0] = labels[0];
+//            panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+//            panel.add(labels[0]);  // add icon
+//            panel.add(wirePanels[compNdx][count-1]);  // add text panel
         }
         if (count > 0) {
-            int height = wireLabels[compNdx][0][0].getPreferredSize().height;
+            int height = wireLabels[compNdx][0][1].getPreferredSize().height;
             Dimension dim[] = new Dimension[3];
-            dim[0] = new Dimension(maxWidth0 + 5, height);
-            dim[1] = new Dimension(maxWidth1 + 10, height);
-            dim[2] = new Dimension(maxWidth2 + 10, height);
+            dim[0] = new Dimension(maxWidth1 + 5, height);
+            dim[1] = new Dimension(maxWidth2 + 10, height);
+            dim[2] = new Dimension(maxWidth3 + 10, height);
             for (int i=0; i<count; i++)
                 for (int j=0; j<3; j++) {
-                    wireLabels[compNdx][i][j].setMinimumSize(dim[j]);
-                    wireLabels[compNdx][i][j].setPreferredSize(dim[j]);
+                    wireLabels[compNdx][i][j+1].setMinimumSize(dim[j]);
+                    wireLabels[compNdx][i][j+1].setPreferredSize(dim[j]);
                 }
         }
     }

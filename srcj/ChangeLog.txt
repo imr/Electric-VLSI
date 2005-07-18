@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
+IMP: (07/18/05, IM) NCC GUI: icons for wire class nodes in the tree
+
 IMP: (07/15/05, DN) HierarchyEnumerator can shorten resistors.
 
 IMP: (07/15/05, DN) "DumpHeap" and "AnalyzeHeap" commands in DebugMenus

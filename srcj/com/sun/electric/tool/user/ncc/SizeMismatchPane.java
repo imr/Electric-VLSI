@@ -145,64 +145,7 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         add(bodyScrPane, BorderLayout.CENTER);
         setBorder(border);
     }
-
-//    private JPanel createHeader() {
-//        // create the main container of this row
-//        JPanel row = new JPanel(new BorderLayout());
-//        bkgndColor = row.getBackground();
-//        
-//        // create panel with relative error title
-//        JLabel errLabel = new JLabel("Error,%");
-//        errLabel.setHorizontalAlignment(SwingConstants.TRAILING);
-//        errLabel.setMinimumSize(dimErrCol);
-//        errLabel.setMaximumSize(dimErrCol);
-//        errLabel.setPreferredSize(dimErrCol);
-//        errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
-//        errLabel.setBorder(border);
-        
-//        // set up the panel with numeric information (error, width, length)
-//        JPanel leftPanel = new JPanel();
-//        leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.X_AXIS));
-//        leftPanel.add(Box.createHorizontalStrut(4));
-//        leftPanel.add(errLabel);
-//        leftPanel.add(Box.createHorizontalStrut(1));
-//        leftPanel.add(new JSeparator(SwingConstants.VERTICAL));
-//        leftPanel.add(Box.createHorizontalStrut(5));
-//        
-//        // create pane with width data
-//        String params[] = {"W1","W2"};
-//        JPanel widBox = createParamPane(params, false, dimWidCol);
-//        leftPanel.add(widBox);
-//        leftPanel.add(Box.createHorizontalStrut(5));
-//        
-//        // create pane with length data
-//        params[0] = "L1"; params[1] = "L2";
-//        JPanel lenBox = createParamPane(params, false, dimLenCol); 
-//        leftPanel.add(lenBox);
-//        leftPanel.add(Box.createHorizontalStrut(10));
-//        
-//        // add numeric pane to the main container
-//        row.add(leftPanel, BorderLayout.WEST);
-//        // create and add the pane with clickable names 
-//        String titles[] = result.getNames();
-//        System.out.println("sizes = " + titles[0] + "  " + titles[1]);
-//        
-//        String descr[] = {"Name in " + titles[0].substring(titles[0].length()-5, titles[0].length()), 
-//                          "Name in " + titles[1].substring(titles[1].length()-5, titles[1].length()),};
-//        JEditorPane namesPane = createNamesPane(descr, -1);
-//        namesPane.setBackground(bkgndColor);
-//        row.add(namesPane, BorderLayout.CENTER);
-//
-//        // restrict height of the row
-//        Dimension dim = new Dimension(row.getPreferredSize());
-//        dim.width = Integer.MAX_VALUE;
-//        row.setMaximumSize(dim);
-//        row.setAlignmentX(LEFT_ALIGNMENT);
-//        row.setAlignmentY(TOP_ALIGNMENT);
-//        return row;
-//    return null;
-//    }
-    
+  
     private JPanel createRow(int rowNdx) {
         //if (rowNdx < 0) return createHeader();
         
@@ -334,6 +277,7 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         text.append("</font></html>");
         
         JEditorPane pane = new JEditorPane();
+        pane.setBackground(bkgndColor);
         pane.setEditable(false);
         pane.addHyperlinkListener(this);
         pane.setContentType("text/html");
