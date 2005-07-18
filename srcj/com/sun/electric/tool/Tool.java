@@ -24,7 +24,6 @@
 package com.sun.electric.tool;
 
 import com.sun.electric.database.network.NetworkTool;
-import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.tool.compaction.Compaction;
