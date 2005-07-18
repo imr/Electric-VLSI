@@ -3012,7 +3012,7 @@ public class Technology implements Comparable
      */
     protected void setFactoryResolution(double factory)
     {
-        prefResolution = Pref.makeDoublePref("ResolutionValue", prefs, factory);
+        prefResolution = Pref.makeDoublePref("ResolutionValueFor"+techName, prefs, factory);
     }
 
     /**
