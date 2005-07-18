@@ -188,7 +188,7 @@ public class Quick
 		/** rotation of cell instance 2 */				int rot2;
 		/** mirroring of cell instance 2 */				boolean mirrorX2, mirrorY2;
 		/** distance from instance 1 to instance 2 */	double dx, dy;
-        /** the two NodeInst parents */                 NodeInst n1Parent, n2Parent;
+        /** the two NodeInst parents */                 NodeInst n1Parent, n2Parent, triggerNi;
 	};
 	private List instanceInteractionList = new ArrayList();
 
@@ -988,7 +988,7 @@ public class Quick
 			if (!(oNi.getProto() instanceof Cell)) continue;
 
 			// see if this configuration of instances has already been done
-			if (checkInteraction(ni, null, oNi, null)) continue;
+			if (checkInteraction(ni, null, null, oNi, null, null)) continue;
 
 			// found other instance "oNi", look for everything in "ni" that is near it
 			Rectangle2D nearNodeBounds = oNi.getBounds();
@@ -999,7 +999,7 @@ public class Quick
 				nearNodeBounds.getHeight() + worstInteractionDistance*2);
 
 			// recursively search instance "ni" in the vicinity of "oNi"
-			boolean ret = checkCellInstContents(subBounds, ni, upTrans, localIndex, oNi, null, globalIndex);
+			boolean ret = checkCellInstContents(subBounds, ni, upTrans, localIndex, oNi, null, globalIndex, null);
 			if (ret) errorFound = true;
 		}
 		return errorFound;
@@ -1012,7 +1012,7 @@ public class Quick
 	 * which has global index "topGlobalIndex".
 	 */
 	private boolean checkCellInstContents(Rectangle2D bounds, NodeInst thisNi, AffineTransform upTrans, int globalIndex,
-                                          NodeInst oNi, NodeInst oNiParent, int topGlobalIndex)
+                                          NodeInst oNi, NodeInst oNiParent, int topGlobalIndex, NodeInst triggerNi)
 	{
         // Job aborted or scheduled for abort
 		if (job != null && job.checkAbort()) return true;
@@ -1042,7 +1042,7 @@ public class Quick
 				if (np instanceof Cell)
 				{
                     // see if this configuration of instances has already been done
-                    if (checkInteraction(ni, thisNi, oNi, oNiParent)) continue;  // Jan 27'05. Removed on May'05
+                    if (checkInteraction(ni, thisNi, upTrans, oNi, oNiParent, triggerNi)) continue;  // Jan 27'05. Removed on May'05
                     // You can't discard by interaction becuase two cells could be visited many times
                     // during this type of checking
 
@@ -1054,7 +1054,8 @@ public class Quick
 					int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 
 					// changes Sept04: subBound by bb
-					boolean ret = checkCellInstContents(bb, ni, subUpTrans, localIndex, oNi, oNiParent, topGlobalIndex);
+					boolean ret = checkCellInstContents(bb, ni, subUpTrans, localIndex, oNi, oNiParent, topGlobalIndex,
+                            (triggerNi==null)?ni:triggerNi);
 					if (ret)
 					{
 						if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
@@ -2060,7 +2061,7 @@ public class Quick
 				subNodeBounds.getHeight() + worstInteractionDistance*2);
 
 			// recursively search instance "ni" in the vicinity of "oNi"
-			if (checkCellInstContents(subBounds, ni, upTrans, localIndex, oNi, null, globalIndex)) return true;
+			if (checkCellInstContents(subBounds, ni, upTrans, localIndex, oNi, null, globalIndex, null)) return true;
 		}
 		return false;
 	}
@@ -2149,7 +2150,8 @@ public class Quick
 	 * Method to look for an interaction between instances "ni1" and "ni2".  If it is found,
 	 * return TRUE.  If not found, add to the list and return FALSE.
 	 */
-	private boolean checkInteraction(NodeInst ni1, NodeInst n1Parent, NodeInst ni2, NodeInst n2Parent)
+	private boolean checkInteraction(NodeInst ni1, NodeInst n1Parent, AffineTransform n1UpTrans,
+                                     NodeInst ni2, NodeInst n2Parent, NodeInst triggerNi)
 	{
         if (errorTypeSearch == DRC.ERROR_CHECK_EXHAUSTIVE) return false;
 
@@ -2195,6 +2197,7 @@ public class Quick
 		dii.dy = ni2.getAnchorCenterY() - ni1.getAnchorCenterY();
         dii.n1Parent = n1Parent;
         dii.n2Parent = n2Parent;
+        dii.triggerNi = triggerNi;
 
 		// if found, stop now
 		if (findInteraction(dii)) return true;
@@ -2220,7 +2223,13 @@ public class Quick
 				thisII.mirrorY1 == dii.mirrorY1 && thisII.mirrorY2 == dii.mirrorY2 &&
 				thisII.dx == dii.dx && thisII.dy == dii.dy &&
                 thisII.n1Parent == dii.n1Parent && thisII.n2Parent == dii.n2Parent)
-                return true;
+            {
+                if (dii.triggerNi == thisII.triggerNi)
+                {
+//                    System.out.println("NEW case");
+                    return true;
+                }
+            }
 		}
 		return false;
 	}
