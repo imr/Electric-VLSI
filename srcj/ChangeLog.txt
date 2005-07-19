@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
+BUG: (07/19/05, GVG) Wrong object assigned to listener in PaletteFrame when an element from the pulldown
+list was selected and another click was made on the icon (Bug #440)
+FIX: Assign "obj" instead of "np" when listener is not null in PaletteFramce.placeInstance().
+
 BUG: (07/19/05, DN) Layout Poly resistors are always shorted (Bug #439).
 FIX: 1) Set different port topology to "ports of Layout Poly resistor in TSMC90 constructor.
      2) In HierarchyEnumerator distinguish poly resistor by its function

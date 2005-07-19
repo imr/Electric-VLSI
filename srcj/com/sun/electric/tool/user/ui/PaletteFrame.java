@@ -267,7 +267,9 @@ public class PaletteFrame implements MouseListener
 			EventListener oldListener = WindowFrame.getListener();
 			Cursor oldCursor = TopLevel.getCurrentCursor();
 
-			if (whatToCreate != null) System.out.println("Click to create " + whatToCreate); else
+			if (whatToCreate != null)
+                System.out.println("Click to create " + whatToCreate);
+            else
 			{
 				if (np instanceof Cell)
 					System.out.println("Click to create an instance of " + np); else
@@ -276,7 +278,8 @@ public class PaletteFrame implements MouseListener
 			EventListener newListener = oldListener;
 			if (newListener != null && newListener instanceof PlaceNodeListener)
 			{
-				((PlaceNodeListener)newListener).setParameter(np);
+                // It has to be obj so it would remember if element from list was selected.
+				((PlaceNodeListener)newListener).setParameter(obj);
 				((PlaceNodeListener)newListener).makePortWhenCreated(export);
 			} else
 			{
