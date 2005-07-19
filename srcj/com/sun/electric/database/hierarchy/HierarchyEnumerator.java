@@ -223,7 +223,7 @@ public final class HierarchyEnumerator {
                     }
                 }
             }
-			if (np == Schematics.tech.resistorNode) {
+			if (np instanceof PrimitiveNode) {
                 PrimitiveNode.Function fun = ((NodeInst)ni).getFunction();
                 if (fun == PrimitiveNode.Function.RESIST && shortResistors ||
                         fun == PrimitiveNode.Function.PRESIST && shortPolyResistors) {

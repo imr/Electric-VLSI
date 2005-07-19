@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
+BUG: (07/19/05, DN) Layout Poly resistors are always shorted (Bug #439).
+FIX: 1) Set different port topology to "ports of Layout Poly resistor in TSMC90 constructor.
+     2) In HierarchyEnumerator distinguish poly resistor by its function
+
 BUG: (07/18/05, GVG) DRC having problems to detect errors in default mode (one error per node pair) (Bug #421)
 This was already reported in Bug #311 however solution there didn't fix #421.
 FIX: New strategy based on original cell triggering Quick.checkCellInstContents.
