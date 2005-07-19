@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
+BUG: (07/19/05, GVG) Exception in Schematics.getShapeOfNode() if wnd is null due to
+User.isTextVisibilityOnNode()=false (Bug #441)
+FIX: Check if wnd is null before doing wnd.getCell()
+
 BUG: (07/19/05, GVG) Wrong object assigned to listener in PaletteFrame when an element from the pulldown
 list was selected and another click was made on the icon (Bug #440)
 FIX: Assign "obj" instead of "np" when listener is not null in PaletteFramce.placeInstance().
