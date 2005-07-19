@@ -27,6 +27,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -38,11 +39,14 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
+import javax.swing.SwingConstants;
+import javax.swing.border.Border;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -67,11 +71,12 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
     private ComparisonsPane parentPane;
     private DefaultMutableTreeNode root;
     private TreeNode rootTreeNode;
-    private DefaultTreeCellRenderer defCellRenderer;
-    private JPanel wirePanels[][];
-    private JLabel wireLabels[][][];
+    private WireClassNode wireClassNodes[][];
     protected JPopupMenu popup;
     protected String clipboard;
+    protected static DefaultTreeCellRenderer defCellRenderer = 
+                     new DefaultTreeCellRenderer();
+    private static Border border = BorderFactory.createEmptyBorder();
 
     // data holders
     private NccComparisonMismatches[] mismatches;
@@ -98,8 +103,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
     public void update(NccComparisonMismatches[] misms) {
         mismatches = misms;
         root.removeAllChildren();
-        wirePanels = new JPanel[misms.length][];
-        wireLabels = new JLabel[misms.length][][];
+        wireClassNodes = new WireClassNode[misms.length][];
         DefaultMutableTreeNode compNode;
         EquivRecord[] mismEqRecs;
         for (int compNdx = 0; compNdx < mismatches.length 
@@ -224,7 +228,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                                           compNdx, -1, TreeNode.UNRECOG_MOS)));            
         }
         setRootVisible(true);
-        updateUI();        
+        updateUI();      
         expandRow(0);
         expandRow(1);
         setRootVisible(false);
@@ -255,7 +259,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             if (count > MAX_CLASSES) { truncated = true; continue;}
             
             List reasons = mismEqRecs[i].getPartitionReasonsFromRootToMe();
-            StringBuffer nodeName = new StringBuffer("[");
+            StringBuffer nodeName = new StringBuffer("#"+ count + " [");
             if (mismEqRecs[i].maxSize() > MAX_LIST_ELEMENTS)
                 nodeName.append("first " + MAX_LIST_ELEMENTS + " of ");
             nodeName.append(mismEqRecs[i].maxSize() + "]");
@@ -326,6 +330,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             
             wireTreeNode = new TreeNode(compTreeNode, "Wire Class #" + count, 
                                         compNdx, i, type);
+            wireTreeNode.setShortName("Wire Class #" + count);
             wireTreeNode.setWireClassNum(count-1);
             
             eclass = new DefaultMutableTreeNode(wireTreeNode);
@@ -369,8 +374,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             if (truncated) buf.append("first " + MAX_CLASSES + " of ");
             buf.append((count) + "]");
             wiresNode.setFullName(buf.toString());
-            wirePanels[compNdx] = new JPanel[count];
-            wireLabels[compNdx] = new JLabel[count][5];
+            wireClassNodes[compNdx] = new WireClassNode[count];
         }
     } 
     
@@ -417,50 +421,41 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                           int row, boolean hasFocus) {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
         TreeNode data = (TreeNode)node.getUserObject();
-        if (data.type == TreeNode.WIRE) {
-            int compNdx = data.compNdx;
+        int compNdx = data.compNdx;        
+        if (data.type == TreeNode.WIRE && wireClassNodes[compNdx] != null) {
             int wclass = data.getWireClassNum();
-            if (wirePanels[compNdx][wclass] == null)
-                createWireClassPanels(data);
-            if (selected) {
-                wirePanels[compNdx][wclass].setBackground(
-                        defCellRenderer.getBackgroundSelectionColor());
-                for (int i=1; i<5; i++)
-                    wireLabels[compNdx][wclass][i].setForeground(
-                        defCellRenderer.getTextSelectionColor());
-            } else {
-                wirePanels[compNdx][wclass].setBackground(
-                        defCellRenderer.getBackgroundNonSelectionColor());
-                for (int i=1; i<5; i++)
-                    wireLabels[compNdx][wclass][i].setForeground(
-                        defCellRenderer.getTextNonSelectionColor());                        
-            }
+            if (wireClassNodes[compNdx][wclass] == null)
+                createWireClassNodes(data, node.isLeaf());
+            if (selected)
+                wireClassNodes[compNdx][wclass].select();
+            else
+                wireClassNodes[compNdx][wclass].deselect();
             if (!node.isLeaf())
                 if (expanded)
-                    wireLabels[compNdx][wclass][0].setIcon(defCellRenderer.getDefaultOpenIcon());
+                    wireClassNodes[compNdx][wclass].expand();
                 else
-                    wireLabels[compNdx][wclass][0].setIcon(defCellRenderer.getDefaultClosedIcon());
-            return wirePanels[compNdx][wclass];
+                    wireClassNodes[compNdx][wclass].collapse();
+            return wireClassNodes[compNdx][wclass].getPanel();
         }
-        if (defCellRenderer == null)
-            defCellRenderer = new DefaultTreeCellRenderer();
+        
         return defCellRenderer.getTreeCellRendererComponent(tree, value, selected, expanded,
                                                             leaf, row, hasFocus);
     }
     
-    private void createWireClassPanels(TreeNode data) {
+    private void createWireClassNodes(TreeNode data, boolean isLeaf) {
         int compNdx = data.compNdx;
         EquivRecord[] mismEqRecs = mismatches[compNdx].getMismatchedEquivRecords();
-        int count = 0, len = wirePanels[compNdx].length;
-        int maxWidth1 = 0, maxWidth2 = 0, maxWidth3 = 0;
-        JLabel labels[] = new JLabel[5];
-
+        int count = 0, len = wireClassNodes[compNdx].length;
+        int maxWidth0 = 0, maxWidth1 = 0, maxWidth2 = 0, height = 0;
+        Font font = getFont();
+        
         for (int i=0; i<mismEqRecs.length; i++) {
             if (mismEqRecs[i].getNetObjType() != NetObject.Type.WIRE) continue;
             count++;
             // number of classes might have been limited
-            if (count > len) break;            
+            if (count > len) break;
             
+            JLabel labels[] = new JLabel[4];
             String descr[] = new String[2];
             int cell=0;
             for (Iterator it=mismEqRecs[i].getCircuits(); it.hasNext(); cell++) {
@@ -483,54 +478,45 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                 
             }
             
-            StringBuffer lab4Name = new StringBuffer(24);
-            lab4Name.append("[");
+            StringBuffer lab3Name = new StringBuffer(24);
+            lab3Name.append("[");
             if (mismEqRecs[i].maxSize() > MAX_LIST_ELEMENTS)
-                lab4Name.append("first " + MAX_LIST_ELEMENTS + " of ");
-            lab4Name.append(mismEqRecs[i].maxSize() + "]");
+                lab3Name.append("first " + MAX_LIST_ELEMENTS + " of ");
+            lab3Name.append(mismEqRecs[i].maxSize() + "]");
+            StringBuffer name = new StringBuffer(32);
 
-            labels[0] = new JLabel(defCellRenderer.getDefaultLeafIcon());
-            labels[0].setBorder(BorderFactory.createEmptyBorder());
+            labels[0] = new JLabel("#" + count + " : ");
+            labels[0].setHorizontalAlignment(SwingConstants.RIGHT);
+            name.append(labels[0].getText() + " ");
+            maxWidth0 = Math.max(labels[0].getPreferredSize().width, maxWidth0);
             
-            labels[1] = new JLabel(" #" + count + " :");
+            labels[1] = new JLabel(descr[0]);
+            name.append(descr[0] + " ");
             maxWidth1 = Math.max(labels[1].getPreferredSize().width, maxWidth1);
-            labels[1].setBorder(BorderFactory.createEmptyBorder());            
-            
-            labels[2] = new JLabel(descr[0]);
+
+            labels[2] = new JLabel(descr[1]);
+            name.append(descr[1] + " ");
             maxWidth2 = Math.max(labels[2].getPreferredSize().width, maxWidth2);
-            labels[2].setBorder(BorderFactory.createEmptyBorder());
-
-            labels[3] = new JLabel(descr[1]);
-            maxWidth3 = Math.max(labels[3].getPreferredSize().width, maxWidth3);
-            labels[3].setBorder(BorderFactory.createEmptyBorder());
-
-            labels[4] = new JLabel(lab4Name.toString());
-            labels[4].setBorder(BorderFactory.createEmptyBorder());
             
-            JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-            panel.setBorder(BorderFactory.createEmptyBorder());
-            panel.setBackground(Color.WHITE);
-            wirePanels[compNdx][count-1] = panel;            
-            for (int j=0; j<5; j++) {
-                panel.add(labels[j]);
-                wireLabels[compNdx][count-1][j] = labels[j];
+            labels[3] = new JLabel(lab3Name.toString());
+            name.append(labels[3].getText());
+
+            for (int j=0; j<4; j++) {
+                labels[j].setBorder(border);
+                labels[j].setFont(font);                
             }
-//            wireLabels[compNdx][count-1][0] = labels[0];
-//            panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-//            panel.add(labels[0]);  // add icon
-//            panel.add(wirePanels[compNdx][count-1]);  // add text panel
+
+            data.setFullName(name.toString());
+            wireClassNodes[compNdx][count-1] = new WireClassNode(labels, isLeaf);
+            if (count == 1) height = labels[0].getPreferredSize().height;
         }
         if (count > 0) {
-            int height = wireLabels[compNdx][0][1].getPreferredSize().height;
             Dimension dim[] = new Dimension[3];
-            dim[0] = new Dimension(maxWidth1 + 5, height);
-            dim[1] = new Dimension(maxWidth2 + 10, height);
-            dim[2] = new Dimension(maxWidth3 + 10, height);
+            dim[0] = new Dimension(maxWidth0     , height);
+            dim[1] = new Dimension(maxWidth1 + 10, height);
+            dim[2] = new Dimension(maxWidth2 + 10, height);
             for (int i=0; i<count; i++)
-                for (int j=0; j<3; j++) {
-                    wireLabels[compNdx][i][j+1].setMinimumSize(dim[j]);
-                    wireLabels[compNdx][i][j+1].setPreferredSize(dim[j]);
-                }
+                wireClassNodes[compNdx][i].setTextLabelDimension(dim);
         }
     }
     
@@ -598,5 +584,89 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         public TreeNode getParent()       { return parent;       }
         public int      getWireClassNum() { return wireClassNum; }
         public String   toString()        { return fullName;     }
+    }
+    
+    private static class WireClassNode {
+        private JPanel treeNodePanel;
+        private JPanel textPanel;
+        private JLabel iconLabel;
+        private JLabel textLabels[];
+        private boolean isLeaf;        
+        private boolean expanded = false, selected = false;
+        private static boolean inited = false;
+        private static Color selBackgnd, deselBackgnd, selText, deselText;
+        private static Icon leafIcon, openIcon, closedIcon;
+        private static Border border = BorderFactory.createEmptyBorder();
+        
+        public WireClassNode(JLabel labels[], boolean leaf) {
+            if (!inited) init();
+            textLabels = labels;
+            isLeaf = leaf;
+            
+            textPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            textPanel.setBorder(border);
+            textPanel.setBackground(deselBackgnd);
+            for (int j=0; j<4; j++) textPanel.add(textLabels[j]);
+            
+            treeNodePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            treeNodePanel.setBorder(border);
+            treeNodePanel.setBackground(deselBackgnd);
+            if (isLeaf)
+                iconLabel = new JLabel(leafIcon);
+            else
+                iconLabel = new JLabel(closedIcon);
+            iconLabel.setBorder(border);
+            iconLabel.setText(" ");
+            treeNodePanel.add(iconLabel);
+            treeNodePanel.add(textPanel);
+        }
+        
+        /**
+         * Get colors and icons from default renderer
+         * @param renderer  instance of the default tree node renderer 
+         */
+        private static void init() {
+            defCellRenderer = new DefaultTreeCellRenderer();
+            selBackgnd = defCellRenderer.getBackgroundSelectionColor();
+            deselBackgnd = defCellRenderer.getBackgroundNonSelectionColor();
+            selText = defCellRenderer.getTextSelectionColor();
+            deselText = defCellRenderer.getTextNonSelectionColor();
+            leafIcon = defCellRenderer.getDefaultLeafIcon();
+            openIcon = defCellRenderer.getDefaultOpenIcon();
+            closedIcon = defCellRenderer.getDefaultClosedIcon();
+            inited = true;
+        }
+        
+        public void select()   {
+            if (selected) return;
+            textPanel.setBackground(selBackgnd);
+            for (int i=0; i<4; i++) textLabels[i].setForeground(selText);
+            selected = true;
+        }
+        public void deselect() {
+            if (!selected) return;
+            textPanel.setBackground(deselBackgnd);
+            for (int i=0; i<4; i++) textLabels[i].setForeground(deselText);
+            selected = false;
+        }
+        public void expand()   {
+            if (isLeaf || expanded) return;
+            iconLabel.setIcon(openIcon);
+            expanded = true;
+        }
+        public void collapse() {
+            if (isLeaf || !expanded) return;
+            iconLabel.setIcon(closedIcon);
+            expanded = false;
+        }
+
+        public void setTextLabelDimension(Dimension[] dim) {
+            for (int j=0; j<dim.length; j++) {
+                textLabels[j].setMinimumSize(dim[j]);
+                textLabels[j].setPreferredSize(dim[j]);
+            }
+        }
+
+        public JPanel getPanel() { return treeNodePanel; }
     }
 }

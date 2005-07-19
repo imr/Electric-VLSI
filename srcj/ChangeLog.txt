@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
+IMP: (07/19/05, IM) NCC GUI: 
+     1) reworked selection and expansion of wire class tree nodes;
+     2) improved data alignment in size mismatch tables.
+
 BUG: (07/19/05, GVG) Exception in Schematics.getShapeOfNode() if wnd is null due to
 User.isTextVisibilityOnNode()=false (Bug #441)
 FIX: Check if wnd is null before doing wnd.getCell()

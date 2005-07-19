@@ -79,6 +79,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     private String treeTitle = "  Mismatched Comparisons";
     private JLabel treeLabel = new JLabel(treeTitle);
     private ComparisonsTree tree;
+    private JScrollPane treeScrollPane;
     private int dispOnRight = EMPTY;
     
     private static Border border = BorderFactory.createEmptyBorder();
@@ -91,9 +92,9 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     private EquivClassSplitPane rightSplPanes[];
     
     private JPanel sizesPanes[];
-            JPopupMenu treePopup;
-            JPopupMenu cellPopup;
-            String clipboard;
+    protected JPopupMenu treePopup;
+    protected JPopupMenu cellPopup;
+    protected String clipboard;
     
     /* --- Data holders --- */
     private NccComparisonMismatches mismatches[];
@@ -123,7 +124,8 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         TreeNode rootNode = new TreeNode(null, treeTitle, 
                                           -1, -1, TreeNode.TITLE);
         tree = new ComparisonsTree(this, new DefaultMutableTreeNode(rootNode));
-        leftPanel.add(new JScrollPane(tree), BorderLayout.CENTER);
+        treeScrollPane = new JScrollPane(tree);
+        leftPanel.add(treeScrollPane, BorderLayout.CENTER);
         setLeftComponent(leftPanel);
     }
     
@@ -155,6 +157,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         buf.append(mismatches.length + "]");
         treeLabel.setText(buf.toString());
         tree.update(mismatches);
+        treeScrollPane.getVerticalScrollBar().setValue(0);
         getExportsPane(0);  // preload exports of the first comparison
     }
     

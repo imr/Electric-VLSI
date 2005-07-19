@@ -35,6 +35,7 @@ import java.awt.event.AdjustmentListener;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -65,6 +66,7 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
     private Dimension dimErrCol, dimWidCol, dimLenCol;
     private JScrollPane headScrPane;
     private Color bkgndColor;
+    private Font font = new Font("Helvetica", Font.PLAIN, 12);
     
     // data holders
     private NccComparisonMismatches result;
@@ -179,7 +181,7 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         errLabel.setMinimumSize(dimErrCol);
         errLabel.setMaximumSize(dimErrCol);
         errLabel.setPreferredSize(dimErrCol);
-        errLabel.setFont(new Font("Helvetica", Font.PLAIN, 12));
+        errLabel.setFont(font);
         errLabel.setBorder(border);
 
         // set up the panel with error label and curcuit-specific data
@@ -236,7 +238,7 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         for (int i=0; i<2; i++) {
             JLabel label = new JLabel(params[i]);
             label.setHorizontalAlignment(SwingConstants.TRAILING);
-            label.setFont(new Font("Helvetica", Font.PLAIN, 12));
+            label.setFont(font);
             if (rowNdx >= 0) {  // if not header
                 boolean red = 
                     (i == 0 && mismatches[rowNdx] instanceof StratCheckSizes.WidthMismatch) ||
@@ -248,6 +250,11 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
             label.setMinimumSize(paramDims[i]);
             label.setMaximumSize(paramDims[i]);
             label.setPreferredSize(paramDims[i]);
+            if (rowNdx >= 0) {
+                label.setAlignmentY(BOTTOM_ALIGNMENT);
+                label.setVerticalAlignment(SwingConstants.BOTTOM);
+                label.setVerticalTextPosition(SwingConstants.BOTTOM);
+            }            
             panel.add(label);
         }
         panel.add(Box.createHorizontalStrut(10));
@@ -255,25 +262,27 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         return panel;
     }
 
-    private JEditorPane createNamePane(String name, int rowNdx, int lineNdx) {
+    private JComponent createNamePane(String name, int rowNdx, int lineNdx) {
         StringBuffer text = new StringBuffer(128);
-        String href = "<a style=\"text-decoration: none\" href=\"";
+        String href = "<a style=\"text-decoration: none;\" href=\"";
         text.append("<html><font size=3><font face=\"Helvetica, TimesRoman\">");
-        if (rowNdx < 0) // used for header
-            text.append(name);
-        else {
-            // drop "Part:" or "Wire:" prefices
-            if (name.startsWith("Wire: ") || name.startsWith("Part: "))
-                name = name.substring(6);
-            // drop "Cell instance:" info
-            int ind = name.indexOf(" Cell instance:");
-            if (ind > 0) name = name.substring(0, ind).trim();
-            // drop {sch} or {lay} suffices
-            if (name.endsWith("{sch}") || name.endsWith("{lay}"))
-                name = name.substring(0, name.length()-5);
-            
-            text.append(href + (rowNdx*10+lineNdx) +"\">"+ name +"</a>");
-        }
+        if (rowNdx < 0) { // used for header
+            JLabel label = new JLabel(name);
+            label.setFont(font);
+            label.setBorder(border);
+            return label;
+        } 
+        // drop "Part:" or "Wire:" prefices
+        if (name.startsWith("Wire: ") || name.startsWith("Part: "))
+            name = name.substring(6);
+        // drop "Cell instance:" info
+        int ind = name.indexOf(" Cell instance:");
+        if (ind > 0) name = name.substring(0, ind).trim();
+        // drop {sch} or {lay} suffices
+        if (name.endsWith("{sch}") || name.endsWith("{lay}"))
+            name = name.substring(0, name.length()-5);
+        
+        text.append(href + (rowNdx*10+lineNdx) +"\">"+ name +"</a>");
         text.append("</font></html>");
         
         JEditorPane pane = new JEditorPane();
