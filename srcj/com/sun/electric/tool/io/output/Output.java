@@ -86,7 +86,9 @@ public class Output
      */
     public static void exportCellCommand(Cell cell, VarContext context, String filePath, FileType type)
     {
-        new OutputCellInfo(cell, context, filePath, type, true);
+        Job.Type jtype = Job.Type.EXAMINE;
+        if (type == FileType.EDIF) jtype = Job.Type.CHANGE;
+        new OutputCellInfo(cell, context, filePath, type, true, jtype);
     }
 
     static class OrderedConnections implements Comparator
@@ -884,9 +886,9 @@ public class Output
          * @param type the format of the output file.
          * @param startJob to start job immediately
          */
-        public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type, boolean startJob)
+        public OutputCellInfo(Cell cell, VarContext context, String filePath, FileType type, boolean startJob, Job.Type jobType)
         {
-            super("Export "+cell+" ("+type+")", IOTool.getIOTool(), Type.EXAMINE, null, null, Priority.USER);
+            super("Export "+cell+" ("+type+")", IOTool.getIOTool(), jobType, null, null, Priority.USER);
             this.cell = cell;
             this.context = context;
             this.filePath = filePath;
