@@ -29,6 +29,7 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Network;
@@ -44,8 +45,11 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.EdgeH;
+import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.technology.technologies.Artwork;
@@ -60,6 +64,8 @@ import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**
  * This is the netlister for EDIF.
@@ -81,11 +87,16 @@ public class EDIF extends Topology
 	private EGraphic egraphic = EGUNKNOWN;
 	private EGraphic egraphic_override = EGUNKNOWN;
 
-    private int scale = 20;
+    // settings that may later be changed by preferences
     private static final boolean CadenceProperties = true;
+    private static final String primitivesLibName = "elec_prims";
 
+    private int scale = 20;
+    private Library scratchLib;
     private final HashMap libsToWrite; // key is Library, Value is LibToWrite
     private final List libsToWriteOrder; // list of libraries to write, in order
+    // key is PrimitiveNode.Function, value is PrimitiveNodeEquivalence
+    private final HashMap primEquivalences;
 
     private static class LibToWrite {
         private final Library lib;
@@ -106,6 +117,68 @@ public class EDIF extends Topology
             this.cell = cell;
             this.cni = cni;
             this.context = context;
+        }
+    }
+
+/*
+    private static abstract class NodeEquivalence {
+        private final String externalLib;
+        private final String externalCell;
+        private final String externalView;
+        private final List portEquivs;
+        private final int rotation;         // in tenth-degrees, rotate the electric prim by this value to match the cadence prim
+        private NodeEquivalence(String externalLib, String externalCell, String externalView, int rotation) {
+            this.externalLib = externalLib;
+            this.externalCell = externalCell;
+            this.externalView = externalView;
+            this.rotation = rotation;
+            this.portEquivs = new ArrayList();
+        }
+    }
+
+    private static class PortEquivalence {
+        private final String elecPortName;
+        private Point2D elecPortLoc;
+        private final String externalPortName;
+        private Point2D externalPortLoc;
+        private boolean portsSame;
+        private PortEquivalence(String elecPortName, String externalPortName) {
+            this.elecPortName = elecPortName;
+            this.externalPortName = externalPortName;
+            elecPortLoc = externalPortLoc = null;
+            portsSame = true;
+        }
+        private void setPortLoc(Point2D elecPortLoc, Point2D externalPortLoc) {
+            this.elecPortLoc = new Point2D.Double(elecPortLoc.getX(), elecPortLoc.getY());
+            this.externalPortLoc = new Point2D.Double(externalPortLoc.getX(), externalPortLoc.getY());
+            if (elecPortLoc.equals(externalPortLoc))
+                portsSame = true;
+            else
+                portsSame = false;
+        }
+        public boolean isPortsSame() { return portsSame; }
+        public String getElecPortName() { return elecPortName; }
+        public String getExternalPortName() { return externalPortName; }
+        public Point2D getElecPortLoc() { return elecPortLoc; }
+        public Point2D getExternalPortLoc() { return externalPortLoc; }
+    }
+
+*/
+
+    private static class PrimitiveNodeEquivalence {
+        private final PrimitiveNode.Function function;
+        private final PrimitiveNode pn;
+        private final String externalLib;
+        private final String externalCell;
+        private final int rotation;         // in tenth-degrees, rotate the electric prim by this value to match the cadence prim
+        private PrimitiveNodeEquivalence(PrimitiveNode.Function function, PrimitiveNode pn, String externalLib,
+                                         String externalCell, int rotation, HashMap primEquivalences) {
+            this.function = function;
+            this.pn = pn;
+            this.externalLib = externalLib;
+            this.externalCell = externalCell;
+            this.rotation = rotation;
+            primEquivalences.put(function, this);
         }
     }
 
@@ -132,12 +205,24 @@ public class EDIF extends Topology
 	{
         libsToWrite = new HashMap();
         libsToWriteOrder = new ArrayList();
+        primEquivalences = new HashMap();
+        initCadence();
 	}
+
+    private void initCadence() {
+        PrimitiveNodeEquivalence e;
+        e = new PrimitiveNodeEquivalence(PrimitiveNode.Function.TRA4NMOS, Schematics.tech.transistor4Node,
+                "sample", "nfet", -900, primEquivalences);
+        e = new PrimitiveNodeEquivalence(PrimitiveNode.Function.TRA4PMOS, Schematics.tech.transistor4Node,
+                "ELECTRIC_PRIMS", "pfet", -900, primEquivalences);
+    }
 
 	protected void start()
 	{
         // find the edit window
 		String name = makeToken(topCell.getName());
+        scratchLib = Library.newInstance("__edifTemp__", null);
+        scratchLib.setHidden();
 
 		// If this is a layout representation, then create the footprint
 		if (topCell.getView() == View.LAYOUT)
@@ -185,7 +270,7 @@ public class EDIF extends Topology
 		{
 			// write out all primitives used in the library
 			blockOpen("library");
-			blockPutIdentifier("lib0");
+			blockPutIdentifier(primitivesLibName);
 			blockPut("edifLevel", "0");
 			blockOpen("technology");
 			blockOpen("numberDefinition");
@@ -193,6 +278,13 @@ public class EDIF extends Topology
 			{
                 writeScale(Technology.getCurrent());
 			}
+            blockClose("numberDefinition");
+            if (IOTool.isEDIFUseSchematicView())
+            {
+                writeFigureGroup(EGART);
+                writeFigureGroup(EGWIRE);
+                writeFigureGroup(EGBUS);
+            }
 			blockClose("technology");
 			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 			{
@@ -208,15 +300,24 @@ public class EDIF extends Topology
 						fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE ||
 						fun == PrimitiveNode.Function.CONNECT || fun == PrimitiveNode.Function.ART) continue;
 					for (int i = 0; i < mi.intValue(); i++)
-						writePrimitive(np, i, fun);
+						writePrimitive((PrimitiveNode)np, i, fun, null, false);
 				}
 			}
 			blockClose("library");
 
-            // external lib
-/*
+		}
+        // external libs
+        // organize by library
+        List libs = new ArrayList();
+        for (Iterator it = primEquivalences.values().iterator(); it.hasNext(); ) {
+            PrimitiveNodeEquivalence e = (PrimitiveNodeEquivalence)it.next();
+            if (libs.contains(e.externalLib)) continue;
+            libs.add(e.externalLib);
+        }
+        for (Iterator it = libs.iterator(); it.hasNext(); ) {
+            String lib = (String)it.next();
             blockOpen("external");
-            blockPutIdentifier("sample");
+            blockPutIdentifier(lib);
             blockPut("edifLevel", "0");
             blockOpen("technology");
             blockOpen("numberDefinition");
@@ -225,9 +326,14 @@ public class EDIF extends Topology
                 writeScale(Technology.getCurrent());
             }
             blockClose("technology");
-*/
 
-		}
+            for (Iterator it2 = primEquivalences.values().iterator(); it2.hasNext(); ) {
+                PrimitiveNodeEquivalence e = (PrimitiveNodeEquivalence)it2.next();
+                if (lib != e.externalLib) continue;
+                writePrimitive(e.pn, 0, e.function, e.externalCell, true);
+            }
+            blockClose("external");
+        }
 	}
 
     /**
@@ -287,6 +393,8 @@ public class EDIF extends Topology
 
         // clean up
         blockFinish();
+
+        scratchLib.kill("");
 	}
 
     /**
@@ -341,6 +449,11 @@ public class EDIF extends Topology
 		for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
 		{
 			NodeInst no = (NodeInst)nIt.next();
+            if (no.getProto() instanceof Cell) {
+                Cell c = (Cell)no.getProto();
+                if (cell.iconView() == c) continue;         // can't make instance of icon view
+            }
+
 			if (no.getProto() instanceof PrimitiveNode)
 			{
 				PrimitiveNode.Function fun = ((NodeInst)no).getFunction();
@@ -386,6 +499,8 @@ public class EDIF extends Topology
 				blockClose("rename");
 			} else blockPutIdentifier(iname);
 
+            int addedRotation = 0;
+
 			if (no.getProto() instanceof PrimitiveNode)
 			{
 				NodeInst ni = (NodeInst)no;
@@ -393,7 +508,7 @@ public class EDIF extends Topology
 				blockOpen("viewRef");
 				blockPutIdentifier("symbol");
 				blockOpen("cellRef");
-                String lib = "lib0";
+                String lib = primitivesLibName;
 				if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
 				{
 					// count the number of inputs
@@ -406,10 +521,11 @@ public class EDIF extends Topology
 					String name = makeToken(ni.getProto().getName()) + i;
 					blockPutIdentifier(name);
 
-				} else if (fun == PrimitiveNode.Function.TRA4NMOS || fun == PrimitiveNode.Function.TRA4PMOS) {
-                    // NMOS (Complementary) 4-port transistor
-                    blockPutIdentifier(describePrimitive(ni, fun));
-                    lib = "sample";
+				} else if (primEquivalences.containsKey(fun)) {
+                    PrimitiveNodeEquivalence e = (PrimitiveNodeEquivalence)primEquivalences.get(fun);
+                    blockPutIdentifier(e.externalCell);
+                    addedRotation = e.rotation;
+                    lib = e.externalLib;
                 }
                 else {
                     blockPutIdentifier(describePrimitive(ni, fun));
@@ -449,7 +565,7 @@ public class EDIF extends Topology
                 blockOpen("transform");
 
                 // get the orientation (note only support orthogonal)
-                blockPut("orientation", getOrientation(ni));
+                blockPut("orientation", getOrientation(ni, addedRotation));
 
                 // now the origin
                 blockOpen("origin");
@@ -703,18 +819,21 @@ public class EDIF extends Topology
 	 * Method to dump the description of primitive "np" to the EDIF file
 	 * If the primitive is a schematic gate, use "i" as the number of inputs
 	 */
-	private void writePrimitive(NodeProto np, int i, PrimitiveNode.Function fun)
+	private void writePrimitive(PrimitiveNode pn, int i, PrimitiveNode.Function fun, String overrideCellName, boolean externalRef)
 	{
 		// write primitive name
 		if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
 		{
 			blockOpen("cell");
-			String name = makeToken(np.getName()) + i;
+			String name = makeToken(pn.getName()) + i;
 			blockPutIdentifier(name);
 		} else
 		{
 			blockOpen("cell");
-			blockPutIdentifier(makeToken(np.getName()));
+            if (overrideCellName != null)
+                blockPutIdentifier(makeToken(overrideCellName));
+            else
+			    blockPutIdentifier(makeToken(pn.getName()));
 		}
 
 		// write primitive connections
@@ -737,9 +856,9 @@ public class EDIF extends Topology
 			}
 			firstPortIndex = 1;
 		}
-		for(int k=firstPortIndex; k<np.getNumPorts(); k++)
+		for(int k=firstPortIndex; k<pn.getNumPorts(); k++)
 		{
-			PortProto pp = np.getPort(k);
+			PortProto pp = pn.getPort(k);
 			String direction = "input";
 			if (pp.getCharacteristic() == PortCharacteristic.OUT) direction = "output"; else
 				if (pp.getCharacteristic() == PortCharacteristic.BIDIR) direction = "inout";
@@ -748,6 +867,13 @@ public class EDIF extends Topology
 			blockPut("direction", direction);
 			blockClose("port");
 		}
+
+        if (!externalRef) {
+            Cell tempCell = Cell.newInstance(scratchLib, "temp");
+            NodeInst ni = NodeInst.newInstance(pn, new Point2D.Double(0,0), pn.getDefWidth(), pn.getDefHeight(), tempCell);
+            writeSymbol(pn, ni);
+            tempCell.kill();
+        }
 		blockClose("cell");
 	}
 
@@ -816,10 +942,6 @@ public class EDIF extends Topology
 		return primcount;
 	}
 
-    private void writeInstanceRef(NodeInst ni, Library lib) {
-
-    }
-
 	/**
 	 * Method to generate a pt symbol (pt x y)
 	 */
@@ -834,10 +956,13 @@ public class EDIF extends Topology
 	/**
 	 * Method to map Electric orientations to EDIF orientations
 	 */
-	private String getOrientation(NodeInst ni)
+	private String getOrientation(NodeInst ni, int addedRotation)
 	{
 		String orientation = "ERROR";
-		switch (ni.getAngle())
+        int angle = (ni.getAngle() + addedRotation);
+        if (angle < 0) angle = angle + 3600;
+        if (angle > 3600) angle = angle % 3600;
+		switch (angle)
 		{
 			case 0:    orientation = "";       break;
 			case 900:  orientation = "R90";    break;
@@ -1000,6 +1125,47 @@ public class EDIF extends Topology
 		setGraphic(EGUNKNOWN);
 		blockClose("symbol");
 	}
+
+    private void writeSymbol(PrimitiveNode pn, NodeInst ni) {
+        if (pn == null) return;
+
+        blockOpen("symbol");
+        egraphic_override = EGWIRE;
+        egraphic = EGUNKNOWN;
+        for(Iterator it = pn.getPorts(); it.hasNext(); )
+        {
+            PortProto e = (PortProto)it.next();
+            blockOpen("portImplementation");
+            blockOpen("name");
+            blockPutIdentifier(makeToken(e.getName()));
+            blockOpen("display");
+            blockOpen("figureGroupOverride");
+            blockPutIdentifier(EGWIRE.getText());
+            blockOpen("textHeight");
+            blockPutInteger(getTextHeight(null));
+            blockClose("figureGroupOverride");
+            Poly portPoly = ni.getShapeOfPort(e);
+            //blockOpen("origin");
+            //writePoint(portPoly.getCenterX(), portPoly.getCenterY());
+            blockClose("name");
+            blockOpen("connectLocation");
+            writeSymbolPoly(portPoly);
+
+            // close figure
+            setGraphic(EGUNKNOWN);
+            blockClose("portImplementation");
+        }
+        egraphic_override = EGUNKNOWN;
+
+        Poly [] polys = pn.getTechnology().getShapeOfNode(ni);
+        for (int i=0; i<polys.length; i++) {
+            writeSymbolPoly(polys[i]);
+        }
+
+        // close figure
+        setGraphic(EGUNKNOWN);
+        blockClose("symbol");
+    }
 
 	/**
 	 * Method to output a specific symbol cell
@@ -1254,14 +1420,17 @@ public class EDIF extends Topology
                 // determines position automatically and cannot be altered by user.
                 // There also does not seem to be any way to set the 'display' so
                 // that it shows up on the instance
-                blockPutString(obj.getString());
+                String str = convertElectricPropToCadence(obj.getString());
+                str = str.replaceAll("\"", "%34%");
+                blockPutString(str);
                 return;
             }
 
 			Rectangle2D bounds = obj.getBounds2D();
 			setGraphic(EGUNKNOWN);
 			blockOpen("stringDisplay");
-			blockPutString(obj.getString());
+            String str = obj.getString().replaceAll("\"", "%34%");
+			blockPutString(str);
 			blockOpen("display");
 			TextDescriptor td = obj.getTextDescriptor();
 			if (td != null && td.getSize().isAbsolute())
@@ -1361,11 +1530,88 @@ public class EDIF extends Topology
     }
 
     private double getTextHeight(TextDescriptor td) {
+        double size = 2;        // default
+        if (td != null) {
+            size = td.getSize().getSize();
+        }
         // 2 pixels = 0.0278 in or 36 double pixels per inch
-        double height = td.getSize().getSize() * 10 / 36;
+        double height = size * 10 / 36;
         return scaleValue(height);
     }
 
+
+
+    private static final Pattern atPat = Pattern.compile("@(\\w+)");
+    private static final Pattern pPat = Pattern.compile("(P|PAR)\\(\"(\\w+)\"\\)");
+    /**
+     * Convert a property in Electric, with parameter passing, to
+     * Cadence parameter passing syntax
+     * @param prop the expression
+     * @return an equivalent expression in Cadence
+     */
+    public static String convertElectricPropToCadence(String prop) {
+        StringBuffer sb = new StringBuffer();
+        Matcher atMat = atPat.matcher(prop);
+        while (atMat.find()) {
+            atMat.appendReplacement(sb, "P(\""+atMat.group(1)+"\")");
+        }
+        atMat.appendTail(sb);
+
+        prop = sb.toString();
+        sb = new StringBuffer();
+        Matcher pMat = pPat.matcher(prop);
+        while (pMat.find()) {
+            String c = "+";                   // default
+            if (pMat.group(1).equals("PAR"))
+                c = "@";
+            pMat.appendReplacement(sb, "["+c+pMat.group(2)+"]");
+        }
+        pMat.appendTail(sb);
+
+        return sb.toString();
+    }
+
+    private static final Pattern pparPat = Pattern.compile("(pPar|iPar|atPar|dotPar|_Par)\\(\"(\\w+)\"\\)");
+    private static final Pattern bPat = Pattern.compile("\\[([~+.@])(\\w+)\\]");
+    /**
+     * Convert a property in Cadence, with parameter passing, to
+     * Electric parameter passing syntax
+     * @param prop the expression
+     * @return an equivalent expression in Electric
+     */
+    public static String convertCadencePropToElectric(String prop) {
+        String origProp = prop;
+        StringBuffer sb = new StringBuffer();
+        Matcher atMat = bPat.matcher(prop);
+        while (atMat.find()) {
+            String call = "pPar";
+            if (atMat.group(1).equals("+")) call = "pPar";
+            else if (atMat.group(1).equals("@")) call = "atPar";
+            else {
+                System.out.println("Warning converting properties: Electric does not support \"["+atMat.group(1)+"param], using [+param] instead, in "+origProp);
+            }
+            //if (atMat.group(1).equals("~")) call = "iPar";
+            //if (atMat.group(1).equals(".")) call = "dotPar";
+            atMat.appendReplacement(sb, call+"(\""+atMat.group(2)+"\")");
+        }
+        atMat.appendTail(sb);
+
+        prop = sb.toString();
+        sb = new StringBuffer();
+        Matcher pMat = pparPat.matcher(prop);
+        while (pMat.find()) {
+            String c = "P";                   // default
+            if (pMat.group(1).equals("pPar")) c = "P";
+            else if (pMat.group(1).equals("atPar")) c = "PAR";
+            else {
+                System.out.println("Warning converting properties: Electric does not support \"["+pMat.group(1)+"param], using pPar instead, in "+origProp);
+            }
+            pMat.appendReplacement(sb, c+"(\""+pMat.group(2)+"\")");
+        }
+        pMat.appendTail(sb);
+
+        return sb.toString();
+    }
 
 	/****************************** LOW-LEVEL BLOCK OUTPUT METHODS ******************************/
 
