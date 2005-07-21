@@ -4,9 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
-IMP: (07/21/05, RK) NCC: Add Poly resistor tests to NCC regression
-
 ************************* Version 8.03a: *********************************
+     
+IMP: (07/21/05, RK) NCC: Add Poly resistor tests to NCC regression
 
 IMP: (07/21/05, GVG) Metal layers switch for 90nm technology. In 90nm tech tab, you can choose between
 7, 8 o 9 metal layers where the last 2 layers are thick. DRC rules are rebuilt after each switch.

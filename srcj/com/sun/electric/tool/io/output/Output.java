@@ -83,12 +83,19 @@ public class Output
 {
     /**
      * This is the non-interactive version of exportCellCommand
-     */
-    public static void exportCellCommand(Cell cell, VarContext context, String filePath, FileType type)
+     * @param cell the Cell to be written.
+     * @param context the VarContext of the Cell (its position in the hierarchy above it).
+     * @param filePath the path to the disk file to be written.
+     * @param type the format of the output file.
+     * @param startJob to start job immediately. In case of regressions, job is manually started.
+     * @return Job representing this task
+    */
+    public static OutputCellInfo exportCellCommand(Cell cell, VarContext context, String filePath,
+                                                   FileType type, boolean startJob)
     {
         Job.Type jtype = Job.Type.EXAMINE;
         if (type == FileType.EDIF) jtype = Job.Type.CHANGE;
-        new OutputCellInfo(cell, context, filePath, type, true, jtype);
+        return (new OutputCellInfo(cell, context, filePath, type, startJob, jtype));
     }
 
     static class OrderedConnections implements Comparator
