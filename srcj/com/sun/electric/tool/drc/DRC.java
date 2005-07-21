@@ -411,7 +411,6 @@ public class DRC extends Listener
 
 	/****************************** DESIGN RULE CONTROL ******************************/
 
-	/** Cached rules for a specific technology. */		private static DRCRules currentRules = null;
 	/** The Technology whose rules are cached. */		private static Technology currentTechnology = null;
 
 	/**
@@ -423,6 +422,7 @@ public class DRC extends Listener
 	 */
 	public static DRCRules getRules(Technology tech)
 	{
+        DRCRules currentRules = tech.getCachedRules();
 		if (currentRules != null && tech == currentTechnology) return currentRules;
 
 		// constructing design rules: start with factory rules

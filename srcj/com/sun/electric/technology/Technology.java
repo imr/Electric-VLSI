@@ -59,6 +59,7 @@ import com.sun.electric.technology.technologies.nMOS;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -553,6 +554,7 @@ public class Technology implements Comparable
     /** To group elements for the component menu */         protected Object[][] nodeGroups;
 	/** indicates n-type objects. */						public static final int N_TYPE = 1;
 	/** indicates p-type objects. */						public static final int P_TYPE = 0;
+	/** Cached rules for the technology. */		            protected DRCRules cachedRules = null;
 
 	/****************************** CONTROL ******************************/
 
@@ -3683,13 +3685,24 @@ public class Technology implements Comparable
             for (int j = 0; j < objs.length; j++)
             {
                 Object obj = objs[j];
-                if (obj instanceof PrimitiveNode && ((PrimitiveNode)obj).isNotUsed())
+                // Element is not used or first element in list is not used
+                if ((obj instanceof PrimitiveNode && ((PrimitiveNode)obj).isNotUsed()))
                     obj = null;
+                else if (obj instanceof List)
+                {
+                    List l = ((List)obj);
+                    Object o = l.get(0);
+                    if (o instanceof NodeInst)
+                    {
+                        NodeProto p = ((NodeInst)o).getProto();
+                        if (p instanceof PrimitiveNode && ((PrimitiveNode)p).isNotUsed())
+                            obj = null;
+                    }
+                }
                 newMatrix[i][j] = obj;
             }
         }
         return newMatrix;
-        //return nodeGroups;
     }
 
     /**
@@ -3738,6 +3751,12 @@ public class Technology implements Comparable
         return results;
     }
 
+    /**
+     * Method to retrieve cached rules
+     * @return
+     */
+    public DRCRules getCachedRules() {return cachedRules;}
+
     /********************* Foundry **********************/
     public static class Foundry
     {
@@ -3750,4 +3769,39 @@ public class Technology implements Comparable
             this.techMode = mode;
         }
     }
+
+    /**
+	 * Class to extend prefs so that changes to MOSIS CMOS options will update the display.
+	 */
+	public static class TechPref extends Pref
+	{
+        private Technology tech;
+
+		private TechPref(Technology tech)
+        {
+            this.tech = tech;
+        }
+
+		public void setSideEffect()
+		{
+			tech.setState();
+			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
+			if (wf != null) wf.loadComponentMenuForTechnology();
+			EditWindow.repaintAllContents();
+		}
+
+		public static Pref makeBooleanPref(Technology tech, String name, Preferences prefs, boolean factory)
+		{
+			TechPref pref = new TechPref(tech);
+			pref.initBoolean(name, prefs, factory);
+			return pref;
+		}
+
+		public static Pref makeIntPref(Technology tech, String name, Preferences prefs, int factory)
+		{
+			TechPref pref = new TechPref(tech);
+			pref.initInt(name, prefs, factory);
+			return pref;
+		}
+	}
 }

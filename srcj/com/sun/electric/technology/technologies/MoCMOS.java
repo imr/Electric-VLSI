@@ -2825,7 +2825,7 @@ public class MoCMOS extends Technology
 	public void setState()
 	{
 		// set rules
-        getFactoryDesignRules();
+        cachedRules = getFactoryDesignRules();
 
 		// disable Metal-3/4/5/6-Pin, Metal-2/3/4/5-Metal-3/4/5/6-Con, Metal-3/4/5/6-Node, Via-2/3/4/5-Node
 		metalPinNodes[2].setNotUsed();
@@ -3758,37 +3758,7 @@ public class MoCMOS extends Technology
 
 	/******************** OPTIONS ********************/
 
-	/**
-	 * Class to extend prefs so that changes to MOSIS CMOS options will update the display.
-	 */
-	private static class MoCMOSPref extends Pref
-	{
-		private MoCMOSPref() {}
-
-		public void setSideEffect()
-		{
-			tech.setState();
-			WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
-			if (wf != null) wf.loadComponentMenuForTechnology();
-			EditWindow.repaintAllContents();
-		}
-
-		public static Pref makeBooleanPref(String name, Preferences prefs, boolean factory)
-		{
-			MoCMOSPref pref = new MoCMOSPref();
-			pref.initBoolean(name, prefs, factory);
-			return pref;
-		}
-
-		public static Pref makeIntPref(String name, Preferences prefs, int factory)
-		{
-			MoCMOSPref pref = new MoCMOSPref();
-			pref.initInt(name, prefs, factory);
-			return pref;
-		}
-	}
-
-	private static Pref cacheNumberOfMetalLayers = MoCMOSPref.makeIntPref("MoCMOSNumberOfMetalLayers", getTechnologyPreferences(), 4);
+    private static Pref cacheNumberOfMetalLayers = TechPref.makeIntPref(tech, "MoCMOSNumberOfMetalLayers", getTechnologyPreferences(), 4);
     static { cacheNumberOfMetalLayers.attachToObject(tech, "Technology/Technology tab", "MOSIS CMOS: Number of Metal Layers"); }
 	/**
 	 * Method to tell the number of metal layers in the MoCMOS technology.
@@ -3802,7 +3772,7 @@ public class MoCMOS extends Technology
 	 */
 	public static void setNumMetal(int num) { cacheNumberOfMetalLayers.setInt(num); }
 
-	private static Pref cacheRuleSet = MoCMOSPref.makeIntPref("MoCMOSRuleSet", getTechnologyPreferences(), 1);
+	private static Pref cacheRuleSet = TechPref.makeIntPref("MoCMOSRuleSet", getTechnologyPreferences(), 1);
     static
     {
     	Pref.Meaning m = cacheRuleSet.attachToObject(tech, "Technology/Technology tab", "MOSIS CMOS rule set");
@@ -3825,7 +3795,7 @@ public class MoCMOS extends Technology
 	 */
 	public static void setRuleSet(int set) { cacheRuleSet.setInt(set); }
 
-	private static Pref cacheSecondPolysilicon = MoCMOSPref.makeBooleanPref("MoCMOSSecondPolysilicon", getTechnologyPreferences(), false);
+	private static Pref cacheSecondPolysilicon = TechPref.makeBooleanPref("MoCMOSSecondPolysilicon", getTechnologyPreferences(), false);
     static { cacheSecondPolysilicon.attachToObject(tech, "Technology/Technology tab", "MOSIS CMOS: Second Polysilicon Layer"); }
 	/**
 	 * Method to tell the number of polysilicon layers in this Technology.
@@ -3840,7 +3810,7 @@ public class MoCMOS extends Technology
 	 */
 	public static void setSecondPolysilicon(boolean on) { cacheSecondPolysilicon.setBoolean(on); }
 
-	private static Pref cacheDisallowStackedVias = MoCMOSPref.makeBooleanPref("MoCMOSDisallowStackedVias", getTechnologyPreferences(), false);
+	private static Pref cacheDisallowStackedVias = TechPref.makeBooleanPref("MoCMOSDisallowStackedVias", getTechnologyPreferences(), false);
     static { cacheDisallowStackedVias.attachToObject(tech, "Technology/Technology tab", "MOSIS CMOS: Disallow Stacked Vias"); }
 	/**
 	 * Method to determine whether this Technology disallows stacked vias.
@@ -3854,7 +3824,7 @@ public class MoCMOS extends Technology
 	 */
 	public static void setDisallowStackedVias(boolean on) { cacheDisallowStackedVias.setBoolean(on); }
 
-	private static Pref cacheAlternateActivePolyRules = MoCMOSPref.makeBooleanPref("MoCMOSAlternateActivePolyRules", getTechnologyPreferences(), false);
+	private static Pref cacheAlternateActivePolyRules = TechPref.makeBooleanPref("MoCMOSAlternateActivePolyRules", getTechnologyPreferences(), false);
     static { cacheAlternateActivePolyRules.attachToObject(tech, "Technology/Technology tab", "MOSIS CMOS: Alternate Active and Poly Contact Rules"); }
 	/**
 	 * Method to determine whether this Technology is using alternate Active and Poly contact rules.

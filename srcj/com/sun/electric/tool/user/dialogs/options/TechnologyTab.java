@@ -24,7 +24,6 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
@@ -136,6 +135,16 @@ public class TechnologyTab extends PreferencePanel
         defaultTechPulldown.setSelectedItem(User.getDefaultTechnology());
 
 		techSchematicsNegatingSize.setText(TextUtils.formatDouble(Schematics.getNegatingBubbleSize()));
+
+        //Tabs for extra technologies if available
+        try
+        {
+            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc90.TSMC90Tab");
+            extraTechClass.getMethod("openTechnologyTab", new Class[]{JPanel.class}).invoke(null, new Object[]{jPanel3});
+        } catch (Exception e)
+        {
+            System.out.println("Exceptions while importing extra technologies");
+        }
 	}
 
 	private String makeLine(PrimitiveNode np, String vhdlName)
@@ -304,6 +313,18 @@ public class TechnologyTab extends PreferencePanel
 			if (!newVHDLname.equals(oldVHDLname))
 				Schematics.setVHDLNames(np, newVHDLname);
 		}
+
+
+        //Tabs for extra technologies if available
+        try
+        {
+            Class extraTechClass = Class.forName("com.sun.electric.plugins.tsmc90.TSMC90Tab");
+            extraTechClass.getMethod("closeTechnologyTab", new Class[]{}).invoke(null, new Object[]{});
+        } catch (Exception e)
+        {
+            System.out.println("Exceptions while importing extra technologies: " + e.getMessage());
+        }
+
 
 		// update the display
 		if (redrawPalette)

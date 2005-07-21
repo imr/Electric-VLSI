@@ -628,6 +628,12 @@ public class PrimitiveNode implements NodeProto, Comparable
 	 */
 	public Technology.NodeLayer [] getLayers() { return layers; }
 
+    /**
+     * Method to reset the list of Layers that comprise this PrimitiveNode.
+     * @param layers
+     */
+    public void setLayers(Technology.NodeLayer [] layers) { this.layers = layers; }
+
 	/**
 	 * Method to return an iterator over the layers in this PrimitiveNode.
 	 * @return an iterator over the layers in this PrimitiveNode.
