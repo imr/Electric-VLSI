@@ -1,0 +1,16 @@
+Begin4
+Title: electric
+Version: 8.02
+Entered-date: 2005-7-1
+Description: Electric is a powerful circuit design system that can handle IC layout, schematics,
+hardware description languages, and more.
+It has many built-in tools for DRC, simulation, routing, and more.
+Keywords: CAD VLSI
+Author: strubin@staticfreesoft.com (Steven M. Rubin)
+Maintained-by: strubin@staticfreesoft.com (Steven M. Rubin)
+Primary-site: www.staticfreesoft.com
+Alternate-site: 
+Original-site:
+Platforms: All UNIX and GNU/Linux variants, Windows (all versions), Macintosh (system 7 or later)
+Copying-policy: GPL
+End

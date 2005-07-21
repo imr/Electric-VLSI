@@ -40,6 +40,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -474,13 +475,13 @@ public class GenerateVHDL
 				}
 
 				// get connection
-				Network net = nl.getNetwork(no, pp, 0);
 				boolean portNamed = false;
 				for(Iterator cIt = no.getNodeInst().getConnections(); cIt.hasNext(); )
 				{
 					Connection con = (Connection)cIt.next();
-					Network cNet = nl.getNetwork(con.getPortInst());
-					if (cNet == net)
+					PortProto otherPP = con.getPortInst().getPortProto();
+					if (otherPP instanceof Export) otherPP = ((Export)otherPP).getEquivalent();
+					if (otherPP == pp)
 					{
 						ArcInst ai = con.getArc();
 						if (ai.getProto().getFunction() != ArcProto.Function.NONELEC)
@@ -504,7 +505,6 @@ public class GenerateVHDL
 								if (i != 0) infstr.append(", ");
 								Network subNet = nl.getNetwork(ai, i);
 								String subNetName = getOneNetworkName(subNet);
-//								String subNetName = subNet.describe();
 								String sigName = addString(subNetName, no.getParent());
 								infstr.append(sigName);
 								signalNames.add(sigName);
@@ -519,11 +519,19 @@ public class GenerateVHDL
 				for(Iterator eIt = no.getNodeInst().getExports(); eIt.hasNext(); )
 				{
 					Export e = (Export)eIt.next();
-					Network cNet = nl.getNetwork(e, 0);
-					if (cNet == net)
+					PortProto otherPP = e.getOriginalPort().getPortProto();
+					if (otherPP instanceof Export) otherPP = ((Export)otherPP).getEquivalent();
+					if (otherPP == pp)
 					{
 						if (first) infstr.append(", ");   first = true;
-						addString(e.getName(), no.getParent());
+						int wid = nl.getBusWidth(e);
+						for(int i=0; i<wid; i++)
+						{
+							if (i != 0) infstr.append(", ");
+							Network subNet = nl.getNetwork(e, i);
+							String subNetName = getOneNetworkName(subNet);
+							infstr.append(addString(subNetName, no.getParent()));
+						}
 						portNamed = true;
 						break;
 					}
@@ -860,6 +868,9 @@ public class GenerateVHDL
 			Cell cnp = ((Cell)np).contentsView();
 			if (cnp != null) np = cnp;
 		}
+
+		// get the right netlist for subcells
+		if (ni != null && np instanceof Cell) nl = ((Cell)np).acquireUserNetlist();
 
 		// flag important ports
 		HashSet flaggedPorts = new HashSet();

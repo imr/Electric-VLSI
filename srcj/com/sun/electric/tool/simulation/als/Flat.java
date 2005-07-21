@@ -492,7 +492,8 @@ public class Flat
 	 */
 	private boolean processFunction(ALS.Connect cellHead, ALS.Model modHead)
 	{
-		primPtr2 = new ALS.Model(modHead.name, 'F');	
+		primPtr2 = new ALS.Model(modHead.name, 'F');
+		primPtr2.ptr = new ALS.Func();
 		primPtr2.priority = modHead.priority;
 		primPtr2.level = als.computePathName(cellHead);
 		als.primList.add(primPtr2);

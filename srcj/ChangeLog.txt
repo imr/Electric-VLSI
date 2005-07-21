@@ -26,6 +26,11 @@ FIX: New strategy based on original cell triggering Quick.checkCellInstContents.
 
 IMP: (07/18/05, IM) NCC GUI: icons for wire class nodes in the tree
 
+BUG: (07/18/05, SMR) ALS simulation of transistors crashes.
+FIX: In "sim.als.Flat.processFunction()",
+     after the first line: primPtr2 = new ALS.Model(modHead.name, 'F');
+     add: primPtr2.ptr = new ALS.Func();
+
 IMP: (07/15/05, DN) HierarchyEnumerator can shorten resistors.
 
 IMP: (07/15/05, DN) "DumpHeap" and "AnalyzeHeap" commands in DebugMenus
@@ -62,7 +67,7 @@ BUG: (07/13/05, RK) Bug# 433. Changes for GUI cause NCC to throw an Exception fo
 BUG: (07/13/05, GVG) Problems with DRC dates stored (Bug #422) in exhaustive mode. Root cause: new checkMinDefect
 in checkDist.
 FIX: Remember if there ware min defect errors in exhaustive mode.
- 
+
 IMP/MAN: (07/12/05, GVG) Consolidating majority of minor/major change checking calls by just a global call.
 Adding tooltip to explain significant vs insignificant changes.
 Another solution for Bug #428: change type Type.OBJECTRENAME marked as major.
@@ -89,6 +94,11 @@ Implemented by checking also if there is a minor change in the library.
 
 IMP/MAN: (07/11/05, GVG) Bold font for cells in ExplorerTree if they have been modified.
 Implemented by adding MODIFIED bit in Cell class (Bug #425).
+BUG: (07/6/05, SMR) VHDL generation doesn't work right for busses on icons.
+
+FIX: In user.GenerateVHDL.addPortList(), after the comment "// flag important ports",
+    add: if (ni != null && np instanceof Cell) nl = ((Cell)np).acquireUserNetlist();
+    Also rewrote the network-finding code for arcs and exports in "addRealPorts()".
 
 BUG: (07/01/05, SMR) Schematic arcs should be allowed to cross in DRC (Bug #376)
 FIX: In DRC.Schematic.checkPolygonVicinity() changed last parameter of last
