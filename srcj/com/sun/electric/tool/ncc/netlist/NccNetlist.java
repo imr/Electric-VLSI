@@ -401,10 +401,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	/** @return true if polysilicon resistor */
 	private boolean isPrimitivePolyResistor(NodeInst ni) {
 		PrimitiveNode.Function func = ni.getFunction();
-		if (func==PrimitiveNode.Function.PRESIST) {
-			System.out.println("Got a poly resistor");
-		}
-		return func==PrimitiveNode.Function.PRESIST; // layout 
+		return func==PrimitiveNode.Function.PRESIST;
 	}
 	private PartType getMosType(NodeInst ni, NccCellInfo info) {
 		String typeNm;
