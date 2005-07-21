@@ -128,7 +128,10 @@ public class NccCellAnnotations {
 	private List exportsToRename = new ArrayList();
 	/** Reason why we should treat this Cell as a black box */
 	private String blackBoxReason;
+	/** Cell annotation describing type of contained MOS */
 	private String transistorType;
+	/** Cell annotation describing type of contained resistor */
+	private String resistorType;
 	
 	private void processExportsConnAnnot(NamePatternLexer lex) {
 		List connected = new ArrayList();
@@ -214,6 +217,27 @@ public class NccCellAnnotations {
 			return;
 		}
 	}
+	private void processResistorType(NamePatternLexer lex) {
+		NamePattern type = lex.nextPattern();
+		if (type==null) {
+			prErr("Bad resistorType annotation: missing type");
+			return;
+		}
+		NamePattern type2 = lex.nextPattern();
+		if (type2!=null) {
+			prErr("Bad resistorType annotation: only one type allowed");
+			return;
+		}
+		if (resistorType!=null) {
+			prErr("only one resistorType annotation allowed per Cell");
+			return;
+		}
+		resistorType = type.getName();
+		if (resistorType==null) {
+			prErr("resistor type may not be a regular expression");
+			return;
+		}
+	}
 
 	private void doAnnotation(String note) {
 		annotText.add(note); // for prErr()
@@ -237,6 +261,8 @@ public class NccCellAnnotations {
 			processBlackBox(lex);
 		} else if (key.stringEquals("transistorType")) {
 			processTransistorType(lex);
+		} else if (key.stringEquals("resistorType")) {
+			processResistorType(lex);
 		} else {
 			prErr("Unrecognized NCC annotation.");
 		}
@@ -298,4 +324,7 @@ public class NccCellAnnotations {
 	/** @return the transistor type if Cell has a transitorType annotation.
 	 * Otherwise return null. */
 	public String getTransistorType() {return transistorType;}
+	/** @return the resistor type if Cell has a resistorType annotation.
+	 * Otherwise return null. */
+	public String getResistorType() {return resistorType;}
 }

@@ -33,7 +33,7 @@ import com.sun.electric.tool.ncc.netlist.PinType;
 import com.sun.electric.tool.ncc.strategy.StratCountPartPinsOnWires;
 import com.sun.electric.tool.ncc.strategy.StratPartPopularity;
 import com.sun.electric.tool.ncc.strategy.StratPartType;
-import com.sun.electric.tool.ncc.strategy.StratPreanalysisReport;
+import com.sun.electric.tool.ncc.strategy.StratReportLocalPartitionFailure;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 /** LocalPartitioning partitions the Part and Wire equivalence classes based
@@ -86,7 +86,7 @@ public class LocalPartitioning {
 		Set pinTypes = partitionPartsUsingLocalInformation();
 		partitionWiresUsingLocalInformation(pinTypes);
 
-		boolean match = StratPreanalysisReport.doYourJob(globals);
+		boolean match = StratReportLocalPartitionFailure.doYourJob(globals);
 
 		globals.status2("End partitioning based on local characteristics ");
 		return match;

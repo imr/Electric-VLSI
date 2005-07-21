@@ -22,34 +22,53 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.netlist;
+import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import com.sun.electric.tool.ncc.basic.Primes;
 
 public class Resistor extends Part {
+	public static final PartTypeTable TYPES = 
+		new PartTypeTable(new String[][] {
+			{"N-Poly-RPO-Resistor", "N-Poly-RPO-Resistor"},
+			{"P-Poly-RPO-Resistor", "P-Poly-RPO-Resistor"}
+		});
+		
 	private static class ResistorPinType implements PinType {
+		private PartType type;
+		public ResistorPinType(PartType t) {type=t;}
 		public int numConnectionsToPinOfThisType(Part p, Wire w) {
+			if (!(p instanceof Resistor)) return 0;
+			Resistor r = (Resistor) p;
+			if (r.type!=type) return 0;
+			
 			int numConns = 0;
 			for (int i=0; i<p.pins.length; i++)   if (p.pins[i]==w) numConns++;
 			return numConns;
 		}
-		public String description() {return "Resistor pin";}
+		public String description() {return type.getName();}
 	}
 	private static final Set PIN_TYPES = new HashSet();
 	static {
-		PIN_TYPES.add(new ResistorPinType());
+		for (Iterator it=TYPES.iterator(); it.hasNext();) {
+			PartType t = (PartType) it.next();
+			PIN_TYPES.add(new ResistorPinType(t));
+		}
 	}
 
     // ---------- private data -------------
     private static final int PIN_COEFFS[] = 
     	{Primes.get(1), Primes.get(1)}; //resistors are symmetric
-    private float resistance;
+    private final PartType type;
+    private final double width, length;
 
     // ---------- private methods ----------
-
     private void flip(){
         Wire w = pins[0];
         pins[0] = pins[1];
@@ -57,16 +76,19 @@ public class Resistor extends Part {
     }
 
     // ---------- public methods ----------
-	public Resistor(PartNameProxy name, double resist, Wire w1, Wire w2) {
+	public Resistor(PartType type, PartNameProxy name, 
+			        double width, double length, Wire w1, Wire w2) {
 		super(name, new Wire[]{w1, w2});
-		resistance = (float) resist;
+		this.type = type;
+		this.width = width;
+		this.length = length;
 	}
 
     // ---------- abstract commitment ----------
 
     public int[] getPinCoeffs(){return PIN_COEFFS;}
 	public String valueDescription(){
-		String sz= "R= " + resistance;
+		String sz= "W= "+width+" L="+length;
 		return sz;
 	}
 	public Integer hashCodeForParallelMerge() {
@@ -77,14 +99,9 @@ public class Resistor extends Part {
 	
     // ---------- public methods ----------
 
-    public float resistance(){return resistance;}
+    public double getWidth() {return width;}
+    public double getLength() {return length;}
 
-//	/** A method to test if this Part touches a Wire with a gate connection.
-//	 * @param w the Wire to test
-//	 * @return false because Resistors don't have gates.
-//	 */
-//    public boolean touchesAtGate(Wire w){return false;}
-	
     public void connect(Wire ss, Wire ee){
         pins[0] = ss;
         pins[1] = ee;
@@ -93,31 +110,40 @@ public class Resistor extends Part {
     }
 	
     //merge with this resistor
-    public boolean parallelMerge(Part p){
-        if(p.getClass() != getClass()) return false;
-        if(this == p)return false;
-        //its the same class but a different one
-        Resistor r= (Resistor)p;
-        if(pins[0]!=r.pins[0])  r.flip();
-		if(pins[0]!=r.pins[0] || pins[1]!=r.pins[1])  return false;
+//    public boolean parallelMerge(Part p){
+//        if(p.getClass() != getClass()) return false;
+//        if(this == p)return false;
+//        //its the same class but a different one
+//        Resistor r= (Resistor)p;
+//        if(pins[0]!=r.pins[0])  r.flip();
+//		if(pins[0]!=r.pins[0] || pins[1]!=r.pins[1])  return false;
+//
+//        //OK to merge
+//        float ff= 0;
+//        float pp= r.resistance();
+//        float mm= resistance();
+//        if(pp != 0 && mm != 0)ff= (ff * mm)/(ff + mm);
+//        resistance= ff;
+//        r.setDeleted();
+//        return true; //return true if merged
+//    }
+    /** Never perform series/parallel combination of resistors. For layout
+     * resistors, resistance is 
+     * a vendor dependent function of resistor width and length. We'll simply
+     * annotate resistor width and length and compare these between schematic
+     * and layout. See Jon Lexau for rationale. */
+    public boolean parallelMerge(Part p) {return false;}
 
-        //OK to merge
-        float ff= 0;
-        float pp= r.resistance();
-        float mm= resistance();
-        if(pp != 0 && mm != 0)ff= (ff * mm)/(ff + mm);
-        resistance= ff;
-        r.setDeleted();
-        return true; //return true if merged
-    }
-
-	public int typeCode() {return Part.RESISTOR;}
+	public int typeCode() {
+		final int tw = Part.TYPE_FIELD_WIDTH;
+		return Part.RESISTOR + (type.getOrdinal() << tw);
+	}
 	
 	public Set getPinTypes() {return PIN_TYPES;}
 
     // ---------- printing methods ----------
 
-    public String typeString() {return "Resistor";}
+    public String typeString() {return type.getName();}
 
     public String connectionDescription(int n){
 		String s = pins[0].getName();

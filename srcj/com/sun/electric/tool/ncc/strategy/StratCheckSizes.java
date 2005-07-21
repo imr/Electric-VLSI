@@ -39,6 +39,7 @@ import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.netlist.Mos;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
+import com.sun.electric.tool.ncc.netlist.Resistor;
 import com.sun.electric.tool.ncc.netlist.Subcircuit;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
@@ -49,17 +50,16 @@ public class StratCheckSizes extends Strategy {
 		private StringBuffer sb = new StringBuffer();
 		private void aln(String s) {sb.append(s); sb.append("\n");}
 		public final double min, max;
-		public final Mos minMos, maxMos;
+		public final Part minPart, maxPart;
         public final int minNdx, maxNdx;
-		Mismatch(double min, Mos minMos, int minNdx, 
-                 double max, Mos maxMos, int maxNdx) {
+		Mismatch(double min, Part minPart, int minNdx, 
+                 double max, Part maxPart, int maxNdx) {
 			this.min=min; this.max=max;
-			this.minMos=minMos; this.maxMos=maxMos;
+			this.minPart=minPart; this.maxPart=maxPart;
             this.minNdx = minNdx; this.maxNdx = maxNdx;
 		}
 		public double relErr() {return (max-min)/min;}
 		public double absErr() {return max-min;}
-		public boolean isCap() {return minMos.isCapacitor();}
 		public abstract String widLen();
 		public abstract String wl();
 		public String toString() {
@@ -76,36 +76,35 @@ public class StratCheckSizes extends Strategy {
 				minSz = NccUtils.round(min,2);
 				maxSz = NccUtils.round(max,2);
 			}
-			aln("    MOS"+
-				(isCap()?" capacitor":"")+
+			aln("    "+minPart.typeString()+
 				" "+widLen()+"s don't match. "+
 				" relativeError="+relErr+"%"+
 				" absoluteError="+absErr);
-			aln("      "+wl()+"="+minSz+" for "+minMos.fullDescription());
-			aln("      "+wl()+"="+maxSz+" for "+maxMos.fullDescription());
+			aln("      "+wl()+"="+minSz+" for "+minPart.fullDescription());
+			aln("      "+wl()+"="+maxSz+" for "+maxPart.fullDescription());
 			return sb.toString();
 		}
 	}
     public static class LengthMismatch extends Mismatch {
 		public String widLen() {return "length";}
 		public String wl() {return "L";}
-		public LengthMismatch(double min, Mos minMos, int minNdx, 
-                              double max, Mos maxMos, int maxNdx) {
-			super(min, minMos, minNdx, max, maxMos, maxNdx);
+		public LengthMismatch(double min, Part minPart, int minNdx, 
+                              double max, Part maxPart, int maxNdx) {
+			super(min, minPart, minNdx, max, maxPart, maxNdx);
 		}
 	}
     public static class WidthMismatch extends Mismatch {
 		public String widLen() {return "width";}
 		public String wl() {return "W";}
-		public WidthMismatch(double min, Mos minMos, int minNdx, 
-                             double max, Mos maxMos, int maxNdx) {
-			super(min, minMos, minNdx, max, maxMos, maxNdx);
+		public WidthMismatch(double min, Part minPart, int minNdx, 
+                             double max, Part maxPart, int maxNdx) {
+			super(min, minPart, minNdx, max, maxPart, maxNdx);
 		}
 	}
 	// ------------------------------ private data -----------------------------
 	private NccOptions options;
 	private double minWidth, maxWidth, minLength, maxLength;
-	private Mos minWidMos, maxWidMos, minLenMos, maxLenMos;
+	private Part minWidPart, maxWidPart, minLenPart, maxLenPart;
 	private List mismatches = new ArrayList();
     private int cktNdx, minWidNdx, maxWidNdx, minLenNdx, maxLenNdx;
 	
@@ -116,14 +115,14 @@ public class StratCheckSizes extends Strategy {
     
     private void checkWidthMismatch() {
 		if (!NccUtils.sizesMatch(maxWidth, minWidth, options)) {
-			mismatches.add(new WidthMismatch(minWidth, minWidMos, minWidNdx,  
-					                         maxWidth, maxWidMos, maxWidNdx));
+			mismatches.add(new WidthMismatch(minWidth, minWidPart, minWidNdx,  
+					                         maxWidth, maxWidPart, maxWidNdx));
 		}
     }
     private void checkLengthMismatch() {
     	if (!NccUtils.sizesMatch(maxLength, minLength, options)) {
-    		mismatches.add(new LengthMismatch(minLength, minLenMos, minLenNdx,
-    				                          maxLength, maxLenMos, maxLenNdx));
+    		mismatches.add(new LengthMismatch(minLength, minLenPart, minLenNdx,
+    				                          maxLength, maxLenPart, maxLenNdx));
     	}
     }
     private static class MismatchComparator implements Comparator {
@@ -132,7 +131,7 @@ public class StratCheckSizes extends Strategy {
     		Mismatch m2 = (Mismatch) o2;
     		double diff = m1.relErr() - m2.relErr();
     		if (diff==0) return 0;
-    		return diff>0 ? 1 : -1;
+    		return diff<0 ? 1 : -1;
     	}
     }
     private void summary() {
@@ -147,6 +146,16 @@ public class StratCheckSizes extends Strategy {
     }
 
 	private boolean matches() {return mismatches.size()==0;}
+
+	private double getWidth(Part p) {
+    	return (p instanceof Mos) ? ((Mos)p).getWidth()
+    						      : ((Resistor)p).getWidth();
+    }
+    
+    private double getLength(Part p) {
+    	return (p instanceof Mos) ? ((Mos)p).getLength()
+    						      : ((Resistor)p).getLength();
+    }
 
 	public LeafList doFor(EquivRecord j) {
 		if(j.isLeaf()) {
@@ -175,14 +184,14 @@ public class StratCheckSizes extends Strategy {
 		if (p instanceof Subcircuit) {
 			minWidth = maxWidth = minLength = maxLength = 1;
 		} else {
-			globals.error(!(p instanceof Mos), "unimplemented part type");
-			Mos t = (Mos) p;
-			double w = t.getWidth();
-			if (w<minWidth) {minWidth=w;  minWidMos=t; minWidNdx=cktNdx;}
-			if (w>maxWidth) {maxWidth=w;  maxWidMos=t; maxWidNdx=cktNdx;}
-			double l = t.getLength();
-			if (l<minLength) {minLength=l;  minLenMos=t; minLenNdx=cktNdx;}
-			if (l>maxLength) {maxLength=l;  maxLenMos=t; maxLenNdx=cktNdx;}
+			globals.error(!(p instanceof Mos) &&
+					      !(p instanceof Resistor), "part with no width & length");
+			double w = getWidth(p);
+			if (w<minWidth) {minWidth=w;  minWidPart=p; minWidNdx=cktNdx;}
+			if (w>maxWidth) {maxWidth=w;  maxWidPart=p; maxWidNdx=cktNdx;}
+			double l = getLength(p);
+			if (l<minLength) {minLength=l;  minLenPart=p; minLenNdx=cktNdx;}
+			if (l>maxLength) {maxLength=l;  maxLenPart=p; maxLenNdx=cktNdx;}
 		}
 		return CODE_NO_CHANGE;
 	}

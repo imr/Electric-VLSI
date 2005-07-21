@@ -45,7 +45,9 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -291,7 +293,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	 * remove it whenever I build Parts or Wires. */
 	private final String pathPrefix;
 	private boolean exportAssertionFailures = false;
-	private boolean badTransistorType = false;
+	private boolean badPartType = false;
 	private int depth = 0;
 
 	/** map from netID to Wire */	 
@@ -396,7 +398,15 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		return func==PrimitiveNode.Function.TRAPNP ||
                func==PrimitiveNode.Function.TRA4PNP;
 	}
-	private Mos.Type getMosType(NodeInst ni, NccCellInfo info) {
+	/** @return true if polysilicon resistor */
+	private boolean isPrimitivePolyResistor(NodeInst ni) {
+		PrimitiveNode.Function func = ni.getFunction();
+		if (func==PrimitiveNode.Function.PRESIST) {
+			System.out.println("Got a poly resistor");
+		}
+		return func==PrimitiveNode.Function.PRESIST; // layout 
+	}
+	private PartType getMosType(NodeInst ni, NccCellInfo info) {
 		String typeNm;
 		if (isSchematicPrimitive(ni)) {
 			// Designer convention:
@@ -416,9 +426,9 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		} else {
 			typeNm = ni.getProto().getName();
 		}
-		Mos.Type t = Mos.TYPES.getTypeFromLongName(typeNm);
+		PartType t = Mos.TYPES.getTypeFromLongName(typeNm);
 		if (t==null) {
-			badTransistorType = true;
+			badPartType = true;
 			prln("  Unrecognized transistor type: "+typeNm);
 			
 			// GUI
@@ -440,8 +450,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 		Wire s = getWireForPortInst(ni.getTransistorSourcePort(), info);
 		Wire g = getWireForPortInst(ni.getTransistorGatePort(), info);
 		Wire d = getWireForPortInst(ni.getTransistorDrainPort(), info);
-		Mos.Type type = getMosType(ni, info);
-		// if unrecognized transistor type then ignore Mos
+		PartType type = getMosType(ni, info);
+		// if unrecognized transistor type then ignore MOS
 		if (type!=null) {
 			Part t = new Mos(type, name, width, length, s, g, d);
 			parts.add(t);
@@ -471,14 +481,76 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			globals.error(true, "Unrecognized primitive transistor");
 		}
 	}
+	private PartType getResistorType(NodeInst ni, NccCellInfo info) {
+		String typeNm;
+		if (isSchematicPrimitive(ni)) {
+			// Designer convention:
+			// Cell containing a schematic transistor primitive must have an  
+			// NCC declaration "resistorType" with long type name.
+			Cell parent = ni.getParent();
+			NccCellAnnotations ann = NccCellAnnotations.getAnnotations(parent);
+			typeNm = ann==null ? null : ann.getResistorType();
+			if (typeNm==null) typeNm = "no type specified";
+		} else {
+			typeNm = ni.getProto().getName();
+		}
+		PartType t = Resistor.TYPES.getTypeFromLongName(typeNm);
+		if (t==null) {
+			badPartType = true;
+			prln("  Unrecognized resistor type: "+typeNm);
+			
+			// GUI
+			globals.getComparisonResult().addUnrecognizedMOS(
+                    new UnrecognizedMOS(ni.getParent(), info.getContext(), typeNm, ni));
+		}
+		return t;
+	}
+	private Wire[] getResistorWires(NodeInst ni, NccCellInfo info) {
+		Wire a = getWireForPortInst(ni.getPortInst(0), info);
+		Wire b = getWireForPortInst(ni.getPortInst(1), info);
+		return new Wire[] {a, b};
+	}
+	private double getDoubleVariableValue(String varName, NodeInst ni, VarContext context) {
+		Variable var = ni.getVar(varName);
+		if (var==null) return 0;
+		Object obj = context==null ? var.getObject() : context.evalVar(var, ni);
+		return VarContext.objectToDouble(obj, 0);
+	}
+	private double[] getResistorSize(NodeInst ni, VarContext context) {
+		double w=0, l=0;
+		if (isSchematicPrimitive(ni)) {
+			w = getDoubleVariableValue("ATTR_width", ni, context);
+			l = getDoubleVariableValue("ATTR_length", ni, context);
+		} else {
+			SizeOffset so = ni.getSizeOffset();
+			w = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+			l = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+		}
+		return new double[] {w, l};
+	}
+	private void buildResistor(NodeInst ni, NccCellInfo info) {
+		NodableNameProxy np = info.getUniqueNodableNameProxy(ni, "/");
+		PartNameProxy name = new PartNameProxy(np, pathPrefix); 
+		double width=0, length=0;
+		if (globals.getOptions().checkSizes) {
+			double[] dim = getResistorSize(ni, info.getContext());
+			width = dim[0];
+			length = dim[1];
+		}
+		Wire[] wires = getResistorWires(ni, info);
+		PartType type = getResistorType(ni, info);
+		// if unrecognized transistor type then ignore MOS
+		if (type!=null) {
+			Part t = new Resistor(type, name, width, length, wires[0], wires[1]);
+			parts.add(t);
+		}
+	}
 	private void doPrimitiveNode(NodeInst ni, NodeProto np, NccCellInfo info) {
 		PrimitiveNode.Function func = ni.getFunction();
 		if (ni.isPrimitiveTransistor()) {
 			buildTransistor(ni, info);
-		} else if (func==PrimitiveNode.Function.RESIST) {
-//		    error(true, "can't handle Resistors yet");
-		} else if (func==PrimitiveNode.Function.PRESIST) {
-		    error(true, "can't handle Poly Resistors yet");
+		} else if (isPrimitivePolyResistor(ni)) {
+			buildResistor(ni, info);
 		} else {	
 //		    globals.println("NccNetlist not handled: func="+
 //		    			   func+" proto="+ni.getProto().toString());
@@ -679,7 +751,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	/** Ensure that all subcircuits we instantiate have valid exportsConnectedByParent assertions.
 	 * If not then this netlist isn't valid. */
 	public boolean exportAssertionFailures() {return exportAssertionFailures;}
-	public boolean badTransistorType() {return badTransistorType;}
+	public boolean badTransistorType() {return badPartType;}
 	
 	public Visitor(NccGlobals globals, 
 	               HierarchyInfo hierarchicalCompareInfo,

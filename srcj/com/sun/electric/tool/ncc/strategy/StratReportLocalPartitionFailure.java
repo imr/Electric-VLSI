@@ -33,13 +33,13 @@ import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
-public class StratPreanalysisReport extends Strategy {
+public class StratReportLocalPartitionFailure extends Strategy {
 	private static final NetObject.Type PART = NetObject.Type.PART; 
 	private static final NetObject.Type PORT = NetObject.Type.PORT; 
 
 	List mismatched = new ArrayList();
 
-	private StratPreanalysisReport(NccGlobals globals) {super(globals);}
+	private StratReportLocalPartitionFailure(NccGlobals globals) {super(globals);}
 
 	private boolean doYourJob2(NccGlobals globals) {
 		doFor(globals.getRoot());
@@ -102,7 +102,7 @@ public class StratPreanalysisReport extends Strategy {
 
 	// -------------------- intended interface ------------------------
 	public static boolean doYourJob(NccGlobals globals) {
-		StratPreanalysisReport wp = new StratPreanalysisReport(globals);
+		StratReportLocalPartitionFailure wp = new StratReportLocalPartitionFailure(globals);
 		return wp.doYourJob2(globals);
 	}
 }

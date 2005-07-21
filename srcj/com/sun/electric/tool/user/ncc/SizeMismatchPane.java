@@ -52,6 +52,8 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.netlist.Mos;
+import com.sun.electric.tool.ncc.netlist.Part;
+import com.sun.electric.tool.ncc.netlist.Resistor;
 import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
 import com.sun.electric.tool.user.Highlighter;
 
@@ -71,8 +73,18 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
     // data holders
     private NccComparisonMismatches result;
     private StratCheckSizes.Mismatch[] mismatches;
-    private Mos[][] moses;
+    private Part[][] parts;
     
+    private double getWidth(Part p) {
+    	return (p instanceof Mos) ? ((Mos)p).getWidth()
+    						      : ((Resistor)p).getWidth();
+    }
+    
+    private double getLength(Part p) {
+    	return (p instanceof Mos) ? ((Mos)p).getLength()
+    						      : ((Resistor)p).getLength();
+    }
+
     public SizeMismatchPane(NccComparisonMismatches res) {
         super(new BorderLayout());
         
@@ -81,7 +93,7 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
                                      .toArray(new StratCheckSizes.Mismatch[0]);
         int size = Math.min(mismatches.length, MAXROWS);
         if (size == 0) return;
-        moses = new Mos[size][2];
+        parts = new Part[size][2];
         
         // compute max numbers to estimate column width
         int errColWidth = 7, widColWidth = 3, lenColWidth = 3;
@@ -89,13 +101,13 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
             String err = NccUtils.round(mismatches[i].relErr()*100,1) + "";
             errColWidth = Math.max(errColWidth, err.length());
             
-            String w1 = NccUtils.round(mismatches[i].minMos.getWidth(),2) + "";
-            String w2 = NccUtils.round(mismatches[i].maxMos.getWidth(),2) + "";
+            String w1 = NccUtils.round(getWidth(mismatches[i].minPart),2) + "";
+            String w2 = NccUtils.round(getWidth(mismatches[i].maxPart),2) + "";
             int wid = Math.max(w1.length(), w2.length());
             widColWidth = Math.max(widColWidth, wid+1);
             
-            String l1 = NccUtils.round(mismatches[i].minMos.getLength(),2) + "";
-            String l2 = NccUtils.round(mismatches[i].maxMos.getLength(),2) + "";
+            String l1 = NccUtils.round(getLength(mismatches[i].minPart),2) + "";
+            String l2 = NccUtils.round(getLength(mismatches[i].maxPart),2) + "";
             int len = Math.max(l1.length(), l2.length());
             lenColWidth = Math.max(lenColWidth, len+1);
         }
@@ -163,11 +175,11 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
             int firstCellNdx = 0;
             if (result.isSwapCells()) firstCellNdx = 1;
             if (mismatches[rowNdx].minNdx == firstCellNdx) {
-                moses[rowNdx][0] = mismatches[rowNdx].minMos;
-                moses[rowNdx][1] = mismatches[rowNdx].maxMos;
+                parts[rowNdx][0] = mismatches[rowNdx].minPart;
+                parts[rowNdx][1] = mismatches[rowNdx].maxPart;
             } else {
-                moses[rowNdx][1] = mismatches[rowNdx].minMos;
-                moses[rowNdx][0] = mismatches[rowNdx].maxMos;
+                parts[rowNdx][1] = mismatches[rowNdx].minPart;
+                parts[rowNdx][0] = mismatches[rowNdx].maxPart;
             }
             if (mismatches[rowNdx].relErr()*100<.1)
                 relErr = "< 0.01";
@@ -207,9 +219,9 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
                 name = "Name in " + titles[line].substring(titles[line].length()-4, 
                                                            titles[line].length()-1);
             } else {
-                params[0] = NccUtils.round(moses[rowNdx][line].getWidth(),2) + ""; 
-                params[1] = NccUtils.round(moses[rowNdx][line].getLength(),2) + "";
-                name = moses[rowNdx][line].instanceDescription();
+                params[0] = NccUtils.round(getWidth(parts[rowNdx][line]),2) + ""; 
+                params[1] = NccUtils.round(getLength(parts[rowNdx][line]),2) + "";
+                name = parts[rowNdx][line].instanceDescription();
             }
             JPanel subRow = createSubRow(params, paramDims, name, rowNdx, line);
             subRow.setBackground(bkgndColor);
@@ -310,14 +322,14 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
     private void highlight(int index) {
         int row = index/10;
         int col = index%2;
-        Mos mos = moses[row][col];
-        Cell cell = mos.getNameProxy().leafCell();
-        VarContext context = mos.getNameProxy().getContext();
+        Part part = parts[row][col];
+        Cell cell = part.getNameProxy().leafCell();
+        VarContext context = part.getNameProxy().getContext();
         
         // find the highlighter corresponding to the cell
         Highlighter highlighter = HighlightTools.getHighlighter(cell, context);
         if (highlighter == null) return;
-        HighlightTools.highlightPart(highlighter, cell, mos);
+        HighlightTools.highlightPart(highlighter, cell, part);
         highlighter.finished();
     }        
 }

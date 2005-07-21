@@ -39,63 +39,29 @@ import com.sun.electric.tool.ncc.trees.Circuit;
 /** One or more MOS transistors in series. All gates have the same width
  * and length. */
 public class Mos extends Part {
-	public static class Type {
-		private String name;
-		private int ordinal;
-		private Type(int ord, String s) {ordinal=ord; name=s;}
-		
-		public String getName() {return name;}
-		public int getOrdinal() {return ordinal;}
-	}
-	public static class TypeTable {
-		private int numTypes = 0;
-		private int log2NumTypes;
-		private ArrayList types = new ArrayList();
-		private HashMap nameToType = new HashMap();
-		/** Long type names are used only to create the net lists. */
-		private HashMap longNameToType = new HashMap();
-		private void add(String typeName, String longTypeName) {
-			Type t = new Type(numTypes++, typeName);
-			LayoutLib.error(nameToType.containsKey(typeName), 
-					        "duplicate type name");
-			nameToType.put(typeName, t);
-			LayoutLib.error(longNameToType.containsKey(longTypeName), 
-	        				"duplicate long type name");
-			longNameToType.put(longTypeName, t);
-			types.add(t);
-
-			log2NumTypes = (int) Math.ceil( Math.log(numTypes)/Math.log(2) );
-		}
-		private TypeTable() {
-			add("NMOS",         "N-Transistor");
-			add("NMOS-VTH",     "VTH-N-Transistor");
-			add("NMOS-VTL",     "VTL-N-Transistor");
-			add("NMOS-OD18",    "OD18-N-Transistor");
-			add("NMOS-OD25",    "OD25-N-Transistor");
-			add("NMOS-OD33",    "OD33-N-Transistor");
-			add("NMOS-NT",      "NT-N-Transistor");
-			add("NMOS-NT-OD18", "NT-OD18-N-Transistor");
-			add("NMOS-NT-OD25", "NT-OD25-N-Transistor");
-			add("NMOS-NT-OD33", "NT-OD33-N-Transistor");
-			add("PMOS",         "P-Transistor");
-			add("PMOS-VTH",     "VTH-P-Transistor");
-			add("PMOS-VTL",     "VTL-P-Transistor");
-			add("PMOS-OD18",    "OD18-P-Transistor");
-			add("PMOS-OD25",    "OD25-P-Transistor");
-			add("PMOS-OD33",    "OD33-P-Transistor");
-		}
-		public int log2NumTypes() {return log2NumTypes;}
-		public Iterator iterator() {return types.iterator();}
-		public Type get(String nm) {return (Type) nameToType.get(nm);}
-		public Type getTypeFromLongName(String nm) {
-			return (Type) longNameToType.get(nm);
-		}
-	}
-	public static final TypeTable TYPES = new TypeTable();
+	public static final PartTypeTable TYPES = 
+		new PartTypeTable(new String[][] {
+			{"NMOS",         "N-Transistor"},
+			{"NMOS-VTH",     "VTH-N-Transistor"},
+			{"NMOS-VTL",     "VTL-N-Transistor"},
+			{"NMOS-OD18",    "OD18-N-Transistor"},
+			{"NMOS-OD25",    "OD25-N-Transistor"},
+			{"NMOS-OD33",    "OD33-N-Transistor"},
+			{"NMOS-NT",      "NT-N-Transistor"},
+			{"NMOS-NT-OD18", "NT-OD18-N-Transistor"},
+			{"NMOS-NT-OD25", "NT-OD25-N-Transistor"},
+			{"NMOS-NT-OD33", "NT-OD33-N-Transistor"},
+			{"PMOS",         "P-Transistor"},
+			{"PMOS-VTH",     "VTH-P-Transistor"},
+			{"PMOS-VTL",     "VTL-P-Transistor"},
+			{"PMOS-OD18",    "OD18-P-Transistor"},
+			{"PMOS-OD25",    "OD25-P-Transistor"},
+			{"PMOS-OD33",    "OD33-P-Transistor"},
+		});
 
 	private static class GateType implements PinType {
 		private final int numSeries;
-		private final Type np;
+		private final PartType np;
 		private final int gateHeight;
 		private final boolean cap;
 
@@ -126,7 +92,7 @@ public class Mos extends Part {
 			} 
 			return t+c+h+" gate"+g;
 		}
-		public GateType(Type np, int numSeries, int gateHeight, boolean cap) {
+		public GateType(PartType np, int numSeries, int gateHeight, boolean cap) {
 			LayoutLib.error(np==null, "null type?");
 			LayoutLib.error(numSeries<1, "bad numSeries");
 			int highestGateInLowerHalfOfStack = (numSeries+1)/2;
@@ -139,7 +105,7 @@ public class Mos extends Part {
 	}
 	private static class DiffType implements PinType {
 		private final int numSeries;
-		private final Type np;
+		private final PartType np;
 		private final boolean cap;
 
 		public int numConnectionsToPinOfThisType(Part p, Wire w) {
@@ -160,7 +126,7 @@ public class Mos extends Part {
 			String h = numSeries==1 ? "" : ("_"+numSeries+"stack");
 			return t+c+h+" diffusion";
 		}
-		public DiffType(Type np, int numSeries, boolean cap) {
+		public DiffType(PartType np, int numSeries, boolean cap) {
 			LayoutLib.error(np==null, "null type?");
 			LayoutLib.error(numSeries<1, "bad numSeries");
 			int highestGateInLowerHalfOfStack = (numSeries+1)/2;
@@ -171,10 +137,10 @@ public class Mos extends Part {
 	}
 	/** Set of all the pins for a particular Transistor */ 
 	private static class PinTypeSetKey {
-		private Type type;
+		private PartType type;
 		private boolean isCapacitor;
 		private int numSeries;
-		public PinTypeSetKey(Type type, boolean isCapacitor, int numSeries) {
+		public PinTypeSetKey(PartType type, boolean isCapacitor, int numSeries) {
 			this.type = type;
 			this.isCapacitor = isCapacitor;
 			this.numSeries = numSeries;
@@ -232,11 +198,11 @@ public class Mos extends Part {
     private final int[] pin_coeffs;
     private double width;
     private final double length;
-    private final Type type;
+    private final PartType type;
     
     // ---------- private methods ----------
 	/** Stack of series transistors */
-	private Mos(Type np, PartNameProxy name, double width, double length,
+	private Mos(PartType np, PartNameProxy name, double width, double length,
 				Wire[] pins) {
 		super(name, pins);
 		type = np;
@@ -278,12 +244,12 @@ public class Mos extends Part {
     // ---------- public methods ----------
 
 	/** The standard 3 terminal Transistor. */
-	public Mos(Type np, PartNameProxy name, double width, double length,
-					  Wire src, Wire gate, Wire drn) {
+	public Mos(PartType np, PartNameProxy name, double width, double length,
+			   Wire src, Wire gate, Wire drn) {
 		this(np, name, width, length, new Wire[] {src, gate, drn});
 	}
 
-    public Type getType() {return type;}
+    public PartType getType() {return type;}
     public double getLength() {return length;}
     public double getWidth() {return width;}
 	public int numSeries() {return pins.length-2;}
@@ -341,7 +307,7 @@ public class Mos extends Part {
 	// ---------- printing methods ----------
 
 	public String typeString() {
-		String t = type.name;
+		String t = type.getName();
 		String c = isCapacitor() ? "_CAP" : "";
 		String h = pins.length==3 ? "" : ("_"+(pins.length-2)+"stack");
 		return t+c+h;
