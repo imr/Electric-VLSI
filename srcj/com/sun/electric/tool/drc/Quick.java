@@ -3175,8 +3175,6 @@ public class Quick
         Rectangle2D rect = new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
         DRCTemplate rule = DRC.getRules(nty.getTechnology()).getCutRule(nty.getPrimNodeIndexInTech(), DRCTemplate.CUTSIZE, techMode);
         String ruleName = (rule != null) ? rule.ruleName : "for contacts";
-        if (layer.getName().startsWith("Via2"))
-            System.out.println("H");
         if (DBMath.isGreaterThan(rect.getWidth(), specValues[0]))
         {
             reportError(CUTERROR, "along X", topCell, specValues[0], rect.getWidth(),
