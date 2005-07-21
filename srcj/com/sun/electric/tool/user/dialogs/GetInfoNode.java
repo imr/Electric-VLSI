@@ -386,6 +386,10 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                 ySize.setText(TextUtils.formatDouble(length));
             initialXSize = xSize.getText();
             initialYSize = ySize.getText();
+        } else if (ni.getFunction()==PrimitiveNode.Function.PRESIST) {
+        	// special case for Poly resistors
+        	xsizeLabel.setText("Length:");
+			ysizeLabel.setText("Width:");
         } else {
             xsizeLabel.setText("X size:");
             ysizeLabel.setText("Y size:");

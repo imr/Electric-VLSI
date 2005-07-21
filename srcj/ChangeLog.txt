@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03a: *********************************
 
+FIX: (07/21/05, RK) Change "Node Properties" dialog so it reports dimensions of 90nm Poly resistors as "length" and "width" instead of "x size" and "y size"
+
 IMP: (07/21/05, RK) NCC: Add Poly resistors. This is incomplete because I haven't implmented size disambiguation for resistors yet. I will do this after I've fixed size diambiguation.
 
 IMP: (07/19/05, IM) NCC GUI: 
