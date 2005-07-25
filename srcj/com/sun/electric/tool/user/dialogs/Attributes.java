@@ -48,10 +48,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JFrame;
