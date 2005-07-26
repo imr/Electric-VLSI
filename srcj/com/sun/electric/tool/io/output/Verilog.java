@@ -527,7 +527,14 @@ public class Verilog extends Topology
 				Variable varTemplate = ((Cell)niProto).getVar(VERILOG_TEMPLATE_KEY);
 				if (varTemplate != null)
 				{
-					writeTemplate((String)varTemplate.getObject(), no, cni, context);
+                    if (varTemplate.getObject() instanceof String []) {
+                        String [] lines = (String [])varTemplate.getObject();
+                        for (int i=0; i<lines.length; i++) {
+                            writeTemplate(lines[i], no, cni, context);
+                        }
+                    } else {
+					    writeTemplate((String)varTemplate.getObject(), no, cni, context);
+                    }
 					continue;
 				}
 			}
