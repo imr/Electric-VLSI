@@ -62,7 +62,7 @@ import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
 import com.sun.electric.tool.user.ncc.ExportConflict;
 import com.sun.electric.tool.user.ncc.NccComparisonMismatches;
-import com.sun.electric.tool.user.ncc.UnrecognizedMOS;
+import com.sun.electric.tool.user.ncc.UnrecognizedPart;
 
 /**
  * NCC's representation of a netlist.
@@ -429,8 +429,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			prln("  Unrecognized transistor type: "+typeNm);
 			
 			// GUI
-			globals.getComparisonResult().addUnrecognizedMOS(
-                    new UnrecognizedMOS(ni.getParent(), info.getContext(), typeNm, ni));
+			globals.getComparisonResult().addUnrecognizedPart(
+                    new UnrecognizedPart(ni.getParent(), info.getContext(), typeNm, ni));
 		}
 		return t;
 	}
@@ -497,8 +497,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			prln("  Unrecognized resistor type: "+typeNm);
 			
 			// GUI
-			globals.getComparisonResult().addUnrecognizedMOS(
-                    new UnrecognizedMOS(ni.getParent(), info.getContext(), typeNm, ni));
+			globals.getComparisonResult().addUnrecognizedPart(
+                    new UnrecognizedPart(ni.getParent(), info.getContext(), typeNm, ni));
 		}
 		return t;
 	}

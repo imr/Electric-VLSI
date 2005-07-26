@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+IMP: (07/26/05, IM): Added Unrecognized Part Type table to NCC GUI. 
+     It merged Unrecognized MOS Type and Unrecognized Resistor Type
+     classes and tables.
+
+BUG: (07/26/05, IM): NCC GUI displays hash code errors when it shouldn't (Bug #438)
+FIX: Make NccComparisonMismatches to report hash code failures only when text 
+     version of NCC would do so.
+
 ************************* Version 8.03a: *********************************
      
 IMP: (07/21/05, RK) NCC: Add Poly resistor tests to NCC regression

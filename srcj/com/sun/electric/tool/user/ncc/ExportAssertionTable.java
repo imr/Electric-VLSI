@@ -59,7 +59,7 @@ class AssertionTableModel extends ExportTableModel {
     ExportAssertionFailures[] failures;
     int[][] cellPrefHeights = parent.cellPrefHeights;
     int[][] cellPrefWidths  = parent.cellPrefWidths;
-    String[] colNames = {"Cell", "Networks"};
+    String[] colNames = {"Cell", "Exports"};
     
     public AssertionTableModel(ExportAssertionTable parent) {
         super(parent);
@@ -95,8 +95,8 @@ class AssertionTableModel extends ExportTableModel {
                 textPane.addMouseListener(mouseAdapter);                    
                 textPane.moveCaretPosition(0);
                 cellPrefWidths[row][col] = textPane.getPreferredSize().width + ExportTable.WIDTHMARGIN;
-                if (cellPrefHeights[row][col] > ExportTable.MAXLINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN)
-                    cellPrefHeights[row][col] = ExportTable.MAXLINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN;
+                if (cellPrefHeights[row][col] > ExportTable.MAX_VISIBLE_LINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN)
+                    cellPrefHeights[row][col] = ExportTable.MAX_VISIBLE_LINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN;
                 JPanel panel = new JPanel();
                 panel.setBackground(Color.WHITE);
                 panel.add(textPane);

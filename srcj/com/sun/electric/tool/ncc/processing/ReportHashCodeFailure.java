@@ -186,6 +186,7 @@ public class ReportHashCodeFailure {
 	/** constructor does it all */
 	private ReportHashCodeFailure(NccGlobals globals) {
 		this.globals = globals;
+        globals.setPrintHashFailures(true);
 		prln("Hash Code Partitioning Failed!!!");
 		StratCount.Counts counts = printCounts();
 		StratPrintMismatched.doYourJob(counts, globals);

@@ -35,14 +35,14 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.Highlighter;
 
-class UnrecognizedMOSTable extends ExportTable {
+class UnrecognizedPartTable extends ExportTable {
     
-    UnrecognizedMOS[] moses;
+    UnrecognizedPart[] moses;
     
-    public UnrecognizedMOSTable(NccComparisonMismatches res) {
+    public UnrecognizedPartTable(NccComparisonMismatches res) {
         super(res, 2);
-        moses = (UnrecognizedMOS[])result.getUnrecognizedMOSes()
-                                         .toArray(new UnrecognizedMOS[0]);
+        moses = (UnrecognizedPart[])result.getUnrecognizedParts()
+                                         .toArray(new UnrecognizedPart[0]);
         height = Math.min(moses.length, MAXROWS);
         setup();
         
@@ -54,12 +54,12 @@ class UnrecognizedMOSTable extends ExportTable {
 }
 
 class UnrecognizedMOSTableModel extends ExportTableModel {
-    UnrecognizedMOS[] moses;
+    UnrecognizedPart[] moses;
     int[][] cellPrefHeights = parent.cellPrefHeights;
     int[][] cellPrefWidths  = parent.cellPrefWidths;
-    String[] colNames = {"Cell", "Transistor Type"};
+    String[] colNames = {"Cell", "Part Type"};
     
-    public UnrecognizedMOSTableModel(UnrecognizedMOSTable parent) {
+    public UnrecognizedMOSTableModel(UnrecognizedPartTable parent) {
         super(parent);
         moses = parent.moses;
         cellPrefHeights = parent.cellPrefHeights;
@@ -89,8 +89,8 @@ class UnrecognizedMOSTableModel extends ExportTableModel {
                 textPane.addMouseListener(mouseAdapter);                    
                 textPane.moveCaretPosition(0);
                 cellPrefWidths[row][col] = textPane.getPreferredSize().width + ExportTable.WIDTHMARGIN;
-                if (cellPrefHeights[row][col] > ExportTable.MAXLINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN)
-                    cellPrefHeights[row][col] = ExportTable.MAXLINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN;
+                if (cellPrefHeights[row][col] > ExportTable.MAX_VISIBLE_LINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN)
+                    cellPrefHeights[row][col] = ExportTable.MAX_VISIBLE_LINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN;
                 JPanel panel = new JPanel();
                 panel.setBackground(Color.WHITE);
                 panel.add(textPane);
@@ -104,7 +104,7 @@ class UnrecognizedMOSTableModel extends ExportTableModel {
         int row  = index/10;
         if (col != 1) return;
         
-        UnrecognizedMOS mos = moses[row];
+        UnrecognizedPart mos = moses[row];
         Cell cell = mos.getCell();
         VarContext context = mos.getContext();
         

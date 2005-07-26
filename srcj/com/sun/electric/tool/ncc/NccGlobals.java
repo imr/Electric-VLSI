@@ -28,9 +28,6 @@
  * class. This allows an Ncc run to be completely thread safe.
  */
 package com.sun.electric.tool.ncc;
-import java.util.Collection;
-import java.util.Map;
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,7 +41,6 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.netlist.Wire;
-import com.sun.electric.tool.ncc.netlist.NccNameProxy.WireNameProxy;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
@@ -88,8 +84,9 @@ public class NccGlobals {
 	/** leaf nodes of wires tree */           private LeafEquivRecords wireLeafRecs;
 	/** leaf nodes of ports tree */			  private LeafEquivRecords portLeafRecs;
     /** has a netlist error? */               private boolean hasNetlistError = false;
-	
+    /** print hash code errors? */            private boolean hashFailuresPrinted = false;
     private NccComparisonMismatches compMismatches;
+
     
 	// ----------------------------- private methods --------------------------
 	private List getNetObjs(int code, NccNetlist nets) {
@@ -244,8 +241,14 @@ public class NccGlobals {
     public NccComparisonMismatches getComparisonResult() {
         return compMismatches;
     }
-
+    
+    /** @return true if a netlist error exists, false otherwise */
     public boolean hasNetlistError() { return hasNetlistError; }
+    /** Set whether hashcode mismatches should be printed */
+    public void setPrintHashFailures(boolean b) { hashFailuresPrinted = b;    }
+    /** @return true if hashcode mismatches should be displayed, false otherwise */
+    public boolean isPrintHashFailures() { return hashFailuresPrinted; }
+    
 	/** @return array of Part counts. One array element per Circuit */
     public int[] getPartCounts() { return getNetObjCounts(partLeafRecs); }
 	/** @return array of Wire counts. One array element per Circuit */

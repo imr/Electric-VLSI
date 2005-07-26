@@ -77,6 +77,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
     protected static DefaultTreeCellRenderer defCellRenderer = 
                      new DefaultTreeCellRenderer();
     private static Border border = BorderFactory.createEmptyBorder();
+    private boolean updateInProgress = true;
 
     // data holders
     private NccComparisonMismatches[] mismatches;
@@ -101,9 +102,10 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
     }
 
     public void update(NccComparisonMismatches[] misms) {
+        updateInProgress = true;
         mismatches = misms;
+        wireClassNodes = new WireClassNode[misms.length][];   
         root.removeAllChildren();
-        wireClassNodes = new WireClassNode[misms.length][];
         DefaultMutableTreeNode compNode;
         EquivRecord[] mismEqRecs;
         for (int compNdx = 0; compNdx < mismatches.length 
@@ -117,9 +119,6 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                 title = title0 + "{sch,lay}";
             else
                 title = titles[0] + " & " + titles[1];
-
-            mismEqRecs = cm.getMismatchedEquivRecords();
-            parentPane.setMismatchEquivRecs(compNdx, mismEqRecs);
 
             TreeNode compTreeNode = new TreeNode(rootTreeNode, 
                                     title + " [" + cm.getTotalMismatchCount() + "]", 
@@ -142,15 +141,18 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                 compNode.add(new DefaultMutableTreeNode(
                              new TreeNode(compTreeNode, exportsTitle, 
                                           compNdx, -1, TreeNode.EXPORTS)));
-            
-            boolean isHashChecked = cm.isHashChecked();
-            
-            // add parts entry
-            addPartClasses(compTreeNode, compNdx, compNode, mismEqRecs, isHashChecked);
-            
-            // add wires entry
-            addWireClasses(compTreeNode, compNdx, compNode, mismEqRecs, isHashChecked);     
 
+            // add parts/wires entry if necessary
+            mismEqRecs = cm.getMismatchedEquivRecords();
+            parentPane.setMismatchEquivRecs(compNdx, mismEqRecs);
+            if (mismEqRecs != null && mismEqRecs.length > 0) {
+                boolean isHashChecked = cm.isHashFailuresPrinted();
+                // add parts entry
+                addPartClasses(compTreeNode, compNdx, compNode, mismEqRecs, isHashChecked);
+                // add wires entry
+                addWireClasses(compTreeNode, compNdx, compNode, mismEqRecs, isHashChecked);     
+            }
+            
             // add sizes entry, if necessary
             int sizeMismCount = cm.getSizeMismatches().size();
             String sizeTitle = null;
@@ -212,19 +214,19 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                              new TreeNode(compTreeNode, exportChrConfTitle, 
                                           compNdx, -1, TreeNode.EXPORT_CHR_CONF)));
             
-            // add "unrecognized MOSes", if necessary
-            int unrecMOSesCount = cm.getUnrecognizedMOSes().size();
-            String unrecMOSesTitle = null;
-            if (unrecMOSesCount > ExportTable.MAXROWS) {
-                unrecMOSesTitle = "Unrecognized MOSes [first " 
-                    + ExportTable.MAXROWS + " of " + unrecMOSesCount + "]";                
-                unrecMOSesCount = ExportTable.MAXROWS;
-            } else if (unrecMOSesCount > 0) {
-                unrecMOSesTitle = "Unrecognized MOSes [" + unrecMOSesCount + "]";                
+            // add "unrecognized Parts", if necessary
+            int unrecPartsCount = cm.getUnrecognizedParts().size();
+            String unrecPartsTitle = null;
+            if (unrecPartsCount > ExportTable.MAXROWS) {
+                unrecPartsTitle = "Unrecognized MOSes [first " 
+                    + ExportTable.MAXROWS + " of " + unrecPartsCount + "]";                
+                unrecPartsCount = ExportTable.MAXROWS;
+            } else if (unrecPartsCount > 0) {
+                unrecPartsTitle = "Unrecognized Parts [" + unrecPartsCount + "]";                
             }
-            if (unrecMOSesCount > 0)
+            if (unrecPartsCount > 0)
                 compNode.add(new DefaultMutableTreeNode(
-                             new TreeNode(compTreeNode, unrecMOSesTitle, 
+                             new TreeNode(compTreeNode, unrecPartsTitle, 
                                           compNdx, -1, TreeNode.UNRECOG_MOS)));            
         }
         setRootVisible(true);
@@ -234,6 +236,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         setRootVisible(false);
         addSelectionRow(0);
         requestFocusInWindow();
+        updateInProgress = false;
     }    
     
     private void addPartClasses(TreeNode compTreeNode, int compNdx, 
@@ -264,17 +267,20 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                 nodeName.append("first " + MAX_LIST_ELEMENTS + " of ");
             nodeName.append(mismEqRecs[i].maxSize() + "]");
             
-            Iterator it = reasons.iterator();
-            if (it.hasNext()) {
-                String reas = (String)it.next();
-                nodeName.append(": " + reas.substring(reas.indexOf("type is ") + 8));
-            } 
-            if (it.hasNext()) {
-                String reas = (String)it.next();
-                if (reas.endsWith("different Wires attached")) {
-                    int a = reas.indexOf("has ") + 4;
-                    int b = reas.indexOf(" different");
-                    nodeName.append(", " + reas.substring(a,b) + " Wires attached");
+            Iterator it = null;
+            if (! isHashChecked) {  // don't process reasons for hash code classes
+                it = reasons.iterator();
+                if (it.hasNext()) {
+                    String reas = (String)it.next();
+                    nodeName.append(": " + reas.substring(reas.indexOf("type is ") + 8));
+                } 
+                if (it.hasNext()) {
+                    String reas = (String)it.next();
+                    if (reas.endsWith("different Wires attached")) {
+                        int a = reas.indexOf("has ") + 4;
+                        int b = reas.indexOf(" different");
+                        nodeName.append(", " + reas.substring(a,b) + " Wires attached");
+                    }
                 }
             }
             
@@ -284,14 +290,16 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             eclass = new DefaultMutableTreeNode(partTreeNode);
             parts.add(eclass);
             
-            if (reasons.size() == 0) {
-                eclass.add(new DefaultMutableTreeNode(
-                           new TreeNode(partTreeNode, "all Parts are indistinguishable", 
-                                        compNdx, i, TreeNode.PARTLEAF)));
-            } else while (it.hasNext()) {
-                eclass.add(new DefaultMutableTreeNode(
-                           new TreeNode(partTreeNode, (String)it.next(), 
-                                        compNdx, i, TreeNode.PARTLEAF)));
+            if (! isHashChecked) {  // don't process reasons for hash code classes
+                if (reasons.size() == 0) {
+                    eclass.add(new DefaultMutableTreeNode(
+                               new TreeNode(partTreeNode, "all Parts are indistinguishable", 
+                                            compNdx, i, TreeNode.PARTLEAF)));
+                } else while (it.hasNext()) {
+                    eclass.add(new DefaultMutableTreeNode(
+                               new TreeNode(partTreeNode, (String)it.next(), 
+                                            compNdx, i, TreeNode.PARTLEAF)));
+                }
             }
         }
         if (count == 0)
@@ -422,7 +430,8 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
         TreeNode data = (TreeNode)node.getUserObject();
         int compNdx = data.compNdx;        
-        if (data.type == TreeNode.WIRE && wireClassNodes[compNdx] != null) {
+        if (data.type == TreeNode.WIRE && wireClassNodes[compNdx] != null
+                                       && !updateInProgress) {
             int wclass = data.getWireClassNum();
             if (wireClassNodes[compNdx][wclass] == null)
                 createWireClassNodes(data, node.isLeaf());

@@ -88,8 +88,8 @@ abstract class ExportConflictTableModel extends ExportTableModel {
                 htmlPane.addMouseListener(mouseAdapter);                    
                 htmlPane.moveCaretPosition(0);
                 cellPrefWidths[row][col] = htmlPane.getPreferredSize().width + ExportTable.WIDTHMARGIN;
-                if (cellPrefHeights[row][col] > ExportTable.MAXLINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN)
-                    cellPrefHeights[row][col] = ExportTable.MAXLINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN;
+                if (cellPrefHeights[row][col] > ExportTable.MAX_VISIBLE_LINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN)
+                    cellPrefHeights[row][col] = ExportTable.MAX_VISIBLE_LINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN;
                 JPanel panel = new JPanel();
                 panel.setBackground(Color.WHITE);
                 panel.add(htmlPane);

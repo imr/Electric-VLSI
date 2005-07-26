@@ -4,13 +4,13 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.VarContext;
 
-public class UnrecognizedMOS {
+public class UnrecognizedPart {
     private Cell cell;
     private VarContext context;
     private String name;
     private NodeInst nodeInst;
     
-    public UnrecognizedMOS(Cell cel, VarContext con, String nm, NodeInst inst) {
+    public UnrecognizedPart(Cell cel, VarContext con, String nm, NodeInst inst) {
         cell = cel;
         context = con;
         name = nm;

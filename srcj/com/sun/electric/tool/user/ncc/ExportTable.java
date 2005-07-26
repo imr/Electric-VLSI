@@ -61,7 +61,7 @@ implements PropertyChangeListener, ActionListener {
     static final int HEIGHTMARGIN = 16;
     static final int LINEHEIGHT = 17;
     static final int SCRLBARHEIGHT = 17;
-    static final int MAXLINES = 6;
+    static final int MAX_VISIBLE_LINES = 6;
     
     protected static final String RED = "red";
     protected static final String GREEN = "green";

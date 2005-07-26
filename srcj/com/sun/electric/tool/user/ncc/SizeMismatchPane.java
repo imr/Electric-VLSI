@@ -118,6 +118,7 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         // create scroll pane with rows 
         JSeparator sep = new JSeparator(SwingConstants.HORIZONTAL);
         Box topBox = new Box(BoxLayout.Y_AXIS);
+        topBox.setAlignmentY(TOP_ALIGNMENT);
         sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
         int maxRowWid = 0;
         for (int i=0; i<size; i++) {
@@ -135,8 +136,6 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         bodyScrPane.setAlignmentX(LEFT_ALIGNMENT);
         bodyScrPane.setAlignmentY(TOP_ALIGNMENT);
         bodyScrPane.getHorizontalScrollBar().addAdjustmentListener(this);
-        JScrollBar sbar = bodyScrPane.getVerticalScrollBar(); 
-        sbar.setValue(sbar.getMinimum());
         
         // fill main container with header panel, separator, and scroll pane
         JPanel header = createRow(-1);
@@ -158,6 +157,11 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
         add(headScrPane, BorderLayout.NORTH);
         add(bodyScrPane, BorderLayout.CENTER);
         setBorder(border);
+
+        JScrollBar scrBar = bodyScrPane.getVerticalScrollBar();
+        scrBar.invalidate();
+        scrBar.validate();
+        scrBar.setValue(scrBar.getMinimum());
     }
   
     private JPanel createRow(int rowNdx) {

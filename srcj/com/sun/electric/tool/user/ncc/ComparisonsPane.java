@@ -222,7 +222,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     private JScrollPane getUnrecognizedMOSPane(int compNdx) {
         if (compNdx < 0 || compNdx >= unrecognizedMOSPanes.length) return null;
         if (unrecognizedMOSPanes[compNdx] == null) {
-            UnrecognizedMOSTable table = new UnrecognizedMOSTable(mismatches[compNdx]);
+            UnrecognizedPartTable table = new UnrecognizedPartTable(mismatches[compNdx]);
             unrecognizedMOSPanes[compNdx] = new JScrollPane(table);
             unrecognizedMOSPanes[compNdx].setBackground(Color.WHITE);
         }
@@ -345,7 +345,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
                     
                     html.append(href + (i*100000 + cell*10000 + k) +"\">"+ descr + "</a>");
                     curCellText.append(descr);
-                    if (it3.hasNext()) {
+                    if (it3.hasNext() && k<ComparisonsTree.MAX_LIST_ELEMENTS) {
                         html.append("<br>");
                         curCellText.append(LSEP);
                     }

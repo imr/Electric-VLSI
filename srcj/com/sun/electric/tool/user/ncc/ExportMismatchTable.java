@@ -142,8 +142,8 @@ class MismatchTableModel extends ExportTableModel {
                 htmlPane.addMouseListener(mouseAdapter);                    
                 htmlPane.moveCaretPosition(0);
                 cellPrefWidths[row][j] = htmlPane.getPreferredSize().width + ExportTable.WIDTHMARGIN;
-                if (cellPrefHeights[row][j] > ExportTable.MAXLINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN)
-                    cellPrefHeights[row][j] = ExportTable.MAXLINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN;
+                if (cellPrefHeights[row][j] > ExportTable.MAX_VISIBLE_LINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN)
+                    cellPrefHeights[row][j] = ExportTable.MAX_VISIBLE_LINES*ExportTable.LINEHEIGHT+ExportTable.HEIGHTMARGIN;
                 JPanel panel = new JPanel();
                 panel.setBackground(Color.WHITE);
                 panel.add(htmlPane);

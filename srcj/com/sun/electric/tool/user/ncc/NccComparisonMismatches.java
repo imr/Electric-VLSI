@@ -71,7 +71,11 @@ public class NccComparisonMismatches {
     /** Export Assertion Failures */    private List exportAssertionFailures;
     /** Network Export Conflicts  */    private List networkExportConflicts;
     /** Charact Export Conflicts  */    private List charactExportConflicts;
-    /** Unrecognized MOSes        */    private List unrecognizedMOSes;    
+    /** Unrecognized MOSes        */    private List unrecognizedParts;
+    /** print hash code errors? */      private boolean printHashFailures;  
+    
+    /** Empty array of EquivRecord */   
+    private static final EquivRecord[] emptyER = new EquivRecord[0];
     
     public NccComparisonMismatches() {
         exportMatch = true;
@@ -86,7 +90,7 @@ public class NccComparisonMismatches {
         exportAssertionFailures = new LinkedList();
         networkExportConflicts = new LinkedList();
         charactExportConflicts = new LinkedList();
-        unrecognizedMOSes = new LinkedList();
+        unrecognizedParts = new LinkedList();
     }
     
     /** 
@@ -108,6 +112,7 @@ public class NccComparisonMismatches {
             swapCells = false;
         
         sizeChecked = globals.getOptions().checkSizes;
+        printHashFailures = globals.isPrintHashFailures();
         
         if (mismEqvRecrds == null || mismEqvRecrds.length == 0) {
             LeafEquivRecords parts = globals.getPartLeafEquivRecs();
@@ -134,12 +139,18 @@ public class NccComparisonMismatches {
      */
     public int getTotalMismatchCount() {
         int eqvRecCount = 0;
-        if (mismEqvRecrds != null) eqvRecCount += mismEqvRecrds.length;
-        if (hashMismEqvRecrds != null) eqvRecCount += hashMismEqvRecrds.length;
+        if (mismEqvRecrds != null && mismEqvRecrds.length != 0) 
+            eqvRecCount += mismEqvRecrds.length;
+        else if (hashMismEqvRecrds != null && printHashFailures) 
+            eqvRecCount += hashMismEqvRecrds.length;
+        
         return getValidExportMismatchCount() 
                + eqvRecCount   
                + sizeMismatches.size()
-               + exportAssertionFailures.size();
+               + exportAssertionFailures.size()
+               + networkExportConflicts.size()
+               + charactExportConflicts.size()
+               + unrecognizedParts.size();
     }
     
     /**
@@ -220,7 +231,15 @@ public class NccComparisonMismatches {
     public EquivRecord[] getMismatchedEquivRecords() {
         if (mismEqvRecrds != null && mismEqvRecrds.length > 0)
             return mismEqvRecrds;
-        return hashMismEqvRecrds;
+        else if (hashMismEqvRecrds != null && printHashFailures)
+            return hashMismEqvRecrds;
+        else
+            return emptyER;
+    }
+    
+    public boolean isHashFailuresPrinted() {
+        boolean lp = (mismEqvRecrds != null && mismEqvRecrds.length > 0);
+        return (!lp && printHashFailures); 
     }
     
     public void setMatchFlags(boolean em, boolean tm, boolean sm) {
@@ -244,11 +263,6 @@ public class NccComparisonMismatches {
     public boolean isSizeChecked() {
         return sizeChecked;
     }
-    
-    public boolean isHashChecked() {
-        // hashcodes are compared if no local partitioning errors were found
-        return (mismEqvRecrds == null || mismEqvRecrds.length == 0);
-    }    
 
     public int getValidExportMismatchCount() {
         if (topologyMatch)
@@ -285,11 +299,11 @@ public class NccComparisonMismatches {
         return charactExportConflicts;
     }
     
-    public void addUnrecognizedMOS(UnrecognizedMOS mos) {
-        unrecognizedMOSes.add(mos);
+    public void addUnrecognizedPart(UnrecognizedPart mos) {
+        unrecognizedParts.add(mos);
     }
-    public List getUnrecognizedMOSes() {
-        return unrecognizedMOSes;
+    public List getUnrecognizedParts() {
+        return unrecognizedParts;
     }
     
     static class CellSummary {
