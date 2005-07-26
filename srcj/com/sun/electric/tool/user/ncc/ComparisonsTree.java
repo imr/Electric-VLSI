@@ -218,7 +218,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             int unrecPartsCount = cm.getUnrecognizedParts().size();
             String unrecPartsTitle = null;
             if (unrecPartsCount > ExportTable.MAXROWS) {
-                unrecPartsTitle = "Unrecognized MOSes [first " 
+                unrecPartsTitle = "Unrecognized Parts [first " 
                     + ExportTable.MAXROWS + " of " + unrecPartsCount + "]";                
                 unrecPartsCount = ExportTable.MAXROWS;
             } else if (unrecPartsCount > 0) {
@@ -227,7 +227,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             if (unrecPartsCount > 0)
                 compNode.add(new DefaultMutableTreeNode(
                              new TreeNode(compTreeNode, unrecPartsTitle, 
-                                          compNdx, -1, TreeNode.UNRECOG_MOS)));            
+                                          compNdx, -1, TreeNode.UNRECOG_PART)));            
         }
         setRootVisible(true);
         updateUI();      
@@ -558,7 +558,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         public static final int EXPORT_ASSERTS = 8;
         public static final int EXPORT_NET_CONF = 9;
         public static final int EXPORT_CHR_CONF = 10;
-        public static final int UNRECOG_MOS = 11;
+        public static final int UNRECOG_PART = 11;
         
         public final int compNdx, eclass, type;
         private String fullName;

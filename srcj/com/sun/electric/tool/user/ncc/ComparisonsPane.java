@@ -68,7 +68,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     private static final int EXPORT_ASSERTS = 5;
     private static final int EXPORT_NET_CONF = 6;
     private static final int EXPORT_CHR_CONF = 7;
-    private static final int UNRECOG_MOS = 8;
+    private static final int UNRECOG_PART = 8;
     
     private static final int MAX_CONCUR_EQ_RECS = 5;
     private static final String emptyStr = " ";
@@ -290,8 +290,8 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
                     dispOnRight = EXPORT_CHR_CONF;
                     setRightComponent(getExportChrConflictPane(exNode.compNdx));
                     break;
-                case TreeNode.UNRECOG_MOS:
-                    dispOnRight = UNRECOG_MOS;
+                case TreeNode.UNRECOG_PART:
+                    dispOnRight = UNRECOG_PART;
                     setRightComponent(getUnrecognizedMOSPane(exNode.compNdx));
                     break;                                        
             }
