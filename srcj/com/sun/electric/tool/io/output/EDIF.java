@@ -42,6 +42,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -89,14 +90,13 @@ public class EDIF extends Topology
 
     // settings that may later be changed by preferences
     private static final boolean CadenceProperties = true;
-    private static final String primitivesLibName = "elec_prims";
+    private static final String primitivesLibName = "ELECTRIC_PRIMS";
 
     private int scale = 20;
     private Library scratchLib;
+    EDIFEquiv equivs;
     private final HashMap libsToWrite; // key is Library, Value is LibToWrite
     private final List libsToWriteOrder; // list of libraries to write, in order
-    // key is PrimitiveNode.Function, value is PrimitiveNodeEquivalence
-    private final HashMap primEquivalences;
 
     private static class LibToWrite {
         private final Library lib;
@@ -117,68 +117,6 @@ public class EDIF extends Topology
             this.cell = cell;
             this.cni = cni;
             this.context = context;
-        }
-    }
-
-/*
-    private static abstract class NodeEquivalence {
-        private final String externalLib;
-        private final String externalCell;
-        private final String externalView;
-        private final List portEquivs;
-        private final int rotation;         // in tenth-degrees, rotate the electric prim by this value to match the cadence prim
-        private NodeEquivalence(String externalLib, String externalCell, String externalView, int rotation) {
-            this.externalLib = externalLib;
-            this.externalCell = externalCell;
-            this.externalView = externalView;
-            this.rotation = rotation;
-            this.portEquivs = new ArrayList();
-        }
-    }
-
-    private static class PortEquivalence {
-        private final String elecPortName;
-        private Point2D elecPortLoc;
-        private final String externalPortName;
-        private Point2D externalPortLoc;
-        private boolean portsSame;
-        private PortEquivalence(String elecPortName, String externalPortName) {
-            this.elecPortName = elecPortName;
-            this.externalPortName = externalPortName;
-            elecPortLoc = externalPortLoc = null;
-            portsSame = true;
-        }
-        private void setPortLoc(Point2D elecPortLoc, Point2D externalPortLoc) {
-            this.elecPortLoc = new Point2D.Double(elecPortLoc.getX(), elecPortLoc.getY());
-            this.externalPortLoc = new Point2D.Double(externalPortLoc.getX(), externalPortLoc.getY());
-            if (elecPortLoc.equals(externalPortLoc))
-                portsSame = true;
-            else
-                portsSame = false;
-        }
-        public boolean isPortsSame() { return portsSame; }
-        public String getElecPortName() { return elecPortName; }
-        public String getExternalPortName() { return externalPortName; }
-        public Point2D getElecPortLoc() { return elecPortLoc; }
-        public Point2D getExternalPortLoc() { return externalPortLoc; }
-    }
-
-*/
-
-    private static class PrimitiveNodeEquivalence {
-        private final PrimitiveNode.Function function;
-        private final PrimitiveNode pn;
-        private final String externalLib;
-        private final String externalCell;
-        private final int rotation;         // in tenth-degrees, rotate the electric prim by this value to match the cadence prim
-        private PrimitiveNodeEquivalence(PrimitiveNode.Function function, PrimitiveNode pn, String externalLib,
-                                         String externalCell, int rotation, HashMap primEquivalences) {
-            this.function = function;
-            this.pn = pn;
-            this.externalLib = externalLib;
-            this.externalCell = externalCell;
-            this.rotation = rotation;
-            primEquivalences.put(function, this);
         }
     }
 
@@ -205,22 +143,15 @@ public class EDIF extends Topology
 	{
         libsToWrite = new HashMap();
         libsToWriteOrder = new ArrayList();
-        primEquivalences = new HashMap();
-        initCadence();
+        equivs = new EDIFEquiv("edif.cfg");
 	}
-
-    private void initCadence() {
-        PrimitiveNodeEquivalence e;
-        e = new PrimitiveNodeEquivalence(PrimitiveNode.Function.TRA4NMOS, Schematics.tech.transistor4Node,
-                "sample", "nfet", -900, primEquivalences);
-        e = new PrimitiveNodeEquivalence(PrimitiveNode.Function.TRA4PMOS, Schematics.tech.transistor4Node,
-                "ELECTRIC_PRIMS", "pfet", -900, primEquivalences);
-    }
 
 	protected void start()
 	{
         // find the edit window
 		String name = makeToken(topCell.getName());
+        scratchLib = Library.findLibrary("__edifTemp__");
+        if (scratchLib != null) scratchLib.kill("");
         scratchLib = Library.newInstance("__edifTemp__", null);
         scratchLib.setHidden();
 
@@ -264,53 +195,33 @@ public class EDIF extends Topology
 		}
 		writeHeader(topCell, header, "EDIF Writer", topCell.getLibrary().getName());
 
-		// determine the primitives being used
-		HashMap useCount = new HashMap();
-		if (searchHierarchy(topCell, useCount) != 0)
-		{
-			// write out all primitives used in the library
-			blockOpen("library");
-			blockPutIdentifier(primitivesLibName);
-			blockPut("edifLevel", "0");
-			blockOpen("technology");
-			blockOpen("numberDefinition");
-			if (IOTool.isEDIFUseSchematicView())
-			{
-                writeScale(Technology.getCurrent());
-			}
-            blockClose("numberDefinition");
-            if (IOTool.isEDIFUseSchematicView())
-            {
-                writeFigureGroup(EGART);
-                writeFigureGroup(EGWIRE);
-                writeFigureGroup(EGBUS);
-            }
-			blockClose("technology");
-			for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
-			{
-				Technology tech = (Technology)it.next();
-				for(Iterator pIt = tech.getNodes(); pIt.hasNext(); )
-				{
-					NodeProto np = (NodeProto)pIt.next();
-					GenMath.MutableInteger mi = (GenMath.MutableInteger)useCount.get(np);
-					if (mi == null) continue;
+        // write out all primitives used in the library
+        blockOpen("library");
+        blockPutIdentifier(primitivesLibName);
+        blockPut("edifLevel", "0");
+        blockOpen("technology");
+        blockOpen("numberDefinition");
+        if (IOTool.isEDIFUseSchematicView())
+        {
+            writeScale(Technology.getCurrent());
+        }
+        blockClose("numberDefinition");
+        if (IOTool.isEDIFUseSchematicView())
+        {
+            writeFigureGroup(EGART);
+            writeFigureGroup(EGWIRE);
+            writeFigureGroup(EGBUS);
+        }
+        blockClose("technology");
+        HashMap primsFound = new HashMap();
+        writeAllPrims(topCell, primsFound);
+        blockClose("library");
 
-					PrimitiveNode.Function fun = np.getFunction();
-					if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
-						fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE ||
-						fun == PrimitiveNode.Function.CONNECT || fun == PrimitiveNode.Function.ART) continue;
-					for (int i = 0; i < mi.intValue(); i++)
-						writePrimitive((PrimitiveNode)np, i, fun, null, false);
-				}
-			}
-			blockClose("library");
-
-		}
         // external libs
         // organize by library
         List libs = new ArrayList();
-        for (Iterator it = primEquivalences.values().iterator(); it.hasNext(); ) {
-            PrimitiveNodeEquivalence e = (PrimitiveNodeEquivalence)it.next();
+        for (Iterator it = equivs.getNodeEquivs().iterator(); it.hasNext(); ) {
+            EDIFEquiv.NodeEquivalence e = (EDIFEquiv.NodeEquivalence)it.next();
             if (libs.contains(e.externalLib)) continue;
             libs.add(e.externalLib);
         }
@@ -327,10 +238,12 @@ public class EDIF extends Topology
             }
             blockClose("technology");
 
-            for (Iterator it2 = primEquivalences.values().iterator(); it2.hasNext(); ) {
-                PrimitiveNodeEquivalence e = (PrimitiveNodeEquivalence)it2.next();
-                if (lib != e.externalLib) continue;
-                writePrimitive(e.pn, 0, e.function, e.externalCell, true);
+            for (Iterator it2 = equivs.getNodeEquivs().iterator(); it2.hasNext(); ) {
+                EDIFEquiv.NodeEquivalence e = (EDIFEquiv.NodeEquivalence)it2.next();
+                if (!lib.equals(e.externalLib)) continue;
+                String viewType = null;
+                if (e.exortedType != null) viewType = "GRAPHIC"; // pins must have GRAPHIC view
+                writeExternalDef(e.externalCell, e.externalView, viewType, e.getExtPorts());
             }
             blockClose("external");
         }
@@ -364,7 +277,7 @@ public class EDIF extends Topology
             blockPutIdentifier(makeToken(lib.getName()));
             blockPut("edifLevel", "0");
             blockOpen("technology");
-            blockOpen("numberDefinition");
+            blockOpen("numberDefinition", false);
             if (IOTool.isEDIFUseSchematicView())
             {
                 writeScale(Technology.getCurrent());
@@ -432,6 +345,32 @@ public class EDIF extends Topology
 		}
 		if (IOTool.isEDIFUseSchematicView())
 		{
+            for (Iterator it = cell.getVariables(); it.hasNext(); ) {
+                Variable var = (Variable)it.next();
+                if (var.getTrueName().equals("prototype_center")) continue;
+                blockOpen("property");
+                String name = var.getTrueName();
+                String name2 = makeValidName(name);
+                if (!name.equals(name2)) {
+                    blockOpen("rename", false);
+                    blockPutIdentifier(name2);
+                    blockPutString(name);
+                    blockClose("rename");
+                } else {
+                    blockPutIdentifier(name);
+                }
+                blockOpen("string", false);
+                String value = var.getObject().toString();
+                value = value.replaceAll("\"", "%34%");
+                blockPutString(value);
+                blockClose("string");
+                if (!var.isAttribute()) {
+                    blockOpen("owner", false);
+                    blockPutString("Electric");
+                }
+                blockClose("property");
+            }
+
 			// output the icon
             //writeIcon(cell);
 			writeSymbol(cell);
@@ -461,7 +400,7 @@ public class EDIF extends Topology
                 if (var != null) {
                     // this is cell annotation text
                     blockOpen("commentGraphics");
-                    blockOpen("annotate");
+                    blockOpen("annotate", false);
                     Point2D point = new Point2D.Double(no.getAnchorCenterX(), no.getAnchorCenterY());
                     Poly p = new Poly(new Point2D [] { point });
                     String s;
@@ -485,78 +424,74 @@ public class EDIF extends Topology
                 }
 				if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
 					fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE ||
-					fun == PrimitiveNode.Function.CONNECT || fun == PrimitiveNode.Function.ART) continue;
+					//fun == PrimitiveNode.Function.CONNECT ||
+                        fun == PrimitiveNode.Function.ART) continue;
 			}
 
-			blockOpen("instance");
 			String iname = makeComponentName(no);
 			String oname = no.getName();
+
+            // write reference - get lib, cell, view
+            String refLib = "?", refCell="?", refView = "symbol";
+            int addedRotation = 0;
+            boolean openedPortImplementation = false;
+
+            EDIFEquiv.NodeEquivalence ne = equivs.getNodeEquivalence(no);
+            if (ne != null) {
+                addedRotation = ne.rotation * 10;
+                refLib = ne.externalLib;
+                refCell = ne.externalCell;
+                if (ne.exortedType != null) {
+                    // cadence pin: encapsulate instance inside of a portImplementation
+                    Iterator eit = no.getExports();
+                    if (eit.hasNext()) {
+                        Export e = (Export)eit.next();
+                        oname = e.getName();
+                        writePortImplementation(e, false);
+                        openedPortImplementation = true;
+                    }
+                }
+            } else if (no.getProto() instanceof PrimitiveNode)
+			{
+				NodeInst ni = (NodeInst)no;
+				PrimitiveNode.Function fun = ni.getFunction();
+
+                // do default action for primitives
+                refLib = primitivesLibName;
+                if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR) {					// count the number of inputs
+                    int i = 0;
+                    for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
+                    {
+                        Connection con = (Connection)pIt.next();
+                        if (con.getPortInst().getPortProto().getName().equals("a")) i++;
+                    }
+                    refCell = makeToken(ni.getProto().getName()) + i;
+                } else {
+                    refCell = describePrimitive(ni, fun);
+                }
+			} else
+			{
+                // this is a cell
+                Cell np = (Cell)no.getProto();
+                refLib = np.getLibrary().getName();
+                refCell = makeToken(no.getProto().getName());
+			}
+
+            // write reference
+            blockOpen("instance");
 			if (!oname.equalsIgnoreCase(iname))
 			{
-				blockOpen("rename");
+				blockOpen("rename", false);
 				blockPutIdentifier(iname);
 				blockPutString(oname);
 				blockClose("rename");
 			} else blockPutIdentifier(iname);
-
-            int addedRotation = 0;
-
-			if (no.getProto() instanceof PrimitiveNode)
-			{
-				NodeInst ni = (NodeInst)no;
-				PrimitiveNode.Function fun = ni.getFunction();
-				blockOpen("viewRef");
-				blockPutIdentifier("symbol");
-				blockOpen("cellRef");
-                String lib = primitivesLibName;
-				if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
-				{
-					// count the number of inputs
-					int i = 0;
-					for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
-					{
-						Connection con = (Connection)pIt.next();
-						if (con.getPortInst().getPortProto().getName().equals("a")) i++;
-					}
-					String name = makeToken(ni.getProto().getName()) + i;
-					blockPutIdentifier(name);
-
-				} else if (primEquivalences.containsKey(fun)) {
-                    PrimitiveNodeEquivalence e = (PrimitiveNodeEquivalence)primEquivalences.get(fun);
-                    blockPutIdentifier(e.externalCell);
-                    addedRotation = e.rotation;
-                    lib = e.externalLib;
-                }
-                else {
-                    blockPutIdentifier(describePrimitive(ni, fun));
-                }
-				blockPut("libraryRef", lib);
-				blockClose("viewRef");
-			} else
-			{
-//				if (((Cell)ni.getProto()).isIcon() &&
-//					((Cell)ni.getProto()).contentsView() == null)
-//				{
-//					// this node came from an external schematic library
-//					blockOpen("viewRef");
-//					blockPutIdentifier("cell");
-//					blockOpen("cellRef");
-//					blockPutIdentifier(makeToken(ni.getProto().getName()));
-//					String name = "schem_lib_" + ni.getProto().getName();
-//					blockPut("libraryRef", name);
-//					blockClose("viewRef");
-//				} else
-				{
-					// this node came from some library
-					blockOpen("viewRef");
-					blockPutIdentifier("symbol");
-					blockOpen("cellRef");
-                    Cell np = (Cell)no.getProto();
-					blockPutIdentifier(makeToken(no.getProto().getName()));
-					blockPut("libraryRef", np.getLibrary().getName());
-					blockClose("viewRef");
-				}
-			}
+            blockOpen("viewRef");
+            blockPutIdentifier(refView);
+            blockOpen("cellRef", false);
+            blockPutIdentifier(refCell);
+            blockPut("libraryRef", refLib);
+            blockClose("viewRef");
 
 			// now graphical information
 			if (IOTool.isEDIFUseSchematicView())
@@ -570,15 +505,19 @@ public class EDIF extends Topology
                 // now the origin
                 blockOpen("origin");
                 double cX = ni.getAnchorCenterX(), cY = ni.getAnchorCenterY();
+/*
                 if (no.getProto() instanceof Cell)
                 {
                     Rectangle2D cellBounds = ((Cell)no.getProto()).getBounds();
                     cX = ni.getTrueCenterX() - cellBounds.getCenterX();
                     cY = ni.getTrueCenterY() - cellBounds.getCenterY();
                 }
+*/
                 Point2D pt = new Point2D.Double(cX, cY);
+/*
                 AffineTransform trans = ni.rotateOut();
                 trans.transform(pt, pt);
+*/
                 writePoint(pt.getX(), pt.getY());
                 blockClose("transform");
 			}
@@ -594,6 +533,9 @@ public class EDIF extends Topology
                 writeDisplayableVariables(varPolys, "NODE_name", ni.rotateOut());
 			}
 			blockClose("instance");
+            if (openedPortImplementation) {
+                blockClose("portImplementation");
+            }
 		}
 
 		// if there is anything to connect, write the networks in the cell
@@ -649,6 +591,7 @@ public class EDIF extends Topology
 			{
 				Nodable no = (Nodable)nIt.next();
 				NodeProto niProto = no.getProto();
+                EDIFEquiv.NodeEquivalence ne = equivs.getNodeEquivalence(no.getNodeInst());
 				if (niProto instanceof Cell)
 				{
 					String nodeName = parameterizedName(no, context);
@@ -664,10 +607,29 @@ public class EDIF extends Topology
 						// single signal
 						Network subNet = netList.getNetwork(no, subPp, subCs.getExportIndex());
 						if (cs != cni.getCellSignal(subNet)) continue;
-						blockOpen("portRef");
-						blockPutIdentifier(makeToken(subCs.getName()));
-						blockPut("instanceRef", makeComponentName(no));
-						blockClose("portRef");
+                        String portName = subCs.getName();
+                        if (ne != null) {
+                            // get equivalent port name
+                            EDIFEquiv.PortEquivalence pe = ne.getPortEquivElec(portName);
+                            if (pe == null) {
+                                System.out.println("Error: no equivalent port found for '"+portName+"' on node "+niProto.describe(false));
+                                System.out.println("     Equivalence class: ");
+                                System.out.println(ne.toString());
+                            } else {
+                                if (!pe.getExtPort().ignorePort) {
+                                    blockOpen("portRef");
+                                    portName = pe.getExtPort().name;
+                                    blockPutIdentifier(makeToken(portName));
+                                    blockPut("instanceRef", makeComponentName(no));
+                                    blockClose("portRef");
+                                }
+                            }
+                        } else {
+                            blockOpen("portRef");
+                            blockPutIdentifier(makeToken(portName));
+                            blockPut("instanceRef", makeComponentName(no));
+                            blockClose("portRef");
+                        }
 					}
 				} else
 				{
@@ -675,18 +637,37 @@ public class EDIF extends Topology
 					PrimitiveNode.Function fun = ni.getFunction();
 					if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN ||
 						fun == PrimitiveNode.Function.CONTACT || fun == PrimitiveNode.Function.NODE ||
-						fun == PrimitiveNode.Function.CONNECT || fun == PrimitiveNode.Function.ART) continue;
+						//fun == PrimitiveNode.Function.CONNECT ||
+                            fun == PrimitiveNode.Function.ART) continue;
 					for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
 					{
 						Connection con = (Connection)cIt.next();
 						ArcInst ai = con.getArc();
 						Network aNet = netList.getNetwork(ai, 0);
 						if (aNet != net) continue;
-						String pt = con.getPortInst().getPortProto().getName();
-						blockOpen("portRef");
-						blockPutIdentifier(makeToken(pt));
-						blockPut("instanceRef", makeComponentName(no));
-						blockClose("portRef");
+						String portName = con.getPortInst().getPortProto().getName();
+                        if (ne != null) {
+                            // get equivalent port name
+                            EDIFEquiv.PortEquivalence pe = ne.getPortEquivElec(portName);
+                            if (pe == null) {
+                                System.out.println("Error: no equivalent port found for '"+portName+"' on node "+niProto.describe(false));
+                                System.out.println("     Equivalence class: ");
+                                System.out.println(ne.toString());
+                            } else {
+                                if (!pe.getExtPort().ignorePort) {
+                                    blockOpen("portRef");
+                                    portName = pe.getExtPort().name;
+                                    blockPutIdentifier(makeToken(portName));
+                                    blockPut("instanceRef", makeComponentName(no));
+                                    blockClose("portRef");
+                                }
+                            }
+                        } else {
+                            blockOpen("portRef");
+                            blockPutIdentifier(makeToken(portName));
+                            blockPut("instanceRef", makeComponentName(no));
+                            blockClose("portRef");
+                        }
 					}
 				}
 			}
@@ -708,6 +689,13 @@ public class EDIF extends Topology
 				setGraphic(EGUNKNOWN);
 				egraphic_override = EGUNKNOWN;
 			}
+
+            if (cs.isExported()) {
+                Export e = cs.getExport();
+                blockOpen("comment");
+                blockPutString("exported as "+e.getName()+", type "+e.getCharacteristic().getName());
+                blockClose("comment");
+            }
 
 			if (globalport)
 				blockPut("userData", "global");
@@ -780,8 +768,10 @@ public class EDIF extends Topology
         // write text
 
         Poly [] text = cell.getAllText(true, null);
-        for (int i=0; i<text.length; i++) {
-            Poly p = text[i];
+        if (text != null) {
+            for (int i=0; i<text.length; i++) {
+                Poly p = text[i];
+            }
         }
 
         if (IOTool.isEDIFUseSchematicView()) {
@@ -819,7 +809,7 @@ public class EDIF extends Topology
 	 * Method to dump the description of primitive "np" to the EDIF file
 	 * If the primitive is a schematic gate, use "i" as the number of inputs
 	 */
-	private void writePrimitive(PrimitiveNode pn, int i, PrimitiveNode.Function fun, String overrideCellName, boolean externalRef)
+	private void writePrimitive(PrimitiveNode pn, int i, PrimitiveNode.Function fun)
 	{
 		// write primitive name
 		if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
@@ -830,14 +820,15 @@ public class EDIF extends Topology
 		} else
 		{
 			blockOpen("cell");
-            if (overrideCellName != null)
-                blockPutIdentifier(makeToken(overrideCellName));
-            else
-			    blockPutIdentifier(makeToken(pn.getName()));
+            blockPutIdentifier(makeToken(pn.getName()));
 		}
 
 		// write primitive connections
 		blockPut("cellType", "generic");
+        blockOpen("comment");
+        Technology tech = pn.getTechnology();
+        blockPutString("Tech: "+tech.getTechName()+", Node: "+pn.getName()+", Func: "+fun.getConstantName());
+        blockClose("comment");
 		blockOpen("view");
 		blockPutIdentifier("symbol");
 		blockPut("viewType", IOTool.isEDIFUseSchematicView() ? "SCHEMATIC" : "NETLIST");
@@ -868,25 +859,43 @@ public class EDIF extends Topology
 			blockClose("port");
 		}
 
-        if (!externalRef) {
-            Cell tempCell = Cell.newInstance(scratchLib, "temp");
-            NodeInst ni = NodeInst.newInstance(pn, new Point2D.Double(0,0), pn.getDefWidth(), pn.getDefHeight(), tempCell);
-            writeSymbol(pn, ni);
-            tempCell.kill();
-        }
+        Cell tempCell = Cell.newInstance(scratchLib, "temp");
+        NodeInst ni = NodeInst.newInstance(pn, new Point2D.Double(0,0), pn.getDefWidth(), pn.getDefHeight(), tempCell);
+        writeSymbol(pn, ni);
+        tempCell.kill();
 		blockClose("cell");
 	}
+
+    // ports is a list of EDIFEquiv.Port objects
+    private void writeExternalDef(String extCell, String extView, String viewType, List ports) {
+        blockOpen("cell");
+        blockPutIdentifier(extCell);
+        blockPut("cellType", "generic");
+        blockOpen("view");
+        blockPutIdentifier(extView);
+        if (viewType == null) viewType = IOTool.isEDIFUseSchematicView() ? "SCHEMATIC" : "NETLIST";
+        blockPut("viewType", viewType);
+
+        // write interface
+        blockOpen("interface");
+        for (Iterator it = ports.iterator(); it.hasNext(); ) {
+            EDIFEquiv.Port port = (EDIFEquiv.Port)it.next();
+            if (port.ignorePort) continue;
+            blockOpen("port");
+            blockPutIdentifier(port.name);
+            blockClose("port");
+        }
+        blockClose("cell");
+    }
 
 	/**
 	 * Method to count the usage of primitives hierarchically below cell "np"
 	 */
-	private int searchHierarchy(Cell cell, HashMap useMap)
+	private void writeAllPrims(Cell cell, HashMap primsFound)
 	{
 		// do not search this cell if it is an icon
-		if (cell.isIcon()) return 0;
+		if (cell.isIcon()) return;
 
-		// keep a count of the total number of primitives encountered
-		int primcount = 0;
 
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
@@ -894,7 +903,10 @@ public class EDIF extends Topology
 			NodeProto np = ni.getProto();
 			if (np instanceof PrimitiveNode)
 			{
-				PrimitiveNode.Function fun = ni.getFunction();
+                if (equivs.getNodeEquivalence(ni) != null) continue;        // will be defined by external reference
+                PrimitiveNode pn = (PrimitiveNode)np;
+                PrimitiveNode.Function fun = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
+				//PrimitiveNode.Function fun = ni.getFunction();
 				int i = 1;
 				if (fun == PrimitiveNode.Function.GATEAND || fun == PrimitiveNode.Function.GATEOR || fun == PrimitiveNode.Function.GATEXOR)
 				{
@@ -905,19 +917,18 @@ public class EDIF extends Topology
 						if (con.getPortInst().getPortProto().getName().equals("a")) i++;
 					}
 				}
-				GenMath.MutableInteger count = (GenMath.MutableInteger)useMap.get(np);
-				if (count == null)
-				{
-					count = new GenMath.MutableInteger(0);
-					useMap.put(np, count);
-				}
-				count.setValue(Math.max(count.intValue(), i));
-	
+                if (primsFound.get(getPrimKey(ni, i)) != null) continue;    // already written
+
+/*
 				if (fun != PrimitiveNode.Function.UNKNOWN && fun != PrimitiveNode.Function.PIN && fun != PrimitiveNode.Function.CONTACT &&
 					fun != PrimitiveNode.Function.NODE && fun != PrimitiveNode.Function.CONNECT && fun != PrimitiveNode.Function.METER &&
 						fun != PrimitiveNode.Function.CONPOWER && fun != PrimitiveNode.Function.CONGROUND && fun != PrimitiveNode.Function.SOURCE &&
-							fun != PrimitiveNode.Function.SUBSTRATE && fun != PrimitiveNode.Function.WELL && fun != PrimitiveNode.Function.ART)
-								primcount++;
+							fun != PrimitiveNode.Function.SUBSTRATE && fun != PrimitiveNode.Function.WELL && fun != PrimitiveNode.Function.ART) {
+*/
+                if (fun == PrimitiveNode.Function.UNKNOWN || fun == PrimitiveNode.Function.PIN || fun == PrimitiveNode.Function.ART)
+                    continue;
+                writePrimitive(pn, i, fun);
+                primsFound.put(getPrimKey(ni, i), pn);
 				continue;
 			}
 
@@ -929,18 +940,18 @@ public class EDIF extends Topology
 			if (oNp == null) oNp = (Cell)np;
 
 			// search the subcell
-			GenMath.MutableInteger count = (GenMath.MutableInteger)useMap.get(oNp);
-			if (count == null) primcount += searchHierarchy(oNp, useMap);
+            writeAllPrims(oNp, primsFound);
 		}
-		GenMath.MutableInteger count = (GenMath.MutableInteger)useMap.get(cell);
-		if (count == null)
-		{
-			count = new GenMath.MutableInteger(0);
-			useMap.put(cell, count);
-		}
-		count.increment();
-		return primcount;
 	}
+
+    private Object getPrimKey(NodeInst ni, int i) {
+        NodeProto np = ni.getProto();
+        if (!(np instanceof PrimitiveNode)) return null;
+        PrimitiveNode pn = (PrimitiveNode)np;
+        PrimitiveNode.Function func = pn.getTechnology().getPrimitiveFunction(pn, ni.getTechSpecific());
+        String key = pn.getTechnology().getTechShortName() + "_" + np.getName() + "_" + func.getConstantName() + "_" +i;
+        return key;
+    }
 
 	/**
 	 * Method to generate a pt symbol (pt x y)
@@ -959,7 +970,7 @@ public class EDIF extends Topology
 	private String getOrientation(NodeInst ni, int addedRotation)
 	{
 		String orientation = "ERROR";
-        int angle = (ni.getAngle() + addedRotation);
+        int angle = (ni.getAngle() - addedRotation);
         if (angle < 0) angle = angle + 3600;
         if (angle > 3600) angle = angle % 3600;
 		switch (angle)
@@ -972,6 +983,10 @@ public class EDIF extends Topology
 		if (ni.isMirroredAboutXAxis()) orientation = "MX" + orientation;
 		if (ni.isMirroredAboutYAxis()) orientation = "MY" + orientation;
 		if (orientation.length() == 0) orientation = "R0";
+        if (orientation.equals("MXR180")) orientation = "MY";
+        if (orientation.equals("MYR180")) orientation = "MX";
+        if (orientation.equals("MXR270")) orientation = "MYR90";
+        if (orientation.equals("MYR270")) orientation = "MXR90";
 		return orientation;
 	}
 
@@ -1088,25 +1103,7 @@ public class EDIF extends Topology
 		for(Iterator it = cell.getPorts(); it.hasNext(); )
 		{
 			Export e = (Export)it.next();
-			blockOpen("portImplementation");
-            blockOpen("name");
-			blockPutIdentifier(makeToken(e.getName()));
-            blockOpen("display");
-            blockOpen("figureGroupOverride");
-            blockPutIdentifier(EGWIRE.getText());
-            blockOpen("textHeight");
-            blockPutInteger(getTextHeight(e.getTextDescriptor(Export.EXPORT_NAME_TD)));
-            blockClose("figureGroupOverride");
-            blockOpen("origin");
-            Poly portPoly = e.getOriginalPort().getPoly();
-            writePoint(portPoly.getCenterX(), portPoly.getCenterY());
-            blockClose("name");
-			blockOpen("connectLocation");
-			writeSymbolPoly(portPoly);
-	
-			// close figure
-			setGraphic(EGUNKNOWN);
-			blockClose("portImplementation");
+            writePortImplementation(e, true);
 		}
 		egraphic_override = EGUNKNOWN;
 
@@ -1165,6 +1162,37 @@ public class EDIF extends Topology
         // close figure
         setGraphic(EGUNKNOWN);
         blockClose("symbol");
+    }
+
+    /**
+     * Write a portImplementation node.
+     * @param e
+     * @param closeBlock true to close block, false to leave portImplementation block open
+     */
+    private void writePortImplementation(Export e, boolean closeBlock) {
+        blockOpen("portImplementation");
+        blockOpen("name");
+        blockPutIdentifier(makeToken(e.getName()));
+        blockOpen("display");
+        blockOpen("figureGroupOverride");
+        blockPutIdentifier(EGWIRE.getText());
+        blockOpen("textHeight");
+        blockPutInteger(getTextHeight(e.getTextDescriptor(Export.EXPORT_NAME_TD)));
+        blockClose("figureGroupOverride");
+        blockOpen("origin");
+        Poly namePoly = e.getNamePoly();
+        writePoint(namePoly.getCenterX(), namePoly.getCenterY());
+        blockClose("name");
+        blockOpen("connectLocation");
+        Poly portPoly = e.getOriginalPort().getPoly();
+        egraphic_override = EGWIRE;
+        egraphic = EGUNKNOWN;
+        writeSymbolPoly(portPoly);
+        setGraphic(EGUNKNOWN);
+        blockClose("connectLocation");
+        if (closeBlock) {
+            blockClose("portImplementation");
+        }
     }
 
 	/**
@@ -1264,6 +1292,10 @@ public class EDIF extends Topology
 		Point2D [] points = new Point2D[2];
 		points[0] = new Point2D.Double(ai.getTailLocation().getX(), ai.getTailLocation().getY());
 		points[1] = new Point2D.Double(ai.getHeadLocation().getX(), ai.getHeadLocation().getY());
+        // translate point if needed
+        points[0] = equivs.translatePortConnection(points[0], ai.getTailPortInst());
+        points[1] = equivs.translatePortConnection(points[1], ai.getHeadPortInst());
+
 		Poly poly = new Poly(points);
 		poly.setStyle(Poly.Type.OPENED);
 		poly.transform(trans);
@@ -1346,7 +1378,7 @@ public class EDIF extends Topology
 		// now draw the polygon
 		Poly.Type type = obj.getStyle();
 		Point2D [] points = obj.getPoints();
-		if (type == Poly.Type.CIRCLE || type == Poly.Type.DISC)
+		if (type == Poly.Type.CIRCLE || type == Poly.Type.DISC || type == Poly.Type.THICKCIRCLE)
 		{
 			setGraphic(EGART);
 			double i = points[0].distance(points[1]);
@@ -1357,7 +1389,7 @@ public class EDIF extends Topology
 			return;
 		}
 
-		if (type == Poly.Type.CIRCLEARC)
+		if (type == Poly.Type.CIRCLEARC || type == Poly.Type.THICKCIRCLEARC)
 		{
 			setGraphic(EGART);
 
@@ -1433,7 +1465,7 @@ public class EDIF extends Topology
 			blockPutString(str);
 			blockOpen("display");
 			TextDescriptor td = obj.getTextDescriptor();
-			if (td != null && td.getSize().isAbsolute())
+			if (td != null)
 			{
 				blockOpen("figureGroupOverride");
 				blockPutIdentifier(EGART.getText());
@@ -1533,6 +1565,9 @@ public class EDIF extends Topology
         double size = 2;        // default
         if (td != null) {
             size = td.getSize().getSize();
+            if (!td.getSize().isAbsolute()) {
+                size = size * 2;
+            }
         }
         // 2 pixels = 0.0278 in or 36 double pixels per inch
         double height = size * 10 / 36;
@@ -1615,18 +1650,27 @@ public class EDIF extends Topology
 
 	/****************************** LOW-LEVEL BLOCK OUTPUT METHODS ******************************/
 
+    /**
+     * Will open a new keyword block, will indent the new block
+     * depending on depth of the keyword
+     */
+    private void blockOpen(String keyword) {
+        blockOpen(keyword, true);
+    }
+
 	/**
 	 * Will open a new keyword block, will indent the new block
 	 * depending on depth of the keyword
 	 */
-	private void blockOpen(String keyword)
+	private void blockOpen(String keyword, boolean startOnNewLine)
 	{
+        if (blkstack_ptr > 0 && startOnNewLine) printWriter.print("\n");
 		// output the new block
-		if (blkstack_ptr > 0) printWriter.print("\n");
 		blkstack[blkstack_ptr++] = keyword;
 
 		// output the keyword
-		printWriter.print(getBlanks(blkstack_ptr-1) + "( " + keyword);
+        String blanks = startOnNewLine ? getBlanks(blkstack_ptr-1) : " ";
+		printWriter.print(blanks + "( " + keyword);
 	}
 
 	/**
