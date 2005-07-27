@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+IMP: (07/26/06, JKG) Acepting String Arrays in Verilog (reported by Tarik)
+(comments added by GVG)
+
 IMP: (07/26/05, IM): Added Unrecognized Part Type table to NCC GUI. 
      It merged Unrecognized MOS Type and Unrecognized Resistor Type
      classes and tables.
