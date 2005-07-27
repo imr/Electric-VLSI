@@ -64,22 +64,26 @@ public class Tech {
 			return pi;
 		}
 		public PortInst leftDiff() {
-			String portNm = mosTypeString() + "-diff" + 
+            String type = isTsmc90 ? "" : (mosTypeString()+"-");
+			String portNm = type + "diff" +
 			                (isTsmc90 ? "-left" : "-top");
 			return getPort(portNm);
 		}
 		public PortInst rightDiff() {
-			String portNm = mosTypeString() + "-diff" + 
+            String type = isTsmc90 ? "" : (mosTypeString()+"-");
+			String portNm = type + "diff" +
 			                (isTsmc90 ? "-right" : "-bottom");
 			return getPort(portNm);
 		}
 		public PortInst topPoly() {
-			String portNm = mosTypeString() + "-poly" + 
+            String type = isTsmc90 ? "" : (mosTypeString()+"-");
+			String portNm = type + "poly" +
 			                (isTsmc90 ? "-top" : "-right");
 			return getPort(portNm);
 		}
 		public PortInst botPoly() {
-			String portNm = mosTypeString() + "-poly" + 
+            String type = isTsmc90 ? "" : (mosTypeString()+"-");
+			String portNm = type + "poly" + 
 			                (isTsmc90 ? "-bottom" : "-left");
 			return getPort(portNm);
 		}
