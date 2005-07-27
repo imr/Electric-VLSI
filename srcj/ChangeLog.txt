@@ -4,7 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
-IMP: (07/26/06, JKG) Acepting String Arrays in Verilog (reported by Tarik)
+BUG: (07/26/05, GVG) Wrong flag in getShapeOfNode for poly resistors in TSMC90
+FIX: change "false" by electrical (reported by Lexau, it should be in Bugzilla)
+
+IMP: (07/26/05, JKG) Acepting String Arrays in Verilog (reported by Tarik, it should be in Bugzilla)
 (comments added by GVG)
 
 IMP: (07/26/05, IM): Added Unrecognized Part Type table to NCC GUI. 
