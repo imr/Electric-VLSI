@@ -22,7 +22,10 @@ FIX: Make NccComparisonMismatches to report hash code failures only when text
      version of NCC would do so.
 
 ************************* Version 8.03a: *********************************
-     
+
+BUG: (07/28/05, JKG) Connecting contacts to contacts/arc in tsmc90 created broken arcs.
+FIX: fixed bug in port size calc for wiring tool in NodeInst.getShapeOfPort()
+
 IMP: (07/21/05, RK) NCC: Add Poly resistor tests to NCC regression
 
 IMP: (07/21/05, GVG) Metal layers switch for 90nm technology. In 90nm tech tab, you can choose between
