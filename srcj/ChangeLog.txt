@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+BUG: (07/28/05, GVG) GDS number for RPO 29 instead of 155 (reported by JonG)
+
+BUG: (07/28/05, JKG) Connecting contacts to contacts/arc in tsmc90 created broken arcs (Reported by Frankie).
+FIX: fixed bug in port size calc for wiring tool in NodeInst.getShapeOfPort()
+
+BUG: (07/28/05, JKF) Zoom mode does not clear current highlights (Boz).
+IMP/MAN: (07/28/05, JKF) Window->special zoom->zoom box can now use left mouse in addition to right mouse (Jon/Boz)
+
 BUG: (07/27/05, GVG) Wrong names in 90nm N transistors (reported by Boz, no bugzilla)
 FIX: Function wronlgy assigned in PrimitiveNode (TRAPMOS instead of TRANMOS)
 
@@ -22,9 +30,6 @@ FIX: Make NccComparisonMismatches to report hash code failures only when text
      version of NCC would do so.
 
 ************************* Version 8.03a: *********************************
-
-BUG: (07/28/05, JKG) Connecting contacts to contacts/arc in tsmc90 created broken arcs.
-FIX: fixed bug in port size calc for wiring tool in NodeInst.getShapeOfPort()
 
 IMP: (07/21/05, RK) NCC: Add Poly resistor tests to NCC regression
 
