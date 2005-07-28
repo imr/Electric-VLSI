@@ -195,6 +195,7 @@ public class ClickZoomWireListener
      */
     public void zoomBoxSingleShot(EventListener oldListener) {
         modeRight = Mode.zoomBoxSingleShot;
+        modeLeft = Mode.zoomBoxSingleShot;
         this.oldListener = oldListener;
     }
 
@@ -366,6 +367,14 @@ public class ClickZoomWireListener
 	        // ===== left mouse clicks ======
 
 	        if (isLeftMouse(evt)) {
+
+                if (modeLeft == Mode.zoomBoxSingleShot) {
+                    // We will zoom to box
+                    wnd.setStartDrag(clickX, clickY);
+                    wnd.setEndDrag(clickX, clickY);
+                    wnd.setDoingAreaDrag();
+                    return;
+                }
 
 	            // if doing sticky move place objects now
 	            if (modeLeft == Mode.stickyMove) {
@@ -598,7 +607,7 @@ public class ClickZoomWireListener
 
 	        if (isLeftMouse(evt)) {
 
-	            if (modeLeft == Mode.selectBox || modeLeft == Mode.drawBox) {
+	            if (modeLeft == Mode.selectBox || modeLeft == Mode.drawBox || modeLeft == Mode.zoomBoxSingleShot) {
 	                // select objects in box
 	                wnd.setEndDrag(mouseX, mouseY);
 	                wnd.repaint();
@@ -692,6 +701,7 @@ public class ClickZoomWireListener
                         if (!onePoint)
                             wnd.focusScreen(bounds);
                         WindowFrame.setListener(oldListener);
+                        if (modeLeft == Mode.zoomBoxSingleShot) modeLeft = Mode.none;
                     }
 	                if (modeRight == Mode.zoomBox) {
 	                    // zoom to box: focus on box
@@ -778,7 +788,7 @@ public class ClickZoomWireListener
 	                    modeLeft = Mode.stickyMove; // user moving stuff in sticky mode
 	            } else {
 
-	                if (modeLeft == Mode.selectBox || modeLeft == Mode.drawBox) {
+	                if (modeLeft == Mode.selectBox || modeLeft == Mode.drawBox || modeLeft == Mode.zoomBoxSingleShot) {
 	                    // select all in box
 	                    Point2D start = wnd.screenToDatabase((int)wnd.getStartDrag().getX(), (int)wnd.getStartDrag().getY());
 	                    Point2D end = wnd.screenToDatabase((int)wnd.getEndDrag().getX(), (int)wnd.getEndDrag().getY());
@@ -786,6 +796,14 @@ public class ClickZoomWireListener
 	                    double maxSelX = Math.max(start.getX(), end.getX());
 	                    double minSelY = Math.min(start.getY(), end.getY());
 	                    double maxSelY = Math.max(start.getY(), end.getY());
+                        // determine if the user clicked on a single point to prevent unintended zoom-in
+                        // a single point is 4 lambda or less AND 10 screen pixels or less
+                        boolean onePoint = true;
+                        Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);
+                        if (bounds.getHeight() > 4 && bounds.getWidth() > 4) onePoint = false;
+                        if (Math.abs(wnd.getStartDrag().getX()-wnd.getEndDrag().getX()) > 10 ||
+                            Math.abs(wnd.getStartDrag().getY()-wnd.getEndDrag().getY()) > 10) onePoint = false;
+
 	                    if (modeLeft == Mode.selectBox) {
 	                        if (!invertSelection)
 	                            highlighter.clear();
@@ -795,6 +813,13 @@ public class ClickZoomWireListener
 	                        // just draw a highlight box
 	                        highlighter.addArea(new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY), cell);
 	                    }
+                        if (modeLeft == Mode.zoomBoxSingleShot) {
+                            // zoom to box: focus on box
+                            if (!onePoint)
+                                wnd.focusScreen(bounds);
+                            WindowFrame.setListener(oldListener);
+                            if (modeRight == Mode.zoomBoxSingleShot) modeRight = Mode.none;
+                        }
 	                    highlighter.finished();
 	                    wnd.clearDoingAreaDrag();
 	                    wnd.repaint();
