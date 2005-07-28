@@ -25,7 +25,6 @@ package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.tool.user.ErrorLogger;
 
 import java.util.List;
 import java.util.ArrayList;
