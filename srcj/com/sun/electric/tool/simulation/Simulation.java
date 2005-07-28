@@ -1129,6 +1129,13 @@ public class Simulation extends Listener
 	 */
 	public static void setCDLConvertBrackets(boolean c) { cacheCDLConvertBrackets.setBoolean(c); }
 
+    /**
+     * File to be included when writing CDL netlists. "" to not include any file
+     */
+    private static Pref cacheCDLIncludeFile = Pref.makeStringPref("CDLIncludeFile", tool.prefs, "");
+    public static String getCDLIncludeFile() { return cacheCDLIncludeFile.getString(); }
+    public static void setCDLIncludeFile(String file) { cacheCDLIncludeFile.setString(file); }
+
     private static Pref cacheCDLIgnoreResistors = Pref.makeBooleanPref("CDLLIgnoreResistors", tool.prefs, true);
 //    static { cacheCDLLibName.attachToObject(tool, "IO/CDL tab", "Cadence library name"); }
     /**

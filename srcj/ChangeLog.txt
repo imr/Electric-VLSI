@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+IMP/MAN: (07/28/05, JKG) Added Include File option to CDL tab (global include file).
+    CDL (Spice) netlister now uses CDL_template attributes.
+
 BUG: (07/28/05, GVG) GDS number for RPO 29 instead of 155 (reported by JonG)
 
 BUG: (07/28/05, JKG) Connecting contacts to contacts/arc in tsmc90 created broken arcs (Reported by Frankie).

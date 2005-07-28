@@ -83,6 +83,8 @@ public class Spice extends Topology
 	/** key of Variable holding SPICE model file. */			public static final Variable.Key SPICE_MODEL_FILE_KEY = ElectricObject.newKey("SIM_spice_behave_file");
 	/** Prefix for spice extension. */                          public static final String SPICE_EXTENSION_PREFIX = "Extension ";
 
+    /** key of Variable holding generic CDL templates. */		public static final Variable.Key CDL_TEMPLATE_KEY = ElectricObject.newKey("ATTR_CDL_template");
+
 	/** maximum subcircuit name length */						private static final int SPICEMAXLENSUBCKTNAME     = 70;
     /** maximum subcircuit name length */						private static final int CDLMAXLENSUBCKTNAME     = 40;
 	/** legal characters in a spice deck */						private static final String SPICELEGALCHARS        = "!#$%*+-/<>[]_@";
@@ -295,6 +297,20 @@ public class Spice extends Topology
 				legalSpiceChars = CDLNOBRACKETLEGALCHARS;
 
 			multiLinePrint(true, "* First line is ignored\n");
+            // see if include file specified
+            String headerPath = TextUtils.getFilePath(topCell.getLibrary().getLibFile());
+            String filePart = Simulation.getCDLIncludeFile();
+            if (!filePart.equals("")) {
+                String fileName = headerPath + filePart;
+                File test = new File(fileName);
+                if (test.exists())
+                {
+                    multiLinePrint(true, "* Primitives described in this file:\n");
+                    addIncludeFile(filePart);
+                } else {
+                    System.out.println("Warning: CDL Include file not found: "+fileName);
+                }
+            }
 		} else
 		{
 			writeHeader(topCell);
@@ -618,6 +634,18 @@ public class Spice extends Topology
 					multiLinePrint(false, infstr.toString());
 					continue;
 				}
+
+                Variable cdlTemplate = subCell.getVar(CDL_TEMPLATE_KEY);
+                if (cdlTemplate != null && useCDL) {
+                    String line = cdlTemplate.getObject().toString();
+                    StringBuffer infstr = replacePortsAndVars(line, no, context, cni);
+                    // Writing MFactor if available. Not sure here
+                    writeMFactor(context, no, infstr);
+
+                    infstr.append('\n');
+                    multiLinePrint(false, infstr.toString());
+                    continue;
+                }
 
 				// get the ports on this node (in proper order)
 				CellNetInfo subCni = getCellNetInfo(parameterizedName(no, context));
@@ -1280,8 +1308,13 @@ public class Spice extends Topology
      */
     protected boolean skipCellAndSubcells(Cell cell)
 	{
-		// CDL doesn't handle any of this: always examines subcells
-		if (useCDL) return false;
+        if (useCDL) {
+            // check for CDL template: if exists, skip
+            Variable cdlTemplate = cell.getVar(CDL_TEMPLATE_KEY);
+            if (cdlTemplate != null) return true;
+            // no template, return false
+            return false;
+        }
 
 		// skip if there is a template
         Variable varTemplate = cell.getVar(preferedEngineTemplateKey);
@@ -1650,6 +1683,11 @@ public class Spice extends Topology
 	 */
 	private void addIncludeFile(String fileName)
 	{
+        if (useCDL) {
+            multiLinePrint(false, ".include "+ fileName + "\n");
+            return;
+        }
+
 		if (spiceEngine == Simulation.SPICE_ENGINE_2 || spiceEngine == Simulation.SPICE_ENGINE_3 ||
 			spiceEngine == Simulation.SPICE_ENGINE_G || spiceEngine == Simulation.SPICE_ENGINE_S)
 		{
