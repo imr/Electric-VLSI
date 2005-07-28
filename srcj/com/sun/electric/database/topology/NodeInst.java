@@ -1883,12 +1883,19 @@ public class NodeInst extends Geometric implements Nodable, Comparable
                 SizeOffset so = ((PrimitiveNode)np).getProtoSizeOffset();
                 double width = ni.getXSize() - so.getHighXOffset() - so.getLowXOffset();
                 double height = ni.getYSize() - so.getHighYOffset() - so.getLowYOffset();
-                double offsetX = 0.5*(width - box.getWidth() - arcWidth);
-                double offsetY = 0.5*(height - box.getHeight() - arcWidth);
-                if (offsetX < 0) {
+                double newportwidth = width - arcWidth;
+                double newportheight = height - arcWidth;
+                if (newportwidth < 0) newportwidth = 0; // if arc bigger than contact, make port size 0 so it's centered
+                if (newportheight < 0) newportheight = 0;
+                double offsetX = 0, offsetY = 0;
+                if (newportwidth < box.getWidth()) {
+                    // port size needs to be reduced if desired width less than actual width
+                    offsetX = 0.5*(newportwidth - box.getWidth());
                     box = new Rectangle2D.Double(box.getX()-offsetX, box.getY(), box.getWidth()+2*offsetX, box.getHeight());
                 }
-                if (offsetY < 0) {
+                if (newportheight < box.getHeight()) {
+                    // port size needs to be reduced if desired height less than actual height
+                    offsetY = 0.5*(newportheight - box.getHeight());
                     box = new Rectangle2D.Double(box.getX(), box.getY()-offsetY, box.getWidth(), box.getHeight()+2*offsetY);
                 }
             }
