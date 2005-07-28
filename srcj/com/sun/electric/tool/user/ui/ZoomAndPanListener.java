@@ -66,6 +66,12 @@ public class ZoomAndPanListener
 		{
 			if ((evt.getModifiers()&MouseEvent.CTRL_MASK) != 0) mode = ToolBar.CursorMode.ZOOM;
 		}
+        if (mode == ToolBar.CursorMode.ZOOM && (evt.getSource() instanceof EditWindow)) {
+            EditWindow wnd = (EditWindow)evt.getSource();
+            wnd.setStartDrag(startX, startY);
+            wnd.setEndDrag(startX, startY);
+            wnd.setDoingAreaDrag();
+        }
 		setProperCursor(evt);
 	}
 
@@ -106,6 +112,10 @@ public class ZoomAndPanListener
 			double scale = wnd.getScale();
 			if (mode == ToolBar.CursorMode.ZOOM)
 			{
+                wnd.setEndDrag(newX, newY);
+                wnd.repaint();
+
+/*
 				// zooming the window scale
 				highlighter.clear();
 				Point2D start = wnd.screenToDatabase(startX, startY);
@@ -118,6 +128,7 @@ public class ZoomAndPanListener
 				highlighter.finished();
 				wnd.clearDoingAreaDrag();
 				wnd.repaint();
+*/
 			} else if (mode == ToolBar.CursorMode.PAN)
 			{
 				// panning the window location
@@ -142,6 +153,13 @@ public class ZoomAndPanListener
 		{
 			EditWindow wnd = (EditWindow)evt.getSource();
              if (wnd == null) return;
+             Point2D start = wnd.screenToDatabase((int)wnd.getStartDrag().getX(), (int)wnd.getStartDrag().getY());
+             Point2D end = wnd.screenToDatabase((int)wnd.getEndDrag().getX(), (int)wnd.getEndDrag().getY());
+             double minSelX = Math.min(start.getX(), end.getX());
+             double maxSelX = Math.max(start.getX(), end.getX());
+             double minSelY = Math.min(start.getY(), end.getY());
+             double maxSelY = Math.max(start.getY(), end.getY());
+/*
              Highlighter highlighter = wnd.getHighlighter();
 
 			// zooming the window scale
@@ -153,6 +171,7 @@ public class ZoomAndPanListener
 			double maxSelX = Math.max(start.getX(), end.getX());
 			double minSelY = Math.min(start.getY(), end.getY());
 			double maxSelY = Math.max(start.getY(), end.getY());
+*/
 			if ((evt.getModifiers()&MouseEvent.SHIFT_MASK) != 0)
 			{
 				wnd.setScale(wnd.getScale() * 0.5);
@@ -162,8 +181,15 @@ public class ZoomAndPanListener
 				TopLevel.setCurrentCursor(ToolBar.zoomCursor);
 			} else
 			{
-				Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);
-				if (bounds.getWidth() > 0 || bounds.getHeight() > 0)
+                // determine if the user clicked on a single point to prevent unintended zoom-in
+                // a single point is 4 lambda or less AND 10 screen pixels or less
+                boolean onePoint = true;
+                Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);
+                if (bounds.getHeight() > 4 && bounds.getWidth() > 4) onePoint = false;
+                if (Math.abs(wnd.getStartDrag().getX()-wnd.getEndDrag().getX()) > 10 ||
+                    Math.abs(wnd.getStartDrag().getY()-wnd.getEndDrag().getY()) > 10) onePoint = false;
+				//Rectangle2D bounds = new Rectangle2D.Double(minSelX, minSelY, maxSelX-minSelX, maxSelY-minSelY);
+				if (!onePoint)
 				{
 					wnd.focusScreen(bounds);
 				} else
@@ -171,6 +197,8 @@ public class ZoomAndPanListener
 					System.out.println("To zoom-in, drag an area");
 				}
 			}
+             wnd.clearDoingAreaDrag();
+             wnd.repaint();             
 		}
 	}
 
