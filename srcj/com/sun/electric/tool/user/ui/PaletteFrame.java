@@ -529,8 +529,22 @@ public class PaletteFrame implements MouseListener
                     // Adding two extra variables: length and width
                     if (newNi.getFunction() == PrimitiveNode.Function.PRESIST)
                     {
-                        var = newNi.newVar(Schematics.ATTR_WIDTH, "2");
-                        var = newNi.newVar(Schematics.ATTR_LENGTH, "2");
+                        // They will be visible
+                        MutableTextDescriptor td = MutableTextDescriptor.getNodeTextDescriptor();
+						td.setOff(1.5, 0);
+						if (td.getSize().isAbsolute())
+							td.setAbsSize((int)(td.getSize().getSize() - 1));
+						else
+							td.setRelSize(td.getSize().getSize() - 0.5);
+						var = newNi.newVar(Schematics.ATTR_WIDTH, "2", td);
+
+						td = MutableTextDescriptor.getNodeTextDescriptor();
+						td.setOff(-1.5, 0);
+						if (td.getSize().isAbsolute())
+							td.setAbsSize((int)(td.getSize().getSize() - 2));
+						else
+							td.setRelSize(td.getSize().getSize() - 0.7);
+						var = newNi.newVar(Schematics.ATTR_LENGTH, "2", td);
                     }
 				} else if (np == Schematics.tech.capacitorNode)
 				{

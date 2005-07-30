@@ -40,15 +40,7 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.TransistorSize;
+import com.sun.electric.technology.*;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
@@ -2104,7 +2096,46 @@ public class Schematics extends Technology
 		ni.setTechSpecific(getPrimitiveFunctionBits(function));
 
 	}
-    
+                             /**
+	 * Method to return the size of a resistor-type NodeInst in this Technology.
+	 * @param ni the NodeInst.
+     * @param context the VarContext in which any vars will be evaluated,
+     * pass in VarContext.globalContext if no context needed, or set to null
+     * to avoid evaluation of variables (if any).
+	 * @return the size of the NodeInst.
+	 */
+    public PrimitiveNodeSize getResistorSize(NodeInst ni, VarContext context)
+    {
+		if (!ni.getFunction().isResistor()) return null;
+        Object lengthObj = null;
+        Variable var = ni.getVar(ATTR_LENGTH);
+        if (var != null) {
+            if (context != null) {
+                lengthObj = context.evalVar(var, ni);
+            } else {
+                lengthObj = var.getObject();
+            }
+            double length = VarContext.objectToDouble(lengthObj, -1);
+            if (length != -1)
+                lengthObj = new Double(length);
+        }
+
+        Object widthObj = null;
+        var = ni.getVar(ATTR_WIDTH);
+        if (var != null) {
+            if (context != null) {
+                widthObj = context.evalVar(var, ni);
+            } else {
+                widthObj = var.getObject();
+            }
+            double width = VarContext.objectToDouble(widthObj, -1);
+            if (width != -1)
+                widthObj = new Double(width);
+        }
+        PrimitiveNodeSize size = new PrimitiveNodeSize(widthObj, lengthObj);
+        return size;
+    }
+
 	/**
 	 * Method to return the size of a transistor NodeInst in this Technology.
      * You should most likely be calling NodeInst.getTransistorSize instead of this.
@@ -2168,32 +2199,33 @@ public class Schematics extends Technology
      * @param width the new width
      * @param length the new length
      */
-    public void setTransistorSize(NodeInst ni, double width, double length)
+    public void setPrimitiveNodeSize(NodeInst ni, double width, double length)
     {
-        if (ni.isFET())
-        {
-            Variable var = ni.getVar(ATTR_LENGTH);
-            if (var == null) {
-                var = ni.newVar(ATTR_LENGTH, new Double(length));
-            } else {
-                var = ni.updateVar(var.getKey(), new Double(length));
-            }
-            if (var != null) var.setDisplay(true);
-
-            var = ni.getVar(ATTR_WIDTH);
-            if (var == null) {
-                var = ni.newVar(ATTR_WIDTH, new Double(width));
-            } else {
-                var = ni.updateVar(var.getKey(), new Double(width));
-            }
-            if (var != null) var.setDisplay(true);
-        } else {
-            Variable var = ni.getVar(ATTR_AREA);
-            if (var != null) {
-                var = ni.updateVar(var.getKey(), new Double(width));
-            }
-            if (var != null) var.setDisplay(true);
-        }
+        setPrimitiveNodeSize(ni, new Double(width), new Double(length));
+//        if (ni.isFET())
+//        {
+//            Variable var = ni.getVar(ATTR_LENGTH);
+//            if (var == null) {
+//                var = ni.newVar(ATTR_LENGTH, new Double(length));
+//            } else {
+//                var = ni.updateVar(var.getKey(), new Double(length));
+//            }
+//            if (var != null) var.setDisplay(true);
+//
+//            var = ni.getVar(ATTR_WIDTH);
+//            if (var == null) {
+//                var = ni.newVar(ATTR_WIDTH, new Double(width));
+//            } else {
+//                var = ni.updateVar(var.getKey(), new Double(width));
+//            }
+//            if (var != null) var.setDisplay(true);
+//        } else {
+//            Variable var = ni.getVar(ATTR_AREA);
+//            if (var != null) {
+//                var = ni.updateVar(var.getKey(), new Double(width));
+//            }
+//            if (var != null) var.setDisplay(true);
+//        }
     }
 
     /**
@@ -2204,9 +2236,9 @@ public class Schematics extends Technology
      * @param width the new width
      * @param length the new length
      */
-    public void setTransistorSize(NodeInst ni, Object width, Object length)
+    public void setPrimitiveNodeSize(NodeInst ni, Object width, Object length)
     {
-        if (ni.isFET())
+        if (ni.isFET() || ni.getFunction().isResistor())
         {
             Variable var = ni.getVar(ATTR_LENGTH);
             if (var == null) {

@@ -30,7 +30,6 @@ import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -42,9 +41,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.TransistorSize;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.MoCMOS;
@@ -369,27 +366,27 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         mirrorY.setSelected(initialMirrorY);
 		rotation.setText(TextUtils.formatDouble(initialRotation / 10.0));
 
-        // special case for transistors
-        TransistorSize transSize = ni.getTransistorSize(null);
-        if (transSize != null) {
+        // special case for transistors and resistors
+        PrimitiveNodeSize npSize = ni.getPrimitiveNodeSize(null);
+        if (npSize != null) {
             xsizeLabel.setText("Width:");
             ysizeLabel.setText("Length:");
-            double width = transSize.getDoubleWidth();
-            if (width == 0 && transSize.getWidth() != null)
-                xSize.setText(transSize.getWidth().toString());
+            double width = npSize.getDoubleWidth();
+            if (width == 0 && npSize.getWidth() != null)
+                xSize.setText(npSize.getWidth().toString());
             else
                 xSize.setText(TextUtils.formatDouble(width));
-            double length = transSize.getDoubleLength();
-            if (length == 0 && transSize.getLength() != null)
-                ySize.setText(transSize.getLength().toString());
+            double length = npSize.getDoubleLength();
+            if (length == 0 && npSize.getLength() != null)
+                ySize.setText(npSize.getLength().toString());
             else
                 ySize.setText(TextUtils.formatDouble(length));
             initialXSize = xSize.getText();
             initialYSize = ySize.getText();
-        } else if (ni.getFunction()==PrimitiveNode.Function.PRESIST) {
-        	// special case for Poly resistors
-        	xsizeLabel.setText("Length:");
-			ysizeLabel.setText("Width:");
+//        } else if (ni.getFunction()==PrimitiveNode.Function.PRESIST) {
+//        	// special case for Poly resistors
+//        	xsizeLabel.setText("Length:");
+//			ysizeLabel.setText("Width:");
         } else {
             xsizeLabel.setText("X size:");
             ysizeLabel.setText("Y size:");
@@ -1031,14 +1028,16 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
             // The following code is specific for transistors, and uses the X/Y size fields for
             // Width and Length, and therefore may override the values such that the node size does not
             // get set by them.
-            if (ni.getTransistorSize(null) != null) {
-
+            PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null);
+            if (size != null)
+            {
                 // see if this is a schematic transistor
-                if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node)
+                if (np == Schematics.tech.transistorNode || np == Schematics.tech.transistor4Node ||
+                        np == Schematics.tech.resistorNode)
                 {
-                    if (ni.isFET())
-					{
                         Object width, length;
+                    if (ni.isFET() || ni.getFunction() == PrimitiveNode.Function.PRESIST)
+					{
                         // see if we can convert width and length to a Number
                         double w = TextUtils.atof(dialog.xSize.getText(), null);
                         if (w == 0) {
@@ -1055,9 +1054,9 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                         } else {
                             length = new Double(l);
                         }
-                        ni.setTransistorSize(width, length);
+                        ni.setPrimitiveNodeSize(width, length);
                     }
-                } else
+                } else // transistors or resistors
                 {
                     // this is a layout transistor
                     if (ni.isSerpentineTransistor()) {
@@ -1068,15 +1067,15 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
                             ni.setSerpentineTransistorLength(length);
                     } else {
                         // set length and width by node size for layout transistors
-                        double initialWidth = ni.getTransistorSize(null).getDoubleWidth();
-                        double initialLength = ni.getTransistorSize(null).getDoubleLength();
+                        double initialWidth = size.getDoubleWidth();
+                        double initialLength = size.getDoubleLength();
                         double width = TextUtils.atof(dialog.xSize.getText(), new Double(initialWidth));
                         double length = TextUtils.atof(dialog.ySize.getText(), new Double(initialLength));
                         if (!DBMath.doublesEqual(width, initialWidth) ||
                             !DBMath.doublesEqual(length, initialLength))
                         {
-                            // set transistor size
-                            ni.setTransistorSize(width, length);
+                            // set transistor or resistor size
+                            ni.setPrimitiveNodeSize(width, length);
                         }
                     }
                 }

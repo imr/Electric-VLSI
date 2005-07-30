@@ -598,8 +598,8 @@ public class PrimitiveNode implements NodeProto, Comparable
 			function == Function.TRAEMES || function == Function.TRA4EMES ||
 			function == Function.TRANS4)
 				return Function.TRANS;
-		if (function.isResistor() || // == Function.RESIST || function == Function.PRESIST ||
-			function.isCapacitor() || // == Function.CAPAC || function == Function.ECAPAC ||
+		if (function.isResistor() ||
+			function.isCapacitor() ||
             function == Function.DIODE || function == Function.DIODEZ || function == Function.INDUCT)
 				return Function.INDUCT;
 		if (function == Function.CCVS || function == Function.CCCS ||

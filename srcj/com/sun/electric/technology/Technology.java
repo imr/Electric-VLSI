@@ -1371,6 +1371,25 @@ public class Technology implements Comparable
     };
 
     /**
+	 * Method to return the size of a resistor-type NodeInst in this Technology.
+	 * @param ni the NodeInst.
+     * @param context the VarContext in which any vars will be evaluated,
+     * pass in VarContext.globalContext if no context needed, or set to null
+     * to avoid evaluation of variables (if any).
+	 * @return the size of the NodeInst.
+	 */
+    public PrimitiveNodeSize getResistorSize(NodeInst ni, VarContext context)
+    {
+        if (!(ni.getProto() instanceof PrimitiveNode)) return null;
+        SizeOffset so = ni.getSizeOffset();
+        double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+        double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+
+        PrimitiveNodeSize size = new PrimitiveNodeSize(new Double(width), new Double(height));
+        return size;
+    }
+
+    /**
      * Method to return length of active reqion. This will be used for
      * parasitics extraction. Electric layers are used for the calculation
      * @param ni the NodeInst.
@@ -1428,7 +1447,7 @@ public class Technology implements Comparable
      * @param width the new width (positive values only)
      * @param length the new length (positive values only)
      */
-    public void setTransistorSize(NodeInst ni, double width, double length)
+    public void setPrimitiveNodeSize(NodeInst ni, double width, double length)
     {
         SizeOffset so = ni.getSizeOffset();
         double oldWidth = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();

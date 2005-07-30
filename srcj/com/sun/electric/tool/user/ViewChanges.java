@@ -801,7 +801,7 @@ public class ViewChanges
 
 		// create the parts in this cell
 		HashMap newNodes = new HashMap();
-		buildSchematicNodes(oldCell, newCell, Schematics.tech, newNodes);
+		buildSchematicNodes(oldCell, newCell, newNodes);
 		buildSchematicArcs(oldCell, newCell, newNodes);
 
 		// now make adjustments for manhattan-ness
@@ -841,7 +841,7 @@ public class ViewChanges
 		return newCell;
 	}
 	
-	private static void buildSchematicNodes(Cell cell, Cell newCell, Technology newTech, HashMap newNodes)
+	private static void buildSchematicNodes(Cell cell, Cell newCell, HashMap newNodes)
 	{
 		// for each node, create a new node in the newcell, of the correct logical type.
 		for(Iterator it = cell.getNodes(); it.hasNext(); )

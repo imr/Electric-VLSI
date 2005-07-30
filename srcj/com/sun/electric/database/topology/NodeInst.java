@@ -35,7 +35,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.hierarchy.NodeUsage;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
@@ -47,11 +46,7 @@ import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.TransistorSize;
+import com.sun.electric.technology.*;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -2798,6 +2793,33 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		       fun==PrimitiveNode.Function.TRAPNP || fun==PrimitiveNode.Function.TRA4PNP; 
 	}
 
+    /**
+	 * Method to return the size of this PrimitiveNode-type NodeInst.
+     * @param context the VarContext in which any evaluations take place,
+     * pass in VarContext.globalContext if no context needed.
+	 * @return the size of the NodeInst if it is a PrimitiveNode
+	 */
+	public PrimitiveNodeSize getPrimitiveNodeSize(VarContext context)
+	{
+        PrimitiveNodeSize size = getTransistorSize(context);
+        if (size == null) // Not a transistor
+            size = getResistorSize(context); // It is a resistor
+        return size;
+    }
+
+    /**
+	 * Method to return the size of this PrimitiveNode-type NodeInst.
+     * @param context the VarContext in which any evaluations take place,
+     * pass in VarContext.globalContext if no context needed.
+	 * @return the size of the NodeInst if it is a PrimitiveNode
+	 */
+    private PrimitiveNodeSize getResistorSize(VarContext context)
+    {
+        if (!getFunction().isResistor()) return null;
+        PrimitiveNode np = (PrimitiveNode)protoType;
+		return np.getTechnology().getResistorSize(this, context);
+    }
+
 	/**
 	 * Method to return the size of this transistor NodeInst.
      * @param context the VarContext in which any evaluations take place,
@@ -2812,32 +2834,32 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	}
 
     /**
-     * Method to set the size of this transistor NodeInst. Does
+     * Method to set the size of this transistor or resistor NodeInst. Does
      * nothing if this is not a transistor NodeInst.
      * @param width the new width of the transistor
      * @param length the new length of the transistor
      */
-    public void setTransistorSize(double width, double length)
+    public void setPrimitiveNodeSize(double width, double length)
     {
-        if (!isPrimitiveTransistor() && !isFET()) return;
+        if (!isPrimitiveTransistor() && !isFET() && !getFunction().isResistor()) return;
 		PrimitiveNode np = (PrimitiveNode)protoType;
         Job.checkChanging();
-        np.getTechnology().setTransistorSize(this, width, length);
+        np.getTechnology().setPrimitiveNodeSize(this, width, length);
     }
 
     /**
-     * Method to set the size of a transistor NodeInst in this technology.
+     * Method to set the size of a transistor or resistor NodeInst in this technology.
      * Width may be the area for non-FET transistors, in which case length is ignored.
      * This does nothing if the NodeInst's technology is not Schematics.
      * @param width the new width
      * @param length the new length
      */
-    public void setTransistorSize(Object width, Object length)
+    public void setPrimitiveNodeSize(Object width, Object length)
     {
         Technology tech = protoType.getTechnology();
         if (tech != Schematics.tech) return;
         Job.checkChanging();
-        Schematics.tech.setTransistorSize(this, width, length);
+        Schematics.tech.setPrimitiveNodeSize(this, width, length);
     }
 
 	/**
