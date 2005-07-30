@@ -24,7 +24,7 @@ BUG: (07/28/05, JKF) Zoom mode does not clear current highlights (Boz).
 IMP/MAN: (07/28/05, JKF) Window->special zoom->zoom box can now use left mouse in addition to right mouse (Jon/Boz)
 
 BUG: (07/27/05, GVG) Wrong names in 90nm N transistors (reported by Boz, no bugzilla)
-FIX: Function wronlgy assigned in PrimitiveNode (TRAPMOS instead of TRANMOS)
+FIX: Function wrongly assigned in PrimitiveNode (TRAPMOS instead of TRANMOS)
 
 BUG: (07/26/05, GVG) Wrong flag in getShapeOfNode for poly resistors in TSMC90
 FIX: change "false" by electrical (reported by Lexau, it should be in Bugzilla)
