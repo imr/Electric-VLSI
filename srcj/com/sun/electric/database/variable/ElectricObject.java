@@ -895,41 +895,41 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	 * @param index the location in the arrayed Variable to insert the value.
 	 * @param value the object to insert into the arrayed Variable.
 	 */
-	public void insertInVar(Variable.Key key, int index, Object value)
-	{
-		checkChanging();
-		Variable v = getVar(key);
-		if (v == null) return;
-		Object addr = v.getObject();
-		if (addr instanceof Object[])
-		{
-			v.lowLevelInsert(index, value);
-			if (isDatabaseObject())
-				Undo.insertVariable(this, v, index);
-		}
-		lowLevelModVar(v);
-	}
+//	public void insertInVar(Variable.Key key, int index, Object value)
+//	{
+//		checkChanging();
+//		Variable v = getVar(key);
+//		if (v == null) return;
+//		Object addr = v.getObject();
+//		if (addr instanceof Object[])
+//		{
+//			v.lowLevelInsert(index, value);
+//			if (isDatabaseObject())
+//				Undo.insertVariable(this, v, index);
+//		}
+//		lowLevelModVar(v);
+//	}
 
 	/**
 	 * Method to delete an Object from an arrayed Variable on this ElectricObject.
 	 * @param key the key of the arrayed Variable.
 	 * @param index the location in the arrayed Variable to delete the value.
 	 */
-	public void deleteFromVar(Variable.Key key, int index)
-	{
-		checkChanging();
-		Variable v = getVar(key);
-		if (v == null) return;
-		Object addr = v.getObject();
-		if (addr instanceof Object[])
-		{
-			Object oldVal = ((Object[])addr)[index];
-			v.lowLevelDelete(index);
-			if (isDatabaseObject())
-				Undo.deleteVariable(this, v, index, oldVal);
-		}
-		lowLevelModVar(v);
-	}
+//	public void deleteFromVar(Variable.Key key, int index)
+//	{
+//		checkChanging();
+//		Variable v = getVar(key);
+//		if (v == null) return;
+//		Object addr = v.getObject();
+//		if (addr instanceof Object[])
+//		{
+//			Object oldVal = ((Object[])addr)[index];
+//			v.lowLevelDelete(index);
+//			if (isDatabaseObject())
+//				Undo.deleteVariable(this, v, index, oldVal);
+//		}
+//		lowLevelModVar(v);
+//	}
 
 	/**
 	 * Method to copy all variables from another ElectricObject to this ElectricObject.
@@ -1249,19 +1249,19 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	 * Method to return an Iterator over all Variable keys.
 	 * @return an Iterator over all Variable keys.
 	 */
-	public static synchronized Iterator getVariableKeys()
-	{
-		return varKeys.values().iterator();
-	}
+//	public static synchronized Iterator getVariableKeys()
+//	{
+//		return varKeys.values().iterator();
+//	}
 
 	/**
 	 * Method to return the total number of different Variable names on all ElectricObjects.
 	 * @return the total number of different Variable names on all ElectricObjects.
 	 */
-	public static synchronized int getNumVariableKeys()
-	{
-		return varKeys.keySet().size();
-	}
+//	public static synchronized int getNumVariableKeys()
+//	{
+//		return varKeys.keySet().size();
+//	}
 
 	/**
 	 * Routing to check whether changing of this cell allowed or not.

@@ -53,6 +53,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
@@ -3577,18 +3578,20 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public int checkAndRepair(boolean repair, ErrorLogger errorLogger)
 	{
 		int errorCount = 0;
+        List list = new ArrayList();
 
 		for(Iterator it = getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
-			errorCount += ai.checkAndRepair(repair, errorLogger);
+            errorCount += ai.checkAndRepair(repair, list, errorLogger);
 		}
 		for(Iterator it = getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			errorCount += ni.checkAndRepair(repair, errorLogger);
+			errorCount += ni.checkAndRepair(repair, list, errorLogger);
 		}
-
+        if (repair && list.size() > 0)
+            CircuitChanges.eraseObjectsInList(this, list);
 		return errorCount;
 	}
 

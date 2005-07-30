@@ -303,6 +303,11 @@ public class ArcInst extends Geometric implements Comparable
 	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail,
 	                                  Point2D headPt, Point2D tailPt, String name, int defAngle)
 	{
+        if (type.isNotUsed())
+        {
+//            System.out.println("Cannot create arc instance of " + type + " because prototype is unused");
+            return null;
+        }
         // if points are null, create them as would newInstance
 		EPoint headP;
         if (headPt == null)
@@ -1679,9 +1684,23 @@ public class ArcInst extends Geometric implements Comparable
 	/**
 	 * Method to check and repair data structure errors in this ArcInst.
 	 */
-	public int checkAndRepair(boolean repair, ErrorLogger errorLogger)
+	public int checkAndRepair(boolean repair, List list, ErrorLogger errorLogger)
 	{
 		int errorCount = 0;
+        ArcProto ap = getProto();
+
+        if (ap.isNotUsed())
+        {
+            if (errorLogger != null)
+            {
+                String msg = "Prototype of arc " + getName() + " is unused";
+                ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
+				error.addGeom(this, true, parent, null);
+            }
+            if (repair) list.add(this);
+            // This counts as 1 error, ignoring other errors
+            return 1;
+        }
 
 		// see if the ends are in their ports
 		if (!headStillInPort(headLocation, false))

@@ -816,6 +816,15 @@ public class Technology implements Comparable
 		return false;
 	}
 
+    /**
+     * Method to clean libraries with unused primitive nodes.
+     * May be overridden in technologies. By default it does nothing
+     * @param ni NodeInst node to analyze
+     * @param list nodes that will be removed in a remove job.
+     * @return true if node is not in used
+     */
+    public boolean cleanUnusedNodesInLibrary(NodeInst ni, List list) {return false;}
+
 	/****************************** LAYERS ******************************/
 
 	/**

@@ -122,7 +122,7 @@ public class OpenFile
 	 * @param title dialog title to use; if null uses "Open 'filetype'".
 	 * @param wantDirectory true to request a directory be selected, instead of a file.
 	 */
-	private static String chooseInputFile(FileType type, String title, boolean wantDirectory)
+	public static String chooseInputFile(FileType type, String title, boolean wantDirectory)
 	{
 		if (title == null)
 		{

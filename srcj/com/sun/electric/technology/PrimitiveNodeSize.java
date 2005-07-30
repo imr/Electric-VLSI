@@ -21,6 +21,7 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
+
 package com.sun.electric.technology;
 
 import com.sun.electric.database.variable.VarContext;
@@ -30,44 +31,48 @@ import com.sun.electric.database.variable.VarContext;
  * This holds the width, length, and area as objects, because the width and length,
  * may be specified as strings if they are java code, or just numbers.
  */
-public class TransistorSize extends PrimitiveNodeSize {
-    private final Object activeLength; // extension of OD on PO for parasitic calculation
+public class PrimitiveNodeSize {
+    protected final Object width;
+    protected final Object length;
 
-	/**
-	 * Constructor creates a TransistorSize with a given size.
-	 * @param width the width of the TransistorSize.
-	 * @param length the length of the TransistorSize.
-	 * @param activeLen the length of the active area of the TransistorSize.
+    /**
+	 * Constructor creates a PrimitiveNodeSize with a given size.
+	 * @param width the width of the PrimitiveNodeSize.
+	 * @param length the length of the PrimitiveNodeSize.
 	 */
-    public TransistorSize(Object width, Object length, Object activeLen) {
-        super(width, length);
-        this.activeLength = activeLen;
+    public PrimitiveNodeSize(Object width, Object length) {
+        this.width = width;
+        this.length = length;
     }
 
 	/**
-	 * Method to return the length of the active area of this TransistorSize.
-	 * @return the length of the active area of this TransistorSize.
+	 * Method to return the width of this TransistorSize.
+	 * @return the width of this TransistorSize.
 	 */
-    public Object getActiveLength() {return activeLength; }
+    public Object getWidth() {return width;}
 
-
+	/**
+	 * Method to return the length of this TransistorSize.
+	 * @return the length of this TransistorSize.
+	 */
+    public Object getLength() {return length; }
     /**
-     * Gets the area *ONLY IF* the width and length can be converted to a double.
-     * i.e. they are Numbers or a parsable Strings. If they are some other type,
+     * Gets the width *ONLY IF* the width can be converted to a double.
+     * i.e. it is a Number or a parsable String. If it is some other type,
      * this method returns zero.
-     * @return the area.
+     * @return the width.
      */
-    public double getDoubleArea() {
-    	return getDoubleWidth() * getDoubleLength();
+    public double getDoubleWidth() {
+    	return VarContext.objectToDouble(width, 0);
     }
 
     /**
-     * Gets the active length *ONLY IF* the active length can be converted to a double.
-     * i.e. they are Numbers or a parsable Strings. If they are some other type,
+     * Gets the length *ONLY IF* the length can be converted to a double.
+     * i.e. it is a Number or a parsable String. If it is some other type,
      * this method returns zero.
-     * @return the active length.
+     * @return the length.
      */
-    public double getDoubleActiveLength() {
-    	return VarContext.objectToDouble(activeLength, 0);
+    public double getDoubleLength() {
+        return VarContext.objectToDouble(length, 0);
     }
 }

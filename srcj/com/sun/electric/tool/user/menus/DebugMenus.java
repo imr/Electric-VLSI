@@ -70,8 +70,10 @@ import com.sun.electric.tool.simulation.AnalogSignal;
 import com.sun.electric.tool.simulation.interval.Diode;
 import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
+import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.*;
 
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
@@ -242,6 +244,10 @@ public class DebugMenus {
 
         MenuBar.Menu gildaMenu = MenuBar.makeMenu("_Gilda");
         menuBar.add(gildaMenu);
+        gildaMenu.addMenuItem("9 layers -> 7 layers", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {convertTo7LayersTech();}});
+        gildaMenu.addMenuItem("Test Parameters", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {testParameters();}});
         gildaMenu.addMenuItem("DRC QTree", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {DRC.checkHierarchically(false, GeometryHandler.ALGO_QTREE);}});
         gildaMenu.addMenuItem("DRC Sweep", null,
@@ -829,10 +835,169 @@ public class DebugMenus {
 
 	// ---------------------- Gilda's Stuff MENU -----------------
 
+    private static void convertTo7LayersTech()
+    {
+        // Select file
+        String fileName = OpenFile.chooseDirectory("Choose Source Directory");
+        new convertTo7LayersTechJob(fileName);
+    }
+
+    private static class convertTo7LayersTechJob extends Job
+    {
+        private String fileName;
+
+        convertTo7LayersTechJob(String name)
+        {
+            super("Converting into 7 layers Tech", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
+            fileName = name;
+            this.startJob();
+        }
+
+        public boolean doIt()
+        {
+            File workDir = new File(fileName);
+            String topPath = "";
+            String[] filesList = new String[]{fileName};
+
+            if (workDir.isDirectory())
+            {
+                topPath = fileName + "/";
+                filesList = workDir.list();
+            }
+            String newDir = OpenFile.chooseDirectory("Choose Destination Directory");
+            String currentDir = User.getWorkingDirectory();
+            if (newDir.equals(currentDir))
+            {
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Destination directory '" + newDir
+                        + "' is identical to current directory. Possible file overwrite."}, "Error creating " + newDir + "' directory", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            File dir = new File(newDir);
+            if (!dir.exists() && !dir.mkdir())
+            {
+                JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), new String [] {"Could not create '" + newDir
+                        + "' directory",
+                     dir.getAbsolutePath()}, "Error creating " + newDir + "' directory", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            System.out.println("Saving libraries in 7Layers directory under " + newDir);
+
+            for (int i = 0; i < filesList.length; i++)
+            {
+                try {
+                    String thisName =topPath+filesList[i];
+                    System.out.println("Reading '" + thisName + "'");
+                    LineNumberReader reader = new LineNumberReader(new FileReader(thisName));
+                    URL url = TextUtils.makeURLToFile(filesList[i]);
+                    String name = TextUtils.getFileNameWithoutExtension(url);
+                    String line = null;
+                    PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(newDir+"/"+name+"."+
+                            FileType.JELIB.getExtensions()[0])));
+                    while ((line = reader.readLine()) != null)
+                    {
+                        line = line.replaceAll("Metal-5-Metal-8-Con", "Metal-5-Metal-6-Con");
+                        line = line.replaceAll("Metal-7-Metal-8-Con", "Metal-5-Metal-6-Con");
+                        line = line.replaceAll("Metal-8-Metal-9-Con", "Metal-6-Metal-7-Con");
+                        line = line.replaceAll("Metal-8-Pin", "Metal-6-Pin");
+                        line = line.replaceAll("Metal-9-Pin", "Metal-7-Pin");
+                        line = line.replaceAll("metal-8", "metal-6"); // arc metal 8
+                        line = line.replaceAll("metal-9", "metal-7"); // arc metal 9
+                        printWriter.println(line);
+                    }
+                    printWriter.close();
+                }
+                catch (Exception e)
+                {
+                    System.out.println(e.getMessage());
+                }
+            }
+            return true;
+        }
+    }
+
+    private static void testParameters()
+    {
+        for(Iterator it = Library.getLibraries(); it.hasNext(); )
+        {
+            Library lib = (Library)it.next();
+
+            for (Iterator itCell = lib.getCells(); itCell.hasNext(); )
+            {
+                Cell cell = (Cell)itCell.next();
+
+                // Checking NodeInst/Cell master relation
+                for(Iterator itNodes = cell.getNodes(); itNodes.hasNext(); )
+                {
+                    NodeInst node = (NodeInst)itNodes.next();
+                    if (!node.getNodeUsage().isIcon()) continue;
+                    if (node.getNodeUsage().isIconOfParent()) continue;
+                    NodeProto np = (NodeProto)node.getProto();
+                    if (np instanceof Cell)
+                    {
+                        Cell master = (Cell)np;
+                        NodeInst ni = null;
+                        // Searching for instance of that icon in master cell
+                        for (Iterator itU = master.getUsagesOf(); itU.hasNext(); )
+                        {
+                            NodeUsage n = (NodeUsage)itU.next();
+                            if (n.isIconOfParent())
+                            {
+                                ni = n.getInst(0);
+                                break;
+                            }
+                        }
+                        if (ni == null)
+                        {
+//                            System.out.println("Something is wrong!");
+                            continue;
+                        }
+
+                        for (Iterator itVar = node.getVariables(); itVar.hasNext();)
+                        {
+                            Variable var = (Variable)itVar.next();
+                            if (var.isAttribute())
+                            {
+                                // Not found in cell master
+                                if (ni.getVar(var.getKey())==null)
+                                {
+                                    System.out.println("Cell " + cell.describe(true) + " " + node + " adding " + var);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Checking schematic/icon relation
+                for (Iterator itUsage = cell.getUsagesOf(); itUsage.hasNext(); )
+                {
+                    NodeUsage usage = (NodeUsage)itUsage.next();
+
+                    if (usage.isIconOfParent())
+                    {
+                        NodeInst icon = (NodeInst)usage.getInst(0);
+                        Cell parent = usage.getParent();
+
+                        for (Iterator itVar = icon.getVariables(); itVar.hasNext();)
+                        {
+                            Variable var = (Variable)itVar.next();
+                            if (var.isAttribute())
+                            {
+                                if (parent.getVar(var.getKey())==null)
+                                {
+                                    System.out.println("Cell " + usage.getParent().describe(true) + " " + usage.getProto() + " ignoring " + var);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Easy way to test bash scripts
      */
-    public static void testBash()
+    private static void testBash()
     {
         System.out.println("Num Log" + Input.errorLogger.getNumLogs() + NetworkTool.errorLogger.getNumLogs());
 //        String regressionname = "sportTop";

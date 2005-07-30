@@ -470,15 +470,26 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	public int checkAndRepair(boolean repair, ErrorLogger errorLogger)
 	{
 		int errorCount = 0;
+        System.out.print("Checking " + this + " for repair");
+
 		for(Iterator it = getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
 			errorCount += cell.checkAndRepair(repair, errorLogger);
 		}
-		if (errorCount != 0 && repair)
-		{
-			setChanged();
+		if (errorCount != 0)
+        {
+
+            if (repair)
+            {
+                System.out.println("... library repaired");
+			    setChanged();
+            }
+            else
+                System.out.println("... library has to be repaired");
 		}
+        else
+            System.out.println("... library checked");
 		return errorCount;
 	}
 

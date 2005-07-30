@@ -131,10 +131,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	/** The Change object. */								private Undo.Change change;
 
     
-    	// --------------------- private and protected methods ---------------------
+    // --------------------- private and protected methods ---------------------
 
 	/**
-	 * The private constructor of NodeInst. Use the factory "newInstance" instead.
+	 * The protected constructor of NodeInst. Use the factory "newInstance" instead.
 	 * @param parent the Cell in which this NodeInst will reside.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param name name of new NodeInst
@@ -149,7 +149,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param userBits flag bits of this NodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this NodeInst
 	 */
-    private NodeInst(Cell parent, NodeProto protoType,
+    protected NodeInst(Cell parent, NodeProto protoType,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             Point2D center, double width, double height, int angle,
             int userBits, ImmutableTextDescriptor protoDescriptor)
@@ -324,6 +324,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
             int userBits, ImmutableTextDescriptor protoDescriptor)
 	{
         if (protoType == null) return null;
+        if (protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isNotUsed())
+        {
+//            System.out.println("Cannot create node instance of " + protoType + " in " + parent +
+//					" because prototype is unused");
+            return null;
+        }
         if (parent == null) return null;
         
 		if (protoType instanceof Cell)
@@ -366,7 +372,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		}
         duplicate = parent.fixupNodeDuplicate(nameKey, duplicate);
 		NodeInst ni = new NodeInst(parent, protoType, nameKey, duplicate, nameDescriptor, center, width, height, angle, userBits, protoDescriptor);
-		if (ni.checkAndRepair(true, null) > 0) return null;
+		if (ni.checkAndRepair(true, null, null) > 0) return null;
 		if (ni.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
@@ -2954,10 +2960,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	/**
 	 * Method to check and repair data structure errors in this NodeInst.
 	 */
-	public int checkAndRepair(boolean repair, ErrorLogger errorLogger)
+	public int checkAndRepair(boolean repair, List list, ErrorLogger errorLogger)
 	{
 		int errorCount = 0;
-		int warningCount = 0;
+//		int warningCount = 0;
 		double width = getXSize();
 		double height = getYSize();
 		String sizeMsg = null;
@@ -2972,6 +2978,18 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		} else
 		{
 			PrimitiveNode pn = (PrimitiveNode)protoType;
+            if (pn.getTechnology().cleanUnusedNodesInLibrary(this, list))
+            {
+                if (errorLogger != null)
+                {
+                    String msg = "Prototype of node " + getName() + " is unused";
+                    ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
+                    error.addGeom(this, true, parent, null);
+                }
+                if (repair && list != null) list.add(this);
+                // This counts as 1 error, ignoring other errors
+                return 1;
+            }
 			if (getTrace() != null)
 			{
 				if (pn.isHoldsOutline())
@@ -3024,7 +3042,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
                 d = d.withSize(width, height);
 				redoGeometric();
 			}
-			warningCount++;
+//			warningCount++;
 		}
 		return errorCount;
 	}
