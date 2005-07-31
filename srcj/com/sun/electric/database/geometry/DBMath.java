@@ -78,8 +78,15 @@ public class DBMath extends GenMath {
 	 * @return true if the point is inside the bounds.
 	 */
 	public static boolean pointInsideRect(Point2D pt, Rectangle2D bounds) {
-		return (bounds.getMinX() < pt.getX() && pt.getX() < bounds.getMaxX() &&
-		        bounds.getMinY() < pt.getY() && pt.getY() < bounds.getMaxY());
+//		boolean oldV =  (bounds.getMinX() < pt.getX() && pt.getX() < bounds.getMaxX() &&
+//		        bounds.getMinY() < pt.getY() && pt.getY() < bounds.getMaxY());
+        boolean newV = (isGreaterThan(pt.getX(), bounds.getMinX()) &&
+                isGreaterThan(bounds.getMaxX(), pt.getX()) &&
+                isGreaterThan(pt.getY(), bounds.getMinY()) &&
+                isGreaterThan(bounds.getMaxY(), pt.getY()));
+//        if (oldV != newV)
+//            System.out.println("change pointInsideRect");
+        return newV;
     }
 
     /**

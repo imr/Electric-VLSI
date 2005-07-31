@@ -18,7 +18,7 @@ import java.util.ArrayList;
  * Time: 5:43:34 PM
  * To change this template use File | Settings | File Templates.
  */
-public class IconLogo extends NodeInst
+public class IconNodeInst extends NodeInst
 {
     /**
 	 * The private constructor of NodeInst. Use the factory "newInstance" instead.
@@ -36,7 +36,7 @@ public class IconLogo extends NodeInst
 	 * @param userBits flag bits of this NodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this NodeInst
 	 */
-    protected IconLogo(Cell parent, NodeProto protoType,
+    protected IconNodeInst(Cell parent, NodeProto protoType,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             Point2D center, double width, double height, int angle,
             int userBits, ImmutableTextDescriptor protoDescriptor)

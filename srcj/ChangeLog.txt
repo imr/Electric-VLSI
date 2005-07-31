@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+BUG: (07/30/05, GVG) Error in Quick.foundSmallSizeDefect() due to rounding errors. Reported by Boz
+FIX: DBMath.pointInsideRect() uses isGreaterThan instead of operators. This could slow the code.
+
 IMP: (07/30/05, GVG) Length/width of poly resistors (schematics/layout) can be changed in GetInfoNode
 (similar to transistors). Schematic poly resistors display variables. Reported by Boz.
 

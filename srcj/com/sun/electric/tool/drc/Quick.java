@@ -1589,7 +1589,7 @@ public class Quick
                 }
             }
             if (corners != 2)
-                throw new Error("Wrong corners in Quick.checkMinArea()");
+                throw new Error("Wrong corners in Quick.foundSmallSizeDefect()");
 
             pt1 = points[cornerPoints[0]];
             pt2 = points[cornerPoints[1]];
