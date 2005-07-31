@@ -462,7 +462,7 @@ public class ViewChanges
 			EditWindow.gridAlign(iconPos);
 			double px = iconCell.getBounds().getWidth();
 			double py = iconCell.getBounds().getHeight();
-			NodeInst ni = IconNodeInst.makeInstance(iconCell, iconPos, px, py, curCell);
+			NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell);
 			if (ni != null)
 			{
 				EditWindow wnd = EditWindow.getCurrent();
