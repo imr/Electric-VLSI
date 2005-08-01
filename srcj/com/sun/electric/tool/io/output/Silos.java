@@ -226,7 +226,7 @@ public class Silos extends Topology
 		}
 
 		// gather networks in the cell
-		Netlist netList = getNetlistForCell(cell);
+		Netlist netList = cni.getNetList();
 
 		// write the module header
 		if (cell != topCell)
@@ -875,18 +875,11 @@ public class Silos extends Topology
 	 */
 	protected String getSafeNetName(String name, boolean bus) { return name; }
 
-	/**
-	 * Method to obtain Netlist information for a cell.
-	 * This is pushed to the writer because each writer may have different requirements for resistor inclusion.
-	 * Silos ignores resistors.
-	 */
-	protected Netlist getNetlistForCell(Cell cell)
-	{
-		// get network information about this cell
-		boolean shortResistors = true;
-		Netlist netList = cell.getNetlist(shortResistors);
-		return netList;
-	}
+    /** Tell the Hierarchy enumerator whether or not to short parasitic resistors */
+    protected boolean isShortResistors() { return true; }
+
+    /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
+    protected boolean isShortExplicitResistors() { return true; }
 
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.

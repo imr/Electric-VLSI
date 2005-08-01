@@ -224,6 +224,7 @@ public class Verilog extends Topology
 		}
 
 		// gather all global signal names
+/*
 		Netlist netList = getNetlistForCell(topCell);
 		Global.Set globals = netList.getGlobals();
         int globalSize = globals.size();
@@ -252,6 +253,7 @@ public class Verilog extends Topology
 			}
 			printWriter.print("endmodule\n");
 		}
+*/
 	}
 
 	protected void done()
@@ -285,6 +287,38 @@ public class Verilog extends Topology
 	 */
 	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context)
 	{
+        if (cell == topCell) {
+            // gather all global signal names
+            Netlist netList = cni.getNetList();
+            Global.Set globals = netList.getGlobals();
+            int globalSize = globals.size();
+
+            // see if any globals besides power and ground to write
+            ArrayList globalsToWrite = new ArrayList();
+            for (int i=0; i<globalSize; i++) {
+                Global global = (Global)globals.get(i);
+                if (global == Global.power || global == Global.ground) continue;
+                globalsToWrite.add(global);
+            }
+
+            if (globalsToWrite.size() > 0)
+            {
+                printWriter.print("\nmodule glbl();\n");
+                for(int i=0; i<globalsToWrite.size(); i++)
+                {
+                    Global global = (Global)globalsToWrite.get(i);
+                    if (Simulation.getVerilogUseTrireg())
+                    {
+                        printWriter.print("    trireg " + global.getName() + ";\n");
+                    } else
+                    {
+                        printWriter.print("    wire " + global.getName() + ";\n");
+                    }
+                }
+                printWriter.print("endmodule\n");
+            }
+        }
+
 		// use library behavior if it is available
 		Cell verViewCell = cell.otherView(View.VERILOG);
 		if (verViewCell != null)
@@ -334,7 +368,7 @@ public class Verilog extends Topology
 		}
 
 		// gather networks in the cell
-		Netlist netList = getNetlistForCell(cell);
+		Netlist netList = cni.getNetList();
 
 		// write the module header
 		printWriter.print("\n");
@@ -1182,18 +1216,11 @@ public class Verilog extends Topology
 		return name;
 	}
 
-	/**
-	 * Method to obtain Netlist information for a cell.
-	 * This is pushed to the writer because each writer may have different requirements for resistor inclusion.
-	 * Verilog ignores resistors.
-	 */
-	protected Netlist getNetlistForCell(Cell cell)
-	{
-		// get network information about this cell
-		boolean shortResistors = true;
-		Netlist netList = cell.getNetlist(shortResistors);
-		return netList;
-	}
+    /** Tell the Hierarchy enumerator whether or not to short parasitic resistors */
+    protected boolean isShortResistors() { return true; }
+
+    /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
+    protected boolean isShortExplicitResistors() { return true; }
 
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.

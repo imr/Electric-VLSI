@@ -1809,18 +1809,11 @@ public class EDIF extends Topology
 	 */
 	protected String getSafeNetName(String name, boolean bus) { return name; }
 
-	/**
-	 * Method to obtain Netlist information for a cell.
-	 * This is pushed to the writer because each writer may have different requirements for resistor inclusion.
-	 * EDIF includes resistors.
-	 */
-	protected Netlist getNetlistForCell(Cell cell)
-	{
-		// get network information about this cell
-		boolean shortResistors = false;
-		Netlist netList = cell.getNetlist(shortResistors);
-		return netList;
-	}
+    /** Tell the Hierarchy enumerator whether or not to short parasitic resistors */
+    protected boolean isShortResistors() { return false; }
+
+    /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
+    protected boolean isShortExplicitResistors() { return false; }
 
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.

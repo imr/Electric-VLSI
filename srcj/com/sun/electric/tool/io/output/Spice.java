@@ -317,6 +317,7 @@ public class Spice extends Topology
 		}
 
 		// gather all global signal names
+/*
 		if (USE_GLOBALS)
 		{
 			Netlist netList = getNetlistForCell(topCell);
@@ -341,6 +342,7 @@ public class Spice extends Topology
 				}
 			}
 		}
+*/
 	}
 
 	protected void done()
@@ -382,6 +384,30 @@ public class Spice extends Topology
 	 */
 	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context)
 	{
+        if (cell == topCell && USE_GLOBALS) {
+            Netlist netList = cni.getNetList();
+            Global.Set globals = netList.getGlobals();
+            int globalSize = globals.size();
+            if (!Simulation.isSpiceUseNodeNames() || spiceEngine != Simulation.SPICE_ENGINE_3)
+            {
+                if (globalSize > 0)
+                {
+                    StringBuffer infstr = new StringBuffer();
+                    infstr.append("\n.global");
+                    for(int i=0; i<globalSize; i++)
+                    {
+                        Global global = (Global)globals.get(i);
+                        String name = global.getName();
+                        if (global == Global.power) { if (getPowerName(null) != null) name = getPowerName(null); }
+                        if (global == Global.ground) { if (getGroundName(null) != null) name = getGroundName(null); }
+                        infstr.append(" " + name);
+                    }
+                    infstr.append("\n");
+                    multiLinePrint(false, infstr.toString());
+                }
+            }
+        }
+
 		// gather networks in the cell
 		Netlist netList = cni.getNetList();
 
@@ -1384,21 +1410,15 @@ public class Spice extends Topology
 		return sb.toString();
 	}
 
-	/**
-	 * Method to obtain Netlist information for a cell.
-	 * This is pushed to the writer because each writer may have different requirements for resistor inclusion.
-	 * Spice ignores resistors.
-	 */
-	protected Netlist getNetlistForCell(Cell cell)
-	{
-		// get network information about this cell
-		boolean shortResistors = false;
-        if (useCDL && Simulation.getCDLIgnoreResistors()) {
-            shortResistors = true;
-        }
-		Netlist netList = cell.getNetlist(shortResistors);
-		return netList;
-	}
+    /** Tell the Hierarchy enumerator whether or not to short parasitic resistors */
+    protected boolean isShortResistors() {
+        if (useCDL && Simulation.getCDLIgnoreResistors())
+            return true;
+        return false;
+    }
+
+    /** Tell the Hierarchy enumerator whether or not to short explicit (poly) resistors */
+    protected boolean isShortExplicitResistors() { return false; }
 
 	/**
 	 * Method to tell whether the topological analysis should mangle cell names that are parameterized.
