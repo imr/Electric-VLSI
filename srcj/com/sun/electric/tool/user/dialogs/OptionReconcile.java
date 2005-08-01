@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.CircuitChanges;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -273,6 +274,8 @@ public class OptionReconcile extends EDialog
 					case Pref.STRING:  pref.setString((String)obj);                       break;
 				}
 			}
+            // Repair libraries in case number of layers was changed.
+            CircuitChanges.checkAndRepairCommand(true);
 			return true;
 		}
 	}

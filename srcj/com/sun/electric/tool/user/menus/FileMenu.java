@@ -444,7 +444,6 @@ public class FileMenu {
         Undo.noUndoAllowed();
         if (lib == null) return false;
         lib.setCurrent();
-//        CircuitChanges.removeUnusedLayers(null);
         Cell cell = lib.getCurCell();
         if (cell == null) System.out.println("No current cell in this library");
         else if (!Main.BATCHMODE)

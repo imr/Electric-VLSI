@@ -3008,9 +3008,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
                     ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
                     error.addGeom(this, true, parent, null);
                 }
-                if (repair && list != null) list.add(this);
-                // This counts as 1 error, ignoring other errors
-                return 1;
+                if (list != null) // doesn't do anything when checkAndRepair is called during reading
+                {
+                    if (repair) list.add(this);
+                    // This counts as 1 error, ignoring other errors
+                    return 1;
+                }
             }
 			if (getTrace() != null)
 			{

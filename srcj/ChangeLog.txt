@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+IMP: (08/01/05, GVG) Calling CheckAndRepair after OptionReconcile dialog and layers switch in the tech.
+
+IMP: (08/01/05, JKG) Modified Output netlisters to get netlist from HierarchyEnumerator so
+that the connectivity will be correct for parasistic versus explicit resistors.
+
 BUG: (07/30/05, GVG) Error in Quick.foundSmallSizeDefect() due to rounding errors. Reported by Boz
 FIX: DBMath.pointInsideRect() uses isGreaterThan instead of operators. This could slow the code.
 
