@@ -303,11 +303,11 @@ public class ArcInst extends Geometric implements Comparable
 	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail,
 	                                  Point2D headPt, Point2D tailPt, String name, int defAngle)
 	{
-        if (type.isNotUsed())
-        {
-//            System.out.println("Cannot create arc instance of " + type + " because prototype is unused");
-            return null;
-        }
+//        if (type.isNotUsed())
+//        {
+////            System.out.println("Cannot create arc instance of " + type + " because prototype is unused");
+////            return null;
+//        }
         // if points are null, create them as would newInstance
 		EPoint headP;
         if (headPt == null)

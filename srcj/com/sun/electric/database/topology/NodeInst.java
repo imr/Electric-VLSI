@@ -319,12 +319,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
             int userBits, ImmutableTextDescriptor protoDescriptor)
 	{
         if (protoType == null) return null;
-        if (protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isNotUsed())
-        {
-//            System.out.println("Cannot create node instance of " + protoType + " in " + parent +
-//					" because prototype is unused");
-            return null;
-        }
+//        if (protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isNotUsed())
+//        {
+////            System.out.println("Cannot create node instance of " + protoType + " in " + parent +
+////					" because prototype is unused");
+////            return null;
+//        }
         if (parent == null) return null;
         
 		if (protoType instanceof Cell)
