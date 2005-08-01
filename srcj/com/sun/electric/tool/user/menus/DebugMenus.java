@@ -900,6 +900,8 @@ public class DebugMenus {
                         line = line.replaceAll("Metal-8-Metal-9-Con", "Metal-6-Metal-7-Con");
                         line = line.replaceAll("Metal-8-Pin", "Metal-6-Pin");
                         line = line.replaceAll("Metal-9-Pin", "Metal-7-Pin");
+                        line = line.replaceAll("Metal-9-Node", "Metal-7-Node");
+                        line = line.replaceAll("Metal-8-Node", "Metal-6-Node");
                         line = line.replaceAll("metal-8", "metal-6"); // arc metal 8
                         line = line.replaceAll("metal-9", "metal-7"); // arc metal 9
                         printWriter.println(line);
