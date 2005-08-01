@@ -25,23 +25,15 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.MutableTextDescriptor;
-import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.ErrorLogger;
 
-import java.awt.geom.Point2D;
 import java.io.InputStream;
 import java.io.BufferedInputStream;
 import java.io.DataInputStream;
@@ -51,7 +43,6 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Iterator;
 
 /**
  * This class manages reading files in different formats.
