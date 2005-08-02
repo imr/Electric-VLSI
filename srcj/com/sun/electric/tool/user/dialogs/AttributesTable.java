@@ -28,7 +28,6 @@ import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Job;
@@ -84,7 +83,7 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
     private static class VariableTableModel extends AbstractTableModel {
 
         private List vars;                     // list of variables to display
-        private boolean DEBUG = false;                      // if true, displays database var names
+//        private boolean DEBUG = false;                      // if true, displays database var names
         private static final String [] columnNames = { "Name", "Value", "Code", "Display", "Units" };
         private boolean showCode = true;
         private boolean showDispPos = false;
@@ -320,11 +319,11 @@ public class AttributesTable extends JTable implements DatabaseChangeListener {
         }
 
         /** Add a variable to be displayed in the Table */
-        private void addVariable(Variable var) {
-            vars.add(new VarEntry(var));
-            Collections.sort(vars, new VarEntrySort());
-            fireTableDataChanged();
-        }
+//        private void addVariable(Variable var) {
+//            vars.add(new VarEntry(var));
+//            Collections.sort(vars, new VarEntrySort());
+//            fireTableDataChanged();
+//        }
 
         private void clearVariables() {
             vars.clear();
