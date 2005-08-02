@@ -1425,7 +1425,7 @@ public class River
 
 		double wid = dn.getDefWidth();
 		double hei = dn.getDefHeight();
-		NodeInst ni = NodeInst.makeInstance(dn, new Point2D.Double(p.x, p.y), wid, hei, cell);
+		NodeInst ni = NodeInst.makeInstance(dn, new Point2D.Double(p.x, p.y), wid, hei, cell, false);
 		return ni;
 	}
 

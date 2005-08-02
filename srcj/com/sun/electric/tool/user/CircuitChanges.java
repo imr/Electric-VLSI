@@ -252,7 +252,7 @@ public class CircuitChanges
 				{
 					// no port on the cell: create one
 					Cell subCell = (Cell)theNi.getProto();
-					NodeInst subni = NodeInst.makeInstance(Generic.tech.universalPinNode, new Point2D.Double(0,0), 0, 0, subCell);
+					NodeInst subni = NodeInst.makeInstance(Generic.tech.universalPinNode, new Point2D.Double(0,0), 0, 0, subCell, false);
 					if (subni == null) break;
 					Export thepp = Export.newInstance(subCell, subni.getOnlyPortInst(), "temp");
 					if (thepp == null) break;
@@ -1150,11 +1150,11 @@ public class CircuitChanges
 				for(int i=0; i<busWidth; i++)
 				{
 					// make the wire pin
-					NodeInst niw = NodeInst.makeInstance(Schematics.tech.wirePinNode, new Point2D.Double(lowX, lowY), sxw, syw, ai.getParent());
+					NodeInst niw = NodeInst.makeInstance(Schematics.tech.wirePinNode, new Point2D.Double(lowX, lowY), sxw, syw, ai.getParent(), false);
 					if (niw == null) break;
 
 					// make the bus pin
-					NodeInst nib = NodeInst.makeInstance(Schematics.tech.busPinNode, new Point2D.Double(lowXBus, lowYBus), sxb, syb, ai.getParent());
+					NodeInst nib = NodeInst.makeInstance(Schematics.tech.busPinNode, new Point2D.Double(lowXBus, lowYBus), sxb, syb, ai.getParent(), false);
 					if (nib == null) break;
 
 					// wire them
@@ -1448,7 +1448,7 @@ public class CircuitChanges
 				{
 					// create a pin at this point
 					PrimitiveNode pin = ai.getProto().findPinProto();
-					NodeInst ni = NodeInst.makeInstance(pin, tailPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell);
+					NodeInst ni = NodeInst.makeInstance(pin, tailPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell, false);
 					if (ni == null)
 					{
 						System.out.println("Error creating pin for shortening of "+ai);
@@ -1470,7 +1470,7 @@ public class CircuitChanges
 				{
 					// create a pin at this point
 					PrimitiveNode pin = ai.getProto().findPinProto();
-					NodeInst ni = NodeInst.makeInstance(pin, headPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell);
+					NodeInst ni = NodeInst.makeInstance(pin, headPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell, false);
 					if (ni == null)
 					{
 						System.out.println("Error creating pin for shortening of "+ai);
@@ -2430,7 +2430,7 @@ public class CircuitChanges
 				Name oldName = ni.getNameKey();
 				if (!oldName.isTempname()) name = oldName.toString();
 				NodeInst newNi = NodeInst.makeInstance(ni.getProto(), new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
-					ni.getXSize(), ni.getYSize(), cell, ni.getAngle(), name, 0);
+					ni.getXSize(), ni.getYSize(), cell, ni.getAngle(), name, 0, false);
 				if (newNi == null) return false;
 				newNodes.put(ni, newNi);
 				newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
@@ -2564,7 +2564,7 @@ public class CircuitChanges
 			String name = null;
 			if (ni.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class);
-			NodeInst newNi = NodeInst.makeInstance(np, pt, xSize, ySize, cell, newAngle, name, 0);
+			NodeInst newNi = NodeInst.makeInstance(np, pt, xSize, ySize, cell, newAngle, name, 0, false);
 			if (newNi == null) return;
 			newNodes.put(ni, newNi);
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
@@ -5606,7 +5606,91 @@ public class CircuitChanges
 		}
 	}
 
-    /****************************** DETERMINE ABILITY TO MAKE CHANGES ******************************/
+    /****************************** DELETE UNUSED NODES ******************************/
+
+    public static class RemoveUnusedLayers extends Job
+    {
+        private Library library;
+
+        public RemoveUnusedLayers(Library lib)
+		{
+			super("Remove unused metal layers", null, Type.CHANGE, null, null, Priority.USER);
+            library = lib;
+			startJob();
+		}
+
+		public boolean doIt()
+		{
+            // Only one library, the given one
+            if (library != null)
+            {
+                cleanUnusedNodesInLibrary(library);
+                return true;
+            }
+
+            // Checking all
+            for (Iterator libIter = Library.getLibraries(); libIter.hasNext();)
+            {
+                Library lib = (Library)libIter.next();
+                cleanUnusedNodesInLibrary(lib);
+            }
+            return true;
+        }
+
+        private void cleanUnusedNodesInLibrary(Library lib)
+        {
+            int action = -1;
+            List list = new ArrayList();
+
+            for (Iterator cellsIter = lib.getCells(); cellsIter.hasNext();)
+            {
+                Cell cell = (Cell)cellsIter.next();
+                if (cell.getView() != View.LAYOUT) continue; // only layout
+                list.clear();
+                Technology tech = cell.getTechnology();
+
+                for (int i = 0; i < cell.getNumArcs(); i++)
+                {
+                    ArcInst ai = cell.getArc(i);
+                    ArcProto ap = ai.getProto();
+                    if (ap.isNotUsed())
+                        list.add(ai);
+                }
+                for (int i = 0; i < cell.getNumNodes(); i++)
+                {
+                    NodeInst ni = cell.getNode(i);
+                    tech.cleanUnusedNodesInLibrary(ni, list);
+                }
+                if (action != 3 && list.size() > 0)
+                {
+                    String [] options = {"Yes", "No", "Cancel", "Yes to All"};
+
+                    action = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(),
+                            "Remove unused nodes in " + cell.libDescribe(), "Warning",
+                            JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+                            null, options, options[0]);
+                    if (action == 2) return; // cancel
+                }
+                if (action != 1) // 1 is No to this local modification
+                {
+                    System.out.println("Removing " + list.size() + " unused nodes in " + cell.libDescribe());
+                     eraseObjectsInList(cell, list);
+                }
+            }
+        }
+    }
+
+    /**
+     * Method to remove nodes containing metal layers that have been disabled.
+     * If library is null, then check all existing libraries
+     */
+    public static void removeUnusedLayers(Library lib)
+    {
+        // kick the delete job
+//        new RemoveUnusedLayers(lib);
+    }
+
+	/****************************** DETERMINE ABILITY TO MAKE CHANGES ******************************/
 
 	/**
 	 * Method to tell whether a NodeInst can be modified in a cell.

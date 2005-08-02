@@ -233,7 +233,7 @@ public class DXF extends Input
 					if (found == null) return true;
 				}
 				Rectangle2D bounds = found.getBounds();
-				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(fr.x, fr.y), bounds.getWidth(), bounds.getHeight(), fr.parent, fr.rot*10, null, 0);
+				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(fr.x, fr.y), bounds.getWidth(), bounds.getHeight(), fr.parent, fr.rot*10, null, 0, false);
 				if (ni == null) return true;
 				ni.setExpanded();
 			}
@@ -692,7 +692,7 @@ public class DXF extends Input
 		if (!isAcceptableLayer(layer)) return false;
 		if (sAngle >= 360.0) sAngle -= 360.0;
 		int iAngle = (int)(sAngle * 10.0);
-		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, curCell, iAngle%3600, null, 0);
+		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, curCell, iAngle%3600, null, 0, false);
 		if (ni == null) return true;
 		if (sAngle > eAngle) eAngle += 360.0;
 		double startOffset = sAngle;
@@ -744,7 +744,7 @@ public class DXF extends Input
 			}
 		}
 		if (!isAcceptableLayer(layer)) return false;
-		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, curCell);
+		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, curCell, false);
 		if (ni == null) return true;
 		ni.newVar(DXF_LAYER_KEY, layer.layerName);
 		readCircles++;
@@ -829,7 +829,7 @@ public class DXF extends Input
 				}
 				double sX = found.getDefWidth();
 				double sY = found.getDefHeight();
-				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(x, y), sX, sY, curCell, rot*10, null, 0);
+				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(x, y), sX, sY, curCell, rot*10, null, 0, false);
 				if (ni == null) return true;
 				ni.setExpanded();
 			}
@@ -871,7 +871,7 @@ public class DXF extends Input
 		double sY = Math.abs(y1 - y2);
 		NodeProto np = Artwork.tech.openedDashedPolygonNode;
 		if (lineType == 0) np = Artwork.tech.openedPolygonNode;
-		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, curCell);
+		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, curCell, false);
 		if (ni == null) return true;
 		Point2D [] points = new Point2D[2];
 		points[0] = new Point2D.Double(x1 - cX, y1 - cY);
@@ -993,7 +993,7 @@ public class DXF extends Input
 							sA = sA * 1800.0 / Math.PI;
 							int iAngle = (int)sA;
 							double rad = new Point2D.Double(cX, cY).distance(new Point2D.Double(x1, y1));
-							NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY), rad*2, rad*2, curCell, iAngle, null, 0);
+							NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY), rad*2, rad*2, curCell, iAngle, null, 0, false);
 							if (ni == null) return true;
 							double startOffset = sA;
 							startOffset -= iAngle;
@@ -1053,7 +1053,7 @@ public class DXF extends Input
 
 						// create the arc node
 						int iAngle = (int)sA;
-						NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x1, y1), rad*2, rad*2, curCell, iAngle%3600, null, 0);
+						NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x1, y1), rad*2, rad*2, curCell, iAngle%3600, null, 0, false);
 						if (ni == null) return true;
 						if (sA > eA) eA += 3600.0;
 						double startOffset = sA;
@@ -1068,7 +1068,7 @@ public class DXF extends Input
 					double cY = (y1 + y2) / 2;
 					NodeProto np = Artwork.tech.openedDashedPolygonNode;
 					if (lineType == 0) np = Artwork.tech.openedPolygonNode;
-					NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), Math.abs(x1 - x2), Math.abs(y1 - y2), curCell);
+					NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), Math.abs(x1 - x2), Math.abs(y1 - y2), curCell, false);
 					if (ni == null) return true;
 					Point2D [] points = new Point2D[2];
 					points[0] = new Point2D.Double(x1 - cX, y1 - cY);
@@ -1104,7 +1104,7 @@ public class DXF extends Input
 					if (lineType == 0) np = Artwork.tech.openedPolygonNode; else
 						np = Artwork.tech.openedDashedPolygonNode;
 				}
-				NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), hX-lX, hY-lY, curCell);
+				NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), hX-lX, hY-lY, curCell, false);
 				if (ni == null) return true;
 				Point2D [] points = new Point2D[count];
 				for(int i=0; i<count; i++)
@@ -1168,7 +1168,7 @@ public class DXF extends Input
 		double hY = Math.max(Math.max(y1, y2), Math.max(y3, y4));
 		double cX = (lX + hX) / 2;
 		double cY = (lY + hY) / 2;
-		NodeInst ni = NodeInst.makeInstance(Artwork.tech.filledPolygonNode, new Point2D.Double(cX, cY), hX-lX, hY-lY, curCell);
+		NodeInst ni = NodeInst.makeInstance(Artwork.tech.filledPolygonNode, new Point2D.Double(cX, cY), hX-lX, hY-lY, curCell, false);
 		if (ni == null) return true;
 		Point2D [] points = new Point2D[4];
 		points[0] = new Point2D.Double(x1 - cX, y1 - cY);
@@ -1229,7 +1229,7 @@ public class DXF extends Input
 		if (!isAcceptableLayer(layer)) return false;
 		if (msg != null)
 		{
-			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double((lX+hX)/2, (lY+hY)/2), hX-lX, hY-lY, curCell);
+			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double((lX+hX)/2, (lY+hY)/2), hX-lX, hY-lY, curCell, false);
 			if (ni == null) return true;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, msg);
 			if (var != null)
@@ -1287,7 +1287,7 @@ public class DXF extends Input
 		double hY = Math.max(Math.max(y1, y2), Math.max(y3, y4));
 		double cX = (lX + hX) / 2;
 		double cY = (lY + hY) / 2;
-		NodeInst ni = NodeInst.makeInstance(Artwork.tech.closedPolygonNode, new Point2D.Double(cX, cY), hX-lX, hY-lY, curCell);
+		NodeInst ni = NodeInst.makeInstance(Artwork.tech.closedPolygonNode, new Point2D.Double(cX, cY), hX-lX, hY-lY, curCell, false);
 		if (ni == null) return true;
 		Point2D [] points = new Point2D[4];
 		points[0] = new Point2D.Double(x1 - cX, y1 - cY);
@@ -1357,7 +1357,7 @@ public class DXF extends Input
 			trans.transform(tPt, tPt);
 			if (ni.isXMirrored()) sX = -sX;
 			if (ni.isYMirrored()) sY = -sY;
-			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), tPt, sX, sY, np, (ni.getAngle()+rot*10)%3600, null, 0);
+			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), tPt, sX, sY, np, (ni.getAngle()+rot*10)%3600, null, 0, false);
 			if (nNi == null) return true;
 			if (ni.getProto() == Artwork.tech.closedPolygonNode || ni.getProto() == Artwork.tech.filledPolygonNode ||
 				ni.getProto() == Artwork.tech.openedPolygonNode || ni.getProto() == Artwork.tech.openedDashedPolygonNode)
@@ -1425,7 +1425,7 @@ public class DXF extends Input
 				return null;
 			}
 			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), ni.getAnchorCenter(),
-				ni.getXSizeWithMirror()*xSca, ni.getYSizeWithMirror()*ySca, np, ni.getAngle(), null, 0);
+				ni.getXSizeWithMirror()*xSca, ni.getYSizeWithMirror()*ySca, np, ni.getAngle(), null, 0, false);
 			if (nNi == null) return null;
 			if (ni.getProto() == Artwork.tech.closedPolygonNode || ni.getProto() == Artwork.tech.filledPolygonNode ||
 				ni.getProto() == Artwork.tech.openedPolygonNode || ni.getProto() == Artwork.tech.openedDashedPolygonNode)

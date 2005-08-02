@@ -154,7 +154,7 @@ public class Info
 		for(int i=0; i < table.length; i++)
 		{
 			if (table[i].ni != null) continue;
-			table[i].ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(table[i].x, table[i].y), 0, 0, np);
+			table[i].ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(table[i].x, table[i].y), 0, 0, np, false);
 			if (table[i].ni == null) return;
 			String str = null;
 			switch (table[i].funct)

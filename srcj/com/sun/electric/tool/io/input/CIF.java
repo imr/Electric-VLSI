@@ -557,7 +557,7 @@ public class CIF extends Input
 		x = spin.getX();   y = spin.getY();
 
 		// create the node
-		NodeInst ni = NodeInst.makeInstance(cell.addr, new Point2D.Double(x, y), sX, sY, currentBackCell.addr, rot, null, 0);
+		NodeInst ni = NodeInst.makeInstance(cell.addr, new Point2D.Double(x, y), sX, sY, currentBackCell.addr, rot, null, 0, false);
 		if (ni == null)
 		{
 			System.out.println("Problems creating an instance of " + cell.addr + " in " + currentBackCell.addr);
@@ -594,7 +594,7 @@ public class CIF extends Input
 		double y = (lowY + highY) / 2;
 		double sX = highX - lowX;
 		double sY = highY - lowY;
-		NodeInst newni = NodeInst.makeInstance(np, new Point2D.Double(x, y), sX, sY, currentBackCell.addr);
+		NodeInst newni = NodeInst.makeInstance(np, new Point2D.Double(x, y), sX, sY, currentBackCell.addr, false);
 		if (newni == null)
 		{
 			System.out.println("Problems creating a polygon on layer " + cp.lay + " in " + currentBackCell.addr);
@@ -686,7 +686,7 @@ public class CIF extends Input
 		double y = convertFromCentimicrons(cb.cenY);
 		double len = convertFromCentimicrons(cb.length);
 		double wid = convertFromCentimicrons(cb.width);
-		NodeInst ni = NodeInst.makeInstance(node, new Point2D.Double(x, y), len, wid, currentBackCell.addr, r, null, 0);
+		NodeInst ni = NodeInst.makeInstance(node, new Point2D.Double(x, y), len, wid, currentBackCell.addr, r, null, 0, false);
 		if (ni == null)
 		{
 			String layname = cb.lay.getName();

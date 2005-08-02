@@ -1802,10 +1802,10 @@ public class FPGA extends Technology
 		// force size by placing pins in the corners
 		if (gotSize)
 		{
-			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(0.5, 0.5), 1, 1, cell);
-			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(sizeX-0.5, 0.5), 1, 1, cell);
-			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(0.5, sizeY-0.5), 1, 1, cell);
-			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(sizeX-0.5, sizeY-0.5), 1, 1, cell);
+			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(0.5, 0.5), 1, 1, cell, false);
+			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(sizeX-0.5, 0.5), 1, 1, cell, false);
+			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(0.5, sizeY-0.5), 1, 1, cell, false);
+			NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(sizeX-0.5, sizeY-0.5), 1, 1, cell, false);
 		}
 
 		// add any unrecognized attributes
@@ -2002,7 +2002,7 @@ public class FPGA extends Technology
 			posY += hei/2;
 		}
 		Point2D ctr = new Point2D.Double(posX, posY);
-		NodeInst ni = NodeInst.makeInstance(np, ctr, wid, hei, cell, rotation, nodeName, 0);
+		NodeInst ni = NodeInst.makeInstance(np, ctr, wid, hei, cell, rotation, nodeName, 0, false);
 		if (ni == null) return true;
 
 		// add any attributes
@@ -2073,7 +2073,7 @@ public class FPGA extends Technology
 		// create the structure
 		double posX = TextUtils.atof(ltPosition.getLeaf(0));
 		double posY = TextUtils.atof(ltPosition.getLeaf(1));
-		NodeInst ni = NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(posX, posY), 0, 0, cell);
+		NodeInst ni = NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(posX, posY), 0, 0, cell, false);
 		if (ni == null)
 		{
 			System.out.println("Error creating pin for port '" + ltName.getLeaf(0) + "' (line " + lt.lineNumber + ")");
@@ -2156,7 +2156,7 @@ public class FPGA extends Technology
 		double portBY = TextUtils.atof(ltPortB.getLeaf(1));
 		int angle = GenMath.figureAngle(new Point2D.Double(portAX, portAY), new Point2D.Double(portBX, portBY));
 		Point2D ctr = new Point2D.Double((portAX + portBX) / 2, (portAY + portBY) / 2);
-		NodeInst ni = NodeInst.makeInstance(tech.repeaterNode, ctr, 10,3, cell, angle, name, 0);
+		NodeInst ni = NodeInst.makeInstance(tech.repeaterNode, ctr, 10,3, cell, angle, name, 0, false);
 		if (ni == null)
 		{
 			System.out.println("Error creating repeater (line " + lt.lineNumber + ")");
@@ -2283,7 +2283,7 @@ public class FPGA extends Technology
 						}
 						if (niFound == null)
 						{
-							niFound = NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(x, y), 0, 0, cell);
+							niFound = NodeInst.makeInstance(tech.wirePinNode, new Point2D.Double(x, y), 0, 0, cell, false);
 							if (niFound == null)
 							{
 								System.out.println("Cannot create pin for block net segment (line " + scanLT.lineNumber + ")");

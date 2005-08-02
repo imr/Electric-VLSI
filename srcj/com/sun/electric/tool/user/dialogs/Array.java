@@ -487,7 +487,7 @@ public class Array extends EDialog
 					}
 					xPos += xOff;   yPos += yOff;
 					NodeInst newNi = NodeInst.makeInstance(ni.getProto(),
-						new Point2D.Double(xPos, yPos), sx, sy, cell, ro, null, 0);
+						new Point2D.Double(xPos, yPos), sx, sy, cell, ro, null, 0, false);
 					if (newNi == null) continue;
 					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO_TD);
 					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);

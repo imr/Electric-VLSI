@@ -276,7 +276,7 @@ public class GDS extends Input
 				double oX = ctr.getX() - cX;
 				double oY = ctr.getY() - cY;
 				mi.loc.setLocation(mi.loc.getX() + cX + oX, mi.loc.getY() + cY + oY);
-				NodeInst ni = NodeInst.makeInstance(mi.subCell, mi.loc, wid, hei, mi.parent, mi.angle, null, 0);
+				NodeInst ni = NodeInst.makeInstance(mi.subCell, mi.loc, wid, hei, mi.parent, mi.angle, null, 0, false);
 				if (ni == null) return;
 				if (IOTool.isGDSInExpandsCells())
 					ni.setExpanded();
@@ -736,7 +736,7 @@ public class GDS extends Input
 				Point2D ctr = new Point2D.Double((theVertices[0].getX()+theVertices[1].getX())/2, (theVertices[0].getY()+theVertices[1].getY())/2);
 				double sX = Math.abs(theVertices[1].getX() - theVertices[0].getX());
 				double sY = Math.abs(theVertices[1].getY() - theVertices[0].getY());
-				NodeInst ni = NodeInst.makeInstance(layerNodeProto, ctr, sX, sY, theCell);
+				NodeInst ni = NodeInst.makeInstance(layerNodeProto, ctr, sX, sY, theCell, false);
 				if (ni == null) handleError("Failed to create RECTANGLE");
 			}
 			return;
@@ -760,7 +760,7 @@ public class GDS extends Input
 			}
 
 			// now create the node
-			NodeInst ni = NodeInst.makeInstance(layerNodeProto, new Point2D.Double((lx+hx)/2, (ly+hy)/2), hx-lx, hy-ly, theCell);
+			NodeInst ni = NodeInst.makeInstance(layerNodeProto, new Point2D.Double((lx+hx)/2, (ly+hy)/2), hx-lx, hy-ly, theCell, false);
 			if (ni == null) handleError("Failed to create POLYGON");
 
 			// store the trace information
@@ -890,7 +890,7 @@ public class GDS extends Input
 					if (polyBox != null)
 					{
 						NodeInst ni = NodeInst.makeInstance(layerNodeProto, new Point2D.Double(polyBox.getCenterX(), polyBox.getCenterY()),
-							polyBox.getWidth(), polyBox.getHeight(), theCell);
+							polyBox.getWidth(), polyBox.getHeight(), theCell, false);
 						if (ni == null) handleError("Failed to create outline");
 					} else
 					{
@@ -898,7 +898,7 @@ public class GDS extends Input
 						double cx = polyBox.getCenterX();
 						double cy = polyBox.getCenterY();
 						NodeInst ni = NodeInst.makeInstance(layerNodeProto, new Point2D.Double(cx, cy),
-							polyBox.getWidth(), polyBox.getHeight(), theCell);
+							polyBox.getWidth(), polyBox.getHeight(), theCell, false);
 						if (ni == null) handleError("Failed to create outline");
 
 						// store the trace information
@@ -949,7 +949,7 @@ public class GDS extends Input
 		determinePoints(1, 1);
 
 		// create the node
-		NodeInst ni = NodeInst.makeInstance(layerNodeProto, theVertices[0], 0, 0, theCell);
+		NodeInst ni = NodeInst.makeInstance(layerNodeProto, theVertices[0], 0, 0, theCell, false);
 		if (ni == null) handleError("Failed to create NODE");
 	}
 
@@ -1040,7 +1040,7 @@ public class GDS extends Input
 		if (layerIsPin)
 		{
 			NodeProto np = Generic.tech.universalPinNode;
-			NodeInst ni = NodeInst.makeInstance(np, theVertices[0], np.getDefWidth(), np.getDefHeight(), theCell);
+			NodeInst ni = NodeInst.makeInstance(np, theVertices[0], np.getDefWidth(), np.getDefHeight(), theCell, false);
 			if (ni == null) handleError("Could not create pin marker");
 			if (ni.getNumPortInsts() > 0)
 			{
@@ -1058,7 +1058,7 @@ public class GDS extends Input
 
 		// create a holding node
 		NodeInst ni = NodeInst.makeInstance(layerNodeProto, theVertices[0],
-			0, 0, theCell, angle, charstring, 0);
+			0, 0, theCell, angle, charstring, 0, false);
 		if (ni == null) handleError("Could not create text marker");
 
 		// set the text size and orientation
@@ -1117,7 +1117,7 @@ public class GDS extends Input
 		if (layerUsed)
 		{
 			// create the box
-			NodeInst ni = NodeInst.makeInstance(layerNodeProto, theVertices[0], 0, 0, theCell);
+			NodeInst ni = NodeInst.makeInstance(layerNodeProto, theVertices[0], 0, 0, theCell, false);
 			if (ni == null) handleError("Failed to create box");
 		}
 	}

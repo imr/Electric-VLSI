@@ -188,11 +188,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param height the height of this NodeInst.
 	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
 	 * @param parent the Cell in which this NodeInst will reside.
+     * @param createIcon if new NodeInst is has to be IconNodeInst
      * @return the newly created NodeInst, or null on error.
 	 */
-	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height, Cell parent)
+	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height, Cell parent, boolean createIcon)
 	{
-		return (makeInstance(protoType, center, width, height, parent, 0, null, 0));
+		return (makeInstance(protoType, center, width, height, parent, 0, null, 0, createIcon));
 	}
 
 	/**
@@ -207,12 +208,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param name name of new NodeInst
 	 * @param techBits bits associated to different technologies
+     * @param createIcon
      * @return the newly created NodeInst, or null on error.
 	 */
 	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height,
-	                                    Cell parent, int angle, String name, int techBits)
+                                        Cell parent, int angle, String name, int techBits, boolean createIcon)
 	{
-		NodeInst ni = newInstance(protoType, center, width, height, parent, angle, name, techBits);
+		NodeInst ni = newInstance(protoType, center, width, height, parent, angle, name, techBits, createIcon);
 		if (ni != null)
 		{
 			// set default information from the prototype
@@ -272,7 +274,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height, Cell parent)
 	{
-		return (newInstance(protoType, center, width, height, parent, 0, null, 0));
+		return (newInstance(protoType, center, width, height, parent, 0, null, 0, false));
 	}
 
 	/**
@@ -287,13 +289,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param name name of new NodeInst
 	 * @param techBits bits associated to different technologies
+     * @param createIcon
      * @return the newly created NodeInst, or null on error.
 	 */
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
-	                                   Cell parent, int angle, String name, int techBits)
+                                       Cell parent, int angle, String name, int techBits, boolean createIcon)
 	{
         int userBits = (techBits << ImmutableNodeInst.NTECHBITSSH)&ImmutableNodeInst.NTECHBITS;
-        return newInstance(parent, protoType, name, -1, null, center, width, height, angle, userBits, null);
+        return newInstance(parent, protoType, name, -1, null, center, width, height, angle, userBits, null, createIcon);
 	}
 
 	/**
@@ -311,12 +314,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param angle the angle of this NodeInst (in tenth-degrees).
 	 * @param userBits bits associated to different technologies
      * @param protoDescriptor TextDescriptor of name of this NodeInst
+     * @param createIcon
      * @return the newly created NodeInst, or null on error.
 	 */
     public static NodeInst newInstance(Cell parent, NodeProto protoType,
-            String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
-            Point2D center, double width, double height, int angle,
-            int userBits, ImmutableTextDescriptor protoDescriptor)
+                                       String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+                                       Point2D center, double width, double height, int angle,
+                                       int userBits, ImmutableTextDescriptor protoDescriptor, boolean createIcon)
 	{
         if (protoType == null) return null;
 //        if (protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isNotUsed())
@@ -366,7 +370,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			duplicate = 0;
 		}
         duplicate = parent.fixupNodeDuplicate(nameKey, duplicate);
-		NodeInst ni = new NodeInst(parent, protoType, nameKey, duplicate, nameDescriptor, center, width, height, angle, userBits, protoDescriptor);
+		NodeInst ni = null;
+
+        if (createIcon)
+            ni = new IconNodeInst(parent, protoType, nameKey, duplicate, nameDescriptor, center, width, height, angle, userBits, protoDescriptor);
+        else
+            ni = new NodeInst(parent, protoType, nameKey, duplicate, nameDescriptor, center, width, height, angle, userBits, protoDescriptor);
+
 		if (ni.checkAndRepair(true, null, null) > 0) return null;
 		if (ni.lowLevelLink()) return null;
 
@@ -553,7 +563,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		// see if nodeinst is mirrored
         if (getXSizeWithMirror() < 0) newXS *= -1;
         if (getYSizeWithMirror() < 0) newYS *= -1;
-		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getAngle(), null, 0);
+		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getAngle(), null, 0, false);
 		if (newNi == null) return null;
 
 		// draw new node expanded if appropriate

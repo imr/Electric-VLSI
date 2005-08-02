@@ -622,7 +622,7 @@ public class PadGenerator {
 
                 //corneroffset(NONODEINST,np,angle,0,&ox,&oy,false);
                 Point2D pointCenter = new Point2D.Double(centerX, centerY);
-                NodeInst ni = NodeInst.makeInstance(cell, pointCenter, cell.getDefWidth(), cell.getDefHeight(), framecell, angle, null, 0);
+                NodeInst ni = NodeInst.makeInstance(cell, pointCenter, cell.getDefWidth(), cell.getDefHeight(), framecell, angle, null, 0, false);
                 if (ni == null) {
                     err("problem creating" + cell + " instance");
                     continue;
@@ -746,7 +746,7 @@ public class PadGenerator {
                     EditWindow.gridAlign(center);
 
                     SizeOffset so = corenp.getProtoSizeOffset();
-                    NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), framecell);
+                    NodeInst ni = NodeInst.makeInstance(corenp, center, corenp.getDefWidth(), corenp.getDefHeight(), framecell, false);
 
                     for (Iterator ocit = orderedCommands.iterator(); ocit.hasNext();) {
                         Object obj = ocit.next();
@@ -900,7 +900,7 @@ public class PadGenerator {
                 EditWindow.gridAlign(iconPos);
                 double px = iconCell.getBounds().getWidth();
                 double py = iconCell.getBounds().getHeight();
-                NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, framecell);
+                NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, framecell, false);
             }
         }
     }

@@ -132,7 +132,7 @@ public class LayerInfo extends Info
 		if (patchNode == null)
 		{
 			// create the graphic color object
-			NodeInst ni = NodeInst.makeInstance(Artwork.tech.filledBoxNode, new Point2D.Double(-7.5, 7.5), 5, 5, np);
+			NodeInst ni = NodeInst.makeInstance(Artwork.tech.filledBoxNode, new Point2D.Double(-7.5, 7.5), 5, 5, np, false);
 			if (ni == null) return;
 			Manipulate.setPatch(ni, desc);
 		}
@@ -144,7 +144,7 @@ public class LayerInfo extends Info
 			for(int x=0; x<16; x++) for(int y=0; y<16; y++)
 			{
 				Point2D ctr = new Point2D.Double(x-19.5, 2.5-y);
-				NodeInst ni = NodeInst.makeInstance(Artwork.tech.filledBoxNode, ctr, 1, 1, np);
+				NodeInst ni = NodeInst.makeInstance(Artwork.tech.filledBoxNode, ctr, 1, 1, np, false);
 				if (ni == null) return;
 				if ((stip[y] & (1 << (15-x))) == 0)
 				{
@@ -154,7 +154,7 @@ public class LayerInfo extends Info
 				}
 				ni.newVar(OPTION_KEY, new Integer(LAYERPATTERN));
 			}
-			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, 3.5), 0, 0, np);
+			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, 3.5), 0, 0, np, false);
 			if (ni == null) return;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Stipple Pattern");
 			if (var != null)
@@ -167,7 +167,7 @@ public class LayerInfo extends Info
 		// create the patch control object
 		if (patClearNode == null)
 		{
-			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -14), 0, 0, np);
+			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -14), 0, 0, np, false);
 			if (ni == null) return;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Clear Pattern");
 //			if (var != null) var.setDisplay(true);
@@ -175,7 +175,7 @@ public class LayerInfo extends Info
 		}
 		if (patInvertNode == null)
 		{
-			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -16), 0, 0, np);
+			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -16), 0, 0, np, false);
 			if (ni == null) return;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Invert Pattern");
 //			if (var != null) var.setDisplay(true);
@@ -183,7 +183,7 @@ public class LayerInfo extends Info
 		}
 		if (patCopyNode == null)
 		{
-			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -18), 0, 0, np);
+			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -18), 0, 0, np, false);
 			if (ni == null) return;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Copy Pattern");
 //			if (var != null) var.setDisplay(true);
@@ -191,7 +191,7 @@ public class LayerInfo extends Info
 		}
 		if (patPasteNode == null)
 		{
-			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -20), 0, 0, np);
+			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(-12, -20), 0, 0, np, false);
 			if (ni == null) return;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, "Paste Pattern");
 //			if (var != null) var.setDisplay(true);

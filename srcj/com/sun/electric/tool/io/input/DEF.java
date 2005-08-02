@@ -398,7 +398,7 @@ public class DEF extends LEFDEF
 		NodeProto pin = ap.findPinProto();
 		double sX = pin.getDefWidth();
 		double sY = pin.getDefHeight();
-		NodeInst ni = NodeInst.makeInstance(pin, new Point2D.Double(x, y), sX, sY, cell);
+		NodeInst ni = NodeInst.makeInstance(pin, new Point2D.Double(x, y), sX, sY, cell, false);
 		if (ni == null)
 		{
 			reportError("Unable to create net pin");
@@ -540,7 +540,7 @@ public class DEF extends LEFDEF
 			double cY = (ll.getY() + ur.getY()) / 2 + xy.getY();
 
 			// make the pin
-			NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, cell);
+			NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, cell, false);
 			if (ni == null)
 			{
 				reportError("Unable to create pin");
@@ -627,7 +627,7 @@ public class DEF extends LEFDEF
 					double sY = np.getDefHeight();
 					if (or.mX) sX = -sX;
 					if (or.mY) sY = -sY;
-					NodeInst ni = NodeInst.makeInstance(np, pt, sX, sY, cell, or.angle, compName, 0);
+					NodeInst ni = NodeInst.makeInstance(np, pt, sX, sY, cell, or.angle, compName, 0, false);
 					if (ni == null)
 					{
 						reportError("Unable to create node");
@@ -941,7 +941,7 @@ public class DEF extends LEFDEF
 				SizeOffset so = vd.via.getProtoSizeOffset();
 				sX += so.getLowXOffset() + so.getHighXOffset();
 				sY += so.getLowYOffset() + so.getHighYOffset();
-				NodeInst ni = NodeInst.makeInstance(vd.via, new Point2D.Double(curX, curY), sX, sY, cell);
+				NodeInst ni = NodeInst.makeInstance(vd.via, new Point2D.Double(curX, curY), sX, sY, cell, false);
 				if (ni == null)
 				{
 					reportError("Unable to create via layer");
@@ -990,7 +990,7 @@ public class DEF extends LEFDEF
 					NodeProto np = li.arc.findPinProto();
 					double sX = np.getDefWidth();
 					double sY = np.getDefHeight();
-					NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(curX, curY), sX, sY, cell);
+					NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(curX, curY), sX, sY, cell, false);
 					if (ni == null)
 					{
 						reportError("Unable to create net pin");

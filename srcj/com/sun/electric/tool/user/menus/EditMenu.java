@@ -1283,13 +1283,13 @@ public class EditMenu {
                 ArcProto ap = ai.getProto();
                 NodeProto np = ap.findPinProto();
                 if (np == null) return false;
-                NodeInst ni = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(), ai.getParent());
+                NodeInst ni = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(), ai.getParent(), false);
                 if (ni == null)
                 {
                     System.out.println("Cannot create pin " + np.describe(true));
                     return false;
                 }
-                NodeInst ni2 = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(), ai.getParent());
+                NodeInst ni2 = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(), ai.getParent(), false);
                 if (ni2 == null)
                 {
                     System.out.println("Cannot create pin " + np.describe(true));

@@ -728,7 +728,7 @@ public class PLA
 		double yS = node.getDefHeight();
 		if (size < xS) size = xS;
 		if (size < yS) size = yS;
-		NodeInst ni = NodeInst.makeInstance(node, new Point2D.Double(x, y), size, size, cell);
+		NodeInst ni = NodeInst.makeInstance(node, new Point2D.Double(x, y), size, size, cell, false);
 		if (ni == null)
 			System.out.println("Unable to create " + node + " in " + cell);
 		return ni;
@@ -773,7 +773,7 @@ public class PLA
 			double Y2 = protoBounds.getMaxY() + y;
 			y = Y2 + Y1 - y;
 		}
-		NodeInst ni = NodeInst.makeInstance(Inst_proto, new Point2D.Double(x, y), sX, sY, cell);
+		NodeInst ni = NodeInst.makeInstance(Inst_proto, new Point2D.Double(x, y), sX, sY, cell, false);
 		return ni;
 	}
 }

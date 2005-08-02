@@ -487,7 +487,7 @@ public class LayerCoverageJob extends Job
 							Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
 							PrimitiveNode priNode = layer.getPureLayerNode();
 							// Adding the new implant. New implant not assigned to any local variable                                .
-							NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), curCell);
+							NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), curCell, false);
 							if (highlighter != null)
 								highlighter.addElectricObject(node, curCell);
 

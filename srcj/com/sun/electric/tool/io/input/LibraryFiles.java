@@ -743,7 +743,7 @@ public abstract class LibraryFiles extends Input
             
 		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], -1, nil.nameTextDescriptor[nodeIndex],
                 center, width, height, rotation,
-                nil.userBits[nodeIndex], nil.protoTextDescriptor[nodeIndex]);
+                nil.userBits[nodeIndex], nil.protoTextDescriptor[nodeIndex], false);
         nil.theNode[nodeIndex] = ni;
         if (ni == null) return;
        DiskVariable[] vars = nil.vars[nodeIndex];

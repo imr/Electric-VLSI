@@ -533,7 +533,7 @@ public class Sue extends Input
 				if (ost.isJMirrorX()) wid = -wid;
 				if (ost.isJMirrorY()) hei = -hei;
 				NodeInst ni = NodeInst.makeInstance(proto, new Point2D.Double(parP.pt.getX() + xOff, parP.pt.getY() + yOff), wid, hei, cell,
-					parP.rot, null, Schematics.getPrimitiveFunctionBits(detailFunct));
+					parP.rot, null, Schematics.getPrimitiveFunctionBits(detailFunct), false);
 				if (ni == null) continue;
 				if (invertOutput) invertNodeOutput.add(ni);
 				if (proto instanceof Cell && ((Cell)proto).isIcon())
@@ -560,7 +560,7 @@ public class Sue extends Input
 						if (ppi == null)
 						{
 							NodeInst nni = NodeInst.makeInstance(Schematics.tech.wirePinNode, new Point2D.Double(pinx, piny),
-								wirePin.getDefWidth(), wirePin.getDefHeight(), cell);
+								wirePin.getDefWidth(), wirePin.getDefHeight(), cell, false);
 							if (nni == null) continue;
 							ppi = nni.getOnlyPortInst();
 						}
@@ -753,7 +753,7 @@ public class Sue extends Input
 				NodeProto proto = Schematics.tech.busPinNode;
 				double pX = proto.getDefWidth();
 				double pY = proto.getDefHeight();
-				NodeInst ni = NodeInst.makeInstance(proto, parP.pt, pX, pY, cell);
+				NodeInst ni = NodeInst.makeInstance(proto, parP.pt, pX, pY, cell, false);
 				if (ni == null) continue;
 
 				PortInst pi = ni.getOnlyPortInst();
@@ -790,7 +790,7 @@ public class Sue extends Input
 				double sY = Math.abs(p1Y - p2Y);
 				Point2D ctr = new Point2D.Double((p1X+p2X)/2, (p1Y+p2Y)/2);
 
-				NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, ctr, sX, sY, cell);
+				NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, ctr, sX, sY, cell, false);
 				if (ni == null) continue;
 				if (extent != 359)
 				{
@@ -844,7 +844,7 @@ public class Sue extends Input
 				double cX = (lX + hX) / 2;
 				double cY = (lY + hY) / 2;
 				Point2D ctr = new Point2D.Double(cX, cY);
-				NodeInst ni = NodeInst.makeInstance(Artwork.tech.openedPolygonNode, ctr, hX-lX, hY-lY, cell);
+				NodeInst ni = NodeInst.makeInstance(Artwork.tech.openedPolygonNode, ctr, hX-lX, hY-lY, cell, false);
 				if (ni == null) return null;
 				Point2D [] points = new Point2D[keyCount];
 				for(int i=0; i<keyCount; i++)
@@ -948,7 +948,7 @@ public class Sue extends Input
 				}
 				parP.theLabel = infstr.toString();
 
-				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
+				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell, false);
 				if (ni == null) continue;
 				Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theLabel);
 //				if (var != null) var.setDisplay(true);
@@ -962,7 +962,7 @@ public class Sue extends Input
 				ParseParameters parP = new ParseParameters(keywords, 1);
 				if (parP.theText == null) continue;
 
-				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell);
+				NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, parP.pt, 0, 0, cell, false);
 				if (ni == null) continue;
 				Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, parP.theText);
 //				if (var != null) var.setDisplay(true);
@@ -987,7 +987,7 @@ public class Sue extends Input
 			Rectangle2D bounds = iconCell.getBounds();
 			double wid = bounds.getWidth();
 			double hei = bounds.getHeight();
-			NodeInst ni = NodeInst.makeInstance(iconCell, iconPt, wid, hei, schemCell);
+			NodeInst ni = NodeInst.makeInstance(iconCell, iconPt, wid, hei, schemCell, false);
 			if (ni != null) ni.setExpanded();
 		}
 
@@ -1327,7 +1327,7 @@ public class Sue extends Input
 				if (sw.pi[i] == null)
 				{
 					// common point found: make a pin
-					NodeInst ni = NodeInst.makeInstance(proto, sw.pt[i], proto.getDefWidth(), proto.getDefHeight(), cell);
+					NodeInst ni = NodeInst.makeInstance(proto, sw.pt[i], proto.getDefWidth(), proto.getDefHeight(), cell, false);
 					sw.pi[i] = ni.getOnlyPortInst();
 				}
 
@@ -1358,7 +1358,7 @@ public class Sue extends Input
 				{
 					NodeProto proto = Schematics.tech.wirePinNode;
 					if (sw.proto == Schematics.tech.bus_arc) proto = Schematics.tech.busPinNode;
-					NodeInst ni = NodeInst.makeInstance(proto, sw.pt[i], proto.getDefWidth(), proto.getDefHeight(), cell);
+					NodeInst ni = NodeInst.makeInstance(proto, sw.pt[i], proto.getDefWidth(), proto.getDefHeight(), cell, false);
 					sw.pi[i] = ni.getOnlyPortInst();
 				}
 			}
@@ -1384,7 +1384,7 @@ public class Sue extends Input
 						Point2D pt = new Point2D.Double(px, py);
 						double xsize = Schematics.tech.busPinNode.getDefWidth();
 						double ysize = Schematics.tech.busPinNode.getDefHeight();
-						NodeInst ni = NodeInst.makeInstance(Schematics.tech.busPinNode, pt, xsize, ysize, cell);
+						NodeInst ni = NodeInst.makeInstance(Schematics.tech.busPinNode, pt, xsize, ysize, cell, false);
 						if (ni == null) break;
 						PortInst pi = ni.getOnlyPortInst();
 						ArcInst ai = ArcInst.makeInstance(Generic.tech.unrouted_arc, Generic.tech.unrouted_arc.getDefaultWidth(), pi, sw.pi[i]);

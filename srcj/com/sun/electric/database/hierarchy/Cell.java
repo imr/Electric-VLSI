@@ -599,7 +599,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			double scaleX = ni.getXSize();   if (ni.isXMirrored()) scaleX = -scaleX;
 			double scaleY = ni.getYSize();   if (ni.isYMirrored()) scaleY = -scaleY;
 			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
-				scaleX, scaleY, newCell, ni.getAngle(), ni.getName(), 0);
+				scaleX, scaleY, newCell, ni.getAngle(), ni.getName(), 0, false);
 			if (toNi == null) return null;
 
 			// save the new nodeinst address in the old nodeinst

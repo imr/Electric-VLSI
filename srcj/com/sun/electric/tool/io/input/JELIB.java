@@ -844,7 +844,7 @@ public class JELIB extends LibraryFiles
 
 			// create the node
 			NodeInst ni = NodeInst.newInstance(cell, np, nodeName, duplicate, nameTextDescriptor,
-                    new EPoint(x, y), wid, hei, angle, userBits, protoTextDescriptor);
+                    new EPoint(x, y), wid, hei, angle, userBits, protoTextDescriptor, false);
 			if (ni == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +

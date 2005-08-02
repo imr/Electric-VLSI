@@ -47,21 +47,64 @@ public class IconNodeInst extends NodeInst
 
     public synchronized Iterator getVariables()
     {
-        System.out.println("Overwrite getVariables");
-        return (new ArrayList().iterator());
+        return super.getVariables();
     }
-    public synchronized int getNumVariables() {return 0;}
+    public synchronized int getNumVariables() {return super.getNumVariables();}
 
-    public Variable getVar(Variable.Key key, Class type) { return null;}
+    public Variable getVar(Variable.Key key, Class type) { return super.getVar(key, type);}
 
-    public Variable newVar(Variable.Key key, Object value, TextDescriptor td) { return null;}
+    public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
+    {
+        Variable var = super.newVar(key, value, td);
+        parent.newVar(key, value, td);
+        return var;
+    }
+
+    /**
+     * Rename a Variable. Note that this creates a new variable of
+     * the new name and copies all values from the old variable, and
+     * then deletes the old variable.
+     * @param name the name of the var to rename
+     * @param newName the new name of the variable
+     * @return the new renamed variable
+     */
+    public Variable renameVar(String name, String newName) {
+        parent.renameVar(name, newName);
+        return (super.renameVar(name, newName));
+    }
+
+    /**
+	 * Method to update a Variable on this ElectricObject with the specified values.
+	 * If the Variable already exists, only the value is changed; the displayable attributes are preserved.
+	 * @param name the name of the Variable.
+	 * @param value the object to store in the Variable.
+	 * @return the Variable that has been updated.
+	 */
+	public Variable updateVar(String name, Object value) {
+        parent.updateVar(name, value);
+        return updateVar(newKey(name), value);
+    }
+
+    /**
+	 * Overwriting NodeInst.setTextDescriptor for handling icons.
+	 * @param varName name of variable or special name.
+	 * @param td new value TextDescriptor
+	 */
+	public void setTextDescriptor(String varName, TextDescriptor td)
+    {
+        // td is cloned inside setTextDescriptor 
+        parent.setTextDescriptor(varName, td);
+        super.setTextDescriptor(varName, td);
+    }
 
     public void lowLevelUnlinkVar(Variable var)
     {
         System.out.println("Overwrite lowLevelUnlinkVar");
+        super.lowLevelUnlinkVar(var);
     }
     public void lowLevelLinkVar(Variable var)
     {
+        super.lowLevelLinkVar(var);
         System.out.println("Overwrite lowLevelLinkVar");
     }
     public void setVar(Variable.Key key, Object value, int index)

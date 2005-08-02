@@ -647,21 +647,21 @@ public class Maker
 						hEdge = bounds.getMaxX();
 					}
 					Point2D ctr = new Point2D.Double(inst.xPos + hEdge, inst.yPos - bounds.getMinY());
-					inst.instance = NodeInst.makeInstance(subCell, ctr, wid, inst.ySize, bCell, 0, node.name, 0);
+					inst.instance = NodeInst.makeInstance(subCell, ctr, wid, inst.ySize, bCell, 0, node.name, 0, false);
 					if (inst.instance == null)
 						return "Cannot create leaf instance '" + node.name+ "' in MAKER";
 				} else if (node.type == GetNetlist.FEEDCELL)
 				{
 					// feed through node
 					Point2D ctr = new Point2D.Double(inst.xPos + (inst.xSize / 2), inst.yPos + inst.ySize + SilComp.getVertArcWidth() / 2);
-					inst.instance = NodeInst.makeInstance(layer2Proto, ctr, SilComp.getVertArcWidth(), SilComp.getVertArcWidth(), bCell);
+					inst.instance = NodeInst.makeInstance(layer2Proto, ctr, SilComp.getVertArcWidth(), SilComp.getVertArcWidth(), bCell, false);
 					if (inst.instance == null)
 						return "Cannot create leaf feed in MAKER";
 				} else if (node.type == GetNetlist.LATERALFEED)
 				{
 					// lateral feed node
 					Point2D ctr = new Point2D.Double(inst.xPos + (inst.xSize / 2), inst.yPos + inst.ySize);
-					inst.instance = NodeInst.makeInstance(viaProto, ctr, viaProto.getDefWidth(), viaProto.getDefHeight(), bCell);
+					inst.instance = NodeInst.makeInstance(viaProto, ctr, viaProto.getDefWidth(), viaProto.getDefHeight(), bCell, false);
 					if (inst.instance == null)
 						return "Cannot create via in MAKER";
 				}
@@ -680,7 +680,7 @@ public class Maker
 						if ((via.flags & VIAPOWER) != 0)
 						{
 							via.instance = NodeInst.makeInstance(layer1Proto, new Point2D.Double(via.xPos, track.yPos),
-								SilComp.getHorizArcWidth(), SilComp.getHorizArcWidth(), bCell);
+								SilComp.getHorizArcWidth(), SilComp.getHorizArcWidth(), bCell, false);
 							if (via.instance == null)
 								return "Cannot create via in MAKER";
 
@@ -712,13 +712,13 @@ public class Maker
 						if ((via.flags & VIASPECIAL) != 0)
 						{
 							via.instance = NodeInst.makeInstance(layer2Proto, new Point2D.Double(via.xPos, track.yPos),
-								SilComp.getVertArcWidth(), SilComp.getVertArcWidth(), bCell);
+								SilComp.getVertArcWidth(), SilComp.getVertArcWidth(), bCell, false);
 							if (via.instance == null)
 								return "Cannot create leaf feed in MAKER";
 						} else
 						{
 							via.instance = NodeInst.makeInstance(viaProto, new Point2D.Double(via.xPos, track.yPos),
-								viaProto.getDefWidth(), viaProto.getDefHeight(), bCell);
+								viaProto.getDefWidth(), viaProto.getDefHeight(), bCell, false);
 							if (via.instance == null)
 								return "Cannot create via in MAKER";
 						}
@@ -874,11 +874,11 @@ public class Maker
 			if (mainPwrRailHoriz)
 			{
 				bInst = NodeInst.makeInstance(layer1Proto, new Point2D.Double(xPos, yPos),
-					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell);
+					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell, false);
 			} else
 			{
 				bInst = NodeInst.makeInstance(layer2Proto, new Point2D.Double(xPos, yPos),
-					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell);
+					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell, false);
 			}
 			if (bInst == null)
 				return "Cannot create via in MAKER";
@@ -941,11 +941,11 @@ public class Maker
 			if (mainPwrRailHoriz)
 			{
 				bInst = NodeInst.makeInstance(layer1Proto, new Point2D.Double(xPos, yPos),
-					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell);
+					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell, false);
 			} else
 			{
 				bInst = NodeInst.makeInstance(layer2Proto, new Point2D.Double(xPos, yPos),
-					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell);
+					SilComp.getMainPowerWireWidth(), SilComp.getMainPowerWireWidth(), bCell, false);
 			}
 			if (bInst == null) return "Cannot create via in MAKER";
 			if (lastGround != null)
@@ -1036,7 +1036,7 @@ public class Maker
 							(SilComp.getPWellHeight() / 2);
 						if (pWellProto != null)
 						{
-							NodeInst bInst = NodeInst.makeInstance(pWellProto, new Point2D.Double(xPos, yPos), xSize, ySize, bCell);
+							NodeInst bInst = NodeInst.makeInstance(pWellProto, new Point2D.Double(xPos, yPos), xSize, ySize, bCell, false);
 							if (bInst == null)
 								return "Unable to create P-WELL in MAKER";
 						}
@@ -1049,7 +1049,7 @@ public class Maker
 							(SilComp.getNWellHeight() / 2);
 						if (nWellProto != null)
 						{
-							NodeInst bInst = NodeInst.makeInstance(nWellProto, new Point2D.Double(xPos, yPos), xSize, ySize, bCell);
+							NodeInst bInst = NodeInst.makeInstance(nWellProto, new Point2D.Double(xPos, yPos), xSize, ySize, bCell, false);
 							if (bInst == null)
 								return "Unable to create N-WELL in MAKER";
 						}
@@ -1189,7 +1189,7 @@ public class Maker
 
 		// use this via to make the connection
 		NodeInst viaNode = NodeInst.makeInstance(viaProto, new Point2D.Double(x, y),
-			viaProto.getDefWidth(), viaProto.getDefHeight(), pi.getNodeInst().getParent());
+			viaProto.getDefWidth(), viaProto.getDefHeight(), pi.getNodeInst().getParent(), false);
 		if (viaNode == null) return null;
 		double wid = arc.getDefaultWidth();
 		PortInst newPi = viaNode.getOnlyPortInst();
