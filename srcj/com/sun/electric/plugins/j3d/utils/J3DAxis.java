@@ -37,7 +37,8 @@ import javax.vecmath.*;
  * @author  Gilda Garreton
  * @version 0.1
  */
-public class J3DAxis extends Group {;
+public class J3DAxis extends Group
+{
     /** Font for 3D axis labels */ private static Font3D font3D;
     public static final Vector3d axisX = new Vector3d(1,0,0);
     public static final Vector3d axisY = new Vector3d(0,1,0);
