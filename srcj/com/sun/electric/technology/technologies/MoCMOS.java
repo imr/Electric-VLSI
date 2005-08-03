@@ -504,6 +504,7 @@ public class MoCMOS extends Technology
 		});
 
         setFactoryResolution(0.01); // value in lambdas
+        foundries.add(new Foundry("TSMC", DRCTemplate.TSMC));
 		//**************************************** LAYERS ****************************************
 
 		/** metal-1 layer */
@@ -3129,6 +3130,18 @@ public class MoCMOS extends Technology
 	}
 
 	/******************** PARAMETERIZABLE DESIGN RULES ********************/
+    private void loadGDSValues()
+    {
+        int foundry = getFoundry();
+        switch (foundry)
+        {
+            case DRCTemplate.TSMC:
+		        poly1_lay.setFactoryGDSLayer("13");					// Polysilicon-1
+                break;
+            default: //Mosis
+		        poly1_lay.setFactoryGDSLayer("46");					// Polysilicon-1
+        }
+    }
 
 	/**
 	 * Method to build "factory" design rules, given the current technology settings.
@@ -3138,6 +3151,9 @@ public class MoCMOS extends Technology
 	public DRCRules getFactoryDesignRules()
 	{
 		MOSRules rules = new MOSRules(this);
+
+        // load corresponding GDS values depending on the foundry
+        //loadGDSValues();
 
 		// load the DRC tables from the explanation table
 		rules.wideLimit = new Double(WIDELIMIT);
