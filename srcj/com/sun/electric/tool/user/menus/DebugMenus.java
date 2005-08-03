@@ -839,7 +839,8 @@ public class DebugMenus {
     {
         // Select file
         String fileName = OpenFile.chooseDirectory("Choose Source Directory");
-        new convertTo7LayersTechJob(fileName);
+        if (fileName != null)
+            new convertTo7LayersTechJob(fileName);
     }
 
     private static class convertTo7LayersTechJob extends Job
@@ -886,10 +887,12 @@ public class DebugMenus {
             {
                 try {
                     String thisName =topPath+filesList[i];
-                    System.out.println("Reading '" + thisName + "'");
                     LineNumberReader reader = new LineNumberReader(new FileReader(thisName));
                     URL url = TextUtils.makeURLToFile(filesList[i]);
                     String name = TextUtils.getFileNameWithoutExtension(url);
+                    String ext = TextUtils.getExtension(url);
+                    if (!ext.equals("jelib")) continue; // only jelib
+                    System.out.println("Reading '" + thisName + "'");
                     String line = null;
                     PrintWriter printWriter = new PrintWriter(new BufferedWriter(new FileWriter(newDir+"/"+name+"."+
                             FileType.JELIB.getExtensions()[0])));
