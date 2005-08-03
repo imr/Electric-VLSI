@@ -908,6 +908,8 @@ public class DebugMenus {
                                 String s = line.substring(index+29, line.length());
                                 line = l + "TSMC90NumberOfMetalLayers()I7" + s;
                             }
+                            else // Have to add it
+                              line += "|TSMC90NumberOfMetalLayers()I7"; 
                         }
                         line = line.replaceAll("Metal-5-Metal-8-Con", "Metal-5-Metal-6-Con");
                         line = line.replaceAll("Metal-7-Metal-8-Con", "Metal-5-Metal-6-Con");
