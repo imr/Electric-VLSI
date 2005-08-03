@@ -898,6 +898,19 @@ public class DebugMenus {
                             FileType.JELIB.getExtensions()[0])));
                     while ((line = reader.readLine()) != null)
                     {
+                        // Set the correct number of layers
+                        if (line.startsWith("Ttsmc90|"))
+                        {
+                            int index = line.indexOf("TSMC90NumberOfMetalLayers()I"); //28
+                            if (index != 1)
+                            {
+                                String l = line.substring(0, index);
+                                String s = line.substring(index+29, line.length());
+                                line = l + "TSMC90NumberOfMetalLayers()I7" + s;
+                                System.out.println(l);
+                                System.out.println(s);
+                            }
+                        }
                         line = line.replaceAll("Metal-5-Metal-8-Con", "Metal-5-Metal-6-Con");
                         line = line.replaceAll("Metal-7-Metal-8-Con", "Metal-5-Metal-6-Con");
                         line = line.replaceAll("Metal-8-Metal-9-Con", "Metal-6-Metal-7-Con");
