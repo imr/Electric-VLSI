@@ -48,13 +48,11 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.Color;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.prefs.Preferences;
 
 /**
  * This is the MOSIS CMOS technology.
