@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+IMP: (08/02/05, GVG) OpenDialog AWT way on MacOS only when no directories must be available
+
 IMP: (08/01/05, GVG) Calling CheckAndRepair after OptionReconcile dialog and layers switch in the tech.
 
 IMP: (08/01/05, JKG) Modified Output netlisters to get netlist from HierarchyEnumerator so
@@ -16,7 +18,7 @@ IMP: (07/30/05, GVG) Length/width of poly resistors (schematics/layout) can be c
 (similar to transistors). Schematic poly resistors display variables. Reported by Boz.
 
 IMP/MAN: (07/29/05, GVG) Ability to check and repair libraries if original files contain
-layers that are not in used. Extra function to convert files into 7Layer tech
+layers that are not in used. Extra function to convert JELIB files into 7Layer tech
 by mapping unused layers/primitive nodes into valid ones. Eg. M8M9 -> M6M7, M5M8 -> M5M6.
 Done for arcs and nodes.      
 

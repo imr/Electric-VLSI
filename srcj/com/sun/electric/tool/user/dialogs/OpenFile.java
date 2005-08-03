@@ -132,7 +132,8 @@ public class OpenFile
 		}
 
 		boolean useSwing = true;
-		if (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
+        // MacOS Open Dialog doesn't work when directories must be available for selection
+		if (!wantDirectory && TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH)
 			useSwing = false;
 
 //		if (location == null) location = new Point(100, 50);
