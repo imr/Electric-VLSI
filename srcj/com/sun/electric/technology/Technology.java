@@ -980,6 +980,14 @@ public class Technology implements Comparable
 		}
 	}
 
+    /**
+     * Dummy method overridden by implementing technologies to define
+     * the number of metal layers in the technology.  Applies to layout
+     * technologies.  Can by changed by user preferences.
+     * @return the number of metal layers currently specified for the technology
+     */
+    public static int getNumMetals() { return 0; }
+    
 	/****************************** ARCS ******************************/
 
 	/**
