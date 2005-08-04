@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+BUG: (08/04/05, DN) Problems with arc head and tail extensions (by Frankie Liu).
+FIX: In EditMenu.InsertJogPoint set head and tail extensions.
+
 IMP: (08/02/05, GVG) OpenDialog AWT way on MacOS only when no directories must be available
 
 IMP: (08/01/05, GVG) Calling CheckAndRepair after OptionReconcile dialog and layers switch in the tech.

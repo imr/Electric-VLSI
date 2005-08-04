@@ -794,7 +794,7 @@ public class EDIF extends Input
 			if (ni.getAnchorCenterY() != cY) continue;
 			return ni;
 		}
-		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, parent, angle, null, 0, false);
+		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), sX, sY, parent, angle, null, 0);
 		return ni;
 	}
 
@@ -922,7 +922,7 @@ public class EDIF extends Input
 		rot = ost.getJAngle();
 		if (curCellPage > 0) iyc += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 		NodeInst ni = NodeInst.makeInstance(curFigureGroup != null && curFigureGroup != Artwork.tech.boxNode ?
-			curFigureGroup : Artwork.tech.circleNode, new Point2D.Double(ixc, iyc), sX, sY, curCell, rot, null, 0, false);
+			curFigureGroup : Artwork.tech.circleNode, new Point2D.Double(ixc, iyc), sX, sY, curCell, rot, null, 0);
 		if (ni == null)
 		{
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create arc");
@@ -1223,7 +1223,7 @@ public class EDIF extends Input
 		double yPos = cY;
 		if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, yPos), sX, sY,
-			curCell, curOrientation.getRot(), null, 0, false);
+			curCell, curOrientation.getRot(), null, 0);
 		if (ni == null)
 		{
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create polygon");
@@ -1471,7 +1471,7 @@ public class EDIF extends Input
 				double cY = (hY + lY) / 2;
 				if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 				NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY),
-					sX, sY, curCell, curOrientation.getRot(), null, 0, false);
+					sX, sY, curCell, curOrientation.getRot(), null, 0);
 				if (ni == null)
 				{
 					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create circle");
@@ -1636,7 +1636,7 @@ public class EDIF extends Input
 				double yPos = p0.getY();
 				if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 				NodeInst ni = NodeInst.makeInstance(curFigureGroup != null ? curFigureGroup : Artwork.tech.boxNode,
-					new Point2D.Double(xPos, yPos), 0, 0, curCell, false);
+					new Point2D.Double(xPos, yPos), 0, 0, curCell);
 				if (ni == null)
 				{
 					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create rectangle");
@@ -1871,7 +1871,7 @@ public class EDIF extends Input
 						Point2D size = getSizeAndMirror(cellRefProto);
 						if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(cX, cY), size.getX(), size.getY(), curCell,
-							curOrientation.getRot(), null, 0, false);
+							curOrientation.getRot(), null, 0);
 						curNode = ni;
 						if (ni == null)
 						{
@@ -2611,7 +2611,7 @@ public class EDIF extends Input
 			double psX = Schematics.tech.offpageNode.getDefWidth();
 			double psY = Schematics.tech.offpageNode.getDefHeight();
 			if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
-			NodeInst ni = NodeInst.makeInstance(Schematics.tech.offpageNode, new Point2D.Double(cX, cY), psX, psY, curCell, false);
+			NodeInst ni = NodeInst.makeInstance(Schematics.tech.offpageNode, new Point2D.Double(cX, cY), psX, psY, curCell);
 			if (ni == null)
 			{
 				System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create external port");
@@ -3090,7 +3090,7 @@ public class EDIF extends Input
 				double xPos = (lX+hX)/2;
 				if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 				NodeInst ni = NodeInst.makeInstance(curFigureGroup != null ? curFigureGroup : Artwork.tech.boxNode,
-					new Point2D.Double(xPos, yPos), sX, sY, curCell, curOrientation.getRot(), null, 0, false);
+					new Point2D.Double(xPos, yPos), sX, sY, curCell, curOrientation.getRot(), null, 0);
 				if (ni == null)
 				{
 					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create rectangle");
@@ -3322,7 +3322,7 @@ public class EDIF extends Input
 						double xPos = p0.getX();
 						double yPos = p0.getY();
 						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
-						ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(xPos, yPos), 0, 0, curCell, false);
+						ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(xPos, yPos), 0, 0, curCell);
 						key = "EDIF_annotate";
 					}
 					if (ni != null || ai != null)
@@ -3514,7 +3514,7 @@ public class EDIF extends Input
 						double yPos = lY;
 						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX, yPos),
-							size.getX(), size.getY(), curCell, curOrientation.getRot(), null, 0, false);
+							size.getX(), size.getY(), curCell, curOrientation.getRot(), null, 0);
 						curNode = ni;
 						if (ni == null)
 						{

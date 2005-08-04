@@ -347,7 +347,7 @@ public class LayoutLib {
 		height = DBMath.round(height);
 		
 		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), width, height, parent,
-		        (int)Math.round(angle*10), null, 0, false);
+		        (int)Math.round(angle*10), null, 0);
 		error(ni==null, "newNodeInst failed");								
 
 		// adjust position so that translation is Cell-Center relative

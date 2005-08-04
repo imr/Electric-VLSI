@@ -141,7 +141,7 @@ public class NGrid
 		// put a well node over the region
 		Rectangle2D cellBounds = cell.getBounds();
 		NodeInst ni = NodeInst.makeInstance(pla.pwNode, new Point2D.Double(cellBounds.getCenterX(), cellBounds.getCenterY()),
-			cellBounds.getWidth(), cellBounds.getHeight(), cell, false);
+			cellBounds.getWidth(), cellBounds.getHeight(), cell);
 
 		perFile.done();
 

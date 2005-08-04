@@ -270,7 +270,7 @@ public class TechToLib
 				ni.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
 			}
 			double i = ai.getProto().getWidthOffset() / 2;
-			NodeInst ni = NodeInst.makeInstance(Artwork.tech.boxNode, new Point2D.Double(-20 - wid*2.5 - i, -5), wid*5, wid, aNp, false);
+			NodeInst ni = NodeInst.makeInstance(Artwork.tech.boxNode, new Point2D.Double(-20 - wid*2.5 - i, -5), wid*5, wid, aNp);
 			if (ni == null) return null;
 			ni.newVar(Artwork.ART_COLOR, new Integer(EGraphics.WHITE));
 			ni.newVar(Info.LAYER_KEY, null);
@@ -433,7 +433,7 @@ public class TechToLib
 				if (first) continue;
 
 				// create the highlight node
-				NodeInst ni = NodeInst.makeInstance(Artwork.tech.boxNode, pos[e], xsc[e], ysc[e], nNp, false);
+				NodeInst ni = NodeInst.makeInstance(Artwork.tech.boxNode, pos[e], xsc[e], ysc[e], nNp);
 				if (ni == null) return null;
 				ni.newVar(Artwork.ART_COLOR, new Integer(EGraphics.makeIndex(Color.WHITE)));
 				ni.newVar(Info.LAYER_KEY, null);
@@ -467,7 +467,7 @@ public class TechToLib
 					double width = poly.getBounds2D().getWidth() + pSo.getLowXOffset() + pSo.getHighXOffset();
 					double height = poly.getBounds2D().getHeight() + pSo.getLowYOffset() + pSo.getHighYOffset();
 					NodeInst pNi = NodeInst.makeInstance(Generic.tech.portNode, new Point2D.Double(poly.getCenterX(), poly.getCenterY()),
-						width, height, nNp, false);
+						width, height, nNp);
 					if (pNi == null) return null;
 					portNodes.put(pp, pNi);
 					pNi.newVar(Info.OPTION_KEY, new Integer(Info.LAYERPATCH));
@@ -646,12 +646,12 @@ public class TechToLib
 			if (box != null)
 			{
 				return NodeInst.makeInstance(Artwork.tech.filledBoxNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-					box.getWidth(), box.getHeight(), cell, false);
+					box.getWidth(), box.getHeight(), cell);
 			} else
 			{
 				box = poly.getBounds2D();
 				NodeInst ni = NodeInst.makeInstance(Artwork.tech.filledPolygonNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-					box.getWidth(), box.getHeight(), cell, false);
+					box.getWidth(), box.getHeight(), cell);
 				if (ni == null) return null;
 				ni.setTrace(poly.getPoints());
 				return ni;
@@ -662,12 +662,12 @@ public class TechToLib
 			if (box != null)
 			{
 				return NodeInst.makeInstance(Artwork.tech.boxNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-					box.getWidth(), box.getHeight(), cell, false);
+					box.getWidth(), box.getHeight(), cell);
 			} else
 			{
 				box = poly.getBounds2D();
 				NodeInst ni = NodeInst.makeInstance(Artwork.tech.closedPolygonNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-					box.getWidth(), box.getHeight(), cell, false);
+					box.getWidth(), box.getHeight(), cell);
 				if (ni == null) return null;
 				ni.setTrace(poly.getPoints());
 				return ni;
@@ -677,14 +677,14 @@ public class TechToLib
 		{
 			if (box == null) box = poly.getBounds2D();
 			NodeInst ni = NodeInst.makeInstance(Artwork.tech.crossedBoxNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			return ni;
 		}
 		if (style == Poly.Type.OPENED)
 		{
 			NodeInst ni = NodeInst.makeInstance(Artwork.tech.openedPolygonNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			ni.setTrace(poly.getPoints());
 			return ni;
@@ -692,7 +692,7 @@ public class TechToLib
 		if (style == Poly.Type.OPENEDT1)
 		{
 			NodeInst ni = NodeInst.makeInstance(Artwork.tech.openedDottedPolygonNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			ni.setTrace(poly.getPoints());
 			return ni;
@@ -700,7 +700,7 @@ public class TechToLib
 		if (style == Poly.Type.OPENEDT2)
 		{
 			NodeInst ni = NodeInst.makeInstance(Artwork.tech.openedDashedPolygonNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			ni.setTrace(poly.getPoints());
 			return ni;
@@ -708,7 +708,7 @@ public class TechToLib
 		if (style == Poly.Type.OPENEDT3)
 		{
 			NodeInst ni = NodeInst.makeInstance(Artwork.tech.openedThickerPolygonNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			ni.setTrace(poly.getPoints());
 			return ni;
@@ -716,28 +716,28 @@ public class TechToLib
 		if (style == Poly.Type.CIRCLE)
 		{
 			NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			return ni;
 		}
 		if (style == Poly.Type.THICKCIRCLE)
 		{
 			NodeInst ni = NodeInst.makeInstance(Artwork.tech.thickCircleNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			return ni;
 		}
 		if (style == Poly.Type.DISC)
 		{
 			NodeInst ni = NodeInst.makeInstance(Artwork.tech.filledCircleNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			return ni;
 		}
 		if (style == Poly.Type.CIRCLEARC)
 		{
 			NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			ni.setArcDegrees(0.0, 45.0*Math.PI/180.0);
 			return ni;
@@ -745,7 +745,7 @@ public class TechToLib
 		if (style == Poly.Type.THICKCIRCLEARC)
 		{
 			NodeInst ni = NodeInst.makeInstance(Artwork.tech.thickCircleNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			ni.setArcDegrees(0.0, 45.0*Math.PI/180.0);
 			return ni;
@@ -753,7 +753,7 @@ public class TechToLib
 		if (style == Poly.Type.TEXTCENT)
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
 			if (var != null)
@@ -766,7 +766,7 @@ public class TechToLib
 		if (style == Poly.Type.TEXTBOTLEFT)
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
 			if (var != null)
@@ -779,7 +779,7 @@ public class TechToLib
 		if (style == Poly.Type.TEXTBOTRIGHT)
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
 			if (var != null)
@@ -792,7 +792,7 @@ public class TechToLib
 		if (style == Poly.Type.TEXTBOX)
 		{
 			NodeInst ni = NodeInst.makeInstance(Generic.tech.invisiblePinNode, new Point2D.Double(box.getCenterX(), box.getCenterY()),
-				box.getWidth(), box.getHeight(), cell, false);
+				box.getWidth(), box.getHeight(), cell);
 			if (ni == null) return null;
 			Variable var = ni.newDisplayVar(Artwork.ART_MESSAGE, poly.getString());
 			if (var != null)

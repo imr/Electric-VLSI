@@ -46,7 +46,13 @@ import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitiveNodeSize;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.TransistorSize;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -188,12 +194,49 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param height the height of this NodeInst.
 	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
 	 * @param parent the Cell in which this NodeInst will reside.
+     * @return the newly created NodeInst, or null on error.
+	 */
+	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height, Cell parent)
+	{
+		return (makeInstance(protoType, center, width, height, parent, 0, null, 0, false));
+	}
+
+	/**
+	 * Short form method to create a NodeInst and do extra things necessary for it. Angle, name
+	 * and techBits are set to defaults.
+	 * @param protoType the NodeProto of which this is an instance.
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst.
+	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
+	 * @param height the height of this NodeInst.
+	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
+	 * @param parent the Cell in which this NodeInst will reside.
      * @param createIcon if new NodeInst is has to be IconNodeInst
      * @return the newly created NodeInst, or null on error.
 	 */
 	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height, Cell parent, boolean createIcon)
 	{
 		return (makeInstance(protoType, center, width, height, parent, 0, null, 0, createIcon));
+	}
+
+	/**
+	 * Long form method to create a NodeInst and do extra things necessary for it.
+	 * @param protoType the NodeProto of which this is an instance.
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst.
+	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
+	 * @param height the height of this NodeInst.
+	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
+	 * @param parent the Cell in which this NodeInst will reside.
+	 * @param angle the angle of this NodeInst (in tenth-degrees).
+	 * @param name name of new NodeInst
+	 * @param techBits bits associated to different technologies
+     * @return the newly created NodeInst, or null on error.
+	 */
+	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height,
+                                        Cell parent, int angle, String name, int techBits)
+	{
+        return makeInstance(protoType, center, width, height, parent, angle, name, techBits, false);
 	}
 
 	/**
@@ -274,7 +317,28 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height, Cell parent)
 	{
-		return (newInstance(protoType, center, width, height, parent, 0, null, 0, false));
+		return (newInstance(protoType, center, width, height, parent, 0, null, 0));
+	}
+
+	/**
+	 * Long form method to create a NodeInst.
+	 * @param protoType the NodeProto of which this is an instance.
+	 * @param center the center location of this NodeInst.
+	 * @param width the width of this NodeInst.
+	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
+	 * @param height the height of this NodeInst.
+	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
+	 * @param parent the Cell in which this NodeInst will reside.
+	 * @param angle the angle of this NodeInst (in tenth-degrees).
+	 * @param name name of new NodeInst
+	 * @param techBits bits associated to different technologies
+     * @return the newly created NodeInst, or null on error.
+	 */
+	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
+                                       Cell parent, int angle, String name, int techBits)
+	{
+        int userBits = (techBits << ImmutableNodeInst.NTECHBITSSH)&ImmutableNodeInst.NTECHBITS;
+        return newInstance(parent, protoType, name, -1, null, center, width, height, angle, userBits, null, false);
 	}
 
 	/**
@@ -318,9 +382,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable
      * @return the newly created NodeInst, or null on error.
 	 */
     public static NodeInst newInstance(Cell parent, NodeProto protoType,
-                                       String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
-                                       Point2D center, double width, double height, int angle,
-                                       int userBits, ImmutableTextDescriptor protoDescriptor, boolean createIcon)
+            String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+            Point2D center, double width, double height, int angle,
+            int userBits, ImmutableTextDescriptor protoDescriptor, boolean createIcon)
 	{
         if (protoType == null) return null;
 //        if (protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isNotUsed())
@@ -563,7 +627,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		// see if nodeinst is mirrored
         if (getXSizeWithMirror() < 0) newXS *= -1;
         if (getYSizeWithMirror() < 0) newYS *= -1;
-		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getAngle(), null, 0, false);
+		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getAngle(), null, 0);
 		if (newNi == null) return null;
 
 		// draw new node expanded if appropriate

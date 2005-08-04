@@ -938,7 +938,7 @@ public class Change extends EDialog implements HighlightListener
 			{
 				NodeInst ni = (NodeInst)it.next();
 
-				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell, 0, ni.getName(), 0, false);
+				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell, 0, ni.getName(), 0);
 				if (newNi == null) return;
 				geomMarked.remove(newNi);
 				newNodes.put(ni, newNi);
@@ -1053,7 +1053,7 @@ public class Change extends EDialog implements HighlightListener
 			{
 				double xS = contactStack[i].getDefWidth();
 				double yS = contactStack[i].getDefHeight();
-				NodeInst newNi = NodeInst.makeInstance(contactStack[i], center, xS, yS, cell, false);
+				NodeInst newNi = NodeInst.makeInstance(contactStack[i], center, xS, yS, cell);
 				if (newNi == null) return null;
 				PortInst thisPi = newNi.findPortInstFromProto(contactStack[i].getPort(0));
 

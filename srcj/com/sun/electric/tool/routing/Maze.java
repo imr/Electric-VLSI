@@ -2132,7 +2132,7 @@ public class Maze
 					// create the from pin
 					double xS = mazeSteinerNode.getDefWidth();
 					double yS = mazeSteinerNode.getDefHeight();
-					NodeInst ni = NodeInst.makeInstance(mazeSteinerNode, new Point2D.Double(fX, fY), xS, yS, parent, false);
+					NodeInst ni = NodeInst.makeInstance(mazeSteinerNode, new Point2D.Double(fX, fY), xS, yS, parent);
 					if (ni == null)
 					{
 						System.out.println("Could not create pin");
@@ -2156,7 +2156,7 @@ public class Maze
 					// create the from pin
 					double xS = mazeSteinerNode.getDefWidth();
 					double yS = mazeSteinerNode.getDefHeight();
-					NodeInst ni = NodeInst.makeInstance(mazeSteinerNode, new Point2D.Double(tX, tY), xS, yS, parent, false);
+					NodeInst ni = NodeInst.makeInstance(mazeSteinerNode, new Point2D.Double(tX, tY), xS, yS, parent);
 					if (ni == null)
 					{
 						System.out.println("Could not create pin");

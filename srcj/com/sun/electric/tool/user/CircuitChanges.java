@@ -252,7 +252,7 @@ public class CircuitChanges
 				{
 					// no port on the cell: create one
 					Cell subCell = (Cell)theNi.getProto();
-					NodeInst subni = NodeInst.makeInstance(Generic.tech.universalPinNode, new Point2D.Double(0,0), 0, 0, subCell, false);
+					NodeInst subni = NodeInst.makeInstance(Generic.tech.universalPinNode, new Point2D.Double(0,0), 0, 0, subCell);
 					if (subni == null) break;
 					Export thepp = Export.newInstance(subCell, subni.getOnlyPortInst(), "temp");
 					if (thepp == null) break;
@@ -1150,11 +1150,11 @@ public class CircuitChanges
 				for(int i=0; i<busWidth; i++)
 				{
 					// make the wire pin
-					NodeInst niw = NodeInst.makeInstance(Schematics.tech.wirePinNode, new Point2D.Double(lowX, lowY), sxw, syw, ai.getParent(), false);
+					NodeInst niw = NodeInst.makeInstance(Schematics.tech.wirePinNode, new Point2D.Double(lowX, lowY), sxw, syw, ai.getParent());
 					if (niw == null) break;
 
 					// make the bus pin
-					NodeInst nib = NodeInst.makeInstance(Schematics.tech.busPinNode, new Point2D.Double(lowXBus, lowYBus), sxb, syb, ai.getParent(), false);
+					NodeInst nib = NodeInst.makeInstance(Schematics.tech.busPinNode, new Point2D.Double(lowXBus, lowYBus), sxb, syb, ai.getParent());
 					if (nib == null) break;
 
 					// wire them
@@ -1448,7 +1448,7 @@ public class CircuitChanges
 				{
 					// create a pin at this point
 					PrimitiveNode pin = ai.getProto().findPinProto();
-					NodeInst ni = NodeInst.makeInstance(pin, tailPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell, false);
+					NodeInst ni = NodeInst.makeInstance(pin, tailPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell);
 					if (ni == null)
 					{
 						System.out.println("Error creating pin for shortening of "+ai);
@@ -1470,7 +1470,7 @@ public class CircuitChanges
 				{
 					// create a pin at this point
 					PrimitiveNode pin = ai.getProto().findPinProto();
-					NodeInst ni = NodeInst.makeInstance(pin, headPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell, false);
+					NodeInst ni = NodeInst.makeInstance(pin, headPtAdj, pin.getDefWidth(), pin.getDefHeight(), cell);
 					if (ni == null)
 					{
 						System.out.println("Error creating pin for shortening of "+ai);
@@ -2430,7 +2430,7 @@ public class CircuitChanges
 				Name oldName = ni.getNameKey();
 				if (!oldName.isTempname()) name = oldName.toString();
 				NodeInst newNi = NodeInst.makeInstance(ni.getProto(), new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
-					ni.getXSize(), ni.getYSize(), cell, ni.getAngle(), name, 0, false);
+					ni.getXSize(), ni.getYSize(), cell, ni.getAngle(), name, 0);
 				if (newNi == null) return false;
 				newNodes.put(ni, newNi);
 				newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
@@ -2564,7 +2564,7 @@ public class CircuitChanges
 			String name = null;
 			if (ni.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class);
-			NodeInst newNi = NodeInst.makeInstance(np, pt, xSize, ySize, cell, newAngle, name, 0, false);
+			NodeInst newNi = NodeInst.makeInstance(np, pt, xSize, ySize, cell, newAngle, name, 0);
 			if (newNi == null) return;
 			newNodes.put(ni, newNi);
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);

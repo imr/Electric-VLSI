@@ -311,7 +311,7 @@ public class ViewChanges
 			Point2D center = new Point2D.Double(bottomNi.getAnchorCenterX(), bottomNi.getAnchorCenterY());
 			subRot.transform(center, center);
 			NodeInst newNi = NodeInst.makeInstance(bottomNi.getProto(), center, bottomNi.getXSize(), bottomNi.getYSize(),
-				skeletonCell, newAng, null, 0, false);
+				skeletonCell, newAng, null, 0);
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node in this cell");
@@ -370,7 +370,7 @@ public class ViewChanges
 			NodeProto np = ni.getProto();
 			if (np != Generic.tech.essentialBoundsNode) continue;
 			NodeInst newNi = NodeInst.makeInstance(np, ni.getAnchorCenter(),
-				ni.getXSizeWithMirror(), ni.getYSizeWithMirror(), skeletonCell, ni.getAngle(), null, 0, false);
+				ni.getXSizeWithMirror(), ni.getYSizeWithMirror(), skeletonCell, ni.getAngle(), null, 0);
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node in this cell");
@@ -383,7 +383,7 @@ public class ViewChanges
 		// place an outline around the skeleton
 		Rectangle2D bounds = curCell.getBounds();
 		NodeInst boundNi = NodeInst.makeInstance(Generic.tech.invisiblePinNode,
-			new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()), bounds.getWidth(), bounds.getHeight(), skeletonCell, false);
+			new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()), bounds.getWidth(), bounds.getHeight(), skeletonCell);
 		if (boundNi == null)
 		{
 			System.out.println("Cannot create boundary node");
@@ -462,7 +462,7 @@ public class ViewChanges
 			EditWindow.gridAlign(iconPos);
 			double px = iconCell.getBounds().getWidth();
 			double py = iconCell.getBounds().getHeight();
-			NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell, false);
+			NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell);
 			if (ni != null)
 			{
 				EditWindow wnd = EditWindow.getCurrent();
@@ -925,7 +925,7 @@ public class ViewChanges
 	private static NodeInst makeSchematicNode(NodeProto prim, NodeInst orig, double wid, double hei, int angle, int techSpecific, Cell newCell)
 	{
 		Point2D newLoc = new Point2D.Double(orig.getAnchorCenterX(), orig.getAnchorCenterY());
-		NodeInst newNI = NodeInst.makeInstance(prim, newLoc, wid, hei, newCell, angle, null, techSpecific, false);
+		NodeInst newNI = NodeInst.makeInstance(prim, newLoc, wid, hei, newCell, angle, null, techSpecific);
 		return newNI;
 	}
 
@@ -1389,7 +1389,7 @@ public class ViewChanges
 			if (ni.isYMirrored()) newYSize = -newYSize;
 
 			// create the node
-			NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getAngle(), ni.getName(), ni.getTechSpecific(), false);
+			NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getAngle(), ni.getName(), ni.getTechSpecific());
 			if (newNi == null)
 			{
 				System.out.println("Could not create " + newNp + " in " + newCell);

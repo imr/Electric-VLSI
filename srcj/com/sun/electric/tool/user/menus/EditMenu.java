@@ -1283,13 +1283,13 @@ public class EditMenu {
                 ArcProto ap = ai.getProto();
                 NodeProto np = ap.findPinProto();
                 if (np == null) return false;
-                NodeInst ni = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(), ai.getParent(), false);
+                NodeInst ni = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(), ai.getParent());
                 if (ni == null)
                 {
                     System.out.println("Cannot create pin " + np.describe(true));
                     return false;
                 }
-                NodeInst ni2 = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(), ai.getParent(), false);
+                NodeInst ni2 = NodeInst.makeInstance(np, insert, np.getDefWidth(), np.getDefHeight(), ai.getParent());
                 if (ni2 == null)
                 {
                     System.out.println("Cannot create pin " + np.describe(true));
@@ -1327,30 +1327,30 @@ public class EditMenu {
                 Point2D headPt = ai.getHeadLocation();
                 Point2D tailPt = ai.getTailLocation();
                 double width = ai.getWidth();
-                boolean headNegated = ai.isHeadNegated();
-                boolean tailNegated = ai.isTailNegated();
                 String arcName = ai.getName();
                 int angle = (ai.getAngle() + 900) % 3600;
 
                 // create the new arcs
                 ArcInst newAi1 = ArcInst.makeInstance(ap, width, headPort, pi, headPt, insert, null);
-                if (headNegated) newAi1.setHeadNegated(true);
                 ArcInst newAi2 = ArcInst.makeInstance(ap, width, pi, pi2, insert, insert, null);
                 ArcInst newAi3 = ArcInst.makeInstance(ap, width, pi2, tailPort, insert, tailPt, null);
-                if (tailNegated) newAi3.setTailNegated(true);
-				newAi1.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
-				newAi3.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
 				newAi1.setHeadNegated(ai.isHeadNegated());
+                newAi1.setHeadExtended(ai.isHeadExtended());
+                newAi1.setHeadArrowed(ai.isHeadArrowed());
 				newAi3.setTailNegated(ai.isTailNegated());
+                newAi3.setTailExtended(ai.isTailExtended());
+                newAi3.setTailArrowed(ai.isTailArrowed());
 				ai.kill();
                 if (arcName != null)
                 {
                     if (headPt.distance(insert) > tailPt.distance(insert))
                     {
                         newAi1.setName(arcName);
+                        newAi1.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
                     } else
                     {
                         newAi3.setName(arcName);
+                        newAi3.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
                     }
                 }
                 newAi2.setAngle(angle);

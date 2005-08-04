@@ -678,7 +678,7 @@ public class Clipboard
 				name = ElectricObject.uniqueObjectName(ni.getName(), toCell, NodeInst.class);
 			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
 				new Point2D.Double(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY),
-					width, height, toCell, ni.getAngle(), name, ni.getTechSpecific(), false);
+					width, height, toCell, ni.getAngle(), name, ni.getTechSpecific());
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node");

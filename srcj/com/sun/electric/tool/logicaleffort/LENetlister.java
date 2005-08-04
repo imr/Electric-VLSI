@@ -244,7 +244,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             Cell temp = settings.iconView();
             if (temp != null) settings = temp;
             NodeInst ni = NodeInst.makeInstance(settings, new Point2D.Double(x, y), settings.getDefWidth(),
-                    settings.getDefHeight(), cell, false);
+                    settings.getDefHeight(), cell);
             if (ni == null) {
                 System.out.println("Could not make instance of LESETTINGS in "+cell+" to save settings.");
                 return false;

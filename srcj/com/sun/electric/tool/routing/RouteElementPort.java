@@ -289,7 +289,7 @@ public class RouteElementPort extends RouteElement {
             SizeOffset so = np.getProtoSizeOffset();
             double widthso = width +  so.getLowXOffset() + so.getHighXOffset();
             double heightso = height + so.getLowYOffset() + so.getHighYOffset();
-            nodeInst = NodeInst.makeInstance(np, location, widthso, heightso, getCell(), false);
+            nodeInst = NodeInst.makeInstance(np, location, widthso, heightso, getCell());
             if (nodeInst == null) return null;
             portInst = nodeInst.findPortInstFromProto(portProto);
             returnObj = nodeInst;

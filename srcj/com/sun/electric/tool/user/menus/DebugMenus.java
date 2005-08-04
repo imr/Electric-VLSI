@@ -145,7 +145,7 @@ public class DebugMenus {
 				}
 
 				// make pin 10 lower
-				NodeInst pin = NodeInst.makeInstance(contact, new Point2D.Double(x, y-10), contact.getDefWidth(), contact.getDefHeight(), lay, false);
+				NodeInst pin = NodeInst.makeInstance(contact, new Point2D.Double(x, y-10), contact.getDefWidth(), contact.getDefHeight(), lay);
 
 				// run arc to it
 				ArcInst arc = ArcInst.makeInstance(desired, desired.getDefaultWidth(), pi, pin.getOnlyPortInst());
@@ -431,7 +431,7 @@ public class DebugMenus {
 			NodeInst poly1PinA = NodeInst.newInstance(p1PinProto, new Point2D.Double(20.0, -20.0), p1PinProto.getDefWidth(), p1PinProto.getDefHeight(), myCell);
 			NodeInst poly1PinB = NodeInst.newInstance(p1PinProto, new Point2D.Double(20.0, -10.0), p1PinProto.getDefWidth(), p1PinProto.getDefHeight(), myCell);
 			NodeInst transistor = NodeInst.newInstance(pTransProto, new Point2D.Double(0.0, -20.0), pTransProto.getDefWidth(), pTransProto.getDefHeight(), myCell);
-			NodeInst rotTrans = NodeInst.newInstance(nTransProto, new Point2D.Double(0.0, 10.0), nTransProto.getDefWidth(), nTransProto.getDefHeight(), myCell, 3150, "rotated", 0, false);
+			NodeInst rotTrans = NodeInst.newInstance(nTransProto, new Point2D.Double(0.0, 10.0), nTransProto.getDefWidth(), nTransProto.getDefHeight(), myCell, 3150, "rotated", 0);
 			if (metal12Via == null || contactNode == null || metal2Pin == null || poly1PinA == null ||
 				poly1PinB == null || transistor == null || rotTrans == null) return false;
 
@@ -478,34 +478,34 @@ public class DebugMenus {
 			instance1Node.setExpanded();
 			NodeInst instance1UNode = NodeInst.newInstance(myCell, new Point2D.Double(0, 100), myWidth, myHeight, higherCell);
 
-			NodeInst instance2Node = NodeInst.newInstance(myCell, new Point2D.Double(100, 0), myWidth, myHeight, higherCell, 900, null, 0, false);
+			NodeInst instance2Node = NodeInst.newInstance(myCell, new Point2D.Double(100, 0), myWidth, myHeight, higherCell, 900, null, 0);
 			instance2Node.setExpanded();
-			NodeInst instance2UNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 100), myWidth, myHeight, higherCell, 900, null, 0, false);
+			NodeInst instance2UNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 100), myWidth, myHeight, higherCell, 900, null, 0);
 
-			NodeInst instance3Node = NodeInst.newInstance(myCell, new Point2D.Double(200, 0), myWidth, myHeight, higherCell, 1800, null, 0, false);
+			NodeInst instance3Node = NodeInst.newInstance(myCell, new Point2D.Double(200, 0), myWidth, myHeight, higherCell, 1800, null, 0);
 			instance3Node.setExpanded();
-			NodeInst instance3UNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 100), myWidth, myHeight, higherCell, 1800, null, 0, false);
+			NodeInst instance3UNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 100), myWidth, myHeight, higherCell, 1800, null, 0);
 
-			NodeInst instance4Node = NodeInst.newInstance(myCell, new Point2D.Double(300, 0), myWidth, myHeight, higherCell, 2700, null, 0, false);
+			NodeInst instance4Node = NodeInst.newInstance(myCell, new Point2D.Double(300, 0), myWidth, myHeight, higherCell, 2700, null, 0);
 			instance4Node.setExpanded();
-			NodeInst instance4UNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 100), myWidth, myHeight, higherCell, 2700, null, 0, false);
+			NodeInst instance4UNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 100), myWidth, myHeight, higherCell, 2700, null, 0);
 
 			// transposed
 			NodeInst instance5Node = NodeInst.newInstance(myCell, new Point2D.Double(0, 200), -myWidth, myHeight, higherCell);
 			instance5Node.setExpanded();
 			NodeInst instance5UNode = NodeInst.newInstance(myCell, new Point2D.Double(0, 300), -myWidth, myHeight, higherCell);
 
-			NodeInst instance6Node = NodeInst.newInstance(myCell, new Point2D.Double(100, 200), -myWidth, myHeight, higherCell, 900, null, 0, false);
+			NodeInst instance6Node = NodeInst.newInstance(myCell, new Point2D.Double(100, 200), -myWidth, myHeight, higherCell, 900, null, 0);
 			instance6Node.setExpanded();
-			NodeInst instance6UNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 300),  -myWidth, myHeight, higherCell, 900, null, 0, false);
+			NodeInst instance6UNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 300),  -myWidth, myHeight, higherCell, 900, null, 0);
 
-			NodeInst instance7Node = NodeInst.newInstance(myCell, new Point2D.Double(200, 200), -myWidth, myHeight, higherCell, 1800, null, 0, false);
+			NodeInst instance7Node = NodeInst.newInstance(myCell, new Point2D.Double(200, 200), -myWidth, myHeight, higherCell, 1800, null, 0);
 			instance7Node.setExpanded();
-			NodeInst instance7UNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 300), -myWidth, myHeight, higherCell, 1800, null, 0, false);
+			NodeInst instance7UNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 300), -myWidth, myHeight, higherCell, 1800, null, 0);
 
-			NodeInst instance8Node = NodeInst.newInstance(myCell, new Point2D.Double(300, 200), -myWidth, myHeight, higherCell, 2700, null, 0, false);
+			NodeInst instance8Node = NodeInst.newInstance(myCell, new Point2D.Double(300, 200), -myWidth, myHeight, higherCell, 2700, null, 0);
 			instance8Node.setExpanded();
-			NodeInst instance8UNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 300), -myWidth, myHeight, higherCell, 2700, null, 0, false);
+			NodeInst instance8UNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 300), -myWidth, myHeight, higherCell, 2700, null, 0);
 
 			PortInst instance1Port = instance1Node.findPortInst("in");
 			PortInst instance2Port = instance1UNode.findPortInst("in");
@@ -521,19 +521,19 @@ public class DebugMenus {
 			Variable var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 0");
 			var.setRelSize(10);
 
-			NodeInst r90Node = NodeInst.newInstance(myCell, new Point2D.Double(100, 0), myWidth, myHeight, rotTestCell, 900, null, 0, false);
+			NodeInst r90Node = NodeInst.newInstance(myCell, new Point2D.Double(100, 0), myWidth, myHeight, rotTestCell, 900, null, 0);
 			r90Node.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(100, -35), 0, 0, rotTestCell);
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 90");
 			var.setRelSize(10);
 
-			NodeInst r180Node = NodeInst.newInstance(myCell, new Point2D.Double(200, 0), myWidth, myHeight, rotTestCell, 1800, null, 0, false);
+			NodeInst r180Node = NodeInst.newInstance(myCell, new Point2D.Double(200, 0), myWidth, myHeight, rotTestCell, 1800, null, 0);
 			r180Node.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(200, -35), 0, 0, rotTestCell);
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 180");
             var.setRelSize(10);
 
-			NodeInst r270Node = NodeInst.newInstance(myCell, new Point2D.Double(300, 0), myWidth, myHeight, rotTestCell, 2700, null, 0, false);
+			NodeInst r270Node = NodeInst.newInstance(myCell, new Point2D.Double(300, 0), myWidth, myHeight, rotTestCell, 2700, null, 0);
 			r270Node.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(300, -35), 0, 0, rotTestCell);
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 270");
@@ -546,19 +546,19 @@ public class DebugMenus {
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 0 MX");
 			var.setRelSize(10);
 
-			NodeInst r90MXNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 100), -myWidth, myHeight, rotTestCell, 900, null, 0, false);
+			NodeInst r90MXNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 100), -myWidth, myHeight, rotTestCell, 900, null, 0);
 			r90MXNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(100, 100-35), 0, 0, rotTestCell);
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 90 MX");
 			var.setRelSize(10);
 
-			NodeInst r180MXNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 100), -myWidth, myHeight, rotTestCell, 1800, null, 0, false);
+			NodeInst r180MXNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 100), -myWidth, myHeight, rotTestCell, 1800, null, 0);
 			r180MXNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(200, 100-35), 0, 0, rotTestCell);
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 180 MX");
 			var.setRelSize(10);
 
-			NodeInst r270MXNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 100), -myWidth, myHeight, rotTestCell, 2700, null, 0, false);
+			NodeInst r270MXNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 100), -myWidth, myHeight, rotTestCell, 2700, null, 0);
 			r270MXNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(300, 100-35), 0, 0, rotTestCell);
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 270 MX");
@@ -571,19 +571,19 @@ public class DebugMenus {
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 0 MY");
 			var.setRelSize(10);
 
-			NodeInst r90MYNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 200), myWidth, -myHeight, rotTestCell, 900, null, 0, false);
+			NodeInst r90MYNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 200), myWidth, -myHeight, rotTestCell, 900, null, 0);
 			r90MYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(100, 200-35), 0, 0, rotTestCell);
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 90 MY");
 			var.setRelSize(10);
 
-			NodeInst r180MYNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 200), myWidth, -myHeight, rotTestCell, 1800, null, 0, false);
+			NodeInst r180MYNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 200), myWidth, -myHeight, rotTestCell, 1800, null, 0);
 			r180MYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(200, 200-35), 0, 0, rotTestCell);
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 180 MY");
 			var.setRelSize(10);
 
-			NodeInst r270MYNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 200), myWidth, -myHeight, rotTestCell, 2700, null, 0, false);
+			NodeInst r270MYNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 200), myWidth, -myHeight, rotTestCell, 2700, null, 0);
 			r270MYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(300, 200-35), 0, 0, rotTestCell);
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 270 MY");
@@ -596,19 +596,19 @@ public class DebugMenus {
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 0 MXY");
 			var.setRelSize(10);
 
-			NodeInst r90MXYNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 300), -myWidth, -myHeight, rotTestCell, 900, null, 0, false);
+			NodeInst r90MXYNode = NodeInst.newInstance(myCell, new Point2D.Double(100, 300), -myWidth, -myHeight, rotTestCell, 900, null, 0);
 			r90MXYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(100, 300-35), 0, 0, rotTestCell);
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 90 MXY");
 			var.setRelSize(10);
 
-			NodeInst r180MXYNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 300), -myWidth, -myHeight, rotTestCell, 1800, null, 0, false);
+			NodeInst r180MXYNode = NodeInst.newInstance(myCell, new Point2D.Double(200, 300), -myWidth, -myHeight, rotTestCell, 1800, null, 0);
 			r180MXYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(200, 300-35), 0, 0, rotTestCell);
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 180 MXY");
 			var.setRelSize(10);
 
-			NodeInst r270MXYNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 300), -myWidth, -myHeight, rotTestCell, 2700, null, 0, false);
+			NodeInst r270MXYNode = NodeInst.newInstance(myCell, new Point2D.Double(300, 300), -myWidth, -myHeight, rotTestCell, 2700, null, 0);
 			r270MXYNode.setExpanded();
 			nodeLabel = NodeInst.newInstance(invisiblePinProto, new Point2D.Double(300, 300-35), 0, 0, rotTestCell);
 			var = nodeLabel.newDisplayVar(Artwork.ART_MESSAGE, "Rotated 270 MXY");
@@ -626,7 +626,7 @@ public class DebugMenus {
 				{
 					String theName = "arr["+ x + "][" + y + "]";
 					NodeInst instanceNode = NodeInst.newInstance(myCell, new Point2D.Double(x*(myWidth+2), y*(myHeight+2)),
-						myWidth, myHeight, bigCell, 0, theName, 0, false);
+						myWidth, myHeight, bigCell, 0, theName, 0);
 					instanceNode.setOff(NodeInst.NODE_NAME_TD, 0, 8);
 					if ((x%2) == (y%2)) instanceNode.setExpanded();
 				}
@@ -716,27 +716,27 @@ public class DebugMenus {
 			NodeInst instance1Node = NodeInst.newInstance(myCell, new Point2D.Double(0, 0), myWidth, myHeight, higherCell);
 			instance1Node.setExpanded();
 
-			NodeInst instance2Node = NodeInst.newInstance(myCell, new Point2D.Double(myWidth, 0), myWidth, myHeight, higherCell, 0, null, 0, false);
+			NodeInst instance2Node = NodeInst.newInstance(myCell, new Point2D.Double(myWidth, 0), myWidth, myHeight, higherCell, 0, null, 0);
             //NodeInst instance2Node = NodeInst.newInstance(myCell, new Point2D.Double(myWidth, 0), myWidth, myHeight, higherCell, 900, null, 0);
 			instance2Node.setExpanded();
 
-			NodeInst instance3Node = NodeInst.newInstance(myCell, new Point2D.Double(2*myWidth, 0), myWidth, myHeight, higherCell, 1800, null, 0, false);
+			NodeInst instance3Node = NodeInst.newInstance(myCell, new Point2D.Double(2*myWidth, 0), myWidth, myHeight, higherCell, 1800, null, 0);
 			instance3Node.setExpanded();
 
-			NodeInst instance4Node = NodeInst.newInstance(myCell, new Point2D.Double(3*myWidth, 0), myWidth, myHeight, higherCell, 2700, null, 0, false);
+			NodeInst instance4Node = NodeInst.newInstance(myCell, new Point2D.Double(3*myWidth, 0), myWidth, myHeight, higherCell, 2700, null, 0);
 			instance4Node.setExpanded();
 
 			// transposed
 			NodeInst instance5Node = NodeInst.newInstance(myCell, new Point2D.Double(0, myHeight), -myWidth, myHeight, higherCell);
 			instance5Node.setExpanded();
 
-			NodeInst instance6Node = NodeInst.newInstance(myCell, new Point2D.Double(myWidth, myHeight), -myWidth, myHeight, higherCell, 900, null, 0, false);
+			NodeInst instance6Node = NodeInst.newInstance(myCell, new Point2D.Double(myWidth, myHeight), -myWidth, myHeight, higherCell, 900, null, 0);
 			instance6Node.setExpanded();
 
-			NodeInst instance7Node = NodeInst.newInstance(myCell, new Point2D.Double(2*myWidth, myHeight), -myWidth, myHeight, higherCell, 1800, null, 0, false);
+			NodeInst instance7Node = NodeInst.newInstance(myCell, new Point2D.Double(2*myWidth, myHeight), -myWidth, myHeight, higherCell, 1800, null, 0);
 			instance7Node.setExpanded();
 
-			NodeInst instance8Node = NodeInst.newInstance(myCell, new Point2D.Double(3*myWidth, myHeight), -myWidth, myHeight, higherCell, 2700, null, 0, false);
+			NodeInst instance8Node = NodeInst.newInstance(myCell, new Point2D.Double(3*myWidth, myHeight), -myWidth, myHeight, higherCell, 2700, null, 0);
 			instance8Node.setExpanded();
 
 			System.out.println("Created " + higherCell);
@@ -1268,7 +1268,7 @@ public class DebugMenus {
 					Point2D center = new Point2D.Double(rect.getCenterX(), rect.getCenterY());
 					PrimitiveNode priNode = layer.getPureLayerNode();
 					// Adding the new implant. New implant not assigned to any local variable                                .
-					NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), curCell, false);
+					NodeInst node = NodeInst.makeInstance(priNode, center, rect.getWidth(), rect.getHeight(), curCell);
 					highlighter.addElectricObject(node, curCell);
 					// New implant can't be selected again
 					node.setHardSelect();

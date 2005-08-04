@@ -296,7 +296,7 @@ public class LEF extends LEFDEF
 				{
 					double sX = Generic.tech.cellCenterNode.getDefWidth();
 					double sY = Generic.tech.cellCenterNode.getDefHeight();
-					ccNi = NodeInst.makeInstance(Generic.tech.cellCenterNode, new Point2D.Double(oX, oY), sX, sY, cell, false);
+					ccNi = NodeInst.makeInstance(Generic.tech.cellCenterNode, new Point2D.Double(oX, oY), sX, sY, cell);
 					if (ccNi == null)
 					{
 						System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create cell center node");
@@ -444,7 +444,7 @@ public class LEF extends LEFDEF
 				Point2D ctr = new Point2D.Double((lX+hX)/2, (lY+hY)/2);
 				double sX = Math.abs(hX - lX);
 				double sY = Math.abs(hY - lY);
-				NodeInst ni = NodeInst.makeInstance(np, ctr, sX, sY, cell, false);
+				NodeInst ni = NodeInst.makeInstance(np, ctr, sX, sY, cell);
 				if (ni == null)
 				{
 					System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create node for RECT");
@@ -637,7 +637,7 @@ public class LEF extends LEFDEF
 				Point2D ctr = new Point2D.Double((lX+hX)/2, (lY+hY)/2);
 				double sX = Math.abs(hX - lX);
 				double sY = Math.abs(hY - lY);
-				NodeInst ni = NodeInst.makeInstance(pureNp, ctr, sX, sY, cell, false);
+				NodeInst ni = NodeInst.makeInstance(pureNp, ctr, sX, sY, cell);
 				if (ni == null)
 				{
 					System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create pin for RECT");
@@ -730,7 +730,7 @@ public class LEF extends LEFDEF
 				// create the via
 				double sX = li.pin.getDefWidth();
 				double sY = li.pin.getDefHeight();
-				NodeInst ni = NodeInst.makeInstance(li.pin, new Point2D.Double(intX, intY), sX, sY, cell, false);
+				NodeInst ni = NodeInst.makeInstance(li.pin, new Point2D.Double(intX, intY), sX, sY, cell);
 				if (ni == null)
 				{
 					System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create VIA for PATH");
@@ -784,7 +784,7 @@ public class LEF extends LEFDEF
 				if (pin == null) continue;
 				double sX = pin.getDefWidth();
 				double sY = pin.getDefHeight();
-				lp.ni[i] = NodeInst.makeInstance(pin, lp.pt[i], sX, sY, cell, false);
+				lp.ni[i] = NodeInst.makeInstance(pin, lp.pt[i], sX, sY, cell);
 				if (lp.ni[i] == null)
 				{
 					System.out.println("Line " + lineReader.getLineNumber() + ": Cannot create pin for PATH");
