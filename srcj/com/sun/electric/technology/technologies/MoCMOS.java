@@ -3770,6 +3770,8 @@ public class MoCMOS extends Technology
 		return null;
 	}
 
+    public int getNumMetals() { return MoCMOS.getNumMetal(); }
+
 	/******************** OPTIONS ********************/
 
     private static Pref cacheNumberOfMetalLayers = TechPref.makeIntPref(tech, "MoCMOSNumberOfMetalLayers", getTechnologyPreferences(), 4);

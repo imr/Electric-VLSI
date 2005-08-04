@@ -986,8 +986,8 @@ public class Technology implements Comparable
      * technologies.  Can by changed by user preferences.
      * @return the number of metal layers currently specified for the technology
      */
-    public static int getNumMetals() { return 0; }
-    
+    public int getNumMetals() { return 0; }
+
 	/****************************** ARCS ******************************/
 
 	/**
