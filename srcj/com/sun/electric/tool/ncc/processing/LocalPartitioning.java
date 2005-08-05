@@ -23,8 +23,10 @@
 */
 
 package com.sun.electric.tool.ncc.processing;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import com.sun.electric.tool.ncc.NccGlobals;
@@ -80,20 +82,22 @@ public class LocalPartitioning {
 	
     private LocalPartitioning(NccGlobals globals) {this.globals = globals;}
     
-    private boolean doYourJob2() {
+    private LocalPartitionResult doYourJob2() {
         globals.status2("Begin partitioning based on local characteristics \n");
 
 		Set pinTypes = partitionPartsUsingLocalInformation();
 		partitionWiresUsingLocalInformation(pinTypes);
 
-		boolean match = StratReportLocalPartitionFailure.doYourJob(globals);
+		LocalPartitionResult res = new LocalPartitionResult(globals);
+
+		//StratReportLocalPartitionFailure.doYourJob(globals);
 
 		globals.status2("End partitioning based on local characteristics ");
-		return match;
+		return res;
     }
 	
 	// ------------------------ public method ---------------------------------
-	public static boolean doYourJob(NccGlobals globals) {
+	public static LocalPartitionResult doYourJob(NccGlobals globals) {
 		LocalPartitioning jsl = new LocalPartitioning(globals);
 		return jsl.doYourJob2();
 	}

@@ -41,6 +41,7 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.NccUtils;
 import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.netlist.Wire;
+import com.sun.electric.tool.ncc.processing.LocalPartitionResult;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
@@ -83,6 +84,7 @@ public class NccGlobals {
 	/** leaf nodes of parts tree */           private LeafEquivRecords partLeafRecs;
 	/** leaf nodes of wires tree */           private LeafEquivRecords wireLeafRecs;
 	/** leaf nodes of ports tree */			  private LeafEquivRecords portLeafRecs;
+	/** local partition mismatches */		  private LocalPartitionResult localPartitionResult; 
     /** has a netlist error? */               private boolean hasNetlistError = false;
     /** print hash code errors? */            private boolean hashFailuresPrinted = false;
     private NccComparisonMismatches compMismatches;

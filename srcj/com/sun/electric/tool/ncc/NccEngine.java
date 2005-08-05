@@ -42,12 +42,11 @@ import com.sun.electric.tool.ncc.netlist.NccNetlist;
 import com.sun.electric.tool.ncc.processing.ExportChecker;
 import com.sun.electric.tool.ncc.processing.HashCodePartitioning;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
+import com.sun.electric.tool.ncc.processing.LocalPartitionResult;
 import com.sun.electric.tool.ncc.processing.LocalPartitioning;
 import com.sun.electric.tool.ncc.processing.ReportHashCodeFailure;
 import com.sun.electric.tool.ncc.processing.SerialParallelMerge;
 import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
-import com.sun.electric.tool.ncc.trees.Circuit;
-import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class NccEngine {
 	// ------------------------------ private data ----------------------------
@@ -128,13 +127,14 @@ public class NccEngine {
 			
 			printWireComponentCounts();
 
-			boolean localOK = LocalPartitioning.doYourJob(globals);
+			LocalPartitionResult localRes = LocalPartitioning.doYourJob(globals);
 			Date d3 = new Date();
 			globals.status1("  Local partitioning took "+ 
 					        NccUtils.hourMinSec(d2, d3));
-			if (!localOK) return new NccResult(expNamesOK, false, false, globals);
 
 			boolean topoOK = HashCodePartitioning.doYourJob(globals);
+			localRes.printErrorReport();
+			if (!localRes.matches()) return new NccResult(expNamesOK, false, false, globals);
 
 			Date d4 = new Date();
 			if (topoOK) expCheck.suggestPortMatchesBasedOnTopology();
@@ -151,7 +151,7 @@ public class NccEngine {
 			if (!topoOK) ReportHashCodeFailure.reportHashCodeFailure(globals);
 
 			boolean exportsOK = expNamesOK && expTopoOK;
-			boolean topologyOK = localOK && topoOK;
+			boolean topologyOK = localRes.matches() && topoOK;
 			return new NccResult(exportsOK, topologyOK, sizesOK, globals);
 		}
 	}
