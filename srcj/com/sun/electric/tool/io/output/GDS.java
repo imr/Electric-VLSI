@@ -534,6 +534,12 @@ public class GDS extends Geometry
 		// see if the name is unique
 		String baseName = name;
 		Collection existing = cellNames.values();
+        // try prepending the library name first
+        if (existing.contains(name)) {
+            String libname = cell.getLibrary().getName()+"."+name;
+            if (!existing.contains(libname) && (libname.length() <= HDR_M_STRNAME))
+                return libname;
+        }
 		for(int index = 1; ; index++)
 		{
 			if (!existing.contains(name)) break;
