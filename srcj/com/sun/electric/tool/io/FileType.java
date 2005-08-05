@@ -43,6 +43,7 @@ public class FileType {
 	/** Describes CDL decks.*/				public static final FileType CDL          = makeFileType("CDL", new String[] {"cdl"}, "CDL Deck (cdl)");
 	/** Describes CIF files. */				public static final FileType CIF          = makeFileType("CIF", new String[] {"cif"}, "CIF File (cif)");
 	/** Describes COSMOS output. */			public static final FileType COSMOS       = makeFileType("COSMOS", new String[] {"sim"}, "COSMOS File (sim)");
+    /** Describes Calibre DRC Error files. */public static final FileType DB          = makeFileType("DB", new String[] {"db"}, "Calibre DRC Error File (db)");
 	/** Describes DEF output. */			public static final FileType DEF          = makeFileType("DEF", new String[] {"def"}, "DEF File (def)");
 	/** Describes DXF output. */			public static final FileType DXF          = makeFileType("DXF", new String[] {"dxf"}, "DXF File (dxf)");
 	/** Describes Eagle files.*/			public static final FileType EAGLE        = makeFileType("Eagle", new String[] {"txt"}, "Eagle File (txt)");
@@ -51,6 +52,7 @@ public class FileType {
 	/** Describes ELIB files.*/				public static final FileType ELIB         = makeFileType("ELIB", new String[] {"elib"}, "Library File (elib)");
 	/** Describes Encapsulated PS files. */	public static final FileType EPS          = makeFileType("Encapsulated PostScript", new String[] {"eps"}, "Encapsulated PostScript (eps)");
     /** Describes EPIC simulation output. */public static final FileType EPIC         = makeFileType("EPIC output", new String[] {"out"}, "EPIC simulation output (out)");
+    /** Describes Assura DRC Error files. */public static final FileType ERR          = makeFileType("ERR", new String[] {"err"}, "Assura DRC Error File (err)");
 	/** Describes ESIM/RNL output. */		public static final FileType ESIM         = makeFileType("ESIM", new String[] {"sim"}, "ESIM File (sim)");
 	/** Describes FastHenry files.*/		public static final FileType FASTHENRY    = makeFileType("FastHenry", new String[] {"inp"}, "FastHenry File (inp)");
 	/** Describes FPGA files.*/				public static final FileType FPGA         = makeFileType("FPGA", new String[] {"fpga"}, "FPGA Architecture File (fpga)");
@@ -94,7 +96,6 @@ public class FileType {
 	/** Describes Verilog decks. */			public static final FileType VERILOG      = makeFileType("Verilog", new String[] {"v"}, "Verilog Deck (v)");
 	/** Describes Verilog output. */		public static final FileType VERILOGOUT   = makeFileType("Verilog Output", new String[] {"dump"}, "Verilog VCD Dump (vcd)");
 	/** Describes Xml files. */				public static final FileType XML          = makeFileType("XML", new String[] {"xml"}, "XML File (xml)");
-	/** Describes Assura DRC Error files. */public static final FileType ERR          = makeFileType("XML", new String[] {"err"}, "Assura DRC Error File (err)");
 
 	/** Describes default file format.*/	public static final FileType DEFAULTLIB   = JELIB;
 
