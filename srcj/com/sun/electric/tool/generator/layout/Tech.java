@@ -148,7 +148,19 @@ public class Tech {
         m7m8,
         m8m9;
 	/** Transistors */
-	public static PrimitiveNode nmos, pmos;
+	public static PrimitiveNode nmos, pmos,
+        nmos18,
+        pmos18,
+        nmos25,
+        pmos25,
+        nmos33,
+        pmos33,
+        nvth,
+        pvth,
+        nvtl,
+        pvtl,
+        nnat,
+        pnat;
 	/** Well */
 	public static PrimitiveNode nwell, pwell;
 	/** Layer nodes are sometimes used to patch notches */
@@ -168,6 +180,13 @@ public class Tech {
 		nselNode,
         pwellNode,
         nwellNode;
+    /** Transistor layer nodes */
+    public static PrimitiveNode
+        od18,
+        od25,
+        od33,
+        vth,
+        vtl;
 	/** Essential-Bounds */
 	public static PrimitiveNode essentialBounds;
 	/** Facet-Center */
@@ -269,6 +288,25 @@ public class Tech {
 		// initialize transistors
 		nmos = tech.findNodeProto("N-Transistor");
 		pmos = tech.findNodeProto("P-Transistor");
+        nmos18 = tech.findNodeProto("OD18-N-Transistor");
+        pmos18 = tech.findNodeProto("OD18-P-Transistor");
+        nmos25 = tech.findNodeProto("OD25-N-Transistor");
+        pmos25 = tech.findNodeProto("OD25-P-Transistor");
+        nmos33 = tech.findNodeProto("OD33-N-Transistor");
+        pmos33 = tech.findNodeProto("OD33-P-Transistor");
+        nvth = null;
+        pvth = null;
+        nvtl = null;
+        pvtl = null;
+        nnat = null;
+        pnat = null;
+
+        // transistor layers
+        od18 = tech.findNodeProto("OD18-Node");
+        od25 = tech.findNodeProto("OD25-Node");
+        od33 = tech.findNodeProto("OD33-Node");
+        vth = tech.findNodeProto("VTH-Node");
+        vtl = tech.findNodeProto("VTL-Node");
 
 		// intialize well
 		nwell = tech.findNodeProto("N-Well-Node");
