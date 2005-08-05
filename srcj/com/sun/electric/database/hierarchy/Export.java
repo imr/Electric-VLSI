@@ -136,10 +136,15 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public static Export newInstance(Cell parent, PortInst portInst, String protoName, boolean createOnIcon)
 	{
+        if (protoName == null) return null;
 		if (parent.findExport(protoName) != null)
 		{
             String oldName = protoName;
             protoName = ElectricObject.uniqueObjectName(protoName, parent, PortProto.class);
+            if (protoName == null) {
+                System.out.println(parent + " already has an export named " + oldName + ", export was not created");
+                return null;
+            }
 			System.out.println(parent + " already has an export named " + oldName +
                     ", making new export named "+protoName);
             assert(parent.findExport(protoName) == null);

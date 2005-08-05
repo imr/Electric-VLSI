@@ -966,7 +966,19 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	 * @param cls the class of the object on which this name resides.
 	 * @return a unique name for that class in that Cell.
 	 */
-	public static String uniqueObjectName(String name, Cell cell, Class cls)
+    public static String uniqueObjectName(String name, Cell cell, Class cls) {
+        String newName = name;
+        for (int i = 0; !cell.isUniqueName(newName, cls, null); i++) {
+            newName = uniqueObjectNameLow(newName, cell, cls);
+            if (i > 100) {
+                System.out.println("Can't create unique object name in " + cell + " from original " + name + " attempted " + newName);
+                return null;
+            }
+        }
+        return newName;
+    }
+    
+	private static String uniqueObjectNameLow(String name, Cell cell, Class cls)
 	{
 		// first see if the name is unique
 		if (cell.isUniqueName(name, cls, null)) return name;
