@@ -61,6 +61,7 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.compaction.Compaction;
 import com.sun.electric.tool.drc.AssuraDrcErrors;
 import com.sun.electric.tool.drc.DRC;
+import com.sun.electric.tool.drc.CalibreDrcErrors;
 import com.sun.electric.tool.erc.ERCAntenna;
 import com.sun.electric.tool.erc.ERCWellCheck;
 import com.sun.electric.tool.extract.Connectivity;
@@ -134,7 +135,7 @@ public class ToolMenu {
 
 		//------------------- DRC
 
-		// mnemonic keys available:  B DEFG IJK MNOPQR TUVWXYZ
+		// mnemonic keys available:  B  EFG IJK MNOPQR TUVWXYZ
 		MenuBar.Menu drcSubMenu = MenuBar.makeMenu("_DRC");
 		toolMenu.add(drcSubMenu);
 		drcSubMenu.addMenuItem("Check _Hierarchically", KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0),
@@ -151,6 +152,8 @@ public class ToolMenu {
 		drcSubMenu.addSeparator();
 		drcSubMenu.addMenuItem("Import _Assura DRC Errors...", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { importAssuraDrcErrors();}});
+        drcSubMenu.addMenuItem("Import Calibre _DRC Errors...", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { importCalibreDrcErrors();}});
 
 		//------------------- Simulation (Built-in)
 
@@ -1580,4 +1583,10 @@ public class ToolMenu {
         if (fileName == null) return;
         AssuraDrcErrors.importErrors(fileName);
     }    
+
+    public static void importCalibreDrcErrors() {
+        String fileName = OpenFile.chooseInputFile(FileType.DB, null);
+        if (fileName == null) return;
+        CalibreDrcErrors.importErrors(fileName);
+    }
 }
