@@ -1091,82 +1091,46 @@ public class WaveformWindow implements WindowContent
 				{
 					// draw analog trace
 					AnalogSignal as = (AnalogSignal)ws.sSig;
-					int numEvents = as.getNumEvents();
-					if (as.isBasic())
-					{
-						// basic signal
-						int lastX = 0, lastY = 0;
+                    double[] result = new double[3];
+                    for (int s = 0, numSweeps = as.getNumSweeps(); s < numSweeps; s++) {
+                        SweepSignal ss = null;
+                        if (s < waveWindow.sweepSignals.size())
+                            ss = (SweepSignal)waveWindow.sweepSignals.get(s);
+                        if (ss != null && !ss.included) continue;
+						int lastX = 0, lastLY = 0, lastHY = 0;
+						int numEvents = as.getNumEvents(s);
 						for(int i=0; i<numEvents; i++)
 						{
-							double time = ws.sSig.getTime(i);
-							int x = scaleTimeToX(time);
-							int y = scaleValueToY(as.getValue(i));
-							if (i != 0)
-							{
-								if (processALine(g, lastX, lastY, x, y, bounds, selectedObjects, ws, -1)) break;
+                            as.getEvent(s, i, result);
+                            int x = scaleTimeToX(result[0]);
+                            int lowY = scaleValueToY(result[1]);
+                            int highY = scaleValueToY(result[2]);
+                            if (i != 0)
+                            {
+                                if (processALine(g, lastX, lastLY, x, lowY, bounds, selectedObjects, ws, -1)) break;
+                                if (lastLY != lastHY || lowY != highY)
+                                {
+            						if (processALine(g, lastX, lastHY, x, highY, bounds, selectedObjects, ws, -1)) break;
+            						if (processALine(g, lastX, lastHY, x, lowY, bounds, selectedObjects, ws, -1)) break;
+            						if (processALine(g, lastX, lastLY, x, highY, bounds, selectedObjects, ws, -1)) break;
+                                }
 								if (waveWindow.showVertexPoints)
 								{
 									if (i < numEvents-1)
 									{
-										if (processABox(g, x-2, y-2, x+2, y+2, bounds, selectedObjects, ws, false, 0)) break;
-									}
+										if (processABox(g, x-2, lowY-2, x+2, lowY+2, bounds, selectedObjects, ws, false, 0)) break;
+                                        if (lowY != highY)
+                                        {
+    										if (processABox(g, x-2, highY-2, x+2, highY+2, bounds, selectedObjects, ws, false, 0)) break;
+                                        }
+                                    }
 								}
 							}
-							lastX = x;   lastY = y;
-						}
-					} else if (as.isSweep())
-					{
-						// swept signal
-						List sweepSignals = waveWindow.sweepSignals;
-						for(int s=0; s<as.getNumSweeps(); s++)
-						{
-							SweepSignal ss = (SweepSignal)sweepSignals.get(s);
-							if (ss != null && !ss.included) continue;
-							int lastX = 0, lastY = 0;
-							numEvents = as.getNumEvents(s);
-							for(int i=0; i<numEvents; i++)
-							{
-								double time = ws.sSig.getTime(i, s);
-								int x = scaleTimeToX(time);
-								int y = scaleValueToY(as.getSweepValue(s, i));
-								if (i != 0)
-								{
-									if (processALine(g, lastX, lastY, x, y, bounds, selectedObjects, ws, s)) break;
-									if (waveWindow.showVertexPoints)
-									{
-										if (i < numEvents-1)
-										{
-											if (processABox(g, x-2, y-2, x+2, y+2, bounds, selectedObjects, ws, false, 0)) break;
-										}
-									}
-								}
-								lastX = x;   lastY = y;
-							}
-						}
-					} else if (as.isInterval())
-					{
-						// interval signal
-						int lastX = 0, lastLY = 0, lastHY = 0;
-						for(int i=0; i<numEvents; i++)
-						{
-							double time = ws.sSig.getTime(i);
-							int x = scaleTimeToX(time);
-							int lowY = scaleValueToY(as.getIntervalLowValue(i));
-							int highY = scaleValueToY(as.getIntervalHighValue(i));
-							if (i != 0)
-							{
-								if (processALine(g, lastX, lastLY, x, lowY, bounds, selectedObjects, ws, -1)) break;
-								if (processALine(g, lastX, lastHY, x, highY, bounds, selectedObjects, ws, -1)) break;
-								if (processALine(g, lastX, lastHY, x, lowY, bounds, selectedObjects, ws, -1)) break;
-								if (processALine(g, lastX, lastLY, x, highY, bounds, selectedObjects, ws, -1)) break;
-							}
-							lastX = x;
-							lastLY = lowY;
-							lastHY = highY;
+							lastX = x;   lastLY = lowY; lastHY = highY; 
 						}
 					}
 					continue;
-				}
+                }
 				if (ws.sSig instanceof DigitalSignal)
 				{
 					// draw digital traces
@@ -1744,40 +1708,25 @@ public class WaveformWindow implements WindowContent
 
 				// draw analog trace
 				AnalogSignal as = (AnalogSignal)ws.sSig;
-				int numEvents = as.getNumEvents();
-				if (as.isBasic())
+                double[] result = new double[3];
+				for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
 				{
-					// basic signal
+                    SweepSignal ss = null;
+                    if (s < waveWindow.sweepSignals.size())
+                        ss = (SweepSignal)waveWindow.sweepSignals.get(s);
+                    if (ss != null && !ss.included) continue;
+					int numEvents = as.getNumEvents(s);
 					for(int i=0; i<numEvents; i++)
 					{
-						double time = ws.sSig.getTime(i);
-						int x = scaleTimeToX(time);
-						int y = scaleValueToY(as.getValue(i));
-						if (Math.abs(x - pt.x) < 5 && Math.abs(y - pt.y) < 5)
+                        as.getEvent(s, i, result);
+						int x = scaleTimeToX(result[0]);
+                        int lowY = scaleValueToY(result[1]);
+                        int highY = scaleValueToY(result[2]);
+						if (Math.abs(x - pt.x) < 5 && pt.y > lowY - 5 && pt.y < highY + 5)
 						{
 							pt.x = x;
-							pt.y = y;
-						}
-					}
-				} else if (as.isSweep())
-				{
-					// swept signal
-					List sweepSignals = waveWindow.sweepSignals;
-					for(int s=0; s<as.getNumSweeps(); s++)
-					{
-						SweepSignal ss = (SweepSignal)sweepSignals.get(s);
-						if (ss != null && !ss.included) continue;
-						numEvents = as.getNumEvents(s);
-						for(int i=0; i<numEvents; i++)
-						{
-							double time = ws.sSig.getTime(i, s);
-							int x = scaleTimeToX(time);
-							int y = scaleValueToY(as.getSweepValue(s, i));
-							if (Math.abs(x - pt.x) < 5 && Math.abs(y - pt.y) < 5)
-							{
-								pt.x = x;
-								pt.y = y;
-							}
+                    		pt.y = Math.max(Math.min(pt.y, highY), lowY);
+                            break;
 						}
 					}
 				}

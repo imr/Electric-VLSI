@@ -124,7 +124,10 @@ public class Simulate extends Input
 		} else if (type == FileType.SPICEOUT)
 		{
 			is = (Simulate)new SpiceOut();
-		} else if (type == FileType.VERILOGOUT)
+		} else if (type == FileType.EPIC)
+        {
+            is = (Simulate)new EpicOut();
+        } else if (type == FileType.VERILOGOUT)
 		{
 			is = (Simulate)new VerilogOut();
 		}
@@ -244,6 +247,10 @@ public class Simulate extends Input
 		{
 			return FileType.RAWSSPICEOUT;
 		}
+        if (format.equalsIgnoreCase("Epic"))
+        {
+            return FileType.EPIC;
+        }
 		return null;
 	}
 

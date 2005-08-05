@@ -27,7 +27,6 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
 import com.sun.electric.tool.simulation.AnalogSignal;
 
@@ -56,7 +55,57 @@ public class HSpiceOut extends Simulate
 		String  string;
 	};
 
-	HSpiceOut() {}
+    private static class HSpiceStimuli extends Stimuli {
+        float[][][] data;
+
+        private void getEvent(int sweep, int index, int signalIndex, double[] result) {
+            float[] d = data[sweep][index];
+            result[0] = d[0];
+            result[1] = result[2] = d[signalIndex + 1];
+        }
+    }
+    
+    private static class HSpiceAnalogSignal extends AnalogSignal {
+        int signalIndex;
+
+        HSpiceAnalogSignal(Stimuli sd, int signalIndex) {
+            super(sd);
+            this.signalIndex = signalIndex;
+        } 
+        
+        /**
+         * Method to return the value of this signal at a given event index.
+         * @param sweep sweep index
+         * @param index the event index (0-based).
+         * @param result double array of length 3 to return (time, lowValue, highValue)
+         * If this signal is not a basic signal, return 0 and print an error message.
+         */
+        public void getEvent(int sweep, int index, double[] result) {
+            ((HSpiceStimuli)sd).getEvent(sweep, index, signalIndex, result);
+        }
+        
+        /**
+         * Method to return the number of events in one sweep of this signal.
+         * This is the number of events along the horizontal axis, usually "time".
+         * The method only works for sweep signals.
+         * @param sweep the sweep number to query.
+         * @return the number of events in this signal.
+         */
+        public int getNumEvents(int sweep) {
+            return ((HSpiceStimuli)sd).data[sweep].length;
+        }
+        
+        /**
+         * Method to return the number of sweeps in this signal.
+         * @return the number of sweeps in this signal.
+         * If this signal is not a sweep signal, returns 1.
+         */
+        public int getNumSweeps() {
+            return ((HSpiceStimuli)sd).data.length;
+        }
+    }
+    
+    HSpiceOut() {}
 
 	/**
 	 * Method to read an HSpice output file.
@@ -362,11 +411,11 @@ public class HSpiceOut extends Simulate
 		resetBinaryTR0Reader();
 
 		// setup the simulation information
-		Stimuli sd = new Stimuli();
+		HSpiceStimuli sd = new HSpiceStimuli();
 		sd.setCell(cell);
 		for(int k=0; k<numSignals; k++)
 		{
-			AnalogSignal as = new AnalogSignal(sd);
+			AnalogSignal as = new HSpiceAnalogSignal(sd, k);
 			int lastDotPos = signalNames[k].lastIndexOf('.');
 			if (lastDotPos >= 0)
 			{
@@ -417,57 +466,16 @@ public class HSpiceOut extends Simulate
 			eofReached = false;
 		}
 		closeInput();
-
-		// transpose the data to sit properly in the simulation information
-		if (sweepcnt > 0)
-		{
-			for(int k=0; k<sweepcnt; k++)
-			{
-				List allTheData = (List)theSweeps.get(k);
-				int numEvents = allTheData.size();
-				sd.addCommonTime(numEvents);
-				for(int i=0; i<numEvents; i++)
-				{
-					float [] dataRow = (float[])allTheData.get(i);
-					sd.setCommonTime(i, k, dataRow[0]);
-				}
-			}
-			for(int j=0; j<numSignals; j++)
-			{
-				AnalogSignal as = (AnalogSignal)sd.getSignals().get(j);
-				as.setNumSweeps(sweepcnt);
-				for(int k=0; k<sweepcnt; k++)
-				{
-					List allTheData = (List)theSweeps.get(k);
-					int numEvents = allTheData.size();
-					as.buildSweepValues(k, numEvents);
-					for(int i=0; i<numEvents; i++)
-					{
-						float [] dataRow = (float[])allTheData.get(i);
-						as.setSweepValue(k, i, dataRow[j+1]);
-					}
-				}
-			}
-		} else
-		{
-			List allTheData = (List)theSweeps.get(0);
-			int numEvents = allTheData.size();
-			sd.buildCommonTime(numEvents);
-			float [][] dataRows = new float[numEvents][];
-			for(int i=0; i<numEvents; i++)
-			{
-				dataRows[i] = (float[])allTheData.get(i);
-				sd.setCommonTime(i, dataRows[i][0]);
-			}
-			for(int j=0; j<numSignals; j++)
-			{
-				AnalogSignal as = (AnalogSignal)sd.getSignals().get(j);
-				as.buildValues(numEvents);
-				for(int i=0; i<numEvents; i++)
-					as.setValue(i, dataRows[i][j+1]);
-			}
-		}
-
+        
+        // Put data to HSpiceStimuli
+        sd.data = new float[theSweeps.size()][][];
+        for (int i = 0; i < sd.data.length; i++) {
+            ArrayList allTheData = (ArrayList)theSweeps.get(i);
+            float[][] d = new float[allTheData.size()][];
+            for (int j = 0; j < d.length; j++)
+                d[j] = (float[])allTheData.get(j);
+            sd.data[i] = d;
+        }
 		return sd;
 	}
 

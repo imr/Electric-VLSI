@@ -96,6 +96,7 @@ public class SpiceTab extends PreferencePanel
 		spiceOutputFormatPopup.addItem("Standard");
 		spiceOutputFormatPopup.addItem("Raw");
 		spiceOutputFormatPopup.addItem("Raw/Smart");
+        spiceOutputFormatPopup.addItem("Epic");
 		spiceOutputFormatPopup.setSelectedItem(Simulation.getSpiceOutputFormat());
 
 		spiceUseParasitics.setSelected(Simulation.isSpiceUseParasitics());

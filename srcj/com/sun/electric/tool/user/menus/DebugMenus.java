@@ -790,25 +790,51 @@ public class DebugMenus {
 		}
 	}
 
+    /**
+     * Class to define an interval signal in the simulation waveform window.
+     */
+    private static class IntervalAnalogSignal extends AnalogSignal {
+        private final int signalIndex;
+        private final double timeStep;
+        
+        private IntervalAnalogSignal(Stimuli sd, double timeStep, int signalIndex) {
+            super(sd);
+            this.signalIndex = signalIndex;
+            this.timeStep = timeStep;
+            setSignalName("Signal"+(signalIndex+1));
+        }
+        
+        /**
+         * Method to return the low end of the interval range for this signal at a given event index.
+         * @param sweep sweep index.
+         * @param index the event index (0-based).
+         * @param result double array of length 3 to return (time, lowValue, highValue)
+         */
+        public void getEvent(int sweep, int index, double[] result) {
+            result[0] = index * timeStep;
+            double lowValue = Math.sin((index+signalIndex*10) / (2.0+signalIndex*2)) * 4;
+            double increment = Math.sin((index+signalIndex*5) / (2.0+signalIndex));
+            result[1] = Math.min(lowValue, lowValue + increment);
+            result[2] = Math.max(lowValue, lowValue + increment);
+        }
+        
+        /**
+         * Method to return the number of events in this signal.
+         * This is the number of events along the horizontal axis, usually "time".
+         * @param sweep sweep index.
+         * @return the number of events in this signal.
+         */
+        public int getNumEvents(int sweep) { return 100; }
+    }
+    
 	private static void makeFakeIntervalWaveformCommand()
 	{
 		// make the interval waveform data
 		Stimuli sd = new Stimuli();
-		double timeStep = 0.0000000001;
-		sd.buildCommonTime(100);
-		for(int i=0; i<100; i++)
-			sd.setCommonTime(i, i * timeStep);
+        final double timeStep = 0.0000000001;
 		for(int i=0; i<6; i++)
 		{
-			AnalogSignal as = new AnalogSignal(sd);
-			as.setSignalName("Signal"+(i+1));
-			as.buildIntervalValues(100);
-			for(int k=0; k<100; k++)
-			{
-				double lowValue = Math.sin((k+i*10) / (2.0+i*2)) * 4;
-				double increment = Math.sin((k+i*5) / (2.0+i));
-				as.setIntervalValue(k, lowValue, lowValue+increment);
-			}
+			AnalogSignal as = new IntervalAnalogSignal(sd, timeStep, i);
 		}
 		sd.setCell(null);
 

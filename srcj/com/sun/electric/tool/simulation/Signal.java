@@ -36,7 +36,7 @@ public class Signal
 {
 	/** the name of this signal */									private String signalName;
 	/** the context of this signal (qualifications to name) */		private String signalContext;
-	/** the Stimuli object in which this Signal resides. */			private Stimuli sd;
+	/** the Stimuli object in which this Signal resides. */			protected Stimuli sd;
 	/** true to use the common time array in the Stimuli */			private boolean useCommonTime;
 	/** the range of values in the X and Y axes */					protected Rectangle2D bounds;
 	/** true if the bounds data is valid */							protected boolean boundsCurrent;

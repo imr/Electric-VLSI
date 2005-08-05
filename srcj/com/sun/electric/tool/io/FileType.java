@@ -50,6 +50,7 @@ public class FileType {
 	/** Describes EDIF files.*/				public static final FileType EDIF         = makeFileType("EDIF", new String[] {"edif"}, "EDIF File (edif)");
 	/** Describes ELIB files.*/				public static final FileType ELIB         = makeFileType("ELIB", new String[] {"elib"}, "Library File (elib)");
 	/** Describes Encapsulated PS files. */	public static final FileType EPS          = makeFileType("Encapsulated PostScript", new String[] {"eps"}, "Encapsulated PostScript (eps)");
+    /** Describes EPIC simulation output. */public static final FileType EPIC         = makeFileType("EPIC output", new String[] {"out"}, "EPIC simulation output (out)");
 	/** Describes ESIM/RNL output. */		public static final FileType ESIM         = makeFileType("ESIM", new String[] {"sim"}, "ESIM File (sim)");
 	/** Describes FastHenry files.*/		public static final FileType FASTHENRY    = makeFileType("FastHenry", new String[] {"inp"}, "FastHenry File (inp)");
 	/** Describes FPGA files.*/				public static final FileType FPGA         = makeFileType("FPGA", new String[] {"fpga"}, "FPGA Architecture File (fpga)");

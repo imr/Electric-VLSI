@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+IMP: (08/05/05, DN) Yet another Spice format: Epic simulation output (for nanosim).
+    Format choice list in SpiceTab dialog has one more item - "Epic". 
+
 BUG: (08/05/05, DN) Problem with arc and tail extensions deleting a jog from arc.
 FIX: In CircuitChanges.reconnectArcs fill "ra.extendHead/Tail" from proper arc end only.
 
