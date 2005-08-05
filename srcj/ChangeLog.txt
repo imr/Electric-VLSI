@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+IMP/MAN (08/05/05, JKG) Made Cell name length in output GDS files a preference instead
+    of hard coded to 32 (a limit not enforced by most tools nowadays)
+
+IMP/MAN (08/05/05, JKG) Tool -> DRC -> Read Calibre DRC Errors reads in calibre drc results
+
 IMP: (08/05/05, RK) NCC: When "Halt on first mismatched Cell" is enabled, don't stop for size mismatches (Bug# 446)
 
 BUG: (08/05/05, RK) Warning: "Improvement" below disables NCC GUI until GUI is changed to accomodate new data structures.
