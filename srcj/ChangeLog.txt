@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+BUG: (08/05/05, DN) Problem with arc and tail extensions deleting a jog from arc.
+FIX: In CircuitChanges.reconnectArcs fill "ra.extendHead/Tail" from proper arc end only.
+
 BUG: (08/05/05, DN) Duplicating export causes exception (Bug #443).
 FIX: ElectricObject.uniqueObjectName retries until it obtains Cell.isUniqueName or fail in 100 iterations.
      In Export.newInstance check if uniqueObjectName returns null.

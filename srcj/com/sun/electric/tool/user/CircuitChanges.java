@@ -4131,11 +4131,15 @@ public class CircuitChanges
             ra.directionalHead = ai1.isHeadArrowed();
             ra.directionalTail = ai1.isTailArrowed();
             ra.directionalBody = ai1.isBodyArrowed();
-            ra.extendHead = ai1.isHeadExtended() || ai2.isHeadExtended();
-            ra.extendTail = ai1.isTailExtended() || ai2.isTailExtended();
-            ra.negateHead = ai1.isHeadNegated() || ai2.isHeadNegated();
-            ra.negateTail = ai1.isTailNegated() || ai2.isTailNegated();
-            ra.arcName = null;
+            ra.extendHead = ai1.isHeadExtended();
+            ra.extendTail = ai2.isTailExtended();
+            ra.negateHead = ai1.isHeadNegated();
+            ra.negateTail = ai2.isTailNegated();
+//            ra.extendHead = ai1.isHeadExtended() || ai2.isHeadExtended();
+//            ra.extendTail = ai1.isTailExtended() || ai2.isTailExtended();
+//            ra.negateHead = ai1.isHeadNegated() || ai2.isHeadNegated();
+//            ra.negateTail = ai1.isTailNegated() || ai2.isTailNegated();
+//            ra.arcName = null;
             if (ai1.getName() != null && !ai1.getNameKey().isTempname())
             {
                 ra.arcName = ai1.getName();
