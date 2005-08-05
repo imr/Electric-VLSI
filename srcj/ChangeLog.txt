@@ -4,9 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+IMP: (08/05/05, RK) NCC: When "Halt on first mismatched Cell" is enabled, don't stop for size mismatches (Bug# 446)
+
 BUG: (08/05/05, RK) Warning: "Improvement" below disables NCC GUI until GUI is changed to accomodate new data structures.
 
-IMP: (08/05/05, RK) Improvement to Local Partitioning algorithm
+IMP: (08/05/05, RK) Improvement to Local Partitioning algorithm. (Bug #447)
 
 IMP: (08/05/05, DN) Yet another Spice format: Epic simulation output (for nanosim).
     Format choice list in SpiceTab dialog has one more item - "Epic". 

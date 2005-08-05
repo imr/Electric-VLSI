@@ -221,7 +221,9 @@ public class NccBottomUp {
 			}
 			result.andEquals(r);
 
-			if (!result.match() && options.haltAfterFirstMismatch) {
+			// Don't stop for size mismatches
+			if ((!result.exportMatch() || ! result.topologyMatch()) 
+				 && options.haltAfterFirstMismatch) {
 				prln( 
 					"Halting multiple cell NCC after finding first mismatch"
 				);

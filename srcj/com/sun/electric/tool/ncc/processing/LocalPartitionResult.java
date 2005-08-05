@@ -109,24 +109,41 @@ public class LocalPartitionResult {
 		    getNotMatchedEquivRecs(globals.getWireLeafEquivRecs().getNotMatched());
 	}
 
+	/** @return true if no mismatches detected by Local Partitioning */
     public boolean matches() {
     	return badPartRecs.size()==0 && badWireRecs.size()==0;
     }
+    /** @return Iterator over all bad Part EquivRecords detected by 
+     * the Local Partition pass. An EquivRecord is bad if it's 
+     * Circuits don't have equal numbers of NetObjects. */   
     public Iterator getBadPartEquivRecs() {return badPartRecs.iterator();}
+    
+    /** @return Iterator over all bad Wire EquivRecords detected by 
+     * the Local Partition pass. An EquivRecord is bad if it's 
+     * Circuits don't have equal numbers of NetObjects. */   
     public Iterator getBadWireEquivRecs() {return badWireRecs.iterator();}
     
-    /** @return ArrayLists, one per Circuit, of matched NetObjs. */
+    /** Get all matched NetObjects. Visit all EquivRecords that are descendents
+     * of er. Accumulate all NetObjects inside those EquivRecords that are 
+     * matched(). 
+     * @return ArrayLists, one per Circuit, of matched NetObjects. */
     public ArrayList[] getMatchedNetObjs(EquivRecord er) {
     	GetNetObjs gno = new GetNetObjs(globals);
     	gno.doFor(er);
     	return gno.getMatchedNetObjs();
     }
-    /** @return ArrayLists, one per Circuit, of notMatched NetObjs. */ 
+    
+    /** Get all not matched NetObjects. Visit all EquivRecords that are 
+     * descendents of er. Accumulate all NetObjects inside those 
+     * EquivRecords that are not matched().
+     * @return ArrayLists, one per Circuit, of notMatched NetObjects. */ 
     public ArrayList[] getNotMatchedNetObjs(EquivRecord er) {
     	GetNetObjs gno = new GetNetObjs(globals);
     	gno.doFor(er);
     	return gno.getNotMatchedNetObjs();
     }
+    
+    /** Print text diagnostics for bad Part and Wire EquivRecords */
     public void printErrorReport() {
     	if (!matches())
     		prln("\n  Mismatches found during local partitioning:\n");
