@@ -114,7 +114,7 @@ public class GDS extends Geometry
 
 	// Maximum string sizes
 	private static final int HDR_M_SNAME       =     32;
-	private static final int HDR_M_STRNAME     =     32;
+	//private static final int HDR_M_STRNAME     =     32; // replace by preference IOTool.getGDSCellNameMaxLen
 	private static final int HDR_M_ASCII       =    256;
 
 	// contour gathering thresholds for polygon accumulation
@@ -527,7 +527,7 @@ public class GDS extends Geometry
 
 	public static String makeUniqueName(Cell cell, HashMap cellNames)
 	{
-		String name = makeGDSName(cell.getName(), HDR_M_STRNAME);
+		String name = makeGDSName(cell.getName(), IOTool.getGDSCellNameLenMax());
 		if (cell.getNewestVersion() != cell)
 			name += "_" + cell.getVersion();
 
@@ -537,14 +537,14 @@ public class GDS extends Geometry
         // try prepending the library name first
         if (existing.contains(name)) {
             String libname = cell.getLibrary().getName()+"."+name;
-            if (!existing.contains(libname) && (libname.length() <= HDR_M_STRNAME))
+            if (!existing.contains(libname) && (libname.length() <= IOTool.getGDSCellNameLenMax()))
                 return libname;
         }
 		for(int index = 1; ; index++)
 		{
 			if (!existing.contains(name)) break;
 			name = baseName + "_" + index;
-			if (name.length() > HDR_M_STRNAME)
+			if (name.length() > IOTool.getGDSCellNameLenMax())
 			{
 				baseName = baseName.substring(0, baseName.length()-1);
 			}
@@ -641,7 +641,7 @@ public class GDS extends Geometry
             name = makeUniqueName(cell, cellNames);
             cellNames.put(cell, name);
         }
-		outputName(HDR_STRNAME, name, HDR_M_STRNAME);
+		outputName(HDR_STRNAME, name, IOTool.getGDSCellNameLenMax());
 	}
 
 	// Output date information

@@ -477,6 +477,16 @@ public class IOTool extends Listener
 	 */
 	public static void setGDSInIgnoresUnknownLayers(boolean on) { cacheGDSInIgnoresUnknownLayers.setBoolean(on); }
 
+    private static Pref cacheGDSCellNameLenMax = Pref.makeIntPref("GDSCellNameLenMax", IOTool.tool.prefs, 32);
+    /**
+     * Get the maximum length (number of chars) for Cell names in the GDS output file
+     * @return the number of chars
+     */
+    public static int getGDSCellNameLenMax() { return cacheGDSCellNameLenMax.getInt(); }
+    /**
+     * Set the maximum length (number of chars) for Cell names in the GDS output file
+     */
+    public static void setGDSCellNameLenMax(int len) { cacheGDSCellNameLenMax.setInt(len); }
 	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 
 	private static Pref cachePrintEncapsulated = Pref.makeBooleanPref("PostScriptEncapsulated", IOTool.tool.prefs, false);
