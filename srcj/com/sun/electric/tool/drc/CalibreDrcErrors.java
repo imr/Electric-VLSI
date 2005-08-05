@@ -2,7 +2,9 @@ package com.sun.electric.tool.drc;
 
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -51,6 +53,7 @@ public class CalibreDrcErrors {
         CalibreDrcErrors errors = new CalibreDrcErrors(in);
         // read first line
         if (!errors.readTop()) return;
+        // read all rule violations
         if (!errors.readRules()) return;
         // finish
         errors.done();
@@ -60,8 +63,8 @@ public class CalibreDrcErrors {
     private CalibreDrcErrors(BufferedReader in) {
         assert(in != null);
         this.in = in;
-        lineno = 1;
-        logger = ErrorLogger.newInstance("Calibre DRC Errors");
+        lineno = 0;
+        ruleViolations = new ArrayList();
     }
 
     // read the cell name and precision, if any
@@ -79,21 +82,28 @@ public class CalibreDrcErrors {
         String [] parts = line.trim().split(spaces);
         if (parts.length == 1) {
             topCellName = parts[0];
-            return true;
         } else if (parts.length == 2) {
             topCellName = parts[0];
             try {
                 scale = Integer.parseInt(parts[1]);
             } catch (NumberFormatException e) {
                 System.out.println("Error converting precision '"+parts[1]+"' to a number, using default of "+scale);
+                return false;
             }
-            return true;
+        } else {
+            // error
+            System.out.println("Error on first line: Expected cell name and precision, or 'drc'");
+            return false;
         }
-        // error
-        System.out.println("Error on first line: Expected cell name and precision, or 'drc'");
-        return false;
+        topCell = getCell(topCellName);
+        if (topCell == null) {
+            System.out.println("Cannot find cell "+topCellName+" specified in error file, line number "+lineno+", aborting");
+            return false;
+        }
+        return true;
     }
 
+    // read all Rule violations in the file
     private boolean readRules() {
         // read all errors
         try {
@@ -119,9 +129,7 @@ public class CalibreDrcErrors {
         if (ruleName == null) return null;     // EOF, no more errors
 
         // read the header start line, tells us how many header lines there are
-        String headerStart = readLine();
-        if (headerStart == null) return null;
-        Header header = Header.createHeader(headerStart, lineno);
+        Header header = readHeader();
         if (header == null) return null;
 
         // read the rest of the header
@@ -133,13 +141,38 @@ public class CalibreDrcErrors {
 
         DrcRuleViolation v = new DrcRuleViolation(ruleName, header);
 
-        // read errors: hashMap: key is integer, value is list of Shape objects
+        // read shapes describing errors
         for (int i=0; i<header.currentDrcResultsCount; i++) {
             DrcError drc = readErrorShape();
             if (drc == null) break;
             v.addError(drc);
         }
         return v;
+    }
+
+    // read the header of the rule violation
+    private Header readHeader() throws IOException {
+        String headerStart = readLine();
+        if (headerStart == null) return null;
+
+        StringTokenizer tokenizer = new StringTokenizer(headerStart);
+        Header header = null;
+        try {
+            String cur = tokenizer.nextToken();
+            String orig = tokenizer.nextToken();
+            String len = tokenizer.nextToken();
+            int icur = Integer.parseInt(cur);
+            int iorig = Integer.parseInt(orig);
+            int ilen = Integer.parseInt(len);
+            header = new Header(icur, iorig, ilen);
+        } catch (NoSuchElementException e) {
+            System.out.println("Error parsing header start line, expected three integers on line number "+lineno+": "+headerStart);
+            return null;
+        } catch (NumberFormatException e) {
+            System.out.println("Error converting count strings to integers on header start line, line number "+lineno+": "+headerStart);
+            return null;
+        }
+        return header;
     }
 
     // populate a list of error shapes. return false on error.
@@ -166,13 +199,32 @@ public class CalibreDrcErrors {
                 return null;
             }
             // need to peek ahead to see if next line specifies a subcell
-            DrcError drc = new DrcError(topCell);
+            nextLine = readLine().trim();
+            Cell incell = topCell;
+            if (nextLine.startsWith("CN")) {
+                parts = nextLine.split(spaces);
+                if (parts.length < 3) {
+                    System.out.println("Error reading CN line, expected at least three fields, line number "+lineno+": "+nextLine);
+                    return null;
+                }
+                String cellname = parts[1];
+                String coordSpace = parts[2];
+                if (coordSpace.equals("c")) {
+                    // coords are in sub cell coord system
+                    incell = getCell(cellname);
+                    if (incell == null) incell = topCell;
+                }
+                nextLine = readLine();
+            }
 
+            DrcError drc = new DrcError(incell);
+            double lambdaScale = incell.getTechnology().getScale() / 1000;
             // parse list of edges if this is edges shape
             if (boole) {
                 for (int i=0; i<lines; i++) {
-                    nextLine = readLine();
-                    Shape s = parseErrorEdge(nextLine);
+                    if (i != 0)             // skip first line read, done already when we looked for CN
+                        nextLine = readLine();
+                    Shape s = parseErrorEdge(nextLine, lambdaScale);
                     if (s == null) return drc;
                     drc.addShape(s);
                 }
@@ -182,11 +234,12 @@ public class CalibreDrcErrors {
                 // boolp
                 Point2D [] points = new Point2D[lines];
                 for (int i=0; i<lines; i++) {
-                    nextLine = readLine();
-                    if (!parseErrorPoint(nextLine, points, i))
+                    if (i != 0)             // skip first line read, done already when we looked for CN
+                        nextLine = readLine();
+                    if (!parseErrorPoint(nextLine, points, i, lambdaScale))
                         return null;
                 }
-                Shape s = new Poly(points);
+                Shape s = new PolyBase(points);
                 drc.addShape(s);
             }
             return drc;
@@ -198,17 +251,18 @@ public class CalibreDrcErrors {
     }
 
     // parse a line specifying an edge, and add it to a list of shapes
-    private Shape parseErrorEdge(String line) {
+    // lambdaScale: divide microns by this number to get lambda
+    private Shape parseErrorEdge(String line, double lambdaScale) {
         String [] vals = line.trim().split(spaces);
         if (vals.length != 4) {
             System.out.println("Error, bad format for edge on line number "+lineno+": "+line);
             return null;
         }
         try {
-            double x1 = (double)Integer.parseInt(vals[0])/(double)scale;
-            double y1 = (double)Integer.parseInt(vals[1])/(double)scale;
-            double x2 = (double)Integer.parseInt(vals[2])/(double)scale;
-            double y2 = (double)Integer.parseInt(vals[3])/(double)scale;
+            double x1 = (double)Integer.parseInt(vals[0])/(double)scale/lambdaScale;
+            double y1 = (double)Integer.parseInt(vals[1])/(double)scale/lambdaScale;
+            double x2 = (double)Integer.parseInt(vals[2])/(double)scale/lambdaScale;
+            double y2 = (double)Integer.parseInt(vals[3])/(double)scale/lambdaScale;
             Shape line2d = new Line2D.Double(x1, y1, x2, y2);
             return line2d;
         } catch (NumberFormatException e) {
@@ -218,15 +272,15 @@ public class CalibreDrcErrors {
     }
 
     // parse a line specifying a polygon vertex, and add it to a list of points
-    private boolean parseErrorPoint(String line, Point2D [] points, int point) {
+    private boolean parseErrorPoint(String line, Point2D [] points, int point, double lambdaScale) {
         String [] vals = line.trim().split(spaces);
         if (vals.length != 2) {
             System.out.println("Error, bad format for poly vertex on line number "+lineno+": "+line);
             return false;
         }
         try {
-            double x1 = (double)Integer.parseInt(vals[0])/(double)scale;
-            double y1 = (double)Integer.parseInt(vals[1])/(double)scale;
+            double x1 = (double)Integer.parseInt(vals[0])/(double)scale/lambdaScale;
+            double y1 = (double)Integer.parseInt(vals[1])/(double)scale/lambdaScale;
             Point2D p = new Point2D.Double(x1, y1);
             points[point] = p;
             return true;
@@ -240,6 +294,40 @@ public class CalibreDrcErrors {
         try {
             in.close();
         } catch (IOException e) {}
+
+        // populate error logger
+        logger = ErrorLogger.newInstance("Calibre DRC Errors");
+        int sortKey = 0;
+        int count = 0;
+        for (Iterator it = ruleViolations.iterator(); it.hasNext(); ) {
+            DrcRuleViolation v = (DrcRuleViolation)it.next();
+            String ruleDesc = v.header.comment.toString().replaceAll("\\n", ";");
+            logger.setGroupName(sortKey, ruleDesc);
+            int y = 1;
+            for (Iterator it2 = v.errors.iterator(); it2.hasNext(); ) {
+                DrcError drcError = (DrcError)it2.next();
+                Cell cell = drcError.cell;
+                ErrorLogger.MessageLog log = logger.logError(y+". "+cell.getName()+": "+ruleDesc,
+                        cell, sortKey);
+                for (Iterator it3 = drcError.shapes.iterator(); it3.hasNext(); ) {
+                    Shape shape = (Shape)it3.next();
+                    if (shape instanceof Line2D) {
+                        Line2D line = (Line2D)shape;
+                        log.addLine(line.getX1(), line.getY1(), line.getX2(), line.getY2(), cell);
+                    } else if (shape instanceof PolyBase) {
+                        PolyBase poly = (PolyBase)shape;
+                        log.addPoly(poly, false, cell);
+                    } else {
+                        System.out.println("Unsupported drc error shape "+shape);
+                    }
+                }
+                y++;
+                count++;
+            }
+            sortKey++;
+        }
+        System.out.println("Imported "+count+" errors");
+        logger.termLogging(true);
     }
 
     // -----------------------------------------------------------------------------
@@ -280,27 +368,6 @@ public class CalibreDrcErrors {
         private String ruleFileTitle;
         private StringBuffer comment;
 
-        public static Header createHeader(String headerStart, int lineno) {
-            StringTokenizer tokenizer = new StringTokenizer(headerStart);
-            Header header = null;
-            try {
-                String cur = tokenizer.nextToken();
-                String orig = tokenizer.nextToken();
-                String len = tokenizer.nextToken();
-                int icur = Integer.parseInt(cur);
-                int iorig = Integer.parseInt(orig);
-                int ilen = Integer.parseInt(len);
-                header = new Header(icur, iorig, ilen);
-            } catch (NoSuchElementException e) {
-                System.out.println("Error parsing header start line, expected three integers on line number "+lineno+": "+headerStart);
-                return null;
-            } catch (NumberFormatException e) {
-                System.out.println("Error converting count strings to integers on header start line, line number "+lineno+": "+headerStart);
-                return null;
-            }
-            return header;
-        }
-
         private Header(int currentDrcResultsCount, int originalDrcResultsCount, int headerLength) {
             this.currentDrcResultsCount = currentDrcResultsCount;
             this.originalDrcResultsCount = originalDrcResultsCount;
@@ -317,8 +384,8 @@ public class CalibreDrcErrors {
                 if (comment.length() != 0) {
                     // already a line added
                     comment.append("\n");
-                    comment.append(line);
                 }
+                comment.append(line);
             }
         }
     }
@@ -340,5 +407,27 @@ public class CalibreDrcErrors {
         }
         lineno++;
         return line;
+    }
+
+    private Cell getCell(String cellName) {
+        // try blind search
+        for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
+            Library lib = (Library)it.next();
+            Cell c = lib.findNodeProto(cellName+"{lay}");
+            if (c != null && (c instanceof Cell))
+                return c;
+        }
+        // assume libname.cellname format
+        if (cellName.indexOf('.') != -1) {
+            String libname = cellName.substring(0, cellName.indexOf('.'));
+            String name = cellName.substring(cellName.indexOf('.')+1, cellName.length());
+            Library lib = Library.findLibrary(libname);
+            if (lib != null) {
+                Cell c = lib.findNodeProto(name+"{lay}");
+                if (c != null && (c instanceof Cell))
+                    return c;
+            }
+        }
+        return null;
     }
 }
