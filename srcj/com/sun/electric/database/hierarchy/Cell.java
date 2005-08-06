@@ -2857,7 +2857,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
      */
     public static boolean isInstantiationRecursive(Cell toInstantiate, Cell parent) {
         // if they are equal, this is recursive
-        if (toInstantiate == parent) return true;
+        if (toInstantiate == parent)
+            return true;
 
         // special case: allow instance of icon inside of the contents for illustration
         if (toInstantiate.isIconOf(parent)) {
@@ -2867,7 +2868,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
         // if the parent is a child of the cell to instantiate, that would be a
         // recursive operation
-        if (parent.isAChildOf(toInstantiate)) return true;
+        if (parent.isAChildOf(toInstantiate))
+            return true;
 
         return false;
     }
@@ -2892,7 +2894,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
         if (parent.isIcon()) {
             Cell c = parent.contentsView();
             if (c != null && c != parent) {
-                if (getIsAChildOf(c, checkedParents)) return true;
+                if (getIsAChildOf(c, checkedParents))
+                    return true;
             }
         }
 
@@ -2920,7 +2923,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
                 if (c == contentView) return true;
                 if (c == iconView) return true;
                 // recurse
-                if (getIsAChildOf(c, checkedParents)) return true;
+                if (getIsAChildOf(c, checkedParents))
+                    return true;
             }
         }
         return false;

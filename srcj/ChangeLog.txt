@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+BUG: 08/06/05, GVG) Infinite loop while doing cross-libraries with delete and subcells options (Bug #445)
+FIX: Just patch to avoid the infinite loop
+
 IMP/MAN (08/05/05, JKG) Made Cell name length in output GDS files a preference instead
     of hard coded to 32 (a limit not enforced by most tools nowadays)
 

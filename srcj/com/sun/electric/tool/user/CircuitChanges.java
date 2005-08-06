@@ -4665,8 +4665,12 @@ public class CircuitChanges
 							{
 								NodeInst replacedNi = ni.replace(newFromCell, false, false);
 								if (replacedNi == null)
+                                {
 									System.out.println("Error moving " + ni + " in " + np);
-								found = true;
+                                    found = false;
+                                }
+								else
+                                    found = true;
 								break;
 							}
 						}
