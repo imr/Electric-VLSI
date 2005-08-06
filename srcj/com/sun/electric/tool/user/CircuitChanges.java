@@ -4983,7 +4983,9 @@ public class CircuitChanges
 				// remove variables that make no sense
                 for (Iterator it = newNi.getVariables(); it.hasNext(); ) {
                     Variable var = (Variable)it.next();
-                    if (!PossibleVariables.validKey(var.getKey(), (PrimitiveNode)newNp)) {
+                    Variable.Key key = var.getKey();
+                    if (key != NodeInst.TRACE && !PossibleVariables.validKey(key, (PrimitiveNode)newNp)) 
+                    {
                         newNi.delVar(var.getKey());
                     }
                 }
