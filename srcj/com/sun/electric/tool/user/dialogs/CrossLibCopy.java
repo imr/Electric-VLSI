@@ -378,8 +378,7 @@ public class CrossLibCopy extends EDialog
 			boolean copyRelated = dialog.copyRelatedViews.isSelected();
 			boolean copySubs = dialog.copySubcells.isSelected();
 			boolean useExisting = dialog.useExistingSubcells.isSelected();
-			CircuitChanges.copyRecursively(fromCell, fromCell.getName(), toLibrary, fromCell.getView(),
-				true, deleteAfter, "", true, copyRelated, copyRelated, copySubs, useExisting, new HashSet());
+			CircuitChanges.copyRecursively(fromCell, toLibrary, true, deleteAfter, copyRelated, copySubs, useExisting);
 
 			// schedule the dialog to refresh
 			SwingUtilities.invokeLater(new DoneCopying(dialog, index));

@@ -545,7 +545,6 @@ public class PadGenerator {
             String lastpadname = null;
 
 			// cycle through all orderedCommands, doing them
-			HashSet copiedPadCells = new HashSet();
             for (Iterator it = orderedCommands.iterator(); it.hasNext();)
 			{
                 // Rotation commands are ordered with respect to Place commands.
@@ -584,8 +583,7 @@ public class PadGenerator {
 					}
 					if (cell == null)
 					{
-						cell = CircuitChanges.copyRecursively(existing, existing.getName(), Library.getCurrent(),
-							existing.getView(), false, false, "", true, false, false, true, true, copiedPadCells);
+						cell = CircuitChanges.copyRecursively(existing, Library.getCurrent(), false, false, false, true, true);
 		                if (cell == null)
 						{
 		                    err("Could not copy in pad Cell " + cellname);

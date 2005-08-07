@@ -362,7 +362,8 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
     void removeReferencedLib(Library lib) {
         if (lib == this) return;            // we don't store references to self
         synchronized(referencedLibs) {
-            assert(referencedLibs.contains(lib));
+            if (!referencedLibs.contains(lib)) return;
+//            assert(referencedLibs.contains(lib));
         }
         boolean refFound = false;
         for (Iterator itCell = getCells(); itCell.hasNext(); ) {
