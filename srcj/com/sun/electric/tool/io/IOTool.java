@@ -745,7 +745,7 @@ public class IOTool extends Listener
 	 */
 	public static void setEDIFUseSchematicView(boolean f) { cacheEDIFUseSchematicView.setBoolean(f); }
 
-	private static Pref cacheEDIFInputScale = Pref.makeDoublePref("EDIFInputScale", IOTool.tool.prefs, 0.1);
+	private static Pref cacheEDIFInputScale = Pref.makeDoublePref("EDIFInputScale", IOTool.tool.prefs, 0.05);
 	/**
 	 * Method to return the EDIF input scale.
 	 * The default is "1".
