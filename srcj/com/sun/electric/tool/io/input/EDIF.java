@@ -54,6 +54,7 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.output.EDIFEquiv;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ViewChanges;
 
@@ -206,6 +207,8 @@ public class EDIF extends Input
 	/** the current figure group node */		private NodeProto curFigureGroup;
 	/** the current (if exists) arc type */		private ArcProto curArcType;
 	/** the cellRef type */						private NodeProto cellRefProto;
+	/** the cellRef tech bits if primitive */	private int cellRefProtoTechBits;
+	/** the cellRef addt'l rotation (in degrees) */ private int cellRefProtoRotation;
 	/** the current port proto */				private PortProto curPort;
 
 	// general geometry information ...
@@ -251,6 +254,9 @@ public class EDIF extends Input
 	/** the current net name (original) */		private String netName;
 	/** the current property name */			private String propertyReference;
 	/** the current property name (original) */	private String propertyName;
+    /** the current viewRef name */             private String viewRef;
+    /** the current cellRef name */             private String cellRef;
+    /** the current libraryRef name */          private String libraryRef;
 
 	/** property value */						private Object propertyValue;
 
@@ -281,6 +287,8 @@ public class EDIF extends Input
 
 	/** stack of keywords at this point */		private EDIFKEY [] keyStack = new EDIFKEY[1000];
 	/** depth of keyword stack */				private int keyStackDepth;
+
+    /** Edif equivs for primitives */           private EDIFEquiv equivs;
 
 	// some standard artwork primitivies
 	private PortProto defaultPort;
@@ -398,6 +406,8 @@ public class EDIF extends Input
 		defaultBusPort = Schematics.tech.busPinNode.findPortProto("bus");
 		defaultInput = Schematics.tech.offpageNode.findPortProto("y");
 		defaultOutput = Schematics.tech.offpageNode.findPortProto("a");
+
+        equivs = new EDIFEquiv("edif.cfg");
 
 		// parse the file
 		try
@@ -1382,8 +1392,15 @@ public class EDIF extends Input
 		protected void push()
 			throws IOException
 		{
+            cellRef = getToken((char)0);
+        }
+
+        protected void pop()
+        {
 			// get the name of the cell
-			String aName = getToken((char)0);
+			String aName = cellRef;
+            cellRefProtoTechBits = 0;
+            cellRefProtoRotation = 0;
 			String view = "lay";
 			if (activeView != VMASKLAYOUT)
 			{
@@ -1395,6 +1412,21 @@ public class EDIF extends Input
 				cellRefProto = null;
 				return;
 			}
+
+            // look for an equivalent primitive
+            EDIFEquiv.NodeEquivalence ne = equivs.getNodeEquivalence(libraryRef, cellRef, viewRef);
+            if (ne != null && ne.np != null) {
+                cellRefProto = ne.np;
+                cellRefProtoTechBits = 0;
+                cellRefProtoRotation = ne.rotation;
+                if (cellRefProto instanceof PrimitiveNode) {
+                    Technology tech = cellRefProto.getTechnology();
+                    if (tech instanceof Schematics) {
+                        cellRefProtoTechBits = Schematics.getPrimitiveFunctionBits(ne.function);
+                    }
+                }
+                return;
+            }
 
 			// look for this cell name in the cell list
 			NameEntry nt = (NameEntry)cellTable.get(aName);
@@ -1420,7 +1452,9 @@ public class EDIF extends Input
 				// allocate the cell
 				if (view.length() > 0) aName += "{" + view + "}";
 				proto = Cell.makeInstance(curLibrary, aName);
-				if (proto == null) throw new IOException("Error creating cell");
+				if (proto == null) {
+                    System.out.println("Error, cannot create cell "+aName+" in library "+curLibrary);
+                }
 				builtCells.add(proto);
 			}
 
@@ -1871,7 +1905,7 @@ public class EDIF extends Input
 						Point2D size = getSizeAndMirror(cellRefProto);
 						if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(cX, cY), size.getX(), size.getY(), curCell,
-							curOrientation.getRot(), null, 0);
+							curOrientation.getRot()+(cellRefProtoRotation*10), null, cellRefProtoTechBits);
 						curNode = ni;
 						if (ni == null)
 						{
@@ -2086,7 +2120,15 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KLIBRARYREF = new EDIFKEY("libraryRef");
+	private EDIFKEY KLIBRARYREF = new LibraryRef();
+    private class LibraryRef extends EDIFKEY
+    {
+        private LibraryRef() { super ("libraryRef"); }
+        protected void push() throws IOException {
+            // get the name of the library
+            libraryRef = getToken((char)0);
+        }
+    }
 
 	private EDIFKEY KLISTOFNETS = new EDIFKEY("listOfNets");
 
@@ -3514,7 +3556,7 @@ public class EDIF extends Input
 						double yPos = lY;
 						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX, yPos),
-							size.getX(), size.getY(), curCell, curOrientation.getRot(), null, 0);
+							size.getX(), size.getY(), curCell, curOrientation.getRot()+(cellRefProtoRotation*10), null, cellRefProtoTechBits);
 						curNode = ni;
 						if (ni == null)
 						{
@@ -3721,7 +3763,17 @@ public class EDIF extends Input
 		}
 	}
 
-	private EDIFKEY KVIEWREF = new EDIFKEY("viewRef");
+	private EDIFKEY KVIEWREF = new ViewRef();
+    private class ViewRef extends EDIFKEY
+    {
+        private ViewRef() { super("viewRef"); }
+        protected void push() throws IOException {
+            viewRef = getToken((char)0);
+        }
+        protected void pop() {
+            viewRef = null;
+        }
+    }
 
 	/**
 	 * viewType:  Indicates the view style for this cell, ie
