@@ -429,7 +429,7 @@ public class EDIFEquiv {
     // ==================================================================================
     //                            Equivalence Classes
 
-    static class NodeEquivalence {
+    public static class NodeEquivalence {
         public final NodeProto np;
         public final PrimitiveNode.Function function;
         public final PortCharacteristic exortedType;
@@ -438,7 +438,7 @@ public class EDIFEquiv {
         public final String externalCell;
         public final String externalView;
         public final List portEquivs;
-        public final int rotation;         // in tenth-degrees, rotate the electric prim by this value to match the cadence prim
+        public final int rotation;         // in degrees, rotate the electric prim by this value to match the cadence prim
 
         private NodeEquivalence(NodeProto np, PrimitiveNode.Function func, PortCharacteristic exportedType,
                 String externalLib, String externalCell, String externalView, int rotation, List portEquivs) {
@@ -510,7 +510,7 @@ public class EDIFEquiv {
         }
     }
 
-    static class PortEquivalence {
+    public static class PortEquivalence {
         private final Port elecPort;
         private final Port extPort;
         private PortEquivalence(Port elecPort, Port extPort) {
@@ -554,7 +554,7 @@ public class EDIFEquiv {
         }
     }
 
-    static class Port {
+    public static class Port {
         public final String name;
         public final Point2D loc;
         public final boolean ignorePort;
