@@ -46,8 +46,9 @@ public class CompareList {
 			if (ann==null) continue;
 			String reason = ann.getSkipReason();
 			if (reason!=null) {
-				System.out.println("Skip NCC of "+NccUtils.fullName(c)+
-								   " because "+reason);
+				System.out.println("Not checking: "+NccUtils.fullName(c)+
+								   " because it has a \"skipNCC\" annotation "+
+								   "with the comment: "+reason);
 				return true;							   
 			}
 		}
