@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03b: *********************************
 
+IMP: (08/08/05, RK) NCC: Add Ammeter to spiceparts.jelib and spiceparts.txt. Make NCC treat Ammeter as short. Make SPICE netlister treat it as DC voltage source v=0 (Bug# 454)
+
 IMP: (08/08/05, RK) NCC: Add size disambiguation for Resistors (Bug# 449)
 
 BUG: (08/08/05, RK) NCC: Fix Heater regression non-determinism (Bug# 415)

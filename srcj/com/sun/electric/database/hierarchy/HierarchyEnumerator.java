@@ -23,19 +23,6 @@
  */
 package com.sun.electric.database.hierarchy;
 
-import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.Network;
-import com.sun.electric.database.network.Netlist;
-import com.sun.electric.database.network.NetworkTool;
-import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.VarContext;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.tool.generator.layout.LayoutLib; 
-
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -44,6 +31,18 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
+import com.sun.electric.database.network.Global;
+import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.NetworkTool;
+import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.tool.generator.layout.LayoutLib;
 
 /** The HierarchyEnumerator can help programs that need to "flatten"
  * the design hierarchy. Examples of such programs include the logical
@@ -168,6 +167,7 @@ public final class HierarchyEnumerator {
 	private Visitor visitor;
     private boolean shortResistors;
     private boolean shortPolyResistors;
+    private boolean shortSpiceAmmeters;
 	private boolean caching;
 	private int cellCnt = 0; // For statistics
 	private int instCnt = 0; // For statistics
@@ -187,6 +187,10 @@ public final class HierarchyEnumerator {
         if (shorts != null) return shorts;
 
         shorts = new CellShorts(cell, netlist.getNumNetworks());
+        
+       	Library spiceParts = Library.findLibrary("spiceparts");
+       	Cell ammeterIcon = spiceParts==null ? null :
+        	                            spiceParts.findNodeProto("Ammeter{ic}");
 
         for (Iterator it = netlist.getNodables(); it.hasNext();) {
 			Nodable ni = (Nodable)it.next();
@@ -222,8 +226,7 @@ public final class HierarchyEnumerator {
                             externalIds[extID] = net.getNetIndex();
                     }
                 }
-            }
-			if (np instanceof PrimitiveNode) {
+            } else if (np instanceof PrimitiveNode) {
                 PrimitiveNode.Function fun = ((NodeInst)ni).getFunction();
                 if (fun == PrimitiveNode.Function.RESIST && shortResistors ||
                         fun == PrimitiveNode.Function.PRESIST && shortPolyResistors) {
@@ -231,6 +234,10 @@ public final class HierarchyEnumerator {
                     Network net1 = netlist.getNetwork(ni, np.getPort(1), 0);
                     shorts.connect(net0.getNetIndex(), net1.getNetIndex());
                 }
+			} else if (np==ammeterIcon && shortSpiceAmmeters) {
+                Network net0 = netlist.getNetwork(ni, np.getPort(0), 0);
+                Network net1 = netlist.getNetwork(ni, np.getPort(1), 0);
+                shorts.connect(net0.getNetIndex(), net1.getNetIndex());
 			}
 		}
         shorts.fixup(netlist.getNumExternalNetworks());
@@ -376,10 +383,13 @@ public final class HierarchyEnumerator {
 	//  Set up everything for the root cell and then initiate the
 	//  hierarchical traversal.
 	private void doIt(Cell root, VarContext context, Netlist netlist, 
-	                  Visitor visitor, boolean shortResistors, boolean shortPolyResistors, boolean cache) {
+	                  Visitor visitor, boolean shortResistors, 
+					  boolean shortPolyResistors, 
+					  boolean shortSpiceAmmeters, boolean cache) {
 		this.visitor = visitor;
         this.shortResistors = shortResistors;
         this.shortPolyResistors = shortPolyResistors;
+        this.shortSpiceAmmeters = shortSpiceAmmeters;
 		this.caching = cache;
 		if (context == null) context = VarContext.globalContext;
 		int[][] exportNdxToNetIDs = null;
@@ -928,13 +938,16 @@ public final class HierarchyEnumerator {
 	public static void enumerateCell(Cell root, VarContext context, 
 	                                 Netlist netlist, Visitor visitor) {
 		if (netlist == null) netlist = NetworkTool.getUserNetlist(root);
-		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, false, false, false);
+		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, false, false, false, false);
 	}
 	/** Experimental. Optionally caches results of variable evaluation. */
 	public static void enumerateCell(Cell root, VarContext context,  Visitor visitor,
-									 boolean shortResistors, boolean shortPolyResistors, boolean caching) {
+									 boolean shortResistors, boolean shortPolyResistors, 
+									 boolean shortSpiceAmmeters, boolean caching) {
 		Netlist netlist = NetworkTool.getUserNetlist(root);
-		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, shortResistors, shortPolyResistors, caching);
+		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, 
+				                         shortResistors, shortPolyResistors, 
+										 shortSpiceAmmeters, caching);
 	}
     /**
      * Method to count number of unique cells in hierarchy.  Useful

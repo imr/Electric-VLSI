@@ -89,6 +89,17 @@ public class LocalPartitioning {
 
 		LocalPartitionResult res = new LocalPartitionResult(globals);
 
+		/* Count EquivRecords after Local Partitioning */
+		/*
+		int numMatchedPartRecs = globals.getPartLeafEquivRecs().numMatched();
+		int numNotMatchedPartRecs = globals.getPartLeafEquivRecs().numNotMatched(); 
+		int numMatchedWireRecs = globals.getWireLeafEquivRecs().numMatched();
+		int numNotMatchedWireRecs = globals.getWireLeafEquivRecs().numNotMatched(); 
+		System.out.println("Local Partitioning Results: #matchedPartRecs="+numMatchedPartRecs+
+				           " #notMatchedPartRecs="+numNotMatchedPartRecs+
+						   " #matchedWireRecs="+numMatchedWireRecs+
+						   " #notMatchedWireRecs="+numNotMatchedWireRecs);
+		*/
 		//StratReportLocalPartitionFailure.doYourJob(globals);
 
 		globals.status2("End partitioning based on local characteristics ");

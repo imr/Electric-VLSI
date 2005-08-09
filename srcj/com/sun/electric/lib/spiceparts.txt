@@ -52,7 +52,7 @@ view: netlist-rsim-format{net-rsim}
 view: netlist-netlisp-format{net-netlisp}
 view: simulation-snapshot{sim}
 view: unknown{}
-cellcount: 16
+cellcount: 17
 maincell: 13
 variables: 1
 USER_electrical_units[01,00/0400]: 70464
@@ -1348,3 +1348,131 @@ name: b
 descript: 0/256
 userbits: -1610520576
 celldone: Transmission
+***cell: 16
+name: Ammeter{ic}
+version: 1
+creationdate: 1123537748
+revisiondate: 1123610922
+lowx: -18000 highx: 12000 lowy: -16000 highy: 12000
+userbits: 2
+nodes: 12 arcs: 0 porttypes: 2
+variables: 1
+ATTR_SPICE_template[0104,0540002040/0200]: "V$(node_name) $(plus) $(minus) DC 0"
+**node: 0
+type: generic:Facet-Center
+lowx: 0 highx: 0 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 8421376
+variables: 1
+NODE_name[04,00/00]: "art@0"
+**node: 1
+type: artwork:Circle
+lowx: -12000 highx: 12000 lowy: -14000 highy: 10000
+rotation: 0 transpose: 0
+userbits: 0
+variables: 2
+ART_color[01,00/00]: 10
+NODE_name[04,00/00]: "art@7"
+**node: 2
+type: artwork:Opened-Polygon
+lowx: 0 highx: 8000 lowy: -8000 highy: 0
+rotation: 0 transpose: 0
+userbits: 0
+variables: 3
+ART_color[01,00/00]: 10
+trace(6)[06205,00/00]: [-1.0,-1.0,1.0,1.0,1.0,0.0]
+NODE_name[04,00/00]: "art@9"
+**node: 3
+type: artwork:Opened-Polygon
+lowx: 4000 highx: 8000 lowy: 0 highy: 0
+rotation: 0 transpose: 0
+userbits: 0
+variables: 3
+ART_color[01,00/00]: 10
+trace(4)[04205,00/00]: [0.5,0.0,-0.5,0.0]
+NODE_name[04,00/00]: "art@10"
+**node: 4
+type: artwork:Spline
+lowx: -10000 highx: 10000 lowy: 120 highy: 5880
+rotation: 0 transpose: 0
+userbits: 0
+variables: 3
+ART_color[01,00/00]: 10
+trace(8)[010205,00/00]: [-2.5,-0.75,-1.5,0.75,1.5,0.75,2.5,-0.75]
+NODE_name[04,00/00]: "art@11"
+**node: 5
+type: artwork:Opened-Polygon
+lowx: -16000 highx: -14000 lowy: -8000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 0
+variables: 3
+ART_color[01,00/00]: 10
+trace(6)[06205,00/00]: [-0.25,1.75,-0.25,-1.75,0.25,-0.75]
+NODE_name[04,00/00]: "art@12"
+**node: 6
+type: artwork:Opened-Polygon
+lowx: -18000 highx: -16000 lowy: -8000 highy: -4000
+rotation: 0 transpose: 0
+userbits: 0
+variables: 3
+ART_color[01,00/00]: 10
+trace(4)[04205,00/00]: [-0.25,0.5,0.25,-0.5]
+NODE_name[04,00/00]: "art@13"
+**node: 7
+type: artwork:Opened-Polygon
+lowx: -10020 highx: -9020 lowy: -980 highy: 20
+rotation: 0 transpose: 0
+userbits: 0
+variables: 3
+ART_color[01,00/00]: 10
+trace(4)[04205,00/00]: [-0.125,0.125,0.125,-0.125]
+NODE_name[04,00/00]: "art@14"
+**node: 8
+type: artwork:Opened-Polygon
+lowx: 0 highx: 0 lowy: 4000 highy: 6000
+rotation: 0 transpose: 0
+userbits: 0
+variables: 3
+ART_color[01,00/00]: 10
+trace(4)[04205,00/00]: [0.0,0.25,0.0,-0.25]
+NODE_name[04,00/00]: "art@15"
+**node: 9
+type: artwork:Opened-Polygon
+lowx: 9020 highx: 10020 lowy: -980 highy: 20
+rotation: 0 transpose: 0
+userbits: 0
+variables: 3
+ART_color[01,00/00]: 10
+trace(4)[04205,00/00]: [0.125,0.125,-0.125,-0.125]
+NODE_name[04,00/00]: "art@16"
+**node: 10
+type: generic:Invisible-Pin
+lowx: -2000 highx: 2000 lowy: 8000 highy: 12000
+rotation: 0 transpose: 0
+userbits: 0
+variables: 1
+NODE_name[04,00/00]: "pin@2"
+*port: center
+exported: 1
+**node: 11
+type: generic:Invisible-Pin
+lowx: -2000 highx: 2000 lowy: -16000 highy: -12000
+rotation: 0 transpose: 0
+userbits: 0
+variables: 1
+NODE_name[04,00/00]: "pin@3"
+*port: center
+exported: 0
+**porttype: 0
+subnode: 11
+subport: center
+name: minus
+descript: 0/512
+userbits: 0
+**porttype: 1
+subnode: 10
+subport: center
+name: plus
+descript: 0/512
+userbits: 0
+celldone: Ammeter
