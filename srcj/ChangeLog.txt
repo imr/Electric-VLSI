@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.03c: *********************************
+
 ************************* Version 8.03b: *********************************
 
 IMP: (08/09/05, RK) NCC: More and better regression tests for size disambiguation for MOS and Resistors
@@ -12,7 +14,7 @@ IMP: (08/08/05, RK) NCC: Add size disambiguation for Resistors (Bug# 449)
 
 BUG: (08/08/05, RK) NCC: Fix Heater regression non-determinism (Bug# 415)
 
-BUG: (08/06/05, GVG) Edit->Change loses polygon shape (reported by JonL)
+BUG: (08/06/05, GVG) Edit->Change loses polygon shape (reported by JonL) (Bug #450)
 FIX: PossibleVariables.validKey doesn't consider TRACE so it will skip checking in replaceNodeInst
 
 BUG: (08/06/05, GVG) Infinite loop while doing cross-libraries with delete and subcells options (Bug #445)
