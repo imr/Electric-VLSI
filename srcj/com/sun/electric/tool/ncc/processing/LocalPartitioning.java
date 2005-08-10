@@ -99,7 +99,8 @@ public class LocalPartitioning {
 				           " #notMatchedPartRecs="+numNotMatchedPartRecs+
 						   " #matchedWireRecs="+numMatchedWireRecs+
 						   " #notMatchedWireRecs="+numNotMatchedWireRecs);
-		*/
+		*/		
+		globals.getComparisonResult().setLocalPartitionResult(res);
 		//StratReportLocalPartitionFailure.doYourJob(globals);
 
 		globals.status2("End partitioning based on local characteristics ");
