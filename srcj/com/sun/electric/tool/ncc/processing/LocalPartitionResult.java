@@ -113,15 +113,27 @@ public class LocalPartitionResult {
     public boolean matches() {
     	return badPartRecs.size()==0 && badWireRecs.size()==0;
     }
+    /** @return the total number of mismatches */
+    public int size() {
+        return badPartRecs.size() + badWireRecs.size();
+    }
     /** @return Iterator over all bad Part EquivRecords detected by 
      * the Local Partition pass. An EquivRecord is bad if it's 
      * Circuits don't have equal numbers of NetObjects. */   
     public Iterator getBadPartEquivRecs() {return badPartRecs.iterator();}
+    /** @return number of all bad Part EquivRecords detected by 
+     * the Local Partition pass. An EquivRecord is bad if it's 
+     * Circuits don't have equal numbers of NetObjects. */       
+    public int badPartEquivRecCount() {return badPartRecs.size();}
     
     /** @return Iterator over all bad Wire EquivRecords detected by 
      * the Local Partition pass. An EquivRecord is bad if it's 
      * Circuits don't have equal numbers of NetObjects. */   
     public Iterator getBadWireEquivRecs() {return badWireRecs.iterator();}
+    /** @return number of all bad Wire EquivRecords detected by 
+     * the Local Partition pass. An EquivRecord is bad if it's 
+     * Circuits don't have equal numbers of NetObjects. */       
+    public int badWireEquivRecCount() {return badWireRecs.size();}
     
     /** Get all matched NetObjects. Visit all EquivRecords that are descendents
      * of er. Accumulate all NetObjects inside those EquivRecords that are 

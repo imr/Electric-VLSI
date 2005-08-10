@@ -2,7 +2,7 @@
 *
 * Electric(tm) VLSI Design System
 *
-* File: Ncc.java
+* File: NccComparisonMismatches.java
 *
 * Copyright (c) 2003 Sun Microsystems and Static Free Software
 *
@@ -30,6 +30,7 @@ import java.util.List;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.processing.LocalPartitionResult;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.ncc.trees.LeafEquivRecords;
 
@@ -58,7 +59,8 @@ public class NccComparisonMismatches {
     
     /** Export mismatches          */   private List exportMismatches;
     /** Part/Wire mismatches (local partitioning) */
-                                        private EquivRecord[] mismEqvRecrds;
+                                        private LocalPartitionResult lpResult;
+    
     /** Part/Wire mismatches (hashcode partitioning) */                                        
                                         private EquivRecord[] hashMismEqvRecrds;    
     /** Transistor size mismatches */   private List sizeMismatches;
@@ -84,6 +86,7 @@ public class NccComparisonMismatches {
         sizeChecked = false;
         swapCells = false;
         numExportsValidOnlyWhenTopologyMismatch = 0;
+        lpResult = null;
         
         exportMismatches = new LinkedList();
         sizeMismatches = new LinkedList();
@@ -114,7 +117,7 @@ public class NccComparisonMismatches {
         sizeChecked = globals.getOptions().checkSizes;
         printHashFailures = globals.isPrintHashFailures();
         
-        if (mismEqvRecrds == null || mismEqvRecrds.length == 0) {
+        if (lpResult == null || lpResult.matches()) {  // if no LP mismatches
             LeafEquivRecords parts = globals.getPartLeafEquivRecs();
             LeafEquivRecords wires = globals.getWireLeafEquivRecs();
             hashMismEqvRecrds = new EquivRecord[parts.numNotMatched() 
@@ -139,8 +142,8 @@ public class NccComparisonMismatches {
      */
     public int getTotalMismatchCount() {
         int eqvRecCount = 0;
-        if (mismEqvRecrds != null && mismEqvRecrds.length != 0) 
-            eqvRecCount += mismEqvRecrds.length;
+        if (lpResult != null && !lpResult.matches()) 
+            eqvRecCount += lpResult.size();
         else if (hashMismEqvRecrds != null && printHashFailures) 
             eqvRecCount += hashMismEqvRecrds.length;
         
@@ -215,31 +218,19 @@ public class NccComparisonMismatches {
     public List getExportMismatches() {
         return exportMismatches;
     }
-
-    /**
-     * This method sets the local partitioning mismatches to the provided list
-     * of EquivRecord mismatches
-     * @param mismatched
-     */
-    public void setMismatchedEquivRecords(List mismatched) {
-        mismEqvRecrds = new EquivRecord[mismatched.size()];
-        int i=0;
-        for (Iterator it=mismatched.iterator(); it.hasNext(); i++)
-            mismEqvRecrds[i] = (EquivRecord)it.next();            
+    
+    public void setLocalPartitionResult(LocalPartitionResult lpr) {
+        lpResult = lpr;
     }
-
-    public EquivRecord[] getMismatchedEquivRecords() {
-        if (mismEqvRecrds != null && mismEqvRecrds.length > 0)
-            return mismEqvRecrds;
-        else if (hashMismEqvRecrds != null && printHashFailures)
-            return hashMismEqvRecrds;
-        else
-            return emptyER;
+    public LocalPartitionResult getLocalPartitionResult() {
+        return lpResult;
+    }
+    public EquivRecord[] getHashMismatchedEquivRecords() {
+        return hashMismEqvRecrds;
     }
     
     public boolean isHashFailuresPrinted() {
-        boolean lp = (mismEqvRecrds != null && mismEqvRecrds.length > 0);
-        return (!lp && printHashFailures); 
+        return printHashFailures; 
     }
     
     public void setMatchFlags(boolean em, boolean tm, boolean sm) {

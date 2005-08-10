@@ -2,7 +2,7 @@
 *
 * Electric(tm) VLSI Design System
 *
-* File: Ncc.java
+* File: ComparisonsTree.java
 *
 * Copyright (c) 2003 Sun Microsystems and Static Free Software
 *
@@ -35,6 +35,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -55,19 +56,24 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreePath;
 
 import com.sun.electric.tool.ncc.netlist.NetObject;
+import com.sun.electric.tool.ncc.processing.LocalPartitionResult;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 
+/**
+ * This class implements the mismatch comparin tree displayed in the right pane 
+ * of the NCC GUI window. 
+ */
 class ComparisonsTree extends JTree 
 implements ActionListener, TreeSelectionListener, TreeCellRenderer {
-    // constants
+    /* --- size restrictions --- */
     public static final int MAX_COMP_NODES = 100;
     public static final int MAX_ZEROS = 100;
     public static final int MAX_CLASSES = 200;
     public static final int MAX_LIST_ELEMENTS = 200;
     public static final int MAX_NAME_LEN = 100;
     
-    // GUI variables
+    /* --- GUI variables --- */
     private ComparisonsPane parentPane;
     private DefaultMutableTreeNode root;
     private TreeNode rootTreeNode;
@@ -79,10 +85,12 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
     private static Border border = BorderFactory.createEmptyBorder();
     private boolean updateInProgress = true;
 
-    // data holders
+    /** list of current comparison mismatches */ 
     private NccComparisonMismatches[] mismatches;
+    /** empty array of EquivRecords. Used when LP Result is null */
+    private static final EquivRecord[] emptyEquivRecs = new EquivRecord[0];
     
-    public ComparisonsTree(ComparisonsPane pane, DefaultMutableTreeNode root) {
+    protected ComparisonsTree(ComparisonsPane pane, DefaultMutableTreeNode root) {
         super(root);
         this.root = root;
         rootTreeNode = (TreeNode)root.getUserObject();
@@ -93,24 +101,33 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         addTreeSelectionListener(this);
         createPopup();
     }
-
+    
+    /**
+     * Create a right-click popup for tree nodes
+     */
     private void createPopup() {
         popup = new JPopupMenu();
         JMenuItem menuItem = new JMenuItem("Copy Node Title To Clipboard");
         menuItem.addActionListener(this);
         popup.add(menuItem);
     }
-
-    public void update(NccComparisonMismatches[] misms) {
+    
+    /**
+     * Update the tree with the provided list of comparison mismatches
+     * @param misms  list of comparison mismatches
+     */
+    protected void update(NccComparisonMismatches[] misms) {
         updateInProgress = true;
         mismatches = misms;
         wireClassNodes = new WireClassNode[misms.length][];   
         root.removeAllChildren();
         DefaultMutableTreeNode compNode;
         EquivRecord[] mismEqRecs;
+        // for each comparison in the list
         for (int compNdx = 0; compNdx < mismatches.length 
                            && compNdx < MAX_COMP_NODES; compNdx++) {
             NccComparisonMismatches cm = mismatches[compNdx];
+            // compute node name from cell names
             String titles[] = cm.getNames();
             String title0 = titles[0].substring(0,titles[0].length()-5);
             String title1 = titles[1].substring(0,titles[1].length()-5);
@@ -119,7 +136,8 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                 title = title0 + "{sch,lay}";
             else
                 title = titles[0] + " & " + titles[1];
-
+            
+            // create top-level tree node
             TreeNode compTreeNode = new TreeNode(rootTreeNode, 
                                     title + " [" + cm.getTotalMismatchCount() + "]", 
                                     compNdx, -1, TreeNode.COMP_TITLE);
@@ -142,16 +160,29 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                              new TreeNode(compTreeNode, exportsTitle, 
                                           compNdx, -1, TreeNode.EXPORTS)));
 
-            // add parts/wires entry if necessary
-            mismEqRecs = cm.getMismatchedEquivRecords();
+            boolean isHashChecked = cm.isHashFailuresPrinted();
+            LocalPartitionResult lpRes = cm.getLocalPartitionResult();
+            mismEqRecs = emptyEquivRecs;
+            // collect part/wire equiv records
+            if (!isHashChecked && lpRes != null) {  // LP parts/wires entries
+                int size = lpRes.badPartEquivRecCount() + lpRes.badWireEquivRecCount();
+                mismEqRecs = new EquivRecord[size];
+                int i = 0;
+                for (Iterator it=lpRes.getBadPartEquivRecs(); it.hasNext();)
+                    mismEqRecs[i++] = (EquivRecord)it.next();
+                for (Iterator it=lpRes.getBadWireEquivRecs(); it.hasNext();)
+                    mismEqRecs[i++] = (EquivRecord)it.next();                
+            } else if (isHashChecked) {  // hashcode parts/wires entries
+                mismEqRecs = cm.getHashMismatchedEquivRecords();
+            }
             parentPane.setMismatchEquivRecs(compNdx, mismEqRecs);
             if (mismEqRecs != null && mismEqRecs.length > 0) {
-                boolean isHashChecked = cm.isHashFailuresPrinted();
                 // add parts entry
-                addPartClasses(compTreeNode, compNdx, compNode, mismEqRecs, isHashChecked);
+                addPartClasses(compTreeNode, compNdx, compNode, mismEqRecs, lpRes, isHashChecked);
                 // add wires entry
-                addWireClasses(compTreeNode, compNdx, compNode, mismEqRecs, isHashChecked);     
+                addWireClasses(compTreeNode, compNdx, compNode, mismEqRecs, lpRes, isHashChecked);     
             }
+            
             
             // add sizes entry, if necessary
             int sizeMismCount = cm.getSizeMismatches().size();
@@ -199,7 +230,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                                           compNdx, -1, TreeNode.EXPORT_NET_CONF)));
             
             // add "export characteristics conflicts", if necessary
-            int exportChrConflictCount = cm.getNetworkExportConflicts().size();
+            int exportChrConflictCount = cm.getCharactExportConflicts().size();
             String exportChrConfTitle = null;
             if (exportChrConflictCount > ExportTable.MAXROWS) {
                 exportChrConfTitle = "Export/Global Characteristics Conflicts [first " 
@@ -231,17 +262,26 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         }
         setRootVisible(true);
         updateUI();      
-        expandRow(0);
-        expandRow(1);
-        setRootVisible(false);
-        addSelectionRow(0);
+        expandRow(0);  // expand root
+        expandRow(1);  // expand first comparison 
+        setRootVisible(false);  // hide root
+        addSelectionRow(0); // select first comparison
         requestFocusInWindow();
         updateInProgress = false;
     }    
     
+    /**
+     * Add Part equiv. classes nodes
+     * @param compTreeNode  top-level comparison node
+     * @param compNdx  comparison index
+     * @param inode  tree node to add to
+     * @param mismEqRecs  equiv. classes
+     * @param lpRes  results of Local Partitioning 
+     * @param isHashChecked  true is hashcodes were checked
+     */
     private void addPartClasses(TreeNode compTreeNode, int compNdx, 
                                 DefaultMutableTreeNode inode, 
-                                EquivRecord[] mismEqRecs,
+                                EquivRecord[] mismEqRecs, LocalPartitionResult lpRes,
                                 boolean isHashChecked) {
         DefaultMutableTreeNode parts, eclass;
         // add parts entry title
@@ -255,31 +295,56 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         int count=0;
         boolean truncated = false;
         for (int i=0; i<mismEqRecs.length; i++) {
-            // fill in array of mismatches 
-            if (mismEqRecs[i].getNetObjType() != NetObject.Type.PART) continue;
+            if (isHashChecked) {
+                if (mismEqRecs[i].getNetObjType() != NetObject.Type.PART) continue;
+            } else
+                // LP Part mismatches are grouped at the beginning of mismEqRecs
+                if (lpRes.badPartEquivRecCount() <= i) break;
+                
             count++;
             // limit output size
             if (count > MAX_CLASSES) { truncated = true; continue;}
             
             List reasons = mismEqRecs[i].getPartitionReasonsFromRootToMe();
             StringBuffer nodeName = new StringBuffer("#"+ count + " [");
-            if (mismEqRecs[i].maxSize() > MAX_LIST_ELEMENTS)
+            int size;
+            if (isHashChecked)
+                size = mismEqRecs[i].maxSize();
+            else {
+                ArrayList[] matched = lpRes.getMatchedNetObjs(mismEqRecs[i]);
+                ArrayList[] mism = lpRes.getNotMatchedNetObjs(mismEqRecs[i]);
+                size = Math.max(matched[0].size() + mism[0].size(), 
+                                matched[1].size() + mism[1].size()); 
+            }
+            if (size > MAX_LIST_ELEMENTS)
                 nodeName.append("first " + MAX_LIST_ELEMENTS + " of ");
-            nodeName.append(mismEqRecs[i].maxSize() + "]");
+            nodeName.append(size + "]");
             
             Iterator it = null;
+            String reas = null;            
             if (! isHashChecked) {  // don't process reasons for hash code classes
                 it = reasons.iterator();
                 if (it.hasNext()) {
-                    String reas = (String)it.next();
-                    nodeName.append(": " + reas.substring(reas.indexOf("type is ") + 8));
+                    reas = (String)it.next();
+                    // fetch part type if it's available
+                    int ind = reas.indexOf("type is ");
+                    if (ind >= 0) {
+                        nodeName.append(": " + reas.substring(ind + 8));
+                        reas = null;
+                    }
                 } 
-                if (it.hasNext()) {
-                    String reas = (String)it.next();
+                if (it.hasNext() || reas != null) {
+                    if (reas == null) {
+                        reas = (String)it.next();
+                        nodeName.append(", ");
+                    } else
+                        nodeName.append(": ");
+                    // fetch number of wires attached if it's available                    
                     if (reas.endsWith("different Wires attached")) {
                         int a = reas.indexOf("has ") + 4;
                         int b = reas.indexOf(" different");
-                        nodeName.append(", " + reas.substring(a,b) + " Wires attached");
+                        nodeName.append(reas.substring(a,b) + " Wires attached");
+                        reas = null;
                     }
                 }
             }
@@ -295,15 +360,19 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                     eclass.add(new DefaultMutableTreeNode(
                                new TreeNode(partTreeNode, "all Parts are indistinguishable", 
                                             compNdx, i, TreeNode.PARTLEAF)));
-                } else while (it.hasNext()) {
-                    eclass.add(new DefaultMutableTreeNode(
-                               new TreeNode(partTreeNode, (String)it.next(), 
-                                            compNdx, i, TreeNode.PARTLEAF)));
+                } else {
+                    if (reas != null)
+                        eclass.add(new DefaultMutableTreeNode(
+                                new TreeNode(partTreeNode, reas, compNdx, i, TreeNode.PARTLEAF)));
+                    while (it.hasNext())
+                        eclass.add(new DefaultMutableTreeNode(
+                                   new TreeNode(partTreeNode, (String)it.next(), 
+                                                compNdx, i, TreeNode.PARTLEAF)));
                 }
             }
         }
         if (count == 0)
-            inode.remove(parts);
+            inode.remove(parts);  // remove "Parts" node if no Part classes exist
         else {
             StringBuffer buf = new StringBuffer("Parts ");
             if (isHashChecked) buf.append("(hash code) ");
@@ -314,9 +383,18 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         }
     }
     
+    /**
+     * Add Wire equiv. classes nodes
+     * @param compTreeNode  top-level comparison node
+     * @param compNdx  comparison index
+     * @param inode  tree node to add to
+     * @param mismEqRecs  equiv. classes
+     * @param lpRes  results of Local Partitioning 
+     * @param isHashChecked  true is hashcodes were checked
+     */    
     private void addWireClasses(TreeNode compTreeNode, int compNdx, 
                                 DefaultMutableTreeNode inode, 
-                                EquivRecord[] mismEqRecs,
+                                EquivRecord[] mismEqRecs, LocalPartitionResult lpRes,
                                 boolean isHashChecked) {
         DefaultMutableTreeNode wires, eclass, node;
         // add wires entry title
@@ -328,10 +406,15 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         // add wire equivalence classes
         TreeNode wireTreeNode;
         int type = TreeNode.WIRE;
-        int count = 0;
-        boolean truncated = false;        
-        for (int i=0; i<mismEqRecs.length; i++) {
-            if (mismEqRecs[i].getNetObjType() != NetObject.Type.WIRE) continue;
+        int count = 0, i;
+        boolean truncated = false;
+        if (isHashChecked) 
+            i = 0;
+        else // in LP wire mismatches are grouped at the end of mismEqRecs
+            i = lpRes.badPartEquivRecCount();
+        for (; i<mismEqRecs.length; i++) {
+            if (isHashChecked && mismEqRecs[i].getNetObjType() != NetObject.Type.WIRE) continue;
+            
             count++;
             // limit output size
             if (count > MAX_CLASSES) { truncated = true; continue;}            
@@ -386,6 +469,9 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         }
     } 
     
+    /* (non-Javadoc)
+     * TreeCellRenderer interface (for custom Wire class tree nodes)
+     */
     public TreeCellRenderer getCellRenderer() {
         return this;
     }
@@ -406,18 +492,22 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
     public void valueChanged(TreeSelectionEvent e) {
         TreePath[] paths = e.getPaths();
         boolean doAdded = false;
-        for (int i=0; i<2; i++) {
-            for (int j=0; j<paths.length; j++) {
+        // one pass for removed, one - for added nodes
+        for (int i=0; i<2; i++) {  
+            // loop over all nodes whose state has changed
+            for (int j=0; j<paths.length; j++) {  
                 if (e.isAddedPath(j) != doAdded) continue;
                 if (paths[j] == null) {
                     parentPane.treeSelectionChanged(null, doAdded);
                     continue;
                 }
                 DefaultMutableTreeNode node = (DefaultMutableTreeNode)paths[j].getLastPathComponent();
+                // notify Comparison Pane about the change                
                 parentPane.treeSelectionChanged((TreeNode)node.getUserObject(), doAdded);
             }
             doAdded = true;
         }
+        // update Comparison Pane
         parentPane.updateRightPane();
     }
 
@@ -432,6 +522,8 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         int compNdx = data.compNdx;        
         if (data.type == TreeNode.WIRE && wireClassNodes[compNdx] != null
                                        && !updateInProgress) {
+            // wclass is a special index of Wire classes in each comparison
+            // Needed because Wire and part classes are mixed together 
             int wclass = data.getWireClassNum();
             if (wireClassNodes[compNdx][wclass] == null)
                 createWireClassNodes(data, node.isLeaf());
@@ -451,62 +543,101 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                                                             leaf, row, hasFocus);
     }
     
-    private void createWireClassNodes(TreeNode data, boolean isLeaf) {
+    /**
+     * Create Wire class nodes for the comparison represented by the supplied node 
+     * @param data  comparison top-level tree node
+     * @param areLeaves  true if Wire class nodes are leaves
+     */
+    private void createWireClassNodes(TreeNode data, boolean areLeaves) {
         int compNdx = data.compNdx;
-        EquivRecord[] mismEqRecs = mismatches[compNdx].getMismatchedEquivRecords();
+        EquivRecord[] mismEqRecs = parentPane.getMismatchEquivRecs(compNdx);
         int count = 0, len = wireClassNodes[compNdx].length;
+        // max width of the first 3 columns in node names, height of a name 
         int maxWidth0 = 0, maxWidth1 = 0, maxWidth2 = 0, height = 0;
         Font font = getFont();
+        boolean isHashPrinted = mismatches[compNdx].isHashFailuresPrinted();
         
-        for (int i=0; i<mismEqRecs.length; i++) {
-            if (mismEqRecs[i].getNetObjType() != NetObject.Type.WIRE) continue;
+        int i;
+        if (isHashPrinted) 
+            i = 0;
+        else // in LP wire mismatches are grouped at the end of mismEqRecs
+            i = mismatches[compNdx].getLocalPartitionResult().badPartEquivRecCount();
+        // for each equiv. class        
+        for (; i<mismEqRecs.length; i++) {
+            if (isHashPrinted && mismEqRecs[i].getNetObjType() != NetObject.Type.WIRE) 
+                continue;
             count++;
             // number of classes might have been limited
             if (count > len) break;
+
+            LocalPartitionResult lpRes = null ; // LP result
+            ArrayList[] mism = null; // list of mismatched NetObjects from LP result  
+            if (!isHashPrinted) {
+                // get LP result and lists of matched and mismatched NetObjects
+                lpRes = mismatches[compNdx].getLocalPartitionResult(); 
+                mism = lpRes.getNotMatchedNetObjs(mismEqRecs[i]);
+            }
             
             JLabel labels[] = new JLabel[4];
             String descr[] = new String[2];
+            // get names of the first wires in both cells
+            // in case of hashcode mismatches, get them from circuits
+            // in case of local partitioning, get them from LocalPartitioningResult
             int cell=0;
-            for (Iterator it=mismEqRecs[i].getCircuits(); it.hasNext(); cell++) {
-                Circuit ckt = (Circuit) it.next();
-                Iterator it2=ckt.getNetObjs();
-                if (it2.hasNext()) {
-                    descr[cell] = parentPane.cleanNetObjectName(
-                               ((NetObject) it2.next()).instanceDescription());
-                    int ind = descr[cell].indexOf(" in Cell: ");
-                    if (ind > 0) descr[cell] = descr[cell].substring(0, ind).trim();
-                    // limit name length
-                    if (descr[cell].length() > MAX_NAME_LEN)
-                        descr[cell] = descr[cell].substring(0, MAX_NAME_LEN) + "...";
-                    if (it2.hasNext())
-                        descr[cell] = "{ " + descr[cell] + ",...}";
-                    else
-                        descr[cell] = "{ " + descr[cell] + " }";
-                } else
-                    descr[cell] = "{ }";
-                
+            String instDescr = null;
+            if (isHashPrinted) {
+                // for each of the two compared Cells
+                for (Iterator it=mismEqRecs[i].getCircuits(); it.hasNext(); cell++) {
+                    Circuit ckt = (Circuit) it.next();
+                    Iterator it2=ckt.getNetObjs();
+                    if (it2.hasNext()) {
+                        instDescr = ((NetObject) it2.next()).instanceDescription();
+                        descr[cell] = createFirstWireOverview(instDescr, it2.hasNext());
+                    } else
+                        descr[cell] = "{ }";
+                }
+            } else {
+                for (; cell < 2; cell++) {
+                    if (mism[cell].size() == 0) {
+                        descr[cell] = "{ }";
+                    } else if (mism[cell].size() > 0) {
+                        instDescr = ((NetObject)mism[cell].get(0)).instanceDescription();
+                        descr[cell] =  createFirstWireOverview(instDescr, (mism[cell].size() > 1));
+                    }
+                }
             }
             
+            // create count of Wires in the class
             StringBuffer lab3Name = new StringBuffer(24);
             lab3Name.append("[");
-            if (mismEqRecs[i].maxSize() > MAX_LIST_ELEMENTS)
+            
+            int size;
+            if (isHashPrinted)
+                size = mismEqRecs[i].maxSize();
+            else
+                size = Math.max(mism[0].size(), mism[1].size()); 
+            if (size > MAX_LIST_ELEMENTS)
                 lab3Name.append("first " + MAX_LIST_ELEMENTS + " of ");
-            lab3Name.append(mismEqRecs[i].maxSize() + "]");
+            lab3Name.append(size + "]");
             StringBuffer name = new StringBuffer(32);
-
+            
+            // class sequence number 
             labels[0] = new JLabel("#" + count + " : ");
             labels[0].setHorizontalAlignment(SwingConstants.RIGHT);
             name.append(labels[0].getText() + " ");
             maxWidth0 = Math.max(labels[0].getPreferredSize().width, maxWidth0);
             
+            // name of the first Wire from the first Cell
             labels[1] = new JLabel(descr[0]);
             name.append(descr[0] + " ");
             maxWidth1 = Math.max(labels[1].getPreferredSize().width, maxWidth1);
-
+            
+            // name of the first Wire from the second Cell
             labels[2] = new JLabel(descr[1]);
             name.append(descr[1] + " ");
             maxWidth2 = Math.max(labels[2].getPreferredSize().width, maxWidth2);
             
+            // max size of classes (count)
             labels[3] = new JLabel(lab3Name.toString());
             name.append(labels[3].getText());
 
@@ -516,19 +647,40 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             }
 
             data.setFullName(name.toString());
-            wireClassNodes[compNdx][count-1] = new WireClassNode(labels, isLeaf);
+            wireClassNodes[compNdx][count-1] = new WireClassNode(labels, areLeaves);
             if (count == 1) height = labels[0].getPreferredSize().height;
         }
+        // apply the computed dimensions to all Wire class nodes
         if (count > 0) {
             Dimension dim[] = new Dimension[3];
             dim[0] = new Dimension(maxWidth0     , height);
             dim[1] = new Dimension(maxWidth1 + 10, height);
             dim[2] = new Dimension(maxWidth2 + 10, height);
-            for (int i=0; i<count; i++)
-                wireClassNodes[compNdx][i].setTextLabelDimension(dim);
+            for (int j=0; j<count; j++)
+                wireClassNodes[compNdx][j].setTextLabelDimension(dim);
         }
     }
     
+    private String createFirstWireOverview(String instDescr, boolean hasMore) {
+        // get the name of the first Wire in the class
+        String descr = parentPane.cleanNetObjectName(instDescr);
+        int ind = descr.indexOf(" in Cell: ");
+        if (ind > 0) descr = descr.substring(0, ind).trim();
+        // limit name length
+        if (descr.length() > MAX_NAME_LEN)
+            descr = descr.substring(0, MAX_NAME_LEN) + "...";
+        // surround name by brackets
+        if (hasMore) // if more than one Wire belongs to the class
+            descr = "{ " + descr + ",...}";
+        else
+            descr = "{ " + descr + " }";
+        return descr;
+    }
+    
+    /**
+     * This mouse adapter is used to get right mouse click events and
+     * trigger the popup menu.
+     */
     private class TreeMouseAdapter extends MouseAdapter {
         public void mousePressed(MouseEvent e) {
             if (! (e.getButton() == MouseEvent.BUTTON2 
@@ -546,7 +698,12 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         }
     }
     
+    /**
+     * This class is a container of a tree node data. Each DefaultMutableTreeNode in
+     * ComparisonTree has a TreeNode as a data object.  
+     */
     static class TreeNode {
+        /* --- node types ---*/
         public static final int TITLE = 0;
         public static final int COMP_TITLE = 1;
         public static final int EXPORTS = 2;
@@ -560,10 +717,14 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         public static final int EXPORT_CHR_CONF = 10;
         public static final int UNRECOG_PART = 11;
         
-        public final int compNdx, eclass, type;
-        private String fullName;
-        private String shortName;
-        private TreeNode parent;
+        /** comparison index */  public final int compNdx;
+        /** equiv. class     */  public final int eclass;
+        /** type             */  public final int type;
+        /** parent node      */  private TreeNode parent;
+        
+        /** full name. Used in tree node names      */ private String fullName;
+        /** full name. Used in right pane row names */ private String shortName;
+
         /** If this node represents a wire class, then wireClassNum is the 
          * index of this class in EquivRecord array of the corresponding 
          * NccComparisonResult object. Otherwise is -1. */
@@ -582,7 +743,7 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         public void setFullName(String n)   { fullName = n; }
         public void setShortName(String n)  { shortName = n;}
         
-        /** Only for type WIRE */
+        /** Only for nodes with type WIRE */
         public void setWireClassNum(int num) {
             if (type != WIRE) return;
             wireClassNum = num; 
@@ -595,14 +756,24 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
         public String   toString()        { return fullName;     }
     }
     
+    /**
+     * This class encapsulates a Wire class tree node
+     * Specifically, it encapsulates the panel with labels used as its name 
+     */
     private static class WireClassNode {
-        private JPanel treeNodePanel;
-        private JPanel textPanel;
-        private JLabel iconLabel;
-        private JLabel textLabels[];
-        private boolean isLeaf;        
-        private boolean expanded = false, selected = false;
+        /** top-level panel */ private JPanel treeNodePanel;
+        /** text-only panel */ private JPanel textPanel;  
+        /** icon label      */ private JLabel iconLabel;
+        /** text labels     */ private JLabel textLabels[];
+        
+        /** true if node is leaf */     private boolean isLeaf;        
+        /** true if node is expanded */ private boolean expanded = false;
+        /** true if node is selected */ private boolean selected = false;
+        
+        /** true if shared data was initialized */ 
         private static boolean inited = false;
+        
+        /* --- shared data --- */
         private static Color selBackgnd, deselBackgnd, selText, deselText;
         private static Icon leafIcon, openIcon, closedIcon;
         private static Border border = BorderFactory.createEmptyBorder();
@@ -675,7 +846,11 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                 textLabels[j].setPreferredSize(dim[j]);
             }
         }
-
+        
+        /**
+         * Get top-level panel with all labels and icon
+         * @return  the top-level panel to be rendered to a tree node
+         */
         public JPanel getPanel() { return treeNodePanel; }
     }
 }

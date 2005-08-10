@@ -2,7 +2,7 @@
 *
 * Electric(tm) VLSI Design System
 *
-* File: Ncc.java
+* File: ExportAssertionTable.java
 *
 * Copyright (c) 2003 Sun Microsystems and Static Free Software
 *
@@ -37,11 +37,14 @@ import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.user.Highlighter;
 
+/**
+ * This class implements a table for Export Assertion Failures
+ */
 class ExportAssertionTable extends ExportTable {
     
-    ExportAssertionFailures[] failures;
+    protected ExportAssertionFailures[] failures;
     
-    public ExportAssertionTable(NccComparisonMismatches res) {
+    protected ExportAssertionTable(NccComparisonMismatches res) {
         super(res, 2);
         failures = (ExportAssertionFailures[])result.getExportAssertionFailures()
                                        .toArray(new ExportAssertionFailures[0]);
@@ -55,18 +58,22 @@ class ExportAssertionTable extends ExportTable {
     }
 }
 
+/**
+ * This class implements a table model for Export Assertion Failures table
+ */
 class AssertionTableModel extends ExportTableModel {
     ExportAssertionFailures[] failures;
     int[][] cellPrefHeights = parent.cellPrefHeights;
     int[][] cellPrefWidths  = parent.cellPrefWidths;
     String[] colNames = {"Cell", "Exports"};
     
-    public AssertionTableModel(ExportAssertionTable parent) {
+    protected AssertionTableModel(ExportAssertionTable parent) {
         super(parent);
         failures = parent.failures;
         cellPrefHeights = parent.cellPrefHeights;
         cellPrefWidths  = parent.cellPrefWidths;
-
+        
+        // fill table cells with HTML (JEditorPane)
         StringBuffer text = new StringBuffer(64);
         for (int col=0; col<numCols; col++)
             for (int row=0; row<height; row++) {
@@ -104,7 +111,12 @@ class AssertionTableModel extends ExportTableModel {
                 panes[row][col].setBorder(BorderFactory.createEmptyBorder());
             }
     }
-
+    
+    /**
+     * A helper method for printing HTML hyperlinks to table cells.
+     * @param html  buffer to print to
+     * @param row  table row
+     */
     private void appendLinks(StringBuffer html, int row) {
         if (html == null || row < 0 || row > failures.length) return;
         String[][] names = failures[row].getNames();
@@ -124,10 +136,15 @@ class AssertionTableModel extends ExportTableModel {
         }
     }
     
+    /**
+     * Highlight an export with the given index.
+     * @param index  export index
+     */
     protected void highlight(int index) {
-        int item = index%1000;
-        int line = (index/1000)%1000;
-        int row  = index/1000000;
+        // decrypt index
+        int item = index%1000;   // position in line
+        int line = (index/1000)%1000;  // line in cell
+        int row  = index/1000000;  // row in table
         
         ExportAssertionFailures eaf = failures[row];
         Object obj = eaf.getExportsGlobals()[line][item];
@@ -146,10 +163,13 @@ class AssertionTableModel extends ExportTableModel {
         }
         highlighter.finished();
     }
-    
+
+    /**
+     * Get column name
+     * @param col  column
+     * @return name of the column
+     */
     public String getColumnName(int col) {
         return colNames[col];
     }
-    
 }
-

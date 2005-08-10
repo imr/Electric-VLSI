@@ -2,7 +2,7 @@
 *
 * Electric(tm) VLSI Design System
 *
-* File: Ncc.java
+* File: ExportMismatch.java
 *
 * Copyright (c) 2003 Sun Microsystems and Static Free Software
 *
@@ -31,20 +31,24 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Port;
 
+/**
+ * This class is an abstract superclass for Export mismatches
+ */ 
 public abstract class ExportMismatch {
-    public final static int FIRST = 0;
-    public final static int SECOND = 1;
+   
+    /** Cell names     */ protected String desingNames[] = new String[2];
+    /** Compared Cells */ protected Cell[] cells = new Cell[2];
+    /** Conetexts      */ protected VarContext[] contexts = new VarContext[2];
     
-    protected String desingNames[] = new String[2];
-    protected Cell[] cells = new Cell[2];
-    protected VarContext[] contexts = new VarContext[2];
-    protected boolean topologyMatch;
-    protected boolean nameMatch;
+    /** is this a topology mismatch? */ protected boolean topologyMatch;
+    /** is this a name mismatch?     */ protected boolean nameMatch;
+    
+    /** is this mismatch valid only when topology mismatch? 
+     *  Used to avoid duplication with suggested matches which are 
+     *  given when topology matches */
     protected boolean validOnlyWhenTopologyMismatch;
 
-    public ExportMismatch() {
-        init();
-    }
+    public ExportMismatch() { init(); }
     
     public ExportMismatch(String name1, String name2) {
         desingNames[0] = name1;
@@ -58,57 +62,73 @@ public abstract class ExportMismatch {
         validOnlyWhenTopologyMismatch = false;        
     }
     
+    /**
+     * Get Cell name
+     * @param index  Cell index: 0 or 1
+     * @return Cell name for the given index or null if index is invalid
+     */
     public String getName(int index) {
+        if (index != 0 && index != 1) return null;
         return desingNames[index];
     }
-
-    public void setName(int index, String name) {
-        desingNames[index] = name;
-    }
-
+    
+    /**
+     * Set names of the compared Cels (designs). Has no effect on the names 
+     * stored in the Cells themselves.
+     * @param name1  new name for the first design 
+     * @param name2  new name for the second design
+     */
     public void setNames(String name1, String name2) {
         desingNames[0] = name1;
         desingNames[1] = name2;
     }    
     
+    /**
+     * Get Cell with the given design index.
+     * @param index  design index: 0 or 1
+     * @return  Cell with the given index or null if index is invalid
+     */
     public Cell getCell(int index) {
+        if (index != 0 && index != 1) return null;
         return cells[index];
     }
-
-    public void setCell(int index, Cell cell) {
-        cells[index] = cell;
-    }
-
+    
+    /**
+     * Set compared Cells (designs). 
+     * @param name1  new first design Cell 
+     * @param name2  new second design Cell
+     */
     public void setCells(Cell cell1, Cell cell2) {
         cells[0] = cell1;
         cells[1] = cell2;
     }    
-    
+
+    /**
+     * Get Context with the given design index.
+     * @param index  design index: 0 or 1
+     * @return  Context with the given index or null if index is invalid
+     */
     public VarContext getContext(int index) {
+        if (index != 0 && index != 1) return null;        
         return contexts[index];
     }
 
-    public void setContext1(int index, VarContext cnxt) {
-        contexts[index] = cnxt;
-    }
-
+    /**
+     * Set Contexts of the compared Cells (designs). 
+     * @param name1  new Context for the first Cell 
+     * @param name2  new Context for the second Cell
+     */
     public void setContexts(VarContext cnxt1, VarContext cnxt2) {
         contexts[0] = cnxt1;
         contexts[1] = cnxt2;
     }
     
-    public boolean isTopologyMatch() {
-        return topologyMatch;
-    }
-
+    public boolean isTopologyMatch() { return topologyMatch; }
     public void setTopologyMatch(boolean topologyMatch) {
         this.topologyMatch = topologyMatch;
     }
-    
-    public boolean isNameMatch() {
-        return nameMatch;
-    }
 
+    public boolean isNameMatch()     { return nameMatch; }
     public void setNameMatch(boolean nameMatch) {
         this.nameMatch = nameMatch;
     }
@@ -121,30 +141,51 @@ public abstract class ExportMismatch {
         validOnlyWhenTopologyMismatch = valid;
     }
     
-    
+    /**
+     * This class implements a zero-to-one, zero-to-many, one-to-many, and
+     * many-to-many Export mismatch. 
+     */
     public static class MultiMatch extends ExportMismatch{
-        private ArrayList ports[] = {new ArrayList(), new ArrayList()};  // set of ports
-
+        /** Lists of mismatched exports in each Cells.
+         * The stored objects are Ports on which mismatched Exports are */
+        private ArrayList ports[] = {new ArrayList(), new ArrayList()};
+        
+        /**
+         * Add a mismatched Port. 
+         * @param listIndex  Cell index
+         * @param port  Port to add
+         */
         public void add(int listIndex, Port port) {
             ports[listIndex].add(port);
         }
+        
+        /**
+         * Add all mismatched Ports in the proviede set 
+         * @param listIndex  Cell index
+         * @param portSet  Ports to add
+         */
         public void add(int listIndex, Set portSet) {
             ports[listIndex].addAll(portSet);
         }
+        
+        /**
+         * Get all Ports for a given Cell 
+         * @param index  Cell index
+         * @return the list with all Posrt for the Cell with the given index 
+         */
         public ArrayList getAll(int index) {
             return ports[index];
         }
     }
     
     
+    /**
+     * This class is a container for a suggested Export match.   
+     */
     public static class NameMismatch extends ExportMismatch {
-        public static final int EXPORTEXPORT = 0;
-        public static final int EXPORTWIRE = 1;
-        public static final int WIREEXPORT = 2;
-
-        private int type;
-        private Port exp1;
-        private NetObject exp2;  // Port or Wire
+        /** Mismatched Export in the first design */ private Port exp1;
+        /** Suggested match in the second design  */ private NetObject exp2;
+                                                     // exp2 is Port or Wire
         
         public NameMismatch() {
             nameMatch = false;
@@ -156,19 +197,22 @@ public abstract class ExportMismatch {
             nameMatch = false;
             topologyMatch = true;
         }
-        public int       getType()        { return type; }
         public Port      getFirstExport() { return exp1; }
         public NetObject getSuggestion()  { return exp2; }
         
-        public void setType(int type)             { this.type = type; }
         public void setFirstExport(Port exp1)     { this.exp1 = exp1; }
         public void setSuggestion(NetObject exp2) { this.exp2 = exp2; }
     }
 
-    
+
+    /**
+     * This class is a container for a topological Export mismatch. 
+     * It also might have a suggested Export match.   
+     */
     public static class TopologyMismatch extends ExportMismatch{
-        private Port exp1, exp2;
-        private NetObject sug = null;  // Port or Wire
+        /** Mismatched Exports           */ private Port exp1, exp2;
+        /** Suggestion in the 2nd design */ private NetObject sug = null;
+                                            // sug is Port or Wire
         
         public TopologyMismatch() {
             nameMatch = true;

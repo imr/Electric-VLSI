@@ -3,6 +3,8 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03c: *********************************
+IMP: (08/10/05, IM) NCC GUI: Segregated matched and mismatched Parts/Wires in
+     equivalence classes. Mimatches are printed in red, matches in green.
 
 BUG: (08/09/05, GVG) Stack overflow in CrossLibCopy while moving cell with subcells, related views and delete after (Bug #448)
 FIX: allRelatedViewsThisLevel instead of allRelatedViews in one CrossLibCopy.copyRecursively() inside that function

@@ -2,7 +2,7 @@
 *
 * Electric(tm) VLSI Design System
 *
-* File: Ncc.java
+* File: SizeMismatchPane.java
 *
 * Copyright (c) 2003 Sun Microsystems and Static Free Software
 *
@@ -165,8 +165,6 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
     }
   
     private JPanel createRow(int rowNdx) {
-        //if (rowNdx < 0) return createHeader();
-        
         // create the main container of this row
         JPanel row = new JPanel(new BorderLayout());
         String relErr;        
@@ -220,8 +218,7 @@ class SizeMismatchPane extends JPanel implements HyperlinkListener, AdjustmentLi
                 params[0] = "Wid";
                 params[1] = "Len";
                 String titles[] = result.getNames();
-                name = "Name in " + titles[line].substring(titles[line].length()-4, 
-                                                           titles[line].length()-1);
+                name = "Name in " + titles[line];
             } else {
                 params[0] = NccUtils.round(getWidth(parts[rowNdx][line]),2) + ""; 
                 params[1] = NccUtils.round(getLength(parts[rowNdx][line]),2) + "";

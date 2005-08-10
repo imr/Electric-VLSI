@@ -2,7 +2,7 @@
 *
 * Electric(tm) VLSI Design System
 *
-* File: Ncc.java
+* File: ExportMismatchTable.java
 *
 * Copyright (c) 2003 Sun Microsystems and Static Free Software
 *
@@ -40,14 +40,17 @@ import com.sun.electric.tool.ncc.netlist.Port;
 import com.sun.electric.tool.ncc.netlist.Wire;
 import com.sun.electric.tool.user.Highlighter;
 
+/**
+ * This class implements the tbale for Export mismatches
+ */
 class ExportMismatchTable extends ExportTable {
 
-    ExportMismatch[] matches;
+    ExportMismatch[] mismatches;
     
     public ExportMismatchTable(NccComparisonMismatches res) {
         super(res, 2);
         height = Math.min(result.getValidExportMismatchCount(), MAXROWS);
-        matches = new ExportMismatch[height];
+        mismatches = new ExportMismatch[height];
         setup();
         
         boolean topoOK = result.isTopologyMatch();
@@ -56,7 +59,7 @@ class ExportMismatchTable extends ExportTable {
         for (Iterator it = result.getExportMismatches().iterator(); it.hasNext() && row<height;) {
             ExportMismatch em = (ExportMismatch)it.next();
             if (topoOK && em.isValidOnlyWhenTopologyMismatch()) continue;
-            matches[row] = em;
+            mismatches[row] = em;
             row++;
         }
         
@@ -67,13 +70,23 @@ class ExportMismatchTable extends ExportTable {
     }
 }
 
+/**
+ * This class implements the model for the Export mismatch table
+ */
 class MismatchTableModel extends ExportTableModel {
+    /**
+     * Each item in array indicates whether cells in the corresponding 
+     * row should be switched  
+     */
     private boolean swapCells[];
-    private ExportMismatch[] matches;
+    /**
+     * Array of mismatches
+     */
+    private ExportMismatch[] mismatches;
     
     public MismatchTableModel(ExportMismatchTable parent) {
         super(parent);
-        matches = parent.matches;
+        mismatches = parent.mismatches;
         int[][] cellPrefHeights = parent.cellPrefHeights;
         int[][] cellPrefWidths  = parent.cellPrefWidths;
         swapCells = new boolean[height];
@@ -81,48 +94,55 @@ class MismatchTableModel extends ExportTableModel {
         Border border = BorderFactory.createEmptyBorder();
         StringBuffer html = new StringBuffer(64);
         
+        // fill swap array
         for (int row=0; row<height; row++) {
-            if (matches[row].getName(0).equals(parent.result.getNames()[0])) {
+            // if first design in the mismatch object has the same name as
+            // the first design in the parent result object, then don't swap.
+            // Otherwise swap
+            if (mismatches[row].getName(0).equals(parent.result.getNames()[0])) {
                 swap = 0;
+                swapCells[row] = false;
             } else {
                 swap = 1;
                 swapCells[row] = true;
             }
+            // fill cells with hyperliked Export lists
             for (int j=0; j<2; j++, cellNdx++) {
                 html.setLength(0);
                 html.append("<html><font size=3><font face=\"Helvetica, TimesRoman\">");
                 int lineNdx = cellNdx*10000;
-                if (matches[row] instanceof ExportMismatch.MultiMatch) {
-                    List ports = ((ExportMismatch.MultiMatch)matches[row]).getAll((j+swap)%2);
+                if (mismatches[row] instanceof ExportMismatch.MultiMatch) {
+                    List ports = ((ExportMismatch.MultiMatch)mismatches[row]).getAll((j+swap)%2);
+                    // each Port has a list of Exports which are printed as hyperlinked list
                     for (Iterator it=ports.iterator(); it.hasNext();) {
                         appendNameOf((Port)it.next(), html, lineNdx, false, null);
                         if (it.hasNext()) html.append("<br>" + LSEP);
                         lineNdx++;
                         cellPrefHeights[row][j] += ExportTable.LINEHEIGHT;
                     }
-                } else if (matches[row] instanceof ExportMismatch.NameMismatch) {
+                } else if (mismatches[row] instanceof ExportMismatch.NameMismatch) {
                     if (j == swap) {
-                        Port port = ((ExportMismatch.NameMismatch)matches[row]).getFirstExport(); 
+                        Port port = ((ExportMismatch.NameMismatch)mismatches[row]).getFirstExport(); 
                         appendNameOf(port, html, lineNdx, false, null);
                     } else {
-                        NetObject no = ((ExportMismatch.NameMismatch)matches[row]).getSuggestion();
+                        NetObject no = ((ExportMismatch.NameMismatch)mismatches[row]).getSuggestion();
                         appendNameOf(no, html, lineNdx, true, ExportTable.GREEN);
                     }
                     lineNdx++;
                     cellPrefHeights[row][j] += ExportTable.LINEHEIGHT;
-                } else if (matches[row] instanceof ExportMismatch.TopologyMismatch) {
+                } else if (mismatches[row] instanceof ExportMismatch.TopologyMismatch) {
                     Port port;
                     if (j == swap) {
-                        port = ((ExportMismatch.TopologyMismatch)matches[row]).getFirstExport();
+                        port = ((ExportMismatch.TopologyMismatch)mismatches[row]).getFirstExport();
                         appendNameOf(port, html, lineNdx, true, ExportTable.RED);
                     } else {
-                        port = ((ExportMismatch.TopologyMismatch)matches[row]).getSecondExport();
+                        port = ((ExportMismatch.TopologyMismatch)mismatches[row]).getSecondExport();
                         appendNameOf(port, html, lineNdx, true, ExportTable.RED);
                     }
                     lineNdx++;
-                    if (j != swap) {
-                        NetObject no = ((ExportMismatch.TopologyMismatch)matches[row]).getSuggestion();
-                        if (no != null) {
+                    if (j != swap) { // if a cell in the right column
+                        NetObject no = ((ExportMismatch.TopologyMismatch)mismatches[row]).getSuggestion();
+                        if (no != null) {  // if suggestion exists
                             html.append("<br>");
                             appendNameOf(no, html, lineNdx, true, ExportTable.GREEN);
                             lineNdx++;
@@ -153,6 +173,17 @@ class MismatchTableModel extends ExportTableModel {
         }
     }
     
+    /**
+     * If the provieded NetObject is a Port, then print all Exports 
+     * corresponding to it. If the NetObject is a Wire, print its name.
+     * @param no  Port or Wire
+     * @param html  buffer to print to
+     * @param lineNdx  line number on which this text is going to appear 
+     * in the parent table cell. Used to create hyperlink indices
+     * @param doColoring  paint text to the provided Color if this is true.
+     * Print in default color otherwise.
+     * @param sugColor  text color
+     */
     protected void appendNameOf(NetObject no, StringBuffer html, 
             int lineNdx, boolean doColoring, String sugColor) {
         String href = "<a style=\"text-decoration: none\" href=\"";
@@ -178,20 +209,33 @@ class MismatchTableModel extends ExportTableModel {
             if (doColoring) html.append("</font>");
         }
     }
-
+    
+    /**
+     * Detect whether a Port in mismamatch has noo Exports.
+     * If no Exports exist then the Port has  an implied Export  
+     * @param port  Port to test
+     * @return true if Port has only an implied Export, false otherwise
+     */
     protected boolean isImplied(Port port) {
         Iterator it=port.getWire().getNameProxy().getNet().getExports();
         if (it.hasNext()) return false;
         return true;
     }
     
+    /**
+     * Highlight Exportson Port with the provided index. 
+     * Index encodes table row, table column, and line number inside 
+     * the table cell on which the Port is printed  
+     * @param index  Port index
+     */
     protected void highlight(int index) {
+        // decode index
         int line = index%10000;
         int row = (index/10000)/2;
         int col = (index/10000)%2;
         if (swapCells[row]) col = (col+1)%2;
         
-        ExportMismatch em = matches[row];            
+        ExportMismatch em = mismatches[row];            
         Cell cell = em.getCell(col);
         VarContext context = em.getContext(col);
         
@@ -204,6 +248,7 @@ class MismatchTableModel extends ExportTableModel {
             List ports = ((ExportMismatch.MultiMatch)em).getAll(col);
             int i;
             Iterator it;
+            // go to the necessary line
             for (it=ports.iterator(), i=0; it.hasNext()&&i<line; i++,it.next());
             Port port = (Port)it.next();
             HighlightTools.highlightPortExports(highlighter, cell, port);
@@ -226,7 +271,7 @@ class MismatchTableModel extends ExportTableModel {
             } else if (line == 0) {
                 port2 = ((ExportMismatch.TopologyMismatch)em).getSecondExport();
                 HighlightTools.highlightPortExports(highlighter, cell, port2);
-            } else if (line == 1) {
+            } else if (line == 1) {  // the second line has a suggestion
                 portOrWire = ((ExportMismatch.TopologyMismatch)em).getSuggestion();
                 HighlightTools.highlightPortOrWire(highlighter, cell, portOrWire);
             }
@@ -234,6 +279,11 @@ class MismatchTableModel extends ExportTableModel {
         highlighter.finished();
     }
     
+    /**
+     * Get column name
+     * @param col  column
+     * @return name of the column
+     */ 
     public String getColumnName(int col) {
         return parent.result.getNames()[col];
     }

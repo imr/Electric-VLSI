@@ -2,7 +2,7 @@
 *
 * Electric(tm) VLSI Design System
 *
-* File: Ncc.java
+* File: ComparisonsPane.java
 *
 * Copyright (c) 2003 Sun Microsystems and Static Free Software
 *
@@ -31,6 +31,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Vector;
@@ -51,15 +52,21 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.tool.ncc.netlist.NetObject;
 import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Wire;
+import com.sun.electric.tool.ncc.processing.LocalPartitionResult;
 import com.sun.electric.tool.ncc.trees.Circuit;
 import com.sun.electric.tool.ncc.trees.EquivRecord;
 import com.sun.electric.tool.user.Highlighter;
 import com.sun.electric.tool.user.ncc.ComparisonsTree.TreeNode;
 import com.sun.electric.tool.user.ncc.NccComparisonMismatches.CellSummary;
 
+/**
+ * This class implements the right side of the NCC GUI window.
+ * It is a placeholder for tables of different types, such as Exports, 
+ * Equivalence Classes, Sizes, etc.
+ */
 class ComparisonsPane extends JSplitPane implements ActionListener {
     
-    /* --- constants --- */
+    /* what is currently displayed */
     private static final int EMPTY = 0;
     private static final int COMP_SUMMARY = 1;
     private static final int EXPORTS = 2;
@@ -70,12 +77,14 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     private static final int EXPORT_CHR_CONF = 7;
     private static final int UNRECOG_PART = 8;
     
+    /** max number of concurrent equiv. classes */ 
     private static final int MAX_CONCUR_EQ_RECS = 5;
+    
     private static final String emptyStr = " ";
     private static final String LSEP = System.getProperty("line.separator");
     
     /* --- GUI variables --- */
-    String defaultTitles[] = {emptyStr, emptyStr};
+    protected String defaultTitles[] = {emptyStr, emptyStr};
     private String treeTitle = "  Mismatched Comparisons";
     private JLabel treeLabel = new JLabel(treeTitle);
     private ComparisonsTree tree;
@@ -84,26 +93,39 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     
     private static Border border = BorderFactory.createEmptyBorder();
     
+    /* tables corresponding to different tree node types */
     private JScrollPane exportsPanes[];    
     private JScrollPane exportAssertionsPanes[];
     private JScrollPane exportNetConflictPanes[];
     private JScrollPane exportChrConflictPanes[];
     private JScrollPane unrecognizedMOSPanes[];
     private EquivClassSplitPane rightSplPanes[];
-    
     private JPanel sizesPanes[];
+    
+    /** Right-click popup for a tree node */
     protected JPopupMenu treePopup;
+    
+    /** Right-click popup for a table cell */
     protected JPopupMenu cellPopup;
     protected String clipboard;
     
     /* --- Data holders --- */
+    /** Current list of mismatched comparisons */
     private NccComparisonMismatches mismatches[];
+    /** Current list of Wire/Part equiv. classes with mismatches */
     private EquivRecord mismEqRecs[][];
-    private Vector curEqRecNodes = new Vector();  // vector of TreeNode
+    /** Mismatched NetObjects in current EquivRecords */
+    private ArrayList[] mismNetObjs[][];
+    /** Matched NetObjects in current EquivRecords */    
+    private ArrayList[] matchedNetObjs[][];
+    /** Vector of currently selected equiv. class TreeNode objects */
+    private Vector curEqRecNodes = new Vector();
+    /** Vector of equiv. class TreeNode objects that should be displayed */
     private Vector curEqRecNodesToDisplay = new Vector();
-    // Exclusive nodes are those requiring exclusive access to the right pane.
-    // Any node except for EquivRecord and TITLE is an exclusive one.
-    private Vector curExlusiveNodes = new Vector(); // vector of TreeNode
+    /** Vector of currently selected exclusive TreeNode objects 
+      Exclusive nodes are those requiring exclusive access to the right pane.
+      All nodes except for EquivRecord and TITLE are exclusive. */
+    private Vector curExlusiveNodes = new Vector(); 
     
     public ComparisonsPane() {
         super(JSplitPane.HORIZONTAL_SPLIT);
@@ -129,10 +151,14 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         setLeftComponent(leftPanel);
     }
     
+    /** Set the current set of mismatches to the provided one */
     public void setMismatches(List misms) {
         mismatches = 
             (NccComparisonMismatches[])misms.toArray(new NccComparisonMismatches[0]);
+        // allocate arrays of for tables
         mismEqRecs = new EquivRecord[mismatches.length][];
+        mismNetObjs = new ArrayList[mismatches.length][][];
+        matchedNetObjs = new ArrayList[mismatches.length][][];
         exportsPanes = new JScrollPane[mismatches.length];
         exportAssertionsPanes = new JScrollPane[mismatches.length];
         exportNetConflictPanes = new JScrollPane[mismatches.length];
@@ -140,6 +166,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         unrecognizedMOSPanes = new JScrollPane[mismatches.length];
         sizesPanes = new JPanel[mismatches.length];
         
+        // clear lists of selected/displayed TreeNode objects 
         curEqRecNodes.clear();
         curEqRecNodesToDisplay.clear();
         curExlusiveNodes.clear();
@@ -161,10 +188,29 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         getExportsPane(0);  // preload exports of the first comparison
     }
     
-    void setMismatchEquivRecs(int compNdx, EquivRecord[] equivRecs) {
+    /** 
+     * Set the array of Part/Wire equiv. classes for comparison number compNdx
+     * @param compNdx index of the comparison
+     * @param equivRecs array of equiv. classes
+     */
+    protected void setMismatchEquivRecs(int compNdx, EquivRecord[] equivRecs) {
         mismEqRecs[compNdx] = equivRecs;
+        mismNetObjs[compNdx] = new ArrayList[equivRecs.length][];
+        matchedNetObjs[compNdx] = new ArrayList[equivRecs.length][];
     }
 
+    /** 
+     * Get the array of Part/Wire equiv. classes for comparison number compNdx
+     * @param compNdx  index of the comparison
+     * @return  array of equiv. classes
+     */
+    protected EquivRecord[] getMismatchEquivRecs(int compNdx) {
+        return mismEqRecs[compNdx];
+    }    
+    
+    /**
+     * Reset the content of the right pane to empty
+     */
     private void resetRightPane() {
         // reset right pane view
         int divPos = getDividerLocation();
@@ -177,6 +223,11 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         dispOnRight = EMPTY;
     }
     
+    /**
+     * Get the Exports table for comparison number compNdx
+     * @param compNdx  comparison index
+     * @return Exports table wrapped into a JScrollPane
+     */
     private JScrollPane getExportsPane(int compNdx) {
         if (compNdx < 0 || compNdx >= exportsPanes.length) return null;
         if (exportsPanes[compNdx] == null) {
@@ -187,6 +238,11 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         return exportsPanes[compNdx];
     }
 
+    /**
+     * Get the Export Assertions table for comparison number compNdx
+     * @param compNdx  comparison index
+     * @return Export Assertions table wrapped into a JScrollPane
+     */
     private JScrollPane getExportAssertionPane(int compNdx) {
         if (compNdx < 0 || compNdx >= exportAssertionsPanes.length) return null;
         if (exportAssertionsPanes[compNdx] == null) {
@@ -197,6 +253,11 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         return exportAssertionsPanes[compNdx];
     }    
 
+    /**
+     * Get the Export/Global Network Conflict table for comparison number compNdx
+     * @param compNdx  comparison index
+     * @return Export/Global Network Conflict table wrapped into a JScrollPane
+     */
     private JScrollPane getExportNetConflictPane(int compNdx) {
         if (compNdx < 0 || compNdx >= exportNetConflictPanes.length) return null;
         if (exportNetConflictPanes[compNdx] == null) {
@@ -208,6 +269,11 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         return exportNetConflictPanes[compNdx];
     }    
 
+    /**
+     * Get the Export/Global Characteristics Conflict table for comparison number compNdx
+     * @param compNdx  comparison index
+     * @return Export/Global Characteristics Conflict table wrapped into a JScrollPane
+     */
     private JScrollPane getExportChrConflictPane(int compNdx) {
         if (compNdx < 0 || compNdx >= exportChrConflictPanes.length) return null;
         if (exportChrConflictPanes[compNdx] == null) {
@@ -219,6 +285,11 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         return exportChrConflictPanes[compNdx];
     }    
 
+    /**
+     * Get the Unrecognized Parts table for comparison number compNdx
+     * @param compNdx  comparison index
+     * @return Unrecognized Parts table wrapped into a JScrollPane
+     */
     private JScrollPane getUnrecognizedMOSPane(int compNdx) {
         if (compNdx < 0 || compNdx >= unrecognizedMOSPanes.length) return null;
         if (unrecognizedMOSPanes[compNdx] == null) {
@@ -229,6 +300,11 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         return unrecognizedMOSPanes[compNdx];
     }    
     
+    /**
+     * Get the Sizes table for comparison number compNdx
+     * @param compNdx  comparison index
+     * @return Sizes table wrapped into a JScrollPane
+     */
     private JPanel getSizesPane(int compNdx) {
         if (compNdx < 0 || compNdx >= sizesPanes.length) return null;        
         if (sizesPanes[compNdx] == null)
@@ -236,6 +312,13 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         return sizesPanes[compNdx];
     }        
     
+    /**
+     * Notify Comparisons Pane that the tree selection has changed. The supplied 
+     * TreeNode was either added (added is true) or removed (added is false) 
+     * from the current selection
+     * @param node  a TreeNode whose state has changed
+     * @param added  true if the node was added, false otherwise
+     */
     public void treeSelectionChanged(TreeNode node, boolean added) {
         if (node == null) return;
         int type = node.type;
@@ -259,10 +342,15 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
                 curExlusiveNodes.add(node);
         }
     }
-
+    
+    /**
+     * Update right pane. Content of the pane depends on the current tree selection
+     * and should be updated every time the selection changes.
+     */
     public void updateRightPane() {
         int divPos = getDividerLocation();        
-        if (curExlusiveNodes.size() > 0) {
+        if (curExlusiveNodes.size() > 0) {  // if an exclusive node is selected
+            // get the first node (it is selected for the longest time)
             TreeNode exNode = (TreeNode)curExlusiveNodes.firstElement();
             int exType = exNode.type;
             switch (exType) {
@@ -295,81 +383,185 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
                     setRightComponent(getUnrecognizedMOSPane(exNode.compNdx));
                     break;                                        
             }
-            setDividerLocation(divPos);
+            setDividerLocation(divPos); // restore divider position
             return;
-        } else if (curEqRecNodes.size() == 0) {
-            resetRightPane();
+        } else if (curEqRecNodes.size() == 0) {  // if no equiv. class is selcted
+            resetRightPane();  // display an empty rigth pane
             return;            
         }
-         
+        
+        // the right pane will display one or more equiv. classes
         dispOnRight = PARTS_WIRES;
-
+        
+        // get equiv. classes to be displayed
         curEqRecNodesToDisplay.clear();
-        int i = 0;        
+        int i = 0;
         for (Iterator it=curEqRecNodes.iterator(); it.hasNext() && i<MAX_CONCUR_EQ_RECS;) {
             TreeNode eqRecNode = (TreeNode)it.next();
-            if (curEqRecNodesToDisplay.contains(eqRecNode)) continue; // if not already displayed
+            if (curEqRecNodesToDisplay.contains(eqRecNode)) continue; // skip if already displayed
             curEqRecNodesToDisplay.add(eqRecNode);
             i++;
         }
+        // get a pane with proper number of rows
         EquivClassSplitPane rightSplPane = rightSplPanes[curEqRecNodesToDisplay.size()-1]; 
         i = 0;
+        // fill pane with data row by row 
         for (Iterator it=curEqRecNodesToDisplay.iterator(); it.hasNext(); i++) {
             TreeNode eqRecNode = (TreeNode)it.next();
-            EquivRecord eqRec = mismEqRecs[eqRecNode.compNdx][eqRecNode.eclass];
             String partitionTitle = eqRecNode.getParent().getShortName() + " : "
                                   + eqRecNode.getShortName();
             rightSplPane.setPartitionTitle(i, partitionTitle);
-            
-            int swap = 0;
-            if (mismatches[eqRecNode.compNdx].isSwapCells()) swap = 1;
-            
-            String href = "<a style=\"text-decoration: none\" href=\"";
-            StringBuffer html = new StringBuffer(256);
-            int cell = 0;
-            for (Iterator it2=eqRec.getCircuits(); it2.hasNext(); cell++) {
-                int ndx = (cell + swap)%2;
-                StringBuffer curCellText = rightSplPane.getCellPlainTextBuffer(i,ndx);
-                curCellText.setLength(0);
-                html.setLength(0);
-                // Other fonts: Courier, Dialog, Helvetica, TimesRoman, Serif
-                html.append("<html><FONT SIZE=3><FONT FACE=\"Helvetica, TimesRoman\">");
-                
-                Circuit ckt = (Circuit) it2.next();
-                int len = ckt.numNetObjs();
-    
-                Iterator it3=ckt.getNetObjs();
-                for (int k=0; it3.hasNext() && k<ComparisonsTree.MAX_LIST_ELEMENTS; k++) {
-                    String descr = cleanNetObjectName(
-                               ((NetObject) it3.next()).instanceDescription());
-                    
-                    html.append(href + (i*100000 + cell*10000 + k) +"\">"+ descr + "</a>");
-                    curCellText.append(descr);
-                    if (it3.hasNext() && k<ComparisonsTree.MAX_LIST_ELEMENTS) {
-                        html.append("<br>");
-                        curCellText.append(LSEP);
-                    }
-                }
-                if (len == 0) {
-                    html.append("<b>none</b>");
-                    curCellText.append("none");
-                }
-                
-                html.append("</font></html>");
-                rightSplPane.setCellText(i,ndx,html.toString());
-                            
-                String title = mismatches[eqRecNode.compNdx].getNames()[ndx];
-                if (eqRecNode.type == TreeNode.WIRE)
-                    rightSplPane.setLabelText(i,ndx, "  "+ len +" Wire(s) in " + title);
-                else
-                    rightSplPane.setLabelText(i,ndx, "  "+ len +" Part(s) in " + title);
-            }
+            if (mismatches[eqRecNode.compNdx].isHashFailuresPrinted())
+                fillHashPartitionResults(eqRecNode, rightSplPane, i);
+            else
+                fillLocalPartitionResults(eqRecNode, rightSplPane, i);
         }
         setRightComponent(rightSplPane);
         setDividerLocation(divPos);
         rightSplPane.updateLayout();
     }
+    
+    /**
+     * Fill the provided split cell with parts or wires from compared cells that 
+     * belong to the local partitioning equivalence class identified by 
+     * the provided tree node.  
+     * @param node  tree node
+     * @param pane  split pane
+     * @param row  row in the split pane (>1 rows if >1 node selected)
+     */
+    private void fillLocalPartitionResults(TreeNode node, EquivClassSplitPane pane, int row) {
+        int swap = 0;
+        if (mismatches[node.compNdx].isSwapCells()) swap = 1;
+        EquivRecord eqRec = mismEqRecs[node.compNdx][node.eclass];
+        LocalPartitionResult lpr = mismatches[node.compNdx].getLocalPartitionResult();
+        
+        ArrayList[] mism = lpr.getNotMatchedNetObjs(eqRec);
+        mismNetObjs[node.compNdx][node.eclass] = mism;
+        ArrayList[] matched = lpr.getMatchedNetObjs(eqRec);
+        matchedNetObjs[node.compNdx][node.eclass] = matched;
+        
+        String href = "<a style=\"text-decoration: none\" href=\"";
+        StringBuffer html = new StringBuffer(256);
+        for (int cell=0; cell<2; cell++) {
+            int ndx = (cell + swap)%2;
+            StringBuffer curCellText = pane.getCellPlainTextBuffer(row,ndx);
+            curCellText.setLength(0);
+            html.setLength(0);
+            // fonts: Courier, Dialog, Helvetica, TimesRoman, Serif
+            html.append("<html><FONT SIZE=3><FONT FACE=\"Helvetica, TimesRoman\">");
+            
+            // mismatched netobjects (printed in red)
+            if (mism[ndx].size() > 0) {
+                html.append("<font COLOR=\"red\">");
+                for (int k=0; k<mism[ndx].size() && k<ComparisonsTree.MAX_LIST_ELEMENTS; k++) {
+                    String descr = cleanNetObjectName(
+                               ((NetObject) mism[ndx].get(k)).instanceDescription());
+                    
+                    html.append(href + (row*100000 + ndx*10000 + k) +"\">"+ descr + "</a>");
+                    curCellText.append(descr);
+                    html.append("<br>");
+                    curCellText.append(LSEP);
+                }
+                html.append("</font>");
+            }
+            // if this cell has fewer mismatches than the other one
+            // and matches are going to printed in this cell, then add empty lines
+            int sizeDiff = mism[(ndx+1)%2].size() - mism[ndx].size();
+            if (matched[ndx].size() > 0) while (sizeDiff-- > 0) {
+                html.append("<br>");
+                curCellText.append(LSEP);
+            }
+           
+            // matched netobjects  (printed in green)
+            if (matched[ndx].size() > 0) {
+                html.append("<font COLOR=\"green\">");
+                for (int k=0; k<matched[ndx].size() && k<ComparisonsTree.MAX_LIST_ELEMENTS; k++) {
+                    String descr = cleanNetObjectName(
+                               ((NetObject) matched[ndx].get(k)).instanceDescription());
+                    
+                    html.append(href + (row*100000 + ndx*10000 + (mism[ndx].size()+k)) 
+                                + "\">"+ descr + "</a>");
+                    curCellText.append(descr);
+                    html.append("<br>");
+                    curCellText.append(LSEP);
+                }
+                html.append("</font>");
+            }
+            int len = mism[ndx].size() + matched[ndx].size();
+            // if nothing was printed, then print "none"
+            if (len == 0) {
+                html.append("<b>none</b>");
+                curCellText.append("none");
+            }
+            
+            html.append("</font></html>");
+            pane.setCellText(row,ndx,html.toString());
+                        
+            String title = mismatches[node.compNdx].getNames()[ndx];
+            if (node.type == TreeNode.WIRE)
+                pane.setLabelText(row,ndx, "  "+ len +" Wire(s) in " + title);
+            else
+                pane.setLabelText(row,ndx, "  "+ len +" Part(s) in " + title);
+        }
+    }
 
+    /**
+     * Fill the provided split cell with parts or wires from compared cells that 
+     * belong to the hashcode equivalence class identified by the provided tree node.  
+     * @param node  tree node
+     * @param pane  split pane
+     * @param row  row in the split pane (>1 rows if >1 node selected)
+     */
+    private void fillHashPartitionResults(TreeNode node, EquivClassSplitPane pane, int row) {
+        int swap = 0;
+        if (mismatches[node.compNdx].isSwapCells()) swap = 1;
+        EquivRecord eqRec = mismEqRecs[node.compNdx][node.eclass];
+        
+        String href = "<a style=\"text-decoration: none\" href=\"";
+        StringBuffer html = new StringBuffer(256);
+        int cell = 0;
+        for (Iterator it2=eqRec.getCircuits(); it2.hasNext(); cell++) {
+            int ndx = (cell + swap)%2;
+            StringBuffer curCellText = pane.getCellPlainTextBuffer(row,ndx);
+            curCellText.setLength(0);
+            html.setLength(0);
+            // fonts: Courier, Dialog, Helvetica, TimesRoman, Serif
+            html.append("<html><FONT SIZE=3><FONT FACE=\"Helvetica, TimesRoman\">");
+            
+            Circuit ckt = (Circuit) it2.next();
+            int len = ckt.numNetObjs();
+
+            Iterator it3=ckt.getNetObjs();
+            for (int k=0; it3.hasNext() && k<ComparisonsTree.MAX_LIST_ELEMENTS; k++) {
+                String descr = cleanNetObjectName(
+                           ((NetObject) it3.next()).instanceDescription());
+                
+                html.append(href + (row*100000 + cell*10000 + k) +"\">"+ descr + "</a>");
+                curCellText.append(descr);
+                html.append("<br>");
+                curCellText.append(LSEP);
+            }
+            if (len == 0) {
+                html.append("<b>none</b>");
+                curCellText.append("none");
+            }
+            
+            html.append("</font></html>");
+            pane.setCellText(row,ndx,html.toString());
+                        
+            String title = mismatches[node.compNdx].getNames()[ndx];
+            if (node.type == TreeNode.WIRE)
+                pane.setLabelText(row,ndx, "  "+ len +" Wire(s) in " + title);
+            else
+                pane.setLabelText(row,ndx, "  "+ len +" Part(s) in " + title);
+        }
+    }
+    
+    /**
+     * Display number of parts, wires, ports in the cells in comparison
+     * number compNdx
+     * @param compNdx  comparison index
+     */
     private void displayComparisonSummary(int compNdx) {
         EquivClassSplitPane rightSplPane = rightSplPanes[0];
         Cell cells[] = mismatches[compNdx].getCells();
@@ -385,7 +577,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
             html.append("<html><FONT SIZE=3><FONT FACE=\"Helvetica, TimesRoman\">");
             html.append(summary.numParts[ndx] + " Parts<br>"
                       + summary.numWires[ndx] + " Wires<br>"
-                      + summary.numPorts[ndx] + " Ports");
+                      + summary.numPorts[ndx] + " Ports<br>");
             curCellText.append(summary.numParts[ndx] + " Parts" + LSEP
                              + summary.numWires[ndx] + " Wires" + LSEP
                              + summary.numPorts[ndx] + " Ports");
@@ -400,27 +592,40 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         setRightComponent(rightSplPane);
     }
     
+    /**
+     * Follow hyperlink with the given index and highlight required items
+     * @param index  hyperlink index
+     */
     void highlight(int index) {
         int recNdx = index/100000;
         int cellNdx = (index/10000)%10;
         int line = index%10000;
         TreeNode eqRecNode = (TreeNode)curEqRecNodesToDisplay.elementAt(recNdx);
-        EquivRecord eqRec = mismEqRecs[eqRecNode.compNdx][eqRecNode.eclass];
 
-        //if (mismatches[compNdx].isSwapCells()) cellNdx = (cellNdx+1)%2;
-        int c = 0, k = 0;
-        Circuit ckt = null;
-        for (Iterator it=eqRec.getCircuits(); it.hasNext(); c++, it.next())
-            if (c == cellNdx) {
-                ckt = (Circuit) it.next(); 
-                break;
-            }
+        // in case of hashcode partitions, get NetObject from Circuits
         NetObject partOrWire = null;
-        for (Iterator it=ckt.getNetObjs(); it.hasNext(); k++, it.next())
-            if (k == line) {
-                partOrWire = (NetObject)it.next();
-                break;
-            }
+        if (mismatches[eqRecNode.compNdx].isHashFailuresPrinted()) {
+            EquivRecord eqRec = mismEqRecs[eqRecNode.compNdx][eqRecNode.eclass];
+            int c = 0, k = 0;
+            Circuit ckt = null;
+            for (Iterator it=eqRec.getCircuits(); it.hasNext(); c++, it.next())
+                if (c == cellNdx) {
+                    ckt = (Circuit) it.next(); 
+                    break;
+                }
+            for (Iterator it=ckt.getNetObjs(); it.hasNext(); k++, it.next())
+                if (k == line) {
+                    partOrWire = (NetObject)it.next();
+                    break;
+                }
+        } else { // in case of LP, get the NetObjeect from the array
+            ArrayList[] mism = mismNetObjs[eqRecNode.compNdx][eqRecNode.eclass];
+            ArrayList[] matched = matchedNetObjs[eqRecNode.compNdx][eqRecNode.eclass];
+            if (line >= mism[cellNdx].size()) 
+                partOrWire = (NetObject)matched[cellNdx].get(line - mism[cellNdx].size());
+            else
+                partOrWire = (NetObject)mism[cellNdx].get(line);
+        }
         
         Cell cell = null;
         VarContext context = null;
@@ -444,6 +649,11 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         highlighter.finished();
     }
     
+    /**
+     * Remove unnecessary parts from a NetObject name 
+     * @param descr  NetObject name
+     * @return cleaned name 
+     */
     public String cleanNetObjectName(String descr) {
         // drop "Part:" or "Wire:" prefices
         if (descr.startsWith("Wire: ") || descr.startsWith("Part: "))
@@ -467,6 +677,9 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         cb.setContents(ss,ss);                    
     }
 
+    /**
+     * Initialize popup menu for table cells
+     */
     private void createCellPopup() {
         cellPopup = new JPopupMenu();
         JMenuItem menuItem = new JMenuItem("Copy Cell Text To Clipboard");
@@ -474,6 +687,14 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         cellPopup.add(menuItem);
     }
 
+    /**
+     * Display a cell popup on top of Component c, with origin at (x,y) 
+     * in component's coord system
+     * @param text  The text to be copied to clipboard if menu item is activated
+     * @param c  Component to place the popup menu on top of 
+     * @param x  x origin coordinate (in component coord system)
+     * @param y  y origin coordinate (in component coord system)
+     */
     void showCellPopup(String text, Component c, int x, int y) {
         clipboard = text;
         cellPopup.show(c,x,y);

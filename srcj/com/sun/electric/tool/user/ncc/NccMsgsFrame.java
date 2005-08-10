@@ -2,7 +2,7 @@
 *
 * Electric(tm) VLSI Design System
 *
-* File: Ncc.java
+* File: NccMsgsFrame.java
 *
 * Copyright (c) 2003 Sun Microsystems and Static Free Software
 *
@@ -99,6 +99,7 @@ public class NccMsgsFrame {
     public void display() {
         // display small info message if no errors found
         if (mismatches.size() == 0) {
+            frame.setVisible(false);
             StringBuffer msg = new StringBuffer(100);
             msg.append("No errors found\n");
             if (nccOptions.checkSizes)
@@ -116,6 +117,7 @@ public class NccMsgsFrame {
             if (!placed) {
                 placed = true;
                 jif.pack();
+                TopLevel.addToDesktop(jif);
             }
             try {
                 jif.setIcon(false);
@@ -124,10 +126,6 @@ public class NccMsgsFrame {
             if (!jif.isVisible()) {
                 jif.setVisible(true);
                 jif.show();
-                TopLevel.addToDesktop(jif);
-                try { 
-                    jif.setSelected(true);
-                } catch (PropertyVetoException e) {}
             }
             jif.toFront();
             jif.requestFocusInWindow();

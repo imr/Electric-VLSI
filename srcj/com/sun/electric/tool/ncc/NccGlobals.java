@@ -85,7 +85,7 @@ public class NccGlobals {
 	/** leaf nodes of ports tree */			  private LeafEquivRecords portLeafRecs;
     /** has a netlist error? */               private boolean hasNetlistError = false;
     /** print hash code errors? */            private boolean hashFailuresPrinted = false;
-    private NccComparisonMismatches compMismatches;
+    /** mismatches displayed by GUI */        private NccComparisonMismatches compMismatches;
 
     
 	// ----------------------------- private methods --------------------------
@@ -238,6 +238,10 @@ public class NccGlobals {
 		return equivNets;
 	}
     
+    /**
+     * Get mismatches to be displayed in the GUI
+     * @return an object with mismatches to be displayed in GUI
+     */
     public NccComparisonMismatches getComparisonResult() {
         return compMismatches;
     }

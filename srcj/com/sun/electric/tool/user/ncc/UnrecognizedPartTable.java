@@ -2,7 +2,7 @@
 *
 * Electric(tm) VLSI Design System
 *
-* File: Ncc.java
+* File: UnrecognizedPartTable.java
 *
 * Copyright (c) 2003 Sun Microsystems and Static Free Software
 *
