@@ -606,13 +606,15 @@ public class Layer
 
 	private Pref getLayerPref(String what, HashMap map, String factory)
 	{
-        String key = name + what;
+        String techName = tech.getTechName();
+        String key = name + what + techName; // Have to compose hash value with what so more than 1 type of what can be stored.
 		Pref pref = (Pref)map.get(key);
 		if (pref == null)
 		{
 			if (factory == null) factory = "";
-			pref = Pref.makeStringPref(what + "LayerFor" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
-			pref.attachToObject(tech, "IO/" + what + " in " + tech.getTechName()+ " tab", what + " for layer " + name + " in technology " + tech.getTechName());
+			pref = Pref.makeStringPref(what + "LayerFor" + name + "IN" + techName, Technology.getTechnologyPreferences(), factory);
+			pref.attachToObject(tech, "IO/" + what + " in " + techName + " tab",
+                    what + " for layer " + name + " in technology " + techName);
 			map.put(key, pref);
 		}
 		return pref;

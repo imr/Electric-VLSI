@@ -3804,6 +3804,8 @@ public class Technology implements Comparable
     {
         public static String MOSIS_FOUNDRY = "Mosis";
         public static String TSMC_FOUNDRY = "TSMC";
+        public static String ST_FOUNDRY = "ST";
+        public static String ANY_FOUNDRY = "Combined";
         public String name;
         public int techMode; // this value goes according to DRCTemplate.mode
 
