@@ -28,6 +28,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -135,27 +136,14 @@ public class EDIF extends Input
 	private static final GeometryType GBUS       = new GeometryType();
 
 	// 8 standard orientations
-	private static class OrientationType
-	{
-		private NodeInst.OldStyleTransform ost;
-
-		OrientationType(int cRot, boolean cTranspose)
-		{
-			ost = new NodeInst.OldStyleTransform(cRot, cTranspose);
-		}
-
-		boolean isMirrorX() { return ost.isJMirrorX(); }
-		boolean isMirrorY() { return ost.isJMirrorY(); }
-		int getRot() { return ost.getJAngle(); }
-	}
-	private static final OrientationType OR0      = new OrientationType(0, false);
-	private static final OrientationType OR90     = new OrientationType(900, false);
-	private static final OrientationType OR180    = new OrientationType(1800, false);
-	private static final OrientationType OR270    = new OrientationType(2700, false);
-	private static final OrientationType OMX      = new OrientationType(2700, true);
-	private static final OrientationType OMY      = new OrientationType(900, true);
-	private static final OrientationType OMYR90   = new OrientationType(0, true);
-	private static final OrientationType OMXR90   = new OrientationType(1800, true);
+	private static final Orientation OR0      = Orientation.fromC(0, false);
+	private static final Orientation OR90     = Orientation.fromC(900, false);
+	private static final Orientation OR180    = Orientation.fromC(1800, false);
+	private static final Orientation OR270    = Orientation.fromC(2700, false);
+	private static final Orientation OMX      = Orientation.fromC(2700, true);
+	private static final Orientation OMY      = Orientation.fromC(900, true);
+	private static final Orientation OMYR90   = Orientation.fromC(0, true);
+	private static final Orientation OMXR90   = Orientation.fromC(1800, true);
 
 	private static class EDIFPort
 	{
@@ -214,7 +202,7 @@ public class EDIF extends Input
 	// general geometry information ...
 	/** the current geometry type */			private GeometryType curGeometryType;
 	/** the list of points */					private List curPoints;
-	/** the orientation of the structure */		private OrientationType curOrientation;
+	/** the orientation of the structure */		private Orientation curOrientation;
 	/** port direction */						private PortCharacteristic curDirection;
 
 	// geometric path constructors ...
@@ -818,8 +806,8 @@ public class EDIF extends Input
 			sX = bounds.getWidth();
 			sY = bounds.getHeight();
 		}
-		if (curOrientation.isMirrorX()) sX = -sX;
-		if (curOrientation.isMirrorY()) sY = -sY;
+		if (curOrientation.isXMirrored()) sX = -sX;
+		if (curOrientation.isYMirrored()) sY = -sY;
 		return new Point2D.Double(sX, sY);
 	}
 
@@ -926,10 +914,10 @@ public class EDIF extends Input
 		// get the bounds of the circle
 		double sX = r*2;
 		double sY = r*2;
-		NodeInst.OldStyleTransform ost = new NodeInst.OldStyleTransform(rot, trans);
-		if (ost.isJMirrorX()) sX = -sX;
-		if (ost.isJMirrorY()) sY = -sY;
-		rot = ost.getJAngle();
+		Orientation or = Orientation.fromC(rot, trans);
+		if (or.isXMirrored()) sX = -sX;
+		if (or.isYMirrored()) sY = -sY;
+		rot = or.getAngle();
 		if (curCellPage > 0) iyc += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 		NodeInst ni = NodeInst.makeInstance(curFigureGroup != null && curFigureGroup != Artwork.tech.boxNode ?
 			curFigureGroup : Artwork.tech.circleNode, new Point2D.Double(ixc, iyc), sX, sY, curCell, rot, null, 0);
@@ -1226,14 +1214,14 @@ public class EDIF extends Input
 		Point2D size = getSizeAndMirror(np);
 		double sX = hX - lX;
 		double sY = hY - lY;
-		if (curOrientation.isMirrorX()) sX = -sX;
-		if (curOrientation.isMirrorY()) sY = -sY;
+		if (curOrientation.isXMirrored()) sX = -sX;
+		if (curOrientation.isYMirrored()) sY = -sY;
 		double cX = (hX + lX) / 2;
 		double cY = (hY + lY) / 2;
 		double yPos = cY;
 		if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, yPos), sX, sY,
-			curCell, curOrientation.getRot(), null, 0);
+			curCell, curOrientation.getAngle(), null, 0);
 		if (ni == null)
 		{
 			System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create polygon");
@@ -1497,15 +1485,15 @@ public class EDIF extends Input
 				}
 				double sX = hX - lX;
 				double sY = hY - lY;
-				if (curOrientation.isMirrorX()) sX = -sX;
-				if (curOrientation.isMirrorY()) sY = -sY;
+				if (curOrientation.isXMirrored()) sX = -sX;
+				if (curOrientation.isYMirrored()) sY = -sY;
 
 				// create the node instance
 				double cX = (hX + lX) / 2;
 				double cY = (hY + lY) / 2;
 				if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 				NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY),
-					sX, sY, curCell, curOrientation.getRot(), null, 0);
+					sX, sY, curCell, curOrientation.getAngle(), null, 0);
 				if (ni == null)
 				{
 					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create circle");
@@ -1637,7 +1625,7 @@ public class EDIF extends Input
 					double yPos = p0.getY();
 					Point2D size = getSizeAndMirror(cellRefProto);
 					if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
-					NodeInst ni = placePin(cellRefProto, xPos, yPos, size.getX(), size.getY(), curOrientation.getRot(), curCell);
+					NodeInst ni = placePin(cellRefProto, xPos, yPos, size.getX(), size.getY(), curOrientation.getAngle(), curCell);
 					if (ni == null)
 					{
 						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create pin");
@@ -1905,7 +1893,7 @@ public class EDIF extends Input
 						Point2D size = getSizeAndMirror(cellRefProto);
 						if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(cX, cY), size.getX(), size.getY(), curCell,
-							curOrientation.getRot()+(cellRefProtoRotation*10), null, cellRefProtoTechBits);
+							curOrientation.getAngle()+(cellRefProtoRotation*10), null, cellRefProtoTechBits);
 						curNode = ni;
 						if (ni == null)
 						{
@@ -2556,7 +2544,7 @@ public class EDIF extends Input
 					double cX = (lX+hX)/2;
 					if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 					NodeInst ni = placePin(curFigureGroup, cX, cY, hX-lX, hY-lY,
-						curOrientation.getRot(), curCell);
+						curOrientation.getAngle(), curCell);
 					if (ni == null)
 					{
 						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create path");
@@ -3126,13 +3114,13 @@ public class EDIF extends Input
 				}
 				double sX = hX - lX;
 				double sY = hY - lY;
-				if (curOrientation.isMirrorX()) sX = -sX;
-				if (curOrientation.isMirrorY()) sY = -sY;
+				if (curOrientation.isXMirrored()) sX = -sX;
+				if (curOrientation.isYMirrored()) sY = -sY;
 				double yPos = (lY+hY)/2;
 				double xPos = (lX+hX)/2;
 				if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 				NodeInst ni = NodeInst.makeInstance(curFigureGroup != null ? curFigureGroup : Artwork.tech.boxNode,
-					new Point2D.Double(xPos, yPos), sX, sY, curCell, curOrientation.getRot(), null, 0);
+					new Point2D.Double(xPos, yPos), sX, sY, curCell, curOrientation.getAngle(), null, 0);
 				if (ni == null)
 				{
 					System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create rectangle");
@@ -3159,7 +3147,7 @@ public class EDIF extends Input
 					double cY = (lY+hY) / 2;
 					if (curCellPage > 0) cY += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 					ni = placePin(cellRefProto, cX, cY, size.getX(), size.getY(),
-						curOrientation.getRot(), curCell);
+						curOrientation.getAngle(), curCell);
 					if (ni == null)
 					{
 						System.out.println("Error, line " + lineReader.getLineNumber() + ": could not create pin");
@@ -3542,7 +3530,7 @@ public class EDIF extends Input
 			if (instCount == 0) instCount = 1;
 
 			// create node instance rotations about the origin not center
-			AffineTransform rot = NodeInst.pureRotate(curOrientation.getRot(), curOrientation.isMirrorX(), curOrientation.isMirrorY());
+			AffineTransform rot = NodeInst.pureRotate(curOrientation.getAngle(), curOrientation.isXMirrored(), curOrientation.isYMirrored());
 
 			if (instCount == 1 && cellRefProto != null)
 			{
@@ -3556,7 +3544,7 @@ public class EDIF extends Input
 						double yPos = lY;
 						if (curCellPage > 0) yPos += (curCellPage-1) * Cell.FrameDescription.MULTIPAGESEPARATION;
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX, yPos),
-							size.getX(), size.getY(), curCell, curOrientation.getRot()+(cellRefProtoRotation*10), null, cellRefProtoTechBits);
+							size.getX(), size.getY(), curCell, curOrientation.getAngle()+(cellRefProtoRotation*10), null, cellRefProtoTechBits);
 						curNode = ni;
 						if (ni == null)
 						{

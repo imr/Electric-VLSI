@@ -3,6 +3,12 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03c: *********************************
+
+IMP: (08/10/05, DN) NodeInst rotation methods use Orientation class.
+
+BUG: (08/10/05, DN) Outline edit broken if shape is mirrored (Bug #452)
+FIX: In NodeInst.setTrace put getXSizeWithMirror instead of getXSize.
+
 IMP: (08/10/05, IM) NCC GUI: Segregated matched and mismatched Parts/Wires in
      equivalence classes. Mimatches are printed in red, matches in green.
 

@@ -28,6 +28,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
@@ -545,10 +546,10 @@ public class CIF extends Input
 		sY = bounds.getHeight();
 
 		// transform is rotation and transpose: convert to rotation/MX/MY
-		NodeInst.OldStyleTransform ost = new NodeInst.OldStyleTransform(rot, trans);
-		if (ost.isJMirrorX()) sX = -sX;
-		if (ost.isJMirrorY()) sY = -sY;
-		rot = ost.getJAngle();
+		Orientation or = Orientation.fromC(rot, trans);
+		if (or.isXMirrored()) sX = -sX;
+		if (or.isYMirrored()) sY = -sY;
+		rot = or.getAngle();
 
 		// special code to account for rotation of cell centers
 		AffineTransform ctrTrans = NodeInst.rotateAbout(rot, x, y, sX, sY);

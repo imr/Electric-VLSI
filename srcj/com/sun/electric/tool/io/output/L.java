@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -228,9 +229,9 @@ public class L extends Output
 			}
 
 			// write rotation
-			NodeInst.OldStyleTransform ost = new NodeInst.OldStyleTransform(ni);
-			int oldRotation = ost.getCAngle();
-			int oldTranspose = ost.isCTranspose() ? 1 : 0;
+			Orientation or = ni.getOrientation();
+			int oldRotation = or.getCAngle();
+			int oldTranspose = or.isCTranspose() ? 1 : 0;
 
 //			Point oldStyle = ni.getOldStyleRotationAndTranspose();
 //			int oldRotation = oldStyle.x;

@@ -119,11 +119,30 @@ public class Orientation {
 		this.inverse = inverse;
 
 		double[] matrix = new double[4];
-		double alpha = jAngle * Math.PI / 1800.0;
-		matrix[0] = Math.cos(alpha) * (jMirrorX ? -1 : 1);
-		matrix[1] = Math.sin(alpha) * (jMirrorY ? -1 : 1);
-		matrix[2] = Math.sin(alpha) * (jMirrorX ? 1 : -1);
-		matrix[3] = Math.cos(alpha) * (jMirrorX ? -1 : 1);
+        int sect = jAngle / 450;
+        assert 0 <= sect && sect < 8;
+        int ang = jAngle % 450;
+        if (sect % 2 != 0) ang = 450 - ang;
+        assert 0 <= ang && ang <= 450;
+        double alpha = ang * Math.PI / 1800.0;
+        double cos0 = Math.cos(alpha);
+        double sin0 = Math.sin(alpha);
+        double cos = 0, sin = 0;
+        switch (sect) {
+            case 0: cos =  cos0; sin =  sin0; break;
+            case 1: cos =  sin0; sin =  cos0; break;
+            case 2: cos = -sin0; sin =  cos0; break;
+            case 3: cos = -cos0; sin =  sin0; break;
+            case 4: cos = -cos0; sin = -sin0; break;
+            case 5: cos = -sin0; sin = -cos0; break;
+            case 6: cos =  sin0; sin = -cos0; break;
+            case 7: cos =  cos0; sin = -sin0; break;
+            default: assert false;
+        }
+		matrix[0] = cos * (jMirrorX ? -1 : 1);
+		matrix[1] = sin * (jMirrorY ? -1 : 1);
+		matrix[2] = sin * (jMirrorX ? 1 : -1);
+		matrix[3] = cos * (jMirrorY ? -1 : 1);
 		if (jAngle % 900 == 0)
 		{
 			for (int i = 0; i < matrix.length; i++)
@@ -182,7 +201,7 @@ public class Orientation {
 				if (orient.inverse != orient)
 				{
 					key = new Integer(index + 3600 - jAngle);
-					map.put(key, orient);
+					map.put(key, orient.inverse);
 				}
 			}
 		}
@@ -200,6 +219,12 @@ public class Orientation {
 		return fromJava(cTranspose ? cAngle % 3600 + 900 : cAngle, false, cTranspose);
 	}
 
+    /**
+     * Return inverse Orientation to this Orientation.
+     * @return inverse Orientation.
+     */
+    public Orientation inverse() { return inverse; }
+    
 	/**
 	 * Concatenates this Orientation with other Orientation.
 	 * In matrix notation returns this * that.
@@ -209,8 +234,8 @@ public class Orientation {
 	public Orientation getConcatenate(Orientation that)
 	{
 		boolean mirrorX = this.jMirrorX ^ that.jMirrorX;
-		boolean mirrorY = this.jMirrorX ^ that.jMirrorX;
-		int angle = mirrorX^mirrorY ? that.jAngle - this.jAngle : this.jAngle + that.jAngle;
+		boolean mirrorY = this.jMirrorY ^ that.jMirrorY;
+		int angle = that.jMirrorX^that.jMirrorY ? that.jAngle - this.jAngle : that.jAngle + this.jAngle;
 		return fromJava(angle, mirrorX, mirrorY);
 	}
 
@@ -223,8 +248,8 @@ public class Orientation {
 	public Orientation getPreConcatenate(Orientation that)
 	{
 		boolean mirrorX = this.jMirrorX ^ that.jMirrorX;
-		boolean mirrorY = this.jMirrorX ^ that.jMirrorX;
-		int angle = mirrorX^mirrorY ? this.jAngle - that.jAngle : this.jAngle + that.jAngle;
+		boolean mirrorY = this.jMirrorY ^ that.jMirrorY;
+		int angle = this.jMirrorX^this.jMirrorY ? this.jAngle - that.jAngle : this.jAngle + that.jAngle;
 		return fromJava(angle, mirrorX, mirrorY);
 	}
 
@@ -256,6 +281,27 @@ public class Orientation {
 	public boolean isYMirrored() { return jMirrorY; }
 	
 	/**
+	 * Method to return a transformation that rotates an object.
+	 * @return a transformation that rotates by this Orinetation.
+	 */
+    public AffineTransform pureRotate() { return (AffineTransform)trans.clone(); }
+    
+	/**
+	 * Method to return a transformation that rotates an object about a point.
+	 * @param cX the center X coordinate about which to rotate.
+	 * @param cY the center Y coordinate about which to rotate.
+	 * @return a transformation that rotates about that point.
+	 */
+    public AffineTransform rotateAbout(double cX, double cY) {
+        double m00 = trans.getScaleX();
+        double m01 = trans.getShearX();
+        double m10 = trans.getShearY();
+        double m11 = trans.getScaleY();
+        return new AffineTransform(m00, m10, m01, m11,
+                (1.0 - m00)*cX - m01*cY, (1.0 - m11)*cY - m10*cX);
+    }
+    
+    /**
 	 * Returns string which represents this Orientation in JELIB format.
 	 * @return string in JELIB format.
 	 */

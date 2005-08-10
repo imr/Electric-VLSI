@@ -26,6 +26,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -350,10 +351,10 @@ public class DEF extends LEFDEF
 				reportError("Unknown orientation (" + key + ")");
 				return;
 			}
-			NodeInst.OldStyleTransform ost = new NodeInst.OldStyleTransform(angle, transpose);
-			angle = ost.getJAngle();
-			mX = ost.isJMirrorX();
-			mY = ost.isJMirrorY();
+			Orientation or = Orientation.fromC(angle, transpose);
+			angle = or.getAngle();
+			mX = or.isXMirrored();
+			mY = or.isYMirrored();
 		}
 	}
 

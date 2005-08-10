@@ -26,6 +26,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -528,10 +529,10 @@ public class Sue extends Input
 				}
 				wid -= xShrink;
 				hei -= yShrink;
-				NodeInst.OldStyleTransform ost = new NodeInst.OldStyleTransform(parP.rot, parP.trn);
-				parP.rot = ost.getJAngle();
-				if (ost.isJMirrorX()) wid = -wid;
-				if (ost.isJMirrorY()) hei = -hei;
+				Orientation or = Orientation.fromC(parP.rot, parP.trn);
+				parP.rot = or.getAngle();
+				if (or.isXMirrored()) wid = -wid;
+				if (or.isYMirrored()) hei = -hei;
 				NodeInst ni = NodeInst.makeInstance(proto, new Point2D.Double(parP.pt.getX() + xOff, parP.pt.getY() + yOff), wid, hei, cell,
 					parP.rot, null, Schematics.getPrimitiveFunctionBits(detailFunct));
 				if (ni == null) continue;

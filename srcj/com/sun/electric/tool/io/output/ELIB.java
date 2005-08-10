@@ -24,6 +24,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.io.output;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -614,9 +615,9 @@ public class ELIB extends Output
 		int rotation = ni.getAngle();
 		if (compatibleWith6)
 		{
-			NodeInst.OldStyleTransform ost = new NodeInst.OldStyleTransform(ni);
-			rotation = ost.getCAngle();
-			transpose = ost.isCTranspose() ? 1 : 0;
+			Orientation or = ni.getOrientation();
+			rotation = or.getCAngle();
+			transpose = or.isCTranspose() ? 1 : 0;
 
 //			Point oldStyle = ni.getOldStyleRotationAndTranspose();
 //			rotation = oldStyle.x;
