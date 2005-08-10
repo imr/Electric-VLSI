@@ -292,13 +292,30 @@ public class Orientation {
 	 * @param cY the center Y coordinate about which to rotate.
 	 * @return a transformation that rotates about that point.
 	 */
-    public AffineTransform rotateAbout(double cX, double cY) {
+	public AffineTransform rotateAbout(double cX, double cY) {
+        return rotateAbout(cX, cY, -cX, -cY);
+    }
+    
+	/**
+	 * Method to return a transformation that translate an object then rotates
+     * and the again translates.
+	 * @param aX the center X coordinate to translate after rotation.
+	 * @param aY the center Y coordinate to translate afrer rotation.
+	 * @param bX the center X coordinate to translate before rotation.
+	 * @param bY the center Y coordinate to translate before rotation.
+	 * @return a transformation that rotates about that point.
+	 */
+    public AffineTransform rotateAbout(double aX, double aY, double bX, double bY) {
         double m00 = trans.getScaleX();
         double m01 = trans.getShearX();
         double m10 = trans.getShearY();
         double m11 = trans.getScaleY();
-        return new AffineTransform(m00, m10, m01, m11,
-                (1.0 - m00)*cX - m01*cY, (1.0 - m11)*cY - m10*cX);
+        if (bX != 0 || bY != 0) {
+            aX = aX + m00*bX + m01*bY;
+            aY = aY + m11*bY + m10*bX;
+        }
+        
+        return new AffineTransform(m00, m10, m01, m11, aX, aY);
     }
     
     /**
