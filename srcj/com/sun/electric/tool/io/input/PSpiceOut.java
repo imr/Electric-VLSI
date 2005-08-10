@@ -46,7 +46,7 @@ import java.util.List;
  */
 public class PSpiceOut extends Simulate
 {
-	private boolean eofReached;
+//	private boolean eofReached;
 
 	PSpiceOut() {}
 
@@ -77,7 +77,7 @@ public class PSpiceOut extends Simulate
 		throws IOException
 	{
 		boolean first = true;
-		boolean knows = false;
+//		boolean knows = false;
 		Stimuli sd = new Stimuli();
 		sd.setCell(cell);
 		AnalogSignal [] signals = null;
