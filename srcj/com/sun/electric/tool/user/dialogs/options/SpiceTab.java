@@ -30,7 +30,6 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.lib.LibFile;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.output.Spice;
-import com.sun.electric.tool.io.output.Verilog;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
@@ -128,7 +127,9 @@ public class SpiceTab extends PreferencePanel
 
 		// the next section: header and trailer cards
 		String spiceHeaderCardInitial = Simulation.getSpiceHeaderCardInfo();
-		if (spiceHeaderCardInitial.length() == 0) spiceNoHeaderCards.setSelected(true); else
+		if (spiceHeaderCardInitial.length() == 0)
+            spiceNoHeaderCards.setSelected(true);
+        else
 		{
 			if (spiceHeaderCardInitial.startsWith(Spice.SPICE_EXTENSION_PREFIX))
 			{
@@ -141,7 +142,9 @@ public class SpiceTab extends PreferencePanel
 			}
 		}
 		String spiceTrailerCardInitial = Simulation.getSpiceTrailerCardInfo();
-		if (spiceTrailerCardInitial.length() == 0) spiceNoTrailerCards.setSelected(true); else
+		if (spiceTrailerCardInitial.length() == 0)
+            spiceNoTrailerCards.setSelected(true);
+        else
 		{
 			if (spiceTrailerCardInitial.startsWith(Spice.SPICE_EXTENSION_PREFIX))
 			{
@@ -426,7 +429,7 @@ public class SpiceTab extends PreferencePanel
 		{
 			header = spiceHeaderCardFile.getText();
 		}
-		if (!Simulation.getSpiceTrailerCardInfo().equals(header)) Simulation.setSpiceHeaderCardInfo(header);
+		if (!Simulation.getSpiceHeaderCardInfo().equals(header)) Simulation.setSpiceHeaderCardInfo(header);
 
 		String trailer = "";
 		if (spiceTrailerCardsWithExtension.isSelected())
@@ -436,7 +439,7 @@ public class SpiceTab extends PreferencePanel
 		{
 			trailer = spiceTrailerCardFile.getText();
 		}
-		if (!Simulation.getSpiceHeaderCardInfo().equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
+		if (!Simulation.getSpiceTrailerCardInfo().equals(trailer)) Simulation.setSpiceTrailerCardInfo(trailer);
 
 		// bottom section: model file overrides for cells
 		for(Iterator lIt = Library.getVisibleLibraries().iterator(); lIt.hasNext(); )

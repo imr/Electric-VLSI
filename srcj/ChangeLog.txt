@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03c: *********************************
 
+BUG: (08/09/05, GVG) can't change spice preferences to "No Header Cards" (Bug #455)
+FIX: Functions getSpiceTrailerCardInfo and getSpiceHeaderCardInfo were wrongly swapped in term() function.
+
 ************************* Version 8.03b: *********************************
 
 IMP: (08/09/05, RK) NCC: More and better regression tests for size disambiguation for MOS and Resistors
