@@ -58,6 +58,7 @@ public class DRCTemplate
     /** only applies if scmos rules are in effect */					public static final int SC =   04000;
     /** only for TSMC technology */                                     public static final int TSMC = 010000;
     /** only for ST technology */                                       public static final int ST =   020000;
+    /** for MOSIS technology */                                         public static final int MOSIS =040000;
 
 
     // the meaning of "ruletype" in the DRC table

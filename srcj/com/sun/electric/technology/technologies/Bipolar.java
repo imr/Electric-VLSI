@@ -444,22 +444,22 @@ public class Bipolar extends Technology
 		PM0_lay.setFactoryDXFLayer("");		// Pseudo_Metal2
 
 		// The GDS names
-		M_lay.setFactoryGDSLayer("8");		// Metal1
-		M0_lay.setFactoryGDSLayer("9");		// Metal2
-		N_lay.setFactoryGDSLayer("52");		// NPImplant
-		P_lay.setFactoryGDSLayer("53");		// PPImplant
-		PD_lay.setFactoryGDSLayer("4");		// Poly_Definition
-		FI_lay.setFactoryGDSLayer("2");		// Field_Implant
-		I_lay.setFactoryGDSLayer("3");		// Isolation
-		SI_lay.setFactoryGDSLayer("6");		// Sink_Implant
-		NI_lay.setFactoryGDSLayer("51");	// N_Implant
-		SE_lay.setFactoryGDSLayer("45");	// Silicide_Exclusion
-		C_lay.setFactoryGDSLayer("7");		// Contact
-		V_lay.setFactoryGDSLayer("81");		// Via
-		SP_lay.setFactoryGDSLayer("10");	// Scratch_Protection
-		B_lay.setFactoryGDSLayer("1");		// Buried
-		PM_lay.setFactoryGDSLayer("18");	// Pseudo_Metal1
-		PM0_lay.setFactoryGDSLayer("19");	// Pseudo_Metal2
+		M_lay.setFactoryGDSLayer("8", Foundry.MOSIS_FOUNDRY);		// Metal1
+		M0_lay.setFactoryGDSLayer("9", Foundry.MOSIS_FOUNDRY);		// Metal2
+		N_lay.setFactoryGDSLayer("52", Foundry.MOSIS_FOUNDRY);		// NPImplant
+		P_lay.setFactoryGDSLayer("53", Foundry.MOSIS_FOUNDRY);		// PPImplant
+		PD_lay.setFactoryGDSLayer("4", Foundry.MOSIS_FOUNDRY);		// Poly_Definition
+		FI_lay.setFactoryGDSLayer("2", Foundry.MOSIS_FOUNDRY);		// Field_Implant
+		I_lay.setFactoryGDSLayer("3", Foundry.MOSIS_FOUNDRY);		// Isolation
+		SI_lay.setFactoryGDSLayer("6", Foundry.MOSIS_FOUNDRY);		// Sink_Implant
+		NI_lay.setFactoryGDSLayer("51", Foundry.MOSIS_FOUNDRY);	// N_Implant
+		SE_lay.setFactoryGDSLayer("45", Foundry.MOSIS_FOUNDRY);	// Silicide_Exclusion
+		C_lay.setFactoryGDSLayer("7", Foundry.MOSIS_FOUNDRY);		// Contact
+		V_lay.setFactoryGDSLayer("81", Foundry.MOSIS_FOUNDRY);		// Via
+		SP_lay.setFactoryGDSLayer("10", Foundry.MOSIS_FOUNDRY);	// Scratch_Protection
+		B_lay.setFactoryGDSLayer("1", Foundry.MOSIS_FOUNDRY);		// Buried
+		PM_lay.setFactoryGDSLayer("18", Foundry.MOSIS_FOUNDRY);	// Pseudo_Metal1
+		PM0_lay.setFactoryGDSLayer("19", Foundry.MOSIS_FOUNDRY);	// Pseudo_Metal2
 
 		//******************** DESIGN RULES ********************
 

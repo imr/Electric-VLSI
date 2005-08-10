@@ -5651,6 +5651,47 @@ public class CircuitChanges
 		}
 	}
 
+    /****************************** Reset default arc widths ******************************/
+
+    /**
+	 * Method to implement the "Reset Default Arc Widths" command.
+	 */
+	public static void ResetDefaultWidthCommand()
+	{
+		new ResetDefaultWidthJob();
+	}
+
+    /**
+     * Job to resize arcs according to foundry information (switch between Mosis and TSMC)
+     */
+    private static class ResetDefaultWidthJob extends Job
+    {
+        protected ResetDefaultWidthJob()
+        {
+            super("Reset Default Arc Widths", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+			startJob();
+        }
+
+        public boolean doIt()
+        {
+            for(Iterator it = Library.getLibraries(); it.hasNext(); )
+            {
+                Library lib = (Library)it.next();
+
+                for(Iterator itCell = lib.getCells(); itCell.hasNext(); )
+                {
+                    Cell cell = (Cell)itCell.next();
+
+                    for(Iterator itArc = cell.getArcs(); itArc.hasNext(); )
+                    {
+                        ArcInst ai = (ArcInst)itArc.next();
+                        ai.resetArcWidthToDefault();
+		            }
+                }
+            }
+            return true;
+        }
+    }
     /****************************** DELETE UNUSED NODES ******************************/
 
     public static class RemoveUnusedLayers extends Job

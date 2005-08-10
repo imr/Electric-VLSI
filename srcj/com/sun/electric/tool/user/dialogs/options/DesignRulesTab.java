@@ -29,7 +29,10 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.dialogs.DesignRulesPanel;
+import com.sun.electric.tool.user.CircuitChanges;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -134,23 +137,47 @@ public class DesignRulesTab extends PreferencePanel
 	 */
 	public void term()
 	{
-        // Getting last changes
-		if (designRulesFactoryReset)
-		{
-			DRC.resetDRCDates();
-            DRCRules rules = curTech.getFactoryDesignRules();
-            if (rules instanceof MOSRules)
-			    drRules = (MOSRules)rules;
-		}
-		DRC.setRules(curTech, drRules);
-
         String foundryName = (String)defaultFoundryPulldown.getSelectedItem();
+        int val = -1;
+
         if (!foundryName.equals(curTech.getSelectedFoundry()))
-            curTech.setSelectedFoundry(foundryName);
+        {
+            String [] messages = {
+				"Primitives in database might be resized according to values provided by " + foundryName + ".",
+                "If you do not resize now, arc widths might not be optimal for " + foundryName + ".",
+                "If you cancel the operation, the foundry will not be changed.",
+				"Do you want to resize the database?"};
+            Object [] options = {"Yes", "No", "Cancel"};
+            val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), messages,
+				"Resize Primitive Nodes and Arcs", JOptionPane.DEFAULT_OPTION,
+				JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+            if (val != 2)
+                curTech.setSelectedFoundry(foundryName);
+        }
 
 		double currentResolution = TextUtils.atof(drResolutionValue.getText());
 		if (currentResolution != curTech.getResolution())
 			curTech.setResolution(currentResolution);
+
+        // Getting last changes
+		if (designRulesFactoryReset)
+		{
+			DRC.resetDRCDates();
+            drRules = curTech.getFactoryDesignRules();
+//            if (rules instanceof MOSRules)
+//			    drRules = (MOSRules)rules;
+		}
+		DRC.setRules(curTech, drRules);
+
+        // Repaint primitives
+        EditWindow wnd = EditWindow.needCurrent();
+        if (wnd != null) wnd.repaintContents(null);
+
+        if (val == 0)
+        {
+            // primitive arcs have to be modified.
+            CircuitChanges.ResetDefaultWidthCommand();
+        }
 	}
 
 	/** This method is called from within the constructor to

@@ -848,46 +848,46 @@ public class MoCMOSSub extends Technology
 		PF_lay.setFactoryDXFLayer("");		// Pad-Frame
 
 		// The GDS names
-		M_lay.setFactoryGDSLayer("49");		// Metal-1
-		M0_lay.setFactoryGDSLayer("51");	// Metal-2
-		M1_lay.setFactoryGDSLayer("62");	// Metal-3
-		M2_lay.setFactoryGDSLayer("31");	// Metal-4
-		M3_lay.setFactoryGDSLayer("33");	// Metal-5
-		M4_lay.setFactoryGDSLayer("38");	// Metal-6
-		P_lay.setFactoryGDSLayer("46");		// Polysilicon-1
-		P0_lay.setFactoryGDSLayer("56");	// Polysilicon-2
-		PA_lay.setFactoryGDSLayer("43");	// P-Active
-		NA_lay.setFactoryGDSLayer("43");	// N-Active
-		PS_lay.setFactoryGDSLayer("44");	// P-Select
-		NS_lay.setFactoryGDSLayer("45");	// N-Select
-		PW_lay.setFactoryGDSLayer("41");	// P-Well
-		NW_lay.setFactoryGDSLayer("42");	// N-Well
-		PC_lay.setFactoryGDSLayer("25");	// Poly-Cut
-		AC_lay.setFactoryGDSLayer("25");	// Active-Cut
-		V_lay.setFactoryGDSLayer("50");		// Via1
-		V0_lay.setFactoryGDSLayer("61");	// Via2
-		V1_lay.setFactoryGDSLayer("30");	// Via3
-		V2_lay.setFactoryGDSLayer("32");	// Via4
-		V3_lay.setFactoryGDSLayer("39");	// Via5
-		P1_lay.setFactoryGDSLayer("52");	// Passivation
-		T_lay.setFactoryGDSLayer("");		// Transistor
-		PC0_lay.setFactoryGDSLayer("28");	// Poly-Cap
-		PAW_lay.setFactoryGDSLayer("43");	// P-Active-Well
-		PM_lay.setFactoryGDSLayer("");		// Pseudo-Metal-1
-		PM0_lay.setFactoryGDSLayer("");		// Pseudo-Metal-2
-		PM1_lay.setFactoryGDSLayer("");		// Pseudo-Metal-3
-		PM2_lay.setFactoryGDSLayer("");		// Pseudo-Metal-4
-		PM3_lay.setFactoryGDSLayer("");		// Pseudo-Metal-5
-		PM4_lay.setFactoryGDSLayer("");		// Pseudo-Metal-6
-		PP_lay.setFactoryGDSLayer("");		// Pseudo-Polysilicon
-		PE_lay.setFactoryGDSLayer("");		// Pseudo-Electrode
-		PPA_lay.setFactoryGDSLayer("");		// Pseudo-P-Active
-		PNA_lay.setFactoryGDSLayer("");		// Pseudo-N-Active
-		PPS_lay.setFactoryGDSLayer("");		// Pseudo-P-Select
-		PNS_lay.setFactoryGDSLayer("");		// Pseudo-N-Select
-		PPW_lay.setFactoryGDSLayer("");		// Pseudo-P-Well
-		PNW_lay.setFactoryGDSLayer("");		// Pseudo-N-Well
-		PF_lay.setFactoryGDSLayer("19");	// Pad-Frame
+		M_lay.setFactoryGDSLayer("49", Foundry.MOSIS_FOUNDRY);		// Metal-1
+		M0_lay.setFactoryGDSLayer("51", Foundry.MOSIS_FOUNDRY);	// Metal-2
+		M1_lay.setFactoryGDSLayer("62", Foundry.MOSIS_FOUNDRY);	// Metal-3
+		M2_lay.setFactoryGDSLayer("31", Foundry.MOSIS_FOUNDRY);	// Metal-4
+		M3_lay.setFactoryGDSLayer("33", Foundry.MOSIS_FOUNDRY);	// Metal-5
+		M4_lay.setFactoryGDSLayer("38", Foundry.MOSIS_FOUNDRY);	// Metal-6
+		P_lay.setFactoryGDSLayer("46", Foundry.MOSIS_FOUNDRY);		// Polysilicon-1
+		P0_lay.setFactoryGDSLayer("56", Foundry.MOSIS_FOUNDRY);	// Polysilicon-2
+		PA_lay.setFactoryGDSLayer("43", Foundry.MOSIS_FOUNDRY);	// P-Active
+		NA_lay.setFactoryGDSLayer("43", Foundry.MOSIS_FOUNDRY);	// N-Active
+		PS_lay.setFactoryGDSLayer("44", Foundry.MOSIS_FOUNDRY);	// P-Select
+		NS_lay.setFactoryGDSLayer("45", Foundry.MOSIS_FOUNDRY);	// N-Select
+		PW_lay.setFactoryGDSLayer("41", Foundry.MOSIS_FOUNDRY);	// P-Well
+		NW_lay.setFactoryGDSLayer("42", Foundry.MOSIS_FOUNDRY);	// N-Well
+		PC_lay.setFactoryGDSLayer("25", Foundry.MOSIS_FOUNDRY);	// Poly-Cut
+		AC_lay.setFactoryGDSLayer("25", Foundry.MOSIS_FOUNDRY);	// Active-Cut
+		V_lay.setFactoryGDSLayer("50", Foundry.MOSIS_FOUNDRY);		// Via1
+		V0_lay.setFactoryGDSLayer("61", Foundry.MOSIS_FOUNDRY);	// Via2
+		V1_lay.setFactoryGDSLayer("30", Foundry.MOSIS_FOUNDRY);	// Via3
+		V2_lay.setFactoryGDSLayer("32", Foundry.MOSIS_FOUNDRY);	// Via4
+		V3_lay.setFactoryGDSLayer("39", Foundry.MOSIS_FOUNDRY);	// Via5
+		P1_lay.setFactoryGDSLayer("52", Foundry.MOSIS_FOUNDRY);	// Passivation
+		T_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Transistor
+		PC0_lay.setFactoryGDSLayer("28", Foundry.MOSIS_FOUNDRY);	// Poly-Cap
+		PAW_lay.setFactoryGDSLayer("43", Foundry.MOSIS_FOUNDRY);	// P-Active-Well
+		PM_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Metal-1
+		PM0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Metal-2
+		PM1_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Metal-3
+		PM2_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Metal-4
+		PM3_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Metal-5
+		PM4_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Metal-6
+		PP_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Polysilicon
+		PE_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Electrode
+		PPA_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-P-Active
+		PNA_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-N-Active
+		PPS_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-P-Select
+		PNS_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-N-Select
+		PPW_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-P-Well
+		PNW_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-N-Well
+		PF_lay.setFactoryGDSLayer("19", Foundry.MOSIS_FOUNDRY);	// Pad-Frame
 
 		// The layer height
 		M_lay.setFactory3DInfo(0, 17);		// Metal-1

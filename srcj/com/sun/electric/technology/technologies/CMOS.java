@@ -354,20 +354,20 @@ public class CMOS extends Technology
 		PPW_lay.setFactoryDXFLayer("");		// Pseudo-P-Well
 
 		// The GDS names
-		M_lay.setFactoryGDSLayer("");		// Metal
-		P_lay.setFactoryGDSLayer("");		// Polysilicon
-		D_lay.setFactoryGDSLayer("");		// Diffusion
-		P0_lay.setFactoryGDSLayer("");		// P+
-		CC_lay.setFactoryGDSLayer("");		// Contact-Cut
-		OC_lay.setFactoryGDSLayer("");		// Ohmic-Cut
-		PW_lay.setFactoryGDSLayer("");		// P-Well
-		O_lay.setFactoryGDSLayer("");		// Overglass
-		T_lay.setFactoryGDSLayer("");		// Transistor
-		PM_lay.setFactoryGDSLayer("");		// Pseudo-Metal
-		PP_lay.setFactoryGDSLayer("");		// Pseudo-Polysilicon
-		PD_lay.setFactoryGDSLayer("");		// Pseudo-Diffusion
-		PP0_lay.setFactoryGDSLayer("");		// Pseudo-P+
-		PPW_lay.setFactoryGDSLayer("");		// Pseudo-P-Well
+		M_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Metal
+		P_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Polysilicon
+		D_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Diffusion
+		P0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// P+
+		CC_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Contact-Cut
+		OC_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Ohmic-Cut
+		PW_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// P-Well
+		O_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Overglass
+		T_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Transistor
+		PM_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Metal
+		PP_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Polysilicon
+		PD_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Diffusion
+		PP0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-P+
+		PPW_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-P-Well
 
 		//******************** DESIGN RULES ********************
 

@@ -9,7 +9,8 @@ import com.sun.electric.database.variable.TextDescriptor;
 
 import java.awt.geom.Point2D;
 import java.util.Iterator;
-import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * Created by IntelliJ IDEA.
@@ -44,14 +45,6 @@ public class IconNodeInst extends NodeInst
         super(parent, protoType, name, duplicate, nameDescriptor, center, width, height,
               angle, userBits, protoDescriptor);
     }
-
-    public synchronized Iterator getVariables()
-    {
-        return super.getVariables();
-    }
-    public synchronized int getNumVariables() {return super.getNumVariables();}
-
-    public Variable getVar(Variable.Key key, Class type) { return super.getVar(key, type);}
 
     public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
     {
@@ -90,23 +83,13 @@ public class IconNodeInst extends NodeInst
 	 * @param varName name of variable or special name.
 	 * @param td new value TextDescriptor
 	 */
-	public void setTextDescriptor(String varName, TextDescriptor td)
-    {
-        // td is cloned inside setTextDescriptor 
-        parent.setTextDescriptor(varName, td);
-        super.setTextDescriptor(varName, td);
-    }
+//	public void setTextDescriptor(String varName, TextDescriptor td)
+//    {
+//        // td is cloned inside setTextDescriptor
+//        parent.setTextDescriptor(varName, td);
+//        super.setTextDescriptor(varName, td);
+//    }
 
-    public void lowLevelUnlinkVar(Variable var)
-    {
-        System.out.println("Overwrite lowLevelUnlinkVar");
-        super.lowLevelUnlinkVar(var);
-    }
-    public void lowLevelLinkVar(Variable var)
-    {
-        super.lowLevelLinkVar(var);
-        System.out.println("Overwrite lowLevelLinkVar");
-    }
     public void setVar(Variable.Key key, Object value, int index)
     {
         System.out.println("Overwrite setVar");

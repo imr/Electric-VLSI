@@ -393,6 +393,12 @@ public class Technology implements Comparable
 		 */
 		public TechPoint [] getPoints() { return points; }
 
+        /**
+         * Method to set new points to this NodeLayer
+         * @param pts
+         */
+        public void setPoints(TechPoint [] pts) {points = pts; }
+
 		/**
 		 * Returns the left edge coordinate (a scalable EdgeH object) associated with this NodeLayer.
 		 * @return the left edge coordinate associated with this NodeLayer.
@@ -579,8 +585,8 @@ public class Technology implements Comparable
 
         // Initialize foundries
         foundries = new ArrayList();
-        foundries.add(new Foundry("Mosis", DRCTemplate.ALL));
-        setSelectedFoundry("Mosis");  // default
+        foundries.add(new Foundry(Foundry.MOSIS_FOUNDRY, DRCTemplate.MOSIS));
+        setFactorySelecedFound(Foundry.MOSIS_FOUNDRY);  // default
 	}
 
 	private static final String [] extraTechnologies = {"tsmc90.TSMC90"};
@@ -3082,7 +3088,7 @@ public class Technology implements Comparable
 	 */
 	public String getSelectedFoundry()
     {
-        if (prefFoundry == null) setFactorySelecedFound();
+        //if (prefFoundry == null) setFactorySelecedFound();
         return prefFoundry.getString();
     }
 
@@ -3092,7 +3098,7 @@ public class Technology implements Comparable
 	 */
 	public void setSelectedFoundry(String t)
     {
-        if (prefFoundry == null) setFactorySelecedFound();
+        //if (prefFoundry == null) setFactorySelecedFound(t);
         prefFoundry.setString(t);
     }
 
@@ -3100,11 +3106,11 @@ public class Technology implements Comparable
      * Method to set default preference for foundry.
      * It takes the first elemenet on the foundries list
      */
-    private void setFactorySelecedFound()
+    protected void setFactorySelecedFound(String factoryName)
     {
-        String factoryName = "";
-        if (foundries.size() > 0) factoryName = ((Foundry)foundries.get(0)).name;
-        prefFoundry = Pref.makeStringPref("SelectedFoundry", prefs, factoryName);
+        //if (foundries.size() > 0) factoryName = ((Foundry)foundries.get(0)).name;
+        prefFoundry = Pref.makeStringPref("SelectedFoundryFor"+techName, prefs, factoryName);
+        prefFoundry.attachToObject(this, "Technology/Design Rules (" + techName + ") tab", techName + " foundry");
     }
 
     /**
@@ -3117,8 +3123,8 @@ public class Technology implements Comparable
 	}
 
 	/**
-	 * Method to get the foundry associated with this technology.
-	 * @return the foundry associated with this technology.
+	 * Method to get the foundry index associated with this technology.
+	 * @return the foundry index associated with this technology.
 	 */
     public int getFoundry()
     {
@@ -3796,6 +3802,8 @@ public class Technology implements Comparable
     /********************* Foundry **********************/
     public static class Foundry
     {
+        public static String MOSIS_FOUNDRY = "Mosis";
+        public static String TSMC_FOUNDRY = "TSMC";
         public String name;
         public int techMode; // this value goes according to DRCTemplate.mode
 

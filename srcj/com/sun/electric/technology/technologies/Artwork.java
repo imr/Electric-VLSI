@@ -116,7 +116,7 @@ public class Artwork extends Technology
 		G_lay.setFactoryDXFLayer("OBJECT");		// Graphics
 
 		// The GDS names
-		G_lay.setFactoryGDSLayer("1");		// Graphics
+		G_lay.setFactoryGDSLayer("1", Foundry.MOSIS_FOUNDRY);		// Graphics
 
 		//******************** ARCS ********************
 

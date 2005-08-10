@@ -632,7 +632,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
                         "Invalid Action", JOptionPane.WARNING_MESSAGE);
                 return false;
             }
-            // create the attribute
+            // create the attribut
+            // e
             owner.newVar(newName, newValue);
             // if created on a cell, set the parameter and inherits properties
             if (owner instanceof Cell) {

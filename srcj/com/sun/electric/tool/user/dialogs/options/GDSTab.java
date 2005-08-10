@@ -102,7 +102,7 @@ public class GDSTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		gdsTechName.setText("Technology " + curTech.getTechName() + ":");
+		gdsTechName.setText("Technology '" + curTech.getTechName() + "' using '" + curTech.getSelectedFoundry()+ "' :");
 		gdsOutputMergesBoxes.setSelected(IOTool.isGDSOutMergesBoxes());
 		gdsOutputWritesExportPins.setSelected(IOTool.isGDSOutWritesExportPins());
 		gdsOutputUpperCase.setSelected(IOTool.isGDSOutUpperCase());

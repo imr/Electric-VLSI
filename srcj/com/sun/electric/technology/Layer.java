@@ -606,13 +606,14 @@ public class Layer
 
 	private Pref getLayerPref(String what, HashMap map, String factory)
 	{
-		Pref pref = (Pref)map.get(this);
+        String key = name + what;
+		Pref pref = (Pref)map.get(key);
 		if (pref == null)
 		{
 			if (factory == null) factory = "";
 			pref = Pref.makeStringPref(what + "LayerFor" + name + "IN" + tech.getTechName(), Technology.getTechnologyPreferences(), factory);
-			pref.attachToObject(tech, "IO/" + what + " tab", what + " for layer " + name + " in technology " + tech.getTechName());
-			map.put(this, pref);
+			pref.attachToObject(tech, "IO/" + what + " in " + tech.getTechName()+ " tab", what + " for layer " + name + " in technology " + tech.getTechName());
+			map.put(key, pref);
 		}
 		return pref;
 	}
@@ -781,23 +782,41 @@ public class Layer
 	 */
 	public String getCIFLayer() { return getLayerPref("CIF", cifLayerPrefs, cifLayer).getString(); }
 
+    /**
+     * Generate key name for GDS value depending on the foundry
+     * @return
+     */
+    private String getGDSPrefName(String foundry)
+    {
+        return ("GDS("+foundry+")");
+    }
+
 	/**
 	 * Method to set the factory-default GDS name of this Layer.
-	 * @param gdsLayer the factory-default GDS name of this Layer.
-	 */
-	public void setFactoryGDSLayer(String gdsLayer) { getLayerPref("GDS", gdsLayerPrefs, gdsLayer); }
+	 * @param factoryDefault the factory-default GDS name of this Layer.
+     * @param foundry
+     */
+	public void setFactoryGDSLayer(String factoryDefault, String foundry)
+    {
+        getLayerPref(getGDSPrefName(foundry), gdsLayerPrefs, factoryDefault);
+    }
 
 	/**
 	 * Method to set the GDS name of this Layer.
 	 * @param gdsLayer the GDS name of this Layer.
 	 */
-	public void setGDSLayer(String gdsLayer) { getLayerPref("GDS", gdsLayerPrefs, this.gdsLayer).setString(gdsLayer); }
+	public void setGDSLayer(String gdsLayer)
+    {
+        getLayerPref(getGDSPrefName(tech.getSelectedFoundry()), gdsLayerPrefs, this.gdsLayer).setString(gdsLayer); }
 
 	/**
 	 * Method to return the GDS name of this layer.
 	 * @return the GDS name of this layer.
 	 */
-	public String getGDSLayer() { return getLayerPref("GDS", gdsLayerPrefs, gdsLayer).getString(); }
+	public String getGDSLayer()
+    {
+        return getLayerPref(getGDSPrefName(tech.getSelectedFoundry()), gdsLayerPrefs, gdsLayer).getString();
+    }
 
 	/**
 	 * Method to set the factory-default DXF name of this Layer.

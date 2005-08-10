@@ -378,21 +378,21 @@ public class nMOS extends Technology
 		PD_lay.setFactoryDXFLayer("");		// Pseudo-Diffusion
 
 		// The GDS names
-		M_lay.setFactoryGDSLayer("");		// Metal
-		P_lay.setFactoryGDSLayer("");		// Polysilicon
-		D_lay.setFactoryGDSLayer("");		// Diffusion
-		I_lay.setFactoryGDSLayer("");		// Implant
-		CC_lay.setFactoryGDSLayer("");		// Contact-Cut
-		BC_lay.setFactoryGDSLayer("");		// Buried-Contact
-		O_lay.setFactoryGDSLayer("");		// Overglass
-		LI_lay.setFactoryGDSLayer("");		// Light-Implant
-		OC_lay.setFactoryGDSLayer("");		// Oversize-Contact
-		HE_lay.setFactoryGDSLayer("");		// Hard-Enhancement
-		LE_lay.setFactoryGDSLayer("");		// Light-Enhancement
-		T_lay.setFactoryGDSLayer("");		// Transistor
-		PM_lay.setFactoryGDSLayer("");		// Pseudo-Metal
-		PP_lay.setFactoryGDSLayer("");		// Pseudo-Polysilicon
-		PD_lay.setFactoryGDSLayer("");		// Pseudo-Diffusion
+		M_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Metal
+		P_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Polysilicon
+		D_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Diffusion
+		I_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Implant
+		CC_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Contact-Cut
+		BC_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Buried-Contact
+		O_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Overglass
+		LI_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Light-Implant
+		OC_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Oversize-Contact
+		HE_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Hard-Enhancement
+		LE_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Light-Enhancement
+		T_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Transistor
+		PM_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Metal
+		PP_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Polysilicon
+		PD_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Pseudo-Diffusion
 
 		// The SPICE information
 		M_lay.setFactoryParasitics(0.03f, 0.03f, 0);		// Metal

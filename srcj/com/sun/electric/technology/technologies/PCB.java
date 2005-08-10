@@ -255,29 +255,29 @@ public class PCB extends Technology
 		D1_lay.setFactoryDXFLayer("");		// Drawing
 
 		// The GDS names
-		S_lay.setFactoryGDSLayer("");		// Signal1
-		S0_lay.setFactoryGDSLayer("");		// Signal2
-		S1_lay.setFactoryGDSLayer("");		// Signal3
-		S2_lay.setFactoryGDSLayer("");		// Signal4
-		S3_lay.setFactoryGDSLayer("");		// Signal5
-		S4_lay.setFactoryGDSLayer("");		// Signal6
-		S5_lay.setFactoryGDSLayer("");		// Signal7
-		S6_lay.setFactoryGDSLayer("");		// Signal8
-		P_lay.setFactoryGDSLayer("");		// Power1
-		P0_lay.setFactoryGDSLayer("");		// Power2
-		P1_lay.setFactoryGDSLayer("");		// Power3
-		P2_lay.setFactoryGDSLayer("");		// Power4
-		P3_lay.setFactoryGDSLayer("");		// Power5
-		P4_lay.setFactoryGDSLayer("");		// Power6
-		P5_lay.setFactoryGDSLayer("");		// Power7
-		P6_lay.setFactoryGDSLayer("");		// Power8
-		T_lay.setFactoryGDSLayer("");		// TopSilk
-		B_lay.setFactoryGDSLayer("");		// BottomSilk
-		T0_lay.setFactoryGDSLayer("");		// TopSolder
-		B0_lay.setFactoryGDSLayer("");		// BottomSolder
-		D_lay.setFactoryGDSLayer("");		// Drill
-		D0_lay.setFactoryGDSLayer("");		// DrillNonPlated
-		D1_lay.setFactoryGDSLayer("");		// Drawing
+		S_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal1
+		S0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal2
+		S1_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal3
+		S2_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal4
+		S3_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal5
+		S4_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal6
+		S5_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal7
+		S6_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Signal8
+		P_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power1
+		P0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power2
+		P1_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power3
+		P2_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power4
+		P3_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power5
+		P4_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power6
+		P5_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power7
+		P6_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Power8
+		T_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// TopSilk
+		B_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// BottomSilk
+		T0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// TopSolder
+		B0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// BottomSolder
+		D_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Drill
+		D0_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// DrillNonPlated
+		D1_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);		// Drawing
 
 		//******************** ARCS ********************
 

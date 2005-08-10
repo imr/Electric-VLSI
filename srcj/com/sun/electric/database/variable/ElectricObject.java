@@ -41,18 +41,14 @@ import com.sun.electric.tool.user.User;
 import java.awt.Font;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * This class is the base class of all Electric objects that can be extended with "Variables".
  * <P>
  * This class should be thread-safe.
  */
-public abstract class ElectricObject
+public abstract class ElectricObject extends Observable implements Observer
 {
 	// ------------------------ private data ------------------------------------
 
@@ -624,11 +620,15 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
     
 	/**
 	 * Method to create a non-displayable Variable on this ElectricObject with the specified values.
+     * Notify to observers as well.
 	 * @param key the key of the Variable.
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been created.
 	 */
-    public Variable newVar(Variable.Key key, Object value) { return newVar(key, value, false); }
+    public Variable newVar(Variable.Key key, Object value)
+    {
+        return newVar(key, value, false);
+    }
     
  	/**
 	 * Method to create a Variable on this ElectricObject with the specified values.
@@ -656,6 +656,15 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	 */
     public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
     {
+         Variable v = newVarNoObserver(key, value, td);
+         setChanged();
+         notifyObservers(v);
+         clearChanged();
+         return v;
+    }
+
+    public Variable newVarNoObserver(Variable.Key key, Object value, TextDescriptor td)
+    {
  		if (isDeprecatedVariable(key))
 		{
 			System.out.println("Deprecated variable " + key.getName() + " on " + this);
@@ -679,7 +688,6 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 			Undo.newVariable(this, v);
 		return v;
     }
-    
 	/**
 	 * Method to update a Variable on this ElectricObject with the specified values.
 	 * If the Variable already exists, only the value is changed; the displayable attributes are preserved.
@@ -687,7 +695,10 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been updated.
 	 */
-	public Variable updateVar(String name, Object value) { return updateVar(newKey(name), value); }
+	public Variable updateVar(String name, Object value)
+    {
+        return updateVar(newKey(name), value);
+    }
 
 	/**
 	 * Method to update a Variable on this ElectricObject with the specified values.
@@ -733,13 +744,22 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	 */
 	public void setTextDescriptor(String varName, TextDescriptor td)
 	{
-		checkChanging();
-        
+        setTextDescriptorNoObserver(varName, td);
+        // Handles the observers
+        setChanged();
+        notifyObservers(new Object[]{"setTextDescriptor", varName, td});
+        clearChanged();
+	}
+
+    private void setTextDescriptorNoObserver(String varName, TextDescriptor td)
+    {
+     	checkChanging();
+
         ImmutableTextDescriptor oldDescriptor = lowLevelSetTextDescriptor(varName, ImmutableTextDescriptor.newImmutableTextDescriptor(td));
-       
+
 		// handle change control, constraint, and broadcast
         Undo.modifyTextDescript(this, varName, oldDescriptor);
-	}
+    }
 
 	/**
 	 * Method to set the X and Y offsets of the text in the TextDescriptor selected by name of
@@ -756,7 +776,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 		MutableTextDescriptor td = getMutableTextDescriptor(varName);
 		if (td == null) return;
 		td.setOff(xd, yd);
-		setTextDescriptor(varName, td);
+		setTextDescriptorNoObserver(varName, td);
 	}
 
 	/**
@@ -818,6 +838,14 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	 */
 	public void delVar(Variable.Key key)
 	{
+        delVarNoObserver(key);
+        setChanged();
+        notifyObservers(new Object[]{"delVar", key});
+        clearChanged();
+	}
+
+    private void delVarNoObserver(Variable.Key key)
+	{
 		checkChanging();
 		Variable v = getVar(key);
 		if (v == null) return;
@@ -825,7 +853,6 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 		if (isDatabaseObject())
 			Undo.killVariable(this, v);
 	}
-
 	/**
 	 * Low-level access method to link a Variable into this ElectricObject.
 	 * @param var Variable to link
@@ -1402,4 +1429,49 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 		return getClass().getName();
 	}
 
+    /**
+     * Observer method to update variables in Icon instance if cell master changes
+     * @param o
+     * @param arg
+     */
+    public void update(Observable o, Object arg)
+    {
+        System.out.println("Entering update");
+        // New
+        if (arg instanceof Variable)
+        {
+            Variable var = (Variable)arg;
+            // You can't call newVar(var.getKey(), var.getObject()) to avoid infinite loop
+            newVarNoObserver(var.getKey(), var.getObject(), var.getTextDescriptor());
+        }
+        else if (arg instanceof Object[])
+        {
+            Object[] array = (Object[])arg;
+
+            if (!(array[0] instanceof String))
+            {
+                System.out.println("Error in ElectricObject.update");
+                return;
+            }
+            String function = (String)array[0];
+            if (function.startsWith("setTextDescriptor"))
+            {
+                String varName = (String)array[1];
+                TextDescriptor td = (TextDescriptor)array[2];
+                // setTextDescriptor(String varName, TextDescriptor td)
+                setTextDescriptorNoObserver(varName, td);
+            }
+            else if (function.startsWith("delVar"))
+            {
+                Variable.Key key = (Variable.Key)array[1];
+                delVarNoObserver(key);
+            }
+//            else if (array[0] instanceof Variable.Key)
+//            {
+//                //  Variable updateVar(String name, Object value)
+//                Variable.Key key = (Variable.Key)array[0];
+//                updateVar(key, array[1]);
+//            }
+        }
+    }
 }

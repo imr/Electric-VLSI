@@ -463,6 +463,8 @@ public class ViewChanges
 			double px = iconCell.getBounds().getWidth();
 			double py = iconCell.getBounds().getHeight();
 			NodeInst ni = NodeInst.makeInstance(iconCell, iconPos, px, py, curCell);
+//            ni.addObserver(curCell); // adding observer to notify icons if there are changes in master cell
+//            curCell.addObserver(ni);
 			if (ni != null)
 			{
 				EditWindow wnd = EditWindow.getCurrent();
