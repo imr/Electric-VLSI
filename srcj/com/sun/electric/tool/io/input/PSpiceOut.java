@@ -127,7 +127,17 @@ public class PSpiceOut extends Simulate
 
 			// skip first word if there is an "=" in the line
 			int equalPos = line.indexOf("=");
-			if (equalPos >= 0) line = line.substring(equalPos+3);
+
+			if (equalPos >= 0)
+            {
+                if (line.length() > (equalPos+3))
+                    line = line.substring(equalPos+3);
+                else
+                {
+                    System.out.println("Wrong format?");
+                    return null;
+                }
+            }
 
 			// read the data values
 			int ptr = 0;
@@ -143,7 +153,9 @@ public class PSpiceOut extends Simulate
 			}
 			if (position != numSignals)
 			{
-				System.out.println("Line of data has " + position + " values, but expect " + numSignals);
+				System.out.println("Line of data has " + position + " values, but expect " + numSignals +
+                        ". Unable to recover from error. Check format.");
+                return null;
 			}
 		}
 
