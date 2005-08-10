@@ -1172,6 +1172,122 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public boolean isYMirrored() { return d.orient.isYMirrored(); }
 
 	/**
+	 * Class to convert between Java transformations and C transformations.
+	 * The C code used an angle (in tenth-degrees) and a "transpose" factor
+	 * which would flip the object along the major diagonal after rotation.
+	 * The Java code uses the same angle (in tenth-degrees) but has two mirror
+	 * options: Mirror X and Mirror Y.
+	 */
+	public static class OldStyleTransform
+	{
+		private int cAngle;
+		private boolean cTranspose;
+		private int jAngle;
+		private boolean jMirrorX;
+		private boolean jMirrorY;
+
+		/**
+		 * Constructor gives the old C style parameters.
+		 * The Java conversion can be obtained from the "get" methods.
+		 * @param cAngle the angle of rotation (in tenth-degrees)
+		 * @param cTranspose if true, object is flipped over the major diagonal after rotation.
+		 */
+		public OldStyleTransform(int cAngle, boolean cTranspose)
+		{
+			// store C information
+			this.cAngle = cAngle;
+			this.cTranspose = cTranspose;
+
+			// compute Java information
+			jAngle = cAngle;
+			jMirrorX = jMirrorY = false;
+			if (cTranspose)
+			{
+				jMirrorY = true;
+				jAngle = (jAngle + 900) % 3600;
+			}
+		}
+
+		/**
+		 * Constructor gives the new Java style parameters.
+		 * The C conversion can be obtained from the "get" methods.
+		 * @param ni the NodeInst to use.
+		 */
+		public OldStyleTransform(NodeInst ni)
+		{
+			buildFromJava(ni.getAngle(), ni.isXMirrored(), ni.isYMirrored());
+		}
+
+		/**
+		 * Constructor gives the new Java style parameters.
+		 * The C conversion can be obtained from the "get" methods.
+		 * @param jAngle the angle of rotation (in tenth-degrees)
+		 * @param jMirrorX if true, object is flipped over the vertical (mirror in X).
+		 * @param jMirrorY if true, object is flipped over the horizontal (mirror in Y).
+		 */
+		public OldStyleTransform(int jAngle, boolean jMirrorX, boolean jMirrorY)
+		{
+			buildFromJava(jAngle, jMirrorX, jMirrorY);
+		}
+
+		private void buildFromJava(int jAngle, boolean jMirrorX, boolean jMirrorY)
+		{
+
+			// store Java information
+			this.jAngle = jAngle;
+			this.jMirrorX = jMirrorX;
+			this.jMirrorY = jMirrorY;
+
+			// compute C information
+			cAngle = jAngle;
+			cTranspose = false;
+			if (jMirrorX)
+			{
+				if (jMirrorY)
+				{
+					cAngle = (cAngle + 1800) % 3600;
+				} else
+				{
+					cAngle = (cAngle + 900) % 3600;
+					cTranspose = true;
+				}
+			} else if (jMirrorY)
+			{
+				cAngle = (cAngle + 2700) % 3600;
+				cTranspose = true;
+			}
+		}
+
+		/**
+		 * Method to return the old C style angle value.
+		 * @return the old C style angle value, in tenth-degrees.
+		 */
+		public int getCAngle() { return cAngle; }
+		/**
+		 * Method to return the old C style transpose factor.
+		 * @return the old C style transpose factor: true to flip over the major diagonal after rotation.
+		 */
+		public boolean isCTranspose() { return cTranspose; }
+
+		/**
+		 * Method to return the new Java style angle value.
+		 * @return the new Java style angle value, in tenth-degrees.
+		 */
+		public int getJAngle() { return jAngle; }
+		/**
+		 * Method to return the new Java style Mirror X factor.
+		 * @return true to flip over the vertical axis (mirror in X).
+		 */
+		public boolean isJMirrorX() { return jMirrorX; }
+		/**
+		 * Method to return the new Java style Mirror Y factor.
+		 * @return true to flip over the horizontal axis (mirror in Y).
+		 */
+		public boolean isJMirrorY() { return jMirrorY; }
+		
+	}
+
+	/**
 	 * Method to return the bounds of this NodeInst.
 	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
 	 * @return the bounds of this NodeInst.
@@ -1500,15 +1616,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public AffineTransform transformOut()
 	{
-        AffineTransform xform = translateOut();
-        xform.concatenate(pureRotateOut());
-        return xform;
-//		// The transform first translates to the position of the
-//		// NodeInst's Anchor point in the parent Cell, and then rotates and
-//		// mirrors about the anchor point. 
-//		AffineTransform xform = rotateOut();
-//		xform.concatenate(translateOut());
-//		return xform;
+		// The transform first translates to the position of the
+		// NodeInst's Anchor point in the parent Cell, and then rotates and
+		// mirrors about the anchor point. 
+		AffineTransform xform = rotateOut();
+		xform.concatenate(translateOut());
+		return xform;
 	}
 
 	/**
@@ -1520,13 +1633,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public AffineTransform transformIn()
 	{
-        AffineTransform xform = translateIn();
-        xform.preConcatenate(pureRotateIn());
-        return xform;
-//		// The transform first rotates in, and then translates to the position..
-//		AffineTransform xform = rotateIn();
-//		xform.preConcatenate(translateIn());
-//		return xform;
+		// The transform first rotates in, and then translates to the position..
+		AffineTransform xform = rotateIn();
+		xform.preConcatenate(translateIn());
+		return xform;
 	}
 
 	/**
@@ -1601,9 +1711,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		return returnTransform;
 	}
 
-//	private static AffineTransform rotateTranspose = new AffineTransform();
-//	private static AffineTransform mirrorXcoord = new AffineTransform(-1, 0, 0, 1, 0, 0);
-//	private static AffineTransform mirrorYcoord = new AffineTransform(1, 0, 0, -1, 0, 0);
+	private static AffineTransform rotateTranspose = new AffineTransform();
+	private static AffineTransform mirrorXcoord = new AffineTransform(-1, 0, 0, 1, 0, 0);
+	private static AffineTransform mirrorYcoord = new AffineTransform(1, 0, 0, -1, 0, 0);
 
 	/**
 	 * Method to return a transformation that rotates an object about a point.
@@ -1616,24 +1726,23 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public static AffineTransform rotateAbout(int angle, double cX, double cY, double sX, double sY)
 	{
-//		AffineTransform transform = new AffineTransform();
+		AffineTransform transform = new AffineTransform();
 		boolean xMirrored = sX < 0 || sX == 0 && 1/sX < 0;
 		boolean yMirrored = sY < 0 || sY == 0 && 1/sY < 0;
-        return Orientation.fromJava(angle, xMirrored, yMirrored).rotateAbout(cX, cY);
-//		if (xMirrored || yMirrored)
-//		{
-//			// must do mirroring, so it is trickier
-//			rotateTranspose.setToRotation(angle * Math.PI / 1800.0);
-//			transform.setToTranslation(cX, cY);
-//			if (xMirrored) transform.concatenate(mirrorXcoord);
-//			if (yMirrored) transform.concatenate(mirrorYcoord);
-//			transform.concatenate(rotateTranspose);
-//			transform.translate(-cX, -cY);
-//		} else
-//		{
-//			transform.setToRotation(angle * Math.PI / 1800.0, cX, cY);
-//		}
-//		return transform;
+		if (xMirrored || yMirrored)
+		{
+			// must do mirroring, so it is trickier
+			rotateTranspose.setToRotation(angle * Math.PI / 1800.0);
+			transform.setToTranslation(cX, cY);
+			if (xMirrored) transform.concatenate(mirrorXcoord);
+			if (yMirrored) transform.concatenate(mirrorYcoord);
+			transform.concatenate(rotateTranspose);
+			transform.translate(-cX, -cY);
+		} else
+		{
+			transform.setToRotation(angle * Math.PI / 1800.0, cX, cY);
+		}
+		return transform;
 	}
 
 	/**
@@ -1645,14 +1754,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public static AffineTransform pureRotate(int angle, boolean mirrorX, boolean mirrorY)
 	{
-        return Orientation.fromJava(angle, mirrorX, mirrorY).pureRotate();
-//		AffineTransform transform = new AffineTransform();
-//		transform.setToRotation(angle * Math.PI / 1800.0);
-//
-//		// add mirroring
-//		if (mirrorX) transform.preConcatenate(mirrorXcoord);
-//		if (mirrorY) transform.preConcatenate(mirrorYcoord);
-//		return transform;
+		AffineTransform transform = new AffineTransform();
+		transform.setToRotation(angle * Math.PI / 1800.0);
+
+		// add mirroring
+		if (mirrorX) transform.preConcatenate(mirrorXcoord);
+		if (mirrorY) transform.preConcatenate(mirrorYcoord);
+		return transform;
 	}
 
 	/**
@@ -1663,14 +1771,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public static AffineTransform pureRotate(int angle, boolean transpose)
 	{
-        return Orientation.fromC(angle, transpose).pureRotate();
-//		boolean mirrorY = false;
-//		if (transpose)
-//		{
-//			mirrorY = true;
-//			angle = (angle + 900) % 3600;
-//		}
-//		return pureRotate(angle, false, mirrorY);
+		boolean mirrorY = false;
+		if (transpose)
+		{
+			mirrorY = true;
+			angle = (angle + 900) % 3600;
+		}
+		return pureRotate(angle, false, mirrorY);
 	}
 
 	/**
@@ -1682,8 +1789,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public AffineTransform pureRotateOut()
 	{
-        return d.orient.pureRotate();
-//		return pureRotate(d.orient.getAngle(), isXMirrored(), isYMirrored());
+		return pureRotate(d.orient.getAngle(), isXMirrored(), isYMirrored());
 	}
 
 	/**
@@ -1695,13 +1801,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public AffineTransform pureRotateIn()
 	{
-        return d.orient.inverse().pureRotate();
-//		int numFlips = 0;
-//		if (isXMirrored()) numFlips++;
-//		if (isYMirrored()) numFlips++;
-//		int rotAngle = d.orient.getAngle();
-//		if (numFlips != 1) rotAngle = -rotAngle;
-//		return pureRotate(rotAngle, isXMirrored(), isYMirrored());
+		int numFlips = 0;
+		if (isXMirrored()) numFlips++;
+		if (isYMirrored()) numFlips++;
+		int rotAngle = d.orient.getAngle();
+		if (numFlips != 1) rotAngle = -rotAngle;
+		return pureRotate(rotAngle, isXMirrored(), isYMirrored());
 	}
 
 	/**
@@ -1714,13 +1819,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public AffineTransform rotateIn()
 	{
-        return d.orient.inverse().rotateAbout(-getAnchorCenterX(), -getAnchorCenterY());
-//		int numFlips = 0;
-//		if (isXMirrored()) numFlips++;
-//		if (isYMirrored()) numFlips++;
-//		int rotAngle = d.orient.getAngle();
-//		if (numFlips != 1) rotAngle = -rotAngle;
-//		return rotateAbout(rotAngle, getAnchorCenterX(), getAnchorCenterY(), getXSizeWithMirror(), getYSizeWithMirror());
+		int numFlips = 0;
+		if (isXMirrored()) numFlips++;
+		if (isYMirrored()) numFlips++;
+		int rotAngle = d.orient.getAngle();
+		if (numFlips != 1) rotAngle = -rotAngle;
+		return rotateAbout(rotAngle, getAnchorCenterX(), getAnchorCenterY(), getXSizeWithMirror(), getYSizeWithMirror());
 	}
 
 	/**
@@ -1754,8 +1858,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public AffineTransform rotateOut()
 	{
-        return d.orient.rotateAbout(getAnchorCenterX(), getAnchorCenterY());
-//		return rotateAbout(d.orient.getAngle(), getAnchorCenterX(), getAnchorCenterY(), getXSizeWithMirror(), getYSizeWithMirror());
+		return rotateAbout(d.orient.getAngle(), getAnchorCenterX(), getAnchorCenterY(), getXSizeWithMirror(), getYSizeWithMirror());
 	}
 
 	/**
@@ -1767,8 +1870,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public AffineTransform rotateOutAboutTrueCenter()
 	{
-        return d.orient.rotateAbout(getTrueCenterX(), getTrueCenterY());
-//		return rotateAbout(d.orient.getAngle(), getTrueCenterX(), getTrueCenterY(), getXSizeWithMirror(), getYSizeWithMirror());
+		return rotateAbout(d.orient.getAngle(), getTrueCenterX(), getTrueCenterY(), getXSizeWithMirror(), getYSizeWithMirror());
 	}
 
 	/**
