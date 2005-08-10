@@ -4519,7 +4519,7 @@ public class CircuitChanges
 					boolean doCopySchematicView = true;
 					if (ni.isIconOfParent()) doCopySchematicView = false;
 					Cell oNp = copyRecursively(cell, cell.getName(), toLib, cell.getView(), verbose,
-						move, "subcell ", doCopySchematicView, allRelatedViews, allRelatedViews, copySubCells, useExisting, existing);
+						move, "subcell ", doCopySchematicView, allRelatedViews, allRelatedViewsThisLevel, copySubCells, useExisting, existing);
 					if (oNp == null)
 					{
 						if (move) System.out.println("Move of sub" + cell + " failed"); else
