@@ -323,7 +323,7 @@ public class ScanChainXML {
             appendChain(chain, getOtherPorts(startPort));
             // report number of elements found
             int found = chain.numScanElements();
-            System.out.println("Info: chain "+chainName+" had "+found+" scan chain elements");
+            System.out.println("Info: completed successfully: chain "+chainName+" had "+found+" scan chain elements");
             // make sure chain ended properly
             SubChain last = chain.getLastSubChain();
             if (last != endChain) {
@@ -1051,7 +1051,7 @@ public class ScanChainXML {
         }
 
         if (ports.size() == 0) {
-            System.out.println("Error, no other ports connected to "+inport.name);
+            System.out.println("Warning: no other ports connected to "+inport.name);
         }
         return ports;
     }
