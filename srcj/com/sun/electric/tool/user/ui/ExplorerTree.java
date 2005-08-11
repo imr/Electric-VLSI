@@ -115,12 +115,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
     private static ImageIcon iconWarnMsg = null;
 	private static ImageIcon iconSignals = null;
 	private static ImageIcon iconSweeps = null;
-	private static ImageIcon iconViewIcon = null;
-	private static ImageIcon iconViewLayout = null;
+//	private static ImageIcon iconViewIcon = null;
+//	private static ImageIcon iconViewLayout = null;
 	private static ImageIcon iconViewMultiPageSchematics = null;
-	private static ImageIcon iconViewSchematics = null;
-	private static ImageIcon iconViewMisc = null;
-	private static ImageIcon iconViewText = null;
+//	private static ImageIcon iconViewSchematics = null;
+//	private static ImageIcon iconViewMisc = null;
+//	private static ImageIcon iconViewText = null;
 	private static ImageIcon iconSpiderWeb = null;
 	private static ImageIcon iconLocked = null;
 	private static ImageIcon iconUnlocked = null;

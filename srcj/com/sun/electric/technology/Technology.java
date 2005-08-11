@@ -3109,7 +3109,7 @@ public class Technology implements Comparable
     protected void setFactorySelecedFound(String factoryName)
     {
         //if (foundries.size() > 0) factoryName = ((Foundry)foundries.get(0)).name;
-        prefFoundry = Pref.makeStringPref("SelectedFoundryFor"+techName, prefs, factoryName);
+        prefFoundry = TechPref.makeStringPref(this, "SelectedFoundryFor"+techName, prefs, factoryName);
         prefFoundry.attachToObject(this, "Technology/Design Rules (" + techName + ") tab", techName + " foundry");
     }
 
@@ -3847,6 +3847,13 @@ public class Technology implements Comparable
 		{
 			TechPref pref = new TechPref(tech);
 			pref.initInt(name, prefs, factory);
+			return pref;
+		}
+
+        public static Pref makeStringPref(Technology tech, String name, Preferences prefs, String factory)
+		{
+			TechPref pref = new TechPref(tech);
+			pref.initString(name, prefs, factory);
 			return pref;
 		}
 	}

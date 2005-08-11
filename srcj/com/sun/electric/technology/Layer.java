@@ -800,7 +800,9 @@ public class Layer
      */
 	public void setFactoryGDSLayer(String factoryDefault, String foundry)
     {
-        getLayerPref(getGDSPrefName(foundry), gdsLayerPrefs, factoryDefault);
+        // Getting rid of spaces
+        String value = factoryDefault.replaceAll(", ", ",");
+        getLayerPref(getGDSPrefName(foundry), gdsLayerPrefs, value);
     }
 
 	/**

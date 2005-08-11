@@ -184,8 +184,10 @@ public class MoCMOS extends Technology
 		// In C-Electric it is implemented as 2.2 (min spacing=3) so we might discrepancies.
 		new DRCTemplate("2.5",  DRCTemplate.ALL, DRCTemplate.SPACING,  "P-Active",       "N-Active",       4,  null),
 
-		new DRCTemplate("3.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "Polysilicon-1",   null,            2,  null),
-		new DRCTemplate("3.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "Transistor-Poly", null,            2,  null),
+		new DRCTemplate("3.1 Mosis",  DRCTemplate.MOSIS, DRCTemplate.MINWID,   "Polysilicon-1",   null,            2,  null),
+		new DRCTemplate("3.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Polysilicon-1",   null,            1.8,  null),
+        new DRCTemplate("3.1 Mosis",  DRCTemplate.ALL, DRCTemplate.MINWID,   "Transistor-Poly", null,            2,  null),
+        new DRCTemplate("3.1 TSMC",  DRCTemplate.ALL, DRCTemplate.MINWID,   "Transistor-Poly", null,            1.8,  null),
 
 		new DRCTemplate("3.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  3,  null),
 		new DRCTemplate("3.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",3,  null),
@@ -1354,7 +1356,9 @@ public class MoCMOS extends Technology
 		metal3_lay.setFactoryGDSLayer("62, 93p, 93t", Foundry.MOSIS_FOUNDRY);				// Metal-3
         metal3_lay.setFactoryGDSLayer("28", Foundry.TSMC_FOUNDRY);				// Metal-3
 		metal4_lay.setFactoryGDSLayer("31, 63p, 63t", Foundry.MOSIS_FOUNDRY);				// Metal-4
+        metal4_lay.setFactoryGDSLayer("31", Foundry.TSMC_FOUNDRY);
 		metal5_lay.setFactoryGDSLayer("33, 64p, 64t", Foundry.MOSIS_FOUNDRY);				// Metal-5
+        metal5_lay.setFactoryGDSLayer("33", Foundry.TSMC_FOUNDRY);				// Metal-5
 		metal6_lay.setFactoryGDSLayer("37, 68p, 68t", Foundry.MOSIS_FOUNDRY);				// Metal-6
         metal6_lay.setFactoryGDSLayer("38", Foundry.TSMC_FOUNDRY);				// Metal-6
 		poly1_lay.setFactoryGDSLayer("46", Foundry.MOSIS_FOUNDRY);					// Polysilicon-1
@@ -1373,6 +1377,7 @@ public class MoCMOS extends Technology
 		selectLayers[N_TYPE].setFactoryGDSLayer("45", Foundry.MOSIS_FOUNDRY);				// N-Select
         selectLayers[N_TYPE].setFactoryGDSLayer("8", Foundry.TSMC_FOUNDRY);				// N-Select
 		wellLayers[P_TYPE].setFactoryGDSLayer("41", Foundry.MOSIS_FOUNDRY);					// P-Well
+        wellLayers[P_TYPE].setFactoryGDSLayer("41", Foundry.TSMC_FOUNDRY);					// P-Well
 		wellLayers[N_TYPE].setFactoryGDSLayer("42", Foundry.MOSIS_FOUNDRY);					// N-Well
         wellLayers[N_TYPE].setFactoryGDSLayer("2", Foundry.TSMC_FOUNDRY);					// N-Well
 		polyCut_lay.setFactoryGDSLayer("25", Foundry.MOSIS_FOUNDRY);				// Poly-Cut
@@ -1386,11 +1391,13 @@ public class MoCMOS extends Technology
 		via3_lay.setFactoryGDSLayer("30", Foundry.MOSIS_FOUNDRY);					// Via-3
         via3_lay.setFactoryGDSLayer("29", Foundry.TSMC_FOUNDRY);					// Via-3
 		via4_lay.setFactoryGDSLayer("32", Foundry.MOSIS_FOUNDRY);					// Via-4
+        via4_lay.setFactoryGDSLayer("32", Foundry.TSMC_FOUNDRY);					// Via-4
 		via5_lay.setFactoryGDSLayer("36", Foundry.MOSIS_FOUNDRY);					// Via-5
         via5_lay.setFactoryGDSLayer("39", Foundry.TSMC_FOUNDRY);					// Via-5
 		passivation_lay.setFactoryGDSLayer("52", Foundry.MOSIS_FOUNDRY);			// Passivation
         passivation_lay.setFactoryGDSLayer("19", Foundry.TSMC_FOUNDRY);			// Passivation
 		polyCap_lay.setFactoryGDSLayer("28", Foundry.MOSIS_FOUNDRY);				// Poly-Cap
+        polyCap_lay.setFactoryGDSLayer("28", Foundry.TSMC_FOUNDRY);				// Poly-Cap
 		silicideBlock_lay.setFactoryGDSLayer("29", Foundry.MOSIS_FOUNDRY);			// Silicide-Block
         silicideBlock_lay.setFactoryGDSLayer("34", Foundry.TSMC_FOUNDRY);			// Silicide-Block
 		thickActive_lay.setFactoryGDSLayer("60", Foundry.MOSIS_FOUNDRY);			// Thick-Active
@@ -1410,7 +1417,7 @@ public class MoCMOS extends Technology
 		pseudoPWell_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);				// Pseudo-P-Well
 		pseudoNWell_lay.setFactoryGDSLayer("", Foundry.MOSIS_FOUNDRY);				// Pseudo-N-Well
 		padFrame_lay.setFactoryGDSLayer("26", Foundry.MOSIS_FOUNDRY);				// Pad-Frame
-
+        padFrame_lay.setFactoryGDSLayer("26", Foundry.TSMC_FOUNDRY);				// Pad-Frame
 		// The Skill names
 		metal1_lay.setFactorySkillLayer("metal1");			// Metal-1
 		metal2_lay.setFactorySkillLayer("metal2");			// Metal-2
@@ -2905,6 +2912,14 @@ public class MoCMOS extends Technology
                 metalActiveContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.8, 2.8});
             }
 
+            // Well contacts
+            for (int i = 0; i < metalWellContactNodes.length; i++)
+            {
+                node = metalWellContactNodes[i].getLayers()[4]; // Cut
+                node.setPoints(Technology.TechPoint.makeIndented(7.4));
+                metalWellContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.8, 2.8});
+            }
+
             // Via1 -> Via4
             double [] indentValues = {1.2, 1.7, 1.7, 2.2, 2.7};
             double [] cutValues = {0.6, 0.6, 0.6, 0.6, 0.9};  // 0.6 (VIAX.E.2) 0.9 VIA5.E.1
@@ -2953,6 +2968,14 @@ public class MoCMOS extends Technology
                 node = metalActiveContactNodes[i].getLayers()[4]; // Cut
                 node.setPoints(Technology.TechPoint.makeIndented(7.5));
                 metalActiveContactNodes[i].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
+            }
+
+            // Well contacts
+            for (int i = 0; i < metalWellContactNodes.length; i++)
+            {
+                node = metalWellContactNodes[i].getLayers()[4]; // Cut
+                node.setPoints(Technology.TechPoint.makeIndented(7.5));
+                metalWellContactNodes[i].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
             }
 
             // Via1 -> Via4. Some values depend on original node size
