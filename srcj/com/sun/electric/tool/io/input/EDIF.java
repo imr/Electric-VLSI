@@ -277,6 +277,7 @@ public class EDIF extends Input
 	/** depth of keyword stack */				private int keyStackDepth;
 
     /** Edif equivs for primitives */           private EDIFEquiv equivs;
+    /** List of ports in net -> joined list */  private List netPortRefs;  // list of PortInst objects
 
 	// some standard artwork primitivies
 	private PortProto defaultPort;
@@ -396,6 +397,7 @@ public class EDIF extends Input
 		defaultOutput = Schematics.tech.offpageNode.findPortProto("a");
 
         equivs = new EDIFEquiv("edif.cfg");
+        netPortRefs = new ArrayList();
 
 		// parse the file
 		try
@@ -1053,8 +1055,10 @@ public class EDIF extends Input
 	 * cell - cell to search
 	 * x, y  - the point to exam
 	 * ap    - the arc used to connect port (must match pp)
+     * exactOnly - only return exact matches if true.  If false, also look "nearby" for ports if no
+     *  exact matches found.
 	 */
-	private List findEDIFPort(Cell cell, double x, double y, ArcProto ap)
+	private List findEDIFPort(Cell cell, double x, double y, ArcProto ap, boolean exactOnly)
 	{
 		List ports = new ArrayList();
 		PortInst bestPi = null;
@@ -1094,7 +1098,7 @@ public class EDIF extends Input
 		}
 
 		// special case: make it connect to anything that is near
-		if (ports.size() == 0 && bestPi != null)
+		if (ports.size() == 0 && bestPi != null && !exactOnly)
 		{
 			// create a new node in the proper position
 			PrimitiveNode np = ap.findPinProto();
@@ -2259,6 +2263,7 @@ public class EDIF extends Input
 			curArc = null;
 			if (curGeometryType != GBUS) curGeometryType = GUNKNOWN;
 			freeSavedPointList();
+            netPortRefs.clear();
 		}
 	}
 
@@ -2434,7 +2439,31 @@ public class EDIF extends Input
 					if (fList.size() == 0)
 					{
 						// look for the first pin
-						fList = findEDIFPort(curCell, fX, fY, Schematics.tech.wire_arc);
+						fList = findEDIFPort(curCell, fX, fY, Schematics.tech.wire_arc, true);
+                        if (fList.size() == 0) {
+                            // check for NodeEquivalences with translated ports
+                            for (Iterator it = netPortRefs.iterator(); it.hasNext(); ) {
+                                PortInst pi = (PortInst)it.next();
+                                EDIFEquiv.NodeEquivalence ne = equivs.getNodeEquivalence(pi.getNodeInst());
+                                if (ne != null) {
+                                    Point2D curPoint = new Point2D.Double(fX, fY);
+                                    String orientation = com.sun.electric.tool.io.output.EDIF.getOrientation(pi.getNodeInst(), 0);
+                                    String port = ne.getPortEquivElec(pi.getPortProto().getName()).getExtPort().name;
+                                    curPoint = equivs.translatePortConnection(curPoint, ne.externalLib, ne.externalCell,
+                                            ne.externalView, port, orientation);
+                                    if ((curPoint.getX() != fX) || (curPoint.getY() != fY)) {
+                                        fList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech.wire_arc, true);
+                                        System.out.println("NodeInst "+pi.getNodeInst().describe(true)+", port "+pi.getPortProto().getName()+
+                                                ", fX,fY: "+fX+","+fY+", curPoint: "+curPoint.getX()+","+curPoint.getY()+", list size: "+fList.size());
+                                        if (fList.size() != 0) {
+                                            // found exact match, move port
+                                            fX = curPoint.getX();
+                                            fY = curPoint.getY();
+                                        }
+                                    }
+                                }
+                            }
+                        }
 						if (fList.size() == 0)
 						{
 							// create the "from" pin
@@ -2444,7 +2473,31 @@ public class EDIF extends Input
 					}
 
 					// now the second ...
-					List tList = findEDIFPort(curCell, tX, tY, Schematics.tech.wire_arc);
+					List tList = findEDIFPort(curCell, tX, tY, Schematics.tech.wire_arc, true);
+                    if (tList.size() == 0) {
+                        // check for NodeEquivalences with translated ports
+                        for (Iterator it = netPortRefs.iterator(); it.hasNext(); ) {
+                            PortInst pi = (PortInst)it.next();
+                            EDIFEquiv.NodeEquivalence ne = equivs.getNodeEquivalence(pi.getNodeInst());
+                            if (ne != null) {
+                                Point2D curPoint = new Point2D.Double(tX, tY);
+                                String orientation = com.sun.electric.tool.io.output.EDIF.getOrientation(pi.getNodeInst(), 0);
+                                String port = ne.getPortEquivElec(pi.getPortProto().getName()).getExtPort().name;
+                                curPoint = equivs.translatePortConnection(curPoint, ne.externalLib, ne.externalCell,
+                                        ne.externalView, port, orientation);
+                                if (curPoint.getX() != tX || curPoint.getY() != tY) {
+                                    tList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech.wire_arc, true);
+                                    System.out.println("NodeInst "+pi.getNodeInst().describe(true)+", port "+pi.getPortProto().getName()+
+                                            ", fX,fY: "+fX+","+fY+", curPoint: "+curPoint.getX()+","+curPoint.getY()+", list size: "+tList.size());
+                                    if (tList.size() != 0) {
+                                        // found exact match, move port
+                                        tX = curPoint.getX();
+                                        tY = curPoint.getY();
+                                    }
+                                }
+                            }
+                        }
+                    }
 					if (tList.size() == 0)
 					{
 						// create the "to" pin
@@ -2789,6 +2842,7 @@ public class EDIF extends Input
 					curNode = ni;
 					curPort = pp;
 					Cell np = ni.getParent();
+                    netPortRefs.add(ni.findPortInstFromProto(pp));
 
 					// create extensions for net labels on single pin nets (externals), and placeholder for auto-routing later
 					if (activeView == VNETLIST)
