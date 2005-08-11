@@ -657,7 +657,12 @@ public class EDIF extends Topology
                                 if (!pe.getExtPort().ignorePort) {
                                     blockOpen("portRef");
                                     portName = pe.getExtPort().name;
-                                    blockPutIdentifier(makeToken(portName));
+                                    String safeName = makeValidName(portName);
+                                    if (!safeName.equals(portName)) {
+                                        blockPutIdentifier(makeToken(safeName));
+                                    } else {
+                                        blockPutIdentifier(makeToken(portName));
+                                    }
                                     blockPut("instanceRef", makeComponentName(no));
                                     blockClose("portRef");
                                 }
@@ -882,7 +887,15 @@ public class EDIF extends Topology
             EDIFEquiv.Port port = (EDIFEquiv.Port)it.next();
             if (port.ignorePort) continue;
             blockOpen("port");
-            blockPutIdentifier(port.name);
+            String safeName = makeValidName(port.name);
+            if (!safeName.equals(port.name)) {
+                blockOpen("rename");
+                blockPutIdentifier(safeName);
+                blockPutString(port.name);
+                blockClose("rename");
+            } else {
+                blockPutIdentifier(port.name);
+            }
             blockClose("port");
         }
         blockClose("cell");
@@ -967,7 +980,7 @@ public class EDIF extends Topology
 	/**
 	 * Method to map Electric orientations to EDIF orientations
 	 */
-	private String getOrientation(NodeInst ni, int addedRotation)
+	public static String getOrientation(NodeInst ni, int addedRotation)
 	{
 		String orientation = "ERROR";
         int angle = (ni.getAngle() - addedRotation);
@@ -1048,7 +1061,7 @@ public class EDIF extends Topology
 	/**
 	 * Method to return null if there is no valid name in "var", corrected name if valid.
 	 */
-	private String makeValidName(String name)
+	public static String makeValidName(String name)
 	{
 		StringBuffer iptr = new StringBuffer(name);
 
