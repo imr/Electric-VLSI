@@ -546,8 +546,8 @@ public class EDIFEquiv {
                 elecPoint = niPureRotation.transform(elecPort.loc, elecPoint);
                 extPoint = niPureRotation.transform(extPort.loc, extPoint);
             }
-            return new Point2D.Double(point.getX()+(elecPoint.getX()-extPoint.getX()),
-                                      point.getY()+(elecPoint.getY()-extPoint.getY()));
+            return new Point2D.Double(point.getX()-(elecPoint.getX()-extPoint.getX()),
+                                      point.getY()-(elecPoint.getY()-extPoint.getY()));
         }
         public String toString() {
             return "PortEquiv Elec{ "+elecPort+" } - Ext{ "+extPort+" }";
