@@ -75,7 +75,6 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -4481,10 +4480,10 @@ public class CircuitChanges
 		if (copySubCells && !useExisting)
 			System.out.println("Cross-library copy warning: It makes no sense to copy subcells but not use them");
 
-		Date fromCellCreationDate = fromCell.getCreationDate();
-		Date fromCellRevisionDate = fromCell.getRevisionDate();
+//		Date fromCellCreationDate = fromCell.getCreationDate();
+//		Date fromCellRevisionDate = fromCell.getRevisionDate();
 
-		boolean topLevel = subDescript.length() == 0;
+//		boolean topLevel = subDescript.length() == 0;
 
 		// see if the cell is already there
 		for(Iterator it = existing.iterator(); it.hasNext(); )
