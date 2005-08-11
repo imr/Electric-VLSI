@@ -100,7 +100,7 @@ public class DesignRulesTab extends PreferencePanel
 
         drRules = rules;
 		foundry = curTech.getFoundry();
-		rulesPanel.init(curTech, foundry, drRules);
+        rulesPanel.init(curTech, foundry, drRules);
 
 		// load the dialog
         String text = "Design Rules for Technology '" + curTech.getTechName() + "'";
@@ -114,6 +114,7 @@ public class DesignRulesTab extends PreferencePanel
             defaultFoundryPulldown.addItem(factory.name);
             if (selectedFoundry.equals(factory.name)) foundry = factory.techMode;
         }
+        defaultFoundryPulldown.setEnabled(foundry != -1);
         defaultFoundryPulldown.setSelectedItem(selectedFoundry);
 
         // Resolution

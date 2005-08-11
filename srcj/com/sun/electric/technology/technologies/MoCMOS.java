@@ -548,7 +548,11 @@ public class MoCMOS extends Technology
 		});
 
         setFactoryResolution(0.01); // value in lambdas
+
+        foundries.add(new Foundry(Foundry.MOSIS_FOUNDRY, DRCTemplate.MOSIS));
         foundries.add(new Foundry("TSMC", DRCTemplate.TSMC));
+        setFactorySelecedFound(Foundry.MOSIS_FOUNDRY);  // default
+        
 		//**************************************** LAYERS ****************************************
 
 		/** metal-1 layer */

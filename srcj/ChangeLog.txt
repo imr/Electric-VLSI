@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03c: *********************************
 
+IMP: (08/10/05, GVG) Foundries only available for 90nm and MoCMOS technologies.
+
 BUG: (08/10/05, GVG) Exception if trying to read HSpice file with PSpiceOut reader (Bug #460)
 FIX: Detect error and abort reading.
 

@@ -585,8 +585,6 @@ public class Technology implements Comparable
 
         // Initialize foundries
         foundries = new ArrayList();
-        foundries.add(new Foundry(Foundry.MOSIS_FOUNDRY, DRCTemplate.MOSIS));
-        setFactorySelecedFound(Foundry.MOSIS_FOUNDRY);  // default
 	}
 
 	private static final String [] extraTechnologies = {"tsmc90.TSMC90"};
@@ -3088,7 +3086,7 @@ public class Technology implements Comparable
 	 */
 	public String getSelectedFoundry()
     {
-        //if (prefFoundry == null) setFactorySelecedFound();
+        if (prefFoundry == null) return ""; // Nothing
         return prefFoundry.getString();
     }
 
