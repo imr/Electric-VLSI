@@ -32,6 +32,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -40,6 +41,7 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.GDSLayers;
@@ -106,6 +108,7 @@ public class GDS extends Input
 	private Cell           theCell;
 	private NodeProto      theNodeProto;
 	private NodeProto      layerNodeProto;
+    private NodeProto      pinNodeProto;
 	private boolean        layerUsed;
 	private boolean        layerIsPin;
 	private Technology     curTech;
@@ -1039,7 +1042,7 @@ public class GDS extends Input
 		// handle pins specially 
 		if (layerIsPin)
 		{
-			NodeProto np = Generic.tech.universalPinNode;
+			NodeProto np = pinNodeProto;
 			NodeInst ni = NodeInst.makeInstance(np, theVertices[0], np.getDefWidth(), np.getDefHeight(), theCell);
 			if (ni == null) handleError("Could not create pin marker");
 			if (ni.getNumPortInsts() > 0)
@@ -1144,7 +1147,18 @@ public class GDS extends Input
 		{
 			if (layer == Generic.tech.drc_lay && IOTool.isGDSInIgnoresUnknownLayers())
 				layerUsed = false;
-			if (pinLayers.contains(layerInt)) layerIsPin = true;
+            pinNodeProto = Generic.tech.universalPinNode;
+			if (pinLayers.contains(layerInt)) {
+                layerIsPin = true;
+                for (Iterator it = layer.getTechnology().getArcs(); it.hasNext(); ) {
+                    ArcProto arc = (ArcProto)it.next();
+                    PortProto pp = layerNodeProto.getPort(0);
+                    if (pp != null && pp.connectsTo(arc)) {
+                        pinNodeProto = arc.findOverridablePinProto();
+                        break;
+                    }
+                }
+            }
 			layerNodeProto = layer.getNonPseudoLayer().getPureLayerNode();
 			if (layerNodeProto == null)
 			{
