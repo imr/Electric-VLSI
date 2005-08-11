@@ -32,6 +32,7 @@ import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JOptionPane;
+import javax.swing.WindowConstants;
 
 import com.sun.electric.Main;
 import com.sun.electric.tool.ncc.NccOptions;
@@ -58,11 +59,13 @@ public class NccMsgsFrame {
      
         if (TopLevel.isMDIMode()) {
             JInternalFrame jInternalFrame = new JInternalFrame("NCC Messages", true, true, true, true);
+            jInternalFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
             frame = jInternalFrame;
             contentPane = jInternalFrame.getContentPane();
             jInternalFrame.setFrameIcon(TopLevel.getFrameIcon());
         } else {
             JFrame jFrame = new JFrame("NCC Messages");
+            jFrame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
             frame = jFrame; 
             contentPane = jFrame.getContentPane();
             jFrame.setIconImage(TopLevel.getFrameIcon().getImage());

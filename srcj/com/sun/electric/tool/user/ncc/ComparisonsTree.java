@@ -519,12 +519,13 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
                           int row, boolean hasFocus) {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)value;
         TreeNode data = (TreeNode)node.getUserObject();
-        int compNdx = data.compNdx;        
-        if (data.type == TreeNode.WIRE && wireClassNodes[compNdx] != null
-                                       && !updateInProgress) {
+        int compNdx = data.compNdx;
+        int wclass = data.getWireClassNum();
+        if (data.type == TreeNode.WIRE && !updateInProgress
+             && compNdx < wireClassNodes.length && wireClassNodes[compNdx] != null 
+             && wclass < wireClassNodes[compNdx].length) {
             // wclass is a special index of Wire classes in each comparison
             // Needed because Wire and part classes are mixed together 
-            int wclass = data.getWireClassNum();
             if (wireClassNodes[compNdx][wclass] == null)
                 createWireClassNodes(data, node.isLeaf());
             if (selected)
