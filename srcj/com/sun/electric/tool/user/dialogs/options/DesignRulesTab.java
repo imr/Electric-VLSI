@@ -27,6 +27,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
@@ -318,10 +319,12 @@ public class DesignRulesTab extends PreferencePanel
 
         public boolean doIt()
         {
+            Undo.changesQuiet(true);
             for(Iterator it = Library.getLibraries(); it.hasNext(); )
             {
                 Library lib = (Library)it.next();
 
+                System.out.println("Resetting sizes in " + lib);
                 for(Iterator itCell = lib.getCells(); itCell.hasNext(); )
                 {
                     Cell cell = (Cell)itCell.next();
@@ -330,6 +333,7 @@ public class DesignRulesTab extends PreferencePanel
                     tech.resetDefaultValues(cell);
                 }
             }
+            Undo.changesQuiet(false);
             return true;
         }
     }

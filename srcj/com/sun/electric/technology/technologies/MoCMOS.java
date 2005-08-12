@@ -293,9 +293,15 @@ public class MoCMOS extends Technology
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.CUTSUR,    null,             null,            1,  "Metal-1-N-Active-Con"),
 
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.NODSIZ,    null,             null,            5,  "Metal-1-P-Well-Con"),
-		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Active-Well",  "Metal-1",        0.5,"Metal-1-P-Well-Con"),
-		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"),
-		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"),
+        new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Active-Well",  "Metal-1",        0.5,"Metal-1-P-Well-Con"),
+//		new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Active-Well",  "Metal-1",        0.5,"Metal-1-P-Well-Con"),
+//		new DRCTemplate("6.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Active-Well",  "Metal-1",        0.1,"Metal-1-P-Well-Con"),
+        new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"),
+//        new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"),
+//        new DRCTemplate("6.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active-Well",  0.9,  "Metal-1-P-Well-Con"),
+		new DRCTemplate("6.2",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"),
+//        new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"),
+//        new DRCTemplate("6.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "P-Active-Well",  4.3,  "Metal-1-P-Well-Con"),
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-P-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.NODSIZ,    null,             null,            4,  "Metal-1-P-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.SURROUND, "P-Active-Well",  "Metal-1",        0,  "Metal-1-P-Well-Con"),
@@ -306,7 +312,7 @@ public class MoCMOS extends Technology
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.NODSIZ,    null,             null,            5,  "Metal-1-N-Well-Con"),
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Well-Con"),
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Well-Con"),
-		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Well",         "N-Active",       3,  "Metal-1-N-Well-Con"),
+        new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Well",         "N-Active",       3,  "Metal-1-N-Well-Con"),
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-N-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.NODSIZ,    null,             null,            4,  "Metal-1-N-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.SURROUND, "N-Active",       "Metal-1",        0,  "Metal-1-N-Well-Con"),
@@ -2868,7 +2874,10 @@ public class MoCMOS extends Technology
             {
                 node = metalWellContactNodes[i].getLayers()[4]; // Cut
                 node.setPoints(Technology.TechPoint.makeIndented(7.4));
+                node = metalWellContactNodes[i].getLayers()[3]; // Select rule PP.E.3
+//                node.setPoints(Technology.TechPoint.makeIndented(5.5));
                 metalWellContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.8, 2.8});
+                 // to have 4.3 between well and active NP.E.4
             }
 
             // Via1 -> Via4
@@ -2938,6 +2947,8 @@ public class MoCMOS extends Technology
                 node = metalWellContactNodes[i].getLayers()[4]; // Cut
                 node.setPoints(Technology.TechPoint.makeIndented(7.5));
                 metalWellContactNodes[i].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
+                node = metalWellContactNodes[i].getLayers()[3]; // Select
+                node.setPoints(Technology.TechPoint.makeIndented(4));
             }
 
             // Via1 -> Via4. Some values depend on original node size
@@ -2992,7 +3003,6 @@ public class MoCMOS extends Technology
      */
     public void resetDefaultValues(Cell cell)
     {
-
         for (Iterator itNod = cell.getNodes(); itNod.hasNext(); )
         {
             NodeInst ni = (NodeInst)itNod.next();
@@ -3006,32 +3016,32 @@ public class MoCMOS extends Technology
                 if (mult < 1)
                     System.out.println("Problems resizing transistor lengths");
                 double newLen = poly1_arc.getWidth() * mult;
-                if (newLen != length)
+                if (!DBMath.areEquals(newLen,length))
                 {
                     // Making wires from top/bottom ports fixed-angle otherwise they get twisted.
                     PortInst pi = ni.getPortInst(1);
-//                    List list = new ArrayList(2);
+                    List list = new ArrayList(2);
                     // Not sure how many connections are so fix angles to all
                     for (Iterator it = pi.getConnections(); it.hasNext();)
                     {
                         Connection c = (Connection)it.next();
-                        c.getArc().setFixedAngle(true);
-//                        list.add(c.getArc());
+//                        c.getArc().setFixedAngle(true);
+                        list.add(c.getArc());
                     }
                     pi = ni.getPortInst(3);
                     // Not sure how many connections are so fix angles to all
                     for (Iterator it = pi.getConnections(); it.hasNext();)
                     {
                         Connection c = (Connection)it.next();
-                        c.getArc().setFixedAngle(true);
-//                        list.add(c.getArc());
+//                        c.getArc().setFixedAngle(true);
+                        list.add(c.getArc());
                     }
                     ni.setPrimitiveNodeSize(size.getDoubleWidth(), newLen);
-//                    for (int i = 0; i < list.size(); i++)
-//                    {
-//                        ArcInst arc = (ArcInst)list.get(i);
+                    for (int i = 0; i < list.size(); i++)
+                    {
+                        ArcInst arc = (ArcInst)list.get(i);
 //                        arc.setFixedAngle(false);
-//                    }
+                    }
                 }
             }
         }
@@ -3040,38 +3050,38 @@ public class MoCMOS extends Technology
         {
             ArcInst ai = (ArcInst)itArc.next();
             boolean found = false;
-            double maxWidth = -Double.MIN_VALUE;
+            double maxLen = -Double.MIN_VALUE;
             // Guessing arc thickness based on connections
             // Default doesn't work in existing cells
             // Valid for poly layers only!
 
             if (!ai.getProto().getFunction().isPoly()) continue;
-//                        {
-//                            for(int i=0; i<2; i++)
-//                            {
-//                                Connection thisCon = ai.getConnection(i);
-//                                NodeInst ni = thisCon.getPortInst().getNodeInst();
-//                                // covers transistors and resistors
-//                                PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null); // This is only for layout
-//                                if (size != null)
-//                                {
-//                                    double width = size.getDoubleLength();
-//                                    if (width > maxWidth)
-//                                    {
-//                                        maxWidth = width;
-//                                        found = true;
-//                                    }
-//                                }
-//                            }
-//                        }
+            for(int i=0; i<2; i++)
+            {
+                Connection thisCon = ai.getConnection(i);
+                NodeInst ni = thisCon.getPortInst().getNodeInst();
+                // covers transistors and resistors
+                PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null); // This is only for layout
+                if (size != null)
+                {
+                    double length = size.getDoubleLength();
+                    if (DBMath.isGreaterThan(length, maxLen))
+                    {
+                        maxLen = length;
+                        found = true;
+                    }
+                }
+            }
             // No transistor or resistor found
             if (!found)
             {
-                maxWidth = ai.getProto().getDefaultWidth();
-                found = (ai.getWidth() != maxWidth); // default must be applied
+                maxLen = ai.getProto().getDefaultWidth();
+                found = (!DBMath.areEquals(ai.getWidth(), maxLen)); // default must be applied
             }
             if (found)
-                ai.modify(maxWidth - ai.getWidth(), 0, 0, 0, 0);
+            {
+                ai.modify(maxLen - ai.getWidth(), 0, 0, 0, 0);
+            }
         }
     }
 
