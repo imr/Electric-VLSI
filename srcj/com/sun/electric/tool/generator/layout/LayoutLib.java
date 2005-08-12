@@ -472,8 +472,8 @@ public class LayoutLib {
 		                                 head, tail, new Point2D.Double(hX, hY),
 										 new Point2D.Double(tX, tY),
 										 null, 0);
+        error(ai==null, "newArcInst failed");
 		ai.setFixedAngle(true);
-		error(ai==null, "newArcInst failed");
 		return ai;
 	}
 
