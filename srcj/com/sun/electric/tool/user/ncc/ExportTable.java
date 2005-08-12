@@ -67,12 +67,12 @@ implements PropertyChangeListener, ActionListener {
     protected static final String GREEN = "green";
 
     // GUI variables
-    int height;
-    int numCols;
-    int[][] cellPrefHeights;
-    int[][] cellPrefWidths;
-    JPopupMenu cellPopup;
-    String clipboard;
+    protected int height;
+    protected int numCols;
+    protected int[][] cellPrefHeights;
+    protected int[][] cellPrefWidths;
+    protected JPopupMenu cellPopup;
+    protected String clipboard;
             
     // data holders
     protected NccComparisonMismatches result;

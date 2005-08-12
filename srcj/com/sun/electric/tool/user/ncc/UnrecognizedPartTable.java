@@ -46,20 +46,20 @@ class UnrecognizedPartTable extends ExportTable {
         height = Math.min(moses.length, MAXROWS);
         setup();
         
-        setModel(new UnrecognizedMOSTableModel(this));
+        setModel(new UnrecognizedPartTableModel(this));
         getTableHeader().setReorderingAllowed(false);
         getColumnModel().getColumn(0).addPropertyChangeListener(this);
         getColumnModel().getColumn(1).addPropertyChangeListener(this);
     }
 }
 
-class UnrecognizedMOSTableModel extends ExportTableModel {
+class UnrecognizedPartTableModel extends ExportTableModel {
     UnrecognizedPart[] moses;
     int[][] cellPrefHeights = parent.cellPrefHeights;
     int[][] cellPrefWidths  = parent.cellPrefWidths;
     String[] colNames = {"Cell", "Part Type"};
     
-    public UnrecognizedMOSTableModel(UnrecognizedPartTable parent) {
+    public UnrecognizedPartTableModel(UnrecognizedPartTable parent) {
         super(parent);
         moses = parent.moses;
         cellPrefHeights = parent.cellPrefHeights;
