@@ -118,6 +118,13 @@ public class Tech {
 	 *
 	 * For now, well and diffusion don't have heights. */
 	public static ArcProto pdiff, ndiff, p1, m1, m2, m3, m4, m5, m6, m7, m8, m9;
+    public static ArcProto
+        ndiff18,
+        pdiff18,
+        ndiff25,
+        pdiff25,
+        ndiff33,
+        pdiff33;
 	/** layer pins */
 	public static PrimitiveNode ndpin,
 		pdpin,
@@ -161,6 +168,14 @@ public class Tech {
         pvtl,
         nnat,
         pnat;
+    /** special threshold transistor contacts */
+    public static PrimitiveNode
+        nmos18contact,
+        pmos18contact,
+        nmos25contact,
+        pmos25contact,
+        nmos33contact,
+        pmos33contact;
 	/** Well */
 	public static PrimitiveNode nwell, pwell;
 	/** Layer nodes are sometimes used to patch notches */
@@ -244,6 +259,12 @@ public class Tech {
         }
 		pdiff = tech.findArcProto("P-Active");
 		ndiff = tech.findArcProto("N-Active");
+        ndiff18 = tech.findArcProto("thick-OD18-N-Active");
+        pdiff18 = tech.findArcProto("thick-OD18-P-Active");
+        ndiff25 = tech.findArcProto("thick-OD25-N-Active");
+        pdiff25 = tech.findArcProto("thick-OD25-P-Active");
+        ndiff33 = tech.findArcProto("thick-OD33-N-Active");
+        pdiff33 = tech.findArcProto("thick-OD33-P-Active");
 
 		pdpin = pdiff.findOverridablePinProto();
 		ndpin = ndiff.findOverridablePinProto();
@@ -300,6 +321,14 @@ public class Tech {
         pvtl = null;
         nnat = null;
         pnat = null;
+
+        // initialize special threshold transistor contacts
+        nmos18contact = tech.findNodeProto("thick-OD18-Metal-1-N-Active-Con");
+        pmos18contact = tech.findNodeProto("thick-OD18-Metal-1-P-Active-Con");
+        nmos25contact = tech.findNodeProto("thick-OD25-Metal-1-N-Active-Con");
+        pmos25contact = tech.findNodeProto("thick-OD25-Metal-1-P-Active-Con");
+        nmos33contact = tech.findNodeProto("thick-OD33-Metal-1-N-Active-Con");
+        pmos33contact = tech.findNodeProto("thick-OD33-Metal-1-P-Active-Con");
 
         // transistor layers
         od18 = tech.findNodeProto("OD18-Node");
