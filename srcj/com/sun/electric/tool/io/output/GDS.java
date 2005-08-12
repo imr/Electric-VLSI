@@ -252,7 +252,7 @@ public class GDS extends Geometry
 					writeExportOnLayer(pp, pinLayer, pinType);
 
                     // write the text
-                    writeExportOnLayer(pp, textLayer, textType);
+                    //writeExportOnLayer(pp, textLayer, textType);
                 }
 			}
 		}
