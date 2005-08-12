@@ -45,7 +45,17 @@ import com.sun.electric.tool.ncc.strategy.Strategy;
  * <p>
  * A separate list of matched EquivRecords is kept. Most records will be 
  * matched. Most of the time we're interested in records not matched.
- * Separating out the matched records speeds up the scan for active records. */
+ * Separating out the matched records speeds up the scan for active records. 
+ * <p>
+ * Tricky: LeafEquivRecords takes advantage of the fact that the Gemini hash 
+ * code algorithm only subdivides "notMatched" EquivRecords. 
+ * This allows me to keep a separate list for the "notMatched" and scan only
+ * that list to see which EquivRecords have been subdivided. What's tricky
+ * is that the series-parallel reduction can change an EquivRecord from
+ * notMatched to matched. Also Local Partitioning can change subdivide
+ * a matched EquivRecord. Therefore I must initialize the LeafEquivRecords
+ * object <i>after</i> series-parallel reduction and Local Partitioning. 
+ * */
 public class LeafEquivRecords {
     private static final LeafList EMPTY_LIST = new LeafList();
 

@@ -81,13 +81,11 @@ public class LocalPartitioning {
 	
     private LocalPartitioning(NccGlobals globals) {this.globals = globals;}
     
-    private LocalPartitionResult doYourJob2() {
+    private void doYourJob2() {
         globals.status2("Begin partitioning based on local characteristics \n");
 
 		Set pinTypes = partitionPartsUsingLocalInformation();
 		partitionWiresUsingLocalInformation(pinTypes);
-
-		LocalPartitionResult res = new LocalPartitionResult(globals);
 
 		/* Count EquivRecords after Local Partitioning */
 		/*
@@ -100,16 +98,14 @@ public class LocalPartitioning {
 						   " #matchedWireRecs="+numMatchedWireRecs+
 						   " #notMatchedWireRecs="+numNotMatchedWireRecs);
 		*/		
-		globals.getComparisonResult().setLocalPartitionResult(res);
 		//StratReportLocalPartitionFailure.doYourJob(globals);
 
 		globals.status2("End partitioning based on local characteristics ");
-		return res;
     }
 	
 	// ------------------------ public method ---------------------------------
-	public static LocalPartitionResult doYourJob(NccGlobals globals) {
+	public static void doYourJob(NccGlobals globals) {
 		LocalPartitioning jsl = new LocalPartitioning(globals);
-		return jsl.doYourJob2();
+		jsl.doYourJob2();
 	}
 }

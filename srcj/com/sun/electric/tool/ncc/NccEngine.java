@@ -47,6 +47,8 @@ import com.sun.electric.tool.ncc.processing.LocalPartitioning;
 import com.sun.electric.tool.ncc.processing.ReportHashCodeFailure;
 import com.sun.electric.tool.ncc.processing.SerialParallelMerge;
 import com.sun.electric.tool.ncc.strategy.StratCheckSizes;
+import com.sun.electric.tool.ncc.trees.Circuit;
+import com.sun.electric.tool.ncc.trees.EquivRecord;
 
 public class NccEngine {
 	// ------------------------------ private data ----------------------------
@@ -73,12 +75,24 @@ public class NccEngine {
 		return nccLists;
 	}
 	
+	private int[] getNetObjCounts(EquivRecord rec, int numCells) {
+		int[] counts = new int[numCells];
+		// don't blow up if no parts or wires
+		if (rec==null) return counts;
+		int i=0;
+		for (Iterator it=rec.getCircuits(); it.hasNext(); i++) {
+			Circuit ckt = (Circuit) it.next();
+			counts[i] = ckt.numNetObjs();
+		}
+		return counts;
+	}
+	
 	/** Ivan wants this print out. */
 	private void printWireComponentCounts() {
 		int numCells = globals.getNumNetlistsBeingCompared();
-		int[] partCounts = globals.getPartCounts();
-		int[] wireCounts = globals.getWireCounts();
-		int[] portCounts = globals.getPortCounts();
+		int[] partCounts = getNetObjCounts(globals.getParts(), numCells);
+		int[] wireCounts = getNetObjCounts(globals.getWires(), numCells);
+		int[] portCounts = getNetObjCounts(globals.getWires(), numCells);
 		String[] cellNames = globals.getRootCellNames();
 		VarContext[] contexts = globals.getRootContexts();
 		for (int i=0; i<cellNames.length; i++) {
@@ -123,14 +137,22 @@ public class NccEngine {
 			globals.status1("  Serial/parallel merge took: "+
 					        NccUtils.hourMinSec(d1, d2));
 
-			globals.initLeafLists();
-			
 			printWireComponentCounts();
 
-			LocalPartitionResult localRes = LocalPartitioning.doYourJob(globals);
+			LocalPartitioning.doYourJob(globals);
+
+			// Tricky: init leaf lists after Local Partitioning because Local
+			// Partitioning can make an EquivRecord change from matched to
+			// mismatched!
+			globals.initLeafLists();
+
+			LocalPartitionResult localRes = new LocalPartitionResult(globals);
+			globals.getComparisonResult().setLocalPartitionResult(localRes);
+
 			Date d3 = new Date();
 			globals.status1("  Local partitioning took "+ 
 					        NccUtils.hourMinSec(d2, d3));
+
 
 			boolean topoOK = HashCodePartitioning.doYourJob(globals);
 			localRes.printErrorReport();

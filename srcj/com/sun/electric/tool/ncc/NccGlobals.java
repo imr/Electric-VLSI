@@ -168,11 +168,9 @@ public class NccGlobals {
 		}
 	}
 	/** Initialization.
-	 * Tricky! initLeafLists() must be called AFTER  
-	 * series/parallel merging. Series/parallel merging can change an 
-	 * EquivRecord from mismatched to matched. This transition is normally 
-	 * impossible and it creates inconsistencies in LeafEquivRecords.
-	 */
+	 * Tricky! initLeafLists() must be called AFTER series/parallel merging.
+	 * and AFTER Local Partitioning!!! Both of those processes violate 
+	 * invariants assumed by LeafEquivRecords. */
 	public void initLeafLists() {
 		partLeafRecs = new LeafEquivRecords(parts, this);
 		wireLeafRecs = new LeafEquivRecords(wires, this);

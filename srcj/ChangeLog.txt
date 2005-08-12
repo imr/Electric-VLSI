@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03c: *********************************
 
+BUG: (08/12/05, RK) NCC Fix for: NCC throws exception: "Must be leaf", (Bug# 459)
+
 IMP: (08/12/05, GVG) Extra functions to covert MoCMOS cells into TSMC180 ones.
 Resize of primitive nodes only available for 180nm tech. Poly arcs and transistor lengths
 are resized to multiple of the default value (2.0 for MoCMOS or 1.8 for TSMC).
