@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03c: *********************************
 
+IMP: (08/12/05, GVG) Extra functions to covert MoCMOS cells into TSMC180 ones.
+Resize of primitive nodes only available for 180nm tech. Poly arcs and transistor lengths
+are resized to multiple of the default value (2.0 for MoCMOS or 1.8 for TSMC).
+
+BUG: (08/12/05) Several bug fixes related to preferences that might have fixed Bug #462.
+
 IMP: (08/10/05, GVG) Foundries only available for 90nm and MoCMOS technologies.
 
 BUG: (08/10/05, GVG) Exception if trying to read HSpice file with PSpiceOut reader (Bug #460)

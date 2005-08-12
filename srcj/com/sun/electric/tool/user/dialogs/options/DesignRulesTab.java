@@ -24,13 +24,18 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.dialogs.DesignRulesPanel;
-import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.Job;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -141,15 +146,19 @@ public class DesignRulesTab extends PreferencePanel
 
         if (!foundryName.equals(curTech.getSelectedFoundry()))
         {
-            String [] messages = {
-				"Primitives in database might be resized according to values provided by " + foundryName + ".",
-                "If you do not resize now, arc widths might not be optimal for " + foundryName + ".",
-                "If you cancel the operation, the foundry will not be changed.",
-				"Do you want to resize the database?"};
-            Object [] options = {"Yes", "No", "Cancel"};
-            val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), messages,
-				"Resize Primitive Nodes and Arcs", JOptionPane.DEFAULT_OPTION,
-				JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+            // only valid for 180nm so far
+            if (curTech == MoCMOS.tech)
+            {
+                String [] messages = {
+                    "Primitives in database might be resized according to values provided by " + foundryName + ".",
+                    "If you do not resize now, arc widths might not be optimal for " + foundryName + ".",
+                    "If you cancel the operation, the foundry will not be changed.",
+                    "Do you want to resize the database?"};
+                Object [] options = {"Yes", "No", "Cancel"};
+                val = JOptionPane.showOptionDialog(TopLevel.getCurrentJFrame(), messages,
+                    "Resize Primitive Nodes and Arcs", JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+                }
             if (val != 2)
                 curTech.setSelectedFoundry(foundryName);
         }
@@ -175,7 +184,7 @@ public class DesignRulesTab extends PreferencePanel
         if (val == 0)
         {
             // primitive arcs have to be modified.
-            CircuitChanges.ResetDefaultWidthCommand();
+            new ResetDefaultWidthJob(curTech);
         }
 	}
 
@@ -291,4 +300,37 @@ public class DesignRulesTab extends PreferencePanel
     private javax.swing.JLabel jLabel6;
     // End of variables declaration//GEN-END:variables
 
+    /****************************** Reset default arc widths ******************************/
+
+    /**
+     * Job to resize arcs according to foundry information (switch between Mosis and TSMC)
+     */
+    private static class ResetDefaultWidthJob extends Job
+    {
+        private Technology tech;
+
+        protected ResetDefaultWidthJob(Technology tech)
+        {
+            super("Reset Default Arc Widths", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
+            this.tech = tech;
+			startJob();
+        }
+
+        public boolean doIt()
+        {
+            for(Iterator it = Library.getLibraries(); it.hasNext(); )
+            {
+                Library lib = (Library)it.next();
+
+                for(Iterator itCell = lib.getCells(); itCell.hasNext(); )
+                {
+                    Cell cell = (Cell)itCell.next();
+                    if (cell.getView() != View.LAYOUT) continue;
+
+                    tech.resetDefaultValues(cell);
+                }
+            }
+            return true;
+        }
+    }
 }

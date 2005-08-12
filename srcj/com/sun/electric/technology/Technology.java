@@ -3797,6 +3797,13 @@ public class Technology implements Comparable
      */
     public DRCRules getCachedRules() {return cachedRules;}
 
+    /**
+     * Reset default width values. Dummy function except to 180nm
+     * @param cell
+     */
+    public void resetDefaultValues(Cell cell) {;}
+
+
     /********************* Foundry **********************/
     public static class Foundry
     {

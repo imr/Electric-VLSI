@@ -210,7 +210,7 @@ public class ArcProto implements Comparable
 	/** Pref map for arc fixed angle. */						private static HashMap defaultFixedAnglePrefs = new HashMap();
 	/** Pref map for arc slidable. */							private static HashMap defaultSlidablePrefs = new HashMap();
 	/** Pref map for arc end extension. */						private static HashMap defaultExtendedPrefs = new HashMap();
-	/** Pref map for arc negation. */							private static HashMap defaultNegatedPrefs = new HashMap();
+//	/** Pref map for arc negation. */							private static HashMap defaultNegatedPrefs = new HashMap();
 	/** Pref map for arc directionality. */						private static HashMap defaultDirectionalPrefs = new HashMap();
 
 	/** The name of this ArcProto. */							protected String protoName;
@@ -221,7 +221,7 @@ public class ArcProto implements Comparable
 	/** Layers in this arc */                                   /*private*/ Technology.ArcLayer [] layers;
 	/** Full name */                                            /*private*/ String fullName;
 	/** Index of this ArcProto. */                          int primArcIndex;
-	/** A temporary integer for this ArcProto. */				private int tempInt;
+//	/** A temporary integer for this ArcProto. */				private int tempInt;
 
 	// the meaning of the "userBits" field:
 //	/** these arcs are fixed-length */							private static final int WANTFIX  =            01;
@@ -232,8 +232,8 @@ public class ArcProto implements Comparable
 //	/** set if arcs should be directional */					private static final int WANTDIRECTIONAL  =   040;
 	/** set if arcs can wipe wipable nodes */					private static final int CANWIPE  =          0100;
 	/** set if arcs can curve */								private static final int CANCURVE  =         0200;
-	/** arc function (from efunction.h) */						private static final int AFUNCTION  =      017400;
-	/** right shift for AFUNCTION */							private static final int AFUNCTIONSH  =         8;
+//	/** arc function (from efunction.h) */						private static final int AFUNCTION  =      017400;
+//	/** right shift for AFUNCTION */							private static final int AFUNCTIONSH  =         8;
 //	/** angle increment for this type of arc */					private static final int AANGLEINC  =   017760000;
 //	/** right shift for AANGLEINC */							private static final int AANGLEINCSH  =        13;
     /** set if arc is not selectable in palette */			    private static final int ARCSPECIAL  = 010000000;

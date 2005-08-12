@@ -1679,22 +1679,7 @@ public class ArcInst extends Geometric implements Comparable
         return diskBits;
 	}
 
-	/****************************** MISCELLANEOUS ******************************/
-
-    public boolean resetArcWidthToDefault()
-    {
-        ArcProto ap = getProto();
-        boolean widthChanged = width != ap.getDefaultWidth();
-        
-        if (widthChanged)
-        {
-            width = ap.getDefaultWidth();
-            updateGeometric();
-        }
-        return (widthChanged);
-    }
-
-	/**
+    /**
 	 * Method to check and repair data structure errors in this ArcInst.
 	 */
 	public int checkAndRepair(boolean repair, List list, ErrorLogger errorLogger)

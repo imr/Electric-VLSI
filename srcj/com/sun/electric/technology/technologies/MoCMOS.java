@@ -32,21 +32,16 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.DRCRules;
-import com.sun.electric.technology.DRCTemplate;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.EdgeV;
-import com.sun.electric.technology.Layer;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.SizeOffset;
-import com.sun.electric.technology.Technology;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.utils.MOSRules;
+import com.sun.electric.technology.*;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
@@ -191,7 +186,8 @@ public class MoCMOS extends Technology
 
 		new DRCTemplate("3.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  3,  null),
 		new DRCTemplate("3.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",3,  null),
-		new DRCTemplate("3.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2,  null),
+//		new DRCTemplate("3.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2.8,  null),
+        new DRCTemplate("3.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2,  null),
 		new DRCTemplate("3.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2,  null),
 
 		new DRCTemplate("3.2a", DRCTemplate.DE, DRCTemplate.SPACING,  "Transistor-Poly","Transistor-Poly",4,  null),
@@ -333,8 +329,9 @@ public class MoCMOS extends Technology
 		new DRCTemplate("6.3 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSPA,    null,             null,            2.8,  "Metal-1-N-Active-Con"),
 		new DRCTemplate("6.3 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.SPACING,  "Active-Cut",     "Active-Cut",     2.8,  null),
 
-		new DRCTemplate("6.4 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "Active-Cut",     "Transistor-Poly",2,  null),
-        new DRCTemplate("6.4 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "Active-Cut",     "Transistor-Poly",2.2,  null),
+//		new DRCTemplate("6.4",  DRCTemplate.ALL, DRCTemplate.SPACING,  "Active-Cut",     "Transistor-Poly",2,  null),
+        new DRCTemplate("6.4 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "Active-Cut",     "Transistor-Poly",2,  null),
+        new DRCTemplate("6.4 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "Active-Cut",     "Transistor-Poly",1.8,  null),
 
 		new DRCTemplate("6.5b",       DRCTemplate.AC,        DRCTemplate.UCONSPA,  "Active-Cut",     "P-Active",       5,  null),
 		new DRCTemplate("6.5b",       DRCTemplate.AC,        DRCTemplate.UCONSPA,  "Active-Cut",     "N-Active",       5,  null),
@@ -552,7 +549,7 @@ public class MoCMOS extends Technology
         foundries.add(new Foundry(Foundry.MOSIS_FOUNDRY, DRCTemplate.MOSIS));
         foundries.add(new Foundry("TSMC", DRCTemplate.TSMC));
         setFactorySelecedFound(Foundry.MOSIS_FOUNDRY);  // default
-        
+
 		//**************************************** LAYERS ****************************************
 
 		/** metal-1 layer */
@@ -2068,56 +2065,6 @@ public class MoCMOS extends Technology
             transistorNodes[i].setMinSize(15, 22, "2.1, 3.1");
         }
 
-//		/** N-Transistor */
-//		transistorPolyLayers[N_TYPE] = new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-//			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(10)),
-//			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2);
-//		transistorPolyLLayers[N_TYPE] = new Technology.NodeLayer(poly1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-//			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(10)),
-//			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(10))}, 1, 1, 2, 2);
-//		transistorPolyRLayers[N_TYPE] = new Technology.NodeLayer(poly1_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-//			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(10)),
-//			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(10))}, 1, 1, 2, 2);
-//		transistorPolyCLayers[N_TYPE] = new Technology.NodeLayer(transistorPoly_lay, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-//			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(10)),
-//			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(10))}, 1, 1, 2, 2);
-//		transistorActiveLayers[N_TYPE] = new Technology.NodeLayer(activeLayers[N_TYPE], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-//			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
-//			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0);
-//		transistorActiveTLayers[N_TYPE] = new Technology.NodeLayer(activeLayers[N_TYPE], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-//			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromTop(10)),
-//			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromTop(7))}, 4, 4, 0, 0);
-//		transistorActiveBLayers[N_TYPE] = new Technology.NodeLayer(activeLayers[N_TYPE], 3, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-//			new Technology.TechPoint(EdgeH.fromLeft(6), EdgeV.fromBottom(7)),
-//			new Technology.TechPoint(EdgeH.fromRight(6), EdgeV.fromBottom(10))}, 4, 4, 0, 0);
-//		transistorWellLayers[N_TYPE] = new Technology.NodeLayer(wellLayers[P_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-//			new Technology.TechPoint(EdgeH.makeLeftEdge(), EdgeV.fromBottom(1)),
-//			new Technology.TechPoint(EdgeH.makeRightEdge(), EdgeV.fromTop(1))}, 10, 10, 6, 6);
-//		transistorSelectLayers[N_TYPE] = new Technology.NodeLayer(selectLayers[N_TYPE], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-//			new Technology.TechPoint(EdgeH.fromLeft(4), EdgeV.fromBottom(5)),
-//			new Technology.TechPoint(EdgeH.fromRight(4), EdgeV.fromTop(5))}, 6, 6, 2, 2);
-//		transistorNodes[N_TYPE] = PrimitiveNode.newInstance("N-Transistor", this, 15.0, 22.0, new SizeOffset(6, 6, 10, 10),
-//			new Technology.NodeLayer [] {transistorActiveLayers[N_TYPE], transistorPolyLayers[N_TYPE], transistorWellLayers[N_TYPE], transistorSelectLayers[N_TYPE]});
-//		transistorNodes[N_TYPE].setElectricalLayers(new Technology.NodeLayer [] {transistorActiveTLayers[N_TYPE], transistorActiveBLayers[N_TYPE],
-//			transistorPolyLLayers[N_TYPE], transistorPolyRLayers[N_TYPE], transistorPolyCLayers[N_TYPE], transistorWellLayers[N_TYPE], transistorSelectLayers[N_TYPE]});
-//		transistorNodes[N_TYPE].addPrimitivePorts(new PrimitivePort []
-//			{
-//				PrimitivePort.newInstance(this, transistorNodes[N_TYPE], new ArcProto[] {poly1_arc}, "n-trans-poly-left", 180,90, 0, PortCharacteristic.UNKNOWN,
-//					EdgeH.fromLeft(4), EdgeV.fromBottom(11), EdgeH.fromLeft(4), EdgeV.fromTop(11)),
-//				PrimitivePort.newInstance(this, transistorNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE]}, "n-trans-diff-top", 90,90, 1, PortCharacteristic.UNKNOWN,
-//					EdgeH.fromLeft(7.5), EdgeV.fromTop(7.5), EdgeH.fromRight(7.5), EdgeV.fromTop(7)),
-//				PrimitivePort.newInstance(this, transistorNodes[N_TYPE], new ArcProto[] {poly1_arc}, "n-trans-poly-right", 0,90, 0, PortCharacteristic.UNKNOWN,
-//					EdgeH.fromRight(4), EdgeV.fromBottom(11), EdgeH.fromRight(4), EdgeV.fromTop(11)),
-//				PrimitivePort.newInstance(this, transistorNodes[N_TYPE], new ArcProto[] {activeArcs[N_TYPE]}, "n-trans-diff-bottom", 270,90, 2, PortCharacteristic.UNKNOWN,
-//					EdgeH.fromLeft(7.5), EdgeV.fromBottom(7), EdgeH.fromRight(7.5), EdgeV.fromBottom(7.5))
-//			});
-//		transistorNodes[N_TYPE].setFunction(PrimitiveNode.Function.TRANMOS);
-//		transistorNodes[N_TYPE].setHoldsOutline();
-//		transistorNodes[N_TYPE].setCanShrink();
-//		transistorNodes[N_TYPE].setSpecialType(PrimitiveNode.SERPTRANS);
-//		transistorNodes[N_TYPE].setSpecialValues(new double [] {7, 1.5, 2.5, 2, 1, 2});
-//		transistorNodes[N_TYPE].setMinSize(15, 22, "2.1, 3.1");
-
 		/** Thick oxide transistors */
 		String[] thickNames = {"Thick-P", "Thick-N"};
 		Technology.NodeLayer[] thickActiveLayers = new Technology.NodeLayer[] {transistorActiveLayers[P_TYPE], transistorActiveLayers[N_TYPE]};
@@ -2941,6 +2888,7 @@ public class MoCMOS extends Technology
             /* Poly -> 3.2 top/bottom extension */
             for (int i = 0; i < 2; i++)
             {
+                transistorWellLayers[i].getLeftEdge().setAdder(1.7); transistorWellLayers[i].getRightEdge().setAdder(-1.7);
                 transistorSelectLayers[i].getLeftEdge().setAdder(2.5); transistorSelectLayers[i].getRightEdge().setAdder(-2.5);
                 // Poly X values
                 transistorPolyLayers[i].getLeftEdge().setAdder(3.8); transistorPolyLayers[i].getRightEdge().setAdder(-3.8);
@@ -2950,13 +2898,23 @@ public class MoCMOS extends Technology
                 transistorPolyLayers[i].getBottomEdge().setAdder(10.1); transistorPolyLayers[i].getTopEdge().setAdder(-10.1);
                 transistorPolyLLayers[i].getBottomEdge().setAdder(10.1); transistorPolyLLayers[i].getTopEdge().setAdder(-10.1);
                 transistorPolyRLayers[i].getBottomEdge().setAdder(10.1); transistorPolyRLayers[i].getTopEdge().setAdder(-10.1);
+                transistorPolyCLayers[i].getBottomEdge().setAdder(10.1); transistorPolyCLayers[i].getTopEdge().setAdder(-10.1);
                 transistorActiveLayers[i].getBottomEdge().setAdder(6.8); transistorActiveLayers[i].getTopEdge().setAdder(-6.8);
                 transistorActiveBLayers[i].getBottomEdge().setAdder(6.8);
                 transistorActiveTLayers[i].getTopEdge().setAdder(-6.8);
                 transistorNodes[i].setSizeOffset(new SizeOffset(6, 6, 10.1, 10.1));
+//                PrimitivePort port = transistorNodes[i].getPort(0).getBasePort();
+//                // trans-poly-left
+//                port.getLeft().setAdder(4.2);
+//                port.getRight().setAdder(4.2);
+//                // trans-poly-right
+//                port = transistorNodes[i].getPort(2).getBasePort();
+//                port.getLeft().setAdder(-4.2);
+//                port.getRight().setAdder(-4.2);
             }
             // Channel length 1.8
             poly1_arc.setDefaultWidth(1.8);
+            poly1Pin_node.setDefSize(1.8, 1.8);
             // Metal 6 arc width 4.4
             metalArcs[5].setDefaultWidth(4.4);
         }
@@ -2998,6 +2956,7 @@ public class MoCMOS extends Technology
             /* Poly -> 3.2 top/bottom extension */
             for (int i = 0; i < 2; i++)
             {
+                transistorWellLayers[i].getLeftEdge().setAdder(0); transistorWellLayers[i].getRightEdge().setAdder(0);
                 transistorSelectLayers[i].getLeftEdge().setAdder(4); transistorSelectLayers[i].getRightEdge().setAdder(-4);
                 transistorPolyLayers[i].getLeftEdge().setAdder(4); transistorPolyLayers[i].getRightEdge().setAdder(-4);
                 transistorPolyLLayers[i].getLeftEdge().setAdder(4);
@@ -3005,15 +2964,114 @@ public class MoCMOS extends Technology
                 transistorPolyLayers[i].getBottomEdge().setAdder(10); transistorPolyLayers[i].getTopEdge().setAdder(-10);
                 transistorPolyLLayers[i].getBottomEdge().setAdder(10); transistorPolyLLayers[i].getTopEdge().setAdder(-10);
                 transistorPolyRLayers[i].getBottomEdge().setAdder(10); transistorPolyRLayers[i].getTopEdge().setAdder(-10);
+                transistorPolyCLayers[i].getBottomEdge().setAdder(10); transistorPolyCLayers[i].getTopEdge().setAdder(-10);
                 transistorActiveLayers[i].getBottomEdge().setAdder(7); transistorActiveLayers[i].getTopEdge().setAdder(-7);
                 transistorActiveBLayers[i].getBottomEdge().setAdder(7);
                 transistorActiveTLayers[i].getTopEdge().setAdder(-7);
                 transistorNodes[i].setSizeOffset(new SizeOffset(6, 6, 10, 10));
+//                PrimitivePort port = transistorNodes[i].getPort(0).getBasePort();
+//                // trans-poly-left
+//                port.getLeft().setAdder(4);
+//                port.getRight().setAdder(4);
+//                // trans-poly-right
+//                port = transistorNodes[i].getPort(2).getBasePort();
+//                port.getLeft().setAdder(-4);
+//                port.getRight().setAdder(-4);
             }
             // Channel length 2
             poly1_arc.setDefaultWidth(2.0);
+            poly1Pin_node.setDefSize(2, 2);
             // Metal 6 arc width 4. Original value
             metalArcs[5].setDefaultWidth(4);
+        }
+    }
+
+    /**
+     * Reset default width values. In 180nm the poly arcs are resized to default values
+     * @param cell
+     */
+    public void resetDefaultValues(Cell cell)
+    {
+
+        for (Iterator itNod = cell.getNodes(); itNod.hasNext(); )
+        {
+            NodeInst ni = (NodeInst)itNod.next();
+
+            // Only valid for transistors in layout so VarContext=null is OK
+            TransistorSize size = ni.getTransistorSize(null);
+            if (size != null)
+            {
+                double length = size.getDoubleLength();
+                int mult = (int)(length / poly1_arc.getWidth());
+                if (mult < 1)
+                    System.out.println("Problems resizing transistor lengths");
+                double newLen = poly1_arc.getWidth() * mult;
+                if (newLen != length)
+                {
+                    // Making wires from top/bottom ports fixed-angle otherwise they get twisted.
+                    PortInst pi = ni.getPortInst(1);
+//                    List list = new ArrayList(2);
+                    // Not sure how many connections are so fix angles to all
+                    for (Iterator it = pi.getConnections(); it.hasNext();)
+                    {
+                        Connection c = (Connection)it.next();
+                        c.getArc().setFixedAngle(true);
+//                        list.add(c.getArc());
+                    }
+                    pi = ni.getPortInst(3);
+                    // Not sure how many connections are so fix angles to all
+                    for (Iterator it = pi.getConnections(); it.hasNext();)
+                    {
+                        Connection c = (Connection)it.next();
+                        c.getArc().setFixedAngle(true);
+//                        list.add(c.getArc());
+                    }
+                    ni.setPrimitiveNodeSize(size.getDoubleWidth(), newLen);
+//                    for (int i = 0; i < list.size(); i++)
+//                    {
+//                        ArcInst arc = (ArcInst)list.get(i);
+//                        arc.setFixedAngle(false);
+//                    }
+                }
+            }
+        }
+
+        for(Iterator itArc = cell.getArcs(); itArc.hasNext(); )
+        {
+            ArcInst ai = (ArcInst)itArc.next();
+            boolean found = false;
+            double maxWidth = -Double.MIN_VALUE;
+            // Guessing arc thickness based on connections
+            // Default doesn't work in existing cells
+            // Valid for poly layers only!
+
+            if (!ai.getProto().getFunction().isPoly()) continue;
+//                        {
+//                            for(int i=0; i<2; i++)
+//                            {
+//                                Connection thisCon = ai.getConnection(i);
+//                                NodeInst ni = thisCon.getPortInst().getNodeInst();
+//                                // covers transistors and resistors
+//                                PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null); // This is only for layout
+//                                if (size != null)
+//                                {
+//                                    double width = size.getDoubleLength();
+//                                    if (width > maxWidth)
+//                                    {
+//                                        maxWidth = width;
+//                                        found = true;
+//                                    }
+//                                }
+//                            }
+//                        }
+            // No transistor or resistor found
+            if (!found)
+            {
+                maxWidth = ai.getProto().getDefaultWidth();
+                found = (ai.getWidth() != maxWidth); // default must be applied
+            }
+            if (found)
+                ai.modify(maxWidth - ai.getWidth(), 0, 0, 0, 0);
         }
     }
 
