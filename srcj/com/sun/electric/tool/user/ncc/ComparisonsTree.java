@@ -148,18 +148,19 @@ implements ActionListener, TreeSelectionListener, TreeCellRenderer {
             // add exports entry if necessary
             int exportMismCount = cm.getValidExportMismatchCount();
             String exportsTitle = null;
-            if (exportMismCount > ExportTable.MAXROWS) {
-                exportsTitle = "Exports [first " + ExportTable.MAXROWS 
-                          + " of " + exportMismCount + "]";                
-                exportMismCount = ExportTable.MAXROWS;
-            } else if (exportMismCount > 0) {
-                exportsTitle = "Exports [" + exportMismCount + "]";                
-            }
-            if (exportMismCount > 0)
+            if (exportMismCount > 0) {
+                if (exportMismCount > ExportTable.MAXROWS) {
+                    exportsTitle = "Exports [first " + ExportTable.MAXROWS 
+                              + " of " + exportMismCount + "]";                
+                    exportMismCount = ExportTable.MAXROWS;
+                } else if (exportMismCount > 0) {
+                    exportsTitle = "Exports [" + exportMismCount + "]";                
+                }                
                 compNode.add(new DefaultMutableTreeNode(
                              new TreeNode(compTreeNode, exportsTitle, 
                                           compNdx, -1, TreeNode.EXPORTS)));
-
+            }
+            
             boolean isHashChecked = cm.isHashFailuresPrinted();
             LocalPartitionResult lpRes = cm.getLocalPartitionResult();
             mismEqRecs = emptyEquivRecs;

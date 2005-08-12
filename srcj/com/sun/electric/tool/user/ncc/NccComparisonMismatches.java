@@ -76,9 +76,6 @@ public class NccComparisonMismatches {
     /** Unrecognized MOSes        */    private List unrecognizedParts;
     /** print hash code errors? */      private boolean printHashFailures;  
     
-    /** Empty array of EquivRecord */   
-    private static final EquivRecord[] emptyER = new EquivRecord[0];
-    
     public NccComparisonMismatches() {
         exportMatch = true;
         topologyMatch = true;

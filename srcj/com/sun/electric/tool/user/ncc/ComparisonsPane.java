@@ -98,7 +98,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
     private JScrollPane exportAssertionsPanes[];
     private JScrollPane exportNetConflictPanes[];
     private JScrollPane exportChrConflictPanes[];
-    private JScrollPane unrecognizedMOSPanes[];
+    private JScrollPane unrecognizedPartsPanes[];
     private EquivClassSplitPane rightSplPanes[];
     private JPanel sizesPanes[];
     
@@ -163,7 +163,7 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
         exportAssertionsPanes = new JScrollPane[mismatches.length];
         exportNetConflictPanes = new JScrollPane[mismatches.length];
         exportChrConflictPanes = new JScrollPane[mismatches.length];
-        unrecognizedMOSPanes = new JScrollPane[mismatches.length];
+        unrecognizedPartsPanes = new JScrollPane[mismatches.length];
         sizesPanes = new JPanel[mismatches.length];
         
         // clear lists of selected/displayed TreeNode objects 
@@ -290,14 +290,14 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
      * @param compNdx  comparison index
      * @return Unrecognized Parts table wrapped into a JScrollPane
      */
-    private JScrollPane getUnrecognizedMOSPane(int compNdx) {
-        if (compNdx < 0 || compNdx >= unrecognizedMOSPanes.length) return null;
-        if (unrecognizedMOSPanes[compNdx] == null) {
+    private JScrollPane getUnrecognizedPartsPane(int compNdx) {
+        if (compNdx < 0 || compNdx >= unrecognizedPartsPanes.length) return null;
+        if (unrecognizedPartsPanes[compNdx] == null) {
             UnrecognizedPartTable table = new UnrecognizedPartTable(mismatches[compNdx]);
-            unrecognizedMOSPanes[compNdx] = new JScrollPane(table);
-            unrecognizedMOSPanes[compNdx].setBackground(Color.WHITE);
+            unrecognizedPartsPanes[compNdx] = new JScrollPane(table);
+            unrecognizedPartsPanes[compNdx].setBackground(Color.WHITE);
         }
-        return unrecognizedMOSPanes[compNdx];
+        return unrecognizedPartsPanes[compNdx];
     }    
     
     /**
@@ -380,13 +380,13 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
                     break;
                 case TreeNode.UNRECOG_PART:
                     dispOnRight = UNRECOG_PART;
-                    setRightComponent(getUnrecognizedMOSPane(exNode.compNdx));
+                    setRightComponent(getUnrecognizedPartsPane(exNode.compNdx));
                     break;                                        
             }
             setDividerLocation(divPos); // restore divider position
             return;
-        } else if (curEqRecNodes.size() == 0) {  // if no equiv. class is selcted
-            resetRightPane();  // display an empty rigth pane
+        } else if (curEqRecNodes.size() == 0) {  // if no equiv. class is selected
+            resetRightPane();  // display an empty right pane
             return;            
         }
         
