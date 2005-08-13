@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03c: *********************************
 
+IMP: (08/12/05, RK) 90nm Layout Generator: add invCLK (Bug# 463)
+
 BUG: (08/12/05, RK) NCC Fix for: NCC throws exception: "Must be leaf", (Bug# 459)
 
 IMP: (08/12/05, GVG) Extra functions to covert MoCMOS cells into TSMC180 ones.
