@@ -3222,7 +3222,8 @@ public class Technology implements Comparable
 			for(int i=0; i<layers.length; i++)
 			{
 				Pref pref = transparentColorPrefs[i];
-				pref.setInt(layers[i].getRGB());
+                if (layers[i] != null)
+				    pref.setInt(layers[i].getRGB());
 			}
 		}
 

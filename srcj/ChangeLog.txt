@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03c: *********************************
 
+BUG: (08/14/05, GVG) Fix to avoid exception if layers[i] is null in Technology.setColorMapFromLayers()
+on Mac (not sure if happens on other machines)
+
 IMP: (08/12/05, RK) 90nm Layout Generator: add invCLK (Bug# 463)
 
 BUG: (08/12/05, RK) NCC Fix for: NCC throws exception: "Must be leaf", (Bug# 459)
