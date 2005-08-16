@@ -30,6 +30,7 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.network.Global;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -70,7 +71,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
@@ -227,7 +227,7 @@ public class WaveformWindow implements WindowContent
 		/** the button to hide this panel. */					private JButton hide;
 		/** the button to delete selected signal (analog). */	private JButton deleteSignal;
 		/** the button to delete all signals (analog). */		private JButton deleteAllSignals;
-		/** the button to toggle bus display (digital). */		private JButton toggleBusSignals;
+//		/** the button to toggle bus display (digital). */		private JButton toggleBusSignals;
 		/** the signal name button (digital). */				private JButton digitalSignalButton;
 		/** displayed range along horozintal axis */			private double minTime, maxTime;
 		/** low value displayed in this panel (analog) */		private double analogLowValue;
@@ -2740,7 +2740,7 @@ public class WaveformWindow implements WindowContent
 					if (loc.getWaveformWindow() != ww) continue;
 					Network net = (Network)highSet.iterator().next();
 					//String netName = loc.getContext() + net.describe();
-					String netName = WaveformWindow.getSpiceNetName(loc.getContext(), net);
+					String netName = getSpiceNetName(loc.getContext(), net);
 					Signal sSig = ww.sd.findSignalForNetwork(netName);
 					if (sSig == null)
 					{
@@ -3819,7 +3819,7 @@ if (wp.signalButtons != null)
 		for(Iterator it = nets.iterator(); it.hasNext(); )
 		{
 			Network net = (Network)it.next();
-			String netName = WaveformWindow.getSpiceNetName(context, net);
+			String netName = getSpiceNetName(context, net);
 			Signal sSig = sd.findSignalForNetwork(netName);
 			if (sSig == null)
 			{
@@ -3906,14 +3906,36 @@ if (wp.signalButtons != null)
 	 * or a String describing the context if net is null
 	 */
 	public static String getSpiceNetName(VarContext context, Network net) {
+        boolean isGlobal = false;
+
 		if (net != null) {
+            Netlist netlist = net.getNetlist();
+            Network originalNet = net;
 			while (net.isExported() && (context != VarContext.globalContext)) {
 				// net is exported, find net in parent
 				net = getNetworkInParent(net, context.getNodable());
-//				net = HierarchyEnumerator.getNetworkInParent(net, context.getNodable());
+//				Network net1 = HierarchyEnumerator.getNetworkInParent(net, context.getNodable());
 				if (net == null) break;
 				context = context.pop();
 			}
+            // searching in globals
+            // Code taken from NCC
+            if (net == null)
+            {
+                Global.Set globNets = netlist.getGlobals();
+                for (int i=0; i<globNets.size(); i++)
+                {
+                    Global g = globNets.get(i);
+			        Network netG = netlist.getNetwork(g);
+                    if (netG == originalNet)
+                    {
+                        context = context.pop();
+                        net = netG;
+                        isGlobal = true;
+                        break;
+                    }
+                }
+            }
 		}
 		// create net name
 		String contextStr = context.getInstPath(".");
@@ -3921,7 +3943,8 @@ if (wp.signalButtons != null)
 		if (net == null)
 			return contextStr;
 		else {
-			if (context == VarContext.globalContext) return getSpiceNetName(net);
+			if (context == VarContext.globalContext || isGlobal)
+                return getSpiceNetName(net);
 			else return contextStr + "." + getSpiceNetName(net);
 		}
 	}
