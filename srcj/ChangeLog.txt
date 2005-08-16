@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03c: *********************************
 
+BUG: (08/16/05, DN) Bug in "List connections on network" (Bug #466).
+FIX: In ToolMenu.listConnectionsOnNetwork use "HashSet ports" instead of "PortProto pp".
+
 BUG: (08/14/05, GVG) Fix to avoid exception if layers[i] is null in Technology.setColorMapFromLayers()
 on Mac (not sure if happens on other machines)
 

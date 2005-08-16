@@ -859,7 +859,13 @@ public class ToolMenu {
                             Connection con = (Connection)cIt.next();
                             ArcInst ai = con.getArc();
                             Network oNet = netlist.getNetwork(ai, 0);
-                            portNets.put(oNet, pp);
+                            HashSet ports = (HashSet)portNets.get(oNet);
+                            if (ports == null) {
+                                ports = new HashSet();
+                                portNets.put(oNet, ports);
+                            }
+                            ports.add(pp);
+//                           portNets.put(oNet, pp);
                         }
                     } else
                     {
@@ -872,15 +878,23 @@ public class ToolMenu {
                         for(int i=0; i<width; i++)
                         {
                             Network oNet = netlist.getNetwork(no, pp, i);
-                            portNets.put(oNet, pp);
+                            HashSet ports = (HashSet)portNets.get(oNet);
+                            if (ports == null) {
+                                ports = new HashSet();
+                                portNets.put(oNet, ports);
+                            }
+                            ports.add(pp);
+//                            portNets.put(oNet, pp);
                         }
                     }
                 }
 
                 // if there is only 1 net connected, the node is unimportant
                 if (portNets.size() <= 1) continue;
-                PortProto pp = (PortProto)portNets.get(net);
-                if (pp == null) continue;
+                HashSet ports = (HashSet)portNets.get(net);
+                if (ports == null) continue;
+//                PortProto pp = (PortProto)portNets.get(net);
+//                if (pp == null) continue;
 
                 if (total == 0) System.out.println("  Connects to:");
                 String name = null;
@@ -888,8 +902,11 @@ public class ToolMenu {
                 {
                     name = no.getName();
                 }
-                System.out.println("    Node " + name + ", port " + pp.getName());
-                total++;
+                for (Iterator pIt = ports.iterator(); pIt.hasNext(); ) {
+                    PortProto pp = (PortProto)pIt.next();
+                    System.out.println("    Node " + name + ", port " + pp.getName());
+                    total++;
+                }
             }
             if (total == 0) System.out.println("  Not connected");
         }
