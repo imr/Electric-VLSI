@@ -1145,6 +1145,7 @@ public class GDS extends Input
 			layerNodeProto = null;
 		} else
 		{
+			layerNodeProto = layer.getNonPseudoLayer().getPureLayerNode();
 			if (layer == Generic.tech.drc_lay && IOTool.isGDSInIgnoresUnknownLayers())
 				layerUsed = false;
             pinNodeProto = Generic.tech.universalPinNode;
@@ -1159,7 +1160,6 @@ public class GDS extends Input
                     }
                 }
             }
-			layerNodeProto = layer.getNonPseudoLayer().getPureLayerNode();
 			if (layerNodeProto == null)
 			{
 				System.out.println("Error: no pure layer node for layer "+layer.getName());

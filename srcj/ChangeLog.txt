@@ -3,6 +3,7 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03c: *********************************
+BUG: (08/16/05, RK) GDS import places Exports on wrong layer (Bug #471)
 
 BUG: (08/16/05, GVG) Unable to probe global signals in Waveform (Bug #470)
 FIX: Added Globals in Waveform.getSpiceNetName() because globals are nor marked
