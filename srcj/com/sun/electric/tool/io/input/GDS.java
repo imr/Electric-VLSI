@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
@@ -498,7 +499,7 @@ public class GDS extends Input
 		if (theCell == null)
 		{
 			// create the proto
-			theCell = Cell.newInstance(theLibrary, tokenString);
+			theCell = Cell.newInstance(theLibrary, tokenString+"{"+View.LAYOUT.getAbbreviation()+"}");
 			if (theCell == null) handleError("Failed to create structure");
 			System.out.println("Reading " + tokenString);
 			if (theLibrary.getCurCell() == null)
