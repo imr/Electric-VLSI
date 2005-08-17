@@ -4,8 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03c: *********************************
 
-//BUG: (08/16/05, GVG) Problems getting via spacing rules for multi-cuts. (Bug #468)
-//FIX: Three states for multi cuts: -1 (don't care), (0) 1xN arrays, (1) MxN arrays for contacts.
+IMP: (08/17/05, GVG) RPO resistors in 180nm (Bug #458)
+
+IMP: (08/17/05, GVG) More changes for Mosis->TSMC switch in 180nm
+
+BUG: (08/17/05, GVG) Problems getting via spacing rules for multi-cuts. (Bug #468)
+Note: This might generate more errors in TSMC90 because vdd/gnd must be connected explicitly in some
+cells.
+FIX: Three states for multi cuts: -1 (don't care), (0) 1xN arrays, (1) MxN arrays for contacts.
+
+IMP: (08/17/05, GVG) ALGO_SWEEP default in DRC area checking
 
 BUG: (08/17/05, GVG) imported cells from GDS should be given type {lay} (Bug #472)
 FIX: Added View.LAYOUT.getAbbreviation() to the cell name during importing of the cell.

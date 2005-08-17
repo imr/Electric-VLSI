@@ -247,27 +247,27 @@ public class DesignRulesPanel extends JPanel
         List list = new ArrayList();
 		double value = TextUtils.atof(drNormalConnected.getText());
         list.add(new DRCTemplate(drNormalConnectedRule.getText(), foundry, DRCTemplate.CONSPA,
-                0, 0, null, null, value, false));
+                0, 0, null, null, value, -1));
 		value = TextUtils.atof(drNormalUnconnected.getText());
         list.add(new DRCTemplate(drNormalUnconnectedRule.getText(), foundry, DRCTemplate.UCONSPA,
-                0, 0, null, null, value, false));
+                0, 0, null, null, value, -1));
         drRules.setSpacingRules(dindex, list, DRCTemplate.SPACING);
 
 		// get new multicut spacing values
         list.clear();
         value = TextUtils.atof(drMultiConnected.getText());
         list.add(new DRCTemplate(drMultiConnectedRule.getText(), foundry, DRCTemplate.CONSPA,
-                0, 0, null, null, value, true));
+                0, 0, null, null, value, 1));
 		value = TextUtils.atof(drMultiUnconnected.getText());
         list.add(new DRCTemplate(drMultiUnconnectedRule.getText(), foundry, DRCTemplate.UCONSPA,
-                0, 0, null, null, value, true));
+                0, 0, null, null, value, 1));
         drRules.setSpacingRules(dindex, list, DRCTemplate.CUTSPA);
 
 		// get new edge values
         list.clear();
         value = TextUtils.atof(drNormalEdge.getText());
         list.add(new DRCTemplate(drNormalEdgeRule.getText(), foundry, DRCTemplate.CONSPA,
-                0, 0, null, null, value, false));
+                0, 0, null, null, value, -1));
         drRules.setSpacingRules(dindex, list, DRCTemplate.SPACINGE);
 
         // get new wide spacing values
@@ -298,7 +298,7 @@ public class DesignRulesPanel extends JPanel
 			height = TextUtils.atof(heightText);
 		}
         DRCTemplate tmp = new DRCTemplate(drNodeRule.getText(), DRCTemplate.ALL, DRCTemplate.NODSIZ,
-                0, 0, null, null, width, false);
+                0, 0, null, null, width, -1);
         tmp.value2 = height;
         drRules.addRule(nodeIndex, tmp, -1);
 
@@ -1217,7 +1217,7 @@ public class DesignRulesPanel extends JPanel
         {
 		    drSpacingsList.addItem("Rule " + (soFar+1));
 		    DRCTemplate wr = new DRCTemplate(drSpacingsRule.getText(), foundry, DRCTemplate.CONSPA,
-                    maxW, minLen, null, null, value, false);
+                    maxW, minLen, null, null, value, -1);
             drRules.addRule(dindex, wr, DRCTemplate.SPACINGW);
             wideSpacingRules.add(wr);
             // to be consistent, now adding the unconnected one

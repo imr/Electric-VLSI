@@ -33,8 +33,6 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -45,6 +43,7 @@ import com.sun.electric.technology.*;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
+import java.awt.geom.Rectangle2D;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
@@ -90,6 +89,7 @@ public class MoCMOS extends Technology
     /** Scalable Transistors */			        private PrimitiveNode[] scalableTransistorNodes = new PrimitiveNode[2];
     /** M1M2 -> M5M6 contacts */				private PrimitiveNode[] metalContactNodes = new PrimitiveNode[5];
     /** metal-1-P/N-Well-contacts */            private PrimitiveNode[] metalWellContactNodes = new PrimitiveNode[2];
+    /** RPO poly resistors */                   private PrimitiveNode[] rpoResistorNodes = new PrimitiveNode[2];
 	/** Metal-1-Node */							private PrimitiveNode metal1Node_node;
 	/** Metal-2-Node */							private PrimitiveNode metal2Node_node;
 	/** Metal-3-Node */							private PrimitiveNode metal3Node_node;
@@ -181,8 +181,8 @@ public class MoCMOS extends Technology
 
 		new DRCTemplate("3.1 Mosis",  DRCTemplate.MOSIS, DRCTemplate.MINWID,   "Polysilicon-1",   null,            2,  null),
 		new DRCTemplate("3.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Polysilicon-1",   null,            1.8,  null),
-        new DRCTemplate("3.1 Mosis",  DRCTemplate.ALL, DRCTemplate.MINWID,   "Transistor-Poly", null,            2,  null),
-        new DRCTemplate("3.1 TSMC",  DRCTemplate.ALL, DRCTemplate.MINWID,   "Transistor-Poly", null,            1.8,  null),
+        new DRCTemplate("3.1 Mosis",  DRCTemplate.MOSIS, DRCTemplate.MINWID,   "Transistor-Poly", null,            2,  null),
+        new DRCTemplate("3.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Transistor-Poly", null,            1.8,  null),
 
 		new DRCTemplate("3.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  3,  null),
 		new DRCTemplate("3.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",3,  null),
@@ -217,8 +217,10 @@ public class MoCMOS extends Technology
 		new DRCTemplate("4.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "N-Select",        null,            2,  null),
 		new DRCTemplate("4.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-P-Select", null,            2,  null),
 		new DRCTemplate("4.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-N-Select", null,            2,  null),
-		new DRCTemplate("4.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "P-Select",       "P-Select",       2,  null),
-		new DRCTemplate("4.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "N-Select",       "N-Select",       2,  null),
+		new DRCTemplate("4.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "P-Select",       "P-Select",       2,  null),
+		new DRCTemplate("4.4 TSMC (N/PP.S.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "P-Select",       "P-Select",       4.4,  null),
+		new DRCTemplate("4.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "N-Select",       "N-Select",       2,  null),
+		new DRCTemplate("4.4 TSMC (N/PP.S.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "N-Select",       "N-Select",       4.4,  null),
 		new DRCTemplate("4.4",  DRCTemplate.ALL, DRCTemplate.SPACING,  "P-Select",       "N-Select",       0,  null),
 
 		new DRCTemplate("5.1 Mosis",  DRCTemplate.MOSIS, DRCTemplate.MINWID,   "Poly-Cut",        null,            2,  null),
@@ -227,7 +229,7 @@ public class MoCMOS extends Technology
 		new DRCTemplate("5.2 Mosis/TSMC",        DRCTemplate.NAC,       DRCTemplate.NODSIZ,    null,             null,            5,  "Metal-1-Polysilicon-1-Con"),
 		new DRCTemplate("5.2 Mosis/TSMC",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "Polysilicon-1",  "Metal-1",        0.5,"Metal-1-Polysilicon-1-Con"),
 		new DRCTemplate("5.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-Polysilicon-1-Con"),
-		new DRCTemplate("CO.E.2-M1.E.2 TSMC",        DRCTemplate.TSMC,       DRCTemplate.CUTSUR,    null,             null,            1.4,"Metal-1-Polysilicon-1-Con"),
+		new DRCTemplate("CO.E.2-M1.E.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.4,"Metal-1-Polysilicon-1-Con"),
 		new DRCTemplate("5.2b",       DRCTemplate.AC,        DRCTemplate.NODSIZ,    null,             null,            4,  "Metal-1-Polysilicon-1-Con"),
 		new DRCTemplate("5.2b",       DRCTemplate.AC,        DRCTemplate.SURROUND, "Polysilicon-1",  "Metal-1",        0,  "Metal-1-Polysilicon-1-Con"),
 		new DRCTemplate("5.2b",       DRCTemplate.AC,        DRCTemplate.CUTSUR,    null,             null,            1,  "Metal-1-Polysilicon-1-Con"),
@@ -351,8 +353,8 @@ public class MoCMOS extends Technology
 		new DRCTemplate("7.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        3,  null),
 		new DRCTemplate("7.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        2,  null),
 
-		new DRCTemplate("7.4",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-1",        "Metal-1",        6, false),
-		new DRCTemplate("7.4",  DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-1",        "Metal-1",        4, false),
+		new DRCTemplate("7.4",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-1",        "Metal-1",        6, -1),
+		new DRCTemplate("7.4",  DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-1",        "Metal-1",        4, -1),
 
 		new DRCTemplate("8.1",  DRCTemplate.DE, DRCTemplate.CUTSIZE,   null,             null,            3, "Metal-1-Metal-2-Con"),
 		new DRCTemplate("8.1",  DRCTemplate.DE, DRCTemplate.NODSIZ,    null,             null,            5, "Metal-1-Metal-2-Con"),
@@ -383,8 +385,8 @@ public class MoCMOS extends Technology
 		new DRCTemplate("9.3 Mosis",  DRCTemplate.MOSIS,               DRCTemplate.VIASUR,   "Metal-2",         null,            1, "Metal-1-Metal-2-Con"),
         new DRCTemplate("9.3 TSMC",  DRCTemplate.TSMC,               DRCTemplate.VIASUR,   "Metal-2",         null,            0.7, "Metal-1-Metal-2-Con"),
 
-		new DRCTemplate("9.4",  DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-2",        "Metal-2",        8, false),
-		new DRCTemplate("9.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-2",        "Metal-2",        6, false),
+		new DRCTemplate("9.4",  DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-2",        "Metal-2",        8, -1),
+		new DRCTemplate("9.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-2",        "Metal-2",        6, -1),
 
 		new DRCTemplate("11.1", DRCTemplate.SU, DRCTemplate.MINWID,   "Polysilicon-2",   null,            7,  null),
 		new DRCTemplate("11.1", DRCTemplate.SC, DRCTemplate.MINWID,   "Polysilicon-2",   null,            3,  null),
@@ -432,10 +434,10 @@ public class MoCMOS extends Technology
 		new DRCTemplate("15.3 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC|    DRCTemplate.M456,  DRCTemplate.VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"),
         new DRCTemplate("15.3 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC|    DRCTemplate.M456,  DRCTemplate.VIASUR,   "Metal-3",         null,            0.7, "Metal-2-Metal-3-Con"),
 
-		new DRCTemplate("15.4", DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        8, false),
-		new DRCTemplate("15.4", DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        6, false),
-		new DRCTemplate("15.4", DRCTemplate.SC|DRCTemplate.M3,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        8, false),
-		new DRCTemplate("15.4", DRCTemplate.SC|DRCTemplate.M456,  DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        6, false),
+		new DRCTemplate("15.4", DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        8, -1),
+		new DRCTemplate("15.4", DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        6, -1),
+		new DRCTemplate("15.4", DRCTemplate.SC|DRCTemplate.M3,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        8, -1),
+		new DRCTemplate("15.4", DRCTemplate.SC|DRCTemplate.M456,  DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        6, -1),
 
 		new DRCTemplate("21.1", DRCTemplate.DE, DRCTemplate.CUTSIZE,   null,             null,            3, "Metal-3-Metal-4-Con"),
 		new DRCTemplate("21.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Via3",            null,            3,  null),
@@ -465,9 +467,9 @@ public class MoCMOS extends Technology
 		new DRCTemplate("22.3 Mosis", DRCTemplate.MOSIS|DRCTemplate.M56,   DRCTemplate.VIASUR,   "Metal-4",         null,            1, "Metal-3-Metal-4-Con"),
         new DRCTemplate("22.3 TSMC", DRCTemplate.TSMC|DRCTemplate.M56,   DRCTemplate.VIASUR,   "Metal-4",         null,            0.7, "Metal-3-Metal-4-Con"),
 
-		new DRCTemplate("22.4", DRCTemplate.M4,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        12, false),
-		new DRCTemplate("22.4", DRCTemplate.DE|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        8, false),
-		new DRCTemplate("22.4", DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        6, false),
+		new DRCTemplate("22.4", DRCTemplate.M4,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        12, -1),
+		new DRCTemplate("22.4", DRCTemplate.DE|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        8, -1),
+		new DRCTemplate("22.4", DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        6, -1),
 
 		new DRCTemplate("24.1", DRCTemplate.ALL, DRCTemplate.MINWID,  "Thick-Active",    null,            4,  null),
 		new DRCTemplate("24.2", DRCTemplate.ALL, DRCTemplate.SPACING, "Thick-Active",   "Thick-Active",   4, null),
@@ -501,9 +503,9 @@ public class MoCMOS extends Technology
         new DRCTemplate("26.3 Mosis", DRCTemplate.MOSIS|DRCTemplate.M6, DRCTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
         new DRCTemplate("26.3 TSMC", DRCTemplate.TSMC|DRCTemplate.M6, DRCTemplate.VIASUR,   "Metal-5",         null,            0.7, "Metal-4-Metal-5-Con"),
 
-		new DRCTemplate("26.4", DRCTemplate.M5, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        8, false),
-		new DRCTemplate("26.4", DRCTemplate.DE|DRCTemplate.M6,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        8, false),
-		new DRCTemplate("26.4", DRCTemplate.SU|DRCTemplate.M6,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        6, false),
+		new DRCTemplate("26.4", DRCTemplate.M5, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        8, -1),
+		new DRCTemplate("26.4", DRCTemplate.DE|DRCTemplate.M6,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        8, -1),
+		new DRCTemplate("26.4", DRCTemplate.SU|DRCTemplate.M6,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        6, -1),
 
 		new DRCTemplate("29.1", DRCTemplate.DE, DRCTemplate.CUTSIZE,   null,             null,            4, "Metal-5-Metal-6-Con"),
 		new DRCTemplate("29.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Via5",            null,            4,  null),
@@ -520,15 +522,17 @@ public class MoCMOS extends Technology
 		new DRCTemplate("29.3 Mosis", DRCTemplate.MOSIS, DRCTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-5-Metal-6-Con"),
         new DRCTemplate("29.3 TSMC", DRCTemplate.TSMC, DRCTemplate.VIASUR,   "Metal-5",         null,            0.9, "Metal-5-Metal-6-Con"),
 
-		new DRCTemplate("30.1", DRCTemplate.ALL, DRCTemplate.MINWID,   "Metal-6",         null,            5,  null),
+		new DRCTemplate("30.1 Mosis", DRCTemplate.MOSIS, DRCTemplate.MINWID,   "Metal-6",         null,            5,  null),
+        new DRCTemplate("30.1 TSMC", DRCTemplate.TSMC, DRCTemplate.MINWID,   "Metal-6",         null,            4.4,  null),
 
-		new DRCTemplate("30.2", DRCTemplate.ALL, DRCTemplate.SPACING,  "Metal-6",        "Metal-6",        5,  null),
+		new DRCTemplate("30.2 Mosis", DRCTemplate.MOSIS, DRCTemplate.SPACING,  "Metal-6",        "Metal-6",        5,  null),
+        new DRCTemplate("30.2 TSMC (M6.S.1)", DRCTemplate.TSMC, DRCTemplate.SPACING,  "Metal-6",        "Metal-6",        4.6,  null),
 
 		new DRCTemplate("30.3", DRCTemplate.DE, DRCTemplate.VIASUR,   "Metal-6",         null,            2, "Metal-5-Metal-6-Con"),
 		new DRCTemplate("30.3 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.VIASUR,   "Metal-6",         null,            1, "Metal-5-Metal-6-Con"),
         new DRCTemplate("30.3 TSMC", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.VIASUR,   "Metal-6",         null,            0.9, "Metal-5-Metal-6-Con"),
 
-		new DRCTemplate("30.4", DRCTemplate.ALL, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-6",        "Metal-6",        10, false)
+		new DRCTemplate("30.4", DRCTemplate.ALL, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-6",        "Metal-6",        10, -1)
 	};
 
 	// -------------------- private and protected methods ------------------------
@@ -1296,6 +1300,7 @@ public class MoCMOS extends Technology
 		metalLayers[5].setFunction(Layer.Function.METAL6);									// Metal-6
 		poly1_lay.setFunction(Layer.Function.POLY1);									// Polysilicon-1
 		poly2_lay.setFunction(Layer.Function.POLY2);									// Polysilicon-2
+        rpoLayer.setFunction(Layer.Function.IMPLANT);                                   // RPO as implant
 		activeLayers[P_TYPE].setFunction(Layer.Function.DIFFP);									// P-Active
 		activeLayers[N_TYPE].setFunction(Layer.Function.DIFFN);									// N-Active
 		selectLayers[P_TYPE].setFunction(Layer.Function.IMPLANTP);								// P-Select
@@ -1340,6 +1345,7 @@ public class MoCMOS extends Technology
 		metalLayers[5].setFactoryCIFLayer("CM6");				// Metal-6
 		poly1_lay.setFactoryCIFLayer("CPG");				// Polysilicon-1
 		poly2_lay.setFactoryCIFLayer("CEL");				// Polysilicon-2
+        rpoLayer.setFactoryCIFLayer("");                     // RPO
 		activeLayers[P_TYPE].setFactoryCIFLayer("CAA");				// P-Active
 		activeLayers[N_TYPE].setFactoryCIFLayer("CAA");				// N-Active
 		selectLayers[P_TYPE].setFactoryCIFLayer("CSP");				// P-Select
@@ -1390,6 +1396,7 @@ public class MoCMOS extends Technology
         metalLayers[5].setFactoryGDSLayer("38", Foundry.TSMC_FOUNDRY);				// Metal-6
 		poly1_lay.setFactoryGDSLayer("46", Foundry.MOSIS_FOUNDRY);					// Polysilicon-1
         poly1_lay.setFactoryGDSLayer("13", Foundry.TSMC_FOUNDRY);					// Polysilicon-1
+        rpoLayer.setFactoryGDSLayer("34", Foundry.TSMC_FOUNDRY);                    // RPO
 		transistorPoly_lay.setFactoryGDSLayer("46", Foundry.MOSIS_FOUNDRY);		// Transistor-Poly
         transistorPoly_lay.setFactoryGDSLayer("13", Foundry.TSMC_FOUNDRY);		// Transistor-Poly
 		poly2_lay.setFactoryGDSLayer("56", Foundry.MOSIS_FOUNDRY);					// Polysilicon-2
@@ -1537,7 +1544,8 @@ public class MoCMOS extends Technology
 		// Poly layers
 		poly1_lay.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeLayers[P_TYPE].getDepth());					// Polysilicon-1
 		transistorPoly_lay.setFactory3DInfo(PO_LAYER, TOX_LAYER + activeLayers[P_TYPE].getDepth());			// Transistor-Poly
-		poly2_lay.setFactory3DInfo(PO_LAYER, transistorPoly_lay.getDepth());					// Polysilicon-2 // on top of transistor layer?
+		rpoLayer.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeLayers[P_TYPE].getDepth());
+        poly2_lay.setFactory3DInfo(PO_LAYER, transistorPoly_lay.getDepth());					// Polysilicon-2 // on top of transistor layer?
 		polyCap_lay.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeLayers[P_TYPE].getDepth());				// Poly-Cap @TODO GVG Ask polyCap
 
 		polyCutLayer.setFactory3DInfo(metalLayers[0].getDistance()-poly1_lay.getDepth(), poly1_lay.getDepth());				// Poly-Cut between poly and metal1
@@ -1566,6 +1574,7 @@ public class MoCMOS extends Technology
 		metalLayers[5].setFactoryParasitics(0.03, 0.04, 0);			// Metal-6
 		poly1_lay.setFactoryParasitics(2.5, 0.09, 0);			// Polysilicon-1
 		poly2_lay.setFactoryParasitics(50.0, 1.0, 0);			// Polysilicon-2
+        rpoLayer.setFactoryParasitics(0, 0, 0);                      // RPO
 		activeLayers[P_TYPE].setFactoryParasitics(2.5, 0.9, 0);			// P-Active
 		activeLayers[N_TYPE].setFactoryParasitics(3.0, 0.9, 0);			// N-Active
 		selectLayers[P_TYPE].setFactoryParasitics(0, 0, 0);				// P-Select
@@ -2362,33 +2371,39 @@ public class MoCMOS extends Technology
 		metalWellContactNodes[N_TYPE].setMinSize(17, 17, "4.2, 6.2, 7.3");
 
         /********************** RPO Resistor-Node ********************************/
-        double resistorPolyX = 1.8 /* RPO.C.2 */;
-        double resistorM1Off = 0.5 /*poly surround in poly contact */;
-        double resistorConW = 5.4 /*contact width*/;
-        double resistorConH = 4.4 /*contact height*/;
-        double resistorOffX = resistorConW + resistorPolyX + 1.5 /*0.22um-0.07 (poly extension in contact)*/;
-        double resistorOffY = 2.2 /* RPO.C.2*/;
+        double polySelectOffX = 1.8; /* NP.C.3 */
+//        double rpoViaOffX = 2.2 /* RPO.C.2 */;
+        double polyCutSize = 2.2; /* page 28 */
+        double resistorViaOff = 1.0; /* page 28 */
+        double resistorConW = polyCutSize + 2*resistorViaOff /*contact width viaW + 2*viaS = (2.2 + 2*1). It must be 1xN */;
+        double resistorConH = resistorConW /*contact height*/;
+        double resistorOffX = resistorConW + polySelectOffX + 1.2 /*0.22um-0.1 (poly extension in contact)*/;
         double resistorW = 20 + 2*resistorOffX;
-        double resistorH = 2.2 /*RPO.C.5*/ + 2*resistorOffY /*RPO.EX.1*/;
-        double resistorM1OffX = resistorM1Off + resistorPolyX;
-        double resistorM1OffY = resistorM1Off + resistorOffY;
-        double resistorV1OffX = 0.7 + resistorPolyX;  // left via on left contact, right via on right contact
-        double polyCutSize = 2.6 - 2*0.7;  // M1Poly Contact minus offset
-        double resistorV2OffX = -polyCutSize - 0.7 + resistorPolyX + resistorConW;
-        double resistorPortOffX = resistorPolyX + (resistorConW-polyCutSize)/2; // for the port
-        double resistorV1OffY = resistorOffY + (resistorConH-polyCutSize)/2;
+        double resistorOffY = 2.2 /* RPO.C.2*/;
+        double resistorH = 2*resistorOffY + resistorConH;
+
+//        double resistorM1Off = 0.5 /*poly surround in poly contact */;
+//        double resistorPolyOffX = 2.2; /* page 28 */
+//        double resistorV2OffX = -polyCutSize - 0.7 + resistorPolyX + resistorConW;
+//        double resistorPortOffX = resistorPolyX + (resistorConW-polyCutSize)/2; // for the port
+        double resistorM1Off = resistorViaOff - 0.6; // 0.6 = M.E.2
         double resistorM1W = resistorConW-2*resistorM1Off;
-        PrimitiveNode[] rpoResistorNodes = new PrimitiveNode[2];
+        double resistorM1OffX = resistorM1Off + polySelectOffX;
+        double resistorM1OffY = resistorM1Off + resistorOffY;
+        double resistorV1OffX = resistorViaOff + polySelectOffX;
+        double resistorV1OffY = resistorOffY + (resistorConH-polyCutSize)/2;
+
+        rpoResistorNodes = new PrimitiveNode[2];
 
         for (int i = 0; i < rpoResistorNodes.length; i++)
         {
             rpoResistorNodes[i] = PrimitiveNode.newInstance(stdNames[i]+"-Poly-"+rpoLayer.getName()+"-Resistor", this, resistorW, resistorH,
-                    new SizeOffset(resistorOffX, resistorOffX, 2.2, 2.2),
+                    new SizeOffset(resistorOffX, resistorOffX, resistorOffY, resistorOffY),
 				new Technology.NodeLayer []
 				{
-                    new Technology.NodeLayer(transistorPoly_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-						new Technology.TechPoint(EdgeH.fromLeft(resistorPolyX), EdgeV.fromBottom(resistorOffY)),
-						new Technology.TechPoint(EdgeH.fromRight(resistorPolyX), EdgeV.fromTop(resistorOffY))}),
+                    new Technology.NodeLayer(poly1_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+						new Technology.TechPoint(EdgeH.fromLeft(polySelectOffX), EdgeV.fromBottom(resistorOffY)),
+						new Technology.TechPoint(EdgeH.fromRight(polySelectOffX), EdgeV.fromTop(resistorOffY))}),
                     new Technology.NodeLayer(rpoLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 						new Technology.TechPoint(EdgeH.fromLeft(resistorOffX), EdgeV.makeBottomEdge()),
 						new Technology.TechPoint(EdgeH.fromRight(resistorOffX), EdgeV.makeTopEdge())}),
@@ -2403,18 +2418,10 @@ public class MoCMOS extends Technology
                     new Technology.NodeLayer(polyCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 						new Technology.TechPoint(EdgeH.fromLeft(resistorV1OffX), EdgeV.fromBottom(resistorV1OffY)),
 						new Technology.TechPoint(EdgeH.fromLeft(resistorV1OffX+polyCutSize), EdgeV.fromBottom(resistorV1OffY+polyCutSize))}),
-                    // right via
-                    new Technology.NodeLayer(polyCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-						new Technology.TechPoint(EdgeH.fromLeft(resistorV2OffX), EdgeV.fromBottom(resistorV1OffY)),
-						new Technology.TechPoint(EdgeH.fromLeft(resistorV2OffX+polyCutSize), EdgeV.fromBottom(resistorV1OffY+polyCutSize))}),
                     // Right contact
                     new Technology.NodeLayer(metalLayers[0], 1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 						new Technology.TechPoint(EdgeH.fromRight(resistorM1OffX+resistorM1W), EdgeV.fromBottom(resistorM1OffY)),
 						new Technology.TechPoint(EdgeH.fromRight(resistorM1OffX), EdgeV.fromTop(resistorM1OffY))}),
-                    // left via
-                     new Technology.NodeLayer(polyCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
-						new Technology.TechPoint(EdgeH.fromRight(resistorV2OffX+polyCutSize), EdgeV.fromBottom(resistorV1OffY)),
-						new Technology.TechPoint(EdgeH.fromRight(resistorV2OffX), EdgeV.fromBottom(resistorV1OffY+polyCutSize))}),
                     // right via
                     new Technology.NodeLayer(polyCutLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 						new Technology.TechPoint(EdgeH.fromRight(resistorV1OffX+polyCutSize), EdgeV.fromBottom(resistorV1OffY)),
@@ -2424,10 +2431,10 @@ public class MoCMOS extends Technology
 			{
                 // left port
 				PrimitivePort.newInstance(this, rpoResistorNodes[i], new ArcProto[] {poly1_arc, metalArcs[0]}, "left-rpo", 0,180, 0, PortCharacteristic.UNKNOWN,
-                        EdgeH.fromLeft(resistorPortOffX), EdgeV.fromBottom(resistorV1OffY), EdgeH.fromLeft(resistorPortOffX+polyCutSize), EdgeV.fromTop(resistorV1OffY)),
+                        EdgeH.fromLeft(resistorV1OffX), EdgeV.fromBottom(resistorV1OffY), EdgeH.fromLeft(resistorV1OffX+polyCutSize), EdgeV.fromTop(resistorV1OffY)),
                 // right port
                 PrimitivePort.newInstance(this, rpoResistorNodes[i], new ArcProto[] {poly1_arc, metalArcs[0]}, "right-rpo", 0,180, 1, PortCharacteristic.UNKNOWN,
-                        EdgeH.fromRight(resistorPortOffX), EdgeV.fromBottom(resistorV1OffY), EdgeH.fromRight(resistorPortOffX+polyCutSize), EdgeV.fromTop(resistorV1OffY))
+                        EdgeH.fromRight(resistorV1OffX), EdgeV.fromBottom(resistorV1OffY), EdgeH.fromRight(resistorV1OffX+polyCutSize), EdgeV.fromTop(resistorV1OffY))
 			});
             rpoResistorNodes[i].setFunction(PrimitiveNode.Function.PRESIST);
 			rpoResistorNodes[i].setHoldsOutline();
@@ -2859,6 +2866,22 @@ public class MoCMOS extends Technology
 		thickActiveNode_node.setHoldsOutline();
 		thickActiveNode_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
+        /** RPO Node **/
+        // Min width 4.3 RPO.W.1
+        PrimitiveNode rpoNode = PrimitiveNode.newInstance(rpoLayer.getName()+"-Node", this, 4.3, 4.3, null,
+			new Technology.NodeLayer []
+			{
+				new Technology.NodeLayer(rpoLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
+			});
+		rpoNode.addPrimitivePorts(new PrimitivePort []
+			{
+				PrimitivePort.newInstance(this, rpoNode, new ArcProto[0], "rpo", 0,180, 0, PortCharacteristic.UNKNOWN,
+					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
+			});
+		rpoNode.setFunction(PrimitiveNode.Function.NODE);
+		rpoNode.setHoldsOutline();
+		rpoNode.setSpecialType(PrimitiveNode.POLYGONAL);
+
 		// The pure layer nodes
 		metalLayers[0].setPureLayerNode(metal1Node_node);					// Metal-1
 		metalLayers[1].setPureLayerNode(metal2Node_node);					// Metal-2
@@ -2868,6 +2891,7 @@ public class MoCMOS extends Technology
 		metalLayers[5].setPureLayerNode(metal6Node_node);					// Metal-6
 		poly1_lay.setPureLayerNode(poly1Node_node);						// Polysilicon-1
 		poly2_lay.setPureLayerNode(poly2Node_node);						// Polysilicon-2
+        rpoLayer.setPureLayerNode(rpoNode);
 		activeLayers[P_TYPE].setPureLayerNode(pActiveNode_node);					// P-Active
 		activeLayers[N_TYPE].setPureLayerNode(nActiveNode_node);					// N-Active
 		selectLayers[P_TYPE].setPureLayerNode(pSelectNode_node);					// P-Select
@@ -2894,11 +2918,12 @@ public class MoCMOS extends Technology
         nodeGroups = new Object[maxY][3];
         int count = 0;
         String[] shortNames = {"p", "n"};
+        List tmp;
 
         // Transistor nodes first
         for (int i = 0; i < transistorNodes.length; i++)
         {
-            List tmp = new ArrayList(2);
+            tmp = new ArrayList(2);
             String tmpVar = shortNames[i]+"Mos";
             tmp.add(makeNodeInst(transistorNodes[i], transistorNodes[i].getFunction(), 0, true, tmpVar, 9));
             tmp.add(makeNodeInst(thickTransistorNodes[i], thickTransistorNodes[i].getFunction(), 0, true, tmpVar, 9));
@@ -2913,6 +2938,15 @@ public class MoCMOS extends Technology
             String tmpVar = shortNames[i]+"Well";
             nodeGroups[count][i+1] = makeNodeInst(metalWellContactNodes[i], metalWellContactNodes[i].getFunction(),
                     0, true, tmpVar, 5.5);
+        }
+
+        // RPO resistors
+        for (int i = 0; i < rpoResistorNodes.length; i++)
+        {
+            String tmpVar = shortNames[i]+"R";
+            tmp = new ArrayList(1);
+            tmp.add(makeNodeInst(rpoResistorNodes[i], rpoResistorNodes[i].getFunction(), 0, true, tmpVar, 10));
+            nodeGroups[i][0] = tmp;
         }
 
         // Active/Well first
@@ -2990,7 +3024,7 @@ public class MoCMOS extends Technology
             /* Poly -> 3.2 top/bottom extension */
             for (int i = 0; i < 2; i++)
             {
-                transistorWellLayers[i].getLeftEdge().setAdder(1.7); transistorWellLayers[i].getRightEdge().setAdder(-1.7);
+//                transistorWellLayers[i].getLeftEdge().setAdder(1.7); transistorWellLayers[i].getRightEdge().setAdder(-1.7);
                 transistorSelectLayers[i].getLeftEdge().setAdder(2.5); transistorSelectLayers[i].getRightEdge().setAdder(-2.5);
                 // Poly X values
                 transistorPolyLayers[i].getLeftEdge().setAdder(3.8); transistorPolyLayers[i].getRightEdge().setAdder(-3.8);
@@ -3018,7 +3052,7 @@ public class MoCMOS extends Technology
             poly1_arc.setDefaultWidth(1.8);
             poly1Pin_node.setDefSize(1.8, 1.8);
             // Metal 6 arc width 4.4
-            metalArcs[5].setDefaultWidth(4.4);
+            metalArcs[5].setDefaultWidth(5);
         }
         else // Mosis
         {
@@ -3060,7 +3094,7 @@ public class MoCMOS extends Technology
             /* Poly -> 3.2 top/bottom extension */
             for (int i = 0; i < 2; i++)
             {
-                transistorWellLayers[i].getLeftEdge().setAdder(0); transistorWellLayers[i].getRightEdge().setAdder(0);
+//                transistorWellLayers[i].getLeftEdge().setAdder(0); transistorWellLayers[i].getRightEdge().setAdder(0);
                 transistorSelectLayers[i].getLeftEdge().setAdder(4); transistorSelectLayers[i].getRightEdge().setAdder(-4);
                 transistorPolyLayers[i].getLeftEdge().setAdder(4); transistorPolyLayers[i].getRightEdge().setAdder(-4);
                 transistorPolyLLayers[i].getLeftEdge().setAdder(4);
@@ -3096,48 +3130,48 @@ public class MoCMOS extends Technology
      */
     public void resetDefaultValues(Cell cell)
     {
-        for (Iterator itNod = cell.getNodes(); itNod.hasNext(); )
-        {
-            NodeInst ni = (NodeInst)itNod.next();
-
+//        for (Iterator itNod = cell.getNodes(); itNod.hasNext(); )
+//        {
+//            NodeInst ni = (NodeInst)itNod.next();
+//
             // Only valid for transistors in layout so VarContext=null is OK
-            TransistorSize size = ni.getTransistorSize(null);
-            if (size != null)
-            {
-                double length = size.getDoubleLength();
-                int mult = (int)(length / poly1_arc.getWidth());
-                if (mult < 1)
-                    System.out.println("Problems resizing transistor lengths");
-                double newLen = poly1_arc.getWidth() * mult;
-                if (!DBMath.areEquals(newLen,length))
-                {
-                    // Making wires from top/bottom ports fixed-angle otherwise they get twisted.
-                    PortInst pi = ni.getPortInst(1);
-                    List list = new ArrayList(2);
-                    // Not sure how many connections are so fix angles to all
-                    for (Iterator it = pi.getConnections(); it.hasNext();)
-                    {
-                        Connection c = (Connection)it.next();
+//            TransistorSize size = ni.getTransistorSize(null);
+//            if (size != null)
+//            {
+//                double length = size.getDoubleLength();
+//                int mult = (int)(length / poly1_arc.getWidth());
+//                if (mult < 1)
+//                    System.out.println("Problems resizing transistor lengths");
+//                double newLen = poly1_arc.getWidth() * mult;
+//                if (!DBMath.areEquals(newLen,length))
+//                {
+//                    // Making wires from top/bottom ports fixed-angle otherwise they get twisted.
+//                    PortInst pi = ni.getPortInst(1);
+//                    List list = new ArrayList(2);
+//                    // Not sure how many connections are so fix angles to all
+//                    for (Iterator it = pi.getConnections(); it.hasNext();)
+//                    {
+//                        Connection c = (Connection)it.next();
 //                        c.getArc().setFixedAngle(true);
-                        list.add(c.getArc());
-                    }
-                    pi = ni.getPortInst(3);
-                    // Not sure how many connections are so fix angles to all
-                    for (Iterator it = pi.getConnections(); it.hasNext();)
-                    {
-                        Connection c = (Connection)it.next();
+//                        list.add(c.getArc());
+//                    }
+//                    pi = ni.getPortInst(3);
+//                    // Not sure how many connections are so fix angles to all
+//                    for (Iterator it = pi.getConnections(); it.hasNext();)
+//                    {
+//                        Connection c = (Connection)it.next();
 //                        c.getArc().setFixedAngle(true);
-                        list.add(c.getArc());
-                    }
-                    ni.setPrimitiveNodeSize(size.getDoubleWidth(), newLen);
-                    for (int i = 0; i < list.size(); i++)
-                    {
-                        ArcInst arc = (ArcInst)list.get(i);
-//                        arc.setFixedAngle(false);
-                    }
-                }
-            }
-        }
+//                        list.add(c.getArc());
+//                    }
+////                    ni.setPrimitiveNodeSize(size.getDoubleWidth(), newLen);
+////                    for (int i = 0; i < list.size(); i++)
+////                    {
+////                        ArcInst arc = (ArcInst)list.get(i);
+//////                        arc.setFixedAngle(false);
+////                    }
+//                }
+//            }
+//        }
 
         for(Iterator itArc = cell.getArcs(); itArc.hasNext(); )
         {
@@ -3146,25 +3180,27 @@ public class MoCMOS extends Technology
             double maxLen = -Double.MIN_VALUE;
             // Guessing arc thickness based on connections
             // Default doesn't work in existing cells
-            // Valid for poly layers only!
+            // Valid for poly layers and M6 only!
+            // Metal 6 because the min M6 changed in Mosis
 
-            if (!ai.getProto().getFunction().isPoly()) continue;
-            for(int i=0; i<2; i++)
-            {
-                Connection thisCon = ai.getConnection(i);
-                NodeInst ni = thisCon.getPortInst().getNodeInst();
-                // covers transistors and resistors
-                PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null); // This is only for layout
-                if (size != null)
-                {
-                    double length = size.getDoubleLength();
-                    if (DBMath.isGreaterThan(length, maxLen))
-                    {
-                        maxLen = length;
-                        found = true;
-                    }
-                }
-            }
+            if (!(ai.getProto().getFunction().isPoly() ||
+                  ai.getProto().getFunction() == ArcProto.Function.METAL6)) continue;
+//            for(int i=0; i<2; i++)
+//            {
+//                Connection thisCon = ai.getConnection(i);
+//                NodeInst ni = thisCon.getPortInst().getNodeInst();
+//                // covers transistors and resistors
+//                PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null); // This is only for layout
+//                if (size != null)
+//                {
+//                    double length = size.getDoubleLength();
+//                    if (DBMath.isGreaterThan(length, maxLen))
+//                    {
+//                        maxLen = length;
+//                        found = true;
+//                    }
+//                }
+//            }
             // No transistor or resistor found
             if (!found)
             {
@@ -3322,11 +3358,123 @@ public class MoCMOS extends Technology
 		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		NodeProto prototype = ni.getProto();
-		if (prototype != scalableTransistorNodes[P_TYPE] && prototype != scalableTransistorNodes[N_TYPE])
-		{
-			return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
-		}
+		if (prototype == scalableTransistorNodes[P_TYPE] || prototype == scalableTransistorNodes[N_TYPE])
+            return getShapeOfNodeScalable(ni, wnd, context, electrical, reasonable);
+        else if (prototype == rpoResistorNodes[P_TYPE] || prototype == rpoResistorNodes[N_TYPE])
+            return getShapeOfNodeResistor(ni, wnd, context, electrical, reasonable);
 
+        // Default
+        return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, primLayers, layerOverride);
+    }
+
+    /**
+     * Special getShapeOfNode function for RPO poly resistors
+     * @param ni
+     * @param wnd
+     * @param context
+     * @param electrical
+     * @param reasonable
+     * @return
+     */
+    private Poly [] getShapeOfNodeResistor(NodeInst ni, EditWindow wnd, VarContext context, boolean electrical,
+                                           boolean reasonable)
+    {
+        // now compute the number of polygons
+        PrimitiveNode np = (PrimitiveNode)ni.getProto();
+		Technology.NodeLayer [] layers = np.getLayers();
+        EdgeV polyV = null;
+        EdgeH polyH = null, rpoH = null;
+
+        // Number of cuts only varies along Y
+        for (int i = 0; i < layers.length; i++)
+        {
+            TechPoint [] points = layers[i].getPoints();
+            if (layers[i].getLayer().getFunction() == Layer.Function.POLY1) // found the poly layer
+            {
+                polyH = points[1].getX();
+                polyV = points[1].getY();
+            }
+            else if (layers[i].getLayer().getFunction() == Layer.Function.IMPLANT) // RPO is defined as IMPLANT
+            {
+                rpoH = points[0].getX();
+            }
+        }
+        if (polyV == null || polyH == null || rpoH == null)
+            throw new Error("Error finding poly/rpo layers in " + rpoResistorNodes);
+
+        double polyOffX = Math.abs(polyH.getAdder());
+        double polyOffY = Math.abs(polyV.getAdder());
+        double polyConX = 4.2; // 2.2 (via) + 2 * 1. GPage 28
+        // same offset as in poly contact,
+        // SizeOffset is zero for that primitive and special values are calculated from external boundary
+        MultiCutData cutData = new MultiCutData(polyConX, ni.getYSize() - 2*polyOffY, 0, 0, 0, 0, 0, 0,
+                metal1Poly1Contact_node.getSpecialValues());
+        if (cutData.numCutsX() != 1)
+            throw new Error("Error: onw cut should be the only value");
+		Technology.NodeLayer [] newNodeLayers = layers;
+
+        List list = new ArrayList(layers.length);
+        Technology.NodeLayer cutTemplate = null;
+        // Copy layers that are not poly cuts
+        for (int i = 0; i < layers.length; i++)
+        {
+            if (layers[i].getLayer().getFunction() == Layer.Function.CONTACT1) // found the poly layer
+            {
+                cutTemplate = layers[i];
+                continue;
+            }
+            list.add(new Technology.NodeLayer(layers[i]));
+        }
+
+        if (cutTemplate == null)
+            throw new Error("No cut template found for " + rpoResistorNodes);
+
+        // creating the cuts now
+        double anchorX = polyConX/2;
+        double anchorY = (ni.getYSize() - 2*polyOffY)/2;
+        for (int i = 0; i < cutData.numCuts(); i++)
+        {
+            Poly poly = cutData.fillCutPoly(0, 0, i);
+            Rectangle2D rect = poly.getBounds2D();
+            double offsetX = anchorX+rect.getMinX()+polyOffX;
+            double offsetY = anchorY+rect.getMinY()+polyOffY;
+
+            // left cuts
+            Technology.NodeLayer cut = new Technology.NodeLayer(cutTemplate);
+            TechPoint [] points = cut.getPoints();
+            points[0] = new Technology.TechPoint(EdgeH.fromLeft(offsetX),
+                    EdgeV.fromBottom(offsetY));
+            points[1] = new Technology.TechPoint(EdgeH.fromLeft(offsetX+cutData.getCutSizeX()),
+                    EdgeV.fromBottom(offsetY+cutData.getCutSizeY()));
+            list.add(cut);
+
+            //right cuts
+            cut = new Technology.NodeLayer(cutTemplate);
+            points = cut.getPoints();
+            points[0] = new Technology.TechPoint(EdgeH.fromRight(offsetX),
+                    EdgeV.fromBottom(offsetY));
+            points[1] = new Technology.TechPoint(EdgeH.fromRight(offsetX+cutData.getCutSizeX()),
+                    EdgeV.fromBottom(offsetY+cutData.getCutSizeY()));
+            list.add(cut);
+        }
+        newNodeLayers = new Technology.NodeLayer[list.size()];
+        System.arraycopy(list.toArray(), 0, newNodeLayers, 0, list.size());
+
+        // now let the superclass convert it to Polys
+		return super.getShapeOfNode(ni, wnd, context, electrical, reasonable, newNodeLayers, null);
+    }
+
+    /**
+     * Special getShapeOfNode function for scalable transistors
+     * @param ni
+     * @param wnd
+     * @param context
+     * @param electrical
+     * @param reasonable
+     * @return
+     */
+    private Poly [] getShapeOfNodeScalable(NodeInst ni, EditWindow wnd, VarContext context, boolean electrical, boolean reasonable)
+    {
 		// determine special configurations (number of active contacts, inset of active contacts)
 		int numContacts = 2;
 		boolean insetContacts = false;
@@ -3376,11 +3524,11 @@ public class MoCMOS extends Technology
 		double actInset = (nodeWid-activeWid) / 2;
 		double polyInset = actInset - 2;
 		double actContInset = 7 + extraInset;
-	
+
 		// contacts must be 5 wide at a minimum
 		if (activeWid < 5) actContInset -= (5-activeWid)/2;
 		double metContInset = actContInset + 0.5;
-	
+
 		// determine the multicut information
 		double [] specialValues = metalActiveContactNodes[P_TYPE].getSpecialValues();
 		double cutSize = specialValues[0];
@@ -3392,7 +3540,7 @@ public class MoCMOS extends Technology
 		if (numCuts != 1)
 			cutBase = (activeWid-cutIndent*2 - cutSize*numCuts -
 				cutSep*(numCuts-1)) / 2 + (nodeWid-activeWid)/2 + cutIndent;
-	
+
 		// now compute the number of polygons
 		int extraCuts = numCuts*2 - (2-numContacts) * numCuts;
 		Technology.NodeLayer [] layers = np.getLayers();

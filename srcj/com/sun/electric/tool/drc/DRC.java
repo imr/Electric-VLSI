@@ -532,7 +532,7 @@ public class DRC extends Listener
 	 * Returns null if there is no spacing rule.
 	 */
 	public static DRCTemplate getSpacingRule(Layer layer1, Layer layer2, boolean connected,
-                                             boolean multiCut, double wideS, double length, int techMode)
+                                             int multiCut, double wideS, double length, int techMode)
 	{
 		Technology tech = layer1.getTechnology();
 		DRCRules rules = getRules(tech);

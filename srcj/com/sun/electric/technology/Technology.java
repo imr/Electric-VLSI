@@ -2080,33 +2080,6 @@ public class Technology implements Comparable
 			SizeOffset so = ni.getSizeOffset();
             calcultateInternalData(ni.getXSize(), ni.getYSize(), ni.getAnchorCenterX(), ni.getAnchorCenterY(),
                     so.getLowXOffset(), so.getHighXOffset(), so.getLowYOffset(), so.getHighYOffset(), specialValues);
-
-			// *************** THE OLD WAY ***************
-//			if (cutSep1D != cutSep2D && ((oneDcutsX > 2 && oneDcutsY > 1) || (oneDcutsY > 2 && oneDcutsX > 1)))
-//			{
-//				// 2D cutspace active
-//				cutSep = cutSep2D;
-//			}
-//			cutsX = (int)((cutAreaWidth-cutIndentX*2+cutSep) / (cutSizeX+cutSep));
-//			cutsY = (int)((cutAreaHeight-cutIndentY*2+cutSep) / (cutSizeY+cutSep));
-//			if (cutsX <= 0) cutsX = 1;
-//			if (cutsY <= 0) cutsY = 1;
-//			cutsReasonable = cutsTotal = cutsX * cutsY;
-//			if (cutsTotal != 1)
-//			{
-//				// prepare for the multiple contact cut locations
-//				cutBaseX = (cutAreaWidth-cutIndentX*2 - cutSizeX*cutsX -
-//					cutSep*(cutsX-1)) / 2 + (cutLX + cutIndentX + cutSizeX/2) + ni.getAnchorCenterX() - ni.getXSize() / 2;
-//				cutBaseY = (cutAreaHeight-cutIndentY*2 - cutSizeY*cutsY -
-//					cutSep*(cutsY-1)) / 2 + (cutLY + cutIndentY + cutSizeY/2) + ni.getAnchorCenterY() - ni.getYSize() / 2;
-//				if (cutsX > 2 && cutsY > 2)
-//				{
-//					cutsReasonable = cutsX * 2 + (cutsY-2) * 2;
-//					cutTopEdge = cutsX*2;
-//					cutLeftEdge = cutsX*2 + cutsY-2;
-//					cutRightEdge = cutsX*2 + (cutsY-2)*2;
-//				}
-//			}
 		}
 
 		/**
@@ -3659,7 +3632,7 @@ public class Technology implements Comparable
 			index++;
 		}
         //@TODO this index might overlap with layer indices.
-        DRCTemplate tmp = new DRCTemplate(ruleName, DRCTemplate.ALL, DRCTemplate.NODSIZ, 0, 0, null, null, wid, false);
+        DRCTemplate tmp = new DRCTemplate(ruleName, DRCTemplate.ALL, DRCTemplate.NODSIZ, 0, 0, null, null, wid, -1);
         tmp.value2 = hei;
         rules.addRule(index, tmp, -1);
 //		rules.setMinNodeSize(index, ruleName, wid, hei);

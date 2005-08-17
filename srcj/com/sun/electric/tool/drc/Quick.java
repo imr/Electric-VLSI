@@ -166,7 +166,7 @@ public class Quick
 	private HashMap cellsMap = new HashMap(); // for cell caching
     private HashMap nodesMap = new HashMap(); // for node caching
     private int activeBits = 0; // to caching current extra bits
-    private int mergeMode = GeometryHandler.ALGO_QTREE;
+    private int mergeMode = GeometryHandler.ALGO_SWEEP; // .ALGO_QTREE;
     private int techMode = DRCTemplate.NONE;       /** To control different rules for ST and TSMC technologies */
     private Map od2Layers = new HashMap(3);  /** to control OD2 combination in the same die according to foundries */
 
@@ -1242,11 +1242,7 @@ public class Quick
 			Geometric nGeom = (Geometric)it.next();
             // I have to check if they are the same instance otherwise I check geometry against itself
             if (nGeom == geom && (sameInstance))// || nGeom.getParent() == cell))
-            {
-//                if (!sameInstance)
-//                    System.out.println("DRC: this is a new case, bug 352");
                 continue;
-            }
 			if (nGeom instanceof NodeInst)
 			{
 				NodeInst ni = (NodeInst)nGeom;
@@ -1303,6 +1299,7 @@ public class Quick
 					    /* Step 1 */
 					boolean multi = baseMulti;
 					if (!multi) multi = tech.isMultiCutCase(ni);
+                    int multiInt = (multi) ? 1 : 0;
 					for(int j=0; j<tot; j++)
 					{
 						Poly npoly = subPolyList[j];
@@ -1363,7 +1360,7 @@ public class Quick
                         }
 
 						boolean edge = false;
-						DRCTemplate theRule = getSpacingRule(layer, poly, nLayer, npoly, con, multi);
+						DRCTemplate theRule = getSpacingRule(layer, poly, nLayer, npoly, con, multiInt);
                         if (theRule == null)
                         {
 						    theRule = DRC.getEdgeRule(layer, nLayer, techMode);
@@ -1416,6 +1413,8 @@ public class Quick
 					subPolyList[i].transform(upTrans);
 				cropActiveArc(ai, subPolyList);
 				boolean multi = baseMulti;
+                int multiInt = (multi) ? 1 : 0;
+
 				for(int j=0; j<tot; j++)
 				{
 					Poly nPoly = subPolyList[j];
@@ -1452,7 +1451,7 @@ public class Quick
 
 					// see how close they can get
                     boolean edge = false;
-                    DRCTemplate theRule = getSpacingRule(layer, poly, nLayer, nPoly, con, multi);
+                    DRCTemplate theRule = getSpacingRule(layer, poly, nLayer, nPoly, con, multiInt);
                     if (theRule == null)
                     {
                         theRule = DRC.getEdgeRule(layer, nLayer, techMode);
@@ -4028,7 +4027,7 @@ public class Quick
 	 * connectivity for same-implant layers.
 	 */
 	private DRCTemplate getSpacingRule(Layer layer1, Poly poly1, Layer layer2, Poly poly2,
-                                            boolean con, boolean multi)
+                                            boolean con, int multi)
 	{
 		// if they are implant on the same layer, they connect
 		if (!con && layer1 == layer2)

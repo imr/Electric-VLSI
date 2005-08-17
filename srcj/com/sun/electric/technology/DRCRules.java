@@ -35,7 +35,7 @@ public interface DRCRules
     public double getMaxSurround(Technology tech, Layer layer, double maxSize);
     public DRCTemplate getEdgeRule(Technology tech, Layer layer1, Layer layer2, int techMode);
     public DRCTemplate getSpacingRule(Technology tech, Layer layer1, Layer layer2, boolean connected,
-                                      boolean multiCut, double wideS, double length, int techMode);
+                                      int multiCut, double wideS, double length, int techMode);
     public boolean isAnyRule(Technology tech, Layer layer1, Layer layer2);
     public DRCTemplate getExtensionRule(Technology tech, Layer layer1, Layer layer2,
                                         int techMode, boolean isGateExtension);
