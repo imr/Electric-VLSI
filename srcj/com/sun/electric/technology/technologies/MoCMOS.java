@@ -184,9 +184,10 @@ public class MoCMOS extends Technology
         new DRCTemplate("3.1 Mosis",  DRCTemplate.MOSIS, DRCTemplate.MINWID,   "Transistor-Poly", null,            2,  null),
         new DRCTemplate("3.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Transistor-Poly", null,            1.8,  null),
 
-		new DRCTemplate("3.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  3,  null),
-		new DRCTemplate("3.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",3,  null),
-//		new DRCTemplate("3.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2.8,  null),
+		new DRCTemplate("3.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  3,  null),
+		new DRCTemplate("3.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2.8,  null),
+        new DRCTemplate("3.2 Mosis",   DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",3,  null),
+		new DRCTemplate("3.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2.8,  null),
         new DRCTemplate("3.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2,  null),
 		new DRCTemplate("3.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2,  null),
 
@@ -3173,45 +3174,45 @@ public class MoCMOS extends Technology
 //            }
 //        }
 
-        for(Iterator itArc = cell.getArcs(); itArc.hasNext(); )
-        {
-            ArcInst ai = (ArcInst)itArc.next();
-            boolean found = false;
-            double maxLen = -Double.MIN_VALUE;
-            // Guessing arc thickness based on connections
-            // Default doesn't work in existing cells
-            // Valid for poly layers and M6 only!
-            // Metal 6 because the min M6 changed in Mosis
-
-            if (!(ai.getProto().getFunction().isPoly() ||
-                  ai.getProto().getFunction() == ArcProto.Function.METAL6)) continue;
-//            for(int i=0; i<2; i++)
+//        for(Iterator itArc = cell.getArcs(); itArc.hasNext(); )
+//        {
+//            ArcInst ai = (ArcInst)itArc.next();
+//            boolean found = false;
+//            double maxLen = -Double.MIN_VALUE;
+//            // Guessing arc thickness based on connections
+//            // Default doesn't work in existing cells
+//            // Valid for poly layers and M6 only!
+//            // Metal 6 because the min M6 changed in Mosis
+//
+//            if (!(ai.getProto().getFunction().isPoly() ||
+//                  ai.getProto().getFunction() == ArcProto.Function.METAL6)) continue;
+////            for(int i=0; i<2; i++)
+////            {
+////                Connection thisCon = ai.getConnection(i);
+////                NodeInst ni = thisCon.getPortInst().getNodeInst();
+////                // covers transistors and resistors
+////                PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null); // This is only for layout
+////                if (size != null)
+////                {
+////                    double length = size.getDoubleLength();
+////                    if (DBMath.isGreaterThan(length, maxLen))
+////                    {
+////                        maxLen = length;
+////                        found = true;
+////                    }
+////                }
+////            }
+//            // No transistor or resistor found
+//            if (!found)
 //            {
-//                Connection thisCon = ai.getConnection(i);
-//                NodeInst ni = thisCon.getPortInst().getNodeInst();
-//                // covers transistors and resistors
-//                PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null); // This is only for layout
-//                if (size != null)
-//                {
-//                    double length = size.getDoubleLength();
-//                    if (DBMath.isGreaterThan(length, maxLen))
-//                    {
-//                        maxLen = length;
-//                        found = true;
-//                    }
-//                }
+//                maxLen = ai.getProto().getDefaultWidth();
+//                found = (!DBMath.areEquals(ai.getWidth(), maxLen)); // default must be applied
 //            }
-            // No transistor or resistor found
-            if (!found)
-            {
-                maxLen = ai.getProto().getDefaultWidth();
-                found = (!DBMath.areEquals(ai.getWidth(), maxLen)); // default must be applied
-            }
-            if (found)
-            {
-                ai.modify(maxLen - ai.getWidth(), 0, 0, 0, 0);
-            }
-        }
+//            if (found)
+//            {
+//                ai.modify(maxLen - ai.getWidth(), 0, 0, 0, 0);
+//            }
+//        }
     }
 
 	/******************** SUPPORT METHODS ********************/
