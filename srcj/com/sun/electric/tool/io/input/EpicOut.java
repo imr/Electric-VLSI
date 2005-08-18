@@ -171,7 +171,8 @@ class EpicReader {
     byte[] buf = new byte[65536];
     int bufL;
     int bufP;
-    StringBuilder builder = new StringBuilder();
+//    StringBuilder builder = new StringBuilder();
+    StringBuffer builder = new StringBuffer();
     Pattern whiteSpace = Pattern.compile("[ \t]+");
     
     int timesC = 0;
@@ -205,8 +206,8 @@ class EpicReader {
 		try
 		{
 			urlCon = fileURL.openConnection();
-            urlCon.setConnectTimeout(10000);
-            urlCon.setReadTimeout(1000);
+//            urlCon.setConnectTimeout(10000);
+//            urlCon.setReadTimeout(1000);
             String contentLength = urlCon.getHeaderField("content-length");
             fileLength = -1;
             try {
