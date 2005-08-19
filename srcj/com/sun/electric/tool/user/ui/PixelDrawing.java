@@ -45,6 +45,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.Main;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -1230,7 +1231,7 @@ public class PixelDrawing
 		if (srcOffscreen == null) return;
 		Dimension dim = srcOffscreen.sz;
 
-        if (numLayerBitMaps != srcOffscreen.numLayerBitMaps)
+        if (Main.getDebug() && numLayerBitMaps != srcOffscreen.numLayerBitMaps)
             System.out.println("Possible mixture of technologies in PixelDrawing.copyBits");
 
 		// copy the opaque and transparent layers
