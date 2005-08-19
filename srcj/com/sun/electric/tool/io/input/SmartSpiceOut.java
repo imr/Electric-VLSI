@@ -82,11 +82,15 @@ public class SmartSpiceOut extends Simulate
 			if (first)
 			{
 				first = false;
-				if (line.length() >= 20 && line.substring(16,20).equals("9007"))
+				if (line.length() >= 20)
 				{
-					System.out.println("This is an HSPICE file, not a SMARTSPICE file");
-					System.out.println("Change the SPICE format (in Preferences) and reread");
-					return null;
+					String hsFormat = line.substring(16, 20);
+					if (hsFormat.equals("9007") || hsFormat.equals("9601"))
+					{
+						System.out.println("This is an HSPICE file, not a SMARTSPICE file");
+						System.out.println("Change the SPICE format (in Preferences) and reread");
+						return null;
+					}
 				}
 			}
 

@@ -92,11 +92,15 @@ public class PSpiceOut extends Simulate
 			{
 				// check the first line for HSPICE format possibility
 				first = false;
-				if (line.length() >= 20 && line.substring(16, 20).equals("9007"))
+				if (line.length() >= 20)
 				{
-					System.out.println("This is an HSPICE file, not a SPICE3/PSPICE file");
-					System.out.println("Change the SPICE format and reread");
-					return null;
+					String hsFormat = line.substring(16, 20);
+					if (hsFormat.equals("9007") || hsFormat.equals("9601"))
+					{
+						System.out.println("This is an HSPICE file, not a SPICE3/PSPICE file");
+						System.out.println("Change the SPICE format (in Preferences) and reread");
+						return null;
+					}
 				}
 
 				// parse the signal names on the first line
@@ -134,7 +138,7 @@ public class PSpiceOut extends Simulate
                     line = line.substring(equalPos+3);
                 else
                 {
-                    System.out.println("Wrong format?");
+                    System.out.println("Missing value after '='.  This may not be a PSpice output file.");
                     return null;
                 }
             }
@@ -154,13 +158,17 @@ public class PSpiceOut extends Simulate
 			if (position != numSignals)
 			{
 				System.out.println("Line of data has " + position + " values, but expect " + numSignals +
-                        ". Unable to recover from error. Check format.");
+                        ". Unable to recover from error.  This may not be a PSpice output file.");
                 return null;
 			}
 		}
 
 		// convert lists to arrays
-		if (numSignals == 0) return null;
+		if (numSignals == 0)
+		{
+            System.out.println("No data found in the file.  This may not be a PSpice output file.");
+			return null;
+		}
 		int numEvents = values[0].size(); 
 		sd.buildCommonTime(numEvents);
 		for(int i=0; i<numEvents; i++)

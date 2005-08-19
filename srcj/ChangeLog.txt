@@ -4,6 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03d: *********************************
 
+BUG: (08/19/05, SMR) Spice output doesn't handle long comments in "Spice cards" (Bug #442).
+FIX: Now recognizes comments and handles continuation properly.
+
+IMP: (08/19/05, SMR) Non-HSpice output readers now recognizes all HSpice formats (Bug #461).
+
+BUG: (08/19/05, SMR) When copying a schematic to another library with "use existing subcells"
+     checked, it will copy the icon instead of using an existing one (Bug #444).
+FIX: In "CircuitChanges.copyRecursively()", must actually check the destination library
+     to prevent duplicate copying.
+
 BUG: DRC on loPI fill throws exception in method PolyBase.getSortedLoops (Bug #467).
 FIX: PolyBase is not Comparable, so pass AREA_COMPARATOR to "sort()" method. 
 

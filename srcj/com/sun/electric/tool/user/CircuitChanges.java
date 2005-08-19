@@ -4510,6 +4510,12 @@ public class CircuitChanges
 					// see if the cell is already there
 					if (inDestLib(cell, existing)) continue;
 
+					// do not copy subcell if it exists already (and was not copied by this operation)
+					if (useExisting)
+					{
+						if (toLib.findNodeProto(cell.noLibDescribe()) != null) continue;
+					}
+
 					// copy subcell if not already there
 					boolean doCopySchematicView = true;
 					if (ni.isIconOfParent()) doCopySchematicView = false;

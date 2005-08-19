@@ -552,7 +552,7 @@ public class Spice extends Topology
             }
 
 			String cellName = cni.getParameterizedName();
-			multiLinePrint(false, "\n*** CELL: " + cell.describe(false) + "\n");
+			multiLinePrint(true, "\n*** CELL: " + cell.describe(false) + "\n");
 			StringBuffer infstr = new StringBuffer();
 			infstr.append(".SUBCKT " + cellName);
 			for(Iterator sIt = cni.getCellSignals(); sIt.hasNext(); )
@@ -1103,13 +1103,22 @@ public class Spice extends Topology
 			if (obj instanceof String)
 			{
                 StringBuffer buf = replacePortsAndVars((String)obj, context.getNodable(), context.pop(), null);
-				multiLinePrint(false, buf.toString() + "\n");
+				buf.append('\n');
+				String msg = buf.toString();
+				boolean isComment = false;
+				if (msg.startsWith("*")) isComment = true;
+				multiLinePrint(isComment, msg);
 			} else
 			{
 				String [] strings = (String [])obj;
-				for(int i=0; i<strings.length; i++) {
+				for(int i=0; i<strings.length; i++)
+				{
                     StringBuffer buf = replacePortsAndVars(strings[i], context.getNodable(), context.pop(), null);
-					multiLinePrint(false, buf.toString() + "\n");
+					buf.append('\n');
+					String msg = buf.toString();
+					boolean isComment = false;
+					if (msg.startsWith("*")) isComment = true;
+					multiLinePrint(isComment, msg);
                 }
 			}
 		}
@@ -1464,7 +1473,7 @@ public class Spice extends Topology
 		if (Simulation.isSpiceWriteTransSizeInLambda())
 		{
 			double scale = layoutTechnology.getScale();
-			multiLinePrint(false, "*** Lambda Conversion ***\n");
+			multiLinePrint(true, "*** Lambda Conversion ***\n");
 			multiLinePrint(false, ".opt scale=" + TextUtils.formatDouble(scale / 1000.0, 3) + "U\n\n");
 		}
 
