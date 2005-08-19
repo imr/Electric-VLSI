@@ -1515,10 +1515,31 @@ public class PolyBase implements Shape, PolyNodeMerge
     {
         Collection set = getPointsInArea(new Area(this), layer, true, false, null);
         List list = new ArrayList(set);
-        Collections.sort(list);
+        Collections.sort(list, AREA_COMPARATOR);
         return (list);
     }
 
+    /**
+	 * Compares PolyBase objects based on area.
+	 * This method doesn't guarantee (compare(x, y)==0) == (x.equals(y))
+     * @param o1 first object to be compared.
+     * @param o2 second object to be compared.
+	 * @return Returns a negative integer, zero, or a positive integer as the
+	 * first object has smaller than, equal to, or greater area than the second.
+     * @throws ClassCastException if the arguments' types are not PolyBase.
+     */
+    private static Comparator AREA_COMPARATOR = new Comparator() {
+		public int compare(Object o1, Object o2)
+		{
+			PolyBase p1 = (PolyBase)o1;
+			PolyBase p2 = (PolyBase)o2;
+			double diff = p1.getArea() - p2.getArea();
+			if (diff < 0.0) return -1;
+			if (diff > 0.0) return 1;
+			return 0;
+		}
+    };
+    
     /**
      * Static method to get PolyBase elements associated with an Area.
      * @param area Java2D structure containing the geometrical information

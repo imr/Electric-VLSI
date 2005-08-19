@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03d: *********************************
 
+BUG: DRC on loPI fill throws exception in method PolyBase.getSortedLoops (Bug #467).
+FIX: PolyBase is not Comparable, so pass AREA_COMPARATOR to "sort()" method. 
+
 IMP: (08/18/05, GVG) More changes for Mosis->TSMC switch (select surround in active contact) (Bug #477). 
 RPO is silicide block and with same pattern as in 90nm
 
