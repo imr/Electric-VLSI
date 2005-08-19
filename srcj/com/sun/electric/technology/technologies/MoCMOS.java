@@ -303,7 +303,7 @@ public class MoCMOS extends Technology
         new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"),
 //        new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"),
 //        new DRCTemplate("6.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active-Well",  0.9,  "Metal-1-P-Well-Con"),
-		new DRCTemplate("6.2",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"),
+		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"),
 //        new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"),
 //        new DRCTemplate("6.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "P-Active-Well",  4.3,  "Metal-1-P-Well-Con"),
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-P-Well-Con"),
@@ -2971,6 +2971,8 @@ public class MoCMOS extends Technology
             {
                 node = metalActiveContactNodes[i].getLayers()[4]; // Cut
                 node.setPoints(Technology.TechPoint.makeIndented(7.4));
+                node = metalActiveContactNodes[i].getLayers()[3]; // Select
+                node.setPoints(Technology.TechPoint.makeIndented(3.4)); // so it is 2.6 with respect to active
                 metalActiveContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.8, 2.8});
             }
 
@@ -2979,8 +2981,8 @@ public class MoCMOS extends Technology
             {
                 node = metalWellContactNodes[i].getLayers()[4]; // Cut
                 node.setPoints(Technology.TechPoint.makeIndented(7.4));
-                node = metalWellContactNodes[i].getLayers()[3]; // Select rule PP.E.3
-//                node.setPoints(Technology.TechPoint.makeIndented(5.5));
+                node = metalWellContactNodes[i].getLayers()[2]; // Well 3 is not guarantee during construction!
+                node.setPoints(Technology.TechPoint.makeIndented(3));
                 metalWellContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.8, 2.8});
                  // to have 4.3 between well and active NP.E.4
             }
@@ -3043,6 +3045,8 @@ public class MoCMOS extends Technology
             {
                 node = metalActiveContactNodes[i].getLayers()[4]; // Cut
                 node.setPoints(Technology.TechPoint.makeIndented(7.5));
+                node = metalActiveContactNodes[i].getLayers()[3]; // Select
+                node.setPoints(Technology.TechPoint.makeIndented(4)); // back to Mosis default=4
                 metalActiveContactNodes[i].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
             }
 
@@ -3052,8 +3056,8 @@ public class MoCMOS extends Technology
                 node = metalWellContactNodes[i].getLayers()[4]; // Cut
                 node.setPoints(Technology.TechPoint.makeIndented(7.5));
                 metalWellContactNodes[i].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
-                node = metalWellContactNodes[i].getLayers()[3]; // Select
-                node.setPoints(Technology.TechPoint.makeIndented(4));
+                node = metalWellContactNodes[i].getLayers()[2]; // Well
+                node.setPoints(Technology.TechPoint.makeIndented(3));
             }
 
             // Via1 -> Via4. Some values depend on original node size
@@ -3631,6 +3635,9 @@ public class MoCMOS extends Technology
         // doesn't load rules that
         int foundryMode = getFoundry();
 
+        // Resize primitives according to the foundry
+        resizeNodes();
+
 		// load the DRC tables from the explanation table
 		rules.wideLimit = new Double(WIDELIMIT);
 		for(int pass=0; pass<2; pass++)
@@ -3872,9 +3879,6 @@ public class MoCMOS extends Technology
 			}
 		}
 		rules.calculateNumberOfRules();
-
-        // Resize primitives according to the foundry
-        resizeNodes();
 
 		return rules;
 	}
