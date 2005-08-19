@@ -32,7 +32,6 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -269,7 +268,8 @@ public class MoCMOS extends Technology
 
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.NODSIZ,    null,             null,            5,  "Metal-1-P-Active-Con"),
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Active",       "Metal-1",        0.5,"Metal-1-P-Active-Con"),
-		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active",       2,  "Metal-1-P-Active-Con"),
+		new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active",       2,  "Metal-1-P-Active-Con"),
+        new DRCTemplate("6.2 TSMC (PP.C.1)",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active",       2.6,  "Metal-1-P-Active-Con"),
 		new DRCTemplate("6.2",  DRCTemplate.DE|DRCTemplate.SU|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"),
 		new DRCTemplate("6.2",  DRCTemplate.SC|   DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"),
 		new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-P-Active-Con"),
@@ -283,7 +283,8 @@ public class MoCMOS extends Technology
 
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.NODSIZ,    null,             null,            5,  "Metal-1-N-Active-Con"),
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Active-Con"),
-		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Active-Con"),
+        new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Active-Con"),
+        new DRCTemplate("6.2 TSMC (PP.C.1)",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Select",       "N-Active",       2.6,  "Metal-1-N-Active-Con"),
 		new DRCTemplate("6.2",  DRCTemplate.DE|DRCTemplate.SU|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"),
 		new DRCTemplate("6.2",  DRCTemplate.SC|   DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"),
         new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-N-Active-Con"),
@@ -948,24 +949,42 @@ public class MoCMOS extends Technology
 						0x3030}));//   XX      XX    
 
 		/** Silicide block */
+        /** Resist Protection Oxide (RPO) Same graphics as in 90nm tech */
 		Layer silicideBlock_lay = Layer.newInstance(this, "Silicide-Block",
-			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 230,230,230, 1.0,false,
-			new int[] { 0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000}));//                 
+//			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 230,230,230, 1.0,false,
+//			new int[] { 0x2222,   //   X   X   X   X
+//						0x0000,   //
+//						0x8888,   // X   X   X   X
+//						0x0000,   //
+//						0x2222,   //   X   X   X   X
+//						0x0000,   //
+//						0x8888,   // X   X   X   X
+//						0x0000,   //
+//						0x2222,   //   X   X   X   X
+//						0x0000,   //
+//						0x8888,   // X   X   X   X
+//						0x0000,   //
+//						0x2222,   //   X   X   X   X
+//						0x0000,   //
+//						0x8888,   // X   X   X   X
+//						0x0000}));//
+            new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, EGraphics.TRANSPARENT_2, 192,255,255, 0.5,true,
+            new int[] { 0x1010,  /*    X       X     */
+                        0x2828,   /*   X X     X X    */
+                        0x4444,   /*  X   X   X   X   */
+                        0x8282,   /* X     X X     X  */
+                        0x0101,   /*        X       X */
+                        0x0000,   /*                  */
+                        0x0000,   /*                  */
+                        0x0000,   /*                  */
+                        0x1010,   /*    X       X     */
+                        0x2828,   /*   X X     X X    */
+                        0x4444,   /*  X   X   X   X   */
+                        0x8282,   /* X     X X     X  */
+                        0x0101,   /*        X       X */
+                        0x0000,   /*                  */
+                        0x0000,   /*                  */
+                        0x0000}));/*                  */
 
 		/** Thick active */
 		Layer thickActive_lay = Layer.newInstance(this, "Thick-Active",
@@ -1267,26 +1286,6 @@ public class MoCMOS extends Technology
 						0x2020,   //   X       X     
 						0x0000}));//
 
-        /** Resist Protection Oxide (RPO) */
-        Layer rpoLayer = Layer.newInstance(this, "RPO",
-                    new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, EGraphics.TRANSPARENT_2, 192,255,255, 0.5,true,
-                    new int[] { 0x1010,  /*    X       X     */
-                                0x2828,   /*   X X     X X    */
-                                0x4444,   /*  X   X   X   X   */
-                                0x8282,   /* X     X X     X  */
-                                0x0101,   /*        X       X */
-                                0x0000,   /*                  */
-                                0x0000,   /*                  */
-                                0x0000,   /*                  */
-                                0x1010,   /*    X       X     */
-                                0x2828,   /*   X X     X X    */
-                                0x4444,   /*  X   X   X   X   */
-                                0x8282,   /* X     X X     X  */
-                                0x0101,   /*        X       X */
-                                0x0000,   /*                  */
-                                0x0000,   /*                  */
-                                0x0000}));/*                  */
-
 		/** pad frame */
 		Layer padFrame_lay = Layer.newInstance(this, "Pad-Frame",
 			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, 0, 255,0,0, 1.0,false,
@@ -1301,7 +1300,6 @@ public class MoCMOS extends Technology
 		metalLayers[5].setFunction(Layer.Function.METAL6);									// Metal-6
 		poly1_lay.setFunction(Layer.Function.POLY1);									// Polysilicon-1
 		poly2_lay.setFunction(Layer.Function.POLY2);									// Polysilicon-2
-        rpoLayer.setFunction(Layer.Function.IMPLANT);                                   // RPO as implant
 		activeLayers[P_TYPE].setFunction(Layer.Function.DIFFP);									// P-Active
 		activeLayers[N_TYPE].setFunction(Layer.Function.DIFFN);									// N-Active
 		selectLayers[P_TYPE].setFunction(Layer.Function.IMPLANTP);								// P-Select
@@ -1346,7 +1344,6 @@ public class MoCMOS extends Technology
 		metalLayers[5].setFactoryCIFLayer("CM6");				// Metal-6
 		poly1_lay.setFactoryCIFLayer("CPG");				// Polysilicon-1
 		poly2_lay.setFactoryCIFLayer("CEL");				// Polysilicon-2
-        rpoLayer.setFactoryCIFLayer("");                     // RPO
 		activeLayers[P_TYPE].setFactoryCIFLayer("CAA");				// P-Active
 		activeLayers[N_TYPE].setFactoryCIFLayer("CAA");				// N-Active
 		selectLayers[P_TYPE].setFactoryCIFLayer("CSP");				// P-Select
@@ -1397,7 +1394,6 @@ public class MoCMOS extends Technology
         metalLayers[5].setFactoryGDSLayer("38", Foundry.TSMC_FOUNDRY);				// Metal-6
 		poly1_lay.setFactoryGDSLayer("46", Foundry.MOSIS_FOUNDRY);					// Polysilicon-1
         poly1_lay.setFactoryGDSLayer("13", Foundry.TSMC_FOUNDRY);					// Polysilicon-1
-        rpoLayer.setFactoryGDSLayer("34", Foundry.TSMC_FOUNDRY);                    // RPO
 		transistorPoly_lay.setFactoryGDSLayer("46", Foundry.MOSIS_FOUNDRY);		// Transistor-Poly
         transistorPoly_lay.setFactoryGDSLayer("13", Foundry.TSMC_FOUNDRY);		// Transistor-Poly
 		poly2_lay.setFactoryGDSLayer("56", Foundry.MOSIS_FOUNDRY);					// Polysilicon-2
@@ -1545,7 +1541,6 @@ public class MoCMOS extends Technology
 		// Poly layers
 		poly1_lay.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeLayers[P_TYPE].getDepth());					// Polysilicon-1
 		transistorPoly_lay.setFactory3DInfo(PO_LAYER, TOX_LAYER + activeLayers[P_TYPE].getDepth());			// Transistor-Poly
-		rpoLayer.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeLayers[P_TYPE].getDepth());
         poly2_lay.setFactory3DInfo(PO_LAYER, transistorPoly_lay.getDepth());					// Polysilicon-2 // on top of transistor layer?
 		polyCap_lay.setFactory3DInfo(PO_LAYER, FOX_LAYER + activeLayers[P_TYPE].getDepth());				// Poly-Cap @TODO GVG Ask polyCap
 
@@ -1575,7 +1570,6 @@ public class MoCMOS extends Technology
 		metalLayers[5].setFactoryParasitics(0.03, 0.04, 0);			// Metal-6
 		poly1_lay.setFactoryParasitics(2.5, 0.09, 0);			// Polysilicon-1
 		poly2_lay.setFactoryParasitics(50.0, 1.0, 0);			// Polysilicon-2
-        rpoLayer.setFactoryParasitics(0, 0, 0);                      // RPO
 		activeLayers[P_TYPE].setFactoryParasitics(2.5, 0.9, 0);			// P-Active
 		activeLayers[N_TYPE].setFactoryParasitics(3.0, 0.9, 0);			// N-Active
 		selectLayers[P_TYPE].setFactoryParasitics(0, 0, 0);				// P-Select
@@ -2398,14 +2392,14 @@ public class MoCMOS extends Technology
 
         for (int i = 0; i < rpoResistorNodes.length; i++)
         {
-            rpoResistorNodes[i] = PrimitiveNode.newInstance(stdNames[i]+"-Poly-"+rpoLayer.getName()+"-Resistor", this, resistorW, resistorH,
+            rpoResistorNodes[i] = PrimitiveNode.newInstance(stdNames[i]+"-Poly-RPO-Resistor", this, resistorW, resistorH,
                     new SizeOffset(resistorOffX, resistorOffX, resistorOffY, resistorOffY),
 				new Technology.NodeLayer []
 				{
                     new Technology.NodeLayer(poly1_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 						new Technology.TechPoint(EdgeH.fromLeft(polySelectOffX), EdgeV.fromBottom(resistorOffY)),
 						new Technology.TechPoint(EdgeH.fromRight(polySelectOffX), EdgeV.fromTop(resistorOffY))}),
-                    new Technology.NodeLayer(rpoLayer, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
+                    new Technology.NodeLayer(silicideBlock_lay, -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
 						new Technology.TechPoint(EdgeH.fromLeft(resistorOffX), EdgeV.makeBottomEdge()),
 						new Technology.TechPoint(EdgeH.fromRight(resistorOffX), EdgeV.makeTopEdge())}),
                     new Technology.NodeLayer(selectLayers[i], -1, Poly.Type.FILLED, Technology.NodeLayer.BOX, new Technology.TechPoint [] {
@@ -2867,22 +2861,6 @@ public class MoCMOS extends Technology
 		thickActiveNode_node.setHoldsOutline();
 		thickActiveNode_node.setSpecialType(PrimitiveNode.POLYGONAL);
 
-        /** RPO Node **/
-        // Min width 4.3 RPO.W.1
-        PrimitiveNode rpoNode = PrimitiveNode.newInstance(rpoLayer.getName()+"-Node", this, 4.3, 4.3, null,
-			new Technology.NodeLayer []
-			{
-				new Technology.NodeLayer(rpoLayer, 0, Poly.Type.FILLED, Technology.NodeLayer.BOX, Technology.TechPoint.makeFullBox())
-			});
-		rpoNode.addPrimitivePorts(new PrimitivePort []
-			{
-				PrimitivePort.newInstance(this, rpoNode, new ArcProto[0], "rpo", 0,180, 0, PortCharacteristic.UNKNOWN,
-					EdgeH.makeLeftEdge(), EdgeV.makeBottomEdge(), EdgeH.makeRightEdge(), EdgeV.makeTopEdge())
-			});
-		rpoNode.setFunction(PrimitiveNode.Function.NODE);
-		rpoNode.setHoldsOutline();
-		rpoNode.setSpecialType(PrimitiveNode.POLYGONAL);
-
 		// The pure layer nodes
 		metalLayers[0].setPureLayerNode(metal1Node_node);					// Metal-1
 		metalLayers[1].setPureLayerNode(metal2Node_node);					// Metal-2
@@ -2892,7 +2870,6 @@ public class MoCMOS extends Technology
 		metalLayers[5].setPureLayerNode(metal6Node_node);					// Metal-6
 		poly1_lay.setPureLayerNode(poly1Node_node);						// Polysilicon-1
 		poly2_lay.setPureLayerNode(poly2Node_node);						// Polysilicon-2
-        rpoLayer.setPureLayerNode(rpoNode);
 		activeLayers[P_TYPE].setPureLayerNode(pActiveNode_node);					// P-Active
 		activeLayers[N_TYPE].setPureLayerNode(nActiveNode_node);					// N-Active
 		selectLayers[P_TYPE].setPureLayerNode(pSelectNode_node);					// P-Select
@@ -3360,7 +3337,7 @@ public class MoCMOS extends Technology
 	{
 		NodeProto prototype = ni.getProto();
 		if (prototype == scalableTransistorNodes[P_TYPE] || prototype == scalableTransistorNodes[N_TYPE])
-            return getShapeOfNodeScalable(ni, wnd, context, electrical, reasonable);
+            return getShapeOfNodeScalable(ni, wnd, context, reasonable);
         else if (prototype == rpoResistorNodes[P_TYPE] || prototype == rpoResistorNodes[N_TYPE])
             return getShapeOfNodeResistor(ni, wnd, context, electrical, reasonable);
 
@@ -3395,7 +3372,7 @@ public class MoCMOS extends Technology
                 polyH = points[1].getX();
                 polyV = points[1].getY();
             }
-            else if (layers[i].getLayer().getFunction() == Layer.Function.IMPLANT) // RPO is defined as IMPLANT
+            else if (layers[i].getLayer().getFunction() == Layer.Function.ART) // RPO is defined as ART
             {
                 rpoH = points[0].getX();
             }
@@ -3470,11 +3447,10 @@ public class MoCMOS extends Technology
      * @param ni
      * @param wnd
      * @param context
-     * @param electrical
      * @param reasonable
      * @return
      */
-    private Poly [] getShapeOfNodeScalable(NodeInst ni, EditWindow wnd, VarContext context, boolean electrical, boolean reasonable)
+    private Poly [] getShapeOfNodeScalable(NodeInst ni, EditWindow wnd, VarContext context, boolean reasonable)
     {
 		// determine special configurations (number of active contacts, inset of active contacts)
 		int numContacts = 2;
@@ -4488,7 +4464,7 @@ public class MoCMOS extends Technology
 		boolean hasChanged = false;
 		// describe the error
 		String errorMessage = "Layer surround error of outer layer '" + outerLayer.getName()
-		        + "' and inner layer '" + innerLayer.getName() + "'in '" + getTechDesc() + "':";
+		        + "' and inner layer '" + innerLayer.getName() + "'in '" + nty.getName() + "'('" +getTechDesc() + "'):";
 
         leftIndent = DBMath.round(leftIndent);
         rightIndent = DBMath.round(rightIndent);

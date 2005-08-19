@@ -3,6 +3,10 @@
 NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03d: *********************************
+
+IMP: (08/18/05, GVG) More changes for Mosis->TSMC switch (select surround in active contact) (Bug #477). 
+RPO is silicide block and with same pattern as in 90nm
+
 ************************* Version 8.03c: *********************************
 
 BUG: (08/18/05, GVG) Fix for bogous DRC rule RPO.R.1 (Bug #478)
