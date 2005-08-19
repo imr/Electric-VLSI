@@ -1231,7 +1231,7 @@ public class PixelDrawing
 		Dimension dim = srcOffscreen.sz;
 
         if (numLayerBitMaps != srcOffscreen.numLayerBitMaps)
-            System.out.println("Possible mixture of technologies");
+            System.out.println("Possible mixture of technologies in PixelDrawing.copyBits");
 
 		// copy the opaque and transparent layers
 		for(int srcY=0; srcY<dim.height; srcY++)
