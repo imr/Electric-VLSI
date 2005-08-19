@@ -24,7 +24,6 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.Main;
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
 
 import java.awt.geom.AffineTransform;
@@ -34,8 +33,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
