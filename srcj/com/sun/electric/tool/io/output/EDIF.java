@@ -1110,6 +1110,7 @@ public class EDIF extends Topology
         if (cell == null) return;
         if (cell.getView() != View.ICON)
             cell = cell.iconView();
+        if (cell == null) return;
 		blockOpen("symbol");
 		egraphic_override = EGWIRE;
 		egraphic = EGUNKNOWN;
