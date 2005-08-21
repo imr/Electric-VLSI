@@ -1136,7 +1136,7 @@ public class Simulation extends Listener
     public static String getCDLIncludeFile() { return cacheCDLIncludeFile.getString(); }
     public static void setCDLIncludeFile(String file) { cacheCDLIncludeFile.setString(file); }
 
-    private static Pref cacheCDLIgnoreResistors = Pref.makeBooleanPref("CDLLIgnoreResistors", tool.prefs, true);
+    private static Pref cacheCDLIgnoreResistors = Pref.makeBooleanPref("CDLLIgnoreResistors", tool.prefs, false);
 //    static { cacheCDLLibName.attachToObject(tool, "IO/CDL tab", "Cadence library name"); }
     /**
      * Method to get the state of "ignore resistors" for netlisting
