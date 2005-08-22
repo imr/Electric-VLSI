@@ -176,7 +176,8 @@ public class MoCMOS extends Technology
 
 		// Rule 2.4 not implemented
 		// In C-Electric it is implemented as 2.2 (min spacing=3) so we might discrepancies.
-		new DRCTemplate("2.5",  DRCTemplate.ALL, DRCTemplate.SPACING,  "P-Active",       "N-Active",       4,  null),
+		new DRCTemplate("2.5 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "P-Active",       "N-Active",       4,  null),
+        new DRCTemplate("2.5 TSMC (OD.S.1)",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Active",       "N-Active",       2.8,  null),
 
 		new DRCTemplate("3.1 Mosis",  DRCTemplate.MOSIS, DRCTemplate.MINWID,   "Polysilicon-1",   null,            2,  null),
 		new DRCTemplate("3.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Polysilicon-1",   null,            1.8,  null),
@@ -195,10 +196,12 @@ public class MoCMOS extends Technology
 		new DRCTemplate("3.2a", DRCTemplate.SC, DRCTemplate.SPACING,  "Transistor-Poly","Transistor-Poly",2,  null),
 
 		new DRCTemplate("3.3",  DRCTemplate.DE, DRCTemplate.TRAPOLY,   null,             null,            2.5,null),
-		new DRCTemplate("3.3",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.TRAPOLY,   null,             null,            2,  null),
+		new DRCTemplate("3.3 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.TRAPOLY,   null,             null,            2,  null),
+        new DRCTemplate("3.3 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.TRAPOLY,   null,             null,            2.2,  null),
 
 		new DRCTemplate("3.4",  DRCTemplate.DE, DRCTemplate.TRAACTIVE, null,             null,            4,  null),
-		new DRCTemplate("3.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.TRAACTIVE, null,             null,            3,  null),
+		new DRCTemplate("3.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.TRAACTIVE, null,             null,            3,  null),
+//        new DRCTemplate("3.4 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.TRAACTIVE, null,             null,            3.2,  null),
 
 		new DRCTemplate("3.5",  DRCTemplate.ALL, DRCTemplate.SPACING,  "Polysilicon-1",  "P-Active",       1,  null),
 		new DRCTemplate("3.5",  DRCTemplate.ALL, DRCTemplate.SPACING,  "Transistor-Poly","P-Active",       1,  null),
@@ -3004,7 +3007,7 @@ public class MoCMOS extends Technology
             /* Poly -> 3.2 top/bottom extension */
             for (int i = 0; i < 2; i++)
             {
-//                transistorWellLayers[i].getLeftEdge().setAdder(1.7); transistorWellLayers[i].getRightEdge().setAdder(-1.7);
+                transistorWellLayers[i].getLeftEdge().setAdder(1.7); transistorWellLayers[i].getRightEdge().setAdder(-1.7);
                 transistorSelectLayers[i].getLeftEdge().setAdder(2.5); transistorSelectLayers[i].getRightEdge().setAdder(-2.5);
                 // Poly X values
                 transistorPolyLayers[i].getLeftEdge().setAdder(3.8); transistorPolyLayers[i].getRightEdge().setAdder(-3.8);
@@ -3015,9 +3018,9 @@ public class MoCMOS extends Technology
                 transistorPolyLLayers[i].getBottomEdge().setAdder(10.1); transistorPolyLLayers[i].getTopEdge().setAdder(-10.1);
                 transistorPolyRLayers[i].getBottomEdge().setAdder(10.1); transistorPolyRLayers[i].getTopEdge().setAdder(-10.1);
                 transistorPolyCLayers[i].getBottomEdge().setAdder(10.1); transistorPolyCLayers[i].getTopEdge().setAdder(-10.1);
-                transistorActiveLayers[i].getBottomEdge().setAdder(6.8); transistorActiveLayers[i].getTopEdge().setAdder(-6.8);
-                transistorActiveBLayers[i].getBottomEdge().setAdder(6.8);
-                transistorActiveTLayers[i].getTopEdge().setAdder(-6.8);
+                transistorActiveLayers[i].getBottomEdge().setAdder(6.9); transistorActiveLayers[i].getTopEdge().setAdder(-6.9);
+                transistorActiveBLayers[i].getBottomEdge().setAdder(6.9);
+                transistorActiveTLayers[i].getTopEdge().setAdder(-6.9);
                 transistorNodes[i].setSizeOffset(new SizeOffset(6, 6, 10.1, 10.1));
 //                PrimitivePort port = transistorNodes[i].getPort(0).getBasePort();
 //                // trans-poly-left
@@ -3076,7 +3079,7 @@ public class MoCMOS extends Technology
             /* Poly -> 3.2 top/bottom extension */
             for (int i = 0; i < 2; i++)
             {
-//                transistorWellLayers[i].getLeftEdge().setAdder(0); transistorWellLayers[i].getRightEdge().setAdder(0);
+                transistorWellLayers[i].getLeftEdge().setAdder(0); transistorWellLayers[i].getRightEdge().setAdder(0);
                 transistorSelectLayers[i].getLeftEdge().setAdder(4); transistorSelectLayers[i].getRightEdge().setAdder(-4);
                 transistorPolyLayers[i].getLeftEdge().setAdder(4); transistorPolyLayers[i].getRightEdge().setAdder(-4);
                 transistorPolyLLayers[i].getLeftEdge().setAdder(4);
