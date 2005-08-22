@@ -44,6 +44,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
@@ -1928,7 +1929,8 @@ public class Quick
     private boolean polyCoverByAnyVTLayer(Cell cell, DRCTemplate theRule, Technology tech, Poly[] polys, Layer[] layers, Geometric[] geoms)
     {
         // Not the correct rule
-        if (theRule.ruleType != DRCTemplate.UCONSPA || !theRule.ruleName.equalsIgnoreCase("VT{H/L}_{P/N}.S.2"))
+        if (theRule.ruleType != DRCTemplate.UCONSPA ||
+                !(theRule.ruleName.equalsIgnoreCase("VT{H/L}_{P/N}.S.2") || theRule.ruleName.equalsIgnoreCase("VT{H/L}_{P/N}.D.2")))
             return false;
         int polyIndex = -1, vtIndex = -1;
 
@@ -3869,7 +3871,35 @@ public class Quick
 			AffineTransform trans = fp.getTransformToTop();
 
 			Technology tech = np.getTechnology();
-			Poly [] cropArcPolyList = tech.getShapeOfNode(ni, null, null, false, ignoreCenterCuts, null);
+            Poly [] cropArcPolyList = null;
+//            if (np.getFunction() == PrimitiveNode.Function.PIN)
+//            {
+//                // Pins don't generate polygons
+//                // Search for another arc and try to crop it with that geometry
+//                List drcLayers = new ArrayList(1);
+//                drcLayers.add(lay.getFunction());
+//                List arcPolys = new ArrayList(1);
+//                int totalPolys = 0;
+//                for (Iterator it = ni.getConnections(); it.hasNext(); )
+//                {
+//                    Connection con = (Connection)it.next();
+//                    ArcInst arc = con.getArc();
+//                    if (arc == ai) continue;
+//                    Poly[] polys = tech.getShapeOfArc(arc, null, null, drcLayers);
+//                    arcPolys.add(polys);
+//                    totalPolys += polys.length;
+//                }
+//                cropArcPolyList = new Poly[totalPolys];
+//                int destPos = 0;
+//                for (int j = 0; j < arcPolys.size(); j++)
+//                {
+//                    Poly[] arcs = (Poly[])arcPolys.get(j);
+//                    System.arraycopy(arcs, 0, cropArcPolyList, destPos, arcs.length);
+//                    destPos += arcs.length;
+//                }
+//            }
+//            else
+                cropArcPolyList = tech.getShapeOfNode(ni, null, null, false, ignoreCenterCuts, null);
 			int tot = cropArcPolyList.length;
 			for(int j=0; j<tot; j++)
 			{
