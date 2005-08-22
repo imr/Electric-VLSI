@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03d: *********************************
 
+BUG: (08/22/05, GVG) Problems with poly to active spacing (Bug #483)
+FIX: the crop functionality doesn't work when multiple arcs overlap. This is a patch and still is not perfect.
+
 BUG: (08/22/05, GVG) VT{H/L}_{P/N}.D.2 not available in ST90 (only available if TSMC is the foundry) (Bug #493)
 FIX: Make code available under ST foundry
 

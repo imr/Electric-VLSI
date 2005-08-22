@@ -3872,33 +3872,33 @@ public class Quick
 
 			Technology tech = np.getTechnology();
             Poly [] cropArcPolyList = null;
-//            if (np.getFunction() == PrimitiveNode.Function.PIN)
-//            {
-//                // Pins don't generate polygons
-//                // Search for another arc and try to crop it with that geometry
-//                List drcLayers = new ArrayList(1);
-//                drcLayers.add(lay.getFunction());
-//                List arcPolys = new ArrayList(1);
-//                int totalPolys = 0;
-//                for (Iterator it = ni.getConnections(); it.hasNext(); )
-//                {
-//                    Connection con = (Connection)it.next();
-//                    ArcInst arc = con.getArc();
-//                    if (arc == ai) continue;
-//                    Poly[] polys = tech.getShapeOfArc(arc, null, null, drcLayers);
-//                    arcPolys.add(polys);
-//                    totalPolys += polys.length;
-//                }
-//                cropArcPolyList = new Poly[totalPolys];
-//                int destPos = 0;
-//                for (int j = 0; j < arcPolys.size(); j++)
-//                {
-//                    Poly[] arcs = (Poly[])arcPolys.get(j);
-//                    System.arraycopy(arcs, 0, cropArcPolyList, destPos, arcs.length);
-//                    destPos += arcs.length;
-//                }
-//            }
-//            else
+            if (np.getFunction() == PrimitiveNode.Function.PIN)
+            {
+                // Pins don't generate polygons
+                // Search for another arc and try to crop it with that geometry
+                List drcLayers = new ArrayList(1);
+                drcLayers.add(lay.getFunction());
+                List arcPolys = new ArrayList(1);
+                int totalPolys = 0;
+                for (Iterator it = ni.getConnections(); it.hasNext(); )
+                {
+                    Connection con = (Connection)it.next();
+                    ArcInst arc = con.getArc();
+                    if (arc == ai) continue;
+                    Poly[] polys = tech.getShapeOfArc(arc, null, null, drcLayers);
+                    arcPolys.add(polys);
+                    totalPolys += polys.length;
+                }
+                cropArcPolyList = new Poly[totalPolys];
+                int destPos = 0;
+                for (int j = 0; j < arcPolys.size(); j++)
+                {
+                    Poly[] arcs = (Poly[])arcPolys.get(j);
+                    System.arraycopy(arcs, 0, cropArcPolyList, destPos, arcs.length);
+                    destPos += arcs.length;
+                }
+            }
+            else
                 cropArcPolyList = tech.getShapeOfNode(ni, null, null, false, ignoreCenterCuts, null);
 			int tot = cropArcPolyList.length;
 			for(int j=0; j<tot; j++)
