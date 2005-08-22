@@ -1311,10 +1311,16 @@ public class Quick
 
 						// can't do this because "lxbound..." is local but the poly bounds are global
                         // On the corners?
-						if (nPolyRect.getMinX() > rBound.getMaxX() ||
-							nPolyRect.getMaxX() < rBound.getMinX() ||
-							nPolyRect.getMinY() > rBound.getMaxY() ||
-							nPolyRect.getMaxY() < rBound.getMinY()) continue;
+//						if (nPolyRect.getMinX() > rBound.getMaxX() ||
+//							nPolyRect.getMaxX() < rBound.getMinX() ||
+//							nPolyRect.getMinY() > rBound.getMaxY() ||
+//							nPolyRect.getMaxY() < rBound.getMinY())
+//                            continue;
+                        if (DBMath.isGreaterThan(nPolyRect.getMinX(), rBound.getMaxX()) ||
+							DBMath.isGreaterThan(rBound.getMinX(), nPolyRect.getMaxX())  ||
+							DBMath.isGreaterThan(nPolyRect.getMinY(), rBound.getMaxY()) ||
+							DBMath.isGreaterThan(rBound.getMinY(), nPolyRect.getMaxY()))
+                            continue;
 
 						// determine network for this polygon
 						int nNet = getDRCNetNumber(netlist, npoly.getPort(), ni, cellGlobalIndex);
