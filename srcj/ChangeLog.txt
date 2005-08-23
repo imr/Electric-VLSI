@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.03e: *********************************
+
 ************************* Version 8.03d: *********************************
 
 BUG: (08/22/05, GVG) Problems with poly to active spacing (Bug #483)
