@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03e: *********************************
 
+IMP: (08/23/05, GVG) Disconnect PP/NP.R.1 from DRC. Those rules are guaranteed by construction and causing more
+distraction now.
+
 IMP: (08/23/05, GVG) More suitable combination of TSMC180 rules in MoCMOS technology.
 
 IMP: (08/23/05, GVG) Adding overlap value in DRC error messages. polyCoverByAnyVTLayer() only available in 90nm.
