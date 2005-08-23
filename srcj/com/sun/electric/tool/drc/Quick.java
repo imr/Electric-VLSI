@@ -781,7 +781,7 @@ public class Quick
 				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
-			// Check PP.R.1 select over transistor poly
+			// Check select over transistor poly
 			// Assumes polys on transistors fulfill condition by construction
 			ret = !isTransistor && checkSelectOverPolysilicon(ni, layer, poly, cell);
 			if (ret)
@@ -933,7 +933,7 @@ public class Quick
 				if (errorTypeSearch == DRC.ERROR_CHECK_CELL) return true;
 				errorsFound = true;
 			}
-			// Check PP.R.1 select over transistor poly
+			// Check select over transistor poly
 			ret = checkSelectOverPolysilicon(ai, layer, poly, ai.getParent());
 			if (ret)
 			{
@@ -2601,7 +2601,7 @@ public class Quick
 			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
             GeometryHandler geom = (GeometryHandler)quickArea.mainMergeMap.get(cell);
 
-		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP.A.1 rule
+		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP rules
         for(Iterator layerIt = cell.getTechnology().getLayers(); layerIt.hasNext(); )
 		{
 			Layer layer = (Layer)layerIt.next();
@@ -2655,7 +2655,7 @@ public class Quick
 		HashMap notExportedNodes = new HashMap();
 		HashMap checkedNodes = new HashMap();
 
-		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP.A.1 rule
+		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP rule
 		for(Iterator netIt = cp.netlist.getNetworks(); netIt.hasNext(); )
 		{
 			Network net = (Network)netIt.next();
