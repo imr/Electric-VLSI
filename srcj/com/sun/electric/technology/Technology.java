@@ -26,6 +26,7 @@ package com.sun.electric.technology;
 import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -3777,6 +3778,17 @@ public class Technology implements Comparable
      */
     public void resetDefaultValues(Cell cell) {;}
 
+    /**
+     * This method determines if one of the polysilicon polygons is covered by a vth layer. Only implemented in 90nm
+     * doesn't apply
+     * @param polys
+     * @param layers
+     * @param geoms
+     * @param ignoreCenterCuts
+     * @return
+     */
+    public boolean polyCoverByAnyVTLayer(Cell cell, DRCTemplate theRule, Technology tech, Poly[] polys, Layer[] layers, 
+                                         Geometric[] geoms, boolean ignoreCenterCuts) { return false; }
 
     /********************* Foundry **********************/
     public static class Foundry

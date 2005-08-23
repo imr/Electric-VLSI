@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03e: *********************************
 
+IMP: (08/23/05, GVG) More suitable combination of TSMC180 rules in MoCMOS technology.
+
+IMP: (08/23/05, GVG) Adding overlap value in DRC error messages. polyCoverByAnyVTLayer() only available in 90nm.
+
 ************************* Version 8.03d: *********************************
 
 BUG: (08/22/05, GVG) Problems with poly to active spacing (Bug #483)
