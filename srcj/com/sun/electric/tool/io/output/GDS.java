@@ -537,8 +537,10 @@ public class GDS extends Geometry
         // try prepending the library name first
         if (existing.contains(name)) {
             String libname = cell.getLibrary().getName()+"."+name;
-            if (!existing.contains(libname) && (libname.length() <= IOTool.getGDSCellNameLenMax()))
+            if (!existing.contains(libname) && (libname.length() <= IOTool.getGDSCellNameLenMax())) {
+                System.out.println("Warning: GDSII out renaming cell "+cell.describe(false)+" to "+libname);
                 return libname;
+            }
         }
 		for(int index = 1; ; index++)
 		{
@@ -552,6 +554,8 @@ public class GDS extends Geometry
 
 		// add this name to the list
 //		cellNames.put(cell, name);
+        if (!name.equals(cell.getName()))
+            System.out.println("Warning: GDSII out renaming cell "+cell.describe(false)+" to "+name);
 		return name;
 	}
 
