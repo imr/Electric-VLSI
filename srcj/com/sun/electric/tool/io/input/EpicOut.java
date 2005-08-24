@@ -46,11 +46,12 @@ public class EpicOut extends Simulate {
         EpicReader reader;
         double timeResolution;
         double voltageResolution;
+        double currentResolution;
     }
     
     private static class EpicAnalogSignal extends AnalogSignal {
         int sigNum;
-        int[] data;
+        double[] data;
         
         EpicAnalogSignal(EpicStimuli sd, int sigNum) {
             super(sd);
@@ -70,8 +71,8 @@ public class EpicOut extends Simulate {
             EpicStimuli sd = (EpicStimuli)this.sd;
             if (data == null)
                 makeData();
-            result[0] = data[index*2] * sd.timeResolution;
-            result[1] = result[2] = data[index*2 + 1] * sd.voltageResolution;
+            result[0] = data[index*2];
+            result[1] = result[2] = data[index*2 + 1];
         }
         
         /**
@@ -92,7 +93,22 @@ public class EpicOut extends Simulate {
         private void makeData() {
             EpicStimuli sd = (EpicStimuli)this.sd;
             EpicSignal s = (EpicSignal)sd.reader.signals.get(sigNum);
-            data = s.getWaveform();
+            double resolution = 1;
+            switch (s.type) {
+                case EpicSignal.VOLTAGE_TYPE:
+                    resolution = sd.voltageResolution;
+                    break;
+                case EpicSignal.CURRENT_TYPE:
+                    resolution = sd.currentResolution;
+                    break;
+            }
+            int[] intData = s.getWaveform();
+            int len = intData.length/2;
+            data = new double[len * 2];
+            for (int i = 0; i < len; i++) {
+                data[i*2] = intData[i*2] * sd.timeResolution;
+                data[i*2+1] = intData[i*2+1] * resolution;
+            }
         }
         
         private void setBounds(Rectangle2D bounds) {
@@ -134,8 +150,8 @@ public class EpicOut extends Simulate {
         sd.setSeparatorChar(separator);
         sd.timeResolution = reader.timeResolution;
         sd.voltageResolution = reader.voltageResolution;
+        sd.currentResolution = reader.currentResolution;
         ArrayList/*<EpicAnalogSignal>*/ signals = new ArrayList/*<EpicAnalogSignal>*/();
-        Rectangle2D bounds = new Rectangle2D.Double(0, reader.minV*sd.voltageResolution, reader.maxT*sd.timeResolution, (reader.maxV - reader.minV)*sd.voltageResolution);
         for (int i = 0; i < reader.signals.size(); i++) {
             EpicSignal s = (EpicSignal)reader.signals.get(i);
             if (s == null) continue;
@@ -144,12 +160,29 @@ public class EpicOut extends Simulate {
             EpicAnalogSignal as = new EpicAnalogSignal(sd, i);
             if (name.startsWith("v(") && name.endsWith(")"))
                 name = name.substring(2, name.length() - 1);
+            else if (name.startsWith("i(") && name.endsWith(")")) {
+                name = name.substring(2, name.length() - 1);
+            }
+            else if (name.startsWith("i1(") && name.endsWith(")")) {
+                name = name.substring(3, name.length() - 1);
+            }
             int lastSlashPos = name.lastIndexOf(separator);
             if (lastSlashPos > 0) {
                 as.setSignalContext(name.substring(0, lastSlashPos));
                 name = name.substring(lastSlashPos + 1);
             }
+            double resolution = 1;
+            switch (s.type) {
+                case EpicSignal.VOLTAGE_TYPE:
+                    resolution = reader.voltageResolution;
+                    break;
+                case EpicSignal.CURRENT_TYPE:
+                    resolution = reader.currentResolution;
+                    name = "i(" + name + ")";
+                    break;
+            }
             as.setSignalName(name);
+            Rectangle2D bounds = new Rectangle2D.Double(0, s.minV*resolution, reader.maxT*sd.timeResolution, (s.maxV - s.minV)*resolution);
             as.setBounds(bounds);
         }
         
@@ -181,10 +214,9 @@ class EpicReader {
     int numSignals = 0;
     double timeResolution;
     double voltageResolution;
+    double currentResolution;
     int curTime = 0;
     int maxT = 0;
-    int minV = Integer.MAX_VALUE;
-    int maxV = Integer.MIN_VALUE;
     
     private static String VERSION_STRING = ";! output_format 5.3";
         
@@ -256,8 +288,13 @@ class EpicReader {
         if (ch == '.') {
             String[] split = whiteSpace.split(line);
             if (split[0].equals(".index") && split.length == 4) {
-                if (!split[3].equals("v")) {
-                    System.out.println("Can handle only voltage variables: " + line);
+                int type;
+                if (split[3].equals("v"))
+                    type = EpicSignal.VOLTAGE_TYPE;
+                else if (split[3].equals("i"))
+                    type = EpicSignal.CURRENT_TYPE;
+                else {
+                    System.out.println("Unknown waveform type: " + line);
                     return;
                 }
                 String name = split[1];
@@ -271,10 +308,12 @@ class EpicReader {
                     numSignals++;
                 }
                 s.name = name;
+                s.type = type;
             } else if (split[0].equals(".vdd") && split.length == 2) {
             } else if (split[0].equals(".time_resolution") && split.length == 2) {
                 timeResolution = TextUtils.atof(split[1]) * 1e-9;
             } else if (split[0].equals(".current_resolution") && split.length == 2) {
+                currentResolution = TextUtils.atof(split[1]);
             } else if (split[0].equals(".voltage_resolution") && split.length == 2) {
                 voltageResolution = TextUtils.atof(split[1]);
             } else if (split[0].equals(".high_threshold") && split.length == 2) {
@@ -362,8 +401,6 @@ class EpicReader {
             numSignals++;
         }
         s.putEvent(curTime, value);
-        minV = Math.min(minV, value);
-        maxV = Math.max(maxV, value);
     }
     
     private String getLine() throws IOException {
@@ -403,16 +440,24 @@ class EpicReader {
 
 class EpicSignal {
     String name;
+    int type;
     int lastT;
     int lastV;
+    int minV = Integer.MAX_VALUE;
+    int maxV = Integer.MIN_VALUE;
     byte[] waveform = new byte[512];
     int len;
+
+    static final int VOLTAGE_TYPE = 1;
+    static final int CURRENT_TYPE = 2;
     
     void putEvent(int t, int v) {
         putUnsigned(t - lastT);
         putSigned(v - lastV);
         lastT = t;
         lastV = v;
+        minV = Math.min(minV, v);
+        maxV = Math.max(maxV, v);
     }
 
     void putUnsigned(int value) {

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03e: *********************************
 
+BUG: (08/24/05, DN) Epic ".out" reader doesn't incput current waveforms.
+FIX: In EpicOut add waveform type. Calculate mivV/maxV for every signal.
+
 IMP: (08/23/05, GVG) Disconnect PP/NP.R.1 from DRC. Those rules are guaranteed by construction and causing more
 distraction now.
 
