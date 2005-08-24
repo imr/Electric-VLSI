@@ -34,10 +34,12 @@ after the first error has been found.
 By using this option, you can more quickly determine <I>which</I> cells in the design are correct,
 without knowing exactly where the errors lie.
 Then, you can go to the cells with errors and do a more complete check.</LI>
-<LI>"Report just 1 error per node or arc" is the default.
-It stops checking a node or arc when it has found any design rule violation.</LI>
-<LI>"Report all errors" tells the system to continue checking a node or arc, even if an error has been found.
-This will report all violations found, but can take more time.</LI>
+<LI>"Report just 1 error per pair of geometries" is the default.
+The algorithm works by checking design rules per each possible pair of geometries and it stops when the first
+violation for a given pair is found in this mode.</LI>
+<LI>"Report all errors" tells the system to continue checking all possible violations in a pair of geometries,
+even if an error has already been found.
+This is the exhaustive mode and therefore time consuming that will report all violations found.</LI>
 </UL>
 
 <!-- TRAILER -->
