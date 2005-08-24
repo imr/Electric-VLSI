@@ -105,25 +105,57 @@ public class PLA
 	private NGrid ng;
 	private PGrid pg;
 	private Decode dec;
-
-	private PLA()
-	{
-		pg = new PGrid(this);
-		ng = new NGrid(this);
-		dec = new Decode(this);
-	}
+	private String cellName;
+	private String andFileName;
+	private String orFileName;
+	private boolean inputsOnTop;
+	private boolean outputsOnBottom;
 
 	/**
 	 * Method called to generate a CMOS PLA.
+	 * Invokes a dialog to ask for options.
 	 */
 	public static void generate()
 	{
 		// prompt the user for some information
 		SetupPLAGen dialog = new SetupPLAGen();
 		if (dialog.failed()) return;
+		String cellName = dialog.getCellName();
+		String andFileName = dialog.getAndFileName();
+		String orFileName = dialog.getOrFileName();
+		boolean inputsOnTop = dialog.isInputsOnTop();
+		boolean outputsOnBottom = dialog.isOutputsOnBottom();
 
-		PLA me = new PLA();
-		new GeneratePLAJob(dialog, 0, me);
+		PLA me = new PLA(cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);
+		new GeneratePLAJob(0, me, null);
+	}
+
+	/**
+	 * Method called to generate a CMOS PLA, given all options.
+	 * @param cellName the name of the PLA cell to generate.
+	 * @param andFileName the disk file with the AND plane.
+	 * @param orFileName the disk file with the OR plane.
+	 * @param inputsOnTop true to place inputs on the top of the plane.
+	 * @param outputsOnBottom true to place outputs on the bottom of the plane.
+	 * @param completion runnable to invoke when the generation has finished.
+	 */
+	public static void generate(String cellName, String andFileName, String orFileName, boolean inputsOnTop, boolean outputsOnBottom,
+		Job completion)
+	{
+		PLA me = new PLA(cellName, andFileName, orFileName, inputsOnTop, outputsOnBottom);
+		new GeneratePLAJob(0, me, completion);
+	}
+
+	private PLA(String cellName, String andFileName, String orFileName, boolean inputsOnTop, boolean outputsOnBottom)
+	{
+		this.cellName = cellName;
+		this.andFileName = andFileName;
+		this.orFileName = orFileName;
+		this.inputsOnTop = inputsOnTop;
+		this.outputsOnBottom = outputsOnBottom;
+		pg = new PGrid(this);
+		ng = new NGrid(this);
+		dec = new Decode(this);
 	}
 
 	/**
@@ -131,74 +163,75 @@ public class PLA
 	 */
 	private static class GeneratePLAJob extends Job
 	{
-		private SetupPLAGen dialog;
 		private int step;
 		private PLA pla;
+		private Job completion;
 
-		protected GeneratePLAJob(SetupPLAGen dialog, int step, PLA pla)
+		protected GeneratePLAJob(int step, PLA pla, Job completion)
 		{
 			super("Generate MOSIS CMOS PLA, Step " + (step+1), User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.dialog = dialog;
 			this.step = step;
 			this.pla = pla;
+			this.completion = completion;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-			return pla.doStep(step, dialog);
+			return pla.doStep(step, completion);
 		}
 	}
 
-	private boolean doStep(int step, SetupPLAGen dialog)
+	private boolean doStep(int step, Job completion)
 	{
+		boolean error = false;
 		switch (step)
 		{
 			case 0:		// initialize
 				System.out.println("STEP 1: initialize");
-				if (!initialize()) return false;
+				if (!initialize()) error = true;
 				break;
 
 			case 1:
 				// generate the AND plane (Decode unit of a ROM)
 				System.out.println("STEP 2: AND plane, part 1");
-				String cellName = dialog.getCellName() + "_p_cell{lay}";
-				pmosCell = pg.pmosGrid(Library.getCurrent(), dialog.getAndFileName(), cellName);
-				if (pmosCell == null) return false;
+				String thisCellName = cellName + "_p_cell{lay}";
+				pmosCell = pg.pmosGrid(Library.getCurrent(), andFileName, thisCellName);
+				if (pmosCell == null) error = true;
 				break;
 
 			case 2:
 				System.out.println("STEP 2: AND plane, part 2");
-				cellName = dialog.getCellName() + "_n_cell{lay}";
-				nmosCell = ng.nmosGrid(Library.getCurrent(), dialog.getAndFileName(), cellName);
-				if (nmosCell == null) return false;
+				thisCellName = cellName + "_n_cell{lay}";
+				nmosCell = ng.nmosGrid(Library.getCurrent(), andFileName, thisCellName);
+				if (nmosCell == null) error = true;
 				break;
 
 			case 3:
 				System.out.println("STEP 3: Decoder");
-				cellName = dialog.getCellName() + "_decode{lay}";
-				decodeCell = dec.decodeGen(Library.getCurrent(), pmosCell, nmosCell, cellName, dialog.isInputsOnTop());
-				if (decodeCell == null) return false;
+				thisCellName = cellName + "_decode{lay}";
+				decodeCell = dec.decodeGen(Library.getCurrent(), pmosCell, nmosCell, thisCellName, inputsOnTop);
+				if (decodeCell == null) error = true;
 				break;
 
 			case 4:
 				// Generate the OR plane
 				System.out.println("STEP 4: OR plane, part 1");
-				cellName = dialog.getCellName() + "_or_cell{lay}";
-				orCell = ng.nmosGrid(Library.getCurrent(), dialog.getOrFileName(), cellName);
-				if (orCell == null) return false;
+				thisCellName = cellName + "_or_cell{lay}";
+				orCell = ng.nmosGrid(Library.getCurrent(), orFileName, thisCellName);
+				if (orCell == null) error = true;
 				break;
 
 			case 5:
 				System.out.println("STEP 5: OR plane, part 2");
-				cellName = dialog.getCellName() + "_or_plane{lay}";
-				orPlaneCell = makeOrPlane(Library.getCurrent(), cellName, dialog.isOutputsOnBottom());
-				if (orPlaneCell == null) return false;
+				thisCellName = cellName + "_or_plane{lay}";
+				orPlaneCell = makeOrPlane(Library.getCurrent(), thisCellName, outputsOnBottom);
+				if (orPlaneCell == null) error = true;
 				break;
 
 			case 6:
 				System.out.println("STEP 6: Final assembly");
-				Cell plaCell = makePLA(Library.getCurrent(), dialog.getCellName() + "{lay}");
+				Cell plaCell = makePLA(Library.getCurrent(), cellName + "{lay}");
 				if (plaCell != null)
 				{
 					System.out.println("DONE");
@@ -208,7 +241,12 @@ public class PLA
 		}
 
 		// queue the next step
-		if (step < 6) new GeneratePLAJob(dialog, step+1, this);
+		if (step < 6 && !error)
+		{
+			new GeneratePLAJob(step+1, this, completion);
+			return true;
+		}
+		if (completion != null) completion.startJob();
 		return true;
 	}
 

@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03e: *********************************
 
+IMP: (08/24/05, SMR) Modified generators (pad frame, ROM, CMOS, Silicon compiler)
+     so that they can be tested in automatic regressions.
+
 BUG: (08/24/05, DN) Epic ".out" reader doesn't incput current waveforms.
 FIX: In EpicOut add waveform type. Calculate mivV/maxV for every signal.
 
@@ -13,6 +16,11 @@ distraction now.
 IMP: (08/23/05, GVG) More suitable combination of TSMC180 rules in MoCMOS technology.
 
 IMP: (08/23/05, GVG) Adding overlap value in DRC error messages. polyCoverByAnyVTLayer() only available in 90nm.
+
+IMP: (08/22/05, SMR) Modified printing so that common print dialog is used
+     (used PrintRequestAttributeSet parameter to PrinterJob.print()).
+
+IMP: (08/22/05, SMR) Fixes to node extractor.
 
 ************************* Version 8.03d: *********************************
 

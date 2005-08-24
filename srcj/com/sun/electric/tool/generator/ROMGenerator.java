@@ -99,21 +99,12 @@ public class ROMGenerator
 	 */
 	public static void generateROM()
 	{
-		// lambda is always 1 in Java Electric
-		lambda = 1;
-
-		// presume MOSIS CMOS
-		tech = Technology.findTechnology("mocmos");	
-
 		// get the personality file
 		String romfile = OpenFile.chooseInputFile(FileType.TEXT, null);
 		if (romfile == null) return;
 
-		// Set the root name of the cells
-		String romcell = "ROMCELL";
-
 		// build the ROM (in a separate Job thread)
-		DoROM rom = new DoROM(romfile, romcell);
+		DoROM rom = new DoROM(romfile);
 	}
 
 	/**
@@ -122,18 +113,19 @@ public class ROMGenerator
 	private static class DoROM extends Job
 	{
 		private String romfile;
-		private String romcell;
 
-		private DoROM(String romfile, String romcell)
+		private DoROM(String romfile)
 		{
 			super("ROM Generator", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.romfile = romfile;
-			this.romcell = romcell;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
+			// Set the root name of the cells
+			String romcell = "ROMCELL";
+
 			// build the ROM
 			Cell toplevel = makeAROM(romfile, romcell);
 			if (toplevel == null) return false;
@@ -151,11 +143,14 @@ public class ROMGenerator
 	 * @param romcell the root name of all ROM cells.
 	 * @return the top-level cell.
 	 */
-	private static Cell makeAROM(String romfile, String romcell)
+	public static Cell makeAROM(String romfile, String romcell)
 	{
 		NodeInst ap1, ap2, ap3, ap4;
 		PortProto apport1, apport2, apport3, apport4;
 		double[] appos1, appos2, appos3, appos4;
+
+		// presume MOSIS CMOS
+		tech = Technology.findTechnology("mocmos");	
 
 		int[][] romarray = romarraygen(romfile);
 	
@@ -163,8 +158,8 @@ public class ROMGenerator
 		String dnr  = new String(romcell+"_decodernmos");
 		String dpm  = new String(romcell+"_decoderpmosmux");
 		String dnm  = new String(romcell+"_decodernmosmux");
-		String invt = new String(romcell+"_ininvertertop");
-		String invb = new String(romcell+"_ininverterbot");
+		String invt = new String(romcell+"_invertertop");
+		String invb = new String(romcell+"_inverterbot");
 		String romname =  new String(romcell+"_rom");
 		String rp =   new String(romcell+"_romplane");
 		String ip =   new String(romcell+"_inverterplane");

@@ -36,6 +36,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -84,6 +85,8 @@ public class Connectivity
 	/** associates arc prototypes with layers */				private HashMap arcsForLayer;
 	/** map of extracted cells */								private HashMap convertedCells;
 	/** map of export indices in each extracted cell */			private HashMap exportNumbers;
+	/** true if this is a P-well process (presume P-well) */	private boolean pWellProcess;
+	/** true if this is a N-well process (presume N-well) */	private boolean nWellProcess;
 
 	/**
 	 * Method to examine the current cell and extract it's connectivity in a new one.
@@ -208,7 +211,6 @@ public class Connectivity
 		}
 
 		// create the new version of the cell
-		System.out.print("Extracting " + oldCell + ": ");
 		String newCellName = oldCell.getName() + "{" + oldCell.getView().getAbbreviation() + "}";
 		Cell newCell = Cell.makeInstance(oldCell.getLibrary(), newCellName);
 		if (newCell == null)
@@ -273,12 +275,12 @@ public class Connectivity
 				continue;
 			}
 
-			// extract the geometry from the pure-layer node (has only 1 layer)
+			// extract the geometry from the pure-layer node
 			AffineTransform trans = ni.rotateOut();
 			Poly [] polys = tech.getShapeOfNode(ni);
-			if (polys.length > 0)
+			for(int j=0; j<polys.length; j++)
 			{
-				Poly poly = polys[0];
+				Poly poly = polys[j];
 
 				// get the layer for the geometry
 				Layer layer = poly.getLayer();
@@ -316,9 +318,14 @@ public class Connectivity
 				ai.getHeadLocation(), ai.getTailLocation(), ai.getName());
 		}
 
+		// determine if this is a "P-well" or "N-well" process
+		findMissingWells(merge);
+
 		// now remember the original merge
 		PolyMerge originalMerge = new PolyMerge();
 		originalMerge.addMerge(merge, new AffineTransform());
+
+		System.out.print("Extracting " + oldCell + ": ");
 
 		// start by extracting vias
 		extractVias(merge, originalMerge, newCell);
@@ -367,6 +374,35 @@ public class Connectivity
 		}
 	}
 
+	/**
+	 * Method to determine if this is a "p-well" or "n-well" process.
+	 * Examines the merge to see which well layers are found.
+	 * @param merge the merged geometry.
+	 */
+	private void findMissingWells(PolyMerge merge)
+	{
+		boolean hasPWell = false, hasNWell = false, hasWell = false;
+		for(Iterator lIt = merge.getKeyIterator(); lIt.hasNext(); )
+		{
+			Layer layer = (Layer)lIt.next();
+			Layer.Function fun = layer.getFunction();
+			if (fun == Layer.Function.WELL) hasWell = true;
+			if (fun == Layer.Function.WELLP) hasPWell = true;
+			if (fun == Layer.Function.WELLN) hasNWell = true;
+		}
+		if (!hasPWell)
+		{
+			pWellProcess = true;
+			System.out.println("Presuming a P-well process");
+			return;
+		}
+		if (!hasNWell && !hasWell)
+		{
+			nWellProcess = true;
+			System.out.println("Presuming an N-well process");
+		}
+	}
+
 	/********************************************** WIRE EXTRACTION **********************************************/
 
 	private static class TouchingNode
@@ -385,10 +421,17 @@ public class Connectivity
 		{
 			Layer layer = (Layer)lIt.next();
 			Layer.Function fun = layer.getFunction();
-			if (fun.isDiff() || fun.isPoly() || fun.isMetal()) wireLayers.add(layer);
+			if (fun.isDiff() || fun.isPoly() || fun.isMetal())
+			{
+				// make sure there is an arc that exists for the layer
+				ArcProto ap = (ArcProto)arcsForLayer.get(layer);
+				if (ap == null) continue;
+
+				wireLayers.add(layer);
+			}
 		}
 
-		// examine each wire layer
+		// examine each wire layer, looking for a skeletal structure that approximates it
 		for(Iterator lIt = wireLayers.iterator(); lIt.hasNext(); )
 		{
 			Layer layer = (Layer)lIt.next();
@@ -396,7 +439,6 @@ public class Connectivity
 
 			// figure out which arc proto to use for the layer
 			ArcProto ap = (ArcProto)arcsForLayer.get(layer);
-			if (ap == null) continue;
 
 			// examine the geometry on the layer
 			List polyList = merge.getMergedPoints(layer, true);
@@ -441,12 +483,78 @@ public class Connectivity
 							}
 						}
 					}
-//System.out.println("Making wire "+cl.width+" wide from ("+loc1.getX()+","+loc1.getY()+") to ("+loc2.getX()+","+loc2.getY()+") noextend="+noEndExtend);
+
 					// create the wire
 					realizeArc(ap, pi1, pi2, loc1, loc2, cl.width+ap.getWidthOffset(), noEndExtend, merge);
 				}
 			}
 		}
+
+		// examine each wire layer, looking for a simple rectangle that covers it
+		for(Iterator lIt = wireLayers.iterator(); lIt.hasNext(); )
+		{
+			Layer layer = (Layer)lIt.next();
+			Layer.Function fun = layer.getFunction();
+
+			// figure out which arc proto to use for the layer
+			ArcProto ap = (ArcProto)arcsForLayer.get(layer);
+
+			// examine the geometry on the layer
+			List polyList = merge.getMergedPoints(layer, true);
+			for(Iterator pIt = polyList.iterator(); pIt.hasNext(); )
+			{
+				PolyBase poly = (PolyBase)pIt.next();
+				Rectangle2D bounds = poly.getBounds2D();
+				Poly rectPoly = new Poly(bounds);
+				if (!originalMerge.contains(layer, rectPoly)) continue;
+
+				// determine the endpoints of the arc
+				Point2D loc1, loc2;
+				double width = Math.min(bounds.getWidth(), bounds.getHeight());
+				if (bounds.getWidth() > bounds.getHeight())
+				{
+					loc1 = new Point2D.Double(bounds.getMinX() + width/2, bounds.getCenterY());
+					loc2 = new Point2D.Double(bounds.getMaxX() - width/2, bounds.getCenterY());
+				} else
+				{
+					loc1 = new Point2D.Double(bounds.getCenterX(), bounds.getMinY() + width/2);
+					loc2 = new Point2D.Double(bounds.getCenterX(), bounds.getMaxY() - width/2);
+				}
+				PortInst pi1 = wantConnectingNodeAt(loc1, ap, width, newCell);
+				PortInst pi2 = wantConnectingNodeAt(loc2, ap, width, newCell);
+				realizeArc(ap, pi1, pi2, loc1, loc2, width+ap.getWidthOffset(), false, merge);
+			}
+		}
+	}
+
+	/**
+	 * Method to locate a port on a node at a specific point with a specific connectivity.
+	 * @param pt the center location of the desired node.
+	 * @param ap the type of the arc that must connect.
+	 * @param size the size of the node (if it must be created).
+	 * @param newCell the cell in which to locate or place the node.
+	 * @return the port on the node that is at the proper point.
+	 * If there is none there, a node is created.
+	 */
+	private PortInst wantConnectingNodeAt(Point2D pt, ArcProto ap, double size, Cell newCell)
+	{
+		Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
+		for(Iterator it = newCell.searchIterator(bounds); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (!(geom instanceof NodeInst)) continue;
+			NodeInst ni = (NodeInst)geom;
+			for(Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
+			{
+				PortInst pi = (PortInst)pIt.next();
+				PortProto pp = pi.getPortProto();
+				if (!pp.connectsTo(ap)) continue;
+				Poly poly = pi.getPoly();
+				if (poly.contains(pt)) return pi;
+			}
+		}
+		NodeInst ni = NodeInst.makeInstance(ap.findPinProto(), pt, size, size, newCell);
+		return ni.getOnlyPortInst();
 	}
 
 	private List findPortInstsTouchingPoint(Point2D pt, Layer layer, Cell newCell)
@@ -713,6 +821,30 @@ public class Connectivity
 		return piRet;
 	}
 
+	/**
+	 * Method to locate a node at a specific point with a specific type.
+	 * @param pt the center location of the desired node.
+	 * @param pin the type of the desired node.
+	 * @param size the size of the node (if it must be created).
+	 * @param newCell the cell in which to locate or place the node.
+	 * @return a node of that type at that location.
+	 * If there is none there, it is created.
+	 */
+	private NodeInst wantNodeAt(Point2D pt, NodeProto pin, double size, Cell newCell)
+	{
+		Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
+		for(Iterator it = newCell.searchIterator(bounds); it.hasNext(); )
+		{
+			Geometric geom = (Geometric)it.next();
+			if (!(geom instanceof NodeInst)) continue;
+			NodeInst ni = (NodeInst)geom;
+			if (ni.getProto() != pin) continue;
+			if (ni.getAnchorCenter().equals(pt)) return ni;
+		}
+		NodeInst ni = NodeInst.makeInstance(pin, pt, size, size, newCell);
+		return ni;
+	}
+
 	/********************************************** VIA/CONTACT EXTRACTION **********************************************/
 
 	private static class PossibleVia
@@ -732,15 +864,19 @@ public class Connectivity
 	 */
 	private void extractVias(PolyMerge merge, PolyMerge originalMerge, Cell newCell)
 	{
-		// look at all via/cut layers in the technology
+		// make a list of all via/cut layers in the technology
 		List layers = new ArrayList();
 		for(Iterator lIt = merge.getKeyIterator(); lIt.hasNext(); )
-			layers.add(lIt.next());
-		for(Iterator lIt = layers.iterator(); lIt.hasNext(); )
 		{
 			Layer layer = (Layer)lIt.next();
 			Layer.Function fun = layer.getFunction();
-			if (!fun.isContact()) continue;
+			if (fun.isContact()) layers.add(layer);
+		}
+
+		// examine all vias/cuts for possible contacts
+		for(Iterator lIt = layers.iterator(); lIt.hasNext(); )
+		{
+			Layer layer = (Layer)lIt.next();
 
 			// compute the possible via nodes that this layer could become
 			List possibleVias = findPossibleVias(layer);
@@ -1241,6 +1377,12 @@ public class Connectivity
 			Technology.NodeLayer lay = layers[i];
 			Layer layer = geometricLayer(lay.getLayer());
 			if (layer == polyLayer || layer == activeLayer) continue;
+
+			// ignore well layers if the process doesn't have them
+			Layer.Function fun = layer.getFunction();
+			if (fun == Layer.Function.WELLP && pWellProcess) continue;
+			if (fun == Layer.Function.WELLN && nWellProcess) continue;
+
 			originalMerge.intersectLayers(layer, tempLayer1, tempLayer1);
 		}
 
@@ -2282,29 +2424,6 @@ public class Connectivity
 			merge.subtract(layer, poly);
 		}
 		return ai;
-	}
-
-	/**
-	 * Method to locate a node at a specific point with a specific type.
-	 * @param pt the center location of the desired node.
-	 * @param pin the type of the desired node.
-	 * @param size the size of the node (if it must be created).
-	 * @return a node of that type at that location.
-	 * If there is none there, it is created.
-	 */
-	private NodeInst wantNodeAt(Point2D pt, NodeProto pin, double size, Cell newCell)
-	{
-		Rectangle2D bounds = new Rectangle2D.Double(pt.getX(), pt.getY(), 0, 0);
-		for(Iterator it = newCell.searchIterator(bounds); it.hasNext(); )
-		{
-			Geometric geom = (Geometric)it.next();
-			if (!(geom instanceof NodeInst)) continue;
-			NodeInst ni = (NodeInst)geom;
-			if (ni.getProto() != pin) continue;
-			if (ni.getAnchorCenter().equals(pt)) return ni;
-		}
-		NodeInst ni = NodeInst.makeInstance(pin, pt, size, size, newCell);
-		return ni;
 	}
 
 	/**

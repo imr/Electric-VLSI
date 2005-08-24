@@ -71,6 +71,8 @@ import java.util.Set;
 
 import javax.print.PrintService;
 import javax.print.PrintServiceLookup;
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.PrintRequestAttributeSet;
 import javax.swing.*;
 
 /**
@@ -951,7 +953,8 @@ public class FileMenu {
             }
         }
 
-        if (pj.printDialog())
+		PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
+        if (pj.printDialog(aset))
         {
 			// disable double-buffering so prints look better
 			JPanel overall = wf.getContent().getPanel();
@@ -980,7 +983,7 @@ public class FileMenu {
             printerToUse = pj.getPrintService();
             if (printerToUse != null)
  				IOTool.setPrinterName(printerToUse.getName());
-			SwingUtilities.invokeLater(new PrintJobAWT(wf, pj, oldSize));
+			SwingUtilities.invokeLater(new PrintJobAWT(wf, pj, oldSize, aset));
         }
     }
 
@@ -989,18 +992,20 @@ public class FileMenu {
 		private WindowFrame wf;
 		private PrinterJob pj;
 		private Dimension oldSize;
+		private PrintRequestAttributeSet aset;
 
-		PrintJobAWT(WindowFrame wf, PrinterJob pj, Dimension oldSize)
+		PrintJobAWT(WindowFrame wf, PrinterJob pj, Dimension oldSize, PrintRequestAttributeSet aset)
 		{
 			this.wf = wf;
 			this.pj = pj;
 			this.oldSize = oldSize;
+			this.aset = aset;
 		}
 
 		public void run()
 		{
 			try {
-				pj.print();
+				pj.print(aset);
 			} catch (PrinterException pe)
 			{
 				System.out.println("Print aborted.");
@@ -1151,7 +1156,7 @@ public class FileMenu {
         pane.selectInitialValue();
         pane.setToolTipText(toolTipMessage);
         ;
-        dialog.show();
+        dialog.setVisible(true);
         dialog.dispose();
 
         Object selectedValue = pane.getValue();

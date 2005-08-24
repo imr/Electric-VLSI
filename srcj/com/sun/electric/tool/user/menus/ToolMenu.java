@@ -118,6 +118,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 /**
  * Class to handle the commands in the "Tool" pulldown menu.
@@ -466,7 +467,7 @@ public class ToolMenu {
 		MenuBar.Menu silCompSubMenu = MenuBar.makeMenu("Silicon Co_mpiler");
 		toolMenu.add(silCompSubMenu);
 		silCompSubMenu.addMenuItem("_Convert Current Cell to Layout", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { doSiliconCompilation(); }});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { doSiliconCompilation(null); }});
 		silCompSubMenu.addSeparator();
 		silCompSubMenu.addMenuItem("Compile VHDL to _Netlist View", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { compileVHDL();}});
@@ -1310,7 +1311,7 @@ public class ToolMenu {
         String fileName = OpenFile.chooseInputFile(FileType.PADARR, null);
         if (fileName != null)
         {
-            PadGenerator.generate(fileName);
+            PadGenerator.makePadFrame(fileName);
         }
     }
 
@@ -1358,8 +1359,9 @@ public class ToolMenu {
 	 * does placement and routing;
 	 * Generates Electric layout;
 	 * Displays the resulting layout.
+	 * @param completion runnable to invoke when the compilation has finished.
 	 */
-	public static void doSiliconCompilation()
+	public static void doSiliconCompilation(Job completion)
 	{
 		Cell cell = WindowFrame.needCurCell();
 		if (cell == null) return;
@@ -1390,7 +1392,7 @@ public class ToolMenu {
 			if (lib != null) SilComp.setCellLib(lib); else
 				activities |= READ_LIBRARY;
 		}
-	    DoNextActivity sJob = new DoNextActivity(cell, activities, originalCell, null);
+	    DoNextActivity sJob = new DoNextActivity(cell, activities, originalCell, null, completion);
 	}
 
 	/**
@@ -1406,7 +1408,7 @@ public class ToolMenu {
 			System.out.println("Must be editing a VHDL cell before compiling it");
 			return;
 		}
-	    DoNextActivity sJob = new DoNextActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, cell, null);
+	    DoNextActivity sJob = new DoNextActivity(cell, COMPILE_VHDL_FOR_SC | SHOW_CELL, cell, null, null);
 	}
 
 	/**
@@ -1422,7 +1424,7 @@ public class ToolMenu {
 			System.out.println("Must be editing a Schematic cell before converting it to VHDL");
 			return;
 		}
-	    DoNextActivity sJob = new DoNextActivity(cell, CONVERT_TO_VHDL | SHOW_CELL, cell, null);
+	    DoNextActivity sJob = new DoNextActivity(cell, CONVERT_TO_VHDL | SHOW_CELL, cell, null, null);
 	}
 
 	/**
@@ -1433,14 +1435,16 @@ public class ToolMenu {
 		private Cell cell, originalCell;
 		private VarContext originalContext;
 		private int activities;
+		private Job completion;
 
-		private DoNextActivity(Cell cell, int activities, Cell originalCell, VarContext originalContext)
+		private DoNextActivity(Cell cell, int activities, Cell originalCell, VarContext originalContext, Job completion)
 		{
 			super("Silicon-Compiler activity", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.cell = cell;
 			this.activities = activities;
 			this.originalCell = originalCell;
 			this.originalContext = originalContext;
+			this.completion = completion;
 			startJob();
 		}
 
@@ -1455,7 +1459,7 @@ public class ToolMenu {
 		        Undo.noUndoAllowed();
 				if (lib != null) SilComp.setCellLib(lib);
 				System.out.println(" Done");
-			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~READ_LIBRARY, originalCell, originalContext);
+			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~READ_LIBRARY, originalCell, originalContext, completion);
 			    return true;
 			}
 
@@ -1481,7 +1485,7 @@ public class ToolMenu {
 				for(int i=0; i<vhdlStrings.size(); i++) array[i] = (String)vhdlStrings.get(i);
 				vhdlCell.setTextViewContents(array);
 				System.out.println(" Done, created " + vhdlCell);
-			    DoNextActivity sJob = new DoNextActivity(vhdlCell, activities & ~CONVERT_TO_VHDL, originalCell, originalContext);
+			    DoNextActivity sJob = new DoNextActivity(vhdlCell, activities & ~CONVERT_TO_VHDL, originalCell, originalContext, completion);
 			    return true;
 			}
 
@@ -1514,7 +1518,7 @@ public class ToolMenu {
 				for(int i=0; i<netlistStrings.size(); i++) array[i] = (String)netlistStrings.get(i);
 				netlistCell.setTextViewContents(array);
 				System.out.println(" Done, created " + netlistCell);
-			    DoNextActivity sJob = new DoNextActivity(netlistCell, activities & ~COMPILE_VHDL_FOR_SC, originalCell, originalContext);
+			    DoNextActivity sJob = new DoNextActivity(netlistCell, activities & ~COMPILE_VHDL_FOR_SC, originalCell, originalContext, completion);
 			    return true;
 			}
 
@@ -1563,7 +1567,7 @@ public class ToolMenu {
 				{
 					Cell newCell = (Cell)result;
 					System.out.println(" Done, created " + newCell);
-				    DoNextActivity sJob = new DoNextActivity(newCell, activities & ~PLACE_AND_ROUTE, originalCell, originalContext);
+				    DoNextActivity sJob = new DoNextActivity(newCell, activities & ~PLACE_AND_ROUTE, originalCell, originalContext, completion);
 				}
 				System.out.println();
 			    return true;
@@ -1573,7 +1577,13 @@ public class ToolMenu {
 			{
 				// show the cell
 				WindowFrame.createEditWindow(cell);
-			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~SHOW_CELL, originalCell, originalContext);
+			    DoNextActivity sJob = new DoNextActivity(cell, activities & ~SHOW_CELL, originalCell, originalContext, completion);
+				return true;
+			}
+
+			if (completion != null)
+			{
+				completion.startJob();
 			}
 			return false;
 		}
