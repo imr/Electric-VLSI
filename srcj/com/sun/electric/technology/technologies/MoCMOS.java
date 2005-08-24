@@ -157,11 +157,16 @@ public class MoCMOS extends Technology
 		new DRCTemplate("2.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "P-Active",        null,            3,  null),
 		new DRCTemplate("2.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "N-Active",        null,            3,  null),
 
-		new DRCTemplate("2.2",  DRCTemplate.ALL, DRCTemplate.SPACING,  "P-Active",       "P-Active",       3,  null),
-		new DRCTemplate("2.2",  DRCTemplate.ALL, DRCTemplate.SPACING,  "N-Active",       "N-Active",       3,  null),
-		new DRCTemplate("2.2",  DRCTemplate.ALL, DRCTemplate.SPACING,  "P-Active-Well",  "P-Active-Well",  3,  null),
-		new DRCTemplate("2.2",  DRCTemplate.ALL, DRCTemplate.SPACING,  "P-Active",       "P-Active-Well",  3,  null),
-		new DRCTemplate("2.2",  DRCTemplate.ALL, DRCTemplate.SPACING,  "N-Active",       "P-Active-Well",  3,  null),
+		new DRCTemplate("2.2 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "P-Active",       "P-Active",       3,  null),
+		new DRCTemplate("2.2 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "N-Active",       "N-Active",       3,  null),
+		new DRCTemplate("2.2 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "P-Active-Well",  "P-Active-Well",  3,  null),
+		new DRCTemplate("2.2 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "P-Active",       "P-Active-Well",  3,  null),
+		new DRCTemplate("2.2 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "N-Active",       "P-Active-Well",  3,  null),
+        new DRCTemplate("2.2 TSMC (OD.S.1)",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Active",       "P-Active",       2.8,  null),
+		new DRCTemplate("2.2 TSMC (OD.S.1)",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "N-Active",       "N-Active",       2.8,  null),
+		new DRCTemplate("2.2 TSMC (OD.S.1)",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Active-Well",  "P-Active-Well",  2.8,  null),
+		new DRCTemplate("2.2 TSMC (OD.S.1)",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Active",       "P-Active-Well",  2.8,  null),
+		new DRCTemplate("2.2 TSMC (OD.S.1)",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "N-Active",       "P-Active-Well",  2.8,  null),
 
 		new DRCTemplate("2.3",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"),
 		new DRCTemplate("2.3",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.ASURROUND,"N-Well",         "P-Active",       6,  "P-Active"),
@@ -3011,7 +3016,7 @@ public class MoCMOS extends Technology
             for (int i = 0; i < 2; i++)
             {
                 transistorWellLayers[i].getLeftEdge().setAdder(1.7); transistorWellLayers[i].getRightEdge().setAdder(-1.7);
-                transistorSelectLayers[i].getLeftEdge().setAdder(2.5); transistorSelectLayers[i].getRightEdge().setAdder(-2.5);
+                transistorSelectLayers[i].getLeftEdge().setAdder(2.4); transistorSelectLayers[i].getRightEdge().setAdder(-2.4);    // 2.5
                 // Poly X values
                 transistorPolyLayers[i].getLeftEdge().setAdder(3.8); transistorPolyLayers[i].getRightEdge().setAdder(-3.8);
                 transistorPolyLLayers[i].getLeftEdge().setAdder(3.8);
@@ -3023,7 +3028,9 @@ public class MoCMOS extends Technology
                 transistorPolyCLayers[i].getBottomEdge().setAdder(10.1); transistorPolyCLayers[i].getTopEdge().setAdder(-10.1);
                 transistorActiveLayers[i].getBottomEdge().setAdder(6.9); transistorActiveLayers[i].getTopEdge().setAdder(-6.9);
                 transistorActiveBLayers[i].getBottomEdge().setAdder(6.9);
+                transistorActiveBLayers[i].getTopEdge().setAdder(10.1);
                 transistorActiveTLayers[i].getTopEdge().setAdder(-6.9);
+                transistorActiveTLayers[i].getBottomEdge().setAdder(-10.1);
                 transistorNodes[i].setSizeOffset(new SizeOffset(6, 6, 10.1, 10.1));
 //                PrimitivePort port = transistorNodes[i].getPort(0).getBasePort();
 //                // trans-poly-left
@@ -3092,8 +3099,8 @@ public class MoCMOS extends Technology
                 transistorPolyRLayers[i].getBottomEdge().setAdder(10); transistorPolyRLayers[i].getTopEdge().setAdder(-10);
                 transistorPolyCLayers[i].getBottomEdge().setAdder(10); transistorPolyCLayers[i].getTopEdge().setAdder(-10);
                 transistorActiveLayers[i].getBottomEdge().setAdder(7); transistorActiveLayers[i].getTopEdge().setAdder(-7);
-                transistorActiveBLayers[i].getBottomEdge().setAdder(7);
-                transistorActiveTLayers[i].getTopEdge().setAdder(-7);
+                transistorActiveBLayers[i].getBottomEdge().setAdder(7); transistorActiveBLayers[i].getTopEdge().setAdder(10);
+                transistorActiveTLayers[i].getTopEdge().setAdder(-7); transistorActiveTLayers[i].getBottomEdge().setAdder(-10);
                 transistorNodes[i].setSizeOffset(new SizeOffset(6, 6, 10, 10));
 //                PrimitivePort port = transistorNodes[i].getPort(0).getBasePort();
 //                // trans-poly-left
