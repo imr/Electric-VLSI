@@ -670,15 +670,18 @@ public class Clipboard
 			NodeInst ni = (NodeInst)it.next();
 			if (ni.getProto() == Generic.tech.cellCenterNode && toCell.alreadyCellCenter()) continue;
 			double width = ni.getXSize();
-			if (ni.isXMirrored()) width = -width;
+//			if (ni.isXMirrored()) width = -width;
 			double height = ni.getYSize();
-			if (ni.isYMirrored()) height = -height;
+//			if (ni.isYMirrored()) height = -height;
 			String name = null;
 			if (ni.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ni.getName(), toCell, NodeInst.class);
 			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
 				new Point2D.Double(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY),
-					width, height, toCell, ni.getAngle(), name, ni.getTechSpecific());
+					width, height, toCell, ni.getOrient(), name, ni.getTechSpecific());
+// 			NodeInst newNi = NodeInst.newInstance(ni.getProto(),
+// 				new Point2D.Double(ni.getAnchorCenterX()+dX, ni.getAnchorCenterY()+dY),
+// 					width, height, toCell, ni.getAngle(), name, ni.getTechSpecific());
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node");
@@ -913,7 +916,8 @@ public class Clipboard
 			double dY = srcNode.getYSize() - destNode.getYSize();
 			if (dX != 0 || dY != 0)
 			{
-				destNode.modifyInstance(0, 0, dX, dY, 0);
+				destNode.resize(dX, dY);
+//				destNode.modifyInstance(0, 0, dX, dY, 0);
 			}
 		}
 

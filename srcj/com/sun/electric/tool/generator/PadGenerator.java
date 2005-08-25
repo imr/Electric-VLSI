@@ -24,6 +24,7 @@
 package com.sun.electric.tool.generator;
 
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -657,7 +658,9 @@ public class PadGenerator
 
             //corneroffset(NONODEINST,np,angle,0,&ox,&oy,false);
             Point2D pointCenter = new Point2D.Double(centerX, centerY);
-            NodeInst ni = NodeInst.makeInstance(cell, pointCenter, cell.getDefWidth(), cell.getDefHeight(), framecell, angle, null, 0);
+			Orientation orient = Orientation.fromAngle(angle);
+            NodeInst ni = NodeInst.makeInstance(cell, pointCenter, cell.getDefWidth(), cell.getDefHeight(), framecell, orient, null, 0);
+//             NodeInst ni = NodeInst.makeInstance(cell, pointCenter, cell.getDefWidth(), cell.getDefHeight(), framecell, angle, null, 0);
             if (ni == null) {
                 err("problem creating" + cell + " instance");
                 continue;
@@ -681,7 +684,8 @@ public class PadGenerator
                 Poly poly = ni.findPortInstFromProto(inport).getPoly();
                 double tempx = centerX - poly.getCenterX() + gapx;
                 double tempy = centerY - poly.getCenterY() + gapy;
-                ni.modifyInstance(tempx, tempy, 0, 0, 0);
+                ni.move(tempx, tempy);
+//                ni.modifyInstance(tempx, tempy, 0, 0, 0);
             }
 
             // create exports

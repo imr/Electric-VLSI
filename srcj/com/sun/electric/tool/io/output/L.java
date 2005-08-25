@@ -229,7 +229,7 @@ public class L extends Output
 			}
 
 			// write rotation
-			Orientation or = ni.getOrientation();
+			Orientation or = ni.getOrient();
 			int oldRotation = or.getCAngle();
 			int oldTranspose = or.isCTranspose() ? 1 : 0;
 

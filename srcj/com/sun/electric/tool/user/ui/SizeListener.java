@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -314,7 +315,8 @@ public class SizeListener
 					{
 						if (y > x) x = y; else y = x;
 					}
-					ni.modifyInstance(0, 0, x - ni.getXSize(), y - ni.getYSize(), 0);
+					ni.resize(x - ni.getXSize(), y - ni.getYSize());
+//					ni.modifyInstance(0, 0, x - ni.getXSize(), y - ni.getYSize(), 0);
 					didSomething = true;
 				} else if (geom instanceof ArcInst && !dialog.nodes)
 				{
@@ -415,7 +417,8 @@ public class SizeListener
 				Point2D newCenter = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 				Point2D newSize = getNewNodeSize(evt, newCenter);
 				SizeOffset so = ni.getSizeOffset();
-				AffineTransform trans = NodeInst.rotateAbout(ni.getAngle(), newCenter.getX(), newCenter.getY(), newSize.getX(), newSize.getY());
+				AffineTransform trans = ni.getOrient().rotateAbout(newCenter.getX(), newCenter.getY());
+//				AffineTransform trans = NodeInst.rotateAbout(ni.getAngle(), newCenter.getX(), newCenter.getY(), newSize.getX(), newSize.getY());
 
 				double stretchedLowX = newCenter.getX() - newSize.getX()/2 + so.getLowXOffset();
 				double stretchedHighX = newCenter.getX() + newSize.getX()/2 - so.getHighXOffset();
@@ -643,14 +646,18 @@ public class SizeListener
 			// make sure scaling the node is allowed
 			if (CircuitChanges.cantEdit(stretchNode.getParent(), null, true) != 0) return false;
 
-			double dWid = stretchNode.getXSizeWithMirror();
-			if (dWid < 0) dWid = -newWidth - dWid; else
-				dWid = newWidth - dWid;
-			double dHei = stretchNode.getYSizeWithMirror();
-			if (dHei < 0) dHei = -newHeight - dHei; else
-				dHei = newHeight - dHei;
+            double dWid = newWidth - stretchNode.getXSize();
+//			double dWid = stretchNode.getXSizeWithMirror();
+//			if (dWid < 0) dWid = -newWidth - dWid; else
+//				dWid = newWidth - dWid;
+            double dHei = newHeight - stretchNode.getYSize();
+//			double dHei = stretchNode.getYSizeWithMirror();
+//			if (dHei < 0) dHei = -newHeight - dHei; else
+//				dHei = newHeight - dHei;
 			stretchNode.modifyInstance(newCenter.getX() - stretchNode.getAnchorCenterX(),
-				newCenter.getY() - stretchNode.getAnchorCenterY(), dWid, dHei, 0);
+				newCenter.getY() - stretchNode.getAnchorCenterY(), dWid, dHei, Orientation.IDENT);
+//			stretchNode.modifyInstance(newCenter.getX() - stretchNode.getAnchorCenterX(),
+//				newCenter.getY() - stretchNode.getAnchorCenterY(), dWid, dHei, 0);
 			return true;
 		}
 	}

@@ -28,6 +28,7 @@ package com.sun.electric.tool.extract;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyMerge;
@@ -254,10 +255,12 @@ public class Connectivity
 					sX = cellBounds.getWidth();
 					sY = cellBounds.getHeight();
 				}
-				if (ni.isXMirrored()) sX = -sX;
-				if (ni.isYMirrored()) sY = -sY;
 				NodeInst newNi = NodeInst.makeInstance(copyType, ni.getAnchorCenter(), sX, sY,
-					newCell, ni.getAngle(), ni.getName(), ni.getTechSpecific());
+					newCell, ni.getOrient(), ni.getName(), ni.getTechSpecific());
+// 				if (ni.isXMirrored()) sX = -sX;
+// 				if (ni.isYMirrored()) sY = -sY;
+// 				NodeInst newNi = NodeInst.makeInstance(copyType, ni.getAnchorCenter(), sX, sY,
+// 					newCell, ni.getAngle(), ni.getName(), ni.getTechSpecific());
 				if (newNi == null)
 				{
 					System.out.println("Problem creating new instance of " + ni.getProto());
@@ -2373,7 +2376,9 @@ public class Connectivity
 	 */
 	private void realizeNode(PrimitiveNode pNp, double centerX, double centerY, double width, double height, int angle, Point2D [] points, PolyMerge merge, Cell newCell)
 	{
-		NodeInst ni = NodeInst.makeInstance(pNp, new Point2D.Double(centerX, centerY), width, height, newCell, angle, null, 0);
+		Orientation orient = Orientation.fromAngle(angle);
+		NodeInst ni = NodeInst.makeInstance(pNp, new Point2D.Double(centerX, centerY), width, height, newCell, orient, null, 0);
+//		NodeInst ni = NodeInst.makeInstance(pNp, new Point2D.Double(centerX, centerY), width, height, newCell, angle, null, 0);
 		if (ni == null) return;
 		if (points != null) ni.newVar(NodeInst.TRACE, points);
 

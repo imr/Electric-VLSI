@@ -26,6 +26,7 @@
  */
 package com.sun.electric.tool.sc;
 
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -639,15 +640,18 @@ public class Maker
 				{
 					Cell subCell = (Cell)node.np;
 					Rectangle2D bounds = subCell.getBounds();
-					double wid = inst.xSize;
+                    Orientation orient = Orientation.IDENT;
+//					double wid = inst.xSize;
 					double hEdge = -bounds.getMinX();
 					if (flipX)
 					{
-						wid = -wid;
+                        orient = Orientation.X;
+//						wid = -wid;
 						hEdge = bounds.getMaxX();
 					}
 					Point2D ctr = new Point2D.Double(inst.xPos + hEdge, inst.yPos - bounds.getMinY());
-					inst.instance = NodeInst.makeInstance(subCell, ctr, wid, inst.ySize, bCell, 0, node.name, 0);
+					inst.instance = NodeInst.makeInstance(subCell, ctr, inst.xSize, inst.ySize, bCell, orient, node.name, 0);
+//					inst.instance = NodeInst.makeInstance(subCell, ctr, wid, inst.ySize, bCell, 0, node.name, 0);
 					if (inst.instance == null)
 						return "Cannot create leaf instance '" + node.name+ "' in MAKER";
 				} else if (node.type == GetNetlist.FEEDCELL)

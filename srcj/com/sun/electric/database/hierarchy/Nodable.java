@@ -130,13 +130,13 @@ public interface Nodable
      */
     public Variable newVar(Variable.Key key, Object value);
 
-    /**
-     * Method to put an Object into an entry in an arrayed Variable on this ElectricObject.
-     * @param key the key of the arrayed Variable.
-     * @param value the object to store in an entry of the arrayed Variable.
-     * @param index the location in the arrayed Variable to store the value.
-     */
-    public void setVar(Variable.Key key, Object value, int index);
+//    /**
+//     * Method to put an Object into an entry in an arrayed Variable on this ElectricObject.
+//     * @param key the key of the arrayed Variable.
+//     * @param value the object to store in an entry of the arrayed Variable.
+//     * @param index the location in the arrayed Variable to store the value.
+//     */
+//    public void setVar(Variable.Key key, Object value, int index);
 
     /**
      * Method to delete a Variable from this ElectricObject.

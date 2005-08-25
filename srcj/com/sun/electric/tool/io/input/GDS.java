@@ -27,6 +27,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -269,10 +270,12 @@ public class GDS extends Input
 				Rectangle2D bounds = mi.subCell.getBounds();
 				double wid = bounds.getWidth();
 				double hei = bounds.getHeight();
-				if (mi.mX) wid = -wid;
-				if (mi.mY) hei = -hei;
+//				if (mi.mX) wid = -wid;
+//				if (mi.mY) hei = -hei;
 
-				AffineTransform xform = NodeInst.pureRotate(mi.angle, mi.mX, mi.mY);
+                Orientation orient = Orientation.fromJava(mi.angle, mi.mX, mi.mY);
+				AffineTransform xform = orient.pureRotate();
+//                AffineTransform xform = NodeInst.pureRotate(mi.angle, mi.mX, mi.mY);
 				double cX = bounds.getCenterX();
 				double cY = bounds.getCenterY();
 				Point2D ctr = new Point2D.Double(0, 0);
@@ -280,7 +283,8 @@ public class GDS extends Input
 				double oX = ctr.getX() - cX;
 				double oY = ctr.getY() - cY;
 				mi.loc.setLocation(mi.loc.getX() + cX + oX, mi.loc.getY() + cY + oY);
-				NodeInst ni = NodeInst.makeInstance(mi.subCell, mi.loc, wid, hei, mi.parent, mi.angle, null, 0);
+				NodeInst ni = NodeInst.makeInstance(mi.subCell, mi.loc, wid, hei, mi.parent, orient, null, 0);
+//				NodeInst ni = NodeInst.makeInstance(mi.subCell, mi.loc, wid, hei, mi.parent, mi.angle, null, 0);
 				if (ni == null) return;
 				if (IOTool.isGDSInExpandsCells())
 					ni.setExpanded();
@@ -615,7 +619,9 @@ public class GDS extends Input
 
 	private void makeTransform(Point2D delta, int angle, boolean trans)
 	{
-		AffineTransform xform = NodeInst.pureRotate(angle, trans);
+        Orientation orient = Orientation.fromC(angle, trans);
+        AffineTransform xform = orient.pureRotate();
+//		AffineTransform xform = NodeInst.pureRotate(angle, trans);
 		xform.transform(delta, delta);
 	}
 
@@ -1061,8 +1067,11 @@ public class GDS extends Input
 		theVertices[1].setLocation(x, y);
 
 		// create a holding node
+        Orientation orient = Orientation.fromAngle(angle);
 		NodeInst ni = NodeInst.makeInstance(layerNodeProto, theVertices[0],
-			0, 0, theCell, angle, charstring, 0);
+			0, 0, theCell, orient, charstring, 0);
+//		NodeInst ni = NodeInst.makeInstance(layerNodeProto, theVertices[0],
+//			0, 0, theCell, angle, charstring, 0);
 		if (ni == null) handleError("Could not create text marker");
 
 		// set the text size and orientation

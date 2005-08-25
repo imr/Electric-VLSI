@@ -511,7 +511,8 @@ public class Variable
         ImmutableTextDescriptor oldDescriptor = lowLevelSetTextDescriptor(ImmutableTextDescriptor.newImmutableTextDescriptor(descriptor));
        
 		// handle change control, constraint, and broadcast
-        Undo.modifyTextDescript(owner, key.getName(), oldDescriptor);
+        if (owner.isDatabaseObject())
+            Undo.modifyTextDescript(owner, key.getName(), oldDescriptor);
      }
 
 	/**

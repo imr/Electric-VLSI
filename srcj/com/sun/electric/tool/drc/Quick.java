@@ -27,6 +27,7 @@ import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.GeometryHandler;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.geometry.PolyQTree;
@@ -184,10 +185,12 @@ public class Quick
 	private static class InstanceInter
 	{
 		/** the two cell instances being compared */	Cell cell1, cell2;
-		/** rotation of cell instance 1 */				int rot1;
-		/** mirroring of cell instance 1 */				boolean mirrorX1, mirrorY1;
-		/** rotation of cell instance 2 */				int rot2;
-		/** mirroring of cell instance 2 */				boolean mirrorX2, mirrorY2;
+        /** orientation of cell instance 1 */           Orientation or1;
+        /** orientation of cell instance 2 */           Orientation or2;
+//		/** rotation of cell instance 1 */				int rot1;
+//		/** mirroring of cell instance 1 */				boolean mirrorX1, mirrorY1;
+//		/** rotation of cell instance 2 */				int rot2;
+//		/** mirroring of cell instance 2 */				boolean mirrorX2, mirrorY2;
 		/** distance from instance 1 to instance 2 */	double dx, dy;
         /** the two NodeInst parents */                 NodeInst n1Parent, n2Parent, triggerNi;
 	};
@@ -2117,14 +2120,16 @@ public class Quick
 
 		// get essential information about their interaction
 		dii.cell1 = (Cell)ni1.getProto();
-		dii.rot1 = ni1.getAngle();
-		dii.mirrorX1 = ni1.isMirroredAboutXAxis();
-		dii.mirrorY1 = ni1.isMirroredAboutYAxis();
+		dii.or1 = ni1.getOrient();
+// 		dii.rot1 = ni1.getAngle();
+// 		dii.mirrorX1 = ni1.isMirroredAboutXAxis();
+// 		dii.mirrorY1 = ni1.isMirroredAboutYAxis();
 
 		dii.cell2 = (Cell)ni2.getProto();
-		dii.rot2 = ni2.getAngle();
-		dii.mirrorX2 = ni2.isMirroredAboutXAxis();
-		dii.mirrorY2 = ni2.isMirroredAboutYAxis();
+		dii.or2 = ni2.getOrient();
+// 		dii.rot2 = ni2.getAngle();
+// 		dii.mirrorX2 = ni2.isMirroredAboutXAxis();
+// 		dii.mirrorY2 = ni2.isMirroredAboutYAxis();
 
         // This has to be calculated before the swap
 		dii.dx = ni2.getAnchorCenterX() - ni1.getAnchorCenterX();
@@ -2152,9 +2157,10 @@ public class Quick
 		{
 			InstanceInter thisII = (InstanceInter)it.next();
 			if (thisII.cell1 == dii.cell1 && thisII.cell2 == dii.cell2 &&
-				thisII.rot1 == dii.rot1 && thisII.rot2 == dii.rot2 &&
-				thisII.mirrorX1 == dii.mirrorX1 && thisII.mirrorX2 == dii.mirrorX2 &&
-				thisII.mirrorY1 == dii.mirrorY1 && thisII.mirrorY2 == dii.mirrorY2 &&
+				thisII.or1.equals(dii.or1) && thisII.or2.equals(dii.or2) &&
+// 				thisII.rot1 == dii.rot1 && thisII.rot2 == dii.rot2 &&
+// 				thisII.mirrorX1 == dii.mirrorX1 && thisII.mirrorX2 == dii.mirrorX2 &&
+// 				thisII.mirrorY1 == dii.mirrorY1 && thisII.mirrorY2 == dii.mirrorY2 &&
 				thisII.dx == dii.dx && thisII.dy == dii.dy &&
                 thisII.n1Parent == dii.n1Parent && thisII.n2Parent == dii.n2Parent)
             {

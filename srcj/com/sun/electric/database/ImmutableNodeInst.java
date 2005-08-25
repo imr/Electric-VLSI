@@ -223,9 +223,10 @@ public class ImmutableNodeInst
 	 */
 	public ImmutableNodeInst withSize(double width, double height) {
 		if (this.width == width && this.height == height) return this;
+        if (!(width >= 0)) throw new IllegalArgumentException("width");
+        if (!(height >= 0)) throw new IllegalArgumentException("height");
         width = DBMath.round(width);
         height = DBMath.round(height);
- 		if (this.width == width && this.height == height) return this;
         if (width == -0.0) width = +0.0;
         if (height == -0.0) height = +0.0;
 		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,

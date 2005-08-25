@@ -22,11 +22,10 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database.change;
-
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -79,24 +78,9 @@ public interface Changes
 	/**
 	 * Method to announce a change to a NodeInst.
 	 * @param ni the NodeInst that was changed.
-	 * @param oCX the old X center of the NodeInst.
-	 * @param oCY the old Y center of the NodeInst.
-	 * @param oSX the old X size of the NodeInst.
-	 * @param oSY the old Y size of the NodeInst.
-	 * @param oRot the old rotation of the NodeInst.
+	 * @param oD the old contents of the NodeInst.
 	 */
-	void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot);
-
-	/**
-	 * Method to announce a change to many NodeInsts at once.
-	 * @param nis the NodeInsts that were changed.
-	 * @param oCX the old X centers of the NodeInsts.
-	 * @param oCY the old Y centers of the NodeInsts.
-	 * @param oSX the old X sizes of the NodeInsts.
-	 * @param oSY the old Y sizes of the NodeInsts.
-	 * @param oRot the old rotations of the NodeInsts.
-	 */
-	void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot);
+	void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD);
 
 	/**
 	 * Method to announce a change to an ArcInst.
@@ -115,16 +99,6 @@ public interface Changes
 	 * @param oldPi the old PortInst on which it resided.
 	 */
 	void modifyExport(Export pp, PortInst oldPi);
-
-	/**
-	 * Method to announce a change to a Cell.
-	 * @param cell the cell that was changed.
-	 * @param oLX the old low X bound of the Cell.
-	 * @param oHX the old high X bound of the Cell.
-	 * @param oLY the old low Y bound of the Cell.
-	 * @param oHY the old high Y bound of the Cell.
-	 */
-	void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY);
 
 	/**
 	 * Method to announce a move of a Cell int CellGroup.
@@ -186,32 +160,6 @@ public interface Changes
 	 * @param var the deleted Variable.
 	 */
 	void killVariable(ElectricObject obj, Variable var);
-
-	/**
-	 * Method to announce a change to a single entry of an arrayed Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable that was changed.
-	 * @param index the entry in the array that was changed.
-	 * @param oldValue the former value at that entry.
-	 */
-	void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue);
-
-	/**
-	 * Method to announce an insertion of a new entry in an arrayed Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable that was changed.
-	 * @param index the entry in the array that was inserted.
-	 */
-	void insertVariable(ElectricObject obj, Variable var, int index);
-
-	/**
-	 * Method to announce the deletion of a single entry in an arrayed Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable that was changed.
-	 * @param index the entry in the array that was deleted.
-	 * @param oldValue the former value of that entry.
-	 */
-	void deleteVariable(ElectricObject obj, Variable var, int index, Object oldValue);
 
 	/**
 	 * Method to announce that a Library has been read.

@@ -206,7 +206,7 @@ public class ArcInfo extends Info
 					if (special) continue;
 
 					// center the geometry
-					ni.modifyInstance(xOff, yOff, 0, 0, 0);
+					ni.move(xOff, yOff);
 				}
 			}
 		}

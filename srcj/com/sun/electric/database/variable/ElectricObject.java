@@ -893,28 +893,28 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 		checkPossibleVariableEffects(var.getKey());
 	}
 
-	/**
-	 * Method to put an Object into an entry in an arrayed Variable on this ElectricObject.
-	 * @param key the key of the arrayed Variable.
-	 * @param value the object to store in an entry of the arrayed Variable.
-	 * @param index the location in the arrayed Variable to store the value.
-	 */
-	public void setVar(Variable.Key key, Object value, int index)
-	{
-		checkChanging();
-		Variable v = getVar(key);
-		if (v == null) return;
-		Object addr = v.getObject();
-		if (addr instanceof Object[])
-		{
-			Object[] arr = (Object[])addr;
-			Object oldVal = arr[index];
-			arr[index] = value;
-			if (isDatabaseObject())
-				Undo.modifyVariable(this, v, index, oldVal);
-		}
-		lowLevelModVar(v);
-	}
+//	/**
+//	 * Method to put an Object into an entry in an arrayed Variable on this ElectricObject.
+//	 * @param key the key of the arrayed Variable.
+//	 * @param value the object to store in an entry of the arrayed Variable.
+//	 * @param index the location in the arrayed Variable to store the value.
+//	 */
+//	public void setVar(Variable.Key key, Object value, int index)
+//	{
+//		checkChanging();
+//		Variable v = getVar(key);
+//		if (v == null) return;
+//		Object addr = v.getObject();
+//		if (addr instanceof Object[])
+//		{
+//			Object[] arr = (Object[])addr;
+//			Object oldVal = arr[index];
+//			arr[index] = value;
+//			if (isDatabaseObject())
+//				Undo.modifyVariable(this, v, index, oldVal);
+//		}
+//		lowLevelModVar(v);
+//	}
 
 	/**
 	 * Method to insert an Object into an arrayed Variable on this ElectricObject.

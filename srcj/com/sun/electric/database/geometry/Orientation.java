@@ -78,6 +78,23 @@ public class Orientation {
 		map45 = m;
 	}
 
+	/** Identical Orientation */  public static final Orientation IDENT  = fromJava(0, false, false);
+    public static final Orientation R = fromJava(900, false, false);
+    public static final Orientation RR = fromJava(1800, false, false);
+    public static final Orientation RRR = fromJava(2700, false, false);
+    public static final Orientation X = fromJava(0, true, false);
+    public static final Orientation XR = fromJava(900, true, false);
+    public static final Orientation XRR = fromJava(1800, true, false);
+    public static final Orientation XRRR = fromJava(2700, true, false);
+    public static final Orientation Y = fromJava(0, false, true);
+    public static final Orientation YR = fromJava(900, false, true);
+    public static final Orientation YRR = fromJava(1800, false, true);
+    public static final Orientation YRRR = fromJava(2700, false, true);
+    public static final Orientation XY = fromJava(0, true, true);
+    public static final Orientation XYR = fromJava(900, true, true);
+    public static final Orientation XYRR = fromJava(1800, true, true);
+    public static final Orientation XYRRR = fromJava(2700, true, true);
+    
 	private Orientation(int jAngle, boolean jMirrorX, boolean jMirrorY, Orientation inverse)
 	{
 		assert 0 <= jAngle && jAngle < 3600;
@@ -124,9 +141,17 @@ public class Orientation {
         int ang = jAngle % 450;
         if (sect % 2 != 0) ang = 450 - ang;
         assert 0 <= ang && ang <= 450;
-        double alpha = ang * Math.PI / 1800.0;
-        double cos0 = Math.cos(alpha);
-        double sin0 = Math.sin(alpha);
+	double cos0, sin0;
+	if (ang == 0) {
+	    cos0 = 1;
+	    sin0 = 0;
+	} else if (ang == 450) {
+	    cos0 = sin0 = Math.sqrt(0.5);
+	} else {
+    	    double alpha = ang * Math.PI / 1800.0;
+    	    cos0 = Math.cos(alpha);
+    	    sin0 = Math.sin(alpha);
+	}
         double cos = 0, sin = 0;
         switch (sect) {
             case 0: cos =  cos0; sin =  sin0; break;
@@ -163,8 +188,6 @@ public class Orientation {
 		this.jString = s;
 
 	}
-
-	/** Identical Orientation */  public static final Orientation IDENT  = fromJava(0, false, false);
 
 	/**
 	 * Get Orientation by the new Java style parameters.
@@ -219,6 +242,16 @@ public class Orientation {
 		return fromJava(cTranspose ? cAngle % 3600 + 900 : cAngle, false, cTranspose);
 	}
 
+	/**
+	 * Get Orientation by the angle without mirrors.
+	 * @param angle the angle of rotation (in tenth-degrees)
+	 * @return the Orientation.
+	 */
+	public static Orientation fromAngle(int angle)
+	{
+		return fromJava(angle, false, false);
+	}
+
     /**
      * Return inverse Orientation to this Orientation.
      * @return inverse Orientation.
@@ -231,7 +264,7 @@ public class Orientation {
 	 * @param that other Orienation.
 	 * @return concatenation of this and other Orientations.
 	 */
-	public Orientation getConcatenate(Orientation that)
+	public Orientation concatenate(Orientation that)
 	{
 		boolean mirrorX = this.jMirrorX ^ that.jMirrorX;
 		boolean mirrorY = this.jMirrorY ^ that.jMirrorY;
@@ -239,19 +272,19 @@ public class Orientation {
 		return fromJava(angle, mirrorX, mirrorY);
 	}
 
-	/**
-	 * Concatenates other Orientation with this Orientation.
-	 * In matrix notation returns that * this.
-	 * @param that other Orienation.
-	 * @return concatenation of this and other Orientations.
-	 */
-	public Orientation getPreConcatenate(Orientation that)
-	{
-		boolean mirrorX = this.jMirrorX ^ that.jMirrorX;
-		boolean mirrorY = this.jMirrorY ^ that.jMirrorY;
-		int angle = this.jMirrorX^this.jMirrorY ? this.jAngle - that.jAngle : this.jAngle + that.jAngle;
-		return fromJava(angle, mirrorX, mirrorY);
-	}
+//	/**
+//	 * Concatenates other Orientation with this Orientation.
+//	 * In matrix notation returns that * this.
+//	 * @param that other Orienation.
+//	 * @return concatenation of this and other Orientations.
+//	 */
+//	public Orientation getPreConcatenate(Orientation that)
+//	{
+//		boolean mirrorX = this.jMirrorX ^ that.jMirrorX;
+//		boolean mirrorY = this.jMirrorY ^ that.jMirrorY;
+//		int angle = this.jMirrorX^this.jMirrorY ? this.jAngle - that.jAngle : this.jAngle + that.jAngle;
+//		return fromJava(angle, mirrorX, mirrorY);
+//	}
 
 	/**
 	 * Method to return the old C style angle value.

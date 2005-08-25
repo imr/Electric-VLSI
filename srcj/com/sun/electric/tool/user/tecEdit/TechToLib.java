@@ -26,6 +26,7 @@
 package com.sun.electric.tool.user.tecEdit;
 
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -351,12 +352,15 @@ public class TechToLib
 				if (e != 0 && first) continue;
 
 				// square nodes have only two examples
-				if (pnp.isSquare() && (e == 1 || e == 2)) continue;
-				double dX = pos[e].getX() - oNi.getAnchorCenterX();
-				double dY = pos[e].getY() - oNi.getAnchorCenterY();
-				double dXSize = xsc[e] + so.getLowXOffset() + so.getHighXOffset() - oNi.getXSize();
-				double dYSize = ysc[e] + so.getLowYOffset() + so.getHighYOffset() - oNi.getYSize();
-				oNi.lowLevelModify(dX, dY, dXSize, dYSize, 0);
+                if (pnp.isSquare() && (e == 1 || e == 2)) continue;
+                double newXSize = xsc[e] + so.getLowXOffset() + so.getHighXOffset();
+                double newYSize = ysc[e] + so.getLowYOffset() + so.getHighYOffset();
+                oNi.lowLevelModify(oNi.getD().withAnchor(EPoint.snap(pos[e])).withSize(newXSize, newYSize));
+//				double dX = pos[e].getX() - oNi.getAnchorCenterX();
+//				double dY = pos[e].getY() - oNi.getAnchorCenterY();
+//				double dXSize = xsc[e] + so.getLowXOffset() + so.getHighXOffset() - oNi.getXSize();
+//				double dYSize = ysc[e] + so.getLowYOffset() + so.getHighYOffset() - oNi.getYSize();
+//				oNi.lowLevelModify(dX, dY, dXSize, dYSize, 0);
 				Poly [] polys = tech.getShapeOfNode(oNi);
 				int j = polys.length;
 				for(int i=0; i<j; i++)

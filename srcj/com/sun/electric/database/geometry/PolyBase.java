@@ -614,7 +614,9 @@ public class PolyBase implements Shape, PolyNodeMerge
 		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis() && ((origAngle%1800) == 0 || (origAngle%1800) == 1350)) origAngle += 1800;
 
 		// determine change in angle because of node rotation
-		AffineTransform trans = NodeInst.pureRotate(nodeAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
+        Orientation orient = Orientation.fromJava(nodeAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
+        AffineTransform trans = orient.pureRotate();
+//		AffineTransform trans = NodeInst.pureRotate(nodeAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
 		Point2D pt = new Point2D.Double(100, 0);
 		trans.transform(pt, pt);
 		int xAngle = GenMath.figureAngle(new Point2D.Double(0, 0), pt);
@@ -664,7 +666,9 @@ public class PolyBase implements Shape, PolyNodeMerge
 
 		int rotAngle = ni.getAngle();
 		if (ni.isMirroredAboutXAxis() != ni.isMirroredAboutYAxis()) rotAngle = -rotAngle;
-		AffineTransform trans = NodeInst.pureRotate(rotAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
+		Orientation orient = Orientation.fromJava(rotAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
+        AffineTransform trans = orient.pureRotate();
+//		AffineTransform trans = NodeInst.pureRotate(rotAngle, ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
 
 		Point2D pt = new Point2D.Double(100, 0);
 		trans.transform(pt, pt);

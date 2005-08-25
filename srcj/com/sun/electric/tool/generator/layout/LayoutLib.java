@@ -32,6 +32,7 @@ import java.util.Iterator;
 import java.util.Properties;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -346,14 +347,17 @@ public class LayoutLib {
 		width = DBMath.round(width);
 		height = DBMath.round(height);
 		
-		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), width, height, parent,
-		        (int)Math.round(angle*10), null, 0);
+        Orientation orient = Orientation.fromJava((int)Math.round(angle*10), width < 0, height < 0);
+		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), Math.abs(width), Math.abs(height),
+                parent, orient, null, 0);
+//		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), width, height, parent,
+//		        (int)Math.round(angle*10), null, 0);
 		error(ni==null, "newNodeInst failed");								
 
 		// adjust position so that translation is Cell-Center relative
 		if (np instanceof Cell) {
 			Point2D ref = getPosition(ni);
-			ni.modifyInstance(x-ref.getX(), y-ref.getY(), 0, 0, 0);
+			ni.move(x-ref.getX(), y-ref.getY());
 		}
 		return ni;
 	}
@@ -393,26 +397,27 @@ public class LayoutLib {
 	                               boolean mirrorAboutYAxis, 
 	                               boolean mirrorAboutXAxis,
 								   double dAngle) {
-	    boolean oldMirX = ni.isMirroredAboutXAxis();
-	    boolean oldMirY = ni.isMirroredAboutYAxis();
-		double oldXS = ni.getXSize() * (oldMirY ? -1 : 1);
-		double oldYS = ni.getYSize() * (oldMirX ? -1 : 1);
+// 	    boolean oldMirX = ni.isMirroredAboutXAxis();
+// 	    boolean oldMirY = ni.isMirroredAboutYAxis();
+// 		double oldXS = ni.getXSize() * (oldMirY ? -1 : 1);
+// 		double oldYS = ni.getYSize() * (oldMirX ? -1 : 1);
 		 
 		double newX = getPosition(ni).getX() + dx;
 		double newY = getPosition(ni).getY() + dy;
 
-		double newW = Math.max(ni.getXSize() + dw, 0);
-		double newH = Math.max(ni.getYSize() + dh, 0);
-		
-		boolean newMirX = oldMirX ^ mirrorAboutXAxis;
-		boolean newMirY = oldMirY ^ mirrorAboutYAxis;
-		
-		double newXS = newW * (newMirY ? -1 : 1);
-		double newYS = newH * (newMirX ? -1 : 1);  
-		ni.modifyInstance(0, 0, newXS-oldXS, newYS-oldYS, 
-		                  (int)Math.rint(dAngle*10));
-		ni.modifyInstance(newX-getPosition(ni).getX(),
-						  newY-getPosition(ni).getY(), 0, 0, 0);
+// 		double newW = Math.max(ni.getXSize() + dw, 0);
+// 		double newH = Math.max(ni.getYSize() + dh, 0);
+//		
+// 		boolean newMirX = oldMirX ^ mirrorAboutXAxis;
+// 		boolean newMirY = oldMirY ^ mirrorAboutYAxis;
+//		
+// 		double newXS = newW * (newMirY ? -1 : 1);
+// 		double newYS = newH * (newMirX ? -1 : 1);
+		Orientation dOrient = Orientation.fromJava((int)Math.rint(dAngle*10), mirrorAboutYAxis, mirrorAboutXAxis);
+		ni.modifyInstance(0, 0, dw, dh, dOrient);
+// 		ni.modifyInstance(0, 0, newXS-oldXS, newYS-oldYS, 
+// 		                  (int)Math.rint(dAngle*10));
+		ni.move(newX-getPosition(ni).getX(), newY-getPosition(ni).getY());
 	}
 
 	/**

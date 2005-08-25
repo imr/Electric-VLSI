@@ -22,12 +22,13 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database.constraint;
-
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Changes;
+import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -90,25 +91,11 @@ public class Constraints implements Changes
 	public void endBatch() {}
 
 	/**
-	 * Method to handle a change to a NodeInst.
+	 * Method to announce a change to a NodeInst.
 	 * @param ni the NodeInst that was changed.
-	 * @param dCX the change in X center of the NodeInst.
-	 * @param dCY the change in Y center of the NodeInst.
-	 * @param dSX the change in X size of the NodeInst.
-	 * @param dSY the change in Y size of the NodeInst.
-	 * @param dRot the change in rotation of the NodeInst.
+	 * @param oD the old contents of the NodeInst.
 	 */
-	public void modifyNodeInst(NodeInst ni, double dCX, double dCY, double dSX, double dSY, int dRot) {}
-	/**
-	 * Method to handle a change to many NodeInsts at once.
-	 * @param nis the NodeInsts that were changed.
-	 * @param dCX the change in X centers of the NodeInsts.
-	 * @param dCY the change in Y centers of the NodeInsts.
-	 * @param dSX the change in X sizes of the NodeInsts.
-	 * @param dSY the change in Y sizes of the NodeInsts.
-	 * @param dRot the change in rotations of the NodeInsts.
-	 */
-	public void modifyNodeInsts(NodeInst [] nis, double [] dCX, double [] dCY, double [] dSX, double [] dSY, int [] dRot) {}
+	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD) {}
 	/**
 	 * Method to handle a change to an ArcInst.
 	 * @param ai the ArcInst that changed.
@@ -125,15 +112,6 @@ public class Constraints implements Changes
 	 * @param oldPi the old PortInst on which it resided.
 	 */
 	public void modifyExport(Export pp, PortInst oldPi) {}
-	/**
-	 * Method to handle a change to a Cell.
-	 * @param cell the cell that was changed.
-	 * @param oLX the old low X bound of the Cell.
-	 * @param oHX the old high X bound of the Cell.
-	 * @param oLY the old low Y bound of the Cell.
-	 * @param oHY the old high Y bound of the Cell.
-	 */
-	public void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY) {}
 	/**
 	 * Method to announce a move of a Cell int CellGroup.
 	 * @param cell the cell that was moved.
@@ -187,29 +165,6 @@ public class Constraints implements Changes
 	 * @param var the deleted Variable.
 	 */
 	public void killVariable(ElectricObject obj, Variable var) {}
-	/**
-	 * Method to handle a change to a single entry of an arrayed Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable that was changed.
-	 * @param index the entry in the array that was changed.
-	 * @param oldValue the former value at that entry.
-	 */
-	public void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue) {}
-	/**
-	 * Method to handle an insertion of a new entry in an arrayed Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable that was changed.
-	 * @param index the entry in the array that was inserted.
-	 */
-	public void insertVariable(ElectricObject obj, Variable var, int index) {}
-	/**
-	 * Method to handle the deletion of a single entry in an arrayed Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable that was changed.
-	 * @param index the entry in the array that was deleted.
-	 * @param oldValue the former value of that entry.
-	 */
-	public void deleteVariable(ElectricObject obj, Variable var, int index, Object oldValue) {}
 
 	/**
 	 * Method to announce that a Library has been read.
@@ -226,5 +181,4 @@ public class Constraints implements Changes
 	 * @param lib the Library that will be saved.
 	 */
 	public void writeLibrary(Library lib) {}
-
 }

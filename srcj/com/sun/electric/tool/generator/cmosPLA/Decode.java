@@ -26,6 +26,7 @@
  */
 package com.sun.electric.tool.generator.cmosPLA;
 
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -53,7 +54,8 @@ public class Decode
 		Cell cell = Cell.makeInstance(library, cellName);
 		NodeInst pNode = pla.makeInstance(cell, pmosCell, 0, 0, false);
 		if (pNode == null) return null;
-		pNode.modifyInstance(0, 0, 0, 0, 2700);  // rotate by 90 degrees
+		pNode.rotate(Orientation.RRR);  // rotate by 90 degrees
+//		pNode.modifyInstance(0, 0, 0, 0, 2700);  // rotate by 90 degrees
 
 		Rectangle2D nodeRect = pNode.getBounds();
 		double x = nodeRect.getWidth();
@@ -62,7 +64,8 @@ public class Decode
 
 		NodeInst nNode = pla.makeInstance(cell, nmosCell, x, 0, false);
 		if (nNode == null) return null;
-		nNode.modifyInstance(0, 0, 0, 0, 2700);  // rotate by 90 degrees
+		nNode.rotate(Orientation.RRR);  // rotate by 90 degrees
+//		nNode.modifyInstance(0, 0, 0, 0, 2700);  // rotate by 90 degrees
 
 		NodeInst [] both = decodeBufs(pmosCell, pNode, nmosCell, nNode, cell, x, inputsOnTop);
 		if (both == null) return null;

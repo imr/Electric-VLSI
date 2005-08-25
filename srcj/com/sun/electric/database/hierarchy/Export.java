@@ -24,6 +24,7 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
@@ -85,7 +86,6 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	/** Index of this Export in Cell ports. */				private int portIndex;
 	/** The text descriptor of this Export. */				private ImmutableTextDescriptor descriptor;
 	/** the PortInst that the exported port belongs to */	private PortInst originalPort;
-	/** The Change object. */								private Undo.Change change;
 
 	// -------------------- protected and private methods --------------
 
@@ -449,7 +449,8 @@ public class Export extends ElectricObject implements PortProto, Comparable
 
 		// must untransform the node to apply the offset
 		NodeInst ni = getOriginalPort().getNodeInst();
-		if (ni.getAngle() != 0 || ni.isMirroredAboutXAxis() || ni.isMirroredAboutYAxis())
+		if (!ni.getOrient().equals(Orientation.IDENT))
+//		if (ni.getAngle() != 0 || ni.isMirroredAboutXAxis() || ni.isMirroredAboutYAxis())
 		{
 			pointList[0] = new Point2D.Double(cX, cY);
 			AffineTransform trans = ni.rotateIn();
@@ -851,20 +852,6 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		assert ni.getProto() == pp.getParent();
 		if (pp instanceof Export) assert ((Export)pp).isLinked();
 	}
-
-	/**
-	 * Method to set a Change object on this Export.
-	 * This is used during constraint propagation to tell whether this object has already been changed and how.
-	 * @param change the Change object to be set on this Export.
-	 */
-	public void setChange(Undo.Change change) { this.change = change; }
-
-	/**
-	 * Method to get the Change object on this Export.
-	 * This is used during constraint propagation to tell whether this object has already been changed and how.
-	 * @return the Change object on this Export.
-	 */
-	public Undo.Change getChange() { return change; }
 
 	/**
 	 * Method to return the PortProto that is equivalent to this in the

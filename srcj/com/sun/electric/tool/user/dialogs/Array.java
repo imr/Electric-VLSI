@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.Name;
@@ -472,22 +473,36 @@ public class Array extends EDialog
 					double yOff = ni.getAnchorCenterY() - cY;
 					if ((xIndex&1) != 0 && lastXStagger) yPos += yOverlap/2;
 					if ((yIndex&1) != 0 && lastYStagger) xPos += xOverlap/2;
-					int ro = ni.getAngle();
-					double sx = ni.getXSizeWithMirror();
-					double sy = ni.getYSizeWithMirror();
+                    boolean flipX = false, flipY = false;
 					if ((xIndex&1) != 0 && lastXFlip)
 					{
-						sx = -sx;
+						flipX = true;
 						xOff = -xOff;
 					}
 					if ((yIndex&1) != 0 && lastYFlip)
 					{
-						sy = -sy;
+						flipY = true;
 						yOff = -yOff;
 					}
+                    Orientation orient = Orientation.fromJava(0, flipX, flipY).concatenate(ni.getOrient());
+//					int ro = ni.getAngle();
+//					double sx = ni.getXSizeWithMirror();
+//					double sy = ni.getYSizeWithMirror();
+//					if ((xIndex&1) != 0 && lastXFlip)
+//					{
+//						sx = -sx;
+//						xOff = -xOff;
+//					}
+//					if ((yIndex&1) != 0 && lastYFlip)
+//					{
+//						sy = -sy;
+//						yOff = -yOff;
+//					}
 					xPos += xOff;   yPos += yOff;
 					NodeInst newNi = NodeInst.makeInstance(ni.getProto(),
-						new Point2D.Double(xPos, yPos), sx, sy, cell, ro, null, 0);
+						new Point2D.Double(xPos, yPos), ni.getXSize(), ni.getYSize(), cell, orient, null, 0);
+//					NodeInst newNi = NodeInst.makeInstance(ni.getProto(),
+//						new Point2D.Double(xPos, yPos), sx, sy, cell, ro, null, 0);
 					if (newNi == null) continue;
 					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO_TD);
 					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);

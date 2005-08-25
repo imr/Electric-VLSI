@@ -245,7 +245,7 @@ public class NodeInfo extends Info
 		for(Iterator it = ne.samples.iterator(); it.hasNext(); )
 		{
 			Sample ns = (Sample)it.next();
-			ns.node.modifyInstance(dX, dY, 0, 0, 0);
+			ns.node.move(dX, dY);
 		}
 	}
 }

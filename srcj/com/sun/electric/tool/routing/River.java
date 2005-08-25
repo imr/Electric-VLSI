@@ -1452,7 +1452,7 @@ public class River
 		double lx = (routDirection == ROUTEINX ? height + ni.getAnchorCenterX() - toLine : ni.getAnchorCenterX());
 		double ly = (routDirection == ROUTEINY ? height + ni.getAnchorCenterY() - toLine : ni.getAnchorCenterY());
 		if (lx == ni.getAnchorCenterX() && ly == ni.getAnchorCenterY()) return true;
-		ni.modifyInstance(lx - ni.getAnchorCenterX(), ly - ni.getAnchorCenterY(), 0, 0, 0);
+		ni.move(lx - ni.getAnchorCenterX(), ly - ni.getAnchorCenterY());
 		return true;
 	}
 }

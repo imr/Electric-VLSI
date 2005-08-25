@@ -24,6 +24,7 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -31,7 +32,6 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
-import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
@@ -48,7 +48,6 @@ import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 
 import java.awt.geom.AffineTransform;
@@ -692,33 +691,40 @@ public abstract class LibraryFiles extends Input
             
         
 		int rotation = nil.rotation[nodeIndex];
+        boolean flipX = false;
+        boolean flipY = false;
 		if (rotationMirrorBits)
 		{
 			// new version: allow mirror bits
 			if ((nil.transpose[nodeIndex]&1) != 0)
 			{
-				height = -height;
+                flipY = true;
+//				height = -height;
 				rotation = (rotation + 900) % 3600;
 			}
 			if ((nil.transpose[nodeIndex]&2) != 0)
 			{
 				// mirror in X
-				width = -width;
+                flipX = true;
+//				width = -width;
 			}
 			if ((nil.transpose[nodeIndex]&4) != 0)
 			{
 				// mirror in Y
-				height = -height;
+                flipY = !flipY;
+//				height = -height;
 			}
 		} else
 		{
 			// old version: just use transpose information
 			if (nil.transpose[nodeIndex] != 0)
 			{
-				height = -height;
+                flipY = true;
+//				height = -height;
 				rotation = (rotation + 900) % 3600;
 			}
 		}
+        Orientation orient = Orientation.fromJava(rotation, flipX, flipY);
 
 		// figure out the grab center if this is a cell instance
 		if (proto instanceof Cell)
@@ -735,15 +741,14 @@ public abstract class LibraryFiles extends Input
                 Cell subCell = (Cell)proto;
                 Rectangle2D bounds = subCell.getBounds();
                 Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
-                AffineTransform trans = NodeInst.pureRotate(rotation, width < 0, height < 0);
+                AffineTransform trans = orient.pureRotate();
                 trans.transform(shift, shift);
                 center.setLocation(center.getX() + shift.getX(), center.getY() + shift.getY());
             }
 		}
             
 		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], -1, nil.nameTextDescriptor[nodeIndex],
-                center, width, height, rotation,
-                nil.userBits[nodeIndex], nil.protoTextDescriptor[nodeIndex]);
+                center, width, height, orient, nil.userBits[nodeIndex], nil.protoTextDescriptor[nodeIndex]);
         nil.theNode[nodeIndex] = ni;
         if (ni == null) return;
        DiskVariable[] vars = nil.vars[nodeIndex];

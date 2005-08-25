@@ -22,7 +22,7 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.routing;
-
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -153,27 +153,9 @@ public class Routing extends Listener
 	/**
 	 * Method to announce a change to a NodeInst.
 	 * @param ni the NodeInst that was changed.
-	 * @param oCX the old X center of the NodeInst.
-	 * @param oCY the old Y center of the NodeInst.
-	 * @param oSX the old X size of the NodeInst.
-	 * @param oSY the old Y size of the NodeInst.
-	 * @param oRot the old rotation of the NodeInst.
+	 * @param oD the old contents of the NodeInst.
 	 */
-	public void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot)
-	{
-		checkAutoStitch = true;
-	}
-
-	/**
-	 * Method to announce a change to many NodeInsts at once.
-	 * @param nis the NodeInsts that were changed.
-	 * @param oCX the old X centers of the NodeInsts.
-	 * @param oCY the old Y centers of the NodeInsts.
-	 * @param oSX the old X sizes of the NodeInsts.
-	 * @param oSY the old Y sizes of the NodeInsts.
-	 * @param oRot the old rotations of the NodeInsts.
-	 */
-	public void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot)
+	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
 	{
 		checkAutoStitch = true;
 	}

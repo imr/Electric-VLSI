@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.project;
 
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
 import com.sun.electric.database.hierarchy.Cell;
@@ -847,32 +848,12 @@ public class Project extends Listener
 	/**
 	 * Method to announce a change to a NodeInst.
 	 * @param ni the NodeInst that was changed.
-	 * @param oCX the old X center of the NodeInst.
-	 * @param oCY the old Y center of the NodeInst.
-	 * @param oSX the old X size of the NodeInst.
-	 * @param oSY the old Y size of the NodeInst.
-	 * @param oRot the old rotation of the NodeInst.
+	 * @param oD the old contents of the NodeInst.
 	 */
-	public void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot)
+	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
 	{
 		if (ignoreChanges) return;
 		queueCheck(ni.getParent());
-	}
-
-	/**
-	 * Method to announce a change to many NodeInsts at once.
-	 * @param nis the NodeInsts that were changed.
-	 * @param oCX the old X centers of the NodeInsts.
-	 * @param oCY the old Y centers of the NodeInsts.
-	 * @param oSX the old X sizes of the NodeInsts.
-	 * @param oSY the old Y sizes of the NodeInsts.
-	 * @param oRot the old rotations of the NodeInsts.
-	 */
-	public void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot)
-	{
-		if (ignoreChanges) return;
-		for(int i=0; i<nis.length; i++)
-			queueCheck(nis[i].getParent());
 	}
 
 	/**
@@ -901,19 +882,19 @@ public class Project extends Listener
 		queueCheck((Cell)pp.getParent());
 	}
 
-	/**
-	 * Method to handle a change to a Cell.
-	 * @param cell the cell that was changed.
-	 * @param oLX the old low X bound of the Cell.
-	 * @param oHX the old high X bound of the Cell.
-	 * @param oLY the old low Y bound of the Cell.
-	 * @param oHY the old high Y bound of the Cell.
-	 */
-	public void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY)
-	{
-		if (ignoreChanges) return;
-		queueCheck(cell);
-	}
+//	/**
+//	 * Method to handle a change to a Cell.
+//	 * @param cell the cell that was changed.
+//	 * @param oLX the old low X bound of the Cell.
+//	 * @param oHX the old high X bound of the Cell.
+//	 * @param oLY the old low Y bound of the Cell.
+//	 * @param oHY the old high Y bound of the Cell.
+//	 */
+//	public void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY)
+//	{
+//		if (ignoreChanges) return;
+//		queueCheck(cell);
+//	}
 
 	/**
 	 * Method to announce a move of a Cell int CellGroup.
@@ -992,41 +973,6 @@ public class Project extends Listener
 	 * @param var the deleted Variable.
 	 */
 	public void killVariable(ElectricObject obj, Variable var)
-	{
-		checkVariable(obj, var);
-	}
-
-	/**
-	 * Method to handle a change to a single entry of an arrayed Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable that was changed.
-	 * @param index the entry in the array that was changed.
-	 * @param oldValue the former value at that entry.
-	 */
-	public void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue)
-	{
-		checkVariable(obj, var);
-	}
-
-	/**
-	 * Method to handle an insertion of a new entry in an arrayed Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable that was changed.
-	 * @param index the entry in the array that was inserted.
-	 */
-	public void insertVariable(ElectricObject obj, Variable var, int index)
-	{
-		checkVariable(obj, var);
-	}
-
-	/**
-	 * Method to handle the deletion of a single entry in an arrayed Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable that was changed.
-	 * @param index the entry in the array that was deleted.
-	 * @param oldValue the former value of that entry.
-	 */
-	public void deleteVariable(ElectricObject obj, Variable var, int index, Object oldValue)
 	{
 		checkVariable(obj, var);
 	}

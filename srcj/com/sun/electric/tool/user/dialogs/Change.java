@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs;
 
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -938,7 +939,8 @@ public class Change extends EDialog implements HighlightListener
 			{
 				NodeInst ni = (NodeInst)it.next();
 
-				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell, 0, ni.getName(), 0);
+				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell, Orientation.IDENT, ni.getName(), 0);
+//				NodeInst newNi = NodeInst.makeInstance(pin, ni.getAnchorCenter(), xS, yS, cell, 0, ni.getName(), 0);
 				if (newNi == null) return;
 				geomMarked.remove(newNi);
 				newNodes.put(ni, newNi);

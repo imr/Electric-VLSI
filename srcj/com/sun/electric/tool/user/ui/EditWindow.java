@@ -29,6 +29,7 @@ import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -489,14 +490,17 @@ public class EditWindow extends JPanel
 			zoomWindowToFitCellInstance(np);
 
 			Poly poly = null;
+            Orientation orient = Orientation.fromJava(defAngle, defAngle >= 3600, false);
 			if (np instanceof Cell)
 			{
 				Cell placeCell = (Cell)np;
 				Rectangle2D cellBounds = placeCell.getBounds();
 //				SizeOffset so = np.getProtoSizeOffset();
 				poly = new Poly(cellBounds);
-				AffineTransform rotate = NodeInst.pureRotate(defAngle%3600,
-					(defAngle >= 3600 ? true : false), false);
+                
+				AffineTransform rotate = orient.pureRotate();
+//				AffineTransform rotate = NodeInst.pureRotate(defAngle%3600,
+//					(defAngle >= 3600 ? true : false), false);
 				AffineTransform translate = new AffineTransform();
 				translate.setToTranslation(drawnLoc.getX(), drawnLoc.getY());
 				rotate.concatenate(translate);
@@ -507,8 +511,9 @@ public class EditWindow extends JPanel
 				double trueSizeX = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
 				double trueSizeY = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
 				poly = new Poly(drawnLoc.getX(), drawnLoc.getY(), trueSizeX, trueSizeY);
-				AffineTransform trans = NodeInst.rotateAbout(defAngle%3600, drawnLoc.getX(), drawnLoc.getY(),
-					(defAngle >= 3600 ? -trueSizeX : trueSizeX), trueSizeY);
+				AffineTransform trans = orient.rotateAbout(drawnLoc.getX(), drawnLoc.getY());
+//				AffineTransform trans = NodeInst.rotateAbout(defAngle%3600, drawnLoc.getX(), drawnLoc.getY(),
+//					(defAngle >= 3600 ? -trueSizeX : trueSizeX), trueSizeY);
 				poly.transform(trans);
 			}
 			Point2D [] points = poly.getPoints();

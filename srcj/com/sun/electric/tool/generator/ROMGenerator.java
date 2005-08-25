@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.generator;
 
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -4239,12 +4240,14 @@ public class ROMGenerator
 		}
 		double width = hX - lX;
 		double height = hY - lY;
-		if (trn != 0)
-		{
-			height = -height;
-			rot = (rot + 900) % 3600;
-		}
-		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), width, height, parent, rot, null, 0);
+		Orientation orient = Orientation.fromC(rot, trn != 0);
+		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), width, height, parent, orient, null, 0);
+// 		if (trn != 0)
+// 		{
+// 			height = -height;
+// 			rot = (rot + 900) % 3600;
+// 		}
+// 		NodeInst ni = NodeInst.makeInstance(np, new Point2D.Double(cX, cY), width, height, parent, rot, null, 0);
 		return ni;
 	}
 

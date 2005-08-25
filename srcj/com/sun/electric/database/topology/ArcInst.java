@@ -27,6 +27,7 @@ import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -126,8 +127,6 @@ public class ArcInst extends Geometric implements Comparable
 	/** The text descriptor of name of ArcInst. */		private ImmutableTextDescriptor nameDescriptor;
 	/** bounds after transformation. */					private Rectangle2D visBounds;
 	/** Flag bits for this ArcInst. */					private int userBits;
-	/** The timestamp for changes. */					private int changeClock;
-	/** The Change object. */							private Undo.Change change;
 
 	/** width of this ArcInst. */						private double width;
 	/** length of this ArcInst. */						private double length;
@@ -253,14 +252,14 @@ public class ArcInst extends Geometric implements Comparable
 		}
 
 		// create the head node
-		NodeInst niH = NodeInst.makeDummyInstance(npEnd, new EPoint(-arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0);
+		NodeInst niH = NodeInst.makeDummyInstance(npEnd, new EPoint(-arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), Orientation.IDENT);
 		PortInst piH = niH.getOnlyPortInst();
 		Rectangle2D boundsH = piH.getBounds();
 		double xH = boundsH.getCenterX();
 		double yH = boundsH.getCenterY();
 
 		// create the tail node
-		NodeInst niT = NodeInst.makeDummyInstance(npEnd, new EPoint(arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), 0);
+		NodeInst niT = NodeInst.makeDummyInstance(npEnd, new EPoint(arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), Orientation.IDENT);
 		PortInst piT = niT.getOnlyPortInst();
 		Rectangle2D boundsT = piT.getBounds();
 		double xT = boundsT.getCenterX();
@@ -1679,6 +1678,8 @@ public class ArcInst extends Geometric implements Comparable
         return diskBits;
 	}
 
+	/****************************** MISCELLANEOUS ******************************/
+
     /**
 	 * Method to check and repair data structure errors in this ArcInst.
 	 */
@@ -1918,34 +1919,6 @@ public class ArcInst extends Geometric implements Comparable
 	 * @return true if this ArcInst is hard-to-select.
 	 */
 	public boolean isHardSelect() { return (userBits & HARDSELECTA) != 0; }
-
-	/**
-	 * Method to set a timestamp for constraint propagation on this ArcInst.
-	 * This is used by the Layout constraint system.
-	 * @param changeClock the timestamp for constraint propagation.
-	 */
-	public void setChangeClock(int changeClock) { this.changeClock = changeClock; }
-
-	/**
-	 * Method to get the timestamp for constraint propagation on this ArcInst.
-	 * This is used by the Layout constraint system.
-	 * @return the timestamp for constraint propagation on this ArcInst.
-	 */
-	public int getChangeClock() { return changeClock; }
-
-	/**
-	 * Method to set a Change object on this ArcInst.
-	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
-	 * @param change the Change object to be set on this ArcInst.
-	 */
-	public void setChange(Undo.Change change) { this.change = change; }
-
-	/**
-	 * Method to get the Change object on this ArcInst.
-	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
-	 * @return the Change object on this ArcInst.
-	 */
-	public Undo.Change getChange() { return change; }
 
     /**
      * This function is to compare NodeInst elements. Initiative CrossLibCopy

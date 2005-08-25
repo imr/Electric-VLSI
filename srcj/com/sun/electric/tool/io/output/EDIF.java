@@ -27,9 +27,8 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Network;
@@ -42,22 +41,18 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.EdgeH;
-import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
-import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.output.Topology.CellAggregateSignal;
+import com.sun.electric.tool.io.output.Topology.CellNetInfo;
+import com.sun.electric.tool.io.output.Topology.CellSignal;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
-import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -1215,7 +1210,8 @@ public class EDIF extends Topology
 	private void writeSymbolCell(NodeInst ni, AffineTransform prevtrans)
 	{
 		// make transformation matrix within the current nodeinst
-		if (ni.getAngle() == 0 && !ni.isMirroredAboutXAxis() && !ni.isMirroredAboutYAxis())
+		if (ni.getOrient().equals(Orientation.IDENT))
+//		if (ni.getAngle() == 0 && !ni.isMirroredAboutXAxis() && !ni.isMirroredAboutYAxis())
 		{
 			writeSymbolNodeInst(ni, prevtrans);
 		} else

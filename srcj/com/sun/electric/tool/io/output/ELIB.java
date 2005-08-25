@@ -615,7 +615,7 @@ public class ELIB extends Output
 		int rotation = ni.getAngle();
 		if (compatibleWith6)
 		{
-			Orientation or = ni.getOrientation();
+			Orientation or = ni.getOrient();
 			rotation = or.getCAngle();
 			transpose = or.isCTranspose() ? 1 : 0;
 

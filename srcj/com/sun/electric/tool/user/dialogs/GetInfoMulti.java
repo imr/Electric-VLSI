@@ -495,7 +495,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 				double [] dYP = new double[dialog.numNodes];
 				double [] dXS = new double[dialog.numNodes];
 				double [] dYS = new double[dialog.numNodes];
-				int [] dRot = new int[dialog.numNodes];
+//				int [] dRot = new int[dialog.numNodes];
 				int index = 0;
 				for(Iterator it = dialog.highlightList.iterator(); it.hasNext(); )
 				{
@@ -515,19 +515,22 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					if (currentXSize.equals("")) dXS[index] = 0; else
 					{
 						double trueXSize = newXSize + so.getHighXOffset() + so.getLowXOffset();
-						if (ni.getXSizeWithMirror() < 0) dXS[index] = -trueXSize - ni.getXSizeWithMirror(); else
-							dXS[index] = trueXSize - ni.getXSizeWithMirror();
+						dXS[index] = trueXSize - ni.getXSize();
+//						if (ni.getXSizeWithMirror() < 0) dXS[index] = -trueXSize - ni.getXSizeWithMirror(); else
+//							dXS[index] = trueXSize - ni.getXSizeWithMirror();
 					}
 					if (currentYSize.equals("")) dYS[index] = 0; else
 					{
 						double trueYSize = newYSize + so.getHighYOffset() + so.getLowYOffset();
-						if (ni.getYSizeWithMirror() < 0) dYS[index] = -trueYSize - ni.getYSizeWithMirror(); else
-							dYS[index] = trueYSize - ni.getYSizeWithMirror();
+						dYS[index] = trueYSize - ni.getYSize();
+//						if (ni.getYSizeWithMirror() < 0) dYS[index] = -trueYSize - ni.getYSizeWithMirror(); else
+//							dYS[index] = trueYSize - ni.getYSizeWithMirror();
 					}
-					dRot[index] = 0;
+//					dRot[index] = 0;
 					index++;
 				}
-				NodeInst.modifyInstances(nis, dXP, dYP, dXS, dYS, dRot);
+				NodeInst.modifyInstances(nis, dXP, dYP, dXS, dYS);
+//				NodeInst.modifyInstances(nis, dXP, dYP, dXS, dYS, dRot);
 				dialog.initialXPosition = currentXPosition;
 				dialog.initialYPosition = currentYPosition;
 				dialog.initialXSize = currentXSize;

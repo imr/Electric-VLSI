@@ -264,7 +264,8 @@ public class RouteElementArc extends RouteElement {
 					if (autoGrowth != null)
 					{
 						// grow the node to allow expandable port to fit
-						headNi.modifyInstance(0, 0, autoGrowth.getWidth(), autoGrowth.getHeight(), 0);
+						headNi.resize(autoGrowth.getWidth(), autoGrowth.getHeight());
+//						headNi.modifyInstance(0, 0, autoGrowth.getWidth(), autoGrowth.getHeight(), 0);
 					}
 				}
 			}
@@ -291,7 +292,8 @@ public class RouteElementArc extends RouteElement {
 					if (autoGrowth != null)
 					{
 						// grow the node to allow expandable port to fit
-						tailNi.modifyInstance(0, 0, autoGrowth.getWidth(), autoGrowth.getHeight(), 0);
+						tailNi.resize(autoGrowth.getWidth(), autoGrowth.getHeight());
+//						tailNi.modifyInstance(0, 0, autoGrowth.getWidth(), autoGrowth.getHeight(), 0);
 					}
 				}
 			}

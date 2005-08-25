@@ -28,6 +28,7 @@ package com.sun.electric.tool.routing;
 
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.network.Netlist;
@@ -1510,7 +1511,8 @@ public class Maze
 	private void drawCell(NodeInst ni, AffineTransform prevTrans, SRREGION region)
 	{
 		// make transformation matrix within the current nodeinst
-		if (ni.getAngle() == 0 && !ni.isMirroredAboutXAxis() && !ni.isMirroredAboutYAxis())
+		if (ni.getOrient().equals(Orientation.IDENT))
+//		if (ni.getAngle() == 0 && !ni.isMirroredAboutXAxis() && !ni.isMirroredAboutYAxis())
 		{
 			drawNodeInst(ni, prevTrans, region);
 		} else

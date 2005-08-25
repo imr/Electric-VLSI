@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -1516,7 +1517,7 @@ public class ELIB extends LibraryFiles
                 expected = trans.transform(expected, expected);
                 Point2D center = new Point2D.Double(expected.getX() - anchorX, expected.getY() - anchorY);
                 PrimitiveNode pn = Generic.tech.universalPinNode;
-                NodeInst ni = NodeInst.newInstance(pn, center, 0, 0, c, 0, "", 0);
+                NodeInst ni = NodeInst.newInstance(pn, center, 0, 0, c, Orientation.IDENT, "", 0);
                 Export ex = Export.newInstance(c, ni.getOnlyPortInst(), portname, false);
                 if (ex != null) {
                     return node.findPortInst(portname);

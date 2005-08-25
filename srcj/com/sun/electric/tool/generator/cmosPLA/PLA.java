@@ -27,6 +27,7 @@
 package com.sun.electric.tool.generator.cmosPLA;
 
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -746,7 +747,8 @@ public class PLA
 		Poly decodePoly = decodeNode.findPortInstFromProto(decodePort).getPoly();
 		double decodeY = decodePoly.getCenterY();
 		double dY = decodeY - orY;
-		if (orY != decodeY) orNode.modifyInstance(0, dY, 0, 0, 0);
+		if (orY != decodeY) orNode.move(0, dY);
+//		if (orY != decodeY) orNode.modifyInstance(0, dY, 0, 0, 0);
 
 		int x = 0;
 		while (orPort != null && decodePort != null)
@@ -804,14 +806,17 @@ public class PLA
 		Rectangle2D protoBounds = Inst_proto.getBounds();
 		double sX = protoBounds.getWidth();
 		double sY = protoBounds.getHeight();
+		Orientation orient = Orientation.IDENT;
 		if (mirror)
 		{
-			sY = -sY;
+			orient = Orientation.Y;
+//			sY = -sY;
 			double Y1 = protoBounds.getMinY() + y;
 			double Y2 = protoBounds.getMaxY() + y;
 			y = Y2 + Y1 - y;
 		}
-		NodeInst ni = NodeInst.makeInstance(Inst_proto, new Point2D.Double(x, y), sX, sY, cell);
+		NodeInst ni = NodeInst.makeInstance(Inst_proto, new Point2D.Double(x, y), sX, sY, cell, orient, null, 0);
+ //		NodeInst ni = NodeInst.makeInstance(Inst_proto, new Point2D.Double(x, y), sX, sY, cell);
 		return ni;
 	}
 }

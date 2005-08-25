@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.prototype;
 
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.topology.NodeInst;
@@ -62,7 +63,7 @@ import java.awt.geom.AffineTransform;
 public class PortOriginal
 {
 	private AffineTransform subrot;
-	private int angle;
+	private Orientation orient;
 	private PortInst bottomPort;
 	private NodeInst bottomNi;
 	private PortProto bottomPp;
@@ -111,7 +112,8 @@ public class PortOriginal
 
 	private void traverse()
 	{
-		angle = bottomNi.getAngle();
+        orient = bottomNi.getOrient();
+//		angle = bottomNi.getAngle();
 		while (bottomNi.getProto() instanceof Cell)
 		{
 			subrot = bottomNi.translateOut(subrot);
@@ -119,8 +121,9 @@ public class PortOriginal
 			bottomNi = bottomPort.getNodeInst();
 			bottomPp = bottomPort.getPortProto();
 			subrot = bottomNi.rotateOut(subrot);
-			angle += bottomNi.getAngle();
-			if (bottomNi.isMirroredAboutXAxis() != bottomNi.isMirroredAboutYAxis()) angle += 1800;
+            orient = orient.concatenate(bottomNi.getOrient());
+//			angle += bottomNi.getAngle();
+//			if (bottomNi.isMirroredAboutXAxis() != bottomNi.isMirroredAboutYAxis()) angle += 1800;
 		}
 	}
 
@@ -159,11 +162,10 @@ public class PortOriginal
 	public AffineTransform getTransformToTop() { return subrot; }
 
 	/**
-	 * Method to return the apparent angle of the lowest node when viewed from the top.
+	 * Method to return the apparent orientation of the lowest node when viewed from the top.
 	 * The angle can be used to replicate a node at the top level that is in the same
 	 * orientation of the node at the bottom.
-	 * It does not include any mirroring information.
-	 * @return the apparent angle of the lowest node when viewed from the top.
+	 * @return the apparent orientation of the lowest node when viewed from the top.
 	 */
-	public int getAngleToTop() { return angle; }
+	public Orientation getOrientToTop() { return orient; }
 }

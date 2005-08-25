@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -305,13 +306,15 @@ public class ViewChanges
 			NodeInst bottomNi = bottomPort.getNodeInst();
 			PortProto bottomPp = bottomPort.getPortProto();
 			AffineTransform subRot = fp.getTransformToTop();
-			int newAng = fp.getAngleToTop();
+			Orientation newOrient = fp.getOrientToTop();
 
 			// create this node
 			Point2D center = new Point2D.Double(bottomNi.getAnchorCenterX(), bottomNi.getAnchorCenterY());
 			subRot.transform(center, center);
 			NodeInst newNi = NodeInst.makeInstance(bottomNi.getProto(), center, bottomNi.getXSize(), bottomNi.getYSize(),
-				skeletonCell, newAng, null, 0);
+				skeletonCell, newOrient, null, 0);
+//			NodeInst newNi = NodeInst.makeInstance(bottomNi.getProto(), center, bottomNi.getXSize(), bottomNi.getYSize(),
+//				skeletonCell, newAng, null, 0);
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node in this cell");
@@ -370,7 +373,9 @@ public class ViewChanges
 			NodeProto np = ni.getProto();
 			if (np != Generic.tech.essentialBoundsNode) continue;
 			NodeInst newNi = NodeInst.makeInstance(np, ni.getAnchorCenter(),
-				ni.getXSizeWithMirror(), ni.getYSizeWithMirror(), skeletonCell, ni.getAngle(), null, 0);
+				ni.getXSize(), ni.getYSize(), skeletonCell, ni.getOrient(), null, 0);
+//			NodeInst newNi = NodeInst.makeInstance(np, ni.getAnchorCenter(),
+//				ni.getXSizeWithMirror(), ni.getYSizeWithMirror(), skeletonCell, ni.getAngle(), null, 0);
 			if (newNi == null)
 			{
 				System.out.println("Cannot create node in this cell");
@@ -927,7 +932,9 @@ public class ViewChanges
 	private static NodeInst makeSchematicNode(NodeProto prim, NodeInst orig, double wid, double hei, int angle, int techSpecific, Cell newCell)
 	{
 		Point2D newLoc = new Point2D.Double(orig.getAnchorCenterX(), orig.getAnchorCenterY());
-		NodeInst newNI = NodeInst.makeInstance(prim, newLoc, wid, hei, newCell, angle, null, techSpecific);
+        Orientation orient = Orientation.fromAngle(angle);
+		NodeInst newNI = NodeInst.makeInstance(prim, newLoc, wid, hei, newCell, orient, null, techSpecific);
+//		NodeInst newNI = NodeInst.makeInstance(prim, newLoc, wid, hei, newCell, angle, null, techSpecific);
 		return newNI;
 	}
 
@@ -1041,7 +1048,7 @@ public class ViewChanges
 
 			// if there was a better place, move the node
 			if (bestDist != Double.MAX_VALUE)
-				ni.modifyInstance(bestX-xp, bestY-yp, 0, 0, 0);
+				ni.move(bestX-xp, bestY-yp);
 		}
 	}
 
@@ -1387,11 +1394,12 @@ public class ViewChanges
 				newXSize = bounds.getWidth();
 				newYSize = bounds.getHeight();
 			}
-			if (ni.isXMirrored()) newXSize = -newXSize;
-			if (ni.isYMirrored()) newYSize = -newYSize;
+//			if (ni.isXMirrored()) newXSize = -newXSize;
+//			if (ni.isYMirrored()) newYSize = -newYSize;
 
 			// create the node
-			NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getAngle(), ni.getName(), ni.getTechSpecific());
+			NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getOrient(), ni.getName(), ni.getTechSpecific());
+//			NodeInst newNi = NodeInst.makeInstance(newNp, ni.getAnchorCenter(), newXSize, newYSize, newCell, ni.getAngle(), ni.getName(), ni.getTechSpecific());
 			if (newNi == null)
 			{
 				System.out.println("Could not create " + newNp + " in " + newCell);

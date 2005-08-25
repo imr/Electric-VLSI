@@ -330,14 +330,16 @@ public class DEF extends LEFDEF
 
 	private class GetOrientation
 	{
-		private int angle;
-		private boolean mX, mY;
+//		private int angle;
+//		private boolean mX, mY;
+        private Orientation orient;
 
 		private GetOrientation()
 			throws IOException
 		{
 			String key = mustGetKeyword("orientation");
 			if (key == null) return;
+            int angle;
 			boolean transpose = false;
 			if (key.equalsIgnoreCase("N")) { angle = 0; } else
 			if (key.equalsIgnoreCase("S")) { angle = 1800; } else
@@ -351,10 +353,10 @@ public class DEF extends LEFDEF
 				reportError("Unknown orientation (" + key + ")");
 				return;
 			}
-			Orientation or = Orientation.fromC(angle, transpose);
-			angle = or.getAngle();
-			mX = or.isXMirrored();
-			mY = or.isYMirrored();
+    		orient = Orientation.fromC(angle, transpose);
+//			angle = or.getAngle();
+//			mX = or.isXMirrored();
+//			mY = or.isYMirrored();
 		}
 	}
 
@@ -532,7 +534,8 @@ public class DEF extends LEFDEF
 		if (np != null && haveCoord)
 		{
 			// determine the pin size
-			AffineTransform trans = NodeInst.pureRotate(orient.angle, orient.mX, orient.mY);
+			AffineTransform trans = orient.orient.pureRotate();
+//			AffineTransform trans = NodeInst.pureRotate(orient.angle, orient.mX, orient.mY);
 			trans.transform(ll, ll);
 			trans.transform(ur, ur);
 			double sX = Math.abs(ll.getX() - ur.getX());
@@ -626,9 +629,10 @@ public class DEF extends LEFDEF
 					// place the node
 					double sX = np.getDefWidth();
 					double sY = np.getDefHeight();
-					if (or.mX) sX = -sX;
-					if (or.mY) sY = -sY;
-					NodeInst ni = NodeInst.makeInstance(np, pt, sX, sY, cell, or.angle, compName, 0);
+//					if (or.mX) sX = -sX;
+//					if (or.mY) sY = -sY;
+					NodeInst ni = NodeInst.makeInstance(np, pt, sX, sY, cell, or.orient, compName, 0);
+//					NodeInst ni = NodeInst.makeInstance(np, pt, sX, sY, cell, or.angle, compName, 0);
 					if (ni == null)
 					{
 						reportError("Unable to create node");

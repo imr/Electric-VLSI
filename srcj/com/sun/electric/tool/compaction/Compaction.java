@@ -303,8 +303,24 @@ public class Compaction extends Listener
 			return change;
 		}
 
+        
 		private boolean compactLine(Line line, Line lineStretch, boolean change, Cell cell)
 		{
+//            System.out.println("Compacting line:");
+//            for (Line curLine = line; curLine != null; curLine = curLine.nextLine) {
+//                System.out.print("\t");
+//                for (GeomObj obj = curLine.firstObject; obj != null; obj = obj.nextObject)
+//                    System.out.print(" " + obj.inst);
+//                System.out.println();
+//            }
+//            System.out.println("Stretch line:");
+//            for (Line curLine = lineStretch; curLine != null; curLine = curLine.nextLine) {
+//                System.out.print("\t");
+//                for (GeomObj obj = curLine.firstObject; obj != null; obj = obj.nextObject)
+//                    System.out.print(" " + obj.inst);
+//                System.out.println();
+//            }
+           
 			boolean spread = isAllowsSpreading();
 
 			// loop through all lines that may compact
@@ -596,7 +612,7 @@ public class Compaction extends Listener
 				if (curObject.inst instanceof NodeInst)
 				{
 					NodeInst ni = (NodeInst)curObject.inst;
-					ni.modifyInstance(-moveX, -moveY, 0, 0, 0);
+					ni.move(-moveX, -moveY);
 					break;
 				}
 			}

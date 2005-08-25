@@ -28,6 +28,7 @@ import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -48,7 +49,11 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
-import com.sun.electric.technology.*;
+import com.sun.electric.technology.ArcProto;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
+import com.sun.electric.technology.SizeOffset;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
@@ -275,25 +280,29 @@ public class CircuitChanges
 			}
 
 			// do the rotation/mirror
+            Orientation dOrient;
 			if (mirror)
 			{
 				// do mirroring
-				if (mirrorH)
-				{
-					// mirror horizontally (flip Y)
-					double sY = theNi.getYSizeWithMirror();
-					theNi.modifyInstance(0, 0, 0, -sY - sY, 0);
-				} else
-				{
-					// mirror vertically (flip X)
-					double sX = theNi.getXSizeWithMirror();
-					theNi.modifyInstance(0, 0, -sX - sX, 0, 0);
-				}
+                dOrient = mirrorH ? Orientation.Y : Orientation.X;
+//				if (mirrorH)
+//				{
+//					// mirror horizontally (flip Y)
+//					double sY = theNi.getYSizeWithMirror();
+//					theNi.modifyInstance(0, 0, 0, -sY - sY, 0);
+//				} else
+//				{
+//					// mirror vertically (flip X)
+//					double sX = theNi.getXSizeWithMirror();
+//					theNi.modifyInstance(0, 0, -sX - sX, 0, 0);
+//				}
 			} else
 			{
 				// do rotation
-				theNi.modifyInstance(0, 0, 0, 0, amount);
+                dOrient = Orientation.fromAngle(amount);
+//				theNi.modifyInstance(0, 0, 0, 0, amount);
 			}
+            theNi.rotate(dOrient);
 
 			// delete intermediate arcs used to constrain
 			for(Iterator it = aiList.iterator(); it.hasNext(); )
@@ -490,7 +499,7 @@ public class CircuitChanges
 //						ai.setRigid(false);
 //						ai.setFixedAngle(false);
 					}
-					ni.modifyInstance(bodyXOffset, bodyYOffset, 0, 0, 0);
+					ni.move(bodyXOffset, bodyYOffset);
 					adjustedNodes++;
 	
 					// restore arc constraints
@@ -616,14 +625,14 @@ public class CircuitChanges
 		NodeInst [] nis = new NodeInst[total];
 		double [] dCX = new double[total];
 		double [] dCY = new double[total];
-		double [] dSX = new double[total];
-		double [] dSY = new double[total];
-		int [] dRot = new int[total];
+//		double [] dSX = new double[total];
+//		double [] dSY = new double[total];
+//		int [] dRot = new int[total];
 		for(int i=0; i<total; i++)
 		{
 			nis[i] = (NodeInst)nodes.get(i);
-			dSX[i] = dSY[i] = 0;
-			dRot[i] = 0;
+//			dSX[i] = dSY[i] = 0;
+//			dRot[i] = 0;
 		}
 
 		// get bounds
@@ -685,7 +694,8 @@ public class CircuitChanges
 				}
 			}
 		}
-		AlignNodes job = new AlignNodes(nis, dCX, dCY, dSX, dSY, dRot);
+		AlignNodes job = new AlignNodes(nis, dCX, dCY);
+//		AlignNodes job = new AlignNodes(nis, dCX, dCY, dSX, dSY, dRot);
 	}
 
 	private static class AlignNodes extends Job
@@ -693,19 +703,20 @@ public class CircuitChanges
 		NodeInst [] nis;
 		double [] dCX;
 		double [] dCY;
-		double [] dSX;
-		double [] dSY;
-		int [] dRot;
+//		double [] dSX;
+//		double [] dSY;
+//		int [] dRot;
 
-		protected AlignNodes(NodeInst [] nis, double [] dCX, double [] dCY, double [] dSX, double [] dSY, int [] dRot)
+		protected AlignNodes(NodeInst [] nis, double [] dCX, double [] dCY)
+//		protected AlignNodes(NodeInst [] nis, double [] dCX, double [] dCY, double [] dSX, double [] dSY, int [] dRot)
 		{
 			super("Align objects", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
 			this.nis = nis;
 			this.dCX = dCX;
 			this.dCY = dCY;
-			this.dSX = dSX;
-			this.dSY = dSY;
-			this.dRot = dRot;
+//			this.dSX = dSX;
+//			this.dSY = dSY;
+//			this.dRot = dRot;
 			startJob();
 		}
 
@@ -731,9 +742,9 @@ public class CircuitChanges
 				NodeInst [] nnis = new NodeInst[newSize];
 				double [] nCX = new double[newSize];
 				double [] nCY = new double[newSize];
-				double [] nSX = new double[newSize];
-				double [] nSY = new double[newSize];
-				int [] nRot = new int[newSize];
+//				double [] nSX = new double[newSize];
+//				double [] nSY = new double[newSize];
+//				int [] nRot = new int[newSize];
 				int fill = 0;
 				for(int i=0; i<nis.length; i++)
 				{
@@ -741,19 +752,21 @@ public class CircuitChanges
 					nnis[fill] = nis[i];
 					nCX[fill] = dCX[i];
 					nCY[fill] = dCY[i];
-					nSX[fill] = dSX[i];
-					nSY[fill] = dSY[i];
-					nRot[fill] = dRot[i];
+//					nSX[fill] = dSX[i];
+//					nSY[fill] = dSY[i];
+//					nRot[fill] = dRot[i];
+                    fill++;
 				}
 				nis = nnis;
 				dCX = nCX;
 				dCY = nCY;
-				dSX = nSX;
-				dSY = nSY;
-				dRot = nRot;
+//				dSX = nSX;
+//				dSY = nSY;
+//				dRot = nRot;
 			}
 
-			NodeInst.modifyInstances(nis, dCX, dCY, dSX, dSY, dRot);
+			NodeInst.modifyInstances(nis, dCX, dCY, null, null);
+//			NodeInst.modifyInstances(nis, dCX, dCY, dSX, dSY, dRot);
 			return true;
 		}
 	}
@@ -1330,7 +1343,7 @@ public class CircuitChanges
 							{
 								NodeInst ni = (NodeInst)geom;
 								ni.setName(null);
-								ni.modifyInstance(0, 0, 0, 0, 0);
+								ni.move(0, 0);
 							} else
 							{
 								ArcInst ai = (ArcInst)geom;
@@ -2425,7 +2438,9 @@ public class CircuitChanges
 				Name oldName = ni.getNameKey();
 				if (!oldName.isTempname()) name = oldName.toString();
 				NodeInst newNi = NodeInst.makeInstance(ni.getProto(), new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
-					ni.getXSize(), ni.getYSize(), cell, ni.getAngle(), name, 0);
+					ni.getXSize(), ni.getYSize(), cell, ni.getOrient(), name, 0);
+//				NodeInst newNi = NodeInst.makeInstance(ni.getProto(), new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
+//					ni.getXSize(), ni.getYSize(), cell, ni.getAngle(), name, 0);
 				if (newNi == null) return false;
 				newNodes.put(ni, newNi);
 				newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
@@ -2544,22 +2559,24 @@ public class CircuitChanges
 
 			Point2D pt = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
 			localTrans.transform(pt, pt);
-			double xSize = ni.getXSizeWithMirror();
-			double ySize = ni.getYSizeWithMirror();
-			int newAngle = topno.getAngle();
-			boolean revAngle = false;
-			if (topno.isXMirrored() != topno.isYMirrored()) revAngle = !revAngle;
-			if (ni.isXMirrored() != ni.isYMirrored()) revAngle = !revAngle;
-			if (revAngle) newAngle = newAngle + 3600 - ni.getAngle(); else
-				newAngle += ni.getAngle();
-			if (topno.isXMirrored()) xSize = -xSize;
-			if (topno.isYMirrored()) ySize = -ySize;
+//			double xSize = ni.getXSizeWithMirror();
+//			double ySize = ni.getYSizeWithMirror();
+//			int newAngle = topno.getAngle();
+//			boolean revAngle = false;
+//			if (topno.isXMirrored() != topno.isYMirrored()) revAngle = !revAngle;
+//			if (ni.isXMirrored() != ni.isYMirrored()) revAngle = !revAngle;
+//			if (revAngle) newAngle = newAngle + 3600 - ni.getAngle(); else
+//				newAngle += ni.getAngle();
+//			if (topno.isXMirrored()) xSize = -xSize;
+//			if (topno.isYMirrored()) ySize = -ySize;
 
-			newAngle = newAngle % 3600;   if (newAngle < 0) newAngle += 3600;
+//			newAngle = newAngle % 3600;   if (newAngle < 0) newAngle += 3600;
 			String name = null;
 			if (ni.isUsernamed())
 				name = ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class);
-			NodeInst newNi = NodeInst.makeInstance(np, pt, xSize, ySize, cell, newAngle, name, 0);
+            Orientation orient = topno.getOrient().concatenate(ni.getOrient());
+			NodeInst newNi = NodeInst.makeInstance(np, pt, ni.getXSize(), ni.getYSize(), cell, orient, name, 0);
+//			NodeInst newNi = NodeInst.makeInstance(np, pt, xSize, ySize, cell, newAngle, name, 0);
 			if (newNi == null) return;
 			newNodes.put(ni, newNi);
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
@@ -3040,7 +3057,8 @@ public class CircuitChanges
 			{
 				NodeInst ni = (NodeInst)it.next();
 				Point2D scale = (Point2D)pinsToScale.get(ni);
-				ni.modifyInstance(0, 0, scale.getX(), scale.getY(), 0);
+				ni.resize(scale.getX(), scale.getY());
+//				ni.modifyInstance(0, 0, scale.getX(), scale.getY(), 0);
 			}
 			for(Iterator it = textToMove.iterator(); it.hasNext(); )
 			{
@@ -3553,7 +3571,7 @@ public class CircuitChanges
 				// make sure moving the node is allowed
 				if (CircuitChanges.cantEdit(cell, ni, true) != 0) return false;
 
-				ni.modifyInstance(dX, dY, 0, 0, 0);
+				ni.move(dX, dY);
                 if (verbose) System.out.println("Moved "+ni+": delta(X,Y) = ("+dX+","+dY+")");
                 StatusBar.updateStatusBar();
 				return true;
@@ -3611,10 +3629,10 @@ public class CircuitChanges
 
 					double [] deltaXs = new double[2];
 					double [] deltaYs = new double[2];
-					double [] deltaNulls = new double[2];
-					int [] deltaRots = new int[2];
+//					double [] deltaNulls = new double[2];
+//					int [] deltaRots = new int[2];
 					NodeInst [] niList = new NodeInst[2];
-					deltaNulls[0] = deltaNulls[1] = 0;
+//					deltaNulls[0] = deltaNulls[1] = 0;
 					deltaXs[0] = deltaYs[0] = deltaXs[1] = deltaYs[1] = 0;
 					int arcangle = ai.getAngle();
 					int j;
@@ -3644,8 +3662,9 @@ public class CircuitChanges
 						}
 					}
 					if (j < 2) continue;
-					deltaRots[0] = deltaRots[1] = 0;
-					NodeInst.modifyInstances(niList, deltaXs, deltaYs, deltaNulls, deltaNulls, deltaRots);
+//					deltaRots[0] = deltaRots[1] = 0;
+					NodeInst.modifyInstances(niList, deltaXs, deltaYs, null, null);
+//					NodeInst.modifyInstances(niList, deltaXs, deltaYs, deltaNulls, deltaNulls, deltaRots);
 				}
                 if (verbose) System.out.println("Moved many objects: delta(X,Y) = ("+dX+","+dY+")");
                 StatusBar.updateStatusBar();
@@ -3754,9 +3773,9 @@ public class CircuitChanges
 				NodeInst [] nis = new NodeInst[numNodes];
 				double [] dXs = new double[numNodes];
 				double [] dYs = new double[numNodes];
-				double [] dSize = new double[numNodes];
-				int [] dRot = new int[numNodes];
-				boolean [] dTrn = new boolean[numNodes];
+//				double [] dSize = new double[numNodes];
+//				int [] dRot = new int[numNodes];
+//				boolean [] dTrn = new boolean[numNodes];
 				numNodes = 0;
 				for(Iterator it = cell.getNodes(); it.hasNext(); )
 				{
@@ -3765,12 +3784,13 @@ public class CircuitChanges
 					nis[numNodes] = ni;
 					dXs[numNodes] = dX;
 					dYs[numNodes] = dY;
-					dSize[numNodes] = 0;
-					dRot[numNodes] = 0;
-					dTrn[numNodes] = false;
+//					dSize[numNodes] = 0;
+//					dRot[numNodes] = 0;
+//					dTrn[numNodes] = false;
 					numNodes++;
 				}
-				NodeInst.modifyInstances(nis, dXs, dYs, dSize, dSize, dRot);
+                NodeInst.modifyInstances(nis, dXs, dYs, null, null);
+//				NodeInst.modifyInstances(nis, dXs, dYs, dSize, dSize, dRot);
 			}
 			flag = null;
 
@@ -3834,8 +3854,8 @@ public class CircuitChanges
 								Layout.setTempRigid(oai, true);
 							}
 						}
-						ni.modifyInstance(dX - (ni.getAnchorCenterX() - nPt.getX()),
-							dY - (ni.getAnchorCenterY() - nPt.getY()), 0, 0, 0);
+						ni.move(dX - (ni.getAnchorCenterX() - nPt.getX()),
+							dY - (ni.getAnchorCenterY() - nPt.getY()));
 					}
 					continue;
 				}
@@ -3911,7 +3931,7 @@ public class CircuitChanges
 					if (eobj instanceof Export) ni = ((Export)eobj).getOriginalPort().getNodeInst();
 					if (ni != null)
 					{
-						ni.modifyInstance(dX, dY, 0, 0, 0);
+						ni.move(dX, dY);
 						continue;
 					}
 				}
@@ -4336,16 +4356,16 @@ public class CircuitChanges
 				switch(direction)
 				{
 					case 'l':
-						oNi.modifyInstance(-amount, 0, 0, 0, 0);
+						oNi.move(-amount, 0);
 						break;
 					case 'r':
-						oNi.modifyInstance(amount, 0, 0, 0, 0);
+						oNi.move(amount, 0);
 						break;
 					case 'u':
-						oNi.modifyInstance(0, amount, 0, 0, 0);
+						oNi.move(0, amount);
 						break;
 					case 'd':
-						oNi.modifyInstance(0, -amount, 0, 0, 0);
+						oNi.move(0, -amount);
 						break;
 				}
 

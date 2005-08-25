@@ -308,7 +308,7 @@ public class LEF extends LEFDEF
 				{
 					double dX = oX - ccNi.getTrueCenterX();
 					double dY = oY - ccNi.getTrueCenterY();
-					ccNi.modifyInstance(dX, dY, 0, 0, 0);
+					ccNi.move(dX, dY);
 				}
 				continue;
 			}

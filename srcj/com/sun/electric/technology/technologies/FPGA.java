@@ -28,6 +28,7 @@ package com.sun.electric.technology.technologies;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -2002,7 +2003,9 @@ public class FPGA extends Technology
 			posY += hei/2;
 		}
 		Point2D ctr = new Point2D.Double(posX, posY);
-		NodeInst ni = NodeInst.makeInstance(np, ctr, wid, hei, cell, rotation, nodeName, 0);
+        Orientation orient = Orientation.fromAngle(rotation);
+		NodeInst ni = NodeInst.makeInstance(np, ctr, wid, hei, cell, orient, nodeName, 0);
+//		NodeInst ni = NodeInst.makeInstance(np, ctr, wid, hei, cell, rotation, nodeName, 0);
 		if (ni == null) return true;
 
 		// add any attributes
@@ -2156,7 +2159,9 @@ public class FPGA extends Technology
 		double portBY = TextUtils.atof(ltPortB.getLeaf(1));
 		int angle = GenMath.figureAngle(new Point2D.Double(portAX, portAY), new Point2D.Double(portBX, portBY));
 		Point2D ctr = new Point2D.Double((portAX + portBX) / 2, (portAY + portBY) / 2);
-		NodeInst ni = NodeInst.makeInstance(tech.repeaterNode, ctr, 10,3, cell, angle, name, 0);
+        Orientation orient = Orientation.fromAngle(angle);
+		NodeInst ni = NodeInst.makeInstance(tech.repeaterNode, ctr, 10,3, cell, orient, name, 0);
+//		NodeInst ni = NodeInst.makeInstance(tech.repeaterNode, ctr, 10,3, cell, angle, name, 0);
 		if (ni == null)
 		{
 			System.out.println("Error creating repeater (line " + lt.lineNumber + ")");

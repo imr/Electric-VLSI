@@ -42,6 +42,7 @@ import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.Main;
+import com.sun.electric.database.ImmutableNodeInst;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -421,16 +422,10 @@ public class NetworkTool extends Listener
 		System.out.println("NetworkTool.endBatch()");
 	}
 
-	public void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot)
+	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
 	{
 		if (!debug) return;
-		System.out.println("NetworkTool.modifyNodeInst("+ni+","+oCX+","+oCY+","+oSX+","+oSY+","+oRot+")");
-	}
-
-	public void modifyNodeInsts(NodeInst [] nis, double [] oCX, double [] oCY, double [] oSX, double [] oSY, int [] oRot)
-	{
-		if (!debug) return;
-		System.out.println("NetworkTool.modifyNodeInsts("+nis.length+")");
+		System.out.println("NetworkTool.modifyNodeInst("+ni+","+oD+")");
 	}
 
 	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid)
@@ -443,12 +438,6 @@ public class NetworkTool extends Listener
 	{
 		if (!debug) return;
 		System.out.println("NetworkTool.modifyExport("+pp+","+oldPi+")");
-	}
-
-	public void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY)
-	{
-		if (!debug) return;
-		System.out.println("NetworkTool.modifyCell("+cell+","+oLX+","+oHX+","+oLY+","+oHY+")");
 	}
 
 	/**
@@ -549,24 +538,6 @@ public class NetworkTool extends Listener
 		}
 		if (!debug) return;
 		System.out.println("NetworkTool.killVariable("+obj+","+var+")");
-	}
-
-	public void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue)
-	{
-		if (!debug) return;
-		System.out.println("NetworkTool.modifyVariable("+obj+","+var+","+index+","+oldValue+")");
-	}
-
-	public void insertVariable(ElectricObject obj, Variable var, int index)
-	{
-		if (!debug) return;
-		System.out.println("NetworkTool.insertVariable("+obj+","+var+","+index+")");
-	}
-
-	public void deleteVariable(ElectricObject obj, Variable var, int index, Object oldValue)
-	{
-		if (!debug) return;
-		System.out.println("NetworkTool.deleteVariable("+obj+","+var+","+index+","+oldValue+")");
 	}
 
 	public void readLibrary(Library lib)

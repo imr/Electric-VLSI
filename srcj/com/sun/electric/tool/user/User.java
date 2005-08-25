@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
@@ -171,15 +172,11 @@ public class User extends Listener
 	/**
 	 * Method to announce a change to a NodeInst.
 	 * @param ni the NodeInst that was changed.
-	 * @param oCX the old X center of the NodeInst.
-	 * @param oCY the old Y center of the NodeInst.
-	 * @param oSX the old X size of the NodeInst.
-	 * @param oSY the old Y size of the NodeInst.
-	 * @param oRot the old rotation of the NodeInst.
+	 * @param oD the old contents of the NodeInst.
 	 */
-	public void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot)
+	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oldD)
 	{
-		Clipboard.nodeMoved(ni, oCX, oCY);
+		Clipboard.nodeMoved(ni, oldD.anchor.getX(), oldD.anchor.getY());
 	}
 
 	/**

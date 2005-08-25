@@ -27,6 +27,7 @@ package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.EPoint;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -741,19 +742,28 @@ public class JELIB extends LibraryFiles
 			}
 
 			double wid = 0, hei = 0;
+            boolean flipX = false, flipY = false;
 			String orientString;
 			String stateInfo;
 			String textDescriptorInfo = "";
 			if (firstChar == 'N' || revision < 1)
 			{
 				wid = TextUtils.atof((String)pieces.get(5));
-				if (wid < 0 && revision >= 1)
-					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-						", Negative width " + (String)pieces.get(5) + " of cell instance", cell, -1);
+				if (wid < 0 || wid == 0 && 1/wid < 0) {
+                    if (revision >= 1)
+    					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+        					", Negative width " + (String)pieces.get(5) + " of cell instance", cell, -1);
+                    flipX = true;
+                    wid = -wid;
+                }
 				hei = TextUtils.atof((String)pieces.get(6));
-				if (hei < 0 && revision >= 1)
-					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-						", Negative height " + (String)pieces.get(5) + " of cell instance", cell, -1);
+				if (hei < 0 || hei == 0 && 1/hei < 0) {
+                    if (revision >= 1)
+    					Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+        					", Negative height " + (String)pieces.get(5) + " of cell instance", cell, -1);
+                    flipY = true;
+                    hei = -hei;
+                }
 				orientString = (String)pieces.get(7);
 				stateInfo = (String)pieces.get(8);
 				if (revision < 1)
@@ -774,8 +784,8 @@ public class JELIB extends LibraryFiles
 			for (int i = 0; i < orientString.length(); i++)
 			{
 				char ch = orientString.charAt(i);
-				if (ch == 'X') wid = -wid;
-				else if (ch == 'Y')	hei = -hei;
+				if (ch == 'X') flipX = !flipX;
+				else if (ch == 'Y')	flipY = !flipY;
 				else if (ch == 'R') angle += 900;
 				else
 				{
@@ -843,8 +853,9 @@ public class JELIB extends LibraryFiles
             ImmutableTextDescriptor protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line); 
 
 			// create the node
+            Orientation orient = Orientation.fromJava(angle, flipX, flipY);
 			NodeInst ni = NodeInst.newInstance(cell, np, nodeName, duplicate, nameTextDescriptor,
-                    new EPoint(x, y), wid, hei, angle, userBits, protoTextDescriptor);
+                    new EPoint(x, y), wid, hei, orient, userBits, protoTextDescriptor);
 			if (ni == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +

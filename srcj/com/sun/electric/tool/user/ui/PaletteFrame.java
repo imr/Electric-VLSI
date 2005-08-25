@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.topology.NodeInst;
@@ -495,23 +496,27 @@ public class PaletteFrame implements MouseListener
 			if (varName != null) width = height = 0;
 
 			// get default creation angle
-			int defAngle = 0;
+            Orientation defOrient = Orientation.IDENT;
+//			int defAngle = 0;
 			int techBits = 0;
 			if (ni != null)
 			{
-				defAngle = ni.getAngle();
+                defOrient = ni.getOrient();
+//				defAngle = ni.getAngle();
 				techBits = ni.getTechSpecific();
 			} else if (np instanceof PrimitiveNode)
 			{
-				defAngle = ((PrimitiveNode)np).getDefPlacementAngle();
-				if (defAngle >= 3600)
-				{
-					defAngle %= 3600;
-					width = -width;
-				}
+				int defAngle = ((PrimitiveNode)np).getDefPlacementAngle();
+                defOrient = Orientation.fromJava(defAngle, defAngle >= 3600, false);
+//				if (defAngle >= 3600)
+//				{
+//					defAngle %= 3600;
+//					width = -width;
+//				}
 			}
 
-			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, cell, defAngle, null, techBits);
+			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, cell, defOrient, null, techBits);
+//			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, cell, defAngle, null, techBits);
 			if (newNi == null) return false;
 			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode)
 				newNi.setHardSelect();

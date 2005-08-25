@@ -128,8 +128,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	/** Array of Exports belonging to this NodeInst. */		private Export[] exports = NULL_EXPORT_ARRAY;
     
 	/** bounds after transformation. */						private Rectangle2D visBounds = new Rectangle2D.Double(0, 0, 0, 0);
-	/** The timestamp for changes. */						private int changeClock;
-	/** The Change object. */								private Undo.Change change;
 
     
     // --------------------- private and protected methods ---------------------
@@ -142,17 +140,15 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param duplicate duplicate index of this NodeInst
      * @param nameDescriptor TextDescriptor of name of this NodeInst
 	 * @param center the center location of this NodeInst.
-	 * @param width the width of this NodeInst.
-	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
-	 * @param height the height of this NodeInst.
-	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
-	 * @param angle the angle of this NodeInst (in tenth-degrees).
+	 * @param width the width of this NodeInst (can't be negative).
+	 * @param height the height of this NodeInst (can't be negative).
+	 * @param orient the orientation of this NodeInst.
 	 * @param userBits flag bits of this NodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this NodeInst
 	 */
     protected NodeInst(Cell parent, NodeProto protoType,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
-            Point2D center, double width, double height, int angle,
+            Point2D center, double width, double height, Orientation orient,
             int userBits, ImmutableTextDescriptor protoDescriptor)
 	{
 		// initialize this object
@@ -169,14 +165,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 
         if (nameDescriptor == null) nameDescriptor = ImmutableTextDescriptor.getNodeTextDescriptor();
 		EPoint anchor = EPoint.snap(center);
-        width = DBMath.round(width);
-        boolean flipX = width < 0 || width == 0 && 1/width < 0;
-        height = DBMath.round(height);
-        boolean flipY = height < 0 || height == 0 && 1/height < 0;
-        Orientation orient = Orientation.fromJava(angle, flipX, flipY);
+        if (protoType == Generic.tech.cellCenterNode)
+            anchor = EPoint.ORIGIN;
         if (protoDescriptor == null) protoDescriptor = ImmutableTextDescriptor.getInstanceTextDescriptor();
         
-        d = ImmutableNodeInst.newInstance(0, name, duplicate, nameDescriptor, orient, anchor, Math.abs(width), Math.abs(height), userBits, protoDescriptor);
+        d = ImmutableNodeInst.newInstance(0, name, duplicate, nameDescriptor, orient, anchor, width, height, userBits, protoDescriptor);
         
 		// fill in the geometry
 		redoGeometric();
@@ -189,36 +182,32 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * and techBits are set to defaults.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param center the center location of this NodeInst.
-	 * @param width the width of this NodeInst.
-	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
-	 * @param height the height of this NodeInst.
-	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
+	 * @param width the width of this NodeInst (can't be negative).
+	 * @param height the height of this NodeInst (can't be negative).
 	 * @param parent the Cell in which this NodeInst will reside.
      * @return the newly created NodeInst, or null on error.
 	 */
 	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height, Cell parent)
 	{
-		return (makeInstance(protoType, center, width, height, parent, 0, null, 0));
+		return (makeInstance(protoType, center, width, height, parent, Orientation.IDENT, null, 0));
 	}
     
 	/**
 	 * Long form method to create a NodeInst and do extra things necessary for it.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param center the center location of this NodeInst.
-	 * @param width the width of this NodeInst.
-	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
-	 * @param height the height of this NodeInst.
-	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
+	 * @param width the width of this NodeInst (can't be negative).
+	 * @param height the height of this NodeInst (can't be negative).
 	 * @param parent the Cell in which this NodeInst will reside.
-	 * @param angle the angle of this NodeInst (in tenth-degrees).
+	 * @param orient the orientation of this NodeInst.
 	 * @param name name of new NodeInst
 	 * @param techBits bits associated to different technologies
      * @return the newly created NodeInst, or null on error.
 	 */
 	public static NodeInst makeInstance(NodeProto protoType, Point2D center, double width, double height,
-                                        Cell parent, int angle, String name, int techBits)
+                                        Cell parent, Orientation orient, String name, int techBits)
 	{
-		NodeInst ni = newInstance(protoType, center, width, height, parent, angle, name, techBits);
+		NodeInst ni = newInstance(protoType, center, width, height, parent, orient, name, techBits);
 		if (ni != null)
 		{
 			// set default information from the prototype
@@ -245,23 +234,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public static NodeInst makeDummyInstance(NodeProto np)
 	{
-		return makeDummyInstance(np, EPoint.ORIGIN, np.getDefWidth(), np.getDefHeight(), 0);
+		return makeDummyInstance(np, EPoint.ORIGIN, np.getDefWidth(), np.getDefHeight(), Orientation.IDENT);
 	}
 
 	/**
 	 * Method to create a "dummy" NodeInst for use outside of the database.
 	 * @param np the prototype of the NodeInst.
 	 * @param center the center location of this NodeInst.
-	 * @param width the width of this NodeInst.
-	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
-	 * @param height the height of this NodeInst.
-	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
-	 * @param angle the angle of this NodeInst (in tenth-degrees).
+	 * @param width the width of this NodeInst (can't be negative).
+	 * @param height the height of this NodeInst (can't be negative).
+	 * @param orient the orientation of this NodeInst.
 	 * @return the dummy NodeInst.
 	 */
-	public static NodeInst makeDummyInstance(NodeProto np, Point2D center, double width, double height, int angle)
+	public static NodeInst makeDummyInstance(NodeProto np, Point2D center, double width, double height, Orientation orient)
 	{
-        return new NodeInst(null, np, Name.findName(""), 0, null, center, width, height, angle, 0, null);
+        return new NodeInst(null, np, Name.findName(""), 0, null, center, width, height, orient, 0, null);
 	}
 
 	/**
@@ -269,37 +256,34 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * and techBits are set to defaults.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param center the center location of this NodeInst.
-	 * @param width the width of this NodeInst.
-	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
-	 * @param height the height of this NodeInst.
+	 * @param width the width of this NodeInst (can't be negative).
+	 * @param height the height of this NodeInst (can't be negative).
 	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
 	 * @param parent the Cell in which this NodeInst will reside.
      * @return the newly created NodeInst, or null on error.
 	 */
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height, Cell parent)
 	{
-		return (newInstance(protoType, center, width, height, parent, 0, null, 0));
+		return (newInstance(protoType, center, width, height, parent, Orientation.IDENT, null, 0));
 	}
 
 	/**
 	 * Long form method to create a NodeInst.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param center the center location of this NodeInst.
-	 * @param width the width of this NodeInst.
-	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
-	 * @param height the height of this NodeInst.
-	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
+	 * @param width the width of this NodeInst (can't be negative).
+	 * @param height the height of this NodeInst (can't be negative).
 	 * @param parent the Cell in which this NodeInst will reside.
-	 * @param angle the angle of this NodeInst (in tenth-degrees).
+	 * @param orient the oriantation of this NodeInst.
 	 * @param name name of new NodeInst
 	 * @param techBits bits associated to different technologies
      * @return the newly created NodeInst, or null on error.
 	 */
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
-                                       Cell parent, int angle, String name, int techBits)
+                                       Cell parent, Orientation orient, String name, int techBits)
 	{
         int userBits = (techBits << ImmutableNodeInst.NTECHBITSSH)&ImmutableNodeInst.NTECHBITS;
-        return newInstance(parent, protoType, name, -1, null, center, width, height, angle, userBits, null);
+        return newInstance(parent, protoType, name, -1, null, center, width, height, orient, userBits, null);
 	}
 
 	/**
@@ -310,18 +294,16 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param duplicate duplicate index of this NodeInst
      * @param nameDescriptor TextDescriptor of name of this NodeInst
 	 * @param center the center location of this NodeInst.
-	 * @param width the width of this NodeInst.
-	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
-	 * @param height the height of this NodeInst.
-	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
-	 * @param angle the angle of this NodeInst (in tenth-degrees).
+	 * @param width the width of this NodeInst (can't be negative).
+	 * @param height the height of this NodeInst (can't be negative).
+	 * @param orient the orientation of this NodeInst.
 	 * @param userBits bits associated to different technologies
      * @param protoDescriptor TextDescriptor of name of this NodeInst
      * @return the newly created NodeInst, or null on error.
 	 */
     public static NodeInst newInstance(Cell parent, NodeProto protoType,
                                        String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
-                                       Point2D center, double width, double height, int angle,
+                                       Point2D center, double width, double height, Orientation orient,
                                        int userBits, ImmutableTextDescriptor protoDescriptor)
 	{
         if (protoType == null) return null;
@@ -372,13 +354,15 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			duplicate = 0;
 		}
         duplicate = parent.fixupNodeDuplicate(nameKey, duplicate);
-		NodeInst ni = new NodeInst(parent, protoType, nameKey, duplicate, nameDescriptor, center, width, height, angle, userBits, protoDescriptor);
+		NodeInst ni = new NodeInst(parent, protoType, nameKey, duplicate, nameDescriptor, center, width, height, orient, userBits, protoDescriptor);
 
 		if (ni.checkAndRepair(true, null, null) > 0) return null;
 		if (ni.lowLevelLink()) return null;
 
 		// handle change control, constraint, and broadcast
 		Undo.newObject(ni);
+		if (protoType == Generic.tech.cellCenterNode)
+    		parent.adjustReferencePoint(center.getX(), center.getY());
 		return ni;
 	}
 
@@ -415,105 +399,113 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	}
 
 	/**
+	 * Method to move this NodeInst.
+	 * @param dX the amount to move the NodeInst in X.
+	 * @param dY the amount to move the NodeInst in Y.
+	 */
+	public void move(double dX, double dY)
+	{
+//		System.out.println("Moving "+this+" [is "+getXSize()+"x"+getYSize()+" at ("+
+//                getAnchorCenterX()+","+getAnchorCenterY()+") rot "+getAngle()+
+//			"] change is dx="+dX+" dy="+dY+") drot=0");
+
+        modifyInstance(dX, dY, 0, 0, Orientation.IDENT);
+    }
+
+	/**
+	 * Method to resize this NodeInst.
+	 * @param dXSize the amount to scale the NodeInst in X.
+	 * @param dYSize the amount to scale the NodeInst in Y.
+	 */
+	public void resize(double dXSize, double dYSize)
+	{
+        modifyInstance(0, 0, dXSize, dYSize, Orientation.IDENT);
+    }
+
+	/**
+	 * Method to rotate and/or mirror this NodeInst.
+	 * @param dOrient the change in Orientation of the NodeInst.
+	 */
+	public void rotate(Orientation dOrient)
+	{
+        modifyInstance(0, 0, 0, 0, dOrient);
+    }
+
+    /**
 	 * Method to change this NodeInst.
 	 * @param dX the amount to move the NodeInst in X.
 	 * @param dY the amount to move the NodeInst in Y.
 	 * @param dXSize the amount to scale the NodeInst in X.
 	 * @param dYSize the amount to scale the NodeInst in Y.
-	 * @param dRot the amount to alter the NodeInst rotation (in tenths of a degree).
+	 * @param dOrient the change of Orientation of the NodeInst.
 	 */
-	public void modifyInstance(double dX, double dY, double dXSize, double dYSize, int dRot)
+	public void modifyInstance(double dX, double dY, double dXSize, double dYSize, Orientation dOrient)
 	{
-		// make sure the change values are sensible
-		dRot = dRot % 3600;
-		if (dRot < 0) dRot += 3600;
-
+        if (protoType == Generic.tech.cellCenterNode) {
+            parent.adjustReferencePoint(dX, dY);
+            return;
+        }
+        
 		// make the change
-		if (Undo.recordChange())
-		{
-			Constraints.getCurrent().modifyNodeInst(this, dX, dY, dXSize, dYSize, dRot);
-		} else
-		{
-			lowLevelModify(dX, dY, dXSize, dYSize, dRot);
-
-			// change the coordinates of every arc end connected to this
-			for(Iterator it = getConnections(); it.hasNext(); )
-			{
-				Connection con = (Connection)it.next();
-				if (con.getPortInst().getNodeInst() == this)
-				{
-					Point2D oldLocation = con.getLocation();
-					switch (con.getEndIndex())
-					{
-						case ArcInst.HEADEND:
-							con.getArc().modify(0, dX, dY, 0, 0);
-							break;
-						case ArcInst.TAILEND:
-							con.getArc().modify(0, 0, 0, dX, dY);
-							break;
-					}
-				}
-			}
-		}
-
-		// if the cell-center changed, notify the cell and fix lots of stuff
-		if (protoType instanceof PrimitiveNode && protoType == Generic.tech.cellCenterNode)
-		{
-			parent.adjustReferencePoint(this);
-		}
+        ImmutableNodeInst oldD = getD();
+        ImmutableNodeInst d = oldD;
+        if (dX != 0 || dY != 0)
+            d = d.withAnchor(new EPoint(d.anchor.getX() + dX, d.anchor.getY() + dY));
+        if (protoType instanceof PrimitiveNode)
+            d = d.withSize(d.width + dXSize, d.height + dYSize);
+        d = d.withOrient(dOrient.concatenate(d.orient));
+        lowLevelModify(d);
+        Undo.modifyNodeInst(this, oldD);
+        
+//        // change the coordinates of every arc end connected to this
+//        for(Iterator it = getConnections(); it.hasNext(); ) {
+//            Connection con = (Connection)it.next();
+//            if (con.getPortInst().getNodeInst() == this) {
+//                Point2D oldLocation = con.getLocation();
+//                switch (con.getEndIndex()) {
+//                    case ArcInst.HEADEND:
+//                        con.getArc().modify(0, dX, dY, 0, 0);
+//                        break;
+//                    case ArcInst.TAILEND:
+//                        con.getArc().modify(0, 0, 0, dX, dY);
+//                        break;
+//                }
+//            }
+//        }
 	}
 
 	/**
 	 * Method to change many NodeInsts.
 	 * @param nis the NodeInsts to change.
-	 * @param dXs the amount to move the NodeInsts in X.
-	 * @param dYs the amount to move the NodeInsts in Y.
-	 * @param dXSizes the amount to scale the NodeInsts in X.
-	 * @param dYSizes the amount to scale the NodeInsts in Y.
-	 * @param dRots the amount to alter the NodeInst rotation (in tenths of a degree).
+	 * @param dXs the amount to move the NodeInsts in X, or null.
+	 * @param dYs the amount to move the NodeInsts in Y, or null.
+	 * @param dXSizes the amount to scale the NodeInsts in X, or null.
+	 * @param dYSizes the amount to scale the NodeInsts in Y, or null.
 	 */
-	public static void modifyInstances(NodeInst [] nis, double [] dXs, double [] dYs, double [] dXSizes, double [] dYSizes, int [] dRots)
-	{
-		// make the change
-		if (Undo.recordChange())
-		{
-			Constraints.getCurrent().modifyNodeInsts(nis, dXs, dYs, dXSizes, dYSizes, dRots);
-		} else
-		{
-			for(int i=0; i<nis.length; i++)
-			{
-				nis[i].lowLevelModify(dXs[i], dYs[i], dXSizes[i], dYSizes[i], dRots[i]);
+    public static void modifyInstances(NodeInst [] nis, double [] dXs, double [] dYs, double [] dXSizes, double [] dYSizes) {
+        // make the change
+        double cX = 0, cY = 0;
+        for(int i=0; i<nis.length; i++) {
+            NodeInst ni = nis[i];
+            if (ni == null) continue;
+            double dX = dXs != null ? dXs[i] : 0;
+            double dY = dYs != null ? dYs[i] : 0;
+            double dXSize = dXSizes != null ? dXSizes[i] : 0;
+            double dYSize = dYSizes != null ? dYSizes[i] : 0;
+            if (ni.getProto() == Generic.tech.cellCenterNode) continue;
+            ni.modifyInstance(dX, dY, dXSize, dYSize, Orientation.IDENT);
+        }
 
-				// change the coordinates of every arc end connected to this
-				for(Iterator it = nis[i].getConnections(); it.hasNext(); )
-				{
-					Connection con = (Connection)it.next();
-					if (con.getPortInst().getNodeInst() == nis[i])
-					{
-						Point2D oldLocation = con.getLocation();
-						switch (con.getEndIndex())
-						{
-							case ArcInst.HEADEND:
-								con.getArc().modify(0, dXs[i], dYs[i], 0, 0);
-								break;
-							case ArcInst.TAILEND:
-								con.getArc().modify(0, 0, 0, dXs[i], dYs[i]);
-								break;
-						}
-					}
-				}
-			}
-		}
-
-		// if the cell-center changed, notify the cell and fix lots of stuff
-		for(int i=0; i<nis.length; i++)
-		{
-			if (nis[i].getProto() instanceof PrimitiveNode && nis[i].getProto() == Generic.tech.cellCenterNode)
-			{
-				nis[i].getParent().adjustReferencePoint(nis[i]);
-			}
-		}
-	}
+        
+        for(int i=0; i<nis.length; i++) {
+            NodeInst ni = nis[i];
+            if (ni == null) continue;
+            if (ni.getProto() != Generic.tech.cellCenterNode) continue;
+            double dX = dXs != null ? dXs[i] : 0;
+            double dY = dYs != null ? dYs[i] : 0;
+            ni.getParent().adjustReferencePoint(dX, dY);
+        }
+}
 
 	/**
 	 * Method to replace this NodeInst with one of another type.
@@ -558,9 +550,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		}
 
 		// see if nodeinst is mirrored
-        if (getXSizeWithMirror() < 0) newXS *= -1;
-        if (getYSizeWithMirror() < 0) newYS *= -1;
-		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getAngle(), null, 0);
+		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getOrient(), null, 0);
+//        if (getXSizeWithMirror() < 0) newXS *= -1;
+//        if (getYSizeWithMirror() < 0) newYS *= -1;
+//		NodeInst newNi = NodeInst.newInstance(np, oldCenter, newXS, newYS, getParent(), getAngle(), null, 0);
 		if (newNi == null) return null;
 
 		// draw new node expanded if appropriate
@@ -770,7 +763,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 
 						// special case where the old arc must be deleted first so that the other node can move
 						ai.kill();
-						adjustThisNode.modifyInstance(dX, dY, 0, 0, 0);
+						adjustThisNode.move(dX, dY);
 						ArcInst newAi = ArcInst.newInstance(ai.getProto(), ai.getWidth(), newPortInst[ArcInst.HEADEND], newPortInst[ArcInst.TAILEND],
 							newPoint[ArcInst.HEADEND], newPoint[ArcInst.TAILEND], ai.getName(), 0);
 						if (newAi == null)
@@ -868,7 +861,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
-	/**
+    /**
+     * Returns persistent data of this NodeInst.
+     * @return persistent data of this NodeInst.
+     */
+    public ImmutableNodeInst getD() { return d; }
+    
+    /**
 	 * Low-level access method to link the NodeInst into its Cell.
 	 * @return true on error.
 	 */
@@ -901,44 +900,17 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	/**
 	 * Method to adjust this NodeInst by the specified deltas.
 	 * This method does not go through change control, and so should not be used unless you know what you are doing.
-	 * @param dX the change to the center X coordinate.
-	 * @param dY the change to the center Y coordinate.
-	 * @param dXSize the change to the X size.
-	 * @param dYSize the change to the Y size.
-	 * @param dRot the change to the rotation (in tenths of a degree).
+     * New persistent data may differ from old one only by anchor, size and orientation 
+	 * @param d the new persistent data of this NodeInst.
 	 */
-	public void lowLevelModify(double dX, double dY, double dXSize, double dYSize, int dRot)
+    public void lowLevelModify(ImmutableNodeInst d)
 	{
 		// remove from the R-Tree structure
 		if (parent != null)
 			parent.unLinkNode(this);
 
 		// make the change
-        if (dX != 0 || dY != 0)
-            d = d.withAnchor(new EPoint(getAnchorCenterX() + dX, getAnchorCenterY() + dY));
-        if (dXSize != 0 || dYSize != 0 || dRot != 0) {
-            double width, height;
-            boolean flipX, flipY;
-    		if (dXSize != 0) {
-                double newSX = DBMath.round(getXSizeWithMirror() + dXSize);
-                flipX = newSX < 0;
-                width = Math.abs(newSX);
-            } else {
-                flipX = isXMirrored();
-                width = getXSize();
-            }
-    		if (dYSize != 0) {
-                double newSY = DBMath.round(getYSizeWithMirror() + dYSize);
-                flipY = newSY < 0;
-                height = Math.abs(newSY);
-            } else {
-                flipY = isYMirrored();
-                height = getYSize();
-            }
-            if (flipX != d.orient.isXMirrored() || flipY != d.orient.isYMirrored() || dRot != 0)
-                d = d.withOrient(Orientation.fromJava(d.orient.getAngle() + dRot, flipX, flipY));
-            d = d.withSize(width, height);
-        }
+        this.d = d;
             
 		// fill in the Geometric fields
 		redoGeometric();
@@ -1022,7 +994,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
      * Method to return the Orientation of this NodeInst.
      * @return the Orientation of this NodeInst.
      */
-    public Orientation getOrientation() { return d.orient; }
+    public Orientation getOrient() { return d.orient; }
     
 	/**
 	 * Method to return the rotation angle of this NodeInst.
@@ -1052,28 +1024,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Method to return the X size of this NodeInst.
 	 * @return the X size of this NodeInst.
 	 */
-	public double getXSize() { return d.width; }
+	public double getXSize() { return protoType instanceof Cell ? protoType.getDefWidth() : d.width; }
 
 	/**
 	 * Method to return the Y size of this NodeInst.
 	 * @return the Y size of this NodeInst.
 	 */
-	public double getYSize() { return d.height; }
+	public double getYSize() { return protoType instanceof Cell ? protoType.getDefHeight() : d.height; }
 
-	/**
-	 * Method to return the X size of this NodeInst, including the mirroring factor.
-	 * When mirrored about Y, the X size is negated.
-	 * @return the X size of this NodeInst, including the mirroring factor.
-	 */
-	public double getXSizeWithMirror() { return d.orient.isXMirrored() ? -d.width : d.width; }
-
-	/**
-	 * Method to return the Y size of this NodeInst, including the mirroring factor.
-	 * When mirrored about X, the Y size is negated.
-	 * @return the Y size of this NodeInst, including the mirroring factor.
-	 */
-	public double getYSizeWithMirror() { return d.orient.isYMirrored() ? -d.height : d.height; }
-	
 	/**
 	 * Method to return whether NodeInst is mirrored about a 
 	 * horizontal line running through its center.
@@ -1104,7 +1062,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public boolean isYMirrored() { return d.orient.isYMirrored(); }
 
-	/**
+    /**
 	 * Method to return the bounds of this NodeInst.
 	 * TODO: dangerous to give a pointer to our internal field; should make a copy of visBounds
 	 * @return the bounds of this NodeInst.
@@ -1199,13 +1157,15 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			Cell subCell = (Cell)protoType;
 			Rectangle2D bounds = subCell.getBounds();
 			Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
-			AffineTransform trans = pureRotate(d.orient.getAngle(), isXMirrored(), isYMirrored());
+			AffineTransform trans = d.orient.pureRotate();
+//			AffineTransform trans = pureRotate(d.orient.getAngle(), isXMirrored(), isYMirrored());
 			trans.transform(shift, shift);
 			double cX = getAnchorCenterX(), cY = getAnchorCenterY();
 			cX -= shift.getX();
 			cY -= shift.getY();
 			Poly poly = new Poly(cX, cY, getXSize(), getYSize());
-			trans = rotateAbout(d.orient.getAngle(), cX, cY, getXSizeWithMirror(), getYSizeWithMirror());
+			trans = d.orient.rotateAbout(cX, cY);
+//			trans = d.rotateAbout(d.orient.getAngle(), cX, cY, getXSizeWithMirror(), getYSizeWithMirror());
 			poly.transform(trans);
 			visBounds.setRect(poly.getBounds2D());
 			return;
@@ -1530,78 +1490,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		return returnTransform;
 	}
 
-//	private static AffineTransform rotateTranspose = new AffineTransform();
-//	private static AffineTransform mirrorXcoord = new AffineTransform(-1, 0, 0, 1, 0, 0);
-//	private static AffineTransform mirrorYcoord = new AffineTransform(1, 0, 0, -1, 0, 0);
-
-	/**
-	 * Method to return a transformation that rotates an object about a point.
-	 * @param angle the amount to rotate (in tenth-degrees).
-	 * @param cX the center X coordinate about which to rotate.
-	 * @param cY the center Y coordinate about which to rotate.
-	 * @param sX the scale in X (negative to flip the X coordinate, or flip ABOUT the Y axis).
-	 * @param sY the scale in Y (negative to flip the Y coordinate, or flip ABOUT the X axis).
-	 * @return a transformation that rotates about that point.
-	 */
-	public static AffineTransform rotateAbout(int angle, double cX, double cY, double sX, double sY)
-	{
-//		AffineTransform transform = new AffineTransform();
-		boolean xMirrored = sX < 0 || sX == 0 && 1/sX < 0;
-		boolean yMirrored = sY < 0 || sY == 0 && 1/sY < 0;
-        return Orientation.fromJava(angle, xMirrored, yMirrored).rotateAbout(cX, cY);
-//		if (xMirrored || yMirrored)
-//		{
-//			// must do mirroring, so it is trickier
-//			rotateTranspose.setToRotation(angle * Math.PI / 1800.0);
-//			transform.setToTranslation(cX, cY);
-//			if (xMirrored) transform.concatenate(mirrorXcoord);
-//			if (yMirrored) transform.concatenate(mirrorYcoord);
-//			transform.concatenate(rotateTranspose);
-//			transform.translate(-cX, -cY);
-//		} else
-//		{
-//			transform.setToRotation(angle * Math.PI / 1800.0, cX, cY);
-//		}
-//		return transform;
-	}
-
-	/**
-	 * Method to return a transformation that rotates an object.
-	 * @param angle the amount to rotate (in tenth-degrees).
-	 * @param mirrorX true to flip the X coordinate, or flip ABOUT the Y axis).
-	 * @param mirrorY true to flip the Y coordinate, or flip ABOUT the X axis).
-	 * @return a transformation that rotates by this amount.
-	 */
-	public static AffineTransform pureRotate(int angle, boolean mirrorX, boolean mirrorY)
-	{
-        return Orientation.fromJava(angle, mirrorX, mirrorY).pureRotate();
-//		AffineTransform transform = new AffineTransform();
-//		transform.setToRotation(angle * Math.PI / 1800.0);
-//
-//		// add mirroring
-//		if (mirrorX) transform.preConcatenate(mirrorXcoord);
-//		if (mirrorY) transform.preConcatenate(mirrorYcoord);
-//		return transform;
-	}
-
-	/**
-	 * Method to return a transformation that rotates an object using old C-style notation.
-	 * @param angle the amount to rotate (in tenth-degrees).
-	 * @param transpose true to transpose about the diagonal after rotation.
-	 * @return a transformation that rotates by this amount.
-	 */
-	public static AffineTransform pureRotate(int angle, boolean transpose)
-	{
-        return Orientation.fromC(angle, transpose).pureRotate();
-//		boolean mirrorY = false;
-//		if (transpose)
-//		{
-//			mirrorY = true;
-//			angle = (angle + 900) % 3600;
-//		}
-//		return pureRotate(angle, false, mirrorY);
-	}
-
 	/**
 	 * Method to return a transformation that rotates the same as this NodeInst.
 	 * It transforms points on this NodeInst to account for the NodeInst's rotation.
@@ -1612,7 +1500,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public AffineTransform pureRotateOut()
 	{
         return d.orient.pureRotate();
-//		return pureRotate(d.orient.getAngle(), isXMirrored(), isYMirrored());
 	}
 
 	/**
@@ -1625,12 +1512,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public AffineTransform pureRotateIn()
 	{
         return d.orient.inverse().pureRotate();
-//		int numFlips = 0;
-//		if (isXMirrored()) numFlips++;
-//		if (isYMirrored()) numFlips++;
-//		int rotAngle = d.orient.getAngle();
-//		if (numFlips != 1) rotAngle = -rotAngle;
-//		return pureRotate(rotAngle, isXMirrored(), isYMirrored());
 	}
 
 	/**
@@ -1644,12 +1525,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public AffineTransform rotateIn()
 	{
         return d.orient.inverse().rotateAbout(getAnchorCenterX(), getAnchorCenterY());
-//		int numFlips = 0;
-//		if (isXMirrored()) numFlips++;
-//		if (isYMirrored()) numFlips++;
-//		int rotAngle = d.orient.getAngle();
-//		if (numFlips != 1) rotAngle = -rotAngle;
-//		return rotateAbout(rotAngle, getAnchorCenterX(), getAnchorCenterY(), getXSizeWithMirror(), getYSizeWithMirror());
 	}
 
 	/**
@@ -1684,7 +1559,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public AffineTransform rotateOut()
 	{
         return d.orient.rotateAbout(getAnchorCenterX(), getAnchorCenterY());
-//		return rotateAbout(d.orient.getAngle(), getAnchorCenterX(), getAnchorCenterY(), getXSizeWithMirror(), getYSizeWithMirror());
 	}
 
 	/**
@@ -1697,7 +1571,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public AffineTransform rotateOutAboutTrueCenter()
 	{
         return d.orient.rotateAbout(getTrueCenterX(), getTrueCenterY());
-//		return rotateAbout(d.orient.getAngle(), getTrueCenterX(), getTrueCenterY(), getXSizeWithMirror(), getYSizeWithMirror());
 	}
 
 	/**
@@ -1871,14 +1744,19 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		double newCY = (lY + hY) / 2;
 		double newSX = hX - lX;
 		double newSY = hY - lY;
-		for(int i=0; i<points.length; i++)
-			points[i].setLocation(points[i].getX() - newCX, points[i].getY() - newCY);
-
+        EPoint[] newPoints = new EPoint[points.length];
+        for (int i = 0; i < newPoints.length; i++)
+            newPoints[i] = new EPoint(points[i].getX() - newCX, points[i].getY() - newCY);
+//        for(int i=0; i<points.length; i++)
+//            points[i].setLocation(points[i].getX() - newCX, points[i].getY() - newCY);
+//
 		// update the points
-		newVar(NodeInst.TRACE, points);
+		newVar(NodeInst.TRACE, newPoints);
         // Force instance to have IDENT Orientation
-		modifyInstance(newCX-getAnchorCenterX(),newCY-getAnchorCenterY(), newSX-getXSizeWithMirror(),
-			newSY-getYSizeWithMirror(), -getAngle());
+		modifyInstance(newCX-getAnchorCenterX(),newCY-getAnchorCenterY(), newSX-getXSize(),
+			newSY-getYSize(), getOrient().inverse());
+//		modifyInstance(newCX-getAnchorCenterX(),newCY-getAnchorCenterY(), newSX-getXSizeWithMirror(),
+//			newSY-getYSizeWithMirror(), -getAngle());
 	}
 
 	/**
@@ -2465,7 +2343,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public void checkPossibleVariableEffects(Variable.Key key)
 	{
 		if (key == Artwork.ART_DEGREES || key == TRACE)
-			lowLevelModify(0, 0, 0, 0, 0);
+			lowLevelModify(getD());
 	}
 
 	/**
@@ -2897,63 +2775,46 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		double width = getXSize();
 		double height = getYSize();
 		String sizeMsg = null;
-		if (protoType instanceof Cell)
-		{
-			// make sure the instance is the same size as the cell
-			Rectangle2D bounds = ((Cell)protoType).getBounds();
-			width = DBMath.round(bounds.getWidth());
-			height = DBMath.round(bounds.getHeight());
-			if (width != getXSize() || height != getYSize())
-				sizeMsg = ", but prototype is ";
-		} else
-		{
-			PrimitiveNode pn = (PrimitiveNode)protoType;
-            if (pn.getTechnology().cleanUnusedNodesInLibrary(this, list))
+		if (protoType instanceof Cell) return 0;
+        PrimitiveNode pn = (PrimitiveNode)protoType;
+        if (pn.getTechnology().cleanUnusedNodesInLibrary(this, list)) {
+            if (errorLogger != null) {
+                String msg = "Prototype of node " + getName() + " is unused";
+                ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
+                error.addGeom(this, true, parent, null);
+            }
+            if (list != null) // doesn't do anything when checkAndRepair is called during reading
             {
-                if (errorLogger != null)
-                {
-                    String msg = "Prototype of node " + getName() + " is unused";
+                if (repair) list.add(this);
+                // This counts as 1 error, ignoring other errors
+                return 1;
+            }
+        }
+        if (getTrace() != null) {
+            if (pn.isHoldsOutline()) {
+                Rectangle2D bounds = new Rectangle2D.Double();
+                Poly[] polys = pn.getTechnology().getShapeOfNode(this);
+                for (int i = 0; i < polys.length; i++) {
+                    Poly poly = polys[i];
+                    if (i == 0)
+                        bounds.setRect(poly.getBounds2D());
+                    else
+                        Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
+                }
+                width = DBMath.round(bounds.getWidth());
+                height = DBMath.round(bounds.getHeight());
+                if (width != getXSize() || height != getYSize())
+                    sizeMsg = " but has outline of size ";
+            } else {
+                String msg = parent + ", " + this + " has unexpected outline";
+                System.out.println(msg);
+                if (errorLogger != null) {
                     ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
                     error.addGeom(this, true, parent, null);
                 }
-                if (list != null) // doesn't do anything when checkAndRepair is called during reading
-                {
-                    if (repair) list.add(this);
-                    // This counts as 1 error, ignoring other errors
-                    return 1;
-                }
+                if (repair)
+                    delVar(TRACE);
             }
-			if (getTrace() != null)
-			{
-				if (pn.isHoldsOutline())
-				{
-					Rectangle2D bounds = new Rectangle2D.Double();
-					Poly[] polys = pn.getTechnology().getShapeOfNode(this);
-					for (int i = 0; i < polys.length; i++)
-					{
-						Poly poly = polys[i];
-						if (i == 0)
-							bounds.setRect(poly.getBounds2D());
-						else
-							Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
-					}
-					width = DBMath.round(bounds.getWidth());
-					height = DBMath.round(bounds.getHeight());
-					if (width != getXSize() || height != getYSize())
-						sizeMsg = " but has outline of size ";
-				} else
-				{
-					String msg = parent + ", " + this + " has unexpected outline";
-					System.out.println(msg);
-					if (errorLogger != null)
-					{
-						ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
-						error.addGeom(this, true, parent, null);
-					}
-					if (repair)
-						delVar(TRACE);
-				}
-			}
 		}
 		if (sizeMsg != null)
 		{
@@ -3213,7 +3074,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public void setTechSpecific(int value) {
         checkChanging();
         d = d.withUserBits((d.userBits & ~ImmutableNodeInst.NTECHBITS) | (value << ImmutableNodeInst.NTECHBITSSH) & ImmutableNodeInst.NTECHBITS);
-        Undo.otherChange(this); 
+        if (parent != null) Undo.otherChange(this); 
     }
 
 	/**
@@ -3253,34 +3114,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		double maxY = Math.max(ll.getY(), ur.getY());
 		return new Rectangle2D.Double(minX, minY, maxX-minX, maxY-minY);
 	}
-
-	/**
-	 * Method to set a timestamp for constraint propagation on this NodeInst.
-	 * This is used by the Layout constraint system.
-	 * @param changeClock the timestamp for constraint propagation.
-	 */
-	public void setChangeClock(int changeClock) { this.changeClock = changeClock; }
-
-	/**
-	 * Method to get the timestamp for constraint propagation on this NodeInst.
-	 * This is used by the Layout constraint system.
-	 * @return the timestamp for constraint propagation on this NodeInst.
-	 */
-	public int getChangeClock() { return changeClock; }
-
-	/**
-	 * Method to set a Change object on this NodeInst.
-	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
-	 * @param change the Change object to be set on this NodeInst.
-	 */
-	public void setChange(Undo.Change change) { this.change = change; }
-
-	/**
-	 * Method to get the Change object on this NodeInst.
-	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
-	 * @return the Change object on this NodeInst.
-	 */
-	public Undo.Change getChange() { return change; }
 
     /**
      * This function is to compare NodeInst elements. Initiative CrossLibCopy

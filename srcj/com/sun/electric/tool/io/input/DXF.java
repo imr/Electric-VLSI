@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
@@ -233,7 +234,9 @@ public class DXF extends Input
 					if (found == null) return true;
 				}
 				Rectangle2D bounds = found.getBounds();
-				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(fr.x, fr.y), bounds.getWidth(), bounds.getHeight(), fr.parent, fr.rot*10, null, 0);
+                Orientation orient = Orientation.fromAngle(fr.rot*10);
+				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(fr.x, fr.y), bounds.getWidth(), bounds.getHeight(), fr.parent, orient, null, 0);
+//				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(fr.x, fr.y), bounds.getWidth(), bounds.getHeight(), fr.parent, fr.rot*10, null, 0);
 				if (ni == null) return true;
 				ni.setExpanded();
 			}
@@ -692,7 +695,9 @@ public class DXF extends Input
 		if (!isAcceptableLayer(layer)) return false;
 		if (sAngle >= 360.0) sAngle -= 360.0;
 		int iAngle = (int)(sAngle * 10.0);
-		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, curCell, iAngle%3600, null, 0);
+		Orientation orient = Orientation.fromAngle(iAngle);
+		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, curCell, orient, null, 0);
+//		NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x, y), rad*2, rad*2, curCell, iAngle%3600, null, 0);
 		if (ni == null) return true;
 		if (sAngle > eAngle) eAngle += 360.0;
 		double startOffset = sAngle;
@@ -829,7 +834,9 @@ public class DXF extends Input
 				}
 				double sX = found.getDefWidth();
 				double sY = found.getDefHeight();
-				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(x, y), sX, sY, curCell, rot*10, null, 0);
+                Orientation orient = Orientation.fromAngle(rot*10);
+				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(x, y), sX, sY, curCell, orient, null, 0);
+//				NodeInst ni = NodeInst.makeInstance(found, new Point2D.Double(x, y), sX, sY, curCell, rot*10, null, 0);
 				if (ni == null) return true;
 				ni.setExpanded();
 			}
@@ -993,7 +1000,9 @@ public class DXF extends Input
 							sA = sA * 1800.0 / Math.PI;
 							int iAngle = (int)sA;
 							double rad = new Point2D.Double(cX, cY).distance(new Point2D.Double(x1, y1));
-							NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY), rad*2, rad*2, curCell, iAngle, null, 0);
+                            Orientation orient = Orientation.fromAngle(iAngle);
+							NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY), rad*2, rad*2, curCell, orient, null, 0);
+//							NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(cX, cY), rad*2, rad*2, curCell, iAngle, null, 0);
 							if (ni == null) return true;
 							double startOffset = sA;
 							startOffset -= iAngle;
@@ -1053,7 +1062,9 @@ public class DXF extends Input
 
 						// create the arc node
 						int iAngle = (int)sA;
-						NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x1, y1), rad*2, rad*2, curCell, iAngle%3600, null, 0);
+                        Orientation orient = Orientation.fromAngle(iAngle);
+						NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x1, y1), rad*2, rad*2, curCell, orient, null, 0);
+//						NodeInst ni = NodeInst.makeInstance(Artwork.tech.circleNode, new Point2D.Double(x1, y1), rad*2, rad*2, curCell, iAngle%3600, null, 0);
 						if (ni == null) return true;
 						if (sA > eA) eA += 3600.0;
 						double startOffset = sA;
@@ -1327,7 +1338,9 @@ public class DXF extends Input
 	private boolean extractInsert(Cell onp, double x, double y, double xSca, double ySca, int rot, Cell np)
 	{
 		// rotate "rot*10" about point [(onp->lowx+onp->highx)/2+x, (onp->lowy+onp->highy)/2+y]
-		AffineTransform trans = NodeInst.pureRotate(rot*10, false, false);
+        Orientation orient = Orientation.fromAngle(rot*10);
+        AffineTransform trans = orient.pureRotate();
+//		AffineTransform trans = NodeInst.pureRotate(rot*10, false, false);
 		double m00 = trans.getScaleX();
 		double m01 = trans.getShearX();
 		double m11 = trans.getScaleY();
@@ -1355,9 +1368,10 @@ public class DXF extends Input
 			double cY = y + ni.getAnchorCenterY() * ySca;
 			Point2D tPt = new Point2D.Double(cX, cY);
 			trans.transform(tPt, tPt);
-			if (ni.isXMirrored()) sX = -sX;
-			if (ni.isYMirrored()) sY = -sY;
-			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), tPt, sX, sY, np, (ni.getAngle()+rot*10)%3600, null, 0);
+			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), tPt, sX, sY, np, orient.concatenate(ni.getOrient()), null, 0);
+//			if (ni.isXMirrored()) sX = -sX;
+//			if (ni.isYMirrored()) sY = -sY;
+//			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), tPt, sX, sY, np, (ni.getAngle()+rot*10)%3600, null, 0);
 			if (nNi == null) return true;
 			if (ni.getProto() == Artwork.tech.closedPolygonNode || ni.getProto() == Artwork.tech.filledPolygonNode ||
 				ni.getProto() == Artwork.tech.openedPolygonNode || ni.getProto() == Artwork.tech.openedDashedPolygonNode)
@@ -1425,7 +1439,9 @@ public class DXF extends Input
 				return null;
 			}
 			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), ni.getAnchorCenter(),
-				ni.getXSizeWithMirror()*xSca, ni.getYSizeWithMirror()*ySca, np, ni.getAngle(), null, 0);
+				ni.getXSize()*xSca, ni.getYSize()*ySca, np, ni.getOrient(), null, 0);
+//			NodeInst nNi = NodeInst.makeInstance(ni.getProto(), ni.getAnchorCenter(),
+//				ni.getXSizeWithMirror()*xSca, ni.getYSizeWithMirror()*ySca, np, ni.getAngle(), null, 0);
 			if (nNi == null) return null;
 			if (ni.getProto() == Artwork.tech.closedPolygonNode || ni.getProto() == Artwork.tech.filledPolygonNode ||
 				ni.getProto() == Artwork.tech.openedPolygonNode || ni.getProto() == Artwork.tech.openedDashedPolygonNode)

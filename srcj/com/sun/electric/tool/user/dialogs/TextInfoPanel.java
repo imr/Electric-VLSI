@@ -616,14 +616,16 @@ public class TextInfoPanel extends javax.swing.JPanel
                 NodeInst ni = (NodeInst)owner;
                 if (position == TextDescriptor.Position.BOXED) {
                     // set the boxed size
-                    ni.modifyInstance(0, 0, boxedWidth-ni.getXSize(),
-                            boxedHeight-ni.getYSize(), 0);
-                } else {
+                    ni.resize(boxedWidth-ni.getXSize(), boxedHeight-ni.getYSize());
+//                    ni.modifyInstance(0, 0, boxedWidth-ni.getXSize(),
+//                            boxedHeight-ni.getYSize(), 0);
+//                } else {
                     // make invisible pin zero size if no longer boxed
                     if (ni.getProto() == Generic.tech.invisiblePinNode) {
                         if (ni.getXSize() != 0 || ni.getYSize() != 0) {
                             // no longer boxed: make it zero size
-                            ni.modifyInstance(0, 0, -ni.getXSize(), -ni.getYSize(), 0);
+                            ni.resize(-ni.getXSize(), -ni.getYSize());
+//                            ni.modifyInstance(0, 0, -ni.getXSize(), -ni.getYSize(), 0);
                         }
                     }
                 }
@@ -638,7 +640,7 @@ public class TextInfoPanel extends javax.swing.JPanel
                 if (ni.getProto() == Generic.tech.invisiblePinNode) {
                     double dX = xoffset - ni.getAnchorCenterX();
                     double dY = yoffset - ni.getAnchorCenterY();
-                    ni.modifyInstance(dX, dY, 0, 0, 0);
+                    ni.move(dX, dY);
                 } else td.setOff(xoffset, yoffset);
             } else {
             	if (unTransformNi != null)

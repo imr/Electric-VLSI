@@ -1,18 +1,14 @@
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
-import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.geometry.Dimension2D;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.technologies.Schematics;
 
 import java.util.List;
@@ -107,8 +103,9 @@ public class EDIFEquiv {
         if (equiv == null) return connPoint;
         PortEquivalence pe = equiv.getPortEquivElec(pi.getPortProto().getName());
         if (pe == null) return connPoint;
-        AffineTransform af2 = NodeInst.pureRotate(ni.getAngle()-(equiv.rotation*10),
-                ni.isMirroredAboutYAxis(), ni.isMirroredAboutXAxis());
+        AffineTransform af2 = ni.getOrient().concatenate(Orientation.fromAngle(-equiv.rotation*10)).pureRotate();
+//        AffineTransform af2 = NodeInst.pureRotate(ni.getAngle()-(equiv.rotation*10),
+//                ni.isMirroredAboutYAxis(), ni.isMirroredAboutXAxis());
         return pe.translateElecToExt(connPoint, af2);
     }
 
@@ -136,8 +133,9 @@ public class EDIFEquiv {
         if (orientation.indexOf("R270") != -1) angle = 2700;
         if (orientation.indexOf("MX") != -1) mirroredAboutXAxis = true;
         if (orientation.indexOf("MY") != -1) mirroredAboutYAxis = true;
-        AffineTransform af2 = NodeInst.pureRotate(angle+(equiv.rotation*10),
-                mirroredAboutYAxis, mirroredAboutXAxis);
+        Orientation orient = Orientation.fromJava(angle, mirroredAboutYAxis, mirroredAboutXAxis);
+        orient = orient.concatenate(Orientation.fromAngle(equiv.rotation*10));
+        AffineTransform af2 = orient.pureRotate();
         return pe.translateExtToElec(connPoint, af2);
     }
 

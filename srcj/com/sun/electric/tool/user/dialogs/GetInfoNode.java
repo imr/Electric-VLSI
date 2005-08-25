@@ -28,6 +28,7 @@ import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.NodeProto;
@@ -334,8 +335,10 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 		initialName = ni.getName();
 		initialXPos = ni.getAnchorCenterX();
 		initialYPos = ni.getAnchorCenterY();
-        double initXSize = ni.getXSizeWithMirror();
-        double initYSize = ni.getYSizeWithMirror();
+        double initXSize = ni.getXSize();
+        double initYSize = ni.getYSize();
+//        double initXSize = ni.getXSizeWithMirror();
+//        double initYSize = ni.getYSizeWithMirror();
         initialRotation = ni.getAngle();
         swapXY = false;
         if (initialRotation == 900 || initialRotation == 2700) swapXY = true;
@@ -344,19 +347,25 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
         name.setText(initialName);
         xPos.setText(TextUtils.formatDouble(initialXPos));
         yPos.setText(TextUtils.formatDouble(initialYPos));
-        boolean realMirrorX = (initXSize < 0);
-        boolean realMirrorY = (initYSize < 0);
+        boolean realMirrorX = ni.isXMirrored();
+        boolean realMirrorY = ni.isYMirrored();
+//        boolean realMirrorX = (initXSize < 0);
+//        boolean realMirrorY = (initYSize < 0);
         SizeOffset so = ni.getSizeOffset();
         if (swapXY)
         {
-            xSize.setText(TextUtils.formatDouble(Math.abs(initYSize) - so.getLowYOffset() - so.getHighYOffset()));
-            ySize.setText(TextUtils.formatDouble(Math.abs(initXSize) - so.getLowXOffset() - so.getHighXOffset()));
+            xSize.setText(TextUtils.formatDouble(initYSize - so.getLowYOffset() - so.getHighYOffset()));
+            ySize.setText(TextUtils.formatDouble(initXSize - so.getLowXOffset() - so.getHighXOffset()));
+//            xSize.setText(TextUtils.formatDouble(Math.abs(initYSize) - so.getLowYOffset() - so.getHighYOffset()));
+//            ySize.setText(TextUtils.formatDouble(Math.abs(initXSize) - so.getLowXOffset() - so.getHighXOffset()));
             initialMirrorX = realMirrorY;
             initialMirrorY = realMirrorX;
         } else
         {
-            xSize.setText(TextUtils.formatDouble(Math.abs(initXSize) - so.getLowXOffset() - so.getHighXOffset()));
-            ySize.setText(TextUtils.formatDouble(Math.abs(initYSize) - so.getLowYOffset() - so.getHighYOffset()));
+            xSize.setText(TextUtils.formatDouble(initXSize - so.getLowXOffset() - so.getHighXOffset()));
+            ySize.setText(TextUtils.formatDouble(initYSize - so.getLowYOffset() - so.getHighYOffset()));
+//            xSize.setText(TextUtils.formatDouble(Math.abs(initXSize) - so.getLowXOffset() - so.getHighXOffset()));
+//            ySize.setText(TextUtils.formatDouble(Math.abs(initYSize) - so.getLowYOffset() - so.getHighYOffset()));
             initialMirrorX = realMirrorX;
             initialMirrorY = realMirrorY;
         }
@@ -1102,9 +1111,16 @@ public class GetInfoNode extends EDialog implements HighlightListener, DatabaseC
 				!DBMath.doublesEqual(currentYSize, initYSize) ||
 				currentRotation != dialog.initialRotation || changed)
 			{
+                Orientation orient = Orientation.fromJava(currentRotation,
+                        currentXSize < 0 || currentXSize == 0 && 1/currentXSize < 0,
+                        currentYSize < 0 || currentYSize == 0 && 1/currentYSize < 0);
+                orient = orient.concatenate(ni.getOrient().inverse());
 				ni.modifyInstance(DBMath.round(currentXPos - dialog.initialXPos), DBMath.round(currentYPos - dialog.initialYPos),
-					DBMath.round(currentXSize - initXSize), DBMath.round(currentYSize - initYSize),
-					currentRotation - dialog.initialRotation);
+					DBMath.round(Math.abs(currentXSize) - Math.abs(initXSize)),
+                    DBMath.round(Math.abs(currentYSize) - Math.abs(initYSize)), orient);
+//				ni.modifyInstance(DBMath.round(currentXPos - dialog.initialXPos), DBMath.round(currentYPos - dialog.initialYPos),
+//					DBMath.round(currentXSize - initXSize), DBMath.round(currentYSize - initYSize),
+//					currentRotation - dialog.initialRotation);
 				dialog.initialXPos = currentXPos;
 				dialog.initialYPos = currentYPos;
 				dialog.initialXSize = dialog.xSize.getText();

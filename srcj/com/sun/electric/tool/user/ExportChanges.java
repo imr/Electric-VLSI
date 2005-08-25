@@ -1287,8 +1287,10 @@ public final class ExportChanges
 	    				}
 
 	    				// presume that the cells have the same coordinate system
-	    				NodeInst ni = NodeInst.makeInstance(oNi.getProto(), oNi.getAnchorCenter(), oNi.getXSizeWithMirror(), oNi.getYSizeWithMirror(),
-	    					np, oNi.getAngle(), oNi.getName(), oNi.getTechSpecific());
+	    				NodeInst ni = NodeInst.makeInstance(oNi.getProto(), oNi.getAnchorCenter(), oNi.getXSize(), oNi.getYSize(),
+	    					np, oNi.getOrient(), oNi.getName(), oNi.getTechSpecific());
+//	    				NodeInst ni = NodeInst.makeInstance(oNi.getProto(), oNi.getAnchorCenter(), oNi.getXSizeWithMirror(), oNi.getYSizeWithMirror(),
+//	    					np, oNi.getAngle(), oNi.getName(), oNi.getTechSpecific());
 	    				if (ni == null) continue;
 	    				PortInst pi = ni.findPortInstFromProto(oPp.getOriginalPort().getPortProto());
 	    				pp = Export.newInstance(np, pi, oPp.getName());

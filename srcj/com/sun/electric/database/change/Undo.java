@@ -23,7 +23,9 @@
  */
 package com.sun.electric.database.change;
 
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.constraint.Constraints;
+import com.sun.electric.database.constraint.Layout;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -38,6 +40,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.Highlighter;
@@ -45,7 +48,6 @@ import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -88,16 +90,12 @@ public class Undo
 		/** Describes a changed Export. */									public static final Type EXPORTMOD = new Type("ExportMod");
 		/** Describes a newly-created Cell. */								public static final Type CELLNEW = new Type("CellNew");
 		/** Describes a deleted Cell. */									public static final Type CELLKILL = new Type("CellKill");
-		/** Describes a changed Cell. */									public static final Type CELLMOD = new Type("CellMod");
 		/** Describes the creation of an arbitrary object. */				public static final Type OBJECTNEW = new Type("ObjectNew");
 		/** Describes the deletion of an arbitrary object. */				public static final Type OBJECTKILL = new Type("ObjectKill");
 		/** Describes the renaming of an arbitrary object. */				public static final Type OBJECTRENAME = new Type("ObjectRename");
 		/** Describes the redrawing of an arbitrary object. */				public static final Type OBJECTREDRAW = new Type("ObjectRedraw");
 		/** Describes the creation of a Variable on an object. */			public static final Type VARIABLENEW = new Type("VariableNew");
 		/** Describes the deletion of a Variable on an object. */			public static final Type VARIABLEKILL = new Type("VariableKill");
-		/** Describes the modification of a Variable on an object. */		public static final Type VARIABLEMOD = new Type("VariableMod");
-		/** Describes the insertion of an entry in an arrayed Variable. */	public static final Type VARIABLEINSERT = new Type("VariableInsert");
-		/** Describes the deletion of an entry in an arrayed Variable. */	public static final Type VARIABLEDELETE = new Type("VariableDelete");
 		/** Describes the change to a TextDescriptor. */					public static final Type DESCRIPTORMOD = new Type("DescriptMod");
 		/** Describes a new library change */								public static final Type LIBRARYNEW = new Type("LibraryNew");
 		/** Describes a delete library change */							public static final Type LIBRARYKILL = new Type("LibraryKill");
@@ -254,7 +252,7 @@ public class Undo
 				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
-					listener.modifyNodeInst((NodeInst)obj, a1, a2, a3, a4, i1);
+					listener.modifyNodeInst((NodeInst)obj, (ImmutableNodeInst)o1);
 				}
 			} else if (type == Type.ARCINSTMOD)
 			{
@@ -269,13 +267,6 @@ public class Undo
 				{
 					Listener listener = (Listener)it.next();
 					listener.modifyExport((Export)obj, (PortInst)o1);
-				}
-			} else if (type == Type.CELLMOD)
-			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
-				{
-					Listener listener = (Listener)it.next();
-					listener.modifyCell((Cell)obj, a1, a2, a3, a4);
 				}
 			} else if (type == Type.CELLGROUPMOD)
 			{
@@ -297,27 +288,6 @@ public class Undo
 				{
 					Listener listener = (Listener)it.next();
 					listener.killVariable(obj, (Variable)o1);
-				}
-			} else if (type == Type.VARIABLEMOD)
-			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
-				{
-					Listener listener = (Listener)it.next();
-					listener.modifyVariable(obj, (Variable)o1, i1, o2);
-				}
-			} else if (type == Type.VARIABLEINSERT)
-			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
-				{
-					Listener listener = (Listener)it.next();
-					listener.insertVariable(obj, (Variable)o1, i1);
-				}
-			} else if (type == Type.VARIABLEDELETE)
-			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
-				{
-					Listener listener = (Listener)it.next();
-					listener.deleteVariable(obj, (Variable)o1, i1, o2);
 				}
 			} else if (type == Type.DESCRIPTORMOD)
 			{
@@ -358,48 +328,13 @@ public class Undo
 			{
 				// get information about the node as it is now
 				NodeInst ni = (NodeInst)obj;
-				double oldCX = ni.getAnchorCenterX();
-				double oldCY = ni.getAnchorCenterY();
-				double oldSX = ni.getXSizeWithMirror();
-				double oldSY = ni.getYSizeWithMirror();
-				int oldRot = ni.getAngle();
+                ImmutableNodeInst oldD = ni.getD();
 
 				// change the node information
-				ni.lowLevelModify(a1 - oldCX, a2 - oldCY, a3 - oldSX, a4 - oldSY, i1 - oldRot);
-
-				/*
-				 * Hack here because of the nature of changes in Java Electric
-				 * (was not necessary in C Electric and will not be necessary in the transactional database).
-				 * 
-				 * The problem is that when a change is made to a node or arc inside of a cell, it may
-				 * affect the size of the cell, which will affect the size of instances of that cell,
-				 * farther up the hierarchy.
-				 * The layout constraint system detects this and issues changes for the instance sizes.
-				 * But these changes are issued AFTER the cell contents have changed.
-				 * That order is fine for the original change, but not for an undo of the change.
-				 * When undoing the change, the changes are issued in the reverse order, and so
-				 * the cell instances are resized first, followed by the nodes and arcs inside of the cell.
-				 * This was not a problem in C Electric, where all size information was defined on the instance
-				 * of the cell.  But in Java Electric, the cell bounds and cell center are used to determine
-				 * the instance location.  This information is inconsistent at the time that the instances
-				 * are resized (before the cell contents are corrected).  Therefore, the instances become inconsistent.
-				 * 
-				 * The solution (really, hack) is to re-evaluate all instance sizes whenever any contents change.
-				 * This is inefficient (and so is only done during an "undo"...it is not necessary during "redo").
-				 */
-				if (backwards)
-				{
-					for(Iterator it = ni.getParent().getInstancesOf(); it.hasNext(); )
-					{
-						NodeInst superNi = (NodeInst)it.next();
-						superNi.lowLevelModify(0, 0, 0, 0, 0);
-					}
-				}
+				ni.lowLevelModify((ImmutableNodeInst)o1);
 
 				// update the change to its reversed state
-				a1 = oldCX;   a2 = oldCY;
-				a3 = oldSX;   a4 = oldSY;
-				i1 = oldRot;
+				o1 = oldD;
 				return;
 			}
 			if (type == Type.ARCINSTNEW)
@@ -429,16 +364,6 @@ public class Undo
 
 				// change the arc information
 				ai.lowLevelModify(a5 - oldWid, a1-oldHeadPt.getX(), a2-oldHeadPt.getY(), a3-oldTailPt.getX(), a4-oldTailPt.getY());
-
-				// Hack...see the comment in the NODEINSTMOD case above
-				if (backwards)
-				{
-					for(Iterator it = ai.getParent().getInstancesOf(); it.hasNext(); )
-					{
-						NodeInst superNi = (NodeInst)it.next();
-						superNi.lowLevelModify(0, 0, 0, 0, 0);
-					}
-				}
 
 				// update the change to its reversed state
 				a1 = oldHeadPt.getX();   a2 = oldHeadPt.getY();
@@ -491,14 +416,6 @@ public class Undo
 				Cell.CellGroup oldGroup = (Cell.CellGroup)o1;
 				o1 = cell.getCellGroup();
 				cell.lowLevelSetCellGroup(oldGroup);
-				return;
-			}
-			if (type == Type.CELLMOD)
-			{
-				Cell cell = (Cell)obj;
-				Rectangle2D bounds = cell.getBounds();
-				a1 = bounds.getMinX();   a2 = bounds.getMaxX();
-				a3 = bounds.getMinY();   a4 = bounds.getMaxY();
 				return;
 			}
 			if (type == Type.OBJECTNEW)
@@ -593,32 +510,6 @@ public class Undo
 				type = Type.VARIABLENEW;
 				return;
 			}
-			if (type == Type.VARIABLEMOD)
-			{
-				Variable var = (Variable)o1;
-				Object[] arr = (Object[])var.getObject();
-				Object oldVal = arr[i1];
-				arr[i1] = o2;
-				o2 = oldVal;
-				obj.lowLevelModVar(var);
-				return;
-			}
-			if (type == Type.VARIABLEINSERT)
-			{
-				Variable var = (Variable)o1;
-				Object[] oldArr = (Object[])var.getObject();
-				o2 = oldArr[i1];
-				var.lowLevelDelete(i1);
-				type = Type.VARIABLEDELETE;
-				return;
-			}
-			if (type == Type.VARIABLEDELETE)
-			{
-				Variable var = (Variable)o1;
-				var.lowLevelInsert(i1, o2);
-				type = Type.VARIABLEINSERT;
-				return;
-			}
 			if (type == Type.DESCRIPTORMOD)
 			{
                 String varName = (String)o1;
@@ -664,7 +555,7 @@ public class Undo
 				cell = (Cell)obj;
 				lib = cell.getLibrary();
 				major = true;
-			} else if (type == Type.CELLMOD || type == Type.CELLGROUPMOD)
+			} else if (type == Type.CELLGROUPMOD)
 			{
 				cell = (Cell)obj;
 				lib = cell.getLibrary();
@@ -687,8 +578,7 @@ public class Undo
 					}
 				}
 				major = true;   // this is major change for the library (E.g.: export names)
-			} else if (type == Type.VARIABLENEW || type == Type.VARIABLEKILL || type == Type.VARIABLEMOD ||
-				type == Type.VARIABLEINSERT || type == Type.VARIABLEDELETE)
+			} else if (type == Type.VARIABLENEW || type == Type.VARIABLEKILL)
 			{
 				cell = obj.whichCell();
 				if (cell != null) lib = cell.getLibrary();
@@ -752,10 +642,11 @@ public class Undo
 			if (type == Type.NODEINSTMOD)
 			{
 				NodeInst ni = (NodeInst)obj;
+                ImmutableNodeInst d = (ImmutableNodeInst)getO1();
 				return ni + " modified in " + ni.getParent() +
-					"[was " + getA3() + "x" + getA4() + " at (" + getA1() + "," + getA2() + ") rotated " + getI1()/10.0 + ", is " +
-					ni.getXSizeWithMirror() + "x" + ni.getYSizeWithMirror() + " at (" + ni.getAnchorCenterX() + "," +
-					ni.getAnchorCenterY() + ") rotated " + ni.getAngle()/10.0 + "]";
+					"[was " + d.width + "x" + d.height + " at (" + d.anchor.getX() + "," + d.anchor.getY() + ") rotated " + d.orient + ", is " +
+					ni.getXSize() + "x" + ni.getYSize() + " at (" + ni.getAnchorCenterX() + "," +
+					ni.getAnchorCenterY() + ") rotated " + ni.getOrient() + "]";
 			}
 			if (type == Type.ARCINSTNEW)
 			{
@@ -800,11 +691,6 @@ public class Undo
 				Cell cell = (Cell)obj;
 				return cell + " deleted";
 			}
-			if (type == Type.CELLMOD)
-			{
-				Cell cell = (Cell)obj;
-				return cell + " modified (was from " + a1 + "<=X<=" + a2 + " " + a3 + "<=Y<=" + a4 + ")";
-			}
 			if (type == Type.CELLGROUPMOD)
 			{
 				Cell cell = (Cell)obj;
@@ -834,18 +720,6 @@ public class Undo
 			if (type == Type.VARIABLEKILL)
 			{
 				return "Deleted variable "+o1+" on "+obj+" [was "+((Variable)o1).getObject()+"]";
-			}
-			if (type == Type.VARIABLEMOD)
-			{
-				return "Modified variable "+o1+"["+i1+"] on "+obj;
-			}
-			if (type == Type.VARIABLEINSERT)
-			{
-				return "Inserted variable "+o1+" on "+obj;
-			}
-			if (type == Type.VARIABLEDELETE)
-			{
-				return "Deleted variable "+o1+" on "+obj;
 			}
 			if (type == Type.DESCRIPTORMOD)
 			{
@@ -917,15 +791,13 @@ public class Undo
 				} else if (ch.getType() == Type.EXPORTNEW || ch.getType() == Type.EXPORTKILL || ch.getType() == Type.EXPORTMOD)
 				{
 					export++;
-				} else if (ch.getType() == Type.CELLNEW || ch.getType() == Type.CELLKILL || ch.getType() == Type.CELLMOD || ch.getType() == Type.CELLGROUPMOD)
+				} else if (ch.getType() == Type.CELLNEW || ch.getType() == Type.CELLKILL || ch.getType() == Type.CELLGROUPMOD)
 				{
 					cell++;
 				} else if (ch.getType() == Type.OBJECTNEW || ch.getType() == Type.OBJECTKILL || ch.getType() == Type.OBJECTREDRAW)
 				{
 					object++;
-				} else if (ch.getType() == Type.VARIABLENEW || ch.getType() == Type.VARIABLEKILL ||
-					ch.getType() == Type.VARIABLEMOD || ch.getType() == Type.VARIABLEINSERT ||
-					ch.getType() == Type.VARIABLEDELETE)
+				} else if (ch.getType() == Type.VARIABLENEW || ch.getType() == Type.VARIABLEKILL)
 				{
 					variable++;
 				} else if (ch.getType() == Type.DESCRIPTORMOD)
@@ -1226,7 +1098,7 @@ public class Undo
 	 * <UL>
 	 * <LI>NODEINSTNEW takes nothing.
 	 * <LI>NODEINSTKILL takes nothing.
-	 * <LI>NODEINSTMOD takes a1=oldLX a2=oldHX a3=oldLY a4=oldHY i1=oldRotation.
+	 * <LI>NODEINSTMOD takes o1=oldD.
 	 * <LI>ARCINSTNEW takes nothing.
 	 * <LI>ARCINSTKILL takes nothing.
 	 * <LI>ARCINSTMOD takes a1=oldHeadX a2=oldHeadY a3=oldTailX a4=oldTailY a5=oldWidth.
@@ -1235,16 +1107,12 @@ public class Undo
 	 * <LI>EXPORTMOD takes o1=oldPortInst.
 	 * <LI>CELLNEW takes nothing.
 	 * <LI>CELLKILL takes nothing.
-	 * <LI>CELLMOD takes a1=oldLowX a2=oldHighX a3=oldLowY a4=oldHighY.
 	 * <LI>OBJECTNEW takes nothing.
 	 * <LI>OBJECTKILL takes nothing.
 	 * <LI>OBJECTRENAME takes o1=oldName.
 	 * <LI>OBJECTREDRAW takes nothing.
 	 * <LI>VARIABLENEW takes o1=var.
 	 * <LI>VARIABLEKILL takes o1=var.
-	 * <LI>VARIABLEMOD takes o1=var i1=index o2=oldValue.
-	 * <LI>VARIABLEINSERT takes o1=var i1=index.
-	 * <LI>VARIABLEDELETE takes a1=var i1=index o2=oldValue.
 	 * <LI>DESCRIPTORMOD takes o1=varName o2=oldDescriptor.
 	 * <LI>CELLGROUPMOD takes o1=oldCellGroup
      * <LI?OTHERCHANGE takes nothing
@@ -1255,6 +1123,7 @@ public class Undo
 	 */
 	private static Change newChange(ElectricObject obj, Type change, Object o1)
 	{
+        Job.checkChanging();
 		if (currentBatch == null)
 		{
 			System.out.println("Received " + change + " change when no batch started");
@@ -1288,22 +1157,17 @@ public class Undo
 	/**
 	 * Method to store a change to a NodeInst in the change-control system.
 	 * @param ni the NodeInst that changed.
-	 * @param oCX the former X center position.
-	 * @param oCY the former Y center position.
-	 * @param oSX the former X size.
-	 * @param oSY the former Y size.
-	 * @param oRot the former rotation of the NodeInst.
+	 * @param oD the old contents of the NodeInst.
 	 */
-	public static void modifyNodeInst(NodeInst ni, double oCX, double oCY, double oSX, double oSY, int oRot)
+	public static void modifyNodeInst(NodeInst ni, ImmutableNodeInst oD)
 	{
 		if (!recordChange()) return;
-		Change ch = newChange(ni, Type.NODEINSTMOD, null);
+		Change ch = newChange(ni, Type.NODEINSTMOD, oD);
 		if (ch == null) return;
-		ch.setDoubles(oCX, oCY, oSX, oSY);
-		ch.i1 = oRot;
-		ni.setChange(ch);
+//		ni.setChange(ch);
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 //		fireChangeEvent(ch);
+        Constraints.getCurrent().modifyNodeInst(ni, oD);
 	}
 
 	/**
@@ -1322,9 +1186,10 @@ public class Undo
 		if (ch == null) return;
 		ch.setDoubles(oHX, oHY, oTX, oTY);
 		ch.a5 = oWid;
-		ai.setChange(ch);
+//		ai.setChange(ch);
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 //		fireChangeEvent(ch);
+        Constraints.getCurrent().modifyArcInst(ai, oHX, oHY, oTX, oTY, oWid);
 	}
 
 	/**
@@ -1338,32 +1203,11 @@ public class Undo
 		if (!recordChange()) return;
 		Change ch = newChange(pp, Type.EXPORTMOD, oldPi);
 		if (ch == null) return;
-		pp.setChange(ch);
+//		pp.setChange(ch);
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 //		fireChangeEvent(ch);
 		Constraints.getCurrent().modifyExport(pp, oldPi);
-	}
-
-	/**
-	 * Method to store a change to a Cell in the change-control system.
-	 * @param cell the Cell that changed.
-	 * @param oLX the former low-X coordinate of the Cell.
-	 * @param oHX the former high-X coordinate of the Cell.
-	 * @param oLY the former low-Y coordinate of the Cell.
-	 * @param oHY the former high-Y coordinate of the Cell.
-	 */
-	public static void modifyCell(Cell cell, double oLX, double oHX, double oLY, double oHY)
-	{
-		if (!recordChange()) return;
-		Change ch = newChange(cell, Type.CELLMOD, null);
-		if (ch == null) return;
-		ch.setDoubles(oLX, oHX, oLY, oHY);
-		cell.setChange(ch);
-
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
-		//Constraint.getCurrent().modifyCell(cell, oLX, oHX, oLY, oHY);
 	}
 
 	/**
@@ -1555,64 +1399,6 @@ public class Undo
 	}
 
 	/**
-	 * Method to store the modification if an entry in an arrayed Variable, in the change-control system.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable.
-	 * @param index the entry in the Variable's array.
-	 * @param oldValue the former value of that entry.
-	 */
-	public static void modifyVariable(ElectricObject obj, Variable var, int index, Object oldValue)
-	{
-		if (!recordChange()) return;
-		Change ch = Undo.newChange(obj, Type.VARIABLEMOD, var);
-		if (ch == null) return;
-		ch.i1 = index;
-		ch.o2 = oldValue;
-
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
-		Constraints.getCurrent().modifyVariable(obj, var, index, oldValue);
-	}
-
-	/**
-	 * Method to store the insertion of an entry into a Variable, in the change-control system.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable that has had a new entry added to it.
-	 * @param index the entry in the Variable's array that was added.
-	 */
-	public static void insertVariable(ElectricObject obj, Variable var, int index)
-	{
-		if (!recordChange()) return;
-		Change ch = Undo.newChange(obj, Type.VARIABLEINSERT, var);
-		if (ch == null) return;
-		ch.i1 = index;
-
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
-		Constraints.getCurrent().insertVariable(obj, var, index);
-	}
-
-	/**
-	 * Method to store the deletion of an entry on a Variable, in the change-control system.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the Variable that has had an entry removed.
-	 * @param index the entry in the Variable's array that was deleted.
-	 * @param oldValue the former value at that entry.
-	 */
-	public static void deleteVariable(ElectricObject obj, Variable var, int index, Object oldValue)
-	{
-		if (!recordChange()) return;
-		Change ch = Undo.newChange(obj, Type.VARIABLEDELETE, var);
-		if (ch == null) return;
-		ch.i1 = index;
-		ch.o2 = oldValue;
-
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
-		Constraints.getCurrent().deleteVariable(obj, var, index, oldValue);
-	}
-
-	/**
 	 * Method to schedule an 'other' change on an ElectricObject.
 	 * @param obj the ElectricObject on which the miscellaneous change is being made.
 	 */
@@ -1638,6 +1424,7 @@ public class Undo
 	 */
 	public static boolean changesQuiet(boolean quiet) {
 		Library.checkInvariants();
+        Layout.changesQuiet(quiet);
 		NetworkTool.changesQuiet(quiet);
 		boolean formerQuiet = doChangesQuietly;
         doChangesQuietly = quiet;
@@ -1715,6 +1502,7 @@ public class Undo
 //        batch.describe("Undo");
 
 		// broadcast the end-batch
+        refreshCellBounds();
 		for(Iterator it = Tool.getListeners(); it.hasNext(); )
 		{
 			Listener listener = (Listener)it.next();
@@ -1789,6 +1577,7 @@ public class Undo
 //        batch.describe("Redo");
 
 		// broadcast the end-batch
+        refreshCellBounds();
 		for(Iterator it = Tool.getListeners(); it.hasNext(); )
 		{
 			Listener listener = (Listener)it.next();
@@ -1815,7 +1604,21 @@ public class Undo
 		return true;
 	}
 
-	/**
+    /** 
+     * Refresh Cell bounds. This method is necessary for Undo/Redu batches,
+     * because constraint system is disabled.
+     */
+    private static void refreshCellBounds() {
+        for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
+            Library lib = (Library)it.next();
+            for (Iterator cIt = lib.getCells(); cIt.hasNext(); ) {
+                Cell cell = (Cell)cIt.next();
+                cell.getBounds();
+            }
+        }
+    }
+    
+    /**
 	 * Returns root of up-tree of undo or redo batch.
 	 * @param redo true if redo batch, false if undo batch
 	 * @return root of up-tree of a batch.

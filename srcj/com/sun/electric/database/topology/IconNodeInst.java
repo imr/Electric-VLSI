@@ -1,5 +1,6 @@
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
@@ -8,9 +9,7 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
 
 import java.awt.geom.Point2D;
-import java.util.Iterator;
-import java.util.Observable;
-import java.util.Observer;
+
 
 /**
  * Created by IntelliJ IDEA.
@@ -29,21 +28,19 @@ public class IconNodeInst extends NodeInst
 	 * @param duplicate duplicate index of this NodeInst
      * @param nameDescriptor TextDescriptor of name of this NodeInst
 	 * @param center the center location of this NodeInst.
-	 * @param width the width of this NodeInst.
-	 * If negative, flip the X coordinate (or flip ABOUT the Y axis).
-	 * @param height the height of this NodeInst.
-	 * If negative, flip the Y coordinate (or flip ABOUT the X axis).
-	 * @param angle the angle of this NodeInst (in tenth-degrees).
+	 * @param width the width of this NodeInst (can't be negative).
+	 * @param height the height of this NodeInst (can't be negative).
+	 * @param orient the orientation of this NodeInst.
 	 * @param userBits flag bits of this NodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this NodeInst
 	 */
     protected IconNodeInst(Cell parent, NodeProto protoType,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
-            Point2D center, double width, double height, int angle,
+            Point2D center, double width, double height, Orientation orient,
             int userBits, ImmutableTextDescriptor protoDescriptor)
 	{
         super(parent, protoType, name, duplicate, nameDescriptor, center, width, height,
-              angle, userBits, protoDescriptor);
+              orient, userBits, protoDescriptor);
     }
 
     public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
@@ -90,8 +87,8 @@ public class IconNodeInst extends NodeInst
 //        super.setTextDescriptor(varName, td);
 //    }
 
-    public void setVar(Variable.Key key, Object value, int index)
-    {
-        System.out.println("Overwrite setVar");
-    }
+//    public void setVar(Variable.Key key, Object value, int index)
+//    {
+//        System.out.println("Overwrite setVar");
+//    }
 }

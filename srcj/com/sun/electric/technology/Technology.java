@@ -25,8 +25,9 @@ package com.sun.electric.technology;
 
 import com.sun.electric.Main;
 import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
@@ -1467,9 +1468,10 @@ public class Technology implements Comparable
         double oldLength = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
         double dW = width - oldWidth;
         double dL = length - oldLength;
-        if (ni.getXSizeWithMirror() < 0) dW = -dW;
-        if (ni.getYSizeWithMirror() < 0) dL = -dL;
-        ni.modifyInstance(0, 0, dW, dL, 0);
+		ni.resize(dW, dL);
+//         if (ni.getXSizeWithMirror() < 0) dW = -dW;
+//         if (ni.getYSizeWithMirror() < 0) dL = -dL;
+//         ni.modifyInstance(0, 0, dW, dL, 0);
     }
 
     /**
@@ -3733,9 +3735,12 @@ public class Technology implements Comparable
         SizeOffset so = np.getProtoSizeOffset();
         Point2D pt = new Point2D.Double((so.getHighXOffset() - so.getLowXOffset()) / 2,
             (so.getHighYOffset() - so.getLowYOffset()) / 2);
-        AffineTransform trans = NodeInst.pureRotate(angle, false, false);
+		Orientation orient = Orientation.fromAngle(angle);
+		AffineTransform trans = orient.pureRotate();
+//        AffineTransform trans = NodeInst.pureRotate(angle, false, false);
         trans.transform(pt, pt);
-        NodeInst ni = NodeInst.makeDummyInstance(np, pt, np.getDefWidth(), np.getDefHeight(), angle);
+        NodeInst ni = NodeInst.makeDummyInstance(np, pt, np.getDefWidth(), np.getDefHeight(), orient);
+//        NodeInst ni = NodeInst.makeDummyInstance(np, pt, np.getDefWidth(), np.getDefHeight(), angle);
 //        ni.lowLevelPopulate(np, pt, np.getDefWidth(), np.getDefHeight(), angle, null, null, -1);
         np.getTechnology().setPrimitiveFunction(ni, func);
         np.getTechnology().setDefaultOutline(ni);

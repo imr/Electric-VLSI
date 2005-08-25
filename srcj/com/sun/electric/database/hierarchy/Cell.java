@@ -23,9 +23,12 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.Main;
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.network.Netlist;
@@ -326,7 +329,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	private static final Export[] NULL_EXPORT_ARRAY = new Export[0];
 
 	/** set if instances should be expanded */						private static final int WANTNEXPAND   =           02;
-	/** set if cell is modified */						            private static final int MODIFIED      =     01000000;
+//	/** set if cell is modified */						            private static final int MODIFIED      =     01000000;
 	/** set if everything in cell is locked */						private static final int NPLOCKED      =     04000000;
 	/** set if instances in cell are locked */						private static final int NPILOCKED     =    010000000;
 	/** set if cell is part of a "cell library" */					private static final int INCELLLIBRARY =    020000000;
@@ -336,6 +339,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/** Length of base name for autonaming. */						private static final int ABBREVLEN = 8;
 	/** zero rectangle */											private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 
+    /** Bounds are correct */                                       private static final byte BOUNDS_CORRECT = 0;
+    /** Bounds are correct if all subcells have correct bounds. */  private static final byte BOUNDS_CORRECT_SUB = 1;
+    /** Bounds need to be recomputed. */                            private static final byte BOUNDS_RECOMPUTE = 2;
+    
 	/** counter for enumerating cells */							private static int cellNumber = 0;
 
 	/** The CellName of the Cell. */								private CellName cellName;
@@ -354,13 +361,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/** A list of ArcInsts in this Cell. */							private List arcs;
 	/** A map from temporary Name keys to Geometric. */				private Map tempNames;
 	/** The bounds of the Cell. */									private Rectangle2D cellBounds;
-	/** Whether the bounds need to be recomputed. */				private boolean boundsDirty;
-	/** Whether the bounds have anything in them. */				private boolean boundsEmpty;
+	/** Whether the bounds need to be recomputed.
+     * BOUNDS_CORRECT - bounds are correct.
+     * BOUNDS_CORRECT_SUB - bounds are correct prvided that bounds of subcells are correct.
+     * BOUNDS_RECOMPUTE - bounds need to be recomputed. */          private byte boundsDirty;
 	/** The geometric data structure. */							private RTNode rTree = RTNode.makeTopLevel();
-	/** The Change object. */										private Undo.Change change;
 	/** 0-based index of this Cell. */								private int cellIndex;
 	/** This Cell's Technology. */									private Technology tech;
 	/** The temporary integer value. */								private int tempInt;
+    /** Set if Cell is modified. */                                 private boolean modified;
 
 
 	// ------------------ protected and private methods -----------------------
@@ -384,8 +393,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		revisionDate = new Date();
 		userBits = 0;
 		cellBounds = new Rectangle2D.Double();
-		boundsEmpty = true;
-		boundsDirty = false;
 	}
 
 	/****************************** CREATE, DELETE ******************************/
@@ -586,10 +593,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			// create the new nodeinst
 			NodeInst ni = (NodeInst)it.next();
 			NodeProto lnt = (NodeProto)nodePrototypes.get(ni);
-			double scaleX = ni.getXSize();   if (ni.isXMirrored()) scaleX = -scaleX;
-			double scaleY = ni.getYSize();   if (ni.isYMirrored()) scaleY = -scaleY;
+			double scaleX = ni.getXSize();   //if (ni.isXMirrored()) scaleX = -scaleX;
+			double scaleY = ni.getYSize();   //if (ni.isYMirrored()) scaleY = -scaleY;
 			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
-				scaleX, scaleY, newCell, ni.getAngle(), ni.getName(), 0);
+				scaleX, scaleY, newCell, ni.getOrient(), ni.getName(), 0);
+//			NodeInst toNi = NodeInst.newInstance(lnt, new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY()),
+//				scaleX, scaleY, newCell, ni.getAngle(), ni.getName(), 0);
 			if (toNi == null) return null;
 
 			// save the new nodeinst address in the old nodeinst
@@ -998,9 +1007,22 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Method to indicate that the bounds of this Cell are incorrect because
 	 * a node or arc has been created, deleted, or modified.
 	 */
-	public void setDirty()
+	public void setDirty() { setDirty(BOUNDS_RECOMPUTE); }
+    
+	/**
+	 * Method to indicate that the bounds of this Cell are incorrect because
+	 * a node or arc has been created, deleted, or modified.
+	 */
+	private void setDirty(byte boundsLevel)
 	{
-		boundsDirty = true;
+        if (boundsDirty == BOUNDS_CORRECT) {
+            boundsDirty = boundsLevel;
+            for (Iterator it = getUsagesOf(); it.hasNext(); ) {
+                NodeUsage nu = (NodeUsage)it.next();
+                nu.getParent().setDirty(BOUNDS_CORRECT_SUB);
+            }
+        } else if (boundsDirty < boundsLevel)
+            boundsDirty = boundsLevel;
 	}
 
 	/**
@@ -1010,112 +1032,99 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public Iterator searchIterator(Rectangle2D bounds) { return new RTNode.Search(bounds, this); }
 
-	private boolean boundLock = false;
-	private Rectangle2D lastBounds = new Rectangle2D.Double();
-
-	/**
-	 * Method to request that the current bounds of this Cell be remembered.
-	 * After this, you may call "getRememberedBounds()" to retrieve these bounds.
-	 */
-	public void rememberBounds()
-	{
-		if (boundsDirty)
-		{
-			getBounds();
-		}
-		boundLock = true;
-	}
-
-	/**
-	 * Method to get the bounds of this Cell that were saved earlier by a call to "rememberBounds()".
-	 * @return a Rectangle2D with the bounds at the time of the call to "rememberBounds()".
-	 */
-	public Rectangle2D getRememberedBounds()
-	{
-		Rectangle2D retBounds = lastBounds;
-		if (boundLock) retBounds = cellBounds;
-		boundLock = false;
-		return retBounds;
-	}
-
 	/**
 	 * Method to return the bounds of this Cell.
 	 * @return a Rectangle2D with the bounds of this cell's contents
 	 */
 	public Rectangle2D getBounds()
 	{
-		if (boundsDirty)
-		{
-			if (boundLock)
-			{
-				boundLock = false;
-				lastBounds.setRect(cellBounds);
-			}
+        // Don't recalculate in GUI thread.
+        if (boundsDirty == BOUNDS_CORRECT ||
+            Thread.currentThread() != Job.databaseChangesThread && !Main.NOTHREADING)
+            return cellBounds;
+        
+        // Current bounds are correct if subcell bounds are the same
+        if (boundsDirty == BOUNDS_CORRECT_SUB) {
+            boundsDirty = BOUNDS_CORRECT;
+            for (Iterator it = getUsagesIn(); it.hasNext(); ) {
+                NodeUsage nu = (NodeUsage)it.next();
+                if (nu.getProto() instanceof Cell)
+                    ((Cell)nu.getProto()).getBounds();
+            }
+            // boundsDirty could be changes by subcell's getBounds.
+            if (boundsDirty == BOUNDS_CORRECT)
+                return cellBounds;
+        }
 
-			// recompute bounds
-			double cellLowX, cellHighX, cellLowY, cellHighY;
-			boundsEmpty = true;
-			cellLowX = cellHighX = cellLowY = cellHighY = 0;
-
-			for(int i = 0; i < nodes.size(); i++ )
-			{
-				NodeInst ni = (NodeInst) nodes.get(i);
-				NodeProto np = ni.getProto();
-
-				// special case: do not include "cell center" primitives from Generic
-				if (np == Generic.tech.cellCenterNode) continue;
-
-				// special case for invisible pins: do not include if inheritable or interior-only
-				if (np == Generic.tech.invisiblePinNode)
-				{
-					boolean found = false;
-					for(Iterator it = ni.getVariables(); it.hasNext(); )
-					{
-						Variable var = (Variable)it.next();
-						if (var.isDisplay())
-						{
-							TextDescriptor td = var.getTextDescriptor();
-							if (td.isInterior() || td.isInherit()) { found = true;   break; }
-						}
-					}
-					if (found) continue;
-				}
-
-				Rectangle2D bounds = ni.getBounds();
-				double lowx = bounds.getMinX();
-				double highx = bounds.getMaxX();
-				double lowy = bounds.getMinY();
-				double highy = bounds.getMaxY();
-				if (boundsEmpty)
-				{
-					boundsEmpty = false;
-					cellLowX = lowx;   cellHighX = highx;
-					cellLowY = lowy;   cellHighY = highy;
-				} else
-				{
-					if (lowx < cellLowX) cellLowX = lowx;
-					if (highx > cellHighX) cellHighX = highx;
-					if (lowy < cellLowY) cellLowY = lowy;
-					if (highy > cellHighY) cellHighY = highy;
-				}
-			}
-			for(int i = 0; i < arcs.size(); i++ )
-			{
-				ArcInst ai = (ArcInst) arcs.get(i);
-				Rectangle2D bounds = ai.getBounds();
-				double lowx = bounds.getMinX();
-				double highx = bounds.getMaxX();
-				double lowy = bounds.getMinY();
-				double highy = bounds.getMaxY();
-				if (lowx < cellLowX) cellLowX = lowx;
-				if (highx > cellHighX) cellHighX = highx;
-				if (lowy < cellLowY) cellLowY = lowy;
-				if (highy > cellHighY) cellHighY = highy;
-			}
-			cellBounds.setRect(DBMath.round(cellLowX), DBMath.round(cellLowY),
-				DBMath.round(cellHighX - cellLowX), DBMath.round(cellHighY - cellLowY));
-			boundsDirty = false;
-		}
+        // recompute bounds
+        double cellLowX, cellHighX, cellLowY, cellHighY;
+        boolean boundsEmpty = true;
+        cellLowX = cellHighX = cellLowY = cellHighY = 0;
+        
+        for(int i = 0; i < nodes.size(); i++ ) {
+            NodeInst ni = (NodeInst) nodes.get(i);
+            NodeProto np = ni.getProto();
+            
+            // special case: do not include "cell center" primitives from Generic
+            if (np == Generic.tech.cellCenterNode) continue;
+            
+            // special case for invisible pins: do not include if inheritable or interior-only
+            if (np == Generic.tech.invisiblePinNode) {
+                boolean found = false;
+                for(Iterator it = ni.getVariables(); it.hasNext(); ) {
+                    Variable var = (Variable)it.next();
+                    if (var.isDisplay()) {
+                        TextDescriptor td = var.getTextDescriptor();
+                        if (td.isInterior() || td.isInherit()) { found = true;   break; }
+                    }
+                }
+                if (found) continue;
+            }
+            
+            Rectangle2D bounds = ni.getBounds();
+            double lowx = bounds.getMinX();
+            double highx = bounds.getMaxX();
+            double lowy = bounds.getMinY();
+            double highy = bounds.getMaxY();
+            if (boundsEmpty) {
+                boundsEmpty = false;
+                cellLowX = lowx;   cellHighX = highx;
+                cellLowY = lowy;   cellHighY = highy;
+            } else {
+                if (lowx < cellLowX) cellLowX = lowx;
+                if (highx > cellHighX) cellHighX = highx;
+                if (lowy < cellLowY) cellLowY = lowy;
+                if (highy > cellHighY) cellHighY = highy;
+            }
+        }
+        for(int i = 0; i < arcs.size(); i++ ) {
+            ArcInst ai = (ArcInst) arcs.get(i);
+            Rectangle2D bounds = ai.getBounds();
+            double lowx = bounds.getMinX();
+            double highx = bounds.getMaxX();
+            double lowy = bounds.getMinY();
+            double highy = bounds.getMaxY();
+            if (lowx < cellLowX) cellLowX = lowx;
+            if (highx > cellHighX) cellHighX = highx;
+            if (lowy < cellLowY) cellLowY = lowy;
+            if (highy > cellHighY) cellHighY = highy;
+        }
+        cellLowX = DBMath.round(cellLowX);
+        cellLowY = DBMath.round(cellLowY);
+        double width = DBMath.round(cellHighX - cellLowX);
+        double height = DBMath.round(cellHighY - cellLowY);
+        if (cellLowX != cellBounds.getMinX() || cellLowY != cellBounds.getMinY() ||
+                width != cellBounds.getWidth() || height != cellBounds.getHeight()) {
+//            System.out.print("Bounds " + this + " changed from " + cellBounds);
+            cellBounds.setRect(cellLowX, cellLowY, width, height);
+//            System.out.println(" to " + cellBounds);
+            for (Iterator it = getInstancesOf(); it.hasNext(); ) {
+                NodeInst ni = (NodeInst)it.next();
+                // Fake modify to recalcualte bounds and RTTree
+                ni.lowLevelModify(ni.getD());
+            }
+        }
+        boundsDirty = BOUNDS_CORRECT;
 		return cellBounds;
 	}
 
@@ -1163,35 +1172,34 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/**
 	 * Method adjust this cell when the reference point moves.
 	 * This requires renumbering all coordinate values in the Cell.
-	 * @param referencePointNode the Node that is the cell-center.
+	 * @param cX coordinate X of new center.
+     * @param cY coordinate Y of new center.
 	 */
-	public void adjustReferencePoint(NodeInst referencePointNode)
+	public void adjustReferencePoint(double cX, double cY)
 	{
 		checkChanging();
 
 		// if there is no change, stop now
-		double cX = referencePointNode.getAnchorCenterX();
-		double cY = referencePointNode.getAnchorCenterY();
 		if (cX == 0 && cY == 0) return;
 
 		// move reference point by (dx,dy)
-		referencePointNode.modifyInstance(-cX, -cY, 0, 0, 0);
+//		referencePointNode.modifyInstance(-cX, -cY, 0, 0, 0);
 
 		// must adjust all nodes by (dx,dy)
 		for(Iterator it = getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
-			if (ni == referencePointNode) continue;
+			if (ni.getProto() == Generic.tech.cellCenterNode) continue;
 
 			// move NodeInst "ni" by (dx,dy)
-			ni.lowLevelModify(-cX, -cY, 0, 0, 0);
+			ni.move(-cX, -cY);
 		}
 		for(Iterator it = getArcs(); it.hasNext(); )
 		{
 			ArcInst ai = (ArcInst)it.next();
 
 			// move NodeInst "ni" by (dx,dy)
-			ai.lowLevelModify(0, -cX, -cY, -cX, -cY);
+			ai.modify(0, -cX, -cY, -cX, -cY);
 		}
 
 		// adjust all instances of this cell
@@ -1199,10 +1207,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		{
 			NodeInst ni = (NodeInst)it.next();
 			Undo.redrawObject(ni);
-			AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
+            AffineTransform trans = ni.getOrient().pureRotate();
+//			AffineTransform trans = NodeInst.pureRotate(ni.getAngle(), ni.isMirroredAboutXAxis(), ni.isMirroredAboutYAxis());
 			Point2D in = new Point2D.Double(cX, cY);
 			trans.transform(in, in);
-			ni.modifyInstance(in.getX(), in.getY(), 0, 0, 0);
+			ni.move(in.getX(), in.getY());
 		}
 
 		// adjust all windows showing this cell
@@ -1875,13 +1884,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public void linkNode(NodeInst ni)
 	{
-		boundsDirty = true;
+		setDirty();
 		RTNode.linkGeom(this, ni);
 
 		// make additional checks to keep circuit up-to-date
 		NodeProto np = ni.getProto();
-		if (np == Generic.tech.cellCenterNode)
-				adjustReferencePoint(ni);
 		if (np == Generic.tech.essentialBoundsNode)
 			essenBounds.add(ni);
 	}
@@ -1892,7 +1899,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public void unLinkNode(NodeInst ni)
 	{
-		boundsDirty = true;
+		setDirty();
 		RTNode.unLinkGeom(this, ni);
 		essenBounds.remove(ni);
 	}
@@ -2062,7 +2069,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public void linkArc(ArcInst ai)
 	{
-		boundsDirty = true;
+		setDirty();
 		RTNode.linkGeom(this, ai);
 	}
 
@@ -2072,7 +2079,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public void unLinkArc(ArcInst ai)
 	{
-		boundsDirty = true;
+		setDirty();
 		RTNode.unLinkGeom(this, ai);
 	}
 
@@ -3522,19 +3529,19 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
     /**
 	 * Method to set if cell has been modified since last save to disk. No need to call checkChanging().
 	 */
-	public void setModified() { userBits |= MODIFIED;}
+	public void setModified() { modified = true;}
 
 	/**
 	 * Method to clear this Cell modified bit since last save to disk. No need to call checkChanging().
      * This is done when the library contained this cell is saved to disk.
 	 */
-	public void clearModified() { userBits &= ~MODIFIED; }
+	public void clearModified() { modified = false; }
 
 	/**
 	 * Method to tell if this Cell has been modified since last save to disk.
 	 * @return true if cell has been modified.
 	 */
-	public boolean isModified() { return (userBits & MODIFIED) != 0; }
+	public boolean isModified() { return modified; }
 
 	/**
 	 * Method to set the multi-page capability of this Cell.
@@ -3742,20 +3749,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * @return the temporary integer on this Cell.
 	 */
 	public int getTempInt() { return tempInt; }
-
-	/**
-	 * Method to set a Change object on this Cell.
-	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
-	 * @param change the Change object to be set on this Cell.
-	 */
-	public void setChange(Undo.Change change) { checkChanging(); this.change = change; }
-
-	/**
-	 * Method to get the Change object on this Cell.
-	 * This is used during constraint propagation to tell whether this object has already been changed and by how much.
-	 * @return the Change object on this Cell.
-	 */
-	public Undo.Change getChange() { return change; }
 
 	/**
 	 * Method to determine the appropriate Cell associated with this ElectricObject.
