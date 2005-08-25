@@ -221,13 +221,17 @@ public class MoCMOS extends Technology
 		new DRCTemplate("4.4",  DRCTemplate.DE, DRCTemplate.MINWID,   "Pseudo-N-Select", null,            4,  null),
 		new DRCTemplate("4.4",  DRCTemplate.DE, DRCTemplate.SPACING,  "P-Select",       "P-Select",       4,  null),
 		new DRCTemplate("4.4",  DRCTemplate.DE, DRCTemplate.SPACING,  "N-Select",       "N-Select",       4,  null),
-		new DRCTemplate("4.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "P-Select",        null,            2,  null),
-		new DRCTemplate("4.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "N-Select",        null,            2,  null),
-		new DRCTemplate("4.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-P-Select", null,            2,  null),
-		new DRCTemplate("4.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-N-Select", null,            2,  null),
+		new DRCTemplate("4.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "P-Select",        null,            2,  null),
+		new DRCTemplate("4.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "N-Select",        null,            2,  null),
+		new DRCTemplate("4.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-P-Select", null,            2,  null),
+		new DRCTemplate("4.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-N-Select", null,            2,  null),
 		new DRCTemplate("4.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "P-Select",       "P-Select",       2,  null),
-		new DRCTemplate("4.4 TSMC (N/PP.S.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "P-Select",       "P-Select",       4.4,  null),
 		new DRCTemplate("4.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "N-Select",       "N-Select",       2,  null),
+        new DRCTemplate("4.4 TSMC (PP/NP.W.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "P-Select",        null,            4.4,  null),
+		new DRCTemplate("4.4 TSMC (PP/NP.W.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "N-Select",        null,            4.4,  null),
+		new DRCTemplate("4.4 TSMC (PP/NP.W.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-P-Select", null,            4.4,  null),
+		new DRCTemplate("4.4 TSMC (PP/NP.W.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-N-Select", null,            4.4,  null),
+		new DRCTemplate("4.4 TSMC (N/PP.S.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "P-Select",       "P-Select",       4.4,  null),
 		new DRCTemplate("4.4 TSMC (N/PP.S.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "N-Select",       "N-Select",       4.4,  null),
 		new DRCTemplate("4.4",  DRCTemplate.ALL, DRCTemplate.SPACING,  "P-Select",       "N-Select",       0,  null),
 //        new DRCTemplate("PP/NP.C.1 4",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Select",       "N-Active",       2.6,  null),
@@ -363,9 +367,11 @@ public class MoCMOS extends Technology
 
 		new DRCTemplate("7.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "Metal-1",         null,            3,  null),
 
-		new DRCTemplate("7.2",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        3,  null),
-		new DRCTemplate("7.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        2,  null),
+		new DRCTemplate("7.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        3,  null),
+		new DRCTemplate("7.2 TSMC (M1.S.1)",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        2.3,  null),
+        new DRCTemplate("7.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        2,  null),
 
+        // Mosis and TSMC (M1.S.2) have 6 for min spacing for long wires
 		new DRCTemplate("7.4",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-1",        "Metal-1",        6, -1),
 		new DRCTemplate("7.4",  DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-1",        "Metal-1",        4, -1),
 
@@ -567,7 +573,7 @@ public class MoCMOS extends Technology
 			new Color(247,251, 20)  // Metal-3
 		});
 
-        setFactoryResolution(0.01); // value in lambdas
+        setFactoryResolution(0.01); // value in lambdas   0.005um -> 0.05 lambdas
 
         foundries.add(new Foundry(Foundry.MOSIS_FOUNDRY, DRCTemplate.MOSIS));
         foundries.add(new Foundry("TSMC", DRCTemplate.TSMC));
