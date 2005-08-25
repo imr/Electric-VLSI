@@ -74,8 +74,8 @@ class LayoutCell {
 	 * ni.getChangeClock() == changeClock-1  size-changed       nodes
 	 * ni.getChangeClock() == changeClock    position-changed   nodes
 	 */
-    private static final Integer AI_RIGID = Integer.valueOf(0);
-    private static final Integer AI_FLEX = Integer.valueOf(1);
+    private static final Integer AI_RIGID = new Integer(0);
+    private static final Integer AI_FLEX = new Integer(1);
     
     private Cell cell;
     private HashMap/*<Export,PortInst>*/ oldExports;

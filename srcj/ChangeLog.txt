@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03e: *********************************
 
+BUG: (08/25/05, DN) Compilation error on Java 1.5 (Bug #505).
+FIX: Change Integer.valueOf(n) to new Integer(n) in LayoutCell.java.
+
+BUG: (08/25/05, DN) Undoing moving of cell center (Bug #453).
+FIX: Change in constraint/undo system.
+
 IMP: (08/25/05, DN) NodeInst costructors and modifieds use Orientation.
 
 IMP: (08/24/05, SMR) Modified generators (pad frame, ROM, CMOS, Silicon compiler)
