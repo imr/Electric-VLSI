@@ -1048,6 +1048,8 @@ public class Clipboard
          * @return a grid-aligned delta
          */
         private Point2D getDelta(Point2D mouseDB, boolean orthogonal) {
+            // mouseDB == null if you press arrow keys before placing the new copy
+            if (mouseDB == null) return null;
             EditWindow.gridAlign(mouseDB);
             // this is the point on the clipboard cell that will be pasted at the mouse location
             Point2D refPastePoint = new Point2D.Double(pasteBounds.getCenterX() + translateX,
@@ -1073,6 +1075,9 @@ public class Clipboard
          */
 		private void showList(Point2D delta)
 		{
+            // if delta==null, problems to get mouseDB pointer
+            if (delta == null) return;
+
             // find offset of highlights
             double oX = delta.getX();
             double oY = delta.getY();
