@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03e: *********************************
 
+BUG: (08/26/05, SMR) When editing "down in place", double-clicks from explorer fail (Bug #506).
+FIX: In EditWindow.setCell(), must set in-place bit properly.
+
 IMP: (08/26/05, SMR) When cycling through errors, if selected objects are not visible,
      screen shifts to them
 

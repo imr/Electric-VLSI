@@ -838,19 +838,20 @@ public class EditWindow extends JPanel
 		// However, when navigating through history, don't want to record new
 		// history objects.
         if (context == null) context = VarContext.globalContext;
-		setCell(cell, context, true, true);
+		setCell(cell, context, true, true, false);
 	}
 
 	/**
 	 * Method to set the cell that is shown in the window to "cell".
 	 */
-	private void setCell(Cell cell, VarContext context, boolean addToHistory, boolean fillTheScreen)
+	private void setCell(Cell cell, VarContext context, boolean addToHistory, boolean fillTheScreen, boolean inPlace)
 	{
 		// record current history before switching to new cell
 		saveCurrentCellHistoryState();
 
 		// set new values
 		this.cell = cell;
+		inPlaceDisplay = inPlace;
 		this.pageNumber = 0;
 		this.cellVarContext = context;
         if (cell != null) {
@@ -2724,13 +2725,13 @@ public class EditWindow extends JPanel
         if (inPlaceDisplay) redisplay = false;
         if (desiredNO != null)
         {
-        	setCell(schCell, cellVarContext.push(desiredNO), true, redisplay);
+        	setCell(schCell, cellVarContext.push(desiredNO), true, redisplay, inPlace);
         } else
         {
 	        if (pi != null)
-	            setCell(schCell, cellVarContext.push(pi), true, redisplay);
+	            setCell(schCell, cellVarContext.push(pi), true, redisplay, inPlace);
 	        else
-	            setCell(schCell, cellVarContext.push(ni), true, redisplay);
+	            setCell(schCell, cellVarContext.push(ni), true, redisplay, inPlace);
         }
 		PixelDrawing.clearSubCellCache();
         if (!redisplay) fullRepaint();
@@ -2875,13 +2876,13 @@ public class EditWindow extends JPanel
                 PortInst pi = cellVarContext.getPortInst();
 				if (foundHistory != null)
 				{
-					setCell(parent, context, true, false);
+					setCell(parent, context, true, false, inPlaceDisplay);
 					setOffset(foundHistory.offset);
 					setScale(foundHistory.scale);
 			        repaintContents(null);
 				} else
 				{
-					setCell(parent, context, true, true);
+					setCell(parent, context, true, true, inPlaceDisplay);
 				}
 				PixelDrawing.clearSubCellCache();
 
@@ -3165,7 +3166,7 @@ public class EditWindow extends JPanel
         }
 
         // update current cell
-        setCell(history.cell, history.context, false, true);
+        setCell(history.cell, history.context, false, true, false);
         setOffset(history.offset);
         setScale(history.scale);
         highlighter.setHighlightList(history.highlights);
@@ -3394,7 +3395,7 @@ public class EditWindow extends JPanel
     public void databaseChanged(DatabaseChangeEvent e) {
         // if cell was deleted, set cell to null
         if ((cell != null) && !cell.isLinked()) {
-            setCell(null, VarContext.globalContext, false, true);
+            setCell(null, VarContext.globalContext, false, true, false);
             cellHistoryGoBack();
         }
     }
