@@ -2307,6 +2307,7 @@ public class PixelDrawing
 		boolean bold = false;
 		boolean underline = false;
 		int rotation = 0;
+		int greekScale = 0;
 		if (descript != null)
 		{
 			rotation = descript.getRotation().getIndex();
@@ -2320,21 +2321,29 @@ public class PixelDrawing
 			size = (int)dSize;
 			if (size < MINIMUMTEXTSIZE)
 			{
-				// text too small: make it "greek"
-				int sizeIndent = (size+1) / 4;
-				int fakeWidth = (int)(len * dSize * 0.75);
-				Point pt = getTextCorner(fakeWidth, size, style, rect, rotation);
-
-				// do clipping
-				int lX = pt.x;   int hX = lX + fakeWidth;
-				int lY = pt.y + sizeIndent;   int hY = lY;
-				if (lX < 0) lX = 0;
-				if (hX >= sz.width) hX = sz.width-1;
-				if (lY < 0) lY = 0;
-				if (hY >= sz.height) hY = sz.height-1;
-
-				drawBox(lX, hX, lY, hY, layerBitMap, desc, dimmed);
-				return;
+				// text too small: scale it to get proper size
+				greekScale = 2;
+				for(;;)
+				{
+					size = (int)(dSize * greekScale);
+					if (size >= MINIMUMTEXTSIZE) break;
+					greekScale *= 2;
+				}
+//				// text too small: make it "greek"
+//				int sizeIndent = (size+1) / 4;
+//				int fakeWidth = (int)(len * dSize * 0.75);
+//				Point pt = getTextCorner(fakeWidth, size, style, rect, rotation);
+//
+//				// do clipping
+//				int lX = pt.x;   int hX = lX + fakeWidth;
+//				int lY = pt.y + sizeIndent;   int hY = lY;
+//				if (lX < 0) lX = 0;
+//				if (hX >= sz.width) hX = sz.width-1;
+//				if (lY < 0) lY = 0;
+//				if (hY >= sz.height) hY = sz.height-1;
+//
+//				drawBox(lX, hX, lY, hY, layerBitMap, desc, dimmed);
+//				return;
 			}
 			italic = descript.isItalic();
 			bold = descript.isBold();
@@ -2364,6 +2373,26 @@ public class PixelDrawing
 		RenderTextInfo renderInfo = new RenderTextInfo();
 		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation))
 			return;
+
+		// if text was made "greek", just draw a line
+		if (greekScale != 0)
+		{
+			// text too small: make it "greek"
+	        int width = (int)renderInfo.bounds.getWidth() / greekScale;
+			int sizeIndent = (size/greekScale+1) / 4;
+			Point pt = getTextCorner(width, size/greekScale, style, rect, rotation);
+
+			// do clipping
+			int lX = pt.x;   int hX = lX + width;
+			int lY = pt.y + sizeIndent;   int hY = lY;
+			if (lX < 0) lX = 0;
+			if (hX >= sz.width) hX = sz.width-1;
+			if (lY < 0) lY = 0;
+			if (hY >= sz.height) hY = sz.height-1;
+
+			drawBox(lX, hX, lY, hY, layerBitMap, desc, dimmed);
+			return;
+		}
 
 		// check if text is on-screen
 		Rectangle2D dbBounds = wnd.screenToDatabase(renderInfo.bounds);

@@ -4,6 +4,25 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03e: *********************************
 
+IMP: (08/26/05, SMR) When cycling through errors, if selected objects are not visible,
+     screen shifts to them
+
+IMP: (08/26/05, SMR) "Measure" mode in waveform window snaps to lines, not just points.
+
+IMP/MAN: (08/25/05, SMR) Waveform window now crossprobes between Explorer tree and schematic.
+     Also have "R" key bound to "Remove from Waveform" in "Edit / Selection".
+     (Bug #502).
+
+BUG: (08/25/05, SMR) Moving 45-degree arcs crashes.
+FIX: In CircuitChanges.ManyMove.doIt(), guard against singularities in computing intersection.
+
+BUG: (08/24/05, SMR) Arc Properties dialog sometimes shrinks fields (Bug #487).
+FIX: Must repack dialog when fields change.
+
+BUG: (08/24/05, SMR) When text is "greeked" (drawn as a line because it is too small)
+     The line is too long (Bug #424).
+FIX: In "PixelDrawing.drawText()", compute size properly.
+
 IMP: (08/25/05, GVG) Version not updated once library is saved (Bug #508)
 
 IMP: (08/25/05, GVG) Improvements on DRC tool regarding cells that already being checked without no errors (Bug #507)

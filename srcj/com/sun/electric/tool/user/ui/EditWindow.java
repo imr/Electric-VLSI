@@ -1022,7 +1022,10 @@ public class EditWindow extends JPanel
 		// show the image
 		BufferedImage img = offscreen.getBufferedImage();
 		// TODO: Do not need synchronization here
-		synchronized(img) { g.drawImage(img, 0, 0, this); };
+		synchronized(img)
+		{
+			g.drawImage(img, 0, 0, this);
+		}
 		
 		// overlay other things if there is a valid cell
 		if (cell != null)
@@ -3359,6 +3362,19 @@ public class EditWindow extends JPanel
 		if (size < PixelDrawing.MINIMUMTEXTSIZE) return null;
 		Font font = new Font(fontName, fontStyle, size);
 		return font;
+	}
+
+	/**
+	 * Method to get the height of text given a TextDescriptor in this EditWindow.
+	 * @param descript the TextDescriptor.
+	 * @return the height of the text.
+	 */
+	public double getFontHeight(TextDescriptor descript)
+	{
+		double size = getDefaultFontSize();
+		if (descript != null)
+			size = descript.getTrueSize(this);
+		return size;
 	}
 
 	/**

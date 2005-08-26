@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
@@ -129,6 +130,8 @@ import javax.swing.JSplitPane;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreePath;
 
 /**
  * This class defines the a screenful of Panels that make up a waveform display.
@@ -163,6 +166,7 @@ public class WaveformWindow implements WindowContent
 	/** the "grow panel" button for widening. */			private JButton growPanel;
 	/** the "shrink panel" button for narrowing. */			private JButton shrinkPanel;
 	/** the list of panels. */								private JComboBox signalNameList;
+	/** mapping from signals to entries in "SIGNALS" tree */private HashMap treeNodeFromSignal;
 	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
 	/** the split between signal names and traces. */		private JSplitPane split;
@@ -529,7 +533,7 @@ public class WaveformWindow implements WindowContent
 			}
 
 			// show it in the schematic
-			waveWindow.showSelectedNetworksInSchematic();
+			waveWindow.crossProbeWaveformToEditWindow();
 		}
 
 		private void addTimePanel()
@@ -1700,7 +1704,7 @@ public class WaveformWindow implements WindowContent
 
 		private Point snapPoint(Point pt)
 		{
-			// snap to any waveform points if measuring
+			// snap to any waveform points
 			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
 			{
 				WaveSignal ws = (WaveSignal)it.next();
@@ -1726,11 +1730,49 @@ public class WaveformWindow implements WindowContent
 						{
 							pt.x = x;
                     		pt.y = Math.max(Math.min(pt.y, highY), lowY);
-                            break;
+							return pt;
 						}
 					}
 				}
 			}
+
+			// snap to any waveform lines
+			Point2D snap = new Point2D.Double(pt.x, pt.y);
+			for(Iterator it = waveSignals.values().iterator(); it.hasNext(); )
+			{
+				WaveSignal ws = (WaveSignal)it.next();
+				if (!(ws.sSig instanceof AnalogSignal)) continue;
+
+				// draw analog trace
+				AnalogSignal as = (AnalogSignal)ws.sSig;
+                double[] result = new double[3];
+                double[] lastResult = new double[3];
+				for(int s=0, numSweeps = as.getNumSweeps(); s<numSweeps; s++)
+				{
+                    SweepSignal ss = null;
+                    if (s < waveWindow.sweepSignals.size())
+                        ss = (SweepSignal)waveWindow.sweepSignals.get(s);
+                    if (ss != null && !ss.included) continue;
+					int numEvents = as.getNumEvents(s);
+                    as.getEvent(s, 0, lastResult);
+					Point2D lastPt = new Point2D.Double(scaleTimeToX(lastResult[0]), scaleValueToY((lastResult[1] + lastResult[2]) / 2));
+					for(int i=1; i<numEvents; i++)
+					{
+                        as.getEvent(s, i, result);
+						Point2D thisPt = new Point2D.Double(scaleTimeToX(result[0]), scaleValueToY((result[1] + result[2]) / 2));
+						Point2D closest = GenMath.closestPointToSegment(lastPt, thisPt, snap);
+						if (closest.distance(snap) < 5)
+						{
+							pt.x = (int)Math.round(closest.getX());
+                    		pt.y = (int)Math.round(closest.getY());
+                            break;
+						}
+						lastPt = thisPt;
+					}
+				}
+			}
+
+			// no snapping: return the original point
 			return pt;
 		}
 
@@ -1787,7 +1829,7 @@ public class WaveformWindow implements WindowContent
 					}
 
 					// show it in the schematic
-					wp.waveWindow.showSelectedNetworksInSchematic();
+					wp.waveWindow.crossProbeWaveformToEditWindow();
 				} else
 				{
 					// just leave this highlight and show dimensions
@@ -2562,7 +2604,7 @@ public class WaveformWindow implements WindowContent
 			}
 
 			// show it in the schematic
-			ws.wavePanel.waveWindow.showSelectedNetworksInSchematic();
+			ws.wavePanel.waveWindow.crossProbeWaveformToEditWindow();
 		}
 	}
 
@@ -2709,15 +2751,14 @@ public class WaveformWindow implements WindowContent
 		 */
 		public void highlightChanged(Highlighter which)
 		{
+			// if this is a response to crossprobing from waveform to schematic, stop now
 			if (freezeWaveformHighlighting) return;
-			EditWindow wnd = null;
+
+			// find the EditWindow that this change comes from
 			WindowFrame highWF = which.getWindowFrame();
-			if (highWF != null)
-			{
-				if (highWF.getContent() instanceof EditWindow)
-					wnd = (EditWindow)highWF.getContent();
-			}
-			if (wnd == null) return;
+			if (highWF == null) return;
+			if (!(highWF.getContent() instanceof EditWindow)) return;
+			EditWindow wnd = (EditWindow)highWF.getContent();
 
 			// loop through all windows, looking for waveform windows
 			for(Iterator wIt = WindowFrame.getWindows(); wIt.hasNext(); )
@@ -2725,46 +2766,7 @@ public class WaveformWindow implements WindowContent
 				WindowFrame wf = (WindowFrame)wIt.next();
 				if (!(wf.getContent() instanceof WaveformWindow)) continue;
 				WaveformWindow ww = (WaveformWindow)wf.getContent();
-
-				// start by removing all highlighting in the waveform
-				for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
-				{
-					Panel wp = (Panel)it.next();
-					wp.clearHighlightedSignals();
-				}
-
-				Set highSet = which.getHighlightedNetworks();
-				if (highSet.size() == 1)
-				{
-					Locator loc = new Locator(wnd, ww);
-					if (loc.getWaveformWindow() != ww) continue;
-					Network net = (Network)highSet.iterator().next();
-					//String netName = loc.getContext() + net.describe();
-					String netName = getSpiceNetName(loc.getContext(), net);
-					Signal sSig = ww.sd.findSignalForNetwork(netName);
-					if (sSig == null)
-					{
-						netName = netName.replace('@', '_');
-						sSig = ww.sd.findSignalForNetwork(netName);
-						if (sSig == null) return;
-					}
-
-					boolean foundSignal = false;
-					for(Iterator it = ww.wavePanels.iterator(); it.hasNext(); )
-					{
-						Panel wp = (Panel)it.next();
-						for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
-						{
-							WaveSignal ws = (WaveSignal)sIt.next();
-							if (ws.sSig == sSig)
-							{
-								wp.addHighlightedSignal(ws);
-								foundSignal = true;
-							}
-						}
-					}
-					if (foundSignal) ww.repaint();
-				}
+				ww.crossProbeEditWindowToWaveform(wnd, which);
 			}
 		}
 
@@ -3246,91 +3248,6 @@ public class WaveformWindow implements WindowContent
 
 	public void setSimEngine(Engine se) { this.se = se; }
 
-	/**
-	 * Method called when signal waveforms change, and equivalent should be shown in the edit window.
-	 */
-	public void showSelectedNetworksInSchematic()
-	{
-		// highlight the net in any associated edit windows
-		freezeWaveformHighlighting = true;
-		for(Iterator wIt = WindowFrame.getWindows(); wIt.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)wIt.next();
-			if (!(wf.getContent() instanceof EditWindow)) continue;
-			EditWindow wnd = (EditWindow)wf.getContent();
-			Cell cell = wnd.getCell();
-			if (cell == null) continue;
-			Highlighter hl = wnd.getHighlighter();
-
-			Locator loc = new Locator(wnd, this);
-			if (loc.getWaveformWindow() != this) continue;
-			VarContext context = loc.getContext();
-
-			hl.clear();
-			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
-			{
-				Panel wp = (Panel)it.next();
-				for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
-				{
-					WaveSignal ws = (WaveSignal)pIt.next();
-					if (!ws.highlighted) continue;
-					String want = ws.sSig.getFullName();
-					Stack upNodables = new Stack();
-					Network net = null;
-					for (;;)
-					{
-						String contextStr = getSpiceNetName(context, null);
-						if (contextStr.length() > 0)
-						{
-							boolean matches = false;
-							contextStr += ".";
-							if (want.startsWith(contextStr)) matches = true; else
-							{
-								contextStr = contextStr.replace('@', '_');
-								if (want.startsWith(contextStr)) matches = true;
-							}
-							if (!matches)
-							{
-								if (context == VarContext.globalContext) break;
-								cell = context.getNodable().getParent();
-								upNodables.push(context.getNodable());
-								context = context.pop();
-								continue;
-							}
-						}
-						Netlist netlist = cell.acquireUserNetlist();
-						if (netlist == null)
-						{
-							System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
-							return;
-						}
-						net = findNetwork(netlist, want.substring(contextStr.length()));
-						if (net != null) break;
-						if (context == VarContext.globalContext) break;
-
-						cell = context.getNodable().getParent();
-						upNodables.push(context.getNodable());
-						context = context.pop();
-					}
-					if (net != null)
-					{
-						// found network
-						while (!upNodables.isEmpty())
-						{
-							Nodable no = (Nodable)upNodables.pop();
-							net = HierarchyEnumerator.getNetworkInChild(net, no);
-							if (net == null) break;
-						}
-					}
-					if (net != null)
-						hl.addNetwork(net, cell);
-				}
-			}
-			hl.finished();
-		}
-		freezeWaveformHighlighting = false;
-	}
-
 	private void addMainTimePanel()
 	{
 		mainTimePanel = new TimeTickPanel(null, this);
@@ -3683,6 +3600,8 @@ if (wp.signalButtons != null)
 		List signals = sd.getSignals();
 		Collections.sort(signals, new SignalsByName());
 
+		treeNodeFromSignal = new HashMap();
+
 		// add branches first
 		char separatorChar = sd.getSeparatorChar();
 		for(Iterator it = signals.iterator(); it.hasNext(); )
@@ -3699,7 +3618,9 @@ if (wp.signalButtons != null)
 			DefaultMutableTreeNode thisTree = signalsExplorerTree;
 			if (sSig.getSignalContext() != null)
 				thisTree = makeContext(sSig.getSignalContext(), contextMap, separatorChar);
-			thisTree.add(new DefaultMutableTreeNode(sSig));
+			DefaultMutableTreeNode sigLeaf = new DefaultMutableTreeNode(sSig);
+			thisTree.add(sigLeaf);
+			treeNodeFromSignal.put(sSig, sigLeaf);
 		}
 		return signalsExplorerTree;
 	}
@@ -3769,34 +3690,17 @@ if (wp.signalButtons != null)
 		return null;
 	}
 
-	private static Network findNetwork(Netlist netlist, String name)
-	{
-		// Should really use extended code, found in "simspicerun.cpp:sim_spice_signalname()"
-		for(Iterator nIt = netlist.getNetworks(); nIt.hasNext(); )
-		{
-			Network net = (Network)nIt.next();
-			if (getSpiceNetName(net).equalsIgnoreCase(name)) return net;
-		}
-
-		// try converting "@" in network names
-		for(Iterator nIt = netlist.getNetworks(); nIt.hasNext(); )
-		{
-			Network net = (Network)nIt.next();
-			String convertedName = getSpiceNetName(net).replace('@', '_');
-			if (convertedName.equalsIgnoreCase(name)) return net;
-		}
-		return null;
-	}
-
 	/**
-	 * Method to add a set of Networks to the waveform display.
-	 * @param nets the Set of Networks to add.
+	 * Method to add a selection to the waveform display.
+	 * @param h a Highlighter of what is selected.
 	 * @param context the context of these networks
 	 * (a string to prepend to them to get the actual simulation signal name).
 	 * @param newPanel true to create new panels for each signal.
 	 */
-	public void showSignals(Set nets, VarContext context, boolean newPanel)
+	public void showSignals(Highlighter h, VarContext context, boolean newPanel)
 	{
+		List found = findSelectedSignals(h, context);
+
 		// determine the current panel
 		Panel wp = null;
 		for(Iterator pIt = wavePanels.iterator(); pIt.hasNext(); )
@@ -3816,21 +3720,9 @@ if (wp.signalButtons != null)
 		}
 
 		boolean added = false;
-		for(Iterator it = nets.iterator(); it.hasNext(); )
+		for(Iterator it = found.iterator(); it.hasNext(); )
 		{
-			Network net = (Network)it.next();
-			String netName = getSpiceNetName(context, net);
-			Signal sSig = sd.findSignalForNetwork(netName);
-			if (sSig == null)
-			{
-				netName = netName.replace('@', '_');
-				sSig = sd.findSignalForNetwork(netName);
-				if (sSig == null)
-				{
-					System.out.println("Unable to find a signal named " + netName);
-					continue;
-				}
-			}
+			Signal sSig = (Signal)it.next();
 
 			// add the signal
 			if (newPanel)
@@ -3874,6 +3766,46 @@ if (wp.signalButtons != null)
 		{
 			overall.validate();
 			saveSignalOrder();
+		}
+	}
+
+	/**
+	 * Method to move a set of Networks from the waveform display.
+	 * @param nets the Set of Networks to remove.
+	 * @param context the context of these networks
+	 * (a string to prepend to them to get the actual simulation signal name).
+	 */
+	public void removeSignals(Set nets, VarContext context)
+	{
+		for(Iterator nIt = nets.iterator(); nIt.hasNext(); )
+		{
+			Network net = (Network)nIt.next();
+			String netName = getSpiceNetName(context, net);
+			Signal sSig = sd.findSignalForNetwork(netName);
+
+			boolean found = true;
+			while (found)
+			{
+				found = false;
+				for(Iterator pIt = this.getPanels(); pIt.hasNext(); )
+				{
+					Panel wp = (Panel)pIt.next();
+					for(Iterator it = wp.waveSignals.values().iterator(); it.hasNext(); )
+					{
+						WaveSignal ws = (WaveSignal)it.next();
+						if (ws.sSig != sSig) continue;
+						wp.removeHighlightedSignal(ws);
+						wp.signalButtons.remove(ws.sigButton);
+						wp.waveSignals.remove(ws.sigButton);
+						wp.signalButtons.validate();
+						wp.signalButtons.repaint();
+						wp.repaint();
+						found = true;
+						break;
+					}
+					if (found) break;
+				}
+			}
 		}
 	}
 
@@ -4063,6 +3995,16 @@ if (wp.signalButtons != null)
 				if (ws.highlighted) highlightedSignals.add(ws.sSig);
 			}
 		}
+
+		// also include what is in the SIGNALS tree
+		ExplorerTree sigTree = wf.getExplorerTab();
+		Object nodeInfo = sigTree.getCurrentlySelectedObject();
+		if (nodeInfo != null && nodeInfo instanceof Signal)
+		{
+			Signal sig = (Signal)nodeInfo;
+			highlightedSignals.add(sig);
+		}
+
 		return highlightedSignals;
 	}
 
@@ -4096,6 +4038,16 @@ if (wp.signalButtons != null)
 				Network net = findNetwork(netlist, ws.sSig.getSignalName());
 				if (net != null) nets.add(net);
 			}
+		}
+
+		// also include what is in the SIGNALS tree
+		ExplorerTree sigTree = wf.getExplorerTab();
+		Object nodeInfo = sigTree.getCurrentlySelectedObject();
+		if (nodeInfo != null && nodeInfo instanceof Signal)
+		{
+			Signal sig = (Signal)nodeInfo;
+			Network net = findNetwork(netlist, sig.getSignalName());
+			if (net != null) nets.add(net);
 		}
 		return nets;
 	}
@@ -4300,7 +4252,256 @@ if (wp.signalButtons != null)
 		return s + "e" + i2;
 	}
 
-	// ************************************ SHOWING CROSS-PROBED LEVELS IN EDITWINDOW ************************************
+	// ************************************ CROSS-PROBING ************************************
+
+	/**
+	 * Method to crossprobe from an EditWindow to this WaveformWindow.
+	 * @param wnd the EditWindow that changed.
+	 * @param which the Highlighter in that window with current selection.
+	 */
+	private void crossProbeEditWindowToWaveform(EditWindow wnd, Highlighter which)
+	{
+		// make sure the windows are associated with each other
+		Locator loc = new Locator(wnd, this);
+		if (loc.getWaveformWindow() != this) return;
+
+		// start by removing all highlighting in the waveform
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			wp.clearHighlightedSignals();
+		}
+
+		// also clear "Signals" tree highlighting
+		ExplorerTree tree = wf.getExplorerTab();
+		tree.setSelectionPath(null);
+		tree.setCurrentlySelectedObject(null);
+
+		// find the signal to show in the waveform window
+		List found = findSelectedSignals(which, loc.getContext());
+
+		// show it in every panel
+		boolean foundSignal = false;
+		for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+		{
+			Panel wp = (Panel)it.next();
+			for(Iterator sIt = wp.waveSignals.values().iterator(); sIt.hasNext(); )
+			{
+				WaveSignal ws = (WaveSignal)sIt.next();
+				for(Iterator fIt = found.iterator(); fIt.hasNext(); )
+				{
+					Signal sSig = (Signal)fIt.next();
+					if (ws.sSig == sSig)
+					{
+						wp.addHighlightedSignal(ws);
+						foundSignal = true;
+					}
+				}
+			}
+		}
+		if (foundSignal) repaint();
+
+		// show it in the "Signals" tree
+		for(Iterator fIt = found.iterator(); fIt.hasNext(); )
+		{
+			Signal sSig = (Signal)fIt.next();
+			Object treeNode = (Object)treeNodeFromSignal.get(sSig);
+			if (treeNode != null)
+			{
+				if (treeNode instanceof DefaultMutableTreeNode)
+				{
+					DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode)treeNode;
+					DefaultTreeModel model = (DefaultTreeModel)tree.getTreeModel();
+					TreePath selTP = new TreePath(model.getPathToRoot(dmtn));
+					tree.setSelectionPath(selTP);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to return a list of signals that are selected in an EditWindow.
+	 * @param h a Highlighter with a selection in an EditWindow.
+	 * @param context the VarContext of that window.
+	 * @return a List of Signal objects in this WaveformWindow.
+	 */
+	private List findSelectedSignals(Highlighter h, VarContext context)
+	{
+		List found = new ArrayList();
+
+		// special case if a current source is selected
+		List highlightedObjects = h.getHighlightedEObjs(true, true);
+		if (highlightedObjects.size() == 1)
+		{
+			// if a node is highlighted that has current measured on it, use that
+			Geometric geom = (Geometric)highlightedObjects.get(0);
+			if (geom instanceof NodeInst)
+			{
+				NodeInst ni = (NodeInst)geom;
+				String nodeName = "I(v" + ni.getName();
+				Signal sSig = sd.findSignalForNetwork(nodeName);
+				if (sSig != null)
+				{
+					found.add(sSig);
+					return found;
+				}
+			}
+		}
+
+		// convert all networks to signals
+		Set nets = h.getHighlightedNetworks();
+		for(Iterator it = nets.iterator(); it.hasNext(); )
+		{
+			Network net = (Network)it.next();
+			String netName = getSpiceNetName(context, net);
+			Signal sSig = sd.findSignalForNetwork(netName);
+			if (sSig == null)
+			{
+				netName = netName.replace('@', '_');
+				sSig = sd.findSignalForNetwork(netName);
+			}
+			if (sSig != null) found.add(sSig);
+		}
+		return found;
+	}
+
+	private static Network findNetwork(Netlist netlist, String name)
+	{
+		// Should really use extended code, found in "simspicerun.cpp:sim_spice_signalname()"
+		for(Iterator nIt = netlist.getNetworks(); nIt.hasNext(); )
+		{
+			Network net = (Network)nIt.next();
+			if (getSpiceNetName(net).equalsIgnoreCase(name)) return net;
+		}
+
+		// try converting "@" in network names
+		for(Iterator nIt = netlist.getNetworks(); nIt.hasNext(); )
+		{
+			Network net = (Network)nIt.next();
+			String convertedName = getSpiceNetName(net).replace('@', '_');
+			if (convertedName.equalsIgnoreCase(name)) return net;
+		}
+		return null;
+	}
+
+	/**
+	 * Method called when signal waveforms change, and equivalent should be shown in the edit window.
+	 */
+	public void crossProbeWaveformToEditWindow()
+	{
+		// highlight the net in any associated edit windows
+		freezeWaveformHighlighting = true;
+		for(Iterator wIt = WindowFrame.getWindows(); wIt.hasNext(); )
+		{
+			WindowFrame wfr = (WindowFrame)wIt.next();
+			if (!(wfr.getContent() instanceof EditWindow)) continue;
+			EditWindow wnd = (EditWindow)wfr.getContent();
+			Locator loc = new Locator(wnd, this);
+			if (loc.getWaveformWindow() != this) continue;
+			VarContext context = loc.getContext();
+
+			Cell cell = wnd.getCell();
+			if (cell == null) continue;
+			Highlighter hl = wnd.getHighlighter();
+			Netlist netlist = cell.acquireUserNetlist();
+			if (netlist == null)
+			{
+				System.out.println("Sorry, a deadlock aborted crossprobing (network information unavailable).  Please try again");
+				return;
+			}
+
+			hl.clear();
+			for(Iterator it = wavePanels.iterator(); it.hasNext(); )
+			{
+				Panel wp = (Panel)it.next();
+				for(Iterator pIt = wp.waveSignals.values().iterator(); pIt.hasNext(); )
+				{
+					WaveSignal ws = (WaveSignal)pIt.next();
+					if (!ws.highlighted) continue;
+					String want = ws.sSig.getFullName();
+					Stack upNodables = new Stack();
+					Network net = null;
+					for (;;)
+					{
+						String contextStr = getSpiceNetName(context, null);
+						if (contextStr.length() > 0)
+						{
+							boolean matches = false;
+							contextStr += ".";
+							if (want.startsWith(contextStr)) matches = true; else
+							{
+								contextStr = contextStr.replace('@', '_');
+								if (want.startsWith(contextStr)) matches = true;
+							}
+							if (!matches)
+							{
+								if (context == VarContext.globalContext) break;
+								cell = context.getNodable().getParent();
+								upNodables.push(context.getNodable());
+								context = context.pop();
+								continue;
+							}
+						}
+						String desired = want.substring(contextStr.length());
+						net = findNetwork(netlist, desired);
+						if (net != null)
+						{
+							// found network
+							while (!upNodables.isEmpty())
+							{
+								Nodable no = (Nodable)upNodables.pop();
+								net = HierarchyEnumerator.getNetworkInChild(net, no);
+								if (net == null) break;
+							}
+							if (net != null)
+								hl.addNetwork(net, cell);
+							break;
+						}
+
+						// see if this name is really a current source
+						if (desired.startsWith("I(v"))
+						{
+							NodeInst ni = cell.findNode(desired.substring(3));
+							if (ni != null)
+								hl.addElectricObject(ni, cell);
+						}
+
+						if (context == VarContext.globalContext) break;
+
+						cell = context.getNodable().getParent();
+						upNodables.push(context.getNodable());
+						context = context.pop();
+					}
+				}
+			}
+
+			// also highlight anything selected in the "SIGNALS" tree
+			ExplorerTree sigTree = wf.getExplorerTab();
+			Object nodeInfo = sigTree.getCurrentlySelectedObject();
+			if (nodeInfo != null && nodeInfo instanceof Signal)
+			{
+				Signal sig = (Signal)nodeInfo;
+				String desired = sig.getSignalName();
+				Network net = findNetwork(netlist, desired);
+				if (net != null)
+				{
+					hl.addNetwork(net, cell);
+				} else
+				{
+					// see if this name is really a current source
+					if (desired.startsWith("I(v"))
+					{
+						NodeInst ni = cell.findNode(desired.substring(3));
+						if (ni != null)
+							hl.addElectricObject(ni, cell);
+					}
+				}
+			}
+
+			hl.finished();
+		}
+		freezeWaveformHighlighting = false;
+	}
 
 	private HashMap netValues;
 

@@ -3651,14 +3651,20 @@ public class CircuitChanges
 						{
 							Point2D iPt = DBMath.intersect(oai.getHeadLocation(), 900,
 								new Point2D.Double(ai.getHeadLocation().getX()+dX, ai.getHeadLocation().getY()+dY), arcangle);
-							deltaXs[j] = iPt.getX() - ai.getLocation(j).getX();
-							deltaYs[j] = iPt.getY() - ai.getLocation(j).getY();
+							if (iPt != null)
+							{
+								deltaXs[j] = iPt.getX() - ai.getLocation(j).getX();
+								deltaYs[j] = iPt.getY() - ai.getLocation(j).getY();
+							}
 						} else if (DBMath.doublesEqual(oai.getHeadLocation().getY(), oai.getTailLocation().getY()))
 						{
 							Point2D iPt = DBMath.intersect(oai.getHeadLocation(), 0,
 								new Point2D.Double(ai.getHeadLocation().getX()+dX, ai.getHeadLocation().getY()+dY), arcangle);
-							deltaXs[j] = iPt.getX() - ai.getLocation(j).getX();
-							deltaYs[j] = iPt.getY() - ai.getLocation(j).getY();
+							if (iPt != null)
+							{
+								deltaXs[j] = iPt.getX() - ai.getLocation(j).getX();
+								deltaYs[j] = iPt.getY() - ai.getLocation(j).getY();
+							}
 						}
 					}
 					if (j < 2) continue;

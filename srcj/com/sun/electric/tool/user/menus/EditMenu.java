@@ -416,7 +416,7 @@ public class EditMenu {
 //		specialSubMenu.addMenuItem("D_elete Current Technology", null,
 //			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.deleteCurrentTechnology(); } });
 
-		// mnemonic keys available:  B   F  I KLM  PQR       Z
+		// mnemonic keys available:  B   F  I KLM  PQ        Z
 		MenuBar.Menu selListSubMenu = MenuBar.makeMenu("_Selection");
 		editMenu.add(selListSubMenu);
 		selListSubMenu.addMenuItem("Sele_ct All", KeyStroke.getKeyStroke('A', buckyBit),
@@ -461,6 +461,8 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { addToWaveformNewCommand(); }});
 		selListSubMenu.addMenuItem("Add to _Waveform in Current Panel", KeyStroke.getKeyStroke('O', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { addToWaveformCurrentCommand(); }});
+		selListSubMenu.addMenuItem("_Remove from _Waveform", KeyStroke.getKeyStroke('R', 0),
+				new ActionListener() { public void actionPerformed(ActionEvent e) { removeFromWaveformCommand(); }});
     }
 
     public static void undoCommand() { new UndoCommand(); }
@@ -1148,8 +1150,7 @@ public class EditMenu {
 			System.out.println("Cannot add selected signals to the waveform window: no waveform window is associated with this cell");
 			return;
 		}
-		Set nets = wnd.getHighlighter().getHighlightedNetworks();
-		ww.showSignals(nets, wwLoc.getContext(), true);
+		ww.showSignals(wnd.getHighlighter(), wwLoc.getContext(), true);
 	}
 
 	/**
@@ -1168,8 +1169,27 @@ public class EditMenu {
 			System.out.println("Cannot overlay selected signals to the waveform window: no waveform window is associated with this cell");
 			return;
 		}
+		ww.showSignals(wnd.getHighlighter(), wwLoc.getContext(), false);
+	}
+
+	/**
+	 * This method implements the command to remove the currently selected network
+	 * from the waveform window.
+	 */
+	public static void removeFromWaveformCommand()
+	{
+		WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+		if (!(wf.getContent() instanceof EditWindow)) return;
+        EditWindow wnd = (EditWindow)wf.getContent();
+		WaveformWindow.Locator wwLoc = new WaveformWindow.Locator(wnd);
+		WaveformWindow ww = wwLoc.getWaveformWindow();
+		if (ww == null)
+		{
+			System.out.println("Cannot remove selected signals from the waveform window: no waveform window is associated with this cell");
+			return;
+		}
 		Set nets = wnd.getHighlighter().getHighlightedNetworks();
-		ww.showSignals(nets, wwLoc.getContext(), false);
+		ww.removeSignals(nets, wwLoc.getContext());
 	}
 
     /**

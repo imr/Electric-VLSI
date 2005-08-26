@@ -92,6 +92,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	private TreeHandler handler = null;
 	private DefaultMutableTreeNode rootNode;
 	private DefaultTreeModel treeModel;
+	private Object currentSelectedObject;
 
 	private static final int SHOWALPHABETICALLY = 1;
 	private static final int SHOWBYCELLGROUP    = 2;
@@ -181,7 +182,19 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	 * Method to return the currently selected object in the explorer tree.
 	 * @return the currently selected object in the explorer tree.
 	 */
-	public Object getCurrentlySelectedObject() { return handler.currentSelectedObject; }
+	public Object getCurrentlySelectedObject() { return currentSelectedObject; }
+
+	/**
+	 * Method to return the currently selected object in the explorer tree.
+	 * @return the currently selected object in the explorer tree.
+	 */
+	public DefaultTreeModel getTreeModel() { return treeModel; }
+
+	/**
+	 * Method to set the currently selected object in the explorer tree.
+	 * param obj the currently selected object in the explorer tree.
+	 */
+	public void setCurrentlySelectedObject(Object obj) { currentSelectedObject = obj; }
 
 	/**
 	 * A static object is used so that its open/closed tree state can be maintained.
@@ -762,7 +775,6 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 	private static class TreeHandler implements MouseListener, MouseMotionListener
 	{
 		private ExplorerTree tree;
-		private Object currentSelectedObject;
 		private Cell originalCell;
 		private boolean draggingCell;
 		private MouseEvent currentMouseEvent;
@@ -797,22 +809,22 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			// double click
 			if (e.getClickCount() == 2)
 			{
-				if (currentSelectedObject instanceof CellAndCount)
+				if (tree.currentSelectedObject instanceof CellAndCount)
 				{
-					CellAndCount cc = (CellAndCount)currentSelectedObject;
+					CellAndCount cc = (CellAndCount)tree.currentSelectedObject;
 					wf.setCellWindow(cc.getCell());
 					return;
 				}
 
-				if (currentSelectedObject instanceof Cell)
+				if (tree.currentSelectedObject instanceof Cell)
 				{
-					Cell cell = (Cell)currentSelectedObject;
+					Cell cell = (Cell)tree.currentSelectedObject;
 					wf.setCellWindow(cell);
 					return;
 				}
-				if (currentSelectedObject instanceof MultiPageCell)
+				if (tree.currentSelectedObject instanceof MultiPageCell)
 				{
-					MultiPageCell mpc = (MultiPageCell)currentSelectedObject;
+					MultiPageCell mpc = (MultiPageCell)tree.currentSelectedObject;
 					Cell cell = mpc.cell;
 					wf.setCellWindow(cell);
 					if (wf.getContent() instanceof EditWindow)
@@ -823,17 +835,17 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					return;
 				}
 
-				if (currentSelectedObject instanceof Library || currentSelectedObject instanceof Cell.CellGroup ||
-					currentSelectedObject instanceof String)
+				if (tree.currentSelectedObject instanceof Library || tree.currentSelectedObject instanceof Cell.CellGroup ||
+						tree.currentSelectedObject instanceof String)
 				{
 					if (tree.isExpanded(currentPath)) tree.collapsePath(currentPath); else
 						tree.expandPath(currentPath);
 					return;
 				}
 
-				if (currentSelectedObject instanceof Signal)
+				if (tree.currentSelectedObject instanceof Signal)
 				{
-					Signal sig = (Signal)currentSelectedObject;
+					Signal sig = (Signal)tree.currentSelectedObject;
 					if (wf.getContent() instanceof WaveformWindow)
 					{
 						WaveformWindow ww = (WaveformWindow)wf.getContent();
@@ -842,33 +854,33 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					return;
 				}
 
-				if (currentSelectedObject instanceof WaveformWindow.SweepSignal)
+				if (tree.currentSelectedObject instanceof WaveformWindow.SweepSignal)
 				{
-					WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)currentSelectedObject;
+					WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)tree.currentSelectedObject;
 					if (ss == null) return;
 					ss.setIncluded(!ss.isIncluded());
 					return;
 				}
 
-				if (currentSelectedObject instanceof Job)
+				if (tree.currentSelectedObject instanceof Job)
 				{
-					Job job = (Job)currentSelectedObject;
+					Job job = (Job)tree.currentSelectedObject;
 					System.out.println(job.getInfo());
 					return;
 				}
 
-				if (currentSelectedObject instanceof ErrorLogger.MessageLog)
+				if (tree.currentSelectedObject instanceof ErrorLogger.MessageLog)
 				{
-					ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)currentSelectedObject;
+					ErrorLogger.MessageLog el = (ErrorLogger.MessageLog)tree.currentSelectedObject;
 					String msg = el.reportLog(true, null);
 					System.out.println(msg);
 					return;
 				}
 
 				// dragging: remember original object
-				if (currentSelectedObject instanceof Cell)
+				if (tree.currentSelectedObject instanceof Cell)
 				{
-					Cell cell = (Cell)currentSelectedObject;
+					Cell cell = (Cell)tree.currentSelectedObject;
 					if (cell.getNewestVersion() == cell)
 					{
 						originalCell = cell;
@@ -902,34 +914,55 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		private void cacheEvent(MouseEvent e)
 		{
 			currentPath = tree.getPathForLocation(e.getX(), e.getY());
-			if (currentPath == null) { currentSelectedObject = null;   return; }
+			if (currentPath == null) { tree.currentSelectedObject = null;   return; }
 			tree.setSelectionPath(currentPath);
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode)currentPath.getLastPathComponent();
 			tree.selectedNode = node;
-			currentSelectedObject = node.getUserObject();
+			Object newSelection = node.getUserObject();
+			if (newSelection != tree.currentSelectedObject)
+			{
+				tree.currentSelectedObject = newSelection;
 
+				// update highlighting to match this selection
+				for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+				{
+					WindowFrame wf = (WindowFrame)it.next();
+					if (wf.getExplorerTab() == tree)
+					{
+						// initiate crossprobing from WaveformWindow 
+						if (wf.getContent() instanceof WaveformWindow)
+						{
+							WaveformWindow ww = (WaveformWindow)wf.getContent();
+							ww.crossProbeWaveformToEditWindow();
+						}
+					}
+				}
+			}
+
+			
 			// determine the source of this event
 			currentMouseEvent = e;
 		}
 
 		private void doContextMenu()
 		{
+			Object selectedObject = tree.currentSelectedObject;
 			// show Job menu if user clicked on a Job
-			if (currentSelectedObject instanceof Job)
+			if (selectedObject instanceof Job)
 			{
-				Job job = (Job)currentSelectedObject;
+				Job job = (Job)selectedObject;
 				JPopupMenu popup = job.getPopupStatus();
 				popup.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
-			if (currentSelectedObject instanceof CellAndCount)
+			if (selectedObject instanceof CellAndCount)
 			{
-				CellAndCount cc = (CellAndCount)currentSelectedObject;
-				currentSelectedObject = cc.getCell();
+				CellAndCount cc = (CellAndCount)selectedObject;
+				selectedObject = cc.getCell();
 			}
-			if (currentSelectedObject instanceof Cell)
+			if (selectedObject instanceof Cell)
 			{
-				Cell cell = (Cell)currentSelectedObject;
+				Cell cell = (Cell)selectedObject;
 				JPopupMenu menu = new JPopupMenu("Cell");
 
 				JMenuItem menuItem = new JMenuItem("Edit");
@@ -950,34 +983,34 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					{
 						menuItem = new JMenuItem("Check Out");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkOut((Cell)currentSelectedObject); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkOut((Cell)tree.currentSelectedObject); } });
 					}
 					if (projStatus == Project.CHECKEDOUTTOYOU)
 					{
 						menuItem = new JMenuItem("Check In...");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkIn((Cell)currentSelectedObject); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.checkIn((Cell)tree.currentSelectedObject); } });
 
 						menuItem = new JMenuItem("Cancel Check-Out");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.cancelCheckOut((Cell)currentSelectedObject); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.cancelCheckOut((Cell)tree.currentSelectedObject); } });
 					}
 					if (projStatus == Project.NOTMANAGED)
 					{
 						menuItem = new JMenuItem("Add To Repository");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addCell((Cell)currentSelectedObject); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addCell((Cell)tree.currentSelectedObject); } });
 					} else
 					{
 						menuItem = new JMenuItem("Show History of This Cell...");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.examineHistory((Cell)currentSelectedObject); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.examineHistory((Cell)tree.currentSelectedObject); } });
 					}
 					if (projStatus == Project.CHECKEDIN || projStatus == Project.CHECKEDOUTTOYOU)
 					{
 						menuItem = new JMenuItem("Remove From Repository");
 						menu.add(menuItem);
-						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.removeCell((Cell)currentSelectedObject); } });
+						menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.removeCell((Cell)tree.currentSelectedObject); } });
 					}
 				}
 
@@ -1039,9 +1072,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
-			if (currentSelectedObject instanceof MultiPageCell)
+			if (selectedObject instanceof MultiPageCell)
 			{
-				MultiPageCell mpc = (MultiPageCell)currentSelectedObject;
+				MultiPageCell mpc = (MultiPageCell)selectedObject;
 				Cell cell = mpc.cell;
 				JPopupMenu menu = new JPopupMenu("Cell");
 
@@ -1066,9 +1099,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
-			if (currentSelectedObject instanceof Library)
+			if (selectedObject instanceof Library)
 			{
-				Library lib = (Library)currentSelectedObject;
+				Library lib = (Library)selectedObject;
 				JPopupMenu menu = new JPopupMenu("Library");
 
 				JMenuItem menuItem = new JMenuItem("Open");
@@ -1103,7 +1136,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				{
 					menuItem = new JMenuItem("Add to Project Management Repository");
 					menu.add(menuItem);
-					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addALibrary((Library)currentSelectedObject); } });
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { Project.addALibrary((Library)tree.currentSelectedObject); } });
 				}
 
 				menu.addSeparator();
@@ -1129,7 +1162,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
-			if (currentSelectedObject instanceof Cell.CellGroup)
+			if (selectedObject instanceof Cell.CellGroup)
 			{
 				JPopupMenu menu = new JPopupMenu("CellGroup");
 
@@ -1158,7 +1191,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
-			if (currentSelectedObject instanceof WaveformWindow.SweepSignal)
+			if (selectedObject instanceof WaveformWindow.SweepSignal)
 			{
 				JPopupMenu menu = new JPopupMenu("Sweep Signal");
 
@@ -1177,9 +1210,9 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 				return;
 			}
-			if (currentSelectedObject instanceof String)
+			if (selectedObject instanceof String)
 			{
-				String msg = (String)currentSelectedObject;
+				String msg = (String)selectedObject;
 				if (msg.equalsIgnoreCase("sweeps"))
 				{
 					JPopupMenu menu = new JPopupMenu("All Sweeps");
@@ -1280,8 +1313,8 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					return;
 				}
 			}
-            if (currentSelectedObject instanceof ErrorLogger) {
-                ErrorLogger logger = (ErrorLogger)currentSelectedObject;
+            if (selectedObject instanceof ErrorLogger) {
+                ErrorLogger logger = (ErrorLogger)selectedObject;
                 JPopupMenu p = logger.getPopupMenu();
                 if (p != null) p.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
                 return;
@@ -1331,7 +1364,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void setCurLibAction()
 		{
-			Library lib = (Library)currentSelectedObject;
+			Library lib = (Library)tree.currentSelectedObject;
 			lib.setCurrent();
 			WindowFrame.wantToRedoTitleNames();
             WindowFrame.wantToRedoLibraryTree();
@@ -1340,25 +1373,25 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void renameLibraryAction()
 		{
-			Library lib = (Library)currentSelectedObject;
+			Library lib = (Library)tree.currentSelectedObject;
 			CircuitChanges.renameLibrary(lib);
 		}
 
         private void saveLibraryAction()
 		{
-			Library lib = (Library)currentSelectedObject;
+			Library lib = (Library)tree.currentSelectedObject;
 			FileMenu.saveLibraryCommand(lib, FileType.DEFAULTLIB, false, true);
 		}
 
 		private void closeLibraryAction()
 		{
-			Library lib = (Library)currentSelectedObject;
+			Library lib = (Library)tree.currentSelectedObject;
 			FileMenu.closeLibraryCommand(lib);
 		}
 
 		private void renameGroupAction()
 		{
-			Cell.CellGroup cellGroup = (Cell.CellGroup)currentSelectedObject;
+			Cell.CellGroup cellGroup = (Cell.CellGroup)tree.currentSelectedObject;
 			String defaultName = "";
 			if (cellGroup.getNumCells() > 0)
 				defaultName = ((Cell)cellGroup.getCells().next()).getName();
@@ -1372,12 +1405,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		{
 			Cell cell = null;
 			int pageNo = 1;
-			if (currentSelectedObject instanceof Cell)
+			if (tree.currentSelectedObject instanceof Cell)
 			{
-				cell = (Cell)currentSelectedObject;
-			} else if (currentSelectedObject instanceof MultiPageCell)
+				cell = (Cell)tree.currentSelectedObject;
+			} else if (tree.currentSelectedObject instanceof MultiPageCell)
 			{
-				MultiPageCell mpc = (MultiPageCell)currentSelectedObject;
+				MultiPageCell mpc = (MultiPageCell)tree.currentSelectedObject;
 				cell = mpc.cell;
 				pageNo = mpc.pageNo;
 			}
@@ -1399,7 +1432,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void newCellInstanceAction()
 		{
-			Cell cell = (Cell)currentSelectedObject;
+			Cell cell = (Cell)tree.currentSelectedObject;
 			if (cell == null) return;
 			PaletteFrame.placeInstance(cell, null, false);
 		}
@@ -1413,14 +1446,14 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void setSweepAction(boolean include)
 		{
-			WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)currentSelectedObject;
+			WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)tree.currentSelectedObject;
 			if (ss == null) return;
 			ss.setIncluded(include);
 		}
 
 		private void highlightSweepAction()
 		{
-			WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)currentSelectedObject;
+			WaveformWindow.SweepSignal ss = (WaveformWindow.SweepSignal)tree.currentSelectedObject;
 			if (ss == null) return;
 			ss.highlight();
 		}
@@ -1443,13 +1476,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void newCellVersionAction()
 		{
-			Cell cell = (Cell)currentSelectedObject;
+			Cell cell = (Cell)tree.currentSelectedObject;
 			CircuitChanges.newVersionOfCell(cell);
 		}
 
 		private void duplicateCellAction()
 		{
-			Cell cell = (Cell)currentSelectedObject;
+			Cell cell = (Cell)tree.currentSelectedObject;
 
 			String newName = JOptionPane.showInputDialog(tree, "Name of duplicated cell",
 				cell.getName() + "NEW");
@@ -1459,13 +1492,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 		private void deleteCellAction()
 		{
-			Cell cell = (Cell)currentSelectedObject;
+			Cell cell = (Cell)tree.currentSelectedObject;
 			CircuitChanges.deleteCell(cell, true);
 		}
 
 		private void renameCellAction()
 		{
-			Cell cell = (Cell)currentSelectedObject;
+			Cell cell = (Cell)tree.currentSelectedObject;
 			String response = JOptionPane.showInputDialog(tree, "New name for " + cell, cell.getName());
 			if (response == null) return;
 			CircuitChanges.renameCellInJob(cell, response);
@@ -1478,20 +1511,20 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			View newView = View.findView(viewName);
 			if (newView != null)
 			{
-				Cell cell = (Cell)currentSelectedObject;
+				Cell cell = (Cell)tree.currentSelectedObject;
 				ViewChanges.changeCellView(cell, newView);
 			}
 		}
 
 		private void makeCellMainSchematic()
 		{
-            Cell cell = (Cell)currentSelectedObject;
+            Cell cell = (Cell)tree.currentSelectedObject;
             if (cell == null) return;
             cell.getCellGroup().setMainSchematics(cell);
 		}
 
         private void changeCellGroupAction() {
-            Cell cell = (Cell)currentSelectedObject;
+            Cell cell = (Cell)tree.currentSelectedObject;
             if (cell == null) return;
             ChangeCellGroup dialog = new ChangeCellGroup(TopLevel.getCurrentJFrame(), true, cell, cell.getLibrary());
             if (!Main.BATCHMODE) dialog.setVisible(true);
@@ -1499,7 +1532,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
         private void makeNewSchematicPage()
         {
-        	MultiPageCell mpc = (MultiPageCell)currentSelectedObject;
+        	MultiPageCell mpc = (MultiPageCell)tree.currentSelectedObject;
             Cell cell = mpc.cell;
          	if (!cell.isMultiPage())
         	{
@@ -1514,7 +1547,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
         private void deleteSchematicPage()
         {
-        	MultiPageCell mpc = (MultiPageCell)currentSelectedObject;
+        	MultiPageCell mpc = (MultiPageCell)tree.currentSelectedObject;
             Cell cell = mpc.cell;
          	if (!cell.isMultiPage()) return;
         	int numPages = cell.getNumMultiPages();

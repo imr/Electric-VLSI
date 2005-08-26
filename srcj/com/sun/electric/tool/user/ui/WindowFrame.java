@@ -979,11 +979,11 @@ public class WindowFrame extends Observable
 	 */
 //	public JTextArea getTextEditWindow() { return textWnd; }
 
-//	/**
-//	 * Method to return the Explorer tab associated with this WindowFrame.
-//	 * @return the Explorer tab associated with this WindowFrame.
-//	 */
-//	public ExplorerTree getExplorerTab() { return explorerTab; }
+	/**
+	 * Method to return the Explorer tab associated with this WindowFrame.
+	 * @return the Explorer tab associated with this WindowFrame.
+	 */
+	public ExplorerTree getExplorerTab() { return explorerTab; }
 
 	/**
 	 * Method to return the component palette associated with this WindowFrame.

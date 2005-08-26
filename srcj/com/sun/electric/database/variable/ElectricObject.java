@@ -504,18 +504,21 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 			td = mtd;
 		}
 		boolean headerString = false;
-		Font font = null;
+//		Font font = null;
+		double fontHeight = 1;
 		double scale = 1;
 		if (wnd != null)
 		{
-			font = wnd.getFont(td);
+			fontHeight = wnd.getFontHeight(td);
+//			font = wnd.getFont(td);
 			scale = wnd.getScale();
 		}
 		if (varLength > 1)
 		{
 			// compute text height
-			if (font == null) height = 1 / scale; else
-				height = font.getSize2D() / scale;
+			height = fontHeight / scale;
+//			if (font == null) height = 1 / scale; else
+//				height = font.getSize2D() / scale;
 			scale *= User.getGlobalTextScale();
 			if (td.getDispPart() == TextDescriptor.DispPos.NAMEVALUE)
 			{
@@ -575,21 +578,21 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 				pointList = Poly.makePoints(bounds);
 			} else
 			{
-				if (font == null)
-				{
-					// text too small: make it "greek"
-					double fakeWidth = message.length() * entryTD.getTrueSize(wnd) * 0.75 / scale;
-					pointList = new Point2D.Double[2];
-					pointList[0] = new Point2D.Double(cX+offX-fakeWidth/2, cY+offY);
-					pointList[1] = new Point2D.Double(cX+offX+fakeWidth/2, cY+offY);
-				} else
+//				if (font == null)
+//				{
+//					// text too small: make it "greek"
+//					double fakeWidth = message.length() * entryTD.getTrueSize(wnd) * 0.75 / scale;
+//					pointList = new Point2D.Double[2];
+//					pointList[0] = new Point2D.Double(cX+offX-fakeWidth/2, cY+offY);
+//					pointList[1] = new Point2D.Double(cX+offX+fakeWidth/2, cY+offY);
+//				} else
 				{
 					pointList = new Point2D.Double[1];
 					pointList[0] = new Point2D.Double(cX+offX, cY+offY);
 				}
 			}
 			polys[i] = new Poly(pointList);
-			if (font == null) polys[i].setStyle(Poly.Type.OPENED); else
+//			if (font == null) polys[i].setStyle(Poly.Type.OPENED); else
 			{
 				polys[i].setString(message);
 				polys[i].setStyle(style);

@@ -43,6 +43,7 @@ import com.sun.electric.tool.user.ui.WindowFrame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -335,6 +336,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             if (showhigh)
             {
                 Highlighter highlighter = null;
+                EditWindow wnd = null;
 
                 // first show the geometry associated with this error
                 for(Iterator it = highlights.iterator(); it.hasNext(); )
@@ -352,7 +354,6 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 
                         // make sure it is shown
                         boolean found = false;
-                        EditWindow wnd = null;
                         for(Iterator it2 = WindowFrame.getWindows(); it2.hasNext(); )
                         {
                             WindowFrame wf = (WindowFrame)it2.next();
@@ -414,7 +415,18 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
                     }
                 }
 
-                if (highlighter != null) highlighter.finished();
+                if (highlighter != null)
+				{
+					highlighter.finished();
+
+					// make sure the selection is visible
+					Rectangle2D hBounds = highlighter.getHighlightedArea(wnd);
+					Rectangle2D shown = wnd.getDisplayedBounds();
+					if (!shown.intersects(hBounds))
+					{
+				        wnd.focusOnHighlighted();
+					}
+				}
             }
 
             // return the error message
