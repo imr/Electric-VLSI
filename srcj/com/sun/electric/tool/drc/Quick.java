@@ -513,7 +513,13 @@ public class Quick
 	/**
 	 * Method to check the contents of cell "cell" with global network index "globalIndex".
 	 * Returns positive if errors are found, zero if no errors are found, negative on internal error.
-	 */
+     * @param cell
+     * @param globalIndex
+     * @param bounds
+     * @param validVersion
+     * @return positive number if errors are found, zero if no errors are found and check the cell, -1 if job was
+     * aborted and -2 if cell is OK with DRC date stored.
+     */
 	private int checkThisCell(Cell cell, int globalIndex, Rectangle2D bounds, boolean validVersion)
 	{
 		// Job aborted or scheduled for abort
@@ -565,7 +571,7 @@ public class Quick
 			int localIndex = globalIndex * ci.multiplier + ci.localIndex + ci.offset;
 			int retval = checkThisCell((Cell)np, localIndex, subBounds, validVersion);
 			if (retval < 0)
-				return -1;
+				return retval;
 			if (retval > 0) allSubCellsStillOK = false;
 		}
 
@@ -580,7 +586,7 @@ public class Quick
 			if (lastGoodDate != null)
 			{
 				Date lastChangeDate = cell.getRevisionDate();
-				if (lastGoodDate.after(lastChangeDate)) return 0;
+				if (lastGoodDate.after(lastChangeDate)) return -2;
 			}
 		}
 

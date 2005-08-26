@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03e: *********************************
 
+IMP: (08/25/05, GVG) Improvements on DRC tool regarding cells that already being checked without no errors (Bug #507)
+
 BUG: (08/25/05, DN) Compilation error on Java 1.5 (Bug #505).
 FIX: Change Integer.valueOf(n) to new Integer(n) in LayoutCell.java.
 
