@@ -30,6 +30,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
@@ -313,6 +314,8 @@ public class Output
 			System.out.println("Unknown export type: " + type);
 			return true;
 		}
+        // Update the version in library read in memomy
+        lib.setVersion(Version.getVersion());
 		return false;
 	}
     

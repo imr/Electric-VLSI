@@ -459,7 +459,8 @@ public class Quick
             logsFound = errorLogger.getNumLogs() - logsFound;
         }
 
-		if (totalErrors != 0) goodDRCDate.clear();
+        // -2 if cells and subcells are ok
+		if (totalErrors != 0 && totalErrors != -2) goodDRCDate.clear();
 
 		// some cells were sucessfully checked: save that information in the database
 	    // some cells don't have valid DRC date anymore and therefore they should be clean
