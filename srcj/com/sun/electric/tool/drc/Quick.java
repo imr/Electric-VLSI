@@ -587,7 +587,7 @@ public class Quick
 			if (lastGoodDate != null)
 			{
 				Date lastChangeDate = cell.getRevisionDate();
-				if (lastGoodDate.after(lastChangeDate)) return -2;
+				if (lastGoodDate.after(lastChangeDate)) return 0;
 			}
 		}
 
