@@ -190,9 +190,9 @@ public class MoCMOS extends Technology
         new DRCTemplate("3.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Transistor-Poly", null,            1.8,  null),
 
 		new DRCTemplate("3.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  3,  null),
-		new DRCTemplate("3.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2.8,  null),
+		new DRCTemplate("3.2 TSMC (PO.S.2/PO.S.3)",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2.5,  null),
         new DRCTemplate("3.2 Mosis",   DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",3,  null),
-		new DRCTemplate("3.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2.8,  null),
+		new DRCTemplate("3.2 TSMC (PO.S.2/PO.S.3)",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2.5,  null),
         new DRCTemplate("3.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2,  null),
 		new DRCTemplate("3.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2,  null),
 
