@@ -98,10 +98,10 @@ public class PortInst extends ElectricObject
 	public Iterator getConnections() {
 		List connections = new ArrayList();
 		// get connections on NodeInst
-		for (Iterator it = nodeInst.getConnections(); it.hasNext(); ) {
+		for (Iterator it = nodeInst.getConnections(getPortIndex()); it.hasNext(); ) {
 			Connection c = (Connection)it.next();
-			if (c.getPortInst() == this)
-				connections.add(c);
+			if (c.getPortInst() != this) break;
+			connections.add(c);
 		}
 		return connections.iterator();
 	}

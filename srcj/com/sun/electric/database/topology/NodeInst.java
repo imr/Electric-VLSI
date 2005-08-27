@@ -124,7 +124,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	/** node usage of this NodeInst. */						private NodeUsage nodeUsage;
 	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
 	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
-	/** List of connections belonging to this NodeInst. */	private List connections = new ArrayList(2);
+	/** List of connections belonging to this NodeInst. It is sorted by portIndex.*/private ArrayList connections = new ArrayList(2);
 	/** Array of Exports belonging to this NodeInst. */		private Export[] exports = NULL_EXPORT_ARRAY;
     
 	/** bounds after transformation. */						private Rectangle2D visBounds = new Rectangle2D.Double(0, 0, 0, 0);
@@ -1894,11 +1894,27 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	{
 		PortInst pi = portInsts[oldPortIndex];
 		int portIndex = pi.getPortIndex();
+        if (portIndex == oldPortIndex) return;
 		if (portIndex > oldPortIndex)
 			System.arraycopy(portInsts, oldPortIndex + 1, portInsts, oldPortIndex, portIndex - oldPortIndex);
-		else if (portIndex < oldPortIndex)
+		else
 			System.arraycopy(portInsts, portIndex, portInsts, portIndex + 1, oldPortIndex - portIndex);
 		portInsts[portIndex] = pi;
+        
+        // Move connections as well
+        ArrayList/*<Connection>*/ savedConnections = new ArrayList/*<Connection>*/();
+        for (Iterator it = connections.iterator(); it.hasNext(); ) {
+            Connection con = (Connection)it.next();
+            if (con.getPortInst() == pi) {
+                savedConnections.add(con);
+                it.remove();
+            }
+        }
+        for (int i = 0; i < savedConnections.size(); i++) {
+            Connection con = (Connection)savedConnections.get(i);
+            addConnection(con);
+        }
+        check();
 	}
 
 	/**
@@ -2078,13 +2094,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 
 	/****************************** CONNECTIONS ******************************/
 
-	/**
-	 * sanity check function, used by Connection.checkobj
-	 */
-	private boolean containsConnection(Connection c)
-	{
-		return connections.contains(c);
-	}
+//	/**
+//	 * sanity check function, used by Connection.checkobj
+//	 */
+//	private boolean containsConnection(Connection c)
+//	{
+//		return connections.contains(c);
+//	}
 
 	/**
 	 * Method to recomputes the "Wiped" flag bit on this NodeInst.
@@ -2209,9 +2225,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void addConnection(Connection c)
 	{
-		connections.add(c);
-		NodeInst ni = c.getPortInst().getNodeInst();
-		ni.computeWipeState();
+        PortInst pi = c.getPortInst();
+        assert pi.getNodeInst() == this;
+        int portIndex = pi.getPortIndex();
+        int pos = searchConnections(portIndex + 1);
+		connections.add(pos, c);
+        
+		computeWipeState();
 		redoGeometric();
 	}
 
@@ -2221,9 +2241,16 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void removeConnection(Connection c)
 	{
-		connections.remove(c);
-		NodeInst ni = c.getPortInst().getNodeInst();
-		ni.computeWipeState();
+        PortInst pi = c.getPortInst();
+        assert pi.getNodeInst() == this;
+        int portIndex = pi.getPortIndex();
+        int pos = searchConnections(portIndex);
+        while (!c.equals(connections.get(pos)))
+            pos++;
+		connections.remove(pos);
+        check();
+        
+		computeWipeState();
 		redoGeometric();
 	}
 
@@ -2237,12 +2264,44 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	}
 
 	/**
+	 * Method to return an Iterator over Connections on this NodeInst since portIndex.
+     * @param portIndex port index to start iterator from/
+	 * @return an Iterator over Connections on this NodeInst since portIndex.
+	 */
+    Iterator getConnections(int portIndex) {
+        return connections.listIterator(searchConnections(portIndex));
+    }
+    
+	/**
 	 * Method to return the number of Connections on this NodeInst.
 	 * @return the number of Connections on this NodeInst.
 	 */
 	public int getNumConnections() { return connections.size(); }
 
-	/****************************** TEXT ******************************/
+    /**
+     * Searches the connections for the specified portIndex using the binary
+     * search algorithm.
+     * @param portIndex the port index to be searched.
+     * @return index in the connections list. All connections con below this index
+     * have con.portIndex < portIndex. All connections at this index and above have
+     * con.portIndex >= portIndex.
+     */
+    private int searchConnections(int portIndex) {
+        int low = 0;
+		int high = connections.size()-1;
+
+		while (low <= high) {
+			int mid = (low + high) >> 1;
+			Connection con = (Connection)connections.get(mid);
+			if (con.getPortInst().getPortIndex() < portIndex)
+				low = mid + 1;
+			else
+				high = mid - 1;
+		}
+        return low;
+    }
+    
+    /****************************** TEXT ******************************/
 
 	/**
 	 * Method to return the name key of this NodeInst.
@@ -2875,6 +2934,17 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			assert pi.getPortProto() == pp;
 		}
 		assert exports != null;
+        
+        int lastPortIndex = -1;
+        for (int i = 0; i < connections.size(); i++) {
+            Connection con = (Connection)connections.get(i);
+            PortInst pi = con.getPortInst();
+            assert pi.getNodeInst() == this;
+            int portIndex = pi.getPortIndex();
+            assert lastPortIndex <= portIndex;
+            lastPortIndex = portIndex;
+        }
+        assert lastPortIndex < portInsts.length;
 	}
 
 	/**
