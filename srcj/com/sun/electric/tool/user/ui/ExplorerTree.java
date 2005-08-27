@@ -1228,6 +1228,17 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;
 				}
+                if (msg.equalsIgnoreCase("errors"))
+				{
+					JPopupMenu menu = new JPopupMenu("Errors");
+
+					JMenuItem menuItem = new JMenuItem("Delete All");
+					menu.add(menuItem);
+					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { ErrorLogger.deleteAllLoggers(); } });
+
+                    menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
+                    return;
+                }
 				if (msg.equalsIgnoreCase("libraries"))
 				{
 					JPopupMenu menu = new JPopupMenu("Libraries");

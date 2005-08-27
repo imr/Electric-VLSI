@@ -927,6 +927,19 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
      */
     private static String errorNode = "ERRORS";
 
+    public static void deleteAllLoggers()
+    {
+        ArrayList loggersCopy = new ArrayList();
+        synchronized(allLoggers) {
+            loggersCopy.addAll(allLoggers);
+        }
+        for (Iterator eit = loggersCopy.iterator(); eit.hasNext(); )
+        {
+            ErrorLogger log = (ErrorLogger)eit.next();
+            log.delete();
+        }
+    }
+
     public static DefaultMutableTreeNode getExplorerTree()
     {
         DefaultMutableTreeNode explorerTree = new DefaultMutableTreeNode(errorNode);
