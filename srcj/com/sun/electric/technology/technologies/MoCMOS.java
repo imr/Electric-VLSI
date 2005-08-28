@@ -444,7 +444,8 @@ public class MoCMOS extends Technology
 		new DRCTemplate("15.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Metal-3",         null,            3,  null),
 
 		new DRCTemplate("15.2", DRCTemplate.DE, DRCTemplate.SPACING,  "Metal-3",        "Metal-3",        4,  null),
-		new DRCTemplate("15.2", DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-3",        "Metal-3",        3,  null),
+		new DRCTemplate("15.2 MOSIS", DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-3",        "Metal-3",        3,  null),
+        new DRCTemplate("15.2 TSMC (Mx.S.1)", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-3",        "Metal-3",        2.8,  null),
         new DRCTemplate("15.2", DRCTemplate.SC|DRCTemplate.M3,    DRCTemplate.SPACING,  "Metal-3",        "Metal-3",        4,  null),
 		new DRCTemplate("15.2", DRCTemplate.SC|DRCTemplate.M456,  DRCTemplate.SPACING,  "Metal-3",        "Metal-3",        3,  null),
 
@@ -480,7 +481,8 @@ public class MoCMOS extends Technology
 
 		new DRCTemplate("22.2", DRCTemplate.M4,    DRCTemplate.SPACING,  "Metal-4",        "Metal-4",        6,  null),
 		new DRCTemplate("22.2", DRCTemplate.DE|DRCTemplate.M56,   DRCTemplate.SPACING,  "Metal-4",        "Metal-4",        4,  null),
-		new DRCTemplate("22.2", DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.SPACING,  "Metal-4",        "Metal-4",        3,  null),
+		new DRCTemplate("22.2 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.SPACING,  "Metal-4",        "Metal-4",        3,  null),
+        new DRCTemplate("22.2 TSMC (Mx.S.1)", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.SPACING,  "Metal-4",        "Metal-4",        2.8,  null),
 
 		new DRCTemplate("22.3", DRCTemplate.M4,    DRCTemplate.VIASUR,   "Metal-4",         null,            2, "Metal-3-Metal-4-Con"),
 		new DRCTemplate("22.3 Mosis", DRCTemplate.MOSIS|DRCTemplate.M56,   DRCTemplate.VIASUR,   "Metal-4",         null,            1, "Metal-3-Metal-4-Con"),
@@ -514,7 +516,8 @@ public class MoCMOS extends Technology
 
 		new DRCTemplate("26.2", DRCTemplate.M5,    DRCTemplate.SPACING,  "Metal-5",        "Metal-5",        4,  null),
 		new DRCTemplate("26.2", DRCTemplate.DE|DRCTemplate.M6,    DRCTemplate.SPACING,  "Metal-5",        "Metal-5",        4,  null),
-		new DRCTemplate("26.2", DRCTemplate.SU|DRCTemplate.M6,    DRCTemplate.SPACING,  "Metal-5",        "Metal-5",        3,  null),
+		new DRCTemplate("26.2 MOSIS", DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.M6,    DRCTemplate.SPACING,  "Metal-5",        "Metal-5",        3,  null),
+        new DRCTemplate("26.2 TSMC (Mx.S.1)", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.M6,    DRCTemplate.SPACING,  "Metal-5",        "Metal-5",        2.8,  null),
 
 		new DRCTemplate("26.3", DRCTemplate.DE|DRCTemplate.M5,    DRCTemplate.VIASUR,   "Metal-5",         null,            2, "Metal-4-Metal-5-Con"),
 		new DRCTemplate("26.3 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.M5,    DRCTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
