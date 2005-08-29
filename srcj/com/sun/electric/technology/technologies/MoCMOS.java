@@ -32,6 +32,8 @@ import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -3177,34 +3179,37 @@ public class MoCMOS extends Technology
 //            }
 //        }
 
-//        for(Iterator itArc = cell.getArcs(); itArc.hasNext(); )
-//        {
-//            ArcInst ai = (ArcInst)itArc.next();
-//            boolean found = false;
-//            double maxLen = -Double.MIN_VALUE;
-//            // Guessing arc thickness based on connections
-//            // Default doesn't work in existing cells
-//            // Valid for poly layers and M6 only!
-//            // Metal 6 because the min M6 changed in Mosis
-//
-//            if (!(ai.getProto().getFunction().isPoly() ||
-//                  ai.getProto().getFunction() == ArcProto.Function.METAL6)) continue;
-////            for(int i=0; i<2; i++)
-////            {
-////                Connection thisCon = ai.getConnection(i);
-////                NodeInst ni = thisCon.getPortInst().getNodeInst();
-////                // covers transistors and resistors
-////                PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null); // This is only for layout
-////                if (size != null)
-////                {
-////                    double length = size.getDoubleLength();
-////                    if (DBMath.isGreaterThan(length, maxLen))
-////                    {
-////                        maxLen = length;
-////                        found = true;
-////                    }
-////                }
-////            }
+        for(Iterator itArc = cell.getArcs(); itArc.hasNext(); )
+        {
+            ArcInst ai = (ArcInst)itArc.next();
+            boolean found = false;
+            double maxLen = -Double.MIN_VALUE;
+            // Guessing arc thickness based on connections
+            // Default doesn't work in existing cells
+            // Valid for poly layers and M6 only!
+            // Metal 6 because the min M6 changed in Mosis
+
+            if (!(ai.getProto().getFunction().isPoly() /*||
+                  ai.getProto().getFunction() == ArcProto.Function.METAL6)*/)) continue;
+            for(int i=0; i<2; i++)
+            {
+                Connection thisCon = ai.getConnection(i);
+                NodeInst ni = thisCon.getPortInst().getNodeInst();
+                // covers transistors and resistors
+                PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null); // This is only for layout
+                if (size != null)
+                {
+                    double length = size.getDoubleLength();
+                    if (!DBMath.areEquals(length, ai.getWidth()))
+//                    if (DBMath.isGreaterThan(length, maxLen))
+                    {
+                        maxLen = length;
+                        found = true;
+                        ai.modify(maxLen - ai.getWidth(), 0, 0, 0, 0);
+                        break;
+                    }
+                }
+            }
 //            // No transistor or resistor found
 //            if (!found)
 //            {
@@ -3215,7 +3220,7 @@ public class MoCMOS extends Technology
 //            {
 //                ai.modify(maxLen - ai.getWidth(), 0, 0, 0, 0);
 //            }
-//        }
+        }
     }
 
 	/******************** SUPPORT METHODS ********************/
