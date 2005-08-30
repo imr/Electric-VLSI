@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03e: *********************************
 
+IMP/MAN (08/30/05, GVG) Changes in DRC documentation to deal with Bug #496
+
 IMP: (08/27/05, DN) Connections of NodeInst are sorted by port index. This speeds
     up PortInst.getConnections() method in case of cell instances with many exports.
 
