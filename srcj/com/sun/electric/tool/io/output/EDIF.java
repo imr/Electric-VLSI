@@ -413,7 +413,7 @@ public class EDIF extends Topology
                     p.setString(s);
                     p.setTextDescriptor(var.getTextDescriptor());
                     p.setStyle(var.getTextDescriptor().getPos().getPolyType());
-                    writeSymbolPoly(p);
+                    writeSymbolPoly(p, null, 1);
                     blockClose("commentGraphics");
                     continue;
                 }
@@ -1146,7 +1146,7 @@ public class EDIF extends Topology
             blockPutIdentifier(makeToken(e.getName()));
             blockOpen("display");
             blockOpen("figureGroupOverride");
-            blockPutIdentifier(EGWIRE.getText());
+            blockPutIdentifier(getFigureGroupName(EGWIRE));
             blockOpen("textHeight");
             blockPutInteger(getTextHeight(null));
             blockClose("figureGroupOverride");
@@ -1155,7 +1155,7 @@ public class EDIF extends Topology
             //writePoint(portPoly.getCenterX(), portPoly.getCenterY());
             blockClose("name");
             blockOpen("connectLocation");
-            writeSymbolPoly(portPoly);
+            writeSymbolPoly(portPoly, null, 1);
 
             // close figure
             setGraphic(EGUNKNOWN);
@@ -1165,7 +1165,7 @@ public class EDIF extends Topology
 
         Poly [] polys = pn.getTechnology().getShapeOfNode(ni);
         for (int i=0; i<polys.length; i++) {
-            writeSymbolPoly(polys[i]);
+            writeSymbolPoly(polys[i], null, 1);
         }
 
         // close figure
@@ -1184,7 +1184,7 @@ public class EDIF extends Topology
         blockPutIdentifier(makeToken(e.getName()));
         blockOpen("display");
         blockOpen("figureGroupOverride");
-        blockPutIdentifier(EGWIRE.getText());
+        blockPutIdentifier(getFigureGroupName(EGWIRE));
         blockOpen("textHeight");
         blockPutInteger(getTextHeight(e.getTextDescriptor(Export.EXPORT_NAME_TD)));
         blockClose("figureGroupOverride");
@@ -1196,7 +1196,7 @@ public class EDIF extends Topology
         Poly portPoly = e.getOriginalPort().getPoly();
         egraphic_override = EGWIRE;
         egraphic = EGUNKNOWN;
-        writeSymbolPoly(portPoly);
+        writeSymbolPoly(portPoly, null, 1);
         setGraphic(EGUNKNOWN);
         blockClose("connectLocation");
         if (closeBlock) {
@@ -1258,7 +1258,7 @@ public class EDIF extends Topology
 					blockOpen("annotate");
 				}
 
-				writeSymbolPoly(poly);
+				writeSymbolPoly(poly, null, 1);
 				if (istext) blockClose("annotate");
 			}
 		} else
@@ -1309,7 +1309,7 @@ public class EDIF extends Topology
 		Poly poly = new Poly(points);
 		poly.setStyle(Poly.Type.OPENED);
 		poly.transform(trans);
-		writeSymbolPoly(poly);
+		writeSymbolPoly(poly, null, 1);
 
 		// now get the variables
 		int num = ai.numDisplayableVariables(false);
@@ -1325,14 +1325,26 @@ public class EDIF extends Topology
         {
             Poly varPoly = varPolys[i];
             String name = null;
+			String append = null;
+			double scale = 1;
             Variable var = varPoly.getVariable();
             if (var != null)
+			{
+				// see if there is a translation
                 name = var.getTrueName();
-            else {
+				EDIFEquiv.VariableEquivalence ve = equivs.getElectricVariableEquivalence(var.getKey().getName());
+				if (ve != null)
+				{
+					name = ve.externVarName;
+					append = ve.appendElecOutput;
+					scale = ve.scale;
+				}
+			} else {
                 if (varPoly.getName() != null)
                     name = defaultVarName;
             }
             if (name == null) continue;
+
             if (prevtrans != null) varPoly.transform(prevtrans);
             // make sure poly type is some kind of text
             if (!varPoly.getStyle().isText()) {
@@ -1347,7 +1359,7 @@ public class EDIF extends Topology
             blockOpen("property");
             blockPutIdentifier(name);
             blockOpen("string");
-            writeSymbolPoly(varPoly);
+            writeSymbolPoly(varPoly, append, scale);
             blockClose("property");
         }
     }
@@ -1368,7 +1380,7 @@ public class EDIF extends Topology
 				if (egraphic != EGUNKNOWN) blockClose("figure");
 				egraphic = type;
 				blockOpen("figure");
-				blockPutIdentifier(egraphic.getText());
+				blockPutIdentifier(getFigureGroupName(egraphic));
 			}
 		} else if (egraphic != egraphic_override)
 		{
@@ -1376,14 +1388,14 @@ public class EDIF extends Topology
 			if (egraphic != EGUNKNOWN) blockClose("figure");
 			egraphic = egraphic_override;
 			blockOpen("figure");
-			blockPutIdentifier(egraphic.getText());
+			blockPutIdentifier(getFigureGroupName(egraphic));
 		}
 	}
 
 	/**
 	 * Method to write polys into EDIF syntax
 	 */
-	private void writeSymbolPoly(Poly obj)
+	private void writeSymbolPoly(Poly obj, String append, double scale)
 	{
 		// now draw the polygon
 		Poly.Type type = obj.getStyle();
@@ -1462,7 +1474,14 @@ public class EDIF extends Topology
                 // determines position automatically and cannot be altered by user.
                 // There also does not seem to be any way to set the 'display' so
                 // that it shows up on the instance
-                String str = convertElectricPropToCadence(obj.getString());
+				String value = obj.getVariable().getPureValue(-1);
+				if (scale != 1)
+				{
+					double scaled = TextUtils.atof(value);
+					value = TextUtils.formatDouble(scaled * scale);
+				}
+				if (append != null) value += append;
+                String str = convertElectricPropToCadence(value);
                 str = str.replaceAll("\"", "%34%");
                 blockPutString(str);
                 return;
@@ -1472,13 +1491,14 @@ public class EDIF extends Topology
 			setGraphic(EGUNKNOWN);
 			blockOpen("stringDisplay");
             String str = obj.getString().replaceAll("\"", "%34%");
+			if (append != null) str += append;
 			blockPutString(str);
 			blockOpen("display");
 			TextDescriptor td = obj.getTextDescriptor();
 			if (td != null)
 			{
 				blockOpen("figureGroupOverride");
-				blockPutIdentifier(EGART.getText());
+				blockPutIdentifier(getFigureGroupName(EGART));
 
 				// output the text height
 				blockOpen("textHeight");
@@ -1556,9 +1576,17 @@ public class EDIF extends Topology
 		}
 	}
 
-    private void writeFigureGroup(EGraphic graphic) {
+	private String getFigureGroupName(EGraphic graphic)
+	{
+		String name = graphic.getText();
+		EDIFEquiv.FigureGroupEquivalence fge = equivs.getElectricFigureGroupEquivalence(name);
+		if (fge != null) name = fge.externFGName;
+		return name;
+	}
+
+	private void writeFigureGroup(EGraphic graphic) {
         blockOpen("figureGroup");
-        blockPutIdentifier(graphic.getText());
+        blockPutIdentifier(getFigureGroupName(graphic));
         blockClose("figureGroup");
     }
 

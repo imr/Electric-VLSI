@@ -625,13 +625,29 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public Poly makePoly(double length, double width, Poly.Type style)
 	{
-		if (protoType.isCurvable())
+		return makePolyForArc(this, length, width, headLocation, tailLocation, style);
+	}
+	
+	/**
+	 * Method to create a Poly object that describes an ArcInst.
+	 * The ArcInst is described by its length, width, endpoints, and style.
+	 * @param real the real ArcInst object needed because this is a static method).
+	 * @param length the length of the ArcInst.
+	 * @param width the width of the ArcInst.
+	 * @param headPt the head of the ArcInst.
+	 * @param tailPt the tail of the ArcInst.
+	 * @param style the style of the ArcInst.
+	 * @return a Poly that describes the ArcInst.
+	 */
+	public static Poly makePolyForArc(ArcInst real, double length, double width, EPoint headPt, EPoint tailPt, Poly.Type style)
+	{
+		if (real.getProto().isCurvable())
 		{
 			// get the radius information on the arc
-			Double radiusDouble = getRadius();
+			Double radiusDouble = real.getRadius();
 			if (radiusDouble != null)
 			{
-				Poly curvedPoly = curvedArcOutline(style, width, radiusDouble.doubleValue());
+				Poly curvedPoly = real.curvedArcOutline(style, width, radiusDouble.doubleValue());
 				if (curvedPoly != null) return curvedPoly;
 			}
 		}
@@ -639,7 +655,7 @@ public class ArcInst extends Geometric implements Comparable
 		// zero-width polygons are simply lines
 		if (width == 0)
 		{
-			Poly poly = new Poly(new Point2D.Double[]{headLocation.mutable(), tailLocation.mutable()});
+			Poly poly = new Poly(new Point2D.Double[]{headPt.mutable(), tailPt.mutable()});
 			if (style == Poly.Type.FILLED) style = Poly.Type.OPENED;
 			poly.setStyle(style);
 			return poly;
@@ -647,22 +663,22 @@ public class ArcInst extends Geometric implements Comparable
 
 		// determine the end extension on each end
 		double extendH = 0;
-		if (isHeadExtended())
+		if (real.isHeadExtended())
 		{
 			extendH = width/2;
-			if (headShrink != 0)
-				extendH = getExtendFactor(width, headShrink);
+			if (real.headShrink != 0)
+				extendH = getExtendFactor(width, real.headShrink);
 		}
 		double extendT = 0;
-		if (isTailExtended())
+		if (real.isTailExtended())
 		{
 			extendT = width/2;
-			if (tailShrink != 0)
-				extendT = getExtendFactor(width, tailShrink);
+			if (real.tailShrink != 0)
+				extendT = getExtendFactor(width, real.tailShrink);
 		}
 
 		// make the polygon
-		Poly poly = Poly.makeEndPointPoly(length, width, getAngle(), headLocation, extendH, tailLocation, extendT);
+		Poly poly = Poly.makeEndPointPoly(length, width, real.getAngle(), headPt, extendH, tailPt, extendT);
 		if (poly != null) poly.setStyle(style);
 		return poly;
 	}

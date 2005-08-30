@@ -498,7 +498,7 @@ public class LETool extends Listener {
 
         public boolean doIt() {
             netlister.updateSizes();
-            if (wnd != null) wnd.repaintContents(null);
+            if (wnd != null) wnd.repaintContents(null, false);
             System.out.println("Sizes updated. Sizing Finished.");
             return true;
         }

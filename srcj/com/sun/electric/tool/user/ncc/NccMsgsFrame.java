@@ -136,8 +136,7 @@ public class NccMsgsFrame {
             JFrame jf = (JFrame)frame;
             jf.setState(Frame.NORMAL);
             if (!jf.isVisible()) {
-                jf.setVisible(true);
-                jf.show();                
+                jf.setVisible(true);              
                 if (!placed) {
                     placed = true;
                     jf.pack();

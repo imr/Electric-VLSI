@@ -2518,49 +2518,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 	private Rectangle2D accumulateTextBoundsOnObject(ElectricObject eObj, Rectangle2D bounds, EditWindow wnd)
 	{
-		for(Iterator vIt = eObj.getVariables(); vIt.hasNext(); )
-		{
-			Variable var = (Variable)vIt.next();
-			if (!var.isDisplay()) continue;
-			TextDescriptor td = var.getTextDescriptor();
-			if (td.getSize().isAbsolute()) continue;
-			Poly poly = eObj.computeTextPoly(wnd, var, null);
-			if (poly == null) continue;
-			Rectangle2D polyBound = poly.getBounds2D();
-			if (bounds == null) bounds = polyBound; else
-				Rectangle2D.union(bounds, polyBound, bounds);
-		}
-
-		if (eObj instanceof Geometric)
-		{
-			Geometric geom = (Geometric)eObj;
-			Name name = geom.getNameKey();
-			if (!name.isTempname())
-			{
-				Poly poly = eObj.computeTextPoly(wnd, null, name);
-				if (poly != null)
-				{
-					Rectangle2D polyBound = poly.getBounds2D();
-					if (bounds == null) bounds = polyBound; else
-						Rectangle2D.union(bounds, polyBound, bounds);
-				}
-			}
-		}
-		if (eObj instanceof NodeInst)
-		{
-			NodeInst ni = (NodeInst)eObj;
-			for(Iterator it = ni.getExports(); it.hasNext(); )
-			{
-				Export pp = (Export)it.next();
-				Poly poly = pp.computeTextPoly(wnd, null, null);
-				if (poly != null)
-				{
-					Rectangle2D polyBound = poly.getBounds2D();
-					if (bounds == null) bounds = polyBound; else
-						Rectangle2D.union(bounds, polyBound, bounds);
-				}
-			}
-		}
+		Rectangle2D objBounds = eObj.getTextBounds(wnd);
+		if (objBounds == null) return bounds;
+		if (bounds == null) return objBounds;
+		Rectangle2D.union(bounds, objBounds, bounds);
 		return bounds;
 	}
 

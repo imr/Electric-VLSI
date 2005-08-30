@@ -26,8 +26,18 @@ package com.sun.electric.database;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.technologies.Artwork;
+
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 
 /**
  * Immutable class ImmutableNodeInst represents a node instance.
@@ -312,4 +322,91 @@ public class ImmutableNodeInst
         }
         return userBits;
      }
+
+	public Rectangle2D computeBounds(NodeInst real)
+	{
+		// if zero size, set the bounds directly
+		if (width == 0 && height == 0)
+		{
+			return new Rectangle2D.Double(anchor.getX(), anchor.getY(), 0, 0);
+		}
+
+		// handle cell bounds
+		if (real.getProto() instanceof Cell)
+		{
+			// offset by distance from cell-center to the true center
+			Cell subCell = (Cell)real.getProto();
+			Rectangle2D bounds = subCell.getBounds();
+			Point2D shift = new Point2D.Double(-bounds.getCenterX(), -bounds.getCenterY());
+			AffineTransform trans = orient.pureRotate();
+//			AffineTransform trans = pureRotate(orient.getAngle(), isXMirrored(), isYMirrored());
+			trans.transform(shift, shift);
+			double cX = anchor.getX(), cY = anchor.getY();
+			cX -= shift.getX();
+			cY -= shift.getY();
+			Poly poly = new Poly(cX, cY, width, height);
+			trans = orient.rotateAbout(cX, cY);
+//			trans = rotateAbout(orient.getAngle(), cX, cY, getXSizeWithMirror(), getYSizeWithMirror());
+			poly.transform(trans);
+			return poly.getBounds2D();
+		}
+
+		PrimitiveNode pn = (PrimitiveNode)real.getProto();
+
+		// special case for arcs of circles
+		if (pn == Artwork.tech.circleNode || pn == Artwork.tech.thickCircleNode)
+		{
+			// see if this circle is only a partial one
+			double [] angles = real.getArcDegrees();
+			if (angles[0] != 0.0 || angles[1] != 0.0)
+			{
+				Point2D [] pointList = Artwork.fillEllipse(anchor, width, height, angles[0], angles[1]);
+				Poly poly = new Poly(pointList);
+				poly.setStyle(Poly.Type.OPENED);
+				poly.transform(orient.rotateAbout(anchor.getX(), anchor.getY()));
+				return poly.getBounds2D();
+			}
+		}
+
+		// special case for pins that become steiner points
+		if (pn.isWipeOn1or2() && real.getNumExports() == 0)
+		{
+			if (real.pinUseCount())
+			{
+				return new Rectangle2D.Double(anchor.getX(), anchor.getY(), 0, 0);
+			}
+		}
+
+		// special case for polygonally-defined nodes: compute precise geometry
+		if (pn.isHoldsOutline() && real.getTrace() != null)
+		{
+			AffineTransform trans = orient.rotateAbout(anchor.getX(), anchor.getY());
+			Poly[] polys = pn.getTechnology().getShapeOfNode(real);
+			Rectangle2D bounds = new Rectangle2D.Double();
+			Rectangle2D totalBounds = null;
+			for (int i = 0; i < polys.length; i++)
+			{
+				Poly poly = polys[i];
+				if (i == 0)
+					bounds.setRect(poly.getBounds2D());
+				else
+					Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
+				poly.transform(trans);
+				if (i == 0)
+					totalBounds = poly.getBounds2D();
+				else
+					Rectangle2D.union(poly.getBounds2D(), totalBounds, totalBounds);
+			}
+
+			// recompute actual bounds
+//			d = d.withSize(bounds.getWidth(), bounds.getHeight());
+			return totalBounds;
+		}
+
+		// normal bounds computation
+		Poly poly = new Poly(anchor.getX(), anchor.getY(), width, height);
+		AffineTransform trans = orient.rotateAbout(anchor.getX(), anchor.getY());
+		poly.transform(trans);
+		return poly.getBounds2D();
+	}
 }

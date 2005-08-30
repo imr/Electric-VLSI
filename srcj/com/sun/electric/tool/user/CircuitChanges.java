@@ -4830,7 +4830,7 @@ public class CircuitChanges
 			System.out.println("Must define an area in which to display");
 			return;
 		}
-		wnd.repaintContents(bounds);
+		wnd.repaintContents(bounds, true);
 	}
 
 	private static void DoExpandCommands(boolean unExpand, int amount)

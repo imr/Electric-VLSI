@@ -249,7 +249,7 @@ public class WindowMenu {
         double scaleY = wnd.getGridYSpacing() * sz.height / 5 / displayable.getHeight();
         double scale = Math.min(scaleX, scaleY);
         wnd.setScale(wnd.getScale() / scale);
-        wnd.repaintContents(null);
+        wnd.repaintContents(null, false);
     }
 
     /**
@@ -279,7 +279,7 @@ public class WindowMenu {
             return;
         }
         wnd.setScale(other.getScale());
-        wnd.repaintContents(null);
+        wnd.repaintContents(null, false);
     }
 
     public static void focusOnHighlighted()

@@ -42,6 +42,7 @@ import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.tool.user.Clipboard;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.dialogs.PreferencesFrame;
@@ -520,8 +521,18 @@ public class FileMenu {
     public static void closeLibraryCommand(Library lib)
     {
 	    Set found = Library.findReferenceInCell(lib);
-	    // You can't close it because there are open cells that refer to library elements
-	    if (found.size() != 0)
+
+		// if all references are from the clipboard, request that the clipboard be cleared, too
+		boolean clearClipboard = false, nonClipboard = false;
+	    for (Iterator i = found.iterator(); i.hasNext();)
+	    {
+		   Cell cell = (Cell)i.next();
+		   if (cell.getLibrary().isHidden()) clearClipboard = true; else
+			   nonClipboard = true;
+	    }
+
+		// You can't close it because there are open cells that refer to library elements
+		if (nonClipboard)
 	    {
 		    System.out.println("Cannot close " + lib + ":");
 		    System.out.print("\t Cells ");
@@ -537,19 +548,25 @@ public class FileMenu {
 	    if (preventLoss(lib, 1)) return;
 
         WindowFrame.removeLibraryReferences(lib);
-        CloseLibrary job = new CloseLibrary(lib);
+        CloseLibrary job = new CloseLibrary(lib, clearClipboard);
     }
 
 	private static class CloseLibrary extends Job {
-        Library lib;
+        private Library lib;
+		private boolean clearClipboard;
 
-        public CloseLibrary(Library lib) {
+        public CloseLibrary(Library lib, boolean clearClipboard) {
             super("Close "+lib, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.lib = lib;
+            this.clearClipboard = clearClipboard;
             startJob();
         }
 
         public boolean doIt() {
+			if (clearClipboard)
+			{
+				Clipboard.clear();
+			}
             if (lib.kill("delete"))
             {
                 System.out.println("Library '" + lib.getName() + "' closed");

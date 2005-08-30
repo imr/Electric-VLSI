@@ -105,19 +105,24 @@ public class EDIF extends Input
 	};
 
 	// Edif viewtypes ...
-	private static class ViewType {}
-	private static final ViewType VNULL       = new ViewType();
-	private static final ViewType VBEHAVIOR   = new ViewType();
-	private static final ViewType VDOCUMENT   = new ViewType();
-	private static final ViewType VGRAPHIC    = new ViewType();
-	private static final ViewType VLOGICMODEL = new ViewType();
-	private static final ViewType VMASKLAYOUT = new ViewType();
-	private static final ViewType VNETLIST    = new ViewType();
-	private static final ViewType VPCBLAYOUT  = new ViewType();
-	private static final ViewType VSCHEMATIC  = new ViewType();
-	private static final ViewType VSTRANGER   = new ViewType();
-	private static final ViewType VSYMBOLIC   = new ViewType();
-	private static final ViewType VSYMBOL     = new ViewType();	/* not a real EDIF view, but electric has one */
+	private static class ViewType
+	{
+		private String name;
+		ViewType(String name) { this.name = name; }
+		public String toString() { return "VIEWTYPE "+name; }
+	}
+	private static final ViewType VNULL       = new ViewType("Null");
+	private static final ViewType VBEHAVIOR   = new ViewType("Behavior");
+	private static final ViewType VDOCUMENT   = new ViewType("Document");
+	private static final ViewType VGRAPHIC    = new ViewType("Graphic");
+	private static final ViewType VLOGICMODEL = new ViewType("LogicModel");
+	private static final ViewType VMASKLAYOUT = new ViewType("MaskLayout");
+	private static final ViewType VNETLIST    = new ViewType("Netlist");
+	private static final ViewType VPCBLAYOUT  = new ViewType("PCBLayout");
+	private static final ViewType VSCHEMATIC  = new ViewType("Schematic");
+	private static final ViewType VSTRANGER   = new ViewType("Stranger");
+	private static final ViewType VSYMBOLIC   = new ViewType("Symbolic");
+	private static final ViewType VSYMBOL     = new ViewType("Symbol");	/* not a real EDIF view, but electric has one */
 
 	// Edif geometry types ...
 	private static class GeometryType {}
@@ -1993,7 +1998,34 @@ public class EDIF extends Input
 			for (EDIFProperty property = propertiesListHead; property != null; property = property.next)
 			{
 				if (curNode != null)
-					curNode.newVar(property.name, property.val);
+				{
+					String varName = property.name;
+					Object varValue = property.val;
+					String varNameLookup = varName;
+					if (varNameLookup.startsWith("ATTR_")) varNameLookup = varNameLookup.substring(5);
+					EDIFEquiv.VariableEquivalence ve = equivs.getExternalVariableEquivalence(varNameLookup);
+					if (ve != null)
+					{
+						varName = ve.elecVarName;
+						if (ve.appendElecOutput.length() > 0)
+						{
+							String varValueString = varValue.toString();
+							if (varValueString.endsWith(ve.appendElecOutput))
+							{
+								varValue = varValueString.substring(0, varValueString.length() - ve.appendElecOutput.length());
+							}
+						}
+						if (ve.scale != 1)
+						{
+							String varValueString = varValue.toString();
+							double newValue = TextUtils.atof(varValueString) / ve.scale;
+							varValue = Double.toString(newValue);							
+						}
+					}
+					Variable newVar = curNode.newVar(varName, varValue);
+					if (newVar != null && ve != null)
+						newVar.setDisplay(true);
+				}
 			}
 			propertiesListHead = null;
 			instanceReference = "";
@@ -2466,8 +2498,8 @@ public class EDIF extends Input
                                             ne.externalView, port, orientation);
                                     if ((curPoint.getX() != fX) || (curPoint.getY() != fY)) {
                                         fList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech.wire_arc, true);
-                                        System.out.println("NodeInst "+pi.getNodeInst().describe(true)+", port "+pi.getPortProto().getName()+
-                                                ", fX,fY: "+fX+","+fY+", curPoint: "+curPoint.getX()+","+curPoint.getY()+", list size: "+fList.size());
+//                                        System.out.println("NodeInst "+pi.getNodeInst().describe(true)+", port "+pi.getPortProto().getName()+
+//                                                ", fX,fY: "+fX+","+fY+", curPoint: "+curPoint.getX()+","+curPoint.getY()+", list size: "+fList.size());
                                         if (fList.size() != 0) {
                                             // found exact match, move port
                                             fX = curPoint.getX();
@@ -2501,8 +2533,8 @@ public class EDIF extends Input
                                         ne.externalView, port, orientation);
                                 if (curPoint.getX() != tX || curPoint.getY() != tY) {
                                     tList = findEDIFPort(curCell, curPoint.getX(), curPoint.getY(), Schematics.tech.wire_arc, true);
-                                    System.out.println("NodeInst "+pi.getNodeInst().describe(true)+", port "+pi.getPortProto().getName()+
-                                            ", fX,fY: "+fX+","+fY+", curPoint: "+curPoint.getX()+","+curPoint.getY()+", list size: "+tList.size());
+//                                    System.out.println("NodeInst "+pi.getNodeInst().describe(true)+", port "+pi.getPortProto().getName()+
+//                                            ", fX,fY: "+fX+","+fY+", curPoint: "+curPoint.getX()+","+curPoint.getY()+", list size: "+tList.size());
                                     if (tList.size() != 0) {
                                         // found exact match, move port
                                         tX = curPoint.getX();
@@ -3071,7 +3103,7 @@ public class EDIF extends Input
 		protected void pop()
 			throws IOException
 		{
-			if (activeView == VNETLIST || activeView == VSCHEMATIC)
+//			if (activeView == VNETLIST || activeView == VSCHEMATIC)
 			{
 				// add as a variable to the current object
 				Cell np = null;
@@ -3443,7 +3475,6 @@ public class EDIF extends Input
 						{
                             var = ni.newVar(ElectricObject.newKey(key), textString, textVisible);
 //							if (var != null && textVisible) var.setDisplay(true);
-
 							// now set the position, relative to the center of the current object
 							xOff = p0.getX() - ni.getAnchorCenterX();
 							yOff = p0.getY() - ni.getAnchorCenterY();
@@ -3628,6 +3659,7 @@ public class EDIF extends Input
                         Orientation orient = curOrientation.concatenate(Orientation.fromAngle(cellRefProtoRotation*10));
 						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX, yPos),
 							cellRefProto.getDefWidth(), cellRefProto.getDefHeight(), curCell, orient, null, cellRefProtoTechBits);
+//System.out.println("CREATED "+ni+" F");
 //						NodeInst ni = NodeInst.makeInstance(cellRefProto, new Point2D.Double(lX, yPos),
 //							size.getX(), size.getY(), curCell, curOrientation.getAngle()+(cellRefProtoRotation*10), null, cellRefProtoTechBits);
 						curNode = ni;

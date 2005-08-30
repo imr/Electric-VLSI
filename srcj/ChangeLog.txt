@@ -4,6 +4,17 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03e: *********************************
 
+IMP: (08/30/05, SMR) Initial changes to speed up redisplay when small amounts change.
+
+IMP/MAN: (08/29/05, SMR) Improved EDIF I/O (and the "edif.cfg" file) for Cadence compatiblity.
+
+BUG: (08/29/05, SMR) Drawing transparent layers from a technology other than the current
+     produces an error and fails to draw the layers (Bug #500).
+FIX: In PixelDrawing.java, convert the transparent layers to opaque layers.
+
+BUG: (08/29/05, SMR) Closing a library is prevented if instances from it are in the clipboard (Bug #504).
+FIX: Clear the clipboard in such situations.
+
 IMP/MAN (08/30/05, GVG) Changes in DRC documentation to deal with Bug #496
 
 IMP: (08/27/05, DN) Connections of NodeInst are sorted by port index. This speeds

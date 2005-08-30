@@ -180,7 +180,7 @@ public class DesignRulesTab extends PreferencePanel
 
         // Repaint primitives
         EditWindow wnd = EditWindow.needCurrent();
-        if (wnd != null) wnd.repaintContents(null);
+        if (wnd != null) wnd.repaintContents(null, false);
 
         if (val == 0)
         {

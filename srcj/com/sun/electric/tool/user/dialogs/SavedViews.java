@@ -326,7 +326,7 @@ public class SavedViews extends EDialog implements HighlightListener
         wnd.setScale(pos[0].doubleValue());
         Point2D off = new Point2D.Double(pos[1].doubleValue(), pos[2].doubleValue());
         wnd.setOffset(off);
-        wnd.repaintContents(null);
+        wnd.repaintContents(null, false);
 	}//GEN-LAST:event_restoreView
 
 	/** Closes the dialog */

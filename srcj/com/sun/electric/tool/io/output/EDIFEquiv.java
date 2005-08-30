@@ -1,6 +1,7 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Orientation;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.prototype.NodeProto;
@@ -40,6 +41,11 @@ public class EDIFEquiv {
     private HashMap equivsByNodeProto;      // key: Electric hash (getElectricKey()), value: NodeEquivalence
     private HashMap equivsByExternal;       // key: External hash (getExternalKey()), value: NodeEquivalence
     private HashMap exportEquivs;           // key: External hash (getExternalKey()), value: ExportEquivalence
+    private HashMap exportByVariable;       // key: External hash (electric varname), value: VariableEquivalence
+    private HashMap exportFromVariable;     // key: External hash (external varname), value: VariableEquivalence
+    private HashMap exportByFigureGroup;    // key: External hash (electric figureGroupName), value: FigureGroupEquivalence
+    private HashMap exportFromFigureGroup;  // key: External hash (external figureGroupName), value: FigureGroupEquivalence
+	
 
     /**
      * Get the node equivalence for the NodeInst.  This must be a NodeInst, not a
@@ -69,7 +75,51 @@ public class EDIFEquiv {
         return (NodeEquivalence)equivsByNodeProto.get(getElectricKey(np, func, exportType));
     }
 
-    /**
+	/**
+	 * Method to get the VariableEquivalence that maps Electric variable names to external names.
+	 * @param varName the Electric variable name.
+	 * @return the VariableEquivalence that tells how to do the mapping (null if none).
+	 */
+	public VariableEquivalence getElectricVariableEquivalence(String varName)
+	{
+		VariableEquivalence ve = (VariableEquivalence)exportByVariable.get(varName);
+		return ve;
+	}
+
+	/**
+	 * Method to get the VariableEquivalence that maps external variable names to Electric names.
+	 * @param varName the external variable name.
+	 * @return the VariableEquivalence that tells how to do the mapping (null if none).
+	 */
+	public VariableEquivalence getExternalVariableEquivalence(String varName)
+	{
+		VariableEquivalence ve = (VariableEquivalence)exportFromVariable.get(varName);
+		return ve;
+	}
+
+	/**
+	 * Method to get the FigureGroupEquivalence that maps Electric variable names to external names.
+	 * @param varName the Electric variable name.
+	 * @return the FigureGroupEquivalence that tells how to do the mapping (null if none).
+	 */
+	public FigureGroupEquivalence getElectricFigureGroupEquivalence(String fgName)
+	{
+		FigureGroupEquivalence fge = (FigureGroupEquivalence)exportByFigureGroup.get(fgName);
+		return fge;
+	}
+
+	/**
+	 * Method to get the FigureGroupEquivalence that maps external variable names to Electric names.
+	 * @param varName the external variable name.
+	 * @return the FigureGroupEquivalence that tells how to do the mapping (null if none).
+	 */
+	public FigureGroupEquivalence getExternalFigureGroupEquivalence(String fgName)
+	{
+		FigureGroupEquivalence fge = (FigureGroupEquivalence)exportFromFigureGroup.get(fgName);
+		return fge;
+	}
+
+	/**
      * Get the node equivalence for the external reference.
      * @param extLib
      * @param extCell
@@ -175,6 +225,8 @@ public class EDIFEquiv {
      * <pre>
      * C Lib Cell View rotation { porta(x,y), ... } ExternalLib ExternalCell ExternalView { porta(x,y), ... }
      * P Tech NodeName Function rotation { porta(x,y), ... } ExternalLib ExternalCell ExternalView { porta(x,y), ... }
+     * F FigureGroup ExternalFigureGroup
+     * V VariableName ExternalVariableName [appendToElectricOutput]
      * # comment
      * </pre>
      * 'C' is for Cell, and 'P' is for Primitive. The left hand size specifies the Electric cell/node,
@@ -182,6 +234,10 @@ public class EDIFEquiv {
      * same in length, and specify the x,y coordinate of the port.  This coordinate is on the prototype of
      * the node, or also when the node is default size at 0,0.  Note that Electric port locations should
      * be locations after the node has been rotated, if rot is not 0.  Rotation should be in tenth-degrees.
+     * 
+     * For 'F', an association between internal FigureGroup names and external names is declared.
+     * For 'V', an association between internal Variable names and external names is declared.  You
+     * can also specify a string to be append to all matching Variable values.
      *
      * @param file the configuration file
      */
@@ -189,6 +245,10 @@ public class EDIFEquiv {
         equivsByNodeProto = new HashMap();
         equivsByExternal = new HashMap();
         exportEquivs = new HashMap();
+		exportByVariable = new HashMap();
+		exportFromVariable = new HashMap();
+		exportByFigureGroup = new HashMap();
+		exportFromFigureGroup = new HashMap();
 
         File fd = new File(file);
         if (!fd.exists()) {
@@ -222,7 +282,31 @@ public class EDIFEquiv {
         line = line.trim();
         if (line.equals("")) return true;
         if (line.startsWith("#")) return true;
-        // grab port parts
+
+		// special case for Variable equivalences
+		if (line.startsWith("V"))
+		{
+	        String [] parts = line.split("\\s+");
+			String append = "";
+			double scale = TextUtils.atof(parts[3]);
+			if (parts.length == 5) append = parts[4];
+			VariableEquivalence ve = new VariableEquivalence(parts[1], parts[2], scale, append);
+			exportByVariable.put(parts[1], ve);
+			exportFromVariable.put(parts[2], ve);
+			return true;
+		}
+
+		// special case for FigureGroup equivalences
+		if (line.startsWith("F"))
+		{
+	        String [] parts = line.split("\\s+");
+			FigureGroupEquivalence fge = new FigureGroupEquivalence(parts[1], parts[2]);
+			exportByFigureGroup.put(parts[1], fge);
+			exportFromFigureGroup.put(parts[2], fge);
+			return true;
+		}
+
+		// grab port parts
         Matcher mat = portsPat.matcher(line);
         if (!mat.find()) {
             System.out.println("Wrong number of curly brackets for ports on line "+lineno);
@@ -247,15 +331,19 @@ public class EDIFEquiv {
         boolean keyE = parts[0].equalsIgnoreCase("E") ? true : false;
         boolean keyP = parts[0].equalsIgnoreCase("P") ? true : false;
         boolean keyC = parts[0].equalsIgnoreCase("C") ? true : false;
+        if (keyP && parts.length != 5) {
+            System.out.println("Wrong number of arguments for Electric Primitive, expected 'P tech node func rot' on line "+lineno);
+            return false;
+        }
+        if (keyE && parts.length != 6) {
+            System.out.println("Wrong number of arguments for Electric Primitive, expected 'E tech node func rot porttype' on line "+lineno);
+            return false;
+        }
+        if (keyC && parts.length != 5) {
+            System.out.println("Wrong number of arguments for Electric cell, expected 'C lib cell view rot' on line "+lineno);
+            return false;
+        }
         if (keyP || keyE) {
-            if (keyP && parts.length != 5) {
-                System.out.println("Wrong number of arguments for Electric Primitive, expected 'P tech node func rot' on line "+lineno);
-                return false;
-            }
-            if (keyE && parts.length != 6) {
-                System.out.println("Wrong number of arguments for Electric Primitive, expected 'E tech node func rot porttype' on line "+lineno);
-                return false;
-            }
             // primitive node
             Technology tech = Technology.findTechnology(parts[1]);
             if (tech == null) {
@@ -293,10 +381,6 @@ public class EDIFEquiv {
                 }
             }
         } else if (keyC) {
-            if (parts.length != 5) {
-                System.out.println("Wrong number of arguments for Electric cell, expected 'C lib cell view rot' on line "+lineno);
-                return false;
-            }
             // cell
             Library lib = Library.findLibrary(parts[1]);
             if (lib == null) {
@@ -549,6 +633,30 @@ public class EDIFEquiv {
         }
         public String toString() {
             return "PortEquiv Elec{ "+elecPort+" } - Ext{ "+extPort+" }";
+        }
+    }
+
+    public static class VariableEquivalence {
+        public final String elecVarName;
+        public final String externVarName;
+        public final double scale;
+        public final String appendElecOutput;
+
+        private VariableEquivalence(String elecVarName, String externVarName, double scale, String appendElecOutput) {
+            this.elecVarName = elecVarName;
+            this.externVarName = externVarName;
+            this.scale = scale;
+            this.appendElecOutput = appendElecOutput;
+        }
+    }
+
+    public static class FigureGroupEquivalence {
+        public final String elecFGName;
+        public final String externFGName;
+
+        private FigureGroupEquivalence(String elecFGName, String externFGName) {
+            this.elecFGName = elecFGName;
+            this.externFGName = externFGName;
         }
     }
 

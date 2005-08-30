@@ -1016,7 +1016,7 @@ public class EditWindow extends JPanel
 		if (offscreen == null || !getSize().equals(sz))
 		{
 			setScreenSize(getSize());
-			repaintContents(null);
+			repaintContents(null, false);
 			return;
 		}
 
@@ -1134,14 +1134,14 @@ public class EditWindow extends JPanel
 				{
 					runningNow = (EditWindow)redrawThese.get(0);
 					redrawThese.remove(0);
-					RenderJob nextJob = new RenderJob(runningNow, runningNow.getOffscreen(), null);
+					RenderJob nextJob = new RenderJob(runningNow, runningNow.getOffscreen(), null, false);
 					return;
 				}
 			}
 		}
 	}
 
-	public void fullRepaint() { repaintContents(null); }
+	public void fullRepaint() { repaintContents(null, false); }
 
 	/**
 	 * Method requests that every EditWindow be redrawn, including a rerendering of its contents.
@@ -1154,7 +1154,7 @@ public class EditWindow extends JPanel
 			WindowContent content = wf.getContent();
 			if (!(content instanceof EditWindow)) continue;
 			EditWindow wnd = (EditWindow)content;
-			wnd.repaintContents(null);
+			wnd.repaintContents(null, false);
 		}
 	}
 
@@ -1176,7 +1176,7 @@ public class EditWindow extends JPanel
 	/**
 	 * Method requests that this EditWindow be redrawn, including a rerendering of the contents.
 	 */
-	public void repaintContents(Rectangle2D bounds)
+	public void repaintContents(Rectangle2D bounds, boolean fullInstantiate)
 	{
 		// start rendering thread
 		if (offscreen == null) return;
@@ -1193,7 +1193,7 @@ public class EditWindow extends JPanel
 			handleWindowChangeRequests(this);
 			runningNow = this;
 		}
-		RenderJob renderJob = new RenderJob(this, offscreen, bounds);
+		RenderJob renderJob = new RenderJob(this, offscreen, bounds, fullInstantiate);
 
         // do the redraw in the main thread
         setScrollPosition();                        // redraw scroll bars
@@ -1207,13 +1207,15 @@ public class EditWindow extends JPanel
 		private EditWindow wnd;
 		private PixelDrawing offscreen;
 		private Rectangle2D bounds;
+		private boolean fullInstantiate;
 
-		protected RenderJob(EditWindow wnd, PixelDrawing offscreen, Rectangle2D bounds)
+		protected RenderJob(EditWindow wnd, PixelDrawing offscreen, Rectangle2D bounds, boolean fullInstantiate)
 		{
 			super("Display", User.getUserTool(), Job.Type.EXAMINE, null, null, Job.Priority.USER);
 			this.wnd = wnd;
 			this.offscreen = offscreen;
 			this.bounds = bounds;
+			this.fullInstantiate = fullInstantiate;
 			startJob();
 		}
 
@@ -1222,12 +1224,23 @@ public class EditWindow extends JPanel
 			// do the hard work of re-rendering the image
             try
             {
-				offscreen.drawImage(bounds);
+				if (bounds == null)
+				{
+					// see if a real bounds is defined in the cell
+					bounds = User.getChangedInWindow(wnd);
+					if (bounds != null)
+					{
+						User.clearChangedInWindow(wnd);
+//						wnd.highlighter.addArea(bounds, cell);
+					}
+				}
+
+				offscreen.drawImage(fullInstantiate, bounds);
             } catch (java.util.ConcurrentModificationException e)
             {
 				System.out.println("GOT ConcurrentModificationException during redisplay!");
             	ActivityLogger.logException(e);
-				wnd.repaintContents(bounds);
+				wnd.repaintContents(bounds, fullInstantiate);
             }
 
 			synchronized(redrawThese)
@@ -1245,10 +1258,10 @@ public class EditWindow extends JPanel
 	 */
 	public Image renderNode(NodeInst ni, double scale, boolean forceVisible)
 	{
-		offscreen.clearImage(false);
+		offscreen.clearImage(false, null);
 		setScale(scale);
-		offscreen.drawNode(ni, DBMath.MATID, null, null, forceVisible, null);
-		return offscreen.composite();
+		offscreen.drawNode(ni, DBMath.MATID, null, null, false, forceVisible, null);
+		return offscreen.composite(null);
 	}
 
 	/**
@@ -1257,10 +1270,10 @@ public class EditWindow extends JPanel
 	 */
 	public Image renderArc(ArcInst ai, double scale, boolean forceVisible)
 	{
-		offscreen.clearImage(false);
+		offscreen.clearImage(false, null);
 		setScale(scale);
 		offscreen.drawArc(ai, DBMath.MATID, forceVisible);
-		return offscreen.composite();
+		return offscreen.composite(null);
 	}
 
     /**
@@ -1269,10 +1282,10 @@ public class EditWindow extends JPanel
 	 */
 	public Image renderText(String txt, double scale, Rectangle rect)
 	{
-		offscreen.clearImage(false);
+		offscreen.clearImage(false, null);
 		setScale(scale);
 		offscreen.drawText(txt, rect);
-		return offscreen.composite();
+		return offscreen.composite(null);
 	}
 
 	// ************************************* SIMULATION CROSSPROBE LEVEL DISPLAY *************************************
@@ -2450,7 +2463,7 @@ public class EditWindow extends JPanel
         Point2D offset = new Point2D.Double(newoffx, oY);
         if (inPlaceDisplay) outofCell.transform(offset, offset);
         setOffset(offset);
-        repaintContents(null);
+        repaintContents(null, false);
     }
 
     public void rightScrollChanged(int value)
@@ -2477,7 +2490,7 @@ public class EditWindow extends JPanel
         Point2D offset = new Point2D.Double(oX, newoffy);
         if (inPlaceDisplay) outofCell.transform(offset, offset);
         setOffset(offset);
-        repaintContents(null);
+        repaintContents(null, false);
     }
 
 	/**
@@ -2501,7 +2514,7 @@ public class EditWindow extends JPanel
 		}
 		setScreenBounds(bounds);
 		setScrollPosition();
-		repaintContents(null);
+		repaintContents(null, false);
 	}
 
 	/**
@@ -2583,14 +2596,14 @@ public class EditWindow extends JPanel
 	{
 		double scale = getScale();
 		setScale(scale / 2);
-		repaintContents(null);
+		repaintContents(null, false);
 	}
 
 	public void zoomInContents()
 	{
 		double scale = getScale();
 		setScale(scale * 2);
-		repaintContents(null);
+		repaintContents(null, false);
 	}
 
 	public void focusOnHighlighted()
@@ -2879,7 +2892,7 @@ public class EditWindow extends JPanel
 					setCell(parent, context, true, false, inPlaceDisplay);
 					setOffset(foundHistory.offset);
 					setScale(foundHistory.scale);
-			        repaintContents(null);
+			        repaintContents(null, false);
 				} else
 				{
 					setCell(parent, context, true, true, inPlaceDisplay);
@@ -3175,7 +3188,7 @@ public class EditWindow extends JPanel
         // point to new location *after* calling setCell, since setCell updates by current location
         cellHistoryLocation = location;
 
-        repaintContents(null);
+        repaintContents(null, false);
     }
 
     // ************************************* COORDINATES *************************************
@@ -3273,7 +3286,7 @@ public class EditWindow extends JPanel
 		int screenHY = urPt.y;
 		if (screenHX < screenLX) { int swap = screenHX;   screenHX = screenLX; screenLX = swap; }
 		if (screenHY < screenLY) { int swap = screenHY;   screenHY = screenLY; screenLY = swap; }
-		return new Rectangle(screenLX, screenLY, screenHX-screenLX, screenHY-screenLY);
+		return new Rectangle(screenLX, screenLY, screenHX-screenLX+1, screenHY-screenLY+1);
 	}
 
 	/**
@@ -3443,7 +3456,7 @@ public class EditWindow extends JPanel
 			w.setCell(getCell(), getVarContext());
 			PixelDrawing offscreen = w.getOffscreen();
 			offscreen.setBackgroundColor(Color.WHITE);
-			offscreen.drawImage(null);
+			offscreen.drawImage(false, null);
 			img = offscreen.getBufferedImage();
 			ep.setBufferedImage(img);
 		}
@@ -3481,6 +3494,6 @@ public class EditWindow extends JPanel
 		        new Point2D.Double(wndOffset.getX() - mult*ticks, wndOffset.getY()) :
 		        new Point2D.Double(wndOffset.getX(), wndOffset.getY() - mult*ticks);
 		setOffset(newOffset);
-		repaintContents(null);
+		repaintContents(null, false);
 	}
 }

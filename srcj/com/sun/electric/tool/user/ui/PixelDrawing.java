@@ -228,7 +228,6 @@ public class PixelDrawing
 	/** whether to occasionally update the display. */		private boolean periodicRefresh;
 	/** keeps track of when to update the display. */		private int objectCount;
 	/** keeps track of when to update the display. */		private long lastRefreshTime;
-	/** Technology of transparent layers not drawn */		private Technology transparentLayersMissed;
 
 	/** the size of the top-level EditWindow */				private static Dimension topSz;
 	/** the last Technology that had transparent layers */	private static Technology techWithLayers = null;
@@ -273,7 +272,7 @@ public class PixelDrawing
 		initForTechnology();
 
 		// initialize the data
-		clearImage(false);
+		clearImage(false, null);
 	}
 
 	/**
@@ -302,15 +301,23 @@ public class PixelDrawing
 		expandedCells = new HashMap();
 	}
 
+	boolean lastFullInstantiate = false;
+
 	/**
 	 * This is the entrypoint for rendering.
 	 * It displays a cell in this offscreen window.
-	 * @param expandBounds the area in the cell to expand fully.
-	 * If null, draw the cell normally; otherwise expand all the way in that area.
+	 * @param fullInstantiate true to display to the bottom of the hierarchy (for peeking).
+	 * @param drawLimitBounds the area in the cell to display (null to show all).
 	 * The rendered Image can then be obtained with "getImage()".
 	 */
-	public void drawImage(Rectangle2D expandBounds)
+	public void drawImage(boolean fullInstantiate, Rectangle2D drawLimitBounds)
 	{
+		if (fullInstantiate != lastFullInstantiate)
+		{
+			clearSubCellCache();
+			lastFullInstantiate = fullInstantiate;
+		}
+
 		Cell cell = wnd.getCell();
     	if (wnd.isInPlaceEdit())
     	{
@@ -348,8 +355,12 @@ public class PixelDrawing
 		}
 
 		// initialize rendering into the offscreen image
-		clearImage(true);
-		transparentLayersMissed = null;
+		Rectangle renderBounds = null;
+		if (drawLimitBounds != null)
+		{
+			renderBounds = wnd.databaseToScreen(drawLimitBounds);
+		}
+		clearImage(true, renderBounds);
 
 		if (cell == null)
 		{
@@ -365,17 +376,14 @@ public class PixelDrawing
 		} else
 		{
 			// determine which cells should be cached (must have at least 2 instances)
-			countCell(cell, expandBounds, DBMath.MATID);
+			countCell(cell, drawLimitBounds, fullInstantiate, DBMath.MATID);
 
 			// now render it all
-			drawCell(cell, expandBounds, DBMath.MATID, wnd, wnd.getVarContext());
+			drawCell(cell, drawLimitBounds, fullInstantiate, DBMath.MATID, wnd, wnd.getVarContext());
 		}
 
 		// merge transparent image into opaque one
-		synchronized(img) { composite(); };
-		if (transparentLayersMissed != null)
-			System.out.println("WARNING: Did not draw some transparent layers from the '" + transparentLayersMissed.getTechName() +
-				"' technology because it is not the current technology");
+		synchronized(img) { composite(renderBounds); };
 
 //		if (TAKE_STATS)
 //		{
@@ -409,8 +417,9 @@ public class PixelDrawing
 	 * Method to erase the offscreen data in this PixelDrawing.
 	 * This is called before any rendering is done.
 	 * @param periodicRefresh true to periodically refresh the display if it takes too long.
+	 * @param bounds the area of the image to actually draw (null to draw all).
 	 */
-	public void clearImage(boolean periodicRefresh)
+	public void clearImage(boolean periodicRefresh, Rectangle bounds)
 	{
 		// pickup new technology if it changed
 		initForTechnology();
@@ -442,7 +451,28 @@ public class PixelDrawing
 		}
 
 		// erase opaque image
-		for(int i=0; i<total; i++) opaqueData[i] = backgroundValue;
+		if (bounds == null)
+		{
+			// erase the entire image
+			for(int i=0; i<total; i++) opaqueData[i] = backgroundValue;
+		} else
+		{
+			// erase only part of the image
+			int lx = bounds.x;
+			int hx = lx + bounds.width;
+			int ly = bounds.y;
+			int hy = ly + bounds.height;
+			if (lx < 0) lx = 0;
+			if (hx >= sz.width) hx = sz.width - 1;
+			if (ly < 0) ly = 0;
+			if (hy >= sz.height) hy = sz.height - 1;
+			for(int y=ly; y<=hy; y++)
+			{
+				int baseIndex = y * sz.width;
+				for(int x=lx; x<=hx; x++)
+					opaqueData[baseIndex + x] = backgroundValue;
+			}
+		}
 
 		this.periodicRefresh = periodicRefresh;
 		if (periodicRefresh)
@@ -457,7 +487,7 @@ public class PixelDrawing
 	 * This is called after all rendering is done.
 	 * @return the offscreen Image with the final display.
 	 */
-	public Image composite()
+	public Image composite(Rectangle bounds)
 	{
 		// merge in the transparent layers
 		if (numLayerBitMapsCreated > 0)
@@ -517,7 +547,22 @@ public class PixelDrawing
 				colorMap = newColorMap;
 			}
 
-			for(int y=0; y<sz.height; y++)
+			// determine range
+			int lx = 0, hx = sz.width-1;
+			int ly = 0, hy = sz.height-1;
+			if (bounds != null)
+			{
+				lx = bounds.x;
+				hx = lx + bounds.width;
+				ly = bounds.y;
+				hy = ly + bounds.height;
+				if (lx < 0) lx = 0;
+				if (hx >= sz.width) hx = sz.width - 1;
+				if (ly < 0) ly = 0;
+				if (hy >= sz.height) hy = sz.height - 1;
+			}
+
+			for(int y=ly; y<=hy; y++)
 			{
 				for(int i=0; i<numLayerBitMaps; i++)
 				{
@@ -528,7 +573,7 @@ public class PixelDrawing
 					}
 				}
 				int baseIndex = y * sz.width;
-				for(int x=0; x<sz.width; x++)
+				for(int x=lx; x<=hx; x++)
 				{
 					int index = baseIndex + x;
 					int pixelValue = opaqueData[index];
@@ -571,15 +616,47 @@ public class PixelDrawing
 		} else
 		{
 			// nothing in transparent layers: make sure background color is right
-			for(int i=0; i<total; i++)
+			if (bounds == null)
 			{
-				int pixelValue = opaqueData[i];
-				if (pixelValue == backgroundValue) opaqueData[i] = backgroundColor; else
+				// handle the entire image
+				for(int i=0; i<total; i++)
 				{
-					if ((pixelValue&0xFF000000) != 0)
+					int pixelValue = opaqueData[i];
+					if (pixelValue == backgroundValue) opaqueData[i] = backgroundColor; else
 					{
-						int alpha = (pixelValue >> 24) & 0xFF;
-						opaqueData[i] = alphaBlend(pixelValue, backgroundColor, alpha);
+						if ((pixelValue&0xFF000000) != 0)
+						{
+							int alpha = (pixelValue >> 24) & 0xFF;
+							opaqueData[i] = alphaBlend(pixelValue, backgroundColor, alpha);
+						}
+					}
+				}
+			} else
+			{
+				// handle a partial image
+				int lx = bounds.x;
+				int hx = lx + bounds.width;
+				int ly = bounds.y;
+				int hy = ly + bounds.height;
+				if (lx < 0) lx = 0;
+				if (hx >= sz.width) hx = sz.width - 1;
+				if (ly < 0) ly = 0;
+				if (hy >= sz.height) hy = sz.height - 1;
+				for(int y=ly; y<=hy; y++)
+				{
+					int baseIndex = y * sz.width;
+					for(int x=lx; x<=hx; x++)
+					{
+						int index = baseIndex + x;
+						int pixelValue = opaqueData[index];
+						if (pixelValue == backgroundValue) opaqueData[index] = backgroundColor; else
+						{
+							if ((pixelValue&0xFF000000) != 0)
+							{
+								int alpha = (pixelValue >> 24) & 0xFF;
+								opaqueData[index] = alphaBlend(pixelValue, backgroundColor, alpha);
+							}
+						}
 					}
 				}
 			}
@@ -613,7 +690,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw the contents of a cell, transformed through "prevTrans".
 	 */
-	private void drawCell(Cell cell, Rectangle2D expandBounds, AffineTransform prevTrans, EditWindow topWnd, VarContext context)
+	private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, AffineTransform prevTrans, EditWindow topWnd, VarContext context)
 	{
         renderPolyTime = 0;
         renderTextTime = 0;
@@ -621,13 +698,33 @@ public class PixelDrawing
         // draw all arcs
 		for(Iterator arcs = cell.getArcs(); arcs.hasNext(); )
 		{
-			drawArc((ArcInst)arcs.next(), prevTrans, false);
+			ArcInst ai = (ArcInst)arcs.next();
+
+			// if limiting drawing, reject when out of area
+			if (drawLimitBounds != null)
+			{
+				Rectangle2D curBounds = ai.getBounds();
+				Rectangle2D bounds = new Rectangle2D.Double(curBounds.getX(), curBounds.getY(), curBounds.getWidth(), curBounds.getHeight());
+				GenMath.transformRect(bounds, prevTrans);
+				if (!GenMath.rectsIntersect(bounds, drawLimitBounds)) continue;
+			}
+			drawArc(ai, prevTrans, false);
 		}
 
 		// draw all nodes
 		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
 		{
-			drawNode((NodeInst)nodes.next(), prevTrans, topWnd, expandBounds, false, context);
+			NodeInst ni = (NodeInst)nodes.next();
+
+			// if limiting drawing, reject when out of area
+			if (drawLimitBounds != null)
+			{
+				Rectangle2D curBounds = ni.getBounds();
+				Rectangle2D bounds = new Rectangle2D.Double(curBounds.getX(), curBounds.getY(), curBounds.getWidth(), curBounds.getHeight());
+				GenMath.transformRect(bounds, prevTrans);
+				if (!GenMath.rectsIntersect(bounds, drawLimitBounds)) continue;
+			}
+			drawNode(ni, prevTrans, topWnd, drawLimitBounds, fullInstantiate, false, context);
 		}
 
 		// show cell variables if at the top level
@@ -653,11 +750,12 @@ public class PixelDrawing
 	 * @param ni the NodeInst to draw.
      * @param trans the transformation of the NodeInst to the display.
      * @param topWnd the EditWindow at the top-level of display.
-     * @param expandBounds bounds in which to draw nodes fully expanded
+     * @param drawLimitBounds bounds in which to draw.
+     * @param fullInstantiate true to draw to the bottom of the hierarchy ("peek" mode).
      * @param forceVisible true if layer visibility information should be ignored and force the drawing
 	 * @param context the VarContext to this node in the hierarchy.
      */
-	public void drawNode(NodeInst ni, AffineTransform trans, EditWindow topWnd, Rectangle2D expandBounds, boolean forceVisible, VarContext context)
+	public void drawNode(NodeInst ni, AffineTransform trans, EditWindow topWnd, Rectangle2D drawLimitBounds, boolean fullInstantiate, boolean forceVisible, VarContext context)
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
@@ -691,10 +789,7 @@ public class PixelDrawing
 			if (screenBounds.y > sz.height || screenBounds.y+screenBounds.height < 0) return;
 
 			boolean expanded = ni.isExpanded();
-			if (!expanded && expandBounds != null)
-			{
-				if (cellBounds.intersects(expandBounds)) expanded = true;
-			}
+			if (fullInstantiate) expanded = true;
 
 			// if not expanded, but viewing this cell in-place, expand it
 			if (!expanded)
@@ -718,11 +813,11 @@ public class PixelDrawing
 			if (expanded)
 			{
 				// show the contents of the cell
-				if (!expandedCellCached(subCell, subTrans, topWnd, context, expandBounds))
+				if (!expandedCellCached(subCell, subTrans, topWnd, context, drawLimitBounds, fullInstantiate))
 				{
 					// just draw it directly
 					VarContext newContext = context.push(ni);
-					drawCell(subCell, expandBounds, subTrans, topWnd, newContext);
+					drawCell(subCell, drawLimitBounds, fullInstantiate, subTrans, topWnd, newContext);
 				}
 				showCellPorts(ni, trans, Color.BLACK);
 			} else
@@ -845,17 +940,17 @@ public class PixelDrawing
         Poly p = new Poly(dbBounds);
         p.transform(trans);
         dbBounds = p.getBounds2D();
-        // java doesn't think they intersect if they contain no area, so bloat width or height if zero
-        if (dbBounds.getWidth() == 0 || dbBounds.getHeight() == 0) {
-            dbBounds = new Rectangle2D.Double(dbBounds.getX(), dbBounds.getY(),
-                    dbBounds.getWidth() + 0.001, dbBounds.getHeight() + 0.001);
-        }
-        if ((drawBounds != null) && (!drawBounds.intersects(dbBounds))) {
+//        // java doesn't think they intersect if they contain no area, so bloat width or height if zero
+//        if (dbBounds.getWidth() == 0 || dbBounds.getHeight() == 0) {
+//            dbBounds = new Rectangle2D.Double(dbBounds.getX(), dbBounds.getY(),
+//                    dbBounds.getWidth() + 0.001, dbBounds.getHeight() + 0.001);
+//        }
+        if (drawBounds != null && !GenMath.rectsIntersect(drawBounds, dbBounds)) {
             return;
         }
 
-        double arcSize = Math.max(arcBounds.getWidth(), arcBounds.getHeight());
 		// if the arc it tiny, just approximate it with a single dot
+        double arcSize = Math.max(arcBounds.getWidth(), arcBounds.getHeight());
 		totalArcs++;
 		if (arcSize * wnd.getScale() < 2)
 		{
@@ -995,8 +1090,8 @@ public class PixelDrawing
 			}
 			if (layerNum >= numLayerBitMaps)
 			{
-				transparentLayersMissed = layer.getTechnology();
-				continue;
+//				transparentLayersMissed = layer.getTechnology();
+				layerNum = -1;
 			}
 			byte [][] layerBitMap = getLayerBitMap(layerNum);
 
@@ -1019,7 +1114,7 @@ public class PixelDrawing
 	 * @return true if the cell is properly handled and need no further processing.
 	 * False to render the contents recursively.
 	 */
-	private boolean expandedCellCached(Cell subCell, AffineTransform origTrans, EditWindow topWnd, VarContext context, Rectangle2D expandBounds)
+	private boolean expandedCellCached(Cell subCell, AffineTransform origTrans, EditWindow topWnd, VarContext context, Rectangle2D drawLimitBounds, boolean fullInstantiate)
 	{
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return false;
@@ -1074,14 +1169,14 @@ public class PixelDrawing
             Undo.removeDatabaseChangeListener(renderedCell);
 			renderedCell.setScreenSize(new Dimension(screenBounds.width+1, screenBounds.height+1));
 			renderedCell.setScale(wnd.getScale());
-			renderedCell.getOffscreen().clearImage(true);
+			renderedCell.getOffscreen().clearImage(true, null);
 			Point2D cellCtr = new Point2D.Double(cellBounds.getCenterX(), cellBounds.getCenterY());
 			origTrans.transform(cellCtr, cellCtr);
 			renderedCell.setOffset(cellCtr);
 
 			// render the contents of the expanded cell into its own offscreen cache
 			renderedCell.getOffscreen().renderedWindow = false;
-			renderedCell.getOffscreen().drawCell(subCell, expandBounds, origTrans, topWnd, context);
+			renderedCell.getOffscreen().drawCell(subCell, null, fullInstantiate, origTrans, topWnd, context);
             expandedCellCount.offscreen = renderedCell.getOffscreen();
             offscreen = expandedCellCount.offscreen;
 
@@ -1100,21 +1195,31 @@ public class PixelDrawing
 	/**
 	 * Recursive method to count the number of times that a cell-transformation is used
 	 */
-	private void countCell(Cell cell, Rectangle2D expandBounds, AffineTransform prevTrans)
+	private void countCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, AffineTransform prevTrans)
 	{
 		// look for subcells
 		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)nodes.next();
 			if (!(ni.getProto() instanceof Cell)) continue;
-			countNode(ni, expandBounds, prevTrans);
+
+			// if limiting drawing, reject when out of area
+			if (drawLimitBounds != null)
+			{
+				Rectangle2D curBounds = ni.getBounds();
+				Rectangle2D bounds = new Rectangle2D.Double(curBounds.getX(), curBounds.getY(), curBounds.getWidth(), curBounds.getHeight());
+				GenMath.transformRect(bounds, prevTrans);
+				if (!GenMath.rectsIntersect(bounds, drawLimitBounds)) return;
+			}
+
+			countNode(ni, drawLimitBounds, fullInstantiate, prevTrans);
 		}
 	}
 
 	/**
 	 * Recursive method to count the number of times that a cell-transformation is used
 	 */
-	private void countNode(NodeInst ni, Rectangle2D expandBounds, AffineTransform trans)
+	private void countNode(NodeInst ni, Rectangle2D drawLimitBounds, boolean fullInstantiate, AffineTransform trans)
 	{
 		// if the node is tiny, it will be approximated
 		double halfWidth = Math.max(ni.getXSize(), ni.getYSize()) / 2;
@@ -1139,11 +1244,7 @@ public class PixelDrawing
 
 		// only interested in expanded instances
 		boolean expanded = ni.isExpanded();
-		if (!expanded && expandBounds != null)
-		{
-			// see if it is on the screen
-			if (cellBounds.intersects(expandBounds)) expanded = true;
-		}
+		if (fullInstantiate) expanded = true;
 
 		// if not expanded, but viewing this cell in-place, expand it
 		if (!expanded)
@@ -1182,7 +1283,7 @@ public class PixelDrawing
 		}
 
 		// now recurse
-		countCell(subCell, expandBounds, subTrans);
+		countCell(subCell, null, fullInstantiate, subTrans);
 	}
 
 	public static void forceRedraw(Cell cell)
@@ -1416,10 +1517,10 @@ public class PixelDrawing
 		if (graphics != null) layerNum = graphics.getTransparentLayer() - 1;
 		if (layerNum >= numLayerBitMaps)
 		{
-			Layer layer = poly.getLayer();
-			if (layer != null)
-				transparentLayersMissed = layer.getTechnology();
-			return;
+//			Layer layer = poly.getLayer();
+//			if (layer != null)
+//				transparentLayersMissed = layer.getTechnology();
+			layerNum = -1;
 		}
 		byte [][] layerBitMap = getLayerBitMap(layerNum);
 		Poly.Type style = poly.getStyle();
@@ -2365,7 +2466,7 @@ public class PixelDrawing
             // clip if not within bounds
             Rectangle2D dbBounds = wnd.screenToDatabase(rect);
             //  drawBounds.getWidth() > 0 initial window
-            if (drawBounds != null && drawBounds.getWidth() > 0 && !drawBounds.intersects(dbBounds)) return;
+            if (drawBounds != null && drawBounds.getWidth() > 0 && !GenMath.rectsIntersect(drawBounds, dbBounds)) return;
 		}
 
 		// create RenderInfo
@@ -2401,7 +2502,7 @@ public class PixelDrawing
 			AffineTransform xOut = wnd.getInPlaceTransformOut();
 			GenMath.transformRect(dbBounds, xOut);
 		}
-		if (drawBounds != null && drawBounds.getWidth() > 0 && !drawBounds.intersects(dbBounds))
+		if (drawBounds != null && drawBounds.getWidth() > 0 && !GenMath.rectsIntersect(drawBounds, dbBounds))
 			return;
 
 		// render the text
@@ -2647,7 +2748,7 @@ public class PixelDrawing
 			int boxedWidth = (int)probableBoxedBounds.getWidth();
 			int boxedHeight = (int)probableBoxedBounds.getHeight();
 			// if text is to be "boxed", make sure it fits
-			if (boxedWidth > 0 && boxedHeight > 0)
+			if (boxedWidth > 1 && boxedHeight > 1)
             {
                 if (width > boxedWidth || height > boxedHeight)
                 {

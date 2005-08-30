@@ -26,34 +26,42 @@ package com.sun.electric.tool.user;
 import com.sun.electric.Main;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Listener;
+import com.sun.electric.tool.user.tecEdit.Manipulate;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
-import com.sun.electric.tool.user.tecEdit.Manipulate;
 
 import java.applet.Applet;
 import java.applet.AudioClip;
 import java.awt.Color;
+import java.awt.geom.Rectangle2D;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.lang.reflect.Method;
 
 /**
  * This is the User Interface tool.
@@ -98,6 +106,414 @@ public class User extends Listener
     public static User getUserTool() { return tool; }
 
 	/**
+	 * Method to handle a change to a NodeInst.
+	 * @param ni the NodeInst that was changed.
+	 * @param oD the old contents of the NodeInst.
+	 */
+	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oldD)
+	{
+		Clipboard.nodeMoved(ni, oldD.anchor.getX(), oldD.anchor.getY());
+
+		// remember what has changed in the cell
+		Cell cell = ni.getParent();
+		Rectangle2D oldBounds = oldD.computeBounds(ni);
+		Rectangle2D newBounds = ni.getD().computeBounds(ni);	// TODO Why can't we use "ni.getBounds()" ?
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.getContent() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)wf.getContent();
+				if (wnd.getCell() == cell)
+				{
+					// TODO figure out way to find text bounds on the OLD object
+					setChangedInWindow(wnd, oldBounds);
+
+					// figure out full bounds including text
+					Rectangle2D newTextBounds = ni.getTextBounds(wnd);
+					if (newTextBounds == null) setChangedInWindow(wnd, newBounds); else
+					{
+						Rectangle2D.union(newTextBounds, newBounds, newTextBounds);
+						setChangedInWindow(wnd, newTextBounds);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to handle a change to an ArcInst.
+	 * @param ai the ArcInst that changed.
+	 * @param oHX the old X coordinate of the ArcInst head end.
+	 * @param oHY the old Y coordinate of the ArcInst head end.
+	 * @param oTX the old X coordinate of the ArcInst tail end.
+	 * @param oTY the old Y coordinate of the ArcInst tail end.
+	 * @param oWid the old width of the ArcInst.
+	 */
+	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid)
+	{
+		// remember what has changed in the cell
+		Cell cell = ai.getParent();
+		EPoint oldHeadPt = new EPoint(oHX, oHY);
+		EPoint oldTailPt = new EPoint(oTX, oTY);
+		double length = oldHeadPt.mutable().distance(oldTailPt.mutable());
+		Poly oldPoly = ArcInst.makePolyForArc(ai, length, oWid, oldHeadPt, oldTailPt, Poly.Type.FILLED);
+		Rectangle2D oldBounds = oldPoly.getBounds2D();
+		Rectangle2D newBounds = ai.getBounds();
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.getContent() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)wf.getContent();
+				if (wnd.getCell() == cell)
+				{
+					// TODO figure out way to find text bounds on the OLD object
+					setChangedInWindow(wnd, oldBounds);
+
+					// figure out full bounds including text
+					Rectangle2D newTextBounds = ai.getTextBounds(wnd);
+					if (newTextBounds == null) setChangedInWindow(wnd, newBounds); else
+					{
+						Rectangle2D.union(newTextBounds, newBounds, newTextBounds);
+						setChangedInWindow(wnd, newTextBounds);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to handle a change to an Export.
+	 * @param pp the Export that moved.
+	 * @param oldPi the old PortInst on which it resided.
+	 */
+	public void modifyExport(Export pp, PortInst oldPi)
+	{
+		// remember what has changed in the cell
+		Cell cell = (Cell)pp.getParent();
+		NodeInst oldNi = oldPi.getNodeInst();
+		NodeInst newNi = pp.getOriginalPort().getNodeInst();
+		Rectangle2D oldBounds = oldPi.getBounds();
+		Rectangle2D newBounds = newNi.getBounds();
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.getContent() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)wf.getContent();
+				if (wnd.getCell() == cell)
+				{
+					// figure out full bounds including text
+					Rectangle2D oldTextBounds = oldNi.getTextBounds(wnd);
+					if (oldTextBounds == null) setChangedInWindow(wnd, oldBounds); else
+					{
+						Rectangle2D.union(oldTextBounds, oldBounds, oldTextBounds);
+						setChangedInWindow(wnd, oldTextBounds);
+					}
+
+					// figure out full bounds including text
+					Rectangle2D newTextBounds = newNi.getTextBounds(wnd);
+					if (newTextBounds == null) setChangedInWindow(wnd, newBounds); else
+					{
+						Rectangle2D.union(newTextBounds, newBounds, newTextBounds);
+						setChangedInWindow(wnd, newTextBounds);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to handle a change to a TextDescriptor.
+	 * @param obj the ElectricObject on which the TextDescriptor resides.
+     * @param varName name of variable or special name.
+     * @param oldDescriptor old text descriptor.
+	 */
+	public void modifyTextDescript(ElectricObject obj, String varName, ImmutableTextDescriptor oldDescriptor) {}
+
+	/**
+	 * Method to handle the creation of a new ElectricObject.
+	 * @param obj the ElectricObject that was just created.
+	 */
+	public void newObject(ElectricObject obj)
+	{
+		// remember what has changed in the cell
+		Cell cell = null;
+		Rectangle2D bounds = null;
+		if (obj instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)obj;
+			cell = ni.getParent();
+			bounds = ni.getBounds();
+		} else if (obj instanceof ArcInst)
+		{
+			ArcInst ai = (ArcInst)obj;
+			cell = ai.getParent();
+			bounds = ai.getBounds();
+		} else if (obj instanceof Export)
+		{
+			Export pp = (Export)obj;
+			cell = (Cell)pp.getParent();
+			bounds = pp.getOriginalPort().getNodeInst().getBounds();
+		}
+		if (cell == null) return;
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.getContent() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)wf.getContent();
+				if (wnd.getCell() == cell)
+				{
+					// figure out full bounds including text
+					Rectangle2D textBounds = obj.getTextBounds(wnd);
+					if (textBounds == null) setChangedInWindow(wnd, bounds); else
+					{
+						Rectangle2D.union(textBounds, bounds, textBounds);
+						setChangedInWindow(wnd, bounds);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to handle the deletion of an ElectricObject.
+	 * @param obj the ElectricObject that was just deleted.
+	 */
+	public void killObject(ElectricObject obj)
+	{
+		if (obj instanceof Cell)
+		{
+			Cell cell = (Cell)obj;
+			if (cell.isInTechnologyLibrary())
+			{
+				Manipulate.deletedCell(cell);
+			}
+			return;
+		}
+
+		// remember what has changed in the cell
+		// remember what has changed in the cell
+		Cell cell = null;
+		Rectangle2D bounds = null;
+		if (obj instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)obj;
+			cell = ni.getParent();
+			bounds = ni.getBounds();
+		} else if (obj instanceof ArcInst)
+		{
+			ArcInst ai = (ArcInst)obj;
+			cell = ai.getParent();
+			bounds = ai.getBounds();
+		} else if (obj instanceof Export)
+		{
+			Export pp = (Export)obj;
+			cell = (Cell)pp.getParent();
+			bounds = pp.getOriginalPort().getNodeInst().getBounds();
+		}
+		if (cell == null) return;
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			if (wf.getContent() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)wf.getContent();
+				if (wnd.getCell() == cell)
+				{
+					// figure out full bounds including text
+					Rectangle2D textBounds = obj.getTextBounds(wnd);
+					if (textBounds == null) setChangedInWindow(wnd, bounds); else
+					{
+						Rectangle2D.union(textBounds, bounds, textBounds);
+						setChangedInWindow(wnd, bounds);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to handle the deletion of an Export.
+	 * @param pp the Export that was just deleted.
+	 * @param oldPortInsts the PortInsts that were on that Export (?).
+	 */
+	public void killExport(Export pp, Collection oldPortInsts) {}
+
+	/**
+	 * Method to handle the renaming of an ElectricObject.
+	 * @param obj the ElectricObject that was renamed.
+	 * @param oldName the former name of that ElectricObject.
+	 */
+	public void renameObject(ElectricObject obj, Object oldName)
+	{
+		if (obj instanceof Cell)
+		{
+			Cell cell = (Cell)obj;
+			if (cell.isInTechnologyLibrary())
+			{
+				Manipulate.renamedCell((String)oldName, cell.getName());
+			}
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				WindowContent content = wf.getContent();
+				if (content.getCell() != cell) continue;
+				content.setWindowTitle();
+			}
+		}
+	}
+
+	/**
+	 * Method to request that an object be redrawn.
+	 * @param obj the ElectricObject to be redrawn.
+	 */
+	public void redrawObject(ElectricObject obj)
+	{
+		Cell cell = null;
+		Rectangle2D bounds = null;
+		if (obj instanceof Geometric)
+		{
+			Geometric geom = (Geometric)obj;
+			cell = geom.getParent();
+		}
+		if (obj instanceof PortInst)
+		{
+			PortInst pi = (PortInst)obj;
+			cell = pi.getNodeInst().getParent();
+		}
+		if (cell != null)
+		{
+			markCellForRedraw(cell, true);
+			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+			{
+				WindowFrame wf = (WindowFrame)it.next();
+				if (wf.getContent() instanceof EditWindow)
+				{
+					EditWindow wnd = (EditWindow)wf.getContent();
+					if (wnd.getCell() == cell)
+					{
+						setChangedInWindow(wnd, bounds);
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Method to handle a new Variable.
+	 * @param obj the ElectricObject on which the Variable resides.
+	 * @param var the newly created Variable.
+	 */
+	public void newVariable(ElectricObject obj, Variable var) {}
+
+	/**
+	 * Method to handle a deleted Variable.
+	 * @param obj the ElectricObject on which the Variable resided.
+	 * @param var the deleted Variable.
+	 */
+	public void killVariable(ElectricObject obj, Variable var) {}
+
+	/**
+	 * Method to announce that a Library is about to be saved to disk.
+	 * @param lib the Library that will be written.
+	 * The User tool makes sure that any text cells are properly stored in the database.
+	 */
+	public void writeLibrary(Library lib)
+	{
+		TextWindow.saveAllTextWindows();
+	}
+
+	/**
+	 * Daemon Method called when a batch of changes ends.
+	 */
+	public void endBatch()
+	{
+		if (Main.BATCHMODE) return;
+
+		// redraw all windows with Cells that changed
+		for(Iterator it = Undo.getChangedCells(); it.hasNext(); )
+		{
+			Cell cell = (Cell)it.next();
+			markCellForRedraw(cell, false);
+			PixelDrawing.forceRedraw(cell);
+		}
+	}
+
+	/************************** TRACKING CHANGES TO CELLS **************************/
+
+	private static HashMap changedWindowRects = new HashMap();
+
+	/**
+	 * Method to tell which area of a window has been changed.
+	 * @param wnd the EditWindow in question.
+	 * @return the area (in database coordinates) that have been modified and demand redisplay.
+	 */
+	public static Rectangle2D getChangedInWindow(EditWindow wnd)
+	{
+		Rectangle2D changedArea = (Rectangle2D)changedWindowRects.get(wnd);
+		return changedArea;
+	}
+
+	/**
+	 * Method to reset the area of a window that has been changed.
+	 * Call this after redisplaying that area so that nothing is queued for redraw.
+	 * @param wnd the EditWindow in question.
+	 */
+	public static void clearChangedInWindow(EditWindow wnd)
+	{
+		changedWindowRects.remove(wnd);
+	}
+
+	/**
+	 * Method to accumulate the area of a window that has changed and needs redisplay.
+	 * @param wnd the EditWindow in question.
+	 * @param changedArea the area (in database coordinates) that has changed in the window.
+	 */
+	private static void setChangedInWindow(EditWindow wnd, Rectangle2D changedArea)
+	{
+//		Rectangle2D lastChanged = (Rectangle2D)changedWindowRects.get(wnd);
+//		if (lastChanged == null) changedWindowRects.put(wnd, changedArea); else
+//		{
+//			Rectangle2D.union(lastChanged, changedArea, lastChanged);
+//		}
+	}
+
+	/**
+	 * Method to recurse flag all windows showing a cell to redraw.
+	 * @param cell the Cell that changed.
+	 * @param recurseUp true to recurse up the hierarchy, redrawing cells that show this one.
+	 */
+	private void markCellForRedraw(Cell cell, boolean recurseUp)
+	{
+		for(Iterator wit = WindowFrame.getWindows(); wit.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)wit.next();
+			WindowContent content = wf.getContent();
+			if (!(content instanceof EditWindow)) continue;
+			Cell winCell = content.getCell();
+			if (winCell == cell)
+			{
+				EditWindow wnd = (EditWindow)content;
+				wnd.repaintContents(null, false);
+			}
+		}
+
+		if (recurseUp)
+		{
+			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (ni.isExpanded()) markCellForRedraw(ni.getParent(), recurseUp);
+			}
+		}
+	}
+
+	/****************************** MISCELLANEOUS FUNCTIONS ******************************/
+
+	/**
 	 * Method to return the "current" NodeProto, as maintained by the user interface.
 	 * @return the "current" NodeProto, as maintained by the user interface.
 	 */
@@ -126,129 +542,6 @@ public class User extends Listener
 		currentArcProto = ap;
 		WindowFrame wf = WindowFrame.getCurrentWindowFrame(false);
 		if (wf != null) wf.getPaletteTab().arcProtoChanged();
-	}
-
-	/**
-	 * Daemon Method called when an object is to be redrawn.
-	 */
-	public void redrawObject(ElectricObject obj)
-	{
-		if (obj instanceof Geometric)
-		{
-			Geometric geom = (Geometric)obj;
-			Cell parent = geom.getParent();
-			markCellForRedraw(parent, true);
-		}
-		if (obj instanceof PortInst)
-		{
-			PortInst pi = (PortInst)obj;
-			Cell parent = pi.getNodeInst().getParent();
-			markCellForRedraw(parent, true);
-		}
-	}
-
-	/**
-	 * Daemon Method called when an object has been renamed.
-	 */
-	public void renameObject(ElectricObject obj, Object oldName)
-	{
-		if (obj instanceof Cell)
-		{
-			Cell cell = (Cell)obj;
-			if (cell.isInTechnologyLibrary())
-			{
-				Manipulate.renamedCell((String)oldName, cell.getName());
-			}
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-			{
-				WindowFrame wf = (WindowFrame)it.next();
-				WindowContent content = wf.getContent();
-				if (content.getCell() != cell) continue;
-				content.setWindowTitle();
-			}
-		}
-	}
-
-	/**
-	 * Method to announce a change to a NodeInst.
-	 * @param ni the NodeInst that was changed.
-	 * @param oD the old contents of the NodeInst.
-	 */
-	public void modifyNodeInst(NodeInst ni, ImmutableNodeInst oldD)
-	{
-		Clipboard.nodeMoved(ni, oldD.anchor.getX(), oldD.anchor.getY());
-	}
-
-	/**
-	 * Method to handle the deletion of an ElectricObject.
-	 * @param obj the ElectricObject that was just deleted.
-	 */
-	public void killObject(ElectricObject obj)
-	{
-		if (obj instanceof Cell)
-		{
-			Cell cell = (Cell)obj;
-			if (cell.isInTechnologyLibrary())
-			{
-				Manipulate.deletedCell(cell);
-			}
-		}
-	}
-
-	/**
-	 * Method to announce that a Library is about to be saved to disk.
-	 * @param lib the Library that will be written.
-	 * The User tool makes sure that any text cells are properly stored in the database.
-	 */
-	public void writeLibrary(Library lib)
-	{
-		TextWindow.saveAllTextWindows();
-	}
-
-	/**
-	 * Method to recurse flag all windows showing a cell to redraw.
-	 * @param cell the Cell that changed.
-	 * @param recurseUp true to recurse up the hierarchy, redrawing cells that show this one.
-	 */
-	private void markCellForRedraw(Cell cell, boolean recurseUp)
-	{
-		for(Iterator wit = WindowFrame.getWindows(); wit.hasNext(); )
-		{
-			WindowFrame wf = (WindowFrame)wit.next();
-			WindowContent content = wf.getContent();
-			if (!(content instanceof EditWindow)) continue;
-			Cell winCell = content.getCell();
-			if (winCell == cell)
-			{
-				EditWindow wnd = (EditWindow)content;
-				wnd.repaintContents(null);
-			}
-		}
-
-		if (recurseUp)
-		{
-			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				if (ni.isExpanded()) markCellForRedraw(ni.getParent(), recurseUp);
-			}
-		}
-	}
-
-	/**
-	 * Daemon Method called when a batch of changes ends.
-	 */
-	public void endBatch()
-	{
-		if (Main.BATCHMODE) return;
-
-		// redraw all windows with Cells that changed
-		for(Iterator it = Undo.getChangedCells(); it.hasNext(); )
-		{
-			Cell cell = (Cell)it.next();
-			markCellForRedraw(cell, false);
-			PixelDrawing.forceRedraw(cell);
-		}
 	}
 
 	private static AudioClip clickSound = null;

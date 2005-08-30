@@ -81,7 +81,7 @@ public class OutlineListener
 		}
 
 		high.setPoint(0);
-		if (wnd != null) wnd.repaintContents(null);
+		if (wnd != null) wnd.repaintContents(null, false);
 	}
 
 	/**
@@ -112,7 +112,7 @@ public class OutlineListener
 			ni.newVar(NodeInst.TRACE, points);
 			listener.high.setPoint(0);
 			EditWindow wnd = EditWindow.getCurrent();
-			if (wnd != null) wnd.repaintContents(null);
+			if (wnd != null) wnd.repaintContents(null, false);
 			return true;
 		}
 	}
@@ -258,7 +258,7 @@ public class OutlineListener
 			highlighter.setHighlightOffset(0, 0);
 
 			moveSelectedPoint(curPt.getX() - oldX, curPt.getY() - oldY, cell);
-			wnd.repaintContents(null);
+			wnd.repaintContents(null, false);
 		}
 	}
 

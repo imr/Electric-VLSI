@@ -135,7 +135,7 @@ public class ZoomAndPanListener
 				Point2D pt = wnd.getScheduledOffset();
 				wnd.setOffset(new Point2D.Double(pt.getX() - (newX - lastX) / scale,
 					pt.getY() + (newY - lastY) / scale));
-				wnd.repaintContents(null);
+				wnd.repaintContents(null, false);
 			}
 			lastX = newX;
 			lastY = newY;
@@ -177,7 +177,7 @@ public class ZoomAndPanListener
 				wnd.setScale(wnd.getScale() * 0.5);
 				Point2D offset = new Point2D.Double((minSelX+maxSelX)/2, (minSelY+maxSelY)/2);
 				wnd.setOffset(offset);
-				wnd.repaintContents(null);
+				wnd.repaintContents(null, false);
 				TopLevel.setCurrentCursor(ToolBar.zoomCursor);
 			} else
 			{
@@ -219,7 +219,7 @@ public class ZoomAndPanListener
 		// get the current window
 		EditWindow wnd = EditWindow.getCurrent();
 		if (wnd == null) return;
-		wnd.repaintContents(null);
+		wnd.repaintContents(null, false);
 	}
 
     // --------------------------- Pan Commands -------------------------------
@@ -248,7 +248,7 @@ public class ZoomAndPanListener
 		Rectangle2D bounds = highlighter.getHighlightedArea(wnd);
 		if (bounds == null) return;
 		wnd.setOffset(new Point2D.Double(bounds.getCenterX(), bounds.getCenterY()));
-		wnd.repaintContents(null);
+		wnd.repaintContents(null, false);
 	}
 
 	/**
@@ -261,7 +261,7 @@ public class ZoomAndPanListener
 		Point pt = wnd.getLastMousePosition();
 		Point2D center = wnd.screenToDatabase(pt.x, pt.y);
 		wnd.setOffset(center);
-		wnd.repaintContents(null);
+		wnd.repaintContents(null, false);
 
 	}
 

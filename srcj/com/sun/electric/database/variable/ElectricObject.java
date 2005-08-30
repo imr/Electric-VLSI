@@ -481,6 +481,60 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	}
 
 	/**
+	 * Method to return the bounds of this ElectricObject in an EditWindow.
+	 * @param wnd the EditWindow in which the object is being displayed.
+	 * @return the bounds of the text (does not include the bounds of the object).
+	 */
+	public Rectangle2D getTextBounds(EditWindow wnd)
+	{
+		Rectangle2D bounds = null;
+		for(Iterator vIt = getVariables(); vIt.hasNext(); )
+		{
+			Variable var = (Variable)vIt.next();
+			if (!var.isDisplay()) continue;
+			TextDescriptor td = var.getTextDescriptor();
+			if (td.getSize().isAbsolute()) continue;
+			Poly poly = computeTextPoly(wnd, var, null);
+			if (poly == null) continue;
+			Rectangle2D polyBound = poly.getBounds2D();
+			if (bounds == null) bounds = polyBound; else
+				Rectangle2D.union(bounds, polyBound, bounds);
+		}
+
+		if (this instanceof Geometric)
+		{
+			Geometric geom = (Geometric)this;
+			Name name = geom.getNameKey();
+			if (!name.isTempname())
+			{
+				Poly poly = computeTextPoly(wnd, null, name);
+				if (poly != null)
+				{
+					Rectangle2D polyBound = poly.getBounds2D();
+					if (bounds == null) bounds = polyBound; else
+						Rectangle2D.union(bounds, polyBound, bounds);
+				}
+			}
+		}
+		if (this instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)this;
+			for(Iterator it = ni.getExports(); it.hasNext(); )
+			{
+				Export pp = (Export)it.next();
+				Poly poly = pp.computeTextPoly(wnd, null, null);
+				if (poly != null)
+				{
+					Rectangle2D polyBound = poly.getBounds2D();
+					if (bounds == null) bounds = polyBound; else
+						Rectangle2D.union(bounds, polyBound, bounds);
+				}
+			}
+		}
+		return bounds;
+	}
+
+	/**
 	 * Method to create an array of Poly objects that describes a displayable Variables on this Electric object.
 	 * @param var the Variable on this ElectricObject to describe.
 	 * @param cX the center X coordinate of the ElectricObject.
