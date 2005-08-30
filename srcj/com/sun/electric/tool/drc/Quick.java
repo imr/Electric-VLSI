@@ -1832,7 +1832,7 @@ public class Quick
             errorType = SURROUNDERROR;
         }
 		// see if the design rule is met
-		if (pd >= theRule.value1) // default case: SPACING
+		if (!DBMath.isGreaterThan(theRule.value1, pd)) // default case: SPACING   pd >= theRule.value1
 		{
 			return errorFound;
 		}
