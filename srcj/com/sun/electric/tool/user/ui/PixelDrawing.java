@@ -180,7 +180,7 @@ public class PixelDrawing
 
 	// statistics stuff
 	private static final boolean TAKE_STATS = false;
-	private static int tinyCells, tinyPrims, totalCells, totalPrims, tinyArcs, totalArcs, offscreensCreated, offscreensUsed;
+	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs, offscreensCreated, offscreensUsed;
 
 	/**
 	 * This class holds information about expanded cell instances.
@@ -200,6 +200,11 @@ public class PixelDrawing
 	/** the size of the EditWindow */						private Dimension sz;
     /** the area of the cell to draw, in DB units */        private Rectangle2D drawBounds;
 	/** whether any layers are highlighted/dimmed */		private boolean highlightingLayers;
+	/** true if the last display was a full-instantiate */	private boolean lastFullInstantiate = false;
+	/** true if text can be drawn (not too zoomed-out) */	private boolean canDrawText;
+	/** maximum size before an object is too small */		private double maxObjectSize;
+	/** half of maximum object size */						private double halfMaxObjectSize;
+	/** temporary objects (saves reallocation) */			private Point tempPt1 = new Point(), tempPt2 = new Point();
 
 	// the full-depth image
     /** the offscreen opaque image of the window */			private BufferedImage img;
@@ -301,10 +306,8 @@ public class PixelDrawing
 		expandedCells = new HashMap();
 	}
 
-	boolean lastFullInstantiate = false;
-
 	/**
-	 * This is the entrypoint for rendering.
+	 * This is the entry point for rendering.
 	 * It displays a cell in this offscreen window.
 	 * @param fullInstantiate true to display to the bottom of the hierarchy (for peeking).
 	 * @param drawLimitBounds the area in the cell to display (null to show all).
@@ -326,18 +329,21 @@ public class PixelDrawing
 
         drawBounds = wnd.getDisplayedBounds();
 		long startTime = 0;
-//		if (TAKE_STATS)
-//		{
-//			startTime = System.currentTimeMillis();
-//			tinyCells = tinyPrims = totalCells = totalPrims = tinyArcs = totalArcs = offscreensCreated = offscreensUsed = 0;
-//		}
+		if (TAKE_STATS)
+		{
+			startTime = System.currentTimeMillis();
+			tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = offscreensCreated = offscreensUsed = 0;
+		}
 
 		// initialize the cache of expanded cell displays
 		if (expandedScale != wnd.getScale())
 		{
-			expandedCells = new HashMap();
+			clearSubCellCache();
 			expandedScale = wnd.getScale();
 		}
+		canDrawText = expandedScale > 1;
+		maxObjectSize = 2 / expandedScale;
+		halfMaxObjectSize = maxObjectSize / 2;
 
 		// remember the true window size (since recursive calls may cache individual cells that are smaller)
 		topSz = sz;
@@ -385,30 +391,31 @@ public class PixelDrawing
 		// merge transparent image into opaque one
 		synchronized(img) { composite(renderBounds); };
 
-//		if (TAKE_STATS)
-//		{
-//			long endTime = System.currentTimeMillis();
-//			System.out.println("Took "+com.sun.electric.database.text.TextUtils.getElapsedTime(endTime-startTime));
-//			System.out.println("   "+tinyCells+" out of "+totalCells+" cells are tiny; "+tinyPrims+" out of "+totalPrims+
-//				" primitives are tiny; "+tinyArcs+" out of "+totalArcs+" arcs are tiny");
-//			int numExpandedCells = 0;
-//			int numCellsExpandedOnce = 0;
-//			for(Iterator it = expandedCells.keySet().iterator(); it.hasNext(); )
-//			{
-//				String c = (String)it.next();
-//				ExpandedCellInfo count = (ExpandedCellInfo)expandedCells.get(c);
-//				if (count != null)
-//				{
-//					numExpandedCells++;
-//					if (count.instanceCount == 1) numCellsExpandedOnce++;
-//				}
-//			}
-//			System.out.println("   Of "+numExpandedCells+" cell cache possibilities, "+numCellsExpandedOnce+
-//				" were used only once and not cached");
-//			if (offscreensCreated > 0)
-//				System.out.println("   Remaining "+offscreensCreated+" cell caches were used an average of "+
-//					((double)offscreensUsed/offscreensCreated)+" times");
-//		}
+		if (TAKE_STATS)
+		{
+			long endTime = System.currentTimeMillis();
+			System.out.println("Took "+com.sun.electric.database.text.TextUtils.getElapsedTime(endTime-startTime));
+			System.out.println("   Cells ("+totalCells+") "+tinyCells+" are tiny, "+renderedCells+" were rendered;"+
+				" Primitives ("+totalPrims+") "+tinyPrims+" are tiny;"+
+				" Arcs ("+totalArcs+") "+tinyArcs+" are tiny, "+linedArcs+" are lines");
+			int numExpandedCells = 0;
+			int numCellsExpandedOnce = 0;
+			for(Iterator it = expandedCells.keySet().iterator(); it.hasNext(); )
+			{
+				String c = (String)it.next();
+				ExpandedCellInfo count = (ExpandedCellInfo)expandedCells.get(c);
+				if (count != null)
+				{
+					numExpandedCells++;
+					if (count.instanceCount == 1) numCellsExpandedOnce++;
+				}
+			}
+			System.out.println("   Of "+numExpandedCells+" cell cache possibilities, "+numCellsExpandedOnce+
+				" were used only once and not cached");
+			if (offscreensCreated > 0)
+				System.out.println("   Remaining "+offscreensCreated+" cell caches were used an average of "+
+					((double)offscreensUsed/offscreensCreated)+" times");
+		}
 	}
 
 	// ************************************* INTERMEDIATE CONTROL LEVEL *************************************
@@ -692,6 +699,7 @@ public class PixelDrawing
 	 */
 	private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, AffineTransform prevTrans, EditWindow topWnd, VarContext context)
 	{
+		renderedCells++;
         renderPolyTime = 0;
         renderTextTime = 0;
 
@@ -730,7 +738,7 @@ public class PixelDrawing
 		// show cell variables if at the top level
 		boolean topLevel = true;
 		if (topWnd != null) topLevel = (cell == topWnd.getCell());
-		if (topLevel && User.isTextVisibilityOnCell())
+		if (canDrawText && topLevel && User.isTextVisibilityOnCell())
 		{
 			// show displayable variables on the instance
 			int numPolys = cell.numDisplayableVariables(true);
@@ -768,8 +776,8 @@ public class PixelDrawing
 		{
 			// cell instance
 			totalCells++;
-			double halfWidth = Math.max(ni.getXSize(), ni.getYSize()) / 2;
-			if (halfWidth * wnd.getScale() < 1)
+			double objWidth = Math.max(ni.getXSize(), ni.getYSize());
+			if (objWidth < maxObjectSize)
 			{
 				tinyCells++;
 				return;
@@ -819,16 +827,16 @@ public class PixelDrawing
 					VarContext newContext = context.push(ni);
 					drawCell(subCell, drawLimitBounds, fullInstantiate, subTrans, topWnd, newContext);
 				}
-				showCellPorts(ni, trans, Color.BLACK);
+				if (canDrawText) showCellPorts(ni, trans, Color.BLACK);
 			} else
 			{
 				// draw the black box of the instance
 				drawUnexpandedCell(ni, trans);
-				showCellPorts(ni, trans, null);
+				if (canDrawText) showCellPorts(ni, trans, null);
 			}
 
 			// draw any displayable variables on the instance
-			if (User.isTextVisibilityOnNode())
+			if (canDrawText && User.isTextVisibilityOnNode())
 			{
 				int numPolys = ni.numDisplayableVariables(true);
 				Poly [] polys = new Poly[numPolys];
@@ -838,35 +846,37 @@ public class PixelDrawing
 			}
 		} else
 		{
-			// primitive: see if the node is completely clipped from the screen
-			Point2D ctr = ni.getTrueCenter();
-			trans.transform(ctr, ctr);
-			double halfWidth = Math.max(ni.getXSize(), ni.getYSize()) / 2;
-			Rectangle2D databaseBounds = wnd.getDisplayedBounds();
-			double ctrX = ctr.getX();
-			double ctrY = ctr.getY();
-			if (ctrX + halfWidth < databaseBounds.getMinX()) return;
-			if (ctrX - halfWidth > databaseBounds.getMaxX()) return;
-			if (ctrY + halfWidth < databaseBounds.getMinY()) return;
-			if (ctrY - halfWidth > databaseBounds.getMaxY()) return;
-
-			PrimitiveNode prim = (PrimitiveNode)np;
-			totalPrims++;
-			if (!prim.isCanBeZeroSize() && halfWidth * wnd.getScale() < 1)
+			// primitive: see if it can be drawn
+			if (topLevel || (!ni.isVisInside() && np != Generic.tech.cellCenterNode))
 			{
-				// draw a tiny primitive by setting a single dot from each layer
-				tinyPrims++;
-				Point scrPt = wnd.databaseToScreen(ctrX, ctrY);
-				if (scrPt.x >= 0 && scrPt.x < sz.width && scrPt.y >= 0 && scrPt.y < sz.height)
+				// see if the node is completely clipped from the screen
+				Point2D ctr = ni.getTrueCenter();
+				trans.transform(ctr, ctr);
+				double halfWidth = Math.max(ni.getXSize(), ni.getYSize()) / 2;
+				Rectangle2D databaseBounds = wnd.getDisplayedBounds();
+				double ctrX = ctr.getX();
+				double ctrY = ctr.getY();
+				if (ctrX + halfWidth < databaseBounds.getMinX()) return;
+				if (ctrX - halfWidth > databaseBounds.getMaxX()) return;
+				if (ctrY + halfWidth < databaseBounds.getMinY()) return;
+				if (ctrY - halfWidth > databaseBounds.getMaxY()) return;
+	
+				PrimitiveNode prim = (PrimitiveNode)np;
+				totalPrims++;
+				if (!prim.isCanBeZeroSize() && halfWidth < halfMaxObjectSize)
 				{
-					drawTinyLayers(prim.layerIterator(), scrPt.x, scrPt.y);
+					// draw a tiny primitive by setting a single dot from each layer
+					tinyPrims++;
+					Point scrPt = wnd.databaseToScreen(ctrX, ctrY);
+					if (scrPt.x >= 0 && scrPt.x < sz.width && scrPt.y >= 0 && scrPt.y < sz.height)
+					{
+						drawTinyLayers(prim.layerIterator(), scrPt.x, scrPt.y);
+					}
+					return;
 				}
-				return;
-			}
-			if (topLevel || !ni.isVisInside())
-			{
+
 				EditWindow nodeWnd = wnd;
-				if (!User.isTextVisibilityOnNode()) nodeWnd = null;
+				if (!canDrawText || !User.isTextVisibilityOnNode()) nodeWnd = null;
 				if (prim == Generic.tech.invisiblePinNode)
 				{
 					if (!User.isTextVisibilityOnAnnotation()) nodeWnd = null;
@@ -878,7 +888,7 @@ public class PixelDrawing
 		}
 
 		// draw any exports from the node
-		if (topLevel && User.isTextVisibilityOnExport())
+		if (canDrawText && topLevel && User.isTextVisibilityOnExport())
 		{
 			int exportDisplayLevel = User.getExportDisplayLevel();
 			Iterator it = ni.getExports();
@@ -907,8 +917,7 @@ public class PixelDrawing
 					}
 //					if (topWnd != null && topWnd.isInPlaceEdit())
 //						poly.transform(topWnd.getInPlaceTransformOut());
-					Point2D polyLoc = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
-					Point pt = wnd.databaseToScreen(polyLoc);
+					Point pt = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
 					Rectangle textRect = new Rectangle(pt);
 					type = Poly.rotateType(type, ni);
 					drawText(textRect, type, descript, portName, null, blackGraphics, false);
@@ -934,45 +943,44 @@ public class PixelDrawing
      */
 	public void drawArc(ArcInst ai, AffineTransform trans, boolean forceVisible)
 	{
-        // see if the arc is completely clipped from the screen
+		// if the arc is tiny, just approximate it with a single dot
 		Rectangle2D arcBounds = ai.getBounds();
+        double arcSize = Math.max(arcBounds.getWidth(), arcBounds.getHeight());
+		totalArcs++;
+		if (arcSize < maxObjectSize)
+		{
+			tinyArcs++;
+			return;
+		}
+		arcSize = Math.min(arcBounds.getWidth(), arcBounds.getHeight());
+		if (arcSize < maxObjectSize)
+		{
+			linedArcs++;
+
+			// draw a tiny arc by setting a single dot from each layer
+			Point2D headEnd = new Point2D.Double(ai.getHeadLocation().getX(), ai.getHeadLocation().getY());
+			trans.transform(headEnd, headEnd);
+			wnd.databaseToScreen(headEnd.getX(), headEnd.getY(), tempPt1);
+			Point2D tailEnd = new Point2D.Double(ai.getTailLocation().getX(), ai.getTailLocation().getY());
+			trans.transform(tailEnd, tailEnd);
+			wnd.databaseToScreen(tailEnd.getX(), tailEnd.getY(), tempPt2);
+			ArcProto prim = ai.getProto();
+			drawTinyArc(prim.layerIterator(), tempPt1, tempPt2);
+			return;
+		}
+
+        // see if the arc is completely clipped from the screen
         Rectangle2D dbBounds = new Rectangle2D.Double(arcBounds.getX(), arcBounds.getY(), arcBounds.getWidth(), arcBounds.getHeight());
         Poly p = new Poly(dbBounds);
         p.transform(trans);
         dbBounds = p.getBounds2D();
-//        // java doesn't think they intersect if they contain no area, so bloat width or height if zero
-//        if (dbBounds.getWidth() == 0 || dbBounds.getHeight() == 0) {
-//            dbBounds = new Rectangle2D.Double(dbBounds.getX(), dbBounds.getY(),
-//                    dbBounds.getWidth() + 0.001, dbBounds.getHeight() + 0.001);
-//        }
-        if (drawBounds != null && !GenMath.rectsIntersect(drawBounds, dbBounds)) {
-            return;
-        }
-
-		// if the arc it tiny, just approximate it with a single dot
-        double arcSize = Math.max(arcBounds.getWidth(), arcBounds.getHeight());
-		totalArcs++;
-		if (arcSize * wnd.getScale() < 2)
-		{
-			tinyArcs++;
-
-			// draw a tiny arc by setting a single dot from each layer
-			Point2D ctr = ai.getTrueCenter();
-			trans.transform(ctr, ctr);
-			Point scrPt = wnd.databaseToScreen(ctr.getX(), ctr.getY());
-			if (scrPt.x >= 0 && scrPt.x < sz.width && scrPt.y >= 0 && scrPt.y < sz.height)
-			{
-				ArcProto prim = ai.getProto();
-				drawTinyLayers(prim.layerIterator(), scrPt.x, scrPt.y);
-			}
-			return;
-		}
+        if (drawBounds != null && !GenMath.rectsIntersect(drawBounds, dbBounds)) return;
 
 		// draw the arc
 		ArcProto ap = ai.getProto();
 		Technology tech = ap.getTechnology();
 		EditWindow arcWnd = wnd;
-		if (!User.isTextVisibilityOnArc()) arcWnd = null;
+		if (!canDrawText || !User.isTextVisibilityOnArc()) arcWnd = null;
 		Poly [] polys = tech.getShapeOfArc(ai, arcWnd);
 		drawPolys(polys, trans, forceVisible);
 	}
@@ -1055,7 +1063,7 @@ public class PixelDrawing
 		}
 
 		// draw the instance name
-		if (User.isTextVisibilityOnInstance())
+		if (canDrawText && User.isTextVisibilityOnInstance())
 		{
 			Rectangle2D bounds = poly.getBounds2D();
 			Rectangle rect = wnd.databaseToScreen(bounds);
@@ -1071,7 +1079,7 @@ public class PixelDrawing
 		{
 			Layer layer = (Layer)it.next();
 			if (layer == null) continue;
-			int layerNum = -1;
+			byte [][] layerBitMap = null;
 			int col = 0;
 			EGraphics graphics = layer.getGraphics();
 			if (graphics != null)
@@ -1085,15 +1093,10 @@ public class PixelDrawing
 						if (pat == 0 || (pat & (0x8000 >> (x&15))) == 0) continue;
 					}
 				}
-				layerNum = graphics.getTransparentLayer() - 1;
+				int layerNum = graphics.getTransparentLayer() - 1;
+				if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
 				col = graphics.getColor().getRGB() & 0xFFFFFF;
 			}
-			if (layerNum >= numLayerBitMaps)
-			{
-//				transparentLayersMissed = layer.getTechnology();
-				layerNum = -1;
-			}
-			byte [][] layerBitMap = getLayerBitMap(layerNum);
 
 			// set the bit
 			if (layerBitMap == null)
@@ -1105,6 +1108,23 @@ public class PixelDrawing
 			{
 				layerBitMap[y][x>>3] |= (1 << (x&7));
 			}
+		}
+	}
+
+	private void drawTinyArc(Iterator layerIterator, Point head, Point tail)
+	{
+		for(Iterator it = layerIterator; it.hasNext(); )
+		{
+			Layer layer = (Layer)it.next();
+			if (layer == null) continue;
+			EGraphics graphics = layer.getGraphics();
+			byte [][] layerBitMap = null;
+			if (graphics != null)
+			{
+				int layerNum = graphics.getTransparentLayer() - 1;
+				if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
+			}
+			drawLine(head, tail, layerBitMap, graphics, 0, layer.isDimmed());
 		}
 	}
 
@@ -1222,8 +1242,8 @@ public class PixelDrawing
 	private void countNode(NodeInst ni, Rectangle2D drawLimitBounds, boolean fullInstantiate, AffineTransform trans)
 	{
 		// if the node is tiny, it will be approximated
-		double halfWidth = Math.max(ni.getXSize(), ni.getYSize()) / 2;
-		if (halfWidth * wnd.getScale() < 1) return;
+		double objWidth = Math.max(ni.getXSize(), ni.getYSize());
+		if (objWidth < maxObjectSize) return;
 
 		// transform into the subcell
 		AffineTransform localTrans = ni.rotateOut(trans);
@@ -1465,9 +1485,15 @@ public class PixelDrawing
 			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 
 			// render the polygon
-            long startTime = System.currentTimeMillis();
-			renderPoly(poly, graphics, dimmed);
-            renderPolyTime += (System.currentTimeMillis() - startTime);
+			if (DEBUGRENDERTIMING)
+			{
+	            long startTime = System.currentTimeMillis();
+				renderPoly(poly, graphics, dimmed);
+	            renderPolyTime += (System.currentTimeMillis() - startTime);
+			} else
+			{
+				renderPoly(poly, graphics, dimmed);
+			}
 
 			// handle refreshing
 			if (periodicRefresh)
@@ -1513,16 +1539,12 @@ public class PixelDrawing
 	 */
 	private void renderPoly(Poly poly, EGraphics graphics, boolean dimmed)
 	{
-		int layerNum = -1;
-		if (graphics != null) layerNum = graphics.getTransparentLayer() - 1;
-		if (layerNum >= numLayerBitMaps)
+		byte [][] layerBitMap = null;
+		if (graphics != null)
 		{
-//			Layer layer = poly.getLayer();
-//			if (layer != null)
-//				transparentLayersMissed = layer.getTechnology();
-			layerNum = -1;
+			int layerNum = graphics.getTransparentLayer() - 1;
+			if (layerNum < numLayerBitMaps) layerBitMap = getLayerBitMap(layerNum);
 		}
-		byte [][] layerBitMap = getLayerBitMap(layerNum);
 		Poly.Type style = poly.getStyle();
 
 		// only do this for lower-level (cached cells)
@@ -1566,12 +1588,12 @@ public class PixelDrawing
 			if (bounds != null)
 			{
 				// convert coordinates
-				Point llPt = wnd.databaseToScreen(bounds.getMinX(), bounds.getMinY());
-				Point urPt = wnd.databaseToScreen(bounds.getMaxX(), bounds.getMaxY());
-				int lX = Math.min(llPt.x, urPt.x);
-				int hX = Math.max(llPt.x, urPt.x);
-				int lY = Math.min(llPt.y, urPt.y);
-				int hY = Math.max(llPt.y, urPt.y);
+				wnd.databaseToScreen(bounds.getMinX(), bounds.getMinY(), tempPt1);
+				wnd.databaseToScreen(bounds.getMaxX(), bounds.getMaxY(), tempPt2);
+				int lX = Math.min(tempPt1.x, tempPt2.x);
+				int hX = Math.max(tempPt1.x, tempPt2.x);
+				int lY = Math.min(tempPt1.y, tempPt2.y);
+				int hY = Math.max(tempPt1.y, tempPt2.y);
 
 				// do clipping
 				if (lX < 0) lX = 0;
@@ -1596,16 +1618,12 @@ public class PixelDrawing
 			Point pt1a = wnd.databaseToScreen(points[1]);
 			Point pt2a = wnd.databaseToScreen(points[2]);
 			Point pt3a = wnd.databaseToScreen(points[3]);
-			Point pt0b = new Point(pt0a);   Point pt0c = new Point(pt0a);
-			Point pt1b = new Point(pt1a);   Point pt1c = new Point(pt1a);
-			Point pt2b = new Point(pt2a);   Point pt2c = new Point(pt2a);
-			Point pt3b = new Point(pt3a);   Point pt3c = new Point(pt3a);
 			drawLine(pt0a, pt1a, layerBitMap, graphics, 0, dimmed);
-			drawLine(pt1b, pt2a, layerBitMap, graphics, 0, dimmed);
-			drawLine(pt2b, pt3a, layerBitMap, graphics, 0, dimmed);
-			drawLine(pt3b, pt0b, layerBitMap, graphics, 0, dimmed);
-			drawLine(pt0c, pt2c, layerBitMap, graphics, 0, dimmed);
-			drawLine(pt1c, pt3c, layerBitMap, graphics, 0, dimmed);
+			drawLine(pt1a, pt2a, layerBitMap, graphics, 0, dimmed);
+			drawLine(pt2a, pt3a, layerBitMap, graphics, 0, dimmed);
+			drawLine(pt3a, pt0a, layerBitMap, graphics, 0, dimmed);
+			drawLine(pt0a, pt2a, layerBitMap, graphics, 0, dimmed);
+			drawLine(pt1a, pt3a, layerBitMap, graphics, 0, dimmed);
 			return;
 		}
 		if (style.isText())
@@ -1916,13 +1934,16 @@ public class PixelDrawing
 		// first clip the line
 		if (GenMath.clipLine(pt1, pt2, 0, sz.width-1, 0, sz.height-1)) return;
 
+		int col = 0;
+		if (desc != null) col = getTheColor(desc, dimmed);
+
 		// now draw with the proper line type
 		switch (texture)
 		{
-			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, desc, dimmed);       break;
-			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, desc, 0x88, dimmed);   break;
-			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, desc, 0xE7, dimmed);   break;
-			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, desc, dimmed);       break;
+			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col);       break;
+			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col, 0x88);   break;
+			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col, 0xE7);   break;
+			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, col);       break;
 		}
 	}
 
@@ -1935,18 +1956,8 @@ public class PixelDrawing
 		drawLine(new Point(center.x, center.y-size), new Point(center.x, center.y+size), null, graphics, 0, dimmed);
 	}
 
-	private void drawSolidLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	private void drawSolidLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col)
 	{
-		// get color and pattern information
-		int col = 0;
-		int [] pattern = null;
-		if (desc != null)
-		{
-			col = getTheColor(desc, dimmed);
-			if (desc.isPatternedOnDisplay())
-				pattern = desc.getPattern();
-		}
-
 		// initialize the Bresenham algorithm
 		int dx = Math.abs(x2-x1);
 		int dy = Math.abs(y2-y1);
@@ -2011,12 +2022,8 @@ public class PixelDrawing
 		}
 	}
 
-	private void drawPatLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, EGraphics desc, int pattern, boolean dimmed)
+	private void drawPatLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col, int pattern)
 	{
-		// get color and pattern information
-		int col = 0;
-		if (desc != null) col = getTheColor(desc, dimmed);
-
 		// initialize counter for line style
 		int i = 0;
 
@@ -2088,12 +2095,8 @@ public class PixelDrawing
 		}
 	}
 
-	private void drawThickLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	private void drawThickLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col)
 	{
-		// get color and pattern information
-		int col = 0;
-		if (desc != null) col = getTheColor(desc, dimmed);
-
 		// initialize the Bresenham algorithm
 		int dx = Math.abs(x2-x1);
 		int dy = Math.abs(y2-y1);
@@ -2194,7 +2197,7 @@ public class PixelDrawing
 		{
 			// draw the edge lines to make the polygon clean
 			if (pattern != null && desc.isOutlinedOnDisplay())
-				drawSolidLine(polySegs[i].fx, polySegs[i].fy, polySegs[i].tx, polySegs[i].ty, layerBitMap, desc, dimmed);
+				drawSolidLine(polySegs[i].fx, polySegs[i].fy, polySegs[i].tx, polySegs[i].ty, layerBitMap, col);
 
 			// compute the direction of this edge
 			int j = polySegs[i].ty - polySegs[i].fy;
@@ -2747,6 +2750,7 @@ public class PixelDrawing
 
 			int boxedWidth = (int)probableBoxedBounds.getWidth();
 			int boxedHeight = (int)probableBoxedBounds.getHeight();
+
 			// if text is to be "boxed", make sure it fits
 			if (boxedWidth > 1 && boxedHeight > 1)
             {

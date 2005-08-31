@@ -132,6 +132,7 @@ public class EditWindow extends JPanel
 	/** the window offset */								private double offx = 0, offy = 0;
 	/** the window bounds in database units */				private Rectangle2D databaseBounds;
 	/** the size of the window (in pixels) */				private Dimension sz;
+	/** the half-sizes of the window (in pixels) */			private int szHalfWidth, szHalfHeight;
 	/** the cell that is in the window */					private Cell cell;
 	/** the page number (for multipage schematics) */		private int pageNumber;
 	/** true if doing in-place display */					private boolean inPlaceDisplay;
@@ -200,6 +201,8 @@ public class EditWindow extends JPanel
 		inPlaceDisplay = false;
 
 		sz = new Dimension(500, 500);
+		szHalfWidth = sz.width / 2;
+		szHalfHeight = sz.height / 2;
 		setSize(sz.width, sz.height);
 		setPreferredSize(sz);
 		databaseBounds = new Rectangle2D.Double();
@@ -2190,6 +2193,8 @@ public class EditWindow extends JPanel
 		}
 
 		this.sz = sz;
+		szHalfWidth = sz.width / 2;
+		szHalfHeight = sz.height / 2;
 		offscreen = new PixelDrawing(this);
 	}
 
@@ -2250,6 +2255,8 @@ public class EditWindow extends JPanel
 					break;
 				case WindowChangeRequest.RESIZEREQUEST:
 					wnd.sz = zap.sz;
+					wnd.szHalfWidth = wnd.sz.width / 2;
+					wnd.szHalfHeight = wnd.sz.height / 2;
 					wnd.offscreen = new PixelDrawing(wnd);
 					break;
 			}
@@ -3201,8 +3208,8 @@ public class EditWindow extends JPanel
 	 */
 	public Point2D screenToDatabase(int screenX, int screenY)
 	{
-		double dbX = (screenX - sz.width/2) / scale + offx;
-		double dbY = (sz.height/2 - screenY) / scale + offy;
+		double dbX = (screenX - szHalfWidth) / scale + offx;
+		double dbY = (szHalfHeight - screenY) / scale + offy;
 		Point2D dbPt = new Point2D.Double(dbX, dbY);
 
 		// if doing in-place display, transform into the proper cell
@@ -3244,9 +3251,9 @@ public class EditWindow extends JPanel
 	 * Method to convert a database coordinate to screen coordinates.
 	 * @param dbX the X coordinate (in database units).
 	 * @param dbY the Y coordinate (in database units).
-	 * @return the coordinate on the screen.
+	 * @param result the Point in which to store the screen coordinates.
 	 */
-	public Point databaseToScreen(double dbX, double dbY)
+	public void databaseToScreen(double dbX, double dbY, Point result)
 	{
 		// if doing in-place display, transform out of the proper cell
 		if (inPlaceDisplay)
@@ -3256,9 +3263,21 @@ public class EditWindow extends JPanel
        		dbX = dbPt.getX();
        		dbY = dbPt.getY();
 		}
-		int screenX = (int)Math.round(sz.width/2 + (dbX - offx) * scale);
-		int screenY = (int)Math.round(sz.height/2 - (dbY - offy) * scale);
-		return new Point(screenX, screenY);
+		result.x = (int)Math.round(szHalfWidth + (dbX - offx) * scale);
+		result.y = (int)Math.round(szHalfHeight - (dbY - offy) * scale);
+	}
+
+	/**
+	 * Method to convert a database coordinate to screen coordinates.
+	 * @param dbX the X coordinate (in database units).
+	 * @param dbY the Y coordinate (in database units).
+	 * @return the coordinate on the screen.
+	 */
+	public Point databaseToScreen(double dbX, double dbY)
+	{
+		Point result = new Point();
+		databaseToScreen(dbX, dbY, result);
+		return result;
 	}
 
 	/**

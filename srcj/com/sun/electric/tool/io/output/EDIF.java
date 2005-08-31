@@ -560,6 +560,8 @@ public class EDIF extends Topology
 			} else
 			{
 				String oname = makeToken(netName);
+				EDIFEquiv.GlobalEquivalence ge = equivs.getElectricGlobalEquivalence(oname);
+				if (ge != null) oname = ge.externGName;
 				if (!oname.equals(netName))
 				{
 					// different names

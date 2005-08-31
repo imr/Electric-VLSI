@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03f: *********************************
 
+IMP: (08/31/05, SMR) EDIF I/O configuration now handles global name conversion.
+
 ************************* Version 8.03e: *********************************
 
 IMP: (08/30/05, SMR) Initial changes to speed up redisplay when small amounts change.

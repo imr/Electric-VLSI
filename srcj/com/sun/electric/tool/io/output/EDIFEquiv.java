@@ -45,7 +45,8 @@ public class EDIFEquiv {
     private HashMap exportFromVariable;     // key: External hash (external varname), value: VariableEquivalence
     private HashMap exportByFigureGroup;    // key: External hash (electric figureGroupName), value: FigureGroupEquivalence
     private HashMap exportFromFigureGroup;  // key: External hash (external figureGroupName), value: FigureGroupEquivalence
-	
+    private HashMap exportByGlobal;    		// key: External hash (electric figureGroupName), value: GlobalEquivalence
+    private HashMap exportFromGlobal;  		// key: External hash (external figureGroupName), value: GlobalEquivalence
 
     /**
      * Get the node equivalence for the NodeInst.  This must be a NodeInst, not a
@@ -98,8 +99,8 @@ public class EDIFEquiv {
 	}
 
 	/**
-	 * Method to get the FigureGroupEquivalence that maps Electric variable names to external names.
-	 * @param varName the Electric variable name.
+	 * Method to get the FigureGroupEquivalence that maps Electric figuregroup names to external names.
+	 * @param fgName the Electric figuregroup name.
 	 * @return the FigureGroupEquivalence that tells how to do the mapping (null if none).
 	 */
 	public FigureGroupEquivalence getElectricFigureGroupEquivalence(String fgName)
@@ -109,14 +110,36 @@ public class EDIFEquiv {
 	}
 
 	/**
-	 * Method to get the FigureGroupEquivalence that maps external variable names to Electric names.
-	 * @param varName the external variable name.
+	 * Method to get the FigureGroupEquivalence that maps external figuregroup names to Electric names.
+	 * @param fgName the external figuregroup name.
 	 * @return the FigureGroupEquivalence that tells how to do the mapping (null if none).
 	 */
 	public FigureGroupEquivalence getExternalFigureGroupEquivalence(String fgName)
 	{
 		FigureGroupEquivalence fge = (FigureGroupEquivalence)exportFromFigureGroup.get(fgName);
 		return fge;
+	}
+
+	/**
+	 * Method to get the GlobalEquivalence that maps Electric global names to external names.
+	 * @param gName the Electric global name.
+	 * @return the GlobalEquivalence that tells how to do the mapping (null if none).
+	 */
+	public GlobalEquivalence getElectricGlobalEquivalence(String gName)
+	{
+		GlobalEquivalence ge = (GlobalEquivalence)exportByGlobal.get(gName);
+		return ge;
+	}
+
+	/**
+	 * Method to get the GlobalEquivalence that maps external global names to Electric names.
+	 * @param gName the external global name.
+	 * @return the GlobalEquivalence that tells how to do the mapping (null if none).
+	 */
+	public GlobalEquivalence getExternalGlobalEquivalence(String gName)
+	{
+		GlobalEquivalence ge = (GlobalEquivalence)exportFromGlobal.get(gName);
+		return ge;
 	}
 
 	/**
@@ -249,6 +272,8 @@ public class EDIFEquiv {
 		exportFromVariable = new HashMap();
 		exportByFigureGroup = new HashMap();
 		exportFromFigureGroup = new HashMap();
+		exportByGlobal = new HashMap();
+		exportFromGlobal = new HashMap();
 
         File fd = new File(file);
         if (!fd.exists()) {
@@ -303,6 +328,16 @@ public class EDIFEquiv {
 			FigureGroupEquivalence fge = new FigureGroupEquivalence(parts[1], parts[2]);
 			exportByFigureGroup.put(parts[1], fge);
 			exportFromFigureGroup.put(parts[2], fge);
+			return true;
+		}
+
+		// special case for Global equivalences
+		if (line.startsWith("G"))
+		{
+	        String [] parts = line.split("\\s+");
+			GlobalEquivalence ge = new GlobalEquivalence(parts[1], parts[2]);
+			exportByGlobal.put(parts[1], ge);
+			exportFromGlobal.put(parts[2], ge);
 			return true;
 		}
 
@@ -657,6 +692,16 @@ public class EDIFEquiv {
         private FigureGroupEquivalence(String elecFGName, String externFGName) {
             this.elecFGName = elecFGName;
             this.externFGName = externFGName;
+        }
+    }
+
+    public static class GlobalEquivalence {
+        public final String elecGName;
+        public final String externGName;
+
+        private GlobalEquivalence(String elecGName, String externGName) {
+            this.elecGName = elecGName;
+            this.externGName = externGName;
         }
     }
 
