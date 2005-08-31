@@ -31,6 +31,7 @@ import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Global;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -104,6 +105,8 @@ public class Spice extends Topology
     /** map of "parameterized" cells that are not covered by Topology */    private Map uniquifyCells;
     /** uniqueID */                                                         private int uniqueID;
     /** map of shortened instance names */                                  private Map uniqueNames;
+
+    private static final boolean useNewParasitics = false;
 
 	private static class SpiceNet
 	{
@@ -423,21 +426,63 @@ public class Spice extends Topology
 		// create list of electrical nets in this cell
 		HashMap spiceNetMap = new HashMap();
 
-		// create SpiceNet objects for all networks in the cell
-		for(Iterator it = netList.getNetworks(); it.hasNext(); )
-		{
-			Network net = (Network)it.next();
+        // create list of segemented networks for parasitic extraction
+        // key is port inst, value is netname
+        HashMap segmentedNets = new HashMap();
+        boolean verboseSegmentedNames = false;
 
-			// create a "SpiceNet" for the network
-			SpiceNet spNet = new SpiceNet();
-			spNet.network = net;
-			spNet.transistorCount = 0;
-			spNet.diffArea = 0;
-			spNet.diffPerim = 0;
-			spNet.nonDiffCapacitance = 0;
-			spNet.merge = new PolyMerge();
-			spiceNetMap.put(net, spNet);
-		}
+        // create SpiceNet objects for all networks in the cell
+        for(Iterator it = netList.getNetworks(); it.hasNext(); )
+        {
+            Network net = (Network)it.next();
+
+            if (useNewParasitics) {
+                if (!useCDL && Simulation.isSpiceUseParasitics()) {
+                    int i=0;
+                    CellSignal cs = cni.getCellSignal(net);
+                    for (Iterator pit = net.getPorts(); pit.hasNext(); ) {
+                        PortInst pi = (PortInst)pit.next();
+                        String name;
+                        // use exported name if this port is exported
+                        NodeInst ni = pi.getNodeInst();
+                        // see if this port is exported
+                        boolean exported = false;
+                        for (Iterator eit = cell.getPorts(); eit.hasNext(); ) {
+                            Export e = (Export)eit.next();
+                            PortInst epi = e.getOriginalPort();
+                            if (epi.getPortProto() == pi.getPortProto() &&
+                                    epi.getNodeInst() == pi.getNodeInst())
+                                exported = true;
+                        }
+                        if (exported) {
+                            name = cs.getName();
+                            //System.out.println("using export name "+name);
+                            System.out.println("Added export "+name+" for "+pi.getNodeInst().getName()+" "+pi.getPortProto().getName());
+                        } else {
+                            if (verboseSegmentedNames) {
+                                name = cs.getName() + "#" + i + pi.getNodeInst().getName() + "_" + pi.getPortProto().getName();
+                            } else {
+                                name = cs.getName() + "#" + i;
+                            }
+                            i++;
+                            System.out.println("Added name "+name+" for "+pi.getNodeInst().getName()+" "+pi.getPortProto().getName());
+                        }
+                        segmentedNets.put(pi, name);
+                        //System.out.println("Added to "+net.toString()+" "+pi.getNodeInst().getName()+" "+pi.getPortProto().getName());
+                    }
+                }
+            }
+
+            // create a "SpiceNet" for the network
+            SpiceNet spNet = new SpiceNet();
+            spNet.network = net;
+            spNet.transistorCount = 0;
+            spNet.diffArea = 0;
+            spNet.diffPerim = 0;
+            spNet.nonDiffCapacitance = 0;
+            spNet.merge = new PolyMerge();
+            spiceNetMap.put(net, spNet);
+        }
 
 		// count the number of different transistor types
 		int bipolarTrans = 0, nmosTrans = 0, pmosTrans = 0;
@@ -763,7 +808,7 @@ public class Spice extends Topology
 			{
 				if (fun.isResistor()) // == PrimitiveNode.Function.RESIST)
 				{
-                    if (useCDL && Simulation.getCDLIgnoreResistors())
+                    if (useCDL && Simulation.getCDLIgnoreResistors() && (fun != PrimitiveNode.Function.PRESIST))
                         continue;
 					Variable resistVar = ni.getVar(Schematics.SCHEM_RESISTANCE);
 					String extra = "";
@@ -776,7 +821,7 @@ public class Spice extends Topology
 							extra = TextUtils.formatDoublePostFix(pureValue); //displayedUnits(pureValue, TextDescriptor.Unit.RESISTANCE, TextUtils.UnitScale.NONE);
 						}
 					}
-					writeTwoPort(ni, "R", extra, cni, netList, context);
+					writeTwoPort(ni, "R", extra, cni, netList, context, segmentedNets);
 				} else if (fun.isCapacitor()) // == PrimitiveNode.Function.CAPAC || fun == PrimitiveNode.Function.ECAPAC)
 				{
 					Variable capacVar = ni.getVar(Schematics.SCHEM_CAPACITANCE);
@@ -790,7 +835,7 @@ public class Spice extends Topology
 							extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.CAPACITANCE, TextUtils.UnitScale.NONE);
 						}
 					}
-					writeTwoPort(ni, "C", extra, cni, netList, context);
+					writeTwoPort(ni, "C", extra, cni, netList, context, segmentedNets);
 				} else if (fun == PrimitiveNode.Function.INDUCT)
 				{
 					Variable inductVar = ni.getVar(Schematics.SCHEM_INDUCTANCE);
@@ -804,7 +849,7 @@ public class Spice extends Topology
 							extra = TextUtils.formatDoublePostFix(pureValue); // displayedUnits(pureValue, TextDescriptor.Unit.INDUCTANCE, TextUtils.UnitScale.NONE);
 						}
 					}
-					writeTwoPort(ni, "L", extra, cni, netList, context);
+					writeTwoPort(ni, "L", extra, cni, netList, context, segmentedNets);
 				} else if (fun == PrimitiveNode.Function.DIODE || fun == PrimitiveNode.Function.DIODEZ)
 				{
 					Variable diodeVar = ni.getVar(Schematics.SCHEM_DIODE);
@@ -812,7 +857,7 @@ public class Spice extends Topology
 					if (diodeVar != null)
 						extra = diodeVar.describe(context, ni);
 					if (extra.length() == 0) extra = "DIODE";
-					writeTwoPort(ni, "D", extra, cni, netList, context);
+					writeTwoPort(ni, "D", extra, cni, netList, context, segmentedNets);
 				}
 				continue;
 			}
@@ -934,8 +979,22 @@ public class Spice extends Topology
 			}
 			if (ni.getName() != null) modelChar += getSafeNetName(ni.getName(), false);
 			StringBuffer infstr = new StringBuffer();
-			infstr.append(modelChar + " " + drainCs.getName() + " " + gateCs.getName() + " " + sourceCs.getName());
-			if (biasCs != null) infstr.append(" " + biasCs.getName());
+            String drainName = drainCs.getName();
+            String gateName = gateCs.getName();
+            String sourceName = sourceCs.getName();
+            if (!useCDL && Simulation.isSpiceUseParasitics() && useNewParasitics) {
+                drainName = (String)segmentedNets.get(ni.getTransistorDrainPort());
+                gateName = (String)segmentedNets.get(ni.getTransistorGatePort());
+                sourceName = (String)segmentedNets.get(ni.getTransistorSourcePort());
+            }
+			infstr.append(modelChar + " " + drainName + " " + gateName + " " + sourceName);
+			if (biasCs != null) {
+                String biasName = biasCs.getName();
+                if (!useCDL && Simulation.isSpiceUseParasitics() && useNewParasitics) {
+                    biasName = (String)segmentedNets.get(ni.getTransistorBiasPort());
+                }
+                infstr.append(" " + biasName);
+            }
 			if (modelName != null) infstr.append(" " + modelName);
 
 			// compute length and width (or area for nonMOS transistors)
@@ -1066,27 +1125,73 @@ public class Spice extends Topology
 		{
 			if (Simulation.isSpiceUseParasitics())
 			{
-				// print parasitic capacitances
-				boolean first = true;
-				int capacNum = 1;
-				for(Iterator sIt = cni.getCellSignals(); sIt.hasNext(); )
-				{
-					CellSignal cs = (CellSignal)sIt.next();
-					Network net = cs.getNetwork();
-					if (net == cni.getGroundNet()) continue;
+                if (useNewParasitics) {
+                    // create PI model for each arc
+                    int capCount = 0;
+                    int resCount = 0;
+                    for (Iterator it = cell.getArcs(); it.hasNext(); ) {
+                        ArcInst ai = (ArcInst)it.next();
+                        if (ai.getProto().getFunction() == ArcProto.Function.NONELEC) continue;
+                        double length = ai.getLength();
+                        double width = ai.getWidth();
+                        double area = length * width;
+                        double fringe = length*2;
 
-					SpiceNet spNet = (SpiceNet)spiceNetMap.get(net);
-					if (spNet.nonDiffCapacitance > layoutTechnology.getMinCapacitance())
-					{
-						if (first)
-						{
-							first = false;
-							multiLinePrint(true, "** Extracted Parasitic Elements:\n");
-						}
-						multiLinePrint(false, "C" + capacNum + " " + cs.getName() + " 0 " + TextUtils.formatDouble(spNet.nonDiffCapacitance, 2) + "fF\n");
-						capacNum++;
-					}
-				}
+                        Technology tech = ai.getProto().getTechnology();
+                        Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+                        int tot = arcInstPolyList.length;
+                        for(int j=0; j<tot; j++)
+                        {
+                            Poly poly = arcInstPolyList[j];
+                            if (poly.getStyle().isText()) continue;
+
+                            Layer layer = poly.getLayer();
+                            if (layer.getTechnology() != Technology.getCurrent()) continue;
+                            if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+
+                            if (!layer.isDiffusionLayer() && layer.getCapacitance() > 0.0) {
+                                double areacap = area * layer.getCapacitance();
+                                double fringecap = fringe * layer.getEdgeCapacitance();
+                                double cap = areacap + fringecap;
+                                double res = length/width * layer.getResistance();
+                                // make PI model
+                                String n0 = (String)segmentedNets.get(ai.getHeadPortInst());
+                                String n1 = (String)segmentedNets.get(ai.getTailPortInst());
+                                if (cap > 0) {
+                                    multiLinePrint(false, "C" + capCount + " " + n0 + " 0 " + TextUtils.formatDouble(cap/2, 2) + "fF\n");
+                                    capCount++;
+                                    multiLinePrint(false, "C" + capCount + " " + n0 + " 0 " + TextUtils.formatDouble(cap/2, 2) + "fF\n");
+                                    capCount++;
+                                }
+                                if (res < 1) res = 0;
+                                multiLinePrint(false, "R" + resCount + " " + n0 + " " + n1 + " " + TextUtils.formatDouble(res, 2) + "\n");
+                                resCount++;
+                            }
+                        }
+                    }
+                } else {
+                    // print parasitic capacitances
+                    boolean first = true;
+                    int capacNum = 1;
+                    for(Iterator sIt = cni.getCellSignals(); sIt.hasNext(); )
+                    {
+                        CellSignal cs = (CellSignal)sIt.next();
+                        Network net = cs.getNetwork();
+                        if (net == cni.getGroundNet()) continue;
+
+                        SpiceNet spNet = (SpiceNet)spiceNetMap.get(net);
+                        if (spNet.nonDiffCapacitance > layoutTechnology.getMinCapacitance())
+                        {
+                            if (first)
+                            {
+                                first = false;
+                                multiLinePrint(true, "** Extracted Parasitic Elements:\n");
+                            }
+                            multiLinePrint(false, "C" + capacNum + " " + cs.getName() + " 0 " + TextUtils.formatDouble(spNet.nonDiffCapacitance, 2) + "fF\n");
+                            capacNum++;
+                        }
+                    }
+                }
 			}
 		}
 
@@ -1568,7 +1673,7 @@ public class Spice extends Topology
 	 * If the device is connected to the same net at both ends, do not
 	 * write it. Is this OK?
 	 */
-	private void writeTwoPort(NodeInst ni, String partName, String extra, CellNetInfo cni, Netlist netList, VarContext context)
+	private void writeTwoPort(NodeInst ni, String partName, String extra, CellNetInfo cni, Netlist netList, VarContext context, HashMap segmentedNets)
 	{
 		PortInst port0 = ni.getPortInst(0);
 		PortInst port1 = ni.getPortInst(1);
@@ -1597,7 +1702,13 @@ public class Spice extends Topology
         StringBuffer sbExtra = new StringBuffer(extra);
         writeMFactor(context, ni, sbExtra);
 
-		multiLinePrint(false, partName + " " + cs1.getName() + " " + cs0.getName() + " " + sbExtra.toString() + "\n");
+        String name0 = cs0.getName();
+        String name1 = cs1.getName();
+        if (!useCDL && Simulation.isSpiceUseParasitics() && useNewParasitics) {
+            name0 = (String)segmentedNets.get(port0);
+            name1 = (String)segmentedNets.get(port1);
+        }
+		multiLinePrint(false, partName + " " + name1 + " " + name0 + " " + sbExtra.toString() + "\n");
 	}
 
     /**
