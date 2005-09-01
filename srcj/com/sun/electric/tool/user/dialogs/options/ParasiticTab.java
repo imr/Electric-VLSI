@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.tool.extract.ParasiticTool;
+import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.database.text.Pref;
@@ -105,6 +106,10 @@ public class ParasiticTab extends PreferencePanel {
         includeGate.setSelected(curTech.isGateIncluded());
         includeGround.setSelected(curTech.isGroundNetIncluded());
 
+        verboseNaming.setSelected(Simulation.isParasiticsUseVerboseNaming());
+        backannotateLayout.setSelected(Simulation.isParasiticsBackAnnotateLayout());
+        extractPowerGround.setSelected(Simulation.isParasiticsExtractPowerGround());
+        extractPowerGround.setEnabled(false);
         parasiticPanel.setVisible(false);
     }
 
@@ -211,6 +216,13 @@ public class ParasiticTab extends PreferencePanel {
 
         if (includeGround.isSelected() != curTech.isGroundNetIncluded())
             curTech.setGroundNetIncluded(includeGround.isSelected());
+
+        boolean b = verboseNaming.isSelected();
+        if (b != Simulation.isParasiticsUseVerboseNaming()) Simulation.setParasiticsUseVerboseNaming(b);
+        b = backannotateLayout.isSelected();
+        if (b != Simulation.isParasiticsBackAnnotateLayout()) Simulation.setParasiticsBackAnnotateLayout(b);
+        b = extractPowerGround.isSelected();
+        if (b != Simulation.isParasiticsExtractPowerGround()) Simulation.setParasiticsExtractPowerGround(b);
     }
 
     /** This method is called from within the constructor to
@@ -243,6 +255,10 @@ public class ParasiticTab extends PreferencePanel {
         gateLengthSubtraction = new javax.swing.JTextField();
         includeGate = new javax.swing.JCheckBox();
         includeGround = new javax.swing.JCheckBox();
+        simpleParasiticOptions = new javax.swing.JPanel();
+        verboseNaming = new javax.swing.JCheckBox();
+        backannotateLayout = new javax.swing.JCheckBox();
+        extractPowerGround = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -424,6 +440,39 @@ public class ParasiticTab extends PreferencePanel {
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         topPanel.add(globalValues, gridBagConstraints);
 
+        simpleParasiticOptions.setLayout(new java.awt.GridBagLayout());
+
+        simpleParasiticOptions.setBorder(new javax.swing.border.TitledBorder("Simple Parasitic Options"));
+        verboseNaming.setText("Use Verbose Naming");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        simpleParasiticOptions.add(verboseNaming, gridBagConstraints);
+
+        backannotateLayout.setText("Back-Annotate Layout");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.weightx = 1.0;
+        simpleParasiticOptions.add(backannotateLayout, gridBagConstraints);
+
+        extractPowerGround.setText("Extract Power/Ground");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        simpleParasiticOptions.add(extractPowerGround, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        topPanel.add(simpleParasiticOptions, gridBagConstraints);
+
         getContentPane().add(topPanel, new java.awt.GridBagConstraints());
 
         pack();
@@ -437,8 +486,10 @@ public class ParasiticTab extends PreferencePanel {
     }
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox backannotateLayout;
     private javax.swing.JTextField capacitance;
     private javax.swing.JTextField edgeCapacitance;
+    private javax.swing.JCheckBox extractPowerGround;
     private javax.swing.JTextField gateLengthSubtraction;
     private javax.swing.JPanel globalValues;
     private javax.swing.JCheckBox includeGate;
@@ -456,9 +507,11 @@ public class ParasiticTab extends PreferencePanel {
     private javax.swing.JTextField minResistance;
     private javax.swing.JPanel parasiticPanel;
     private javax.swing.JTextField resistance;
+    private javax.swing.JPanel simpleParasiticOptions;
     private javax.swing.JScrollPane spiceLayer;
     private javax.swing.JPanel techValues;
     private javax.swing.JPanel topPanel;
+    private javax.swing.JCheckBox verboseNaming;
     // End of variables declaration//GEN-END:variables
     
 }

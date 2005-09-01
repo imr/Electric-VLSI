@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03f: *********************************
 
+IMP/MAN (09/01/05, JKG) Simple Parasitic Extraction from layout for spice
+
 IMP: (09/01/05, SMR) Speed up redisplay.
 
 IMP: (08/31/05, SMR) EDIF I/O configuration now handles global name conversion.
