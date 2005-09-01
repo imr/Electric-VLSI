@@ -1025,6 +1025,7 @@ public class EditWindow extends JPanel
 
 		// show the image
 		BufferedImage img = offscreen.getBufferedImage();
+//if (runningNow != null) System.out.println("REFRESH TOO SOON");
 		// TODO: Do not need synchronization here
 		synchronized(img)
 		{
@@ -1224,20 +1225,20 @@ public class EditWindow extends JPanel
 
 		public boolean doIt()
 		{
+			if (bounds == null)
+			{
+				// see if a real bounds is defined in the cell
+				bounds = User.getChangedInWindow(wnd);
+				if (bounds != null)
+				{
+					User.clearChangedInWindow(wnd);
+//					wnd.highlighter.addArea(bounds, cell);
+				}
+			}
+
 			// do the hard work of re-rendering the image
             try
             {
-				if (bounds == null)
-				{
-					// see if a real bounds is defined in the cell
-					bounds = User.getChangedInWindow(wnd);
-					if (bounds != null)
-					{
-						User.clearChangedInWindow(wnd);
-//						wnd.highlighter.addArea(bounds, cell);
-					}
-				}
-
 				offscreen.drawImage(fullInstantiate, bounds);
             } catch (java.util.ConcurrentModificationException e)
             {

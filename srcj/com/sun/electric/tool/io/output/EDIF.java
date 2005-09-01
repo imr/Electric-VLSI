@@ -212,6 +212,103 @@ public class EDIF extends Topology
         writeAllPrims(topCell, primsFound);
         blockClose("library");
 
+		// figure out how many bus rippers are needed
+		HashSet rippers = new HashSet();
+		countRippers(topCell, rippers);
+		if (rippers.size() > 0)
+		{
+	        blockOpen("library");
+	        blockPutIdentifier("cdsRipLib");
+	        blockPut("edifLevel", "0");
+	        blockOpen("technology");
+	        blockOpen("numberDefinition");
+	        if (IOTool.isEDIFUseSchematicView())
+	        {
+	            writeScale(Technology.getCurrent());
+	        }
+	        blockClose("numberDefinition");
+	        blockClose("technology");
+		}
+		for(Iterator it = rippers.iterator(); it.hasNext(); )
+		{
+			Integer width = (Integer)it.next();
+	        blockOpen("cell");
+			blockPutIdentifier("ripper_" + width.intValue());
+			blockPut("cellType", "RIPPER");
+			blockOpen("view");
+			blockPutIdentifier("symbol");
+			blockPut("viewType", IOTool.isEDIFUseSchematicView() ? "SCHEMATIC" : "NETLIST");
+	        blockOpen("interface");
+
+			blockOpen("port");
+			blockOpen("array");
+			blockPutIdentifier("dst_0");
+			blockPutIdentifier(width.toString());
+			blockClose("array");
+			blockClose("port");
+
+			blockOpen("port");
+			blockOpen("array");
+			blockPutIdentifier("src");
+			blockPutIdentifier(width.toString());
+			blockClose("array");
+			blockClose("port");
+
+			blockOpen("joined");
+			blockPut("portRef", "dst_0");	
+			blockPut("portRef", "src");
+			blockClose("joined");
+
+			blockOpen("symbol");
+			blockOpen("figure");
+			blockPutIdentifier("wire");
+			blockOpen("circle");
+			blockOpen("pt");
+			blockPutIdentifier("-5");
+			blockPutIdentifier("0");
+			blockClose("pt");
+			blockOpen("pt");
+			blockPutIdentifier("5");
+			blockPutIdentifier("0");
+			blockClose("pt");
+			blockClose("circle");
+			blockClose("figure");
+
+			blockOpen("portImplementation");
+			blockPutIdentifier("dst_0");
+			blockOpen("connectLocation");
+			blockOpen("figure");
+			blockPutIdentifier("pin");
+			blockOpen("dot");
+			writePoint(0, 0);
+			blockClose("dot");
+			blockClose("figure");
+			blockClose("connectLocation");
+			blockClose("portImplementation");
+
+			blockOpen("portImplementation");
+			blockPutIdentifier("src");
+			blockOpen("connectLocation");
+			blockOpen("figure");
+			blockPutIdentifier("pin");
+			blockOpen("dot");
+			writePoint(0, 0);
+			blockClose("dot");
+			blockClose("figure");
+			blockClose("connectLocation");
+			blockClose("portImplementation");
+
+			blockClose("symbol");
+			blockClose("interface");
+			blockClose("view");
+			blockClose("symbol");
+			blockClose("cell");
+		}
+		if (rippers.size() > 0)
+		{
+			blockClose("library");
+		}
+
         // external libs
         // organize by library
         List libs = new ArrayList();
@@ -906,7 +1003,6 @@ public class EDIF extends Topology
 		// do not search this cell if it is an icon
 		if (cell.isIcon()) return;
 
-
 		for(Iterator it = cell.getNodes(); it.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)it.next();
@@ -951,6 +1047,56 @@ public class EDIF extends Topology
 
 			// search the subcell
             writeAllPrims(oNp, primsFound);
+		}
+	}
+
+	/**
+	 * Method to count the usage of primitives hierarchically below cell "np"
+	 */
+	private void countRippers(Cell cell, HashSet rippers)
+	{
+		// do not search this cell if it is an icon
+		if (cell.isIcon()) return;
+
+		Netlist netlist = null;
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			NodeProto np = ni.getProto();
+			if (np instanceof PrimitiveNode)
+			{
+                if (equivs.getNodeEquivalence(ni) != null) continue;        // will be defined by external reference
+                PrimitiveNode pn = (PrimitiveNode)np;
+				PrimitiveNode.Function fun = ni.getFunction();
+				if (fun == PrimitiveNode.Function.PIN)
+				{
+					// check all the connections
+					int busWidthFound = -1;
+					boolean wireFound = false;
+					for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+					{
+						Connection con = (Connection)cIt.next();
+						ArcInst ai = con.getArc();
+						if (netlist == null) netlist = cell.acquireUserNetlist();
+						int width = netlist.getBusWidth(ai);
+						if (width > 1) busWidthFound = width; else
+							wireFound = true;
+					}
+					if (wireFound && busWidthFound > 1)
+						rippers.add(new Integer(busWidthFound));
+				}
+				continue;
+			}
+
+			// ignore recursive references (showing icon in contents)
+			if (ni.isIconOfParent()) continue;
+
+			// get actual subcell (including contents/body distinction)
+			Cell oNp = ((Cell)np).contentsView();
+			if (oNp == null) oNp = (Cell)np;
+
+			// search the subcell
+			countRippers(oNp, rippers);
 		}
 	}
 

@@ -71,8 +71,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 
-
-
 /**
  * This class manages an offscreen display for an associated EditWindow.
  * It renders an Image for copying to the display.
@@ -110,6 +108,11 @@ import java.util.ArrayList;
  * In addition, it must provide a color map for describing every combination of transparent layer.
  * This map is, of course, 2-to-the-number-of-possible-transparent-layers long.
  * <P>
+ * The expected number of transparent layers is taken from the current technology.  If the user switches
+ * the current technology, but draws something from a different technology, then the drawn circuitry
+ * may make use of transparent layers that don't exist in the current technology.  In such a case,
+ * the transparent request is made opaque.
+ * <P>
  * When all rendering is done, the full-color image is composited with the transparent layers to produce
  * the final image.
  * This is done by scanning the full-color image for any entries that were not filled-in.
@@ -122,11 +125,12 @@ import java.util.ArrayList;
  * <UL>
  * <LI><B>Setting bits directly into the offscreen memory</B>.
  * Although Java's Swing package has a rendering model, it was found to be 3 times slower than
- * setting bits directly inot the offscreen memory.</LI>
+ * setting bits directly in the offscreen memory.</LI>
  * <LI><B>Tiny nodes and arcs are approximated</B>.
  * When a node or arc will be only 1 or 2 pixels in size on the screen, it is not necessary
  * to actually compute the edges of all of its parts.  Instead, a single pixel of color is placed.
  * The color is taken from all of the layers that compose the node or arc.
+ * For arcs that are long but only 1 pixel wide, a line is drawn in the same manner.
  * This optimization adds another factor of 2 to the speed of display.</LI>
  * <LI><B>Expanded cell contents are cached</B>.
  * When a cell is expanded, and its contents is drawn, the contents are preserved so that they
@@ -135,13 +139,15 @@ import java.util.ArrayList;
  *   <UL>
  *   <LI>Cell instances can appear in any orientation.  Therefore, the cache of drawn cells must
  *   include the orientation.</LI>
- *   <LI>Cell instances may appear at different levels of the hierarchy.  Therefore, it is not
- *   sufficient to merely remember their location on the screen and copy them.  An instance may have been
- *   rendered at one level of hierarchy, and other items at that same level then rendered over it.
- *   It is then no longer possible to copy those bits when the instance appears again at another place
- *   in the hierarchy because it has been altered by neighboring circuitry.  The same problem happens
- *   when cell instances overlap.  Therefore, it is necessary to render each expanded cell instance
- *   into its own offscreen map.  To do this, a new "EditWindow" with associated "PixelDrawing"
+ *   <LI>Cached cells are retained as long as the current scale is maintained.  But when zooming
+ *   in and out, the cache is cleared.</LI>
+ *   <LI>Cell instances may appear at different levels of the hierarchy, with different other circuitry over
+ *   them.  For example, an instance may have been rendered at one level of hierarchy, and other items at that
+ *   same level then rendered over it. It is then no longer possible to copy those bits when the instance
+ *   appears again at another place in the hierarchy because it has been altered by neighboring circuitry.
+ *   The same problem happens when cell instances overlap.  Therefore, it is necessary to render each expanded
+ *   cell instance into its own offscreen map, with its own separate opaque and transparent layers (which allows
+ *   it to be composited properly when re-instantiated).  Thus, a new "EditWindow" with associated "PixelDrawing"
  *   object are created for each cached cell.</LI>
  *   <LI>Subpixel alignment may not be the same for each cached instance.  This turns out not to be
  *   a problem, because at such zoomed-out scales, it is impossible to see individual objects anyway.</LI>
@@ -152,7 +158,9 @@ import java.util.ArrayList;
  *   height is greater than half of the display size is too large to cache.</LI>
  *   <LI>If an instance only appears once, it is not cached.  This requires a preprocessing step to scan
  *   the hierarchy and count the number of times that a particular cell-transformation is used.  During
- *   rendering, if the count is only 1, it is not cached.</LI>
+ *   rendering, if the count is only 1, it is not cached.  The exception to this rule is if the screen
+ *   is redisplayed without a change of magnification (during panning, for example).  In such a case,
+ *   all cells will eventually be cached because, even those used once are being displayed with each redraw. </LI>
  *   <LI>Texture patterns don't line-up.  When drawing texture pattern to the final buffer, it is easy
  *   to use the screen coordinates to index the pattern map, causeing all of them to line-up.
  *   Any two adjoining objects that use the same pattern will have their patterns line-up smoothly.
@@ -162,14 +170,15 @@ import java.util.ArrayList;
  *   When rendering on a layer that is patterned and opaque, the bitmap is dynamically allocated
  *   and filled (all bits are filled on the bitmap, not just those in the pattern).
  *   When combining lower-level cell images with higher-level ones, these POLs are copied, too.
- *   When compositing at the top level, however, the POLs are converted back to patterns, and they now line-up.</LI>
+ *   When compositing at the top level, however, the POLs are converted back to patterns, so that they line-up.</LI>
  *   </UL>
  * </UL>
  * 
  */
 public class PixelDrawing
 {
-	/** Text smaller than this will not be drawn. */		public static final int MINIMUMTEXTSIZE = 5;
+	/** Text smaller than this will not be drawn. */				public static final int MINIMUMTEXTSIZE = 5;
+	/** Number of singleton cells to cache when redisplaying. */	public static final int SINGLETONSTOADD = 5;
 
 	private static class PolySeg
 	{
@@ -180,7 +189,12 @@ public class PixelDrawing
 
 	// statistics stuff
 	private static final boolean TAKE_STATS = false;
-	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs, offscreensCreated, offscreensUsed;
+	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs,
+		offscreensCreated, offscreensUsed, cellsRendered;
+
+    private static final boolean DEBUGRENDERTIMING = false;
+    private static long renderTextTime;
+    private static long renderPolyTime;
 
 	/**
 	 * This class holds information about expanded cell instances.
@@ -192,8 +206,15 @@ public class PixelDrawing
 	 */
 	private static class ExpandedCellInfo
 	{
+		private boolean singleton;
 		private int instanceCount;
 		private PixelDrawing offscreen;
+
+		ExpandedCellInfo()
+		{
+			singleton = true;
+			offscreen = null;
+		}
 	}
 
 	/** the EditWindow being drawn */						private EditWindow wnd;
@@ -205,6 +226,7 @@ public class PixelDrawing
 	/** maximum size before an object is too small */		private double maxObjectSize;
 	/** half of maximum object size */						private double halfMaxObjectSize;
 	/** temporary objects (saves reallocation) */			private Point tempPt1 = new Point(), tempPt2 = new Point();
+	/** temporary objects (saves reallocation) */			private Point tempPt3 = new Point(), tempPt4 = new Point();
 
 	// the full-depth image
     /** the offscreen opaque image of the window */			private BufferedImage img;
@@ -238,17 +260,17 @@ public class PixelDrawing
 	/** the last Technology that had transparent layers */	private static Technology techWithLayers = null;
 	/** list of cell expansions. */							private static HashMap expandedCells = null;
 	/** scale of cell expansions. */						private static double expandedScale = 0;
+	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** TextDescriptor for empty window text. */			private static MutableTextDescriptor noCellTextDescriptor = null;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 	private static EGraphics blackGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+	private static EGraphics textGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,true,
+			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
+	private static EGraphics instanceGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,true,
+			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private static EGraphics portGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
-
-
-    private static final boolean DEBUGRENDERTIMING = false;
-    private static long renderTextTime;
-    private static long renderPolyTime;
 
     // ************************************* TOP LEVEL *************************************
 
@@ -332,9 +354,14 @@ public class PixelDrawing
 		if (TAKE_STATS)
 		{
 			startTime = System.currentTimeMillis();
-			tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = offscreensCreated = offscreensUsed = 0;
+			tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = 0;
+			offscreensCreated = offscreensUsed = cellsRendered = 0;
 		}
 
+		// set colors to use
+		textGraphics.setColor(new Color(User.getColorText()));
+		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
+		
 		// initialize the cache of expanded cell displays
 		if (expandedScale != wnd.getScale())
 		{
@@ -377,10 +404,17 @@ public class PixelDrawing
 				noCellTextDescriptor.setBold(true);
 			}
 			Rectangle rect = new Rectangle(sz);
-			blackGraphics.setColor(new Color(User.getColorText()));
-			drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, blackGraphics, false);
+			drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, textGraphics, false);
 		} else
 		{
+			// reset cached cell counts
+			numberToReconcile = SINGLETONSTOADD;
+			for(Iterator it = expandedCells.values().iterator(); it.hasNext(); )
+			{
+				ExpandedCellInfo count = (ExpandedCellInfo)it.next();
+				count.instanceCount = 0;
+			}
+
 			// determine which cells should be cached (must have at least 2 instances)
 			countCell(cell, drawLimitBounds, fullInstantiate, DBMath.MATID);
 
@@ -394,27 +428,12 @@ public class PixelDrawing
 		if (TAKE_STATS)
 		{
 			long endTime = System.currentTimeMillis();
-			System.out.println("Took "+com.sun.electric.database.text.TextUtils.getElapsedTime(endTime-startTime));
-			System.out.println("   Cells ("+totalCells+") "+tinyCells+" are tiny, "+renderedCells+" were rendered;"+
+			System.out.println("Took "+com.sun.electric.database.text.TextUtils.getElapsedTime(endTime-startTime)+
+				", rendered "+cellsRendered+" cells, used "+offscreensUsed+" cached cells, created "+
+				offscreensCreated+" new cell caches");
+			System.out.println("   Cells ("+totalCells+") "+tinyCells+" are tiny;"+
 				" Primitives ("+totalPrims+") "+tinyPrims+" are tiny;"+
 				" Arcs ("+totalArcs+") "+tinyArcs+" are tiny, "+linedArcs+" are lines");
-			int numExpandedCells = 0;
-			int numCellsExpandedOnce = 0;
-			for(Iterator it = expandedCells.keySet().iterator(); it.hasNext(); )
-			{
-				String c = (String)it.next();
-				ExpandedCellInfo count = (ExpandedCellInfo)expandedCells.get(c);
-				if (count != null)
-				{
-					numExpandedCells++;
-					if (count.instanceCount == 1) numCellsExpandedOnce++;
-				}
-			}
-			System.out.println("   Of "+numExpandedCells+" cell cache possibilities, "+numCellsExpandedOnce+
-				" were used only once and not cached");
-			if (offscreensCreated > 0)
-				System.out.println("   Remaining "+offscreensCreated+" cell caches were used an average of "+
-					((double)offscreensUsed/offscreensCreated)+" times");
 		}
 	}
 
@@ -776,12 +795,12 @@ public class PixelDrawing
 		{
 			// cell instance
 			totalCells++;
-			double objWidth = Math.max(ni.getXSize(), ni.getYSize());
-			if (objWidth < maxObjectSize)
-			{
-				tinyCells++;
-				return;
-			}
+//			double objWidth = Math.max(ni.getXSize(), ni.getYSize());
+//			if (objWidth < maxObjectSize)
+//			{
+//				tinyCells++;
+//				return;
+//			}
 
 			// see if it is on the screen
 			Cell subCell = (Cell)np;
@@ -792,9 +811,13 @@ public class PixelDrawing
 			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 			cellBounds = poly.getBounds2D();
 			Rectangle screenBounds = wnd.databaseToScreen(cellBounds);
-			if (screenBounds.width <= 0 || screenBounds.height <= 0) return;
-			if (screenBounds.x > sz.width || screenBounds.x+screenBounds.width < 0) return;
-			if (screenBounds.y > sz.height || screenBounds.y+screenBounds.height < 0) return;
+			if (screenBounds.width <= 0 || screenBounds.height <= 0)
+			{
+				tinyCells++;
+				return;
+			}
+			if (screenBounds.x >= sz.width || screenBounds.x+screenBounds.width <= 0) return;
+			if (screenBounds.y >= sz.height || screenBounds.y+screenBounds.height <= 0) return;
 
 			boolean expanded = ni.isExpanded();
 			if (fullInstantiate) expanded = true;
@@ -824,14 +847,14 @@ public class PixelDrawing
 				if (!expandedCellCached(subCell, subTrans, topWnd, context, drawLimitBounds, fullInstantiate))
 				{
 					// just draw it directly
-					VarContext newContext = context.push(ni);
-					drawCell(subCell, drawLimitBounds, fullInstantiate, subTrans, topWnd, newContext);
+					cellsRendered++;
+					drawCell(subCell, drawLimitBounds, fullInstantiate, subTrans, topWnd, context.push(ni));
 				}
 				if (canDrawText) showCellPorts(ni, trans, Color.BLACK);
 			} else
 			{
 				// draw the black box of the instance
-				drawUnexpandedCell(ni, trans);
+				drawUnexpandedCell(ni, poly);
 				if (canDrawText) showCellPorts(ni, trans, null);
 			}
 
@@ -867,10 +890,10 @@ public class PixelDrawing
 				{
 					// draw a tiny primitive by setting a single dot from each layer
 					tinyPrims++;
-					Point scrPt = wnd.databaseToScreen(ctrX, ctrY);
-					if (scrPt.x >= 0 && scrPt.x < sz.width && scrPt.y >= 0 && scrPt.y < sz.height)
+					wnd.databaseToScreen(ctrX, ctrY, tempPt1);
+					if (tempPt1.x >= 0 && tempPt1.x < sz.width && tempPt1.y >= 0 && tempPt1.y < sz.height)
 					{
-						drawTinyLayers(prim.layerIterator(), scrPt.x, scrPt.y);
+						drawTinyLayers(prim.layerIterator(), tempPt1.x, tempPt1.y);
 					}
 					return;
 				}
@@ -892,7 +915,6 @@ public class PixelDrawing
 		{
 			int exportDisplayLevel = User.getExportDisplayLevel();
 			Iterator it = ni.getExports();
-			blackGraphics.setColor(new Color(User.getColorText()));
 			while (it.hasNext())
 			{
 				Export e = (Export)it.next();
@@ -903,7 +925,7 @@ public class PixelDrawing
 				if (exportDisplayLevel == 2)
 				{
 					// draw port as a cross
-					drawCross(poly, blackGraphics, false);
+					drawCross(poly, textGraphics, false);
 				} else
 				{
 					// draw port as text
@@ -917,10 +939,10 @@ public class PixelDrawing
 					}
 //					if (topWnd != null && topWnd.isInPlaceEdit())
 //						poly.transform(topWnd.getInPlaceTransformOut());
-					Point pt = wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY());
-					Rectangle textRect = new Rectangle(pt);
+					wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY(), tempPt1);
+					Rectangle textRect = new Rectangle(tempPt1);
 					type = Poly.rotateType(type, ni);
-					drawText(textRect, type, descript, portName, null, blackGraphics, false);
+					drawText(textRect, type, descript, portName, null, textGraphics, false);
 				}
 
 				// draw variables on the export
@@ -1034,32 +1056,27 @@ public class PixelDrawing
 						// use shorter port name
 						portName = pp.getShortName();
 					}
-					Point pt = wnd.databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY());
-					Rectangle rect = new Rectangle(pt);
+					wnd.databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY(), tempPt1);
+					Rectangle rect = new Rectangle(tempPt1);
 					drawText(rect, type, portDescript, portName, null, portGraphics, false);
 				}
 			}
 		}
 	}
 
-	private void drawUnexpandedCell(NodeInst ni, AffineTransform trans)
+	private void drawUnexpandedCell(NodeInst ni, Poly poly)
 	{
-		NodeProto np = ni.getProto();
-
 		// draw the instance outline
-		Poly poly = new Poly(ni.getTrueCenterX(), ni.getTrueCenterY(), ni.getXSize(), ni.getYSize());
-		AffineTransform localPureTrans = ni.rotateOutAboutTrueCenter(trans);
-		poly.transform(localPureTrans);
-		if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 		Point2D [] points = poly.getPoints();
 		for(int i=0; i<points.length; i++)
 		{
 			int lastI = i - 1;
 			if (lastI < 0) lastI = points.length - 1;
-			Point from = wnd.databaseToScreen(points[lastI]);
-			Point to = wnd.databaseToScreen(points[i]);
-			blackGraphics.setColor(new Color(User.getColorInstanceOutline()));
-			drawLine(from, to, null, blackGraphics, 0, false);
+			Point2D lastPt = points[lastI];
+			Point2D thisPt = points[i];
+			wnd.databaseToScreen(lastPt.getX(), lastPt.getY(), tempPt1);
+			wnd.databaseToScreen(thisPt.getX(), thisPt.getY(), tempPt2);
+			drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
 		}
 
 		// draw the instance name
@@ -1068,8 +1085,8 @@ public class PixelDrawing
 			Rectangle2D bounds = poly.getBounds2D();
 			Rectangle rect = wnd.databaseToScreen(bounds);
 			TextDescriptor descript = ni.getTextDescriptor(NodeInst.NODE_PROTO_TD);
-			blackGraphics.setColor(new Color(User.getColorText()));
-			drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(false), null, blackGraphics, false);
+			NodeProto np = ni.getProto();
+			drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(false), null, textGraphics, false);
 		}
 	}
 
@@ -1155,41 +1172,45 @@ public class PixelDrawing
 		if (expandedCellCount != null)
 		{
 			// if this combination is not used multiple times, do not cache it
-			if (expandedCellCount.instanceCount < 2) return false;
+			if (expandedCellCount.singleton && expandedCellCount.instanceCount < 2 && expandedCellCount.offscreen == null)
+			{
+				if (numberToReconcile > 0)
+				{
+					numberToReconcile--;
+					expandedCellCount.singleton = false;
+				} else return false;
+			}
 		}
 
-		// compute where this cell lands on the screen
+		// compute the cell's location on the screen
 		Rectangle2D cellBounds = new Rectangle2D.Double();
 		cellBounds.setRect(subCell.getBounds());
 		Poly poly = new Poly(cellBounds);
 		poly.transform(subTrans);
 		Rectangle screenBounds = new Rectangle(wnd.databaseToScreen(poly.getBounds2D()));
-		if (screenBounds.width <= 0 || screenBounds.height <= 0) return true;
-
-		// do not cache if the cell is too large (creates immense offscreen buffers)
-		if (screenBounds.width >= topSz.width/2 && screenBounds.height >= topSz.height/2)
-			return false;
-
-		// if this is the first use, create the offscreen buffer
-		if (expandedCellCount == null)
+		if (expandedCellCount == null || expandedCellCount.offscreen == null)
 		{
-			expandedCellCount = new ExpandedCellInfo();
-			expandedCellCount.instanceCount = 0;
-			expandedCellCount.offscreen = null;
-			expandedCells.put(expandedName, expandedCellCount);
-		}
+			if (screenBounds.width <= 0 || screenBounds.height <= 0) return true;
 
-		// render into the offscreen buffer (on the first time)
-        PixelDrawing offscreen = expandedCellCount.offscreen;
-		if (offscreen == null)
-		{
+			// do not cache if the cell is too large (creates immense offscreen buffers)
+			if (screenBounds.width >= topSz.width/2 && screenBounds.height >= topSz.height/2)
+				return false;
+
+			// if this is the first use, create the offscreen buffer
+			if (expandedCellCount == null)
+			{
+				expandedCellCount = new ExpandedCellInfo();
+				expandedCells.put(expandedName, expandedCellCount);
+			}
+
+			// render into the offscreen buffer
 			EditWindow renderedCell = EditWindow.CreateElectricDoc(subCell, null);
 			renderedCell.setInPlaceEditNodePath(wnd.getInPlaceEditNodePath());
 
             Undo.removeDatabaseChangeListener(renderedCell);
 			renderedCell.setScreenSize(new Dimension(screenBounds.width+1, screenBounds.height+1));
 			renderedCell.setScale(wnd.getScale());
-			renderedCell.getOffscreen().clearImage(true, null);
+			renderedCell.getOffscreen().clearImage(false, null);
 			Point2D cellCtr = new Point2D.Double(cellBounds.getCenterX(), cellBounds.getCenterY());
 			origTrans.transform(cellCtr, cellCtr);
 			renderedCell.setOffset(cellCtr);
@@ -1198,16 +1219,15 @@ public class PixelDrawing
 			renderedCell.getOffscreen().renderedWindow = false;
 			renderedCell.getOffscreen().drawCell(subCell, null, fullInstantiate, origTrans, topWnd, context);
             expandedCellCount.offscreen = renderedCell.getOffscreen();
-            offscreen = expandedCellCount.offscreen;
 
 			// set wnd reference to null or it will not get garbage collected
-            offscreen.wnd = null;
+			expandedCellCount.offscreen.wnd = null;
             renderedCell.finished();
 			offscreensCreated++;
 		}
 
 		// copy out of the offscreen buffer into the main buffer
-		copyBits(offscreen, screenBounds);
+		copyBits(expandedCellCount.offscreen, screenBounds);
 		offscreensUsed++;
 		return true;
 	}
@@ -1298,7 +1318,7 @@ public class PixelDrawing
 			} else
 			{
 				expansionCount.instanceCount++;
-				return;
+				if (expansionCount.instanceCount > 1) return;
 			}
 		}
 
@@ -1340,8 +1360,7 @@ public class PixelDrawing
 		int t01 = (int)(subTrans.getShearX() * 100);
 		int t10 = (int)(subTrans.getShearY() * 100);
 		int t11 = (int)(subTrans.getScaleY() * 100);
-		String expandedName = subCell.describe(false) + " " + t00 + " " + t01 + " " + t10 + " " + t11;
-		return expandedName;
+		return subCell.describe(false) + " " + t00 + " " + t01 + " " + t10 + " " + t11;
 	}
 
 	/**
@@ -1461,7 +1480,6 @@ public class PixelDrawing
 
     private int clipLX, clipHX, clipLY, clipHY;
     private int width;
-    private final Point tempPoint1 = new Point()/*, tempPoint2 = new Point(), tempPoint3 = new Point()*/;
     
 	/**
 	 * Method to draw polygon "poly", transformed through "trans".
@@ -1509,7 +1527,6 @@ public class PixelDrawing
 					long currentTime = System.currentTimeMillis();
 					if (currentTime - lastRefreshTime > 1000)
 					{
-						lastRefreshTime = currentTime;
 						wnd.repaint();
 					}
 				}
@@ -1618,16 +1635,16 @@ public class PixelDrawing
 		}
 		if (style == Poly.Type.CROSSED)
 		{
-			Point pt0a = wnd.databaseToScreen(points[0]);
-			Point pt1a = wnd.databaseToScreen(points[1]);
-			Point pt2a = wnd.databaseToScreen(points[2]);
-			Point pt3a = wnd.databaseToScreen(points[3]);
-			drawLine(pt0a, pt1a, layerBitMap, graphics, 0, dimmed);
-			drawLine(pt1a, pt2a, layerBitMap, graphics, 0, dimmed);
-			drawLine(pt2a, pt3a, layerBitMap, graphics, 0, dimmed);
-			drawLine(pt3a, pt0a, layerBitMap, graphics, 0, dimmed);
-			drawLine(pt0a, pt2a, layerBitMap, graphics, 0, dimmed);
-			drawLine(pt1a, pt3a, layerBitMap, graphics, 0, dimmed);
+			wnd.databaseToScreen(points[0].getX(), points[0].getY(), tempPt1);
+			wnd.databaseToScreen(points[1].getX(), points[1].getY(), tempPt2);
+			wnd.databaseToScreen(points[2].getX(), points[2].getY(), tempPt3);
+			wnd.databaseToScreen(points[3].getX(), points[3].getY(), tempPt4);
+			drawLine(tempPt1, tempPt2, layerBitMap, graphics, 0, dimmed);
+			drawLine(tempPt2, tempPt3, layerBitMap, graphics, 0, dimmed);
+			drawLine(tempPt3, tempPt4, layerBitMap, graphics, 0, dimmed);
+			drawLine(tempPt4, tempPt1, layerBitMap, graphics, 0, dimmed);
+			drawLine(tempPt1, tempPt3, layerBitMap, graphics, 0, dimmed);
+			drawLine(tempPt2, tempPt4, layerBitMap, graphics, 0, dimmed);
 			return;
 		}
 		if (style.isText())
@@ -1649,15 +1666,19 @@ public class PixelDrawing
 
 			for(int j=1; j<points.length; j++)
 			{
-				Point pt1 = wnd.databaseToScreen(points[j-1]);
-				Point pt2 = wnd.databaseToScreen(points[j]);
-				drawLine(pt1, pt2, layerBitMap, graphics, lineType, dimmed);
+				Point2D oldPt = points[j-1];
+				Point2D newPt = points[j];
+				wnd.databaseToScreen(oldPt.getX(), oldPt.getY(), tempPt1);
+				wnd.databaseToScreen(newPt.getX(), newPt.getY(), tempPt2);
+				drawLine(tempPt1, tempPt2, layerBitMap, graphics, lineType, dimmed);
 			}
 			if (style == Poly.Type.CLOSED)
 			{
-				Point pt1 = wnd.databaseToScreen(points[points.length-1]);
-				Point pt2 = wnd.databaseToScreen(points[0]);
-				drawLine(pt1, pt2, layerBitMap, graphics, lineType, dimmed);
+				Point2D oldPt = points[points.length-1];
+				Point2D newPt = points[0];
+				wnd.databaseToScreen(oldPt.getX(), oldPt.getY(), tempPt1);
+				wnd.databaseToScreen(newPt.getX(), newPt.getY(), tempPt2);
+				drawLine(tempPt1, tempPt2, layerBitMap, graphics, lineType, dimmed);
 			}
 			return;
 		}
@@ -1665,39 +1686,50 @@ public class PixelDrawing
 		{
 			for(int j=0; j<points.length; j+=2)
 			{
-				Point pt1 = wnd.databaseToScreen(points[j]);
-				Point pt2 = wnd.databaseToScreen(points[j+1]);
-				drawLine(pt1, pt2, layerBitMap, graphics, 0, dimmed);
+				Point2D oldPt = points[j];
+				Point2D newPt = points[j+1];
+				wnd.databaseToScreen(oldPt.getX(), oldPt.getY(), tempPt1);
+				wnd.databaseToScreen(newPt.getX(), newPt.getY(), tempPt2);
+				drawLine(tempPt1, tempPt2, layerBitMap, graphics, 0, dimmed);
 			}
 			return;
 		}
 		if (style == Poly.Type.CIRCLE)
 		{
-			Point center = wnd.databaseToScreen(points[0]);
-			Point edge = wnd.databaseToScreen(points[1]);
-			drawCircle(center, edge, layerBitMap, graphics, dimmed);
+			Point2D center = points[0];
+			Point2D edge = points[1];
+			wnd.databaseToScreen(center.getX(), center.getY(), tempPt1);
+			wnd.databaseToScreen(edge.getX(), edge.getY(), tempPt2);
+			drawCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);
 			return;
 		}
 		if (style == Poly.Type.THICKCIRCLE)
 		{
-			Point center = wnd.databaseToScreen(points[0]);
-			Point edge = wnd.databaseToScreen(points[1]);
-			drawThickCircle(center, edge, layerBitMap, graphics, dimmed);
+			Point2D center = points[0];
+			Point2D edge = points[1];
+			wnd.databaseToScreen(center.getX(), center.getY(), tempPt1);
+			wnd.databaseToScreen(edge.getX(), edge.getY(), tempPt2);
+			drawThickCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);
 			return;
 		}
 		if (style == Poly.Type.DISC)
 		{
-			Point center = wnd.databaseToScreen(points[0]);
-			Point edge = wnd.databaseToScreen(points[1]);
-			drawDisc(center, edge, layerBitMap, graphics, dimmed);
+			Point2D center = points[0];
+			Point2D edge = points[1];
+			wnd.databaseToScreen(center.getX(), center.getY(), tempPt1);
+			wnd.databaseToScreen(edge.getX(), edge.getY(), tempPt2);
+			drawDisc(tempPt1, tempPt2, layerBitMap, graphics, dimmed);
 			return;
 		}
 		if (style == Poly.Type.CIRCLEARC || style == Poly.Type.THICKCIRCLEARC)
 		{
-			Point center = wnd.databaseToScreen(points[0]);
-			Point edge1 = wnd.databaseToScreen(points[1]);
-			Point edge2 = wnd.databaseToScreen(points[2]);
-			drawCircleArc(center, edge1, edge2, style == Poly.Type.THICKCIRCLEARC, layerBitMap, graphics, dimmed);
+			Point2D center = points[0];
+			Point2D edge1 = points[1];
+			Point2D edge2 = points[2];
+			wnd.databaseToScreen(center.getX(), center.getY(), tempPt1);
+			wnd.databaseToScreen(edge1.getX(), edge1.getY(), tempPt2);
+			wnd.databaseToScreen(edge2.getX(), edge2.getY(), tempPt3);
+			drawCircleArc(tempPt1, tempPt2, tempPt3, style == Poly.Type.THICKCIRCLEARC, layerBitMap, graphics, dimmed);
 			return;
 		}
 		if (style == Poly.Type.CROSS)
@@ -1709,10 +1741,11 @@ public class PixelDrawing
 		if (style == Poly.Type.BIGCROSS)
 		{
 			// draw the big cross
-			Point center = wnd.databaseToScreen(points[0]);
+			Point2D center = points[0];
+			wnd.databaseToScreen(center.getX(), center.getY(), tempPt1);
 			int size = 5;
-			drawLine(new Point(center.x-size, center.y), new Point(center.x+size, center.y), layerBitMap, graphics, 0, dimmed);
-			drawLine(new Point(center.x, center.y-size), new Point(center.x, center.y+size), layerBitMap, graphics, 0, dimmed);
+			drawLine(new Point(tempPt1.x-size, tempPt1.y), new Point(tempPt1.x+size, tempPt1.y), layerBitMap, graphics, 0, dimmed);
+			drawLine(new Point(tempPt1.x, tempPt1.y-size), new Point(tempPt1.x, tempPt1.y+size), layerBitMap, graphics, 0, dimmed);
 			return;
 		}
 	}
@@ -2000,15 +2033,15 @@ public class PixelDrawing
 	private void drawCross(Poly poly, EGraphics graphics, boolean dimmed)
 	{
 		Point2D [] points = poly.getPoints();
-		Point center = wnd.databaseToScreen(points[0]);
+		wnd.databaseToScreen(points[0].getX(), points[0].getY(), tempPt1);
 		int size = 3;
-		drawLine(new Point(center.x-size, center.y), new Point(center.x+size, center.y), null, graphics, 0, dimmed);
-		drawLine(new Point(center.x, center.y-size), new Point(center.x, center.y+size), null, graphics, 0, dimmed);
+		drawLine(new Point(tempPt1.x-size, tempPt1.y), new Point(tempPt1.x+size, tempPt1.y), null, graphics, 0, dimmed);
+		drawLine(new Point(tempPt1.x, tempPt1.y-size), new Point(tempPt1.x, tempPt1.y+size), null, graphics, 0, dimmed);
 	}
 
     private void drawCross(Poly poly, byte[] layerBitMap, byte layerBitMask) {
         Point2D [] points = poly.getPoints();
-        Point center = tempPoint1;
+        Point center = tempPt1;
         wnd.databaseToScreen(points[0].getX(), points[0].getY(), center);
         int size = 3;
         if (clipLY <= center.y && center.y <= clipHY) {
@@ -3766,15 +3799,16 @@ public class PixelDrawing
 	{
 		if (layerBitMap == null)
 		{
-			opaqueData[y * sz.width + x] = col;
+	        int baseIndex = y * sz.width + x;
+			opaqueData[baseIndex] = col;
 			if (x > 0)
-				opaqueData[y * sz.width + (x-1)] = col;
+				opaqueData[baseIndex - 1] = col;
 			if (x < sz.width-1)
-				opaqueData[y * sz.width + (x+1)] = col;
+				opaqueData[baseIndex + 1] = col;
 			if (y > 0)
-				opaqueData[(y-1) * sz.width + x] = col;
+				opaqueData[baseIndex - sz.width] = col;
 			if (y < sz.height-1)
-				opaqueData[(y+1) * sz.width + x] = col;
+				opaqueData[baseIndex + sz.width] = col;
 		} else
 		{
 			layerBitMap[y][x>>3] |= (1 << (x&7));
