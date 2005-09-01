@@ -1459,6 +1459,10 @@ public class PixelDrawing
 
 	// ************************************* RENDERING POLY SHAPES *************************************
 
+    private int clipLX, clipHX, clipLY, clipHY;
+    private int width;
+    private final Point tempPoint1 = new Point()/*, tempPoint2 = new Point(), tempPoint3 = new Point()*/;
+    
 	/**
 	 * Method to draw polygon "poly", transformed through "trans".
 	 */
@@ -1924,6 +1928,34 @@ public class PixelDrawing
 		}
 	}
 
+    /**
+     * Method to draw a box on the off-screen buffer.
+     */
+    private void drawBox(int lX, int hX, int lY, int hY, byte[] layerBitMap, byte layerBitMask) {
+        int dx = hX - lX;
+        int dy = hY - lY;
+        int baseIndex = lY * width + lX;
+        if (dx >= dy) {
+            int baseIncr = width - (dx + 1);
+            for (int i = dy; i >= 0; i--) {
+                for (int j = dx; j >= 0; j--) {
+                    layerBitMap[baseIndex] |= layerBitMask;
+                    baseIndex += 1;
+                }
+                baseIndex += baseIncr;
+            }
+        } else {
+            int baseIncr = 1 - (dy + 1) * width;
+            for (int i = dx; i >= 0; i--) {
+                for (int j = dy; j >= 0; j--) {
+                    layerBitMap[baseIndex] |= layerBitMask;
+                    baseIndex += width;
+                }
+                baseIndex += baseIncr;
+            }
+        }
+    }
+
 	// ************************************* LINE DRAWING *************************************
 
 	/**
@@ -1947,6 +1979,24 @@ public class PixelDrawing
 		}
 	}
 
+	/**
+	 * Method to draw a line on the off-screen buffer.
+	 */
+	private void drawLine(Point pt1, Point pt2, byte[] layerBitMap, byte layerBitMask, int texture)
+	{
+		// first clip the line
+		if (GenMath.clipLine(pt1, pt2, clipLX, clipHX, clipLY, clipHY)) return;
+
+		// now draw with the proper line type
+		switch (texture)
+		{
+			case 0: drawSolidLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask);       break;
+			case 1: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask, 0x88);   break;
+			case 2: drawPatLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask, 0xE7);   break;
+			case 3: drawThickLine(pt1.x, pt1.y, pt2.x, pt2.y, layerBitMap, layerBitMask);       break;
+		}
+	}
+
 	private void drawCross(Poly poly, EGraphics graphics, boolean dimmed)
 	{
 		Point2D [] points = poly.getPoints();
@@ -1955,6 +2005,23 @@ public class PixelDrawing
 		drawLine(new Point(center.x-size, center.y), new Point(center.x+size, center.y), null, graphics, 0, dimmed);
 		drawLine(new Point(center.x, center.y-size), new Point(center.x, center.y+size), null, graphics, 0, dimmed);
 	}
+
+    private void drawCross(Poly poly, byte[] layerBitMap, byte layerBitMask) {
+        Point2D [] points = poly.getPoints();
+        Point center = tempPoint1;
+        wnd.databaseToScreen(points[0].getX(), points[0].getY(), center);
+        int size = 3;
+        if (clipLY <= center.y && center.y <= clipHY) {
+            int baseIndex = center.y * width;
+            for (int x = Math.max(clipLX, center.x - size), xend = Math.min(clipLY, center.x + size); x <= xend; x++)
+                layerBitMap[baseIndex + x] |= layerBitMask;
+        }
+        if (clipLX <= center.x && center.x <= clipHX) {
+            int baseIndex = center.y;
+            for (int y = Math.max(clipLY, center.y - size), yend = Math.min(clipHY, center.y + size); y <= yend; y++)
+                layerBitMap[y * width + baseIndex] |= layerBitMask;
+        }
+    }
 
 	private void drawSolidLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col)
 	{
@@ -2021,6 +2088,74 @@ public class PixelDrawing
 			}
 		}
 	}
+
+    private void drawSolidLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask) {
+        // initialize the Bresenham algorithm
+        int dx = Math.abs(x2-x1);
+        int dy = Math.abs(y2-y1);
+        if (dx >= dy) {
+            // initialize for lines that increment along X
+            int incr1 = 2 * dy;
+            int incr2 = 2 * (dy - dx);
+            int d = incr2;
+            int x, y, yend;
+            if (x1 <= x2) {
+                x = x1;   y = y1;   yend = y2;
+            } else {
+                x = x2;   y = y2;   yend = y1;
+            }
+            int baseIndex = y * width + x;
+            if (dy == 0) {
+                // draw horizontal line
+                for (int i = dx; i >= 0; i--)
+                    layerBitMap[baseIndex++] |= layerBitMask;
+            } else {
+                // draw line that increments along X
+                int baseIncr = yend >= y ? 1 + width : 1 - width;
+                for (int i = dx; i >= 0; i--) {
+                    layerBitMap[baseIndex] |= layerBitMask;
+                    if (d < 0) {
+                        d += incr1;
+                        baseIndex += 1;
+                    } else {
+                        d += incr2;
+                        baseIndex += baseIncr;
+                    }
+                }
+            }
+        } else {
+            // initialize for lines that increment along Y
+            int incr1 = 2 * dx;
+            int incr2 = 2 * (dx - dy);
+            int d = incr2;
+            int x, y, xend;
+            if (y1 <= y2) {
+                x = x1;   y = y1;   xend = x2;
+            } else {
+                x = x2;   y = y2;   xend = x1;
+            }
+            int baseIndex = y * width + x;
+            if (dx == 0) {
+                // draw vertical line
+                for (int i = dy; i >= 0; i--) {
+                    layerBitMap[baseIndex] |= layerBitMask;
+                    baseIndex += width;
+                }
+            } else {
+                int baseIncr = xend >= x ? width + 1 : width - 1;
+                for (int i = dy; i >= 0; i--) {
+                    layerBitMap[baseIndex] |= layerBitMask;
+                    if (d < 0) {
+                        d += incr1;
+                        baseIndex += width;
+                    } else {
+                        d += incr2;
+                        baseIndex += baseIncr;
+                    }
+                }
+            }
+        }
+    }
 
 	private void drawPatLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col, int pattern)
 	{
@@ -2095,6 +2230,79 @@ public class PixelDrawing
 		}
 	}
 
+    private void drawPatLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask, int pattern) {
+        // initialize the Bresenham algorithm
+        int dx = Math.abs(x2-x1);
+        int dy = Math.abs(y2-y1);
+        if (dx >= dy) {
+            // initialize for lines that increment along X
+            int incr1 = 2 * dy;
+            int incr2 = 2 * (dy - dx);
+            int d = incr2;
+            int x, y, yend;
+            if (x1 <= x2) {
+                x = x1;   y = y1;   yend = y2;
+            } else {
+                x = x2;   y = y2;   yend = y1;
+            }
+            int baseIndex = y * width + x;
+            if (dy == 0) {
+                // draw horizontal line
+                for (int i = 0; i <= dx; i++) {
+                    if ((pattern & (1 << (i&7))) != 0)
+                        layerBitMap[baseIndex++] |= layerBitMask;
+                }
+            } else {
+                // draw line that increments along X
+                int baseIncr = yend >= y ? 1 + width : 1 - width;
+                for (int i = 0; i <= dx; i++) {
+                    if ((pattern & (1 << (i&7))) != 0)
+                        layerBitMap[baseIndex] |= layerBitMask;
+                    if (d < 0) {
+                        d += incr1;
+                        baseIndex += 1;
+                    } else {
+                        d += incr2;
+                        baseIndex += baseIncr;
+                    }
+                }
+            }
+        } else {
+            // initialize for lines that increment along Y
+            int incr1 = 2 * dx;
+            int incr2 = 2 * (dx - dy);
+            int d = incr2;
+            int x, y, xend;
+            if (y1 <= y2) {
+                x = x1;   y = y1;   xend = x2;
+            } else {
+                x = x2;   y = y2;   xend = x1;
+            }
+            int baseIndex = y * width + x;
+            if (dx == 0) {
+                // draw vertical line
+                for (int i = 0; i <= dy; i++) {
+                    if ((pattern & (1 << (i&7))) != 0)
+                        layerBitMap[baseIndex] |= layerBitMask;
+                    baseIndex += width;
+                }
+            } else {
+                int baseIncr = xend >= x ? width + 1 : width - 1;
+                for (int i = 0; i <= dy; i++) {
+                    if ((pattern & (1 << (i&7))) != 0)
+                        layerBitMap[baseIndex] |= layerBitMask;
+                    if (d < 0) {
+                        d += incr1;
+                        baseIndex += width;
+                    } else {
+                        d += incr2;
+                        baseIndex += baseIncr;
+                    }
+                }
+            }
+        }
+    }
+
 	private void drawThickLine(int x1, int y1, int x2, int y2, byte [][] layerBitMap, int col)
 	{
 		// initialize the Bresenham algorithm
@@ -2158,6 +2366,74 @@ public class PixelDrawing
 			}
 		}
 	}
+
+    private void drawThickLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask) {
+        // initialize the Bresenham algorithm
+        int dx = Math.abs(x2-x1);
+        int dy = Math.abs(y2-y1);
+        if (dx >= dy) {
+            // initialize for lines that increment along X
+            int incr1 = 2 * dy;
+            int incr2 = 2 * (dy - dx);
+            int d = incr2;
+            int x, y, xend, yend;
+            if (x1 <= x2) {
+                x = x1;   y = y1;   xend = x2;  yend = y2;
+            } else {
+                x = x2;   y = y2;   xend = x1;  yend = y1;
+            }
+            if (dy == 0) {
+                // draw horizontal line
+                drawBox(x, xend, Math.max(clipLY, y - 1), Math.min(clipHY, y + 1), layerBitMap, layerBitMask);
+                if (x > clipLX)
+                    drawPoint(x - 1, y, layerBitMap, layerBitMask);
+                if (xend < clipHX)
+                    drawPoint(xend + 1, y, layerBitMap, layerBitMask);
+            } else {
+                // draw line that increments along X
+                int yIncr = yend >= y ? 1 : -1;
+                for (int i = 0; i <= dx; i++) {
+                    drawThickPoint(x + i, y, layerBitMap, layerBitMask);
+                    if (d < 0) {
+                        d += incr1;
+                    } else {
+                        d += incr2;
+                        y += yIncr;
+                    }
+                }
+            }
+        } else {
+            // initialize for lines that increment along Y
+            int incr1 = 2 * dx;
+            int incr2 = 2 * (dx - dy);
+            int d = incr2;
+            int x, y, xend, yend;
+            if (y1 <= y2) {
+                x = x1;   y = y1;   xend = x2;  yend = y2;
+            } else {
+                x = x2;   y = y2;   xend = x1;  yend = x1;
+            }
+            if (dx == 0) {
+                // draw vertical line
+                drawBox(Math.max(clipLX, x - 1), Math.min(clipHX, x + 1), y, yend, layerBitMap, layerBitMask);
+                if (y > clipLY)
+                    drawPoint(x, y - 1, layerBitMap, layerBitMask);
+                if (yend < clipHY)
+                    drawPoint(x, yend + 1, layerBitMap, layerBitMask);
+            } else {
+                int xIncr = xend >= x ? 1 : - 1;
+                for (int i = 0; i <= dy; i++) {
+                    drawThickPoint(x, y + i, layerBitMap, layerBitMask);
+                    if (d < 0) {
+                        d += incr1;
+                    } else {
+                        d += incr2;
+                        x += xIncr;
+                    }
+                }
+            }
+        }
+    }
 
 	// ************************************* POLYGON DRAWING *************************************
 
@@ -3482,6 +3758,10 @@ public class PixelDrawing
 		}
 	}
 
+    private void drawPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
+        layerBitMap[y * width + x] |= layerBitMask;
+    }
+    
 	private void drawThickPoint(int x, int y, byte [][] layerBitMap, int col)
 	{
 		if (layerBitMap == null)
@@ -3509,4 +3789,16 @@ public class PixelDrawing
 		}
 	}
 
+    private void drawThickPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
+        int baseIndex = y * sz.width + x;
+        layerBitMap[baseIndex] |= layerBitMask;
+        if (x > clipLX)
+            layerBitMap[baseIndex - 1] |= layerBitMask;
+        if (x < clipHX)
+            layerBitMap[baseIndex + 1] |= layerBitMask;
+        if (y > clipLY)
+            layerBitMap[baseIndex - width] |= layerBitMask;
+        if (y < sz.height-1)
+            layerBitMap[baseIndex + width] |= layerBitMask;
+    }
 }
