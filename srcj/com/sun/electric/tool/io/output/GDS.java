@@ -129,6 +129,7 @@ public class GDS extends Geometry
 	/** constant for GDS units */				private static double scaleFactor;				
 	/** cell naming map */						private HashMap cellNames;
 	/** layer number map */						private HashMap layerNumbers;
+    /** separator string for lib + cell concatanated cell names */  public static final String concatStr = ".";
 
 	/**
 	 * Main entry point for GDS output.
@@ -505,25 +506,30 @@ public class GDS extends Geometry
 
 		// make a hashmap of all names to use for cells
 		cellNames = new HashMap();
-		for(Iterator it = Library.getCurrent().getCells(); it.hasNext(); )
-		{
-			Cell cell = (Cell)it.next();
-            if (cell.getView() != topCell.getView()) continue; // ignore non-layout cells
-			cellNames.put(cell, makeUniqueName(cell, cellNames));
-		}
-		for(Iterator it = Library.getLibraries(); it.hasNext(); )
-		{
-			Library lib = (Library)it.next();
-			if (lib == Library.getCurrent()) continue;
-			if (lib.isHidden()) continue;
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = (Cell)cIt.next();
-                if (cell.getView() != topCell.getView()) continue; // ignore non-layout cells
-				cellNames.put(cell, makeUniqueName(cell, cellNames));
-			}
-		}
+        buildUniqueNames(topCell, cellNames);
 	}
+
+    /**
+     * Recursive method to add all cells in the hierarchy to the hashMap
+     * with unique names.
+     * @param cell the cell whose nodes and subnode cells will be given unique names.
+     * @param cellNames a hashmap, key: cell, value: unique name (String).
+     */
+    public static void buildUniqueNames(Cell cell, HashMap cellNames) {
+        if (!cellNames.containsKey(cell))
+            cellNames.put(cell, makeUniqueName(cell, cellNames));
+        for (Iterator it = cell.getNodes(); it.hasNext(); ) {
+            NodeInst ni = (NodeInst)it.next();
+            if (ni.getProto() instanceof Cell) {
+                Cell c = (Cell)ni.getProto();
+                Cell cproto = c.contentsView();
+                if (cproto == null) cproto = c;
+                if (!cellNames.containsKey(cproto))
+                    cellNames.put(cproto, makeUniqueName(cproto, cellNames));
+                buildUniqueNames(cproto, cellNames);
+            }
+        }
+    }
 
 	public static String makeUniqueName(Cell cell, HashMap cellNames)
 	{
@@ -536,10 +542,17 @@ public class GDS extends Geometry
 		Collection existing = cellNames.values();
         // try prepending the library name first
         if (existing.contains(name)) {
-            String libname = cell.getLibrary().getName()+"."+name;
-            if (!existing.contains(libname) && (libname.length() <= IOTool.getGDSCellNameLenMax())) {
-                System.out.println("Warning: GDSII out renaming cell "+cell.describe(false)+" to "+libname);
-                return libname;
+            int liblen = IOTool.getGDSCellNameLenMax() - (name.length() + concatStr.length());  // space for lib name
+            if (liblen > 0) {
+                String lib = cell.getLibrary().getName();
+                liblen = (liblen > lib.length()) ? lib.length() : liblen;
+                String libname = lib.substring(0, liblen) + concatStr + name;
+                if (!existing.contains(libname)) {
+                    System.out.println("Warning: GDSII out renaming cell "+cell.describe(false)+" to "+libname);
+                    return libname;
+                } else {
+                    baseName = libname;
+                }
             }
         }
 		for(int index = 1; ; index++)
@@ -552,8 +565,6 @@ public class GDS extends Geometry
 			}
 		}
 
-		// add this name to the list
-//		cellNames.put(cell, name);
         if (!name.equals(cell.getName()))
             System.out.println("Warning: GDSII out renaming cell "+cell.describe(false)+" to "+name);
 		return name;
