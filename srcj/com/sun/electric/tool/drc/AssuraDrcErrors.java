@@ -125,15 +125,7 @@ public class AssuraDrcErrors {
                     continue;
                 }
                 if (strings[0].equals("Cell")) {
-                    cell = null;
-                    for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
-                        Library lib = (Library)it.next();
-                        Cell c = lib.findNodeProto(strings[3]+"{lay}");
-                        if (c != null && (c instanceof Cell)) {
-                            cell = c;
-                            break;
-                        }
-                    }
+                    cell = CalibreDrcErrors.getCell(strings[3]);
                     if (cell == null) {
                         System.out.println("Couldn't find cell "+strings[3]+"{lay}");
                     }

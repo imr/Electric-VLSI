@@ -1,6 +1,7 @@
 package com.sun.electric.tool.drc;
 
 import com.sun.electric.tool.user.ErrorLogger;
+import com.sun.electric.tool.io.output.GDS;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
@@ -409,7 +410,7 @@ public class CalibreDrcErrors {
         return line;
     }
 
-    private Cell getCell(String cellName) {
+    public static Cell getCell(String cellName) {
         // try blind search
         for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
             Library lib = (Library)it.next();
@@ -418,14 +419,31 @@ public class CalibreDrcErrors {
                 return c;
         }
         // assume libname.cellname format
-        if (cellName.indexOf('.') != -1) {
-            String libname = cellName.substring(0, cellName.indexOf('.'));
-            String name = cellName.substring(cellName.indexOf('.')+1, cellName.length());
+        if (cellName.indexOf(GDS.concatStr) != -1) {
+            String libname = cellName.substring(0, cellName.indexOf(GDS.concatStr));
+            String name = cellName.substring(cellName.indexOf(GDS.concatStr)+1, cellName.length());
             Library lib = Library.findLibrary(libname);
+            if (lib == null) {
+                // lib name may have been truncated
+                for (Iterator it = Library.getLibraries(); it.hasNext(); ) {
+                    Library l = (Library)it.next();
+                    if (l.getName().startsWith(libname)) {
+                        lib = l;
+                        break;
+                    }
+                }
+            }
             if (lib != null) {
                 Cell c = lib.findNodeProto(name+"{lay}");
                 if (c != null && (c instanceof Cell))
                     return c;
+                // try taking off any ending _###
+                if (name.matches("(.+?)_\\d+")) {
+                    int underscore = name.lastIndexOf('_');
+                    c = lib.findNodeProto(name.substring(0, underscore)+"{lay}");
+                    if (c != null && (c instanceof Cell))
+                        return c;                    
+                }
             }
         }
         return null;
