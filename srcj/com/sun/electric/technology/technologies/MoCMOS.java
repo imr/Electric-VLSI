@@ -368,6 +368,7 @@ public class MoCMOS extends Technology
 		new DRCTemplate("6.8b",       DRCTemplate.AC,        DRCTemplate.SPACING,  "Active-Cut",     "Poly-Cut",       4,  null),
 
 		new DRCTemplate("7.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "Metal-1",         null,            3,  null),
+        new DRCTemplate("M1.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-1",         null,            20.2,  null),  // TSMC page 39
 
 		new DRCTemplate("7.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        3,  null),
 		new DRCTemplate("7.2 TSMC (M1.S.1)",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        2.3,  null),
@@ -401,7 +402,8 @@ public class MoCMOS extends Technology
 		new DRCTemplate("9.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "Metal-2",         null,            3,  null),
 
 		new DRCTemplate("9.2",  DRCTemplate.DE, DRCTemplate.SPACING,  "Metal-2",        "Metal-2",        4,  null),
-		new DRCTemplate("9.2",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "Metal-2",        "Metal-2",        3,  null),
+		new DRCTemplate("9.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "Metal-2",        "Metal-2",        3,  null),
+        new DRCTemplate("9.2 TSMC (Mx.S.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "Metal-2",        "Metal-2",        2.8,  null),
 
 		new DRCTemplate("9.3 Mosis",  DRCTemplate.MOSIS,               DRCTemplate.VIASUR,   "Metal-2",         null,            1, "Metal-1-Metal-2-Con"),
         new DRCTemplate("9.3 TSMC",  DRCTemplate.TSMC,               DRCTemplate.VIASUR,   "Metal-2",         null,            0.7, "Metal-1-Metal-2-Con"),
@@ -3902,6 +3904,8 @@ public class MoCMOS extends Technology
 						specValues[2] = distance;
 						specValues[3] = distance;
 						break;
+                    default:
+                        System.out.println(theRules[i].ruleName + " is an invalid rule type in " + this);
 				}
 			}
 		}
