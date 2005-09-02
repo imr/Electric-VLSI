@@ -1264,6 +1264,7 @@ public class EditWindow extends JPanel
 	{
 		offscreen.clearImage(false, null);
 		setScale(scale);
+        offscreen.initOrigin();
 		offscreen.drawNode(ni, DBMath.MATID, null, null, false, forceVisible, null);
 		return offscreen.composite(null);
 	}
@@ -1276,6 +1277,7 @@ public class EditWindow extends JPanel
 	{
 		offscreen.clearImage(false, null);
 		setScale(scale);
+        offscreen.initOrigin();
 		offscreen.drawArc(ai, DBMath.MATID, forceVisible);
 		return offscreen.composite(null);
 	}
@@ -1288,6 +1290,7 @@ public class EditWindow extends JPanel
 	{
 		offscreen.clearImage(false, null);
 		setScale(scale);
+        offscreen.initOrigin();
 		offscreen.drawText(txt, rect);
 		return offscreen.composite(null);
 	}
@@ -3264,8 +3267,10 @@ public class EditWindow extends JPanel
        		dbX = dbPt.getX();
        		dbY = dbPt.getY();
 		}
-		result.x = (int)Math.round(szHalfWidth + (dbX - offx) * scale);
-		result.y = (int)Math.round(szHalfHeight - (dbY - offy) * scale);
+        double scrX = szHalfWidth + (dbX - offx) * scale;
+        double scrY = szHalfHeight - (dbY - offy) * scale;
+		result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
+		result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
 	}
 
 	/**
