@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03f: *********************************
 
+IMP: (09/02/05, DN) Speed up redisplay:
+  1) Don't use slow Math.round in databaseToScreen .
+  2) Don't initialize temporary EditWindow when create PixelDrawing for subcell.
+
 BUG: (09/02/05, SMR) Zero width arcs are drawn incorrectly (Bugs #521 & #522).
 FIX: Incorrect optimization of zero-width arcs repaired.
 

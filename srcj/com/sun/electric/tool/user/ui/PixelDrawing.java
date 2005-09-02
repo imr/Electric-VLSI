@@ -147,8 +147,8 @@ import java.util.ArrayList;
  *   appears again at another place in the hierarchy because it has been altered by neighboring circuitry.
  *   The same problem happens when cell instances overlap.  Therefore, it is necessary to render each expanded
  *   cell instance into its own offscreen map, with its own separate opaque and transparent layers (which allows
- *   it to be composited properly when re-instantiated).  Thus, a new "EditWindow" with associated "PixelDrawing"
- *   object are created for each cached cell.</LI>
+ *   it to be composited properly when re-instantiated).  Thus, a new PixelDrawing" object is created for each
+ *   cached cell.</LI>
  *   <LI>Subpixel alignment may not be the same for each cached instance.  This turns out not to be
  *   a problem, because at such zoomed-out scales, it is impossible to see individual objects anyway.</LI>
  *   <LI>Large cell instances should not be cached.  When zoomed-in, an expanded cell instance could
@@ -189,8 +189,9 @@ public class PixelDrawing
 
 	// statistics stuff
 	private static final boolean TAKE_STATS = false;
-	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs,
-		offscreensCreated, offscreensUsed, cellsRendered;
+	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs;
+	private static int offscreensCreated, offscreenPixelsCreated, offscreensUsed, offscreenPixelsUsed, cellsRendered;
+    private static int boxes, crosses, solidLines, patLines, thickLines, polygons, texts, circles, thickCircles, discs, circleArcs, points, thickPoints;
 
     private static final boolean DEBUGRENDERTIMING = false;
     private static long renderTextTime;
@@ -219,6 +220,9 @@ public class PixelDrawing
 
 	/** the EditWindow being drawn */						private EditWindow wnd;
 	/** the size of the EditWindow */						private Dimension sz;
+    /** the scale of the EditWindow */                      private double scale;
+    /** the X origin of the cell in display coordinates. */ private double originX;
+    /** the Y origin of the cell in display coordinates. */ private double originY;
     /** the area of the cell to draw, in DB units */        private Rectangle2D drawBounds;
 	/** whether any layers are highlighted/dimmed */		private boolean highlightingLayers;
 	/** true if the last display was a full-instantiate */	private boolean lastFullInstantiate = false;
@@ -272,6 +276,9 @@ public class PixelDrawing
 	private static EGraphics portGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 255,0,0, 1.0,true,
 		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 
+    private int clipLX, clipHX, clipLY, clipHY;
+    private int width;
+    
     // ************************************* TOP LEVEL *************************************
 
 	/**
@@ -282,6 +289,7 @@ public class PixelDrawing
 	{
 		this.wnd = wnd;
 		this.sz = wnd.getScreenSize();
+        initOrigin();
 
 		// allocate pointer to the opaque image
 		img = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_INT_RGB);
@@ -301,6 +309,39 @@ public class PixelDrawing
 		// initialize the data
 		clearImage(false, null);
 	}
+    
+    public PixelDrawing(EditWindow wnd, Rectangle screenBounds) {
+        this.wnd = wnd;
+        this.scale = wnd.getScale();
+        
+        this.originX = -screenBounds.x;
+        this.originY = screenBounds.y + screenBounds.height;
+        this.sz = new Dimension(screenBounds.width, screenBounds.height);
+        
+		// allocate pointer to the opaque image
+		img = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_INT_RGB);
+		WritableRaster raster = ((BufferedImage)img).getRaster();
+		DataBufferInt dbi = (DataBufferInt)raster.getDataBuffer();
+		opaqueData = dbi.getData();
+		total = sz.height * sz.width;
+		numBytesPerRow = (sz.width + 7) / 8;
+		backgroundColor = User.getColorBackground() & 0xFFFFFF;
+		backgroundValue = backgroundColor | 0xFF000000;
+		patternedOpaqueLayers = new HashMap();
+        
+		curTech = null;
+		initForTechnology();
+
+		// initialize the data
+		clearImage(false, null);
+    }
+    
+    void initOrigin() {
+        this.scale = wnd.getScale();
+        Point2D offset = wnd.getOffset();
+        this.originX = sz.width/2 - offset.getX()*scale;
+        this.originY = sz.height/2 + offset.getY()*scale;
+    }
 
 	/**
 	 * Method to override the background color.
@@ -355,7 +396,8 @@ public class PixelDrawing
 		{
 			startTime = System.currentTimeMillis();
 			tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = 0;
-			offscreensCreated = offscreensUsed = cellsRendered = 0;
+			offscreensCreated = offscreenPixelsCreated = offscreensUsed = offscreenPixelsUsed = cellsRendered = 0;
+            boxes = crosses = solidLines = patLines = thickLines = polygons = texts = circles = thickCircles = discs = circleArcs = points = thickPoints = 0;
 		}
 
 		// set colors to use
@@ -368,7 +410,8 @@ public class PixelDrawing
 			clearSubCellCache();
 			expandedScale = wnd.getScale();
 		}
-		canDrawText = expandedScale > 1;
+        initOrigin();
+ 		canDrawText = expandedScale > 1;
 		maxObjectSize = 2 / expandedScale;
 		halfMaxObjectSize = maxObjectSize / 2;
 
@@ -429,11 +472,26 @@ public class PixelDrawing
 		{
 			long endTime = System.currentTimeMillis();
 			System.out.println("Took "+com.sun.electric.database.text.TextUtils.getElapsedTime(endTime-startTime)+
-				", rendered "+cellsRendered+" cells, used "+offscreensUsed+" cached cells, created "+
-				offscreensCreated+" new cell caches");
+				", rendered "+cellsRendered+" cells, used "+offscreensUsed+" ("+offscreenPixelsUsed+" pixels) cached cells, created "+
+				offscreensCreated+" ("+offscreenPixelsCreated+" pixels) new cell caches (my size is "+total+" pixels)");
 			System.out.println("   Cells ("+totalCells+") "+tinyCells+" are tiny;"+
 				" Primitives ("+totalPrims+") "+tinyPrims+" are tiny;"+
 				" Arcs ("+totalArcs+") "+tinyArcs+" are tiny, "+linedArcs+" are lines");
+//            System.out.print("    " + (boxes+crosses+solidLines+patLines+thickLines+polygons+texts+circles+thickCircles+discs+circleArcs+points+thickPoints)+" rendered: ");
+//            if (boxes != 0) System.out.print(boxes+" boxes ");
+//            if (crosses != 0) System.out.print(crosses+" crosses ");
+//            if (solidLines != 0) System.out.print(solidLines+" solidLines ");
+//            if (patLines != 0) System.out.print(patLines+" patLines ");
+//            if (thickLines != 0) System.out.print(thickLines+" thickLines ");
+//            if (polygons != 0) System.out.print(polygons+" polygons ");
+//            if (texts != 0) System.out.print(texts+" texts ");
+//            if (circles != 0) System.out.print(circles+" circles ");
+//            if (thickCircles != 0) System.out.print(thickCircles+" thickCircles ");
+//            if (discs != 0) System.out.print(discs+" discs ");
+//            if (circleArcs != 0) System.out.print(circleArcs+" circleArcs ");
+//            if (points != 0) System.out.print(points+" points ");
+//            if (thickPoints != 0) System.out.print(thickPoints+" thickPoints ");
+//            System.out.println();
 		}
 	}
 
@@ -810,7 +868,7 @@ public class PixelDrawing
 			poly.transform(subTrans);
 			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 			cellBounds = poly.getBounds2D();
-			Rectangle screenBounds = wnd.databaseToScreen(cellBounds);
+			Rectangle screenBounds = databaseToScreen(cellBounds);
 			if (screenBounds.width <= 0 || screenBounds.height <= 0)
 			{
 				tinyCells++;
@@ -876,13 +934,15 @@ public class PixelDrawing
 				Point2D ctr = ni.getTrueCenter();
 				trans.transform(ctr, ctr);
 				double halfWidth = Math.max(ni.getXSize(), ni.getYSize()) / 2;
-				Rectangle2D databaseBounds = wnd.getDisplayedBounds();
 				double ctrX = ctr.getX();
 				double ctrY = ctr.getY();
-				if (ctrX + halfWidth < databaseBounds.getMinX()) return;
-				if (ctrX - halfWidth > databaseBounds.getMaxX()) return;
-				if (ctrY + halfWidth < databaseBounds.getMinY()) return;
-				if (ctrY - halfWidth > databaseBounds.getMaxY()) return;
+                if (renderedWindow) {
+                    Rectangle2D databaseBounds = wnd.getDisplayedBounds();
+                    if (ctrX + halfWidth < databaseBounds.getMinX()) return;
+                    if (ctrX - halfWidth > databaseBounds.getMaxX()) return;
+                    if (ctrY + halfWidth < databaseBounds.getMinY()) return;
+                    if (ctrY - halfWidth > databaseBounds.getMaxY()) return;
+                }
 	
 				PrimitiveNode prim = (PrimitiveNode)np;
 				totalPrims++;
@@ -890,7 +950,7 @@ public class PixelDrawing
 				{
 					// draw a tiny primitive by setting a single dot from each layer
 					tinyPrims++;
-					wnd.databaseToScreen(ctrX, ctrY, tempPt1);
+					databaseToScreen(ctrX, ctrY, tempPt1);
 					if (tempPt1.x >= 0 && tempPt1.x < sz.width && tempPt1.y >= 0 && tempPt1.y < sz.height)
 					{
 						drawTinyLayers(prim.layerIterator(), tempPt1.x, tempPt1.y);
@@ -939,7 +999,7 @@ public class PixelDrawing
 					}
 //					if (topWnd != null && topWnd.isInPlaceEdit())
 //						poly.transform(topWnd.getInPlaceTransformOut());
-					wnd.databaseToScreen(poly.getCenterX(), poly.getCenterY(), tempPt1);
+					databaseToScreen(poly.getCenterX(), poly.getCenterY(), tempPt1);
 					Rectangle textRect = new Rectangle(tempPt1);
 					type = Poly.rotateType(type, ni);
 					drawText(textRect, type, descript, portName, null, textGraphics, false);
@@ -980,14 +1040,14 @@ public class PixelDrawing
 			if (arcSize < maxObjectSize)
 			{
 				linedArcs++;
-	
+
 				// draw a tiny arc by setting a single dot from each layer
 				Point2D headEnd = new Point2D.Double(ai.getHeadLocation().getX(), ai.getHeadLocation().getY());
 				trans.transform(headEnd, headEnd);
-				wnd.databaseToScreen(headEnd.getX(), headEnd.getY(), tempPt1);
+				databaseToScreen(headEnd.getX(), headEnd.getY(), tempPt1);
 				Point2D tailEnd = new Point2D.Double(ai.getTailLocation().getX(), ai.getTailLocation().getY());
 				trans.transform(tailEnd, tailEnd);
-				wnd.databaseToScreen(tailEnd.getX(), tailEnd.getY(), tempPt2);
+				databaseToScreen(tailEnd.getX(), tailEnd.getY(), tempPt2);
 				ArcProto prim = ai.getProto();
 				drawTinyArc(prim.layerIterator(), tempPt1, tempPt2);
 				return;
@@ -1059,7 +1119,7 @@ public class PixelDrawing
 						// use shorter port name
 						portName = pp.getShortName();
 					}
-					wnd.databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY(), tempPt1);
+					databaseToScreen(portPoly.getCenterX(), portPoly.getCenterY(), tempPt1);
 					Rectangle rect = new Rectangle(tempPt1);
 					drawText(rect, type, portDescript, portName, null, portGraphics, false);
 				}
@@ -1077,8 +1137,8 @@ public class PixelDrawing
 			if (lastI < 0) lastI = points.length - 1;
 			Point2D lastPt = points[lastI];
 			Point2D thisPt = points[i];
-			wnd.databaseToScreen(lastPt.getX(), lastPt.getY(), tempPt1);
-			wnd.databaseToScreen(thisPt.getX(), thisPt.getY(), tempPt2);
+			databaseToScreen(lastPt.getX(), lastPt.getY(), tempPt1);
+			databaseToScreen(thisPt.getX(), thisPt.getY(), tempPt2);
 			drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
 		}
 
@@ -1086,7 +1146,7 @@ public class PixelDrawing
 		if (canDrawText && User.isTextVisibilityOnInstance())
 		{
 			Rectangle2D bounds = poly.getBounds2D();
-			Rectangle rect = wnd.databaseToScreen(bounds);
+			Rectangle rect = databaseToScreen(bounds);
 			TextDescriptor descript = ni.getTextDescriptor(NodeInst.NODE_PROTO_TD);
 			NodeProto np = ni.getProto();
 			drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(false), null, textGraphics, false);
@@ -1164,7 +1224,7 @@ public class PixelDrawing
 
 		// find this cell-transformation combination in the global list of cached cells
 		AffineTransform subTrans = origTrans;
-		if (wnd.isInPlaceEdit())
+		if (renderedWindow && wnd.isInPlaceEdit())
 		{
 			AffineTransform newTrans = new AffineTransform(subTrans);
 			subTrans = newTrans;
@@ -1185,15 +1245,23 @@ public class PixelDrawing
 			}
 		}
 
-		// compute the cell's location on the screen
-		Rectangle2D cellBounds = new Rectangle2D.Double();
-		cellBounds.setRect(subCell.getBounds());
-		Poly poly = new Poly(cellBounds);
-		poly.transform(subTrans);
-		Rectangle screenBounds = new Rectangle(wnd.databaseToScreen(poly.getBounds2D()));
 		if (expandedCellCount == null || expandedCellCount.offscreen == null)
 		{
-			if (screenBounds.width <= 0 || screenBounds.height <= 0) return true;
+            // compute the cell's location on the screen
+            Rectangle2D cellBounds = new Rectangle2D.Double();
+            cellBounds.setRect(subCell.getBounds());
+            Rectangle2D textBounds = subCell.getTextBounds(wnd);
+            if (textBounds != null)
+                cellBounds.add(textBounds);
+            AffineTransform rotTrans = new AffineTransform(subTrans.getScaleX(), subTrans.getShearX(), subTrans.getShearY(), subTrans.getScaleY(), 0, 0);
+            DBMath.transformRect(cellBounds, rotTrans);
+            int lX = (int)Math.floor(cellBounds.getMinX()*scale);
+            int hX = (int)Math.ceil(cellBounds.getMaxX()*scale);
+            int lY = (int)Math.floor(cellBounds.getMinY()*scale);
+            int hY = (int)Math.ceil(cellBounds.getMaxY()*scale);
+            Rectangle screenBounds = new Rectangle(lX, lY, hX - lX, hY - lY);
+
+            if (screenBounds.width <= 0 || screenBounds.height <= 0) return true;
 
 			// do not cache if the cell is too large (creates immense offscreen buffers)
 			if (screenBounds.width >= topSz.width/2 && screenBounds.height >= topSz.height/2)
@@ -1206,32 +1274,42 @@ public class PixelDrawing
 				expandedCells.put(expandedName, expandedCellCount);
 			}
 
-			// render into the offscreen buffer
-			EditWindow renderedCell = EditWindow.CreateElectricDoc(subCell, null);
-			renderedCell.setInPlaceEditNodePath(wnd.getInPlaceEditNodePath());
-
-            Undo.removeDatabaseChangeListener(renderedCell);
-			renderedCell.setScreenSize(new Dimension(screenBounds.width+1, screenBounds.height+1));
-			renderedCell.setScale(wnd.getScale());
-			renderedCell.getOffscreen().clearImage(false, null);
-			Point2D cellCtr = new Point2D.Double(cellBounds.getCenterX(), cellBounds.getCenterY());
-			origTrans.transform(cellCtr, cellCtr);
-			renderedCell.setOffset(cellCtr);
-
-			// render the contents of the expanded cell into its own offscreen cache
-			renderedCell.getOffscreen().renderedWindow = false;
-			renderedCell.getOffscreen().drawCell(subCell, null, fullInstantiate, origTrans, topWnd, context);
-            expandedCellCount.offscreen = renderedCell.getOffscreen();
-
-			// set wnd reference to null or it will not get garbage collected
-			expandedCellCount.offscreen.wnd = null;
-            renderedCell.finished();
+            expandedCellCount.offscreen = new PixelDrawing(wnd, screenBounds);
+			expandedCellCount.offscreen.drawCell(subCell, null, fullInstantiate, rotTrans, topWnd, context);
+//            expandedCellCount.offscreen = renderedCell.getOffscreen();
 			offscreensCreated++;
+            offscreenPixelsCreated += expandedCellCount.offscreen.total;
+            
+//			// render into the offscreen buffer
+//			EditWindow renderedCell = EditWindow.CreateElectricDoc(subCell, null);
+//			renderedCell.setInPlaceEditNodePath(wnd.getInPlaceEditNodePath());
+//
+//            Undo.removeDatabaseChangeListener(renderedCell);
+//			renderedCell.setScreenSize(new Dimension(screenBounds.width+1, screenBounds.height+1));
+//			renderedCell.setScale(wnd.getScale());
+//			renderedCell.getOffscreen().clearImage(false, null);
+//			Point2D cellCtr = new Point2D.Double(cellBounds.getCenterX(), cellBounds.getCenterY());
+//			origTrans.transform(cellCtr, cellCtr);
+//			renderedCell.setOffset(cellCtr);
+//
+//			// render the contents of the expanded cell into its own offscreen cache
+//			renderedCell.getOffscreen().renderedWindow = false;
+//            renderedCell.getOffscreen().initOrigin();
+//			renderedCell.getOffscreen().drawCell(subCell, null, fullInstantiate, origTrans, topWnd, context);
+//            expandedCellCount.offscreen = renderedCell.getOffscreen();
+//
+//			// set wnd reference to null or it will not get garbage collected
+//			expandedCellCount.offscreen.wnd = null;
+//            renderedCell.finished();
+//			offscreensCreated++;
+//            offscreenPixelsCreated += renderedCell.getOffscreen().sz.width * renderedCell.getOffscreen().sz.height;
 		}
 
 		// copy out of the offscreen buffer into the main buffer
-		copyBits(expandedCellCount.offscreen, screenBounds);
+        databaseToScreen(subTrans.getTranslateX(), subTrans.getTranslateY(), tempPt1);
+		copyBits(expandedCellCount.offscreen, tempPt1.x, tempPt1.y);
 		offscreensUsed++;
+        offscreenPixelsUsed += expandedCellCount.offscreen.total;
 		return true;
 	}
 
@@ -1280,7 +1358,7 @@ public class PixelDrawing
 		poly.transform(subTrans);
 		if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 		cellBounds = poly.getBounds2D();
-		Rectangle screenBounds = wnd.databaseToScreen(cellBounds);
+		Rectangle screenBounds = databaseToScreen(cellBounds);
 		if (screenBounds.width <= 0 || screenBounds.height <= 0) return;
 		if (screenBounds.x > sz.width || screenBounds.x+screenBounds.width < 0) return;
 		if (screenBounds.y > sz.height || screenBounds.y+screenBounds.height < 0) return;
@@ -1369,10 +1447,12 @@ public class PixelDrawing
 	/**
 	 * Method to copy the offscreen bits for a cell into the offscreen bits for the entire screen.
 	 */
-	private void copyBits(PixelDrawing srcOffscreen, Rectangle screenBounds)
+	private void copyBits(PixelDrawing srcOffscreen, int centerX, int centerY)
 	{
 		if (srcOffscreen == null) return;
 		Dimension dim = srcOffscreen.sz;
+        int cornerX = centerX - (int)srcOffscreen.originX;
+        int cornerY = centerY - (int)srcOffscreen.originY;
 
         if (Main.getDebug() && numLayerBitMaps != srcOffscreen.numLayerBitMaps)
             System.out.println("Possible mixture of technologies in PixelDrawing.copyBits");
@@ -1380,14 +1460,14 @@ public class PixelDrawing
 		// copy the opaque and transparent layers
 		for(int srcY=0; srcY<dim.height; srcY++)
 		{
-			int destY = srcY + screenBounds.y;
+			int destY = srcY + cornerY;
 			if (destY < 0 || destY >= sz.height) continue;
 			int srcBase = srcY * dim.width;
 			int destBase = destY * sz.width;
 
 			for(int srcX=0; srcX<dim.width; srcX++)
 			{
-				int destX = srcX + screenBounds.x;
+				int destX = srcX + cornerX;
 				if (destX < 0 || destX >= sz.width) continue;
 				int srcColor = srcOffscreen.opaqueData[srcBase + srcX];
 				if (srcColor != backgroundValue)
@@ -1426,7 +1506,7 @@ public class PixelDrawing
 				// setup pattern for this row
 				for(int srcY=0; srcY<dim.height; srcY++)
 				{
-					int destY = srcY + screenBounds.y;
+					int destY = srcY + cornerY;
 					if (destY < 0 || destY >= sz.height) continue;
 					int destBase = destY * sz.width;
 					int pat = pattern[destY&15];
@@ -1434,7 +1514,7 @@ public class PixelDrawing
 					byte [] srcRow = srcLayerBitMap[srcY];
 					for(int srcX=0; srcX<dim.width; srcX++)
 					{
-						int destX = srcX + screenBounds.x;
+						int destX = srcX + cornerX;
 						if (destX < 0 || destX >= sz.width) continue;
 						if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
 						{
@@ -1462,14 +1542,14 @@ public class PixelDrawing
 				byte [][] destLayerBitMap = polDest.bitMap;
 				for(int srcY=0; srcY<dim.height; srcY++)
 				{
-					int destY = srcY + screenBounds.y;
+					int destY = srcY + cornerY;
 					if (destY < 0 || destY >= sz.height) continue;
 					int destBase = destY * sz.width;
 					byte [] srcRow = srcLayerBitMap[srcY];
 					byte [] destRow = destLayerBitMap[destY];
 					for(int srcX=0; srcX<dim.width; srcX++)
 					{
-						int destX = srcX + screenBounds.x;
+						int destX = srcX + cornerX;
 						if (destX < 0 || destX >= sz.width) continue;
 						if ((srcRow[srcX>>3] & (1<<(srcX&7))) != 0)
 							destRow[destX>>3] |= (1 << (destX&7));
@@ -1481,9 +1561,6 @@ public class PixelDrawing
 
 	// ************************************* RENDERING POLY SHAPES *************************************
 
-    private int clipLX, clipHX, clipLY, clipHY;
-    private int width;
-    
 	/**
 	 * Method to draw polygon "poly", transformed through "trans".
 	 */
@@ -1612,8 +1689,8 @@ public class PixelDrawing
 			if (bounds != null)
 			{
 				// convert coordinates
-				wnd.databaseToScreen(bounds.getMinX(), bounds.getMinY(), tempPt1);
-				wnd.databaseToScreen(bounds.getMaxX(), bounds.getMaxY(), tempPt2);
+				databaseToScreen(bounds.getMinX(), bounds.getMinY(), tempPt1);
+				databaseToScreen(bounds.getMaxX(), bounds.getMaxY(), tempPt2);
 				int lX = Math.min(tempPt1.x, tempPt2.x);
 				int hX = Math.max(tempPt1.x, tempPt2.x);
 				int lY = Math.min(tempPt1.y, tempPt2.y);
@@ -1630,18 +1707,20 @@ public class PixelDrawing
 				return;
 			}
 			Point [] intPoints = new Point[points.length];
-			for(int i=0; i<points.length; i++)
-				intPoints[i] = wnd.databaseToScreen(points[i]);
+			for(int i=0; i<points.length; i++) {
+                intPoints[i] = new Point();
+				databaseToScreen(points[i].getX(), points[i].getY(), intPoints[i]);
+            }
 			Point [] clippedPoints = GenMath.clipPoly(intPoints, 0, sz.width-1, 0, sz.height-1);
 			drawPolygon(clippedPoints, layerBitMap, graphics, dimmed);
 			return;
 		}
 		if (style == Poly.Type.CROSSED)
 		{
-			wnd.databaseToScreen(points[0].getX(), points[0].getY(), tempPt1);
-			wnd.databaseToScreen(points[1].getX(), points[1].getY(), tempPt2);
-			wnd.databaseToScreen(points[2].getX(), points[2].getY(), tempPt3);
-			wnd.databaseToScreen(points[3].getX(), points[3].getY(), tempPt4);
+			databaseToScreen(points[0].getX(), points[0].getY(), tempPt1);
+			databaseToScreen(points[1].getX(), points[1].getY(), tempPt2);
+			databaseToScreen(points[2].getX(), points[2].getY(), tempPt3);
+			databaseToScreen(points[3].getX(), points[3].getY(), tempPt4);
 			drawLine(tempPt1, tempPt2, layerBitMap, graphics, 0, dimmed);
 			drawLine(tempPt2, tempPt3, layerBitMap, graphics, 0, dimmed);
 			drawLine(tempPt3, tempPt4, layerBitMap, graphics, 0, dimmed);
@@ -1653,7 +1732,7 @@ public class PixelDrawing
 		if (style.isText())
 		{
 			Rectangle2D bounds = poly.getBounds2D();
-			Rectangle rect = wnd.databaseToScreen(bounds);
+			Rectangle rect = databaseToScreen(bounds);
 			TextDescriptor descript = poly.getTextDescriptor();
 			String str = poly.getString();
 			drawText(rect, style, descript, str, layerBitMap, graphics, dimmed);
@@ -1671,16 +1750,16 @@ public class PixelDrawing
 			{
 				Point2D oldPt = points[j-1];
 				Point2D newPt = points[j];
-				wnd.databaseToScreen(oldPt.getX(), oldPt.getY(), tempPt1);
-				wnd.databaseToScreen(newPt.getX(), newPt.getY(), tempPt2);
+				databaseToScreen(oldPt.getX(), oldPt.getY(), tempPt1);
+				databaseToScreen(newPt.getX(), newPt.getY(), tempPt2);
 				drawLine(tempPt1, tempPt2, layerBitMap, graphics, lineType, dimmed);
 			}
 			if (style == Poly.Type.CLOSED)
 			{
 				Point2D oldPt = points[points.length-1];
 				Point2D newPt = points[0];
-				wnd.databaseToScreen(oldPt.getX(), oldPt.getY(), tempPt1);
-				wnd.databaseToScreen(newPt.getX(), newPt.getY(), tempPt2);
+				databaseToScreen(oldPt.getX(), oldPt.getY(), tempPt1);
+				databaseToScreen(newPt.getX(), newPt.getY(), tempPt2);
 				drawLine(tempPt1, tempPt2, layerBitMap, graphics, lineType, dimmed);
 			}
 			return;
@@ -1691,8 +1770,8 @@ public class PixelDrawing
 			{
 				Point2D oldPt = points[j];
 				Point2D newPt = points[j+1];
-				wnd.databaseToScreen(oldPt.getX(), oldPt.getY(), tempPt1);
-				wnd.databaseToScreen(newPt.getX(), newPt.getY(), tempPt2);
+				databaseToScreen(oldPt.getX(), oldPt.getY(), tempPt1);
+				databaseToScreen(newPt.getX(), newPt.getY(), tempPt2);
 				drawLine(tempPt1, tempPt2, layerBitMap, graphics, 0, dimmed);
 			}
 			return;
@@ -1701,8 +1780,8 @@ public class PixelDrawing
 		{
 			Point2D center = points[0];
 			Point2D edge = points[1];
-			wnd.databaseToScreen(center.getX(), center.getY(), tempPt1);
-			wnd.databaseToScreen(edge.getX(), edge.getY(), tempPt2);
+			databaseToScreen(center.getX(), center.getY(), tempPt1);
+			databaseToScreen(edge.getX(), edge.getY(), tempPt2);
 			drawCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);
 			return;
 		}
@@ -1710,8 +1789,8 @@ public class PixelDrawing
 		{
 			Point2D center = points[0];
 			Point2D edge = points[1];
-			wnd.databaseToScreen(center.getX(), center.getY(), tempPt1);
-			wnd.databaseToScreen(edge.getX(), edge.getY(), tempPt2);
+			databaseToScreen(center.getX(), center.getY(), tempPt1);
+			databaseToScreen(edge.getX(), edge.getY(), tempPt2);
 			drawThickCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);
 			return;
 		}
@@ -1719,8 +1798,8 @@ public class PixelDrawing
 		{
 			Point2D center = points[0];
 			Point2D edge = points[1];
-			wnd.databaseToScreen(center.getX(), center.getY(), tempPt1);
-			wnd.databaseToScreen(edge.getX(), edge.getY(), tempPt2);
+			databaseToScreen(center.getX(), center.getY(), tempPt1);
+			databaseToScreen(edge.getX(), edge.getY(), tempPt2);
 			drawDisc(tempPt1, tempPt2, layerBitMap, graphics, dimmed);
 			return;
 		}
@@ -1729,9 +1808,9 @@ public class PixelDrawing
 			Point2D center = points[0];
 			Point2D edge1 = points[1];
 			Point2D edge2 = points[2];
-			wnd.databaseToScreen(center.getX(), center.getY(), tempPt1);
-			wnd.databaseToScreen(edge1.getX(), edge1.getY(), tempPt2);
-			wnd.databaseToScreen(edge2.getX(), edge2.getY(), tempPt3);
+			databaseToScreen(center.getX(), center.getY(), tempPt1);
+			databaseToScreen(edge1.getX(), edge1.getY(), tempPt2);
+			databaseToScreen(edge2.getX(), edge2.getY(), tempPt3);
 			drawCircleArc(tempPt1, tempPt2, tempPt3, style == Poly.Type.THICKCIRCLEARC, layerBitMap, graphics, dimmed);
 			return;
 		}
@@ -1745,7 +1824,7 @@ public class PixelDrawing
 		{
 			// draw the big cross
 			Point2D center = points[0];
-			wnd.databaseToScreen(center.getX(), center.getY(), tempPt1);
+			databaseToScreen(center.getX(), center.getY(), tempPt1);
 			int size = 5;
 			drawLine(new Point(tempPt1.x-size, tempPt1.y), new Point(tempPt1.x+size, tempPt1.y), layerBitMap, graphics, 0, dimmed);
 			drawLine(new Point(tempPt1.x, tempPt1.y-size), new Point(tempPt1.x, tempPt1.y+size), layerBitMap, graphics, 0, dimmed);
@@ -1968,6 +2047,7 @@ public class PixelDrawing
      * Method to draw a box on the off-screen buffer.
      */
     private void drawBox(int lX, int hX, int lY, int hY, byte[] layerBitMap, byte layerBitMask) {
+        boxes++;
         int dx = hX - lX;
         int dy = hY - lY;
         int baseIndex = lY * width + lX;
@@ -2036,16 +2116,17 @@ public class PixelDrawing
 	private void drawCross(Poly poly, EGraphics graphics, boolean dimmed)
 	{
 		Point2D [] points = poly.getPoints();
-		wnd.databaseToScreen(points[0].getX(), points[0].getY(), tempPt1);
+		databaseToScreen(points[0].getX(), points[0].getY(), tempPt1);
 		int size = 3;
 		drawLine(new Point(tempPt1.x-size, tempPt1.y), new Point(tempPt1.x+size, tempPt1.y), null, graphics, 0, dimmed);
 		drawLine(new Point(tempPt1.x, tempPt1.y-size), new Point(tempPt1.x, tempPt1.y+size), null, graphics, 0, dimmed);
 	}
 
     private void drawCross(Poly poly, byte[] layerBitMap, byte layerBitMask) {
+        crosses++;
         Point2D [] points = poly.getPoints();
         Point center = tempPt1;
-        wnd.databaseToScreen(points[0].getX(), points[0].getY(), center);
+        databaseToScreen(points[0].getX(), points[0].getY(), center);
         int size = 3;
         if (clipLY <= center.y && center.y <= clipHY) {
             int baseIndex = center.y * width;
@@ -2126,6 +2207,7 @@ public class PixelDrawing
 	}
 
     private void drawSolidLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask) {
+        solidLines++;
         // initialize the Bresenham algorithm
         int dx = Math.abs(x2-x1);
         int dy = Math.abs(y2-y1);
@@ -2267,6 +2349,7 @@ public class PixelDrawing
 	}
 
     private void drawPatLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask, int pattern) {
+        patLines++;
         // initialize the Bresenham algorithm
         int dx = Math.abs(x2-x1);
         int dy = Math.abs(y2-y1);
@@ -2404,6 +2487,7 @@ public class PixelDrawing
 	}
 
     private void drawThickLine(int x1, int y1, int x2, int y2, byte[] layerBitMap, byte layerBitMask) {
+        thickLines++;
         // initialize the Bresenham algorithm
         int dx = Math.abs(x2-x1);
         int dy = Math.abs(y2-y1);
@@ -2690,6 +2774,13 @@ public class PixelDrawing
 		}
 	}
 
+    /**
+     * Method to draw a polygon on the off-screen buffer.
+     */
+    private void drawPolygon(Point[] points, byte[] layerBitMap, byte layerBitMask) {
+        polygons++;
+    }
+   
 	// ************************************* TEXT DRAWING *************************************
 
     /**
@@ -2778,14 +2869,21 @@ public class PixelDrawing
 		{
 			boxedWidth = (int)rect.getWidth();
 			boxedHeight = (int)rect.getHeight();
-            // clip if not within bounds
-            Rectangle2D dbBounds = wnd.screenToDatabase(rect);
             //  drawBounds.getWidth() > 0 initial window
-            if (drawBounds != null && drawBounds.getWidth() > 0 && !GenMath.rectsIntersect(drawBounds, dbBounds)) return;
-		}
+            if (drawBounds != null && drawBounds.getWidth() > 0) {
+                // clip if not within bounds
+                Rectangle2D dbBounds = wnd.screenToDatabase(rect);
+                if (wnd.isInPlaceEdit() && dbBounds != null) {
+                    AffineTransform xOut = wnd.getInPlaceTransformOut();
+                    GenMath.transformRect(dbBounds, xOut);
+                }
+                if (!GenMath.rectsIntersect(drawBounds, dbBounds)) return;
+            }
+        }
 
 		// create RenderInfo
-		long startTime = System.currentTimeMillis();
+		long startTime = 0;
+        if (DEBUGRENDERTIMING) System.currentTimeMillis();
 		RenderTextInfo renderInfo = new RenderTextInfo();
 		if (!renderInfo.buildInfo(s, fontName, size, italic, bold, underline, rect, style, rotation))
 			return;
@@ -2811,18 +2909,18 @@ public class PixelDrawing
 		}
 
 		// check if text is on-screen
-		Rectangle2D dbBounds = wnd.screenToDatabase(renderInfo.bounds);
-		if (wnd.isInPlaceEdit() && dbBounds != null)
-		{
-			AffineTransform xOut = wnd.getInPlaceTransformOut();
-			GenMath.transformRect(dbBounds, xOut);
-		}
-		if (drawBounds != null && drawBounds.getWidth() > 0 && !GenMath.rectsIntersect(drawBounds, dbBounds))
-			return;
+        if (drawBounds != null && drawBounds.getWidth() > 0) {
+            Rectangle2D dbBounds = wnd.screenToDatabase(renderInfo.bounds);
+            if (wnd.isInPlaceEdit() && dbBounds != null) {
+                AffineTransform xOut = wnd.getInPlaceTransformOut();
+                GenMath.transformRect(dbBounds, xOut);
+            }
+            if (!GenMath.rectsIntersect(drawBounds, dbBounds)) return;
+        }
 
 		// render the text
 		Raster ras = renderText(renderInfo);
-		renderTextTime += (System.currentTimeMillis() - startTime);
+		if (DEBUGRENDERTIMING) renderTextTime += (System.currentTimeMillis() - startTime);
 		if (ras == null) return;
 		Point pt = getTextCorner(ras.getWidth(), ras.getHeight(), style, rect, rotation);
 		int atX = pt.x;
@@ -3014,6 +3112,13 @@ public class PixelDrawing
 				break;
 		}
 	}
+
+    /**
+	 * Method to draw a text on the off-screen buffer
+	 */
+	private void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, byte[] layerBitMap, byte layerBitMask) {
+        texts++;
+    }
 
 	private int alphaBlend(int color, int backgroundColor, int alpha)
 	{
@@ -3372,6 +3477,13 @@ public class PixelDrawing
 	}
 
 	/**
+	 * Method to draw a circle on the off-screen buffer
+	 */
+	private void drawCircle(Point center, Point edge, byte[] layerBitMap, byte layerBitMask) {
+        circles++;
+    }
+    
+	/**
 	 * Method to draw a thick circle on the off-screen buffer
 	 */
 	private void drawThickCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
@@ -3438,6 +3550,13 @@ public class PixelDrawing
 		}
 	}
 
+	/**
+	 * Method to draw a thick circle on the off-screen buffer
+	 */
+	private void drawThickCircle(Point center, Point edge, byte[] layerBitMap, byte layerBitMask) {
+        thickCircles++;
+    }
+    
 	// ************************************* DISC DRAWING *************************************
 
 	/**
@@ -3553,6 +3672,13 @@ public class PixelDrawing
 		}
 	}
 
+	/**
+	 * Method to draw a filled-in circle of radius "radius" on the off-screen buffer
+	 */
+	private void drawDisc(Point center, Point edge, byte[] layerBitMap, byte layerBitMask) {
+        discs++;
+    }
+    
 	// ************************************* ARC DRAWING *************************************
 
 	private boolean [] arcOctTable = new boolean[9];
@@ -3781,6 +3907,14 @@ public class PixelDrawing
 	private int MODM(int x) { return (x<1) ? x+8 : x; }
 	private int MODP(int x) { return (x>8) ? x-8 : x; }
 
+	/**
+	 * draws an arc centered at (centerx, centery), clockwise,
+	 * passing by (x1,y1) and (x2,y2)
+	 */
+	private void drawCircleArc(Point center, Point p1, Point p2, boolean thick, byte[] layerBitMap, byte layerBitMask) {
+        circleArcs++;
+    }
+    
 	// ************************************* RENDERING SUPPORT *************************************
 
 	private void drawPoint(int x, int y, byte [][] layerBitMap, int col)
@@ -3795,6 +3929,7 @@ public class PixelDrawing
 	}
 
     private void drawPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
+        points++;
         layerBitMap[y * width + x] |= layerBitMask;
     }
     
@@ -3827,6 +3962,7 @@ public class PixelDrawing
 	}
 
     private void drawThickPoint(int x, int y, byte[] layerBitMap, byte layerBitMask) {
+        thickPoints++;
         int baseIndex = y * sz.width + x;
         layerBitMap[baseIndex] |= layerBitMask;
         if (x > clipLX)
@@ -3838,4 +3974,46 @@ public class PixelDrawing
         if (y < sz.height-1)
             layerBitMap[baseIndex + width] |= layerBitMask;
     }
+    
+	/**
+	 * Method to convert a database coordinate to screen coordinates.
+	 * @param dbX the X coordinate (in database units).
+	 * @param dbY the Y coordinate (in database units).
+	 * @param result the Point in which to store the screen coordinates.
+	 */
+	private void databaseToScreen(double dbX, double dbY, Point result) {
+		// if doing in-place display, transform out of the proper cell
+		if (renderedWindow && wnd.isInPlaceEdit())
+		{
+			Point2D dbPt = new Point2D.Double(dbX, dbY);
+       		wnd.getInPlaceTransformOut().transform(dbPt, dbPt);
+       		dbX = dbPt.getX();
+       		dbY = dbPt.getY();
+		}
+        double scrX = originX + dbX*scale;
+        double scrY = originY - dbY*scale;
+		result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
+		result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
+    }
+    
+	/**
+	 * Method to convert a database rectangle to screen coordinates.
+	 * @param db the rectangle (in database units).
+	 * @return the rectangle on the screen.
+	 */
+	private Rectangle databaseToScreen(Rectangle2D db)
+	{
+        Point llPt = tempPt1;
+        Point urPt = tempPt2;
+		databaseToScreen(db.getMinX(), db.getMinY(), llPt);
+		databaseToScreen(db.getMaxX(), db.getMaxY(), urPt);
+		int screenLX = llPt.x;
+		int screenHX = urPt.x;
+		int screenLY = llPt.y;
+		int screenHY = urPt.y;
+		if (screenHX < screenLX) { int swap = screenHX;   screenHX = screenLX; screenLX = swap; }
+		if (screenHY < screenLY) { int swap = screenHY;   screenHY = screenLY; screenLY = swap; }
+		return new Rectangle(screenLX, screenLY, screenHX-screenLX+1, screenHY-screenLY+1);
+	}
+
 }
