@@ -1392,15 +1392,16 @@ public class Spice extends Topology
                 // port name found: use its spice node
                 Network net = cni.getNetList().getNetwork(no, pp, 0);
                 CellSignal cs = cni.getCellSignal(net);
-                infstr.append(cs.getName());
+                String portName = cs.getName();
+                if (segmentedNets.getUseParasitics()) {
+                    PortInst pi = no.getNodeInst().findPortInstFromProto(pp);
+                    portName = segmentedNets.getNetName(pi);
+                }
+                infstr.append(portName);
             } else if (paramName.equalsIgnoreCase("node_name"))
             {
             	String nodeName = getSafeNetName(no.getName(), false);
 //            	nodeName = nodeName.replaceAll("[\\[\\]]", "_");
-                if (segmentedNets.getUseParasitics()) {
-                    PortInst pi = no.getNodeInst().findPortInstFromProto(pp);
-                    nodeName = segmentedNets.getNetName(pi);
-                }
                 infstr.append(nodeName);
             } else
             {
@@ -1586,7 +1587,7 @@ public class Spice extends Topology
             return list;
         }
         private boolean getUseParasitics() {
-            return useNewParasitics;
+            return useParasitics;
         }
     }
 
