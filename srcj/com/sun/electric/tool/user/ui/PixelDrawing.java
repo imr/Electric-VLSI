@@ -974,21 +974,24 @@ public class PixelDrawing
 			tinyArcs++;
 			return;
 		}
-		arcSize = Math.min(arcBounds.getWidth(), arcBounds.getHeight());
-		if (arcSize < maxObjectSize)
+		if (ai.getWidth() > 0)
 		{
-			linedArcs++;
-
-			// draw a tiny arc by setting a single dot from each layer
-			Point2D headEnd = new Point2D.Double(ai.getHeadLocation().getX(), ai.getHeadLocation().getY());
-			trans.transform(headEnd, headEnd);
-			wnd.databaseToScreen(headEnd.getX(), headEnd.getY(), tempPt1);
-			Point2D tailEnd = new Point2D.Double(ai.getTailLocation().getX(), ai.getTailLocation().getY());
-			trans.transform(tailEnd, tailEnd);
-			wnd.databaseToScreen(tailEnd.getX(), tailEnd.getY(), tempPt2);
-			ArcProto prim = ai.getProto();
-			drawTinyArc(prim.layerIterator(), tempPt1, tempPt2);
-			return;
+			arcSize = Math.min(arcBounds.getWidth(), arcBounds.getHeight());
+			if (arcSize < maxObjectSize)
+			{
+				linedArcs++;
+	
+				// draw a tiny arc by setting a single dot from each layer
+				Point2D headEnd = new Point2D.Double(ai.getHeadLocation().getX(), ai.getHeadLocation().getY());
+				trans.transform(headEnd, headEnd);
+				wnd.databaseToScreen(headEnd.getX(), headEnd.getY(), tempPt1);
+				Point2D tailEnd = new Point2D.Double(ai.getTailLocation().getX(), ai.getTailLocation().getY());
+				trans.transform(tailEnd, tailEnd);
+				wnd.databaseToScreen(tailEnd.getX(), tailEnd.getY(), tempPt2);
+				ArcProto prim = ai.getProto();
+				drawTinyArc(prim.layerIterator(), tempPt1, tempPt2);
+				return;
+			}
 		}
 
         // see if the arc is completely clipped from the screen

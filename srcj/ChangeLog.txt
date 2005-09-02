@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03f: *********************************
 
+BUG: (09/02/05, SMR) Zero width arcs are drawn incorrectly (Bugs #521 & #522).
+FIX: Incorrect optimization of zero-width arcs repaired.
+
 IMP/MAN (09/01/05, JKG) Simple Parasitic Extraction from layout for spice
 
 IMP: (09/01/05, SMR) Speed up redisplay.
