@@ -87,7 +87,8 @@ public class DRCTemplate
 	/** extension rule */               public static final int EXTENSION = 23;
     /** forbidden rule */               public static final int FORBIDDEN = 24;
     /** layer combination rule */       public static final int COMBINATION = 25;
-    /** OD2.R.1 rule */                 public static final int EXTENSIONGATE = 26;
+    /** extension gate rule */          public static final int EXTENSIONGATE = 26;
+    /** slot size rule */               public static final int SLOTSIZE = 26;
 
     // For sorting
     public static final DRCTemplateSort templateSort = new DRCTemplateSort();

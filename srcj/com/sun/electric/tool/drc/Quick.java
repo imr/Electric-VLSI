@@ -122,6 +122,7 @@ public class Quick
     private static final int FORBIDDEN          = 11;
     private static final int RESOLUTION         = 12;
     private static final int CUTERROR           = 15;
+    private static final int SLOTSIZEERROR           = 16;
 	// Different types of warnings
 	private static final int ZEROLENGTHARCWARN  = 13;
 	private static final int TECHMIXWARN  = 14;
@@ -164,7 +165,8 @@ public class Quick
 	private HashMap networkLists = null;
 	private HashMap minAreaLayerMap = new HashMap();    // For minimum area checking
 	private HashMap enclosedAreaLayerMap = new HashMap();    // For enclosed area checking
-	private DRC.CheckDRCLayoutJob job; // Reference to running job
+	private HashMap slotSizeLayerMap = new HashMap();    // For max length checking
+    private DRC.CheckDRCLayoutJob job; // Reference to running job
 	private HashMap cellsMap = new HashMap(); // for cell caching
     private HashMap nodesMap = new HashMap(); // for node caching
     private int activeBits = 0; // to caching current extra bits
@@ -305,6 +307,7 @@ public class Quick
 	    // determine if min area must be checked (if any layer got valid data)
 	    minAreaLayerMap.clear();
 	    enclosedAreaLayerMap.clear();
+        slotSizeLayerMap.clear();
 	    cellsMap.clear();
 	    nodesMap.clear();
 
@@ -324,6 +327,11 @@ public class Quick
 				DRCTemplate enclosedAreaRule = DRC.getMinValue(layer, DRCTemplate.ENCLOSEDAREA, techMode);
 				if (enclosedAreaRule != null)
 					enclosedAreaLayerMap.put(layer, enclosedAreaRule);
+
+                // Storing slot sizes
+				DRCTemplate slotRule = DRC.getMinValue(layer, DRCTemplate.SLOTSIZE, techMode);
+				if (slotRule != null)
+					slotSizeLayerMap.put(layer, slotRule);
 			}
 	    }
 
@@ -2537,9 +2545,10 @@ public class Quick
 		int errorFound = 0;
 		DRCTemplate minAreaRule = (DRCTemplate)minAreaLayerMap.get(layer);
 		DRCTemplate encloseAreaRule = (DRCTemplate)enclosedAreaLayerMap.get(layer);
+        DRCTemplate slotSizeRule = (DRCTemplate)slotSizeLayerMap.get(layer);
 
-		// Layer doesn't have min area
-		if (minAreaRule == null && encloseAreaRule == null) return 0;
+		// Layer doesn't have min area nor slot size
+		if (minAreaRule == null && encloseAreaRule == null && slotSizeRule == null) return 0;
 
 		Collection set = merge.getObjects(layer, false, true);
 
@@ -2566,7 +2575,6 @@ public class Quick
 			for (int i = 0; i < list.size(); i++)
 			{
                 Object listObj = list.get(i);
-				//PolyQTree.PolyNode simplePn = (PolyQTree.PolyNode)list.get(i);
 				double area = 0;
 
                 if (mergeMode == GeometryHandler.ALGO_QTREE)
@@ -2574,18 +2582,32 @@ public class Quick
                 else
                     area = ((PolyBase)listObj).getArea();
 				DRCTemplate minRule = (i%2 == 0) ? evenRule : oddRule;
+                PolyBase simplePn = ((mergeMode == GeometryHandler.ALGO_QTREE))
+                        ? new PolyBase(((PolyQTree.PolyNode)listObj).getPoints(true))
+                        : (PolyBase)listObj;
+
+                // Check slot size when area is checked
+                if (minRule == minAreaRule && slotSizeRule != null)
+                {
+                    double length = 0;
+                    if (mergeMode == GeometryHandler.ALGO_QTREE)
+                        length = ((PolyQTree.PolyNode)listObj).getMaxLength();
+                    else
+                        length = ((PolyBase)listObj).getMaxLength();
+
+                    if (!DBMath.isGreaterThan(length, slotSizeRule.value1)) continue;
+                    reportError(SLOTSIZEERROR, null, cell, slotSizeRule.value1, length, slotSizeRule.ruleName,
+						simplePn, null /*ni*/, layer, null, null, null);
+				    errorFound++;
+                }
 
 				if (minRule == null) continue;
 
 				// isGreaterThan doesn't consider equals condition therefore negate condition is used
 				if (!DBMath.isGreaterThan(minRule.value1, area)) continue;
-                //if (!layer.getName().equals("Metal-1")) continue;
                 
 				errorFound++;
 				int errorType = (minRule == minAreaRule) ? MINAREAERROR : ENCLOSEDAREAERROR;
-                PolyBase simplePn = ((mergeMode == GeometryHandler.ALGO_QTREE))
-                        ? new PolyBase(((PolyQTree.PolyNode)listObj).getPoints(true))
-                        : (PolyBase)listObj;
 
 				reportError(errorType, null, cell, minRule.value1, area, minRule.ruleName,
 						simplePn, null /*ni*/, layer, null, null, null);
@@ -4312,6 +4334,11 @@ public class Quick
                 case FORBIDDEN:
                     errorMessage.append("Forbidden error:");
 					errorMessagePart2 = new StringBuffer(msg);
+                    break;
+                case SLOTSIZEERROR:
+                    errorMessage.append("Slot size error:");
+					errorMessagePart2 = new StringBuffer(", layer '" + layer1.getName() + "'");
+					errorMessagePart2.append(" BIGGER THAN " + TextUtils.formatDouble(limit) + " IN LENGTH (IS " + TextUtils.formatDouble(actual) + ")");
                     break;
 				case MINAREAERROR:
 					errorMessage.append("Minimum area error:");

@@ -374,6 +374,12 @@ public class MoCMOS extends Technology
         new DRCTemplate("Mx.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-4",         null,            20.2,  null),  // TSMC page 39
         new DRCTemplate("Mx.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-5",         null,            20.2,  null),  // TSMC page 39
         new DRCTemplate("M6.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-6",         null,            56.2,  null),  // TSMC page 39
+        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-1",         null,            350,  null),  // TSMC page 78
+        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-2",         null,            350,  null),  // TSMC page 78
+        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-3",         null,            350,  null),  // TSMC page 78
+        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-4",         null,            350,  null),  // TSMC page 78
+        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-5",         null,            350,  null),  // TSMC page 78
+        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-6",         null,            350,  null),  // TSMC page 78
 
 		new DRCTemplate("7.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        3,  null),
 		new DRCTemplate("7.2 TSMC (M1.S.1)",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        2.3,  null),
@@ -3839,7 +3845,11 @@ public class MoCMOS extends Technology
 						rules.minArea[layert1] = new Double(distance);
 						rules.minAreaRules[layert1] = rule;
 						break;
-					case DRCTemplate.NODSIZ:
+					case DRCTemplate.SLOTSIZE:
+						rules.slotSize[layert1] = new Double(distance);
+						rules.slotSizeRules[layert1] = rule;
+						break;
+                    case DRCTemplate.NODSIZ:
 						setDefNodeSize(nty, theRules[i].ruleName, distance, distance, rules);
 						break;
 					case DRCTemplate.SURROUND:

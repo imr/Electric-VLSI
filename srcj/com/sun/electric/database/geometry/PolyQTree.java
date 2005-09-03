@@ -227,6 +227,25 @@ public class PolyQTree extends GeometryHandler
 			throw new UnsupportedOperationException();
 		}
 
+        /**
+         * Method to calculate longest edge
+         * @return
+         */
+        public double getMaxLength()
+        {
+            Point2D[] points = getPoints(false);    
+            double max = 0;
+            for(int i=0; i<points.length; i++)
+            {
+                int j = i - 1;
+                if (j < 0) j = points.length - 1;
+                double distance = points[i].distance(points[j]);
+                if (max < distance)
+                    max = distance;
+            }
+            return max;
+        }
+
 		/**
          * @param includeInitialPoint
          */

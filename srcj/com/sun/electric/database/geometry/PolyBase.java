@@ -1350,6 +1350,27 @@ public class PolyBase implements Shape, PolyNodeMerge
 		return perim;
 	}
 
+    /**
+     * Method to compute longest edge
+     * @return
+     */
+    public double getMaxLength()
+    {
+        double max = 0;
+		int start = 0;
+		if (style == Poly.Type.OPENED || style == Poly.Type.OPENEDT1 || style == Poly.Type.OPENEDT2 || style == Poly.Type.OPENEDT3)
+			start = 1;
+		for(int i=start; i<points.length; i++)
+		{
+			int j = i - 1;
+			if (j < 0) j = points.length - 1;
+            double distance = points[i].distance(points[j]);
+            if (max < distance)
+                max = distance;
+		}
+        return max;
+    }
+
 	/**
 	 * Method to compute the area of this Poly.
 	 * @return the area of this Poly. Return always a positive number

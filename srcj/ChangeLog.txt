@@ -4,10 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03f: *********************************
 
+IMP/MAN: (09/03/05, GVG) Max length rules for slot wires implemented. The code runs together with min area
+checking because max length should be checked in extracted geometry (Bugzilla #518)
+
 IMP/MAN: (09/02/05, GVG) Italian font when cells/libraries are marked with minor changes. Minor/major status
 also valid for cells. Some code to determine if cells can be removed.
 
-IMP/MAN: (09/02/05, GVG) Bold/italic fonts also for groups (Bugzilla #XXX)
+IMP/MAN: (09/02/05, GVG) Bold/italic fonts also for groups (Bugzilla #499)
 
 BUG: (09/2/05, GVG) Exception in Cell information if no DRC was run (no Bugzilla)
 FIX: DRC.getActiveBits() needs Technology as parameter.

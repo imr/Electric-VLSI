@@ -1293,6 +1293,12 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 					menu.add(menuItem);
 					menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { showByHierarchyAction(); } });
 
+//					menu.addSeparator();
+//
+//                    menuItem = new JMenuItem("Search");
+//                    menu.add(menuItem);
+//                    menuItem.addActionListener(new ActionListener() { public void actionPerformed(ActionEvent e) { searchAction(); } });
+
 					menu.show((Component)currentMouseEvent.getSource(), currentMouseEvent.getX(), currentMouseEvent.getY());
 					return;
 				}
@@ -1605,6 +1611,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			howToShow = SHOWBYHIERARCHY;
 			WindowFrame.wantToRedoLibraryTree();
 		}
+
+        private void searchAction()
+        {
+            String name = JOptionPane.showInputDialog(tree, "Name of cell to search","");
+			if (name == null) return;
+            System.out.println("Searching cell " + name);
+        }
 
 	}
 }

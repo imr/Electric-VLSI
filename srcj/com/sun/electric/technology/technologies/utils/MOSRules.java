@@ -63,6 +63,8 @@ public class MOSRules implements DRCRules {
 	/** minimum edge distance rules */							public String [] edgeListRules;
 	/** minimum area rules */								    public Double [] minArea;
 	/** minimum area rule names */							    public String [] minAreaRules;
+	/** maximum slot size rules */								    public Double [] slotSize;
+	/** maximum slot size rule names */							    public String [] slotSizeRules;
 
 	/** number of nodes in the technology */					public int       numNodes;
 	/** names of nodes */										public String [] nodeNames;
@@ -158,6 +160,9 @@ public class MOSRules implements DRCRules {
         minArea = new Double[numLayers];
         minAreaRules = new String[numLayers];
 
+        slotSize = new Double[numLayers];
+        slotSizeRules = new String[numLayers];
+
 		// clear all tables
 		for(int i=0; i<uTSize; i++)
 		{
@@ -176,6 +181,7 @@ public class MOSRules implements DRCRules {
 		{
 			minWidth[i] = new Double(MOSNORULE);        minWidthRules[i] = "";
             minArea[i] = new Double(MOSNORULE);        minAreaRules[i] = "";
+            slotSize[i] = new Double(MOSNORULE);        slotSizeRules[i] = "";
 		}
 
 		// build node size tables
@@ -633,6 +639,14 @@ public class MOSRules implements DRCRules {
 
             if (dist < 0) return null;
             return (new DRCTemplate(minAreaRules[index], techMode, DRCTemplate.AREA, 0, 0, null, null, dist, -1));
+        }
+        if (type == DRCTemplate.SLOTSIZE)
+        {
+            int index = layer.getIndex();
+            double dist = slotSize[index].doubleValue();
+
+            if (dist < 0) return null;
+            return (new DRCTemplate(slotSizeRules[index], techMode, DRCTemplate.SLOTSIZE, 0, 0, null, null, dist, -1));
         }
         return null;
 	}
