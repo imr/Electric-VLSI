@@ -700,13 +700,13 @@ public class DRC extends Listener
         cell.delVar(DRC_LAST_GOOD_BIT);
     }
 
-    public static int getActiveBits()
+    public static int getActiveBits(Technology tech)
     {
         int bits = 0;
         if (!isIgnoreAreaChecking()) bits |= DRC_BIT_AREA;
         if (!isIgnoreExtensionRuleChecking()) bits |= DRC_BIT_COVERAGE;
         // Adding foundry to bits set
-        int foundry = currentTechnology.getFoundry();
+        int foundry = tech.getFoundry();
         if (foundry != DRCTemplate.ALL)
             bits |= (foundry == DRCTemplate.ST) ? DRC_BIT_ST_FOUNDRY : DRC_BIT_TSMC_FOUNDRY;
 //        bits |= getFoundry();

@@ -267,7 +267,7 @@ public class Quick
 		DRCRules rules = DRC.getRules(tech);
 
         // caching bits
-        activeBits = DRC.getActiveBits();
+        activeBits = DRC.getActiveBits(tech);
 
         // caching technology mode
         techMode = tech.getFoundry();
@@ -467,7 +467,7 @@ public class Quick
         // This is only going to happen if job was not aborted.
 	    if ((job == null || !job.checkAbort()) && (goodDRCDate.size() > 0 || cleanDRCDate.size() > 0))
 	    {
-		    new UpdateDRCDates(goodDRCDate, cleanDRCDate);
+		    new UpdateDRCDates(tech, goodDRCDate, cleanDRCDate);
 	    }
 
         return logsFound;
@@ -480,18 +480,20 @@ public class Quick
 	{
 		HashMap goodDRCDate;
 		HashMap cleanDRCDate;
+        Technology tech;
 
-		protected UpdateDRCDates(HashMap goodDRCDate, HashMap cleanDRCDate)
+		protected UpdateDRCDates(Technology tech, HashMap goodDRCDate, HashMap cleanDRCDate)
 		{
 			super("Remember DRC Successes and/or Delete Obsolete Dates", DRC.tool, Job.Type.CHANGE, null, null, Job.Priority.USER);
-			this.goodDRCDate = goodDRCDate;
+			this.tech = tech;
+            this.goodDRCDate = goodDRCDate;
 			this.cleanDRCDate = cleanDRCDate;
 			startJob();
 		}
 
 		public boolean doIt()
 		{
-            int bits = DRC.getActiveBits();
+            int bits = DRC.getActiveBits(tech);
 
 			for(Iterator it = goodDRCDate.keySet().iterator(); it.hasNext(); )
 			{
