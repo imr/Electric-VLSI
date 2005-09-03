@@ -3838,7 +3838,6 @@ public class MoCMOS extends Technology
                     case DRCTemplate.AREA:
 						rules.minArea[layert1] = new Double(distance);
 						rules.minAreaRules[layert1] = rule;
-						setLayerMinWidth(theRules[i].name1, theRules[i].ruleName, distance);
 						break;
 					case DRCTemplate.NODSIZ:
 						setDefNodeSize(nty, theRules[i].ruleName, distance, distance, rules);
