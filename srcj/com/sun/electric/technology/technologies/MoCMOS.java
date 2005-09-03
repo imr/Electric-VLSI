@@ -1586,13 +1586,13 @@ public class MoCMOS extends Technology
 		pseudoNWell_lay.setFactory3DInfo(0, wellLayers[N_TYPE].getDistance());				// Pseudo-N-Well
 
 		// The Spice parasitics
-		metalLayers[0].setFactoryParasitics(0.06, 0.07, 0);			// Metal-1
-		metalLayers[1].setFactoryParasitics(0.06, 0.04, 0);			// Metal-2
-		metalLayers[2].setFactoryParasitics(0.06, 0.04, 0);			// Metal-3
-		metalLayers[3].setFactoryParasitics(0.03, 0.04, 0);			// Metal-4
-		metalLayers[4].setFactoryParasitics(0.03, 0.04, 0);			// Metal-5
-		metalLayers[5].setFactoryParasitics(0.03, 0.04, 0);			// Metal-6
-		poly1_lay.setFactoryParasitics(2.5, 0.09, 0);			// Polysilicon-1
+		metalLayers[0].setFactoryParasitics(0.078, 0.1209, 0.1104);			// Metal-1
+		metalLayers[1].setFactoryParasitics(0.078, 0.0843, 0.0974);			// Metal-2
+		metalLayers[2].setFactoryParasitics(0.078, 0.0843, 0.0974);			// Metal-3
+		metalLayers[3].setFactoryParasitics(0.078, 0.0843, 0.0974);			// Metal-4
+		metalLayers[4].setFactoryParasitics(0.078, 0.0843, 0.0974);			// Metal-5
+		metalLayers[5].setFactoryParasitics(0.036, 0.0423, 0.1273);			// Metal-6
+		poly1_lay.setFactoryParasitics(6.2, 0.1467, 0.0608);			// Polysilicon-1
 		poly2_lay.setFactoryParasitics(50.0, 1.0, 0);			// Polysilicon-2
 		activeLayers[P_TYPE].setFactoryParasitics(2.5, 0.9, 0);			// P-Active
 		activeLayers[N_TYPE].setFactoryParasitics(3.0, 0.9, 0);			// N-Active
@@ -1629,7 +1629,7 @@ public class MoCMOS extends Technology
 		pseudoNWell_lay.setFactoryParasitics(0, 0, 0);			// Pseudo-N-Well
 		padFrame_lay.setFactoryParasitics(0, 0, 0);				// Pad-Frame
 
-		setFactoryParasitics(50, 0.04);
+		setFactoryParasitics(4, 0.1);
 
 		String [] headerLevel1 =
 		{
