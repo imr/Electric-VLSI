@@ -24,11 +24,9 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.Main;
-import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.network.Netlist;
@@ -369,7 +367,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/** 0-based index of this Cell. */								private int cellIndex;
 	/** This Cell's Technology. */									private Technology tech;
 	/** The temporary integer value. */								private int tempInt;
-    /** Set if Cell is modified. */                                 private boolean modified;
+    /** Set if Cell is modified (mayor or minor. */                 private int modified;
 
 
 	// ------------------ protected and private methods -----------------------
@@ -2518,10 +2516,49 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 	private Rectangle2D accumulateTextBoundsOnObject(ElectricObject eObj, Rectangle2D bounds, EditWindow wnd)
 	{
-		Rectangle2D objBounds = eObj.getTextBounds(wnd);
-		if (objBounds == null) return bounds;
-		if (bounds == null) return objBounds;
-		Rectangle2D.union(bounds, objBounds, bounds);
+		for(Iterator vIt = eObj.getVariables(); vIt.hasNext(); )
+		{
+			Variable var = (Variable)vIt.next();
+			if (!var.isDisplay()) continue;
+			TextDescriptor td = var.getTextDescriptor();
+			if (td.getSize().isAbsolute()) continue;
+			Poly poly = eObj.computeTextPoly(wnd, var, null);
+			if (poly == null) continue;
+			Rectangle2D polyBound = poly.getBounds2D();
+			if (bounds == null) bounds = polyBound; else
+				Rectangle2D.union(bounds, polyBound, bounds);
+		}
+
+		if (eObj instanceof Geometric)
+		{
+			Geometric geom = (Geometric)eObj;
+			Name name = geom.getNameKey();
+			if (!name.isTempname())
+			{
+				Poly poly = eObj.computeTextPoly(wnd, null, name);
+				if (poly != null)
+				{
+					Rectangle2D polyBound = poly.getBounds2D();
+					if (bounds == null) bounds = polyBound; else
+						Rectangle2D.union(bounds, polyBound, bounds);
+				}
+			}
+		}
+		if (eObj instanceof NodeInst)
+		{
+			NodeInst ni = (NodeInst)eObj;
+			for(Iterator it = ni.getExports(); it.hasNext(); )
+			{
+				Export pp = (Export)it.next();
+				Poly poly = pp.computeTextPoly(wnd, null, null);
+				if (poly != null)
+				{
+					Rectangle2D polyBound = poly.getBounds2D();
+					if (bounds == null) bounds = polyBound; else
+						Rectangle2D.union(bounds, polyBound, bounds);
+				}
+			}
+		}
 		return bounds;
 	}
 
@@ -2940,9 +2977,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Method to determine whether this Cell is in use anywhere.
 	 * If it is, an error dialog is displayed.
 	 * @param action a description of the intended action (i.e. "delete").
+     * @param quiet true not to warn the user of the cell being used.
 	 * @return true if this Cell is in use anywhere.
 	 */
-	public boolean isInUse(String action)
+	public boolean isInUse(String action, boolean quiet)
 	{
 		String parents = null;
 		for(Iterator it = getUsagesOf(); it.hasNext(); )
@@ -2954,7 +2992,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		}
 		if (parents != null)
 		{
-			JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot " + action + " " + this +
+            if (!quiet)
+			    JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot " + action + " " + this +
 				" because it is used in " + parents,
 					action + " failed", JOptionPane.ERROR_MESSAGE);
 			return true;
@@ -3489,20 +3528,34 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
     /**
 	 * Method to set if cell has been modified since last save to disk. No need to call checkChanging().
+     * -1 means no changes, 0 minor changes and 1 major changes
 	 */
-	public void setModified() { modified = true;}
+	public void setModified(boolean majorChange)
+    {
+        if (majorChange) modified = 1;
+        else
+        {
+            // only set it if modified != 1
+            if (modified != 1) modified = 0;
+        }
+    }
 
 	/**
 	 * Method to clear this Cell modified bit since last save to disk. No need to call checkChanging().
      * This is done when the library contained this cell is saved to disk.
 	 */
-	public void clearModified() { modified = false; }
+	public void clearModified() { modified = -1; }
 
 	/**
 	 * Method to tell if this Cell has been modified since last save to disk.
 	 * @return true if cell has been modified.
 	 */
-	public boolean isModified() { return modified; }
+	public boolean isModified(boolean majorChange)
+    {
+        if (majorChange) return modified == 1;
+        // only minor change
+        return modified == 0;
+    }
 
 	/**
 	 * Method to set the multi-page capability of this Cell.

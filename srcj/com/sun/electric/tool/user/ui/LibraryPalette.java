@@ -243,7 +243,7 @@ public class LibraryPalette extends JPanel implements DatabaseChangeListener, Mo
     private void selectedCellDelete() {
         Cell cell = (Cell)cellJList.getSelectedValue();
         if (cell == null) return;
-        CircuitChanges.deleteCell(cell, true);
+        CircuitChanges.deleteCell(cell, true, false);
         cellJList.clearSelection();
     }
 

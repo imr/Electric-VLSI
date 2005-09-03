@@ -592,12 +592,13 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 
 	private class MyRenderer extends DefaultTreeCellRenderer
 	{
-		private Font plainFont, boldFont;
+		private Font plainFont, boldFont, italicFont;
 
 		public MyRenderer()
 		{
 			plainFont = new Font("arial", Font.PLAIN, 11);
 			boldFont = new Font("arial", Font.BOLD, 11);
+            italicFont = new Font("arial", Font.ITALIC, 11);
 		}
 
 		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel,
@@ -615,18 +616,21 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 				if (iconLibrary == null)
 					iconLibrary = Resources.getResource(getClass(), "IconLibrary.gif");
 				if (lib.isChangedMajor()) setFont(boldFont);
+                else if (lib.isChangedMinor()) setFont(italicFont);
 				setIcon(iconLibrary);
 			}
 			if (nodeInfo instanceof CellAndCount)
 			{
 				CellAndCount cc = (CellAndCount)nodeInfo;
 				nodeInfo = cc.getCell();
-                if (cc.getCell().isModified()) setFont(boldFont);
+                if (cc.getCell().isModified(true)) setFont(boldFont);
+                else if (cc.getCell().isModified(false)) setFont(italicFont);
 			}
 			if (nodeInfo instanceof Cell)
 			{
 				Cell cell = (Cell)nodeInfo;
-                if (cell.isModified()) setFont(boldFont);
+                if (cell.isModified(true)) setFont(boldFont);
+                else if (cell.isModified(false)) setFont(italicFont);
 				IconGroup ig;
 				if (cell.isIcon()) ig = findIconGroup(View.ICON); else
 					if (cell.getView() == View.LAYOUT) ig = findIconGroup(View.LAYOUT); else
@@ -652,6 +656,20 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 			}
 			if (nodeInfo instanceof Cell.CellGroup)
 			{
+                Cell.CellGroup cg = (Cell.CellGroup)nodeInfo;
+                int status = -1; // hasn't changed , status = 1 -> major change, status = 0 -> minor change
+                for (Iterator it = cg.getCells(); status != 1 && it.hasNext();)
+                {
+                    Cell c = (Cell) it.next();
+                    if (c.isModified(true))
+                    {
+                        status = 1;
+                        break;  // no need of checking the rest
+                    }
+                    else if (c.isModified(false)) status = 0;
+                }
+                if (status == 1) setFont(boldFont);
+                else if (status == 0) setFont(italicFont);
 				if (iconGroup == null)
 					iconGroup = Resources.getResource(getClass(), "IconGroup.gif");
 				setIcon(iconGroup);
@@ -1504,7 +1522,7 @@ public class ExplorerTree extends JTree implements DragGestureListener, DragSour
 		private void deleteCellAction()
 		{
 			Cell cell = (Cell)tree.currentSelectedObject;
-			CircuitChanges.deleteCell(cell, true);
+			CircuitChanges.deleteCell(cell, true, false);
 		}
 
 		private void renameCellAction()

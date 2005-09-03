@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03f: *********************************
 
+IMP/MAN: (09/02/05, GVG) Italian font when cells/libraries are marked with minor changes. Minor/major status
+also valid for cells. Some code to determine if cells can be removed.
+
 BUG: (09/2/05, GVG) Exception in Cell information if no DRC was run (no Bugzilla)
 FIX: DRC.getActiveBits() needs Technology as parameter.
 

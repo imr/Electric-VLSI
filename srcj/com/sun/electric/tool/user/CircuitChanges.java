@@ -1732,12 +1732,13 @@ public class CircuitChanges
 	 * Method to delete a cell.
 	 * @param cell the cell to delete.
 	 * @param confirm true to prompt the user to confirm the deletion.
+     * @param quiet true not to warn the user of the cell being used.
 	 * @return true if the cell will be deleted (in a separate Job).
 	 */
-	public static boolean deleteCell(Cell cell, boolean confirm)
+	public static boolean deleteCell(Cell cell, boolean confirm, boolean quiet)
 	{
 		// see if this cell is in use anywhere
-		if (cell.isInUse("delete")) return false;
+		if (cell.isInUse("delete", quiet)) return false;
 
 		// make sure the user really wants to delete the cell
 		if (confirm)
@@ -1769,7 +1770,7 @@ public class CircuitChanges
 		public boolean doIt()
 		{
 			// check cell usage once more
-			if (cell.isInUse("delete")) return false;
+			if (cell.isInUse("delete", false)) return false;
 			doKillCell(cell);
 			return true;
 		}
@@ -4830,7 +4831,7 @@ public class CircuitChanges
 			System.out.println("Must define an area in which to display");
 			return;
 		}
-		wnd.repaintContents(bounds, true);
+		wnd.repaintContents(bounds, false);
 	}
 
 	private static void DoExpandCommands(boolean unExpand, int amount)

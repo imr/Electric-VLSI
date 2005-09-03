@@ -23,6 +23,11 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.technology.Technology;
+
+import javax.swing.*;
+import java.awt.*;
+
 /**
  * Unused class to manage fill generators.
  * TODO: RK Decide whether to use this file or discard it.
@@ -30,9 +35,66 @@ package com.sun.electric.tool.user.dialogs;
 public class FillGen extends EDialog {
     
     /** Creates new form FillGen */
-    public FillGen(java.awt.Frame parent, boolean modal) {
+    public FillGen(Technology tech, java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
+        int numMetals = (tech == null) ? 6 : tech.getNumMetals();
+
+        for (int i = 1; i < numMetals; i++)
+        {
+            JLabel label = new javax.swing.JLabel();
+
+            label.setText("Metal " + (i+1));
+            GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints.gridx = 0;
+            gridBagConstraints.gridy = i;
+            metalPanel.add(label, gridBagConstraints);
+
+            JTextField text = new JTextField();
+            text.setColumns(8);
+            text.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
+            text.setText("0");
+            text.setMinimumSize(new java.awt.Dimension(100, 21));
+            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints.gridx = 1;
+            gridBagConstraints.gridy = i;
+            metalPanel.add(text, gridBagConstraints);
+
+            JComboBox combox = new JComboBox();
+            combox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
+//            combox.addActionListener(new java.awt.event.ActionListener() {
+//                public void actionPerformed(java.awt.event.ActionEvent evt) {
+//                    jComboBox2ActionPerformed(evt);
+//                }
+//            });
+            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints.gridx = 2;
+            gridBagConstraints.gridy = i;
+            metalPanel.add(combox, gridBagConstraints);
+
+            text = new JTextField();
+            text.setColumns(8);
+            text.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
+            text.setText("0");
+            text.setMinimumSize(new java.awt.Dimension(100, 21));
+            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints.gridx = 3;
+            gridBagConstraints.gridy = i;
+            gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
+            metalPanel.add(text, gridBagConstraints);
+
+            combox = new JComboBox();
+            combox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
+//            combox.addActionListener(new java.awt.event.ActionListener() {
+//                public void actionPerformed(java.awt.event.ActionEvent evt) {
+//                    jComboBox2ActionPerformed(evt);
+//                }
+//            });
+            gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints.gridx = 4;
+            gridBagConstraints.gridy = i;
+            metalPanel.add(combox, gridBagConstraints);
+        }
 		finishInitialization();
    }
     
@@ -57,31 +119,7 @@ public class FillGen extends EDialog {
         jComboBox1 = new javax.swing.JComboBox();
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
-        jLabel11 = new javax.swing.JLabel();
-        jLabel12 = new javax.swing.JLabel();
-        jLabel13 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
-        jTextField4 = new javax.swing.JTextField();
-        jTextField5 = new javax.swing.JTextField();
-        jTextField6 = new javax.swing.JTextField();
-        jTextField7 = new javax.swing.JTextField();
-        jComboBox2 = new javax.swing.JComboBox();
-        jComboBox3 = new javax.swing.JComboBox();
-        jComboBox4 = new javax.swing.JComboBox();
-        jComboBox5 = new javax.swing.JComboBox();
-        jComboBox6 = new javax.swing.JComboBox();
-        jTextField8 = new javax.swing.JTextField();
-        jTextField9 = new javax.swing.JTextField();
-        jTextField10 = new javax.swing.JTextField();
-        jTextField11 = new javax.swing.JTextField();
-        jTextField12 = new javax.swing.JTextField();
-        jComboBox7 = new javax.swing.JComboBox();
-        jComboBox8 = new javax.swing.JComboBox();
-        jComboBox9 = new javax.swing.JComboBox();
-        jComboBox10 = new javax.swing.JComboBox();
-        jComboBox11 = new javax.swing.JComboBox();
+        metalPanel = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         jCheckBox1 = new javax.swing.JCheckBox();
@@ -97,6 +135,7 @@ public class FillGen extends EDialog {
         jCheckBox11 = new javax.swing.JCheckBox();
         jCheckBox12 = new javax.swing.JCheckBox();
         jPanel3 = new javax.swing.JPanel();
+        jButton1 = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -116,7 +155,11 @@ public class FillGen extends EDialog {
         jLabel1.setFont(new java.awt.Font("MS Sans Serif", 1, 14));
         jLabel1.setText("Fill Cell Floorplan");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 10, 0);
         jPanel1.add(jLabel1, gridBagConstraints);
 
@@ -139,6 +182,7 @@ public class FillGen extends EDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         jPanel1.add(jTextField1, gridBagConstraints);
 
         jTextField2.setColumns(8);
@@ -154,18 +198,21 @@ public class FillGen extends EDialog {
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         jPanel1.add(jTextField2, gridBagConstraints);
 
         jLabel6.setText("Even layer orientation");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
         jPanel1.add(jLabel6, gridBagConstraints);
 
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "horizontal", "vertical" }));
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
         jPanel1.add(jComboBox1, gridBagConstraints);
 
         jLabel7.setText("Vdd reserved space");
@@ -184,202 +231,15 @@ public class FillGen extends EDialog {
         gridBagConstraints.insets = new java.awt.Insets(10, 0, 0, 0);
         jPanel1.add(jLabel8, gridBagConstraints);
 
-        jLabel9.setText("Metal 2");
+        metalPanel.setLayout(new java.awt.GridBagLayout());
+
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
-        jPanel1.add(jLabel9, gridBagConstraints);
-
-        jLabel10.setText("Metal 3");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        jPanel1.add(jLabel10, gridBagConstraints);
-
-        jLabel11.setText("Metal 4");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        jPanel1.add(jLabel11, gridBagConstraints);
-
-        jLabel12.setText("Metal 5");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 8;
-        jPanel1.add(jLabel12, gridBagConstraints);
-
-        jLabel13.setText("Metal 6");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 9;
-        jPanel1.add(jLabel13, gridBagConstraints);
-
-        jTextField3.setColumns(8);
-        jTextField3.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-        jTextField3.setText("0");
-        jTextField3.setMinimumSize(new java.awt.Dimension(100, 21));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 5;
-        jPanel1.add(jTextField3, gridBagConstraints);
-
-        jTextField4.setColumns(8);
-        jTextField4.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-        jTextField4.setText("0");
-        jTextField4.setMinimumSize(new java.awt.Dimension(100, 21));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
-        jPanel1.add(jTextField4, gridBagConstraints);
-
-        jTextField5.setColumns(8);
-        jTextField5.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-        jTextField5.setText("0");
-        jTextField5.setMinimumSize(new java.awt.Dimension(100, 21));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
-        jPanel1.add(jTextField5, gridBagConstraints);
-
-        jTextField6.setColumns(8);
-        jTextField6.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-        jTextField6.setText("0");
-        jTextField6.setMinimumSize(new java.awt.Dimension(100, 21));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 8;
-        jPanel1.add(jTextField6, gridBagConstraints);
-
-        jTextField7.setColumns(8);
-        jTextField7.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-        jTextField7.setText("0");
-        jTextField7.setMinimumSize(new java.awt.Dimension(100, 21));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 9;
-        jPanel1.add(jTextField7, gridBagConstraints);
-
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
-        jComboBox2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox2ActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 5;
-        jPanel1.add(jComboBox2, gridBagConstraints);
-
-        jComboBox3.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
-        jPanel1.add(jComboBox3, gridBagConstraints);
-
-        jComboBox4.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
-        jComboBox4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox4ActionPerformed(evt);
-            }
-        });
-
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 7;
-        jPanel1.add(jComboBox4, gridBagConstraints);
-
-        jComboBox5.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 8;
-        jPanel1.add(jComboBox5, gridBagConstraints);
-
-        jComboBox6.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 9;
-        jPanel1.add(jComboBox6, gridBagConstraints);
-
-        jTextField8.setColumns(8);
-        jTextField8.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-        jTextField8.setText("0");
-        jTextField8.setMinimumSize(new java.awt.Dimension(100, 21));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 5;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
-        jPanel1.add(jTextField8, gridBagConstraints);
-
-        jTextField9.setColumns(8);
-        jTextField9.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-        jTextField9.setText("0");
-        jTextField9.setMinimumSize(new java.awt.Dimension(100, 21));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
-        jPanel1.add(jTextField9, gridBagConstraints);
-
-        jTextField10.setColumns(8);
-        jTextField10.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-        jTextField10.setText("0");
-        jTextField10.setMinimumSize(new java.awt.Dimension(100, 21));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
-        jPanel1.add(jTextField10, gridBagConstraints);
-
-        jTextField11.setColumns(8);
-        jTextField11.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-        jTextField11.setText("0");
-        jTextField11.setMinimumSize(new java.awt.Dimension(100, 21));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 8;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
-        jPanel1.add(jTextField11, gridBagConstraints);
-
-        jTextField12.setColumns(8);
-        jTextField12.setHorizontalAlignment(javax.swing.JTextField.TRAILING);
-        jTextField12.setText("0");
-        jTextField12.setMinimumSize(new java.awt.Dimension(100, 21));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 9;
-        gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 0);
-        jPanel1.add(jTextField12, gridBagConstraints);
-
-        jComboBox7.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 5;
-        jPanel1.add(jComboBox7, gridBagConstraints);
-
-        jComboBox8.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 6;
-        jPanel1.add(jComboBox8, gridBagConstraints);
-
-        jComboBox9.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 7;
-        jPanel1.add(jComboBox9, gridBagConstraints);
-
-        jComboBox10.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 9;
-        jPanel1.add(jComboBox10, gridBagConstraints);
-
-        jComboBox11.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "lambda", "tracks" }));
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 4;
-        gridBagConstraints.gridy = 8;
-        jPanel1.add(jComboBox11, gridBagConstraints);
+        gridBagConstraints.gridwidth = 5;
+        gridBagConstraints.gridheight = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        jPanel1.add(metalPanel, gridBagConstraints);
 
         jTabbedPane1.addTab("Floorplan", jPanel1);
 
@@ -472,14 +332,27 @@ public class FillGen extends EDialog {
 
         jTabbedPane1.addTab("Layers", jPanel3);
 
-        getContentPane().add(jTabbedPane1, new java.awt.GridBagConstraints());
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        getContentPane().add(jTabbedPane1, gridBagConstraints);
+
+        jButton1.setLabel("OK");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridy = 1;
+        getContentPane().add(jButton1, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
 
-    private void jComboBox4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox4ActionPerformed
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jComboBox4ActionPerformed
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jCheckBox4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox4ActionPerformed
         // TODO add your handling code here:
@@ -488,10 +361,6 @@ public class FillGen extends EDialog {
     private void jCheckBox5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox5ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jCheckBox5ActionPerformed
-
-    private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox2ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jComboBox2ActionPerformed
 
     private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
         // TODO add your handling code here:
@@ -506,12 +375,18 @@ public class FillGen extends EDialog {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        new FillGen(new javax.swing.JFrame(), true).setVisible(true);
+        new FillGen(null, new javax.swing.JFrame(), true).setVisible(true);
+    }
+
+    public static void openFillGeneratorDialog(Technology tech)
+    {
+        new FillGen(tech, new javax.swing.JFrame(), true).setVisible(true);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.ButtonGroup buttonGroup2;
+    private javax.swing.JButton jButton1;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JCheckBox jCheckBox10;
     private javax.swing.JCheckBox jCheckBox11;
@@ -525,44 +400,20 @@ public class FillGen extends EDialog {
     private javax.swing.JCheckBox jCheckBox8;
     private javax.swing.JCheckBox jCheckBox9;
     private javax.swing.JComboBox jComboBox1;
-    private javax.swing.JComboBox jComboBox10;
-    private javax.swing.JComboBox jComboBox11;
-    private javax.swing.JComboBox jComboBox2;
-    private javax.swing.JComboBox jComboBox3;
-    private javax.swing.JComboBox jComboBox4;
-    private javax.swing.JComboBox jComboBox5;
-    private javax.swing.JComboBox jComboBox6;
-    private javax.swing.JComboBox jComboBox7;
-    private javax.swing.JComboBox jComboBox8;
-    private javax.swing.JComboBox jComboBox9;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
-    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField10;
-    private javax.swing.JTextField jTextField11;
-    private javax.swing.JTextField jTextField12;
     private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
-    private javax.swing.JTextField jTextField4;
-    private javax.swing.JTextField jTextField5;
-    private javax.swing.JTextField jTextField6;
-    private javax.swing.JTextField jTextField7;
-    private javax.swing.JTextField jTextField8;
-    private javax.swing.JTextField jTextField9;
+    private javax.swing.JPanel metalPanel;
     // End of variables declaration//GEN-END:variables
     private java.awt.Color currentColor = java.awt.Color.lightGray;
 }

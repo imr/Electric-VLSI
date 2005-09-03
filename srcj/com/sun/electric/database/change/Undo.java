@@ -598,10 +598,9 @@ public class Undo
 			if (cell != null)
 			{
 				if (major)
-                {
                     cell.madeRevision();
-                    cell.setModified(); // this will avoid marking DRC variables.
-                }
+               cell.setModified(major); // this will avoid marking DRC variables.
+
 				changedCells.add(cell);
 			}
 			if (lib != null)

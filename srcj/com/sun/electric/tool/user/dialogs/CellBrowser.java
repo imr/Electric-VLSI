@@ -589,7 +589,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             String lastDeleted = null;
             for (Iterator it = cells.iterator(); it.hasNext(); ) {
                 Cell cell = (Cell)it.next();
-                if (CircuitChanges.deleteCell(cell, confirmDelete)) {
+                if (CircuitChanges.deleteCell(cell, confirmDelete, false)) {
                     lastDeleted = cell.noLibDescribe();
                 }
             }

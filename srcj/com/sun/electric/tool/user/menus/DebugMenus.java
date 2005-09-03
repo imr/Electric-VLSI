@@ -244,6 +244,8 @@ public class DebugMenus {
 
         MenuBar.Menu gildaMenu = MenuBar.makeMenu("_Gilda");
         menuBar.add(gildaMenu);
+        gildaMenu.addMenuItem("Clean libraries", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {cleanSetOfLibraries();}});
         gildaMenu.addMenuItem("9 layers -> 7 layers", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {convertTo7LayersTech();}});
         gildaMenu.addMenuItem("Test Parameters", null,
@@ -739,6 +741,36 @@ public class DebugMenus {
 	}
 
 	// ---------------------- Gilda's Stuff MENU -----------------
+
+    private static void cleanSetOfLibraries()
+    {
+        boolean noMoreFound = false;
+        String keyword = "qLiteTop";
+
+//        while (!noMoreFound)
+        {
+            noMoreFound = true;
+            for(Iterator it = Library.getLibraries(); it.hasNext(); )
+            {
+                Library lib = (Library)it.next();
+
+                // skip top cell
+                if (lib.getName().indexOf(keyword) != -1)
+                    continue;
+
+                for (Iterator itCell = lib.getCells(); itCell.hasNext(); )
+                {
+                    Cell cell = (Cell)itCell.next();
+//                    if (CircuitChanges.deleteCell(cell, true, true))
+                    if (!cell.isInUse("delete", true))
+                    {
+                        System.out.println(cell + " can be deleted");
+                        noMoreFound = false;
+                    }
+                }
+            }
+        }
+    }
 
     private static void convertTo7LayersTech()
     {
@@ -1553,7 +1585,7 @@ public class DebugMenus {
         for (Iterator it = lib.getCells(); it.hasNext(); ) {
             Cell cell = (Cell)it.next();
             if (cell.getView() != view) continue;
-            if (CircuitChanges.deleteCell(cell, false))
+            if (CircuitChanges.deleteCell(cell, false, false))
                 deleted++;
             else
                 notDeleted++;
