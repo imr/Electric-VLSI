@@ -61,6 +61,8 @@ public class MOSRules implements DRCRules {
 	/** minimum distance rules when unconnected (multi-cut) */	public String [] unConListMultiRules;
 	/** minimum edge distances */								public Double [] edgeList;
 	/** minimum edge distance rules */							public String [] edgeListRules;
+	/** minimum area rules */								    public Double [] minArea;
+	/** minimum area rule names */							    public String [] minAreaRules;
 
 	/** number of nodes in the technology */					public int       numNodes;
 	/** names of nodes */										public String [] nodeNames;
@@ -153,6 +155,9 @@ public class MOSRules implements DRCRules {
 		minWidth = new Double[numLayers];
 		minWidthRules = new String[numLayers];
 
+        minArea = new Double[numLayers];
+        minAreaRules = new String[numLayers];
+
 		// clear all tables
 		for(int i=0; i<uTSize; i++)
 		{
@@ -170,6 +175,7 @@ public class MOSRules implements DRCRules {
 		for(int i=0; i<numLayers; i++)
 		{
 			minWidth[i] = new Double(MOSNORULE);        minWidthRules[i] = "";
+            minArea[i] = new Double(MOSNORULE);        minAreaRules[i] = "";
 		}
 
 		// build node size tables
@@ -612,13 +618,23 @@ public class MOSRules implements DRCRules {
 	 */
     public DRCTemplate getMinValue(Layer layer, int type, int techMode)
 	{
-	    if (type != DRCTemplate.MINWID) return null;
-	    
-        int index = layer.getIndex();
-        double dist = minWidth[index].doubleValue();
+	    if (type == DRCTemplate.MINWID)
+        {
+            int index = layer.getIndex();
+            double dist = minWidth[index].doubleValue();
 
-        if (dist < 0) return null;
-		return (new DRCTemplate(minWidthRules[index], techMode, DRCTemplate.MINWID, 0, 0, null, null, dist, -1));
+            if (dist < 0) return null;
+            return (new DRCTemplate(minWidthRules[index], techMode, DRCTemplate.MINWID, 0, 0, null, null, dist, -1));
+        }
+        if (type == DRCTemplate.AREA)
+        {
+            int index = layer.getIndex();
+            double dist = minArea[index].doubleValue();
+
+            if (dist < 0) return null;
+            return (new DRCTemplate(minAreaRules[index], techMode, DRCTemplate.AREA, 0, 0, null, null, dist, -1));
+        }
+        return null;
 	}
 
     /**

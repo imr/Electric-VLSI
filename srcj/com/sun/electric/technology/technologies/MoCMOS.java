@@ -369,6 +369,11 @@ public class MoCMOS extends Technology
 
 		new DRCTemplate("7.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "Metal-1",         null,            3,  null),
         new DRCTemplate("M1.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-1",         null,            20.2,  null),  // TSMC page 39
+        new DRCTemplate("Mx.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-2",         null,            20.2,  null),  // TSMC page 39
+        new DRCTemplate("Mx.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-3",         null,            20.2,  null),  // TSMC page 39
+        new DRCTemplate("Mx.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-4",         null,            20.2,  null),  // TSMC page 39
+        new DRCTemplate("Mx.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-5",         null,            20.2,  null),  // TSMC page 39
+        new DRCTemplate("M6.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-6",         null,            56.2,  null),  // TSMC page 39
 
 		new DRCTemplate("7.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        3,  null),
 		new DRCTemplate("7.2 TSMC (M1.S.1)",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        2.3,  null),
@@ -3826,10 +3831,13 @@ public class MoCMOS extends Technology
 				switch (theRules[i].ruleType)
 				{
 					case DRCTemplate.MINWID:
-						if (Main.getDebug() && layert1 >= 0 && layert2 >= 0)
-							System.out.println("Error in swap old tech");
 						rules.minWidth[layert1] = new Double(distance);
 						rules.minWidthRules[layert1] = rule;
+						setLayerMinWidth(theRules[i].name1, theRules[i].ruleName, distance);
+						break;
+                    case DRCTemplate.AREA:
+						rules.minArea[layert1] = new Double(distance);
+						rules.minAreaRules[layert1] = rule;
 						setLayerMinWidth(theRules[i].name1, theRules[i].ruleName, distance);
 						break;
 					case DRCTemplate.NODSIZ:
