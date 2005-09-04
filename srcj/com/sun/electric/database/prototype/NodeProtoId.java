@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: DatabaseChangeThread.java
+ * File: NodeProtoId.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -21,35 +21,22 @@
  * the Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, Mass 02111-1307, USA.
  */
-package com.sun.electric.database;
+package com.sun.electric.database.prototype;
 
-public class DatabaseChangeThread extends DatabaseThread
+/**
+ * The NodeProtoId interface identifies a type of NodeInst .
+ * It can be implemented as PrimitiveNode (for primitives from Technologies)
+ * or as CellId (for cells in Libraries).
+ * <P>
+ * The NodeProtoId is immutable and identifies NodeProto independently of threads. It differs from NodeProto objects,
+ * some of them (Cells) will be owned by threads  in transactional database. PrimitiveNodes will
+ * be shared too, so they are both NodeProtoId and NodeProto.
+ */
+public interface NodeProtoId
 {
-	private int[] allocCounts = {};
-	
-	int allocCellId() {
-		int cellId = allocCounts.length;
-		int[] newCounts = new int[cellId + 1];
-		System.arraycopy(allocCounts, 0, newCounts, 0, allocCounts.length);
-		allocCounts = newCounts;
-		return cellId;
-	}
-
-	int allocNodeId(int cellId) {
-		return allocCounts[cellId]++;
-	}
-
-	DatabaseChangeThread checkChanging() {
-		if (this != Thread.currentThread())
-			throw new IllegalStateException("Other thread");
-		if (!valid)
-			throw new IllegalStateException("database invalid");
-		valid = false;
-		return this;
-	}
-	
-	void endChanging() {
-		assert !valid;
-		valid = true;
-	}
+	/**
+	 * Method to return the NodeProto representiong NodeProtoId in the current thread.
+	 * @return the NodeProto representing NodeProtoId in the current thread.
+	 */
+    NodeProto inThisThread();
 }

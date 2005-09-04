@@ -66,7 +66,7 @@ public class Input
 	/** The progress during input. */						protected static Progress progress = null;
 	/** the path to the library being read. */				protected static String mainLibDirectory = null;
 	/** true if the library is the main one being read. */	protected boolean topLevelLibrary;
-	/** the number of bytes of data read so far */			protected int byteCount;
+	/** the number of bytes of data read so far */			protected long byteCount;
 
 	// ---------------------- private and protected methods -----------------
 
@@ -327,7 +327,14 @@ public class Input
 		try
 		{
 			urlCon = fileURL.openConnection();
-			fileLength = urlCon.getContentLength();
+//            urlCon.setConnectTimeout(10000);
+//            urlCon.setReadTimeout(1000);
+            String contentLength = urlCon.getHeaderField("content-length");
+            fileLength = -1;
+            try {
+                fileLength = Long.parseLong(contentLength);
+            } catch (Exception e) {}
+//			fileLength = urlCon.getContentLength();
 			inputStream = urlCon.getInputStream();
 		} catch (IOException e)
 		{

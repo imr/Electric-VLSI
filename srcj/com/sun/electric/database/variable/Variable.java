@@ -31,7 +31,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.tool.user.ui.EditWindow;
+
 
 /**
  * The Variable class defines a single attribute-value pair that can be attached to any ElectricObject.
@@ -652,7 +652,7 @@ public class Variable
 	 * @param wnd the EditWindow in which drawing will occur.
 	 * @return the point size of the text described by the Variable's TextDescriptor.
 	 */
-	public double getTrueSize(EditWindow wnd) { return descriptor.getTrueSize(wnd); }
+	public double getTrueSize(EditWindow_ wnd) { return descriptor.getTrueSize(wnd); }
 
 	/**
 	 * Method to set the text size of Variable's TextDescriptor to an absolute size (in points).

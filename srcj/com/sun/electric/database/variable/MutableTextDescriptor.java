@@ -23,27 +23,6 @@
  */
 package com.sun.electric.database.variable;
 
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.DBMath;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.Connection;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
-
-import java.awt.geom.Rectangle2D;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.prefs.Preferences;
-
 /**
  * This class describes how variable text appears.
 */

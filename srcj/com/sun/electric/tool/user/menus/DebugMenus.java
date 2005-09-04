@@ -25,21 +25,15 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.database.AnalyzeHeap;
-import com.sun.electric.database.Cell_;
-import com.sun.electric.database.DatabaseChangeThread;
+import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.DumpHeap;
-import com.sun.electric.database.ImmutableCell;
-import com.sun.electric.database.ImmutableNodeInst;
-import com.sun.electric.database.Snapshot;
 import com.sun.electric.database.geometry.*;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
@@ -295,8 +289,6 @@ public class DebugMenus {
             new ActionListener() { public void actionPerformed(ActionEvent e) { DumpHeap.dump("heapdump.dat"); } });
 	    dimaMenu.addMenuItem("Read dump", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { AnalyzeHeap.analyze("heapdump.dat"); } });
-	    dimaMenu.addMenuItem("Transactional", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { transactionalTest(); } });
     }
 
 	// ---------------------- For Regression Testing -----------------
@@ -462,7 +454,6 @@ public class DebugMenus {
 			if (polyArc2 == null) return false;
 			ArcInst polyArc4 = ArcInst.makeInstance(p1Proto, p1Proto.getWidth(), transRPortR, p1PortB);
 			if (polyArc4 == null) return false;
-
 			// export the two pins
 			Export m1Export = Export.newInstance(myCell, m1m2Port, "in");
 			m1Export.setCharacteristic(PortCharacteristic.IN);
@@ -884,20 +875,20 @@ public class DebugMenus {
                 for(Iterator itNodes = cell.getNodes(); itNodes.hasNext(); )
                 {
                     NodeInst node = (NodeInst)itNodes.next();
-                    if (!node.getNodeUsage().isIcon()) continue;
-                    if (node.getNodeUsage().isIconOfParent()) continue;
+                    if (node.isIconOfParent()) continue;
                     NodeProto np = (NodeProto)node.getProto();
                     if (np instanceof Cell)
                     {
                         Cell master = (Cell)np;
+                        if (!master.isIcon()) continue;
                         NodeInst ni = null;
                         // Searching for instance of that icon in master cell
-                        for (Iterator itU = master.getUsagesOf(); itU.hasNext(); )
+                        for (Iterator itU = master.getNodes(); itU.hasNext(); )
                         {
-                            NodeUsage n = (NodeUsage)itU.next();
-                            if (n.isIconOfParent())
+                            NodeInst ni1 = (NodeInst)itU.next();
+                            if (ni1.isIconOfParent())
                             {
-                                ni = n.getInst(0);
+                                ni = ni1;
                                 break;
                             }
                         }
@@ -923,14 +914,14 @@ public class DebugMenus {
                 }
 
                 // Checking schematic/icon relation
-                for (Iterator itUsage = cell.getUsagesOf(); itUsage.hasNext(); )
+                for (Iterator itInstOf = cell.getInstancesOf(); itInstOf.hasNext(); )
                 {
-                    NodeUsage usage = (NodeUsage)itUsage.next();
+                    NodeInst instOf = (NodeInst)itInstOf.next();
 
-                    if (usage.isIconOfParent())
+                    if (instOf.isIconOfParent())
                     {
-                        NodeInst icon = (NodeInst)usage.getInst(0);
-                        Cell parent = usage.getParent();
+                        NodeInst icon = instOf;
+                        Cell parent = icon.getParent();
 
                         for (Iterator itVar = icon.getVariables(); itVar.hasNext();)
                         {
@@ -939,7 +930,7 @@ public class DebugMenus {
                             {
                                 if (parent.getVar(var.getKey())==null)
                                 {
-                                    System.out.println("Cell " + usage.getParent().describe(true) + " " + usage.getProto() + " ignoring " + var);
+                                    System.out.println("Cell " + parent.describe(true) + " " + icon.getProto() + " ignoring " + var);
                                 }
                             }
                         }
@@ -1608,9 +1599,6 @@ public class DebugMenus {
 	{
 		int subCells = 0;
 		int cellUsages = 0;
-		long cellSqr = 0;
-		int primUsages = 0;
-		long primSqr = 0;
 		int namedArcs = 0;
 		int namedNodes = 0;
 		int sameLocations = 0;
@@ -1640,14 +1628,8 @@ public class DebugMenus {
 
 				for (Iterator uIt = cell.getUsagesIn(); uIt.hasNext(); )
 				{
-					NodeUsage nu = (NodeUsage)uIt.next();
-					if (nu.getProto() instanceof Cell) {
-						cellUsages++;
-						cellSqr += nu.getNumInsts()*nu.getNumInsts();
-					} else {
-						primUsages++;
-						primSqr += nu.getNumInsts()*nu.getNumInsts();
-					}
+					CellUsage nu = (CellUsage)uIt.next();
+					cellUsages++;
 				}
 
 				for (Iterator nIt = cell.getNodes(); nIt.hasNext(); )
@@ -1711,11 +1693,9 @@ public class DebugMenus {
 		System.out.println(o + " " + v + " " + v1 + " " + c);
 		if (cellUsages != 0)
 			System.out.println(subCells + " subcells " + cellUsages + " cellUsages " +
-				((double)subCells)/cellUsages + " " + Math.sqrt(((double)cellSqr)/cellUsages));
+				((double)subCells)/cellUsages /*+ " " + Math.sqrt(((double)cellSqr)/cellUsages)*/);
 		int prims = objs['N'] - subCells;
-		if (primUsages != 0)
-			System.out.println(prims + " prims " + primUsages + " primUsages " +
-				((double)prims)/primUsages + " " + Math.sqrt(((double)primSqr)/primUsages));
+        System.out.println(prims + " prims");
 		System.out.println(namedNodes + " named nodes " + nodeNames.size());
 		System.out.println(namedArcs + " named arcs " + arcNames.size());
 		System.out.println(sameLocations + " same locations");
@@ -1819,76 +1799,4 @@ P 704883 0 0 0
         if (code == null) code = TextDescriptor.Code.NONE;
         descriptors.add(td);
     }
-    
-	private static void transactionalTest()
-	{
-		(new DatabaseTestThread()).start();
-	}
-
-	private static class DatabaseTestThread extends DatabaseChangeThread {
-		private Snapshot s = null;
-		
-		private void show() {
-			check();
-			s = backup(s);
-			print(s);
-		}
-		
-		/** (non-Javadoc)
-		 * @see java.lang.Runnable#run()
-		 * @requiresColor (!AWT & !DBExaminer);
-		 */
-		public void run() {//@grant DBChanger
-			Cell_ cell = Cell_.newInstance("c0");
-			show();
-			Cell_ cell1 = Cell_.newInstance("c1");
-			show();
-			cell.setName("c2");
-			show();
-			cell.newNode(cell1, Name.findName("n0"), EPoint.ORIGIN);
-			show();
-//			NodeInst_ node = cell.addNode("n0");
-//			ImmutableCell[] icells = new ImmutableCell[3];
-//
-//			ImmutableNodeInst[] inodes0 = new ImmutableNodeInst[10];
-//			inodes0[0] = ImmutableNodeInst.newInstance(0, "n0", EPoint.ORIGIN);
-//			inodes0[3] = ImmutableNodeInst.newInstance(2, "n3", new EPoint(2, 3));
-//			icells[0] = ImmutableCell.newInstance("c0", inodes0);
-//
-//			inodes0[2] = ImmutableNodeInst.newInstance(2, "n2", new EPoint(2, 2));
-//			icells[0] = icells[0].withNodes(inodes0);
-//
-//			ImmutableNodeInst[] inodes2 = new ImmutableNodeInst[1];
-//			inodes2[0] = ImmutableNodeInst.newInstance(2, "qq", EPoint.ORIGIN);
-//			icells[2] = ImmutableCell.newInstance("c2", inodes2);
-//
-//			Snapshot s = Snapshot.newInstance(icells);
-//
-//			s.check();
-//			print(s);
-//			try {
-//				s = s.withNodeName(0, 3, "qwerty");
-//			} catch (Throwable e) {
-//				e.printStackTrace();
-//			}
-//			s.check();
-//			print(s);
-		}
-	}
-
-	private static void print(Snapshot s) {
-		PrintWriter out = new PrintWriter(System.out, true);
-		for (int cellId = 0, maxCellId = s.maxCellId(); cellId <= maxCellId; cellId++) {
-			ImmutableCell cell = s.getCellById(cellId);
-			if (cell == null) continue;
-			out.println(cellId + " cell " + cell.name);
-			for (int nodeId = 0, maxNodeId = cell.maxNodeId(); nodeId <= maxNodeId; nodeId++) {
-				ImmutableNodeInst node = cell.getNodeById(nodeId);
-				if (node == null) continue;
-				out.println(nodeId + "\tnode " + node.name + " " + node.protoId + " " + node.anchor);
-			}
-		}
-		out.println("----");
-		out.flush();
-	}
 }

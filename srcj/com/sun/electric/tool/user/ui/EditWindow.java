@@ -44,6 +44,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
@@ -125,7 +126,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
  * (to the right of the explorer panel).
  */
 public class EditWindow extends JPanel
-	implements WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
+	implements EditWindow_, WindowContent, MouseMotionListener, MouseListener, MouseWheelListener, KeyListener, ActionListener,
 	    HighlightListener, DatabaseChangeListener
 {
 	/** the window scale */									private double scale;

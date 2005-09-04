@@ -51,6 +51,12 @@ public interface NodeProto
 {
 	// ----------------------- public methods -----------------------
 
+    /** Method to return NodeProtoId of this NodeProto.
+     * NodeProtoId identifies NodeProto independently of threads.
+     * @return NodeProtoId of this NodeProto.
+     */
+    NodeProtoId getId();
+    
 	/**
 	 * Method to return the function of this NodeProto.
 	 * The Function is a technology-independent description of the behavior of this NodeProto.

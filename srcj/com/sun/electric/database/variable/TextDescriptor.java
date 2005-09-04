@@ -22,18 +22,10 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database.variable;
-
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.geometry.EGraphics;
-import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.topology.ArcInst;
-import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -1010,7 +1002,7 @@ public abstract class TextDescriptor implements Serializable
 	 * @param wnd the EditWindow in which drawing will occur.
 	 * @return the point size of the text described by this TextDescriptor.
 	 */
-	public double getTrueSize(EditWindow wnd)
+	public double getTrueSize(EditWindow_ wnd)
 	{
 		double scale = 14;
 		Size s = getSize();

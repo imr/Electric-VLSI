@@ -24,6 +24,8 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Dimension2D;
@@ -32,6 +34,7 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.text.ArrayIterator;
@@ -42,6 +45,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -324,7 +328,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/** Variable key for text cell contents. */						public static final Variable.Key CELL_TEXT_KEY = ElectricObject.newKey("FACET_message");
 	/** Variable key for number of multipage pages. */				public static final Variable.Key MULTIPAGE_COUNT_KEY = ElectricObject.newKey("CELL_page_count");
 
-	private static final Export[] NULL_EXPORT_ARRAY = new Export[0];
+    private static final int[] NULL_INT_ARRAY = {};
+	private static final Export[] NULL_EXPORT_ARRAY = {};
 
 	/** set if instances should be expanded */						private static final int WANTNEXPAND   =           02;
 //	/** set if cell is modified */						            private static final int MODIFIED      =     01000000;
@@ -341,8 +346,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
     /** Bounds are correct if all subcells have correct bounds. */  private static final byte BOUNDS_CORRECT_SUB = 1;
     /** Bounds need to be recomputed. */                            private static final byte BOUNDS_RECOMPUTE = 2;
     
-	/** counter for enumerating cells */							private static int cellNumber = 0;
+	/** static list of all linked cells. */							private static final ArrayList linkedCells = new ArrayList();
 
+	/** CellId of this Cell. */                                     private CellId cellId = new CellId();
 	/** The CellName of the Cell. */								private CellName cellName;
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
 	/** The library this Cell belongs to. */						private Library lib;
@@ -353,8 +359,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
 	/** The Cell's essential-bounds. */								private List essenBounds = new ArrayList();
 	/** A list of NodeInsts in this Cell. */						private List nodes;
-	/** A map from NodeProto to NodeUsages in it */					private Map usagesIn;
-	/** A list of NodeUsages of this Cell. */						/*package-only*/ List usagesOf;
+    /** Counts of NodeInsts for each CellUsage. */                  private int[] cellUsages = NULL_INT_ARRAY;
 	/** A map from Name to Integer maximal numeric suffix */        private Map maxSuffix;
 	/** A list of ArcInsts in this Cell. */							private List arcs;
 	/** A map from temporary Name keys to Geometric. */				private Map tempNames;
@@ -364,10 +369,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
      * BOUNDS_CORRECT_SUB - bounds are correct prvided that bounds of subcells are correct.
      * BOUNDS_RECOMPUTE - bounds need to be recomputed. */          private byte boundsDirty;
 	/** The geometric data structure. */							private RTNode rTree = RTNode.makeTopLevel();
-	/** 0-based index of this Cell. */								private int cellIndex;
 	/** This Cell's Technology. */									private Technology tech;
 	/** The temporary integer value. */								private int tempInt;
-    /** Set if Cell is modified (mayor or minor. */                 private int modified;
+    /** Set if Cell is modified (major or minor). */                private int modified;
 
 
 	// ------------------ protected and private methods -----------------------
@@ -378,10 +382,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	private Cell()
 	{
-		this.cellIndex = cellNumber++;
 		nodes = new ArrayList();
-		usagesIn = new HashMap();
-		usagesOf = new ArrayList();
 		maxSuffix = new HashMap();
 		arcs = new ArrayList();
 		tempNames = new HashMap();
@@ -798,17 +799,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		// add ourselves to the library
 		lowLevelLinkCellName();
 
-		// link NodeUsages
-		for (Iterator it = getUsagesIn(); it.hasNext(); )
-		{
-			NodeUsage nu = (NodeUsage)it.next();
-			NodeProto np = nu.getProto();
-			if (np instanceof Cell)
-				((Cell)np).usagesOf.add(nu);
-		}
-
 		// success
-		Library.databaseObjs.add(this);
+        while (linkedCells.size() <= cellId.cellIndex) linkedCells.add(null);
+        linkedCells.set(cellId.cellIndex, this);
 		checkInvariants();
 		return false;
 	}
@@ -829,16 +822,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		lib.removeCell(this);
 		cellGroup.remove(this);
 
-		// unlink NodeUsages
-		for (Iterator it = getUsagesIn(); it.hasNext(); )
-		{
-			NodeUsage nu = (NodeUsage)it.next();
-			NodeProto np = nu.getProto();
-			if (np instanceof Cell)
-				((Cell)np).usagesOf.remove(nu);
-		}
-
-		Library.databaseObjs.remove(this);
+        linkedCells.set(cellId.cellIndex, null);
 	}
 
 	/**
@@ -1016,8 +1000,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
         if (boundsDirty == BOUNDS_CORRECT) {
             boundsDirty = boundsLevel;
             for (Iterator it = getUsagesOf(); it.hasNext(); ) {
-                NodeUsage nu = (NodeUsage)it.next();
-                nu.getParent().setDirty(BOUNDS_CORRECT_SUB);
+                CellUsage u = (CellUsage)it.next();
+                u.getParent().setDirty(BOUNDS_CORRECT_SUB);
             }
         } else if (boundsDirty < boundsLevel)
             boundsDirty = boundsLevel;
@@ -1045,9 +1029,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
         if (boundsDirty == BOUNDS_CORRECT_SUB) {
             boundsDirty = BOUNDS_CORRECT;
             for (Iterator it = getUsagesIn(); it.hasNext(); ) {
-                NodeUsage nu = (NodeUsage)it.next();
-                if (nu.getProto() instanceof Cell)
-                    ((Cell)nu.getProto()).getBounds();
+                CellUsage u = (CellUsage)it.next();
+                u.getProto().getBounds();
             }
             // boundsDirty could be changes by subcell's getBounds.
             if (boundsDirty == BOUNDS_CORRECT)
@@ -1578,7 +1561,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Method to return an Iterator over all NodeInst objects in this Cell.
 	 * @return an Iterator over all NodeInst objects in this Cell.
 	 */
-	public synchronized Iterator getNodes()
+	public synchronized Iterator/*<NodeInst>*/ getNodes()
 	{
         ArrayList nodesCopy = new ArrayList(nodes);
 		return nodesCopy.iterator();
@@ -1603,24 +1586,49 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		return (NodeInst)nodes.get(nodeIndex);
 	}
 
-	/**
-	 * Method to return an Iterator over all NodeUsage objects in this Cell.
-	 * @return an Iterator over all NodeUsage objects in this Cell.
-	 */
-	public synchronized Iterator getUsagesIn()
-	{
-        Map usagesCopy = new HashMap(usagesIn);
-		return usagesCopy.values().iterator();
-	}
+    /**
+     * Method to return an Iterator over all CellUsage objects in this Cell.
+     * @return an Iterator over all CellUsage objects in this Cell.
+     */
+    public synchronized Iterator/*<CellUsage>*/ getUsagesIn() {
+        return new Iterator() {
+            private int i = 0;
+            CellUsage nextU = findNext();
+            
+            public boolean hasNext() { return nextU != null; }
+            
+            public Object next() {
+                if (nextU == null) throw new NoSuchElementException();
+                CellUsage u = nextU;
+                nextU = findNext();
+                return u;
+            }
+            
+            public void remove() { throw new UnsupportedOperationException(); };
+            
+            private CellUsage findNext() {
+                while (i < cellUsages.length) {
+                    if (cellUsages[i] != 0)
+                        return cellId.getUsageIn(i++);
+                    i++;
+                }
+                return null;
+            }
+        };
+    }
 
-	/**
-	 * Method to return the number of NodeUsage objects in this Cell.
-	 * @return the number of NodeUsage objects in this Cell.
-	 */
-	public int getNumUsagesIn()
-	{
-		return usagesIn.size();
-	}
+    /**
+     * Method to return the number of NodeUsage objects in this Cell.
+     * @return the number of NodeUsage objects in this Cell.
+     */
+    public int getNumUsagesIn() {
+        int numUsages = 0;
+        for (int i = 0; i < cellUsages.length; i++) {
+            if (cellUsages[i] != 0)
+                numUsages++;
+        }
+        return numUsages;
+    }
 
 	/**
 	 * Method to find a named NodeInst on this Cell.
@@ -1661,18 +1669,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public boolean addNode(NodeInst ni)
 	{
 		checkChanging();
-//		String name = ni.getName();
-
-        // error check
-		NodeUsage nu = ni.getNodeUsage();
-		if (nu.contains(ni))
-		{
-			System.out.println("Cell " + this +" already contains node inst " + ni);
-			return true;
-		}
 
 		// check to see if this instantiation would create a circular library dependency
-		NodeProto protoType = nu.getProto();
+		NodeProto protoType = ni.getProto();
 		if (protoType instanceof Cell) {
 			Cell instProto = (Cell)protoType;
 			if (instProto.getLibrary() != getLibrary()) {
@@ -1695,7 +1694,17 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		}
 
 		addNodeName(ni);
-		nu.addInst(ni);
+        
+        // count usage
+        if (protoType instanceof Cell) {
+            CellUsage u = cellId.getUsageIn(((Cell)protoType).cellId);
+            if (cellUsages.length <= u.indexInParent) {
+                int[] newCellUsages = new int[u.indexInParent + 1];
+                System.arraycopy(cellUsages, 0, newCellUsages, 0, cellUsages.length);
+                cellUsages = newCellUsages;
+            }
+            cellUsages[u.indexInParent]++;
+        }
 		return false;
 	}
 
@@ -1773,15 +1782,17 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	{
 		checkChanging();
 		assert ni.isLinked();
-		NodeUsage nu = ni.getNodeUsage();
-		if (nu == null || !nu.contains(ni))
-		{
-			System.out.println("Cell " + this +" doesn't contain node inst " + ni);
-			return;
-		}
-		nu.removeInst(ni);
-		if (nu.isEmpty())
-			removeUsage(nu);
+
+        // remove usage count
+        if (ni.getProto() instanceof Cell) {
+            CellUsage u = cellId.getUsageIn(((Cell)ni.getProto()).cellId);
+            cellUsages[u.indexInParent]--;
+            if (cellUsages[u.indexInParent] <= 0) {
+                assert cellUsages[u.indexInParent] == 0;
+                // remove library dependency, if possible
+                getLibrary().removeReferencedLib(((Cell)ni.getProto()).getLibrary());
+             }
+        }
 
 		removeNodeName(ni);
 	}
@@ -1802,43 +1813,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		}
 		ni.setNodeIndex(-1);
 		removeTempName(ni);
-	}
-
-	/**
-	 * Method to find or to to add a new NodeUsage to the cell.
-	 * @param protoType is a NodeProto of node usage
-	 */
-	public NodeUsage addUsage(NodeProto protoType)
-	{
-		checkChanging();
-		if (!isLinked()) System.out.println("addUsage of "+protoType+" to unlinked "+this);
-		NodeUsage nu = (NodeUsage)usagesIn.get(protoType);
-		if (nu == null)
-		{
-			nu = new NodeUsage(protoType, this);
-			usagesIn.put(protoType, nu);
-			if (protoType instanceof Cell)
-				((Cell)protoType).usagesOf.add(nu);
-		}
-		return nu;
-	}
-
-	/**
-	 * Method to remove a NodeUsage of the cell.
-	 * @param nu is a NodeUsage to remove
-	 */
-	private void removeUsage(NodeUsage nu)
-	{
-		if (!isLinked()) System.out.println("removeUsage of "+nu.getProto()+" to unliked "+this);
-		NodeProto protoType = nu.getProto();
-		if (protoType instanceof Cell)
-		{
-			((Cell)protoType).usagesOf.remove(nu);
-			// remove library dependency, if possible
-            getLibrary().removeReferencedLib(((Cell)protoType).getLibrary());
-        }
-
-		usagesIn.remove(protoType);
 	}
 
     /**
@@ -2467,7 +2441,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * @param wnd the window in which the text will be drawn.
 	 * @return an array of Polys that describes the text.
 	 */
-	public Poly [] getAllText(boolean hardToSelect, EditWindow wnd)
+	public Poly [] getAllText(boolean hardToSelect, EditWindow_ wnd)
 	{
 		int dispVars = numDisplayableVariables(false);
 		if (dispVars == 0) return null;
@@ -2487,7 +2461,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * @param wnd the EditWindow in which this Cell is being displayed.
 	 * @return the bounds of the relative (scalable) text.
 	 */
-	public Rectangle2D getRelativeTextBounds(EditWindow wnd)
+	public Rectangle2D getRelativeTextBounds(EditWindow_ wnd)
 	{
 		Rectangle2D bounds = null;
 		for(Iterator it = this.getNodes(); it.hasNext(); )
@@ -2514,51 +2488,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		return bounds;
 	}
 
-	private Rectangle2D accumulateTextBoundsOnObject(ElectricObject eObj, Rectangle2D bounds, EditWindow wnd)
+	private Rectangle2D accumulateTextBoundsOnObject(ElectricObject eObj, Rectangle2D bounds, EditWindow_ wnd)
 	{
-		for(Iterator vIt = eObj.getVariables(); vIt.hasNext(); )
-		{
-			Variable var = (Variable)vIt.next();
-			if (!var.isDisplay()) continue;
-			TextDescriptor td = var.getTextDescriptor();
-			if (td.getSize().isAbsolute()) continue;
-			Poly poly = eObj.computeTextPoly(wnd, var, null);
-			if (poly == null) continue;
-			Rectangle2D polyBound = poly.getBounds2D();
-			if (bounds == null) bounds = polyBound; else
-				Rectangle2D.union(bounds, polyBound, bounds);
-		}
-
-		if (eObj instanceof Geometric)
-		{
-			Geometric geom = (Geometric)eObj;
-			Name name = geom.getNameKey();
-			if (!name.isTempname())
-			{
-				Poly poly = eObj.computeTextPoly(wnd, null, name);
-				if (poly != null)
-				{
-					Rectangle2D polyBound = poly.getBounds2D();
-					if (bounds == null) bounds = polyBound; else
-						Rectangle2D.union(bounds, polyBound, bounds);
-				}
-			}
-		}
-		if (eObj instanceof NodeInst)
-		{
-			NodeInst ni = (NodeInst)eObj;
-			for(Iterator it = ni.getExports(); it.hasNext(); )
-			{
-				Export pp = (Export)it.next();
-				Poly poly = pp.computeTextPoly(wnd, null, null);
-				if (poly != null)
-				{
-					Rectangle2D polyBound = poly.getBounds2D();
-					if (bounds == null) bounds = polyBound; else
-						Rectangle2D.union(bounds, polyBound, bounds);
-				}
-			}
-		}
+		Rectangle2D objBounds = eObj.getTextBounds(wnd);
+		if (objBounds == null) return bounds;
+		if (bounds == null) return objBounds;
+		Rectangle2D.union(bounds, objBounds, bounds);
 		return bounds;
 	}
 
@@ -2789,13 +2724,58 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 	/****************************** HIERARCHY ******************************/
 
+    /** Method to return NodeProtoId of this NodeProto.
+     * NodeProtoId identifies NodeProto independently of threads.
+     * @return NodeProtoId of this NodeProto.
+     */
+    public NodeProtoId getId() { return cellId; }
+    
+    /**
+     * Returns a Cell by CellId.
+     * Returns null if the Cell is not linked to the database.
+     * @param cellId CellId to find.
+     * @return Cell or null.
+     */
+    public static Cell findCell(CellId cellId) {
+        try {
+            return (Cell)linkedCells.get(cellId.cellIndex);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
+    }
+    
 	/**
 	 * Method to return an iterator over all usages of this NodeProto.
 	 * @return an iterator over all usages of this NodeProto.
 	 */
-	public Iterator getUsagesOf()
+	public Iterator/*<CellUsage>*/ getUsagesOf()
 	{
-		return usagesOf.iterator();
+        return new Iterator() {
+            int i;
+            CellUsage nextU = findNext();
+            
+            public boolean hasNext() { return nextU != null; }
+            
+            public Object next() {
+                if (nextU == null) throw new NoSuchElementException();
+                CellUsage u = nextU;
+                nextU = findNext();
+                return u;
+            }
+            
+            public void remove() { throw new UnsupportedOperationException(); };
+            
+            private CellUsage findNext() {
+                while (i < cellId.numUsagesOf()) {
+                    CellUsage u = cellId.getUsageOf(i++);
+                    Cell parent = u.getParent();
+                    if (parent == null) continue;
+                    if (u.indexInParent >= parent.cellUsages.length) continue;
+                    if (parent.cellUsages[u.indexInParent] > 0) return u;
+                }
+                return null;
+            }
+        };
 	}
 
 	/**
@@ -2810,38 +2790,46 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	private class NodeInstsIterator implements Iterator
 	{
 		private Iterator uit;
-		private NodeUsage nu;
+        private Cell cell;
 		private int i, n;
+        private NodeInst ni;
 
 		NodeInstsIterator()
 		{
 			uit = getUsagesOf();
-			i = n = 0;
-			while (i >= n && uit.hasNext())
-			{
-				nu = (NodeUsage)uit.next();
-				n = nu.getNumInsts();
-			}
+            findNext();
 		}
 
-		public boolean hasNext() { return i < n; }
+		public boolean hasNext() { return ni != null; }
 
 		public Object next()
 		{
-			if (i >= n) uit.next(); // throw NoSuchElementException
-			NodeInst ni = nu.getInst(i);
-			i++;
-			while (i >= n && uit.hasNext())
-			{
-				nu = (NodeUsage)uit.next();
-				n = nu.getNumInsts();
-				i = 0;
-			}
-			return ni;
+            NodeInst ni = this.ni;
+            if (ni == null) throw new NoSuchElementException();
+            findNext();
+            return ni;
 		}
 
 		public void remove() { throw new UnsupportedOperationException("NodeInstsIterator.remove()"); };
-	}
+
+        private void findNext() {
+            for (;;) {
+                if (i < n) {
+                    ni = cell.getNode(i++);
+                    return;
+                }
+                if (!uit.hasNext()) {
+                    ni = null;
+                    return;
+                }
+                CellUsage u = (CellUsage)uit.next();
+                cell = u.getParent();
+                if (cell == null) continue;
+                i = 0;
+                n = cell.getNumNodes();
+            }
+        }
+    }
 
     /**
      * Determines whether an instantiation of cell <code>toInstantiate</code>
@@ -2977,7 +2965,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Method to determine whether this Cell is in use anywhere.
 	 * If it is, an error dialog is displayed.
 	 * @param action a description of the intended action (i.e. "delete").
-     * @param quiet true not to warn the user of the cell being used.
+	 * @param quiet true not to warn the user of the cell being used.
 	 * @return true if this Cell is in use anywhere.
 	 */
 	public boolean isInUse(String action, boolean quiet)
@@ -2985,15 +2973,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		String parents = null;
 		for(Iterator it = getUsagesOf(); it.hasNext(); )
 		{
-			NodeUsage nu = (NodeUsage)it.next();
-			Cell parent = nu.getParent();
+			CellUsage u = (CellUsage)it.next();
+			Cell parent = u.getParent();
 			if (parents == null) parents = parent.describe(true); else
 				parents += ", " + parent.describe(true);
 		}
 		if (parents != null)
 		{
-            if (!quiet)
-			    JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot " + action + " " + this +
+			if (!quiet)
+				JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(), "Cannot " + action + " " + this +
 				" because it is used in " + parents,
 					action + " failed", JOptionPane.ERROR_MESSAGE);
 			return true;
@@ -3584,7 +3572,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
      */
 	public boolean isLinked()
 	{
-		return Library.databaseObjs.contains(this);
+        return findCell(cellId) == this;
 	}
 
 	/**
@@ -3616,7 +3604,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	void check()
 	{
-		assert Library.databaseObjs.contains(this);
+		assert linkedCells.get(cellId.cellIndex) == this;
 		assert cellName != null;
 		assert getVersion() > 0;
 
@@ -3654,6 +3642,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		}
 		// now make sure that all nodes reference them
 		NodeInst prevNi = null;
+        int[] usages = new int[cellId.numUsagesIn()];
 		for(int i = 0; i < nodes.size(); i++)
 		{
 			NodeInst ni = (NodeInst)nodes.get(i);
@@ -3666,6 +3655,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				if (cmp == 0)
 					assert ni.getDuplicate() > prevNi.getDuplicate();
 			}
+            if (ni.getProto() instanceof Cell) {
+                CellUsage u = cellId.getUsageIn(((Cell)ni.getProto()).cellId);
+                usages[u.indexInParent]++;
+            }
 			ni.check();
 			for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
 			{
@@ -3679,11 +3672,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		assert connections.isEmpty();
 
 		// check node usages
-		for(Iterator it = getUsagesIn(); it.hasNext(); )
-		{
-			NodeUsage nu = (NodeUsage)it.next();
-			nu.check();
-		}
+        for (int i = 0; i < cellUsages.length; i++)
+            assert cellUsages[i] == usages[i];
+        for (int i = cellUsages.length; i < usages.length; i++)
+            assert usages[i] == 0;
 
 		// check group pointers
 		assert cellGroup != null;
@@ -3745,12 +3737,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Method to get the 0-based index of this Cell.
 	 * @return the index of this Cell.
 	 */
-	public final int getCellIndex() { return cellIndex; }
-
-	/**
-	 * Method to get counter for enumerating cells.
-	 * @return counter for enumerating cells. */
-	public static int getCellNumber() { return cellNumber; }
+	public final int getCellIndex() { return cellId.cellIndex; }
 
 	/**
 	 * Method to set an arbitrary integer in a temporary location on this Cell.
@@ -3824,9 +3811,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			return arcs.contains(thing);
 		} else if (thing instanceof NodeInst)
 		{
-			NodeInst ni = (NodeInst)thing;
-			NodeUsage nu = (NodeUsage)usagesIn.get(ni.getProto());
-			return (nu != null) && nu.contains(ni);
+			return nodes.contains(thing);
 		} else
 		{
 			return false;

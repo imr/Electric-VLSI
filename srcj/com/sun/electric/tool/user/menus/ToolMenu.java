@@ -24,6 +24,7 @@
 
 package com.sun.electric.tool.user.menus;
 
+import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.GeometryHandler;
 import com.sun.electric.database.hierarchy.Cell;
@@ -31,7 +32,6 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
@@ -118,7 +118,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
+
 
 /**
  * Class to handle the commands in the "Tool" pulldown menu.
@@ -1003,8 +1003,8 @@ public class ToolMenu {
                 // ascend to higher cell and continue
                 for(Iterator uIt = instanceCell.getUsagesOf(); uIt.hasNext(); )
                 {
-                    NodeUsage nu = (NodeUsage)uIt.next();
-                    Cell superCell = nu.getParent();
+                    CellUsage u = (CellUsage)uIt.next();
+                    Cell superCell = u.getParent();
 //                    Netlist superNetlist = superCell.getUserNetlist();
             		Netlist superNetlist = cell.acquireUserNetlist();
             		if (superNetlist == null)

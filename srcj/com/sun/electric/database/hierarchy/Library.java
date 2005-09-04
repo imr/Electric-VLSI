@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.CellName;
@@ -84,7 +85,6 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	/** preferences for all libraries */					private static Preferences prefs = null;
 
 	/** static list of all libraries in Electric */			private static TreeMap/*<String,Library>*/ libraries = new TreeMap/*<String,Library>*/(TextUtils.STRING_NUMBER_ORDER);
-	/** static set of all linked libraries and cells */		static HashSet/*<Object>*/ databaseObjs = new HashSet/*<Object>*/();
 	/** the current library in Electric */					private static Library curLib = null;
 
 	// ----------------- private and protected methods --------------------
@@ -138,7 +138,6 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		synchronized (libraries)
 		{
 			libraries.put(legalName, lib);
-			databaseObjs.add(lib);
 		}
 
         // always broadcast library changes
@@ -232,7 +231,6 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		synchronized (libraries)
 		{
 			libraries.remove(libName);
-			databaseObjs.remove(this);
 		}
 
 		// set the new current library if appropriate
@@ -462,7 +460,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
      */
 	public boolean isLinked()
 	{
-		return databaseObjs.contains(this);
+		return libraries.get(libName) == this;
 	}
 
 	/**
@@ -500,7 +498,6 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 */
 	private void check()
 	{
-		assert databaseObjs.contains(this);
 		assert libName != null;
 		assert libName.length() > 0;
 		assert libName.indexOf(' ') == -1 && libName.indexOf(':') == -1 : libName;
@@ -542,6 +539,8 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		try
 		{
 			//long startTime = System.currentTimeMillis();
+            CellId.checkInvariants();
+            
 			TreeSet libNames = new TreeSet(String.CASE_INSENSITIVE_ORDER);
 			for (Iterator it = libraries.entrySet().iterator(); it.hasNext(); )
 			{
@@ -552,21 +551,6 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 				assert !libNames.contains(libName) : "case insensitive " + libName;
 				libNames.add(libName);
 				lib.check();
-			}
-			for (Iterator it = databaseObjs.iterator(); it.hasNext(); )
-			{
-				Object o = it.next();
-				Library lib;
-				if (o instanceof Cell)
-				{
-					Cell cell = (Cell)o;
-					lib = cell.getLibrary();
-					assert lib.contains(cell);
-				} else
-				{
-					lib = (Library)o;
-				}
-				assert libraries.get(lib.libName) == lib;
 			}
 			//long endTime = System.currentTimeMillis();
 			//float finalTime = (endTime - startTime) / 1000F;

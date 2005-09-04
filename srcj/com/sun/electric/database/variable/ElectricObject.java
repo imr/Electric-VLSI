@@ -34,11 +34,8 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
-
-import java.awt.Font;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
@@ -331,7 +328,7 @@ public abstract class ElectricObject extends Observable implements Observer
 	 * @param multipleStrings true to break multiline text into multiple Polys.
 	 * @return the number of Polys that were added.
 	 */
-	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow wnd, boolean multipleStrings)
+	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow_ wnd, boolean multipleStrings)
 	{
         checkExamine();
 		int numAddedVariables = 0;
@@ -346,7 +343,7 @@ public abstract class ElectricObject extends Observable implements Observer
 			{
 				int index = start + numAddedVariables;
 				polys[index] = polyList[i];
-polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
+                polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 				numAddedVariables++;
 			}
 		}
@@ -365,7 +362,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	 * Even though the Poly is scaled for a particular EditWindow,
 	 * its coordinates are in object space, not screen space.
 	 */
-	public Poly computeTextPoly(EditWindow wnd, Variable var, Name name)
+	public Poly computeTextPoly(EditWindow_ wnd, Variable var, Name name)
 	{
         checkExamine();
 		Poly poly = null;
@@ -485,7 +482,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	 * @param wnd the EditWindow in which the object is being displayed.
 	 * @return the bounds of the text (does not include the bounds of the object).
 	 */
-	public Rectangle2D getTextBounds(EditWindow wnd)
+	public Rectangle2D getTextBounds(EditWindow_ wnd)
 	{
 		Rectangle2D bounds = null;
 		for(Iterator vIt = getVariables(); vIt.hasNext(); )
@@ -543,7 +540,7 @@ polys[index].setStyle(Poly.rotateType(polys[index].getStyle(), this));
 	 * @param multipleStrings true to break multiline text into multiple Polys.
 	 * @return an array of Poly objects that describe the Variable. May return zero length array.
 	 */
-	public Poly [] getPolyList(Variable var, double cX, double cY, EditWindow wnd, boolean multipleStrings)
+	public Poly [] getPolyList(Variable var, double cX, double cY, EditWindow_ wnd, boolean multipleStrings)
 	{
 		double offX = var.getXOff();
 		double offY = var.getYOff();

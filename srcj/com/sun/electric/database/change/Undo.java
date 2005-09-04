@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.change;
 
+import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
@@ -30,7 +31,6 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.Name;
@@ -572,8 +572,8 @@ public class Undo
 					// also mark libraries that reference this cell as dirty
 					for (Iterator it = cell.getUsagesOf(); it.hasNext(); )
 					{
-						NodeUsage nu = (NodeUsage)it.next();
-						Cell parent = nu.getParent();
+						CellUsage u = (CellUsage)it.next();
+						Cell parent = u.getParent();
 						parent.getLibrary().setChangedMinor();
 					}
 				}
@@ -599,7 +599,7 @@ public class Undo
 			{
 				if (major)
                     cell.madeRevision();
-               cell.setModified(major); // this will avoid marking DRC variables.
+                cell.setModified(major); // this will avoid marking DRC variables.
 
 				changedCells.add(cell);
 			}

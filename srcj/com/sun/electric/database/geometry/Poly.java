@@ -24,6 +24,7 @@
 package com.sun.electric.database.geometry;
 
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
@@ -217,7 +218,7 @@ public class Poly extends PolyBase {
 	 * If that ElectricObject is a NodeInst and the node is rotated, it affects the text anchor point.
 	 * @return true if the text is too small to display.
 	 */
-	public boolean setExactTextBounds(EditWindow wnd, ElectricObject eObj)
+	public boolean setExactTextBounds(EditWindow_ wnd, ElectricObject eObj)
 	{
 		if (getString() == null) return true;
 		String theString = getString().trim();

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.constraint;
 
+import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
@@ -32,7 +33,6 @@ import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
-import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
@@ -41,8 +41,6 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.PrimitivePort;
-import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import java.awt.geom.AffineTransform;
 
@@ -106,16 +104,15 @@ class LayoutCell {
         if (computed) return;
         computed = true;
         for (Iterator it = cell.getUsagesIn(); it.hasNext(); ) {
-            NodeUsage nu = (NodeUsage)it.next();
-            if (nu.getProto() instanceof Cell)
-                Layout.getCellInfo((Cell)nu.getProto()).compute();
+            CellUsage u = (CellUsage)it.next();
+            Layout.getCellInfo(u.getProto()).compute();
         }
         if (modified || exportsModified) {
             doCompute();
             if (exportsModified) {
                 for (Iterator it = cell.getUsagesOf(); it.hasNext(); ) {
-                    NodeUsage nu = (NodeUsage)it.next();
-                    Layout.getCellInfo(nu.getParent()).modified = true;
+                    CellUsage u = (CellUsage)it.next();
+                    Layout.getCellInfo(u.getParent()).modified = true;
                 }
             }
         }

@@ -101,7 +101,7 @@ public class DumpHeap {
         }
         if (!create) return 0;
         
-        if (objs.size()*2 <= objHash.length - 1) {
+        if (objs.size()*2 <= objHash.length - 3) {
             objHash[i] = objs.size();
             objs.add(obj);
             return i;
@@ -112,7 +112,7 @@ public class DumpHeap {
     }
     
     void rehash() {
-        int newSize = objs.size()*2 + 1;
+        int newSize = objs.size()*2 + 3;
         if (newSize < 0) throw new IndexOutOfBoundsException();
         int[] newObjHash = new int[GenMath.primeSince(newSize)];
         for (int k = 0; k < objs.size(); k++) {

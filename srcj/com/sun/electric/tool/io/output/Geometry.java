@@ -25,12 +25,12 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.PolyMerge;
 import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
@@ -154,21 +154,20 @@ public abstract class Geometry extends Output
 		private void checkLayoutCell()
 		{
 			NodeProto universalPin = Generic.tech.universalPinNode;
-			for (Iterator it = cell.getUsagesIn(); it.hasNext();) {
-				NodeUsage nu = (NodeUsage)it.next();
-				NodeProto np = nu.getProto();
-				if (np == universalPin) {
-					System.out.println("Geometry: Layout " + cell + " has " + nu.getNumInsts() +
-						" " + np.describe(true) + " nodes");
-				}
+            int numUniversalPins = 0;
+			for (int i = 0, numNodes = cell.getNumNodes(); i < numNodes; i++) {
+				NodeInst ni = cell.getNode(i);
+				NodeProto np = ni.getProto();
+				if (np == universalPin) numUniversalPins++;
 			}
+            if (numUniversalPins > 0)
+				System.out.println("Geometry: Layout " + cell + " has " + numUniversalPins +	" " + universalPin.describe(true) + " nodes");
 
-			int numArcs = cell.getNumArcs();
 			ArcProto universalArc = Generic.tech.universal_arc;
 			int numUniversalArcs = 0;
 			ArcProto unroutedArc = Generic.tech.unrouted_arc;
 			int numUnroutedArcs = 0;
-			for (int i = 0; i < numArcs; i++)
+			for (int i = 0, numArcs = cell.getNumArcs(); i < numArcs; i++)
 			{
 				ArcInst ai = cell.getArc(i);
 				ArcProto ap = ai.getProto();
@@ -339,11 +338,10 @@ public abstract class Geometry extends Output
         if (depth > maxDepth) maxDepth = depth;
         for (Iterator uit = cell.getUsagesIn(); uit.hasNext();)
         {
-            NodeUsage nu = (NodeUsage) uit.next();
-            if (nu.isIcon()) continue;
-            NodeProto np = nu.getProto();
-            if (!(np instanceof Cell)) continue;
-            maxDepth = hierCellsRecurse((Cell)np, depth+1, maxDepth);
+            CellUsage u = (CellUsage) uit.next();
+            Cell subCell = u.getProto();
+            if (subCell.isIcon()) continue;
+            maxDepth = hierCellsRecurse(subCell, depth+1, maxDepth);
         }
         return maxDepth;
     }

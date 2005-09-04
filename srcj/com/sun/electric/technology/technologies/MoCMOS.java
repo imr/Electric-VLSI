@@ -34,6 +34,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -41,7 +42,6 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.technology.*;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
@@ -3376,7 +3376,7 @@ public class MoCMOS extends Technology
 	 * @param layerOverride the layer to use for all generated polygons (if not null).
 	 * @return an array of Poly objects.
 	 */
-	public Poly [] getShapeOfNode(NodeInst ni, EditWindow wnd, VarContext context, boolean electrical, boolean reasonable,
+	public Poly [] getShapeOfNode(NodeInst ni, EditWindow_ wnd, VarContext context, boolean electrical, boolean reasonable,
 		Technology.NodeLayer [] primLayers, Layer layerOverride)
 	{
 		NodeProto prototype = ni.getProto();
@@ -3398,7 +3398,7 @@ public class MoCMOS extends Technology
      * @param reasonable
      * @return
      */
-    private Poly [] getShapeOfNodeResistor(NodeInst ni, EditWindow wnd, VarContext context, boolean electrical,
+    private Poly [] getShapeOfNodeResistor(NodeInst ni, EditWindow_ wnd, VarContext context, boolean electrical,
                                            boolean reasonable)
     {
         // now compute the number of polygons
@@ -3494,7 +3494,7 @@ public class MoCMOS extends Technology
      * @param reasonable
      * @return
      */
-    private Poly [] getShapeOfNodeScalable(NodeInst ni, EditWindow wnd, VarContext context, boolean reasonable)
+    private Poly [] getShapeOfNodeScalable(NodeInst ni, EditWindow_ wnd, VarContext context, boolean reasonable)
     {
 		// determine special configurations (number of active contacts, inset of active contacts)
 		int numContacts = 2;

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.database.CellUsage;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -962,12 +963,11 @@ public final class HierarchyEnumerator {
     /** Recursive method used to traverse down hierarchy */
     private static void hierCellsRecurse(Cell cell, HashMap uniqueCells) {
         for (Iterator uit = cell.getUsagesIn(); uit.hasNext();) {
-            NodeUsage nu = (NodeUsage) uit.next();
-            if (nu.isIcon()) continue;
-            NodeProto np = nu.getProto();
-            if (!(np instanceof Cell)) continue;
-            uniqueCells.put((Cell)np, (Cell)np);
-            hierCellsRecurse((Cell)np, uniqueCells);
+            CellUsage u = (CellUsage) uit.next();
+            Cell subCell = u.getProto();
+            if (subCell.isIcon()) continue;
+            uniqueCells.put(subCell, subCell);
+            hierCellsRecurse(subCell, uniqueCells);
         }
     }
 

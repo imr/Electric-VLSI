@@ -25,6 +25,7 @@ package com.sun.electric.technology;
 
 import com.sun.electric.database.geometry.Dimension2D;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
@@ -43,7 +44,7 @@ import java.util.NoSuchElementException;
  * Technology.  It has a name, and several functions that describe how
  * to draw it
  */
-public class PrimitiveNode implements NodeProto, Comparable
+public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable
 {
 	/**
 	 * Function is a typesafe enum class that describes the function of a NodeProto.
@@ -552,6 +553,20 @@ public class PrimitiveNode implements NodeProto, Comparable
 		return pn;
 	}
 
+ 	/**
+	 * Method to return the NodeProto representiong NodeProtoId in the current thread.
+     * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
+	 * @return this.
+	 */
+    public NodeProto inThisThread() { return this; } 
+   
+    /** Method to return NodeProtoId of this NodeProto.
+     * NodeProtoId identifies NodeProto independently of threads.
+     * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
+     * @return NodeProtoId of this NodeProto.
+     */
+    public NodeProtoId getId() { return this; }
+    
 	/**
 	 * Method to return the name of this PrimitiveNode in the Technology.
 	 * @return the name of this PrimitiveNode.

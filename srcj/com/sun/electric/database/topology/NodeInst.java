@@ -23,9 +23,9 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
@@ -34,13 +34,13 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
-import com.sun.electric.database.hierarchy.NodeUsage;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -60,7 +60,6 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.user.ui.EditWindow;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -121,7 +120,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	// ---------------------- private data ----------------------------------
     /** persistent data of this NodeInst. */                private ImmutableNodeInst d;
 	/** prototype of this NodeInst. */						private NodeProto protoType;
-	/** node usage of this NodeInst. */						private NodeUsage nodeUsage;
 	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
 	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
 	/** List of connections belonging to this NodeInst. It is sorted by portIndex.*/private ArrayList connections = new ArrayList(2);
@@ -169,7 +167,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
             anchor = EPoint.ORIGIN;
         if (protoDescriptor == null) protoDescriptor = ImmutableTextDescriptor.getInstanceTextDescriptor();
         
-        d = ImmutableNodeInst.newInstance(0, name, duplicate, nameDescriptor, orient, anchor, width, height, userBits, protoDescriptor);
+        d = ImmutableNodeInst.newInstance(protoType.getId(), name, duplicate, nameDescriptor, orient, anchor, width, height, userBits, protoDescriptor);
         
 		// fill in the geometry
 		redoGeometric();
@@ -879,8 +877,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		}
 
 		// add to linked lists
-		nodeUsage = parent.addUsage(getProto());
-        if (nodeUsage == null) return true;
 		if (parent.addNode(this)) return true;
 		parent.linkNode(this);
 		return false;
@@ -932,7 +928,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public boolean isIconOfParent()
 	{
-		return nodeUsage.isIconOfParent();
+        return (protoType instanceof Cell) && ((Cell)protoType).isIconOf(parent);  
 	}
 
 	/**
@@ -1152,7 +1148,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param wnd the window in which the text will be drawn.
 	 * @return an array of Polys that describes the text.
 	 */
-	public Poly [] getAllText(boolean hardToSelect, EditWindow wnd)
+	public Poly [] getAllText(boolean hardToSelect, EditWindow_ wnd)
 	{
 		int cellInstanceNameText = 0;
 		if (protoType instanceof Cell && !isExpanded() && hardToSelect) cellInstanceNameText = 1;
@@ -1284,7 +1280,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param multipleStrings true to break multiline text into multiple Polys.
 	 * @return the number of Polys that were added.
 	 */
-	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow wnd, boolean multipleStrings)
+	public int addDisplayableVariables(Rectangle2D rect, Poly [] polys, int start, EditWindow_ wnd, boolean multipleStrings)
 	{
 		int numAddedVariables = super.addDisplayableVariables(rect, polys, start, wnd, multipleStrings);
 
@@ -2824,17 +2820,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		assert d.name != null;
 		assert d.duplicate >= 0;
 
-		assert nodeUsage != null;
-		assert nodeUsage.getParent() == parent;
-		assert nodeUsage.getProto() == protoType;
-		assert nodeUsage.contains(this);
 		if (protoType instanceof Cell)
 		{
 			int foundUsage = 0;
 			for (Iterator it = ((Cell)protoType).getUsagesOf(); it.hasNext(); )
 			{
-				NodeUsage nu = (NodeUsage)it.next();
-				if (nu == nodeUsage) foundUsage++;
+				CellUsage u = (CellUsage)it.next();
+				if (u.parentId == parent.getId()) foundUsage++;
 			}
 			assert foundUsage == 1;
 		}
@@ -2870,12 +2862,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	{
 		return protoType instanceof Cell ? ((Cell)protoType).getBasename() : getFunction().getBasename();
 	}
-
-	/**
-	 * Method to return the NodeUsage of this NodeInst.
-	 * @return the NodeUsage of this NodeInst.
-	 */
-	public NodeUsage getNodeUsage() { return nodeUsage; }
 
 	/**
 	 * Low-level method to get the user bits.

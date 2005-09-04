@@ -28,12 +28,13 @@ import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
+import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -71,7 +72,7 @@ public class ImmutableNodeInst
     
 	public static final int NODE_BITS = NEXPAND | WIPED | /*NSHORT |*/ HARDSELECTN | NVISIBLEINSIDE | NTECHBITS | NILOCKED;
 
-	/** Prototype cell id. */                                       public final int protoId;
+	/** Prototype id. */                                            public final NodeProtoId protoId;
 	/** name of this ImmutableNodeInst. */							public final Name name;
     /** duplicate index of this ImmutableNodeInst in the Cell */    public final int duplicate;
 	/** The text descriptor of name of ImmutableNodeInst. */		public final ImmutableTextDescriptor nameDescriptor;
@@ -83,10 +84,10 @@ public class ImmutableNodeInst
  
 	/**
 	 * The private constructor of ImmutableNodeInst. Use the factory "newInstance" instead.
-	 * @param protoId the NodeProto of which this is an instance.
-	 * @param name name of new ImmutableNodeInst
-	 * @param duplicate duplicate index of this ImmutableNodeInst
-     * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst
+	 * @param protoId the NodeProtoId of which this is an instance.
+	 * @param name name of new ImmutableNodeInst.
+	 * @param duplicate duplicate index of this ImmutableNodeInst.
+     * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst.
      * @param orient Orientation of this ImmutableNodeInst.
 	 * @param anchor the anchor location of this ImmutableNodeInst.
 	 * @param width the width of this ImmutableNodeInst.
@@ -94,7 +95,7 @@ public class ImmutableNodeInst
 	 * @param userBits flag bits of this ImmutableNodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this ImmutableNodeInst
 	 */
-    ImmutableNodeInst(int protoId, Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+    ImmutableNodeInst(NodeProtoId protoId, Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, double width, double height,
             int userBits, ImmutableTextDescriptor protoDescriptor) {
         this.protoId = protoId;
@@ -112,23 +113,10 @@ public class ImmutableNodeInst
 
 	/**
 	 * Returns new ImmutableNodeInst object.
-	 * @param protoId the NodeProto of which this is an instance.
-	 * @param name name of new ImmutableNodeInst
-	 * @param anchor the anchor location of this ImmutableNodeInst.
-	 * @return new ImmutableNodeInst object.
-	 * @throws ArrayIndexOutOfBoundsException if protoId is negative.
-	 * @throws NullPointerException if name, orient or anchor is null.
-	 */
-	public static ImmutableNodeInst newInstance(int protoId, Name name, EPoint anchor) {
-        return newInstance(protoId, name, 0, null, Orientation.IDENT, anchor, 0, 0, 0, null);
-	}
-
-	/**
-	 * Returns new ImmutableNodeInst object.
-	 * @param protoId Prototype cell id.
-	 * @param name name of new ImmutableNodeInst
-	 * @param duplicate duplicate index of this ImmutableNodeInst
-     * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst
+	 * @param protoId the NodeProtoId of which this is an instance.
+	 * @param name name of new ImmutableNodeInst.
+	 * @param duplicate duplicate index of this ImmutableNodeInst.
+     * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst.
      * @param orient Orientation of this ImmutableNodeInst.
 	 * @param anchor the anchor location of this ImmutableNodeInst.
 	 * @param width the width of this ImmutableNodeInst.
@@ -136,20 +124,26 @@ public class ImmutableNodeInst
 	 * @param userBits bits associated to different technologies
      * @param protoDescriptor TextDescriptor of name of this ImmutableNodeInst
 	 * @return new ImmutableNodeInst object.
-	 * @throws ArrayIndexOutOfBoundsException if protoId is negative.
-	 * @throws NullPointerException if name, orient or anchor is null.
+	 * @throws NullPointerException if protoId, name, orient or anchor is null.
      * @throws IllegalArgumentException if duplicate, or size is bad.
 	 */
-    public static ImmutableNodeInst newInstance(int protoId, Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+    public static ImmutableNodeInst newInstance(NodeProtoId protoId, Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, double width, double height,
             int userBits, ImmutableTextDescriptor protoDescriptor) {
-		if (protoId < 0) throw new ArrayIndexOutOfBoundsException(protoId);
+		if (protoId == null) throw new NullPointerException("protoId");
 		if (name == null) throw new NullPointerException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
         if (orient == null) throw new NullPointerException("orient");
 		if (anchor == null) throw new NullPointerException("anchor");
         if (!(width >= 0)) throw new IllegalArgumentException("width");
         if (!(height >= 0)) throw new IllegalArgumentException("height");
+        if (protoId instanceof CellId)
+            width = height = 0;
+        if (protoId == Generic.tech.cellCenterNode) {
+            orient = Orientation.IDENT;
+            anchor = EPoint.ORIGIN;
+            width = height = 0;
+        }
         width = DBMath.round(width);
         height = DBMath.round(height);
         if (width == -0.0) width = +0.0;
@@ -158,18 +152,18 @@ public class ImmutableNodeInst
 		return new ImmutableNodeInst(protoId, name, duplicate, nameDescriptor, orient, anchor, width, height, userBits, protoDescriptor);
     }
 
-	/**
-	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by protoId.
-	 * @param protoId node protoId.
-	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by protoId.
-	 * @throws ArrayIndexOutOfBoundsException if protoId is negative.
-	 */
-	public ImmutableNodeInst withProto(int protoId) {
-		if (this.protoId == protoId) return this;
-		if (protoId < 0) throw new ArrayIndexOutOfBoundsException(protoId);
-		return new ImmutableNodeInst(protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.userBits, this.protoDescriptor);
-	}
+//	/**
+//	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by protoId.
+//	 * @param protoId node protoId.
+//	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by protoId.
+//	 * @throws ArrayIndexOutOfBoundsException if protoId is negative.
+//	 */
+//	public ImmutableNodeInst withProto(int protoId) {
+//		if (this.protoId == protoId) return this;
+//		if (protoId < 0) throw new ArrayIndexOutOfBoundsException(protoId);
+//		return new ImmutableNodeInst(protoId, this.name, this.duplicate, this.nameDescriptor,
+//                this.orient, this.anchor, this.width, this.height, this.userBits, this.protoDescriptor);
+//	}
 
 	/**
 	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by name and duplicate.
@@ -207,6 +201,7 @@ public class ImmutableNodeInst
 	public ImmutableNodeInst withOrient(Orientation orient) {
         if (this.orient == orient) return this;
         if (orient == null) throw new NullPointerException("orient");
+        if (protoId == Generic.tech.cellCenterNode) return this;
 		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,
                 orient, this.anchor, this.width, this.height, this.userBits, this.protoDescriptor);
 	}
@@ -220,6 +215,7 @@ public class ImmutableNodeInst
 	public ImmutableNodeInst withAnchor(EPoint anchor) {
 		if (this.anchor == anchor) return this;
 		if (anchor == null) throw new NullPointerException("anchor");
+        if (protoId == Generic.tech.cellCenterNode) return this;
 		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,
                 this.orient, anchor, this.width, this.height, this.userBits, this.protoDescriptor);
 	}
@@ -235,6 +231,8 @@ public class ImmutableNodeInst
 		if (this.width == width && this.height == height) return this;
         if (!(width >= 0)) throw new IllegalArgumentException("width");
         if (!(height >= 0)) throw new IllegalArgumentException("height");
+        if (protoId == Generic.tech.cellCenterNode) return this;
+        if (protoId instanceof CellId) return this;
         width = DBMath.round(width);
         height = DBMath.round(height);
         if (width == -0.0) width = +0.0;
@@ -271,7 +269,7 @@ public class ImmutableNodeInst
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
-		assert protoId >= 0;
+		assert protoId != null;
 		assert name != null;
 		assert anchor != null;
         assert duplicate >= 0;
@@ -282,17 +280,23 @@ public class ImmutableNodeInst
         assert DBMath.round(width) == width;
         assert DBMath.round(height) == height;
         assert (userBits & ~NODE_BITS) == 0;
+        if (protoId instanceof CellId) {
+            assert width == 0 && height == 0;
+        }
+        if (protoId == Generic.tech.cellCenterNode) {
+            assert orient == Orientation.IDENT && anchor == EPoint.ORIGIN && width == 0 && height == 0;
+        }
 	}
 
-	/**
-	 * Checks that protoId of this ImmutableNodeInst is contained in cells.
-	 * @param cells array with cells, may contain nulls.
-	 * @throws ArrayIndexOutOfBoundsException if protoId is not contained.
-	 */
-	void checkProto(ImmutableCell[] cells) {
-		if (cells[protoId] == null)
-			throw new ArrayIndexOutOfBoundsException(protoId);
-	}
+//	/**
+//	 * Checks that protoId of this ImmutableNodeInst is contained in cells.
+//	 * @param cells array with cells, may contain nulls.
+//	 * @throws ArrayIndexOutOfBoundsException if protoId is not contained.
+//	 */
+//	void checkProto(ImmutableCell[] cells) {
+//		if (cells[protoId] == null)
+//			throw new ArrayIndexOutOfBoundsException(protoId);
+//	}
 
 	/**
 	 * Parses JELIB string with node user bits.
@@ -325,12 +329,6 @@ public class ImmutableNodeInst
 
 	public Rectangle2D computeBounds(NodeInst real)
 	{
-		// if zero size, set the bounds directly
-		if (width == 0 && height == 0)
-		{
-			return new Rectangle2D.Double(anchor.getX(), anchor.getY(), 0, 0);
-		}
-
 		// handle cell bounds
 		if (real.getProto() instanceof Cell)
 		{
@@ -344,11 +342,17 @@ public class ImmutableNodeInst
 			double cX = anchor.getX(), cY = anchor.getY();
 			cX -= shift.getX();
 			cY -= shift.getY();
-			Poly poly = new Poly(cX, cY, width, height);
+			Poly poly = new Poly(cX, cY, bounds.getWidth(), bounds.getHeight());
 			trans = orient.rotateAbout(cX, cY);
 //			trans = rotateAbout(orient.getAngle(), cX, cY, getXSizeWithMirror(), getYSizeWithMirror());
 			poly.transform(trans);
 			return poly.getBounds2D();
+		}
+
+		// if zero size, set the bounds directly
+		if (width == 0 && height == 0)
+		{
+			return new Rectangle2D.Double(anchor.getX(), anchor.getY(), 0, 0);
 		}
 
 		PrimitiveNode pn = (PrimitiveNode)real.getProto();
