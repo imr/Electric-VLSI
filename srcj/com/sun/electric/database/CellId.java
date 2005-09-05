@@ -31,9 +31,9 @@ import java.util.ArrayList;
 
 
 /**
- * The CellId immutable interface identifies a type of NodeInst independently of threads.
+ * The CellId class identifies a type of NodeInst independently of threads.
  * It differs from Cell objects, which will be owned by threads in transactional database.
- * This class is thread-safe except inThisThread and checkInvariants methods in 1.5, but not thread-safe in 1.4  .
+ * This class is thread-safe except inCurrentThread method in 1.5, but not thread-safe in 1.4  .
  */
 public class CellId implements NodeProtoId
 {
@@ -44,7 +44,14 @@ public class CellId implements NodeProtoId
      * CellUsages are in chronological order by time of their creation.
      */
     private volatile CellUsage[] usagesIn = NULL_CELL_USAGE_ARRAY;
-    /** Hash of usagesIn. */
+    /**
+	 * Hash of usagesIn.
+	 * The size of nonempty hash is a prime number.
+	 * i-th entry of entry search sequence for a given protoId is ((protoId.hashCode() & 0x7FFFFFFF) + i*i) % hashUsagesIn.length .
+	 * This first (1 + hashUsagesIn.length/2) entries of this sequence are unique.
+	 * Invariant hashUsagesIn.length >= usagesIn.length*2 + 1 guaranties that there is at least one empty entry
+	 * in the search sequence. 
+	 */
     private volatile CellUsage[] hashUsagesIn = EMPTY_HASH;
     
     /** 
@@ -53,12 +60,26 @@ public class CellId implements NodeProtoId
      */
     private volatile CellUsage[] usagesOf = NULL_CELL_USAGE_ARRAY;
     
-    /** Number of CellIds created so far. */
+    private volatile ExportId[] exportIds = NULL_EXPORT_ID_ARRAY;
+    
+    /**
+     * Number of nodeIds returned by newNodeId.
+     **/
+    private volatile int numNodeIds = 0;
+    
+    /**
+     * Number of arcIds returned by newArcId.
+     **/
+    private volatile int numArcIds = 0;
+    
+    /** List of CellIds created so far. */
     private static final ArrayList/*<CellId>*/ cellIds = new ArrayList/*<CellId>*/();
-    /** Empty array for initialization. */
+    /** Empty CellUsage array for initialization. */
     private static final CellUsage[] NULL_CELL_USAGE_ARRAY = {};
     /** Empty hash for initialization. */
     private static final CellUsage[] EMPTY_HASH = { null };
+    /** Empty Export array for initialization. */
+    private static final ExportId[] NULL_EXPORT_ID_ARRAY = {};
     
     /**
      * CellId constructor.
@@ -124,17 +145,69 @@ public class CellId implements NodeProtoId
     public CellUsage getUsageIn(CellId protoId) { return getUsageIn(protoId, true); }
     
     /**
+     * Returns a number ExportIds in this parent cell.
+     * This number may grow in time.
+     * @return a number of ExportIds.
+     */
+    public int numExportIds() {
+        // synchronized because exportIds is volatile.
+        return exportIds.length;
+    }
+
+    /**
+     * Returns ExportId in this parent cell with specified chronological index.
+     * @param chronIndex chronological index of ExportId.
+     * @return ExportId whith specified chronological index.
+     * @throws ArrayIndexOutOfBoundsException if no such ExportId.
+     */
+    public ExportId getExportId(int chronIndex) {
+        // synchronized because exportIds is volatile and its entries are final.
+        return exportIds[chronIndex];
+    }
+    
+    /**
+     * Creates new exportId unique for this parent CellId.
+     * @return new exportId.
+     */
+     public synchronized ExportId newExportId() {
+        ExportId[] oldExportIds = exportIds;
+        ExportId[] newExportIds = new ExportId[oldExportIds.length + 1];
+        System.arraycopy(oldExportIds, 0, newExportIds, 0, oldExportIds.length);
+        ExportId e = new ExportId(this, oldExportIds.length);
+        newExportIds[oldExportIds.length] = e;
+        exportIds = newExportIds;
+        return e;
+    }
+    
+    /**
+     * Returns new nodeId unique for this CellId.
+     * @return new nodeId unique for this CellId.
+     */
+    public int newNodeId() { return numNodeIds++; }
+    
+    /**
+     * Returns new arcId unique for this CellId.
+     * @return new arcId unique for this CellId.
+     */
+    public int newArcId() { return numArcIds++; }
+    
+    /**
      * Method to return the NodeProto representiong NodeProtoId in the current thread.
      * @return the NodeProto representing NodeProtoId in the current thread.
      * This method is not properly synchronized.
      */
-    public NodeProto inThisThread() { return Cell.findCell(this); }
+    public NodeProto inCurrentThread() { return Cell.inCurrentThread(this); }
     
 	/**
 	 * Returns a printable version of this CellId.
 	 * @return a printable version of this CellId.
 	 */
-    public String toString() { return "cellId#" + cellIndex; }
+    public String toString() {
+        String s = "CellId#" + cellIndex;
+        Cell cell = Cell.inCurrentThread(this);
+        if (cell != null) s += "(" + cell.libDescribe() + ")";
+        return s;
+    }
 
     /**
      * Returns CellUsage with this CellId as a parent cell and with given
@@ -249,15 +322,19 @@ public class CellId implements NodeProtoId
     }
     
 	/**
-	 * Checks invariants in this CellUsage.
+	 * Checks invariants in this CellId.
      * ALL i: usagesIn[i].parentId == this;
      * ALL i: usagesIn[i].indexInParent == i;
      * ALL i, j: i != j IMPLIES usagesIn[i].protoId != usagesIn[i].protoId;
+     *
      * ALL i: usagesOf[i].protoId == this;
      * ALL i, j: i != j IMPLIES usagesOf[i].parentId != usagesIn[j].parentId;
+     *
      * hashUsagesIn[*] is a correct hash map CellUsage.protoId -> CellUsage;
      * hashUsagesIn[*] and usagesIn[*] are equal sets of CellUsages;
      *
+     * ALL i: exportIds[i].parentId == this;
+     * ALL i: exportIds[i].chronIndex == i;
      * This CellId, all usagesIn[*].protoId and all usagesOf[*].parentId are linked in
      *    static list of all CellIds;
      *
@@ -296,6 +373,13 @@ public class CellId implements NodeProtoId
             // the parentId is in static list of all CellIds.
             u.parentId.checkLinked();
             assert u == u.parentId.usagesIn[u.indexInParent];
+        }
+        
+        ExportId[] exportIds = this.exportIds;
+        for (int k = 0; k < exportIds.length; k++) {
+            ExportId e = exportIds[k];
+            assert e.parentId == this;
+            assert e.chronIndex == k;
         }
     }
 

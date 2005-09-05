@@ -2,7 +2,7 @@
  *
  * Electric(tm) VLSI Design System
  *
- * File: NodeProtoId.java
+ * File: PortProtoId.java
  *
  * Copyright (c) 2003 Sun Microsystems and Static Free Software
  *
@@ -24,19 +24,31 @@
 package com.sun.electric.database.prototype;
 
 /**
- * The NodeProtoId interface identifies a type of NodeInst .
+ * The PortProtoId interface identifies a type of PortInst .
  * It can be implemented as PrimitiveNode (for primitives from Technologies)
- * or as CellId (for cells in Libraries).
+ * or as ExportId (for cells in Libraries).
  * <P>
- * The NodeProtoId is immutable and identifies NodeProto independently of threads. It differs from NodeProto objects,
- * some of them (Cells) will be owned by threads  in transactional database. PrimitiveNodes will
- * be shared too, so they are both NodeProtoId and NodeProto.
+ * The PortProtoId is immutable and identifies PortProto independently of threads. It differs from PortProto objects,
+ * some of them (Exports) will be owned by threads in transactional database. PrimitivePorts will
+ * be shared too, so they are both PortProtoId and PortProto.
  */
-public interface NodeProtoId
+public interface PortProtoId
 {
 	/**
-	 * Method to return the NodeProto representiong NodeProtoId in the current thread.
-	 * @return the NodeProto representing NodeProtoId in the current thread.
+	 * Method to return the parent NodeProtoId of this PortProtoId.
+	 * @return the parent NodeProtoId of this PortProtoId.
 	 */
-    public NodeProto inCurrentThread();
+	public NodeProtoId getParentId();
+
+    /**
+     * Method to return chronological index of this PortProtoId in parent.
+     * @return chronological index of this PortProtoId in parent.
+     */
+    public int getChronIndex();
+    
+	/**
+	 * Method to return the PortProto representiong PortProtoId in the current thread.
+	 * @return the PortProto representing PortProtoId in the current thread.
+	 */
+    public PortProto inCurrentThread();
 }

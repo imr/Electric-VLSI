@@ -22,6 +22,7 @@ public class IconNodeInst extends NodeInst
 {
     /**
 	 * The private constructor of NodeInst. Use the factory "newInstance" instead.
+     * @param nodeId id of this NodeInst in parent.
 	 * @param parent the Cell in which this NodeInst will reside.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param name name of new NodeInst
@@ -34,12 +35,12 @@ public class IconNodeInst extends NodeInst
 	 * @param userBits flag bits of this NodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this NodeInst
 	 */
-    protected IconNodeInst(Cell parent, NodeProto protoType,
+    protected IconNodeInst(int nodeId, Cell parent, NodeProto protoType,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             Point2D center, double width, double height, Orientation orient,
             int userBits, ImmutableTextDescriptor protoDescriptor)
 	{
-        super(parent, protoType, name, duplicate, nameDescriptor, center, width, height,
+        super(nodeId, parent, protoType, name, duplicate, nameDescriptor, center, width, height,
               orient, userBits, protoDescriptor);
     }
 

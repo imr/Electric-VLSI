@@ -49,8 +49,12 @@ import com.sun.electric.technology.ArcProto;
  */
 public interface PortProto
 {
-	// ------------------------ private data --------------------------
-
+    /** Method to return PortProtoId of this PortProto.
+     * PortProtoId identifies PortProto independently of threads.
+     * @return PortProtoId of this PortProto.
+     */
+    public PortProtoId getId();
+    
 	/**
 	 * Method to get the index of this PortProto.
 	 * This is a zero-based index of ports on the NodeProto.

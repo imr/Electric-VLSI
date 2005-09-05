@@ -72,6 +72,7 @@ public class ImmutableNodeInst
     
 	public static final int NODE_BITS = NEXPAND | WIPED | /*NSHORT |*/ HARDSELECTN | NVISIBLEINSIDE | NTECHBITS | NILOCKED;
 
+    /** id of this NodeInst in parent. */                           public final int nodeId;
 	/** Prototype id. */                                            public final NodeProtoId protoId;
 	/** name of this ImmutableNodeInst. */							public final Name name;
     /** duplicate index of this ImmutableNodeInst in the Cell */    public final int duplicate;
@@ -84,6 +85,7 @@ public class ImmutableNodeInst
  
 	/**
 	 * The private constructor of ImmutableNodeInst. Use the factory "newInstance" instead.
+     * @param nodeId id of this NodeInst in parent.
 	 * @param protoId the NodeProtoId of which this is an instance.
 	 * @param name name of new ImmutableNodeInst.
 	 * @param duplicate duplicate index of this ImmutableNodeInst.
@@ -95,9 +97,11 @@ public class ImmutableNodeInst
 	 * @param userBits flag bits of this ImmutableNodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this ImmutableNodeInst
 	 */
-    ImmutableNodeInst(NodeProtoId protoId, Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+    ImmutableNodeInst(int nodeId, NodeProtoId protoId,
+            Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, double width, double height,
             int userBits, ImmutableTextDescriptor protoDescriptor) {
+        this.nodeId = nodeId;
         this.protoId = protoId;
         this.name = name;
         this.duplicate = duplicate;
@@ -113,6 +117,7 @@ public class ImmutableNodeInst
 
 	/**
 	 * Returns new ImmutableNodeInst object.
+     * @param nodeId id of this NodeInst in parent.
 	 * @param protoId the NodeProtoId of which this is an instance.
 	 * @param name name of new ImmutableNodeInst.
 	 * @param duplicate duplicate index of this ImmutableNodeInst.
@@ -127,7 +132,8 @@ public class ImmutableNodeInst
 	 * @throws NullPointerException if protoId, name, orient or anchor is null.
      * @throws IllegalArgumentException if duplicate, or size is bad.
 	 */
-    public static ImmutableNodeInst newInstance(NodeProtoId protoId, Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+    public static ImmutableNodeInst newInstance(int nodeId, NodeProtoId protoId,
+            Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, double width, double height,
             int userBits, ImmutableTextDescriptor protoDescriptor) {
 		if (protoId == null) throw new NullPointerException("protoId");
@@ -149,7 +155,7 @@ public class ImmutableNodeInst
         if (width == -0.0) width = +0.0;
         if (height == -0.0) height = +0.0;
         userBits &= NODE_BITS;
-		return new ImmutableNodeInst(protoId, name, duplicate, nameDescriptor, orient, anchor, width, height, userBits, protoDescriptor);
+		return new ImmutableNodeInst(nodeId, protoId, name, duplicate, nameDescriptor, orient, anchor, width, height, userBits, protoDescriptor);
     }
 
 //	/**
@@ -177,7 +183,7 @@ public class ImmutableNodeInst
 		if (this.name == name && this.duplicate == duplicate) return this;
 		if (name == null) throw new NullPointerException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
-		return new ImmutableNodeInst(this.protoId, name, duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, name, duplicate, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.userBits, this.protoDescriptor);
 	}
 
@@ -188,7 +194,7 @@ public class ImmutableNodeInst
 	 */
 	public ImmutableNodeInst withNameDescriptor(ImmutableTextDescriptor nameDescriptor) {
         if (this.nameDescriptor == nameDescriptor) return this;
-		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.userBits, this.protoDescriptor);
 	}
 
@@ -202,7 +208,7 @@ public class ImmutableNodeInst
         if (this.orient == orient) return this;
         if (orient == null) throw new NullPointerException("orient");
         if (protoId == Generic.tech.cellCenterNode) return this;
-		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
                 orient, this.anchor, this.width, this.height, this.userBits, this.protoDescriptor);
 	}
 
@@ -216,7 +222,7 @@ public class ImmutableNodeInst
 		if (this.anchor == anchor) return this;
 		if (anchor == null) throw new NullPointerException("anchor");
         if (protoId == Generic.tech.cellCenterNode) return this;
-		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
                 this.orient, anchor, this.width, this.height, this.userBits, this.protoDescriptor);
 	}
 
@@ -237,7 +243,7 @@ public class ImmutableNodeInst
         height = DBMath.round(height);
         if (width == -0.0) width = +0.0;
         if (height == -0.0) height = +0.0;
-		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
                 this.orient, this.anchor, width, height, this.userBits, this.protoDescriptor);
 	}
 
@@ -249,7 +255,7 @@ public class ImmutableNodeInst
 	public ImmutableNodeInst withUserBits(int userBits) {
         userBits &= NODE_BITS;
 		if (this.userBits == userBits) return this;
-		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, userBits, this.protoDescriptor);
 	}
 
@@ -260,7 +266,7 @@ public class ImmutableNodeInst
 	 */
 	public ImmutableNodeInst withProtoDescriptor(ImmutableTextDescriptor protoDescriptor) {
         if (this.protoDescriptor == protoDescriptor) return this;
-		return new ImmutableNodeInst(this.protoId, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.userBits, protoDescriptor);
 	}
 
@@ -330,7 +336,7 @@ public class ImmutableNodeInst
 	public Rectangle2D computeBounds(NodeInst real)
 	{
 		// handle cell bounds
-		if (real.getProto() instanceof Cell)
+		if (protoId instanceof CellId)
 		{
 			// offset by distance from cell-center to the true center
 			Cell subCell = (Cell)real.getProto();
@@ -355,7 +361,7 @@ public class ImmutableNodeInst
 			return new Rectangle2D.Double(anchor.getX(), anchor.getY(), 0, 0);
 		}
 
-		PrimitiveNode pn = (PrimitiveNode)real.getProto();
+		PrimitiveNode pn = (PrimitiveNode)protoId;
 
 		// special case for arcs of circles
 		if (pn == Artwork.tech.circleNode || pn == Artwork.tech.thickCircleNode)
@@ -387,24 +393,16 @@ public class ImmutableNodeInst
 			AffineTransform trans = orient.rotateAbout(anchor.getX(), anchor.getY());
 			Poly[] polys = pn.getTechnology().getShapeOfNode(real);
 			Rectangle2D bounds = new Rectangle2D.Double();
-			Rectangle2D totalBounds = null;
 			for (int i = 0; i < polys.length; i++)
 			{
 				Poly poly = polys[i];
+				poly.transform(trans);
 				if (i == 0)
 					bounds.setRect(poly.getBounds2D());
 				else
 					Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
-				poly.transform(trans);
-				if (i == 0)
-					totalBounds = poly.getBounds2D();
-				else
-					Rectangle2D.union(poly.getBounds2D(), totalBounds, totalBounds);
 			}
-
-			// recompute actual bounds
-//			d = d.withSize(bounds.getWidth(), bounds.getHeight());
-			return totalBounds;
+			return bounds;
 		}
 
 		// normal bounds computation

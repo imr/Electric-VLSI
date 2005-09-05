@@ -346,24 +346,25 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
     /** Bounds are correct if all subcells have correct bounds. */  private static final byte BOUNDS_CORRECT_SUB = 1;
     /** Bounds need to be recomputed. */                            private static final byte BOUNDS_RECOMPUTE = 2;
     
-	/** static list of all linked cells. */							private static final ArrayList linkedCells = new ArrayList();
+	/** static list of all linked cells indexed by CellId. */		private static final ArrayList linkedCells = new ArrayList();
 
-	/** CellId of this Cell. */                                     private CellId cellId = new CellId();
+	/** CellId of this Cell. */                                     final CellId cellId = new CellId();
 	/** The CellName of the Cell. */								private CellName cellName;
 	/** The CellGroup this Cell belongs to. */						private CellGroup cellGroup;
 	/** The library this Cell belongs to. */						private Library lib;
-	/** The date this Cell was created. */							private Date creationDate;
-	/** The date this Cell was last modified. */					private Date revisionDate;
-	/** Internal flag bits. */										private int userBits;
+	/** The date this Cell was created. */							private Date creationDate = new Date();
+	/** The date this Cell was last modified. */					private Date revisionDate = new Date();
+	/** Internal flag bits. */										private int userBits = 0;
 	/** The basename for autonaming of instances of this Cell */	private Name basename;
+    /** An array of Exports on the Cell by chronological index. */  private Export[] chronExports = new Export[2];
 	/** A sorted array of Exports on the Cell. */					private Export[] exports = NULL_EXPORT_ARRAY;
-	/** The Cell's essential-bounds. */								private List essenBounds = new ArrayList();
-	/** A list of NodeInsts in this Cell. */						private List nodes;
+	/** The Cell's essential-bounds. */								private final ArrayList essenBounds = new ArrayList();
+	/** A list of NodeInsts in this Cell. */						private final ArrayList nodes = new ArrayList();
     /** Counts of NodeInsts for each CellUsage. */                  private int[] cellUsages = NULL_INT_ARRAY;
-	/** A map from Name to Integer maximal numeric suffix */        private Map maxSuffix;
-	/** A list of ArcInsts in this Cell. */							private List arcs;
-	/** A map from temporary Name keys to Geometric. */				private Map tempNames;
-	/** The bounds of the Cell. */									private Rectangle2D cellBounds;
+	/** A map from Name to Integer maximal numeric suffix */        private final HashMap maxSuffix = new HashMap();
+	/** A list of ArcInsts in this Cell. */							private final ArrayList arcs = new ArrayList();
+	/** A map from temporary Name keys to Geometric. */				private final HashMap tempNames = new HashMap();
+	/** The bounds of the Cell. */									private final Rectangle2D cellBounds = new Rectangle2D.Double();
 	/** Whether the bounds need to be recomputed.
      * BOUNDS_CORRECT - bounds are correct.
      * BOUNDS_CORRECT_SUB - bounds are correct prvided that bounds of subcells are correct.
@@ -382,16 +383,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	private Cell()
 	{
-		nodes = new ArrayList();
-		maxSuffix = new HashMap();
-		arcs = new ArrayList();
-		tempNames = new HashMap();
-		cellGroup = null;
-		tech = null;
-		creationDate = new Date();
-		revisionDate = new Date();
-		userBits = 0;
-		cellBounds = new Rectangle2D.Double();
 	}
 
 	/****************************** CREATE, DELETE ******************************/
@@ -2070,6 +2061,15 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		assert portIndex >= 0;
 		export.setPortIndex(portIndex);
 
+        // Add to chronExprots 
+        int chronIndex = export.getId().getChronIndex();
+        if (chronExports.length <= chronIndex) {
+            Export[] newChronExports = new Export[Math.max(chronIndex + 1, chronExports.length*2)];
+            System.arraycopy(chronExports, 0, newChronExports, 0, chronExports.length);
+            chronExports = newChronExports;
+        }
+        chronExports[chronIndex] = export;
+        
 		Export[] newExports = new Export[exports.length + 1];
 		System.arraycopy(exports, 0, newExports, 0, portIndex);
 		newExports[portIndex] = export;
@@ -2118,6 +2118,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			newExports[i] = e;
 		}
 		exports = newExports;
+        chronExports[export.getId().getChronIndex()] = null;
 
 		Collection portInsts = new ArrayList();
 		// remove the PortInst from every instance of this node
@@ -2236,8 +2237,20 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * @param portIndex specified position of PortProto.
 	 * @return the PortProto at specified position..
 	 */
-	public final PortProto getPort(int portIndex) {	return exports[portIndex];
-	}
+	public PortProto getPort(int portIndex) { return exports[portIndex]; }
+
+	/**
+	 * Method to return the Export at specified chronological index.
+	 * @param chronIndex specified chronological index of Export.
+	 * @return the Export at specified chronological index or null.
+	 */
+	public Export getExportChron(int chronIndex) {
+        try {
+            return chronExports[chronIndex];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            return null;
+        }
+    }
 
 	/**
 	 * Method to find a named Export on this Cell.
@@ -2724,7 +2737,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 	/****************************** HIERARCHY ******************************/
 
-    /** Method to return NodeProtoId of this NodeProto.
+    /**
+     * Method to return NodeProtoId of this NodeProto.
      * NodeProtoId identifies NodeProto independently of threads.
      * @return NodeProtoId of this NodeProto.
      */
@@ -2736,7 +2750,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
      * @param cellId CellId to find.
      * @return Cell or null.
      */
-    public static Cell findCell(CellId cellId) {
+    public static Cell inCurrentThread(CellId cellId) {
         try {
             return (Cell)linkedCells.get(cellId.cellIndex);
         } catch (IndexOutOfBoundsException e) {
@@ -3572,7 +3586,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
      */
 	public boolean isLinked()
 	{
-        return findCell(cellId) == this;
+        return inCurrentThread(cellId) == this;
 	}
 
 	/**
@@ -3616,7 +3630,13 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			if (i > 0)
 				assert(TextUtils.nameSameNumeric(e.getName(), exports[i - 1].getName()) > 0) : i;
 			e.check();
+            assert e == chronExports[e.exportId.chronIndex]; 
 		}
+        for (int i = 0; i < chronExports.length; i++) {
+            Export e = chronExports[i];
+            if (e == null) continue;
+            assert e.isLinked();
+        }
 
 		// make sure that every connection is on an arc and a node
 		HashSet connections = new HashSet();

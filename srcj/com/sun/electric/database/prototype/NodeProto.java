@@ -49,20 +49,18 @@ import java.util.Iterator;
  */
 public interface NodeProto
 {
-	// ----------------------- public methods -----------------------
-
     /** Method to return NodeProtoId of this NodeProto.
      * NodeProtoId identifies NodeProto independently of threads.
      * @return NodeProtoId of this NodeProto.
      */
-    NodeProtoId getId();
+    public NodeProtoId getId();
     
 	/**
 	 * Method to return the function of this NodeProto.
 	 * The Function is a technology-independent description of the behavior of this NodeProto.
 	 * @return the function of this NodeProto.
 	 */
-	PrimitiveNode.Function getFunction();
+	public PrimitiveNode.Function getFunction();
 
 	/**
 	 * Method to return the default width of this NodeProto.
@@ -70,7 +68,7 @@ public interface NodeProto
 	 * PrimitiveNodes return the default width of new instances of this NodeProto.
 	 * @return the width to use when creating new NodeInsts of this NodeProto.
 	 */
-	double getDefWidth();
+	public double getDefWidth();
 
 	/**
 	 * Method to return the default height of this NodeProto.
@@ -78,13 +76,13 @@ public interface NodeProto
 	 * PrimitiveNodes return the default height of new instances of this NodeProto.
 	 * @return the height to use when creating new NodeInsts of this NodeProto.
 	 */
-	double getDefHeight();
+	public double getDefHeight();
 
 	/**
 	 * Method to size offset of this NodeProto.
 	 * @return the size offset of this NodeProto.  It is always zero for cells.
 	 */
-	SizeOffset getProtoSizeOffset();
+	public SizeOffset getProtoSizeOffset();
 
 	/**
 	 * Method to return the Technology to which this NodeProto belongs.
@@ -92,38 +90,38 @@ public interface NodeProto
 	 * For PrimitiveNodes, the Technology is simply the one that owns it.
 	 * @return the Technology associated with this NodeProto.
 	 */
-	Technology getTechnology();
+	public Technology getTechnology();
 
 	/**
 	 * Method to find the PortProto that has a particular name.
 	 * @return the PortProto, or null if there is no PortProto with that name.
 	 */
-	PortProto findPortProto(String name);
+	public PortProto findPortProto(String name);
 
 	/**
 	 * Method to find the PortProto that has a particular Name.
 	 * @return the PortProto, or null if there is no PortProto with that name.
 	 */
-	PortProto findPortProto(Name name);
+	public PortProto findPortProto(Name name);
 
 	/**
 	 * Method to return an iterator over all PortProtos of this NodeProto.
 	 * @return an iterator over all PortProtos of this NodeProto.
 	 */
-	Iterator getPorts();
+	public Iterator getPorts();
 
 	/**
 	 * Method to return the number of PortProtos on this NodeProto.
 	 * @return the number of PortProtos on this NodeProto.
 	 */
-	int getNumPorts();
+	public int getNumPorts();
 
 	/**
 	 * Method to return the PortProto at specified position.
 	 * @param portIndex specified position of PortProto.
 	 * @return the PortProto at specified position..
 	 */
-	PortProto getPort(int portIndex);
+	public PortProto getPort(int portIndex);
 
 	/**
 	 * Method to describe this NodeProto as a string.
@@ -135,7 +133,7 @@ public interface NodeProto
      * @param withQuotes to wrap description between quotes
 	 * @return a String describing this NodeProto.
 	 */
-	String describe(boolean withQuotes);
+	public String describe(boolean withQuotes);
 
 	/**
 	 * Method to return the name of this NodeProto.
@@ -145,5 +143,5 @@ public interface NodeProto
 	 * any view or version information.
 	 * @return the prototype name of this NodeProto.
 	 */
-	String getName();
+	public String getName();
 }

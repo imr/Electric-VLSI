@@ -59,13 +59,13 @@ public class CellUsage
 	 * Method to return the prototype of this NodeUsage.
 	 * @return the prototype of this NodeUsage in this thread.
 	 */
-	public Cell getProto() { return (Cell)protoId.inThisThread(); }
+	public Cell getProto() { return Cell.inCurrentThread(protoId); }
 
 	/**
 	 * Method to return the Cell that contains this Geometric object.
 	 * @return the Cell that contains this Geometric object in this thread.
 	 */
-	public Cell getParent() { return (Cell)parentId.inThisThread(); }
+	public Cell getParent() { return Cell.inCurrentThread(parentId); }
 
 	/**
 	 * Returns a printable version of this CellUsage.

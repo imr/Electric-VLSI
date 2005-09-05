@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
@@ -132,6 +133,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 
 	/**
 	 * The protected constructor of NodeInst. Use the factory "newInstance" instead.
+     * @param nodeId id of this NodeInst in parent.
 	 * @param parent the Cell in which this NodeInst will reside.
 	 * @param protoType the NodeProto of which this is an instance.
 	 * @param name name of new NodeInst
@@ -144,7 +146,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param userBits flag bits of this NodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this NodeInst
 	 */
-    protected NodeInst(Cell parent, NodeProto protoType,
+    protected NodeInst(int nodeId, Cell parent, NodeProto protoType,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             Point2D center, double width, double height, Orientation orient,
             int userBits, ImmutableTextDescriptor protoDescriptor)
@@ -167,7 +169,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
             anchor = EPoint.ORIGIN;
         if (protoDescriptor == null) protoDescriptor = ImmutableTextDescriptor.getInstanceTextDescriptor();
         
-        d = ImmutableNodeInst.newInstance(protoType.getId(), name, duplicate, nameDescriptor, orient, anchor, width, height, userBits, protoDescriptor);
+        d = ImmutableNodeInst.newInstance(nodeId, protoType.getId(), name, duplicate, nameDescriptor, orient, anchor, width, height, userBits, protoDescriptor);
         
 		// fill in the geometry
 		redoGeometric();
@@ -246,7 +248,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public static NodeInst makeDummyInstance(NodeProto np, Point2D center, double width, double height, Orientation orient)
 	{
-        return new NodeInst(null, np, Name.findName(""), 0, null, center, width, height, orient, 0, null);
+        return new NodeInst(0, null, np, Name.findName(""), 0, null, center, width, height, orient, 0, null);
 	}
 
 	/**
@@ -352,7 +354,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			duplicate = 0;
 		}
         duplicate = parent.fixupNodeDuplicate(nameKey, duplicate);
-		NodeInst ni = new NodeInst(parent, protoType, nameKey, duplicate, nameDescriptor, center, width, height, orient, userBits, protoDescriptor);
+        CellId parentId = (CellId)parent.getId();
+		NodeInst ni = new NodeInst(parentId.newNodeId(), parent, protoType, nameKey, duplicate, nameDescriptor, center, width, height, orient, userBits, protoDescriptor);
 
 		if (ni.checkAndRepair(true, null, null) > 0) return null;
 		if (ni.lowLevelLink()) return null;
@@ -2312,8 +2315,23 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void checkPossibleVariableEffects(Variable.Key key)
 	{
-		if (key == Artwork.ART_DEGREES || key == TRACE)
-			lowLevelModify(getD());
+        if (key == TRACE && protoType instanceof PrimitiveNode) {
+            PrimitiveNode pn = (PrimitiveNode)protoType;
+            if (pn.isHoldsOutline() && getTrace() != null) {
+                Poly[] polys = pn.getTechnology().getShapeOfNode(this);
+                Rectangle2D bounds = new Rectangle2D.Double();
+                for (int i = 0; i < polys.length; i++) {
+                    Poly poly = polys[i];
+                    if (i == 0)
+                        bounds.setRect(poly.getBounds2D());
+                    else
+                        Rectangle2D.union(poly.getBounds2D(), bounds, bounds);
+                }
+                lowLevelModify(d.withSize(bounds.getWidth(), bounds.getHeight()));
+            }
+        } else if (key == Artwork.ART_DEGREES) {
+			lowLevelModify(d);
+        }
 	}
 
 	/**

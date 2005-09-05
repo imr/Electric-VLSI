@@ -26,7 +26,9 @@ package com.sun.electric.technology;
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.technology.technologies.Generic;
 
@@ -37,7 +39,7 @@ import java.awt.Color;
  * It contains a list of ArcProto types that it
  * accepts connections from.
  */
-public class PrimitivePort implements PortProto, Comparable
+public class PrimitivePort implements PortProtoId, PortProto, Comparable
 {
 	// ---------------------------- private data --------------------------
 	private Name name; // The name of this PrimitivePort.
@@ -142,6 +144,18 @@ public class PrimitivePort implements PortProto, Comparable
 	// ------------------------ public methods ------------------------
 
 	/**
+	 * Method to return the PortProto representing PrimitivePort in the current thread.
+	 * @return the PortProto representing PortProtoId in the current thread.
+	 */
+    public PortProto inCurrentThread() { return this; }
+    
+    /** Method to return PortProtoId of this PrimitivePort.
+     * PortProtoId identifies PrimitivePort independently of threads.
+     * @return PortProtoId of this PrimtivePort.
+     */
+    public PortProtoId getId() { return this; }
+    
+	/**
 	 * Method to return the name key of this PrimitivePort.
 	 * @return the Name key of this PrimitivePort.
 	 */
@@ -152,6 +166,12 @@ public class PrimitivePort implements PortProto, Comparable
 	 * @return the name of this PrimitivePort.
 	 */
 	public String getName() { return name.toString(); }
+
+	/**
+	 * Method to return the parent NodeProtoId of this PrimitivePort.
+	 * @return the parent NodeProtoId of this PrimitivePort.
+	 */
+	public NodeProtoId getParentId() { return parent; }
 
 	/**
 	 * Method to return the parent NodeProto of this PrimitivePort.
@@ -166,6 +186,12 @@ public class PrimitivePort implements PortProto, Comparable
 	 */
 	public int getPortIndex() { return portIndex; }
 
+    /**
+     * Method to return chronological index of this PortProtoId in parent.
+     * @return chronological index of this PortProtoId in parent.
+     */
+    public int getChronIndex() { return portIndex; }
+    
 	/**
 	 * Method to set the list of allowable connections on this PrimitivePort.
 	 * @param portArcs an array of ArcProtos which can connect to this PrimitivePort.

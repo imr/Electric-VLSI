@@ -336,7 +336,7 @@ public class FillGen extends EDialog {
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         getContentPane().add(jTabbedPane1, gridBagConstraints);
 
-        jButton1.setLabel("OK");
+        jButton1.setText("OK");
         jButton1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jButton1ActionPerformed(evt);

@@ -558,7 +558,7 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable
      * PrimitiveNodes are shared among threads, so this method returns this PrimitiveNode.
 	 * @return this.
 	 */
-    public NodeProto inThisThread() { return this; } 
+    public NodeProto inCurrentThread() { return this; } 
    
     /** Method to return NodeProtoId of this NodeProto.
      * NodeProtoId identifies NodeProto independently of threads.

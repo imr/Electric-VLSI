@@ -24,6 +24,7 @@
 package com.sun.electric.database.hierarchy;
 
 import com.sun.electric.database.CellId;
+import com.sun.electric.database.LibId;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.CellName;
@@ -75,16 +76,18 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	/** library is "hidden" (clipboard library) */			private static final int HIDDENLIBRARY =           0200;
 //	/** library is unwanted (used during input) */			private static final int UNWANTEDLIB =             0400;
 
+	/** LibId of this Library. */                           private final LibId libId = new LibId();
 	/** name of this library  */							private String libName;
 	/** file location of this library */					private URL libFile;
 	/** version of Electric which wrote the library. */		private Version version;
-	/** list of Cells in this library */					/*private*/ TreeMap/*<CellName,Cell>*/ cells = new TreeMap/*<CellName,Cell>*/();
+	/** list of Cells in this library */					final TreeMap/*<CellName,Cell>*/ cells = new TreeMap/*<CellName,Cell>*/();
 	/** Preference for cell currently being edited */		private Pref curCellPref;
 	/** flag bits */										private int userBits;
     /** list of referenced libs */                          private List/*<Library>*/ referencedLibs;
 	/** preferences for all libraries */					private static Preferences prefs = null;
 
-	/** static list of all libraries in Electric */			private static TreeMap/*<String,Library>*/ libraries = new TreeMap/*<String,Library>*/(TextUtils.STRING_NUMBER_ORDER);
+	/** list of linked libraries indexed by libId. */       private static final ArrayList linkedLibs = new ArrayList();
+	/** map of libraries sorted by name */                  private static final TreeMap/*<String,Library>*/ libraries = new TreeMap/*<String,Library>*/(TextUtils.STRING_NUMBER_ORDER);
 	/** the current library in Electric */					private static Library curLib = null;
 
 	// ----------------- private and protected methods --------------------
@@ -137,6 +140,8 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		// add the library to the global list
 		synchronized (libraries)
 		{
+            while (linkedLibs.size() <= lib.libId.libIndex) linkedLibs.add(null);
+            linkedLibs.set(lib.libId.libIndex, lib);
 			libraries.put(legalName, lib);
 		}
 
@@ -231,6 +236,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		synchronized (libraries)
 		{
 			libraries.remove(libName);
+            linkedLibs.set(libId.libIndex, null);
 		}
 
 		// set the new current library if appropriate
@@ -455,12 +461,33 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	// ----------------- public interface --------------------
 
     /**
+     * Method to return LibId of this Library.
+     * LibId identifies Library independently of threads.
+     * @return LibId of this Library.
+     */
+    public LibId getId() { return libId; }
+    
+    /**
+     * Returns a Library by LibId.
+     * Returns null if the Library is not linked to the database.
+     * @param libId LibId to find.
+     * @return Library or null.
+     */
+    public static Library inCurrentThread(LibId libId) {
+        try {
+            return (Library)linkedLibs.get(libId.libIndex);
+        } catch (IndexOutOfBoundsException e) {
+            return null;
+        }
+    }
+    
+    /**
      * Returns true if this Library is linked into database.
      * @return true if this Library is linked into database.
      */
 	public boolean isLinked()
 	{
-		return libraries.get(libName) == this;
+        return inCurrentThread(libId) == this;
 	}
 
 	/**

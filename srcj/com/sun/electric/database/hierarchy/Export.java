@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.hierarchy;
 
+import com.sun.electric.database.ExportId;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -30,6 +31,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
@@ -80,9 +82,10 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	/** a collection of state bits that are important */	private static final int EXPORT_BITS = PORTDRAWN | BODYONLY | STATEBITS;
 
 	// -------------------------- private data ---------------------------
+    /** ExportId of this Cell. */                           final ExportId exportId;
 	/** The name of this Export. */							private Name name;
 	/** Internal flag bits of this Export. */				private int userBits;
-	/** The parent Cell of this Export. */					private Cell parent;
+	/** The parent Cell of this Export. */					private final Cell parent;
 	/** Index of this Export in Cell ports. */				private int portIndex;
 	/** The text descriptor of this Export. */				private ImmutableTextDescriptor descriptor;
 	/** the PortInst that the exported port belongs to */	private PortInst originalPort;
@@ -102,6 +105,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	{
 		// initialize the parent object
 		assert parent == originalPort.getNodeInst().getParent();
+        this.exportId = parent.cellId.newExportId();
 		this.parent = parent;
 		this.name = Name.findName(protoName);
         if (nameTextDescriptor == null) nameTextDescriptor = ImmutableTextDescriptor.getExportTextDescriptor();
@@ -480,6 +484,12 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public Cell whichCell() { return parent; };
 
+    /** Method to return PortProtoId of this Export.
+     * PortProtoId identifies Export independently of threads.
+     * @return PortProtoId of this Export.
+     */
+    public PortProtoId getId() { return exportId; }
+    
 	/**
 	 * Method to return the parent NodeProto of this Export.
 	 * @return the parent NodeProto of this Export.
@@ -850,6 +860,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		PortProto pp = originalPort.getPortProto();
 		assert ni.getParent() == parent && ni.isLinked();
 		assert ni.getProto() == pp.getParent();
+        assert exportId.parentId == parent.cellId;
 		if (pp instanceof Export) assert ((Export)pp).isLinked();
 	}
 
