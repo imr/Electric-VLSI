@@ -58,10 +58,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.lang.reflect.Method;
@@ -82,6 +79,7 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
+import javax.swing.text.Position;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -127,7 +125,7 @@ public class ManualViewer extends EDialog
 	{
 		if (theManual == null)
 		{
-			theManual = new ManualViewer(TopLevel.getCurrentJFrame());
+			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), null);
 			theManual.loadPointers();
 		}
 		theManual.setVisible(true);
@@ -140,25 +138,14 @@ public class ManualViewer extends EDialog
 	 */
 	public static void showPreferenceHelp(String preference)
 	{
+        String fileName = (String)preferenceMap.get(preference);
 		if (theManual == null)
 		{
-			theManual = new ManualViewer(TopLevel.getCurrentJFrame());
+			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), fileName);
 			theManual.loadPointers();
 		}
 		theManual.setVisible(true);
-		String fileName = (String)preferenceMap.get(preference);
-		if (fileName == null) System.out.println("No help for preference " + preference); else
-		{
-			for(int i=0; i<theManual.pageSequence.size(); i++)
-			{
-				PageInfo pi = (PageInfo)theManual.pageSequence.get(i);
-				if (pi.fileName.equals(fileName))
-				{
-					theManual.loadPage(i);
-					break;
-				}
-			}
-		}
+		if (fileName == null) System.out.println("No help for preference " + preference);
 	}
 
     /**
@@ -237,7 +224,7 @@ public class ManualViewer extends EDialog
      * Create a new user's manual dialog.
      * @param parent
      */
-    private ManualViewer(Frame parent)
+    private ManualViewer(Frame parent, String preference)
     {
         super(parent, false);
         setTitle("User's Manual");
@@ -256,6 +243,7 @@ public class ManualViewer extends EDialog
 		int [] sectionNumbers = new int[5];
 		sectionNumbers[0] = -1;
 		currentIndex = lastPageVisited;
+        DefaultMutableTreeNode thisNode = null;
 		for(;;)
 		{
 			String line = getLine(is);
@@ -307,6 +295,11 @@ public class ManualViewer extends EDialog
 				if (pi.url == null)
                     System.out.println("NULL URL to "+fileName);
 				DefaultMutableTreeNode node = new DefaultMutableTreeNode(new Integer(pageSequence.size()));
+                if (preference != null && pi.fileName.equals(preference))
+                {
+                    currentIndex = pageSequence.size();
+                    thisNode = node;
+                }
 				stack[indent].add(node);
 				pageSequence.add(pi);
 				newAtLevel = false;
@@ -320,12 +313,19 @@ public class ManualViewer extends EDialog
 			System.out.println("Error closing file");
 		}
 
-		// pre-expand the tree
-		TreePath topPath = optionTree.getPathForRow(0);
-		optionTree.expandPath(topPath);
-		topPath = optionTree.getPathForRow(1);
-		optionTree.expandPath(topPath);
-
+        // No preference page given
+        if (preference == null)
+        {
+            // pre-expand the tree
+            TreePath topPath = optionTree.getPathForRow(0);
+            optionTree.expandPath(topPath);
+            topPath = optionTree.getPathForRow(1);
+            optionTree.expandPath(topPath);
+        }
+        else
+        {
+            optionTree.scrollPathToVisible(new TreePath(thisNode.getPath()));
+        }
 		// load the title page of the manual
         loadPage(currentIndex);
     }

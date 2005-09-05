@@ -4,17 +4,18 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03f: *********************************
 
-IMP (09/05/05, DN) Transactional DB: LibId.java, ExportId.java, PortProtoId.java .
+IMP: (09/05/05, GVG) Expand explorer tree in Manual to place where html page is open (bugzilla #xxx). 
+Same for preferences dialog.
 
-BUG (09/05/05, DN) Size of primitives with TRACE is invalid in database.
-FIX: In NodeInst.checkPossibleVariablesEffects recompute width and height. 
+IMP: (09/05/05, GVG) Include library name in error message in LE (Bugzilla #516)
+FIX: Added 'in (" + localCell.getLibrary().getName()+")' in error message.
 
 IMP/MAN (09/04/05, JKG) Add button to allow user to reset layer parasitics to factory default values
 
 IMP: (09/04/05, DN) In getShape methods EditWindow class is replaced by EditWindow_ interface
     for future changes.
 
-IMP: (09/04/05, DN) Step to transactional database: CellId.java, CellUsage.java, NodeProtoId.java .
+IMP: (09/04/05, DN) Step to transactional database: CellId.java, CellUsage.java, NodePortoId.java .
 
 IMP: (09/04/05, DN) Less error messages on "unconnected pins" in NetCell.java .
 

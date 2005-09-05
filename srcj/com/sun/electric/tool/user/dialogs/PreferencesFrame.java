@@ -358,6 +358,9 @@ public class PreferencesFrame extends EDialog
 		topPath = optionTree.getNextMatch(currentSectionName, 0, null);
 		optionTree.expandPath(topPath);
 
+        // searching for selected node
+        openSelectedPath(rootNode);
+
 		// the left side of the preferences dialog: a tree
 		JPanel leftPanel = new JPanel();
 		leftPanel.setLayout(new GridBagLayout());
@@ -421,6 +424,22 @@ public class PreferencesFrame extends EDialog
 		pack();
 		finishInitialization();
 	}
+
+    private boolean openSelectedPath(DefaultMutableTreeNode rootNode)
+    {
+        for (int i = 0; i < rootNode.getChildCount(); i++)
+        {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode)rootNode.getChildAt(i);
+            Object o = node.getUserObject();
+            if (o.toString().indexOf(currentTabName) != -1)
+            {
+                optionTree.scrollPathToVisible(new TreePath(node.getPath()));
+                return true;
+            }
+            if (openSelectedPath(node)) return true;
+        }
+        return false;
+    }
 
 	private void cancelActionPerformed()
 	{

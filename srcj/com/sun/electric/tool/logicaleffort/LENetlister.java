@@ -172,7 +172,8 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
         NetlisterConstants local = getSettings(localCell);
         if (local == null) return false;
         if (!current.equals(local)) {
-            System.out.println("Error: Global settings from "+topLevelCell+" do not match global settings from \""+context.getInstPath("/")+": "+localCell.noLibDescribe()+"\"");
+            System.out.println("Error: Global settings from "+topLevelCell+" do not match global settings from \""+context.getInstPath("/")
+                    +": "+localCell.noLibDescribe()+"\" in (" + localCell.getLibrary().getName()+")");
             System.out.println("       Global settings are by definition global, and differences may indicate an inconsistency in your design.");
             System.out.println("       Note that step-up, \"su\", can be made local by defining a \"su\" parameter on an instance.");
             System.out.println("\tglobal/parent vs local:");
