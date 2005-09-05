@@ -874,6 +874,22 @@ public class Layer
 		getParasiticPref("EdgeCapacitance", edgeCapacitanceParasiticPrefs, this.edgeCapacitance = edgeCapacitance);
 	}
 
+    /**
+     * Reset this layer's Parasitics to their factory default values
+     */
+    public void resetToFactoryParasitics()
+    {
+        Pref pref = getParasiticPref("Resistance", resistanceParasiticPrefs, resistance);
+        double res = pref.getDoubleFactoryValue();
+        pref = getParasiticPref("Capacitance", capacitanceParasiticPrefs, capacitance);
+        double cap = pref.getDoubleFactoryValue();
+        pref = getParasiticPref("EdgeCapacitance", edgeCapacitanceParasiticPrefs, edgeCapacitance);
+        double edgecap = pref.getDoubleFactoryValue();
+        setResistance(res);
+        setCapacitance(cap);
+        setEdgeCapacitance(edgecap);
+    }
+
 	/**
 	 * Method to return the resistance for this layer.
 	 * @return the resistance for this layer.

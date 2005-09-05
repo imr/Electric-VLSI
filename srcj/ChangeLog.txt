@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03f: *********************************
 
+IMP/MAN (09/04/05, JKG) Add button to allow user to reset layer parasitics to factory default values
+
 IMP: (09/04/05, DN) In getShape methods EditWindow class is replaced by EditWindow_ interface
     for future changes.
 

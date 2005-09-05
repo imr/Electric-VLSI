@@ -225,6 +225,17 @@ public class ParasiticTab extends PreferencePanel {
         if (b != Simulation.isParasiticsExtractPowerGround()) Simulation.setParasiticsExtractPowerGround(b);
     }
 
+    private void factoryResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_factoryResetActionPerformed
+        int ret = JOptionPane.showConfirmDialog(this, "Are you sure you want to reset all layers to their default resistance and capacitance values?", "Factory Reset", JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (ret == JOptionPane.YES_OPTION) {
+            for (Iterator it = curTech.getLayers(); it.hasNext(); ) {
+                Layer layer = (Layer)it.next();
+                layer.resetToFactoryParasitics();
+            }
+            init();
+        }
+    }//GEN-LAST:event_factoryResetActionPerformed
+
     /** This method is called from within the constructor to
      * initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is
@@ -243,6 +254,7 @@ public class ParasiticTab extends PreferencePanel {
         jLabel12 = new javax.swing.JLabel();
         capacitance = new javax.swing.JTextField();
         edgeCapacitance = new javax.swing.JTextField();
+        factoryReset = new javax.swing.JButton();
         parasiticPanel = new javax.swing.JPanel();
         maxDist = new javax.swing.JLabel();
         maxDistValue = new javax.swing.JTextField();
@@ -274,11 +286,11 @@ public class ParasiticTab extends PreferencePanel {
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.gridheight = 3;
+        gridBagConstraints.gridheight = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         techValues.add(spiceLayer, gridBagConstraints);
 
         jLabel7.setText("Layer:");
@@ -333,6 +345,20 @@ public class ParasiticTab extends PreferencePanel {
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         techValues.add(edgeCapacitance, gridBagConstraints);
+
+        factoryReset.setText("Factory Reset");
+        factoryReset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                factoryResetActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.SOUTHEAST;
+        techValues.add(factoryReset, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -477,7 +503,7 @@ public class ParasiticTab extends PreferencePanel {
 
         pack();
     }//GEN-END:initComponents
-    
+
     /**
      * @param args the command line arguments
      */
@@ -490,6 +516,7 @@ public class ParasiticTab extends PreferencePanel {
     private javax.swing.JTextField capacitance;
     private javax.swing.JTextField edgeCapacitance;
     private javax.swing.JCheckBox extractPowerGround;
+    private javax.swing.JButton factoryReset;
     private javax.swing.JTextField gateLengthSubtraction;
     private javax.swing.JPanel globalValues;
     private javax.swing.JCheckBox includeGate;
