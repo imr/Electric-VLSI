@@ -4,9 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03f: *********************************
 
+IMP: (09/05/05, GVG) Add one option in Edit menu to toggle between neither end/both ends (bugzilla #489)
+
 IMP: (09/05/05, GVG) Ability to search cells by name under ExplorerTree
 
-IMP: (09/05/05, GVG) Expand explorer tree in Manual to place where html page is open (bugzilla #xxx). 
+IMP: (09/05/05, GVG) Expand explorer tree in Manual to place where html page is open (bugzilla #515).
 Same for preferences dialog.
 
 IMP: (09/05/05, GVG) Include library name in error message in LE (Bugzilla #516)
