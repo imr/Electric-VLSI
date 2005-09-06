@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03f: *********************************
 
+IMP: (09/05/05, SMR) Further improvements for EDIF bus output.
+
+IMP: (09/05/05, DN) Transactional DB: LibId.java, ExportId.java, PortProtoId.java.
+
 IMP: (09/06/05, DN) GenMath.figureAngle rounds to nearest 1/10 (was to lower).
 
 IMP: (09/05/05, GVG) Add one option in Edit menu to toggle between neither end/both ends (bugzilla #489)
@@ -16,7 +20,7 @@ Same for preferences dialog.
 IMP: (09/05/05, GVG) Include library name in error message in LE (Bugzilla #516)
 FIX: Added 'in (" + localCell.getLibrary().getName()+")' in error message.
 
-IMP/MAN (09/04/05, JKG) Add button to allow user to reset layer parasitics to factory default values
+IMP/MAN: (09/04/05, JKG) Add button to allow user to reset layer parasitics to factory default values
 
 IMP: (09/04/05, DN) In getShape methods EditWindow class is replaced by EditWindow_ interface
     for future changes.
@@ -43,7 +47,7 @@ IMP: (09/02/05, DN) Speed up redisplay:
 BUG: (09/02/05, SMR) Zero width arcs are drawn incorrectly (Bugs #521 & #522).
 FIX: Incorrect optimization of zero-width arcs repaired.
 
-IMP/MAN (09/01/05, JKG) Simple Parasitic Extraction from layout for spice
+IMP/MAN: (09/01/05, JKG) Simple Parasitic Extraction from layout for spice
 
 IMP: (09/01/05, SMR) Speed up redisplay.
 
@@ -62,7 +66,7 @@ FIX: In PixelDrawing.java, convert the transparent layers to opaque layers.
 BUG: (08/29/05, SMR) Closing a library is prevented if instances from it are in the clipboard (Bug #504).
 FIX: Clear the clipboard in such situations.
 
-IMP/MAN (08/30/05, GVG) Changes in DRC documentation to deal with Bug #496
+IMP/MAN: (08/30/05, GVG) Changes in DRC documentation to deal with Bug #496
 
 IMP: (08/27/05, DN) Connections of NodeInst are sorted by port index. This speeds
     up PortInst.getConnections() method in case of cell instances with many exports.

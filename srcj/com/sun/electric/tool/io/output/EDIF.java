@@ -68,6 +68,8 @@ import java.util.regex.Matcher;
  */
 public class EDIF extends Topology
 {
+	/** true to add extra "ripping" cells where arcs and busses meet */	private static final boolean ADD_RIPPERS = true;
+
 	private static class EGraphic
 	{
 		private String text;
@@ -83,7 +85,83 @@ public class EDIF extends Topology
 	private EGraphic egraphic = EGUNKNOWN;
 	private EGraphic egraphic_override = EGUNKNOWN;
 
-    // settings that may later be changed by preferences
+	// for bus rippers
+	private static class BusRipper
+	{
+		private NodeInst ni;
+		private Network net;
+		private int busWidth;
+		private int busIndex;
+		private int splitterIndex;
+		private String busName;
+		private static HashMap rippersPerCell = null;
+
+		private BusRipper(NodeInst ni, Network net, int busWidth, int busIndex, int splitterIndex, String busName)
+		{
+			this.ni = ni;
+			this.net = net;
+			this.busWidth = busWidth;
+			this.busIndex = busIndex;
+			this.splitterIndex = splitterIndex;
+			this.busName = busName;
+		}
+
+		public int getBusWidth() { return busWidth; }
+
+		public int getBusIndex() { return busIndex; }
+
+		public int getSplitterIndex() { return splitterIndex; }
+		
+		public static void makeBusRipper(NodeInst ni, Network net, int busWidth, int busIndex, int splitterIndex, String busName)
+		{
+			BusRipper br = new BusRipper(ni, net, busWidth, busIndex, splitterIndex, busName);
+
+			// add to lists
+			Cell cell = ni.getParent();
+			if (rippersPerCell == null) rippersPerCell = new HashMap();
+			List rippersInCell = (List)rippersPerCell.get(cell);
+			if (rippersInCell == null)
+			{
+				rippersInCell = new ArrayList();
+				rippersPerCell.put(cell, rippersInCell);
+			}
+			rippersInCell.add(br);
+		}
+
+		public static BusRipper findBusRipper(NodeInst ni, Network net)
+		{
+			if (rippersPerCell == null) return null;
+			List rippersInCell = (List)rippersPerCell.get(ni.getParent());
+			if (rippersInCell == null) return null;
+			for(Iterator it = rippersInCell.iterator(); it.hasNext(); )
+			{
+				BusRipper br = (BusRipper)it.next();
+				if (br.ni == ni && br.net == net) return br;
+			}
+			return null;
+		}
+
+		public static List getRippersOnBus(Cell cell, String busName)
+		{
+			List ripperList = new ArrayList();
+			if (rippersPerCell == null) return ripperList;
+			List rippersInCell = (List)rippersPerCell.get(cell);
+			if (rippersInCell == null) return ripperList;
+			for(Iterator it = rippersInCell.iterator(); it.hasNext(); )
+			{
+				BusRipper br = (BusRipper)it.next();
+				if (br.busName.equals(busName)) ripperList.add(br);
+			}
+			return ripperList;
+		}
+
+		public static void done()
+		{
+			rippersPerCell = null;
+		}
+	}
+
+	// settings that may later be changed by preferences
     private static final boolean CadenceProperties = true;
     private static final String primitivesLibName = "ELECTRIC_PRIMS";
 
@@ -138,7 +216,7 @@ public class EDIF extends Topology
 	{
         libsToWrite = new HashMap();
         libsToWriteOrder = new ArrayList();
-        equivs = new EDIFEquiv("edif.cfg");
+        equivs = new EDIFEquiv();
 	}
 
 	protected void start()
@@ -212,101 +290,103 @@ public class EDIF extends Topology
         writeAllPrims(topCell, primsFound);
         blockClose("library");
 
-		// figure out how many bus rippers are needed
-		HashSet rippers = new HashSet();
-		countRippers(topCell, rippers);
-		if (rippers.size() > 0)
+		if (ADD_RIPPERS)
 		{
-	        blockOpen("library");
-	        blockPutIdentifier("cdsRipLib");
-	        blockPut("edifLevel", "0");
-	        blockOpen("technology");
-	        blockOpen("numberDefinition");
-	        if (IOTool.isEDIFUseSchematicView())
-	        {
-	            writeScale(Technology.getCurrent());
-	        }
-	        blockClose("numberDefinition");
-	        blockClose("technology");
-		}
-		for(Iterator it = rippers.iterator(); it.hasNext(); )
-		{
-			Integer width = (Integer)it.next();
-	        blockOpen("cell");
-			blockPutIdentifier("ripper_" + width.intValue());
-			blockPut("cellType", "RIPPER");
-			blockOpen("view");
-			blockPutIdentifier("symbol");
-			blockPut("viewType", IOTool.isEDIFUseSchematicView() ? "SCHEMATIC" : "NETLIST");
-	        blockOpen("interface");
+			// figure out how many bus rippers are needed
+			HashSet rippers = new HashSet();
+			countRippers(topCell, rippers);
+			if (rippers.size() > 0)
+			{
+		        blockOpen("library");
+		        blockPutIdentifier("cdsRipLib");
+		        blockPut("edifLevel", "0");
+		        blockOpen("technology");
+		        blockOpen("numberDefinition");
+		        if (IOTool.isEDIFUseSchematicView())
+		        {
+		            writeScale(Technology.getCurrent());
+		        }
+		        blockClose("numberDefinition");
+		        blockClose("technology");
+			}
+			for(Iterator it = rippers.iterator(); it.hasNext(); )
+			{
+				Integer width = (Integer)it.next();
+		        blockOpen("cell");
+				blockPutIdentifier("ripper_" + width.intValue());
+				blockPut("cellType", "RIPPER");
+				blockOpen("view");
+				blockPutIdentifier("symbol");
+				blockPut("viewType", IOTool.isEDIFUseSchematicView() ? "SCHEMATIC" : "NETLIST");
+		        blockOpen("interface");
 
-			blockOpen("port");
-			blockOpen("array");
-			blockPutIdentifier("dst_0");
-			blockPutIdentifier(width.toString());
-			blockClose("array");
-			blockClose("port");
+				blockOpen("port");
+				blockOpen("array");
+				blockPutIdentifier("dst_0");
+				blockPutIdentifier(width.toString());
+				blockClose("array");
+				blockClose("port");
 
-			blockOpen("port");
-			blockOpen("array");
-			blockPutIdentifier("src");
-			blockPutIdentifier(width.toString());
-			blockClose("array");
-			blockClose("port");
+				blockOpen("port");
+				blockOpen("array");
+				blockPutIdentifier("src");
+				blockPutIdentifier(width.toString());
+				blockClose("array");
+				blockClose("port");
 
-			blockOpen("joined");
-			blockPut("portRef", "dst_0");	
-			blockPut("portRef", "src");
-			blockClose("joined");
+				blockOpen("joined");
+				blockPut("portRef", "dst_0");
+				blockPut("portRef", "src");
+				blockClose("joined");
 
-			blockOpen("symbol");
-			blockOpen("figure");
-			blockPutIdentifier("wire");
-			blockOpen("circle");
-			blockOpen("pt");
-			blockPutIdentifier("-5");
-			blockPutIdentifier("0");
-			blockClose("pt");
-			blockOpen("pt");
-			blockPutIdentifier("5");
-			blockPutIdentifier("0");
-			blockClose("pt");
-			blockClose("circle");
-			blockClose("figure");
+				blockOpen("symbol");
+					blockOpen("figure");
+						blockPutIdentifier("wire");
+						blockOpen("circle");
+							blockOpen("pt");
+								blockPutIdentifier("-5");
+								blockPutIdentifier("0");
+							blockClose("pt");
+							blockOpen("pt");
+								blockPutIdentifier("5");
+								blockPutIdentifier("0");
+							blockClose("pt");
+						blockClose("circle");
+					blockClose("figure");
 
-			blockOpen("portImplementation");
-			blockPutIdentifier("dst_0");
-			blockOpen("connectLocation");
-			blockOpen("figure");
-			blockPutIdentifier("pin");
-			blockOpen("dot");
-			writePoint(0, 0);
-			blockClose("dot");
-			blockClose("figure");
-			blockClose("connectLocation");
-			blockClose("portImplementation");
+					blockOpen("portImplementation");
+						blockPutIdentifier("dst_0");
+						blockOpen("connectLocation");
+							blockOpen("figure");
+								blockPutIdentifier("pin");
+								blockOpen("dot");
+									writePoint(0, 0);
+								blockClose("dot");
+							blockClose("figure");
+						blockClose("connectLocation");
+					blockClose("portImplementation");
 
-			blockOpen("portImplementation");
-			blockPutIdentifier("src");
-			blockOpen("connectLocation");
-			blockOpen("figure");
-			blockPutIdentifier("pin");
-			blockOpen("dot");
-			writePoint(0, 0);
-			blockClose("dot");
-			blockClose("figure");
-			blockClose("connectLocation");
-			blockClose("portImplementation");
+					blockOpen("portImplementation");
+						blockPutIdentifier("src");
+						blockOpen("connectLocation");
+							blockOpen("figure");
+								blockPutIdentifier("pin");
+								blockOpen("dot");
+									writePoint(0, 0);
+								blockClose("dot");
+							blockClose("figure");
+						blockClose("connectLocation");
+					blockClose("portImplementation");
 
-			blockClose("symbol");
-			blockClose("interface");
-			blockClose("view");
-			blockClose("symbol");
-			blockClose("cell");
-		}
-		if (rippers.size() > 0)
-		{
-			blockClose("library");
+				blockClose("symbol");
+				blockClose("interface");
+				blockClose("view");
+				blockClose("cell");
+			}
+			if (rippers.size() > 0)
+			{
+				blockClose("library");
+			}
 		}
 
         // external libs
@@ -405,8 +485,8 @@ public class EDIF extends Topology
     /**
      * Method to write cellGeom
      */
-    private void writeCellEdif(Cell cell, CellNetInfo cni, VarContext context) {
-
+    private void writeCellEdif(Cell cell, CellNetInfo cni, VarContext context)
+	{
 		// write out the cell header information
 		blockOpen("cell");
 		blockPutIdentifier(makeToken(cell.getName()));
@@ -419,6 +499,8 @@ public class EDIF extends Topology
 		blockOpen("interface");
 
 		// write ports and directions
+		Netlist netList = cni.getNetList();
+		HashMap busExports = new HashMap();
 		for(Iterator it = cni.getCellSignals(); it.hasNext(); )
 		{
 			CellSignal cs = (CellSignal)it.next();
@@ -429,10 +511,31 @@ public class EDIF extends Topology
 				if (e.getCharacteristic() == PortCharacteristic.OUT ||
 					e.getCharacteristic() == PortCharacteristic.REFOUT) direction = "OUTPUT";
 				if (e.getCharacteristic() == PortCharacteristic.BIDIR) direction = "INOUT";
-				blockOpen("port");
-				blockPutIdentifier(makeToken(cs.getName()));
-				blockPut("direction", direction);
-				blockClose("port");
+				int busWidth = netList.getBusWidth(e);
+				if (busWidth > 1)
+				{
+					// only write bus exports once
+					if (busExports.get(e) != null) continue;
+					blockOpen("port");
+					blockOpen("array");
+					String eBusName = e.getName().replaceAll("\\[", "\\<").replaceAll("\\]", "\\>");
+					String busName = makeToken(eBusName);
+					busExports.put(e, busName);
+					blockOpen("rename");
+					blockPutIdentifier(busName);
+					blockPutString(eBusName);
+					blockClose("rename");
+					blockPutIdentifier(Integer.toString(busWidth));
+					blockClose("array");
+					blockPut("direction", direction);
+					blockClose("port");
+				} else
+				{
+					blockOpen("port");
+					blockPutIdentifier(makeToken(cs.getName()));
+					blockPut("direction", direction);
+					blockClose("port");
+				}
 			}
 		}
 		if (IOTool.isEDIFUseSchematicView())
@@ -476,7 +579,79 @@ public class EDIF extends Topology
             blockOpen("page");
             blockPutIdentifier("SH1");
         }
-		Netlist netList = cni.getNetList();
+
+		// TODO (DONE) add ripper instances
+		HashMap splitterNodes = new HashMap();
+		if (ADD_RIPPERS)
+		{
+			int splitterIndex = 1;
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				NodeProto np = ni.getProto();
+				if (!(np instanceof PrimitiveNode)) continue;
+                if (equivs.getNodeEquivalence(ni) != null) continue;        // will be defined by external reference
+                PrimitiveNode pn = (PrimitiveNode)np;
+				PrimitiveNode.Function fun = ni.getFunction();
+				if (fun != PrimitiveNode.Function.PIN) continue;
+
+				// check all the connections
+				ArcInst busFound = null;
+				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				{
+					Connection con = (Connection)cIt.next();
+					ArcInst ai = con.getArc();
+					int width = netList.getBusWidth(ai);
+					if (width > 1) busFound = ai;
+				}
+				if (busFound == null) continue;
+				int busWidth = netList.getBusWidth(busFound);
+
+				// a bus pin: look for wires that indicate ripping
+				for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+				{
+					Connection con = (Connection)cIt.next();
+					ArcInst ai = con.getArc();
+					int width = netList.getBusWidth(ai);
+					if (width < 2)
+					{
+						// add an instance of a ripper
+						Network net = netList.getNetwork(ai, 0);
+						int busIndex = 0;
+						for(int i=0; i<busWidth; i++)
+						{
+							Network busNet = netList.getNetwork(busFound, i);
+							if (busNet == net)
+							{
+								busIndex = i;
+								break;
+							}
+						}
+						BusRipper.makeBusRipper(ni, net, busWidth, busIndex, splitterIndex,
+							netList.getBusName(busFound).toString());
+			            blockOpen("instance");
+							String splitterName = "splitter_" + splitterIndex;
+							splitterNodes.put(ni, new Integer(splitterIndex));
+							splitterIndex++;
+				            blockPutIdentifier(splitterName);
+				            blockOpen("viewRef");
+				            	blockPutIdentifier("symbol");
+					            blockOpen("cellRef");
+				            		blockPutIdentifier("ripper");
+									blockPut("libraryRef", "cdsRipLib");
+								blockClose("cellRef");
+							blockClose("viewRef");
+							blockOpen("transform");
+								blockOpen("origin");
+									writePoint(ni.getAnchorCenterX(), ni.getAnchorCenterY());
+								blockClose("origin");
+							blockClose("transform");
+			            blockClose("instance");
+					}
+				}
+			}
+		}
+
 		for(Iterator nIt = cell.getNodes(); nIt.hasNext(); )
 		{
 			NodeInst no = (NodeInst)nIt.next();
@@ -676,8 +851,11 @@ public class EDIF extends Topology
 			if (cs.isExported())
 			{
 				Export e = cs.getExport();
-				String pt = e.getName();
-				blockPut("portRef", makeToken(pt));
+				if (netList.getBusWidth(e) <= 1)
+				{
+					String pt = e.getName();
+					blockPut("portRef", makeToken(pt));
+				}
 			}
 
 			Network net = cs.getNetwork();
@@ -685,7 +863,26 @@ public class EDIF extends Topology
 			{
 				Nodable no = (Nodable)nIt.next();
 				NodeProto niProto = no.getProto();
-                EDIFEquiv.NodeEquivalence ne = equivs.getNodeEquivalence(no.getNodeInst());
+
+				// TODO (DONE) mention connectivity to a bus ripper
+				if (no instanceof NodeInst)
+				{
+					BusRipper br = BusRipper.findBusRipper((NodeInst)no, net);
+					if (br != null)
+					{
+						blockOpen("portRef");
+							blockOpen("member");
+								blockPutIdentifier("dst_0");
+								blockPutIdentifier(Integer.toString(br.getBusIndex()));
+							blockClose("member");
+							blockOpen("instanceRef");
+								blockPutIdentifier("splitter_" + br.getSplitterIndex());
+							blockClose("instanceRef");
+						blockClose("portRef");
+					}
+				}
+
+				EDIFEquiv.NodeEquivalence ne = equivs.getNodeEquivalence(no.getNodeInst());
 				if (niProto instanceof Cell)
 				{
 					String nodeName = parameterizedName(no, context);
@@ -802,70 +999,145 @@ public class EDIF extends Topology
 		}
 
 		// write busses
-		for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
+		if (ADD_RIPPERS)
 		{
-			CellAggregateSignal cas = (CellAggregateSignal)it.next();
-
-			// ignore single signals
-			if (cas.getLowIndex() > cas.getHighIndex()) continue;
-
-			blockOpen("netBundle");
-			String busName = cas.getNameWithIndices();
-			String oname = makeToken(busName);
-			if (!oname.equals(busName))
+			// TODO the new way
+			HashSet bussesSeen = new HashSet();
+			for(Iterator it = cell.getArcs(); it.hasNext(); )
 			{
-				// different names
-				blockOpen("rename");
-				blockPutIdentifier(oname);
-				blockPutString(busName);
-				blockClose("rename");
-			} else blockPutIdentifier(oname);
-			blockOpen("listOfNets");
+				ArcInst ai = (ArcInst)it.next();
+				int busWidth = netList.getBusWidth(ai);
+				if (busWidth < 2) continue;
+				if (bussesSeen.contains(ai)) continue;
 
-			// now each sub-net name
-			int numSignals = cas.getHighIndex() - cas.getLowIndex() + 1;
-			for (int k=0; k<numSignals; k++)
-			{
 				blockOpen("net");
-
-				// now output this name
-				CellSignal cs = cas.getSignal(k);
-				String pt = cs.getName();
-				oname = makeToken(pt);
-				if (!oname.equals(pt))
+				blockOpen("array");
+					String realBusName = netList.getBusName(ai).toString();
+					String busName = realBusName.replaceAll("\\[", "\\<").replaceAll("\\]", "\\>");
+					String oname = makeToken(busName);
+					if (!oname.equals(busName))
+					{
+						// different names
+						blockOpen("rename");
+							blockPutIdentifier(oname);
+							blockPutString(busName);
+						blockClose("rename");
+					} else blockPutIdentifier(oname);
+					blockPutIdentifier(Integer.toString(busWidth));
+				blockClose("array");
+	
+				// now each sub-net name
+				blockOpen("joined");
+				List rippersOnBus = BusRipper.getRippersOnBus(cell, realBusName);
+				for(Iterator rIt = rippersOnBus.iterator(); rIt.hasNext(); )
+				{
+					BusRipper br = (BusRipper)rIt.next();
+					blockOpen("portList");
+					for(int i=0; i<busWidth; i++)
+					{
+						blockOpen("portRef");
+							blockOpen("member");
+								blockPutIdentifier("src");
+								blockPutIdentifier(Integer.toString(i));
+							blockClose("member");
+							blockOpen("instanceRef");
+								blockPutIdentifier("splitter_" + br.splitterIndex);
+							blockClose("instanceRef");
+						blockClose("portRef");
+					}
+					blockClose("portList");
+				}
+				blockClose("joined");
+	
+				// now graphics for the bus
+				if (IOTool.isEDIFUseSchematicView())
+				{
+					// output net graphic information for all arc instances connected to this net
+					egraphic = EGUNKNOWN;
+					egraphic_override = EGBUS;
+					for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+					{
+						ArcInst oAi = (ArcInst)aIt.next();
+						if (oAi.getProto() != Schematics.tech.bus_arc) continue;
+						String arcBusName = netList.getBusName(oAi).toString();
+						if (arcBusName.equals(realBusName))
+						{
+							writeSymbolArcInst(oAi, GenMath.MATID);
+							bussesSeen.add(oAi);
+						}
+					}
+					setGraphic(EGUNKNOWN);
+					egraphic_override = EGUNKNOWN;
+				}
+				blockClose("net");
+			}
+		} else
+		{
+			// the old way: no longer done
+			for(Iterator it = cni.getCellAggregateSignals(); it.hasNext(); )
+			{
+				CellAggregateSignal cas = (CellAggregateSignal)it.next();
+	
+				// ignore single signals
+				if (cas.getLowIndex() > cas.getHighIndex()) continue;
+	
+				blockOpen("netBundle");
+				String busName = cas.getNameWithIndices();
+				String oname = makeToken(busName);
+				if (!oname.equals(busName))
 				{
 					// different names
 					blockOpen("rename");
 					blockPutIdentifier(oname);
-					blockPutString(pt);
+					blockPutString(busName);
 					blockClose("rename");
 				} else blockPutIdentifier(oname);
-				blockClose("net");
-			}
-
-			// now graphics for the bus
-			if (IOTool.isEDIFUseSchematicView())
-			{
-				// output net graphic information for all arc instances connected to this net
-				egraphic = EGUNKNOWN;
-				egraphic_override = EGBUS;
-				for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+				blockOpen("listOfNets");
+	
+				// now each sub-net name
+				int numSignals = cas.getHighIndex() - cas.getLowIndex() + 1;
+				for (int k=0; k<numSignals; k++)
 				{
-					ArcInst ai = (ArcInst)aIt.next();
-					if (ai.getProto() != Schematics.tech.bus_arc) continue;
-					String arcBusName = netList.getBusName(ai).toString();
-					if (arcBusName.equals(busName)) writeSymbolArcInst(ai, GenMath.MATID);
+					blockOpen("net");
+	
+					// now output this name
+					CellSignal cs = cas.getSignal(k);
+					String pt = cs.getName();
+					oname = makeToken(pt);
+					if (!oname.equals(pt))
+					{
+						// different names
+						blockOpen("rename");
+						blockPutIdentifier(oname);
+						blockPutString(pt);
+						blockClose("rename");
+					} else blockPutIdentifier(oname);
+					blockClose("net");
 				}
-				setGraphic(EGUNKNOWN);
-				egraphic_override = EGUNKNOWN;
+	
+				// now graphics for the bus
+				if (IOTool.isEDIFUseSchematicView())
+				{
+					// output net graphic information for all arc instances connected to this net
+					egraphic = EGUNKNOWN;
+					egraphic_override = EGBUS;
+					for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
+					{
+						ArcInst ai = (ArcInst)aIt.next();
+						if (ai.getProto() != Schematics.tech.bus_arc) continue;
+						String arcBusName = netList.getBusName(ai).toString();
+						if (arcBusName.equals(busName)) writeSymbolArcInst(ai, GenMath.MATID);
+					}
+					setGraphic(EGUNKNOWN);
+					egraphic_override = EGUNKNOWN;
+				}
+	
+				blockClose("netBundle");
+				continue;
 			}
-
-			blockClose("netBundle");
-			continue;
 		}
 
         // write text
-
         Poly [] text = cell.getAllText(true, null);
         if (text != null) {
             for (int i=0; i<text.length; i++) {
@@ -1211,7 +1483,7 @@ public class EDIF extends Topology
 		// allow '&' for the first character (this must be fixed later if digit or '_')
 		int i = 0;
 		if (iptr.charAt(i) == '&') i++;
-	
+
 		// allow "_" and alphanumeric for others
 		for(; i<iptr.length(); i++)
 		{
@@ -1989,7 +2261,7 @@ public class EDIF extends Topology
 
 	/** Method to report whether input and output names are separated. */
 	protected boolean isSeparateInputAndOutput() { return true; }
-	
+
 	/**
 	 * Method to adjust a network name to be safe for EDIF output.
 	 */

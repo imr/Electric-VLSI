@@ -401,7 +401,7 @@ public class EDIF extends Input
 		defaultInput = Schematics.tech.offpageNode.findPortProto("y");
 		defaultOutput = Schematics.tech.offpageNode.findPortProto("a");
 
-        equivs = new EDIFEquiv("edif.cfg");
+        equivs = new EDIFEquiv();
         netPortRefs = new ArrayList();
 
 		// parse the file

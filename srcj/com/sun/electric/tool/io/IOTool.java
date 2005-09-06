@@ -758,6 +758,19 @@ public class IOTool extends Listener
 	 */
 	public static void setEDIFInputScale(double f) { cacheEDIFInputScale.setDouble(f); }
 
+	private static Pref cacheEDIFConfigurationFile = Pref.makeStringPref("EDIFConfigurationFile", IOTool.tool.prefs, "");
+	/**
+	 * Method to tell the configuration file to use.
+	 * The default is "" (no configuration file).
+	 * @return the configuration file to use.
+	 */
+	public static String getEDIFConfigurationFile() { return cacheEDIFConfigurationFile.getString(); }
+	/**
+	 * Method to set the configuration file to use.
+	 * @param cFile the configuration file to use.
+	 */
+	public static void setEDIFConfigurationFile(String cFile) { cacheEDIFConfigurationFile.setString(cFile); }
+
 	/****************************** DXF PREFERENCES ******************************/
 
 	private static Pref cacheDXFInputFlattensHierarchy = Pref.makeBooleanPref("DXFInputFlattensHierarchy", IOTool.tool.prefs, true);
