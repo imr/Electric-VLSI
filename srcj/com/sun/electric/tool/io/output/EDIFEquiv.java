@@ -1,29 +1,30 @@
 package com.sun.electric.tool.io.output;
 
 import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
+import com.sun.electric.tool.io.IOTool;
 
-import java.util.List;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.regex.Pattern;
+import java.util.List;
 import java.util.regex.Matcher;
-import java.awt.geom.Point2D;
-import java.awt.geom.AffineTransform;
-import java.io.File;
-import java.io.FileReader;
-import java.io.BufferedReader;
-import java.io.IOException;
+import java.util.regex.Pattern;
 
 /**
  * Reads in a configuration file that specifies the equivalent Electric nodes for Nodes
@@ -264,7 +265,7 @@ public class EDIFEquiv {
      *
      * @param file the configuration file
      */
-    public EDIFEquiv(String file) {
+    public EDIFEquiv() {
         equivsByNodeProto = new HashMap();
         equivsByExternal = new HashMap();
         exportEquivs = new HashMap();
@@ -275,12 +276,18 @@ public class EDIFEquiv {
 		exportByGlobal = new HashMap();
 		exportFromGlobal = new HashMap();
 
+		String file = IOTool.getEDIFConfigurationFile();
+		if (file.length() == 0)
+		{
+            System.out.println("No EDIF configuration information being used");
+            return;
+		}
         File fd = new File(file);
         if (!fd.exists()) {
-            System.out.println("Info: EDIF equivalence configuration file not found: "+fd.getAbsolutePath());
+            System.out.println("Error: EDIF configuration file not found: "+fd.getAbsolutePath());
             return;
         }
-        System.out.println("Info: Using EDIF equivalence configuration file: "+fd.getAbsolutePath());
+        System.out.println("Using EDIF configuration file: "+fd.getAbsolutePath());
         try {
             FileReader reader = new FileReader(fd);
             BufferedReader bufReader = new BufferedReader(reader);
@@ -721,8 +728,7 @@ public class EDIFEquiv {
 
     /** Unit Test */
     public static void mainTest() {
-        String testFile = "edif.cfg";
-        EDIFEquiv eq = new EDIFEquiv(testFile);
+        EDIFEquiv eq = new EDIFEquiv();
         eq.print();
     }
 }

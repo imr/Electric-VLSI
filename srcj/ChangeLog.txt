@@ -4,7 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03f: *********************************
 
-IMP: (09/05/05, SMR) Further improvements for EDIF bus output.
+IMP/MAN: (09/05/05, SMR) Further improvements for EDIF bus output.  Configuration
+     settings are now in EDIF Preferences.
 
 IMP: (09/05/05, DN) Transactional DB: LibId.java, ExportId.java, PortProtoId.java.
 
