@@ -2444,7 +2444,7 @@ public class CircuitChanges
 //					ni.getXSize(), ni.getYSize(), cell, ni.getAngle(), name, 0);
 				if (newNi == null) return false;
 				newNodes.put(ni, newNi);
-				newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
+				newNi.copyStateBits(ni);
 				newNi.copyVarsFrom(ni);
 				newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
 	
@@ -2581,7 +2581,7 @@ public class CircuitChanges
 			if (newNi == null) return;
 			newNodes.put(ni, newNi);
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
-			newNi.lowLevelSetUserbits(ni.lowLevelGetUserbits());
+			newNi.copyStateBits(ni);
 			newNi.copyVarsFrom(ni);
 		}
 

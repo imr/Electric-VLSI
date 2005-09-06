@@ -212,7 +212,9 @@ public class GenMath
 //        double angle = Math.atan2(dy, dx);
 //        if (angle < 0) angle += Math.PI*2;
         double angle = figureAngleRadians(end1, end2);
-        int iAngle = (int)(angle * 1800.0 / Math.PI);
+        int iAngle = (int)(angle * 1800.0 / Math.PI + 0.5);
+        if (iAngle >= 3600) iAngle -= 3600;
+        assert 0 <= iAngle && iAngle < 3600;
         return iAngle;
     }
 

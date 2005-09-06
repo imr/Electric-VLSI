@@ -32,16 +32,17 @@ public class IconNodeInst extends NodeInst
 	 * @param width the width of this NodeInst (can't be negative).
 	 * @param height the height of this NodeInst (can't be negative).
 	 * @param orient the orientation of this NodeInst.
-	 * @param userBits flag bits of this NodeInst.
+     * @param flags flags of this NodeInst.
+	 * @param techBits bits associated to different technologies
      * @param protoDescriptor TextDescriptor of prototype name of this NodeInst
 	 */
     protected IconNodeInst(int nodeId, Cell parent, NodeProto protoType,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             Point2D center, double width, double height, Orientation orient,
-            int userBits, ImmutableTextDescriptor protoDescriptor)
+            int flags, int techBits, ImmutableTextDescriptor protoDescriptor)
 	{
         super(nodeId, parent, protoType, name, duplicate, nameDescriptor, center, width, height,
-              orient, userBits, protoDescriptor);
+              orient, flags, techBits, protoDescriptor);
     }
 
     public Variable newVar(Variable.Key key, Object value, TextDescriptor td)

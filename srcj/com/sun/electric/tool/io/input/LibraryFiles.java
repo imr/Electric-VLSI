@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
@@ -747,8 +748,10 @@ public abstract class LibraryFiles extends Input
             }
 		}
             
+        int flags = ImmutableNodeInst.flagsFromElib(nil.userBits[nodeIndex]);
+        int techBits = ImmutableNodeInst.techSpecificFromElib(nil.userBits[nodeIndex]);
 		NodeInst ni = NodeInst.newInstance(parent, proto, nil.name[nodeIndex], -1, nil.nameTextDescriptor[nodeIndex],
-                center, width, height, orient, nil.userBits[nodeIndex], nil.protoTextDescriptor[nodeIndex]);
+                center, width, height, orient, flags, techBits, nil.protoTextDescriptor[nodeIndex]);
         nil.theNode[nodeIndex] = ni;
         if (ni == null) return;
        DiskVariable[] vars = nil.vars[nodeIndex];

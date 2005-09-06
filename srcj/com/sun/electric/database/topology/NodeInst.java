@@ -143,13 +143,14 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param width the width of this NodeInst (can't be negative).
 	 * @param height the height of this NodeInst (can't be negative).
 	 * @param orient the orientation of this NodeInst.
-	 * @param userBits flag bits of this NodeInst.
+     * @param flags flags of this NodeInst.
+	 * @param techBits bits associated to different technologies
      * @param protoDescriptor TextDescriptor of prototype name of this NodeInst
 	 */
     protected NodeInst(int nodeId, Cell parent, NodeProto protoType,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             Point2D center, double width, double height, Orientation orient,
-            int userBits, ImmutableTextDescriptor protoDescriptor)
+            int flags, int techBits, ImmutableTextDescriptor protoDescriptor)
 	{
 		// initialize this object
 		this.parent = parent;
@@ -169,7 +170,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
             anchor = EPoint.ORIGIN;
         if (protoDescriptor == null) protoDescriptor = ImmutableTextDescriptor.getInstanceTextDescriptor();
         
-        d = ImmutableNodeInst.newInstance(nodeId, protoType.getId(), name, duplicate, nameDescriptor, orient, anchor, width, height, userBits, protoDescriptor);
+        d = ImmutableNodeInst.newInstance(nodeId, protoType.getId(), name, duplicate, nameDescriptor, orient, anchor, width, height, flags, techBits, protoDescriptor);
         
 		// fill in the geometry
 		redoGeometric();
@@ -248,7 +249,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public static NodeInst makeDummyInstance(NodeProto np, Point2D center, double width, double height, Orientation orient)
 	{
-        return new NodeInst(0, null, np, Name.findName(""), 0, null, center, width, height, orient, 0, null);
+        return new NodeInst(0, null, np, Name.findName(""), 0, null, center, width, height, orient, 0, 0, null);
 	}
 
 	/**
@@ -282,8 +283,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public static NodeInst newInstance(NodeProto protoType, Point2D center, double width, double height,
                                        Cell parent, Orientation orient, String name, int techBits)
 	{
-        int userBits = (techBits << ImmutableNodeInst.NTECHBITSSH)&ImmutableNodeInst.NTECHBITS;
-        return newInstance(parent, protoType, name, -1, null, center, width, height, orient, userBits, null);
+        return newInstance(parent, protoType, name, -1, null, center, width, height, orient, 0, techBits, null);
 	}
 
 	/**
@@ -297,14 +297,15 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * @param width the width of this NodeInst (can't be negative).
 	 * @param height the height of this NodeInst (can't be negative).
 	 * @param orient the orientation of this NodeInst.
-	 * @param userBits bits associated to different technologies
+     * @param flags flags of this NodeInst.
+	 * @param techBits bits associated to different technologies
      * @param protoDescriptor TextDescriptor of name of this NodeInst
      * @return the newly created NodeInst, or null on error.
 	 */
     public static NodeInst newInstance(Cell parent, NodeProto protoType,
                                        String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
                                        Point2D center, double width, double height, Orientation orient,
-                                       int userBits, ImmutableTextDescriptor protoDescriptor)
+                                       int flags, int techBits, ImmutableTextDescriptor protoDescriptor)
 	{
         if (protoType == null) return null;
 //        if (protoType instanceof PrimitiveNode && ((PrimitiveNode)protoType).isNotUsed())
@@ -347,7 +348,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
                 baseName = ((Cell)protoType).getBasename();
             } else {
                 PrimitiveNode np = (PrimitiveNode)protoType;
-                int techBits = (userBits&ImmutableNodeInst.NTECHBITS) >> ImmutableNodeInst.NTECHBITSSH;
                 baseName = np.getTechnology().getPrimitiveFunction(np, techBits).getBasename();
             }
             nameKey = parent.getAutoname(baseName);
@@ -355,7 +355,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		}
         duplicate = parent.fixupNodeDuplicate(nameKey, duplicate);
         CellId parentId = (CellId)parent.getId();
-		NodeInst ni = new NodeInst(parentId.newNodeId(), parent, protoType, nameKey, duplicate, nameDescriptor, center, width, height, orient, userBits, protoDescriptor);
+		NodeInst ni = new NodeInst(parentId.newNodeId(), parent, protoType, nameKey, duplicate, nameDescriptor, center, width, height, orient, flags, techBits, protoDescriptor);
 
 		if (ni.checkAndRepair(true, null, null) > 0) return null;
 		if (ni.lowLevelLink()) return null;
@@ -852,7 +852,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		newNi.copyVarsFrom(this);
 		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_NAME_TD);
 		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_PROTO_TD);
-		newNi.lowLevelSetUserbits(lowLevelGetUserbits());
+		newNi.copyStateBits(this);
 
 		// now delete the original nodeinst
 		kill();
@@ -2882,35 +2882,16 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	}
 
 	/**
-	 * Low-level method to get the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @return the "user bits".
-	 */
-	public int lowLevelGetUserbits() { return d.userBits; }
-
-	/**
-	 * Low-level method to set the user bits.
-	 * The "user bits" are a collection of flags that are more sensibly accessed
-	 * through special methods.
-	 * This general access to the bits is required because the ELIB
-	 * file format stores it as a full integer.
-	 * This should not normally be called by any other part of the system.
-	 * @param userBits the new "user bits".
-	 */
-	public void lowLevelSetUserbits(int userBits) { checkChanging(); d = d.withUserBits(userBits); Undo.otherChange(this); }
-
-	/**
 	 * Method to copy the various state bits from another NodeInst to this NodeInst.
 	 * @param ni the other NodeInst to copy.
 	 */
-	public void copyStateBits(NodeInst ni) { checkChanging(); d = d.withUserBits(ni.d.userBits); Undo.otherChange(this); }
+	public void copyStateBits(NodeInst ni) {
+        checkChanging();
+        d = d.withFlags(ni.d.getFlags()).withTechSpecific(ni.d.getTechSpecific());
+        Undo.otherChange(this);
+    }
 
-    private void setFlag(int flag) { checkChanging(); d = d.withUserBits(d.userBits | flag); Undo.otherChange(this); }
-    private void clearFlag(int flag) { checkChanging(); d = d.withUserBits(d.userBits & ~flag); Undo.otherChange(this); }
+    private void setFlag(ImmutableNodeInst.Flag flag, boolean value) { checkChanging(); d = d.withFlag(flag, value); Undo.otherChange(this); }
    
 	/**
 	 * Method to set this NodeInst to be expanded.
@@ -2918,7 +2899,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
 	 * The state has no meaning for instances of primitive node prototypes.
 	 */
-	public void setExpanded() { setFlag(ImmutableNodeInst.NEXPAND); }
+	public void setExpanded() { setFlag(ImmutableNodeInst.NEXPAND, true); }
 
 	/**
 	 * Method to set this NodeInst to be unexpanded.
@@ -2926,7 +2907,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
 	 * The state has no meaning for instances of primitive node prototypes.
 	 */
-	public void clearExpanded() { clearFlag(ImmutableNodeInst.NEXPAND); }
+	public void clearExpanded() { setFlag(ImmutableNodeInst.NEXPAND, false); }
 
 	/**
 	 * Method to tell whether this NodeInst is expanded.
@@ -2935,7 +2916,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * The state has no meaning for instances of primitive node prototypes.
 	 * @return true if this NodeInst is expanded.
 	 */
-	public boolean isExpanded() { return (d.userBits & ImmutableNodeInst.NEXPAND) != 0; }
+	public boolean isExpanded() { return d.is(ImmutableNodeInst.NEXPAND); }
 
 	/**
 	 * Method to set this NodeInst to be wiped.
@@ -2944,7 +2925,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
 	 * and the arcs connected to it must have "setWipable" in their prototype.
 	 */
-	public void setWiped() { setFlag(ImmutableNodeInst.WIPED); }
+	public void setWiped() { setFlag(ImmutableNodeInst.WIPED, true); }
 
 	/**
 	 * Method to set this NodeInst to be not wiped.
@@ -2953,7 +2934,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
 	 * and the arcs connected to it must have "setWipable" in their prototype.
 	 */
-	public void clearWiped() { clearFlag(ImmutableNodeInst.WIPED); }
+	public void clearWiped() { setFlag(ImmutableNodeInst.WIPED, false); }
 
 	/**
 	 * Method to tell whether this NodeInst is wiped.
@@ -2963,46 +2944,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * and the arcs connected to it must have "setWipable" in their prototype.
 	 * @return true if this NodeInst is wiped.
 	 */
-	public boolean isWiped() { return (d.userBits & ImmutableNodeInst.WIPED) != 0; }
-
-// 	/**
-// 	 * Method to set this NodeInst to be shortened.
-// 	 * Shortened NodeInst have been reduced in size to account for the fact that
-// 	 * they are connected at nonManhattan angles and must connect smoothly.
-// 	 * This state can only get set if the node's prototype has the "setCanShrink" state.
-// 	 */
-// 	public void setShortened() { setFlag(ImmutableNodeInst.NSHORT); }
-
-// 	/**
-// 	 * Method to set this NodeInst to be not shortened.
-// 	 * Shortened NodeInst have been reduced in size to account for the fact that
-// 	 * they are connected at nonManhattan angles and must connect smoothly.
-// 	 * This state can only get set if the node's prototype has the "setCanShrink" state.
-// 	 */
-// 	public void clearShortened() { clearFlag(ImmutableNodeInst.NSHORT); }
-
-// 	/**
-// 	 * Method to tell whether this NodeInst is shortened.
-// 	 * Shortened NodeInst have been reduced in size to account for the fact that
-// 	 * they are connected at nonManhattan angles and must connect smoothly.
-// 	 * This state can only get set if the node's prototype has the "setCanShrink" state.
-// 	 * @return true if this NodeInst is shortened.
-// 	 */
-// 	public boolean isShortened() { return (d.userBits & ImmutableNodeInst.NSHORT) != 0; }
+	public boolean isWiped() { return d.is(ImmutableNodeInst.WIPED); }
 
 	/**
 	 * Method to set this NodeInst to be hard-to-select.
 	 * Hard-to-select NodeInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
 	 */
-	public void setHardSelect() { setFlag(ImmutableNodeInst.HARDSELECTN); }
+	public void setHardSelect() { setFlag(ImmutableNodeInst.HARDSELECTN, true); }
 
 	/**
 	 * Method to set this NodeInst to be easy-to-select.
 	 * Hard-to-select NodeInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
 	 */
-	public void clearHardSelect() { clearFlag(ImmutableNodeInst.HARDSELECTN); }
+	public void clearHardSelect() { setFlag(ImmutableNodeInst.HARDSELECTN, false); }
 
 	/**
 	 * Method to tell whether this NodeInst is hard-to-select.
@@ -3010,21 +2966,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Instead, the "special select" command must be given.
 	 * @return true if this NodeInst is hard-to-select.
 	 */
-	public boolean isHardSelect() { return (d.userBits & ImmutableNodeInst.HARDSELECTN) != 0; }
+	public boolean isHardSelect() { return d.is(ImmutableNodeInst.HARDSELECTN); }
 
 	/**
 	 * Method to set this NodeInst to be visible-inside.
 	 * A NodeInst that is "visible inside" is only drawn when viewing inside of the Cell.
 	 * It is not visible from outside (meaning from higher-up the hierarchy).
 	 */
-	public void setVisInside() { setFlag(ImmutableNodeInst.NVISIBLEINSIDE); }
+	public void setVisInside() { setFlag(ImmutableNodeInst.NVISIBLEINSIDE, true); }
 
 	/**
 	 * Method to set this NodeInst to be not visible-inside.
 	 * A NodeInst that is "visible inside" is only drawn when viewing inside of the Cell.
 	 * It is not visible from outside (meaning from higher-up the hierarchy).
 	 */
-	public void clearVisInside() { clearFlag(ImmutableNodeInst.NVISIBLEINSIDE); }
+	public void clearVisInside() { setFlag(ImmutableNodeInst.NVISIBLEINSIDE, false); }
 
 	/**
 	 * Method to tell whether this NodeInst is visible-inside.
@@ -3032,26 +2988,26 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * It is not visible from outside (meaning from higher-up the hierarchy).
 	 * @return true if this NodeInst is visible-inside.
 	 */
-	public boolean isVisInside() { return (d.userBits & ImmutableNodeInst.NVISIBLEINSIDE) != 0; }
+	public boolean isVisInside() { return d.is(ImmutableNodeInst.NVISIBLEINSIDE); }
 
 	/**
 	 * Method to set this NodeInst to be locked.
 	 * Locked NodeInsts cannot be modified or deleted.
 	 */
-	public void setLocked() { setFlag(ImmutableNodeInst.NILOCKED); }
+	public void setLocked() { setFlag(ImmutableNodeInst.NILOCKED, true); }
 
 	/**
 	 * Method to set this NodeInst to be unlocked.
 	 * Locked NodeInsts cannot be modified or deleted.
 	 */
-	public void clearLocked() { clearFlag(ImmutableNodeInst.NILOCKED); }
+	public void clearLocked() { setFlag(ImmutableNodeInst.NILOCKED, false); }
 
 	/**
 	 * Method to tell whether this NodeInst is locked.
 	 * Locked NodeInsts cannot be modified or deleted.
 	 * @return true if this NodeInst is locked.
 	 */
-	public boolean isLocked() { return (d.userBits & ImmutableNodeInst.NILOCKED) != 0; }
+	public boolean isLocked() { return d.is(ImmutableNodeInst.NILOCKED); }
 
 	/**
 	 * Method to set a Technology-specific value on this NodeInst.
@@ -3062,7 +3018,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void setTechSpecific(int value) {
         checkChanging();
-        d = d.withUserBits((d.userBits & ~ImmutableNodeInst.NTECHBITS) | (value << ImmutableNodeInst.NTECHBITSSH) & ImmutableNodeInst.NTECHBITS);
+        d = d.withTechSpecific(value);
         if (parent != null) Undo.otherChange(this); 
     }
 
@@ -3073,7 +3029,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * For example, the Transistor primitive uses these bits to distinguish nMOS, pMOS, etc.
 	 * @return the Technology-specific value on this NodeInst.
 	 */
-	public int getTechSpecific() { return (d.userBits & ImmutableNodeInst.NTECHBITS) >> ImmutableNodeInst.NTECHBITSSH; }
+	public int getTechSpecific() { return d.getTechSpecific(); }
 
 	/**
 	 * Return the Essential Bounds of this NodeInst.

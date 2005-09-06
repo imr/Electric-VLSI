@@ -943,7 +943,7 @@ public class Clipboard
 		destNode.copyVarsFrom(srcNode);
 
 		// copy any special user bits
-		destNode.lowLevelSetUserbits(srcNode.lowLevelGetUserbits());
+		destNode.copyStateBits(srcNode);
 		destNode.clearExpanded();
         if (srcNode.isExpanded()) destNode.setExpanded();
 //		destNode.clearShortened();

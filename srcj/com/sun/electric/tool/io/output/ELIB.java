@@ -685,7 +685,7 @@ public class ELIB extends Output
 		}
 
 		// write the tool information
-		writeBigInteger(ni.lowLevelGetUserbits());
+		writeBigInteger(ni.getD().getElibBits());
 
 		// write variable information and arc name
 		writeVariables(ni, tech.getScale()*2);

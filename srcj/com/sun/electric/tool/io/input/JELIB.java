@@ -843,19 +843,35 @@ public class JELIB extends LibraryFiles
 
 			// parse state information in stateInfo field
             ImmutableTextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
-            int userBits = 0;
-            try {
-                userBits = ImmutableNodeInst.parseJelibUserBits(stateInfo);
-            } catch (NumberFormatException e) {
-				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (" + cell + ") bad node bits" + stateInfo, cell, -1);
+            int flags = 0, techBits = 0;
+            // parse state information in jelibUserBits
+            for(int i=0; i<stateInfo.length(); i++) {
+                char chr = stateInfo.charAt(i);
+                switch (chr) {
+                    case 'E': flags = ImmutableNodeInst.NEXPAND.set(flags, true); break;
+                    case 'L': flags = ImmutableNodeInst.NILOCKED.set(flags, true); break;
+                    case 'S': /*userBits |= NSHORT;*/ break; // deprecated
+                    case 'V': flags = ImmutableNodeInst.NVISIBLEINSIDE.set(flags, true); break;
+                    case 'W': flags = ImmutableNodeInst.WIPED.set(flags, true); break;
+                    case 'A': flags = ImmutableNodeInst.HARDSELECTN.set(flags, true); break;
+                    default:
+                        if (Character.isDigit(chr)) {
+                            stateInfo = stateInfo.substring(i);
+                            try {
+                                techBits = Integer.parseInt(stateInfo);
+                            } catch (NumberFormatException e) {
+                                Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+                                        " (" + cell + ") bad node bits" + stateInfo, cell, -1);
+                            }
+                        }
+                }
             }
-            ImmutableTextDescriptor protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line); 
+           ImmutableTextDescriptor protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line); 
 
 			// create the node
             Orientation orient = Orientation.fromJava(angle, flipX, flipY);
 			NodeInst ni = NodeInst.newInstance(cell, np, nodeName, duplicate, nameTextDescriptor,
-                    new EPoint(x, y), wid, hei, orient, userBits, protoTextDescriptor);
+                    new EPoint(x, y), wid, hei, orient, flags, techBits, protoTextDescriptor);
 			if (ni == null)
 			{
 				Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +

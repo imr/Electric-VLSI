@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03f: *********************************
 
+IMP: (09/06/05, DN) GenMath.figureAngle rounds to nearest 1/10 (was to lower).
+
 IMP: (09/05/05, GVG) Add one option in Edit menu to toggle between neither end/both ends (bugzilla #489)
 
 IMP: (09/05/05, GVG) Ability to search cells by name under ExplorerTree
