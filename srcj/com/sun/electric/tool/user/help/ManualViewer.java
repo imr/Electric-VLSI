@@ -79,7 +79,6 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
-import javax.swing.text.Position;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
@@ -126,7 +125,7 @@ public class ManualViewer extends EDialog
 		if (theManual == null)
 		{
 			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), null);
-			theManual.loadPointers();
+//			theManual.loadPointers();
 		}
 		theManual.setVisible(true);
 	}
@@ -138,14 +137,12 @@ public class ManualViewer extends EDialog
 	 */
 	public static void showPreferenceHelp(String preference)
 	{
-        String fileName = (String)preferenceMap.get(preference);
 		if (theManual == null)
 		{
-			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), fileName);
-			theManual.loadPointers();
+			theManual = new ManualViewer(TopLevel.getCurrentJFrame(), preference);
+//			theManual.loadPointers();
 		}
 		theManual.setVisible(true);
-		if (fileName == null) System.out.println("No help for preference " + preference);
 	}
 
     /**
@@ -230,6 +227,15 @@ public class ManualViewer extends EDialog
         setTitle("User's Manual");
         init();
 
+        // load indices
+        loadPointers();
+        String prefFileName = null;
+        if (preference != null)
+        {
+            prefFileName = (String)preferenceMap.get(preference);
+		    if (prefFileName == null) System.out.println("No help for preference " + preference);
+        }
+
 		// load the table of contents
 		URL url = ManualViewer.class.getResource("helphtml/toc.txt");
 		InputStream stream = TextUtils.getURLStream(url, null);
@@ -295,7 +301,7 @@ public class ManualViewer extends EDialog
 				if (pi.url == null)
                     System.out.println("NULL URL to "+fileName);
 				DefaultMutableTreeNode node = new DefaultMutableTreeNode(new Integer(pageSequence.size()));
-                if (preference != null && pi.fileName.equals(preference))
+                if (preference != null && pi.fileName.equals(prefFileName))
                 {
                     currentIndex = pageSequence.size();
                     thisNode = node;
