@@ -824,27 +824,26 @@ public class EDIF extends Topology
 
 			blockOpen("net");
 			netName = cs.getName();
+			String eName = makeToken(netName);
 			if (globalport)
 			{
 				blockOpen("rename");
-				blockPutIdentifier(makeToken(netName));
-				String name = makeToken(netName) + "!";
-				blockPutIdentifier(name);
+				blockPutIdentifier(eName);
+				blockPutString(eName + "!");
 				blockClose("rename");
 				blockPut("property", "GLOBAL");
 			} else
 			{
-				String oname = makeToken(netName);
-				EDIFEquiv.GlobalEquivalence ge = equivs.getElectricGlobalEquivalence(oname);
-				if (ge != null) oname = ge.externGName;
-				if (!oname.equals(netName))
+				EDIFEquiv.GlobalEquivalence ge = equivs.getElectricGlobalEquivalence(netName);
+				if (ge != null) netName = ge.externGName;
+				if (!eName.equals(netName))
 				{
 					// different names
 					blockOpen("rename");
-					blockPutIdentifier(oname);
+					blockPutIdentifier(eName);
 					blockPutString(netName);
 					blockClose("rename");
-				} else blockPutIdentifier(oname);
+				} else blockPutIdentifier(eName);
 			}
 
 			// write net connections

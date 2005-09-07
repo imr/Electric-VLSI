@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+IMP: (09/07/05, SMR) Modified compactor to enable regression testing of it.
+
+IMP/MAN: (09/07/05, SMR) Export Properties dialog now shows the export center location (Bug #481).
+
+IMP/MAN: (09/07/05, SMR) "Attributes" dialog now has "Edit" button next to value field (Bug #517).
+
 ************************* Version 8.03f: *********************************
 
 IMP: (09/05/07, SMR) Further improvements for EDIF bus output.

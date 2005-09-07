@@ -478,7 +478,7 @@ public class ToolMenu {
 		MenuBar.Menu compactionSubMenu = MenuBar.makeMenu("_Compaction");
 		toolMenu.add(compactionSubMenu);
 		compactionSubMenu.addMenuItem("Do _Compaction", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { Compaction.compactNow();}});
+			new ActionListener() { public void actionPerformed(ActionEvent e) { Compaction.compactNow(null);}});
 
         //------------------- Others
 

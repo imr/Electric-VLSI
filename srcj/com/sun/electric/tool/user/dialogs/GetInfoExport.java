@@ -26,6 +26,7 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.variable.ElectricObject;
@@ -189,7 +190,11 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 		initialName = pp.getName();
 		theText.setText(initialName);
 
-        // set Body and Always Drawn check boxes
+		// set location
+		Poly poly = pp.getOriginalPort().getPoly();
+		centerLoc.setText("Center: (" + poly.getCenterX() + "," + poly.getCenterY() + ")");
+
+		// set Body and Always Drawn check boxes
 		initialBodyOnly = pp.isBodyOnly();
 		bodyOnly.setSelected(initialBodyOnly);
 		initialAlwaysDrawn = pp.isAlwaysDrawn();
@@ -224,6 +229,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         shownExport = null;
         theText.setText("");
         refName.setText("");
+		centerLoc.setText("");
         textPanel.setTextDescriptor(null, null);
     }
 
@@ -336,6 +342,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         refName = new javax.swing.JTextField();
         bodyOnly = new javax.swing.JCheckBox();
         alwaysDrawn = new javax.swing.JCheckBox();
+        centerLoc = new javax.swing.JLabel();
         header = new javax.swing.JLabel();
         theText = new javax.swing.JTextField();
         attributes = new javax.swing.JButton();
@@ -364,8 +371,8 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.25;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(cancel, gridBagConstraints);
 
         ok.setText("OK");
@@ -396,8 +403,8 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.25;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(apply, gridBagConstraints);
 
         leftSide.setLayout(new java.awt.GridBagLayout());
@@ -446,6 +453,8 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 
         bodyOnly.setText("Body only");
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 6, 0, 0);
@@ -453,11 +462,20 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
 
         alwaysDrawn.setText("Always drawn");
         gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(0, 6, 0, 0);
         leftSide.add(alwaysDrawn, gridBagConstraints);
+
+        centerLoc.setText("Center:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        leftSide.add(centerLoc, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -498,8 +516,8 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 0.25;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(attributes, gridBagConstraints);
 
         pack();
@@ -588,6 +606,7 @@ public class GetInfoExport extends EDialog implements HighlightListener, Databas
     private javax.swing.JButton attributes;
     private javax.swing.JCheckBox bodyOnly;
     private javax.swing.JButton cancel;
+    private javax.swing.JLabel centerLoc;
     private javax.swing.JComboBox characteristics;
     private javax.swing.ButtonGroup grab;
     private javax.swing.JLabel header;

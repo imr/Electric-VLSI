@@ -812,6 +812,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         deleteButton = new javax.swing.JButton();
         renameButton = new javax.swing.JButton();
         done = new javax.swing.JButton();
+        editValue = new javax.swing.JButton();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -825,37 +826,37 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             }
         });
 
-        currentCell.setText("On Current Cell:");
         which.add(currentCell);
+        currentCell.setText("On Current Cell:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         getContentPane().add(currentCell, gridBagConstraints);
 
-        currentNode.setText(" Node");
         which.add(currentNode);
+        currentNode.setText(" Node");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 1;
         getContentPane().add(currentNode, gridBagConstraints);
 
-        currentExport.setText(" Export");
         which.add(currentExport);
+        currentExport.setText(" Export");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 1;
         getContentPane().add(currentExport, gridBagConstraints);
 
-        currentPort.setText("Port on Node");
         which.add(currentPort);
+        currentPort.setText("Port on Node");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 4;
         gridBagConstraints.gridy = 1;
         getContentPane().add(currentPort, gridBagConstraints);
 
-        currentArc.setText(" Arc");
         which.add(currentArc);
+        currentArc.setText(" Arc");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -890,7 +891,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 0, 4);
         body.add(jLabel10, gridBagConstraints);
 
@@ -899,7 +900,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 0.5;
@@ -926,6 +927,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         body.add(name, gridBagConstraints);
@@ -951,6 +953,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         body.add(evaluation, gridBagConstraints);
@@ -1029,9 +1032,24 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         body.add(jPanel1, gridBagConstraints);
+
+        editValue.setText("Edit...");
+        editValue.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                editValueActionPerformed(evt);
+            }
+        });
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 4;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        body.add(editValue, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -1044,6 +1062,13 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         pack();
     }//GEN-END:initComponents
+
+	private void editValueActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_editValueActionPerformed
+	{//GEN-HEADEREND:event_editValueActionPerformed
+		String editedValue = JOptionPane.showInputDialog("New Value:", value.getText());
+		if (editedValue == null) return;
+		value.setText(editedValue);
+	}//GEN-LAST:event_editValueActionPerformed
 
     private void renameButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_renameButtonActionPerformed
     	String newName = (String)JOptionPane.showInputDialog(this, "New name for " + name.getText(),
@@ -1148,6 +1173,7 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
     private javax.swing.JRadioButton currentPort;
     private javax.swing.JButton deleteButton;
     private javax.swing.JButton done;
+    private javax.swing.JButton editValue;
     private javax.swing.JLabel evalLabel;
     private javax.swing.JLabel evaluation;
     private javax.swing.JLabel jLabel1;
