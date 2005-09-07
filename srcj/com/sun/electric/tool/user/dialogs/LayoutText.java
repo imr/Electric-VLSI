@@ -138,11 +138,7 @@ public class LayoutText extends EDialog
 		Cell curCell = WindowFrame.needCurCell();
 		if (curCell == null) return;
 
-		// get the raster
-		Raster ras = PixelDrawing.renderText(msg, font, tsize, italic, bold, underline, -1, -1);
-		if (ras == null) return;
-
-		/* determine the primitive to use for the layout */
+		// determine the primitive to use for the layout
 		String nodeName = (String)textLayer.getSelectedItem();
 		NodeProto primNode = Technology.getCurrent().findNodeProto(nodeName);
 		if (primNode == null)
@@ -151,19 +147,29 @@ public class LayoutText extends EDialog
 			return;
 		}
 
-		DataBufferByte dbb = (DataBufferByte)ras.getDataBuffer();
-		byte [] samples = dbb.getData();
-		int samp = 0;
-		for(int y=0; y<ras.getHeight(); y++)
+		// get the raster
+		int yOffset = 0;
+		String [] strings = msg.split("\n");
+		for(int i=0; i<strings.length; i++)
 		{
-			for(int x=0; x<ras.getWidth(); x++)
+			String str = strings[i];
+			Raster ras = PixelDrawing.renderText(str, font, tsize, italic, bold, underline, -1, -1);
+			if (ras == null) return;
+			DataBufferByte dbb = (DataBufferByte)ras.getDataBuffer();
+			byte [] samples = dbb.getData();
+			int samp = 0;
+			for(int y=0; y<ras.getHeight(); y++)
 			{
-				if (samples[samp++] == 0) continue;
-				Point2D center = new Point2D.Double(x*scale, -y*scale);
-				double wid = scale - separation;
-				double hei = scale - separation;
-				NodeInst ni = NodeInst.newInstance(primNode, center, wid, hei, curCell);
+				for(int x=0; x<ras.getWidth(); x++)
+				{
+					if (samples[samp++] == 0) continue;
+					Point2D center = new Point2D.Double(x*scale, -(y+yOffset)*scale);
+					double wid = scale - separation;
+					double hei = scale - separation;
+					NodeInst ni = NodeInst.newInstance(primNode, center, wid, hei, curCell);
+				}
 			}
+			yOffset += ras.getHeight();
 		}
 	}
 
@@ -191,8 +197,8 @@ public class LayoutText extends EDialog
         jLabel5 = new javax.swing.JLabel();
         textLayer = new javax.swing.JComboBox();
         jLabel6 = new javax.swing.JLabel();
-        textMessage = new javax.swing.JTextField();
         textUnderline = new javax.swing.JCheckBox();
+        textMessage = new javax.swing.JTextArea();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -353,23 +359,20 @@ public class LayoutText extends EDialog
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         getContentPane().add(jLabel6, gridBagConstraints);
 
-        textMessage.setColumns(20);
-        textMessage.setText(" ");
-        gridBagConstraints = new java.awt.GridBagConstraints();
-        gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.gridwidth = 3;
-        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
-        getContentPane().add(textMessage, gridBagConstraints);
-
         textUnderline.setText("Underline");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
         gridBagConstraints.gridy = 4;
         getContentPane().add(textUnderline, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        getContentPane().add(textMessage, gridBagConstraints);
 
         pack();
     }//GEN-END:initComponents
@@ -446,7 +449,7 @@ public class LayoutText extends EDialog
     private javax.swing.JComboBox textFont;
     private javax.swing.JCheckBox textItalic;
     private javax.swing.JComboBox textLayer;
-    private javax.swing.JTextField textMessage;
+    private javax.swing.JTextArea textMessage;
     private javax.swing.JTextField textScale;
     private javax.swing.JTextField textSize;
     private javax.swing.JCheckBox textUnderline;

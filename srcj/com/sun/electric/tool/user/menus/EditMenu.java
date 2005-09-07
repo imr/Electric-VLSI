@@ -463,7 +463,7 @@ public class EditMenu {
 			new ActionListener() { public void actionPerformed(ActionEvent e) { addToWaveformNewCommand(); }});
 		selListSubMenu.addMenuItem("Add to _Waveform in Current Panel", KeyStroke.getKeyStroke('O', 0),
 			new ActionListener() { public void actionPerformed(ActionEvent e) { addToWaveformCurrentCommand(); }});
-		selListSubMenu.addMenuItem("_Remove from _Waveform", KeyStroke.getKeyStroke('R', 0),
+		selListSubMenu.addMenuItem("_Remove from Waveform", KeyStroke.getKeyStroke('R', 0),
 				new ActionListener() { public void actionPerformed(ActionEvent e) { removeFromWaveformCommand(); }});
     }
 

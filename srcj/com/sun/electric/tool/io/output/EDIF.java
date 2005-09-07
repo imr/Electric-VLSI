@@ -29,10 +29,14 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.*;
+import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.network.Global;
-import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.Netlist;
+import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortProto;
@@ -49,9 +53,6 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.IOTool;
-import com.sun.electric.tool.io.output.Topology.CellAggregateSignal;
-import com.sun.electric.tool.io.output.Topology.CellNetInfo;
-import com.sun.electric.tool.io.output.Topology.CellSignal;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
@@ -59,9 +60,14 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.regex.Pattern;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This is the netlister for EDIF.
@@ -290,6 +296,7 @@ public class EDIF extends Topology
         writeAllPrims(topCell, primsFound);
         blockClose("library");
 
+		// TODO (DONE) initialize rippers library
 		if (ADD_RIPPERS)
 		{
 			// figure out how many bus rippers are needed
@@ -301,12 +308,10 @@ public class EDIF extends Topology
 		        blockPutIdentifier("cdsRipLib");
 		        blockPut("edifLevel", "0");
 		        blockOpen("technology");
-		        blockOpen("numberDefinition");
-		        if (IOTool.isEDIFUseSchematicView())
-		        {
-		            writeScale(Technology.getCurrent());
-		        }
-		        blockClose("numberDefinition");
+			        blockOpen("numberDefinition");
+				        if (IOTool.isEDIFUseSchematicView())
+				            writeScale(Technology.getCurrent());
+			        blockClose("numberDefinition");
 		        blockClose("technology");
 			}
 			for(Iterator it = rippers.iterator(); it.hasNext(); )
@@ -321,22 +326,22 @@ public class EDIF extends Topology
 		        blockOpen("interface");
 
 				blockOpen("port");
-				blockOpen("array");
-				blockPutIdentifier("dst_0");
-				blockPutIdentifier(width.toString());
-				blockClose("array");
+					blockOpen("array");
+						blockPutIdentifier("dst_0");
+						blockPutIdentifier(width.toString());
+					blockClose("array");
 				blockClose("port");
 
 				blockOpen("port");
-				blockOpen("array");
-				blockPutIdentifier("src");
-				blockPutIdentifier(width.toString());
-				blockClose("array");
+					blockOpen("array");
+						blockPutIdentifier("src");
+						blockPutIdentifier(width.toString());
+					blockClose("array");
 				blockClose("port");
 
 				blockOpen("joined");
-				blockPut("portRef", "dst_0");
-				blockPut("portRef", "src");
+					blockPut("portRef", "dst_0");
+					blockPut("portRef", "src");
 				blockClose("joined");
 
 				blockOpen("symbol");
@@ -581,7 +586,6 @@ public class EDIF extends Topology
         }
 
 		// TODO (DONE) add ripper instances
-		HashMap splitterNodes = new HashMap();
 		if (ADD_RIPPERS)
 		{
 			int splitterIndex = 1;
@@ -631,13 +635,12 @@ public class EDIF extends Topology
 							netList.getBusName(busFound).toString());
 			            blockOpen("instance");
 							String splitterName = "splitter_" + splitterIndex;
-							splitterNodes.put(ni, new Integer(splitterIndex));
 							splitterIndex++;
 				            blockPutIdentifier(splitterName);
 				            blockOpen("viewRef");
 				            	blockPutIdentifier("symbol");
 					            blockOpen("cellRef");
-				            		blockPutIdentifier("ripper");
+				            		blockPutIdentifier("ripper_" + busWidth);
 									blockPut("libraryRef", "cdsRipLib");
 								blockClose("cellRef");
 							blockClose("viewRef");
@@ -1001,7 +1004,7 @@ public class EDIF extends Topology
 		// write busses
 		if (ADD_RIPPERS)
 		{
-			// TODO the new way
+			// TODO (DONE) the new way
 			HashSet bussesSeen = new HashSet();
 			for(Iterator it = cell.getArcs(); it.hasNext(); )
 			{
@@ -1508,7 +1511,7 @@ public class EDIF extends Topology
 		{
 			char chr = str.charAt(i);
 			if (Character.isWhitespace(chr)) break;
-			if (chr == '[') chr = '_';
+			if (chr == '[' || chr == '<') chr = '_';
 			if (TextUtils.isLetterOrDigit(chr) || chr == '&' || chr == '_')
 				sb.append(chr);
 		}
@@ -1737,7 +1740,8 @@ public class EDIF extends Topology
 			setGraphic(EGUNKNOWN);
 		Poly [] varPolys = new Poly[num];
 		ai.addDisplayableVariables(ai.getBounds(), varPolys, 0, null, false);
-        writeDisplayableVariables(varPolys, "ARC_name", trans);
+//        writeDisplayableVariables(varPolys, "ARC_name", trans);
+        writeDisplayableVariables(varPolys, null, trans);
 	}
 
     private void writeDisplayableVariables(Poly [] varPolys, String defaultVarName, AffineTransform prevtrans) {
@@ -2256,8 +2260,8 @@ public class EDIF extends Topology
 	/** Method to report that library names ARE always prepended to cell names. */
 	protected boolean isLibraryNameAlwaysAddedToCellName() { return false; }
 
-	/** Method to report that aggregate names (busses) ARE used. */
-	protected boolean isAggregateNamesSupported() { return true; }
+	/** Method to report that aggregate names (busses) are NOT used (bus information is extracted independently). */
+	protected boolean isAggregateNamesSupported() { return false; }
 
 	/** Method to report whether input and output names are separated. */
 	protected boolean isSeparateInputAndOutput() { return true; }

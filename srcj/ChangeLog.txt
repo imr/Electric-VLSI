@@ -4,6 +4,17 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+IMP: (09/05/07, SMR) Further improvements for EDIF bus output.
+
+BUG: (09/07/05, SMR) When components from two different technologies are displayed,
+     the color maps may interfere (Bug #500).
+FIX: Removed color maps from the Schematics technology so it can mix properly.
+
+BUG: (09/06/05, SMR) Attributes "Value" field moves cursor to end with each change (Bug #517).
+FIX: Do not update field when typing has occurred.
+
+IMP: (09/06/05, SMR) Layout text can now take multiple lines (Bug #520).
+
 ************************* Version 8.03f: *********************************
 
 BUG: (09/07/05, DN) IRSIM and some other netlisters doesn't treat properly PolyResistors and SpiceAmmeters.
@@ -23,6 +34,13 @@ BUG: (09/06/05, RK) NCC suggests use of resistorType annotation if resistor type
 
 IMP/MAN: (09/06/05, JKG) Added option to encase top level cell in subckt defintion for spice output.
 
+************************* Version 8.03f: *********************************
+
+BUG: (09/06/05, SMR) Attributes "Value" field moves cursor to end with each change (Bug #517).
+FIX: Do not update field when typing has occurred.
+
+IMP: (09/06/05, SMR) Layout text can now take multiple lines (Bug #520).
+
 IMP/MAN: (09/05/05, SMR) Further improvements for EDIF bus output.  Configuration
      settings are now in EDIF Preferences.
 
@@ -32,7 +50,7 @@ IMP: (09/06/05, DN) GenMath.figureAngle rounds to nearest 1/10 (was to lower).
 
 IMP: (09/05/05, GVG) Add one option in Edit menu to toggle between neither end/both ends (bugzilla #489)
 
-IMP: (09/05/05, GVG) Ability to search cells by name under ExplorerTree
+IMP/MAN: (09/05/05, GVG) Ability to search cells by name under ExplorerTree
 
 IMP: (09/05/05, GVG) Expand explorer tree in Manual to place where html page is open (bugzilla #515).
 Same for preferences dialog.

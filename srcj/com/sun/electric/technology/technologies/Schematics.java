@@ -245,10 +245,10 @@ public class Schematics extends Technology
 		setFactoryScale(2000, false);			// in nanometers: really 2 micron
 		setNonStandard();
 		setStaticTechnology();
-		setFactoryTransparentLayers(new Color []
-   		{
-   			new Color(107, 226, 96)  // Bus
-   		});
+//		setFactoryTransparentLayers(new Color []
+//   		{
+//   			new Color(107, 226, 96)  // Bus
+//   		});
 
 		//**************************************** LAYERS ****************************************
 
@@ -259,24 +259,42 @@ public class Schematics extends Technology
 				0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF,0xFFFF}));
 
 		/** bus layer */
-		bus_lay = Layer.newInstance(this, "Bus",
-			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_1, 107,226,96, 0.8,true,
-			new int[] { 0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000,   //                 
-						0x2222,   //   X   X   X   X 
-						0x0000,   //                 
-						0x8888,   // X   X   X   X   
-						0x0000}));//                 
+//		bus_lay = Layer.newInstance(this, "Bus",
+//			new EGraphics(EGraphics.SOLID, EGraphics.PATTERNED, EGraphics.TRANSPARENT_1, 107,226,96, 0.8,true,
+//			new int[] { 0x2222,   //   X   X   X   X 
+//				0x0000,   //                 
+//				0x8888,   // X   X   X   X   
+//				0x0000,   //                 
+//				0x2222,   //   X   X   X   X 
+//				0x0000,   //                 
+//				0x8888,   // X   X   X   X   
+//				0x0000,   //                 
+//				0x2222,   //   X   X   X   X 
+//				0x0000,   //                 
+//				0x8888,   // X   X   X   X   
+//				0x0000,   //                 
+//				0x2222,   //   X   X   X   X 
+//				0x0000,   //                 
+//				0x8888,   // X   X   X   X   
+//				0x0000}));//     
+		bus_lay = Layer.newInstance(this, "Bus",            
+			new EGraphics(EGraphics.PATTERNED, EGraphics.PATTERNED, 0, 0,255,0, 0.8,true,
+			new int[] { 0xAAAA,   // X X X X X X X X 
+						0x5555,   //  X X X X X X X X
+						0xAAAA,   // X X X X X X X X 
+						0x5555,   //  X X X X X X X X
+						0xAAAA,   // X X X X X X X X 
+						0x5555,   //  X X X X X X X X
+						0xAAAA,   // X X X X X X X X 
+						0x5555,   //  X X X X X X X X
+						0xAAAA,   // X X X X X X X X 
+						0x5555,   //  X X X X X X X X
+						0xAAAA,   // X X X X X X X X 
+						0x5555,   //  X X X X X X X X
+						0xAAAA,   // X X X X X X X X 
+						0x5555,   //  X X X X X X X X
+						0xAAAA,   // X X X X X X X X 
+						0x5555}));//  X X X X X X X X
 
 		/** node layer */
 		node_lay = Layer.newInstance(this, "Node",

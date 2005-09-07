@@ -354,8 +354,7 @@ public abstract class Topology extends Output
 	private CellNetInfo getNetworkInformation(Cell cell, boolean quiet, String paramName, boolean useExportedName, Netlist netlist)
 	{
 		CellNetInfo cni = doGetNetworks(cell, quiet, paramName, useExportedName, netlist);
-//PrintStream printWriter = System.out;
-//printWriter.print("********Decomposition of cell " + cell.describe(true) + "\n");
+//printWriter.print("********Decomposition of cell " + cell + "\n");
 //printWriter.print("** Have " + cni.cellSignalsSorted.size() + " signals:\n");
 //for(Iterator it = cni.getCellSignals(); it.hasNext(); )
 //{
@@ -371,7 +370,7 @@ public abstract class Topology extends Output
 //		printWriter.print("**   Name="+cas.name+", export="+cas.pp+" descending="+cas.descending+", low="+cas.low+", high="+cas.high+"\n");
 //	}
 //}
-//printWriter.print("********DONE WITH CELL " + cell.describe(true) + "\n");
+//printWriter.print("********DONE WITH CELL " + cell + "\n");
 		return cni;
 	}
 

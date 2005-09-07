@@ -1006,6 +1006,13 @@ public class EditWindow extends JPanel
 
 	// ************************************* REPAINT *************************************
 
+	private boolean intermediateRefresh = false;
+
+	public void allowIntermediateRefresh()
+	{
+		intermediateRefresh = true;
+	}
+
 	/**
 	 * Method to repaint this EditWindow.
 	 * Composites the image (taken from the PixelDrawing object)
@@ -1024,11 +1031,18 @@ public class EditWindow extends JPanel
 			return;
 		}
 
+		// stop now if rendering and the repaint came too soon
+		if (runningNow != null && !intermediateRefresh)
+		{
+//System.out.println("SCREEN FLASH!!!!!!!!!!!!!!!");
+			return;
+		}
+
+		intermediateRefresh = false;
+
 		// show the image
 		BufferedImage img = offscreen.getBufferedImage();
-//if (runningNow != null) System.out.println("REFRESH TOO SOON");
-		// TODO: Do not need synchronization here
-		synchronized(img)
+//		synchronized(img) // Do not need synchronization here
 		{
 			g.drawImage(img, 0, 0, this);
 		}
