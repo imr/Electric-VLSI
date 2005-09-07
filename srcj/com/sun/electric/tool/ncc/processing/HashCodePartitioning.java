@@ -179,17 +179,17 @@ public class HashCodePartitioning {
 		Date d2 = new Date();
 		globals.status1("  Hashing frontier took: "+NccUtils.hourMinSec(d1, d2));
 
-		if (done()) return;
+		if (done() || globals.userWantsToAbort()) return;
 		useExportNames();
 		Date d3 = new Date();
 		globals.status1("  Using export names took: "+NccUtils.hourMinSec(d2, d3));
 
-		if (done()) return;
+		if (done() || globals.userWantsToAbort()) return;
 		useTransistorSizes();
 		Date d4 = new Date();
 		globals.status1("  Using transistor sizes took: "+NccUtils.hourMinSec(d3, d4));
 
-		if (done()) return;
+		if (done() || globals.userWantsToAbort()) return;
 		randomMatch();
 		Date d5 = new Date();
 		globals.status1("  Random match took: "+NccUtils.hourMinSec(d4, d5));

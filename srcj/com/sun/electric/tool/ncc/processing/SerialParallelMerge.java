@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.tool.ncc.NccGlobals;
+import com.sun.electric.tool.ncc.NccResult;
 import com.sun.electric.tool.ncc.netlist.Mos;
 import com.sun.electric.tool.ncc.netlist.Part;
 import com.sun.electric.tool.ncc.netlist.Wire;
@@ -174,10 +175,13 @@ public class SerialParallelMerge {
 		// the following first serial merge may succeed!
 		boolean first = true;
 		for (int tripNumber=1; ; tripNumber++) {
+			if (globals.userWantsToAbort()) break; 
 			globals.status2("  parallel and series merge trip " + tripNumber);
 			boolean progress = parallelMerge();
 			if (!first && !progress) break;
 			first = false;
+
+			if (globals.userWantsToAbort()) break; 
 			progress = serialMerge();
 			if (!progress) break;
 		}

@@ -75,6 +75,7 @@ public class NccNetlist {
 	private boolean exportAssertionFailures;
 	private boolean exportGlobalConflicts;
 	private boolean badTransistorType;
+	private boolean userAbort;
 
 	// ---------------------------- public methods ---------------------------
 	public NccNetlist(Cell root, VarContext context, Netlist netlist, 
@@ -87,7 +88,6 @@ public class NccNetlist {
 		try {
 			Visitor v = new Visitor(globals, hierInfo, blackBox, context);
 			HierarchyEnumerator.enumerateCell(root, context, v, true, false, true, true);
-//			HierarchyEnumerator.enumerateCell(root, context, netlist, v, true);
 			wires = v.getWireList();
 			parts = v.getPartList();
 			ports = v.getPortList();
@@ -96,6 +96,8 @@ public class NccNetlist {
 		} catch (RuntimeException e) {
 			if (e instanceof ExportGlobalConflict) {
 				exportGlobalConflicts = true;
+			} else if (e instanceof UserAbort) {
+				userAbort = true;
 			} else {
 				throw e;
 			}
@@ -109,13 +111,14 @@ public class NccNetlist {
 	public ArrayList getPortArray() {return ports;}
 	public boolean cantBuildNetlist() {
 		return exportAssertionFailures || exportGlobalConflicts ||
-		       badTransistorType;
+		       badTransistorType || userAbort;
 	}
 	public Cell getRootCell() {return rootCell;}
 	public VarContext getRootContext() {return rootContext;}
 }
 
 class ExportGlobalConflict extends RuntimeException {}
+class UserAbort extends RuntimeException {}
 
 /** map from netID to NCC Wire */
 class Wires {
@@ -685,6 +688,8 @@ class Visitor extends HierarchyEnumerator.Visitor {
 	}
 	
 	public boolean enterCell(CellInfo ci) {
+		if (globals.userWantsToAbort()) throw new UserAbort();
+		
 		NccCellInfo info = (NccCellInfo) ci;
 		if (debug) {
 			globals.status2(spaces()+"Enter cell: " + info.getCell().getName());

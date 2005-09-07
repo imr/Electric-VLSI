@@ -97,21 +97,24 @@ public class NccBottomUp {
 	private NccResult compareAndPrintStatus(Cell cell1, VarContext ctxt1, 
 			                                Cell cell2, VarContext ctxt2, 
                                             HierarchyInfo hierInfo,
-                                            NccOptions options) {
+                                            NccOptions options,
+											Aborter aborter) {
         prln("Comparing: "+NccUtils.fullName(cell1)+
              " with: "+NccUtils.fullName(cell2));
         System.out.flush();
         Date before = new Date();
         NccResult result = NccEngine.compare(cell1, ctxt1, cell2, ctxt2,  
-	                                         hierInfo, options);
+	                                         hierInfo, options, aborter);
         if (options.checkNetEquivalenceMap) 
             result.getNetEquivalence().regressionTest();
 
         Date after = new Date();
 
-        String timeStr = NccUtils.hourMinSec(before, after);
-        prln(result.summary(options.checkSizes)+" in "+timeStr+".");
-        System.out.flush();
+        if (!aborter.userWantsToAbort()) {
+        	String timeStr = NccUtils.hourMinSec(before, after);
+        	prln(result.summary(options.checkSizes)+" in "+timeStr+".");
+            System.out.flush();
+        }
 
         return result;
     }
@@ -121,7 +124,8 @@ public class NccBottomUp {
 	private NccResult compareCellsInCompareList(CompareList compareList, 
 							   			        HierarchyInfo hierInfo,
 							   			        boolean blackBoxAnn,
-							   			        NccOptions options) {
+							   			        NccOptions options,
+												Aborter aborter) {
 		// build our own list because we need to modify it
 		List cellCntxts = new ArrayList();
 		// build Set of Cells because we need to exclude them from subcircuit 
@@ -150,7 +154,7 @@ public class NccBottomUp {
 			    (options.skipPassed && passed.getPassed(refCC.cell, thisCC.cell))) {
 				if (hierInfo==null) continue;
 				boolean ok = 
-				  NccUtils.buildBlackBoxes(refCC, thisCC, hierInfo, options);
+				  NccUtils.buildBlackBoxes(refCC, thisCC, hierInfo, options, aborter);
 				if (!ok) return null;
 			} else {
 				hierInfo.restrictSubcktDetection(refCC, thisCC, compareListCells);
@@ -160,12 +164,14 @@ public class NccBottomUp {
 				
 				NccResult r = compareAndPrintStatus(refCC.cell, refCC.context,
 						                            thisCC.cell, thisCC.context, 
-													hierInfo, options); 
+													hierInfo, options, aborter); 
 				result.andEquals(r);
 				if (r.match())  passed.setPassed(refCC.cell, thisCC.cell);
 				
 				// Halt after first mismatch if that's what user wants
 				if (!r.match() && options.haltAfterFirstMismatch) break;
+				
+				if (aborter.userWantsToAbort()) break;
 			}
 		}
 		if (!blackBoxAnn && options.operation!=NccOptions.HIER_EACH_CELL) 
@@ -190,7 +196,8 @@ public class NccBottomUp {
 	}
 	
 	private NccResult processCompareLists(List compareLists,
-	                                      NccOptions options) {
+	                                      NccOptions options, 
+										  Aborter aborter) {
 		NccResult result = new NccResult(true, true, true, null);
 		HierarchyInfo hierInfo = new HierarchyInfo();
 		for (Iterator it=compareLists.iterator(); it.hasNext();) {
@@ -211,7 +218,8 @@ public class NccBottomUp {
 			result.abandonNccGlobals();
 			
 			NccResult r = compareCellsInCompareList(compareList, hierInfo, 
-					                                blackBoxAnn, options); 
+					                                blackBoxAnn, options,
+													aborter); 
 			if (r==null) {
 				prln(
 					"Halting multiple cell NCC because of failure to build " +
@@ -221,12 +229,12 @@ public class NccBottomUp {
 			}
 			result.andEquals(r);
 
-			// Don't stop for size mismatches
-			if ((!result.exportMatch() || ! result.topologyMatch()) 
-				 && options.haltAfterFirstMismatch) {
-				prln( 
-					"Halting multiple cell NCC after finding first mismatch"
-				);
+			if (aborter.userWantsToAbort()) {
+				return result;
+			} else if ((!result.exportMatch() || ! result.topologyMatch()) 
+					   && options.haltAfterFirstMismatch) {
+				// Don't stop for size mismatches
+				prln("Halting NCC after finding first mismatch");
 				return result;
 			}
 		}
@@ -234,16 +242,16 @@ public class NccBottomUp {
 	}
 
 	private NccResult compareCells(CellContext cc1, CellContext cc2, 
-								   NccOptions options) {
+								   NccOptions options, Aborter aborter) {
 		List compareLists = CompareLists.getCompareLists(cc1, cc2);
-		return processCompareLists(compareLists, options);
+		return processCompareLists(compareLists, options, aborter);
 	}
 
 	// --------------------------- public methods -----------------------------
 	public static NccResult compare(CellContext cc1, CellContext cc2, 
-									NccOptions options) {
+									NccOptions options, Aborter aborter) {
 		NccBottomUp ncch = new NccBottomUp();
-		return ncch.compareCells(cc1, cc2, options);
+		return ncch.compareCells(cc1, cc2, options, aborter);
 	}
 	public static void clearPassedHistory() {passed.clear();}
 }

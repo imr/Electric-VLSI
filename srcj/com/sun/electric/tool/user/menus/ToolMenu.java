@@ -633,7 +633,7 @@ public class ToolMenu {
 
             // run NCC, get results
             NccOptions options = new NccOptions();
-            NccResult result = Ncc.compare(schLayCells[0], null, schLayCells[1], null, options);
+            NccResult result = Ncc.compare(schLayCells[0], null, schLayCells[1], null, options, this);
             if (result == null || !result.topologyMatch()) {
                 System.out.println("Ncc failed, can't back-annotate");
                 return false;

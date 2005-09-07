@@ -132,14 +132,23 @@ public class NccEngine {
 			globals.status1("  Export name matching took: "+
 			                NccUtils.hourMinSec(d0, d1));
 			
+			if (globals.userWantsToAbort()) 
+				return new NccResult(true, true, true, globals);
+			
 			SerialParallelMerge.doYourJob(globals);
 			Date d2 = new Date();
 			globals.status1("  Serial/parallel merge took: "+
 					        NccUtils.hourMinSec(d1, d2));
 
+			if (globals.userWantsToAbort()) 
+				return new NccResult(true, true, true, globals);
+
 			printWireComponentCounts();
 
 			LocalPartitioning.doYourJob(globals);
+
+			if (globals.userWantsToAbort()) 
+				return new NccResult(true, true, true, globals);
 
 			// Tricky: init leaf lists after Local Partitioning because Local
 			// Partitioning can make an EquivRecord change from matched to
@@ -158,6 +167,9 @@ public class NccEngine {
 			localRes.printErrorReport();
 			if (!localRes.matches()) return new NccResult(expNamesOK, false, false, globals);
 
+			if (globals.userWantsToAbort()) 
+				return new NccResult(true, true, true, globals);
+			
 			Date d4 = new Date();
 			if (topoOK) expCheck.suggestPortMatchesBasedOnTopology();
 
@@ -190,8 +202,8 @@ public class NccEngine {
 	private NccResult areEquivalent(List cells, List contexts, 
 					  		        List netlists, HierarchyInfo hierInfo,
 					  		        boolean blackBox, 
-					  		        NccOptions options) {
-		globals = new NccGlobals(options);
+					  		        NccOptions options, Aborter aborter) {
+		globals = new NccGlobals(options, aborter);
 		
 		globals.status2("****************************************"+					  		
 		                "****************************************");					  		
@@ -216,7 +228,8 @@ public class NccEngine {
 									  Cell cell2, VarContext context2, 
 									  HierarchyInfo hierInfo,
 									  boolean blackBox,
-									  NccOptions options) {
+									  NccOptions options,
+									  Aborter aborter) {
 		ArrayList cells = new ArrayList();
 		cells.add(cell1);
 		cells.add(cell2);
@@ -228,15 +241,15 @@ public class NccEngine {
 		netlists.add(cell2.getNetlist(true));
 				
 		return compareMany(cells, contexts, netlists, hierInfo, blackBox, 
-		                   options);
+		                   options, aborter);
 	}
 	private static NccResult compareMany(List cells, List contexts, List netlists,
 									     HierarchyInfo hierCompInfo,
 									     boolean blackBox, 
-									     NccOptions options) {
+									     NccOptions options, Aborter aborter) {
 		NccEngine ncc = new NccEngine();
 		return ncc.areEquivalent(cells, contexts, netlists, hierCompInfo, 
-								 blackBox, options);
+								 blackBox, options, aborter);
 	}
 	// -------------------------- public methods ------------------------------
 	/** 
@@ -256,24 +269,24 @@ public class NccEngine {
 	 */
 	public static NccResult compare(List cells, List contexts, List netlists,
 	                                HierarchyInfo hierCompInfo, 
-	                                NccOptions options) {
+	                                NccOptions options, Aborter aborter) {
 		return compareMany(cells, contexts, netlists, hierCompInfo, false, 
-		                   options);
+		                   options, aborter);
 	}
 	/** compare two Cells */
 	public static NccResult compare(Cell cell1, VarContext context1, 
 	                                Cell cell2, VarContext context2, 
 	                                HierarchyInfo hierInfo, 
-	                                NccOptions options) {
-		return 
-		  compare2(cell1, context1, cell2, context2, hierInfo, false, options);
+	                                NccOptions options, Aborter aborter) {
+		return compare2(cell1, context1, cell2, context2, hierInfo, false, 
+				        options, aborter);
 	}
 	public static boolean buildBlackBoxes(Cell cell1, VarContext ctxt1, 
 								          Cell cell2, VarContext ctxt2,
 								          HierarchyInfo hierInfo, 
-								          NccOptions options) {
-		NccResult r = 
-			compare2(cell1, ctxt1, cell2, ctxt2, hierInfo, true, options);
+								          NccOptions options, Aborter aborter) {
+		NccResult r = compare2(cell1, ctxt1, cell2, ctxt2, hierInfo, true, 
+				               options, aborter);
 		return r.exportMatch();
 	}
 }

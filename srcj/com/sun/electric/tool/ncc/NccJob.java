@@ -142,7 +142,10 @@ public class NccJob extends Job {
 		
 		NccResult result = Ncc.compare(cellCtxts[0].cell, cellCtxts[0].context,
 									   cellCtxts[1].cell, cellCtxts[1].context, 
-									   options);
+									   options, this);
+		// If the user quit then don't count on any results
+		if (checkAbort()) return true;
+		
 		lastResult = result;
         nccgui.setMismatches(result.getAllComparisonMismatches(), options);
         SwingUtilities.invokeLater(new Runnable() {

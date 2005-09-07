@@ -33,10 +33,9 @@ import java.util.List;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.ncc.Aborter;
 import com.sun.electric.tool.ncc.NccEngine;
 import com.sun.electric.tool.ncc.NccOptions;
-import com.sun.electric.tool.ncc.NccResult;
-import com.sun.electric.tool.ncc.NetEquivalence;
 import com.sun.electric.tool.ncc.processing.HierarchyInfo;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowContent;
@@ -140,13 +139,13 @@ public class NccUtils {
 	
 	public static boolean buildBlackBoxes(CellContext c1, CellContext c2,
 								          HierarchyInfo hierInfo, 
-								          NccOptions options) {
+								          NccOptions options, Aborter aborter) {
 		System.out.println("Build black boxes for: "+NccUtils.fullName(c1.cell)+
 						   " and: "+NccUtils.fullName(c2.cell));
 		System.out.flush();
 		boolean ok = 
 			NccEngine.buildBlackBoxes(c1.cell, c1.context, c2.cell, c2.context, 
-									  hierInfo, options);	                                 
+									  hierInfo, options, aborter);	                                 
 		System.out.println(ok ? "Done" : "Failed");
 		System.out.flush();
 		return ok;

@@ -27,6 +27,7 @@ import java.util.Date;
 
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.tool.Job;
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.CellContext;
 import com.sun.electric.tool.ncc.basic.NccUtils;
@@ -41,7 +42,7 @@ public class Ncc {
 	private Ncc() {}
 	
 	private NccResult compare1(CellContext cc1, CellContext cc2,
-			                   NccOptions options) {
+			                   NccOptions options, Aborter aborter) {
 		if (options.operation==NccOptions.LIST_ANNOTATIONS) {
 			ListNccAnnotations.doYourJob(cc1.cell, cc2.cell);
 			return new NccResult(true, true, true, null);
@@ -58,7 +59,12 @@ public class Ncc {
 				LayoutLib.error(true, "bad operation: "+options.operation);
 			}
 			prln(cc1.cell+"  "+cc2.cell);
-			NccResult result = NccBottomUp.compare(cc1, cc2, options); 
+			NccResult result = NccBottomUp.compare(cc1, cc2, options, aborter); 
+
+			if (aborter.userWantsToAbort()) {
+				prln("NCC run aborted by user");
+				return result;
+			}
 
 			prln("Summary for all cells: "+result.summary(options.checkSizes));
 			Date after = new Date();
@@ -69,13 +75,20 @@ public class Ncc {
     }
    
     // ------------------------- public method --------------------------------
+	/** Compare two cells. We don't need to be able to abort */
+    public static NccResult compare(Cell cell1, VarContext ctxt1, 
+                                    Cell cell2, VarContext ctxt2, 
+									NccOptions options) {
+    	return compare(cell1, ctxt1, cell2, ctxt2, null); 
+    }
+	/** Compare two cells. We need to be able to abort */
     public static NccResult compare(Cell cell1, VarContext ctxt1, 
     		                        Cell cell2, VarContext ctxt2, 
-									NccOptions options) {
+									NccOptions options, Job job) {
     	if (ctxt1==null) ctxt1 = VarContext.globalContext; 
     	if (ctxt2==null) ctxt2 = VarContext.globalContext; 
     	Ncc ncc = new Ncc();
     	return ncc.compare1(new CellContext(cell1, ctxt1), 
-    			            new CellContext(cell2, ctxt2), options);
+    			            new CellContext(cell2, ctxt2), options, new Aborter(job));
     }
 }

@@ -72,6 +72,7 @@ public class NccGlobals {
 	/** used to assign new hash code values to EquivRecords */ 
 	private NccRandom randGen = new NccRandom();
 	/** all options controlling an Ncc run */ private final NccOptions options;
+	/** object says when user wants abort */  private final Aborter aborter;
 
     /** root of the EquivRecord tree */       private EquivRecord root;
     /** subtree holding parts */              private EquivRecord parts;
@@ -139,8 +140,9 @@ public class NccGlobals {
 	 * param list of NccNetlists, one per Cell to be compared
 	 * @param options 
 	 */
-	public NccGlobals(NccOptions options) {
+	public NccGlobals(NccOptions options, Aborter aborter) {
 		this.options = options;
+		this.aborter = aborter;
         compMismatches = new NccComparisonMismatches();
 	}
 	public void prln(String s) {System.out.println(s); System.out.flush();}
@@ -265,4 +267,6 @@ public class NccGlobals {
     public int[] getWireCounts() { return getNetObjCounts(wireLeafRecs); }
 	/** @return array of Port counts. One array element per Circuit */
     public int[] getPortCounts() { return getNetObjCounts(portLeafRecs); }
+    /** @return true if user wants to abort */
+    public boolean userWantsToAbort() {return aborter.userWantsToAbort();}
 }

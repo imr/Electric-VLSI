@@ -76,6 +76,7 @@ public class LocalPartitioning {
 //				StratCheck.doYourJob(root, globals);
 //				StratCount.doYourJob(root, globals);
 //			}
+			if (globals.userWantsToAbort()) break; 
 		}
 	}
 	

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+BUG: (09/07/05, RK) 90nm fill cell generator fixed to not extend well outside cell boundaries (Bugzilla# 469)
+
+BUG: (09/07/05, RK) NCC now stops when the user aborts the job (Bugzilla# 523)
+
 IMP: (09/07/05, SMR) Modified compactor to enable regression testing of it.
 
 IMP/MAN: (09/07/05, SMR) Export Properties dialog now shows the export center location (Bug #481).
