@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+************************* Version 8.03f: *********************************
+
 IMP: (09/05/07, SMR) Further improvements for EDIF bus output.
 
 BUG: (09/07/05, SMR) When components from two different technologies are displayed,
@@ -14,8 +16,6 @@ BUG: (09/06/05, SMR) Attributes "Value" field moves cursor to end with each chan
 FIX: Do not update field when typing has occurred.
 
 IMP: (09/06/05, SMR) Layout text can now take multiple lines (Bug #520).
-
-************************* Version 8.03f: *********************************
 
 BUG: (09/07/05, DN) IRSIM and some other netlisters doesn't treat properly PolyResistors and SpiceAmmeters.
 FIX: This is not a fix yet, but prearation for it.
@@ -33,8 +33,6 @@ BUG: (09/06/05, RK) NCC no longer displays Part, Wire, Port counts when a netlis
 BUG: (09/06/05, RK) NCC suggests use of resistorType annotation if resistor type is missing. Updated NCC user manual to describe transistorType and resistorType annotations (Bugzilla #484)
 
 IMP/MAN: (09/06/05, JKG) Added option to encase top level cell in subckt defintion for spice output.
-
-************************* Version 8.03f: *********************************
 
 BUG: (09/06/05, SMR) Attributes "Value" field moves cursor to end with each change (Bug #517).
 FIX: Do not update field when typing has occurred.
