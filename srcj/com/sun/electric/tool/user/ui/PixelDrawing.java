@@ -1253,7 +1253,7 @@ public class PixelDrawing
             Rectangle2D textBounds = subCell.getTextBounds(wnd);
             if (textBounds != null)
                 cellBounds.add(textBounds);
-            AffineTransform rotTrans = new AffineTransform(subTrans.getScaleX(), subTrans.getShearX(), subTrans.getShearY(), subTrans.getScaleY(), 0, 0);
+            AffineTransform rotTrans = new AffineTransform(subTrans.getScaleX(), subTrans.getShearY(), subTrans.getShearX(), subTrans.getScaleY(), 0, 0);
             DBMath.transformRect(cellBounds, rotTrans);
             int lX = (int)Math.floor(cellBounds.getMinX()*scale);
             int hX = (int)Math.ceil(cellBounds.getMaxX()*scale);

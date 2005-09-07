@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+BUG: (09/07/05, DN) Expand/unexpand is broken in Layout (Bug #525)
+FIX: In PixelDrawing.expandedCellCached swap getShearX() and getShearY().
+
 BUG: (09/07/05, DN) NodeInst.getInstancesOf returns instances of other cells (Bug #526)
 FIX: In NodeInst.NodeInstIterator.findNext test ni.getProto().
 
