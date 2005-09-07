@@ -107,7 +107,7 @@ public class NccEngine {
 	}
 	
 	private NccResult designsMatch(HierarchyInfo hierInfo, boolean hierInfoOnly) {
-        boolean hasError = globals.hasNetlistError();
+        boolean hasError = globals.cantBuildNetlist();
 		if (globals.getRoot()==null || hasError) {
 			globals.status2("empty cell or netlist error");
 			// Preserve the invariant: "part, wire, and port LeafLists exist" 

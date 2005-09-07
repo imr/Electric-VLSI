@@ -128,7 +128,8 @@ public class NccComparisonMismatches {
         
         summary = new CellSummary(globals.getPartCounts(),
                                   globals.getPortCounts(),
-                                  globals.getWireCounts());
+                                  globals.getWireCounts(),
+								  globals.cantBuildNetlistBits());
     }
     
     /**
@@ -297,10 +298,13 @@ public class NccComparisonMismatches {
     static class CellSummary {
         /* arrays of Part, Port, Wire counts. One array element per Circuit */
         public final int[] numParts, numPorts, numWires;
-        public CellSummary(int[] parts, int[] ports, int[] wires) {
+        public final boolean[] cantBuildNetlist;
+        public CellSummary(int[] parts, int[] ports, int[] wires, 
+        		           boolean[] cantBuildNetlistBits) {
             numParts = parts;
             numPorts = ports;
             numWires = wires;
+            cantBuildNetlist = cantBuildNetlistBits;
         }
     } 
 }

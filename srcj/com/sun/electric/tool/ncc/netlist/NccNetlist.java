@@ -101,13 +101,13 @@ public class NccNetlist {
 			}
 		}
 		// if there are net list errors then make net list look empty
-		if (netlistErrors())
+		if (cantBuildNetlist()) 
             wires = parts = ports = new ArrayList();
 	}
 	public ArrayList getWireArray() {return wires;}
 	public ArrayList getPartArray() {return parts;}
 	public ArrayList getPortArray() {return ports;}
-	public boolean netlistErrors() {
+	public boolean cantBuildNetlist() {
 		return exportAssertionFailures || exportGlobalConflicts ||
 		       badTransistorType;
 	}
@@ -487,7 +487,7 @@ class Visitor extends HierarchyEnumerator.Visitor {
 			Cell parent = ni.getParent();
 			NccCellAnnotations ann = NccCellAnnotations.getAnnotations(parent);
 			typeNm = ann==null ? null : ann.getResistorType();
-			if (typeNm==null) typeNm = "no type specified";
+			if (typeNm==null) typeNm = "No type specified. Use resistorType annotation";
 		} else {
 			typeNm = ni.getProto().getName();
 		}

@@ -56,7 +56,7 @@ public class NccResult {
 		globalData = result.globalData;
 		// Tricky: globalData is null if the Cell has a blackBox annotation
 		// because that annotation means "don't perform a comparison".
-        if ((globalData!=null && globalData.hasNetlistError()) ||
+        if ((globalData!=null && globalData.cantBuildNetlist()) ||
         	!result.exportMatch || !result.topologyMatch || !result.sizeMatch){
             NccComparisonMismatches cr = globalData.getComparisonResult();
             cr.setGlobalData(globalData);

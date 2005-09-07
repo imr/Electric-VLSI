@@ -575,12 +575,17 @@ class ComparisonsPane extends JSplitPane implements ActionListener {
             curCellText.setLength(0);
             html.setLength(0);
             html.append("<html><FONT SIZE=3><FONT FACE=\"Helvetica, TimesRoman\">");
-            html.append(summary.numParts[ndx] + " Parts<br>"
-                      + summary.numWires[ndx] + " Wires<br>"
-                      + summary.numPorts[ndx] + " Ports<br>");
-            curCellText.append(summary.numParts[ndx] + " Parts" + LSEP
-                             + summary.numWires[ndx] + " Wires" + LSEP
-                             + summary.numPorts[ndx] + " Ports");
+            if (summary.cantBuildNetlist[ndx]) {
+            	html.append(" Can't build netlist. See errors. ");
+            	curCellText.append(" Can't build netlist. See errors. ");
+            } else {
+            	html.append(summary.numParts[ndx] + " Parts<br>"
+            				+ summary.numWires[ndx] + " Wires<br>"
+							+ summary.numPorts[ndx] + " Ports<br>");
+                curCellText.append(summary.numParts[ndx] + " Parts" + LSEP
+                        	+ summary.numWires[ndx] + " Wires" + LSEP
+							+ summary.numPorts[ndx] + " Ports");
+            }
             html.append("</font></html>");
             rightSplPane.setCellText(0, ndx, html.toString());
 

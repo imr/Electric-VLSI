@@ -17,18 +17,15 @@ list all the NCC annotations in the design.
 <p>
 We recommend hierarchical over flat comparison because hierarchical
 comparisons are faster and the mismatch diagnostics are much more
-precise and intelligible. However, transistor size checking of
-schematics with automatically sized transistors does not work with
-hierarchical comparisons. If you select "Check transistor sizes" and
-your schematics include automatically sized transistors you must also
-select "Flat Comparison".
+precise and intelligible. However, transistor size checking 
+limits what NCC can compare hierarchically because the size of a
+schematic transistor may depend upon the instance path. 
 </p>
 <p>
 The best way to use NCC is to initially perform all your comparisons
 hierarchically. This will typically require many iterations.  Once you
-have gotten your designs to pass hierarchical comparison, turn on size
-checking and flat comparison.  This will report transistor size
-mismatches.
+have gotten your Cell to pass a hierarchical comparison, turn on size
+checking.  This will report transistor size mismatches.
 
 <h3> Size Checking Section </h3>
 
@@ -60,11 +57,12 @@ hierarchically if and only if each Cell is instantiated exactly once.
 
 In hierarchical mode NCC attempts to compare all cells in the design
 starting with those at the leaves and working it's way toward the root.
-For that mode it is often best if NCC stops as soon as it finds a
-mismatch. To get this behavior the user should check the box: "Halt
-after finding the first mismatched cell".
+For that mode it is often best if NCC stops as soon as it finds an
+Export or topology mismatch. To get this behavior the user should 
+check the box: "Halt after finding the first mismatched cell". Note that
+size mismatches never cause NCC to stop.
 <p>
-However, it is occasionally useful to continue checking even after
+It is occasionally useful to continue checking even after
 mismatches have been detected.  For example, the designer might find
 that although cell ABC mismatches, she is unable to fix ABC because
 someone else designed it.  When asked to continue, NCC will do the

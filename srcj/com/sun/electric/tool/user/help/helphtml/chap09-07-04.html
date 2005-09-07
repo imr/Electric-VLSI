@@ -168,6 +168,37 @@ place the layout in a different library than the schematics.
 </p>
 <BR>
 
+<h3>transistorType<i>&lt;type&gt;</i> </h3> 
+<p>
+All schematic transistors in this Cell are of type: <i>type</i>. 
+The <i>type</i> field may be one of the following: 
+N-Transistor, VTH-N-Transistor,
+VTL-N-Transistor, OD18-N-Transistor, OD25-N-Transistor,
+OD33-N-Transistor, NT-N-Transistor, NT-OD18-N-Transistor, 
+NT-OD25-N-Transistor, NT-OD33-N-Transistor, P-Transistor,
+VTH-P-Transistor, VTL-P-Transistor, OD18-P-Transistor,
+OD25-P-Transistor, or OD33-P-Transistor.
+<p>
+Warning: This annotation is used <i>very</i> infrequently. Typically
+it is used only inside special libraries such as the "red" library. Most
+designers simply instantiate transistors from those special libraries.
+</p>
+
+<h3>resistorType<i>&lt;type&gt;</i> </h3> 
+<p>
+All schematic polysilicon resistors in this Cell are of type: <i>type</i>. 
+The <i>type</i> field may be one of the following: 
+N-Poly-RPO-Resistor, N-Poly-RPO-Resistor,
+P-Poly-RPO-Resistor, or P-Poly-RPO-Resistor. Unlike all other
+resistors, polysilicon resistors are <i>not</i> treated as short circuits
+by NCC. Instead, NCC tries to match these schematic polysilicon resistors with 
+layout polysilicon resistors.
+<p>
+Warning: This annotation is used <i>very</i> infrequently. Typically
+it is used only inside special libraries such as the "red" library. Most
+designers simply instantiate resistors from those special libraries.
+</p>
+
 <h3>blackBox <i>&lt;comment&gt;</i> </h3> 
 <p>
 Don't compare the Cells in this Cell group; just
@@ -179,7 +210,11 @@ geometry implemements a construct that Electric doesn't
 understand. For example, we have used this construct to handle
 resistors and parasitic bipolar transistors in the layout.
 </p>
-
+<p>
+The <i>blackBox</i> annotation should be used with care because 
+unlike the other annotations; NCC has no way of double checking
+this assertion should the user make a mistake.
+</p>
 
 
 <!-- TRAILER -->

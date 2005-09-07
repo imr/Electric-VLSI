@@ -83,7 +83,7 @@ public class NccGlobals {
 	/** leaf nodes of parts tree */           private LeafEquivRecords partLeafRecs;
 	/** leaf nodes of wires tree */           private LeafEquivRecords wireLeafRecs;
 	/** leaf nodes of ports tree */			  private LeafEquivRecords portLeafRecs;
-    /** has a netlist error? */               private boolean hasNetlistError = false;
+    /** can't build netlist? */               private boolean[] cantBuildNetlist;
     /** print hash code errors? */            private boolean hashFailuresPrinted = false;
     /** mismatches displayed by GUI */        private NccComparisonMismatches compMismatches;
 
@@ -159,12 +159,13 @@ public class NccGlobals {
 		
 		rootCells = new Cell[nccNets.size()];
 		rootContexts = new VarContext[nccNets.size()];
+		cantBuildNetlist = new boolean[nccNets.size()];
 		int i=0;
 		for (Iterator it=nccNets.iterator(); it.hasNext(); i++) {
 			NccNetlist nl = (NccNetlist) it.next();
 			rootCells[i] = nl.getRootCell();
 			rootContexts[i] = nl.getRootContext();
-            hasNetlistError |= nl.netlistErrors();
+            cantBuildNetlist[i] = nl.cantBuildNetlist();
 		}
 	}
 	/** Initialization.
@@ -244,8 +245,15 @@ public class NccGlobals {
         return compMismatches;
     }
     
-    /** @return true if a netlist error exists, false otherwise */
-    public boolean hasNetlistError() { return hasNetlistError; }
+    /** @return true if some netlist can't be built */
+    public boolean cantBuildNetlist() {
+    	for (int i=0; i<cantBuildNetlist.length; i++) 
+    		if (cantBuildNetlist[i]) return true;
+    	return false; 
+    }
+    /** @return true if ith netlist can't be built */
+    public boolean[] cantBuildNetlistBits() {return cantBuildNetlist;}
+    
     /** Set whether hashcode mismatches should be printed */
     public void setPrintHashFailures(boolean b) { hashFailuresPrinted = b;    }
     /** @return true if hashcode mismatches should be displayed, false otherwise */
