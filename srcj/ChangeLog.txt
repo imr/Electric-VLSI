@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+BUG: (09/07/05, DN) NodeInst.getInstancesOf returns instances of other cells (Bug #526)
+FIX: In NodeInst.NodeInstIterator.findNext test ni.getProto().
+
 BUG: (09/06/05, RK) NCC no longer displays Part, Wire, Port counts when a netlist error prevents it from building a netlist. Instead it says couldn't build netlist. See errors. (Bugzilla #523)
 
 BUG: (09/06/05, RK) NCC suggests use of resistorType annotation if resistor type is missing. Updated NCC user manual to describe transistorType and resistorType annotations (Bugzilla #484)

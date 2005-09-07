@@ -2095,6 +2095,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			{
 				NodeInst ni = (NodeInst)it.next();
 				ni.addPortInst(export);
+                assert ni.getNumPortInsts() == exports.length;
 			}
 		}
 	}
@@ -2828,9 +2829,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
         private void findNext() {
             for (;;) {
-                if (i < n) {
+                while (i < n) {
                     ni = cell.getNode(i++);
-                    return;
+                    if (ni.getProto() == Cell.this)
+                        return;
                 }
                 if (!uit.hasNext()) {
                     ni = null;
