@@ -692,7 +692,7 @@ public class Spice extends Topology
 			}
             if (cell == topCell && Simulation.isSpiceWriteSubcktTopCell()) {
                 // create top level instantiation
-                topLevelInstance = infstr.toString().replaceAll("\\.SUBCKT ", "X") + cellName;
+                topLevelInstance = infstr.toString().replaceAll("\\.SUBCKT ", "X") + " " + cellName;
             }
 			if (!useCDL && Simulation.isSpiceUseCellParameters())
 			{
@@ -1511,7 +1511,9 @@ public class Spice extends Topology
             }
             // get new name
             String name = info.netName;
-            if (pi.getExports().hasNext()) {
+            Export ex = pi.getExports().hasNext() ? (Export)pi.getExports().next() : null;
+            if (ex != null && ex.getName().equals(cs.getName())) {
+            //if (pi.getExports().hasNext()) {
                 name = cs.getName();
             } else {
                 if (i.intValue() == 0 && !cs.isExported())      // get rid of #0 if net not exported
