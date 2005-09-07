@@ -262,7 +262,9 @@ public class EditMenu {
 		arcSubMenu.addSeparator();
 		arcSubMenu.addMenuItem("Toggle _Directionality", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcDirectionalCommand(); }});
-		arcSubMenu.addMenuItem("Toggle End Extension of _Head", null,
+		arcSubMenu.addMenuItem("Toggle End Extension of Both Head/Tail", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcHeadExtendCommand(); CircuitChanges.arcTailExtendCommand();}});
+        arcSubMenu.addMenuItem("Toggle End Extension of _Head", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcHeadExtendCommand(); }});
 		arcSubMenu.addMenuItem("Toggle End Extension of _Tail", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { CircuitChanges.arcTailExtendCommand(); }});
