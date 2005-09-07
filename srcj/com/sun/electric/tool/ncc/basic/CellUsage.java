@@ -128,7 +128,8 @@ class CellUsage extends HierarchyEnumerator.Visitor {
 	// static constructor
 	public static CellUsage getCellUsage(CellContext root) {
 		CellUsage visitor = new CellUsage();
-		HierarchyEnumerator.enumerateCell(root.cell, root.context, null, visitor);
+		HierarchyEnumerator.enumerateCell(root.cell, root.context, visitor);
+//		HierarchyEnumerator.enumerateCell(root.cell, root.context, null, visitor);
 		visitor.findSingleUseCells();
 		return visitor;
 	}

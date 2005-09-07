@@ -135,7 +135,8 @@ public class ERCWellCheck
 
 		// enumerate the hierarchy below here
 		Visitor wcVisitor = new Visitor(this);
-		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, wcVisitor);
+		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, wcVisitor);
+//		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, wcVisitor);
 
 		// Checking if job is scheduled for abort or already aborted
 		if (job != null && job.checkAbort()) return (0);

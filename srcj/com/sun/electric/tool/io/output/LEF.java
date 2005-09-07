@@ -80,7 +80,8 @@ public class LEF extends Output
 		if (out.openTextOutputStream(cellJob.filePath)) return;
 
 		out.init(cellJob.cell);
-		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, null, new Visitor(out));
+		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, new Visitor(out), true);
+//		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, null, new Visitor(out));
 		out.term(cellJob.cell);
 
 		if (out.closeTextOutputStream()) return;

@@ -305,14 +305,15 @@ public class IvanFlat extends Job {
 		System.out.println("processing: "+cellDesc.libName+" : "
 						   +cellDesc.cellName);
 		Cell cell = openCell(libDir, cellDesc.libName, cellDesc.cellName);
-		Netlist netlist = cell.getNetlist(false);
+//		Netlist netlist = cell.getNetlist(false);
 		String cellNm = cell.getName();
 
 		String outFileNm = outFileDir + outFileName(cellNm); 
 		IvanFlater flattener = new IvanFlater(outFileNm);
 		long startTime = System.currentTimeMillis();
-		HierarchyEnumerator.enumerateCell(cell,	VarContext.globalContext,
-										  netlist, flattener);
+		HierarchyEnumerator.enumerateCell(cell,	VarContext.globalContext, flattener);
+//		HierarchyEnumerator.enumerateCell(cell,	VarContext.globalContext,
+//										  netlist, flattener);
 		long endTime = System.currentTimeMillis();
 		double deltaTime = (endTime - startTime) / 1000.0;
 		System.out.println("Flattening took " + deltaTime + " seconds");

@@ -111,7 +111,7 @@ public class LENetlister1 extends LENetlister {
         if (errorLogger != null) errorLogger.delete();
         errorLogger = ErrorLogger.newInstance("LE Netlister");
 
-        Netlist netlist = cell.getNetlist(true);
+//        Netlist netlist = cell.getNetlist(true);
 
         // read schematic-specific sizing options
         constants = getSettings(cell);
@@ -124,7 +124,8 @@ public class LENetlister1 extends LENetlister {
         }
 
         topLevelCell = cell;
-        HierarchyEnumerator.enumerateCell(cell, context, netlist, this);
+        HierarchyEnumerator.enumerateCell(cell, context, this, true);
+//        HierarchyEnumerator.enumerateCell(cell, context, netlist, this);
         if (aborted) return false;
         return true;
     }

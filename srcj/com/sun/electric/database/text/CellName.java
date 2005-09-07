@@ -128,7 +128,7 @@ public class CellName implements Comparable/*<CellName>*/
      */
     public int compareTo(Object o/*CellName that*/) {
 		CellName that = (CellName)o;
-		int cmp = TextUtils.nameSameNumeric(name, that.name);
+		int cmp = TextUtils.STRING_NUMBER_ORDER.compare(name, that.name);
 		if (cmp != 0) return cmp;
 
 		cmp = view.compareTo(that.view);

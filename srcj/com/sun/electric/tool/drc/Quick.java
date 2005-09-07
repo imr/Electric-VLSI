@@ -2635,7 +2635,8 @@ public class Quick
         HashMap selectMergeMap = new HashMap();
 
 			CheckAreaEnumerator quickArea = new CheckAreaEnumerator(selectMergeMap, mergeMode);
-			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
+			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
+//			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
             GeometryHandler geom = (GeometryHandler)quickArea.mainMergeMap.get(cell);
 
 		// Get merged areas. Only valid for layers that have connections (metals/polys). No valid for NP/PP rules
@@ -2698,7 +2699,8 @@ public class Quick
 			Network net = (Network)netIt.next();
 			QuickAreaEnumerator quickArea = new QuickAreaEnumerator(net, selectMerge, notExportedNodes, checkedNodes,
                     mergeMode);
-			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
+			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
+//			HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
             quickArea.mainMerge.postProcess(true);
 
 			// Job aborted
@@ -2713,7 +2715,8 @@ public class Quick
 
 		// Checking nodes not exported down in the hierarchy. Probably good enought not to collect networks first
 		QuickAreaEnumerator quickArea = new QuickAreaEnumerator(notExportedNodes, checkedNodes, mergeMode);
-		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
+		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, quickArea);
+//		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, cp.netlist, quickArea);
 		// Non exported nodes
 //		for(Iterator it = quickArea.mainMerge.getKeyIterator(); it.hasNext(); )
 //		{

@@ -230,7 +230,7 @@ public class CrossLibCopy extends EDialog
 			{
 				Cell leftCell = (Cell)cellListLeft.get(leftPos);
 				Cell rightCell = (Cell)cellListRight.get(rightPos);
-				int j = TextUtils.nameSameNumeric(leftCell.noLibDescribe(), rightCell.noLibDescribe());
+				int j = TextUtils.STRING_NUMBER_ORDER.compare(leftCell.noLibDescribe(), rightCell.noLibDescribe());
 //				int j = leftCell.noLibDescribe().compareToIgnoreCase(rightCell.noLibDescribe());
 				if (j < 0) op = 1; else
 					if (j > 0) op = 2; else

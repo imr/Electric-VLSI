@@ -95,7 +95,8 @@ public class GenerateVHDL
 		vhdlStrings = new ArrayList();
 
 		// recursively generate the VHDL
-		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, new Visitor(cell));
+		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, new Visitor(cell));
+//		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, new Visitor(cell));
 		return vhdlStrings;
 	}
 

@@ -423,7 +423,8 @@ public class LayerCoverageJob extends Job
 		// enumerate the hierarchy below here
 		LayerVisitor visitor = new LayerVisitor(parentJob, tree, deleteList, function,
                 originalPolygons, (geoms != null) ? (geoms.nets) : null, bBox);
-		HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, NetworkTool.getUserNetlist(curCell), visitor);  
+		HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, visitor);  
+//		HierarchyEnumerator.enumerateCell(curCell, VarContext.globalContext, NetworkTool.getUserNetlist(curCell), visitor);  
         tree.postProcess(true);
 
 		switch (function)

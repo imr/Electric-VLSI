@@ -76,7 +76,8 @@ public class Maxwell extends Output
 
 		// enumerate the hierarchy below here
 		Visitor wcVisitor = new Visitor(out);
-		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, null, wcVisitor);
+		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, wcVisitor);
+//		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, null, wcVisitor);
 
 		out.terminate();
 		if (out.closeTextOutputStream()) return;

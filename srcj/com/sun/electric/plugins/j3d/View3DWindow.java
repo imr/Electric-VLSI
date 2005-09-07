@@ -447,7 +447,8 @@ public class View3DWindow extends JPanel
         J3DUtils.createBackground(objRoot);
 
 		View3DEnumerator view3D = new View3DEnumerator();
-		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
+		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, view3D);
+//		HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, null, view3D);
 
         if (job.checkAbort()) return null; // Job cancel
 

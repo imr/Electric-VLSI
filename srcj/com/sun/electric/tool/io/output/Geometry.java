@@ -105,7 +105,8 @@ public abstract class Geometry extends Output
 
 		// write out cells
 		start();
-		HierarchyEnumerator.enumerateCell(cell, context, null, visitor);
+		HierarchyEnumerator.enumerateCell(cell, context, visitor);
+//		HierarchyEnumerator.enumerateCell(cell, context, null, visitor);
 		done();
 		return false;
     }

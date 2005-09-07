@@ -99,8 +99,9 @@ public class ECAD extends Output
 
 		networks = new ArrayList();
 		ECADNetlister netlister = new ECADNetlister();
-		Netlist netlist = cell.getNetlist(true);
-		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
+		HierarchyEnumerator.enumerateCell(cell, context, netlister, true);
+//		Netlist netlist = cell.getNetlist(true);
+//		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
 		printWriter.println("| end of part list");
 
 		// warn the user if nets not found

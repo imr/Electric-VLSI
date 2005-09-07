@@ -568,19 +568,19 @@ public final class HierarchyEnumerator {
 //			at.scale(sX, sY);
 //			return at;
 //		}
-
-		private double angleFromXY(double x, double y) {
-			double ans = Math.atan2(y, x) * 180/Math.PI;
-			//System.out.println("(x, y): ("+x+", "+y+")  angle: "+ans);
-			return ans;
-		}
-
-		private double angle0To360(double a) {
-			while (a >= 360) a -= 360;
-			while (a < 0)	 a += 360;
-			return a;
-		}
-
+//
+//		private double angleFromXY(double x, double y) {
+//			double ans = Math.atan2(y, x) * 180/Math.PI;
+//			//System.out.println("(x, y): ("+x+", "+y+")  angle: "+ans);
+//			return ans;
+//		}
+//
+//		private double angle0To360(double a) {
+//			while (a >= 360) a -= 360;
+//			while (a < 0)	 a += 360;
+//			return a;
+//		}
+//
 //		private String makePath(VarContext context, String sep) {
 //			String path = context.getInstPath(sep);
 //			if (!path.equals(""))  path+=sep;
@@ -936,16 +936,22 @@ public final class HierarchyEnumerator {
 	 * root. If context is null then VarContext.globalContext is used.
 	 * @param visitor the object responsible for doing something useful
 	 * during the enumertion of the design hierarchy. */
-	public static void enumerateCell(Cell root, VarContext context, 
-	                                 Netlist netlist, Visitor visitor) {
-		if (netlist == null) netlist = NetworkTool.getUserNetlist(root);
-		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, false, false, false, false);
+//	public static void enumerateCell(Cell root, VarContext context, 
+//	                                 Netlist netlist, Visitor visitor) {
+//		if (netlist == null) netlist = NetworkTool.getUserNetlist(root);
+//		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, false, false, false, false);
+//	}
+	public static void enumerateCell(Cell root, VarContext context, Visitor visitor) {
+        enumerateCell(root, context, visitor, false);
+	}
+	public static void enumerateCell(Cell root, VarContext context, Visitor visitor, boolean shorten) {
+        enumerateCell(root, context, visitor, shorten, shorten, shorten, false);
 	}
 	/** Experimental. Optionally caches results of variable evaluation. */
 	public static void enumerateCell(Cell root, VarContext context,  Visitor visitor,
 									 boolean shortResistors, boolean shortPolyResistors, 
 									 boolean shortSpiceAmmeters, boolean caching) {
-		Netlist netlist = NetworkTool.getUserNetlist(root);
+		Netlist netlist = NetworkTool.getNetlist(root, shortResistors);
 		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, 
 				                         shortResistors, shortPolyResistors, 
 										 shortSpiceAmmeters, caching);

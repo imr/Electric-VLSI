@@ -3663,7 +3663,7 @@ if (wp.signalButtons != null)
 		{
 			Signal s1 = (Signal)o1;
 			Signal s2 = (Signal)o2;
-			return TextUtils.nameSameNumeric(s1.getFullName(), s2.getFullName());
+			return TextUtils.STRING_NUMBER_ORDER.compare(s1.getFullName(), s2.getFullName());
 		}
 	}
 

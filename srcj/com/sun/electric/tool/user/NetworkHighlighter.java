@@ -81,7 +81,8 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
     public static synchronized List getHighlights(Cell cell, Netlist netlist, Network net, int startDepth, int endDepth) {
         NetworkHighlighter networkHighlighter = new NetworkHighlighter(cell, netlist, net, startDepth, endDepth);
 
-        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, netlist, networkHighlighter);
+        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, networkHighlighter);
+//        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, netlist, networkHighlighter);
 
         return networkHighlighter.highlighter.getHighlights();
     }

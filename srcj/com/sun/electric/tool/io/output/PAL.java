@@ -66,8 +66,9 @@ public class PAL extends Output
 		if (out.openTextOutputStream(cellJob.filePath)) return;
 		out.initialize(cellJob.cell);
 		PALNetlister netlister = new PALNetlister(out);
-		Netlist netlist = cellJob.cell.getNetlist(true);
-		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, netlist, netlister);
+		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, netlister, true);
+//		Netlist netlist = cellJob.cell.getNetlist(true);
+//		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, netlist, netlister);
 		out.terminate(cellJob.cell);
 		if (out.closeTextOutputStream()) return;
 		System.out.println(cellJob.filePath + " written");

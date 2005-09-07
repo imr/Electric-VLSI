@@ -376,7 +376,7 @@ public final class ExportChanges
 			if (ch1 != ch2) return ch1.getOrder() - ch2.getOrder();
 			String s1 = e1.getName();
 			String s2 = e2.getName();
-			return TextUtils.nameSameNumeric(s1, s2);
+			return TextUtils.STRING_NUMBER_ORDER.compare(s1, s2);
 		}
 	}
 
@@ -388,7 +388,7 @@ public final class ExportChanges
 			Export e2 = (Export)o2;
 			String s1 = e1.getName();
 			String s2 = e2.getName();
-			return TextUtils.nameSameNumeric(s1, s2);
+			return TextUtils.STRING_NUMBER_ORDER.compare(s1, s2);
 		}
 	}
 
@@ -400,7 +400,7 @@ public final class ExportChanges
             PortInst p2 = (PortInst)o2;
             String s1 = p1.getPortProto().getName();
             String s2 = p2.getPortProto().getName();
-            return TextUtils.nameSameNumeric(s1, s2);
+            return TextUtils.STRING_NUMBER_ORDER.compare(s1, s2);
         }
     }
 

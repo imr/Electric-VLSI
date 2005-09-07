@@ -118,7 +118,7 @@ public class LENetlister2 extends LENetlister {
         if (errorLogger != null) errorLogger.delete();
         errorLogger = ErrorLogger.newInstance("LE Netlister");
 
-        Netlist netlist = cell.getNetlist(true);
+//        Netlist netlist = cell.getNetlist(true);
         
         // read schematic-specific sizing options
         constants = getSettings(cell);
@@ -132,7 +132,8 @@ public class LENetlister2 extends LENetlister {
 
         topLevelCell = cell;
         FirstPassEnum firstPass = new FirstPassEnum(this);
-        HierarchyEnumerator.enumerateCell(cell, context, netlist, firstPass);
+        HierarchyEnumerator.enumerateCell(cell, context, firstPass, true);
+//        HierarchyEnumerator.enumerateCell(cell, context, netlist, firstPass);
         firstPass.cleanup(disableCaching);
         System.out.println("Cached "+cellMap.size()+" cells");
         if (DEBUG_FIRSTPASS) {
@@ -163,7 +164,8 @@ public class LENetlister2 extends LENetlister {
                 System.out.println("Cannot write CachedCells debug: "+e.getMessage());
             }
         }
-        HierarchyEnumerator.enumerateCell(cell, context, netlist, this);
+        HierarchyEnumerator.enumerateCell(cell, context, this, true);
+//        HierarchyEnumerator.enumerateCell(cell, context, netlist, this);
         if (aborted) return false;
         return true;
     }

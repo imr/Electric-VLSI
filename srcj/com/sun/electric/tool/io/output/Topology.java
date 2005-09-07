@@ -94,7 +94,7 @@ public abstract class Topology extends Output
 		// write out cells
 		start();
 		HierarchyEnumerator.enumerateCell(cell, context, visitor,
-                isShortResistors(), isShortExplicitResistors(), false, false);
+                isShortResistors(), isShortExplicitResistors(), isShortResistors(), false);
 		done();
 		return false;
 	}
@@ -354,7 +354,8 @@ public abstract class Topology extends Output
 	private CellNetInfo getNetworkInformation(Cell cell, boolean quiet, String paramName, boolean useExportedName, Netlist netlist)
 	{
 		CellNetInfo cni = doGetNetworks(cell, quiet, paramName, useExportedName, netlist);
-//printWriter.print("********Decomposition of cell " + cell.describe() + "\n");
+//PrintStream printWriter = System.out;
+//printWriter.print("********Decomposition of cell " + cell.describe(true) + "\n");
 //printWriter.print("** Have " + cni.cellSignalsSorted.size() + " signals:\n");
 //for(Iterator it = cni.getCellSignals(); it.hasNext(); )
 //{
@@ -370,7 +371,7 @@ public abstract class Topology extends Output
 //		printWriter.print("**   Name="+cas.name+", export="+cas.pp+" descending="+cas.descending+", low="+cas.low+", high="+cas.high+"\n");
 //	}
 //}
-//printWriter.print("********DONE WITH CELL " + cell.describe() + "\n");
+//printWriter.print("********DONE WITH CELL " + cell.describe(true) + "\n");
 		return cni;
 	}
 
@@ -873,7 +874,7 @@ public abstract class Topology extends Output
 				// one is descending and the other isn't...sort accordingly
 				return cs1.descending ? 1 : -1;
 			}
-			return TextUtils.nameSameNumeric(cs1.name, cs2.name);
+			return TextUtils.STRING_NUMBER_ORDER.compare(cs1.name, cs2.name);
 		}
 	}
 

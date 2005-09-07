@@ -97,10 +97,11 @@ public class ParasiticTool extends Listener{
     public static List calculateParasistic(ParasiticGenerator tool, Cell cell, VarContext context)
     {
         errorLogger.clearLogs(cell);
-        Netlist netList = cell.getNetlist(false);
+//        Netlist netList = cell.getNetlist(false);
         if (context == null) context = VarContext.globalContext;
-        ParasiticVisitor visitor = new ParasiticVisitor(tool, netList, context);
-        HierarchyEnumerator.enumerateCell(cell, context, netList, visitor);
+        ParasiticVisitor visitor = new ParasiticVisitor(tool, context);
+        HierarchyEnumerator.enumerateCell(cell, context, visitor);
+//        HierarchyEnumerator.enumerateCell(cell, context, netList, visitor);
         List list = visitor.getParasitics();
         return list;
     }
@@ -128,11 +129,12 @@ public class ParasiticTool extends Listener{
 
         public HierarchyEnumerator.CellInfo newCellInfo() { return new ParasiticCellInfo(); }
 
-		public ParasiticVisitor(ParasiticGenerator tool, Netlist netList, VarContext context)
+		public ParasiticVisitor(ParasiticGenerator tool, VarContext context)
 		{
             //this.netList = netList;
             this.tool = tool;
-            netMap = new HashMap(netList.getNumNetworks());
+            netMap = new HashMap();
+//            netMap = new HashMap(netList.getNumNetworks());
             this.context = context;
 		}
 

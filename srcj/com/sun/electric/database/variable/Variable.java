@@ -78,7 +78,7 @@ public class Variable
 		public int compareTo(Object obj)
 		{
 			Key that = (Key)obj;
-			return TextUtils.nameSameNumeric(name, that.name);
+			return TextUtils.STRING_NUMBER_ORDER.compare(name, that.name);
 		}
 	}
 

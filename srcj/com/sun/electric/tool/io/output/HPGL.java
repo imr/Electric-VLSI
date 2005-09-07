@@ -100,7 +100,8 @@ public class HPGL extends Output
 
 		// gather all geometry
 		out.start();
-		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, null, visitor);
+		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, visitor);
+//		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, null, visitor);
 
 		// write the geometry
 		out.done();

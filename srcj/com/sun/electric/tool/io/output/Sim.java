@@ -71,7 +71,8 @@ public class Sim extends Output
 		if (out.openTextOutputStream(cellJob.filePath)) return;
 
 		out.init(cellJob.cell, cellJob.filePath, cellJob.type);
-		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, null, new Visitor(out, cellJob.type));
+		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, new Visitor(out, cellJob.type), true);
+//		HierarchyEnumerator.enumerateCell(cellJob.cell, cellJob.context, null, new Visitor(out, cellJob.type));
 
 		if (out.closeTextOutputStream()) return;
 		System.out.println(cellJob.filePath + " written");

@@ -109,8 +109,9 @@ public class Pads extends Output
 		printWriter.println("*PART*");
 		networks = new ArrayList();
 		PadsNetlister netlister = new PadsNetlister();
-		Netlist netlist = cell.getNetlist(true);
-		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
+		HierarchyEnumerator.enumerateCell(cell, context, netlister, true);
+//		Netlist netlist = cell.getNetlist(true);
+//		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
 		printWriter.println("");
 		printWriter.println("*NET*");
 

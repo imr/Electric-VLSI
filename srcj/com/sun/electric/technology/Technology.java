@@ -3529,7 +3529,7 @@ public class Technology implements Comparable
 	public int compareTo(Object obj)
 	{
 		Technology that = (Technology)obj;
-		return TextUtils.nameSameNumeric(techName, that.techName);
+		return TextUtils.STRING_NUMBER_ORDER.compare(techName, that.techName);
 	}
 
 	/**

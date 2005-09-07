@@ -101,8 +101,9 @@ public class Eagle extends Output
 
 		networks = new ArrayList();
 		EagleNetlister netlister = new EagleNetlister();
-		Netlist netlist = cell.getNetlist(true);
-		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
+		HierarchyEnumerator.enumerateCell(cell, context, netlister, true);
+//		Netlist netlist = cell.getNetlist(true);
+//		HierarchyEnumerator.enumerateCell(cell, context, netlist, netlister);
 		printWriter.println(";");
 
 		// warn the user if nets not found

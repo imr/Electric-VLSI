@@ -378,7 +378,7 @@ public class View implements Comparable/*<View>*/
     public int compareTo(Object o/*View that*/)
 	{
 		View that = (View)o;
-		return TextUtils.nameSameNumeric(getAbbreviation(), that.getAbbreviation());
+		return TextUtils.STRING_NUMBER_ORDER.compare(getAbbreviation(), that.getAbbreviation());
     }
 
 	/**

@@ -982,106 +982,51 @@ public class TextUtils
 		System.out.println(prefix + str);
 	}
 
-	/**
-	 * Method to compare two names and give a sort order.
-	 * The comparison considers numbers in numeric order so that the
-	 * string "in10" comes after the string "in9".
-	 *
-	 * Formal definition of order.
-	 * Lets insert in string's character sequence number at start of digit sequences.
-	 * Consider that numbers in the sequence are less than chars.
-	 * 
-	 * Examples below are in increasing order:
-	 *   ""           { }
-	 *   "0"          {  0, '0' }
-	 *   "9"          {  9, '9' }
-	 *   "10"         { 10, '1', '0' }
-	 *   "2147483648" { 2147483648, '2', '1', '4', '7', '4', '8', '3', '6', '4', '8' }
-	 *   " "          { ' ' }
-	 *   "-"          { '-' }
-	 *   "-1"         { '-', 1, '1' }
-	 *   "-2"         { '-', 2, '2' }
-	 *   "a"          { 'a' }
-	 *   "a0"         { 'a',  0, '0' }
-	 *   "a0-0"       { 'a',  0, '0', '-', 0, '0' }
-	 *   "a00"        { 'a',  0, '0', '0' }
-	 *   "a0a"        { 'a',  0, '0', 'a' }
-	 *   "a01"        { 'a',  1, '0', '1' }
-	 *   "a1"         { 'a',  1, '1' }
-	 *   "in"         { 'i', 'n' }
-	 *   "in1"        { 'i', 'n',  1, '1' }
-	 *   "in1a"       { 'i', 'n',  1, '1', 'a' }
-	 *   "in9"        { 'i', 'n',  9, '9' }
-	 *   "in10"       { 'i', 'n', 10, '1', '0' }
-	 *   "in!"        { 'i', 'n', '!' }
-	 *   "ina"        { 'i , 'n', 'a' }
-	 *   
-	 * @param name1 the first string.
-	 * @param name2 the second string.
-	 * @return 0 if they are equal, nonzero according to order.
-	 */
-	public static int nameSameNumeric(String name1, String name2)
-	{
-		int len1 = name1.length();
-		int len2 = name2.length();
-		int extent = Math.min(len1, len2);
-		for(int pos = 0; pos < extent; pos++)
-		{
-			char ch1 = name1.charAt(pos);
-			char ch2 = name2.charAt(pos);
-			if (ch1 != ch2)
-			{
-				int digit1 = Character.digit(ch1, 10);
-				int digit2 = Character.digit(ch2, 10);
-				if (digit1 >= 0 || digit2 >= 0)
-				{
-					int pos1 = pos + 1, pos2 = pos + 1; // Positions in string to compare
-
-					// One char is digit, another is not. Is previous digit ?
-					int digit = pos > 0 ? Character.digit(name1.charAt(--pos), 10) : -1;
-					if (digit < 0 && (digit1 < 0 || digit2 < 0))
-					{
-						// Previos is not digit. Number is less than non-number.
-						return digit2 - digit1;
-					}
-					// Are previus digits all zeros ?
-					while (digit == 0)
-						digit = pos > 0 ? Character.digit(name1.charAt(--pos), 10) : -1;
-					if (digit < 0)
-					{
-						// All previos digits are zeros. Skip zeros further.
-						while (digit1 == 0)
-							digit1 = pos1 < len1 ? Character.digit(name1.charAt(pos1++), 10) : -1;
-						while (digit2 == 0)
-							digit2 = pos2 < len2 ? Character.digit(name2.charAt(pos2++), 10) : -1;
-					}
-
-					// skip matching digits
-					while (digit1 == digit2 && digit1 >= 0)
-					{
-						digit1 = pos1 < len1 ? Character.digit(name1.charAt(pos1++), 10) : -1;
-						digit2 = pos2 < len2 ? Character.digit(name2.charAt(pos2++), 10) : -1;
-					}
-
-					boolean dig1 = digit1 >= 0;
-					boolean dig2 = digit2 >= 0;
-					for (int i = 0; dig1 && dig2; i++)
-					{
-						dig1 = pos1 + i < len1 && Character.isDigit(name1.charAt(pos1 + i));
-						dig2 = pos2 + i < len2 && Character.isDigit(name2.charAt(pos2 + i));
-					}
-					if (dig1 != dig2) return dig1 ? 1 : -1;
-					if (digit1 != digit2) return digit1 - digit2;
-				}
-				return ch1 - ch2;
-			}
-		}
-		return len1 - len2;
-	}
-
-	/**
-	 * Test of nameSameNumeric.
-	 */
+//	/**
+//	 * Method to compare two names and give a sort order.
+//	 * The comparison considers numbers in numeric order so that the
+//	 * string "in10" comes after the string "in9".
+//	 *
+//	 * Formal definition of order.
+//	 * Lets insert in string's character sequence number at start of digit sequences.
+//	 * Consider that numbers in the sequence are less than chars.
+//	 * 
+//	 * Examples below are in increasing order:
+//	 *   ""           { }
+//	 *   "0"          {  0, '0' }
+//	 *   "9"          {  9, '9' }
+//	 *   "10"         { 10, '1', '0' }
+//	 *   "2147483648" { 2147483648, '2', '1', '4', '7', '4', '8', '3', '6', '4', '8' }
+//	 *   " "          { ' ' }
+//	 *   "-"          { '-' }
+//	 *   "-1"         { '-', 1, '1' }
+//	 *   "-2"         { '-', 2, '2' }
+//	 *   "a"          { 'a' }
+//	 *   "a0"         { 'a',  0, '0' }
+//	 *   "a0-0"       { 'a',  0, '0', '-', 0, '0' }
+//	 *   "a00"        { 'a',  0, '0', '0' }
+//	 *   "a0a"        { 'a',  0, '0', 'a' }
+//	 *   "a01"        { 'a',  1, '0', '1' }
+//	 *   "a1"         { 'a',  1, '1' }
+//	 *   "in"         { 'i', 'n' }
+//	 *   "in1"        { 'i', 'n',  1, '1' }
+//	 *   "in1a"       { 'i', 'n',  1, '1', 'a' }
+//	 *   "in9"        { 'i', 'n',  9, '9' }
+//	 *   "in10"       { 'i', 'n', 10, '1', '0' }
+//	 *   "in!"        { 'i', 'n', '!' }
+//	 *   "ina"        { 'i , 'n', 'a' }
+//	 *   
+//	 * @param name1 the first string.
+//	 * @param name2 the second string.
+//	 * @return 0 if they are equal, nonzero according to order.
+//	 */
+//	public static int nameSameNumeric(String name1, String name2) {
+//        return STRING_NUMBER_ORDER.compare(name1, name2);
+//    }
+//
+//	/**
+//	 * Test of STRING_NUMBER_ORDER.
+//	 */
 // 	private static String[] numericStrings = {
 // 		"",           // { }
 // 		"0",          // {  0, '0' }
@@ -1122,7 +1067,7 @@ public class TextUtils
 // 			{
 // 				String s1 = numericStrings[i];
 // 				String s2 = numericStrings[j];
-// 				int cmp = nameSameNumeric(s1, s2);
+// 				int cmp = STRING_NUMBER_ORDER.compare(s1, s2);
 // 				if (i == j && cmp != 0 || i < j && cmp >= 0 || i > j && cmp <= 0)
 // 					System.out.println("Error in TextUtils.nameSameNumeric(\"" +
 // 						s1 + "\", \"" + s2 + "\") = " + cmp);
@@ -1307,38 +1252,102 @@ public class TextUtils
 
 	/****************************** FOR SORTING OBJECTS ******************************/
 
-	// use String.CASE_INSENSITIVE_ORDER
-// 	public static class StringsCaseInsensitive implements Comparator
-// 	{
-// 		public int compare(Object o1, Object o2)
-// 		{
-// 			String s1 = (String)o1;
-// 			String s2 = (String)o2;
-// 			return s1.compareToIgnoreCase(s2);
-// 		}
-// 	}
-
-	/**
-	 * A comparator object for sorting Strings that may have numbers in them.
-	 * Created once because it is used often.
-	 */
-	public static final Comparator STRING_NUMBER_ORDER = new StringsWithNumbers();
-
-	/**
-	 * Comparator class for sorting Strings that may have numbers in them.
-	 */
-	private static class StringsWithNumbers implements Comparator
-	{
-		/**
-		 * Method to sort Strings that may have numbers in them.
-		 */
-		public int compare(Object o1, Object o2)
-		{
-			String s1 = (String)o1;
-			String s2 = (String)o2;
-			return TextUtils.nameSameNumeric(s1, s2);
-		}
-	}
+    /**
+     * A comparator object for sorting Strings that may have numbers in them.
+     * Created once because it is used often.
+     */
+    public static final Comparator STRING_NUMBER_ORDER = new Comparator() {
+        /**
+         * Method to compare two names and give a sort order.
+         * The comparison considers numbers in numeric order so that the
+         * string "in10" comes after the string "in9".
+         *
+         * Formal definition of order.
+         * Lets insert in string's character sequence number at start of digit sequences.
+         * Consider that numbers in the sequence are less than chars.
+         *
+         * Examples below are in increasing order:
+         *   ""           { }
+         *   "0"          {  0, '0' }
+         *   "9"          {  9, '9' }
+         *   "10"         { 10, '1', '0' }
+         *   "2147483648" { 2147483648, '2', '1', '4', '7', '4', '8', '3', '6', '4', '8' }
+         *   " "          { ' ' }
+         *   "-"          { '-' }
+         *   "-1"         { '-', 1, '1' }
+         *   "-2"         { '-', 2, '2' }
+         *   "a"          { 'a' }
+         *   "a0"         { 'a',  0, '0' }
+         *   "a0-0"       { 'a',  0, '0', '-', 0, '0' }
+         *   "a00"        { 'a',  0, '0', '0' }
+         *   "a0a"        { 'a',  0, '0', 'a' }
+         *   "a01"        { 'a',  1, '0', '1' }
+         *   "a1"         { 'a',  1, '1' }
+         *   "in"         { 'i', 'n' }
+         *   "in1"        { 'i', 'n',  1, '1' }
+         *   "in1a"       { 'i', 'n',  1, '1', 'a' }
+         *   "in9"        { 'i', 'n',  9, '9' }
+         *   "in10"       { 'i', 'n', 10, '1', '0' }
+         *   "in!"        { 'i', 'n', '!' }
+         *   "ina"        { 'i , 'n', 'a' }
+         *
+         * @param o1 the first string.
+         * @param o2 the second string.
+         * @return 0 if they are equal, nonzero according to order.
+         */
+        public int compare(Object o1, Object o2) {
+            String name1 = (String)o1;
+            String name2 = (String)o2;
+            int len1 = name1.length();
+            int len2 = name2.length();
+            int extent = Math.min(len1, len2);
+            for(int pos = 0; pos < extent; pos++) {
+                char ch1 = name1.charAt(pos);
+                char ch2 = name2.charAt(pos);
+                if (ch1 != ch2) {
+                    int digit1 = Character.digit(ch1, 10);
+                    int digit2 = Character.digit(ch2, 10);
+                    if (digit1 >= 0 || digit2 >= 0) {
+                        int pos1 = pos + 1, pos2 = pos + 1; // Positions in string to compare
+                        
+                        // One char is digit, another is not. Is previous digit ?
+                        int digit = pos > 0 ? Character.digit(name1.charAt(--pos), 10) : -1;
+                        if (digit < 0 && (digit1 < 0 || digit2 < 0)) {
+                            // Previos is not digit. Number is less than non-number.
+                            return digit2 - digit1;
+                        }
+                        // Are previus digits all zeros ?
+                        while (digit == 0)
+                            digit = pos > 0 ? Character.digit(name1.charAt(--pos), 10) : -1;
+                        if (digit < 0) {
+                            // All previos digits are zeros. Skip zeros further.
+                            while (digit1 == 0)
+                                digit1 = pos1 < len1 ? Character.digit(name1.charAt(pos1++), 10) : -1;
+                            while (digit2 == 0)
+                                digit2 = pos2 < len2 ? Character.digit(name2.charAt(pos2++), 10) : -1;
+                        }
+                        
+                        // skip matching digits
+                        while (digit1 == digit2 && digit1 >= 0) {
+                            digit1 = pos1 < len1 ? Character.digit(name1.charAt(pos1++), 10) : -1;
+                            digit2 = pos2 < len2 ? Character.digit(name2.charAt(pos2++), 10) : -1;
+                        }
+                        
+                        boolean dig1 = digit1 >= 0;
+                        boolean dig2 = digit2 >= 0;
+                        for (int i = 0; dig1 && dig2; i++) {
+                            dig1 = pos1 + i < len1 && Character.isDigit(name1.charAt(pos1 + i));
+                            dig2 = pos2 + i < len2 && Character.isDigit(name2.charAt(pos2 + i));
+                        }
+                        if (dig1 != dig2) return dig1 ? 1 : -1;
+                        if (digit1 != digit2) return digit1 - digit2;
+                    }
+                    return ch1 - ch2;
+                }
+            }
+            return len1 - len2;
+        }
+	};
 
 	/**
 	 * Comparator class for sorting Objects by their string name.

@@ -78,9 +78,10 @@ public class GeometryConnection
                 DBMath.transformRect(rect, subTrans);
                 ConnectionEnumerator check = new ConnectionEnumerator(cellA, nGeom, rect,
                         cellBProto.getNetlist(false), topNetlist);
-                HierarchyEnumerator.enumerateCell(cellA.getParent(), VarContext.globalContext,
-                        NetworkTool.acquireUserNetlist(cellA.getParent()),
-                        check);
+                HierarchyEnumerator.enumerateCell(cellA.getParent(), VarContext.globalContext, check);
+//                HierarchyEnumerator.enumerateCell(cellA.getParent(), VarContext.globalContext,
+//                        NetworkTool.acquireUserNetlist(cellA.getParent()),
+//                        check);
                 if (check.found) return true;
                 }
             }

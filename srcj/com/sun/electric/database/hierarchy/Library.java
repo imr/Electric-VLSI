@@ -903,7 +903,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
     public int compareTo(Object o/*Library that*/)
 	{
 		Library that = (Library)o;
-		return TextUtils.nameSameNumeric(libName, that.libName);
+		return TextUtils.STRING_NUMBER_ORDER.compare(libName, that.libName);
     }
 
 	/**

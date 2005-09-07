@@ -64,7 +64,8 @@ public class ListNccAnnotations {
 						   "in the hierarchy rooted at Cell: "+
 						   NccUtils.fullName(cell));
 		ScanHierForNccAnnot visitor = new ScanHierForNccAnnot();
-		HierarchyEnumerator.enumerateCell(cell, null, null, visitor);
+		HierarchyEnumerator.enumerateCell(cell, null, visitor);
+//		HierarchyEnumerator.enumerateCell(cell, null, null, visitor);
 	}
 
 

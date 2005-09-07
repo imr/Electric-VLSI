@@ -53,14 +53,6 @@ public class Network
 	// appropriate.
 	//private int exportedNamesCount;
 
-    private static class NameComparator implements Comparator {
-        public int compare(Object o1, Object o2) {
-            String s1 = (String)o1;
-            String s2 = (String)o2;
-            return TextUtils.nameSameNumeric(s1, s2);
-        }
-    }
-
 	// ----------------------- protected and private methods -----------------
 
 	// used for PrimitivePorts
@@ -131,9 +123,8 @@ public class Network
 	/** A net can have multiple names. Return alphabetized list of names. */
 	public Iterator getNames()
 	{
-        NameComparator nc = new NameComparator();
-        Collections.sort(exportedNames, nc);
-        Collections.sort(unexportedNames, nc);
+        Collections.sort(exportedNames, TextUtils.STRING_NUMBER_ORDER);
+        Collections.sort(unexportedNames, TextUtils.STRING_NUMBER_ORDER);
         ArrayList allNames = new ArrayList(exportedNames);
         allNames.addAll(unexportedNames);
 		return allNames.iterator();
@@ -142,7 +133,7 @@ public class Network
 	/** A net can have multiple names. Return alphabetized list of names. */
 	public Iterator getExportedNames()
 	{
-        Collections.sort(exportedNames, new NameComparator());
+        Collections.sort(exportedNames, TextUtils.STRING_NUMBER_ORDER);
 		return exportedNames.iterator();
 	}
 

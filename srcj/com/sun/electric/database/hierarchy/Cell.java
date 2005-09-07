@@ -1827,7 +1827,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
         int pick = high; // initially try the last postition
 		while (low <= high) {
 			NodeInst ni = (NodeInst)nodes.get(pick);
-			int cmp = TextUtils.nameSameNumeric(ni.getName(), name);
+			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ni.getName(), name);
 			if (cmp == 0) cmp = ni.getDuplicate() - duplicate;
 
 			if (cmp < 0)
@@ -2013,7 +2013,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		while (low <= high) {
 			int mid = (low + high) >> 1;
 			ArcInst ai = (ArcInst)arcs.get(mid);
-			int cmp = TextUtils.nameSameNumeric(ai.getName(), name);
+			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ai.getName(), name);
 			if (cmp == 0) cmp = ai.getDuplicate() - duplicate;
 
 			if (cmp < 0)
@@ -2294,7 +2294,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		while (low <= high) {
 			int mid = (low + high) >> 1;
 			Export e = exports[mid];
-			int cmp = TextUtils.nameSameNumeric(e.getName(), name);
+			int cmp = TextUtils.STRING_NUMBER_ORDER.compare(e.getName(), name);
 
 			if (cmp < 0)
 				low = mid + 1;
@@ -3630,7 +3630,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			assert e.getParent() == this;
 			assert e.getPortIndex() == i : e;
 			if (i > 0)
-				assert(TextUtils.nameSameNumeric(e.getName(), exports[i - 1].getName()) > 0) : i;
+				assert(TextUtils.STRING_NUMBER_ORDER.compare(e.getName(), exports[i - 1].getName()) > 0) : i;
 			e.check();
             assert e == chronExports[e.exportId.chronIndex]; 
 		}
@@ -3650,7 +3650,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			assert ai.getArcIndex() == i;
 			if (prevAi != null)
 			{
-				int cmp = TextUtils.nameSameNumeric(ai.getName(), prevAi.getName());
+				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ai.getName(), prevAi.getName());
 				assert cmp >= 0;
 				if (cmp == 0)
 					assert ai.getDuplicate() > prevAi.getDuplicate();
@@ -3672,7 +3672,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			assert ni.getNodeIndex() == i;
 			if (prevNi != null)
 			{
-				int cmp = TextUtils.nameSameNumeric(ni.getName(), prevNi.getName());
+				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ni.getName(), prevNi.getName());
 				assert cmp >= 0;
 				if (cmp == 0)
 					assert ni.getDuplicate() > prevNi.getDuplicate();
