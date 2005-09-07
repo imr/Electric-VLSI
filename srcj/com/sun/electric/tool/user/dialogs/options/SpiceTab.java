@@ -103,6 +103,7 @@ public class SpiceTab extends PreferencePanel
 		spiceForceGlobalPwrGnd.setSelected(Simulation.isSpiceForceGlobalPwrGnd());
 		spiceUseCellParameters.setSelected(Simulation.isSpiceUseCellParameters());
 		spiceWriteTransSizesInLambda.setSelected(Simulation.isSpiceWriteTransSizeInLambda());
+        spiceWriteSubcktTopCell.setSelected(Simulation.isSpiceWriteSubcktTopCell());
 
         // spice Run options
         useDir.setText(Simulation.getSpiceRunDir());
@@ -395,6 +396,9 @@ public class SpiceTab extends PreferencePanel
 		booleanNow = spiceWriteTransSizesInLambda.isSelected();
 		if (Simulation.isSpiceWriteTransSizeInLambda() != booleanNow) Simulation.setSpiceWriteTransSizeInLambda(booleanNow);
 
+        booleanNow = spiceWriteSubcktTopCell.isSelected();
+        if (Simulation.isSpiceWriteSubcktTopCell() != booleanNow) Simulation.setSpiceWriteSubcktTopCell(booleanNow);
+
 		booleanNow = spiceUseParasitics.isSelected();
 		if (Simulation.isSpiceUseParasitics() != booleanNow) Simulation.setSpiceUseParasitics(booleanNow);
 
@@ -510,6 +514,7 @@ public class SpiceTab extends PreferencePanel
         spiceForceGlobalPwrGnd = new javax.swing.JCheckBox();
         spiceUseCellParameters = new javax.swing.JCheckBox();
         spiceWriteTransSizesInLambda = new javax.swing.JCheckBox();
+        spiceWriteSubcktTopCell = new javax.swing.JCheckBox();
         spice2 = new javax.swing.JPanel();
         spiceRunProgram = new javax.swing.JTextField();
         jLabel17 = new javax.swing.JLabel();
@@ -594,11 +599,11 @@ public class SpiceTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
+        gridBagConstraints.weightx = 1.0;
         spice1.add(spiceRunPopup, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -653,6 +658,14 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice1.add(spiceWriteTransSizesInLambda, gridBagConstraints);
+
+        spiceWriteSubcktTopCell.setText("Write Subckt For Top Cell");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.insets = new java.awt.Insets(0, 0, 3, 0);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        spice1.add(spiceWriteSubcktTopCell, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -802,48 +815,48 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints.weightx = 1.0;
         spice5.add(spiceHeaderCardExtension, gridBagConstraints);
 
-        spiceHeader.add(spiceNoHeaderCards);
         spiceNoHeaderCards.setText("No Header Cards");
+        spiceHeader.add(spiceNoHeaderCards);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice5.add(spiceNoHeaderCards, gridBagConstraints);
 
-        spiceHeader.add(spiceHeaderCardsWithExtension);
         spiceHeaderCardsWithExtension.setText("Use Header Cards with extension:");
+        spiceHeader.add(spiceHeaderCardsWithExtension);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice5.add(spiceHeaderCardsWithExtension, gridBagConstraints);
 
-        spiceHeader.add(spiceHeaderCardsFromFile);
         spiceHeaderCardsFromFile.setText("Use Header Cards from File:");
+        spiceHeader.add(spiceHeaderCardsFromFile);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice5.add(spiceHeaderCardsFromFile, gridBagConstraints);
 
-        spiceTrailer.add(spiceNoTrailerCards);
         spiceNoTrailerCards.setText("No Trailer Cards");
+        spiceTrailer.add(spiceNoTrailerCards);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 6;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice5.add(spiceNoTrailerCards, gridBagConstraints);
 
-        spiceTrailer.add(spiceTrailerCardsWithExtension);
         spiceTrailerCardsWithExtension.setText("Use Trailer Cards with extension:");
+        spiceTrailer.add(spiceTrailerCardsWithExtension);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice5.add(spiceTrailerCardsWithExtension, gridBagConstraints);
 
-        spiceTrailer.add(spiceTrailerCardsFromFile);
         spiceTrailerCardsFromFile.setText("Use Trailer Cards from File:");
+        spiceTrailer.add(spiceTrailerCardsFromFile);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 5;
@@ -942,8 +955,8 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.NORTHWEST;
         spice6.add(jLabel8, gridBagConstraints);
 
-        spiceModel.add(spiceDeriveModelFromCircuit);
         spiceDeriveModelFromCircuit.setText("Derive Cell Model from Circuitry");
+        spiceModel.add(spiceDeriveModelFromCircuit);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
@@ -951,8 +964,8 @@ public class SpiceTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         spice6.add(spiceDeriveModelFromCircuit, gridBagConstraints);
 
-        spiceModel.add(spiceUseModelFromFile);
         spiceUseModelFromFile.setText("Use Cell Model from File:");
+        spiceModel.add(spiceUseModelFromFile);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 1;
@@ -1090,6 +1103,7 @@ public class SpiceTab extends PreferencePanel
     private javax.swing.JRadioButton spiceUseModelFromFile;
     private javax.swing.JCheckBox spiceUseNodeNames;
     private javax.swing.JCheckBox spiceUseParasitics;
+    private javax.swing.JCheckBox spiceWriteSubcktTopCell;
     private javax.swing.JCheckBox spiceWriteTransSizesInLambda;
     private javax.swing.JTextField useDir;
     private javax.swing.JCheckBox useDirCheckBox;

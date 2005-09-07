@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+IMP/MAN: (09/06/05, JKG) Added option to encase top level cell in subckt defintion for spice output.
+
 ************************* Version 8.03f: *********************************
 
 IMP/MAN: (09/05/05, SMR) Further improvements for EDIF bus output.  Configuration

@@ -82,7 +82,7 @@
               </Events>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
-                  <GridBagConstraints gridX="0" gridY="4" gridWidth="2" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="4" insetsRight="0" anchor="10" weightX="1.0" weightY="0.0"/>
+                  <GridBagConstraints gridX="0" gridY="5" gridWidth="2" gridHeight="1" fill="2" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="4" insetsRight="0" anchor="10" weightX="1.0" weightY="0.0"/>
                 </Constraint>
               </Constraints>
             </Component>
@@ -154,6 +154,16 @@
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
                   <GridBagConstraints gridX="2" gridY="4" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="0" insetsRight="0" anchor="17" weightX="0.0" weightY="0.0"/>
+                </Constraint>
+              </Constraints>
+            </Component>
+            <Component class="javax.swing.JCheckBox" name="spiceWriteSubcktTopCell">
+              <Properties>
+                <Property name="text" type="java.lang.String" value="Write Subckt For Top Cell"/>
+              </Properties>
+              <Constraints>
+                <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
+                  <GridBagConstraints gridX="2" gridY="5" gridWidth="1" gridHeight="1" fill="0" ipadX="0" ipadY="0" insetsTop="0" insetsLeft="0" insetsBottom="3" insetsRight="0" anchor="17" weightX="0.0" weightY="0.0"/>
                 </Constraint>
               </Constraints>
             </Component>
@@ -333,10 +343,10 @@
             </Component>
             <Component class="javax.swing.JRadioButton" name="spiceNoHeaderCards">
               <Properties>
+                <Property name="text" type="java.lang.String" value="No Header Cards"/>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="spiceHeader"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="No Header Cards"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -346,10 +356,10 @@
             </Component>
             <Component class="javax.swing.JRadioButton" name="spiceHeaderCardsWithExtension">
               <Properties>
+                <Property name="text" type="java.lang.String" value="Use Header Cards with extension:"/>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="spiceHeader"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Use Header Cards with extension:"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -359,10 +369,10 @@
             </Component>
             <Component class="javax.swing.JRadioButton" name="spiceHeaderCardsFromFile">
               <Properties>
+                <Property name="text" type="java.lang.String" value="Use Header Cards from File:"/>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="spiceHeader"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Use Header Cards from File:"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -372,10 +382,10 @@
             </Component>
             <Component class="javax.swing.JRadioButton" name="spiceNoTrailerCards">
               <Properties>
+                <Property name="text" type="java.lang.String" value="No Trailer Cards"/>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="spiceTrailer"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="No Trailer Cards"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -385,10 +395,10 @@
             </Component>
             <Component class="javax.swing.JRadioButton" name="spiceTrailerCardsWithExtension">
               <Properties>
+                <Property name="text" type="java.lang.String" value="Use Trailer Cards with extension:"/>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="spiceTrailer"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Use Trailer Cards with extension:"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -398,10 +408,10 @@
             </Component>
             <Component class="javax.swing.JRadioButton" name="spiceTrailerCardsFromFile">
               <Properties>
+                <Property name="text" type="java.lang.String" value="Use Trailer Cards from File:"/>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="spiceTrailer"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Use Trailer Cards from File:"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -520,10 +530,10 @@
             </Component>
             <Component class="javax.swing.JRadioButton" name="spiceDeriveModelFromCircuit">
               <Properties>
+                <Property name="text" type="java.lang.String" value="Derive Cell Model from Circuitry"/>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="spiceModel"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Derive Cell Model from Circuitry"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">
@@ -533,10 +543,10 @@
             </Component>
             <Component class="javax.swing.JRadioButton" name="spiceUseModelFromFile">
               <Properties>
+                <Property name="text" type="java.lang.String" value="Use Cell Model from File:"/>
                 <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
                   <ComponentRef name="spiceModel"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Use Cell Model from File:"/>
               </Properties>
               <Constraints>
                 <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout" value="org.netbeans.modules.form.compat2.layouts.DesignGridBagLayout$GridBagConstraintsDescription">

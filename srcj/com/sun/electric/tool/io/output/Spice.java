@@ -246,7 +246,7 @@ public class Spice extends Topology
 
         }
 
-        if (Simulation.isParasiticsBackAnnotateLayout()) {                         // needs to be a preference
+        if (Simulation.isParasiticsBackAnnotateLayout() && Simulation.isSpiceUseParasitics()) {
             out.backAnnotateLayout();
         }
 //		// run spice (if requested)
@@ -635,7 +635,8 @@ public class Spice extends Topology
 //		}
 
 		// generate header for subckt or top-level cell
-		if (cell == topCell && !useCDL)
+        String topLevelInstance = "";
+		if (cell == topCell && !useCDL && !Simulation.isSpiceWriteSubcktTopCell())
 		{
 			multiLinePrint(true, "\n*** TOP LEVEL CELL: " + cell.describe(false) + "\n");
 		} else
@@ -689,6 +690,10 @@ public class Spice extends Topology
 					}
 				}
 			}
+            if (cell == topCell && Simulation.isSpiceWriteSubcktTopCell()) {
+                // create top level instantiation
+                topLevelInstance = infstr.toString().replaceAll("\\.SUBCKT ", "X") + cellName;
+            }
 			if (!useCDL && Simulation.isSpiceUseCellParameters())
 			{
 				// add in parameters to this cell
@@ -1263,10 +1268,13 @@ public class Spice extends Topology
 		}
 
 		// now we're finished writing the subcircuit.
-		if (cell != topCell || useCDL)
+		if (cell != topCell || useCDL || Simulation.isSpiceWriteSubcktTopCell())
 		{
 			multiLinePrint(false, ".ENDS " + cni.getParameterizedName() + "\n");
 		}
+        if (cell == topCell && Simulation.isSpiceWriteSubcktTopCell()) {
+            multiLinePrint(false, "\n\n"+topLevelInstance+"\n\n");
+        }
 	}
 
     /**
