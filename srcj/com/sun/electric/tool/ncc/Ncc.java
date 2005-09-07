@@ -79,7 +79,7 @@ public class Ncc {
     public static NccResult compare(Cell cell1, VarContext ctxt1, 
                                     Cell cell2, VarContext ctxt2, 
 									NccOptions options) {
-    	return compare(cell1, ctxt1, cell2, ctxt2, null); 
+    	return compare(cell1, ctxt1, cell2, ctxt2, options, null); 
     }
 	/** Compare two cells. We need to be able to abort */
     public static NccResult compare(Cell cell1, VarContext ctxt1, 
