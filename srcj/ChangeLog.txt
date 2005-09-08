@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+BUG: (09/07/05, SMR) Invisible components are selected when "Dragging must enclose objects"
+     is checked (Bug #335).
+FIX: Reorganized Highlighter.checkOutObject() to ensure objects are visible.
+
 BUG: (09/07/05, RK) 90nm fill cell generator fixed to not extend well outside cell boundaries (Bugzilla# 469)
 
 BUG: (09/07/05, RK) NCC now stops when the user aborts the job (Bugzilla# 523)

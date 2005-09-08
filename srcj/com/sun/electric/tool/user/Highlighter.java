@@ -1596,25 +1596,6 @@ public class Highlighter implements DatabaseChangeListener {
 	private static Highlight checkOutObject(Geometric geom, boolean findPort, boolean findPoint, boolean findSpecial, Rectangle2D bounds,
 		EditWindow wnd, double directHitDist, boolean areaMustEnclose)
 	{
-        // ignore areaMustEnclose if bounds is size 0,0
-        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
-		{
-        	Poly poly = null;
-        	if (geom instanceof NodeInst)
-        	{
-        		NodeInst ni = (NodeInst)geom;
-                poly = Highlight.getNodeInstOutline(ni);
-        	} else
-        	{
-        		ArcInst ai = (ArcInst)geom;
-                poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
-        	}
-            if (poly == null) return null;
-   			if (!poly.isInside(bounds)) return null;
-			Highlight h = new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
-			return h;
-		}
-
 		if (geom instanceof NodeInst)
 		{
 			// examine a node object
@@ -1636,8 +1617,18 @@ public class Highlighter implements DatabaseChangeListener {
 			// do not "find" Invisible-Pins if they have text or exports
 			if (ni.isInvisiblePinWithText()) return null;
 
+			// ignore areaMustEnclose if bounds is size 0,0
+	        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
+			{
+	        	Poly poly = Highlight.getNodeInstOutline(ni);
+	            if (poly == null) return null;
+	   			if (!poly.isInside(bounds)) return null;
+				return new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
+			}
+
 			// get the distance to the object
 			double dist = distToNode(bounds, ni, wnd);
+
 			// direct hit
 			if (dist < directHitDist)
 			{
@@ -1701,6 +1692,16 @@ public class Highlighter implements DatabaseChangeListener {
 
 			// do not include arcs that have all layers invisible
 			if (ai.getProto().isArcInvisible()) return null;
+
+			// ignore areaMustEnclose if bounds is size 0,0
+	        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
+			{
+	        	Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+	            if (poly == null) return null;
+	   			if (!poly.isInside(bounds)) return null;
+				Highlight h = new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
+				return h;
+			}
 
 			// get distance to arc
 			double dist = distToArc(bounds, ai, wnd);
