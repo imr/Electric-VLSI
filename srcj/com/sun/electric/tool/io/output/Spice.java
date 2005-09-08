@@ -458,79 +458,100 @@ public class Spice extends Topology
 
         if (useParasitics) {
 
-                for (Iterator ait = cell.getArcs(); ait.hasNext(); ) {
-                    ArcInst ai = (ArcInst)ait.next();
-                    boolean ignoreArc = false;
+            //System.out.println("\n     Finding parasitics for cell "+cell.describe(false));
+            for (Iterator ait = cell.getArcs(); ait.hasNext(); ) {
+                ArcInst ai = (ArcInst)ait.next();
+                boolean ignoreArc = false;
 
-                    // figure out res and cap, see if we should ignore it
-                    if (ai.getProto().getFunction() == ArcProto.Function.NONELEC)
-                        ignoreArc = true;
-                    double length = ai.getLength();
-                    double width = ai.getWidth();
-                    double area = length * width;
-                    double fringe = length*2;
-                    double cap = 0;
-                    double res = 0;
+                // figure out res and cap, see if we should ignore it
+                if (ai.getProto().getFunction() == ArcProto.Function.NONELEC)
+                    ignoreArc = true;
+                double length = ai.getLength();
+                double width = ai.getWidth();
+                double area = length * width;
+                double fringe = length*2;
+                double cap = 0;
+                double res = 0;
 
-                    Technology tech = ai.getProto().getTechnology();
-                    Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
-                    int tot = arcInstPolyList.length;
-                    for(int j=0; j<tot; j++)
-                    {
-                        Poly poly = arcInstPolyList[j];
-                        if (poly.getStyle().isText()) continue;
+                Technology tech = ai.getProto().getTechnology();
+                Poly [] arcInstPolyList = tech.getShapeOfArc(ai);
+                int tot = arcInstPolyList.length;
+                for(int j=0; j<tot; j++)
+                {
+                    Poly poly = arcInstPolyList[j];
+                    if (poly.getStyle().isText()) continue;
 
-                        Layer layer = poly.getLayer();
-                        if (layer.getTechnology() != Technology.getCurrent()) continue;
-                        if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+                    Layer layer = poly.getLayer();
+                    if (layer.getTechnology() != Technology.getCurrent()) continue;
+                    if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
 
-                        if (!layer.isDiffusionLayer() && layer.getCapacitance() > 0.0) {
-                            double areacap = area * layer.getCapacitance();
-                            double fringecap = fringe * layer.getEdgeCapacitance();
-                            cap = areacap + fringecap;
-                            res = length/width * layer.getResistance();
-                        }
-                    }
-                    int arcPImodels = 1;
-                    //arcPImodels = (int)(res/40);            // need preference here
-
-                    // add caps
-                    segmentedNets.putSegment(ai.getHeadPortInst(), cap/(arcPImodels+1));
-                    segmentedNets.putSegment(ai.getTailPortInst(), cap/(arcPImodels+1));
-
-                    // add res if big enough
-                    if (res <= cell.getTechnology().getMinResistance()) {
-                        ignoreArc = true;
-                    }
-                    if (ignoreArc) {
-                        // short arc
-                        segmentedNets.shortSegments(ai.getHeadPortInst(), ai.getTailPortInst());
-                    } else {
-                        // if arcPImodels > 1, need to create new intermediate networks
-                        // for now just write one pi model per arc
-                        segmentedNets.addArcRes(ai, res);
+                    if (!layer.isDiffusionLayer() && layer.getCapacitance() > 0.0) {
+                        double areacap = area * layer.getCapacitance();
+                        double fringecap = fringe * layer.getEdgeCapacitance();
+                        cap = areacap + fringecap;
+                        res = length/width * layer.getResistance();
                     }
                 }
-                // Don't take into account gate resistance: so we need to short two PortInsts
-                // of gate together if this is layout
-                for(Iterator aIt = cell.getNodes(); aIt.hasNext(); )
-                {
-                    NodeInst ni = (NodeInst)aIt.next();
-                    if (ni.getProto() instanceof PrimitiveNode) {
-                        if (((PrimitiveNode)ni.getProto()).getGroupFunction() == PrimitiveNode.Function.TRANS) {
-                            PortInst gate0 = ni.getTransistorGatePort();
-                            PortInst gate1 = null;
-                            for (Iterator pit = ni.getPortInsts(); pit.hasNext();) {
-                                PortInst p2 = (PortInst)pit.next();
-                                if (p2 != gate0 && netList.getNetwork(gate0) == netList.getNetwork(p2))
-                                    gate1 = p2;
-                            }
-                            if (gate1 != null) {
-                                segmentedNets.shortSegments(gate0, gate1);
-                            }
+                int arcPImodels = 1;
+                //arcPImodels = (int)(res/40);            // need preference here
+
+                // add caps
+                segmentedNets.putSegment(ai.getHeadPortInst(), cap/(arcPImodels+1));
+                segmentedNets.putSegment(ai.getTailPortInst(), cap/(arcPImodels+1));
+
+                // add res if big enough
+                if (res <= cell.getTechnology().getMinResistance()) {
+                    ignoreArc = true;
+                }
+                if (ignoreArc) {
+                    // short arc
+                    segmentedNets.shortSegments(ai.getHeadPortInst(), ai.getTailPortInst());
+                } else {
+                    // if arcPImodels > 1, need to create new intermediate networks
+                    // for now just write one pi model per arc
+                    segmentedNets.addArcRes(ai, res);
+                }
+            }
+            // Don't take into account gate resistance: so we need to short two PortInsts
+            // of gate together if this is layout
+            for(Iterator aIt = cell.getNodes(); aIt.hasNext(); )
+            {
+                NodeInst ni = (NodeInst)aIt.next();
+                if (ni.getProto() instanceof PrimitiveNode) {
+                    if (((PrimitiveNode)ni.getProto()).getGroupFunction() == PrimitiveNode.Function.TRANS) {
+                        PortInst gate0 = ni.getTransistorGatePort();
+                        PortInst gate1 = null;
+                        for (Iterator pit = ni.getPortInsts(); pit.hasNext();) {
+                            PortInst p2 = (PortInst)pit.next();
+                            if (p2 != gate0 && netList.getNetwork(gate0) == netList.getNetwork(p2))
+                                gate1 = p2;
+                        }
+                        if (gate1 != null) {
+                            segmentedNets.shortSegments(gate0, gate1);
                         }
                     }
-                } // for (cell.getNodes())
+                } else {
+                    //System.out.println("Shorting shorted exports");
+                    // short together pins if shorted by subcell
+                    Cell subCell = (Cell)ni.getProto();
+                    SegmentedNets subNets = getSegmentedNets(subCell);
+                    // list of lists of shorted exports
+                    for (Iterator it = subNets.getShortedExports(); it.hasNext(); ) {
+                        List exports = (List)it.next();
+                        PortInst pi1 = null;
+                        // list of exports shorted together
+                        for (Iterator it2 = exports.iterator(); it2.hasNext(); ) {
+                            String exportName = (String)it2.next();
+                            // get portinst on node
+                            PortInst pi = ni.findPortInst(exportName);
+                            if (pi1 == null) {
+                                pi1 = pi; continue;
+                            }
+                            segmentedNets.shortSegments(pi1, pi);
+                        }
+                    }
+                }
+            } // for (cell.getNodes())
         }
 
 		// count the number of different transistor types
@@ -672,7 +693,40 @@ public class Spice extends Topology
 //						infstr.append(" /");
 				}
 
-				infstr.append(" " + cs.getName());
+                // special case for parasitic extraction
+                if (useParasitics && !cs.isGlobal() && cs.getExport() != null &&
+                        !cs.isPower() && !cs.isGround()) {
+                    // write out all exports, even if on same network, otherwise we
+                    // short out resistors on feed through networks
+                    Network net = cs.getNetwork();
+                    List exportNames = new ArrayList();
+                    List shortedExports = null;
+                    for (Iterator it = net.getExports(); it.hasNext(); ) {
+                        Export e = (Export)it.next();
+                        PortInst pi = e.getOriginalPort();
+                        String name = segmentedNets.getNetName(pi);
+                        // add used export to first one: others will be shorted to this export
+                        if (shortedExports == null) {
+                            shortedExports = new ArrayList();
+                            shortedExports.add(e.getName());
+                        }
+                        // if export connected, do not write to netlist, but add to list
+                        // of exports shorted to first export
+                        if (exportNames.contains(name)) {
+                            shortedExports.add(e.getName());
+                            continue;
+                        }
+                        exportNames.add(name);
+                        infstr.append(" " + name);
+                    }
+                    // record shorted exports
+                    if (shortedExports.size() > 1) {
+                        segmentedNets.addShortedExports(shortedExports);
+                    }
+
+                } else {
+                    infstr.append(" " + cs.getName());
+                }
 			}
 
 			Global.Set globals = netList.getGlobals();
@@ -692,7 +746,7 @@ public class Spice extends Topology
 			}
             if (cell == topCell && Simulation.isSpiceWriteSubcktTopCell()) {
                 // create top level instantiation
-                topLevelInstance = infstr.toString().replaceAll("\\.SUBCKT ", "X") + " " + cellName;
+                topLevelInstance = infstr.toString().replaceFirst("\\.SUBCKT ", "X") + " " + cellName;
             }
 			if (!useCDL && Simulation.isSpiceUseCellParameters())
 			{
@@ -807,11 +861,33 @@ public class Spice extends Topology
 							net = netList.getNetwork(no, pp, subCS.getExportIndex());
 					}
 					CellSignal cs = cni.getCellSignal(net);
-                    String name = cs.getName();
-                    if (segmentedNets.getUseParasitics()) {
-                        name = segmentedNets.getNetName(no.getNodeInst().findPortInstFromProto(pp));
+                    // special case for parasitic extraction
+                    if (useParasitics && !cs.isGlobal() &&
+                            !cs.isPower() && !cs.isGround()) {
+                        // connect to all exports (except power and ground of subcell net)
+                        SegmentedNets subSegmentedNets = getSegmentedNets((Cell)no.getProto());
+                        Network subNet = subCS.getNetwork();
+                        List exportNames = new ArrayList();
+                        for (Iterator it = subNet.getExports(); it.hasNext(); ) {
+                            // get subcell export, unless collapsed due to less than min R
+                            Export e = (Export)it.next();
+                            PortInst pi = e.getOriginalPort();
+                            String name = subSegmentedNets.getNetName(pi);
+                            if (exportNames.contains(name)) continue;
+                            exportNames.add(name);
+                            // ok, there is a port on the subckt on this subcell for this export,
+                            // now get the appropriate network in this cell
+                            pi = no.getNodeInst().findPortInstFromProto(no.getProto().findPortProto(e.getNameKey()));
+                            name = segmentedNets.getNetName(pi);
+                            infstr.append(" " + name);
+                        }
+                    } else {
+                        String name = cs.getName();
+                        if (segmentedNets.getUseParasitics()) {
+                            name = segmentedNets.getNetName(no.getNodeInst().findPortInstFromProto(pp));
+                        }
+                        infstr.append(" " + name);
                     }
-					infstr.append(" " + name);
 				}
 
 				if (USE_GLOBALS)
@@ -1466,6 +1542,7 @@ public class Spice extends Topology
         boolean useParasitics = false;          // disable or enable netname remapping
         private HashMap netCounters;            // key: net, obj: Integer - for naming segments
         private Cell cell;
+        private List shortedExports;            // list of lists of export names shorted together
 
         private SegmentedNets(Cell cell, boolean verboseNames, CellNetInfo cni, boolean useParasitics) {
             segmentedNets = new HashMap();
@@ -1475,6 +1552,7 @@ public class Spice extends Topology
             this.useParasitics = useParasitics;
             netCounters = new HashMap();
             this.cell = cell;
+            shortedExports = new ArrayList();
         }
         // don't call this method outside of SegmentedNets
         // Add a new PortInst net segment
@@ -1539,6 +1617,7 @@ public class Spice extends Topology
             NetInfo info2 = (NetInfo)segmentedNets.get(p2);
             if (info1 == info2) return;                     // already joined
             // short
+            //System.out.println("Shorted together "+info1.netName+ " and "+info2.netName);
             info1.joinedPorts.addAll(info2.joinedPorts);
             info1.cap += info2.cap;
             if (info2.netName.compareTo(info1.netName) < 0) {
@@ -1599,6 +1678,20 @@ public class Spice extends Topology
         private boolean getUseParasitics() {
             return useParasitics;
         }
+        // list of export names (Strings)
+        private void addShortedExports(List exports) {
+            shortedExports.add(exports);
+        }
+        // list of lists of export names (Strings)
+        private Iterator getShortedExports() { return shortedExports.iterator(); }
+    }
+
+    private SegmentedNets getSegmentedNets(Cell cell) {
+        for (Iterator it = segmentedParasiticInfo.iterator(); it.hasNext(); ) {
+            SegmentedNets seg = (SegmentedNets)it.next();
+            if (seg.cell == cell) return seg;
+        }
+        return null;
     }
 
     private void backAnnotateLayout() {
