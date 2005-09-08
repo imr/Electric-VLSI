@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+BUG: (09/08/05, DN) HierarchyEnumerator was shorting polysilicon resistors when it wasn't supposed to.
+
 BUG: (09/07/05, SMR) Invisible components are selected when "Dragging must enclose objects"
      is checked (Bug #335).
 FIX: Reorganized Highlighter.checkOutObject() to ensure objects are visible.

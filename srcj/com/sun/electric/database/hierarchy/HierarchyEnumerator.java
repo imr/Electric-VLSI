@@ -951,7 +951,7 @@ public final class HierarchyEnumerator {
 	public static void enumerateCell(Cell root, VarContext context,  Visitor visitor,
 									 boolean shortResistors, boolean shortPolyResistors, 
 									 boolean shortSpiceAmmeters, boolean caching) {
-		Netlist netlist = NetworkTool.getNetlist(root, shortResistors);
+		Netlist netlist = NetworkTool.getNetlist(root, shortResistors & shortPolyResistors);
 		(new HierarchyEnumerator()).doIt(root, context, netlist, visitor, 
 				                         shortResistors, shortPolyResistors, 
 										 shortSpiceAmmeters, caching);
