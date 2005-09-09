@@ -882,7 +882,7 @@ public class Output
     /**
      * Class to define cell information during output.
      */
-    protected static class OutputCellInfo extends Job
+    public static class OutputCellInfo extends Job
     {
         Cell cell;
         VarContext context;
