@@ -458,6 +458,7 @@ public class Spice extends Topology
 
         if (useParasitics) {
 
+            double scale = layoutTechnology.getScale(); // scale to convert units to nanometers
             //System.out.println("\n     Finding parasitics for cell "+cell.describe(false));
             for (Iterator ait = cell.getArcs(); ait.hasNext(); ) {
                 ArcInst ai = (ArcInst)ait.next();
@@ -466,8 +467,8 @@ public class Spice extends Topology
                 // figure out res and cap, see if we should ignore it
                 if (ai.getProto().getFunction() == ArcProto.Function.NONELEC)
                     ignoreArc = true;
-                double length = ai.getLength();
-                double width = ai.getWidth();
+                double length = ai.getLength() * scale / 1000;      // length in microns
+                double width = ai.getWidth() * scale / 1000;        // width in microns
                 double area = length * width;
                 double fringe = length*2;
                 double cap = 0;
@@ -492,24 +493,27 @@ public class Spice extends Topology
                         res = length/width * layer.getResistance();
                     }
                 }
-                int arcPImodels = 1;
-                //arcPImodels = (int)(res/40);            // need preference here
+                // add res if big enough
+                if (res <= cell.getTechnology().getMinResistance()) {
+                    ignoreArc = true;
+                }
+
+                int arcPImodels = SegmentedNets.getNumPISegments(res);
+
+                if (ignoreArc)
+                    arcPImodels = 1;                        // split cap to two pins if ignoring arc
 
                 // add caps
                 segmentedNets.putSegment(ai.getHeadPortInst(), cap/(arcPImodels+1));
                 segmentedNets.putSegment(ai.getTailPortInst(), cap/(arcPImodels+1));
 
-                // add res if big enough
-                if (res <= cell.getTechnology().getMinResistance()) {
-                    ignoreArc = true;
-                }
                 if (ignoreArc) {
                     // short arc
                     segmentedNets.shortSegments(ai.getHeadPortInst(), ai.getTailPortInst());
                 } else {
-                    // if arcPImodels > 1, need to create new intermediate networks
-                    // for now just write one pi model per arc
                     segmentedNets.addArcRes(ai, res);
+                    if (arcPImodels > 1)
+                        segmentedNets.addArcCap(ai, cap);       // need to store cap later to break it up
                 }
             }
             // Don't take into account gate resistance: so we need to short two PortInsts
@@ -1281,8 +1285,31 @@ public class Spice extends Topology
                         Double res = (Double)entry.getValue();
                         String n0 = segmentedNets.getNetName(ai.getHeadPortInst());
                         String n1 = segmentedNets.getNetName(ai.getTailPortInst());
-                        multiLinePrint(false, "R" + resCount + " " + n0 + " " + n1 + " " + TextUtils.formatDouble(res.doubleValue(), 2) + "\n");
-                        resCount++;
+                        int arcPImodels = SegmentedNets.getNumPISegments(res.doubleValue());
+                        if (arcPImodels > 1) {
+                            // have to break it up into smaller pieces
+                            double segCap = segmentedNets.getArcCap(ai)/((double)(arcPImodels+1));
+                            double segRes = res.doubleValue()/((double)arcPImodels);
+                            String segn0 = n0;
+                            String segn1 = n0;
+                            for (int i=0; i<arcPImodels; i++) {
+                                segn1 = n0 + "#" + i;
+                                // print cap on intermediate node
+                                if (i == (arcPImodels-1))
+                                    segn1 = n1;
+
+                                multiLinePrint(false, "R"+resCount+" "+segn0+" "+segn1+" "+TextUtils.formatDouble(segRes)+"\n");
+                                resCount++;
+                                if (i < (arcPImodels-1)) {
+                                    multiLinePrint(false, "C"+capCount+" "+segn1+" 0 "+TextUtils.formatDouble(segCap)+"\n");
+                                    capCount++;
+                                }
+                                segn0 = segn1;
+                            }
+                        } else {
+                            multiLinePrint(false, "R" + resCount + " " + n0 + " " + n1 + " " + TextUtils.formatDouble(res.doubleValue(), 2) + "\n");
+                            resCount++;
+                        }
                     }
                 } else {
                     // print parasitic capacitances
@@ -1543,6 +1570,7 @@ public class Spice extends Topology
         private HashMap netCounters;            // key: net, obj: Integer - for naming segments
         private Cell cell;
         private List shortedExports;            // list of lists of export names shorted together
+        private HashMap longArcCaps;            // for arcs to be broken up into multiple PI models, need to record cap
 
         private SegmentedNets(Cell cell, boolean verboseNames, CellNetInfo cni, boolean useParasitics) {
             segmentedNets = new HashMap();
@@ -1553,6 +1581,7 @@ public class Spice extends Topology
             netCounters = new HashMap();
             this.cell = cell;
             shortedExports = new ArrayList();
+            longArcCaps = new HashMap();
         }
         // don't call this method outside of SegmentedNets
         // Add a new PortInst net segment
@@ -1684,6 +1713,22 @@ public class Spice extends Topology
         }
         // list of lists of export names (Strings)
         private Iterator getShortedExports() { return shortedExports.iterator(); }
+        public static int getNumPISegments(double res) {
+            int arcPImodels = 1;
+            double maxRes = Simulation.getSpiceMaxSeriesResistance();
+            arcPImodels = (int)(res/maxRes);            // need preference here
+            if ((res % maxRes) != 0) arcPImodels++;
+            return arcPImodels;
+        }
+        // for arcs of larger than max series resistance, we need to break it up into
+        // multiple PI models.  So, we need to store the cap associated with the arc
+        private void addArcCap(ArcInst ai, double cap) {
+            longArcCaps.put(ai, new Double(cap));
+        }
+        private double getArcCap(ArcInst ai) {
+            Double d = (Double)longArcCaps.get(ai);
+            return d.doubleValue();
+        }
     }
 
     private SegmentedNets getSegmentedNets(Cell cell) {

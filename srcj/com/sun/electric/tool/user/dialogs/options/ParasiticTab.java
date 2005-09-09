@@ -111,6 +111,8 @@ public class ParasiticTab extends PreferencePanel {
         extractPowerGround.setSelected(Simulation.isParasiticsExtractPowerGround());
         extractPowerGround.setEnabled(false);
         parasiticPanel.setVisible(false);
+
+        maxSeriesResistance.setText(Double.toString(Simulation.getSpiceMaxSeriesResistance()));
     }
 
     private void showLayersInTechnology(DefaultListModel model)
@@ -217,6 +219,9 @@ public class ParasiticTab extends PreferencePanel {
         if (includeGround.isSelected() != curTech.isGroundNetIncluded())
             curTech.setGroundNetIncluded(includeGround.isSelected());
 
+        doubleNow = TextUtils.atof(maxSeriesResistance.getText());
+        if (Simulation.getSpiceMaxSeriesResistance() != doubleNow) Simulation.setSpiceMaxSeriesResistance(doubleNow);
+
         boolean b = verboseNaming.isSelected();
         if (b != Simulation.isParasiticsUseVerboseNaming()) Simulation.setParasiticsUseVerboseNaming(b);
         b = backannotateLayout.isSelected();
@@ -267,6 +272,8 @@ public class ParasiticTab extends PreferencePanel {
         gateLengthSubtraction = new javax.swing.JTextField();
         includeGate = new javax.swing.JCheckBox();
         includeGround = new javax.swing.JCheckBox();
+        jLabel1 = new javax.swing.JLabel();
+        maxSeriesResistance = new javax.swing.JTextField();
         simpleParasiticOptions = new javax.swing.JPanel();
         verboseNaming = new javax.swing.JCheckBox();
         backannotateLayout = new javax.swing.JCheckBox();
@@ -288,9 +295,9 @@ public class ParasiticTab extends PreferencePanel {
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.gridheight = 4;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         techValues.add(spiceLayer, gridBagConstraints);
 
         jLabel7.setText("Layer:");
@@ -431,21 +438,21 @@ public class ParasiticTab extends PreferencePanel {
         jLabel5.setText("Gate Length Shrink (Subtraction) um:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
         globalValues.add(jLabel5, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         globalValues.add(gateLengthSubtraction, gridBagConstraints);
 
         includeGate.setText("Include Gate In Resistance");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         globalValues.add(includeGate, gridBagConstraints);
@@ -453,10 +460,23 @@ public class ParasiticTab extends PreferencePanel {
         includeGround.setText("Include Ground Network");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         globalValues.add(includeGround, gridBagConstraints);
+
+        jLabel1.setText("Max. Series Resistance: ");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        globalValues.add(jLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        globalValues.add(maxSeriesResistance, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -521,6 +541,7 @@ public class ParasiticTab extends PreferencePanel {
     private javax.swing.JPanel globalValues;
     private javax.swing.JCheckBox includeGate;
     private javax.swing.JCheckBox includeGround;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;
@@ -530,6 +551,7 @@ public class ParasiticTab extends PreferencePanel {
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel maxDist;
     private javax.swing.JTextField maxDistValue;
+    private javax.swing.JTextField maxSeriesResistance;
     private javax.swing.JTextField minCapacitance;
     private javax.swing.JTextField minResistance;
     private javax.swing.JPanel parasiticPanel;

@@ -1590,4 +1590,9 @@ public class Simulation extends Listener
     private static Pref cacheSpiceWriteSubcktTopCell = Pref.makeBooleanPref("SpiceWriteSubcktTopCell", tool.prefs, false);
     public static boolean isSpiceWriteSubcktTopCell() { return cacheSpiceWriteSubcktTopCell.getBoolean(); }
     public static void setSpiceWriteSubcktTopCell(boolean b) { cacheSpiceWriteSubcktTopCell.setBoolean(b); }
+
+    private static Pref cacheSpiceMaxSeriesResistance = Pref.makeDoublePref("SpiceMaxSeriesResistance", tool.prefs, 8.0);
+    public static double getSpiceMaxSeriesResistance() { return cacheSpiceMaxSeriesResistance.getDouble(); }
+    public static void setSpiceMaxSeriesResistance(double d) { cacheSpiceMaxSeriesResistance.setDouble(d); }
+
 }

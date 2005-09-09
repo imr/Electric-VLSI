@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+IMP/MAN: (09/07/05, JKG) Added max series resistance option under parasitics.
+     This breaks long single PI models into series of distributed PI models.
+
 BUG: (09/09/05, DN) Mirroring not correct on icons *Bug #531).
 FIX: In CircuitChanges.java change method RotateSelected.doIt().
 
