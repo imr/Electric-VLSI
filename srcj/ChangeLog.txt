@@ -4,10 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
-IMP/MAN: Wiped bit is not stored to library files, because it is computed form database.
+BUG: (09/09/05, DN) JELIB reader reads only last decimal digit of tech-specific bits.
+     For example, it corrupts PortCharacteristic of Global-Signal instances.
+FIX: In io.input.JELIB.instantiateCellContents line 868 put "break" into loop parsing NodeInst's satetInfo .
+
+IMP/MAN: (09/09/05, DN) Wiped bit is not stored to library files, because it is computed form database.
     So 'W' and 'E' bits are not written to JELIB node inst lines more.
 
-BUG: Expand cell instances should not modify referenced library (Bug #366).
+BUG: (09/09/05, DN) Expand cell instances should not modify referenced library (Bug #366).
 FIX: Expand instance bits are no more part of database. They are user preferences,
      which are saved to registry on Quit. Unfortunately, they are not undoable now.
      OBJECTREDRAW in Undo doesn't set cell modified flag, so expand cells doesn't touch
