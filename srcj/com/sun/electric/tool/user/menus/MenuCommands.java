@@ -91,7 +91,16 @@ public final class MenuCommands
         ViewMenu.addViewMenu(menuBar);
         WindowMenu.addWindowMenu(menuBar);
         ToolMenu.addToolMenu(menuBar);
-        
+
+        if (false) {            // currently disabled - still under test
+            // add the SunAsyncMenu if there
+            try {
+                Class SunAsyncMenuClass = Class.forName("com.sun.electric.plugins.menus.SunAsyncMenu");
+                java.lang.reflect.Method addMenu = SunAsyncMenuClass.getMethod("addMenu", new Class[] { MenuBar.class });
+                addMenu.invoke(null, new Object [] {menuBar});
+            } catch (Exception e) {}
+        }
+
         MenuBar.Menu helpMenu = HelpMenu.addHelpMenu(menuBar);
 
 		if (Main.getDebug())
