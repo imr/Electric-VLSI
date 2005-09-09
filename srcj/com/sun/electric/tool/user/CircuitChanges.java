@@ -172,20 +172,29 @@ public class CircuitChanges
 			if (cantEdit(cell, null, true) != 0) return false;
 
 			// figure out which nodes get rotated/mirrored
-			HashSet markObj = new HashSet();
 			int nicount = 0;
 			NodeInst theNi = null;
 			Rectangle2D selectedBounds = new Rectangle2D.Double();
+            HashSet rotatedNodes = new HashSet();
 			for(Iterator it = highs.iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
-				if (!(geom instanceof NodeInst)) continue;
+                if (geom instanceof ArcInst) {
+                    ArcInst ai = (ArcInst)geom;
+                    NodeInst headNi = ai.getHeadPortInst().getNodeInst();
+                    if (cantEdit(cell, headNi, false) == 0)
+                        rotatedNodes.add(headNi);
+                    NodeInst tailNi = ai.getTailPortInst().getNodeInst();
+                    if (cantEdit(cell, tailNi, false) == 0)
+                        rotatedNodes.add(tailNi);
+                    continue;
+                }
 				NodeInst ni = (NodeInst)geom;
 				if (cantEdit(cell, ni, true) != 0)
 				{
 					return false;
 				}
-				markObj.add(ni);
+                rotatedNodes.add(ni);
 				if (nicount == 0)
 				{
 					selectedBounds.setRect(ni.getBounds());
@@ -210,10 +219,10 @@ public class CircuitChanges
 				Point2D center = new Point2D.Double(selectedBounds.getCenterX(), selectedBounds.getCenterY());
 				theNi = null;
 				double bestdist = Integer.MAX_VALUE;
-				for(Iterator it = cell.getNodes(); it.hasNext(); )
-				{
-					NodeInst ni = (NodeInst)it.next();
-					if (!markObj.contains(ni)) continue;
+                for(Iterator it = highs.iterator(); it.hasNext(); ) {
+                    Geometric geom = (Geometric)it.next();
+                    if (!(geom instanceof NodeInst)) continue;
+                    NodeInst ni = (NodeInst)geom;
 					double dist = center.distance(ni.getTrueCenter());
 
 					// LINTED "bestdist" used in proper order
@@ -225,101 +234,200 @@ public class CircuitChanges
 				}
 			}
 
-			// see which nodes already connect to the main rotation/mirror node (theNi)
-			markObj.clear();
-			markObj.add(theNi);
-			for(Iterator it = highs.iterator(); it.hasNext(); )
-			{
-				Geometric geom = (Geometric)it.next();
-				if (!(geom instanceof ArcInst)) continue;
-				ArcInst ai = (ArcInst)geom;
-				markObj.add(ai);
-			}
-			spreadRotateConnection(theNi, markObj);
-
-			// now make sure that it is all connected
-			List niList = new ArrayList();
-			List aiList = new ArrayList();
-			for(Iterator it = highs.iterator(); it.hasNext(); )
-			{
-				Geometric geom = (Geometric)it.next();
-				if (!(geom instanceof NodeInst)) continue;
-				NodeInst ni = (NodeInst)geom;
-				if (ni == theNi) continue;
-				if (markObj.contains(ni)) continue;
-
-				if (theNi.getNumPortInsts() == 0)
-				{
-					// no port on the cell: create one
-					Cell subCell = (Cell)theNi.getProto();
-					NodeInst subni = NodeInst.makeInstance(Generic.tech.universalPinNode, new Point2D.Double(0,0), 0, 0, subCell);
-					if (subni == null) break;
-					Export thepp = Export.newInstance(subCell, subni.getOnlyPortInst(), "temp");
-					if (thepp == null) break;
-
-					// add to the list of temporary nodes
-					niList.add(subni);
-				}
-				PortInst thepi = theNi.getPortInst(0);
-				if (ni.getNumPortInsts() != 0)
-				{
-					ArcInst ai = ArcInst.makeInstance(Generic.tech.invisible_arc, 0, ni.getPortInst(0), thepi);
-					if (ai == null) break;
-					ai.setRigid(true);
-					aiList.add(ai);
-					spreadRotateConnection(ni, markObj);
-				}
-			}
-
-			// make all selected arcs temporarily rigid
-			for(Iterator it = highs.iterator(); it.hasNext(); )
-			{
-				Geometric geom = (Geometric)it.next();
-				if (!(geom instanceof ArcInst)) continue;
-				Layout.setTempRigid((ArcInst)geom, true);
-			}
-
 			// do the rotation/mirror
             Orientation dOrient;
 			if (mirror)
 			{
 				// do mirroring
                 dOrient = mirrorH ? Orientation.Y : Orientation.X;
-//				if (mirrorH)
-//				{
-//					// mirror horizontally (flip Y)
-//					double sY = theNi.getYSizeWithMirror();
-//					theNi.modifyInstance(0, 0, 0, -sY - sY, 0);
-//				} else
-//				{
-//					// mirror vertically (flip X)
-//					double sX = theNi.getXSizeWithMirror();
-//					theNi.modifyInstance(0, 0, -sX - sX, 0, 0);
-//				}
 			} else
 			{
 				// do rotation
                 dOrient = Orientation.fromAngle(amount);
-//				theNi.modifyInstance(0, 0, 0, 0, amount);
 			}
-            theNi.rotate(dOrient);
-
-			// delete intermediate arcs used to constrain
-			for(Iterator it = aiList.iterator(); it.hasNext(); )
-			{
-				ArcInst ai = (ArcInst)it.next();
-				ai.kill();
-			}
-
-			// delete intermediate nodes used to constrain
-			for(Iterator it = niList.iterator(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-//				(void)killportproto(niList[i]->parent, niList[i]->firstportexpinst->exportproto);
-				ni.kill();
-			}
+            AffineTransform trans = dOrient.rotateAbout(theNi.getAnchorCenter());
+            
+            Point2D.Double tmpPt1 = new Point2D.Double(), tmpPt2 = new Point2D.Double();
+            // Rotate rotatedNodes
+            for (Iterator it = rotatedNodes.iterator(); it.hasNext(); ) {
+                NodeInst ni = (NodeInst)it.next();
+                trans.transform(ni.getAnchorCenter(), tmpPt1);
+                ni.rotate(dOrient);
+                ni.move(tmpPt1.getX() - ni.getAnchorCenterX(), tmpPt1.getY() - ni.getAnchorCenterY());
+            }
+            // Rotate highlighted arcs
+            for(Iterator it = highs.iterator(); it.hasNext(); ) {
+                Geometric geom = (Geometric)it.next();
+                if (!(geom instanceof ArcInst)) continue;
+                ArcInst ai = (ArcInst)geom;
+                if (highs.contains(ai.getHeadPortInst().getNodeInst()))
+                    trans.transform(ai.getHeadLocation(), tmpPt1);
+                else
+                    tmpPt1.setLocation(ai.getHeadLocation());
+                if (highs.contains(ai.getTailPortInst().getNodeInst()))
+                    trans.transform(ai.getTailLocation(), tmpPt2);
+                else
+                    tmpPt2.setLocation(ai.getTailLocation());
+                ai.modify(0, tmpPt1.getX() - ai.getHeadLocation().getX(), tmpPt1.getY() - ai.getHeadLocation().getY(),
+                        tmpPt2.getX() - ai.getTailLocation().getX(), tmpPt2.getY() - ai.getTailLocation().getY());
+            }
 			return true;
 		}
+        
+//		public boolean doIt()
+//		{
+//			// disallow rotating if lock is on
+//			if (cantEdit(cell, null, true) != 0) return false;
+//
+//			// figure out which nodes get rotated/mirrored
+//			HashSet markObj = new HashSet();
+//			int nicount = 0;
+//			NodeInst theNi = null;
+//			Rectangle2D selectedBounds = new Rectangle2D.Double();
+//			for(Iterator it = highs.iterator(); it.hasNext(); )
+//			{
+//				Geometric geom = (Geometric)it.next();
+//				if (!(geom instanceof NodeInst)) continue;
+//				NodeInst ni = (NodeInst)geom;
+//				if (cantEdit(cell, ni, true) != 0)
+//				{
+//					return false;
+//				}
+//				markObj.add(ni);
+//				if (nicount == 0)
+//				{
+//					selectedBounds.setRect(ni.getBounds());
+//				} else
+//				{
+//					Rectangle2D.union(selectedBounds, ni.getBounds(), selectedBounds);
+//				}
+//				theNi = ni;
+//				nicount++;
+//			}
+//
+//			// must be at least 1 node
+//			if (nicount <= 0)
+//			{
+//				System.out.println("Must select at least 1 node for rotation");
+//				return false;
+//			}
+//
+//			// if multiple nodes, find the center one
+//			if (nicount > 1)
+//			{
+//				Point2D center = new Point2D.Double(selectedBounds.getCenterX(), selectedBounds.getCenterY());
+//				theNi = null;
+//				double bestdist = Integer.MAX_VALUE;
+//				for(Iterator it = cell.getNodes(); it.hasNext(); )
+//				{
+//					NodeInst ni = (NodeInst)it.next();
+//					if (!markObj.contains(ni)) continue;
+//					double dist = center.distance(ni.getTrueCenter());
+//
+//					// LINTED "bestdist" used in proper order
+//					if (theNi == null || dist < bestdist)
+//					{
+//						theNi = ni;
+//						bestdist = dist;
+//					}
+//				}
+//			}
+//
+//			// see which nodes already connect to the main rotation/mirror node (theNi)
+//			markObj.clear();
+//			markObj.add(theNi);
+//			for(Iterator it = highs.iterator(); it.hasNext(); )
+//			{
+//				Geometric geom = (Geometric)it.next();
+//				if (!(geom instanceof ArcInst)) continue;
+//				ArcInst ai = (ArcInst)geom;
+//				markObj.add(ai);
+//			}
+//			spreadRotateConnection(theNi, markObj);
+//
+//			// now make sure that it is all connected
+//			List niList = new ArrayList();
+//			List aiList = new ArrayList();
+//			for(Iterator it = highs.iterator(); it.hasNext(); )
+//			{
+//				Geometric geom = (Geometric)it.next();
+//				if (!(geom instanceof NodeInst)) continue;
+//				NodeInst ni = (NodeInst)geom;
+//				if (ni == theNi) continue;
+//				if (markObj.contains(ni)) continue;
+//
+//				if (theNi.getNumPortInsts() == 0)
+//				{
+//					// no port on the cell: create one
+//					Cell subCell = (Cell)theNi.getProto();
+//					NodeInst subni = NodeInst.makeInstance(Generic.tech.universalPinNode, new Point2D.Double(0,0), 0, 0, subCell);
+//					if (subni == null) break;
+//					Export thepp = Export.newInstance(subCell, subni.getOnlyPortInst(), "temp");
+//					if (thepp == null) break;
+//
+//					// add to the list of temporary nodes
+//					niList.add(subni);
+//				}
+//				PortInst thepi = theNi.getPortInst(0);
+//				if (ni.getNumPortInsts() != 0)
+//				{
+//					ArcInst ai = ArcInst.makeInstance(Generic.tech.invisible_arc, 0, ni.getPortInst(0), thepi);
+//					if (ai == null) break;
+//					ai.setRigid(true);
+//					aiList.add(ai);
+//					spreadRotateConnection(ni, markObj);
+//				}
+//			}
+//
+//			// make all selected arcs temporarily rigid
+//			for(Iterator it = highs.iterator(); it.hasNext(); )
+//			{
+//				Geometric geom = (Geometric)it.next();
+//				if (!(geom instanceof ArcInst)) continue;
+//				Layout.setTempRigid((ArcInst)geom, true);
+//			}
+//
+//			// do the rotation/mirror
+//            Orientation dOrient;
+//			if (mirror)
+//			{
+//				// do mirroring
+//                dOrient = mirrorH ? Orientation.Y : Orientation.X;
+////				if (mirrorH)
+////				{
+////					// mirror horizontally (flip Y)
+////					double sY = theNi.getYSizeWithMirror();
+////					theNi.modifyInstance(0, 0, 0, -sY - sY, 0);
+////				} else
+////				{
+////					// mirror vertically (flip X)
+////					double sX = theNi.getXSizeWithMirror();
+////					theNi.modifyInstance(0, 0, -sX - sX, 0, 0);
+////				}
+//			} else
+//			{
+//				// do rotation
+//                dOrient = Orientation.fromAngle(amount);
+////				theNi.modifyInstance(0, 0, 0, 0, amount);
+//			}
+//            theNi.rotate(dOrient);
+//
+//			// delete intermediate arcs used to constrain
+//			for(Iterator it = aiList.iterator(); it.hasNext(); )
+//			{
+//				ArcInst ai = (ArcInst)it.next();
+//				ai.kill();
+//			}
+//
+//			// delete intermediate nodes used to constrain
+//			for(Iterator it = niList.iterator(); it.hasNext(); )
+//			{
+//				NodeInst ni = (NodeInst)it.next();
+////				(void)killportproto(niList[i]->parent, niList[i]->firstportexpinst->exportproto);
+//				ni.kill();
+//			}
+//			return true;
+//		}
 	}
 
 	/**

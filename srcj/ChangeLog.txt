@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+BUG: (09/09/05, DN) Mirroring not correct on icons *Bug #531).
+FIX: In CircuitChanges.java change method RotateSelected.doIt().
+
+BUG: (09/09/05, DN) Spice netlister should use alphabetically first export name fo rsignal name independently of its width (Bug #512)
+FIX: In Topology.java add "isChooseBestExport()" decider, In Spice.java override it by "false".
+
 BUG: (09/08/05, DN) HierarchyEnumerator was shorting polysilicon resistors when it wasn't supposed to. (Bugzilla# 529)
 
 BUG: (09/07/05, SMR) Invisible components are selected when "Dragging must enclose objects"

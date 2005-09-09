@@ -134,7 +134,10 @@ public abstract class Topology extends Output
 	/** Abstract method to decide whether aggregate names (busses) are used. */
 	protected abstract boolean isAggregateNamesSupported();
 
-	/** Abstract method to decide whether aggregate names (busses) are used. */
+    /** Method to decide whether to choose best export name among exports connected to signal. */
+    protected boolean isChooseBestExportName() { return true; } 
+    
+    /** Abstract method to decide whether aggregate names (busses) are used. */
 	protected abstract boolean isSeparateInputAndOutput();
 
     /** If the netlister has requirments not to netlist certain cells and their
@@ -448,7 +451,7 @@ public abstract class Topology extends Output
 				if (cs == null) continue;
 
 				// if there is already an export on this signal, make sure that it is wider
-				if (cs.pp != null)
+				if (cs.pp != null && isChooseBestExportName())
 				{
 					int oldPortWidth = cni.netList.getBusWidth(cs.pp);
 					if (isAggregateNamesSupported())

@@ -1817,6 +1817,9 @@ public class Spice extends Topology
 	/** Method to report that aggregate names (busses) are not used. */
 	protected boolean isAggregateNamesSupported() { return false; }
 
+    /** Method to report that not to choose best export name among exports connected to signal. */
+    protected boolean isChooseBestExportName() { return false; } 
+    
 	/** Method to report whether input and output names are separated. */
 	protected boolean isSeparateInputAndOutput() { return false; }
 
