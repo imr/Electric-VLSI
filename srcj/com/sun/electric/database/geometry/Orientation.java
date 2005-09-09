@@ -25,6 +25,7 @@
 package com.sun.electric.database.geometry;
 
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.util.HashMap;
 
 /**
@@ -318,6 +319,15 @@ public class Orientation {
 	 * @return a transformation that rotates by this Orinetation.
 	 */
     public AffineTransform pureRotate() { return (AffineTransform)trans.clone(); }
+    
+	/**
+	 * Method to return a transformation that rotates an object about a point.
+	 * @param c the center point about which to rotate.
+	 * @return a transformation that rotates about that point.
+	 */
+	public AffineTransform rotateAbout(Point2D c) {
+        return rotateAbout(c.getX(), c.getY());
+    }
     
 	/**
 	 * Method to return a transformation that rotates an object about a point.
