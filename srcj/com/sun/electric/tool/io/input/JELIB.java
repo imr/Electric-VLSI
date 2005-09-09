@@ -865,6 +865,7 @@ public class JELIB extends LibraryFiles
                                         " (" + cell + ") bad node bits" + stateInfo, cell, -1);
                             }
                         }
+						break;
                 }
             }
            ImmutableTextDescriptor protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line); 
