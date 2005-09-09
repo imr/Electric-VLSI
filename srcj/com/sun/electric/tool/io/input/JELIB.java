@@ -642,6 +642,8 @@ public class JELIB extends LibraryFiles
 		cellsConstructed++;
 		progress.setProgress(cellsConstructed * 100 / totalCells);
 		recursiveSetupFlag.add(cell);
+        if (cell.getLibrary().newFormatFound)
+            cell.loadExpandStatus();
 	}
 
 	/**
@@ -845,17 +847,18 @@ public class JELIB extends LibraryFiles
 			// parse state information in stateInfo field
             ImmutableTextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
             int flags = 0, techBits = 0;
+            boolean expanded = false;
             // parse state information in jelibUserBits
 			parseStateInfo:
             for(int i=0; i<stateInfo.length(); i++) {
                 char chr = stateInfo.charAt(i);
                 switch (chr) {
-                    case 'E': flags = ImmutableNodeInst.NEXPAND.set(flags, true); break;
-                    case 'L': flags = ImmutableNodeInst.NILOCKED.set(flags, true); break;
+                    case 'E': expanded = true; /*flags = ImmutableNodeInst.EXPAND.set(flags, true);*/ break;
+                    case 'L': flags = ImmutableNodeInst.LOCKED.set(flags, true); break;
                     case 'S': /*userBits |= NSHORT;*/ break; // deprecated
-                    case 'V': flags = ImmutableNodeInst.NVISIBLEINSIDE.set(flags, true); break;
-                    case 'W': flags = ImmutableNodeInst.WIPED.set(flags, true); break;
-                    case 'A': flags = ImmutableNodeInst.HARDSELECTN.set(flags, true); break;
+                    case 'V': flags = ImmutableNodeInst.VIS_INSIDE.set(flags, true); break;
+                    case 'W': /*flags = ImmutableNodeInst.WIPED.set(flags, true);*/ break; // deprecated
+                    case 'A': flags = ImmutableNodeInst.HARD_SELECT.set(flags, true); break;
                     default:
                         if (Character.isDigit(chr)) {
                             stateInfo = stateInfo.substring(i);
@@ -873,8 +876,6 @@ public class JELIB extends LibraryFiles
 
 			// create the node
             Orientation orient = Orientation.fromJava(angle, flipX, flipY);
-            if (np == Schematics.tech.globalNode)
-                np = np;
 			NodeInst ni = NodeInst.newInstance(cell, np, nodeName, duplicate, nameTextDescriptor,
                     new EPoint(x, y), wid, hei, orient, flags, techBits, protoTextDescriptor);
 			if (ni == null)
@@ -883,6 +884,8 @@ public class JELIB extends LibraryFiles
 					" (" + cell + ") cannot create node " + protoName, cell, -1);
 				continue;
 			}
+            if (!cell.getLibrary().newFormatFound)
+                ni.setExpanded(expanded);
 
 			// insert into map of disk names
 			diskName.put(diskNodeName, ni);

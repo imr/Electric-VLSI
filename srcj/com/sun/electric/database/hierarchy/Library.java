@@ -87,6 +87,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
     /** list of referenced libs */                          private List/*<Library>*/ referencedLibs;
 	/** preferences for all libraries */					private static Preferences allPrefs = null;
     /** preferences for this library */                     Preferences prefs;
+    /** New preferences format found */                     public final boolean newFormatFound;
 
 	/** list of linked libraries indexed by libId. */       private static final ArrayList linkedLibs = new ArrayList();
 	/** map of libraries sorted by name */                  private static final TreeMap/*<String,Library>*/ libraries = new TreeMap/*<String,Library>*/(TextUtils.STRING_NUMBER_ORDER);
@@ -101,6 +102,13 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	{
         this.libName = libName;
 		if (allPrefs == null) allPrefs = Preferences.userNodeForPackage(getClass());
+        boolean found = false;
+        try {
+            found = allPrefs.nodeExists(libName);
+        } catch (BackingStoreException e) {
+            ActivityLogger.logException(e);
+        }
+        newFormatFound = found;
         prefs = allPrefs.node(libName);
         prefs.put("LIB", libName);
 	}

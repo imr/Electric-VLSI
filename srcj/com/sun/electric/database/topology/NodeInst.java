@@ -36,6 +36,7 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.PortCharacteristic;
 import com.sun.electric.database.prototype.PortOriginal;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.ArrayIterator;
@@ -367,6 +368,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		Undo.newObject(ni);
 		if (protoType == Generic.tech.cellCenterNode)
     		parent.adjustReferencePoint(center.getX(), center.getY());
+        if (protoType == Schematics.tech.globalNode) {
+            System.out.println("Global-signal " + ni + " in " + parent + " has PortChanrtacteric " + PortCharacteristic.findCharacteristic(ni.getTechSpecific()));
+        }
 		return ni;
 	}
 
