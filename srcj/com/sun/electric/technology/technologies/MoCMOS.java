@@ -1416,19 +1416,19 @@ public class MoCMOS extends Technology
 
 		// The GDS names
 		metalLayers[0].setFactoryGDSLayer("49, 80p, 80t", Foundry.MOSIS_FOUNDRY);				// Metal-1 Mosis
-        metalLayers[0].setFactoryGDSLayer("16", Foundry.TSMC_FOUNDRY);				// Metal-1 TSMC
+        metalLayers[0].setFactoryGDSLayer("16, 40p, 40t", Foundry.TSMC_FOUNDRY);				// Metal-1 TSMC
 		metalLayers[1].setFactoryGDSLayer("51, 82p, 82t", Foundry.MOSIS_FOUNDRY);				// Metal-2
-        metalLayers[1].setFactoryGDSLayer("18", Foundry.TSMC_FOUNDRY);				// Metal-2
+        metalLayers[1].setFactoryGDSLayer("18, 41p, 41t", Foundry.TSMC_FOUNDRY);				// Metal-2
 		metalLayers[2].setFactoryGDSLayer("62, 93p, 93t", Foundry.MOSIS_FOUNDRY);				// Metal-3
-        metalLayers[2].setFactoryGDSLayer("28", Foundry.TSMC_FOUNDRY);				// Metal-3
+        metalLayers[2].setFactoryGDSLayer("28, 42p, 42t", Foundry.TSMC_FOUNDRY);				// Metal-3
 		metalLayers[3].setFactoryGDSLayer("31, 63p, 63t", Foundry.MOSIS_FOUNDRY);				// Metal-4
-        metalLayers[3].setFactoryGDSLayer("31", Foundry.TSMC_FOUNDRY);
+        metalLayers[3].setFactoryGDSLayer("31, 43p, 43t", Foundry.TSMC_FOUNDRY);
 		metalLayers[4].setFactoryGDSLayer("33, 64p, 64t", Foundry.MOSIS_FOUNDRY);				// Metal-5
-        metalLayers[4].setFactoryGDSLayer("33", Foundry.TSMC_FOUNDRY);				// Metal-5
+        metalLayers[4].setFactoryGDSLayer("33, 44p, 44t", Foundry.TSMC_FOUNDRY);				// Metal-5
 		metalLayers[5].setFactoryGDSLayer("37, 68p, 68t", Foundry.MOSIS_FOUNDRY);				// Metal-6
-        metalLayers[5].setFactoryGDSLayer("38", Foundry.TSMC_FOUNDRY);				// Metal-6
-		poly1_lay.setFactoryGDSLayer("46", Foundry.MOSIS_FOUNDRY);					// Polysilicon-1
-        poly1_lay.setFactoryGDSLayer("13", Foundry.TSMC_FOUNDRY);					// Polysilicon-1
+        metalLayers[5].setFactoryGDSLayer("38, 45p, 45t", Foundry.TSMC_FOUNDRY);				// Metal-6
+		poly1_lay.setFactoryGDSLayer("46, 77p, 77t", Foundry.MOSIS_FOUNDRY);					// Polysilicon-1
+        poly1_lay.setFactoryGDSLayer("13, 47p, 47t", Foundry.TSMC_FOUNDRY);					// Polysilicon-1
 		transistorPoly_lay.setFactoryGDSLayer("46", Foundry.MOSIS_FOUNDRY);		// Transistor-Poly
         transistorPoly_lay.setFactoryGDSLayer("13", Foundry.TSMC_FOUNDRY);		// Transistor-Poly
 		poly2_lay.setFactoryGDSLayer("56", Foundry.MOSIS_FOUNDRY);					// Polysilicon-2
