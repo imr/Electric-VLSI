@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -86,40 +87,9 @@ public class ArcInst extends Geometric implements Comparable
 
 	// -------------------------- private data ----------------------------------
 
-	/** fixed-length arc */                                 private static final int FIXED =                     01;
-	/** fixed-angle arc */                                  private static final int FIXANG =                    02;
-//	/** arc has text that is far away */                    private static final int AHASFARTEXT =               04;
-//	/** arc is not in use */                                private static final int DEADA =                    020;
     /** angle of arc from end 0 to end 1 in 10th degrees */ private static final int AANGLE =                037774;
     /** bits of right shift for AANGLE shift */             private static final int AANGLESH =                   2;
-	/** DISK: angle of arc from end 0 to end 1 */           private static final int DISK_AANGLE =           037740;
-	/** DISK: bits of right shift for DISK_AANGLE field */  private static final int DISK_AANGLESH =              5;
-//	/** set if arc is to be drawn shortened */              private static final int ASHORT =                040000;
-	/** set if head end of ArcInst is negated */            private static final int ISHEADNEGATED =        0200000;
-	/** DISK: set if ends do not extend by half width */    private static final int DISK_NOEXTEND =        0400000;
-	/** set if tail end of ArcInst is negated */            private static final int ISTAILNEGATED =       01000000;
-//	/** set if ends are negated */                          private static final int ISNEGATED =           01000000;
-	/** set if arc has arrow on head end */                 private static final int HEADARROW =           02000000;
-    /** DISK: set if arc aims from end 0 to end 1 */        private static final int DISK_ISDIRECTIONAL =  02000000; 
-	/** no extension on tail */                             private static final int TAILNOEXTEND =        04000000;
-    /** DISK: no extension/negation/arrows on end 0 */      private static final int DISK_NOTEND0 =        04000000;
-	/** no extension on head */                             private static final int HEADNOEXTEND =       010000000;
-    /** DISK: no extension/negation/arrows on end 1 */      private static final int DISK_NOTEND1 =       010000000;
-	/** DISK: reverse extension/negation/arrow ends */      private static final int DISK_REVERSEEND =    020000000;
-	/** set if arc can't slide around in ports */           private static final int CANTSLIDE =          040000000;
-//	/** set if afixed arc was changed */                    private static final int FIXEDMOD =          0100000000;
-	/** set if arc has arrow on tail end */                 private static final int TAILARROW =         0200000000;
-	/** set if arc has arrow line along body */             private static final int BODYARROW =         0400000000;
-//	/** only local arcinst re-drawing desired */            private static final int RELOCLA =          01000000000;
-//	/**transparent arcinst re-draw is done */               private static final int RETDONA =          02000000000;
-//	/** opaque arcinst re-draw is done */                   private static final int REODONA =          04000000000;
-//	/** general flag for spreading and highlighting */      private static final int ARCFLAGBIT =      010000000000;
-	/** set if hard to select */                            private static final int HARDSELECTA =     020000000000;
     
-    /** bits with common meaniong in disk and database */   private static int COMMON_BITS = FIXED | FIXANG | CANTSLIDE | HARDSELECTA;  
-    /** bits used in database */                            private static final int DATABASE_BITS = COMMON_BITS | AANGLE | BODYARROW |
-            ISTAILNEGATED | TAILNOEXTEND | TAILARROW | ISHEADNEGATED | HEADNOEXTEND | HEADARROW; 
-
 	/** prefix for autonameing. */						private static final Name BASENAME = Name.findName("net@");
 
 	/** name of this ArcInst. */						private Name name;
@@ -185,7 +155,7 @@ public class ArcInst extends Geometric implements Comparable
 		headLocation = headPt;
 		headEnd = new HeadConnection(this);
 		
-        this.userBits = userBits & DATABASE_BITS;
+        this.userBits = userBits & ImmutableArcInst.DATABASE_BITS;
 //		// fill in the geometry
 //		updateGeometric(defAngle);
         
@@ -1190,25 +1160,26 @@ public class ArcInst extends Geometric implements Comparable
 
 	/****************************** CONSTRAINTS ******************************/
 
+    private void setFlag(ImmutableArcInst.Flag flag, boolean state) {
+        userBits = flag.set(userBits, state);
+        Undo.otherChange(this);
+    }
+    
+    private boolean is(ImmutableArcInst.Flag flag) { return flag.is(userBits); }
+    
 	/**
 	 * Method to set this ArcInst to be rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
      * @param state
      */
-	public void setRigid(boolean state) {
-        if (state)
-            userBits |= FIXED;
-        else
-            userBits &= ~FIXED;
-        Undo.otherChange(this);
-    }
+	public void setRigid(boolean state) { setFlag(ImmutableArcInst.RIGID, state); }
 
 	/**
 	 * Method to tell whether this ArcInst is rigid.
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 * @return true if this ArcInst is rigid.
 	 */
-	public boolean isRigid() { return (userBits & FIXED) != 0; }
+	public boolean isRigid() { return is(ImmutableArcInst.RIGID); }
 
 	/**
 	 * Method to set this ArcInst to be fixed-angle.
@@ -1216,13 +1187,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * the other may also adjust to keep the arc angle constant.
      * @param state
      */
-	public void setFixedAngle(boolean state) {
-        if (state)
-            userBits |= FIXANG;
-        else
-            userBits &= ~FIXANG;
-        Undo.otherChange(this);
-    }
+	public void setFixedAngle(boolean state) { setFlag(ImmutableArcInst.FIXED_ANGLE, state); }
 
 	/**
 	 * Method to tell whether this ArcInst is fixed-angle.
@@ -1230,7 +1195,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * the other may also adjust to keep the arc angle constant.
 	 * @return true if this ArcInst is fixed-angle.
 	 */
-	public boolean isFixedAngle() { return (userBits & FIXANG) != 0; }
+	public boolean isFixedAngle() { return is(ImmutableArcInst.FIXED_ANGLE); }
 
 	/**
 	 * Method to set this ArcInst to be slidable.
@@ -1239,13 +1204,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
      * @param state
      */
-	public void setSlidable(boolean state) {
-        if (state)
-            userBits &= ~CANTSLIDE;
-        else
-            userBits |= CANTSLIDE;
-        Undo.otherChange(this);
-    }
+	public void setSlidable(boolean state) { setFlag(ImmutableArcInst.SLIDABLE, state); }
 
 	/**
 	 * Method to tell whether this ArcInst is slidable.
@@ -1254,7 +1213,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
 	 * @return true if this ArcInst is slidable.
 	 */
-	public boolean isSlidable() { return (userBits & CANTSLIDE) == 0; }
+	public boolean isSlidable() { return is(ImmutableArcInst.SLIDABLE); }
 
 	/****************************** PROPERTIES ******************************/
 
@@ -1283,7 +1242,7 @@ public class ArcInst extends Geometric implements Comparable
      */
 	public boolean isTailArrowed()
 	{
-		return (userBits & TAILARROW) != 0;
+		return is(ImmutableArcInst.TAIL_ARROWED);
 	}
 
 	/**
@@ -1294,7 +1253,7 @@ public class ArcInst extends Geometric implements Comparable
      */
 	public boolean isHeadArrowed()
 	{
-		return (userBits & HEADARROW) != 0;
+		return is(ImmutableArcInst.HEAD_ARROWED);
 	}
 
 	/**
@@ -1307,7 +1266,7 @@ public class ArcInst extends Geometric implements Comparable
      */
 	public boolean isBodyArrowed()
 	{
-		return (userBits & BODYARROW) != 0;
+		return is(ImmutableArcInst.BODY_ARROWED);
 	}
 	
 	/**
@@ -1333,13 +1292,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * It is only for documentation purposes and does not affect the circuit.
      * @param state true to show a directional arrow on the tail.
      */
-	public void setTailArrowed(boolean state)
-	{
-        checkChanging();
-        if (state) userBits |= TAILARROW; else
-            userBits &= ~TAILARROW;
-        Undo.otherChange(this);
-    }
+	public void setTailArrowed(boolean state) { setFlag(ImmutableArcInst.TAIL_ARROWED, state); }
 
 	/**
 	 * Method to set this ArcInst to be directional, with an arrow on the head.
@@ -1347,13 +1300,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * It is only for documentation purposes and does not affect the circuit.
      * @param state true to show a directional arrow on the head.
      */
-	public void setHeadArrowed(boolean state)
-	{
-        checkChanging();
-        if (state) userBits |= HEADARROW; else
-            userBits &= ~HEADARROW;
-        Undo.otherChange(this);
-	}
+	public void setHeadArrowed(boolean state) { setFlag(ImmutableArcInst.HEAD_ARROWED, state); }
 
 	/**
 	 * Method to set this ArcInst to be directional, with an arrow line drawn down the center.
@@ -1363,13 +1310,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * drawin without an arrow head in order to continue an attached arc that has an arrow.
      * @param state true to show a directional line on this arc.
      */
-	public void setBodyArrowed(boolean state)
-	{
-        checkChanging();
-        if (state) userBits |= BODYARROW; else
-            userBits &= ~BODYARROW;
-        Undo.otherChange(this);
-	}
+	public void setBodyArrowed(boolean state) { setFlag(ImmutableArcInst.BODY_ARROWED, state); }
 
 	/**
 	 * Method to tell whether an end of ArcInst has its ends extended.
@@ -1394,10 +1335,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @return true if the tail of this arc is extended.
 	 */
-	public boolean isTailExtended()
-	{
-		return (userBits & TAILNOEXTEND) == 0;
-	}
+	public boolean isTailExtended() { return is(ImmutableArcInst.TAIL_EXTENDED); }
 
 	/**
 	 * Method to tell whether the head of this arc is extended.
@@ -1405,10 +1343,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @return true if the head of this arc is extended.
 	 */
-	public boolean isHeadExtended()
-	{
-		return (userBits & HEADNOEXTEND) == 0;
-	}
+	public boolean isHeadExtended() { return is(ImmutableArcInst.HEAD_EXTENDED); }
 
 	/**
 	 * Method to set whether an end of this arc is extended.
@@ -1433,14 +1368,10 @@ public class ArcInst extends Geometric implements Comparable
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @param e true to set the tail of this arc to be extended.
 	 */
-	public void setTailExtended(boolean e)
-	{
-        checkChanging();
-		if (e) userBits &= ~TAILNOEXTEND; else
-			userBits |= TAILNOEXTEND;
-		if (isLinked()) updateGeometric();
-        Undo.otherChange(this);         
-	}
+	public void setTailExtended(boolean e) {
+        setFlag(ImmutableArcInst.TAIL_EXTENDED, e);
+        if (isLinked()) updateGeometric();
+    }
 
 	/**
 	 * Method to set whether the head of this arc is extended.
@@ -1448,14 +1379,10 @@ public class ArcInst extends Geometric implements Comparable
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @param e true to set the head of this arc to be extended.
 	 */
-	public void setHeadExtended(boolean e)
-	{
-        checkChanging();
-		if (e) userBits &= ~HEADNOEXTEND; else
-			userBits |= HEADNOEXTEND;
-		if (isLinked()) updateGeometric();
-        Undo.otherChange(this);
-	}
+	public void setHeadExtended(boolean e) {
+        setFlag(ImmutableArcInst.HEAD_EXTENDED, e);
+        if (isLinked()) updateGeometric();
+    }
 
 	/**
 	 * Method to tell whether an end of this arc is negated.
@@ -1480,10 +1407,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * This is only valid in schematics technologies.
 	 * @return true if set the tail of this arc is negated.
 	 */
-	public boolean isTailNegated()
-	{
-		return (userBits & ISTAILNEGATED) != 0;
-	}
+	public boolean isTailNegated() { return is(ImmutableArcInst.TAIL_NEGATED); }
 
 	/**
 	 * Method to tell whether the head of this arc is negated.
@@ -1491,10 +1415,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * This is only valid in schematics technologies.
 	 * @return true if set the head of this arc is negated.
 	 */
-	public boolean isHeadNegated()
-	{
-		return (userBits & ISHEADNEGATED) != 0;
-	}
+	public boolean isHeadNegated() { return is(ImmutableArcInst.HEAD_NEGATED); }
 
 	/**
 	 * Method to set whether an end of this arc is negated.
@@ -1519,20 +1440,11 @@ public class ArcInst extends Geometric implements Comparable
 	 * This is only valid in schematics technologies.
 	 * @param n true to set the tail of this arc to be negated.
 	 */
-	public void setTailNegated(boolean n)
-	{
-        checkChanging();
-		if (n)
-		{
+	public void setTailNegated(boolean n) {
+        setFlag(ImmutableArcInst.TAIL_NEGATED, n);
 			// only allow if negation is supported on this port
 //			PortProto pp = tailPortInst.getPortProto();
 //			if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isNegatable())
-				userBits |= ISTAILNEGATED;
-		} else
-		{
-			userBits &= ~ISTAILNEGATED;
-		}
-        Undo.otherChange(this);
 	}
 
 	/**
@@ -1541,116 +1453,13 @@ public class ArcInst extends Geometric implements Comparable
 	 * This is only valid in schematics technologies.
 	 * @param n true to set the head of this arc to be negated.
 	 */
-	public void setHeadNegated(boolean n)
-	{
-        checkChanging();
-		if (n)
-		{
+	public void setHeadNegated(boolean n) {
+        setFlag(ImmutableArcInst.HEAD_NEGATED,  n);
 			// only allow if negation is supported on this port
 // 			PortProto pp = headPortInst.getPortProto();
 // 			if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isNegatable())
-				userBits |= ISHEADNEGATED;
-		} else
-		{
-			userBits &= ~ISHEADNEGATED;
-		}
-        Undo.otherChange(this);
 	}
 
-	/**
-	 * Method to convert ELIB userbits to database "userbits".
-	 * The "userbits" are a set of bits that describes constraints and other properties,
-	 * and are stored in ELIB files.
-	 * The negation, directionality, and end-extension must be converted.
-	 * @param bits the disk userbits.
-     * @return the database userbits
-	 */
-	public static int fromElibBits(int bits)
-	{
-        int newBits = bits & COMMON_BITS;
-		if ((bits&ISTAILNEGATED) != 0)
-		{
-			newBits |= (bits&DISK_REVERSEEND) == 0 ? ISTAILNEGATED : ISHEADNEGATED;
-		}
-		if ((bits&ISHEADNEGATED) != 0)
-		{
-            newBits |= (bits&DISK_REVERSEEND) == 0 ? ISHEADNEGATED : ISTAILNEGATED;
-		}
-
-		if ((bits&DISK_NOEXTEND) != 0)
-		{
-			if ((bits&DISK_NOTEND0) == 0) newBits |= TAILNOEXTEND;
-			if ((bits&DISK_NOTEND1) == 0) newBits |= HEADNOEXTEND;
-		}
-
-		if ((bits&DISK_ISDIRECTIONAL) != 0)
-		{
-            newBits |= BODYARROW;
-			if ((bits&DISK_REVERSEEND) == 0)
-			{
-				if ((bits&DISK_NOTEND1) == 0) newBits |= HEADARROW;
-			} else
-			{
-				if ((bits&DISK_NOTEND0) == 0) newBits |= TAILARROW;
-			}
-		}
-        int angle = (bits & DISK_AANGLE) >> DISK_AANGLESH;
-        angle = (angle % 360)*10;
-        newBits |= angle << AANGLESH;
-        
-        return newBits;
-	}
-
-	/**
-	 * Method to apply a set of "userbits" to an arc.
-	 * The "userbits" are a set of bits that describes constraints and other properties,
-	 * and are stored in ELIB files.
-	 * The negation, directionality, and end-extension must be converted.
-	 * @param ai the ArcInst to modify.
-	 * @param bits the userbits to apply to the arc.
-	 */
-//	public static void applyELIBArcBits(ArcInst ai, int bits)
-//	{
-//		ai.lowLevelSetUserbits(bits & ARC_BITS);
-//		if ((bits&ELIBConstants.ISNEGATED) != 0)
-//		{
-//			if ((bits&ELIBConstants.REVERSEEND) != 0) ai.setHeadNegated(true); else
-//				ai.setTailNegated(true);
-//		}
-//		if ((bits&ELIBConstants.ISHEADNEGATED) != 0)
-//		{
-//			if ((bits&ELIBConstants.REVERSEEND) != 0) ai.setTailNegated(true); else
-//				ai.setHeadNegated(true);
-//		}
-//
-//		if ((bits&ELIBConstants.NOEXTEND) != 0)
-//		{
-//			ai.setHeadExtended(false);
-//			ai.setTailExtended(false);
-//			if ((bits&ELIBConstants.NOTEND0) != 0) ai.setTailExtended(true);
-//			if ((bits&ELIBConstants.NOTEND1) != 0) ai.setHeadExtended(true);
-//		} else
-//		{
-//			ai.setHeadExtended(true);
-//			ai.setTailExtended(true);
-//		}
-//
-//		ai.setBodyArrowed(false);
-//		ai.setTailArrowed(false);
-//		ai.setHeadArrowed(false);
-//		if ((bits&ELIBConstants.ISDIRECTIONAL) != 0)
-//		{
-//			ai.setBodyArrowed(true);
-//			if ((bits&ELIBConstants.REVERSEEND) != 0)
-//			{
-//				if ((bits&ELIBConstants.NOTEND0) == 0) ai.setTailArrowed(true);
-//			} else
-//			{
-//				if ((bits&ELIBConstants.NOTEND1) == 0) ai.setHeadArrowed(true);
-//			}
-//		}
-//	}
-    
 	/**
 	 * Method to compute the "userbits" to use for a given ArcInst.
 	 * The "userbits" are a set of bits that describes constraints and other properties,
@@ -1658,41 +1467,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * The negation, directionality, and end-extension must be converted.
 	 * @return the "userbits" for that ArcInst.
 	 */
-	public int makeELIBArcBits()
-	{
-		int diskBits = userBits & COMMON_BITS;
-	
-		// adjust bits for extension
-		if (!isHeadExtended() || !isTailExtended())
-		{
-			diskBits |= DISK_NOEXTEND;
-			if (isHeadExtended() != isTailExtended())
-			{
-				if (isTailExtended()) diskBits |= DISK_NOTEND0;
-				if (isHeadExtended()) diskBits |= DISK_NOTEND1;
-			}
-		}
-	
-		// adjust bits for directionality
-		if (isHeadArrowed() || isTailArrowed() || isBodyArrowed())
-		{
-			diskBits |= DISK_ISDIRECTIONAL;
-			if (isTailArrowed()) diskBits |= DISK_REVERSEEND;
-			if (!isHeadArrowed() && !isTailArrowed()) diskBits |= DISK_NOTEND1;
-		}
-
-		// adjust bits for negation
-        boolean normalEnd = (diskBits & DISK_REVERSEEND) == 0;
-		if (isTailNegated()) diskBits |= (normalEnd ? ISTAILNEGATED : ISHEADNEGATED);
-		if (isHeadNegated()) diskBits |= (normalEnd ? ISHEADNEGATED : ISTAILNEGATED);
-        
-		//        int angle = getAngle() / 10;
-		int angle = (int)(getAngle()/10.0 + 0.5);
-		if (angle >= 360) angle -= 360;
-        diskBits |= angle << DISK_AANGLESH;
-        
-        return diskBits;
-	}
+	public int makeELIBArcBits() { return ImmutableArcInst.makeELIBArcBits(userBits); }
 
 	/****************************** MISCELLANEOUS ******************************/
 
@@ -1857,8 +1632,9 @@ public class ArcInst extends Geometric implements Comparable
         checkChanging();
         if (fromAi == null) return;
         int newBits = tailLocation.equals(headLocation) ? fromAi.userBits : (fromAi.userBits & ~AANGLE) | (this.userBits & AANGLE);
-        newBits &= DATABASE_BITS;
-		boolean extensionChanged = (this.userBits&(TAILNOEXTEND|HEADNOEXTEND)) != (newBits&(TAILNOEXTEND|HEADNOEXTEND));
+//        newBits &= ImmutableArcInst.DATABASE_BITS;
+		boolean extensionChanged = ImmutableArcInst.TAIL_EXTENDED.is(this.userBits) != ImmutableArcInst.TAIL_EXTENDED.is(newBits) ||
+                ImmutableArcInst.HEAD_EXTENDED.is(this.userBits) != ImmutableArcInst.HEAD_EXTENDED.is(newBits);
         this.userBits = newBits;
 		if (isLinked() && extensionChanged) updateGeometric();
         Undo.otherChange(this);
@@ -1919,14 +1695,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Instead, the "special select" command must be given.
      * @param state
      */
-	public void setHardSelect(boolean state) {
-        checkChanging();
-        if (state)
-            userBits |= HARDSELECTA;
-        else
-            userBits &= ~HARDSELECTA;
-        Undo.otherChange(this);
-    }
+	public void setHardSelect(boolean state) { setFlag(ImmutableArcInst.HARD_SELECT, state); }
 
 	/**
 	 * Method to tell whether this ArcInst is hard-to-select.
@@ -1934,7 +1703,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Instead, the "special select" command must be given.
 	 * @return true if this ArcInst is hard-to-select.
 	 */
-	public boolean isHardSelect() { return (userBits & HARDSELECTA) != 0; }
+	public boolean isHardSelect() { return is(ImmutableArcInst.HARD_SELECT); }
 
     /**
      * This function is to compare NodeInst elements. Initiative CrossLibCopy

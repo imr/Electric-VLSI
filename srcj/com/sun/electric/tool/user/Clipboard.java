@@ -688,7 +688,7 @@ public class Clipboard
 				return;
 			}
 			newNi.copyStateBits(ni);
-			newNi.clearWiped();
+//			newNi.clearWiped();
 //			newNi.clearShortened();
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO_TD);
 			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
@@ -947,7 +947,7 @@ public class Clipboard
 		destNode.clearExpanded();
         if (srcNode.isExpanded()) destNode.setExpanded();
 //		destNode.clearShortened();
-		destNode.clearWiped();
+//		destNode.clearWiped();
 		destNode.clearLocked();
 
 		return(destNode);

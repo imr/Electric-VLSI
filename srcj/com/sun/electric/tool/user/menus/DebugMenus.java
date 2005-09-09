@@ -133,7 +133,7 @@ public class DebugMenus {
 				for(Iterator cIt = desired.getTechnology().getNodes(); cIt.hasNext(); )
 				{
 					PrimitiveNode np = (PrimitiveNode)cIt.next();
-					if (np.getFunction() != PrimitiveNode.Function.CONTACT) continue;
+                if (np.getFunction() != PrimitiveNode.Function.CONTACT) continue;
 					PrimitivePort pp = (PrimitivePort)np.getPort(0);
 					if (pp.connectsTo(desired) && pp.connectsTo(nextLevel)) { contact = np;   break; }
 				}
@@ -281,6 +281,8 @@ public class DebugMenus {
 
         MenuBar.Menu dimaMenu = MenuBar.makeMenu("_Dima");
         menuBar.add(dimaMenu);
+	    dimaMenu.addMenuItem("Save expanded status", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { Library.saveExpandStatus(); } });
 	    dimaMenu.addMenuItem("Plot diode", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { Diode.plotDiode(User.getWorkingDirectory() + File.separator + "diode.raw"); } });
 	    dimaMenu.addMenuItem("Var stat", null,

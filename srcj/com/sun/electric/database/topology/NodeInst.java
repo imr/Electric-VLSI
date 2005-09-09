@@ -125,6 +125,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	/** Array of PortInsts on this NodeInst. */				private PortInst[] portInsts = NULL_PORT_INST_ARRAY;
 	/** List of connections belonging to this NodeInst. It is sorted by portIndex.*/private ArrayList connections = new ArrayList(2);
 	/** Array of Exports belonging to this NodeInst. */		private Export[] exports = NULL_EXPORT_ARRAY;
+	/** True, if this NodeInst is wiped. */                 private boolean wiped;
+    /** If True, draw NodeInst expanded. */                 private boolean expanded;
     
 	/** bounds after transformation. */						private Rectangle2D visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 
@@ -171,6 +173,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
         if (protoDescriptor == null) protoDescriptor = ImmutableTextDescriptor.getInstanceTextDescriptor();
         
         d = ImmutableNodeInst.newInstance(nodeId, protoType.getId(), name, duplicate, nameDescriptor, orient, anchor, width, height, flags, techBits, protoDescriptor);
+        expanded = protoType instanceof Cell && ((Cell)protoType).isWantExpanded();
         
 		// fill in the geometry
 		redoGeometric();
@@ -564,11 +567,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			{
 				// replacing an instance: copy the expansion information
 				if (isExpanded()) newNi.setExpanded(); else
-					newNi.clearExpanded();
-			} else
-			{
-				// replacing a primitive: use default expansion for the cell
-				if (((Cell)np).isWantExpanded()) newNi.setExpanded(); else
 					newNi.clearExpanded();
 			}
 		}
@@ -2024,7 +2022,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void computeWipeState()
 	{
-		clearWiped();
+        wiped = false;
 		NodeProto np = getProto();
 		if (np instanceof PrimitiveNode && ((PrimitiveNode)np).isArcsWipe())
 		{
@@ -2034,7 +2032,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 				ArcInst ai = con.getArc();
 				if (ai.getProto().isWipable())
 				{
-					setWiped();
+					wiped = true;
 					break;
 				}
 			}
@@ -2887,19 +2885,24 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void copyStateBits(NodeInst ni) {
         checkChanging();
-        d = d.withFlags(ni.d.getFlags()).withTechSpecific(ni.d.getTechSpecific());
+        d = d.withFlags(ni.d.flags).withTechSpecific(ni.d.techBits);
         Undo.otherChange(this);
     }
 
     private void setFlag(ImmutableNodeInst.Flag flag, boolean value) { checkChanging(); d = d.withFlag(flag, value); Undo.otherChange(this); }
    
+    public void setExpanded(boolean value) {
+        if (value != expanded && parent != null) parent.expandStatusChanged();
+        expanded = value;
+    }
+    
 	/**
 	 * Method to set this NodeInst to be expanded.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
 	 * The state has no meaning for instances of primitive node prototypes.
 	 */
-	public void setExpanded() { setFlag(ImmutableNodeInst.NEXPAND, true); }
+	public void setExpanded() { setExpanded(true); }
 
 	/**
 	 * Method to set this NodeInst to be unexpanded.
@@ -2907,7 +2910,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
 	 * The state has no meaning for instances of primitive node prototypes.
 	 */
-	public void clearExpanded() { setFlag(ImmutableNodeInst.NEXPAND, false); }
+	public void clearExpanded() { setExpanded(false); }
 
 	/**
 	 * Method to tell whether this NodeInst is expanded.
@@ -2916,25 +2919,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * The state has no meaning for instances of primitive node prototypes.
 	 * @return true if this NodeInst is expanded.
 	 */
-	public boolean isExpanded() { return d.is(ImmutableNodeInst.NEXPAND); }
-
-	/**
-	 * Method to set this NodeInst to be wiped.
-	 * Wiped NodeInsts are erased.  Typically, pin NodeInsts can be wiped.
-	 * This means that when an arc connects to the pin, it is no longer drawn.
-	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
-	 * and the arcs connected to it must have "setWipable" in their prototype.
-	 */
-	public void setWiped() { setFlag(ImmutableNodeInst.WIPED, true); }
-
-	/**
-	 * Method to set this NodeInst to be not wiped.
-	 * Wiped NodeInsts are erased.  Typically, pin NodeInsts can be wiped.
-	 * This means that when an arc connects to the pin, it is no longer drawn.
-	 * In order for a NodeInst to be wiped, its prototype must have the "setArcsWipe" state,
-	 * and the arcs connected to it must have "setWipable" in their prototype.
-	 */
-	public void clearWiped() { setFlag(ImmutableNodeInst.WIPED, false); }
+	public boolean isExpanded() { return expanded; }
 
 	/**
 	 * Method to tell whether this NodeInst is wiped.
@@ -2944,21 +2929,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * and the arcs connected to it must have "setWipable" in their prototype.
 	 * @return true if this NodeInst is wiped.
 	 */
-	public boolean isWiped() { return d.is(ImmutableNodeInst.WIPED); }
+	public boolean isWiped() { return wiped; }
 
 	/**
 	 * Method to set this NodeInst to be hard-to-select.
 	 * Hard-to-select NodeInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
 	 */
-	public void setHardSelect() { setFlag(ImmutableNodeInst.HARDSELECTN, true); }
+	public void setHardSelect() { setFlag(ImmutableNodeInst.HARD_SELECT, true); }
 
 	/**
 	 * Method to set this NodeInst to be easy-to-select.
 	 * Hard-to-select NodeInsts cannot be selected by clicking on them.
 	 * Instead, the "special select" command must be given.
 	 */
-	public void clearHardSelect() { setFlag(ImmutableNodeInst.HARDSELECTN, false); }
+	public void clearHardSelect() { setFlag(ImmutableNodeInst.HARD_SELECT, false); }
 
 	/**
 	 * Method to tell whether this NodeInst is hard-to-select.
@@ -2966,21 +2951,21 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * Instead, the "special select" command must be given.
 	 * @return true if this NodeInst is hard-to-select.
 	 */
-	public boolean isHardSelect() { return d.is(ImmutableNodeInst.HARDSELECTN); }
+	public boolean isHardSelect() { return d.is(ImmutableNodeInst.HARD_SELECT); }
 
 	/**
 	 * Method to set this NodeInst to be visible-inside.
 	 * A NodeInst that is "visible inside" is only drawn when viewing inside of the Cell.
 	 * It is not visible from outside (meaning from higher-up the hierarchy).
 	 */
-	public void setVisInside() { setFlag(ImmutableNodeInst.NVISIBLEINSIDE, true); }
+	public void setVisInside() { setFlag(ImmutableNodeInst.VIS_INSIDE, true); }
 
 	/**
 	 * Method to set this NodeInst to be not visible-inside.
 	 * A NodeInst that is "visible inside" is only drawn when viewing inside of the Cell.
 	 * It is not visible from outside (meaning from higher-up the hierarchy).
 	 */
-	public void clearVisInside() { setFlag(ImmutableNodeInst.NVISIBLEINSIDE, false); }
+	public void clearVisInside() { setFlag(ImmutableNodeInst.VIS_INSIDE, false); }
 
 	/**
 	 * Method to tell whether this NodeInst is visible-inside.
@@ -2988,26 +2973,26 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * It is not visible from outside (meaning from higher-up the hierarchy).
 	 * @return true if this NodeInst is visible-inside.
 	 */
-	public boolean isVisInside() { return d.is(ImmutableNodeInst.NVISIBLEINSIDE); }
+	public boolean isVisInside() { return d.is(ImmutableNodeInst.VIS_INSIDE); }
 
 	/**
 	 * Method to set this NodeInst to be locked.
 	 * Locked NodeInsts cannot be modified or deleted.
 	 */
-	public void setLocked() { setFlag(ImmutableNodeInst.NILOCKED, true); }
+	public void setLocked() { setFlag(ImmutableNodeInst.LOCKED, true); }
 
 	/**
 	 * Method to set this NodeInst to be unlocked.
 	 * Locked NodeInsts cannot be modified or deleted.
 	 */
-	public void clearLocked() { setFlag(ImmutableNodeInst.NILOCKED, false); }
+	public void clearLocked() { setFlag(ImmutableNodeInst.LOCKED, false); }
 
 	/**
 	 * Method to tell whether this NodeInst is locked.
 	 * Locked NodeInsts cannot be modified or deleted.
 	 * @return true if this NodeInst is locked.
 	 */
-	public boolean isLocked() { return d.is(ImmutableNodeInst.NILOCKED); }
+	public boolean isLocked() { return d.is(ImmutableNodeInst.LOCKED); }
 
 	/**
 	 * Method to set a Technology-specific value on this NodeInst.
@@ -3029,7 +3014,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 * For example, the Transistor primitive uses these bits to distinguish nMOS, pMOS, etc.
 	 * @return the Technology-specific value on this NodeInst.
 	 */
-	public int getTechSpecific() { return d.getTechSpecific(); }
+	public int getTechSpecific() { return d.techBits; }
 
 	/**
 	 * Return the Essential Bounds of this NodeInst.

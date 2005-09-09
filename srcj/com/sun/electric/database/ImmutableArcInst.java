@@ -46,6 +46,58 @@ import java.awt.geom.Rectangle2D;
  */
 public class ImmutableArcInst
 {
+    /** 
+     * Class to access a flag in user bits of ImmutableNodeInst.
+     */
+    public static class Flag {
+        private final int mask;
+
+        private Flag(int mask) {
+            this.mask = mask;
+        }
+        
+        /**
+         * Returns true if this Flag is set in userBits.
+         * @param userBits user bits.
+         * @return true if this Flag is set in userBits;
+         */
+        public boolean is(int userBits) {
+            return (userBits & mask) != 0;
+        }
+        
+        /**
+         * Updates this flag in userBits.
+         * @param userBits old user bits.
+         * @param value new value of flag.
+         * @return updates userBits.
+         */
+        public int set(int userBits, boolean value) {
+            return value ? userBits | mask : userBits & ~mask;
+        }
+    }
+    
+    /**
+     * Class to access a flag in user bits of ImmutableArcInst which is true by default.
+     */
+    private static class FlagInv extends Flag {
+        private FlagInv(int mask) { super(mask); }
+        
+        /**
+         * Returns true if this Flag is set in userBits.
+         * @param userBits user bits.
+         * @return true if this Flag is set in userBits;
+         */
+        public boolean is(int userBits) { return !super.is(userBits); }
+        
+        /**
+         * Updates this flag in userBits.
+         * @param userBits old user bits.
+         * @param value new value of flag.
+         * @return updates userBits.
+         */
+        public int set(int userBits, boolean value) { return super.set(userBits, !value); }
+    } 
+    
 	// -------------------------- constants --------------------------------
 	/** fixed-length arc */                                 private static final int FIXED =                     01;
 	/** fixed-angle arc */                                  private static final int FIXANG =                    02;
@@ -77,8 +129,77 @@ public class ImmutableArcInst
 //	/** general flag for spreading and highlighting */      private static final int ARCFLAGBIT =      010000000000;
 	/** set if hard to select */                            private static final int HARDSELECTA =     020000000000;
 
+	/**
+	 * Flag to set an ImmutableArcInst to be rigid.
+	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
+     */
+    public static final Flag RIGID = new Flag(FIXED);
+	/**
+	 * Flag to set an ImmutableArcInst to be fixed-angle.
+	 * Fixed-angle arcs cannot change their angle, so if one end moves,
+	 * the other may also adjust to keep the arc angle constant.
+     */
+	public static final Flag FIXED_ANGLE = new Flag(FIXANG);
+	/**
+	 * Flag to set an ImmutableArcInst to be slidable.
+	 * Arcs that slide will not move their connected NodeInsts if the arc's end is still within the port area.
+	 * Arcs that cannot slide will force their NodeInsts to move by the same amount as the arc.
+	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
+     */
+	public static final Flag SLIDABLE = new FlagInv(CANTSLIDE);
+	/**
+	 * Flag to set an ImmutableArcInst to be directional, with an arrow on the tail.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+     */
+	public static final Flag TAIL_ARROWED = new Flag(TAILARROW);
+	/**
+	 * Flag to set an ImmutableArcInst to be directional, with an arrow on the head.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+     */
+	public static final Flag HEAD_ARROWED = new Flag(HEADARROW);
+	/**
+	 * Flag to set an ImmutableArcInst to be directional, with an arrow line drawn down the center.
+	 * Directional arcs have an arrow drawn on them to indicate flow.
+	 * It is only for documentation purposes and does not affect the circuit.
+	 * The body is typically drawn when one of the ends has an arrow on it, but it may be
+	 * drawin without an arrow head in order to continue an attached arc that has an arrow.
+     */
+	 public static final Flag BODY_ARROWED = new Flag(BODYARROW);
+	/**
+	 * Flag to set the tail of an ImmutableArcInst to be is extended.
+	 * Extended arcs continue past their endpoint by half of their width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 */
+     public static final Flag TAIL_EXTENDED = new FlagInv(TAILNOEXTEND);
+	/**
+	 * Flag to set the head of an ImmutableArcInst to be extended.
+	 * Extended arcs continue past their endpoint by half of their width.
+	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
+	 */
+     public static final Flag HEAD_EXTENDED = new FlagInv(HEADNOEXTEND);
+	/**
+	 * Flag to set the tail of an ImmutableArcInst to be negated.
+	 * Negated arc have a negating bubble on them to indicate negation.
+	 * This is only valid in schematics technologies.
+	 */
+     public static final Flag TAIL_NEGATED = new Flag(ISTAILNEGATED);
+	/**
+	 * Flag to set the head of an ImmutableArcInst to be negated.
+	 * Negated arc have a negating bubble on them to indicate negation.
+	 * This is only valid in schematics technologies.
+	 */
+     public static final Flag HEAD_NEGATED = new Flag(ISHEADNEGATED);
+	/**
+	 * Flag to set an ImmutableArcInst to be hard-to-select.
+	 * Hard-to-select ArcInsts cannot be selected by clicking on them.
+	 * Instead, the "special select" command must be given.
+     */
+     public static final Flag HARD_SELECT = new Flag(HARDSELECTA);
+
     /** bits with common meaniong in disk and database */   private static int COMMON_BITS = FIXED | FIXANG | CANTSLIDE | HARDSELECTA;  
-    /** bits used in database */                            private static final int DATABASE_BITS = COMMON_BITS | AANGLE | BODYARROW |
+    /** bits used in database */                            public static final int DATABASE_BITS = COMMON_BITS | AANGLE | BODYARROW |
             ISTAILNEGATED | TAILNOEXTEND | TAILARROW | ISHEADNEGATED | HEADNOEXTEND | HEADARROW; 
 
     /** id of this ArcInst in parent. */                            public final int arcId;
@@ -289,42 +410,92 @@ public class ImmutableArcInst
         assert (userBits & ~DATABASE_BITS) == 0;
 	}
 
-//	/**
-//	 * Checks that protoId of this ImmutableNodeInst is contained in cells.
-//	 * @param cells array with cells, may contain nulls.
-//	 * @throws ArrayIndexOutOfBoundsException if protoId is not contained.
-//	 */
-//	void checkProto(ImmutableCell[] cells) {
-//		if (cells[protoId] == null)
-//			throw new ArrayIndexOutOfBoundsException(protoId);
-//	}
+	/**
+	 * Method to convert ELIB userbits to database "userbits".
+	 * The "userbits" are a set of bits that describes constraints and other properties,
+	 * and are stored in ELIB files.
+	 * The negation, directionality, and end-extension must be converted.
+	 * @param bits the disk userbits.
+     * @return the database userbits
+	 */
+	public static int fromElibBits(int bits)
+	{
+        int newBits = bits & COMMON_BITS;
+		if ((bits&ISTAILNEGATED) != 0)
+		{
+			newBits |= (bits&DISK_REVERSEEND) == 0 ? ISTAILNEGATED : ISHEADNEGATED;
+		}
+		if ((bits&ISHEADNEGATED) != 0)
+		{
+            newBits |= (bits&DISK_REVERSEEND) == 0 ? ISHEADNEGATED : ISTAILNEGATED;
+		}
 
-//	/**
-//	 * Parses JELIB string with node user bits.
-//     * @param jelibUserBits JELIB string.
-//	 * @return node user bust.
-//     * @throws NumberFormatException
-//	 */
-//    public static int parseJelibUserBits(String jelibUserBits) {
-//        int userBits = 0;
-//        // parse state information in jelibUserBits 
-//        for(int i=0; i<jelibUserBits.length(); i++) {
-//            char chr = jelibUserBits.charAt(i);
-//            switch (chr) {
-//                case 'E': userBits |= NEXPAND; break;
-//                case 'L': userBits |= NILOCKED; break;
-//                case 'S': /*userBits |= NSHORT;*/ break; // deprecated
-//                case 'V': userBits |= NVISIBLEINSIDE; break;
-//                case 'W': userBits |= WIPED; break;
-//                case 'A': userBits |= HARDSELECTN; break;
-//                default:
-//                    if (Character.isDigit(chr)) {
-//                        jelibUserBits = jelibUserBits.substring(i);
-//                        int techBits = Integer.parseInt(jelibUserBits);
-//                        return userBits | (techBits << NTECHBITSSH) & NTECHBITS;
-//                    }
-//            }
-//        }
-//        return userBits;
-//     }
+		if ((bits&DISK_NOEXTEND) != 0)
+		{
+			if ((bits&DISK_NOTEND0) == 0) newBits |= TAILNOEXTEND;
+			if ((bits&DISK_NOTEND1) == 0) newBits |= HEADNOEXTEND;
+		}
+
+		if ((bits&DISK_ISDIRECTIONAL) != 0)
+		{
+            newBits |= BODYARROW;
+			if ((bits&DISK_REVERSEEND) == 0)
+			{
+				if ((bits&DISK_NOTEND1) == 0) newBits |= HEADARROW;
+			} else
+			{
+				if ((bits&DISK_NOTEND0) == 0) newBits |= TAILARROW;
+			}
+		}
+        int angle = (bits & DISK_AANGLE) >> DISK_AANGLESH;
+        angle = (angle % 360)*10;
+        newBits |= angle << AANGLESH;
+        
+        return newBits;
+	}
+    
+	/**
+	 * Method to compute the "userbits" to use for a given ArcInst.
+	 * The "userbits" are a set of bits that describes constraints and other properties,
+	 * and are stored in ELIB files.
+	 * The negation, directionality, and end-extension must be converted.
+	 * @return the "userbits" for that ArcInst.
+	 */
+	public static int makeELIBArcBits(int userBits)
+	{
+		int diskBits = userBits & COMMON_BITS;
+	
+		// adjust bits for extension
+		if (!HEAD_EXTENDED.is(userBits) || !TAIL_EXTENDED.is(userBits))
+		{
+			diskBits |= DISK_NOEXTEND;
+			if (HEAD_EXTENDED.is(userBits) != TAIL_EXTENDED.is(userBits))
+			{
+				if (TAIL_EXTENDED.is(userBits)) diskBits |= DISK_NOTEND0;
+				if (HEAD_EXTENDED.is(userBits)) diskBits |= DISK_NOTEND1;
+			}
+		}
+	
+		// adjust bits for directionality
+		if (HEAD_ARROWED.is(userBits) || TAIL_ARROWED.is(userBits) || BODY_ARROWED.is(userBits))
+		{
+			diskBits |= DISK_ISDIRECTIONAL;
+			if (TAIL_ARROWED.is(userBits)) diskBits |= DISK_REVERSEEND;
+			if (!HEAD_ARROWED.is(userBits) && !TAIL_ARROWED.is(userBits)) diskBits |= DISK_NOTEND1;
+		}
+
+		// adjust bits for negation
+        boolean normalEnd = (diskBits & DISK_REVERSEEND) == 0;
+		if (TAIL_NEGATED.is(userBits)) diskBits |= (normalEnd ? ISTAILNEGATED : ISHEADNEGATED);
+		if (HEAD_NEGATED.is(userBits)) diskBits |= (normalEnd ? ISHEADNEGATED : ISTAILNEGATED);
+        
+		//        int angle = getAngle() / 10;
+		int angle = (int)(getAngle(userBits)/10.0 + 0.5);
+		if (angle >= 360) angle -= 360;
+        diskBits |= angle << DISK_AANGLESH;
+        
+        return diskBits;
+	}
+
+	private static int getAngle(int userBits) { return (userBits & AANGLE) >> AANGLESH; }
 }

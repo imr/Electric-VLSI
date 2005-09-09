@@ -47,6 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.JOptionPane;
@@ -84,7 +85,8 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	/** Preference for cell currently being edited */		private Pref curCellPref;
 	/** flag bits */										private int userBits;
     /** list of referenced libs */                          private List/*<Library>*/ referencedLibs;
-	/** preferences for all libraries */					private static Preferences prefs = null;
+	/** preferences for all libraries */					private static Preferences allPrefs = null;
+    /** preferences for this library */                     Preferences prefs;
 
 	/** list of linked libraries indexed by libId. */       private static final ArrayList linkedLibs = new ArrayList();
 	/** map of libraries sorted by name */                  private static final TreeMap/*<String,Library>*/ libraries = new TreeMap/*<String,Library>*/(TextUtils.STRING_NUMBER_ORDER);
@@ -95,9 +97,12 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	/**
 	 * The constructor is never called.  Use the factor method "newInstance" instead.
 	 */
-	private Library()
+	private Library(String libName)
 	{
-		if (prefs == null) prefs = Preferences.userNodeForPackage(getClass());
+        this.libName = libName;
+		if (allPrefs == null) allPrefs = Preferences.userNodeForPackage(getClass());
+        prefs = allPrefs.node(libName);
+        prefs.put("LIB", libName);
 	}
 
 	/**
@@ -131,9 +136,8 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		}
 		
 		// create the library
-		Library lib = new Library();
+		Library lib = new Library(legalName);
 		lib.curCellPref = null;
-		lib.libName = legalName;
 		lib.libFile = libFile;
         lib.referencedLibs = new ArrayList/*<Library>*/();
 
@@ -878,6 +882,21 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		String extension = TextUtils.getExtension(libFile);
 		if (extension.length() > 0) newLibFile += "." + extension;
 		this.libFile = TextUtils.makeURLToFile(newLibFile);
+        
+        Cell curCell = getCurCell();
+        try {
+            prefs.removeNode();
+        } catch (BackingStoreException e) {
+            ActivityLogger.logException(e);
+        }
+        prefs = allPrefs.node(libName);
+        prefs.put("LIB", libName);
+        curCellPref = null;
+        setCurCell(curCell);
+        for (Iterator it = getCells(); it.hasNext(); ) {
+            Cell cell = (Cell)it.next();
+            cell.expandStatusChanged();
+        }
 	}
 
 	/**
@@ -921,8 +940,9 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	{
 		if (curCellPref == null)
 		{
-			curCellPref = Pref.makeStringPref("CurrentCellLibrary" + libName, prefs, "");
+			curCellPref = Pref.makeStringPref("CurrentCell", prefs, "");
 		}
+        
 	}
 
 	/**
@@ -952,6 +972,24 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		curCellPref.setString(cellName);
 	}
 
+    /**
+     * Method to save isExpanded status of NodeInsts in this Library to Preferences.
+     */
+    public static void saveExpandStatus() {
+        try {
+            for (Iterator lit = getLibraries(); lit.hasNext(); ) {
+                Library lib = (Library)lit.next();
+                for (Iterator it = lib.getCells(); it.hasNext(); ) {
+                    Cell cell = (Cell)it.next();
+                    cell.saveExpandStatus();
+                }
+                lib.prefs.flush();
+            }
+        } catch (BackingStoreException e) {
+            ActivityLogger.logException(e);
+        }
+    }
+    
 	/**
 	 * Method to find the Cell with the given name in this Library.
 	 * @param name the name of the desired Cell.

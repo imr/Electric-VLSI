@@ -638,6 +638,7 @@ public class JELIB extends LibraryFiles
 		CellContents cc = (CellContents)allCells.get(cell);
 		if (cc == null || cc.filledIn) return;
 		instantiateCellContent(cell, cc, recursiveSetupFlag);
+        cell.loadExpandStatus();
 		cellsConstructed++;
 		progress.setProgress(cellsConstructed * 100 / totalCells);
 		recursiveSetupFlag.add(cell);
@@ -848,12 +849,12 @@ public class JELIB extends LibraryFiles
             for(int i=0; i<stateInfo.length(); i++) {
                 char chr = stateInfo.charAt(i);
                 switch (chr) {
-                    case 'E': flags = ImmutableNodeInst.NEXPAND.set(flags, true); break;
-                    case 'L': flags = ImmutableNodeInst.NILOCKED.set(flags, true); break;
+                    case 'E': /*flags = ImmutableNodeInst.EXPANDED.set(flags, true);*/ break; //deprecated
+                    case 'L': flags = ImmutableNodeInst.LOCKED.set(flags, true); break;
                     case 'S': /*userBits |= NSHORT;*/ break; // deprecated
-                    case 'V': flags = ImmutableNodeInst.NVISIBLEINSIDE.set(flags, true); break;
-                    case 'W': flags = ImmutableNodeInst.WIPED.set(flags, true); break;
-                    case 'A': flags = ImmutableNodeInst.HARDSELECTN.set(flags, true); break;
+                    case 'V': flags = ImmutableNodeInst.VIS_INSIDE.set(flags, true); break;
+                    case 'W': /*flags = ImmutableNodeInst.WIPED.set(flags, true);*/ break; // deprecated
+                    case 'A': flags = ImmutableNodeInst.HARD_SELECT.set(flags, true); break;
                     default:
                         if (Character.isDigit(chr)) {
                             stateInfo = stateInfo.substring(i);

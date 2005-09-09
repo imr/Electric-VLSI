@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -48,6 +49,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.LibraryFiles.DiskVariable;
 
 import java.awt.geom.Point2D;
 import java.io.File;
@@ -385,6 +387,8 @@ public class ReadableDump extends LibraryFiles
 
 		// do the arcs now
 		realizeArcs(cell, cellIndex);
+        
+        cell.loadExpandStatus();
 	}
 
 	protected boolean spreadLambda(Cell cell, int cellIndex)
@@ -611,7 +615,7 @@ public class ReadableDump extends LibraryFiles
 					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
             ArcInst ai = ArcInst.newInstance(cell, ap, name, -1, ail.arcNameDescriptor[j],
-                    headPortInst, tailPortInst, headPt, tailPt, width, ArcInst.fromElibBits(userBits));
+                    headPortInst, tailPortInst, headPt, tailPt, width, ImmutableArcInst.fromElibBits(userBits));
 			ail.arcList[j] = ai;
 //            ELIBConstants.applyELIBArcBits(ai, userBits);
 			if (ai == null)

@@ -283,11 +283,11 @@ public class JELIB extends Output
 				else if (angle != 0) printWriter.print(angle);
 				StringBuffer nodeBits = new StringBuffer();
 				if (ni.isHardSelect()) nodeBits.append("A");
-				if (ni.isExpanded()) nodeBits.append("E");
+//				if (ni.isExpanded()) nodeBits.append("E");
 				if (ni.isLocked()) nodeBits.append("L");
 //				if (ni.isShortened()) nodeBits.append("S");
 				if (ni.isVisInside()) nodeBits.append("V");
-				if (ni.isWiped()) nodeBits.append("W");
+//				if (ni.isWiped()) nodeBits.append("W");
 				int ts = ni.getTechSpecific();
 				if (ts != 0) nodeBits.append(ts);
 				printWriter.print("|" + nodeBits.toString());

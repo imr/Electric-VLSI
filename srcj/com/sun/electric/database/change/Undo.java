@@ -559,11 +559,14 @@ public class Undo
 			{
 				cell = (Cell)obj;
 				lib = cell.getLibrary();
-			} else if (type == Type.OBJECTNEW || type == Type.OBJECTKILL || type == Type.OBJECTREDRAW)
+			} else if (type == Type.OBJECTNEW || type == Type.OBJECTKILL)
 			{
 				cell = obj.whichCell();
 				if (cell != null) lib = cell.getLibrary();
-			} else if (type == Type.OBJECTRENAME)
+			} else if (type == Type.OBJECTREDRAW)
+            {
+                return;
+            } else if (type == Type.OBJECTRENAME)
 			{
 				cell = obj.whichCell();
 				if (cell != null)
@@ -1135,7 +1138,7 @@ public class Undo
 		}
 
 		// determine what needs to be marked as changed
-		Change.setDirty(change, obj, o1);
+        Change.setDirty(change, obj, o1);
 
 		// see if this is the first change
 //		boolean firstChange = false;

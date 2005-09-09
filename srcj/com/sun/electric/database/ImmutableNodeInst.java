@@ -79,28 +79,46 @@ public class ImmutableNodeInst
     }
     
 // -------------------------- constants --------------------------------
-//	/** node is not in use */								public static final int DEADN =                             01;
-//	/** node has text that is far away */					public static final int NHASFARTEXT =                       02;
-	/** if on, draw node expanded */						public static final Flag NEXPAND =        new Flag(         04);
-	/** set if node not drawn due to wiping arcs */			public static final Flag WIPED   =        new Flag(        010);
-//	/** set if node is to be drawn shortened */				public static final int NSHORT =                           020;
-	//  used by database:                                                                                             0140
-//	/** if on, this nodeinst is marked for death */			public static final int KILLN =                           0200;
-//	/** nodeinst re-drawing is scheduled */					public static final int REWANTN =                         0400;
-//	/** only local nodeinst re-drawing desired */			public static final int RELOCLN =                        01000;
-//	/** transparent nodeinst re-draw is done */				public static final int RETDONN =                        02000;
-//	/** opaque nodeinst re-draw is done */					public static final int REODONN =                        04000;
-//	/** general flag used in spreading and highlighting */	public static final int NODEFLAGBIT =                   010000;
-//	/** if on, nodeinst wants to be (un)expanded */			public static final int WANTEXP =                       020000;
-//	/** temporary flag for nodeinst display */				public static final int TEMPFLG =                       040000;
-	/** set if hard to select */							public static final Flag HARDSELECTN =    new Flag(    0100000);
-	/** set if node only visible inside cell */				public static final Flag NVISIBLEINSIDE = new Flag(  040000000);
-	/** technology-specific bits for primitives */			private static final int NTECHBITS =                 037400000;
-	/** right-shift of NTECHBITS */							private static final int NTECHBITSSH =                      17;
-	/** set if node is locked (can't be changed) */			public static final Flag NILOCKED =       new Flag( 0100000000);
-    
- 	public static final int FLAG_BITS = NEXPAND.mask | WIPED.mask | HARDSELECTN.mask | NVISIBLEINSIDE.mask | NILOCKED.mask;
+//	/** node is not in use */								private static final int DEADN =                     01;
+//	/** node has text that is far away */					private static final int NHASFARTEXT =               02;
+//	/** if on, draw node expanded */						private static final int NEXPAND =                   04;
+//	/** set if node not drawn due to wiping arcs */			private static final int NWIPED =                   010;
+//	/** set if node is to be drawn shortened */				private static final int NSHORT =                   020;
+	//  used by database:                                                                                      0140
+//	/** if on, this nodeinst is marked for death */			private static final int KILLN =                   0200;
+//	/** nodeinst re-drawing is scheduled */					private static final int REWANTN =                 0400;
+//	/** only local nodeinst re-drawing desired */			private static final int RELOCLN =                01000;
+//	/** transparent nodeinst re-draw is done */				private static final int RETDONN =                02000;
+//	/** opaque nodeinst re-draw is done */					private static final int REODONN =                04000;
+//	/** general flag used in spreading and highlighting */	private static final int NODEFLAGBIT =           010000;
+//	/** if on, nodeinst wants to be (un)expanded */			private static final int WANTEXP =               020000;
+//	/** temporary flag for nodeinst display */				private static final int TEMPFLG =               040000;
+	/** set if hard to select */							private static final int HARDSELECTN =          0100000;
+	/** set if node only visible inside cell */				private static final int NVISIBLEINSIDE =     040000000;
+	/** technology-specific bits for primitives */			private static final int NTECHBITS =          037400000;
+	/** right-shift of NTECHBITS */							private static final int NTECHBITSSH =               17;
+	/** set if node is locked (can't be changed) */			private static final int NILOCKED =          0100000000;
 
+ 	private static final int FLAG_BITS = HARDSELECTN | NVISIBLEINSIDE | NILOCKED;
+
+	/**
+	 * Method to set an ImmutableNodeInst to be hard-to-select.
+	 * Hard-to-select ImmutableNodeInsts cannot be selected by clicking on them.
+	 * Instead, the "special select" command must be given.
+	 */
+	public static final Flag HARD_SELECT = new Flag(HARDSELECTN);
+	/**
+	 * Flag to set an ImmutableNodeInst to be visible-inside.
+	 * An ImmutableNodeInst that is "visible inside" is only drawn when viewing inside of the Cell.
+	 * It is not visible from outside (meaning from higher-up the hierarchy).
+	 */
+	public static final Flag VIS_INSIDE = new Flag(NVISIBLEINSIDE);
+	/**
+	 * Method to set this ImmutableNodeInst to be locked.
+	 * Locked ImmutableNodeInsts cannot be modified or deleted.
+	 */
+	public static final Flag LOCKED = new Flag(NILOCKED);
+    
     /** id of this NodeInst in parent. */                           public final int nodeId;
 	/** Prototype id. */                                            public final NodeProtoId protoId;
 	/** name of this ImmutableNodeInst. */							public final Name name;
@@ -109,7 +127,8 @@ public class ImmutableNodeInst
 	/** Orientation of this ImmutableNodeInst. */                   public final Orientation orient;
 	/** anchor coordinate of this ImmutableNodeInst. */				public final EPoint anchor;
 	/** size of this ImmutableNodeInst . */                         public final double width, height;
-	/** Flag bits for this ImmutableNodeInst. */                    private final int userBits;
+	/** Flag bits for this ImmutableNodeInst. */                    public final int flags;
+    /** Tech specifiic bits for this ImmutableNodeInsts. */         public final byte techBits;
 	/** Text descriptor of prototype name. */                       public final ImmutableTextDescriptor protoDescriptor;
  
 	/**
@@ -123,13 +142,14 @@ public class ImmutableNodeInst
 	 * @param anchor the anchor location of this ImmutableNodeInst.
 	 * @param width the width of this ImmutableNodeInst.
 	 * @param height the height of this ImmutableNodeInst.
-	 * @param userBits flag bits of this ImmutableNodeInst.
+     * @param flags flag bits for thisImmutableNdoeIsnt.
+	 * @param techBits tech speicfic bits of this ImmutableNodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this ImmutableNodeInst
 	 */
     ImmutableNodeInst(int nodeId, NodeProtoId protoId,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, double width, double height,
-            int userBits, ImmutableTextDescriptor protoDescriptor) {
+            int flags, byte techBits, ImmutableTextDescriptor protoDescriptor) {
         this.nodeId = nodeId;
         this.protoId = protoId;
         this.name = name;
@@ -139,7 +159,8 @@ public class ImmutableNodeInst
         this.anchor = anchor;
         this.width = width;
         this.height = height;
-        this.userBits = userBits;
+        this.flags = flags;
+        this.techBits = techBits;
         this.protoDescriptor = protoDescriptor;
         check();
     }
@@ -184,8 +205,9 @@ public class ImmutableNodeInst
         height = DBMath.round(height);
         if (width == -0.0) width = +0.0;
         if (height == -0.0) height = +0.0;
-        int userBits = flags & FLAG_BITS | (techBits << NTECHBITSSH) & NTECHBITS;
-		return new ImmutableNodeInst(nodeId, protoId, name, duplicate, nameDescriptor, orient, anchor, width, height, userBits, protoDescriptor);
+        flags &= FLAG_BITS;
+        techBits &= NTECHBITS >> NTECHBITSSH;
+		return new ImmutableNodeInst(nodeId, protoId, name, duplicate, nameDescriptor, orient, anchor, width, height, flags, (byte)techBits, protoDescriptor);
     }
 
 //	/**
@@ -214,7 +236,7 @@ public class ImmutableNodeInst
 		if (name == null) throw new NullPointerException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
 		return new ImmutableNodeInst(this.nodeId, this.protoId, name, duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.userBits, this.protoDescriptor);
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor);
 	}
 
 	/**
@@ -225,7 +247,7 @@ public class ImmutableNodeInst
 	public ImmutableNodeInst withNameDescriptor(ImmutableTextDescriptor nameDescriptor) {
         if (this.nameDescriptor == nameDescriptor) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.userBits, this.protoDescriptor);
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor);
 	}
 
 	/**
@@ -239,7 +261,7 @@ public class ImmutableNodeInst
         if (orient == null) throw new NullPointerException("orient");
         if (protoId == Generic.tech.cellCenterNode) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                orient, this.anchor, this.width, this.height, this.userBits, this.protoDescriptor);
+                orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor);
 	}
 
 	/**
@@ -253,7 +275,7 @@ public class ImmutableNodeInst
 		if (anchor == null) throw new NullPointerException("anchor");
         if (protoId == Generic.tech.cellCenterNode) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, anchor, this.width, this.height, this.userBits, this.protoDescriptor);
+                this.orient, anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor);
 	}
 
 	/**
@@ -274,7 +296,7 @@ public class ImmutableNodeInst
         if (width == -0.0) width = +0.0;
         if (height == -0.0) height = +0.0;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, width, height, this.userBits, this.protoDescriptor);
+                this.orient, this.anchor, width, height, this.flags, this.techBits, this.protoDescriptor);
 	}
 
 	/**
@@ -283,10 +305,10 @@ public class ImmutableNodeInst
      * @return ImmutableNodeInst which differs from this ImmutableNodeInst by flag bit.
 	 */
     public ImmutableNodeInst withFlags(int flags) {
-        int userBits = this.userBits & ~FLAG_BITS | flags & FLAG_BITS;
-        if (this.userBits == userBits) return this;
+        flags &= FLAG_BITS;
+        if (this.flags == flags) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, userBits, this.protoDescriptor);
+                this.orient, this.anchor, this.width, this.height, flags, this.techBits, this.protoDescriptor);
     }
 
 	/**
@@ -296,7 +318,7 @@ public class ImmutableNodeInst
      * @return ImmutableNodeInst which differs from this ImmutableNodeInst by flag bit.
 	 */
     public ImmutableNodeInst withFlag(Flag flag, boolean value) {
-        return withFlags(flag.set(this.userBits, value));
+        return withFlags(flag.set(this.flags, value));
     }
 
 	/**
@@ -308,10 +330,10 @@ public class ImmutableNodeInst
      * @return ImmutableNodeInst which differs from this ImmutableNodeInst by tech bits.
 	 */
 	public ImmutableNodeInst withTechSpecific(int techBits) {
-        int userBits = this.userBits & ~NTECHBITS | (techBits << NTECHBITSSH) & NTECHBITS;
-        if (this.userBits == userBits) return this;
+        techBits &= NTECHBITS >> NTECHBITSSH;
+        if (this.techBits == techBits) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, userBits, this.protoDescriptor);
+                this.orient, this.anchor, this.width, this.height, this.flags, (byte)techBits, this.protoDescriptor);
     }
     
     /**
@@ -322,31 +344,31 @@ public class ImmutableNodeInst
 	public ImmutableNodeInst withProtoDescriptor(ImmutableTextDescriptor protoDescriptor) {
         if (this.protoDescriptor == protoDescriptor) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.userBits, protoDescriptor);
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, protoDescriptor);
 	}
 
-    /**
-     * Returns flags of this ImmutableNodeInst.
-     * This flags are defined by ImmutableNodeInst.Flag .
-     * @return flags of this ImmutableNodeInst.
-     */
-    public int getFlags() { return userBits & FLAG_BITS; }
+//    /**
+//     * Returns flags of this ImmutableNodeInst.
+//     * This flags are defined by ImmutableNodeInst.Flag .
+//     * @return flags of this ImmutableNodeInst.
+//     */
+//    public int getFlags() { return flags; }
     
     /**
      * Tests specific flag is set on this ImmutableNodeInst.
      * @param flag flag selector.
      * @return true if specific flag is set,
      */
-    public boolean is(Flag flag) { return flag.is(userBits); }
+    public boolean is(Flag flag) { return flag.is(flags); }
     
-	/**
-	 * Method to return the Technology-specific value on this ImmutableNodeInst.
-	 * This is mostly used by the Schematics technology which allows variations
-	 * on a NodeInst to be stored.
-	 * For example, the Transistor primitive uses these bits to distinguish nMOS, pMOS, etc.
-	 * @return the Technology-specific value on this ImmutableNodeInst.
-	 */
-	public int getTechSpecific() { return (userBits & NTECHBITS) >> NTECHBITSSH; }
+//	/**
+//	 * Method to return the Technology-specific value on this ImmutableNodeInst.
+//	 * This is mostly used by the Schematics technology which allows variations
+//	 * on a NodeInst to be stored.
+//	 * For example, the Transistor primitive uses these bits to distinguish nMOS, pMOS, etc.
+//	 * @return the Technology-specific value on this ImmutableNodeInst.
+//	 */
+//	public byte getTechSpecific() { return techBits; }
 
 	/**
 	 * Checks invariant of this ImmutableNodeInst.
@@ -363,7 +385,8 @@ public class ImmutableNodeInst
         assert height > 0 || height == 0 && 1/height > 0;
         assert DBMath.round(width) == width;
         assert DBMath.round(height) == height;
-        assert (userBits & ~(FLAG_BITS | NTECHBITS)) == 0;
+        assert (flags & ~FLAG_BITS) == 0;
+        assert (techBits & ~(NTECHBITS >> NTECHBITSSH)) == 0;
         if (protoId instanceof CellId) {
             assert width == 0 && height == 0;
         }
@@ -376,7 +399,7 @@ public class ImmutableNodeInst
      * Returns ELIB user bits of this ImmutableNodeInst in ELIB.
      * @return ELIB user bits of this ImmutableNodeInst.
      */
-    public int getElibBits() { return userBits; }
+    public int getElibBits() { return flags | (techBits << NTECHBITSSH); }
     
     /**
      * Get flag bits from ELIB user bits.

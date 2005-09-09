@@ -4,6 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+IMP/MAN: Wiped bit is not stored to library files, because it is computed form database.
+    So 'W' and 'E' bits are not written to JELIB node inst lines more.
+
+BUG: Expand cell instances should not modify referenced library (Bug #366).
+FIX: Expand instance bits are no more part of database. They are user preferences,
+     which are saved to registry on Quit. Unfortunately, they are not undoable now.
+     OBJECTREDRAW in Undo doesn't set cell modified flag, so expand cells doesn't touch
+     Cell explorer.
+
 IMP/MAN: (09/07/05, JKG) Added max series resistance option under parasitics.
      This breaks long single PI models into series of distributed PI models.
 

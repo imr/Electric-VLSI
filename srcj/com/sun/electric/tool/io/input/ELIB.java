@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
@@ -1092,6 +1093,7 @@ public class ELIB extends LibraryFiles
 //			for(int i=startNode; i<endNode; i++)
 //				nodeInstList.theNode[i] = oldNodes[j++];
 //		}
+        cell.loadExpandStatus();
 	}
 
 	protected boolean spreadLambda(Cell cell, int cellIndex)
@@ -1399,7 +1401,7 @@ public class ELIB extends LibraryFiles
 				continue;
 			}
             ArcInst ai = ArcInst.newInstance(cell, ap, name, -1, arcNameDescriptorList[i], headPortInst, tailPortInst,
-                    new EPoint(headX, headY), new EPoint(tailX, tailY), width, ArcInst.fromElibBits(arcUserBits[i]));
+                    new EPoint(headX, headY), new EPoint(tailX, tailY), width, ImmutableArcInst.fromElibBits(arcUserBits[i]));
             arcList[i] = ai;
  			if (ai == null)
 			{

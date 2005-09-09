@@ -70,6 +70,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
 import javax.swing.JOptionPane;
 
@@ -373,6 +375,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	/** This Cell's Technology. */									private Technology tech;
 	/** The temporary integer value. */								private int tempInt;
     /** Set if Cell is modified (major or minor). */                private int modified;
+    /** Set if expanded status of subcell instances is modified. */ private boolean expandStatusModified;
 
 
 	// ------------------ protected and private methods -----------------------
@@ -3432,9 +3435,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	public void clearWantExpanded() { checkChanging(); userBits &= ~WANTNEXPAND; Undo.otherChange(this); }
 
 	/**
-	 * Method to tell if instances of it are "not expanded" by when created.
+	 * Method to tell if instances of it are "expanded" by when created.
 	 * Expanded NodeInsts are instances of Cells that show their contents.
-	 * @return true if instances of it are "not expanded" by when created.
+	 * @return true if instances of it are "expanded" by when created.
 	 */
 	public boolean isWantExpanded() { return (userBits & WANTNEXPAND) != 0; }
 
@@ -3561,6 +3564,96 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
         return modified == 0;
     }
 
+    /**
+     * Method to load isExpanded status of subcell instances from Preferences.
+     */    
+    public void loadExpandStatus() {
+        String cellName = noLibDescribe();
+        String cellKey = "E" + cellName;
+        boolean useWantExpanded = false, mostExpanded = false;
+        if (lib.prefs.get(cellKey, null) == null)
+            useWantExpanded = true;
+        else
+            mostExpanded = lib.prefs.getBoolean(cellKey, false);
+        Preferences cellPrefs = null;
+        try {
+            if (lib.prefs.nodeExists(cellName))
+                cellPrefs = lib.prefs.node(cellName);
+        } catch (BackingStoreException e) {
+            ActivityLogger.logException(e);
+        }
+        for (Iterator it = getNodes(); it.hasNext(); ) {
+            NodeInst ni = (NodeInst)it.next();
+            if (!(ni.getProto() instanceof Cell)) continue;
+            boolean expanded = useWantExpanded ? ((Cell)ni.getProto()).isWantExpanded() : mostExpanded;
+            if (cellPrefs != null) {
+                String nodeName = ni.getDuplicate() == 0 ? "E" + ni.getName() : "E\"" + ni.getName() + "\"" + ni.getDuplicate();
+                expanded = cellPrefs.getBoolean(nodeName, expanded);
+            }
+            if (expanded) ni.setExpanded(); else ni.clearExpanded();
+        }
+        expandStatusModified = false;
+    }
+    
+    /**
+     * Method to save isExpanded status of subcell instances to Preferences.
+     */
+    void saveExpandStatus() throws BackingStoreException {
+        if (!expandStatusModified) return;
+        System.err.println("Save expanded status of " + this);
+        int num = 0, expanded = 0, diff = 0;
+        for (Iterator it = getNodes(); it.hasNext(); ) {
+            NodeInst ni = (NodeInst)it.next();
+            if (!(ni.getProto() instanceof Cell)) continue;
+            num++;
+            if (ni.isExpanded()) expanded++;
+            if (ni.isExpanded() != ((Cell)ni.getProto()).isWantExpanded())
+                diff++;
+        }
+        String cellName = noLibDescribe();
+        String cellKey = "E" + cellName;
+        boolean useWantExpanded = false, mostExpanded = false;
+        if (diff <= expanded && diff <= num - expanded) {
+            useWantExpanded = true;
+            lib.prefs.remove(cellKey);
+        } else {
+            if (num - expanded < expanded) {
+                diff = num - expanded;
+                mostExpanded = true;
+            } else {
+                diff = expanded;
+            }
+            lib.prefs.putBoolean(cellKey, mostExpanded);
+        }
+        if (diff == 0) {
+            if (lib.prefs.nodeExists(cellName)) {
+                lib.prefs.node(cellName).removeNode();
+            }
+        } else {
+            Preferences cellPrefs = lib.prefs.node(cellName);
+            cellPrefs.clear();
+            cellPrefs.put("CELL", cellName);
+            for (Iterator it = getNodes(); it.hasNext(); ) {
+                NodeInst ni = (NodeInst)it.next();
+                if (!(ni.getProto() instanceof Cell)) continue;
+                boolean defaultExpanded = useWantExpanded ? ((Cell)ni.getProto()).isWantExpanded() : mostExpanded;
+                if (ni.isExpanded() != defaultExpanded) {
+                    String nodeName = ni.getDuplicate() == 0 ? "E" + ni.getName() : "E\"" + ni.getName() + "\"" + ni.getDuplicate();
+                    cellPrefs.putBoolean(nodeName, ni.isExpanded());
+                }
+            }
+            cellPrefs.flush();
+        }
+        expandStatusModified = false;
+    }
+    
+    /**
+     * Method to tell that expanded status of subcell instances was modified.
+     */
+    public void expandStatusChanged() {
+        expandStatusModified = true;
+    }
+    
 	/**
 	 * Method to set the multi-page capability of this Cell.
 	 * Multipage cells (usually schematics) must have cell frames to isolate the different

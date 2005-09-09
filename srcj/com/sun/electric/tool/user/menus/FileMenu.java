@@ -1074,6 +1074,7 @@ public class FileMenu {
 
         public boolean doIt()
         {
+            Library.saveExpandStatus();
             ActivityLogger.finished();
             System.exit(0);
             return true;
