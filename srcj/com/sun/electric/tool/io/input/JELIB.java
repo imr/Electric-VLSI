@@ -49,6 +49,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
@@ -638,7 +639,6 @@ public class JELIB extends LibraryFiles
 		CellContents cc = (CellContents)allCells.get(cell);
 		if (cc == null || cc.filledIn) return;
 		instantiateCellContent(cell, cc, recursiveSetupFlag);
-        cell.loadExpandStatus();
 		cellsConstructed++;
 		progress.setProgress(cellsConstructed * 100 / totalCells);
 		recursiveSetupFlag.add(cell);
@@ -846,15 +846,16 @@ public class JELIB extends LibraryFiles
             ImmutableTextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
             int flags = 0, techBits = 0;
             // parse state information in jelibUserBits
+			parseStateInfo:
             for(int i=0; i<stateInfo.length(); i++) {
                 char chr = stateInfo.charAt(i);
                 switch (chr) {
-                    case 'E': /*flags = ImmutableNodeInst.EXPANDED.set(flags, true);*/ break; //deprecated
-                    case 'L': flags = ImmutableNodeInst.LOCKED.set(flags, true); break;
+                    case 'E': flags = ImmutableNodeInst.NEXPAND.set(flags, true); break;
+                    case 'L': flags = ImmutableNodeInst.NILOCKED.set(flags, true); break;
                     case 'S': /*userBits |= NSHORT;*/ break; // deprecated
-                    case 'V': flags = ImmutableNodeInst.VIS_INSIDE.set(flags, true); break;
-                    case 'W': /*flags = ImmutableNodeInst.WIPED.set(flags, true);*/ break; // deprecated
-                    case 'A': flags = ImmutableNodeInst.HARD_SELECT.set(flags, true); break;
+                    case 'V': flags = ImmutableNodeInst.NVISIBLEINSIDE.set(flags, true); break;
+                    case 'W': flags = ImmutableNodeInst.WIPED.set(flags, true); break;
+                    case 'A': flags = ImmutableNodeInst.HARDSELECTN.set(flags, true); break;
                     default:
                         if (Character.isDigit(chr)) {
                             stateInfo = stateInfo.substring(i);
@@ -865,13 +866,15 @@ public class JELIB extends LibraryFiles
                                         " (" + cell + ") bad node bits" + stateInfo, cell, -1);
                             }
                         }
-						break;
+                        break parseStateInfo;
                 }
             }
            ImmutableTextDescriptor protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line); 
 
 			// create the node
             Orientation orient = Orientation.fromJava(angle, flipX, flipY);
+            if (np == Schematics.tech.globalNode)
+                np = np;
 			NodeInst ni = NodeInst.newInstance(cell, np, nodeName, duplicate, nameTextDescriptor,
                     new EPoint(x, y), wid, hei, orient, flags, techBits, protoTextDescriptor);
 			if (ni == null)

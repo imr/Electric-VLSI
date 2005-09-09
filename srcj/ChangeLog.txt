@@ -6,7 +6,7 @@ NOTE: Please place changes under the version that will be released next.
 
 BUG: (09/09/05, DN) JELIB reader reads only last decimal digit of tech-specific bits.
      For example, it corrupts PortCharacteristic of Global-Signal instances.
-FIX: In io.input.JELIB.instantiateCellContents line 868 put "break" into loop parsing NodeInst's satetInfo .
+FIX: In io.input.JELIB.instantiateCellContents line 868 put "break parseStateInfo;" into loop parsing NodeInst's sateInfo .
 
 IMP/MAN: (09/09/05, DN) Wiped bit is not stored to library files, because it is computed form database.
     So 'W' and 'E' bits are not written to JELIB node inst lines more.
