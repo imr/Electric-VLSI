@@ -70,6 +70,9 @@ public class Ncc {
 			Date after = new Date();
 			prln("NCC command completed in: "+
 			                   NccUtils.hourMinSec(before, after)+".");
+
+            if (NccGuiOptions.getBackAnnotateLayoutNetNames() && result.match())
+                NccBackAnnotate.backAnnotateNetNamesJob(result);
 			return result;
 		}
     }

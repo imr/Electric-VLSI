@@ -133,4 +133,12 @@ public class NccGuiOptions {
 		howMuchStatus.setInt(boundStatus(i));
 	}
 
+    private static Pref backAnnotateLayoutNetNames =
+        Pref.makeBooleanPref("BackAnnotateLayoutNetNames", NccGuiOptions.tool.prefs, false);
+    public static boolean getBackAnnotateLayoutNetNames() {
+        return backAnnotateLayoutNetNames.getBoolean();
+    }
+    public static void setBackAnnotateLayoutNetNames(boolean b) {
+        backAnnotateLayoutNetNames.setBoolean(b);
+    }
 }

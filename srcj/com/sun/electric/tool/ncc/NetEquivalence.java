@@ -41,7 +41,7 @@ import com.sun.electric.tool.generator.layout.LayoutLib;
 /** Object to map from a net in one design to the "NCC equivalent" net in the 
  * other design. */
 public class NetEquivalence {
-	private final NetNameProxy[][] equivNets;
+	protected final NetNameProxy[][] equivNets;
 	private final int numDesigns, numNets;
 	private InstancePathToNccContext[] instToIndices;
 	/** Cache the index of the last design that satisified the last 
