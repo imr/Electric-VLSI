@@ -92,7 +92,7 @@ public final class MenuCommands
         WindowMenu.addWindowMenu(menuBar);
         ToolMenu.addToolMenu(menuBar);
 
-        if (false) {            // currently disabled - still under test
+        if (true) {            // under test
             // add the SunAsyncMenu if there
             try {
                 Class SunAsyncMenuClass = Class.forName("com.sun.electric.plugins.menus.SunAsyncMenu");
