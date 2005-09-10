@@ -1293,7 +1293,7 @@ public class Spice extends Topology
                             String segn0 = n0;
                             String segn1 = n0;
                             for (int i=0; i<arcPImodels; i++) {
-                                segn1 = n0 + "#" + i;
+                                segn1 = n0 + "##" + i;
                                 // print cap on intermediate node
                                 if (i == (arcPImodels-1))
                                     segn1 = n1;
