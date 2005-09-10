@@ -659,6 +659,7 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
 	    String filePath = null;
 	    try {
 		    filePath = OpenFile.chooseOutputFile(FileType.TEXT, null, "ErrorLoggerSave.txt");
+            if (filePath == null) return; // cancel operation
 		    buffWriter = new PrintStream(new FileOutputStream(filePath));
 
 	    } catch (IOException e)
