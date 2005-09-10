@@ -328,7 +328,7 @@ public class GDS extends Geometry
             if (nameSet != null) {
                 str = (String)nameSet.iterator().next();
                 str = str + ":" + str;
-                System.out.println("Remapping export "+pp.getName()+" to "+str);
+                //System.out.println("Remapping export "+pp.getName()+" to "+str);
             }
         }
         if (IOTool.getGDSOutputConvertsBracketsInExports()) {
