@@ -4,6 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+IMP/MAN: (09/09/05, JKG) Added Sun-specific menu. This is a plug-in meant only
+    for use in our async group, for better integration with tools here.
+
+IMP/MAN: (09/09/05, JKG) Option to convert Export names when writing GDS if NCC
+    annotation 'exportsConnectedByParent' is present. This asserts a virtual connection
+    between networks that have exports matching the annotation. Other CAD tools provide
+    this functionality, but only match names that have a ':' in them and match exactly.
+    This option renames those exports to all the same name with a ':' in them so other
+    tools can provide the same functionality as 'exportsConnectedByParent'.
+
 BUG: (09/09/05, DN) JELIB reader reads only last decimal digit of tech-specific bits.
      For example, it corrupts PortCharacteristic of Global-Signal instances.
 FIX: In io.input.JELIB.instantiateCellContents line 868 put "break parseStateInfo;" into loop parsing NodeInst's sateInfo .
