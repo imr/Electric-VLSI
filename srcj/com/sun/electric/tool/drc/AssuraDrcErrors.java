@@ -30,6 +30,7 @@ import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Schematics;
 
+import javax.swing.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -170,6 +171,9 @@ public class AssuraDrcErrors {
             return;
         }
         System.out.println("Imported "+count+" errors from file "+filename);
+        if (count == 0) {
+            JOptionPane.showMessageDialog(null, "Imported Zero Errors", "DRC Import Complete", JOptionPane.INFORMATION_MESSAGE);
+        }
         logger.termLogging(true);
     }
 }

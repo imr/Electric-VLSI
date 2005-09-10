@@ -7,6 +7,7 @@ import com.sun.electric.database.geometry.PolyBase;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -328,6 +329,9 @@ public class CalibreDrcErrors {
             sortKey++;
         }
         System.out.println("Imported "+count+" errors");
+        if (count == 0) {
+            JOptionPane.showMessageDialog(null, "Imported Zero Errors", "DRC Import Complete", JOptionPane.INFORMATION_MESSAGE);
+        }
         logger.termLogging(true);
     }
 
