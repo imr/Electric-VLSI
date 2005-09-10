@@ -45,6 +45,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.GDSLayers;
+import com.sun.electric.tool.ncc.basic.NccCellAnnotations;
 
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -52,13 +53,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class writes files in GDS format.
@@ -130,6 +125,7 @@ public class GDS extends Geometry
 	/** cell naming map */						private HashMap cellNames;
 	/** layer number map */						private HashMap layerNumbers;
     /** separator string for lib + cell concatanated cell names */  public static final String concatStr = ".";
+    /** Name remapping if NCC annotation */     private HashMap nameRemapping;
 
 	/**
 	 * Main entry point for GDS output.
@@ -183,6 +179,16 @@ public class GDS extends Geometry
 		// write this cell
 		Cell cell = cellGeom.cell;
 		outputBeginStruct(cell);
+        boolean renamePins = (cell == topCell && IOTool.getGDSConvertNCCExportsConnectedByParentPins());
+        if (renamePins) {
+            // rename pins to allow external LVS programs to virtually connect nets as specified
+            // by the NCC annotation exportsConnectedByParent
+            NccCellAnnotations annotations = NccCellAnnotations.getAnnotations(cell);
+            if (annotations == null)
+                renamePins = false;
+            else
+                nameRemapping = createExportNameMap(annotations, cell);
+        }
 
 		// write all polys by Layer
 		Set layers = cellGeom.polyMap.keySet();
@@ -250,7 +256,7 @@ public class GDS extends Geometry
 				// put out a pin if requested
 				if (IOTool.isGDSOutWritesExportPins())
                 {
-					writeExportOnLayer(pp, pinLayer, pinType);
+					writeExportOnLayer(pp, pinLayer, pinType, renamePins);
 
                     // write the text
                     //writeExportOnLayer(pp, textLayer, textType);
@@ -260,7 +266,37 @@ public class GDS extends Geometry
 		outputHeader(HDR_ENDSTR, 0);
 	}
 
-	private void writeExportOnLayer(Export pp, int layer, int type)
+    private HashMap createExportNameMap(NccCellAnnotations ann, Cell cell) {
+        HashMap nameMap = new HashMap();
+        for (Iterator it2 = ann.getExportsConnected(); it2.hasNext(); ) {
+            List list = (List)it2.next();
+            // list of all patterns that should be connected
+            Set connectedExports = new TreeSet(new Comparator() {
+                public int compare(Object o1, Object o2) {
+                    String s1 = (String)o1;
+                    String s2 = (String)o2;
+                    return s1.compareTo(s2);
+                }
+                public boolean equals(Object obj) {
+                    return (this == obj);
+                }
+            });
+            for (Iterator it3 = list.iterator(); it3.hasNext(); ) {
+                NccCellAnnotations.NamePattern pat = (NccCellAnnotations.NamePattern)it3.next();
+                for (Iterator it = cell.getPorts(); it.hasNext(); ) {
+                    Export e = (Export)it.next();
+                    String name = e.getName();
+                    if (pat.matches(name)) {
+                        connectedExports.add(name);
+                        nameMap.put(name, connectedExports);
+                    }
+                }
+            }
+        }
+        return nameMap;
+    }
+
+	private void writeExportOnLayer(Export pp, int layer, int type, boolean remapNames)
 	{
 		outputHeader(HDR_TEXT, 0);
 		outputHeader(HDR_LAYER, layer);
@@ -287,6 +323,14 @@ public class GDS extends Geometry
 
 		// now the string
 		String str = pp.getName();
+        if (remapNames) {
+            Set nameSet = (Set)nameRemapping.get(str);
+            if (nameSet != null) {
+                str = (String)nameSet.iterator().next();
+                str = str + ":" + str;
+                System.out.println("Remapping export "+pp.getName()+" to "+str);
+            }
+        }
         if (IOTool.getGDSOutputConvertsBracketsInExports()) {
             // convert brackets to underscores
             str = str.replaceAll("[\\[\\]]", "_");
@@ -490,6 +534,7 @@ public class GDS extends Geometry
 		Technology tech = Technology.getCurrent();
 		scaleFactor = tech.getScale();
 		layerNumbers = new HashMap();
+        nameRemapping = new HashMap();
 
 		// precache the layers in this technology
 		boolean foundValid = false;

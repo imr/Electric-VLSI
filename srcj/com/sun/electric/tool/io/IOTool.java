@@ -487,6 +487,27 @@ public class IOTool extends Listener
      * Set the maximum length (number of chars) for Cell names in the GDS output file
      */
     public static void setGDSCellNameLenMax(int len) { cacheGDSCellNameLenMax.setInt(len); }
+
+    private static Pref cacheGDSConvertNCCExportsConnectedByParentPins = Pref.makeBooleanPref("GDSConvertNCCEconnectedByParentPins", IOTool.tool.prefs, false);
+
+    /**
+     * True to convert pin names to name:name for pins that are specified in the
+     * NCC annotation, "exportsConnectedByParent".  This allows external LVS tools to
+     * perform the analogous operation of virtual connection of networks.
+     * For example, 'exportsConnectedByParent vdd /vdd_[0-9]+/' will rename all
+     * pins that match the assertion to vdd:vdd.
+     */
+    public static boolean getGDSConvertNCCExportsConnectedByParentPins() { return cacheGDSConvertNCCExportsConnectedByParentPins.getBoolean(); }
+    /**
+     * True to convert pin names to name:name for pins that are specified in the
+     * NCC annotation, "exportsConnectedByParent".  This allows external LVS tools to
+     * perform the analogous operation of virtual connection of networks.
+     * For example, 'exportsConnectedByParent vdd /vdd_[0-9]+/' will rename all
+     * pins that match the assertion to vdd:vdd.
+     */
+    public static void setGDSConvertNCCExportsConnectedByParentPins(boolean b) { cacheGDSConvertNCCExportsConnectedByParentPins.setBoolean(b); }
+
+
 	/****************************** POSTSCRIPT OUTPUT PREFERENCES ******************************/
 
 	private static Pref cachePrintEncapsulated = Pref.makeBooleanPref("PostScriptEncapsulated", IOTool.tool.prefs, false);

@@ -75,6 +75,7 @@ public class GDSTab extends PreferencePanel
 		gdsDefaultTextLayer.setText(Integer.toString(IOTool.getGDSOutDefaultTextLayer()));
         gdsOutputConvertsBracketsInExports.setSelected(IOTool.getGDSOutputConvertsBracketsInExports());
         gdsCellNameLenMax.setText(Integer.toString(IOTool.getGDSCellNameLenMax()));
+        gdsConvertNCCExportsConnectedByParentPins.setSelected(IOTool.getGDSConvertNCCExportsConnectedByParentPins());
 
 		gdsInputIncludesText.setSelected(IOTool.isGDSInIncludesText());
 		gdsInputExpandsCells.setSelected(IOTool.isGDSInExpandsCells());
@@ -286,6 +287,9 @@ public class GDSTab extends PreferencePanel
         currentValue = gdsOutputConvertsBracketsInExports.isSelected();
         if (currentValue !=  IOTool.getGDSOutputConvertsBracketsInExports())
             IOTool.setGDSOutputConvertsBracketsInExports(currentValue);
+        currentValue = gdsConvertNCCExportsConnectedByParentPins.isSelected();
+        if (currentValue != IOTool.getGDSConvertNCCExportsConnectedByParentPins())
+            IOTool.setGDSConvertNCCExportsConnectedByParentPins(currentValue);
 
 		int currentTextLayer = TextUtils.atoi(gdsDefaultTextLayer.getText());
 		if (currentTextLayer != IOTool.getGDSOutDefaultTextLayer())
@@ -343,6 +347,7 @@ public class GDSTab extends PreferencePanel
         gdsTextType = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         gdsCellNameLenMax = new javax.swing.JTextField();
+        gdsConvertNCCExportsConnectedByParentPins = new javax.swing.JCheckBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
@@ -364,10 +369,10 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridheight = 15;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gds.add(gdsLayerList, gridBagConstraints);
 
         jLabel6.setText("Normal:");
@@ -487,7 +492,7 @@ public class GDSTab extends PreferencePanel
         jLabel9.setText("Output default text layer:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridy = 14;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gds.add(jLabel9, gridBagConstraints);
@@ -495,7 +500,7 @@ public class GDSTab extends PreferencePanel
         gdsDefaultTextLayer.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 13;
+        gridBagConstraints.gridy = 14;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gds.add(gdsDefaultTextLayer, gridBagConstraints);
@@ -511,7 +516,7 @@ public class GDSTab extends PreferencePanel
         jLabel29.setText("Negative layer values generate no GDS");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 14;
+        gridBagConstraints.gridy = 15;
         gridBagConstraints.gridwidth = 3;
         gds.add(jLabel29, gridBagConstraints);
 
@@ -526,8 +531,8 @@ public class GDSTab extends PreferencePanel
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 11;
         gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
-        gridBagConstraints.insets = new java.awt.Insets(2, 4, 4, 4);
         gds.add(gdsOutputConvertsBracketsInExports, gridBagConstraints);
 
         jLabel1.setText("Layer:");
@@ -566,19 +571,28 @@ public class GDSTab extends PreferencePanel
         jLabel3.setText("Max chars in output cell name:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gds.add(jLabel3, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 3;
-        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridy = 13;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(2, 4, 2, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gds.add(gdsCellNameLenMax, gridBagConstraints);
+
+        gdsConvertNCCExportsConnectedByParentPins.setText("Convert NCC exportsConnectedByParent Exports");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 12;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gds.add(gdsConvertNCCExportsConnectedByParentPins, gridBagConstraints);
 
         getContentPane().add(gds, new java.awt.GridBagConstraints());
 
@@ -599,6 +613,7 @@ public class GDSTab extends PreferencePanel
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel gds;
     private javax.swing.JTextField gdsCellNameLenMax;
+    private javax.swing.JCheckBox gdsConvertNCCExportsConnectedByParentPins;
     private javax.swing.JTextField gdsDefaultTextLayer;
     private javax.swing.JCheckBox gdsInputExpandsCells;
     private javax.swing.JCheckBox gdsInputIgnoresUnknownLayers;
