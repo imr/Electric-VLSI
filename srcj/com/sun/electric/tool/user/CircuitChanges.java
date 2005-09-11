@@ -172,29 +172,20 @@ public class CircuitChanges
 			if (cantEdit(cell, null, true) != 0) return false;
 
 			// figure out which nodes get rotated/mirrored
+			HashSet markObj = new HashSet();
 			int nicount = 0;
 			NodeInst theNi = null;
 			Rectangle2D selectedBounds = new Rectangle2D.Double();
-            HashSet rotatedNodes = new HashSet();
 			for(Iterator it = highs.iterator(); it.hasNext(); )
 			{
 				Geometric geom = (Geometric)it.next();
-                if (geom instanceof ArcInst) {
-                    ArcInst ai = (ArcInst)geom;
-                    NodeInst headNi = ai.getHeadPortInst().getNodeInst();
-                    if (cantEdit(cell, headNi, false) == 0)
-                        rotatedNodes.add(headNi);
-                    NodeInst tailNi = ai.getTailPortInst().getNodeInst();
-                    if (cantEdit(cell, tailNi, false) == 0)
-                        rotatedNodes.add(tailNi);
-                    continue;
-                }
+				if (!(geom instanceof NodeInst)) continue;
 				NodeInst ni = (NodeInst)geom;
 				if (cantEdit(cell, ni, true) != 0)
 				{
 					return false;
 				}
-                rotatedNodes.add(ni);
+				markObj.add(ni);
 				if (nicount == 0)
 				{
 					selectedBounds.setRect(ni.getBounds());
@@ -219,10 +210,10 @@ public class CircuitChanges
 				Point2D center = new Point2D.Double(selectedBounds.getCenterX(), selectedBounds.getCenterY());
 				theNi = null;
 				double bestdist = Integer.MAX_VALUE;
-                for(Iterator it = highs.iterator(); it.hasNext(); ) {
-                    Geometric geom = (Geometric)it.next();
-                    if (!(geom instanceof NodeInst)) continue;
-                    NodeInst ni = (NodeInst)geom;
+				for(Iterator it = cell.getNodes(); it.hasNext(); )
+				{
+					NodeInst ni = (NodeInst)it.next();
+					if (!markObj.contains(ni)) continue;
 					double dist = center.distance(ni.getTrueCenter());
 
 					// LINTED "bestdist" used in proper order
@@ -232,6 +223,26 @@ public class CircuitChanges
 						bestdist = dist;
 					}
 				}
+			}
+
+			// see which nodes already connect to the main rotation/mirror node (theNi)
+			markObj.clear();
+			for(Iterator it = highs.iterator(); it.hasNext(); )
+			{
+				Geometric geom = (Geometric)it.next();
+				if (!(geom instanceof ArcInst)) continue;
+				ArcInst ai = (ArcInst)geom;
+				markObj.add(ai);
+			}
+			spreadRotateConnection(theNi, markObj);
+
+			// now make sure that it is all connected
+			for(Iterator it = highs.iterator(); it.hasNext(); )
+			{
+				Geometric geom = (Geometric)it.next();
+				if (!(geom instanceof NodeInst)) continue;
+				NodeInst ni = (NodeInst)geom;
+				spreadRotateConnection(ni, markObj);
 			}
 
 			// do the rotation/mirror
@@ -248,32 +259,39 @@ public class CircuitChanges
             AffineTransform trans = dOrient.rotateAbout(theNi.getAnchorCenter());
             
             Point2D.Double tmpPt1 = new Point2D.Double(), tmpPt2 = new Point2D.Double();
-            // Rotate rotatedNodes
-            for (Iterator it = rotatedNodes.iterator(); it.hasNext(); ) {
-                NodeInst ni = (NodeInst)it.next();
+            
+            // Rotate nodes in markObj
+//            System.out.println("markObj:");
+            for (Iterator it = markObj.iterator(); it.hasNext(); ) {
+                Geometric geom = (Geometric)it.next();
+                if (!(geom instanceof NodeInst)) continue;
+                NodeInst ni = (NodeInst)geom;
+//                System.out.println("\t" + ni);
                 trans.transform(ni.getAnchorCenter(), tmpPt1);
                 ni.rotate(dOrient);
                 ni.move(tmpPt1.getX() - ni.getAnchorCenterX(), tmpPt1.getY() - ni.getAnchorCenterY());
             }
-            // Rotate highlighted arcs
-            for(Iterator it = highs.iterator(); it.hasNext(); ) {
+            // Rotate arcs in markObj
+            for (Iterator it = markObj.iterator(); it.hasNext(); ) {
                 Geometric geom = (Geometric)it.next();
                 if (!(geom instanceof ArcInst)) continue;
                 ArcInst ai = (ArcInst)geom;
-                if (highs.contains(ai.getHeadPortInst().getNodeInst()))
+//                System.out.println("\t" + ai);
+                if (markObj.contains(ai.getHeadPortInst().getNodeInst()))
                     trans.transform(ai.getHeadLocation(), tmpPt1);
                 else
                     tmpPt1.setLocation(ai.getHeadLocation());
-                if (highs.contains(ai.getTailPortInst().getNodeInst()))
+                if (markObj.contains(ai.getTailPortInst().getNodeInst()))
                     trans.transform(ai.getTailLocation(), tmpPt2);
                 else
                     tmpPt2.setLocation(ai.getTailLocation());
                 ai.modify(0, tmpPt1.getX() - ai.getHeadLocation().getX(), tmpPt1.getY() - ai.getHeadLocation().getY(),
                         tmpPt2.getX() - ai.getTailLocation().getX(), tmpPt2.getY() - ai.getTailLocation().getY());
             }
+
 			return true;
 		}
-        
+    
 //		public boolean doIt()
 //		{
 //			// disallow rotating if lock is on
@@ -436,6 +454,8 @@ public class CircuitChanges
 	 */
 	private static void spreadRotateConnection(NodeInst theNi, HashSet markObj)
 	{
+        if (markObj.contains(theNi)) return;
+        markObj.add(theNi);
 		for(Iterator it = theNi.getConnections(); it.hasNext(); )
 		{
 			Connection con = (Connection)it.next();

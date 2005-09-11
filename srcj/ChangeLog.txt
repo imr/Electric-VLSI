@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+BUG: (09/11/05, DN) Slow display (Bug #537).
+FIX: In PixelDrawing make maxObjectSize and halfMaxObjectSize static (they were 0 in cache cells).
+     Use class ExpandedCellKey instead of String. Don't create Image for cache cells.
+
+BUG: (09/11/05, DN) Problem with rotation of bus arcs (Bug #539).
+FIX: In CircuitChanges change method RotateSelected.doIt .
+     In LayoutCell use arcModified test instead of getChangeClock .
+
 IMP/MAN: (09/10/05, JKG) Added option under NCC to back-annotate layout with schematic
     net names. This allows easier probing when writing netlists from layout (Parasitic extraction).
 

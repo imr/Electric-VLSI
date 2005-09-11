@@ -234,7 +234,7 @@ class LayoutCell {
 
 			// ignore if arcinst is not within the node
 			if (ai.getHeadPortInst().getNodeInst() != ai.getTailPortInst().getNodeInst()) continue;
-			if (getChangeClock(ai) == AI_RIGID.intValue()) continue;
+//			if (getChangeClock(ai) == AI_RIGID.intValue()) continue;
 
 			// include in the list to be considered here
 			interiorArcs.add(ai);
@@ -247,7 +247,8 @@ class LayoutCell {
 			if (!ai.isLinked()) continue;
 
 			// if arcinst has already been changed check its connectivity
-			if (getChangeClock(ai) == AI_RIGID.intValue())
+			if (arcModified(ai))
+//			if (getChangeClock(ai) == AI_RIGID.intValue())
 			{
 				if (Layout.DEBUG) System.out.println("    Arc already changed");
 				ensureArcInst(ai, AI_RIGID);
@@ -285,7 +286,7 @@ class LayoutCell {
 			ArcInst ai = con.getArc();
 
 			// ignore if arcinst is not flexible
-			if (getChangeClock(ai) == AI_FLEX.intValue()) continue;
+//			if (getChangeClock(ai) == AI_FLEX.intValue()) continue;
 			if (!Layout.isRigid(ai)) continue;
 
 			// ignore arcs that connect two ports on the same node
@@ -306,7 +307,8 @@ class LayoutCell {
 			if (Layout.DEBUG) System.out.println("  From " + ni + " Modifying Rigid "+ai);
 
 			// if rigid arcinst has already been changed check its connectivity
-			if (getChangeClock(ai) == AI_RIGID.intValue())
+			if (arcModified(ai))
+//			if (getChangeClock(ai) == AI_RIGID.intValue())
 			{
 				if (Layout.DEBUG) System.out.println("    Arc already changed");
 				ensureArcInst(ai, AI_RIGID);
@@ -418,7 +420,7 @@ class LayoutCell {
 			ArcInst ai = con.getArc();
 
 			// ignore if arcinst is not flexible
-			if (getChangeClock(ai) == AI_RIGID.intValue()) continue;
+//			if (getChangeClock(ai) == AI_RIGID.intValue()) continue;
 			if (Layout.isRigid(ai)) continue;
 
 			// ignore arcs that connect two ports on the same node
@@ -438,7 +440,8 @@ class LayoutCell {
 			if (Layout.DEBUG) System.out.println("  Modifying fixed-angle "+ai);
 
 			// if flexible arcinst has been changed, verify its connectivity
-			if (getChangeClock(ai) >= AI_FLEX.intValue())
+			if (arcModified(ai))
+//			if (getChangeClock(ai) >= AI_FLEX.intValue())
 			{
 				if (Layout.DEBUG) System.out.println("   Arc already changed");
 				ensureArcInst(ai, AI_FLEX);
@@ -755,7 +758,7 @@ class LayoutCell {
 			ai.getHeadLocation().getX()+","+ai.getHeadLocation().getY()+")");
 
 		// if the arc hasn't changed yet, record this change
-		if (oldArcs == null || oldArcs.get(ai) == null)
+		if (oldArcs == null || !oldArcs.containsKey(ai))
 		{
 			Undo.modifyArcInst(ai, oldHeadX, oldHeadY, oldTailX, oldTailY, ai.getWidth());
 			setChangeClock(ai, arctyp);
@@ -969,16 +972,15 @@ class LayoutCell {
 	void newObject(ElectricObject obj) {
         if (obj instanceof Export) {
             if (oldExports == null) oldExports = new HashMap/*<Export,PortInst>*/();
-            if (!oldExports.containsKey(obj))
-                oldExports.put(obj, null);
+            assert !oldExports.containsKey(obj);
+            oldExports.put(obj, null);
         } else if (obj instanceof NodeInst) {
-            if (!oldNodes.containsKey(obj))
-                oldNodes.put(obj, null);
+            assert !oldNodes.containsKey(obj);
+            oldNodes.put(obj, null);
         } else if (obj instanceof ArcInst) {
             if (oldArcs == null) oldArcs = new HashMap/*<ArcInst,Object>*/();
-            if (!oldArcs.containsKey(obj))
-                oldArcs.put(obj, null);
-            
+            assert !oldArcs.containsKey(obj);
+            oldArcs.put(obj, null);
         }
     }
 
@@ -992,6 +994,10 @@ class LayoutCell {
         if (oldNodes == null || !oldNodes.containsKey(ni))
             return ni.getD();
         return (ImmutableNodeInst)oldNodes.get(ni);
+    }
+    
+    boolean arcModified(ArcInst ai) {
+        return oldArcs != null && oldArcs.containsKey(ai);
     }
 }
 

@@ -22,8 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.user.ui;
-
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.EGraphics;
@@ -46,6 +44,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.Main;
+import com.sun.electric.database.geometry.Orientation;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -188,7 +187,7 @@ public class PixelDrawing
 	}
 
 	// statistics stuff
-	private static final boolean TAKE_STATS = false;
+	private static final boolean TAKE_STATS = true;
 	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs;
 	private static int offscreensCreated, offscreenPixelsCreated, offscreensUsed, offscreenPixelsUsed, cellsRendered;
     private static int boxes, crosses, solidLines, patLines, thickLines, polygons, texts, circles, thickCircles, discs, circleArcs, points, thickPoints;
@@ -197,6 +196,26 @@ public class PixelDrawing
     private static long renderTextTime;
     private static long renderPolyTime;
 
+    private static class ExpandedCellKey {
+        private Cell cell;
+        private Orientation orient;
+     
+        private ExpandedCellKey(Cell cell, Orientation orient) {
+            this.cell = cell;
+            this.orient = orient;
+        }
+        
+        public boolean equals(Object obj) {
+            if (obj instanceof ExpandedCellKey) {
+                ExpandedCellKey that = (ExpandedCellKey)obj;
+                return this.cell == that.cell && this.orient.equals(that.orient);
+            }
+            return false;
+        }
+        
+        public int hashCode() { return cell.hashCode()^orient.hashCode(); }
+    }
+    
 	/**
 	 * This class holds information about expanded cell instances.
 	 * For efficiency, Electric remembers the bits in an expanded cell instance
@@ -227,8 +246,8 @@ public class PixelDrawing
 	/** whether any layers are highlighted/dimmed */		private boolean highlightingLayers;
 	/** true if the last display was a full-instantiate */	private boolean lastFullInstantiate = false;
 	/** true if text can be drawn (not too zoomed-out) */	private boolean canDrawText;
-	/** maximum size before an object is too small */		private double maxObjectSize;
-	/** half of maximum object size */						private double halfMaxObjectSize;
+	/** maximum size before an object is too small */		private static double maxObjectSize;
+	/** half of maximum object size */						private static double halfMaxObjectSize;
 	/** temporary objects (saves reallocation) */			private Point tempPt1 = new Point(), tempPt2 = new Point();
 	/** temporary objects (saves reallocation) */			private Point tempPt3 = new Point(), tempPt4 = new Point();
 
@@ -319,11 +338,12 @@ public class PixelDrawing
         this.sz = new Dimension(screenBounds.width, screenBounds.height);
         
 		// allocate pointer to the opaque image
-		img = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_INT_RGB);
-		WritableRaster raster = ((BufferedImage)img).getRaster();
-		DataBufferInt dbi = (DataBufferInt)raster.getDataBuffer();
-		opaqueData = dbi.getData();
+//		img = new BufferedImage(sz.width, sz.height, BufferedImage.TYPE_INT_RGB);
+//		WritableRaster raster = ((BufferedImage)img).getRaster();
+//		DataBufferInt dbi = (DataBufferInt)raster.getDataBuffer();
+//		opaqueData = dbi.getData();
 		total = sz.height * sz.width;
+        opaqueData = new int[total];
 		numBytesPerRow = (sz.width + 7) / 8;
 		backgroundColor = User.getColorBackground() & 0xFFFFFF;
 		backgroundValue = backgroundColor | 0xFF000000;
@@ -459,10 +479,10 @@ public class PixelDrawing
 			}
 
 			// determine which cells should be cached (must have at least 2 instances)
-			countCell(cell, drawLimitBounds, fullInstantiate, DBMath.MATID);
+			countCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID);
 
 			// now render it all
-			drawCell(cell, drawLimitBounds, fullInstantiate, DBMath.MATID, wnd, wnd.getVarContext());
+			drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID, wnd, wnd.getVarContext());
 		}
 
 		// merge transparent image into opaque one
@@ -774,7 +794,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw the contents of a cell, transformed through "prevTrans".
 	 */
-	private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, AffineTransform prevTrans, EditWindow topWnd, VarContext context)
+	private void drawCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, AffineTransform prevTrans, EditWindow topWnd, VarContext context)
 	{
 		renderedCells++;
         renderPolyTime = 0;
@@ -809,7 +829,7 @@ public class PixelDrawing
 				GenMath.transformRect(bounds, prevTrans);
 				if (!GenMath.rectsIntersect(bounds, drawLimitBounds)) continue;
 			}
-			drawNode(ni, prevTrans, topWnd, drawLimitBounds, fullInstantiate, false, context);
+			drawNode(ni, orient, prevTrans, topWnd, drawLimitBounds, fullInstantiate, false, context);
 		}
 
 		// show cell variables if at the top level
@@ -840,7 +860,7 @@ public class PixelDrawing
      * @param forceVisible true if layer visibility information should be ignored and force the drawing
 	 * @param context the VarContext to this node in the hierarchy.
      */
-	public void drawNode(NodeInst ni, AffineTransform trans, EditWindow topWnd, Rectangle2D drawLimitBounds, boolean fullInstantiate, boolean forceVisible, VarContext context)
+	public void drawNode(NodeInst ni, Orientation orient, AffineTransform trans, EditWindow topWnd, Rectangle2D drawLimitBounds, boolean fullInstantiate, boolean forceVisible, VarContext context)
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
@@ -862,11 +882,12 @@ public class PixelDrawing
 
 			// see if it is on the screen
 			Cell subCell = (Cell)np;
+            Orientation subOrient = orient.concatenate(ni.getOrient());
 			AffineTransform subTrans = ni.translateOut(localTrans);
        		Rectangle2D cellBounds = subCell.getBounds();
 			Poly poly = new Poly(cellBounds);
 			poly.transform(subTrans);
-			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
+//			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 			cellBounds = poly.getBounds2D();
 			Rectangle screenBounds = databaseToScreen(cellBounds);
 			if (screenBounds.width <= 0 || screenBounds.height <= 0)
@@ -902,11 +923,11 @@ public class PixelDrawing
 			if (expanded)
 			{
 				// show the contents of the cell
-				if (!expandedCellCached(subCell, subTrans, topWnd, context, drawLimitBounds, fullInstantiate))
+				if (!expandedCellCached(subCell, subOrient, subTrans, topWnd, context, drawLimitBounds, fullInstantiate))
 				{
 					// just draw it directly
 					cellsRendered++;
-					drawCell(subCell, drawLimitBounds, fullInstantiate, subTrans, topWnd, context.push(ni));
+					drawCell(subCell, drawLimitBounds, fullInstantiate, subOrient, subTrans, topWnd, context.push(ni));
 				}
 				if (canDrawText) showCellPorts(ni, trans, Color.BLACK);
 			} else
@@ -979,8 +1000,9 @@ public class PixelDrawing
 			{
 				Export e = (Export)it.next();
 				Poly poly = e.getNamePoly();
-				if (topWnd != null && topWnd.isInPlaceEdit())
-					poly.transform(topWnd.getInPlaceTransformOut());
+                poly.transform(trans);
+//				if (topWnd != null && topWnd.isInPlaceEdit())
+//					poly.transform(topWnd.getInPlaceTransformOut());
 				Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
 				if (exportDisplayLevel == 2)
 				{
@@ -1214,7 +1236,7 @@ public class PixelDrawing
 	 * @return true if the cell is properly handled and need no further processing.
 	 * False to render the contents recursively.
 	 */
-	private boolean expandedCellCached(Cell subCell, AffineTransform origTrans, EditWindow topWnd, VarContext context, Rectangle2D drawLimitBounds, boolean fullInstantiate)
+	private boolean expandedCellCached(Cell subCell, Orientation orient, AffineTransform origTrans, EditWindow topWnd, VarContext context, Rectangle2D drawLimitBounds, boolean fullInstantiate)
 	{
 		// if there is no global for remembering cached cells, do not cache
 		if (expandedCells == null) return false;
@@ -1223,15 +1245,15 @@ public class PixelDrawing
 		if (subCell.isIcon()) return false;
 
 		// find this cell-transformation combination in the global list of cached cells
-		AffineTransform subTrans = origTrans;
-		if (renderedWindow && wnd.isInPlaceEdit())
-		{
-			AffineTransform newTrans = new AffineTransform(subTrans);
-			subTrans = newTrans;
-			subTrans.preConcatenate(wnd.getInPlaceTransformIn());
-		}
-		String expandedName = makeExpandedName(subCell, subTrans);
-		ExpandedCellInfo expandedCellCount = (ExpandedCellInfo)expandedCells.get(expandedName);
+//		AffineTransform subTrans = origTrans;
+//		if (renderedWindow && wnd.isInPlaceEdit())
+//		{
+//			AffineTransform newTrans = new AffineTransform(subTrans);
+//			subTrans = newTrans;
+//			subTrans.preConcatenate(wnd.getInPlaceTransformIn());
+//		}
+        ExpandedCellKey expansionKey = new ExpandedCellKey(subCell, orient);
+		ExpandedCellInfo expandedCellCount = (ExpandedCellInfo)expandedCells.get(expansionKey);
 		if (expandedCellCount != null)
 		{
 			// if this combination is not used multiple times, do not cache it
@@ -1253,7 +1275,8 @@ public class PixelDrawing
             Rectangle2D textBounds = subCell.getTextBounds(wnd);
             if (textBounds != null)
                 cellBounds.add(textBounds);
-            AffineTransform rotTrans = new AffineTransform(subTrans.getScaleX(), subTrans.getShearY(), subTrans.getShearX(), subTrans.getScaleY(), 0, 0);
+            AffineTransform rotTrans = orient.pureRotate();
+//            AffineTransform rotTrans = new AffineTransform(subTrans.getScaleX(), subTrans.getShearY(), subTrans.getShearX(), subTrans.getScaleY(), 0, 0);
             DBMath.transformRect(cellBounds, rotTrans);
             int lX = (int)Math.floor(cellBounds.getMinX()*scale);
             int hX = (int)Math.ceil(cellBounds.getMaxX()*scale);
@@ -1271,11 +1294,11 @@ public class PixelDrawing
 			if (expandedCellCount == null)
 			{
 				expandedCellCount = new ExpandedCellInfo();
-				expandedCells.put(expandedName, expandedCellCount);
+				expandedCells.put(expansionKey, expandedCellCount);
 			}
 
             expandedCellCount.offscreen = new PixelDrawing(wnd, screenBounds);
-			expandedCellCount.offscreen.drawCell(subCell, null, fullInstantiate, rotTrans, topWnd, context);
+			expandedCellCount.offscreen.drawCell(subCell, null, fullInstantiate, orient, rotTrans, topWnd, context);
 //            expandedCellCount.offscreen = renderedCell.getOffscreen();
 			offscreensCreated++;
             offscreenPixelsCreated += expandedCellCount.offscreen.total;
@@ -1306,7 +1329,7 @@ public class PixelDrawing
 		}
 
 		// copy out of the offscreen buffer into the main buffer
-        databaseToScreen(subTrans.getTranslateX(), subTrans.getTranslateY(), tempPt1);
+        databaseToScreen(origTrans.getTranslateX(), origTrans.getTranslateY(), tempPt1);
 		copyBits(expandedCellCount.offscreen, tempPt1.x, tempPt1.y);
 		offscreensUsed++;
         offscreenPixelsUsed += expandedCellCount.offscreen.total;
@@ -1316,7 +1339,7 @@ public class PixelDrawing
 	/**
 	 * Recursive method to count the number of times that a cell-transformation is used
 	 */
-	private void countCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, AffineTransform prevTrans)
+	private void countCell(Cell cell, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, AffineTransform prevTrans)
 	{
 		// look for subcells
 		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
@@ -1333,22 +1356,24 @@ public class PixelDrawing
 				if (!GenMath.rectsIntersect(bounds, drawLimitBounds)) return;
 			}
 
-			countNode(ni, drawLimitBounds, fullInstantiate, prevTrans);
+			countNode(ni, drawLimitBounds, fullInstantiate, orient, prevTrans);
 		}
 	}
 
 	/**
 	 * Recursive method to count the number of times that a cell-transformation is used
 	 */
-	private void countNode(NodeInst ni, Rectangle2D drawLimitBounds, boolean fullInstantiate, AffineTransform trans)
+	private void countNode(NodeInst ni, Rectangle2D drawLimitBounds, boolean fullInstantiate, Orientation orient, AffineTransform trans)
 	{
 		// if the node is tiny, it will be approximated
 		double objWidth = Math.max(ni.getXSize(), ni.getYSize());
 		if (objWidth < maxObjectSize) return;
 
 		// transform into the subcell
-		AffineTransform localTrans = ni.rotateOut(trans);
-		AffineTransform subTrans = ni.translateOut(localTrans);
+        Orientation subOrient = orient.concatenate(ni.getOrient());
+		AffineTransform subTrans = ni.transformOut(trans);
+//		AffineTransform localTrans = ni.rotateOut(trans);
+//		AffineTransform subTrans = ni.translateOut(localTrans);
 
 		// compute where this cell lands on the screen
 		NodeProto np = ni.getProto();
@@ -1356,7 +1381,7 @@ public class PixelDrawing
 		Rectangle2D cellBounds = subCell.getBounds();
 		Poly poly = new Poly(cellBounds);
 		poly.transform(subTrans);
-		if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
+//		if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 		cellBounds = poly.getBounds2D();
 		Rectangle screenBounds = databaseToScreen(cellBounds);
 		if (screenBounds.width <= 0 || screenBounds.height <= 0) return;
@@ -1389,13 +1414,13 @@ public class PixelDrawing
 		if (screenBounds.width < sz.width/2 || screenBounds.height <= sz.height/2)
 		{
 			// construct the cell name that combines with the transformation
-			String expandedName = makeExpandedName(subCell, subTrans);
-			ExpandedCellInfo expansionCount = (ExpandedCellInfo)expandedCells.get(expandedName);
+			ExpandedCellKey expansionKey = new ExpandedCellKey(subCell, subOrient);
+			ExpandedCellInfo expansionCount = (ExpandedCellInfo)expandedCells.get(expansionKey);
 			if (expansionCount == null)
 			{
 				expansionCount = new ExpandedCellInfo();
 				expansionCount.instanceCount = 1;
-				expandedCells.put(expandedName, expansionCount);
+				expandedCells.put(expansionKey, expansionCount);
 			} else
 			{
 				expansionCount.instanceCount++;
@@ -1404,7 +1429,8 @@ public class PixelDrawing
 		}
 
 		// now recurse
-		countCell(subCell, null, fullInstantiate, subTrans);
+
+		countCell(subCell, null, fullInstantiate, subOrient, subTrans);
 	}
 
 	public static void forceRedraw(Cell cell)
@@ -1415,33 +1441,12 @@ public class PixelDrawing
 		List keys = new ArrayList();
 		for(Iterator it = expandedCells.keySet().iterator(); it.hasNext(); )
 			keys.add(it.next());
-		String description = cell.describe(false);
 		for(Iterator it = keys.iterator(); it.hasNext(); )
 		{
-			String expandedName = (String)it.next();
-			String cellName = expandedName;
-			int spacePos = cellName.indexOf(' ');
-			if (spacePos >= 0) cellName = cellName.substring(0, spacePos);
-			if (cellName.equals(description))
-			{
-				expandedCells.remove(expandedName);
-			}
+            ExpandedCellKey expansionKey = (ExpandedCellKey)it.next();
+            if (expansionKey.cell == cell)
+				expandedCells.remove(expansionKey);
 		}
-	}
-
-	/**
-	 * Method to construct a string that describes a transformation of a cell.
-	 * Appends the upper-left 2x2 part of the transformation matrix to the cell name.
-	 * Scaling by 100 and making it an integer ensures that similar transformation
-	 * matrices get merged into one name.
-	 */
-	private String makeExpandedName(Cell subCell, AffineTransform subTrans)
-	{
-		int t00 = (int)(subTrans.getScaleX() * 100);
-		int t01 = (int)(subTrans.getShearX() * 100);
-		int t10 = (int)(subTrans.getShearY() * 100);
-		int t11 = (int)(subTrans.getScaleY() * 100);
-		return subCell.describe(false) + " " + t00 + " " + t01 + " " + t10 + " " + t11;
 	}
 
 	/**
@@ -1584,7 +1589,7 @@ public class PixelDrawing
 
 			// transform the bounds
 			poly.transform(trans);
-			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
+//			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 
 			// render the polygon
 			if (DEBUGRENDERTIMING)
@@ -1619,22 +1624,24 @@ public class PixelDrawing
 		if (layerNum < 0) return null;
 
 		byte [][] layerBitMap = layerBitMaps[layerNum];
-		if (layerBitMap == null)
-		{
-			 // allocate this bitplane dynamically
-			layerBitMap = new byte[sz.height][];
-			for(int y=0; y<sz.height; y++)
-			{
-				byte [] row = new byte[numBytesPerRow];
-				for(int x=0; x<numBytesPerRow; x++) row[x] = 0;
-				layerBitMap[y] = row;
-			}
-			layerBitMaps[layerNum] = layerBitMap;
-			numLayerBitMapsCreated++;
-		}
-		return layerBitMap;
+		if (layerBitMap != null) return layerBitMap;
+		// allocate this bitplane dynamically
+        return newLayerBitMap(layerNum);
 	}
 
+    private byte [][] newLayerBitMap(int layerNum) {
+        byte [][] layerBitMap= new byte[sz.height][];
+        for(int y=0; y<sz.height; y++) {
+            byte [] row = new byte[numBytesPerRow];
+            for(int x=0; x<numBytesPerRow; x++) row[x] = 0;
+            layerBitMap[y] = row;
+        }
+        layerBitMaps[layerNum] = layerBitMap;
+        numLayerBitMapsCreated++;
+        return layerBitMap;
+        
+    }
+    
 	/**
 	 * Render a Poly to the offscreen buffer.
 	 */
@@ -2864,22 +2871,27 @@ public class PixelDrawing
 		}
 
 		// get box information for limiting text size
-		int boxedWidth = -1, boxedHeight = -1;
 		if (style == Poly.Type.TEXTBOX)
 		{
-			boxedWidth = (int)rect.getWidth();
-			boxedHeight = (int)rect.getHeight();
-            //  drawBounds.getWidth() > 0 initial window
-            if (drawBounds != null && drawBounds.getWidth() > 0) {
-                // clip if not within bounds
-                Rectangle2D dbBounds = wnd.screenToDatabase(rect);
-                if (wnd.isInPlaceEdit() && dbBounds != null) {
-                    AffineTransform xOut = wnd.getInPlaceTransformOut();
-                    GenMath.transformRect(dbBounds, xOut);
-                }
-                if (!GenMath.rectsIntersect(drawBounds, dbBounds)) return;
-            }
+            if (rect.x >= sz.width || rect.x + rect.width < 0 || rect.y >= sz.height || rect.y + rect.height < 0)
+                return;
         }
+//		int boxedWidth = -1, boxedHeight = -1;
+//		if (style == Poly.Type.TEXTBOX)
+//		{
+//			boxedWidth = (int)rect.getWidth();
+//			boxedHeight = (int)rect.getHeight();
+//            //  drawBounds.getWidth() > 0 initial window
+//            if (drawBounds != null && drawBounds.getWidth() > 0) {
+//                // clip if not within bounds
+//                Rectangle2D dbBounds = wnd.screenToDatabase(rect);
+//                if (wnd.isInPlaceEdit() && dbBounds != null) {
+//                    AffineTransform xOut = wnd.getInPlaceTransformOut();
+//                    GenMath.transformRect(dbBounds, xOut);
+//                }
+//                if (!GenMath.rectsIntersect(drawBounds, dbBounds)) return;
+//            }
+//        }
 
 		// create RenderInfo
 		long startTime = 0;
@@ -2909,14 +2921,17 @@ public class PixelDrawing
 		}
 
 		// check if text is on-screen
-        if (drawBounds != null && drawBounds.getWidth() > 0) {
-            Rectangle2D dbBounds = wnd.screenToDatabase(renderInfo.bounds);
-            if (wnd.isInPlaceEdit() && dbBounds != null) {
-                AffineTransform xOut = wnd.getInPlaceTransformOut();
-                GenMath.transformRect(dbBounds, xOut);
-            }
-            if (!GenMath.rectsIntersect(drawBounds, dbBounds)) return;
-        }
+        if (renderInfo.bounds.getMinX() >= sz.width || renderInfo.bounds.getMaxX() < 0 ||
+            renderInfo.bounds.getMinY() >= sz.height || renderInfo.bounds.getMaxY() < 0)
+                return;
+//        if (drawBounds != null && drawBounds.getWidth() > 0) {
+//            Rectangle2D dbBounds = wnd.screenToDatabase(renderInfo.bounds);
+//            if (wnd.isInPlaceEdit() && dbBounds != null) {
+//                AffineTransform xOut = wnd.getInPlaceTransformOut();
+//                GenMath.transformRect(dbBounds, xOut);
+//            }
+//            if (!GenMath.rectsIntersect(drawBounds, dbBounds)) return;
+//        }
 
 		// render the text
 		Raster ras = renderText(renderInfo);
@@ -3982,14 +3997,6 @@ public class PixelDrawing
 	 * @param result the Point in which to store the screen coordinates.
 	 */
 	private void databaseToScreen(double dbX, double dbY, Point result) {
-		// if doing in-place display, transform out of the proper cell
-		if (renderedWindow && wnd.isInPlaceEdit())
-		{
-			Point2D dbPt = new Point2D.Double(dbX, dbY);
-       		wnd.getInPlaceTransformOut().transform(dbPt, dbPt);
-       		dbX = dbPt.getX();
-       		dbY = dbPt.getY();
-		}
         double scrX = originX + dbX*scale;
         double scrY = originY - dbY*scale;
 		result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);

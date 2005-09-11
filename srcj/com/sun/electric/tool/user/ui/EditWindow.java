@@ -1280,7 +1280,7 @@ public class EditWindow extends JPanel
 		offscreen.clearImage(false, null);
 		setScale(scale);
         offscreen.initOrigin();
-		offscreen.drawNode(ni, DBMath.MATID, null, null, false, forceVisible, null);
+		offscreen.drawNode(ni, Orientation.IDENT, DBMath.MATID, null, null, false, forceVisible, null);
 		return offscreen.composite(null);
 	}
 

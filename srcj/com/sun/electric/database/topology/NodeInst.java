@@ -1318,6 +1318,23 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 //		return xform;
 	}
 
+    /**
+	 * Method to return a transformation that moves up the
+	 * hierarchy, combined with a previous transformation.
+	 * Presuming that this NodeInst is a Cell instance, the
+	 * transformation maps points in the Cell's coordinate space 
+	 * into this NodeInst's parent Cell's coordinate space.
+	 * @param prevTransform the previous transformation to the NodeInst's Cell.
+	 * @return a transformation that translates up the hierarchy,
+	 * including the previous transformation.
+	 */
+	public AffineTransform transformOut(AffineTransform prevTransform)
+	{
+        AffineTransform transform = transformOut();
+        transform.preConcatenate(prevTransform);
+        return transform;
+	}
+
 	/**
 	 * Method to return a transformation that moves down the hierarchy.
 	 * Presuming that this NodeInst is a Cell instance, the
