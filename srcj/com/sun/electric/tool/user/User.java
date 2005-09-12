@@ -49,6 +49,7 @@ import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.PixelDrawing;
 import com.sun.electric.tool.user.ui.TextWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.tool.user.ui.VectorDrawing;
 import com.sun.electric.tool.user.ui.WindowContent;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
@@ -488,6 +489,7 @@ public class User extends Listener
 	 */
 	private void markCellForRedraw(Cell cell, boolean recurseUp)
 	{
+		VectorDrawing.cellChanged(cell);
 		for(Iterator wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)wit.next();
@@ -1798,6 +1800,19 @@ public class User extends Listener
 	 * @param on true to show hierarchical cursor coordinates as they move in the edit window.
 	 */
 	public static void setShowHierarchicalCursorCoordinates(boolean on) { cacheShowHierarchicalCursorCoordinates.setBoolean(on); }
+
+	private static Pref cacheUseOlderDisplayAlgorithm = Pref.makeBooleanPref("UseOlderDisplayAlgorithm", tool.prefs, false);
+	/**
+	 * Method to tell whether to use the older "PixelDrawing" display algorithm.
+	 * The default is "false" (use newer "VectorDrawing" display algorithm).
+	 * @return true to use the older "PixelDrawing" display algorithm.
+	 */
+	public static boolean isUseOlderDisplayAlgorithm() { return cacheUseOlderDisplayAlgorithm.getBoolean(); }
+	/**
+	 * Method to set whether to use the older "PixelDrawing" display algorithm.
+	 * @param on true to use the older "PixelDrawing" display algorithm.
+	 */
+	public static void setUseOlderDisplayAlgorithm(boolean on) { cacheUseOlderDisplayAlgorithm.setBoolean(on); }
 
 	private static Pref cacheShowFileSelectionForNetlists = Pref.makeBooleanPref("ShowFileSelectionForNetlists", tool.prefs, true);
 	/**

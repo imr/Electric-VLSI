@@ -133,6 +133,7 @@ public class EditWindow extends JPanel
 	/** the window offset */								private double offx = 0, offy = 0;
 	/** the window bounds in database units */				private Rectangle2D databaseBounds;
 	/** the size of the window (in pixels) */				private Dimension sz;
+	/** the display cache for this window */				public VectorDrawing vd;
 	/** the half-sizes of the window (in pixels) */			private int szHalfWidth, szHalfHeight;
 	/** the cell that is in the window */					private Cell cell;
 	/** the page number (for multipage schematics) */		private int pageNumber;
@@ -197,6 +198,7 @@ public class EditWindow extends JPanel
         this.cell = cell;
         this.pageNumber = 0;
         this.wf = wf;
+		vd = new VectorDrawing(this);
 		this.gridXSpacing = User.getDefGridXSpacing();
 		this.gridYSpacing = User.getDefGridYSpacing();
 		inPlaceDisplay = false;

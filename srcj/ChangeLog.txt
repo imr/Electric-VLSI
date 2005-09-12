@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+IMP: (09/12/05, SMR) Complete rewrite of display code.  New module, "VectorDrawing.java"
+     caches low-level graphics for each cell, allowing caches to be "played-back" rapidly.
+     Has better performance than "PixelDrawing" which caches expanded cell images.
+     Does not need to recache when zoom scale changes, layer visibility changes, etc.
+     Only downside is that cache creation is slow when large chip is first fully-instantiated.
+
 BUG: (09/11/05, DN) Slow display (Bug #537).
 FIX: In PixelDrawing make maxObjectSize and halfMaxObjectSize static (they were 0 in cache cells).
      Use class ExpandedCellKey instead of String. Don't create Image for cache cells.

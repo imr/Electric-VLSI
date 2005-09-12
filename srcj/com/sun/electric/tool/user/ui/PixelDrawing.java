@@ -243,7 +243,7 @@ public class PixelDrawing
     /** the X origin of the cell in display coordinates. */ private double originX;
     /** the Y origin of the cell in display coordinates. */ private double originY;
     /** the area of the cell to draw, in DB units */        private Rectangle2D drawBounds;
-	/** whether any layers are highlighted/dimmed */		private boolean highlightingLayers;
+	/** whether any layers are highlighted/dimmed */		boolean highlightingLayers;
 	/** true if the last display was a full-instantiate */	private boolean lastFullInstantiate = false;
 	/** true if text can be drawn (not too zoomed-out) */	private boolean canDrawText;
 	/** maximum size before an object is too small */		private static double maxObjectSize;
@@ -261,7 +261,7 @@ public class PixelDrawing
 	// the transparent bitmaps
 	/** the offscreen maps for transparent layers */		private byte [][][] layerBitMaps;
 	/** row pointers for transparent layers */				private byte [][] compositeRows;
-	/** the number of transparent layers */					private int numLayerBitMaps;
+	/** the number of transparent layers */					int numLayerBitMaps;
 	/** the number of bytes per row in offscreen maps */	private int numBytesPerRow;
 	/** the number of offscreen transparent maps made */	private int numLayerBitMapsCreated;
 	/** the technology of the window */						private Technology curTech;
@@ -381,6 +381,12 @@ public class PixelDrawing
 	protected BufferedImage getBufferedImage() { return img; }
 
 	/**
+	 * Method for obtaining the size of the offscreen bitmap.
+	 * @return the size of the offscreen bitmap.
+	 */
+	public Dimension getSize() { return sz; }
+
+	/**
 	 * Method to clear the cache of expanded subcells.
 	 * This is used by layer visibility which, when changed, causes everything to be redrawn.
 	 */
@@ -470,25 +476,31 @@ public class PixelDrawing
 			drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, "No cell in this window", null, textGraphics, false);
 		} else
 		{
-			// reset cached cell counts
-			numberToReconcile = SINGLETONSTOADD;
-			for(Iterator it = expandedCells.values().iterator(); it.hasNext(); )
+			if (User.isUseOlderDisplayAlgorithm())
 			{
-				ExpandedCellInfo count = (ExpandedCellInfo)it.next();
-				count.instanceCount = 0;
+				// reset cached cell counts
+				numberToReconcile = SINGLETONSTOADD;
+				for(Iterator it = expandedCells.values().iterator(); it.hasNext(); )
+				{
+					ExpandedCellInfo count = (ExpandedCellInfo)it.next();
+					count.instanceCount = 0;
+				}
+
+				// determine which cells should be cached (must have at least 2 instances)
+				countCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID);
+
+				// now render it all
+				drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID, wnd, wnd.getVarContext());
+			} else
+			{
+				wnd.vd.render(cell, fullInstantiate, drawLimitBounds);
 			}
-
-			// determine which cells should be cached (must have at least 2 instances)
-			countCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID);
-
-			// now render it all
-			drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID, wnd, wnd.getVarContext());
 		}
 
 		// merge transparent image into opaque one
 		synchronized(img) { composite(renderBounds); };
 
-		if (TAKE_STATS)
+		if (TAKE_STATS && User.isUseOlderDisplayAlgorithm())
 		{
 			long endTime = System.currentTimeMillis();
 			System.out.println("Took "+com.sun.electric.database.text.TextUtils.getElapsedTime(endTime-startTime)+
@@ -1619,7 +1631,7 @@ public class PixelDrawing
 		}
 	}
 
-	private byte [][] getLayerBitMap(int layerNum)
+	byte [][] getLayerBitMap(int layerNum)
 	{
 		if (layerNum < 0) return null;
 
@@ -1841,7 +1853,7 @@ public class PixelDrawing
 
 	// ************************************* BOX DRAWING *************************************
 
-	private int getTheColor(EGraphics desc, boolean dimmed)
+	int getTheColor(EGraphics desc, boolean dimmed)
 	{
 		int col = desc.getColor().getRGB() & 0xFFFFFF;
 		if (highlightingLayers)
@@ -1961,7 +1973,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw a box on the off-screen buffer.
 	 */
-	private void drawBox(int lX, int hX, int lY, int hY, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	void drawBox(int lX, int hX, int lY, int hY, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// get color and pattern information
 		int col = 0;
@@ -2084,7 +2096,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw a line on the off-screen buffer.
 	 */
-	private void drawLine(Point pt1, Point pt2, byte [][] layerBitMap, EGraphics desc, int texture, boolean dimmed)
+	void drawLine(Point pt1, Point pt2, byte [][] layerBitMap, EGraphics desc, int texture, boolean dimmed)
 	{
 		// first clip the line
 		if (GenMath.clipLine(pt1, pt2, 0, sz.width-1, 0, sz.height-1)) return;
@@ -2567,7 +2579,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw a polygon on the off-screen buffer.
 	 */
-	private void drawPolygon(Point [] points, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	void drawPolygon(Point [] points, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// get color and pattern information
 		int col = 0;
@@ -2802,7 +2814,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw a text on the off-screen buffer
 	 */
-	private void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	public void drawText(Rectangle rect, Poly.Type style, TextDescriptor descript, String s, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// quit if string is null
 		if (s == null) return;
@@ -3369,7 +3381,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw a circle on the off-screen buffer
 	 */
-	private void drawCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	void drawCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// get parameters
 		int radius = (int)center.distance(edge);
@@ -3501,7 +3513,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw a thick circle on the off-screen buffer
 	 */
-	private void drawThickCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	void drawThickCircle(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// get parameters
 		int radius = (int)center.distance(edge);
@@ -3630,7 +3642,7 @@ public class PixelDrawing
 	/**
 	 * Method to draw a filled-in circle of radius "radius" on the off-screen buffer
 	 */
-	private void drawDisc(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	void drawDisc(Point center, Point edge, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// get parameters
 		int radius = (int)center.distance(edge);
@@ -3841,7 +3853,7 @@ public class PixelDrawing
 	 * draws an arc centered at (centerx, centery), clockwise,
 	 * passing by (x1,y1) and (x2,y2)
 	 */
-	private void drawCircleArc(Point center, Point p1, Point p2, boolean thick, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
+	void drawCircleArc(Point center, Point p1, Point p2, boolean thick, byte [][] layerBitMap, EGraphics desc, boolean dimmed)
 	{
 		// ignore tiny arcs
 		if (p1.x == p2.x && p1.y == p2.y) return;
@@ -3932,7 +3944,7 @@ public class PixelDrawing
     
 	// ************************************* RENDERING SUPPORT *************************************
 
-	private void drawPoint(int x, int y, byte [][] layerBitMap, int col)
+	void drawPoint(int x, int y, byte [][] layerBitMap, int col)
 	{
 		if (layerBitMap == null)
 		{

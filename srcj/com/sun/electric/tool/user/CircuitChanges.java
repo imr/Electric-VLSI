@@ -4959,7 +4959,7 @@ public class CircuitChanges
 			System.out.println("Must define an area in which to display");
 			return;
 		}
-		wnd.repaintContents(bounds, false);
+		wnd.repaintContents(bounds, true);
 	}
 
 	private static void DoExpandCommands(boolean unExpand, int amount)
@@ -5007,7 +5007,8 @@ public class CircuitChanges
 				NodeInst ni = (NodeInst)it.next();
 				if (unExpand) doUnExpand(ni); else
 					doExpand(ni, amount, 0);
-				Undo.redrawObject(ni);
+				if (User.isUseOlderDisplayAlgorithm())
+					Undo.redrawObject(ni);
 			}
 			expandFlagBit = null;
 			PixelDrawing.clearSubCellCache();
