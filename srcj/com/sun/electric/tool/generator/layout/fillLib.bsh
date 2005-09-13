@@ -1,4 +1,4 @@
-/*
+/* -*- tab-width: 4 -*-
  * Electric(tm) VLSI Design System
  *
  * File: fillLib.bsh
@@ -33,11 +33,22 @@ FillGenerator.ExportConfig PERIMETER_AND_INTERNAL = FillGenerator.PERIMETER_AND_
 FillGenerator.PowerType VDD = FillGenerator.VDD;
 FillGenerator.PowerType POWER = FillGenerator.POWER;
 
-FillGenerator fg = new FillGenerator();
+FillGenerator fg = new FillGenerator("mocmos");
 fg.setFillLibrary("fillLib");
 fg.setFillCellWidth(245);
 fg.setFillCellHeight(175);
 
+// Floor plan of a typical fill Cell metal layer:
+//                          (ground space specified by user)/2
+//  gggggggggggggggggggg    ground bus bar
+//                          wide space set by design rules
+//  vvvvvvvvvvvvvvvvvvvv    vdd bus bar
+//                          Vdd space specified by user
+//  vvvvvvvvvvvvvvvvvvvv    vdd bus bar
+//                          wide space set by design rules
+//  gggggggggggggggggggg    ground bus bar
+//                          (ground space specified by user)/2
+//
 // Arguments to reserveSpaceOnLayer():
 //     layer number, 
 //     vdd space, 

@@ -363,7 +363,7 @@ class CapCell {
 			// compute number of MOS's bottom to top
 			mosPitchY = gndWidth + 2*vddGndSpace + vddWidth;
 			gateLength = mosPitchY - gndWidth - 2; 
-			numMosY = (int) Math.floor(protoHeight/mosPitchY) - 1;
+			numMosY = (int) Math.floor((protoHeight-Tech.wellWidth())/mosPitchY);
 			botWellContY = - numMosY * mosPitchY / 2; 
 		}
 	}
@@ -1168,8 +1168,18 @@ public class FillGenerator {
 	public static final ExportConfig PERIMETER_AND_INTERNAL = 
 		ExportConfig.PERIMETER_AND_INTERNAL;
 	
+	// Deprecated: Keep this for backwards compatibility
 	public FillGenerator() {
 		Tech.setTechnology("mocmos");
+	}
+	
+	public FillGenerator(String techNm) {
+		LayoutLib.error(!techNm.equals(Tech.MOCMOS) &&
+						!techNm.equals(Tech.TSMC180),
+						"FillGenerator only recognizes the technologies: "+
+						Tech.MOCMOS+" and "+Tech.TSMC180+".\n"+
+						"For 90nm use FillGenerator90");
+		Tech.setTechnology(techNm);
 	}
 
 	/** Specify the library into which fill cells should be placed */

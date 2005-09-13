@@ -622,9 +622,7 @@ public class StdCellParams {
         if      (tech == Tech.TSMC90) initTSMC90();
         else if (tech == Tech.MOCMOS) initMoCMOS(MoCMOS.tech);
         else {
-            error(true, "Standard Cell Params does not understand technology "+tech+
-                ", using default values for "+MoCMOS.tech+" instead.");
-            initMoCMOS(MoCMOS.tech);
+            error(true, "Standard Cell Params does not understand technology "+tech);
         }
 		init(lib);
 	}

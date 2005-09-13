@@ -91,6 +91,7 @@ public class Tech {
 
 	//---------------------------- private data ----------------------------------
 	private static boolean isTsmc90;
+	private static boolean isTsmc180;
 	private static final String[] MOCMOS_LAYER_NAMES = {"Polysilicon-1", "Metal-1", 
 	    "Metal-2", "Metal-3", "Metal-4", "Metal-5", "Metal-6"};
 	private static final String[] TSMC90_LAYER_NAMES = {"Polysilicon", "Metal-1", 
@@ -101,12 +102,22 @@ public class Tech {
 	private static PrimitiveNode[] vias;
 	private static HashMap viaMap = new HashMap();
 	private static Technology tech;
-    private static double wellOverhangDiff;
+	
+	// RKao my first attempt to embed technology specific dimensions
+    private static double 
+		wellWidth, 
+		gateExtendPastMOS,
+		p1Width,
+		p1ToP1Space,
+		gateToGateSpace,
+		gateToDiffContSpace,
+		diffContWidth;
 
 	//----------------------------- public data ----------------------------------
     /** valid Electric technologies understood */
     public static final String MOCMOS = "mocmos";
     public static final String TSMC90 = "tsmc90";
+    public static final String TSMC180 = "tsmc180";
 
 	/** layers
 	 *
@@ -209,7 +220,7 @@ public class Tech {
 	/** Generic: Universal Arcs are used to fool Electric's NCC into
 	 *  paralleling MOS stacks.*/
 	public static ArcProto universalArc;
-
+	
 	/** round to avoid MOCMOS CIF resolution errors */
 	public static double roundToGrid(double x) {
 		return isTsmc90 ? x : (Math.rint(x * 2) / 2);
@@ -230,11 +241,20 @@ public class Tech {
 	//----------------------------- public methods  ------------------------------
 	
 	public static void setTechnology(String techNm) {
-		error(!techNm.equals("mocmos") && !techNm.equals("tsmc90"),
-			  "LayoutLib only supports two technologies: mocmos or tsmc90: "+techNm);
-		isTsmc90 = techNm.equals("tsmc90");
+		error(!techNm.equals(MOCMOS) && !techNm.equals(TSMC90) &&
+			  !techNm.equals(TSMC180),
+			  "LayoutLib only supports three technologies: MOCMOS, TSMC90, or TSMC180: "+techNm);
+		isTsmc90 = techNm.equals(TSMC90);
+		isTsmc180 = techNm.equals(TSMC180);
 		
-		tech = Technology.findTechnology(techNm);
+		if (isTsmc180) {
+			// My "TSMC180" really uses Electric's MoCMOS Technology in 
+			// combination with the TSMC foundry.
+			tech = Technology.findTechnology(MOCMOS);
+			tech.setSelectedFoundry("tsmc");
+		} else {
+			tech = Technology.findTechnology(techNm);
+		}
 		layerNms = isTsmc90 ? TSMC90_LAYER_NAMES : MOCMOS_LAYER_NAMES;
 		nbLay = layerNms.length;
 		layers = new ArcProto[nbLay];
@@ -385,6 +405,34 @@ public class Tech {
 		viaMap.put(new Integer(ndiff.hashCode() * m1.hashCode()), ndm1);
 		viaMap.put(new Integer(pdiff.hashCode() * m1.hashCode()), pdm1);
 		viaMap.put(new Integer(p1.hashCode() * m1.hashCode()), p1m1);
+		
+		// initialize design rules (RKao first cut)
+		if (isTsmc90) {
+		    wellWidth = 14;
+		    gateExtendPastMOS = 3.25;
+		    p1Width = 2;
+		    p1ToP1Space = 3.6;
+		    gateToGateSpace = 4;
+		    gateToDiffContSpace = 5.6 - 5.2/2 - 2/2;
+		    diffContWidth = 5.2;
+		} else if (isTsmc180) {
+		    wellWidth = 17;
+		    gateExtendPastMOS = 2.5;
+		    p1Width = 1.8;
+		    p1ToP1Space = 4.5 - .9 - .9;
+		    gateToGateSpace = 3;
+		    gateToDiffContSpace = 4.5 - 2.5 - .9;
+		    diffContWidth = 5;
+		} else {
+			// default to MoCMOS
+		    wellWidth = 17;
+		    gateExtendPastMOS = 2;
+		    p1Width = 2;
+		    p1ToP1Space = 3;
+		    gateToGateSpace = 3;
+		    gateToDiffContSpace = .5;
+		    diffContWidth = 5;
+		}
 	}
 
     public static boolean isTSMC90() { return isTsmc90; }
@@ -459,4 +507,24 @@ public class Tech {
 		}
 		return null;
 	}
+
+	/** Here is my first attempt to embed design rules into Tech. This is useful for
+	 * distinguising MoCMOS from tsmc180. RKao */
+
+	/** @return min width of Well */
+	public static double wellWidth() {return wellWidth;}
+	/** @return MOS edge to gate edge */
+    public static double gateExtendPastMOS() {return gateExtendPastMOS;}
+    /** @return min width of polysilicon 1 */
+    public static double p1Width() {return p1Width;}
+    /** @return min spacing between polysilicon 1 */
+    public static double p1ToP1Space() {return p1ToP1Space;}
+    /** @return min spacing between gates of series transistors */ 
+    public static double gateToGateSpace() {return gateToGateSpace;}
+    /** @return min spacing between MOS gate and diffusion edge of diff contact */
+    public static double gateToDiffContSpace() {return gateToDiffContSpace;}
+    /** @return min width of diffusion surrounding diff contact */
+    public static double diffContWidth() {return diffContWidth;}
+
+
 }
