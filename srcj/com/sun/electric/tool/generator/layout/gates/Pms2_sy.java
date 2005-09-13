@@ -72,6 +72,7 @@ public class Pms2_sy {
 		LayoutLib.newExport(pms2, "g", PortCharacteristic.IN, Tech.m1,
 							4, gX, gY);
 		double mosX = gX + 2 + 3 + 2; 	// m1_wid/2 + m1_m1_sp + m1_wid/2
+
 		double pmosY = pmosBot + fw.physWid/2;
 		FoldedMos pmos = new FoldedPmos(mosX, pmosY, fw.nbFolds, nbStacked,
 										fw.gateWid, pms2, stdCell);

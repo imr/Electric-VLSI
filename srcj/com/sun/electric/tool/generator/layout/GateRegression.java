@@ -90,9 +90,62 @@ public class GateRegression extends Job {
     }
 
     public boolean doIt() {
-        runRegression(technology);
+//        runRegression(technology);
+        runGildaTest(technology);
         return true;
     }
+
+     public static int runGildaTest(Technology technology) {
+		System.out.println("begin Gate Regression");
+
+		Library scratchLib =
+		  LayoutLib.openLibForWrite("gilda", "gilda");
+
+        StdCellParams stdCell;
+        Technology tsmc90 = Technology.getTSMC90Technology();
+        if (tsmc90 != null && technology == tsmc90) {
+            Tech.setTechnology(Tech.TSMC90);
+            stdCell = new StdCellParams(scratchLib, Tech.TSMC90);
+            stdCell.enableNCC("purpleFour");
+            stdCell.setSizeQuantizationError(0.05);
+            stdCell.setMaxMosWidth(1000);
+        } else {
+            Tech.setTechnology(Tech.MOCMOS);
+            // Test the parameters used by divider
+        	stdCell = GateLayoutGenerator.dividerParams(scratchLib);
+
+        	stdCell.setSizeQuantizationError(0.05);
+        	stdCell.setSimpleName(false);
+
+//        	stdCell = new StdCellParams(scratchLib, Tech.MOCMOS);
+//            stdCell.enableNCC("purpleFour");
+//            stdCell.setSizeQuantizationError(0.05);
+//            stdCell.setMaxMosWidth(1000);
+//            stdCell.setVddY(21);
+//            stdCell.setGndY(-21);
+//            stdCell.setNmosWellHeight(84);
+//            stdCell.setPmosWellHeight(84);
+        }
+
+		// a normal run
+        aPass(1, stdCell, technology);
+        //Inv2iKn.makePart(10, stdCell);
+        //Inv2iKn_wideOutput.makePart(10, stdCell);
+//        allSizes(stdCell, technology);
+
+        //aPass(50, stdCell, technology);
+
+        // test the ability to move ground bus
+
+        Cell gallery = Gallery.makeGallery(scratchLib);
+        DrcRings.addDrcRings(gallery, FILTER, stdCell);
+
+        LayoutLib.writeLibrary(scratchLib);
+
+        System.out.println("done.");
+
+        return 0;
+	}
     /** Programatic interface to gate regressions.
      * @param technology
      * @return the number of errors detected */

@@ -52,6 +52,7 @@ import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.generator.layout.*;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.erc.ERCWellCheck;
@@ -238,6 +239,8 @@ public class DebugMenus {
 
         MenuBar.Menu gildaMenu = MenuBar.makeMenu("_Gilda");
         menuBar.add(gildaMenu);
+        gildaMenu.addMenuItem("Gate Generator", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator();}});
         gildaMenu.addMenuItem("Clean libraries", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {cleanSetOfLibraries();}});
         gildaMenu.addMenuItem("9 layers -> 7 layers", null,
@@ -734,6 +737,10 @@ public class DebugMenus {
 	}
 
 	// ---------------------- Gilda's Stuff MENU -----------------
+    private static void tsmcGateGenerator()
+    {
+        GateRegression reg = new GateRegression(MoCMOS.tech);
+    }
 
     private static void cleanSetOfLibraries()
     {

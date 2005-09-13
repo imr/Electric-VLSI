@@ -127,6 +127,9 @@ public class StdCellParams {
 	private double diffContWid;
 	private double maxMosWidth;
 
+    //gate length depending on foundry
+    private double gateLength;
+
     /** This determines width of arcs connecting to diffusion contacts */
     private double difWidHint;
     /** Diff Contact to Gate node spacing */
@@ -176,7 +179,7 @@ public class StdCellParams {
 		init();
 	}
 
-    private void initMoCMOS() {
+    private void initMoCMOS(Technology tech) {
         nmosWellHeight = 70;
         pmosWellHeight = 70;
         gndY = -21.0;
@@ -207,9 +210,14 @@ public class StdCellParams {
         minGateWid = 3;
         diffContWid = 5;
         maxMosWidth = 45;
+        String foundry = tech.getSelectedFoundry();
+        if (foundry.equals(Technology.Foundry.TSMC_FOUNDRY))
+            gateLength = 1.8;
+        else
+            gateLength = 2;
         difWidHint = 4;
         viaToMosPitch = 4;
-        mosToMosPitch = 5;
+        mosToMosPitch = 5; //5 = 3(active) + 2(gate)
         viaToViaPitch = 5;
         gridResolution = 0.5;
         difConIncr = 5;
@@ -612,11 +620,11 @@ public class StdCellParams {
 
 	public StdCellParams(Library lib, String tech) {
         if      (tech == Tech.TSMC90) initTSMC90();
-        else if (tech == Tech.MOCMOS) initMoCMOS();
+        else if (tech == Tech.MOCMOS) initMoCMOS(MoCMOS.tech);
         else {
             error(true, "Standard Cell Params does not understand technology "+tech+
                 ", using default values for "+MoCMOS.tech+" instead.");
-            initMoCMOS();
+            initMoCMOS(MoCMOS.tech);
         }
 		init(lib);
 	}
@@ -713,6 +721,7 @@ public class StdCellParams {
 		init();
 	}
 
+    public double getGateLength() {return gateLength;}
 	public double getNmosWellTieY() {return nmosWellTieY;}
 	public double getPmosWellTieY() {return pmosWellTieY;}
 	public double getNmosWellTieWidth() {
