@@ -238,6 +238,38 @@ public class GenMath
         return ang;
     }
 
+	/**
+	 * Method to compute the area of a polygon defined by an array of points.
+     * Returns always positive numbers
+	 * @param points the array of points.
+	 * @return the area of the polygon defined by these points.
+	 */
+	public static double getAreaOfPoints(Point2D [] points)
+	{
+		double area = 0.0;
+		double x0 = points[0].getX();
+		double y0 = points[0].getY();
+		double y1 = 0;
+		for(int i=1; i<points.length; i++)
+		{
+			double x1 = points[i].getX();
+			y1 = points[i].getY();
+
+			/* triangulate around the polygon */
+			double p1 = x1 - x0;
+			double p2 = y0 + y1;
+			double partial = p1 * p2;
+			area += partial / 2.0f;
+			x0 = x1;
+			y0 = y1;
+		}
+		double p1 = points[0].getX() - x0;
+		double p2 = points[0].getY() + y1;
+		double partial = p1 * p2;
+		area += partial / 2.0f;
+		return Math.abs(area);
+	}
+
     /**
      * Method to return the sum of two points.
      * @param p the first point.
