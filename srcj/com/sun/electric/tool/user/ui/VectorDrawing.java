@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.ui;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EGraphics;
@@ -65,7 +66,7 @@ import java.util.Set;
 
 /**
  * To Do:
- *    Down-in-place editing
+ *    When editing down-in-place, why does export motion not move the text?
  *    Size computation and elimination on all cached objects
  *    No recache when port/export display is changed
  * Can't do:
@@ -73,16 +74,26 @@ import java.util.Set;
  */
 public class VectorDrawing
 {
-	private static final boolean STATS = true;
+	private static final boolean STATS = false;
 
 	/** the EditWindow being drawn */						private EditWindow wnd;
-	/** statistics */										private int boxCount, tinyBoxCount, lineCount, polygonCount;
+	/** the rendering object */								private PixelDrawing offscreen;
+	/** the window scale */									private float scale;
+	/** the window offset */								private float offX, offY;
+	/** the window scale and pan factor */					private float factorX, factorY;
+	/** true if "peeking" and expanding to the bottom */	private boolean fullInstantiate;
+	/** time that rendering started */						private long startTime;
+	/** true if the user has been told of delays */			private boolean takingLongTime;
+	/** the half-sizes of the window (in pixels) */			private int szHalfWidth, szHalfHeight;
+	/** the screen clipping */								private int screenLX, screenHX, screenLY, screenHY;
+	/** statistics */										private int boxCount, tinyBoxCount, lineBoxCount, lineCount, polygonCount;
 	/** statistics */										private int crossCount, textCount, circleCount, arcCount;
 	/** statistics */										private int subCellCount, tinySubCellCount;
-	/** the threshold of object sizes */					private double maxObjectSize;
+	/** the threshold of object sizes */					private float maxObjectSize;
 	/** temporary objects (saves allocation) */				private Point tempPt1 = new Point(), tempPt2 = new Point();
 	/** temporary objects (saves allocation) */				private Point tempPt3 = new Point(), tempPt4 = new Point();
 	/** temporary object (saves allocation) */				private Rectangle tempRect = new Rectangle();
+
 	/** list of cell expansions. */							private static HashMap cachedCells = new HashMap();
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
 	/** no rotation or mirroring */							private static final Orientation NOROTATION = Orientation.fromJava(0, false, false);
@@ -101,7 +112,7 @@ public class VectorDrawing
 		Layer layer;
 		EGraphics graphics;
 		boolean hideOnLowLevel;
-		double minSize, maxSize;
+		float minSize, maxSize;
 
 		VectorBase(Layer layer, EGraphics graphics, boolean hideOnLowLevel)
 		{
@@ -112,10 +123,10 @@ public class VectorDrawing
 			hideOnLowLevel = false;
 		}
 
-		void setSize(double size1, double size2)
+		void setSize(float size1, float size2)
 		{
-			this.minSize = Math.min(size1, size2);
-			this.maxSize = Math.max(size1, size2);
+			minSize = Math.min(size1, size2);
+			maxSize = Math.max(size1, size2);
 		}
 	}
 
@@ -124,18 +135,18 @@ public class VectorDrawing
 	 */
 	private static class VectorManhattan extends VectorBase
 	{
-		double c1X, c1Y, c2X, c2Y;
+		float c1X, c1Y, c2X, c2Y;
 		int tinyColor;
 
-		VectorManhattan(double c1X, double c1Y, double c2X, double c2Y, Layer layer, EGraphics graphics, boolean hideOnLowLevel)
+		VectorManhattan(float c1X, float c1Y, float c2X, float c2Y, Layer layer, EGraphics graphics, boolean hideOnLowLevel)
 		{
 			super(layer, graphics, hideOnLowLevel);
 			this.c1X = c1X;
 			this.c1Y = c1Y;
 			this.c2X = c2X;
 			this.c2Y = c2Y;
-			double dX = Math.abs(c1X - c2X);
-			double dY = Math.abs(c1Y - c2Y);
+			float dX = Math.abs(c1X - c2X);
+			float dY = Math.abs(c1Y - c2Y);
 			setSize(dX, dY);
 			tinyColor = -1;
 			if (layer != null)
@@ -171,16 +182,16 @@ public class VectorDrawing
 	 */
 	private static class VectorLine extends VectorBase
 	{
-		double fX, fY, tX, tY;
+		float fX, fY, tX, tY;
 		int texture;
 
 		VectorLine(double fX, double fY, double tX, double tY, int texture, Layer layer, EGraphics graphics, boolean hideOnLowLevel)
 		{
 			super(layer, graphics, hideOnLowLevel);
-			this.fX = fX;
-			this.fY = fY;
-			this.tX = tX;
-			this.tY = tY;
+			this.fX = (float)fX;
+			this.fY = (float)fY;
+			this.tX = (float)tX;
+			this.tY = (float)tY;
 			this.texture = texture;
 		}
 	}
@@ -190,16 +201,16 @@ public class VectorDrawing
 	 */
 	private static class VectorCircle extends VectorBase
 	{
-		double cX, cY, eX, eY;
+		float cX, cY, eX, eY;
 		int nature;
 
 		VectorCircle(double cX, double cY, double eX, double eY, int nature, Layer layer, EGraphics graphics, boolean hideOnLowLevel)
 		{
 			super(layer, graphics, hideOnLowLevel);
-			this.cX = cX;
-			this.cY = cY;
-			this.eX = eX;
-			this.eY = eY;
+			this.cX = (float)cX;
+			this.cY = (float)cY;
+			this.eX = (float)eX;
+			this.eY = (float)eY;
 			this.nature = nature;
 		}
 	}
@@ -209,19 +220,19 @@ public class VectorDrawing
 	 */
 	private static class VectorCircleArc extends VectorBase
 	{
-		double cX, cY, eX1, eY1, eX2, eY2;
+		float cX, cY, eX1, eY1, eX2, eY2;
 		boolean thick;
 
 		VectorCircleArc(double cX, double cY, double eX1, double eY1, double eX2, double eY2, boolean thick,
 			Layer layer, EGraphics graphics, boolean hideOnLowLevel)
 		{
 			super(layer, graphics, hideOnLowLevel);
-			this.cX = cX;
-			this.cY = cY;
-			this.eX1 = eX1;
-			this.eY1 = eY1;
-			this.eX2 = eX2;
-			this.eY2 = eY2;
+			this.cX = (float)cX;
+			this.cY = (float)cY;
+			this.eX1 = (float)eX1;
+			this.eY1 = (float)eY1;
+			this.eX2 = (float)eX2;
+			this.eY2 = (float)eY2;
 			this.thick = thick;
 		}
 	}
@@ -243,7 +254,7 @@ public class VectorDrawing
 		/** the text style */							Poly.Type style;
 		/** the descriptor of the text */				TextDescriptor descript;
 		/** the text to draw */							String str;
-		/** the text height (in display units) */		double height;
+		/** the text height (in display units) */		float height;
 		/** the type of text (CELL, EXPORT, etc.) */	int textType;
 		/** valid for port text on a node */			NodeInst ni;
 		/** valid for port text or export text */		Export e;
@@ -264,7 +275,7 @@ public class VectorDrawing
 			if (descript != null)
 			{
 				TextDescriptor.Size tds = descript.getSize();
-				if (!tds.isAbsolute()) height = tds.getSize();
+				if (!tds.isAbsolute()) height = (float)tds.getSize();
 			}
 		}
 	}
@@ -274,14 +285,14 @@ public class VectorDrawing
 	 */
 	private static class VectorCross extends VectorBase
 	{
-		double x, y;
+		float x, y;
 		boolean small;
 
 		VectorCross(double x, double y, boolean small, Layer layer, EGraphics graphics, boolean hideOnLowLevel)
 		{
 			super(layer, graphics, hideOnLowLevel);
-			this.x = x;
-			this.y = y;
+			this.x = (float)x;
+			this.y = (float)y;
 			this.small = small;
 		}
 	}
@@ -294,9 +305,9 @@ public class VectorDrawing
 		NodeInst ni;
 		Orientation pureRotate;
 		Cell subCell;
-		double offsetX, offsetY;
+		float offsetX, offsetY;
 		Point2D [] outlinePoints;
-		double size;
+		float size;
 		List portShapes;
 
 		VectorSubCell(NodeInst ni, Point2D offset, Point2D [] outlinePoints)
@@ -304,10 +315,10 @@ public class VectorDrawing
 			this.ni = ni;
 			pureRotate = ni.getOrient();
 			subCell = (Cell)ni.getProto();
-			this.offsetX = offset.getX();
-			this.offsetY = offset.getY();
+			this.offsetX = (float)offset.getX();
+			this.offsetY = (float)offset.getY();
 			this.outlinePoints = outlinePoints;
-			this.size = Math.min(ni.getXSize(), ni.getYSize());
+			this.size = (float)Math.min(ni.getXSize(), ni.getYSize());
 			portShapes = new ArrayList();
 		}
 	}
@@ -363,7 +374,7 @@ public class VectorDrawing
 		List subCells;
 		boolean hasFadeColor;
 		int fadeColor;
-		double maxFeatureSize;
+		float maxFeatureSize;
 
 		VectorCell()
 		{
@@ -398,43 +409,65 @@ public class VectorDrawing
 		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
 
 		// see if any layers are being highlighted/dimmed
-		wnd.getOffscreen().highlightingLayers = false;
+		offscreen = wnd.getOffscreen();
+		offscreen.highlightingLayers = false;
 		for(Iterator it = Technology.getCurrent().getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			if (layer.isDimmed())
 			{
-				wnd.getOffscreen().highlightingLayers = true;
+				offscreen.highlightingLayers = true;
 				break;
 			}
 		}
 
 		// set size limit
-		maxObjectSize = 3 / wnd.getScale();
+		scale = (float)wnd.getScale();
+		maxObjectSize = 3 / scale;
 
 		// statistics
-		long startTime = 0;
-		if (STATS)
-		{
-			boxCount = tinyBoxCount = lineCount = polygonCount = 0;
-			crossCount = textCount = circleCount = arcCount = 0;
-			subCellCount = tinySubCellCount = 0;
-			startTime = System.currentTimeMillis();
-		}
+		startTime = System.currentTimeMillis();
+		takingLongTime = false;
+		boxCount = tinyBoxCount = lineBoxCount = lineCount = polygonCount = 0;
+		crossCount = textCount = circleCount = arcCount = 0;
+		subCellCount = tinySubCellCount = 0;
 
 		// make sure the top level is cached
 		VectorCell topVC = drawCell(cell, NOROTATION);
 
 		// draw recursively
-		Rectangle screenLimit = null;
-		if (drawLimitBounds != null) screenLimit = wnd.databaseToScreen(drawLimitBounds);
-		render(topVC, 0, 0, fullInstantiate, NOROTATION, true, screenLimit);
+		this.fullInstantiate = fullInstantiate;
+		Dimension sz = offscreen.getSize();
+		szHalfWidth = sz.width / 2;
+		szHalfHeight = sz.height / 2;
+		screenLX = 0;   screenHX = sz.width;
+		screenLY = 0;   screenHY = sz.height;
+		Point2D offset = wnd.getOffset();
+		offX = (float)offset.getX();
+		offY = (float)offset.getY();
+		factorX = szHalfWidth - offX*scale;
+		factorY = szHalfHeight + offY*scale;
+		if (drawLimitBounds != null)
+		{
+			Rectangle screenLimit = wnd.databaseToScreen(drawLimitBounds);
+			screenLX = screenLimit.x;
+			if (screenLX < 0) screenLX = 0;
+			screenHX = screenLimit.x + screenLimit.width;
+			if (screenHX >= sz.width) screenHX = sz.width-1;
+			screenLY = screenLimit.y;
+			if (screenLY < 0) screenLY = 0;
+			screenHY = screenLimit.y + screenLimit.height;
+			if (screenHY >= sz.height) screenHY = sz.height-1;
+		}
+		render(topVC, 0, 0, NOROTATION, true);
 
-		if (STATS)
+		if (takingLongTime) TopLevel.setBusyCursor(false);
+
+		if (STATS && Main.getDebug())
 		{
 			long renderTime = System.currentTimeMillis() - startTime;
 	        System.out.println("Time to render: "+TextUtils.getElapsedTime(renderTime));
-			System.out.println("   Rendered "+boxCount+" boxes ("+tinyBoxCount+" tiny), "+
+			System.out.println("   Rendered "+boxCount+" boxes ("+tinyBoxCount+" tiny, "+lineBoxCount+" lines), "+
 				lineCount+" lines, "+polygonCount+" polys, "+crossCount+" crosses, "+
 				textCount+" texts, "+circleCount+" circles, "+arcCount+" arcs, "+
 				subCellCount+" subcells ("+tinySubCellCount+" tiny)");
@@ -456,17 +489,13 @@ public class VectorDrawing
 	 * @param vc the cached cell to render
 	 * @param oX the X offset for rendering the cell (in database coordinates).
 	 * @param oY the Y offset for rendering the cell (in database coordinates).
-	 * @param fullInstantiate true to fully-instantiate circuitry (for "peeking").
 	 * @param trans the orientation of the cell (this is not a transformation matrix with offsets, just an Orientation with rotation).
 	 * @param topLevel true if this is the top level cell in the window.
 	 */
-	private void render(VectorCell vc, double oX, double oY, boolean fullInstantiate, Orientation trans, boolean topLevel, Rectangle screenLimit)
+	private void render(VectorCell vc, float oX, float oY, Orientation trans, boolean topLevel)
 	{
-		PixelDrawing offscreen = wnd.getOffscreen();
-		Dimension sz = offscreen.getSize();
-
 		// render main list of shapes
-		drawList(oX, oY, vc.shapes, topLevel, screenLimit);
+		drawList(oX, oY, vc.shapes, topLevel);
 
 		// now render subcells
 		for(Iterator it = vc.subCells.iterator(); it.hasNext(); )
@@ -475,31 +504,24 @@ public class VectorDrawing
 			subCellCount++;
 
 			// get instance location
-			double p1x = vsc.outlinePoints[0].getX() + oX;
-			double p2x = vsc.outlinePoints[1].getX() + oX;
-			double p3x = vsc.outlinePoints[2].getX() + oX;
-			double p4x = vsc.outlinePoints[3].getX() + oX;
-			double p1y = vsc.outlinePoints[0].getY() + oY;
-			double p2y = vsc.outlinePoints[1].getY() + oY;
-			double p3y = vsc.outlinePoints[2].getY() + oY;
-			double p4y = vsc.outlinePoints[3].getY() + oY;
-			wnd.databaseToScreen(p1x, p1y, tempPt1);   wnd.databaseToScreen(p2x, p2y, tempPt2);
-			wnd.databaseToScreen(p3x, p3y, tempPt3);   wnd.databaseToScreen(p4x, p4y, tempPt4);
+			float p1x = (float)vsc.outlinePoints[0].getX() + oX;
+			float p2x = (float)vsc.outlinePoints[1].getX() + oX;
+			float p3x = (float)vsc.outlinePoints[2].getX() + oX;
+			float p4x = (float)vsc.outlinePoints[3].getX() + oX;
+			float p1y = (float)vsc.outlinePoints[0].getY() + oY;
+			float p2y = (float)vsc.outlinePoints[1].getY() + oY;
+			float p3y = (float)vsc.outlinePoints[2].getY() + oY;
+			float p4y = (float)vsc.outlinePoints[3].getY() + oY;
+			databaseToScreen(p1x, p1y, tempPt1);   databaseToScreen(p2x, p2y, tempPt2);
+			databaseToScreen(p3x, p3y, tempPt3);   databaseToScreen(p4x, p4y, tempPt4);
 			int lX = Math.min(Math.min(tempPt1.x, tempPt2.x), Math.min(tempPt3.x, tempPt4.x));
 			int hX = Math.max(Math.max(tempPt1.x, tempPt2.x), Math.max(tempPt3.x, tempPt4.x));
 			int lY = Math.min(Math.min(tempPt1.y, tempPt2.y), Math.min(tempPt3.y, tempPt4.y));
 			int hY = Math.max(Math.max(tempPt1.y, tempPt2.y), Math.max(tempPt3.y, tempPt4.y));
 
-			// see if it is outside of a peek area
-			if (screenLimit != null)
-			{
-				if (hX < screenLimit.x || lX >= screenLimit.x+screenLimit.width) continue;
-				if (hY < screenLimit.y || lY >= screenLimit.y+screenLimit.height) continue;
-			}
-
 			// see if the subcell is clipped
-			if (hX < 0 || lX >= sz.width) continue;
-			if (hY < 0 || lY >= sz.height) continue;
+			if (hX < screenLX || lX >= screenHX) continue;
+			if (hY < screenLY || lY >= screenHY) continue;
 
 			// see if the cell is too tiny to draw
 			if (vsc.size < maxObjectSize)
@@ -509,7 +531,7 @@ public class VectorDrawing
 				if (subVC == null)
 					subVC = drawCell(vsc.subCell, NOROTATION);
 				int fadeColor = getFadeColor(subVC);
-				drawTinyBox(lX, hX, lY, hY, fadeColor, offscreen);
+				drawTinyBox(lX, hX, lY, hY, fadeColor);
 				tinySubCellCount++;
 				continue;
 			}
@@ -517,23 +539,23 @@ public class VectorDrawing
 			boolean expanded = vsc.ni.isExpanded();
 			if (fullInstantiate) expanded = true;
 
-//			// if not expanded, but viewing this cell in-place, expand it
-//			if (!expanded)
-//			{
-//				List path = wnd.getInPlaceEditNodePath();
-//				if (path != null)
-//				{
-//					for(int pathIndex=0; pathIndex<path.size(); pathIndex++)
-//					{
-//						NodeInst niOnPath = (NodeInst)path.get(pathIndex);
-//						if (niOnPath.getProto() == subCell)
-//						{
-//							expanded = true;
-//							break;
-//						}
-//					}
-//				}
-//			}
+			// if not expanded, but viewing this cell in-place, expand it
+			if (!expanded)
+			{
+				List path = wnd.getInPlaceEditNodePath();
+				if (path != null)
+				{
+					for(int pathIndex=0; pathIndex<path.size(); pathIndex++)
+					{
+						NodeInst niOnPath = (NodeInst)path.get(pathIndex);
+						if (niOnPath.getProto() == vsc.subCell)
+						{
+							expanded = true;
+							break;
+						}
+					}
+				}
+			}
 
 			if (expanded)
 			{
@@ -544,26 +566,26 @@ public class VectorDrawing
 				// may also be "tiny" if all features in the cell are tiny
 				if (subVC.maxFeatureSize > 0 && subVC.maxFeatureSize < maxObjectSize)
 				{
-					boolean allTinyInside = isContentsTiny(vsc.subCell, subVC, recurseTrans, fullInstantiate);
+					boolean allTinyInside = isContentsTiny(vsc.subCell, subVC, recurseTrans);
 					if (allTinyInside)
 					{
 						int fadeColor = getFadeColor(subVC);
-						drawTinyBox(lX, hX, lY, hY, fadeColor, offscreen);
+						drawTinyBox(lX, hX, lY, hY, fadeColor);
 						tinySubCellCount++;
 						continue;
 					}
 				}
-				render(subVC, vsc.offsetX + oX, vsc.offsetY + oY, fullInstantiate, recurseTrans, false, screenLimit);
+				render(subVC, vsc.offsetX + oX, vsc.offsetY + oY, recurseTrans, false);
 			} else
 			{
 				// now draw with the proper line type
-				wnd.databaseToScreen(p1x, p1y, tempPt1);   wnd.databaseToScreen(p2x, p2y, tempPt2);
+				databaseToScreen(p1x, p1y, tempPt1);   databaseToScreen(p2x, p2y, tempPt2);
 				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
-				wnd.databaseToScreen(p2x, p2y, tempPt1);   wnd.databaseToScreen(p3x, p3y, tempPt2);
+				databaseToScreen(p2x, p2y, tempPt1);   databaseToScreen(p3x, p3y, tempPt2);
 				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
-				wnd.databaseToScreen(p3x, p3y, tempPt1);   wnd.databaseToScreen(p4x, p4y, tempPt2);
+				databaseToScreen(p3x, p3y, tempPt1);   databaseToScreen(p4x, p4y, tempPt2);
 				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
-				wnd.databaseToScreen(p1x, p1y, tempPt1);   wnd.databaseToScreen(p4x, p4y, tempPt2);
+				databaseToScreen(p1x, p1y, tempPt1);   databaseToScreen(p4x, p4y, tempPt2);
 				offscreen.drawLine(tempPt1, tempPt2, null, instanceGraphics, 0, false);
 
 				// draw the instance name
@@ -575,7 +597,7 @@ public class VectorDrawing
 					offscreen.drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), null, textGraphics, false);
 				}
 			}
-			drawList(oX, oY, vsc.portShapes, topLevel, screenLimit);
+			drawList(oX, oY, vsc.portShapes, topLevel);
 		}
 	}
 
@@ -586,11 +608,8 @@ public class VectorDrawing
 	 * @param shapes the List of shapes (VectorBase objects).
 	 * @param topLevel true if this is the top cell in the window.
 	 */
-	private void drawList(double oX, double oY, List shapes, boolean topLevel, Rectangle screenLimit)
+	private void drawList(float oX, float oY, List shapes, boolean topLevel)
 	{
-		PixelDrawing offscreen = wnd.getOffscreen();
-		Dimension sz = offscreen.getSize();
-
 		// render all shapes
 		for(Iterator it = shapes.iterator(); it.hasNext(); )
 		{
@@ -600,18 +619,11 @@ public class VectorDrawing
 			// get visual characteristics of shape
 			Layer layer = vb.layer;
 			boolean dimmed = false;
-			byte [][] layerBitMap = null;
 			if (layer != null)
 			{
 //				if (!forceVisible && !vb.layer.isVisible()) continue;
 				if (!layer.isVisible()) continue;
 				dimmed = layer.isDimmed();
-			}
-			EGraphics graphics = vb.graphics;
-			if (graphics != null)
-			{
-				int layerNum = graphics.getTransparentLayer() - 1;
-				if (layerNum < offscreen.numLayerBitMaps) layerBitMap = offscreen.getLayerBitMap(layerNum);
 			}
 
 			// handle each shape
@@ -622,81 +634,82 @@ public class VectorDrawing
 
 				if (vm.minSize < maxObjectSize)
 				{
-					tinyBoxCount++;
 					int col = vm.tinyColor;
 					if (col < 0) continue;
 					if (vm.maxSize < maxObjectSize)
 					{
 						// both dimensions tiny: just draw a dot
-						wnd.databaseToScreen(vm.c1X+oX, vm.c1Y+oY, tempPt1);
+						databaseToScreen(vm.c1X+oX, vm.c1Y+oY, tempPt1);
 						int x = tempPt1.x;
 						int y = tempPt1.y;
-
-						// see if it is outside of a peek area
-						if (screenLimit != null)
-						{
-							if (x < screenLimit.x || x >= screenLimit.x+screenLimit.width) continue;
-							if (y < screenLimit.y || y >= screenLimit.y+screenLimit.height) continue;
-						}
-
-						if (x < 0 || x >= sz.width) continue;
-						if (y < 0 || y >= sz.height) continue;
+						if (x < screenLX || x >= screenHX) continue;
+						if (y < screenLY || y >= screenHY) continue;
 						offscreen.drawPoint(x, y, null, col);
+						tinyBoxCount++;
 					} else
 					{
 						// one dimension tiny: draw a line
-						wnd.databaseToScreen(vm.c1X+oX, vm.c1Y+oY, tempPt1);
-						wnd.databaseToScreen(vm.c2X+oX, vm.c2Y+oY, tempPt2);
+						databaseToScreen(vm.c1X+oX, vm.c1Y+oY, tempPt1);
+						databaseToScreen(vm.c2X+oX, vm.c2Y+oY, tempPt2);
 						int lX, hX, lY, hY;
 						if (tempPt1.x < tempPt2.x) { lX = tempPt1.x;   hX = tempPt2.x; } else
 							{ lX = tempPt2.x;   hX = tempPt1.x; }
+						if (hX < screenLX || lX >= screenHX) continue;
 						if (tempPt1.y < tempPt2.y) { lY = tempPt1.y;   hY = tempPt2.y; } else
 							{ lY = tempPt2.y;   hY = tempPt1.y; }
-
-						// see if it is outside of a peek area
-						if (screenLimit != null)
-						{
-							if (hX < screenLimit.x || lX >= screenLimit.x+screenLimit.width) continue;
-							if (hY < screenLimit.y || lY >= screenLimit.y+screenLimit.height) continue;
-						}
-						drawTinyBox(lX, hX, lY, hY, col, offscreen);
+						if (hY < screenLY || lY >= screenHY) continue;
+						drawTinyBox(lX, hX, lY, hY, col);
+						lineBoxCount++;
 					}
 					continue;
 				}
 
 				// determine coordinates of rectangle on the screen
-				wnd.databaseToScreen(vm.c1X+oX, vm.c1Y+oY, tempPt1);
-				wnd.databaseToScreen(vm.c2X+oX, vm.c2Y+oY, tempPt2);
+				databaseToScreen(vm.c1X+oX, vm.c1Y+oY, tempPt1);
+				databaseToScreen(vm.c2X+oX, vm.c2Y+oY, tempPt2);
+
+				// reject if completely off the screen
 				int lX, hX, lY, hY;
 				if (tempPt1.x < tempPt2.x) { lX = tempPt1.x;   hX = tempPt2.x; } else
 					{ lX = tempPt2.x;   hX = tempPt1.x; }
-				if (hX < 0 || lX >= sz.width) continue;
-				if (lX < 0) lX = 0;
-				if (hX >= sz.width) hX = sz.width-1;
-
+				if (hX < screenLX || lX >= screenHX) continue;
 				if (tempPt1.y < tempPt2.y) { lY = tempPt1.y;   hY = tempPt2.y; } else
 					{ lY = tempPt2.y;   hY = tempPt1.y; }
-				if (hY < 0 || lY >= sz.height) continue;
-				if (lY < 0) lY = 0;
-				if (hY >= sz.height) hY = sz.height-1;
+				if (hY < screenLY || lY >= screenHY) continue;
 
-				// see if it is outside of a peek area
-				if (screenLimit != null)
-				{
-					if (hX < screenLimit.x || lX >= screenLimit.x+screenLimit.width) continue;
-					if (hY < screenLimit.y || lY >= screenLimit.y+screenLimit.height) continue;
-				}
+				// clip to screen
+				if (lX < screenLX) lX = screenLX;
+				if (hX >= screenHX) hX = screenHX-1;
+				if (lY < screenLY) lY = screenLY;
+				if (hY >= screenHY) hY = screenHY-1;
 
 				// draw the box
+				byte [][] layerBitMap = null;
+				EGraphics graphics = vb.graphics;
+				if (graphics != null)
+				{
+					int layerNum = graphics.getTransparentLayer() - 1;
+					if (layerNum < offscreen.numLayerBitMaps) layerBitMap = offscreen.getLayerBitMap(layerNum);
+				}
 				offscreen.drawBox(lX, hX, lY, hY, layerBitMap, graphics, dimmed);
-			} else if (vb instanceof VectorLine)
+				continue;
+			}
+
+			byte [][] layerBitMap = null;
+			EGraphics graphics = vb.graphics;
+			if (graphics != null)
+			{
+				int layerNum = graphics.getTransparentLayer() - 1;
+				if (layerNum < offscreen.numLayerBitMaps) layerBitMap = offscreen.getLayerBitMap(layerNum);
+			}
+			if (vb instanceof VectorLine)
 			{
 				lineCount++;
 				VectorLine vl = (VectorLine)vb;
 
 				// determine coordinates of line on the screen
-				wnd.databaseToScreen(vl.fX+oX, vl.fY+oY, tempPt1);
-				wnd.databaseToScreen(vl.tX+oX, vl.tY+oY, tempPt2);
+				databaseToScreen(vl.fX+oX, vl.fY+oY, tempPt1);
+				databaseToScreen(vl.tX+oX, vl.tY+oY, tempPt2);
 
 				// clip and draw the line
 				offscreen.drawLine(tempPt1, tempPt2, layerBitMap, graphics, vl.texture, dimmed);
@@ -708,15 +721,15 @@ public class VectorDrawing
 				for(int i=0; i<vp.points.length; i++)
 				{
 	                intPoints[i] = new Point();
-					wnd.databaseToScreen(vp.points[i].getX()+oX, vp.points[i].getY()+oY, intPoints[i]);
+					databaseToScreen(vp.points[i].getX()+oX, vp.points[i].getY()+oY, intPoints[i]);
 	            }
-				Point [] clippedPoints = GenMath.clipPoly(intPoints, 0, sz.width-1, 0, sz.height-1);
+				Point [] clippedPoints = GenMath.clipPoly(intPoints, screenLX, screenHX-1, screenLY, screenHY-1);
 				offscreen.drawPolygon(clippedPoints, layerBitMap, graphics, dimmed);
 			} else if (vb instanceof VectorCross)
 			{
 				crossCount++;
 				VectorCross vcr = (VectorCross)vb;
-				wnd.databaseToScreen(vcr.x+oX, vcr.y+oY, tempPt1);
+				databaseToScreen(vcr.x+oX, vcr.y+oY, tempPt1);
 				int size = 5;
 				if (vcr.small) size = 3;
 				offscreen.drawLine(new Point(tempPt1.x-size, tempPt1.y), new Point(tempPt1.x+size, tempPt1.y), null, graphics, 0, dimmed);
@@ -751,8 +764,8 @@ public class VectorDrawing
 				if (vt.height < maxObjectSize) continue;
 
 				String drawString = vt.str;
-				wnd.databaseToScreen(vt.bounds.getMinX()+oX, vt.bounds.getMinY()+oY, tempPt1);
-				wnd.databaseToScreen(vt.bounds.getMaxX()+oX, vt.bounds.getMaxY()+oY, tempPt2);
+				databaseToScreen(vt.bounds.getMinX()+oX, vt.bounds.getMinY()+oY, tempPt1);
+				databaseToScreen(vt.bounds.getMaxX()+oX, vt.bounds.getMaxY()+oY, tempPt2);
 				int lX, hX, lY, hY;
 				if (tempPt1.x < tempPt2.x) { lX = tempPt1.x;   hX = tempPt2.x; } else
 					{ lX = tempPt2.x;   hX = tempPt1.x; }
@@ -814,8 +827,8 @@ public class VectorDrawing
 			{
 				circleCount++;
 				VectorCircle vci = (VectorCircle)vb;
-				wnd.databaseToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
-				wnd.databaseToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
+				databaseToScreen(vci.cX+oX, vci.cY+oY, tempPt1);
+				databaseToScreen(vci.eX+oX, vci.eY+oY, tempPt2);
 				switch (vci.nature)
 				{
 					case 0: offscreen.drawCircle(tempPt1, tempPt2, layerBitMap, graphics, dimmed);        break;
@@ -826,12 +839,28 @@ public class VectorDrawing
 			{
 				arcCount++;
 				VectorCircleArc vca = (VectorCircleArc)vb;
-				wnd.databaseToScreen(vca.cX+oX, vca.cY+oY, tempPt1);
-				wnd.databaseToScreen(vca.eX1+oX, vca.eY1+oY, tempPt2);
-				wnd.databaseToScreen(vca.eX2+oX, vca.eY2+oY, tempPt3);
+				databaseToScreen(vca.cX+oX, vca.cY+oY, tempPt1);
+				databaseToScreen(vca.eX1+oX, vca.eY1+oY, tempPt2);
+				databaseToScreen(vca.eX2+oX, vca.eY2+oY, tempPt3);
 				offscreen.drawCircleArc(tempPt1, tempPt2, tempPt3, vca.thick, layerBitMap, graphics, dimmed);
 			}
 		}
+	}
+
+	/**
+	 * Method to convert a database coordinate to screen coordinates.
+	 * @param dbX the X coordinate (in database units).
+	 * @param dbY the Y coordinate (in database units).
+	 * @param result the Point in which to store the screen coordinates.
+	 */
+	public void databaseToScreen(double dbX, double dbY, Point result)
+	{
+//      double scrX = szHalfWidth + (dbX - offX) * scale;
+//      double scrY = szHalfHeight - (dbY - offY) * scale;
+		double scrX = dbX * scale + factorX;
+		double scrY = factorY - dbY * scale;
+		result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
+		result.y = (int)(scrY >= 0 ? scrY + 0.5 : scrY - 0.5);
 	}
 
 	/**
@@ -842,15 +871,13 @@ public class VectorDrawing
 	 * @param lY the low Y coordinate of the box.
 	 * @param hY the high Y coordinate of the box.
 	 * @param col the color to draw.
-	 * @param offscreen the PixelDrawing object that does the drawing.
 	 */
-	private void drawTinyBox(int lX, int hX, int lY, int hY, int col, PixelDrawing offscreen)
+	private void drawTinyBox(int lX, int hX, int lY, int hY, int col)
 	{
-		Dimension sz = offscreen.getSize();
-		if (lX < 0) lX = 0;
-		if (hX >= sz.width) hX = sz.width-1;
-		if (lY < 0) lY = 0;
-		if (hY >= sz.height) hY = sz.height-1;
+		if (lX < screenLX) lX = screenLX;
+		if (hX >= screenHX) hX = screenHX-1;
+		if (lY < screenLY) lY = screenLY;
+		if (hY >= screenHY) hY = screenHY-1;
 		for(int y=lY; y<=hY; y++)
 		{
 			for(int x=lX; x<=hX; x++)
@@ -865,10 +892,9 @@ public class VectorDrawing
 	 * @param cell the Cell in question.
 	 * @param vc the cached representation of the cell.
 	 * @param trans the Orientation of the cell.
-	 * @param fullInstantiate true to expand all subcells (for peeking).
 	 * @return true if the cell has all tiny contents.
 	 */
-	private boolean isContentsTiny(Cell cell, VectorCell vc, Orientation trans, boolean fullInstantiate)
+	private boolean isContentsTiny(Cell cell, VectorCell vc, Orientation trans)
 	{
 		if (vc.maxFeatureSize > maxObjectSize) return false;
 		boolean isAllTiny = true;
@@ -882,7 +908,7 @@ public class VectorDrawing
 				Orientation thisOrient = vsc.ni.getOrient();
 				Orientation recurseTrans = thisOrient.concatenate(trans);
 				VectorCell subVC = drawCell(vsc.subCell, recurseTrans);
-				boolean subCellTiny = isContentsTiny(vsc.subCell, subVC, recurseTrans, fullInstantiate);
+				boolean subCellTiny = isContentsTiny(vsc.subCell, subVC, recurseTrans);
 				if (!subCellTiny) return false;
 				continue;
 			}
@@ -1006,6 +1032,18 @@ public class VectorDrawing
 	 */
 	private VectorCell drawCell(Cell cell, Orientation prevTrans)
 	{
+		// handle refreshing
+		if (!takingLongTime)
+		{
+			long currentTime = System.currentTimeMillis();
+			if (currentTime - startTime > 1000)
+			{
+				System.out.println("Display caching, please wait...");
+				TopLevel.setBusyCursor(true);
+				takingLongTime = true;
+			}
+		}
+
 		// see if this cell's vectors are cached
 		VectorCellGroup vcg = VectorCellGroup.findCellGroup(cell);
 		String orientationName = makeOrientationName(prevTrans);
@@ -1063,7 +1101,6 @@ public class VectorDrawing
 			Rectangle2D cellBounds = subCell.getBounds();
 			Poly outlinePoly = new Poly(cellBounds);
 			outlinePoly.transform(outlineTrans);
-			if (wnd.isInPlaceEdit()) outlinePoly.transform(wnd.getInPlaceTransformIn());
 
 			// record a call to the instance
 			Point2D ctrShift = new Point2D.Double(ni.getAnchorCenterX(), ni.getAnchorCenterY());
@@ -1096,13 +1133,9 @@ public class VectorDrawing
 		{
 			Export e = (Export)it.next();
 			Poly poly = e.getNamePoly();
-//			if (topWnd != null && topWnd.isInPlaceEdit())
-//				poly.transform(topWnd.getInPlaceTransformOut());
 			Rectangle2D rect = (Rectangle2D)poly.getBounds2D().clone();
 			TextDescriptor descript = poly.getTextDescriptor();
 			Poly.Type style = descript.getPos().getPolyType();
-//			if (topWnd != null && topWnd.isInPlaceEdit())
-//				poly.transform(topWnd.getInPlaceTransformOut());
 			style = Poly.rotateType(style, ni);
 			VectorText vt = new VectorText(poly.getBounds2D(), style, descript, null, VectorText.TEXTTYPEEXPORT, null, e,
 				true, null, null);
@@ -1174,7 +1207,6 @@ public class VectorDrawing
 
 			Poly portPoly = ni.getShapeOfPort(pp);
 			if (portPoly == null) continue;
-//			portPoly.transform(trans);
 			TextDescriptor descript = portPoly.getTextDescriptor();
 			MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
 			portDescript.setColorIndex(descript.getColorIndex());
@@ -1204,7 +1236,6 @@ public class VectorDrawing
 
 			// transform the bounds
 			poly.transform(trans);
-			if (wnd.isInPlaceEdit()) poly.transform(wnd.getInPlaceTransformIn());
 
 			// render the polygon
 			renderPoly(poly, vc, hideOnLowLevel, textType);
@@ -1232,18 +1263,18 @@ public class VectorDrawing
 			if (bounds != null)
 			{
 				// convert coordinates
-				double lX = bounds.getMinX();
-				double hX = bounds.getMaxX();
-				double lY = bounds.getMinY();
-				double hY = bounds.getMaxY();
+				float lX = (float)bounds.getMinX();
+				float hX = (float)bounds.getMaxX();
+				float lY = (float)bounds.getMinY();
+				float hY = (float)bounds.getMaxY();
 				VectorManhattan vm = new VectorManhattan(lX, lY, hX, hY, layer, graphics, hideOnLowLevel);
 				if (layer != null)
 				{
 					Layer.Function fun = layer.getFunction();
 					if (fun.isImplant() || fun.isSubstrate())
 					{
-						double dX = hX - lX;
-						double dY = hY - lY;
+						float dX = hX - lX;
+						float dY = hY - lY;
 						vm.setSize(dX / 10, dY / 10);
 					}
 				}

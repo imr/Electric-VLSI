@@ -245,7 +245,7 @@ public class EditWindow extends JPanel
 		gbc.fill = GridBagConstraints.BOTH;
 		gbc.weightx = gbc.weighty = 1;
 		overall.add(this, gbc);
-		setOpaque(false);
+		setOpaque(true);
 		setLayout(null);
 
 		// a drop target for the signal panel
@@ -1008,12 +1008,12 @@ public class EditWindow extends JPanel
 
 	// ************************************* REPAINT *************************************
 
-	private boolean intermediateRefresh = false;
-
-	public void allowIntermediateRefresh()
-	{
-		intermediateRefresh = true;
-	}
+//	private boolean intermediateRefresh = false;
+//
+//	public void allowIntermediateRefresh()
+//	{
+//		intermediateRefresh = true;
+//	}
 
 	/**
 	 * Method to repaint this EditWindow.
@@ -1028,19 +1028,22 @@ public class EditWindow extends JPanel
 
 		if (offscreen == null || !getSize().equals(sz))
 		{
-			setScreenSize(getSize());
+			Dimension newSize = getSize();
+			setScreenSize(newSize);
 			repaintContents(null, false);
+			g.setColor(new Color(User.getColorBackground()));
+			g.fillRect(0, 0, newSize.width, newSize.height);
 			return;
 		}
 
 		// stop now if rendering and the repaint came too soon
-		if (runningNow != null && !intermediateRefresh)
-		{
+//		if (runningNow != null && !intermediateRefresh)
+//		{
 //System.out.println("SCREEN FLASH!!!!!!!!!!!!!!!");
-			return;
-		}
-
-		intermediateRefresh = false;
+//			return;
+//		}
+//
+//		intermediateRefresh = false;
 
 		// show the image
 		BufferedImage img = offscreen.getBufferedImage();
@@ -1048,7 +1051,7 @@ public class EditWindow extends JPanel
 		{
 			g.drawImage(img, 0, 0, this);
 		}
-		
+
 		// overlay other things if there is a valid cell
 		if (cell != null)
 		{
@@ -1139,7 +1142,7 @@ public class EditWindow extends JPanel
 		}
 
 		// draw any components that are on top (such as in-line text edits)
-		super.paint(g);
+//		super.paint(g);
 
 		// see if anything else is queued
 		synchronized(redrawThese)

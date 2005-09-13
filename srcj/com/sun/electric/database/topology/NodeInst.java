@@ -369,7 +369,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		if (protoType == Generic.tech.cellCenterNode)
     		parent.adjustReferencePoint(center.getX(), center.getY());
         if (protoType == Schematics.tech.globalNode) {
-            System.out.println("Global-signal " + ni + " in " + parent + " has PortChanrtacteric " + PortCharacteristic.findCharacteristic(ni.getTechSpecific()));
+            System.out.println("Global-signal " + ni + " in " + parent + " has characteristic " + PortCharacteristic.findCharacteristic(ni.getTechSpecific()));
         }
 		return ni;
 	}
