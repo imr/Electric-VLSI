@@ -1273,6 +1273,7 @@ public class Spice extends Topology
                     for (Iterator it = segmentedNets.getUniqueSegments().iterator(); it.hasNext(); ) {
                         SegmentedNets.NetInfo info = (SegmentedNets.NetInfo)it.next();
                         if (info.cap > cell.getTechnology().getMinCapacitance()) {
+                            if (info.netName.equals("gnd")) continue;           // don't write out caps from gnd to gnd
                             multiLinePrint(false, "C" + capCount + " " + info.netName + " 0 " + TextUtils.formatDouble(info.cap, 2) + "fF\n");
                             capCount++;
                         }
@@ -1301,8 +1302,10 @@ public class Spice extends Topology
                                 multiLinePrint(false, "R"+resCount+" "+segn0+" "+segn1+" "+TextUtils.formatDouble(segRes)+"\n");
                                 resCount++;
                                 if (i < (arcPImodels-1)) {
-                                    multiLinePrint(false, "C"+capCount+" "+segn1+" 0 "+TextUtils.formatDouble(segCap)+"\n");
-                                    capCount++;
+                                    if (!segn1.equals("gnd")) {
+                                        multiLinePrint(false, "C"+capCount+" "+segn1+" 0 "+TextUtils.formatDouble(segCap)+"fF\n");
+                                        capCount++;
+                                    }
                                 }
                                 segn0 = segn1;
                             }
@@ -1619,9 +1622,9 @@ public class Spice extends Topology
             // get new name
             String name = info.netName;
             Export ex = pi.getExports().hasNext() ? (Export)pi.getExports().next() : null;
-            if (ex != null && ex.getName().equals(cs.getName())) {
-            //if (pi.getExports().hasNext()) {
-                name = cs.getName();
+            //if (ex != null && ex.getName().equals(cs.getName())) {
+            if (ex != null) {
+                name = ex.getName();
             } else {
                 if (i.intValue() == 0 && !cs.isExported())      // get rid of #0 if net not exported
                     name = cs.getName();
