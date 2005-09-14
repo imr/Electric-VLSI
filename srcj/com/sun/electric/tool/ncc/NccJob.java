@@ -163,7 +163,7 @@ public class NccJob extends Job {
 	 * views of the current window. 2 means compare the 2 Cells open in 2 Windows.
 	 */
 	public NccJob(int numWindows) {
-		super("Run NCC", NetworkTool.getNetworkTool(), Job.Type.EXAMINE, null, null, 
+		super("Run NCC", NetworkTool.getNetworkTool(), (NccGuiOptions.getBackAnnotateLayoutNetNames()?Job.Type.CHANGE:Job.Type.EXAMINE), null, null, 
 		      Job.Priority.ANALYSIS);
 		this.numWindows = numWindows;
 		startJob();

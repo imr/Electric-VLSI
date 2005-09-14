@@ -72,7 +72,7 @@ public class Ncc {
 			                   NccUtils.hourMinSec(before, after)+".");
 
             if (NccGuiOptions.getBackAnnotateLayoutNetNames() && result.match())
-                NccBackAnnotate.backAnnotateNetNamesJob(result);
+                NccBackAnnotate.backAnnotateNetNames(result);
 			return result;
 		}
     }

@@ -10,6 +10,7 @@ import com.sun.electric.tool.user.User;
 
 import java.util.Iterator;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA.
@@ -84,19 +85,34 @@ public class NccBackAnnotate {
         sch = (lay == 1) ? 0 : 1;
 
         HashMap backAnnotated = new HashMap();          // prevent duplicates
+        HashMap newArcNames = new HashMap();            // store all changes till end
         for (int i=0; i<equivs.equivNets[0].length; i++) {
             // get lay net name
             Network layNet = equivs.equivNets[lay][i].getNet();
-            if (layNet.isExported()) continue;      // exported, do not name
             if (!layNet.hasNames()) continue;
             String layName = (String)layNet.getNames().next();
-            if (layName.indexOf('@') == -1)
-                continue;               // this net already has a name
 
             // get sch net name
             Network schNet = equivs.equivNets[sch][i].getNet();
             if (!schNet.hasNames()) continue;
             String schName = (String)schNet.getNames().next();
+
+            // only back-annotate if parent cells are from same cell group
+            //if (layNet.getParent().getCellGroup() != schNet.getParent().getCellGroup()) continue;
+
+            // debug
+            System.out.print("("+layNet.getParent().describe(false)+")lay:\t"+layName+"\t("+schNet.getParent().describe(false)+")sch:");
+            for (Iterator it = schNet.getNames(); it.hasNext();) {
+                System.out.print("\t"+(String)it.next());
+            }
+            System.out.println();
+
+            // check layout net
+            if (layNet.isExported()) continue;      // exported, do not name
+            if (layName.indexOf('@') == -1)
+                continue;               // this net already has a name
+
+            // check schematic net
             if (schName.indexOf('@') != -1) continue;   // ignore default net names
 
             // if sch net name already in layout, skip
@@ -121,10 +137,17 @@ public class NccBackAnnotate {
             Iterator arcIt = layNet.getArcs();
             if (arcIt.hasNext()) {
                 ArcInst ai = (ArcInst)arcIt.next();
-                ai.setName(schName);
+                //ai.setName(schName);
+                newArcNames.put(ai, schName);
                 System.out.println("Back-annotated in cell "+layCell.describe(true)+", net '"+layName+"' to '"+schName+"'");
                 backAnnotated.put(layCell.describe(false) + layName, layNet);
             }
+        }
+        for (Iterator it = newArcNames.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry entry = (Map.Entry)it.next();
+            ArcInst ai = (ArcInst)entry.getKey();
+            String name = (String)entry.getValue();
+            ai.setName(name);
         }
     }
 
