@@ -36,6 +36,7 @@ import com.sun.electric.tool.generator.layout.gates.MoCMOSGenerator;
 import com.sun.electric.tool.io.output.CIF;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.Main;
 
 /*
  * Regression test for gate generators
@@ -67,12 +68,12 @@ public class GateRegression extends Job {
 
     public static void aPass(double x, StdCellParams stdCell, Technology technology) {
         if (technology == MoCMOS.tech) {
-            Tech.setTechnology(Tech.MOCMOS);
+//            Tech.setTechnology(Tech.MOCMOS);
             MoCMOSGenerator.generateAllGates(x, stdCell);
         }
         Technology tsmc90 = Technology.getTSMC90Technology();
         if (tsmc90 != null && technology == tsmc90) {
-            Tech.setTechnology(Tech.TSMC90);
+//            Tech.setTechnology(Tech.TSMC90);
 
             // invoke the TSMC90 generator by reflection because it may not exist
     		try
@@ -90,8 +91,10 @@ public class GateRegression extends Job {
     }
 
     public boolean doIt() {
-//        runRegression(technology);
-        runGildaTest(technology);
+        if (Main.LOCALDEBUGFLAG) // Gilda for now
+            runGildaTest(technology);
+        else
+            runRegression(technology);
         return true;
     }
 
@@ -110,7 +113,7 @@ public class GateRegression extends Job {
             stdCell.setSizeQuantizationError(0.05);
             stdCell.setMaxMosWidth(1000);
         } else {
-            Tech.setTechnology(Tech.MOCMOS);
+            Tech.setTechnology(Tech.TSMC180);
             // Test the parameters used by divider
         	stdCell = GateLayoutGenerator.dividerParams(scratchLib);
 

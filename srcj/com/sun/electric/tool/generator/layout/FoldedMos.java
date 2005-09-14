@@ -294,8 +294,8 @@ public abstract class FoldedMos {
 				}
 
 				x += (j==0 ? viaToMosPitch : mosToMosPitch) + extraSp;
-				MosInst m = isPmos() ? Tech.newPmosInst(x, mosY, gateWidth, stdCell.getGateLength(), f) :
-					                   Tech.newNmosInst(x, mosY, gateWidth, stdCell.getGateLength(), f);
+				MosInst m = isPmos() ? Tech.newPmosInst(x, mosY, gateWidth, Tech.getGateLength(), f) :
+					                   Tech.newNmosInst(x, mosY, gateWidth, Tech.getGateLength(), f);
 				moss[mosNdx++] = m;
 
 				newDiffArc(diff, difContY, prevPort, m.leftDiff());

@@ -127,9 +127,6 @@ public class StdCellParams {
 	private double diffContWid;
 	private double maxMosWidth;
 
-    //gate length depending on foundry
-    private double gateLength;
-
     /** This determines width of arcs connecting to diffusion contacts */
     private double difWidHint;
     /** Diff Contact to Gate node spacing */
@@ -210,11 +207,6 @@ public class StdCellParams {
         minGateWid = 3;
         diffContWid = 5;
         maxMosWidth = 45;
-        String foundry = tech.getSelectedFoundry();
-        if (foundry.equals(Technology.Foundry.TSMC_FOUNDRY))
-            gateLength = 1.8;
-        else
-            gateLength = 2;
         difWidHint = 4;
         viaToMosPitch = 4;
         mosToMosPitch = 5; //5 = 3(active) + 2(gate)
@@ -719,7 +711,6 @@ public class StdCellParams {
 		init();
 	}
 
-    public double getGateLength() {return gateLength;}
 	public double getNmosWellTieY() {return nmosWellTieY;}
 	public double getPmosWellTieY() {return pmosWellTieY;}
 	public double getNmosWellTieWidth() {

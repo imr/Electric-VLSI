@@ -102,6 +102,9 @@ public class Tech {
 	private static PrimitiveNode[] vias;
 	private static HashMap viaMap = new HashMap();
 	private static Technology tech;
+
+    //gate length depending on foundry
+    private static double gateLength;
 	
 	// RKao my first attempt to embed technology specific dimensions
     private static double 
@@ -241,17 +244,20 @@ public class Tech {
 	//----------------------------- public methods  ------------------------------
 	
 	public static void setTechnology(String techNm) {
-		error(!techNm.equals(MOCMOS) && !techNm.equals(TSMC90) &&
-			  !techNm.equals(TSMC180),
-			  "LayoutLib only supports three technologies: MOCMOS, TSMC90, or TSMC180: "+techNm);
 		isTsmc90 = techNm.equals(TSMC90);
 		isTsmc180 = techNm.equals(TSMC180);
+        boolean isMoCMOS = techNm.equals(MOCMOS);
+		error(!isMoCMOS && !isTsmc90 && !isTsmc180,
+			  "LayoutLib only supports three technologies: MOCMOS, TSMC90, or TSMC180: "+techNm);
 		
-		if (isTsmc180) {
-			// My "TSMC180" really uses Electric's MoCMOS Technology in 
-			// combination with the TSMC foundry.
+		if (isTsmc180 || isMoCMOS) {
 			tech = Technology.findTechnology(MOCMOS);
-			tech.setSelectedFoundry("tsmc");
+			// My "TSMC180" really uses Electric's MoCMOS Technology in
+			// combination with the TSMC foundry.
+            if (isTsmc180)
+			    tech.setSelectedFoundry(Technology.Foundry.TSMC_FOUNDRY);
+            else // Make sure MOSIS is set as foundry. Doesn' rely on preferences
+                tech.setSelectedFoundry(Technology.Foundry.MOSIS_FOUNDRY);
 		} else {
 			tech = Technology.findTechnology(techNm);
 		}
@@ -405,7 +411,7 @@ public class Tech {
 		viaMap.put(new Integer(ndiff.hashCode() * m1.hashCode()), ndm1);
 		viaMap.put(new Integer(pdiff.hashCode() * m1.hashCode()), pdm1);
 		viaMap.put(new Integer(p1.hashCode() * m1.hashCode()), p1m1);
-		
+
 		// initialize design rules (RKao first cut)
 		if (isTsmc90) {
 		    wellWidth = 14;
@@ -415,6 +421,7 @@ public class Tech {
 		    gateToGateSpace = 4;
 		    gateToDiffContSpace = 5.6 - 5.2/2 - 2/2;
 		    diffContWidth = 5.2;
+            gateLength = 2;
 		} else if (isTsmc180) {
 		    wellWidth = 17;
 		    gateExtendPastMOS = 2.5;
@@ -423,6 +430,7 @@ public class Tech {
 		    gateToGateSpace = 3;
 		    gateToDiffContSpace = 4.5 - 2.5 - .9;
 		    diffContWidth = 5;
+            gateLength = 1.8;
 		} else {
 			// default to MoCMOS
 		    wellWidth = 17;
@@ -432,6 +440,7 @@ public class Tech {
 		    gateToGateSpace = 3;
 		    gateToDiffContSpace = .5;
 		    diffContWidth = 5;
+            gateLength = 2;
 		}
 	}
 
@@ -525,6 +534,6 @@ public class Tech {
     public static double gateToDiffContSpace() {return gateToDiffContSpace;}
     /** @return min width of diffusion surrounding diff contact */
     public static double diffContWidth() {return diffContWidth;}
-
-
+    /** @return gate length that depends on foundry */
+    public static double getGateLength() {return gateLength;}
 }

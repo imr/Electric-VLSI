@@ -24,10 +24,6 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.hierarchy.Library;
-import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.View;
-import com.sun.electric.database.change.Undo;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
@@ -35,8 +31,6 @@ import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.dialogs.DesignRulesPanel;
-import com.sun.electric.tool.user.User;
-import com.sun.electric.tool.Job;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -161,7 +155,12 @@ public class DesignRulesTab extends PreferencePanel
                     JOptionPane.WARNING_MESSAGE, null, options, options[0]);
                 }
             if (val != 2)
+            {
                 curTech.setSelectedFoundry(foundryName);
+                // primitive arcs have to be modified.
+                if (val == 0)
+                    new Technology.ResetDefaultWidthJob();
+            }
         }
 
 		double currentResolution = TextUtils.atof(drResolutionValue.getText());
@@ -173,20 +172,12 @@ public class DesignRulesTab extends PreferencePanel
 		{
 			DRC.resetDRCDates();
             drRules = curTech.getFactoryDesignRules();
-//            if (rules instanceof MOSRules)
-//			    drRules = (MOSRules)rules;
 		}
 		DRC.setRules(curTech, drRules);
 
         // Repaint primitives
         EditWindow wnd = EditWindow.needCurrent();
         if (wnd != null) wnd.repaintContents(null, false);
-
-        if (val == 0)
-        {
-            // primitive arcs have to be modified.
-            new ResetDefaultWidthJob(curTech);
-        }
 	}
 
 	/** This method is called from within the constructor to
@@ -303,38 +294,4 @@ public class DesignRulesTab extends PreferencePanel
 
     /****************************** Reset default arc widths ******************************/
 
-    /**
-     * Job to resize arcs according to foundry information (switch between Mosis and TSMC)
-     */
-    private static class ResetDefaultWidthJob extends Job
-    {
-        private Technology tech;
-
-        protected ResetDefaultWidthJob(Technology tech)
-        {
-            super("Reset Default Arc Widths", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
-            this.tech = tech;
-			startJob();
-        }
-
-        public boolean doIt()
-        {
-            Undo.changesQuiet(true);
-            for(Iterator it = Library.getLibraries(); it.hasNext(); )
-            {
-                Library lib = (Library)it.next();
-
-                System.out.println("Resetting sizes in " + lib);
-                for(Iterator itCell = lib.getCells(); itCell.hasNext(); )
-                {
-                    Cell cell = (Cell)itCell.next();
-                    if (cell.getView() != View.LAYOUT) continue;
-
-                    tech.resetDefaultValues(cell);
-                }
-            }
-            Undo.changesQuiet(false);
-            return true;
-        }
-    }
 }

@@ -29,6 +29,8 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
@@ -44,6 +46,7 @@ import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.BiCMOS;
 import com.sun.electric.technology.technologies.Bipolar;
@@ -63,6 +66,7 @@ import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
+import com.sun.electric.tool.Job;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
@@ -3073,7 +3077,6 @@ public class Technology implements Comparable
 	 */
 	public void setSelectedFoundry(String t)
     {
-        //if (prefFoundry == null) setFactorySelecedFound(t);
         prefFoundry.setString(t);
     }
 
@@ -3083,7 +3086,6 @@ public class Technology implements Comparable
      */
     protected void setFactorySelecedFound(String factoryName)
     {
-        //if (foundries.size() > 0) factoryName = ((Foundry)foundries.get(0)).name;
         prefFoundry = TechPref.makeStringPref(this, "SelectedFoundryFor"+techName, prefs, factoryName);
         prefFoundry.attachToObject(this, "Technology/Design Rules (" + techName + ") tab", techName + " foundry");
     }
@@ -3854,4 +3856,36 @@ public class Technology implements Comparable
 			return pref;
 		}
 	}
+
+    /**
+     * Job to resize arcs according to foundry information (switch between Mosis and TSMC)
+     */
+    public static class ResetDefaultWidthJob extends Job
+    {
+        public ResetDefaultWidthJob()
+        {
+            super("Reset Default Arc Widths", User.getUserTool(), Type.CHANGE, null, null, Priority.USER);
+			startJob();
+        }
+
+        public boolean doIt()
+        {
+            Undo.changesQuiet(true);
+            for(Iterator it = Library.getLibraries(); it.hasNext(); )
+            {
+                Library lib = (Library)it.next();
+
+                System.out.println("Resetting sizes in " + lib);
+                for(Iterator itCell = lib.getCells(); itCell.hasNext(); )
+                {
+                    Cell cell = (Cell)itCell.next();
+                    if (cell.getView() != View.LAYOUT) continue;
+
+                    cell.getTechnology().resetDefaultValues(cell);
+                }
+            }
+            Undo.changesQuiet(false);
+            return true;
+        }
+    }
 }

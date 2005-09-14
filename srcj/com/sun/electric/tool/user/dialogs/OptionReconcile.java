@@ -27,6 +27,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.CircuitChanges;
+import com.sun.electric.technology.Technology;
 
 import java.awt.Frame;
 import java.awt.GridBagConstraints;
@@ -274,8 +275,10 @@ public class OptionReconcile extends EDialog
 					case Pref.STRING:  pref.setString((String)obj);                       break;
 				}
 			}
-            // Repair libraries in case number of layers was changed.
+            // Repair libraries in case number of layers was changed or arcs must be resized.
             CircuitChanges.checkAndRepairCommand(true);
+            // Repair libraries in case default width changes due to foundry changes
+            new Technology.ResetDefaultWidthJob();
 			return true;
 		}
 	}

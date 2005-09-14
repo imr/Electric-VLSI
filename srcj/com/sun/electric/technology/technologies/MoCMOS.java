@@ -164,11 +164,11 @@ public class MoCMOS extends Technology
 		new DRCTemplate("2.2 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "P-Active-Well",  "P-Active-Well",  3,  null),
 		new DRCTemplate("2.2 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "P-Active",       "P-Active-Well",  3,  null),
 		new DRCTemplate("2.2 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "N-Active",       "P-Active-Well",  3,  null),
-        new DRCTemplate("2.2 TSMC (OD.S.1)",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Active",       "P-Active",       2.8,  null),
-		new DRCTemplate("2.2 TSMC (OD.S.1)",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "N-Active",       "N-Active",       2.8,  null),
-		new DRCTemplate("2.2 TSMC (OD.S.1)",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Active-Well",  "P-Active-Well",  2.8,  null),
-		new DRCTemplate("2.2 TSMC (OD.S.1)",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Active",       "P-Active-Well",  2.8,  null),
-		new DRCTemplate("2.2 TSMC (OD.S.1)",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "N-Active",       "P-Active-Well",  2.8,  null),
+        new DRCTemplate("OD.S.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Active",       "P-Active",       2.8,  null),
+		new DRCTemplate("OD.S.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "N-Active",       "N-Active",       2.8,  null),
+		new DRCTemplate("OD.S.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Active-Well",  "P-Active-Well",  2.8,  null),
+		new DRCTemplate("OD.S.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Active",       "P-Active-Well",  2.8,  null),
+		new DRCTemplate("OD.S.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "N-Active",       "P-Active-Well",  2.8,  null),
 
 		new DRCTemplate("2.3",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"),
 		new DRCTemplate("2.3",  DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.ASURROUND,"N-Well",         "P-Active",       6,  "P-Active"),
@@ -184,17 +184,17 @@ public class MoCMOS extends Technology
 		// Rule 2.4 not implemented
 		// In C-Electric it is implemented as 2.2 (min spacing=3) so we might discrepancies.
 		new DRCTemplate("2.5 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "P-Active",       "N-Active",       4,  null),
-        new DRCTemplate("2.5 TSMC (OD.S.1)",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Active",       "N-Active",       2.8,  null),
+        new DRCTemplate("OD.S.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Active",       "N-Active",       2.8,  null),
 
 		new DRCTemplate("3.1 Mosis",  DRCTemplate.MOSIS, DRCTemplate.MINWID,   "Polysilicon-1",   null,            2,  null),
-		new DRCTemplate("3.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Polysilicon-1",   null,            1.8,  null),
+		new DRCTemplate("PO.W.1/PO.W.2 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Polysilicon-1",   null,            1.8,  null),
         new DRCTemplate("3.1 Mosis",  DRCTemplate.MOSIS, DRCTemplate.MINWID,   "Transistor-Poly", null,            2,  null),
-        new DRCTemplate("3.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Transistor-Poly", null,            1.8,  null),
+        new DRCTemplate("PO.W.1/PO.W.2 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Transistor-Poly", null,            1.8,  null),
 
 		new DRCTemplate("3.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  3,  null),
-		new DRCTemplate("3.2 TSMC (PO.S.2/PO.S.3)",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2.5,  null),
+		new DRCTemplate("PO.S.2/PO.S.3 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2.5,  null),
         new DRCTemplate("3.2 Mosis",   DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",3,  null),
-		new DRCTemplate("3.2 TSMC (PO.S.2/PO.S.3)",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2.5,  null),
+		new DRCTemplate("PO.S.2/PO.S.3 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2.5,  null),
         new DRCTemplate("3.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Polysilicon-1",  "Polysilicon-1",  2,  null),
 		new DRCTemplate("3.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Polysilicon-1",  "Transistor-Poly",2,  null),
 
@@ -204,7 +204,7 @@ public class MoCMOS extends Technology
 
 		new DRCTemplate("3.3",  DRCTemplate.DE, DRCTemplate.TRAPOLY,   null,             null,            2.5,null),
 		new DRCTemplate("3.3 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.TRAPOLY,   null,             null,            2,  null),
-        new DRCTemplate("3.3 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.TRAPOLY,   null,             null,            2.2,  null),
+        new DRCTemplate("PO.O.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.TRAPOLY,   null,             null,            2.2,  null),
 
 		new DRCTemplate("3.4",  DRCTemplate.DE, DRCTemplate.TRAACTIVE, null,             null,            4,  null),
 		new DRCTemplate("3.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.TRAACTIVE, null,             null,            3,  null),
@@ -229,12 +229,12 @@ public class MoCMOS extends Technology
 		new DRCTemplate("4.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-N-Select", null,            2,  null),
 		new DRCTemplate("4.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "P-Select",       "P-Select",       2,  null),
 		new DRCTemplate("4.4 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "N-Select",       "N-Select",       2,  null),
-        new DRCTemplate("4.4 TSMC (PP/NP.W.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "P-Select",        null,            4.4,  null),
-		new DRCTemplate("4.4 TSMC (PP/NP.W.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "N-Select",        null,            4.4,  null),
-		new DRCTemplate("4.4 TSMC (PP/NP.W.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-P-Select", null,            4.4,  null),
-		new DRCTemplate("4.4 TSMC (PP/NP.W.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-N-Select", null,            4.4,  null),
-		new DRCTemplate("4.4 TSMC (N/PP.S.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "P-Select",       "P-Select",       4.4,  null),
-		new DRCTemplate("4.4 TSMC (N/PP.S.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "N-Select",       "N-Select",       4.4,  null),
+        new DRCTemplate("PP/NP.W.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "P-Select",        null,            4.4,  null),
+		new DRCTemplate("PP/NP.W.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "N-Select",        null,            4.4,  null),
+		new DRCTemplate("PP/NP.W.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-P-Select", null,            4.4,  null),
+		new DRCTemplate("PP/NP.W.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Pseudo-N-Select", null,            4.4,  null),
+		new DRCTemplate("PP/NP.S.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "P-Select",       "P-Select",       4.4,  null),
+		new DRCTemplate("PP/NP.S.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "N-Select",       "N-Select",       4.4,  null),
 		new DRCTemplate("4.4",  DRCTemplate.ALL, DRCTemplate.SPACING,  "P-Select",       "N-Select",       0,  null),
 //        new DRCTemplate("PP/NP.C.1 4",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "P-Select",       "N-Active",       2.6,  null),
 //        new DRCTemplate("PP/NP.C.1 4",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "N-Select",       "P-Active-Well",       2.6,  null),
@@ -262,12 +262,12 @@ public class MoCMOS extends Technology
 		new DRCTemplate("5.3 Mosis",     DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.SPACING,  "Poly-Cut",       "Poly-Cut",       3,  null),
 		new DRCTemplate("5.3,6.3 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.NAC,       DRCTemplate.SPACING,  "Active-Cut",     "Poly-Cut",       3,  null),
         // TSMC Submicron
-        new DRCTemplate("5.3 TSMC",     DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSPA,    null,             null,            2.8,  "Metal-1-Polysilicon-1-Con"),
-		new DRCTemplate("5.3 TSMC",     DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.SPACING,  "Poly-Cut",       "Poly-Cut",       2.8,  null),
-		new DRCTemplate("5.3,6.3 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.NAC,       DRCTemplate.SPACING,  "Active-Cut",     "Poly-Cut",       2.8,  null),
+        new DRCTemplate("CO.S.1 TSMC",     DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSPA,    null,             null,            2.5,  "Metal-1-Polysilicon-1-Con"),
+		new DRCTemplate("CO.S.1 TSMC",     DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.SPACING,  "Poly-Cut",       "Poly-Cut",       2.5,  null),
+		new DRCTemplate("CO.S.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.NAC,       DRCTemplate.SPACING,  "Active-Cut",     "Poly-Cut",       2.5,  null),
 
 		new DRCTemplate("5.4 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "Poly-Cut",       "Transistor-Poly", 2,  null),
-        new DRCTemplate("5.4 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "Poly-Cut",       "Transistor-Poly", 2.2,  null),
+        new DRCTemplate("CO.C.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "Poly-Cut",       "Transistor-Poly", 1.6,  null),
 
 		new DRCTemplate("5.5b", DRCTemplate.DE|DRCTemplate.SU|DRCTemplate.AC,        DRCTemplate.UCONSPA,  "Poly-Cut",       "Polysilicon-1",  5,  null),
 		new DRCTemplate("5.5b", DRCTemplate.DE|DRCTemplate.SU|DRCTemplate.AC,        DRCTemplate.UCONSPA,  "Poly-Cut",       "Transistor-Poly",5,  null),
@@ -281,16 +281,16 @@ public class MoCMOS extends Technology
 		new DRCTemplate("5.7b",       DRCTemplate.AC,        DRCTemplate.SPACINGM, "Poly-Cut",       "N-Active",       3,  null),
 
 		new DRCTemplate("6.1 Mosis",  DRCTemplate.MOSIS, DRCTemplate.MINWID,   "Active-Cut",      null,            2,  null),
-        new DRCTemplate("6.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Active-Cut",      null,            2.2,  null),
+        new DRCTemplate("CO.W.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Active-Cut",      null,            2.2,  null),
 
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.NODSIZ,    null,             null,            5,  "Metal-1-P-Active-Con"),
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Active",       "Metal-1",        0.5,"Metal-1-P-Active-Con"),
 		new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active",       2,  "Metal-1-P-Active-Con"),
-        new DRCTemplate("6.2 TSMC (PP/NP.C.1)",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active",       2.6,  "Metal-1-P-Active-Con"),
+        new DRCTemplate("PP/NP.E.1,PP/NP.C.3,PP/NP.E.4 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active",       1.8,  "Metal-1-P-Active-Con"),
 		new DRCTemplate("6.2",  DRCTemplate.DE|DRCTemplate.SU|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Well",         "P-Active",       6,  "Metal-1-P-Active-Con"),
 		new DRCTemplate("6.2",  DRCTemplate.SC|   DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Well",         "P-Active",       5,  "Metal-1-P-Active-Con"),
 		new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-P-Active-Con"),
-        new DRCTemplate("6.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.4,"Metal-1-P-Active-Con"),
+        new DRCTemplate("CO.E.2-M1.E.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.4,"Metal-1-P-Active-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.NODSIZ,    null,             null,            4,  "Metal-1-P-Active-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.SURROUND, "P-Active",       "Metal-1",        0,  "Metal-1-P-Active-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.SURROUND, "P-Select",       "P-Active",       2,  "Metal-1-P-Active-Con"),
@@ -301,11 +301,11 @@ public class MoCMOS extends Technology
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.NODSIZ,    null,             null,            5,  "Metal-1-N-Active-Con"),
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Active-Con"),
         new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Active-Con"),
-        new DRCTemplate("6.2 TSMC (PP/NP.C.1)",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Select",       "N-Active",       2.6,  "Metal-1-N-Active-Con"), // PP.C.3&PP/NP.E.4=1.8
+        new DRCTemplate("PP/NP.E.1,PP.C.3,PP/NP.E.4 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Select",       "N-Active",       1.8,  "Metal-1-N-Active-Con"), // PP.C.3&PP/NP.E.4=1.8 PP/NP.C.1=2.6
 		new DRCTemplate("6.2",  DRCTemplate.DE|DRCTemplate.SU|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "N-Active",       6,  "Metal-1-N-Active-Con"),
-		new DRCTemplate("6.2",  DRCTemplate.SC|   DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"),
+        new DRCTemplate("6.2",  DRCTemplate.SC|   DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "N-Active",       5,  "Metal-1-N-Active-Con"),
         new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-N-Active-Con"),
-        new DRCTemplate("6.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.4,"Metal-1-N-Active-Con"),
+        new DRCTemplate("CO.E.2-M1.E.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.4,"Metal-1-N-Active-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.NODSIZ,    null,             null,            4,  "Metal-1-N-Active-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.SURROUND, "N-Active",       "Metal-1",        0,  "Metal-1-N-Active-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Active-Con"),
@@ -318,9 +318,9 @@ public class MoCMOS extends Technology
 //		new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Active-Well",  "Metal-1",        0.5,"Metal-1-P-Well-Con"),
 //		new DRCTemplate("6.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Active-Well",  "Metal-1",        0.1,"Metal-1-P-Well-Con"),
         new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active-Well",  2,  "Metal-1-P-Well-Con"),
-        new DRCTemplate("6.2 TSMC (PP/NP.C.2)",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active-Well",  1,  "Metal-1-P-Well-Con"),   // PP/NP.C.2=1.0, PP/NP.C.1 4=1.8
+        new DRCTemplate("PP/NP.C.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Select",       "P-Active-Well",  1,  "Metal-1-P-Well-Con"),   // PP/NP.C.2=1.0, PP/NP.C.1 4=1.8
         new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "P-Active-Well",  3,  "Metal-1-P-Well-Con"),
-        new DRCTemplate("6.2 TSMC (NP.E.4)",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "P-Active-Well",  4.3,  "Metal-1-P-Well-Con"),
+        new DRCTemplate("OD.C.4 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "P-Well",         "P-Active-Well",  4.3,  "Metal-1-P-Well-Con"),
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-P-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.NODSIZ,    null,             null,            4,  "Metal-1-P-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.SURROUND, "P-Active-Well",  "Metal-1",        0,  "Metal-1-P-Well-Con"),
@@ -331,9 +331,9 @@ public class MoCMOS extends Technology
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.NODSIZ,    null,             null,            5,  "Metal-1-N-Well-Con"),
 		new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Active",       "Metal-1",        0.5,"Metal-1-N-Well-Con"),
 		new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Select",       "N-Active",       2,  "Metal-1-N-Well-Con"),
-        new DRCTemplate("6.2 TSMC (PP/NP.C.2)",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Select",       "N-Active",       1,  "Metal-1-N-Well-Con"),
+        new DRCTemplate("PP/NP.C.2 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Select",       "N-Active",       1,  "Metal-1-N-Well-Con"),
         new DRCTemplate("6.2 Mosis",        DRCTemplate.MOSIS|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Well",         "N-Active",       3,  "Metal-1-N-Well-Con"),
-		new DRCTemplate("6.2 TSMC (NP.E.4)",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Well",         "N-Active",       4.3,  "Metal-1-N-Well-Con"),
+		new DRCTemplate("OD.C.4 TSMC",        DRCTemplate.TSMC|DRCTemplate.NAC,       DRCTemplate.SURROUND, "N-Well",         "N-Active",       4.3,  "Metal-1-N-Well-Con"),
         new DRCTemplate("6.2",        DRCTemplate.NAC,       DRCTemplate.CUTSUR,    null,             null,            1.5,"Metal-1-N-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.NODSIZ,    null,             null,            4,  "Metal-1-N-Well-Con"),
 		new DRCTemplate("6.2b",       DRCTemplate.AC,        DRCTemplate.SURROUND, "N-Active",       "Metal-1",        0,  "Metal-1-N-Well-Con"),
@@ -352,13 +352,13 @@ public class MoCMOS extends Technology
 		new DRCTemplate("6.3 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.CUTSPA,    null,             null,            3,  "Metal-1-N-Active-Con"),
 		new DRCTemplate("6.3 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.SPACING,  "Active-Cut",     "Active-Cut",     3,  null),
         // TSMC
-		new DRCTemplate("6.3 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSPA,    null,             null,            2.8,  "Metal-1-P-Active-Con"),
-		new DRCTemplate("6.3 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSPA,    null,             null,            2.8,  "Metal-1-N-Active-Con"),
-		new DRCTemplate("6.3 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.SPACING,  "Active-Cut",     "Active-Cut",     2.8,  null),
+		new DRCTemplate("CO.S.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSPA,    null,             null,            2.8,  "Metal-1-P-Active-Con"),
+		new DRCTemplate("CO.S.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSPA,    null,             null,            2.8,  "Metal-1-N-Active-Con"),
+		new DRCTemplate("CO.S.2 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.SPACING,  "Active-Cut",     "Active-Cut",     2.8,  null),
 
 //		new DRCTemplate("6.4",  DRCTemplate.ALL, DRCTemplate.SPACING,  "Active-Cut",     "Transistor-Poly",2,  null),
         new DRCTemplate("6.4 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "Active-Cut",     "Transistor-Poly",2,  null),
-        new DRCTemplate("6.4 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "Active-Cut",     "Transistor-Poly",1.8,  null),
+        new DRCTemplate("CO.C.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "Active-Cut",     "Transistor-Poly", 1.6,  null),
 
 		new DRCTemplate("6.5b",       DRCTemplate.AC,        DRCTemplate.UCONSPA,  "Active-Cut",     "P-Active",       5,  null),
 		new DRCTemplate("6.5b",       DRCTemplate.AC,        DRCTemplate.UCONSPA,  "Active-Cut",     "N-Active",       5,  null),
@@ -367,7 +367,8 @@ public class MoCMOS extends Technology
 		// 6.7b is not implemented due to complexity. See manual
 		new DRCTemplate("6.8b",       DRCTemplate.AC,        DRCTemplate.SPACING,  "Active-Cut",     "Poly-Cut",       4,  null),
 
-		new DRCTemplate("7.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "Metal-1",         null,            3,  null),
+		new DRCTemplate("7.1",  DRCTemplate.MOSIS, DRCTemplate.MINWID,   "Metal-1",         null,            3,  null),
+        new DRCTemplate("M1.W.1",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Metal-1",         null,            2.3,  null),
         new DRCTemplate("M1.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-1",         null,            20.2,  null),  // TSMC page 39
         new DRCTemplate("Mx.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-2",         null,            20.2,  null),  // TSMC page 39
         new DRCTemplate("Mx.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-3",         null,            20.2,  null),  // TSMC page 39
@@ -382,7 +383,7 @@ public class MoCMOS extends Technology
         new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-6",         null,            350,  null),  // TSMC page 78
 
 		new DRCTemplate("7.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        3,  null),
-		new DRCTemplate("7.2 TSMC (M1.S.1)",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        2.3,  null),
+		new DRCTemplate("M1.S.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        2.3,  null),
         new DRCTemplate("7.2",  DRCTemplate.SC, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        2,  null),
 
         // Mosis and TSMC (M1.S.2) have 6 for min spacing for long wires
@@ -392,14 +393,14 @@ public class MoCMOS extends Technology
 		new DRCTemplate("8.1",  DRCTemplate.DE, DRCTemplate.CUTSIZE,   null,             null,            3, "Metal-1-Metal-2-Con"),
 		new DRCTemplate("8.1",  DRCTemplate.DE, DRCTemplate.NODSIZ,    null,             null,            5, "Metal-1-Metal-2-Con"),
 		new DRCTemplate("8.1 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.CUTSIZE,   null,             null,            2, "Metal-1-Metal-2-Con"),
-        new DRCTemplate("8.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.CUTSIZE,   null,             null,            2.6, "Metal-1-Metal-2-Con"),
+        new DRCTemplate("VIAx.W.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.CUTSIZE,   null,             null,            2.6, "Metal-1-Metal-2-Con"),
 		new DRCTemplate("8.1",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.NODSIZ,    null,             null,            4, "Metal-1-Metal-2-Con"),
 
 		new DRCTemplate("8.2 Mosis",  DRCTemplate.MOSIS, DRCTemplate.SPACING,  "Via1",           "Via1",           3,  null),
-        new DRCTemplate("8.2 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "Via1",           "Via1",           2.6,  null),
+        new DRCTemplate("VIAx.S.1 TSMC",  DRCTemplate.TSMC, DRCTemplate.SPACING,  "Via1",           "Via1",           2.6,  null),
 
 		new DRCTemplate("8.3 Mosis",  DRCTemplate.MOSIS,               DRCTemplate.VIASUR,   "Metal-1",         null,            1, "Metal-1-Metal-2-Con"),
-        new DRCTemplate("8.3 TSMC",  DRCTemplate.TSMC,               DRCTemplate.VIASUR,   "Metal-1",         null,            0.7, "Metal-1-Metal-2-Con"),
+        new DRCTemplate("> VIAx.E.2 TSMC",  DRCTemplate.TSMC,               DRCTemplate.VIASUR,   "Metal-1",         null,            0.7, "Metal-1-Metal-2-Con"),
 
 		new DRCTemplate("8.4",        DRCTemplate.NSV,       DRCTemplate.SPACING,  "Poly-Cut",       "Via1",           2,  null),
 		new DRCTemplate("8.4",        DRCTemplate.NSV,       DRCTemplate.SPACING,  "Active-Cut",     "Via1",           2,  null),
@@ -410,14 +411,15 @@ public class MoCMOS extends Technology
 		new DRCTemplate("8.5",        DRCTemplate.NSV,       DRCTemplate.SPACINGE, "Via1",           "P-Active",       2,  null),
 		new DRCTemplate("8.5",        DRCTemplate.NSV,       DRCTemplate.SPACINGE, "Via1",           "N-Active",       2,  null),
 
-		new DRCTemplate("9.1",  DRCTemplate.ALL, DRCTemplate.MINWID,   "Metal-2",         null,            3,  null),
+		new DRCTemplate("9.1",  DRCTemplate.MOSIS, DRCTemplate.MINWID,   "Metal-2",         null,            3,  null),
+        new DRCTemplate("Mx.W.1",  DRCTemplate.TSMC, DRCTemplate.MINWID,   "Metal-2",         null,            2.8,  null),
 
 		new DRCTemplate("9.2",  DRCTemplate.DE, DRCTemplate.SPACING,  "Metal-2",        "Metal-2",        4,  null),
 		new DRCTemplate("9.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "Metal-2",        "Metal-2",        3,  null),
-        new DRCTemplate("9.2 TSMC (Mx.S.1)",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "Metal-2",        "Metal-2",        2.8,  null),
+        new DRCTemplate("Mx.S.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACING,  "Metal-2",        "Metal-2",        2.8,  null),
 
 		new DRCTemplate("9.3 Mosis",  DRCTemplate.MOSIS,               DRCTemplate.VIASUR,   "Metal-2",         null,            1, "Metal-1-Metal-2-Con"),
-        new DRCTemplate("9.3 TSMC",  DRCTemplate.TSMC,               DRCTemplate.VIASUR,   "Metal-2",         null,            0.7, "Metal-1-Metal-2-Con"),
+        new DRCTemplate("> VIAx.E.2 TSMCC",  DRCTemplate.TSMC,               DRCTemplate.VIASUR,   "Metal-2",         null,            0.7, "Metal-1-Metal-2-Con"),
 
 		new DRCTemplate("9.4",  DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-2",        "Metal-2",        8, -1),
 		new DRCTemplate("9.4",  DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-2",        "Metal-2",        6, -1),
@@ -438,36 +440,37 @@ public class MoCMOS extends Technology
 		new DRCTemplate("14.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Via2",            null,            3,  null),
 		new DRCTemplate("14.1", DRCTemplate.DE, DRCTemplate.NODSIZ,    null,             null,            5,  "Metal-2-Metal-3-Con"),
 		new DRCTemplate("14.1 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.CUTSIZE,   null,             null,            2,  "Metal-2-Metal-3-Con"),
-        new DRCTemplate("14.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.CUTSIZE,   null,             null,            2.6,  "Metal-2-Metal-3-Con"),
+        new DRCTemplate("VIAx.W.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.CUTSIZE,   null,             null,            2.6,  "Metal-2-Metal-3-Con"),
 		new DRCTemplate("14.1 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Via2",            null,            2,  null),
-        new DRCTemplate("14.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Via2",            null,            2.6,  null),
+        new DRCTemplate("VIAx.W.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Via2",            null,            2.6,  null),
 		new DRCTemplate("14.1", DRCTemplate.SU|DRCTemplate.SC|    DRCTemplate.M23,   DRCTemplate.NODSIZ,    null,             null,            6,  "Metal-2-Metal-3-Con"),
 		new DRCTemplate("14.1", DRCTemplate.SU|DRCTemplate.SC|    DRCTemplate.M456,  DRCTemplate.NODSIZ,    null,             null,            4,  "Metal-2-Metal-3-Con"),
 
 		new DRCTemplate("14.2 Mosis", DRCTemplate.MOSIS, DRCTemplate.SPACING,  "Via2",           "Via2",           3,  null),
-        new DRCTemplate("14.2 TSMC", DRCTemplate.TSMC, DRCTemplate.SPACING,  "Via2",           "Via2",           2.6,  null),
+        new DRCTemplate("VIAx.S.1 TSMC", DRCTemplate.TSMC, DRCTemplate.SPACING,  "Via2",           "Via2",           2.6,  null),
 
 		new DRCTemplate("14.3 Mosis", DRCTemplate.MOSIS, DRCTemplate.VIASUR,   "Metal-2",         null,            1,  "Metal-2-Metal-3-Con"),
-        new DRCTemplate("14.3 TSMC", DRCTemplate.TSMC, DRCTemplate.VIASUR,   "Metal-2",         null,            0.7,  "Metal-2-Metal-3-Con"),
+        new DRCTemplate("> VIAx.E.2 TSMC", DRCTemplate.TSMC, DRCTemplate.VIASUR,   "Metal-2",         null,            0.7,  "Metal-2-Metal-3-Con"),
 
 		new DRCTemplate("14.4", DRCTemplate.SU|DRCTemplate.SC|DRCTemplate.NSV,       DRCTemplate.SPACING,  "Via1",           "Via2",           2,  null),  /// ?? might need attention
 
 		new DRCTemplate("15.1", DRCTemplate.SC| DRCTemplate.M3,    DRCTemplate.MINWID,   "Metal-3",         null,            6,  null),
 		new DRCTemplate("15.1", DRCTemplate.SU| DRCTemplate.M3,    DRCTemplate.MINWID,   "Metal-3",         null,            5,  null),
 		new DRCTemplate("15.1", DRCTemplate.SC| DRCTemplate.M456,  DRCTemplate.MINWID,   "Metal-3",         null,            3,  null),
-		new DRCTemplate("15.1", DRCTemplate.SU| DRCTemplate.M456,  DRCTemplate.MINWID,   "Metal-3",         null,            3,  null),
-		new DRCTemplate("15.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Metal-3",         null,            3,  null),
+		new DRCTemplate("15.1", DRCTemplate.MOSIS|DRCTemplate.SU| DRCTemplate.M456,  DRCTemplate.MINWID,   "Metal-3",         null,            3,  null),
+		new DRCTemplate("Mx.W.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU| DRCTemplate.M456,  DRCTemplate.MINWID,   "Metal-3",         null,            2.8,  null),
+        new DRCTemplate("15.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Metal-3",         null,            3,  null),
 
 		new DRCTemplate("15.2", DRCTemplate.DE, DRCTemplate.SPACING,  "Metal-3",        "Metal-3",        4,  null),
 		new DRCTemplate("15.2 MOSIS", DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-3",        "Metal-3",        3,  null),
-        new DRCTemplate("15.2 TSMC (Mx.S.1)", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-3",        "Metal-3",        2.8,  null),
+        new DRCTemplate("Mx.S.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-3",        "Metal-3",        2.8,  null),
         new DRCTemplate("15.2", DRCTemplate.SC|DRCTemplate.M3,    DRCTemplate.SPACING,  "Metal-3",        "Metal-3",        4,  null),
 		new DRCTemplate("15.2", DRCTemplate.SC|DRCTemplate.M456,  DRCTemplate.SPACING,  "Metal-3",        "Metal-3",        3,  null),
 
 		new DRCTemplate("15.3", DRCTemplate.DE, DRCTemplate.VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"),
 		new DRCTemplate("15.3", DRCTemplate.SU|DRCTemplate.SC|    DRCTemplate.M3,    DRCTemplate.VIASUR,   "Metal-3",         null,            2, "Metal-2-Metal-3-Con"),
 		new DRCTemplate("15.3 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC|    DRCTemplate.M456,  DRCTemplate.VIASUR,   "Metal-3",         null,            1, "Metal-2-Metal-3-Con"),
-        new DRCTemplate("15.3 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC|    DRCTemplate.M456,  DRCTemplate.VIASUR,   "Metal-3",         null,            0.7, "Metal-2-Metal-3-Con"),
+        new DRCTemplate("> VIAx.E.2 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC|    DRCTemplate.M456,  DRCTemplate.VIASUR,   "Metal-3",         null,            0.7, "Metal-2-Metal-3-Con"),
 
 		new DRCTemplate("15.4", DRCTemplate.DE, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        8, -1),
 		new DRCTemplate("15.4", DRCTemplate.SU, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-3",        "Metal-3",        6, -1),
@@ -478,30 +481,31 @@ public class MoCMOS extends Technology
 		new DRCTemplate("21.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Via3",            null,            3,  null),
 		new DRCTemplate("21.1", DRCTemplate.DE, DRCTemplate.NODSIZ,    null,             null,            5, "Metal-3-Metal-4-Con"),
 		new DRCTemplate("21.1 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.CUTSIZE,   null,             null,            2, "Metal-3-Metal-4-Con"),
-        new DRCTemplate("21.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.CUTSIZE,   null,             null,            2.6, "Metal-3-Metal-4-Con"),
+        new DRCTemplate("VIAx.W.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.CUTSIZE,   null,             null,            2.6, "Metal-3-Metal-4-Con"),
 		new DRCTemplate("21.1 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Via3",            null,            2,  null),
-		new DRCTemplate("21.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Via3",            null,            2.6,  null),
+		new DRCTemplate("VIAx.W.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.SC, DRCTemplate.MINWID,   "Via3",            null,            2.6,  null),
         new DRCTemplate("21.1", DRCTemplate.SU|DRCTemplate.M4,    DRCTemplate.NODSIZ,    null,             null,            6, "Metal-3-Metal-4-Con"),
 		new DRCTemplate("21.1", DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.NODSIZ,    null,             null,            4, "Metal-3-Metal-4-Con"),
 		new DRCTemplate("21.1", DRCTemplate.SC, DRCTemplate.NODSIZ,    null,             null,            6, "Metal-3-Metal-4-Con"),
 
 		new DRCTemplate("21.2 Mosis", DRCTemplate.MOSIS, DRCTemplate.SPACING,  "Via3",           "Via3",           3,  null),
-        new DRCTemplate("21.2 TSMC", DRCTemplate.TSMC, DRCTemplate.SPACING,  "Via3",           "Via3",           2.6,  null),
+        new DRCTemplate("VIAx.S.1 TSMC", DRCTemplate.TSMC, DRCTemplate.SPACING,  "Via3",           "Via3",           2.6,  null),
 
 		new DRCTemplate("21.3 Mosis", DRCTemplate.MOSIS,               DRCTemplate.VIASUR,   "Metal-3",         null,            1, "Metal-3-Metal-4-Con"),
-        new DRCTemplate("21.3 TSMC", DRCTemplate.TSMC,               DRCTemplate.VIASUR,   "Metal-3",         null,            0.7, "Metal-3-Metal-4-Con"),
+        new DRCTemplate("> VIAx.E.2 TSMC", DRCTemplate.TSMC,               DRCTemplate.VIASUR,   "Metal-3",         null,            0.7, "Metal-3-Metal-4-Con"),
 
 		new DRCTemplate("22.1", DRCTemplate.M4,    DRCTemplate.MINWID,   "Metal-4",         null,            6,  null),
-		new DRCTemplate("22.1", DRCTemplate.M56,   DRCTemplate.MINWID,   "Metal-4",         null,            3,  null),
+		new DRCTemplate("22.1", DRCTemplate.MOSIS|DRCTemplate.M56,   DRCTemplate.MINWID,   "Metal-4",         null,            3,  null),
+        new DRCTemplate("Mx.W.1 TSMC", DRCTemplate.TSMC|DRCTemplate.M56,   DRCTemplate.MINWID,   "Metal-4",         null,            2.8,  null),
 
 		new DRCTemplate("22.2", DRCTemplate.M4,    DRCTemplate.SPACING,  "Metal-4",        "Metal-4",        6,  null),
 		new DRCTemplate("22.2", DRCTemplate.DE|DRCTemplate.M56,   DRCTemplate.SPACING,  "Metal-4",        "Metal-4",        4,  null),
 		new DRCTemplate("22.2 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.SPACING,  "Metal-4",        "Metal-4",        3,  null),
-        new DRCTemplate("22.2 TSMC (Mx.S.1)", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.SPACING,  "Metal-4",        "Metal-4",        2.8,  null),
+        new DRCTemplate("Mx.S.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.M56,   DRCTemplate.SPACING,  "Metal-4",        "Metal-4",        2.8,  null),
 
 		new DRCTemplate("22.3", DRCTemplate.M4,    DRCTemplate.VIASUR,   "Metal-4",         null,            2, "Metal-3-Metal-4-Con"),
 		new DRCTemplate("22.3 Mosis", DRCTemplate.MOSIS|DRCTemplate.M56,   DRCTemplate.VIASUR,   "Metal-4",         null,            1, "Metal-3-Metal-4-Con"),
-        new DRCTemplate("22.3 TSMC", DRCTemplate.TSMC|DRCTemplate.M56,   DRCTemplate.VIASUR,   "Metal-4",         null,            0.7, "Metal-3-Metal-4-Con"),
+        new DRCTemplate("> VIAx.E.2 TSMC", DRCTemplate.TSMC|DRCTemplate.M56,   DRCTemplate.VIASUR,   "Metal-4",         null,            0.7, "Metal-3-Metal-4-Con"),
 
 		new DRCTemplate("22.4", DRCTemplate.M4,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        12, -1),
 		new DRCTemplate("22.4", DRCTemplate.DE|DRCTemplate.M56,   DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-4",        "Metal-4",        8, -1),
@@ -513,32 +517,34 @@ public class MoCMOS extends Technology
 		new DRCTemplate("25.1", DRCTemplate.DE, DRCTemplate.CUTSIZE,   null,             null,            3, "Metal-4-Metal-5-Con"),
 		new DRCTemplate("25.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Via4",            null,            3,  null),
 		new DRCTemplate("25.1 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.CUTSIZE,   null,             null,            2, "Metal-4-Metal-5-Con"),
-		new DRCTemplate("25.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSIZE,   null,             null,            2.6, "Metal-4-Metal-5-Con"),
+		new DRCTemplate("VIAx.W.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSIZE,   null,             null,            2.6, "Metal-4-Metal-5-Con"),
         new DRCTemplate("25.1 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.MINWID,   "Via4",            null,            2,  null),
-        new DRCTemplate("25.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.NODSIZ,    null,             null,            4, "Metal-4-Metal-5-Con"),
+        new DRCTemplate("VIAx.W.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.MINWID,   "Via4",            null,            2.6,  null),
+        new DRCTemplate("25.1", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.NODSIZ,    null,             null,            4, "Metal-4-Metal-5-Con"),
 		new DRCTemplate("25.1", DRCTemplate.DE|DRCTemplate.M5,    DRCTemplate.NODSIZ,    null,             null,            7, "Metal-4-Metal-5-Con"),
 		new DRCTemplate("25.1", DRCTemplate.DE|DRCTemplate.M6,    DRCTemplate.NODSIZ,    null,             null,            5, "Metal-4-Metal-5-Con"),
 
 		// Bug even in C-Electric It was SPACINGW originally
 		new DRCTemplate("25.2 Mosis", DRCTemplate.MOSIS,               DRCTemplate.SPACING, "Via4",           "Via4",           3, null),
-        new DRCTemplate("25.2 TSMC", DRCTemplate.TSMC,               DRCTemplate.SPACING, "Via4",           "Via4",           2.6, null),
+        new DRCTemplate("VIAx.S.1 TSMC", DRCTemplate.TSMC,               DRCTemplate.SPACING, "Via4",           "Via4",           2.6, null),
 
 		new DRCTemplate("25.3 Mosis", DRCTemplate.MOSIS,               DRCTemplate.VIASUR,   "Metal-4",         null,            1, "Metal-4-Metal-5-Con"),
-        new DRCTemplate("25.3 TSMC", DRCTemplate.TSMC,               DRCTemplate.VIASUR,   "Metal-4",         null,            0.7, "Metal-4-Metal-5-Con"),
+        new DRCTemplate("> VIAx.E.2 TSMC", DRCTemplate.TSMC,               DRCTemplate.VIASUR,   "Metal-4",         null,            0.7, "Metal-4-Metal-5-Con"),
 
 		new DRCTemplate("26.1", DRCTemplate.M5,    DRCTemplate.MINWID,   "Metal-5",         null,            4,  null),
-		new DRCTemplate("26.1", DRCTemplate.M6,    DRCTemplate.MINWID,   "Metal-5",         null,            3,  null),
+		new DRCTemplate("26.1", DRCTemplate.MOSIS|DRCTemplate.M6,    DRCTemplate.MINWID,   "Metal-5",         null,            3,  null),
+        new DRCTemplate("Mx.W.1 TSMC", DRCTemplate.MOSIS|DRCTemplate.M6,    DRCTemplate.MINWID,   "Metal-5",         null,            2.8,  null),
 
 		new DRCTemplate("26.2", DRCTemplate.M5,    DRCTemplate.SPACING,  "Metal-5",        "Metal-5",        4,  null),
 		new DRCTemplate("26.2", DRCTemplate.DE|DRCTemplate.M6,    DRCTemplate.SPACING,  "Metal-5",        "Metal-5",        4,  null),
 		new DRCTemplate("26.2 MOSIS", DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.M6,    DRCTemplate.SPACING,  "Metal-5",        "Metal-5",        3,  null),
-        new DRCTemplate("26.2 TSMC (Mx.S.1)", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.M6,    DRCTemplate.SPACING,  "Metal-5",        "Metal-5",        2.8,  null),
+        new DRCTemplate("Mx.S.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.M6,    DRCTemplate.SPACING,  "Metal-5",        "Metal-5",        2.8,  null),
 
 		new DRCTemplate("26.3", DRCTemplate.DE|DRCTemplate.M5,    DRCTemplate.VIASUR,   "Metal-5",         null,            2, "Metal-4-Metal-5-Con"),
 		new DRCTemplate("26.3 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU|DRCTemplate.M5,    DRCTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
-		new DRCTemplate("26.3 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.M5,    DRCTemplate.VIASUR,   "Metal-5",         null,            0.7, "Metal-4-Metal-5-Con"),
+		new DRCTemplate("> VIAx.E.2 TSMC", DRCTemplate.TSMC|DRCTemplate.SU|DRCTemplate.M5,    DRCTemplate.VIASUR,   "Metal-5",         null,            0.7, "Metal-4-Metal-5-Con"),
         new DRCTemplate("26.3 Mosis", DRCTemplate.MOSIS|DRCTemplate.M6, DRCTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-4-Metal-5-Con"),
-        new DRCTemplate("26.3 TSMC", DRCTemplate.TSMC|DRCTemplate.M6, DRCTemplate.VIASUR,   "Metal-5",         null,            0.7, "Metal-4-Metal-5-Con"),
+        new DRCTemplate("> VIAx.E.2 TSMC", DRCTemplate.TSMC|DRCTemplate.M6, DRCTemplate.VIASUR,   "Metal-5",         null,            0.7, "Metal-4-Metal-5-Con"),
 
 		new DRCTemplate("26.4", DRCTemplate.M5, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        8, -1),
 		new DRCTemplate("26.4", DRCTemplate.DE|DRCTemplate.M6,    DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-5",        "Metal-5",        8, -1),
@@ -548,26 +554,26 @@ public class MoCMOS extends Technology
 		new DRCTemplate("29.1", DRCTemplate.DE, DRCTemplate.MINWID,   "Via5",            null,            4,  null),
 		new DRCTemplate("29.1", DRCTemplate.DE, DRCTemplate.NODSIZ,    null,             null,            8, "Metal-5-Metal-6-Con"),
 		new DRCTemplate("29.1 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.CUTSIZE,   null,             null,            3, "Metal-5-Metal-6-Con"),
-        new DRCTemplate("29.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSIZE,   null,             null,            3.6, "Metal-5-Metal-6-Con"),
+        new DRCTemplate("VIA5.W.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.CUTSIZE,   null,             null,            3.6, "Metal-5-Metal-6-Con"),
 		new DRCTemplate("29.1 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.MINWID,   "Via5",            null,            3,  null),
-		new DRCTemplate("29.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.MINWID,   "Via5",            null,            3.6,  null),
+		new DRCTemplate("VIA5.W.1 TSMC", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.MINWID,   "Via5",            null,            3.6,  null),
         new DRCTemplate("29.1", DRCTemplate.SU, DRCTemplate.NODSIZ,    null,             null,            5, "Metal-5-Metal-6-Con"),
 
 		new DRCTemplate("29.2 Mosis", DRCTemplate.MOSIS, DRCTemplate.SPACING,  "Via5",           "Via5",           4,  null),
-        new DRCTemplate("29.2 TSMC", DRCTemplate.TSMC, DRCTemplate.SPACING,  "Via5",           "Via5",           3.6,  null),
+        new DRCTemplate("VIA5.W.1 TSMC", DRCTemplate.TSMC, DRCTemplate.SPACING,  "Via5",           "Via5",           3.6,  null),
 
 		new DRCTemplate("29.3 Mosis", DRCTemplate.MOSIS, DRCTemplate.VIASUR,   "Metal-5",         null,            1, "Metal-5-Metal-6-Con"),
-        new DRCTemplate("29.3 TSMC", DRCTemplate.TSMC, DRCTemplate.VIASUR,   "Metal-5",         null,            0.9, "Metal-5-Metal-6-Con"),
+        new DRCTemplate("M6.E.1 TSMC", DRCTemplate.TSMC, DRCTemplate.VIASUR,   "Metal-5",         null,            0.9, "Metal-5-Metal-6-Con"),
 
 		new DRCTemplate("30.1 Mosis", DRCTemplate.MOSIS, DRCTemplate.MINWID,   "Metal-6",         null,            5,  null),
-        new DRCTemplate("30.1 TSMC", DRCTemplate.TSMC, DRCTemplate.MINWID,   "Metal-6",         null,            4.4,  null),
+        new DRCTemplate("M6.W.1 TSMC", DRCTemplate.TSMC, DRCTemplate.MINWID,   "Metal-6",         null,            4.4,  null),
 
 		new DRCTemplate("30.2 Mosis", DRCTemplate.MOSIS, DRCTemplate.SPACING,  "Metal-6",        "Metal-6",        5,  null),
-        new DRCTemplate("30.2 TSMC (M6.S.1)", DRCTemplate.TSMC, DRCTemplate.SPACING,  "Metal-6",        "Metal-6",        4.6,  null),
+        new DRCTemplate("M6.S.1 TSMC", DRCTemplate.TSMC, DRCTemplate.SPACING,  "Metal-6",        "Metal-6",        4.6,  null),
 
 		new DRCTemplate("30.3", DRCTemplate.DE, DRCTemplate.VIASUR,   "Metal-6",         null,            2, "Metal-5-Metal-6-Con"),
 		new DRCTemplate("30.3 Mosis", DRCTemplate.MOSIS|DRCTemplate.SU, DRCTemplate.VIASUR,   "Metal-6",         null,            1, "Metal-5-Metal-6-Con"),
-        new DRCTemplate("30.3 TSMC", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.VIASUR,   "Metal-6",         null,            0.9, "Metal-5-Metal-6-Con"),
+        new DRCTemplate("??? TSMC", DRCTemplate.TSMC|DRCTemplate.SU, DRCTemplate.VIASUR,   "Metal-6",         null,            0.9, "Metal-5-Metal-6-Con"),
 
 		new DRCTemplate("30.4", DRCTemplate.ALL, DRCTemplate.SPACINGW, WIDELIMIT, 0, "Metal-6",        "Metal-6",        10, -1)
 	};
@@ -3006,9 +3012,9 @@ public class MoCMOS extends Technology
             {
                 node = metalActiveContactNodes[i].getLayers()[4]; // Cut
                 node.setPoints(Technology.TechPoint.makeIndented(7.4));
-                node = metalActiveContactNodes[i].getLayers()[3]; // Select
-                node.setPoints(Technology.TechPoint.makeIndented(3.4)); // so it is 2.6 with respect to active
-                metalActiveContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.8, 2.8});
+//                node = metalActiveContactNodes[i].getLayers()[3]; // Select
+//                node.setPoints(Technology.TechPoint.makeIndented(3.4)); // so it is 2.6 with respect to active
+                metalActiveContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.5, 2.8}); // 0.25 CO.S.1, 0.28 CO.S.2
             }
 
             // Well contacts
@@ -3016,9 +3022,9 @@ public class MoCMOS extends Technology
             {
                 node = metalWellContactNodes[i].getLayers()[4]; // Cut
                 node.setPoints(Technology.TechPoint.makeIndented(7.4));
-                node = metalWellContactNodes[i].getLayers()[2]; // Well 3 is not guarantee during construction!
-                node.setPoints(Technology.TechPoint.makeIndented(3));
-                metalWellContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.8, 2.8});
+//                node = metalWellContactNodes[i].getLayers()[2]; // Well 3 is not guarantee during construction!
+//                node.setPoints(Technology.TechPoint.makeIndented(3));
+                metalWellContactNodes[i].setSpecialValues(new double [] {2.2, 2.2, 1.4, 1.4, 2.5, 2.8});
                  // to have 4.3 between well and active NP.E.4
             }
 
@@ -3050,20 +3056,13 @@ public class MoCMOS extends Technology
                 transistorPolyLLayers[i].getBottomEdge().setAdder(10.1); transistorPolyLLayers[i].getTopEdge().setAdder(-10.1);
                 transistorPolyRLayers[i].getBottomEdge().setAdder(10.1); transistorPolyRLayers[i].getTopEdge().setAdder(-10.1);
                 transistorPolyCLayers[i].getBottomEdge().setAdder(10.1); transistorPolyCLayers[i].getTopEdge().setAdder(-10.1);
+                transistorSelectLayers[i].getBottomEdge().setAdder(5.1); transistorSelectLayers[i].getTopEdge().setAdder(-5.1);
                 transistorActiveLayers[i].getBottomEdge().setAdder(6.9); transistorActiveLayers[i].getTopEdge().setAdder(-6.9);
                 transistorActiveBLayers[i].getBottomEdge().setAdder(6.9);
                 transistorActiveBLayers[i].getTopEdge().setAdder(10.1);
                 transistorActiveTLayers[i].getTopEdge().setAdder(-6.9);
                 transistorActiveTLayers[i].getBottomEdge().setAdder(-10.1);
                 transistorNodes[i].setSizeOffset(new SizeOffset(6, 6, 10.1, 10.1));
-//                PrimitivePort port = transistorNodes[i].getPort(0).getBasePort();
-//                // trans-poly-left
-//                port.getLeft().setAdder(4.2);
-//                port.getRight().setAdder(4.2);
-//                // trans-poly-right
-//                port = transistorNodes[i].getPort(2).getBasePort();
-//                port.getLeft().setAdder(-4.2);
-//                port.getRight().setAdder(-4.2);
             }
             // Channel length 1.8
             poly1_arc.setDefaultWidth(1.8);
@@ -3082,8 +3081,8 @@ public class MoCMOS extends Technology
             {
                 node = metalActiveContactNodes[i].getLayers()[4]; // Cut
                 node.setPoints(Technology.TechPoint.makeIndented(7.5));
-                node = metalActiveContactNodes[i].getLayers()[3]; // Select
-                node.setPoints(Technology.TechPoint.makeIndented(4)); // back to Mosis default=4
+//                node = metalActiveContactNodes[i].getLayers()[3]; // Select
+//                node.setPoints(Technology.TechPoint.makeIndented(4)); // back to Mosis default=4
                 metalActiveContactNodes[i].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
             }
 
@@ -3093,8 +3092,8 @@ public class MoCMOS extends Technology
                 node = metalWellContactNodes[i].getLayers()[4]; // Cut
                 node.setPoints(Technology.TechPoint.makeIndented(7.5));
                 metalWellContactNodes[i].setSpecialValues(new double [] {2, 2, 1.5, 1.5, 3, 3});
-                node = metalWellContactNodes[i].getLayers()[2]; // Well
-                node.setPoints(Technology.TechPoint.makeIndented(3));
+//                node = metalWellContactNodes[i].getLayers()[2]; // Well
+//                node.setPoints(Technology.TechPoint.makeIndented(3));
             }
 
             // Via1 -> Via4. Some values depend on original node size
@@ -3122,18 +3121,11 @@ public class MoCMOS extends Technology
                 transistorPolyLLayers[i].getBottomEdge().setAdder(10); transistorPolyLLayers[i].getTopEdge().setAdder(-10);
                 transistorPolyRLayers[i].getBottomEdge().setAdder(10); transistorPolyRLayers[i].getTopEdge().setAdder(-10);
                 transistorPolyCLayers[i].getBottomEdge().setAdder(10); transistorPolyCLayers[i].getTopEdge().setAdder(-10);
+                transistorSelectLayers[i].getBottomEdge().setAdder(5); transistorSelectLayers[i].getTopEdge().setAdder(-5);
                 transistorActiveLayers[i].getBottomEdge().setAdder(7); transistorActiveLayers[i].getTopEdge().setAdder(-7);
                 transistorActiveBLayers[i].getBottomEdge().setAdder(7); transistorActiveBLayers[i].getTopEdge().setAdder(10);
                 transistorActiveTLayers[i].getTopEdge().setAdder(-7); transistorActiveTLayers[i].getBottomEdge().setAdder(-10);
                 transistorNodes[i].setSizeOffset(new SizeOffset(6, 6, 10, 10));
-//                PrimitivePort port = transistorNodes[i].getPort(0).getBasePort();
-//                // trans-poly-left
-//                port.getLeft().setAdder(4);
-//                port.getRight().setAdder(4);
-//                // trans-poly-right
-//                port = transistorNodes[i].getPort(2).getBasePort();
-//                port.getLeft().setAdder(-4);
-//                port.getRight().setAdder(-4);
             }
             // Channel length 2
             poly1_arc.setDefaultWidth(2.0);
