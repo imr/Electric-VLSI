@@ -1210,8 +1210,14 @@ public class EditWindow extends JPanel
 		{
 			if (runningNow != null)
 			{
-				if (runningNow != this && !redrawThese.contains(this))
-					redrawThese.add(this);
+				if (runningNow == this)
+				{
+					runningNow.vd.abortRendering();
+				} else
+				{
+					if (!redrawThese.contains(this))
+						redrawThese.add(this);
+				}
 				return;
 			}
 			handleWindowChangeRequests(this);

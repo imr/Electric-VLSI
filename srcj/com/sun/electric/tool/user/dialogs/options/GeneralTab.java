@@ -61,6 +61,7 @@ public class GeneralTab extends PreferencePanel
 		sideBarOnRight.setSelected(User.isSideBarOnRight());
 		generalPromptForIndex.setSelected(User.isPromptForIndexWhenDescending());
 		generalOlderDisplayAlgorithm.setSelected(User.isUseOlderDisplayAlgorithm());
+		generalGreekLimit.setText(Integer.toString(User.getGreekSizeLimit()));
 
         for (Iterator it = User.getInitialWorkingDirectorySettings(); it.hasNext(); )
             workingDirComboBox.addItem(it.next());
@@ -115,11 +116,15 @@ public class GeneralTab extends PreferencePanel
 		if (currBoolean != User.isUseOlderDisplayAlgorithm())
 			User.setUseOlderDisplayAlgorithm(currBoolean);
 
+		int currInt = TextUtils.atoi(generalGreekLimit.getText());
+		if (currInt != User.getGreekSizeLimit())
+			User.setGreekSizeLimit(currInt);
+
 		String currentInitialWorkingDirSetting = (String)workingDirComboBox.getSelectedItem();
         if (!currentInitialWorkingDirSetting.equals(User.getInitialWorkingDirectorySetting()))
             User.setInitialWorkingDirectorySetting(currentInitialWorkingDirSetting);
 
-		int currInt = generalPanningDistance.getSelectedIndex();
+		currInt = generalPanningDistance.getSelectedIndex();
 		if (currInt != User.getPanningDistance())
 			User.setPanningDistance(currInt);
 
@@ -162,6 +167,9 @@ public class GeneralTab extends PreferencePanel
         generalPanningDistance = new javax.swing.JComboBox();
         generalPromptForIndex = new javax.swing.JCheckBox();
         generalOlderDisplayAlgorithm = new javax.swing.JCheckBox();
+        jLabel4 = new javax.swing.JLabel();
+        generalGreekLimit = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
         IO = new javax.swing.JPanel();
         generalIncludeDateAndVersion = new javax.swing.JCheckBox();
         generalShowFileDialog = new javax.swing.JCheckBox();
@@ -272,6 +280,7 @@ public class GeneralTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         display.add(generalPanningDistance, gridBagConstraints);
@@ -291,6 +300,30 @@ public class GeneralTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         display.add(generalOlderDisplayAlgorithm, gridBagConstraints);
+
+        jLabel4.setText("Greek objects smaller than:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        display.add(jLabel4, gridBagConstraints);
+
+        generalGreekLimit.setColumns(5);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        display.add(generalGreekLimit, gridBagConstraints);
+
+        jLabel5.setText("pixels");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 5;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        display.add(jLabel5, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -417,6 +450,7 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JPanel general;
     private javax.swing.JCheckBox generalBeepAfterLongJobs;
     private javax.swing.JTextField generalErrorLimit;
+    private javax.swing.JTextField generalGreekLimit;
     private javax.swing.JCheckBox generalIncludeDateAndVersion;
     private javax.swing.JTextField generalMaxMem;
     private javax.swing.JLabel generalMemoryUsage;
@@ -428,7 +462,9 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel46;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel53;
     private javax.swing.JLabel jLabel60;
     private javax.swing.JLabel jLabel61;

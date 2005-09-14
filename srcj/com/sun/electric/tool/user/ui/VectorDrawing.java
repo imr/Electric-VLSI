@@ -33,15 +33,18 @@ import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.GenMath.MutableDouble;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor.Size;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
@@ -58,6 +61,8 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -68,9 +73,6 @@ import java.util.Set;
  * To Do:
  *    When editing down-in-place, why does export motion not move the text?
  *    Size computation and elimination on all cached objects
- *    No recache when port/export display is changed
- * Can't do:
- *    Context is lost when caching (was when doing pixel caching, too)
  */
 public class VectorDrawing
 {
@@ -84,6 +86,7 @@ public class VectorDrawing
 	/** true if "peeking" and expanding to the bottom */	private boolean fullInstantiate;
 	/** time that rendering started */						private long startTime;
 	/** true if the user has been told of delays */			private boolean takingLongTime;
+	/** true to stop rendering */							private boolean stopRendering;
 	/** the half-sizes of the window (in pixels) */			private int szHalfWidth, szHalfHeight;
 	/** the screen clipping */								private int screenLX, screenHX, screenLY, screenHY;
 	/** statistics */										private int boxCount, tinyBoxCount, lineBoxCount, lineCount, polygonCount;
@@ -375,6 +378,7 @@ public class VectorDrawing
 		boolean hasFadeColor;
 		int fadeColor;
 		float maxFeatureSize;
+		boolean isParameterized;
 
 		VectorCell()
 		{
@@ -402,7 +406,7 @@ public class VectorDrawing
 	 * @param fullInstantiate true to draw all the way to the bottom of the hierarchy.
 	 * @param drawLimitBounds the area in the cell to display (null to show all).
 	 */
-	void render(Cell cell, boolean fullInstantiate, Rectangle2D drawLimitBounds)
+	public void render(Cell cell, boolean fullInstantiate, Rectangle2D drawLimitBounds, VarContext context)
 	{
 		// set colors to use
 		textGraphics.setColor(new Color(User.getColorText()));
@@ -423,7 +427,7 @@ public class VectorDrawing
 
 		// set size limit
 		scale = (float)wnd.getScale();
-		maxObjectSize = 3 / scale;
+		maxObjectSize = User.getGreekSizeLimit() / scale;
 
 		// statistics
 		startTime = System.currentTimeMillis();
@@ -431,9 +435,6 @@ public class VectorDrawing
 		boxCount = tinyBoxCount = lineBoxCount = lineCount = polygonCount = 0;
 		crossCount = textCount = circleCount = arcCount = 0;
 		subCellCount = tinySubCellCount = 0;
-
-		// make sure the top level is cached
-		VectorCell topVC = drawCell(cell, NOROTATION);
 
 		// draw recursively
 		this.fullInstantiate = fullInstantiate;
@@ -459,9 +460,22 @@ public class VectorDrawing
 			screenHY = screenLimit.y + screenLimit.height;
 			if (screenHY >= sz.height) screenHY = sz.height-1;
 		}
-		render(topVC, 0, 0, NOROTATION, true);
 
-		if (takingLongTime) TopLevel.setBusyCursor(false);
+		// draw the screen, starting with the top cell
+		stopRendering = false;
+		try
+		{
+			VectorCell topVC = drawCell(cell, NOROTATION, context);
+			render(topVC, 0, 0, NOROTATION, context, true);
+		} catch (AbortRenderingException e)
+		{
+		}
+
+		if (takingLongTime)
+		{
+			TopLevel.setBusyCursor(false);
+			System.out.println("Done");
+		}
 
 		if (STATS && Main.getDebug())
 		{
@@ -474,6 +488,35 @@ public class VectorDrawing
 		}
 	}
 
+	private static final Variable.Key NCCKEY = ElectricObject.newKey("ATTR_NCC");
+
+	/**
+	 * Method to tell whether a Cell is parameterized.
+	 * Code is taken from tool.drc.Quick.checkEnumerateProtos
+	 * Could also use the code in tool.io.output.Spice.checkIfParameterized
+	 * @param cell the Cell to examine
+	 * @return true if the cell has parameters
+	 */
+	private boolean isCellParameterized(Cell cell)
+	{
+		for(Iterator vIt = cell.getVariables(); vIt.hasNext(); )
+		{
+			Variable var = (Variable)vIt.next();
+			if (var.isParam())
+			{
+				// this attribute is not a parameter
+				if (var.getKey() == NCCKEY) continue;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Class to define a signal to abort rendering.
+	 */
+	class AbortRenderingException extends Exception {}
+
 	/**
 	 * Method called when a cell changes: removes any cached displays of that cell
 	 * @param cell the cell that changed
@@ -485,14 +528,25 @@ public class VectorDrawing
 	}
 
 	/**
+	 * Method to request that the current rendering be aborted because it must be restarted.
+	 *
+	 */
+	public void abortRendering()
+	{
+		stopRendering = true;
+	}
+
+	/**
 	 * Method to recursively render a cached cell.
 	 * @param vc the cached cell to render
 	 * @param oX the X offset for rendering the cell (in database coordinates).
 	 * @param oY the Y offset for rendering the cell (in database coordinates).
 	 * @param trans the orientation of the cell (this is not a transformation matrix with offsets, just an Orientation with rotation).
+	 * @param context the VarContext for this point in the rendering.
 	 * @param topLevel true if this is the top level cell in the window.
 	 */
-	private void render(VectorCell vc, float oX, float oY, Orientation trans, boolean topLevel)
+	private void render(VectorCell vc, float oX, float oY, Orientation trans, VarContext context, boolean topLevel)
+		throws AbortRenderingException
 	{
 		// render main list of shapes
 		drawList(oX, oY, vc.shapes, topLevel);
@@ -528,9 +582,10 @@ public class VectorDrawing
 			{
 				VectorCellGroup vcg = VectorCellGroup.findCellGroup(vsc.subCell);
 				VectorCell subVC = vcg.getAnyCell();
+				VarContext subContext = context.push(vsc.ni);
 				if (subVC == null)
-					subVC = drawCell(vsc.subCell, NOROTATION);
-				int fadeColor = getFadeColor(subVC);
+					subVC = drawCell(vsc.subCell, NOROTATION, subContext);
+				int fadeColor = getFadeColor(subVC, subContext);
 				drawTinyBox(lX, hX, lY, hY, fadeColor);
 				tinySubCellCount++;
 				continue;
@@ -561,21 +616,22 @@ public class VectorDrawing
 			{
 				Orientation thisOrient = vsc.ni.getOrient();
 				Orientation recurseTrans = thisOrient.concatenate(trans);
-				VectorCell subVC = drawCell(vsc.subCell, recurseTrans);
+				VarContext subContext = context.push(vsc.ni);
+				VectorCell subVC = drawCell(vsc.subCell, recurseTrans, subContext);
 
 				// may also be "tiny" if all features in the cell are tiny
 				if (subVC.maxFeatureSize > 0 && subVC.maxFeatureSize < maxObjectSize)
 				{
-					boolean allTinyInside = isContentsTiny(vsc.subCell, subVC, recurseTrans);
+					boolean allTinyInside = isContentsTiny(vsc.subCell, subVC, recurseTrans, context);
 					if (allTinyInside)
 					{
-						int fadeColor = getFadeColor(subVC);
+						int fadeColor = getFadeColor(subVC, context);
 						drawTinyBox(lX, hX, lY, hY, fadeColor);
 						tinySubCellCount++;
 						continue;
 					}
 				}
-				render(subVC, vsc.offsetX + oX, vsc.offsetY + oY, recurseTrans, false);
+				render(subVC, vsc.offsetX + oX, vsc.offsetY + oY, recurseTrans, subContext, false);
 			} else
 			{
 				// now draw with the proper line type
@@ -599,6 +655,7 @@ public class VectorDrawing
 			}
 			drawList(oX, oY, vsc.portShapes, topLevel);
 		}
+		if (stopRendering) throw new AbortRenderingException();
 	}
 
 	/**
@@ -855,8 +912,6 @@ public class VectorDrawing
 	 */
 	public void databaseToScreen(double dbX, double dbY, Point result)
 	{
-//      double scrX = szHalfWidth + (dbX - offX) * scale;
-//      double scrY = szHalfHeight - (dbY - offY) * scale;
 		double scrX = dbX * scale + factorX;
 		double scrY = factorY - dbY * scale;
 		result.x = (int)(scrX >= 0 ? scrX + 0.5 : scrX - 0.5);
@@ -894,21 +949,24 @@ public class VectorDrawing
 	 * @param trans the Orientation of the cell.
 	 * @return true if the cell has all tiny contents.
 	 */
-	private boolean isContentsTiny(Cell cell, VectorCell vc, Orientation trans)
+	private boolean isContentsTiny(Cell cell, VectorCell vc, Orientation trans, VarContext context)
+		throws AbortRenderingException
 	{
 		if (vc.maxFeatureSize > maxObjectSize) return false;
 		boolean isAllTiny = true;
 		for(Iterator it = vc.subCells.iterator(); it.hasNext(); )
 		{
 			VectorSubCell vsc = (VectorSubCell)it.next();
-			boolean expanded = vsc.ni.isExpanded();
+			NodeInst ni = vsc.ni;
+			boolean expanded = ni.isExpanded();
 			if (fullInstantiate) expanded = true;
 			if (expanded)
 			{
-				Orientation thisOrient = vsc.ni.getOrient();
+				Orientation thisOrient = ni.getOrient();
 				Orientation recurseTrans = thisOrient.concatenate(trans);
-				VectorCell subVC = drawCell(vsc.subCell, recurseTrans);
-				boolean subCellTiny = isContentsTiny(vsc.subCell, subVC, recurseTrans);
+				VarContext subContext = context.push(ni);
+				VectorCell subVC = drawCell(vsc.subCell, recurseTrans, subContext);
+				boolean subCellTiny = isContentsTiny(vsc.subCell, subVC, recurseTrans, subContext);
 				if (!subCellTiny) return false;
 				continue;
 			}
@@ -924,13 +982,14 @@ public class VectorDrawing
 	 * @param vc the cached cell.
 	 * @return the fade color (an integer with red/green/blue).
 	 */
-	private int getFadeColor(VectorCell vc)
+	private int getFadeColor(VectorCell vc, VarContext context)
+		throws AbortRenderingException
 	{
 		if (vc.hasFadeColor) return vc.fadeColor;
 
 		// examine all shapes
 		HashMap layerAreas = new HashMap();
-		gatherContents(vc, layerAreas);
+		gatherContents(vc, layerAreas, context);
 
 		// now compute the color
 		Set keys = layerAreas.keySet();
@@ -970,7 +1029,8 @@ public class VectorDrawing
 	 * @param vc the cached cell to examine.
 	 * @param layerAreas a HashMap of all layers and the areas they cover.
 	 */
-	private void gatherContents(VectorCell vc, HashMap layerAreas)
+	private void gatherContents(VectorCell vc, HashMap layerAreas, VarContext context)
+		throws AbortRenderingException
 	{
 		for(Iterator it = vc.shapes.iterator(); it.hasNext(); )
 		{
@@ -1016,9 +1076,10 @@ public class VectorDrawing
 			VectorSubCell vsc = (VectorSubCell)it.next();
 			VectorCellGroup vcg = VectorCellGroup.findCellGroup(vsc.subCell);
 			VectorCell subVC = vcg.getAnyCell();
+			VarContext subContext = context.push(vsc.ni);
 			if (subVC == null)
-				subVC = drawCell(vsc.subCell, NOROTATION);
-			gatherContents(subVC, layerAreas);
+				subVC = drawCell(vsc.subCell, NOROTATION, subContext);
+			gatherContents(subVC, layerAreas, subContext);
 		}
 	}
 
@@ -1030,27 +1091,37 @@ public class VectorDrawing
 	 * @param prevTrans the orientation of the cell (just a rotation, no offsets here).
 	 * @return a cached cell object for the given Cell.
 	 */
-	private VectorCell drawCell(Cell cell, Orientation prevTrans)
+	private VectorCell drawCell(Cell cell, Orientation prevTrans, VarContext context)
+		throws AbortRenderingException
 	{
-		// handle refreshing
+		// see if this cell's vectors are cached
+		VectorCellGroup vcg = VectorCellGroup.findCellGroup(cell);
+		String orientationName = makeOrientationName(prevTrans);
+		VectorCell vc = (VectorCell)vcg.orientations.get(orientationName);
+		
+		// if the cell is parameterized, mark it for recaching
+		if (vc != null && vc.isParameterized) vc = null;
+
+		// if the cell is cached, stop now
+		if (vc != null) return vc;
+
+		// caching the cell: check for abort and delay reporting
+		if (stopRendering) throw new AbortRenderingException();
 		if (!takingLongTime)
 		{
 			long currentTime = System.currentTimeMillis();
 			if (currentTime - startTime > 1000)
 			{
-				System.out.println("Display caching, please wait...");
+				System.out.print("Display caching, please wait...");
 				TopLevel.setBusyCursor(true);
 				takingLongTime = true;
 			}
 		}
 
-		// see if this cell's vectors are cached
-		VectorCellGroup vcg = VectorCellGroup.findCellGroup(cell);
-		String orientationName = makeOrientationName(prevTrans);
-		VectorCell vc = (VectorCell)vcg.orientations.get(orientationName);
-		if (vc != null) return vc;
+		// make a new cache of the cell
 		vc = new VectorCell();
 		vcg.addCell(vc, prevTrans);
+		vc.isParameterized = isCellParameterized(cell);
 		AffineTransform trans = prevTrans.pureRotate();
 
 //System.out.println("CACHING CELL "+cell +" WITH ORIENTATION "+orientationName);
@@ -1065,7 +1136,13 @@ public class VectorDrawing
 		for(Iterator nodes = cell.getNodes(); nodes.hasNext(); )
 		{
 			NodeInst ni = (NodeInst)nodes.next();
-			drawNode(ni, trans, vc);
+			drawNode(ni, trans, context, vc);
+		}
+
+		// for schematics, sort the polygons by layer so that busses are drawn first
+		if (cell.getView() == View.SCHEMATIC)
+		{
+            Collections.sort(vc.shapes, new ShapeByLayer());
 		}
 
 		// show cell variables
@@ -1077,12 +1154,31 @@ public class VectorDrawing
 	}
 
 	/**
+	 * Comparator class for sorting VectorBase objects by their layer depth.
+	 */
+    public static class ShapeByLayer implements Comparator
+    {
+		/**
+		 * Method to sort Objects by their string name.
+		 */
+        public int compare(Object o1, Object o2)
+        {
+			VectorBase vb1 = (VectorBase)o1;
+			VectorBase vb2 = (VectorBase)o2;
+			int level1 = -1, level2 = -1;
+			if (vb1.layer != null) level1 = vb1.layer.getFunction().getLevel();
+			if (vb2.layer != null) level2 = vb2.layer.getFunction().getLevel();
+            return level1 - level2;
+        }
+    }
+
+	/**
 	 * Method to cache a NodeInst.
 	 * @param ni the NodeInst to cache.
      * @param trans the transformation of the NodeInst to the parent Cell.
 	 * @param vc the cached cell in which to place the NodeInst.
      */
-	public void drawNode(NodeInst ni, AffineTransform trans, VectorCell vc)
+	public void drawNode(NodeInst ni, AffineTransform trans, VarContext context, VectorCell vc)
 	{
 		NodeProto np = ni.getProto();
 		AffineTransform localTrans = ni.rotateOut(trans);
@@ -1123,7 +1219,7 @@ public class VectorDrawing
 			int textType = VectorText.TEXTTYPENODE;
 			if (prim == Generic.tech.invisiblePinNode) textType = VectorText.TEXTTYPEANNOTATION;
 			Technology tech = prim.getTechnology();
-			Poly [] polys = tech.getShapeOfNode(ni, wnd, VarContext.globalContext, false, false, null);
+			Poly [] polys = tech.getShapeOfNode(ni, wnd, context, false, false, null);
 			drawPolys(polys, localTrans, vc, hideOnLowLevel, textType);
 		}
 

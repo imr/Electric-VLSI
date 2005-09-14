@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+IMP/MAN: (09/14/05, SMR) Waveform viewer shows the name of the stimulus file (Bug #544).
+
+IMP/MAN: (09/14/05, SMR) New display algorithm handles variable context properly.
+     Aborts cleanly when new display is requested.
+     Has control (in "General" preferences) for greeking level.
+
 BUG: (09/13/05, SMR) Display flashes occasionally, briefly clearing everything.
 FIX: Made EditWindow be "Opaque" so that it is not cleared by Swing.
      Ensured that EditWindow.paint() always draws.

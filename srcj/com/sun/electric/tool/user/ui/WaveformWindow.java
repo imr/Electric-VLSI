@@ -170,7 +170,7 @@ public class WaveformWindow implements WindowContent
 	/** true if rebuilding the list of panels */			private boolean rebuildingSignalNameList = false;
 	/** the main scroll of all panels. */					private JScrollPane scrollAll;
 	/** the split between signal names and traces. */		private JSplitPane split;
-	/** labels for the text at the top */					private JLabel mainPos, extPos, delta;
+	/** labels for the text at the top */					private JLabel mainPos, extPos, delta, diskLabel;
 	/** buttons for centering the time cursors. */			private JButton centerMain, centerExt;
 	/** a list of panels in this window */					private List wavePanels;
 	/** a list of sweep signals in this window */			private List sweepSignals;
@@ -2993,7 +2993,7 @@ public class WaveformWindow implements WindowContent
 		mainPos.setToolTipText("The main (dashed) time cursor");
 		gbc.gridx = 0;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 0.3;   gbc.weighty = 0;
+		gbc.weightx = 0.2;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
@@ -3017,7 +3017,7 @@ public class WaveformWindow implements WindowContent
 		extPos.setToolTipText("The extension (dotted) time cursor");
 		gbc.gridx = 2;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 0.3;   gbc.weighty = 0;
+		gbc.weightx = 0.2;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
@@ -3041,11 +3041,28 @@ public class WaveformWindow implements WindowContent
 		delta.setToolTipText("Time distance between cursors");
 		gbc.gridx = 4;       gbc.gridy = 0;
 		gbc.gridwidth = 1;   gbc.gridheight = 1;
-		gbc.weightx = 0.3;   gbc.weighty = 0;
+		gbc.weightx = 0.2;   gbc.weighty = 0;
 		gbc.anchor = GridBagConstraints.CENTER;
 		gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
 		gbc.insets = new Insets(0, 0, 0, 0);
 		timeLabelPanel.add(delta, gbc);
+
+		// the name of the waveform disk file
+		if (sd.getFileURL() != null)
+		{
+			String fileName = TextUtils.getFileNameWithoutExtension(sd.getFileURL());
+			String ext = TextUtils.getExtension(sd.getFileURL());
+			if (ext.length() > 0) fileName += "." + ext;
+			diskLabel = new JLabel("File: " + fileName, JLabel.CENTER);
+			diskLabel.setToolTipText("The disk file that is being displayed");
+			gbc.gridx = 5;       gbc.gridy = 0;
+			gbc.gridwidth = 1;   gbc.gridheight = 1;
+			gbc.weightx = 0.4;   gbc.weighty = 0;
+			gbc.anchor = GridBagConstraints.CENTER;
+			gbc.fill = java.awt.GridBagConstraints.HORIZONTAL;
+			gbc.insets = new Insets(0, 10, 0, 0);
+			timeLabelPanel.add(diskLabel, gbc);
+		}
 
 		// add VCR controls
 		JButton vcrButtonRewind = new JButton(iconVCRRewind);

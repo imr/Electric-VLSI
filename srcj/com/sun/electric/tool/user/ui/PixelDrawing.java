@@ -493,7 +493,7 @@ public class PixelDrawing
 				drawCell(cell, drawLimitBounds, fullInstantiate, Orientation.IDENT, DBMath.MATID, wnd, wnd.getVarContext());
 			} else
 			{
-				wnd.vd.render(cell, fullInstantiate, drawLimitBounds);
+				wnd.vd.render(cell, fullInstantiate, drawLimitBounds, wnd.getVarContext());
 			}
 		}
 

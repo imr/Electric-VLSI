@@ -439,7 +439,6 @@ public class User extends Listener
 		{
 			Cell cell = (Cell)it.next();
 			markCellForRedraw(cell, false);
-			PixelDrawing.forceRedraw(cell);
 		}
 	}
 
@@ -490,6 +489,7 @@ public class User extends Listener
 	private void markCellForRedraw(Cell cell, boolean recurseUp)
 	{
 		VectorDrawing.cellChanged(cell);
+		PixelDrawing.forceRedraw(cell);
 		for(Iterator wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)wit.next();
@@ -1813,6 +1813,27 @@ public class User extends Listener
 	 * @param on true to use the older "PixelDrawing" display algorithm.
 	 */
 	public static void setUseOlderDisplayAlgorithm(boolean on) { cacheUseOlderDisplayAlgorithm.setBoolean(on); }
+
+	private static Pref cacheGreekSizeLimit = Pref.makeIntPref("GreekSizeLimit", tool.prefs, 3);
+	/**
+	 * Method to tell the smallest object that can be drawn.
+	 * Anything smaller than this amount (in screen pixels) is "greeked", or drawn approximately.
+	 * Also, any cell whose complete contents (hierarchically to the bottom) are all smaller
+	 * than this size will be "greeked".
+	 * The default is 3, meaning that any node or arc smaller than 3 pixels will not be
+	 * drawn accurately, but will be "greeked".
+	 * @return the smallest object that can be drawn.
+	 */
+	public static int getGreekSizeLimit() { return cacheGreekSizeLimit.getInt(); }
+	/**
+	 * Method to set the smallest object that can be drawn.
+	 * Anything smaller than this amount (in screen pixels) is "greeked", or drawn approximately.
+	 * Also, any cell whose complete contents (hierarchically to the bottom) are all smaller
+	 * than this size will be "greeked".
+	 * @param l the smallest object that can be drawn.
+	 */
+	public static void setGreekSizeLimit(int l) { cacheGreekSizeLimit.setInt(l); }
+
 
 	private static Pref cacheShowFileSelectionForNetlists = Pref.makeBooleanPref("ShowFileSelectionForNetlists", tool.prefs, true);
 	/**
