@@ -45,6 +45,7 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
@@ -168,7 +169,6 @@ public class EDIF extends Topology
 	}
 
 	// settings that may later be changed by preferences
-    private static final boolean CadenceProperties = true;
     private static final String primitivesLibName = "ELECTRIC_PRIMS";
 
     private int scale = 20;
@@ -523,7 +523,7 @@ public class EDIF extends Topology
 					if (busExports.get(e) != null) continue;
 					blockOpen("port");
 					blockOpen("array");
-					String eBusName = e.getName().replaceAll("\\[", "\\<").replaceAll("\\]", "\\>");
+					String eBusName = convertBusName(e.getName(), netList, e);
 					String busName = makeToken(eBusName);
 					busExports.put(e, busName);
 					blockOpen("rename");
@@ -1015,7 +1015,7 @@ public class EDIF extends Topology
 				blockOpen("net");
 				blockOpen("array");
 					String realBusName = netList.getBusName(ai).toString();
-					String busName = realBusName.replaceAll("\\[", "\\<").replaceAll("\\]", "\\>");
+					String busName = convertBusName(realBusName, netList, ai);
 					String oname = makeToken(busName);
 					if (!oname.equals(busName))
 					{
@@ -1392,6 +1392,73 @@ public class EDIF extends Topology
 		blockPutInteger(scaleValue(x));
 		blockPutInteger(scaleValue(y));
 		blockClose("pt");
+	}
+
+	/**
+	 * Method to convert a bus name to the proper string for output.
+	 * @param busName the bus name in Electric.
+	 * @return the bus name for EDIF output.
+	 */
+	private String convertBusName(String busName, Netlist netlist, ElectricObject eObj)
+	{
+		if (IOTool.isEDIFCadenceCompatibility())
+		{
+			// see if the bus is simple
+			int firstOpen = busName.indexOf('[');
+			if (firstOpen < 0) return busName;
+			boolean simple = true;
+			if (busName.indexOf('[', firstOpen+1) >= 0) simple = false; else
+			{
+				int closePos = busName.indexOf(']', firstOpen);
+				for(int i=firstOpen+1; i<closePos; i++)
+				{
+					char ch = busName.charAt(i);
+					if (ch != ':' && ch != ',' && !TextUtils.isDigit(ch))
+					{
+						simple = false;
+						break;
+					}
+				}
+			}
+			if (simple)
+			{
+				busName = busName.replaceAll("\\[", "\\<").replaceAll("\\]", "\\>");
+			} else
+			{
+				// complex name: break it into many signals
+				busName = "";
+				if (eObj instanceof ArcInst)
+				{
+					ArcInst ai = (ArcInst)eObj;
+					int width = netlist.getBusWidth(ai);
+					for(int i=0; i<width; i++)
+					{
+						Network net = netlist.getNetwork(ai, i);
+						if (busName.length() > 0) busName += ",";
+						Iterator nIt = net.getNames();
+						String netName;
+						if (nIt.hasNext()) netName = (String)nIt.next(); else
+							netName = net.describe(true);
+						busName += netName.replaceAll("\\[", "_").replaceAll("\\]", "_");
+					}
+				} else if (eObj instanceof Export)
+				{
+					Export e = (Export)eObj;
+					int width = netlist.getBusWidth(e);
+					for(int i=0; i<width; i++)
+					{
+						Network net = netlist.getNetwork(e, i);
+						if (busName.length() > 0) busName += ",";
+						Iterator nIt = net.getNames();
+						String netName;
+						if (nIt.hasNext()) netName = (String)nIt.next(); else
+							netName = net.describe(true);
+						busName += netName.replaceAll("\\[", "_").replaceAll("\\]", "_");
+					}
+				}
+			}
+		}
+		return busName;
 	}
 
 	/**
@@ -1892,7 +1959,7 @@ public class EDIF extends Topology
 		}
 		if (type.isText())
 		{
-            if (CadenceProperties && obj.getVariable() != null) {
+            if (IOTool.isEDIFCadenceCompatibility() && obj.getVariable() != null) {
                 // Properties in Cadence do not have position info, Cadence
                 // determines position automatically and cannot be altered by user.
                 // There also does not seem to be any way to set the 'display' so

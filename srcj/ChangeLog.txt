@@ -4,6 +4,13 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+IMP/MAN: (09/14/05, SMR) Can now change the font and size of text when editing textual cells.
+
+IMP/MAN: (09/14/05, SMR) EDIF Preferences now has "Cadence compatibility" checkbox.
+     In Cadence mode, multidimensional and symbolic busses are made into scalars.
+
+IMP/MAN: (09/14/05, SMR) Preferences dialog now has "Save" and "Restore" buttons (Bug #541).
+
 IMP/MAN: (09/14/05, SMR) Waveform viewer shows the name of the stimulus file (Bug #544).
 
 IMP/MAN: (09/14/05, SMR) New display algorithm handles variable context properly.

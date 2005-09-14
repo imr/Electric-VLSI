@@ -511,7 +511,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 			if (theFont != null) tc.setFont(theFont);
 			tc.selectAll();
 
-			wnd.add(tc);
+			wnd.addInPlaceTextObject(tc);
 			tc.setVisible(true);
 			tc.repaint();
 
@@ -553,7 +553,7 @@ public class GetInfoText extends EDialog implements HighlightListener, DatabaseC
 		private void closeEditInPlace()
 		{
 			WindowFrame.setListener(oldListener);
-			wnd.remove(tc);
+			wnd.removeInPlaceTextObject(tc);
 			wnd.repaint();
 			mb.setIgnoreTextEditKeys(false);
 

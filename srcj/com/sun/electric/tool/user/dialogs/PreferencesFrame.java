@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.user.dialogs;
 
+import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.user.User;
@@ -374,26 +375,25 @@ public class PreferencesFrame extends EDialog
 		gbc.weightx = 1.0;   gbc.weighty = 1.0;
 		leftPanel.add(scrolledTree, gbc);
 
-		cancel = new JButton("Cancel");
-		cancel.addActionListener(new ActionListener()
+		JButton save = new JButton("Save");
+		save.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { cancelActionPerformed(); }
+			public void actionPerformed(ActionEvent evt) { saveActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;   gbc.gridy = 1;
 		gbc.insets = new Insets(4, 4, 4, 4);
-		leftPanel.add(cancel, gbc);
+		leftPanel.add(save, gbc);
 
-		ok = new JButton("OK");
-		ok.addActionListener(new ActionListener()
+		JButton restore = new JButton("Restore");
+		restore.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { okActionPerformed(); }
+			public void actionPerformed(ActionEvent evt) { restoreActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
 		gbc.gridx = 1;   gbc.gridy = 1;
 		gbc.insets = new Insets(4, 4, 4, 4);
-		leftPanel.add(ok, gbc);
-		getRootPane().setDefaultButton(ok);
+		leftPanel.add(restore, gbc);
 
 		JButton help = new JButton("Help");
 		help.addActionListener(new ActionListener()
@@ -405,6 +405,27 @@ public class PreferencesFrame extends EDialog
 		gbc.gridwidth = 2;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(help, gbc);
+
+		cancel = new JButton("Cancel");
+		cancel.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { cancelActionPerformed(); }
+		});
+		gbc = new GridBagConstraints();
+		gbc.gridx = 0;   gbc.gridy = 3;
+		gbc.insets = new Insets(4, 4, 4, 4);
+		leftPanel.add(cancel, gbc);
+
+		ok = new JButton("OK");
+		ok.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { okActionPerformed(); }
+		});
+		gbc = new GridBagConstraints();
+		gbc.gridx = 1;   gbc.gridy = 3;
+		gbc.insets = new Insets(4, 4, 4, 4);
+		leftPanel.add(ok, gbc);
+		getRootPane().setDefaultButton(ok);
 
 		getRootPane().setDefaultButton(ok);
 
@@ -455,6 +476,16 @@ public class PreferencesFrame extends EDialog
 	{
 		ManualViewer.showPreferenceHelp(currentSectionName.trim() + "/" + currentTabName);
 		closeDialog(null);
+	}
+
+	private void saveActionPerformed()
+	{
+		Pref.exportPrefs();
+	}
+
+	private void restoreActionPerformed()
+	{
+		Pref.importPrefs();
 	}
 
 	private void loadOptionPanel()

@@ -509,6 +509,26 @@ public class VectorDrawing
 				return true;
 			}
 		}
+
+		// look for any Java coded stuff (Logical Effort calls)
+		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		{
+			NodeInst ni = (NodeInst)it.next();
+			for(Iterator vIt = ni.getVariables(); vIt.hasNext(); )
+			{
+				Variable var = (Variable)vIt.next();
+				if (var.getCode() != TextDescriptor.Code.NONE) return true;
+			}
+		}
+		for(Iterator it = cell.getArcs(); it.hasNext(); )
+		{
+			ArcInst ai = (ArcInst)it.next();
+			for(Iterator vIt = ai.getVariables(); vIt.hasNext(); )
+			{
+				Variable var = (Variable)vIt.next();
+				if (var.getCode() != TextDescriptor.Code.NONE) return true;
+			}
+		}
 		return false;
 	}
 
@@ -1165,7 +1185,7 @@ public class VectorDrawing
         {
 			VectorBase vb1 = (VectorBase)o1;
 			VectorBase vb2 = (VectorBase)o2;
-			int level1 = -1, level2 = -1;
+			int level1 = 1000, level2 = 1000;
 			if (vb1.layer != null) level1 = vb1.layer.getFunction().getLevel();
 			if (vb2.layer != null) level2 = vb2.layer.getFunction().getLevel();
             return level1 - level2;

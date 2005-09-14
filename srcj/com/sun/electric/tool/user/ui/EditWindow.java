@@ -118,6 +118,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollBar;
 import javax.swing.SwingUtilities;
+import javax.swing.text.JTextComponent;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
@@ -142,6 +143,7 @@ public class EditWindow extends JPanel
 	/** transform from cell to screen (in-place only) */	private AffineTransform outofCell;
 	/** top-level cell being displayed (in-place only) */	private Cell topLevelCell;
 	/** path to cell being edited (in-place only) */		private List inPlaceDescent;
+	/** list of in-place text objects on this window */		private List inPlaceTextObjects = new ArrayList();
 
 	/** Cell's VarContext */                                private VarContext cellVarContext;
 	/** the window frame containing this editwindow */      private WindowFrame wf;
@@ -1142,6 +1144,11 @@ public class EditWindow extends JPanel
 		}
 
 		// draw any components that are on top (such as in-line text edits)
+		for(Iterator it = inPlaceTextObjects.iterator(); it.hasNext(); )
+		{
+			JTextComponent tc = (JTextComponent)it.next();
+			tc.paint(g);
+		}
 //		super.paint(g);
 
 		// see if anything else is queued
@@ -1163,6 +1170,26 @@ public class EditWindow extends JPanel
 				}
 			}
 		}
+	}
+
+	/**
+	 * Method to store a new "in-place" text editing object on this EditWindow.
+	 * @param tc the JTextComponent that is now sitting on top of this EditWindow.
+	 */
+	public void addInPlaceTextObject(JTextComponent tc)
+	{
+		inPlaceTextObjects.add(tc);
+		add(tc);
+	}
+
+	/**
+	 * Method to remove a "in-place" text editing object from this EditWindow.
+	 * @param tc the JTextComponent that is no longer sitting on top of this EditWindow.
+	 */
+	public void removeInPlaceTextObject(JTextComponent tc)
+	{
+		inPlaceTextObjects.remove(tc);
+		remove(tc);
 	}
 
 	public void fullRepaint() { repaintContents(null, false); }

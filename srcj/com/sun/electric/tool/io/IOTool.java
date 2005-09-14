@@ -766,6 +766,19 @@ public class IOTool extends Listener
 	 */
 	public static void setEDIFUseSchematicView(boolean f) { cacheEDIFUseSchematicView.setBoolean(f); }
 
+	private static Pref cacheEDIFCadenceCompatibility = Pref.makeBooleanPref("EDIFCadenceCompatibility", IOTool.tool.prefs, true);
+	/**
+	 * Method to tell whether EDIF I/O is compatible with Cadence.
+	 * The default is "true".
+	 * @return true if EDIF I/O is compatible with Cadence.
+	 */
+	public static boolean isEDIFCadenceCompatibility() { return cacheEDIFCadenceCompatibility.getBoolean(); }
+	/**
+	 * Method to set whether EDIF I/O is compatible with Cadence.
+	 * @param c true if EDIF I/O is compatible with Cadence.
+	 */
+	public static void setEDIFCadenceCompatibility(boolean c) { cacheEDIFCadenceCompatibility.setBoolean(c); }
+
 	private static Pref cacheEDIFInputScale = Pref.makeDoublePref("EDIFInputScale", IOTool.tool.prefs, 0.05);
 	/**
 	 * Method to return the EDIF input scale.

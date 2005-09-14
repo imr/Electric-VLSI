@@ -1121,6 +1121,32 @@ public class User extends Listener
 	 */
 	public static void setDefaultFont(String f) { cacheDefaultFont.setString(f); }
 
+	private static Pref cacheDefaultTextCellFont = Pref.makeStringPref("DefaultTextCellFont", tool.prefs, "SansSerif");
+	/**
+	 * Method to get the default font to use when editing textual cells.
+	 * The default is "SansSerif".
+	 * @return the default font to use when editing textual cells.
+	 */
+	public static String getDefaultTextCellFont() { return cacheDefaultTextCellFont.getString(); }
+	/**
+	 * Method to set the default font to use when editing textual cells.
+	 * @param f the default font to use when editing textual cells.
+	 */
+	public static void setDefaultTextCellFont(String f) { cacheDefaultTextCellFont.setString(f); }
+
+	private static Pref cacheDefaultTextCellSize = Pref.makeIntPref("DefaultTextCellSize", tool.prefs, 12);
+	/**
+	 * Method to tell the size of text in textual cells.
+	 * The default is "12".
+	 * @return the size of text in textual cells.
+	 */
+	public static int getDefaultTextCellSize() { return cacheDefaultTextCellSize.getInt(); }
+	/**
+	 * Method to set the size of text in textual cells.
+	 * @param s the size of text in textual cells.
+	 */
+	public static void setDefaultTextCellSize(int s) { cacheDefaultTextCellSize.setInt(s); }
+
 	private static Pref cacheGlobalTextScale = Pref.makeDoublePref("TextGlobalScale", tool.prefs, 1);
 	/**
 	 * Method to tell the global text scale factor.

@@ -35,6 +35,7 @@ import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.menus.MenuBar;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -87,6 +88,7 @@ public class TextWindow
 		this.finishing = false;
 
 		textArea = new JTextArea();
+		textArea.setFont(new Font(User.getDefaultTextCellFont(), 0, User.getDefaultTextCellSize()));
 		scrollPane = new JScrollPane(textArea);
 		overall = new JPanel();
 		overall.setLayout(new BorderLayout());
@@ -113,6 +115,14 @@ public class TextWindow
 			textArea.requestFocus();
 
 		textArea.paint(g);
+	}
+
+	/**
+	 * Method to update the font information in this window.
+	 */
+	public void updateFontInformation()
+	{
+		textArea.setFont(new Font(User.getDefaultTextCellFont(), 0, User.getDefaultTextCellSize()));
 	}
 
 	/**
