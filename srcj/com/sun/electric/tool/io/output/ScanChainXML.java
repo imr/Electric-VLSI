@@ -32,6 +32,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.variable.VarContext;
 
 import java.util.*;
 import java.io.*;
@@ -282,45 +283,62 @@ public class ScanChainXML {
             System.out.println("Did not find cell "+cellName+" for starting chain analysis, in library "+libName);
             return;
         }
-        int usages = 0;
+        Stack startNode = findStartNode(cell, new Stack());
+        if (startNode == null) {
+            System.out.println("Did not find any usages of the jtag controller: "+jtagCell.getName());
+            return;
+        }
+        Nodable no = (Nodable)startNode.lastElement();
+        System.out.println("*** Generating chains starting from jtag controller "+no.getParent().describe(false)+" : "+no.getName());
+        start(startNode);
+    }
+
+    // find the start node.  it will be the last nodable in the var context
+    private Stack findStartNode(Cell cell, Stack context) {
         Netlist netlist = cell.getNetlist(true);
         for (Iterator it = netlist.getNodables(); it.hasNext(); ) {
             Nodable no = (Nodable)it.next();
             if (no.getProto().getName().equals(jtagCell.getName())) {
-                System.out.println("*** Generating chains starting from jtag controller "+no.getName()+" in "+no.getParent());
-                start(no);
-                usages++;
+                context.push(no);
+                return context;
+            }
+            if (no.getProto() instanceof Cell) {
+                // descend
+                Cell subCell = (Cell)no.getProto();
+                subCell = subCell.contentsView();
+                if (subCell == null) subCell = (Cell)no.getProto();
+
+                context.push(no);
+                Stack next = findStartNode(subCell, context);
+                if (next == null)
+                    context.pop();      // get rid of no
+                else
+                    return next;
             }
         }
-        if (usages == 0) System.out.println("Did not find any usages of the jtag controller: "+jtagCell.getName());
+        return null;
     }
 
     /**
      * Start tracing the scan chains. The nodeinst must be the jtag controller
-     * @param no an instance of the jtag controller
+     * @param startNode The context pointing to the jtag controller.
      */
-    private void start(Nodable no) {
-        if (no == null) return;
+    private void start(Stack startNode) {
+        if (startNode == null) return;
 
-        if (!no.getProto().getName().equals(jtagCell.getName())) {
-            System.out.println("Node instance of cell "+no.getProto().getName() +" does not match jtag controller, "+jtagCell.getName());
-            return;
-        }
         // generate a chain for each port
         for (Iterator it = jtagController.getPorts(); it.hasNext(); ) {
             JtagController.Port jtagPort = (JtagController.Port)it.next();
             if (jtagPort.soutPort == null) continue;
             if (DEBUG) System.out.println("Starting chain "+jtagPort.opcode+" from port "+jtagPort.soutPort);
-            Port startPort = getPort(no, jtagPort.soutPort);
-            if (startPort == null) {
-                System.out.println("Can't find specified start port "+jtagPort.soutPort+" on jtag controller "+jtagController.name);
-                continue;
-            }
+
             String chainName = jtagPort.chainName;
             if (chainName == null)
                 chainName = "chain_"+jtagPort.soutPort;
             Chain chain = new Chain(chainName, jtagPort.opcode, -1, null, null);
-            appendChain(chain, getOtherPorts(startPort));
+            Stack startNodeCopy = new Stack();
+            startNodeCopy.addAll(startNode);
+            startChain(chain, startNodeCopy, jtagPort.soutPort);
             // report number of elements found
             int found = chain.numScanElements();
             System.out.println("Info: completed successfully: chain "+chainName+" had "+found+" scan chain elements");
@@ -695,6 +713,55 @@ public class ScanChainXML {
 
     // -------------------------------------------------------------------------
 
+    // Entry point. Starts building a scan chain
+    // takes care of adding extra hierarchy if start of chain is not at top level.
+    // other methods are top-down only
+    // Hierarchy denoted by Stack, start (jtag controller) node is at the top of the stack (pop'd off first)
+    private SubChainInst startChain(Chain chain, Stack startNode, String startPortName) {
+        // get top nodable
+        if (startNode == null) return null;
+        if (startNode.size() == 0) return null;
+        Nodable no = (Nodable)startNode.remove(0);
+        if (startNode.isEmpty()) {
+            // no is the jtagController, start following the chain
+            Port startPort = getPort(no, startPortName);
+            if (startPort == null) {
+                System.out.println("Can't find specified start port "+startPortName+" on jtag controller "+jtagController.name);
+                return null;
+            }
+            if (DEBUG) System.out.println("Found startNode. Starting chain "+chain.name+" from port "+startPortName);
+            SubChainInst subChainInst = appendChain(chain, getOtherPorts(startPort));
+            if (subChainInst == null) return null;
+            return subChainInst;
+        }
+        // need to descend to get to start of chain
+        SubChain subChain = new SubChain(no.getName(), 0, "", "");
+        SubChainInst curInst = new SubChainInst(null, null, no, subChain);
+        chain.addSubChainInst(curInst);
+        if (DEBUG) System.out.println("Recursing from "+no.getParent().describe(true)+" into "+no.getName()+", looking for startNode");
+        // recurse, call will add inst to chain
+        SubChainInst inst = startChain(subChain, startNode, startPortName);
+        if( inst == null) return null;
+
+        // continue chain, get export at lower level
+        Port subOutPort = inst.getOutport();
+        if (subOutPort != null) {
+            ExPort outEx = getExportedPort(subOutPort);
+            // find associated port on nodable at this level for export
+            if (outEx != null) {
+                Port outport = getPort(no, outEx.name.toString());
+                curInst.setOutport(outport);
+                // continue chain at this level
+                if (DEBUG) System.out.println("Continuing chain in "+no.getParent().describe(true)+" from port "+outport.name);
+                inst = appendChain(chain, getOtherPorts(outport));
+                if (inst != null)
+                    curInst = inst;
+            }
+        }
+        return curInst;
+    }
+
+
     private SubChainInst getSubChain(Port inport) {
         Nodable no = inport.no;
         if (DEBUG) System.out.println("getSubChain for NodeInst: "+no.getName()+", sin: "+inport);
@@ -881,6 +948,7 @@ public class ScanChainXML {
             ent.removePassThroughs();
         }
     }
+
 
     private void postProcessEntitiesPhase1() {
 
