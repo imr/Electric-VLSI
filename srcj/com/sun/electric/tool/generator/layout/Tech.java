@@ -114,7 +114,9 @@ public class Tech {
 		p1ToP1Space,
 		gateToGateSpace,
 		gateToDiffContSpace,
-		diffContWidth;
+		diffContWidth,
+		selectSurroundDiff,
+		selectSurroundMosAlongGate;
 
 	//----------------------------- public data ----------------------------------
     /** valid Electric technologies understood */
@@ -422,6 +424,8 @@ public class Tech {
 		    gateToDiffContSpace = 5.6 - 5.2/2 - 2/2;
 		    diffContWidth = 5.2;
             gateLength = 2;
+            selectSurroundDiff = Double.NaN;
+            selectSurroundMosAlongGate = Double.NaN;
 		} else if (isTsmc180) {
 		    wellWidth = 17;
 		    gateExtendPastMOS = 2.5;
@@ -431,6 +435,8 @@ public class Tech {
 		    gateToDiffContSpace = 4.5 - 2.5 - .9;
 		    diffContWidth = 5;
             gateLength = 1.8;
+            selectSurroundDiff = 1;
+            selectSurroundMosAlongGate = 3.6;
 		} else {
 			// default to MoCMOS
 		    wellWidth = 17;
@@ -441,6 +447,8 @@ public class Tech {
 		    gateToDiffContSpace = .5;
 		    diffContWidth = 5;
             gateLength = 2;
+            selectSurroundDiff = 2;
+            selectSurroundMosAlongGate = 2;
 		}
 	}
 
@@ -536,4 +544,8 @@ public class Tech {
     public static double diffContWidth() {return diffContWidth;}
     /** @return gate length that depends on foundry */
     public static double getGateLength() {return gateLength;}
+    /** @return amount that select surrounds diffusion */
+    public static double selectSurroundDiff() {return selectSurroundDiff;}
+    /** @return amount that Select surrounds MOS, along gate width dimension */
+    public static double selectSurroundMosAlongGate() {return selectSurroundMosAlongGate;}
 }

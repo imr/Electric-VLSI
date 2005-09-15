@@ -323,10 +323,13 @@ class CapCell {
 	/** All the fields in ProtoPlan assume that metal1 runs horizontally
 	 *  since that is how we build CapCell */
 	private static class ProtoPlan {
-		private static final double MAX_MOS_WIDTH = 40;
-		private static final double SEL_TO_CELL_EDGE = 2;// set by poly cont space
-		private static final double SEL_WIDTH = 9;
-		private static final double SEL_TO_MOS = 2;
+		private final double MAX_MOS_WIDTH = 40;
+		private final double SEL_TO_CELL_EDGE = 2;// set by poly cont space
+		private final double SEL_WIDTH_OF_NDM1 = 
+			Tech.diffContWidth() + 
+		    Tech.selectSurroundDiff()*2;
+		private final double SEL_TO_MOS = 
+			Tech.selectSurroundMosAlongGate();
 		
 		public final double protoWidth, protoHeight;
 	
@@ -350,14 +353,14 @@ class CapCell {
 			protoHeight = 
 				instPlan.horizontal ? instPlan.cellHeight : instPlan.cellWidth;
 			// compute number of MOS's left to right
-			double availForCap = protoWidth - 2*(SEL_TO_CELL_EDGE + SEL_WIDTH/2);
+			double availForCap = protoWidth - 2*(SEL_TO_CELL_EDGE + SEL_WIDTH_OF_NDM1/2);
 			double numMosD = availForCap / 
-							 (MAX_MOS_WIDTH + SEL_WIDTH + 2*SEL_TO_MOS);
+							 (MAX_MOS_WIDTH + SEL_WIDTH_OF_NDM1 + 2*SEL_TO_MOS);
 			numMosX = (int) Math.ceil(numMosD);
-			double mosWidth1 = availForCap/numMosX - SEL_WIDTH - 2*SEL_TO_MOS;
+			double mosWidth1 = availForCap/numMosX - SEL_WIDTH_OF_NDM1 - 2*SEL_TO_MOS;
 			// round down mos Width to integral number of lambdas
 			gateWidth = Math.floor(mosWidth1);
-			mosPitchX = gateWidth + SEL_WIDTH + 2*SEL_TO_MOS;
+			mosPitchX = gateWidth + SEL_WIDTH_OF_NDM1 + 2*SEL_TO_MOS;
 			leftWellContX = - numMosX * mosPitchX / 2;
 
 			// compute number of MOS's bottom to top
@@ -1233,22 +1236,9 @@ public class FillGenerator {
 		this.vddReserved[layer] = reservedToLambda(layer, vddReserved, vddUnits);
 		this.gndReserved[layer] = reservedToLambda(layer, gndReserved, gndUnits);
 	}
-	/** Create a fill cell using the current library, fill cell width, fill cell 
-	 * height, layer orientation, and reserved spaces for each layer. Then 
-	 * generate larger fill cells by tiling that fill cell according to the 
-	 * current tiled cell sizes.
-	 * @param loLayer the lower layer. This may be 1 through 6. Layer 1 means
-	 * build a capacitor using MOS transistors between Vdd and ground.
-	 * @param hiLayer the upper layer. This may be 2 through 6. Note that hiLayer
-	 * must be >= loLayer.
-	 * @param exportConfig may be PERIMETER in which case exports are 
-	 * placed along the perimeter of the cell for the top two layers. Otherwise
-	 * exportConfig must be PERIMETER_AND_INTERNAL in which case exports are
-	 * placed inside the perimeter of the cell for the bottom layer. 
-	 * @param powerType may be VDD in which case the power export has name "vdd"
-	 * and type "power". Otherwise  powerType must be POWER in which case the power
-	 * export has name "power" and type "input".
-	 */
+	/** This version of makeFillCell is deprecated. We should no longer need
+	 * to create fill cells with export type "POWER". Please use the version
+	 * of makeFillCell that has no PowerType argument. */
 	public void makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
 							 PowerType powerType, int[] tiledSizes) {
 		initFillParameters();
@@ -1264,6 +1254,25 @@ public class FillGenerator {
 			makeAndTileCell(lib, plans, loLayer, hiLayer, capCellP, wireLowest, 
 			                tiledSizes, stdCellP);
 		}
+	}
+	/** Create a fill cell using the current library, fill cell width, fill cell 
+	 * height, layer orientation, and reserved spaces for each layer. Then 
+	 * generate larger fill cells by tiling that fill cell according to the 
+	 * current tiled cell sizes.
+	 * @param loLayer the lower layer. This may be 1 through 6. Layer 1 means
+	 * build a capacitor using MOS transistors between Vdd and ground.
+	 * @param hiLayer the upper layer. This may be 2 through 6. Note that hiLayer
+	 * must be >= loLayer.
+	 * @param exportConfig may be PERIMETER in which case exports are 
+	 * placed along the perimeter of the cell for the top two layers. Otherwise
+	 * exportConfig must be PERIMETER_AND_INTERNAL in which case exports are
+	 * placed inside the perimeter of the cell for the bottom layer. 
+	 * @param tiledSizes Array specifying composite Cells we should build by
+	 * concatonating fill cells. For example int[] {2, 4, 7} means we should 
+	 * tile fill cell to build composites 2x2, 4x4, and 7x7. */
+	public void makeFillCell(int loLayer, int hiLayer, ExportConfig exportConfig,
+			 				 int[] tiledSizes) {
+		makeFillCell(loLayer, hiLayer, exportConfig, VDD, tiledSizes);
 	}
 	public void makeGallery() {
 		Gallery.makeGallery(lib);

@@ -30,10 +30,11 @@ FillGenerator.Units LAMBDA = FillGenerator.LAMBDA;
 FillGenerator.Units TRACKS = FillGenerator.TRACKS;
 FillGenerator.ExportConfig PERIMETER = FillGenerator.PERIMETER;
 FillGenerator.ExportConfig PERIMETER_AND_INTERNAL = FillGenerator.PERIMETER_AND_INTERNAL;
-FillGenerator.PowerType VDD = FillGenerator.VDD;
-FillGenerator.PowerType POWER = FillGenerator.POWER;
 
-FillGenerator fg = new FillGenerator("mocmos");
+// The argument to the FillGenerator constructor may be "mocmos" or "tsmc180".
+// If you want to generate 90nm fill cells you need to invoke FillGenerator90.
+// Some day I should merge the 90nm functionality into FillGenerator.
+FillGenerator fg = new FillGenerator("tsmc180");
 fg.setFillLibrary("fillLib");
 fg.setFillCellWidth(245);
 fg.setFillCellHeight(175);
@@ -68,30 +69,20 @@ void makeCells() {
 	//     low layer number
 	//     high layer number
 	//     export configuration (PERIMETER or PERIMETER_AND_INTERNAL)
-	//     power type (VDD or POWER)
 	//     array of int's specifying how to tile this fill cell into 
 	//        larger ones. null means don't tile.
-	fg.makeFillCell(1, 6, PERIMETER, VDD, new int[] {2,3,4,5,10,12});
-	fg.makeFillCell(2, 6, PERIMETER, VDD, new int[] {2,3});
-	fg.makeFillCell(3, 6, PERIMETER, VDD, null);
-	fg.makeFillCell(4, 6, PERIMETER, VDD, null);
-	fg.makeFillCell(5, 6, PERIMETER, VDD, null);
-	fg.makeFillCell(6, 6, PERIMETER, VDD, new int[] {2,3,4,5,10,12});
+	fg.makeFillCell(1, 6, PERIMETER, new int[] {2,3,4,5,10,12});
+	fg.makeFillCell(2, 6, PERIMETER, new int[] {2,3});
+	fg.makeFillCell(3, 6, PERIMETER, null);
+	fg.makeFillCell(4, 6, PERIMETER, null);
+	fg.makeFillCell(5, 6, PERIMETER, null);
+	fg.makeFillCell(6, 6, PERIMETER, new int[] {2,3,4,5,10,12});
 	
-	fg.makeFillCell(2, 6, PERIMETER_AND_INTERNAL, VDD, null);
-	fg.makeFillCell(3, 6, PERIMETER_AND_INTERNAL, VDD, null);
-	fg.makeFillCell(4, 6, PERIMETER_AND_INTERNAL, VDD, null);
-	fg.makeFillCell(5, 6, PERIMETER_AND_INTERNAL, VDD, null);
-	fg.makeFillCell(6, 6, PERIMETER_AND_INTERNAL, VDD, null);
-	
-	fg.makeFillCell(1, 4, PERIMETER, POWER, null);
-	fg.makeFillCell(1, 3, PERIMETER, POWER, null);
-	fg.makeFillCell(3, 4, PERIMETER, POWER, null);
-	fg.makeFillCell(3, 4, PERIMETER_AND_INTERNAL, POWER, null);
-	fg.makeFillCell(5, 6, PERIMETER, POWER, null);
-	fg.makeFillCell(5, 6, PERIMETER_AND_INTERNAL, POWER, null);
-	fg.makeFillCell(4, 6, PERIMETER, POWER, null);
-	fg.makeFillCell(4, 6, PERIMETER_AND_INTERNAL, POWER, null);
+	fg.makeFillCell(2, 6, PERIMETER_AND_INTERNAL, null);
+	fg.makeFillCell(3, 6, PERIMETER_AND_INTERNAL, null);
+	fg.makeFillCell(4, 6, PERIMETER_AND_INTERNAL, null);
+	fg.makeFillCell(5, 6, PERIMETER_AND_INTERNAL, null);
+	fg.makeFillCell(6, 6, PERIMETER_AND_INTERNAL, null);
 	
 	fg.makeGallery();
 	fg.writeLibrary();
