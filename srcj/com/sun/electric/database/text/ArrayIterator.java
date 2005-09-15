@@ -31,6 +31,7 @@ import java.util.NoSuchElementException;
  */
 public class ArrayIterator/*<E>*/ implements Iterator/*<E>*/ {
 	private final Object/*E*/[] array;
+    private int limit;
 	private int cursor;
 
 	/**
@@ -38,9 +39,19 @@ public class ArrayIterator/*<E>*/ implements Iterator/*<E>*/ {
 	 */
 	public static final ArrayIterator/*<E>*/ NULL_ITERATOR = new ArrayIterator/*<E>*/(new Object/*E*/[0]);
 
-	private ArrayIterator/*E*/(Object/*E*/[] array)
+	private ArrayIterator/*E*/(Object/*E*/[] array) {
+        this.array = array;
+        limit = array.length;
+        cursor = 0;
+    }
+
+    private ArrayIterator/*E*/(Object/*E*/[] array, int start, int limit)
 	{
+        if (start < 0 || start > limit || limit > array.length)
+            throw new IndexOutOfBoundsException();
 		this.array = array;
+        this.limit = limit;
+        cursor = start;
 	}
 
 	/**
@@ -54,6 +65,25 @@ public class ArrayIterator/*<E>*/ implements Iterator/*<E>*/ {
 	}
 
 	/**
+	 * Returns iterator over range [start,limit) of elements of array.
+	 * @param array array with elements or null.
+     * @param start start index of the range.
+     * @param limit limit of the range
+	 * @return iterator over range of elements of the array or NULL_ITERATOR.
+     * @throws IndexOutOfBoundsException if start or limit are not correct
+	 */
+	public static Iterator iterator(Object/*E*/[] array, int start, int limit)
+	{
+        if (array != null) {
+            return new ArrayIterator(array, start, limit);
+        } else {
+            if (start != 0 || limit != 0)
+                throw new IndexOutOfBoundsException();
+            return NULL_ITERATOR;
+        }
+	}
+
+	/**
 	 * Returns <tt>true</tt> if the iteration has more elements. (In other
 	 * words, returns <tt>true</tt> if <tt>next</tt> would return an element
 	 * rather than throwing an exception.)
@@ -62,7 +92,7 @@ public class ArrayIterator/*<E>*/ implements Iterator/*<E>*/ {
 	 */
 	public boolean hasNext()
 	{
-		return cursor != array.length;
+		return cursor < limit;
 	}
 
 	/**
@@ -75,13 +105,11 @@ public class ArrayIterator/*<E>*/ implements Iterator/*<E>*/ {
 	 */
 	public Object/*E*/ next()
 	{
-		try {
-			Object/*E*/ next = array[cursor];
-			cursor++;
-			return next;
-		} catch(IndexOutOfBoundsException e) {
+        if (cursor >= limit)
 			throw new NoSuchElementException();
-		}
+		Object/*E*/ next = array[cursor];
+		cursor++;
+		return next;
     }
 
 	/**

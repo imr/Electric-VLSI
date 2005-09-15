@@ -3827,23 +3827,24 @@ if (wp.signalButtons != null)
 	}
 
 	public static String getSpiceNetName(Network net) {
-		String name = "";
-		if (net.hasNames())
-		{
-			if (net.getExportedNames().hasNext())
-			{
-				name = (String)net.getExportedNames().next();
-			} else
-			{
-				name = (String)net.getNames().next();
-			}
-		} else
-		{
-			name = net.describe(false);
-			if (name.equals(""))
-				name = "UNCONNECTED";
-		}
-		return name;
+        return net.getName();
+//		String name = "";
+//		if (net.hasNames())
+//		{
+//			if (net.getExportedNames().hasNext())
+//			{
+//				name = (String)net.getExportedNames().next();
+//			} else
+//			{
+//				name = (String)net.getNames().next();
+//			}
+//		} else
+//		{
+//			name = net.describe(false);
+//			if (name.equals(""))
+//				name = "UNCONNECTED";
+//		}
+//		return name;
 	}
 
 	/**

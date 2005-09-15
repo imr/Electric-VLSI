@@ -36,6 +36,7 @@ import com.sun.electric.database.topology.NodeInst;
 
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -52,7 +53,7 @@ public class Netlist
 
 	/** NetCell which owns this Netlist. */
 	NetCell netCell;
-	boolean shortResistors;
+    HashMap/*<Cell,Netlist>*/ subNetlists;
 
 	/**
 	 * The modCount value that the netlist believes that the backing
@@ -74,18 +75,18 @@ public class Netlist
 	/**
 	 * The constructor of Netlist object..
 	 */
-	Netlist(NetCell netCell, boolean shortResistors, int size) {
+	Netlist(NetCell netCell, HashMap/*<Cell,Netlist>*/ subNetlists, int size) {
 		this.netCell = netCell;
-		this.shortResistors = shortResistors;
+        this.subNetlists = subNetlists;
 		expectedModCount = netCell.modCount;
 		netMap = new int[size];
 		for (int i = 0; i < netMap.length; i++) netMap[i] = i;
 		nm_net = new int[netMap.length];
 	}
 
-	Netlist(NetCell netCell, boolean shortResistors, Netlist other) {
+	Netlist(NetCell netCell, HashMap/*<Cell,Netlist>*/ subNetlists, Netlist other) {
 		this.netCell = netCell;
-		this.shortResistors = shortResistors;
+        this.subNetlists = subNetlists;
 		expectedModCount = netCell.modCount;
 		netMap = (int[])other.netMap.clone();
 		nm_net = new int[netMap.length];
@@ -207,14 +208,6 @@ public class Netlist
     }
 
 	/**
-	 * Returns value of shortResistors option of this Netlist.
-	 * @return true if resistors are shortened in this Netlist.
-	 */
-	public boolean getShortResistors() {
-		return shortResistors;
-	}
-
-	/**
 	 * Get an iterator over all of the Nodables of this Cell.
 	 * <p> Warning: before getNodables() is called, Networks must be
 	 * build by calling Cell.rebuildNetworks()
@@ -232,7 +225,7 @@ public class Netlist
 	public Netlist getNetlist(Nodable no) {
 		NodeProto np = no.getProto();
 		if (!(np instanceof Cell)) return null;
-		return NetworkTool.getNetlist((Cell)np, shortResistors);
+		return (Netlist)subNetlists.get(np);
 	}
 
 	/**

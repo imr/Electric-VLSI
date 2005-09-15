@@ -666,7 +666,8 @@ public class Silos extends Topology
 			PortInst pi = ni.findPortInstFromProto(pp);
 			net = netList.getNetwork(pi);
 		}
-		if (net != null && net.hasNames())
+		if (net != null)
+//		if (net != null && net.hasNames())
 		{
 			CellSignal cs = cni.getCellSignal(net);
 			StringBuffer infstr = new StringBuffer();

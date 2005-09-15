@@ -148,7 +148,7 @@ class NetCell
 		}
 	}
 
-	Netlist getNetlist(boolean shortResistros) {
+	Netlist getNetlist(boolean shortResistors) {
 		if ((flags & VALID) == 0) redoNetworks();
 		return netlist;
 	}
@@ -612,7 +612,7 @@ class NetCell
 			if (drawn < 0) continue;
 			Network network = netlist.getNetworkByMap(drawn);
 			if (network.hasNames()) continue;
-			network.addName(ai.getName(), false);
+			network.addTempName(ai.getName());
 		}
 		for (int i = 0; i < cell.getNumNodes(); i++) {
 			NodeInst ni = cell.getNode(i);
@@ -621,9 +621,11 @@ class NetCell
 				if (drawn < 0) continue;
 				Network network  = netlist.getNetworkByMap(drawn);
 				if (network.hasNames()) continue;
-				network.addName(ni.getName() + "@" + ni.getProto().getPort(j).getName(), false);
+				network.addTempName(ni.getName() + "@" + ni.getProto().getPort(j).getName());
 			}
 		}
+        for (int i = 0, numNetworks = netlist.getNumNetworks(); i < numNetworks; i++)
+            assert netlist.getNetwork(i).hasNames();
  		/*
 		// debug info
 		System.out.println("BuildNetworkList "+this);
@@ -672,7 +674,7 @@ class NetCell
         }
 		else
 			netNamesToNet[nn.index] = network;
-		network.addName(name.toString(), exported);
+		network.addUserName(name, exported);
 	}
 
 	/**
@@ -781,7 +783,14 @@ class NetCell
 	boolean redoNetworks1() {
 		/* Set index of NodeInsts */
 		checkLayoutCell();
-		netlist = new Netlist(this, false, numDrawns);
+        HashMap/*<Cell,Netlist>*/ subNetlists = new HashMap/*<Cell,Netlist>*/();
+        for (Iterator it = getNodables(); it.hasNext(); ) {
+            Nodable no = (Nodable)it.next();
+            if (!(no.getProto() instanceof Cell)) continue;
+            Cell subCell = (Cell)no.getProto();
+            subNetlists.put(subCell, NetworkTool.getNetlist(subCell, false));
+        }
+		netlist = new Netlist(this, subNetlists, numDrawns);
 
 		internalConnections();
 		buildNetworkList();

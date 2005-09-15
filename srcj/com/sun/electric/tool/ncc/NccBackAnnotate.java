@@ -89,13 +89,15 @@ public class NccBackAnnotate {
         for (int i=0; i<equivs.equivNets[0].length; i++) {
             // get lay net name
             Network layNet = equivs.equivNets[lay][i].getNet();
-            if (!layNet.hasNames()) continue;
-            String layName = (String)layNet.getNames().next();
+            String layName = layNet.getName();
+//            if (!layNet.hasNames()) continue;
+//            String layName = (String)layNet.getNames().next();
 
             // get sch net name
             Network schNet = equivs.equivNets[sch][i].getNet();
-            if (!schNet.hasNames()) continue;
-            String schName = (String)schNet.getNames().next();
+            String schName = schNet.getName();
+//            if (!schNet.hasNames()) continue;
+//            String schName = (String)schNet.getNames().next();
 
             // only back-annotate if parent cells are from same cell group
             //if (layNet.getParent().getCellGroup() != schNet.getParent().getCellGroup()) continue;

@@ -1272,8 +1272,9 @@ public class CircuitChanges
 				for(int i=0; i<busWidth; i++)
 				{
 					Network subNet = netList.getNetwork(ai, i);
-					if (subNet.hasNames()) localStrings[i] = (String)subNet.getNames().next(); else
-						localStrings[i] = subNet.describe(false);
+                    localStrings[i] = subNet.getName();
+//					if (subNet.hasNames()) localStrings[i] = (String)subNet.getNames().next(); else
+//						localStrings[i] = subNet.describe(false);
 				}
 
 				double sxw = Schematics.tech.wirePinNode.getDefWidth();

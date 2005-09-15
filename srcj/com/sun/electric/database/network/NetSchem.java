@@ -23,10 +23,10 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database.network;
-
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Nodable;
+import com.sun.electric.database.network.NetCell.NetName;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortCharacteristic;
@@ -1183,22 +1183,22 @@ class NetSchem extends NetCell {
 		netlistF.initNetworks(equivPortsF.length);
 		netlistT.initNetworks(equivPortsT.length);
 		for (int i = 0; i < globals.size(); i++) {
-			netlistF.getNetworkByMap(i).addName(globals.get(i).getName(), true);
-			netlistT.getNetworkByMap(i).addName(globals.get(i).getName(), true);
+			netlistF.getNetworkByMap(i).addUserName(globals.get(i).getNameKey(), true);
+			netlistT.getNetworkByMap(i).addUserName(globals.get(i).getNameKey(), true);
 		}
 		for (Iterator it = netNames.values().iterator(); it.hasNext(); )
 		{
 			NetName nn = (NetName)it.next();
 			if (nn.index < 0 || nn.index >= exportedNetNameCount) continue;
-			netlistF.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString(), true);
-			netlistT.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString(), true);
+			netlistF.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, true);
+			netlistT.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, true);
 		}
 		for (Iterator it = netNames.values().iterator(); it.hasNext(); )
 		{
 			NetName nn = (NetName)it.next();
 			if (nn.index < exportedNetNameCount) continue;
-			netlistF.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString(), false);
-			netlistT.getNetworkByMap(netNamesOffset + nn.index).addName(nn.name.toString(), false);
+			netlistF.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, false);
+			netlistT.getNetworkByMap(netNamesOffset + nn.index).addUserName(nn.name, false);
 		}
 		
 		// add temporary names to unnamed nets
@@ -1223,9 +1223,9 @@ class NetSchem extends NetCell {
 					netName = drawnNames[drawn].subname(j).toString();
 
 				if (networkF != null)
-					networkF.addName(netName, false);
+					networkF.addTempName(netName);
 				if (networkT != null)
-					networkT.addName(netName, false);
+					networkT.addTempName(netName);
 			}
 		}
 
@@ -1238,14 +1238,18 @@ class NetSchem extends NetCell {
 				for (int k = 0, busWidth = pp.getNameKey().busWidth(); k < busWidth; k++) {
 					Network networkF = netlistF.getNetwork(no, pp, k);
 					if (networkF != null && !networkF.hasNames())
-						networkF.addName(no.getName() + "." + pp.getNameKey().subname(k), false);
+						networkF.addTempName(no.getName() + "." + pp.getNameKey().subname(k));
 					Network networkT = netlistT.getNetwork(no, pp, k);
 					if (networkT != null && !networkT.hasNames())
-						networkT.addName(no.getName() + "." + pp.getNameKey().subname(k), false);
+						networkT.addTempName(no.getName() + "." + pp.getNameKey().subname(k));
 				}
 			}
 		}
 
+        for (int i = 0, numNetworks = netlistF.getNumNetworks(); i < numNetworks; i++)
+            assert netlistF.getNetwork(i).hasNames();
+        for (int i = 0, numNetworks = netlistT.getNumNetworks(); i < numNetworks; i++)
+            assert netlistT.getNetwork(i).hasNames();
 		/*
 		// debug info
 		System.out.println("BuildNetworkList "+cell);
@@ -1336,10 +1340,24 @@ class NetSchem extends NetCell {
 		boolean changed = initNodables();
 		// Gather port and arc names
 		int mapSize = netNamesOffset + netNames.size();
-		netlistF = new Netlist(this, false, mapSize);
+        HashMap/*<Cell,Netlist>*/ subNetlistsF = new HashMap/*<Cell,Netlist>*/();
+        for (Iterator it = getNodables(); it.hasNext(); ) {
+            Nodable no = (Nodable)it.next();
+            if (!(no.getProto() instanceof Cell)) continue;
+            Cell subCell = (Cell)no.getProto();
+            subNetlistsF.put(subCell, NetworkTool.getNetlist(subCell, false));
+        }
+		netlistF = new Netlist(this, subNetlistsF, mapSize);
 		localConnections();
 
-		netlistT = new Netlist(this, true, netlistF);
+        HashMap/*<Cell,Netlist>*/ subNetlistsT = new HashMap/*<Cell,Netlist>*/();
+        for (Iterator it = getNodables(); it.hasNext(); ) {
+            Nodable no = (Nodable)it.next();
+            if (!(no.getProto() instanceof Cell)) continue;
+            Cell subCell = (Cell)no.getProto();
+            subNetlistsT.put(subCell, NetworkTool.getNetlist(subCell, true));
+        }
+		netlistT = new Netlist(this, subNetlistsT, netlistF);
 		internalConnections();
 		buildNetworkLists();
 		if (updatePortImplementation()) changed = true;

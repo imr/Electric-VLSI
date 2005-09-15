@@ -39,6 +39,7 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.network.NetworkTool;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
@@ -127,8 +128,8 @@ public final class HierarchyEnumerator {
      * "ne
      */
     private static class CellShorts {
-        /** The Cell */
-        private Cell cell;
+        /** The netlist of the Cell */
+        private Netlist netlist;
         /** Number of new nets connected to exports and globals. */
         int totalIds;
         /** Map from old net indices to new nets.
@@ -140,8 +141,9 @@ public final class HierarchyEnumerator {
          */
         int[] externalIds;
         
-        private CellShorts(Cell cell, int numNets) {
-            this.cell = cell;
+        private CellShorts(Netlist netlist) {
+            this.netlist = netlist;
+            int numNets = netlist.getNumNetworks();
             net2id = new int[numNets];
             for (int i = 0; i < numNets; i++) net2id[i] = i;
         }
@@ -187,7 +189,7 @@ public final class HierarchyEnumerator {
         CellShorts shorts = (CellShorts)cellShortsMap.get(cell);
         if (shorts != null) return shorts;
 
-        shorts = new CellShorts(cell, netlist.getNumNetworks());
+        shorts = new CellShorts(netlist);
         
        	Library spiceParts = Library.findLibrary("spiceparts");
        	Cell ammeterIcon = spiceParts==null ? null :
@@ -286,6 +288,15 @@ public final class HierarchyEnumerator {
                     shorts.externalIds[localId] = localId;
                 assert nextNetID() == baseId + localId;
                 netIdToNetDesc.add(new NetDescription(net, info));
+            } else if (localId >= shorts.externalIds.length) {
+                NetDescription nd = (NetDescription)netIdToNetDesc.get(baseId + localId);
+                int cmp = !net.isUsernamed() ? 1 : nd.net.isUsernamed() ? 0 : -1; 
+                if (cmp == 0 && net.isExported() != nd.net.isExported())
+                    cmp = net.isExported() ? -1 : 1;
+                if (cmp == 0)
+                    cmp = TextUtils.STRING_NUMBER_ORDER.compare(net.getName(), nd.net.getName());
+                if (cmp < 0)
+                    nd.net = net;
             }
             int id = localId < shorts.externalIds.length ? shorts.externalIds[localId] : baseId + localId;
             netNdxToNetID[i] = id;

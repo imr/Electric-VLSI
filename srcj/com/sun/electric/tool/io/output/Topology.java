@@ -416,21 +416,22 @@ public abstract class Topology extends Output
 				cs.name = getGlobalName(cs.globalSignal);
 			} else
 			{
-				if (net.hasNames())
-                {
-                    if (useExportedName && net.getExportedNames().hasNext())
-					{
-						cs.name = (String)net.getExportedNames().next();
-                    } else
-                    {
-						cs.name = (String)net.getNames().next();
-                    }
-                } else
-				{
-					cs.name = net.describe(false);
-					if (cs.name.equals(""))
-						cs.name = "UNCONNECTED" + (nullNameCount++);
-				}
+                cs.name = net.getName();
+//				if (net.hasNames())
+//                {
+//                    if (useExportedName && net.getExportedNames().hasNext())
+//					{
+//						cs.name = (String)net.getExportedNames().next();
+//                    } else
+//                    {
+//						cs.name = (String)net.getNames().next();
+//                    }
+//                } else
+//				{
+//					cs.name = net.describe(false);
+//					if (cs.name.equals(""))
+//						cs.name = "UNCONNECTED" + (nullNameCount++);
+//				}
 			}
 
 			// save it in the map of signals
@@ -788,7 +789,7 @@ public abstract class Topology extends Output
 		{
 			Network subNet = nets[i];
 			if (subNet == null) continue;
-			if (!subNet.hasNames()) break;
+//			if (!subNet.hasNames()) break;
 			String firstName = (String)subNet.getNames().next();
 			int index = -1;
 			int charPos = 0;

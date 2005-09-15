@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+BUG: (09/15/05, DN) HierarchyEnumerator should choose user-defined name for nets shortened by resistor.
+FIX: In HierarchyEnumerator.numerNets choose the most appropriate name.
+
 IMP/MAN: (09/14/05, SMR) Can now change the font and size of text when editing textual cells.
 
 IMP/MAN: (09/14/05, SMR) EDIF Preferences now has "Cadence compatibility" checkbox.
