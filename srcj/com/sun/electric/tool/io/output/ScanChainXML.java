@@ -134,6 +134,11 @@ public class ScanChainXML {
     private List chains;                            // list of top level chains
     private SubChain endChain;
 
+    // for tracing one subchain
+    private String oneChainStartExport = null;
+    private String oneChainName = null;
+    private ExPort startExport = null;
+
     // ------------------------ Constructors ------------------------------
 
     /**
@@ -248,6 +253,18 @@ public class ScanChainXML {
     }
 
     /**
+     * Start tracing a chain from the specified export in the start cell.  This
+     * is used to trace a section of the scan chain. This
+     * traces only one chain.
+     * @param exportName
+     * @param chainName
+     */
+    public void startFromExport(String exportName, String chainName) {
+        this.oneChainStartExport = exportName;
+        this.oneChainName = chainName;
+    }
+
+    /**
      * Specify the name of the chip. Only used when writing the chip name to the file.
      * @param name the chip name
      */
@@ -283,13 +300,24 @@ public class ScanChainXML {
             System.out.println("Did not find cell "+cellName+" for starting chain analysis, in library "+libName);
             return;
         }
-        Stack startNode = findStartNode(cell, new Stack());
-        if (startNode == null) {
-            System.out.println("Did not find any usages of the jtag controller: "+jtagCell.getName());
-            return;
+
+        Stack startNode = null;
+        if (oneChainStartExport != null && oneChainName != null) {
+            startExport = getExPort(cell, oneChainStartExport);
+            if (startExport == null) {
+                System.out.println("Cannot find export "+oneChainStartExport+" in cell "+cell.describe(false));
+                return;
+            }
+            System.out.println("Tracing sub-chain "+oneChainName+" from export "+oneChainStartExport);
+        } else {
+            startNode = findStartNode(cell, new Stack());
+            if (startNode == null) {
+                System.out.println("Did not find any usages of the jtag controller: "+jtagCell.getName());
+                return;
+            }
+            Nodable no = (Nodable)startNode.lastElement();
+            System.out.println("*** Generating chains starting from jtag controller "+no.getParent().describe(false)+" : "+no.getName());
         }
-        Nodable no = (Nodable)startNode.lastElement();
-        System.out.println("*** Generating chains starting from jtag controller "+no.getParent().describe(false)+" : "+no.getName());
         start(startNode);
     }
 
@@ -324,30 +352,37 @@ public class ScanChainXML {
      * @param startNode The context pointing to the jtag controller.
      */
     private void start(Stack startNode) {
-        if (startNode == null) return;
 
-        // generate a chain for each port
-        for (Iterator it = jtagController.getPorts(); it.hasNext(); ) {
-            JtagController.Port jtagPort = (JtagController.Port)it.next();
-            if (jtagPort.soutPort == null) continue;
-            if (DEBUG) System.out.println("Starting chain "+jtagPort.opcode+" from port "+jtagPort.soutPort);
+        if (startNode != null) {
+            // generate a chain for each port
+            for (Iterator it = jtagController.getPorts(); it.hasNext(); ) {
+                JtagController.Port jtagPort = (JtagController.Port)it.next();
+                if (jtagPort.soutPort == null) continue;
+                if (DEBUG) System.out.println("Starting chain "+jtagPort.opcode+" from port "+jtagPort.soutPort);
 
-            String chainName = jtagPort.chainName;
-            if (chainName == null)
-                chainName = "chain_"+jtagPort.soutPort;
-            Chain chain = new Chain(chainName, jtagPort.opcode, -1, null, null);
-            Stack startNodeCopy = new Stack();
-            startNodeCopy.addAll(startNode);
-            startChain(chain, startNodeCopy, jtagPort.soutPort);
-            // report number of elements found
-            int found = chain.numScanElements();
-            System.out.println("Info: completed successfully: chain "+chainName+" had "+found+" scan chain elements");
-            // make sure chain ended properly
-            SubChain last = chain.getLastSubChain();
-            if (last != endChain) {
-                System.out.println("Error! Chain "+chainName+" did not end at the jtag controller. Possible error in parsing or schematics.");
-                if (last != null) System.out.println("     Last sub chain is "+last.name+", length="+last.length);
+                String chainName = jtagPort.chainName;
+                if (chainName == null)
+                    chainName = "chain_"+jtagPort.soutPort;
+                Chain chain = new Chain(chainName, jtagPort.opcode, -1, null, null);
+                Stack startNodeCopy = new Stack();
+                startNodeCopy.addAll(startNode);
+                startChain(chain, startNodeCopy, jtagPort.soutPort);
+                // report number of elements found
+                int found = chain.numScanElements();
+                System.out.println("Info: completed successfully: chain "+chainName+" had "+found+" scan chain elements");
+                // make sure chain ended properly
+                SubChain last = chain.getLastSubChain();
+                if (last != endChain) {
+                    System.out.println("Error! Chain "+chainName+" did not end at the jtag controller. Possible error in parsing or schematics.");
+                    if (last != null) System.out.println("     Last sub chain is "+last.name+", length="+last.length);
+                }
+                chains.add(chain);
             }
+        } else if (startExport != null) {
+            Chain chain = new Chain(oneChainName, 0, -1, null, null);
+            appendChain(chain, getOtherPorts(startExport));
+            int found = chain.numScanElements();
+            System.out.println("Info: completed successfully: chain "+oneChainName+" had "+found+" scan chain elements");
             chains.add(chain);
         }
         // post process
@@ -1133,7 +1168,7 @@ public class ScanChainXML {
         }
 
         if (ports.size() == 0) {
-            System.out.println("Warning: no other ports connected to "+inport.name);
+            System.out.println("Warning: no other ports connected to port "+inport.name+" on node "+inport.no.getName()+" in cell "+inport.no.getParent().describe(false));
         }
         return ports;
     }
@@ -1156,6 +1191,27 @@ public class ScanChainXML {
             }
         }
         System.out.println("Could not find "+portName+" on "+no.getName());
+        return null;
+    }
+
+    /**
+     * Get an export in a cell from a exportName. The export
+     * name may include a bus index, such as foo[1][2]
+     * @param cell the cell
+     * @param exportName the export name
+     * @return an ExPort
+     */
+    private ExPort getExPort(Cell cell, String exportName) {
+        for (Iterator it = cell.getPorts(); it.hasNext(); ) {
+            Export ex = (Export)it.next();
+            Name name = ex.getNameKey();
+            for (int i=0; i<name.busWidth(); i++) {
+                Name subname = name.subname(i);
+                if (subname.toString().equals(exportName)) {
+                    return new ExPort(subname, ex, i);
+                }
+            }
+        }
         return null;
     }
 
