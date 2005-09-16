@@ -61,7 +61,8 @@ public class GeneralTab extends PreferencePanel
 		sideBarOnRight.setSelected(User.isSideBarOnRight());
 		generalPromptForIndex.setSelected(User.isPromptForIndexWhenDescending());
 		generalOlderDisplayAlgorithm.setSelected(User.isUseOlderDisplayAlgorithm());
-		generalGreekLimit.setText(Integer.toString(User.getGreekSizeLimit()));
+		generalGreekLimit.setText(Double.toString(User.getGreekSizeLimit()));
+		generalGreekCellLimit.setText(Double.toString(User.getGreekCellSizeLimit()));
 
         for (Iterator it = User.getInitialWorkingDirectorySettings(); it.hasNext(); )
             workingDirComboBox.addItem(it.next());
@@ -116,15 +117,19 @@ public class GeneralTab extends PreferencePanel
 		if (currBoolean != User.isUseOlderDisplayAlgorithm())
 			User.setUseOlderDisplayAlgorithm(currBoolean);
 
-		int currInt = TextUtils.atoi(generalGreekLimit.getText());
-		if (currInt != User.getGreekSizeLimit())
-			User.setGreekSizeLimit(currInt);
+		double currDouble = TextUtils.atof(generalGreekLimit.getText());
+		if (currDouble != User.getGreekSizeLimit())
+			User.setGreekSizeLimit(currDouble);
+
+		currDouble = TextUtils.atof(generalGreekCellLimit.getText());
+		if (currDouble != User.getGreekCellSizeLimit())
+			User.setGreekCellSizeLimit(currDouble);
 
 		String currentInitialWorkingDirSetting = (String)workingDirComboBox.getSelectedItem();
         if (!currentInitialWorkingDirSetting.equals(User.getInitialWorkingDirectorySetting()))
             User.setInitialWorkingDirectorySetting(currentInitialWorkingDirSetting);
 
-		currInt = generalPanningDistance.getSelectedIndex();
+		int currInt = generalPanningDistance.getSelectedIndex();
 		if (currInt != User.getPanningDistance())
 			User.setPanningDistance(currInt);
 
@@ -170,6 +175,9 @@ public class GeneralTab extends PreferencePanel
         jLabel4 = new javax.swing.JLabel();
         generalGreekLimit = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
+        jLabel6 = new javax.swing.JLabel();
+        generalGreekCellLimit = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
         IO = new javax.swing.JPanel();
         generalIncludeDateAndVersion = new javax.swing.JCheckBox();
         generalShowFileDialog = new javax.swing.JCheckBox();
@@ -255,7 +263,7 @@ public class GeneralTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         display.add(generalShowCursorCoordinates, gridBagConstraints);
@@ -264,7 +272,7 @@ public class GeneralTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         display.add(sideBarOnRight, gridBagConstraints);
@@ -289,7 +297,7 @@ public class GeneralTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         display.add(generalPromptForIndex, gridBagConstraints);
 
@@ -324,6 +332,29 @@ public class GeneralTab extends PreferencePanel
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         display.add(jLabel5, gridBagConstraints);
+
+        jLabel6.setText("Do not greek cells greater than:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        display.add(jLabel6, gridBagConstraints);
+
+        generalGreekCellLimit.setColumns(5);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        display.add(generalGreekCellLimit, gridBagConstraints);
+
+        jLabel7.setText("percent of screen");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = 6;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        display.add(jLabel7, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -450,6 +481,7 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JPanel general;
     private javax.swing.JCheckBox generalBeepAfterLongJobs;
     private javax.swing.JTextField generalErrorLimit;
+    private javax.swing.JTextField generalGreekCellLimit;
     private javax.swing.JTextField generalGreekLimit;
     private javax.swing.JCheckBox generalIncludeDateAndVersion;
     private javax.swing.JTextField generalMaxMem;
@@ -466,9 +498,11 @@ public class GeneralTab extends PreferencePanel
     private javax.swing.JLabel jLabel46;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel53;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel60;
     private javax.swing.JLabel jLabel61;
     private javax.swing.JLabel jLabel62;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JPanel jobs;
     private javax.swing.JTextField maxUndoHistory;
     private javax.swing.JPanel memory;

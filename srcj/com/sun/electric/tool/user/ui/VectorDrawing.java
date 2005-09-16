@@ -91,6 +91,7 @@ public class VectorDrawing
 	/** statistics */										private int crossCount, textCount, circleCount, arcCount;
 	/** statistics */										private int subCellCount, tinySubCellCount;
 	/** the threshold of object sizes */					private float maxObjectSize;
+	/** the maximum cell size above which no greeking */	private float maxCellSize;
 	/** temporary objects (saves allocation) */				private Point tempPt1 = new Point(), tempPt2 = new Point();
 	/** temporary objects (saves allocation) */				private Point tempPt3 = new Point(), tempPt4 = new Point();
 	/** temporary object (saves allocation) */				private Rectangle tempRect = new Rectangle();
@@ -377,6 +378,7 @@ public class VectorDrawing
 		int fadeColor;
 		float maxFeatureSize;
 		boolean isParameterized;
+		float cellSize;
 
 		VectorCell()
 		{
@@ -425,7 +427,10 @@ public class VectorDrawing
 
 		// set size limit
 		scale = (float)wnd.getScale();
-		maxObjectSize = User.getGreekSizeLimit() / scale;
+		maxObjectSize = (float)User.getGreekSizeLimit() / scale;
+		Rectangle2D screenBounds = wnd.getDisplayedBounds();
+		double screenArea = screenBounds.getWidth() * screenBounds.getHeight();
+		maxCellSize = (float)(User.getGreekCellSizeLimit() * screenArea);
 
 		// statistics
 		startTime = System.currentTimeMillis();
@@ -638,7 +643,7 @@ public class VectorDrawing
 				VectorCell subVC = drawCell(vsc.subCell, recurseTrans, subContext);
 
 				// may also be "tiny" if all features in the cell are tiny
-				if (subVC.maxFeatureSize > 0 && subVC.maxFeatureSize < maxObjectSize)
+				if (subVC.maxFeatureSize > 0 && subVC.maxFeatureSize < maxObjectSize && subVC.cellSize < maxCellSize)
 				{
 					boolean allTinyInside = isContentsTiny(vsc.subCell, subVC, recurseTrans, context);
 					if (allTinyInside)
@@ -1140,6 +1145,8 @@ public class VectorDrawing
 		vc = new VectorCell();
 		vcg.addCell(vc, prevTrans);
 		vc.isParameterized = isCellParameterized(cell);
+		Rectangle2D cellBounds = cell.getBounds();
+		vc.cellSize = (float)(cellBounds.getWidth() * cellBounds.getHeight());
 		AffineTransform trans = prevTrans.pureRotate();
 
 //System.out.println("CACHING CELL "+cell +" WITH ORIENTATION "+orientationName);

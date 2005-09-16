@@ -1840,7 +1840,7 @@ public class User extends Listener
 	 */
 	public static void setUseOlderDisplayAlgorithm(boolean on) { cacheUseOlderDisplayAlgorithm.setBoolean(on); }
 
-	private static Pref cacheGreekSizeLimit = Pref.makeIntPref("GreekSizeLimit", tool.prefs, 3);
+	private static Pref cacheGreekSizeLimit = Pref.makeDoublePref("GreekSizeLimit", tool.prefs, 3);
 	/**
 	 * Method to tell the smallest object that can be drawn.
 	 * Anything smaller than this amount (in screen pixels) is "greeked", or drawn approximately.
@@ -1850,7 +1850,7 @@ public class User extends Listener
 	 * drawn accurately, but will be "greeked".
 	 * @return the smallest object that can be drawn.
 	 */
-	public static int getGreekSizeLimit() { return cacheGreekSizeLimit.getInt(); }
+	public static double getGreekSizeLimit() { return cacheGreekSizeLimit.getDouble(); }
 	/**
 	 * Method to set the smallest object that can be drawn.
 	 * Anything smaller than this amount (in screen pixels) is "greeked", or drawn approximately.
@@ -1858,8 +1858,22 @@ public class User extends Listener
 	 * than this size will be "greeked".
 	 * @param l the smallest object that can be drawn.
 	 */
-	public static void setGreekSizeLimit(int l) { cacheGreekSizeLimit.setInt(l); }
+	public static void setGreekSizeLimit(double l) { cacheGreekSizeLimit.setDouble(l); }
 
+	private static Pref cacheGreekCellSizeLimit = Pref.makeDoublePref("GreekCellSizeLimit", tool.prefs, 0.1);
+	/**
+	 * Method to tell the ratio of cell size to screen size beyond which no cell greeking happens.
+	 * Any cell that fills more than this fraction of the screen will not be greeked.
+	 * The default is 0.1, meaning that cells larger than 10% of the screen will not be greeked.
+	 * @return the ratio of cell size to screen size beyond which no cell greeking happens.
+	 */
+	public static double getGreekCellSizeLimit() { return cacheGreekCellSizeLimit.getDouble(); }
+	/**
+	 * Method to set the ratio of cell size to screen size beyond which no cell greeking happens.
+	 * Any cell that fills more than this fraction of the screen will not be greeked.
+	 * @param l the ratio of cell size to screen size beyond which no cell greeking happens.
+	 */
+	public static void setGreekCellSizeLimit(double l) { cacheGreekCellSizeLimit.setDouble(l); }
 
 	private static Pref cacheShowFileSelectionForNetlists = Pref.makeBooleanPref("ShowFileSelectionForNetlists", tool.prefs, true);
 	/**

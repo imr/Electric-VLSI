@@ -1559,8 +1559,9 @@ public class Spice extends Topology
                 if (attrVar == null) attrVar = no.getParameter(varName);
                 if (attrVar == null) infstr.append("??"); else
                 {
-                    //if (attrVar.getCode() != Variable.Code.NONE)
-                        infstr.append(trimSingleQuotes(String.valueOf(context.evalVar(attrVar, no))));
+					String pVal = String.valueOf(context.evalVar(attrVar, no));
+                    if (attrVar.getCode() != TextDescriptor.Code.NONE) pVal = trimSingleQuotes(pVal);
+                    infstr.append(pVal);
                     //else
                     //    infstr.append(trimSingleQuotes(attrVar.getPureValue(-1, -1)));
                 }
