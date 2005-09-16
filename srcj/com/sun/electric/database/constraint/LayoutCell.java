@@ -601,7 +601,7 @@ class LayoutCell {
 				dy = newPts[thatEndIndex].getY() - thatLocation.getY();
 
 				// change the arc
-				updateArc(ai, newPts[0], newPts[1], AI_FLEX);
+				updateArc(ai, newPts[ArcInst.HEADEND], newPts[ArcInst.TAILEND], AI_FLEX);
 
 				// if other node already moved, don't move it any more
 				if (movedNodes.contains(ono)) dx = dy = 0;

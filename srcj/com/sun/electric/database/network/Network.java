@@ -93,7 +93,7 @@ public class Network {
             String n = names[i];
             int cmp = TextUtils.STRING_NUMBER_ORDER.compare(name, n);
             if (cmp == 0 && !exported) return;
-            if (cmp > 0 && (exported || i >= exportedNamesCount)) break;
+            if (cmp < 0 && (exported || i >= exportedNamesCount)) break;
         }
         if (names.length == 0) {
             names = new String[] { name };

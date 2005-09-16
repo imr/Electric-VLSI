@@ -7,8 +7,8 @@ NOTE: Please place changes under the version that will be released next.
 BUG: (09/16/05, DN) Inverse alphabatical order of net names.
 FIX: In Network.addUserName put "<" instead ">".
 
-BUG: (09/16/05, DN) Sometomes constraint system swaps ends of modified ArcInst.
-FIX: In constraint.LayoutCell .
+BUG: (09/16/05, DN) Sometimes constraint system swaps ends of modified ArcInst.
+FIX: In constraint.LayoutCell use ArcInst.HEADEND and ArcInst.TAIEND .
 
 IMP: (09/15/05, RK) FillGenerator modified to work for tsmc180. (Bugzilla# 545)
 
