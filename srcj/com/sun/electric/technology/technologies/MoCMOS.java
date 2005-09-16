@@ -39,9 +39,11 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.hierarchy.Cell;
+import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.technology.*;
+import com.sun.electric.tool.user.ui.VectorDrawing;
 
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
@@ -3133,6 +3135,17 @@ public class MoCMOS extends Technology
             // Metal 6 arc width 4. Original value
             metalArcs[5].setDefaultWidth(4);
         }
+
+		// recache display information for all cells that use this
+		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+		{
+			Library lib = (Library)lIt.next();
+			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+			{
+				Cell cell = (Cell)cIt.next();
+				if (cell.getTechnology() == this) VectorDrawing.cellChanged(cell);
+			}
+		}
     }
 
     /**
