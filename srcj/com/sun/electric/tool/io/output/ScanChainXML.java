@@ -731,7 +731,10 @@ public class ScanChainXML {
             }
             if (DEBUG) System.out.println("Found startNode. Starting chain "+chain.name+" from port "+startPortName);
             SubChainInst subChainInst = appendChain(chain, getOtherPorts(startPort));
-            if (subChainInst == null) return null;
+            if (subChainInst == null) {
+                // no chains at this level, make dummy with output so next level up can follow export up
+                return new SubChainInst(null, startPort, null, null);
+            }
             return subChainInst;
         }
         // need to descend to get to start of chain
@@ -785,9 +788,20 @@ public class ScanChainXML {
         if (np instanceof Cell) {
             ScanChainElement e = getScanChainElement(np.getName(), inport.name.toString());
             if (e != null) {
-                SubChain sub = new SubChain(no.getName(), 1, e.access, e.clears);
-                // find output port
-                Port outport = getPort(no, e.outport);
+                SubChain sub;
+                Port outport;
+                if (no.getNodeInst().getNameKey().isBus()) {
+                    // conglomerate into one subchain
+                    int size = no.getNodeInst().getNameKey().busWidth();
+                    sub = new SubChain(no.getNodeInst().getName(), size, e.access, e.clears);
+                    Nodable lastNo = Netlist.getNodableFor(no.getNodeInst(), size-1);
+                    outport = getPort(lastNo, e.outport);
+                    no = no.getNodeInst();
+                } else {
+                    sub = new SubChain(no.getName(), 1, e.access, e.clears);
+                    // find output port
+                    outport = getPort(no, e.outport);
+                }
                 inst = new SubChainInst(inport, outport, no, sub);
                 if (DEBUG) System.out.println("  ...matched scan chain element "+e.name);
                 return inst;
