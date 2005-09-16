@@ -4,7 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+IMP: (09/05/05, DN) Transactional DB: ImmutableArcInst.java.
+
 IMP (09/15/05, GVG) GateGenerator changes for TSMC180 (not all)
+
+BUG: (09/16/05, DN) Inverse alphabatical order of net names.
+FIX: In Network.addUserName put "<" instead of ">".
+
+BUG: (09/16/05, DN) Sometimes constraint system swaps ends of modified ArcInst.
+FIX: In constraint.LayoutCell use ArcInst.HEADEND and ArcInst.TAIEND .
 
 IMP (09/15/05, RK) FillGenerator modified to work for tsmc180. (Bugzilla# 545)
 

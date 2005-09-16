@@ -288,7 +288,7 @@ public final class HierarchyEnumerator {
                     shorts.externalIds[localId] = localId;
                 assert nextNetID() == baseId + localId;
                 netIdToNetDesc.add(new NetDescription(net, info));
-            } else if (localId >= shorts.externalIds.length) {
+            } else if (localId >= shorts.externalIds.length || portNdxToNetIDs == null) {
                 NetDescription nd = (NetDescription)netIdToNetDesc.get(baseId + localId);
                 int cmp = !net.isUsernamed() ? 1 : nd.net.isUsernamed() ? 0 : -1; 
                 if (cmp == 0 && net.isExported() != nd.net.isExported())

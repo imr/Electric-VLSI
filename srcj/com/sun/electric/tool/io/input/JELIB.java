@@ -25,6 +25,7 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
@@ -92,7 +93,22 @@ public class JELIB extends LibraryFiles
 		"8.01aw"
 	};
 
-	private LinkedHashMap allCells = new LinkedHashMap();
+    private static int defaultArcFlags;
+    static {
+        defaultArcFlags = 0;
+        defaultArcFlags = ImmutableArcInst.HARD_SELECT.set(defaultArcFlags, false); // A
+		defaultArcFlags	= ImmutableArcInst.BODY_ARROWED.set(defaultArcFlags, false); // B
+        defaultArcFlags = ImmutableArcInst.FIXED_ANGLE.set(defaultArcFlags, true); // F
+        defaultArcFlags = ImmutableArcInst.HEAD_NEGATED.set(defaultArcFlags, false); // G
+        defaultArcFlags = ImmutableArcInst.HEAD_EXTENDED.set(defaultArcFlags, true); // I
+        defaultArcFlags = ImmutableArcInst.TAIL_EXTENDED.set(defaultArcFlags, true); // J
+        defaultArcFlags = ImmutableArcInst.TAIL_NEGATED.set(defaultArcFlags, false); // N
+        defaultArcFlags = ImmutableArcInst.RIGID.set(defaultArcFlags, false); // R
+        defaultArcFlags = ImmutableArcInst.SLIDABLE.set(defaultArcFlags, false); // S
+        defaultArcFlags = ImmutableArcInst.HEAD_ARROWED.set(defaultArcFlags, false); // X
+        defaultArcFlags = ImmutableArcInst.TAIL_ARROWED.set(defaultArcFlags, false); // Y
+    }
+ 	private LinkedHashMap allCells = new LinkedHashMap();
 	private HashMap externalCells;
 	private HashMap externalExports;
     private HashMap/*<String,ImmutableTextDescriptor>*/ parsedDescriptorsF = new HashMap/*<ImmutableTextDescriptor>*/();
@@ -101,6 +117,7 @@ public class JELIB extends LibraryFiles
 	private int revision;
 	private char escapeChar = '\\';
 	private String curLibName;
+   
 //	/** The number of lines that have been "processed" so far. */	private int numProcessed;
 //	/** The number of lines that must be "processed". */			private int numToProcess;
 
@@ -868,8 +885,8 @@ public class JELIB extends LibraryFiles
                                 Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
                                         " (" + cell + ") bad node bits" + stateInfo, cell, -1);
                             }
+                            break parseStateInfo;
                         }
-                        break parseStateInfo;
                 }
             }
            ImmutableTextDescriptor protoTextDescriptor = loadTextDescriptor(textDescriptorInfo, false, cc.fileName, cc.lineNumber + line); 
@@ -1001,54 +1018,45 @@ public class JELIB extends LibraryFiles
 
 			// parse state information in field 4
 			String stateInfo = (String)pieces.get(4);
-			boolean rigid = false, fixedAngle = true, slidable = false,
-				extended = true, directional = false, reverseEnds = false,
-				hardSelect = false, skipHead = false, skipTail = false,
-				tailNegated = false, headNegated = false,
+			boolean extended = true, directional = false, reverseEnds = false,
+				skipHead = false, skipTail = false,
 				tailNotExtended = false, headNotExtended = false,
 				tailArrowed = false, headArrowed = false, bodyArrowed = false;
-			int angle = 0;
+            // Default flags are false except FIXED_ANGLE
+            // SLIDABLE 
+			int flags = defaultArcFlags;
+            int angle = 0;
+            parseStateInfo:
 			for(int i=0; i<stateInfo.length(); i++)
 			{
 				char chr = stateInfo.charAt(i);
-				if (chr == 'R') rigid = true; else
-				if (chr == 'F') fixedAngle = false; else
-				if (chr == 'S') slidable = true; else
-				if (chr == 'A') hardSelect = true; else
-				if (chr == 'N') tailNegated = true; else
-				if (chr == 'G') headNegated = true; else
-				if (chr == 'X') headArrowed = true; else
-				if (chr == 'Y') tailArrowed = true; else
-				if (chr == 'B') bodyArrowed = true; else
-				if (chr == 'I') headNotExtended = true; else
-				if (chr == 'J') tailNotExtended = true; else
+                switch (chr) {
+                    case 'R': flags = ImmutableArcInst.RIGID.set(flags, true); break;
+                    case 'F': flags = ImmutableArcInst.FIXED_ANGLE.set(flags, false); break;
+                    case 'S': flags = ImmutableArcInst.SLIDABLE.set(flags, true); break;
+                    case 'A': flags = ImmutableArcInst.HARD_SELECT.set(flags, true); break;
+                    case 'N': flags = ImmutableArcInst.TAIL_NEGATED.set(flags, true); break;
+                    case 'G': flags = ImmutableArcInst.HEAD_NEGATED.set(flags, true); break;
+                    case 'X': headArrowed = true; break;
+                    case 'Y': tailArrowed = true; break;
+                    case 'B': bodyArrowed = true; break;
+                    case 'I': headNotExtended = true; break;
+                    case 'J': tailNotExtended = true; break;
 
-				// deprecated
-				if (chr == 'E') extended = false; else
-				if (chr == 'D') directional = true; else
-				if (chr == 'V') reverseEnds = true; else
-				if (chr == 'H') skipHead = true; else
-				if (chr == 'T') skipTail = true; else
-				if (TextUtils.isDigit(chr))
-				{
-					angle = TextUtils.atoi(stateInfo.substring(i));
-					break;
-				}
+    				// deprecated
+                    case 'E': extended = false; break;
+                    case 'D': directional = true; break;
+                    case 'V': reverseEnds = true; break;
+                    case 'H': skipHead = true; break;
+                    case 'T': skipTail = true; break;
+                    default:
+                        if (TextUtils.isDigit(chr))
+                        {
+                            angle = TextUtils.atoi(stateInfo.substring(i));
+                            break parseStateInfo;
+                        }
+                }
 			}
-			ArcInst ai = ArcInst.newInstance(ap, wid, headPI, tailPI, new Point2D.Double(headX, headY),
-				new Point2D.Double(tailX, tailY), arcName, angle);
-			if (ai == null)
-			{
-				ErrorLogger.MessageLog log = Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
-					" (" + cell + ") cannot create arc " + protoName, cell, -1);
-                log.addGeom(headPI.getNodeInst(), true, cell, null);
-                log.addGeom(tailPI.getNodeInst(), true, cell, null);
-				continue;
-			}
-
-			// get the ard name text descriptor
-			String nameTextDescriptorInfo = (String)pieces.get(2);
-			ai.setTextDescriptor(ArcInst.ARC_NAME_TD, loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line));
 
 			// if old bits were used, convert them
 			if (!extended || directional)
@@ -1065,17 +1073,26 @@ public class JELIB extends LibraryFiles
 			}
 
 			// set the bits
-			ai.setRigid(rigid);
-			ai.setFixedAngle(fixedAngle);
-			ai.setSlidable(slidable);
-			ai.setHeadExtended(!headNotExtended);
-			ai.setTailExtended(!tailNotExtended);
-			ai.setHeadArrowed(headArrowed);
-			ai.setTailArrowed(tailArrowed);
-			ai.setBodyArrowed(bodyArrowed);
-			ai.setHeadNegated(headNegated);
-			ai.setTailNegated(tailNegated);
-			ai.setHardSelect(hardSelect);
+			flags = ImmutableArcInst.HEAD_EXTENDED.set(flags, !headNotExtended);
+			flags = ImmutableArcInst.TAIL_EXTENDED.set(flags, !tailNotExtended);
+			flags = ImmutableArcInst.HEAD_ARROWED.set(flags, headArrowed);
+			flags = ImmutableArcInst.TAIL_ARROWED.set(flags, tailArrowed);
+			flags = ImmutableArcInst.BODY_ARROWED.set(flags, bodyArrowed);
+
+			// get the ard name text descriptor
+			String nameTextDescriptorInfo = (String)pieces.get(2);
+			ImmutableTextDescriptor nameTextDescriptor = loadTextDescriptor(nameTextDescriptorInfo, false, cc.fileName, cc.lineNumber + line);
+
+            ArcInst ai = ArcInst.newInstance(cell, ap, arcName, -1, nameTextDescriptor,
+                    headPI, tailPI, new EPoint(headX, headY), new EPoint(tailX, tailY), wid, angle, flags);
+			if (ai == null)
+			{
+				ErrorLogger.MessageLog log = Input.errorLogger.logError(cc.fileName + ", line " + (cc.lineNumber + line) +
+					" (" + cell + ") cannot create arc " + protoName, cell, -1);
+                log.addGeom(headPI.getNodeInst(), true, cell, null);
+                log.addGeom(tailPI.getNodeInst(), true, cell, null);
+				continue;
+			}
 
 			// add variables in fields 13 and up
 			addVariables(ai, pieces, 13, cc.fileName, cc.lineNumber + line);

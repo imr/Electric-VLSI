@@ -103,8 +103,6 @@ public class ImmutableArcInst
 	/** fixed-angle arc */                                  private static final int FIXANG =                    02;
 //	/** arc has text that is far away */                    private static final int AHASFARTEXT =               04;
 //	/** arc is not in use */                                private static final int DEADA =                    020;
-    /** angle of arc from end 0 to end 1 in 10th degrees */ private static final int AANGLE =                037774;
-    /** bits of right shift for AANGLE shift */             private static final int AANGLESH =                   2;
 	/** DISK: angle of arc from end 0 to end 1 */           private static final int DISK_AANGLE =           037740;
 	/** DISK: bits of right shift for DISK_AANGLE field */  private static final int DISK_AANGLESH =              5;
 //	/** set if arc is to be drawn shortened */              private static final int ASHORT =                040000;
@@ -199,11 +197,11 @@ public class ImmutableArcInst
      public static final Flag HARD_SELECT = new Flag(HARDSELECTA);
 
     /** bits with common meaniong in disk and database */   private static int COMMON_BITS = FIXED | FIXANG | CANTSLIDE | HARDSELECTA;  
-    /** bits used in database */                            public static final int DATABASE_BITS = COMMON_BITS | AANGLE | BODYARROW |
+    /** bits used in database */                            public static final int DATABASE_FLAGS = COMMON_BITS | /*AANGLE |*/ BODYARROW |
             ISTAILNEGATED | TAILNOEXTEND | TAILARROW | ISHEADNEGATED | HEADNOEXTEND | HEADARROW; 
 
     /** id of this ArcInst in parent. */                            public final int arcId;
-	/** Arc prototype. */                                           public final ArcProto ap;
+	/** Arc prototype. */                                           public final ArcProto protoType;
 	/** name of this ImmutableArcInst. */							public final Name name;
     /** duplicate index of this ImmutableArcInst in the Cell */     public final int duplicate;
 	/** The text descriptor of name of ImmutableArcInst. */         public final ImmutableTextDescriptor nameDescriptor;
@@ -217,14 +215,16 @@ public class ImmutableArcInst
 	/** Location of head end of this ImmutableArcInst. */           public final EPoint headLocation;
 
 	/** width of this ImmutableArcInst. */                          public final double width;
-	/** Flag bits for this ImmutableArcInst. */                     public final int userBits;
+    /** length of this ImmutableArcInst. */                         public final double length;
+    /** Angle if this ImmutableArcInst (in tenth-degrees). */       public final short angle;
+	/** Flag bits for this ImmutableArcInst. */                     public final int flags;
  
 	/**
-	 * The private constructor of ImmutableArcInst. Use the factory "newInstance" instead.
+     * The private constructor of ImmutableArcInst. Use the factory "newInstance" instead.
      * @param arcId id of this ArcInst in parent.
-	 * @param ap arc prototype.
-	 * @param name name of this ImmutableArcInst.
-	 * @param duplicate duplicate index of this ImmutableArcInst.
+     * @param protoType arc prototype.
+     * @param name name of this ImmutableArcInst.
+     * @param duplicate duplicate index of this ImmutableArcInst.
      * @param nameDescriptor TextDescriptor of name of this ImmutableArcInst.
      * @param tailNodeId NodeId on tail end of this ImmutableArcInst.
      * @param tailPortProtoId PortProtoId on tail end of this ImmutableArcInst.
@@ -232,16 +232,18 @@ public class ImmutableArcInst
      * @param headNodeId NodeId on head end of this ImmutableArcInst.
      * @param headPortProtoId PortProtoId on head end of this ImmutableArcInst.
      * @param headLocation Location of head end of this ImmutableArcInst.
-	 * @param width the width of this ImmutableArcInst.
-	 * @param userBits flag bits of this ImmutableNodeInst.
-	 */
-    ImmutableArcInst(int arcId, ArcProto ap,
+     * @param width the width of this ImmutableArcInst.
+     * @param length the length of this ImmutableArcInst.
+     * @param angle the angle if this ImmutableArcInst (in tenth-degrees).
+     * @param flags flag bits of this ImmutableNodeInst.
+     */
+    ImmutableArcInst(int arcId, ArcProto protoType,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
-            double width, int userBits) {
+            double width, double length, short angle, int flags) {
         this.arcId = arcId;
-        this.ap = ap;
+        this.protoType = protoType;
         this.name = name;
         this.duplicate = duplicate;
         this.nameDescriptor = nameDescriptor;
@@ -252,47 +254,54 @@ public class ImmutableArcInst
         this.headPortId = headPortId;
         this.headLocation = headLocation;
         this.width = width;
-        this.userBits = userBits;
+        this.length = length;
+        this.angle = angle;
+        this.flags = flags;
         check();
     }
 
 	/**
-	 * Returns new ImmutableArcInst object.
-     * @param nodeId id of this NodeInst in parent.
-	 * @param protoId the NodeProtoId of which this is an instance.
-	 * @param name name of new ImmutableNodeInst.
-	 * @param duplicate duplicate index of this ImmutableNodeInst.
-     * @param nameDescriptor TextDescriptor of name of this ImmutableNodeInst.
-     * @param orient Orientation of this ImmutableNodeInst.
-	 * @param anchor the anchor location of this ImmutableNodeInst.
-	 * @param width the width of this ImmutableNodeInst.
-	 * @param height the height of this ImmutableNodeInst.
-	 * @param userBits bits associated to different technologies
-     * @param protoDescriptor TextDescriptor of name of this ImmutableNodeInst
-	 * @return new ImmutableNodeInst object.
-	 * @throws NullPointerException if protoId, name, orient or anchor is null.
-     * @throws IllegalArgumentException if duplicate, or size is bad.
-	 */
-    public static ImmutableArcInst newInstance(int arcId, ArcProto ap,
+     * Returns new ImmutableArcInst object.
+     * @param arcId id of this ArcInst in parent.
+     * @param protoType arc prototype.
+     * @param name name of this ImmutableArcInst.
+     * @param duplicate duplicate index of this ImmutableArcInst.
+     * @param nameDescriptor TextDescriptor of name of this ImmutableArcInst.
+     * @param tailNodeId NodeId on tail end of this ImmutableArcInst.
+     * @param tailPortProtoId PortProtoId on tail end of this ImmutableArcInst.
+     * @param tailLocation Location of tail end of this ImmutableArcInst.
+     * @param headNodeId NodeId on head end of this ImmutableArcInst.
+     * @param headPortProtoId PortProtoId on head end of this ImmutableArcInst.
+     * @param headLocation Location of head end of this ImmutableArcInst.
+     * @param width the width of this ImmutableArcInst.
+     * @param angle the angle if this ImmutableArcInst (in tenth-degrees).
+     * @param userBits flag bits of this ImmutableNodeInst.
+     * @return new ImmutableArcInst object.
+     * @throws NullPointerException if protoType, name, tailPortId, headPortId, tailLocation, headLocation is null.
+     * @throws IllegalArgumentException if duplicate, or width is bad.
+     */
+    public static ImmutableArcInst newInstance(int arcId, ArcProto protoType,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
-            double width, int userBits) {
-		if (ap == null) throw new NullPointerException("ap");
+            double width, int angle, int flags) {
+		if (protoType == null) throw new NullPointerException("protoType");
 		if (name == null) throw new NullPointerException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
         if (!(width >= 0)) throw new IllegalArgumentException("width");
         if (tailPortId == null) throw new NullPointerException("tailPortId");
         if (tailLocation == null) throw new NullPointerException("tailLocation");
-        if (headPortId == null) throw new NullPointerException("tailPortId");
-        if (headLocation == null) throw new NullPointerException("tailLocation");
+        if (headPortId == null) throw new NullPointerException("headPortId");
+        if (headLocation == null) throw new NullPointerException("headLocation");
         width = DBMath.round(width);
         if (width == -0.0) width = +0.0;
-        userBits &= DATABASE_BITS;
-		return new ImmutableArcInst(arcId, ap, name, duplicate, nameDescriptor,
+        angle %= 3600;
+        if (angle < 0) angle += 3600;
+        flags &= DATABASE_FLAGS;
+		return new ImmutableArcInst(arcId, protoType, name, duplicate, nameDescriptor,
                 tailNodeId, tailPortId, tailLocation,
                 headNodeId, headPortId, headLocation,
-                width, updateAngle(userBits, tailLocation, headLocation));
+                width, tailLocation.distance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags);
     }
 
 	/**
@@ -307,10 +316,10 @@ public class ImmutableArcInst
 		if (this.name == name && this.duplicate == duplicate) return this;
 		if (name == null) throw new NullPointerException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
-		return new ImmutableArcInst(this.arcId, this.ap, name, duplicate, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoType, name, duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.width, this.userBits);
+                this.width, this.length, this.angle, this.flags);
 	}
 
 	/**
@@ -320,10 +329,10 @@ public class ImmutableArcInst
 	 */
 	public ImmutableArcInst withNameDescriptor(ImmutableTextDescriptor nameDescriptor) {
         if (this.nameDescriptor == nameDescriptor) return this;
-		return new ImmutableArcInst(this.arcId, this.ap, this.name, this.duplicate, nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.width, this.userBits);
+                this.width, this.length, this.angle, this.flags);
 	}
 
 	/**
@@ -335,10 +344,10 @@ public class ImmutableArcInst
 	public ImmutableArcInst withTailLocation(EPoint tailLocation) {
 		if (this.tailLocation == tailLocation) return this;
 		if (tailLocation == null) throw new NullPointerException("tailLocation");
-		return new ImmutableArcInst(this.arcId, this.ap, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.width, updateAngle(this.userBits, tailLocation, headLocation));
+                this.width, tailLocation.distance(headLocation), updateAngle(this.angle, tailLocation, headLocation), this.flags);
 	}
 
 	/**
@@ -350,10 +359,10 @@ public class ImmutableArcInst
 	public ImmutableArcInst withHeadLocation(EPoint headLocation) {
 		if (this.headLocation == headLocation) return this;
 		if (headLocation == null) throw new NullPointerException("headLocation");
-		return new ImmutableArcInst(this.arcId, this.ap, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, headLocation,
-                this.width, updateAngle(this.userBits, tailLocation, headLocation));
+                this.width, tailLocation.distance(headLocation), updateAngle(this.angle, tailLocation, headLocation), this.flags);
 	}
 
 	/**
@@ -367,38 +376,70 @@ public class ImmutableArcInst
         if (!(width >= 0)) throw new IllegalArgumentException("width");
         width = DBMath.round(width);
         if (width == -0.0) width = +0.0;
-		return new ImmutableArcInst(this.arcId, this.ap, this.name, this.duplicate, this.nameDescriptor,
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                width, this.userBits);
+                width, this.length, this.angle, this.flags);
+	}
+
+	/**
+	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by angke.
+     * For arc with non-zero length returns ths ImmutableArcInst
+	 * @param angle angle in tenth-degrees.
+	 * @return ImmutableArcInst which differs from this ImmutableArcInst by user bits.
+	 */
+	public ImmutableArcInst withAngle(int angle) {
+        angle %= 3600;
+        if (angle < 3600) angle += 3600;
+		if (this.angle == angle || !tailLocation.equals(headLocation)) return this;
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
+                this.tailNodeId, this.tailPortId, this.tailLocation,
+                this.headNodeId, this.headPortId, this.headLocation,
+                this.width, this.length, (short)angle, this.flags);
 	}
 
 	/**
 	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by user bits.
 	 * @param arcBits flag bits of this ImmutableArcInst.
-	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by user bits.
+	 * @return ImmutableArcInst which differs from this ImmutableArcInst by user bits.
 	 */
-	public ImmutableArcInst withUserBits(int userBits) {
-        userBits &= DATABASE_BITS;
-		if (this.userBits == userBits) return this;
-		return new ImmutableArcInst(this.arcId, this.ap, this.name, this.duplicate, this.nameDescriptor,
+	public ImmutableArcInst withFlags(int flags) {
+        flags &= DATABASE_FLAGS;
+		if (this.flags == flags) return this;
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.width, userBits);
+                this.width, this.length, this.angle, flags);
 	}
 
-    private static int updateAngle(int userBits, EPoint tailLocation, EPoint headLocation) {
-        if (tailLocation.equals(headLocation)) return userBits;
-        int angle = DBMath.figureAngle(tailLocation, headLocation);
-        return (userBits & ~AANGLE) | (angle << AANGLESH);
+	/**
+	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by flag bit.
+	 * @param flag Flag selector.
+     * @param value new value of flag.
+     * @return ImmutableArcInst which differs from this ImmutableArcInst by flag bit.
+	 */
+    public ImmutableArcInst withFlag(Flag flag, boolean value) {
+        return withFlags(flag.set(this.flags, value));
+    }
+
+    private static short updateAngle(short angle, EPoint tailLocation, EPoint headLocation) {
+        if (tailLocation.equals(headLocation)) return angle;
+        return (short)DBMath.figureAngle(tailLocation, headLocation);
     }
     
+    /**
+     * Tests specific flag is set on this ImmutableArcInst.
+     * @param flag flag selector.
+     * @return true if specific flag is set,
+     */
+    public boolean is(Flag flag) { return flag.is(flags); }
+    
 	/**
-	 * Checks invariant of this ImmutableNodeInst.
+	 * Checks invariant of this ImmutableArcInst.
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
-		assert ap != null;
+		assert protoType != null;
 		assert name != null;
         assert duplicate >= 0;
         assert tailPortId != null;
@@ -407,53 +448,11 @@ public class ImmutableArcInst
         assert headLocation != null;
         assert width > 0 || width == 0 && 1/width > 0;
         assert DBMath.round(width) == width;
-        assert (userBits & ~DATABASE_BITS) == 0;
+        assert (flags & ~DATABASE_FLAGS) == 0;
+        assert 0 <= angle && angle < 3600;
+		assert length == tailLocation.distance(headLocation);
 	}
 
-	/**
-	 * Method to convert ELIB userbits to database "userbits".
-	 * The "userbits" are a set of bits that describes constraints and other properties,
-	 * and are stored in ELIB files.
-	 * The negation, directionality, and end-extension must be converted.
-	 * @param bits the disk userbits.
-     * @return the database userbits
-	 */
-	public static int fromElibBits(int bits)
-	{
-        int newBits = bits & COMMON_BITS;
-		if ((bits&ISTAILNEGATED) != 0)
-		{
-			newBits |= (bits&DISK_REVERSEEND) == 0 ? ISTAILNEGATED : ISHEADNEGATED;
-		}
-		if ((bits&ISHEADNEGATED) != 0)
-		{
-            newBits |= (bits&DISK_REVERSEEND) == 0 ? ISHEADNEGATED : ISTAILNEGATED;
-		}
-
-		if ((bits&DISK_NOEXTEND) != 0)
-		{
-			if ((bits&DISK_NOTEND0) == 0) newBits |= TAILNOEXTEND;
-			if ((bits&DISK_NOTEND1) == 0) newBits |= HEADNOEXTEND;
-		}
-
-		if ((bits&DISK_ISDIRECTIONAL) != 0)
-		{
-            newBits |= BODYARROW;
-			if ((bits&DISK_REVERSEEND) == 0)
-			{
-				if ((bits&DISK_NOTEND1) == 0) newBits |= HEADARROW;
-			} else
-			{
-				if ((bits&DISK_NOTEND0) == 0) newBits |= TAILARROW;
-			}
-		}
-        int angle = (bits & DISK_AANGLE) >> DISK_AANGLESH;
-        angle = (angle % 360)*10;
-        newBits |= angle << AANGLESH;
-        
-        return newBits;
-	}
-    
 	/**
 	 * Method to compute the "userbits" to use for a given ArcInst.
 	 * The "userbits" are a set of bits that describes constraints and other properties,
@@ -461,41 +460,87 @@ public class ImmutableArcInst
 	 * The negation, directionality, and end-extension must be converted.
 	 * @return the "userbits" for that ArcInst.
 	 */
-	public static int makeELIBArcBits(int userBits)
+	public int getElibBits()
 	{
-		int diskBits = userBits & COMMON_BITS;
+		int elibBits = flags & COMMON_BITS;
 	
 		// adjust bits for extension
-		if (!HEAD_EXTENDED.is(userBits) || !TAIL_EXTENDED.is(userBits))
+		if (!HEAD_EXTENDED.is(flags) || !TAIL_EXTENDED.is(flags))
 		{
-			diskBits |= DISK_NOEXTEND;
-			if (HEAD_EXTENDED.is(userBits) != TAIL_EXTENDED.is(userBits))
+			elibBits |= DISK_NOEXTEND;
+			if (HEAD_EXTENDED.is(flags) != TAIL_EXTENDED.is(flags))
 			{
-				if (TAIL_EXTENDED.is(userBits)) diskBits |= DISK_NOTEND0;
-				if (HEAD_EXTENDED.is(userBits)) diskBits |= DISK_NOTEND1;
+				if (TAIL_EXTENDED.is(flags)) elibBits |= DISK_NOTEND0;
+				if (HEAD_EXTENDED.is(flags)) elibBits |= DISK_NOTEND1;
 			}
 		}
 	
 		// adjust bits for directionality
-		if (HEAD_ARROWED.is(userBits) || TAIL_ARROWED.is(userBits) || BODY_ARROWED.is(userBits))
+		if (HEAD_ARROWED.is(flags) || TAIL_ARROWED.is(flags) || BODY_ARROWED.is(flags))
 		{
-			diskBits |= DISK_ISDIRECTIONAL;
-			if (TAIL_ARROWED.is(userBits)) diskBits |= DISK_REVERSEEND;
-			if (!HEAD_ARROWED.is(userBits) && !TAIL_ARROWED.is(userBits)) diskBits |= DISK_NOTEND1;
+			elibBits |= DISK_ISDIRECTIONAL;
+			if (TAIL_ARROWED.is(flags)) elibBits |= DISK_REVERSEEND;
+			if (!HEAD_ARROWED.is(flags) && !TAIL_ARROWED.is(flags)) elibBits |= DISK_NOTEND1;
 		}
 
 		// adjust bits for negation
-        boolean normalEnd = (diskBits & DISK_REVERSEEND) == 0;
-		if (TAIL_NEGATED.is(userBits)) diskBits |= (normalEnd ? ISTAILNEGATED : ISHEADNEGATED);
-		if (HEAD_NEGATED.is(userBits)) diskBits |= (normalEnd ? ISHEADNEGATED : ISTAILNEGATED);
+        boolean normalEnd = (elibBits & DISK_REVERSEEND) == 0;
+		if (TAIL_NEGATED.is(flags)) elibBits |= (normalEnd ? ISTAILNEGATED : ISHEADNEGATED);
+		if (HEAD_NEGATED.is(flags)) elibBits |= (normalEnd ? ISHEADNEGATED : ISTAILNEGATED);
         
-		//        int angle = getAngle() / 10;
-		int angle = (int)(getAngle(userBits)/10.0 + 0.5);
-		if (angle >= 360) angle -= 360;
-        diskBits |= angle << DISK_AANGLESH;
+		int elibAngle = (angle + 5)/10;
+		if (elibAngle >= 360) elibAngle -= 360;
         
-        return diskBits;
+        return elibBits | (elibAngle << DISK_AANGLESH);
 	}
+	/**
+	 * Method to convert ELIB userbits to database flags.
+	 * The flags are a set of bits that describes constraints and other properties.
+	 * and are stored in ELIB files.
+	 * The negation, directionality, and end-extension must be converted.
+	 * @param elibBits the disk userbits.
+     * @return the database flags
+	 */
+	public static int flagsFromElib(int elibBits)
+	{
+        int newBits = elibBits & COMMON_BITS;
+		if ((elibBits&ISTAILNEGATED) != 0)
+		{
+			newBits |= (elibBits&DISK_REVERSEEND) == 0 ? ISTAILNEGATED : ISHEADNEGATED;
+		}
+		if ((elibBits&ISHEADNEGATED) != 0)
+		{
+            newBits |= (elibBits&DISK_REVERSEEND) == 0 ? ISHEADNEGATED : ISTAILNEGATED;
+		}
 
-	private static int getAngle(int userBits) { return (userBits & AANGLE) >> AANGLESH; }
+		if ((elibBits&DISK_NOEXTEND) != 0)
+		{
+			if ((elibBits&DISK_NOTEND0) == 0) newBits |= TAILNOEXTEND;
+			if ((elibBits&DISK_NOTEND1) == 0) newBits |= HEADNOEXTEND;
+		}
+
+		if ((elibBits&DISK_ISDIRECTIONAL) != 0)
+		{
+            newBits |= BODYARROW;
+			if ((elibBits&DISK_REVERSEEND) == 0)
+			{
+				if ((elibBits&DISK_NOTEND1) == 0) newBits |= HEADARROW;
+			} else
+			{
+				if ((elibBits&DISK_NOTEND0) == 0) newBits |= TAILARROW;
+			}
+		}
+        return newBits;
+	}
+    
+    /**
+     * Get angle from ELIB user bits.
+     * @param elibBits ELIB user bits.
+     * @return tech specific bits.
+     */
+	public static int angleFromElib(int elibBits)
+	{
+        int angle = (elibBits & DISK_AANGLE) >> DISK_AANGLESH;
+        return (angle % 360)*10;
+	}
 }

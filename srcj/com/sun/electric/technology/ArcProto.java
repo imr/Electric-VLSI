@@ -23,6 +23,7 @@
  */
 package com.sun.electric.technology;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.tool.user.User;
 
@@ -664,6 +665,22 @@ public class ArcProto implements Comparable
 	 * Valid for menu display
 	 */
 	public boolean isSpecialArc() { return (userBits & ARCSPECIAL) != 0; }
+
+	/**
+	 * Method to get default ArcInst flags with this portoType.
+	 */
+	public int getDefaultConstraints()
+	{
+        int flags = 0;
+        flags = ImmutableArcInst.RIGID.set(flags, isRigid());
+        flags = ImmutableArcInst.FIXED_ANGLE.set(flags, isFixedAngle());
+        flags = ImmutableArcInst.SLIDABLE.set(flags, isSlidable());
+        flags = ImmutableArcInst.HEAD_EXTENDED.set(flags, isExtended());
+        flags = ImmutableArcInst.TAIL_EXTENDED.set(flags, isExtended());
+        flags = ImmutableArcInst.HEAD_ARROWED.set(flags, isDirectional());
+        flags = ImmutableArcInst.BODY_ARROWED.set(flags, isDirectional());
+        return flags;
+	}
 
 	/**
 	 * Method to set the function of this ArcProto.

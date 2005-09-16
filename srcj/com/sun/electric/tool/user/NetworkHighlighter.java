@@ -258,7 +258,7 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         AffineTransform trans = info.getTransformToRoot();
         for (Iterator it = arcs.iterator(); it.hasNext(); ) {
             ArcInst ai = (ArcInst)it.next();
-            Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+            Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
             poly.transform(trans);
             highlighter.addPoly(poly, cell, null);
         }

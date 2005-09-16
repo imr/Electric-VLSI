@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
@@ -87,33 +88,60 @@ public class ArcInst extends Geometric implements Comparable
 
 	// -------------------------- private data ----------------------------------
 
-    /** angle of arc from end 0 to end 1 in 10th degrees */ private static final int AANGLE =                037774;
-    /** bits of right shift for AANGLE shift */             private static final int AANGLESH =                   2;
-    
 	/** prefix for autonameing. */						private static final Name BASENAME = Name.findName("net@");
 
+    /** persistent data of this ArcInst. */             ImmutableArcInst d;
 	/** name of this ArcInst. */						private Name name;
-	/** duplicate index of this ArcInst in the Cell */  private int duplicate = -1;
-	/** The text descriptor of name of ArcInst. */		private ImmutableTextDescriptor nameDescriptor;
 	/** bounds after transformation. */					private Rectangle2D visBounds;
-	/** Flag bits for this ArcInst. */					private int userBits;
 
-	/** width of this ArcInst. */						private double width;
-	/** length of this ArcInst. */						private double length;
-	/** prototype of this arc instance */				private ArcProto protoType;
-
-	/** PortInst on tail end of this arc instance */	/*package*/PortInst tailPortInst;
-	/** Location of tail end of this arc instance */	/*package*/EPoint tailLocation;
+	/** PortInst on tail end of this arc instance */	/*package*/final PortInst tailPortInst;
 	/** the tail shrinkage is from 0 to 90 */			/*package*/byte tailShrink;
-	/** tail connection of this arc instance */			private TailConnection tailEnd;
+	/** tail connection of this arc instance */			private final TailConnection tailEnd;
 
-	/** PortInst on head end of this arc instance */	/*package*/PortInst headPortInst;
-	/** Location of head end of this arc instance */	/*package*/EPoint headLocation;
+	/** PortInst on head end of this arc instance */	/*package*/final PortInst headPortInst;
 	/** the head shrinkage is from 0 to 90 */			/*package*/byte headShrink;
-	/** head connection of this arc instance */			private HeadConnection headEnd;
+	/** head connection of this arc instance */			private final HeadConnection headEnd;
 
 	/** 0-based index of this ArcInst in cell. */		private int arcIndex = -1;
 
+	/**
+	 * Private constructor of ArcInst.
+     * @param parent the parent Cell of this ArcInst
+     * @param d persistent data of ArcIInst
+	 * @param protoType the ArcProto of this ArcInst.
+	 * @param name the name of this ArcInst
+	 * @param duplicate duplicate index of this ArcInst
+     * @param nameDescriptor text descriptor of name of this ArcInst
+	 * @param headPort the head end PortInst.
+	 * @param tailPort the tail end PortInst.
+	 * @param headPt the coordinate of the head end PortInst.
+	 * @param tailPt the coordinate of the tail end PortInst.
+	 * @param width the width of this ArcInst.
+     * @param angle angle in tenth-degrees
+     * @param flags flag bits
+	 */
+	private ArcInst(Cell parent, ImmutableArcInst d, PortInst headPort, PortInst tailPort)
+	{
+		// initialize this object
+		assert parent == headPort.getNodeInst().getParent();
+        assert parent == tailPort.getNodeInst().getParent();
+        assert d.headNodeId == headPort.getNodeInst().getD().nodeId;
+        assert d.tailNodeId == tailPort.getNodeInst().getD().nodeId;
+        assert d.headPortId == headPort.getPortProto().getId();
+        assert d.tailPortId == tailPort.getPortProto().getId();
+        
+		this.parent = parent;
+        this.d = d;
+
+		// create node/arc connections and place them properly
+		tailPortInst = tailPort;
+		tailEnd = new TailConnection(this);
+
+		headPortInst = headPort;
+		headEnd = new HeadConnection(this);
+        
+		this.visBounds = new Rectangle2D.Double(0, 0, 0, 0);
+	}
 	/**
 	 * Private constructor of ArcInst.
      * @param parent the parent Cell of this ArcInst
@@ -126,38 +154,36 @@ public class ArcInst extends Geometric implements Comparable
 	 * @param headPt the coordinate of the head end PortInst.
 	 * @param tailPt the coordinate of the tail end PortInst.
 	 * @param width the width of this ArcInst.
-     * @param userBits flag bits
+     * @param angle angle in tenth-degrees
+     * @param flags flag bits
 	 */
 	private ArcInst(Cell parent, ArcProto protoType, String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
-        PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, double width, int userBits)
+        PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, double width, int angle, int flags)
 	{
 		// initialize this object
 		assert parent == headPort.getNodeInst().getParent();
         assert parent == tailPort.getNodeInst().getParent();
 		this.parent = parent;
-		this.protoType = protoType;
 
 		if (width < 0)
 			width = protoType.getWidth();
-		this.width = DBMath.round(width);
+		width = DBMath.round(width);
 
 		this.name = Name.findName(name);
-		this.duplicate = duplicate;
         if (nameDescriptor == null) nameDescriptor = ImmutableTextDescriptor.getArcTextDescriptor();
-        this.nameDescriptor = nameDescriptor;
 
 		// create node/arc connections and place them properly
 		tailPortInst = tailPort;
-		tailLocation = tailPt;
 		tailEnd = new TailConnection(this);
 
 		headPortInst = headPort;
-		headLocation = headPt;
 		headEnd = new HeadConnection(this);
-		
-        this.userBits = userBits & ImmutableArcInst.DATABASE_BITS;
-//		// fill in the geometry
-//		updateGeometric(defAngle);
+        
+        int arcId = 0;
+        d = ImmutableArcInst.newInstance(arcId, protoType, this.name, duplicate, nameDescriptor,
+                tailPortInst.getNodeInst().getD().nodeId, tailPortInst.getPortProto().getId(), tailPt,
+                headPortInst.getNodeInst().getD().nodeId, headPortInst.getPortProto().getId(), headPt,
+                width, angle, flags);
         
 		this.visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 	}
@@ -175,12 +201,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public static ArcInst makeInstance(ArcProto type, double width, PortInst head, PortInst tail)
 	{
-		ArcInst ai = newInstance(type, width, head, tail);
-		if (ai != null)
-		{
-			ai.setDefaultConstraints();
-		}
-		return ai;
+        return newInstance(type, width, head, tail, null, null, null, 0, type.getDefaultConstraints());
 	}
 
 	/**
@@ -198,12 +219,7 @@ public class ArcInst extends Geometric implements Comparable
 	public static ArcInst makeInstance(ArcProto type, double width, PortInst head, PortInst tail,
 	                                   Point2D headPt, Point2D tailPt, String name)
 	{
-		ArcInst ai = newInstance(type, width, head, tail, headPt, tailPt, name, 0);
-		if (ai != null)
-		{
-			ai.setDefaultConstraints();
-		}
-		return ai;
+		return newInstance(type, width, head, tail, headPt, tailPt, name, 0, type.getDefaultConstraints());
 	}
 
 	/**
@@ -236,13 +252,17 @@ public class ArcInst extends Geometric implements Comparable
 		double yT = boundsT.getCenterY();
 
 		// create the arc that connects them
-		ArcInst ai = new ArcInst(null, ap, "", 0, null, piH, piT, new EPoint(xH, yH), new EPoint(xT, yT), ap.getDefaultWidth(), 0);
+        ImmutableArcInst d = ImmutableArcInst.newInstance(0, ap, Name.findName(""), 0, ImmutableTextDescriptor.getArcTextDescriptor(),
+                niT.getD().nodeId, piT.getPortProto().getId(), new EPoint(xT, yT),
+                niH.getD().nodeId, piH.getPortProto().getId(), new EPoint(xH, yH),
+                ap.getDefaultWidth(), 0, 0);
+ 		ArcInst ai = new ArcInst(null, d, piH, piT);
 
         ai.updateGeometric();
 		return ai;
 	}
 
-	/**
+    /**
 	 * Method to create a new ArcInst connecting two PortInsts.
 	 * Since no coordinates are given, the ArcInst connects to the center of the PortInsts.
 	 * @param type the prototype of the new ArcInst.
@@ -253,7 +273,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail)
 	{
-		return newInstance(type, width, head, tail, null, null, null, 0);
+		return newInstance(type, width, head, tail, null, null, null, 0, 0);
 	}
 
 	/**
@@ -271,6 +291,26 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail,
 	                                  Point2D headPt, Point2D tailPt, String name, int defAngle)
+	{
+        return newInstance(type, width, head, tail, headPt, tailPt, name, defAngle, 0);
+    }
+    
+	/**
+	 * Method to create a new ArcInst connecting two PortInsts at specified locations.
+	 * This is more general than the version that does not take coordinates.
+	 * @param type the prototype of the new ArcInst.
+	 * @param width the width of the new ArcInst.  The width must be > 0.
+	 * @param head the head end PortInst.
+	 * @param tail the tail end PortInst.
+	 * @param headPt the coordinate of the head end PortInst.
+	 * @param tailPt the coordinate of the tail end PortInst.
+	 * @param name the name of the new ArcInst
+	 * @param defAngle default angle in case port points coincide
+     * @param flags flags of thew new ArcInst
+     * @return the newly created ArcInst, or null if there is an error.
+	 */
+	public static ArcInst newInstance(ArcProto type, double width, PortInst head, PortInst tail,
+	                                  Point2D headPt, Point2D tailPt, String name, int defAngle, int flags)
 	{
 //        if (type.isNotUsed())
 //        {
@@ -299,26 +339,8 @@ public class ArcInst extends Geometric implements Comparable
 
 		// make sure points are valid
         Cell parent = head.getNodeInst().getParent();
-        Poly headPoly = head.getPoly();
-        if (!stillInPoly(headP, headPoly)) {
-			System.out.println("Error in " + parent + ": head of " + type.getName() +
-				" arc at (" + headP.getX() + "," + headP.getY() + ") does not fit in " +
-				head + " which is centered at (" + headPoly.getCenterX() + "," + headPoly.getCenterY() + ")");
-			return null;
-		}
-        Poly tailPoly = tail.getPoly();
-		if (!stillInPoly(tailP, tailPoly))
-		{
-			System.out.println("Error in " + parent + ": tail of " + type.getName() +
-				" arc at (" + tailP.getX() + "," + tailP.getY() + ") does not fit in " +
-				tail + " which is centered at (" + tailPoly.getCenterX() + "," + tailPoly.getCenterY() + ")");
-			return null;
-		}
-        
-        defAngle = defAngle % 3600;
-        if (defAngle < 0) defAngle += 3600;
-        
-        return newInstance(parent, type, name, -1, null, head, tail, headP, tailP, width, defAngle << AANGLESH);
+      
+        return newInstance(parent, type, name, -1, null, head, tail, headP, tailP, width, defAngle, flags);
 	}
 
 	/**
@@ -334,11 +356,12 @@ public class ArcInst extends Geometric implements Comparable
 	 * @param headPt the coordinate of the head end PortInst.
 	 * @param tailPt the coordinate of the tail end PortInst.
 	 * @param width the width of this ArcInst.
-     * @param userBits flag bits.
+     * @param angle angle in tenth-degrees.
+     * @param flags flag bits.
      * @return the newly created ArcInst, or null if there is an error.
 	 */
 	public static ArcInst newInstance(Cell parent, ArcProto protoType, String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
-        PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, double width, int userBits)
+        PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, double width, int angle, int flags)
 	{
 		// make sure fields are valid
 		if (protoType == null || headPort == null || tailPort == null || !headPort.isLinked() || !tailPort.isLinked()) return null;
@@ -350,7 +373,23 @@ public class ArcInst extends Geometric implements Comparable
 			return null;
 		}
 
-        // make sure the arc can connect to these ports
+        Poly headPoly = headPort.getPoly();
+        if (!stillInPoly(headPt, headPoly)) {
+			System.out.println("Error in " + parent + ": head of " + protoType.getName() +
+				" arc at (" + headPt.getX() + "," + headPt.getY() + ") does not fit in " +
+				headPort + " which is centered at (" + headPoly.getCenterX() + "," + headPoly.getCenterY() + ")");
+			return null;
+		}
+        Poly tailPoly = tailPort.getPoly();
+		if (!stillInPoly(tailPt, tailPoly))
+		{
+			System.out.println("Error in " + parent + ": tail of " + protoType.getName() +
+				" arc at (" + tailPt.getX() + "," + tailPt.getY() + ") does not fit in " +
+				tailPort + " which is centered at (" + tailPoly.getCenterX() + "," + tailPoly.getCenterY() + ")");
+			return null;
+		}
+        
+          // make sure the arc can connect to these ports
         PortProto headProto = headPort.getPortProto();
 		PrimitivePort headPrimPort = headProto.getBasePort();
 		if (!headPrimPort.connectsTo(protoType))
@@ -367,9 +406,24 @@ public class ArcInst extends Geometric implements Comparable
 				" because it cannot connect to port " + tailProto.getName());
 			return null;
 		}
-        
-        ArcInst ai = new ArcInst(parent, protoType, name, duplicate, nameDescriptor, headPort, tailPort, headPt, tailPt, width, userBits);
-        if (ai == null) return null;
+
+        Name nameKey = name != null ? Name.findName(name) : null;
+		if (nameKey == null || nameKey.isTempname() && (!parent.isUniqueName(nameKey, NodeInst.class, null)) || checkNameKey(nameKey, parent, true))
+		{
+            nameKey = parent.getAutoname(BASENAME);
+            duplicate = 0;
+		}
+        duplicate = parent.fixupArcDuplicate(nameKey, duplicate);
+        if (nameDescriptor == null) nameDescriptor = ImmutableTextDescriptor.getArcTextDescriptor();
+		if (width < 0)
+			width = protoType.getWidth();
+       
+        CellId parentId = (CellId)parent.getId();
+        ImmutableArcInst d = ImmutableArcInst.newInstance(parentId.newArcId(), protoType, nameKey, duplicate, nameDescriptor,
+                tailPort.getNodeInst().getD().nodeId, tailProto.getId(), tailPt,
+                headPort.getNodeInst().getD().nodeId, headProto.getId(), headPt,
+                width, angle, flags);
+        ArcInst ai = new ArcInst(parent, d, headPort, tailPort);
 		ai.lowLevelLink();
 
 		// handle change control, constraint, and broadcast
@@ -377,7 +431,7 @@ public class ArcInst extends Geometric implements Comparable
 		return ai;
 	}
 
-	/**
+    /**
 	 * Method to delete this ArcInst.
 	 */
 	public void kill()
@@ -405,10 +459,10 @@ public class ArcInst extends Geometric implements Comparable
 	public void modify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
 	{
 		// save old arc state
-		double oldxA = headLocation.getX();
-		double oldyA = headLocation.getY();
-		double oldxB = tailLocation.getX();
-		double oldyB = tailLocation.getY();
+		double oldxA = d.headLocation.getX();
+		double oldyA = d.headLocation.getY();
+		double oldxB = d.tailLocation.getX();
+		double oldyB = d.tailLocation.getY();
 		double oldWidth = getWidth();
 
 		// change the arc
@@ -437,7 +491,7 @@ public class ArcInst extends Geometric implements Comparable
 		double newwid = getWidth() - getProto().getWidthOffset() + ap.getWidthOffset();
 
 		// first create the new nodeinst in place
-		ArcInst newar = ArcInst.newInstance(ap, newwid, headPortInst, tailPortInst, headLocation, tailLocation, null, 0);
+		ArcInst newar = ArcInst.newInstance(ap, newwid, headPortInst, tailPortInst, d.headLocation, d.tailLocation, null, 0);
 		if (newar == null)
 		{
 			System.out.println("Cannot replace " + this + " with one of type " + ap.getName() +
@@ -456,16 +510,18 @@ public class ArcInst extends Geometric implements Comparable
 
 	/****************************** LOW-LEVEL IMPLEMENTATION ******************************/
 
+    /**
+     * Returns persistent data of this ArcInst.
+     * @return persistent data of this ArcInst.
+     */
+    public ImmutableArcInst getD() { return d; }
+    
 	/**
 	 * Low-level method to link the ArcInst into its Cell.
 	 */
 	public void lowLevelLink()
 	{
-		if (!isUsernamed() && (name == null || !parent.isUniqueName(name, getClass(), this)) || checkNameKey(name, parent, false))
-		{
-			name = parent.getAutoname(BASENAME);
-			duplicate = 0;
-		}
+        assert isDatabaseObject();
 
 		// attach this arc to the two nodes it connects
 		headPortInst.getNodeInst().addConnection(headEnd);
@@ -483,7 +539,7 @@ public class ArcInst extends Geometric implements Comparable
 		updateGeometric();
 
 		// add this arc to the cell
-		this.duplicate = parent.addArc(this);
+		parent.addArc(this);
 		parent.linkArc(this);
 	}
 
@@ -520,12 +576,12 @@ public class ArcInst extends Geometric implements Comparable
 		parent.unLinkArc(this);
 
 		// now make the change
-		width = DBMath.round(width + dWidth);
+        d = d.withWidth(d.width + dWidth);
 
 		if (dHeadX != 0 || dHeadY != 0)
-			headLocation = new EPoint(headLocation.getX() + dHeadX, headLocation.getY() + dHeadY);
+			d = d.withHeadLocation(new EPoint(d.headLocation.getX() + dHeadX, d.headLocation.getY() + dHeadY));
 		if (dTailX != 0 || dTailY != 0)
-			tailLocation = new EPoint(tailLocation.getX() + dTailX, tailLocation.getY() + dTailY);
+			d = d.withTailLocation(new EPoint(d.tailLocation.getX() + dTailX, d.tailLocation.getY() + dTailY));
 		updateGeometric();
 
 		// update end shrinkage information
@@ -542,19 +598,19 @@ public class ArcInst extends Geometric implements Comparable
 	 * Method to return the width of this ArcInst.
 	 * @return the width of this ArcInst.
 	 */
-	public double getWidth() { return width; }
+	public double getWidth() { return d.width; }
 
 	/**
 	 * Method to return the length of this ArcInst.
 	 * @return the length of this ArcInst.
 	 */
-	public double getLength() { return length; }
+	public double getLength() { return d.length; }
 
 	/**
 	 * Method to return the rotation angle of this ArcInst.
 	 * @return the rotation angle of this ArcInst (in tenth-degrees).
 	 */
-	public int getAngle() { return (userBits & AANGLE) >> AANGLESH; }
+	public int getAngle() { return d.angle; }
 
 	/**
 	 * Method to set the rotation angle of this ArcInst.
@@ -566,16 +622,8 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void setAngle(int angle) {
         checkChanging();
-        if (!tailLocation.equals(headLocation)) return;
-        lowLevelSetAngle(angle);
+        d = d.withAngle(angle);
         Undo.otherChange(this);        
-    }
-
-    private void lowLevelSetAngle(int angle) {
-        angle = angle % 3600;
-        if (angle < 0) angle += 3600;
-        assert 0 <= angle && angle < 3600;
-        userBits = (userBits & ~AANGLE) | (angle << AANGLESH);
     }
 
 	/**
@@ -588,14 +636,13 @@ public class ArcInst extends Geometric implements Comparable
 	/**
 	 * Method to create a Poly object that describes an ArcInst.
 	 * The ArcInst is described by its length, width and style.
-	 * @param length the length of the ArcInst.
 	 * @param width the width of the ArcInst.
 	 * @param style the style of the ArcInst.
 	 * @return a Poly that describes the ArcInst.
 	 */
-	public Poly makePoly(double length, double width, Poly.Type style)
+	public Poly makePoly(double width, Poly.Type style)
 	{
-		return makePolyForArc(this, length, width, headLocation, tailLocation, style);
+		return makePolyForArc(this, d.length, width, d.headLocation, d.tailLocation, style);
 	}
 	
 	/**
@@ -695,13 +742,12 @@ public class ArcInst extends Geometric implements Comparable
 	{
 		// get information about the curved arc
 		double pureRadius = Math.abs(radius);
-		double length = tailLocation.distance(headLocation);
 
 		// see if the radius can work with these arc ends
-		if (pureRadius*2 < length) return null;
+		if (pureRadius*2 < d.length) return null;
 
 		// determine the center of the circle
-		Point2D [] centers = DBMath.findCenters(pureRadius, headLocation, tailLocation, length);
+		Point2D [] centers = DBMath.findCenters(pureRadius, d.headLocation, d.tailLocation, d.length);
 		if (centers == null) return null;
 
 		Point2D centerPt = centers[1];
@@ -712,8 +758,8 @@ public class ArcInst extends Geometric implements Comparable
 		}
 
 		// determine the base and range of angles
-		int angleBase = DBMath.figureAngle(centerPt, headLocation);
-		int angleRange = DBMath.figureAngle(centerPt, tailLocation);
+		int angleBase = DBMath.figureAngle(centerPt, d.headLocation);
+		int angleRange = DBMath.figureAngle(centerPt, d.tailLocation);
 		angleRange -= angleBase;
 		if (angleRange < 0) angleRange += 3600;
 
@@ -878,17 +924,9 @@ public class ArcInst extends Geometric implements Comparable
 	private void updateGeometric()
 	{
 		checkChanging();
-		if (tailLocation.equals(headLocation))
-		{
-			length = 0;
-		} else
-		{
-			length = tailLocation.distance(headLocation);
-			lowLevelSetAngle(DBMath.figureAngle(tailLocation, headLocation));
-		}
 
 		// compute the bounds
-		Poly poly = makePoly(length, width, Poly.Type.FILLED);
+		Poly poly = makePoly(d.width, Poly.Type.FILLED);
 		visBounds.setRect(poly.getBounds2D());
 
 		// the cell must recompute its bounds
@@ -954,13 +992,13 @@ public class ArcInst extends Geometric implements Comparable
 	 * Method to return the Location on tail of this ArcInst.
 	 * @return the Location on tail.
 	 */
-	public EPoint getTailLocation() { return tailLocation; }
+	public EPoint getTailLocation() { return d.tailLocation; }
 
 	/**
 	 * Method to return the Location on head of this ArcInst.
 	 * @return the Location on head.
 	 */
-	public EPoint getHeadLocation() { return headLocation; }
+	public EPoint getHeadLocation() { return d.headLocation; }
 
 	/**
 	 * Method to return the Location on an end of this ArcInst.
@@ -971,8 +1009,8 @@ public class ArcInst extends Geometric implements Comparable
 	{
 		switch (connIndex)
 		{
-			case TAILEND: return tailLocation;
-			case HEADEND: return headLocation;
+			case TAILEND: return d.tailLocation;
+			case HEADEND: return d.headLocation;
 			default: throw new IllegalArgumentException("Bad end " + connIndex);
 		}
 	}
@@ -1034,7 +1072,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public Name getNameKey()
 	{
-		return name;
+		return d.name;
 	}
 
 	/**
@@ -1045,9 +1083,8 @@ public class ArcInst extends Geometric implements Comparable
 	public void lowLevelRename(Name name, int duplicate)
 	{
 		parent.removeArc(this);
-		this.name = name;
-		this.duplicate = duplicate;
-		this.duplicate = parent.addArc(this);
+        d = d.withName(name, parent.fixupArcDuplicate(name, duplicate));
+		parent.addArc(this);
 		parent.checkInvariants();
 	}
 
@@ -1057,7 +1094,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public int getDuplicate()
 	{
-		return duplicate;
+		return d.duplicate;
 	}
 
 	/**
@@ -1073,7 +1110,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public ImmutableTextDescriptor getTextDescriptor(String varName)
 	{
-		if (varName == ARC_NAME_TD) return nameDescriptor;
+		if (varName == ARC_NAME_TD) return d.nameDescriptor;
 		return super.getTextDescriptor(varName);
 	}
 
@@ -1095,8 +1132,8 @@ public class ArcInst extends Geometric implements Comparable
 	{
 		if (varName == ARC_NAME_TD)
         {
-            ImmutableTextDescriptor oldDescriptor = nameDescriptor;
-			nameDescriptor = td.withDisplayWithoutParamAndCode();
+            ImmutableTextDescriptor oldDescriptor = d.nameDescriptor;
+			d = d.withNameDescriptor(td.withDisplayWithoutParamAndCode());
             return oldDescriptor;
         }
 		return super.lowLevelSetTextDescriptor(varName, td);
@@ -1122,7 +1159,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public String describe(boolean withQuotes)
 	{
-		String description = protoType.describe();
+		String description = getProto().describe();
 		String name = (withQuotes) ? "'"+getName()+"'" : getName();
 		if (name != null) description += "[" + name + "]";
 		return description;
@@ -1144,7 +1181,7 @@ public class ArcInst extends Geometric implements Comparable
 		}
 		cmp = this.getName().compareTo(that.getName());
 		if (cmp != 0) return cmp;
-		return this.duplicate - that.duplicate;
+		return this.d.duplicate - that.d.duplicate;
 	}
 
 	/**
@@ -1153,19 +1190,16 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public String toString()
 	{
-        if (protoType == null) return "ArcInst null protoType";
-//		return "ArcInst " + protoType.getName();
         return "arc " + describe(true);
 	}
 
 	/****************************** CONSTRAINTS ******************************/
 
     private void setFlag(ImmutableArcInst.Flag flag, boolean state) {
-        userBits = flag.set(userBits, state);
+        checkChanging();
+        d = d.withFlag(flag, state);
         Undo.otherChange(this);
     }
-    
-    private boolean is(ImmutableArcInst.Flag flag) { return flag.is(userBits); }
     
 	/**
 	 * Method to set this ArcInst to be rigid.
@@ -1179,7 +1213,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Rigid arcs cannot change length or the angle of their connection to a NodeInst.
 	 * @return true if this ArcInst is rigid.
 	 */
-	public boolean isRigid() { return is(ImmutableArcInst.RIGID); }
+	public boolean isRigid() { return d.is(ImmutableArcInst.RIGID); }
 
 	/**
 	 * Method to set this ArcInst to be fixed-angle.
@@ -1195,7 +1229,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * the other may also adjust to keep the arc angle constant.
 	 * @return true if this ArcInst is fixed-angle.
 	 */
-	public boolean isFixedAngle() { return is(ImmutableArcInst.FIXED_ANGLE); }
+	public boolean isFixedAngle() { return d.is(ImmutableArcInst.FIXED_ANGLE); }
 
 	/**
 	 * Method to set this ArcInst to be slidable.
@@ -1213,7 +1247,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Rigid arcs cannot slide but nonrigid arcs use this state to make a decision.
 	 * @return true if this ArcInst is slidable.
 	 */
-	public boolean isSlidable() { return is(ImmutableArcInst.SLIDABLE); }
+	public boolean isSlidable() { return d.is(ImmutableArcInst.SLIDABLE); }
 
 	/****************************** PROPERTIES ******************************/
 
@@ -1242,7 +1276,7 @@ public class ArcInst extends Geometric implements Comparable
      */
 	public boolean isTailArrowed()
 	{
-		return is(ImmutableArcInst.TAIL_ARROWED);
+		return d.is(ImmutableArcInst.TAIL_ARROWED);
 	}
 
 	/**
@@ -1253,7 +1287,7 @@ public class ArcInst extends Geometric implements Comparable
      */
 	public boolean isHeadArrowed()
 	{
-		return is(ImmutableArcInst.HEAD_ARROWED);
+		return d.is(ImmutableArcInst.HEAD_ARROWED);
 	}
 
 	/**
@@ -1266,7 +1300,7 @@ public class ArcInst extends Geometric implements Comparable
      */
 	public boolean isBodyArrowed()
 	{
-		return is(ImmutableArcInst.BODY_ARROWED);
+		return d.is(ImmutableArcInst.BODY_ARROWED);
 	}
 	
 	/**
@@ -1335,7 +1369,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @return true if the tail of this arc is extended.
 	 */
-	public boolean isTailExtended() { return is(ImmutableArcInst.TAIL_EXTENDED); }
+	public boolean isTailExtended() { return d.is(ImmutableArcInst.TAIL_EXTENDED); }
 
 	/**
 	 * Method to tell whether the head of this arc is extended.
@@ -1343,7 +1377,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Most layout arcs want this so that they make clean connections to orthogonal arcs.
 	 * @return true if the head of this arc is extended.
 	 */
-	public boolean isHeadExtended() { return is(ImmutableArcInst.HEAD_EXTENDED); }
+	public boolean isHeadExtended() { return d.is(ImmutableArcInst.HEAD_EXTENDED); }
 
 	/**
 	 * Method to set whether an end of this arc is extended.
@@ -1407,7 +1441,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * This is only valid in schematics technologies.
 	 * @return true if set the tail of this arc is negated.
 	 */
-	public boolean isTailNegated() { return is(ImmutableArcInst.TAIL_NEGATED); }
+	public boolean isTailNegated() { return d.is(ImmutableArcInst.TAIL_NEGATED); }
 
 	/**
 	 * Method to tell whether the head of this arc is negated.
@@ -1415,7 +1449,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * This is only valid in schematics technologies.
 	 * @return true if set the head of this arc is negated.
 	 */
-	public boolean isHeadNegated() { return is(ImmutableArcInst.HEAD_NEGATED); }
+	public boolean isHeadNegated() { return d.is(ImmutableArcInst.HEAD_NEGATED); }
 
 	/**
 	 * Method to set whether an end of this arc is negated.
@@ -1460,15 +1494,6 @@ public class ArcInst extends Geometric implements Comparable
 // 			if (pp instanceof PrimitivePort && ((PrimitivePort)pp).isNegatable())
 	}
 
-	/**
-	 * Method to compute the "userbits" to use for a given ArcInst.
-	 * The "userbits" are a set of bits that describes constraints and other properties,
-	 * and are stored in ELIB files.
-	 * The negation, directionality, and end-extension must be converted.
-	 * @return the "userbits" for that ArcInst.
-	 */
-	public int makeELIBArcBits() { return ImmutableArcInst.makeELIBArcBits(userBits); }
-
 	/****************************** MISCELLANEOUS ******************************/
 
     /**
@@ -1493,12 +1518,12 @@ public class ArcInst extends Geometric implements Comparable
         }
 
 		// see if the ends are in their ports
-		if (!headStillInPort(headLocation, false))
+		if (!headStillInPort(d.headLocation, false))
 		{
 			Poly poly = headPortInst.getPoly();
 			String msg = parent + ", " + this +
-				": head not in port, is at (" + headLocation.getX() + "," + headLocation.getY() +
-				") distance to port is " + poly.polyDistance(headLocation.getX(), headLocation.getY()) +
+				": head not in port, is at (" + d.headLocation.getX() + "," + d.headLocation.getY() +
+				") distance to port is " + poly.polyDistance(d.headLocation.getX(), d.headLocation.getY()) +
 				" port center is (" + poly.getCenterX() + "," + poly.getCenterY() + ")";
 			System.out.println(msg);
 			if (errorLogger != null)
@@ -1509,17 +1534,17 @@ public class ArcInst extends Geometric implements Comparable
 			}
 			if (repair)
 			{
-				headLocation = new EPoint(poly.getCenterX(), poly.getCenterY());
+				d = d.withHeadLocation(new EPoint(poly.getCenterX(), poly.getCenterY()));
 				updateGeometric();
 			}
 			errorCount++;
 		}
-		if (!tailStillInPort(tailLocation, false))
+		if (!tailStillInPort(d.tailLocation, false))
 		{
 			Poly poly = tailPortInst.getPoly();
 			String msg = parent + ", " + this +
-				": tail not in port, is at (" + tailLocation.getX() + "," + tailLocation.getY() +
-				") distance to port is " + poly.polyDistance(tailLocation.getX(), tailLocation.getY()) +
+				": tail not in port, is at (" + d.tailLocation.getX() + "," + d.tailLocation.getY() +
+				") distance to port is " + poly.polyDistance(d.tailLocation.getX(), d.tailLocation.getY()) +
 				" port center is (" + poly.getCenterX() + "," + poly.getCenterY() + ")";
 			System.out.println(msg);
 			if (errorLogger != null)
@@ -1530,26 +1555,8 @@ public class ArcInst extends Geometric implements Comparable
 			}
 			if (repair)
 			{
-				tailLocation = new EPoint(poly.getCenterX(), poly.getCenterY());
+				d = d.withTailLocation(new EPoint(poly.getCenterX(), poly.getCenterY()));
 				updateGeometric();
-			}
-			errorCount++;
-		}
-
-		// make sure width is not negative
-		if (getWidth() < 0)
-		{
-			String msg = parent + ", " + this + ": has negative width (" + getWidth() + ")";
-			System.out.println(msg);
-			if (errorLogger != null)
-			{
-				ErrorLogger.MessageLog error = errorLogger.logError(msg, parent, 1);
-				error.addGeom(this, true, parent, null);
-			}
-			if (repair)
-			{
-				checkChanging();
-				width = DBMath.round(Math.abs(width));
 			}
 			errorCount++;
 		}
@@ -1562,8 +1569,8 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void check()
 	{
-		assert name != null;
-		assert duplicate >= 0;
+		assert d.name != null;
+		assert d.duplicate >= 0;
 
 		assert headEnd.getArc() == this;
 		assert tailEnd.getArc() == this;
@@ -1608,7 +1615,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Method to return the prototype of this ArcInst.
 	 * @return the prototype of this ArcInst.
 	 */
-	public ArcProto getProto() { return protoType; }
+	public ArcProto getProto() { return d.protoType; }
 
     /**
      * Copies all properties (variables, constraints, and textdescriptor)
@@ -1631,11 +1638,12 @@ public class ArcInst extends Geometric implements Comparable
     public void copyConstraintsFrom(ArcInst fromAi) {
         checkChanging();
         if (fromAi == null) return;
-        int newBits = tailLocation.equals(headLocation) ? fromAi.userBits : (fromAi.userBits & ~AANGLE) | (this.userBits & AANGLE);
+        int flags = fromAi.d.flags;
+//        int newBits = tailLocation.equals(headLocation) ? fromAi.userBits : (fromAi.userBits & ~AANGLE) | (this.userBits & AANGLE);
 //        newBits &= ImmutableArcInst.DATABASE_BITS;
-		boolean extensionChanged = ImmutableArcInst.TAIL_EXTENDED.is(this.userBits) != ImmutableArcInst.TAIL_EXTENDED.is(newBits) ||
-                ImmutableArcInst.HEAD_EXTENDED.is(this.userBits) != ImmutableArcInst.HEAD_EXTENDED.is(newBits);
-        this.userBits = newBits;
+		boolean extensionChanged = ImmutableArcInst.TAIL_EXTENDED.is(d.flags) != ImmutableArcInst.TAIL_EXTENDED.is(flags) ||
+                ImmutableArcInst.HEAD_EXTENDED.is(d.flags) != ImmutableArcInst.HEAD_EXTENDED.is(flags);
+        d = d.withFlags(flags);
 		if (isLinked() && extensionChanged) updateGeometric();
         Undo.otherChange(this);
 //		setHeadNegated(fromAi.isHeadNegated());
@@ -1678,7 +1686,7 @@ public class ArcInst extends Geometric implements Comparable
 	/**
 	 * Method to set default constraint information on this ArcInst.
 	 */
-	private void setDefaultConstraints()
+	private void setDefaultConstraints(ArcProto protoType)
 	{
         setRigid(protoType.isRigid());
         setFixedAngle(protoType.isFixedAngle());
@@ -1703,7 +1711,7 @@ public class ArcInst extends Geometric implements Comparable
 	 * Instead, the "special select" command must be given.
 	 * @return true if this ArcInst is hard-to-select.
 	 */
-	public boolean isHardSelect() { return is(ImmutableArcInst.HARD_SELECT); }
+	public boolean isHardSelect() { return d.is(ImmutableArcInst.HARD_SELECT); }
 
     /**
      * This function is to compare NodeInst elements. Initiative CrossLibCopy
@@ -1720,7 +1728,7 @@ public class ArcInst extends Geometric implements Comparable
             return (false);
 
         ArcInst a = (ArcInst)obj;
-         if (protoType.getClass() != a.getProto().getClass())
+         if (getProto().getClass() != a.getProto().getClass())
             return (false);
 
         // Not sure if I should defina myEquals for Geometric

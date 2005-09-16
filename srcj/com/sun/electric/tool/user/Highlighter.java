@@ -1696,7 +1696,7 @@ public class Highlighter implements DatabaseChangeListener {
 			// ignore areaMustEnclose if bounds is size 0,0
 	        if (areaMustEnclose && (bounds.getHeight() > 0 || bounds.getWidth() > 0))
 			{
-	        	Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+	        	Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
 	            if (poly == null) return null;
 	   			if (!poly.isInside(bounds)) return null;
 				Highlight h = new Highlight(Highlight.Type.EOBJ, geom, geom.getParent());
@@ -1934,7 +1934,7 @@ public class Highlighter implements DatabaseChangeListener {
 		// standard distance to the arc
 		double wid = ai.getWidth() - ai.getProto().getWidthOffset();
 		if (DBMath.doublesEqual(wid, 0)) wid = 1;
-		Poly poly = ai.makePoly(ai.getLength(), wid, Poly.Type.FILLED);
+		Poly poly = ai.makePoly(wid, Poly.Type.FILLED);
 		return poly.polyDistance(bounds);
 	}
 

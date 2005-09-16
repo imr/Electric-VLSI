@@ -135,31 +135,16 @@ public class NodeInst extends Geometric implements Nodable, Comparable
     // --------------------- private and protected methods ---------------------
 
 	/**
-	 * The protected constructor of NodeInst. Use the factory "newInstance" instead.
-     * @param nodeId id of this NodeInst in parent.
+	 * The constructor of NodeInst. Use the factory "newInstance" instead.
+     * @param d persistent data of this NodeInst.
 	 * @param parent the Cell in which this NodeInst will reside.
-	 * @param protoType the NodeProto of which this is an instance.
-	 * @param name name of new NodeInst
-	 * @param duplicate duplicate index of this NodeInst
-     * @param nameDescriptor TextDescriptor of name of this NodeInst
-	 * @param center the center location of this NodeInst.
-	 * @param width the width of this NodeInst (can't be negative).
-	 * @param height the height of this NodeInst (can't be negative).
-	 * @param orient the orientation of this NodeInst.
-     * @param flags flags of this NodeInst.
-	 * @param techBits bits associated to different technologies
-     * @param protoDescriptor TextDescriptor of prototype name of this NodeInst
 	 */
-    protected NodeInst(int nodeId, Cell parent, NodeProto protoType,
-            Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
-            Point2D center, double width, double height, Orientation orient,
-            int flags, int techBits, ImmutableTextDescriptor protoDescriptor)
-	{
-		// initialize this object
-		this.parent = parent;
-		this.protoType = protoType;
-        
-		// create all of the portInsts on this node inst
+    NodeInst(ImmutableNodeInst d, Cell parent) {
+        this.parent = parent;
+        this.protoType = d.protoId.inCurrentThread();
+        this.d = d;
+
+        // create all of the portInsts on this node inst
 		portInsts = new PortInst[protoType.getNumPorts()];
 		for (int i = 0; i < portInsts.length; i++)
 		{
@@ -167,19 +152,12 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 			portInsts[i] = PortInst.newInstance(pp, this);
 		}
 
-        if (nameDescriptor == null) nameDescriptor = ImmutableTextDescriptor.getNodeTextDescriptor();
-		EPoint anchor = EPoint.snap(center);
-        if (protoType == Generic.tech.cellCenterNode)
-            anchor = EPoint.ORIGIN;
-        if (protoDescriptor == null) protoDescriptor = ImmutableTextDescriptor.getInstanceTextDescriptor();
-        
-        d = ImmutableNodeInst.newInstance(nodeId, protoType.getId(), name, duplicate, nameDescriptor, orient, anchor, width, height, flags, techBits, protoDescriptor);
         expanded = protoType instanceof Cell && ((Cell)protoType).isWantExpanded();
         
 		// fill in the geometry
 		redoGeometric();
-	}
-
+    }
+    
 	/****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**
@@ -253,7 +231,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public static NodeInst makeDummyInstance(NodeProto np, Point2D center, double width, double height, Orientation orient)
 	{
-        return new NodeInst(0, null, np, Name.findName(""), 0, null, center, width, height, orient, 0, 0, null);
+        ImmutableNodeInst d = ImmutableNodeInst.newInstance(0, np.getId(),
+                Name.findName(""), 0, ImmutableTextDescriptor.getNodeTextDescriptor(),
+                orient, EPoint.ORIGIN, width, height,
+                0,  0, ImmutableTextDescriptor.getInstanceTextDescriptor());
+        return new NodeInst(d, null);
 	}
 
 	/**
@@ -328,8 +310,10 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 					" because it is recursive");
 				return null;
 			}
+            width = height = 0;
 		}
 
+		EPoint anchor = EPoint.snap(center);
 		if (protoType == Generic.tech.cellCenterNode)
 		{
 			// only 1 cell-center is allowed: check for others
@@ -342,6 +326,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 					return null;
 				}
 			}
+            anchor = EPoint.ORIGIN;
+            width = height = 0;
+            orient = Orientation.IDENT;
 		}
 
         Name nameKey = name != null ? Name.findName(name) : null;
@@ -359,7 +346,16 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		}
         duplicate = parent.fixupNodeDuplicate(nameKey, duplicate);
         CellId parentId = (CellId)parent.getId();
-		NodeInst ni = new NodeInst(parentId.newNodeId(), parent, protoType, nameKey, duplicate, nameDescriptor, center, width, height, orient, flags, techBits, protoDescriptor);
+        
+        if (nameDescriptor == null) nameDescriptor = ImmutableTextDescriptor.getNodeTextDescriptor();
+        if (protoDescriptor == null) protoDescriptor = ImmutableTextDescriptor.getInstanceTextDescriptor();
+        
+        ImmutableNodeInst d = ImmutableNodeInst.newInstance(parentId.newNodeId(), protoType.getId(),
+                nameKey, duplicate, nameDescriptor,
+                orient, anchor, width, height,
+                flags, techBits, protoDescriptor);
+        
+		NodeInst ni = new NodeInst(d, parent);
 
 		if (ni.checkAndRepair(true, null, null) > 0) return null;
 		if (ni.lowLevelLink()) return null;
@@ -373,7 +369,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
         }
 		return ni;
 	}
-
     
 	/**
 	 * Method to delete this NodeInst.

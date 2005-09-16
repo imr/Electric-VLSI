@@ -423,7 +423,7 @@ public class ReadableDump extends Output
 				int length = (int)(ai.getLength() * scale);
 				printWriter.println("width: " + width + " length: " + length);
 
-				int userBits = ai.makeELIBArcBits();
+				int userBits = ai.getD().getElibBits();
 				printWriter.println("userbits: " + userBits);
 				for(int e=0; e<2; e++)
 				{

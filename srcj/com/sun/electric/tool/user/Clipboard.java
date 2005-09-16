@@ -867,7 +867,7 @@ public class Clipboard
                 if (geom instanceof ArcInst) {
                     ArcInst ai = (ArcInst)geom;
                     double wid = ai.getWidth() - ai.getProto().getWidthOffset();
-                    Poly poly = ai.makePoly(ai.getLength(), wid, Poly.Type.FILLED);
+                    Poly poly = ai.makePoly(wid, Poly.Type.FILLED);
                     Rectangle2D bounds = poly.getBounds2D();
 
                     if (llcorner == null) {
@@ -1107,7 +1107,7 @@ public class Clipboard
                     if (geom instanceof ArcInst)
                     {
                         ArcInst ai = (ArcInst)geom;
-                        Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+                        Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
                         points = poly.getPoints();
                     } else
                     {

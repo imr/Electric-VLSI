@@ -1153,14 +1153,14 @@ public class Compaction extends Listener
 				newObject.inst = ai;
 				newObject.nextObject = null;
 				newObject.firstPolyList = null;
-                Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+                Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
 				Rectangle2D bounds = poly.getBounds2D();
 				newObject.lowx = bounds.getMinX();
 				newObject.highx = bounds.getMaxX();
 				newObject.lowy = bounds.getMinY();
 				newObject.highy = bounds.getMaxY();
 
-				poly = ai.makePoly(ai.getLength(), ai.getWidth(), Poly.Type.CLOSED);
+				poly = ai.makePoly(ai.getWidth(), Poly.Type.CLOSED);
 				bounds = poly.getBounds2D();
 				newObject.outerLowx = bounds.getMinX();
 				newObject.outerHighx = bounds.getMaxX();

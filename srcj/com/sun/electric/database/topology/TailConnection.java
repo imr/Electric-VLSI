@@ -53,7 +53,7 @@ public class TailConnection extends Connection
 	 * Method to return the location on this TailConnection.
 	 * @return the location on this TailConnection.
 	 */
-	public EPoint getLocation() { return arc.tailLocation; }
+	public EPoint getLocation() { return arc.d.tailLocation; }
 
 	/**
 	 * Method to tell whether this connection is arrowed.

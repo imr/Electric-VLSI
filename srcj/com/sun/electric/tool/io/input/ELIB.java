@@ -1401,7 +1401,8 @@ public class ELIB extends LibraryFiles
 				continue;
 			}
             ArcInst ai = ArcInst.newInstance(cell, ap, name, -1, arcNameDescriptorList[i], headPortInst, tailPortInst,
-                    new EPoint(headX, headY), new EPoint(tailX, tailY), width, ImmutableArcInst.fromElibBits(arcUserBits[i]));
+                    new EPoint(headX, headY), new EPoint(tailX, tailY), width,
+                    ImmutableArcInst.angleFromElib(arcUserBits[i]), ImmutableArcInst.flagsFromElib(arcUserBits[i]));
             arcList[i] = ai;
  			if (ai == null)
 			{

@@ -615,7 +615,8 @@ public class ReadableDump extends LibraryFiles
 					ail.arcTailX[j] + "," + ail.arcTailY[j] + ") not in port");
 
             ArcInst ai = ArcInst.newInstance(cell, ap, name, -1, ail.arcNameDescriptor[j],
-                    headPortInst, tailPortInst, headPt, tailPt, width, ImmutableArcInst.fromElibBits(userBits));
+                    headPortInst, tailPortInst, headPt, tailPt, width,
+                    ImmutableArcInst.angleFromElib(userBits), ImmutableArcInst.flagsFromElib(userBits));
 			ail.arcList[j] = ai;
 //            ELIBConstants.applyELIBArcBits(ai, userBits);
 			if (ai == null)

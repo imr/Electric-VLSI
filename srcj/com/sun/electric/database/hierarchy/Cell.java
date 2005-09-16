@@ -1721,7 +1721,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	}
 
 	/**
-	 * Method to find duplicate index for name, so that (name,duplicate) paiir is unique a Cell.
+	 * Method to find duplicate index for name, so that (name,duplicate) pair is unique a Cell.
 	 * @param name the name of NodeInst.
 	 * @param duplicate recommended duplicate index, or -1
 	 * @return unique diplicate index for this node.
@@ -1735,11 +1735,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			nodeIndex = searchNode(nameString, duplicate);
 			if (nodeIndex >= 0)
 			{
-//				if (nodes.get(nodeIndex) == ni)
-//				{
-//					System.out.println("Cell " + this +" already contains node " + ni);
-//					return duplicate;
-//				}
 				duplicate = -1;
 			}
 		}
@@ -1763,7 +1758,6 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			}
 		}
 		assert nodeIndex < 0;
-		nodeIndex = - nodeIndex - 1;
 		return duplicate;
 	}
 
@@ -1924,44 +1918,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * @param ai the ArcInst to be included in the cell.
 	 * @return unique diplicate index for this arc.
 	 */
-	public int addArc(ArcInst ai)
+	public void addArc(ArcInst ai)
 	{
-		checkChanging();
-		String name = ai.getName();
-		int duplicate = ai.getDuplicate();
-		int arcIndex = 0;
-		if (duplicate >= 0)
-		{
-			arcIndex = searchArc(name, duplicate);
-			if (arcIndex >= 0)
-			{
-				if (arcs.get(arcIndex) == ai)
-				{
-					System.out.println("Cell " + this +" already contains arc " + ai);
-					return duplicate;
-				}
-				duplicate = -1;
-			}
-		}
-		if (duplicate < 0)
-		{
-			arcIndex = searchArc(name, Integer.MAX_VALUE);
-			if (arcIndex < 0)
-			{
-				duplicate = 0;
-				if (arcIndex != -1)
-				{
-					ArcInst a = (ArcInst)arcs.get(- arcIndex - 2);
-					if (a.getName().equals(name))
-						duplicate = a.getDuplicate() + 1;
-				}
-			} else
-			{
-				// This may happen if a.getDuplicate() == Integer.MAX_VALUE.
-				// Scan all possible duplicates starting from zero.
-				for (duplicate = 0; (arcIndex = searchArc(name, duplicate)) >= 0; duplicate++) ;
-			}
-		}
+		int arcIndex = searchArc(ai.getName(), ai.getDuplicate());
 		assert arcIndex < 0;
 		arcIndex = - arcIndex - 1;
 		arcs.add(arcIndex, ai);
@@ -1971,6 +1930,46 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			a.setArcIndex(arcIndex);
 		}
 		addTempName(ai);
+	}
+
+	/**
+	 * Method to find duplicate index for name, so that (name,duplicate) pair is unique a Cell.
+	 * @param name the name of NodeInst.
+	 * @param duplicate recommended duplicate index, or -1
+	 * @return unique diplicate index for this node.
+	 */
+	public int fixupArcDuplicate(Name name, int duplicate)
+	{
+        String nameString = name.toString();
+		int arcIndex = 0;
+		if (duplicate >= 0)
+		{
+			arcIndex = searchArc(nameString, duplicate);
+			if (arcIndex >= 0)
+			{
+				duplicate = -1;
+			}
+		}
+		if (duplicate < 0)
+		{
+			arcIndex = searchArc(nameString, Integer.MAX_VALUE);
+			if (arcIndex < 0)
+			{
+				duplicate = 0;
+				if (arcIndex != -1)
+				{
+					ArcInst ai = (ArcInst)arcs.get(- arcIndex - 2);
+					if (ai.getName().equals(nameString))
+						duplicate = ai.getDuplicate() + 1;
+				}
+			} else
+			{
+				// This may happen if n.getDuplicate() == Integer.MAX_VALUE.
+				// Scan all possible duplicates starting from zero.
+				for (duplicate = 0; (arcIndex = searchArc(nameString, duplicate)) >= 0; duplicate++) ;
+			}
+		}
+		assert arcIndex < 0;
 		return duplicate;
 	}
 

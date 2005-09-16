@@ -714,7 +714,7 @@ public class ELIB extends Output
 		writeObj(ai.getHeadPortInst().getNodeInst());
 
 		// write the arcinst's tool information
-		int userBits = ai.makeELIBArcBits();
+		int userBits = ai.getD().getElibBits();
 		writeBigInteger(userBits);
 
 		// write variable information and arc name

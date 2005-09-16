@@ -1214,7 +1214,7 @@ public class Technology implements Comparable
 			for(int i = 0; i < primLayers.length; i++)
 			{
 				Technology.ArcLayer primLayer = primLayers[i];
-				polys[polyNum] = ai.makePoly(ai.getLength(), ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
+				polys[polyNum] = ai.makePoly(ai.getWidth() - primLayer.getOffset(), primLayer.getStyle());
 				if (polys[polyNum] == null) return null;
 				lastLayer = layerOverride;
 				if (lastLayer == null) lastLayer = primLayer.getLayer();

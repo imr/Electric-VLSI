@@ -114,7 +114,7 @@ public class Network {
      * @param name name to add.
      */
     public void addTempName(String name) {
-        if (isUsernamed || names.length > 0) return;
+        if (names.length > 0) return;
         names = new String[] { name };
     }
     

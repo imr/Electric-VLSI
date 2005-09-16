@@ -53,7 +53,7 @@ public class HeadConnection extends Connection
 	 * Method to return the location on this HeadConnection.
 	 * @return the location on this HeadConnection.
 	 */
-	public EPoint getLocation() { return arc.headLocation; }
+	public EPoint getLocation() { return arc.d.headLocation; }
 
 	/**
 	 * Method to tell whether this connection is arrowed.

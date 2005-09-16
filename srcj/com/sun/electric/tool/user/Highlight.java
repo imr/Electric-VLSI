@@ -627,7 +627,7 @@ public class Highlight
             if (!Job.acquireExamineLock(false)) return;
             try {
                 // construct the polygons that describe the basic arc
-                Poly poly = ai.makePoly(ai.getLength(), ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+                Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
                 if (poly == null) return;
                 drawOutlineFromPoints(wnd, g, poly.getPoints(), highOffX, highOffY, false, null);
 

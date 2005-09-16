@@ -31,7 +31,7 @@ import java.util.NoSuchElementException;
  */
 public class ArrayIterator/*<E>*/ implements Iterator/*<E>*/ {
 	private final Object/*E*/[] array;
-    private int limit;
+    private final int limit;
 	private int cursor;
 
 	/**
@@ -47,8 +47,6 @@ public class ArrayIterator/*<E>*/ implements Iterator/*<E>*/ {
 
     private ArrayIterator/*E*/(Object/*E*/[] array, int start, int limit)
 	{
-        if (start < 0 || start > limit || limit > array.length)
-            throw new IndexOutOfBoundsException();
 		this.array = array;
         this.limit = limit;
         cursor = start;
@@ -75,12 +73,16 @@ public class ArrayIterator/*<E>*/ implements Iterator/*<E>*/ {
 	public static Iterator iterator(Object/*E*/[] array, int start, int limit)
 	{
         if (array != null) {
-            return new ArrayIterator(array, start, limit);
-        } else {
-            if (start != 0 || limit != 0)
-                throw new IndexOutOfBoundsException();
+            if (start >= 0 && limit <= array.length) {
+                if (start < limit)
+                    return new ArrayIterator(array, start, limit);
+                else if (start == limit)
+                    return NULL_ITERATOR;
+            }
+        } else if (start == 0 && limit == 0) {
             return NULL_ITERATOR;
         }
+        throw new IndexOutOfBoundsException();
 	}
 
 	/**

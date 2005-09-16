@@ -439,7 +439,7 @@ public class SizeListener
 				// construct the polygons that describe the basic arc
 				double newWidth = getNewArcSize(evt);
 				ArcInst ai = (ArcInst)stretchGeom;
-				Poly stretchedPoly = ai.makePoly(ai.getLength(), newWidth - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+				Poly stretchedPoly = ai.makePoly(newWidth - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
 				if (stretchedPoly == null) return;
 				Point2D [] stretchedPoints = stretchedPoly.getPoints();
 				for(int i=0; i<stretchedPoints.length; i++)

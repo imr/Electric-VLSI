@@ -1,5 +1,6 @@
 package com.sun.electric.database.topology;
 
+import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.NodeProto;
@@ -20,31 +21,15 @@ import java.awt.geom.Point2D;
  */
 public class IconNodeInst extends NodeInst
 {
-    /**
-	 * The private constructor of NodeInst. Use the factory "newInstance" instead.
-     * @param nodeId id of this NodeInst in parent.
-	 * @param parent the Cell in which this NodeInst will reside.
-	 * @param protoType the NodeProto of which this is an instance.
-	 * @param name name of new NodeInst
-	 * @param duplicate duplicate index of this NodeInst
-     * @param nameDescriptor TextDescriptor of name of this NodeInst
-	 * @param center the center location of this NodeInst.
-	 * @param width the width of this NodeInst (can't be negative).
-	 * @param height the height of this NodeInst (can't be negative).
-	 * @param orient the orientation of this NodeInst.
-     * @param flags flags of this NodeInst.
-	 * @param techBits bits associated to different technologies
-     * @param protoDescriptor TextDescriptor of prototype name of this NodeInst
+	/**
+	 * The constructor of IconNodeInst. Use the factory "newInstance" instead.
+     * @param d persistent data of this IconNodeInst.
+	 * @param parent the Cell in which this IconNodeInst will reside.
 	 */
-    protected IconNodeInst(int nodeId, Cell parent, NodeProto protoType,
-            Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
-            Point2D center, double width, double height, Orientation orient,
-            int flags, int techBits, ImmutableTextDescriptor protoDescriptor)
-	{
-        super(nodeId, parent, protoType, name, duplicate, nameDescriptor, center, width, height,
-              orient, flags, techBits, protoDescriptor);
+    IconNodeInst(ImmutableNodeInst d, Cell parent) {
+        super(d, parent);
     }
-
+    
     public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
     {
         Variable var = super.newVar(key, value, td);
