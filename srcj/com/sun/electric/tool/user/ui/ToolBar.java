@@ -268,6 +268,12 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		toolbar.add(measureButton);
 		modeGroup.add(measureButton);
 
+		// setup mode buttons to current setting
+		if (curMode == CursorMode.CLICKZOOMWIRE) clickZoomWireButton.setSelected(true); else
+			if (curMode == CursorMode.PAN) panButton.setSelected(true); else
+				if (curMode == CursorMode.ZOOM) zoomButton.setSelected(true); else
+					if (curMode == CursorMode.MEASURE) measureButton.setSelected(true);
+
 		// a separator
 		toolbar.addSeparator();
 
@@ -300,7 +306,10 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		toolbar.add(quarterButton);
 		arrowGroup.add(quarterButton);
 
-        setGridAligment(User.getAlignmentToGrid());
+		// setup arrow buttons to current setting
+		if (curArrowDistance == ArrowDistance.FULL) fullButton.setSelected(true); else
+			if (curArrowDistance == ArrowDistance.HALF) halfButton.setSelected(true); else
+				if (curArrowDistance == ArrowDistance.QUARTER) quarterButton.setSelected(true);
 
 		// a separator
 		toolbar.addSeparator();
@@ -325,9 +334,14 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		toolbar.add(areaButton);
 		selectGroup.add(areaButton);
 
+		// setup object/area selector to current setting
+		if (getSelectMode() == SelectMode.AREA) areaButton.setSelected(true);
+
 		// the "Special select mode" button
         // this is a true toggle button, default is no special select
-		selectSpecialButton = ToolBarButton.newInstance(specialSelectName, selectSpecialIconOff);
+		ImageIcon initialIcon = selectSpecialIconOff;
+		if (getSelectSpecial()) initialIcon = selectSpecialIconOn;
+		selectSpecialButton = ToolBarButton.newInstance(specialSelectName, initialIcon);
 		selectSpecialButton.addActionListener(
 			new ActionListener() { public void actionPerformed(ActionEvent e) { toggleSelectSpecialCommand(e); } });
 		selectSpecialButton.setToolTipText("Toggle Special Select");

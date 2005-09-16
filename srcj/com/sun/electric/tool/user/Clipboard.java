@@ -539,6 +539,7 @@ public class Clipboard
 		{
 			// find out where the paste is going
 			EditWindow wnd = EditWindow.needCurrent();
+			if (wnd == null) return false;
 			Cell parent = wnd.getCell();
 
 			// make sure pasting is allowed
@@ -822,7 +823,7 @@ public class Clipboard
      * @param pasteList a list of Geometrics to paste
      * @return a Rectangle2D that is the paste bounds.
      */
-    private static Rectangle2D getPasteBounds(List pasteList) {
+    private static Rectangle2D getPasteBounds(List pasteList, EditWindow wnd) {
 
         Point2D llcorner = null;
         Point2D urcorner = null;
@@ -834,7 +835,7 @@ public class Clipboard
             if ((obj instanceof Variable))
             {
                 Variable var = (Variable)obj;
-                Poly poly = clipCell.computeTextPoly(EditWindow.needCurrent(), var, null);
+                Poly poly = clipCell.computeTextPoly(wnd, var, null);
                 Rectangle2D bounds = poly.getBounds2D();
 
                 if (llcorner == null) {
@@ -1031,7 +1032,7 @@ public class Clipboard
 			this.wnd = wnd;
 			this.pasteList = pasteList;
 			this.currentListener = currentListener;
-            this.pasteBounds = getPasteBounds(pasteList);
+            this.pasteBounds = getPasteBounds(pasteList, wnd);
             translateX = translateY = 0;
 
             initPopup();

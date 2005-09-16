@@ -473,7 +473,10 @@ public abstract class Topology extends Output
 				if (useExportedName)
 				{
 					String rootName = pp.getName();
-					if (portWidth == 1) cs.name = rootName;
+					if (portWidth == 1)
+					{
+						cs.name = rootName;
+					}
 					int openPos = rootName.indexOf('[');
 					if (openPos > 0)
 					{

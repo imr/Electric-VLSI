@@ -512,7 +512,8 @@ public class SizeListener
 		farthestPoint = farthest;
 
 		// if Shift is held, use center-based sizing
-		boolean centerBased = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0;
+		boolean centerBased = (evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0 &&
+			(evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0;
 
 		// determine the amount of growth of the node
 		AffineTransform transIn = ni.rotateIn();
@@ -543,9 +544,12 @@ public class SizeListener
 			growthRatioY = ptToFarthestY / closestToFarthestY;
 		}
 
-		// if Control is held, constrain to single-axis stretching
-		if ((evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0)
+		// see what keys are held
+		boolean square = ni.getProto() instanceof PrimitiveNode && ((PrimitiveNode)ni.getProto()).isSquare();
+		if ((evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) != 0 &&
+			(evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) == 0)
 		{
+			// if Control is held, constrain to single-axis stretching
 			double grx = Math.abs(growthRatioX);
 			if (grx < 1)
 			{
@@ -558,8 +562,13 @@ public class SizeListener
 			}
 			if (grx > gry) growthRatioY = 1; else
 				growthRatioX = 1;
+		} else if ((evt.getModifiersEx()&MouseEvent.SHIFT_DOWN_MASK) != 0 &&
+			(evt.getModifiersEx()&MouseEvent.CTRL_DOWN_MASK) == 0)
+		{
+			// if Shift is held, constrain proportions
+			square = true;
 		}
-		if (ni.getProto() instanceof PrimitiveNode && ((PrimitiveNode)ni.getProto()).isSquare())
+		if (square)
 		{
 			if (growthRatioX > growthRatioY) growthRatioY = growthRatioX; else
 				growthRatioX = growthRatioY;

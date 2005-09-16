@@ -4,20 +4,47 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
-IMP: (09/15/05, DN) Transactional DB: ImmutableArcInst.java.
-
-IMP (09/15/05, GVG) GateGenerator changes for TSMC180 (not all)
-
 BUG: (09/16/05, DN) Inverse alphabatical order of net names.
 FIX: In Network.addUserName put "<" instead of ">".
 
 BUG: (09/16/05, DN) Sometimes constraint system swaps ends of modified ArcInst.
 FIX: In constraint.LayoutCell use ArcInst.HEADEND and ArcInst.TAIEND .
 
-IMP (09/15/05, RK) FillGenerator modified to work for tsmc180. (Bugzilla# 545)
+IMP: (09/15/05, RK) FillGenerator modified to work for tsmc180. (Bugzilla# 545)
 
 BUG: (09/15/05, DN) HierarchyEnumerator should choose user-defined name for nets shortened by resistor.
 FIX: In HierarchyEnumerator.numerNets choose the most appropriate name.
+
+IMP/MAN: (09/15/05, SMR) When interactively sizing, Shift key now constrains
+     proportions; hold Control-Shift to do sizing about center (Bug #344).
+
+IMP: (09/15/05, SMR) "Select Object" command now flashes small selections and
+     points out those off the screen (Bug #401).
+
+BUG: (09/15/05, SMR) CDL files should not include "Spice Code" information (Bug #426).
+FIX: Code and Declarations ignored in CDL mode.
+
+IMP/MAN: (09/15/05, SMR) In "zoom" mode, right click and drag up/down does
+     continuous zooming in and out.
+
+IMP/MAN: (09/19/05, SMR) Can now create "Spice Declaration" objects which are emitted at the
+     head of the cell (Bug #456).
+
+BUG: (09/15/05, SMR) New windows are created with improper toolbar button settings (Bug #475).
+FIX: In ToolBar.createToolBar(), initialize buttons properly.
+
+BUG: (09/15/05, SMR) Measure mode crashes when multiple SDI windows are crossed.
+FIX: In MeasureListener.mouseDragged, make sure the drag was properly initiated.
+
+BUG: (09/15/05, SMR) Typing ^K when there is no window crashes (Bug #532).
+FIX: Make sure the results of EditWindow.needCurrent() are tested everywhere.
+
+BUG: (09/15/05, SMR) Plotting Spice/Verilog listings doesn't prompt for associated cell. (Bug #535, 542)
+FIX: In Simulate.plotSimulationResults(), fixed bad test for cell validity.
+
+IMP: (09/15/05, DN) Transactional DB: ImmutableArcInst.java.
+
+IMP: (09/15/05, GVG) GateGenerator changes for TSMC180 (not all)
 
 IMP/MAN: (09/14/05, SMR) Can now change the font and size of text when editing textual cells.
 

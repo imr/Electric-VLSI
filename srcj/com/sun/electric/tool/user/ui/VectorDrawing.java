@@ -70,9 +70,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * To Do:
- *    When editing down-in-place, why does export motion not move the text?
- *    Size computation and elimination on all cached objects
+ * Class to do rapid redraw by caching the vector coordinates of all objects.
  */
 public class VectorDrawing
 {
@@ -1391,7 +1389,11 @@ public class VectorDrawing
 					{
 						float dX = hX - lX;
 						float dY = hY - lY;
+
+						// well and substrate layers are made smaller so that they "greek" sooner
 						vm.setSize(dX / 10, dY / 10);
+//						vm.setSize(dX / 2, dY / 2);
+//						this.size = (float)Math.min(ni.getXSize(), ni.getYSize());
 					}
 				}
 				vm.hideOnLowLevel = hideOnLowLevel;

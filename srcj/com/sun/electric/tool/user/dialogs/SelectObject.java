@@ -26,6 +26,8 @@ package com.sun.electric.tool.user.dialogs;
 import com.sun.electric.database.change.DatabaseChangeEvent;
 import com.sun.electric.database.change.DatabaseChangeListener;
 import com.sun.electric.database.change.Undo;
+import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.network.Network;
@@ -33,7 +35,9 @@ import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
+import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.Highlighter;
+import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WindowFrame;
 import com.sun.electric.tool.user.ui.WindowContent;
@@ -41,6 +45,8 @@ import com.sun.electric.tool.user.ui.WindowContent;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -49,10 +55,12 @@ import java.util.Collections;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 
 /**
- * Class to handle the "Search and Replace" dialog.
+ * Class to handle the "Select Object" dialog.
  */
 public class SelectObject extends EDialog implements DatabaseChangeListener
 {
@@ -200,9 +208,102 @@ public class SelectObject extends EDialog implements DatabaseChangeListener
 				}
 			}
 		}
-		if (si.length > 0) highlighter.finished();
+		if (si.length > 0)
+		{
+	        WindowFrame wf = WindowFrame.getCurrentWindowFrame();
+			Highlight line1 = null, line2 = null, line3 = null, line4 = null;
+	        if (wf != null && wf.getContent() instanceof EditWindow)
+			{
+				EditWindow wnd = (EditWindow)wf.getContent();
+				Rectangle2D bounds = highlighter.getHighlightedArea(wnd);
+				double boundsArea = bounds.getWidth() * bounds.getHeight();
+				Rectangle2D displayBounds = wnd.displayableBounds();
+				double displayArea = displayBounds.getWidth() * displayBounds.getHeight();
+				
+				// if objects are offscreen, point the way
+				if (bounds.getMinX() >= displayBounds.getMaxX() ||
+						bounds.getMaxX() <= displayBounds.getMinX() ||
+						bounds.getMinY() >= displayBounds.getMaxY() ||
+						bounds.getMaxY() <= displayBounds.getMinY())
+				{
+					Point2D fromPt = new Point2D.Double(displayBounds.getCenterX(), displayBounds.getCenterY());
+					Point2D toPt = new Point2D.Double(bounds.getCenterX(), bounds.getCenterY());
+					GenMath.clipLine(fromPt, toPt, displayBounds.getMinX(), displayBounds.getMaxX(),
+							displayBounds.getMinY(), displayBounds.getMaxY());
+					if (fromPt.getX() != displayBounds.getCenterX() || fromPt.getY() != displayBounds.getCenterY())
+					{
+						// clipLine may swap points: swap them back
+						Point2D swap = fromPt;
+						fromPt = toPt;
+						toPt = swap;
+					}
+					line1 = highlighter.addLine(fromPt, toPt, cell);
+					int angle = GenMath.figureAngle(fromPt, toPt);
+					double headLength = fromPt.distance(toPt) / 10;
+					double xLeft = toPt.getX() - headLength * DBMath.cos(angle+150);
+					double yLeft = toPt.getY() - headLength * DBMath.sin(angle+150);
+					double xRight = toPt.getX() - headLength * DBMath.cos(angle-150);
+					double yRight = toPt.getY() - headLength * DBMath.sin(angle-150);
+					line2 = highlighter.addLine(new Point2D.Double(xLeft, yLeft), toPt, cell);
+					line3 = highlighter.addLine(new Point2D.Double(xRight, yRight), toPt, cell);
+				} else
+				{
+					// if displayed objects are very small, point them out
+					if (boundsArea * 500 <  displayArea)
+					{
+						if (bounds.getMinX() > displayBounds.getMinX() && bounds.getMinY() > displayBounds.getMinY())
+							line1 = highlighter.addLine(new Point2D.Double(displayBounds.getMinX(), displayBounds.getMinY()),
+								new Point2D.Double(bounds.getMinX(), bounds.getMinY()), cell);
+	
+						if (bounds.getMinX() > displayBounds.getMinX() && bounds.getMaxY() < displayBounds.getMaxY())
+							line2 = highlighter.addLine(new Point2D.Double(displayBounds.getMinX(), displayBounds.getMaxY()),
+								new Point2D.Double(bounds.getMinX(), bounds.getMaxY()), cell);
+	
+						if (bounds.getMaxX() < displayBounds.getMaxX() && bounds.getMinY() > displayBounds.getMinY())
+							line3 = highlighter.addLine(new Point2D.Double(displayBounds.getMaxX(), displayBounds.getMinY()),
+								new Point2D.Double(bounds.getMaxX(), bounds.getMinY()), cell);
+	
+						if (bounds.getMaxX() < displayBounds.getMaxX() && bounds.getMaxY() < displayBounds.getMaxY())
+							line4 = highlighter.addLine(new Point2D.Double(displayBounds.getMaxX(), displayBounds.getMaxY()),
+								new Point2D.Double(bounds.getMaxX(), bounds.getMaxY()), cell);
+					}
+				}
+			}
+			highlighter.finished();
+
+			// if there was temporary identification, queue a timer to turn it off
+			if (line1 != null || line2 != null || line3 != null || line4 != null)
+			{
+				Timer timer = new Timer(500, new FlashActionListener(highlighter, line1, line2, line3, line4));
+				timer.setRepeats(false);
+				timer.start();
+			}
+		}
 	}
 
+	private static class FlashActionListener implements ActionListener
+	{
+		private Highlighter hl;
+		private Highlight line1, line2, line3, line4;
+
+		FlashActionListener(Highlighter hl, Highlight line1, Highlight line2, Highlight line3, Highlight line4)
+		{
+			this.hl = hl;
+			this.line1 = line1;
+			this.line2 = line2;
+			this.line3 = line3;
+			this.line4 = line4;
+		}
+	    public void actionPerformed(ActionEvent evt)
+		{
+			if (line1 != null) hl.remove(line1);
+			if (line2 != null) hl.remove(line2);
+			if (line3 != null) hl.remove(line3);
+			if (line4 != null) hl.remove(line4);
+			hl.finished();
+			hl.getWindowFrame().getContent().repaint();
+		}    
+	}
 	private void buttonClicked()
 	{
 		model.clear();

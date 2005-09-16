@@ -3041,6 +3041,12 @@ public class EditWindow extends JPanel
 			} else
 			{
 				// prompt the user to choose a parent cell
+
+				// BUG #436: The following code creates and displays a popup menu
+				// with a list of cell names caused by an ambiguous "Up Hierarchy" command.
+				// The popup does not allow the up/down arrows to scroll through it.
+				// Unfortunately, this is a known bug in Java's JPopupMenu object.
+				// I also tried: JPopupMenu.setDefaultLightWeightPopupEnabled(false);
 				JPopupMenu parents = new JPopupMenu("parents");
 				for(Iterator it = found.iterator(); it.hasNext(); )
 				{
@@ -3050,7 +3056,7 @@ public class EditWindow extends JPanel
 					menuItem.addActionListener(this);
 					parents.add(menuItem);
 				}
-				parents.show(this, 0, 0);
+				parents.show(overall, 0, 0);
 			}
         } catch (NullPointerException e)
 		{

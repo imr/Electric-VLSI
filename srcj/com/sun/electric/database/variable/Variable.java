@@ -330,6 +330,7 @@ public class Variable
 		if (name.equals("SIM_fasthenry_group_name")) return "FastHenry Group";
 		if (name.equals("SIM_rise_delay")) return "Rise Delay";
 		if (name.equals("SIM_spice_card")) return "SPICE code";
+		if (name.equals("SIM_spice_declaration")) return "SPICE declaration";
 		if (name.equals("SIM_spice_model")) return "SPICE model";
 		if (name.equals("SIM_verilog_wire_type")) return "Verilog Wire type";
 		if (name.equals("SIM_weak_node")) return "Transistor Strength";

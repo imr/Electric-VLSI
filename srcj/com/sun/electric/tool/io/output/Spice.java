@@ -82,6 +82,7 @@ public class Spice extends Topology
 	/** key of Variable holding GnuCap templates. */			public static final Variable.Key SPICE_GC_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_gnucap");
 	/** key of Variable holding Smart Spice templates. */		public static final Variable.Key SPICE_SM_TEMPLATE_KEY = ElectricObject.newKey("ATTR_SPICE_template_smartspice");
 	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = ElectricObject.newKey("SIM_spice_card");
+	/** key of Variable holding SPICE declaration. */			public static final Variable.Key SPICE_DECLARATION_KEY = ElectricObject.newKey("SIM_spice_declaration");
 //	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = ElectricObject.newKey("SPICE_Code");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = ElectricObject.newKey("SIM_spice_model");
 	/** key of Variable holding SPICE model file. */			public static final Variable.Key SPICE_MODEL_FILE_KEY = ElectricObject.newKey("SIM_spice_behave_file");
@@ -395,7 +396,7 @@ public class Spice extends Topology
 	 */
 	protected void writeCellTopology(Cell cell, CellNetInfo cni, VarContext context)
 	{
-        if (cell == topCell && USE_GLOBALS) {
+		if (cell == topCell && USE_GLOBALS) {
             Netlist netList = cni.getNetList();
             Global.Set globals = netList.getGlobals();
             int globalSize = globals.size();
@@ -787,6 +788,25 @@ public class Spice extends Topology
 
 				if (cs.isGlobal()) continue;
 				multiLinePrint(true, "** PORT " + cs.getName() + "\n");
+			}
+		}
+
+		// write out any directly-typed SPICE declaratons for the cell
+		if (!useCDL)
+		{
+			boolean firstDecl = true;
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
+			{
+				NodeInst ni = (NodeInst)it.next();
+				if (ni.getProto() != Generic.tech.invisiblePinNode) continue;
+				Variable cardVar = ni.getVar(SPICE_DECLARATION_KEY);
+				if (cardVar == null) continue;
+				if (firstDecl)
+				{
+					firstDecl = false;
+					multiLinePrint(true, "\n* Spice Declaration nodes in cell " + cell + "\n");
+				}
+				emitEmbeddedSpice(cardVar, context, segmentedNets);
 			}
 		}
 
@@ -1341,35 +1361,21 @@ public class Spice extends Topology
 		}
 
 		// write out any directly-typed SPICE cards
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
+		if (!useCDL)
 		{
-			NodeInst ni = (NodeInst)it.next();
-			if (ni.getProto() != Generic.tech.invisiblePinNode) continue;
-			Variable cardVar = ni.getVar(SPICE_CARD_KEY);
-			if (cardVar == null) continue;
-			Object obj = cardVar.getObject();
-			if (!(obj instanceof String) && !(obj instanceof String[])) continue;
-			if (!cardVar.isDisplay()) continue;
-			if (obj instanceof String)
+			boolean firstDecl = true;
+			for(Iterator it = cell.getNodes(); it.hasNext(); )
 			{
-                StringBuffer buf = replacePortsAndVars((String)obj, context.getNodable(), context.pop(), null, segmentedNets);
-				buf.append('\n');
-				String msg = buf.toString();
-				boolean isComment = false;
-				if (msg.startsWith("*")) isComment = true;
-				multiLinePrint(isComment, msg);
-			} else
-			{
-				String [] strings = (String [])obj;
-				for(int i=0; i<strings.length; i++)
+				NodeInst ni = (NodeInst)it.next();
+				if (ni.getProto() != Generic.tech.invisiblePinNode) continue;
+				Variable cardVar = ni.getVar(SPICE_CARD_KEY);
+				if (cardVar == null) continue;
+				if (firstDecl)
 				{
-                    StringBuffer buf = replacePortsAndVars(strings[i], context.getNodable(), context.pop(), null, segmentedNets);
-					buf.append('\n');
-					String msg = buf.toString();
-					boolean isComment = false;
-					if (msg.startsWith("*")) isComment = true;
-					multiLinePrint(isComment, msg);
-                }
+					firstDecl = false;
+					multiLinePrint(true, "\n* Spice Code nodes in cell " + cell + "\n");
+				}
+				emitEmbeddedSpice(cardVar, context, segmentedNets);
 			}
 		}
 
@@ -1383,7 +1389,35 @@ public class Spice extends Topology
         }
 	}
 
-    /**
+	private void emitEmbeddedSpice(Variable cardVar, VarContext context, SegmentedNets segmentedNets)
+	{
+		Object obj = cardVar.getObject();
+		if (!(obj instanceof String) && !(obj instanceof String[])) return;
+		if (!cardVar.isDisplay()) return;
+		if (obj instanceof String)
+		{
+	        StringBuffer buf = replacePortsAndVars((String)obj, context.getNodable(), context.pop(), null, segmentedNets);
+			buf.append('\n');
+			String msg = buf.toString();
+			boolean isComment = false;
+			if (msg.startsWith("*")) isComment = true;
+			multiLinePrint(isComment, msg);
+		} else
+		{
+			String [] strings = (String [])obj;
+			for(int i=0; i<strings.length; i++)
+			{
+	            StringBuffer buf = replacePortsAndVars(strings[i], context.getNodable(), context.pop(), null, segmentedNets);
+				buf.append('\n');
+				String msg = buf.toString();
+				boolean isComment = false;
+				if (msg.startsWith("*")) isComment = true;
+				multiLinePrint(isComment, msg);
+	        }
+		}
+	}
+
+	/**
      * Check if the specified cell is parameterized. Note that this
      * recursively checks all cells below this cell as well, and marks
      * all cells that contain LE gates, or whose subcells contain LE gates,
@@ -1669,12 +1703,14 @@ public class Spice extends Topology
             if (!useParasitics || (isPowerGround(pi) &&
                     !Simulation.isParasiticsExtractPowerGround())) {
                 CellSignal cs = cni.getCellSignal(cni.getNetList().getNetwork(pi));
+System.out.println("NETWORK NAMED "+cs.getName());
                 return cs.getName();
             }
             NetInfo info = (NetInfo)segmentedNets.get(pi);
             if (info == null) {
                 info = putSegment(pi, 0);
             }
+System.out.println("NETWORK INAMED "+info.netName);
             return info.netName;
         }
         private void addArcRes(ArcInst ai, double res) {

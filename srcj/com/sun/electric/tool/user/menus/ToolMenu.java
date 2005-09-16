@@ -748,6 +748,7 @@ public class ToolMenu {
 	public static void showNetworkCommand()
 	{
 		EditWindow wnd = EditWindow.needCurrent();
+		if (wnd == null) return;
 		Cell cell = wnd.getCell();
 		if (wnd == null) return;
 		Highlighter highlighter = wnd.getHighlighter();
@@ -1596,8 +1597,8 @@ public class ToolMenu {
     public static void parasiticCommand()
     {
         EditWindow wnd = EditWindow.needCurrent();
-        Cell cell = wnd.getCell();
         if (wnd == null) return;
+        Cell cell = wnd.getCell();
         Highlighter highlighter = wnd.getHighlighter();
 
         Set nets = highlighter.getHighlightedNetworks();

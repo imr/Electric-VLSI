@@ -590,6 +590,9 @@ public class TechPalette extends JPanel implements MouseListener, MouseMotionLis
                 menuItem = new JMenuItem("Spice Code");
                 menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "SIM_spice_card"));
                 specialMenu.add(menuItem);
+                menuItem = new JMenuItem("Spice Declaration");
+                menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "SIM_spice_declaration"));
+                specialMenu.add(menuItem);
                 menuItem = new JMenuItem("Verilog Code");
                 menuItem.addActionListener(new TechPalette.PlacePopupListener(panel, "VERILOG_code"));
                 specialMenu.add(menuItem);

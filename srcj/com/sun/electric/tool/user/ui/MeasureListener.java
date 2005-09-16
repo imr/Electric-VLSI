@@ -72,7 +72,7 @@ public class MeasureListener
 
     private void dragOutMeasure(EditWindow wnd, Point2D dbPoint) {
 
-        if (measuring) {
+        if (measuring && dbStart != null) {
             //Highlight.clear();
             Point2D start = dbStart;
             Point2D end = dbPoint;
@@ -131,7 +131,7 @@ public class MeasureListener
             Point2D dbMouse = wnd.screenToDatabase(newX, newY);
             EditWindow.gridAlign(dbMouse);
             if (isLeftMouse(evt)) {
-                if (measuring && ctrl) {
+                if (measuring && ctrl && dbStart != null) {
                     // orthogonal only
                     dbMouse = convertToOrthogonal(dbStart, dbMouse);
                 }
@@ -153,7 +153,7 @@ public class MeasureListener
             int newY = evt.getY();
             EditWindow wnd = (EditWindow)evt.getSource();
             Point2D dbMouse = wnd.screenToDatabase(newX, newY);
-            if (ctrl) {
+            if (ctrl && dbStart != null) {
                 dbMouse = convertToOrthogonal(dbStart, dbMouse);
             }
             EditWindow.gridAlign(dbMouse);

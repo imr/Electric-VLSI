@@ -68,9 +68,12 @@ public class ZoomAndPanListener
 		}
         if (mode == ToolBar.CursorMode.ZOOM && (evt.getSource() instanceof EditWindow)) {
             EditWindow wnd = (EditWindow)evt.getSource();
-            wnd.setStartDrag(startX, startY);
-            wnd.setEndDrag(startX, startY);
-            wnd.setDoingAreaDrag();
+			if (!ClickZoomWireListener.isRightMouse(evt))
+			{
+	            wnd.setStartDrag(startX, startY);
+	            wnd.setEndDrag(startX, startY);
+	            wnd.setDoingAreaDrag();
+			}
         }
 		setProperCursor(evt);
 	}
@@ -115,6 +118,15 @@ public class ZoomAndPanListener
                 wnd.setEndDrag(newX, newY);
                 wnd.repaint();
 
+				// if dragging the right mouse, zoom smoothly
+				if (ClickZoomWireListener.isRightMouse(evt))
+				{
+					double dY = (newY - lastY) / 20.0;
+					if (dY < 0) scale = scale - scale * dY; else
+						scale = scale - scale * dY;
+					wnd.setScale(scale);
+					wnd.repaintContents(null, false);
+				}
 /*
 				// zooming the window scale
 				highlighter.clear();
@@ -146,6 +158,7 @@ public class ZoomAndPanListener
 	{
 		setProperCursor(evt);
 		if (mode != ToolBar.CursorMode.ZOOM) return;
+		if (ClickZoomWireListener.isRightMouse(evt)) return;
 
 		int newX = evt.getX();
 		int newY = evt.getY();

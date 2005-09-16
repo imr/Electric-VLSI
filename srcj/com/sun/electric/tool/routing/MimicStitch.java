@@ -312,7 +312,7 @@ public class MimicStitch
 				deleted++;
 			}
 			if (deleted != 0)
-				System.out.println("MIMIC ROUTING: deleted " + deleted + "wires");
+				System.out.println("MIMIC ROUTING: deleted " + deleted + " wires");
 			return true;
 		}
 	}

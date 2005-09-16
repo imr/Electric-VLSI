@@ -148,7 +148,7 @@ public class Simulate extends Input
 			String cellName = TextUtils.getFileNameWithoutExtension(fileURL);
 			Library curLib = Library.getCurrent();
 			cell = curLib.findNodeProto(cellName);
-			if (cell != null)
+			if (cell == null)
 			{
 				// prompt for the cell
 				ArrayList cellNames = new ArrayList();

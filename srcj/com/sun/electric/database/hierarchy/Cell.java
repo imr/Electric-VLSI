@@ -1096,7 +1096,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
             for (Iterator it = getInstancesOf(); it.hasNext(); ) {
                 NodeInst ni = (NodeInst)it.next();
                 // Fake modify to recalcualte bounds and RTTree
-                ni.lowLevelModify(ni.getD());
+
+//				ni.lowLevelModify(ni.getD());
+                ni.resize(0, 0);
             }
         }
         boundsDirty = BOUNDS_CORRECT;
