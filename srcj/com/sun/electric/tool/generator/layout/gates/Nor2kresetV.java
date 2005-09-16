@@ -145,15 +145,15 @@ public class Nor2kresetV {
 		inb.connect(jog);
 		for (int i=0; i<pmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0){
-				inb.connect(pmos.getGate(i+1, 'B'), 4, 1.5);
+				inb.connect(pmos.getGate(i+1, 'B'), 4, Tech.getPolyLShapeOffset());
 			} else {
-				inb.connect(pmos.getGate(i, 'B'), -4, 1.5);
+				inb.connect(pmos.getGate(i, 'B'), -4, Tech.getPolyLShapeOffset());
 			}
 		}
 		for (int i=0; i<nmoss.length; i++) {
 			FoldedMos mos = nmoss[i];
 			for (int j=0; j<mos.nbGates(); j++) {
-				inb.connect(mos.getGate(j, 'T'), (j%2==0 ? 4. : -4.), -3.5);
+				inb.connect(mos.getGate(j, 'T'), (j%2==0 ? 4. : -4.), -Tech.getPolyTShapeOffset());
 			}
 		}
 		
@@ -164,13 +164,13 @@ public class Nor2kresetV {
 		inA.connect(nor.findExport("ina"));
 		for (int i=0; i<pmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0) {
-				inA.connect(pmos.getGate(i, 'B'), -4, 1.5);
+				inA.connect(pmos.getGate(i, 'B'), -4, Tech.getPolyLShapeOffset());
 			} else {
-				inA.connect(pmos.getGate(i+1, 'B'), 4, 1.5);
+				inA.connect(pmos.getGate(i+1, 'B'), 4, Tech.getPolyLShapeOffset());
 			}
 		}
 		for (int i=0; i<bigMos.nbGates(); i++) {
-			inA.connect(bigMos.getGate(i, 'T'), 0, -1.5);
+			inA.connect(bigMos.getGate(i, 'T'), 0, -Tech.getPolyLShapeOffset());
 		}
 		
 		// resetV input

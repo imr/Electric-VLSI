@@ -134,16 +134,16 @@ public class Nand2en {
 		inb.connect(nand.findExport("inb"));
 		for (int i=0; i<pmoss.length; i++) {
 			FoldedMos pmos = pmoss[i];
-			inb.connect(pmos.getGate(0, 'B'), 4, 1.5);      
+			inb.connect(pmos.getGate(0, 'B'), 4, Tech.getPolyLShapeOffset());
 			if (pmos.nbGates()==2) {
-				inb.connect(pmos.getGate(1, 'B'), -4, 1.5);
+				inb.connect(pmos.getGate(1, 'B'), -4, Tech.getPolyLShapeOffset());
 			}
 		}
 		for (int i=0; i<nmos.nbGates(); i+=2) {
 			if (i/2 %2 == 0) {
-				inb.connect(nmos.getGate(i+1, 'T'), 4, -3.5);
+				inb.connect(nmos.getGate(i+1, 'T'), 4, -Tech.getPolyTShapeOffset());
 			} else {
-				inb.connect(nmos.getGate(i, 'T'), -4, -3.5);
+				inb.connect(nmos.getGate(i, 'T'), -4, -Tech.getPolyTShapeOffset());
 			}
 		}
 		
@@ -155,13 +155,13 @@ public class Nand2en {
 		TrackRouter ina = new TrackRouterH(Tech.m1, 3, inaY, nand);
 		ina.connect(nand.findExport("ina"));
 		for (int i=0; i<weak.nbGates(); i++) {
-			ina.connect(weak.getGate(i, 'B'), 1.5, 1.5);      
+			ina.connect(weak.getGate(i, 'B'), 1.5, Tech.getPolyLShapeOffset());
 		}
 		for (int i=0; i<nmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0) {
-				ina.connect(nmos.getGate(i, 'T'), -4, -1.5);
+				ina.connect(nmos.getGate(i, 'T'), -4, -Tech.getPolyLShapeOffset());
 			} else {
-				ina.connect(nmos.getGate(i+1, 'T'), 4, -1.5);
+				ina.connect(nmos.getGate(i+1, 'T'), 4, -Tech.getPolyLShapeOffset());
 			}
 		}
 		

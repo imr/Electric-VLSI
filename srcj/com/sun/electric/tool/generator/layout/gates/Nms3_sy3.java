@@ -37,9 +37,9 @@ import com.sun.electric.tool.generator.layout.TrackRouterH;
 
 public class Nms3_sy3 {
 	private static final double nmosTop = -9.0;
-	private static final double wellOverhangDiff = 6;
+//	private static final double wellOverhangDiff = 6;
 	private static final double incY = -4.0;
-	private static final double inaY = 4.0;
+//	private static final double inaY = 4.0;
 	private static final double outY = -11.0;
 
 	private static void error(boolean pred, String msg) {
@@ -123,10 +123,10 @@ public class Nms3_sy3 {
 		for (int i = 0; i < fwN.nbFolds; i++) {
 			switch (i % 6) {
 				case 0 :
-					inaLo.connect(nmos.getGate(i * 3 + 0, 'B'), -4, 1.5);
+					inaLo.connect(nmos.getGate(i * 3 + 0, 'B'), -4, Tech.getPolyLShapeOffset());
 					break;
 				case 1 :
-					inaLo.connect(nmos.getGate(i * 3 + 1, 'B'), 1.5);
+					inaLo.connect(nmos.getGate(i * 3 + 1, 'B'), Tech.getPolyLShapeOffset());
 					break;
 				case 2 :
 					inaLo.connect(nmos.getGate(i * 3 + 2, 'B'));
@@ -135,10 +135,10 @@ public class Nms3_sy3 {
 					inaLo.connect(nmos.getGate(i * 3 + 0, 'B'));
 					break;
 				case 4 :
-					inaLo.connect(nmos.getGate(i * 3 + 1, 'B'), -1.5);
+					inaLo.connect(nmos.getGate(i * 3 + 1, 'B'), -Tech.getPolyLShapeOffset());
 					break;
 				case 5 :
-					inaLo.connect(nmos.getGate(i * 3 + 2, 'B'), 4, 1.5);
+					inaLo.connect(nmos.getGate(i * 3 + 2, 'B'), 4, Tech.getPolyLShapeOffset());
 					break;
 			}
 		}

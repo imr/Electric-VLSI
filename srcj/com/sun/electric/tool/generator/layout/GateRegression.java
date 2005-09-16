@@ -43,6 +43,7 @@ import com.sun.electric.Main;
  */
 public class GateRegression extends Job {
     private Technology technology;
+    private String foundry;
 
     // specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
@@ -92,13 +93,13 @@ public class GateRegression extends Job {
 
     public boolean doIt() {
         if (Main.LOCALDEBUGFLAG) // Gilda for now
-            runGildaTest(technology);
+            runGildaTest(technology, foundry);
         else
-            runRegression(technology);
+            runRegression(technology, foundry);
         return true;
     }
 
-     public static int runGildaTest(Technology technology) {
+     public static int runGildaTest(Technology technology, String techNm) {
 		System.out.println("begin Gate Regression");
 
 		Library scratchLib =
@@ -113,7 +114,7 @@ public class GateRegression extends Job {
             stdCell.setSizeQuantizationError(0.05);
             stdCell.setMaxMosWidth(1000);
         } else {
-            Tech.setTechnology(Tech.TSMC180);
+            Tech.setTechnology(techNm);
             // Test the parameters used by divider
         	stdCell = GateLayoutGenerator.dividerParams(scratchLib);
 
@@ -131,7 +132,7 @@ public class GateRegression extends Job {
         }
 
 		// a normal run
-        aPass(1, stdCell, technology);
+        aPass(200, stdCell, technology);
         //Inv2iKn.makePart(10, stdCell);
         //Inv2iKn_wideOutput.makePart(10, stdCell);
 //        allSizes(stdCell, technology);
@@ -141,7 +142,7 @@ public class GateRegression extends Job {
         // test the ability to move ground bus
 
         Cell gallery = Gallery.makeGallery(scratchLib);
-        DrcRings.addDrcRings(gallery, FILTER, stdCell);
+//        DrcRings.addDrcRings(gallery, FILTER, stdCell);
 
         LayoutLib.writeLibrary(scratchLib);
 
@@ -149,25 +150,26 @@ public class GateRegression extends Job {
 
         return 0;
 	}
+
     /** Programatic interface to gate regressions.
      * @param technology
      * @return the number of errors detected */
-    public static int runRegression(Technology technology) {
+    public static int runRegression(Technology technology, String techNm) {
 		System.out.println("begin Gate Regression");
+        String name = "scratch"+techNm;
 
-		Library scratchLib = 
-		  LayoutLib.openLibForWrite("scratch", "scratch");
+		Library scratchLib =
+		  LayoutLib.openLibForWrite(name, name);
 
+        Tech.setTechnology(techNm);
         StdCellParams stdCell;
         Technology tsmc90 = Technology.getTSMC90Technology();
         if (tsmc90 != null && technology == tsmc90) {
-            Tech.setTechnology(Tech.TSMC90);
             stdCell = new StdCellParams(scratchLib, Tech.TSMC90);
             stdCell.enableNCC("purpleFour");
             stdCell.setSizeQuantizationError(0.05);
             stdCell.setMaxMosWidth(1000);
         } else {
-            Tech.setTechnology(Tech.MOCMOS);
             // Test the parameters used by divider
         	stdCell = GateLayoutGenerator.dividerParams(scratchLib);
 
@@ -226,10 +228,11 @@ public class GateRegression extends Job {
 
         return numCifErrs;
 	}
-	public GateRegression(Technology tech) {
+	public GateRegression(Technology tech, String techNm) {
 		super("Run Gate regression", User.getUserTool(), Job.Type.CHANGE, 
 			  null, null, Job.Priority.ANALYSIS);
         this.technology = tech;
+        this.foundry = techNm;
 		startJob();
 	}
 }

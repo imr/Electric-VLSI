@@ -103,9 +103,11 @@ public class Tech {
 	private static HashMap viaMap = new HashMap();
 	private static Technology tech;
 
-    //gate length depending on foundry
+    // Gilda: gate length depending on foundry
     private static double gateLength;
-	
+    // Wire offset from center of the poly contact to form a L-shape arc to gate
+    private static double offsetLShapePolyContact, offsetTShapePolyContact;
+
 	// RKao my first attempt to embed technology specific dimensions
     private static double 
 		wellWidth, 
@@ -424,6 +426,8 @@ public class Tech {
 		    gateToDiffContSpace = 5.6 - 5.2/2 - 2/2;
 		    diffContWidth = 5.2;
             gateLength = 2;
+            offsetLShapePolyContact = 2.5 /* half poly contact height */ - 1 /*half poly arc width*/;
+            offsetTShapePolyContact = 2.5 /* half poly contact height */ + 1 /*half poly arc width*/;
             selectSurroundDiff = Double.NaN;
             selectSurroundMosAlongGate = Double.NaN;
 		} else if (isTsmc180) {
@@ -435,6 +439,8 @@ public class Tech {
 		    gateToDiffContSpace = 4.5 - 2.5 - .9;
 		    diffContWidth = 5;
             gateLength = 1.8;
+            offsetLShapePolyContact = 2.5 /* half poly contact height */ - 0.9 /*half poly arc width*/;
+            offsetTShapePolyContact = 2.5 /* half poly contact height */ + 0.9 /*half poly arc width*/;
             selectSurroundDiff = 1;
             selectSurroundMosAlongGate = 3.6;
 		} else {
@@ -447,6 +453,8 @@ public class Tech {
 		    gateToDiffContSpace = .5;
 		    diffContWidth = 5;
             gateLength = 2;
+            offsetLShapePolyContact = 2.5 /* half poly contact height */ - 1 /*half poly arc width*/;
+            offsetTShapePolyContact = 2.5 /* half poly contact height */ + 1 /*half poly arc width*/;
             selectSurroundDiff = 2;
             selectSurroundMosAlongGate = 2;
 		}
@@ -548,4 +556,9 @@ public class Tech {
     public static double selectSurroundDiff() {return selectSurroundDiff;}
     /** @return amount that Select surrounds MOS, along gate width dimension */
     public static double selectSurroundMosAlongGate() {return selectSurroundMosAlongGate;}
+    /** @return y offset of poly arc connecting poly contact and gate in a L-Shape case */
+    public static double getPolyLShapeOffset() {return offsetLShapePolyContact;}
+    /** @return y offset of poly arc connecting poly contact and gate in a T-Shape case */
+    public static double getPolyTShapeOffset() {return offsetTShapePolyContact;}
 }
+

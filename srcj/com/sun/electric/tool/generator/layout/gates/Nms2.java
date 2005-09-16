@@ -112,11 +112,11 @@ public class Nms2 {
 		for (int i = 0; i < nmos.nbGates(); i += 2) {
 			// connect 2 gates at a time in case nbFolds==1
 			if ((i / 2) % 2 == 0) {
-				g.connect(nmos.getGate(i, 'T'), -4, -1.5);
-				g2.connect(nmos.getGate(i + 1, 'B'), 4, 1.5);
+				g.connect(nmos.getGate(i, 'T'), -4, -Tech.getPolyLShapeOffset());
+				g2.connect(nmos.getGate(i + 1, 'B'), 4, Tech.getPolyLShapeOffset());
 			} else {
-				g.connect(nmos.getGate(i + 1, 'T'), 4, -1.5);
-				g2.connect(nmos.getGate(i, 'B'), -4, 1.5);
+				g.connect(nmos.getGate(i + 1, 'T'), 4, -Tech.getPolyLShapeOffset());
+				g2.connect(nmos.getGate(i, 'B'), -4, Tech.getPolyLShapeOffset());
 			}
 		}
 

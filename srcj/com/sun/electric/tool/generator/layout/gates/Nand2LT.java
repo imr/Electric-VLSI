@@ -112,13 +112,13 @@ public class Nand2LT {
 		inb.connect(nand.findExport("inb"));
 		for (int i=0; i<nmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0) {
-				inb.connect(nmos.getGate(i+1, 'T'), 1.5);
+				inb.connect(nmos.getGate(i+1, 'T'), Tech.getPolyLShapeOffset());
 			} else {
 				inb.connect(nmos.getGate(i, 'T'), -6.5);
 			}
 		}
 		for (int i=0; i<pmoss.length; i++) {
-			inb.connect(pmoss[i].getGate(1, 'B'), -1.5);
+			inb.connect(pmoss[i].getGate(1, 'B'), -Tech.getPolyLShapeOffset());
 		}
 		
 		// Nand input A
@@ -128,7 +128,7 @@ public class Nand2LT {
 		inA.connect(nand.findExport("ina"));
 		for (int i=0; i<nmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0) {
-				inA.connect(nmos.getGate(i, 'T'), -1.5);
+				inA.connect(nmos.getGate(i, 'T'), -Tech.getPolyLShapeOffset());
 			} else {
 				//double offset = (i+1==nmos.nbGates()-1) ? 6.5;
 				double offset = 6.5;
@@ -139,11 +139,11 @@ public class Nand2LT {
 					// vertical routing track for inb.
 					offset -= 7 - (inbX-contX);
 				}
-				inA.connect(g, offset, -1.5);
+				inA.connect(g, offset, -Tech.getPolyLShapeOffset());
 			}
 		}
 		for (int i=0; i<pmoss.length; i++) {
-			inA.connect(pmoss[i].getGate(0, 'B'), -1.5);
+			inA.connect(pmoss[i].getGate(0, 'B'), -Tech.getPolyLShapeOffset());
 		}
 		
 		// Nand output

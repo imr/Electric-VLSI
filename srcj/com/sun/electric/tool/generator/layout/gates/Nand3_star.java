@@ -39,7 +39,7 @@ import com.sun.electric.tool.generator.layout.TrackRouterH;
 class Nand3_star {
 	private static final double nmosTop = -9.0;
 	private static final double pmosBot = 9.0;
-	private static final double wellOverhangDiff = 6;
+//	private static final double wellOverhangDiff = 6;
 	private static final double inaY = -4.0;
 	private static final double incY = 4.0;
 	private static final double outHiY = 11.0;
@@ -135,13 +135,13 @@ class Nand3_star {
 		TrackRouter inc = new TrackRouterH(Tech.m1, 3, incY, nand);
 		for (int i=0; i<nmos.nbGates(); i+=3) {
 			if (i/3 % 2 == 0) {
-				inc.connect(nmos.getGate(i+2, 'T'), 4, -1.5);
+				inc.connect(nmos.getGate(i+2, 'T'), 4, -Tech.getPolyLShapeOffset());
 			} else {
-				inc.connect(nmos.getGate(i, 'T'), -4, -1.5);
+				inc.connect(nmos.getGate(i, 'T'), -4, -Tech.getPolyLShapeOffset());
 			}
 		}
 		for (int i=0; i<pmoss.length; i++) {
-			inc.connect(pmoss[i].getGate(2, 'B'), 1.5);
+			inc.connect(pmoss[i].getGate(2, 'B'), Tech.getPolyLShapeOffset());
 		}
 		// m1_wid + m1_space + m1_wid/2
 		double nmosRight = StdCellParams.getRightDiffX(nmos);
@@ -188,9 +188,9 @@ class Nand3_star {
 		ina.connect(jogb);
 		for (int i=0; i<nmos.nbGates(); i+=3) {
 			if (i/3 % 2 == 0) {
-				ina.connect(nmos.getGate(i+0, 'T'), -4, -1.5);
+				ina.connect(nmos.getGate(i+0, 'T'), -4, -Tech.getPolyLShapeOffset());
 			} else {
-				ina.connect(nmos.getGate(i+2, 'T'), 4, -1.5);
+				ina.connect(nmos.getGate(i+2, 'T'), 4, -Tech.getPolyLShapeOffset());
 			}
 		}
 		for (int i=0; i<pmoss.length; i++) {

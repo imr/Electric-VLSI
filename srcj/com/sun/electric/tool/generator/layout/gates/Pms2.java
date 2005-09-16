@@ -104,11 +104,11 @@ public class Pms2 {
 		for (int i=0; i<pmos.nbGates(); i+=2) {
 			// connect 2 gates at a time in case nbFolds==1
 			if ((i/2)%2==0) {
-				g.connect(pmos.getGate(i, 'B'), -4, 1.5);
-				g2.connect(pmos.getGate(i+1, 'T'), 4, -1.5);
+				g.connect(pmos.getGate(i, 'B'), -4, Tech.getPolyLShapeOffset());
+				g2.connect(pmos.getGate(i+1, 'T'), 4, -Tech.getPolyLShapeOffset());
 			} else {
-				g.connect(pmos.getGate(i+1, 'B'), 4, 1.5);
-				g2.connect(pmos.getGate(i, 'T'), -4, -1.5);
+				g.connect(pmos.getGate(i+1, 'B'), 4, Tech.getPolyLShapeOffset());
+				g2.connect(pmos.getGate(i, 'T'), -4, -Tech.getPolyLShapeOffset());
 			}
 		}
 		

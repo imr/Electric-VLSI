@@ -120,9 +120,9 @@ class Nor2_star {
 		inA.connect(nor.findExport("ina"));
 		for (int i=0; i<pmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0) {
-				inA.connect(pmos.getGate(i, 'B'), -4, 1.5);
+				inA.connect(pmos.getGate(i, 'B'), -4, Tech.getPolyLShapeOffset());
 			} else {
-				inA.connect(pmos.getGate(i+1, 'B'), 4, 1.5);
+				inA.connect(pmos.getGate(i+1, 'B'), 4, Tech.getPolyLShapeOffset());
 			}
 		}
 		for (int i=0; i<nmoss.length; i++) {

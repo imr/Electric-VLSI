@@ -70,6 +70,7 @@ import com.sun.electric.tool.extract.LayerCoverageJob;
 import com.sun.electric.tool.extract.ParasiticTool;
 import com.sun.electric.tool.generator.PadGenerator;
 import com.sun.electric.tool.generator.ROMGenerator;
+import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.cmosPLA.PLA;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.input.Input;
@@ -443,7 +444,7 @@ public class ToolMenu {
 
 		//------------------- Generation
 
-		// mnemonic keys available: AB DEFGHIJK  NO Q S UVWXYZ
+		// mnemonic keys available: AB DEFGHIJK  NO Q   UVWXYZ
 		MenuBar.Menu generationSubMenu = MenuBar.makeMenu("_Generation");
 		toolMenu.add(generationSubMenu);
 		generationSubMenu.addMenuItem("_Coverage Implants Generator", null,
@@ -456,10 +457,12 @@ public class ToolMenu {
 		generationSubMenu.addMenuItem("MOSIS CMOS P_LA Generator...", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { PLA.generate(); }});
 		generationSubMenu.addMenuItem("Generate gate layouts (_MoCMOS)", null,
-			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(MoCMOS.tech); }});
-		if (Technology.getTSMC90Technology() != null)
+			new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(MoCMOS.tech, Tech.MOCMOS); }});
+        generationSubMenu.addMenuItem("Generate gate layouts (T_SMC180)", null,
+            new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(MoCMOS.tech, Tech.TSMC180); }});
+        if (Technology.getTSMC90Technology() != null)
 	        generationSubMenu.addMenuItem("Generate gate layouts (_TSMC90)", null,
-	            new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(Technology.getTSMC90Technology()); }});
+	            new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateLayoutGenerator(Technology.getTSMC90Technology(), Tech.TSMC90); }});
 
 		//------------------- Silicon Compiler
 

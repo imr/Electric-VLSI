@@ -117,16 +117,16 @@ public class InvCTLn {
 		in.connect(inv.findExport("in"));
 		for (int i=0; i<pmoss.length; i++) {
 			FoldedMos pmos = pmoss[i];
-			in.connect(pmos.getGate(0, 'B'), 4, 1.5);      
+			in.connect(pmos.getGate(0, 'B'), 4, Tech.getPolyLShapeOffset());
 			if (pmos.nbGates()==2) {
-				in.connect(pmos.getGate(1, 'B'), -4, 1.5);
+				in.connect(pmos.getGate(1, 'B'), -4, Tech.getPolyLShapeOffset());
 			}
 		}
 		for (int i=0; i<nmos.nbGates(); i+=2) {
 			if (i/2 %2 == 0) {
-				in.connect(nmos.getGate(i, 'T'), -4, -3.5);
+				in.connect(nmos.getGate(i, 'T'), -4, -Tech.getPolyTShapeOffset());
 			} else {
-				in.connect(nmos.getGate(i+1, 'T'), 4, -3.5);
+				in.connect(nmos.getGate(i+1, 'T'), 4, -Tech.getPolyTShapeOffset());
 			}
 		}
 		
@@ -139,9 +139,9 @@ public class InvCTLn {
 		ctl.connect(inv.findExport("ctl"));
 		for (int i=0; i<nmos.nbGates(); i+=2) {
 			if (i/2 % 2 == 0) {
-				ctl.connect(nmos.getGate(i+1, 'T'), 4, -1.5);
+				ctl.connect(nmos.getGate(i+1, 'T'), 4, -Tech.getPolyLShapeOffset());
 			} else {
-				ctl.connect(nmos.getGate(i, 'T'), -4, -1.5);
+				ctl.connect(nmos.getGate(i, 'T'), -4, -Tech.getPolyLShapeOffset());
 			}
 		}
 		

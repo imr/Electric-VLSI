@@ -125,12 +125,12 @@ class Nand2_star_sy {
 		TrackRouter inb = new TrackRouterH(Tech.m1, 3, inbY, nand);
 		inb.connect(nand.findExport("inb"));
 		for (int i=0; i<nmoss.length; i++) {
-			inb.connect(nmoss[i].getGate(1, 'T'), 1.5);
-			inb.connect(nmoss[i].getGate(3, 'T'), -1.5);
+			inb.connect(nmoss[i].getGate(1, 'T'), Tech.getPolyLShapeOffset());
+			inb.connect(nmoss[i].getGate(3, 'T'), -Tech.getPolyLShapeOffset());
 		}
 		for (int i=0; i<pmos.nbGates(); i++) {
 			if (i%4==1) {
-				inb.connect(pmos.getGate(i, 'B'), -1.5);
+				inb.connect(pmos.getGate(i, 'B'), -Tech.getPolyLShapeOffset());
 			} else if (i%4==2) {
 				inb.connect(pmos.getGate(i, 'B'), .5);
 			}
@@ -143,12 +143,12 @@ class Nand2_star_sy {
 		inA.connect(nand.findExport("ina"));
 		for (int i=0; i<nmoss.length; i++) {
 			for (int j=0; j<nmoss[i].nbGates(); j+=2) {
-				inA.connect(nmoss[i].getGate(j, 'T'), -1.5);
+				inA.connect(nmoss[i].getGate(j, 'T'), -Tech.getPolyLShapeOffset());
 			}
 		}
 		for (int i=0; i<pmos.nbGates(); i++) {
 			if (i%4 == 0) {
-				inA.connect(pmos.getGate(i, 'B'), -1.5);
+				inA.connect(pmos.getGate(i, 'B'), -Tech.getPolyLShapeOffset());
 			} else if (i%4 == 3) {
 				// Last contact may interfere, needlessly, with inB
 				double offset = 6.5;

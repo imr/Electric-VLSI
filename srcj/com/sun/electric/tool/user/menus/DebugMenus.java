@@ -177,12 +177,13 @@ public class DebugMenus {
 		russMenu.addMenuItem("Gate Generator Regression (MoCMOS)", null,
 							 new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				new com.sun.electric.tool.generator.layout.GateRegression(MoCMOS.tech);
+				new com.sun.electric.tool.generator.layout.GateRegression(MoCMOS.tech, Tech.MOCMOS);
 			}
 		});
 		if (Technology.getTSMC90Technology() != null)
 			russMenu.addMenuItem("Gate Generator Regression (TSMC90)", null,
-				new ActionListener() { public void actionPerformed(ActionEvent e) { new com.sun.electric.tool.generator.layout.GateRegression(Technology.getTSMC90Technology()); } });
+				new ActionListener() { public void actionPerformed(ActionEvent e) {
+                    new com.sun.electric.tool.generator.layout.GateRegression(Technology.getTSMC90Technology(), Tech.TSMC90); } });
         russMenu.addMenuItem("create flat netlists for Ivan", null, new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 new com.sun.electric.tool.generator.layout.IvanFlat();
@@ -239,8 +240,10 @@ public class DebugMenus {
 
         MenuBar.Menu gildaMenu = MenuBar.makeMenu("_Gilda");
         menuBar.add(gildaMenu);
-        gildaMenu.addMenuItem("Gate Generator", null,
-                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator();}});
+        gildaMenu.addMenuItem("Gate Generator TSMC180", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.TSMC180);}});
+        gildaMenu.addMenuItem("Gate Generator Mosis", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.MOCMOS);}});
         gildaMenu.addMenuItem("Clean libraries", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {cleanSetOfLibraries();}});
         gildaMenu.addMenuItem("9 layers -> 7 layers", null,
@@ -737,9 +740,9 @@ public class DebugMenus {
 	}
 
 	// ---------------------- Gilda's Stuff MENU -----------------
-    private static void tsmcGateGenerator()
+    private static void tsmcGateGenerator(String techNm)
     {
-        GateRegression reg = new GateRegression(MoCMOS.tech);
+        GateRegression reg = new GateRegression(MoCMOS.tech, techNm);
     }
 
     private static void cleanSetOfLibraries()

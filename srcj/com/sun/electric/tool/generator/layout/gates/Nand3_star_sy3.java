@@ -39,7 +39,7 @@ import com.sun.electric.tool.generator.layout.TrackRouterH;
 public class Nand3_star_sy3 {
 	private static final double nmosTop = -9.0;
 	private static final double pmosBot = 9.0;
-	private static final double wellOverhangDiff = 6;
+//	private static final double wellOverhangDiff = 6;
 	private static final double incY = -4.0;
 	private static final double inaY = 4.0;
 	private static final double outHiY = 11.0;
@@ -138,12 +138,12 @@ public class Nand3_star_sy3 {
 		inaLo.connect(joga);
 		for (int i=0; i<fwN.nbFolds; i++) {
 			switch (i%6) {
-			case 0: inaLo.connect(nmos.getGate(i*3+0, 'T'), -4, -3.5);  break;
+			case 0: inaLo.connect(nmos.getGate(i*3+0, 'T'), -4, -Tech.getPolyTShapeOffset());  break;
 			case 1: inaLo.connect(nmos.getGate(i*3+1, 'T'), -1);  break;
 			case 2: inaLo.connect(nmos.getGate(i*3+2, 'T'));  break;
 			case 3: inaLo.connect(nmos.getGate(i*3+0, 'T'));  break;
 			case 4: inaLo.connect(nmos.getGate(i*3+1, 'T'), 1);  break;
-			case 5: inaLo.connect(nmos.getGate(i*3+2, 'T'), 4, -3.5);  break;
+			case 5: inaLo.connect(nmos.getGate(i*3+2, 'T'), 4, -Tech.getPolyTShapeOffset());  break;
 			}
 		}
 		
@@ -211,11 +211,11 @@ public class Nand3_star_sy3 {
 		for (int i=0; i<pmoss.length; i++) {
 			for (int j=0; j<pmoss[i].nbGates(); j++) {
 				switch (j%12) {
-				case 1: inc.connect(pmoss[i].getGate(j, 'B'), -2.5, 3.5);
+				case 1: inc.connect(pmoss[i].getGate(j, 'B'), -2.5, Tech.getPolyTShapeOffset());
 					break;
 				case 3: inc.connect(pmoss[i].getGate(j, 'B'), -.5, 0); break;
 				case 8: inc.connect(pmoss[i].getGate(j, 'B'), .5, 0); break;
-				case 10: inc.connect(pmoss[i].getGate(j, 'B'), 2.5, 3.5);
+				case 10: inc.connect(pmoss[i].getGate(j, 'B'), 2.5, Tech.getPolyTShapeOffset());
 					break;
 				}
 			}

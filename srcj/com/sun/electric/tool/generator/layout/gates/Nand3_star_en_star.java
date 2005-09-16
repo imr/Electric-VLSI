@@ -39,7 +39,7 @@ import com.sun.electric.tool.generator.layout.TrackRouterH;
 class Nand3_star_en_star {
 	private static final double nmosTop = -11.5;
 	private static final double pmosBot = 9.0;
-	private static final double wellOverhangDiff = 6;
+//	private static final double wellOverhangDiff = 6;
 	private static final double inbY = -4.0;
 	private static final double incY = 4.0;
 	private static final double outHiY = 11.0;
@@ -55,9 +55,9 @@ class Nand3_star_en_star {
 			int dPort = 0;
 			double dx = 0;
 			switch (i%4) {
-			case 0: dPort=2; dx=-1.5; break;
+			case 0: dPort=2; dx=-Tech.getPolyLShapeOffset(); break;
 			case 1: dPort=1; dx=-0.5; break;
-			case 2: dPort=1; dx=-1.5; break;
+			case 2: dPort=1; dx=-Tech.getPolyLShapeOffset(); break;
 			case 3: dPort=0; dx= 0.5; break;
 			}
 			incLo.connect(nmos.getGate(i*3+dPort, 'T'), dx);
@@ -68,9 +68,9 @@ class Nand3_star_en_star {
 				boolean con = true;
 				switch (j) {
 				case 1: dx= 0.5; break;
-				case 3: dx=-1.5; break;
+				case 3: dx=-Tech.getPolyLShapeOffset(); break;
 				case 5: dx=-0.5; break;
-				case 7: dx=-1.5; break;
+				case 7: dx=-Tech.getPolyLShapeOffset(); break;
 				default: con = false;
 				}
 				if (con) incLo.connect(pmoss[i].getGate(j, 'B'), dx);
@@ -83,10 +83,10 @@ class Nand3_star_en_star {
 			int dPort = 0;
 			double dx=0, dy=0;
 			switch (i%4) {
-			case 0: dPort=2; dx=-1.5; dy= 0.0; break;
-			case 1: dPort=0; dx=-1.5; dy= 0.0; break;
-			case 2: dPort=2; dx= 3.5; dy=-3.5; break;
-			case 3: dPort=0; dx=-4.5; dy=-3.5; break;
+			case 0: dPort=2; dx=-Tech.getPolyLShapeOffset(); dy= 0.0; break;
+			case 1: dPort=0; dx=-Tech.getPolyLShapeOffset(); dy= 0.0; break;
+			case 2: dPort=2; dx= 3.5; dy=-Tech.getPolyTShapeOffset(); break;
+			case 3: dPort=0; dx=-4.5; dy=-Tech.getPolyTShapeOffset(); break;
 			}
 			incLo.connect(nmos.getGate(i*3+dPort, 'T'), dx, dy);
 		}
@@ -98,7 +98,7 @@ class Nand3_star_en_star {
 				case 1: dx= 0.5; break;
 				case 2: dx= 0.5; break;
 				case 4: dx= 0.0; break;
-				case 6: dx= 1.5; break;
+				case 6: dx= Tech.getPolyLShapeOffset(); break;
 				default: con = false;
 				}
 				if (con) incLo.connect(pmoss[i].getGate(j, 'B'), dx);
@@ -112,10 +112,10 @@ class Nand3_star_en_star {
 			int dPort = 0;
 			double dx = 0;
 			switch (i%4) {
-			case 0: dPort=1; dx=-1.5; break;
-			case 1: dPort=0; dx=-1.5; break;
-			case 2: dPort=2; dx= 1.5; break;
-			case 3: dPort=1; dx= 1.5; break;
+			case 0: dPort=1; dx=-Tech.getPolyLShapeOffset(); break;
+			case 1: dPort=0; dx=-Tech.getPolyLShapeOffset(); break;
+			case 2: dPort=2; dx= Tech.getPolyLShapeOffset(); break;
+			case 3: dPort=1; dx= Tech.getPolyLShapeOffset(); break;
 			}
 			inb.connect(nmos.getGate(i*3+dPort, 'T'), dx);
 		}
@@ -130,7 +130,7 @@ class Nand3_star_en_star {
 				case 6: dx=-0.5; break;
 				default: con = false;
 				}
-				if (con) inb.connect(pmoss[i].getGate(j, 'B'), dx, 1.5);
+				if (con) inb.connect(pmoss[i].getGate(j, 'B'), dx, Tech.getPolyLShapeOffset());
 			}
 		}
 	}
@@ -141,10 +141,10 @@ class Nand3_star_en_star {
 			int dPort = 0;
 			double dx = 0;
 			switch (i%4) {
-			case 0: dPort=1; dx=-1.5; break;
-			case 1: dPort=1; dx= 1.5; break;
-			case 2: dPort=1; dx=-1.5; break;
-			case 3: dPort=1; dx= 1.5; break;
+			case 0: dPort=1; dx=-Tech.getPolyLShapeOffset(); break;
+			case 1: dPort=1; dx= Tech.getPolyLShapeOffset(); break;
+			case 2: dPort=1; dx=-Tech.getPolyLShapeOffset(); break;
+			case 3: dPort=1; dx= Tech.getPolyLShapeOffset(); break;
 			}
 			inb.connect(nmos.getGate(i*3+dPort, 'T'), dx);
 		}
@@ -322,7 +322,7 @@ class Nand3_star_en_star {
 							4, inaX, inaHiY);
 		TrackRouter inaHi = new TrackRouterH(Tech.m1, 3, inaHiY, nand);
 		inaHi.connect(nand.findExport("ina"));
-		inaHi.connect(pmosa.getGate(0, 'T'), 1.5);
+		inaHi.connect(pmosa.getGate(0, 'T'), Tech.getPolyLShapeOffset());
 		
 		// bottom of cell
 		double gndBot = stdCell.getGndY() - stdCell.getGndWidth()/2;
@@ -339,7 +339,7 @@ class Nand3_star_en_star {
 			case 0: dPort=0; dx=-4.0; break;
 			case 1: dPort=2; dx= 4.0; break;
 			}
-			inaLo.connect(nmos.getGate(i*3+dPort, 'B'), dx, 1.5);
+			inaLo.connect(nmos.getGate(i*3+dPort, 'B'), dx, Tech.getPolyLShapeOffset());
 		}
 		inaLo.connect(nand.findExport("ina"));
 		

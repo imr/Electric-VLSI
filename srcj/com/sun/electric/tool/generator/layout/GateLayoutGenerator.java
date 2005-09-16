@@ -44,6 +44,7 @@ import com.sun.electric.technology.Technology;
  */
 public class GateLayoutGenerator extends Job {
     private Technology technology;
+    private String foundry;
 
 	// specify which gates shouldn't be surrounded by DRC rings
 	private static final DrcRings.Filter FILTER = new DrcRings.Filter() {
@@ -66,12 +67,11 @@ public class GateLayoutGenerator extends Job {
 	private Library generateLayout(Library outLib, Cell cell, 
 			                       VarContext context, Technology technology) {
         StdCellParams stdCell;
+        Tech.setTechnology(foundry);
         Technology tsmc90 = Technology.getTSMC90Technology();
         if (tsmc90 != null && technology == tsmc90) {
-            Tech.setTechnology(Tech.TSMC90);
             stdCell = sportParams(outLib);
         } else {
-            Tech.setTechnology(Tech.MOCMOS);
             //stdCell = locoParams(outLib);
             stdCell = dividerParams(outLib);
         }
@@ -126,7 +126,7 @@ public class GateLayoutGenerator extends Job {
 	}
 
 	public boolean doIt() {
-		String outLibNm = "autoGenLib";
+		String outLibNm = "autoGenLib"+foundry;
 		String outLibDir = "";
 		Library outLib = LayoutLib.openLibForWrite(outLibNm, outLibDir+outLibNm);
 
@@ -145,7 +145,7 @@ public class GateLayoutGenerator extends Job {
 		}
 		System.out.println("Generating layouts for gates in the schematic: "+
 		                   cell.getName()+" and its descendents");
-		System.out.println("Output goes to library: autoGenLib");
+		System.out.println("Output goes to library: " + outLibNm);
 		//Library outLib = cell.getLibrary();
 
 		generateLayout(outLib, cell, context, technology);
@@ -153,10 +153,11 @@ public class GateLayoutGenerator extends Job {
 		System.out.println("done.");
 		return true;
 	}
-	public GateLayoutGenerator(Technology technology) {
+	public GateLayoutGenerator(Technology technology, String techNm) {
 		super("Generate gate layouts", User.getUserTool(), Job.Type.CHANGE, 
 			  null, null, Job.Priority.ANALYSIS);
         this.technology = technology;
+        this.foundry = techNm;
 		startJob();
 	}
 }
