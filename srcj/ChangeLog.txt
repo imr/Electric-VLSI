@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
-BUG: (09/16/05, RK) Fixed FillGenerator. It was placing Well outside Cell boundary on left and right.
+BUG: (09/16/05, RK) Fixed FillGenerator. It was placing Well outside Cell boundary on left and right. (Bugzilla# 551)
 
 IMP: (09/16/05, SMR) Added another General preference: the portion of the screen
      that a cell must consume to NOT be greeked by the display system.

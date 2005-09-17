@@ -324,9 +324,8 @@ class CapCell {
 	 *  since that is how we build CapCell */
 	private static class ProtoPlan {
 		private final double MAX_MOS_WIDTH = 40;
-		private final double SEL_TO_CELL_EDGE = 2;// set by poly cont space
 		private final double SEL_WIDTH_OF_NDM1 = 
-			Tech.diffContWidth() + 
+			Tech.getDiffContWidth() +
 		    Tech.selectSurroundDiff()*2;
 		private final double SEL_TO_MOS = 
 			Tech.selectSurroundMosAlongGate();
@@ -352,8 +351,30 @@ class CapCell {
 				instPlan.horizontal ? instPlan.cellWidth : instPlan.cellHeight;
 			protoHeight = 
 				instPlan.horizontal ? instPlan.cellHeight : instPlan.cellWidth;
+
+			// compute number of MOS's bottom to top
+			mosPitchY = gndWidth + 2*vddGndSpace + vddWidth;
+			gateLength = mosPitchY - gndWidth - 2; 
+			numMosY = (int) Math.floor((protoHeight-Tech.getWellWidth())/mosPitchY);
+			botWellContY = - numMosY * mosPitchY / 2; 
+
+			// min distance from left Cell edge to center of leftmost diffusion 
+			// contact.
+			double cellEdgeToDiffContCenter =
+				Tech.getWellSurroundDiff() + Tech.getDiffContWidth()/2;
+			// min distance from left Cell Edge to center of leftmost poly
+			// contact. 
+			double polyContWidth = Math.floor(gateLength / Tech.getP1M1Width()) *
+			                       Tech.getP1M1Width();
+			double cellEdgeToPolyContCenter = 
+				Tech.getP1ToP1Space()/2 + polyContWidth/2;
+			// diffusion and poly contact centers line up
+			double cellEdgeToContCenter = Math.max(cellEdgeToDiffContCenter, 
+					                               cellEdgeToPolyContCenter);
+			
 			// compute number of MOS's left to right
-			double availForCap = protoWidth - 2*(SEL_TO_CELL_EDGE + SEL_WIDTH_OF_NDM1/2);
+			//double availForCap = protoWidth - 2*(SEL_TO_CELL_EDGE + SEL_WIDTH_OF_NDM1/2);
+			double availForCap = protoWidth - 2*cellEdgeToContCenter;
 			double numMosD = availForCap / 
 							 (MAX_MOS_WIDTH + SEL_WIDTH_OF_NDM1 + 2*SEL_TO_MOS);
 			numMosX = (int) Math.ceil(numMosD);
@@ -363,11 +384,6 @@ class CapCell {
 			mosPitchX = gateWidth + SEL_WIDTH_OF_NDM1 + 2*SEL_TO_MOS;
 			leftWellContX = - numMosX * mosPitchX / 2;
 
-			// compute number of MOS's bottom to top
-			mosPitchY = gndWidth + 2*vddGndSpace + vddWidth;
-			gateLength = mosPitchY - gndWidth - 2; 
-			numMosY = (int) Math.floor((protoHeight-Tech.wellWidth())/mosPitchY);
-			botWellContY = - numMosY * mosPitchY / 2; 
 		}
 	}
 	

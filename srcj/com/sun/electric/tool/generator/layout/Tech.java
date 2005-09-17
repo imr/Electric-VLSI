@@ -116,10 +116,12 @@ public class Tech {
 
 	// RKao my first attempt to embed technology specific dimensions
     private static double 
-		wellWidth, 
+		wellWidth,
+		wellSurroundDiff,
 		gateExtendPastMOS,
 		p1Width,
 		p1ToP1Space,
+		p1M1Width,
 		gateToGateSpace,
 		gateToDiffContSpace,
 		diffContWidth,
@@ -425,9 +427,11 @@ public class Tech {
 		// initialize design rules (RKao first cut)
 		if (isTsmc90) {
 		    wellWidth = 14;
+		    wellSurroundDiff = Double.NaN;
 		    gateExtendPastMOS = 3.25;
 		    p1Width = 2;
 		    p1ToP1Space = 3.6;
+		    p1M1Width = Double.NaN;
 		    gateToGateSpace = 4;
 		    gateToDiffContSpace = 5.6 - 5.2/2 - 2/2;
 		    diffContWidth = 5.2;
@@ -441,9 +445,11 @@ public class Tech {
             selectSurroundMosAlongGate = Double.NaN;
 		} else if (isTsmc180) {
 		    wellWidth = 17;
+		    wellSurroundDiff = 4.3;
 		    gateExtendPastMOS = 2.5;
 		    p1Width = 1.8;
 		    p1ToP1Space = 4.5 - .9 - .9;
+		    p1M1Width = 5;
 		    gateToGateSpace = 3;
 		    gateToDiffContSpace = 4.5 - 2.5 - .9;
 		    diffContWidth = 5;
@@ -458,9 +464,11 @@ public class Tech {
 		} else {
 			// default to MoCMOS
 		    wellWidth = 17;
+		    wellSurroundDiff = 3;
 		    gateExtendPastMOS = 2;
 		    p1Width = 2;
 		    p1ToP1Space = 3;
+		    p1M1Width = 5;
 		    gateToGateSpace = 3;
 		    gateToDiffContSpace = .5;
 		    diffContWidth = 5;
@@ -552,19 +560,23 @@ public class Tech {
 	 * distinguising MoCMOS from tsmc180. RKao */
 
 	/** @return min width of Well */
-	public static double wellWidth() {return wellWidth;}
+	public static double getWellWidth() {return wellWidth;}
+	/** @return amount that well surrounds diffusion */
+	public static double getWellSurroundDiff() {return wellSurroundDiff;}
 	/** @return MOS edge to gate edge */
-    public static double gateExtendPastMOS() {return gateExtendPastMOS;}
+    public static double getGateExtendPastMOS() {return gateExtendPastMOS;}
     /** @return min width of polysilicon 1 */
-    public static double p1Width() {return p1Width;}
+    public static double getP1Width() {return p1Width;}
     /** @return min spacing between polysilicon 1 */
-    public static double p1ToP1Space() {return p1ToP1Space;}
+    public static double getP1ToP1Space() {return p1ToP1Space;}
     /** @return min spacing between gates of series transistors */ 
-    public static double gateToGateSpace() {return gateToGateSpace;}
+    public static double getGateToGateSpace() {return gateToGateSpace;}
     /** @return min spacing between MOS gate and diffusion edge of diff contact */
-    public static double gateToDiffContSpace() {return gateToDiffContSpace;}
+    public static double getGateToDiffContSpace() {return gateToDiffContSpace;}
     /** @return min width of diffusion surrounding diff contact */
-    public static double diffContWidth() {return diffContWidth;}
+    public static double getDiffContWidth() {return diffContWidth;}
+    /** @return min width of poly contact */
+    public static double getP1M1Width() {return p1M1Width;}
     /** @return gate length that depends on foundry */
     public static double getGateLength() {return gateLength;}
     /** @return amount that select surrounds diffusion */
