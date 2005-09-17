@@ -132,7 +132,8 @@ public class GateRegression extends Job {
         }
 
 		// a normal run
-        aPass(200, stdCell, technology);
+        aPass(100, stdCell, technology);
+//         allSizes(stdCell, technology);
         //Inv2iKn.makePart(10, stdCell);
         //Inv2iKn_wideOutput.makePart(10, stdCell);
 //        allSizes(stdCell, technology);

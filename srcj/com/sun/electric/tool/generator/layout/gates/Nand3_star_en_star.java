@@ -260,7 +260,9 @@ class Nand3_star_en_star {
 			pmoss[i] = new FoldedPmos(mosX + i*pmosPitch, pmosY, nbFolds, 1,
 									  fwP.gateWid, nand, stdCell);
 		}
-		
+		// Fill select notch between foldedmos
+        stdCell.fillDiffAndSelectNotches(pmoss, false);
+
 		// Drop down a single PMOS pullup for ina
 		double rightPdiffX = StdCellParams.getRightDiffX(pmoss);
 		double rightNdiffX = StdCellParams.getRightDiffX(nmos);
@@ -270,7 +272,10 @@ class Nand3_star_en_star {
 		double pmosaX = Math.max(pmosaFromPmos, pmosaFromNmos);
 		FoldedMos pmosa = new FoldedPmos(pmosaX, stdCell.getVddY(), 1, 1, 5,
 										 nand, stdCell);
-		
+
+        // Fill select notch betweeb pmosa and last pmos
+        stdCell.fillDiffAndSelectNotches(new FoldedMos[]{pmoss[pmoss.length-1], pmosa}, false);
+
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nand);
 		stdCell.wireVddGnd(pmoss, StdCellParams.EVEN, nand);

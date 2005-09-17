@@ -382,6 +382,8 @@ public class StdCellParams {
 		//
 		// I therefore fill the notch using a diffusion node.
 		double mosY = mos.getMosCenterY();
+        double a = mos.getDiffContWidth();
+        double b = mos.getGateWidth();
 
         Rectangle2D diffNodeBnd = LayoutLib.calculateNodeInst(diffNode, thisX-dist/2, mosY,
                 dist, diffWid);
@@ -408,7 +410,7 @@ public class StdCellParams {
         Rectangle2D selectRec = new Rectangle2D.Double(diffNodeBnd.getX() - dist/2,
                 diffNodeBnd.getY() - diffNodeBnd.getHeight()/2, diffNodeBnd.getWidth(),
                 diffNodeBnd.getHeight());
-		addSelAroundDiff(diffNode, selectRec, f);
+		addSelAroundDiff(diffNode, selectRec, (a-b), f);
 	}
 
 	private static FoldedMos getRightMos(Object a) {
@@ -1206,15 +1208,21 @@ public class StdCellParams {
 
 	/** Add select node to ensure there is select surrounding the
 	 * specified diffusion node*/
-	public void addSelAroundDiff(NodeProto prot, Rectangle2D diffNodeBnd, Cell cell) {
+	public void addSelAroundDiff(NodeProto prot, Rectangle2D diffNodeBnd, double activeGateDiff,
+                                 Cell cell) {
 //		NodeProto prot = diffNode.getProto();
 		error(prot!=Tech.pdNode && prot!=Tech.ndNode,
 			  "addSelectAroundDiff: only works with MOSIS CMOS diff nodes");
 		NodeProto sel = prot == Tech.pdNode ? Tech.pselNode : Tech.nselNode;
 //		Rectangle2D r = LayoutLib.getBounds(diffNode);
         // Note that transistors are rotated in 90 degrees with res
-		double w = diffNodeBnd.getWidth() + Tech.getSelectSurroundActiveY() * 2;
-		double h = diffNodeBnd.getHeight() + Tech.getSelectSurroundActiveX() * 2;
+		double w = diffNodeBnd.getWidth();
+		double h = diffNodeBnd.getHeight();
+        // add the select surround if gate is longer than contact
+            h += Tech.selectSurroundMosAlongGate() * 2;
+        if (activeGateDiff > 0) h -= activeGateDiff;
+//            w =+ Tech.getSelectSurroundActive() * 2;
+
 //		Cell f = diffNode.getParent();
 		LayoutLib.newNodeInst(sel, diffNodeBnd.getCenterX(), diffNodeBnd.getCenterY(), w, h, 0, cell);
 	}

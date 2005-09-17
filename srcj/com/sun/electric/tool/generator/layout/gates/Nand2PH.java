@@ -111,7 +111,11 @@ public class Nand2PH {
 										 fwW.gateWid, gate, stdCell);
 		
 		FoldedMos[] nmoss = new FoldedMos[] {nmosB, nmosR, nmosA};
-		
+
+        // Fill select notch between weak mos and reset nmos
+        stdCell.fillDiffAndSelectNotches(new FoldedMos[]{nmosB, nmosR}, false);
+        stdCell.fillDiffAndSelectNotches(new FoldedMos[]{nmosR, nmosA}, false);
+
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, gate);
 		stdCell.wireVddGnd(nmoss, StdCellParams.EVEN, gate);

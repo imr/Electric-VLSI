@@ -117,7 +117,10 @@ public class Nor2kresetV {
 		double bigY = nmosTop - fwS.physWid/2;
 		FoldedMos bigMos = new FoldedNmos(bigNmosX, bigY, fwS.nbFolds, 1,
 										  fwS.gateWid, nor, stdCell);
-		
+
+        // Fill select notch between weak mos and reset nmos
+        stdCell.fillDiffAndSelectNotches(new FoldedMos[]{nmoss[nmoss.length-1], bigMos}, false);
+
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmoss, StdCellParams.EVEN, nor);
 		stdCell.wireVddGnd(pmos, StdCellParams.EVEN, nor);

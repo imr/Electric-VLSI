@@ -103,7 +103,10 @@ public class Nand3_star_sy3 {
 			pmoss[i] = new FoldedPmos(pmosX, pmosY, nbFolds, 1, fwP.gateWid,
 									  nand, stdCell);
 		}
-		
+
+        // Fill select notch between foldedmos
+        stdCell.fillDiffAndSelectNotches(pmoss, false);
+
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nand);
 		stdCell.wireVddGnd(pmoss, StdCellParams.EVEN, nand);
