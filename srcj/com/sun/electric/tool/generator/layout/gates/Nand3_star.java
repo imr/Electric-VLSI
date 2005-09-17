@@ -106,7 +106,7 @@ class Nand3_star {
 			double pmosX = nmosX - 3.5 + i*pmosPitch;
 			pmoss[i] = new FoldedPmos(pmosX, pmosY, 3, 1, fwP.gateWid, nand, stdCell);
 		}
-		
+
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nand);
 		stdCell.wireVddGnd(pmoss, StdCellParams.EVEN, nand);
@@ -213,7 +213,12 @@ class Nand3_star {
 		for (int i=1; i<nmos.nbSrcDrns(); i+=2) {
 			outLo.connect(nmos.getSrcDrn(i));
 		}
-		
+
+        // ============================
+        stdCell.fillDiffAndSelectNotches(pmoss, false);
+//        StdCellParams.fillSelect(nand, true, false, false);
+        // ============================
+
 		// add wells
 		double wellMinX = 0;
 		double wellMaxX = outX + 2 + 1.5; // m1_wid/2 + m1m1_space/2

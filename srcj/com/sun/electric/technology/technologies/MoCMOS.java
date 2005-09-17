@@ -39,11 +39,9 @@ import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.technology.Technology.TechPoint;
 import com.sun.electric.technology.technologies.utils.MOSRules;
 import com.sun.electric.technology.*;
-import com.sun.electric.tool.user.ui.VectorDrawing;
 
 import java.awt.Color;
 import java.awt.geom.Rectangle2D;
@@ -377,12 +375,12 @@ public class MoCMOS extends Technology
         new DRCTemplate("Mx.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-4",         null,            20.2,  null),  // TSMC page 39
         new DRCTemplate("Mx.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-5",         null,            20.2,  null),  // TSMC page 39
         new DRCTemplate("M6.A.1",  DRCTemplate.TSMC, DRCTemplate.AREA,   "Metal-6",         null,            56.2,  null),  // TSMC page 39
-        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-1",         null,            350,  null),  // TSMC page 78
-        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-2",         null,            350,  null),  // TSMC page 78
-        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-3",         null,            350,  null),  // TSMC page 78
-        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-4",         null,            350,  null),  // TSMC page 78
-        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-5",         null,            350,  null),  // TSMC page 78
-        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-6",         null,            350,  null),  // TSMC page 78
+//        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-1",         null,            350,  null),  // TSMC page 78
+//        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-2",         null,            350,  null),  // TSMC page 78
+//        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-3",         null,            350,  null),  // TSMC page 78
+//        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-4",         null,            350,  null),  // TSMC page 78
+//        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-5",         null,            350,  null),  // TSMC page 78
+//        new DRCTemplate("AMS.1",  DRCTemplate.TSMC, DRCTemplate.SLOTSIZE,   "Metal-6",         null,            350,  null),  // TSMC page 78
 
 		new DRCTemplate("7.2 Mosis",  DRCTemplate.MOSIS|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        3,  null),
 		new DRCTemplate("M1.S.1 TSMC",  DRCTemplate.TSMC|DRCTemplate.DE|DRCTemplate.SU, DRCTemplate.SPACING,  "Metal-1",        "Metal-1",        2.3,  null),
@@ -3135,17 +3133,6 @@ public class MoCMOS extends Technology
             // Metal 6 arc width 4. Original value
             metalArcs[5].setDefaultWidth(4);
         }
-
-		// recache display information for all cells that use this
-		for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
-		{
-			Library lib = (Library)lIt.next();
-			for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
-			{
-				Cell cell = (Cell)cIt.next();
-				if (cell.getTechnology() == this) VectorDrawing.cellChanged(cell);
-			}
-		}
     }
 
     /**

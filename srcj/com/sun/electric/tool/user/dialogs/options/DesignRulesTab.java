@@ -24,12 +24,15 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.database.text.TextUtils;
+import com.sun.electric.database.hierarchy.Library;
+import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.technology.DRCRules;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.MoCMOS;
 import com.sun.electric.tool.drc.DRC;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.EditWindow;
+import com.sun.electric.tool.user.ui.VectorDrawing;
 import com.sun.electric.tool.user.dialogs.DesignRulesPanel;
 
 import java.awt.*;
@@ -160,6 +163,17 @@ public class DesignRulesTab extends PreferencePanel
                 // primitive arcs have to be modified.
                 if (val == 0)
                     new Technology.ResetDefaultWidthJob();
+                // Primitives cached must be redrawn
+                // recache display information for all cells that use this
+                for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )
+                {
+                    Library lib = (Library)lIt.next();
+                    for(Iterator cIt = lib.getCells(); cIt.hasNext(); )
+                    {
+                        Cell cell = (Cell)cIt.next();
+                        if (cell.getTechnology() == curTech) VectorDrawing.cellChanged(cell);
+                    }
+                }
             }
         }
 

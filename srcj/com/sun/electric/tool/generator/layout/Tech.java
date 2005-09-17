@@ -107,6 +107,12 @@ public class Tech {
     private static double gateLength;
     // Wire offset from center of the poly contact to form a L-shape arc to gate
     private static double offsetLShapePolyContact, offsetTShapePolyContact;
+    // denote Select spacing rule
+	private static double selectSpace;
+    // surround distance of select from active in transistor
+	private static double selectOverhangsDiffX, selectOverhangsDiffY;
+    // select surround over poly. PP/NP.R.1 in 90nm
+    private static double selectSurround;
 
 	// RKao my first attempt to embed technology specific dimensions
     private static double 
@@ -428,6 +434,9 @@ public class Tech {
             gateLength = 2;
             offsetLShapePolyContact = 2.5 /* half poly contact height */ - 1 /*half poly arc width*/;
             offsetTShapePolyContact = 2.5 /* half poly contact height */ + 1 /*half poly arc width*/;
+            selectSpace = 4.8; // TSMC rule, see TSMC90.java
+            selectOverhangsDiffX = selectOverhangsDiffY = 2; // @TODO This might be wrong!
+            selectSurround = 4.4;
             selectSurroundDiff = Double.NaN;
             selectSurroundMosAlongGate = Double.NaN;
 		} else if (isTsmc180) {
@@ -441,6 +450,9 @@ public class Tech {
             gateLength = 1.8;
             offsetLShapePolyContact = 2.5 /* half poly contact height */ - 0.9 /*half poly arc width*/;
             offsetTShapePolyContact = 2.5 /* half poly contact height */ + 0.9 /*half poly arc width*/;
+            selectSpace = 4.4;
+            selectOverhangsDiffX = 3.6; selectOverhangsDiffY = 1.8;
+            selectSurround = 0;
             selectSurroundDiff = 1;
             selectSurroundMosAlongGate = 3.6;
 		} else {
@@ -455,6 +467,9 @@ public class Tech {
             gateLength = 2;
             offsetLShapePolyContact = 2.5 /* half poly contact height */ - 1 /*half poly arc width*/;
             offsetTShapePolyContact = 2.5 /* half poly contact height */ + 1 /*half poly arc width*/;
+            selectSpace = 2;
+            selectOverhangsDiffX = selectOverhangsDiffY = 2;
+            selectSurround = -Double.NaN; // no valid value
             selectSurroundDiff = 2;
             selectSurroundMosAlongGate = 2;
 		}
@@ -560,5 +575,12 @@ public class Tech {
     public static double getPolyLShapeOffset() {return offsetLShapePolyContact;}
     /** @return y offset of poly arc connecting poly contact and gate in a T-Shape case */
     public static double getPolyTShapeOffset() {return offsetTShapePolyContact;}
+    /** @return select spacing rule */
+    public static double getSelectSpacingRule() {return selectSpace;}
+    /** @return select surround active distances */
+    public static double getSelectSurroundActiveX() {return selectOverhangsDiffX;}
+    public static double getSelectSurroundActiveY() {return selectOverhangsDiffY;}
+    /** @return selecct surround over poly */
+    public static double getSelectSurroundOverPoly() {return selectSurround;}
 }
 

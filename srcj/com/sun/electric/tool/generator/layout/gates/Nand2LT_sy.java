@@ -89,7 +89,7 @@ public class Nand2LT_sy {
 			double pmosX = mosX + pmosPitch * i;
 			pmoss[i] = new FoldedPmos(pmosX, pmosY, 2, 1, fwP.gateWid, nand, stdCell);
 		}
-		stdCell.fillDiffNotches(pmoss);
+		stdCell.fillDiffAndSelectNotches(pmoss, true);
 
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmos, StdCellParams.EVEN, nand);

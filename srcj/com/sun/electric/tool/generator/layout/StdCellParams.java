@@ -150,14 +150,12 @@ public class StdCellParams {
 	private double sizeErr = 0.1;
 
 	private static final double selectOverhangsDiffCont = 4.5;
-	private static final double selectSpace = 2;
 	private static final double m1OverhangsDiffCont = 2;
 	private static final double m1Space = 3;
-	private static final double selectOverhangsDiff = 2;
 
 	private ArrayList nmosTracks = new ArrayList();
 	private ArrayList pmosTracks = new ArrayList();
-	private int botNmosTrack, topNmosTrack, botPmosTrack, topPmosTrack;
+//	private int botNmosTrack, topNmosTrack, botPmosTrack, topPmosTrack;
 	private Library schemLib = null;
 	private Library layoutLib = null;
 	private boolean doubleStrapGate = false;
@@ -356,8 +354,8 @@ public class StdCellParams {
 		return nbGroups;
 	}
 
-	private void fillDiffNotch(PortInst prevPort, PortInst thisPort, 
-	                           FoldedMos mos) {
+	private void fillDiffAndSelectNotch(PortInst prevPort, PortInst thisPort,
+                                        FoldedMos mos, boolean fillDiffNotch) {
 		double diffWid = mos.getPhysWidth();
 		Cell f = mos.getSrcDrn(0).getNodeInst().getParent();
 		PrimitiveNode diffCont =
@@ -372,7 +370,7 @@ public class StdCellParams {
 
 		// If they overlap perfectly or if they're so far apart there's no
 		// select notch then no notches of any kind are possible.
-		if (dist == 0 || (dist >= selectOverhangsDiffCont * 2 + selectSpace))
+		if (dist == 0 || (dist >= selectOverhangsDiffCont * 2 + Tech.getSelectSpacingRule()))
 			return;
 
 		// Fill a notch with diffusion.
@@ -385,25 +383,32 @@ public class StdCellParams {
 		// I therefore fill the notch using a diffusion node.
 		double mosY = mos.getMosCenterY();
 
-		NodeInst dFill = LayoutLib.newNodeInst(diffNode, thisX-dist/2, mosY, 
-											   dist, diffWid, 0, f);
-		double contY = LayoutLib.roundCenterY(thisPort); // contact is always on grid
-		LayoutLib.newArcInst(diffArc, DEF_SIZE, thisPort, thisX, contY,
-							 dFill.getOnlyPortInst(), 
-							 LayoutLib.roundCenterX(dFill.getOnlyPortInst()), 
-							 contY);
-		addSelAroundDiff(dFill);
+        Rectangle2D diffNodeBnd = LayoutLib.calculateNodeInst(diffNode, thisX-dist/2, mosY,
+                dist, diffWid);
+        if (fillDiffNotch)
+        {
+            NodeInst dFill = LayoutLib.newNodeInst(diffNode, diffNodeBnd, 0, f);
+            double contY = LayoutLib.roundCenterY(thisPort); // contact is always on grid
+            LayoutLib.newArcInst(diffArc, DEF_SIZE, thisPort, thisX, contY,
+                                 dFill.getOnlyPortInst(),
+                                 LayoutLib.roundCenterX(dFill.getOnlyPortInst()),
+                                 contY);
 
-		// Never place wide arcs directly onto the FoldedMos
-		// diffusion-metal1 contacts because they become bad width hints.
-		if (dist < m1OverhangsDiffCont * 2 + m1Space) {
-			// m1 is 1 lambda narrower than diffusion contact width
-			double m1Wid = mos.getDiffContWidth() - 1;
-			NodeInst mFill = 
-				LayoutLib.newNodeInst(Tech.m1Node, thisX-dist/2, contY,	dist,
-									  m1Wid, 0, f);
-			LayoutLib.newArcInst(Tech.m1, DEF_SIZE, thisPort, mFill.getOnlyPortInst());
-		}
+            // Never place wide arcs directly onto the FoldedMos
+            // diffusion-metal1 contacts because they become bad width hints.
+            if (dist < m1OverhangsDiffCont * 2 + m1Space) {
+                // m1 is 1 lambda narrower than diffusion contact width
+                double m1Wid = mos.getDiffContWidth() - 1;
+                NodeInst mFill =
+                    LayoutLib.newNodeInst(Tech.m1Node, thisX-dist/2, contY,	dist,
+                                          m1Wid, 0, f);
+                LayoutLib.newArcInst(Tech.m1, DEF_SIZE, thisPort, mFill.getOnlyPortInst());
+            }
+        }
+        Rectangle2D selectRec = new Rectangle2D.Double(diffNodeBnd.getX() - dist/2,
+                diffNodeBnd.getY() - diffNodeBnd.getHeight()/2, diffNodeBnd.getWidth(),
+                diffNodeBnd.getHeight());
+		addSelAroundDiff(diffNode, selectRec, f);
 	}
 
 	private static FoldedMos getRightMos(Object a) {
@@ -975,16 +980,16 @@ public class StdCellParams {
 	 * and/or select. Fix these notch errors by running diffusion,
 	 * and/or metal1 between the adjacent diffusion regions.
 	 * @param moss An array of adjacent FoldedMos transistors arranged
-	 * from left to right. */
-	public void fillDiffNotches(FoldedMos[] moss) {
-		error(moss.length == 0, "fillDiffNotches: no transistors?");
+     * @param fillDiffNotch*/
+	public void fillDiffAndSelectNotches(FoldedMos[] moss, boolean fillDiffNotch) {
+		error(moss.length == 0, "fillDiffAndSelectNotches: no transistors?");
 		FoldedMos mos = moss[0];
 
 		for (int i = 1; i < moss.length; i++) {
 			PortInst thisPort = moss[i].getSrcDrn(0);
 			PortInst prevPort =
 				moss[i - 1].getSrcDrn(moss[i - 1].nbSrcDrns() - 1);
-			fillDiffNotch(prevPort, thisPort, mos);
+			fillDiffAndSelectNotch(prevPort, thisPort, mos, fillDiffNotch);
 		}
 	}
 
@@ -1201,16 +1206,17 @@ public class StdCellParams {
 
 	/** Add select node to ensure there is select surrounding the
 	 * specified diffusion node*/
-	public void addSelAroundDiff(NodeInst diffNode) {
-		NodeProto prot = diffNode.getProto();
+	public void addSelAroundDiff(NodeProto prot, Rectangle2D diffNodeBnd, Cell cell) {
+//		NodeProto prot = diffNode.getProto();
 		error(prot!=Tech.pdNode && prot!=Tech.ndNode,
 			  "addSelectAroundDiff: only works with MOSIS CMOS diff nodes");
 		NodeProto sel = prot == Tech.pdNode ? Tech.pselNode : Tech.nselNode;
-		Rectangle2D r = LayoutLib.getBounds(diffNode);
-		double w = r.getWidth() + selectOverhangsDiff * 2;
-		double h = r.getHeight() + selectOverhangsDiff * 2;
-		Cell f = diffNode.getParent();
-		LayoutLib.newNodeInst(sel, r.getCenterX(), r.getCenterY(), w, h, 0, f);
+//		Rectangle2D r = LayoutLib.getBounds(diffNode);
+        // Note that transistors are rotated in 90 degrees with res
+		double w = diffNodeBnd.getWidth() + Tech.getSelectSurroundActiveY() * 2;
+		double h = diffNodeBnd.getHeight() + Tech.getSelectSurroundActiveX() * 2;
+//		Cell f = diffNode.getParent();
+		LayoutLib.newNodeInst(sel, diffNodeBnd.getCenterX(), diffNodeBnd.getCenterY(), w, h, 0, cell);
 	}
 
     public static class SelectFill {
@@ -1226,18 +1232,25 @@ public class StdCellParams {
      * poly.  This assumes that all Pmos devices and PWell is at y > 0, and all
      * Nmos devices and NWell is at y < 0.
      * @param cell the cell to fill
+     @param pSelect
+     * @param nSelect
+     * @param includePoly
      */
-    public static SelectFill fillSelect(Cell cell) {
-        double selSurroundPoly = 4.4;       // PP.R.1 & NP.R.1: select surround poly
-        Rectangle2D polyBounds = LayoutLib.getBounds(cell, Layer.Function.POLY1);
+    public static SelectFill fillSelect(Cell cell, boolean pSelect, boolean nSelect, boolean includePoly) {
+        double selSurroundPoly = Tech.getSelectSurroundOverPoly();
+        if (selSurroundPoly < 0) return null;// do nothing.
         Rectangle2D pselectBounds = LayoutLib.getBounds(cell, Layer.Function.IMPLANTP);
         Rectangle2D nselectBounds = LayoutLib.getBounds(cell, Layer.Function.IMPLANTN);
-        polyBounds.setRect(polyBounds.getX()-selSurroundPoly,
-                polyBounds.getY()-selSurroundPoly, polyBounds.getWidth() + 2*selSurroundPoly,
-                polyBounds.getHeight() + 2*selSurroundPoly);
-        // merge select and poly bounds
-        pselectBounds = pselectBounds.createUnion(polyBounds);
-        nselectBounds = nselectBounds.createUnion(polyBounds);
+        if (includePoly)
+        {
+            Rectangle2D polyBounds = LayoutLib.getBounds(cell, Layer.Function.POLY1);
+            polyBounds.setRect(polyBounds.getX()-selSurroundPoly,
+                    polyBounds.getY()-selSurroundPoly, polyBounds.getWidth() + 2*selSurroundPoly,
+                    polyBounds.getHeight() + 2*selSurroundPoly);
+            // merge select and poly bounds
+            pselectBounds = pselectBounds.createUnion(polyBounds);
+            nselectBounds = nselectBounds.createUnion(polyBounds);
+        }
         // pselect above y=0, nselect below
         pselectBounds.setRect(pselectBounds.getMinX(), 0,
                 pselectBounds.getMaxX()-pselectBounds.getMinX(), pselectBounds.getMaxY());
@@ -1246,12 +1259,20 @@ public class StdCellParams {
         // fill it in
         pselectBounds = LayoutLib.roundBounds(pselectBounds);
         nselectBounds = LayoutLib.roundBounds(nselectBounds);
-        NodeInst pni = LayoutLib.newNodeInst(Tech.pselNode, pselectBounds.getCenterX(), pselectBounds.getCenterY(),
-                pselectBounds.getWidth(), pselectBounds.getHeight(), 0, cell);
-        pni.setHardSelect();
-        NodeInst nni = LayoutLib.newNodeInst(Tech.nselNode, nselectBounds.getCenterX(), nselectBounds.getCenterY(),
-                nselectBounds.getWidth(), nselectBounds.getHeight(), 0, cell);
-        nni.setHardSelect();
+        NodeInst pni = null, nni = null;
+
+        if (pSelect)
+        {
+            pni = LayoutLib.newNodeInst(Tech.pselNode, pselectBounds.getCenterX(), pselectBounds.getCenterY(),
+                    pselectBounds.getWidth(), pselectBounds.getHeight(), 0, cell);
+            pni.setHardSelect();
+        }
+        if (nSelect)
+        {
+            nni = LayoutLib.newNodeInst(Tech.nselNode, nselectBounds.getCenterX(), nselectBounds.getCenterY(),
+                    nselectBounds.getWidth(), nselectBounds.getHeight(), 0, cell);
+            nni.setHardSelect();
+        }
         return new SelectFill(nni, pni);
     }
 

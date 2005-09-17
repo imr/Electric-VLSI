@@ -102,7 +102,7 @@ class Nand2_star {
 											fwN.gateWid, nand, stdCell);
 			nmoss[nbFoldsN/2] = nmos;
 		}
-		stdCell.fillDiffNotches(nmoss);
+		stdCell.fillDiffAndSelectNotches(nmoss, true);
 		
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmoss, StdCellParams.EVEN, nand);

@@ -101,7 +101,7 @@ public class Nand2en {
 											nand, stdCell);
 			pmoss[nbFoldsP/2] = pmos;
 		}
-		stdCell.fillDiffNotches(pmoss);
+		stdCell.fillDiffAndSelectNotches(pmoss, true);
 		
 		// Build weak PMOS.  Allocate two folds per FoldedPmos. Align PMOS
 		// gate 0 with NMOS gate k such that (k mod 4 == 3).
@@ -117,7 +117,12 @@ public class Nand2en {
 		for (int i=0; i<pmoss.length; i++) allPmoss[i] = pmoss[i];
 		allPmoss[pmoss.length] = weak;
 		stdCell.wireVddGnd(allPmoss, StdCellParams.EVEN, nand);
-		
+
+        // Only for TSMC180 for now ?
+        // Fill select notch between last pmos and weak transistor
+        FoldedMos[] tmp = {pmoss[pmoss.length-1], weak};
+        stdCell.fillDiffAndSelectNotches(tmp, false);
+
 //		// fool Electric's NCC into paralleling NMOS stacks by connecting
 //		// stacks' internal diffusion nodes.
 //		for (int i=0; i<nmos.nbInternalSrcDrns(); i++) {
@@ -183,7 +188,12 @@ public class Nand2en {
 		for (int i=1; i<nmos.nbSrcDrns(); i+=2) {
 			outLo.connect(nmos.getSrcDrn(i));
 		}
-		
+
+        // Due to weak transistors on the right
+        // ============================
+//        StdCellParams.fillSelect(nand, true, false, false);
+        // ============================
+
 		// add wells
 		double wellMinX = 0;
 		double wellMaxX = outX + 2 + 1.5; // m1_wid/2 + m1m1_space/2

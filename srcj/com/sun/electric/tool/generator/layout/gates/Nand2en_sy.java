@@ -101,7 +101,7 @@ public class Nand2en_sy {
 			pmoss[nbFoldsP/2] = new FoldedPmos(pmosX, pmosY, nbFolds, nbSeries,
 											   fwP.gateWid, nand, stdCell);
 		}
-		stdCell.fillDiffNotches(pmoss);
+		stdCell.fillDiffAndSelectNotches(pmoss, true);
 		
 		// Create weak PMOS
 		double rightDiffX = StdCellParams.getRightDiffX(pmoss, nmos);

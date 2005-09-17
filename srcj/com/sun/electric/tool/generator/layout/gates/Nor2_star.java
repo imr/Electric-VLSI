@@ -98,7 +98,7 @@ class Nor2_star {
 			FoldedMos nmos = new FoldedNmos(x, nmosY, 2, 1, fwN.gateWid, nor, stdCell);
 			nmoss[nbFoldsN/2] = nmos;
 		}
-		stdCell.fillDiffNotches(nmoss);
+		stdCell.fillDiffAndSelectNotches(nmoss, true);
 		
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmoss, StdCellParams.EVEN, nor);

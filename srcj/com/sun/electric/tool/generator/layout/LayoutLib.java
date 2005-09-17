@@ -30,6 +30,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.List;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.Orientation;
@@ -255,6 +256,45 @@ public class LayoutLib {
 		return DBMath.round(pi.getBounds().getCenterY());
 	}
 
+    public static Rectangle2D calculateNodeInst(NodeProto np,
+		                               double x, double y,
+									   double width, double height)
+    {
+		if (np instanceof Cell) {
+			width = (width<0 ? -1 : 1) * np.getDefWidth();
+			height = (height<0 ? -1 : 1) * np.getDefHeight();
+		} else {
+			SizeOffset so = np.getProtoSizeOffset();
+			// Take the default width or height if that's what the user wants.
+			// Otherwise adjust the user-specified width or height by the
+			// SizeOffset.
+			double signW = width<0 ? -1 : 1;
+			if (width==DEF_SIZE || width==-DEF_SIZE) {
+				width = signW * np.getDefWidth();
+			} else {
+				double hi = so.getHighXOffset();
+				double lo = so.getLowXOffset();
+				error(lo!=hi, "asymmetric X offset");
+				width = signW * (Math.abs(width) + hi+lo);
+			}
+			double signH = height<0 ? -1 : 1;
+			if (height==DEF_SIZE || height==-DEF_SIZE) {
+				height = signH * np.getDefHeight();
+			} else {
+				double hi = so.getHighYOffset();
+				double lo = so.getLowYOffset();
+				error(lo!=hi, "asymmetric Y offset");
+				height = signH * (Math.abs(height) + hi+lo);
+			}
+		}
+		// round all dimensions to a 10e-4 lambda grid
+		x = DBMath.round(x);
+		y = DBMath.round(y);
+		width = DBMath.round(width);
+		height = DBMath.round(height);
+        return new Rectangle2D.Double(x, y, width, height);
+    }
+
 	/**
 	 * Create a new NodeInst.  The following geometric transformations
 	 * are performed upon the NodeProto in order to arrive at the
@@ -310,43 +350,54 @@ public class LayoutLib {
 	 * @param parent the Cell that will contain the NodeInst.
 	 * @return the new NodeInst. 
 	 */
-	public static NodeInst newNodeInst(NodeProto np, 
+    public static NodeInst newNodeInst(NodeProto np,
 		                               double x, double y,
 									   double width, double height,
 			                           double angle, Cell parent) {
-		if (np instanceof Cell) {
-			width = (width<0 ? -1 : 1) * np.getDefWidth();
-			height = (height<0 ? -1 : 1) * np.getDefHeight();
-		} else {
-			SizeOffset so = np.getProtoSizeOffset();
-			// Take the default width or height if that's what the user wants.
-			// Otherwise adjust the user-specified width or height by the 
-			// SizeOffset.
-			double signW = width<0 ? -1 : 1;
-			if (width==DEF_SIZE || width==-DEF_SIZE) {
-				width = signW * np.getDefWidth();
-			} else {
-				double hi = so.getHighXOffset();
-				double lo = so.getLowXOffset();
-				error(lo!=hi, "asymmetric X offset");
-				width = signW * (Math.abs(width) + hi+lo);
-			}
-			double signH = height<0 ? -1 : 1;
-			if (height==DEF_SIZE || height==-DEF_SIZE) {
-				height = signH * np.getDefHeight();
-			} else {
-				double hi = so.getHighYOffset();
-				double lo = so.getLowYOffset();
-				error(lo!=hi, "asymmetric Y offset");
-				height = signH * (Math.abs(height) + hi+lo);
-			}
-		}
-		// round all dimensions to a 10e-4 lambda grid
-		x = DBMath.round(x);
-		y = DBMath.round(y);
-		width = DBMath.round(width);
-		height = DBMath.round(height);
-		
+        Rectangle2D rect = calculateNodeInst(np, x, y, width, height);
+        return newNodeInst(np, rect, angle, parent);
+    }
+
+    public static NodeInst newNodeInst(NodeProto np, Rectangle2D rect,
+			                           double angle, Cell parent)
+    {
+//		if (np instanceof Cell) {
+//			width = (width<0 ? -1 : 1) * np.getDefWidth();
+//			height = (height<0 ? -1 : 1) * np.getDefHeight();
+//		} else {
+//			SizeOffset so = np.getProtoSizeOffset();
+//			// Take the default width or height if that's what the user wants.
+//			// Otherwise adjust the user-specified width or height by the
+//			// SizeOffset.
+//			double signW = width<0 ? -1 : 1;
+//			if (width==DEF_SIZE || width==-DEF_SIZE) {
+//				width = signW * np.getDefWidth();
+//			} else {
+//				double hi = so.getHighXOffset();
+//				double lo = so.getLowXOffset();
+//				error(lo!=hi, "asymmetric X offset");
+//				width = signW * (Math.abs(width) + hi+lo);
+//			}
+//			double signH = height<0 ? -1 : 1;
+//			if (height==DEF_SIZE || height==-DEF_SIZE) {
+//				height = signH * np.getDefHeight();
+//			} else {
+//				double hi = so.getHighYOffset();
+//				double lo = so.getLowYOffset();
+//				error(lo!=hi, "asymmetric Y offset");
+//				height = signH * (Math.abs(height) + hi+lo);
+//			}
+//		}
+//		// round all dimensions to a 10e-4 lambda grid
+//		x = DBMath.round(x);
+//		y = DBMath.round(y);
+//		width = DBMath.round(width);
+//		height = DBMath.round(height);
+        double x = rect.getX();
+        double y = rect.getY();
+        double width = rect.getWidth();
+        double height = rect.getHeight();
+
         Orientation orient = Orientation.fromJava((int)Math.round(angle*10), width < 0, height < 0);
 		NodeInst ni = NodeInst.newInstance(np, new Point2D.Double(x, y), Math.abs(width), Math.abs(height),
                 parent, orient, null, 0);
@@ -752,14 +803,20 @@ public class LayoutLib {
     public static Rectangle2D getBounds(Cell cell, Layer.Function function) {
         Rectangle2D bounds = null;
         Technology tech = cell.getTechnology();
+        List list = new ArrayList(1);
+        list.add(function); // to only query this layer
+
         // get layer from nodes
         for (Iterator it = cell.getNodes(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
-            Poly [] polys = tech.getShapeOfNode(ni);
+            AffineTransform trans = ni.rotateOut();
+            Poly [] polys = tech.getShapeOfNode(ni, null, null, false, true, list);
             if (polys == null) continue;
             for (int i=0; i<polys.length; i++) {
                 if (polys[i] == null) continue;
-                if (polys[i].getLayer().getFunction() == function) {
+                if (polys[i].getLayer().getFunction() == function)
+                {
+                    polys[i].transform(trans);
                     if (bounds == null)
                         bounds = polys[i].getBox();
                     else
@@ -770,7 +827,7 @@ public class LayoutLib {
         // get layer from arcs
         for (Iterator it = cell.getArcs(); it.hasNext(); ) {
             ArcInst ai = (ArcInst)it.next();
-            Poly [] polys = tech.getShapeOfArc(ai);
+            Poly [] polys = tech.getShapeOfArc(ai, null, null, list);
             if (polys == null) continue;
             for (int i=0; i<polys.length; i++) {
                 if (polys[i] == null) continue;

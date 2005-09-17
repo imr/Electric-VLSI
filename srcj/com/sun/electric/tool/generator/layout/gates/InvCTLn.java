@@ -90,7 +90,7 @@ public class InvCTLn {
 											inv, stdCell);
 			pmoss[nbFoldsP/2] = pmos;
 		}
-		stdCell.fillDiffNotches(pmoss);
+		stdCell.fillDiffAndSelectNotches(pmoss, true);
 		
 		// NMOS width dominates width of inv. Allocate it in one FoldedNmos
 		double nmosX = pmosX + 8;

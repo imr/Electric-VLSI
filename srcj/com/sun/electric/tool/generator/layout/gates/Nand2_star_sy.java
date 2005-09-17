@@ -99,7 +99,7 @@ class Nand2_star_sy {
 											fwN.gateWid, nand, stdCell);
 			nmoss[nbFoldsN/2] = nmos;
 		}
-		stdCell.fillDiffNotches(nmoss);
+		stdCell.fillDiffAndSelectNotches(nmoss, true);
 		
 		// create vdd and gnd exports and connect to MOS source/drains
 		stdCell.wireVddGnd(nmoss, StdCellParams.EVEN, nand);
@@ -155,7 +155,7 @@ class Nand2_star_sy {
 				PortInst g = pmos.getGate(i, 'B');
 				double gX = LayoutLib.roundCenterX(g) + offset;
 				if (inbX-gX<7)  offset -= 7 - (inbX-gX);
-				inA.connect(g, offset, 1.5);
+				inA.connect(g, offset, Tech.getPolyLShapeOffset());
 			}
 		}
 		

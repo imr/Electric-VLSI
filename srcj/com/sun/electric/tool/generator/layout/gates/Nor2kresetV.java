@@ -107,7 +107,7 @@ public class Nor2kresetV {
 											nor, stdCell);
 			nmoss[nbFoldsN/2] = nmos;
 		}
-		stdCell.fillDiffNotches(nmoss);
+		stdCell.fillDiffAndSelectNotches(nmoss, true);
 		
 		// Strong NMOS is 10x size of weak NMOS
 		double rightNDiffX = StdCellParams.getRightDiffX(nmoss, nmoss);
