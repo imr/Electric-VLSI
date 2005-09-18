@@ -892,11 +892,6 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		this.libFile = TextUtils.makeURLToFile(newLibFile);
         
         Cell curCell = getCurCell();
-        try {
-            prefs.removeNode();
-        } catch (BackingStoreException e) {
-            ActivityLogger.logException(e);
-        }
         prefs = allPrefs.node(libName);
         prefs.put("LIB", libName);
         curCellPref = null;

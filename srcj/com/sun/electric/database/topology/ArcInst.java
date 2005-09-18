@@ -339,7 +339,22 @@ public class ArcInst extends Geometric implements Comparable
 
 		// make sure points are valid
         Cell parent = head.getNodeInst().getParent();
-      
+        Poly headPoly = head.getPoly();
+        if (!stillInPoly(headP, headPoly)) {
+			System.out.println("Error in " + parent + ": head of " + type.getName() +
+				" arc at (" + headP.getX() + "," + headP.getY() + ") does not fit in " +
+				head + " which is centered at (" + headPoly.getCenterX() + "," + headPoly.getCenterY() + ")");
+			return null;
+		}
+        Poly tailPoly = tail.getPoly();
+		if (!stillInPoly(tailP, tailPoly))
+		{
+			System.out.println("Error in " + parent + ": tail of " + type.getName() +
+				" arc at (" + tailP.getX() + "," + tailP.getY() + ") does not fit in " +
+				tail + " which is centered at (" + tailPoly.getCenterX() + "," + tailPoly.getCenterY() + ")");
+			return null;
+		}
+        
         return newInstance(parent, type, name, -1, null, head, tail, headP, tailP, width, defAngle, flags);
 	}
 
@@ -373,23 +388,7 @@ public class ArcInst extends Geometric implements Comparable
 			return null;
 		}
 
-        Poly headPoly = headPort.getPoly();
-        if (!stillInPoly(headPt, headPoly)) {
-			System.out.println("Error in " + parent + ": head of " + protoType.getName() +
-				" arc at (" + headPt.getX() + "," + headPt.getY() + ") does not fit in " +
-				headPort + " which is centered at (" + headPoly.getCenterX() + "," + headPoly.getCenterY() + ")");
-			return null;
-		}
-        Poly tailPoly = tailPort.getPoly();
-		if (!stillInPoly(tailPt, tailPoly))
-		{
-			System.out.println("Error in " + parent + ": tail of " + protoType.getName() +
-				" arc at (" + tailPt.getX() + "," + tailPt.getY() + ") does not fit in " +
-				tailPort + " which is centered at (" + tailPoly.getCenterX() + "," + tailPoly.getCenterY() + ")");
-			return null;
-		}
-        
-          // make sure the arc can connect to these ports
+        // make sure the arc can connect to these ports
         PortProto headProto = headPort.getPortProto();
 		PrimitivePort headPrimPort = headProto.getBasePort();
 		if (!headPrimPort.connectsTo(protoType))
@@ -532,8 +531,8 @@ public class ArcInst extends Geometric implements Comparable
 //		parent.linkArc(this);
 
 		// update end shrinkage information
-		updateShrinkage(headPortInst.getNodeInst());
-		updateShrinkage(tailPortInst.getNodeInst());		
+		headPortInst.updateShrinkage();
+		tailPortInst.updateShrinkage();		
 		
 		// fill in the geometry
 		updateGeometric();
@@ -557,8 +556,8 @@ public class ArcInst extends Geometric implements Comparable
 		parent.unLinkArc(this);
 
 		// update end shrinkage information
-		updateShrinkage(headPortInst.getNodeInst());
-		updateShrinkage(tailPortInst.getNodeInst());
+		headPortInst.updateShrinkage();
+		tailPortInst.updateShrinkage();
 		parent.checkInvariants();
 	}
 
@@ -576,17 +575,18 @@ public class ArcInst extends Geometric implements Comparable
 		parent.unLinkArc(this);
 
 		// now make the change
-        d = d.withWidth(d.width + dWidth);
-
-		if (dHeadX != 0 || dHeadY != 0)
-			d = d.withHeadLocation(new EPoint(d.headLocation.getX() + dHeadX, d.headLocation.getY() + dHeadY));
+        EPoint tail = d.tailLocation;
 		if (dTailX != 0 || dTailY != 0)
-			d = d.withTailLocation(new EPoint(d.tailLocation.getX() + dTailX, d.tailLocation.getY() + dTailY));
+			tail = new EPoint(tail.getX() + dTailX, tail.getY() + dTailY);
+         EPoint head = d.headLocation;
+        if (dHeadX != 0 || dHeadY != 0)
+            head = new EPoint(head.getX() + dHeadX, head.getY() + dHeadY);
+        d = d.withWidth(d.width + dWidth).withLocations(tail, head);
 		updateGeometric();
 
 		// update end shrinkage information
-		updateShrinkage(headPortInst.getNodeInst());
-		updateShrinkage(tailPortInst.getNodeInst());
+		headPortInst.updateShrinkage();
+		tailPortInst.updateShrinkage();
 
 		// reinsert in the R-Tree structure
 		parent.linkArc(this);
@@ -835,90 +835,6 @@ public class ArcInst extends Geometric implements Comparable
 	}
 
 	/**
-	 * Method to update the "end shrink" factors on all arcs on a NodeInst.
-	 * @param ni the node to update.
-	 */
-	private static void updateShrinkage(NodeInst ni)
-	{
-		//		ni.clearShortened();
-		for(Iterator it = ni.getConnections(); it.hasNext(); )
-		{
-			Connection con = (Connection)it.next();
-			byte shrink = checkShortening(ni, con.getPortInst().getPortProto());
-			//			if (shrink != 0) ni.setShortened();
-			con.setEndShrink(shrink);
-		}
-	}
-
-	private static final int MAXANGLES = 3;
-	private static int [] shortAngles = new int[MAXANGLES];
-
-	/**
-	 * Method to return the shortening factor for the arc connected to a port on a node.
-	 * @param ni the node
-	 * @param pp the port.
-	 * @return the shortening factor.  This is a number from 0 to 90, where
-	 * 0 indicates no shortening (extend the arc by half its width) and greater values
-	 * indicate that the end should be shortened to account for this angle of connection.
-	 * Small values are shortened almost to nothing, whereas large values are shortened
-	 * very little (and a value of 90 indicates no shortening at all).
-	 */
-	private static byte checkShortening(NodeInst ni, PortProto pp)
-	{
-		// quit now if we don't have to worry about this kind of nodeinst
-		NodeProto np = ni.getProto();
-		if (!(np instanceof PrimitiveNode)) return 0;
-		PrimitiveNode pn = (PrimitiveNode)np;
-		if (!pn.canShrink() && !pn.isArcsShrink()) return 0;
-
-		// gather the angles of the nodes/arcs
-		int total = 0, off90 = 0;
-		for(Iterator it = ni.getConnections(); it.hasNext(); )
-		{
-			Connection con = (Connection)it.next();
-			ArcInst ai = con.getArc();
-
-			// ignore zero-size arcs
-			if (ai.getWidth() == 0) continue;
-
-			// ignore this arcinst if it is not on the desired port
-			if (!pn.isArcsShrink() && con.getPortInst().getPortProto() != pp) continue;
-
-			// compute the angle
-			int ang = ai.getAngle() / 10;
-			if (con.getEndIndex() == ArcInst.HEADEND) ang += 180;
-			ang %= 360;
-			if ((ang%90) != 0) off90++;
-			if (total < MAXANGLES) shortAngles[total++] = ang; else
-				break;
-		}
-
-		// throw in the nodeinst rotation factor if it is important
-		if (pn.canShrink())
-		{
-			PrimitivePort pRp = (PrimitivePort)pp;
-			int ang = pRp.getAngle();
-			ang += (ni.getAngle()+5) / 10;
-//			if (ni->transpose != 0) { ang = 270 - ang; if (ang < 0) ang += 360; }
-			ang = (ang+180)%360;
-			if ((ang%90) != 0) off90++;
-			if (total < MAXANGLES) shortAngles[total++] = ang;
-		}
-
-		// all fine if all manhattan angles involved
-		if (off90 == 0) return 0;
-
-		// give up if too many arcinst angles
-		if (total != 2) return 0;
-
-		// compute and return factor
-		int ang = Math.abs(shortAngles[1]-shortAngles[0]);
-		if (ang > 180) ang = 360 - ang;
-		if (ang > 90) ang = 180 - ang;
-		return (byte)ang;
-	}
-
-	/**
 	 * Method to recompute the Geometric information on this ArcInst.
 	 */
 	private void updateGeometric()
@@ -1062,7 +978,7 @@ public class ArcInst extends Geometric implements Comparable
 //		return false;
 	}
     
-    static private boolean stillInPoly(Point2D pt, Poly poly) { return poly.isInside(pt) || poly.polyDistance(pt.getX(), pt.getY()) < MINPORTDISTANCE; }
+    private static boolean stillInPoly(Point2D pt, Poly poly) { return poly.isInside(pt) || poly.polyDistance(pt.getX(), pt.getY()) < MINPORTDISTANCE; }
     
     /****************************** TEXT ******************************/
 
@@ -1534,7 +1450,7 @@ public class ArcInst extends Geometric implements Comparable
 			}
 			if (repair)
 			{
-				d = d.withHeadLocation(new EPoint(poly.getCenterX(), poly.getCenterY()));
+				d = d.withLocations(d.tailLocation, new EPoint(poly.getCenterX(), poly.getCenterY()));
 				updateGeometric();
 			}
 			errorCount++;
@@ -1555,7 +1471,7 @@ public class ArcInst extends Geometric implements Comparable
 			}
 			if (repair)
 			{
-				d = d.withTailLocation(new EPoint(poly.getCenterX(), poly.getCenterY()));
+				d = d.withLocations(new EPoint(poly.getCenterX(), poly.getCenterY()), d.headLocation);
 				updateGeometric();
 			}
 			errorCount++;
@@ -1643,7 +1559,7 @@ public class ArcInst extends Geometric implements Comparable
 //        newBits &= ImmutableArcInst.DATABASE_BITS;
 		boolean extensionChanged = ImmutableArcInst.TAIL_EXTENDED.is(d.flags) != ImmutableArcInst.TAIL_EXTENDED.is(flags) ||
                 ImmutableArcInst.HEAD_EXTENDED.is(d.flags) != ImmutableArcInst.HEAD_EXTENDED.is(flags);
-        d = d.withFlags(flags);
+        d = d.withFlags(flags).withAngle(fromAi.d.angle);
 		if (isLinked() && extensionChanged) updateGeometric();
         Undo.otherChange(this);
 //		setHeadNegated(fromAi.isHeadNegated());

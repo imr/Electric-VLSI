@@ -362,6 +362,19 @@ public class Orientation {
     }
     
     /**
+     * Method to transform direction by the Orientation.
+     * @param angle the angle of initial direction in tenth-degrees.
+     * @return angle of transformed direction in tenth-degrees.
+     */
+    public int transformAngle(int angle) {
+        angle += this.cAngle;
+        if (cTranspose) angle = 2700 - angle;
+        angle %= 3600;
+        if (angle < 0) angle += 3600;
+        return angle;
+    }
+    
+    /**
 	 * Returns string which represents this Orientation in JELIB format.
 	 * @return string in JELIB format.
 	 */

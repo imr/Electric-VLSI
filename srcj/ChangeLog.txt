@@ -4,6 +4,21 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+BUG: (09/18/05, DN) If we add 90-angle polysilicon arc to the unconnected end of 45-angle transistor in
+    "Help|Make fake circuitry MoCMSO" example, we shall get a notch.
+FIX: Do not use "canShrink" in "PortInst.updateShrinkage" until PrimitiveNodes can be drawn shortened
+     in JElectric.
+
+BUG: (09/18/05, DN) 45-angle arc is not shrinked properly in "Help|Make fake circuitry MoCMOS" example.
+FIX: Add "PortInst.updateShrinkage" and "PortInst.checkShortening" methods which are improved verions of
+    "ArcInst.updateShrinkage" and "ArcInst.checkShortening".
+
+BUG: (09/18/05, DN) Expanded status of Cells which have '/' in name is not saved in preferences.
+FIX: In Cell.loadExpandStatus and Cell.saveExpandStatus put "cellName.replace('/', ':')".
+
+BUG: (09/18/05, DN) Compaction regression failed.
+FIX: In ArcInst.copyConstraintsFrom insert copy angle as well. 
+
 BUG: (09/16/05, RK) Fixed FillGenerator. It was placing Well outside Cell boundary on left and right. (Bugzilla# 551)
 
 IMP: (09/16/05, SMR) Added another General preference: the portion of the screen

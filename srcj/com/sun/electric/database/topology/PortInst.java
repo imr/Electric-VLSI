@@ -25,11 +25,14 @@ package com.sun.electric.database.topology;
 
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.Variable;
+import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.PrimitivePort;
 
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -121,6 +124,146 @@ public class PortInst extends ElectricObject
 		}
 		return exports.iterator();
 	}
+
+	/**
+	 * Method to update the "end shrink" factors on all arcs on a PortInst.
+	 */
+ 	void updateShrinkage()
+	{
+		// quit now if we don't have to worry about this kind of nodeinst
+		NodeProto np = nodeInst.getProto();
+		if (!(np instanceof PrimitiveNode)) return;
+		PrimitiveNode pn = (PrimitiveNode)np;
+        boolean canShrink = false/*pn.canShrink()*/;
+		if (!pn.isArcsShrink() && !canShrink) return;
+
+        byte shrink = checkShortening(canShrink);
+		for (Iterator it = nodeInst.getConnections(getPortIndex()); it.hasNext(); ) {
+			Connection con = (Connection)it.next();
+			if (con.getPortInst() != this) break;
+			con.setEndShrink(shrink);
+		}
+	}
+   
+	/**
+	 * Method to return the shortening factor for the arcs connected to this PortInst.
+	 * @return the shortening factor.  This is a number from 0 to 90, where
+	 * 0 indicates no shortening (extend the arc by half its width) and greater values
+	 * indicate that the end should be shortened to account for this angle of connection.
+	 * Small values are shortened almost to nothing, whereas large values are shortened
+	 * very little (and a value of 90 indicates no shortening at all).
+	 */
+	private byte checkShortening(boolean canShrink)
+	{
+        int ang0 = -1;
+        int ang1 = -1;
+
+		// gather the angles of the nodes/arcs
+		for (Iterator it = nodeInst.getConnections(getPortIndex()); it.hasNext(); ) {
+			Connection con = (Connection)it.next();
+			if (con.getPortInst() != this) break;
+			ArcInst ai = con.getArc();
+
+			// ignore zero-size arcs
+			if (ai.getWidth() == 0) continue;
+
+			// compute the angle
+			int angle = ai.getAngle();
+			angle %= 1800;
+            if (angle == ang0 || angle == ang1) continue;
+            if (ang0 < 0)
+                ang0 = angle;
+            else if (ang1 < 0)
+                ang1 = angle;
+            else
+                return 0;		// give up if too many angles
+		}
+
+		// throw in the nodeinst rotation factor if it is important
+		if (false/*canShrink*/)
+		{
+			PrimitivePort pRp = (PrimitivePort)portProto;
+			int angle = nodeInst.getOrient().transformAngle(pRp.getAngle()*10);
+            angle %= 1800;
+            if (angle != ang0 && angle != ang1)
+            {
+                if (ang0 < 0)
+                    ang0 = angle;
+                else if (ang1 < 0)
+                    ang1 = angle;
+                else
+                    return 0;		// give up if too many angles
+            }
+		}
+
+        // only one angle
+        if (ang1 < 0) return 0;
+        
+        int ang = Math.abs(ang0 - ang1);
+        if (ang > 900) ang = 1800 - ang;
+        int shrink = (ang + 5) / 10;
+        if (shrink == 0 && ang != 0) shrink = 1;
+        return (byte)shrink;
+	}
+    
+//	private static final int MAXANGLES = 3;
+//	private static int [] shortAngles = new int[MAXANGLES];
+//
+//	/**
+//	 * Method to return the shortening factor for the arc connected to a port on a node.
+//	 * @param ni the node
+//	 * @param pp the port.
+//	 * @return the shortening factor.  This is a number from 0 to 90, where
+//	 * 0 indicates no shortening (extend the arc by half its width) and greater values
+//	 * indicate that the end should be shortened to account for this angle of connection.
+//	 * Small values are shortened almost to nothing, whereas large values are shortened
+//	 * very little (and a value of 90 indicates no shortening at all).
+//	 */
+//	private byte checkShortening(boolean canShrink)
+//	{
+//		// gather the angles of the nodes/arcs
+//		int total = 0, off90 = 0;
+//		for(Iterator it = getConnections(); it.hasNext(); )
+//		{
+//			Connection con = (Connection)it.next();
+//			ArcInst ai = con.getArc();
+//
+//			// ignore zero-size arcs
+//			if (ai.getWidth() == 0) continue;
+//
+//			// compute the angle
+//			int ang = ai.getAngle() / 10;
+//			if (con.getEndIndex() == ArcInst.HEADEND) ang += 180;
+//			ang %= 360;
+//			if ((ang%90) != 0) off90++;
+//			if (total < MAXANGLES) shortAngles[total++] = ang; else
+//				break;
+//		}
+//
+//		// throw in the nodeinst rotation factor if it is important
+//		if (canShrink)
+//		{
+//			PrimitivePort pRp = (PrimitivePort)portProto;
+//			int ang = pRp.getAngle();
+//			ang += (nodeInst.getAngle()+5) / 10;
+////			if (ni->transpose != 0) { ang = 270 - ang; if (ang < 0) ang += 360; }
+//			ang = (ang+180)%360;
+//			if ((ang%90) != 0) off90++;
+//			if (total < MAXANGLES) shortAngles[total++] = ang;
+//		}
+//
+//		// all fine if all manhattan angles involved
+//		if (off90 == 0) return 0;
+//
+//		// give up if too many arcinst angles
+//		if (total != 2) return 0;
+//
+//		// compute and return factor
+//		int ang = Math.abs(shortAngles[1]-shortAngles[0]);
+//		if (ang > 180) ang = 360 - ang;
+//		if (ang > 90) ang = 180 - ang;
+//		return (byte)ang;
+//	}
 
 	/**
 	 * Method to prepare this PortInst to deletion.

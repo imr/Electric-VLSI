@@ -336,31 +336,18 @@ public class ImmutableArcInst
 	}
 
 	/**
-	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by tailLocation.
+	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by tailLocation and headLocation.
 	 * @param tailLocation new tail location.
-	 * @return ImmutableArcInst which differs from this ImmutableArcInst by tailLocation.
+     * @param headLocation new head location.
+	 * @return ImmutableArcInst which differs from this ImmutableArcInst by tailLocation and headLocation.
 	 * @throws NullPointerException if tailLocation is null.
 	 */
-	public ImmutableArcInst withTailLocation(EPoint tailLocation) {
-		if (this.tailLocation == tailLocation) return this;
+	public ImmutableArcInst withLocations(EPoint tailLocation, EPoint headLocation) {
+		if (this.tailLocation == tailLocation && this.headLocation == headLocation) return this;
 		if (tailLocation == null) throw new NullPointerException("tailLocation");
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
-                this.tailNodeId, this.tailPortId, tailLocation,
-                this.headNodeId, this.headPortId, this.headLocation,
-                this.width, tailLocation.distance(headLocation), updateAngle(this.angle, tailLocation, headLocation), this.flags);
-	}
-
-	/**
-	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by headLocation.
-	 * @param headLocation new head location.
-	 * @return ImmutableArcInst which differs from this ImmutableArcInst by headLocation.
-	 * @throws NullPointerException if headLocation is null.
-	 */
-	public ImmutableArcInst withHeadLocation(EPoint headLocation) {
-		if (this.headLocation == headLocation) return this;
 		if (headLocation == null) throw new NullPointerException("headLocation");
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
-                this.tailNodeId, this.tailPortId, this.tailLocation,
+                this.tailNodeId, this.tailPortId, tailLocation,
                 this.headNodeId, this.headPortId, headLocation,
                 this.width, tailLocation.distance(headLocation), updateAngle(this.angle, tailLocation, headLocation), this.flags);
 	}

@@ -379,7 +379,7 @@ public class NCCTab extends PreferencePanel
 
         misc.setBorder(new javax.swing.border.TitledBorder("Miscellaneous"));
         backAnnotateLayNetNamesFromSch.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
-        backAnnotateLayNetNamesFromSch.setLabel("Back-annotate layout nets with schematic net names after matching");
+        backAnnotateLayNetNamesFromSch.setText("Back-annotate layout nets with schematic net names after matching");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;

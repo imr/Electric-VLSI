@@ -3569,7 +3569,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
      * Method to load isExpanded status of subcell instances from Preferences.
      */    
     public void loadExpandStatus() {
-        String cellName = noLibDescribe();
+        String cellName = noLibDescribe().replace('/', ':');
         String cellKey = "E" + cellName;
         boolean useWantExpanded = false, mostExpanded = false;
         if (lib.prefs.get(cellKey, null) == null)
@@ -3611,7 +3611,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
             if (ni.isExpanded() != ((Cell)ni.getProto()).isWantExpanded())
                 diff++;
         }
-        String cellName = noLibDescribe();
+        String cellName = noLibDescribe().replace('/', ':');
         String cellKey = "E" + cellName;
         boolean useWantExpanded = false, mostExpanded = false;
         if (diff <= expanded && diff <= num - expanded) {
