@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+IMP/MAN (09/18/05, GVG) Gate generator for TSMC180
+
 BUG: (09/18/05, DN) If we add 90-angle polysilicon arc to the unconnected end of 45-angle transistor in
     "Help|Make fake circuitry MoCMSO" example, we shall get a notch.
 FIX: Do not use "canShrink" in "PortInst.updateShrinkage" until PrimitiveNodes can be drawn shortened
