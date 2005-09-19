@@ -27,6 +27,8 @@ package com.sun.electric.tool.io.output;
 import com.sun.electric.database.hierarchy.*;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.topology.ArcInst;
+import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
@@ -55,13 +57,18 @@ public class ScanChainXML {
         public final String clears;
         public final String inport;
         public final String outport;
+        public final String dataport;
+        public final String dataportBar;
 
-        private ScanChainElement(String name, String access, String clears, String inport, String outport) {
+        private ScanChainElement(String name, String access, String clears, String inport,
+                                 String outport, String dataport, String dataportBar) {
             this.name = name;
             this.access = access;
             this.clears = clears;
             this.inport = inport;
             this.outport = outport;
+            this.dataport = dataport;
+            this.dataportBar = dataportBar;
         }
     }
 
@@ -172,7 +179,25 @@ public class ScanChainXML {
      * May contain index info, such as "ss[1]"
      */
     public void addScanChainElement(String name, String access, String clears, String inport, String outport) {
-        ScanChainElement e = new ScanChainElement(name, access, clears, inport, outport);
+        ScanChainElement e = new ScanChainElement(name, access, clears, inport, outport, "", "");
+        scanChainElements.put(name+"_"+inport, e);
+    }
+
+    /**
+     * Specify a scan chain element.  When an instance of this is found, it is will
+     * be parsed as one bit in the scan chain.
+     * @param name name of the cell to be defined as a scan chain element.
+     * @param access the access type: for example, "RW".
+     * @param clears the clears type: for example, "L".
+     * @param inport the name of input data port, typically "sin".
+     * May contain index info, such as "s[1]"
+     * @param outport the name of the output data port, typically "sout".
+     * May contain index info, such as "ss[1]"
+     * @param dataport the name of the port the scan data is written to on "write". May be empty string.
+     * @param dataportBar the name of the port the inverse of the scan data is written to on "write". May be empty string.
+     */
+    public void addScanChainElement(String name, String access, String clears, String inport, String outport, String dataport, String dataportBar) {
+        ScanChainElement e = new ScanChainElement(name, access, clears, inport, outport, dataport, dataportBar);
         scanChainElements.put(name+"_"+inport, e);
     }
 
@@ -232,7 +257,7 @@ public class ScanChainXML {
         jtagCell = cell;
         jtagController = new JtagController(jtagCellName, lengthIR);
         //PassThroughCell endCell = new PassThroughCell(jtagCellName, null, null);
-        endChain = new SubChain("end:jtagController", -1, null, null);
+        endChain = new SubChain("end:jtagController", -1);
     }
 
     /**
@@ -363,7 +388,7 @@ public class ScanChainXML {
                 String chainName = jtagPort.chainName;
                 if (chainName == null)
                     chainName = "chain_"+jtagPort.soutPort;
-                Chain chain = new Chain(chainName, jtagPort.opcode, -1, null, null);
+                Chain chain = new Chain(chainName, jtagPort.opcode, -1);
                 Stack startNodeCopy = new Stack();
                 startNodeCopy.addAll(startNode);
                 startChain(chain, startNodeCopy, jtagPort.soutPort);
@@ -379,7 +404,7 @@ public class ScanChainXML {
                 chains.add(chain);
             }
         } else if (startExport != null) {
-            Chain chain = new Chain(oneChainName, 0, -1, null, null);
+            Chain chain = new Chain(oneChainName, 0, -1);
             appendChain(chain, getOtherPorts(startExport));
             int found = chain.numScanElements();
             System.out.println("Info: completed successfully: chain "+oneChainName+" had "+found+" scan chain elements");
@@ -467,15 +492,23 @@ public class ScanChainXML {
         protected int length;                         // not output if 0 or less
         protected String access;                      // not output if null
         protected String clears;                      // not output if null
+        protected String dataNet;                     // network data is written to, not output if null
+        protected String dataNetBar;                  // network dataBar is written to, not output if null
         private List subchains;                       // list of ScanChainInstances
 
-        private Chain(String name, int opcode, int length, String access, String clears) {
+        private Chain(String name, int opcode, int length, String access, String clears,
+                      String dataNet, String dataNetBar) {
             this.name = name;
             this.opcode = opcode;
             this.length = length;
             this.access = access;
             this.clears = clears;
+            this.dataNet = dataNet;
+            this.dataNetBar = dataNetBar;
             subchains = new ArrayList();
+        }
+        private Chain(String name, int opcode, int length) {
+            this(name, opcode, length, null, null, null, null);
         }
 
         protected void addSubChainInst(SubChainInst subChain) {
@@ -510,6 +543,8 @@ public class ScanChainXML {
             if (length > 0) out.print(" length=\""+length+"\"");
             if (access != null) out.print(" access=\""+access+"\"");
             if (clears != null) out.print(" clears=\""+clears+"\"");
+            if (dataNet != null) out.print(" dataNet=\""+dataNet+"\"");
+            if (dataNetBar != null) out.print(" dataNetBar=\""+dataNetBar+"\"");
 
             // short hand if no elements
             if (subchains.size() == 0) {
@@ -599,9 +634,12 @@ public class ScanChainXML {
     private static class SubChain extends Chain {
         private boolean passThrough;
 
-        private SubChain(String name, int length, String access, String clears) {
-            super(name, -1, length, access, clears);
+        private SubChain(String name, int length, String access, String clears, String dataNet, String dataNetBar) {
+            super(name, -1, length, access, clears, dataNet, dataNetBar);
             passThrough = false;
+        }
+        private SubChain(String name, int length) {
+            super(name, -1, length);
         }
         protected String getTag() { return "subchain"; }
         private void setPassThrough(boolean b) { passThrough = b; }
@@ -619,7 +657,7 @@ public class ScanChainXML {
         }
 
         public Object clone() {
-            SubChain sub = new SubChain(name, length, access, clears);
+            SubChain sub = new SubChain(name, length, access, clears, dataNet, dataNetBar);
             this.copyTo(sub);
             sub.passThrough = passThrough;
             return sub;
@@ -639,7 +677,7 @@ public class ScanChainXML {
         private ExPort outExport;
 
         private Entity(Cell cell) {
-            super(cell.getName(), -1, null, null);
+            super(cell.getName(), -1);
             this.cell = cell;
         }
 
@@ -773,7 +811,7 @@ public class ScanChainXML {
             return subChainInst;
         }
         // need to descend to get to start of chain
-        SubChain subChain = new SubChain(no.getName(), 0, "", "");
+        SubChain subChain = new SubChain(no.getName(), 0);
         SubChainInst curInst = new SubChainInst(null, null, no, subChain);
         chain.addSubChainInst(curInst);
         if (DEBUG) System.out.println("Recursing from "+no.getParent().describe(true)+" into "+no.getName()+", looking for startNode");
@@ -812,7 +850,7 @@ public class ScanChainXML {
             // find output port
             Port outport = getPort(no, p.outport);
             // make dummy subchain with no length
-            SubChain sub = new SubChain(p.cellName, -1, null, null);
+            SubChain sub = new SubChain(p.cellName, -1);
             sub.setPassThrough(true);
             inst = new SubChainInst(inport, outport, no, sub);
             if (DEBUG) System.out.println("  ...matched pass through cell "+p.cellName);
@@ -828,12 +866,14 @@ public class ScanChainXML {
                 if (no.getNodeInst().getNameKey().isBus()) {
                     // conglomerate into one subchain
                     int size = no.getNodeInst().getNameKey().busWidth();
-                    sub = new SubChain(no.getNodeInst().getName(), size, e.access, e.clears);
+                    sub = new SubChain(no.getNodeInst().getName(), size, e.access, e.clears,
+                            getNetName(no, e.dataport), getNetName(no, e.dataportBar));
                     Nodable lastNo = Netlist.getNodableFor(no.getNodeInst(), size-1);
                     outport = getPort(lastNo, e.outport);
                     no = no.getNodeInst();
                 } else {
-                    sub = new SubChain(no.getName(), 1, e.access, e.clears);
+                    sub = new SubChain(no.getName(), 1, e.access, e.clears,
+                        getNetName(no, e.dataport), getNetName(no, e.dataportBar));
                     // find output port
                     outport = getPort(no, e.outport);
                 }
@@ -859,6 +899,17 @@ public class ScanChainXML {
 
         //System.out.println("Error! Scan chain terminated on node "+ni.getName()+" ("+ni.getParent().getName()+")");
         return null;
+    }
+
+    // get the network name connect to port 'portName' on 'no'.  Returns null if none found.
+    private String getNetName(Nodable no, String portName) {
+        String netName = null;
+        PortInst pi = no.getNodeInst().findPortInst(portName);
+        if (pi.getConnections().hasNext()) {
+            ArcInst ai = ((Connection)pi.getConnections().next()).getArc();
+            netName = no.getParent().getNetlist(true).getBusName(ai).toString();
+        }
+        return netName;
     }
 
     /**
@@ -936,7 +987,7 @@ public class ScanChainXML {
             SubChainInst inst = getSubChain(p);
             if (inst == null) continue;         // possible dead end
 
-            Chain tempChain = new Chain("temp", -1, -1, null, null);
+            Chain tempChain = new Chain("temp", -1, -1);
             SubChain sub = inst.content;
             if (sub == endChain) {
                 tempChain.addSubChainInst(inst);
