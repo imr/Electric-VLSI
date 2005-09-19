@@ -1239,7 +1239,12 @@ public class EditWindow extends JPanel
 			{
 				if (runningNow == this)
 				{
-					runningNow.vd.abortRendering();
+					if (!User.isUseOlderDisplayAlgorithm())
+					{
+						runningNow.vd.abortRendering();
+						if (!redrawThese.contains(this))
+							redrawThese.add(this);
+					}
 				} else
 				{
 					if (!redrawThese.contains(this))

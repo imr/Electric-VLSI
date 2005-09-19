@@ -98,7 +98,6 @@ public class VectorDrawing
 
 	/** list of cell expansions. */							private static HashMap cachedCells = new HashMap();
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-	/** no rotation or mirroring */							private static final Orientation NOROTATION = Orientation.fromJava(0, false, false);
 	private static EGraphics textGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private static EGraphics instanceGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,true,
@@ -335,6 +334,8 @@ public class VectorDrawing
 		Cell cell;
 		HashMap orientations;
 		VectorCell any;
+		double sizeX, sizeY;
+		List exports;
 
 		VectorCellGroup(Cell cell)
 		{
@@ -365,6 +366,15 @@ public class VectorDrawing
 			orientations.put(orientationName, vc);
 			any = vc;
 		}
+	}
+
+	/**
+	 * Class which defines the exports on a cell (used to tell if they changed)
+	 */
+	static class VectorCellExport
+	{
+		String exportName;
+		Point2D exportCtr;
 	}
 
 	/**
@@ -468,8 +478,8 @@ public class VectorDrawing
 		stopRendering = false;
 		try
 		{
-			VectorCell topVC = drawCell(cell, NOROTATION, context);
-			render(topVC, 0, 0, NOROTATION, context, true);
+			VectorCell topVC = drawCell(cell, Orientation.IDENT, context);
+			render(topVC, 0, 0, Orientation.IDENT, context, true);
 		} catch (AbortRenderingException e)
 		{
 		}
@@ -546,6 +556,41 @@ public class VectorDrawing
 	 */
 	public static void cellChanged(Cell cell)
 	{
+		if (cell.isLinked())
+		{
+			// cell still valid: see if it changed from last cache
+			VectorCellGroup vcg = (VectorCellGroup)cachedCells.get(cell);
+			if (vcg != null && vcg.exports != null)
+			{
+				boolean changed = false;
+				Rectangle2D cellBounds = cell.getBounds();
+				if (vcg.sizeX != cellBounds.getWidth() || vcg.sizeY != cellBounds.getHeight()) changed = true; else
+				{
+					Iterator cIt = vcg.exports.iterator();
+					for(Iterator it = cell.getPorts(); it.hasNext(); )
+					{
+						Export e = (Export)it.next();
+						if (!cIt.hasNext()) { changed = true;   break; }
+						VectorCellExport vce = (VectorCellExport)cIt.next();
+						if (!vce.exportName.equals(e.getName()))  { changed = true;   break; }
+						Poly poly = e.getOriginalPort().getPoly();
+						if (vce.exportCtr.getX() != poly.getCenterX() ||
+							vce.exportCtr.getY() != poly.getCenterY()) { changed = true;   break; }
+					}
+					if (cIt.hasNext()) changed = true;
+				}
+
+				// queue parent cells for recaching if the bounds or exports changed
+				if (changed)
+				{
+					for(Iterator it = cell.getUsagesOf(); it.hasNext(); )
+					{
+	                    CellUsage u = (CellUsage)it.next();
+						cellChanged(u.getParent());
+					}
+				}
+			}
+		}
 //System.out.println("REMOVING CACHE FOR CELL "+cell);
 		cachedCells.remove(cell);
 	}
@@ -607,7 +652,7 @@ public class VectorDrawing
 				VectorCell subVC = vcg.getAnyCell();
 				VarContext subContext = context.push(vsc.ni);
 				if (subVC == null)
-					subVC = drawCell(vsc.subCell, NOROTATION, subContext);
+					subVC = drawCell(vsc.subCell, Orientation.IDENT, subContext);
 				int fadeColor = getFadeColor(subVC, subContext);
 				drawTinyBox(lX, hX, lY, hY, fadeColor);
 				tinySubCellCount++;
@@ -1101,7 +1146,7 @@ public class VectorDrawing
 			VectorCell subVC = vcg.getAnyCell();
 			VarContext subContext = context.push(vsc.ni);
 			if (subVC == null)
-				subVC = drawCell(vsc.subCell, NOROTATION, subContext);
+				subVC = drawCell(vsc.subCell, Orientation.IDENT, subContext);
 			gatherContents(subVC, layerAreas, subContext);
 		}
 	}
@@ -1148,6 +1193,23 @@ public class VectorDrawing
 		Rectangle2D cellBounds = cell.getBounds();
 		vc.cellSize = (float)(cellBounds.getWidth() * cellBounds.getHeight());
 		AffineTransform trans = prevTrans.pureRotate();
+
+		// save size and export centers to detect hierarchical changes later (TODO: use it)
+		if (vcg.exports == null)
+		{
+			vcg.exports = new ArrayList();
+			vcg.sizeX = cellBounds.getWidth();
+			vcg.sizeY = cellBounds.getHeight();
+			for(Iterator it = cell.getPorts(); it.hasNext(); )
+			{
+				Export e = (Export)it.next();
+				VectorCellExport vce = new VectorCellExport();
+				vce.exportName = e.getName();
+				Poly poly = e.getOriginalPort().getPoly();
+				vce.exportCtr = new Point2D.Double(poly.getCenterX(), poly.getCenterY());
+				vcg.exports.add(vce);
+			}
+		}
 
 //System.out.println("CACHING CELL "+cell +" WITH ORIENTATION "+orientationName);
 		// draw all arcs
