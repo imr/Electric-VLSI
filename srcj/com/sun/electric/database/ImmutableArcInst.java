@@ -376,9 +376,10 @@ public class ImmutableArcInst
 	 * @return ImmutableArcInst which differs from this ImmutableArcInst by user bits.
 	 */
 	public ImmutableArcInst withAngle(int angle) {
+        if (!tailLocation.equals(headLocation)) return this;
         angle %= 3600;
-        if (angle < 3600) angle += 3600;
-		if (this.angle == angle || !tailLocation.equals(headLocation)) return this;
+        if (angle < 0) angle += 3600;
+		if (this.angle == angle) return this;
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
