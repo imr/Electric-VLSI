@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
-IMP/MAN: (09/20/05, SMR) Multi-object Properties dialog is smarter about the selected objects (Bug #435)
+IMP/MAN: (09/20/05, SMR) Multi-object Properties dialog is smarter about the selected objects (Bug #403, #435)
 
 BUG: (09/20/05, DN) Cleanup pins doen't delete all duplicate arcs (Bug #552).
 FIX: In CircuitChanges.cleanupCell iterates on arcs instead of on nodes.
