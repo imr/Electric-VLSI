@@ -189,6 +189,8 @@ public class ImmutableNodeInst
             int flags, int techBits, ImmutableTextDescriptor protoDescriptor) {
 		if (protoId == null) throw new NullPointerException("protoId");
 		if (name == null) throw new NullPointerException("name");
+        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
+        if (name.hasDuplicates()) throw new IllegalArgumentException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
         if (orient == null) throw new NullPointerException("orient");
 		if (anchor == null) throw new NullPointerException("anchor");
@@ -234,6 +236,8 @@ public class ImmutableNodeInst
 	public ImmutableNodeInst withName(Name name, int duplicate) {
 		if (this.name == name && this.duplicate == duplicate) return this;
 		if (name == null) throw new NullPointerException("name");
+        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
+        if (name.hasDuplicates()) throw new IllegalArgumentException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
 		return new ImmutableNodeInst(this.nodeId, this.protoId, name, duplicate, this.nameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor);
@@ -377,7 +381,10 @@ public class ImmutableNodeInst
 	public void check() {
 		assert protoId != null;
 		assert name != null;
-		assert anchor != null;
+        assert name.isValid() && !name.hasEmptySubnames();
+        assert !(name.isTempname() && name.isBus());
+        assert !name.hasDuplicates();
+ 		assert anchor != null;
         assert duplicate >= 0;
         assert orient != null;
         assert anchor != null;

@@ -925,11 +925,11 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable
 	public PortProto findPortProto(Name name)
 	{
         if (name == null) return null;
-		name = name.lowerCase();
+		name = name.canonic();
 		for (int i = 0; i < primPorts.length; i++)
 		{
 			PrimitivePort pp = primPorts[i];
-			if (pp.getNameKey().lowerCase() == name)
+			if (pp.getNameKey().canonic() == name)
 				return pp;
 		}
 		return null;

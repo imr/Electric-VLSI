@@ -83,6 +83,60 @@ public class TextUtils
         return isDigit(ch) || Character.isLetter(ch);
     }
 
+    /**
+     * Returns canonic char for ignore-case comparison .
+     * FORALL String ch1, ch2: ch1.equalsIgnoreCase(s2) == canonicString(s1).equals(canonicString(s2)
+     * FORALL String s: canonicString(canonicString(s)).equals(canonicString(s))
+     * @param ch given char
+     * @return canonic char
+     * Simple "toLowerCase" is not sufficent.
+     * For example ("\u0131").equalsIgnoreCase("i") , but Character.toLowerCase('\u0131') == '\u0131' .
+     */
+    public static char canonicChar(char ch)
+    {
+        return Character.toLowerCase(Character.toUpperCase(ch));
+    }
+    
+    /**
+     * Returns canonic string for ignore-case comparision .
+     * FORALL String s1, s2: s1.equalsIgnoreCase(s2) == canonicString(s1).equals(canonicString(s2)
+     * FORALL String s: canonicString(canonicString(s)).equals(canonicString(s))
+     * @param s given String
+     * @return canonic String
+     */
+    public static String canonicString(String s) {
+        int i = 0;
+        for (; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            char canonicCh = Character.toLowerCase(Character.toUpperCase(ch));
+            if (canonicCh != ch) break;
+        }
+        if (i == s.length()) return s;
+        
+        char[] newChars = new char[s.length()];
+        for (int j = 0; j < i; j++)
+            newChars[j] = s.charAt(j);
+        for (; i < s.length(); i++)
+            newChars[i] = Character.toLowerCase(Character.toUpperCase(s.charAt(i)));
+        return new String(newChars);
+    }
+   
+//    static {
+//        for (int i = Character.MIN_VALUE; i <= Character.MAX_VALUE; i++) {
+//            char ch = (char)i;
+//            char toLower = Character.toLowerCase(ch);
+//            char toUpper = Character.toUpperCase(ch);
+//            char canonic = canonicChar(toUpper);
+//            if (canonic != toLower) {
+//                System.out.println(ch + " " + Integer.toHexString(ch) +
+//                        " lower " + toLower + " " + Integer.toHexString(toLower) +
+//                        " upper " + toUpper + " " + Integer.toHexString(toUpper) +
+//                        " canonic " + canonic + " " + Integer.toHexString(canonic));
+//                assert Character.toLowerCase(Character.toUpperCase(canonic)) == canonic;
+//            }
+//        }
+//    }
+    
 	/**
 	 * Method to determine if one string is a subset of another, but case-insensitive.
 	 * @param main the main string.
@@ -96,8 +150,8 @@ public class TextUtils
 		if (withLen > mainLen) return false;
 		for(int i=0; i<withLen; i++)
 		{
-			char mainChr = Character.toLowerCase(main.charAt(i));
-			char withChr = Character.toLowerCase(with.charAt(i));
+			char mainChr = canonicChar(main.charAt(i));
+			char withChr = canonicChar(with.charAt(i));
 			if (mainChr != withChr) return false;
 		}
 		return true;
@@ -641,8 +695,8 @@ public class TextUtils
 
 		// case-insensitive search
 		if (startingPos > 0) string = string.substring(startingPos);
-		String stringLC = string.toLowerCase();
-		String searchLC = search.toLowerCase();
+		String stringLC = canonicString(string);
+		String searchLC = canonicString(search);
 		int i = 0;
 		if (reverse) i = stringLC.lastIndexOf(searchLC); else
 			i = stringLC.indexOf(searchLC);

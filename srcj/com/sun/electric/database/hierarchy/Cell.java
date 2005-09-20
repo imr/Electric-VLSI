@@ -2198,11 +2198,11 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
         if (name == null) return null;
 		int portIndex = searchExport(name.toString());
 		if (portIndex >= 0) return exports[portIndex];
-		name = name.lowerCase();
+		name = name.canonic();
 		for (int i = 0; i < exports.length; i++)
 		{
 			Export e = exports[i];
-			if (e.getNameKey().lowerCase() == name)
+			if (e.getNameKey().canonic() == name)
 				return e;
 		}
 		return null;
@@ -2530,7 +2530,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 		if (ms == null)
 		{
 			ms = new MaxSuffix();
-			maxSuffix.put(basename.lowerCase(), ms);
+			maxSuffix.put(basename.canonic(), ms);
 			return basename.findSuffixed(0);
 		} else 
 		{
@@ -2547,12 +2547,12 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	{
 		Name name = geom.getNameKey();
 		if (!name.isTempname()) return;
-		tempNames.put(name.lowerCase(), geom);
+		tempNames.put(name.canonic(), geom);
 
 		Name basename = name.getBasename();
 		if (basename != null && basename != name)
 		{
-			basename = basename.lowerCase(); 
+			basename = basename.canonic(); 
 			MaxSuffix ms = (MaxSuffix) maxSuffix.get(basename);
 			if (ms == null)
 			{
@@ -2575,7 +2575,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	{
 		Name name = geom.getNameKey();
 		if (!name.isTempname()) return;
-		tempNames.remove(name.lowerCase());
+		tempNames.remove(name.canonic());
 	}
 
 	/**
@@ -2671,7 +2671,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 */
 	public boolean isUniqueName(Name name, Class cls, ElectricObject exclude)
 	{
-		name = name.lowerCase();
+		name = name.canonic();
 		if (cls == PortProto.class)
 		{
 			PortProto pp = findExport(name);
@@ -2690,7 +2690,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				NodeInst ni = (NodeInst)it.next();
 				if (exclude == ni) continue;
 				Name nodeName = ni.getNameKey();
-				if (name == nodeName.lowerCase()) return false;
+				if (name == nodeName.canonic()) return false;
 			}
 			return true;
 		}
@@ -2706,7 +2706,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 				ArcInst ai = (ArcInst)it.next();
 				if (exclude == ai) continue;
 				Name arcName = ai.getNameKey();
-				if (name == arcName.lowerCase()) return false;
+				if (name == arcName.canonic()) return false;
 			}
 			return true;
 		}

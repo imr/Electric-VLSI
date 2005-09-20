@@ -45,9 +45,8 @@ import java.util.Map;
  */
 public class Name implements Comparable
 {
-	/** the original name */	private final String ons;
-	/** the canonical name */	private final String ns;
-	/** the lowercase name */	private final Name lowerCase;
+	/** the original name */	private final String ns;
+	/** the canonic name */     private final Name canonic;
 	/** list of subnames */		private Name[] subnames;
 	/** basename */				private final Name basename;
 	/** numerical suffix */     private final int numSuffix;
@@ -83,13 +82,13 @@ public class Name implements Comparable
 	 * Returns a printable version of this Name.
 	 * @return a printable version of this Name.
 	 */
-	public final String toString() { return ons; }
+	public final String toString() { return ns; }
 
 	/**
-	 * Returns lowerCase equivalent of this Name.
-	 * @return lowerCase equivalent of this Name.
+	 * Returns canonic equivalent of this Name.
+	 * @return canonic equivalent of this Name.
 	 */
-	public final Name lowerCase() { return lowerCase; }
+	public final Name canonic() { return canonic; }
 
     /**
      * Compares this Name with the specified Name for order.  Returns a
@@ -101,8 +100,8 @@ public class Name implements Comparable
      */
     public int compareTo(Name name)
 	{
-		if (lowerCase == name.lowerCase) return 0;
-		return lowerCase.ns.compareTo(name.lowerCase.ns);
+		if (canonic == name.canonic) return 0;
+		return canonic.ns.compareTo(name.canonic.ns);
 	}
 
     /**
@@ -135,7 +134,7 @@ public class Name implements Comparable
 		if (anObject instanceof Name)
 		{
 			Name anotherName = (Name)anObject;
-			return lowerCase == anotherName.lowerCase;
+			return canonic == anotherName.canonic;
 		}
 		return false;
 	}
@@ -145,7 +144,7 @@ public class Name implements Comparable
      * <code>TextDescriptor</code> object is computed as sum of its fields.
      * @return  a hash code value for this object.
      */
-    public int hashCode() { return lowerCase == this ? super.hashCode() : lowerCase.hashCode(); }
+    public int hashCode() { return canonic == this ? super.hashCode() : canonic.hashCode(); }
 
 	/**
 	 * Tells whether or not this Name is a valid bus or signal name.
@@ -243,7 +242,7 @@ public class Name implements Comparable
 		if (name == null && ns != null)
 		{
 			name = new Name(ns);
-			allNames.put(name.ons, name);
+			allNames.put(name.ns, name);
 		}
 		return name;
 	}
@@ -272,42 +271,41 @@ public class Name implements Comparable
 		return buf.toString();
 	}
 
-	/**
-	 * Returns the trimmed string for given string.
-	 * @param ns given string
-	 * @return trimmed string.
-	 */
-	private static String trimPlusMinus(String ns)
-	{
-		int len = ns.length();
-		int newLen = 0;
-		for (int i = 0; i < len; i++)
-		{
-			char ch = ns.charAt(i);
-			if (ch != '+' && ch != '-') newLen++;
-		}
-		if (newLen == len) return ns;
-
-		StringBuffer buf = new StringBuffer(newLen);
-		for (int i = 0; i < len; i++)
-		{
-			char ch = ns.charAt(i);
-			if (ch != '+' && ch != '-') buf.append(ns.charAt(i));
-		}
-		return buf.toString();
-	}
+//	/**
+//	 * Returns the trimmed string for given string.
+//	 * @param ns given string
+//	 * @return trimmed string.
+//	 */
+//	private static String trimPlusMinus(String ns)
+//	{
+//		int len = ns.length();
+//		int newLen = 0;
+//		for (int i = 0; i < len; i++)
+//		{
+//			char ch = ns.charAt(i);
+//			if (ch != '+' && ch != '-') newLen++;
+//		}
+//		if (newLen == len) return ns;
+//
+//		StringBuffer buf = new StringBuffer(newLen);
+//		for (int i = 0; i < len; i++)
+//		{
+//			char ch = ns.charAt(i);
+//			if (ch != '+' && ch != '-') buf.append(ns.charAt(i));
+//		}
+//		return buf.toString();
+//	}
 
 	/**
 	 * Constructs a <CODE>Name</CODE> (cannot be called).
 	 */
-	private Name(String ons)
+	private Name(String ns)
 	{
-		this.ons = ons;
-		this.ns = trimPlusMinus(ons);
+		this.ns = ns;
         int suffix = 0;
         Name base = this;
-		String lower = ns.toLowerCase();
-		this.lowerCase = (ns.equals(lower) ? this : findTrimmedName(lower));
+		String canonic = TextUtils.canonicString(ns);
+		this.canonic = (ns.equals(canonic) ? this : findTrimmedName(canonic));
 		try
 		{
 			flags = checkNameThrow(ns);

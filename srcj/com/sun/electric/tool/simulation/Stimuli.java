@@ -325,7 +325,7 @@ public class Stimuli
 						break;
 					}
 					if (TextUtils.isLetterOrDigit(sigChar) &&
-						Character.toLowerCase(sigChar) != Character.toLowerCase(netChar))
+						TextUtils.canonicChar(sigChar) != TextUtils.canonicChar(netChar))
 					{
 						matches = false;
 						break;

@@ -555,7 +555,7 @@ class NetCell
 		NetName nn = (NetName)netNames.get(name);
 		if (nn == null) {
 			nn = new NetName();
-			netNames.put(name.lowerCase(), nn);
+			netNames.put(name.canonic(), nn);
 		}
 		if (nn.index < 0) {
 			nn.name = name;
@@ -783,14 +783,14 @@ class NetCell
 	boolean redoNetworks1() {
 		/* Set index of NodeInsts */
 		checkLayoutCell();
-        HashMap/*<Cell,Netlist>*/ subNetlists = new HashMap/*<Cell,Netlist>*/();
-        for (Iterator it = getNodables(); it.hasNext(); ) {
-            Nodable no = (Nodable)it.next();
-            if (!(no.getProto() instanceof Cell)) continue;
-            Cell subCell = (Cell)no.getProto();
-            subNetlists.put(subCell, NetworkTool.getNetlist(subCell, false));
-        }
-		netlist = new Netlist(this, subNetlists, numDrawns);
+//        HashMap/*<Cell,Netlist>*/ subNetlists = new HashMap/*<Cell,Netlist>*/();
+//        for (Iterator it = getNodables(); it.hasNext(); ) {
+//            Nodable no = (Nodable)it.next();
+//            if (!(no.getProto() instanceof Cell)) continue;
+//            Cell subCell = (Cell)no.getProto();
+//            subNetlists.put(subCell, NetworkTool.getNetlist(subCell, false));
+//        }
+		netlist = new Netlist(this, false, numDrawns);
 
 		internalConnections();
 		buildNetworkList();

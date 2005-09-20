@@ -252,7 +252,7 @@ public class ArcInst extends Geometric implements Comparable
 		double yT = boundsT.getCenterY();
 
 		// create the arc that connects them
-        ImmutableArcInst d = ImmutableArcInst.newInstance(0, ap, Name.findName(""), 0, ImmutableTextDescriptor.getArcTextDescriptor(),
+        ImmutableArcInst d = ImmutableArcInst.newInstance(0, ap, BASENAME, 0, ImmutableTextDescriptor.getArcTextDescriptor(),
                 niT.getD().nodeId, piT.getPortProto().getId(), new EPoint(xT, yT),
                 niH.getD().nodeId, piH.getPortProto().getId(), new EPoint(xH, yH),
                 ap.getDefaultWidth(), 0, 0);

@@ -228,7 +228,7 @@ public class Version implements Comparable
      * @return  a hash code value for this Version.
 	 */
     public int hashCode() {
-		return major*1000000 + major*10000 + details;
+		return major*1000000 + minor*10000 + details;
     }
 
     /**

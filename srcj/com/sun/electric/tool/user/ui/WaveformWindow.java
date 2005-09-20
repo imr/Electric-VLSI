@@ -3889,7 +3889,7 @@ if (wp.signalButtons != null)
 		}
 		// create net name
 		String contextStr = context.getInstPath(".");
-		contextStr = contextStr.toLowerCase();
+		contextStr = TextUtils.canonicString(contextStr);
 		if (net == null)
 			return contextStr;
 		else {

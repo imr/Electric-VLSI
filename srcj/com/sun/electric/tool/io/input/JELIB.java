@@ -590,18 +590,18 @@ public class JELIB extends LibraryFiles
 		for(Iterator it = lib.getCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			String lowerCaseName = cell.getName().toLowerCase();
+			String canonicName = TextUtils.canonicString(cell.getName());
 			Cell.CellGroup group = cell.getCellGroup();
-			Cell.CellGroup groupOfName = (Cell.CellGroup)cellGroups.get(lowerCaseName);
+			Cell.CellGroup groupOfName = (Cell.CellGroup)cellGroups.get(canonicName);
 			if (groupOfName == null)
 			{
-				cellGroups.put(lowerCaseName, group);
+				cellGroups.put(canonicName, group);
 			} else
 			{
 				if (groupOfName != group)
 				{
 					Input.errorLogger.logError(filePath + ", Library has multiple cells named '" +
-						lowerCaseName + "' that are not in the same group", null, -1);
+						canonicName + "' that are not in the same group", null, -1);
 
 					// Join groups with like-names cells
 // 					for (Iterator cit = group.getCells(); cit.hasNext(); )

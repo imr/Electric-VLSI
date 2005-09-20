@@ -2594,7 +2594,7 @@ public class Analyzer extends Engine
 	private int getCh(String s, int index)
 	{
 		if (index >= s.length()) return 0;
-		return Character.toLowerCase(s.charAt(index));
+		return TextUtils.canonicChar(s.charAt(index));
 	}
 
 	/**

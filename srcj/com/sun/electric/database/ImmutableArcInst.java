@@ -278,7 +278,7 @@ public class ImmutableArcInst
      * @param userBits flag bits of this ImmutableNodeInst.
      * @return new ImmutableArcInst object.
      * @throws NullPointerException if protoType, name, tailPortId, headPortId, tailLocation, headLocation is null.
-     * @throws IllegalArgumentException if duplicate, or width is bad.
+     * @throws IllegalArgumentException if name is not valid duplicate, or width is bad.
      */
     public static ImmutableArcInst newInstance(int arcId, ArcProto protoType,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
@@ -287,6 +287,7 @@ public class ImmutableArcInst
             double width, int angle, int flags) {
 		if (protoType == null) throw new NullPointerException("protoType");
 		if (name == null) throw new NullPointerException("name");
+        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
         if (!(width >= 0)) throw new IllegalArgumentException("width");
         if (tailPortId == null) throw new NullPointerException("tailPortId");
@@ -310,11 +311,12 @@ public class ImmutableArcInst
      * @param duplicate duplicate of the name
 	 * @return ImmutableArcInst which differs from this ImmutableArcInst by name and duplicate.
 	 * @throws NullPointerException if name is null
-     * @throws IllegalArgumentException if duplicate is negative.
+     * @throws IllegalArgumentException if name is not valid or duplicate is negative.
 	 */
 	public ImmutableArcInst withName(Name name, int duplicate) {
 		if (this.name == name && this.duplicate == duplicate) return this;
 		if (name == null) throw new NullPointerException("name");
+        if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
 		return new ImmutableArcInst(this.arcId, this.protoType, name, duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
@@ -429,6 +431,8 @@ public class ImmutableArcInst
 	public void check() {
 		assert protoType != null;
 		assert name != null;
+        assert name.isValid() && !name.hasEmptySubnames();
+        assert !(name.isTempname() && name.isBus());
         assert duplicate >= 0;
         assert tailPortId != null;
         assert tailLocation != null;

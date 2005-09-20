@@ -439,7 +439,7 @@ public class EDIF extends Input
 			if (token == null) break;
 
 			// locate the keyword, and execute the function
-			EDIFKEY key = (EDIFKEY)edifKeys.get(token.toLowerCase());
+			EDIFKEY key = (EDIFKEY)edifKeys.get(TextUtils.canonicString(token));
 			if (key == null)
 			{
 				System.out.println("Warning, line " + lineReader.getLineNumber() + ": unknown keyword <" + token + ">");
@@ -1267,7 +1267,7 @@ public class EDIF extends Input
 		private EDIFKEY(String name)
 		{
 			this.name = name;
-			edifKeys.put(name.toLowerCase(), this);
+			edifKeys.put(TextUtils.canonicString(name), this);
 		}
 
 		protected void push() throws IOException {}

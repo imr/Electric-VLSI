@@ -618,7 +618,6 @@ public class ErrorLogger implements ActionListener, DatabaseChangeListener {
             if (log.logCell != cell) trimmedLogs.add(log);
         }
         allErrors = trimmedLogs;
-        trimmedLogs.clear();
 
 	    trimmedLogs = new ArrayList();
         // Warnings

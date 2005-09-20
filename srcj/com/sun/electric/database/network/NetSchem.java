@@ -1005,9 +1005,8 @@ class NetSchem extends NetCell {
 			int busWidth = expNm.busWidth();
 			int drawn = drawns[k];
 			int drawnOffset = drawnOffsets[drawn];
-			if (busWidth != drawnWidths[drawn]) continue;
 			for (int i = 0; i < busWidth; i++) {
-				netlistF.connectMap(portOffset + i, drawnOffset + i);
+                netlistF.connectMap(portOffset + i, drawnOffset + (busWidth == drawnWidths[drawn] ? i : i % drawnWidths[drawn]));
 				NetName nn = (NetName)netNames.get(expNm.subname(i));
 				netlistF.connectMap(portOffset + i, netNamesOffset + nn.index);
 			}
@@ -1340,24 +1339,24 @@ class NetSchem extends NetCell {
 		boolean changed = initNodables();
 		// Gather port and arc names
 		int mapSize = netNamesOffset + netNames.size();
-        HashMap/*<Cell,Netlist>*/ subNetlistsF = new HashMap/*<Cell,Netlist>*/();
-        for (Iterator it = getNodables(); it.hasNext(); ) {
-            Nodable no = (Nodable)it.next();
-            if (!(no.getProto() instanceof Cell)) continue;
-            Cell subCell = (Cell)no.getProto();
-            subNetlistsF.put(subCell, NetworkTool.getNetlist(subCell, false));
-        }
-		netlistF = new Netlist(this, subNetlistsF, mapSize);
+//        HashMap/*<Cell,Netlist>*/ subNetlistsF = new HashMap/*<Cell,Netlist>*/();
+//        for (Iterator it = getNodables(); it.hasNext(); ) {
+//            Nodable no = (Nodable)it.next();
+//            if (!(no.getProto() instanceof Cell)) continue;
+//            Cell subCell = (Cell)no.getProto();
+//            subNetlistsF.put(subCell, NetworkTool.getNetlist(subCell, false));
+//        }
+		netlistF = new Netlist(this, false, mapSize);
 		localConnections();
 
-        HashMap/*<Cell,Netlist>*/ subNetlistsT = new HashMap/*<Cell,Netlist>*/();
-        for (Iterator it = getNodables(); it.hasNext(); ) {
-            Nodable no = (Nodable)it.next();
-            if (!(no.getProto() instanceof Cell)) continue;
-            Cell subCell = (Cell)no.getProto();
-            subNetlistsT.put(subCell, NetworkTool.getNetlist(subCell, true));
-        }
-		netlistT = new Netlist(this, subNetlistsT, netlistF);
+//        HashMap/*<Cell,Netlist>*/ subNetlistsT = new HashMap/*<Cell,Netlist>*/();
+//        for (Iterator it = getNodables(); it.hasNext(); ) {
+//            Nodable no = (Nodable)it.next();
+//            if (!(no.getProto() instanceof Cell)) continue;
+//            Cell subCell = (Cell)no.getProto();
+//            subNetlistsT.put(subCell, NetworkTool.getNetlist(subCell, true));
+//        }
+		netlistT = new Netlist(this, true, netlistF);
 		internalConnections();
 		buildNetworkLists();
 		if (updatePortImplementation()) changed = true;

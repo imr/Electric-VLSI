@@ -52,7 +52,7 @@ public class CellName implements Comparable/*<CellName>*/
         this.version = version;
 		int h = 0;
 		for (int i = 0; i < name.length(); i++) {
-			h = 31*h + Character.toLowerCase(name.charAt(i));
+			h = 31*h + TextUtils.canonicChar(name.charAt(i));
 		}
 		h = h * 37 + view.getOrder();
 		h = h * 17 + version;

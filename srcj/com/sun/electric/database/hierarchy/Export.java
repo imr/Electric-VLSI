@@ -720,7 +720,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public boolean isNamedPower()
 	{
-		String name = getName().toLowerCase();
+		String name = TextUtils.canonicString(getName());
 		if (name.indexOf("vdd") >= 0) return true;
 		if (name.indexOf("vcc") >= 0) return true;
 		if (name.indexOf("pwr") >= 0) return true;
@@ -749,7 +749,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public boolean isNamedGround()
 	{
-		String name = getName().toLowerCase();
+		String name = TextUtils.canonicString(getName());
 		if (name.indexOf("vss") >= 0) return true;
 		if (name.indexOf("gnd") >= 0) return true;
 		if (name.indexOf("ground") >= 0) return true;

@@ -3023,41 +3023,59 @@ public class CircuitChanges
 		}
 
 		// look for duplicate arcs
-		HashMap arcsToKill = new HashMap();
-		for(Iterator it = cell.getNodes(); it.hasNext(); )
-		{
-			NodeInst ni = (NodeInst)it.next();
-			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
-			{
-				Connection con = (Connection)cIt.next();
-				ArcInst ai = con.getArc();
+		HashSet arcsToKill = new HashSet();
+        for (int i = cell.getNumArcs() - 1; i >= 0; i--) {
+            ArcInst ai = cell.getArc(i);
+            if (arcsToKill.contains(ai)) continue;
+            PortInst pi = ai.getHeadPortInst();
+            for (Iterator it = pi.getConnections(); it.hasNext(); ) {
+                Connection con = (Connection)it.next();
+                ArcInst oAi = con.getArc();
+                if (oAi.getArcIndex() >= i) continue;
+                if (ai.getProto() != oAi.getProto()) continue;
                 int otherEnd = 1 - con.getEndIndex();
-//				int otherEnd = 0;
-//				if (ai.getConnection(0) == con) otherEnd = 1;
-				boolean foundAnother = false;
-				for(Iterator oCIt = ni.getConnections(); oCIt.hasNext(); )
-				{
-					Connection oCon = (Connection)oCIt.next();
-					ArcInst oAi = oCon.getArc();
-					if (ai.getArcIndex() <= oAi.getArcIndex()) continue;
-					if (con.getPortInst().getPortProto() != oCon.getPortInst().getPortProto()) continue;
-					if (ai.getProto() != oAi.getProto()) continue;
-                    int oOtherEnd = 1 - oCon.getEndIndex();
-//					int oOtherEnd = 0;
-//					if (oAi.getConnection(0) == oCon) oOtherEnd = 1;
-					if (ai.getPortInst(otherEnd).getNodeInst() !=
-						oAi.getPortInst(oOtherEnd).getNodeInst()) continue;
-					if (ai.getPortInst(otherEnd).getPortProto() !=
-						oAi.getPortInst(oOtherEnd).getPortProto()) continue;
-
-					// this arc is a duplicate
-					arcsToKill.put(oAi, oAi);
-					foundAnother = true;
-					break;
-				}
-				if (foundAnother) break;
-			}
-		}
+                PortInst oPi = oAi.getPortInst(otherEnd);
+                if (oPi != ai.getTailPortInst()) continue;
+                arcsToKill.add(oAi);
+            }
+        }
+        
+//		// look for duplicate arcs
+//		HashMap arcsToKill = new HashMap();
+//		for(Iterator it = cell.getNodes(); it.hasNext(); )
+//		{
+//			NodeInst ni = (NodeInst)it.next();
+//			for(Iterator cIt = ni.getConnections(); cIt.hasNext(); )
+//			{
+//				Connection con = (Connection)cIt.next();
+//				ArcInst ai = con.getArc();
+//                int otherEnd = 1 - con.getEndIndex();
+////				int otherEnd = 0;
+////				if (ai.getConnection(0) == con) otherEnd = 1;
+//				boolean foundAnother = false;
+//				for(Iterator oCIt = ni.getConnections(); oCIt.hasNext(); )
+//				{
+//					Connection oCon = (Connection)oCIt.next();
+//					ArcInst oAi = oCon.getArc();
+//					if (ai.getArcIndex() <= oAi.getArcIndex()) continue;
+//					if (con.getPortInst().getPortProto() != oCon.getPortInst().getPortProto()) continue;
+//					if (ai.getProto() != oAi.getProto()) continue;
+//                    int oOtherEnd = 1 - oCon.getEndIndex();
+////					int oOtherEnd = 0;
+////					if (oAi.getConnection(0) == oCon) oOtherEnd = 1;
+//					if (ai.getPortInst(otherEnd).getNodeInst() !=
+//						oAi.getPortInst(oOtherEnd).getNodeInst()) continue;
+//					if (ai.getPortInst(otherEnd).getPortProto() !=
+//						oAi.getPortInst(oOtherEnd).getPortProto()) continue;
+//
+//					// this arc is a duplicate
+//					arcsToKill.put(oAi, oAi);
+//					foundAnother = true;
+//					break;
+//				}
+//				if (foundAnother) break;
+//			}
+//		}
 
 		// now highlight negative or zero-size nodes
 		int zeroSize = 0, negSize = 0;
@@ -3134,10 +3152,10 @@ public class CircuitChanges
 		private List pinsToPassThrough;
 		private HashMap pinsToScale;
 		private List textToMove;
-		private HashMap arcsToKill;
+		private HashSet arcsToKill;
 		private int zeroSize, negSize, overSizePins;
 
-		public CleanupChanges(Cell cell, boolean justThis, List pinsToRemove, List pinsToPassThrough, HashMap pinsToScale, List textToMove, HashMap arcsToKill,
+		public CleanupChanges(Cell cell, boolean justThis, List pinsToRemove, List pinsToPassThrough, HashMap pinsToScale, List textToMove, HashSet arcsToKill,
 			int zeroSize, int negSize, int overSizePins)
 		{
 			super("Cleanup " + cell, User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
@@ -3195,7 +3213,7 @@ public class CircuitChanges
 				NodeInst ni = (NodeInst)it.next();
 				ni.invisiblePinWithOffsetText(true);
 			}
-			for(Iterator it = arcsToKill.keySet().iterator(); it.hasNext(); )
+			for(Iterator it = arcsToKill.iterator(); it.hasNext(); )
 			{
 				ArcInst ai = (ArcInst)it.next();
 				if (!ai.isLinked()) continue;

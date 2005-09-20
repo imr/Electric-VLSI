@@ -109,7 +109,7 @@ public class Sim
 	 */
 	public Node findNode(String name)
 	{
-		return (Node)nodeHash.get(name.toLowerCase());
+		return (Node)nodeHash.get(TextUtils.canonicString(name));
 	}
 
 	/**
@@ -146,7 +146,7 @@ public class Sim
 		numNodes++;
 
 		// insert node into hash table and list
-		nodeHash.put(name.toLowerCase(), n);
+		nodeHash.put(TextUtils.canonicString(name), n);
 		nodeList.add(n);
 
 		// initialize node entries

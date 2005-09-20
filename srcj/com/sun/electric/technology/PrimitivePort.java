@@ -30,6 +30,7 @@ import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.technologies.Generic;
 
 import java.awt.Color;
@@ -262,7 +263,7 @@ public class PrimitivePort implements PortProtoId, PortProto, Comparable
 	 */
 	public boolean isNamedGround()
 	{
-		String name = getName().toLowerCase();
+		String name = TextUtils.canonicString(getName());
 		if (name.indexOf("vss") >= 0) return true;
 		if (name.indexOf("gnd") >= 0) return true;
 		if (name.indexOf("ground") >= 0) return true;

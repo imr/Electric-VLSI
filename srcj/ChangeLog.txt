@@ -4,6 +4,21 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+BUG: Cleanup peans doen't delete all duplicate arcs (Bug #552).
+FIX: In CircuitChanges.cleanupCell iterates on arcs instead of on nodes.
+
+BUG: Network names "p1-2" and "p12" are considered equivalent by NetworkTool.
+FIX: In text.Name class remove "trimPlusMinus".
+
+BUG: "s1.toLowerCase().equals(s2.inLowerCase()" is not equivalent to s1.equalsIgnoreCase" but is used in many places.
+FIX: In TextUtils add "canonicChar" and "canonicString" methods and use them. 
+
+BUG: (09/20/05, DN) Assertion error after bus width error messages (Bug #549)
+FIX: In NetSchem.localConnections do something plausible when width mismatches.
+
+BUG: (09/20/05, DN) Not all error messages are shown.
+FIX: In ErrorLogger.clearLogs(Cell) don't clear trimmedLogs.
+
 BUG: (09/18/05, DN) Exports in Spice are not in STRING_NUMBER_ORDER.
 FIX: In "Topology.doGetNetworks" sort by name. In Spice.java use STRING_NUMBER_ORDER.
 

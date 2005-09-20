@@ -52,7 +52,7 @@ public abstract class ElectricObject extends Observable implements Observer
 	/** extra variables (null if no variables yet) */		private TreeMap vars;
 
 	/** a list of all variable keys */						private static final HashMap varKeys = new HashMap();
-	/** all variable keys addressed by lower case name */	private static final HashMap varLowCaseKeys = new HashMap();
+	/** all variable keys addressed by lower case name */	private static final HashMap varCanonicKeys = new HashMap();
 
 	// ------------------------ private and protected methods -------------------
 
@@ -1398,9 +1398,9 @@ public abstract class ElectricObject extends Observable implements Observer
 		Variable.Key key = (Variable.Key)varKeys.get(name);
 		if (key == null)
 		{
-			String lowCaseName = name.toLowerCase();
+			String lowCaseName = TextUtils.canonicString(name);
 			if (!lowCaseName.equals(name))
-				key = (Variable.Key)varLowCaseKeys.get(lowCaseName);
+				key = (Variable.Key)varCanonicKeys.get(lowCaseName);
             if (key != null)
             {
                 System.out.println("WARNING: Variable search may become case-sensitive in future versions. Search: " + name + " found: " + key.getName());
@@ -1422,7 +1422,7 @@ public abstract class ElectricObject extends Observable implements Observer
 		if (key != null) return key;
 		key = new Variable.Key(name);
 		varKeys.put(name, key);
-		varLowCaseKeys.put(name.toLowerCase(), key);
+		varCanonicKeys.put(TextUtils.canonicString(name), key);
 		return key;
 	}
 

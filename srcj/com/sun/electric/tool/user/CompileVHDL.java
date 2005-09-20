@@ -5053,7 +5053,7 @@ public class CompileVHDL
 	 */
 	private SymbolTree searchSymbol(String ident, SymbolList symList)
 	{
-		String lcIdent = ident.toLowerCase();
+		String lcIdent = TextUtils.canonicString(ident);
 		for ( ; symList != null; symList = symList.last)
 		{
 			SymbolTree node = (SymbolTree)symList.sym.get(lcIdent);
@@ -5073,7 +5073,7 @@ public class CompileVHDL
 	{
 		if (symList != null)
 		{
-			SymbolTree node = (SymbolTree)symList.sym.get(ident.toLowerCase());
+			SymbolTree node = (SymbolTree)symList.sym.get(TextUtils.canonicString(ident));
 			if (node != null) return node;
 		}
 		return null;
@@ -5164,7 +5164,7 @@ public class CompileVHDL
 		symbol.value = value;
 		symbol.type = type;
 		symbol.pointer = pointer;
-		symList.sym.put(value.toLowerCase(), symbol);
+		symList.sym.put(TextUtils.canonicString(value), symbol);
 		return symbol;
 	}
 

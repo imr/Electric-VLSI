@@ -63,7 +63,7 @@ public class Global
 		}
 		newGlobals[index] = this;
 		allGlobals = newGlobals;
-		globalsByName.put(name.lowerCase(), this);
+		globalsByName.put(name.canonic(), this);
 	}
 
 	/**

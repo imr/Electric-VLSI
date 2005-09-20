@@ -382,7 +382,7 @@ public class AutoStitch
         if (pinsToPassThrough.size() > 0)
         {
             CircuitChanges.CleanupChanges job = new CircuitChanges.CleanupChanges(cell, true, new ArrayList(),
-                pinsToPassThrough, new HashMap(), new ArrayList(), new HashMap(), 0, 0, 0);
+                pinsToPassThrough, new HashMap(), new ArrayList(), new HashSet(), 0, 0, 0);
             job.doIt();
         }
 	}

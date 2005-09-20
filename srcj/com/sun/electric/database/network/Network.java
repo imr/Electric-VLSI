@@ -214,8 +214,11 @@ public class Network {
         ArrayList arcs = new ArrayList();
         for (Iterator it = getParent().getArcs(); it.hasNext();) {
             ArcInst ai = (ArcInst) it.next();
-            if (netlist.getNetwork(ai, 0) == this) {
-                arcs.add(ai);
+            int busWidth = netlist.getBusWidth(ai);
+            for (int i = 0; i < busWidth; i++) {
+                if (netlist.getNetwork(ai, i) == this) {
+                    arcs.add(ai);
+                }
             }
         }
         return arcs.iterator();

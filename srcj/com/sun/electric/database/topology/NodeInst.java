@@ -232,7 +232,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public static NodeInst makeDummyInstance(NodeProto np, Point2D center, double width, double height, Orientation orient)
 	{
         ImmutableNodeInst d = ImmutableNodeInst.newInstance(0, np.getId(),
-                Name.findName(""), 0, ImmutableTextDescriptor.getNodeTextDescriptor(),
+                Name.findName("@"), 0, ImmutableTextDescriptor.getNodeTextDescriptor(),
                 orient, EPoint.ORIGIN, width, height,
                 0,  0, ImmutableTextDescriptor.getInstanceTextDescriptor());
         return new NodeInst(d, null);
