@@ -490,7 +490,7 @@ public abstract class ElectricObject extends Observable implements Observer
 			Variable var = (Variable)vIt.next();
 			if (!var.isDisplay()) continue;
 			TextDescriptor td = var.getTextDescriptor();
-			if (td.getSize().isAbsolute()) continue;
+//			if (td.getSize().isAbsolute()) continue;
 			Poly poly = computeTextPoly(wnd, var, null);
 			if (poly == null) continue;
 			Rectangle2D polyBound = poly.getBounds2D();

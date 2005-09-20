@@ -438,7 +438,7 @@ public class User extends Listener
 		for(Iterator it = Undo.getChangedCells(); it.hasNext(); )
 		{
 			Cell cell = (Cell)it.next();
-			markCellForRedraw(cell, false);
+			markCellForRedraw(cell, true);
 		}
 	}
 
@@ -484,12 +484,15 @@ public class User extends Listener
 	/**
 	 * Method to recurse flag all windows showing a cell to redraw.
 	 * @param cell the Cell that changed.
-	 * @param recurseUp true to recurse up the hierarchy, redrawing cells that show this one.
+	 * @param cellChanged true if the cell changed and should be marked so.
 	 */
-	private void markCellForRedraw(Cell cell, boolean recurseUp)
+	private void markCellForRedraw(Cell cell, boolean cellChanged)
 	{
-		VectorDrawing.cellChanged(cell);
-		PixelDrawing.forceRedraw(cell);
+		if (cellChanged)
+		{
+			VectorDrawing.cellChanged(cell);
+			PixelDrawing.forceRedraw(cell);
+		}
 		for(Iterator wit = WindowFrame.getWindows(); wit.hasNext(); )
 		{
 			WindowFrame wf = (WindowFrame)wit.next();
@@ -503,13 +506,11 @@ public class User extends Listener
 			}
 		}
 
-		if (recurseUp)
+		// recurse up the hierarchy so that all windows showing the cell get redrawn
+		for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
 		{
-			for(Iterator it = cell.getInstancesOf(); it.hasNext(); )
-			{
-				NodeInst ni = (NodeInst)it.next();
-				if (ni.isExpanded()) markCellForRedraw(ni.getParent(), recurseUp);
-			}
+			NodeInst ni = (NodeInst)it.next();
+			if (ni.isExpanded()) markCellForRedraw(ni.getParent(), false);
 		}
 	}
 

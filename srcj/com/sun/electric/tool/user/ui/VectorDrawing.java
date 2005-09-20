@@ -1194,7 +1194,7 @@ public class VectorDrawing
 		vc.cellSize = (float)(cellBounds.getWidth() * cellBounds.getHeight());
 		AffineTransform trans = prevTrans.pureRotate();
 
-		// save size and export centers to detect hierarchical changes later (TODO: use it)
+		// save size and export centers to detect hierarchical changes later
 		if (vcg.exports == null)
 		{
 			vcg.exports = new ArrayList();

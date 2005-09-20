@@ -35,6 +35,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.Highlight;
 import com.sun.electric.tool.user.HighlightListener;
@@ -299,6 +300,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
                 fieldSelected.setText(selectedMsg);
                 return;
             }
+			NodeInst theNode = null;
             for(Iterator hIt = highlighter.getHighlights().iterator(); hIt.hasNext(); )
             {
                 Highlight h = (Highlight)hIt.next();
@@ -308,10 +310,12 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
                     if (eObj instanceof PortInst)
                     {
                         lastHighlight = h;
+						theNode = ((PortInst)eObj).getNodeInst();
                         nodeCount++;
                     } else if (eObj instanceof NodeInst)
                     {
                         lastHighlight = h;
+						theNode = (NodeInst)eObj;
                         nodeCount++;
                     } else if (eObj instanceof ArcInst)
                     {
@@ -327,6 +331,14 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
             if (nodeCount + arcCount + textCount == 1)
             {
                 selectedMsg = "SELECTED "+getSelectedText(lastHighlight);
+				if (theNode != null)
+				{
+					SizeOffset so = theNode.getSizeOffset();
+					double xSize = theNode.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+					double ySize = theNode.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+					selectedMsg += " (size=" + TextUtils.formatDouble(xSize) +
+						"x" + TextUtils.formatDouble(ySize) + ")";
+				}
             } else
             {
                 if (nodeCount + arcCount + textCount > 0)

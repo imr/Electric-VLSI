@@ -4,6 +4,19 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+BUG: (09/20/05, SMR) Changing a cell lower in the hierarchy may not redraw it higher
+     up the hierarchy in other windows (Bug #437).
+FIX: In User.markCellForRedraw, always recurse up the hierarchy.
+
+IMP/MAN: (09/20/05, SMR) "Select Object" can now search by regular expressions (Bug #370).
+
+IMP/MAN: (09/20/05, SMR) Selecting a node shows its size in the status bar (Bug #341).
+
+BUG: (09/20/05, SMR) Absolute text (in points) is not considered in cell size (Bug #386).
+FIX: In ElectricObject.getTextBounds, do not ignore absolute text.
+
+BUG: (09/20/05, SMR) Layers tabs in different windows don't update properly (Bug #431).
+
 IMP/MAN: (09/20/05, SMR) Multi-object Properties dialog is smarter about the selected objects (Bug #403, #435)
 
 BUG: (09/20/05, DN) Cleanup pins doen't delete all duplicate arcs (Bug #552).

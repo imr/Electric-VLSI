@@ -134,7 +134,8 @@ public class PortInst extends ElectricObject
 		NodeProto np = nodeInst.getProto();
 		if (!(np instanceof PrimitiveNode)) return;
 		PrimitiveNode pn = (PrimitiveNode)np;
-        boolean canShrink = false/*pn.canShrink()*/;
+        boolean canShrink = false;
+//        boolean canShrink = pn.canShrink();
 		if (!pn.isArcsShrink() && !canShrink) return;
 
         byte shrink = checkShortening(canShrink);

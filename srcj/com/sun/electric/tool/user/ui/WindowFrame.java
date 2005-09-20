@@ -232,7 +232,7 @@ public class WindowFrame extends Observable
 	            // change the technology
                 tech.setCurrent();
 				wf.getPaletteTab().loadForTechnology(tech, wf);
-				wf.getLayersTab().showLayersForTechnology(tech);
+				wf.getLayersTab().updateLayersTab();
             }
         }
     }
@@ -340,7 +340,7 @@ public class WindowFrame extends Observable
 
 		//Technology tech = Technology.findTechnology(User.getDefaultTechnology());
 		paletteTab.loadForTechnology(tech, this);
-		layersTab.showLayersForTechnology(tech);
+		layersTab.updateLayersTab();
 	}
 
 //	public void addJS(JComponent js, int width, int height, int lowX, int lowY)
@@ -1143,7 +1143,7 @@ public class WindowFrame extends Observable
 			{
 				tech.setCurrent();
 				wf.getPaletteTab().setSelectedItem(tech.getTechName());
-                wf.getLayersTab().setSelectedItem(tech.getTechName());
+                wf.getLayersTab().setSelectedTechnology(tech);
 			}
 		}
 	}

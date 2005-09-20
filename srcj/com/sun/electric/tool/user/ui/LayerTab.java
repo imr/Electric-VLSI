@@ -49,12 +49,15 @@ public class LayerTab extends JPanel
 {
 	private JList layerList;
 	private DefaultListModel layerListModel;
-	private HashMap visibility;
 	private HashMap highlighted;
 	private List layersInList;
 	private boolean loading;
 
-	/** Creates new panel for Layers */
+	private static HashMap visibility;
+
+	/**
+	 * Constructor creates a new panel for the Layers tab.
+	 */
 	public LayerTab(WindowFrame wf)
 	{
 		initComponents();
@@ -100,14 +103,13 @@ public class LayerTab extends JPanel
 		technology.setLightWeightPopupEnabled(false);
 
         // Getting default tech stored
-		reload();
         loadTechnologies(true);
-		showLayersForTechnology(Technology.getCurrent());
+		updateLayersTab();
 		technology.addActionListener(new WindowFrame.CurTechControlListener(wf));
 	}
 
 	/**
-	 * Method to update the technology popup selector.
+	 * Method to update the technology popup selector in the Layers tab.
 	 * Called at initialization or when a new technology has been created.
 	 * @param makeCurrent true to keep the current technology selected,
 	 * false to set to the current technology.
@@ -124,18 +126,37 @@ public class LayerTab extends JPanel
             if (tech == Generic.tech) continue;
 			technology.addItem(tech.getTechName());
         }
-        setSelectedItem(cur.getTechName());
+        setSelectedTechnology(cur);
 		loading = false;
+
+		// cache visibility
+		visibility = new HashMap();
+		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
+		{
+			Technology tech = (Technology)it.next();
+			for(Iterator lIt = tech.getLayers(); lIt.hasNext(); )
+			{
+				Layer layer = (Layer)lIt.next();
+				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
+				visibility.put(layer, new Boolean(layer.isVisible()));
+			}
+		}
 	}
 
     /**
-     * Public function to set technology in pull down menu
-     * @param anObject
+     * Method to set the technology in the pull down menu of this Layers tab.
+     * @param tech the technology to set.
      */
-    public void setSelectedItem(Object anObject) { technology.setSelectedItem(anObject); }
+    public void setSelectedTechnology(Technology tech) { technology.setSelectedItem(tech.getTechName()); }
 
-	public void reload()
+	/**
+	 * Method to update this LayersTab.
+	 * Called when any of the values in the tab have changed.
+	 */
+	public void updateLayersTab()
 	{
+		if (loading) return;
+
 		// initialize text visibility checkboxes
 		nodeText.setSelected(User.isTextVisibilityOnNode());
 		arcText.setSelected(User.isTextVisibilityOnArc());
@@ -157,8 +178,7 @@ public class LayerTab extends JPanel
 			}
 		}
 
-		// cache visibility
-		visibility = new HashMap();
+		// cache highlighting
 		highlighted = new HashMap();
 		for(Iterator it = Technology.getTechnologies(); it.hasNext(); )
 		{
@@ -167,16 +187,12 @@ public class LayerTab extends JPanel
 			{
 				Layer layer = (Layer)lIt.next();
 				if ((layer.getFunctionExtras() & Layer.Function.PSEUDO) != 0) continue;
-				visibility.put(layer, new Boolean(layer.isVisible()));
 				if (noDimming) highlighted.put(layer, new Boolean(false)); else
 					highlighted.put(layer, new Boolean(!layer.isDimmed()));
 			}
 		}
-	}
 
-	public void showLayersForTechnology(Technology tech)
-	{
-		if (loading) return;
+		Technology tech = Technology.getCurrent();
 		technology.setSelectedItem(tech.getTechName());
 		layerListModel.clear();
 		layersInList = new ArrayList();
@@ -217,7 +233,7 @@ public class LayerTab extends JPanel
 			for(int i=0; i<indices.length; i++)
 			{
 				int line = indices[i];
-				setVisibility(line, !isLineChecked(line));
+				setVisibility(line, !isLineChecked(line), true);
 			}
 		}
 	}
@@ -264,8 +280,11 @@ public class LayerTab extends JPanel
 		for(int i=0; i<indices.length; i++)
 		{
 			int line = indices[i];
-			setVisibility(line, on);
+			setVisibility(line, on, false);
 		}
+
+		// update the display
+		update();
 	}
 
 	private boolean isLineChecked(int i)
@@ -280,7 +299,7 @@ public class LayerTab extends JPanel
 	 * @param i the line number to change.
 	 * @param on true to make that layer visible.
 	 */
-	private void setVisibility(int i, boolean on)
+	private void setVisibility(int i, boolean on, boolean doUpdate)
 	{
 		// find the layer on the given line
 		String name = (String)layerListModel.get(i);
@@ -303,7 +322,7 @@ public class LayerTab extends JPanel
 		layerListModel.set(i, lineName(layer));
 
 		// update the display
-		update();
+		if (doUpdate) update();
 	}
 
 	/**
@@ -484,18 +503,19 @@ public class LayerTab extends JPanel
 			User.setTextVisibilityOnCell(currentTextOnCell);
 		}
 
+		// make sure all other visibility panels are in sync
+		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
+		{
+			WindowFrame wf = (WindowFrame)it.next();
+			LayerTab lt = wf.getLayersTab();
+			if (lt != this)
+				lt.updateLayersTab();
+		}
+
 		if (changed)
 		{
 			PixelDrawing.clearSubCellCache();
 			EditWindow.repaintAllContents();
-
-			// make sure all other visibility panels are in sync
-			for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
-			{
-				WindowFrame wf = (WindowFrame)it.next();
-				LayerTab lt = wf.getLayersTab();
-				if (lt != this) lt.reload();
-			}
 		}
 	}
 
