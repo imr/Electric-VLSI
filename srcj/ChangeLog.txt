@@ -12,12 +12,12 @@ IMP/MAN: (09/20/05, SMR) "Select Object" can now search by regular expressions (
 
 IMP/MAN: (09/20/05, SMR) Selecting a node shows its size in the status bar (Bug #341).
 
-BUG: (09/20/05, SMR) Absolute text (in points) is not considered in cell size (Bug #386).
-FIX: In ElectricObject.getTextBounds, do not ignore absolute text.
-
 BUG: (09/20/05, SMR) Layers tabs in different windows don't update properly (Bug #431).
 
 ************************* Version 8.03g: *********************************
+                                                                                 
+BUG: (09/20/05, SMR) Absolute text (in points) is not considered in cell size (Bug #386).
+FIX: In ElectricObject.getTextBounds, do not ignore absolute text.
 
 IMP/MAN: (09/20/05, SMR) Multi-object Properties dialog is smarter about the selected objects (Bug #403, #435)
 
