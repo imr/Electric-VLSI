@@ -3599,7 +3599,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
      */
     void saveExpandStatus() throws BackingStoreException {
         if (!expandStatusModified) return;
-        System.err.println("Save expanded status of " + this);
+        if (Main.getDebug()) System.err.println("Save expanded status of " + this);
         int num = 0, expanded = 0, diff = 0;
         for (Iterator it = getNodes(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
