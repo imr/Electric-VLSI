@@ -1024,57 +1024,6 @@ public class TextUtils
 //        return STRING_NUMBER_ORDER.compare(name1, name2);
 //    }
 //
-//	/**
-//	 * Test of STRING_NUMBER_ORDER.
-//	 */
-// 	private static String[] numericStrings = {
-// 		"",           // { }
-// 		"0",          // {  0, '0' }
-// 		"0-0",        // {  0, '0', '-', 0, '0' }
-// 		"00",         // {  0, '0', '0' }
-// 		"0a",         // {  0, '0', 'a' }
-// 		"01",         // {  1, '0', '1' }
-// 		"1",          // {  1, '1' }
-// 		"9",          // {  9, '9' }
-// 		"10",         // { 10, '1', '0' }
-// 		"12",         // { 12, '1', '2' }
-// 		"102",        // { 102, '1', '0', '2' }
-// 		"2147483648", // { 2147483648, '2', '1', '4', '7', '4', '8', '3', '6', '4', '8' }
-// 		" ",          // { ' ' }
-// 		"-",          // { '-' }
-// 		"-1",         // { '-', 1, '1' }
-// 		"-2",         // { '-', 2, '2' }
-// 		"a",          // { 'a' }
-// 		"a0",         // { 'a',  0, '0' }
-// 		"a0-0",       // { 'a',  0, '0', '-', 0, '0' }
-// 		"a00",        // { 'a',  0, '0', '0' }
-// 		"a0a",        // { 'a',  0, '0', 'a' }
-// 		"a01",        // { 'a',  1, '0', '1' }
-// 		"a1",         // { 'a',  1, '1' }
-// 		"in",         // { 'i', 'n' }
-// 		"in1",        // { 'i', 'n',  1, '1' }
-// 		"in1a",       // { 'i', 'n',  1, '1', 'a' }
-// 		"in9",        // { 'i', 'n',  9, '9' }
-// 		"in10",       // { 'i', 'n', 10, '1', '0' }
-// 		"in!",        // { 'i', 'n', '!' }
-// 		"ina"         // { 'i , 'n', 'a' }
-// 	};
-
-// 	static {
-// 		for (int i = 0; i < numericStrings.length; i++)
-// 		{
-// 			for (int j = 0; j < numericStrings.length; j++)
-// 			{
-// 				String s1 = numericStrings[i];
-// 				String s2 = numericStrings[j];
-// 				int cmp = STRING_NUMBER_ORDER.compare(s1, s2);
-// 				if (i == j && cmp != 0 || i < j && cmp >= 0 || i > j && cmp <= 0)
-// 					System.out.println("Error in TextUtils.nameSameNumeric(\"" +
-// 						s1 + "\", \"" + s2 + "\") = " + cmp);
-// 			}
-// 		}
-// 	}
-
 	/**
 	 * Method to convert a file path to a URL.
 	 * @param fileName the path to the file.
@@ -1283,6 +1232,8 @@ public class TextUtils
          *   "a0a"        { 'a',  0, '0', 'a' }
          *   "a01"        { 'a',  1, '0', '1' }
          *   "a1"         { 'a',  1, '1' }
+         *   "a[1]"       { 'a', '[', 1, '1', ']' }
+         *   "a[10]"      { 'a', '[', 10, '1', '0', ']' }
          *   "in"         { 'i', 'n' }
          *   "in1"        { 'i', 'n',  1, '1' }
          *   "in1a"       { 'i', 'n',  1, '1', 'a' }
@@ -1348,6 +1299,59 @@ public class TextUtils
             return len1 - len2;
         }
 	};
+
+//	/**
+//	 * Test of STRING_NUMBER_ORDER.
+//	 */
+// 	private static String[] numericStrings = {
+// 		"",           // { }
+// 		"0",          // {  0, '0' }
+// 		"0-0",        // {  0, '0', '-', 0, '0' }
+// 		"00",         // {  0, '0', '0' }
+// 		"0a",         // {  0, '0', 'a' }
+// 		"01",         // {  1, '0', '1' }
+// 		"1",          // {  1, '1' }
+// 		"9",          // {  9, '9' }
+// 		"10",         // { 10, '1', '0' }
+// 		"12",         // { 12, '1', '2' }
+// 		"102",        // { 102, '1', '0', '2' }
+// 		"2147483648", // { 2147483648, '2', '1', '4', '7', '4', '8', '3', '6', '4', '8' }
+// 		" ",          // { ' ' }
+// 		"-",          // { '-' }
+// 		"-1",         // { '-', 1, '1' }
+// 		"-2",         // { '-', 2, '2' }
+// 		"a",          // { 'a' }
+// 		"a0",         // { 'a',  0, '0' }
+// 		"a0-0",       // { 'a',  0, '0', '-', 0, '0' }
+// 		"a00",        // { 'a',  0, '0', '0' }
+// 		"a0a",        // { 'a',  0, '0', 'a' }
+// 		"a01",        // { 'a',  1, '0', '1' }
+// 		"a1",         // { 'a',  1, '1' }
+//        "a[1]",       // { 'a', '[', 1, '1', ']' }
+//        "a[10]",      // { 'a', '[', 10, '1', '0', ']' }
+// 		"in",         // { 'i', 'n' }
+// 		"in1",        // { 'i', 'n',  1, '1' }
+// 		"in1a",       // { 'i', 'n',  1, '1', 'a' }
+// 		"in9",        // { 'i', 'n',  9, '9' }
+// 		"in10",       // { 'i', 'n', 10, '1', '0' }
+// 		"in!",        // { 'i', 'n', '!' }
+// 		"ina"         // { 'i , 'n', 'a' }
+// 	};
+//
+// 	static {
+// 		for (int i = 0; i < numericStrings.length; i++)
+// 		{
+// 			for (int j = 0; j < numericStrings.length; j++)
+// 			{
+// 				String s1 = numericStrings[i];
+// 				String s2 = numericStrings[j];
+// 				int cmp = STRING_NUMBER_ORDER.compare(s1, s2);
+// 				if (i == j && cmp != 0 || i < j && cmp >= 0 || i > j && cmp <= 0)
+// 					System.out.println("Error in TextUtils.nameSameNumeric(\"" +
+// 						s1 + "\", \"" + s2 + "\") = " + cmp);
+// 			}
+// 		}
+// 	}
 
 	/**
 	 * Comparator class for sorting Objects by their string name.

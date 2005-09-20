@@ -1687,7 +1687,8 @@ public class Spice extends Topology
             //System.out.println("Shorted together "+info1.netName+ " and "+info2.netName);
             info1.joinedPorts.addAll(info2.joinedPorts);
             info1.cap += info2.cap;
-            if (info2.netName.compareTo(info1.netName) < 0) {
+            if (TextUtils.STRING_NUMBER_ORDER.compare(info2.netName, info1.netName) < 0) {
+//            if (info2.netName.compareTo(info1.netName) < 0) {
                 info1.netName = info2.netName;
             }
             //info1.netName += info2.netName;

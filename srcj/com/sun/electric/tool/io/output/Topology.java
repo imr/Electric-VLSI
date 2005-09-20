@@ -452,19 +452,25 @@ public abstract class Topology extends Output
 				if (cs == null) continue;
 
 				// if there is already an export on this signal, make sure that it is wider
-				if (cs.pp != null && isChooseBestExportName())
-				{
-					int oldPortWidth = cni.netList.getBusWidth(cs.pp);
-					if (isAggregateNamesSupported())
-					{
-						// with aggregate names, the widest bus is the best, so that long runs can be emitted
-						if (oldPortWidth >= portWidth) continue;
+				if (cs.pp != null)
+                {
+                    if (isChooseBestExportName())
+                    {
+                        int oldPortWidth = cni.netList.getBusWidth(cs.pp);
+                        if (isAggregateNamesSupported())
+                        {
+                            // with aggregate names, the widest bus is the best, so that long runs can be emitted
+                            if (oldPortWidth >= portWidth) continue;
+                        } else
+                        {
+                            // without aggregate names, individual signal names are more important
+                            if (oldPortWidth == 1) continue;
+                            if (portWidth != 1 && oldPortWidth >= portWidth) continue;
+                        }
 					} else
-					{
-						// without aggregate names, individual signal names are more important
-						if (oldPortWidth == 1) continue;
-						if (portWidth != 1 && oldPortWidth >= portWidth) continue;
-					}
+                    {
+                        if (TextUtils.STRING_NUMBER_ORDER.compare(cs.pp.getName(), pp.getName()) <= 0) continue;
+                    }
 				}
 
 				// save this export's information

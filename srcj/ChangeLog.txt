@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
+BUG: (09/18/05, DN) Exports in Spice are not in STRING_NUMBER_ORDER.
+FIX: In "Topology.doGetNetworks" sort by name. In Spice.java use STRING_NUMBER_ORDER.
+
 IMP/MAN (09/18/05, GVG) Gate generator for TSMC180
 
 BUG: (09/18/05, DN) If we add 90-angle polysilicon arc to the unconnected end of 45-angle transistor in
