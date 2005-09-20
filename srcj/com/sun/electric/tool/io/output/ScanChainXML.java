@@ -905,6 +905,7 @@ public class ScanChainXML {
     private String getNetName(Nodable no, String portName) {
         String netName = null;
         PortInst pi = no.getNodeInst().findPortInst(portName);
+        if (pi == null) return null;
         if (pi.getConnections().hasNext()) {
             ArcInst ai = ((Connection)pi.getConnections().next()).getArc();
             netName = no.getParent().getNetlist(true).getBusName(ai).toString();
