@@ -38,6 +38,7 @@ FillGenerator fg = new FillGenerator("tsmc180");
 fg.setFillLibrary("fillLib");
 fg.setFillCellWidth(245);
 fg.setFillCellHeight(175);
+fg.makeEvenLayersHorizontal(true);
 
 // Floor plan of a typical fill Cell metal layer:
 //                          (ground space specified by user)/2
