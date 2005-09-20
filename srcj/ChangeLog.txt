@@ -2,7 +2,7 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.03g: *********************************
+************************* Version 8.03h: *********************************
 
 BUG: (09/20/05, SMR) Changing a cell lower in the hierarchy may not redraw it higher
      up the hierarchy in other windows (Bug #437).
@@ -16,6 +16,8 @@ BUG: (09/20/05, SMR) Absolute text (in points) is not considered in cell size (B
 FIX: In ElectricObject.getTextBounds, do not ignore absolute text.
 
 BUG: (09/20/05, SMR) Layers tabs in different windows don't update properly (Bug #431).
+
+************************* Version 8.03g: *********************************
 
 IMP/MAN: (09/20/05, SMR) Multi-object Properties dialog is smarter about the selected objects (Bug #403, #435)
 
