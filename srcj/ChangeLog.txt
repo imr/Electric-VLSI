@@ -4,13 +4,15 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
-BUG: Cleanup peans doen't delete all duplicate arcs (Bug #552).
+IMP/MAN: (09/20/05, SMR) Multi-object Properties dialog is smarter about the selected objects (Bug #435)
+
+BUG: (09/20/05, DN) Cleanup pins doen't delete all duplicate arcs (Bug #552).
 FIX: In CircuitChanges.cleanupCell iterates on arcs instead of on nodes.
 
-BUG: Network names "p1-2" and "p12" are considered equivalent by NetworkTool.
+BUG: (09/20/05, DN) Network names "p1-2" and "p12" are considered equivalent by NetworkTool.
 FIX: In text.Name class remove "trimPlusMinus".
 
-BUG: "s1.toLowerCase().equals(s2.inLowerCase()" is not equivalent to s1.equalsIgnoreCase" but is used in many places.
+BUG: (09/20/05, DN) "s1.toLowerCase().equals(s2.inLowerCase()" is not equivalent to s1.equalsIgnoreCase" but is used in many places.
 FIX: In TextUtils add "canonicChar" and "canonicString" methods and use them. 
 
 BUG: (09/20/05, DN) Assertion error after bus width error messages (Bug #549)
@@ -22,7 +24,7 @@ FIX: In ErrorLogger.clearLogs(Cell) don't clear trimmedLogs.
 BUG: (09/18/05, DN) Exports in Spice are not in STRING_NUMBER_ORDER.
 FIX: In "Topology.doGetNetworks" sort by name. In Spice.java use STRING_NUMBER_ORDER.
 
-IMP/MAN (09/18/05, GVG) Gate generator for TSMC180
+IMP/MAN: (09/18/05, GVG) Gate generator for TSMC180
 
 BUG: (09/18/05, DN) If we add 90-angle polysilicon arc to the unconnected end of 45-angle transistor in
     "Help|Make fake circuitry MoCMSO" example, we shall get a notch.
