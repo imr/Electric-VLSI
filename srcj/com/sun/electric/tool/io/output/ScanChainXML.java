@@ -334,7 +334,12 @@ public class ScanChainXML {
                 return;
             }
             System.out.println("Tracing sub-chain "+oneChainName+" from export "+oneChainStartExport);
+            if (jtagController == null)
+                jtagController = new JtagController("", 8);
         } else {
+            if (jtagCell == null) {
+                return;
+            }
             startNode = findStartNode(cell, new Stack());
             if (startNode == null) {
                 System.out.println("Did not find any usages of the jtag controller: "+jtagCell.getName());
@@ -883,7 +888,7 @@ public class ScanChainXML {
             }
 
             // check if this is the jtag controller, which signals the end of the chain
-            if (np.getName().equals(jtagCell.getName())) {
+            if (jtagCell != null && np.getName().equals(jtagCell.getName())) {
                 if (DEBUG) System.out.println("  ...matched end of chain, port "+inport);
                 inst = new SubChainInst(inport, null, no, endChain);
                 return inst;
@@ -908,7 +913,13 @@ public class ScanChainXML {
         if (pi == null) return null;
         if (pi.getConnections().hasNext()) {
             ArcInst ai = ((Connection)pi.getConnections().next()).getArc();
-            netName = no.getParent().getNetlist(true).getBusName(ai).toString();
+            // see if there is a bus name
+            Name busName = no.getParent().getNetlist(true).getBusName(ai);
+            if (busName == null) {
+                netName = no.getParent().getNetlist(true).getNetwork(ai, 0).getName();
+            } else {
+                netName = busName.toString();
+            }
         }
         return netName;
     }
@@ -1101,6 +1112,8 @@ public class ScanChainXML {
                         ent.length = sub.length;
                         ent.access = sub.access;
                         ent.clears = sub.clears;
+                        ent.dataNet = sub.dataNet;
+                        ent.dataNetBar = sub.dataNetBar;
                         ent.remove(inst);
                         reduced++;
                     }
