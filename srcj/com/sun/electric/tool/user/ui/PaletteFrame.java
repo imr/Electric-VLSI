@@ -523,7 +523,7 @@ public class PaletteFrame implements MouseListener
 			if (varName != null)
 			{
 				// text object: add initial text
-				Variable var = newNi.newVar(ElectricObject.newKey(varName), "text", ImmutableTextDescriptor.getAnnotationTextDescriptor());
+				Variable var = newNi.newVar(Variable.newKey(varName), "text", ImmutableTextDescriptor.getAnnotationTextDescriptor());
 				Highlight h = highlighter.addText(newNi, cell, var, null);
 			} else
 			{

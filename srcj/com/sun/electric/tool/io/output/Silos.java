@@ -61,10 +61,10 @@ public class Silos extends Topology
 	/** split lines into 80 characters. */			private static final int MAXSTR =  79;
 	/** Maximum macro name length. */				private static final int MAXNAME =  12;
 
-	/** key of Variable holding node name. */		public static final Variable.Key SILOS_NODE_NAME_KEY = ElectricObject.newKey("SIM_silos_node_name");
-	/** key of Variable holding global names. */	public static final Variable.Key SILOS_GLOBAL_NAME_KEY = ElectricObject.newKey("SIM_silos_global_name");
-	/** key of Variable holding behavior file. */	public static final Variable.Key SILOS_BEHAVIOR_FILE_KEY = ElectricObject.newKey("SIM_silos_behavior_file");
-	/** key of Variable holding model. */			public static final Variable.Key SILOS_MODEL_KEY = ElectricObject.newKey("SC_silos");
+	/** key of Variable holding node name. */		public static final Variable.Key SILOS_NODE_NAME_KEY = Variable.newKey("SIM_silos_node_name");
+	/** key of Variable holding global names. */	public static final Variable.Key SILOS_GLOBAL_NAME_KEY = Variable.newKey("SIM_silos_global_name");
+	/** key of Variable holding behavior file. */	public static final Variable.Key SILOS_BEHAVIOR_FILE_KEY = Variable.newKey("SIM_silos_behavior_file");
+	/** key of Variable holding model. */			public static final Variable.Key SILOS_MODEL_KEY = Variable.newKey("SC_silos");
 
 	/**
 	 * The main entry point for Silos deck writing.

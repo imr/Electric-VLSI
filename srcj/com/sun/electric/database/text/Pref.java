@@ -102,7 +102,7 @@ public class Pref
 		Meaning(Object ownerObj, Pref pref, String location, String description)
 		{
 			this.ownerObj = ownerObj;
-			key = ElectricObject.newKey(pref.name);
+			key = Variable.newKey(pref.name);
 			this.pref = pref;
 			this.location = location;
 			this.description = description;
@@ -815,7 +815,7 @@ public class Pref
 // 		{
 // 			Pref pref = (Pref)it.next();
 // 			if (pref.meaning == null) continue;
-// 			Variable.Key key = ElectricObject.newKey(pref.name);
+// 			Variable.Key key = Variable.newKey(pref.name);
 // 			if (pref.cachedObj.equals(pref.factoryObj))
 // 			{
 // 				pref.meaning.eObj.delVar(key);

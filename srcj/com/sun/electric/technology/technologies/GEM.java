@@ -50,11 +50,11 @@ public class GEM extends Technology
 {
 	/** the Temporal Specification Facility (from Lansky) Technology object. */	public static final GEM tech = new GEM();
 
-	/** Variable key for GEM element name. */		public static final Variable.Key ELEMENT_NAME = ElectricObject.newKey("GEM_element");
-	/** Variable key for GEM event 1. */			public static final Variable.Key EVENT_1 = ElectricObject.newKey("GEM_event1");
-	/** Variable key for GEM event 2. */			public static final Variable.Key EVENT_2 = ElectricObject.newKey("GEM_event2");
-	/** Variable key for GEM event 3. */			public static final Variable.Key EVENT_3 = ElectricObject.newKey("GEM_event3");
-	/** Variable key for GEM event 4. */			public static final Variable.Key EVENT_4 = ElectricObject.newKey("GEM_event4");
+	/** Variable key for GEM element name. */		public static final Variable.Key ELEMENT_NAME = Variable.newKey("GEM_element");
+	/** Variable key for GEM event 1. */			public static final Variable.Key EVENT_1 = Variable.newKey("GEM_event1");
+	/** Variable key for GEM event 2. */			public static final Variable.Key EVENT_2 = Variable.newKey("GEM_event2");
+	/** Variable key for GEM event 3. */			public static final Variable.Key EVENT_3 = Variable.newKey("GEM_event3");
+	/** Variable key for GEM event 4. */			public static final Variable.Key EVENT_4 = Variable.newKey("GEM_event4");
 
 	private Layer E_lay;
 	private Technology.TechPoint [] box_7;

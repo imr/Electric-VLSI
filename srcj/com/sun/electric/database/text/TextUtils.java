@@ -85,16 +85,20 @@ public class TextUtils
 
     /**
      * Returns canonic char for ignore-case comparison .
-     * FORALL String ch1, ch2: ch1.equalsIgnoreCase(s2) == canonicString(s1).equals(canonicString(s2)
-     * FORALL String s: canonicString(canonicString(s)).equals(canonicString(s))
-     * @param ch given char
-     * @return canonic char
-     * Simple "toLowerCase" is not sufficent.
-     * For example ("\u0131").equalsIgnoreCase("i") , but Character.toLowerCase('\u0131') == '\u0131' .
+     * This is the same as Character.toLowerCase(Character.toUpperCase(ch)).
+     * @param ch given char.
+     * @return canonic char fo rthe given char.
      */
     public static char canonicChar(char ch)
     {
-        return Character.toLowerCase(Character.toUpperCase(ch));
+        if (ch <= 'Z') {
+            if (ch >= 'A')
+                ch += 'a' - 'A';
+        } else {
+            if (ch >= '\u0080')
+                ch = Character.toLowerCase(Character.toUpperCase(ch));
+        }
+        return ch;
     }
     
     /**
@@ -103,22 +107,21 @@ public class TextUtils
      * FORALL String s: canonicString(canonicString(s)).equals(canonicString(s))
      * @param s given String
      * @return canonic String
+     * Simple "toLowerCase" is not sufficent.
+     * For example ("\u0131").equalsIgnoreCase("i") , but Character.toLowerCase('\u0131') == '\u0131' .
      */
     public static String canonicString(String s) {
         int i = 0;
         for (; i < s.length(); i++) {
             char ch = s.charAt(i);
-            char canonicCh = Character.toLowerCase(Character.toUpperCase(ch));
-            if (canonicCh != ch) break;
+            if (canonicChar(ch) != ch) break;
         }
         if (i == s.length()) return s;
         
-        char[] newChars = new char[s.length()];
-        for (int j = 0; j < i; j++)
-            newChars[j] = s.charAt(j);
+        char[] chars = s.toCharArray();
         for (; i < s.length(); i++)
-            newChars[i] = Character.toLowerCase(Character.toUpperCase(s.charAt(i)));
-        return new String(newChars);
+            chars[i] = canonicChar(chars[i]);
+        return new String(chars);
     }
    
 //    static {

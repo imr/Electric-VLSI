@@ -701,7 +701,7 @@ public class Sue extends Input
 						if (((String)newObject).indexOf('@') >= 0 ||
 							((String)newObject).indexOf("p(") >= 0) makeJava = true;
 					}
-					Variable var = ni.newDisplayVar(ElectricObject.newKey(sueVarName), newObject);
+					Variable var = ni.newDisplayVar(Variable.newKey(sueVarName), newObject);
 					if (var != null)
 					{
 //						var.setDisplay(true);

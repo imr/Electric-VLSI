@@ -38,6 +38,7 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
@@ -60,6 +61,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -275,7 +277,9 @@ public class Highlighter implements DatabaseChangeListener {
 			System.out.println("Sorry, a deadlock aborted highlighting (network information unavailable).  Please try again");
 			return;
 		}
-        List highlights = NetworkHighlighter.getHighlights(cell, netlist, net, 0, 0);
+        HashSet nets = (new HashSet());
+        nets.add(net);
+        List highlights = NetworkHighlighter.getHighlights(cell, netlist, nets, 0, 0);
         for (Iterator it = highlights.iterator(); it.hasNext(); ) {
             Highlight h = (Highlight)it.next();
             addHighlight(h);
@@ -295,19 +299,34 @@ public class Highlighter implements DatabaseChangeListener {
         synchronized(this) {
             showNetworkLevel = this.showNetworkLevel;
         }
-        if (showNetworkLevel == 0) clear();
-        int count = 0;
-        for (Iterator netIt = nets.iterator(); netIt.hasNext(); ) {
-            Network net = (Network)netIt.next();
-            if (showNetworkLevel == 0) System.out.println("Highlighting "+net);
-            List highlights = NetworkHighlighter.getHighlights(cell, netlist, net,
-                    showNetworkLevel, showNetworkLevel);
-            for (Iterator it = highlights.iterator(); it.hasNext(); ) {
-                Highlight h = (Highlight)it.next();
-                addHighlight(h);
-                count++;
+        if (showNetworkLevel == 0) {
+            ArrayList sortedNets = new ArrayList(nets);
+            Collections.sort(sortedNets, new TextUtils.NetworksByName());
+            for (Iterator netIt = sortedNets.iterator(); netIt.hasNext(); ) {
+                Network net = (Network)netIt.next();
+                System.out.println("Highlighting "+net);
             }
+            clear();
         }
+        int count = 0;
+        List highlights = NetworkHighlighter.getHighlights(cell, netlist, nets,
+                showNetworkLevel, showNetworkLevel);
+        for (Iterator it = highlights.iterator(); it.hasNext(); ) {
+            Highlight h = (Highlight)it.next();
+            addHighlight(h);
+            count++;
+        }
+//        for (Iterator netIt = nets.iterator(); netIt.hasNext(); ) {
+//            Network net = (Network)netIt.next();
+//            if (showNetworkLevel == 0) System.out.println("Highlighting "+net);
+//            List highlights = NetworkHighlighter.getHighlights(cell, netlist, net,
+//                    showNetworkLevel, showNetworkLevel);
+//            for (Iterator it = highlights.iterator(); it.hasNext(); ) {
+//                Highlight h = (Highlight)it.next();
+//                addHighlight(h);
+//                count++;
+//            }
+//        }
         synchronized(this) {
             this.showNetworkLevel = showNetworkLevel+1;
         }

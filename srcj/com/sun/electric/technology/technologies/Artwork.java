@@ -56,10 +56,10 @@ public class Artwork extends Technology
 	 * As a special case, NodeInst.checkPossibleVariableEffects()
 	 * updates the node when this variable changes.
 	 */
-	public static final Variable.Key ART_DEGREES = ElectricObject.newKey("ART_degrees");
-	/** key of Variable holding message text. */				public static final Variable.Key ART_MESSAGE = ElectricObject.newKey("ART_message");
-	/** key of Variable holding color information */			public static final Variable.Key ART_COLOR = ElectricObject.newKey("ART_color");
-	/** key of Variable holding color information */			public static final Variable.Key ART_PATTERN = ElectricObject.newKey("ART_pattern");
+	public static final Variable.Key ART_DEGREES = Variable.newKey("ART_degrees");
+	/** key of Variable holding message text. */				public static final Variable.Key ART_MESSAGE = Variable.newKey("ART_message");
+	/** key of Variable holding color information */			public static final Variable.Key ART_COLOR = Variable.newKey("ART_color");
+	/** key of Variable holding color information */			public static final Variable.Key ART_PATTERN = Variable.newKey("ART_pattern");
 
 	/** the Artwork Technology object. */			public static final Artwork tech = new Artwork();
 

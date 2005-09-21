@@ -3473,14 +3473,14 @@ public class EDIF extends Input
 						Variable var = null;
 						if (ni != null)
 						{
-                            var = ni.newVar(ElectricObject.newKey(key), textString, textVisible);
+                            var = ni.newVar(Variable.newKey(key), textString, textVisible);
 //							if (var != null && textVisible) var.setDisplay(true);
 							// now set the position, relative to the center of the current object
 							xOff = p0.getX() - ni.getAnchorCenterX();
 							yOff = p0.getY() - ni.getAnchorCenterY();
 						} else
 						{
-                            var = ai.newVar(ElectricObject.newKey(key), textString, textVisible);
+                            var = ai.newVar(Variable.newKey(key), textString, textVisible);
 //							if (var != null && textVisible) var.setDisplay(true);
 
 							// now set the position, relative to the center of the current object

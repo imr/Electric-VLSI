@@ -5130,7 +5130,7 @@ public class CircuitChanges
                 varKeys = new ArrayList();
                 posVarsMap.put(pn, varKeys);
             }
-            Variable.Key key = ElectricObject.newKey(varName);
+            Variable.Key key = Variable.newKey(varName);
             if (!varKeys.contains(key)) varKeys.add(key);
         }
 

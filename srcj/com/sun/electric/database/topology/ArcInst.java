@@ -81,8 +81,8 @@ public class ArcInst extends Geometric implements Comparable
 	/** The index of the head of this ArcInst. */		public static final int HEADEND = 1;
 
 	/** special name for text descriptor of arc name */	public static final String ARC_NAME_TD = new String("ARC_name");
-	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = ElectricObject.newKey("ARC_name");
-	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = ElectricObject.newKey("ARC_radius");
+	/** Key of the obsolete variable holding arc name.*/public static final Variable.Key ARC_NAME = Variable.newKey("ARC_name");
+	/** Key of Varible holding arc curvature. */		public static final Variable.Key ARC_RADIUS = Variable.newKey("ARC_radius");
 
 	/** Minimal distance of arc end to port polygon. */	static final double MINPORTDISTANCE = DBMath.getEpsilon()*0.71; // sqrt(0.5)
 

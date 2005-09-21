@@ -72,10 +72,10 @@ public class User extends Listener
 	// ---------------------- private and protected methods -----------------
 
 	/** the User Interface tool. */		private static User tool = new User();
-	/** key of Variable holding cell frame information. */				public static final Variable.Key FRAME_SIZE = ElectricObject.newKey("FACET_schematic_page_size");
-	/** key of Variable holding cell company name. */					public static final Variable.Key FRAME_COMPANY_NAME = ElectricObject.newKey("USER_drawing_company_name");
-	/** key of Variable holding cell designer name. */					public static final Variable.Key FRAME_DESIGNER_NAME = ElectricObject.newKey("USER_drawing_designer_name");
-	/** key of Variable holding cell project name. */					public static final Variable.Key FRAME_PROJECT_NAME = ElectricObject.newKey("USER_drawing_project_name");
+	/** key of Variable holding cell frame information. */				public static final Variable.Key FRAME_SIZE = Variable.newKey("FACET_schematic_page_size");
+	/** key of Variable holding cell company name. */					public static final Variable.Key FRAME_COMPANY_NAME = Variable.newKey("USER_drawing_company_name");
+	/** key of Variable holding cell designer name. */					public static final Variable.Key FRAME_DESIGNER_NAME = Variable.newKey("USER_drawing_designer_name");
+	/** key of Variable holding cell project name. */					public static final Variable.Key FRAME_PROJECT_NAME = Variable.newKey("USER_drawing_project_name");
 
 	private ArcProto currentArcProto = null;
 	private NodeProto currentNodeProto = null;

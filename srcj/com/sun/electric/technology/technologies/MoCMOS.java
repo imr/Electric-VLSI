@@ -61,9 +61,9 @@ public class MoCMOS extends Technology
 	/** Value for deep rules. */				public static final int DEEPRULES  = 2;
 
 	/** key of Variable for saving technology state. */
-	public static final Variable.Key TECH_LAST_STATE = ElectricObject.newKey("TECH_last_state");
+	public static final Variable.Key TECH_LAST_STATE = Variable.newKey("TECH_last_state");
 	/** key of Variable for saving scalable transistor contact information. */
-	public static final Variable.Key TRANS_CONTACT = ElectricObject.newKey("MOCMOS_transcontacts");
+	public static final Variable.Key TRANS_CONTACT = Variable.newKey("MOCMOS_transcontacts");
 
 	// layers
 	private Layer poly1_lay, transistorPoly_lay;

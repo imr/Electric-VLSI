@@ -202,8 +202,10 @@ public class Network {
             Export e = (Export) it.next();
             int busWidth = netlist.getBusWidth(e);
             for (int i = 0; i < busWidth; i++) {
-                if (netlist.getNetwork(e, i) == this)
+                if (netlist.getNetwork(e, i) == this) {
                     exports.add(e);
+                    break;
+                }
             }
         }
         return exports.iterator();
@@ -218,6 +220,7 @@ public class Network {
             for (int i = 0; i < busWidth; i++) {
                 if (netlist.getNetwork(ai, i) == this) {
                     arcs.add(ai);
+                    break;
                 }
             }
         }

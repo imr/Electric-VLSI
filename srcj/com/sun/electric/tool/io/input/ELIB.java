@@ -194,7 +194,7 @@ public class ELIB extends LibraryFiles
         /** Get a Variable Key */
         protected Variable.Key getKey(int i) {
             String name = keys[i];
-            return ElectricObject.newKey(name);
+            return Variable.newKey(name);
         }
     }
 
@@ -1287,7 +1287,7 @@ public class ELIB extends LibraryFiles
 							PortInst pi = ni.findPortInst(thePortName);
 							if (pi != null)
 							{
-								Variable var = pi.newVar(ElectricObject.newKey(varName), origVar.getObject(), origVar.getTextDescriptor());
+								Variable var = pi.newVar(Variable.newKey(varName), origVar.getObject(), origVar.getTextDescriptor());
 //								if (var != null)
 //								{
 //    								if (origVar.isDisplay()) var.setDisplay(true);

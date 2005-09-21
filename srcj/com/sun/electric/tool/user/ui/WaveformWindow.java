@@ -188,7 +188,7 @@ public class WaveformWindow implements WindowContent
 	/** true to show points on vertices (analog only) */	private boolean showVertexPoints;
 	/** true to show a grid (analog only) */				private boolean showGrid;
 	/** the actual screen coordinates of the waveform */	private int screenLowX, screenHighX;
-	/** Varible key for true library of fake cell. */		public static final Variable.Key WINDOW_SIGNAL_ORDER = ElectricObject.newKey("SIM_window_signalorder");
+	/** Varible key for true library of fake cell. */		public static final Variable.Key WINDOW_SIGNAL_ORDER = Variable.newKey("SIM_window_signalorder");
 	/** The highlighter for this waveform window. */		private Highlighter highlighter;
 	private static boolean freezeWaveformHighlighting = false;
 	/** The global listener for all waveform windows. */	private static WaveformWindowHighlightListener waveHighlighter = new WaveformWindowHighlightListener();

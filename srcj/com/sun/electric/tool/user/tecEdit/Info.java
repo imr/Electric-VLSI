@@ -101,19 +101,19 @@ public class Info
 	/** true to include the ground network (info cell) */		static final int TECHGROUNDINCLUDED= 44;
 	/** the transparent colors (info cell) */					static final int TECHTRANSPCOLORS  = 45;
 
-	/** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = ElectricObject.newKey("EDTEC_layer");
-	/** key of Variable holding option information. */	static final Variable.Key OPTION_KEY = ElectricObject.newKey("EDTEC_option");
-	/** key of Variable holding arc ordering. */		static final Variable.Key ARCSEQUENCE_KEY = ElectricObject.newKey("EDTEC_arcsequence");
-	/** key of Variable holding node ordering. */		static final Variable.Key NODESEQUENCE_KEY = ElectricObject.newKey("EDTEC_nodesequence");
-	/** key of Variable holding layer ordering. */		static final Variable.Key LAYERSEQUENCE_KEY = ElectricObject.newKey("EDTEC_layersequence");
-	/** key of Variable marking geometry as min-size. */static final Variable.Key MINSIZEBOX_KEY = ElectricObject.newKey("EDTEC_minbox");
-	/** key of Variable holding port name. */			static final Variable.Key PORTNAME_KEY = ElectricObject.newKey("EDTEC_portname");
-	/** key of Variable holding port angle. */			static final Variable.Key PORTANGLE_KEY = ElectricObject.newKey("EDTEC_portangle");
-	/** key of Variable holding port range. */			static final Variable.Key PORTRANGE_KEY = ElectricObject.newKey("EDTEC_portrange");
-	/** key of Variable holding arc connection list. */	static final Variable.Key CONNECTION_KEY = ElectricObject.newKey("EDTEC_connects");
-	/** key of Variable with color map table. */		static final Variable.Key COLORMAP_KEY = ElectricObject.newKey("EDTEC_colormap");
-	/** key of Variable with color map table. */		static final Variable.Key DEPENDENTLIB_KEY = ElectricObject.newKey("EDTEC_dependent_libraries");
-	/** key of Variable with transparent color list. */	static final Variable.Key TRANSLAYER_KEY = ElectricObject.newKey("EDTEC_transparent_layers");
+	/** key of Variable holding layer information. */	public static final Variable.Key LAYER_KEY = Variable.newKey("EDTEC_layer");
+	/** key of Variable holding option information. */	static final Variable.Key OPTION_KEY = Variable.newKey("EDTEC_option");
+	/** key of Variable holding arc ordering. */		static final Variable.Key ARCSEQUENCE_KEY = Variable.newKey("EDTEC_arcsequence");
+	/** key of Variable holding node ordering. */		static final Variable.Key NODESEQUENCE_KEY = Variable.newKey("EDTEC_nodesequence");
+	/** key of Variable holding layer ordering. */		static final Variable.Key LAYERSEQUENCE_KEY = Variable.newKey("EDTEC_layersequence");
+	/** key of Variable marking geometry as min-size. */static final Variable.Key MINSIZEBOX_KEY = Variable.newKey("EDTEC_minbox");
+	/** key of Variable holding port name. */			static final Variable.Key PORTNAME_KEY = Variable.newKey("EDTEC_portname");
+	/** key of Variable holding port angle. */			static final Variable.Key PORTANGLE_KEY = Variable.newKey("EDTEC_portangle");
+	/** key of Variable holding port range. */			static final Variable.Key PORTRANGE_KEY = Variable.newKey("EDTEC_portrange");
+	/** key of Variable holding arc connection list. */	static final Variable.Key CONNECTION_KEY = Variable.newKey("EDTEC_connects");
+	/** key of Variable with color map table. */		static final Variable.Key COLORMAP_KEY = Variable.newKey("EDTEC_colormap");
+	/** key of Variable with color map table. */		static final Variable.Key DEPENDENTLIB_KEY = Variable.newKey("EDTEC_dependent_libraries");
+	/** key of Variable with transparent color list. */	static final Variable.Key TRANSLAYER_KEY = Variable.newKey("EDTEC_transparent_layers");
 
 	/**
 	 * Class for describing special text in a cell

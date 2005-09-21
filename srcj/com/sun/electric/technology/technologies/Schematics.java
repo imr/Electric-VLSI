@@ -57,15 +57,15 @@ import java.util.List;
  */
 public class Schematics extends Technology
 {
-	/** key of Variable holding global signal name. */	public static final Variable.Key SCHEM_GLOBAL_NAME = ElectricObject.newKey("SCHEM_global_name");
-	/** key of Variable holding resistance. */			public static final Variable.Key SCHEM_RESISTANCE = ElectricObject.newKey("SCHEM_resistance");
-	/** key of Variable holding capacitance. */			public static final Variable.Key SCHEM_CAPACITANCE = ElectricObject.newKey("SCHEM_capacitance");
-	/** key of Variable holding inductance. */			public static final Variable.Key SCHEM_INDUCTANCE = ElectricObject.newKey("SCHEM_inductance");
-	/** key of Variable holding diode area. */			public static final Variable.Key SCHEM_DIODE = ElectricObject.newKey("SCHEM_diode");
-	/** key of Variable holding black-box function. */	public static final Variable.Key SCHEM_FUNCTION = ElectricObject.newKey("SCHEM_function");
-	/** key of Variable holding transistor width. */	public static final Variable.Key ATTR_WIDTH = ElectricObject.newKey("ATTR_width");
-	/** key of Variable holding transistor length. */	public static final Variable.Key ATTR_LENGTH = ElectricObject.newKey("ATTR_length");
-	/** key of Variable holding transistor area. */		public static final Variable.Key ATTR_AREA = ElectricObject.newKey("ATTR_area");
+	/** key of Variable holding global signal name. */	public static final Variable.Key SCHEM_GLOBAL_NAME = Variable.newKey("SCHEM_global_name");
+	/** key of Variable holding resistance. */			public static final Variable.Key SCHEM_RESISTANCE = Variable.newKey("SCHEM_resistance");
+	/** key of Variable holding capacitance. */			public static final Variable.Key SCHEM_CAPACITANCE = Variable.newKey("SCHEM_capacitance");
+	/** key of Variable holding inductance. */			public static final Variable.Key SCHEM_INDUCTANCE = Variable.newKey("SCHEM_inductance");
+	/** key of Variable holding diode area. */			public static final Variable.Key SCHEM_DIODE = Variable.newKey("SCHEM_diode");
+	/** key of Variable holding black-box function. */	public static final Variable.Key SCHEM_FUNCTION = Variable.newKey("SCHEM_function");
+	/** key of Variable holding transistor width. */	public static final Variable.Key ATTR_WIDTH = Variable.newKey("ATTR_width");
+	/** key of Variable holding transistor length. */	public static final Variable.Key ATTR_LENGTH = Variable.newKey("ATTR_length");
+	/** key of Variable holding transistor area. */		public static final Variable.Key ATTR_AREA = Variable.newKey("ATTR_area");
 
 	/** the Schematics Technology object. */			public static final Schematics tech = new Schematics();
 

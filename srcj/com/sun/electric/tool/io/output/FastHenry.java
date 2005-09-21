@@ -51,12 +51,12 @@ import java.util.Set;
  */
 public class FastHenry extends Output
 {
-	/** key of Variable holding group name. */			public static final Variable.Key GROUP_NAME_KEY = ElectricObject.newKey("SIM_fasthenry_group_name");
-	/** key of Variable holding thickness. */			public static final Variable.Key THICKNESS_KEY = ElectricObject.newKey("SIM_fasthenry_thickness");
-	/** key of Variable holding width subdivisions. */	public static final Variable.Key WIDTH_SUBDIVS_KEY = ElectricObject.newKey("SIM_fasthenry_width_subdivs");
-	/** key of Variable holding height subdivisions. */	public static final Variable.Key HEIGHT_SUBDIVS_KEY = ElectricObject.newKey("SIM_fasthenry_height_subdivs");
-	/** key of Variable holding the head Z value. */	public static final Variable.Key ZHEAD_KEY = ElectricObject.newKey("SIM_fasthenry_z_head");
-	/** key of Variable holding the tail Z value. */	public static final Variable.Key ZTAIL_KEY = ElectricObject.newKey("SIM_fasthenry_z_tail");
+	/** key of Variable holding group name. */			public static final Variable.Key GROUP_NAME_KEY = Variable.newKey("SIM_fasthenry_group_name");
+	/** key of Variable holding thickness. */			public static final Variable.Key THICKNESS_KEY = Variable.newKey("SIM_fasthenry_thickness");
+	/** key of Variable holding width subdivisions. */	public static final Variable.Key WIDTH_SUBDIVS_KEY = Variable.newKey("SIM_fasthenry_width_subdivs");
+	/** key of Variable holding height subdivisions. */	public static final Variable.Key HEIGHT_SUBDIVS_KEY = Variable.newKey("SIM_fasthenry_height_subdivs");
+	/** key of Variable holding the head Z value. */	public static final Variable.Key ZHEAD_KEY = Variable.newKey("SIM_fasthenry_z_head");
+	/** key of Variable holding the tail Z value. */	public static final Variable.Key ZTAIL_KEY = Variable.newKey("SIM_fasthenry_z_tail");
 
 	/**
 	 * Class for managing FastHenry information on arcs.

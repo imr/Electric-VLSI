@@ -1309,7 +1309,7 @@ public class JELIB extends LibraryFiles
 				continue;
 			}
 			String varName = unQuote(piece.substring(0, openPos));
-			Variable.Key varKey = ElectricObject.newKey(varName);
+			Variable.Key varKey = Variable.newKey(varName);
 			if (eObj.isDeprecatedVariable(varKey)) continue;
 			int closePos = piece.indexOf(')', openPos);
 			if (closePos < 0)

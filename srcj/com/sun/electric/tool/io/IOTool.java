@@ -42,7 +42,7 @@ public class IOTool extends Listener
 {
 	/** the IO tool. */										private static IOTool tool = new IOTool();
 
-	/** Varible key for true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = ElectricObject.newKey("IO_true_library");
+	/** Varible key for true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = Variable.newKey("IO_true_library");
 
 	// ---------------------- private and protected methods -----------------
 
@@ -640,7 +640,7 @@ public class IOTool extends Listener
 	 */
 	public static void setPrintColorMethod(int cm) { cachePrintColorMethod.setInt(cm); }
 
-	public static final Variable.Key POSTSCRIPT_EPS_SCALE = ElectricObject.newKey("IO_postscript_EPS_scale");
+	public static final Variable.Key POSTSCRIPT_EPS_SCALE = Variable.newKey("IO_postscript_EPS_scale");
 	/**
 	 * Method to tell the EPS scale of a given Cell.
 	 * @param cell the cell to query.
@@ -668,7 +668,7 @@ public class IOTool extends Listener
 		tool.setVarInJob(cell, POSTSCRIPT_EPS_SCALE, new Double(scale));
 	}
 
-	public static final Variable.Key POSTSCRIPT_FILENAME = ElectricObject.newKey("IO_postscript_filename");
+	public static final Variable.Key POSTSCRIPT_FILENAME = Variable.newKey("IO_postscript_filename");
 	/**
 	 * Method to tell the EPS synchronization file of a given Cell.
 	 * During automatic synchronization of PostScript, any cell changed more
@@ -701,7 +701,7 @@ public class IOTool extends Listener
 		tool.setVarInJob(cell, POSTSCRIPT_FILENAME, syncFile);
 	}
 
-	public static final Variable.Key POSTSCRIPT_FILEDATE = ElectricObject.newKey("IO_postscript_filedate");
+	public static final Variable.Key POSTSCRIPT_FILEDATE = Variable.newKey("IO_postscript_filedate");
 	/**
 	 * Method to tell the EPS synchronization file of a given Cell.
 	 * During automatic synchronization of PostScript, any cell changed more

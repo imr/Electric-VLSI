@@ -35,7 +35,7 @@ import java.util.ArrayList;
  * It differs from Cell objects, which will be owned by threads in transactional database.
  * This class is thread-safe except inCurrentThread method in 1.5, but not thread-safe in 1.4  .
  */
-public class CellId implements NodeProtoId
+public final class CellId implements NodeProtoId
 {
     /** Unique index of this cell in the database. */
     public final int cellIndex;

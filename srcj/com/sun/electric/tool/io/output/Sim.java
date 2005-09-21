@@ -56,7 +56,7 @@ public class Sim extends Output
 {
 	private HashMap globalNetNames;
 	private int globalNetVDD, globalNetGND, globalNetPhi1H, globalNetPhi1L, globalNetPhi2H, globalNetPhi2L;
-	/** key of Variable holding COSMOS attributes. */	private static final Variable.Key COSMOS_ATTRIBUTE_KEY = ElectricObject.newKey("SIM_cosmos_attribute");
+	/** key of Variable holding COSMOS attributes. */	private static final Variable.Key COSMOS_ATTRIBUTE_KEY = Variable.newKey("SIM_cosmos_attribute");
 
 	/**
 	 * The main entry point for Sim deck writing.

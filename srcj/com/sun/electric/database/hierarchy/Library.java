@@ -64,7 +64,7 @@ import javax.swing.JOptionPane;
  */
 public class Library extends ElectricObject implements Comparable/*<Library>*/
 {
-	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = ElectricObject.newKey("LIB_font_associations");
+	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = Variable.newKey("LIB_font_associations");
 
 	// ------------------------ private data ------------------------------
 

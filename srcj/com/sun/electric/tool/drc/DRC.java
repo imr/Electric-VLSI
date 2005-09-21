@@ -58,9 +58,9 @@ public class DRC extends Listener
 	/** map of cells and their objects to DRC */		private static HashMap cellsToCheck = new HashMap();
 	private static boolean incrementalRunning = false;
     /** key of Variable for last valid DRC date on a Cell. */
-    private static final Variable.Key DRC_LAST_GOOD_DATE = ElectricObject.newKey("DRC_last_good_drc_date");
+    private static final Variable.Key DRC_LAST_GOOD_DATE = Variable.newKey("DRC_last_good_drc_date");
     /** key of Variable for last valid DRC bit on a Cell. */
-    private static final Variable.Key DRC_LAST_GOOD_BIT = ElectricObject.newKey("DRC_last_good_drc_bit");
+    private static final Variable.Key DRC_LAST_GOOD_BIT = Variable.newKey("DRC_last_good_drc_bit");
     public static final int DRC_BIT_AREA = 01; /* Min area condition */
     public static final int DRC_BIT_COVERAGE = 02;   /* Coverage DRC condition */
     public static final int DRC_BIT_ST_FOUNDRY = 03; /* For ST foundry selection */
@@ -811,5 +811,5 @@ public class DRC extends Listener
 	 * @param on true if DRC should check extension rules.
 	 */
 	public static void setIgnoreExtensionRuleChecking(boolean on) { cacheIgnoreExtensionRuleChecking.setBoolean(on); }
-//	public static final Variable.Key POSTSCRIPT_FILEDATE = ElectricObject.newKey("IO_postscript_filedate");
+//	public static final Variable.Key POSTSCRIPT_FILEDATE = Variable.newKey("IO_postscript_filedate");
 }

@@ -290,10 +290,10 @@ public class FPGA extends Technology
 		}
 	};
 
-	/** key of Variable holding active pips. */				private static final Variable.Key ACTIVEPIPS_KEY = ElectricObject.newKey("FPGA_activepips");
-	/** key of Variable holding active repeaters. */		private static final Variable.Key ACTIVEREPEATERS_KEY = ElectricObject.newKey("FPGA_activerepeaters");
-	/** key of Variable holding cache of pips on node. */	private static final Variable.Key NODEPIPCACHE_KEY = ElectricObject.newKey("FPGA_nodepipcache");
-	/** key of Variable holding cache of active arcs. */	private static final Variable.Key ARCACTIVECACHE_KEY = ElectricObject.newKey("FPGA_arcactivecache");
+	/** key of Variable holding active pips. */				private static final Variable.Key ACTIVEPIPS_KEY = Variable.newKey("FPGA_activepips");
+	/** key of Variable holding active repeaters. */		private static final Variable.Key ACTIVEREPEATERS_KEY = Variable.newKey("FPGA_activerepeaters");
+	/** key of Variable holding cache of pips on node. */	private static final Variable.Key NODEPIPCACHE_KEY = Variable.newKey("FPGA_nodepipcache");
+	/** key of Variable holding cache of active arcs. */	private static final Variable.Key ARCACTIVECACHE_KEY = Variable.newKey("FPGA_arcactivecache");
 	/** name of current repeater for activity examining */	private static String         repeaterName;
 	/** nonzero if current repeater is found to be active */private static boolean        repeaterActive;
 	/** what is being displayed */							private static int            internalDisplay = ACTIVEPRIMDISPLAY | TEXTDISPLAY;

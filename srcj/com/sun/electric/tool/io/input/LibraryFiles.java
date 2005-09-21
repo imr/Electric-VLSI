@@ -147,7 +147,7 @@ public abstract class LibraryFiles extends Input
             libFiles.mtd.setCBits(td0, libFiles.fixTextDescriptorFont(td1), flags);
 
 			// see if the variable is deprecated
-			Variable.Key varKey = ElectricObject.newKey(name);
+			Variable.Key varKey = Variable.newKey(name);
 			if (eObj.isDeprecatedVariable(varKey)) return;
 
 			// set the variable

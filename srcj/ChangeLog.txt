@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03h: *********************************
 
+BUG: (09/21/05, DN) Strange behavior - lots of networks (Bug #557)
+FIX: NetworkHighlighter finds highlights for a set of Networks avoiding duplicates.
+
+IMP: (09/21/05, DN) Transactional DB: ImmutableVariable.
+     ElectricObject.newKey was moved to Variable.newKey .
+
 IMP/MAN: (09/21/05, SMR) Added David Harris's Electric tutorial to the user's manual.
      Added his MIPS library to the library area; added new command under Help / Load Built-in Libraries
      to load it.

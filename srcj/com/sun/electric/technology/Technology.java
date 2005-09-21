@@ -3672,7 +3672,7 @@ public class Technology implements Comparable
 
     /********************* FOR GUI **********************/
 
-    /** Temporary variable for holding names */         public static final Variable.Key TECH_TMPVAR= ElectricObject.newKey("TECH_TMPVAR");
+    /** Temporary variable for holding names */         public static final Variable.Key TECH_TMPVAR = Variable.newKey("TECH_TMPVAR");
 
     /**
      * Method to retrieve correct group of elements for the palette.

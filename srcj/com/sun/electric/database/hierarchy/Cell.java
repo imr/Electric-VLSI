@@ -326,9 +326,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 	// -------------------------- private data ---------------------------------
 
-	/** Variable key for characteristic spacing for a cell. */		public static final Variable.Key CHARACTERISTIC_SPACING = ElectricObject.newKey("FACET_characteristic_spacing");
-	/** Variable key for text cell contents. */						public static final Variable.Key CELL_TEXT_KEY = ElectricObject.newKey("FACET_message");
-	/** Variable key for number of multipage pages. */				public static final Variable.Key MULTIPAGE_COUNT_KEY = ElectricObject.newKey("CELL_page_count");
+	/** Variable key for characteristic spacing for a cell. */		public static final Variable.Key CHARACTERISTIC_SPACING = Variable.newKey("FACET_characteristic_spacing");
+	/** Variable key for text cell contents. */						public static final Variable.Key CELL_TEXT_KEY = Variable.newKey("FACET_message");
+	/** Variable key for number of multipage pages. */				public static final Variable.Key MULTIPAGE_COUNT_KEY = Variable.newKey("CELL_page_count");
 
     private static final int[] NULL_INT_ARRAY = {};
 	private static final Export[] NULL_EXPORT_ARRAY = {};

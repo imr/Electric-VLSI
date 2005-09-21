@@ -51,9 +51,6 @@ public abstract class ElectricObject extends Observable implements Observer
 
 	/** extra variables (null if no variables yet) */		private TreeMap vars;
 
-	/** a list of all variable keys */						private static final HashMap varKeys = new HashMap();
-	/** all variable keys addressed by lower case name */	private static final HashMap varCanonicKeys = new HashMap();
-
 	// ------------------------ private and protected methods -------------------
 
 	/**
@@ -75,7 +72,7 @@ public abstract class ElectricObject extends Observable implements Observer
 	 */
 	public Variable getVar(String name)
     {
-        Variable.Key key = findKey(name);
+        Variable.Key key = Variable.findKey(name);
         return getVar(key, null);
     }
 
@@ -97,7 +94,7 @@ public abstract class ElectricObject extends Observable implements Observer
 	 */
 	public Variable getVar(String name, Class type)
     {
-        Variable.Key key = findKey(name);
+        Variable.Key key = Variable.findKey(name);
         return getVar(key, type);
     }
 
@@ -207,7 +204,7 @@ public abstract class ElectricObject extends Observable implements Observer
             ActivityLogger.logException(new Exception("GetParameter recurse error: "+debugGetParameterRecurse));
         debugGetParameterRecurse++;
 
-        Variable.Key key = findKey(name);
+        Variable.Key key = Variable.findKey(name);
         if (key == null) { debugGetParameterRecurse--; return null; }
         Variable var = getVar(key, null);
         if (var != null)
@@ -662,7 +659,7 @@ public abstract class ElectricObject extends Observable implements Observer
 	 * @param value the object to store in the Variable.
 	 * @return the Variable that has been created.
 	 */
-	public Variable newVar(String name, Object value) { return newVar(newKey(name), value); }
+	public Variable newVar(String name, Object value) { return newVar(Variable.newKey(name), value); }
 
 	/**
 	 * Method to create a displayable Variable on this ElectricObject with the specified values.
@@ -751,7 +748,7 @@ public abstract class ElectricObject extends Observable implements Observer
 	 */
 	public Variable updateVar(String name, Object value)
     {
-        return updateVar(newKey(name), value);
+        return updateVar(Variable.newKey(name), value);
     }
 
 	/**
@@ -854,7 +851,7 @@ public abstract class ElectricObject extends Observable implements Observer
      * @return the new renamed variable
      */
     public Variable renameVar(String name, String newName) {
-        return renameVar(findKey(name), newName);
+        return renameVar(Variable.findKey(name), newName);
     }
 
     /**
@@ -875,7 +872,7 @@ public abstract class ElectricObject extends Observable implements Observer
         if (oldvar == null) return null;
 
         // create new var
-        Variable newVar = newVar(newKey(newName), oldvar.getObject(), oldvar.getTextDescriptor());
+        Variable newVar = newVar(Variable.newKey(newName), oldvar.getObject(), oldvar.getTextDescriptor());
         if (newVar == null) return null;
         // copy settings from old var to new var
 //        newVar.setTextDescriptor();
@@ -1387,44 +1384,6 @@ public abstract class ElectricObject extends Observable implements Observer
      * or if it is a dummy database object (considered not to be in the database).
 	 */
 	protected boolean isDatabaseObject() { return true; }
-
-	/**
-	 * Method to return the Key object for a given Variable name.
-	 * Variable Key objects are caches of the actual string name of the Variable.
-	 * @return the Key object for a given Variable name.
-	 */
-	private static synchronized Variable.Key findKey(String name)
-	{
-		Variable.Key key = (Variable.Key)varKeys.get(name);
-		if (key == null)
-		{
-			String lowCaseName = TextUtils.canonicString(name);
-			if (!lowCaseName.equals(name))
-				key = (Variable.Key)varCanonicKeys.get(lowCaseName);
-            if (key != null)
-            {
-                System.out.println("WARNING: Variable search may become case-sensitive in future versions. Search: " + name + " found: " + key.getName());
-                varKeys.put(name, key);
-            }
-		}
-		return key;
-	}
-
-	/**
-	 * Method to find or create the Key object for a given Variable name.
-	 * Variable Key objects are caches of the actual string name of the Variable.
-	 * @param name given Variable name.
-	 * @return the Key object for a given Variable name.
-	 */
-	public static synchronized Variable.Key newKey(String name)
-	{
-		Variable.Key key = findKey(name);
-		if (key != null) return key;
-		key = new Variable.Key(name);
-		varKeys.put(name, key);
-		varCanonicKeys.put(TextUtils.canonicString(name), key);
-		return key;
-	}
 
 	/**
 	 * Method to determine the appropriate Cell associated with this ElectricObject.

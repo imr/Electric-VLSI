@@ -49,9 +49,9 @@ import java.util.Set;
  */
 public class DXF extends Output
 {
-	/** key of Variable holding DXF layer name. */			public static final Variable.Key DXF_LAYER_KEY = ElectricObject.newKey("IO_dxf_layer");
-	/** key of Variable holding DXF header text. */			public static final Variable.Key DXF_HEADER_TEXT_KEY = ElectricObject.newKey("IO_dxf_header_text");
-	/** key of Variable holding DXF header information. */	public static final Variable.Key DXF_HEADER_ID_KEY = ElectricObject.newKey("IO_dxf_header_ID");
+	/** key of Variable holding DXF layer name. */			public static final Variable.Key DXF_LAYER_KEY = Variable.newKey("IO_dxf_layer");
+	/** key of Variable holding DXF header text. */			public static final Variable.Key DXF_HEADER_TEXT_KEY = Variable.newKey("IO_dxf_header_text");
+	/** key of Variable holding DXF header information. */	public static final Variable.Key DXF_HEADER_ID_KEY = Variable.newKey("IO_dxf_header_ID");
 	private int dxfEntityHandle;
 	private Set cellsSeen;
 	private TextUtils.UnitScale dxfDispUnit;
@@ -97,8 +97,10 @@ public class DXF extends Output
 			for(int i=0; i<len; i++)
 			{
 				// remove entries that confuse the issues
-				String pt = ((String [])varheadertext.getObject())[i];
-				int code = ((Integer [])varheaderid.getObject())[i].intValue();
+				String pt = (String)varheadertext.getObject(i);
+				int code = ((Integer)varheaderid.getObject(i)).intValue();
+//				String pt = ((String [])varheadertext.getObject())[i];
+//				int code = ((Integer [])varheaderid.getObject())[i].intValue();
 				if (code == 9 && i <= len-2)
 				{
 					boolean found = false;

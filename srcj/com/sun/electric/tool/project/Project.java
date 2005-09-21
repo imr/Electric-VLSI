@@ -113,9 +113,9 @@ public class Project extends Listener
 	public static final int CHECKEDOUTTOOTHERS = 3;
 	public static final int OLDVERSION         = 4;
 
-	private static final Variable.Key PROJLOCKEDKEY = ElectricObject.newKey("PROJ_locked");
-	private static final Variable.Key PROJPATHKEY   = ElectricObject.newKey("PROJ_path");
-	private static final Variable.Key PROJLIBRARYKEY = ElectricObject.newKey("PROJ_library");
+	private static final Variable.Key PROJLOCKEDKEY = Variable.newKey("PROJ_locked");
+	private static final Variable.Key PROJPATHKEY   = Variable.newKey("PROJ_path");
+	private static final Variable.Key PROJLIBRARYKEY = Variable.newKey("PROJ_library");
 	private static final String PUSERFILE   = "projectusers";
 	private static final String PROJECTFILE = "project.proj";
 

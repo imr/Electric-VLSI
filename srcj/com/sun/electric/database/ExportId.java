@@ -35,7 +35,7 @@ import com.sun.electric.database.prototype.PortProtoId;
  * It differs from Export objects, which will be owned by threads in transactional database.
  * This class is thread-safe except inCurrentThread method .
  */
-public class ExportId implements PortProtoId
+public final class ExportId implements PortProtoId
 {
     /** Parent CellId of this ExportId */
     public final CellId parentId;

@@ -30,7 +30,7 @@ import com.sun.electric.database.hierarchy.Cell;
  * Vertices of the edge are CellIds of parent cell and proto subcell.
  * This possible edge can be an edge in one thread, and not an edge in another thread.
  */
-public class CellUsage
+public final class CellUsage
 {
 	/** CellId of the parent Cell */
     public final CellId parentId;

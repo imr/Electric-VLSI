@@ -501,7 +501,7 @@ public class VectorDrawing
 		}
 	}
 
-	private static final Variable.Key NCCKEY = ElectricObject.newKey("ATTR_NCC");
+	private static final Variable.Key NCCKEY = Variable.newKey("ATTR_NCC");
 
 	/**
 	 * Method to tell whether a Cell is parameterized.

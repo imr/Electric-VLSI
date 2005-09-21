@@ -57,7 +57,7 @@ import java.util.Iterator;
  */
 public class MOSSIM extends Topology
 {
-	/** key of Variable holding node or arc strength. */	public static final Variable.Key MOSSIM_STRENGTH_KEY = ElectricObject.newKey("SIM_mossim_strength");
+	/** key of Variable holding node or arc strength. */	public static final Variable.Key MOSSIM_STRENGTH_KEY = Variable.newKey("SIM_mossim_strength");
 
 	/**
 	 * The main entry point for MOSSIM deck writing.

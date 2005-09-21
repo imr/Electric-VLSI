@@ -86,9 +86,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	/** special name for text descriptor of prototype name */	public static final String NODE_PROTO_TD = new String("NODE_proto");
 	/** special name for text descriptor of instance name */	public static final String NODE_NAME_TD = new String("NODE_name");
 
-	/** key of obsolete Variable holding instance name. */		public static final Variable.Key NODE_NAME = ElectricObject.newKey("NODE_name");
-	/** key of Varible holding outline information. */			public static final Variable.Key TRACE = ElectricObject.newKey("trace");
-	/** key of Varible holding serpentine transistor length. */	private static final Variable.Key TRANSISTOR_LENGTH_KEY = ElectricObject.newKey("transistor_width");
+	/** key of obsolete Variable holding instance name. */		public static final Variable.Key NODE_NAME = Variable.newKey("NODE_name");
+	/** key of Varible holding outline information. */			public static final Variable.Key TRACE = Variable.newKey("trace");
+	/** key of Varible holding serpentine transistor length. */	private static final Variable.Key TRANSISTOR_LENGTH_KEY = Variable.newKey("transistor_width");
 
 	private static final PortInst[] NULL_PORT_INST_ARRAY = new PortInst[0];
 	private static final Export[] NULL_EXPORT_ARRAY = new Export[0];

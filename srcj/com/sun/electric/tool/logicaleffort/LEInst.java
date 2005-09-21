@@ -35,11 +35,11 @@ import com.sun.electric.technology.PrimitiveNode;
  */
 public class LEInst {
 
-    public static final Variable.Key ATTR_LEGATE = ElectricObject.newKey("ATTR_LEGATE");
-    public static final Variable.Key ATTR_LEKEEPER = ElectricObject.newKey("ATTR_LEKEEPER");
-    public static final Variable.Key ATTR_LEWIRE = ElectricObject.newKey("ATTR_LEWIRE");
-    public static final Variable.Key ATTR_LESETTINGS = ElectricObject.newKey("ATTR_LESETTINGS");
-    public static final Variable.Key ATTR_LEIGNORE = ElectricObject.newKey("ATTR_LEIGNORE");
+    public static final Variable.Key ATTR_LEGATE = Variable.newKey("ATTR_LEGATE");
+    public static final Variable.Key ATTR_LEKEEPER = Variable.newKey("ATTR_LEKEEPER");
+    public static final Variable.Key ATTR_LEWIRE = Variable.newKey("ATTR_LEWIRE");
+    public static final Variable.Key ATTR_LESETTINGS = Variable.newKey("ATTR_LESETTINGS");
+    public static final Variable.Key ATTR_LEIGNORE = Variable.newKey("ATTR_LEIGNORE");
 
     /** Type is a typesafe enum class that describes the type of Instance this is */
     public static class Type {

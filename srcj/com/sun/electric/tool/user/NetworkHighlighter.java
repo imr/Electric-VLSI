@@ -30,17 +30,21 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.network.Network;
+import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.technology.PrimitiveNode;
 
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
-import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * This class is used for hierarchical highlighting of networks
@@ -49,17 +53,17 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
 
     private Cell cell;
     private Netlist netlist;
-    private Network net;
-    private int netID;
+    private Set/*<Network>*/ nets;
+    private BitSet netIDs;
     private int startDepth;
     private int endDepth;
     private int currentDepth;
     private Highlighter highlighter;
 
-    private NetworkHighlighter(Cell cell, Netlist netlist, Network net, int startDepth, int endDepth) {
+    private NetworkHighlighter(Cell cell, Netlist netlist, Set/*<Network>*/ nets, int startDepth, int endDepth) {
         this.cell = cell;
         this.netlist = netlist;
-        this.net = net;
+        this.nets = nets;
         this.startDepth = startDepth;
         this.endDepth = endDepth;
         currentDepth = 0;
@@ -74,12 +78,12 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      * cell Cell are highlighted.
      * @param cell the cell in which to highlight objects
      * @param netlist the netlist for the cell
-     * @param net objects connected to this network will be highlighted
+     * @param nets objects connected to these networks will be highlighted
      * @param startDepth to start depth of the hierarchical search
      * @return endDepth the end depth of the hierarchical search
      */
-    public static synchronized List getHighlights(Cell cell, Netlist netlist, Network net, int startDepth, int endDepth) {
-        NetworkHighlighter networkHighlighter = new NetworkHighlighter(cell, netlist, net, startDepth, endDepth);
+    public static synchronized List getHighlights(Cell cell, Netlist netlist, Set/*<Network>*/ nets, int startDepth, int endDepth) {
+        NetworkHighlighter networkHighlighter = new NetworkHighlighter(cell, netlist, nets, startDepth, endDepth);
 
         HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, networkHighlighter);
 //        HierarchyEnumerator.enumerateCell(cell, VarContext.globalContext, netlist, networkHighlighter);
@@ -92,7 +96,11 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
     public boolean enterCell(HierarchyEnumerator.CellInfo info) {
         if (currentDepth == 0) {
             // set the global net ID that will be used in sub cells
-            netID = info.getNetID(net);
+            netIDs = new BitSet();
+            for (Iterator it = nets.iterator(); it.hasNext(); ) {
+                Network net = (Network)it.next();
+                netIDs.set(info.getNetID(net));
+            }
         }
 
         // do not go below depth 0 for schematics
@@ -126,79 +134,59 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
 
     /**
      * Get objects connected to network 'net' in Cell 'cell' with Netlist 'netlist.
-     * This will grab all arcs on net if 'arcs' is not null, it will grab all
-     * ports if both 'arcs' and 'ports' are not null, and will grab all
-     * exports if 'exports' is not null.
      * @param cell
      * @param netlist
-     * @param net
-     * @param arcs list of ArcInsts on network
-     * @param ports list of PortsInsts on network
-     * @param exports list of Exports on network
+     * @param nets
+     * @return HashSet of ArcInsts, PortInsts and Exports on networs.
      */
-    private static void getNetworkObjects(Cell cell, Netlist netlist, Network net,
-                                       List arcs, List ports, List exports) {
-        for(Iterator it = net.getPorts(); it.hasNext();)
-            ports.add(it.next());
-
-        if (arcs != null) {
-            List nodesAdded = new ArrayList();
-            // all arcs on the network
-            for(Iterator aIt = cell.getArcs(); aIt.hasNext(); )
-            {
-                ArcInst ai = (ArcInst)aIt.next();
-                int width = netlist.getBusWidth(ai);
-                for(int i=0; i<width; i++)
-                {
-                    Network oNet = netlist.getNetwork(ai, i);
-                    if (oNet == net)
-                    {
-                        arcs.add(ai);
-                        if (ports != null) {
-                            // also highlight end nodes of arc, if they are primitive nodes
-                            PortInst pi = ai.getHeadPortInst();
-                            if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
-                                // ignore pins
-                                if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN &&
-                                    !nodesAdded.contains(pi)) {
-                                    // prevent duplicates
-                                    ports.add(pi);
-                                    nodesAdded.add(pi);
-                                }
-                            }
-                            pi = ai.getTailPortInst();
-                            if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
-                                if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN &&
-                                    !nodesAdded.contains(pi)) {
-                                    // prevent duplicates
-                                    ports.add(pi);
-                                    nodesAdded.add(pi);
-                                }
-                            }
-                            break;
-                        }
-                    }
+    private static HashSet getNetworkObjects(Cell cell, Netlist netlist, Set nets) {
+        HashSet objs = new HashSet();
+        
+        // all port instances on the networks
+        for (Iterator it = cell.getNodes(); it.hasNext(); ) {
+            NodeInst ni = (NodeInst)it.next();
+            if (ni.getNameKey().isBus()) continue;
+            for (Iterator pit = ni.getPortInsts(); pit.hasNext(); ) {
+                PortInst pi = (PortInst)pit.next();
+                PortProto portProto = pi.getPortProto();
+                if (portProto.getNameKey().isBus()) continue;
+                if (!nets.contains(netlist.getNetwork(pi))) continue;
+                objs.add(pi);
+            }
+        }
+        
+        // all arcs on the networks
+        for(Iterator aIt = cell.getArcs(); aIt.hasNext(); ) {
+            ArcInst ai = (ArcInst)aIt.next();
+            int width = netlist.getBusWidth(ai);
+            for(int i=0; i<width; i++) {
+                if (!nets.contains(netlist.getNetwork(ai, i))) continue;
+                objs.add(ai);
+                // also highlight end nodes of arc, if they are primitive nodes
+                PortInst pi = ai.getHeadPortInst();
+                if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
+                    // ignore pins
+                    if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN)
+                        objs.add(pi);
+                }
+                pi = ai.getTailPortInst();
+                if (pi.getNodeInst().getProto() instanceof PrimitiveNode) {
+                    if (pi.getNodeInst().getProto().getFunction() != PrimitiveNode.Function.PIN)
+                        objs.add(pi);
                 }
             }
         }
 
-        if (exports != null) {
-            // show all exports on the network
-            for(Iterator pIt = cell.getPorts(); pIt.hasNext(); )
-            {
-                Export pp = (Export)pIt.next();
-                int width = netlist.getBusWidth(pp);
-                for(int i=0; i<width; i++)
-                {
-                    Network oNet = netlist.getNetwork(pp, i);
-                    if (oNet == net)
-                    {
-                        exports.add(pp);
-                        break;
-                    }
-                }
+        // show all exports on the networks
+        for(Iterator pIt = cell.getPorts(); pIt.hasNext(); ) {
+            Export pp = (Export)pIt.next();
+            int width = netlist.getBusWidth(pp);
+            for(int i=0; i<width; i++) {
+                if (!nets.contains(netlist.getNetwork(pp, i))) continue;
+                objs.add(pp);
             }
         }
+        return objs;
     }
 
     /**
@@ -206,23 +194,11 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
      */
     private void addNetworkObjects() {
         // highlight objects in this cell
-        List arcs = new ArrayList();
-        List ports = new ArrayList();
-        List exports = new ArrayList();
+        HashSet objs = getNetworkObjects(cell, netlist, nets);
 
-        getNetworkObjects(cell, netlist, net, arcs, ports, exports);
-
-        for (Iterator it = arcs.iterator(); it.hasNext(); ) {
-            ArcInst ai = (ArcInst)it.next();
-            highlighter.addElectricObject(ai, cell, false);
-        }
-        for (Iterator it = ports.iterator(); it.hasNext(); ) {
-            PortInst pi = (PortInst)it.next();
-            highlighter.addElectricObject(pi, cell, false);
-        }
-        for (Iterator it = exports.iterator(); it.hasNext(); ) {
-            Export ep = (Export)it.next();
-            highlighter.addElectricObject(ep, cell, false);
+        for (Iterator it = objs.iterator(); it.hasNext(); ) {
+            ElectricObject eObj = (ElectricObject)it.next();
+            highlighter.addElectricObject(eObj, cell, false);
         }
     }
 
@@ -234,48 +210,47 @@ public class NetworkHighlighter extends HierarchyEnumerator.Visitor {
         Netlist netlist = info.getNetlist();
 
         // find all local networks in this cell that corresponds to global id
+        HashSet localNets = new HashSet();
         for (Iterator it = netlist.getNetworks(); it.hasNext(); ) {
             Network aNet = (Network)it.next();
-            if (info.getNetID(aNet) == netID) {
-                addNetworkPolys(aNet, info);
+            if (netIDs.get(info.getNetID(aNet))) {
+                localNets.add(aNet);
             }
         }
+        addNetworkPolys(localNets, info);
     }
 
-    private void addNetworkPolys(Network localNet, HierarchyEnumerator.CellInfo info) {
+    private void addNetworkPolys(HashSet/*<Network>*/ localNets, HierarchyEnumerator.CellInfo info) {
         Netlist netlist = info.getNetlist();
 
         // no local net that matches with global network
-        if (localNet == null) return;
+        if (localNets.size() == 0) return;
 
         Cell currentCell = info.getCell();
-        List arcs = new ArrayList();
-        List ports = new ArrayList();
-        List exports = new ArrayList();
-        getNetworkObjects(currentCell, netlist, localNet, arcs, ports, exports);
+        HashSet objs = getNetworkObjects(currentCell, netlist, localNets);
 
         // get polys for each object and transform them to root
         AffineTransform trans = info.getTransformToRoot();
-        for (Iterator it = arcs.iterator(); it.hasNext(); ) {
-            ArcInst ai = (ArcInst)it.next();
-            Poly poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+        for (Iterator it = objs.iterator(); it.hasNext(); ) {
+            Object o = it.next();
+            Color color = null;
+            Poly poly = null;
+            if (o instanceof ArcInst) {
+                ArcInst ai = (ArcInst)o;
+                poly = ai.makePoly(ai.getWidth() - ai.getProto().getWidthOffset(), Poly.Type.CLOSED);
+            } else if (o instanceof PortInst) {
+                PortInst pi = (PortInst)o;
+                NodeInst ni = pi.getNodeInst();
+                poly = Highlight.getNodeInstOutline(ni);
+            } else if (o instanceof Export) {
+                Export ep = (Export)o;
+                PortInst pi = ep.getOriginalPort();
+                NodeInst ni = pi.getNodeInst();
+                poly = ni.getShapeOfPort(pi.getPortProto());
+                color = Color.YELLOW;
+            }
             poly.transform(trans);
-            highlighter.addPoly(poly, cell, null);
-        }
-        for (Iterator it = ports.iterator(); it.hasNext(); ) {
-            PortInst pi = (PortInst)it.next();
-            NodeInst ni = pi.getNodeInst();
-            Poly poly = Highlight.getNodeInstOutline(ni);
-            poly.transform(trans);
-            highlighter.addPoly(poly, cell, null);
-        }
-        for (Iterator it = exports.iterator(); it.hasNext(); ) {
-            Export ep = (Export)it.next();
-            PortInst pi = ep.getOriginalPort();
-            NodeInst ni = pi.getNodeInst();
-            Poly poly = ni.getShapeOfPort(pi.getPortProto());
-            poly.transform(trans);
-            highlighter.addPoly(poly, cell, Color.YELLOW);
+            highlighter.addPoly(poly, cell, color);
         }
     }
 }

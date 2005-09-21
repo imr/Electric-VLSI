@@ -74,10 +74,10 @@ public class Simulation extends Listener
 {
 	/** the Simulation tool. */		private static Simulation tool = new Simulation();
 
-	/** key of Variable holding rise time. */				public static final Variable.Key RISE_DELAY_KEY = ElectricObject.newKey("SIM_rise_delay");
-	/** key of Variable holding fall time. */				public static final Variable.Key FALL_DELAY_KEY = ElectricObject.newKey("SIM_fall_delay");
-	/** key of Variable holding flag for weak nodes. */		public static final Variable.Key WEAK_NODE_KEY = ElectricObject.newKey("SIM_weak_node");
-	/** key of Variable holding "M" factors. */				public static final Variable.Key M_FACTOR_KEY = ElectricObject.newKey("ATTR_M");
+	/** key of Variable holding rise time. */				public static final Variable.Key RISE_DELAY_KEY = Variable.newKey("SIM_rise_delay");
+	/** key of Variable holding fall time. */				public static final Variable.Key FALL_DELAY_KEY = Variable.newKey("SIM_fall_delay");
+	/** key of Variable holding flag for weak nodes. */		public static final Variable.Key WEAK_NODE_KEY = Variable.newKey("SIM_weak_node");
+	/** key of Variable holding "M" factors. */				public static final Variable.Key M_FACTOR_KEY = Variable.newKey("ATTR_M");
 
 	/** constant for ALS simulation */						public static final int ALS_ENGINE = 0;
 	/** constant for IRSIM simulation */					public static final int IRSIM_ENGINE = 1;

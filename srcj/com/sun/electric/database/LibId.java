@@ -31,7 +31,7 @@ import com.sun.electric.database.hierarchy.Library;
  * It differs from Library objects, which will be owned by threads in transactional database.
  * This class is thread-safe except inCurrentThread method.
  */
-public class LibId
+public final class LibId
 {
     /** Unique index of this cell in the database. */
     public final int libIndex = numLibIds++;

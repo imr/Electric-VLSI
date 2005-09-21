@@ -65,9 +65,9 @@ import java.util.List;
  */
 public class Pads extends Output
 {
-	/** key of Variable holding node name. */				public static final Variable.Key REF_DES_KEY = ElectricObject.newKey("ATTR_ref_des");
-	/** key of Variable holding package type. */			public static final Variable.Key PKG_TYPE_KEY = ElectricObject.newKey("ATTR_pkg_type");
-	/** key of Variable holding pin information. */			public static final Variable.Key PIN_KEY = ElectricObject.newKey("ATTR_pin");
+	/** key of Variable holding node name. */				public static final Variable.Key REF_DES_KEY = Variable.newKey("ATTR_ref_des");
+	/** key of Variable holding package type. */			public static final Variable.Key PKG_TYPE_KEY = Variable.newKey("ATTR_pkg_type");
+	/** key of Variable holding pin information. */			public static final Variable.Key PIN_KEY = Variable.newKey("ATTR_pin");
 
 	private List networks;
 

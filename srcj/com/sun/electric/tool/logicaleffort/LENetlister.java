@@ -42,14 +42,14 @@ import java.awt.geom.Point2D;
 
 public abstract class LENetlister extends HierarchyEnumerator.Visitor {
 
-    public static final Variable.Key ATTR_su = ElectricObject.newKey("ATTR_su");
-    public static final Variable.Key ATTR_le = ElectricObject.newKey("ATTR_le");
-    public static final Variable.Key ATTR_wire_ratio = ElectricObject.newKey("ATTR_wire_ratio");
-    public static final Variable.Key ATTR_epsilon = ElectricObject.newKey("ATTR_epsilon");
-    public static final Variable.Key ATTR_max_iter = ElectricObject.newKey("ATTR_max_iter");
-    public static final Variable.Key ATTR_gate_cap = ElectricObject.newKey("ATTR_gate_cap");
-    public static final Variable.Key ATTR_alpha = ElectricObject.newKey("ATTR_alpha");
-    public static final Variable.Key ATTR_keeper_ratio = ElectricObject.newKey("ATTR_keeper_ratio");
+    public static final Variable.Key ATTR_su = Variable.newKey("ATTR_su");
+    public static final Variable.Key ATTR_le = Variable.newKey("ATTR_le");
+    public static final Variable.Key ATTR_wire_ratio = Variable.newKey("ATTR_wire_ratio");
+    public static final Variable.Key ATTR_epsilon = Variable.newKey("ATTR_epsilon");
+    public static final Variable.Key ATTR_max_iter = Variable.newKey("ATTR_max_iter");
+    public static final Variable.Key ATTR_gate_cap = Variable.newKey("ATTR_gate_cap");
+    public static final Variable.Key ATTR_alpha = Variable.newKey("ATTR_alpha");
+    public static final Variable.Key ATTR_keeper_ratio = Variable.newKey("ATTR_keeper_ratio");
 
     public static class NetlisterConstants {
         /** global step-up */                       public final float su;

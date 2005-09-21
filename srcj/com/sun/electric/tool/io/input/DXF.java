@@ -98,9 +98,9 @@ public class DXF extends Input
 	private TextUtils.UnitScale dispUnit;
 	private int                 groupID;
 	private String              text;
-	/** key of Variable holding DXF layer name. */			public static final Variable.Key DXF_LAYER_KEY = ElectricObject.newKey("IO_dxf_layer");
-	/** key of Variable holding DXF header text. */			public static final Variable.Key DXF_HEADER_TEXT_KEY = ElectricObject.newKey("IO_dxf_header_text");
-	/** key of Variable holding DXF header information. */	public static final Variable.Key DXF_HEADER_ID_KEY = ElectricObject.newKey("IO_dxf_header_ID");
+	/** key of Variable holding DXF layer name. */			public static final Variable.Key DXF_LAYER_KEY = Variable.newKey("IO_dxf_layer");
+	/** key of Variable holding DXF header text. */			public static final Variable.Key DXF_HEADER_TEXT_KEY = Variable.newKey("IO_dxf_header_text");
+	/** key of Variable holding DXF header information. */	public static final Variable.Key DXF_HEADER_ID_KEY = Variable.newKey("IO_dxf_header_ID");
 
 	/**
 	 * Method to import a library from disk.
