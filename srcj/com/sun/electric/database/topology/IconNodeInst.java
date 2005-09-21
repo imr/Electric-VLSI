@@ -59,7 +59,7 @@ public class IconNodeInst extends NodeInst
 	 */
 	public Variable updateVar(String name, Object value) {
         parent.updateVar(name, value);
-        return updateVar(newKey(name), value);
+        return updateVar(Variable.newKey(name), value);
     }
 
     /**

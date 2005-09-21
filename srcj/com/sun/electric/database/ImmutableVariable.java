@@ -237,7 +237,7 @@ public class ImmutableVariable {
             return (byte)(type.byteValue()|ARRAY);
         } else {
             Byte type = (Byte)validClasses.get(value.getClass());
-            return type;
+            return type.byteValue();
         }
     }
 
