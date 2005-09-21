@@ -541,18 +541,20 @@ public class Spice extends Topology
                     Cell subCell = (Cell)ni.getProto();
                     SegmentedNets subNets = getSegmentedNets(subCell);
                     // list of lists of shorted exports
-                    for (Iterator it = subNets.getShortedExports(); it.hasNext(); ) {
-                        List exports = (List)it.next();
-                        PortInst pi1 = null;
-                        // list of exports shorted together
-                        for (Iterator it2 = exports.iterator(); it2.hasNext(); ) {
-                            String exportName = (String)it2.next();
-                            // get portinst on node
-                            PortInst pi = ni.findPortInst(exportName);
-                            if (pi1 == null) {
-                                pi1 = pi; continue;
+                    if (subNets != null) {      // subnets may be null if mixing schematics with layout technologies
+                        for (Iterator it = subNets.getShortedExports(); it.hasNext(); ) {
+                            List exports = (List)it.next();
+                            PortInst pi1 = null;
+                            // list of exports shorted together
+                            for (Iterator it2 = exports.iterator(); it2.hasNext(); ) {
+                                String exportName = (String)it2.next();
+                                // get portinst on node
+                                PortInst pi = ni.findPortInst(exportName);
+                                if (pi1 == null) {
+                                    pi1 = pi; continue;
+                                }
+                                segmentedNets.shortSegments(pi1, pi);
                             }
-                            segmentedNets.shortSegments(pi1, pi);
                         }
                     }
                 }
