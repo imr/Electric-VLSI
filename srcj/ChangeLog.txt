@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03h: *********************************
 
+BUG: (09/21/05, DN) NetSchem throws exception when icon port has no equivalent port (Bug #554 #555).
+FIX: In NetSchem.buildNetworkLists add loop by NodeInsts to give temporary names to unconnected Networks.
+
 BUG: (09/20/05, GVG) Bug fixes for TSMC180 gate generator. Select notch fill function
 was not working when left mos was not aligned with right mos.
 

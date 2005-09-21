@@ -1245,6 +1245,34 @@ class NetSchem extends NetCell {
 			}
 		}
 
+		// add temporary names to unconnected ports
+		for (int n = 0, numNodes = cell.getNumNodes(); n < numNodes; n++) {
+			NodeInst ni = (NodeInst)cell.getNode(n);
+			NodeProto np = ni.getProto();
+            int arraySize = ni.getNameKey().busWidth();
+			for (int i = 0, numPorts = np.getNumPorts(); i < numPorts; i++) {
+				PortProto pp = np.getPort(i);
+                int drawn = drawns[ni_pi[n] + i];
+                if (drawn < 0) continue;
+				int busWidth = pp.getNameKey().busWidth();
+                int drawnWidth = drawnWidths[drawn];
+                for (int l = 0; l < drawnWidth; l++) {
+                    Network networkF = netlistF.getNetworkByMap(drawnOffsets[drawn] + l);
+                    if (networkF != null && !networkF.hasNames()) {
+                        int arrayIndex = (l / busWidth) % arraySize;
+                        int busIndex = l % busWidth;
+                        networkF.addTempName(ni.getNameKey().subname(arrayIndex) + "." + pp.getNameKey().subname(busIndex));
+                    }
+                    Network networkT = netlistT.getNetworkByMap(drawnOffsets[drawn] + l);
+                    if (networkT != null && !networkT.hasNames()) {
+                        int arrayIndex = (l / busWidth) % arraySize;
+                        int busIndex = l % busWidth;
+                        networkT.addTempName(ni.getNameKey().subname(arrayIndex) + "." + pp.getNameKey().subname(busIndex));
+                    }
+                }
+			}
+		}
+
         for (int i = 0, numNetworks = netlistF.getNumNetworks(); i < numNetworks; i++)
             assert netlistF.getNetwork(i).hasNames();
         for (int i = 0, numNetworks = netlistT.getNumNetworks(); i < numNetworks; i++)
