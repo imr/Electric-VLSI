@@ -126,8 +126,8 @@ public class WindowFrame extends Observable
 
 			// make sure the edit window has the right size
 			eWnd.setScreenSize(sz);
-			eWnd.repaintContents(null, false);
 			eWnd.fillScreen();
+			eWnd.repaintContents(null, false);
 		}
         removeUIBinding(frame.js, KeyStroke.getKeyStroke(KeyEvent.VK_F6, 0));
         removeUIBinding(frame.js, KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0));
