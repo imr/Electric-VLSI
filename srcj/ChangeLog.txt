@@ -6,7 +6,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03g: *********************************
 
-BUG: (09/20/05, SMR) Editing cell in new window gets size wrong (Bug #417)
+BUG: (09/21/05, JKG) Null exception in Export Spice (Bug #556)
+
+BUG: (09/21/05, SMR) Editing cell in new window gets size wrong (Bug #417)
 FIX: In WindowFrame.createEditWindow, call fillScreen() before repaintContents().
 
 BUG: (09/21/05, DN) NetSchem throws exception when icon port has no equivalent port (Bug #554 #555).
