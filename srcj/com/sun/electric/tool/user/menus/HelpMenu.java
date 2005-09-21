@@ -71,11 +71,13 @@ public class HelpMenu {
         samplesSubMenu.addMenuItem("_Animate Sample Cell", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { ManualViewer.animate3DSample(); } });
 
-		// mnemonic keys available:  BCDEFGHIJKL N PQRSTUVWXYZ
+		// mnemonic keys available: ABCDEFGHIJKL NO QRSTUVWXYZ
 		MenuBar.Menu builtInLibSubMenu = MenuBar.makeMenu("Load _Built-in Libraries");
 		helpMenu.add(builtInLibSubMenu);
 		builtInLibSubMenu.addMenuItem("_MOSIS CMOS Pads", null,
 			new ActionListener() { public void actionPerformed(ActionEvent e) { loadBuiltInLibraryCommand("pads4u"); } });
+		builtInLibSubMenu.addMenuItem("MI_PS Cells", null,
+			new ActionListener() { public void actionPerformed(ActionEvent e) { loadBuiltInLibraryCommand("mipscells"); } });
 		return helpMenu;
     }
 

@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03h: *********************************
 
+IMP/MAN: (09/21/05, SMR) Added David Harris's Electric tutorial to the user's manual.
+     Added his MIPS library to the library area; added new command under Help / Load Built-in Libraries
+     to load it.
+
 ************************* Version 8.03g: *********************************
 
 BUG: (09/21/05, JKG) Null exception in Export Spice (Bug #556)

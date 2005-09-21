@@ -28,6 +28,12 @@ Introduction
   Constraints                        =chap01-11-06
   Hierarchy and Icons                =chap01-11-07
   Final Points                       =chap01-11-08
+ Tutorial
+  Introduction                       =chap01-12-01
+  Schematic Entry                    =chap01-12-02
+  Layout                             =chap01-12-03
+  Hierarchical Design                =chap01-12-04
+  Analysis                           =chap01-12-05
 
 Basic Editing
  Selection
