@@ -387,16 +387,23 @@ public class StdCellParams {
         // if they are not aligned along Y, the extra select node might not cover top transistor.
         if (!DBMath.areEquals(mosY, mosRightY))
         {
-            if (mosY > mosRightY)
-                System.out.println("This case not checked!");
             double activePlusSelect = diffWid/2 + Tech.getSelectSurroundActive();
-            double leftTopEdge = mosY + activePlusSelect;
-            double rightBottomEdge = mosRightY - activePlusSelect;
-            double diff = rightBottomEdge - leftTopEdge;
+            double topY = -activePlusSelect, bottomY = activePlusSelect;
+            double sign = 1;
+
+            if (mosY > mosRightY)
+            {
+                topY += mosY; bottomY += mosRightY; sign = -1;
+            }
+            else
+            {
+                topY += mosRightY; bottomY += mosY;
+            }
+            double diff = topY - bottomY;
             if (DBMath.isGreaterThan(diff, 0))
             {
                 diffWid += diff;
-                mosY += diff/2;
+                mosY += sign * diff/2;
             }
         }
         double a = mosLeft.getDiffContWidth();
@@ -427,7 +434,9 @@ public class StdCellParams {
         Rectangle2D selectRec = new Rectangle2D.Double(diffNodeBnd.getX() - dist/2,
                 diffNodeBnd.getY() - diffNodeBnd.getHeight()/2, diffNodeBnd.getWidth(),
                 diffNodeBnd.getHeight());
-		addSelAroundDiff(diffNode, selectRec, (a-b), f);
+        double selectDiff = (a - b);
+        if (DBMath.isGreaterThan(selectDiff, 0))
+		    addSelAroundDiff(diffNode, selectRec, selectDiff, f);
 	}
 
 	private static FoldedMos getRightMos(Object a) {
@@ -1237,7 +1246,8 @@ public class StdCellParams {
 		double h = diffNodeBnd.getHeight();
         // add the select surround if gate is longer than contact
             h += Tech.selectSurroundMosAlongGate() * 2;
-        if (activeGateDiff > 0) h -= activeGateDiff;
+        if (activeGateDiff > 0)
+            h -= activeGateDiff;
 //            w =+ Tech.getSelectSurroundActive() * 2;
 
 //		Cell f = diffNode.getParent();

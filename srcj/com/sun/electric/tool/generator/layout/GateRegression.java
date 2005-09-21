@@ -103,18 +103,17 @@ public class GateRegression extends Job {
 		System.out.println("begin Gate Regression");
 
 		Library scratchLib =
-		  LayoutLib.openLibForWrite("gilda", "gilda");
+		  LayoutLib.openLibForWrite("gildaaa", "gilda");
 
+        Tech.setTechnology(techNm);
         StdCellParams stdCell;
         Technology tsmc90 = Technology.getTSMC90Technology();
         if (tsmc90 != null && technology == tsmc90) {
-            Tech.setTechnology(Tech.TSMC90);
             stdCell = new StdCellParams(scratchLib, Tech.TSMC90);
             stdCell.enableNCC("purpleFour");
             stdCell.setSizeQuantizationError(0.05);
             stdCell.setMaxMosWidth(1000);
         } else {
-            Tech.setTechnology(techNm);
             // Test the parameters used by divider
         	stdCell = GateLayoutGenerator.dividerParams(scratchLib);
 
@@ -132,9 +131,22 @@ public class GateRegression extends Job {
         }
 
 		// a normal run
-//        stdCell.setNmosWellHeight(100);
-//        stdCell.setPmosWellHeight(50);
-        aPass(0.5, stdCell, technology);
+        aPass(10, stdCell, technology);
+//         allSizes(stdCell, technology);
+        //Inv2iKn.makePart(10, stdCell);
+        //Inv2iKn_wideOutput.makePart(10, stdCell);
+//        allSizes(stdCell, technology);
+
+        //aPass(50, stdCell, technology);
+
+        // test the ability to move ground bus
+        stdCell.setGndY(stdCell.getGndY() - 7);
+        stdCell.setNmosWellHeight(stdCell.getNmosWellHeight()+7);
+        //allSizes(stdCell, technology);
+        aPass(10, stdCell, technology);
+        aPass(200, stdCell, technology);
+        stdCell.setGndY(stdCell.getGndY() + 7);
+        stdCell.setNmosWellHeight(stdCell.getNmosWellHeight()-7);
 
         Cell gallery = Gallery.makeGallery(scratchLib);
 //        DrcRings.addDrcRings(gallery, FILTER, stdCell);
@@ -151,10 +163,9 @@ public class GateRegression extends Job {
      * @return the number of errors detected */
     public static int runRegression(Technology technology, String techNm) {
 		System.out.println("begin Gate Regression");
-        String name = "scratch"+techNm;
 
 		Library scratchLib =
-		  LayoutLib.openLibForWrite(name, name);
+		  LayoutLib.openLibForWrite("scratch", "scratch"+techNm);
 
         Tech.setTechnology(techNm);
         StdCellParams stdCell;

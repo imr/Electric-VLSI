@@ -438,10 +438,10 @@ public class Tech {
             offsetLShapePolyContact = 2.5 /* half poly contact height */ - 1 /*half poly arc width*/;
             offsetTShapePolyContact = 2.5 /* half poly contact height */ + 1 /*half poly arc width*/;
             selectSpace = 4.8; // TSMC rule, see TSMC90.java
-            selectOverhangsDiff = 2; // @TODO This might be wrong!
+            selectOverhangsDiff = 1.3;
             selectSurround = 4.4;
             selectSurroundDiff = Double.NaN;
-            selectSurroundMosAlongGate = Double.NaN;
+            selectSurroundMosAlongGate = 3.6;
 		} else if (isTsmc180) {
 		    wellWidth = 17;
 		    wellSurroundDiff = 4.3;
@@ -578,7 +578,7 @@ public class Tech {
     public static double getP1M1Width() {return p1M1Width;}
     /** @return gate length that depends on foundry */
     public static double getGateLength() {return gateLength;}
-    /** @return amount that select surrounds diffusion */
+    /** @return amount that select surrounds diffusion in well? */
     public static double selectSurroundDiff() {return selectSurroundDiff;}
     /** @return amount that Select surrounds MOS, along gate width dimension */
     public static double selectSurroundMosAlongGate() {return selectSurroundMosAlongGate;}

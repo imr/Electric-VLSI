@@ -244,6 +244,8 @@ public class DebugMenus {
                         new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.TSMC180);}});
         gildaMenu.addMenuItem("Gate Generator Mosis", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.MOCMOS);}});
+        gildaMenu.addMenuItem("Gate Generator TSMC90", null,
+                        new ActionListener() { public void actionPerformed(ActionEvent e) {tsmcGateGenerator(Tech.TSMC90);}});
         gildaMenu.addMenuItem("Clean libraries", null,
                         new ActionListener() { public void actionPerformed(ActionEvent e) {cleanSetOfLibraries();}});
         gildaMenu.addMenuItem("9 layers -> 7 layers", null,
