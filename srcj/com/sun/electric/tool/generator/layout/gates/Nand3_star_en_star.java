@@ -85,7 +85,7 @@ class Nand3_star_en_star {
 			switch (i%4) {
 			case 0: dPort=2; dx=-Tech.getPolyLShapeOffset(); dy= 0.0; break;
 			case 1: dPort=0; dx=-Tech.getPolyLShapeOffset(); dy= 0.0; break;
-			case 2: dPort=2; dx= 3.5; dy=-Tech.getPolyTShapeOffset(); break;
+			case 2: dPort=2; dx= Tech.getPolyTShapeOffset(); dy=-Tech.getPolyTShapeOffset(); break;
 			case 3: dPort=0; dx=-4.5; dy=-Tech.getPolyTShapeOffset(); break;
 			}
 			incLo.connect(nmos.getGate(i*3+dPort, 'T'), dx, dy);
@@ -124,7 +124,7 @@ class Nand3_star_en_star {
 				double dx = 0;
 				boolean con = true;
 				switch (j) {
-				case 0: dx= 3.5; break;
+				case 0: dx= Tech.getPolyTShapeOffset(); break;
 				case 2: dx= 0.5; break;
 				case 4: dx= 0.0; break;
 				case 6: dx=-0.5; break;
@@ -153,7 +153,7 @@ class Nand3_star_en_star {
 				double dx=0, dy=0;
 				boolean con = true;
 				switch (j) {
-				case 0: dx= 3.5; dy= 0.0; break;
+				case 0: dx= Tech.getPolyTShapeOffset(); dy= 0.0; break;
 				case 3: dx= 0.5; dy= 0.0; break;
 				case 5: dx=-0.5; dy= 0.0; break;
 				case 7: dx= 4.5; dy= 9.5; break;

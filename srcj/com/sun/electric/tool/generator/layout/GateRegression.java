@@ -132,15 +132,9 @@ public class GateRegression extends Job {
         }
 
 		// a normal run
-        aPass(100, stdCell, technology);
-//         allSizes(stdCell, technology);
-        //Inv2iKn.makePart(10, stdCell);
-        //Inv2iKn_wideOutput.makePart(10, stdCell);
-//        allSizes(stdCell, technology);
-
-        //aPass(50, stdCell, technology);
-
-        // test the ability to move ground bus
+//        stdCell.setNmosWellHeight(100);
+//        stdCell.setPmosWellHeight(50);
+        aPass(0.5, stdCell, technology);
 
         Cell gallery = Gallery.makeGallery(scratchLib);
 //        DrcRings.addDrcRings(gallery, FILTER, stdCell);

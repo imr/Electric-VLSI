@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.geometry.Poly;
+import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.technology.SizeOffset;
@@ -355,14 +356,14 @@ public class StdCellParams {
 	}
 
 	private void fillDiffAndSelectNotch(PortInst prevPort, PortInst thisPort,
-                                        FoldedMos mos, boolean fillDiffNotch) {
-		double diffWid = mos.getPhysWidth();
-		Cell f = mos.getSrcDrn(0).getNodeInst().getParent();
+                                        FoldedMos mosLeft, FoldedMos mosRight, boolean fillDiffNotch) {
+		double diffWid = mosLeft.getPhysWidth();
+		Cell f = mosLeft.getSrcDrn(0).getNodeInst().getParent();
 		PrimitiveNode diffCont =
-			mos instanceof FoldedPmos ? Tech.pdm1 : Tech.ndm1;
-		ArcProto diffArc = mos instanceof FoldedPmos ? Tech.pdiff : Tech.ndiff;
+			mosLeft instanceof FoldedPmos ? Tech.pdm1 : Tech.ndm1;
+		ArcProto diffArc = mosLeft instanceof FoldedPmos ? Tech.pdiff : Tech.ndiff;
 		NodeProto diffNode =
-			mos instanceof FoldedPmos ? Tech.pdNode : Tech.ndNode;
+			mosLeft instanceof FoldedPmos ? Tech.pdNode : Tech.ndNode;
 
 		double prevX = LayoutLib.roundCenterX(prevPort);
 		double thisX = LayoutLib.roundCenterX(thisPort);
@@ -381,9 +382,25 @@ public class StdCellParams {
 		// transistors with a single contact cut.
 		//
 		// I therefore fill the notch using a diffusion node.
-		double mosY = mos.getMosCenterY();
-        double a = mos.getDiffContWidth();
-        double b = mos.getGateWidth();
+		double mosY = mosLeft.getMosCenterY();
+        double mosRightY = mosRight.getMosCenterY();
+        // if they are not aligned along Y, the extra select node might not cover top transistor.
+        if (!DBMath.areEquals(mosY, mosRightY))
+        {
+            if (mosY > mosRightY)
+                System.out.println("This case not checked!");
+            double activePlusSelect = diffWid/2 + Tech.getSelectSurroundActive();
+            double leftTopEdge = mosY + activePlusSelect;
+            double rightBottomEdge = mosRightY - activePlusSelect;
+            double diff = rightBottomEdge - leftTopEdge;
+            if (DBMath.isGreaterThan(diff, 0))
+            {
+                diffWid += diff;
+                mosY += diff/2;
+            }
+        }
+        double a = mosLeft.getDiffContWidth();
+        double b = mosLeft.getGateWidth();
 
         Rectangle2D diffNodeBnd = LayoutLib.calculateNodeInst(diffNode, thisX-dist/2, mosY,
                 dist, diffWid);
@@ -400,7 +417,7 @@ public class StdCellParams {
             // diffusion-metal1 contacts because they become bad width hints.
             if (dist < m1OverhangsDiffCont * 2 + m1Space) {
                 // m1 is 1 lambda narrower than diffusion contact width
-                double m1Wid = mos.getDiffContWidth() - 1;
+                double m1Wid = mosLeft.getDiffContWidth() - 1;
                 NodeInst mFill =
                     LayoutLib.newNodeInst(Tech.m1Node, thisX-dist/2, contY,	dist,
                                           m1Wid, 0, f);
@@ -991,7 +1008,7 @@ public class StdCellParams {
 			PortInst thisPort = moss[i].getSrcDrn(0);
 			PortInst prevPort =
 				moss[i - 1].getSrcDrn(moss[i - 1].nbSrcDrns() - 1);
-			fillDiffAndSelectNotch(prevPort, thisPort, mos, fillDiffNotch);
+			fillDiffAndSelectNotch(prevPort, thisPort, mos, moss[i], fillDiffNotch);
 		}
 	}
 

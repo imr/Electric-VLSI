@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03h: *********************************
 
+BUG: (09/20/05, GVG) Bug fixes for TSMC180 gate generator. Select notch fill function
+was not working when left mos was not aligned with right mos.
+
 BUG: (09/20/05, SMR) Changing a cell lower in the hierarchy may not redraw it higher
      up the hierarchy in other windows (Bug #437).
 FIX: In User.markCellForRedraw, always recurse up the hierarchy.
@@ -15,7 +18,7 @@ IMP/MAN: (09/20/05, SMR) Selecting a node shows its size in the status bar (Bug 
 BUG: (09/20/05, SMR) Layers tabs in different windows don't update properly (Bug #431).
 
 ************************* Version 8.03g: *********************************
-                                                                                 
+
 BUG: (09/20/05, SMR) Absolute text (in points) is not considered in cell size (Bug #386).
 FIX: In ElectricObject.getTextBounds, do not ignore absolute text.
 
