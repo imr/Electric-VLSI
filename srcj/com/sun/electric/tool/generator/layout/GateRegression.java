@@ -101,9 +101,9 @@ public class GateRegression extends Job {
 
      public static int runGildaTest(Technology technology, String techNm) {
 		System.out.println("begin Gate Regression");
-
+        String name = "gilda"+techNm;
 		Library scratchLib =
-		  LayoutLib.openLibForWrite("gilda", "gilda");
+		  LayoutLib.openLibForWrite(name, name);
 
         Tech.setTechnology(techNm);
         StdCellParams stdCell;

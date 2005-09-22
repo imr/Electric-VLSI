@@ -40,6 +40,7 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.technology.SizeOffset;
@@ -359,8 +360,8 @@ public class StdCellParams {
                                         FoldedMos mosLeft, FoldedMos mosRight, boolean fillDiffNotch) {
 		double diffWid = mosLeft.getPhysWidth();
 		Cell f = mosLeft.getSrcDrn(0).getNodeInst().getParent();
-		PrimitiveNode diffCont =
-			mosLeft instanceof FoldedPmos ? Tech.pdm1 : Tech.ndm1;
+//		PrimitiveNode diffCont =
+//			mosLeft instanceof FoldedPmos ? Tech.pdm1 : Tech.ndm1;
 		ArcProto diffArc = mosLeft instanceof FoldedPmos ? Tech.pdiff : Tech.ndiff;
 		NodeProto diffNode =
 			mosLeft instanceof FoldedPmos ? Tech.pdNode : Tech.ndNode;
@@ -402,6 +403,13 @@ public class StdCellParams {
             double diff = DBMath.round(topY - bottomY);
             if (DBMath.isGreaterThan(diff, 0))
             {
+                // round diff to multiple of min precision otherwise diff/2 (or node center will generate DRC errors)
+                double minRe = f.getTechnology().getResolution()*2;
+                if (DBMath.hasRemainder(diff, minRe))
+                {
+                    diff += f.getTechnology().getResolution(); // to ceil correctlu otherwise it could leave a notch
+                    diff = ((int)(Math.ceil(diff/minRe))) * minRe;
+                }
                 diffWid += diff;
                 mosY += DBMath.round(sign * diff/2);
             }
@@ -431,9 +439,10 @@ public class StdCellParams {
                 LayoutLib.newArcInst(Tech.m1, DEF_SIZE, thisPort, mFill.getOnlyPortInst());
             }
         }
-        Rectangle2D selectRec = new Rectangle2D.Double(diffNodeBnd.getX() - dist/2,
-                diffNodeBnd.getY() - diffNodeBnd.getHeight()/2, diffNodeBnd.getWidth(),
-                diffNodeBnd.getHeight());
+        // Rounding values to avoid out-of-grid values
+        double roundedPosY = DBMath.round(diffNodeBnd.getY() - diffNodeBnd.getHeight()/2);
+        Rectangle2D selectRec = new Rectangle2D.Double(diffNodeBnd.getX() - dist/2, roundedPosY,
+                diffNodeBnd.getWidth(), diffNodeBnd.getHeight());
         double selectDiff = (a - b);
 //        if (DBMath.isGreaterThan(selectDiff, 0))
 		    addSelAroundDiff(diffNode, selectRec, selectDiff, f);
@@ -1248,7 +1257,9 @@ public class StdCellParams {
             h -= activeGateDiff;
 //            w =+ Tech.getSelectSurroundDiffInTrans() * 2;
 
-		LayoutLib.newNodeInst(sel, diffNodeBnd.getCenterX(), diffNodeBnd.getCenterY(), w, h, 0, cell);
+		NodeInst node = LayoutLib.newNodeInst(sel, diffNodeBnd.getCenterX(), diffNodeBnd.getCenterY(), w, h, 0, cell);
+
+        System.out.println(node.getParent().getName() + " Node " + node + " " + h + " cent " + diffNodeBnd.getCenterY());
 	}
 
     public static class SelectFill {
