@@ -103,7 +103,7 @@ public class GateRegression extends Job {
 		System.out.println("begin Gate Regression");
 
 		Library scratchLib =
-		  LayoutLib.openLibForWrite("gildaaa", "gilda");
+		  LayoutLib.openLibForWrite("gilda", "gilda");
 
         Tech.setTechnology(techNm);
         StdCellParams stdCell;
@@ -131,7 +131,7 @@ public class GateRegression extends Job {
         }
 
 		// a normal run
-        aPass(10, stdCell, technology);
+        aPass(8.18, stdCell, technology);
 //         allSizes(stdCell, technology);
         //Inv2iKn.makePart(10, stdCell);
         //Inv2iKn_wideOutput.makePart(10, stdCell);

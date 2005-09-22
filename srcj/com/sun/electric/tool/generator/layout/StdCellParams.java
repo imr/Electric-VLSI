@@ -387,7 +387,7 @@ public class StdCellParams {
         // if they are not aligned along Y, the extra select node might not cover top transistor.
         if (!DBMath.areEquals(mosY, mosRightY))
         {
-            double activePlusSelect = diffWid/2 + Tech.getSelectSurroundActive();
+            double activePlusSelect = diffWid/2 + Tech.getSelectSurroundDiffInTrans();
             double topY = -activePlusSelect, bottomY = activePlusSelect;
             double sign = 1;
 
@@ -399,11 +399,11 @@ public class StdCellParams {
             {
                 topY += mosRightY; bottomY += mosY;
             }
-            double diff = topY - bottomY;
+            double diff = DBMath.round(topY - bottomY);
             if (DBMath.isGreaterThan(diff, 0))
             {
                 diffWid += diff;
-                mosY += sign * diff/2;
+                mosY += DBMath.round(sign * diff/2);
             }
         }
         double a = mosLeft.getDiffContWidth();
@@ -435,7 +435,7 @@ public class StdCellParams {
                 diffNodeBnd.getY() - diffNodeBnd.getHeight()/2, diffNodeBnd.getWidth(),
                 diffNodeBnd.getHeight());
         double selectDiff = (a - b);
-        if (DBMath.isGreaterThan(selectDiff, 0))
+//        if (DBMath.isGreaterThan(selectDiff, 0))
 		    addSelAroundDiff(diffNode, selectRec, selectDiff, f);
 	}
 
@@ -1236,21 +1236,18 @@ public class StdCellParams {
 	 * specified diffusion node*/
 	public void addSelAroundDiff(NodeProto prot, Rectangle2D diffNodeBnd, double activeGateDiff,
                                  Cell cell) {
-//		NodeProto prot = diffNode.getProto();
 		error(prot!=Tech.pdNode && prot!=Tech.ndNode,
 			  "addSelectAroundDiff: only works with MOSIS CMOS diff nodes");
 		NodeProto sel = prot == Tech.pdNode ? Tech.pselNode : Tech.nselNode;
-//		Rectangle2D r = LayoutLib.getBounds(diffNode);
         // Note that transistors are rotated in 90 degrees with res
 		double w = diffNodeBnd.getWidth();
 		double h = diffNodeBnd.getHeight();
         // add the select surround if gate is longer than contact
-            h += Tech.selectSurroundMosAlongGate() * 2;
+            h += Tech.selectSurroundDiffAlongGateInTrans() * 2;
         if (activeGateDiff > 0)
             h -= activeGateDiff;
-//            w =+ Tech.getSelectSurroundActive() * 2;
+//            w =+ Tech.getSelectSurroundDiffInTrans() * 2;
 
-//		Cell f = diffNode.getParent();
 		LayoutLib.newNodeInst(sel, diffNodeBnd.getCenterX(), diffNodeBnd.getCenterY(), w, h, 0, cell);
 	}
 

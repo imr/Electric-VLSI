@@ -326,9 +326,9 @@ class CapCell {
 		private final double MAX_MOS_WIDTH = 40;
 		private final double SEL_WIDTH_OF_NDM1 = 
 			Tech.getDiffContWidth() +
-		    Tech.selectSurroundDiff()*2;
+		    Tech.selectSurroundDiffInActiveContact()*2;
 		private final double SEL_TO_MOS = 
-			Tech.selectSurroundMosAlongGate();
+			Tech.selectSurroundDiffAlongGateInTrans();
 		
 		public final double protoWidth, protoHeight;
 	

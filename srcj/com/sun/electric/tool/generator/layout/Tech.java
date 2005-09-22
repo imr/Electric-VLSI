@@ -110,7 +110,7 @@ public class Tech {
     // denote Select spacing rule
 	private static double selectSpace;
     // surround distance of select from active in transistor
-	private static double selectOverhangsDiff, selectSurroundMosAlongGate;
+	private static double selectSurroundDiffInTrans, selectSurroundDiffAlongGateInTrans;
     // select surround over poly. PP/NP.R.1 in 90nm
     private static double selectSurround;
 
@@ -125,7 +125,7 @@ public class Tech {
 		gateToGateSpace,
 		gateToDiffContSpace,
 		diffContWidth,
-		selectSurroundDiff;
+		selectSurroundDiffInActiveContact;  // select surround in active contacts
 
 	//----------------------------- public data ----------------------------------
     /** valid Electric technologies understood */
@@ -438,10 +438,10 @@ public class Tech {
             offsetLShapePolyContact = 2.5 /* half poly contact height */ - 1 /*half poly arc width*/;
             offsetTShapePolyContact = 2.5 /* half poly contact height */ + 1 /*half poly arc width*/;
             selectSpace = 4.8; // TSMC rule, see TSMC90.java
-            selectOverhangsDiff = 1.3;
+            selectSurroundDiffInTrans = 1.3;
             selectSurround = 4.4;
-            selectSurroundDiff = Double.NaN;
-            selectSurroundMosAlongGate = 3.6;
+            selectSurroundDiffInActiveContact = Double.NaN;
+            selectSurroundDiffAlongGateInTrans = 3.6;
 		} else if (isTsmc180) {
 		    wellWidth = 17;
 		    wellSurroundDiff = 4.3;
@@ -456,10 +456,10 @@ public class Tech {
             offsetLShapePolyContact = 2.5 /* half poly contact height */ - 0.9 /*half poly arc width*/;
             offsetTShapePolyContact = 2.5 /* half poly contact height */ + 0.9 /*half poly arc width*/;
             selectSpace = 4.4;
-            selectOverhangsDiff = 1.8;
+            selectSurroundDiffInTrans = 1.8;
             selectSurround = 0;
-            selectSurroundDiff = 1;
-            selectSurroundMosAlongGate = 3.6;
+            selectSurroundDiffInActiveContact = 1;
+            selectSurroundDiffAlongGateInTrans = 3.6;
 		} else {
 			// default to MoCMOS
 		    wellWidth = 17;
@@ -475,10 +475,10 @@ public class Tech {
             offsetLShapePolyContact = 2.5 /* half poly contact height */ - 1 /*half poly arc width*/;
             offsetTShapePolyContact = 2.5 /* half poly contact height */ + 1 /*half poly arc width*/;
             selectSpace = 2;
-            selectOverhangsDiff = 2;
+            selectSurroundDiffInTrans = 2;
             selectSurround = -Double.NaN; // no valid value
-            selectSurroundDiff = 2;
-            selectSurroundMosAlongGate = 2;
+            selectSurroundDiffInActiveContact = 2;
+            selectSurroundDiffAlongGateInTrans = 2;
 		}
 	}
 
@@ -579,17 +579,17 @@ public class Tech {
     /** @return gate length that depends on foundry */
     public static double getGateLength() {return gateLength;}
     /** @return amount that select surrounds diffusion in well? */
-    public static double selectSurroundDiff() {return selectSurroundDiff;}
+    public static double selectSurroundDiffInActiveContact() {return selectSurroundDiffInActiveContact;}
     /** @return amount that Select surrounds MOS, along gate width dimension */
-    public static double selectSurroundMosAlongGate() {return selectSurroundMosAlongGate;}
+    public static double selectSurroundDiffAlongGateInTrans() {return selectSurroundDiffAlongGateInTrans;}
     /** @return y offset of poly arc connecting poly contact and gate in a L-Shape case */
     public static double getPolyLShapeOffset() {return offsetLShapePolyContact;}
     /** @return y offset of poly arc connecting poly contact and gate in a T-Shape case */
     public static double getPolyTShapeOffset() {return offsetTShapePolyContact;}
     /** @return select spacing rule */
     public static double getSelectSpacingRule() {return selectSpace;}
-    /** @return select surround active distances */
-    public static double getSelectSurroundActive() {return selectOverhangsDiff;}
+    /** @return select surround active in transistors but not along the gate */
+    public static double getSelectSurroundDiffInTrans() {return selectSurroundDiffInTrans;}
     /** @return selecct surround over poly */
     public static double getSelectSurroundOverPoly() {return selectSurround;}
 }

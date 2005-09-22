@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03h: *********************************
 
+IMP: (09/21/05, GVG) Correcting regression data due to latest changes in network, GDS layers, etc that make the
+regressions to fail.
+
+BUG: (09/21/05, GVG) Still having problems with notches in TSMC180 gate regression, few errors though for some
+weak transistors not aligned with the rest of the primitives.
+
+IMP/MAN: (09/21/05, GVG) Foundry shown in StatusBar below technology. Valid only for layout technologies.
+
 BUG: (09/21/05, DN) Strange behavior - lots of networks (Bug #557)
 FIX: NetworkHighlighter finds highlights for a set of Networks avoiding duplicates.
 

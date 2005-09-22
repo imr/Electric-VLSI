@@ -60,8 +60,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 	private WindowFrame frame;
 	private String coords = null;
 	private String hierCoords = null;
-	private JLabel fieldSelected, fieldSize, fieldTech, fieldCoords, fieldHierCoords;
-    //private int fieldSizeNumChars, fieldTechNumChars, fieldCoordsNumChars;
+	private JLabel fieldSelected, fieldSize, fieldTech, fieldFoundry, fieldCoords, fieldHierCoords;
 
 	private static String selectionOverride = null;
 
@@ -87,6 +86,14 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
         fieldTech.setMaximumSize(d);
         fieldTech.setPreferredSize(d);
         addField(fieldTech, 2, 0, 1);
+
+        // To display manufacturer/foundry if applicable
+        fieldFoundry = new JLabel();
+        d = new Dimension (200, 16);
+        fieldFoundry.setMinimumSize(d);
+        fieldFoundry.setMaximumSize(d);
+        fieldFoundry.setPreferredSize(d);
+        addField(fieldFoundry, 2, 1, 1);
 
         fieldCoords = new JLabel();
         fieldCoords.setMinimumSize(new Dimension(100, 16));
@@ -267,6 +274,11 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 			String message = "TECH: " + tech.getTechName();
 			if (tech.isScaleRelevant()) message += " (scale=" + tech.getScale() + "nm)";
 			fieldTech.setText(message);
+            String foundry = tech.getSelectedFoundry();
+            message = "";
+            if (!foundry.equals("")) // relevant foundry
+                message = "FOUNDRY: " + foundry;
+            fieldFoundry.setText(message);
 		}
 
 		if (coords == null) fieldCoords.setText(""); else
