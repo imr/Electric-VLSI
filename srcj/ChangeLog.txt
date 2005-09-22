@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03h: *********************************
 
+BUG: (09/22/05, GVG) Problem renaming cells for GDS export when name conflicts were found. This was the reason
+ExportGDS_CIF was failing since v8.03f for qFourP2.
+FIX: Changes in GDS.makeUniqueName().
+
 BUG: (09/22/05, GVG) Gate generation for TSMC180 passes now.
 FIX: Some resolution errors fixed in fillDiffAndSelectNotch while extending region to cover
 select on transistors not aligned.

@@ -604,9 +604,11 @@ public class GDS extends Geometry
 		{
 			if (!existing.contains(name)) break;
 			name = baseName + "_" + index;
-			if (name.length() > IOTool.getGDSCellNameLenMax())
+            int extra = name.length() - IOTool.getGDSCellNameLenMax();
+            if (extra > 0)
 			{
-				baseName = baseName.substring(0, baseName.length()-1);
+				name = baseName.substring(0, baseName.length()-extra);
+                name +="_" + index;
 			}
 		}
 
