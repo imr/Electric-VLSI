@@ -1237,6 +1237,10 @@ public class VectorDrawing
 		Poly [] polys = new Poly[numPolys];
 		cell.addDisplayableVariables(CENTERRECT, polys, 0, wnd, true);
 		drawPolys(polys, DBMath.MATID, vc, true, VectorText.TEXTTYPECELL);
+
+		// icon cells should not get greeked because of their contents
+		if (cell.getView() == View.ICON) vc.maxFeatureSize = 0;
+
 		return vc;
 	}
 

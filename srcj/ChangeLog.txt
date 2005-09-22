@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03h: *********************************
 
+BUG: (09/22/05, SMR) Icon cells get "greeked" out (Bug #561).
+FIX: In VectorDrawing.drawCell, clear maximum feature size information for icons.
+
 BUG: (09/21/05, SMR) Arcs in the component palette are not drawn (Bug #565).
 FIX: In ArcInst.makeDummyInstance(), compute dummy arcs properly.
 
