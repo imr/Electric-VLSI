@@ -80,7 +80,7 @@ import java.util.ArrayList;
  * When this is zero, use the "red, green, blue" fields for the opaque color.
  * <P>
  * The opaque image is a full-color Image that is the size of the EditWindow.
- * Any layers that are marked "opaque" are drawin in full color in the image.
+ * Any layers that are marked "opaque" are drawn in full color in the image.
  * Colors are not combined in the opaque image: every color placed in it overwrites the previous color.
  * For this reason, opaque colors are often stipple patterns, so that they won't completely obscure other
  * opaque layers.
@@ -161,7 +161,7 @@ import java.util.ArrayList;
  *   is redisplayed without a change of magnification (during panning, for example).  In such a case,
  *   all cells will eventually be cached because, even those used once are being displayed with each redraw. </LI>
  *   <LI>Texture patterns don't line-up.  When drawing texture pattern to the final buffer, it is easy
- *   to use the screen coordinates to index the pattern map, causeing all of them to line-up.
+ *   to use the screen coordinates to index the pattern map, causing all of them to line-up.
  *   Any two adjoining objects that use the same pattern will have their patterns line-up smoothly.
  *   However, when caching cell instances, it is not possible to know where the contents will be placed
  *   on the screen, and so the texture patterns rendered into the cache cannot be aligned globally.
@@ -979,7 +979,7 @@ public class PixelDrawing
 	
 				PrimitiveNode prim = (PrimitiveNode)np;
 				totalPrims++;
-				if (!prim.isCanBeZeroSize() && halfWidth < halfMaxObjectSize)
+				if (!prim.isCanBeZeroSize() && halfWidth < halfMaxObjectSize && !forceVisible)
 				{
 					// draw a tiny primitive by setting a single dot from each layer
 					tinyPrims++;
@@ -1055,7 +1055,7 @@ public class PixelDrawing
 	 * Method to render an ArcInst into the offscreen image.
 	 * @param ai the ArcInst to draw.
      * @param trans the transformation of the ArcInst to the display.
-     * @param forceVisible ignores layer visibility if true
+     * @param forceVisible true to ignore layer visibility and draw all layers.
      */
 	public void drawArc(ArcInst ai, AffineTransform trans, boolean forceVisible)
 	{
@@ -1063,28 +1063,31 @@ public class PixelDrawing
 		Rectangle2D arcBounds = ai.getBounds();
         double arcSize = Math.max(arcBounds.getWidth(), arcBounds.getHeight());
 		totalArcs++;
-		if (arcSize < maxObjectSize)
+		if (!forceVisible)
 		{
-			tinyArcs++;
-			return;
-		}
-		if (ai.getWidth() > 0)
-		{
-			arcSize = Math.min(arcBounds.getWidth(), arcBounds.getHeight());
 			if (arcSize < maxObjectSize)
 			{
-				linedArcs++;
-
-				// draw a tiny arc by setting a single dot from each layer
-				Point2D headEnd = new Point2D.Double(ai.getHeadLocation().getX(), ai.getHeadLocation().getY());
-				trans.transform(headEnd, headEnd);
-				databaseToScreen(headEnd.getX(), headEnd.getY(), tempPt1);
-				Point2D tailEnd = new Point2D.Double(ai.getTailLocation().getX(), ai.getTailLocation().getY());
-				trans.transform(tailEnd, tailEnd);
-				databaseToScreen(tailEnd.getX(), tailEnd.getY(), tempPt2);
-				ArcProto prim = ai.getProto();
-				drawTinyArc(prim.layerIterator(), tempPt1, tempPt2);
+				tinyArcs++;
 				return;
+			}
+			if (ai.getWidth() > 0)
+			{
+				arcSize = Math.min(arcBounds.getWidth(), arcBounds.getHeight());
+				if (arcSize < maxObjectSize)
+				{
+					linedArcs++;
+	
+					// draw a tiny arc by setting a single dot from each layer
+					Point2D headEnd = new Point2D.Double(ai.getHeadLocation().getX(), ai.getHeadLocation().getY());
+					trans.transform(headEnd, headEnd);
+					databaseToScreen(headEnd.getX(), headEnd.getY(), tempPt1);
+					Point2D tailEnd = new Point2D.Double(ai.getTailLocation().getX(), ai.getTailLocation().getY());
+					trans.transform(tailEnd, tailEnd);
+					databaseToScreen(tailEnd.getX(), tailEnd.getY(), tempPt2);
+					ArcProto prim = ai.getProto();
+					drawTinyArc(prim.layerIterator(), tempPt1, tempPt2);
+					return;
+				}
 			}
 		}
 

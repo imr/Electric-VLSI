@@ -238,23 +238,19 @@ public class ArcInst extends Geometric implements Comparable
 		}
 
 		// create the head node
-		NodeInst niH = NodeInst.makeDummyInstance(npEnd, new EPoint(-arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), Orientation.IDENT);
+		EPoint xPH = new EPoint(-arcLength/2, 0);
+		NodeInst niH = NodeInst.makeDummyInstance(npEnd, xPH, npEnd.getDefWidth(), npEnd.getDefHeight(), Orientation.IDENT);
 		PortInst piH = niH.getOnlyPortInst();
-		Rectangle2D boundsH = piH.getBounds();
-		double xH = boundsH.getCenterX();
-		double yH = boundsH.getCenterY();
 
 		// create the tail node
-		NodeInst niT = NodeInst.makeDummyInstance(npEnd, new EPoint(arcLength/2,0), npEnd.getDefWidth(), npEnd.getDefHeight(), Orientation.IDENT);
+		EPoint xPT = new EPoint(arcLength/2, 0);
+		NodeInst niT = NodeInst.makeDummyInstance(npEnd, xPT, npEnd.getDefWidth(), npEnd.getDefHeight(), Orientation.IDENT);
 		PortInst piT = niT.getOnlyPortInst();
-		Rectangle2D boundsT = piT.getBounds();
-		double xT = boundsT.getCenterX();
-		double yT = boundsT.getCenterY();
 
 		// create the arc that connects them
         ImmutableArcInst d = ImmutableArcInst.newInstance(0, ap, BASENAME, 0, ImmutableTextDescriptor.getArcTextDescriptor(),
-                niT.getD().nodeId, piT.getPortProto().getId(), new EPoint(xT, yT),
-                niH.getD().nodeId, piH.getPortProto().getId(), new EPoint(xH, yH),
+                niT.getD().nodeId, piT.getPortProto().getId(), xPT,
+                niH.getD().nodeId, piH.getPortProto().getId(), xPH,
                 ap.getDefaultWidth(), 0, 0);
  		ArcInst ai = new ArcInst(null, d, piH, piT);
 

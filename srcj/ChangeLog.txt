@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03h: *********************************
 
+BUG: (09/21/05, SMR) Arcs in the component palette are not drawn (Bug #565).
+FIX: In ArcInst.makeDummyInstance(), compute dummy arcs properly.
+
 IMP: (09/21/05, GVG) Correcting regression data due to latest changes in network, GDS layers, etc that make the
 regressions to fail.
 
@@ -16,7 +19,7 @@ BUG: (09/21/05, DN) Strange behavior - lots of networks (Bug #557)
 FIX: NetworkHighlighter finds highlights for a set of Networks avoiding duplicates.
 
 IMP: (09/21/05, DN) Transactional DB: ImmutableVariable.
-     ElectricObject.newKey was moved to Variable.newKey .
+     ElectricObject.newKey was moved to Variable.newKey.
 
 IMP/MAN: (09/21/05, SMR) Added David Harris's Electric tutorial to the user's manual.
      Added his MIPS library to the library area; added new command under Help / Load Built-in Libraries
