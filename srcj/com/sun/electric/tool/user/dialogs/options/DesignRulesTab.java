@@ -140,6 +140,8 @@ public class DesignRulesTab extends PreferencePanel
 	public void term()
 	{
         String foundryName = (String)defaultFoundryPulldown.getSelectedItem();
+        if (foundryName == null) return; // technology without design rules.
+        
         int val = -1;
 
         if (!foundryName.equals(curTech.getSelectedFoundry()))
