@@ -176,7 +176,7 @@ public class ToolBarButton extends AbstractButton implements Accessible, ActionL
      */
     public static boolean getButtonState(String name) {
         ArrayList list = (ArrayList)allButtons.get(name);
-        if (list == null) return false;
+        if (list == null || list.size() == 0) return false;
         AbstractButton b = (AbstractButton)list.get(0);
         return b.isSelected();
     }        
