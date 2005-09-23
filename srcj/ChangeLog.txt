@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03h: *********************************
 
+BUG: (09/23/05, GVG) Icons should be always be expanded cells/instances (Bug #570)
+FIX: Force expansion for master icons (in schematics master) and instances.
+Added if (ni.isIconOfParent() || ((Cell)ni.getProto()).isIcon()) ni.setExpanded(true); in Cell.loadExpandStatus().
+
 IMP: (09/23/05, DN) Transactional DB: Changes in library readers, Input.readLibrary moved
      to LibraryFiles.readLibrary ( regression scripts updated ).
 

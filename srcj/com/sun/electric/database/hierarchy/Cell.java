@@ -3584,12 +3584,17 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
         for (Iterator it = getNodes(); it.hasNext(); ) {
             NodeInst ni = (NodeInst)it.next();
             if (!(ni.getProto() instanceof Cell)) continue;
-            boolean expanded = useWantExpanded ? ((Cell)ni.getProto()).isWantExpanded() : mostExpanded;
-            if (cellPrefs != null) {
-                String nodeName = ni.getDuplicate() == 0 ? "E" + ni.getName() : "E\"" + ni.getName() + "\"" + ni.getDuplicate();
-                expanded = cellPrefs.getBoolean(nodeName, expanded);
+
+            if (ni.isIconOfParent() || ((Cell)ni.getProto()).isIcon()) ni.setExpanded(true); // forcing it
+            else
+            {
+                boolean expanded = useWantExpanded ? ((Cell)ni.getProto()).isWantExpanded() : mostExpanded;
+                if (cellPrefs != null) {
+                    String nodeName = ni.getDuplicate() == 0 ? "E" + ni.getName() : "E\"" + ni.getName() + "\"" + ni.getDuplicate();
+                    expanded = cellPrefs.getBoolean(nodeName, expanded);
+                }
+                if (expanded) ni.setExpanded(); else ni.clearExpanded();
             }
-            if (expanded) ni.setExpanded(); else ni.clearExpanded();
         }
         expandStatusModified = false;
     }
