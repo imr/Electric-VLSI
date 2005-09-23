@@ -73,7 +73,7 @@ import com.sun.electric.tool.generator.ROMGenerator;
 import com.sun.electric.tool.generator.layout.Tech;
 import com.sun.electric.tool.generator.cmosPLA.PLA;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
@@ -1459,7 +1459,7 @@ public class ToolMenu {
 				// read standard cell library
 				System.out.println("Reading Standard Cell Library '" + SCLIBNAME + "' ...");
 				URL fileURL = LibFile.getLibFile(SCLIBNAME + ".jelib");
-				Library lib = Input.readLibrary(fileURL, null, FileType.JELIB, false);
+				Library lib = LibraryFiles.readLibrary(fileURL, null, FileType.JELIB, false);
 		        Undo.noUndoAllowed();
 				if (lib != null) SilComp.setCellLib(lib);
 				System.out.println(" Done");

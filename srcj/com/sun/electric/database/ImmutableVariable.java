@@ -34,12 +34,16 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Tool;
 import java.awt.geom.Point2D;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
  * Immutable class ImmutableVariable an Electric variable.
  */
 public class ImmutableVariable {
+    
+    /** empty array of ImmutableVariables. */
+    public static final ImmutableVariable[] NULL_ARRAY = {};
     
     private final static byte ARRAY = 1;
     private final static byte SIMPLE = 0;
@@ -139,19 +143,49 @@ public class ImmutableVariable {
                 throw new IllegalArgumentException(value.getClass().toString());
             }
         }
+        if (descriptor.isCode() && !(value instanceof String || value instanceof String[])) {
+            descriptor = descriptor.withoutCode();
+        }
 		return new ImmutableVariable(key, descriptor, value, type);
     }
     
 	/**
-	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by name descriptor.
+	 * Returns ImmutableVariable which differs from this ImmutableVariable by name descriptor.
      * @param nameDescriptor TextDescriptor of name
-	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by name descriptor.
+	 * @return ImmutableVariable which differs from this ImmutableVariable by name descriptor.
 	 */
 	public ImmutableVariable withDescriptor(ImmutableTextDescriptor descriptor) {
         if (this.descriptor == descriptor) return this;
+        if (descriptor.isCode() && !(value instanceof String || value instanceof String[])) {
+            descriptor = descriptor.withoutCode();
+        }
 		return new ImmutableVariable(this.key, descriptor, this.value, this.type);
 	}
 
+	/**
+	 * Returns ImmutableVariable which differs from this ImmutableVariable by value.
+     * @param value new value
+	 * @return ImmutableVariable which differs from this ImmutableVariable by value.
+	 * @throws NullPointerException if value is null.
+     * @throws IllegalArgumentException if value has invalid type
+	 */
+	public ImmutableVariable withValue(Object value) {
+        if (this.value.equals(value)) return this;
+        if ((type & ARRAY) != 0 && value instanceof Object[] &&
+                Arrays.equals((Object[])this.value, (Object[])value) &&
+                this.value.getClass().getComponentType() == value.getClass().getComponentType())
+            return this;
+        return newInstance(this.key, this.descriptor, value);
+	}
+
+    /**
+     * Returns thread-independent value of this Variable.
+     * @return thread-independent value of this variable.
+     */
+    public Object getValue() {
+        return (type & ARRAY) != 0 ? ((Object[])value).clone() : value;
+    }
+    
     /**
      * Returns value of this Variable in current thread.
      * @return value of this variable in current thread.
@@ -192,6 +226,17 @@ public class ImmutableVariable {
     public int getValueLength() { return (type & ARRAY) != 0 ? ((Object[])value).length : -1; }
     
     /**
+     * Returns thread-independent element of array value of this Variable.
+     * @param specified index of array
+     * @return element of array value.
+     * @throws ArrayIndexOutOfBoundsException if index is scalar of value is out of bounds.
+     */
+    public Object getValue(int index) {
+        if ((type & ARRAY) == 0) throw new ArrayIndexOutOfBoundsException(index); 
+        return ((Object[])value)[index];
+    }
+    
+    /**
      * Returns element of array value of this Variable in current thread.
      * @param specified index of array
      * @return element of array value.
@@ -228,19 +273,10 @@ public class ImmutableVariable {
             Byte typeByte = (Byte)validClasses.get(value.getClass());
             assert type == typeByte.byteValue();
         }
+        if (descriptor.isCode())
+            assert value instanceof String || value instanceof String[];
 	}
     
-    
-    private byte typeOf(Object value) {
-        if (value instanceof Object[]) {
-            Byte type = (Byte)validClasses.get(value.getClass().getComponentType());
-            return (byte)(type.byteValue()|ARRAY);
-        } else {
-            Byte type = (Byte)validClasses.get(value.getClass());
-            return type.byteValue();
-        }
-    }
-
     static {
         validClasses.put(String.class, new Byte(SIMPLE));
         validClasses.put(Double.class, new Byte(SIMPLE));
@@ -249,6 +285,7 @@ public class ImmutableVariable {
         validClasses.put(Integer.class, new Byte(SIMPLE));
         validClasses.put(Short.class, new Byte(SIMPLE));
         validClasses.put(Byte.class, new Byte(SIMPLE));
+        validClasses.put(Boolean.class, new Byte(SIMPLE));
         validClasses.put(EPoint.class, new Byte(SIMPLE));
         validClasses.put(Tool.class, new Byte(SIMPLE));
         validClasses.put(Technology.class, new Byte(SIMPLE));

@@ -36,7 +36,6 @@ import com.sun.electric.database.hierarchy.HierarchyEnumerator;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.Nodable;
 import com.sun.electric.database.network.Network;
-import com.sun.electric.database.network.Netlist;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.topology.NodeInst;
@@ -46,8 +45,8 @@ import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.User;
 
 class IvanFlater extends HierarchyEnumerator.Visitor {
@@ -232,7 +231,7 @@ public class IvanFlat extends Job {
 		Library lib = Library.findLibrary(libNm);
 		if (lib==null) {
 			URL libFileURL = TextUtils.makeURLToFile(libFileNm);
-			Input.readLibrary(libFileURL, null, FileType.ELIB, false);
+			LibraryFiles.readLibrary(libFileURL, null, FileType.ELIB, false);
 			lib = Library.findLibrary(libNm);
 		}
 		error(lib==null, "can't open Library for reading: "+libFileNm);

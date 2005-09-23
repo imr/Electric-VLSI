@@ -234,7 +234,7 @@ public class ImmutableNodeInst
      * @throws IllegalArgumentException if duplicate is negative.
 	 */
 	public ImmutableNodeInst withName(Name name, int duplicate) {
-		if (this.name == name && this.duplicate == duplicate) return this;
+		if (this.name.equals(name) && this.duplicate == duplicate) return this;
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (name.hasDuplicates()) throw new IllegalArgumentException("name");
@@ -275,7 +275,7 @@ public class ImmutableNodeInst
 	 * @throws NullPointerException if anchor is null.
 	 */
 	public ImmutableNodeInst withAnchor(EPoint anchor) {
-		if (this.anchor == anchor) return this;
+		if (this.anchor.equals(anchor)) return this;
 		if (anchor == null) throw new NullPointerException("anchor");
         if (protoId == Generic.tech.cellCenterNode) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,

@@ -43,7 +43,7 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
@@ -289,7 +289,7 @@ public class PLA
 		if (cellLib == null)
 		{
 			URL url = LibFile.getLibFile(libName + ".jelib");
-			cellLib = Input.readLibrary(url, null, FileType.JELIB, false);
+			cellLib = LibraryFiles.readLibrary(url, null, FileType.JELIB, false);
 	        Undo.noUndoAllowed();
 		}
 

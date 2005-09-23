@@ -58,7 +58,8 @@ import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.Job.Priority;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.project.Project;
 import com.sun.electric.tool.user.dialogs.ChangeCurrentLib;
 import com.sun.electric.tool.user.menus.MenuCommands;
@@ -5588,7 +5589,7 @@ public class CircuitChanges
 					NodeInst ni = (NodeInst)nIt.next();
 					if (!(ni.getProto() instanceof Cell)) continue;
 					Cell subCell = (Cell)ni.getProto();
-					Variable var = subCell.getVar(Input.IO_TRUE_LIBRARY, String.class);
+					Variable var = subCell.getVar(LibraryFiles.IO_TRUE_LIBRARY, String.class);
 					if (var != null)
 					{
 						String pt = (String)var.getObject();
@@ -5635,7 +5636,7 @@ public class CircuitChanges
 						NodeInst ni = (NodeInst)nIt.next();
 						if (!(ni.getProto() instanceof Cell)) continue;
 						Cell subCell = (Cell)ni.getProto();
-						Variable var = subCell.getVar(Input.IO_TRUE_LIBRARY, String.class);
+						Variable var = subCell.getVar(LibraryFiles.IO_TRUE_LIBRARY, String.class);
 						if (var == null) continue;
 						if (((String)var.getObject()).equals(dummyLibName)) { found = true;   break; }
 					}

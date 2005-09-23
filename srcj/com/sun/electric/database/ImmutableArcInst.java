@@ -314,7 +314,7 @@ public class ImmutableArcInst
      * @throws IllegalArgumentException if name is not valid or duplicate is negative.
 	 */
 	public ImmutableArcInst withName(Name name, int duplicate) {
-		if (this.name == name && this.duplicate == duplicate) return this;
+		if (this.name.equals(name) && this.duplicate == duplicate) return this;
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
@@ -345,7 +345,7 @@ public class ImmutableArcInst
 	 * @throws NullPointerException if tailLocation is null.
 	 */
 	public ImmutableArcInst withLocations(EPoint tailLocation, EPoint headLocation) {
-		if (this.tailLocation == tailLocation && this.headLocation == headLocation) return this;
+		if (this.tailLocation.equals(tailLocation) && this.headLocation.equals(headLocation)) return this;
 		if (tailLocation == null) throw new NullPointerException("tailLocation");
 		if (headLocation == null) throw new NullPointerException("headLocation");
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,

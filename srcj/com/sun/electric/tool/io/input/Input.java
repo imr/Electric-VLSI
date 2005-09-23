@@ -24,12 +24,8 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
-import com.sun.electric.database.text.Pref;
-import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.user.dialogs.Progress;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -52,20 +48,14 @@ public class Input
 {
 	protected static final int READ_BUFFER_SIZE = 65536;
 
-	/** key of Varible holding true library of fake cell. */		public static final Variable.Key IO_TRUE_LIBRARY = Variable.newKey("IO_true_library");
-	/** key of Variable to denote a dummy cell or library */        public static final Variable.Key IO_DUMMY_OBJECT = Variable.newKey("IO_dummy_object");
-
     /** Log errors. Static because shared between many readers */   public static ErrorLogger errorLogger;
 
 	/** Name of the file being input. */					protected String filePath;
-	/** The Library being input. */							protected Library lib;
 	/** The raw input stream. */							protected InputStream inputStream;
 	/** The line number reader (text only). */				protected LineNumberReader lineReader;
 	/** The input stream. */								protected DataInputStream dataInputStream;
 	/** The length of the file. */							protected long fileLength;
 	/** The progress during input. */						protected static Progress progress = null;
-	/** the path to the library being read. */				protected static String mainLibDirectory = null;
-	/** true if the library is the main one being read. */	protected boolean topLevelLibrary;
 	/** the number of bytes of data read so far */			protected long byteCount;
 
 	// ---------------------- private and protected methods -----------------
@@ -75,84 +65,6 @@ public class Input
 	}
 
 	// ----------------------- public methods -------------------------------
-
-	/**
-	 * Method to read a Library from disk.
-	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
-	 * @param fileURL the URL to the disk file.
-	 * @param libName the name to give the library (null to derive it from the file path)
-	 * @param type the type of library file (ELIB, JELIB, etc.)
-	 * @param quick true to read the library without verbosity or "meaning variable" reconciliation
-	 * (used when reading a library internally).
-	 * @return the read Library, or null if an error occurred.
-	 */
-	public static synchronized Library readLibrary(URL fileURL, String libName, FileType type, boolean quick)
-	{
-		if (fileURL == null) return null;
-		long startTime = System.currentTimeMillis();
-        errorLogger = ErrorLogger.newInstance("Library Read");
-
-        File f = new File(fileURL.getPath());
-        if (f != null && f.exists()) {
-            LibDirs.readLibDirs(f.getParent());
-        }
-		LibraryFiles.initializeLibraryInput();
-
-		Library lib = null;
-		boolean formerQuiet = Undo.changesQuiet(true);
-		try {
-			// show progress
-			startProgressDialog("library", fileURL.getFile());
-
-			Cell.setAllowCircularLibraryDependences(true);
-			Pref.initMeaningVariableGathering();
-
-			StringBuffer errmsg = new StringBuffer();
-			boolean exists = TextUtils.URLExists(fileURL, errmsg);
-			if (!exists)
-			{
-				System.out.print(errmsg.toString());
-				// if doesn't have extension, assume DEFAULTLIB as extension
-				String fileName = fileURL.toString();
-				if (fileName.indexOf(".") == -1)
-				{
-					fileURL = TextUtils.makeURLToFile(fileName+"."+type.getExtensions()[0]);
-					System.out.print("Attempting to open " + fileURL+"\n");
-					errmsg.setLength(0);
-					exists = TextUtils.URLExists(fileURL, errmsg);
-					if (!exists) System.out.print(errmsg.toString());
-				}
-			}
-			if (exists)
-			{
-				// get the library name
-				if (libName == null) libName = TextUtils.getFileNameWithoutExtension(fileURL);
-				lib = readALibrary(fileURL, null, libName, type);
-			}
-			if (LibraryFiles.VERBOSE)
-				System.out.println("Done reading data for all libraries");
-
-			LibraryFiles.cleanupLibraryInput();
-			if (LibraryFiles.VERBOSE)
-				System.out.println("Done instantiating data for all libraries");
-		} finally {
-			stopProgressDialog();
-			Cell.setAllowCircularLibraryDependences(false);
-		}
-		Undo.changesQuiet(formerQuiet);
-
-		if (lib != null && !quick)
-		{
-			long endTime = System.currentTimeMillis();
-			float finalTime = (endTime - startTime) / 1000F;
-			System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
-            Pref.reconcileMeaningVariables(lib.getName());
-		}
-
-		errorLogger.termLogging(true);
-
-		return lib;
-	}
 
 	/**
 	 * Method to import a Library from disk.
@@ -260,66 +172,6 @@ public class Input
 	 */
 	protected boolean importALibrary(Library lib) { return true; }
 
-	/**
-	 * Method to read a single library file.
-	 * @param fileURL the URL to the file.
-	 * @param lib the Library to read.
-	 * If the "lib" is null, this is an entry-level library read, and one is created.
-	 * If "lib" is not null, this is a recursive read caused by a cross-library
-	 * reference from inside another library.
-	 * @param type the type of library file (ELIB, CIF, GDS, etc.)
-	 * @return the read Library, or null if an error occurred.
-	 */
-	protected static Library readALibrary(URL fileURL, Library lib, String libName, FileType type)
-	{
-		// handle different file types
-		LibraryFiles in;
-		if (type == FileType.ELIB)
-		{
-			in = new ELIB();
-			if (in.openBinaryInput(fileURL)) return null;
-		} else if (type == FileType.JELIB)
-		{
-			in = new JELIB();
-			if (in.openTextInput(fileURL)) return null;
-		} else if (type == FileType.READABLEDUMP)
-		{
-			in = new ReadableDump();
-			if (in.openTextInput(fileURL)) return null;
-		} else
-		{
-			System.out.println("Unknown import type: " + type);
-			return null;
-		}
-
-		// determine whether this is top-level
-		in.topLevelLibrary = false;
-		if (lib == null)
-		{
-			mainLibDirectory = TextUtils.getFilePath(fileURL);
-			in.topLevelLibrary = true;
-		}
-
-		if (lib == null)
-		{
-			// create a new library
-			lib = Library.newInstance(libName, fileURL);
-		}
-
-		in.lib = lib;
-
-		// read the library
-		boolean error = in.readInputLibrary();
-		in.closeInput();
-		if (error)
-		{
-			System.out.println("Error reading " + lib);
-			if (in.topLevelLibrary) mainLibDirectory = null;
-			return null;
-		}
-		return in.lib;
-	}
-	
 	protected boolean openBinaryInput(URL fileURL)
 	{
 		filePath = fileURL.getFile();

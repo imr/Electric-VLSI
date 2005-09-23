@@ -241,6 +241,7 @@ public class Name implements Comparable
 		Name name = (Name)allNames.get(ns);
 		if (name == null && ns != null)
 		{
+            ns = ns.intern();
 			name = new Name(ns);
 			allNames.put(name.ns, name);
 		}

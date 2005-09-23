@@ -46,9 +46,10 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.Job.Priority;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -182,7 +183,7 @@ public class Output
         dummyCells.add("WARNING: "+lib+" contains the following Dummy cells:");
         for (Iterator it = lib.getCells(); it.hasNext(); ) {
             Cell c = (Cell)it.next();
-            if (c.getVar(Input.IO_DUMMY_OBJECT) != null) {
+            if (c.getVar(LibraryFiles.IO_DUMMY_OBJECT) != null) {
                 dummyCells.add("   "+c.noLibDescribe());
             }
         }

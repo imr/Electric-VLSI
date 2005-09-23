@@ -45,7 +45,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.routing.AutoStitch;
 import com.sun.electric.tool.user.CircuitChanges;
 import com.sun.electric.tool.user.User;
@@ -64,7 +64,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -282,7 +281,7 @@ public class PadGenerator
                 if (TextUtils.getExtension(fileURL).equals("txt")) style = FileType.READABLEDUMP;
                 if (TextUtils.getExtension(fileURL).equals("elib")) style = FileType.ELIB;
                 Library saveLib = Library.getCurrent();
-                cellLib = Input.readLibrary(fileURL, null, style, false);
+                cellLib = LibraryFiles.readLibrary(fileURL, null, style, false);
                 if (cellLib == null) {
                     err("cannot read library " + keyWord);
                     return false;

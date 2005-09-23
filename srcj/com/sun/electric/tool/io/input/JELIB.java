@@ -25,8 +25,12 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.ImmutableVariable;
+import com.sun.electric.database.LibId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -50,7 +54,6 @@ import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Generic;
-import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
@@ -239,7 +242,8 @@ public class JELIB extends LibraryFiles
 				if (techLib) newCell.setInTechnologyLibrary(); else newCell.clearInTechnologyLibrary();
 
 				// add variables in fields 7 and up
-				addVariables(newCell, pieces, numPieces, filePath, lineReader.getLineNumber());
+				ImmutableVariable[] vars = readVariables(pieces, numPieces, filePath, lineReader.getLineNumber());
+                realizeVariables(newCell, vars);
 
 				// gather the contents of the cell into a list of Strings
 				CellContents cc = new CellContents();
@@ -357,7 +361,8 @@ public class JELIB extends LibraryFiles
 					Input.errorLogger.logWarning(filePath + ", line " + lineReader.getLineNumber() +
 						", Library " + curLibName + " comes from a NEWER version of Electric (" + version + ")", null, -1);
 				}
-				addVariables(lib, pieces, 2, filePath, lineReader.getLineNumber());
+				ImmutableVariable[] vars = readVariables(pieces, 2, filePath, lineReader.getLineNumber());
+                realizeVariables(lib, vars);
 
 				lib.setVersion(version);
 				continue;
@@ -377,8 +382,9 @@ public class JELIB extends LibraryFiles
 				}
 
 				// get additional meaning preferences starting at position 1
+                ImmutableVariable[] vars = readVariables(pieces, 1, filePath, lineReader.getLineNumber());
 				if (topLevelLibrary)
-					addMeaningPrefs(tool, pieces, 1, filePath, lineReader.getLineNumber());
+					realizeMeaningPrefs(tool, vars);
 //				addVariables(tool, pieces, 1, filePath, lineReader.getLineNumber());
 				continue;
 			}
@@ -421,8 +427,9 @@ public class JELIB extends LibraryFiles
 				curPrim = null;
 
 				// get additional meaning preferences  starting at position 1
+                ImmutableVariable[] vars = readVariables(pieces, 1, filePath, lineReader.getLineNumber());
 				if (topLevelLibrary)
-					addMeaningPrefs(curTech, pieces, 1, filePath, lineReader.getLineNumber());
+					realizeMeaningPrefs(curTech, vars);
 //				addVariables(curTech, pieces, 1, filePath, lineReader.getLineNumber());
 				continue;
 			}
@@ -908,7 +915,8 @@ public class JELIB extends LibraryFiles
 			diskName.put(diskNodeName, ni);
 
 			// add variables in fields 10 and up
-			addVariables(ni, pieces, numPieces, cc.fileName, cc.lineNumber + line);
+			ImmutableVariable[] vars = readVariables(pieces, numPieces, cc.fileName, cc.lineNumber + line);
+            realizeVariables(ni, vars);
 		}
 
 		// place all exports
@@ -958,7 +966,8 @@ public class JELIB extends LibraryFiles
 			}
 
             // add variables in fields 7 and up
-			addVariables(pp, pieces, numPieces, cc.fileName, cc.lineNumber + line);
+			ImmutableVariable[] vars = readVariables(pieces, numPieces, cc.fileName, cc.lineNumber + line);
+            realizeVariables(pp, vars);
 		}
 
 		// next place all arcs
@@ -1095,7 +1104,8 @@ public class JELIB extends LibraryFiles
 			}
 
 			// add variables in fields 13 and up
-			addVariables(ai, pieces, 13, cc.fileName, cc.lineNumber + line);
+			ImmutableVariable[] vars = readVariables(pieces, 13, cc.fileName, cc.lineNumber + line);
+            realizeVariables(ai, vars);
 		}
 		cc.filledIn = true;
 		cc.cellStrings = null;
@@ -1280,15 +1290,16 @@ public class JELIB extends LibraryFiles
 	}
 
 	/**
-	 * Method to add variables to an ElectricObject from a List of strings.
-	 * @param eObj the ElectricObject to augment with Variables.
+	 * Method to read variables to an ElectricObject from a List of strings.
 	 * @param pieces the array of Strings that described the ElectricObject.
 	 * @param position the index in the array of strings where Variable descriptions begin.
 	 * @param fileName the name of the file that this came from (for error reporting).
 	 * @param lineNumber the line number in the file that this came from (for error reporting).
+     * @return an array of ImmutableVariables. 
 	 */
-	private void addVariables(ElectricObject eObj, List pieces, int position, String fileName, int lineNumber)
+	private ImmutableVariable[] readVariables(List pieces, int position, String fileName, int lineNumber)
 	{
+        variablesBuf.clear();
 		int total = pieces.size();
 		for(int i=position; i<total; i++)
 		{
@@ -1310,7 +1321,6 @@ public class JELIB extends LibraryFiles
 			}
 			String varName = unQuote(piece.substring(0, openPos));
 			Variable.Key varKey = Variable.newKey(varName);
-			if (eObj.isDeprecatedVariable(varKey)) continue;
 			int closePos = piece.indexOf(')', openPos);
 			if (closePos < 0)
 			{
@@ -1344,7 +1354,7 @@ public class JELIB extends LibraryFiles
 				case 'S':
 				case 'T':
 				case 'V':
-				case 'X':
+//				case 'X':
 				case 'Y':
 					break; // break from switch
 				default:
@@ -1413,23 +1423,21 @@ public class JELIB extends LibraryFiles
 					Object [] objArray = null;
 					switch (varType)
 					{
-// 						case 'A': objArray = new ArcInst[limit];        break;
 						case 'B': objArray = new Boolean[limit];        break;
-						case 'C': objArray = new Cell[limit];           break;
+						case 'C': objArray = new CellId[limit];         break;
 						case 'D': objArray = new Double[limit];         break;
-						case 'E': objArray = new Export[limit];         break;
+						case 'E': objArray = new ExportId[limit];       break;
 						case 'F': objArray = new Float[limit];          break;
 						case 'G': objArray = new Long[limit];           break;
 						case 'H': objArray = new Short[limit];          break;
 						case 'I': objArray = new Integer[limit];        break;
-						case 'L': objArray = new Library[limit];        break;
-// 						case 'N': objArray = new NodeInst[limit];       break;
+						case 'L': objArray = new LibId[limit];         break;
 						case 'O': objArray = new Tool[limit];           break;
 						case 'P': objArray = new PrimitiveNode[limit];  break;
 						case 'R': objArray = new ArcProto[limit];       break;
 						case 'S': objArray = new String[limit];         break;
 						case 'T': objArray = new Technology[limit];     break;
-						case 'V': objArray = new Point2D[limit];        break;
+						case 'V': objArray = new EPoint[limit];        break;
 						case 'Y': objArray = new Byte[limit];           break;
 					}
 					if (objArray == null && limit > 0)
@@ -1443,112 +1451,19 @@ public class JELIB extends LibraryFiles
 				{
 					// a scalar Variable
 					obj = getVariableValue(piece.substring(objectPos), varType, fileName, lineNumber);
+                    if (obj == null) {
+                        // ????
+                        continue;
+                    }
 				}
 			}
 
 			// create the variable
-			Variable newVar = eObj.newVar(varKey, obj, loadTextDescriptor(varBits, true, fileName, lineNumber));
-			if (newVar == null)
-			{
-				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					", Cannot create variable: " + piece, null, -1);
-				continue;
-			}
-
-			// see if the variable is a "meaning option"
-// 			if (topLevelLibrary)
-// 			{
-// 				Pref.Meaning meaning = Pref.getMeaningVariable(eObj, varName);
-// 				if (meaning != null) Pref.changedMeaningVariable(meaning);
-// 			}
-
+            ImmutableTextDescriptor td = loadTextDescriptor(varBits, true, fileName, lineNumber);
+            ImmutableVariable d = ImmutableVariable.newInstance(varKey, td, obj);
+            variablesBuf.add(d);
 		}
-	}
-
-	/**
-	 * Method to add meaning preferences to an ElectricObject from a List of strings.
-	 * @param obj the Object to augment with meaning preferences.
-	 * @param pieces the array of Strings that described the Object.
-	 * @param position the index in the array of strings where meaning variable descriptions begin.
-	 * @param fileName the name of the file that this came from (for error reporting).
-	 * @param lineNumber the line number in the file that this came from (for error reporting).
-	 */
-	private void addMeaningPrefs(Object obj, List pieces, int position, String fileName, int lineNumber)
-	{
-		int total = pieces.size();
-		for(int i=position; i<total; i++)
-		{
-			String piece = (String)pieces.get(i);
-			int openPos = 0;
-			boolean inQuote = false;
-			for(; openPos < piece.length(); openPos++)
-			{
-				char chr = piece.charAt(openPos);
-				if (chr == escapeChar) { openPos++;   continue; }
-				if (chr == '"') inQuote = !inQuote;
-				if (chr == '(' && !inQuote) break;
-			}
-			if (openPos >= piece.length())
-			{
-				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					", Badly formed meaning preference (no open parenthesis): " + piece, null, -1);
-				continue;
-			}
-			String varName = unQuote(piece.substring(0, openPos));
-			int closePos = piece.indexOf(')', openPos);
-			if (closePos < 0)
-			{
-				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					", Badly formed meaning preference (no close parenthesis): " + piece, null, -1);
-				continue;
-			}
-			int objectPos = closePos + 1;
-			if (objectPos >= piece.length())
-			{
-				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					", Meaning preference type missing: " + piece, null, -1);
-				continue;
-			}
-			char varType = piece.charAt(objectPos++);
-			switch (varType)
-			{
-				case 'D': // Double
-				case 'F': // Float
-				case 'G': // Long
-				case 'I': // Integer
-				case 'S': // String
-					break; // break from switch
-				default:
-					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-						", Meaning preference type invalid: " + piece, null, -1);
-					continue; // continue loop
-			}
-			if (objectPos >= piece.length())
-			{
-				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					", Meaning preference value missing: " + piece, null, -1);
-				continue;
-			}
-			if (piece.charAt(objectPos) == '[')
-			{
-				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-					", Meaning preference has array value: " + piece, null, -1);
-				continue;
-			}
-			// a scalar Variable
-			Object value = getVariableValue(piece.substring(objectPos), varType, fileName, lineNumber);
-
-			// change "meaning option"
-			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varName);
-			if (meaning != null)
-			{
-				Pref.changedMeaningVariable(meaning, value);
-			} else if (!(obj instanceof Technology && ((Technology)obj).convertOldVariable(varName, value)))
-			{
-// 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
-// 					", Meaning preference unknown: " + piece, null, -1);
-			}
-		}
+        return (ImmutableVariable[])variablesBuf.toArray(ImmutableVariable.NULL_ARRAY);
 	}
 
 	/**
@@ -1788,45 +1703,6 @@ public class JELIB extends LibraryFiles
 
 		switch (varType)
 		{
-// 			case 'A':		// ArcInst (should delay analysis until database is built!!!)
-// 				int colonPos = piece.indexOf(':');
-// 				if (colonPos < 0)
-// 				{
-// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-// 						", Badly formed Export (missing library colon): " + piece, null, -1);
-// 					break;
-// 				}
-// 				String libName = piece.substring(0, colonPos);
-// 				Library lib = Library.findLibrary(libName);
-// 				if (lib == null)
-// 				{
-// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-// 						", Unknown library: " + libName, null, -1);
-// 					break;
-// 				}
-// 				int secondColonPos = piece.indexOf(':', colonPos+1);
-// 				if (secondColonPos < 0)
-// 				{
-// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-// 						", Badly formed Export (missing cell colon): " + piece, null, -1);
-// 					break;
-// 				}
-// 				String cellName = piece.substring(colonPos+1, secondColonPos);
-// 				Cell cell = lib.findNodeProto(cellName);
-// 				if (cell == null)
-// 				{
-// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-// 						", Unknown Cell: " + piece, null, -1);
-// 					break;
-// 				}
-// 				String arcName = piece.substring(secondColonPos+1);
-// 				int commaPos = arcName.indexOf(',');
-// 				if (commaPos >= 0) arcName = arcName.substring(0, commaPos);
-// 				ArcInst ai = cell.findArc(arcName);
-// 				if (ai == null)
-// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-// 						", Unknown ArcInst: " + piece, null, -1);
-// 				return ai;
 			case 'B':		// Boolean
 				return new Boolean(piece.charAt(0)=='T' ? true : false);
 			case 'C':		// Cell (should delay analysis until database is built!!!)
@@ -1850,10 +1726,12 @@ public class JELIB extends LibraryFiles
 				commaPos = cellName.indexOf(',');
 				if (commaPos >= 0) cellName = cellName.substring(0, commaPos);
 				cell = lib.findNodeProto(cellName);
-				if (cell == null)
+				if (cell == null) {
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Unknown Cell: " + piece, null, -1);
-				return cell;
+                    break;
+                }
+				return cell.getId();
 			case 'D':		// Double
 				return new Double(TextUtils.atof(piece));
 			case 'E':		// Export (should delay analysis until database is built!!!)
@@ -1891,9 +1769,11 @@ public class JELIB extends LibraryFiles
 				commaPos = exportName.indexOf(',');
 				if (commaPos >= 0) exportName = exportName.substring(0, commaPos);
 				Export pp = cell.findExport(exportName);
-				if (pp == null)
+				if (pp == null) {
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Unknown Export: " + piece, null, -1);
+                    break;
+                }
 				return pp;
 			case 'F':		// Float
 				return new Float((float)TextUtils.atof(piece));
@@ -1908,49 +1788,12 @@ public class JELIB extends LibraryFiles
 				commaPos = libName.indexOf(',');
 				if (commaPos >= 0) libName = libName.substring(0, commaPos);
 				lib = Library.findLibrary(libName);
-				if (lib == null)
+				if (lib == null) {
 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
 						", Unknown Library: " + piece, null, -1);
+                    break;
+                }
 				return lib;
-// 			case 'N':		// NodeInst (should delay analysis until database is built!!!)
-// 				colonPos = piece.indexOf(':');
-// 				if (colonPos < 0)
-// 				{
-// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-// 						", Badly formed Export (missing library colon): " + piece, null, -1);
-// 					break;
-// 				}
-// 				libName = piece.substring(0, colonPos);
-// 				lib = Library.findLibrary(libName);
-// 				if (lib == null)
-// 				{
-// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-// 						", Unknown library: " + libName, null, -1);
-// 					break;
-// 				}
-// 				secondColonPos = piece.indexOf(':', colonPos+1);
-// 				if (secondColonPos < 0)
-// 				{
-// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-// 						", Badly formed Export (missing cell colon): " + piece, null, -1);
-// 					break;
-// 				}
-// 				cellName = piece.substring(colonPos+1, secondColonPos);
-// 				cell = lib.findNodeProto(cellName);
-// 				if (cell == null)
-// 				{
-// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-// 						", Unknown Cell: " + piece, null, -1);
-// 					break;
-// 				}
-// 				String nodeName = piece.substring(secondColonPos+1);
-// 				commaPos = nodeName.indexOf(',');
-// 				if (commaPos >= 0) nodeName = nodeName.substring(0, commaPos);
-// 				NodeInst ni = cell.findNode(nodeName);
-// 				if (ni == null)
-// 					Input.errorLogger.logError(fileName + ", line " + lineNumber +
-// 						", Unknown NodeInst: " + piece, null, -1);
-// 				return ni;
 			case 'O':		// Tool
 				String toolName = piece;
 				commaPos = toolName.indexOf(',');
@@ -2055,7 +1898,7 @@ public class JELIB extends LibraryFiles
 					break;
 				}
 				double y = TextUtils.atof(piece.substring(slashPos+1));
-				return new Point2D.Double(x, y);
+				return new EPoint(x, y);
 			case 'X':		// null
 				return null;
 			case 'Y':		// Byte

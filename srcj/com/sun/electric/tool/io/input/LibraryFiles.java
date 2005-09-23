@@ -24,7 +24,10 @@
 package com.sun.electric.tool.io.input;
 
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.ImmutableVariable;
+import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -64,6 +67,11 @@ import java.util.*;
  */
 public abstract class LibraryFiles extends Input
 {
+	/** key of Varible holding true library of fake cell. */                public static final Variable.Key IO_TRUE_LIBRARY = Variable.newKey("IO_true_library");
+	/** key of Variable to denote a dummy cell or library */                public static final Variable.Key IO_DUMMY_OBJECT = Variable.newKey("IO_dummy_object");
+    
+	/** The Library being input. */                                         protected Library lib;
+	/** true if the library is the main one being read. */                  protected boolean topLevelLibrary;
 	// the cell information
 	/** The number of Cells in the file. */									protected int nodeProtoCount;
 	/** A list of cells being read. */										protected Cell [] nodeProtoList;
@@ -78,8 +86,11 @@ public abstract class LibraryFiles extends Input
 	/** true if rotation mirror bits are used */							protected boolean rotationMirrorBits;
 	/** font names obtained from FONT_ASSOCIATIONS */                       private String [] fontNames;
     /** buffer for reading text descriptors and variable flags. */          MutableTextDescriptor mtd = new MutableTextDescriptor();
+    /** buffer for reading ImmutableVariables. */                           ArrayList/*<ImmutableVariable>*/ variablesBuf = new ArrayList/*<ImmutableVariable>*/();
 
-	static class NodeInstList
+	/** the path to the library being read. */                              protected static String mainLibDirectory = null;
+
+    static class NodeInstList
 	{
 		NodeInst []  theNode;
 		NodeProto [] protoType;
@@ -95,7 +106,7 @@ public abstract class LibraryFiles extends Input
 		int []       transpose;
         ImmutableTextDescriptor [] protoTextDescriptor;
 		int []       userBits;
-        DiskVariable[][] vars;
+        ImmutableVariable[][] vars;
         
         NodeInstList(int nodeCount, boolean hasAnchor)
         {
@@ -115,69 +126,10 @@ public abstract class LibraryFiles extends Input
             transpose = new int[nodeCount];
             protoTextDescriptor = new ImmutableTextDescriptor[nodeCount];
             userBits = new int[nodeCount];
-            vars = new DiskVariable[nodeCount][];
+            vars = new ImmutableVariable[nodeCount][];
         }
 	};
 
-    static class DiskVariable {
-        String name;
-        int flags;
-        int td0;
-        int td1;
-        Object value;
-        
-        DiskVariable(String name, int flags, int td0, int td1, Object value)
-        {
-            this.name = name;
-            this.flags = flags;
-            this.td0 = td0;
-            this.td1 = td1;
-            this.value = value;
-        }
-        
-        void makeVariable(ElectricObject eObj, LibraryFiles libFiles) { makeVariable(eObj, libFiles, value); }
-        
-        void makeVariable(ElectricObject eObj, LibraryFiles libFiles, Object value)
-        {
-            if (eObj instanceof Library && name.equals(Library.FONT_ASSOCIATIONS.getName()) && value instanceof String[])
-            {
-                libFiles.setFontNames((String[])value);
-                return;
-            }
-            libFiles.mtd.setCBits(td0, libFiles.fixTextDescriptorFont(td1), flags);
-
-			// see if the variable is deprecated
-			Variable.Key varKey = Variable.newKey(name);
-			if (eObj.isDeprecatedVariable(varKey)) return;
-
-			// set the variable
-			Variable var = eObj.newVar(varKey, value, libFiles.mtd);
-			if (var == null)
-			{
-				System.out.println("Error reading variable");
-				return;
-			}
-        }
-        
-        void makeMeaningPref(Object obj)
-        {
-			if (!(value instanceof Integer ||
-				  value instanceof Float ||
-				  value instanceof Double ||
-				  value instanceof String))
-				return;
-
-			// change "meaning option"
-			Pref.Meaning meaning = Pref.getMeaningVariable(obj, name);
-			if (meaning != null)
-				Pref.changedMeaningVariable(meaning, value);
-			else if (obj instanceof Technology)
-				((Technology)obj).convertOldVariable(name, value);
-        }
-    }
-    static final DiskVariable[] NULL_DISK_VARIABLE_ARRAY = {};
-    
-    
 	/** collection of libraries and their input objects. */					private static List libsBeingRead;
 	protected static final boolean VERBOSE = false;
 	protected static final double TINYDISTANCE = DBMath.getEpsilon()*2;
@@ -185,6 +137,144 @@ public abstract class LibraryFiles extends Input
 
 	LibraryFiles() {}
 
+	/**
+	 * Method to read a Library from disk.
+	 * This method is for reading full Electric libraries in ELIB, JELIB, and Readable Dump format.
+	 * @param fileURL the URL to the disk file.
+	 * @param libName the name to give the library (null to derive it from the file path)
+	 * @param type the type of library file (ELIB, JELIB, etc.)
+	 * @param quick true to read the library without verbosity or "meaning variable" reconciliation
+	 * (used when reading a library internally).
+	 * @return the read Library, or null if an error occurred.
+	 */
+	public static synchronized Library readLibrary(URL fileURL, String libName, FileType type, boolean quick)
+	{
+		if (fileURL == null) return null;
+		long startTime = System.currentTimeMillis();
+        errorLogger = ErrorLogger.newInstance("Library Read");
+
+        File f = new File(fileURL.getPath());
+        if (f != null && f.exists()) {
+            LibDirs.readLibDirs(f.getParent());
+        }
+		LibraryFiles.initializeLibraryInput();
+
+		Library lib = null;
+		boolean formerQuiet = Undo.changesQuiet(true);
+		try {
+			// show progress
+			startProgressDialog("library", fileURL.getFile());
+
+			Cell.setAllowCircularLibraryDependences(true);
+			Pref.initMeaningVariableGathering();
+
+			StringBuffer errmsg = new StringBuffer();
+			boolean exists = TextUtils.URLExists(fileURL, errmsg);
+			if (!exists)
+			{
+				System.out.print(errmsg.toString());
+				// if doesn't have extension, assume DEFAULTLIB as extension
+				String fileName = fileURL.toString();
+				if (fileName.indexOf(".") == -1)
+				{
+					fileURL = TextUtils.makeURLToFile(fileName+"."+type.getExtensions()[0]);
+					System.out.print("Attempting to open " + fileURL+"\n");
+					errmsg.setLength(0);
+					exists = TextUtils.URLExists(fileURL, errmsg);
+					if (!exists) System.out.print(errmsg.toString());
+				}
+			}
+			if (exists)
+			{
+				// get the library name
+				if (libName == null) libName = TextUtils.getFileNameWithoutExtension(fileURL);
+				lib = readALibrary(fileURL, null, libName, type);
+			}
+			if (LibraryFiles.VERBOSE)
+				System.out.println("Done reading data for all libraries");
+
+			LibraryFiles.cleanupLibraryInput();
+			if (LibraryFiles.VERBOSE)
+				System.out.println("Done instantiating data for all libraries");
+		} finally {
+			stopProgressDialog();
+			Cell.setAllowCircularLibraryDependences(false);
+		}
+		Undo.changesQuiet(formerQuiet);
+
+		if (lib != null && !quick)
+		{
+			long endTime = System.currentTimeMillis();
+			float finalTime = (endTime - startTime) / 1000F;
+			System.out.println("Library " + fileURL.getFile() + " read, took " + finalTime + " seconds");
+            Pref.reconcileMeaningVariables(lib.getName());
+		}
+
+		errorLogger.termLogging(true);
+
+		return lib;
+	}
+
+	/**
+	 * Method to read a single library file.
+	 * @param fileURL the URL to the file.
+	 * @param lib the Library to read.
+	 * If the "lib" is null, this is an entry-level library read, and one is created.
+	 * If "lib" is not null, this is a recursive read caused by a cross-library
+	 * reference from inside another library.
+	 * @param type the type of library file (ELIB, CIF, GDS, etc.)
+	 * @return the read Library, or null if an error occurred.
+	 */
+	protected static Library readALibrary(URL fileURL, Library lib, String libName, FileType type)
+	{
+		// handle different file types
+		LibraryFiles in;
+		if (type == FileType.ELIB)
+		{
+			in = new ELIB();
+			if (in.openBinaryInput(fileURL)) return null;
+		} else if (type == FileType.JELIB)
+		{
+			in = new JELIB();
+			if (in.openTextInput(fileURL)) return null;
+		} else if (type == FileType.READABLEDUMP)
+		{
+			in = new ReadableDump();
+			if (in.openTextInput(fileURL)) return null;
+		} else
+		{
+			System.out.println("Unknown import type: " + type);
+			return null;
+		}
+
+		// determine whether this is top-level
+		in.topLevelLibrary = false;
+		if (lib == null)
+		{
+			mainLibDirectory = TextUtils.getFilePath(fileURL);
+			in.topLevelLibrary = true;
+		}
+
+		if (lib == null)
+		{
+			// create a new library
+			lib = Library.newInstance(libName, fileURL);
+		}
+
+		in.lib = lib;
+
+		// read the library
+		boolean error = in.readInputLibrary();
+		in.closeInput();
+		if (error)
+		{
+			System.out.println("Error reading " + lib);
+			if (in.topLevelLibrary) mainLibDirectory = null;
+			return null;
+		}
+		return in.lib;
+	}
+	
 	// *************************** THE CREATION INTERFACE ***************************
 
 	public static void initializeLibraryInput()
@@ -640,14 +730,14 @@ public abstract class LibraryFiles extends Input
 	/**
 	 * Method to conver name of Geometric object.
 	 * @param value name of object
-	 * @param type type mask.
+	 * @param isDisplay true if this is displayable variable.
 	 */
-	protected static String convertGeomName(Object value, int type)
+	protected static String convertGeomName(Object value, boolean isDisplay)
 	{
 		if (value == null || !(value instanceof String)) return null;
 		String str = (String)value;
 		int indexOfAt = str.indexOf('@');
-		if ((type & ELIBConstants.VDISPLAY) != 0)
+		if (isDisplay)
 		{
 			if (indexOfAt >= 0)
 			{
@@ -754,33 +844,32 @@ public abstract class LibraryFiles extends Input
                 center, width, height, orient, flags, techBits, nil.protoTextDescriptor[nodeIndex]);
         nil.theNode[nodeIndex] = ni;
         if (ni == null) return;
-       DiskVariable[] vars = nil.vars[nodeIndex];
+        ImmutableVariable[] vars = nil.vars[nodeIndex];
         if (vars != null) {
             // Preprocess TRACE variables
             for (int j = 0; j < vars.length; j++) {
-                DiskVariable v = vars[j];
-                if (v == null) continue;
-                Object value = v.value;
-                if (v.name.equals(NodeInst.TRACE.getName()) &&
-                        proto instanceof PrimitiveNode && ((PrimitiveNode)proto).isHoldsOutline() &&
-                        (value instanceof Integer[] || value instanceof Float[])) {
-                    // convert outline information, if present
-                    Number[] outline = (Number[])value;
-                    int newLength = outline.length / 2;
-                    Point2D [] newOutline = new Point2D[newLength];
-                    double lam = outline instanceof Integer[] ? lambda : 1.0;
-                    for(int k=0; k<newLength; k++) {
-                        double oldX = outline[k*2].doubleValue()/lam;
-                        double oldY = outline[k*2+1].doubleValue()/lam;
-                        newOutline[k] = new Point2D.Double(oldX, oldY);
-//                        newOutline[k] = new EPoint(oldX, oldY);
+                ImmutableVariable vd = vars[j];
+                if (vd == null) continue;
+                if (vd.key == NodeInst.TRACE && proto instanceof PrimitiveNode && ((PrimitiveNode)proto).isHoldsOutline() ) {
+                    Object value = vd.getValue();
+                    if (value instanceof Integer[] || value instanceof Float[]) {
+                        // convert outline information, if present
+                        Number[] outline = (Number[])value;
+                        int newLength = outline.length / 2;
+                        Point2D [] newOutline = new Point2D[newLength];
+                        double lam = outline instanceof Integer[] ? lambda : 1.0;
+                        for(int k=0; k<newLength; k++) {
+                            double oldX = outline[k*2].doubleValue()/lam;
+                            double oldY = outline[k*2+1].doubleValue()/lam;
+                            newOutline[k] = new EPoint(oldX, oldY);
+                        }
+                        vd = vd.withValue(newOutline);
                     }
-                    value = newOutline;
                 }
-                v.makeVariable(ni, this, value);
+                if (ni.isDeprecatedVariable(vd.key)) continue;
+                ni.newVar(vd);
             }
         }
-//        realizeVariables(ni, vars);
 
         // if this was a dummy cell, log instance as an error so the user can find easily
         if (proto instanceof Cell && ((Cell)proto).getVar(IO_DUMMY_OBJECT) != null) {
@@ -789,17 +878,54 @@ public abstract class LibraryFiles extends Input
         }
     }
 
-    void realizeVariables(ElectricObject eObj, DiskVariable[] vars) {
+    void realizeVariables(ElectricObject eObj, ImmutableVariable[] vars) {
         if (vars == null) return;
         for (int i = 0; i < vars.length; i++) {
-            DiskVariable v = vars[i];
-            if (v == null) continue;
-            v.makeVariable(eObj, this);
+            ImmutableVariable vd = vars[i];
+			if (vd == null || eObj.isDeprecatedVariable(vd.key)) continue;
+            eObj.newVar(vd);
         }
     }
     
+	/**
+	 * Method to add meaning preferences to an ElectricObject from a List of strings.
+	 * @param obj the Object to augment with meaning preferences.
+	 * @param vars ImmutableVariables with meaning preferences.
+	 */
+	void realizeMeaningPrefs(Object obj, ImmutableVariable[] vars)
+	{
+        for (int i = 0; i < vars.length; i++) {
+            ImmutableVariable vd = vars[i];
+            if (vd == null) continue;
+            Object value = vd.getValue();
+            if (!(value instanceof String)) {
+                if (value instanceof Short || value instanceof Byte) 
+                    value = new Integer(((Number)value).intValue());
+                if (!(value instanceof Number))
+                    continue;
+            }
+                
+			// change "meaning option"
+            String varName = vd.key.getName();
+			Pref.Meaning meaning = Pref.getMeaningVariable(obj, varName); // What about case-sensitivite search ?
+			if (meaning != null)
+			{
+				Pref.changedMeaningVariable(meaning, value);
+			} else if (!(obj instanceof Technology && ((Technology)obj).convertOldVariable(varName, value)))
+			{
+// 				Input.errorLogger.logError(fileName + ", line " + lineNumber +
+// 					", Meaning preference unknown: " + piece, null, -1);
+			}
+        }
+	}
+
     ImmutableTextDescriptor makeDescriptor(int td0, int td1) {
         mtd.setCBits(td0, fixTextDescriptorFont(td1));
+        return ImmutableTextDescriptor.newImmutableTextDescriptor(mtd);
+    }
+        
+    ImmutableTextDescriptor makeDescriptor(int td0, int td1, int flags) {
+        mtd.setCBits(td0, fixTextDescriptorFont(td1), flags);
         return ImmutableTextDescriptor.newImmutableTextDescriptor(mtd);
     }
         
@@ -808,7 +934,7 @@ public abstract class LibraryFiles extends Input
 	 * The font associations are used later to convert indices to true font names and numbers.
 	 * @param associationArray array from FONT_ASSOCIATIONS variable.
 	 */
-	private void setFontNames(String[] associationArray)
+	void setFontNames(String[] associationArray)
 	{
 		int maxAssociation = 0;
 		for(int i=0; i<associationArray.length; i++)

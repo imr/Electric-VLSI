@@ -25,7 +25,9 @@
  */
 package com.sun.electric.tool.io.output;
 
+import com.sun.electric.database.ImmutableVariable;
 import com.sun.electric.database.geometry.DBMath;
+import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -431,11 +433,11 @@ public class JELIB extends Output
 	 *    Xoffset; for X offset
 	 *    Yoffset; for Y offset
 	 */
-	private String describeDescriptor(Variable var, TextDescriptor td)
+	private String describeDescriptor(ImmutableVariable var, TextDescriptor td)
 	{
 		StringBuffer ret = new StringBuffer();
 		boolean display = false;
-		if (var == null || var.isDisplay()) display = true;
+		if (var == null || td.isDisplay()) display = true;
 
 		if (display)
 		{
@@ -493,12 +495,16 @@ public class JELIB extends Output
 		}
 
 		// write language
-		if (var != null && var.isCode() && (var.getObject() instanceof String || var.getObject() instanceof String[]))
-		{
-			TextDescriptor.Code codeType = var.getCode();
-			if (codeType == TextDescriptor.Code.JAVA) ret.append("OJ"); else
-			if (codeType == TextDescriptor.Code.LISP) ret.append("OL"); else
-			if (codeType == TextDescriptor.Code.TCL) ret.append("OT");
+		if (var != null && td.isCode())
+        {
+            Object value = var.getValue();
+            if (value instanceof String || value instanceof String[])
+            {
+                TextDescriptor.Code codeType = td.getCode();
+                if (codeType == TextDescriptor.Code.JAVA) ret.append("OJ"); else
+                if (codeType == TextDescriptor.Code.LISP) ret.append("OL"); else
+                if (codeType == TextDescriptor.Code.TCL) ret.append("OT");
+            }
 		}
 
 		// write parameter
@@ -572,10 +578,11 @@ public class JELIB extends Output
 		for(Iterator it = eObj.getVariables(); it.hasNext(); )
 		{
 			Variable var = (Variable)it.next();
+            ImmutableVariable v = var.getD();
 //			if (var.isDontSave()) continue;
-			String tdString = describeDescriptor(var, var.getTextDescriptor());
+			String tdString = describeDescriptor(v, v.descriptor);
 			printWriter.print("|" + convertVariableName(diskName(var)) + "(" + tdString + ")");
-			Object varObj = var.getObject();
+			Object varObj = v.getValueInCurrentThread();
 			String pt = makeString(varObj, curCell);
 			if (pt == null) pt = "";
 			printWriter.print(pt);
@@ -604,25 +611,23 @@ public class JELIB extends Output
 	private String makeString(Object obj, Cell curCell)
 	{
 		StringBuffer infstr = new StringBuffer();
+        char type = getVarType(obj);
+        infstr.append(type);
 		if (obj instanceof Object[])
 		{
 			Object [] objArray = (Object [])obj;
 			int len = objArray.length;
+            infstr.append('[');
 			for(int i=0; i<len; i++)
 			{
 				Object oneObj = objArray[i];
-				if (i != 0) infstr.append(","); else
-				{
-					infstr.append(getVarType(obj));
-					infstr.append("[");
-				}					
-				makeStringVar(infstr, oneObj, curCell, true);
+				if (i != 0) infstr.append(',');
+				makeStringVar(infstr, type, oneObj, curCell, true);
 			}
-			infstr.append("]");
+			infstr.append(']');
 		} else
 		{
-			infstr.append(getVarType(obj));
-			makeStringVar(infstr, obj, curCell, false);
+			makeStringVar(infstr, type, obj, curCell, false);
 		}
 		return infstr.toString();
 	}
@@ -631,113 +636,34 @@ public class JELIB extends Output
 	 * Method to make a string from the value in "addr" which has a type in
 	 * "type".
 	 */
-	private void makeStringVar(StringBuffer infstr, Object obj, Cell curCell, boolean inArray)
+	private void makeStringVar(StringBuffer infstr, char type, Object obj, Cell curCell, boolean inArray)
 	{
-		if (obj == null) return;
-		if (obj instanceof Integer)
-		{
-			infstr.append(((Integer)obj).intValue());
-			return;
-		}
-		if (obj instanceof Short)
-		{
-			infstr.append(((Short)obj).shortValue());
-			return;
-		}
-		if (obj instanceof Byte)
-		{
-			infstr.append(((Byte)obj).byteValue());
-			return;
-		}
-		if (obj instanceof String)
-		{
-			infstr.append(convertString((String)obj, inArray));
-			return;
-		}
-		if (obj instanceof Float)
-		{
-			infstr.append(((Float)obj).floatValue());
-			return;
-		}
-		if (obj instanceof Double)
-		{
-			infstr.append(((Double)obj).doubleValue());
-			return;
-		}
-		if (obj instanceof Boolean)
-		{
-			infstr.append(((Boolean)obj).booleanValue() ? "T" : "F");
-			return;
-		}
-		if (obj instanceof Long)
-		{
-			infstr.append(((Long)obj).longValue());
-			return;
-		}
-		if (obj instanceof Point2D)
-		{
-			Point2D pt2 = (Point2D)obj;
-			infstr.append(TextUtils.formatDouble(pt2.getX(), 0) + "/" + TextUtils.formatDouble(pt2.getY(), 0));
-			return;
-		}
-		if (obj instanceof Technology)
-		{
-			Technology tech = (Technology)obj;
-			infstr.append(convertString(tech.getTechName(), inArray));
-			return;
-		}
-		if (obj instanceof Library)
-		{
-			Library lib = (Library)obj;
-			infstr.append(convertString(lib.getName(), inArray));
-			return;
-		}
-		if (obj instanceof Tool)
-		{
-			Tool tool = (Tool)obj;
-			infstr.append(convertString(tool.getName(), inArray));
-			return;
-		}
-		if (obj instanceof NodeInst)
-		{
-			NodeInst ni = (NodeInst)obj;
-			infstr.append(convertString(getFullCellName(ni.getParent()) + ":" + ni.getName(), inArray));
-			return;
-		}
-		if (obj instanceof ArcInst)
-		{
-			ArcInst ai = (ArcInst)obj;
-			String arcName = ai.getName();
-			if (arcName == null)
-			{
-				System.out.println("Cannot save pointer to unnamed ArcInst: " + ai.getParent().describe(true) + ":" + ai.describe(true));
-			}
-			infstr.append(convertString(getFullCellName(ai.getParent()) + ":" + arcName, inArray));
-			return;
-		}
-		if (obj instanceof Cell)
-		{
-			Cell cell = (Cell)obj;
-			infstr.append(convertString(getFullCellName(cell), inArray));
-			return;
-		}
-		if (obj instanceof PrimitiveNode)
-		{
-			PrimitiveNode np = (PrimitiveNode)obj;
-			infstr.append(convertString(np.getFullName(), inArray));
-			return;
-		}
-		if (obj instanceof ArcProto)
-		{
-			ArcProto ap = (ArcProto)obj;
-			infstr.append(convertString(ap.getFullName(), inArray));
-			return;
-		}
-		if (obj instanceof Export)
-		{
-			Export pp = (Export)obj;
-			infstr.append(convertString(getFullCellName((Cell)pp.getParent()) + ":" + pp.getName(), inArray));
-			return;
+        if (obj == null) return;
+        switch (type) {
+            case 'B': infstr.append(((Boolean)obj).booleanValue() ? 'T' : 'F'); return;
+            case 'C': infstr.append(convertString(getFullCellName((Cell)obj), inArray)); return;
+            case 'D': infstr.append(((Double)obj).doubleValue()); return;
+            case 'E': {
+                Export pp = (Export)obj;
+                infstr.append(convertString(getFullCellName((Cell)pp.getParent()) + ":" + pp.getName(), inArray));
+                return;
+            }
+            case 'F': infstr.append(((Float)obj).floatValue()); return;
+            case 'G': infstr.append(((Long)obj).longValue()); return;
+            case 'H': infstr.append(((Short)obj).shortValue()); return;
+            case 'I': infstr.append(((Integer)obj).intValue()); return;
+            case 'L': infstr.append(convertString(((Library)obj).getName(), inArray)); return;
+            case 'O': infstr.append(convertString(((Tool)obj).getName(), inArray)); return;
+            case 'P': infstr.append(convertString(((PrimitiveNode)obj).getFullName(), inArray)); return;
+            case 'R': infstr.append(convertString(((ArcProto)obj).getFullName(), inArray)); return;
+            case 'S': infstr.append(convertString((String)obj, inArray)); return;
+            case 'T': infstr.append(convertString(((Technology)obj).getTechName(), inArray)); return;
+            case 'V': {
+                EPoint pt2 = (EPoint)obj;
+    			infstr.append(TextUtils.formatDouble(pt2.getX(), 0) + "/" + TextUtils.formatDouble(pt2.getY(), 0));
+    			return;
+            }
+            case 'Y': infstr.append(((Byte)obj).byteValue()); return;
 		}
 	}
 
@@ -747,36 +673,37 @@ public class JELIB extends Output
 	}
 
 	/**
-	 * Method to make a string from the value in "addr" which has a type in
+	 * Method to make a char from the value in "addr" which has a type in
 	 * "type".
 	 */
-	private String getVarType(Object obj)
+	private char getVarType(Object obj)
 	{
-		if (obj == null) return "X";
-		if (obj instanceof ArcInst       || obj instanceof ArcInst [])       return "S"; // "A"
-		if (obj instanceof Boolean       || obj instanceof Boolean [])       return "B";
-		if (obj instanceof Cell          || obj instanceof Cell [])          return "C";
-		if (obj instanceof Double        || obj instanceof Double [])        return "D";
-		if (obj instanceof Export        || obj instanceof Export [])        return "E";
-		if (obj instanceof Float         || obj instanceof Float [])         return "F";
-		if (obj instanceof Long          || obj instanceof Long [])          return "G";
-		if (obj instanceof Short         || obj instanceof Short [])         return "H";
-		if (obj instanceof Integer       || obj instanceof Integer [])       return "I";
-		if (obj instanceof Library       || obj instanceof Library [])       return "L";
-		if (obj instanceof NodeInst      || obj instanceof NodeInst [])      return "S"; // "N"
-		if (obj instanceof Tool          || obj instanceof Tool [])          return "O";
-		if (obj instanceof PrimitiveNode || obj instanceof PrimitiveNode []) return "P";
-		if (obj instanceof ArcProto      || obj instanceof ArcProto [])      return "R";
-		if (obj instanceof String        || obj instanceof String [])        return "S";
-		if (obj instanceof Technology    || obj instanceof Technology [])    return "T";
-		if (obj instanceof Point2D       || obj instanceof Point2D [])       return "V";
-		if (obj instanceof Byte          || obj instanceof Byte [])          return "Y";
-		return null;
+		if (obj instanceof String        || obj instanceof String [])        return 'S';
+        
+		if (obj instanceof ArcInst       || obj instanceof ArcInst [])       return 'S'; // 'A'
+		if (obj instanceof Boolean       || obj instanceof Boolean [])       return 'B';
+		if (obj instanceof Cell          || obj instanceof Cell [])          return 'C';
+		if (obj instanceof Double        || obj instanceof Double [])        return 'D';
+		if (obj instanceof Export        || obj instanceof Export [])        return 'E';
+		if (obj instanceof Float         || obj instanceof Float [])         return 'F';
+		if (obj instanceof Long          || obj instanceof Long [])          return 'G';
+		if (obj instanceof Short         || obj instanceof Short [])         return 'H';
+		if (obj instanceof Integer       || obj instanceof Integer [])       return 'I';
+		if (obj instanceof Library       || obj instanceof Library [])       return 'L';
+		if (obj instanceof NodeInst      || obj instanceof NodeInst [])      return 'S'; // 'N'
+		if (obj instanceof Tool          || obj instanceof Tool [])          return 'O';
+		if (obj instanceof PrimitiveNode || obj instanceof PrimitiveNode []) return 'P';
+		if (obj instanceof ArcProto      || obj instanceof ArcProto [])      return 'R';
+		if (obj instanceof Technology    || obj instanceof Technology [])    return 'T';
+		if (obj instanceof EPoint        || obj instanceof EPoint [])        return 'V';
+		if (obj instanceof Byte          || obj instanceof Byte [])          return 'Y';
+        assert false : obj;
+		return 'X';
 	}
 
 	/**
 	 * Method convert a string that is going to be quoted.
-	 * Inserts the quote character (^) before any quotation character (") or quote character (^) in the string.
+	 * Inserts the quote character (^) before any quotation character (') or quote character (^) in the string.
 	 * Converts newlines to "^\n" (makeing the "\" and "n" separate characters).
 	 * @param str the string to convert.
 	 * @return the string with the appropriate quote characters.

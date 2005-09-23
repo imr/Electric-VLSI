@@ -25,7 +25,11 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableVariable;
+import com.sun.electric.database.LibId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -34,6 +38,7 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.CellName;
 import com.sun.electric.database.text.TextUtils;
@@ -42,6 +47,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.technologies.Artwork;
@@ -49,7 +55,6 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.LibraryFiles.DiskVariable;
 
 import java.awt.geom.Point2D;
 import java.io.File;
@@ -80,7 +85,7 @@ public class ReadableDump extends LibraryFiles
 		private int []       arcTailX;
 		private int []       arcTailY;
 		private int []       arcUserBits;
-        private DiskVariable[][] arcVars;
+        private ImmutableVariable[][] arcVars;
 	};
 	private static class ExportList
 	{
@@ -90,7 +95,7 @@ public class ReadableDump extends LibraryFiles
 		private int []      exportSubNode;
 		private String []   exportSubPort;
         private int []      exportUserBits;
-        private DiskVariable[][] exportVars;
+        private ImmutableVariable[][] exportVars;
 	};
 
 	/** The current position in the file. */						private int filePosition;
@@ -626,8 +631,7 @@ public class ReadableDump extends LibraryFiles
 				Input.errorLogger.logError(msg, cell, 1);
 				continue;
 			}
-            DiskVariable[] vars = ail.arcVars[j];
-            realizeVariables(ai, vars);
+            realizeVariables(ai, ail.arcVars[j]);
  		}
 	}
 
@@ -1129,7 +1133,7 @@ public class ReadableDump extends LibraryFiles
 		ail.arcTailX = new int[arcInstCount];
 		ail.arcTailY = new int[arcInstCount];
 		ail.arcUserBits = new int[arcInstCount];
-        ail.arcVars = new DiskVariable[arcInstCount][];
+        ail.arcVars = new ImmutableVariable[arcInstCount][];
 	}
 
 	/**
@@ -1148,7 +1152,7 @@ public class ReadableDump extends LibraryFiles
 		el.exportSubNode = new int[exportCount];
 		el.exportSubPort = new String[exportCount];
         el.exportUserBits = new int[exportCount];
-        el.exportVars = new DiskVariable[exportCount][];
+        el.exportVars = new ImmutableVariable[exportCount][];
 	}
 
 	// --------------------------------- NODE INSTANCE PARSING METHODS ---------------------------------
@@ -1536,71 +1540,69 @@ public class ReadableDump extends LibraryFiles
 	private void keywordGetVar()
 		throws IOException
 	{
-        DiskVariable[] vars = parseVars();
+        ImmutableVariable[] vars = parseVars();
         switch (varPos)
         {
             case INVNODEINST:			// keyword applies to nodeinst
                 nodeInstList[curCellNumber].vars[curNodeInstIndex] = vars;
+                for (int i = 0; i < vars.length; i++) {
+                    ImmutableVariable vd = vars[i];
+                    if (vd == null || vd.key != NodeInst.NODE_NAME) continue;
+                    Object value = vd.getValue();
+                    if (!(value instanceof String)) continue;
+                    nodeInstList[curCellNumber].name[curNodeInstIndex] = convertGeomName((String)vd.getValue(), vd.descriptor.isDisplay());
+                    nodeInstList[curCellNumber].nameTextDescriptor[curNodeInstIndex] = vd.descriptor;
+                    vars[i] = null;
+                }
                 break;
             case INVPORTPROTO:			// keyword applies to portproto
                 exportList[curCellNumber].exportVars[curExportIndex] = vars;
                 break;
             case INVARCINST:			// keyword applies to arcinst
                 arcInstList[curCellNumber].arcVars[curArcInstIndex] = vars;
+                for (int i = 0; i < vars.length; i++) {
+                    ImmutableVariable vd = vars[i];
+                    if (vd == null || vd.key != ArcInst.ARC_NAME) continue;
+                    Object value = vd.getValue();
+                    if (!(value instanceof String)) continue;
+                    arcInstList[curCellNumber].arcInstName[curArcInstIndex] = convertGeomName((String)vd.getValue(), vd.descriptor.isDisplay());
+                    arcInstList[curCellNumber].arcNameDescriptor[curArcInstIndex] = vd.descriptor;
+                    vars[i] = null;
+                }
                 break;
-        }
-        for (int i = 0; i < vars.length; i++)
-        {
-            DiskVariable v = vars[i];
-            if (v == null) continue;
-    		switch (varPos)
-        	{
-            	case INVTOOL:				// keyword applies to tools
-                	if (topLevelLibrary) v.makeMeaningPref(curTool);
-                    break;
-    			case INVTECHNOLOGY:			// keyword applies to technologies
-                    if (topLevelLibrary) v.makeMeaningPref(curTech);
-            		break;
-    			case INVLIBRARY:			// keyword applies to library
-                    v.makeVariable(lib, this);
-            		break;
-    			case INVNODEPROTO:			// keyword applies to nodeproto
-                    v.makeVariable(curCell, this);
-            		break;
-                case INVNODEINST:			// keyword applies to nodeinst
-                    if (v.name.equals(NodeInst.NODE_NAME_TD)) {
-                        if (v.value instanceof String) {
-                            nodeInstList[curCellNumber].name[curNodeInstIndex] = convertGeomName((String)v.value, v.flags);
-                            nodeInstList[curCellNumber].nameTextDescriptor[curNodeInstIndex] = makeDescriptor(v.td0, v.td1);
-                        }
-                        vars[i] = null;
-                    }
-                    break;
-                case INVPORTPROTO:			// keyword applies to portproto
-                    break;
-                case INVARCINST:			// keyword applies to arcinst
-                    if (v.name.equals(ArcInst.ARC_NAME_TD)) {
-                        if (v.value instanceof String) {
-                            arcInstList[curCellNumber].arcInstName[curArcInstIndex] = convertGeomName((String)v.value, v.flags);
-                            arcInstList[curCellNumber].arcNameDescriptor[curArcInstIndex] = makeDescriptor(v.td0, v.td1);
-                        }
-                        vars[i] = null;
-                    }
-                    break;
-            }
+            case INVTOOL:				// keyword applies to tools
+               	if (topLevelLibrary) realizeMeaningPrefs(curTool, vars);
+                break;
+    		case INVTECHNOLOGY:			// keyword applies to technologies
+                if (topLevelLibrary) realizeMeaningPrefs(curTech, vars);
+            	break;
+    		case INVLIBRARY:			// keyword applies to library
+                for (int i = 0; i < vars.length; i++) {
+                    ImmutableVariable vd = vars[i];
+                    if (vd == null || vd.key != Library.FONT_ASSOCIATIONS) continue;
+                    Object value = vd.getValue();
+                    if (!(value instanceof String[])) continue;
+                    setFontNames((String[])value);
+                    vars[i] = null;
+                }
+                realizeVariables(lib, vars);
+            	break;
+    		case INVNODEPROTO:			// keyword applies to nodeproto
+                realizeVariables(curCell, vars);
+            	break;
         }
 	}
 
 	/**
 	 * get variables on current object (keyword "variables")
 	 */
-	private DiskVariable[] parseVars()
+	private ImmutableVariable[] parseVars()
 		throws IOException
 	{
 		// find out how many variables to read
 		int count = Integer.parseInt(keyWord);
-        if (count <= 0) return NULL_DISK_VARIABLE_ARRAY;
-        DiskVariable[] vars = new DiskVariable[count];
+        if (count <= 0) return ImmutableVariable.NULL_ARRAY;
+        ImmutableVariable[] vars = new ImmutableVariable[count];
 		for(int i=0; i<count; i++)
 		{
 			// read the first keyword with the name, type, and descriptor
@@ -1654,7 +1656,7 @@ public class ReadableDump extends LibraryFiles
 				if (slashPos >= 0)
 					td1 = TextUtils.atoi(keyWord, slashPos+1);
 			}
-//			MutableTextDescriptor td = new MutableTextDescriptor(td0, td1, 0);
+            ImmutableTextDescriptor td = makeDescriptor(td0, td1, type);
 
 			// get value
 			if (getKeyword())
@@ -1730,13 +1732,11 @@ public class ReadableDump extends LibraryFiles
 					case ELIBConstants.VBOOLEAN:
 					case ELIBConstants.VCHAR:       value = new Byte[arrayLen];        break;
 					case ELIBConstants.VSTRING:     value = new String[arrayLen];      break;
-					case ELIBConstants.VNODEINST:   value = new NodeInst[arrayLen];    break;
 					case ELIBConstants.VNODEPROTO:  value = new NodeProto[arrayLen];   break;
 					case ELIBConstants.VARCPROTO:   value = new ArcProto[arrayLen];    break;
-					case ELIBConstants.VPORTPROTO:  value = new PortProto[arrayLen];   break;
-					case ELIBConstants.VARCINST:    value = new ArcInst[arrayLen];     break;
+					case ELIBConstants.VPORTPROTO:  value = new ExportId[arrayLen];    break;
 					case ELIBConstants.VTECHNOLOGY: value = new Technology[arrayLen];  break;
-					case ELIBConstants.VLIBRARY:    value = new Library[arrayLen];     break;
+					case ELIBConstants.VLIBRARY:    value = new LibId[arrayLen];       break;
 					case ELIBConstants.VTOOL:       value = new Tool[arrayLen];        break;
 				}
 				if (value != null)
@@ -1746,9 +1746,30 @@ public class ReadableDump extends LibraryFiles
 						((Object [])value)[j] = al.get(j);
 					}
 				}
+                if (value instanceof NodeProtoId[]) {
+                    NodeProtoId[] newAddrArray = (NodeProtoId[])value;
+                    int numCells = 0, numPrims = 0;
+                    for (int j = 0; j < newAddrArray.length; j++) {
+                        if (newAddrArray[j] == null) continue;
+                        if (newAddrArray[j] instanceof CellId) numCells++;
+                        if (newAddrArray[j] instanceof PrimitiveNode) numPrims++;
+                    }
+                    if (numCells >= numPrims) {
+                        CellId[] cellArray = new CellId[newAddrArray.length];
+                        for (int j = 0; j < cellArray.length; j++)
+                            if (newAddrArray[j] instanceof CellId) cellArray[j] = (CellId)newAddrArray[j];
+                        value = cellArray;
+                    } else {
+                        PrimitiveNode[] primArray = new PrimitiveNode[newAddrArray.length];
+                        for (int j = 0; j < primArray.length; j++)
+                            if (newAddrArray[j] instanceof PrimitiveNode) primArray[j] = (PrimitiveNode)newAddrArray[j];
+                        value = primArray;
+                    }
+                }
 			}
+            if (value == null) continue;
 
-            vars[i] = new DiskVariable(varName, type, td0, td1, value);
+            vars[i] = ImmutableVariable.newInstance(Variable.newKey(varName), td, value);
 		}
         return vars;
 	}
@@ -1790,17 +1811,13 @@ public class ReadableDump extends LibraryFiles
 				return new Float(Float.parseFloat(name));
 			case ELIBConstants.VDOUBLE:
 				return new Double(Double.parseDouble(name));
-			case ELIBConstants.VNODEINST:
-				int niIndex = TextUtils.atoi(name);
-				NodeInst ni = nodeInstList[curCellNumber].theNode[niIndex];
-				return ni;
 			case ELIBConstants.VNODEPROTO:
 				int colonPos = name.indexOf(':');
 				if (colonPos < 0)
 				{
 					// just an integer specification
 					int cindex = Integer.parseInt(name);
-					return allCellsArray[cindex];
+					return allCellsArray[cindex] != null ? allCellsArray[cindex].getId() : null;
 				} else
 				{
 					// parse primitive nodeproto name
@@ -1810,16 +1827,13 @@ public class ReadableDump extends LibraryFiles
 						System.out.println("Error on line "+lineReader.getLineNumber()+": cannot find node " + name);
 						return null;
 					}
-					return np;
+					return (PrimitiveNode)np;
 				}
 			case ELIBConstants.VPORTPROTO:
 				int ppIndex = TextUtils.atoi(name);
 				PortProto pp = exportList[curCellNumber].exportList[ppIndex];
-				return pp;
-			case ELIBConstants.VARCINST:
-				int aiIndex = TextUtils.atoi(name);
-				ArcInst ai = arcInstList[curCellNumber].arcList[aiIndex];
-				return ai;
+                if (!(pp instanceof Export)) return null;
+				return ((Export)pp).getId();
 			case ELIBConstants.VARCPROTO:
 				return ArcProto.findArcProto(name);
 			case ELIBConstants.VTECHNOLOGY:

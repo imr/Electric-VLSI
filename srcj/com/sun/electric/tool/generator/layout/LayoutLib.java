@@ -50,9 +50,9 @@ import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.Layer;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.technology.Technology;
-import com.sun.electric.tool.io.input.Input;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 /*
@@ -120,7 +120,7 @@ public class LayoutLib {
 		Library lib = Library.findLibrary(libName);
 		FileType type = OpenFile.getOpenFileType(libFileName, FileType.DEFAULTLIB);
 		if (lib==null) {
-			lib = Input.readLibrary(libFileURL, null, type, false);
+			lib = LibraryFiles.readLibrary(libFileURL, null, type, false);
 		}
 		error(lib==null, "can't open Library for reading: "+libFileName);
 		return lib;

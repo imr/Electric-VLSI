@@ -32,6 +32,7 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.technology.technologies.Generic;
+import com.sun.electric.tool.user.ActivityLogger;
 import java.util.HashMap;
 
 
@@ -94,21 +95,22 @@ public class Variable
 	 * Variable Key objects are caches of the actual string name of the Variable.
 	 * @return the Key object for a given Variable name.
 	 */
-	static synchronized Variable.Key findKey(String name)
+	static synchronized Key findKey(String name)
 	{
-		Variable.Key key = (Variable.Key)varKeys.get(name);
-		if (key == null)
-		{
-			String lowCaseName = TextUtils.canonicString(name);
-			if (!lowCaseName.equals(name))
-				key = (Variable.Key)varCanonicKeys.get(lowCaseName);
-            if (key != null)
-            {
-                System.out.println("WARNING: Variable search may become case-sensitive in future versions. Search: " + name + " found: " + key.getName());
-                varKeys.put(name, key);
-            }
-		}
-		return key;
+		Key key = (Key)varKeys.get(name);
+		if (key != null) return key;
+        if (varKeys.containsKey(name)) return null;
+        name = name.intern();
+        varKeys.put(name, null);
+		String canonicName = TextUtils.canonicString(name);
+		key = (Key)varCanonicKeys.get(canonicName);
+        if (key != null)
+        {
+            String msg = "WARNING: Variable \"" + name + "\" not found though variable \"" + key.getName() + "\" exists";
+            ActivityLogger.logMessage(msg);
+            System.out.println(msg);
+        }
+		return null;
 	}
 
 	/**
@@ -117,13 +119,23 @@ public class Variable
 	 * @param name given Variable name.
 	 * @return the Key object for a given Variable name.
 	 */
-	public static synchronized Variable.Key newKey(String name)
+	public static synchronized Key newKey(String name)
 	{
-		Variable.Key key = findKey(name);
-		if (key != null) return key;
-		key = new Variable.Key(name);
-		varKeys.put(name, key);
-		varCanonicKeys.put(TextUtils.canonicString(name), key);
+		Key key = (Key)varKeys.get(name);
+        if (key != null) return key;
+        name = name.intern();
+		key = new Key(name);
+        varKeys.put(name, key);
+		String canonicName = TextUtils.canonicString(name);
+		Key	key2 = (Variable.Key)varCanonicKeys.get(canonicName);
+        if (key2 != null)
+        {
+            String msg = "WARNING: Variables with similar names are used: \"" + name + "\" and \"" + key2.getName() + "\"";
+            ActivityLogger.logMessage(msg);
+            System.out.println(msg);
+        } else {
+            varCanonicKeys.put(canonicName.intern(), key);
+        }
 		return key;
 	}
 
@@ -149,6 +161,17 @@ public class Variable
 	}
 
 	/**
+	 * The constructor builds a Variable.
+	 * @param owner the ElectriObject that owns this variable.
+	 * @param d persistent data of this Variable.
+	 */
+	Variable(ElectricObject owner, ImmutableVariable d)
+	{
+        this.owner = owner;
+        this.d = d;
+	}
+
+	/**
 	 * This function is to compare Variable elements. Initiative CrossLibCopy
  	 * @param obj Object to compare to
 	 * @param buffer To store comparison messages in case of failure
@@ -170,6 +193,12 @@ public class Variable
         return (check);
     }
 
+    /**
+     * Returns persistent data of this Variable.
+     * @return persistent data of this Variable.
+     */
+    public ImmutableVariable getD() { return d; }
+    
     /**
      * Get the number of entries stored in this Variable.
 	 * For non-arrayed Variables, this is 1.

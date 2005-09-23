@@ -36,6 +36,7 @@ import com.sun.electric.tool.io.FileType;
 import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.input.GDSMap;
 import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.io.output.PostScript;
 import com.sun.electric.tool.project.Project;
@@ -427,7 +428,7 @@ public class FileMenu {
     	Library lib = null;
     	if (type == FileType.ELIB || type == FileType.JELIB || type == FileType.READABLEDUMP)
         {
-    		lib = Input.readLibrary(fileURL, null, type, false);
+    		lib = LibraryFiles.readLibrary(fileURL, null, type, false);
         } else
         {
     		lib = Input.importLibrary(fileURL, type);

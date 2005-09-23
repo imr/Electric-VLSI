@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.ImmutableVariable;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
@@ -707,25 +708,39 @@ public abstract class ElectricObject extends Observable implements Observer
 	 */
     public Variable newVar(Variable.Key key, Object value, TextDescriptor td)
     {
-         Variable v = newVarNoObserver(key, value, td);
-         setChanged();
-         notifyObservers(v);
-         clearChanged();
-         return v;
+        if (value == null) return null;
+        ImmutableTextDescriptor td1 = ImmutableTextDescriptor.newImmutableTextDescriptor(td);
+        ImmutableVariable d = null;
+        try {
+            d = ImmutableVariable.newInstance(key, td1, value);
+        } catch (IllegalArgumentException e) {
+            ActivityLogger.logException(e);
+            return null;
+        }
+        Variable v = newVar(d);
+        setChanged();
+        notifyObservers(v);
+        clearChanged();
+        return v;
     }
 
-    public Variable newVarNoObserver(Variable.Key key, Object value, TextDescriptor td)
+ 	/**
+	 * Method to create a Variable on this ElectricObject with the specified persistent data.
+	 * @param d peristent data of this variable.
+	 * @return the Variable that has been created.
+	 */
+    public Variable newVar(ImmutableVariable d)
     {
- 		if (isDeprecatedVariable(key))
+ 		if (isDeprecatedVariable(d.key))
 		{
-			System.out.println("Deprecated variable " + key.getName() + " on " + this);
+			System.out.println("Deprecated variable " + d.key.getName() + " on " + this);
 		}
 		checkChanging();
         Variable oldVar;
         synchronized(this) {
             if (vars == null)
                 vars = new TreeMap();
-            oldVar = (Variable) vars.get(key);
+            oldVar = (Variable) vars.get(d.key);
         }
 		if (oldVar != null)
 		{
@@ -733,12 +748,16 @@ public abstract class ElectricObject extends Observable implements Observer
 			if (isDatabaseObject())
 				Undo.killVariable(this, oldVar);
 		}
-		Variable v = new Variable(this, value, td, key);
+        
+        if (!(this instanceof Cell))
+            d = d.withDescriptor(d.descriptor.withoutParam());
+		Variable v = new Variable(this, d);
 		lowLevelLinkVar(v);
 		if (isDatabaseObject())
 			Undo.newVariable(this, v);
 		return v;
     }
+    
 	/**
 	 * Method to update a Variable on this ElectricObject with the specified values.
 	 * If the Variable already exists, only the value is changed; the displayable attributes are preserved.
@@ -1455,7 +1474,7 @@ public abstract class ElectricObject extends Observable implements Observer
         {
             Variable var = (Variable)arg;
             // You can't call newVar(var.getKey(), var.getObject()) to avoid infinite loop
-            newVarNoObserver(var.getKey(), var.getObject(), var.getTextDescriptor());
+            newVar(var.getD());
         }
         else if (arg instanceof Object[])
         {

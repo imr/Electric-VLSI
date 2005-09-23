@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03h: *********************************
 
+IMP: (09/23/05, DN) Transactional DB: Changes in library readers, Input.readLibrary moved
+     to LibraryFiles.readLibrary ( regression scripts updated ).
+
 BUG: (09/22/05, GVG) Exception in WindowMenu -> Move to other Display due to latest changes in ToolBars (Bug #560)
 FIX: Detect if allButtons.size() == 0 and return false;
 

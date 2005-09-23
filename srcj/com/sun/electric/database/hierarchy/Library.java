@@ -77,18 +77,18 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	/** library is "hidden" (clipboard library) */			private static final int HIDDENLIBRARY =           0200;
 //	/** library is unwanted (used during input) */			private static final int UNWANTEDLIB =             0400;
 
-	/** LibId of this Library. */                           private final LibId libId = new LibId();
+	/** LibId of this Library. */                           private final LibId libId;
 	/** name of this library  */							private String libName;
 	/** file location of this library */					private URL libFile;
 	/** version of Electric which wrote the library. */		private Version version;
 	/** list of Cells in this library */					final TreeMap/*<CellName,Cell>*/ cells = new TreeMap/*<CellName,Cell>*/();
 	/** Preference for cell currently being edited */		private Pref curCellPref;
 	/** flag bits */										private int userBits;
-    /** list of referenced libs */                          private List/*<Library>*/ referencedLibs;
-	/** preferences for all libraries */					private static Preferences allPrefs = null;
+    /** list of referenced libs */                          private final List/*<Library>*/ referencedLibs = new ArrayList/*<Library>*/();
     /** preferences for this library */                     Preferences prefs;
     /** New preferences format found */                     public final boolean newFormatFound;
 
+	/** preferences for all libraries */					private static Preferences allPrefs = null;
 	/** list of linked libraries indexed by libId. */       private static final ArrayList linkedLibs = new ArrayList();
 	/** map of libraries sorted by name */                  private static final TreeMap/*<String,Library>*/ libraries = new TreeMap/*<String,Library>*/(TextUtils.STRING_NUMBER_ORDER);
 	/** the current library in Electric */					private static Library curLib = null;
@@ -98,9 +98,11 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	/**
 	 * The constructor is never called.  Use the factor method "newInstance" instead.
 	 */
-	private Library(String libName)
+	private Library(LibId libId, String libName, URL libFile)
 	{
+        this.libId = libId;
         this.libName = libName;
+        this.libFile = libFile;
 		if (allPrefs == null) allPrefs = Preferences.userNodeForPackage(getClass());
         boolean found = false;
         try {
@@ -127,12 +129,9 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	public static Library newInstance(String libName, URL libFile)
 	{
 		// make sure the name is legal
-        if (libName == null || libName.equals("")) {
-            System.out.println("Error: '"+libName+"' is not a valid name");
-            return null;
-        }
-		String legalName = libName.replace(' ', '-').replace(':', '-');
-		if (!legalName.equals(libName))
+        String legalName = legalLibraryName(libName);
+        if (legalName == null) return null;
+		if (legalName != libName)
 			System.out.println("Warning: library '" + libName + "' renamed to '" + legalName + "'");
 		
 		// see if the library name already exists
@@ -144,15 +143,36 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		}
 		
 		// create the library
-		Library lib = new Library(legalName);
-		lib.curCellPref = null;
-		lib.libFile = libFile;
-        lib.referencedLibs = new ArrayList/*<Library>*/();
+        return newInstance(new LibId(), legalName, libFile);
+	}
+
+	/**
+	 * This method is a factory to create new libraries.
+	 * A Library has both a name and a file.
+     * @param libId ID of new Library. 
+	 * @param libName the name of the library (for example, "gates").
+	 * Library names must be unique, and they must not contain spaces.
+	 * @param libFile the URL to the disk file (for example "/home/strubin/gates.elib").
+	 * If the Library is being created, the libFile can be null.
+	 * If the Library file is given and it points to an existing file, then the I/O system
+	 * can be told to read that file and populate the Library.
+	 * @return the Library object.
+     * @throws NullPoinerException if libId or legalName is null.
+     * @throws IllegalArgumentException if libId is occupied or legalName is not legal or
+     * library with such name exists
+	 */
+	public static Library newInstance(LibId libId, String legalName, URL libFile) {
+        if (legalName == null) throw new NullPointerException();
+        if (legalName != legalLibraryName(legalName)) throw new IllegalArgumentException(legalName);
+        
+		// create the library
+		Library lib = new Library(libId, legalName, libFile);
 
 		// add the library to the global list
 		synchronized (libraries)
 		{
             while (linkedLibs.size() <= lib.libId.libIndex) linkedLibs.add(null);
+            if (linkedLibs.get(libId.libIndex) != null) throw new IllegalArgumentException();
             linkedLibs.set(lib.libId.libIndex, lib);
 			libraries.put(legalName, lib);
 		}
@@ -161,8 +181,9 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 //        Undo.setNextChangeQuiet(false);
         Undo.newObject(lib);
 		return lib;
-	}
-
+        
+    }
+    
 	/**
 	 * Method to delete this Library.
 	 * @param reason the reason for deleting this library (replacement or deletion).
@@ -858,7 +879,7 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 		if (this.libName.equals(libName)) return true;
 
 		// make sure the name is legal
-        if (libName == null || libName.equals("") || libName.indexOf(' ') >= 0 || libName.indexOf(':') >= 0) {
+        if (legalLibraryName(libName) != libName) {
             System.out.println("Error: '"+libName+"' is not a valid name");
             return true;
         }
@@ -902,6 +923,30 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
         }
 	}
 
+    /**
+     * Checks that string is legal library name.
+     * If not, tries to convert string to legal library name.
+     * @param libName specified library name.
+     * @return legal library name obtained from specified library name,
+     *   or null if speicifed name is null or empty.
+     */
+    public static String legalLibraryName(String libName) {
+        if (libName == null || libName.length() == 0) return null;
+        int i = 0;
+        for (; i < libName.length(); i++) {
+            char ch = libName.charAt(i);
+            if (Character.isWhitespace(ch) || ch == ':') break;
+        }
+        if (i == libName.length()) return libName;
+        
+        char[] chars = libName.toCharArray();
+        for (; i < libName.length(); i++) {
+            char ch = chars[i];
+            chars[i] = Character.isWhitespace(ch) || ch == ':' ? '-' : ch;
+        }
+        return new String(chars);
+    }
+    
 	/**
 	 * Method to return the URL of this Library.
 	 * @return the URL of this Library.

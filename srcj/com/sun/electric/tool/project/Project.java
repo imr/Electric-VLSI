@@ -46,7 +46,7 @@ import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.Input;
+import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.output.Output;
 import com.sun.electric.tool.user.ViewChanges;
 import com.sun.electric.tool.user.dialogs.EDialog;
@@ -2792,7 +2792,7 @@ public class Project extends Listener
 		// read the library
 		Cell newCell = null;
 		String tempLibName = getTempLibraryName();
-		Library fLib = Input.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.libType, true);
+		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.libType, true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{
 			String cellNameInRepository = pc.describe();
@@ -2965,7 +2965,7 @@ public class Project extends Listener
 		String libName = pl.projDirectory + File.separator + pc.cellName + File.separator + pc.cellVersion + "-" +
 			pc.cellView.getFullName() + "." + pc.libType.getExtensions()[0];
 		String tempLibName = getTempLibraryName();
-		Library fLib = Input.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.libType, true);
+		Library fLib = LibraryFiles.readLibrary(TextUtils.makeURLToFile(libName), tempLibName, pc.libType, true);
 		if (fLib == null) System.out.println("Cannot read library " + libName); else
 		{
 			String cellNameInRepository = pc.describe();

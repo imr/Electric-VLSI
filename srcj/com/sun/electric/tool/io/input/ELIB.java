@@ -25,7 +25,11 @@
  */
 package com.sun.electric.tool.io.input;
 
+import com.sun.electric.database.CellId;
+import com.sun.electric.database.ExportId;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableVariable;
+import com.sun.electric.database.LibId;
 import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.GenMath;
 import com.sun.electric.database.geometry.Orientation;
@@ -35,6 +39,7 @@ import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.hierarchy.View;
 import com.sun.electric.database.prototype.NodeProto;
+import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.Version;
@@ -55,7 +60,6 @@ import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.io.ELIBConstants;
 import com.sun.electric.tool.io.FileType;
-import com.sun.electric.tool.io.input.LibraryFiles.DiskVariable;
 import com.sun.electric.tool.ncc.basic.TransitiveRelation;
 import com.sun.electric.tool.user.ErrorLogger;
 
@@ -148,7 +152,7 @@ public class ELIB extends LibraryFiles
 	/** list of the tail node of the ArcInsts in the library */				private int [] arcTailNodeList;
 	/** list of the tail port of the ArcInsts in the library */				private int [] arcTailPortList;
 	/** list of the user flags on the ArcInsts in the library */			private int [] arcUserBits;
-	/** list of the variables on the ArcInsts in the library */             private DiskVariable [][] arcVariables;
+	/** list of the variables on the ArcInsts in the library */             private ImmutableVariable [][] arcVariables;
 
 	// the Exports in the library
 	/** the number of Exports in the library */								private int exportCount;
@@ -159,7 +163,7 @@ public class ELIB extends LibraryFiles
 	/** list of Export names in the library */								private String [] exportNameList;
     /** list of Export name descriptors in the library */                   private ImmutableTextDescriptor [] exportNameDescriptors;
 	/** list of Export userbits in the library */							private int [] exportUserbits;
-    /** list of variables on Exports in the library */                      private DiskVariable [][] exportVariables;
+    /** list of variables on Exports in the library */                      private ImmutableVariable [][] exportVariables;
 
 	// the geometric information (only used for old format files)
 	/** the number of Geometrics in the file */								private int geomCount;
@@ -167,8 +171,8 @@ public class ELIB extends LibraryFiles
 	/** list of all Geometric up-pointers in the library */					private int [] geomMoreUp;
 
 	// the variable information
-	/** number of variable names in the library */							private int nameCount;
-    /** variable Keys possibly in the library */                            private VarKeys varKeys;
+    /** variable names possibly in the library */                           private String varNames[];
+    /** variable keys possibly in the library */                            private Variable.Key[] varKeys;
 	/** true to convert all text descriptor values */						private boolean convertTextDescriptors;
 	/** true to require text descriptor values */							private boolean alwaysTextDescriptors;
 
@@ -180,23 +184,6 @@ public class ELIB extends LibraryFiles
 		String cellName;
 		NodeProto firstInCell;
 	}
-
-    /** Holder for all variable keys read in. Keys are only created if used */
-    private static class VarKeys {
-        private String [] keys;
-        private VarKeys(int i) {
-            keys = new String[i];
-        }
-        /** Add a Variable Key */
-        protected void addKey(int i, String name) {
-            keys[i] = name;
-        }
-        /** Get a Variable Key */
-        protected Variable.Key getKey(int i) {
-            String name = keys[i];
-            return Variable.newKey(name);
-        }
-    }
 
 	ELIB() {}
 
@@ -382,7 +369,7 @@ public class ELIB extends LibraryFiles
 		arcTailNodeList = new int[arcCount];
 		arcTailPortList = new int[arcCount];
 		arcUserBits = new int[arcCount];
-        arcVariables = new DiskVariable[arcCount][];
+        arcVariables = new ImmutableVariable[arcCount][];
 		for(int i = 0; i < arcCount; i++)
 		{
 			arcHeadNodeList[i] = -1;
@@ -400,7 +387,7 @@ public class ELIB extends LibraryFiles
 		exportNameList = new String[exportCount];
         exportNameDescriptors = new ImmutableTextDescriptor[exportCount];
 		exportUserbits = new int[exportCount];
-        exportVariables = new DiskVariable[exportCount][];
+        exportVariables = new ImmutableVariable[exportCount][];
 
 		// versions 9 to 11 allocate fake-cell pointers
 		if (magic <= ELIBConstants.MAGIC9 && magic >= ELIBConstants.MAGIC11)
@@ -715,44 +702,50 @@ public class ELIB extends LibraryFiles
 		}
 
 		// read the global namespace
-		if (readNameSpace())
-		{
-			System.out.println("Error reading namespace");
-			return true;
-		}
+		readNameSpace();
 
 		// read the library variables
-		realizeVariables(lib, readVariables());
+        ImmutableVariable[] libVars = readVariables();
+        for (int i = 0; i < libVars.length; i++) {
+            ImmutableVariable vd = libVars[i];
+            if (vd == null || vd.key != Library.FONT_ASSOCIATIONS) continue;
+            Object value = vd.getValue();
+            if (!(value instanceof String[])) continue;
+            setFontNames((String[])value);
+            libVars[i] = null;
+        }
+		realizeVariables(lib, libVars);
 
 		// read the tool variables
 		for(int i=0; i<toolCount; i++)
 		{
 			Tool tool = toolList[i];
-			if (tool == null) ignoreVariables(); else readMeaningPrefs(tool);
+            ImmutableVariable[] vars = readVariables();
+			if (tool != null && topLevelLibrary)
+                realizeMeaningPrefs(tool, vars);
 		}
 
 		// read the technology variables
 		for(int i=0; i<techCount; i++)
 		{
 			Technology tech = techList[i];
-			if (tech == null) ignoreVariables(); else
-			{
-				readMeaningPrefs(tech);
+            ImmutableVariable[] vars = readVariables();
+			if (tech != null && topLevelLibrary)
+                realizeMeaningPrefs(tech, vars);
 //				getTechList(i);
-			}
 		}
 
 		// read the arcproto variables
 		for(int i=0; i<arcProtoCount; i++)
-			ignoreVariables();
+			readVariables();
 
 		// read the primitive nodeproto variables
 		for(int i=0; i<primNodeProtoCount; i++)
-			ignoreVariables();
+			readVariables();
 
 		// read the primitive portproto variables
 		for(int i=0; i<primPortProtoCount; i++)
-			ignoreVariables();
+			readVariables();
 
 		// read the view variables (version 9 and later)
 		if (magic <= ELIBConstants.MAGIC9)
@@ -764,7 +757,7 @@ public class ELIB extends LibraryFiles
 				View v = getView(j);
 				if (v == null)
 					System.out.println("View index " + j + " not found");
-				ignoreVariables();
+				readVariables();
 			}
 		}
 
@@ -774,7 +767,7 @@ public class ELIB extends LibraryFiles
 			for(int i=0; i<cellCount; i++)
 			{
 				String thecellname = readString();
-				ignoreVariables();
+				readVariables();
 
 				fakeCellList[i].cellName = convertCellName(thecellname);
 			}
@@ -2041,7 +2034,7 @@ public class ELIB extends LibraryFiles
 				arcHeadPortList[arcIndex] = portIndex;
 
 			// ignore variables on port instance
-			ignoreVariables();
+			readVariables();
 		}
 
 		// ignore the exports
@@ -2050,7 +2043,7 @@ public class ELIB extends LibraryFiles
 		{
 			readBigInteger();
 			readBigInteger();
-			ignoreVariables();
+			readVariables();
 		}
 
 		// ignore the "seen" bits (versions 8 and older)
@@ -2071,17 +2064,15 @@ public class ELIB extends LibraryFiles
 		nodeInstList.userBits[nodeIndex] = userBits;
 
 		// read variable information
-        DiskVariable[] vars = readVariables();
+        ImmutableVariable[] vars = readVariables();
         for (int j = 0; j < vars.length; j++) {
-            DiskVariable v = vars[j];
-            if (v == null) continue;
-            if (v.name.equals(NodeInst.NODE_NAME_TD)) {
-                if (v.value instanceof String) {
-                    nodeInstList.name[nodeIndex] = convertGeomName((String)v.value, v.flags);
-                    nodeInstList.nameTextDescriptor[nodeIndex] = makeDescriptor(v.td0, v.td1);
-                }
-                vars[j] = null;
-            }
+            ImmutableVariable vd = vars[j];
+            if (vd == null || vd.key != NodeInst.NODE_NAME) continue;
+            Object value = vd.getValue();
+            if (!(value instanceof String)) continue;
+            nodeInstList.name[nodeIndex] = convertGeomName((String)value, vd.descriptor.isDisplay());
+            nodeInstList.nameTextDescriptor[nodeIndex] = vd.descriptor;
+            vars[j] = null;
         }
         nodeInstList.vars[nodeIndex] = vars;
 
@@ -2156,14 +2147,14 @@ public class ELIB extends LibraryFiles
 		arcUserBits[arcIndex] = userBits;
 
 		// read variable information
-        DiskVariable[] vars = readVariables();
+        ImmutableVariable[] vars = readVariables();
         for (int i = 0; i < vars.length; i++) {
-            DiskVariable v = vars[i];
-            if (v == null || !v.name.equals(ArcInst.ARC_NAME_TD)) continue;
-            if (v.value instanceof String) {
-                arcNameList[arcIndex] = convertGeomName((String)v.value, v.flags);
-                arcNameDescriptorList[arcIndex] = makeDescriptor(v.td0, v.td1);
-            }
+            ImmutableVariable vd = vars[i];
+            if (vd == null || vd.key != ArcInst.ARC_NAME) continue;
+            Object value = vd.getValue();
+            if (!(value instanceof String)) continue;
+            arcNameList[arcIndex] = convertGeomName((String)value, vd.descriptor.isDisplay());
+            arcNameDescriptorList[arcIndex] = vd.descriptor;
             vars[i] = null;
         }
         arcVariables[arcIndex] = vars;
@@ -2194,7 +2185,7 @@ public class ELIB extends LibraryFiles
 		readBigInteger();					// skip lu
 		readBigInteger();					// skip moredown
 		readBigInteger();					// skip ld
-		ignoreVariables();					// skip variables
+		readVariables();					// skip variables
 	}
 
 	// --------------------------------- VARIABLES ---------------------------------
@@ -2202,43 +2193,14 @@ public class ELIB extends LibraryFiles
 	/**
 	 * Method to read the global namespace.  returns true upon error
 	 */
-	private boolean readNameSpace()
+	private void readNameSpace()
 		throws IOException
 	{
-		nameCount = readBigInteger();
-		if (nameCount == 0) return false;
-
-		// read in the namespace
-        varKeys = new VarKeys(nameCount);
-		for(int i=0; i<nameCount; i++) {
-            varKeys.addKey(i, readString());
-        }
-		return false;
-	}
-
-	/**
-	 * Method to ignore one set of object variables on readin
-	 */
-	private void ignoreVariables()
-		throws IOException
-	{
-		readVariables();
-	}
-
-	/**
-	 * Method to read a set of meaning preferences onto a given object.
-	 * @param obj the object onto which the meaning preferences will be stored.
-	 */
-	private void readMeaningPrefs(Object obj)
-		throws IOException
-	{
-        DiskVariable[] vars = readVariables();
-        if (!topLevelLibrary) return;
-		for(int i=0; i<vars.length; i++)
-		{
-            DiskVariable v = vars[i];
-            if (v != null) v.makeMeaningPref(obj);
-		}
+		int nameCount = readBigInteger();
+        varNames = new String[nameCount];
+        varKeys = new Variable.Key[nameCount];
+		for(int i=0; i<nameCount; i++)
+            varNames[i] = readString();
 	}
 
 	/**
@@ -2252,21 +2214,23 @@ public class ELIB extends LibraryFiles
 	 * Method to read a set of variables onto a given object.
 	 * @return the array of variables read.
 	 */
-	private DiskVariable[] readVariables()
+	private ImmutableVariable[] readVariables()
 		throws IOException
 	{
 		int count = readBigInteger();
-        if (count == 0) return NULL_DISK_VARIABLE_ARRAY;
-        DiskVariable[] vars = new DiskVariable[count];
+        if (count == 0) return ImmutableVariable.NULL_ARRAY;
+        ImmutableVariable[] vars = new ImmutableVariable[count];
 		for(int i=0; i<count; i++)
 		{
 			short key = readSmallInteger();
-			if (key < 0 || key >= nameCount)
+			if (key < 0 || key >= varKeys.length)
 			{
-                String msg = "Bad variable index (" + key + ", limit is " + nameCount + ")";
+                String msg = "Bad variable index (" + key + ", limit is " + varKeys.length + ")";
 				System.out.println(msg);
 				throw new IOException(msg);
 			}
+            if (varKeys[key] == null)
+                varKeys[key] = Variable.newKey(varNames[key]);
 			int newtype = readBigInteger();
 
 			// version 9 and later reads text description on displayable variables
@@ -2294,15 +2258,7 @@ public class ELIB extends LibraryFiles
 					}
 				}
 			}
-
-//            if ((obj instanceof Library) && (Library.FONT_ASSOCIATIONS == varKeys.getKey(key))) {
-//
-//                Library lib = (Library)obj;
-//                if (version.compareTo(Version.parseVersion("8.02c")) == 0) {
-//                    System.out.println("Library "+lib.getName()+" is being patched for bad Font Association var");
-//                    continue;
-//                }
-//            }
+            ImmutableTextDescriptor td = makeDescriptor(descript0, descript1, newtype);
 
 			Object newAddr;
 			if ((newtype&ELIBConstants.VISARRAY) != 0)
@@ -2322,21 +2278,12 @@ public class ELIB extends LibraryFiles
 					case ELIBConstants.VBOOLEAN:
 					case ELIBConstants.VCHAR:       newAddrArray = new Byte[cou];        break;
 					case ELIBConstants.VSTRING:     newAddrArray = new String[cou];      break;
-					case ELIBConstants.VNODEINST:   newAddrArray = new NodeInst[cou];    break;
-					case ELIBConstants.VNODEPROTO:  newAddrArray = new NodeProto[cou];   break;
+					case ELIBConstants.VNODEPROTO:  newAddrArray = new NodeProtoId[cou];   break;
 					case ELIBConstants.VARCPROTO:   newAddrArray = new ArcProto[cou];    break;
-					case ELIBConstants.VPORTPROTO:  newAddrArray = new PortProto[cou];   break;
-					case ELIBConstants.VARCINST:    newAddrArray = new ArcInst[cou];     break;
+					case ELIBConstants.VPORTPROTO:  newAddrArray = new ExportId[cou];    break;
 					case ELIBConstants.VTECHNOLOGY: newAddrArray = new Technology[cou];  break;
-					case ELIBConstants.VLIBRARY:    newAddrArray = new Library[cou];     break;
+					case ELIBConstants.VLIBRARY:    newAddrArray = new LibId[cou];       break;
 					case ELIBConstants.VTOOL:       newAddrArray = new Tool[cou];        break;
-				}
-				if (newAddrArray == null)
-				{
-                    String msg = "Cannot figure out the type for code "+(newtype&ELIBConstants.VTYPE);
-					System.out.println(msg);
-                    throw new IOException(msg);
-//		            if (Library.FONT_ASSOCIATIONS == varKeys.getKey(key)) newtype = ELIBConstants.VSTRING;
 				}
 				newAddr = newAddrArray;
 				if ((newtype&ELIBConstants.VTYPE) == ELIBConstants.VGENERAL)
@@ -2352,28 +2299,46 @@ public class ELIB extends LibraryFiles
 					for(int j=0; j<len; j++)
 					{
 						Object ret = getInVar(newtype);
-//						if (ret == null)
-//						{
-//                            String msg = "Error reading array variable type";
-//							System.out.println(msg);
-//							throw new IOException(msg);
-//						}
 						if (newAddrArray != null) newAddrArray[j] = ret;
 					}
-
+                }
+                    
+				if (newAddrArray == null)
+				{
+                    String msg = "Cannot figure out the type for code "+(newtype&ELIBConstants.VTYPE);
+					System.out.println(msg);
+                    continue;
 				}
+                if (newAddrArray instanceof NodeProtoId[]) {
+                    int numCells = 0, numPrims = 0;
+                    for (int j = 0; j < newAddrArray.length; j++) {
+                        if (newAddrArray[j] == null) continue;
+                        if (newAddrArray[j] instanceof CellId) numCells++;
+                        if (newAddrArray[j] instanceof PrimitiveNode) numPrims++;
+                    }
+                    if (numCells >= numPrims) {
+                        CellId[] cellArray = new CellId[newAddrArray.length];
+                        for (int j = 0; j < cellArray.length; j++)
+                            if (newAddrArray[j] instanceof CellId) cellArray[j] = (CellId)newAddrArray[j];
+                        newAddr = cellArray;
+                    } else {
+                        PrimitiveNode[] primArray = new PrimitiveNode[newAddrArray.length];
+                        for (int j = 0; j < primArray.length; j++)
+                            if (newAddrArray[j] instanceof PrimitiveNode) primArray[j] = (PrimitiveNode)newAddrArray[j];
+                        newAddr = primArray;
+                    }
+                }
 			} else
 			{
-//                if (Library.FONT_ASSOCIATIONS == varKeys.getKey(key)) newtype = ELIBConstants.VSTRING;
 				newAddr = getInVar(newtype);
-				if (newAddr == null)
-				{
-					System.out.println("Error reading variable " + varKeys.keys[key] + " type " + newtype);
-					continue;
-				}
 			}
 
-            vars[i] = new DiskVariable(varKeys.keys[key], newtype, descript0, descript1, newAddr);
+			if (newAddr == null)
+			{
+				System.out.println("Error reading variable " + varNames[key] + " type " + newtype);
+				continue;
+			}
+            vars[i] = ImmutableVariable.newInstance(varKeys[key], td, newAddr);
 		}
 		return vars;
 	}
@@ -2409,21 +2374,20 @@ public class ELIB extends LibraryFiles
 				return readString();
 			case ELIBConstants.VNODEINST:
 				i = readBigInteger();
-				if (i < 0 || i >= nodeCount)
-				{
-					System.out.println("Variable of type NodeInst has index " + i + " when range is 0 to " + nodeCount);
-					return null;
-				}
-				return nodeInstList.theNode[i];
+                System.out.println("Cannot read variable of type NodeInst");
+				return null;
 			case ELIBConstants.VNODEPROTO:
 				i = readBigInteger();
-				return convertNodeProto(i);
+				NodeProto np = convertNodeProto(i);
+                return (np instanceof Cell ? ((Cell)np).getId() : (PrimitiveNode)np);
 			case ELIBConstants.VARCPROTO:
 				i = readBigInteger();
 				return convertArcProto(i);
 			case ELIBConstants.VPORTPROTO:
 				i = readBigInteger();
-				return convertPortProto(i);
+				PortProto pp = convertPortProto(i);
+                if (!(pp instanceof Export)) return null;
+                return ((Export)pp).getId();
 			case ELIBConstants.VARCINST:
 				i = readBigInteger();
 				if (i < 0 || i >= arcCount)
@@ -2433,6 +2397,7 @@ public class ELIB extends LibraryFiles
 				}
 				return arcList[i];
 			case ELIBConstants.VGEOM:
+				readBigInteger();
 				readBigInteger();
 				System.out.println("Cannot read variable of type Geometric");
 				return null;
@@ -2454,7 +2419,9 @@ public class ELIB extends LibraryFiles
 				return null;
 			case ELIBConstants.VLIBRARY:
 				String libName = readString();
-				return Library.findLibrary(libName);
+                Library lib = Library.findLibrary(libName);
+                if (lib == null) return null;
+				return lib.getId();
 			case ELIBConstants.VTOOL:
 				i = readBigInteger();
 				if (i < 0 || i >= toolCount) return null;

@@ -56,6 +56,12 @@ public class ImmutableTextDescriptor extends TextDescriptor
 		if ((bits & VTSIZE) == 0) bits |= (4L << Size.TXTQGRIDSH) << VTSIZESH;
         // clear unused bits if non-displayable
         if (!display) bits &= VTSEMANTIC;
+        // clear signs of zero-offsets
+        boolean zeroXOff = (bits & VTXOFF) == 0;
+        boolean zeroYOff = (bits & VTYOFF) == 0;
+        if (zeroXOff) bits &= ~VTXOFFNEG;
+        if (zeroYOff) bits &= ~VTYOFFNEG;
+        if (zeroXOff && zeroYOff) bits &= ~VTOFFSCALE;
        
         this.display = display;
         this.bits = bits;
@@ -83,6 +89,13 @@ public class ImmutableTextDescriptor extends TextDescriptor
         if (!isParam()) return this;
         MutableTextDescriptor mtd = new MutableTextDescriptor(this);
         mtd.setParam(false);
+        return newImmutableTextDescriptor(mtd);
+    }
+    
+    public ImmutableTextDescriptor withoutCode() {
+        if (!isCode()) return this;
+        MutableTextDescriptor mtd = new MutableTextDescriptor(this);
+        mtd.setCode(Code.NONE);
         return newImmutableTextDescriptor(mtd);
     }
     
