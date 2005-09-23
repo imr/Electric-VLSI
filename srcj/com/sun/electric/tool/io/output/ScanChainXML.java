@@ -1067,6 +1067,7 @@ public class ScanChainXML {
         int reduced = 1;
         while (reduced > 0) {
             reduced = 0;
+            /* can't do this anymore with dataNet and dataNetBar attributes
             for (Iterator it = entities.values().iterator(); it.hasNext(); ) {
                 Entity ent = (Entity)it.next();
                 // if lots of subchains with the same clears and access, consolidate them
@@ -1100,6 +1101,7 @@ public class ScanChainXML {
                     ent.replaceSubChainInsts(newList);
                 }
             }
+            */
             for (Iterator it = entities.values().iterator(); it.hasNext(); ) {
                 Entity ent = (Entity)it.next();
 
@@ -1112,8 +1114,8 @@ public class ScanChainXML {
                         ent.length = sub.length;
                         ent.access = sub.access;
                         ent.clears = sub.clears;
-                        ent.dataNet = sub.dataNet;
-                        ent.dataNetBar = sub.dataNetBar;
+                        ent.dataNet = "x" + sub.name + "." + sub.dataNet;
+                        ent.dataNetBar = "x" + sub.name + "." + sub.dataNetBar;
                         ent.remove(inst);
                         reduced++;
                     }
