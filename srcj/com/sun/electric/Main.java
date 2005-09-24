@@ -111,6 +111,17 @@ public final class Main
 			System.exit(0);
 		}
 
+		// -version
+		if (hasCommandLineOption(argsList, "-version"))
+		{
+			System.out.println(Version.getApplicationInformation());
+			System.out.println("\t"+Version.getVersionInformation());
+			System.out.println("\t"+Version.getAuthorInformation());
+			System.out.println("\t"+Version.getCopyrightInformation());
+			System.out.println("\t"+Version.getWarrantyInformation());
+			System.exit(0);
+		}
+
 		// see if there is a Mac OS/X interface
 		Class osXClass = null;
 		Method osXRegisterMethod = null, osXSetJobMethod = null;
@@ -142,17 +153,6 @@ public final class Main
 			} catch (ClassNotFoundException e) {}
 		}
 //		MacOSXInterface.registerMacOSXApplication(argsList);
-
-		// -version
-		if (hasCommandLineOption(argsList, "-version"))
-		{
-			System.out.println(Version.getApplicationInformation());
-			System.out.println("\t"+Version.getVersionInformation());
-			System.out.println("\t"+Version.getAuthorInformation());
-			System.out.println("\t"+Version.getCopyrightInformation());
-			System.out.println("\t"+Version.getWarrantyInformation());
-			System.exit(0);
-		}
 
 		// -help
         if (hasCommandLineOption(argsList, "-help"))

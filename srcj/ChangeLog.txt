@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03i: *********************************
 
+IMP: (09/24/05, GVG) Option -v doesn't initialize any GUI stuff so it could run without setting
+the DISPLAY variable.
+
 IMP: (09/24/05, GVG) N-Well should be hard to select by default (Bug #368)
 Implemented for new nodes created with the TechPalette.
 
