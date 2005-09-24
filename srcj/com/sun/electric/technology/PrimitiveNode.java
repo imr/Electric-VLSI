@@ -1344,6 +1344,19 @@ public class PrimitiveNode implements NodeProtoId, NodeProto, Comparable
 	public boolean isNotUsed() { return (userBits & NNOTUSED) != 0; }
 
     /**
+     * Method to determine if PrimitiveNode represents a well node
+     * @return true if this PrimitiveNode is a well node
+     */
+	public boolean isPureWellNode()
+	{
+	    // Not even looking at
+		if (function != PrimitiveNode.Function.NODE) return false;
+	    // only one layer
+	    if (layers.length != 1) return false;
+	    Layer layer = (Layer)layers[0].getLayer();
+	    return (layer.getFunction().isWell());
+	}
+    /**
      * Method to determine if PrimitiveNode represents substrate node
      * @return true if this PrimitiveNode is a substrate node
      */

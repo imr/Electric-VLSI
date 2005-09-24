@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03i: *********************************
 
+IMP: (09/24/05, GVG) N-Well should be hard to select by default (Bug #368)
+Implemented for new nodes created with the TechPalette.
+
 BUG: (09/23/05, DN) Icons should be always be expanded cells/instances (Bug #570)
 FIX: In input.JELIB.instantiateCellContents don't use expand flag from disk file, because it is false now.
      Expand bit of NodeInsts will be set either from preferences or from Cell default "getProto().isWantExpanded()".

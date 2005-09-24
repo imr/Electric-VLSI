@@ -518,7 +518,8 @@ public class PaletteFrame implements MouseListener
 			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, cell, defOrient, null, techBits);
 //			NodeInst newNi = NodeInst.makeInstance(np, where, width, height, cell, defAngle, null, techBits);
 			if (newNi == null) return false;
-			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode)
+			if (np == Generic.tech.cellCenterNode || np == Generic.tech.essentialBoundsNode ||
+                    (np instanceof PrimitiveNode && ((PrimitiveNode)np).isPureWellNode()))
 				newNi.setHardSelect();
 			if (varName != null)
 			{

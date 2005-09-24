@@ -334,6 +334,16 @@ public class Layer
 			return false;
 		}
 
+        /**
+		 * Method to tell whether this layer function is a well.
+		 * @return true if this layer function is a well.
+		 */
+		public boolean isWell()
+		{
+			if (this == WELL || this == WELLP || this == WELLN)  return true;
+			return false;
+		}
+
 		/**
 		 * Method to tell whether this layer function is substrate.
 		 * @return true if this layer function is substrate.
