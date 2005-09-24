@@ -664,8 +664,7 @@ public class JELIB extends LibraryFiles
 		cellsConstructed++;
 		progress.setProgress(cellsConstructed * 100 / totalCells);
 		recursiveSetupFlag.add(cell);
-        if (cell.getLibrary().newFormatFound)
-            cell.loadExpandStatus();
+        cell.loadExpandStatus();
 	}
 
 	/**
@@ -875,7 +874,7 @@ public class JELIB extends LibraryFiles
             for(int i=0; i<stateInfo.length(); i++) {
                 char chr = stateInfo.charAt(i);
                 switch (chr) {
-                    case 'E': expanded = true; /*flags = ImmutableNodeInst.EXPAND.set(flags, true);*/ break;
+                    case 'E': /*flags = ImmutableNodeInst.EXPAND.set(flags, true);*/ break;
                     case 'L': flags = ImmutableNodeInst.LOCKED.set(flags, true); break;
                     case 'S': /*userBits |= NSHORT;*/ break; // deprecated
                     case 'V': flags = ImmutableNodeInst.VIS_INSIDE.set(flags, true); break;
@@ -906,8 +905,6 @@ public class JELIB extends LibraryFiles
 					" (" + cell + ") cannot create node " + protoName, cell, -1);
 				continue;
 			}
-            if (!cell.getLibrary().newFormatFound)
-                ni.setExpanded(expanded);
 
 			// insert into map of disk names
 			diskName.put(diskNodeName, ni);

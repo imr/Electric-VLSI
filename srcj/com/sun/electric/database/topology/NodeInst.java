@@ -2907,7 +2907,15 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 
     private void setFlag(ImmutableNodeInst.Flag flag, boolean value) { checkChanging(); d = d.withFlag(flag, value); Undo.otherChange(this); }
    
+	/**
+	 * Method to set this NodeInst to be expanded.
+	 * Expanded NodeInsts are instances of Cells that show their contents.
+	 * Unexpanded Cell instances are shown as boxes with the node prototype names in them.
+	 * The state has no meaning for instances of primitive node prototypes.
+     * @param value true if NodeInst is expanded.
+	 */
     public void setExpanded(boolean value) {
+        if (!(protoType instanceof Cell)) return;
         if (value != expanded && parent != null) parent.expandStatusChanged();
         expanded = value;
     }

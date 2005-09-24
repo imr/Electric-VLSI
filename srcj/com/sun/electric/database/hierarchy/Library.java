@@ -86,7 +86,6 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	/** flag bits */										private int userBits;
     /** list of referenced libs */                          private final List/*<Library>*/ referencedLibs = new ArrayList/*<Library>*/();
     /** preferences for this library */                     Preferences prefs;
-    /** New preferences format found */                     public final boolean newFormatFound;
 
 	/** preferences for all libraries */					private static Preferences allPrefs = null;
 	/** list of linked libraries indexed by libId. */       private static final ArrayList linkedLibs = new ArrayList();
@@ -104,13 +103,6 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
         this.libName = libName;
         this.libFile = libFile;
 		if (allPrefs == null) allPrefs = Preferences.userNodeForPackage(getClass());
-        boolean found = false;
-        try {
-            found = allPrefs.nodeExists(libName);
-        } catch (BackingStoreException e) {
-            ActivityLogger.logException(e);
-        }
-        newFormatFound = found;
         prefs = allPrefs.node(libName);
         prefs.put("LIB", libName);
 	}
