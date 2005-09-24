@@ -2,6 +2,8 @@
 
 NOTE: Please place changes under the version that will be released next.
 
+************************* Version 8.03i: *********************************
+
 ************************* Version 8.03h: *********************************
 
 BUG: (09/23/05, GVG) Icons should be always be expanded cells/instances (Bug #570)
