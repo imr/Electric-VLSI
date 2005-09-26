@@ -25,6 +25,8 @@
  */
 package com.sun.electric.tool.project;
 
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.GenMath.MutableInteger;
@@ -859,13 +861,9 @@ public class Project extends Listener
 	/**
 	 * Method to announce a change to an ArcInst.
 	 * @param ai the ArcInst that changed.
-	 * @param oHX the old X coordinate of the ArcInst head end.
-	 * @param oHY the old Y coordinate of the ArcInst head end.
-	 * @param oTX the old X coordinate of the ArcInst tail end.
-	 * @param oTY the old Y coordinate of the ArcInst tail end.
-	 * @param oWid the old width of the ArcInst.
+     * @param oD the old contents of the ArcInst.
 	 */
-	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid)
+	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
 	{
 		if (ignoreChanges) return;
 		queueCheck(ai.getParent());
@@ -958,24 +956,14 @@ public class Project extends Listener
 	}
 
 	/**
-	 * Method to handle a new Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the newly created Variable.
+	 * Method to handle a change of object ImmutableVariables.
+	 * @param obj the ElectricObject on which ImmutableVariables changed.
+	 * @param oldImmutable the old ImmutableVariables.
 	 */
-	public void newVariable(ElectricObject obj, Variable var)
-	{
-		checkVariable(obj, var);
-	}
-
-	/**
-	 * Method to handle a deleted Variable.
-	 * @param obj the ElectricObject on which the Variable resided.
-	 * @param var the deleted Variable.
-	 */
-	public void killVariable(ElectricObject obj, Variable var)
-	{
-		checkVariable(obj, var);
-	}
+	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable)
+    {
+        checkVariables(obj, oldImmutable);
+    }
 
 	/**
 	 * Method to announce that a Library has been read.
@@ -1092,7 +1080,7 @@ public class Project extends Listener
 		if (obj instanceof Cell) { queueCheck((Cell)obj);   return; }
 	}
 
-	private void checkVariable(ElectricObject obj, Variable var)
+	private void checkVariables(ElectricObject obj, ImmutableElectricObject oldImmutable)
 	{
 		if (ignoreChanges) return;
 		if (obj instanceof NodeInst) { queueCheck(((NodeInst)obj).getParent());   return; }
@@ -1100,10 +1088,42 @@ public class Project extends Listener
 		if (obj instanceof Export) { queueCheck((Cell)((Export)obj).getParent());   return; }
 		if (obj instanceof Cell)
 		{
-			if (var.getKey() != PROJLOCKEDKEY) queueCheck((Cell)obj);
+            ImmutableElectricObject newImmutable = obj.getImmutable();
+            if (variablesDiffers(oldImmutable, newImmutable))
+                queueCheck((Cell)obj);
 		}
 	}
 
+    private boolean variablesDiffers(ImmutableElectricObject oldImmutable, ImmutableElectricObject newImmutable) {
+            int oldLength = oldImmutable.getNumVariables();
+            int newLength = newImmutable.getNumVariables();
+            int oldIndex = oldImmutable.searchVar(PROJLOCKEDKEY);
+            int newIndex = newImmutable.searchVar(PROJLOCKEDKEY);
+            if (oldLength == newLength) {
+                if (oldIndex != newIndex) return true;
+                if (oldIndex < 0) return variablesDiffers(oldImmutable, 0, newImmutable, 0, oldLength);
+                return variablesDiffers(oldImmutable, 0, newImmutable, 0, oldIndex) ||
+                        variablesDiffers(oldImmutable, oldIndex + 1, newImmutable, oldIndex + 1, oldLength - oldIndex - 1);
+            }
+            if (oldLength == newLength + 1) {
+                if (oldIndex < 0 || oldIndex != ~newIndex) return true;
+                return variablesDiffers(oldImmutable, 0, newImmutable, 0, oldIndex) ||
+                        variablesDiffers(oldImmutable, oldIndex + 1, newImmutable, ~newIndex, oldLength - oldIndex - 1);
+            }
+            if (newLength == oldIndex + 1) {
+                if (newIndex < 0 || newIndex != ~oldIndex) return true;
+                return variablesDiffers(oldImmutable, 0, newImmutable, 0, newIndex) ||
+                        variablesDiffers(oldImmutable, newIndex, newImmutable, newIndex + 1, newLength - newIndex - 1);
+            }
+            return true;
+    }
+    
+    private boolean variablesDiffers(ImmutableElectricObject oldImmutable, int oldStart, ImmutableElectricObject newImmutable, int newStart, int count) {
+        for (int i = 0; i < count; i++)
+            if (oldImmutable.getVar(oldStart + i) != newImmutable.getVar(newStart + i)) return true;
+        return false;
+    }
+    
 	private static void queueCheck(Cell cell)
 	{
 		// get the current batch number

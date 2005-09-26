@@ -32,7 +32,7 @@ import com.sun.electric.database.text.Pref;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.NodeInst;
-import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.ElectricObject_;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.ErrorLogger;
@@ -62,7 +62,7 @@ import javax.swing.JOptionPane;
  * Cell, get an Enumeration of all Cells, or find the Cell that the user
  * is currently editing.
  */
-public class Library extends ElectricObject implements Comparable/*<Library>*/
+public class Library extends ElectricObject_ implements Comparable/*<Library>*/
 {
 	/** key of Variable holding font associations. */		public static final Variable.Key FONT_ASSOCIATIONS = Variable.newKey("LIB_font_associations");
 
@@ -521,7 +521,8 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	public int checkAndRepair(boolean repair, ErrorLogger errorLogger)
 	{
 		int errorCount = 0;
-        System.out.print("Checking " + this + " for repair");
+        System.out.print("Checking " + this);
+        if (repair) System.out.print(" for repair");
 
 		for(Iterator it = getCells(); it.hasNext(); )
 		{
@@ -548,8 +549,9 @@ public class Library extends ElectricObject implements Comparable/*<Library>*/
 	 * Method to check invariants in this Library.
 	 * @exception AssertionError if invariants are not valid
 	 */
-	private void check()
+	protected void check()
 	{
+        super.check();
 		assert libName != null;
 		assert libName.length() > 0;
 		assert libName.indexOf(' ') == -1 && libName.indexOf(':') == -1 : libName;

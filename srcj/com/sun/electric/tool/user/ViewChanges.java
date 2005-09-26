@@ -329,7 +329,7 @@ public class ViewChanges
 				System.out.println("Could not create port " + pp.getName());
 				return true;
 			}
-			npp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME_TD);
+			npp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME);
 			npp.copyVarsFrom(pp);
 			npp.setCharacteristic(pp.getCharacteristic());
 			newPortMap.put(pp, npp);
@@ -660,7 +660,7 @@ public class ViewChanges
 		Export port = Export.newInstance(np, pi, pp.getName());
 		if (port != null)
 		{
-			MutableTextDescriptor td = port.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
+			MutableTextDescriptor td = port.getMutableTextDescriptor(Export.EXPORT_NAME);
 			switch (User.getIconGenExportStyle())
 			{
 				case 0:		// Centered
@@ -685,7 +685,7 @@ public class ViewChanges
 					}
 					break;
 			}
-			port.setTextDescriptor(Export.EXPORT_NAME_TD, td);
+			port.setTextDescriptor(Export.EXPORT_NAME, td);
 			double xOffset = 0, yOffset = 0;
 			int loc = User.getIconGenExportLocation();
 			if (!User.isIconGenDrawLeads()) loc = 0;
@@ -701,7 +701,7 @@ public class ViewChanges
 					yOffset = (yPos+yBBPos) / 2 - yPos;
 					break;
 			}
-			port.setOff(Export.EXPORT_NAME_TD, xOffset, yOffset);
+			port.setOff(Export.EXPORT_NAME, xOffset, yOffset);
 			if (pp.isAlwaysDrawn()) port.setAlwaysDrawn(); else
 				port.clearAlwaysDrawn();
 			port.setCharacteristic(pp.getCharacteristic());
@@ -921,7 +921,7 @@ public class ViewChanges
 					if (schemPP != null)
 					{
 						schemPP.setCharacteristic(mosPP.getCharacteristic());
-						schemPP.copyTextDescriptorFrom(mosPP, Export.EXPORT_NAME_TD);
+						schemPP.copyTextDescriptorFrom(mosPP, Export.EXPORT_NAME);
 						schemPP.copyVarsFrom(mosPP);
 					}
 				}
@@ -1418,7 +1418,7 @@ public class ViewChanges
 				Export pp2 = Export.newInstance(newCell, pi, e.getName());
 				if (pp2 == null) return;
 				pp2.setCharacteristic(e.getCharacteristic());
-				pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME_TD);
+				pp2.copyTextDescriptorFrom(e, Export.EXPORT_NAME);
 				pp2.copyVarsFrom(e);
 			}
 		}

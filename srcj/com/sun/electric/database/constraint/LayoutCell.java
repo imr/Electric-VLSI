@@ -24,6 +24,7 @@
 package com.sun.electric.database.constraint;
 
 import com.sun.electric.database.CellUsage;
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
@@ -752,7 +753,11 @@ class LayoutCell {
 		Point2D oldTailPt = ai.getTailLocation();
 		double oldHeadX = oldHeadPt.getX();   double oldHeadY = oldHeadPt.getY();
 		double oldTailX = oldTailPt.getX();   double oldTailY = oldTailPt.getY();
-		ai.lowLevelModify(0, headPt.getX() - oldHeadX, headPt.getY() - oldHeadY, tailPt.getX() - oldTailX, tailPt.getY() - oldTailY);
+		// now make the change
+        ImmutableArcInst oldD = ai.getD();
+        ImmutableArcInst d = oldD;
+        d = d.withLocations(EPoint.snap(tailPt), EPoint.snap(headPt));
+		ai.lowLevelModify(d);
 		if (Layout.DEBUG) System.out.println(ai + " now runs from tail ("+
 			ai.getTailLocation().getX()+","+ai.getTailLocation().getY()+") to head ("+
 			ai.getHeadLocation().getX()+","+ai.getHeadLocation().getY()+")");
@@ -760,7 +765,7 @@ class LayoutCell {
 		// if the arc hasn't changed yet, record this change
 		if (oldArcs == null || !oldArcs.containsKey(ai))
 		{
-			Undo.modifyArcInst(ai, oldHeadX, oldHeadY, oldTailX, oldTailY, ai.getWidth());
+			Undo.modifyArcInst(ai, oldD);
 			setChangeClock(ai, arctyp);
 		}
 	}
@@ -864,7 +869,7 @@ class LayoutCell {
 		setChangeClock(ar3, arctyp);
 
 		// now kill the arcinst
-		ar2.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
+		ar2.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);
 		ai.kill();
 		String oldName = ai.getName();
 		if (oldName != null) ar2.setName(oldName);

@@ -22,10 +22,10 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database.constraint;
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Changes;
-import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
 import com.sun.electric.database.hierarchy.Library;
@@ -34,7 +34,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.tool.Tool;
 
 import java.util.Collection;
@@ -99,13 +98,9 @@ public class Constraints implements Changes
 	/**
 	 * Method to handle a change to an ArcInst.
 	 * @param ai the ArcInst that changed.
-	 * @param oHX the old X coordinate of the ArcInst head end.
-	 * @param oHY the old Y coordinate of the ArcInst head end.
-	 * @param oTX the old X coordinate of the ArcInst tail end.
-	 * @param oTY the old Y coordinate of the ArcInst tail end.
-	 * @param oWid the old width of the ArcInst.
+     * @param oD the old contents of the ArcInst.
 	 */
-	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid) {}
+	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD) {}
 	/**
 	 * Method to handle a change to an Export.
 	 * @param pp the Export that moved.
@@ -154,17 +149,11 @@ public class Constraints implements Changes
 	 */
 	public void redrawObject(ElectricObject obj) {}
 	/**
-	 * Method to handle a new Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the newly created Variable.
+	 * Method to handle a change of object ImmutableVariables.
+	 * @param obj the ElectricObject on which ImmutableVariables changed.
+	 * @param oldImmutable the old ImmutableVariables.
 	 */
-	public void newVariable(ElectricObject obj, Variable var) {}
-	/**
-	 * Method to handle a deleted Variable.
-	 * @param obj the ElectricObject on which the Variable resided.
-	 * @param var the deleted Variable.
-	 */
-	public void killVariable(ElectricObject obj, Variable var) {}
+	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable) {}
 
 	/**
 	 * Method to announce that a Library has been read.

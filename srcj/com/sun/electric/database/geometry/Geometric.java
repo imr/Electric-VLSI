@@ -32,6 +32,7 @@ import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -281,8 +282,8 @@ public abstract class Geometric extends ElectricObject
 		{
 			double cX = rect.getCenterX();
 			double cY = rect.getCenterY();
-			String varName = this instanceof NodeInst ? NodeInst.NODE_NAME_TD : ArcInst.ARC_NAME_TD;
-			TextDescriptor td = getTextDescriptor(varName);
+			Variable.Key varKey = this instanceof NodeInst ? NodeInst.NODE_NAME : ArcInst.ARC_NAME;
+			TextDescriptor td = getTextDescriptor(varKey);
 			double offX = td.getXOff();
 			double offY = td.getYOff();
 			TextDescriptor.Position pos = td.getPos();

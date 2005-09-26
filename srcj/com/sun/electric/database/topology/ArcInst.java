@@ -25,6 +25,8 @@ package com.sun.electric.database.topology;
 
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableElectricObject;
+import com.sun.electric.database.ImmutableVariable;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -32,12 +34,11 @@ import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
-import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.Technology;
 import com.sun.electric.technology.ArcProto;
@@ -48,7 +49,6 @@ import com.sun.electric.tool.user.ErrorLogger;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -90,6 +90,7 @@ public class ArcInst extends Geometric implements Comparable
 
 	/** prefix for autonameing. */						private static final Name BASENAME = Name.findName("net@");
 
+    /** ImmutableVariables of this ArcInst. */          private ImmutableElectricObject immutable = ImmutableElectricObject.EMPTY;
     /** persistent data of this ArcInst. */             ImmutableArcInst d;
 	/** name of this ArcInst. */						private Name name;
 	/** bounds after transformation. */					private Rectangle2D visBounds;
@@ -142,53 +143,8 @@ public class ArcInst extends Geometric implements Comparable
         
 		this.visBounds = new Rectangle2D.Double(0, 0, 0, 0);
 	}
-	/**
-	 * Private constructor of ArcInst.
-     * @param parent the parent Cell of this ArcInst
-	 * @param protoType the ArcProto of this ArcInst.
-	 * @param name the name of this ArcInst
-	 * @param duplicate duplicate index of this ArcInst
-     * @param nameDescriptor text descriptor of name of this ArcInst
-	 * @param headPort the head end PortInst.
-	 * @param tailPort the tail end PortInst.
-	 * @param headPt the coordinate of the head end PortInst.
-	 * @param tailPt the coordinate of the tail end PortInst.
-	 * @param width the width of this ArcInst.
-     * @param angle angle in tenth-degrees
-     * @param flags flag bits
-	 */
-	private ArcInst(Cell parent, ArcProto protoType, String name, int duplicate, ImmutableTextDescriptor nameDescriptor,
-        PortInst headPort, PortInst tailPort, EPoint headPt, EPoint tailPt, double width, int angle, int flags)
-	{
-		// initialize this object
-		assert parent == headPort.getNodeInst().getParent();
-        assert parent == tailPort.getNodeInst().getParent();
-		this.parent = parent;
 
-		if (width < 0)
-			width = protoType.getWidth();
-		width = DBMath.round(width);
-
-		this.name = Name.findName(name);
-        if (nameDescriptor == null) nameDescriptor = ImmutableTextDescriptor.getArcTextDescriptor();
-
-		// create node/arc connections and place them properly
-		tailPortInst = tailPort;
-		tailEnd = new TailConnection(this);
-
-		headPortInst = headPort;
-		headEnd = new HeadConnection(this);
-        
-        int arcId = 0;
-        d = ImmutableArcInst.newInstance(arcId, protoType, this.name, duplicate, nameDescriptor,
-                tailPortInst.getNodeInst().getD().nodeId, tailPortInst.getPortProto().getId(), tailPt,
-                headPortInst.getNodeInst().getD().nodeId, headPortInst.getPortProto().getId(), headPt,
-                width, angle, flags);
-        
-		this.visBounds = new Rectangle2D.Double(0, 0, 0, 0);
-	}
-
-	/****************************** CREATE, DELETE, MODIFY ******************************/
+    /****************************** CREATE, DELETE, MODIFY ******************************/
 
 	/**
 	 * Method to create a new ArcInst with appropriate defaults, connecting two PortInsts.
@@ -454,17 +410,19 @@ public class ArcInst extends Geometric implements Comparable
 	public void modify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
 	{
 		// save old arc state
-		double oldxA = d.headLocation.getX();
-		double oldyA = d.headLocation.getY();
-		double oldxB = d.tailLocation.getX();
-		double oldyB = d.tailLocation.getY();
-		double oldWidth = getWidth();
+        ImmutableArcInst oldD = d;
 
 		// change the arc
-		lowLevelModify(dWidth, dHeadX, dHeadY, dTailX, dTailY);
+        EPoint tail = d.tailLocation;
+		if (dTailX != 0 || dTailY != 0)
+			tail = new EPoint(tail.getX() + dTailX, tail.getY() + dTailY);
+         EPoint head = d.headLocation;
+        if (dHeadX != 0 || dHeadY != 0)
+            head = new EPoint(head.getX() + dHeadX, head.getY() + dHeadY);
+		lowLevelModify(d.withWidth(d.width + dWidth).withLocations(tail, head));
 
 		// track the change
-		Undo.modifyArcInst(this, oldxA, oldyA, oldxB, oldyB, oldWidth);
+		Undo.modifyArcInst(this, oldD);
 	}
 
 	/**
@@ -511,6 +469,31 @@ public class ArcInst extends Geometric implements Comparable
      */
     public ImmutableArcInst getD() { return d; }
     
+    /**
+     * Returns persistent data of this ElectricObject with ImmutableVariables.
+     * @return persistent data of this ElectricObject.
+     */
+    public ImmutableElectricObject getImmutable() { return immutable; }
+    
+    /**
+     * Updates persistent data of this ElectricObject by adding specified ImmutableVariable.
+     * @param vd ImmutableVariable to add.
+     * @return updated persistent data.
+     */
+    protected ImmutableElectricObject withVariable(ImmutableVariable vd) {
+        immutable = immutable.withVariable(vd);
+        return immutable;
+    }
+    
+    /**
+     * Updates persistent data of this ElectricObject by removing Variable with specified key.
+     * @param key key to remove.
+     * @return updated persistent data.
+     */
+    protected ImmutableElectricObject withoutVariable(Variable.Key key) {
+        immutable = immutable.withoutVariable(key);
+        return immutable;
+    }
 	/**
 	 * Low-level method to link the ArcInst into its Cell.
 	 */
@@ -559,25 +542,16 @@ public class ArcInst extends Geometric implements Comparable
 
 	/**
 	 * Low-level method to change the width and end locations of this ArcInst.
-	 * @param dWidth the change to the ArcInst width.
-	 * @param dHeadX the change to the X coordinate of the head of this ArcInst.
-	 * @param dHeadY the change to the Y coordinate of the head of this ArcInst.
-	 * @param dTailX the change to the X coordinate of the tail of this ArcInst.
-	 * @param dTailY the change to the Y coordinate of the tail of this ArcInst.
+     * New persistent data may differ from old one only by width and end locations 
+	 * @param d the new persistent data of this ArcInst.
 	 */
-	public void lowLevelModify(double dWidth, double dHeadX, double dHeadY, double dTailX, double dTailY)
+	public void lowLevelModify(ImmutableArcInst d)
 	{
 		// first remove from the R-Tree structure
 		parent.unLinkArc(this);
 
 		// now make the change
-        EPoint tail = d.tailLocation;
-		if (dTailX != 0 || dTailY != 0)
-			tail = new EPoint(tail.getX() + dTailX, tail.getY() + dTailY);
-         EPoint head = d.headLocation;
-        if (dHeadX != 0 || dHeadY != 0)
-            head = new EPoint(head.getX() + dHeadX, head.getY() + dHeadY);
-        d = d.withWidth(d.width + dWidth).withLocations(tail, head);
+        this.d = d;
 		updateGeometric();
 
 		// update end shrinkage information
@@ -618,8 +592,9 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void setAngle(int angle) {
         checkChanging();
-        d = d.withAngle(angle);
-        Undo.otherChange(this);        
+        ImmutableArcInst oldD = d;
+        lowLevelModify(d.withAngle(angle));
+        if (parent != null) Undo.modifyArcInst(this, oldD);        
     }
 
 	/**
@@ -1010,46 +985,40 @@ public class ArcInst extends Geometric implements Comparable
 	}
 
 	/**
-	 * Returns the TextDescriptor on this ArcInst selected by name.
-	 * This name may be a name of variable on this ArcInst or
-	 * the special name <code>ArcInst.ARC_NAME_TD</code>.
-	 * Other strings are not considered special, even they are equal to the
-	 * special name. In other words, special name is compared by "==" other than
-	 * by "equals".
+	 * Returns the TextDescriptor on this ArcInst selected by variable key.
+	 * This key may be a key of variable on this ArcInst or the
+	 * special keys:
+	 * <code>ArcInst.ARC_NAME</code>
 	 * The TextDescriptor gives information for displaying the Variable.
-	 * @param varName name of variable or special name.
+	 * @param varKey key of variable or special key.
 	 * @return the TextDescriptor on this ArcInst.
 	 */
-	public ImmutableTextDescriptor getTextDescriptor(String varName)
+	public ImmutableTextDescriptor getTextDescriptor(Variable.Key varKey)
 	{
-		if (varName == ARC_NAME_TD) return d.nameDescriptor;
-		return super.getTextDescriptor(varName);
+		if (varKey == ARC_NAME) return d.nameDescriptor;
+		return super.getTextDescriptor(varKey);
 	}
 
 	/**
-	 * Updates the TextDescriptor on this ArcInst selected by varName.
-	 * The varName may be a name of variable on this ArcInst or
-	 * the special name <code>ArcInst.EXPORT_NAME_TD</codeOC>.
-	 * If varName doesn't select any text descriptor, no action is performed.
-	 * Other strings are not considered special, even they are equal to the
-	 * special name. In other words, special name is compared by "==" other than
-	 * by "equals".
+	 * Updates the TextDescriptor on this ArcInst selected by varKey.
+	 * The varKey may be a key of variable on this ArcInst or
+     * the special key ArcInst.ARC_NAME.
+	 * If varKey doesn't select any text descriptor, no action is performed.
 	 * The TextDescriptor gives information for displaying the Variable.
-	 * @param varName name of variable or special name.
+	 * @param varKey key of variable or special key.
 	 * @param td new value TextDescriptor
-     * @return old text descriptor
-     * @throws IllegalArgumentException if TextDescriptor with specified name not found on this ArcInst.
 	 */
-	public ImmutableTextDescriptor lowLevelSetTextDescriptor(String varName, ImmutableTextDescriptor td)
+	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
-		if (varName == ARC_NAME_TD)
-        {
-            ImmutableTextDescriptor oldDescriptor = d.nameDescriptor;
-			d = d.withNameDescriptor(td.withDisplayWithoutParamAndCode());
-            return oldDescriptor;
+        if (varKey == ARC_NAME) {
+        	checkChanging();
+            ImmutableArcInst oldD = d;
+			d = d.withNameDescriptor(td);
+            if (parent != null) Undo.modifyArcInst(this, oldD);
+            return;
         }
-		return super.lowLevelSetTextDescriptor(varName, td);
-	}
+        super.setTextDescriptor(varKey, td);
+    }
 
 	/**
 	 * Method to determine whether a variable key on ArcInst is deprecated.
@@ -1109,8 +1078,9 @@ public class ArcInst extends Geometric implements Comparable
 
     private void setFlag(ImmutableArcInst.Flag flag, boolean state) {
         checkChanging();
-        d = d.withFlag(flag, state);
-        Undo.otherChange(this);
+        ImmutableArcInst oldD = d;
+        lowLevelModify(d.withFlag(flag, state));
+        if (parent != null) Undo.modifyArcInst(this, oldD);
     }
     
 	/**
@@ -1316,7 +1286,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void setTailExtended(boolean e) {
         setFlag(ImmutableArcInst.TAIL_EXTENDED, e);
-        if (isLinked()) updateGeometric();
+//        if (isLinked()) updateGeometric();
     }
 
 	/**
@@ -1327,7 +1297,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void setHeadExtended(boolean e) {
         setFlag(ImmutableArcInst.HEAD_EXTENDED, e);
-        if (isLinked()) updateGeometric();
+//        if (isLinked()) updateGeometric();
     }
 
 	/**
@@ -1481,6 +1451,7 @@ public class ArcInst extends Geometric implements Comparable
 	 */
 	public void check()
 	{
+        super.check();
 		assert d.name != null;
 		assert d.duplicate >= 0;
 
@@ -1539,7 +1510,7 @@ public class ArcInst extends Geometric implements Comparable
         if (fromAi == null) return;
         copyVarsFrom(fromAi);
 		copyConstraintsFrom(fromAi);
-        copyTextDescriptorFrom(fromAi, ArcInst.ARC_NAME_TD);
+        copyTextDescriptorFrom(fromAi, ArcInst.ARC_NAME);
     }
 
     /**
@@ -1550,16 +1521,9 @@ public class ArcInst extends Geometric implements Comparable
     public void copyConstraintsFrom(ArcInst fromAi) {
         checkChanging();
         if (fromAi == null) return;
-        int flags = fromAi.d.flags;
-//        int newBits = tailLocation.equals(headLocation) ? fromAi.userBits : (fromAi.userBits & ~AANGLE) | (this.userBits & AANGLE);
-//        newBits &= ImmutableArcInst.DATABASE_BITS;
-		boolean extensionChanged = ImmutableArcInst.TAIL_EXTENDED.is(d.flags) != ImmutableArcInst.TAIL_EXTENDED.is(flags) ||
-                ImmutableArcInst.HEAD_EXTENDED.is(d.flags) != ImmutableArcInst.HEAD_EXTENDED.is(flags);
-        d = d.withFlags(flags).withAngle(fromAi.d.angle);
-		if (isLinked() && extensionChanged) updateGeometric();
-        Undo.otherChange(this);
-//		setHeadNegated(fromAi.isHeadNegated());
-//		setTailNegated(fromAi.isTailNegated());
+        ImmutableArcInst oldD = d;
+        lowLevelModify(d.withFlags(fromAi.d.flags).withAngle(fromAi.d.angle));
+		if (parent != null) Undo.modifyArcInst(this, oldD);
     }
 
 //	/**

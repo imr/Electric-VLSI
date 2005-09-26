@@ -25,7 +25,9 @@ package com.sun.electric.database.topology;
 
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.CellUsage;
+import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
+import com.sun.electric.database.ImmutableVariable;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
@@ -86,6 +88,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	/** special name for text descriptor of prototype name */	public static final String NODE_PROTO_TD = new String("NODE_proto");
 	/** special name for text descriptor of instance name */	public static final String NODE_NAME_TD = new String("NODE_name");
 
+	/** key of text descriptor with prototype name. */          public static final Variable.Key NODE_PROTO = Variable.newKey("NODE_proto");
 	/** key of obsolete Variable holding instance name. */		public static final Variable.Key NODE_NAME = Variable.newKey("NODE_name");
 	/** key of Varible holding outline information. */			public static final Variable.Key TRACE = Variable.newKey("trace");
 	/** key of Varible holding serpentine transistor length. */	private static final Variable.Key TRANSISTOR_LENGTH_KEY = Variable.newKey("transistor_width");
@@ -120,6 +123,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	}
 
 	// ---------------------- private data ----------------------------------
+    /** ImmutableVariables of this NodeInst. */             private ImmutableElectricObject immutable = ImmutableElectricObject.EMPTY;
     /** persistent data of this NodeInst. */                private ImmutableNodeInst d;
 	/** prototype of this NodeInst. */						private NodeProto protoType;
 	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
@@ -847,8 +851,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 
 		// copy all variables on the nodeinst
 		newNi.copyVarsFrom(this);
-		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_NAME_TD);
-		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_PROTO_TD);
+		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_NAME);
+		newNi.copyTextDescriptorFrom(this, NodeInst.NODE_PROTO);
 		newNi.copyStateBits(this);
 
 		// now delete the original nodeinst
@@ -864,6 +868,32 @@ public class NodeInst extends Geometric implements Nodable, Comparable
      * @return persistent data of this NodeInst.
      */
     public ImmutableNodeInst getD() { return d; }
+    
+    /**
+     * Returns persistent data of this ElectricObject with ImmutableVariables.
+     * @return persistent data of this ElectricObject.
+     */
+    public ImmutableElectricObject getImmutable() { return immutable; }
+    
+    /**
+     * Updates persistent data of this ElectricObject by adding specified ImmutableVariable.
+     * @param vd ImmutableVariable to add.
+     * @return updated persistent data.
+     */
+    protected ImmutableElectricObject withVariable(ImmutableVariable vd) {
+        immutable = immutable.withVariable(vd);
+        return immutable;
+    }
+    
+    /**
+     * Updates persistent data of this ElectricObject by removing Variable with specified key.
+     * @param key key to remove.
+     * @return updated persistent data.
+     */
+    protected ImmutableElectricObject withoutVariable(Variable.Key key) {
+        immutable = immutable.withoutVariable(key);
+        return immutable;
+    }
     
     /**
 	 * Low-level access method to link the NodeInst into its Cell.
@@ -1184,7 +1214,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		{
 			double cX = getTrueCenterX();
 			double cY = getTrueCenterY();
-			TextDescriptor td = getTextDescriptor(NodeInst.NODE_PROTO_TD);
+			TextDescriptor td = getTextDescriptor(NodeInst.NODE_PROTO);
 			double offX = td.getXOff();
 			double offY = td.getYOff();
 			TextDescriptor.Position pos = td.getPos();
@@ -2260,53 +2290,51 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	public int getDuplicate() { return d.duplicate; }
 
 	/**
-	 * Returns the TextDescriptor on this NodeInst selected by name.
-	 * This name may be a name of variable on this NodeInst or one of
-	 * the special names <code>NodeInst.NODE_NAME_TD</code> or <code>Node.NODE_PROTO_TD</code>.
-	 * Other strings are not considered special, even they are equal to the
-	 * special name. In other words, special name is compared by "==" other than
-	 * by "equals".
+	 * Returns the TextDescriptor on this NodeInst selected by variable key.
+	 * This key may be a key of variable on this NodeInst or one of the
+	 * special keys:
+	 * <code>NodeInst.NODE_NAME</code>
+	 * <code>NodeInst.NODE_PROTO</code>
 	 * The TextDescriptor gives information for displaying the Variable.
-	 * @param varName name of variable or special name.
-	 * @return the TextDescriptor on this NodeInst.
+	 * @param varKey key of variable or special key.
+	 * @return the TextDescriptor on this ElectricObject.
 	 */
-	public ImmutableTextDescriptor getTextDescriptor(String varName)
+	public ImmutableTextDescriptor getTextDescriptor(Variable.Key varKey)
 	{
-		if (varName == NODE_NAME_TD) return d.nameDescriptor;
-		if (varName == NODE_PROTO_TD) return d.protoDescriptor;
-		return super.getTextDescriptor(varName);
+		if (varKey == NODE_NAME) return d.nameDescriptor;
+		if (varKey == NODE_PROTO) return d.protoDescriptor;
+		return super.getTextDescriptor(varKey);
 	}
 
-    /**
-	 * Updates the TextDescriptor on this NodeInst selected by varName.
-	 * The varName may be a name of variable on this NodeInst or one of
-	 * the special names <code>NodeInst.NODE_NAME_TD</code> or <code>NodeInst.NODE_PROTO_ID</code>.
-	 * If varName doesn't select any text descriptor, no action is performed.
-	 * Other strings are not considered special, even they are equal to the
-	 * special name. In other words, special name is compared by "==" other than
-	 * by "equals".
+	/**
+	 * Updates the TextDescriptor on this NodeInst selected by varKey.
+	 * The varKey may be a key of variable on this NodeInst or one of the
+	 * special keys:
+	 * NodeInst.NODE_NAME
+	 * NodeInst.NODE_PROTO
+	 * If varKey doesn't select any text descriptor, no action is performed.
 	 * The TextDescriptor gives information for displaying the Variable.
-	 * @param varName name of variable or special name.
+	 * @param varKey key of variable or special key.
 	 * @param td new value TextDescriptor
-     * @return old text descriptor or null
-     * @throws IllegalArgumentException if TextDescriptor with specified name not found on this NodeInst.
 	 */
-	public ImmutableTextDescriptor lowLevelSetTextDescriptor(String varName, ImmutableTextDescriptor td)
+	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
-		if (varName == NODE_NAME_TD)
-        {
-            ImmutableTextDescriptor oldDescriptor = d.nameDescriptor;
-			d = d.withNameDescriptor(td.withDisplayWithoutParamAndCode());
-            return oldDescriptor;
+        if (varKey == NODE_NAME) {
+        	checkChanging();
+            ImmutableNodeInst oldD = d;
+			d = d.withNameDescriptor(td);
+            if (parent != null) Undo.modifyNodeInst(this, oldD);
+            return;
         }
-		if (varName == NODE_PROTO_TD)
-        {
-            ImmutableTextDescriptor oldDescriptor = d.protoDescriptor;
-			d = d.withProtoDescriptor(td.withDisplayWithoutParamAndCode());
-            return oldDescriptor;
+        if (varKey == NODE_PROTO) {
+        	checkChanging();
+            ImmutableNodeInst oldD = d;
+			d = d.withProtoDescriptor(td);
+            if (parent != null) Undo.modifyNodeInst(this, oldD);
+            return;
         }
-		return super.lowLevelSetTextDescriptor(varName, td);
-	}
+        super.setTextDescriptor(varKey, td);
+    }
 
 	/**
 	 * Method to determine whether a variable key on NodeInst is deprecated.
@@ -2317,7 +2345,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public boolean isDeprecatedVariable(Variable.Key key)
 	{
-		if (key == NODE_NAME) return true;
+		if (key == NODE_NAME || key == NODE_PROTO) return true;
 		return super.isDeprecatedVariable(key);
 	}
 	
@@ -2392,11 +2420,11 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 		for(Iterator it = getExports(); it.hasNext(); )
 		{
 			Export pp = (Export)it.next();
-			TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME_TD);
+			TextDescriptor td = pp.getTextDescriptor(Export.EXPORT_NAME);
 			if (td.getXOff() != 0 || td.getYOff() != 0)
 			{
 				Point2D retVal = new Point2D.Double(getAnchorCenterX() + td.getXOff(), getAnchorCenterY() +td.getYOff());
-				if (repair) pp.setOff(Export.EXPORT_NAME_TD, 0, 0);
+				if (repair) pp.setOff(Export.EXPORT_NAME, 0, 0);
 				return retVal;
 			}
 		}
@@ -2849,6 +2877,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void check()
 	{
+        super.check();
 		assert d.name != null;
 		assert d.duplicate >= 0;
 
@@ -2901,11 +2930,17 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void copyStateBits(NodeInst ni) {
         checkChanging();
+        ImmutableNodeInst oldD = d;
         d = d.withFlags(ni.d.flags).withTechSpecific(ni.d.techBits);
-        Undo.otherChange(this);
+        if (parent != null) Undo.modifyNodeInst(this, oldD);
     }
 
-    private void setFlag(ImmutableNodeInst.Flag flag, boolean value) { checkChanging(); d = d.withFlag(flag, value); Undo.otherChange(this); }
+    private void setFlag(ImmutableNodeInst.Flag flag, boolean value) {
+        checkChanging();
+        ImmutableNodeInst oldD = d;
+        d = d.withFlag(flag, value);
+        if (parent != null) Undo.modifyNodeInst(this, oldD);
+    }
    
 	/**
 	 * Method to set this NodeInst to be expanded.
@@ -3027,8 +3062,9 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	 */
 	public void setTechSpecific(int value) {
         checkChanging();
+        ImmutableNodeInst oldD = d;
         d = d.withTechSpecific(value);
-        if (parent != null) Undo.otherChange(this); 
+        if (parent != null) Undo.modifyNodeInst(this, oldD);
     }
 
 	/**

@@ -3745,11 +3745,11 @@ public class EDIF extends Input
 		   						 * of characters as a name, this name is open to the user, for ECO and other
 								 * consistancies, the EDIF_name is saved on a variable)
 								 */
-								String varName;
+								Variable.Key varKey;
 								if (instanceReference.equalsIgnoreCase(instanceName))
 								{
 									ni.setName(nodeName);
-									varName = NodeInst.NODE_NAME_TD;
+									varKey = NodeInst.NODE_NAME;
 								} else
 								{
 									// now add the original name as the displayed name (only to the first element)
@@ -3757,7 +3757,7 @@ public class EDIF extends Input
 
 									// now save the EDIF name (not displayed)
 									Variable var = ni.newVar("EDIF_name", nodeName);
-									varName = var.getKey().getName();
+									varKey = var.getKey();
 								}
 
 								// now check for saved name attributes
@@ -3773,11 +3773,11 @@ public class EDIF extends Input
 									 * fonts range from 4 to 20 points
 									 */
 
-									ni.setOff(varName, xOff, yOff);
-									MutableTextDescriptor td = ni.getMutableTextDescriptor(varName);
+									ni.setOff(varKey, xOff, yOff);
+									MutableTextDescriptor td = ni.getMutableTextDescriptor(varKey);
 									td.setRelSize(convertTextSize(saveTextHeight));
 									td.setPos(saveTextJustification);
-									ni.setTextDescriptor(varName, td);
+									ni.setTextDescriptor(varKey, td);
 								}
 							}
 						}

@@ -25,21 +25,12 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.geometry.DBMath;
 import com.sun.electric.database.geometry.EPoint;
-import com.sun.electric.database.geometry.Orientation;
-import com.sun.electric.database.geometry.Poly;
-import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.ArcProto;
-import com.sun.electric.technology.PrimitiveNode;
-import com.sun.electric.technology.technologies.Artwork;
-import com.sun.electric.technology.technologies.Generic;
 
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 
 /**
  * Immutable class ImmutableArcInst represents an arc instance.
@@ -281,7 +272,7 @@ public class ImmutableArcInst
      * @throws IllegalArgumentException if name is not valid duplicate, or width is bad.
      */
     public static ImmutableArcInst newInstance(int arcId, ArcProto protoType,
-            Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+            Name name, int duplicate, TextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
             double width, int angle, int flags) {
@@ -289,6 +280,9 @@ public class ImmutableArcInst
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
+        ImmutableTextDescriptor immutableNameDescriptor = null;
+        if (nameDescriptor != null)
+            immutableNameDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(nameDescriptor).withDisplayWithoutParamAndCode();
         if (!(width >= 0)) throw new IllegalArgumentException("width");
         if (tailPortId == null) throw new NullPointerException("tailPortId");
         if (tailLocation == null) throw new NullPointerException("tailLocation");
@@ -299,7 +293,7 @@ public class ImmutableArcInst
         angle %= 3600;
         if (angle < 0) angle += 3600;
         flags &= DATABASE_FLAGS;
-		return new ImmutableArcInst(arcId, protoType, name, duplicate, nameDescriptor,
+		return new ImmutableArcInst(arcId, protoType, name, duplicate, immutableNameDescriptor,
                 tailNodeId, tailPortId, tailLocation,
                 headNodeId, headPortId, headLocation,
                 width, tailLocation.distance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags);
@@ -329,9 +323,12 @@ public class ImmutableArcInst
      * @param nameDescriptor TextDescriptor of name
 	 * @return ImmutableArcInst which differs from this ImmutableArcInst by name descriptor.
 	 */
-	public ImmutableArcInst withNameDescriptor(ImmutableTextDescriptor nameDescriptor) {
-        if (this.nameDescriptor == nameDescriptor) return this;
-		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, nameDescriptor,
+	public ImmutableArcInst withNameDescriptor(TextDescriptor nameDescriptor) {
+        ImmutableTextDescriptor immutableNameDescriptor = null;
+        if (nameDescriptor != null)
+            immutableNameDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(nameDescriptor).withDisplayWithoutParamAndCode();
+        if (this.nameDescriptor == immutableNameDescriptor) return this;
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, immutableNameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
                 this.width, this.length, this.angle, this.flags);
@@ -434,6 +431,8 @@ public class ImmutableArcInst
         assert name.isValid() && !name.hasEmptySubnames();
         assert !(name.isTempname() && name.isBus());
         assert duplicate >= 0;
+        if (nameDescriptor != null)
+            assert nameDescriptor.isDisplay() && !nameDescriptor.isCode() && !nameDescriptor.isParam();
         assert tailPortId != null;
         assert tailLocation != null;
         assert headPortId != null;

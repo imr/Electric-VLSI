@@ -24,6 +24,8 @@
 package com.sun.electric.database.change;
 
 import com.sun.electric.database.CellUsage;
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.constraint.Constraints;
 import com.sun.electric.database.constraint.Layout;
@@ -94,8 +96,7 @@ public class Undo
 		/** Describes the deletion of an arbitrary object. */				public static final Type OBJECTKILL = new Type("ObjectKill");
 		/** Describes the renaming of an arbitrary object. */				public static final Type OBJECTRENAME = new Type("ObjectRename");
 		/** Describes the redrawing of an arbitrary object. */				public static final Type OBJECTREDRAW = new Type("ObjectRedraw");
-		/** Describes the creation of a Variable on an object. */			public static final Type VARIABLENEW = new Type("VariableNew");
-		/** Describes the deletion of a Variable on an object. */			public static final Type VARIABLEKILL = new Type("VariableKill");
+		/** Describes the change of Variables on an object. */              public static final Type VARIABLESMOD = new Type("VariablesMod");
 		/** Describes the change to a TextDescriptor. */					public static final Type DESCRIPTORMOD = new Type("DescriptMod");
 		/** Describes a new library change */								public static final Type LIBRARYNEW = new Type("LibraryNew");
 		/** Describes a delete library change */							public static final Type LIBRARYKILL = new Type("LibraryKill");
@@ -111,21 +112,13 @@ public class Undo
 	{
 		private ElectricObject obj;
 		private Type type;
-		private double a1, a2, a3, a4, a5;
-		private int i1, i2, i3;
+		private int i1;
 		private Object o1, o2;
 
 		Change(ElectricObject obj, Type type)
 		{
 			this.obj = obj;
 			this.type = type;
-		}
-		private void setDoubles(double a1, double a2, double a3, double a4)
-		{
-			this.a1 = a1;
-			this.a2 = a2;
-			this.a3 = a3;
-			this.a4 = a4;
 		}
 
 		/**
@@ -144,45 +137,10 @@ public class Undo
 		 */
 //		private void setType(Type type) { this.type = type; }
 		/**
-		 * Method to get the first floating-point value associated with this Change.
-		 * @return the first floating-point value associated with this Change.
-		 */
-		public double getA1() { return a1; }
-		/**
-		 * Method to get the second floating-point value associated with this Change.
-		 * @return the second floating-point value associated with this Change.
-		 */
-		public double getA2() { return a2; }
-		/**
-		 * Method to get the third floating-point value associated with this Change.
-		 * @return the third floating-point value associated with this Change.
-		 */
-		public double getA3() { return a3; }
-		/**
-		 * Method to get the fourth floating-point value associated with this Change.
-		 * @return the fourth floating-point value associated with this Change.
-		 */
-		public double getA4() { return a4; }
-		/**
-		 * Method to get the fifth floating-point value associated with this Change.
-		 * @return the fifth floating-point value associated with this Change.
-		 */
-		public double getA5() { return a5; }
-		/**
 		 * Method to get the first integer value associated with this Change.
 		 * @return the first integer value associated with this Change.
 		 */
 		public int getI1() { return i1; }
-		/**
-		 * Method to get the second integer value associated with this Change.
-		 * @return the second integer value associated with this Change.
-		 */
-		public int getI2() { return i2; }
-		/**
-		 * Method to get the third integer value associated with this Change.
-		 * @return the third integer value associated with this Change.
-		 */
-		public int getI3() { return i3; }
 		/**
 		 * Method to get the first Object associated with this Change.
 		 * @return the first Object associated with this Change.
@@ -259,7 +217,7 @@ public class Undo
 				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
-					listener.modifyArcInst((ArcInst)obj, a1, a2, a3, a4, a5);
+					listener.modifyArcInst((ArcInst)obj, (ImmutableArcInst)o1);
 				}
 			} else if (type == Type.EXPORTMOD)
 			{
@@ -275,19 +233,12 @@ public class Undo
 					Listener listener = (Listener)it.next();
 					listener.modifyCellGroup((Cell)obj, (Cell.CellGroup)o1);
 				}
-			} else if (type == Type.VARIABLENEW)
+			} else if (type == Type.VARIABLESMOD)
 			{
 				for(Iterator it = Tool.getListeners(); it.hasNext(); )
 				{
 					Listener listener = (Listener)it.next();
-					listener.newVariable(obj, (Variable)o1);
-				}
-			} else if (type == Type.VARIABLEKILL)
-			{
-				for(Iterator it = Tool.getListeners(); it.hasNext(); )
-				{
-					Listener listener = (Listener)it.next();
-					listener.killVariable(obj, (Variable)o1);
+					listener.modifyVariables(obj, (ImmutableElectricObject)o1);
 				}
 			} else if (type == Type.DESCRIPTORMOD)
 			{
@@ -356,19 +307,13 @@ public class Undo
 			{
 				// get information about the arc as it is now
 				ArcInst ai = (ArcInst)obj;
-				Point2D oldHeadPt = new Point2D.Double();
-				oldHeadPt.setLocation(ai.getHeadLocation());
-				Point2D oldTailPt = new Point2D.Double();
-				oldTailPt.setLocation(ai.getTailLocation());
-				double oldWid = ai.getWidth();
+                ImmutableArcInst oldD = ai.getD();
 
 				// change the arc information
-				ai.lowLevelModify(a5 - oldWid, a1-oldHeadPt.getX(), a2-oldHeadPt.getY(), a3-oldTailPt.getX(), a4-oldTailPt.getY());
+				ai.lowLevelModify((ImmutableArcInst)o1);
 
 				// update the change to its reversed state
-				a1 = oldHeadPt.getX();   a2 = oldHeadPt.getY();
-				a3 = oldTailPt.getX();   a4 = oldTailPt.getY();
-				a5 = oldWid;
+                o1 = oldD;
 				return;
 			}
 			if (type == Type.EXPORTNEW)
@@ -496,24 +441,17 @@ public class Undo
 				}
 				return;
 			}
-			if (type == Type.VARIABLENEW)
+			if (type == Type.VARIABLESMOD)
 			{
-				Variable var = (Variable)o1;
-				obj.lowLevelUnlinkVar(var);
-				type = Type.VARIABLEKILL;
-				return;
-			}
-			if (type == Type.VARIABLEKILL)
-			{
-				Variable var = (Variable)o1;
-				obj.lowLevelLinkVar(var);
-				type = Type.VARIABLENEW;
+				ImmutableElectricObject oldImmutable = obj.getImmutable();
+				obj.lowLevelModifyVariables((ImmutableElectricObject)o1);
+                o1 = oldImmutable;
 				return;
 			}
 			if (type == Type.DESCRIPTORMOD)
 			{
                 String varName = (String)o1;
-                o2 = obj.lowLevelSetTextDescriptor(varName, (ImmutableTextDescriptor)o2);
+                o2 = ((Export)obj).lowLevelSetTextDescriptor(varName, (ImmutableTextDescriptor)o2);
                 return;
 			}
             if (type == Type.OTHERCHANGE)
@@ -581,12 +519,12 @@ public class Undo
 					}
 				}
 				major = true;   // this is major change for the library (E.g.: export names)
-			} else if (type == Type.VARIABLENEW || type == Type.VARIABLEKILL)
+			} else if (type == Type.VARIABLESMOD)
 			{
 				cell = obj.whichCell();
 				if (cell != null) lib = cell.getLibrary();
-				Variable var = (Variable)o1;
-				major = isMajorVariable(obj, var.getKey());
+//				Variable var = (Variable)o1;
+//				major = isMajorVariable(obj, var.getKey());
 			} else if (type == Type.DESCRIPTORMOD)
 			{
 				cell = obj.whichCell();
@@ -647,7 +585,7 @@ public class Undo
                 ImmutableNodeInst d = (ImmutableNodeInst)getO1();
 				return ni + " modified in " + ni.getParent() +
 					"[was " + d.width + "x" + d.height + " at (" + d.anchor.getX() + "," + d.anchor.getY() + ") rotated " + d.orient + ", is " +
-					ni.getXSize() + "x" + ni.getYSize() + " at (" + ni.getAnchorCenterX() + "," +
+					ni.getD().width + "x" + ni.getD().height + " at (" + ni.getAnchorCenterX() + "," +
 					ni.getAnchorCenterY() + ") rotated " + ni.getOrient() + "]";
 			}
 			if (type == Type.ARCINSTNEW)
@@ -663,8 +601,10 @@ public class Undo
 			if (type == Type.ARCINSTMOD)
 			{
 				ArcInst ai = (ArcInst)obj;
+                ImmutableArcInst d = (ImmutableArcInst)getO1();
 				return ai + " modified in " + ai.getParent() +
-					"[was " + getA5() + " wide from (" + getA1() + "," + getA2() + ") to (" + getA3() + "," + getA4() + ")]";
+					"[was " + d.width + " wide from (" + d.headLocation.getX() + "," + d.headLocation.getY() + ") to (" + d.tailLocation.getX() + "," + d.tailLocation.getY() + ")]" +
+                        ", is " + ai.getWidth() + " wide from (" + ai.getHeadLocation().getX() + "," + ai.getHeadLocation().getY() + ") to (" + ai.getTailLocation().getX() + "," + ai.getTailLocation().getY() + ")";
 			}
 			if (type == Type.EXPORTNEW)
 			{
@@ -715,13 +655,9 @@ public class Undo
 			{
 				return "Redraw object " + obj;
 			}
-			if (type == Type.VARIABLENEW)
+			if (type == Type.VARIABLESMOD)
 			{
-				return "Created variable "+o1+" on "+obj;
-			}
-			if (type == Type.VARIABLEKILL)
-			{
-				return "Deleted variable "+o1+" on "+obj+" [was "+((Variable)o1).getObject()+"]";
+				return "Changed variables on "+obj;
 			}
 			if (type == Type.DESCRIPTORMOD)
 			{
@@ -799,50 +735,14 @@ public class Undo
 				} else if (ch.getType() == Type.OBJECTNEW || ch.getType() == Type.OBJECTKILL || ch.getType() == Type.OBJECTREDRAW)
 				{
 					object++;
-				} else if (ch.getType() == Type.VARIABLENEW || ch.getType() == Type.VARIABLEKILL)
+				} else if (ch.getType() == Type.VARIABLESMOD)
 				{
 					variable++;
 				} else if (ch.getType() == Type.DESCRIPTORMOD)
 				{
                     String varName = (String)ch.o1;
-					if (ch.obj instanceof NodeInst)
-					{
-						NodeInst ni = (NodeInst)ch.obj;
-						if (varName == NodeInst.NODE_NAME_TD || varName == NodeInst.NODE_PROTO_TD)
-							nodeInst++;
-						else
-							variable++;
-					} else if (ch.obj instanceof ArcInst)
-					{
-						ArcInst ai = (ArcInst)ch.obj;
-						if (varName == ArcInst.ARC_NAME_TD)
-							arcInst++;
-						else
-							variable++;
-					} else if (ch.obj instanceof Export)
-					{
-						Export e = (Export)ch.obj;
-						if (varName == Export.EXPORT_NAME_TD)
-							export++;
-						else
-							variable++;
-// 					} else if (ch.obj instanceof Technology)
-// 					{
-// 						boolean varFound = false;
-// 						for (Iterator it = ch.obj.getVariables(); it.hasNext();)
-// 						{
-// 							Variable var = (Variable)it.next();
-// 							if (var.getTextDescriptor() == td)
-// 								varFound = true;
-// 						}
-// 						if (varFound)
-// 							variable++;
-// 						else
-// 							object++;
-					} else
-					{
-						variable++;
-					}
+                    assert ch.obj instanceof Export && varName.equals(Export.EXPORT_NAME.getName());
+                    export++;
 				} else if (ch.getType() == Type.OTHERCHANGE)
                 {
                         object++;
@@ -1103,7 +1003,7 @@ public class Undo
 	 * <LI>NODEINSTMOD takes o1=oldD.
 	 * <LI>ARCINSTNEW takes nothing.
 	 * <LI>ARCINSTKILL takes nothing.
-	 * <LI>ARCINSTMOD takes a1=oldHeadX a2=oldHeadY a3=oldTailX a4=oldTailY a5=oldWidth.
+	 * <LI>ARCINSTMOD takes o1=oldD.
 	 * <LI>EXPORTNEW takes nothing.
 	 * <LI>EXPORTKILL takes o1=oldPortInsts.
 	 * <LI>EXPORTMOD takes o1=oldPortInst.
@@ -1113,8 +1013,7 @@ public class Undo
 	 * <LI>OBJECTKILL takes nothing.
 	 * <LI>OBJECTRENAME takes o1=oldName.
 	 * <LI>OBJECTREDRAW takes nothing.
-	 * <LI>VARIABLENEW takes o1=var.
-	 * <LI>VARIABLEKILL takes o1=var.
+	 * <LI>VARIABLESMOD takes o1=oldImmutable.
 	 * <LI>DESCRIPTORMOD takes o1=varName o2=oldDescriptor.
 	 * <LI>CELLGROUPMOD takes o1=oldCellGroup
      * <LI?OTHERCHANGE takes nothing
@@ -1175,23 +1074,17 @@ public class Undo
 	/**
 	 * Method to store a change to an ArcInst in the change-control system.
 	 * @param ai the ArcInst that changed.
-	 * @param oHX the former X position of the arc's head.
-	 * @param oHY the former Y position of the arc's head.
-	 * @param oTX the former X position of the arc's tail.
-	 * @param oTY the former Y position of the arc's tail.
-	 * @param oWid the former width of the ArcInst.
+     * @param oD the old contents of the ArcInst.
 	 */
-	public static void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid)
+	public static void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
 	{
 		if (!recordChange()) return;
-		Change ch = newChange(ai, Type.ARCINSTMOD, null);
+		Change ch = newChange(ai, Type.ARCINSTMOD, oD);
 		if (ch == null) return;
-		ch.setDoubles(oHX, oHY, oTX, oTY);
-		ch.a5 = oWid;
 //		ai.setChange(ch);
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 //		fireChangeEvent(ch);
-        Constraints.getCurrent().modifyArcInst(ai, oHX, oHY, oTX, oTY, oWid);
+        Constraints.getCurrent().modifyArcInst(ai, oD);
 	}
 
 	/**
@@ -1366,38 +1259,21 @@ public class Undo
 //		fireChangeEvent(ch);
 	}
 
-	/**
-	 * Method to store the creation of a new Variable in the change-control system.
-	 * @param obj the ElectricObject that has the Variable.
-	 * @param var the Variable that was created.
+    /*
+	 * Method to store the change of object ImmutableVariables.
+	 * @param obj the ElectricObject on which ImmutableVariables changed.
+	 * @param oldImmutable the old ImmutableVariables.
 	 */
-	public static void newVariable(ElectricObject obj, Variable var)
+	public static void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable)
 	{
 		if (!recordChange()) return;
-		Type type = Type.VARIABLENEW;
-		Change ch = newChange(obj, type, var);
+		Type type = Type.VARIABLESMOD;
+		Change ch = newChange(obj, type, oldImmutable);
 		if (ch == null) return;
 
 		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
 //		fireChangeEvent(ch);
-		Constraints.getCurrent().newVariable(obj, var);
-	}
-
-	/**
-	 * Method to store the deletion of a Variable in the change-control system.
-	 * @param obj the ElectricObject on which the Variable resided.
-	 * @param var the Variable that was deleted.
-	 */
-	public static void killVariable(ElectricObject obj, Variable var)
-	{
-		if (!recordChange()) return;
-		Type type = Type.VARIABLEKILL;
-		Change ch = newChange(obj, type, var);
-		if (ch == null) return;
-
-		ch.broadcast(currentBatch.getNumChanges() <= 1, false);
-//		fireChangeEvent(ch);
-		Constraints.getCurrent().killVariable(obj, var);
+		Constraints.getCurrent().modifyVariables(obj, oldImmutable);
 	}
 
 	/**

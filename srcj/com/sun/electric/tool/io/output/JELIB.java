@@ -267,7 +267,7 @@ public class JELIB extends Output
 				objInfo.put(ni, diskNodeName);
 				printWriter.print("|" + diskNodeName + "|");
 				if (!ni.getNameKey().isTempname())
-					printWriter.print(describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_NAME_TD)));
+					printWriter.print(describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_NAME)));
 				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterX(), 0));
 				printWriter.print("|" + TextUtils.formatDouble(ni.getAnchorCenterY(), 0));
 				if (np instanceof PrimitiveNode)
@@ -295,7 +295,7 @@ public class JELIB extends Output
 				printWriter.print("|" + nodeBits.toString());
 				if (np instanceof Cell)
 				{
-					String tdString = describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_PROTO_TD));
+					String tdString = describeDescriptor(null, ni.getTextDescriptor(NodeInst.NODE_PROTO));
 					printWriter.print("|" + tdString);
 				}
 				printlnVars(ni, cell);
@@ -313,7 +313,7 @@ public class JELIB extends Output
 				printWriter.print("|" + getGeomName(ai) + "|");
 				//printWriter.print("|" + convertString(ai.getName()) + "|");
 				if (!ai.getNameKey().isTempname())
-					printWriter.print(describeDescriptor(null, ai.getTextDescriptor(ArcInst.ARC_NAME_TD)));
+					printWriter.print(describeDescriptor(null, ai.getTextDescriptor(ArcInst.ARC_NAME)));
 				printWriter.print("|" + TextUtils.formatDouble(ai.getWidth(), 0));
 				StringBuffer arcBits = new StringBuffer();
 
@@ -348,7 +348,7 @@ public class JELIB extends Output
 			{
 				Export pp = (Export)it.next();
 				printWriter.print("E" + convertString(pp.getName()));
-				printWriter.print("|" + describeDescriptor(null, pp.getTextDescriptor(Export.EXPORT_NAME_TD)));
+				printWriter.print("|" + describeDescriptor(null, pp.getTextDescriptor(Export.EXPORT_NAME)));
 
 				PortInst subPI = pp.getOriginalPort();
 				NodeInst subNI = subPI.getNodeInst();

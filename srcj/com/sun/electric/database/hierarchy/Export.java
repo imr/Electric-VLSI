@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.ElectricObject_;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -67,10 +68,11 @@ import java.util.Iterator;
  * <P>
  * <CENTER><IMG SRC="doc-files/Export-1.gif"></CENTER>
  */
-public class Export extends ElectricObject implements PortProto, Comparable
+public class Export extends ElectricObject_ implements PortProto, Comparable
 {
 	/** Special name for text descriptor of export name */	public static final String EXPORT_NAME_TD = new String("EXPORT_name");
 
+	/** Key of text descriptor of export name */            public static final Variable.Key EXPORT_NAME = Variable.newKey("EXPORT_name");
 	/** Key of Varible holding reference name. */			public static final Variable.Key EXPORT_REFERENCE_NAME = Variable.newKey("EXPORT_reference_name");
 
 	/** set if this port should always be drawn */			private static final int PORTDRAWN =         0400000000;
@@ -444,7 +446,7 @@ public class Export extends ElectricObject implements PortProto, Comparable
 		Poly poly = getOriginalPort().getPoly();
 		double cX = poly.getCenterX();
 		double cY = poly.getCenterY();
-		TextDescriptor td = getTextDescriptor(EXPORT_NAME_TD);
+		TextDescriptor td = getTextDescriptor(EXPORT_NAME);
 		double offX = td.getXOff();
 		double offY = td.getYOff();
 		TextDescriptor.Position pos = td.getPos();
@@ -504,21 +506,39 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	public int getPortIndex() { return portIndex; }
 
 	/**
-	 * Returns the TextDescriptor on this Export selected by name.
-	 * This name may be a name of variable on this Export or
-	 * the special name <code>NodeInst.NODE_NAME_TD</code>.
-	 * Other strings are not considered special, even they are equal to the
-	 * special name. In other words, special name is compared by "==" other than
-	 * by "equals".
+	 * Returns the TextDescriptor on this Export selected by variable key.
+	 * This key may be a key of variable on this Export or
+     * the special key <code>Export.EXPORT_NAME</code>.
 	 * The TextDescriptor gives information for displaying the Variable.
-	 * @param varName name of variable or special name.
+	 * @param varKey key of variable or special key.
 	 * @return the TextDescriptor on this Export.
 	 */
-	public ImmutableTextDescriptor getTextDescriptor(String varName)
+	public ImmutableTextDescriptor getTextDescriptor(Variable.Key varKey)
 	{
-		if (varName == EXPORT_NAME_TD) return descriptor;
-		return super.getTextDescriptor(varName);
+		if (varKey == EXPORT_NAME) return descriptor;
+		return super.getTextDescriptor(varKey);
 	}
+
+	/**
+	 * Updates the TextDescriptor on this Export selected by varName.
+	 * The varKey may be a key of variable on this ElectricObject or
+     * the special key Export.EXPORT_NAME.
+	 * If varKey doesn't select any text descriptor, no action is performed.
+	 * The TextDescriptor gives information for displaying the Variable.
+	 * @param varName name of variable or special name.
+	 * @param td new value TextDescriptor
+	 */
+	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
+	{
+        if (varKey == EXPORT_NAME) {
+            checkChanging();
+            ImmutableTextDescriptor oldDescriptor = descriptor;
+            descriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(td).withDisplayWithoutParamAndCode();
+            Undo.modifyTextDescript(this, varKey.getName(), oldDescriptor);
+            return;
+        }
+        super.setTextDescriptor(varKey, td);
+    }
 
 	/**
 	 * Updates the TextDescriptor on this Export selected by varName.
@@ -536,15 +556,25 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 */
 	public ImmutableTextDescriptor lowLevelSetTextDescriptor(String varName, ImmutableTextDescriptor td)
 	{
-		if (varName == EXPORT_NAME_TD)
-        {
-            ImmutableTextDescriptor oldDescriptor = descriptor;
-			descriptor = td.withDisplayWithoutParamAndCode();
-            return oldDescriptor;
-        }
-		return super.lowLevelSetTextDescriptor(varName, td);
+        assert varName.equals(EXPORT_NAME.getName());
+        ImmutableTextDescriptor oldDescriptor = descriptor;
+		descriptor = td.withDisplayWithoutParamAndCode();
+        return oldDescriptor;
 	}
 
+	/**
+	 * Method to determine whether a variable key on Export is deprecated.
+	 * Deprecated variable keys are those that were used in old versions of Electric,
+	 * but are no longer valid.
+	 * @param key the key of the variable.
+	 * @return true if the variable key is deprecated.
+	 */
+	public boolean isDeprecatedVariable(Variable.Key key)
+	{
+		if (key == EXPORT_NAME) return true;
+		return super.isDeprecatedVariable(key);
+	}
+	
     /**
 	 * Method chooses TextDescriptor with "smart text placement"
      * of Export on specified origianl port.
@@ -853,8 +883,9 @@ public class Export extends ElectricObject implements PortProto, Comparable
 	 * Method to check invariants in this Export.
 	 * @exception AssertionError if invariants are not valid
 	 */
-	void check()
+	protected void check()
 	{
+        super.check();
 		assert originalPort != null;
 		NodeInst ni = originalPort.getNodeInst();
 		PortProto pp = originalPort.getPortProto();

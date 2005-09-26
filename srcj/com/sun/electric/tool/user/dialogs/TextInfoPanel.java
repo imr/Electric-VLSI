@@ -71,7 +71,7 @@ public class TextInfoPanel extends javax.swing.JPanel
     private int initialColorIndex;
 
     private TextDescriptor td;
-    private String varName;
+    private Variable.Key varKey;
     private ElectricObject owner;
     private NodeInst unTransformNi;
 
@@ -194,24 +194,23 @@ public class TextInfoPanel extends javax.swing.JPanel
      * Set what the dialog displays: It can display and allow editing of the settings
      * for an existing text descriptor, or it can display and allow editing of default values
      * for a text descriptor of a variable that has not yet been created.
-     * <p>if owner.getTextDescriptor(varName) returns non-null td, display and allow editing of the td text options
-     * <p>else if varName is non-null, display and allow editing of default values.
-     * <p>if varName is null, disable entire panel
-     * @param varName the name a variable that will be created later.
+     * <p>if owner.getTextDescriptor(varKey) returns non-null td, display and allow editing of the td text options
+     * <p>else if varKey is non-null, display and allow editing of default values.
+     * <p>if varKey is null, disable entire panel
+     * @param varKey the key a variable that will be created later.
      * @param owner the object the variable is on.
      */
-    public synchronized void setTextDescriptor(String varName, ElectricObject owner)
+    public synchronized void setTextDescriptor(Variable.Key varKey, ElectricObject owner)
     {
         // do not allow empty names for future vars
-        if (varName != null) {
-            varName = varName.trim();
-            if (varName.equals("")) varName = null;
+        if (varKey != null) {
+            if (varKey.getName().trim().equals("")) varKey = null;
         }
 
-        this.varName = varName;
+        this.varKey = varKey;
         this.owner = owner;
 
-        boolean enabled = owner != null && varName != null;
+        boolean enabled = owner != null && varKey != null;
 
         // update enabled state of everything
         // can't just enable all children because objects might be inside JPanel
@@ -237,7 +236,7 @@ public class TextInfoPanel extends javax.swing.JPanel
 
         // if td is null and we are going to apply value to future var,
         // use current panel settings.
-		td = owner.getTextDescriptor(varName);
+		td = owner.getTextDescriptor(varKey);
         if (td == null) return;
 
         loading = true;
@@ -430,7 +429,7 @@ public class TextInfoPanel extends javax.swing.JPanel
      */
     public synchronized boolean applyChanges() {
 
-        if (varName == null) return false;
+        if (varKey == null) return false;
 
         boolean changed = false;
 
@@ -525,7 +524,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         ChangeText job = new ChangeText(
                 owner,
 				unTransformNi,
-                varName,
+                varKey,
                 newSize,
                 newPosition, newBoxedWidth, newBoxedHeight,
                 newRotation,
@@ -555,7 +554,7 @@ public class TextInfoPanel extends javax.swing.JPanel
 	{
         private ElectricObject owner;
         private NodeInst unTransformNi;
-        private String varName;
+        private Variable.Key varKey;
         private TextDescriptor.Size size;
         private TextDescriptor.Position position;
         private double boxedWidth, boxedHeight;
@@ -568,7 +567,7 @@ public class TextInfoPanel extends javax.swing.JPanel
         private ChangeText(
                 ElectricObject owner,
 				NodeInst unTransformNi,
-                String varName,
+                Variable.Key varKey,
                 TextDescriptor.Size size,
                 TextDescriptor.Position position, double boxedWidth, double boxedHeight,
                 TextDescriptor.Rotation rotation,
@@ -580,7 +579,7 @@ public class TextInfoPanel extends javax.swing.JPanel
             super("Modify Text", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.owner = owner;
             this.unTransformNi = unTransformNi;
-            this.varName = varName;
+            this.varKey = varKey;
             this.size = size;
             this.position = position;
             this.boxedWidth = boxedWidth;
@@ -601,7 +600,7 @@ public class TextInfoPanel extends javax.swing.JPanel
 //                 if (var == null) return false;                // var doesn't exist, failed
 //                 td = var.getTextDescriptor();           // use TextDescriptor from new var
 //             }
-			MutableTextDescriptor td = owner.getMutableTextDescriptor(varName);
+			MutableTextDescriptor td = owner.getMutableTextDescriptor(varKey);
 			if (td == null) return false;
 
             // handle changes to the size
@@ -671,7 +670,7 @@ public class TextInfoPanel extends javax.swing.JPanel
             td.setUnderline(underline);
             td.setColorIndex(newColorIndex);
 
-			owner.setTextDescriptor(varName, td);
+			owner.setTextDescriptor(varKey, td);
 			return true;
         }
     }

@@ -23,9 +23,9 @@
  */
 package com.sun.electric.database.change;
 
+import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
 
 import java.util.Iterator;
 
@@ -52,7 +52,7 @@ public class DatabaseChangeEvent {
                 return true;
             }
         }
-	return false;
+        return false;
     }
 
     /**
@@ -60,22 +60,23 @@ public class DatabaseChangeEvent {
      * in the new database state.
      * @return true if cell explorer tree was changed.
      */
-    public boolean cellTreeChanged()
-    {
-	for (Iterator it = batch.getChanges(); it.hasNext(); )
-	{
-	    Undo.Change change = (Undo.Change)it.next();
-	    if (change.getType() == Undo.Type.LIBRARYKILL ||
-		change.getType() == Undo.Type.LIBRARYNEW ||
-		change.getType() == Undo.Type.CELLKILL ||
-		change.getType() == Undo.Type.CELLNEW ||
-		change.getType() == Undo.Type.CELLGROUPMOD ||
-		(change.getType() == Undo.Type.OBJECTRENAME && change.getObject() instanceof Cell) ||
-		(change.getType() == Undo.Type.VARIABLENEW && change.getObject() instanceof Cell && ((Variable)change.getO1()).getKey() == Cell.MULTIPAGE_COUNT_KEY))
-	    {
-		return true;
-	    }
-	}
-	return false;
+    public boolean cellTreeChanged() {
+        for (Iterator it = batch.getChanges(); it.hasNext(); ) {
+            Undo.Change change = (Undo.Change)it.next();
+            if (change.getType() == Undo.Type.LIBRARYKILL ||
+                    change.getType() == Undo.Type.LIBRARYNEW ||
+                    change.getType() == Undo.Type.CELLKILL ||
+                    change.getType() == Undo.Type.CELLNEW ||
+                    change.getType() == Undo.Type.CELLGROUPMOD ||
+                    (change.getType() == Undo.Type.OBJECTRENAME && change.getObject() instanceof Cell)) {
+                return true;
+            }
+            if (change.getType() == Undo.Type.VARIABLESMOD && change.getObject() instanceof Cell) {
+                ImmutableElectricObject oldImmutable = (ImmutableElectricObject)change.getO1();
+                ImmutableElectricObject newImmutable = (ImmutableElectricObject)change.getObject().getImmutable();
+                return oldImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY) != newImmutable.getVar(Cell.MULTIPAGE_COUNT_KEY);
+            }
+        }
+        return false;
     }
 }

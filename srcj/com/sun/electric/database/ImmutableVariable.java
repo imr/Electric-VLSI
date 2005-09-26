@@ -40,7 +40,7 @@ import java.util.HashMap;
 /**
  * Immutable class ImmutableVariable an Electric variable.
  */
-public class ImmutableVariable {
+public final class ImmutableVariable {
     
     /** empty array of ImmutableVariables. */
     public static final ImmutableVariable[] NULL_ARRAY = {};

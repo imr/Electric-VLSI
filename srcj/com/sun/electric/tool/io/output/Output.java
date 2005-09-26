@@ -451,8 +451,8 @@ public class Output
 				gatherVariables(ni);
 				if (needVars)
 				{
-					gatherFont(ni.getTextDescriptor(NodeInst.NODE_NAME_TD));
-					gatherFont(ni.getTextDescriptor(NodeInst.NODE_PROTO_TD));
+					gatherFont(ni.getTextDescriptor(NodeInst.NODE_NAME));
+					gatherFont(ni.getTextDescriptor(NodeInst.NODE_PROTO));
 				}
 			}
 
@@ -465,7 +465,7 @@ public class Output
 				//gatherObj(ai.getHead().getPortInst().getPortProto());
 				//gatherObj(ai.getTail().getPortInst().getPortProto());
 				gatherVariables(ai);
-				if (needVars) gatherFont(ai.getTextDescriptor(ArcInst.ARC_NAME_TD));
+				if (needVars) gatherFont(ai.getTextDescriptor(ArcInst.ARC_NAME));
 			}
 
 			for(Iterator it = cell.getPorts(); it.hasNext(); )
@@ -473,7 +473,7 @@ public class Output
 				Export e = (Export)it.next();
 				//gatherObj(e.getOriginalPort().getPortProto());
 				gatherVariables(e);
-				if (needVars) gatherFont(e.getTextDescriptor(Export.EXPORT_NAME_TD));
+				if (needVars) gatherFont(e.getTextDescriptor(Export.EXPORT_NAME));
 			}
 
 			gatherVariables(cell);

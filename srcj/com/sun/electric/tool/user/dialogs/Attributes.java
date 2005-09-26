@@ -463,7 +463,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             varName = "ATTR_" + varName;
 
         // try to find variable
-        Variable var = selectedObject.getVar(varName);
+        Variable.Key varKey = Variable.newKey(varName);
+        Variable var = selectedObject.getVar(varKey);
         if (var != null) {
             // make sure var is selected
             showSelectedAttribute(var);
@@ -473,8 +474,8 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
             renameButton.setEnabled(false);
             deleteButton.setEnabled(false);
             list.clearSelection();
-            textPanel.setTextDescriptor(varName, selectedObject);
-            attrPanel.setVariable(varName, selectedObject);
+            textPanel.setTextDescriptor(varKey, selectedObject);
+            attrPanel.setVariable(varKey, selectedObject);
         }
     }
 
@@ -578,10 +579,10 @@ public class Attributes extends EDialog implements HighlightListener, DatabaseCh
 
         // set the text info panel
 		if (var.isDisplay())
-			textPanel.setTextDescriptor(var.getKey().getName(), selectedObject);
+			textPanel.setTextDescriptor(var.getKey(), selectedObject);
 		else
 			textPanel.setTextDescriptor(null, null);
-        attrPanel.setVariable(var.getKey().getName(), selectedObject);
+        attrPanel.setVariable(var.getKey(), selectedObject);
 
         // disable create button because var name already exists, enable selected: buttons
         newButton.setEnabled(false);

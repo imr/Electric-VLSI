@@ -39,6 +39,7 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.SizeOffset;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.Highlight;
@@ -914,7 +915,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					if (alwaysDrawn == 1) e.setAlwaysDrawn(); else
 						if (alwaysDrawn == 2) e.clearAlwaysDrawn();
 
-					MutableTextDescriptor td = e.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
+					MutableTextDescriptor td = e.getMutableTextDescriptor(Export.EXPORT_NAME);
 					boolean tdChanged = false;
 					if (pointSize.length() > 0)
 					{
@@ -983,7 +984,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
 					// update text descriptor if it changed
 					if (tdChanged)
-						e.setTextDescriptor(Export.EXPORT_NAME_TD, td);
+						e.setTextDescriptor(Export.EXPORT_NAME, td);
 				}
 			}
 
@@ -995,23 +996,23 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 					ElectricObject eobj = h.getElectricObject();
 					if (h.getType() != Highlight.Type.TEXT) continue;
 
-					String descName = null;
+					Variable.Key descKey = null;
 					if (h.getVar() != null)
 					{
-						descName = h.getVar().getKey().getName();
+						descKey = h.getVar().getKey();
 					} else
 					{
 						if (h.getName() != null)
 						{
-							if (eobj instanceof NodeInst) descName = NodeInst.NODE_NAME_TD; else
-								if (eobj instanceof ArcInst) descName = ArcInst.ARC_NAME_TD;
+							if (eobj instanceof NodeInst) descKey = NodeInst.NODE_NAME; else
+								if (eobj instanceof ArcInst) descKey = ArcInst.ARC_NAME;
 						} else if (eobj instanceof NodeInst)
 						{
-							descName = NodeInst.NODE_PROTO_TD;
+							descKey = NodeInst.NODE_PROTO;
 						}
 					}
-					if (descName == null) continue;
-					MutableTextDescriptor td = eobj.getMutableTextDescriptor(descName);
+					if (descKey == null) continue;
+					MutableTextDescriptor td = eobj.getMutableTextDescriptor(descKey);
 
 					String pointSize = dialog.findComponentStringValue(CHANGEPOINTSIZE);
 					String unitSize = dialog.findComponentStringValue(CHANGEUNITSIZE);
@@ -1118,7 +1119,7 @@ public class GetInfoMulti extends EDialog implements HighlightListener, Database
 
 					// update text descriptor if it changed
 					if (tdChanged)
-						eobj.setTextDescriptor(descName, td);
+						eobj.setTextDescriptor(descKey, td);
 				}
 			}
 			return true;

@@ -705,9 +705,9 @@ public class PadGenerator
                         pppad = Export.newInstance(framecell, ni.findPortInstFromProto(pppad), pad.exportsname);
                         if (pppad == null) err("Creating export " + pad.exportsname); else
 						{
-                            MutableTextDescriptor td = pppad.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
+                            MutableTextDescriptor td = pppad.getMutableTextDescriptor(Export.EXPORT_NAME);
                             td.setAbsSize(14);
-							pppad.setTextDescriptor(Export.EXPORT_NAME_TD, td);
+							pppad.setTextDescriptor(Export.EXPORT_NAME, td);
 							padPorts.add(pppad);
                         }
                     }
@@ -724,10 +724,10 @@ public class PadGenerator
                             ppcore = Export.newInstance(framecell, ni.findPortInstFromProto(ppcore), "core_" + pad.exportsname);
                             if (ppcore == null) err("Creating export core_" + pad.exportsname); else
 							{
-                                MutableTextDescriptor td = ppcore.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
+                                MutableTextDescriptor td = ppcore.getMutableTextDescriptor(Export.EXPORT_NAME);
                                 td.setAbsSize(14);
                                 corePorts.add(ppcore);
-								ppcore.setTextDescriptor(Export.EXPORT_NAME_TD, td);
+								ppcore.setTextDescriptor(Export.EXPORT_NAME, td);
                             }
                         }
                     } else
@@ -747,10 +747,10 @@ public class PadGenerator
                     if (pp == null)
                         err("Creating export "+ea.exportName);
                     else {
-                        MutableTextDescriptor td = pp.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
+                        MutableTextDescriptor td = pp.getMutableTextDescriptor(Export.EXPORT_NAME);
                         td.setAbsSize(14);
                         corePorts.add(pp);
-                        pp.setTextDescriptor(Export.EXPORT_NAME_TD, td);
+                        pp.setTextDescriptor(Export.EXPORT_NAME, td);
                     }
                 }
             }

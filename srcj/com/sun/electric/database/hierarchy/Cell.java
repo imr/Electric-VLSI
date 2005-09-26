@@ -47,6 +47,7 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.ElectricObject_;
 import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
@@ -96,7 +97,7 @@ import javax.swing.JOptionPane;
  * <P>
  * <CENTER><IMG SRC="doc-files/Cell-1.gif"></CENTER>
  */
-public class Cell extends ElectricObject implements NodeProto, Comparable
+public class Cell extends ElectricObject_ implements NodeProto, Comparable
 {
 	// ------------------------- private classes -----------------------------
 
@@ -598,8 +599,8 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			newNodes.put(ni, toNi);
 
 			// copy miscellaneous information
-			toNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO_TD);
-			toNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
+			toNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO);
+			toNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 			toNi.copyStateBits(ni);
 
 		}
@@ -684,7 +685,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 
 			// copy miscellaneous information
 			ppt.lowLevelSetUserbits(pp.lowLevelGetUserbits());
-			ppt.copyTextDescriptorFrom(pp, Export.EXPORT_NAME_TD);
+			ppt.copyTextDescriptorFrom(pp, Export.EXPORT_NAME);
 		}
 
 		// copy cell variables
@@ -3720,8 +3721,9 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 	 * Method to check invariants in this Cell.
 	 * @exception AssertionError if invariants are not valid
 	 */
-	void check()
+	protected void check()
 	{
+        super.check();
 		assert linkedCells.get(cellId.cellIndex) == this;
 		assert cellName != null;
 		assert getVersion() > 0;
@@ -3732,7 +3734,7 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			assert e.getParent() == this;
 			assert e.getPortIndex() == i : e;
 			if (i > 0)
-				assert(TextUtils.STRING_NUMBER_ORDER.compare(e.getName(), exports[i - 1].getName()) > 0) : i;
+				assert(TextUtils.STRING_NUMBER_ORDER.compare(exports[i - 1].getName(), e.getName()) < 0) : i;
 			e.check();
             assert e == chronExports[e.exportId.chronIndex]; 
 		}
@@ -3752,10 +3754,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			assert ai.getArcIndex() == i;
 			if (prevAi != null)
 			{
-				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ai.getName(), prevAi.getName());
-				assert cmp >= 0;
+				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevAi.getName(), ai.getName());
+				assert cmp <= 0;
 				if (cmp == 0)
-					assert ai.getDuplicate() > prevAi.getDuplicate();
+					assert prevAi.getDuplicate() < ai.getDuplicate();
 			}
 			ai.check();
 			assert !connections.contains(ai.getHead()) : ai;
@@ -3774,10 +3776,10 @@ public class Cell extends ElectricObject implements NodeProto, Comparable
 			assert ni.getNodeIndex() == i;
 			if (prevNi != null)
 			{
-				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(ni.getName(), prevNi.getName());
-				assert cmp >= 0;
+				int cmp = TextUtils.STRING_NUMBER_ORDER.compare(prevNi.getName(), ni.getName());
+				assert cmp <= 0;
 				if (cmp == 0)
-					assert ni.getDuplicate() > prevNi.getDuplicate();
+					assert prevNi.getDuplicate() < ni.getDuplicate();
 			}
             if (ni.getProto() instanceof Cell) {
                 CellUsage u = cellId.getUsageIn(((Cell)ni.getProto()).cellId);

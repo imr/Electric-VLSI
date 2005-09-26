@@ -23,6 +23,8 @@
  */
 package com.sun.electric.database.constraint;
 
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -33,7 +35,6 @@ import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.ElectricObject;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
 import com.sun.electric.technology.Technology;
@@ -145,13 +146,9 @@ public class Layout extends Constraints
 	/**
 	 * Method to handle a change to an ArcInst.
 	 * @param ai the ArcInst that changed.
-	 * @param oHX the old X coordinate of the ArcInst head end.
-	 * @param oHY the old Y coordinate of the ArcInst head end.
-	 * @param oTX the old X coordinate of the ArcInst tail end.
-	 * @param oTY the old Y coordinate of the ArcInst tail end.
-	 * @param oWid the old width of the ArcInst.
+     * @param oD the old contents of the ArcInst.
 	 */
-	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid) {
+	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD) {
         getCellInfo(ai.getParent()).modifyArcInst(ai);
     }
 
@@ -178,11 +175,11 @@ public class Layout extends Constraints
 	}
 
 	/**
-	 * Method to handle a new Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the newly created Variable.
+	 * Method to announce a change of object ImmutableVariables.
+	 * @param obj the ElectricObject on which ImmutableVariables changed.
+	 * @param oldImmutable the old ImmutableVariables.
 	 */
-	public void newVariable(ElectricObject obj, Variable var)
+	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable)
 	{
 //		if (type == VPORTPROTO)
 //		{

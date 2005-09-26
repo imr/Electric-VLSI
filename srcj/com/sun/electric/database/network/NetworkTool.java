@@ -35,13 +35,14 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
-import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.Listener;
 import com.sun.electric.tool.Tool;
 import com.sun.electric.tool.user.ErrorLogger;
 import com.sun.electric.Main;
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 
 import java.util.Collection;
@@ -428,10 +429,10 @@ public class NetworkTool extends Listener
 		System.out.println("NetworkTool.modifyNodeInst("+ni+","+oD+")");
 	}
 
-	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid)
+	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
 	{
 		if (!debug) return;
-		System.out.println("NetworkTool.modifyArcInst("+ai+","+","+oHX+","+oTX+","+oTY+","+oWid+")");
+		System.out.println("NetworkTool.modifyArcInst("+ai+","+oD+")");
 	}
 
 	public void modifyExport(Export pp, PortInst oldPi)
@@ -520,24 +521,14 @@ public class NetworkTool extends Listener
 		System.out.println("NetworkTool.reanameObject("+obj+","+oldName+")");
 	}
 
-	public void newVariable(ElectricObject obj, Variable var)
-	{
-		if (var.getKey() == Schematics.SCHEM_GLOBAL_NAME) {
+	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable) {
+        ImmutableElectricObject newImmutable = obj.getImmutable();
+        if (oldImmutable.getVar(Schematics.SCHEM_GLOBAL_NAME) != newImmutable.getVar(Schematics.SCHEM_GLOBAL_NAME)) {
 			Cell cell = obj.whichCell();
 			if (cell != null) getNetCell(cell).setNetworksDirty();
 		}
 		if (!debug) return;
-		System.out.println("NetworkTool.newVariable("+obj+","+var+")");
-	}
-
-	public void killVariable(ElectricObject obj, Variable var)
-	{
-		if (var.getKey() == Schematics.SCHEM_GLOBAL_NAME) {
-			Cell cell = obj.whichCell();
-			if (cell != null) getNetCell(cell).setNetworksDirty();
-		}
-		if (!debug) return;
-		System.out.println("NetworkTool.killVariable("+obj+","+var+")");
+		System.out.println("NetworkTool.modifyVariables("+obj+")");
 	}
 
 	public void readLibrary(Library lib)

@@ -716,7 +716,7 @@ public class VectorDrawing
 				if (User.isTextVisibilityOnInstance())
 				{
 					tempRect.setRect(lX, lY, hX-lX, hY-lY);
-					TextDescriptor descript = vsc.ni.getTextDescriptor(NodeInst.NODE_PROTO_TD);
+					TextDescriptor descript = vsc.ni.getTextDescriptor(NodeInst.NODE_PROTO);
 					NodeProto np = vsc.ni.getProto();
 					offscreen.drawText(tempRect, Poly.Type.TEXTBOX, descript, np.describe(false), null, textGraphics, false);
 				}
@@ -1395,7 +1395,7 @@ public class VectorDrawing
 			Poly portPoly = ni.getShapeOfPort(pp);
 			if (portPoly == null) continue;
 			TextDescriptor descript = portPoly.getTextDescriptor();
-			MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
+			MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME);
 			portDescript.setColorIndex(descript.getColorIndex());
 			Poly.Type style = descript.getPos().getPolyType();
 			Rectangle rect = new Rectangle(tempPt1);

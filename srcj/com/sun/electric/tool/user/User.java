@@ -24,9 +24,10 @@
 package com.sun.electric.tool.user;
 
 import com.sun.electric.Main;
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.change.Undo;
-import com.sun.electric.database.geometry.EPoint;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
@@ -145,20 +146,13 @@ public class User extends Listener
 	/**
 	 * Method to handle a change to an ArcInst.
 	 * @param ai the ArcInst that changed.
-	 * @param oHX the old X coordinate of the ArcInst head end.
-	 * @param oHY the old Y coordinate of the ArcInst head end.
-	 * @param oTX the old X coordinate of the ArcInst tail end.
-	 * @param oTY the old Y coordinate of the ArcInst tail end.
-	 * @param oWid the old width of the ArcInst.
+     * @param oD the old contents of the ArcInst.
 	 */
-	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid)
+	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
 	{
 		// remember what has changed in the cell
 		Cell cell = ai.getParent();
-		EPoint oldHeadPt = new EPoint(oHX, oHY);
-		EPoint oldTailPt = new EPoint(oTX, oTY);
-		double length = oldHeadPt.mutable().distance(oldTailPt.mutable());
-		Poly oldPoly = ArcInst.makePolyForArc(ai, length, oWid, oldHeadPt, oldTailPt, Poly.Type.FILLED);
+		Poly oldPoly = ArcInst.makePolyForArc(ai, oD.length, oD.width, oD.headLocation, oD.tailLocation, Poly.Type.FILLED);
 		Rectangle2D oldBounds = oldPoly.getBounds2D();
 		Rectangle2D newBounds = ai.getBounds();
 		for(Iterator it = WindowFrame.getWindows(); it.hasNext(); )
@@ -404,18 +398,11 @@ public class User extends Listener
 	}
 
 	/**
-	 * Method to handle a new Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the newly created Variable.
+	 * Method to handle a change of object ImmutableVariables.
+	 * @param obj the ElectricObject on which ImmutableVariables changed.
+	 * @param oldImmutable the old ImmutableVariables.
 	 */
-	public void newVariable(ElectricObject obj, Variable var) {}
-
-	/**
-	 * Method to handle a deleted Variable.
-	 * @param obj the ElectricObject on which the Variable resided.
-	 * @param var the deleted Variable.
-	 */
-	public void killVariable(ElectricObject obj, Variable var) {}
+	public void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable) {}
 
 	/**
 	 * Method to announce that a Library is about to be saved to disk.

@@ -23,6 +23,7 @@
  */
 package com.sun.electric.tool.drc;
 
+import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.hierarchy.Cell;
@@ -202,13 +203,9 @@ public class DRC extends Listener
 	/**
 	 * Method to announce a change to an ArcInst.
 	 * @param ai the ArcInst that changed.
-	 * @param oHX the old X coordinate of the ArcInst head end.
-	 * @param oHY the old Y coordinate of the ArcInst head end.
-	 * @param oTX the old X coordinate of the ArcInst tail end.
-	 * @param oTY the old Y coordinate of the ArcInst tail end.
-	 * @param oWid the old width of the ArcInst.
+     * @param oD the old contents of the ArcInst.
 	 */
-	public void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid)
+	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD)
 	{
 		includeGeometric(ai);
 	}

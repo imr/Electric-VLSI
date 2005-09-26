@@ -32,6 +32,7 @@ import com.sun.electric.database.prototype.NodeProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
+import com.sun.electric.database.variable.TextDescriptor;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -184,14 +185,17 @@ public class ImmutableNodeInst
      * @throws IllegalArgumentException if duplicate, or size is bad.
 	 */
     public static ImmutableNodeInst newInstance(int nodeId, NodeProtoId protoId,
-            Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
+            Name name, int duplicate, TextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, double width, double height,
-            int flags, int techBits, ImmutableTextDescriptor protoDescriptor) {
+            int flags, int techBits, TextDescriptor protoDescriptor) {
 		if (protoId == null) throw new NullPointerException("protoId");
 		if (name == null) throw new NullPointerException("name");
         if (!name.isValid() || name.hasEmptySubnames() || name.isTempname() && name.isBus()) throw new IllegalArgumentException("name");
         if (name.hasDuplicates()) throw new IllegalArgumentException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
+        ImmutableTextDescriptor immutableNameDescriptor = null;
+        if (nameDescriptor != null)
+            immutableNameDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(nameDescriptor).withDisplayWithoutParamAndCode();
         if (orient == null) throw new NullPointerException("orient");
 		if (anchor == null) throw new NullPointerException("anchor");
         if (!(width >= 0)) throw new IllegalArgumentException("width");
@@ -209,7 +213,11 @@ public class ImmutableNodeInst
         if (height == -0.0) height = +0.0;
         flags &= FLAG_BITS;
         techBits &= NTECHBITS >> NTECHBITSSH;
-		return new ImmutableNodeInst(nodeId, protoId, name, duplicate, nameDescriptor, orient, anchor, width, height, flags, (byte)techBits, protoDescriptor);
+        ImmutableTextDescriptor immutableProtoDescriptor = null;
+        if (protoDescriptor != null)
+            immutableProtoDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(protoDescriptor).withDisplayWithoutParamAndCode();
+		return new ImmutableNodeInst(nodeId, protoId, name, duplicate, immutableNameDescriptor,
+                orient, anchor, width, height, flags, (byte)techBits, immutableProtoDescriptor);
     }
 
 //	/**
@@ -245,12 +253,15 @@ public class ImmutableNodeInst
 
 	/**
 	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by name descriptor.
-     * @param nameDescriptor TextDescriptor of name
+     * @param td TextDescriptor of name
 	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by name descriptor.
 	 */
-	public ImmutableNodeInst withNameDescriptor(ImmutableTextDescriptor nameDescriptor) {
-        if (this.nameDescriptor == nameDescriptor) return this;
-		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, nameDescriptor,
+	public ImmutableNodeInst withNameDescriptor(TextDescriptor nameDescriptor) {
+        ImmutableTextDescriptor immutableNameDescriptor = null;
+        if (nameDescriptor != null)
+            immutableNameDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(nameDescriptor).withDisplayWithoutParamAndCode();
+        if (this.nameDescriptor == immutableNameDescriptor) return this;
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, immutableNameDescriptor,
                 this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor);
 	}
 
@@ -345,10 +356,13 @@ public class ImmutableNodeInst
      * @param protoDescriptor TextDescriptor of proto
 	 * @return ImmutableNodeInst which differs from this ImmutableNodeInst by proto descriptor.
 	 */
-	public ImmutableNodeInst withProtoDescriptor(ImmutableTextDescriptor protoDescriptor) {
+	public ImmutableNodeInst withProtoDescriptor(TextDescriptor protoDescriptor) {
+        ImmutableTextDescriptor immutableProtoDescriptor = null;
+        if (protoDescriptor != null)
+            immutableProtoDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(protoDescriptor).withDisplayWithoutParamAndCode();
         if (this.protoDescriptor == protoDescriptor) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, protoDescriptor);
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, immutableProtoDescriptor);
 	}
 
 //    /**
@@ -384,8 +398,9 @@ public class ImmutableNodeInst
         assert name.isValid() && !name.hasEmptySubnames();
         assert !(name.isTempname() && name.isBus());
         assert !name.hasDuplicates();
- 		assert anchor != null;
         assert duplicate >= 0;
+        if (nameDescriptor != null)
+            assert nameDescriptor.isDisplay() && !nameDescriptor.isCode() && !nameDescriptor.isParam();
         assert orient != null;
         assert anchor != null;
         assert width > 0 || width == 0 && 1/width > 0;
@@ -394,6 +409,8 @@ public class ImmutableNodeInst
         assert DBMath.round(height) == height;
         assert (flags & ~FLAG_BITS) == 0;
         assert (techBits & ~(NTECHBITS >> NTECHBITSSH)) == 0;
+        if (protoDescriptor != null)
+            assert protoDescriptor.isDisplay() && !protoDescriptor.isCode() && !protoDescriptor.isParam();
         if (protoId instanceof CellId) {
             assert width == 0 && height == 0;
         }

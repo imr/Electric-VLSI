@@ -2576,7 +2576,7 @@ public class CircuitChanges
 				newNodes.put(ni, newNi);
 				newNi.copyStateBits(ni);
 				newNi.copyVarsFrom(ni);
-				newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
+				newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 	
 				// make ports where this nodeinst has them
 				for(Iterator it = ni.getExports(); it.hasNext(); )
@@ -2587,7 +2587,7 @@ public class CircuitChanges
 					if (newPp != null)
 					{
 						newPp.setCharacteristic(pp.getCharacteristic());
-						newPp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME_TD);
+						newPp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME);
 						newPp.copyVarsFrom(pp);
 					}
 				}
@@ -2710,7 +2710,7 @@ public class CircuitChanges
 //			NodeInst newNi = NodeInst.makeInstance(np, pt, xSize, ySize, cell, newAngle, name, 0);
 			if (newNi == null) return;
 			newNodes.put(ni, newNi);
-			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
+			newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 			newNi.copyStateBits(ni);
 			newNi.copyVarsFrom(ni);
 		}
@@ -2842,7 +2842,7 @@ public class CircuitChanges
 				if (newPp != null)
 				{
 					newPp.setCharacteristic(pp.getCharacteristic());
-					newPp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME_TD);
+					newPp.copyTextDescriptorFrom(pp, Export.EXPORT_NAME);
 					newPp.copyVarsFrom(pp);
 				}
 			}
@@ -4094,10 +4094,10 @@ public class CircuitChanges
 				// moving variable on object
 				Variable var = high.getVar();
 				NodeInst ni = null;
-				String varName = null;
+				Variable.Key varKey = null;
 				if (var != null)
 				{
-					varName = var.getKey().getName();
+					varKey = var.getKey();
 					if (eobj instanceof NodeInst) ni = (NodeInst)eobj;
 					else if (eobj instanceof PortInst) ni = ((PortInst)eobj).getNodeInst();
 					else if (eobj instanceof Export) ni = ((Export)eobj).getOriginalPort().getNodeInst();
@@ -4108,10 +4108,10 @@ public class CircuitChanges
 						if (eobj instanceof NodeInst)
 						{
 							ni = (NodeInst)eobj;
-							varName = NodeInst.NODE_NAME_TD;
+							varKey = NodeInst.NODE_NAME;
 						} else
 						{
-							varName = ArcInst.ARC_NAME_TD;
+							varKey = ArcInst.ARC_NAME;
 						}
 					} else
 					{
@@ -4119,12 +4119,12 @@ public class CircuitChanges
 						{
 							Export pp = (Export)eobj;
 							ni = pp.getOriginalPort().getNodeInst();
-							varName = Export.EXPORT_NAME_TD;
+							varKey = Export.EXPORT_NAME;
 						}
 						// What about NodeInst.NODE_PROTO_TD ?
 					}
 				}
-				TextDescriptor td = eobj.getTextDescriptor(varName);
+				TextDescriptor td = eobj.getTextDescriptor(varKey);
 				if (td == null) continue;
 				if (ni != null)
 				{
@@ -4134,10 +4134,10 @@ public class CircuitChanges
 					curLoc.setLocation(curLoc.getX()+dX, curLoc.getY()+dY);
 					AffineTransform rotateIn = ni.rotateIn();
 					rotateIn.transform(curLoc, curLoc);
-					eobj.setOff(varName, curLoc.getX()-ni.getAnchorCenterX(), curLoc.getY()-ni.getAnchorCenterY());
+					eobj.setOff(varKey, curLoc.getX()-ni.getAnchorCenterX(), curLoc.getY()-ni.getAnchorCenterY());
 				} else
 				{
-					eobj.setOff(varName, td.getXOff()+dX, td.getYOff()+dY);
+					eobj.setOff(varKey, td.getXOff()+dX, td.getYOff()+dY);
 				}
 			}
 		}
@@ -4313,12 +4313,12 @@ public class CircuitChanges
             if (ai1.getName() != null && !ai1.getNameKey().isTempname())
             {
                 ra.arcName = ai1.getName();
-                ra.arcNameTD = ai1.getTextDescriptor(ArcInst.ARC_NAME_TD);
+                ra.arcNameTD = ai1.getTextDescriptor(ArcInst.ARC_NAME);
             }
             if (ai2.getName() != null && !ai2.getNameKey().isTempname())
             {
                 ra.arcName = ai2.getName();
-                ra.arcNameTD = ai2.getTextDescriptor(ArcInst.ARC_NAME_TD);
+                ra.arcNameTD = ai2.getTextDescriptor(ArcInst.ARC_NAME);
             }
 
             return ra;
@@ -4354,7 +4354,7 @@ public class CircuitChanges
                 if (ra.arcName != null)
                 {
                     newAi.setName(ra.arcName);
-                    newAi.setTextDescriptor(ArcInst.ARC_NAME_TD, ra.arcNameTD);
+                    newAi.setTextDescriptor(ArcInst.ARC_NAME, ra.arcNameTD);
                 }
                 newAi.copyVarsFrom(ra.reconAr[0]);
                 newAi.copyVarsFrom(ra.reconAr[1]);

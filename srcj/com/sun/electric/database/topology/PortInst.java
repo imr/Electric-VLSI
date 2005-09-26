@@ -29,7 +29,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.ElectricObject_;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.PrimitivePort;
@@ -47,7 +47,7 @@ import java.util.Set;
  * <P>
  * This class is thread-safe.
  */
-public class PortInst extends ElectricObject
+public class PortInst extends ElectricObject_
 {
 	// ------------------------ private data ------------------------
 

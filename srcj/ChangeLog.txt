@@ -4,6 +4,14 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03i: *********************************
 
+BUG: (09/26/05, DN) GetInfoArc dialog creates "ART_color" variable though nothing was changed.
+FIX: In GetInfoArc.doLoadInfo assign "DEFAULT COLOR" to initial value".
+
+BUG: (09/26/05, DN) State bits of nodes and arcs are not Undoable.
+FIX: In NodeInst and ArcInst use Undo.modifyNodeInst and Undo.modifyArcInst instead of Undo.otherChanges.
+
+IMP: (09/26/05, DN) Transactional DB: ImmutableElectricObject which stores ImmutableVariables.
+
 IMP: (09/24/05, GVG) Option -v doesn't initialize any GUI stuff so it could run without setting
 the DISPLAY variable.
 

@@ -504,8 +504,8 @@ public class Array extends EDialog
 //					NodeInst newNi = NodeInst.makeInstance(ni.getProto(),
 //						new Point2D.Double(xPos, yPos), sx, sy, cell, ro, null, 0);
 					if (newNi == null) continue;
-					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO_TD);
-					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
+					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_PROTO);
+					newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 					if (ni.isExpanded()) newNi.setExpanded(); else newNi.clearExpanded();
 					if (ni.isHardSelect()) newNi.setHardSelect(); else newNi.clearHardSelect();
 					newNi.setTechSpecific(ni.getTechSpecific());
@@ -519,7 +519,7 @@ public class Array extends EDialog
 						if (!nodeNameKey.isTempname())
 						{
 							newNi.setName(ElectricObject.uniqueObjectName(ni.getName(), cell, NodeInst.class));
-							newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME_TD);
+							newNi.copyTextDescriptorFrom(ni, NodeInst.NODE_NAME);
 						}
 					}
 
@@ -583,7 +583,7 @@ public class Array extends EDialog
 							if (User.isArcsAutoIncremented())
 								newName = ElectricObject.uniqueObjectName(newName, cell, ArcInst.class);
 							newAi.setName(newName);
-							newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
+							newAi.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);
 						}
 					}
 				}
@@ -649,7 +649,7 @@ public class Array extends EDialog
 			if (geom instanceof NodeInst && ((NodeInst)geom).getProto() instanceof Cell)
 			{
 				NodeInst ni = (NodeInst)geom;
-				ni.setOff(NodeInst.NODE_NAME_TD, 0, ni.getYSize() / 4);
+				ni.setOff(NodeInst.NODE_NAME, 0, ni.getYSize() / 4);
 			}
 		}
 	}

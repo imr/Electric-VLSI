@@ -359,7 +359,7 @@ public class ChangeText extends EDialog
 	{
 		if (var != null)
 		{
-			String varName = var.getKey().getName();
+			Variable.Key varKey = var.getKey();
 			// a variable on an object
 			if (eObj instanceof NodeInst)
 			{
@@ -368,14 +368,14 @@ public class ChangeText extends EDialog
 				{
 					if (changeAnnotationText.isSelected())
 					{
-						if (processText(eObj, varName, change))
+						if (processText(eObj, varKey, change))
 							numAnnotationsChanged++;
 					}
 				} else
 				{
 					if (changeNodeText.isSelected())
 					{
-						if (processText(eObj, varName, change))
+						if (processText(eObj, varKey, change))
 							numNodesChanged++;
 					}
 				}
@@ -383,14 +383,14 @@ public class ChangeText extends EDialog
 			{
 				if (changeArcText.isSelected())
 				{
-					if (processText(eObj, varName, change))
+					if (processText(eObj, varKey, change))
 						numArcsChanged++;
 				}
 			} else if (eObj instanceof Cell)
 			{
 				if (changeCellText.isSelected())
 				{
-					if (processText(eObj, varName, change))
+					if (processText(eObj, varKey, change))
 						numCellsChanged++;
 				}
 			}
@@ -401,7 +401,7 @@ public class ChangeText extends EDialog
 				NodeInst ni = (NodeInst)eObj;
 				if (changeNodeText.isSelected())
 				{
-					if (processText(ni, NodeInst.NODE_NAME_TD, change))
+					if (processText(ni, NodeInst.NODE_NAME, change))
 						numNodesChanged++;
 				}
 			} else
@@ -409,7 +409,7 @@ public class ChangeText extends EDialog
 				ArcInst ai = (ArcInst)eObj;
 				if (changeArcText.isSelected())
 				{
-					if (processText(ai, ArcInst.ARC_NAME_TD, change))
+					if (processText(ai, ArcInst.ARC_NAME, change))
 						numNodesChanged++;
 				}
 			}
@@ -420,7 +420,7 @@ public class ChangeText extends EDialog
 				Export pp = (Export)eObj;
 				if (changeExportText.isSelected())
 				{
-					if (processText(pp, Export.EXPORT_NAME_TD, change))
+					if (processText(pp, Export.EXPORT_NAME, change))
 						numExportsChanged++;
 				}
 			} else
@@ -428,7 +428,7 @@ public class ChangeText extends EDialog
 				NodeInst ni = (NodeInst)eObj;
 				if (changeInstanceText.isSelected())
 				{
-					if (processText(ni, NodeInst.NODE_PROTO_TD, change))
+					if (processText(ni, NodeInst.NODE_PROTO, change))
 						numInstancesChanged++;
 				}
 			}
@@ -438,18 +438,18 @@ public class ChangeText extends EDialog
 	/**
 	 * Method to process a single TextDescriptor that is on a relevant piece of text.
 	 * @param owner ElectricObject which is owner of the TextDescriptor
-	 * @param varName name of variable or speical name selecting TextDescriptor
+	 * @param varKey key of variable or speical key selecting TextDescriptor
 	 * @param change true to change the TextDescriptor according to the bottom of the dialog;
 	 * false to gather the TextDescriptor sizes for display.
 	 * @return true if a change was made.
 	 */
-	private boolean processText(ElectricObject owner, String varName, boolean change)
+	private boolean processText(ElectricObject owner, Variable.Key varKey, boolean change)
 	{
-		TextDescriptor.Size s = owner.getTextDescriptor(varName).getSize();
+		TextDescriptor.Size s = owner.getTextDescriptor(varKey).getSize();
 		boolean changed = false;
 		if (change)
 		{
-			MutableTextDescriptor td = owner.getMutableTextDescriptor(varName);
+			MutableTextDescriptor td = owner.getMutableTextDescriptor(varKey);
 			// change this text
 			if (usePoints.isSelected())
 			{
@@ -497,7 +497,7 @@ public class ChangeText extends EDialog
 				changed = true;
 			}
 			if (changed)
-				owner.setTextDescriptor(varName, td);
+				owner.setTextDescriptor(varKey, td);
 			return changed;
 		}
 

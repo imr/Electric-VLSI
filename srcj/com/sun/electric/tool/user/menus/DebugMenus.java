@@ -527,7 +527,7 @@ public class DebugMenus {
 					String theName = "arr["+ x + "][" + y + "]";
 					NodeInst instanceNode = NodeInst.newInstance(myCell, new Point2D.Double(x*(myWidth+2), y*(myHeight+2)),
 						myWidth, myHeight, bigCell, Orientation.IDENT, theName, 0);
-					instanceNode.setOff(NodeInst.NODE_NAME_TD, 0, 8);
+					instanceNode.setOff(NodeInst.NODE_NAME, 0, 8);
 					if ((x%2) == (y%2)) instanceNode.setExpanded();
 				}
 			}
@@ -1655,8 +1655,8 @@ public class DebugMenus {
 // 					if (cellNodes.contains(ni.getName()))
 // 						System.out.println(cell + " has duplicate node " + ni.getName());
 					cellNodes.add(ni.getName());
-                    if (ni.isUsernamed()) countDescriptor(ni.getTextDescriptor(NodeInst.NODE_NAME_TD), true, null);
-                    if (ni.getProto() instanceof Cell) countDescriptor(ni.getTextDescriptor(NodeInst.NODE_PROTO_TD), true, null);
+                    if (ni.isUsernamed()) countDescriptor(ni.getTextDescriptor(NodeInst.NODE_NAME), true, null);
+                    if (ni.getProto() instanceof Cell) countDescriptor(ni.getTextDescriptor(NodeInst.NODE_PROTO), true, null);
 					countPoint(ni.getAnchorCenter());
 					
 					for (Iterator pIt = ni.getPortInsts(); pIt.hasNext(); )
@@ -1674,7 +1674,7 @@ public class DebugMenus {
 // 					if (cellArcs.contains(ai.getName()))
 // 						System.out.println(cell + " has duplicate arc " + ai.getName());
 					cellArcs.add(ai.getName());
-                    if (ai.isUsernamed()) countDescriptor(ai.getTextDescriptor(ArcInst.ARC_NAME_TD), true, null);
+                    if (ai.isUsernamed()) countDescriptor(ai.getTextDescriptor(ArcInst.ARC_NAME), true, null);
 					for (int i = 0; i < 2; i++) {
 						Point2D p = ai.getLocation(i);
 						if (ai.getPortInst(i).getNodeInst().getAnchorCenter().equals(p))
@@ -1686,7 +1686,7 @@ public class DebugMenus {
 				for (Iterator eIt = cell.getPorts(); eIt.hasNext(); )
 				{
 					Export e = (Export)eIt.next();
-                    countDescriptor(e.getTextDescriptor(Export.EXPORT_NAME_TD), true, null);
+                    countDescriptor(e.getTextDescriptor(Export.EXPORT_NAME), true, null);
 					countVars('E', e);
 				}
 				nodeNames.addAll(cellNodes);

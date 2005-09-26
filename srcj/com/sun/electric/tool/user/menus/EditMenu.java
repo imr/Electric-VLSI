@@ -1368,11 +1368,11 @@ public class EditMenu {
                     if (headPt.distance(insert) > tailPt.distance(insert))
                     {
                         newAi1.setName(arcName);
-                        newAi1.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
+                        newAi1.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);
                     } else
                     {
                         newAi3.setName(arcName);
-                        newAi3.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME_TD);
+                        newAi3.copyTextDescriptorFrom(ai, ArcInst.ARC_NAME);
                     }
                 }
                 newAi2.setAngle(angle);

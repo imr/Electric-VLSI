@@ -713,7 +713,7 @@ public class PostScript extends Output
 				{
 					// combine all features of port text with color of the port
 					TextDescriptor descript = portPoly.getTextDescriptor();
-					MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
+					MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME);
 					portDescript.setColorIndex(descript.getColorIndex());
 					Poly.Type type = descript.getPos().getPolyType();
 					portPoly.setStyle(type);

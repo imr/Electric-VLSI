@@ -552,7 +552,7 @@ public class ELIB extends Output
 			if (thislib)
 			{
 				// write the text descriptor
-				writeTextDescriptor(pp.getTextDescriptor(Export.EXPORT_NAME_TD), true);
+				writeTextDescriptor(pp.getTextDescriptor(Export.EXPORT_NAME), true);
 
 				// write the portproto tool information
 				writeBigInteger(pp.lowLevelGetUserbits());
@@ -630,7 +630,7 @@ public class ELIB extends Output
 		writeBigInteger(transpose);
 		writeBigInteger(rotation);
 
-		TextDescriptor td = np instanceof Cell ? ni.getTextDescriptor(NodeInst.NODE_PROTO_TD) : null;
+		TextDescriptor td = np instanceof Cell ? ni.getTextDescriptor(NodeInst.NODE_PROTO) : null;
 		writeTextDescriptor(td, true);
 
 		// sort the arc connections by their PortInst ordering
@@ -766,7 +766,7 @@ public class ELIB extends Output
 // 			Variable var = (Variable)it.next();
 // 			if (!var.isDontSave()) count++;
 // 		}
-		String additionalVarName = null;
+		Variable.Key additionalVarKey = null;
 		int additionalVarType = ELIBConstants.VSTRING;
 		Object additionalVarValue = null;
 		if (obj instanceof NodeInst)
@@ -777,13 +777,13 @@ public class ELIB extends Output
 				PortInst pi = (PortInst)pit.next();
 				count += pi.getNumVariables();
 			}
-			additionalVarName = NodeInst.NODE_NAME_TD;
+			additionalVarKey = NodeInst.NODE_NAME;
 			if (ni.isUsernamed()) additionalVarType |= ELIBConstants.VDISPLAY;
 			additionalVarValue = ni.getName();
 		} else if (obj instanceof ArcInst)
 		{
 			ArcInst ai = (ArcInst)obj;
-			additionalVarName = ArcInst.ARC_NAME_TD;
+			additionalVarKey = ArcInst.ARC_NAME;
 			if (ai.isUsernamed()) additionalVarType |= ELIBConstants.VDISPLAY;
 			additionalVarValue = ai.getName();
 		} else if (obj instanceof Library)
@@ -791,12 +791,12 @@ public class ELIB extends Output
 			String[] fontAssociation = createFontAssociation();
 			if (fontAssociation != null)
 			{
-				additionalVarName = Library.FONT_ASSOCIATIONS.getName();
+				additionalVarKey = Library.FONT_ASSOCIATIONS;
 				additionalVarType |= ELIBConstants.VISARRAY | (fontAssociation.length << ELIBConstants.VLENGTHSH);
 				additionalVarValue = fontAssociation;
 			}
 		}
-		if (additionalVarName != null) count++;
+		if (additionalVarKey != null) count++;
 
 		writeBigInteger(count);
 
@@ -824,11 +824,11 @@ public class ELIB extends Output
 		}
 
 		// write the additional variable
-		if (additionalVarName != null)
+		if (additionalVarKey != null)
 		{
-			writeVariableName(additionalVarName);
+			writeVariableName(additionalVarKey.getName());
 			writeBigInteger(additionalVarType);
-			TextDescriptor td = (additionalVarType & ELIBConstants.VDISPLAY) != 0 ? obj.getTextDescriptor(additionalVarName) : null;
+			TextDescriptor td = (additionalVarType & ELIBConstants.VDISPLAY) != 0 ? obj.getTextDescriptor(additionalVarKey) : null;
 			writeTextDescriptor(td, true);
             if (additionalVarValue instanceof Object[])
             {

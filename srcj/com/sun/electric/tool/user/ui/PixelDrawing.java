@@ -1147,7 +1147,7 @@ public class PixelDrawing
 				{
 					// combine all features of port text with color of the port
 					TextDescriptor descript = portPoly.getTextDescriptor();
-					MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME_TD);
+					MutableTextDescriptor portDescript = pp.getMutableTextDescriptor(Export.EXPORT_NAME);
 					portDescript.setColorIndex(descript.getColorIndex());
 					Poly.Type type = descript.getPos().getPolyType();
 					String portName = pp.getName();
@@ -1184,7 +1184,7 @@ public class PixelDrawing
 		{
 			Rectangle2D bounds = poly.getBounds2D();
 			Rectangle rect = databaseToScreen(bounds);
-			TextDescriptor descript = ni.getTextDescriptor(NodeInst.NODE_PROTO_TD);
+			TextDescriptor descript = ni.getTextDescriptor(NodeInst.NODE_PROTO);
 			NodeProto np = ni.getProto();
 			drawText(rect, Poly.Type.TEXTBOX, descript, np.describe(false), null, textGraphics, false);
 		}

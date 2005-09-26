@@ -1075,7 +1075,7 @@ public class GDS extends Input
 		if (ni == null) handleError("Could not create text marker");
 
 		// set the text size and orientation
-		MutableTextDescriptor td = ni.getMutableTextDescriptor(NodeInst.NODE_NAME_TD);
+		MutableTextDescriptor td = ni.getMutableTextDescriptor(NodeInst.NODE_NAME);
 		int size = (int)scale;
 		if (size <= 0) size = 8;
 		if (size > TextDescriptor.Size.TXTMAXPOINTS) size = TextDescriptor.Size.TXTMAXPOINTS;
@@ -1111,7 +1111,7 @@ public class GDS extends Input
 					default: td.setPos(TextDescriptor.Position.CENT);  break;
 				}
 		}
-		ni.setTextDescriptor(NodeInst.NODE_NAME_TD, td);
+		ni.setTextDescriptor(NodeInst.NODE_NAME, td);
 	}
 
 	/**

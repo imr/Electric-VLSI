@@ -45,7 +45,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
 	private boolean loading = false;
     private Variable var;
     private TextDescriptor td;
-    private String varName;
+    private Variable.Key varKey;
     private ElectricObject owner;
     private TextDescriptor.Unit initialUnit;
     private Object initialDispPos;      // this needs to be an object because one choice, "none" is a string
@@ -113,25 +113,25 @@ public class TextAttributesPanel extends javax.swing.JPanel
 
     /**
      * Set the Variable that can be edited through this Panel.
-     * <p>if owner.getTextDescriptor(varName) returns non-null td, display and allow editing of the td text options
-     * <p>else if varName is non-null, display and allow editing of default values.
-     * <p>if varName is null, the entire Panel is disabled.
-     * @param varName the name of a variable to be changed
+     * <p>if owner.getTextDescriptor(varKey) returns non-null td, display and allow editing of the td text options
+     * <p>else if varKey is non-null, display and allow editing of default values.
+     * <p>if varKey is null, the entire Panel is disabled.
+     * @param varKey the key of a variable to be changed
      * @param owner the owner of the variable
      */
-    public synchronized void setVariable(String varName, ElectricObject owner) {
+    public synchronized void setVariable(Variable.Key varKey, ElectricObject owner) {
 
         loading = true;
 
         // do not allow empty var names
-        if (varName != null) {
-            if (varName.trim().equals("")) varName = null;
+        if (varKey != null) {
+            if (varKey.getName().trim().equals("")) varKey = null;
         }
 
-        this.varName = varName;
+        this.varKey = varKey;
         this.owner = owner;
 
-        boolean enabled = owner != null && varName != null;
+        boolean enabled = owner != null && varKey != null;
 
         // update enabled state of everything
         // can't just enable all children because objects might be inside JPanel
@@ -143,9 +143,9 @@ public class TextAttributesPanel extends javax.swing.JPanel
 
         // if td is null (implies var is null)
         // then use the current panel values to apply to varName.
-        td = owner.getTextDescriptor(varName);
+        td = owner.getTextDescriptor(varKey);
         if (td == null) return;
-        var = owner.getVar(varName);
+        var = owner.getVar(varKey);
 
         // otherwise, use td
 
@@ -188,7 +188,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
      * @return true if any changes committed to database, false otherwise
      */
     public synchronized boolean applyChanges() {
-        if (varName == null) return false;
+        if (varKey == null) return false;
 
         boolean changed = false;
 
@@ -209,7 +209,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
 
         ChangeText job = new ChangeText(
                 owner,
-                varName,
+                varKey,
                 newCode,
                 newUnit,
                 newDisp
@@ -237,14 +237,14 @@ public class TextAttributesPanel extends javax.swing.JPanel
     private static class ChangeText extends Job {
 
         private ElectricObject owner;
-        private String varName;
+        private Variable.Key varKey;
         private TextDescriptor.Code code;
         private TextDescriptor.Unit unit;
         private Object dispPos;
 
         private ChangeText(
                 ElectricObject owner,
-                String varName,
+                Variable.Key varKey,
                 TextDescriptor.Code code,
                 TextDescriptor.Unit unit,
                 Object dispPos
@@ -252,7 +252,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
         {
             super("Modify Text Attribute", User.getUserTool(), Job.Type.CHANGE, null, null, Job.Priority.USER);
             this.owner = owner;
-            this.varName = varName;
+            this.varKey = varKey;
             this.code = code;
             this.unit = unit;
             this.dispPos = dispPos;
@@ -260,9 +260,9 @@ public class TextAttributesPanel extends javax.swing.JPanel
         }
 
         public boolean doIt() {
-			MutableTextDescriptor td = owner.getMutableTextDescriptor(varName);
+			MutableTextDescriptor td = owner.getMutableTextDescriptor(varKey);
 			if (td == null) return false;
-			Variable var = owner.getVar(varName);
+			Variable var = owner.getVar(varKey);
 
             // change the code type
             if (var != null) {
@@ -278,7 +278,7 @@ public class TextAttributesPanel extends javax.swing.JPanel
                 if (var != null) td.setDisplay(true);
                 td.setDispPart((TextDescriptor.DispPos)dispPos);
             }
-			owner.setTextDescriptor(varName, td);
+			owner.setTextDescriptor(varKey, td);
 			return true;
        }
     }

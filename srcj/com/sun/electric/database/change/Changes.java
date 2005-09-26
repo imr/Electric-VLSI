@@ -22,6 +22,8 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.database.change;
+import com.sun.electric.database.ImmutableArcInst;
+import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableNodeInst;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
@@ -85,13 +87,9 @@ public interface Changes
 	/**
 	 * Method to announce a change to an ArcInst.
 	 * @param ai the ArcInst that changed.
-	 * @param oHX the old X coordinate of the ArcInst head end.
-	 * @param oHY the old Y coordinate of the ArcInst head end.
-	 * @param oTX the old X coordinate of the ArcInst tail end.
-	 * @param oTY the old Y coordinate of the ArcInst tail end.
-	 * @param oWid the old width of the ArcInst.
+     * @param oD the old contents of the ArcInst.
 	 */
-	void modifyArcInst(ArcInst ai, double oHX, double oHY, double oTX, double oTY, double oWid);
+	void modifyArcInst(ArcInst ai, ImmutableArcInst oD);
 
 	/**
 	 * Method to announce a change to an Export.
@@ -148,18 +146,11 @@ public interface Changes
 	void redrawObject(ElectricObject obj);
 
 	/**
-	 * Method to announce a new Variable.
-	 * @param obj the ElectricObject on which the Variable resides.
-	 * @param var the newly created Variable.
+	 * Method to announce a change of object ImmutableVariables.
+	 * @param obj the ElectricObject on which ImmutableVariables changed.
+	 * @param oldImmutable the old ImmutableVariables.
 	 */
-	void newVariable(ElectricObject obj, Variable var);
-
-	/**
-	 * Method to announce a deleted Variable.
-	 * @param obj the ElectricObject on which the Variable resided.
-	 * @param var the deleted Variable.
-	 */
-	void killVariable(ElectricObject obj, Variable var);
+	void modifyVariables(ElectricObject obj, ImmutableElectricObject oldImmutable);
 
 	/**
 	 * Method to announce that a Library has been read.

@@ -23,12 +23,14 @@
  */
 package com.sun.electric.database.variable;
 
+import com.sun.electric.database.ImmutableElectricObject;
 import com.sun.electric.database.ImmutableVariable;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.geometry.Geometric;
 import com.sun.electric.database.geometry.Poly;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Export;
+import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
@@ -37,9 +39,15 @@ import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.User;
+
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.TreeMap;
 
 /**
  * This class is the base class of all Electric objects that can be extended with "Variables".
@@ -50,16 +58,37 @@ public abstract class ElectricObject extends Observable implements Observer
 {
 	// ------------------------ private data ------------------------------------
 
-	/** extra variables (null if no variables yet) */		private TreeMap vars;
+	/** thread-local variables */
+    private Variable[] vars = Variable.NULL_ARRAY;
 
 	// ------------------------ private and protected methods -------------------
 
 	/**
-	 * The constructor is not used.
+	 * The protected constructor.
 	 */
 	protected ElectricObject() {}
 
-	// ------------------------ public methods -------------------
+    /**
+     * Returns persistent data of this ElectricObject with ImmutableVariables.
+     * @return persistent data of this ElectricObject.
+     */
+    public abstract ImmutableElectricObject getImmutable();
+    
+    /**
+     * Updates persistent data of this ElectricObject by adding specified ImmutableVariable.
+     * @param vd ImmutableVariable to add.
+     * @return updated persistent data.
+     */
+    protected abstract ImmutableElectricObject withVariable(ImmutableVariable vd);
+    
+    /**
+     * Updates persistent data of this ElectricObject by removing Variable with specified key.
+     * @param key key to remove.
+     * @return updated persistent data.
+     */
+    protected abstract ImmutableElectricObject withoutVariable(Variable.Key key);
+
+    // ------------------------ public methods -------------------
 
     /**
      * Returns true if object is linked into database
@@ -112,8 +141,9 @@ public abstract class ElectricObject extends Observable implements Observer
         if (key == null) return null;
         Variable var;
         synchronized(this) {
-            if (vars == null) return null;
-            var = (Variable)vars.get(key);
+            int varIndex = getImmutable().searchVar(key);
+            if (varIndex < 0) return null;
+            var = vars[varIndex];
         }
 		if (var != null) {
             if (type == null) return var;                   // null type means any type
@@ -123,71 +153,41 @@ public abstract class ElectricObject extends Observable implements Observer
     }
 
 	/**
-	 * Returns the TextDescriptor on this ElectricObject selected by name.
-	 * This name may be a name of variable on this ElectricObject or one of the
-	 * special names:
-	 * <code>NodeInst.NODE_NAME_TD</code>
-	 * <code>NodeInst.NODE_PROTO_TD</code>
-	 * <code>ArcInst.ARC_NAME_TD</code>
-	 * <code>Export.EXPORT_NAME_TD</code>
-	 * Other strings are not considered special, even they are equal to one of the
-	 * special name. In other words, special names are compared by "==" other than
-	 * by "equals".
+	 * Returns the TextDescriptor on this ElectricObject selected by variable key.
+	 * This key may be a key of variable on this ElectricObject or one of the
+	 * special keys:
+	 * <code>NodeInst.NODE_NAME</code>
+	 * <code>NodeInst.NODE_PROTO</code>
+	 * <code>ArcInst.ARC_NAME</code>
+	 * <code>Export.EXPORT_NAME</code>
 	 * The TextDescriptor gives information for displaying the Variable.
-	 * @param varName name of variable or special name.
+	 * @param varKey key of variable or special key.
 	 * @return the TextDescriptor on this ElectricObject.
 	 */
-	public ImmutableTextDescriptor getTextDescriptor(String varName)
+	public ImmutableTextDescriptor getTextDescriptor(Variable.Key varKey)
 	{
-		Variable var = getVar(varName);
+		Variable var = getVar(varKey);
 		if (var == null) return null;
 		return var.getTextDescriptor();
 	}
     
  	/**
-	 * Returns the TextDescriptor on this ElectricObject selected by name.
-	 * This name may be a name of variable on this ElectricObject or one of the
-	 * special names:
-	 * <code>NodeInst.NODE_NAME_TD</code>
-	 * <code>NodeInst.NODE_PROTO_TD</code>
-	 * <code>ArcInst.ARC_NAME_TD</code>
-	 * <code>Export.EXPORT_NAME_TD</code>
-	 * Other strings are not considered special, even they are equal to one of the
-	 * special name. In other words, special names are compared by "==" other than
-	 * by "equals".
+	 * Returns the TextDescriptor on this ElectricObject selected by variable key.
+	 * This key may be a key of variable on this ElectricObject or one of the
+	 * special keys:
+	 * <code>NodeInst.NODE_NAME</code>
+	 * <code>NodeInst.NODE_PROTO</code>
+	 * <code>ArcInst.ARC_NAME</code>
+	 * <code>Export.EXPORT_NAME</code>
 	 * The TextDescriptor gives information for displaying the Variable.
-	 * @param varName name of variable or special name.
+	 * @param varKey key of variable or special key.
 	 * @return the TextDescriptor on this ElectricObject.
 	 */
-	public MutableTextDescriptor getMutableTextDescriptor(String varName)
+	public MutableTextDescriptor getMutableTextDescriptor(Variable.Key varKey)
 	{
-		TextDescriptor td = getTextDescriptor(varName);
+		TextDescriptor td = getTextDescriptor(varKey);
 		if (td == null) return null;
 		return new MutableTextDescriptor(td);
-	}
-
-  	/**
-	 * Low level routine to set TextDescriptor on this ElectricObject selected by name.
-	 * This name may be a name of variable on this ElectricObject or one of the
-	 * special names:
-	 * <code>NodeInst.NODE_NAME_TD</code>
-	 * <code>NodeInst.NODE_PROTO_TD</code>
-	 * <code>ArcInst.ARC_NAME_TD</code>
-	 * <code>Export.EXPORT_NAME_TD</code>
-	 * Other strings are not considered special, even they are equal to one of the
-	 * special name. In other words, special names are compared by "==" other than
-	 * by "equals".
-	 * The TextDescriptor gives information for displaying the Variable.
-	 * @param varName name of variable or special name.
-	 * @param td new value of TextDescriptor the TextDescriptor.
-     * @return old text descriptor.
-     * @throws IllegalArgumentException if TextDescriptor with specified name not found on this ElectricalObject.
-	 */
-	public ImmutableTextDescriptor lowLevelSetTextDescriptor(String varName, ImmutableTextDescriptor td)
-	{
-		Variable var = getVar(varName);
-		if (var == null) throw new IllegalArgumentException("TextDescriptor with name " + varName + " not found on " + this);
-		return var.lowLevelSetTextDescriptor(td);
 	}
 
     private static int debugGetParameterRecurse = 0;
@@ -422,7 +422,7 @@ public abstract class ElectricObject extends Observable implements Observer
 			{
 				if (!(this instanceof Geometric)) return null;
 				Geometric geom = (Geometric)this;
-				TextDescriptor td = geom.getTextDescriptor(this instanceof NodeInst ? NodeInst.NODE_NAME_TD : ArcInst.ARC_NAME_TD);
+				TextDescriptor td = geom.getTextDescriptor(this instanceof NodeInst ? NodeInst.NODE_NAME : ArcInst.ARC_NAME);
 				Poly.Type style = td.getPos().getPolyType();
 				Point2D [] pointList = null;
 				if (style == Poly.Type.TEXTBOX)
@@ -452,7 +452,7 @@ public abstract class ElectricObject extends Observable implements Observer
 					// cell instance name
 					if (!(this instanceof NodeInst)) return null;
 					NodeInst ni = (NodeInst)this;
-					TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_PROTO_TD);
+					TextDescriptor td = ni.getTextDescriptor(NodeInst.NODE_PROTO);
 					Poly.Type style = td.getPos().getPolyType();
 					Point2D [] pointList = null;
 					if (style == Poly.Type.TEXTBOX)
@@ -735,30 +735,43 @@ public abstract class ElectricObject extends Observable implements Observer
 		{
 			System.out.println("Deprecated variable " + d.key.getName() + " on " + this);
 		}
-		checkChanging();
-        Variable oldVar;
-        synchronized(this) {
-            if (vars == null)
-                vars = new TreeMap();
-            oldVar = (Variable) vars.get(d.key);
-        }
-		if (oldVar != null)
-		{
-			lowLevelUnlinkVar(oldVar);
-			if (isDatabaseObject())
-				Undo.killVariable(this, oldVar);
-		}
-        
         if (!(this instanceof Cell))
             d = d.withDescriptor(d.descriptor.withoutParam());
-		Variable v = new Variable(this, d);
-		lowLevelLinkVar(v);
-		if (isDatabaseObject())
-			Undo.newVariable(this, v);
-		return v;
+        
+		checkChanging();
+        ImmutableElectricObject oldImmutable;
+        ImmutableElectricObject newImmutable;
+        Variable var;
+        synchronized(this) {
+            oldImmutable = getImmutable();
+            newImmutable = withVariable(d);
+            int varIndex = oldImmutable.searchVar(d.key);
+            if (varIndex >= 0) {
+                var = vars[varIndex];
+                if (var.getD() == d) return var;
+                var.setD(d);
+            } else {
+                varIndex = ~varIndex;
+                Variable[] newVars = new Variable[vars.length + 1];
+                System.arraycopy(vars, 0, newVars, 0, varIndex);
+                var = new Variable(this, d);
+                newVars[varIndex] = var;
+                var.setLinked(true);
+                System.arraycopy(vars, varIndex, newVars, varIndex + 1, vars.length - varIndex);
+                vars = newVars;
+            }
+            assert newImmutable.getVar(varIndex) == d;
+        }
+        
+        if (newImmutable != oldImmutable) {
+            if (isDatabaseObject())
+                Undo.modifyVariables(this, oldImmutable);
+            checkPossibleVariableEffects(d.key);
+        }
+		return var;
     }
-    
-	/**
+
+    /**
 	 * Method to update a Variable on this ElectricObject with the specified values.
 	 * If the Variable already exists, only the value is changed; the displayable attributes are preserved.
 	 * @param name the name of the Variable.
@@ -792,73 +805,75 @@ public abstract class ElectricObject extends Observable implements Observer
 		// restore values
 //		newVar.setTextDescriptor();
 //        newVar.copyFlags(var);
-		lowLevelModVar(var);
+//		lowLevelModVar(var);
 		return newVar;
 	}
 
 	/**
-	 * Updates the TextDescriptor on this ElectricObject selected by varName.
-	 * The varName may be a name of variable on this ElectricObject or one of the
-	 * special names:
-	 * NodeInst.NODE_NAME_TD
-	 * NodeInst.NODE_PROTO_TD
-	 * ArcInst.ARC_NAME_TD
-	 * Export.EXPORT_NAME_TD
-	 * Other strings are not considered special, even they are equal to one of the
-	 * special name. In other words, special names are compared by "==" other than
-	 * by "equals".
-	 * If varName doesn't select any text descriptor, no action is performed.
+	 * Updates the TextDescriptor on this ElectricObject selected by varKey.
+	 * The varKey may be a key of variable on this ElectricObject or one of the
+	 * special keys:
+	 * NodeInst.NODE_NAME
+	 * NodeInst.NODE_PROTO
+	 * ArcInst.ARC_NAME
+	 * Export.EXPORT_NAME
+	 * If varKey doesn't select any text descriptor, no action is performed.
 	 * The TextDescriptor gives information for displaying the Variable.
-	 * @param varName name of variable or special name.
+	 * @param varKey key of variable or special key.
 	 * @param td new value TextDescriptor
 	 */
-	public void setTextDescriptor(String varName, TextDescriptor td)
+	public void setTextDescriptor(Variable.Key varKey, TextDescriptor td)
 	{
-        setTextDescriptorNoObserver(varName, td);
-        // Handles the observers
-        setChanged();
-        notifyObservers(new Object[]{"setTextDescriptor", varName, td});
-        clearChanged();
-	}
-
-    private void setTextDescriptorNoObserver(String varName, TextDescriptor td)
-    {
      	checkChanging();
+        ImmutableElectricObject oldImmutable = getImmutable();
+        ImmutableVariable vd = oldImmutable.getVar(varKey);
+        if (vd == null) return;
+        
+        ImmutableTextDescriptor newTd = ImmutableTextDescriptor.newImmutableTextDescriptor(td);
+        if (!(this instanceof Cell))
+            newTd = newTd.withoutParam();
+        ImmutableVariable newVd = vd.withDescriptor(newTd);
+        Variable var = newVar(newVd);
+        assert var.getD() == newVd;
 
-        ImmutableTextDescriptor oldDescriptor = lowLevelSetTextDescriptor(varName, ImmutableTextDescriptor.newImmutableTextDescriptor(td));
-
-		// handle change control, constraint, and broadcast
-        Undo.modifyTextDescript(this, varName, oldDescriptor);
+//        // handle change control, constraint, and broadcast
+//        if (isDatabaseObject())
+//            Undo.modifyVariables(this, oldImmutable);
+        
+//        // Handles the observers
+//        setChanged();
+//        notifyObservers(new Object[]{"setTextDescriptor", key, td});
+//        clearChanged();
     }
 
 	/**
-	 * Method to set the X and Y offsets of the text in the TextDescriptor selected by name of
-	 * variable or special name.
+	 * Method to set the X and Y offsets of the text in the TextDescriptor selected by key of
+	 * variable or special key.
 	 * The values are scaled by 4, so a value of 3 indicates a shift of 0.75 and a value of 4 shifts by 1.
-	 * @param varName name of variable or special name.
+	 * @param varKey key of variable or special key.
 	 * @param xd the X offset of the text in the TextDescriptor.
 	 * @param yd the Y offset of the text in the TextDescriptor.
 	 * @see #setTextDescriptor(java.lang.String,com.sun.electric.database.variable.TextDescriptor)
 	 * @see com.sun.electric.database.variable.Variable#setOff(double,double)
 	 */
-	public synchronized void setOff(String varName, double xd, double yd)
+	public synchronized void setOff(Variable.Key varKey, double xd, double yd)
 	{
-		MutableTextDescriptor td = getMutableTextDescriptor(varName);
+		MutableTextDescriptor td = getMutableTextDescriptor(varKey);
 		if (td == null) return;
 		td.setOff(xd, yd);
-		setTextDescriptorNoObserver(varName, td);
+		setTextDescriptor(varKey, td);
 	}
 
 	/**
 	 * Method to copy text descriptor from another ElectricObject to this ElectricObject.
 	 * @param other the other ElectricObject from which to copy Variables.
-	 * @param varName selector of textdescriptor
+	 * @param varKey selector of textdescriptor
 	 */
-	public void copyTextDescriptorFrom(ElectricObject other, String varName)
+	public void copyTextDescriptorFrom(ElectricObject other, Variable.Key varKey)
 	{
-		TextDescriptor td = other.getTextDescriptor(varName);
+		TextDescriptor td = other.getTextDescriptor(varKey);
 		if (td == null) return;
-		setTextDescriptor(varName, td);
+		setTextDescriptor(varKey, td);
 	}
 
     /**
@@ -917,52 +932,102 @@ public abstract class ElectricObject extends Observable implements Observer
     private void delVarNoObserver(Variable.Key key)
 	{
 		checkChanging();
-		Variable v = getVar(key);
-		if (v == null) return;
-		lowLevelUnlinkVar(v);
+        ImmutableElectricObject oldImmutable;
+        Variable oldVar;
+        synchronized(this) {
+            oldImmutable = getImmutable();
+            int varIndex = oldImmutable.searchVar(key);
+            if (varIndex < 0) return;
+            ImmutableElectricObject newImmutable = withoutVariable(key);
+            assert newImmutable.getNumVariables() == oldImmutable.getNumVariables() - 1;
+            oldVar = vars[varIndex];
+            oldVar.setLinked(false);
+            if (newImmutable.getNumVariables() > 0) {
+                Variable[] newVars = new Variable[vars.length - 1];
+                System.arraycopy(vars, 0, newVars, 0, varIndex);
+                System.arraycopy(vars, varIndex + 1, newVars, varIndex, newVars.length - varIndex);
+                vars = newVars;
+            } else {
+                vars = Variable.NULL_ARRAY;
+            }
+        }
 		if (isDatabaseObject())
-			Undo.killVariable(this, v);
+			Undo.modifyVariables(this, oldImmutable);
+		// check for side-effects of the change
+		checkPossibleVariableEffects(key);
 	}
-	/**
-	 * Low-level access method to link a Variable into this ElectricObject.
-	 * @param var Variable to link
-	 */
-	public void lowLevelLinkVar(Variable var)
-	{
-        synchronized(this) {
-		    vars.put(var.getKey(), var);
+    
+    public void lowLevelModifyVariables(ImmutableElectricObject newImmutable) {
+        ImmutableElectricObject oldImmutable = getImmutable();
+        int oldLength = oldImmutable.getNumVariables();
+        int newLength = newImmutable.getNumVariables();
+        
+        // Prepare newVars
+        Variable[] oldVars = this.vars;
+        Variable[] newVars = new Variable[newLength];
+        int n = 0, o = 0;
+        while (n < newLength && o < oldVars.length) {
+            for (int i = 0, iend = Math.min(newLength - n, oldVars.length - o); i < iend; i++) {
+                if (newImmutable.getVar(n) != oldVars[o].getD()) break;
+                newVars[n++] = oldVars[o++];
+            }
+            if (n >= newLength || o >= oldVars.length) break;
+            ImmutableVariable d = newImmutable.getVar(n);
+            int cmp = d.key.compareTo(oldVars[o].getKey());
+            if (cmp == 0) {
+                Variable var = oldVars[o++];
+                var.setD(d);
+                newVars[n++] = var;
+            } else if (cmp > 0) {
+                Variable oldVar = oldVars[o++];
+                oldVar.setLinked(false);
+            } else {
+                Variable newVar = new Variable(this, d);
+                newVar.setLinked(true);
+                newVars[n++] = newVar;
+            }
         }
-        var.setLinked(true);
-
-		// check for side-effects of the change
-		checkPossibleVariableEffects(var.getKey());
-	}
-
-	/**
-	 * Low-level access method to unlink a Variable from this ElectricObject.
-	 * @param var Variable to unlink.
-	 */
-	public void lowLevelUnlinkVar(Variable var)
-	{
-        synchronized(this) {
-		    vars.remove(var.getKey());
+        while (o < oldVars.length) {
+            Variable oldVar = oldVars[o++];
+            oldVar.setLinked(false);
         }
-        var.setLinked(false);
-
-		// check for side-effects of the change
-		checkPossibleVariableEffects(var.getKey());
-	}
-
-	/**
-	 * Low-level access method to change a Variable from this ElectricObject.
-	 * @param var Variable that changed.
-	 */
-	public void lowLevelModVar(Variable var)
-	{
-		// check for side-effects of the change
-		checkPossibleVariableEffects(var.getKey());
-	}
-
+        while (n < newVars.length) {
+            Variable newVar = new Variable(this, newImmutable.getVar(n));
+            newVars[n++] = newVar;
+        }
+        // commit new vars
+        this.vars = newVars;
+        
+        // Check possible variable effects
+        n = o = 0;
+        while (n < newLength && o < oldLength) {
+            for (int i = 0, iend = Math.min(newVars.length - n, oldVars.length - o); i < iend; i++, n++, o++) {
+                if (newImmutable.getVar(n) != oldImmutable.getVar(o)) break;
+            }
+            if (n >= newLength || o >= oldLength) break;
+            Variable.Key newKey = newImmutable.getVar(n).key;
+            Variable.Key oldKey = oldImmutable.getVar(o).key;
+            int cmp = newKey.compareTo(oldKey);
+            Variable.Key key;
+            if (cmp == 0) {
+                o++;
+                n++;
+                key = newKey;
+            } else if (cmp > 0) {
+                o++;
+                key = oldKey;
+            } else {
+                n++;
+                key = newKey;
+            }
+            checkPossibleVariableEffects(key);
+        }
+        while (o < oldLength)
+            checkPossibleVariableEffects(oldImmutable.getVar(o++).key);
+        while (n < newLength)
+            checkPossibleVariableEffects(newImmutable.getVar(n++).key);
+    }
+        
 //	/**
 //	 * Method to put an Object into an entry in an arrayed Variable on this ElectricObject.
 //	 * @param key the key of the arrayed Variable.
@@ -1335,25 +1400,20 @@ public abstract class ElectricObject extends Observable implements Observer
 	 * Method to return an Iterator over all Variables on this ElectricObject.
 	 * @return an Iterator over all Variables on this ElectricObject.
 	 */
-	public synchronized Iterator getVariables()
-	{
+	public synchronized Iterator getVariables() {
         //checkExamine();
-		if (vars == null)
-			return (new ArrayList()).iterator();
-		return (new ArrayList(vars.values())).iterator();
-	}
+        return ArrayIterator.iterator(vars);
+    }
 
 	/**
 	 * Method to return the number of Variables on this ElectricObject.
 	 * @return the number of Variables on this ElectricObject.
 	 */
-	public synchronized int getNumVariables()
-	{
+    public synchronized int getNumVariables() {
         //checkExamine();
-		if (vars == null) return 0;
-		return vars.size();
-	}
-
+        return vars.length;
+    }
+    
 	/**
 	 * Method to return an Iterator over all Variable keys.
 	 * @return an Iterator over all Variable keys.
@@ -1488,10 +1548,10 @@ public abstract class ElectricObject extends Observable implements Observer
             String function = (String)array[0];
             if (function.startsWith("setTextDescriptor"))
             {
-                String varName = (String)array[1];
+                Variable.Key varKey = (Variable.Key)array[1];
                 TextDescriptor td = (TextDescriptor)array[2];
                 // setTextDescriptor(String varName, TextDescriptor td)
-                setTextDescriptorNoObserver(varName, td);
+                setTextDescriptor(varKey, td);
             }
             else if (function.startsWith("delVar"))
             {
@@ -1504,6 +1564,22 @@ public abstract class ElectricObject extends Observable implements Observer
 //                Variable.Key key = (Variable.Key)array[0];
 //                updateVar(key, array[1]);
 //            }
+        }
+    }
+    
+	/**
+	 * Method to check invariants in this Library.
+	 * @exception AssertionError if invariants are not valid
+	 */
+	protected void check() {
+        ImmutableElectricObject immutable = getImmutable();
+        immutable.check();
+        assert vars.length == immutable.getNumVariables();
+        if (vars.length == 0) assert vars == Variable.NULL_ARRAY;
+        for (int i = 0; i < vars.length; i++) {
+            Variable var = vars[i];
+            assert var.getOwner() == this;
+            assert var.getD() == immutable.getVar(i);
         }
     }
 }

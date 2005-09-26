@@ -349,7 +349,7 @@ public class ReadableDump extends Output
 				}
 				printWriter.println("rotation: " + angle + " transpose: " + transpose);
 				if (np instanceof Cell)
-					writeTextDescriptor(-1, ni.getTextDescriptor(NodeInst.NODE_PROTO_TD));
+					writeTextDescriptor(-1, ni.getTextDescriptor(NodeInst.NODE_PROTO));
 				printWriter.println("userbits: " + ni.getD().getElibBits());
 				writeVars(ni, cell);
 
@@ -406,7 +406,7 @@ public class ReadableDump extends Output
 				printWriter.println("name: " + pp.getName());
 
 				// need to write both words
-				writeTextDescriptor(-1, pp.getTextDescriptor(Export.EXPORT_NAME_TD));
+				writeTextDescriptor(-1, pp.getTextDescriptor(Export.EXPORT_NAME));
 				printWriter.println("userbits: " + pp.lowLevelGetUserbits());
 				writeVars(pp, cell);
 			}
@@ -495,7 +495,7 @@ public class ReadableDump extends Output
 // 			Variable var = (Variable)it.next();
 // 			if (!var.isDontSave()) count++;
 // 		}
-		String additionalVarName = null;
+		Variable.Key additionalVarKey = null;
 		int additionalVarType = ELIBConstants.VSTRING;
 		Object additionalVarValue = null;
 		if (obj instanceof NodeInst)
@@ -506,13 +506,13 @@ public class ReadableDump extends Output
 				PortInst pi = (PortInst)pit.next();
 				count += pi.getNumVariables();
 			}
-			additionalVarName = NodeInst.NODE_NAME_TD;
+			additionalVarKey = NodeInst.NODE_NAME;
 			if (ni.isUsernamed()) additionalVarType |= ELIBConstants.VDISPLAY;
 			additionalVarValue = ni.getName();
 		} else if (obj instanceof ArcInst)
 		{
 			ArcInst ai = (ArcInst)obj;
-			additionalVarName = ArcInst.ARC_NAME_TD;
+			additionalVarKey = ArcInst.ARC_NAME;
 			if (ai.isUsernamed()) additionalVarType |= ELIBConstants.VDISPLAY;
 			additionalVarValue = ai.getName();
 		} else if (obj instanceof Library)
@@ -520,12 +520,12 @@ public class ReadableDump extends Output
 			String[] fontAssociation = createFontAssociation();
 			if (fontAssociation != null)
 			{
-				additionalVarName = Library.FONT_ASSOCIATIONS.getName();
+				additionalVarKey = Library.FONT_ASSOCIATIONS;
 				additionalVarType |= ELIBConstants.VISARRAY | (fontAssociation.length << ELIBConstants.VLENGTHSH);
 				additionalVarValue = fontAssociation;
 			}
 		}
-		if (additionalVarName != null) count++;
+		if (additionalVarKey != null) count++;
 
 		if (count == 0) return;
 		printWriter.println("variables: " + count + "");
@@ -554,10 +554,10 @@ public class ReadableDump extends Output
 		}
 
 		// write the additional variable
-		if (additionalVarName != null)
+		if (additionalVarKey != null)
 		{
-			printName(additionalVarName);
-			TextDescriptor td = (additionalVarType & ELIBConstants.VDISPLAY) != 0 ? obj.getTextDescriptor(additionalVarName) : null;
+			printName(additionalVarKey.getName());
+			TextDescriptor td = (additionalVarType & ELIBConstants.VDISPLAY) != 0 ? obj.getTextDescriptor(additionalVarKey) : null;
 			writeTextDescriptor(additionalVarType, td);
 			String pt = makeString(additionalVarValue, curCell);
 			if (pt == null) pt = "";

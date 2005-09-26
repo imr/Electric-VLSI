@@ -46,7 +46,7 @@ public class Variable
 	/**
 	 * The Key class caches Variable names.
 	 */
-	public static class Key implements Comparable
+	public final static class Key implements Comparable
 	{
 		private final String name;
 		
@@ -139,26 +139,13 @@ public class Variable
 		return key;
 	}
 
+    /** empty array of Variables. */
+    public static final Variable[] NULL_ARRAY = {};
+    
     private final ElectricObject owner;
     private ImmutableVariable d;
 
     /** true if var is attached to valid electric object */ private boolean linked;
-
-	/**
-	 * The constructor builds a Variable from the given parameters.
-	 * @param owner the ElectriObject that owns this variable.
-	 * @param addr the object that will be stored in the Variable.
-	 * @param descriptor a TextDescriptor to control how the Variable will be displayed.
-	 * @param key a Key object that identifies this Variable.
-	 */
-	Variable(ElectricObject owner, Object addr, TextDescriptor descriptor, Key key)
-	{
-        this.owner = owner;
-        ImmutableTextDescriptor td = ImmutableTextDescriptor.newImmutableTextDescriptor(descriptor);
-        if (!(owner instanceof Cell))
-            td = td.withoutParam();
-        this.d = ImmutableVariable.newInstance(key, td, addr);
-	}
 
 	/**
 	 * The constructor builds a Variable.
@@ -198,6 +185,12 @@ public class Variable
      * @return persistent data of this Variable.
      */
     public ImmutableVariable getD() { return d; }
+    
+    /**
+     * package-private method to modify persistent data of this Variable.
+     * @param d new persistent data of this Variable.
+     */
+    void setD(ImmutableVariable d) { this.d = d; }
     
     /**
      * Get the number of entries stored in this Variable.
@@ -529,28 +522,7 @@ public class Variable
 	 */
 	public void setTextDescriptor(TextDescriptor descriptor)
     {
-        owner.checkChanging();
-
-        ImmutableTextDescriptor oldDescriptor = lowLevelSetTextDescriptor(ImmutableTextDescriptor.newImmutableTextDescriptor(descriptor));
-       
-		// handle change control, constraint, and broadcast
-        if (owner.isDatabaseObject())
-            Undo.modifyTextDescript(owner, d.key.getName(), oldDescriptor);
-     }
-
-	/**
-	 * Method to set the TextDescriptor on this Variable.
-	 * The TextDescriptor gives information for displaying the Variable.
-	 * @param descriptor the new TextDescriptor on this Variable.
-     * @return old text descriptor
-	 */
-	ImmutableTextDescriptor lowLevelSetTextDescriptor(ImmutableTextDescriptor descriptor)
-    {
-        ImmutableTextDescriptor oldDescriptor = this.d.descriptor;
-        if (!(owner instanceof Cell))
-            descriptor = descriptor.withoutParam();
-        this.d = d.withDescriptor(descriptor);
-        return oldDescriptor;
+        owner.setTextDescriptor(getKey(), descriptor);
     }
 
 	/**
@@ -883,6 +855,7 @@ public class Variable
 	 */
 	public synchronized void setParam(boolean state)
 	{
+        if (!(getOwner() instanceof Cell)) return;
 		MutableTextDescriptor td = new MutableTextDescriptor(d.descriptor);
 		td.setParam(state);
 		setTextDescriptor(td);

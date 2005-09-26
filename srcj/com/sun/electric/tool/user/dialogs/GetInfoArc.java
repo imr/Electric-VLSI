@@ -369,7 +369,7 @@ public class GetInfoArc extends EDialog implements HighlightListener, DatabaseCh
 			directionality.setSelectedIndex(initialDirectional);
 
 			// arc color
-			initialColor = "";
+			initialColor = "DEFAULT COLOR";
 			Variable var = ai.getVar(Artwork.ART_COLOR);
 			if (var != null) {
 				Integer integer = (Integer)var.getObject();

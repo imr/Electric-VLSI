@@ -727,9 +727,9 @@ public abstract class InteractiveRouter extends Router {
             name2 = arc.getName();
         // add two arcs to rebuild old startArc
         RouteElement newHeadArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getWidth(), headRE, newPinRE,
-                head, bisectPoint, name1, arc.getTextDescriptor(ArcInst.ARC_NAME_TD), arc);
+                head, bisectPoint, name1, arc.getTextDescriptor(ArcInst.ARC_NAME), arc);
         RouteElement newTailArcRE = RouteElementArc.newArc(cell, arc.getProto(), arc.getWidth(), newPinRE, tailRE,
-                bisectPoint, tail, name2, arc.getTextDescriptor(ArcInst.ARC_NAME_TD), arc);
+                bisectPoint, tail, name2, arc.getTextDescriptor(ArcInst.ARC_NAME), arc);
         newHeadArcRE.setShowHighlight(false);
         newTailArcRE.setShowHighlight(false);
         // delete old arc

@@ -1675,7 +1675,7 @@ public class EDIF extends Topology
         blockOpen("figureGroupOverride");
         blockPutIdentifier(getFigureGroupName(EGWIRE));
         blockOpen("textHeight");
-        blockPutInteger(getTextHeight(e.getTextDescriptor(Export.EXPORT_NAME_TD)));
+        blockPutInteger(getTextHeight(e.getTextDescriptor(Export.EXPORT_NAME)));
         blockClose("figureGroupOverride");
         blockOpen("origin");
         Poly namePoly = e.getNamePoly();
