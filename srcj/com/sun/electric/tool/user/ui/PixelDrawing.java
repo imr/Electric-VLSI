@@ -404,6 +404,17 @@ public class PixelDrawing
 	 */
 	public void drawImage(boolean fullInstantiate, Rectangle2D drawLimitBounds)
 	{
+		long startTime = 0;
+		long initialFree = 0;
+		if (TAKE_STATS)
+		{
+			startTime = System.currentTimeMillis();
+			initialFree = Runtime.getRuntime().freeMemory();
+			tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = 0;
+			offscreensCreated = offscreenPixelsCreated = offscreensUsed = offscreenPixelsUsed = cellsRendered = 0;
+            boxes = crosses = solidLines = patLines = thickLines = polygons = texts = circles = thickCircles = discs = circleArcs = points = thickPoints = 0;
+		}
+
 		if (fullInstantiate != lastFullInstantiate)
 		{
 			clearSubCellCache();
@@ -417,14 +428,6 @@ public class PixelDrawing
        	}
 
         drawBounds = wnd.getDisplayedBounds();
-		long startTime = 0;
-		if (TAKE_STATS)
-		{
-			startTime = System.currentTimeMillis();
-			tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = 0;
-			offscreensCreated = offscreenPixelsCreated = offscreensUsed = offscreenPixelsUsed = cellsRendered = 0;
-            boxes = crosses = solidLines = patLines = thickLines = polygons = texts = circles = thickCircles = discs = circleArcs = points = thickPoints = 0;
-		}
 
 		// set colors to use
 		textGraphics.setColor(new Color(User.getColorText()));
@@ -503,9 +506,10 @@ public class PixelDrawing
 		if (TAKE_STATS && User.isUseOlderDisplayAlgorithm())
 		{
 			long endTime = System.currentTimeMillis();
+			long memConsumed = initialFree - Runtime.getRuntime().freeMemory();
 			System.out.println("Took "+com.sun.electric.database.text.TextUtils.getElapsedTime(endTime-startTime)+
 				", rendered "+cellsRendered+" cells, used "+offscreensUsed+" ("+offscreenPixelsUsed+" pixels) cached cells, created "+
-				offscreensCreated+" ("+offscreenPixelsCreated+" pixels) new cell caches (my size is "+total+" pixels)");
+				offscreensCreated+" ("+offscreenPixelsCreated+" pixels) new cell caches (my size is "+total+" pixels), memory used="+memConsumed);
 			System.out.println("   Cells ("+totalCells+") "+tinyCells+" are tiny;"+
 				" Primitives ("+totalPrims+") "+tinyPrims+" are tiny;"+
 				" Arcs ("+totalArcs+") "+tinyArcs+" are tiny, "+linedArcs+" are lines");
