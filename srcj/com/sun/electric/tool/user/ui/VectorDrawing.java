@@ -74,7 +74,7 @@ import java.util.Set;
  */
 public class VectorDrawing
 {
-	private static final boolean STATS = false;
+	private static final boolean TAKE_STATS = false;
 
 	/** the EditWindow being drawn */						private EditWindow wnd;
 	/** the rendering object */								private PixelDrawing offscreen;
@@ -444,6 +444,7 @@ public class VectorDrawing
 
 		// statistics
 		startTime = System.currentTimeMillis();
+		long initialSize = Runtime.getRuntime().freeMemory();
 		takingLongTime = false;
 		boxCount = tinyBoxCount = lineBoxCount = lineCount = polygonCount = 0;
 		crossCount = textCount = circleCount = arcCount = 0;
@@ -490,10 +491,11 @@ public class VectorDrawing
 			System.out.println("Done");
 		}
 
-		if (STATS && Main.getDebug())
+		if (TAKE_STATS && Main.getDebug())
 		{
+			long memUsed = initialSize - Runtime.getRuntime().freeMemory();
 			long renderTime = System.currentTimeMillis() - startTime;
-	        System.out.println("Time to render: "+TextUtils.getElapsedTime(renderTime));
+	        System.out.println("Time to render: "+TextUtils.getElapsedTime(renderTime) + "    Memory Used: "+ memUsed);
 			System.out.println("   Rendered "+boxCount+" boxes ("+tinyBoxCount+" tiny, "+lineBoxCount+" lines), "+
 				lineCount+" lines, "+polygonCount+" polys, "+crossCount+" crosses, "+
 				textCount+" texts, "+circleCount+" circles, "+arcCount+" arcs, "+
