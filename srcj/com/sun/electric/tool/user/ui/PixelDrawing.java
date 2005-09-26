@@ -187,7 +187,7 @@ public class PixelDrawing
 	}
 
 	// statistics stuff
-	private static final boolean TAKE_STATS = true;
+	private static final boolean TAKE_STATS = false;
 	private static int tinyCells, tinyPrims, totalCells, renderedCells, totalPrims, tinyArcs, linedArcs, totalArcs;
 	private static int offscreensCreated, offscreenPixelsCreated, offscreensUsed, offscreenPixelsUsed, cellsRendered;
     private static int boxes, crosses, solidLines, patLines, thickLines, polygons, texts, circles, thickCircles, discs, circleArcs, points, thickPoints;

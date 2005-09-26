@@ -685,7 +685,8 @@ public class VectorDrawing
 			if (expanded)
 			{
 				Orientation thisOrient = vsc.ni.getOrient();
-				Orientation recurseTrans = thisOrient.concatenate(trans);
+//				Orientation recurseTrans = thisOrient.concatenate(trans);
+				Orientation recurseTrans = trans.concatenate(thisOrient);
 				VarContext subContext = context.push(vsc.ni);
 				VectorCell subVC = drawCell(vsc.subCell, recurseTrans, subContext);
 
