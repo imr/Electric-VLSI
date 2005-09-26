@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.change;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.CellUsage;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
@@ -300,7 +301,7 @@ public class Undo
 				ArcInst ai = (ArcInst)obj;
 				ai.lowLevelLink();
 				type = Type.ARCINSTNEW;
-				ai.getParent().checkInvariants();
+				if (Main.getDebug()) ai.getParent().checkInvariants();
 				return;
 			}
 			if (type == Type.ARCINSTMOD)
@@ -329,7 +330,7 @@ public class Undo
 				pp.lowLevelLink((Collection)o1);
 				type = Type.EXPORTNEW;
 				o1 = null;
-				((Cell)pp.getParent()).checkInvariants();
+				if (Main.getDebug()) ((Cell)pp.getParent()).checkInvariants();
 				return;
 			}
 			if (type == Type.EXPORTMOD)

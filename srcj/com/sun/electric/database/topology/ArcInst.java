@@ -23,6 +23,7 @@
  */
 package com.sun.electric.database.topology;
 
+import com.sun.electric.Main;
 import com.sun.electric.database.CellId;
 import com.sun.electric.database.ImmutableArcInst;
 import com.sun.electric.database.ImmutableElectricObject;
@@ -537,7 +538,7 @@ public class ArcInst extends Geometric implements Comparable
 		// update end shrinkage information
 		headPortInst.updateShrinkage();
 		tailPortInst.updateShrinkage();
-		parent.checkInvariants();
+		if (Main.getDebug()) parent.checkInvariants();
 	}
 
 	/**
