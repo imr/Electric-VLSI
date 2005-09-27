@@ -248,7 +248,7 @@ class LayoutCell {
 			if (!ai.isLinked()) continue;
 
 			// if arcinst has already been changed check its connectivity
-			if (arcModified(ai))
+			if (arcMoved(ai))
 //			if (getChangeClock(ai) == AI_RIGID.intValue())
 			{
 				if (Layout.DEBUG) System.out.println("    Arc already changed");
@@ -308,7 +308,7 @@ class LayoutCell {
 			if (Layout.DEBUG) System.out.println("  From " + ni + " Modifying Rigid "+ai);
 
 			// if rigid arcinst has already been changed check its connectivity
-			if (arcModified(ai))
+			if (arcMoved(ai))
 //			if (getChangeClock(ai) == AI_RIGID.intValue())
 			{
 				if (Layout.DEBUG) System.out.println("    Arc already changed");
@@ -441,7 +441,7 @@ class LayoutCell {
 			if (Layout.DEBUG) System.out.println("  Modifying fixed-angle "+ai);
 
 			// if flexible arcinst has been changed, verify its connectivity
-			if (arcModified(ai))
+			if (arcMoved(ai))
 //			if (getChangeClock(ai) >= AI_FLEX.intValue())
 			{
 				if (Layout.DEBUG) System.out.println("   Arc already changed");
@@ -950,12 +950,13 @@ class LayoutCell {
 	/**
 	 * Method to announce a change to an ArcInst.
 	 * @param ai the ArcInst that changed.
+	 * @param oD the old contents of the ArcInst.
 	 */
-	void modifyArcInst(ArcInst ai) {
+	void modifyArcInst(ArcInst ai, ImmutableArcInst oldD) {
         modified = true;
         if (oldArcs == null) oldArcs = new HashMap/*<ArcInst,Object>*/();
         if (!oldArcs.containsKey(ai))
-            oldArcs.put(ai, null);
+            oldArcs.put(ai, oldD);
     }
     
 	/**
@@ -1001,8 +1002,12 @@ class LayoutCell {
         return (ImmutableNodeInst)oldNodes.get(ni);
     }
     
-    boolean arcModified(ArcInst ai) {
-        return oldArcs != null && oldArcs.containsKey(ai);
+    boolean arcMoved(ArcInst ai) {
+        if (oldArcs == null || !oldArcs.containsKey(ai))
+            return false;
+        ImmutableArcInst oldD = (ImmutableArcInst)oldArcs.get(ai);
+        if (oldD == null) return false;
+        return ai.getHeadLocation() != oldD.headLocation || ai.getTailLocation() != oldD.tailLocation;
     }
 }
 

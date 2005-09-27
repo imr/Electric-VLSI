@@ -149,7 +149,7 @@ public class Layout extends Constraints
      * @param oD the old contents of the ArcInst.
 	 */
 	public void modifyArcInst(ArcInst ai, ImmutableArcInst oD) {
-        getCellInfo(ai.getParent()).modifyArcInst(ai);
+        getCellInfo(ai.getParent()).modifyArcInst(ai, oD);
     }
 
 	/**
