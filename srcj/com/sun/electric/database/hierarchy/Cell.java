@@ -3439,7 +3439,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable
 	 * Expanded NodeInsts are instances of Cells that show their contents.
 	 * @return true if instances of it are "expanded" by when created.
 	 */
-	public boolean isWantExpanded() { return (userBits & WANTNEXPAND) != 0; }
+	public boolean isWantExpanded() { return (userBits & WANTNEXPAND) != 0 || isIcon(); }
 
 	/**
 	 * Method to return the function of this Cell.

@@ -2,7 +2,13 @@
 
 NOTE: Please place changes under the version that will be released next.
 
-************************* Version 8.03i: *********************************
+************************* Version 8.04a: *********************************
+
+BUG: (09/27/05, DN) Icons should be always be expanded cells/instances (Bug #570)
+FIX: In Cell.isWantExpanded() and NodeInst.setExpanded() ensure that icon instances are always expanded.
+
+IMP: (09/27/05, DN) Branch "version8-03-stable" was created from tag "version8-03.h".
+     The main branch has version number "8.04a".
 
 BUG: (09/26/05, GVG) Changes in the code to be able to run regressions without setting the environment variable DISPLAY (bug 197).
 FIX: Decouple messages stream from messages window. Regressions updated.

@@ -2950,7 +2950,7 @@ public class NodeInst extends Geometric implements Nodable, Comparable
      * @param value true if NodeInst is expanded.
 	 */
     public void setExpanded(boolean value) {
-        if (!(protoType instanceof Cell)) return;
+        if (!(protoType instanceof Cell) || ((Cell)protoType).isIcon()) return;
         if (value != expanded && parent != null) parent.expandStatusChanged();
         expanded = value;
     }
