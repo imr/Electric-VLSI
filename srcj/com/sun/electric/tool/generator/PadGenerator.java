@@ -22,7 +22,6 @@
  * Boston, Mass 02111-1307, USA.
  */
 package com.sun.electric.tool.generator;
-
 import com.sun.electric.database.geometry.EGraphics;
 import com.sun.electric.database.geometry.Orientation;
 import com.sun.electric.database.geometry.Poly;
@@ -812,7 +811,7 @@ public class PadGenerator
             }
         }
 
-        frame.getContent().fillScreen();
+        if (frame != null) frame.getContent().fillScreen();
 
 
         if (view == View.ICON) {

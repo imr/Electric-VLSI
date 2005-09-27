@@ -410,7 +410,8 @@ public class TextUtils
             numberFormatSpecific = NumberFormat.getInstance(Locale.US);
             if (numberFormatSpecific != null) numberFormatSpecific.setGroupingUsed(false);
             try {
-                DecimalFormat d = (DecimalFormat)numberFormatPostFix;
+                DecimalFormat d = (DecimalFormat)numberFormatSpecific;
+//                DecimalFormat d = (DecimalFormat)numberFormatPostFix;
                 d.setDecimalSeparatorAlwaysShown(false);
             } catch (Exception e) {}
 

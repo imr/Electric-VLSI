@@ -113,6 +113,7 @@ public class WindowFrame extends Observable
 	 */
 	public static WindowFrame createEditWindow(final Cell cell)
 	{
+        if (Main.BATCHMODE) return null;
 		final WindowFrame frame = new WindowFrame();
 		if (cell != null && cell.getView().isTextView())
 		{
