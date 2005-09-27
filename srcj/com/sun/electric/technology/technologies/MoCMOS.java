@@ -35,7 +35,6 @@ import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.hierarchy.Cell;
