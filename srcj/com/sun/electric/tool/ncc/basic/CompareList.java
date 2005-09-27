@@ -124,16 +124,16 @@ public class CompareList {
 			Cell c = (Cell) gi.next();
 			if (use1.cellIsUsed(c)) {used1=true; compareSet.add(use1.getCellContext(c));}
 			if (use2.cellIsUsed(c)) {used2=true; compareSet.add(use2.getCellContext(c));}
-		}
-		
-		// finally the two root Cells should always be compared
-		if (cell==use1.getRoot()) {
-			used1 = used2 = true;
-			compareSet.add(use2.getCellContext(use2.getRoot()));
-		}
-		if (cell==use2.getRoot()) {
-			used1 = used2 = true;
-			compareSet.add(use1.getCellContext(use1.getRoot()));
+
+			// if c is root of one design, add root of other design
+			if (c==use1.getRoot()) {
+				compareSet.add(use2.getCellContext(use2.getRoot()));
+				used1 = used2 = true;
+			}
+			if (c==use2.getRoot()) {
+				compareSet.add(use1.getCellContext(use1.getRoot()));
+				used1 = used2 = true;
+			}
 		}
 
 		LayoutLib.error(compareSet.size()==0, "Cell not in its own group?");
@@ -151,7 +151,15 @@ public class CompareList {
 		
 		LayoutLib.error(compareSet.size()<2, "nothing to compare?");
 	}
-	//public List getCellContexts() {return cellContexts;}
+	// useful for debugging
+	public void printCells() {
+		System.out.print("Compare List contains:=");
+		for (Iterator it=iterator(); it.hasNext();) {
+			CellContext cc = (CellContext) it.next();
+			System.out.print(" "+cc.cell.getName());
+		}
+		System.out.println();
+	}
 	public Iterator iterator() {return cellContexts.iterator();}
 	public boolean empty() {return cellContexts.size()==0;}
 	public boolean isSafeToCheckSizes() {return safeToCheckSizes;}

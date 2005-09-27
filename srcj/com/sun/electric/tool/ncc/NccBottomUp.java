@@ -211,7 +211,9 @@ public class NccBottomUp {
 
 			// size checking only works if we compare Cells that are
 			// each instantiated exactly once
-			if (options.checkSizes && !compareList.isSafeToCheckSizes() &&
+			if (options.checkSizes && 
+				options.operation!=NccOptions.FLAT_TOP_CELL &&
+				!compareList.isSafeToCheckSizes() &&
 				!blackBoxAnn) continue;
 			
 			// release storage from previous comparison

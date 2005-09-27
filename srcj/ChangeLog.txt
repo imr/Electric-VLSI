@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03i: *********************************
 
+BUG: (09/26/05, SMR) I fixed: NCC: Comparing a Cell and its child yields match. (Bugzilla# 571)
+
 BUG: (09/26/05, SMR) New VectorDrawing module doesn't handle complex orientations right.
 FIX: In "VectorDrawing.render()", reverse Orientation concatenation.
 
