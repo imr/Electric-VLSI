@@ -29,6 +29,7 @@ import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.Resources;
 import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.dialogs.EDialog;
 import com.sun.electric.tool.user.menus.FileMenu;
 import com.sun.electric.tool.user.menus.MenuBar;
@@ -107,7 +108,8 @@ public class TopLevel extends JFrame
 	/** The WindowFrame associated with this (if SDI). */	private WindowFrame wf = null;
 	/** The size of the screen. */							private static Dimension scrnSize;
 	/** The current operating system. */					private static OS os;
-	/** The messages window. */								private static MessagesWindow messages;
+	/** The messagesWindow window. */								private static MessagesWindow messagesWindow;
+    /** The messagesWindow stream */                              private static MessagesStream messagesStream;
 	/** The rate of double-clicks. */						private static int doubleClickDelay;
 	/** The cursor being displayed. */						private static Cursor cursor;
     /** If the busy cursor is overriding the normal cursor */ private static boolean busyCursorOn = false;
@@ -175,14 +177,21 @@ public class TopLevel extends JFrame
 		return Resources.getResource(TopLevel.class, "IconElectric.gif");
 	}
 
+    private static void initializeMessageStream()
+    {
+        if (messagesStream == null)
+            messagesStream = new MessagesStream();
+    }
 	/**
 	 * Method to initialize the window system with the specified mode.
      * If mode is null, the mode is implied by the operating system.
 	 */
 	public static void InitializeWindows()
 	{
-		// initialize the messages window
-        messages = new MessagesWindow();
+		// initialize the messagesWindow window
+        messagesWindow = new MessagesWindow();
+        initializeMessageStream();
+        messagesStream.addObserver(messagesWindow);
         WindowFrame.createEditWindow(null);
     }
 
@@ -194,6 +203,8 @@ public class TopLevel extends JFrame
 	public static void OSInitialize(Mode mode)
 	{
 		// setup the size of the screen
+        if (!Main.BATCHMODE)
+        {
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		scrnSize = tk.getScreenSize();
         Object click = tk.getDesktopProperty("awt.multiClickInterval");
@@ -211,7 +222,7 @@ public class TopLevel extends JFrame
 			Rectangle r = gc.getBounds();
 			scrnSize.setSize(r.width, r.height);
 		}
-
+        }
 		// setup specific look-and-feel
         Mode osMode = null;
 		try{
@@ -306,11 +317,21 @@ public class TopLevel extends JFrame
 	public static boolean isMDIMode() { return (mode == Mode.MDI); }
 
 	/**
-	 * Method to return messages window.
-	 * The messages window runs along the bottom.
-	 * @return the messages window.
+	 * Method to return messagesWindow window.
+	 * The messagesWindow window runs along the bottom.
+	 * @return the messagesWindow window.
 	 */
-	public static MessagesWindow getMessagesWindow() { return messages; }
+	public static MessagesWindow getMessagesWindow() { return messagesWindow; }
+
+    /**
+     * Method to return messages stream.
+     * @return the messages stream.
+     */
+    public static MessagesStream getMessagesStream()
+    {
+        initializeMessageStream();
+        return messagesStream;
+    }
 
 	/**
 	 * Method to return status bar associated with this TopLevel.

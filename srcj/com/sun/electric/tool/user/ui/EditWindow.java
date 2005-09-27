@@ -55,12 +55,7 @@ import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.tool.Job;
 import com.sun.electric.tool.io.output.PNG;
 import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.user.ActivityLogger;
-import com.sun.electric.tool.user.ErrorLogger;
-import com.sun.electric.tool.user.Highlight;
-import com.sun.electric.tool.user.HighlightListener;
-import com.sun.electric.tool.user.Highlighter;
-import com.sun.electric.tool.user.User;
+import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.FindText.WhatToSearch;
 
 import java.awt.datatransfer.DataFlavor;
@@ -319,7 +314,7 @@ public class EditWindow extends JPanel
 	public void mousePressed(MouseEvent evt)
 	{
         requestFocus();
-		MessagesWindow.userCommandIssued();
+		MessagesStream.userCommandIssued();
 		lastXPosition = evt.getX();   lastYPosition = evt.getY();
 //		EditWindow wnd = (EditWindow)evt.getSource();
 
@@ -431,7 +426,7 @@ public class EditWindow extends JPanel
 	// the KeyListener events
 	public void keyPressed(KeyEvent evt)
 	{
-		MessagesWindow.userCommandIssued();
+		MessagesStream.userCommandIssued();
 		WindowFrame.curKeyListener.keyPressed(evt);
 	}
 

@@ -25,8 +25,6 @@ package com.sun.electric.tool.user.ui;
 
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.user.dialogs.EDialog;
-import com.sun.electric.tool.user.dialogs.OpenFile;
-import com.sun.electric.tool.io.FileType;
 import com.sun.electric.Main;
 
 import java.awt.BorderLayout;
@@ -37,7 +35,6 @@ import java.awt.Font;
 import java.awt.Frame;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
-import java.awt.List;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -51,13 +48,10 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -65,10 +59,8 @@ import javax.swing.JFrame;
 import javax.swing.JInternalFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JPanel;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -84,8 +76,7 @@ import javax.swing.SwingUtilities;
  * the methods of this class directly.
  */
 public class MessagesWindow
-	extends OutputStream
-	implements ActionListener, MouseListener, KeyListener, Runnable, ClipboardOwner
+	implements Observer, ActionListener, MouseListener, KeyListener, Runnable, ClipboardOwner
 {
 	private ArrayList history;
 	private JTextField entry;
@@ -95,7 +86,6 @@ public class MessagesWindow
 	private Thread ticker = null;
 	private StringBuffer buffer = new StringBuffer();
 	private Container jf;
-	private PrintWriter printWriter = null;
 
 	// -------------------- private and protected methods ------------------------
 	public MessagesWindow()
@@ -132,7 +122,7 @@ public class MessagesWindow
 			JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setPreferredSize(msgSize);
-		JScrollBar vertscroll = scrollPane.getVerticalScrollBar();
+//		JScrollBar vertscroll = scrollPane.getVerticalScrollBar();
 		contentFrame.add(scrollPane, BorderLayout.CENTER);
 
 		jf.setLocation(150, scrnSize.height/100*80);
@@ -144,10 +134,8 @@ public class MessagesWindow
 		} else
 		{
 			((JFrame)jf).pack();
-			if (!Main.BATCHMODE) ((JFrame)jf).setVisible(true);
+			((JFrame)jf).setVisible(true);
 		}
-
-		System.setOut(new java.io.PrintStream(this));
 	}
 
 	public Rectangle getMessagesLocation()
@@ -173,70 +161,18 @@ public class MessagesWindow
 		info.setText("");
 	}
 
-	private static boolean newCommand = true;
-	private static int commandNumber = 1;
+    public void update(Observable obs, Object str)
+    {
+        String mess = (String)str;
+        appendString(mess);
+    }
 
-	/**
-	 * Method to report that the user issued a new command (click, keystroke, pulldown menu).
-	 * The messages window separates output by command so that each command's results
-	 * can be distinguished from others.
-	 */
-	public static void userCommandIssued()
-	{
-		newCommand = true;
-	}
-
-	/**
-	 * Method to start saving the messages window.
-	 */
-	public void save()
-	{
-		save(OpenFile.chooseOutputFile(FileType.TEXT, null, "emessages.txt"));
-	}
-
-	public void save(String filePath) {
-		if (filePath == null) return;
-		try
-		{
-			printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
-		} catch (IOException e)
-		{
-			System.out.println("Error creating " + filePath);
-			return;
-		}
-		System.out.println("Messages will be saved to " + filePath);
-	}
-
-	public void write(byte[] b)
-	{
-		appendString(new String(b));
-	}
-
-	public void write(int b)
-	{
-		appendString(String.valueOf((char) b));
-	}
-
-	public void write(byte[] b, int off, int len)
-	{
-		appendString(new String(b, off, len));
-	}
-
-	protected void appendString(String str)
+	private void appendString(String str)
 	{
         if (str.equals("")) return;
-        if (newCommand)
-		{
-			newCommand = false;
-			str = "=================================" + (commandNumber++) + "=================================\n" + str;
-		}
+
 		synchronized (buffer)
 		{
-			if (printWriter != null)
-			{
-				printWriter.print(str);
-				printWriter.flush();
-			}
 			buffer.append(str);
 			if (ticker == null)
 			{

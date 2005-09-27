@@ -588,7 +588,7 @@ public class LENetlister1 extends LENetlister {
         }
         if (inst == null) return false;                 // failed
 
-        MessagesWindow msgs = TopLevel.getMessagesWindow();
+//        MessagesWindow msgs = TopLevel.getMessagesWindow();
         //Font oldFont = msgs.getFont();
         //msgs.setFont(new Font("Courier", Font.BOLD, oldFont.getSize()));
 

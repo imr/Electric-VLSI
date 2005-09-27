@@ -167,7 +167,7 @@ public class WindowMenu {
         MenuBar.Menu messagesSubMenu = MenuBar.makeMenu("_Messages Window");
         windowMenu.add(messagesSubMenu);
         messagesSubMenu.addMenuItem("_Save Messages...", null,
-            new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().save(); }});
+            new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesStream().save(); }});
         messagesSubMenu.addMenuItem("_Clear", null,
             new ActionListener() { public void actionPerformed(ActionEvent e) { TopLevel.getMessagesWindow().clear(); }});
         messagesSubMenu.addMenuItem("Set F_ont...", null,

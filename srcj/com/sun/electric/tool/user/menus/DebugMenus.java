@@ -67,6 +67,7 @@ import com.sun.electric.tool.user.*;
 import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.dialogs.OpenFile;
 import com.sun.electric.tool.user.ui.*;
+import com.sun.electric.Main;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -534,7 +535,8 @@ public class DebugMenus {
 			System.out.println("Created " + bigCell);
 
 			// display a cell
-			WindowFrame.createEditWindow(myCell);
+            if (!Main.BATCHMODE)
+			    WindowFrame.createEditWindow(myCell);
 			return true;
 		}
 	}
@@ -624,7 +626,8 @@ public class DebugMenus {
 			System.out.println("Created " + higherCell);
 
 			// display a cell
-			WindowFrame.createEditWindow(myCell);
+            if (!Main.BATCHMODE)
+			    WindowFrame.createEditWindow(myCell);
             return (true);
 		}
     }

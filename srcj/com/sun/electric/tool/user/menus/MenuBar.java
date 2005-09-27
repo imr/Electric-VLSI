@@ -25,6 +25,7 @@ package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.tool.user.ActivityLogger;
 import com.sun.electric.tool.user.KeyBindingManager;
+import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
 import com.sun.electric.tool.user.ui.MessagesWindow;
@@ -120,7 +121,7 @@ public class MenuBar extends JMenuBar
         public void actionPerformed(ActionEvent e)
         {
             // register action completed in messages window
-            MessagesWindow.userCommandIssued();
+            MessagesStream.userCommandIssued();
 
             AbstractButton source = (AbstractButton)e.getSource();
             String name;

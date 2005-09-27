@@ -417,9 +417,11 @@ public final class Main
                 public void run() {
                     // remove the splash screen
                     if (sw != null) sw.removeNotify();
+                    if (!Main.BATCHMODE)
+                    {
                     TopLevel.InitializeWindows();
 					WindowFrame.wantToOpenCurrentLibrary(true);
-
+                    }
                     // run script
                     if (beanShellScript != null) EvalJavaBsh.runScript(beanShellScript);
                 }
@@ -442,8 +444,11 @@ public final class Main
     private static class EventProcessor extends EventQueue
     {
 		private EventProcessor() {
+            if (!BATCHMODE)
+            {
             Toolkit kit = Toolkit.getDefaultToolkit();
             kit.getSystemEventQueue().push(this);
+            }
         }
 
         protected void dispatchEvent(AWTEvent e) {
