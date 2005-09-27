@@ -4,7 +4,7 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.03i: *********************************
 
-BUG: (09/26/05, GVG) Changes in the code to be able to run regressions without setting the environment variable DISPLAY.
+BUG: (09/26/05, GVG) Changes in the code to be able to run regressions without setting the environment variable DISPLAY (bug 197).
 FIX: Decouple messages stream from messages window. Regressions updated.
 
 BUG: (09/26/05, RK) Bug: Node Info dialog has MoCMOS polysilicon resistors width and length swapped. (Bugzilla# 574)
