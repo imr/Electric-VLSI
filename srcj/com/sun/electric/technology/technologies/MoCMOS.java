@@ -2433,7 +2433,7 @@ public class MoCMOS extends Technology
 
         for (int i = 0; i < rpoResistorNodes.length; i++)
         {
-            rpoResistorNodes[i] = PrimitiveNode.newInstance(stdNames[i]+"-Poly-RPO-Resistor", this, resistorW, resistorH,
+            rpoResistorNodes[i] = PrimitiveNode.newInstance(stdNames[i].toUpperCase()+"-Poly-RPO-Resistor", this, resistorW, resistorH,
                     new SizeOffset(resistorOffX, resistorOffX, resistorOffY, resistorOffY),
 				new Technology.NodeLayer []
 				{
@@ -4450,6 +4450,23 @@ public class MoCMOS extends Technology
 		Pref.changedMeaningVariable(cacheSecondPolysilicon.getMeaning(), new Integer(secondPoly?1:0));
 		return true;
 	}
+/******************** OVERRIDES ********************/
+    /**
+     * Method to set the size of a transistor NodeInst in this Technology.
+     * Override because for MOCMOS sense of "width" and "length" are 
+     * different for resistors and transistors.
+     * @param ni the NodeInst
+     * @param width the new width (positive values only)
+     * @param length the new length (positive values only)
+     */
+    public void setPrimitiveNodeSize(NodeInst ni, double width, double length)
+    {
+        if (ni.getFunction().isResistor()) {
+        	super.setPrimitiveNodeSize(ni, length, width);
+        } else {
+        	super.setPrimitiveNodeSize(ni, width, length);
+        }
+    }
 
 /******************** NODE DESCRIPTION (GRAPHICAL) ********************/
 

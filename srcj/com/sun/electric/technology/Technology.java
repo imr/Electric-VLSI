@@ -1401,13 +1401,25 @@ public class Technology implements Comparable
     {
         if (!(ni.getProto() instanceof PrimitiveNode)) return null;
         SizeOffset so = ni.getSizeOffset();
-        double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
-        double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+        double length = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+        double width = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
 
-        PrimitiveNodeSize size = new PrimitiveNodeSize(new Double(width), new Double(height));
+        PrimitiveNodeSize size = new PrimitiveNodeSize(new Double(width), new Double(length));
         return size;
     }
 
+//    public PrimitiveNodeSize getResistorSize(NodeInst ni, VarContext context)
+//    {
+//        if (!(ni.getProto() instanceof PrimitiveNode)) return null;
+//        SizeOffset so = ni.getSizeOffset();
+//        double width = ni.getXSize() - so.getLowXOffset() - so.getHighXOffset();
+//        double height = ni.getYSize() - so.getLowYOffset() - so.getHighYOffset();
+//
+//        PrimitiveNodeSize size = new PrimitiveNodeSize(new Double(width), new Double(height));
+//        return size;
+//    }
+
+    
     /**
      * Method to return length of active reqion. This will be used for
      * parasitics extraction. Electric layers are used for the calculation
