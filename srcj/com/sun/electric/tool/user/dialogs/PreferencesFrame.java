@@ -375,20 +375,20 @@ public class PreferencesFrame extends EDialog
 		gbc.weightx = 1.0;   gbc.weighty = 1.0;
 		leftPanel.add(scrolledTree, gbc);
 
-		JButton save = new JButton("Save");
+		JButton save = new JButton("Export");
 		save.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { saveActionPerformed(); }
+			public void actionPerformed(ActionEvent evt) { exportActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
 		gbc.gridx = 0;   gbc.gridy = 1;
 		gbc.insets = new Insets(4, 4, 4, 4);
 		leftPanel.add(save, gbc);
 
-		JButton restore = new JButton("Restore");
+		JButton restore = new JButton("Import");
 		restore.addActionListener(new ActionListener()
 		{
-			public void actionPerformed(ActionEvent evt) { restoreActionPerformed(); }
+			public void actionPerformed(ActionEvent evt) { importActionPerformed(); }
 		});
 		gbc = new GridBagConstraints();
 		gbc.gridx = 1;   gbc.gridy = 1;
@@ -478,14 +478,16 @@ public class PreferencesFrame extends EDialog
 		closeDialog(null);
 	}
 
-	private void saveActionPerformed()
+	private void exportActionPerformed()
 	{
 		Pref.exportPrefs();
 	}
 
-	private void restoreActionPerformed()
+	private void importActionPerformed()
 	{
 		Pref.importPrefs();
+        TopLevel top = (TopLevel)TopLevel.getCurrentJFrame();
+        top.getTheMenuBar().restoreSavedBindings(false); //trying to cache again
 	}
 
 	private void loadOptionPanel()

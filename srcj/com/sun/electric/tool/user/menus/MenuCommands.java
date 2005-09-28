@@ -135,7 +135,7 @@ public final class MenuCommands
 
 		// return the menu bar
         //menuBar.deleteEmptyBindings();
-        menuBar.restoreSavedBindings();
+        menuBar.restoreSavedBindings(true);
 		return menuBar;
 	}
 

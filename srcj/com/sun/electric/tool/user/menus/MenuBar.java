@@ -28,7 +28,6 @@ import com.sun.electric.tool.user.KeyBindingManager;
 import com.sun.electric.tool.user.MessagesStream;
 import com.sun.electric.tool.user.ui.KeyBindings;
 import com.sun.electric.tool.user.ui.KeyStrokePair;
-import com.sun.electric.tool.user.ui.MessagesWindow;
 import com.sun.electric.tool.user.ui.ToolBarButton;
 
 import java.awt.event.ActionEvent;
@@ -636,8 +635,8 @@ public class MenuBar extends JMenuBar
         menuBarGroup.keyBindingManager.deleteEmptyBindings();
     }
 
-    public void restoreSavedBindings() {
-        menuBarGroup.keyBindingManager.restoreSavedBindings();
+    public void restoreSavedBindings(boolean initialCall) {
+        menuBarGroup.keyBindingManager.restoreSavedBindings(initialCall);
         // update all accelerators
         synchronized(menuBarGroup) {
             for (Iterator it = menuBarGroup.menuItems.keySet().iterator(); it.hasNext(); ) {

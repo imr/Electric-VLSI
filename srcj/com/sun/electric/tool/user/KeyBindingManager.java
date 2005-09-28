@@ -32,7 +32,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.*;
-import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
@@ -788,8 +787,8 @@ public class KeyBindingManager {
      * Restored saved bindings from preferences.  Usually called after
      * menu has been created.
      */
-    public synchronized void restoreSavedBindings() {
-        if (initialized == true) return;
+    public synchronized void restoreSavedBindings(boolean initialCall) {
+        if (initialCall && initialized == true) return;
         initialized = true;
         if (prefs == null) return;
         // try to see if binding saved in preferences for each action
