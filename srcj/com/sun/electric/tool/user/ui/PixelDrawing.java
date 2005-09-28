@@ -405,11 +405,12 @@ public class PixelDrawing
 	public void drawImage(boolean fullInstantiate, Rectangle2D drawLimitBounds)
 	{
 		long startTime = 0;
-		long initialFree = 0;
+		long initialUsed = 0;
 		if (TAKE_STATS)
 		{
+			Runtime.getRuntime().gc();
 			startTime = System.currentTimeMillis();
-			initialFree = Runtime.getRuntime().freeMemory();
+			initialUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 			tinyCells = tinyPrims = totalCells = renderedCells = totalPrims = tinyArcs = linedArcs = totalArcs = 0;
 			offscreensCreated = offscreenPixelsCreated = offscreensUsed = offscreenPixelsUsed = cellsRendered = 0;
             boxes = crosses = solidLines = patLines = thickLines = polygons = texts = circles = thickCircles = discs = circleArcs = points = thickPoints = 0;
@@ -506,7 +507,8 @@ public class PixelDrawing
 		if (TAKE_STATS && User.isUseOlderDisplayAlgorithm())
 		{
 			long endTime = System.currentTimeMillis();
-			long memConsumed = initialFree - Runtime.getRuntime().freeMemory();
+			long curUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+			long memConsumed = curUsed - initialUsed;
 			System.out.println("Took "+com.sun.electric.database.text.TextUtils.getElapsedTime(endTime-startTime)+
 				", rendered "+cellsRendered+" cells, used "+offscreensUsed+" ("+offscreenPixelsUsed+" pixels) cached cells, created "+
 				offscreensCreated+" ("+offscreenPixelsCreated+" pixels) new cell caches (my size is "+total+" pixels), memory used="+memConsumed);

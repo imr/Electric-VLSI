@@ -1674,6 +1674,7 @@ public class EditWindow extends JPanel
 
 		// draw the grid
 		g.setColor(new Color(User.getColorGrid()));
+//int lowX = Integer.MAX_VALUE, highX = -Integer.MAX_VALUE, lowY = Integer.MAX_VALUE, highY = -Integer.MAX_VALUE;
 		for(double i = y1; i > hY; i -= spacingY)
 		{
 			double boldValueY = i;
@@ -1686,7 +1687,10 @@ public class EditWindow extends JPanel
 				int x = xy.x;
 				int y = xy.y;
 				if (y < 0 || y > sz.height) continue;
-
+//if (x > highX) highX = x;
+//if (x < lowX) lowX = x;
+//if (y > highY) highY = y;
+//if (y < lowY) lowY = y;
 				double boldValueX = j;
 				if (j < 0) boldValueX -= boldSpacingThreshX/2; else
 					boldValueX += boldSpacingThreshX/2;
@@ -1711,6 +1715,7 @@ public class EditWindow extends JPanel
 				g.fillRect(x,y, 1, 1);
 			}
 		}
+//System.out.println("Grid dots from "+lowX+"<=X<="+highX+" and "+lowY+"<=Y<="+highY);
 	}
 
 	// *************************** SEARCHING FOR TEXT ***************************

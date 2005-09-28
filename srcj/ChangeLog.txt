@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (09/28/05, SMR) Toolbar buttons for arrow key distance are not set right.
+FIX: In "ToolBar.createToolBar()" set defaults from Preferences value.
+
 IMP: (09/28/05, DN) Transactional DB: ImmutableArcInst and ImmutableNodeInst are subclasses of ImmutableElectricObject.
 
 BUG: (09/28/05, GVG) KeyBindings are not cached if preferences are imported. Export/Import

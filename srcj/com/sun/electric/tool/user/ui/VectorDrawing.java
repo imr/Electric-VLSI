@@ -444,7 +444,7 @@ public class VectorDrawing
 
 		// statistics
 		startTime = System.currentTimeMillis();
-		long initialSize = Runtime.getRuntime().freeMemory();
+		long initialUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
 		takingLongTime = false;
 		boxCount = tinyBoxCount = lineBoxCount = lineCount = polygonCount = 0;
 		crossCount = textCount = circleCount = arcCount = 0;
@@ -493,7 +493,8 @@ public class VectorDrawing
 
 		if (TAKE_STATS && Main.getDebug())
 		{
-			long memUsed = initialSize - Runtime.getRuntime().freeMemory();
+			long curUsed = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+			long memUsed = curUsed - initialUsed;
 			long renderTime = System.currentTimeMillis() - startTime;
 	        System.out.println("Time to render: "+TextUtils.getElapsedTime(renderTime) + "    Memory Used: "+ memUsed);
 			System.out.println("   Rendered "+boxCount+" boxes ("+tinyBoxCount+" tiny, "+lineBoxCount+" lines), "+

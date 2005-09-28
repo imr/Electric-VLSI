@@ -981,15 +981,25 @@ public class FileMenu {
 
 			// resize the window if this is a WaveformWindow
 			Dimension oldSize = null;
+
+			// create the "ElectricPrinter" object
+			ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
+	 		if (pageFormat == null)
+			{
+				pageFormat = pj.defaultPage();
+				pageFormat.setOrientation(PageFormat.LANDSCAPE);
+	            pageFormat = pj.validatePage(pageFormat);
+			}
+
 			if (wf.getContent() instanceof WaveformWindow)
 			{
-			    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
-		 		if (pageFormat == null)
-				{
-					pageFormat = pj.defaultPage();
-					pageFormat.setOrientation(PageFormat.LANDSCAPE);
-		            pageFormat = pj.validatePage(pageFormat);
-				}
+//			    ElectricPrinter ep = getOutputPreferences(wf.getContent(), pj);
+//		 		if (pageFormat == null)
+//				{
+//					pageFormat = pj.defaultPage();
+//					pageFormat.setOrientation(PageFormat.LANDSCAPE);
+//		            pageFormat = pj.validatePage(pageFormat);
+//				}
 				int iw = (int)pageFormat.getImageableWidth();
 				int ih = (int)pageFormat.getImageableHeight();
 				oldSize = overall.getSize();
@@ -1041,7 +1051,7 @@ public class FileMenu {
 		}
 	}
 
-    /**
+	/**
      * This method implements the command to quit Electric.
      */
     public static boolean quitCommand()

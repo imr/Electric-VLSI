@@ -307,9 +307,10 @@ public class ToolBar extends JToolBar implements PropertyChangeListener, Interna
 		arrowGroup.add(quarterButton);
 
 		// setup arrow buttons to current setting
-		if (curArrowDistance == ArrowDistance.FULL) fullButton.setSelected(true); else
-			if (curArrowDistance == ArrowDistance.HALF) halfButton.setSelected(true); else
-				if (curArrowDistance == ArrowDistance.QUARTER) quarterButton.setSelected(true);
+//		if (curArrowDistance == ArrowDistance.FULL) fullButton.setSelected(true); else
+//			if (curArrowDistance == ArrowDistance.HALF) halfButton.setSelected(true); else
+//				if (curArrowDistance == ArrowDistance.QUARTER) quarterButton.setSelected(true);
+        setGridAligment(User.getAlignmentToGrid());
 
 		// a separator
 		toolbar.addSeparator();
