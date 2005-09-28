@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (09/27/05, DN) "Spice.segmentedNets.PortInstComparator.compare" doesn't obey the contract for "compare".
+FIX: Compare NodeInsts of PortInsts first.
+
 BUG: (09/27/05, DN) Compaction regression fails.
 FIX: In constraint.LayoutCell replace "arcModified" by "arcMoved", so that change of bits doesn't lock arc.
 

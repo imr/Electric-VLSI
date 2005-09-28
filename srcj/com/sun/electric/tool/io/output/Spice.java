@@ -1302,10 +1302,10 @@ public class Spice extends Topology
                     }
                     // write resistors
                     multiLinePrint(true, "** Extracted Parasitic Resistors ***\n");
-                    for (Iterator it = segmentedNets.arcRes.entrySet().iterator(); it.hasNext(); ) {
-                        Map.Entry entry = (Map.Entry)it.next();
-                        ArcInst ai = (ArcInst)entry.getKey();
-                        Double res = (Double)entry.getValue();
+                    for (Iterator it = cell.getArcs(); it.hasNext(); ) {
+                        ArcInst ai = (ArcInst)it.next();
+                        Double res = (Double)segmentedNets.arcRes.get(ai);
+                        if (res == null) continue;
                         String n0 = segmentedNets.getNetName(ai.getHeadPortInst());
                         String n1 = segmentedNets.getNetName(ai.getTailPortInst());
                         int arcPImodels = SegmentedNets.getNumPISegments(res.doubleValue());
@@ -1587,19 +1587,32 @@ public class Spice extends Topology
      * However, we do not discard the capacitance, but continue to add it up.
      */
     private static class SegmentedNets {
-        private static class PortInstComparator implements Comparator {
+        private static Comparator PORT_INST_COMPARATOR = new Comparator() {
             public int compare(Object o1, Object o2) {
                 if (o1 == o2) return 0;
                 PortInst p1 = (PortInst)o1;
                 PortInst p2 = (PortInst)o2;
+                int cmp = p1.getNodeInst().compareTo(p2.getNodeInst());
+                if (cmp != 0) return cmp;
                 if (p1.getPortIndex() < p2.getPortIndex()) return -1;
                 return 1;
             }
-        }
-        private static class NetInfo {
+        };
+        private static class NetInfo implements Comparable {
             private String netName = "unassigned";
             private double cap = 0;
-            private Set joinedPorts = new TreeSet(new PortInstComparator());     // list of portInsts on this new net
+            private TreeSet joinedPorts = new TreeSet(PORT_INST_COMPARATOR);     // list of portInsts on this new net
+            /**
+             * Compares NetInfos by thier first PortInst.
+             * @param obj the other NetInfo.
+             * @return a comparison between the NetInfos.
+             */
+            public int compareTo(Object obj) {
+                NetInfo that = (NetInfo)obj;
+                if (this.joinedPorts.isEmpty()) return that.joinedPorts.isEmpty() ? 0 : -1;
+                if (that.joinedPorts.isEmpty()) return 1;
+                return PORT_INST_COMPARATOR.compare(this.joinedPorts.first(), that.joinedPorts.first());
+            }
         }
 
         private HashMap segmentedNets;          // key: portinst, obj: PortInstInfo
@@ -1738,14 +1751,8 @@ System.out.println("NETWORK INAMED "+info.netName);
          * Return list of NetInfos for unique segments
          * @return a list of al NetInfos
          */
-        private List getUniqueSegments() {
-            List list = new ArrayList();
-            for (Iterator it = segmentedNets.values().iterator(); it.hasNext(); ) {
-                NetInfo info = (NetInfo)it.next();
-                if (list.contains(info)) continue;
-                list.add(info);
-            }
-            return list;
+        private TreeSet getUniqueSegments() {
+            return new TreeSet(segmentedNets.values());
         }
         private boolean getUseParasitics() {
             return useParasitics;
