@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (09/28/05, SMR) Text is always black: does not show up on black background.
+FIX: In "PixelDrawing.drawText()", initialize color to proper default.
+
 BUG: (09/28/05, SMR) Printing does not work.
 FIX: In "FileMenu.printCommand()", must call "getOutputPreferences()" all the time,
      not just when printing Waveform windows.

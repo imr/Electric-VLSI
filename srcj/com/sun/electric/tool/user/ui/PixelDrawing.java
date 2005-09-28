@@ -2831,7 +2831,7 @@ public class PixelDrawing
 		if (len == 0) return;
 
 		// get parameters
-		int col = 0;
+		int col = User.getColorText() & 0xFFFFFF;
 		if (desc != null) col = getTheColor(desc, dimmed);
 
 		// get text description
