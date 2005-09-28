@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (09/28/05, SMR) Printing does not work.
+FIX: In "FileMenu.printCommand()", must call "getOutputPreferences()" all the time,
+     not just when printing Waveform windows.
+
 BUG: (09/28/05, SMR) Toolbar buttons for arrow key distance are not set right.
 FIX: In "ToolBar.createToolBar()" set defaults from Preferences value.
 
