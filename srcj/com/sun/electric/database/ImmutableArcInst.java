@@ -29,14 +29,14 @@ import com.sun.electric.database.prototype.PortProtoId;
 import com.sun.electric.database.text.Name;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 
 
 /**
  * Immutable class ImmutableArcInst represents an arc instance.
  */
-public class ImmutableArcInst
-{
+public class ImmutableArcInst extends ImmutableElectricObject {
     /** 
      * Class to access a flag in user bits of ImmutableNodeInst.
      */
@@ -226,13 +226,15 @@ public class ImmutableArcInst
      * @param width the width of this ImmutableArcInst.
      * @param length the length of this ImmutableArcInst.
      * @param angle the angle if this ImmutableArcInst (in tenth-degrees).
-     * @param flags flag bits of this ImmutableNodeInst.
+     * @param flags flag bits of this ImmutableArcInst.
+     * @param vars array of ImmutableVariables of this ImmutableArcInst
      */
     ImmutableArcInst(int arcId, ArcProto protoType,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             int tailNodeId, PortProtoId tailPortId, EPoint tailLocation,
             int headNodeId, PortProtoId headPortId, EPoint headLocation,
-            double width, double length, short angle, int flags) {
+            double width, double length, short angle, int flags, ImmutableVariable[] vars) {
+        super(vars);
         this.arcId = arcId;
         this.protoType = protoType;
         this.name = name;
@@ -296,7 +298,7 @@ public class ImmutableArcInst
 		return new ImmutableArcInst(arcId, protoType, name, duplicate, immutableNameDescriptor,
                 tailNodeId, tailPortId, tailLocation,
                 headNodeId, headPortId, headLocation,
-                width, tailLocation.distance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags);
+                width, tailLocation.distance(headLocation), updateAngle((short)angle, tailLocation, headLocation), flags, ImmutableVariable.NULL_ARRAY);
     }
 
 	/**
@@ -315,7 +317,7 @@ public class ImmutableArcInst
 		return new ImmutableArcInst(this.arcId, this.protoType, name, duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.width, this.length, this.angle, this.flags);
+                this.width, this.length, this.angle, this.flags, getVars());
 	}
 
 	/**
@@ -331,7 +333,7 @@ public class ImmutableArcInst
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, immutableNameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.width, this.length, this.angle, this.flags);
+                this.width, this.length, this.angle, this.flags, getVars());
 	}
 
 	/**
@@ -348,7 +350,7 @@ public class ImmutableArcInst
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, tailLocation,
                 this.headNodeId, this.headPortId, headLocation,
-                this.width, tailLocation.distance(headLocation), updateAngle(this.angle, tailLocation, headLocation), this.flags);
+                this.width, tailLocation.distance(headLocation), updateAngle(this.angle, tailLocation, headLocation), this.flags, getVars());
 	}
 
 	/**
@@ -365,7 +367,7 @@ public class ImmutableArcInst
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                width, this.length, this.angle, this.flags);
+                width, this.length, this.angle, this.flags, getVars());
 	}
 
 	/**
@@ -382,7 +384,7 @@ public class ImmutableArcInst
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.width, this.length, (short)angle, this.flags);
+                this.width, this.length, (short)angle, this.flags, getVars());
 	}
 
 	/**
@@ -396,7 +398,7 @@ public class ImmutableArcInst
 		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
                 this.tailNodeId, this.tailPortId, this.tailLocation,
                 this.headNodeId, this.headPortId, this.headLocation,
-                this.width, this.length, this.angle, flags);
+                this.width, this.length, this.angle, flags, getVars());
 	}
 
 	/**
@@ -409,6 +411,41 @@ public class ImmutableArcInst
         return withFlags(flag.set(this.flags, value));
     }
 
+	/**
+	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by additional ImmutableVariable.
+     * If this ImmutableArcInst has ImmutableVariable with the same key as new, the old variable will not be in new
+     * ImmutableArcInst.
+	 * @param var additional ImmutableVariable.
+	 * @return ImmutableArcInst with additional ImmutableVariable.
+	 * @throws NullPointerException if var is null
+	 */
+    public ImmutableArcInst withVariable(ImmutableVariable var) {
+        if (var.descriptor.isParam())
+            var = var.withDescriptor(var.descriptor.withoutParam());
+        ImmutableVariable[] vars = arrayWithVariable(var);
+        if (this.getVars() == vars) return this;
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
+                this.tailNodeId, this.tailPortId, this.tailLocation,
+                this.headNodeId, this.headPortId, this.headLocation,
+                this.width, this.length, this.angle, this.flags, vars);
+    }
+    
+	/**
+	 * Returns ImmutableArcInst which differs from this ImmutableArcInst by removing ImmutableVariable
+     * with the specified key. Returns this ImmutableArcInst if it doesn't contain variable with the specified key.
+	 * @param key Variable Key to remove.
+	 * @return ImmutableArcInst without ImmutableVariable with the specified key.
+	 * @throws NullPointerException if var is null
+	 */
+    public ImmutableArcInst withoutVariable(Variable.Key key) {
+        ImmutableVariable[] vars = arrayWithoutVariable(key);
+        if (this.getVars() == vars) return this;
+		return new ImmutableArcInst(this.arcId, this.protoType, this.name, this.duplicate, this.nameDescriptor,
+                this.tailNodeId, this.tailPortId, this.tailLocation,
+                this.headNodeId, this.headPortId, this.headLocation,
+                this.width, this.length, this.angle, this.flags, vars);
+    }
+    
     private static short updateAngle(short angle, EPoint tailLocation, EPoint headLocation) {
         if (tailLocation.equals(headLocation)) return angle;
         return (short)DBMath.figureAngle(tailLocation, headLocation);
@@ -426,6 +463,7 @@ public class ImmutableArcInst
 	 * @throws AssertionError if invariant is broken.
 	 */
 	public void check() {
+        super.check();
 		assert protoType != null;
 		assert name != null;
         assert name.isValid() && !name.hasEmptySubnames();

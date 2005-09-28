@@ -123,7 +123,6 @@ public class NodeInst extends Geometric implements Nodable, Comparable
 	}
 
 	// ---------------------- private data ----------------------------------
-    /** ImmutableVariables of this NodeInst. */             private ImmutableElectricObject immutable = ImmutableElectricObject.EMPTY;
     /** persistent data of this NodeInst. */                private ImmutableNodeInst d;
 	/** prototype of this NodeInst. */						private NodeProto protoType;
 	/** 0-based index of this NodeInst in Cell. */			private int nodeIndex = -1;
@@ -873,7 +872,13 @@ public class NodeInst extends Geometric implements Nodable, Comparable
      * Returns persistent data of this ElectricObject with ImmutableVariables.
      * @return persistent data of this ElectricObject.
      */
-    public ImmutableElectricObject getImmutable() { return immutable; }
+    public ImmutableElectricObject getImmutable() { return d; }
+    
+    /**
+     * Changes persistent data of this ElectricObject with ImmutableVariables.
+     * @param immutable new persistent data of this ElectricObject.
+     */
+    protected void setImmutable(ImmutableElectricObject immutable) { this.d = (ImmutableNodeInst)immutable; }
     
     /**
      * Updates persistent data of this ElectricObject by adding specified ImmutableVariable.
@@ -881,8 +886,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
      * @return updated persistent data.
      */
     protected ImmutableElectricObject withVariable(ImmutableVariable vd) {
-        immutable = immutable.withVariable(vd);
-        return immutable;
+        d = d.withVariable(vd);
+        return d;
     }
     
     /**
@@ -891,8 +896,8 @@ public class NodeInst extends Geometric implements Nodable, Comparable
      * @return updated persistent data.
      */
     protected ImmutableElectricObject withoutVariable(Variable.Key key) {
-        immutable = immutable.withoutVariable(key);
-        return immutable;
+        d = d.withoutVariable(key);
+        return d;
     }
     
     /**

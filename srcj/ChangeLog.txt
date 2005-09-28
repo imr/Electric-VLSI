@@ -4,6 +4,8 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+IMP: (09/28/05, DN) Transactional DB: ImmutableArcInst and ImmutableNodeInst are subclasses of ImmutableElectricObject.
+
 BUG: (09/28/05, GVG) KeyBindings are not cached if preferences are imported. Export/Import
 as new button names in Preferences (Bug #578)
 FIX: Calling MenuBar.restoreSavedBindings(false) in Preferences.

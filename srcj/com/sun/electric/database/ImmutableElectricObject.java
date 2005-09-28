@@ -25,10 +25,9 @@ package com.sun.electric.database;
 
 import com.sun.electric.database.text.ArrayIterator;
 import com.sun.electric.database.variable.Variable;
-import java.util.Arrays;
 
 import java.util.Iterator;
-import java.util.SortedSet;
+
 
 /**
  * This immutable class is the base class of all Electric immutable objects that can be extended with "ImmutableVariables".
@@ -47,20 +46,6 @@ public class ImmutableElectricObject {
 	 */
     ImmutableElectricObject(ImmutableVariable[] vars) {
         this.vars = vars;
-        check();
-    }
-    
-	/**
-	 * Returns new ImmutableElectricObject object.
-     * @param varSet a SortedSet of ImmutableVariables with natural ordering.
-	 * @return new ImmutableElectricObject.
-	 * @throws NullPointerException if varSet is null.
-     * @throws IllegalArgumentException if varSet has not natural ordering.
-     * @throws    ArrayStoreException varType contains elements that are not ImmuatbleVariable.
-	 */
-    public static ImmutableElectricObject newInstance(SortedSet/*<ImmutableVariable>*/ varSet) {
-        if (varSet.comparator() != null) throw new IllegalArgumentException("need natural ordering");
-        return new ImmutableElectricObject((ImmutableVariable[])varSet.toArray(ImmutableVariable.NULL_ARRAY));
     }
 
 	/**
@@ -71,19 +56,32 @@ public class ImmutableElectricObject {
 	 * @return ImmutableElectricObject with additional ImmutableVariable.
 	 * @throws NullPointerException if var is null
 	 */
-    public ImmutableElectricObject withVariable(ImmutableVariable var) {
+    public ImmutableElectricObject withVariable_(ImmutableVariable var) {
+        ImmutableVariable[] vars = arrayWithVariable(var);
+        if (this.vars == vars) return this;
+        return new ImmutableElectricObject(vars);
+    }
+    
+	/**
+	 * Returns array of ImmutableVariables which differs from array of this ImmutableElectricObject by additional ImmutableVariable.
+     * If this ImmutableElectricObject has ImmutableVariable with the same key as new, the old variable will not be in new array.
+	 * @param var additional ImmutableVariable.
+	 * @return array of ImmutableVariables with additional ImmutableVariable.
+	 * @throws NullPointerException if var is null
+	 */
+    ImmutableVariable[] arrayWithVariable(ImmutableVariable var) {
         int varIndex = searchVar(var.key);
         int newLength = vars.length;
         if (varIndex < 0) {
             varIndex = ~varIndex;
             newLength++;
-        } else if (vars[varIndex] == var) return this;
+        } else if (vars[varIndex] == var) return vars;
         ImmutableVariable[] newVars = new ImmutableVariable[newLength];
         System.arraycopy(vars, 0, newVars, 0, varIndex);
         newVars[varIndex] = var;
         int tailLength = newLength - (varIndex + 1);
         System.arraycopy(vars, vars.length - tailLength, newVars, varIndex + 1, tailLength);
-        return new ImmutableElectricObject(newVars);
+        return newVars;
     }
     
 	/**
@@ -93,14 +91,29 @@ public class ImmutableElectricObject {
 	 * @return ImmutableElectricObject without ImmutableVariable with the specified key.
 	 * @throws NullPointerException if var is null
 	 */
-    public ImmutableElectricObject withoutVariable(Variable.Key key) {
+    public ImmutableElectricObject withoutVariable_(Variable.Key key) {
+        ImmutableVariable[] vars = arrayWithoutVariable(key);
+        if (this.vars == vars) return this;
+        if (vars.length == 0) return EMPTY;
+        return new ImmutableElectricObject(vars);
+    }
+    
+	/**
+	 * Returns array of ImmutableVariable which differs from array of this ImmutableElectricObject by removing ImmutableVariable
+     * with the specified key. Returns array of this ImmutableElectricObject if it doesn't contain variable with the specified key.
+	 * @param key Variable Key to remove.
+	 * @return array of ImmutableVariables without ImmutableVariable with the specified key.
+	 * @throws NullPointerException if key is null
+	 */
+    ImmutableVariable[] arrayWithoutVariable(Variable.Key key) {
+        if (key == null) throw new NullPointerException("key");
         int varIndex = searchVar(key);
-        if (varIndex < 0) return this;
-        if (vars.length == 1 && varIndex == 0) return EMPTY;
+        if (varIndex < 0) return vars;
+        if (vars.length == 1 && varIndex == 0) return ImmutableVariable.NULL_ARRAY;
         ImmutableVariable[] newVars = new ImmutableVariable[vars.length - 1];
         System.arraycopy(vars, 0, newVars, 0, varIndex);
         System.arraycopy(vars, varIndex + 1, newVars, varIndex, newVars.length - varIndex);
-        return new ImmutableElectricObject(newVars);
+        return newVars;
     }
     
 	/**
@@ -141,6 +154,12 @@ public class ImmutableElectricObject {
      * @throws ArrayIndexOutOfBoundesException if varIndex out of bounds.
 	 */
 	public ImmutableVariable getVar(int varIndex) { return vars[varIndex]; }
+
+	/**
+	 * The package-private method to get ImmuatbleVariable array.
+     * @return ImmutableVariable array of this ImmutableElectricObject.
+	 */
+    ImmutableVariable[] getVars() { return vars; }
 
     /**
      * Searches the variables for the specified variable key using the binary
@@ -189,7 +208,7 @@ public class ImmutableElectricObject {
 		}
 		return -(low + 1);  // ImmutableVariable not found.
     }
-
+    
 	/**
 	 * Checks invariant of this ImmutableElectricObject.
 	 * @throws AssertionError if invariant is broken.

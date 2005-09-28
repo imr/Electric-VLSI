@@ -45,12 +45,18 @@ public abstract class ElectricObject_ extends ElectricObject {
     public ImmutableElectricObject getImmutable() { return immutable; }
     
     /**
+     * Changes persistent data of this ElectricObject with ImmutableVariables.
+     * @param immutable new persistent data of this ElectricObject.
+     */
+    protected void setImmutable(ImmutableElectricObject immutable) { this.immutable = immutable; }
+    
+    /**
      * Updates persistent data of this ElectricObject by adding specified ImmutableVariable.
      * @param vd ImmutableVariable to add.
      * @return updated persistent data.
      */
     protected ImmutableElectricObject withVariable(ImmutableVariable vd) {
-        immutable = immutable.withVariable(vd);
+        immutable = immutable.withVariable_(vd);
         return immutable;
     }
     
@@ -60,7 +66,7 @@ public abstract class ElectricObject_ extends ElectricObject {
      * @return updated persistent data.
      */
     protected ImmutableElectricObject withoutVariable(Variable.Key key) {
-        immutable = immutable.withoutVariable(key);
+        immutable = immutable.withoutVariable_(key);
         return immutable;
     }
 }

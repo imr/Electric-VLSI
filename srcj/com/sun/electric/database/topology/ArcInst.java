@@ -91,7 +91,6 @@ public class ArcInst extends Geometric implements Comparable
 
 	/** prefix for autonameing. */						private static final Name BASENAME = Name.findName("net@");
 
-    /** ImmutableVariables of this ArcInst. */          private ImmutableElectricObject immutable = ImmutableElectricObject.EMPTY;
     /** persistent data of this ArcInst. */             ImmutableArcInst d;
 	/** name of this ArcInst. */						private Name name;
 	/** bounds after transformation. */					private Rectangle2D visBounds;
@@ -474,16 +473,22 @@ public class ArcInst extends Geometric implements Comparable
      * Returns persistent data of this ElectricObject with ImmutableVariables.
      * @return persistent data of this ElectricObject.
      */
-    public ImmutableElectricObject getImmutable() { return immutable; }
+    public ImmutableElectricObject getImmutable() { return d; }
     
+    /**
+     * Changes persistent data of this ElectricObject with ImmutableVariables.
+     * @param immutable new persistent data of this ElectricObject.
+     */
+    protected void setImmutable(ImmutableElectricObject immutable) { this.d = (ImmutableArcInst)immutable; }
+
     /**
      * Updates persistent data of this ElectricObject by adding specified ImmutableVariable.
      * @param vd ImmutableVariable to add.
      * @return updated persistent data.
      */
     protected ImmutableElectricObject withVariable(ImmutableVariable vd) {
-        immutable = immutable.withVariable(vd);
-        return immutable;
+        d = d.withVariable(vd);
+        return d;
     }
     
     /**
@@ -492,8 +497,8 @@ public class ArcInst extends Geometric implements Comparable
      * @return updated persistent data.
      */
     protected ImmutableElectricObject withoutVariable(Variable.Key key) {
-        immutable = immutable.withoutVariable(key);
-        return immutable;
+        d = d.withoutVariable(key);
+        return d;
     }
 	/**
 	 * Low-level method to link the ArcInst into its Cell.

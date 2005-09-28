@@ -33,6 +33,7 @@ import com.sun.electric.database.text.Name;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
@@ -47,8 +48,7 @@ import java.awt.geom.Rectangle2D;
  * @promise "requiresColor DBChanger;" for with*(**) | newInstance(**)
  * @promise "requiresColor (DBChanger | DBExaminer | AWT);" for check()
  */
-public class ImmutableNodeInst
-{
+public class ImmutableNodeInst extends ImmutableElectricObject {
     /** 
      * Class to access user bits of ImmutableNodeInst.
      */
@@ -146,11 +146,13 @@ public class ImmutableNodeInst
      * @param flags flag bits for thisImmutableNdoeIsnt.
 	 * @param techBits tech speicfic bits of this ImmutableNodeInst.
      * @param protoDescriptor TextDescriptor of prototype name of this ImmutableNodeInst
+     * @param vars array of ImmutableVariables of this ImmutableNodeInst
 	 */
     ImmutableNodeInst(int nodeId, NodeProtoId protoId,
             Name name, int duplicate, ImmutableTextDescriptor nameDescriptor,
             Orientation orient, EPoint anchor, double width, double height,
-            int flags, byte techBits, ImmutableTextDescriptor protoDescriptor) {
+            int flags, byte techBits, ImmutableTextDescriptor protoDescriptor, ImmutableVariable[] vars) {
+        super(vars);
         this.nodeId = nodeId;
         this.protoId = protoId;
         this.name = name;
@@ -217,7 +219,7 @@ public class ImmutableNodeInst
         if (protoDescriptor != null)
             immutableProtoDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(protoDescriptor).withDisplayWithoutParamAndCode();
 		return new ImmutableNodeInst(nodeId, protoId, name, duplicate, immutableNameDescriptor,
-                orient, anchor, width, height, flags, (byte)techBits, immutableProtoDescriptor);
+                orient, anchor, width, height, flags, (byte)techBits, immutableProtoDescriptor, ImmutableVariable.NULL_ARRAY);
     }
 
 //	/**
@@ -248,7 +250,7 @@ public class ImmutableNodeInst
         if (name.hasDuplicates()) throw new IllegalArgumentException("name");
         if (duplicate < 0) throw new IllegalArgumentException("duplicate");
 		return new ImmutableNodeInst(this.nodeId, this.protoId, name, duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor);
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars());
 	}
 
 	/**
@@ -262,7 +264,7 @@ public class ImmutableNodeInst
             immutableNameDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(nameDescriptor).withDisplayWithoutParamAndCode();
         if (this.nameDescriptor == immutableNameDescriptor) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, immutableNameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor);
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars());
 	}
 
 	/**
@@ -276,7 +278,7 @@ public class ImmutableNodeInst
         if (orient == null) throw new NullPointerException("orient");
         if (protoId == Generic.tech.cellCenterNode) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor);
+                orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars());
 	}
 
 	/**
@@ -290,7 +292,7 @@ public class ImmutableNodeInst
 		if (anchor == null) throw new NullPointerException("anchor");
         if (protoId == Generic.tech.cellCenterNode) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor);
+                this.orient, anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, getVars());
 	}
 
 	/**
@@ -311,7 +313,7 @@ public class ImmutableNodeInst
         if (width == -0.0) width = +0.0;
         if (height == -0.0) height = +0.0;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, width, height, this.flags, this.techBits, this.protoDescriptor);
+                this.orient, this.anchor, width, height, this.flags, this.techBits, this.protoDescriptor, getVars());
 	}
 
 	/**
@@ -323,7 +325,7 @@ public class ImmutableNodeInst
         flags &= FLAG_BITS;
         if (this.flags == flags) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, flags, this.techBits, this.protoDescriptor);
+                this.orient, this.anchor, this.width, this.height, flags, this.techBits, this.protoDescriptor, getVars());
     }
 
 	/**
@@ -348,7 +350,7 @@ public class ImmutableNodeInst
         techBits &= NTECHBITS >> NTECHBITSSH;
         if (this.techBits == techBits) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, (byte)techBits, this.protoDescriptor);
+                this.orient, this.anchor, this.width, this.height, this.flags, (byte)techBits, this.protoDescriptor, getVars());
     }
     
     /**
@@ -362,9 +364,40 @@ public class ImmutableNodeInst
             immutableProtoDescriptor = ImmutableTextDescriptor.newImmutableTextDescriptor(protoDescriptor).withDisplayWithoutParamAndCode();
         if (this.protoDescriptor == protoDescriptor) return this;
 		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
-                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, immutableProtoDescriptor);
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, immutableProtoDescriptor, getVars());
 	}
 
+	/**
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by additional ImmutableVariable.
+     * If this ImmutableNideInst has ImmutableVariable with the same key as new, the old variable will not be in new
+     * ImmutableNodeInst.
+	 * @param var additional ImmutableVariable.
+	 * @return ImmutableNodeInst with additional ImmutableVariable.
+	 * @throws NullPointerException if var is null
+	 */
+    public ImmutableNodeInst withVariable(ImmutableVariable var) {
+        if (var.descriptor.isParam())
+            var = var.withDescriptor(var.descriptor.withoutParam());
+        ImmutableVariable[] vars = arrayWithVariable(var);
+        if (this.getVars() == vars) return this;
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars);
+    }
+    
+	/**
+	 * Returns ImmutableNodeInst which differs from this ImmutableNodeInst by removing ImmutableVariable
+     * with the specified key. Returns this ImmutableNodeInst if it doesn't contain variable with the specified key.
+	 * @param key Variable Key to remove.
+	 * @return ImmutableNodeInst without ImmutableVariable with the specified key.
+	 * @throws NullPointerException if var is null
+	 */
+    public ImmutableNodeInst withoutVariable(Variable.Key key) {
+        ImmutableVariable[] vars = arrayWithoutVariable(key);
+        if (this.getVars() == vars) return this;
+		return new ImmutableNodeInst(this.nodeId, this.protoId, this.name, this.duplicate, this.nameDescriptor,
+                this.orient, this.anchor, this.width, this.height, this.flags, this.techBits, this.protoDescriptor, vars);
+    }
+    
 //    /**
 //     * Returns flags of this ImmutableNodeInst.
 //     * This flags are defined by ImmutableNodeInst.Flag .

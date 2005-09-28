@@ -75,6 +75,12 @@ public abstract class ElectricObject extends Observable implements Observer
     public abstract ImmutableElectricObject getImmutable();
     
     /**
+     * Changes persistent data of this ElectricObject with ImmutableVariables.
+     * @param immutable new persistent data of this ElectricObject.
+     */
+    protected abstract void setImmutable(ImmutableElectricObject immutable);
+    
+    /**
      * Updates persistent data of this ElectricObject by adding specified ImmutableVariable.
      * @param vd ImmutableVariable to add.
      * @return updated persistent data.
@@ -964,7 +970,7 @@ public abstract class ElectricObject extends Observable implements Observer
         
         // Prepare newVars
         Variable[] oldVars = this.vars;
-        Variable[] newVars = new Variable[newLength];
+        Variable[] newVars = newLength > 0 ? new Variable[newLength] : Variable.NULL_ARRAY;
         int n = 0, o = 0;
         while (n < newLength && o < oldVars.length) {
             for (int i = 0, iend = Math.min(newLength - n, oldVars.length - o); i < iend; i++) {
@@ -996,6 +1002,7 @@ public abstract class ElectricObject extends Observable implements Observer
             newVars[n++] = newVar;
         }
         // commit new vars
+        setImmutable(newImmutable);
         this.vars = newVars;
         
         // Check possible variable effects
