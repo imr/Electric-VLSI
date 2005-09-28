@@ -166,6 +166,7 @@ public class EpicOut extends Simulate {
             else if (name.startsWith("i1(") && name.endsWith(")")) {
                 name = name.substring(3, name.length() - 1);
             }
+            name = removeLeadingX(name);
             int lastSlashPos = name.lastIndexOf(separator);
             if (lastSlashPos > 0) {
                 as.setSignalContext(name.substring(0, lastSlashPos));

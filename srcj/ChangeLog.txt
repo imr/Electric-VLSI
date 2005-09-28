@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (09/27/05, DN) Spice (Epic) waveform viewer cross-probing broken down in hierarchy.
+FIX: In io.input.EpicOut.readEpicFile add "removeLeadingX()" to strip 'x' from Epic names.
+
 BUG: (09/27/05, DN) "Spice.segmentedNets.PortInstComparator.compare" doesn't obey the contract for "compare".
 FIX: Compare NodeInsts of PortInsts first.
 
