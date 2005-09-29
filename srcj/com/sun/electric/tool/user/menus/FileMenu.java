@@ -25,6 +25,7 @@
 package com.sun.electric.tool.user.menus;
 
 import com.sun.electric.Main;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.database.change.Undo;
 import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
@@ -445,6 +446,8 @@ public class FileMenu {
                 }
             }
         }
+        // Repair libraries in case default width changes due to foundry changes
+        new Technology.ResetDefaultWidthJob(lib);
         Undo.noUndoAllowed();
         if (lib == null) return false;
         lib.setCurrent();
@@ -1051,7 +1054,7 @@ public class FileMenu {
 		}
 	}
 
-	/**
+    /**
      * This method implements the command to quit Electric.
      */
     public static boolean quitCommand()

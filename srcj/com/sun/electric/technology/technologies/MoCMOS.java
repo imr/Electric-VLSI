@@ -3203,8 +3203,10 @@ public class MoCMOS extends Technology
                 PrimitiveNodeSize size = ni.getPrimitiveNodeSize(null); // This is only for layout
                 if (size != null)
                 {
+                    // only if the arc is along the gate
+                    boolean sameOrientation = DBMath.areEquals(ai.getAngle(), ni.getOrient().getAngle());
                     double length = size.getDoubleLength();
-                    if (!DBMath.areEquals(length, ai.getWidth()))
+                    if (sameOrientation && !DBMath.areEquals(length, ai.getWidth()))
 //                    if (DBMath.isGreaterThan(length, maxLen))
                     {
                         maxLen = length;

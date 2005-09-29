@@ -164,7 +164,7 @@ public class DesignRulesTab extends PreferencePanel
                 curTech.setSelectedFoundry(foundryName);
                 // primitive arcs have to be modified.
                 if (val == 0)
-                    new Technology.ResetDefaultWidthJob();
+                    new Technology.ResetDefaultWidthJob(null);
                 // Primitives cached must be redrawn
                 // recache display information for all cells that use this
                 for(Iterator lIt = Library.getLibraries(); lIt.hasNext(); )

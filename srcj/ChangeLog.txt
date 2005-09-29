@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (09/29/05, GVG) Sizes of poly arcs change depending on order libraries are read in (Bug #576).
+FIX: Add ResetDefaultWidthJob(lib) every time a library is read because it can't rely on
+the reconcilation dialog. As side effect, only gate arcs parallel to the transistors will
+be resized.
+
 BUG: (09/28/05, SMR) Text is always black: does not show up on black background.
 FIX: In "PixelDrawing.drawText()", initialize color to proper default.
 

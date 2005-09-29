@@ -40,7 +40,6 @@ import com.sun.electric.database.topology.Connection;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
 import com.sun.electric.database.variable.EditWindow_;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.MutableTextDescriptor;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -3874,26 +3873,49 @@ public class Technology implements Comparable
      */
     public static class ResetDefaultWidthJob extends Job
     {
-        public ResetDefaultWidthJob()
+        private Library library; // just to correct this one
+
+        public ResetDefaultWidthJob(Library lib)
         {
             super("Reset Default Arc Widths", User.getUserTool(), Type.CHANGE, null, null, Priority.USER);
-			startJob();
+			this.library = lib;
+            startJob();
+        }
+
+        private void checkLibrary(Library lib)
+        {
+            System.out.println("Resetting sizes in " + lib);
+            for(Iterator itCell = lib.getCells(); itCell.hasNext(); )
+            {
+                Cell cell = (Cell)itCell.next();
+                if (cell.getView() != View.LAYOUT) continue;
+
+                cell.getTechnology().resetDefaultValues(cell);
+            }
         }
 
         public boolean doIt()
         {
             Undo.changesQuiet(true);
-            for(Iterator it = Library.getLibraries(); it.hasNext(); )
+            if (library != null)
             {
-                Library lib = (Library)it.next();
-
-                System.out.println("Resetting sizes in " + lib);
-                for(Iterator itCell = lib.getCells(); itCell.hasNext(); )
+                checkLibrary(library);
+            }
+            else
+            {
+                for(Iterator it = Library.getLibraries(); it.hasNext(); )
                 {
-                    Cell cell = (Cell)itCell.next();
-                    if (cell.getView() != View.LAYOUT) continue;
+                    Library lib = (Library)it.next();
 
-                    cell.getTechnology().resetDefaultValues(cell);
+                    checkLibrary(lib);
+//                    System.out.println("Resetting sizes in " + lib);
+//                    for(Iterator itCell = lib.getCells(); itCell.hasNext(); )
+//                    {
+//                        Cell cell = (Cell)itCell.next();
+//                        if (cell.getView() != View.LAYOUT) continue;
+//
+//                        cell.getTechnology().resetDefaultValues(cell);
+//                    }
                 }
             }
             Undo.changesQuiet(false);
