@@ -186,7 +186,7 @@ class GenerateLayoutForGatesInSchematic extends HierarchyEnumerator.Visitor {
 	/** @return value of strength attribute "ATTR_X" or -1 if no such
 	 * attribute or -2 if attribute exists but has no value. */
 	private static double getStrength(Nodable no, VarContext context) {
-		Variable var = no.getVar("ATTR_X");
+		Variable var = no.getVar(Tech.ATTR_X);
 		if (var==null) return -1;
 		Object val = context.evalVar(var, no);
 		if (val==null) return -2;

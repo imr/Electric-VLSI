@@ -472,19 +472,19 @@ public class LENetlister2 extends LENetlister {
     private LENodable.Type getType(Nodable ni, HierarchyEnumerator.CellInfo info) {
 
         Variable var = null;
-        if ((var = ni.getParameter("ATTR_LEGATE")) != null) {
+        if ((var = ni.getParameter(ATTR_LEGATE)) != null) {
             // assume it is LEGATE if can't resolve value
             int gate = VarContext.objectToInt(info.getContext().evalVar(var), 1);
             if (gate == 1)
                 return LENodable.Type.LEGATE;
         }
-        else if ((var = ni.getParameter("ATTR_LEKEEPER")) != null) {
+        else if ((var = ni.getParameter(ATTR_LEKEEPER)) != null) {
             // assume it is LEKEEPER if can't resolve value
             int gate = VarContext.objectToInt(info.getContext().evalVar(var), 1);
             if (gate == 1)
                 return LENodable.Type.LEKEEPER;
         }
-        else if (ni.getParameter("ATTR_LEWIRE") != null) {
+        else if (ni.getParameter(ATTR_LEWIRE) != null) {
             return LENodable.Type.WIRE;
         }
         else if ((ni.getProto() != null) && (ni.getProto().getFunction().isTransistor())) {
@@ -493,12 +493,12 @@ public class LENetlister2 extends LENetlister {
         else if ((ni.getProto() != null) && (ni.getProto().getFunction() == PrimitiveNode.Function.CAPAC)) {
             return LENodable.Type.CAPACITOR;
         }
-        else if ((var = ni.getVar("ATTR_LEIGNORE")) != null) {
+        else if ((var = ni.getVar(ATTR_LEIGNORE)) != null) {
             int ignore = VarContext.objectToInt(info.getContext().evalVar(var), 1);
             if (ignore == 1)
                 return LENodable.Type.IGNORE;
         }
-        else if ((var = ni.getParameter("ATTR_LEIGNORE")) != null) {
+        else if ((var = ni.getParameter(ATTR_LEIGNORE)) != null) {
             int ignore = VarContext.objectToInt(info.getContext().evalVar(var), 1);
             if (ignore == 1)
                 return LENodable.Type.IGNORE;
@@ -521,7 +521,7 @@ public class LENetlister2 extends LENetlister {
         if (DEBUG) System.out.println("------------------------------------");
 
         // Build an LENodable. M can be variable or parameter
-        LENodable lenodable = new LENodable(ni, type, LETool.getMFactor(ni), ni.getParameter("ATTR_su"), ni.getParameter("ATTR_LEPARALLGRP"));
+        LENodable lenodable = new LENodable(ni, type, LETool.getMFactor(ni), ni.getParameter(ATTR_su), ni.getParameter(ATTR_LEPARALLGRP));
         Network outputNet = null;
 
 		Netlist netlist = info.getNetlist();
@@ -574,7 +574,7 @@ public class LENetlister2 extends LENetlister {
         float le = 1.0f;
 		if (!(pp instanceof Export))
 			return le;
-        Variable var = ((Export)pp).getVar("ATTR_le");
+        Variable var = ((Export)pp).getVar(ATTR_le);
         if (var != null) {
             leFound = true;
             le = VarContext.objectToFloat(info.getContext().evalVar(var), 1.0f);
@@ -582,12 +582,12 @@ public class LENetlister2 extends LENetlister {
                 (type == LENodable.Type.LEGATE || type == LENodable.Type.LEKEEPER)) {
             // if this is an Sizeable gate's output, look for diffn and diffp
             float diff = 0;
-            var = ((Export)pp).getVar("ATTR_diffn");
+            var = ((Export)pp).getVar(ATTR_diffn);
             if (var != null) {
                 diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
                 leFound = true;
             }
-            var = ((Export)pp).getVar("ATTR_diffp");
+            var = ((Export)pp).getVar(ATTR_diffp);
             if (var != null) {
                 diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
                 leFound = true;

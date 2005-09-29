@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (09/26/05, DN) Deleting arcs is too slow (Bug #547)
+FIX: Comment check of Connections from Cell.check().
+
+BUG: (09/29/05, DN) Schematic VDD Symbol misleading (Bug #586)
+FIX: In technologies.Schematics change "pwr" to "gnd" and add item to "converOldPortName".
+
 BUG: (09/29/05, GVG) Sizes of poly arcs change depending on order libraries are read in (Bug #576).
 FIX: Add ResetDefaultWidthJob(lib) every time a library is read because it can't rely on
 the reconcilation dialog. As side effect, only gate arcs parallel to the transistors will

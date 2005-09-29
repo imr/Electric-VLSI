@@ -77,13 +77,6 @@ public interface Nodable
 	 */
 	public Name getNameKey();
 
-	/**
-	 * Method to return the Variable on this Nodable with a given name.
-	 * @param name the name of the Variable.
-	 * @return the Variable with that name, or null if there is no such Variable.
-	 */
-	public Variable getVar(String name);
-
     /**
      * Method to return the Variable on this ElectricObject with a given key.
      * @param key the key of the Variable.
@@ -101,11 +94,11 @@ public interface Nodable
      * Method to return the Variable on this ElectricObject with the given key
      * that is a parameter.  If the variable is not found on this object, it
      * is also searched for on the default var owner.
-     * @param name the name of the variable
+     * @param key the key of the variable
      * @return the Variable with that key, that may exist either on this object
      * or the default owner.  Returns null if none found.
      */
-    public Variable getParameter(String name);
+    public Variable getParameter(Variable.Key key);
 
     /**
      * Method to return an Iterator over all Variables marked as parameters on this ElectricObject.

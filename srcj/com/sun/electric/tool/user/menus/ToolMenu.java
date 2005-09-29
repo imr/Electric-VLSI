@@ -77,6 +77,7 @@ import com.sun.electric.tool.io.input.LibraryFiles;
 import com.sun.electric.tool.io.input.Simulate;
 import com.sun.electric.tool.io.output.Spice;
 import com.sun.electric.tool.io.output.Verilog;
+import com.sun.electric.tool.logicaleffort.LENetlister;
 import com.sun.electric.tool.logicaleffort.LETool;
 import com.sun.electric.tool.ncc.Ncc;
 import com.sun.electric.tool.ncc.NccOptions;
@@ -648,9 +649,9 @@ public class ToolMenu {
             HashMap map = new HashMap();        // map of networks to associated wire model nodeinst
             for (Iterator it = schLayCells[0].getNodes(); it.hasNext(); ) {
                 NodeInst ni = (NodeInst)it.next();
-                Variable var = ni.getVar("ATTR_LEWIRE");
+                Variable var = ni.getVar(LENetlister.ATTR_LEWIRE);
                 if (var == null) continue;
-                var = ni.getVar("ATTR_L");
+                var = ni.getVar(LENetlister.ATTR_L);
                 if (var == null) {
                     System.out.println("No attribute L on wire model "+ni.describe(true)+", ignoring it.");
                     continue;

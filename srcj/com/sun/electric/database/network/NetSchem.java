@@ -161,31 +161,6 @@ class NetSchem extends NetCell {
 		public Name getNameKey() { return nodeInst.getNameKey().subname(arrayIndex); }
 
 		/**
-		 * Method to return the Variable on this Nodable with a given name.
-		 * @param name the name of the Variable.
-		 * @return the Variable with that name, or null if there is no such Variable.
-		 */
-		public Variable getVar(String name) {
-			if (shared == null)
-				return nodeInst.getVar(name);
-			Variable var = null;
-			for (int i = 0; i < shared.length; i++) {
-				Variable v = shared[i].nodeInst.getVar(name);
-				if (v == null) continue;
-				if (var == null) {
-					var = v;
-				} else if (!v.getObject().equals(var.getObject())) {
-					String msg = "Network: " + cell + " has multipart icon <" + getName() +
-						"> with ambigouos definition of variable " + name;
-                    System.out.println(msg);
-                    ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
-                    log.addGeom(shared[i].nodeInst, true, cell, null);
-				}
-			}
-			return var;
-		}
-
-		/**
          * Method to return the Variable on this ElectricObject with a given key.
          * @param key the key of the Variable.
          * @return the Variable with that key, or null if there is no such Variable.
@@ -214,22 +189,23 @@ class NetSchem extends NetCell {
          * Method to return the Variable on this ElectricObject with the given key
          * that is a parameter.  If the variable is not found on this object, it
          * is also searched for on the default var owner.
-         * @param name the name of the variable
+         * @param key the key of the variable
          * @return the Variable with that key, that may exist either on this object
          * or the default owner.  Returns null if none found.
          */
-        public Variable getParameter(String name) {
+        public Variable getParameter(Variable.Key key)
+        {
             if (shared == null)
-                return nodeInst.getParameter(name);
+                return nodeInst.getParameter(key);
             Variable var = null;
             for (int i = 0; i < shared.length; i++) {
-                Variable v = shared[i].nodeInst.getParameter(name);
+                Variable v = shared[i].nodeInst.getParameter(key);
                 if (v == null) continue;
                 if (var == null) {
                     var = v;
                 } else if (!v.getObject().equals(var.getObject())) {
                     String msg = "Network: " + cell + " has multipart icon <" + getName() +
-                        "> with ambigouos definition of parameter " + name;
+                        "> with ambigouos definition of parameter " + key;
                     System.out.println(msg);
                     ErrorLogger.MessageLog log = NetworkTool.errorLogger.logError(msg, cell, NetworkTool.errorSortNodes);
                     log.addGeom(shared[i].nodeInst, true, cell, null);

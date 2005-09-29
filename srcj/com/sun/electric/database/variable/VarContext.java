@@ -451,13 +451,15 @@ public class VarContext
     protected Object lookupVarEval(String name) throws EvalException
     {
         if (ni == null) throwNotFound(name);
-        Variable var = ni.getVar(name);
+		Variable.Key key = Variable.findKey(name);
+		if (key == null) throwNotFound(name);
+        Variable var = ni.getVar(key);
         if (var == null && ni.getProto() instanceof Cell) {
             // look up default var on prototype
 			Cell cell = (Cell)ni.getProto();
 			Cell equiv = cell.getEquivalent();
 			if (equiv != null) cell = equiv;
-			var = cell.getVar(name);
+			var = cell.getVar(key);
         }
         if (var == null) throwNotFound(name);
 
@@ -481,6 +483,9 @@ public class VarContext
      */
     protected Object lookupVarFarEval(String name) throws EvalException
     {
+		Variable.Key key = Variable.findKey(name);
+		if (key == null) throwNotFound(name);
+        
 		// look up the entire stack, starting with end
 		VarContext scan = this;
         Object value = null;
@@ -489,7 +494,7 @@ public class VarContext
             Nodable sni = scan.getNodable();
             if (sni == null) break;
             
-            Variable var = sni.getVar(name);             // look up var
+            Variable var = sni.getVar(key);             // look up var
 			if (var != null) {
 				value = scan.pop().evalVarRecurse(var, sni);
 				break;
@@ -500,7 +505,7 @@ public class VarContext
 				Cell cell = (Cell)sni.getProto();
 				Cell equiv = cell.getEquivalent();
 				if (equiv != null) cell = equiv;
-				var = cell.getVar(name);
+				var = cell.getVar(key);
 			}
             if (var != null) {
             	value = scan.pop().evalVarRecurse(var, sni);

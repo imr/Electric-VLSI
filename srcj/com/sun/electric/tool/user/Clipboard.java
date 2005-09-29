@@ -931,7 +931,7 @@ public class Clipboard
 			{
 				Variable destVar = (Variable)it.next();
 				Variable.Key key = destVar.getKey();
-				Variable srcVar = srcNode.getVar(key.getName());
+				Variable srcVar = srcNode.getVar(key);
 				if (srcVar != null) continue;
 				destNode.delVar(key);
 				checkAgain = true;
@@ -983,7 +983,7 @@ public class Clipboard
 			{
 				Variable destVar = (Variable)it.next();
 				Variable.Key key = destVar.getKey();
-				Variable srcVar = srcArc.getVar(key.getName());
+				Variable srcVar = srcArc.getVar(key);
 				if (srcVar != null) continue;
 				destArc.delVar(key);
 				checkAgain = true;

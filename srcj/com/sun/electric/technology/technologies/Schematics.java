@@ -849,7 +849,7 @@ public class Schematics extends Technology
 			});
 		powerNode.addPrimitivePorts(new PrimitivePort []
 			{
-				PrimitivePort.newInstance(this, powerNode, new ArcProto[] {wire_arc}, "pwr", 0,180, 0, PortCharacteristic.PWR,
+				PrimitivePort.newInstance(this, powerNode, new ArcProto[] {wire_arc}, "vdd", 0,180, 0, PortCharacteristic.PWR,
 					EdgeH.makeCenter(), EdgeV.makeCenter(), EdgeH.makeCenter(), EdgeV.makeCenter())
 			});
 		powerNode.setFunction(PrimitiveNode.Function.CONPOWER);
@@ -1933,11 +1933,15 @@ public class Schematics extends Technology
 		}
 		if (np == twoportNode)
 		{
-			if (portName.equals("upperleft"))getIndexedPort(0, np);
-			if (portName.equals("lowerleft")) getIndexedPort(1, np);
-			if (portName.equals("upperright")) getIndexedPort(2, np);
-			if (portName.equals("lowerright")) getIndexedPort(3, np);
+			if (portName.equals("upperleft")) return getIndexedPort(0, np);
+			if (portName.equals("lowerleft")) return getIndexedPort(1, np);
+			if (portName.equals("upperright")) return getIndexedPort(2, np);
+			if (portName.equals("lowerright")) return getIndexedPort(3, np);
 		}
+        if (np == powerNode)
+        {
+            if (portName.equals("pwr")) return getIndexedPort(0, np);
+        }
 
 		return super.convertOldPortName(portName,np);
 	}

@@ -3745,7 +3745,7 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable
         }
 
 		// make sure that every connection is on an arc and a node
-		HashSet connections = new HashSet();
+//		HashSet connections = new HashSet();
 		ArcInst prevAi = null;
 		for(int i = 0; i < arcs.size(); i++)
 		{
@@ -3760,10 +3760,10 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable
 					assert prevAi.getDuplicate() < ai.getDuplicate();
 			}
 			ai.check();
-			assert !connections.contains(ai.getHead()) : ai;
-			connections.add(ai.getHead());
-			assert !connections.contains(ai.getTail()) : ai;
-			connections.add(ai.getTail());
+//			assert !connections.contains(ai.getHead()) : ai;
+//			connections.add(ai.getHead());
+//			assert !connections.contains(ai.getTail()) : ai;
+//			connections.add(ai.getTail());
 			prevAi = ai;
 		}
 		// now make sure that all nodes reference them
@@ -3789,13 +3789,15 @@ public class Cell extends ElectricObject_ implements NodeProto, Comparable
 			for(Iterator pIt = ni.getConnections(); pIt.hasNext(); )
 			{
 				Connection con = (Connection)pIt.next();
-				assert connections.contains(con) : ni;
-				connections.remove(con);
+                ArcInst ai = con.getArc();
+                assert ai.getParent() == this && ai.isLinked();
+//				assert connections.contains(con) : ni;
+//				connections.remove(con);
 			}
 			prevNi = ni;
 		}
-		// finally check to see if there are any left in the hash table
-		assert connections.isEmpty();
+//		// finally check to see if there are any left in the hash table
+//		assert connections.isEmpty();
 
 		// check node usages
         for (int i = 0; i < cellUsages.length; i++)

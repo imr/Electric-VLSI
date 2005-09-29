@@ -208,7 +208,8 @@ public class LETool extends Listener {
         Variable var = null;
         while (!drive.equals("")) {
             if (DEBUG) System.out.println("  Looking for: LEDRIVE_"+drive+";0;S");
-            var = no.getVar("LEDRIVE_"+drive+";0;S");
+            Variable.Key key = Variable.findKey("LEDRIVE_"+drive+";0;S");
+            var = (key != null ? no.getVar(key) : null);
             if (var != null) return var;            // look for var
             int i = drive.indexOf(';');
             if (i == -1) break;
@@ -219,7 +220,7 @@ public class LETool extends Listener {
 
         // look for it at current level
         if (DEBUG) System.out.println("  Looking for: LEDRIVE_0;S");
-        var = no.getVar("LEDRIVE_0;S");
+        var = no.getVar(Variable.newKey("LEDRIVE_0;S"));
         if (var != null) return var;            // look for var
         return null;
     }
@@ -249,7 +250,9 @@ public class LETool extends Listener {
             context = context.pop();
         }
         Cell parent = topno.getParent();
-        Variable var = parent.getVar("LEDRIVE_"+drive);
+        Variable.Key key = Variable.findKey("LEDRIVE_"+drive);
+        if (key == null) return null;
+        Variable var = parent.getVar(key);
         return var;
     }
 
@@ -269,7 +272,8 @@ public class LETool extends Listener {
         Variable var = null;
         while (!drive.equals("")) {
             if (DEBUG) System.out.println("  Looking for: LEDRIVE_"+drive);
-            var = no.getVar("LEDRIVE_"+drive);
+            Variable.Key key = Variable.findKey("LEDRIVE_"+drive);
+            var = (key != null ? no.getVar(key) : null);
             if (var != null) return var;            // look for var
             int i = drive.indexOf('.');
             if (i == -1) return null;
@@ -349,7 +353,7 @@ public class LETool extends Listener {
 
     protected static Variable getMFactor(Nodable no) {
         Variable var = no.getVar(Simulation.M_FACTOR_KEY);
-        if (var == null) var = no.getParameter("ATTR_M");
+        if (var == null) var = no.getParameter(Simulation.M_FACTOR_KEY);
         return var;
     }
 

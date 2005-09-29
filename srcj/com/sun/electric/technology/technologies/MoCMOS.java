@@ -3518,11 +3518,13 @@ public class MoCMOS extends Technology
 			VarContext evalContext = context;
 			if (evalContext == null) evalContext = VarContext.globalContext;
 			String extra = var.describe(evalContext, ni);
-			try
-			{
-				Object o = evalContext.evalVarRecurse(var, ni);
-				if (o != null) extra = o.toString();
-			} catch (VarContext.EvalException e) {}
+			Object o = evalContext.evalVar(var, ni);
+			if (o != null) extra = o.toString();
+// 			try
+// 			{
+// 				Object o = evalContext.evalVarRecurse(var, ni);
+// 				if (o != null) extra = o.toString();
+// 			} catch (VarContext.EvalException e) {}
 			double requestedWid = TextUtils.atof(extra);
 			if (requestedWid > activeWid)
 			{

@@ -45,8 +45,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.TreeMap;
 
 /**
@@ -54,7 +52,7 @@ import java.util.TreeMap;
  * <P>
  * This class should be thread-safe.
  */
-public abstract class ElectricObject extends Observable implements Observer
+public abstract class ElectricObject // extends Observable implements Observer
 {
 	// ------------------------ private data ------------------------------------
 
@@ -201,18 +199,16 @@ public abstract class ElectricObject extends Observable implements Observer
      * Method to return the Variable on this ElectricObject with the given key
      * that is a parameter.  If the variable is not found on this object, it
      * is also searched for on the default var owner.
-     * @param name the name of the Variable
+     * @param key the key of the variable
      * @return the Variable with that key, that may exist either on this object
      * or the default owner.  Returns null if none found.
      */
-    public Variable getParameter(String name)
+    public Variable getParameter(Variable.Key key)
     {
         if (debugGetParameterRecurse > 3)
             ActivityLogger.logException(new Exception("GetParameter recurse error: "+debugGetParameterRecurse));
         debugGetParameterRecurse++;
 
-        Variable.Key key = Variable.findKey(name);
-        if (key == null) { debugGetParameterRecurse--; return null; }
         Variable var = getVar(key, null);
         if (var != null)
             if (var.isParam()) {
@@ -224,7 +220,7 @@ public abstract class ElectricObject extends Observable implements Observer
         if (defOwner == null) { debugGetParameterRecurse--; return null; }
         if (defOwner == this) { debugGetParameterRecurse--; return null; }
 
-        Variable var2 = defOwner.getParameter(name);
+        Variable var2 = defOwner.getParameter(key);
         debugGetParameterRecurse--;
         return var2;
     }
@@ -724,9 +720,9 @@ public abstract class ElectricObject extends Observable implements Observer
             return null;
         }
         Variable v = newVar(d);
-        setChanged();
-        notifyObservers(v);
-        clearChanged();
+//        setChanged();
+//        notifyObservers(v);
+//        clearChanged();
         return v;
     }
 
@@ -904,7 +900,8 @@ public abstract class ElectricObject extends Observable implements Observer
      */
     public Variable renameVar(Variable.Key key, String newName) {
         // see if newName exists already
-        Variable var = getVar(newName);
+        Variable.Key newKey = Variable.newKey(newName);
+        Variable var = getVar(newKey);
         if (var != null) return null;            // name already exists
 
         // get current Variable
@@ -912,7 +909,7 @@ public abstract class ElectricObject extends Observable implements Observer
         if (oldvar == null) return null;
 
         // create new var
-        Variable newVar = newVar(Variable.newKey(newName), oldvar.getObject(), oldvar.getTextDescriptor());
+        Variable newVar = newVar(newKey, oldvar.getObject(), oldvar.getTextDescriptor());
         if (newVar == null) return null;
         // copy settings from old var to new var
 //        newVar.setTextDescriptor();
@@ -930,9 +927,9 @@ public abstract class ElectricObject extends Observable implements Observer
 	public void delVar(Variable.Key key)
 	{
         delVarNoObserver(key);
-        setChanged();
-        notifyObservers(new Object[]{"delVar", key});
-        clearChanged();
+//        setChanged();
+//        notifyObservers(new Object[]{"delVar", key});
+//        clearChanged();
 	}
 
     private void delVarNoObserver(Variable.Key key)
@@ -1035,71 +1032,6 @@ public abstract class ElectricObject extends Observable implements Observer
             checkPossibleVariableEffects(newImmutable.getVar(n++).key);
     }
         
-//	/**
-//	 * Method to put an Object into an entry in an arrayed Variable on this ElectricObject.
-//	 * @param key the key of the arrayed Variable.
-//	 * @param value the object to store in an entry of the arrayed Variable.
-//	 * @param index the location in the arrayed Variable to store the value.
-//	 */
-//	public void setVar(Variable.Key key, Object value, int index)
-//	{
-//		checkChanging();
-//		Variable v = getVar(key);
-//		if (v == null) return;
-//		Object addr = v.getObject();
-//		if (addr instanceof Object[])
-//		{
-//			Object[] arr = (Object[])addr;
-//			Object oldVal = arr[index];
-//			arr[index] = value;
-//			if (isDatabaseObject())
-//				Undo.modifyVariable(this, v, index, oldVal);
-//		}
-//		lowLevelModVar(v);
-//	}
-
-	/**
-	 * Method to insert an Object into an arrayed Variable on this ElectricObject.
-	 * @param key the key of the arrayed Variable.
-	 * @param index the location in the arrayed Variable to insert the value.
-	 * @param value the object to insert into the arrayed Variable.
-	 */
-//	public void insertInVar(Variable.Key key, int index, Object value)
-//	{
-//		checkChanging();
-//		Variable v = getVar(key);
-//		if (v == null) return;
-//		Object addr = v.getObject();
-//		if (addr instanceof Object[])
-//		{
-//			v.lowLevelInsert(index, value);
-//			if (isDatabaseObject())
-//				Undo.insertVariable(this, v, index);
-//		}
-//		lowLevelModVar(v);
-//	}
-
-	/**
-	 * Method to delete an Object from an arrayed Variable on this ElectricObject.
-	 * @param key the key of the arrayed Variable.
-	 * @param index the location in the arrayed Variable to delete the value.
-	 */
-//	public void deleteFromVar(Variable.Key key, int index)
-//	{
-//		checkChanging();
-//		Variable v = getVar(key);
-//		if (v == null) return;
-//		Object addr = v.getObject();
-//		if (addr instanceof Object[])
-//		{
-//			Object oldVal = ((Object[])addr)[index];
-//			v.lowLevelDelete(index);
-//			if (isDatabaseObject())
-//				Undo.deleteVariable(this, v, index, oldVal);
-//		}
-//		lowLevelModVar(v);
-//	}
-
 	/**
 	 * Method to copy all variables from another ElectricObject to this ElectricObject.
 	 * @param other the other ElectricObject from which to copy Variables.
@@ -1422,24 +1354,6 @@ public abstract class ElectricObject extends Observable implements Observer
     }
     
 	/**
-	 * Method to return an Iterator over all Variable keys.
-	 * @return an Iterator over all Variable keys.
-	 */
-//	public static synchronized Iterator getVariableKeys()
-//	{
-//		return varKeys.values().iterator();
-//	}
-
-	/**
-	 * Method to return the total number of different Variable names on all ElectricObjects.
-	 * @return the total number of different Variable names on all ElectricObjects.
-	 */
-//	public static synchronized int getNumVariableKeys()
-//	{
-//		return varKeys.keySet().size();
-//	}
-
-	/**
 	 * Routing to check whether changing of this cell allowed or not.
 	 * By default checks whole database change. Overriden in subclasses.
 	 */
@@ -1528,51 +1442,51 @@ public abstract class ElectricObject extends Observable implements Observer
 		return getClass().getName();
 	}
 
-    /**
-     * Observer method to update variables in Icon instance if cell master changes
-     * @param o
-     * @param arg
-     */
-    public void update(Observable o, Object arg)
-    {
-        System.out.println("Entering update");
-        // New
-        if (arg instanceof Variable)
-        {
-            Variable var = (Variable)arg;
-            // You can't call newVar(var.getKey(), var.getObject()) to avoid infinite loop
-            newVar(var.getD());
-        }
-        else if (arg instanceof Object[])
-        {
-            Object[] array = (Object[])arg;
-
-            if (!(array[0] instanceof String))
-            {
-                System.out.println("Error in ElectricObject.update");
-                return;
-            }
-            String function = (String)array[0];
-            if (function.startsWith("setTextDescriptor"))
-            {
-                Variable.Key varKey = (Variable.Key)array[1];
-                TextDescriptor td = (TextDescriptor)array[2];
-                // setTextDescriptor(String varName, TextDescriptor td)
-                setTextDescriptor(varKey, td);
-            }
-            else if (function.startsWith("delVar"))
-            {
-                Variable.Key key = (Variable.Key)array[1];
-                delVarNoObserver(key);
-            }
-//            else if (array[0] instanceof Variable.Key)
+//    /**
+//     * Observer method to update variables in Icon instance if cell master changes
+//     * @param o
+//     * @param arg
+//     */
+//    public void update(Observable o, Object arg)
+//    {
+//        System.out.println("Entering update");
+//        // New
+//        if (arg instanceof Variable)
+//        {
+//            Variable var = (Variable)arg;
+//            // You can't call newVar(var.getKey(), var.getObject()) to avoid infinite loop
+//            newVar(var.getD());
+//        }
+//        else if (arg instanceof Object[])
+//        {
+//            Object[] array = (Object[])arg;
+//
+//            if (!(array[0] instanceof String))
 //            {
-//                //  Variable updateVar(String name, Object value)
-//                Variable.Key key = (Variable.Key)array[0];
-//                updateVar(key, array[1]);
+//                System.out.println("Error in ElectricObject.update");
+//                return;
 //            }
-        }
-    }
+//            String function = (String)array[0];
+//            if (function.startsWith("setTextDescriptor"))
+//            {
+//                Variable.Key varKey = (Variable.Key)array[1];
+//                TextDescriptor td = (TextDescriptor)array[2];
+//                // setTextDescriptor(String varName, TextDescriptor td)
+//                setTextDescriptor(varKey, td);
+//            }
+//            else if (function.startsWith("delVar"))
+//            {
+//                Variable.Key key = (Variable.Key)array[1];
+//                delVarNoObserver(key);
+//            }
+////            else if (array[0] instanceof Variable.Key)
+////            {
+////                //  Variable updateVar(String name, Object value)
+////                Variable.Key key = (Variable.Key)array[0];
+////                updateVar(key, array[1]);
+////            }
+//        }
+//    }
     
 	/**
 	 * Method to check invariants in this Library.

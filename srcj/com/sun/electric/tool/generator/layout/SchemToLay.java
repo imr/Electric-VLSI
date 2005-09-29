@@ -380,10 +380,10 @@ public class SchemToLay {
 			return KeeperLow.makePart((Cell)npe, context.push(iconInst), stdCell);
 		}
 		
-		Variable var = iconInst.getVar("ATTR_S");
-		if (var==null)  var = iconInst.getVar("ATTR_SP");
-		if (var==null)  var = iconInst.getVar("ATTR_SN");
-		if (var==null)  var = iconInst.getVar("ATTR_X");
+		Variable var = iconInst.getVar(Tech.ATTR_S);
+		if (var==null)  var = iconInst.getVar(Tech.ATTR_SP);
+		if (var==null)  var = iconInst.getVar(Tech.ATTR_SN);
+		if (var==null)  var = iconInst.getVar(Tech.ATTR_X);
 		double x = getNumericVal(context.evalVar(var));
 		//System.out.println("Gate Type: " + pNm + ", Gate Size: " + x);  // Daniel
 		

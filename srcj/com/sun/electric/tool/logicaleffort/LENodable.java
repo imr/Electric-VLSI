@@ -234,14 +234,14 @@ public class LENodable {
             // boolean leGate set to false; it will not be sized
             // NEW: If we find ATTR_LEWIRECAP, that is the capacitance to use,
             // and we will not calculate the cap from L and W.
-            var = no.getVar("ATTR_LEWIRECAP");
+            var = no.getVar(LENetlister.ATTR_LEWIRECAP);
             float cap = 0;
             if (var != null) {
                 retVal = context.evalVar(var);
                 if (testCachebility && (retVal == null)) return -1f;
                 cap = VarContext.objectToFloat(retVal, 0.0f);
             } else {
-                var = no.getVar("ATTR_L");
+                var = no.getVar(LENetlister.ATTR_L);
                 if (var == null) {
                     System.out.println("Error, no L attribute found on LEWIRE "+no.getName()+" in Cell "+no.getParent());
                     if (testCachebility) return -1f;

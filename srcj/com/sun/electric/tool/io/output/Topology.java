@@ -913,7 +913,7 @@ public abstract class Topology extends Output
 			for(Iterator it = paramValues.keySet().iterator(); it.hasNext(); )
 			{
 				Variable.Key key = (Variable.Key)it.next();
-				Variable var = no.getVar(key.getName());
+				Variable var = no.getVar(key);
                 String eval = var.describe(context, no.getNodeInst());
 				//Object eval = context.evalVar(var, no);
 				if (eval == null) continue;

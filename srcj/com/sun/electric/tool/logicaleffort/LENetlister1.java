@@ -299,7 +299,7 @@ public class LENetlister1 extends LENetlister {
         // Check if this NodeInst is tagged as a logical effort node
         Instance.Type type = null;
         Variable var = null;
-        if ((var = getVar(ni, "ATTR_LEGATE")) != null) {
+        if ((var = getVar(ni, ATTR_LEGATE)) != null) {
             // assume it is LEGATE if can't resolve value
             int gate = VarContext.objectToInt(info.getContext().evalVar(var), 1);
             if (gate == 1)
@@ -307,7 +307,7 @@ public class LENetlister1 extends LENetlister {
             else
                 return true;
         }
-        else if ((var = getVar(ni, "ATTR_LEKEEPER")) != null) {
+        else if ((var = getVar(ni, ATTR_LEKEEPER)) != null) {
             // assume it is LEKEEPER if can't resolve value
             int gate = VarContext.objectToInt(info.getContext().evalVar(var), 1);
             if (gate == 1)
@@ -315,7 +315,7 @@ public class LENetlister1 extends LENetlister {
             else
                 return true;
         }
-        else if (getVar(ni, "ATTR_LEWIRE") != null) {
+        else if (getVar(ni, ATTR_LEWIRE) != null) {
             type = Instance.Type.WIRE;
             // Note that if inst is an LEWIRE, it will have no 'le' attributes.
             // we therefore assign pins to have default 'le' values of one.
@@ -323,17 +323,17 @@ public class LENetlister1 extends LENetlister {
             // boolean leGate set to false; it will not be sized
             // NEW: If we find ATTR_LEWIRECAP, that is the capacitance to use,
             // and we will not calculate the cap from L and W.
-            var = ni.getVar("ATTR_LEWIRECAP");
+            var = ni.getVar(ATTR_LEWIRECAP);
             float cap = 0;
             if (var != null) {
                 cap = VarContext.objectToFloat(info.getContext().evalVar(var), 0.0f);
             } else {
-                var = ni.getVar("ATTR_L");
+                var = ni.getVar(ATTR_L);
                 if (var == null) {
                     System.out.println("Error, no L attribute found on LEWIRE "+info.getContext().push(ni).getInstPath("."));
                 }
                 float len = VarContext.objectToFloat(info.getContext().evalVar(var), 0.0f);
-                var = ni.getVar("ATTR_width");
+                var = ni.getVar(Schematics.ATTR_WIDTH);
                 if (var == null) {
                     System.out.println("Warning, no width attribute found on LEWIRE "+info.getContext().push(ni).getInstPath("."));
                 }
@@ -346,7 +346,7 @@ public class LENetlister1 extends LENetlister {
         else if ((ni.getProto() != null) && (ni.getProto().getFunction().isTransistor())) {
             // handle transistor loads
             type = Instance.Type.STATICGATE;
-            var = ni.getVar("ATTR_width");
+            var = ni.getVar(Schematics.ATTR_WIDTH);
             if (var == null) {
                 System.out.println("Error: transistor "+ni+" has no width in Cell "+info.getCell());
                 ErrorLogger.MessageLog log = errorLogger.logError("Error: transistor "+ni+" has no width in Cell "+info.getCell(), info.getCell(), 0);
@@ -371,9 +371,9 @@ public class LENetlister1 extends LENetlister {
             float cap = VarContext.objectToFloat(info.getContext().evalVar(var), (float)0.0);
             leX = (float)(cap/constants.gateCap/1e-15/9.0f);
         }
-        else if (ni.getVar("ATTR_LESETTINGS") != null)
+        else if (ni.getVar(ATTR_LESETTINGS) != null)
             return false;
-        else if (ni.getVar("ATTR_LEIGNORE") != null)
+        else if (ni.getVar(ATTR_LEIGNORE) != null)
             return false;
 
 
@@ -400,7 +400,7 @@ public class LENetlister1 extends LENetlister {
             }
             if (dir == Pin.Dir.INPUT && type == Instance.Type.STATICGATE) {
                 // gate load: check if length > 2, if so, increase LE to account for added capacitance
-                var = ni.getVar("ATTR_length");
+                var = ni.getVar(Schematics.ATTR_LENGTH);
                 if (var == null) {
                     System.out.println("Error: transistor "+ni+" has no length in Cell "+info.getCell());
                     ErrorLogger.MessageLog log = errorLogger.logError("Error: transistor "+ni+" has no length in Cell "+info.getCell(), info.getCell(), 0);
@@ -421,7 +421,7 @@ public class LENetlister1 extends LENetlister {
         if (((LECellInfo)info).getSU() != -1f)
             localsu = ((LECellInfo)info).getSU();
         // check for step-up on gate
-        var = ni.getVar("ATTR_su");
+        var = ni.getVar(ATTR_su);
         if (var != null) {
             float nisu = VarContext.objectToFloat(info.getContext().evalVar(var), -1f);
             if (nisu != -1f)
@@ -435,7 +435,7 @@ public class LENetlister1 extends LENetlister {
 
         // set instance parameters for sizeable gates
         if (type == Instance.Type.LEGATE || type == Instance.Type.LEKEEPER) {
-            var = ni.getVar("ATTR_LEPARALLGRP");
+            var = ni.getVar(ATTR_LEPARALLGRP);
             if (var != null) {
                 // set parallel group number
                 int g = VarContext.objectToInt(info.getContext().evalVar(var), 0);
@@ -467,7 +467,7 @@ public class LENetlister1 extends LENetlister {
         float le = 1.0f;
 		if (!(pp instanceof Export))
 			return le;
-        Variable var = ((Export)pp).getVar("ATTR_le");
+        Variable var = ((Export)pp).getVar(ATTR_le);
         if (var != null) {
             leFound = true;
             le = VarContext.objectToFloat(info.getContext().evalVar(var), 1.0f);
@@ -475,12 +475,12 @@ public class LENetlister1 extends LENetlister {
                 (type == Instance.Type.LEGATE || type == Instance.Type.LEKEEPER)) {
             // if this is an Sizeable gate's output, look for diffn and diffp
             float diff = 0;
-            var = ((Export)pp).getVar("ATTR_diffn");
+            var = ((Export)pp).getVar(ATTR_diffn);
             if (var != null) {
                 diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
                 leFound = true;
             }
-            var = ((Export)pp).getVar("ATTR_diffp");
+            var = ((Export)pp).getVar(ATTR_diffp);
             if (var != null) {
                 diff += VarContext.objectToFloat(info.getContext().evalVar(var), 0);
                 leFound = true;
@@ -501,9 +501,9 @@ public class LENetlister1 extends LENetlister {
         return le;
     }
 
-    private Variable getVar(Nodable no, String name) {
-        Variable var = no.getParameter(name);
-        //if (var == null) var = no.getVarDefaultOwner().getVar(name);
+    private Variable getVar(Nodable no, Variable.Key key) {
+        Variable var = no.getParameter(key);
+        //if (var == null) var = no.getVarDefaultOwner().getVar(key);
         return var;
     }
 

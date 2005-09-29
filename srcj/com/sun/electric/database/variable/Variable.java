@@ -85,6 +85,12 @@ public class Variable
 			Key that = (Key)obj;
 			return TextUtils.STRING_NUMBER_ORDER.compare(name, that.name);
 		}
+        
+        /**
+         * Returns a printable version of this Key.
+         * @return a printable version of this Key.
+         */
+        public String toString() { return name; }
 	}
 
 	/** a list of all variable keys */						private static final HashMap varKeys = new HashMap();
@@ -95,7 +101,7 @@ public class Variable
 	 * Variable Key objects are caches of the actual string name of the Variable.
 	 * @return the Key object for a given Variable name.
 	 */
-	static synchronized Key findKey(String name)
+	public static synchronized Key findKey(String name)
 	{
 		Key key = (Key)varKeys.get(name);
 		if (key != null) return key;

@@ -5420,7 +5420,7 @@ public class CircuitChanges
 	{
 		// see if the attribute is already there
 		Variable.Key key = var.getKey();
-		Variable newVar = ni.getVar(key.getName());
+		Variable newVar = ni.getVar(key);
 		if (newVar != null)
 		{
 			// make sure visibility is OK
@@ -5454,7 +5454,7 @@ public class CircuitChanges
         if (nivar == null) return;
 
         // determine offset of the attribute on the instance
-        Variable posVar = np.getVar(nivar.getKey().getName());
+        Variable posVar = np.getVar(nivar.getKey());
         Variable var = posVar;
         if (icon != null)
         {

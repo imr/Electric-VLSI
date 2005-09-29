@@ -31,6 +31,7 @@ import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
+import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
@@ -128,6 +129,10 @@ public class Tech {
 		selectSurroundDiffInActiveContact;  // select surround in active contacts
 
 	//----------------------------- public data ----------------------------------
+	public static final Variable.Key ATTR_X = Variable.newKey("ATTR_X");
+	public static final Variable.Key ATTR_S = Variable.newKey("ATTR_S");
+	public static final Variable.Key ATTR_SN = Variable.newKey("ATTR_SN");
+	public static final Variable.Key ATTR_SP = Variable.newKey("ATTR_SP");
     /** valid Electric technologies understood */
     public static final String MOCMOS = "mocmos";
     public static final String TSMC90 = "tsmc90";

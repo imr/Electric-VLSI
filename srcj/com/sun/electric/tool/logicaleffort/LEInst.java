@@ -93,7 +93,7 @@ public class LEInst {
 
     // return true if the var "name" evaluates to the integer value 1
     private static boolean isVarValueOne(Nodable no, VarContext context, Variable.Key key) {
-        Variable var = no.getParameter(key.getName());
+        Variable var = no.getParameter(key);
         if (var == null) return false;
         int val = VarContext.objectToInt(context.evalVar(var), 1);
         if (val == 1) return true;

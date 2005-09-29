@@ -1124,13 +1124,13 @@ public class StdCellParams {
 	}
 
 	public static double getSize(NodeInst iconInst, VarContext context) {
-		Variable var = iconInst.getVar("ATTR_X");
+		Variable var = iconInst.getVar(Tech.ATTR_X);
 		if (var==null)
-			var = iconInst.getVar("ATTR_S");
+			var = iconInst.getVar(Tech.ATTR_S);
 		if (var==null)
-			var = iconInst.getVar("ATTR_SP");
+			var = iconInst.getVar(Tech.ATTR_SP);
 		if (var==null)
-			var = iconInst.getVar("ATTR_SN");
+			var = iconInst.getVar(Tech.ATTR_SN);
 
 		if (var==null) {
 			System.out.println("can't find size, using 40");

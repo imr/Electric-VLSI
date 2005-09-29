@@ -44,7 +44,6 @@ import com.sun.electric.database.text.Version;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ElectricObject;
 import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.database.variable.TextDescriptor;
@@ -63,6 +62,9 @@ import com.sun.electric.tool.user.dialogs.ExecDialog;
 import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.Job;
+import com.sun.electric.tool.io.output.Topology.CellNetInfo;
+import com.sun.electric.tool.io.output.Topology.CellSignal;
+import com.sun.electric.tool.logicaleffort.LENetlister;
 
 import java.awt.geom.AffineTransform;
 import java.io.File;
@@ -86,6 +88,8 @@ public class Spice extends Topology
 //	/** key of Variable holding SPICE code. */					public static final Variable.Key SPICE_CARD_KEY = Variable.newKey("SPICE_Code");
 	/** key of Variable holding SPICE model. */					public static final Variable.Key SPICE_MODEL_KEY = Variable.newKey("SIM_spice_model");
 	/** key of Variable holding SPICE model file. */			public static final Variable.Key SPICE_MODEL_FILE_KEY = Variable.newKey("SIM_spice_behave_file");
+    /** key of wire capacitance. */                             public static final Variable.Key ATTR_C = Variable.newKey("ATTR_C");
+    /** key of wire resistance. */                              public static final Variable.Key ATTR_R = Variable.newKey("ATTR_R");
 	/** Prefix for spice extension. */                          public static final String SPICE_EXTENSION_PREFIX = "Extension ";
 
     /** key of Variable holding generic CDL templates. */		public static final Variable.Key CDL_TEMPLATE_KEY = Variable.newKey("ATTR_CDL_template");
@@ -1433,8 +1437,8 @@ public class Spice extends Topology
             NodeInst ni = (NodeInst)it.next();
             if (!(ni.getProto() instanceof Cell)) continue;
             if (ni.isIconOfParent()) continue;
-            if (ni.getVar("ATTR_LEGATE") != null) { mark = true; continue; }
-            if (ni.getVar("ATTR_LEKEEPER") != null) { mark = true; continue; }
+            if (ni.getVar(LENetlister.ATTR_LEGATE) != null) { mark = true; continue; }
+            if (ni.getVar(LENetlister.ATTR_LEKEEPER) != null) { mark = true; continue; }
             Cell proto = ((Cell)ni.getProto()).contentsView();
             if (proto == null) proto = (Cell)ni.getProto();
             if (checkIfParameterized(proto)) { mark = true; }
@@ -1556,9 +1560,12 @@ public class Spice extends Topology
             } else
             {
                 // no port name found, look for variable name
-                String varName = "ATTR_" + paramName;
-                Variable attrVar = no.getVar(varName);
-                if (attrVar == null) attrVar = no.getParameter(varName);
+                Variable attrVar = null;
+                Variable.Key varKey = Variable.findKey("ATTR_" + paramName);
+                if (varKey != null) {
+                    attrVar = no.getVar(varKey);
+                    if (attrVar == null) attrVar = no.getParameter(varKey);
+                }
                 if (attrVar == null) infstr.append("??"); else
                 {
 					String pVal = String.valueOf(context.evalVar(attrVar, no));
@@ -1813,7 +1820,7 @@ System.out.println("NETWORK INAMED "+info.netName);
                     NodeInst ni = (NodeInst)it.next();
                     for (Iterator pit = ni.getPortInsts(); pit.hasNext(); ) {
                         PortInst pi = (PortInst)pit.next();
-                        Variable var = pi.getVar("ATTR_C");
+                        Variable var = pi.getVar(ATTR_C);
                         if (var != null) pi.delVar(var.getKey());
                     }
                 }
@@ -1822,7 +1829,7 @@ System.out.println("NETWORK INAMED "+info.netName);
                     SegmentedNets.NetInfo info = (SegmentedNets.NetInfo)it.next();
                     PortInst pi = (PortInst)info.joinedPorts.iterator().next();
                     if (info.cap > cell.getTechnology().getMinCapacitance()) {
-                        Variable var = pi.newVar("ATTR_C", TextUtils.formatDouble(info.cap, 2) + "fF");
+                        Variable var = pi.newVar(ATTR_C, TextUtils.formatDouble(info.cap, 2) + "fF");
                         if (var != null) {
                             var.setDisplay(true);
                             var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);
@@ -1834,14 +1841,14 @@ System.out.println("NETWORK INAMED "+info.netName);
                 for (Iterator it = cell.getArcs(); it.hasNext(); ) {
                     ArcInst ai = (ArcInst)it.next();
                     Double res = (Double)segmentedNets.arcRes.get(ai);
-                    Variable var = ai.getVar("ATTR_R");
+                    Variable var = ai.getVar(ATTR_R);
                     // delete R if no new one
                     if (res == null && var != null) {
                         ai.delVar(var.getKey());
                     }
                     // change R if new one
                     if (res != null) {
-                        var = ai.newVar("ATTR_R", res);
+                        var = ai.newVar(ATTR_R, res);
                         if (var != null) {
                             var.setDisplay(true);
                             var.setDispPart(TextDescriptor.DispPos.NAMEVALUE);

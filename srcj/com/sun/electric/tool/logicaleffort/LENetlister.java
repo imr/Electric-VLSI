@@ -49,7 +49,17 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
     public static final Variable.Key ATTR_max_iter = Variable.newKey("ATTR_max_iter");
     public static final Variable.Key ATTR_gate_cap = Variable.newKey("ATTR_gate_cap");
     public static final Variable.Key ATTR_alpha = Variable.newKey("ATTR_alpha");
+    public static final Variable.Key ATTR_diffn = Variable.newKey("ATTR_diffn");
+    public static final Variable.Key ATTR_diffp = Variable.newKey("ATTR_diffp");
     public static final Variable.Key ATTR_keeper_ratio = Variable.newKey("ATTR_keeper_ratio");
+    public static final Variable.Key ATTR_LEGATE = Variable.newKey("ATTR_LEGATE");
+    public static final Variable.Key ATTR_LEKEEPER = Variable.newKey("ATTR_LEKEEPER");
+    public static final Variable.Key ATTR_LEWIRE = Variable.newKey("ATTR_LEWIRE");
+    public static final Variable.Key ATTR_LEIGNORE = Variable.newKey("ATTR_LEIGNORE");
+    public static final Variable.Key ATTR_LESETTINGS = Variable.newKey("ATTR_LESETTINGS");
+    public static final Variable.Key ATTR_LEPARALLGRP = Variable.newKey("ATTR_LEPARALLGRP");
+    public static final Variable.Key ATTR_L = Variable.newKey("ATTR_L");
+    public static final Variable.Key ATTR_LEWIRECAP = Variable.newKey("ATTR_LEWIRECAP");
 
     public static class NetlisterConstants {
         /** global step-up */                       public final float su;
@@ -138,7 +148,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             NodeInst ni = (NodeInst)instIt.next();
             if (ni.isIconOfParent()) continue;
             if (!(ni.getProto() instanceof Cell)) continue;
-            if (ni.getVar("ATTR_LESETTINGS") != null) {
+            if (ni.getVar(ATTR_LESETTINGS) != null) {
                 float su = (float)LETool.getGlobalFanout();
                 float epsilon = (float)LETool.getConvergenceEpsilon();
                 int maxIterations = LETool.getMaxIterations();
@@ -210,7 +220,7 @@ public abstract class LENetlister extends HierarchyEnumerator.Visitor {
             Library lib = (Library)it.next();
             for (Iterator it2 = lib.getCells(); it2.hasNext(); ) {
                 Cell c = (Cell)it2.next();
-                if (c.getVar("ATTR_LESETTINGS") != null) {
+                if (c.getVar(ATTR_LESETTINGS) != null) {
                     settings = c;
                     break;
                 }

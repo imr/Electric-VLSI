@@ -883,9 +883,12 @@ public class Verilog extends Topology
 			} else
 			{
 				// no port name found, look for variable name
-				String attrName = "ATTR_" + paramName;
-				Variable var = no.getVar(attrName);
-                if (var == null) var = no.getParameter(attrName);
+                Variable var = null;
+                Variable.Key varKey = Variable.findKey("ATTR_" + paramName);
+                if (varKey != null) {
+                    var = no.getVar(varKey);
+                    if (var == null) var = no.getParameter(varKey);
+                }
 				if (var == null) infstr.append("??"); else
 				{
                     infstr.append(context.evalVar(var));

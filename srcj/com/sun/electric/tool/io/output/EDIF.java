@@ -51,9 +51,13 @@ import com.sun.electric.database.variable.VarContext;
 import com.sun.electric.database.variable.Variable;
 import com.sun.electric.technology.PrimitiveNode;
 import com.sun.electric.technology.Technology;
+import com.sun.electric.technology.technologies.Artwork;
 import com.sun.electric.technology.technologies.Generic;
 import com.sun.electric.technology.technologies.Schematics;
 import com.sun.electric.tool.io.IOTool;
+import com.sun.electric.tool.io.output.Topology.CellAggregateSignal;
+import com.sun.electric.tool.io.output.Topology.CellNetInfo;
+import com.sun.electric.tool.io.output.Topology.CellSignal;
 import com.sun.electric.tool.user.User;
 
 import java.awt.geom.AffineTransform;
@@ -666,7 +670,7 @@ public class EDIF extends Topology
 			if (no.getProto() instanceof PrimitiveNode)
 			{
 				PrimitiveNode.Function fun = ((NodeInst)no).getFunction();
-                Variable var = no.getVar("ART_message");
+                Variable var = no.getVar(Artwork.ART_MESSAGE);
                 if (var != null) {
                     // this is cell annotation text
                     blockOpen("commentGraphics");
