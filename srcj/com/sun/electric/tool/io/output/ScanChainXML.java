@@ -1114,8 +1114,14 @@ public class ScanChainXML {
                         ent.length = sub.length;
                         ent.access = sub.access;
                         ent.clears = sub.clears;
-                        ent.dataNet = "x" + sub.name + "." + sub.dataNet;
-                        ent.dataNetBar = "x" + sub.name + "." + sub.dataNetBar;
+                        if (sub.dataNet != null && !sub.dataNet.equals(""))
+                            ent.dataNet = "x" + sub.name + "." + sub.dataNet;
+                        else
+                            ent.dataNet = null;
+                        if (sub.dataNetBar != null && !sub.dataNetBar.equals(""))
+                            ent.dataNetBar = "x" + sub.name + "." + sub.dataNetBar;
+                        else
+                            ent.dataNetBar = null;
                         ent.remove(inst);
                         reduced++;
                     }
