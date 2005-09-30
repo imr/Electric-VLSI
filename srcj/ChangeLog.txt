@@ -4,6 +4,9 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (09/30/05, SMR) Black background doesn't draw text right.
+FIX: Changed default black color to an appropriate one for the background.
+
 IMP: (09/30/05, SMR) Schematic DRC no longer checks for overlap of graphics.
 
 IMP: (09/30/05, SMR) "Layers" preferences panel has intelligent "outline" checkboxes.

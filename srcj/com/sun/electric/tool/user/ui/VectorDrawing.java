@@ -95,6 +95,7 @@ public class VectorDrawing
 	/** temporary objects (saves allocation) */				private Point tempPt1 = new Point(), tempPt2 = new Point();
 	/** temporary objects (saves allocation) */				private Point tempPt3 = new Point(), tempPt4 = new Point();
 	/** temporary object (saves allocation) */				private Rectangle tempRect = new Rectangle();
+	/** the color of text */								private Color textColor;
 
 	/** list of cell expansions. */							private static HashMap cachedCells = new HashMap();
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
@@ -421,6 +422,7 @@ public class VectorDrawing
 		// set colors to use
 		textGraphics.setColor(new Color(User.getColorText()));
 		instanceGraphics.setColor(new Color(User.getColorInstanceOutline()));
+		textColor = new Color(User.getColorText() & 0xFFFFFF);
 
 		// see if any layers are being highlighted/dimmed
 		offscreen = wnd.getOffscreen();
@@ -906,7 +908,7 @@ public class VectorDrawing
 				{
 					int portDisplayLevel = User.getPortDisplayLevel();
 					Color portColor = vt.e.getBasePort().getPortColor();
-					if (vt.ni.isExpanded()) portColor = Color.BLACK;
+					if (vt.ni.isExpanded()) portColor = textColor;
 					portGraphics.setColor(portColor);
 					int cX = (lX + hX) / 2;
 					int cY = (lY + hY) / 2;

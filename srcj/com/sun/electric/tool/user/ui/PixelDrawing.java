@@ -286,8 +286,6 @@ public class PixelDrawing
 	/** number of extra cells to render this time */		private static int numberToReconcile;
 	/** TextDescriptor for empty window text. */			private static MutableTextDescriptor noCellTextDescriptor = null;
 	/** zero rectangle */									private static final Rectangle2D CENTERRECT = new Rectangle2D.Double(0, 0, 0, 0);
-	private static EGraphics blackGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,true,
-		new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private static EGraphics textGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,true,
 			new int[] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0});
 	private static EGraphics instanceGraphics = new EGraphics(EGraphics.SOLID, EGraphics.SOLID, 0, 0,0,0, 1.0,true,
@@ -2817,7 +2815,8 @@ public class PixelDrawing
      */
     public void drawText(String s, Rectangle rect)
     {
-        drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, s, null, blackGraphics, false);
+		textGraphics.setColor(new Color(User.getColorText()));
+        drawText(rect, Poly.Type.TEXTBOX, noCellTextDescriptor, s, null, textGraphics, false);
     }
 
 	/**
