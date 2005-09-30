@@ -276,7 +276,7 @@ public class ColorsTab extends PreferencePanel
 		}
 		Layer layer = curTech.findLayer(layerName);
 		if (layer == null) return null;
-		ColorPatternPanel.Info li = (ColorPatternPanel.Info)LayersTab.layerMap.get(layer);
+		ColorPatternPanel.Info li = (ColorPatternPanel.Info)LayersTab.getLayersMap(curTech).get(layer);
 		return li;
 //		return (GenMath.MutableInteger)colorMap.get(layer);
 	}

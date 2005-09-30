@@ -24,6 +24,7 @@
 package com.sun.electric.tool.user.dialogs.options;
 
 import com.sun.electric.technology.Layer;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.dialogs.ColorPatternPanel;
 import com.sun.electric.tool.user.ui.EditWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
@@ -54,8 +55,27 @@ public class LayersTab extends PreferencePanel
 	/** return the name of this preferences tab. */
 	public String getName() { return "Layers"; }
 
-	static HashMap layerMap = new HashMap();
+	private static HashMap layerMap = null;
 	private ColorPatternPanel colorPatternPanel;
+
+    /**
+     * Method to initialize layersMap used also in the ColorsTab
+     */
+    static HashMap getLayersMap(Technology curTech)
+    {
+        // Fill with data
+        if (layerMap == null)
+        {
+            layerMap = new HashMap();
+            for(Iterator it = curTech.getLayers(); it.hasNext(); )
+            {
+                Layer layer = (Layer)it.next();
+                ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getGraphics());
+                layerMap.put(layer, li);
+            }
+        }
+        return layerMap;
+    }
 
 	/**
 	 * Method called at the start of the dialog.
@@ -64,12 +84,14 @@ public class LayersTab extends PreferencePanel
 	public void init()
 	{
 		layerTechName.setText("For " + curTech.getTechName() + " layer:");
+        getLayersMap(curTech); // Needs to be in a function so it could be called from LayersTab
+
 		for(Iterator it = curTech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
 			layerName.addItem(layer.getName());
-			ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getGraphics());
-			layerMap.put(layer, li);
+//			ColorPatternPanel.Info li = new ColorPatternPanel.Info(layer.getGraphics());
+//			layerMap.put(layer, li);
 		}
 		layerName.addActionListener(new ActionListener()
 		{

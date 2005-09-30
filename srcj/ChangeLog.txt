@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (09/30/05, GVG) Solid colors in ColorsTab are not updated because the information
+relies on values found in LayersTab (Bug #589).
+FIX: Make layerMap in LayersTab a singleton.
+
 BUG: (09/30/05, DN) Cleanup Cell/Shorten Selected Arc, does opposite (Bug #587).
 FIX: In CircuitChanges.ShortenArcs.doIt use ArcInst.HEADEND and ArcInst.TAILEND instead of 0 and 1.
 

@@ -205,23 +205,23 @@ public class TopLevel extends JFrame
 		// setup the size of the screen
         if (!Main.BATCHMODE)
         {
-		Toolkit tk = Toolkit.getDefaultToolkit();
-		scrnSize = tk.getScreenSize();
-        Object click = tk.getDesktopProperty("awt.multiClickInterval");
-        if (click == null) doubleClickDelay = 500; else
-		    doubleClickDelay = Integer.parseInt(click.toString());
+            Toolkit tk = Toolkit.getDefaultToolkit();
+            scrnSize = tk.getScreenSize();
+            Object click = tk.getDesktopProperty("awt.multiClickInterval");
+            if (click == null) doubleClickDelay = 500; else
+                doubleClickDelay = Integer.parseInt(click.toString());
 
-		// a more advanced way of determining the size of a screen
-		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		GraphicsDevice [] gs = ge.getScreenDevices();
-		Rectangle [] areas = new Rectangle[gs.length];
-		if (gs.length > 0)
-		{
-			GraphicsDevice gd = gs[0];
-			GraphicsConfiguration gc = gd.getDefaultConfiguration();
-			Rectangle r = gc.getBounds();
-			scrnSize.setSize(r.width, r.height);
-		}
+            // a more advanced way of determining the size of a screen
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            GraphicsDevice [] gs = ge.getScreenDevices();
+            Rectangle [] areas = new Rectangle[gs.length];
+            if (gs.length > 0)
+            {
+                GraphicsDevice gd = gs[0];
+                GraphicsConfiguration gc = gd.getDefaultConfiguration();
+                Rectangle r = gc.getBounds();
+                scrnSize.setSize(r.width, r.height);
+            }
         }
 		// setup specific look-and-feel
         Mode osMode = null;
