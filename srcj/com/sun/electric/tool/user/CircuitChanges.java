@@ -3482,7 +3482,7 @@ public class CircuitChanges
 				}
 				if (dX[0] != 0 || dY[0] != 0 || dX[1] != 0 || dY[1] != 0)
 				{
-					ai.modify(0, dX[0], dY[0], dX[1], dY[1]);
+					ai.modify(0, dX[ArcInst.HEADEND], dY[ArcInst.HEADEND], dX[ArcInst.TAILEND], dY[ArcInst.TAILEND]);
 					l++;
 				}
 			}
