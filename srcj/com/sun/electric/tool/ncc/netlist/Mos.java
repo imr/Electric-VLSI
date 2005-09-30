@@ -155,6 +155,7 @@ public class Mos extends Part {
 		}
 	}
 	private static final Map PIN_TYPE_SETS = new HashMap();
+	private static final Map TYPE_TO_PINTYPE_ARRAY = new HashMap();
 	
 	public synchronized Set getPinTypes() {
 		PinTypeSetKey key = new PinTypeSetKey(type, isCapacitor(), numSeries());
@@ -162,13 +163,37 @@ public class Mos extends Part {
 		if (pinTypes==null) {
 			pinTypes = new HashSet();
 			pinTypes.add(new DiffType(type, numSeries(), isCapacitor()));
+
 			int maxHeight = (numSeries()+1) / 2;
 			for (int gateHeight=1; gateHeight<=maxHeight; gateHeight++) {
 				pinTypes.add(new GateType(type, numSeries(), gateHeight, isCapacitor()));
 			}
+
 			PIN_TYPE_SETS.put(key, pinTypes);
 		}
 		return pinTypes;
+	}
+	public synchronized PinType[] getPinTypeArray() {
+		PinTypeSetKey key = new PinTypeSetKey(type, isCapacitor(), numSeries());
+		PinType[] pinTypeArray = (PinType[]) TYPE_TO_PINTYPE_ARRAY.get(key);
+		if (pinTypeArray==null) {
+			pinTypeArray = new PinType[pins.length];
+			TYPE_TO_PINTYPE_ARRAY.put(key, pinTypeArray);
+			
+			pinTypeArray[0] = pinTypeArray[pinTypeArray.length-1] =
+				new DiffType(type, numSeries(), isCapacitor());
+
+			int maxHeight = (numSeries()+1) / 2;
+			for (int gateHeight=1; gateHeight<=maxHeight; gateHeight++) {
+				pinTypeArray[gateHeight] = 
+					pinTypeArray[pinTypeArray.length-1-gateHeight] = 
+					new GateType(type, numSeries(), gateHeight, isCapacitor());
+			}
+		}
+		return pinTypeArray;
+	}
+	public synchronized PinType getPinTypeOfNthPin(int n) {
+		return getPinTypeArray()[n];
 	}
 	
 	/** Generate arrays of pin coefficients on demand. Share these arrays

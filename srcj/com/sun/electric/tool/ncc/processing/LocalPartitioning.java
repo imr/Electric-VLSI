@@ -86,7 +86,10 @@ public class LocalPartitioning {
         globals.status2("Begin partitioning based on local characteristics \n");
 
 		Set pinTypes = partitionPartsUsingLocalInformation();
-		partitionWiresUsingLocalInformation(pinTypes);
+		if (NewLocalPartitionWires.useNewAlgorithm)
+			NewLocalPartitionWires.doYourJob(globals);
+		else
+			partitionWiresUsingLocalInformation(pinTypes);
 
 		/* Count EquivRecords after Local Partitioning */
 		/*

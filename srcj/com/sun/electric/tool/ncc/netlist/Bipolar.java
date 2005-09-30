@@ -23,7 +23,9 @@
 */
 
 package com.sun.electric.tool.ncc.netlist;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
@@ -76,7 +78,7 @@ public class Bipolar extends Part {
 	}
 
 	private static final Set PIN_TYPE_SET = new HashSet();
-	
+	private static final Map TYPE_TO_PINTYPE_ARRAY = new HashMap();
 	static {
 		for (int t=0; t<2; t++) {
 			Type type = t==0 ? Type.NPN : Type.PNP;
@@ -85,8 +87,23 @@ public class Bipolar extends Part {
 			}
 		}
 	}
+	static {
+		for (int t=0; t<2; t++) {
+			Type type = t==0 ? Type.NPN : Type.PNP;
+			PinType[] pinTypeArray = new PinType[3];
+			TYPE_TO_PINTYPE_ARRAY.put(type, pinTypeArray);
+			for (int p=0; p<3; p++) {
+				pinTypeArray[p] = new BipolarPinType(type, p);
+			}
+		}
+	}
+
 
 	public Set getPinTypes() {return PIN_TYPE_SET;}
+	public PinType getPinTypeOfNthPin(int n) {
+		PinType[] pinTypeArray = (PinType[]) TYPE_TO_PINTYPE_ARRAY.get(type);
+		return pinTypeArray[n];
+	}
 	
     // ---------- private data -------------
     private double area;

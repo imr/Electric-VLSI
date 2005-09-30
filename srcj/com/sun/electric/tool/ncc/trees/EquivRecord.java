@@ -38,19 +38,29 @@ import com.sun.electric.tool.ncc.NccGlobals;
 import com.sun.electric.tool.ncc.lists.LeafList;
 import com.sun.electric.tool.ncc.lists.RecordList;
 import com.sun.electric.tool.ncc.netlist.NetObject;
+import com.sun.electric.tool.ncc.processing.NewLocalPartitionWires;
 import com.sun.electric.tool.ncc.strategy.Strategy;
 
 /** Leaf EquivRecords hold Circuits. Internal EquivRecords hold offspring.
  * Every EquivRecord is assigned a pseudo random code at birth which it 
  * retains for life. */
 public class EquivRecord {
-	/** points toward root */ 	             private EquivRecord parent;
-	/** the immutable random code */         private int randCode;
-	/** int that distinguished this Record */private int value;
-	/** comment describing the metric used to
-	 * partition my parent into my siblings 
-	 * and me */							 private String partitionReason;
-
+	// points toward root 	             
+	private EquivRecord parent;
+	
+	// the immutable random code
+	private int randCode;
+	
+	// int that distinguished this Record
+	private int value;
+	
+	// comment describing the metric used to partition my parent into my 
+	// siblings and me
+	private String partitionReason;
+	
+	// description of Wire PortInst connections
+	private NewLocalPartitionWires.Signature wireSignature; 
+	 
 	// At any given time only one of this lists is non-null
 	private RecordList offspring;
 	private List circuits;
@@ -324,12 +334,19 @@ public class EquivRecord {
 	public void setPartitionReason(String s) {partitionReason=s;}
 	public String getPartitionReason() {return partitionReason;}
 	public List getPartitionReasonsFromRootToMe() {
-		LinkedList reasons = new LinkedList();
-		for (EquivRecord r=this; r!=null; r=r.getParent()) {
-			String reason = r.getPartitionReason();
-			if (reason!=null) reasons.addFirst(reason);
+		if (wireSignature!=null) {
+			return wireSignature.getReasons();
+		} else {
+			LinkedList reasons = new LinkedList();
+			for (EquivRecord r=this; r!=null; r=r.getParent()) {
+				String reason = r.getPartitionReason();
+				if (reason!=null) reasons.addFirst(reason);
+			}
+			return reasons;
 		}
-		return reasons;
+	}
+	public void setWireSignature(NewLocalPartitionWires.Signature sig) {
+		wireSignature = sig;
 	}
 
 	/** Construct a leaf EquivRecord that holds circuits

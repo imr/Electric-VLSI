@@ -22,16 +22,14 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.netlist;
-import com.sun.electric.tool.generator.layout.LayoutLib;
-import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.tool.ncc.basic.Primes;
+import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
 
 public class Resistor extends Part {
 	public static final PartTypeTable TYPES = 
@@ -55,10 +53,17 @@ public class Resistor extends Part {
 		public String description() {return type.getName();}
 	}
 	private static final Set PIN_TYPES = new HashSet();
+	private static final Map TYPE_TO_PINTYPE = new HashMap();
 	static {
 		for (Iterator it=TYPES.iterator(); it.hasNext();) {
 			PartType t = (PartType) it.next();
 			PIN_TYPES.add(new ResistorPinType(t));
+		}
+	}
+	static {
+		for (Iterator it=TYPES.iterator(); it.hasNext();) {
+			PartType t = (PartType) it.next();
+			TYPE_TO_PINTYPE.put(t, new ResistorPinType(t));
 		}
 	}
 
@@ -140,6 +145,11 @@ public class Resistor extends Part {
 	}
 	
 	public Set getPinTypes() {return PIN_TYPES;}
+	
+	// Both pins of resistor have same PinType
+	public PinType getPinTypeOfNthPin(int n) {
+		return (PinType) TYPE_TO_PINTYPE.get(type);
+	}
 
     // ---------- printing methods ----------
 

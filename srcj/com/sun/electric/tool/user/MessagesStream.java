@@ -15,7 +15,7 @@ import java.util.Observer;
  * To change this template use File | Settings | File Templates.
  */
 public class MessagesStream
-	extends OutputStream
+extends OutputStream
 {
 	private PrintWriter printWriter = null;
 
@@ -29,7 +29,11 @@ public class MessagesStream
 
     public MessagesStream()
     {
-		System.setOut(new java.io.PrintStream(this));
+		// Force newline characters instead of carriage-return line-feed.
+    	// This allows Unix and Windows log files to be identical.
+		System.setProperty("line.separator", "\n");
+
+    	System.setOut(new java.io.PrintStream(this));
         notifyGUI = new MessagesObserver();
     }
 
@@ -81,9 +85,11 @@ public class MessagesStream
 			printWriter = new PrintWriter(new BufferedWriter(new FileWriter(filePath)));
 		} catch (IOException e)
 		{
+			System.err.println("Error creating " + filePath);
 			System.out.println("Error creating " + filePath);
 			return;
 		}
+		
 		System.out.println("Messages will be saved to " + filePath);
 	}
 

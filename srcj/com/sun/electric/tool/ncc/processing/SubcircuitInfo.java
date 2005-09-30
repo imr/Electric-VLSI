@@ -29,7 +29,9 @@ import java.util.Map;
 
 import com.sun.electric.tool.generator.layout.LayoutLib;
 import com.sun.electric.tool.ncc.basic.Primes;
+import com.sun.electric.tool.ncc.netlist.PinType;
 import com.sun.electric.tool.ncc.netlist.Port;
+import com.sun.electric.tool.ncc.netlist.Subcircuit;
 
 /** Holds information necessary to treat this Cell as a primitive subcircuit
  *  when performing hierarchical netlist comparison at a higher level */
@@ -43,7 +45,8 @@ public class SubcircuitInfo {
 		final int ID;
 		final String[] portNames;
 		final int[] portCoeffs;
-
+		final PinType[] pinTypes;
+		
 		private int[] initPortCoeffs() {
 			int[] coeffs = new int[portNames.length];
 			int nameHash = 0;
@@ -62,7 +65,14 @@ public class SubcircuitInfo {
 			this.name = name;
 			this.ID = ID;
 			this.portNames = portNames;
-			this.portCoeffs = initPortCoeffs(); 	                         
+			this.portCoeffs = initPortCoeffs();
+
+			pinTypes= new PinType[portNames.length];
+			for (int i=0; i<pinTypes.length; i++) {
+				String pinDesc = name+" "+portNames[i];
+				// The first argment isn't used by new partition algorithm
+				pinTypes[i] = new Subcircuit.SubcircuitPinType(0, i,pinDesc);
+			}
 		}
 	}
 	/** Arbitrarily choose one Export name from each Port. These names
@@ -113,4 +123,6 @@ public class SubcircuitInfo {
 		return I.intValue();
 	}
 	public int[] getPortCoeffs() {return shared.portCoeffs;}
+	/** @return array of PinTypes, one per Port */
+	public PinType[] getPinTypes() {return shared.pinTypes;}
 }

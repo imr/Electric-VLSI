@@ -22,7 +22,9 @@
  * Boston, Mass 02111-1307, USA.
 */
 package com.sun.electric.tool.ncc.netlist;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.sun.electric.tool.ncc.netlist.NccNameProxy.PartNameProxy;
@@ -32,11 +34,11 @@ import com.sun.electric.tool.ncc.processing.SubcircuitInfo;
  * during a hierarchical netlist comparison */
 public class Subcircuit extends Part {
 	/** presume that no ports are interchangable */
-	private static class SubcircuitPinType implements PinType {
+	public static class SubcircuitPinType implements PinType {
 		private int typeCode;
 		private int portIndex;
 		private String description;
-		SubcircuitPinType(int typeCode, int portIndex, String description) {
+		public SubcircuitPinType(int typeCode, int portIndex, String description) {
 			this.typeCode = typeCode;
 			this.portIndex = portIndex;
 			this.description = description;
@@ -50,6 +52,7 @@ public class Subcircuit extends Part {
 		}
 		public String description() {return description;}
 	}
+
 	private final int[] pinCoeffs;
 	private final SubcircuitInfo subcircuitInfo;
 	
@@ -58,6 +61,7 @@ public class Subcircuit extends Part {
 	public String valueDescription() {return "";}
 	public int[] getPinCoeffs() {return pinCoeffs;}
 	public boolean parallelMerge(Part p) {return false;}
+	
 	
 	/** I never parallel merge subcircuits so this really doesn't matter. */
 	public Integer hashCodeForParallelMerge() {
@@ -84,10 +88,13 @@ public class Subcircuit extends Part {
 		// pins are interchangable.
 		for (int i=0; i<pins.length; i++) {
 			String pinDesc = typeString()+" "+getPortName(i);
-			PinType t = new SubcircuitPinType(typeCode(), i, pinDesc);
-			types.add(t);
+			types.add(new SubcircuitPinType(typeCode(), i, pinDesc));
 		}
 		return types;
+	}
+	public PinType getPinTypeOfNthPin(int n) {
+		PinType[] pinTypes = subcircuitInfo.getPinTypes();
+		return pinTypes[n];
 	}
 	public String connectionDescription(Wire w) {
 		String msg = "";

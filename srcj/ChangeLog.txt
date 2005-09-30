@@ -4,6 +4,10 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (09/30/05, RK) NCC regressions don't run on Windows (Bug #596).
+
+BUG: (09/30/05, RK) NCC: Local Partitioning perfomance bug for large number of PortInsts (Bug #572).
+
 BUG: (09/30/05, SMR) Black background doesn't draw text right (Bug #593).
 FIX: Changed default black color to an appropriate one for the background.
 

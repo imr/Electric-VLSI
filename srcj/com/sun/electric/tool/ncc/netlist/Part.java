@@ -141,8 +141,7 @@ public abstract class Part extends NetObject {
     }
 	
 	/** check that this Part is in proper form
-	 * complain if it's wrong
-	 */
+	 * complain if it's wrong */
 	public void checkMe(Circuit parent){
 		error(parent!=getParent(), "wrong parent");
 		for(int i=0; i<pins.length; i++){
@@ -161,6 +160,9 @@ public abstract class Part extends NetObject {
 		for (int i=0; i<pins.length; i++)  wires.add(pins[i]);
 		return wires.size();
 	}
+	
+	/** @return the PinType for the nth pin */
+	public abstract PinType getPinTypeOfNthPin(int n);
 	
     /** @return a String containing the part type, the Cell containing the part, 
      * and the instance name */
