@@ -226,6 +226,7 @@ public class ColorPatternPanel extends JPanel
      * Method to return current Info instance.
      */
     public Info getInfo() {return currentLI;}
+
 	/**
 	 * Method to update the panel to reflect the given Info.
 	 * @param li the Info structure with data for this panel.
@@ -237,10 +238,12 @@ public class ColorPatternPanel extends JPanel
 		dataChanging = true;
 		useStipplePatternDisplay.setSelected(li.useStippleDisplay);
 		useOutlinePatternDisplay.setSelected(li.outlinePatternDisplay);
+		useOutlinePatternDisplay.setEnabled(li.useStippleDisplay);
 		if (showPrinter)
 		{
 			useStipplePatternPrinter.setSelected(li.useStipplePrinter);
 			useOutlinePatternPrinter.setSelected(li.outlinePatternPrinter);
+			useOutlinePatternPrinter.setEnabled(li.useStipplePrinter);
 			opacity.setText(TextUtils.formatDouble(li.opacity));
 		}
 		transparentLayer.setSelectedIndex(li.transparentLayer);
@@ -288,10 +291,12 @@ public class ColorPatternPanel extends JPanel
 		if (currentLI == null) return;
 		currentLI.useStippleDisplay = useStipplePatternDisplay.isSelected();
 		currentLI.outlinePatternDisplay = useOutlinePatternDisplay.isSelected();
+		useOutlinePatternDisplay.setEnabled(currentLI.useStippleDisplay);
 		if (showPrinter)
 		{
 			currentLI.useStipplePrinter = useStipplePatternPrinter.isSelected();
 			currentLI.outlinePatternPrinter = useOutlinePatternPrinter.isSelected();
+			useOutlinePatternPrinter.setEnabled(currentLI.useStipplePrinter);
 		}
 		currentLI.transparentLayer = transparentLayer.getSelectedIndex();
 		boolean colorsEnabled = currentLI.transparentLayer == 0;
@@ -396,6 +401,7 @@ public class ColorPatternPanel extends JPanel
 
 			// fake a check in the stipple use
 			cpp.useStipplePatternDisplay.setSelected(true);
+			cpp.useOutlinePatternDisplay.setEnabled(true);
 			cpp.currentLI.useStippleDisplay = true;
 			repaint();
 		}
@@ -806,6 +812,7 @@ public class ColorPatternPanel extends JPanel
 
 			// fake a check in the stipple use
 			useStipplePatternDisplay.setSelected(true);
+			useOutlinePatternDisplay.setEnabled(true);
 			currentLI.useStippleDisplay = true;
 
 			patternView.repaint();

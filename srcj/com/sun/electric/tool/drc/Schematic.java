@@ -368,7 +368,9 @@ public class Schematic
 		}
 
 		// check for overlap
-		checkObjectVicinity(netlist, geom, geom, DBMath.MATID);
+		// this checks to make sure no graphics overlaps another that it is not connected to.
+		// Designers don't want this check
+		// checkObjectVicinity(netlist, geom, geom, DBMath.MATID);
 	}
 
 	/**
