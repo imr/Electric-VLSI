@@ -23,17 +23,28 @@
  */
 package com.sun.electric.tool.user.dialogs.options;
 
-import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.database.geometry.GenMath;
+import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.Layer;
-import com.sun.electric.tool.user.ui.TopLevel;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.extract.LayerCoverage;
+import com.sun.electric.tool.user.ui.TopLevel;
+
+import java.awt.Frame;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import javax.swing.*;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -43,7 +54,7 @@ import javax.swing.event.DocumentListener;
 public class CoverageTab extends PreferencePanel
 {
 	/** Creates new form CoverageTab */
-	public CoverageTab(java.awt.Frame parent, boolean modal)
+	public CoverageTab(Frame parent, boolean modal)
 	{
 		super(parent, modal);
 		initComponents();
@@ -66,42 +77,61 @@ public class CoverageTab extends PreferencePanel
 	 */
 	public void init()
 	{
-        layerPanel.setBorder(new javax.swing.border.TitledBorder("For Layers in Technology: '" + curTech.getTechName() + "'"));
         layerAreaMap = new HashMap();
         layerListModel = new DefaultListModel();
 		layerJList = new JList(layerListModel);
 		layerJList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         listScrollList.setViewportView(layerJList);
+
+		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		{
+			Technology tech = (Technology)tIt.next();
+			technologySelection.addItem(tech.getTechName());
+	        double val = LayerCoverage.getWidth(tech);
+
+			for(Iterator it = tech.getLayers(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+	            val = layer.getAreaCoverage();
+	            layerAreaMap.put(layer, new GenMath.MutableDouble(val));
+			}
+		}
+		layerDataChanging = false;
+        layerAreaField.getDocument().addDocumentListener(new CoverageDocumentListener(this));
+		
+		technologySelection.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { newTechSelected(); }
+		});
         layerJList.addMouseListener(new MouseAdapter()
 		{
-			public void mouseClicked(MouseEvent evt) { layerPopupChanged(false); }
+			public void mouseClicked(MouseEvent evt) { layerValueChanged(false); }
 		});
+		technologySelection.setSelectedItem(Technology.getCurrent().getTechName());
+	}
 
-		for(Iterator it = curTech.getLayers(); it.hasNext(); )
+	private void newTechSelected()
+	{
+		String techName = (String)technologySelection.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		if (tech == null) return;
+		layerDataChanging = true;
+		layerListModel.clear();
+		for(Iterator it = tech.getLayers(); it.hasNext(); )
 		{
 			Layer layer = (Layer)it.next();
-            double val = layer.getAreaCoverage();
-            layerAreaMap.put(layer, new GenMath.MutableDouble(val));
-            layerListModel.addElement(getLineString(layer, val));
+			GenMath.MutableDouble val = (GenMath.MutableDouble)layerAreaMap.get(layer);
+			if (val == null) continue;
+            layerListModel.addElement(getLineString(layer, val.doubleValue()));
 		}
-        layerAreaField.getDocument().addDocumentListener(new CoverageDocumentListener(this));
-        layerJList.setSelectedIndex(0);
+		layerJList.setSelectedIndex(0);
+		widthField.setText(Double.toString(LayerCoverage.getWidth(tech)));
+		heightField.setText(Double.toString(LayerCoverage.getHeight(tech)));
+		deltaXField.setText(Double.toString(LayerCoverage.getDeltaX(tech)));
+		deltaYField.setText(Double.toString(LayerCoverage.getDeltaY(tech)));
+		layerDataChanging = false;
 
-        layerPopupChanged(false);
-
-        // Default values are 50mm x 50 mm
-        double val = LayerCoverage.getWidth(curTech);
-        String lambdaVal = TextUtils.formatDouble(val);
-        widthField.setText(lambdaVal);
-        val = LayerCoverage.getHeight(curTech);
-        lambdaVal = TextUtils.formatDouble(val);
-        heightField.setText(lambdaVal);
-        val = LayerCoverage.getDeltaX(curTech);
-        lambdaVal = TextUtils.formatDouble(val);
-        deltaXField.setText(lambdaVal);
-        val = LayerCoverage.getDeltaY(curTech);
-        lambdaVal = TextUtils.formatDouble(val);
-        deltaYField.setText(lambdaVal);
+		layerValueChanged(false);
 	}
 
     private static String getLineString(Layer layer, double value)
@@ -118,9 +148,9 @@ public class CoverageTab extends PreferencePanel
 
 		CoverageDocumentListener(CoverageTab dialog) { this.dialog = dialog; }
 
-		public void changedUpdate(DocumentEvent e) { dialog.layerPopupChanged(true); }
-		public void insertUpdate(DocumentEvent e) { dialog.layerPopupChanged(true);}
-		public void removeUpdate(DocumentEvent e) { dialog.layerPopupChanged(true); }
+		public void changedUpdate(DocumentEvent e) { dialog.layerValueChanged(true); }
+		public void insertUpdate(DocumentEvent e) { dialog.layerValueChanged(true);}
+		public void removeUpdate(DocumentEvent e) { dialog.layerValueChanged(true); }
 	}
 
     private static class SetOriginalValue implements Runnable
@@ -128,7 +158,7 @@ public class CoverageTab extends PreferencePanel
         javax.swing.JTextField field;
         double origValue;
 
-        public SetOriginalValue(javax.swing.JTextField field, double value)
+        public SetOriginalValue(JTextField field, double value)
         {
             this.field = field;
             this.origValue = value;
@@ -141,24 +171,22 @@ public class CoverageTab extends PreferencePanel
 
     /**
      * Method called when the layer popup is changed. Return false
-     * if there was an error and need to reset back to original
-     * value
-     * @param set
-     * @return false in case of error
+     * if there was an error and need to reset back to original value
+     * @param set true if the value has been changed
      */
-	private boolean layerPopupChanged(boolean set)
+	private void layerValueChanged(boolean set)
 	{
-        // To avoid changing field when storing value in database
-        if (!set)
-		    layerDataChanging = true;
-        else if (layerDataChanging) return true;
-//		String primName = (String)layerList.getSelectedItem();
-        String primName = (String)layerJList.getSelectedValue();
+        if (layerDataChanging) return;
+		String techName = (String)technologySelection.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		if (tech == null) return;
+		
+		String primName = (String)layerJList.getSelectedValue();
         int spacePos = primName.indexOf(' ');
 		if (spacePos >= 0) primName = primName.substring(0, spacePos);
-        Layer layer = curTech.findLayer(primName);
+        Layer layer = tech.findLayer(primName);
         Object obj = layerAreaMap.get(layer);
-        if (obj == null) return false;  // it should not happen though
+        if (obj == null) return;  // it should not happen though
         GenMath.MutableDouble value = (GenMath.MutableDouble)obj;
         double origValue = value.doubleValue();
         if (set)
@@ -169,7 +197,7 @@ public class CoverageTab extends PreferencePanel
 
             try
             {
-                if (text.equals("")) return true;  // ignore this case
+                if (text.equals("")) return;  // ignore this case
                 val = Double.parseDouble(text);
                 foundError = (val < 0 || val > 100);
             }
@@ -183,7 +211,7 @@ public class CoverageTab extends PreferencePanel
                 JOptionPane.showMessageDialog(TopLevel.getCurrentJFrame(),
                         text + " is out of range area value xfor layer '" + layer.getName() + "' (valid range 0 -> 100).");
                 SwingUtilities.invokeLater(new SetOriginalValue(layerAreaField, origValue));
-                return false;
+                return;
             }
             value.setValue(val);
             int lineNo = layerJList.getSelectedIndex();
@@ -191,8 +219,6 @@ public class CoverageTab extends PreferencePanel
         }
         else
 		    layerAreaField.setText(TextUtils.formatDouble(value.doubleValue()));
-        if (!set) layerDataChanging = false;
-        return true;
 	}
 
 	/**
@@ -201,28 +227,33 @@ public class CoverageTab extends PreferencePanel
 	 */
 	public void term()
 	{
-        for(Iterator it = curTech.getLayers(); it.hasNext(); )
+        // Default values are 50mm x 50 mm
+		String techName = (String)technologySelection.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		if (tech != null)
 		{
-			Layer layer = (Layer)it.next();
-            Object obj = layerAreaMap.get(layer);
-            if (obj == null) continue;  // it should not happen though
-            GenMath.MutableDouble value = (GenMath.MutableDouble)obj;
-            layer.setFactoryAreaCoverageInfo(value.doubleValue());
+			double val = TextUtils.atof(widthField.getText());
+	        if (val != LayerCoverage.getWidth(tech)) LayerCoverage.setWidth(val, tech);
+			val = TextUtils.atof(heightField.getText());
+	        if (val != LayerCoverage.getHeight(tech)) LayerCoverage.setHeight(val, tech);
+			val = TextUtils.atof(deltaXField.getText());
+	        if (val != LayerCoverage.getDeltaX(tech)) LayerCoverage.setDeltaX(val, tech);
+			val = TextUtils.atof(deltaYField.getText());
+	        if (val != LayerCoverage.getDeltaY(tech)) LayerCoverage.setDeltaY(val, tech);
 		}
 
-        // Default values are 50mm x 50 mm
-        double val = TextUtils.atof(widthField.getText());
-        if (val != LayerCoverage.getWidth(curTech))
-            LayerCoverage.setWidth(val, curTech);
-        val = TextUtils.atof(heightField.getText());
-        if (val != LayerCoverage.getHeight(curTech))
-            LayerCoverage.setHeight(val, curTech);
-        val = TextUtils.atof(deltaXField.getText());
-        if (val != LayerCoverage.getDeltaX(curTech))
-            LayerCoverage.setDeltaX(val, curTech);
-        val = TextUtils.atof(deltaYField.getText());
-        if (val != LayerCoverage.getDeltaY(curTech))
-            LayerCoverage.setDeltaY(val, curTech);
+		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
+		{
+			tech = (Technology)tIt.next();
+	        for(Iterator it = tech.getLayers(); it.hasNext(); )
+			{
+				Layer layer = (Layer)it.next();
+	            Object obj = layerAreaMap.get(layer);
+	            if (obj == null) continue;  // it should not happen though
+	            GenMath.MutableDouble value = (GenMath.MutableDouble)obj;
+	            layer.setFactoryAreaCoverageInfo(value.doubleValue());
+			}
+		}
 	}
 
 	/** This method is called from within the constructor to
@@ -230,7 +261,9 @@ public class CoverageTab extends PreferencePanel
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents() {//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+    private void initComponents()
+    {
         java.awt.GridBagConstraints gridBagConstraints;
 
         layerCoverage = new javax.swing.JPanel();
@@ -247,13 +280,17 @@ public class CoverageTab extends PreferencePanel
         deltaXField = new javax.swing.JTextField();
         deltaYLabel = new javax.swing.JLabel();
         deltaYField = new javax.swing.JTextField();
+        jLabel1 = new javax.swing.JLabel();
+        technologySelection = new javax.swing.JComboBox();
 
         getContentPane().setLayout(new java.awt.GridBagLayout());
 
         setTitle("Edit Options");
         setName("");
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
+        addWindowListener(new java.awt.event.WindowAdapter()
+        {
+            public void windowClosing(java.awt.event.WindowEvent evt)
+            {
                 closeDialog(evt);
             }
         });
@@ -262,7 +299,7 @@ public class CoverageTab extends PreferencePanel
 
         layerPanel.setLayout(new java.awt.GridBagLayout());
 
-        layerPanel.setBorder(new javax.swing.border.TitledBorder("For Layers in Technology:"));
+        layerPanel.setBorder(new javax.swing.border.TitledBorder("Layers:"));
         layerPanel.setDoubleBuffered(false);
         layerAreaLabel.setText("Coverage Area (%):");
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -276,7 +313,6 @@ public class CoverageTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
-        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
@@ -287,7 +323,7 @@ public class CoverageTab extends PreferencePanel
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
-        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
@@ -295,7 +331,8 @@ public class CoverageTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         layerCoverage.add(layerPanel, gridBagConstraints);
@@ -382,15 +419,32 @@ public class CoverageTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(0, 0, 4, 0);
         layerCoverage.add(boundingSelection, gridBagConstraints);
 
+        jLabel1.setText("Technology:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        layerCoverage.add(jLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        layerCoverage.add(technologySelection, gridBagConstraints);
+
         getContentPane().add(layerCoverage, new java.awt.GridBagConstraints());
 
         pack();
-    }//GEN-END:initComponents
+    }
+    // </editor-fold>//GEN-END:initComponents
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -407,11 +461,13 @@ public class CoverageTab extends PreferencePanel
     private javax.swing.JLabel deltaYLabel;
     private javax.swing.JTextField heightField;
     private javax.swing.JLabel heightLabel;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JTextField layerAreaField;
     private javax.swing.JLabel layerAreaLabel;
     private javax.swing.JPanel layerCoverage;
     private javax.swing.JPanel layerPanel;
     private javax.swing.JScrollPane listScrollList;
+    private javax.swing.JComboBox technologySelection;
     private javax.swing.JTextField widthField;
     private javax.swing.JLabel widthLabel;
     // End of variables declaration//GEN-END:variables

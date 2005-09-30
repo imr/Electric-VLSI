@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 import javax.swing.JPanel;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -65,6 +66,7 @@ public class NewNodesTab extends PreferencePanel
 	}
 	private HashMap initialNewNodesPrimInfo;
 	private boolean newNodesDataChanging = false;
+	private Technology selectedTech;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -73,18 +75,23 @@ public class NewNodesTab extends PreferencePanel
 	public void init()
 	{
 		// gather information about the PrimitiveNodes in the current Technology
-        jPanel2.setBorder(new javax.swing.border.TitledBorder("For Primitive Nodes in '" + curTech.getTechName()+"'"));
 		initialNewNodesPrimInfo = new HashMap();
-		for(Iterator it = curTech.getNodes(); it.hasNext(); )
+		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
-			PrimNodeInfo pni = new PrimNodeInfo();
-			SizeOffset so = np.getProtoSizeOffset();
-			pni.initialWid = pni.wid = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
-			pni.initialHei = pni.hei = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
-			initialNewNodesPrimInfo.put(np, pni);
-			nodePrimitive.addItem(np.getName());
+			Technology tech = (Technology)tIt.next();
+			technologySelection.addItem(tech.getTechName());
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				PrimNodeInfo pni = new PrimNodeInfo();
+				SizeOffset so = np.getProtoSizeOffset();
+				pni.initialWid = pni.wid = np.getDefWidth() - so.getLowXOffset() - so.getHighXOffset();
+				pni.initialHei = pni.hei = np.getDefHeight() - so.getLowYOffset() - so.getHighYOffset();
+				initialNewNodesPrimInfo.put(np, pni);
+			}
 		}
+		technologySelection.setSelectedItem(Technology.getCurrent().getTechName());
+		selectedTech = null;
 		newNodesPrimPopupChanged();
 
 		// set checkboxes for "Cells" area
@@ -99,6 +106,10 @@ public class NewNodesTab extends PreferencePanel
 		nodeExtractCopyExports.setSelected(User.isExtractCopiesExports());
 	
 		// setup listeners to react to any changes to a primitive size
+		technologySelection.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { newNodesPrimPopupChanged(); }
+		});
 		nodePrimitive.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { newNodesPrimPopupChanged(); }
@@ -112,8 +123,22 @@ public class NewNodesTab extends PreferencePanel
 	 */
 	private void newNodesPrimPopupChanged()
 	{
+		String techName = (String)technologySelection.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		if (tech == null) return;
+		if (tech != selectedTech)
+		{
+			// reload the primitives
+			selectedTech = tech;
+			nodePrimitive.removeAllItems();
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				nodePrimitive.addItem(np.getName());
+			}
+		}
 		String primName = (String)nodePrimitive.getSelectedItem();
-		PrimitiveNode np = curTech.findNodeProto(primName);
+		PrimitiveNode np = tech.findNodeProto(primName);
 		PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);
 		if (pni == null) return;
 		newNodesDataChanging = true;
@@ -143,8 +168,11 @@ public class NewNodesTab extends PreferencePanel
 	private void newNodesPrimDataChanged()
 	{
 		if (newNodesDataChanging) return;
+		String techName = (String)technologySelection.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		if (tech == null) return;
 		String primName = (String)nodePrimitive.getSelectedItem();
-		PrimitiveNode np = curTech.findNodeProto(primName);
+		PrimitiveNode np = tech.findNodeProto(primName);
 		PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);
 		if (pni == null) return;
 		pni.wid = TextUtils.atof(nodePrimitiveXSize.getText());
@@ -157,16 +185,20 @@ public class NewNodesTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		for(Iterator it = curTech.getNodes(); it.hasNext(); )
+		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
-			PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);
-			if (pni.wid != pni.initialWid || pni.hei != pni.initialHei)
+			Technology tech = (Technology)tIt.next();
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
 			{
-				SizeOffset so = np.getProtoSizeOffset();
-				pni.wid += so.getLowXOffset() + so.getHighXOffset();
-				pni.hei += so.getLowYOffset() + so.getHighYOffset();
-				np.setDefSize(pni.wid, pni.hei);
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				PrimNodeInfo pni = (PrimNodeInfo)initialNewNodesPrimInfo.get(np);
+				if (pni.wid != pni.initialWid || pni.hei != pni.initialHei)
+				{
+					SizeOffset so = np.getProtoSizeOffset();
+					pni.wid += so.getLowXOffset() + so.getHighXOffset();
+					pni.hei += so.getLowYOffset() + so.getHighYOffset();
+					np.setDefSize(pni.wid, pni.hei);
+				}
 			}
 		}
 
@@ -204,7 +236,8 @@ public class NewNodesTab extends PreferencePanel
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents()//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+    private void initComponents()
     {
         java.awt.GridBagConstraints gridBagConstraints;
 
@@ -216,6 +249,8 @@ public class NewNodesTab extends PreferencePanel
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         nodePrimitiveYSize = new javax.swing.JTextField();
+        technologySelection = new javax.swing.JComboBox();
+        jLabel4 = new javax.swing.JLabel();
         jPanel3 = new javax.swing.JPanel();
         nodeCheckCellDates = new javax.swing.JCheckBox();
         nodeSwitchTechnology = new javax.swing.JCheckBox();
@@ -246,14 +281,14 @@ public class NewNodesTab extends PreferencePanel
         jLabel1.setText("Primitive:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel2.add(jLabel1, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.weightx = 1.0;
@@ -263,7 +298,7 @@ public class NewNodesTab extends PreferencePanel
         nodePrimitiveXSize.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -272,7 +307,7 @@ public class NewNodesTab extends PreferencePanel
         jLabel2.setText("Default X size:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel2.add(jLabel2, gridBagConstraints);
@@ -280,7 +315,7 @@ public class NewNodesTab extends PreferencePanel
         jLabel3.setText("Default Y size:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel2.add(jLabel3, gridBagConstraints);
@@ -288,11 +323,28 @@ public class NewNodesTab extends PreferencePanel
         nodePrimitiveYSize.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel2.add(nodePrimitiveYSize, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel2.add(technologySelection, gridBagConstraints);
+
+        jLabel4.setText("Technology:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel2.add(jLabel4, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -380,7 +432,8 @@ public class NewNodesTab extends PreferencePanel
         getContentPane().add(newNode, new java.awt.GridBagConstraints());
 
         pack();
-    }//GEN-END:initComponents
+    }
+    // </editor-fold>//GEN-END:initComponents
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -393,6 +446,7 @@ public class NewNodesTab extends PreferencePanel
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
@@ -407,6 +461,7 @@ public class NewNodesTab extends PreferencePanel
     private javax.swing.JTextField nodePrimitiveXSize;
     private javax.swing.JTextField nodePrimitiveYSize;
     private javax.swing.JCheckBox nodeSwitchTechnology;
+    private javax.swing.JComboBox technologySelection;
     // End of variables declaration//GEN-END:variables
 
 }

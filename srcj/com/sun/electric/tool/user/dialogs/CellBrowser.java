@@ -76,6 +76,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
     private String lastFilter = "";
     private static Pattern lastPattern = null;
     private static boolean confirmDelete = true;
+	private boolean cancelled;
 
 
     private DoAction action;
@@ -86,28 +87,32 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
 	 * Class to do a cell browser action.
 	 */
     public static class DoAction {
+		public String title;
         public String name;
 
-        private DoAction(String name) {
+        private DoAction(String name, String title) {
             this.name = name;
+            this.title = title;
         }
 
         public String toString() { return name; }
 
-        public static final DoAction newInstance = new DoAction("New Cell Instance");
-        public static final DoAction editCell = new DoAction("Edit Cell");
-        public static final DoAction renameCell = new DoAction("Rename Cell");
-        public static final DoAction duplicateCell = new DoAction("Duplicate Cell");
-        public static final DoAction deleteCell = new DoAction("Delete Cell");
+        public static final DoAction newInstance = new DoAction("New Cell Instance", "Create a Cell Instance");
+        public static final DoAction editCell = new DoAction("Edit Cell", "Edit a Cell");
+        public static final DoAction renameCell = new DoAction("Rename Cell", "Rename Cells");
+        public static final DoAction duplicateCell = new DoAction("Duplicate Cell", "Duplicate a Cell");
+        public static final DoAction deleteCell = new DoAction("Delete Cell", "Delete Cells");
+        public static final DoAction selectCell = new DoAction("Select Cell", "Which Cell is Associated with this Data?");
     }
 
     /** Creates new form CellBrowser */
     public CellBrowser(java.awt.Frame parent, boolean modal, DoAction action) {
         super(parent, modal);
         this.action = action;
+		cancelled = false;
 
         initComponents();                       // init components (netbeans generated method)
-        setTitle(action.name);                  // set the dialog title
+        setTitle(action.title);                  // set the dialog title
         doAction.setText(action.name);          // set the action button's text
         getRootPane().setDefaultButton(doAction); // return will do action
         lastFilter = prefs.get(action+prefFilter, "");
@@ -116,10 +121,10 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
         cellFilter.setText(lastFilter);         // restore last filter
         initComboBoxes();                       // set up the combo boxes
         initExtras();                           // set up an extra components
-        pack();
 
         Undo.addDatabaseChangeListener(this);
 		finishInitialization();
+        pack();
     }
 
     public void databaseChanged(DatabaseChangeEvent e) {
@@ -455,7 +460,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             jList1.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
             doAction.setText("Apply Delete");
         }
-        else if (action == DoAction.duplicateCell) {
+        else if (action == DoAction.duplicateCell || action == DoAction.selectCell) {
             // set current cell as the default
             Cell cell = WindowFrame.getCurrentCell();
             setCell(cell);
@@ -507,6 +512,7 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
     }//GEN-LAST:event_doActionActionPerformed
 
     private void cancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelActionPerformed
+		cancelled = true;
         closeDialog(null);
     }//GEN-LAST:event_cancelActionPerformed
     
@@ -626,7 +632,10 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
             CircuitChanges.duplicateCell(cell, newName);
             closeDialog(null);                     // we have performed the action
             updateCellList();
-        }
+        } else if (action == DoAction.selectCell)
+		{
+            closeDialog(null);                     // we have performed the action
+		}
 
     }
 
@@ -779,9 +788,10 @@ public class CellBrowser extends EDialog implements DatabaseChangeListener {
 
     /**
      * Get selected Cell by user in Cell List
-     * @return Cell index or -1 if no cell is selected
+     * @return Cell or null if no cell is selected
      */
-    private Cell getSelectedCell() {
+    public Cell getSelectedCell() {
+		if (cancelled) return null;
         int i = jList1.getSelectedIndex();
 		return (i == -1)? null : (Cell)cellList.get(i);
     }

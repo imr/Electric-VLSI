@@ -29,20 +29,18 @@ import com.sun.electric.database.hierarchy.Cell;
 import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.tool.Job;
-import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.io.FileType;
+import com.sun.electric.tool.io.IOTool;
 import com.sun.electric.tool.simulation.Simulation;
 import com.sun.electric.tool.simulation.Stimuli;
+import com.sun.electric.tool.user.dialogs.CellBrowser;
 import com.sun.electric.tool.user.dialogs.OpenFile;
+import com.sun.electric.tool.user.ui.TopLevel;
 import com.sun.electric.tool.user.ui.WaveformWindow;
 import com.sun.electric.tool.user.ui.WindowFrame;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.net.URL;
-
-import javax.swing.JOptionPane;
 
 
 /**
@@ -151,18 +149,22 @@ public class Simulate extends Input
 			if (cell == null)
 			{
 				// prompt for the cell
-				ArrayList cellNames = new ArrayList();
-				for(Iterator it = curLib.getCells(); it.hasNext(); )
-				{
-					Cell aCell = (Cell)it.next();
-					cellNames.add(aCell.describe(false));
-				}
-				String defaultCell = (String)cellNames.get(0);
-				if (cell != null) defaultCell = cell.describe(false);
-				String selectedCell = (String)JOptionPane.showInputDialog(null, "Which cell is associated with this data",
-					"Cells in " + curLib, JOptionPane.INFORMATION_MESSAGE, null, cellNames.toArray(), defaultCell);
-				if (selectedCell != null)
-					cell = curLib.findNodeProto(selectedCell);
+//				ArrayList cellNames = new ArrayList();
+//				for(Iterator it = curLib.getCells(); it.hasNext(); )
+//				{
+//					Cell aCell = (Cell)it.next();
+//					cellNames.add(aCell.describe(false));
+//				}
+//				String defaultCell = (String)cellNames.get(0);
+//				if (cell != null) defaultCell = cell.describe(false);
+//				String selectedCell = (String)JOptionPane.showInputDialog(null, "Which cell is associated with this data",
+//					"Cells in " + curLib, JOptionPane.INFORMATION_MESSAGE, null, cellNames.toArray(), defaultCell);
+//				if (selectedCell != null)
+//					cell = curLib.findNodeProto(selectedCell);
+
+				CellBrowser dialog = new CellBrowser(TopLevel.getCurrentJFrame(), true, CellBrowser.DoAction.selectCell);
+		        dialog.setVisible(true);
+				cell = dialog.getSelectedCell();
 			}
 		} else
 		{

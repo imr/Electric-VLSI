@@ -4,6 +4,11 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+IMP: (09/30/05, SMR) Modified some "Preferences" panels to have their own technology popup.
+
+IMP: (09/30/05, SMR) When plotting simulation output, prompt for associated cell allows
+     any cell to be chosen (Bug #595).
+
 BUG: (09/30/05, RK) NCC regressions don't run on Windows (Bug #596).
 
 BUG: (09/30/05, RK) NCC: Local Partitioning perfomance bug for large number of PortInsts (Bug #572).

@@ -27,6 +27,7 @@ import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.TextUtils;
 import com.sun.electric.technology.ArcProto;
 import com.sun.electric.technology.PrimitiveNode;
+import com.sun.electric.technology.Technology;
 import com.sun.electric.tool.user.User;
 import com.sun.electric.tool.user.ui.TopLevel;
 
@@ -71,6 +72,7 @@ public class NewArcsTab extends PreferencePanel
 	}
 	private HashMap initialNewArcsPrimInfo;
 	private boolean newArcsDataChanging = false;
+	private Technology selectedTech;
 
 	/**
 	 * Method called at the start of the dialog.
@@ -78,37 +80,40 @@ public class NewArcsTab extends PreferencePanel
 	 */
 	public void init()
 	{
-		// setup popup of possible pins
-        jPanel8.setBorder(new javax.swing.border.TitledBorder("For Arcs in Technology: '" + curTech.getTechName() + "'"));
-		for(Iterator it = curTech.getNodes(); it.hasNext(); )
-		{
-			PrimitiveNode np = (PrimitiveNode)it.next();
-			arcPin.addItem(np.getName());
-		}
-
 		// gather information about the ArcProtos in the current Technology
 		initialNewArcsPrimInfo = new HashMap();
-		for(Iterator it = curTech.getArcs(); it.hasNext(); )
+		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
-			ArcProto ap = (ArcProto)it.next();
-			PrimArcInfo pai = new PrimArcInfo();
-
-			pai.initialRigid = pai.rigid = ap.isRigid();
-			pai.initialFixedAngle = pai.fixedAngle = ap.isFixedAngle();
-			pai.initialSlidable = pai.slidable = ap.isSlidable();
-			pai.initialDirectional = pai.directional = ap.isDirectional();
-			pai.initialEndsExtend = pai.endsExtend = ap.isExtended();
-
-			pai.initialWid = pai.wid = ap.getDefaultWidth();
-			pai.initialAngleIncrement = pai.angleIncrement = ap.getAngleIncrement();
-			pai.initialPin = pai.pin = ap.findOverridablePinProto();
-
-			initialNewArcsPrimInfo.put(ap, pai);
-			arcProtoList.addItem(ap.getName());
+			Technology tech = (Technology)tIt.next();
+			technologySelection.addItem(tech.getTechName());
+			for(Iterator it = tech.getArcs(); it.hasNext(); )
+			{
+				ArcProto ap = (ArcProto)it.next();
+				PrimArcInfo pai = new PrimArcInfo();
+	
+				pai.initialRigid = pai.rigid = ap.isRigid();
+				pai.initialFixedAngle = pai.fixedAngle = ap.isFixedAngle();
+				pai.initialSlidable = pai.slidable = ap.isSlidable();
+				pai.initialDirectional = pai.directional = ap.isDirectional();
+				pai.initialEndsExtend = pai.endsExtend = ap.isExtended();
+	
+				pai.initialWid = pai.wid = ap.getDefaultWidth();
+				pai.initialAngleIncrement = pai.angleIncrement = ap.getAngleIncrement();
+				pai.initialPin = pai.pin = ap.findOverridablePinProto();
+	
+				initialNewArcsPrimInfo.put(ap, pai);
+//				arcProtoList.addItem(ap.getName());
+			}
 		}
+		technologySelection.setSelectedItem(Technology.getCurrent().getTechName());
+		selectedTech = null;
 		newArcsPrimPopupChanged();
 
 		// setup listeners to react to a change of the selected arc
+		technologySelection.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent evt) { newArcsPrimPopupChanged(); }
+		});
 		arcProtoList.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent evt) { newArcsPrimPopupChanged(); }
@@ -151,8 +156,31 @@ public class NewArcsTab extends PreferencePanel
 	 */
 	private void newArcsPrimPopupChanged()
 	{
+		String techName = (String)technologySelection.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		if (tech == null) return;
+		if (tech != selectedTech)
+		{
+			// reload the arcs
+			selectedTech = tech;
+			arcProtoList.removeAllItems();
+			arcPin.removeAllItems();
+			for(Iterator it = tech.getArcs(); it.hasNext(); )
+			{
+				ArcProto ap = (ArcProto)it.next();
+				arcProtoList.addItem(ap.getName());
+			}
+
+			// setup popup of possible pins
+			for(Iterator it = tech.getNodes(); it.hasNext(); )
+			{
+				PrimitiveNode np = (PrimitiveNode)it.next();
+				arcPin.addItem(np.getName());
+			}
+		}
+		
 		String primName = (String)arcProtoList.getSelectedItem();
-		ArcProto ap = curTech.findArcProto(primName);
+		ArcProto ap = tech.findArcProto(primName);
 		PrimArcInfo pai = (PrimArcInfo)initialNewArcsPrimInfo.get(ap);
 		if (pai == null) return;
 
@@ -190,8 +218,11 @@ public class NewArcsTab extends PreferencePanel
 	private void newArcsPrimDataChanged()
 	{
 		if (newArcsDataChanging) return;
+		String techName = (String)technologySelection.getSelectedItem();
+		Technology tech = Technology.findTechnology(techName);
+		if (tech == null) return;
 		String primName = (String)arcProtoList.getSelectedItem();
-		ArcProto ap = curTech.findArcProto(primName);
+		ArcProto ap = tech.findArcProto(primName);
 		PrimArcInfo pai = (PrimArcInfo)initialNewArcsPrimInfo.get(ap);
 		if (pai == null) return;
 
@@ -203,7 +234,7 @@ public class NewArcsTab extends PreferencePanel
 
 		pai.wid = TextUtils.atof(arcWidth.getText());
 		pai.angleIncrement = TextUtils.atoi(arcAngle.getText());
-		pai.pin = curTech.findNodeProto((String)arcPin.getSelectedItem());
+		pai.pin = tech.findNodeProto((String)arcPin.getSelectedItem());
 		PortProto pp = (PortProto)pai.pin.getPorts().next();
 		if (!pp.connectsTo(ap))
 		{
@@ -220,27 +251,31 @@ public class NewArcsTab extends PreferencePanel
 	 */
 	public void term()
 	{
-		for(Iterator it = curTech.getArcs(); it.hasNext(); )
+		for(Iterator tIt = Technology.getTechnologies(); tIt.hasNext(); )
 		{
-			ArcProto ap = (ArcProto)it.next();
-			PrimArcInfo pai = (PrimArcInfo)initialNewArcsPrimInfo.get(ap);
-			if (pai.rigid != pai.initialRigid)
-				ap.setRigid(pai.rigid);
-			if (pai.fixedAngle != pai.initialFixedAngle)
-				ap.setFixedAngle(pai.fixedAngle);
-			if (pai.slidable != pai.initialSlidable)
-				ap.setSlidable(pai.slidable);
-			if (pai.directional != pai.initialDirectional)
-				ap.setDirectional(pai.directional);
-			if (pai.endsExtend != pai.initialEndsExtend)
-				ap.setExtended(pai.endsExtend);
-			if (pai.wid != pai.initialWid)
-				ap.setDefaultWidth(pai.wid);
-			if (pai.angleIncrement != pai.initialAngleIncrement)
-				ap.setAngleIncrement(pai.angleIncrement);
-			if (pai.pin != pai.initialPin)
+			Technology tech = (Technology)tIt.next();
+			for(Iterator it = tech.getArcs(); it.hasNext(); )
 			{
-				ap.setPinProto(pai.pin);
+				ArcProto ap = (ArcProto)it.next();
+				PrimArcInfo pai = (PrimArcInfo)initialNewArcsPrimInfo.get(ap);
+				if (pai.rigid != pai.initialRigid)
+					ap.setRigid(pai.rigid);
+				if (pai.fixedAngle != pai.initialFixedAngle)
+					ap.setFixedAngle(pai.fixedAngle);
+				if (pai.slidable != pai.initialSlidable)
+					ap.setSlidable(pai.slidable);
+				if (pai.directional != pai.initialDirectional)
+					ap.setDirectional(pai.directional);
+				if (pai.endsExtend != pai.initialEndsExtend)
+					ap.setExtended(pai.endsExtend);
+				if (pai.wid != pai.initialWid)
+					ap.setDefaultWidth(pai.wid);
+				if (pai.angleIncrement != pai.initialAngleIncrement)
+					ap.setAngleIncrement(pai.angleIncrement);
+				if (pai.pin != pai.initialPin)
+				{
+					ap.setPinProto(pai.pin);
+				}
 			}
 		}
 
@@ -258,7 +293,8 @@ public class NewArcsTab extends PreferencePanel
 	 * WARNING: Do NOT modify this code. The content of this method is
 	 * always regenerated by the Form Editor.
 	 */
-    private void initComponents()//GEN-BEGIN:initComponents
+    // <editor-fold defaultstate="collapsed" desc=" Generated Code ">//GEN-BEGIN:initComponents
+    private void initComponents()
     {
         java.awt.GridBagConstraints gridBagConstraints;
 
@@ -279,6 +315,8 @@ public class NewArcsTab extends PreferencePanel
         arcSlidable = new javax.swing.JCheckBox();
         arcEndsExtend = new javax.swing.JCheckBox();
         jLabel1 = new javax.swing.JLabel();
+        technologySelection = new javax.swing.JComboBox();
+        arcName1 = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         playClickSounds = new javax.swing.JCheckBox();
         incrementArcNames = new javax.swing.JCheckBox();
@@ -304,52 +342,52 @@ public class NewArcsTab extends PreferencePanel
         arcWidthLabel.setText("Default width:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 1;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel8.add(arcWidthLabel, gridBagConstraints);
 
         pinLabel.setText("Pin:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 3;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel8.add(pinLabel, gridBagConstraints);
 
         arcWidth.setColumns(8);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridy = 2;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel8.add(arcWidth, gridBagConstraints);
 
         angleLabel.setText("Placement angle:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel8.add(angleLabel, gridBagConstraints);
 
         arcAngle.setColumns(6);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 2;
+        gridBagConstraints.gridy = 3;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel8.add(arcAngle, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 3;
+        gridBagConstraints.gridy = 4;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -357,24 +395,24 @@ public class NewArcsTab extends PreferencePanel
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel8.add(arcProtoList, gridBagConstraints);
 
         arcName.setText("Arc Type:");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridy = 1;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel8.add(arcName, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 4;
+        gridBagConstraints.gridy = 5;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
@@ -383,51 +421,68 @@ public class NewArcsTab extends PreferencePanel
         arcRigid.setText("Rigid");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel8.add(arcRigid, gridBagConstraints);
 
         arcFixedAngle.setText("Fixed-angle");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel8.add(arcFixedAngle, gridBagConstraints);
 
         arcDirectional.setText("Directional");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 7;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel8.add(arcDirectional, gridBagConstraints);
 
         arcSlidable.setText("Slidable");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
-        gridBagConstraints.gridy = 6;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        gridBagConstraints.gridy = 7;
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel8.add(arcSlidable, gridBagConstraints);
 
         arcEndsExtend.setText("Ends extended");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
-        gridBagConstraints.gridy = 7;
+        gridBagConstraints.gridy = 8;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel8.add(arcEndsExtend, gridBagConstraints);
 
         jLabel1.setText("Default State");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
-        gridBagConstraints.gridy = 5;
+        gridBagConstraints.gridy = 6;
         gridBagConstraints.gridwidth = 3;
         gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel8.add(jLabel1, gridBagConstraints);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 2;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel8.add(technologySelection, gridBagConstraints);
+
+        arcName1.setText("Technology:");
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
+        jPanel8.add(arcName1, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -444,8 +499,8 @@ public class NewArcsTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(playClickSounds, gridBagConstraints);
 
         incrementArcNames.setText("Duplicate/Array/Paste increments arc names");
@@ -453,8 +508,8 @@ public class NewArcsTab extends PreferencePanel
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
         gridBagConstraints.gridwidth = 2;
-        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         gridBagConstraints.anchor = java.awt.GridBagConstraints.WEST;
+        gridBagConstraints.insets = new java.awt.Insets(4, 4, 4, 4);
         jPanel1.add(incrementArcNames, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -466,7 +521,8 @@ public class NewArcsTab extends PreferencePanel
         getContentPane().add(newArc, new java.awt.GridBagConstraints());
 
         pack();
-    }//GEN-END:initComponents
+    }
+    // </editor-fold>//GEN-END:initComponents
 
 	/** Closes the dialog */
 	private void closeDialog(java.awt.event.WindowEvent evt)//GEN-FIRST:event_closeDialog
@@ -482,6 +538,7 @@ public class NewArcsTab extends PreferencePanel
     private javax.swing.JCheckBox arcEndsExtend;
     private javax.swing.JCheckBox arcFixedAngle;
     private javax.swing.JLabel arcName;
+    private javax.swing.JLabel arcName1;
     private javax.swing.JComboBox arcPin;
     private javax.swing.JComboBox arcProtoList;
     private javax.swing.JCheckBox arcRigid;
@@ -496,6 +553,7 @@ public class NewArcsTab extends PreferencePanel
     private javax.swing.JPanel newArc;
     private javax.swing.JLabel pinLabel;
     private javax.swing.JCheckBox playClickSounds;
+    private javax.swing.JComboBox technologySelection;
     // End of variables declaration//GEN-END:variables
 
 }

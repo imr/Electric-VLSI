@@ -87,7 +87,7 @@ public class ScaleTab extends PreferencePanel
 			double shownScale = tech.getScale();
 			unitValues.put(tech, new Double(shownScale));
 			unitsTechnologyModel.addElement(tech.getTechName() + " (scale=" + shownScale + " nanometers)");
-			if (tech == curTech) wantIndex = index;
+			if (tech == Technology.getCurrent()) wantIndex = index;
 			index++;
 		}
 		unitsTechnologyList.setSelectedIndex(wantIndex);
