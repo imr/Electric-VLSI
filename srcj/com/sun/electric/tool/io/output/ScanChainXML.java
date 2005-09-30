@@ -34,7 +34,6 @@ import com.sun.electric.database.network.Network;
 import com.sun.electric.database.prototype.NodeProto;
 import com.sun.electric.database.prototype.PortProto;
 import com.sun.electric.database.text.Name;
-import com.sun.electric.database.variable.VarContext;
 
 import java.util.*;
 import java.io.*;
@@ -57,19 +56,63 @@ public class ScanChainXML {
         public final String clears;
         public final String inport;
         public final String outport;
-        public final String dataport;
-        public final String dataportBar;
+        public final DataNet dataport;
+        public final DataNet dataport2;
 
         private ScanChainElement(String name, String access, String clears, String inport,
-                                 String outport, String dataport, String dataportBar) {
+                                 String outport, String dataport, String dataport2) {
             this.name = name;
             this.access = access;
             this.clears = clears;
             this.inport = inport;
             this.outport = outport;
-            this.dataport = dataport;
-            this.dataportBar = dataportBar;
+            if (dataport == null || dataport.equals(""))
+                this.dataport = null;
+            else
+                this.dataport = new DataNet(dataport);
+            if (dataport2 == null || dataport2.equals(""))
+                this.dataport2 = null;
+            else
+                this.dataport2 = new DataNet(dataport2);
         }
+    }
+
+    private static class DataNet {
+        public final String net;
+        public final String options;        // options including parenthesis
+
+        /**
+         * Creates a data net object that describes a net that is written or read
+         * to by a scan chain element.
+         * @param netName the name of the data net, including any options prepended
+         * in parenthesis. R for readable, W for writeable, I for inverted.
+         * Ex: net26 or net26(R) or net26(RWI).
+         */
+        public DataNet(String netName) {
+            int i = netName.indexOf('(');
+            if (i != -1) {
+                net = netName.substring(0, i);
+                options = netName.substring(i, netName.length());
+            } else {
+                net = netName;
+                options = "";
+            }
+        }
+
+        /**
+         * Creates a data net object that describes a net that is written or read
+         * to by a scan chain element.
+         * @param net the net name
+         * @param options options describing the network: R for readable, W for
+         * writable, I for inverted. Should be encased in parenthesis, such as
+         * (RW).
+         */
+        public DataNet(String net, String options) {
+            this.net = net;
+            this.options = options;
+        }
+
+        public String toString() { return net+options; }
     }
 
     /** Defines the Jtag controller from which the scan chains start and end */
@@ -129,6 +172,7 @@ public class ScanChainXML {
 
     private String outputFile;
     private PrintWriter out;
+    private File outFile;
     // objects used to parse cell schematics
     private JtagController jtagController;
     private HashMap scanChainElements;
@@ -161,6 +205,7 @@ public class ScanChainXML {
         this.jtagCell = null;
         outputFile = null;
         out = new PrintWriter(System.out);
+        outFile = null;
         entities = new HashMap();
         chains = new ArrayList();
     }
@@ -193,11 +238,12 @@ public class ScanChainXML {
      * May contain index info, such as "s[1]"
      * @param outport the name of the output data port, typically "sout".
      * May contain index info, such as "ss[1]"
-     * @param dataport the name of the port the scan data is written to on "write". May be empty string.
-     * @param dataportBar the name of the port the inverse of the scan data is written to on "write". May be empty string.
+     * @param dataport the name of the port the scan data is read from and written to. May include options
+     * R, W, or I for (Readable,Writable,Inverted) in parenthesis at the end. Ex: dout(RW)
+     * @param dataport2 another port for data like dataport, with the same format.
      */
-    public void addScanChainElement(String name, String access, String clears, String inport, String outport, String dataport, String dataportBar) {
-        ScanChainElement e = new ScanChainElement(name, access, clears, inport, outport, dataport, dataportBar);
+    public void addScanChainElement(String name, String access, String clears, String inport, String outport, String dataport, String dataport2) {
+        ScanChainElement e = new ScanChainElement(name, access, clears, inport, outport, dataport, dataport2);
         scanChainElements.put(name+"_"+inport, e);
     }
 
@@ -304,7 +350,8 @@ public class ScanChainXML {
         // try to open outputFile
         outputFile = file;
         try {
-            out = new PrintWriter(new BufferedWriter(new FileWriter(outputFile)));
+            outFile = new File(outputFile);
+            out = new PrintWriter(new BufferedWriter(new FileWriter(outFile)));
         } catch (IOException e) {
             System.out.println(e.getMessage() + "\nWriting XML to console");
         }
@@ -349,6 +396,11 @@ public class ScanChainXML {
             System.out.println("*** Generating chains starting from jtag controller "+no.getParent().describe(false)+" : "+no.getName());
         }
         start(startNode);
+        if (outFile != null) {
+            System.out.println("Wrote XML file to "+outFile.getAbsolutePath());
+        } else {
+            System.out.println("Wrote XML file to console");
+        }
     }
 
     // find the start node.  it will be the last nodable in the var context
@@ -414,6 +466,9 @@ public class ScanChainXML {
             int found = chain.numScanElements();
             System.out.println("Info: completed successfully: chain "+oneChainName+" had "+found+" scan chain elements");
             chains.add(chain);
+        } else {
+            System.out.println("No starting point, aborting.");
+            return;
         }
         // post process
         postProcessEntitiesRemovePassThroughs();
@@ -497,19 +552,19 @@ public class ScanChainXML {
         protected int length;                         // not output if 0 or less
         protected String access;                      // not output if null
         protected String clears;                      // not output if null
-        protected String dataNet;                     // network data is written to, not output if null
-        protected String dataNetBar;                  // network dataBar is written to, not output if null
+        protected DataNet dataNet;                     // network data is written to, not output if null
+        protected DataNet dataNet2;                  // network dataBar is written to, not output if null
         private List subchains;                       // list of ScanChainInstances
 
         private Chain(String name, int opcode, int length, String access, String clears,
-                      String dataNet, String dataNetBar) {
+                      DataNet dataNet, DataNet dataNet2) {
             this.name = name;
             this.opcode = opcode;
             this.length = length;
             this.access = access;
             this.clears = clears;
             this.dataNet = dataNet;
-            this.dataNetBar = dataNetBar;
+            this.dataNet2 = dataNet2;
             subchains = new ArrayList();
         }
         private Chain(String name, int opcode, int length) {
@@ -549,7 +604,7 @@ public class ScanChainXML {
             if (access != null) out.print(" access=\""+access+"\"");
             if (clears != null) out.print(" clears=\""+clears+"\"");
             if (dataNet != null) out.print(" dataNet=\""+dataNet+"\"");
-            if (dataNetBar != null) out.print(" dataNetBar=\""+dataNetBar+"\"");
+            if (dataNet2 != null) out.print(" dataNet2=\""+dataNet2+"\"");
 
             // short hand if no elements
             if (subchains.size() == 0) {
@@ -639,8 +694,8 @@ public class ScanChainXML {
     private static class SubChain extends Chain {
         private boolean passThrough;
 
-        private SubChain(String name, int length, String access, String clears, String dataNet, String dataNetBar) {
-            super(name, -1, length, access, clears, dataNet, dataNetBar);
+        private SubChain(String name, int length, String access, String clears, DataNet dataNet, DataNet dataNet2) {
+            super(name, -1, length, access, clears, dataNet, dataNet2);
             passThrough = false;
         }
         private SubChain(String name, int length) {
@@ -662,7 +717,7 @@ public class ScanChainXML {
         }
 
         public Object clone() {
-            SubChain sub = new SubChain(name, length, access, clears, dataNet, dataNetBar);
+            SubChain sub = new SubChain(name, length, access, clears, dataNet, dataNet2);
             this.copyTo(sub);
             sub.passThrough = passThrough;
             return sub;
@@ -872,13 +927,17 @@ public class ScanChainXML {
                     // conglomerate into one subchain
                     int size = no.getNodeInst().getNameKey().busWidth();
                     sub = new SubChain(no.getNodeInst().getName(), size, e.access, e.clears,
-                            getNetName(no, e.dataport), getNetName(no, e.dataportBar));
+                            e.dataport, e.dataport2);
+                    //sub = new SubChain(no.getNodeInst().getName(), size, e.access, e.clears,
+                    //        getScanDataNet(no, e.dataport), getScanDataNet(no, e.dataport2));
                     Nodable lastNo = Netlist.getNodableFor(no.getNodeInst(), size-1);
                     outport = getPort(lastNo, e.outport);
                     no = no.getNodeInst();
                 } else {
                     sub = new SubChain(no.getName(), 1, e.access, e.clears,
-                        getNetName(no, e.dataport), getNetName(no, e.dataportBar));
+                        e.dataport, e.dataport2);
+                    //sub = new SubChain(no.getName(), 1, e.access, e.clears,
+                    //    getScanDataNet(no, e.dataport), getScanDataNet(no, e.dataport2));
                     // find output port
                     outport = getPort(no, e.outport);
                 }
@@ -904,6 +963,13 @@ public class ScanChainXML {
 
         //System.out.println("Error! Scan chain terminated on node "+ni.getName()+" ("+ni.getParent().getName()+")");
         return null;
+    }
+
+    private DataNet getScanDataNet(Nodable no, DataNet definition) {
+        if (definition == null) return null;
+        String name = getNetName(no, definition.net);
+        return new DataNet(name, definition.options);
+
     }
 
     // get the network name connect to port 'portName' on 'no'.  Returns null if none found.
@@ -1067,7 +1133,7 @@ public class ScanChainXML {
         int reduced = 1;
         while (reduced > 0) {
             reduced = 0;
-            /* can't do this anymore with dataNet and dataNetBar attributes
+            /* can't do this anymore with dataNet and dataNet2 attributes
             for (Iterator it = entities.values().iterator(); it.hasNext(); ) {
                 Entity ent = (Entity)it.next();
                 // if lots of subchains with the same clears and access, consolidate them
@@ -1114,14 +1180,15 @@ public class ScanChainXML {
                         ent.length = sub.length;
                         ent.access = sub.access;
                         ent.clears = sub.clears;
-                        if (sub.dataNet != null && !sub.dataNet.equals(""))
-                            ent.dataNet = "x" + sub.name + "." + sub.dataNet;
+                        // on first iteration, do not add sub name, because net is not inside sub
+                        if (sub.dataNet != null)
+                            ent.dataNet = new DataNet("x" + inst.getName() + "." + sub.dataNet.net, sub.dataNet.options);
                         else
                             ent.dataNet = null;
-                        if (sub.dataNetBar != null && !sub.dataNetBar.equals(""))
-                            ent.dataNetBar = "x" + sub.name + "." + sub.dataNetBar;
+                        if (sub.dataNet2 != null)
+                            ent.dataNet2 = new DataNet("x" + inst.getName() + "." + sub.dataNet2.net, sub.dataNet2.options);
                         else
-                            ent.dataNetBar = null;
+                            ent.dataNet2 = null;
                         ent.remove(inst);
                         reduced++;
                     }
