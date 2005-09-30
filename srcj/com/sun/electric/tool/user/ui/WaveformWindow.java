@@ -4319,7 +4319,9 @@ if (wp.signalButtons != null)
 		}
 		if (foundSignal) repaint();
 
-		// show it in the "Signals" tree
+		// show only one in the "Signals" tree
+		Collections.sort(found, new SignalsByName());
+		DefaultTreeModel model = (DefaultTreeModel)tree.getTreeModel();
 		for(Iterator fIt = found.iterator(); fIt.hasNext(); )
 		{
 			Signal sSig = (Signal)fIt.next();
@@ -4329,9 +4331,9 @@ if (wp.signalButtons != null)
 				if (treeNode instanceof DefaultMutableTreeNode)
 				{
 					DefaultMutableTreeNode dmtn = (DefaultMutableTreeNode)treeNode;
-					DefaultTreeModel model = (DefaultTreeModel)tree.getTreeModel();
 					TreePath selTP = new TreePath(model.getPathToRoot(dmtn));
 					tree.setSelectionPath(selTP);
+					break;
 				}
 			}
 		}
@@ -4357,7 +4359,7 @@ if (wp.signalButtons != null)
 			{
 				NodeInst ni = (NodeInst)geom;
 				String nodeName = "I(v" + ni.getName();
-				Signal sSig = sd.findSignalForNetwork(nodeName);
+				Signal sSig = sd.findSignalForNetworkQuickly(nodeName);
 				if (sSig != null)
 				{
 					found.add(sSig);
@@ -4372,11 +4374,11 @@ if (wp.signalButtons != null)
 		{
 			Network net = (Network)it.next();
 			String netName = getSpiceNetName(context, net);
-			Signal sSig = sd.findSignalForNetwork(netName);
+			Signal sSig = sd.findSignalForNetworkQuickly(netName);
 			if (sSig == null)
 			{
 				netName = netName.replace('@', '_');
-				sSig = sd.findSignalForNetwork(netName);
+				sSig = sd.findSignalForNetworkQuickly(netName);
 			}
 			if (sSig != null) found.add(sSig);
 		}

@@ -1,27 +1,28 @@
-<!-- NEED 5in -->
+<!-- NEED 2in -->
 
-<!-- HEADER 9-2-3: Coverage Rules -->
+<!-- HEADER 9-2-3: Schematic DRC -->
 
-<!-- COMMAND Tool/DRC/Check Area Coverage -->
-<!-- COMMAND Tool/DRC/List Layer Coverage on Cell -->
-<!-- PREFERENCE Tools/Coverage -->
+Although the Design Rule checker is primarily for layout, it can also check schematic cells.
+When run on Schematics, the checker is looking for issues that make the drawing or editing of the cell difficult.
+<P>
+Here are the errors found by the schematic DRC:
+<OL>
+<LI>Nodes:
+	<UL>
+	<LI>Flag nodes whose parameters don't match the cell definition (check export names, units, and visibility).</LI>
+	<LI>Flag "Stranded" pins: with no connections, exports, or attached text.</LI>
+	<LI>Flag "Inline" pins: those that sit in a line between two arcs (both of which could be replaced by a single straight arc).</LI>
+	<LI>Flag invisible pins with text that is offset from the node center (this is an internal consistency check).</LI>
+	</UL></LI>
 
-Some foundries request that each layer occupy a minimum percentage of the chip.
-To enforce such rules, additional pieces of geometry must be placed around the chip to fill that layer.
-<P>
-<TABLE><TR><TD>
-To check for proper minimum layer coverage, use the <B>Check Area Coverage</B> command
-(in menu <B>Tool / DRC</B>).
-To control the coverage rules, use the "Coverage" preferences
-(in menu <B>File / Preferences...</B>, "Tools" section, "Coverage" tab).
-Each layer in the technology has a minimum percentage of coverage that is needed.
-<P>
-The coverage check proceeds in a "tiled" manner, checking rectangular areas of the cell.
-For example, to check each 100x100 unit area of the cell, set "Width" and "Height" to 100,
-and set "DeltaX" and "DeltaY" to 100.
-</TD><TD><CENTER><IMG SRC="fig09-01.png" ALT="Figure 9.1"></CENTER></TD></TR></TABLE>
-<P>
-The <B>List Layer Coverage on Cell</B> command is another way to compute the percentage of the cell that is covered by each layer.
-This command covers the entire cell without breaking it into tiled rectangles.
+
+<LI>Arcs:
+	<UL>
+	<LI>Flag unnamed arcs that "dangle": one end is unconnected and unexported (does not apply to busses).</LI>
+	<LI>Flag Bus arcs whose width is inconsistent with its two nodes.</LI>
+	<LI>Flag Bus pins that "float": do not connect to bus arcs and are not exported.</LI>
+	<LI>Flag Bus pins that connect to more than 1 wire.</LI>
+	</UL></LI>
+</OL>
 
 <!-- TRAILER -->

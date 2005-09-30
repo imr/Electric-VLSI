@@ -31,6 +31,7 @@ import com.sun.electric.tool.user.ui.WaveformWindow;
 import java.awt.geom.Rectangle2D;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -60,6 +61,7 @@ public class Stimuli
 	/** the type of data in this Stimuli */						private FileType type;
 	/** the disk file associated with this Stimuli */			private URL fileURL;
 	/** a list of all signals in this Stimuli */				private List signals;
+	/** a map of all signal names in this Stimuli */			private HashMap signalNames;
 	/** a list of all bussed signals in this Stimuli */			private List allBussedSignals;
 	/** all sweeps in this Stimuli */							private List sweeps;
 	/** the separator character that breaks names */			private char separatorChar;
@@ -72,6 +74,7 @@ public class Stimuli
 	public Stimuli()
 	{
 		signals = new ArrayList();
+		signalNames = new HashMap();
 		sweeps = new ArrayList();
 		allBussedSignals = new ArrayList();
 		sweepCommonTime = new ArrayList();
@@ -90,13 +93,24 @@ public class Stimuli
 	 */
 	public List getBussedSignals() { return allBussedSignals; }
 
+	public void nameSignal(Signal ws, String sigName)
+	{
+		String name = TextUtils.canonicString(sigName);
+		signalNames.put(name, ws);
+	}
+
 	/**
 	 * Method to add a new signal to this Simulation Data object.
 	 * Signals can be either digital or analog.
 	 * @param ws the signal to add.
 	 * Instead of a "Signal", use either DigitalSignal or AnalogSignal.
 	 */
-	public void addSignal(Signal ws) { signals.add(ws); }
+	public void addSignal(Signal ws)
+	{
+		signals.add(ws);
+		String sigName = ws.getFullName();
+		if (sigName != null) nameSignal(ws, sigName);
+	}
 
 	/**
 	 * Method to construct an array of time values that are common to all signals.
@@ -292,7 +306,22 @@ public class Stimuli
 	}
 
 	/**
-	 * Method to return the signal that corresponds to a given Network.
+	 * Method to quickly return the signal that corresponds to a given Network name.
+	 * Not all names may be found (because of name mangling, which this method does not handle).
+	 * But the lookup is faster than "findSignalForNetwork".
+	 * @param netName the Network name to find.
+	 * @return the Signal that corresponds with the Network.
+	 * Returns null if none can be found.
+	 */
+	public Signal findSignalForNetworkQuickly(String netName)
+	{
+		String lookupName = TextUtils.canonicString(netName);
+		Signal sSig = (Signal)signalNames.get(lookupName);
+		return sSig;
+	}
+
+	/**
+	 * Method to return the signal that corresponds to a given Network name.
 	 * @param netName the Network name to find.
 	 * @return the Signal that corresponds with the Network.
 	 * Returns null if none can be found.

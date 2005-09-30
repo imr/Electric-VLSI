@@ -59,7 +59,7 @@ public class Signal
 		boundsCurrent = false;
 		busCount = 0;
 		controlPoints = null;
-		if (sd != null) sd.getSignals().add(this);
+		if (sd != null) sd.addSignal(this);
 	}
 
 	/**
@@ -67,7 +67,11 @@ public class Signal
 	 * The name does not include any hierarchical path information: it is just a simple name.
 	 * @param signalName the name of this simulation signal.
 	 */
-	public void setSignalName(String signalName) { this.signalName = signalName; }
+	public void setSignalName(String signalName)
+	{
+		this.signalName = signalName;
+		sd.nameSignal(this, signalName);
+	}
 
 	/**
 	 * Method to return the name of this simulation signal.
