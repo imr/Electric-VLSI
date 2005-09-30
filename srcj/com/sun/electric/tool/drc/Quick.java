@@ -583,7 +583,9 @@ public class Quick
 			int retval = checkThisCell((Cell)np, localIndex, subBounds, validVersion);
 			if (retval < 0)
 				return retval;
-			if (retval > 0) allSubCellsStillOK = false;
+            // if cell is in goodDRCDate it means it changes its date for some reason.
+			if (retval > 0 || goodDRCDate.get(np) != null) allSubCellsStillOK = false;
+//            if (retval > 0) allSubCellsStillOK = false;
 		}
 
 		// prepare to check cell

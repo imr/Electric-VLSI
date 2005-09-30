@@ -60,7 +60,7 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 	private WindowFrame frame;
 	private String coords = null;
 	private String hierCoords = null;
-	private JLabel fieldSelected, fieldSize, fieldTech, fieldFoundry, fieldCoords, fieldHierCoords;
+	private JLabel fieldSelected, fieldSize, fieldTech, fieldCoords, fieldHierCoords;
 
 	private static String selectionOverride = null;
 
@@ -74,26 +74,18 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 		addField(fieldSelected, 0, 0, 1);
 
 		fieldSize = new JLabel();
-		Dimension d = new Dimension(140, 16);
+		Dimension d = new Dimension(300, 16);
         fieldSize.setMinimumSize(d);
         fieldSize.setMaximumSize(d);
         fieldSize.setPreferredSize(d);
 		addField(fieldSize, 1, 0, 1);
 
         fieldTech = new JLabel();
-        d = new Dimension (200, 16);
+        d = new Dimension (400, 16);
         fieldTech.setMinimumSize(d);
         fieldTech.setMaximumSize(d);
         fieldTech.setPreferredSize(d);
         addField(fieldTech, 2, 0, 1);
-
-        // To display manufacturer/foundry if applicable
-        fieldFoundry = new JLabel();
-        d = new Dimension (200, 16);
-        fieldFoundry.setMinimumSize(d);
-        fieldFoundry.setMaximumSize(d);
-        fieldFoundry.setPreferredSize(d);
-        addField(fieldFoundry, 2, 1, 1);
 
         fieldCoords = new JLabel();
         fieldCoords.setMinimumSize(new Dimension(100, 16));
@@ -120,7 +112,11 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.gridx = x;   gbc.gridy = y;
 		gbc.gridwidth = width;
-        if (x == 0) { gbc.weightx = 1.0; gbc.fill = GridBagConstraints.HORIZONTAL; }
+        if (x == 0)
+        {
+            gbc.weightx = 0.2;
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+        }
         //gbc.ipadx = 5;
         gbc.anchor = GridBagConstraints.WEST;
         int rightInsert = (TopLevel.getOperatingSystem() == TopLevel.OS.MACINTOSH) ? 20 : 4;
@@ -272,13 +268,14 @@ public class StatusBar extends JPanel implements HighlightListener, DatabaseChan
 		if (tech != null)
 		{
 			String message = "TECH: " + tech.getTechName();
-			if (tech.isScaleRelevant()) message += " (scale=" + tech.getScale() + "nm)";
-			fieldTech.setText(message);
             String foundry = tech.getSelectedFoundry();
-            message = "";
-            if (!foundry.equals("")) // relevant foundry
-                message = "FOUNDRY: " + foundry;
-            fieldFoundry.setText(message);
+
+            boolean validFoundry = !foundry.equals("");
+			if (tech.isScaleRelevant()) message += " (scale=" + tech.getScale() + "nm";
+            if (!validFoundry) message += ")";
+            else // relevant foundry
+                message += ",foundry=" + foundry + ")";
+             fieldTech.setText(message);
 		}
 
 		if (coords == null) fieldCoords.setText(""); else

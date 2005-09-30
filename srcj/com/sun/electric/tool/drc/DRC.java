@@ -766,7 +766,7 @@ public class DRC extends Listener
 	public static void setNumberOfThreads(int th) { cacheNumberOfThreads.setInt(th); }
 
 	private static Pref cacheIgnoreCenterCuts = Pref.makeBooleanPref("IgnoreCenterCuts", tool.prefs, false);
-    static { cacheIgnoreCenterCuts.attachToObject(tool, "Tools/DRC tab", "DRC ignores center cuts in large contacts"); }
+//    static { cacheIgnoreCenterCuts.attachToObject(tool, "Tools/DRC tab", "DRC ignores center cuts in large contacts"); }
 	/**
 	 * Method to tell whether DRC should ignore center cuts in large contacts.
 	 * Only the perimeter of cuts will be checked.
@@ -782,7 +782,7 @@ public class DRC extends Listener
 	public static void setIgnoreCenterCuts(boolean on) { cacheIgnoreCenterCuts.setBoolean(on); }
 
     private static Pref cacheIgnoreAreaChecking = Pref.makeBooleanPref("IgnoreAreaCheck", tool.prefs, false);
-    static { cacheIgnoreAreaChecking.attachToObject(tool, "Tools/DRC tab", "DRC ignores area checking"); }
+//    static { cacheIgnoreAreaChecking.attachToObject(tool, "Tools/DRC tab", "DRC ignores area checking"); }
 	/**
 	 * Method to tell whether DRC should ignore minimum/enclosed area checking.
 	 * The default is "false".
@@ -796,7 +796,7 @@ public class DRC extends Listener
 	public static void setIgnoreAreaChecking(boolean on) { cacheIgnoreAreaChecking.setBoolean(on); }
 
     private static Pref cacheIgnoreExtensionRuleChecking = Pref.makeBooleanPref("IgnoreExtensionRuleCheck", tool.prefs, false);
-    static { cacheIgnoreExtensionRuleChecking.attachToObject(tool, "Tools/DRC tab", "DRC extension rule checking"); }
+//    static { cacheIgnoreExtensionRuleChecking.attachToObject(tool, "Tools/DRC tab", "DRC extension rule checking"); }
 	/**
 	 * Method to tell whether DRC should check extension rules.
 	 * The default is "false".

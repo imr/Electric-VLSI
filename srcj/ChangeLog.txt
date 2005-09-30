@@ -4,6 +4,12 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (09/30/05, GVG) preferences don't "stick" (Bug#575).
+FIX: Making DRC options not meaning variables to avoid confusion.
+
+IMP/MAN: (09/30/05, GVG) Foundry in StatusBar part of technology message. It can't be in
+second row because of hierarchical information. See "IMP/MAN: (09/21/05, GVG) Foundry shown.."
+
 IMP: (09/30/05, SMR) Modified some "Preferences" panels to have their own technology popup.
 
 IMP: (09/30/05, SMR) When plotting simulation output, prompt for associated cell allows
