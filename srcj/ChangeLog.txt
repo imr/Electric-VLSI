@@ -4,6 +4,16 @@ NOTE: Please place changes under the version that will be released next.
 
 ************************* Version 8.04a: *********************************
 
+BUG: (09/30/05, SMR) Crossprobing from the schematics to the waveform window takes too long (Bug #583).
+FIX: Use hash tables to optimize name lookup.
+
+IMP: (09/29/05, SMR) Added keyboard shortcut listing in manual.
+
+IMP: (09/29/05, SMR) Added manual entry for schematic DRC.
+
+IMP: (09/29/05, SMR) Added section in "Layout Tutorial" of manual that explains
+     how to connect a contact to a transistor.
+
 BUG: (09/30/05, GVG) Solid colors in ColorsTab are not updated because the information
 relies on values found in LayersTab (Bug #589).
 FIX: Make layerMap in LayersTab a singleton.
