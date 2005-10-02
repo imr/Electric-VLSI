@@ -33,8 +33,8 @@ import com.sun.electric.database.hierarchy.Library;
 import com.sun.electric.database.topology.ArcInst;
 import com.sun.electric.database.topology.NodeInst;
 import com.sun.electric.database.topology.PortInst;
-import com.sun.electric.database.variable.ImmutableTextDescriptor;
 import com.sun.electric.database.variable.ElectricObject;
+import com.sun.electric.database.variable.TextDescriptor;
 
 import java.util.Collection;
 
@@ -105,7 +105,7 @@ public class Listener extends Tool implements Changes
      * @param varName name of variable or special name.
      * @param oldDescriptor old text descriptor.
 	 */
-	public void modifyTextDescript(ElectricObject obj, String varName, ImmutableTextDescriptor oldDescriptor) {}
+	public void modifyTextDescript(ElectricObject obj, String varName, TextDescriptor oldDescriptor) {}
 
 	/**
 	 * Method to handle the creation of a new ElectricObject.
